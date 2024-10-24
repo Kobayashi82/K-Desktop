@@ -1,0 +1,920 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{4D7AEF5B-0DC4-4520-BC43-1DBBB6CC9D91}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <StartupObject>KDesktop.My.MyApplication</StartupObject>
+    <RootNamespace>KDesktop</RootNamespace>
+    <AssemblyName>KDesktop</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <MyType>WindowsForms</MyType>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <TargetFrameworkProfile />
+    <PublishUrl>publicar\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DocumentationFile>KDesktop.xml</DocumentationFile>
+    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>KDesktop.xml</DocumentationFile>
+    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <Prefer32Bit>false</Prefer32Bit>
+    <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionExplicit>On</OptionExplicit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionCompare>Binary</OptionCompare>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionStrict>Off</OptionStrict>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionInfer>On</OptionInfer>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>KDesktop.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>My Project\app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DocumentationFile>KDesktop.xml</DocumentationFile>
+    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DocumentationFile>KDesktop.xml</DocumentationFile>
+    <Optimize>true</Optimize>
+    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="AudioDeviceCmdlets, Version=3.0.0.2, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\AudioDeviceCmdlets.3.0.0.2\lib\net45\AudioDeviceCmdlets.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="AxInterop.WMPLib">
+      <HintPath>bin\x64\Debug\AxInterop.WMPLib.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="IconLib, Version=0.74.3.0, Culture=neutral, PublicKeyToken=9c8a655eb595762a, processorArchitecture=MSIL">
+      <HintPath>packages\IconLib.0.74.3\lib\net40\IconLib.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Interop.NetFwTypeLib">
+      <HintPath>..\..\..\..\..\Downloads\gmaWindowsFirewall\gma.Windows.Firewall\gma.Windows.Firewall\bin\Debug\Interop.NetFwTypeLib.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Interop.WMPLib">
+      <HintPath>bin\x64\Debug\Interop.WMPLib.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Win32.TaskScheduler, Version=2.9.2.0, Culture=neutral, PublicKeyToken=e25603a88b3aa7da, processorArchitecture=MSIL">
+      <HintPath>packages\TaskScheduler.2.9.2\lib\net452\Microsoft.Win32.TaskScheduler.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="NAudio, Version=1.10.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\NAudio.1.10.0\lib\net35\NAudio.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="NAudio.Lame, Version=1.1.6.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\NAudio.Lame.1.1.6\lib\netstandard2.0\NAudio.Lame.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="ScreenRecorderLib, Version=1.0.7911.4555, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\x64\ScreenRecorderLib.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>packages\System.Management.Automation_PowerShell_3.0.6.3.9600.17400\lib\net40\System.Management.Automation.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Speech" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.Data" />
+    <Import Include="System.Drawing" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.Windows.Forms" />
+    <Import Include="System.Linq" />
+    <Import Include="System.Xml.Linq" />
+    <Import Include="System.Threading.Tasks" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ApplicationEvents.vb" />
+    <Compile Include="FAudioRecorder.Designer.vb">
+      <DependentUpon>FAudioRecorder.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FAudioRecorder.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FAyuda.Designer.vb">
+      <DependentUpon>FAyuda.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FAyuda.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FCapturarPantalla.Designer.vb">
+      <DependentUpon>FCapturarPantalla.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FCapturarPantalla.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FComandoRapido.Designer.vb">
+      <DependentUpon>FComandoRapido.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FComandoRapido.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FFirstRun.Designer.vb">
+      <DependentUpon>FFirstRun.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FFirstRun.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FIconDialog.Designer.vb">
+      <DependentUpon>FIconDialog.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FIconDialog.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FIdentificarPantalla.Designer.vb">
+      <DependentUpon>FIdentificarPantalla.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FIdentificarPantalla.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FImportar.Designer.vb">
+      <DependentUpon>FImportar.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FImportar.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FKLink.Designer.vb">
+      <DependentUpon>FKLink.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FKLink.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FLogros.Designer.vb">
+      <DependentUpon>FLogros.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FLogros.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FMenu.designer.vb">
+      <DependentUpon>FMenu.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FMenu.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FMsgBox.Designer.vb">
+      <DependentUpon>FMsgBox.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FMsgBox.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FNombreIcono.Designer.vb">
+      <DependentUpon>FNombreIcono.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FNombreIcono.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form1.Designer.vb">
+      <DependentUpon>Form1.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Form1.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FDebug.designer.vb">
+      <DependentUpon>FDebug.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FDebug.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmNotification.designer.vb">
+      <DependentUpon>FrmNotification.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FrmNotification.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FSelectDisplay.Designer.vb">
+      <DependentUpon>FSelectDisplay.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FSelectDisplay.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FSerialGenerator.Designer.vb">
+      <DependentUpon>FSerialGenerator.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FSerialGenerator.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FVideoRecorderEditor.Designer.vb">
+      <DependentUpon>FVideoRecorderEditor.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FVideoRecorderEditor.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FRenombrar.Designer.vb">
+      <DependentUpon>FRenombrar.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FRenombrar.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FSerial.Designer.vb">
+      <DependentUpon>FSerial.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FSerial.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FVideoRecorder.Designer.vb">
+      <DependentUpon>FVideoRecorder.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FVideoRecorder.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="My Project\AssemblyInfo.vb" />
+    <Compile Include="My Project\Application.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Application.myapp</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="My Project\Resources.Designer.vb">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Settings.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="Net Seal.vb">
+      <SubType>Component</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="FAudioRecorder.resx">
+      <DependentUpon>FAudioRecorder.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FAyuda.resx">
+      <DependentUpon>FAyuda.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FCapturarPantalla.resx">
+      <DependentUpon>FCapturarPantalla.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FComandoRapido.resx">
+      <DependentUpon>FComandoRapido.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FFirstRun.resx">
+      <DependentUpon>FFirstRun.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FIconDialog.resx">
+      <DependentUpon>FIconDialog.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FIdentificarPantalla.resx">
+      <DependentUpon>FIdentificarPantalla.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FImportar.resx">
+      <DependentUpon>FImportar.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FKLink.resx">
+      <DependentUpon>FKLink.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FLogros.resx">
+      <DependentUpon>FLogros.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FMenu.resx">
+      <DependentUpon>FMenu.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FMsgBox.resx">
+      <DependentUpon>FMsgBox.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FNombreIcono.resx">
+      <DependentUpon>FNombreIcono.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form1.resx">
+      <DependentUpon>Form1.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FDebug.resx">
+      <DependentUpon>FDebug.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmNotification.resx">
+      <DependentUpon>FrmNotification.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FSelectDisplay.resx">
+      <DependentUpon>FSelectDisplay.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FSerialGenerator.resx">
+      <DependentUpon>FSerialGenerator.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FVideoRecorderEditor.resx">
+      <DependentUpon>FVideoRecorderEditor.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FRenombrar.resx">
+      <DependentUpon>FRenombrar.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FSerial.resx">
+      <DependentUpon>FSerial.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FVideoRecorder.resx">
+      <DependentUpon>FVideoRecorder.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="My Project\Resources.resx">
+      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".editorconfig" />
+    <None Include="My Project\app.manifest" />
+    <None Include="My Project\Application.myapp">
+      <Generator>MyApplicationCodeGenerator</Generator>
+      <LastGenOutput>Application.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="My Project\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <CustomToolNamespace>My</CustomToolNamespace>
+      <LastGenOutput>Settings.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\CE_WindowsApps.ico" />
+    <None Include="Resources\CE_PowerShell.ico" />
+    <None Include="Resources\CE_K-Link.ico" />
+    <None Include="Resources\KPS.exe" />
+    <None Include="Resources\Teclas_UnChecked.png" />
+    <None Include="Resources\Teclas_Checked.png" />
+    <None Include="Resources\Accion_Aplicacion.ico" />
+    <None Include="Resources\Accion_AbrirCarpeta.ico" />
+    <None Include="Resources\Accion_Volumen.ico" />
+    <None Include="Resources\Accion_TopMost.ico" />
+    <None Include="Resources\Accion_Salida_Audio.ico" />
+    <None Include="Resources\Accion_ReproducirSonido.ico" />
+    <None Include="Resources\Accion_QuickMenu.ico" />
+    <None Include="Resources\Accion_Mensaje.ico" />
+    <None Include="Resources\Accion_Macros.ico" />
+    <None Include="Resources\Accion_K-Board.ico" />
+    <None Include="Resources\Accion_Grabar_Pantalla.ico" />
+    <None Include="Resources\Accion_Grabar_Audio.ico" />
+    <None Include="Resources\Accion_Esperar.ico" />
+    <None Include="Resources\Accion_EnviarPulsacion.ico" />
+    <None Include="Resources\Accion_Desactivar.ico" />
+    <None Include="Resources\Accion_Comandos.ico" />
+    <None Include="Resources\Accion_Capturar_Pantalla.ico" />
+    <None Include="Resources\Accion_Bat.ico" />
+    <None Include="Resources\Accion_Archivos_Ocultos.ico" />
+    <None Include="Resources\Accion_Aplicaciones.ico" />
+    <None Include="Resources\Accion_Apagar_Equipo.ico" />
+    <None Include="Resources\Accion_Ad-Hoc.ico" />
+    <None Include="Resources\QuickMenu_Eliminado.ico" />
+    <None Include="Resources\Carpetas.ico" />
+    <None Include="Resources\System.Management.Automation.dll" />
+    <None Include="Resources\NAudio.dll" />
+    <None Include="Resources\Microsoft.Win32.TaskScheduler.dll" />
+    <None Include="Resources\IconLib.dll" />
+    <None Include="Resources\AudioDeviceCmdlets.dll" />
+    <None Include="Resources\ScreenRecorderLib.dll" />
+    <None Include="Resources\NAudio.Lame.dll" />
+    <None Include="Resources\libmp3lame.64.dll" />
+    <None Include="Resources\libmp3lame.32.dll" />
+    <None Include="Resources\Interop.WMPLib.dll" />
+    <None Include="Resources\AxInterop.WMPLib.dll" />
+    <None Include="Resources\QuickMenu_EnviarPulsacion.ico" />
+    <None Include="Resources\QuickMenu_Volumen.ico" />
+    <None Include="Resources\QuickMenu_TopMost.ico" />
+    <None Include="Resources\QuickMenu_Sonidos.ico" />
+    <None Include="Resources\QuickMenu_Salida_Audio.ico" />
+    <None Include="Resources\QuickMenu_QuickMenu.ico" />
+    <None Include="Resources\QuickMenu_Mensaje.ico" />
+    <None Include="Resources\QuickMenu_Macros.ico" />
+    <None Include="Resources\QuickMenu_K-Board.ico" />
+    <None Include="Resources\QuickMenu_Grabar_Pantalla.ico" />
+    <None Include="Resources\QuickMenu_Grabar_Audio.ico" />
+    <None Include="Resources\QuickMenu_Esperar.ico" />
+    <None Include="Resources\QuickMenu_Desactivar.ico" />
+    <None Include="Resources\QuickMenu_Comandos.ico" />
+    <None Include="Resources\QuickMenu_Capturar_Pantalla.ico" />
+    <None Include="Resources\QuickMenu_Bat.ico" />
+    <None Include="Resources\QuickMenu_Archivos_Ocultos.ico" />
+    <None Include="Resources\QuickMenu_Aplicaciones.ico" />
+    <None Include="Resources\QuickMenu_Apagar_Equipo.ico" />
+    <None Include="Resources\QuickMenu_Ad-Hoc.ico" />
+    <None Include="Resources\QuickMenu.ico" />
+    <None Include="Resources\Juegos.ico" />
+    <None Include="Resources\Firefox.ico" />
+    <None Include="Resources\Favoritos.ico" />
+    <None Include="Resources\Eliminado.ico" />
+    <None Include="Resources\CE_VaciarPapelera.ico" />
+    <None Include="Resources\CE_TecladoPantalla.ico" />
+    <None Include="Resources\CE_TaskSwitcher.ico" />
+    <None Include="Resources\CE_GodMode.ico" />
+    <None Include="Resources\CE_EquipoWin.ico" />
+    <None Include="Resources\CE_Descargas.ico" />
+    <None Include="Resources\BitTorrent.ico" />
+    <None Include="Resources\BatFile.ico" />
+    <None Include="Resources\KBoard_Reset_On.png" />
+    <None Include="Resources\KBoard_Reset_Off.png" />
+    <None Include="Resources\NoImage.jpg" />
+    <None Include="Resources\Search_Off.png" />
+    <None Include="Resources\Ocultar_Oculto_On.png" />
+    <None Include="Resources\Ocultar_Oculto_Off.png" />
+    <None Include="Resources\Ocultar_Mostrado_On.png" />
+    <None Include="Resources\Ocultar_Mostrado_Off.png" />
+    <None Include="Resources\Search_On.png" />
+    <None Include="Resources\NewLogo.png" />
+    <None Include="Resources\Undo_No.png" />
+    <None Include="Resources\Redo_No.png" />
+    <None Include="Resources\GrabacionVideo_Editar_No.png" />
+    <None Include="Resources\Editar_Imagen_No.png" />
+    <None Include="Resources\Save_No.png" />
+    <None Include="Resources\Copiar_Imagen_No.png" />
+    <None Include="Resources\Aceptar_On.png" />
+    <None Include="Resources\Aceptar_Off.png" />
+    <None Include="Resources\BCerrar_On.png" />
+    <None Include="Resources\BCerrar_Off.png" />
+    <None Include="Resources\BAceptar_On.png" />
+    <None Include="Resources\BAceptar_Off.png" />
+    <None Include="Resources\Telegram_No.png" />
+    <None Include="Resources\Logros_On.png" />
+    <None Include="Resources\Logros_Off.png" />
+    <None Include="Resources\Ayuda_On.png" />
+    <None Include="Resources\Ayuda_Off.png" />
+    <None Include="Resources\Importar_On.png" />
+    <None Include="Resources\Importar_Off.png" />
+    <None Include="Resources\Exportar_On.png" />
+    <None Include="Resources\Exportar_Off.png" />
+    <None Include="Resources\Copiar_Imagen_On.png" />
+    <None Include="Resources\Copiar_Imagen_Off.png" />
+    <None Include="Resources\Editar_Imagen_On.png" />
+    <None Include="Resources\Editar_Imagen_Off.png" />
+    <None Include="Resources\Save_On.png" />
+    <None Include="Resources\Save_Off.png" />
+    <None Include="Resources\Undo_On.png" />
+    <None Include="Resources\Undo_Off.png" />
+    <None Include="Resources\Redo_On.png" />
+    <None Include="Resources\Redo_Off.png" />
+    <None Include="Resources\Telegram_On.png" />
+    <None Include="Resources\Telegram_Off.png" />
+    <None Include="Resources\SaveVideo_On.png" />
+    <None Include="Resources\SaveVideo_Off.png" />
+    <None Include="Resources\Cerrar_On.png" />
+    <None Include="Resources\Cerrar_Off.png" />
+    <None Include="Resources\image.png" />
+    <None Include="Resources\image %281%29.png" />
+    <None Include="Resources\KBoard_RButton.jpg" />
+    <None Include="Resources\KBoard_None.jpg" />
+    <None Include="Resources\KBoard_MButton.jpg" />
+    <None Include="Resources\KBoard_LButton.jpg" />
+    <None Include="Resources\KBoard_Button5.jpg" />
+    <None Include="Resources\KBoard_Button4.jpg" />
+    <None Include="Resources\Logros_Sort_Nombre_On.png" />
+    <None Include="Resources\Logros_Sort_Nombre_Off.png" />
+    <None Include="Resources\Logros_Sort_Fecha_On.png" />
+    <None Include="Resources\Logros_Sort_Fecha_Off.png" />
+    <None Include="Resources\Logro.jpg" />
+    <None Include="Resources\Teclas_Scroll.png" />
+    <None Include="Resources\Teclas_Raton.png" />
+    <None Include="Resources\Teclas_Otros.png" />
+    <None Include="Resources\Teclas_Numero.png" />
+    <None Include="Resources\Teclas_Numeric.png" />
+    <None Include="Resources\Teclas_Multimedia.png" />
+    <None Include="Resources\Teclas_Modificador.png" />
+    <None Include="Resources\Teclas_Letra.png" />
+    <None Include="Resources\Teclas_Funcion.png" />
+    <None Include="Resources\Teclas_Scroll2.png" />
+    <None Include="Resources\Teclas_Multimedia2.png" />
+    <None Include="Resources\Teclas_Raton2.png" />
+    <None Include="Resources\Teclas_Numeric2.png" />
+    <None Include="Resources\CComandos_On.jpg" />
+    <None Include="Resources\CComandos_Off.jpg" />
+    <None Include="Resources\Logro_Actualizador.jpg" />
+    <None Include="Resources\Logro.wav" />
+    <None Include="Resources\EjecutarBAT_Save_Off.png" />
+    <None Include="Resources\EjecutarBAT_Save.png" />
+    <None Include="Resources\EjecutarBAT_Run_Off.png" />
+    <None Include="Resources\EjecutarBAT_Run.png" />
+    <None Include="Resources\EjecutarBAT_Open_Off.png" />
+    <None Include="Resources\EjecutarBAT_Open.png" />
+    <None Include="Resources\EjecutarBAT_Notepad_Off.png" />
+    <None Include="Resources\EjecutarBAT_Notepad.png" />
+    <None Include="Resources\EjecutarBAT_New_Off.png" />
+    <None Include="Resources\EjecutarBAT_New.png" />
+    <None Include="Resources\Ayuda_LicenciaKDesktop.png" />
+    <None Include="Resources\Ayuda_CrearComando.png" />
+    <None Include="Resources\Ayuda_ComandosRemotos.png" />
+    <None Include="Resources\Ayuda_ComandosRapidos.png" />
+    <None Include="Resources\Ayuda_OpcionesComandos.png" />
+    <None Include="Resources\Ayuda_IconosKDesktop.png" />
+    <None Include="Resources\Ayuda_HistoriaKDesktop.png" />
+    <None Include="Resources\Ayuda_EditarItem.png" />
+    <None Include="Resources\Ayuda_CrearQuickMenu.png" />
+    <None Include="Resources\Ayuda_CrearItem.png" />
+    <None Include="Resources\Ayuda_ComandosAcciones.png" />
+    <None Include="Resources\SabiasQue_Windows.ico" />
+    <None Include="Resources\SabiasQue_Navegadores.ico" />
+    <None Include="Resources\SabiasQue_Explorer.ico" />
+    <None Include="Resources\NoIcono.bmp" />
+    <None Include="Resources\Interop.NetFwTypeLib.dll" />
+    <None Include="Resources\kdesktopres.dll" />
+    <None Include="Resources\Navegador_Edge.ico" />
+    <None Include="Resources\Navegador_Firefox.ico" />
+    <None Include="Resources\Navegador_Chrome.ico" />
+    <None Include="Resources\CE_Download.ico" />
+    <None Include="Resources\kdesktop_66.ico" />
+    <None Include="Resources\CE_Papelera1.ico" />
+    <None Include="Resources\CE_Papelera.ico" />
+    <None Include="Resources\CE_Usuario.ico" />
+    <None Include="Resources\CE_ControlVolumen.ico" />
+    <None Include="Resources\NoIcono" />
+    <None Include="Resources\TecladoPantalla.ico" />
+    <None Include="Resources\Macro_GrabarSi_Off.png" />
+    <None Include="Resources\Macro_GrabarSi.png" />
+    <None Include="Resources\Macro_GrabarNo_Off.png" />
+    <None Include="Resources\Macro_GrabarNo.png" />
+    <None Include="Resources\kdesktop.dll" />
+    <None Include="Resources\Macro_SetTime_Off.png" />
+    <None Include="Resources\Macro_SetTime.png" />
+    <None Include="Resources\Macro_ResetTime_Off.png" />
+    <None Include="Resources\Macro_ResetTime.png" />
+    <None Include="Resources\Macro_Pegar_Off.png" />
+    <None Include="Resources\Macro_Pegar.png" />
+    <None Include="Resources\Macro_Eliminar_Off.png" />
+    <None Include="Resources\Macro_Eliminar.png" />
+    <None Include="Resources\Macro_Editar_Off.png" />
+    <None Include="Resources\Macro_Editar.png" />
+    <None Include="Resources\Macro_Copiar_Off.png" />
+    <None Include="Resources\Macro_Copiar.png" />
+    <None Include="Resources\Macro_Clear_Off.png" />
+    <None Include="Resources\Macro_Clear.png" />
+    <None Include="Resources\GrabacionVideo_Editar_Off.png" />
+    <None Include="Resources\GrabacionVideo_Editar.png" />
+    <None Include="Resources\Macro_Añadir_Off.png" />
+    <None Include="Resources\Macro_Añadir.png" />
+    <None Include="Resources\Macro_VWheel_Off.png" />
+    <None Include="Resources\Macro_VWheel.png" />
+    <None Include="Resources\Macro_Up_Off.png" />
+    <None Include="Resources\Macro_Up.png" />
+    <None Include="Resources\Macro_RClick_Off.png" />
+    <None Include="Resources\Macro_RClick.png" />
+    <None Include="Resources\Macro_MoveR_Off.png" />
+    <None Include="Resources\Macro_MoveR.png" />
+    <None Include="Resources\Macro_LClick_Off.png" />
+    <None Include="Resources\Macro_LClick.png" />
+    <None Include="Resources\Macro_HWheel_Off.png" />
+    <None Include="Resources\Macro_HWheel.png" />
+    <None Include="Resources\Macro_Espera_Off.png" />
+    <None Include="Resources\Macro_Espera.png" />
+    <None Include="Resources\Macro_Down_Off.png" />
+    <None Include="Resources\Macro_Down.png" />
+    <None Include="Resources\Macro_Move_Off.png" />
+    <None Include="Resources\Macro_Move.png" />
+    <None Include="Resources\Ayuda_Right_Off.png" />
+    <None Include="Resources\Ayuda_Right.png" />
+    <None Include="Resources\Ayuda_Left_Off.png" />
+    <None Include="Resources\Ayuda_Left.png" />
+    <None Include="Resources\Ayuda_Menos_Off.png" />
+    <None Include="Resources\Ayuda_Menos.png" />
+    <None Include="Resources\Ayuda_Mas_Off.png" />
+    <None Include="Resources\Ayuda_Mas.png" />
+    <None Include="Resources\Arialic Hollow.ttf" />
+    <None Include="Resources\Macro_MouseWheel.png" />
+    <None Include="Resources\Macro_MouseMove.png" />
+    <None Include="Resources\GodMode.ico" />
+    <None Include="Resources\imageres_89.ico" />
+    <None Include="Resources\ComandosOcultos.ico" />
+    <None Include="Resources\ComandosMostrados.ico" />
+    <None Include="Resources\Silence.wav" />
+    <None Include="Resources\TaskSwitcher.ico" />
+    <None Include="Resources\Equipo.ico" />
+    <None Include="Resources\imageres_1042.ico" />
+    <None Include="Resources\Bat.ico" />
+    <None Include="Resources\DiscoLocal.ico" />
+    <None Include="packages.config" />
+    <None Include="Resources\CE_Carpeta.ico" />
+    <None Include="Resources\CE_Musicas.ico" />
+    <None Include="Resources\CE_Videos.ico" />
+    <None Include="Resources\CE_Regedit.ico" />
+    <None Include="Resources\CE_ProgramadorTareas.ico" />
+    <None Include="Resources\CE_PanelControl.ico" />
+    <None Include="Resources\CE_MenuInicio.ico" />
+    <None Include="Resources\CE_KTemp.ico" />
+    <None Include="Resources\CE_Imagenes.ico" />
+    <None Include="Resources\CE_GroupPolicy.ico" />
+    <None Include="Resources\CE_Fuentes.ico" />
+    <None Include="Resources\CE_Escritorio.ico" />
+    <None Include="Resources\CE_Equipo.ico" />
+    <None Include="Resources\CE_Documentos.ico" />
+    <None Include="Resources\CE_ConexionesRed.ico" />
+    <None Include="Resources\CE_AjustesAudio.ico" />
+    <None Include="Resources\Navegador_Browser.ico" />
+    <None Include="Resources\Navegador_UCBrowser.ico" />
+    <None Include="Resources\Navegador_Brave.ico" />
+    <None Include="Resources\Navegador_IE.ico" />
+    <None Include="Resources\Navegador_Vivaldi.ico" />
+    <None Include="Resources\Navegador_Opera.ico" />
+    <None Include="Resources\Edge.ico" />
+    <None Include="Resources\Link.ico" />
+    <None Include="Resources\Shortcut.ico" />
+    <None Include="Resources\Aplicacion.ico" />
+    <None Include="Resources\UDP Terminal 1.4.apk" />
+    <None Include="Resources\WebPage.ico" />
+    <None Include="Resources\WebPage1.png" />
+    <None Include="Resources\WebPage.png" />
+    <None Include="Resources\WebPage2.png" />
+    <None Include="Resources\imageres_165.ico" />
+    <None Include="Resources\imageres_90.ico" />
+    <None Include="Resources\ffmpeg.exe" />
+    <None Include="Resources\NoVideo.jpg" />
+    <None Include="Resources\Rocinante.jpg" />
+    <None Include="Resources\ChromeWin.ico" />
+    <None Include="Resources\imageres_5110.ico" />
+    <None Include="Resources\imageres_166.ico" />
+    <None Include="bin\Release\libmp3lame.32.dll" />
+    <None Include="bin\Release\libmp3lame.64.dll" />
+    <None Include="bin\Release\NAudio.dll" />
+    <None Include="bin\Release\NAudio.Lame.dll" />
+    <None Include="bin\Debug\NAudio.dll" />
+    <None Include="bin\Debug\NAudio.Lame.dll" />
+    <None Include="Resources\UPlayB.ico" />
+    <None Include="Resources\Uplay.ico" />
+    <None Include="bin\Release\AudioSwitcher.AudioApi.CoreAudio.dll" />
+    <None Include="bin\Release\AudioSwitcher.AudioApi.dll" />
+    <None Include="bin\Release\AxInterop.WMPLib.dll" />
+    <None Include="bin\Release\Interop.WMPLib.dll" />
+    <None Include="bin\K-Link.exe" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_Ad-Hoc.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_Apagar_Equipo.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_Aplicaciones.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_Archivos_Ocultos.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_Bat.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_Capturar_Pantalla.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_Comandos.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_Desactivar.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_Esperar.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_Grabar_Audio.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_Grabar_Pantalla.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_Internet.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_K-Board.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_K-Note.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_Macros.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_Mensaje.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_QuickMenu.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_Salida_Audio.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_Sonidos.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_TopMostico.ico" />
+    <None Include="bin\Iconos\QuickMenu\QuickMenu_Volumen.ico" />
+    <None Include="bin\Debug\IconLib.dll" />
+    <None Include="bin\Release\NAudio.Asio.dll" />
+    <None Include="bin\Release\NAudio.Core.dll" />
+    <None Include="bin\Release\NAudio.Midi.dll" />
+    <None Include="bin\Release\NAudio.Wasapi.dll" />
+    <None Include="bin\Release\NAudio.WinForms.dll" />
+    <None Include="bin\Release\NAudio.WinMM.dll" />
+    <None Include="bin\Release\Microsoft.Win32.TaskScheduler.dll" />
+    <None Include="bin\Debug\AudioDeviceCmdlets.dll" />
+    <None Include="bin\Debug\System.Management.Automation.dll" />
+    <None Include="bin\x64\Debug\Interop.WMPLib.dll" />
+    <None Include="bin\x64\Debug\AxInterop.WMPLib.dll" />
+    <None Include="bin\x64\Debug\ScreenRecorderLib.dll" />
+    <None Include="bin\x64\Debug\NAudio.Lame.dll" />
+    <None Include="bin\x64\Debug\ffmpeg.exe" />
+    <None Include="bin\x64\NAudio.Lame.dll" />
+    <None Include="bin\x64\libmp3lame.64.dll" />
+    <None Include="bin\x64\libmp3lame.32.dll" />
+    <None Include="bin\x64\AxInterop.WMPLib.dll" />
+    <None Include="bin\x64\ffmpeg.exe" />
+    <None Include="bin\x64\Interop.WMPLib.dll" />
+    <None Include="bin\x64\ScreenRecorderLib.dll" />
+    <None Include="bin\x64\Release\ScreenRecorderLib.dll" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_Ad-Hoc.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_Apagar_Equipo.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_Aplicaciones.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_Archivos_Ocultos.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_Bat.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_Capturar_Pantalla.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_Comandos.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_Desactivar.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_Esperar.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_Grabar_Audio.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_Grabar_Pantalla.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_Internet.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_K-Board.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_K-Note.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_Macros.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_Mensaje.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_QuickMenu.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_Salida_Audio.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_Sonidos.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_TopMostico.ico" />
+    <None Include="bin\Recursos\Iconos\Iconos\QuickMenu\QuickMenu_Volumen.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_Ad-Hoc.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_Apagar_Equipo.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_Aplicaciones.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_Archivos_Ocultos.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_Bat.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_Capturar_Pantalla.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_Comandos.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_Desactivar.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_Esperar.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_Grabar_Audio.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_Grabar_Pantalla.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_Internet.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_K-Board.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_K-Note.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_Macros.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_Mensaje.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_QuickMenu.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_Salida_Audio.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_Sonidos.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_TopMost.ico" />
+    <None Include="bin\Recursos\Iconos\QuickMenu\QuickMenu_Volumen.ico" />
+    <None Include="bin\Recursos\Iconos\Carpetas.ico" />
+    <Content Include="KDesktop.ico" />
+    <None Include="Resources\imageres_27.ico" />
+    <None Include="Resources\imageres_157.ico" />
+    <None Include="Resources\imageres_5107.ico" />
+    <None Include="Resources\tray.ico" />
+    <None Include="Resources\imageres_1023.ico" />
+    <None Include="Resources\imageres_68.ico" />
+    <None Include="Resources\Chrome.ico" />
+    <None Include="Resources\Steam.ico" />
+    <None Include="Resources\imageres_115.ico" />
+    <None Include="Resources\nircmdc.exe" />
+    <None Include="Resources\Camera.wav" />
+    <None Include="Resources\Unlock.wav" />
+    <None Include="Resources\Tada.wav" />
+    <None Include="Resources\Stop.wav" />
+    <None Include="Resources\Shutdown.wav" />
+    <None Include="Resources\Ring3.wav" />
+    <None Include="Resources\Ring2.wav" />
+    <None Include="Resources\Ring1.wav" />
+    <None Include="Resources\Remove.wav" />
+    <None Include="Resources\Recycle.wav" />
+    <None Include="Resources\Print.wav" />
+    <None Include="Resources\Notify2.wav" />
+    <None Include="Resources\Notify1.wav" />
+    <None Include="Resources\Notification.wav" />
+    <None Include="Resources\Messaging.wav" />
+    <None Include="Resources\Message.wav" />
+    <None Include="Resources\Logon.wav" />
+    <None Include="Resources\Logoff.wav" />
+    <None Include="Resources\Insert.wav" />
+    <None Include="Resources\Generic.wav" />
+    <None Include="Resources\Foreground.wav" />
+    <None Include="Resources\Fail.wav" />
+    <None Include="Resources\Exclamation.wav" />
+    <None Include="Resources\Error.wav" />
+    <None Include="Resources\Email.wav" />
+    <None Include="Resources\Ding.wav" />
+    <None Include="Resources\Default.wav" />
+    <None Include="Resources\Control.wav" />
+    <None Include="Resources\Connection.wav" />
+    <None Include="Resources\Chord.wav" />
+    <None Include="Resources\Chimes.wav" />
+    <None Include="Resources\Calendar.wav" />
+    <None Include="Resources\BatteryLow.wav" />
+    <None Include="Resources\BatteryCritical.wav" />
+    <None Include="Resources\Balloon.wav" />
+    <None Include="Resources\Background.wav" />
+    <None Include="Resources\Alarma2.wav" />
+    <None Include="Resources\Alarma1.wav" />
+    <None Include="Resources\VaciarTorrent.wav" />
+    <None Include="Resources\Windows Hardware Fail.wav" />
+    <None Include="Resources\Windows Proximity Notification.wav" />
+    <None Include="Resources\KDesktop.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.5">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.5 %28x86 y x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="AxWMPLib">
+      <Guid>{6BF52A50-394A-11D3-B153-00C04F79FAA6}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>aximp</WrapperTool>
+      <Isolated>False</Isolated>
+      <Private>False</Private>
+    </COMReference>
+    <COMReference Include="Shell32">
+      <Guid>{50A7E9B0-70EF-11D1-B75A-00A0C90564FE}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="WMPLib">
+      <Guid>{6BF52A50-394A-11D3-B153-00C04F79FAA6}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>Este proyecto hace referencia a los paquetes NuGet que faltan en este equipo. Use la restauración de paquetes NuGet para descargarlos. Para obtener más información, consulte http://go.microsoft.com/fwlink/?LinkID=322105. El archivo que falta es {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\NAudio.Lame.1.1.6\build\NAudio.Lame.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\NAudio.Lame.1.1.6\build\NAudio.Lame.targets'))" />
+  </Target>
+  <Import Project="packages\NAudio.Lame.1.1.6\build\NAudio.Lame.targets" Condition="Exists('packages\NAudio.Lame.1.1.6\build\NAudio.Lame.targets')" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

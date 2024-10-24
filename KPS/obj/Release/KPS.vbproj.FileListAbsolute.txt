@@ -1,0 +1,11 @@
+D:\Programas\Drivers\Mis Programas\K-Programs\KPS\bin\Release\KPS.exe.config
+D:\Programas\Drivers\Mis Programas\K-Programs\KPS\bin\Release\KPS.exe
+D:\Programas\Drivers\Mis Programas\K-Programs\KPS\bin\Release\KPS.pdb
+D:\Programas\Drivers\Mis Programas\K-Programs\KPS\bin\Release\KPS.xml
+D:\Programas\Drivers\Mis Programas\K-Programs\KPS\obj\Release\KPS.vbproj.AssemblyReference.cache
+D:\Programas\Drivers\Mis Programas\K-Programs\KPS\obj\Release\KPS.Resources.resources
+D:\Programas\Drivers\Mis Programas\K-Programs\KPS\obj\Release\KPS.vbproj.GenerateResource.cache
+D:\Programas\Drivers\Mis Programas\K-Programs\KPS\obj\Release\KPS.vbproj.CoreCompileInputs.cache
+D:\Programas\Drivers\Mis Programas\K-Programs\KPS\obj\Release\KPS.exe
+D:\Programas\Drivers\Mis Programas\K-Programs\KPS\obj\Release\KPS.xml
+D:\Programas\Drivers\Mis Programas\K-Programs\KPS\obj\Release\KPS.pdb
