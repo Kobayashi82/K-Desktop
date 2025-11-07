@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30011.22
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "KDesktop", "KDesktop.vbproj", "{4D7AEF5B-0DC4-4520-BC43-1DBBB6CC9D91}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AEC836BF-77F7-46BD-88AF-0C6158D842B4}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4D7AEF5B-0DC4-4520-BC43-1DBBB6CC9D91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D7AEF5B-0DC4-4520-BC43-1DBBB6CC9D91}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D7AEF5B-0DC4-4520-BC43-1DBBB6CC9D91}.Debug|x64.ActiveCfg = Debug|x64
+		{4D7AEF5B-0DC4-4520-BC43-1DBBB6CC9D91}.Debug|x64.Build.0 = Debug|x64
+		{4D7AEF5B-0DC4-4520-BC43-1DBBB6CC9D91}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D7AEF5B-0DC4-4520-BC43-1DBBB6CC9D91}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D7AEF5B-0DC4-4520-BC43-1DBBB6CC9D91}.Release|x64.ActiveCfg = Release|x64
+		{4D7AEF5B-0DC4-4520-BC43-1DBBB6CC9D91}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {834C1A3A-D065-4F1D-A82E-BFE60EB78D7A}
+	EndGlobalSection
+EndGlobal
