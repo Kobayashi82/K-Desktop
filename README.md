@@ -253,7 +253,7 @@ Este proyecto está licenciado bajo la WTFPL – [Do What the Fuck You Want to P
 
 <div align="center">
 
-**🖥️ Desarrollado por Kobayashi Corp. 🖥️**
+**🖥️ Desarrollado por Kobayashi82 🖥️**
 
 *"Automatiza tu escritorio, potencia tu productividad"*
 
