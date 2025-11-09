@@ -3,7 +3,7 @@
 ![Desktop](https://img.shields.io/badge/Desktop-brown?style=for-the-badge)
 ![Windows](https://img.shields.io/badge/Windows-Application-blue?style=for-the-badge)
 ![Automation](https://img.shields.io/badge/Tool-Automation-green?style=for-the-badge)
-![Visual Basic .NET](https://img.shields.io/badge/Language-Visual%20Basic%20.NET-red?style=for-the-badge)
+![VB.NET](https://img.shields.io/badge/Language-VB.NET-red?style=for-the-badge)
 
 *Una suite de productividad y automatización para Windows*
 
