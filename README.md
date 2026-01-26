@@ -10,8 +10,7 @@
 </div>
 
 <div align="center">
-  <img src="/Resources/Ayuda
-/Ayuda_Introduccion_KDesktop.png">
+  <img src="/Resources/Ayuda/Ayuda_Introduccion_KDesktop.png">
 </div>
 
 # K-Desktop 4.0
