@@ -10,7 +10,7 @@
 </div>
 
 <div align="center">
-  <img src="Resources/Ayuda
+  <img src="/Resources/Ayuda
 /Ayuda_Introduccion_KDesktop.png">
 </div>
 
