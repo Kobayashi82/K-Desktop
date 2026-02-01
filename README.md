@@ -10,7 +10,18 @@
 </div>
 
 <div align="center">
-  <img src="/Resources/Ayuda/Ayuda_Introduccion_KDesktop.png">
+  <img src="/images/Comandos.jpg" width="45%">
+  <img src="/images/Ayuda.jpg" width="45%">
+</div>
+
+<div align="center">
+  <img src="/images/Opciones.jpg" width="45%">
+  <img src="/images/Logros.jpg" width="45%">
+</div>
+
+<div align="center">
+  <img src="/images/K-Board.jpg" width="45%">
+  <img src="/images/QuickMenu.jpg" width="45%">
 </div>
 
 # K-Desktop 4.0
