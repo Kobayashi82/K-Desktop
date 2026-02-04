@@ -18,25 +18,23 @@
 
 [README en Español](README_es.md)
 
-## 🎯 Description
+`K-Desktop` is a productivity and automation suite for Windows built in Visual Basic .NET.
 
-**K-Desktop** is a productivity and automation suite for Windows built in Visual Basic .NET.
-
-Designed as a centralized tool, K-Desktop provides a complete set of features to boost user productivity, including screenshot capture, audio/video recording, customizable quick commands with global hotkeys, and the powerful **QuickMenu** system for instant access to apps and actions.
+Designed as a centralized tool, `K-Desktop` provides a complete set of features to boost user productivity, including screenshot capture, audio/video recording, customizable quick commands with global hotkeys, and the powerful `QuickMenu` system for instant access to apps and actions.
 
 ## ✨ Key Features
 
-- **Quick Commands**: Customizable commands with global hotkeys for instant actions.
-- **QuickMenu**: Custom context menus with quick access to apps, folders, web pages, and system actions.
-- **Screenshot Capture**: Advanced screenshot tool with an integrated editor.
-- **Audio Recorder**: Audio recording with multiple output formats and device selection.
-- **Video Recorder**: Screen video capture with integrated post-processing editor.
-- **Achievements System**: Gamified usage with unlockable achievements and usage stats.
-- **Virtual Keyboards (K-Board)**: Create custom keyboard layouts for different apps.
-- **Notifications**: Customizable notification system with visual and sound alerts.
-- **Multi-Monitor**: Full support for multi-display setups.
-- **Automation**: Auto-run commands on system start/exit or based on active processes.
-- **Import/Export**: Backup and sync configuration system.
+- `Quick Commands`: Customizable commands with global hotkeys for instant actions.
+- `QuickMenu`: Custom context menus with quick access to apps, folders, web pages, and system actions.
+- `Screenshot Capture`: Advanced screenshot tool with an integrated editor.
+- `Audio Recorder`: Audio recording with multiple output formats and device selection.
+- `Video Recorder`: Screen video capture with integrated post-processing editor.
+- `Achievements System`: Gamified usage with unlockable achievements and usage stats.
+- `Virtual Keyboards (K-Board)`: Create custom keyboard layouts for different apps.
+- `Notifications`: Customizable notification system with visual and sound alerts.
+- `Multi-Monitor`: Full support for multi-display setups.
+- `Automation`: Auto-run commands on system start/exit or based on active processes.
+- `Import/Export`: Backup and sync configuration system.
 
 ## 🚀 Core Features
 
@@ -53,18 +51,18 @@ Designed as a centralized tool, K-Desktop provides a complete set of features to
 
 ### QuickMenu
 
-**QuickMenu** is one of the most useful components of K-Desktop. It allows creating custom context menus that appear with global hotkeys, providing instant access to:
+`QuickMenu` is one of the most useful components of `K-Desktop`. It allows creating custom context menus that appear with global hotkeys, providing instant access to:
 
-- **Applications**: Launch your favorite programs with one click
-- **Folders**: Quick access to system directories
-- **Web pages**: Open websites directly from the menu
-- **System commands**: Run predefined actions
-- **Nested menus**: Organize items into submenus
-- **Custom icons**: Personalize each item’s appearance
-- **Visual separators**: Group items for readability
-- **Visual editor**: Create, edit, and reorder items with drag and drop
-- **Multiple QuickMenus**: Different menus for different contexts or tasks
-- **Contextual activation**: Shows different QuickMenus based on the active app
+- `Applications`: Launch your favorite programs with one click
+- `Folders`: Quick access to system directories
+- `Web pages`: Open websites directly from the menu
+- `System commands`: Run predefined actions
+- `Nested menus`: Organize items into submenus
+- `Custom icons`: Personalize each item’s appearance
+- `Visual separators`: Group items for readability
+- `Visual editor`: Create, edit, and reorder items with drag and drop
+- `Multiple QuickMenus`: Different menus for different contexts or tasks
+- `Contextual activation`: Shows different QuickMenus based on the active app
 
 #### QuickMenu advantages:
 - Instant access to frequently used apps without searching the Start menu
@@ -123,7 +121,7 @@ Designed as a centralized tool, K-Desktop provides a complete set of features to
 
 ## 📋 Available Actions
 
-K-Desktop includes multiple action types:
+`K-Desktop` includes multiple action types:
 
 ### Applications
 - Run Application
@@ -150,7 +148,7 @@ K-Desktop includes multiple action types:
 - Send Keystroke (simulate keys)
 - TopMost (pin window always on top)
 - Show/Hide Hidden Files
-- Disable in... (disable K-Desktop in the specified app)
+- Disable in... (disable `K-Desktop` in the specified app)
 - Show Message (custom notifications)
 - Shutdown PC (shutdown, restart, sleep, hibernate)
 - Wait (pauses between actions)
@@ -186,15 +184,15 @@ K-Desktop includes multiple action types:
 - `FrmNotification` - Pop-up notification system
 
 ### Auxiliary Component
-- `KPS.exe` - Auxiliary app launcher for K-Desktop
+- `KPS.exe` - Auxiliary app launcher for `K-Desktop`
 
 ## 💻 System Requirements
 
-- **Operating System**: Windows 7 or later (Windows 10/11 recommended)
-- **.NET Framework**: 4.7.2 or later
-- **Architecture**: x64
-- **RAM**: 2 GB minimum (4 GB recommended)
-- **Disk space**: 50 MB
+- `Operating System`: Windows 7 or later (Windows 10/11 recommended)
+- `.NET Framework`: 4.7.2 or later
+- `Architecture`: x64
+- `RAM`: 2 GB minimum (4 GB recommended)
+- `Disk space`: 50 MB
 
 ## 📦 Installation and Usage
 
@@ -210,7 +208,7 @@ Or open `KDesktop.sln` in Visual Studio and build from there.
 
 ### Run
 
-To run K-Desktop:
+To run `K-Desktop`:
 
 ```cmd
 .\bin\x64\Release\KDesktop.exe
@@ -219,7 +217,7 @@ To run K-Desktop:
 ### QuickMenu usage
 
 1. **Create a QuickMenu**: 
-   - Open the main K-Desktop menu
+   - Open the main `K-Desktop` menu
    - Go to the "QuickMenu" section
    - Create a new menu
 
@@ -243,12 +241,12 @@ To run K-Desktop:
 
 ## ⚙️ Configuration
 
-K-Desktop stores its configuration in the Windows Registry and in **%AppData%\Roaming\KDesktop**.
+`K-Desktop` stores its configuration in the Windows Registry and in **%AppData%\Roaming\KDesktop**.
 From the "Options" section you can import or export the configuration.
 
 ## 🎯 Remote Commands (UDP)
 
-K-Desktop includes support for remote control via UDP, allowing commands to be executed from other devices on the local network.
+`K-Desktop` includes support for remote control via UDP, allowing commands to be executed from other devices on the local network.
 
 ---
 

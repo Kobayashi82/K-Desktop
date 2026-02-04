@@ -18,25 +18,23 @@
 
 [README in English](README.md)
 
-## 🎯 Descripción
+`K-Desktop` es una suite de productividad y automatización para Windows desarrollada en Visual Basic .NET.
 
-**K-Desktop** es una suite de productividad y automatización para Windows desarrollada en Visual Basic .NET.
-
-Diseñado como una herramienta centralizada, K-Desktop proporciona un conjunto completo de funcionalidades para mejorar la productividad del usuario, incluyendo captura de pantalla, grabación de audio/video, comandos rápidos personalizables con hotkeys globales, y el potente sistema **QuickMenu** para acceso instantáneo a aplicaciones y acciones.
+Diseñado como una herramienta centralizada, `K-Desktop` proporciona un conjunto completo de funcionalidades para mejorar la productividad del usuario, incluyendo captura de pantalla, grabación de audio/video, comandos rápidos personalizables con hotkeys globales, y el potente sistema `QuickMenu` para acceso instantáneo a aplicaciones y acciones.
 
 ## ✨ Características Principales
 
-- **Comandos Rápidos**: Sistema de comandos personalizables con hotkeys globales para ejecutar acciones de forma instantánea.
-- **QuickMenu**: Menús contextuales personalizables con acceso rápido a aplicaciones, carpetas, páginas web y acciones del sistema.
-- **Captura de Pantalla**: Herramienta avanzada para capturar y gestionar capturas de pantalla con editor integrado.
-- **Grabador de Audio**: Grabación de audio con múltiples formatos de salida y selección de dispositivos.
-- **Grabador de Video**: Captura de video de pantalla con editor integrado para post-procesamiento.
-- **Sistema de Logros**: Gamificación del uso del software con logros desbloqueables y estadísticas de uso.
-- **Teclados Virtuales (K-Board)**: Creación de layouts de teclado personalizados para diferentes aplicaciones.
-- **Notificaciones**: Sistema de notificaciones personalizable con alertas visuales y sonoras.
-- **Multi-Monitor**: Soporte completo para configuraciones de múltiples pantallas.
-- **Automatización**: Ejecución automática de comandos al iniciar/salir del sistema o basada en procesos activos.
-- **Importación/Exportación**: Sistema de respaldo y sincronización de configuraciones.
+- `Comandos Rápidos`: Sistema de comandos personalizables con hotkeys globales para ejecutar acciones de forma instantánea.
+- `QuickMenu`: Menús contextuales personalizables con acceso rápido a aplicaciones, carpetas, páginas web y acciones del sistema.
+- `Captura de Pantalla`: Herramienta avanzada para capturar y gestionar capturas de pantalla con editor integrado.
+- `Grabador de Audio`: Grabación de audio con múltiples formatos de salida y selección de dispositivos.
+- `Grabador de Video`: Captura de video de pantalla con editor integrado para post-procesamiento.
+- `Sistema de Logros`: Gamificación del uso del software con logros desbloqueables y estadísticas de uso.
+- `Teclados Virtuales (K-Board)`: Creación de layouts de teclado personalizados para diferentes aplicaciones.
+- `Notificaciones`: Sistema de notificaciones personalizable con alertas visuales y sonoras.
+- `Multi-Monitor`: Soporte completo para configuraciones de múltiples pantallas.
+- `Automatización`: Ejecución automática de comandos al iniciar/salir del sistema o basada en procesos activos.
+- `Importación/Exportación`: Sistema de respaldo y sincronización de configuraciones.
 
 ## 🚀 Funcionalidades Principales
 
@@ -53,18 +51,18 @@ Diseñado como una herramienta centralizada, K-Desktop proporciona un conjunto c
 
 ### QuickMenu
 
-El **QuickMenu** es uno de los componentes más útiles de K-Desktop. Permite crear menús contextuales personalizados que aparecen con hotkeys globales, proporcionando acceso instantáneo a:
+El `QuickMenu` es uno de los componentes más útiles de `K-Desktop`. Permite crear menús contextuales personalizados que aparecen con hotkeys globales, proporcionando acceso instantáneo a:
 
-- **Aplicaciones**: Lanza tus programas favoritos con un solo clic
-- **Carpetas**: Acceso rápido a directorios del sistema
-- **Páginas Web**: Abre sitios web directamente desde el menú
-- **Comandos del Sistema**: Ejecuta acciones predefinidas
-- **Menús Anidados**: Organiza items en submenús para mejor estructura
-- **Iconos Personalizados**: Personaliza la apariencia de cada item
-- **Separadores Visuales**: Organiza los items para mejor legibilidad
-- **Editor Visual**: Crear, editar y reorganizar items mediante arrastrar y soltar
-- **Múltiples QuickMenus**: Crea diferentes menús para diferentes contextos o tareas
-- **Activación Contextual**: Muestra QuickMenus diferentes según la aplicación activa
+- `Aplicaciones`: Lanza tus programas favoritos con un solo clic
+- `Carpetas`: Acceso rápido a directorios del sistema
+- `Páginas Web`: Abre sitios web directamente desde el menú
+- `Comandos del Sistema`: Ejecuta acciones predefinidas
+- `Menús Anidados`: Organiza items en submenús para mejor estructura
+- `Iconos Personalizados`: Personaliza la apariencia de cada item
+- `Separadores Visuales`: Organiza los items para mejor legibilidad
+- `Editor Visual`: Crear, editar y reorganizar items mediante arrastrar y soltar
+- `Múltiples QuickMenus`: Crea diferentes menús para diferentes contextos o tareas
+- `Activación Contextual`: Muestra QuickMenus diferentes según la aplicación activa
 
 #### Ventajas del QuickMenu:
 - Acceso instantáneo a aplicaciones frecuentes sin buscar en el menú inicio
@@ -123,7 +121,7 @@ El **QuickMenu** es uno de los componentes más útiles de K-Desktop. Permite cr
 
 ## 📋 Acciones Disponibles
 
-K-Desktop incluye múltiples tipos de acciones ejecutables:
+`K-Desktop` incluye múltiples tipos de acciones ejecutables:
 
 ### Aplicaciones
 - Ejecutar Aplicación
@@ -150,7 +148,7 @@ K-Desktop incluye múltiples tipos de acciones ejecutables:
 - Enviar Pulsación (Simular teclas)
 - TopMost (Fijar ventanas siempre visible)
 - Mostrar/Ocultar Archivos Ocultos
-- Desactivar en... (Desactivar K-Desktop en la aplicación indicada)
+- Desactivar en... (Desactivar `K-Desktop` en la aplicación indicada)
 - Mostrar Mensaje (Notificaciones personalizadas)
 - Apagar Equipo (Apagar, reiniciar, suspender, hibernar)
 - Esperar (Pausas entre acciones)
@@ -186,15 +184,15 @@ K-Desktop incluye múltiples tipos de acciones ejecutables:
 - `FrmNotification` - Sistema de notificaciones emergentes
 
 ### Componente Auxiliar
-- `KPS.exe` - Lanzador de aplicaciones auxiliar para K-Desktop
+- `KPS.exe` - Lanzador de aplicaciones auxiliar para `K-Desktop`
 
 ## 💻 Requisitos del Sistema
 
-- **Sistema Operativo**: Windows 7 o superior (recomendado Windows 10/11)
-- **.NET Framework**: 4.7.2 o superior
-- **Arquitectura**: x64
-- **Memoria RAM**: 2 GB mínimo (4 GB recomendado)
-- **Espacio en disco**: 50 MB
+- `Sistema Operativo`: Windows 7 o superior (recomendado Windows 10/11)
+- `.NET Framework`: 4.7.2 o superior
+- `Arquitectura`: x64
+- `Memoria RAM`: 2 GB mínimo (4 GB recomendado)
+- `Espacio en disco`: 50 MB
 
 ## 📦 Instalación y Uso
 
@@ -210,7 +208,7 @@ O abrir el archivo `KDesktop.sln` en Visual Studio y compilar desde allí.
 
 ### Ejecución
 
-Para ejecutar K-Desktop:
+Para ejecutar `K-Desktop`:
 
 ```cmd
 .\bin\x64\Release\KDesktop.exe
@@ -219,7 +217,7 @@ Para ejecutar K-Desktop:
 ### Uso del QuickMenu
 
 1. **Crear un QuickMenu**: 
-   - Abre el menú principal de K-Desktop
+   - Abre el menú principal de `K-Desktop`
    - Ve a la sección "QuickMenu"
    - Crea un nuevo menú
 
@@ -243,12 +241,12 @@ Para ejecutar K-Desktop:
 
 ## ⚙️ Configuración
 
-K-Desktop almacena su configuración en el registro de Windows y en la carpeta **%AppData%\Roaming\KDesktop**.
+`K-Desktop` almacena su configuración en el registro de Windows y en la carpeta **%AppData%\Roaming\KDesktop**.
 Desde la sección "Opciones" puede importar o exportar la configuración
 
 ## 🎯 Comandos Remotos (UDP)
 
-K-Desktop incluye soporte para control remoto mediante protocolo UDP, permitiendo ejecutar comandos desde otros dispositivos en la red local.
+`K-Desktop` incluye soporte para control remoto mediante protocolo UDP, permitiendo ejecutar comandos desde otros dispositivos en la red local.
 
 ---
 
@@ -262,7 +260,7 @@ Este proyecto está licenciado bajo la WTFPL – [Do What the Fuck You Want to P
 
 **🖥️ Desarrollado por Kobayashi82 🖥️**
 
-*"Automatiza tu escritorio, potencia tu productividad"*
+*"Automate your desktop, boost your productivity"*
 
 </div>
 
