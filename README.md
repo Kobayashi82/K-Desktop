@@ -14,11 +14,11 @@
 </div>
 
 
-# K-Desktop 4.0
+# K-Desktop
 
 ## 🎯 Descripción
 
-**K-Desktop 4.0** es una suite de productividad y automatización para Windows desarrollada en Visual Basic .NET.
+**K-Desktop** es una suite de productividad y automatización para Windows desarrollada en Visual Basic .NET.
 
 Diseñado como una herramienta centralizada, K-Desktop proporciona un conjunto completo de funcionalidades para mejorar la productividad del usuario, incluyendo captura de pantalla, grabación de audio/video, comandos rápidos personalizables con hotkeys globales, y el potente sistema **QuickMenu** para acceso instantáneo a aplicaciones y acciones.
 
