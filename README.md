@@ -18,7 +18,7 @@
 
 [README en Español](README_es.md)
 
-`K-Desktop` is a productivity and automation suite for Windows built in Visual Basic .NET.
+`K-Desktop` is a productivity and automation suite for Windows built in `Visual Basic .NET`.
 
 Designed as a centralized tool, `K-Desktop` provides a complete set of features to boost user productivity, including screenshot capture, audio/video recording, customizable quick commands with global hotkeys, and the powerful `QuickMenu` system for instant access to apps and actions.
 
