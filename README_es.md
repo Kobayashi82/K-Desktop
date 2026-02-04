@@ -171,7 +171,7 @@ El `QuickMenu` es uno de los componentes más útiles de `K-Desktop`. Permite cr
 - `FSelectDisplay` - Selector de pantalla para multi-monitor
 - `FIdentificarPantalla` - Identificador visual de pantallas
 - `FIconDialog` - Selector de iconos para personalización
-- `FNombreIcono` - Renombrar o cambiar item de QuickMenu
+- `FNombreIcono` - Renombrar o cambiar item de `QuickMenu`
 - `FRenombrar` - Renombrar comando
 
 ### Otros
@@ -218,11 +218,11 @@ Para ejecutar `K-Desktop`:
 
 1. **Crear un QuickMenu**: 
    - Abre el menú principal de `K-Desktop`
-   - Ve a la sección "QuickMenu"
+   - Ve a la sección `QuickMenu`
    - Crea un nuevo menú
 
 2. **Añadir Items**:
-   - Click derecho en el área del QuickMenu
+   - Click derecho en el área del `QuickMenu`
    - Selecciona "Nuevo Item" o "Nuevo Separador"
    - Configura el item con nombre, icono y acción
 
@@ -232,7 +232,7 @@ Para ejecutar `K-Desktop`:
    - Usa separadores para agrupar items relacionados
 
 4. **Activar QuickMenu**:
-   - Crea un comando con la acción **QuickMenu**
+   - Crea un comando con la acción `QuickMenu`
    - Selecciona el menú creado
    - Selecciona un hotkey para ejecutar el comando
    - Presiona el hotkey asignado desde cualquier lugar
@@ -241,7 +241,7 @@ Para ejecutar `K-Desktop`:
 
 ## ⚙️ Configuración
 
-`K-Desktop` almacena su configuración en el registro de Windows y en la carpeta **%AppData%\Roaming\KDesktop**.
+`K-Desktop` almacena su configuración en el registro de Windows y en la carpeta `%AppData%\Roaming\KDesktop`.
 Desde la sección "Opciones" puede importar o exportar la configuración
 
 ## 🎯 Comandos Remotos (UDP)

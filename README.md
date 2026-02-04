@@ -218,11 +218,11 @@ To run `K-Desktop`:
 
 1. **Create a QuickMenu**: 
    - Open the main `K-Desktop` menu
-   - Go to the "QuickMenu" section
+   - Go to the `QuickMenu` section
    - Create a new menu
 
 2. **Add items**:
-   - Right click in the QuickMenu area
+   - Right click in the `QuickMenu` area
    - Select "New Item" or "New Separator"
    - Configure the item with name, icon, and action
 
@@ -232,7 +232,7 @@ To run `K-Desktop`:
    - Use separators to group related items
 
 4. **Activate QuickMenu**:
-   - Create a command with the **QuickMenu** action
+   - Create a command with the `QuickMenu` action
    - Select the created menu
    - Assign a hotkey for the command
    - Press the hotkey anywhere
@@ -241,7 +241,7 @@ To run `K-Desktop`:
 
 ## ⚙️ Configuration
 
-`K-Desktop` stores its configuration in the Windows Registry and in **%AppData%\Roaming\KDesktop**.
+`K-Desktop` stores its configuration in the Windows Registry and in `%AppData%\Roaming\KDesktop`.
 From the "Options" section you can import or export the configuration.
 
 ## 🎯 Remote Commands (UDP)
