@@ -10,19 +10,9 @@
 </div>
 
 <div align="center">
-  <img src="/images/Comandos.jpg" width="45%">
-  <img src="/images/Opciones.jpg" width="45%">
+  <img src="/images/K-Desktop.png">
 </div>
 
-<div align="center">
-  <img src="/images/Ayuda.jpg" width="45%">
-  <img src="/images/Logros.jpg" width="45%">
-</div>
-
-<div align="center">
-  <img src="/images/K-Board.jpg" width="45%">
-  <img src="/images/QuickMenu.png" width="45%">
-</div>
 
 # K-Desktop 4.0
 
@@ -272,4 +262,19 @@ Este proyecto está licenciado bajo la WTFPL – [Do What the Fuck You Want to P
 
 *"Automatiza tu escritorio, potencia tu productividad"*
 
+</div>
+
+<div align="center">
+  <img src="/images/Comandos.jpg" width="45%">
+  <img src="/images/Opciones.jpg" width="45%">
+</div>
+
+<div align="center">
+  <img src="/images/Ayuda.jpg" width="45%">
+  <img src="/images/Logros.jpg" width="45%">
+</div>
+
+<div align="center">
+  <img src="/images/K-Board.jpg" width="45%">
+  <img src="/images/QuickMenu.png" width="45%">
 </div>
