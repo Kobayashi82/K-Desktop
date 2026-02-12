@@ -10,7 +10,7 @@
 </div>
 
 <div align="center">
-  <img src="/images/K-Desktop.png">
+  <img src="/images/K-Desktop.jpg">
 </div>
 
 
