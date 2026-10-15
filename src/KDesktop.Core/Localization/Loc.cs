@@ -98,6 +98,19 @@ public sealed class Loc : INotifyPropertyChanged
         Changed?.Invoke();
     }
 
+    /// <summary>
+    /// Texts of a language whose keys start with <paramref name="prefix"/> (English for the missing ones), with the
+    /// user's files on top. Used by the web app, which may run in another language than the PC.
+    /// </summary>
+    public static IReadOnlyDictionary<string, string> Strings(string code, string prefix)
+    {
+        var result = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var (k, v) in LoadMerged(Fallback)) if (k.StartsWith(prefix, StringComparison.Ordinal)) result[k] = v;
+        if (!code.Equals(Fallback, StringComparison.OrdinalIgnoreCase))
+            foreach (var (k, v) in LoadMerged(code)) if (k.StartsWith(prefix, StringComparison.Ordinal)) result[k] = v;
+        return result;
+    }
+
     private string Get(string key) =>
         _strings.TryGetValue(key, out var s) ? s : _fallback.TryGetValue(key, out var f) ? f : key;
 

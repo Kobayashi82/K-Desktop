@@ -3,15 +3,111 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#1c1c1e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="K-Desktop">
+  <link rel="icon" href="icons/favicon.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="app.css">
   <title>K-Desktop</title>
+  <script type="module" src="app.js"></script>
 </head>
 <body>
-  <h1>K-Desktop</h1>
-  <p id="status">…</p>
-  <script>
-    fetch('./api/ping').then(r => r.json()).then(j => {
-      document.getElementById('status').textContent = j.app + ' · ' + j.machine;
-    });
-  </script>
+  <!-- Pairing -->
+  <section class="pair" id="pair" hidden>
+    <div class="pair-card">
+      <img class="pair-logo" src="icons/icon-192.png" alt="">
+      <h1 data-i18n="pwa.pair.title"></h1>
+      <p class="muted" data-i18n="pwa.pair.text"></p>
+      <form id="pairForm" autocomplete="off">
+        <label class="field">
+          <span data-i18n="pwa.pair.code"></span>
+          <input id="pairCode" class="code-input" inputmode="text" autocapitalize="characters" spellcheck="false" maxlength="9" placeholder="XXXX-XXXX" required>
+        </label>
+        <label class="field">
+          <span data-i18n="pwa.pair.name"></span>
+          <input id="pairName" maxlength="60" required>
+        </label>
+        <p class="pair-error" id="pairError" role="alert"></p>
+        <button class="btn primary wide" id="pairButton" type="submit" data-i18n="pwa.pair.button"></button>
+      </form>
+    </div>
+  </section>
+
+  <!-- App -->
+  <div class="shell" id="shell" hidden>
+    <header class="top">
+      <div class="brand">
+        <img src="icons/favicon.png" alt="">
+        <div>
+          <h1>K-Desktop</h1>
+          <small id="machine"></small>
+        </div>
+      </div>
+      <button class="icon-btn" id="refreshButton" data-i18n-title="pwa.settings.refresh" data-icon="refresh"></button>
+    </header>
+
+    <main class="views">
+      <section class="view" data-view="menus">
+        <nav class="chips" id="menuChips"></nav>
+        <div class="crumbs" id="crumbs" hidden>
+          <button class="icon-btn small" id="backButton" data-i18n-title="pwa.back" data-icon="back"></button>
+          <span id="crumbTitle"></span>
+        </div>
+        <div class="stack" id="menuStack"></div>
+      </section>
+
+      <section class="view" data-view="all">
+        <div class="search">
+          <span class="search-icon" data-icon="search"></span>
+          <input id="searchBox" type="search" enterkeyhint="go" data-i18n-placeholder="pwa.search">
+        </div>
+        <p class="count muted" id="allCount"></p>
+        <div class="grid" id="allGrid"></div>
+        <p class="empty" id="allEmpty" hidden></p>
+      </section>
+
+      <section class="view" data-view="settings">
+        <div class="card">
+          <h2 data-i18n="pwa.settings.appearance"></h2>
+          <div class="row">
+            <span data-i18n="pwa.settings.theme"></span>
+            <div class="segmented" id="themeSwitch">
+              <button data-theme="system" data-i18n="pwa.theme.system"></button>
+              <button data-theme="light" data-i18n="pwa.theme.light"></button>
+              <button data-theme="dark" data-i18n="pwa.theme.dark"></button>
+              <span class="seg-pill"></span>
+            </div>
+          </div>
+          <div class="row">
+            <span data-i18n="pwa.settings.language"></span>
+            <select id="langSelect"></select>
+          </div>
+        </div>
+        <div class="card">
+          <h2 data-i18n="pwa.settings.device"></h2>
+          <p class="device-name" id="deviceName"></p>
+          <p class="muted" id="connectedTo"></p>
+          <div class="buttons">
+            <button class="btn" id="reloadButton" data-i18n="pwa.settings.refresh"></button>
+            <button class="btn danger" id="unpairButton" data-i18n="pwa.settings.unpair"></button>
+          </div>
+        </div>
+        <p class="muted center" id="version"></p>
+      </section>
+    </main>
+
+    <nav class="tabbar" id="tabbar">
+      <span class="tab-pill" id="tabPill"></span>
+      <button data-tab="menus"><span data-icon="menus"></span><b data-i18n="pwa.tab.menus"></b></button>
+      <button data-tab="all"><span data-icon="all"></span><b data-i18n="pwa.tab.all"></b></button>
+      <button data-tab="settings"><span data-icon="settings"></span><b data-i18n="pwa.tab.settings"></b></button>
+    </nav>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
 </body>
 </html>

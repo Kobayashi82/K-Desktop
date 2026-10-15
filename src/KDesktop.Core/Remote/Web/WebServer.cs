@@ -24,6 +24,15 @@ public sealed partial class WebServer : IDisposable
     private HttpListener? _listener;
     private CancellationTokenSource? _cts;
 
+    private readonly IWebHost _host;
+    private readonly WebCatalog _catalog;
+
+    public WebServer(IWebHost host)
+    {
+        _host = host;
+        _catalog = new WebCatalog(host);
+    }
+
     /// <summary>Paired devices and pairing codes.</summary>
     public WebDevices Devices { get; } = new();
 

@@ -29,6 +29,7 @@ public static class Log
     {
         var line = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} [{level}] {message}";
         Queue.TryAdd(line);
+        if (level != "INF") Engine.ExecutionFeedback.OnLog(level, message);
         try { Written?.Invoke(line); } catch { /* ignore */ }
     }
 

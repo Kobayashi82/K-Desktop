@@ -6,7 +6,7 @@ using KDesktop.Core.Storage;
 
 namespace KDesktop.Core.Engine;
 
-public enum TriggerSource { Hotkey, QuickMenu, Remote, Startup, Exit, Manual, Command, Launcher }
+public enum TriggerSource { Hotkey, QuickMenu, Remote, Startup, Exit, Manual, Command, Launcher, Web }
 
 /// <summary>Information about one execution of a command.</summary>
 public sealed record ExecutionContext(
@@ -36,7 +36,8 @@ public sealed partial class CommandEngine
     public CommandEngine(ConfigStore store, IUiServices ui)
     {
         _store = store;
-        _ui = ui;
+        // Messages shown while a command runs also reach a remote caller (see ExecutionFeedback).
+        _ui = new FeedbackUiServices(ui);
     }
 
     public AppConfig Config => _store.Config;

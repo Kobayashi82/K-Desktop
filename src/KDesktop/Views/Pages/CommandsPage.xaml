@@ -372,6 +372,7 @@
                             <UniformGrid Columns="2">
                                 <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding BlockKey}" Content="{l:Tr commands.blockKey}" ToolTip="{l:Tr commands.blockKeyHint}" />
                                 <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding Remote}" Content="{l:Tr commands.remoteOption}" ToolTip="{l:Tr commands.remoteHint}" />
+                                <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding Web}" Content="{l:Tr commands.webOption}" ToolTip="{l:Tr commands.webHint}" />
                                 <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding RunOnStartup}" Content="{l:Tr commands.runOnStartup}" />
                                 <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding RunOnExit}" Content="{l:Tr commands.runOnExit}" />
                                 <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding IgnoreDisabledApps}" Content="{l:Tr commands.ignoreDisabled}" ToolTip="{l:Tr commands.ignoreDisabledHint}" />

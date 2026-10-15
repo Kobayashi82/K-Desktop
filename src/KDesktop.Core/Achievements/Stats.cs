@@ -113,8 +113,9 @@ public static class TriggerSourceNames
         TriggerSource.Startup or TriggerSource.Exit => "auto",
         TriggerSource.Command => "command",
         TriggerSource.Launcher => "launcher",
+        TriggerSource.Web => "web",
         _ => "manual",
     };
 
-    public static readonly string[] All = ["hotkey", "quickMenu", "launcher", "remote", "manual", "command", "auto"];
+    public static readonly string[] All = ["hotkey", "quickMenu", "launcher", "remote", "web", "manual", "command", "auto"];
 }

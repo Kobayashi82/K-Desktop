@@ -17,6 +17,9 @@ public partial class Command : ObservableObject
     /// <summary>Can be executed remotely through the UDP server.</summary>
     [ObservableProperty] private bool _remote;
 
+    /// <summary>Shown in (and runnable from) the web app of the paired devices.</summary>
+    [ObservableProperty] private bool _web = true;
+
     /// <summary>Swallow the hotkey so the foreground application never receives it.</summary>
     [ObservableProperty] private bool _blockKey = true;
 

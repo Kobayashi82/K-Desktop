@@ -184,7 +184,7 @@ public partial class App : Application
 
         // Remote control
         Udp = new UdpServer(Engine, Ui);
-        Web = new WebServer();
+        Web = new WebServer(new WebHost(Dispatcher, Engine, Achievements));
         Web.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
         ApplySettings();
         if (ProcessLauncher.IsElevated) Task.Run(FirewallRule.Ensure);

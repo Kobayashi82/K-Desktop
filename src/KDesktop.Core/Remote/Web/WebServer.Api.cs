@@ -1,5 +1,7 @@
 using System.Net;
 using System.Text.Json;
+using KDesktop.Core.Engine;
+using KDesktop.Core.Localization;
 
 namespace KDesktop.Core.Remote.Web;
 
@@ -7,6 +9,9 @@ public sealed partial class WebServer
 {
     private const string CookieName = "kd_token";
     private const int MaxBody = 64 * 1024;
+
+    /// <summary>How long a run request waits for the command before answering "still running".</summary>
+    private static readonly TimeSpan RunWait = TimeSpan.FromSeconds(8);
 
     private async Task HandleApiAsync(WebRequest request, HttpListenerContext context)
     {
@@ -20,10 +25,14 @@ public sealed partial class WebServer
             return;
         }
 
+        // Open to everyone: what the pairing screen needs.
         switch (request.Method, request.Path)
         {
             case ("GET", "/api/ping"):
                 await WriteJsonAsync(response, new { app = AppPaths.VersionName, machine = Environment.MachineName }).ConfigureAwait(false);
+                return;
+            case ("GET", "/api/i18n"):
+                await WriteJsonAsync(response, Texts(context.Request.QueryString["lang"])).ConfigureAwait(false);
                 return;
             case ("POST", "/api/pair"):
                 await PairAsync(request, context).ConfigureAwait(false);
@@ -37,6 +46,12 @@ public sealed partial class WebServer
             return;
         }
 
+        if (request.Method == "GET" && request.Path!.StartsWith("/api/icon/", StringComparison.Ordinal))
+        {
+            await IconAsync(request.Path["/api/icon/".Length..], response).ConfigureAwait(false);
+            return;
+        }
+
         switch (request.Method, request.Path)
         {
             case ("GET", "/api/session"):
@@ -46,6 +61,12 @@ public sealed partial class WebServer
                     machine = Environment.MachineName,
                     device = new { device.Id, device.Name },
                 }).ConfigureAwait(false);
+                break;
+            case ("GET", "/api/catalog"):
+                await WriteJsonAsync(response, _catalog.Build()).ConfigureAwait(false);
+                break;
+            case ("POST", "/api/run"):
+                await RunAsync(context).ConfigureAwait(false);
                 break;
             case ("POST", "/api/logout"):
                 Devices.Revoke(device.Id);
@@ -61,10 +82,8 @@ public sealed partial class WebServer
     private async Task PairAsync(WebRequest request, HttpListenerContext context)
     {
         var body = await ReadJsonAsync(context.Request).ConfigureAwait(false);
-        var code = body?.TryGetProperty("code", out var c) == true ? c.GetString() : null;
-        var name = body?.TryGetProperty("name", out var n) == true ? n.GetString() : null;
         var ip = request.ClientIp.ToString();
-        if (Devices.Pair(code, name, ip) is not var (device, token))
+        if (Devices.Pair(Str(body, "code"), Str(body, "name"), ip) is not var (device, token))
         {
             // A little patience for whoever is guessing.
             await Task.Delay(800).ConfigureAwait(false);
@@ -73,6 +92,54 @@ public sealed partial class WebServer
         }
         SetTokenCookie(context.Response, request, token);
         await WriteJsonAsync(context.Response, new { token, device = new { device.Id, device.Name } }).ConfigureAwait(false);
+    }
+
+    /// <summary>Runs a command and answers with what happened (or "running" when it takes long).</summary>
+    private async Task RunAsync(HttpListenerContext context)
+    {
+        var body = await ReadJsonAsync(context.Request).ConfigureAwait(false);
+        var id = Str(body, "id");
+        var command = _host.Invoke(() => _host.Engine.Config.FindCommand(id));
+        if (command is null || !WebCatalog.Available(command))
+        {
+            await WriteJsonAsync(context.Response, new { status = "error", error = command is null ? "notFound" : "unavailable" }, 404).ConfigureAwait(false);
+            return;
+        }
+
+        var feedback = new ExecutionFeedback();
+        Task run;
+        using (feedback.Begin()) run = _host.Engine.RunAsync(command, TriggerSource.Web);
+        var finished = await Task.WhenAny(run, Task.Delay(RunWait)).ConfigureAwait(false) == run;
+        var status = !finished ? "running" : feedback.HasError ? "error" : feedback.HasWarning ? "warning" : "ok";
+        await WriteJsonAsync(context.Response, new { status, messages = feedback.Messages }).ConfigureAwait(false);
+    }
+
+    private async Task IconAsync(string file, HttpListenerResponse response)
+    {
+        var hash = file.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ? file[..^4] : file;
+        if (_catalog.IconPng(hash) is not { } png)
+        {
+            await WriteJsonAsync(response, new { error = "notFound" }, 404).ConfigureAwait(false);
+            return;
+        }
+        // The name is the hash of the content: it never changes.
+        response.ContentType = "image/png";
+        response.Headers["Cache-Control"] = "private, max-age=31536000, immutable";
+        response.ContentLength64 = png.Length;
+        await response.OutputStream.WriteAsync(png).ConfigureAwait(false);
+    }
+
+    /// <summary>The web app's texts ("pwa.*") in the requested language, or in the language of the PC.</summary>
+    private static object Texts(string? lang)
+    {
+        var available = Loc.Available();
+        var code = available.FirstOrDefault(l => l.Code.Equals(lang, StringComparison.OrdinalIgnoreCase))?.Code ?? Loc.Instance.Language;
+        return new
+        {
+            lang = code,
+            languages = available.Select(l => new { l.Code, l.Name }),
+            strings = Loc.Strings(code, "pwa."),
+        };
     }
 
     /// <summary>The token travels in an HttpOnly cookie (so images load too) or, as a fallback, as a Bearer header.</summary>
@@ -91,6 +158,9 @@ public sealed partial class WebServer
         if (request.Scheme == "https") cookie += "; Secure";
         response.AppendHeader("Set-Cookie", cookie);
     }
+
+    private static string? Str(JsonElement? body, string name) =>
+        body?.TryGetProperty(name, out var v) == true && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
 
     private static async Task<JsonElement?> ReadJsonAsync(HttpListenerRequest raw)
     {

@@ -1,0 +1,630 @@
+// K-Desktop web app: pairing, QuickMenus, all commands with search, settings.
+// Every URL is relative, so the app works at the root of a domain or under a path behind the proxy.
+import { searchKey, tokens, score } from './fuzzy.js';
+
+const $ = id => document.getElementById(id);
+
+const store = {
+  get(key, fallback = null) {
+    try {
+      const v = localStorage.getItem('kd.' + key);
+      return v === null ? fallback : JSON.parse(v);
+    } catch { return fallback; }
+  },
+  set(key, value) {
+    try {
+      if (value === null || value === undefined) localStorage.removeItem('kd.' + key);
+      else localStorage.setItem('kd.' + key, JSON.stringify(value));
+    } catch { /* private mode */ }
+  },
+};
+
+// ── icons ──────────────────────────────────────────────────────────
+
+const ICONS = {
+  refresh: '<path d="M20 11a8 8 0 1 0-2.34 5.66"/><path d="M20 4v7h-7"/>',
+  back: '<path d="M15 18l-6-6 6-6"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+  menus: '<rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/>',
+  all: '<path d="M13 2.5L4.5 13.5H12l-1 8 8.5-11H12z"/>',
+  settings: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+  ok: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  error: '<path d="M7 7l10 10M17 7L7 17"/>',
+  warning: '<path d="M12 7v6M12 17v.01"/>',
+  running: '<circle cx="12" cy="12" r="7"/><path d="M12 8.5V12l2.5 1.5"/>',
+  info: '<path d="M12 11v6M12 7v.01"/>',
+  chevron: '<path d="M9 6l6 6-6 6"/>',
+};
+
+const svg = name => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] ?? ''}</svg>`;
+
+function el(tag, className, text) {
+  const e = document.createElement(tag);
+  if (className) e.className = className;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+// ── state ──────────────────────────────────────────────────────────
+
+const state = {
+  texts: store.get('texts', null),
+  catalog: store.get('catalog', null),
+  catalogJson: '',
+  session: null,
+  tab: store.get('tab', 'menus'),
+  menuId: store.get('menu', null),
+  path: [],          // ids of the open submenus
+  lastLoad: 0,
+};
+
+class Unpaired extends Error {}
+
+// ── texts ──────────────────────────────────────────────────────────
+
+function t(key, ...args) {
+  let s = state.texts?.strings?.[key] ?? key;
+  args.forEach((a, i) => { s = s.replaceAll(`{${i}}`, a); });
+  return s;
+}
+
+function applyTexts() {
+  document.documentElement.lang = state.texts?.lang ?? 'es';
+  for (const e of document.querySelectorAll('[data-i18n]')) e.textContent = t(e.dataset.i18n);
+  for (const e of document.querySelectorAll('[data-i18n-placeholder]')) e.placeholder = t(e.dataset.i18nPlaceholder);
+  for (const e of document.querySelectorAll('[data-i18n-title]')) {
+    e.title = t(e.dataset.i18nTitle);
+    e.setAttribute('aria-label', e.title);
+  }
+  fillLanguages();
+}
+
+async function loadTexts() {
+  const lang = store.get('lang', '') || navigator.language.slice(0, 2);
+  try {
+    const r = await fetch(`api/i18n?lang=${encodeURIComponent(lang)}`, { cache: 'no-store' });
+    if (!r.ok) return;
+    state.texts = await r.json();
+    store.set('texts', state.texts);
+    applyTexts();
+  } catch { /* offline: keep the cached texts */ }
+}
+
+// ── API ────────────────────────────────────────────────────────────
+
+async function api(path, { method = 'GET', body } = {}) {
+  const headers = { 'X-KD': '1' };
+  const token = store.get('token');
+  if (token) headers.Authorization = 'Bearer ' + token;
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  const r = await fetch('api/' + path, {
+    method, headers, cache: 'no-store', credentials: 'same-origin',
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (r.status === 401) {
+    showPair();
+    throw new Unpaired();
+  }
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(data.error || String(r.status)), { status: r.status, data });
+  return data;
+}
+
+// ── theme ──────────────────────────────────────────────────────────
+
+function applyTheme(theme) {
+  const root = document.documentElement;
+  if (theme === 'light' || theme === 'dark') root.dataset.theme = theme;
+  else delete root.dataset.theme;
+  for (const b of $('themeSwitch').querySelectorAll('button')) b.classList.toggle('active', b.dataset.theme === (theme || 'system'));
+  movePill($('themeSwitch').querySelector('.seg-pill'), $('themeSwitch').querySelector('button.active'));
+  requestAnimationFrame(() => {
+    const bg = getComputedStyle(root).getPropertyValue('--bg').trim();
+    document.querySelector('meta[name="theme-color"]').content = bg || '#1c1c1e';
+  });
+}
+
+function movePill(pill, target) {
+  if (!pill || !target || !target.offsetWidth) return;
+  pill.style.width = target.offsetWidth + 'px';
+  pill.style.transform = `translateX(${target.offsetLeft}px)`;
+}
+
+// ── tabs ───────────────────────────────────────────────────────────
+
+const TABS = ['menus', 'all', 'settings'];
+
+function setTab(tab) {
+  if (!TABS.includes(tab)) tab = 'menus';
+  const back = TABS.indexOf(tab) < TABS.indexOf(state.tab);
+  state.tab = tab;
+  store.set('tab', tab);
+  for (const v of document.querySelectorAll('.view')) {
+    const on = v.dataset.view === tab;
+    v.classList.toggle('active', on);
+    v.classList.toggle('back', on && back);
+  }
+  for (const b of $('tabbar').querySelectorAll('button')) b.classList.toggle('active', b.dataset.tab === tab);
+  movePill($('tabPill'), $('tabbar').querySelector('button.active'));
+  window.scrollTo({ top: 0 });
+}
+
+// ── tiles ──────────────────────────────────────────────────────────
+
+/** A command (or submenu) tile. */
+function tile({ label, icon, commandId, folder, onOpen, index }) {
+  const b = el('button', 'tile' + (folder ? ' folder' : ''));
+  b.style.setProperty('--n', Math.min(index ?? 0, 24));
+  const iconBox = el('span', 'tile-icon');
+  if (icon) {
+    const img = new Image();
+    img.src = `api/icon/${icon}.png`;
+    img.alt = '';
+    img.decoding = 'async';
+    img.loading = 'lazy';
+    img.onerror = () => img.remove();
+    iconBox.append(img);
+  }
+  b.append(iconBox, el('span', 'tile-label', label ?? ''));
+
+  b.addEventListener('pointerdown', e => ripple(b, e));
+  b.addEventListener('click', e => {
+    if (e.target.closest('.tile-more')) return;
+    if (commandId) run(commandId, b, label);
+    else onOpen?.();
+  });
+
+  // A command that also has children: the corner button opens them.
+  if (commandId && onOpen) {
+    const more = el('span', 'tile-more');
+    more.innerHTML = svg('chevron');
+    more.setAttribute('role', 'button');
+    more.setAttribute('aria-label', t('pwa.openSub'));
+    more.addEventListener('click', e => {
+      e.stopPropagation();
+      onOpen();
+    });
+    b.append(more);
+  }
+  return b;
+}
+
+function ripple(target, e) {
+  const r = target.getBoundingClientRect();
+  const size = Math.max(r.width, r.height) * 2;
+  const dot = el('span', 'ripple');
+  dot.style.width = dot.style.height = size + 'px';
+  dot.style.left = (e.clientX - r.left - size / 2) + 'px';
+  dot.style.top = (e.clientY - r.top - size / 2) + 'px';
+  target.append(dot);
+  dot.addEventListener('animationend', () => dot.remove());
+}
+
+function badge(target, kind) {
+  target.querySelector('.badge')?.remove();
+  const b = el('span', 'badge ' + kind);
+  b.innerHTML = svg(kind === 'running' ? 'running' : kind === 'warning' ? 'warning' : kind === 'error' ? 'error' : 'ok');
+  target.append(b);
+  b.addEventListener('animationend', e => { if (e.animationName === 'badge-out') b.remove(); });
+}
+
+// ── running commands ───────────────────────────────────────────────
+
+async function run(id, target, label) {
+  if (target.classList.contains('busy')) return;
+  navigator.vibrate?.(8);
+  target.classList.add('busy');
+  let result;
+  try {
+    result = await api('run', { method: 'POST', body: { id } });
+  } catch (e) {
+    if (e instanceof Unpaired) return;
+    result = { status: e.status === 404 ? 'unavailable' : 'offline', messages: [] };
+  } finally {
+    target.classList.remove('busy');
+  }
+
+  const status = result.status;
+  const kind = status === 'unavailable' || status === 'offline' ? 'error' : status;
+  badge(target, kind);
+  if (kind === 'error') {
+    target.classList.remove('shake');
+    void target.offsetWidth;
+    target.classList.add('shake');
+    navigator.vibrate?.([25, 40, 25]);
+  }
+  const messages = (result.messages ?? []).join('\n');
+  const statusText = t({ ok: 'pwa.run.ok', error: 'pwa.run.error', warning: 'pwa.run.warning', running: 'pwa.run.running',
+                         offline: 'pwa.run.offline', unavailable: 'pwa.run.unavailable' }[status] ?? 'pwa.run.ok');
+  toast(kind, label, messages || statusText, kind === 'error' ? 5000 : messages ? 3500 : 1800);
+  if (status === 'unavailable') loadCatalog();
+}
+
+// ── toasts ─────────────────────────────────────────────────────────
+
+function toast(kind, title, detail, ms = 2500) {
+  const box = $('toasts');
+  while (box.children.length >= 3) box.firstElementChild.remove();
+  const tEl = el('div', 'toast ' + kind);
+  const ic = el('span', 'toast-icon');
+  ic.innerHTML = svg(kind === 'info' ? 'info' : kind);
+  const text = el('div', 'toast-text');
+  text.append(el('b', '', title));
+  if (detail) text.append(el('span', '', detail));
+  tEl.append(ic, text);
+  box.append(tEl);
+  const close = () => {
+    if (tEl.classList.contains('out')) return;
+    tEl.classList.add('out');
+    tEl.addEventListener('animationend', () => tEl.remove());
+  };
+  tEl.addEventListener('click', close);
+  setTimeout(close, ms);
+}
+
+// ── QuickMenus ─────────────────────────────────────────────────────
+
+function currentMenu() {
+  const menus = state.catalog?.menus ?? [];
+  return menus.find(m => m.id === state.menuId) ?? menus[0] ?? null;
+}
+
+/** The nodes of the open level, and its title (null at the root). */
+function currentLevel(menu) {
+  let nodes = menu.items;
+  const trail = [];
+  for (const id of state.path) {
+    const node = findNode(nodes, id);
+    if (!node?.children) break;
+    trail.push(node);
+    nodes = node.children;
+  }
+  state.path = trail.map(n => n.id);
+  return { nodes, title: trail.at(-1)?.label ?? null };
+}
+
+/** Finds a node among the nodes of a level, including the children of its titles (they show inline). */
+function findNode(nodes, id) {
+  for (const n of nodes) {
+    if (n.id === id) return n;
+    if (n.kind === 'title' && n.children) {
+      const inner = findNode(n.children, id);
+      if (inner) return inner;
+    }
+  }
+  return null;
+}
+
+function renderMenus(direction) {
+  const menus = state.catalog?.menus ?? [];
+  const chips = $('menuChips');
+  chips.hidden = menus.length < 2;
+  const menu = currentMenu();
+  chips.replaceChildren(...menus.map(m => {
+    const c = el('button', 'chip' + (m === menu ? ' active' : ''), m.name);
+    c.addEventListener('click', () => {
+      if (m === menu) return;
+      state.menuId = m.id;
+      store.set('menu', m.id);
+      state.path = [];
+      renderMenus();
+    });
+    return c;
+  }));
+
+  const stack = $('menuStack');
+  if (!menu) {
+    $('crumbs').hidden = true;
+    stack.replaceChildren(el('p', 'empty', t('pwa.noMenus')));
+    return;
+  }
+  const { nodes, title } = currentLevel(menu);
+  $('crumbs').hidden = title === null;
+  $('crumbTitle').textContent = title ?? '';
+
+  const level = el('div', 'level' + (direction === 'back' ? ' back' : ''));
+  renderNodes(nodes, level, { i: 0 });
+  stack.replaceChildren(level);
+}
+
+function renderNodes(nodes, container, counter) {
+  let grid = null;
+  for (const node of nodes) {
+    // Separators make sense in a desktop list, not in a grid of tiles: only titles start sections here.
+    if (node.kind === 'separator') continue;
+    if (node.kind === 'title') {
+      container.append(el('h3', 'section-title', node.label ?? ''));
+      grid = null;
+      if (node.children) {
+        const body = el('div', 'section-body');
+        renderNodes(node.children, body, counter);
+        container.append(body);
+      }
+      continue;
+    }
+    if (!grid) {
+      grid = el('div', 'grid');
+      container.append(grid);
+    }
+    const open = node.children ? () => openSubmenu(node) : null;
+    grid.append(tile({
+      label: node.label, icon: node.icon, commandId: node.commandId,
+      folder: node.kind === 'submenu', onOpen: open, index: counter.i++,
+    }));
+  }
+}
+
+function openSubmenu(node) {
+  navigator.vibrate?.(5);
+  state.path.push(node.id);
+  history.pushState({ kd: state.path.length }, '');
+  renderMenus('forward');
+  window.scrollTo({ top: 0 });
+}
+
+function closeSubmenu() {
+  if (!state.path.length) return;
+  state.path.pop();
+  renderMenus('back');
+}
+
+// ── all commands ───────────────────────────────────────────────────
+
+const keys = new Map();
+const keyOf = c => {
+  let k = keys.get(c.id);
+  if (!k || k.text !== c.name) keys.set(c.id, k = searchKey(c.name));
+  return k;
+};
+
+let shownAll = [];
+
+function renderAll() {
+  const commands = state.catalog?.commands ?? [];
+  const q = $('searchBox').value.trim();
+  let list = commands;
+  if (q) {
+    const toks = tokens(q);
+    list = commands.map(c => ({ c, s: score(toks, keyOf(c)) }))
+      .filter(x => x.s > 0)
+      .sort((a, b) => b.s - a.s || b.c.runs - a.c.runs)
+      .map(x => x.c);
+  }
+  shownAll = list;
+  $('allGrid').replaceChildren(...list.map((c, i) => tile({ label: c.name, icon: c.icon, commandId: c.id, index: q ? Math.min(i, 8) : i })));
+  $('allCount').textContent = list.length ? t('pwa.count', list.length) : '';
+  const empty = $('allEmpty');
+  empty.hidden = list.length > 0;
+  empty.textContent = q ? t('pwa.noResults', q) : t('pwa.noCommands');
+}
+
+// ── catalog / session ──────────────────────────────────────────────
+
+async function loadCatalog(manual = false) {
+  const button = $('refreshButton');
+  button.classList.add('spin');
+  try {
+    const catalog = await api('catalog');
+    state.lastLoad = Date.now();
+    const json = JSON.stringify(catalog);
+    if (json !== state.catalogJson) {
+      state.catalogJson = json;
+      state.catalog = catalog;
+      store.set('catalog', catalog);
+      $('machine').textContent = catalog.machine;
+      renderMenus();
+      renderAll();
+    }
+    if (manual) toast('ok', t('pwa.refreshed'), '', 1500);
+  } catch (e) {
+    if (!(e instanceof Unpaired)) toast('error', t('pwa.offline'), '', 3000);
+  } finally {
+    button.classList.remove('spin');
+  }
+}
+
+function showShell() {
+  $('pair').hidden = true;
+  if (!$('shell').hidden) return;
+  $('shell').hidden = false;
+  if (state.catalog) {
+    state.catalogJson = JSON.stringify(state.catalog);
+    $('machine').textContent = state.catalog.machine;
+  }
+  renderMenus();
+  renderAll();
+  setTab(state.tab);
+  applyTheme(store.get('theme', 'system'));
+}
+
+function fillSession() {
+  const s = state.session;
+  if (!s) return;
+  $('deviceName').textContent = s.device?.name ?? '';
+  $('connectedTo').textContent = t('pwa.settings.connected', s.machine);
+  $('version').textContent = s.app;
+}
+
+async function connect() {
+  try {
+    state.session = await api('session');
+    fillSession();
+    showShell();
+    await loadCatalog();
+  } catch (e) {
+    if (e instanceof Unpaired) return;
+    // K-Desktop not reachable: the cached commands are still shown.
+    if (state.catalog) showShell();
+    toast('error', t('pwa.offline'), '', 3500);
+  }
+}
+
+// ── pairing ────────────────────────────────────────────────────────
+
+function deviceName() {
+  const ua = navigator.userAgent;
+  let os = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) ? 'iPad' : /Android/.test(ua) ? 'Android'
+    : /Windows/.test(ua) ? 'Windows' : /Mac OS/.test(ua) ? 'Mac' : /Linux/.test(ua) ? 'Linux' : 'Web';
+  const model = /Android[^;)]*;\s*([^;)]+?)(?:\s+Build\/|\))/.exec(ua)?.[1];
+  if (model && model.length > 2) os = model;
+  const browser = /EdgA?\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /SamsungBrowser/.test(ua) ? 'Samsung Internet'
+    : /Firefox|FxiOS/.test(ua) ? 'Firefox' : /Chrome|CriOS/.test(ua) ? 'Chrome' : /Safari/.test(ua) ? 'Safari' : '';
+  return browser ? `${os} · ${browser}` : os;
+}
+
+function formatCode(value) {
+  const raw = (value ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+  return raw.length > 4 ? raw.slice(0, 4) + '-' + raw.slice(4) : raw;
+}
+
+function showPair(code, auto = false) {
+  $('shell').hidden = true;
+  $('pair').hidden = false;
+  if (code) $('pairCode').value = formatCode(code);
+  if (!$('pairName').value) $('pairName').value = store.get('deviceName', '') || deviceName();
+  $('pairError').textContent = '';
+  if (auto && $('pairCode').value.length === 9) pair();
+  else $('pairCode').focus({ preventScroll: true });
+}
+
+async function pair(e) {
+  e?.preventDefault();
+  const button = $('pairButton');
+  if (button.disabled) return;
+  button.disabled = true;
+  button.textContent = t('pwa.pair.pairing');
+  $('pairError').textContent = '';
+  const name = $('pairName').value.trim();
+  store.set('deviceName', name);
+  try {
+    const r = await fetch('api/pair', {
+      method: 'POST', cache: 'no-store',
+      headers: { 'X-KD': '1', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: $('pairCode').value, name }),
+    });
+    if (!r.ok) throw new Error(String(r.status));
+    const data = await r.json();
+    store.set('token', data.token);
+    navigator.vibrate?.(20);
+    toast('ok', t('pwa.pair.done'), data.device?.name ?? '', 2000);
+    await connect();
+  } catch (err) {
+    $('pairError').textContent = err.message === '403' ? t('pwa.pair.bad') : t('pwa.offline');
+    const card = document.querySelector('.pair-card');
+    card.classList.remove('shake');
+    void card.offsetWidth;
+    card.classList.add('shake');
+    navigator.vibrate?.([25, 40, 25]);
+  } finally {
+    button.disabled = false;
+    button.textContent = t('pwa.pair.button');
+  }
+}
+
+// ── settings ───────────────────────────────────────────────────────
+
+function fillLanguages() {
+  const select = $('langSelect');
+  const langs = state.texts?.languages ?? [];
+  const chosen = store.get('lang', '');
+  select.replaceChildren(
+    new Option(t('pwa.lang.system'), ''),
+    ...langs.map(l => new Option(l.name, l.code)));
+  select.value = chosen;
+}
+
+async function unpair() {
+  if (!confirm(t('pwa.settings.unpairConfirm'))) return;
+  try { await api('logout', { method: 'POST' }); } catch { /* already gone */ }
+  store.set('token', null);
+  store.set('catalog', null);
+  state.catalog = null;
+  state.catalogJson = '';
+  showPair();
+}
+
+// ── wiring ─────────────────────────────────────────────────────────
+
+function wire() {
+  for (const e of document.querySelectorAll('[data-icon]')) e.innerHTML = svg(e.dataset.icon);
+
+  for (const b of $('tabbar').querySelectorAll('button'))
+    b.addEventListener('click', () => {
+      navigator.vibrate?.(4);
+      if (b.dataset.tab === state.tab && state.tab === 'menus' && state.path.length) {
+        state.path = [];
+        renderMenus('back');
+        return;
+      }
+      setTab(b.dataset.tab);
+    });
+
+  $('refreshButton').addEventListener('click', () => loadCatalog(true));
+  $('reloadButton').addEventListener('click', () => loadCatalog(true));
+  $('backButton').addEventListener('click', () => history.back());
+  window.addEventListener('popstate', () => closeSubmenu());
+
+  const search = $('searchBox');
+  search.addEventListener('input', renderAll);
+  search.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' || !shownAll.length) return;
+    e.preventDefault();
+    $('allGrid').firstElementChild?.click();
+  });
+
+  for (const b of $('themeSwitch').querySelectorAll('button'))
+    b.addEventListener('click', () => {
+      store.set('theme', b.dataset.theme);
+      applyTheme(b.dataset.theme);
+    });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => applyTheme(store.get('theme', 'system')));
+
+  $('langSelect').addEventListener('change', async e => {
+    store.set('lang', e.target.value);
+    await loadTexts();
+    fillSession();
+    renderMenus();
+    renderAll();
+    requestAnimationFrame(() => {
+      movePill($('tabPill'), $('tabbar').querySelector('button.active'));
+      applyTheme(store.get('theme', 'system'));
+    });
+  });
+  $('unpairButton').addEventListener('click', unpair);
+
+  $('pairForm').addEventListener('submit', pair);
+  $('pairCode').addEventListener('input', e => {
+    const input = e.target;
+    input.value = formatCode(input.value);
+  });
+
+  window.addEventListener('resize', () => {
+    movePill($('tabPill'), $('tabbar').querySelector('button.active'));
+    movePill($('themeSwitch').querySelector('.seg-pill'), $('themeSwitch').querySelector('button.active'));
+  });
+
+  // Back to the app after a while: pick up changes made on the PC.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && state.session && Date.now() - state.lastLoad > 20000) loadCatalog();
+  });
+}
+
+async function start() {
+  applyTheme(store.get('theme', 'system'));
+  wire();
+  if (state.texts) applyTexts();
+  const textsLoaded = loadTexts();
+  if (!state.texts) await textsLoaded;
+
+  // Opened from the QR: #pair=CODE.
+  const code = /[#&]pair=([A-Za-z0-9-]+)/.exec(location.hash)?.[1];
+  if (code) {
+    history.replaceState(null, '', location.pathname + location.search);
+    showPair(code, true);
+    return;
+  }
+  if (state.catalog && store.get('token')) showShell();
+  await connect();
+}
+
+start();
