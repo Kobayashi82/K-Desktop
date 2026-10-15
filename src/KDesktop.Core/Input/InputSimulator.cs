@@ -35,7 +35,8 @@ public static class InputSimulator
     }
 
     /// <summary>Sends a combination in hotkey format: "CTRL + SHIFT + N", "F6", "Mouse 1", "CTRL + Wheel Up".</summary>
-    public static bool SendCombo(string combo)
+    /// <param name="releaseModifiers">Release the modifiers held first (off when they are held on purpose).</param>
+    public static bool SendCombo(string combo, bool releaseModifiers = true)
     {
         var (mods, main) = Hotkey.Parse(combo);
         if (main.Length == 0) return false;
@@ -56,7 +57,7 @@ public static class InputSimulator
         var mainInputs = MainInputs(main);
         if (mainInputs is null) return false;
 
-        ReleaseModifiers();
+        if (releaseModifiers) ReleaseModifiers();
         Send([.. down, .. mainInputs, .. up]);
         if (mods != Modifiers.None) InputSimulatorState.LastModifierRelease = Environment.TickCount64;
         return true;
@@ -122,6 +123,36 @@ public static class InputSimulator
     /// <summary>Relative movement through SendInput: what games and 3D programs read (pointer speed and acceleration apply).</summary>
     public static void MoveRaw(int dx, int dy) =>
         Send(new Win32.INPUT { type = Win32.INPUT_MOUSE, U = new Win32.InputUnion { mi = new Win32.MOUSEINPUT { dx = dx, dy = dy, dwFlags = Win32.MOUSEEVENTF_MOVE, dwExtraInfo = Marker } } });
+
+    /// <summary>
+    /// Moves the pointer by pixels as a real input event (hover, drag and drop work), but placed absolutely, so the
+    /// Windows pointer speed and acceleration do not apply on top of the caller's own (the remote touchpad).
+    /// </summary>
+    public static void MovePointer(int dx, int dy)
+    {
+        if (!Win32.GetCursorPos(out var p)) return;
+        var vx = Win32.GetSystemMetrics(Win32.SM_XVIRTUALSCREEN);
+        var vy = Win32.GetSystemMetrics(Win32.SM_YVIRTUALSCREEN);
+        var vw = Math.Max(1, Win32.GetSystemMetrics(Win32.SM_CXVIRTUALSCREEN));
+        var vh = Math.Max(1, Win32.GetSystemMetrics(Win32.SM_CYVIRTUALSCREEN));
+        var x = Math.Clamp(p.X + dx, vx, vx + vw - 1) - vx;
+        var y = Math.Clamp(p.Y + dy, vy, vy + vh - 1) - vy;
+        // Windows maps 0…65535 back with (n · size) >> 16: round up so it lands on this exact pixel.
+        var nx = (int)(((long)x * 65536 + vw - 1) / vw);
+        var ny = (int)(((long)y * 65536 + vh - 1) / vh);
+        Send(new Win32.INPUT
+        {
+            type = Win32.INPUT_MOUSE,
+            U = new Win32.InputUnion
+            {
+                mi = new Win32.MOUSEINPUT
+                {
+                    dx = nx, dy = ny, dwExtraInfo = Marker,
+                    dwFlags = Win32.MOUSEEVENTF_MOVE | Win32.MOUSEEVENTF_ABSOLUTE | Win32.MOUSEEVENTF_VIRTUALDESK,
+                },
+            },
+        });
+    }
 
     public static (int X, int Y) CursorPosition() => Win32.GetCursorPos(out var p) ? (p.X, p.Y) : (0, 0);
 

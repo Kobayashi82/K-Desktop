@@ -37,6 +37,10 @@ public sealed partial class WebServer
             case ("POST", "/api/pair"):
                 await PairAsync(request, context).ConfigureAwait(false);
                 return;
+            case ("GET", "/api/input"):
+                // Authenticated inside: by cookie, or by its first message.
+                await InputAsync(request, context).ConfigureAwait(false);
+                return;
         }
 
         var device = request.IsLocal ? WebDevices.Local : Devices.Authenticate(TokenOf(context.Request), request.ClientIp.ToString());
@@ -61,6 +65,7 @@ public sealed partial class WebServer
                     machine = Environment.MachineName,
                     device = new { device.Id, Name = request.IsLocal ? Loc.T("pwa.thisPc") : device.Name },
                     local = request.IsLocal,
+                    input = InputAllowed,
                 }).ConfigureAwait(false);
                 break;
             case ("GET", "/api/events"):

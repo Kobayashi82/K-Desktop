@@ -108,6 +108,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>From the network, accept only the proxy (devices must go through HTTPS).</summary>
     [ObservableProperty] private bool _webProxyOnly;
 
+    /// <summary>The web app may move the mouse and type (its touchpad and keyboard).</summary>
+    [ObservableProperty] private bool _webInput = true;
+
     // OSD
     [ObservableProperty] private OsdPosition _osdPosition = OsdPosition.BottomCenter;
     [ObservableProperty] private double _osdSeconds = 1.6;

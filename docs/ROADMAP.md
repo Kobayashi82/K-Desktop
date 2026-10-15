@@ -95,7 +95,20 @@
       `TriggerSource.Web`. El exe creció ~1,1 MB (QRCoder + web).
       Caddy (en 192.168.1.150): `kdesktop.dominio { reverse_proxy <IP del PC>:2502 }` y en Opciones poner
       «IP del proxy» = 192.168.1.150 (y, si se quiere, «Solo a través del proxy») y la «Dirección pública».
-- [ ] Web, siguiente fase: touchpad y teclado (WebSocket, http.sys los soporta) y micrófono del móvil para la voz.
+- [x] **Touchpad y teclado** en la app web (pestaña «Touchpad»; Opciones › App web › «Touchpad y teclado», activado
+      por defecto). WebSocket `api/input` (`WebServer.Input.cs`) con mensajes JSON pequeños; se autentica con la cookie
+      o con el token en el primer mensaje (5 s), y solo lo abren las páginas de la propia app (se comprueba `Origin`:
+      las cookies viajan también a WebSockets abiertos desde otro puerto del mismo servidor). Lo que el móvil deja
+      pulsado (botones, modificadores fijados) se suelta al desconectarse. El puntero se mueve con SendInput absoluto
+      (`InputSimulator.MovePointer`): evento real (hover, arrastrar) pero sin la aceleración de Windows encima de la de
+      la app. Gestos: un dedo mueve (aceleración propia), tocar = clic (espera 210 ms por si es tocar-y-arrastrar),
+      tocar dos veces = doble clic, mantener = arrastrar, dos dedos = desplazamiento (suave, con inercia; natural o
+      no), toque con dos/tres dedos = clic derecho/central; botones izquierdo/central/derecho debajo. Teclado: el del
+      propio móvil escribe en un cuadro oculto y se reenvía la diferencia (funcionan predicción, autocorrección y
+      escritura deslizando); fila de teclas especiales (Esc, Tab, flechas con repetición, Inicio/Fin, F1–F12…) y
+      modificadores: un toque = solo para la siguiente tecla, dos toques = fijado (Alt+Tab). Velocidades, desplazamiento
+      natural y «tocar para hacer clic» en Ajustes de la app.
+- [ ] Web: micrófono del móvil como otra fuente de audio de la voz (después de la voz).
       APK solo si hace falta algo que la web no puede (widgets, ajustes rápidos).
 - [ ] Probar la app web en el móvil real a través de Caddy (instalación como PWA, iPhone y Android).
 - [ ] **Voz** (plan en [VOZ.md](VOZ.md), etapas abajo). Va después del touchpad/teclado de la web.

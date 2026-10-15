@@ -239,6 +239,14 @@
                             </StackPanel>
                             <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding WebProxyOnly}" />
                         </Grid>
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{l:Tr settings.webInput}" />
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webInputHint}" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding WebInput}" />
+                        </Grid>
                         <WrapPanel Margin="0,6,0,0">
                             <ui:Button Margin="0,0,8,8" Appearance="Primary" Content="{l:Tr settings.webPair}" Icon="{ui:SymbolIcon QrCode24}" Click="OnPairWeb" />
                             <ui:Button Margin="0,0,8,8" Content="{l:Tr settings.webOpen}" Icon="{ui:SymbolIcon Globe24}" Click="OnOpenWeb" />

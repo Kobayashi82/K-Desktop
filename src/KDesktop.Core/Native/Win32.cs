@@ -162,6 +162,11 @@ internal static class Win32
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool SetCursorPos(int x, int y);
 
+    public const int SM_XVIRTUALSCREEN = 76, SM_YVIRTUALSCREEN = 77, SM_CXVIRTUALSCREEN = 78, SM_CYVIRTUALSCREEN = 79;
+
+    [DllImport("user32.dll")]
+    public static extern int GetSystemMetrics(int nIndex);
+
     // ── Windows ──────────────────────────────────────────────────────────
     public const int SW_HIDE = 0, SW_SHOWNORMAL = 1, SW_SHOWMINIMIZED = 2, SW_SHOWMAXIMIZED = 3, SW_SHOW = 5, SW_MINIMIZE = 6, SW_RESTORE = 9;
     public const int GWL_EXSTYLE = -20, GWL_STYLE = -16;

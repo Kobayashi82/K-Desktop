@@ -23,6 +23,9 @@ internal sealed class WebRequest
     /// <summary>"https" when the proxy says so.</summary>
     public required string Scheme { get; init; }
 
+    /// <summary>Host the browser asked for (the proxy's public one when it came through it).</summary>
+    public string? Host { get; init; }
+
     /// <summary>
     /// Opened in a browser on this same PC (loopback, not through a proxy, Host "localhost"): no pairing needed.
     /// The Host check stops DNS-rebinding tricks from web pages.
@@ -82,6 +85,7 @@ internal sealed class WebRequest
             Prefix = prefix,
             ClientIp = client,
             Scheme = scheme,
+            Host = host,
             PublicUrl = viaProxy && !string.IsNullOrEmpty(host) ? $"{scheme}://{host}{prefix}/" : null,
             IsLocal = loopback && raw.Headers["X-Forwarded-For"] is null && forwardedHost is null && IsLoopbackHost(raw.Headers["Host"]),
         };

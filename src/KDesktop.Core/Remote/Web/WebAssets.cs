@@ -43,6 +43,7 @@ internal static class WebAssets
             shortcuts = new object[]
             {
                 new { name = Localization.Loc.T("pwa.tab.all"), url = "./#tab=all", icons = new[] { new { src = "icons/icon-192.png", sizes = "192x192" } } },
+                new { name = Localization.Loc.T("pwa.tab.pad"), url = "./#tab=pad", icons = new[] { new { src = "icons/icon-192.png", sizes = "192x192" } } },
                 new { name = Localization.Loc.T("pwa.tab.audio"), url = "./#tab=audio", icons = new[] { new { src = "icons/icon-192.png", sizes = "192x192" } } },
             },
         };

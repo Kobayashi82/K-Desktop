@@ -137,7 +137,7 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 .tabbar button {
   position: relative; z-index: 1;
   display: flex; flex-direction: column; align-items: center; gap: 2px;
-  min-width: 78px; padding: 7px 10px 6px; border-radius: 17px;
+  min-width: min(74px, calc((100vw - 34px) / 5)); padding: 7px 6px 6px; border-radius: 17px;
   color: var(--text-2); transition: color .25s var(--ease), transform .2s var(--spring);
 }
 .tabbar button:active { transform: scale(.94); }
@@ -315,6 +315,118 @@ input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; border: 0; bo
 .device.current .device-icon { background: var(--accent-soft); color: var(--accent-text); }
 .device.current .device-check { transform: scale(1); }
 .device:disabled { opacity: .45; box-shadow: none; }
+
+/* ── touchpad ─────────────────────────────────────────────────── */
+
+/* The pad fills the screen between the header and the tab bar (or the phone keyboard). */
+.shell:has(.pad-view.active) { height: 100dvh; min-height: 0; }
+.shell:has(.pad-view.active) .views { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.pad-view.active { display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0; }
+body.kb-open .views { padding-bottom: 10px; }
+body.kb-open .tabbar { transform: translate(-50%, 160%); opacity: 0; pointer-events: none; }
+.tabbar { transition: transform .35s var(--ease), opacity .25s; }
+
+.pad-bar { display: flex; align-items: center; justify-content: space-between; margin: -2px -4px 0 2px; }
+.pad-bar-buttons { display: flex; gap: 4px; }
+.pad-bar .icon-btn.active { background: var(--accent-soft); color: var(--accent-text); }
+.pad-status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
+.pad-status i { width: 8px; height: 8px; border-radius: 50%; background: var(--text-2); transition: background-color .3s; }
+.pad-status[data-state="connected"] i { background: var(--success); box-shadow: 0 0 0 4px color-mix(in srgb, var(--success) 22%, transparent); }
+.pad-status[data-state="connecting"] i { background: var(--accent); animation: pulse 1s ease-in-out infinite; }
+.pad-status[data-state="offline"] i { background: var(--danger); }
+@keyframes pulse { 50% { opacity: .3; } }
+
+.pad {
+  position: relative; flex: 1; min-height: 150px; overflow: hidden;
+  border-radius: 26px; border: 1px solid var(--line); box-shadow: var(--shadow);
+  background:
+    radial-gradient(circle at 1px 1px, var(--line) 1.2px, transparent 0) 0 0 / 22px 22px,
+    linear-gradient(160deg, var(--tile), var(--bg-2));
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  transition: border-color .25s, box-shadow .25s, filter .3s, opacity .3s;
+}
+.pad.offline { filter: grayscale(.8); opacity: .6; }
+.pad.dragging { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow); }
+.pad-hint {
+  position: absolute; inset: auto 24px 50%; transform: translateY(50%); margin: 0;
+  text-align: center; color: var(--text-2); font-size: 13.5px; line-height: 1.6; white-space: pre-line; text-wrap: balance; pointer-events: none;
+  transition: opacity .6s var(--ease);
+}
+.pad-hint.gone { opacity: 0; }
+.pad-drag {
+  position: absolute; top: 12px; left: 50%; translate: -50% 0; padding: 4px 12px; border-radius: 99px;
+  background: var(--accent); color: var(--on-accent); font-size: 12.5px; font-weight: 600;
+  opacity: 0; scale: .8; transition: opacity .2s, scale .3s var(--spring); pointer-events: none;
+}
+.pad.dragging .pad-drag { opacity: 1; scale: 1; }
+
+.finger {
+  position: absolute; left: 0; top: 0; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 38%, transparent), transparent 70%);
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--accent) 45%, transparent);
+  pointer-events: none; animation: finger-in .25s var(--spring);
+}
+.finger.out { animation: finger-out .3s var(--ease) forwards; }
+@keyframes finger-in { from { scale: .3; opacity: 0; } }
+@keyframes finger-out { to { scale: 1.6; opacity: 0; } }
+.tap-ring {
+  position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%;
+  border: 2px solid var(--accent); pointer-events: none; animation: tap-ring .45s var(--ease) forwards;
+}
+.tap-ring.r { border-color: var(--success); }
+.tap-ring.m { border-color: var(--text-2); }
+@keyframes tap-ring { from { scale: .4; opacity: 1; } to { scale: 3.2; opacity: 0; } }
+
+.pad-buttons { display: grid; grid-template-columns: 1fr .5fr 1fr; gap: 8px; height: 58px; flex: none; }
+.pad-buttons button {
+  border-radius: 18px; background: var(--tile); border: 1px solid var(--line); box-shadow: var(--shadow);
+  touch-action: none; user-select: none; -webkit-user-select: none;
+  transition: transform .2s var(--spring), background-color .15s;
+}
+.pad-buttons button:first-child { border-bottom-left-radius: 26px; }
+.pad-buttons button:last-child { border-bottom-right-radius: 26px; }
+.pad-buttons button.middle { position: relative; }
+.pad-buttons button.middle::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 8px; height: 22px; translate: -50% -50%;
+  border-radius: 99px; border: 2px solid var(--text-2); opacity: .6;
+}
+.pad-buttons button.down { transform: scale(.95); background: var(--accent-soft); border-color: var(--accent); }
+.pad-off { margin: 40px 20px; text-align: center; color: var(--text-2); }
+
+.keys { display: flex; flex-direction: column; gap: 6px; flex: none; animation: view-in .25s var(--ease); }
+.keys-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -14px; padding: 1px 14px; }
+.keys-row::-webkit-scrollbar { display: none; }
+#keysMods { display: grid; grid-template-columns: repeat(4, 1fr); }
+.key {
+  flex: none; min-width: 46px; height: 40px; padding: 0 12px; border-radius: 12px;
+  background: var(--tile); border: 1px solid var(--line); box-shadow: var(--shadow);
+  font-size: 14px; font-weight: 600; white-space: nowrap; touch-action: manipulation; user-select: none; -webkit-user-select: none;
+  transition: transform .15s var(--spring), background-color .2s, color .2s, border-color .2s;
+}
+.key.down { transform: scale(.92); background: var(--tile-pressed); }
+.key.once { background: var(--accent-soft); color: var(--accent-text); border-color: var(--accent); }
+.key.held { background: var(--accent); color: var(--on-accent); border-color: transparent; }
+
+/* The phone keyboard types into this; it is never seen. */
+.kb-input {
+  position: fixed; left: 0; bottom: 0; width: 2px; height: 2px; padding: 0; border: 0; margin: 0;
+  opacity: 0; resize: none; font-size: 16px; color: transparent; caret-color: transparent; background: none;
+  pointer-events: none;
+}
+
+input.switch {
+  -webkit-appearance: none; appearance: none; flex: none; position: relative; width: 48px; height: 28px; margin: 0;
+  border-radius: 99px; background: var(--bg-2); border: 1px solid var(--line); cursor: pointer;
+  transition: background-color .25s;
+}
+input.switch::before {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .3); transition: transform .3s var(--spring);
+}
+input.switch:checked { background: var(--accent); border-color: transparent; }
+input.switch:checked::before { transform: translateX(20px); }
+.slider-row span { flex: 1; }
+.slider-row input[type="range"] { flex: 0 0 52%; }
 
 /* ── settings ─────────────────────────────────────────────────── */
 

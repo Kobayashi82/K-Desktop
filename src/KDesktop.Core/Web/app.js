@@ -1,6 +1,7 @@
 // K-Desktop web app: pairing, QuickMenus, all commands with search, settings.
 // Every URL is relative, so the app works at the root of a domain or under a path behind the proxy.
 import { searchKey, tokens, score } from './fuzzy.js';
+import { setupPad, padActive, padTexts } from './pad.js';
 
 const $ = id => document.getElementById(id);
 
@@ -46,6 +47,9 @@ const ICONS = {
   headset: '<path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3.5" y="13" width="4" height="6" rx="1.5"/><rect x="16.5" y="13" width="4" height="6" rx="1.5"/><path d="M18.5 19c0 1.5-1.5 2.5-4.5 2.5"/>',
   monitor: '<rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M9 20h6M12 16.5V20"/>',
   digital: '<rect x="3.5" y="7" width="17" height="10" rx="2"/><path d="M7.5 12h9"/>',
+  touchpad: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 15h18M12 15v5"/>',
+  keyboard: '<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M7.5 14h9"/>',
+  keys: '<path d="M5 9h3M5 15h3M10 9h9M10 15h9"/><rect x="2.5" y="5" width="19" height="14" rx="2.5"/>',
 };
 
 const svg = name => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] ?? ''}</svg>`;
@@ -89,6 +93,7 @@ function applyTexts() {
     e.setAttribute('aria-label', e.title);
   }
   fillLanguages();
+  padTexts();
 }
 
 async function loadTexts() {
@@ -144,7 +149,7 @@ function movePill(pill, target) {
 
 // ── tabs ───────────────────────────────────────────────────────────
 
-const TABS = ['menus', 'all', 'audio', 'settings'];
+const TABS = ['menus', 'all', 'pad', 'audio', 'settings'];
 
 function setTab(tab) {
   if (!TABS.includes(tab)) tab = 'menus';
@@ -161,6 +166,7 @@ function setTab(tab) {
   window.scrollTo({ top: 0 });
   if (tab === 'audio') startAudio();
   else stopAudio();
+  padActive(tab === 'pad', state.session?.input !== false);
 }
 
 // ── audio ──────────────────────────────────────────────────────────
@@ -577,6 +583,8 @@ function fillSession(s = state.session) {
   $('version').textContent = s.app;
   // This same PC needs no pairing, so there is nothing to undo.
   $('unpairButton').hidden = !!s.local;
+  $('padSettings').hidden = s.input === false;
+  if (state.tab === 'pad') padActive(true, s.input !== false);
 }
 
 // ── live events ────────────────────────────────────────────────────
@@ -588,6 +596,7 @@ function startEvents() {
   if (events || !window.EventSource || document.visibilityState !== 'visible') return;
   events = new EventSource('api/events');
   events.addEventListener('catalog', () => loadCatalog());
+  events.addEventListener('session', () => loadSession());
   events.addEventListener('error', () => {
     // A refused stream (unpaired, too many) is not retried by the browser.
     if (events?.readyState === EventSource.CLOSED) events = null;
@@ -626,6 +635,15 @@ function setupInstall() {
   });
   // Safari on iPhone/iPad has no install prompt: say how.
   $('iosHint').hidden = standalone || !/iPhone|iPad|iPod/.test(navigator.userAgent) || !window.isSecureContext;
+}
+
+/** The session again (what the PC allows changed). */
+async function loadSession() {
+  try {
+    state.session = await api('session');
+    store.set('session', state.session);
+    fillSession();
+  } catch { /* offline or unpaired: handled elsewhere */ }
 }
 
 async function connect() {
@@ -734,6 +752,7 @@ async function unpair() {
 
 function wire() {
   for (const e of document.querySelectorAll('[data-icon]')) e.innerHTML = svg(e.dataset.icon);
+  setupPad({ t, store, svg, toast, onUnpaired: () => showPair() });
 
   for (const b of $('tabbar').querySelectorAll('button'))
     b.addEventListener('click', () => {

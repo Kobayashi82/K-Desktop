@@ -75,6 +75,7 @@ public sealed partial class WebServer : IDisposable
     public void Stop()
     {
         _cts?.Cancel();
+        CloseInputs();
         try { _listener?.Close(); } catch { /* ignore */ }
         _listener = null;
         _cts = null;

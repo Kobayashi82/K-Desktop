@@ -337,6 +337,7 @@ public partial class App : Application
         if (s.WebEnabled && !WebDisabled)
             Web.Start(new WebServerOptions(s.WebPort, s.WebAllowRemote, s.WebBasePath, s.WebTrustedProxy, s.WebProxyOnly));
         else Web.Stop();
+        Web.InputAllowed = s.WebInput;
     }
 
     // ── tray ─────────────────────────────────────────────────────────────
