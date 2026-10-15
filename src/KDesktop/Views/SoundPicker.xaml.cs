@@ -84,7 +84,7 @@ public partial class SoundPicker : UserControl
         if (e.AddedItems is [string sound, ..])
         {
             _previewed = sound;
-            Sounds.Play(sound);
+            Sounds.Preview(sound);
         }
         DeselectText();
     }
@@ -93,7 +93,7 @@ public partial class SoundPicker : UserControl
     {
         if (string.IsNullOrEmpty(sound) || sound == _previewed) return;
         _previewed = sound;
-        Sounds.Play(sound);
+        Sounds.Preview(sound);
     }
 
     private void OnDropDownClosed(object? sender, EventArgs e)
@@ -112,7 +112,7 @@ public partial class SoundPicker : UserControl
         text.Select(text.Text.Length, 0);
     });
 
-    private void OnPlay(object sender, RoutedEventArgs e) => Sounds.Play(Sound);
+    private void OnPlay(object sender, RoutedEventArgs e) => Sounds.Preview(Sound);
 
     private void OnBrowse(object sender, RoutedEventArgs e)
     {
@@ -121,6 +121,6 @@ public partial class SoundPicker : UserControl
             dlg.InitialDirectory = dir;
         if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
         Sound = dlg.FileName;
-        Sounds.Play(Sound);
+        Sounds.Preview(Sound);
     }
 }

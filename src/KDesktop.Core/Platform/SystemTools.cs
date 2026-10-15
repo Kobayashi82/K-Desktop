@@ -6,6 +6,7 @@ using KDesktop.Core.Model;
 using KDesktop.Core.Native;
 using Microsoft.Win32;
 using NAudio.CoreAudioApi;
+using NAudio.Wave;
 
 namespace KDesktop.Core.Platform;
 
@@ -80,17 +81,86 @@ public static class Sounds
         return names.Order(StringComparer.CurrentCultureIgnoreCase).ToList();
     }
 
-    public static void Play(string? sound) => Play(sound, Win32.SND_ASYNC);
+    /// <summary>Sounds playing now; each has its own output, so they mix instead of cutting each other.</summary>
+    private static readonly ConcurrentDictionary<WasapiOut, byte> Playing = new();
 
-    /// <summary>Plays the sound and completes when it ends.</summary>
+    /// <summary>The sound being previewed (sound pickers): a new preview replaces it.</summary>
+    private static WasapiOut? _preview;
+
+    /// <summary>Plays the sound over whatever is already playing (a command's sound and an achievement's both sound).</summary>
+    public static void Play(string? sound) => Start(sound, null);
+
+    /// <summary>Plays the sound for a preview: it stops the previous preview, so going through a list does not pile them up.</summary>
+    public static void Preview(string? sound)
+    {
+        var previous = Interlocked.Exchange(ref _preview, null);
+        try { previous?.Stop(); } catch { /* already gone */ }
+        _preview = Start(sound, null);
+    }
+
+    /// <summary>Plays the sound and completes when it ends (or when <paramref name="token"/> stops it).</summary>
     public static Task PlayAndWaitAsync(string? sound, CancellationToken token)
     {
         if (string.IsNullOrWhiteSpace(sound)) return Task.CompletedTask;
-        using var reg = token.Register(() => Win32.PlaySound(null, IntPtr.Zero, Win32.SND_PURGE));
-        return Task.Run(() => Play(sound, Win32.SND_SYNC), token);
+        var done = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var output = Start(sound, () => done.TrySetResult());
+        if (output is null)
+        {
+            // Not playable through WASAPI: the old way, synchronous on a worker thread.
+            using var reg = token.Register(() => Win32.PlaySound(null, IntPtr.Zero, Win32.SND_PURGE));
+            return Task.Run(() => PlayLegacy(sound, Win32.SND_SYNC), token);
+        }
+        token.Register(() =>
+        {
+            try { output.Stop(); } catch { /* already gone */ }
+        });
+        return done.Task;
     }
 
-    private static void Play(string? sound, uint mode)
+    /// <summary>Starts a sound on its own WASAPI output; null when it does not exist or cannot be played that way.</summary>
+    private static WasapiOut? Start(string? sound, Action? ended)
+    {
+        if (string.IsNullOrWhiteSpace(sound)) return null;
+        WaveStream? reader = null;
+        WasapiOut? output = null;
+        try
+        {
+            if (FindFile(sound) is { } file) reader = new WaveFileReader(file);
+            else if (BuiltIn(sound) is { } wav) reader = new WaveFileReader(new MemoryStream(wav, writable: false));
+            if (reader is null) return null;
+
+            output = new WasapiOut(AudioClientShareMode.Shared, useEventSync: true, latency: 60);
+            output.Init(reader);
+            var o = output;
+            var r = reader;
+            output.PlaybackStopped += (_, _) =>
+            {
+                Playing.TryRemove(o, out _);
+                Interlocked.CompareExchange(ref _preview, null, o);
+                ended?.Invoke();
+                // Off the audio thread that raised this.
+                Task.Run(() =>
+                {
+                    o.Dispose();
+                    r.Dispose();
+                });
+            };
+            Playing[output] = 0;
+            output.Play();
+            return output;
+        }
+        catch (Exception ex)
+        {
+            // No output device, unusual format…: PlaySound still knows how (one sound at a time).
+            Log.Warn($"Sonido '{sound}' sin WASAPI ({ex.Message}); se usa PlaySound");
+            output?.Dispose();
+            reader?.Dispose();
+            if (ended is null) PlayLegacy(sound, Win32.SND_ASYNC);
+            return null;
+        }
+    }
+
+    private static void PlayLegacy(string? sound, uint mode)
     {
         if (string.IsNullOrWhiteSpace(sound)) return;
         var flags = mode | Win32.SND_NODEFAULT;
