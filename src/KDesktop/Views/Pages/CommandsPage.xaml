@@ -177,9 +177,6 @@
                                 <Setter TargetName="Sub" Property="Text" Value="{Binding PrimaryAction.Summary}" />
                                 <Setter TargetName="Sub" Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding Hidden}" Value="True">
-                                <Setter TargetName="Root" Property="Opacity" Value="0.6" />
-                            </DataTrigger>
                             <DataTrigger Binding="{Binding Enabled}" Value="False">
                                 <Setter TargetName="Root" Property="Opacity" Value="0.45" />
                             </DataTrigger>

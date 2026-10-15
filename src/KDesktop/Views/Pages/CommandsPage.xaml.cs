@@ -128,7 +128,7 @@ public partial class CommandsPage : UserControl, IDisposable
     private bool Filter(object obj)
     {
         if (obj is not Command c) return false;
-        if (c.Hidden && ShowHiddenToggle.IsChecked != true && !ReferenceEquals(c, _selected)) return false;
+        if (c.Hidden && ShowHiddenToggle.IsChecked != true) return false;
         if (!PassesMenuFilter(c) && !ReferenceEquals(c, _selected)) return false;
         var q = SearchBox?.Text?.Trim();
         if (string.IsNullOrEmpty(q)) return true;
@@ -168,8 +168,14 @@ public partial class CommandsPage : UserControl, IDisposable
         if (_selected is not null) _selected.PropertyChanged -= OnSelectedChanged;
         var previous = _selected;
         _selected = CommandList.SelectedItem as Command;
-        // The filter keeps the selected command listed (so marking it hidden does not close its editor): once
-        // another one is chosen, a command that no longer passes it goes away.
+        // The selected command was just hidden: it left the list, so the next one (or the previous, at the end) takes its place.
+        if (_selected is null && previous is { Hidden: true } && !_view.IsEmpty)
+        {
+            var index = Math.Min(_hiddenIndex, _view.Count - 1);
+            Dispatcher.BeginInvoke(() => CommandList.SelectedIndex = index, System.Windows.Threading.DispatcherPriority.Background);
+        }
+        // The filter keeps the selected command listed while the QuickMenu filter would drop it: once another one
+        // is chosen, it goes away.
         if (previous is not null && !ReferenceEquals(previous, _selected) && !Filter(previous))
             Dispatcher.BeginInvoke(() => _view.Refresh(), System.Windows.Threading.DispatcherPriority.Background);
         Editor.DataContext = _selected;
@@ -198,8 +204,13 @@ public partial class CommandsPage : UserControl, IDisposable
             new DoubleAnimation(10, 0, TimeSpan.FromMilliseconds(220)) { EasingFunction = EaseOut });
     }
 
+    /// <summary>Position of the selected command when it was hidden, to select its neighbour once it leaves the list.</summary>
+    private int _hiddenIndex;
+
     private void OnSelectedChanged(object? sender, PropertyChangedEventArgs e)
     {
+        // Runs before the live filter takes it out of the list.
+        if (e.PropertyName is nameof(Command.Hidden) && _selected is { Hidden: true }) _hiddenIndex = Math.Max(0, CommandList.SelectedIndex);
         if (e.PropertyName is nameof(Command.Icon) or nameof(Command.PrimaryAction)) RefreshHeader();
     }
 
