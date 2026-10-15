@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/KDesktop.Core/KDesktop.Core.csproj" />
+    <Project Path="src/KDesktop/KDesktop.csproj" />
+  </Folder>
+</Solution>

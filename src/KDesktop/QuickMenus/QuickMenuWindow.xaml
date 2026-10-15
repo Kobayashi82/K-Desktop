@@ -1,0 +1,129 @@
+<Window x:Class="KDesktop.QuickMenus.QuickMenuWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:KDesktop.QuickMenus"
+        Title="K-Desktop QuickMenu"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        SizeToContent="WidthAndHeight"
+        Background="Transparent"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display"
+        FontFamily="Segoe UI Variable Text, Segoe UI"
+        FontSize="13">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="0" GlassFrameThickness="-1" CornerRadius="0" UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <CubicEase x:Key="EaseOut" EasingMode="EaseOut" />
+
+        <DataTemplate x:Key="EntryTemplate" DataType="{x:Type local:QuickMenuEntry}">
+            <Grid x:Name="Row" Background="Transparent" Cursor="Hand" Margin="0,1">
+                <!-- Separator -->
+                <Border x:Name="Sep" Height="1" Margin="12,4" Background="{DynamicResource Kd.MenuSeparator}" Visibility="Collapsed" />
+
+                <Grid x:Name="Content" Height="{DynamicResource Qm.RowHeight}" MinWidth="190">
+                    <!-- Hover / keyboard highlight -->
+                    <Border x:Name="Hover" CornerRadius="5" Background="{DynamicResource Kd.MenuHover}" Opacity="0" />
+                    <!-- "Executed" flash -->
+                    <Border x:Name="FlashLayer" CornerRadius="5" Background="{DynamicResource Kd.AccentSoft}" Opacity="0" />
+                    <!-- Title band -->
+                    <Border x:Name="TitleBand" CornerRadius="5" Background="{DynamicResource Kd.MenuTitle}" Visibility="Collapsed" />
+                    <!-- Accent pill -->
+                    <Border x:Name="Pill" Width="3" Height="16" CornerRadius="1.5" HorizontalAlignment="Left" Margin="1,0,0,0"
+                            Background="{DynamicResource Kd.Accent}" RenderTransformOrigin="0.5,0.5">
+                        <Border.RenderTransform>
+                            <ScaleTransform x:Name="PillScale" ScaleY="0" />
+                        </Border.RenderTransform>
+                    </Border>
+
+                    <Grid Margin="10,0,8,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Image x:Name="Icon" Grid.Column="0" Source="{Binding Icon}"
+                               Width="{DynamicResource Qm.IconSize}" Height="{DynamicResource Qm.IconSize}"
+                               Margin="0,0,10,0" VerticalAlignment="Center"
+                               RenderOptions.BitmapScalingMode="HighQuality"
+                               Visibility="{Binding HasIcon, Converter={StaticResource BoolToVis}}" />
+                        <TextBlock x:Name="Label" Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource Kd.MenuText}" TextTrimming="CharacterEllipsis" MaxWidth="360" />
+                        <Path x:Name="Chevron" Grid.Column="2" Margin="14,0,0,0" VerticalAlignment="Center"
+                              Data="M0,0 L4,4 L0,8" Stroke="{DynamicResource Kd.MenuTextSecondary}" StrokeThickness="1.4"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                              Visibility="{Binding HasChildren, Converter={StaticResource BoolToVis}}" />
+                    </Grid>
+                </Grid>
+            </Grid>
+
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsSeparator}" Value="True">
+                    <Setter TargetName="Sep" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Content" Property="Visibility" Value="Collapsed" />
+                    <Setter TargetName="Row" Property="Cursor" Value="Arrow" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsTitle}" Value="True">
+                    <Setter TargetName="TitleBand" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="Label" Property="FontWeight" Value="SemiBold" />
+                    <Setter TargetName="Label" Property="Foreground" Value="{DynamicResource Kd.AccentText}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsDisabled}" Value="True">
+                    <Setter TargetName="Content" Property="Opacity" Value="0.45" />
+                    <Setter TargetName="Row" Property="Cursor" Value="Arrow" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.09" />
+                                <DoubleAnimation Storyboard.TargetName="PillScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.16" EasingFunction="{StaticResource EaseOut}" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
+                                <DoubleAnimation Storyboard.TargetName="PillScale" Storyboard.TargetProperty="ScaleY" To="0" Duration="0:0:0.12" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsFlashing}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="FlashLayer" Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.12" AutoReverse="True" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsExpanded}" Value="True">
+                    <Setter TargetName="Chevron" Property="Stroke" Value="{DynamicResource Kd.Accent}" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Border x:Name="Surface"
+            Background="{DynamicResource Kd.MenuTint}"
+            BorderBrush="{DynamicResource Kd.MenuBorder}"
+            BorderThickness="1"
+            CornerRadius="8"
+            Padding="4">
+        <Grid x:Name="AnimatedRoot" Opacity="0" RenderTransformOrigin="0,0">
+            <Grid.RenderTransform>
+                <TranslateTransform x:Name="Slide" />
+            </Grid.RenderTransform>
+            <ScrollViewer x:Name="Scroller" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                <ItemsControl x:Name="EntriesControl" ItemTemplate="{StaticResource EntryTemplate}" Focusable="False" />
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</Window>

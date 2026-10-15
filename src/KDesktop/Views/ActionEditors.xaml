@@ -1,0 +1,380 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                    xmlns:m="clr-namespace:KDesktop.Core.Model;assembly=KDesktop.Core"
+                    xmlns:v="clr-namespace:KDesktop.Views"
+                    xmlns:l="clr-namespace:KDesktop.Localization">
+
+    <!-- Editors for every action type. Each one is picked automatically by its DataType. -->
+
+    <Style x:Key="EdRow" TargetType="Grid">
+        <Setter Property="Margin" Value="0,0,0,12" />
+    </Style>
+    <Style x:Key="EdCheck" TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+        <Setter Property="Margin" Value="0,0,24,6" />
+    </Style>
+
+    <!-- ── Ejecutar aplicación ─────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:RunAppAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.path}" />
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:TextBox Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.pathHint}" />
+                <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}"
+                           Command="{x:Static v:EditorCommands.BrowseFile}" CommandParameter="{Binding}" />
+            </Grid>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.arguments}" />
+                    <ui:TextBox Text="{Binding Arguments, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.workingDir}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ui:TextBox Text="{Binding WorkingDirectory, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.workingDirHint}" />
+                        <ui:Button Grid.Column="1" Margin="6,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}"
+                                   Command="{x:Static v:EditorCommands.BrowseWorkingDirectory}" CommandParameter="{Binding}" />
+                    </Grid>
+                </StackPanel>
+            </Grid>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.window}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.WindowModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding WindowMode}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.priority}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.Priorities}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Priority}" />
+                </StackPanel>
+            </Grid>
+            <WrapPanel>
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.runAsAdmin}" IsChecked="{Binding RunAsAdmin}" />
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.topMost}" IsChecked="{Binding TopMost}" />
+            </WrapPanel>
+            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr editor.runAsAdminHint}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <!-- ── Abrir carpeta ───────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:OpenFolderAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.location}" />
+            <ComboBox Margin="0,0,0,12" ItemsSource="{x:Static v:Lookups.FolderTargets}" DisplayMemberPath="Name" SelectedValuePath="Value"
+                      SelectedValue="{Binding Special}" MaxDropDownHeight="420" />
+            <Grid x:Name="PathRow" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:TextBox Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.folderHint}" />
+                <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}"
+                           Command="{x:Static v:EditorCommands.BrowseFolder}" CommandParameter="{Binding}" />
+            </Grid>
+        </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Special, TargetNullValue=''}" Value="">
+                <Setter TargetName="PathRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <!-- ── Página web ──────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:OpenUrlAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="URL" />
+            <ui:TextBox Margin="0,0,0,12" Text="{Binding Url, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="https://…" Icon="{ui:SymbolIcon Globe24}" />
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.browser}" />
+            <ComboBox Margin="0,0,0,12" ItemsSource="{x:Static v:Lookups.BrowserOptions}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Browser}" />
+            <WrapPanel>
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.newWindow}" IsChecked="{Binding NewWindow}" />
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.incognito}" IsChecked="{Binding Incognito}" />
+            </WrapPanel>
+        </StackPanel>
+    </DataTemplate>
+
+    <!-- ── Controlar aplicación ────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:AppControlAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.AppControlModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.process}" />
+                    <ComboBox IsEditable="True" Text="{Binding ProcessName, UpdateSourceTrigger=PropertyChanged}"
+                              ItemsSource="{Binding Source={x:Static v:Lookups.RunningProcessesNow}}" />
+                </StackPanel>
+            </Grid>
+            <Grid x:Name="WaitRow" Style="{StaticResource EdRow}" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.waitUntil}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.WaitConditions}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding WaitFor}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.timeout}" />
+                    <ui:TextBox Text="{Binding TimeoutSeconds, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Grid>
+            <CheckBox x:Name="ForceCheck" Style="{StaticResource EdCheck}" Content="{l:Tr editor.waitForeground}" IsChecked="{Binding Force}" />
+        </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Mode}" Value="Close">
+                <Setter TargetName="ForceCheck" Property="Content" Value="{l:Tr editor.forceClose}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Mode}" Value="WaitFor">
+                <Setter TargetName="ForceCheck" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="WaitRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <!-- ── Script ──────────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:RunScriptAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.shell}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.ScriptShells}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Shell}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.window}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.WindowModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding WindowMode}" />
+                </StackPanel>
+            </Grid>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="Script" />
+            <TextBox Margin="0,0,0,12" Text="{Binding Script, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" AcceptsTab="True"
+                     MinHeight="120" MaxHeight="360" VerticalScrollBarVisibility="Auto" TextWrapping="NoWrap" HorizontalScrollBarVisibility="Auto"
+                     FontFamily="Cascadia Mono, Consolas" FontSize="13" />
+            <WrapPanel>
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.runAsAdmin}" IsChecked="{Binding RunAsAdmin}" />
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.waitForExit}" IsChecked="{Binding WaitForExit}" />
+            </WrapPanel>
+        </StackPanel>
+    </DataTemplate>
+
+    <!-- ── Enviar pulsación / texto ────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:SendInputAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+            <ComboBox Margin="0,0,0,12" ItemsSource="{x:Static v:Lookups.SendInputModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="ValueBox" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" FontSize="14" />
+                <ui:Button x:Name="CaptureButton" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.captureKeys}" Icon="{ui:SymbolIcon Keyboard24}"
+                           Command="{x:Static v:EditorCommands.CaptureKeys}" CommandParameter="{Binding}" />
+            </Grid>
+            <TextBlock x:Name="Hint" Style="{StaticResource Caption}" Margin="0,6,0,0" Text="{l:Tr editor.keysHint}" />
+        </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Mode}" Value="Text">
+                <Setter TargetName="ValueBox" Property="AcceptsReturn" Value="True" />
+                <Setter TargetName="ValueBox" Property="MinHeight" Value="80" />
+                <Setter TargetName="ValueBox" Property="TextWrapping" Value="Wrap" />
+                <Setter TargetName="CaptureButton" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.textHint}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Mode}" Value="MouseMoveTo">
+                <Setter TargetName="CaptureButton" Property="Content" Value="{l:Tr editor.captureMouse}" />
+                <Setter TargetName="CaptureButton" Property="Command" Value="{x:Static v:EditorCommands.CaptureMouse}" />
+                <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.mouseHint}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Mode}" Value="MouseMoveBy">
+                <Setter TargetName="CaptureButton" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.mouseByHint}" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <!-- ── Volumen ─────────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:VolumeAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+            <ComboBox Margin="0,0,0,12" ItemsSource="{x:Static v:Lookups.VolumeModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
+            <Grid x:Name="LevelRow" Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="56" />
+                </Grid.ColumnDefinitions>
+                <Slider Minimum="0" Maximum="100" Value="{Binding Value}" IsSnapToTickEnabled="True" TickFrequency="1" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="{Binding Value, StringFormat={}{0} %}" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="SemiBold" />
+            </Grid>
+            <StackPanel x:Name="StepRow" Visibility="Collapsed" Margin="0,0,0,12">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.volumeStep}" />
+                <ui:TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Width="120" HorizontalAlignment="Left" />
+            </StackPanel>
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+        </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Mode}" Value="Up">
+                <Setter TargetName="LevelRow" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="StepRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Mode}" Value="Down">
+                <Setter TargetName="LevelRow" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="StepRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Mode}" Value="ToggleMute">
+                <Setter TargetName="LevelRow" Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <!-- ── Sonido ──────────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:PlaySoundAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.sound}" />
+            <Grid Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ComboBox IsEditable="True" Text="{Binding Sound, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Source={x:Static v:Lookups.SoundNames}}" />
+                <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon Play24}" ToolTip="{l:Tr editor.preview}"
+                           Command="{x:Static v:EditorCommands.PreviewSound}" CommandParameter="{Binding Sound}" />
+                <ui:Button Grid.Column="2" Margin="6,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}"
+                           Command="{x:Static v:EditorCommands.BrowseSound}" CommandParameter="{Binding}" />
+            </Grid>
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.waitSound}" IsChecked="{Binding Wait}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <!-- ── Toggles sin parámetros ──────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:TopMostAction}">
+        <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type m:HiddenFilesAction}">
+        <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type m:ToggleDisabledInAction}">
+        <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+    </DataTemplate>
+
+    <!-- ── Mensaje ─────────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:ShowMessageAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.message}" />
+            <ui:TextBox Margin="0,0,0,12" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" />
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                <StackPanel Width="140">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.seconds}" />
+                    <ui:TextBox Text="{Binding Seconds, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </StackPanel>
+            <WrapPanel>
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.countdown}" IsChecked="{Binding Countdown}" />
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.waitMessage}" IsChecked="{Binding Wait}" />
+            </WrapPanel>
+        </StackPanel>
+    </DataTemplate>
+
+    <!-- ── Energía ─────────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:PowerAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="140" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.PowerModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.delay}" />
+                    <ui:TextBox Text="{Binding DelaySeconds, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Grid>
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showCountdown}" IsChecked="{Binding ShowOsd}" />
+            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr editor.powerHint}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <!-- ── QuickMenu ───────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:OpenQuickMenuAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="QuickMenu" />
+            <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.QuickMenuList}}" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding MenuId}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <!-- ── Comandos ────────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:CommandControlAction}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+                <ComboBox ItemsSource="{x:Static v:Lookups.CommandControlModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.command}" />
+                <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.CommandList}}" DisplayMemberPath="Name" SelectedValuePath="Id"
+                          SelectedValue="{Binding CommandId}" IsTextSearchEnabled="True" TextSearch.TextPath="Name" MaxDropDownHeight="420" />
+            </StackPanel>
+        </Grid>
+    </DataTemplate>
+
+    <!-- ── Esperar ─────────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:WaitAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="140" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.seconds}" />
+                    <ui:TextBox Text="{Binding Seconds, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.messageOptional}" />
+                    <ui:TextBox Text="{Binding Message, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Grid>
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.countdown}" IsChecked="{Binding Countdown}" />
+        </StackPanel>
+    </DataTemplate>
+</ResourceDictionary>
