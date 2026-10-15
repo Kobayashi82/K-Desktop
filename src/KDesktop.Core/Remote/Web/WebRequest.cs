@@ -23,6 +23,12 @@ internal sealed class WebRequest
     /// <summary>"https" when the proxy says so.</summary>
     public required string Scheme { get; init; }
 
+    /// <summary>
+    /// Opened in a browser on this same PC (loopback, not through a proxy, Host "localhost"): no pairing needed.
+    /// The Host check stops DNS-rebinding tricks from web pages.
+    /// </summary>
+    public bool IsLocal { get; init; }
+
     /// <summary>Public URL of the app (scheme://host/prefix/) when the request came through the proxy.</summary>
     public string? PublicUrl { get; init; }
 
@@ -77,7 +83,15 @@ internal sealed class WebRequest
             ClientIp = client,
             Scheme = scheme,
             PublicUrl = viaProxy && !string.IsNullOrEmpty(host) ? $"{scheme}://{host}{prefix}/" : null,
+            IsLocal = loopback && raw.Headers["X-Forwarded-For"] is null && forwardedHost is null && IsLoopbackHost(raw.Headers["Host"]),
         };
+    }
+
+    private static bool IsLoopbackHost(string? host)
+    {
+        if (string.IsNullOrEmpty(host)) return false;
+        var name = host.StartsWith('[') ? host[..(host.IndexOf(']') + 1)] : host.Split(':')[0];
+        return name.Equals("localhost", StringComparison.OrdinalIgnoreCase) || name is "127.0.0.1" or "[::1]";
     }
 
     /// <summary>The right-most address: the one the proxy itself added.</summary>

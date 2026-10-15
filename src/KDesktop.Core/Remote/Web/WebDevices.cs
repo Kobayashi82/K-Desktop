@@ -45,6 +45,9 @@ public sealed class WebDevices
     /// <summary>Raised (on any thread) when the current pairing code is used.</summary>
     public event Action<WebDevice>? Paired;
 
+    /// <summary>The browser of this same PC: needs no pairing (see <see cref="WebRequest.IsLocal"/>).</summary>
+    public static WebDevice Local { get; } = new() { Id = "local" };
+
     public WebDevices() => Load();
 
     public IReadOnlyList<WebDevice> List()

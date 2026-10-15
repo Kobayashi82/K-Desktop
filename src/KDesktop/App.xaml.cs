@@ -105,6 +105,7 @@ public partial class App : Application
         {
             _iconRefresh.Stop();
             IconProvider.BumpRevision();
+            Web?.NotifyCatalogChanged();
         };
         Favicons.Downloaded += () => Dispatcher.BeginInvoke(() =>
         {
@@ -160,6 +161,7 @@ public partial class App : Application
             Achievements.CheckConfig(Config);
             Config.RefreshReferenceNames(); // renamed macros, menus or commands
             Favicons.Prefetch(Config.Commands.SelectMany(c => c.Actions)); // new or edited web actions
+            Web?.NotifyCatalogChanged();
         };
         Store.Changed += (_, _) => Dispatcher.BeginInvoke(() =>
         {
@@ -318,6 +320,7 @@ public partial class App : Application
         {
             _appliedFavicons = Favicons.Enabled = s.WebFavicons;
             IconProvider.BumpRevision();
+            Web?.NotifyCatalogChanged();
             Favicons.Prefetch(Config.Commands.SelectMany(c => c.Actions));
         }
 

@@ -570,19 +570,71 @@ function showShell() {
   applyTheme(store.get('theme', 'system'));
 }
 
-function fillSession() {
-  const s = state.session;
+function fillSession(s = state.session) {
   if (!s) return;
   $('deviceName').textContent = s.device?.name ?? '';
   $('connectedTo').textContent = t('pwa.settings.connected', s.machine);
   $('version').textContent = s.app;
+  // This same PC needs no pairing, so there is nothing to undo.
+  $('unpairButton').hidden = !!s.local;
+}
+
+// ── live events ────────────────────────────────────────────────────
+
+let events = null;
+
+/** K-Desktop says when the commands or menus change, so the open app follows the PC at once. */
+function startEvents() {
+  if (events || !window.EventSource || document.visibilityState !== 'visible') return;
+  events = new EventSource('api/events');
+  events.addEventListener('catalog', () => loadCatalog());
+  events.addEventListener('error', () => {
+    // A refused stream (unpaired, too many) is not retried by the browser.
+    if (events?.readyState === EventSource.CLOSED) events = null;
+  });
+}
+
+function stopEvents() {
+  events?.close();
+  events = null;
+}
+
+// ── install ────────────────────────────────────────────────────────
+
+let installPrompt = null;
+
+function setupInstall() {
+  if ('serviceWorker' in navigator && window.isSecureContext)
+    navigator.serviceWorker.register('sw.js').catch(() => { /* not over plain HTTP */ });
+
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    installPrompt = e;
+    $('installButton').hidden = false;
+  });
+  window.addEventListener('appinstalled', () => {
+    installPrompt = null;
+    $('installButton').hidden = true;
+  });
+  $('installButton').addEventListener('click', async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    await installPrompt.userChoice.catch(() => null);
+    installPrompt = null;
+    $('installButton').hidden = true;
+  });
+  // Safari on iPhone/iPad has no install prompt: say how.
+  $('iosHint').hidden = standalone || !/iPhone|iPad|iPod/.test(navigator.userAgent) || !window.isSecureContext;
 }
 
 async function connect() {
   try {
     state.session = await api('session');
+    store.set('session', state.session);
     fillSession();
     showShell();
+    startEvents();
     await loadCatalog();
   } catch (e) {
     if (e instanceof Unpaired) return;
@@ -611,6 +663,7 @@ function formatCode(value) {
 }
 
 function showPair(code, auto = false) {
+  stopEvents();
   $('shell').hidden = true;
   $('pair').hidden = false;
   if (code) $('pairCode').value = formatCode(code);
@@ -671,6 +724,7 @@ async function unpair() {
   try { await api('logout', { method: 'POST' }); } catch { /* already gone */ }
   store.set('token', null);
   store.set('catalog', null);
+  store.set('session', null);
   state.catalog = null;
   state.catalogJson = '';
   showPair();
@@ -763,15 +817,30 @@ function wire() {
   });
 
   // Back to the app after a while: pick up changes made on the PC.
+  // The live stream is closed in the background (saves battery); on return, catch up.
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && state.session && Date.now() - state.lastLoad > 20000) loadCatalog();
+    if (document.visibilityState !== 'visible') {
+      stopEvents();
+      return;
+    }
+    if (!state.session) return;
+    startEvents();
+    if (Date.now() - state.lastLoad > 5000) loadCatalog();
   });
 }
 
 async function start() {
   applyTheme(store.get('theme', 'system'));
   wire();
+  setupInstall();
   if (state.texts) applyTexts();
+
+  // Shortcuts of the installed app: #tab=audio…
+  const tab = /[#&]tab=(\w+)/.exec(location.hash)?.[1];
+  if (tab && TABS.includes(tab)) {
+    state.tab = tab;
+    history.replaceState(null, '', location.pathname + location.search);
+  }
   const textsLoaded = loadTexts();
   if (!state.texts) await textsLoaded;
 
@@ -782,7 +851,9 @@ async function start() {
     showPair(code, true);
     return;
   }
-  if (state.catalog && store.get('token')) showShell();
+  // Last known state first (instant, and it works with the PC off), then the live one.
+  fillSession(store.get('session'));
+  if (state.catalog && (store.get('token') || store.get('session')?.local)) showShell();
   await connect();
 }
 

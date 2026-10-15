@@ -17,6 +17,39 @@ internal static class WebAssets
     public static WebAsset? Get(string path) =>
         Files.Value.TryGetValue(path.TrimStart('/'), out var asset) ? asset : null;
 
+    /// <summary>
+    /// The web app manifest, built on request so its shortcuts use the PC's language. Every URL is relative to the
+    /// manifest, so it works under any base path.
+    /// </summary>
+    public static WebAsset Manifest()
+    {
+        var manifest = new
+        {
+            id = "./",
+            name = "K-Desktop",
+            short_name = "K-Desktop",
+            description = Localization.Loc.T("settings.webEnabledHint"),
+            start_url = "./",
+            scope = "./",
+            display = "standalone",
+            background_color = "#161618",
+            theme_color = "#1c1c1e",
+            icons = new object[]
+            {
+                new { src = "icons/icon-192.png", sizes = "192x192", type = "image/png" },
+                new { src = "icons/icon-512.png", sizes = "512x512", type = "image/png" },
+                new { src = "icons/maskable-512.png", sizes = "512x512", type = "image/png", purpose = "maskable" },
+            },
+            shortcuts = new object[]
+            {
+                new { name = Localization.Loc.T("pwa.tab.all"), url = "./#tab=all", icons = new[] { new { src = "icons/icon-192.png", sizes = "192x192" } } },
+                new { name = Localization.Loc.T("pwa.tab.audio"), url = "./#tab=audio", icons = new[] { new { src = "icons/icon-192.png", sizes = "192x192" } } },
+            },
+        };
+        var bytes = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(manifest);
+        return new WebAsset(bytes, ContentType(".webmanifest"), "\"" + Convert.ToHexString(SHA256.HashData(bytes))[..16] + "\"");
+    }
+
     private static FrozenDictionary<string, WebAsset> Load()
     {
         var assembly = typeof(WebAssets).Assembly;

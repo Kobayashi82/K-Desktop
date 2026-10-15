@@ -181,7 +181,8 @@ public sealed partial class WebServer : IDisposable
         }
 
         var path = request.Path == "/" ? "index.html" : request.Path![1..];
-        if (WebAssets.Get(path) is not { } asset)
+        var asset = path.Equals("manifest.webmanifest", StringComparison.OrdinalIgnoreCase) ? WebAssets.Manifest() : WebAssets.Get(path);
+        if (asset is null)
         {
             await WriteTextAsync(response, 404, "Not found").ConfigureAwait(false);
             return;

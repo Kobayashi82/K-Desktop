@@ -39,7 +39,7 @@ public sealed partial class WebServer
                 return;
         }
 
-        var device = Devices.Authenticate(TokenOf(context.Request), request.ClientIp.ToString());
+        var device = request.IsLocal ? WebDevices.Local : Devices.Authenticate(TokenOf(context.Request), request.ClientIp.ToString());
         if (device is null)
         {
             await WriteJsonAsync(response, new { error = "unpaired" }, 401).ConfigureAwait(false);
@@ -59,8 +59,12 @@ public sealed partial class WebServer
                 {
                     app = AppPaths.VersionName,
                     machine = Environment.MachineName,
-                    device = new { device.Id, device.Name },
+                    device = new { device.Id, Name = request.IsLocal ? Loc.T("pwa.thisPc") : device.Name },
+                    local = request.IsLocal,
                 }).ConfigureAwait(false);
+                break;
+            case ("GET", "/api/events"):
+                await EventsAsync(response).ConfigureAwait(false);
                 break;
             case ("GET", "/api/catalog"):
                 await WriteJsonAsync(response, _catalog.Build()).ConfigureAwait(false);
@@ -75,7 +79,7 @@ public sealed partial class WebServer
                 await AudioChangeAsync(context).ConfigureAwait(false);
                 break;
             case ("POST", "/api/logout"):
-                Devices.Revoke(device.Id);
+                if (!request.IsLocal) Devices.Revoke(device.Id);
                 SetTokenCookie(response, request, null);
                 await WriteJsonAsync(response, new { ok = true }).ConfigureAwait(false);
                 break;

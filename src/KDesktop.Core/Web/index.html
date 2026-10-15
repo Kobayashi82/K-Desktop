@@ -9,6 +9,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="K-Desktop">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/favicon.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="stylesheet" href="app.css">
@@ -115,8 +116,10 @@
           <div class="buttons">
             <button class="btn" id="reloadButton" data-i18n="pwa.settings.refresh"></button>
             <button class="btn danger" id="unpairButton" data-i18n="pwa.settings.unpair"></button>
+            <button class="btn primary" id="installButton" data-i18n="pwa.install" hidden></button>
           </div>
         </div>
+        <p class="muted center" id="iosHint" data-i18n="pwa.installIos" hidden></p>
         <p class="muted center" id="version"></p>
       </section>
     </main>
