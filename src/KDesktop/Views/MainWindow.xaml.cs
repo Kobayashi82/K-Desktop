@@ -16,6 +16,8 @@ public partial class MainWindow : FluentWindow
     {
         InitializeComponent();
         Logo.Source = Services.IconProvider.Asset("KDesktop");
+        ApplySavedBounds(App.Current.Config.Settings.WindowBounds);
+        Closing += (_, _) => App.Current.Config.Settings.WindowBounds = SaveBounds();
         Loaded += (_, _) =>
         {
             NavList.SelectedIndex = 0;
@@ -50,6 +52,39 @@ public partial class MainWindow : FluentWindow
         (_pages.GetValueOrDefault("settings") as Pages.SettingsPage)?.ShowSection(section);
     }
 
+    // ── position and size ────────────────────────────────────────────────
+
+    /// <summary>Opens where it was closed, if that place is still on a screen (a monitor may be gone).</summary>
+    private void ApplySavedBounds(string? saved)
+    {
+        var parts = saved?.Split(',');
+        if (parts is not { Length: >= 4 }) return;
+        var n = new double[4];
+        for (var i = 0; i < 4; i++)
+            if (!double.TryParse(parts[i], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out n[i])) return;
+        var rect = new Rect(n[0], n[1], Math.Max(MinWidth, n[2]), Math.Max(MinHeight, n[3]));
+        var screen = new Rect(SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenTop,
+                              SystemParameters.VirtualScreenWidth, SystemParameters.VirtualScreenHeight);
+        var visible = Rect.Intersect(rect, screen);
+        if (visible.IsEmpty || visible.Width < 200 || visible.Height < 120) return;
+
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        Left = rect.Left;
+        Top = rect.Top;
+        Width = rect.Width;
+        Height = rect.Height;
+        if (parts.Length > 4 && parts[4] == "max") WindowState = WindowState.Maximized;
+    }
+
+    private string SaveBounds()
+    {
+        // Maximized or minimized: keep the normal-state rectangle so restoring it later looks right.
+        var r = WindowState == WindowState.Normal ? new Rect(Left, Top, ActualWidth, ActualHeight) : RestoreBounds;
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
+        return string.Join(",", new[] { r.Left, r.Top, r.Width, r.Height }.Select(v => Math.Round(v).ToString(inv)))
+               + (WindowState == WindowState.Maximized ? ",max" : "");
+    }
+
     // ── status icons ─────────────────────────────────────────────────────
 
     public void UpdateStatus()
@@ -58,7 +93,7 @@ public partial class MainWindow : FluentWindow
         var s = app.Config.Settings;
 
         SetStatus(PauseStatus, PauseIcon, s.Paused ? SymbolRegular.Pause24 : SymbolRegular.Power24, s.Paused ? "Kd.Warning" : "Kd.Success",
-            Loc.T(s.Paused ? "status.paused" : "status.active"), Loc.T(s.Paused ? "status.clickResume" : "status.clickPause"));
+            Loc.T(s.Paused ? "status.paused" : "status.active"), Loc.T("status.clickOptions"));
 
         var udpOn = s.UdpEnabled && app.UdpAllowed;
         SetStatus(UdpStatus, UdpIcon, udpOn ? SymbolRegular.PlugConnected24 : SymbolRegular.PlugDisconnected24,
@@ -93,7 +128,7 @@ public partial class MainWindow : FluentWindow
         System.Windows.Automation.AutomationProperties.SetName(button, text);
     }
 
-    private void OnPauseStatus(object sender, RoutedEventArgs e) => App.Current.SetPaused(!App.Current.Config.Settings.Paused);
+    private void OnPauseStatus(object sender, RoutedEventArgs e) => OpenSettings("general");
 
     private void OnUdpStatus(object sender, RoutedEventArgs e) => OpenSettings("remote");
 

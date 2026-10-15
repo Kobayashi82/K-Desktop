@@ -134,7 +134,10 @@
                 <TextBlock Style="{StaticResource PageTitle}" Text="{l:Tr nav.achievements}" />
                 <TextBlock x:Name="SinceText" Style="{StaticResource Caption}" Margin="0,2,0,0" />
             </StackPanel>
-            <Border HorizontalAlignment="Right" VerticalAlignment="Center" CornerRadius="8" Padding="3" Background="{DynamicResource Kd.Subtle}"
+            <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
+            <ui:Button Margin="0,0,10,0" Icon="{ui:SymbolIcon ArrowReset24}" ToolTip="{l:Tr ach.reset}" AutomationProperties.Name="{l:Tr ach.reset}"
+                       VerticalAlignment="Center" Click="OnReset" />
+            <Border VerticalAlignment="Center" CornerRadius="8" Padding="3" Background="{DynamicResource Kd.Subtle}"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                 <StackPanel Orientation="Horizontal">
                     <RadioButton x:Name="TabAchievements" Style="{StaticResource SegmentTab}" GroupName="AchTabs" IsChecked="True" Checked="OnTab">
@@ -151,6 +154,7 @@
                     </RadioButton>
                 </StackPanel>
             </Border>
+            </StackPanel>
         </Grid>
 
         <!-- ── Achievements ─────────────────────────────────────────── -->
@@ -220,8 +224,6 @@
                 <!-- Groups (built in code) -->
                 <StackPanel x:Name="Groups" SizeChanged="OnGroupsSizeChanged" />
                 <TextBlock x:Name="NoResults" Style="{StaticResource Caption}" Text="{l:Tr ach.noResults}" Visibility="Collapsed" Margin="0,8" />
-
-                <ui:Button Margin="0,18,0,0" Content="{l:Tr ach.reset}" Icon="{ui:SymbolIcon ArrowReset24}" Click="OnReset" />
             </StackPanel>
         </ScrollViewer>
 

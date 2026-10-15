@@ -129,7 +129,7 @@
                 </StackPanel>
                 <StackPanel Grid.Column="2">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.process}" />
-                    <ComboBox IsEditable="True" Text="{Binding ProcessName, UpdateSourceTrigger=PropertyChanged}"
+                    <ComboBox IsEditable="True" Text="{Binding ProcessName, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr common.processPlaceholder}"
                               ItemsSource="{Binding Source={x:Static v:Lookups.RunningProcessesNow}}" />
                 </StackPanel>
             </Grid>

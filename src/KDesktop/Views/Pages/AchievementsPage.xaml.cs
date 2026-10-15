@@ -273,7 +273,22 @@ public partial class AchievementsPage : UserControl, IDisposable
         foreach (var (group, keys) in Stat.Display)
         {
             var column = new StackPanel { Margin = new Thickness(0, 0, 24, 14) };
-            column.Children.Add(new TextBlock { Text = Loc.T($"statgroup.{group}"), Style = (Style)FindResource("FieldLabel"), FontWeight = FontWeights.SemiBold });
+            // Group title in the accent colour over a thin rule, so it does not read as one more counter.
+            var title = new Border
+            {
+                BorderBrush = (Brush)FindResource("CardStrokeColorDefaultBrush"),
+                BorderThickness = new Thickness(0, 0, 0, 1),
+                Padding = new Thickness(0, 0, 0, 6),
+                Margin = new Thickness(0, 0, 0, 6),
+                Child = new TextBlock
+                {
+                    Text = Loc.T($"statgroup.{group}"),
+                    FontSize = 13,
+                    FontWeight = FontWeights.SemiBold,
+                    Foreground = (Brush)FindResource("Kd.AccentText"),
+                },
+            };
+            column.Children.Add(title);
             foreach (var key in keys)
             {
                 var row = new Grid { Margin = new Thickness(0, 3, 0, 3) };

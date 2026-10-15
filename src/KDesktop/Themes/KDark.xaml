@@ -40,4 +40,6 @@
     <SolidColorBrush x:Key="Kd.KeyDisabled" Color="#59FF6B6B" />
     <SolidColorBrush x:Key="Kd.Success" Color="#6CCB5F" />
     <SolidColorBrush x:Key="Kd.Warning" Color="#FCB33F" />
+    <!-- Descriptions under a name: a step dimmer than the secondary text so both read apart -->
+    <SolidColorBrush x:Key="Kd.TextDim" Color="#94FFFFFF" />
 </ResourceDictionary>

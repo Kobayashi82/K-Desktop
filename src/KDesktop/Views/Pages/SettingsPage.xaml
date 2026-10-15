@@ -161,7 +161,7 @@
                     <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.appearance}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.theme}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.themeHint}" />
                         </StackPanel>
@@ -169,7 +169,7 @@
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.favicons}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.faviconsHint}" />
                         </StackPanel>
@@ -182,20 +182,33 @@
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.language}" />
-                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.languageHint}" TextWrapping="Wrap" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.languageHint}" />
                         </StackPanel>
                         <ComboBox x:Name="LanguageBox" Grid.Column="1" DisplayMemberPath="Name" SelectedValuePath="Code" SelectedValue="{Binding Language}" />
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.translate}" />
-                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.translateHint}" TextWrapping="Wrap" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.translateHint}" />
                         </StackPanel>
                         <ui:Button Grid.Column="1" HorizontalAlignment="Stretch" Content="{l:Tr settings.exportTemplate}" Icon="{ui:SymbolIcon Translate24}" Click="OnExportLanguageTemplate" />
                     </Grid>
+                    <!-- Where the languages live and how a translation works -->
+                    <Border Style="{StaticResource InfoBox}">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Symbol="Info24" FontSize="18" Margin="0,0,12,0" VerticalAlignment="Top" Foreground="{DynamicResource Kd.AccentText}" />
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.languagesInfo}" />
+                                <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="{l:Tr settings.languagesSteps}" />
+                                <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="{l:Tr settings.languagesOverride}" />
+                                <ui:Button Margin="0,10,0,0" Content="{l:Tr settings.openLanguages}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnOpenLanguages" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
                 </StackPanel>
             </Border>
 
@@ -205,7 +218,16 @@
                     <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.general}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.pause}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.pauseHint}" />
+                        </StackPanel>
+                        <!-- One-way: the switch goes through App.SetPaused (hotkey index, OSD, tray…) -->
+                        <ui:ToggleSwitch x:Name="PauseToggle" Grid.Column="1" IsChecked="{Binding Paused, Mode=OneWay}" Click="OnPauseToggle" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.startWithWindows}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.startWithWindowsHint}" />
                         </StackPanel>
@@ -213,7 +235,7 @@
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.showWindowOnStart}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.showWindowOnStartHint}" TextWrapping="Wrap" />
                         </StackPanel>
@@ -221,7 +243,7 @@
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.trayIcon}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.trayIconHint}" />
                         </StackPanel>
@@ -229,7 +251,7 @@
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.showHotkey}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.showHotkeyHint}" />
                         </StackPanel>
@@ -237,7 +259,7 @@
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.exitHotkey}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.exitHotkeyHint}" />
                         </StackPanel>
@@ -245,7 +267,7 @@
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="360" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.startupSound}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.startupSoundHint}" />
                         </StackPanel>
@@ -253,7 +275,7 @@
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="360" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.exitSound}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.exitSoundHint}" TextWrapping="Wrap" />
                         </StackPanel>
@@ -261,7 +283,7 @@
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.startupMessage}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.startupMessageHint}" />
                         </StackPanel>
@@ -298,7 +320,7 @@
                     <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.remote}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.udpEnabled}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.udpEnabledHint}" />
                         </StackPanel>
@@ -306,7 +328,7 @@
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.udpRemote}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.udpRemoteHint}" />
                         </StackPanel>
@@ -314,7 +336,7 @@
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="140" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.udpPort}" />
                             <TextBlock x:Name="IpText" Style="{StaticResource Caption}" />
                         </StackPanel>
@@ -329,7 +351,7 @@
                     <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.web}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.webEnabled}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webEnabledHint}" />
                         </StackPanel>
@@ -338,7 +360,7 @@
                     <StackPanel IsEnabled="{Binding WebEnabled}">
                         <Grid Style="{StaticResource SettingRow}">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center">
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                                 <TextBlock Text="{l:Tr settings.webRemote}" />
                                 <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webRemoteHint}" />
                             </StackPanel>
@@ -346,7 +368,7 @@
                         </Grid>
                         <Grid Style="{StaticResource SettingRow}">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="140" /></Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center">
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                                 <TextBlock Text="{l:Tr settings.webPort}" />
                                 <TextBlock x:Name="WebStateText" Style="{StaticResource Caption}" TextWrapping="Wrap" />
                             </StackPanel>
@@ -354,7 +376,7 @@
                         </Grid>
                         <Grid Style="{StaticResource SettingRow}">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center">
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                                 <TextBlock Text="{l:Tr settings.webPublicUrl}" />
                                 <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webPublicUrlHint}" TextWrapping="Wrap" />
                             </StackPanel>
@@ -362,7 +384,7 @@
                         </Grid>
                         <Grid Style="{StaticResource SettingRow}">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center">
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                                 <TextBlock Text="{l:Tr settings.webBasePath}" />
                                 <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webBasePathHint}" TextWrapping="Wrap" />
                             </StackPanel>
@@ -370,7 +392,7 @@
                         </Grid>
                         <Grid Style="{StaticResource SettingRow}">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center">
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                                 <TextBlock Text="{l:Tr settings.webProxy}" />
                                 <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webProxyHint}" TextWrapping="Wrap" />
                             </StackPanel>
@@ -378,7 +400,7 @@
                         </Grid>
                         <Grid Style="{StaticResource SettingRow}">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center">
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                                 <TextBlock Text="{l:Tr settings.webProxyOnly}" />
                                 <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webProxyOnlyHint}" TextWrapping="Wrap" />
                             </StackPanel>
@@ -386,7 +408,7 @@
                         </Grid>
                         <Grid Style="{StaticResource SettingRow}">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center">
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                                 <TextBlock Text="{l:Tr settings.webInput}" />
                                 <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webInputHint}" TextWrapping="Wrap" />
                             </StackPanel>
@@ -427,7 +449,7 @@
                     <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,10" Text="{l:Tr settings.disabledInHint}" />
                     <ItemsControl ItemsSource="{Binding DisabledIn}" ItemTemplate="{StaticResource ProcessChip}" ItemsPanel="{StaticResource Wrap}" />
                     <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                        <ComboBox x:Name="DisabledInBox" IsEditable="True" Width="240" DropDownOpened="OnProcessDropDown" />
+                        <ComboBox x:Name="DisabledInBox" IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnProcessDropDown" />
                         <ui:Button Margin="8,0,0,0" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddDisabledIn" />
                         <ui:Button Margin="8,0,0,0" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickDisabledIn" ToolTip="{l:Tr picker.tooltip}" />
                     </StackPanel>
@@ -439,7 +461,7 @@
                 <StackPanel>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Style="{StaticResource SectionTitle}" Margin="0" Text="{l:Tr settings.sideButtons}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.sideButtonsHint}" />
                         </StackPanel>
@@ -447,7 +469,7 @@
                     </Grid>
                     <ItemsControl Margin="0,6,0,0" ItemsSource="{Binding BlockSideButtonsIn}" ItemTemplate="{StaticResource ProcessChip}" ItemsPanel="{StaticResource Wrap}" />
                     <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                        <ComboBox x:Name="SideButtonsBox" IsEditable="True" Width="240" DropDownOpened="OnProcessDropDown" />
+                        <ComboBox x:Name="SideButtonsBox" IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnProcessDropDown" />
                         <ui:Button Margin="8,0,0,0" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddSideButtons" />
                         <ui:Button Margin="8,0,0,0" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickSideButtons" ToolTip="{l:Tr picker.tooltip}" />
                     </StackPanel>
@@ -466,6 +488,14 @@
                         <ui:Button Margin="0,0,8,8" Content="{l:Tr settings.reimportLegacy}" Icon="{ui:SymbolIcon History24}" Click="OnReimportLegacy" />
                         <ui:Button Margin="0,0,8,8" Content="{l:Tr settings.openLog}" Icon="{ui:SymbolIcon DocumentText24}" Click="OnOpenLog" />
                     </WrapPanel>
+                    <Grid Style="{StaticResource SettingRow}" Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr ach.reset}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.resetAchHint}" />
+                        </StackPanel>
+                        <ui:Button Grid.Column="1" Margin="12,0,0,0" Appearance="Danger" Content="{l:Tr ach.resetButton}" Icon="{ui:SymbolIcon ArrowReset24}" Click="OnResetAchievements" />
+                    </Grid>
                 </StackPanel>
             </Border>
         </StackPanel>

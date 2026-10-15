@@ -29,7 +29,8 @@ public partial class SoundPicker : UserControl
     public SoundPicker()
     {
         InitializeComponent();
-        Box.ItemsSource = Sounds.Available();
+        // First entry: no sound. Choosing it empties the box (its hint then says there is no sound).
+        Box.ItemsSource = new[] { NoneItem }.Concat(Sounds.Available()).ToList();
         // Empty text → null (no sound).
         Box.SetBinding(ComboBox.TextProperty, new Binding(nameof(Sound))
         {
@@ -53,6 +54,9 @@ public partial class SoundPicker : UserControl
         get => (bool)GetValue(ShowBrowseProperty);
         set => SetValue(ShowBrowseProperty, value);
     }
+
+    /// <summary>The "(None)" entry at the top of the list.</summary>
+    private static string NoneItem => Loc.T("sound.none");
 
     /// <summary>Last sound previewed from the open list, so moving over the same item does not restart it.</summary>
     private string? _previewed;
@@ -78,6 +82,18 @@ public partial class SoundPicker : UserControl
 
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (e.AddedItems is [string picked, ..] && picked == NoneItem)
+        {
+            // After WPF has copied the item into the text: clear both, so the value is null and the hint shows.
+            Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
+            {
+                Box.SelectedIndex = -1;
+                Sound = null;
+                Box.Text = string.Empty;
+            });
+            _previewed = null;
+            return;
+        }
         // Only what the user picks: the binding also selects the matching item when the editor loads.
         if (!Box.IsDropDownOpen && !Box.IsKeyboardFocusWithin) return;
         // Choosing always plays it, even right after hovering over it.
@@ -91,7 +107,7 @@ public partial class SoundPicker : UserControl
 
     private void Preview(string? sound)
     {
-        if (string.IsNullOrEmpty(sound) || sound == _previewed) return;
+        if (string.IsNullOrEmpty(sound) || sound == _previewed || sound == NoneItem) return;
         _previewed = sound;
         Sounds.Preview(sound);
     }

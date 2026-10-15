@@ -179,6 +179,14 @@ public partial class SettingsPage : UserControl
         }
     }
 
+    private void OnOpenLanguages(object sender, RoutedEventArgs e)
+    {
+        Directory.CreateDirectory(AppPaths.LanguagesDir);
+        ProcessLauncher.Launch(new LaunchSpec(AppPaths.LanguagesDir), asAdmin: false);
+    }
+
+    private void OnPauseToggle(object sender, RoutedEventArgs e) => _app.SetPaused(PauseToggle.IsChecked == true);
+
     private void OnStartupToggle(object sender, RoutedEventArgs e)
     {
         var enable = StartupToggle.IsChecked == true;
@@ -297,6 +305,13 @@ public partial class SettingsPage : UserControl
         if (!await Confirm(Loc.T("settings.reimportConfirm"))) return;
         var report = _app.ReimportLegacy();
         _app.Ui.ShowOsd(Loc.T("settings.reimported", report.Commands), OsdKind.Success);
+    }
+
+    private async void OnResetAchievements(object sender, RoutedEventArgs e)
+    {
+        if (!await Confirm(Loc.T("ach.resetConfirm"))) return;
+        _app.Achievements.Reset();
+        _app.Ui.ShowOsd(Loc.T("ach.resetDone"), OsdKind.Success);
     }
 
     private static async Task<bool> Confirm(string text)

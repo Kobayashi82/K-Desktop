@@ -84,6 +84,9 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private string? _exitSound;
     [ObservableProperty] private bool _showHiddenCommands;
 
+    /// <summary>Main window position and size when it was last closed: "left,top,width,height[,max]" (DIPs, invariant).</summary>
+    [ObservableProperty] private string? _windowBounds;
+
     // Achievements
     [ObservableProperty] private bool _achievementNotifications = true;
     [ObservableProperty] private bool _achievementSound = true;
