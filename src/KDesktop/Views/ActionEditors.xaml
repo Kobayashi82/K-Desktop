@@ -327,15 +327,7 @@
             </Border>
             <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" Text="{l:Tr editor.audioHint}" />
             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.audioSound}" />
-            <Grid Margin="0,0,0,12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <ComboBox IsEditable="True" Text="{Binding Sound, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Source={x:Static v:Lookups.SoundNames}}" />
-                <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon Play24}" ToolTip="{l:Tr editor.preview}"
-                           Command="{x:Static v:EditorCommands.PreviewSound}" CommandParameter="{Binding Sound}" />
-            </Grid>
+            <v:SoundPicker Margin="0,0,0,12" Sound="{Binding Sound}" />
             <WrapPanel>
                 <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.audioCommunications}" IsChecked="{Binding Communications}" />
                 <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
@@ -378,18 +370,7 @@
     <DataTemplate DataType="{x:Type m:PlaySoundAction}">
         <StackPanel>
             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.sound}" />
-            <Grid Margin="0,0,0,12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <ComboBox IsEditable="True" Text="{Binding Sound, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Source={x:Static v:Lookups.SoundNames}}" />
-                <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon Play24}" ToolTip="{l:Tr editor.preview}"
-                           Command="{x:Static v:EditorCommands.PreviewSound}" CommandParameter="{Binding Sound}" />
-                <ui:Button Grid.Column="2" Margin="6,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}"
-                           Command="{x:Static v:EditorCommands.BrowseSound}" CommandParameter="{Binding}" />
-            </Grid>
+            <v:SoundPicker Margin="0,0,0,12" Sound="{Binding Sound}" />
             <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.waitSound}" IsChecked="{Binding Wait}" />
         </StackPanel>
     </DataTemplate>

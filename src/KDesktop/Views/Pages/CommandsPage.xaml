@@ -72,8 +72,6 @@
         <CommandBinding Command="{x:Static v:EditorCommands.BrowseFile}" Executed="OnBrowseFile" />
         <CommandBinding Command="{x:Static v:EditorCommands.BrowseFolder}" Executed="OnBrowseFolder" />
         <CommandBinding Command="{x:Static v:EditorCommands.BrowseWorkingDirectory}" Executed="OnBrowseWorkingDirectory" />
-        <CommandBinding Command="{x:Static v:EditorCommands.BrowseSound}" Executed="OnBrowseSound" />
-        <CommandBinding Command="{x:Static v:EditorCommands.PreviewSound}" Executed="OnPreviewSound" />
         <CommandBinding Command="{x:Static v:EditorCommands.CaptureKeys}" Executed="OnCaptureKeys" />
         <CommandBinding Command="{x:Static v:EditorCommands.CaptureMouse}" Executed="OnCaptureMouse" />
         <CommandBinding Command="{x:Static v:EditorCommands.TestAction}" Executed="OnTestAction" />
@@ -380,18 +378,7 @@
                             </UniformGrid>
 
                             <TextBlock Style="{StaticResource FieldLabel}" Margin="0,8,0,4" Text="{l:Tr commands.sound}" />
-                            <Grid Margin="0,0,0,14" MaxWidth="460" HorizontalAlignment="Left">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <ComboBox x:Name="SoundBox" IsEditable="True" Text="{Binding Sound, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" MinWidth="280" />
-                                <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon Play24}" ToolTip="{l:Tr editor.preview}"
-                                           Command="{x:Static v:EditorCommands.PreviewSound}" CommandParameter="{Binding Sound}" />
-                                <ui:Button Grid.Column="2" Margin="6,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}"
-                                           Command="{x:Static v:EditorCommands.BrowseSound}" CommandParameter="{Binding}" />
-                            </Grid>
+                            <v:SoundPicker Margin="0,0,0,14" MinWidth="380" MaxWidth="460" HorizontalAlignment="Left" Sound="{Binding Sound}" />
 
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr commands.processes}" />
                             <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,8" Text="{l:Tr commands.processesHint}" />

@@ -115,20 +115,20 @@
                         <ui:Button x:Name="ExitHotkeyButton" Grid.Column="1" MinWidth="200" Content="{Binding ExitHotkey}" Click="OnCaptureExitHotkey" />
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="360" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="{l:Tr settings.startupSound}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.startupSoundHint}" />
                         </StackPanel>
-                        <ComboBox x:Name="StartupSoundBox" Grid.Column="1" IsEditable="True" Text="{Binding StartupSound, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" />
+                        <v:SoundPicker Grid.Column="1" Sound="{Binding StartupSound}" />
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="360" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="{l:Tr settings.exitSound}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.exitSoundHint}" TextWrapping="Wrap" />
                         </StackPanel>
-                        <ComboBox x:Name="ExitSoundBox" Grid.Column="1" IsEditable="True" Text="{Binding ExitSound, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" />
+                        <v:SoundPicker Grid.Column="1" Sound="{Binding ExitSound}" />
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>

@@ -1,0 +1,17 @@
+<UserControl x:Class="KDesktop.Views.SoundPicker"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:l="clr-namespace:KDesktop.Localization">
+    <!-- Sound chooser: built-in sounds or a .wav file, with preview. Choosing one in the list plays it. -->
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <ComboBox x:Name="Box" IsEditable="True" SelectionChanged="OnSelectionChanged" />
+        <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon Play24}" ToolTip="{l:Tr editor.preview}" Click="OnPlay" />
+        <ui:Button x:Name="BrowseButton" Grid.Column="2" Margin="6,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}" Click="OnBrowse" />
+    </Grid>
+</UserControl>

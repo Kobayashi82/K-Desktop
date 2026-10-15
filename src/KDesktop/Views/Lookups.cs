@@ -57,7 +57,6 @@ public static class Lookups
 
     public static IReadOnlyList<string> RunningProcessesNow => RunningProcesses();
 
-    public static IReadOnlyList<string> SoundNames => Sounds.Available();
 
     public static IReadOnlyList<int> MenuSizes { get; } = [0, 1, 2, 3, 4, 5];
 
@@ -84,8 +83,6 @@ public static class EditorCommands
     public static readonly RoutedUICommand BrowseFile = new("BrowseFile", nameof(BrowseFile), typeof(EditorCommands));
     public static readonly RoutedUICommand BrowseFolder = new("BrowseFolder", nameof(BrowseFolder), typeof(EditorCommands));
     public static readonly RoutedUICommand BrowseWorkingDirectory = new("BrowseWorkingDirectory", nameof(BrowseWorkingDirectory), typeof(EditorCommands));
-    public static readonly RoutedUICommand BrowseSound = new("BrowseSound", nameof(BrowseSound), typeof(EditorCommands));
-    public static readonly RoutedUICommand PreviewSound = new("PreviewSound", nameof(PreviewSound), typeof(EditorCommands));
     public static readonly RoutedUICommand CaptureKeys = new("CaptureKeys", nameof(CaptureKeys), typeof(EditorCommands));
     public static readonly RoutedUICommand CaptureMouse = new("CaptureMouse", nameof(CaptureMouse), typeof(EditorCommands));
     public static readonly RoutedUICommand TestAction = new("TestAction", nameof(TestAction), typeof(EditorCommands));

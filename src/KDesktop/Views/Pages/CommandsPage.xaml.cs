@@ -38,7 +38,6 @@ public partial class CommandsPage : UserControl, IDisposable
         _view.LiveFilteringProperties.Add(nameof(Command.Hidden));
         CommandList.ItemsSource = _view;
         ShowHiddenToggle.IsChecked = Config.Settings.ShowHiddenCommands;
-        SoundBox.ItemsSource = Sounds.Available();
         Config.Commands.CollectionChanged += OnCommandsChanged;
         IconProvider.StaticPropertyChanged += OnIconsChanged;
         UpdateCount();
@@ -431,19 +430,6 @@ public partial class CommandsPage : UserControl, IDisposable
         if (!string.IsNullOrWhiteSpace(initial) && Directory.Exists(initial)) dlg.InitialDirectory = initial;
         return dlg.ShowDialog(Window.GetWindow(this)) == true ? dlg.FolderName : null;
     }
-
-    private void OnBrowseSound(object sender, ExecutedRoutedEventArgs e)
-    {
-        var dlg = new OpenFileDialog { Title = Loc.T("editor.chooseSound"), Filter = "WAV|*.wav" };
-        if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
-        switch (e.Parameter)
-        {
-            case PlaySoundAction a: a.Sound = dlg.FileName; break;
-            case Command c: c.Sound = dlg.FileName; break;
-        }
-    }
-
-    private void OnPreviewSound(object sender, ExecutedRoutedEventArgs e) => Sounds.Play(e.Parameter as string);
 
     private void OnCaptureKeys(object sender, ExecutedRoutedEventArgs e)
     {
