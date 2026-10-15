@@ -119,7 +119,11 @@ public partial class MainWindow : FluentWindow
             },
             Loc.T("status.clickOptions"));
 
-        SetStatus(VoiceStatus, VoiceIcon, SymbolRegular.MicOff24, "TextFillColorTertiaryBrush", Loc.T("status.voiceSoon"), null);
+        // Voice: listening (accent), ready (green) or without its models (grey).
+        var voiceReady = Core.Voice.VoiceModels.Ready;
+        SetStatus(VoiceStatus, VoiceIcon, voiceReady ? SymbolRegular.Mic24 : SymbolRegular.MicOff24,
+            app.Voice.IsListening ? "Kd.Accent" : voiceReady ? "Kd.Success" : "TextFillColorTertiaryBrush",
+            Loc.T(app.Voice.IsListening ? "status.voiceListening" : voiceReady ? "status.voiceReady" : "status.voiceNoModels"), null);
     }
 
     /// <summary>Icon, colour (icon and dot) and tooltip of one status button.</summary>

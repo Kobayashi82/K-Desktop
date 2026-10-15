@@ -445,6 +445,10 @@
         </StackPanel>
     </DataTemplate>
 
+    <DataTemplate DataType="{x:Type m:VoiceListenAction}">
+        <TextBlock Style="{StaticResource FieldLabel}" TextWrapping="Wrap" Text="{l:Tr editor.voiceListenHint}" />
+    </DataTemplate>
+
     <!-- ── Comandos ────────────────────────────────────────────────────── -->
     <DataTemplate DataType="{x:Type m:CommandControlAction}">
         <Grid>

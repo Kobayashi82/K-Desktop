@@ -17,6 +17,12 @@ public interface IUiServices
     /// </summary>
     IDisposable ShowPersistentOsd(string text, DateTime? countdownTo = null);
 
+    /// <summary>
+    /// The voice OSD: shows <paramref name="text"/> («Escuchando…») with a live microphone meter until it is
+    /// finished or disposed.
+    /// </summary>
+    IVoiceOsd ShowVoiceOsd(string text);
+
     /// <summary>Opens a QuickMenu at the mouse position.</summary>
     void ShowQuickMenu(string menuId, ForegroundWindow previousForeground);
 
@@ -30,4 +36,17 @@ public interface IUiServices
 
     /// <summary>Runs exit commands and closes K-Desktop.</summary>
     void RequestExit();
+}
+
+/// <summary>Handle to the voice OSD. Thread-safe.</summary>
+public interface IVoiceOsd : IDisposable
+{
+    /// <summary>Microphone level, 0–1.</summary>
+    void SetLevel(float level);
+
+    /// <summary>Replaces the text and hides the meter (e.g. «Pensando…»); it stays until finished.</summary>
+    void SetText(string text);
+
+    /// <summary>Last message: shown for the usual OSD time, then hidden.</summary>
+    void Finish(string text, OsdKind kind);
 }

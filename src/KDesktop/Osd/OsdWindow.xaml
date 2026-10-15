@@ -33,6 +33,25 @@
             </Border.Effect>
             <StackPanel Orientation="Horizontal">
                 <Ellipse x:Name="Dot" Width="9" Height="9" Margin="0,0,12,0" VerticalAlignment="Center" Fill="{DynamicResource Kd.Accent}" />
+                <!-- Voice: microphone level as five bars (only while listening) -->
+                <StackPanel x:Name="Meter" Orientation="Horizontal" Height="18" Margin="0,0,12,0" VerticalAlignment="Center" Visibility="Collapsed">
+                    <StackPanel.Resources>
+                        <Style TargetType="Rectangle">
+                            <Setter Property="Width" Value="3" />
+                            <Setter Property="Height" Value="18" />
+                            <Setter Property="Margin" Value="1.5,0" />
+                            <Setter Property="RadiusX" Value="1.5" />
+                            <Setter Property="RadiusY" Value="1.5" />
+                            <Setter Property="Fill" Value="{DynamicResource Kd.AccentText}" />
+                            <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+                        </Style>
+                    </StackPanel.Resources>
+                    <Rectangle><Rectangle.RenderTransform><ScaleTransform ScaleY="0.2" /></Rectangle.RenderTransform></Rectangle>
+                    <Rectangle><Rectangle.RenderTransform><ScaleTransform ScaleY="0.2" /></Rectangle.RenderTransform></Rectangle>
+                    <Rectangle><Rectangle.RenderTransform><ScaleTransform ScaleY="0.2" /></Rectangle.RenderTransform></Rectangle>
+                    <Rectangle><Rectangle.RenderTransform><ScaleTransform ScaleY="0.2" /></Rectangle.RenderTransform></Rectangle>
+                    <Rectangle><Rectangle.RenderTransform><ScaleTransform ScaleY="0.2" /></Rectangle.RenderTransform></Rectangle>
+                </StackPanel>
                 <TextBlock x:Name="MessageText"
                            VerticalAlignment="Center"
                            FontFamily="Segoe UI Variable Display, Segoe UI"

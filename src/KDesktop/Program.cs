@@ -13,6 +13,7 @@ namespace KDesktop;
 /// (forwarded to the running instance when there is one)</item>
 /// <item><c>--startup</c> started by Windows (no window) · <c>--no-elevate</c> · <c>--no-hooks</c> · <c>--no-udp</c> · <c>--no-web</c></item>
 /// <item><c>--data "folder"</c> use another data folder (an independent instance) · <c>--page name</c> open a page</item>
+/// <item><c>--voice-test a.wav folder "phrase"…</c> voice diagnostics without microphone or UI (report in Logs)</item>
 /// </list>
 /// </summary>
 public static class Program
@@ -31,6 +32,10 @@ public static class Program
 
         // Alternative data folder (tests, portable copies). Must be set before anything reads AppPaths.
         if (ValueOf(args, "--data") is { } dataDir) AppPaths.UseDataDir(dataDir);
+
+        // Voice diagnostics: transcribe / match and exit, without touching the running instance.
+        var voiceTest = Array.FindIndex(args, a => a.Equals("--voice-test", StringComparison.OrdinalIgnoreCase));
+        if (voiceTest >= 0) return VoiceTest(args.Skip(voiceTest + 1).Where(a => a != "--no-open").ToArray(), open: !args.Contains("--no-open"));
 
         // Already running? Forward the request (works across elevation levels) and leave.
         var forward = args.Any(a => ForwardedArguments.Contains(a, StringComparer.OrdinalIgnoreCase));
@@ -68,6 +73,26 @@ public static class Program
         };
         app.InitializeComponent();
         return app.Run();
+    }
+
+    private static int VoiceTest(string[] inputs, bool open)
+    {
+        try
+        {
+            AppPaths.EnsureCreated();
+            var store = new Core.Storage.ConfigStore();
+            store.Load();
+            var report = Core.Voice.VoiceDiagnostics.Run(inputs, store.Config);
+            Log.Flush();
+            if (open) Process.Start(new ProcessStartInfo(report) { UseShellExecute = true });
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Log.Error("--voice-test", ex);
+            Log.Flush();
+            return 1;
+        }
     }
 
     private static string Quote(string arg) => arg.Contains(' ') ? $"\"{arg}\"" : arg;

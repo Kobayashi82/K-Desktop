@@ -5,7 +5,8 @@ namespace KDesktop.Core.Input;
 
 public enum BuiltInHotkey { ShowWindow, Exit }
 
-public sealed record HotkeyTrigger(string Hotkey, IReadOnlyList<Command> Commands, bool IsRepeat, ForegroundWindow Foreground);
+/// <param name="IsHeld">For keyboard hotkeys: whether its key is still physically down (hold-to-talk).</param>
+public sealed record HotkeyTrigger(string Hotkey, IReadOnlyList<Command> Commands, bool IsRepeat, ForegroundWindow Foreground, Func<bool>? IsHeld = null);
 
 /// <summary>
 /// Turns raw hook events into hotkeys ("CTRL + ALT + O", "Mouse 4 + Mouse 1", "CTRL + Wheel Up"),
@@ -21,6 +22,12 @@ public sealed partial class HotkeyRouter : IDisposable
     private Modifiers _physicalMods;
     private int _lastDownVk;
     private readonly HashSet<int> _blockedKeys = [];
+
+    /// <summary>Physical state of every key, written on the hook thread and read from anywhere.</summary>
+    private readonly bool[] _down = new bool[256];
+
+    /// <summary>True while the key is physically held (swallowed or not).</summary>
+    public bool IsKeyHeld(int vk) => vk is > 0 and < 256 && Volatile.Read(ref _down[vk]);
 
     // Mouse state (only touched on the hook thread).
     private readonly List<string> _chord = [];
@@ -93,6 +100,7 @@ public sealed partial class HotkeyRouter : IDisposable
     {
         if (e.Injected) return false;
         var vk = e.Vk;
+        if (vk is > 0 and < 256) Volatile.Write(ref _down[vk], e.IsDown);
         if (KBoardKey(e)) return true;
 
         if (_recorder is { } recorder)
@@ -161,7 +169,7 @@ public sealed partial class HotkeyRouter : IDisposable
         if (!index.Contains(hotkey)) return false;
         var fg = ForegroundWindow.Capture();
         var commands = index.Resolve(hotkey, fg.ProcessName, out var block);
-        if (commands.Count > 0) Post(() => Triggered?.Invoke(new HotkeyTrigger(hotkey, commands, repeat, fg)));
+        if (commands.Count > 0) Post(() => Triggered?.Invoke(new HotkeyTrigger(hotkey, commands, repeat, fg, () => IsKeyHeld(vk))));
         return block && Block(vk, mods);
     }
 

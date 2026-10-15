@@ -64,6 +64,7 @@ public partial class App : Application
     public LauncherController Launcher { get; private set; } = null!;
     public AchievementService Achievements { get; } = new();
     public AchievementNotifier Notifier { get; private set; } = null!;
+    public Core.Voice.VoiceService Voice { get; private set; } = null!;
 
     public AppConfig Config => Store.Config;
 
@@ -116,6 +117,9 @@ public partial class App : Application
 
         Ui = new UiServices(Dispatcher, () => Config.Settings, () => ShowMainWindow(), () => _ = ExitAsync());
         Engine = new CommandEngine(Store, Ui);
+        Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice));
+        Engine.Voice = Voice;
+        Voice.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
         QuickMenus = new QuickMenuController(() => Config, Engine);
         Ui.QuickMenus = QuickMenus;
         QuickMenus.EditRequested += (commandId, menuId) =>
@@ -506,6 +510,7 @@ public partial class App : Application
         Router.Dispose();
         Udp?.Dispose();
         Web?.Dispose();
+        Voice?.Dispose();
         Store.Dispose();
         Achievements.Dispose();
         _tray?.Dispose();

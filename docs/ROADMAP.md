@@ -125,7 +125,17 @@ por el usuario (fase 1: preprocesado de openWakeWord + DTW + clasificador entren
 Parakeet y clave fonética), Parakeet TDT 0.6B v3 con sherpa-onnx, Silero VAD, `IntentMatcher` por capas (FuzzyMatch →
 embeddings multilingües → LLM opcional) y siete etapas con su commit cada una.
 
-- [ ] Etapa 1: captura + VAD + Parakeet + atajo de mantener pulsado + OSD + IntentMatcher capa 1.
+- [x] Etapa 1: captura + VAD + Parakeet + atajo de mantener pulsado + OSD + IntentMatcher capa 1.
+      `KDesktop.Core/Voice`: `MicCapture` (WASAPI compartido → mono 16 kHz, solo abierto durante una orden),
+      `VoiceActivity` (Silero VAD, fin tras 0,8 s de silencio), `SpeechToText` (Parakeet int8 con sherpa-onnx 1.13.8,
+      carga perezosa, se descarga de memoria tras `VoiceUnloadMinutes`), `IntentMatcher` (cobertura del nombre con
+      raíces «abre/abrir», verbos opcionales, sinónimos es↔en y penalización de palabras sobrantes) y `VoiceService`.
+      Acción «Escuchar orden de voz»: con atajo de teclado escucha mientras se mantiene (`HotkeyRouter.IsKeyHeld`),
+      un toque o cualquier otro origen escucha hasta el silencio; repetirla la termina antes y Esc la cancela. OSD con
+      medidor de nivel; origen «voz» en estadísticas; icono de estado. Los comandos con «Energía» no se ejecutan por voz
+      hasta tener confirmaciones (etapa 6). Modelos en `Models` de la carpeta de datos (`VoiceModels`).
+      Diagnóstico sin micro: `KDesktop.exe --voice-test a.wav carpeta "frase"… [--no-open]` → `Logs\voice-test.txt`.
+      Medido: carga del modelo ~1,4 s; cada orden ~90 ms ya cargado. Sin probar con micrófono real.
 - [ ] Etapa 2: descarga de modelos y página de Opciones.
 - [ ] Etapa 3: clave fonética + fase 2 + asistente de grabación.
 - [ ] Etapa 4: fase 1 (port del preprocesado de openWakeWord, DTW, clasificador).

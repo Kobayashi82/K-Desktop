@@ -36,6 +36,7 @@ public static class ActionCatalog
 
         new(ActionKind.OpenQuickMenu, "kdesktop", "Navigation24", () => new OpenQuickMenuAction()),
         new(ActionKind.Launcher, "kdesktop", "Search24", () => new LauncherAction()),
+        new(ActionKind.VoiceListen, "kdesktop", "Mic24", () => new VoiceListenAction()),
         new(ActionKind.CommandControl, "kdesktop", "Flash24", () => new CommandControlAction()),
         new(ActionKind.Wait, "kdesktop", "Timer24", () => new WaitAction()),
     ];

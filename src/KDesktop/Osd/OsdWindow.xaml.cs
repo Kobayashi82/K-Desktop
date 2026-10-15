@@ -42,6 +42,8 @@ public partial class OsdWindow : Window
     public int ShowMessage(string text, OsdKind kind, TimeSpan? duration, DateTime? countdownTo = null)
     {
         Generation++;
+        Meter.Visibility = Visibility.Collapsed;
+        Dot.Visibility = Visibility.Visible;
         MessageText.Text = text;
         MessageText.Visibility = string.IsNullOrWhiteSpace(text) ? Visibility.Collapsed : Visibility.Visible;
         Dot.Fill = (Brush)FindResource(kind switch
@@ -82,6 +84,34 @@ public partial class OsdWindow : Window
             Scale.BeginAnimation(ScaleTransform.ScaleYProperty, pulse);
         }
         return Generation;
+    }
+
+    /// <summary>Voice: a message that stays, with the microphone meter instead of the dot.</summary>
+    public int ShowVoice(string text)
+    {
+        var generation = ShowMessage(text, OsdKind.Info, null);
+        Dot.Visibility = Visibility.Collapsed;
+        Meter.Visibility = Visibility.Visible;
+        _level = 0;
+        return generation;
+    }
+
+    private static readonly double[] BarShape = [0.55, 0.85, 1, 0.8, 0.6];
+    private double _level;
+
+    /// <summary>Moves the meter: rises at once, falls slowly; each bar a little different so it looks alive.</summary>
+    public void SetLevel(float level)
+    {
+        if (Meter.Visibility != Visibility.Visible) return;
+        // Speech peaks are small numbers: a square root spreads them over the meter.
+        var target = Math.Min(1, Math.Sqrt(level) * 1.4);
+        _level = target > _level ? target : _level * 0.8 + target * 0.2;
+        var i = 0;
+        foreach (var bar in Meter.Children.OfType<System.Windows.Shapes.Rectangle>())
+        {
+            var jitter = 0.85 + Random.Shared.NextDouble() * 0.3;
+            ((ScaleTransform)bar.RenderTransform).ScaleY = Math.Clamp(0.18 + _level * BarShape[i++] * jitter, 0.18, 1);
+        }
     }
 
     public void HideMessage(int? generation = null)

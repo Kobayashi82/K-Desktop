@@ -122,6 +122,13 @@ public partial class AppSettings : ObservableObject
     /// <summary>The web app may move the mouse and type (its touchpad and keyboard).</summary>
     [ObservableProperty] private bool _webInput = true;
 
+    // Voice
+    /// <summary>Microphone for voice orders (endpoint id); null: the Windows default one.</summary>
+    [ObservableProperty] private string? _voiceMicId;
+
+    /// <summary>Minutes without use after which the speech model leaves memory.</summary>
+    [ObservableProperty] private int _voiceUnloadMinutes = 10;
+
     // OSD
     [ObservableProperty] private OsdPosition _osdPosition = OsdPosition.BottomCenter;
     [ObservableProperty] private double _osdSeconds = 1.6;

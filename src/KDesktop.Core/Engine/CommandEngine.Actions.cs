@@ -27,6 +27,7 @@ public sealed partial class CommandEngine
         PowerAction a => PowerAsync(a, ctx),
         OpenQuickMenuAction a => Run(() => _ui.ShowQuickMenu(a.MenuId, ctx.Foreground)),
         LauncherAction a => Run(() => _ui.ShowLauncher(a, ctx.Foreground)),
+        VoiceListenAction => VoiceListenAsync(ctx),
         CommandControlAction a => CommandControlAsync(a, ctx),
         WaitAction a => WaitAsync(a, ctx),
         PlayMacroAction a => PlayMacroAsync(a, ctx),
@@ -36,6 +37,24 @@ public sealed partial class CommandEngine
     };
 
     private static Task Run(Action action) => Task.Run(action);
+
+    /// <summary>
+    /// A voice order. Triggering the command again ends the listening early (its token is cancelled when it restarts);
+    /// Escape drops it.
+    /// </summary>
+    private async Task VoiceListenAsync(ExecutionContext ctx)
+    {
+        if (Voice is not { } voice) return;
+        var escape = BeginCancellable(CancellationToken.None);
+        try
+        {
+            await voice.ListenAsync(ctx.IsHeld, ctx.Token, escape.Token).ConfigureAwait(false);
+        }
+        finally
+        {
+            EndCancellable(escape);
+        }
+    }
 
     // ── Aplicaciones ─────────────────────────────────────────────────────
 

@@ -12,7 +12,7 @@ public enum ActionKind
     SendInput, Volume, PlaySound,
     TopMost, HiddenFiles, ToggleDisabledIn, ShowMessage, Power,
     OpenQuickMenu, CommandControl, Wait,
-    PlayMacro, AudioOutput, KBoard, Launcher,
+    PlayMacro, AudioOutput, KBoard, Launcher, VoiceListen,
 }
 
 public enum WindowMode { Normal, Minimized, Maximized, Hidden }
@@ -47,6 +47,7 @@ public enum ScriptShell { Cmd, PowerShell }
 [JsonDerivedType(typeof(AudioOutputAction), "audioOutput")]
 [JsonDerivedType(typeof(KBoardAction), "kboard")]
 [JsonDerivedType(typeof(LauncherAction), "launcher")]
+[JsonDerivedType(typeof(VoiceListenAction), "voiceListen")]
 public abstract partial class CommandAction : ObservableObject
 {
     [ObservableProperty] private bool _enabled = true;
@@ -311,6 +312,16 @@ public partial class LauncherAction : CommandAction
 
     public override ActionKind Kind => ActionKind.Launcher;
     public override string Summary => Loc.T(IncludeApps ? "summary.launcherApps" : "summary.launcher");
+}
+
+/// <summary>
+/// Listens for a voice order and runs the command it names. From a key, it listens while the key is held (a tap:
+/// until the speaker goes quiet); from anywhere else, until the speaker goes quiet.
+/// </summary>
+public partial class VoiceListenAction : CommandAction
+{
+    public override ActionKind Kind => ActionKind.VoiceListen;
+    public override string Summary => Loc.T("summary.voiceListen");
 }
 
 public partial class CommandControlAction : CommandAction

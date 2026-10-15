@@ -83,6 +83,7 @@ internal sealed class FeedbackUiServices(IUiServices inner) : IUiServices
         return inner.ShowPersistentOsd(text, countdownTo);
     }
 
+    public IVoiceOsd ShowVoiceOsd(string text) => inner.ShowVoiceOsd(text);
     public void ShowQuickMenu(string menuId, ForegroundWindow previousForeground) => inner.ShowQuickMenu(menuId, previousForeground);
     public void ShowLauncher(LauncherAction options, ForegroundWindow previousForeground) => inner.ShowLauncher(options, previousForeground);
     public void ShowMainWindow() => inner.ShowMainWindow();

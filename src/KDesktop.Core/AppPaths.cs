@@ -41,6 +41,9 @@ public static class AppPaths
     /// <summary>User languages (&lt;code&gt;.json): new languages, or keys that replace the built-in texts.</summary>
     public static string LanguagesDir => Path.Combine(DataDir, "Languages");
 
+    /// <summary>Downloaded voice models (speech recognition, voice activity…): never inside the exe.</summary>
+    public static string ModelsDir => Path.Combine(DataDir, "Models");
+
     public static string ExecutablePath => Environment.ProcessPath ?? Path.Combine(AppContext.BaseDirectory, "KDesktop.exe");
 
     public static void EnsureCreated()
