@@ -98,23 +98,22 @@
 - [ ] Web, siguiente fase: touchpad y teclado (WebSocket, http.sys los soporta) y micrófono del móvil para la voz.
       APK solo si hace falta algo que la web no puede (widgets, ajustes rápidos).
 - [ ] Probar la app web en el móvil real a través de Caddy (instalación como PWA, iPhone y Android).
-- [ ] **Voz** (investigado 2026-10-15, ver abajo).
+- [ ] **Voz** (plan en [VOZ.md](VOZ.md), etapas abajo). Va después del touchpad/teclado de la web.
 
 ### Plan de la voz
 
-- Activación: mantener un atajo mientras se habla **y** palabra clave. Palabra clave con el *keyword spotting* de
-  sherpa-onnx (frases propias sin entrenar, modelo de streaming pequeño; sus modelos son inglés/chino, así que la frase
-  sería tipo «Hey K-Desktop»; hay que probar la tasa de falsos positivos). Detector de voz Silero (incluido en sherpa-onnx).
-- Voz a texto: **Parakeet TDT 0.6B v3** (25 idiomas europeos, español incluido) con sherpa-onnx
-  (NuGet `org.k2fsa.sherpa.onnx`, 1.13.8, API de C#), en CPU. Whisper descartado. Modelos descargables y
-  configurables desde Opciones (nunca dentro del exe).
-- Decisión: como Jev (TypeSafe AI, que es un servicio de pago en la nube que *elige* entre opciones con probabilidades
-  en vez de generar texto) pero local. Por capas: 1) coincidencia directa con los nombres (`FuzzyMatch`, ya hecho);
-  2) LLM pequeño local (Qwen3 0.6B/1.7B en GGUF con LLamaSharp 0.27, CPU o GPU) con la salida forzada por gramática a
-  los ids de comandos existentes y la confianza sacada de las probabilidades de los tokens; umbral de confianza para
-  pedir confirmación. Medir latencia y aciertos con los comandos reales antes de integrarlo.
-- Seguridad: casilla «Disponible por voz» por comando; confirmación para los peligrosos. OSD de «Escuchando…» →
-  texto entendido → lo que se va a ejecutar.
+Plan completo en [VOZ.md](VOZ.md) (2026-10-15): atajo de mantener pulsado **y** palabra de activación propia grabada
+por el usuario (fase 1: preprocesado de openWakeWord + DTW + clasificador entrenado en el PC; fase 2: verificación con
+Parakeet y clave fonética), Parakeet TDT 0.6B v3 con sherpa-onnx, Silero VAD, `IntentMatcher` por capas (FuzzyMatch →
+embeddings multilingües → LLM opcional) y siete etapas con su commit cada una.
+
+- [ ] Etapa 1: captura + VAD + Parakeet + atajo de mantener pulsado + OSD + IntentMatcher capa 1.
+- [ ] Etapa 2: descarga de modelos y página de Opciones.
+- [ ] Etapa 3: clave fonética + fase 2 + asistente de grabación.
+- [ ] Etapa 4: fase 1 (port del preprocesado de openWakeWord, DTW, clasificador).
+- [ ] Etapa 5: capa de embeddings.
+- [ ] Etapa 6: seguridad, confirmaciones y estadísticas.
+- [ ] Etapa 7: capa LLM opcional.
 
 **Primer arranque:** si «Iniciar con Windows» está activado (por defecto lo está) y es una copia con
 carpeta de datos normal, se registra la tarea del Programador de tareas automáticamente la primera vez,
