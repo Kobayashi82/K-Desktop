@@ -27,6 +27,7 @@
   "banner.pausedMessage": "No command runs (hotkeys, QuickMenus, K-Board, remote…). Only the show-window and exit hotkeys work.",
   "pause.pause": "Pause K-Desktop",
   "pause.resume": "Resume K-Desktop",
+  "pause.resumeShort": "Resume",
   "pause.osdOn": "K-Desktop paused",
   "pause.osdOff": "K-Desktop active",
   "pause.tooltip": "{0} · paused",

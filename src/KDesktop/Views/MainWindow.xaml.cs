@@ -236,7 +236,7 @@ public partial class MainWindow : FluentWindow
         {
             var resume = new Wpf.Ui.Controls.Button
             {
-                Content = Loc.T("pause.resume"),
+                Content = Loc.T("pause.resumeShort"),
                 Icon = new SymbolIcon(SymbolRegular.Play24),
                 Appearance = ControlAppearance.Primary,
             };

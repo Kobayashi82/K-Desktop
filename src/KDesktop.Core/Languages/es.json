@@ -27,6 +27,7 @@
   "banner.pausedMessage": "No se ejecuta ningún comando (atajos, QuickMenus, K-Board, remoto…). Solo funcionan los atajos de mostrar la ventana y salir.",
   "pause.pause": "Pausar K-Desktop",
   "pause.resume": "Reanudar K-Desktop",
+  "pause.resumeShort": "Reanudar",
   "pause.osdOn": "K-Desktop en pausa",
   "pause.osdOff": "K-Desktop activo",
   "pause.tooltip": "{0} · en pausa",
