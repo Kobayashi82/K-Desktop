@@ -34,6 +34,18 @@ const ICONS = {
   running: '<circle cx="12" cy="12" r="7"/><path d="M12 8.5V12l2.5 1.5"/>',
   info: '<path d="M12 11v6M12 7v.01"/>',
   chevron: '<path d="M9 6l6 6-6 6"/>',
+  speaker: '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>',
+  speakerOff: '<path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/>',
+  minus: '<path d="M6 12h12"/>',
+  plus: '<path d="M12 6v12M6 12h12"/>',
+  previous: '<path d="M7 6v12"/><path d="M18 6l-8 6 8 6z"/>',
+  next: '<path d="M17 6v12"/><path d="M6 6l8 6-8 6z"/>',
+  playPause: '<path d="M4.5 6l7 6-7 6z"/><path d="M15 6v12M19.5 6v12"/>',
+  speakers: '<rect x="6" y="3" width="12" height="18" rx="2.5"/><circle cx="12" cy="14" r="3"/><path d="M12 7.5h.01"/>',
+  headphones: '<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3.5" y="14" width="4" height="6" rx="1.5"/><rect x="16.5" y="14" width="4" height="6" rx="1.5"/>',
+  headset: '<path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3.5" y="13" width="4" height="6" rx="1.5"/><rect x="16.5" y="13" width="4" height="6" rx="1.5"/><path d="M18.5 19c0 1.5-1.5 2.5-4.5 2.5"/>',
+  monitor: '<rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M9 20h6M12 16.5V20"/>',
+  digital: '<rect x="3.5" y="7" width="17" height="10" rx="2"/><path d="M7.5 12h9"/>',
 };
 
 const svg = name => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] ?? ''}</svg>`;
@@ -132,7 +144,7 @@ function movePill(pill, target) {
 
 // ── tabs ───────────────────────────────────────────────────────────
 
-const TABS = ['menus', 'all', 'settings'];
+const TABS = ['menus', 'all', 'audio', 'settings'];
 
 function setTab(tab) {
   if (!TABS.includes(tab)) tab = 'menus';
@@ -147,6 +159,127 @@ function setTab(tab) {
   for (const b of $('tabbar').querySelectorAll('button')) b.classList.toggle('active', b.dataset.tab === tab);
   movePill($('tabPill'), $('tabbar').querySelector('button.active'));
   window.scrollTo({ top: 0 });
+  if (tab === 'audio') startAudio();
+  else stopAudio();
+}
+
+// ── audio ──────────────────────────────────────────────────────────
+
+const audio = { state: null, timer: 0, dragging: false, busy: false, sendTimer: 0, pending: null };
+
+function startAudio() {
+  stopAudio();
+  loadAudio();
+  // Follow changes made on the PC while the tab is open.
+  audio.timer = setInterval(() => { if (document.visibilityState === 'visible') loadAudio(); }, 2500);
+}
+
+function stopAudio() {
+  clearInterval(audio.timer);
+  audio.timer = 0;
+}
+
+async function loadAudio() {
+  if (audio.busy || audio.dragging || audio.pending) return;
+  try {
+    renderAudio(await api('audio'));
+  } catch (e) {
+    if (!(e instanceof Unpaired)) stopAudio();
+  }
+}
+
+async function changeAudio(change) {
+  audio.busy = true;
+  try {
+    const state = await api('audio', { method: 'POST', body: change });
+    if (!audio.dragging && !audio.pending) renderAudio(state);
+    return state;
+  } catch (e) {
+    if (!(e instanceof Unpaired)) toast('error', t('pwa.offline'), '', 2500);
+    return null;
+  } finally {
+    audio.busy = false;
+  }
+}
+
+function renderAudio(state) {
+  audio.state = state;
+  const card = $('volumeCard');
+  const has = state.volume !== null && state.volume !== undefined;
+  card.classList.toggle('muted', !!state.muted);
+  $('muteButton').innerHTML = svg(state.muted ? 'speakerOff' : 'speaker');
+  $('muteButton').setAttribute('aria-label', t(state.muted ? 'pwa.audio.unmute' : 'pwa.audio.mute'));
+  if (!audio.dragging) setVolumeUi(has ? state.volume : 0);
+  if (!has) $('volumeValue').textContent = '–';
+
+  const list = $('deviceList');
+  const devices = state.devices ?? [];
+  if (!devices.length) {
+    list.replaceChildren(el('p', 'empty', t('pwa.audio.none')));
+    return;
+  }
+  // Same devices: only move the selection (keeps the animation smooth).
+  const same = list.children.length === devices.length && devices.every((d, i) => list.children[i].dataset?.id === d.id);
+  if (same) {
+    devices.forEach((d, i) => {
+      list.children[i].classList.toggle('current', d.default);
+      list.children[i].disabled = !d.active;
+    });
+    return;
+  }
+  list.replaceChildren(...devices.map((d, i) => {
+    const b = el('button', 'device' + (d.default ? ' current' : ''));
+    b.dataset.id = d.id;
+    b.disabled = !d.active;
+    b.style.setProperty('--n', i);
+    const ic = el('span', 'device-icon');
+    ic.innerHTML = svg({ headphones: 'headphones', headset: 'headset', monitor: 'monitor', digital: 'digital' }[d.kind] ?? 'speakers');
+    const text = el('span', 'device-text');
+    text.append(el('b', '', d.name), el('span', '', d.active ? d.adapter : t('pwa.audio.notConnected')));
+    const check = el('span', 'device-check');
+    check.innerHTML = svg('ok');
+    b.append(ic, text, check);
+    b.addEventListener('pointerdown', e => ripple(b, e));
+    b.addEventListener('click', async () => {
+      if (b.classList.contains('current')) return;
+      navigator.vibrate?.(8);
+      for (const other of list.children) other.classList.toggle('current', other === b);
+      const state = await changeAudio({ device: d.id });
+      if (state?.devices?.find(x => x.id === d.id)?.default) toast('ok', t('pwa.audio.switched'), d.name, 1800);
+    });
+    return b;
+  }));
+}
+
+function setVolumeUi(value) {
+  const slider = $('volumeSlider');
+  slider.value = value;
+  slider.style.setProperty('--fill', value + '%');
+  $('volumeValue').textContent = value;
+}
+
+/** Sends the volume while dragging, at most every 90 ms, and always the last value. */
+function sendVolume(value) {
+  audio.pending = value;
+  if (audio.sendTimer) return;
+  const flush = async () => {
+    const v = audio.pending;
+    audio.pending = null;
+    if (v === null) {
+      audio.sendTimer = 0;
+      return;
+    }
+    await changeAudio({ volume: v });
+    audio.sendTimer = setTimeout(flush, 90);
+  };
+  audio.sendTimer = setTimeout(flush, 0);
+}
+
+function stepVolume(delta) {
+  const value = Math.max(0, Math.min(100, Number($('volumeSlider').value) + delta));
+  navigator.vibrate?.(4);
+  setVolumeUi(value);
+  sendVolume(value);
 }
 
 // ── tiles ──────────────────────────────────────────────────────────
@@ -591,6 +724,32 @@ function wire() {
     });
   });
   $('unpairButton').addEventListener('click', unpair);
+
+  const slider = $('volumeSlider');
+  slider.addEventListener('pointerdown', () => { audio.dragging = true; });
+  slider.addEventListener('input', () => {
+    setVolumeUi(Number(slider.value));
+    sendVolume(Number(slider.value));
+  });
+  slider.addEventListener('change', () => {
+    audio.dragging = false;
+    sendVolume(Number(slider.value));
+  });
+  window.addEventListener('pointerup', () => { audio.dragging = false; });
+  $('volDown').addEventListener('click', () => stepVolume(-2));
+  $('volUp').addEventListener('click', () => stepVolume(2));
+  $('muteButton').addEventListener('click', () => {
+    navigator.vibrate?.(8);
+    const muted = !audio.state?.muted;
+    $('volumeCard').classList.toggle('muted', muted);
+    $('muteButton').innerHTML = svg(muted ? 'speakerOff' : 'speaker');
+    changeAudio({ muted });
+  });
+  for (const b of document.querySelectorAll('[data-media]'))
+    b.addEventListener('click', () => {
+      navigator.vibrate?.(8);
+      changeAudio({ media: b.dataset.media });
+    });
 
   $('pairForm').addEventListener('submit', pair);
   $('pairCode').addEventListener('input', e => {

@@ -68,6 +68,12 @@ public sealed partial class WebServer
             case ("POST", "/api/run"):
                 await RunAsync(context).ConfigureAwait(false);
                 break;
+            case ("GET", "/api/audio"):
+                await AudioStateAsync(response).ConfigureAwait(false);
+                break;
+            case ("POST", "/api/audio"):
+                await AudioChangeAsync(context).ConfigureAwait(false);
+                break;
             case ("POST", "/api/logout"):
                 Devices.Revoke(device.Id);
                 SetTokenCookie(response, request, null);

@@ -35,6 +35,18 @@ public static class AudioTools
 
     public static int StepVolume(int delta) => SetVolume(GetVolume() + delta);
 
+    public static bool IsMuted()
+    {
+        using var device = DefaultDevice();
+        return device.AudioEndpointVolume.Mute;
+    }
+
+    public static void SetMute(bool muted)
+    {
+        using var device = DefaultDevice();
+        device.AudioEndpointVolume.Mute = muted;
+    }
+
     /// <summary>Toggles mute and returns the new mute state.</summary>
     public static bool ToggleMute()
     {

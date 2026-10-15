@@ -70,6 +70,27 @@
         <p class="empty" id="allEmpty" hidden></p>
       </section>
 
+      <section class="view" data-view="audio">
+        <div class="card volume-card" id="volumeCard">
+          <div class="volume-head">
+            <button class="mute-btn" id="muteButton"></button>
+            <div class="volume-value"><b id="volumeValue">–</b><span>%</span></div>
+          </div>
+          <div class="volume-row">
+            <button class="icon-btn" id="volDown" data-icon="minus" aria-label="−"></button>
+            <input type="range" id="volumeSlider" min="0" max="100" step="1" value="0">
+            <button class="icon-btn" id="volUp" data-icon="plus" aria-label="+"></button>
+          </div>
+          <div class="media-row">
+            <button class="icon-btn" data-media="previous" data-icon="previous" data-i18n-title="pwa.audio.previous"></button>
+            <button class="icon-btn play" data-media="playPause" data-icon="playPause" data-i18n-title="pwa.audio.playPause"></button>
+            <button class="icon-btn" data-media="next" data-icon="next" data-i18n-title="pwa.audio.next"></button>
+          </div>
+        </div>
+        <h3 class="section-title" data-i18n="pwa.audio.output"></h3>
+        <div class="devices" id="deviceList"></div>
+      </section>
+
       <section class="view" data-view="settings">
         <div class="card">
           <h2 data-i18n="pwa.settings.appearance"></h2>
@@ -104,6 +125,7 @@
       <span class="tab-pill" id="tabPill"></span>
       <button data-tab="menus"><span data-icon="menus"></span><b data-i18n="pwa.tab.menus"></b></button>
       <button data-tab="all"><span data-icon="all"></span><b data-i18n="pwa.tab.all"></b></button>
+      <button data-tab="audio"><span data-icon="speaker"></span><b data-i18n="pwa.tab.audio"></b></button>
       <button data-tab="settings"><span data-icon="settings"></span><b data-i18n="pwa.tab.settings"></b></button>
     </nav>
   </div>
