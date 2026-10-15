@@ -186,22 +186,6 @@ public partial class AchievementsPage : UserControl, IDisposable
     private void OnNotifyToggle(object sender, RoutedEventArgs e) => _app.Config.Settings.AchievementNotifications = NotifyToggle.IsChecked == true;
     private void OnSoundToggle(object sender, RoutedEventArgs e) => _app.Config.Settings.AchievementSound = SoundToggle.IsChecked == true;
 
-    private async void OnReset(object sender, RoutedEventArgs e)
-    {
-        var box = new Wpf.Ui.Controls.MessageBox
-        {
-            Title = Loc.T("ach.reset"),
-            Content = Loc.T("ach.resetConfirm"),
-            PrimaryButtonText = Loc.T("ach.resetButton"),
-            CloseButtonText = Loc.T("common.cancel"),
-        };
-        if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
-        _app.Achievements.Reset();
-        _snapshot = _app.Achievements.Snapshot();
-        BuildSummary(animate: true);
-        BuildGroups(animate: true);
-    }
-
     // ── statistics ───────────────────────────────────────────────────────
 
     private void BuildStats(bool animate)

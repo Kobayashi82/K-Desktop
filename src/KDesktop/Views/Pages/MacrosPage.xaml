@@ -176,7 +176,7 @@
                                 <ui:SymbolIcon Symbol="Record24" FontSize="26" Foreground="{DynamicResource Kd.AccentText}" />
                             </Border>
                             <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center">
-                                <ui:TextBox x:Name="NameBox" FontSize="20" FontWeight="SemiBold" PlaceholderText="{l:Tr macro.namePlaceholder}"
+                                <ui:TextBox x:Name="NameBox" FontSize="16" FontWeight="SemiBold" PlaceholderText="{l:Tr macro.namePlaceholder}"
                                             Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{Binding Summary}" />
                             </StackPanel>

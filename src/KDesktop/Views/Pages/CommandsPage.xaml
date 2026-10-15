@@ -219,7 +219,7 @@
                                 <Image x:Name="HeaderIcon" RenderOptions.BitmapScalingMode="HighQuality" />
                             </Button>
                             <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center">
-                                <ui:TextBox x:Name="NameBox" FontSize="20" FontWeight="SemiBold" PlaceholderText="{l:Tr commands.namePlaceholder}"
+                                <ui:TextBox x:Name="NameBox" FontSize="16" FontWeight="SemiBold" PlaceholderText="{l:Tr commands.namePlaceholder}"
                                             Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
                                 <TextBlock x:Name="NotesHint" Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{Binding Notes}"
                                            Visibility="{Binding Notes, Converter={StaticResource NullToCollapsed}}" Foreground="{DynamicResource Kd.Warning}" />

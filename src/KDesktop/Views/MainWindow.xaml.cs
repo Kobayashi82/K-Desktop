@@ -92,8 +92,12 @@ public partial class MainWindow : FluentWindow
         var app = App.Current;
         var s = app.Config.Settings;
 
-        SetStatus(PauseStatus, PauseIcon, s.Paused ? SymbolRegular.Pause24 : SymbolRegular.Power24, s.Paused ? "Kd.Warning" : "Kd.Success",
-            Loc.T(s.Paused ? "status.paused" : "status.active"), Loc.T("status.clickOptions"));
+        // Paused wins (it is the user's choice); otherwise red when the hotkeys are not being detected.
+        var hooks = app.Router.IsRunning;
+        SetStatus(PauseStatus, PauseIcon, s.Paused ? SymbolRegular.Pause24 : SymbolRegular.Power24,
+            s.Paused ? "Kd.Warning" : hooks ? "Kd.Success" : "Kd.Danger",
+            Loc.T(s.Paused ? "status.paused" : hooks ? "status.active" : app.HooksDisabled ? "status.hooksArg" : "status.hooksFailed"),
+            Loc.T("status.clickOptions"));
 
         var udpOn = s.UdpEnabled && app.UdpAllowed;
         SetStatus(UdpStatus, UdpIcon, udpOn ? SymbolRegular.PlugConnected24 : SymbolRegular.PlugDisconnected24,
