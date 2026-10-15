@@ -33,6 +33,17 @@ public sealed class VoiceService : IDisposable
 
     public SpeechToText SpeechToText { get; } = new();
 
+    /// <summary>Downloads the models (Settings › Voice).</summary>
+    public ModelDownloader Models { get; } = new();
+
+    /// <summary>Frees the recognizer and removes the model files.</summary>
+    public void DeleteModels()
+    {
+        SpeechToText.Unload();
+        ModelDownloader.Delete();
+        StateChanged?.Invoke();
+    }
+
     public bool IsListening => _active != 0;
 
     /// <summary>Raised (any thread) when a session starts or ends.</summary>

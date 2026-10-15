@@ -120,6 +120,13 @@ public partial class App : Application
         Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice));
         Engine.Voice = Voice;
         Voice.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
+        Voice.Models.Changed += () =>
+        {
+            if (Voice.Models.IsDownloading) return;
+            Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
+            if (Voice.Models.Error is { } error) Ui.ShowOsd(Loc.T("voice.downloadError", error), OsdKind.Warning, TimeSpan.FromSeconds(5));
+            else if (Core.Voice.VoiceModels.Ready) Ui.ShowOsd(Loc.T("voice.downloaded"), OsdKind.Success);
+        };
         QuickMenus = new QuickMenuController(() => Config, Engine);
         Ui.QuickMenus = QuickMenus;
         QuickMenus.EditRequested += (commandId, menuId) =>

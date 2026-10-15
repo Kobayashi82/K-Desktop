@@ -103,6 +103,20 @@
                         </StackPanel>
                     </Grid>
                 </ListBoxItem>
+                <ListBoxItem Tag="voice">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
+                            <ui:SymbolIcon Symbol="Mic24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.nav.voice}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{l:Tr settings.nav.voice.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </ListBoxItem>
                 <ListBoxItem Tag="disabledIn">
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
@@ -439,6 +453,53 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Voice -->
+            <Border Style="{StaticResource Card}" Tag="voice">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.voice}" />
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.voiceModels}" />
+                            <TextBlock x:Name="VoiceModelsText" Style="{StaticResource Caption}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <ui:Button x:Name="VoiceDownloadButton" Appearance="Primary" Content="{l:Tr settings.voiceDownload}" Icon="{ui:SymbolIcon ArrowDownload24}" Click="OnVoiceDownload" />
+                            <ui:Button x:Name="VoiceCancelButton" Content="{l:Tr common.cancel}" Icon="{ui:SymbolIcon Dismiss24}" Click="OnVoiceCancel" Visibility="Collapsed" />
+                            <ui:Button x:Name="VoiceDeleteButton" Margin="8,0,0,0" Content="{l:Tr settings.voiceDelete}" Icon="{ui:SymbolIcon Delete24}" Click="OnVoiceDelete" />
+                        </StackPanel>
+                    </Grid>
+                    <ProgressBar x:Name="VoiceProgress" Height="4" Margin="0,0,0,8" Maximum="1" Visibility="Collapsed" />
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.voiceMic}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.voiceMicHint}" />
+                        </StackPanel>
+                        <ComboBox x:Name="VoiceMicBox" Grid.Column="1" DisplayMemberPath="Name" SelectionChanged="OnVoiceMicChanged" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.voiceUnload}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.voiceUnloadHint}" />
+                        </StackPanel>
+                        <ComboBox x:Name="VoiceUnloadBox" Grid.Column="1" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding VoiceUnloadMinutes}" />
+                    </Grid>
+                    <Border Style="{StaticResource InfoBox}">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Symbol="Info24" FontSize="18" Margin="0,0,12,0" VerticalAlignment="Top" Foreground="{DynamicResource Kd.AccentText}" />
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.voiceHowTo}" />
+                                <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="{l:Tr settings.voicePrivacy}" />
+                                <ui:Button Margin="0,10,0,0" Content="{l:Tr settings.voiceCreateCommand}" Icon="{ui:SymbolIcon Add24}" Click="OnCreateVoiceCommand" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
                 </StackPanel>
             </Border>
 

@@ -136,7 +136,13 @@ embeddings multilingües → LLM opcional) y siete etapas con su commit cada una
       hasta tener confirmaciones (etapa 6). Modelos en `Models` de la carpeta de datos (`VoiceModels`).
       Diagnóstico sin micro: `KDesktop.exe --voice-test a.wav carpeta "frase"… [--no-open]` → `Logs\voice-test.txt`.
       Medido: carga del modelo ~1,4 s; cada orden ~90 ms ya cargado. Sin probar con micrófono real.
-- [ ] Etapa 2: descarga de modelos y página de Opciones.
+- [x] Etapa 2: descarga de modelos y página de Opciones.
+      `ModelDownloader`: archivos sueltos (Silero desde las releases de sherpa-onnx; Parakeet desde
+      huggingface.co/csukuangfj/sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8, así no hace falta descomprimir .tar.bz2),
+      640 MB, reanudable con `.part` + Range, comprobación de tamaño y SHA-256, en segundo plano. Opciones › Voz:
+      estado/descargar/cancelar/borrar con progreso, micrófono (predeterminado o uno concreto, que se recuerda aunque
+      esté desconectado), liberar la memoria tras N min, cómo usarla y botón «Crear el comando «Orden de voz»». El icono
+      de estado de la voz abre esa sección. Probado: descarga, cancelación, reanudación y borrado.
 - [ ] Etapa 3: clave fonética + fase 2 + asistente de grabación.
 - [ ] Etapa 4: fase 1 (port del preprocesado de openWakeWord, DTW, clasificador).
 - [ ] Etapa 5: capa de embeddings.

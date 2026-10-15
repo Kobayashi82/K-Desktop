@@ -12,6 +12,7 @@ using KDesktop.Core.Model;
 using KDesktop.Core.Platform;
 using KDesktop.Core.Remote.Web;
 using KDesktop.Core.Storage;
+using KDesktop.Core.Voice;
 using KDesktop.Services;
 using Microsoft.Win32;
 
@@ -37,17 +38,22 @@ public partial class SettingsPage : UserControl
         // Pages are kept while the window lives: follow the server only while this one is shown.
         void OnWebState() => Dispatcher.BeginInvoke(UpdateWebState);
         void OnDevices() => Dispatcher.BeginInvoke(LoadDevices);
+        void OnVoiceModels() => Dispatcher.BeginInvoke(UpdateVoiceModels);
+        LoadVoice();
         Loaded += (_, _) =>
         {
             UpdateWebState();
             LoadDevices();
+            UpdateVoiceModels();
             _app.Web.StateChanged += OnWebState;
             _app.Web.Devices.Changed += OnDevices;
+            _app.Voice.Models.Changed += OnVoiceModels;
         };
         Unloaded += (_, _) =>
         {
             _app.Web.StateChanged -= OnWebState;
             _app.Web.Devices.Changed -= OnDevices;
+            _app.Voice.Models.Changed -= OnVoiceModels;
         };
     }
 
@@ -81,6 +87,72 @@ public partial class SettingsPage : UserControl
 
         Sections.BeginAnimation(OpacityProperty, new DoubleAnimation(0.4, 1, TimeSpan.FromMilliseconds(180)));
         SectionShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(10, 0, TimeSpan.FromMilliseconds(220)) { EasingFunction = EaseOut });
+    }
+
+    // ── voice ────────────────────────────────────────────────────────────
+
+    private sealed record MicOption(string? Id, string Name);
+    private sealed record MinutesOption(int Value, string Name);
+
+    private bool _loadingVoice;
+
+    private void LoadVoice()
+    {
+        _loadingVoice = true;
+        var mics = new List<MicOption> { new(null, Loc.T("settings.voiceMicDefault")) };
+        mics.AddRange(MicCapture.Devices().Select(d => new MicOption(d.Id, d.Name)));
+        var chosen = _app.Config.Settings.VoiceMicId;
+        // A microphone that is unplugged now stays chosen (it is used again when it comes back).
+        if (chosen is not null && mics.All(m => m.Id != chosen)) mics.Add(new MicOption(chosen, Loc.T("settings.voiceMicMissing")));
+        VoiceMicBox.ItemsSource = mics;
+        VoiceMicBox.SelectedItem = mics.First(m => m.Id == chosen);
+        VoiceUnloadBox.ItemsSource = new[] { 1, 5, 10, 30, 60 }.Select(m => new MinutesOption(m, Loc.T("settings.voiceUnloadMinutes", m))).ToList();
+        _loadingVoice = false;
+    }
+
+    private void OnVoiceMicChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_loadingVoice && VoiceMicBox.SelectedItem is MicOption mic) _app.Config.Settings.VoiceMicId = mic.Id;
+    }
+
+    private static string Megabytes(long bytes) => (bytes / 1048576.0).ToString("N0", Loc.Instance.Culture) + " MB";
+
+    private void UpdateVoiceModels()
+    {
+        var download = _app.Voice.Models;
+        var ready = VoiceModels.Ready;
+        var installed = ModelDownloader.InstalledSize();
+        VoiceModelsText.Text = download.IsDownloading
+            ? Loc.T("settings.voiceDownloading", Megabytes(download.Done), Megabytes(ModelDownloader.TotalSize))
+            : ready ? Loc.T("settings.voiceInstalled", Megabytes(installed))
+            : Loc.T("settings.voiceMissing", Megabytes(ModelDownloader.TotalSize)) +
+              (download.Error is { } error ? " " + Loc.T("settings.voiceLastError", error) : "");
+        VoiceProgress.Visibility = download.IsDownloading ? Visibility.Visible : Visibility.Collapsed;
+        VoiceProgress.Value = (double)download.Done / ModelDownloader.TotalSize;
+        VoiceDownloadButton.Visibility = !download.IsDownloading && !ready ? Visibility.Visible : Visibility.Collapsed;
+        VoiceCancelButton.Visibility = download.IsDownloading ? Visibility.Visible : Visibility.Collapsed;
+        VoiceDeleteButton.Visibility = !download.IsDownloading && installed > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void OnVoiceDownload(object sender, RoutedEventArgs e) => _app.Voice.Models.Start();
+
+    private void OnVoiceCancel(object sender, RoutedEventArgs e) => _app.Voice.Models.Cancel();
+
+    private async void OnVoiceDelete(object sender, RoutedEventArgs e)
+    {
+        if (!await Confirm(Loc.T("settings.voiceDeleteConfirm"))) return;
+        _app.Voice.DeleteModels();
+        UpdateVoiceModels();
+    }
+
+    /// <summary>A ready command with the «listen» action; it opens in the editor to give it a hotkey.</summary>
+    private void OnCreateVoiceCommand(object sender, RoutedEventArgs e)
+    {
+        var command = new Command { Name = Loc.T("voice.commandName") };
+        command.Actions.Add(new VoiceListenAction());
+        _app.Config.Commands.Add(command);
+        _app.Achievements.Increment(Core.Achievements.Stat.CommandsCreated);
+        (Window.GetWindow(this) as MainWindow)?.OpenCommand(command.Id);
     }
 
     // ── web ──────────────────────────────────────────────────────────────

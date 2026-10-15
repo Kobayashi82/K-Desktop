@@ -123,7 +123,8 @@ public partial class MainWindow : FluentWindow
         var voiceReady = Core.Voice.VoiceModels.Ready;
         SetStatus(VoiceStatus, VoiceIcon, voiceReady ? SymbolRegular.Mic24 : SymbolRegular.MicOff24,
             app.Voice.IsListening ? "Kd.Accent" : voiceReady ? "Kd.Success" : "TextFillColorTertiaryBrush",
-            Loc.T(app.Voice.IsListening ? "status.voiceListening" : voiceReady ? "status.voiceReady" : "status.voiceNoModels"), null);
+            Loc.T(app.Voice.IsListening ? "status.voiceListening" : voiceReady ? "status.voiceReady" : "status.voiceNoModels"),
+            Loc.T("status.clickOptions"));
     }
 
     /// <summary>Icon, colour (icon and dot) and tooltip of one status button.</summary>
@@ -141,6 +142,8 @@ public partial class MainWindow : FluentWindow
     private void OnUdpStatus(object sender, RoutedEventArgs e) => OpenSettings("remote");
 
     private void OnWebStatus(object sender, RoutedEventArgs e) => OpenSettings("web");
+
+    private void OnVoiceStatus(object sender, RoutedEventArgs e) => OpenSettings("voice");
 
     private void OnPausedChanged()
     {

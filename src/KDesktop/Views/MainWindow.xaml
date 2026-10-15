@@ -83,7 +83,7 @@
                         <Button x:Name="WebStatus" Style="{StaticResource StatusButton}" Click="OnWebStatus">
                             <ui:SymbolIcon x:Name="WebIcon" Symbol="Phone24" FontSize="18" />
                         </Button>
-                        <Button x:Name="VoiceStatus" Style="{StaticResource StatusButton}" ToolTipService.ShowOnDisabled="True" IsEnabled="False">
+                        <Button x:Name="VoiceStatus" Style="{StaticResource StatusButton}" Click="OnVoiceStatus">
                             <ui:SymbolIcon x:Name="VoiceIcon" Symbol="MicOff24" FontSize="18" />
                         </Button>
                     </UniformGrid>
