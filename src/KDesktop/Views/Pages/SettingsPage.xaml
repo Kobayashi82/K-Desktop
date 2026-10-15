@@ -184,7 +184,7 @@
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="{l:Tr settings.language}" />
-                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.languageHint}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.languageHint}" TextWrapping="Wrap" />
                         </StackPanel>
                         <ComboBox x:Name="LanguageBox" Grid.Column="1" DisplayMemberPath="Name" SelectedValuePath="Code" SelectedValue="{Binding Language}" />
                     </Grid>
@@ -192,7 +192,7 @@
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="{l:Tr settings.translate}" />
-                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.translateHint}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.translateHint}" TextWrapping="Wrap" />
                         </StackPanel>
                         <ui:Button Grid.Column="1" HorizontalAlignment="Stretch" Content="{l:Tr settings.exportTemplate}" Icon="{ui:SymbolIcon Translate24}" Click="OnExportLanguageTemplate" />
                     </Grid>

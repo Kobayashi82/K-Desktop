@@ -103,13 +103,6 @@
                 </StackPanel>
             </Border>
 
-            <Border Style="{StaticResource Card}">
-                <StackPanel>
-                    <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr about.languages}" />
-                    <TextBlock Style="{StaticResource Caption}" FontSize="13" Text="{l:Tr about.languagesText}" />
-                </StackPanel>
-            </Border>
-
             <TextBlock Style="{StaticResource Caption}" Margin="4,4,0,0" Text="© Kobayashi82" />
         </StackPanel>
     </ScrollViewer>

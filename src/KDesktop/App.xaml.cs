@@ -359,11 +359,6 @@ public partial class App : Application
         kboard.SubmenuOpened += (_, _) => FillKBoardMenu(kboard);
         menu.Items.Add(kboard);
         menu.Items.Add(TrayItem(Loc.T("tray.achievements"), (_, _) => ShowMainWindow(w => w.Navigate("achievements"))));
-        menu.Items.Add(TrayItem(Loc.T("tray.data"), (_, _) =>
-        {
-            Achievements.Unlock("curious");
-            ShellTools.OpenSpecial("KDesktopData");
-        }));
         menu.Items.Add(new Separator());
         menu.Items.Add(TrayItem(Loc.T("tray.exit"), (_, _) => _ = ExitAsync()));
 

@@ -6,7 +6,7 @@
   "nav.settings": "Settings",
   "nav.about": "About",
 
-  "status.hooks": "Keyboard and mouse active",
+  "status.hooks": "Hotkeys active",
   "status.hooksOff": "Hotkeys disabled",
   "status.udpOn": "UDP remote · port {0}",
   "status.udpOff": "UDP remote disabled",
@@ -140,9 +140,9 @@
   "settings.faviconsRefresh": "Download the website icons again",
   "settings.faviconsRefreshing": "Downloading the website icons again",
   "settings.language": "Language",
-  "settings.languageHint": "Languages can be added, or texts changed, by dropping a JSON file in %APPDATA%\\K-Desktop 5\\Languages.",
+  "settings.languageHint": "Spanish and English are built in. More can be added with a JSON file in %APPDATA%\\K-Desktop 5\\Languages.",
   "settings.translate": "Translate K-Desktop",
-  "settings.translateHint": "Saves the English texts as the starting point of a new language.",
+  "settings.translateHint": "Saves the English texts in that folder. Translate them, name the file with the language code (e.g. fr.json) and pick it above. An es.json or en.json there only changes the keys it contains.",
   "settings.exportTemplate": "Export template",
   "settings.exportTemplateTitle": "Save it with the language code (e.g. fr.json)",
   "settings.templateExported": "Language template exported",
@@ -331,8 +331,6 @@
   "about.version": "Version {0} · {1}",
   "about.elevated": "running as administrator",
   "about.notElevated": "without administrator rights (hotkeys won't work over elevated windows)",
-  "about.languages": "Languages",
-  "about.languagesText": "Spanish and English are built into the program. To translate K-Desktop use «Export template» in Settings: it saves the English texts in %APPDATA%\\K-Desktop 5\\Languages under the language code (e.g. fr.json); translate them and pick the language in Settings. An es.json or en.json in that folder only changes the keys it contains.",
 
   "common.accept": "OK",
 
@@ -578,7 +576,6 @@
 
   "tray.open": "Open K-Desktop",
   "tray.achievements": "Achievements and statistics",
-  "tray.data": "Data folder",
   "tray.kboard": "Open K-Board",
   "tray.exit": "Exit",
 

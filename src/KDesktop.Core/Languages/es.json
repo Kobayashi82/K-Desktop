@@ -6,7 +6,7 @@
   "nav.settings": "Opciones",
   "nav.about": "Acerca de",
 
-  "status.hooks": "Teclado y ratón activos",
+  "status.hooks": "Atajos activos",
   "status.hooksOff": "Atajos desactivados",
   "status.udpOn": "Remoto UDP · puerto {0}",
   "status.udpOff": "Remoto UDP desactivado",
@@ -140,9 +140,9 @@
   "settings.faviconsRefresh": "Volver a descargar los iconos de las webs",
   "settings.faviconsRefreshing": "Descargando de nuevo los iconos de las webs",
   "settings.language": "Idioma",
-  "settings.languageHint": "Se pueden añadir idiomas, o cambiar textos, copiando un archivo JSON en %APPDATA%\\K-Desktop 5\\Languages.",
+  "settings.languageHint": "Español e inglés vienen incluidos. Se añaden más con un archivo JSON en %APPDATA%\\K-Desktop 5\\Languages.",
   "settings.translate": "Traducir K-Desktop",
-  "settings.translateHint": "Guarda los textos en inglés como punto de partida de un idioma nuevo.",
+  "settings.translateHint": "Guarda los textos en inglés en esa carpeta. Tradúcelos, ponle al archivo el código del idioma (p. ej. fr.json) y elígelo arriba. Un es.json o en.json ahí solo cambia las claves que contenga.",
   "settings.exportTemplate": "Exportar plantilla",
   "settings.exportTemplateTitle": "Guárdala con el código del idioma (p. ej. fr.json)",
   "settings.templateExported": "Plantilla de idioma exportada",
@@ -331,8 +331,6 @@
   "about.version": "Versión {0} · {1}",
   "about.elevated": "ejecutándose como administrador",
   "about.notElevated": "sin permisos de administrador (los atajos no funcionarán sobre ventanas elevadas)",
-  "about.languages": "Idiomas",
-  "about.languagesText": "Español e inglés vienen dentro del programa. Para traducir K-Desktop usa «Exportar plantilla» en Opciones: guarda los textos en inglés en %APPDATA%\\K-Desktop 5\\Languages con el código del idioma (p. ej. fr.json); tradúcelos y elige el idioma en Opciones. Un es.json o en.json en esa carpeta cambia solo las claves que contenga.",
 
   "common.accept": "Aceptar",
 
@@ -578,7 +576,6 @@
 
   "tray.open": "Abrir K-Desktop",
   "tray.achievements": "Logros y estadísticas",
-  "tray.data": "Carpeta de datos",
   "tray.kboard": "Abrir K-Board",
   "tray.exit": "Salir",
 
