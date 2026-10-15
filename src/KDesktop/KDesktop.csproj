@@ -42,9 +42,18 @@
     <Exec Command="&quot;$(_PortableDotNet)&quot; publish &quot;$(MSBuildProjectFullPath)&quot; -c Release -p:PublishProfile=SelfContained -nologo -v:minimal" />
   </Target>
 
-  <!-- The portable folder holds only the exe: clear what a previous publish left there. -->
+  <!--
+    The portable folder holds only the exe: clear what a previous publish left there. K-Desktop may be running from
+    it: a running exe cannot be deleted but can be renamed, so it is moved aside (*.old, deleted by a later publish
+    once it is closed) and the new one goes in its place.
+  -->
   <Target Name="CleanPortableDir" BeforeTargets="PrepareForPublish" Condition="'$(PublishProfile)' == 'SelfContained'">
-    <RemoveDir Directories="$(PublishDir)" />
+    <ItemGroup>
+      <_PortableLeftovers Include="$(PublishDir)\**\*" />
+    </ItemGroup>
+    <Delete Files="@(_PortableLeftovers)" ContinueOnError="true" />
+    <Move Condition="Exists('$(PublishDir)\KDesktop.exe')" SourceFiles="$(PublishDir)\KDesktop.exe"
+          DestinationFiles="$(PublishDir)\KDesktop.exe.$([System.DateTime]::Now.ToString('yyyyMMddHHmmss')).old" />
   </Target>
 
 </Project>
