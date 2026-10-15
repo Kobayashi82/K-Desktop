@@ -31,6 +31,10 @@ public partial class App : Application
     private bool _exiting;
     private AppTheme _appliedTheme;
     private string? _appliedLanguage;
+    private bool _appliedFavicons;
+
+    /// <summary>Favicons arrive in bursts at startup: refresh the icons once per burst.</summary>
+    private readonly DispatcherTimer _iconRefresh = new() { Interval = TimeSpan.FromMilliseconds(400) };
 
     public static new App Current => (App)Application.Current;
 
@@ -87,6 +91,20 @@ public partial class App : Application
         _appliedTheme = Config.Settings.Theme;
         ThemeService.Initialize(_appliedTheme);
 
+        // Website icons: set before anything draws an icon, so a disabled option never touches the network.
+        _appliedFavicons = Favicons.Enabled = Config.Settings.WebFavicons;
+        _iconRefresh.Tick += (_, _) =>
+        {
+            _iconRefresh.Stop();
+            IconProvider.BumpRevision();
+        };
+        Favicons.Downloaded += () => Dispatcher.BeginInvoke(() =>
+        {
+            _iconRefresh.Stop();
+            _iconRefresh.Start();
+        });
+        Favicons.Prefetch(Config.Commands.SelectMany(c => c.Actions));
+
         Ui = new UiServices(Dispatcher, () => Config.Settings, () => ShowMainWindow(), () => _ = ExitAsync());
         Engine = new CommandEngine(Store, Ui);
         QuickMenus = new QuickMenuController(() => Config, Engine);
@@ -128,6 +146,7 @@ public partial class App : Application
             ApplySettings();
             Achievements.CheckConfig(Config);
             Config.RefreshReferenceNames(); // renamed macros, menus or commands
+            Favicons.Prefetch(Config.Commands.SelectMany(c => c.Actions)); // new or edited web actions
         };
         Store.Changed += (_, _) => Dispatcher.BeginInvoke(() =>
         {
@@ -278,6 +297,13 @@ public partial class App : Application
             // The tray menu is built in code: rebuild it in the new language.
             _tray?.Dispose();
             _tray = null;
+        }
+
+        if (s.WebFavicons != _appliedFavicons)
+        {
+            _appliedFavicons = Favicons.Enabled = s.WebFavicons;
+            IconProvider.BumpRevision();
+            Favicons.Prefetch(Config.Commands.SelectMany(c => c.Actions));
         }
 
         if (s.ShowTrayIcon) EnsureTray();

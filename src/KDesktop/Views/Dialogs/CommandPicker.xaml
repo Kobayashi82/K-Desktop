@@ -4,6 +4,7 @@
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                  xmlns:l="clr-namespace:KDesktop.Localization"
                  xmlns:v="clr-namespace:KDesktop.Views"
+                 xmlns:s="clr-namespace:KDesktop.Services"
                  Title="K-Desktop"
                  Width="460" Height="560"
                  WindowStartupLocation="CenterOwner"
@@ -33,6 +34,7 @@
                             <Image.Source>
                                 <MultiBinding Converter="{StaticResource CommandIcon}">
                                     <Binding />
+                                    <Binding Path="(s:IconProvider.Revision)" />
                                 </MultiBinding>
                             </Image.Source>
                         </Image>

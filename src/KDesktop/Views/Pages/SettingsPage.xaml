@@ -39,6 +39,19 @@
                         <ComboBox Grid.Column="1" ItemsSource="{x:Static v:Lookups.Themes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Theme}" />
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.favicons}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.faviconsHint}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <ui:Button Margin="0,0,12,0" Icon="{ui:SymbolIcon ArrowSync24}" ToolTip="{l:Tr settings.faviconsRefresh}"
+                                       AutomationProperties.Name="{l:Tr settings.faviconsRefresh}" Click="OnRefreshFavicons"
+                                       IsEnabled="{Binding WebFavicons}" />
+                            <ui:ToggleSwitch IsChecked="{Binding WebFavicons}" />
+                        </StackPanel>
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="{l:Tr settings.language}" />

@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="SharpVectors.Wpf" Version="1.8.6" />
     <PackageReference Include="WPF-UI" Version="4.3.0" />
     <PackageReference Include="H.NotifyIcon.Wpf" Version="2.4.1" />
   </ItemGroup>
@@ -31,13 +32,12 @@
     It is a separate publish with its own bin/obj (see Directory.Build.props), so it never mixes with this build.
     Skip it with -p:BuildPortable=false.
   -->
-  <Target Name="BuildPortable" AfterTargets="Build"
-          Condition="'$(Configuration)' == 'Release' and '$(PublishProfile)' != 'SelfContained' and '$(BuildPortable)' != 'false' and '$(DesignTimeBuild)' != 'true'">
+  <Target Name="BuildPortable" AfterTargets="Build" Condition="'$(Configuration)' == 'Release' and '$(PublishProfile)' != 'SelfContained' and '$(BuildPortable)' != 'false' and '$(DesignTimeBuild)' != 'true'">
     <PropertyGroup>
       <_PortableDotNet>$(DOTNET_HOST_PATH)</_PortableDotNet>
       <_PortableDotNet Condition="'$(_PortableDotNet)' == ''">dotnet</_PortableDotNet>
     </PropertyGroup>
-    <Message Importance="high" Text="KDesktop -> creando el portable en artifacts\portable..." />
+    <Message Importance="high" Text="KDesktop -&gt; creando el portable en artifacts\portable..." />
     <Exec Command="&quot;$(_PortableDotNet)&quot; publish &quot;$(MSBuildProjectFullPath)&quot; -c Release -p:PublishProfile=SelfContained -nologo -v:minimal" />
   </Target>
 

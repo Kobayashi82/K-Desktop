@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -21,6 +22,20 @@ public static class IconProvider
 
     public static void Invalidate(string key) => Cache.TryRemove(key, out _);
 
+    /// <summary>
+    /// Changes when icons that were missing become available (downloaded favicons) or stop being used. Icon bindings
+    /// include it, as <c>{Binding Path=(s:IconProvider.Revision)}</c>, so they refresh. UI thread only.
+    /// </summary>
+    public static int Revision { get; private set; }
+
+    public static event EventHandler<PropertyChangedEventArgs>? StaticPropertyChanged;
+
+    public static void BumpRevision()
+    {
+        Revision++;
+        StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(Revision)));
+    }
+
     // ── high level ───────────────────────────────────────────────────────
 
     public static ImageSource? ForMenuItem(QuickMenuItem item, Command? command)
@@ -38,10 +53,10 @@ public static class IconProvider
 
     public static ImageSource? ForAction(CommandAction action) => action switch
     {
-        RunAppAction a => PathIcon(a.Path) ?? (LooksLikeUrl(a.Path) ? Kd("Globe24", "sky") : Kd("Open24", "blue")),
+        RunAppAction a => PathIcon(a.Path) ?? (LooksLikeUrl(a.Path) ? Favicons.Get(a.Path) ?? Kd("Globe24", "sky") : Kd("Open24", "blue")),
         OpenFolderAction { Special: { } s } => Named(SpecialFolders.Get(s)?.Icon) ?? Kd("Folder24", "yellow"),
         OpenFolderAction a => PathIcon(a.Path) ?? Kd("Folder24", "yellow"),
-        OpenUrlAction a => Browsers.Get(a.Browser)?.Icon is { } browser ? Asset(browser) : Kd("Globe24", "sky"),
+        OpenUrlAction a => Favicons.Get(a.Url) ?? (Browsers.Get(a.Browser)?.Icon is { } browser ? Asset(browser) : Kd("Globe24", "sky")),
         AppControlAction => Kd("WindowApps24", "indigo"),
         RunScriptAction => Kd("WindowConsole20", "dark"),
         SendInputAction => Kd("Keyboard24", "sky"),
@@ -86,7 +101,7 @@ public static class IconProvider
         return File.Exists(p) || Directory.Exists(p) ? Shell(p) : null;
     }
 
-    private static bool LooksLikeUrl(string s) => s.Contains("://", StringComparison.Ordinal) || s.StartsWith("www.", StringComparison.OrdinalIgnoreCase);
+    public static bool LooksLikeUrl(string s) => s.Contains("://", StringComparison.Ordinal) || s.StartsWith("www.", StringComparison.OrdinalIgnoreCase);
 
     // ── sources ──────────────────────────────────────────────────────────
 

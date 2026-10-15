@@ -32,6 +32,7 @@ public static class AppPaths
     public static string BackupDir => Path.Combine(DataDir, "Backups");
     public static string IconsDir => Path.Combine(DataDir, "Icons");
     public static string LogDir => Path.Combine(DataDir, "Logs");
+    public static string FaviconsDir => Path.Combine(DataDir, "Favicons");
     public static string TempDir => Path.Combine(Path.GetTempPath(), "K-Desktop");
 
     /// <summary>User sounds (.wav): added to the built-in ones, replacing those with the same name.</summary>

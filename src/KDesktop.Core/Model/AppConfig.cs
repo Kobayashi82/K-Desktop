@@ -64,6 +64,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>Language code ("es", "en"…); null follows the Windows language.</summary>
     [ObservableProperty] private string? _language;
 
+    /// <summary>Show the websites' own icons (favicons) on "Open web" actions; they are downloaded from each site.</summary>
+    [ObservableProperty] private bool _webFavicons = true;
+
     // General
     [ObservableProperty] private bool _startWithWindows = true;
     [ObservableProperty] private bool _showTrayIcon = true;

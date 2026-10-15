@@ -78,7 +78,7 @@
       Tamaño (medido 2026-10-15): exe actual 162 MB → zip 69 MB. Comprimido dentro del exe 74 MB, pero
       arranca ~200 ms más lento y usa ~75 MB más de RAM todo el rato (descomprime en memoria). Sin
       ReadyToRun 142 MB. Decisión: exe sin comprimir y distribuir en zip.
-- [ ] Favicons para las acciones web.
+- [x] Favicons para las acciones web: se descargan de la propia web (link rel=icon, manifest de app web, /favicon.ico; SVG con SharpVectors), uno por host+puerto, en `Favicons` de la carpeta de datos. Opción en Apariencia (y botón para volver a descargarlos).
 
 **Primer arranque:** si «Iniciar con Windows» está activado (por defecto lo está) y es una copia con
 carpeta de datos normal, se registra la tarea del Programador de tareas automáticamente la primera vez,

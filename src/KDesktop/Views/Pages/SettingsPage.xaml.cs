@@ -11,6 +11,7 @@ using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
 using KDesktop.Core.Platform;
 using KDesktop.Core.Storage;
+using KDesktop.Services;
 using Microsoft.Win32;
 
 namespace KDesktop.Views.Pages;
@@ -36,6 +37,14 @@ public partial class SettingsPage : UserControl
     private void LoadLanguages() =>
         LanguageBox.ItemsSource = new[] { new LanguageOption(null, Loc.T("settings.languageSystem")) }
             .Concat(Loc.Available().Select(l => new LanguageOption(l.Code, l.Name))).ToList();
+
+    private void OnRefreshFavicons(object sender, RoutedEventArgs e)
+    {
+        Favicons.Clear();
+        IconProvider.BumpRevision(); // back to the generic icons until the new ones arrive
+        Favicons.Prefetch(_app.Config.Commands.SelectMany(c => c.Actions));
+        _app.Ui.ShowOsd(Loc.T("settings.faviconsRefreshing"), OsdKind.Info);
+    }
 
     /// <summary>Saves the built-in English texts as the starting point of a new translation.</summary>
     private void OnExportLanguageTemplate(object sender, RoutedEventArgs e)

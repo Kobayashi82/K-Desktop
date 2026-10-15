@@ -40,6 +40,7 @@ public partial class CommandsPage : UserControl, IDisposable
         ShowHiddenToggle.IsChecked = Config.Settings.ShowHiddenCommands;
         SoundBox.ItemsSource = Sounds.Available();
         Config.Commands.CollectionChanged += OnCommandsChanged;
+        IconProvider.StaticPropertyChanged += OnIconsChanged;
         UpdateCount();
         Loaded += (_, _) =>
         {
@@ -52,6 +53,7 @@ public partial class CommandsPage : UserControl, IDisposable
     {
         HotkeyCapture.CancelActive();
         Config.Commands.CollectionChanged -= OnCommandsChanged;
+        IconProvider.StaticPropertyChanged -= OnIconsChanged;
         if (_selected is not null) _selected.PropertyChanged -= OnSelectedChanged;
         _view.DetachFromSourceCollection();
     }
@@ -129,6 +131,8 @@ public partial class CommandsPage : UserControl, IDisposable
     {
         if (e.PropertyName is nameof(Command.Icon) or nameof(Command.PrimaryAction)) RefreshHeader();
     }
+
+    private void OnIconsChanged(object? sender, PropertyChangedEventArgs e) => RefreshHeader();
 
     private void RefreshHeader()
     {

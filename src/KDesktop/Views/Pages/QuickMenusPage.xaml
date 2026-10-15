@@ -4,6 +4,7 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:l="clr-namespace:KDesktop.Localization"
              xmlns:v="clr-namespace:KDesktop.Views"
+             xmlns:s="clr-namespace:KDesktop.Services"
              xmlns:qe="clr-namespace:KDesktop.Views.QuickMenuEditor"
              Focusable="True"
              PreviewKeyDown="OnKeyDown">
@@ -208,6 +209,7 @@
                                     <Image.Source>
                                         <MultiBinding Converter="{StaticResource CommandIcon}">
                                             <Binding />
+                                            <Binding Path="(s:IconProvider.Revision)" />
                                             <Binding Path="Icon" />
                                         </MultiBinding>
                                     </Image.Source>

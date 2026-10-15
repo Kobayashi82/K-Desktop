@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:v="clr-namespace:KDesktop.Views"
+             xmlns:s="clr-namespace:KDesktop.Services"
              xmlns:l="clr-namespace:KDesktop.Localization"
              xmlns:m="clr-namespace:KDesktop.Core.Model;assembly=KDesktop.Core">
     <UserControl.Resources>
@@ -131,6 +132,7 @@
                                 <Image.Source>
                                     <MultiBinding Converter="{StaticResource CommandIcon}">
                                         <Binding />
+                                        <Binding Path="(s:IconProvider.Revision)" />
                                         <Binding Path="Icon" />
                                         <Binding Path="PrimaryAction" />
                                         <Binding Path="PrimaryAction.Summary" />
@@ -312,6 +314,7 @@
                                                         <Image.Source>
                                                             <MultiBinding Converter="{StaticResource ActionIcon}">
                                                                 <Binding />
+                                                                <Binding Path="(s:IconProvider.Revision)" />
                                                                 <Binding Path="Summary" />
                                                             </MultiBinding>
                                                         </Image.Source>
