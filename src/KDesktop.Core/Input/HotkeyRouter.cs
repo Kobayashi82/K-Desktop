@@ -60,6 +60,15 @@ public sealed class HotkeyRouter : IDisposable
 
     public bool IsCapturing => _capture is not null;
 
+    private volatile Action<ForegroundWindow?>? _windowPicker;
+    private bool _swallowPickerUp;
+
+    /// <summary>
+    /// The next left click (anywhere) selects the window under the cursor instead of reaching it;
+    /// <paramref name="picked"/> receives it on a worker thread (null if cancelled with Escape).
+    /// </summary>
+    public void PickWindow(Action<ForegroundWindow?> picked) => _windowPicker = picked;
+
     // ── keyboard ─────────────────────────────────────────────────────────
 
     private bool OnKey(KeyboardInput e)
@@ -85,6 +94,13 @@ public sealed class HotkeyRouter : IDisposable
         var hotkey = Hotkey.Format(mods, KeyNames.FromVk(vk, e.Extended));
         var repeat = _lastDownVk == vk;
         _lastDownVk = vk;
+
+        if (vk == KeyNames.VK_ESCAPE && _windowPicker is { } cancelPick)
+        {
+            _windowPicker = null;
+            Post(() => cancelPick(null));
+            return Block(vk, mods);
+        }
 
         if (_capture is { } capture)
             return capture(hotkey, true) && Block(vk, mods);
@@ -155,6 +171,22 @@ public sealed class HotkeyRouter : IDisposable
     private bool OnMouse(MouseInput e)
     {
         if (e.Injected) return false;
+
+        if (e.Message == MouseMessage.Down && e.Button == MouseButton.Left && _windowPicker is { } picker)
+        {
+            _windowPicker = null;
+            _swallowPickerUp = true;
+            var hwnd = Win32.WindowFromPoint(new Win32.POINT { X = e.X, Y = e.Y });
+            var window = ForegroundWindow.FromHandle(hwnd == IntPtr.Zero ? IntPtr.Zero : Win32.GetAncestor(hwnd, Win32.GA_ROOT));
+            Post(() => picker(window));
+            return true;
+        }
+        if (e.Message == MouseMessage.Up && e.Button == MouseButton.Left && _swallowPickerUp)
+        {
+            _swallowPickerUp = false;
+            return true;
+        }
+
         switch (e.Message)
         {
             case MouseMessage.Down: return OnMouseDown(e.Button);

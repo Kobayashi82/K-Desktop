@@ -90,6 +90,16 @@ public partial class SettingsPage : UserControl
 
     private void OnAddSideButtons(object sender, RoutedEventArgs e) => AddProcess(SideButtonsBox, _app.Config.Settings.BlockSideButtonsIn);
 
+    private void OnPickDisabledIn(object sender, RoutedEventArgs e) => PickInto(_app.Config.Settings.DisabledIn);
+
+    private void OnPickSideButtons(object sender, RoutedEventArgs e) => PickInto(_app.Config.Settings.BlockSideButtonsIn);
+
+    private static void PickInto(ObservableCollection<string> list) =>
+        WindowPicker.Pick(name =>
+        {
+            if (!list.Contains(name)) list.Add(name);
+        });
+
     private static void AddProcess(ComboBox box, ObservableCollection<string> list)
     {
         var name = ProcessNames.Normalize(box.Text);

@@ -166,6 +166,7 @@
                     <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                         <ComboBox x:Name="DisabledInBox" IsEditable="True" Width="240" DropDownOpened="OnProcessDropDown" />
                         <ui:Button Margin="8,0,0,0" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddDisabledIn" />
+                        <ui:Button Margin="8,0,0,0" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickDisabledIn" ToolTip="{l:Tr picker.tooltip}" />
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -185,6 +186,7 @@
                     <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                         <ComboBox x:Name="SideButtonsBox" IsEditable="True" Width="240" DropDownOpened="OnProcessDropDown" />
                         <ui:Button Margin="8,0,0,0" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddSideButtons" />
+                        <ui:Button Margin="8,0,0,0" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickSideButtons" ToolTip="{l:Tr picker.tooltip}" />
                     </StackPanel>
                 </StackPanel>
             </Border>

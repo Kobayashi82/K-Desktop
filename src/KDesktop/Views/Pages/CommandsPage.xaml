@@ -400,6 +400,7 @@
                             <StackPanel Orientation="Horizontal" Margin="0,2,0,14">
                                 <ComboBox x:Name="ProcessBox" IsEditable="True" Width="240" DropDownOpened="OnProcessDropDown" KeyDown="OnProcessKeyDown" />
                                 <ui:Button Margin="8,0,0,0" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddProcess" />
+                                <ui:Button Margin="8,0,0,0" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickProcess" ToolTip="{l:Tr picker.tooltip}" />
                             </StackPanel>
 
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr commands.notes}" />

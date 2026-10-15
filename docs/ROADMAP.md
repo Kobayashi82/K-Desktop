@@ -13,20 +13,32 @@
 - [x] OSD animado.
 - [x] Servidor UDP compatible con K-Desktop 4.
 - [x] Ventana principal: comandos (editor completo), opciones y acerca de.
+- [x] Editor visual de QuickMenus:
+  - lienzo en vivo con los submenús en columnas;
+  - arrastrar y soltar (elementos, comandos, archivos, carpetas y enlaces);
+  - menú contextual, renombrar en el sitio, iconos;
+  - cortar, copiar, pegar y duplicar; deshacer y rehacer;
+  - comando rápido.
+- [x] "Elegir ventana" para capturar el proceso de una aplicación con un clic.
 - [x] Tema claro, oscuro o del sistema; idiomas español e inglés en JSON con cambio en caliente.
-- [x] Instancia única, línea de comandos (`--menu`, `--run`…), bandeja e inicio con Windows (tarea programada).
+- [x] Instancia única, línea de comandos (`--menu`, `--run`, `--show`, `--exit`), bandeja e inicio con Windows (tarea programada).
 
 ## Siguiente
 
-- [ ] **Editor visual de QuickMenus**: lienzo en vivo, arrastrar y soltar (comandos, archivos, URLs), menú contextual, renombrar en el sitio, iconos, deshacer y rehacer.
-- [ ] Reordenar acciones arrastrando.
-- [ ] Probar a fondo con K-Desktop 4 cerrado: hotkeys, bloqueo y acordes.
-- [ ] Publicación: build Release self-contained / ReadyToRun e instalador o zip portable.
+- [ ] Probar a fondo en el uso diario: hotkeys, bloqueo, acordes y elevación.
+- [ ] **Logros y estadísticas**: estadísticas en `stats.json`, logros con notificación animada y página propia. Recuperar el progreso de la 4.0 si es posible.
+- [ ] **Macros**:
+  - grabación de teclado y ratón con tiempos;
+  - editor de pasos;
+  - acción "Reproducir macro" con repeticiones;
+  - parada con Mayús+Esc.
+- [ ] Reordenar acciones arrastrando en el editor de comandos.
+- [ ] Publicación: build Release self-contained / ReadyToRun, y un instalador o zip portable.
 - [ ] Favicons para las acciones web.
 
 ## Ideas
 
 - Salida de audio: cambiar el dispositivo predeterminado (existía en la 4.0).
 - Atajos por aplicación con "capas" (sustituiría a K-Board si se vuelve a necesitar).
-- Búsqueda rápida de comandos tipo lanzador (Ctrl + Espacio → escribir → Enter).
+- Búsqueda rápida de comandos tipo lanzador (atajo → escribir → Enter).
 - Cliente web/móvil para el control remoto.

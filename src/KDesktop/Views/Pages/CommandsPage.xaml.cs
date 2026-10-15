@@ -448,6 +448,15 @@ public partial class CommandsPage : UserControl, IDisposable
         ProcessBox.Text = string.Empty;
     }
 
+    private void OnPickProcess(object sender, RoutedEventArgs e)
+    {
+        if (_selected is not { } cmd) return;
+        WindowPicker.Pick(name =>
+        {
+            if (!cmd.Processes.Contains(name)) cmd.Processes.Add(name);
+        });
+    }
+
     private void OnRemoveProcess(object sender, ExecutedRoutedEventArgs e)
     {
         if (_selected is not null && e.Parameter is string p) _selected.Processes.Remove(p);
