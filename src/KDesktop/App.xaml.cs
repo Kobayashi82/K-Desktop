@@ -155,6 +155,22 @@ public partial class App : Application
         ApplySettings();
         if (ProcessLauncher.IsElevated) Task.Run(FirewallRule.Ensure);
 
+        // First run with a normal data folder: honour the default "start with Windows" by registering the
+        // scheduled task once, so a fresh copy auto-starts without the user having to open Settings.
+        if (_firstRun && Config.Settings.StartWithWindows && AppPaths.InstanceSuffix.Length == 0 && !StartedByWindows)
+            Task.Run(() =>
+            {
+                try
+                {
+                    if (!StartupTask.IsRegistered())
+                    {
+                        StartupTask.Register();
+                        Log.Info("Primer arranque: tarea de inicio con Windows registrada");
+                    }
+                }
+                catch (Exception ex) { Log.Warn("No se pudo registrar la tarea de inicio en el primer arranque: " + ex.Message); }
+            });
+
         _instance = new SingleInstance(
             () => Dispatcher.BeginInvoke(() => ShowMainWindow()),
             args => Dispatcher.BeginInvoke(() => HandleArguments(args)));
@@ -197,9 +213,13 @@ public partial class App : Application
         if (args.Contains("--exit", StringComparer.OrdinalIgnoreCase)) _ = ExitAsync();
     }
 
+    /// <summary>True when no configuration existed yet (fresh install or first run after a legacy import).</summary>
+    private bool _firstRun;
+
     private void LoadConfiguration()
     {
         if (Store.Load()) return;
+        _firstRun = true;
         if (LegacyImporter.IsAvailable())
         {
             try

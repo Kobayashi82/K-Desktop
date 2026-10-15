@@ -63,8 +63,20 @@
 - [ ] Probar el K-Board en el uso diario (sobre todo juegos y combinaciones con modificadores).
 - [ ] Probar la salida de audio con varios dispositivos reales.
 - [ ] Probar a fondo en el uso diario: hotkeys, bloqueo, acordes, elevación y macros.
-- [ ] Publicación: build Release self-contained / ReadyToRun, y un instalador o zip portable.
+- [x] Publicación: perfil `SelfContained` (self-contained + single file + ReadyToRun, sin .NET instalado).
+      `dotnet publish src\KDesktop\KDesktop.csproj -c Release -p:PublishProfile=SelfContained` → `artifacts\portable\KDesktop.exe`.
+- [ ] Firmar el ejecutable con un certificado Authenticode (OV/EV). Es el remedio real contra los
+      falsos positivos de antivirus: sin firma, SmartScreen y las heurísticas marcan cualquier .exe
+      nuevo y sin reputación. Mitigaciones ya aplicadas mientras no haya certificado: metadatos de
+      versión/empresa completos, single file SIN compresión (no parece un "packer"), ReadyToRun (sin
+      compilación en runtime) y sin recorte de IL. Si aun así algún motor da falso positivo, enviar la
+      muestra a su portal (Microsoft: aka.ms/wdsi) para que lo incluyan en la lista blanca.
+- [ ] Instalador (Inno Setup) o zip portable a partir de `artifacts\portable`.
 - [ ] Favicons para las acciones web.
+
+**Primer arranque:** si «Iniciar con Windows» está activado (por defecto lo está) y es una copia con
+carpeta de datos normal, se registra la tarea del Programador de tareas automáticamente la primera vez,
+sin tener que abrir Ajustes.
 
 ## Ideas
 

@@ -9,9 +9,18 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <Version>5.0.0</Version>
     <Authors>Kobayashi82</Authors>
+    <Company>Kobayashi82</Company>
     <Product>K-Desktop</Product>
+    <AssemblyTitle>K-Desktop</AssemblyTitle>
+    <Description>K-Desktop: lanzador de acciones, atajos de teclado y control remoto para el escritorio.</Description>
     <Copyright>© Kobayashi82</Copyright>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
+  </PropertyGroup>
+
+  <!-- Release ships without PDBs: a smaller, cleaner output and one less thing for antivirus heuristics. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 </Project>
