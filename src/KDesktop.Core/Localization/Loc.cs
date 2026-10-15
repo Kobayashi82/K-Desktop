@@ -7,8 +7,8 @@ namespace KDesktop.Core.Localization;
 public sealed record LanguageInfo(string Code, string Name);
 
 /// <summary>
-/// Runtime localisation. Languages are flat JSON files ("key": "text") named &lt;code&gt;.json, loaded from
-/// the "Languages" folder next to the executable and from %APPDATA%\K-Desktop 5\Languages (user files win).
+/// Runtime localisation. Languages are flat JSON files ("key": "text") named &lt;code&gt;.json: Spanish and English are
+/// built into the assembly, and %APPDATA%\K-Desktop 5\Languages adds languages or overrides texts key by key (user files win).
 /// Adding a language = adding a file. Missing keys fall back to English, then to the key itself.
 /// </summary>
 public sealed class Loc : INotifyPropertyChanged
@@ -41,25 +41,32 @@ public sealed class Loc : INotifyPropertyChanged
         catch (FormatException) { return format; }
     }
 
-    private static IEnumerable<string> Folders =>
-    [
-        Path.Combine(AppContext.BaseDirectory, "Languages"),
-        Path.Combine(AppPaths.DataDir, "Languages"),
-    ];
+    private const string EmbeddedFolder = "Languages";
 
     public static IReadOnlyList<LanguageInfo> Available()
     {
         var result = new Dictionary<string, LanguageInfo>(StringComparer.OrdinalIgnoreCase);
-        foreach (var folder in Folders.Where(Directory.Exists))
+        void Add(string code, Dictionary<string, string> strings)
         {
-            foreach (var file in Directory.GetFiles(folder, "*.json"))
-            {
-                var code = Path.GetFileNameWithoutExtension(file);
-                var name = Read(file).TryGetValue("_language", out var n) ? n : code;
-                result[code] = new LanguageInfo(code, name);
-            }
+            // A user file that only overrides a few texts keeps the built-in language name.
+            var name = strings.TryGetValue("_language", out var n) ? n : result.TryGetValue(code, out var known) ? known.Name : code;
+            result[code] = new LanguageInfo(code, name);
         }
+
+        foreach (var file in EmbeddedAssets.List(EmbeddedFolder))
+        {
+            var code = Path.GetFileNameWithoutExtension(file);
+            Add(code, ReadEmbedded(code));
+        }
+        foreach (var file in UserFiles())
+            Add(Path.GetFileNameWithoutExtension(file), ReadFile(file));
         return result.Values.OrderBy(l => l.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+    }
+
+    private static string[] UserFiles()
+    {
+        try { return Directory.Exists(AppPaths.LanguagesDir) ? Directory.GetFiles(AppPaths.LanguagesDir, "*.json") : []; }
+        catch { return []; }
     }
 
     /// <summary>Language to use when the user has not chosen one: Spanish for Spanish Windows, English otherwise.</summary>
@@ -83,33 +90,40 @@ public sealed class Loc : INotifyPropertyChanged
     private string Get(string key) =>
         _strings.TryGetValue(key, out var s) ? s : _fallback.TryGetValue(key, out var f) ? f : key;
 
+    /// <summary>The built-in texts of the language, with the user's file (if any) on top: its keys win.</summary>
     private static Dictionary<string, string> LoadMerged(string code)
     {
-        var merged = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var folder in Folders)
-        {
-            var file = Path.Combine(folder, code + ".json");
-            if (!File.Exists(file)) continue;
-            foreach (var (k, v) in Read(file)) merged[k] = v;
-        }
+        var merged = ReadEmbedded(code);
+        var file = Path.Combine(AppPaths.LanguagesDir, code + ".json");
+        if (File.Exists(file))
+            foreach (var (k, v) in ReadFile(file)) merged[k] = v;
         return merged;
     }
 
-    private static Dictionary<string, string> Read(string file)
+    private static Dictionary<string, string> ReadEmbedded(string code) =>
+        EmbeddedAssets.ReadText(EmbeddedFolder, code + ".json") is { } json ? Parse(json, $"{code} (incluido)") : new(StringComparer.Ordinal);
+
+    private static Dictionary<string, string> ReadFile(string file)
     {
-        try
-        {
-            var options = new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true };
-            using var doc = JsonDocument.Parse(File.ReadAllText(file), options);
-            var dict = new Dictionary<string, string>(StringComparer.Ordinal);
-            foreach (var p in doc.RootElement.EnumerateObject())
-                if (p.Value.ValueKind == JsonValueKind.String) dict[p.Name] = p.Value.GetString()!;
-            return dict;
-        }
+        try { return Parse(File.ReadAllText(file), file); }
         catch (Exception ex)
         {
             Log.Warn($"No se pudo leer el idioma {file}: {ex.Message}");
-            return [];
+            return new(StringComparer.Ordinal);
         }
+    }
+
+    private static Dictionary<string, string> Parse(string json, string source)
+    {
+        var dict = new Dictionary<string, string>(StringComparer.Ordinal);
+        try
+        {
+            var options = new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true };
+            using var doc = JsonDocument.Parse(json, options);
+            foreach (var p in doc.RootElement.EnumerateObject())
+                if (p.Value.ValueKind == JsonValueKind.String) dict[p.Name] = p.Value.GetString()!;
+        }
+        catch (Exception ex) { Log.Warn($"No se pudo leer el idioma {source}: {ex.Message}"); }
+        return dict;
     }
 }

@@ -1,4 +1,6 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using KDesktop.Core.Input;
 using KDesktop.Core.Model;
 using KDesktop.Core.Native;
@@ -43,40 +45,61 @@ public static class AudioTools
     }
 }
 
-/// <summary>Plays the bundled sounds (Assets\Sounds\*.wav) or any .wav file.</summary>
+/// <summary>
+/// Plays a sound by name or any .wav file. Names come from the sounds built into the assembly plus the .wav files in
+/// %APPDATA%\K-Desktop 5\Sounds; a user file with the same name as a built-in sound replaces it.
+/// </summary>
 public static class Sounds
 {
+    private const string EmbeddedFolder = "Sounds";
+
+    /// <summary>Built-in sounds loaded so far. The arrays are pinned and never freed: PlaySound reads them while it plays.</summary>
+    private static readonly ConcurrentDictionary<string, byte[]> Loaded = new(StringComparer.OrdinalIgnoreCase);
+
     public static IReadOnlyList<string> Available()
     {
+        var names = new HashSet<string>(EmbeddedAssets.List(EmbeddedFolder).Select(f => Path.GetFileNameWithoutExtension(f)), StringComparer.OrdinalIgnoreCase);
         try
         {
-            return Directory.Exists(AppPaths.SoundsDir)
-                ? Directory.GetFiles(AppPaths.SoundsDir, "*.wav").Select(f => Path.GetFileNameWithoutExtension(f)!).Order(StringComparer.CurrentCultureIgnoreCase).ToList()
-                : [];
+            if (Directory.Exists(AppPaths.SoundsDir))
+                names.UnionWith(Directory.GetFiles(AppPaths.SoundsDir, "*.wav").Select(f => Path.GetFileNameWithoutExtension(f)));
         }
-        catch { return []; }
+        catch { }
+        return names.Order(StringComparer.CurrentCultureIgnoreCase).ToList();
     }
 
-    public static string? Resolve(string? sound)
-    {
-        if (string.IsNullOrWhiteSpace(sound)) return null;
-        if (File.Exists(sound)) return sound;
-        var bundled = Path.Combine(AppPaths.SoundsDir, sound + ".wav");
-        return File.Exists(bundled) ? bundled : null;
-    }
-
-    public static void Play(string? sound)
-    {
-        if (Resolve(sound) is { } file)
-            Win32.PlaySound(file, IntPtr.Zero, Win32.SND_FILENAME | Win32.SND_ASYNC | Win32.SND_NODEFAULT);
-    }
+    public static void Play(string? sound) => Play(sound, Win32.SND_ASYNC);
 
     /// <summary>Plays the sound and completes when it ends.</summary>
     public static Task PlayAndWaitAsync(string? sound, CancellationToken token)
     {
-        if (Resolve(sound) is not { } file) return Task.CompletedTask;
+        if (string.IsNullOrWhiteSpace(sound)) return Task.CompletedTask;
         using var reg = token.Register(() => Win32.PlaySound(null, IntPtr.Zero, Win32.SND_PURGE));
-        return Task.Run(() => Win32.PlaySound(file, IntPtr.Zero, Win32.SND_FILENAME | Win32.SND_SYNC | Win32.SND_NODEFAULT), token);
+        return Task.Run(() => Play(sound, Win32.SND_SYNC), token);
+    }
+
+    private static void Play(string? sound, uint mode)
+    {
+        if (string.IsNullOrWhiteSpace(sound)) return;
+        var flags = mode | Win32.SND_NODEFAULT;
+        if (FindFile(sound) is { } file)
+            Win32.PlaySound(file, IntPtr.Zero, flags | Win32.SND_FILENAME);
+        else if (BuiltIn(sound) is { } wav)
+            Win32.PlaySound(Marshal.UnsafeAddrOfPinnedArrayElement(wav, 0), IntPtr.Zero, flags | Win32.SND_MEMORY);
+    }
+
+    /// <summary>A .wav path, or a name in the user's Sounds folder.</summary>
+    private static string? FindFile(string sound)
+    {
+        if (File.Exists(sound)) return sound;
+        var user = Path.Combine(AppPaths.SoundsDir, sound + ".wav");
+        return File.Exists(user) ? user : null;
+    }
+
+    private static byte[]? BuiltIn(string name)
+    {
+        if (Loaded.TryGetValue(name, out var wav)) return wav;
+        return EmbeddedAssets.ReadBytes(EmbeddedFolder, name + ".wav", pinned: true) is { } bytes ? Loaded.GetOrAdd(name, bytes) : null;
     }
 }
 

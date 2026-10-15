@@ -10,4 +10,12 @@
     <PackageReference Include="NAudio.Wasapi" Version="3.1.0" />
   </ItemGroup>
 
+  <!-- Built-in languages and sounds travel inside the assembly (and so inside the single-file exe).
+       Files in %APPDATA%\K-Desktop 5\Languages and \Sounds add to them and win on duplicates. -->
+  <ItemGroup>
+    <None Remove="Languages\*.json" />
+    <EmbeddedResource Include="Languages\*.json" LogicalName="Languages/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Assets\Sounds\*.wav" LogicalName="Sounds/%(Filename)%(Extension)" />
+  </ItemGroup>
+
 </Project>

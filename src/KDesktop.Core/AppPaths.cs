@@ -34,8 +34,11 @@ public static class AppPaths
     public static string LogDir => Path.Combine(DataDir, "Logs");
     public static string TempDir => Path.Combine(Path.GetTempPath(), "K-Desktop");
 
-    /// <summary>Folder that holds the bundled .wav sounds (next to the executable).</summary>
-    public static string SoundsDir => Path.Combine(AppContext.BaseDirectory, "Assets", "Sounds");
+    /// <summary>User sounds (.wav): added to the built-in ones, replacing those with the same name.</summary>
+    public static string SoundsDir => Path.Combine(DataDir, "Sounds");
+
+    /// <summary>User languages (&lt;code&gt;.json): new languages, or keys that replace the built-in texts.</summary>
+    public static string LanguagesDir => Path.Combine(DataDir, "Languages");
 
     public static string ExecutablePath => Environment.ProcessPath ?? Path.Combine(AppContext.BaseDirectory, "KDesktop.exe");
 

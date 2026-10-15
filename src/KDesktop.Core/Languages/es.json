@@ -129,7 +129,7 @@
   "settings.theme": "Tema",
   "settings.themeHint": "Con «Sistema» sigue el tema de Windows.",
   "settings.language": "Idioma",
-  "settings.languageHint": "Se pueden añadir idiomas copiando un archivo JSON en la carpeta Languages.",
+  "settings.languageHint": "Se pueden añadir idiomas, o cambiar textos, copiando un archivo JSON en %APPDATA%\\K-Desktop 5\\Languages.",
   "settings.languageSystem": "Idioma de Windows",
   "settings.general": "General",
   "settings.startWithWindows": "Iniciar con Windows",
@@ -179,7 +179,7 @@
   "about.elevated": "ejecutándose como administrador",
   "about.notElevated": "sin permisos de administrador (los atajos no funcionarán sobre ventanas elevadas)",
   "about.languages": "Idiomas",
-  "about.languagesText": "Para traducir K-Desktop copia Languages\\en.json con el código del idioma (p. ej. fr.json), traduce los textos y guárdalo en Languages o en %APPDATA%\\K-Desktop 5\\Languages. Aparecerá en Opciones.",
+  "about.languagesText": "Español e inglés vienen dentro del programa. Para traducir K-Desktop crea en %APPDATA%\\K-Desktop 5\\Languages un JSON con el código del idioma (p. ej. fr.json) partiendo de en.json (está en el repositorio, en src\\KDesktop.Core\\Languages) y traduce los textos. Aparecerá en Opciones. Un es.json o en.json en esa carpeta cambia solo las claves que contenga.",
 
   "common.accept": "Aceptar",
 

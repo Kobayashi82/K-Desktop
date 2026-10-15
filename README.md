@@ -17,7 +17,7 @@ Atajos de teclado y ratón, QuickMenus y control remoto por UDP para Windows. Es
 - **Control remoto UDP**: compatible con el protocolo de K-Desktop 4 (puerto 2501: `lista`, número, nombre, `sk …`, `tasks`…).
 - **Interfaz moderna** con tema claro/oscuro (o el del sistema) y animaciones.
 - **¿Sabías que…?**: más de 130 trucos de atajos de Windows, el Explorador, los navegadores, la edición de texto y K-Desktop, en «Acerca de».
-- **Multiidioma** (español e inglés). Para añadir un idioma basta con dejar un JSON en `Languages`.
+- **Multiidioma** (español e inglés, incluidos en el ejecutable). Para añadir un idioma o cambiar textos basta con dejar un JSON en `%APPDATA%\K-Desktop 5\Languages`.
 - **Importación automática** de los datos de K-Desktop 4 (comandos, QuickMenus, opciones e iconos) la primera vez que se ejecuta.
 
 ## Acciones
@@ -57,3 +57,7 @@ Requiere el SDK de .NET 10.
 ```
 dotnet build KDesktop.slnx
 ```
+
+En Release (`dotnet build KDesktop.slnx -c Release`) se genera además el portable en `artifacts\portable\KDesktop.exe`: un solo ejecutable que no necesita .NET instalado. Idiomas (español e inglés), sonidos e iconos van dentro del ejecutable. Para saltarse el portable: `-p:BuildPortable=false`.
+
+Los archivos de `%APPDATA%\K-Desktop 5\Languages` (`<código>.json`) y `%APPDATA%\K-Desktop 5\Sounds` (`*.wav`) se suman a los incluidos; si coinciden, gana el de la carpeta (en los idiomas, clave a clave).

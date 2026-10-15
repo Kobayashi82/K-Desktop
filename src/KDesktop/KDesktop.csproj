@@ -24,8 +24,26 @@
     <Page Remove="App.xaml" />
     <Page Include="App.xaml" />
     <Resource Include="Assets\Icons\*.ico" />
-    <Content Include="Assets\Sounds\*.wav" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="Languages\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <!--
+    Every Release build also produces the portable copy: artifacts\portable\KDesktop.exe (self-contained, one file).
+    It is a separate publish with its own bin/obj (see Directory.Build.props), so it never mixes with this build.
+    Skip it with -p:BuildPortable=false.
+  -->
+  <Target Name="BuildPortable" AfterTargets="Build"
+          Condition="'$(Configuration)' == 'Release' and '$(PublishProfile)' != 'SelfContained' and '$(BuildPortable)' != 'false' and '$(DesignTimeBuild)' != 'true'">
+    <PropertyGroup>
+      <_PortableDotNet>$(DOTNET_HOST_PATH)</_PortableDotNet>
+      <_PortableDotNet Condition="'$(_PortableDotNet)' == ''">dotnet</_PortableDotNet>
+    </PropertyGroup>
+    <Message Importance="high" Text="KDesktop -> creando el portable en artifacts\portable..." />
+    <Exec Command="&quot;$(_PortableDotNet)&quot; publish &quot;$(MSBuildProjectFullPath)&quot; -c Release -p:PublishProfile=SelfContained -nologo -v:minimal" />
+  </Target>
+
+  <!-- The portable folder holds only the exe: clear what a previous publish left there. -->
+  <Target Name="CleanPortableDir" BeforeTargets="PrepareForPublish" Condition="'$(PublishProfile)' == 'SelfContained'">
+    <RemoveDir Directories="$(PublishDir)" />
+  </Target>
 
 </Project>

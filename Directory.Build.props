@@ -18,6 +18,14 @@
     <NoWarn>$(NoWarn);CA1416</NoWarn>
   </PropertyGroup>
 
+  <!-- The portable publish (PublishProfile=SelfContained) builds in its own folders so it never mixes with the normal build. -->
+  <PropertyGroup Condition="'$(PublishProfile)' == 'SelfContained'">
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)artifacts\build\$(MSBuildProjectName)\obj\</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(MSBuildThisFileDirectory)artifacts\build\$(MSBuildProjectName)\bin\</BaseOutputPath>
+    <!-- …and must not pick up the generated sources of the normal build. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);bin\**;obj\**</DefaultItemExcludes>
+  </PropertyGroup>
+
   <!-- Release ships without PDBs: a smaller, cleaner output and one less thing for antivirus heuristics. -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <DebugType>none</DebugType>

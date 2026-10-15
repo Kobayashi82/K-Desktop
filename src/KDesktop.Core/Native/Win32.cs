@@ -378,7 +378,12 @@ internal static class Win32
     [DllImport("winmm.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool PlaySound(string? pszSound, IntPtr hmod, uint fdwSound);
-    public const uint SND_SYNC = 0x0000, SND_ASYNC = 0x0001, SND_NODEFAULT = 0x0002, SND_FILENAME = 0x00020000, SND_PURGE = 0x0040;
+
+    /// <summary>With <see cref="SND_MEMORY"/>: plays a whole .wav image that must stay alive (and pinned) while it plays.</summary>
+    [DllImport("winmm.dll", EntryPoint = "PlaySoundW", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool PlaySound(IntPtr pszSound, IntPtr hmod, uint fdwSound);
+    public const uint SND_SYNC = 0x0000, SND_ASYNC = 0x0001, SND_NODEFAULT = 0x0002, SND_MEMORY = 0x0004, SND_FILENAME = 0x00020000, SND_PURGE = 0x0040;
 
     // ── Misc helpers ─────────────────────────────────────────────────────
     public static bool IsKeyDown(int vk) => (GetAsyncKeyState(vk) & 0x8000) != 0;

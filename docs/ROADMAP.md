@@ -65,6 +65,9 @@
 - [ ] Probar a fondo en el uso diario: hotkeys, bloqueo, acordes, elevación y macros.
 - [x] Publicación: perfil `SelfContained` (self-contained + single file + ReadyToRun, sin .NET instalado).
       `dotnet publish src\KDesktop\KDesktop.csproj -c Release -p:PublishProfile=SelfContained` → `artifacts\portable\KDesktop.exe`.
+      Cualquier compilación Release lo genera también (target `BuildPortable`, con bin/obj propios en
+      `artifacts\build`; `-p:BuildPortable=false` lo omite). Idiomas es/en y sonidos van incrustados en
+      KDesktop.Core.dll; `%APPDATA%\K-Desktop 5\Languages` y `\Sounds` se fusionan encima (gana la carpeta).
 - [ ] Firmar el ejecutable con un certificado Authenticode (OV/EV). Es el remedio real contra los
       falsos positivos de antivirus: sin firma, SmartScreen y las heurísticas marcan cualquier .exe
       nuevo y sin reputación. Mitigaciones ya aplicadas mientras no haya certificado: metadatos de
