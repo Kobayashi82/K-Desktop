@@ -75,6 +75,9 @@
       compilación en runtime) y sin recorte de IL. Si aun así algún motor da falso positivo, enviar la
       muestra a su portal (Microsoft: aka.ms/wdsi) para que lo incluyan en la lista blanca.
 - [ ] Instalador (Inno Setup) o zip portable a partir de `artifacts\portable`.
+      Tamaño (medido 2026-10-15): exe actual 162 MB → zip 69 MB. Comprimido dentro del exe 74 MB, pero
+      arranca ~200 ms más lento y usa ~75 MB más de RAM todo el rato (descomprime en memoria). Sin
+      ReadyToRun 142 MB. Decisión: exe sin comprimir y distribuir en zip.
 - [ ] Favicons para las acciones web.
 
 **Primer arranque:** si «Iniciar con Windows» está activado (por defecto lo está) y es una copia con
