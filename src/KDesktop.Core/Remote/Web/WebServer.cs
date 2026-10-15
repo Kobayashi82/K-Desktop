@@ -24,6 +24,9 @@ public sealed partial class WebServer : IDisposable
     private HttpListener? _listener;
     private CancellationTokenSource? _cts;
 
+    /// <summary>Paired devices and pairing codes.</summary>
+    public WebDevices Devices { get; } = new();
+
     public WebServerOptions? Options { get; private set; }
     public WebServerState State { get; private set; }
     public bool IsRunning => State is WebServerState.Running or WebServerState.LocalOnly;
@@ -220,7 +223,11 @@ public sealed partial class WebServer : IDisposable
     public static IReadOnlyList<string> LocalUrls(int port, string basePath) =>
         NetworkInfo.LocalIPv4().Select(ip => $"http://{ip}:{port}{NormalizeBasePath(basePath)}/").ToList();
 
-    public void Dispose() => Stop();
+    public void Dispose()
+    {
+        Stop();
+        Devices.Flush();
+    }
 }
 
 /// <summary>JSON for the web API: camelCase, compact.</summary>

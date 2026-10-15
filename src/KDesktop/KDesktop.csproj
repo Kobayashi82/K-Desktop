@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="QRCoder" Version="1.8.1" />
     <PackageReference Include="SharpVectors.Wpf" Version="1.8.6" />
     <PackageReference Include="WPF-UI" Version="4.3.0" />
     <PackageReference Include="H.NotifyIcon.Wpf" Version="2.4.1" />

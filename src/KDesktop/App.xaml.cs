@@ -58,7 +58,7 @@ public partial class App : Application
     public HotkeyRouter Router { get; } = new();
     public CommandEngine Engine { get; private set; } = null!;
     public UdpServer Udp { get; private set; } = null!;
-    public WebServer Web { get; } = new();
+    public WebServer Web { get; private set; } = null!;
     public UiServices Ui { get; private set; } = null!;
     public QuickMenuController QuickMenus { get; private set; } = null!;
     public LauncherController Launcher { get; private set; } = null!;
@@ -184,6 +184,7 @@ public partial class App : Application
 
         // Remote control
         Udp = new UdpServer(Engine, Ui);
+        Web = new WebServer();
         Web.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
         ApplySettings();
         if (ProcessLauncher.IsElevated) Task.Run(FirewallRule.Ensure);
@@ -469,7 +470,7 @@ public partial class App : Application
         _hookRefresh.Stop();
         Router.Dispose();
         Udp?.Dispose();
-        Web.Dispose();
+        Web?.Dispose();
         Store.Dispose();
         Achievements.Dispose();
         _tray?.Dispose();

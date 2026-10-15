@@ -34,15 +34,61 @@ public partial class SettingsPage : UserControl
 
         // Pages are kept while the window lives: follow the server only while this one is shown.
         void OnWebState() => Dispatcher.BeginInvoke(UpdateWebState);
+        void OnDevices() => Dispatcher.BeginInvoke(LoadDevices);
         Loaded += (_, _) =>
         {
             UpdateWebState();
+            LoadDevices();
             _app.Web.StateChanged += OnWebState;
+            _app.Web.Devices.Changed += OnDevices;
         };
-        Unloaded += (_, _) => _app.Web.StateChanged -= OnWebState;
+        Unloaded += (_, _) =>
+        {
+            _app.Web.StateChanged -= OnWebState;
+            _app.Web.Devices.Changed -= OnDevices;
+        };
     }
 
     // ── web ──────────────────────────────────────────────────────────────
+
+    private sealed record DeviceRow(string Id, string Name, string Detail);
+
+    private void LoadDevices()
+    {
+        var rows = _app.Web.Devices.List()
+            .Select(d => new DeviceRow(d.Id, d.Name, Loc.T("settings.webDeviceDetail", d.LastSeen.ToString("g", Loc.Instance.Culture), d.LastIp ?? "?")))
+            .ToList();
+        DevicesList.ItemsSource = rows;
+        NoDevicesText.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    /// <summary>The address the phone must open: the configured one, the one seen through the proxy, or this PC's.</summary>
+    private string PairingBaseUrl()
+    {
+        var s = _app.Config.Settings;
+        if (!string.IsNullOrWhiteSpace(s.WebPublicUrl)) return s.WebPublicUrl.Trim().TrimEnd('/') + "/";
+        if (_app.Web.SeenPublicUrl is { } seen) return seen;
+        return WebServer.LocalUrls(s.WebPort, s.WebBasePath).FirstOrDefault()
+               ?? $"http://localhost:{s.WebPort}{WebServer.NormalizeBasePath(s.WebBasePath)}/";
+    }
+
+    private void OnPairWeb(object sender, RoutedEventArgs e)
+    {
+        if (!_app.Web.IsRunning)
+        {
+            _app.Ui.ShowOsd(Loc.T("settings.webNotRunning"), OsdKind.Warning);
+            return;
+        }
+        if (Dialogs.WebPairDialog.Show(Window.GetWindow(this), _app.Web.Devices, PairingBaseUrl()) is { } device)
+            _app.Ui.ShowOsd(Loc.T("settings.webPaired", device.Name), OsdKind.Success);
+    }
+
+    private async void OnRevokeDevice(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: string id, DataContext: DeviceRow row }) return;
+        if (!await Confirm(Loc.T("settings.webRevokeConfirm", row.Name))) return;
+        _app.Web.Devices.Revoke(id);
+    }
 
     private void UpdateWebState()
     {
