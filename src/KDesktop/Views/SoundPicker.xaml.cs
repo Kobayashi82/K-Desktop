@@ -2,6 +2,8 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
+using System.Windows.Threading;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Platform;
 using Microsoft.Win32;
@@ -49,12 +51,44 @@ public partial class SoundPicker : UserControl
         set => SetValue(ShowBrowseProperty, value);
     }
 
+    /// <summary>Last sound previewed from the open list, so moving over the same item does not restart it.</summary>
+    private string? _previewed;
+
+    private void OnDropDownOpened(object? sender, EventArgs e) => _previewed = null;
+
+    /// <summary>With the list open, each sound plays as the mouse goes over it.</summary>
+    private void OnItemMouseEnter(object sender, MouseEventArgs e) => Preview((sender as ComboBoxItem)?.Content as string);
+
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         // Only what the user picks: the binding also selects the matching item when the editor loads.
         if (!Box.IsDropDownOpen && !Box.IsKeyboardFocusWithin) return;
-        if (e.AddedItems is [string sound, ..]) Sounds.Play(sound);
+        if (e.AddedItems is [string sound, ..]) Preview(sound);
+        DeselectText();
     }
+
+    private void Preview(string? sound)
+    {
+        if (string.IsNullOrEmpty(sound) || sound == _previewed) return;
+        _previewed = sound;
+        Sounds.Play(sound);
+    }
+
+    private void OnDropDownClosed(object? sender, EventArgs e)
+    {
+        _previewed = null;
+        DeselectText();
+    }
+
+    /// <summary>
+    /// The editable combo selects its whole text when an item is chosen or the list closes: leave the caret at the
+    /// end instead (after WPF has done its selecting).
+    /// </summary>
+    private void DeselectText() => Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
+    {
+        if (Box.Template?.FindName("PART_EditableTextBox", Box) is not TextBox text) return;
+        text.Select(text.Text.Length, 0);
+    });
 
     private void OnPlay(object sender, RoutedEventArgs e) => Sounds.Play(Sound);
 

@@ -10,7 +10,14 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <ComboBox x:Name="Box" IsEditable="True" SelectionChanged="OnSelectionChanged" />
+        <ComboBox x:Name="Box" IsEditable="True" SelectionChanged="OnSelectionChanged"
+                  DropDownOpened="OnDropDownOpened" DropDownClosed="OnDropDownClosed">
+            <ComboBox.ItemContainerStyle>
+                <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+                    <EventSetter Event="MouseEnter" Handler="OnItemMouseEnter" />
+                </Style>
+            </ComboBox.ItemContainerStyle>
+        </ComboBox>
         <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon Play24}" ToolTip="{l:Tr editor.preview}" Click="OnPlay" />
         <ui:Button x:Name="BrowseButton" Grid.Column="2" Margin="6,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}" Click="OnBrowse" />
     </Grid>
