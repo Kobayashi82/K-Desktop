@@ -28,6 +28,7 @@ public partial class SettingsPage : UserControl
 
         LoadLanguages();
         StartupSoundBox.ItemsSource = Sounds.Available();
+        ExitSoundBox.ItemsSource = StartupSoundBox.ItemsSource;
         StartupToggle.IsChecked = StartupTask.IsRegistered();
         DataPathText.Text = AppPaths.DataDir;
         IpText.Text = Loc.T("settings.udpAddresses", string.Join("  ·  ", NetworkInfo.LocalIPv4()));

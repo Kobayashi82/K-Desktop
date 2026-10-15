@@ -145,7 +145,7 @@ public partial class App : Application
         Router.BuiltIn += hotkey => Dispatcher.BeginInvoke(() =>
         {
             if (hotkey == BuiltInHotkey.ShowWindow) ShowMainWindow();
-            else _ = ExitAsync();
+            else _ = ExitAsync(Config.Settings.ExitSound);
         });
         Router.HasCancellable = () => Engine.HasCancellable;
         Router.CancelRequested += Engine.CancelAll;
@@ -220,7 +220,7 @@ public partial class App : Application
         _ = Engine.RunStartupCommandsAsync();
 
         var requestsSomething = Program.ValueOf(Arguments, "--menu") is not null || Program.ValueOf(Arguments, "--run") is not null;
-        if ((!StartedByWindows && !requestsSomething) || ImportReport is not null) ShowMainWindow();
+        if ((!StartedByWindows && !requestsSomething && s.ShowWindowOnStart) || ImportReport is not null) ShowMainWindow();
         HandleArguments(Arguments);
         Log.Info($"Listo: {Config.Commands.Count} comandos, {Config.QuickMenus.Count} QuickMenus, {Config.Macros.Count} macros");
 
@@ -450,14 +450,17 @@ public partial class App : Application
 
     // ── exit ─────────────────────────────────────────────────────────────
 
-    public async Task ExitAsync()
+    /// <param name="sound">Played while closing (the exit hotkey's sound); the exit waits until it ends.</param>
+    public async Task ExitAsync(string? sound = null)
     {
         if (_exiting) return;
         _exiting = true;
         Log.Info("Saliendo…");
+        var playing = string.IsNullOrWhiteSpace(sound) ? Task.CompletedTask : Sounds.PlayAndWaitAsync(sound, CancellationToken.None);
         QuickMenus.CloseAll(restoreFocus: false);
         _main?.Close();
         try { await Engine.RunExitCommandsAsync(); } catch (Exception ex) { Log.Error("Error en los comandos de salida", ex); }
+        try { await playing; } catch (Exception ex) { Log.Warn("No se pudo reproducir el sonido de salida: " + ex.Message); }
         Shutdown();
     }
 

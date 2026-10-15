@@ -69,11 +69,17 @@ public partial class AppSettings : ObservableObject
 
     // General
     [ObservableProperty] private bool _startWithWindows = true;
+
+    /// <summary>Open the main window when K-Desktop is started by hand (never when Windows starts it).</summary>
+    [ObservableProperty] private bool _showWindowOnStart = true;
     [ObservableProperty] private bool _showTrayIcon = true;
     [ObservableProperty] private string _showWindowHotkey = "CTRL + ALT + Home";
     [ObservableProperty] private string _exitHotkey = "CTRL + ALT + End";
     [ObservableProperty] private string? _startupSound;
     [ObservableProperty] private string? _startupMessage;
+
+    /// <summary>Played when K-Desktop is closed with <see cref="ExitHotkey"/>.</summary>
+    [ObservableProperty] private string? _exitSound;
     [ObservableProperty] private bool _showHiddenCommands;
 
     // Achievements

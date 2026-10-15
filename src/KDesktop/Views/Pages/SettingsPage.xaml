@@ -85,6 +85,14 @@
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.showWindowOnStart}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.showWindowOnStartHint}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ShowWindowOnStart}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="{l:Tr settings.trayIcon}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.trayIconHint}" />
                         </StackPanel>
@@ -113,6 +121,14 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.startupSoundHint}" />
                         </StackPanel>
                         <ComboBox x:Name="StartupSoundBox" Grid.Column="1" IsEditable="True" Text="{Binding StartupSound, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.exitSound}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.exitSoundHint}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <ComboBox x:Name="ExitSoundBox" Grid.Column="1" IsEditable="True" Text="{Binding ExitSound, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" />
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
