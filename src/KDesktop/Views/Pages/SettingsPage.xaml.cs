@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
 using KDesktop.Core;
 using KDesktop.Core.Engine;
 using KDesktop.Core.Input;
@@ -27,6 +29,7 @@ public partial class SettingsPage : UserControl
         DataContext = _app.Config.Settings;
 
         LoadLanguages();
+        SectionList.SelectedIndex = Math.Clamp(_lastSection, 0, SectionList.Items.Count - 1);
         StartupToggle.IsChecked = StartupTask.IsRegistered();
         DataPathText.Text = AppPaths.DataDir;
         IpText.Text = Loc.T("settings.udpAddresses", string.Join("  ·  ", NetworkInfo.LocalIPv4()));
@@ -46,6 +49,31 @@ public partial class SettingsPage : UserControl
             _app.Web.StateChanged -= OnWebState;
             _app.Web.Devices.Changed -= OnDevices;
         };
+    }
+
+    // ── sections ─────────────────────────────────────────────────────────
+
+    /// <summary>Section shown last time, for when the window is opened again.</summary>
+    private static int _lastSection;
+
+    private static readonly IEasingFunction EaseOut = new CubicEase { EasingMode = EasingMode.EaseOut };
+
+    /// <summary>Shows only the chosen section (each card's Tag names its section).</summary>
+    private void OnSectionSelected(object sender, SelectionChangedEventArgs e)
+    {
+        if (SectionList.SelectedItem is not ListBoxItem { Tag: string key })
+        {
+            // Never nothing selected: clicking the chosen one again keeps it.
+            if (e.RemovedItems is [var previous, ..]) SectionList.SelectedItem = previous;
+            return;
+        }
+        _lastSection = SectionList.SelectedIndex;
+        foreach (var card in Sections.Children.OfType<FrameworkElement>())
+            card.Visibility = card.Tag as string == key ? Visibility.Visible : Visibility.Collapsed;
+        SectionScroll.ScrollToTop();
+
+        Sections.BeginAnimation(OpacityProperty, new DoubleAnimation(0.4, 1, TimeSpan.FromMilliseconds(180)));
+        SectionShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(10, 0, TimeSpan.FromMilliseconds(220)) { EasingFunction = EaseOut });
     }
 
     // ── web ──────────────────────────────────────────────────────────────

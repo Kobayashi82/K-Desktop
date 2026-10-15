@@ -324,12 +324,7 @@ public partial class App : Application
             Favicons.Prefetch(Config.Commands.SelectMany(c => c.Actions));
         }
 
-        if (s.ShowTrayIcon) EnsureTray();
-        else if (_tray is not null)
-        {
-            _tray.Dispose();
-            _tray = null;
-        }
+        UpdateTray();
 
         if (s.UdpEnabled && !UdpDisabled) Udp.Start(s.UdpPort, s.UdpAllowRemote);
         else Udp.Stop();
@@ -342,14 +337,23 @@ public partial class App : Application
 
     // ── tray ─────────────────────────────────────────────────────────────
 
+    /// <summary>The icon is there while the window is visible; with the window hidden or closed, the setting decides.</summary>
+    private void UpdateTray()
+    {
+        if (Config.Settings.ShowTrayIcon || _main is { IsVisible: true }) EnsureTray();
+        else if (_tray is not null)
+        {
+            _tray.Dispose();
+            _tray = null;
+        }
+    }
+
     private void EnsureTray()
     {
         if (_tray is not null) return;
         var menu = new ContextMenu();
         menu.Items.Add(TrayItem(Loc.T("tray.open"), (_, _) => ShowMainWindow()));
         menu.Items.Add(new Separator());
-        foreach (var qm in Config.QuickMenus.Take(1))
-            menu.Items.Add(TrayItem(Loc.T("tray.openMenu", qm.Name), (_, _) => QuickMenus.Show(qm.Id, ForegroundWindow.Capture())));
         var kboard = new MenuItem { Header = "K-Board" };
         kboard.Items.Add(new MenuItem()); // placeholder so it opens as a submenu; filled when opened
         kboard.SubmenuOpened += (_, _) => FillKBoardMenu(kboard);
@@ -408,9 +412,11 @@ public partial class App : Application
         if (_main is null)
         {
             _main = new MainWindow();
+            _main.IsVisibleChanged += (_, _) => UpdateTray();
             _main.Closed += (_, _) =>
             {
                 _main = null;
+                UpdateTray();
                 // The window is fully released when closed to keep the resident footprint small.
                 GC.Collect(2, GCCollectionMode.Optimized, false);
             };

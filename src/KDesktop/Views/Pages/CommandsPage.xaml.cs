@@ -389,6 +389,36 @@ public partial class CommandsPage : UserControl, IDisposable
         _app.Achievements.Unlock("reorder");
     }
 
+    /// <summary>Action that was already open when its header was pressed: releasing there closes it.</summary>
+    private object? _pressedOpenAction;
+    private Point _actionPressPoint;
+
+    private void OnActionHeaderDown(object sender, MouseButtonEventArgs e)
+    {
+        _pressedOpenAction = null;
+        if (sender is not FrameworkElement header || IsInsideControl(e.OriginalSource as DependencyObject, header)) return;
+        if (ActionList.SelectedItem is { } open && ReferenceEquals(open, header.DataContext)) _pressedOpenAction = open;
+        _actionPressPoint = e.GetPosition(this);
+    }
+
+    private void OnActionHeaderUp(object sender, MouseButtonEventArgs e)
+    {
+        var open = _pressedOpenAction;
+        _pressedOpenAction = null;
+        if (open is null || sender is not FrameworkElement header || !ReferenceEquals(open, header.DataContext)) return;
+        // A drag (reordering) handles its own release before this; a small wobble is still a click.
+        if ((e.GetPosition(this) - _actionPressPoint).Length > 6) return;
+        ActionList.SelectedItem = null;
+    }
+
+    /// <summary>The click was on a button or check box of the header (they do their own thing).</summary>
+    private static bool IsInsideControl(DependencyObject? source, DependencyObject header)
+    {
+        for (var d = source; d is not null && !ReferenceEquals(d, header); d = d is System.Windows.Media.Visual ? System.Windows.Media.VisualTreeHelper.GetParent(d) : LogicalTreeHelper.GetParent(d))
+            if (d is System.Windows.Controls.Primitives.ButtonBase) return true;
+        return false;
+    }
+
     private void OnActionListWheel(object sender, MouseWheelEventArgs e)
     {
         if (e.Handled) return;

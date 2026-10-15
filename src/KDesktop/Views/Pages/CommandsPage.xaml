@@ -297,6 +297,7 @@
                                     <DataTemplate>
                                         <StackPanel>
                                             <Grid x:Name="Header" Background="Transparent" Cursor="Hand" v:DragReorder.IsHandle="True"
+                                                  PreviewMouseLeftButtonDown="OnActionHeaderDown" PreviewMouseLeftButtonUp="OnActionHeaderUp"
                                                   ToolTip="{l:Tr commands.dragHint}" ToolTipService.InitialShowDelay="1200">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto" />

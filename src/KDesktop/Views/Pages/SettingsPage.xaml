@@ -22,12 +22,141 @@
         </ItemsPanelTemplate>
     </UserControl.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24,12,24,24">
-        <StackPanel MaxWidth="980" HorizontalAlignment="Left">
-            <TextBlock Style="{StaticResource PageTitle}" Text="{l:Tr nav.settings}" Margin="0,0,0,18" />
+    <Grid Margin="24,12,0,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="280" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ── Sections ──────────────────────────────────────────────── -->
+        <DockPanel Grid.Column="0" Margin="0,0,16,16">
+            <TextBlock DockPanel.Dock="Top" Style="{StaticResource PageTitle}" Text="{l:Tr nav.settings}" Margin="0,0,0,14" />
+            <ListBox x:Name="SectionList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource RowItem}"
+                     SelectionChanged="OnSectionSelected">
+                <ListBoxItem Tag="appearance">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
+                            <ui:SymbolIcon Symbol="Color24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.nav.appearance}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{l:Tr settings.nav.appearance.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </ListBoxItem>
+                <ListBoxItem Tag="general">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
+                            <ui:SymbolIcon Symbol="Settings24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.nav.general}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{l:Tr settings.nav.general.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </ListBoxItem>
+                <ListBoxItem Tag="osd">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
+                            <ui:SymbolIcon Symbol="CommentNote24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.nav.osd}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{l:Tr settings.nav.osd.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </ListBoxItem>
+                <ListBoxItem Tag="remote">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
+                            <ui:SymbolIcon Symbol="PlugConnected24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.nav.remote}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{l:Tr settings.nav.remote.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </ListBoxItem>
+                <ListBoxItem Tag="web">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
+                            <ui:SymbolIcon Symbol="Phone24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.nav.web}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{l:Tr settings.nav.web.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </ListBoxItem>
+                <ListBoxItem Tag="disabledIn">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
+                            <ui:SymbolIcon Symbol="Prohibited24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.nav.disabledIn}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{l:Tr settings.nav.disabledIn.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </ListBoxItem>
+                <ListBoxItem Tag="mouse">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
+                            <ui:SymbolIcon Symbol="CursorClick24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.nav.mouse}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{l:Tr settings.nav.mouse.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </ListBoxItem>
+                <ListBoxItem Tag="data">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
+                            <ui:SymbolIcon Symbol="Database24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.nav.data}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{l:Tr settings.nav.data.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </ListBoxItem>
+            </ListBox>
+        </DockPanel>
+
+        <!-- ── The chosen section ────────────────────────────────────── -->
+        <ScrollViewer x:Name="SectionScroll" Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="0,0,24,24">
+        <StackPanel x:Name="Sections" MaxWidth="980" HorizontalAlignment="Left">
+            <StackPanel.RenderTransform>
+                <TranslateTransform x:Name="SectionShift" />
+            </StackPanel.RenderTransform>
 
             <!-- Appearance -->
-            <Border Style="{StaticResource Card}">
+            <Border Style="{StaticResource Card}" Tag="appearance">
                 <StackPanel>
                     <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.appearance}" />
                     <Grid Style="{StaticResource SettingRow}">
@@ -71,7 +200,7 @@
             </Border>
 
             <!-- General -->
-            <Border Style="{StaticResource Card}">
+            <Border Style="{StaticResource Card}" Tag="general">
                 <StackPanel>
                     <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.general}" />
                     <Grid Style="{StaticResource SettingRow}">
@@ -142,7 +271,7 @@
             </Border>
 
             <!-- OSD -->
-            <Border Style="{StaticResource Card}">
+            <Border Style="{StaticResource Card}" Tag="osd">
                 <StackPanel>
                     <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.osd}" />
                     <Grid Style="{StaticResource SettingRow}">
@@ -164,7 +293,7 @@
             </Border>
 
             <!-- Remote -->
-            <Border Style="{StaticResource Card}">
+            <Border Style="{StaticResource Card}" Tag="remote">
                 <StackPanel>
                     <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.remote}" />
                     <Grid Style="{StaticResource SettingRow}">
@@ -195,7 +324,7 @@
             </Border>
 
             <!-- Remote web app (PWA) -->
-            <Border Style="{StaticResource Card}">
+            <Border Style="{StaticResource Card}" Tag="web">
                 <StackPanel>
                     <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.web}" />
                     <Grid Style="{StaticResource SettingRow}">
@@ -292,7 +421,7 @@
             </Border>
 
             <!-- Disabled in -->
-            <Border Style="{StaticResource Card}">
+            <Border Style="{StaticResource Card}" Tag="disabledIn">
                 <StackPanel>
                     <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.disabledIn}" />
                     <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,10" Text="{l:Tr settings.disabledInHint}" />
@@ -306,7 +435,7 @@
             </Border>
 
             <!-- Side buttons -->
-            <Border Style="{StaticResource Card}">
+            <Border Style="{StaticResource Card}" Tag="mouse">
                 <StackPanel>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
@@ -326,7 +455,7 @@
             </Border>
 
             <!-- Data -->
-            <Border Style="{StaticResource Card}">
+            <Border Style="{StaticResource Card}" Tag="data">
                 <StackPanel>
                     <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.data}" />
                     <TextBlock x:Name="DataPathText" Style="{StaticResource Caption}" Margin="0,0,0,12" />
@@ -341,4 +470,5 @@
             </Border>
         </StackPanel>
     </ScrollViewer>
+    </Grid>
 </UserControl>
