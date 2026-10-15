@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Globalization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace KDesktop.Core.Localization;
 
@@ -67,6 +68,16 @@ public sealed class Loc : INotifyPropertyChanged
     {
         try { return Directory.Exists(AppPaths.LanguagesDir) ? Directory.GetFiles(AppPaths.LanguagesDir, "*.json") : []; }
         catch { return []; }
+    }
+
+    /// <summary>
+    /// The built-in English file as the starting point of a translation, with "_language" set to <paramref name="code"/>
+    /// so the new language does not show up as a second "English".
+    /// </summary>
+    public static string Template(string code)
+    {
+        var json = EmbeddedAssets.ReadText(EmbeddedFolder, Fallback + ".json") ?? "{}";
+        return Regex.Replace(json, "\"_language\"\\s*:\\s*\"[^\"]*\"", $"\"_language\": {JsonSerializer.Serialize(code)}", RegexOptions.None, TimeSpan.FromSeconds(1));
     }
 
     /// <summary>Language to use when the user has not chosen one: Spanish for Spanish Windows, English otherwise.</summary>

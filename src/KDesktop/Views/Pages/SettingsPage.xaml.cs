@@ -26,12 +26,40 @@ public partial class SettingsPage : UserControl
         InitializeComponent();
         DataContext = _app.Config.Settings;
 
-        LanguageBox.ItemsSource = new[] { new LanguageOption(null, Loc.T("settings.languageSystem")) }
-            .Concat(Loc.Available().Select(l => new LanguageOption(l.Code, l.Name))).ToList();
+        LoadLanguages();
         StartupSoundBox.ItemsSource = Sounds.Available();
         StartupToggle.IsChecked = StartupTask.IsRegistered();
         DataPathText.Text = AppPaths.DataDir;
         IpText.Text = Loc.T("settings.udpAddresses", string.Join("  ·  ", LocalAddresses()));
+    }
+
+    private void LoadLanguages() =>
+        LanguageBox.ItemsSource = new[] { new LanguageOption(null, Loc.T("settings.languageSystem")) }
+            .Concat(Loc.Available().Select(l => new LanguageOption(l.Code, l.Name))).ToList();
+
+    /// <summary>Saves the built-in English texts as the starting point of a new translation.</summary>
+    private void OnExportLanguageTemplate(object sender, RoutedEventArgs e)
+    {
+        Directory.CreateDirectory(AppPaths.LanguagesDir);
+        var dlg = new SaveFileDialog
+        {
+            Title = Loc.T("settings.exportTemplateTitle"),
+            Filter = "JSON|*.json",
+            InitialDirectory = AppPaths.LanguagesDir,
+            FileName = "xx.json",
+        };
+        if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
+        try
+        {
+            File.WriteAllText(dlg.FileName, Loc.Template(Path.GetFileNameWithoutExtension(dlg.FileName)));
+            LoadLanguages();
+            _app.Ui.ShowOsd(Loc.T("settings.templateExported"), OsdKind.Success);
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Error exportando la plantilla de idioma", ex);
+            _app.Ui.ShowOsd(Loc.T("settings.templateError"), OsdKind.Warning);
+        }
     }
 
     private static IEnumerable<string> LocalAddresses()

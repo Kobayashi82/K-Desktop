@@ -130,6 +130,12 @@
   "settings.themeHint": "“System” follows the Windows theme.",
   "settings.language": "Language",
   "settings.languageHint": "Languages can be added, or texts changed, by dropping a JSON file in %APPDATA%\\K-Desktop 5\\Languages.",
+  "settings.translate": "Translate K-Desktop",
+  "settings.translateHint": "Saves the English texts as the starting point of a new language.",
+  "settings.exportTemplate": "Export template",
+  "settings.exportTemplateTitle": "Save it with the language code (e.g. fr.json)",
+  "settings.templateExported": "Language template exported",
+  "settings.templateError": "The template could not be saved",
   "settings.languageSystem": "Windows language",
   "settings.general": "General",
   "settings.startWithWindows": "Start with Windows",
@@ -179,7 +185,7 @@
   "about.elevated": "running as administrator",
   "about.notElevated": "without administrator rights (hotkeys won't work over elevated windows)",
   "about.languages": "Languages",
-  "about.languagesText": "Spanish and English are built into the program. To translate K-Desktop create a JSON named with the language code (e.g. fr.json) in %APPDATA%\\K-Desktop 5\\Languages, starting from en.json (in the repository, under src\\KDesktop.Core\\Languages), and translate the texts. It will show up in Settings. An es.json or en.json in that folder only changes the keys it contains.",
+  "about.languagesText": "Spanish and English are built into the program. To translate K-Desktop use «Export template» in Settings: it saves the English texts in %APPDATA%\\K-Desktop 5\\Languages under the language code (e.g. fr.json); translate them and pick the language in Settings. An es.json or en.json in that folder only changes the keys it contains.",
 
   "common.accept": "OK",
 
