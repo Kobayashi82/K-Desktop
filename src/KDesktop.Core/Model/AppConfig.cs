@@ -68,6 +68,8 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private bool _webFavicons = true;
 
     // General
+    /// <summary>K-Desktop paused: no command runs; only its show-window and exit hotkeys work. Kept across restarts.</summary>
+    [ObservableProperty] private bool _paused;
     [ObservableProperty] private bool _startWithWindows = true;
 
     /// <summary>Open the main window when K-Desktop is started by hand (never when Windows starts it).</summary>

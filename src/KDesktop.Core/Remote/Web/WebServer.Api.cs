@@ -121,6 +121,12 @@ public sealed partial class WebServer
             return;
         }
 
+        if (_host.Engine.IsPaused)
+        {
+            await WriteJsonAsync(context.Response, new { status = "error", messages = new[] { Loc.T("pause.refused") } }).ConfigureAwait(false);
+            return;
+        }
+
         var feedback = new ExecutionFeedback();
         Task run;
         using (feedback.Begin()) run = _host.Engine.RunAsync(command, TriggerSource.Web);

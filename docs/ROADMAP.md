@@ -108,6 +108,11 @@
       escritura deslizando); fila de teclas especiales (Esc, Tab, flechas con repetición, Inicio/Fin, F1–F12…) y
       modificadores: un toque = solo para la siguiente tecla, dos toques = fijado (Alt+Tab). Velocidades, desplazamiento
       natural y «tocar para hacer clic» en Ajustes de la app.
+- [x] **Pausa** (icono de encendido abajo a la izquierda, menú de la bandeja o aviso de arriba; se guarda en la
+      configuración): no se ejecuta nada (atajos, QuickMenus, K-Board, bloqueo de Atrás/Adelante, UDP, web, comandos
+      de inicio) salvo lo que se lanza a mano desde el editor; los atajos de mostrar la ventana y salir siguen. Estado
+      abajo a la izquierda como iconos (pausa, UDP, app web y voz, esta aún sin función) con tooltip, color y clic a
+      sus opciones; los atajos desactivados salen como aviso arriba.
 - [ ] Web: micrófono del móvil como otra fuente de audio de la voz (después de la voz).
       APK solo si hace falta algo que la web no puede (widgets, ajustes rápidos).
 - [ ] Probar la app web en el móvil real a través de Caddy (instalación como PWA, iPhone y Android).

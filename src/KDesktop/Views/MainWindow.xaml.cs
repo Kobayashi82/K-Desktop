@@ -23,9 +23,11 @@ public partial class MainWindow : FluentWindow
             UpdateStatus();
         };
         Loc.Instance.Changed += OnLanguageChanged;
+        App.Current.PausedChanged += OnPausedChanged;
         Closed += (_, _) =>
         {
             Loc.Instance.Changed -= OnLanguageChanged;
+            App.Current.PausedChanged -= OnPausedChanged;
             foreach (var page in _pages.Values.OfType<IDisposable>()) page.Dispose();
         };
     }
@@ -42,29 +44,65 @@ public partial class MainWindow : FluentWindow
         if (menuId is not null && _pages.GetValueOrDefault("quickmenus") is Pages.QuickMenusPage page) page.Select(menuId);
     }
 
+    public void OpenSettings(string section)
+    {
+        Navigate("settings");
+        (_pages.GetValueOrDefault("settings") as Pages.SettingsPage)?.ShowSection(section);
+    }
+
+    // ── status icons ─────────────────────────────────────────────────────
+
     public void UpdateStatus()
     {
         var app = App.Current;
         var s = app.Config.Settings;
-        HookDot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, app.Router.IsRunning ? "Kd.Success" : "Kd.Danger");
-        HookText.Text = Loc.T(app.Router.IsRunning ? "status.hooks" : "status.hooksOff");
-        UdpText.Text = !s.UdpEnabled || !app.UdpAllowed ? Loc.T("status.udpOff")
-            : app.Udp.IsRunning ? Loc.T("status.udpOn", s.UdpPort) : Loc.T("status.udpError", s.UdpPort);
-        UdpDot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty,
-            !s.UdpEnabled ? "TextFillColorTertiaryBrush" : app.Udp.IsRunning ? "Kd.Success" : "Kd.Danger");
 
+        SetStatus(PauseStatus, PauseIcon, s.Paused ? SymbolRegular.Pause24 : SymbolRegular.Power24, s.Paused ? "Kd.Warning" : "Kd.Success",
+            Loc.T(s.Paused ? "status.paused" : "status.active"), Loc.T(s.Paused ? "status.clickResume" : "status.clickPause"));
+
+        var udpOn = s.UdpEnabled && app.UdpAllowed;
+        SetStatus(UdpStatus, UdpIcon, udpOn ? SymbolRegular.PlugConnected24 : SymbolRegular.PlugDisconnected24,
+            !udpOn ? "TextFillColorTertiaryBrush" : app.Udp.IsRunning ? "Kd.Success" : "Kd.Danger",
+            !udpOn ? Loc.T("status.udpOff") : app.Udp.IsRunning ? Loc.T("status.udpOn", s.UdpPort) : Loc.T("status.udpError", s.UdpPort),
+            Loc.T("status.clickOptions"));
+
+        var webOn = s.WebEnabled && app.WebAllowed;
         var web = app.Web.State;
-        WebText.Text = !s.WebEnabled || !app.WebAllowed ? Loc.T("status.webOff")
-            : web switch
+        SetStatus(WebStatus, WebIcon, SymbolRegular.Phone24,
+            !webOn ? "TextFillColorTertiaryBrush"
+            : web == Core.Remote.Web.WebServerState.Running ? "Kd.Success"
+            : web == Core.Remote.Web.WebServerState.LocalOnly ? "Kd.Warning" : "Kd.Danger",
+            !webOn ? Loc.T("status.webOff") : web switch
             {
                 Core.Remote.Web.WebServerState.Running => Loc.T("status.webOn", s.WebPort),
                 Core.Remote.Web.WebServerState.LocalOnly => Loc.T("status.webLocal", s.WebPort),
                 _ => Loc.T("status.webError", s.WebPort),
-            };
-        WebDot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty,
-            !s.WebEnabled || !app.WebAllowed ? "TextFillColorTertiaryBrush"
-            : web == Core.Remote.Web.WebServerState.Running ? "Kd.Success"
-            : web == Core.Remote.Web.WebServerState.LocalOnly ? "Kd.Warning" : "Kd.Danger");
+            },
+            Loc.T("status.clickOptions"));
+
+        SetStatus(VoiceStatus, VoiceIcon, SymbolRegular.MicOff24, "TextFillColorTertiaryBrush", Loc.T("status.voiceSoon"), null);
+    }
+
+    /// <summary>Icon, colour (icon and dot) and tooltip of one status button.</summary>
+    private static void SetStatus(System.Windows.Controls.Button button, SymbolIcon icon, SymbolRegular symbol, string brush, string text, string? hint)
+    {
+        icon.Symbol = symbol;
+        icon.SetResourceReference(ForegroundProperty, brush == "TextFillColorTertiaryBrush" ? "TextFillColorSecondaryBrush" : brush);
+        button.SetResourceReference(TagProperty, brush);
+        button.ToolTip = hint is null ? text : text + "\n" + hint;
+        System.Windows.Automation.AutomationProperties.SetName(button, text);
+    }
+
+    private void OnPauseStatus(object sender, RoutedEventArgs e) => App.Current.SetPaused(!App.Current.Config.Settings.Paused);
+
+    private void OnUdpStatus(object sender, RoutedEventArgs e) => OpenSettings("remote");
+
+    private void OnWebStatus(object sender, RoutedEventArgs e) => OpenSettings("web");
+
+    private void OnPausedChanged()
+    {
+        UpdateStatus();
+        ShowBanners();
     }
 
     private void OnNavigate(object sender, SelectionChangedEventArgs e)
@@ -140,11 +178,78 @@ public partial class MainWindow : FluentWindow
         });
     }
 
-    /// <summary>Info bars: K-Desktop 4 still running, import summary.</summary>
+    /// <summary>
+    /// An info bar with a button on its right (the InfoBar does not show its own content). Closing the bar hides
+    /// the button too.
+    /// </summary>
+    private void AddBanner(InfoBar bar, FrameworkElement button)
+    {
+        // The bar's template ignores Padding: once laid out, make its text block leave room for the button.
+        bar.Loaded += (_, _) => Dispatcher.BeginInvoke(() =>
+        {
+            if (FindText(bar, bar.Message) is { } text &&
+                System.Windows.Media.VisualTreeHelper.GetParent(text) is FrameworkElement panel)
+                panel.Margin = new Thickness(panel.Margin.Left, panel.Margin.Top, button.ActualWidth + 20, panel.Margin.Bottom);
+        }, System.Windows.Threading.DispatcherPriority.Loaded);
+        button.HorizontalAlignment = HorizontalAlignment.Right;
+        button.VerticalAlignment = VerticalAlignment.Center;
+        button.Margin = new Thickness(0, 0, bar.IsClosable ? 52 : 12, 0);
+        var host = new Grid { Margin = new Thickness(0, 0, 0, 8) };
+        host.Children.Add(bar);
+        host.Children.Add(button);
+        System.ComponentModel.DependencyPropertyDescriptor.FromProperty(InfoBar.IsOpenProperty, typeof(InfoBar))
+            .AddValueChanged(bar, (_, _) => host.Visibility = bar.IsOpen ? Visibility.Visible : Visibility.Collapsed);
+        Banners.Children.Add(host);
+    }
+
+    private static System.Windows.Controls.TextBlock? FindText(DependencyObject root, string? text)
+    {
+        for (var i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(root); i++)
+        {
+            var child = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
+            if (child is System.Windows.Controls.TextBlock tb && tb.Text == text) return tb;
+            if (FindText(child, text) is { } found) return found;
+        }
+        return null;
+    }
+
+    /// <summary>Info bars: hotkeys off, paused, K-Desktop 4 still running, import summary.</summary>
     private void ShowBanners()
     {
         Banners.Children.Clear();
         var app = App.Current;
+
+        if (!app.Router.IsRunning)
+        {
+            Banners.Children.Add(new InfoBar
+            {
+                Title = Loc.T("banner.hooksTitle"),
+                Message = Loc.T(app.HooksDisabled ? "banner.hooksArg" : "banner.hooksFailed"),
+                Severity = InfoBarSeverity.Error,
+                IsOpen = true,
+                IsClosable = true,
+                Margin = new Thickness(0, 0, 0, 8),
+            });
+        }
+
+        if (app.Config.Settings.Paused)
+        {
+            var resume = new Wpf.Ui.Controls.Button
+            {
+                Content = Loc.T("pause.resume"),
+                Icon = new SymbolIcon(SymbolRegular.Play24),
+                Appearance = ControlAppearance.Primary,
+            };
+            resume.Click += (_, _) => app.SetPaused(false);
+            AddBanner(new InfoBar
+            {
+                Title = Loc.T("banner.pausedTitle"),
+                Message = Loc.T("banner.pausedMessage"),
+                Severity = InfoBarSeverity.Warning,
+                IsOpen = true,
+                IsClosable = false,
+            }, resume);
+        }
 
         var legacy = app.LegacyInstances;
         if (legacy.Count > 0)
@@ -156,9 +261,8 @@ public partial class MainWindow : FluentWindow
                 Severity = InfoBarSeverity.Warning,
                 IsOpen = true,
                 IsClosable = true,
-                Margin = new Thickness(0, 0, 0, 8),
             };
-            var close = new Wpf.Ui.Controls.Button { Content = Loc.T("banner.legacyClose"), Appearance = ControlAppearance.Caution, Margin = new Thickness(0, 6, 0, 0) };
+            var close = new Wpf.Ui.Controls.Button { Content = Loc.T("banner.legacyClose"), Appearance = ControlAppearance.Caution };
             close.Click += (_, _) =>
             {
                 foreach (var p in app.LegacyInstances)
@@ -168,8 +272,7 @@ public partial class MainWindow : FluentWindow
                 }
                 bar.IsOpen = false;
             };
-            bar.Content = close;
-            Banners.Children.Add(bar);
+            AddBanner(bar, close);
             foreach (var p in legacy) p.Dispose();
         }
 

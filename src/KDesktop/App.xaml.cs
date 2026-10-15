@@ -44,7 +44,7 @@ public partial class App : Application
 
     public string[] Arguments { get; init; } = [];
 
-    private bool HooksDisabled => Arguments.Contains("--no-hooks");
+    public bool HooksDisabled => Arguments.Contains("--no-hooks");
     private bool UdpDisabled => Arguments.Contains("--no-udp");
     private bool WebDisabled => Arguments.Contains("--no-web");
 
@@ -288,9 +288,32 @@ public partial class App : Application
 
     private void RebuildIndex()
     {
-        Router.UpdateIndex(new HotkeyIndex(Config.Commands, Config.Settings));
-        Router.UpdateKBoard(new KBoardIndex(Config.KBoards, Config.Commands, Config.Settings.DisabledIn));
+        var paused = Config.Settings.Paused;
+        Router.UpdateIndex(new HotkeyIndex(Config.Commands, Config.Settings, paused));
+        Router.UpdateKBoard(paused ? KBoardIndex.Empty : new KBoardIndex(Config.KBoards, Config.Commands, Config.Settings.DisabledIn));
     }
+
+    // ── pause ────────────────────────────────────────────────────────────
+
+    /// <summary>Raised (UI thread) when K-Desktop is paused or resumed.</summary>
+    public event Action? PausedChanged;
+
+    /// <summary>
+    /// Pauses or resumes K-Desktop: while paused no command runs (hotkeys, QuickMenus, K-Board, remote…); only the
+    /// show-window and exit hotkeys work. The state is saved, so it survives a restart.
+    /// </summary>
+    public void SetPaused(bool paused)
+    {
+        if (Config.Settings.Paused == paused) return;
+        Config.Settings.Paused = paused;
+        RebuildIndex();
+        Log.Info(paused ? "K-Desktop en pausa" : "K-Desktop reanudado");
+        Ui.ShowOsd(Loc.T(paused ? "pause.osdOn" : "pause.osdOff"));
+        if (_tray is not null) _tray.ToolTipText = TrayTooltip();
+        PausedChanged?.Invoke();
+    }
+
+    private string TrayTooltip() => Config.Settings.Paused ? Loc.T("pause.tooltip", AppPaths.VersionName) : AppPaths.VersionName;
 
     /// <summary>Applies settings that have side effects (theme, tray, UDP).</summary>
     public void ApplySettings()
@@ -360,11 +383,14 @@ public partial class App : Application
         menu.Items.Add(kboard);
         menu.Items.Add(TrayItem(Loc.T("tray.achievements"), (_, _) => ShowMainWindow(w => w.Navigate("achievements"))));
         menu.Items.Add(new Separator());
+        var pause = TrayItem(string.Empty, (_, _) => SetPaused(!Config.Settings.Paused));
+        menu.Items.Add(pause);
+        menu.Opened += (_, _) => pause.Header = Loc.T(Config.Settings.Paused ? "pause.resume" : "pause.pause");
         menu.Items.Add(TrayItem(Loc.T("tray.exit"), (_, _) => _ = ExitAsync()));
 
         _tray = new TaskbarIcon
         {
-            ToolTipText = AppPaths.VersionName,
+            ToolTipText = TrayTooltip(),
             IconSource = BitmapFrame.Create(new Uri("pack://application:,,,/KDesktop;component/Assets/Icons/KDesktop.ico")),
             ContextMenu = menu,
             NoLeftClickDelay = true,

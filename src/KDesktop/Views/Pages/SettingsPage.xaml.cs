@@ -58,6 +58,13 @@ public partial class SettingsPage : UserControl
 
     private static readonly IEasingFunction EaseOut = new CubicEase { EasingMode = EasingMode.EaseOut };
 
+    /// <summary>Opens a section by its key ("web", "remote"…), e.g. from the status icons.</summary>
+    public void ShowSection(string key)
+    {
+        if (SectionList.Items.OfType<ListBoxItem>().FirstOrDefault(i => i.Tag as string == key) is { } item)
+            SectionList.SelectedItem = item;
+    }
+
     /// <summary>Shows only the chosen section (each card's Tag names its section).</summary>
     private void OnSectionSelected(object sender, SelectionChangedEventArgs e)
     {

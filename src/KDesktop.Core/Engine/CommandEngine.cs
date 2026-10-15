@@ -51,6 +51,12 @@ public sealed partial class CommandEngine
     /// <summary>Raised after Escape cancelled something.</summary>
     public event Action? Cancelled;
 
+    /// <summary>
+    /// K-Desktop paused (setting): nothing runs (hotkeys, menus, remote, startup…) except what the user runs by hand
+    /// from the editor.
+    /// </summary>
+    public bool IsPaused => Config.Settings.Paused;
+
     /// <summary>True while a cancellable operation (countdown, wait, message) is in progress.</summary>
     public bool HasCancellable => !_cancellable.IsEmpty;
 
@@ -79,6 +85,11 @@ public sealed partial class CommandEngine
             return;
         }
         if (!command.Enabled && source is not TriggerSource.Manual) return;
+        if (depth == 0 && IsPaused && source is not TriggerSource.Manual)
+        {
+            Log.Info($"En pausa: no se ejecuta '{command.Name}' ({source})");
+            return;
+        }
 
         // While a hotkey auto-repeats only volume actions are repeated (hold to change the volume).
         if (isRepeat && !command.Actions.Any(a => a.Enabled && a is VolumeAction)) return;

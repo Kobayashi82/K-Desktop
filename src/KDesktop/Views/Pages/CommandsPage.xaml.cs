@@ -43,6 +43,8 @@ public partial class CommandsPage : UserControl, IDisposable
         UpdateCount();
         Loaded += (_, _) =>
         {
+            // The QuickMenus may have changed on their page meanwhile.
+            FillMenuFilter();
             if (CommandList.SelectedItem is null && !_view.IsEmpty) CommandList.SelectedIndex = 0;
         };
         Unloaded += (_, _) => HotkeyCapture.CancelActive();
@@ -59,10 +61,75 @@ public partial class CommandsPage : UserControl, IDisposable
 
     // ── list ─────────────────────────────────────────────────────────────
 
+    // ── QuickMenu filter ─────────────────────────────────────────────────
+
+    private const string FilterNone = "none", FilterAll = "all";
+
+    private sealed record MenuFilterOption(string Key, string Name)
+    {
+        public override string ToString() => Name;
+    }
+
+    /// <summary>Chosen filter: "none" (commands in no QuickMenu, the default), "all", or a QuickMenu id.</summary>
+    private static string _menuFilter = FilterNone;
+
+    /// <summary>Ids of the commands the filter is about (those of every menu, or of the chosen one); null for "all".</summary>
+    private HashSet<string>? _menuCommands;
+
+    private bool _fillingFilter;
+
+    private void FillMenuFilter()
+    {
+        _fillingFilter = true;
+        var options = new List<MenuFilterOption>
+        {
+            new(FilterNone, Loc.T("commands.filterNone")),
+            new(FilterAll, Loc.T("commands.filterAll")),
+        };
+        options.AddRange(Config.QuickMenus.Select(m => new MenuFilterOption(m.Id, Loc.T("commands.filterMenu", m.Name))));
+        if (options.All(o => o.Key != _menuFilter)) _menuFilter = FilterNone;
+        MenuFilter.ItemsSource = options;
+        MenuFilter.SelectedItem = options.First(o => o.Key == _menuFilter);
+        _fillingFilter = false;
+        ApplyMenuFilter();
+    }
+
+    private void OnMenuFilterChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_fillingFilter || MenuFilter.SelectedItem is not MenuFilterOption option) return;
+        _menuFilter = option.Key;
+        ApplyMenuFilter();
+    }
+
+    private void ApplyMenuFilter()
+    {
+        IEnumerable<QuickMenu> menus = _menuFilter switch
+        {
+            FilterAll => [],
+            FilterNone => Config.QuickMenus,
+            _ => Config.QuickMenus.Where(m => m.Id == _menuFilter),
+        };
+        _menuCommands = _menuFilter == FilterAll ? null
+            : menus.SelectMany(m => m.Descendants()).Select(i => i.CommandId).OfType<string>().ToHashSet();
+        _view.Refresh();
+    }
+
+    /// <summary>Clears the search, and the QuickMenu filter when it hides <paramref name="cmd"/>, so it can be selected.</summary>
+    private void ClearFiltersFor(Command cmd)
+    {
+        if (!string.IsNullOrEmpty(SearchBox.Text)) SearchBox.Text = string.Empty;
+        if (PassesMenuFilter(cmd)) return;
+        _menuFilter = FilterAll;
+        FillMenuFilter();
+    }
+
+    private bool PassesMenuFilter(Command c) => _menuCommands is not { } ids || (_menuFilter == FilterNone ? !ids.Contains(c.Id) : ids.Contains(c.Id));
+
     private bool Filter(object obj)
     {
         if (obj is not Command c) return false;
         if (c.Hidden && ShowHiddenToggle.IsChecked != true && !ReferenceEquals(c, _selected)) return false;
+        if (!PassesMenuFilter(c) && !ReferenceEquals(c, _selected)) return false;
         var q = SearchBox?.Text?.Trim();
         if (string.IsNullOrEmpty(q)) return true;
         return c.Name.Contains(q, StringComparison.CurrentCultureIgnoreCase)
@@ -90,7 +157,7 @@ public partial class CommandsPage : UserControl, IDisposable
             ShowHiddenToggle.IsChecked = true;
             _view.Refresh();
         }
-        if (!string.IsNullOrEmpty(SearchBox.Text)) SearchBox.Text = string.Empty;
+        ClearFiltersFor(cmd);
         CommandList.SelectedItem = cmd;
         CommandList.ScrollIntoView(cmd);
     }
@@ -147,7 +214,7 @@ public partial class CommandsPage : UserControl, IDisposable
         var cmd = new Command { Name = UniqueName(Loc.T("commands.newName")) };
         _app.Achievements.Increment(Stat.CommandsCreated);
         Config.Commands.Add(cmd);
-        if (!string.IsNullOrEmpty(SearchBox.Text)) SearchBox.Text = string.Empty;
+        ClearFiltersFor(cmd);
         CommandList.SelectedItem = cmd;
         CommandList.ScrollIntoView(cmd);
         Dispatcher.BeginInvoke(() =>

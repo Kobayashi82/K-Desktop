@@ -11,6 +11,42 @@
                  WindowBackdropType="Mica"
                  WindowCornerPreference="Round"
                  FontFamily="Segoe UI Variable Text, Segoe UI">
+    <ui:FluentWindow.Resources>
+        <Style x:Key="StatusButton" TargetType="Button">
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Margin" Value="2" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="ToolTipService.InitialShowDelay" Value="250" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="B" CornerRadius="6" Background="Transparent" RenderTransformOrigin="0.5,0.5">
+                            <Grid>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <!-- State dot; its colour comes in Tag -->
+                                <Ellipse Width="7" Height="7" Margin="0,0,9,7" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                         Fill="{TemplateBinding Tag}" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="B" Property="Background" Value="{DynamicResource Kd.SubtleHover}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="B" Property="RenderTransform">
+                                    <Setter.Value><ScaleTransform ScaleX="0.92" ScaleY="0.92" /></Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Cursor" Value="Arrow" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </ui:FluentWindow.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -29,29 +65,28 @@
             <DockPanel Grid.Column="0" Margin="12,4,8,14">
                 <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="10,4,0,22">
                     <Image x:Name="Logo" Width="38" Height="38" RenderOptions.BitmapScalingMode="HighQuality" />
-                    <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="K-Desktop" FontSize="19" FontWeight="SemiBold" FontFamily="Segoe UI Variable Display, Segoe UI"
-                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                        <TextBlock Text="5.0" FontSize="12" Foreground="{DynamicResource Kd.AccentText}" FontWeight="SemiBold" />
-                    </StackPanel>
+                    <TextBlock Margin="12,0,0,0" VerticalAlignment="Center" FontFamily="Segoe UI Variable Display, Segoe UI">
+                        <Run Text="K-Desktop" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        <Run Text=" 5.0" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Kd.AccentText}" />
+                    </TextBlock>
                 </StackPanel>
 
-                <!-- Status (bottom) -->
-                <Border DockPanel.Dock="Bottom" CornerRadius="8" Padding="12,10" Background="{DynamicResource Kd.Subtle}">
-                    <StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                            <Ellipse x:Name="HookDot" Width="8" Height="8" Fill="{DynamicResource Kd.Success}" VerticalAlignment="Center" />
-                            <TextBlock x:Name="HookText" Margin="8,0,0,0" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <Ellipse x:Name="UdpDot" Width="8" Height="8" Fill="{DynamicResource Kd.Success}" VerticalAlignment="Center" />
-                            <TextBlock x:Name="UdpText" Margin="8,0,0,0" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                            <Ellipse x:Name="WebDot" Width="8" Height="8" Fill="{DynamicResource Kd.Success}" VerticalAlignment="Center" />
-                            <TextBlock x:Name="WebText" Margin="8,0,0,0" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
-                    </StackPanel>
+                <!-- Status (bottom): one icon per service; tooltip with the details, click to its options -->
+                <Border DockPanel.Dock="Bottom" CornerRadius="8" Padding="4" Background="{DynamicResource Kd.Subtle}">
+                    <UniformGrid Columns="4">
+                        <Button x:Name="PauseStatus" Style="{StaticResource StatusButton}" Click="OnPauseStatus">
+                            <ui:SymbolIcon x:Name="PauseIcon" Symbol="Power24" FontSize="18" />
+                        </Button>
+                        <Button x:Name="UdpStatus" Style="{StaticResource StatusButton}" Click="OnUdpStatus">
+                            <ui:SymbolIcon x:Name="UdpIcon" Symbol="PlugConnected24" FontSize="18" />
+                        </Button>
+                        <Button x:Name="WebStatus" Style="{StaticResource StatusButton}" Click="OnWebStatus">
+                            <ui:SymbolIcon x:Name="WebIcon" Symbol="Phone24" FontSize="18" />
+                        </Button>
+                        <Button x:Name="VoiceStatus" Style="{StaticResource StatusButton}" ToolTipService.ShowOnDisabled="True" IsEnabled="False">
+                            <ui:SymbolIcon x:Name="VoiceIcon" Symbol="MicOff24" FontSize="18" />
+                        </Button>
+                    </UniformGrid>
                 </Border>
 
                 <ListBox x:Name="NavList" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource NavItem}"
@@ -65,19 +100,19 @@
                     <ListBoxItem Tag="quickmenus">
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="Navigation24" FontSize="18" />
-                            <TextBlock Text="{l:Tr nav.quickmenus}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </ListBoxItem>
-                    <ListBoxItem Tag="macros">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Record24" FontSize="18" />
-                            <TextBlock Text="{l:Tr nav.macros}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                            <TextBlock Text="{l:Tr nav.quickmenu}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Tag="kboard">
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="KeyboardLayoutFloat24" FontSize="18" />
                             <TextBlock Text="{l:Tr nav.kboard}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="macros">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Record24" FontSize="18" />
+                            <TextBlock Text="{l:Tr nav.macros}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Tag="achievements">

@@ -20,10 +20,11 @@ public sealed class HotkeyIndex
     public string ExitHotkey { get; }
     public bool BlockSideButtons { get; }
 
-    public HotkeyIndex(IEnumerable<Command> commands, AppSettings settings)
+    /// <param name="paused">K-Desktop paused: only its own hotkeys (show window, exit) stay; no commands, no blocking.</param>
+    public HotkeyIndex(IEnumerable<Command> commands, AppSettings settings, bool paused = false)
     {
         var map = new Dictionary<string, List<Entry>>(StringComparer.OrdinalIgnoreCase);
-        foreach (var cmd in commands.ToArray())
+        foreach (var cmd in paused ? [] : commands.ToArray())
         {
             if (!cmd.Enabled) continue;
             var entry = new Entry(
@@ -45,7 +46,7 @@ public sealed class HotkeyIndex
         _sideButtonsBlockedIn = settings.BlockSideButtonsIn.Select(ProcessNames.Normalize).ToHashSet();
         ShowWindowHotkey = Hotkey.Normalize(settings.ShowWindowHotkey);
         ExitHotkey = Hotkey.Normalize(settings.ExitHotkey);
-        BlockSideButtons = settings.BlockSideButtons;
+        BlockSideButtons = settings.BlockSideButtons && !paused;
     }
 
     public bool Contains(string hotkey) => _map.ContainsKey(hotkey);
