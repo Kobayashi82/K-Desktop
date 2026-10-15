@@ -39,7 +39,16 @@
 - [x] `--data "carpeta"` (instancia independiente con otros datos) y `--page nombre`.
 - [x] Correcciones: menú de la bandeja traducido; las acciones ya no guardan `kind`/`summary` en config.json; textos fijos pasados a los idiomas.
 
-## Siguiente
+## Siguiente (sesión 3)
+
+- [ ] **Salida de audio**: cambiar el dispositivo predeterminado; con varios elegidos, cada ejecución pasa al siguiente (como en la 4.0), con mensaje en pantalla.
+- [ ] **Energía → Cambiar usuario**.
+- [ ] **Selector de iconos**: iconos de las bibliotecas de Windows (shell32, imageres… con índice) y una colección nueva y moderna de K-Desktop 5 (los de la 4.0 se consideran obsoletos).
+- [ ] **Macros → paso «Desplazar ratón»** (movimiento relativo).
+- [ ] **«Sabías que…»**: trucos de atajos de Windows y navegadores (en Opciones o en Acerca de).
+- [ ] **K-Board, bien hecho**: estudiar el de la 4.0 y rediseñarlo.
+
+## Pendiente
 
 - [ ] Probar a fondo en el uso diario: hotkeys, bloqueo, acordes, elevación y macros.
 - [ ] Publicación: build Release self-contained / ReadyToRun, y un instalador o zip portable.
@@ -47,7 +56,7 @@
 
 ## Ideas
 
-- Salida de audio: cambiar el dispositivo predeterminado (existía en la 4.0).
-- Atajos por aplicación con "capas" (sustituiría a K-Board si se vuelve a necesitar).
+- K-Link (crear enlaces duros / uniones de carpeta) y Zona Wi-Fi móvil (sustituta de la Red Ad-Hoc): sin decidir.
+- Captura de pantalla, grabación de pantalla y de audio: descartadas por ahora.
 - Búsqueda rápida de comandos tipo lanzador (atajo → escribir → Enter).
 - Cliente web/móvil para el control remoto.
