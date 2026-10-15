@@ -82,10 +82,22 @@
 - [x] **Lanzador** (acción «Lanzador»): caja de búsqueda centrada sobre los comandos, los programas del menú Inicio
       (shell:AppsFolder, también apps de la Store) y la web, con calculadora. Búsqueda difusa (`FuzzyMatch`: inicio,
       palabras, iniciales, letras sueltas; sin acentos) y orden por uso (ejecuciones de comandos y `launcher.json`).
-- [ ] **Web/PWA de control remoto**: servidor HTTP dentro de K-Desktop (solo red local; HTTPS a través del Caddy del
-      usuario como proxy inverso), emparejado por QR con token. Comandos con iconos agrupados como los QuickMenus,
-      resultado en el móvil, volumen y salida de audio, opcionalmente touchpad/teclado y micrófono para la voz.
+- [x] **Web/PWA de control remoto** (Opciones › «App web (móvil)», desactivada por defecto, puerto TCP 2502):
+      servidor HttpListener/http.sys en `KDesktop.Core/Remote/Web` (0 MB extra; escucha en `http://+:puerto/`, que
+      necesita administrador; sin él, solo localhost). HTTPS con Caddy delante: rutas relativas, ruta base opcional,
+      `X-Forwarded-*` solo desde la IP del proxy, opción «solo a través del proxy» y regla de firewall propia para el
+      puerto. Emparejado con QR o código de un solo uso (5 min) → token de 256 bits (se guarda su hash en
+      `web-devices.json`); dispositivos revocables en Opciones. Desde un navegador del propio PC (localhost directo)
+      no hace falta emparejar. La web (`KDesktop.Core/Web`, incrustada como los idiomas; textos `pwa.*`) tiene
+      Menús (QuickMenus con submenús), Todos con buscador difuso, Audio (volumen, silencio, multimedia, salida) y
+      Ajustes (tema, idioma); resultado de cada comando (OSD y avisos/errores del registro vía `ExecutionFeedback`),
+      eventos en vivo (SSE) y service worker para abrir sin conexión. Casilla «En la app web» por comando y
+      `TriggerSource.Web`. El exe creció ~1,1 MB (QRCoder + web).
+      Caddy (en 192.168.1.150): `kdesktop.dominio { reverse_proxy <IP del PC>:2502 }` y en Opciones poner
+      «IP del proxy» = 192.168.1.150 (y, si se quiere, «Solo a través del proxy») y la «Dirección pública».
+- [ ] Web, siguiente fase: touchpad y teclado (WebSocket, http.sys los soporta) y micrófono del móvil para la voz.
       APK solo si hace falta algo que la web no puede (widgets, ajustes rápidos).
+- [ ] Probar la app web en el móvil real a través de Caddy (instalación como PWA, iPhone y Android).
 - [ ] **Voz** (investigado 2026-10-15, ver abajo).
 
 ### Plan de la voz
