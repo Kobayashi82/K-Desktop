@@ -23,8 +23,10 @@ public static class ActionCatalog
 
         new(ActionKind.SendInput, "input", "Keyboard24", () => new SendInputAction()),
         new(ActionKind.Volume, "input", "Speaker224", () => new VolumeAction()),
+        new(ActionKind.AudioOutput, "input", "HeadphonesSoundWave24", () => new AudioOutputAction()),
         new(ActionKind.PlaySound, "input", "MusicNote224", () => new PlaySoundAction()),
         new(ActionKind.PlayMacro, "input", "Record24", () => new PlayMacroAction()),
+        new(ActionKind.KBoard, "input", "KeyboardLayoutFloat24", () => new KBoardAction()),
 
         new(ActionKind.TopMost, "system", "Pin24", () => new TopMostAction()),
         new(ActionKind.HiddenFiles, "system", "EyeOff24", () => new HiddenFilesAction()),
@@ -45,6 +47,7 @@ public static class ActionCatalog
 /// <summary>Special shell locations available in "Open folder".</summary>
 public static class SpecialFolders
 {
+    /// <param name="Icon">K-Desktop icon ("kd:Symbol:colour") or bundled asset name.</param>
     public sealed record Entry(string Key, string? Icon)
     {
         public string Name => Loc.T($"folder.{Key}");
@@ -52,32 +55,32 @@ public static class SpecialFolders
 
     public static IReadOnlyList<Entry> All { get; } =
     [
-        new("ThisPC", "CE_Equipo"),
-        new("Desktop", "CE_Escritorio"),
-        new("Documents", "CE_Documentos"),
-        new("Downloads", "CE_Descargas"),
-        new("Pictures", "CE_Imagenes"),
-        new("Music", "CE_Musicas"),
-        new("Videos", "CE_Videos"),
-        new("UserProfile", "CE_Usuario"),
-        new("RecycleBin", "CE_Papelera"),
-        new("EmptyRecycleBin", "CE_VaciarPapelera"),
-        new("ControlPanel", "CE_PanelControl"),
-        new("Settings", "CE_PanelControl"),
-        new("VolumeMixer", "CE_ControlVolumen"),
-        new("SoundSettings", "CE_AjustesAudio"),
-        new("NetworkConnections", "CE_ConexionesRed"),
-        new("Fonts", "CE_Fuentes"),
-        new("StartMenu", "CE_MenuInicio"),
-        new("CommonStartMenu", "CE_MenuInicio"),
-        new("WindowsApps", "CE_WindowsApps"),
-        new("GodMode", "CE_GodMode"),
-        new("TaskScheduler", "CE_ProgramadorTareas"),
-        new("GroupPolicy", "CE_GroupPolicy"),
-        new("Registry", "CE_Regedit"),
-        new("OnScreenKeyboard", "CE_TecladoPantalla"),
-        new("PowerShell", "CE_PowerShell"),
-        new("TaskView", "CE_TaskSwitcher"),
+        new("ThisPC", "kd:Laptop24:sky"),
+        new("Desktop", "kd:Desktop24:blue"),
+        new("Documents", "kd:DocumentText24:blue"),
+        new("Downloads", "kd:ArrowDownload24:teal"),
+        new("Pictures", "kd:Image24:green"),
+        new("Music", "kd:MusicNote224:pink"),
+        new("Videos", "kd:VideoClip24:purple"),
+        new("UserProfile", "kd:Person24:blue"),
+        new("RecycleBin", "kd:Delete24:gray"),
+        new("EmptyRecycleBin", "kd:Broom24:orange"),
+        new("ControlPanel", "kd:Options24:gray"),
+        new("Settings", "kd:Settings24:gray"),
+        new("VolumeMixer", "kd:Speaker224:teal"),
+        new("SoundSettings", "kd:SoundSource24:teal"),
+        new("NetworkConnections", "kd:NetworkCheck24:sky"),
+        new("Fonts", "kd:TextFont24:orange"),
+        new("StartMenu", "kd:Apps24:indigo"),
+        new("CommonStartMenu", "kd:AppsList24:indigo"),
+        new("WindowsApps", "kd:WindowApps24:blue"),
+        new("GodMode", "kd:Sparkle24:gold"),
+        new("TaskScheduler", "kd:CalendarLtr24:orange"),
+        new("GroupPolicy", "kd:ShieldLock24:green"),
+        new("Registry", "kd:Database24:dark"),
+        new("OnScreenKeyboard", "kd:Keyboard24:sky"),
+        new("PowerShell", "kd:WindowConsole20:blue"),
+        new("TaskView", "kd:TabDesktop24:indigo"),
         new("KDesktopData", "KDesktop"),
     ];
 

@@ -1,0 +1,264 @@
+<ui:FluentWindow x:Class="KDesktop.Views.Dialogs.IconPickerDialog"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:l="clr-namespace:KDesktop.Localization"
+                 xmlns:d="clr-namespace:KDesktop.Views.Dialogs"
+                 Title="K-Desktop"
+                 Width="900" Height="660" MinWidth="700" MinHeight="480"
+                 WindowStartupLocation="CenterOwner"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica"
+                 ResizeMode="CanResize"
+                 ShowInTaskbar="False">
+    <ui:FluentWindow.Resources>
+        <!-- Segmented tabs -->
+        <Style x:Key="Segment" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="B" CornerRadius="6" Padding="16,7" Background="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="B" Property="Background" Value="{DynamicResource Kd.SubtleHover}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="B" Property="Background" Value="{DynamicResource Kd.AccentSoft}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Kd.AccentText}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Colour swatch -->
+        <Style x:Key="Swatch" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Grid Width="26" Height="26" Background="Transparent">
+                            <Ellipse x:Name="Ring" Stroke="{DynamicResource TextFillColorPrimaryBrush}" StrokeThickness="2" Opacity="0" />
+                            <Ellipse Margin="4" Fill="{TemplateBinding Background}" />
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Ring" Property="Opacity" Value="0.35" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Ring" Property="Opacity" Value="1" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Icon cell: fades in, grows on hover, ring when selected -->
+        <Style x:Key="IconCell" TargetType="ListBoxItem">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="ToolTip" Value="{Binding Tip}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Grid x:Name="Root" Margin="3" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="Scale" ScaleX="0.9" ScaleY="0.9" />
+                            </Grid.RenderTransform>
+                            <Border x:Name="Hover" CornerRadius="8" Background="{DynamicResource Kd.SubtleHover}" Opacity="0" />
+                            <Border x:Name="Sel" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}" BorderBrush="{DynamicResource Kd.Accent}"
+                                    BorderThickness="2" Opacity="0" />
+                            <ContentPresenter Margin="6" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Root" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.22" />
+                                        <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.28" EasingFunction="{StaticResource KdEaseOut}" />
+                                        <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.28" EasingFunction="{StaticResource KdEaseOut}" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                            <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleX" To="1.08" Duration="0:0:0.15" EasingFunction="{StaticResource KdEaseOut}" />
+                                            <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleY" To="1.08" Duration="0:0:0.15" EasingFunction="{StaticResource KdEaseOut}" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                            <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.2" />
+                                            <DoubleAnimation Storyboard.TargetName="Scale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.2" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Sel" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Sel" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate x:Key="IconTemplate" DataType="{x:Type d:IconChoice}">
+            <StackPanel Width="56">
+                <Image Source="{Binding Image}" Width="40" Height="40" RenderOptions.BitmapScalingMode="HighQuality" />
+                <TextBlock Text="{Binding Caption}" FontSize="10" HorizontalAlignment="Center" Margin="0,3,0,0"
+                           Foreground="{DynamicResource TextFillColorTertiaryBrush}" Visibility="{Binding CaptionVisibility}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <ItemsPanelTemplate x:Key="WrapPanelTemplate">
+            <WrapPanel />
+        </ItemsPanelTemplate>
+    </ui:FluentWindow.Resources>
+
+    <Grid Margin="16,0,16,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <ui:TitleBar Grid.Row="0" Title="{l:Tr icons.title}" ShowMinimize="False" ShowMaximize="False" Margin="-16,0,-16,0" />
+
+        <!-- Tabs -->
+        <Grid Grid.Row="1" Margin="0,4,0,12">
+            <Border HorizontalAlignment="Left" CornerRadius="8" Padding="3" Background="{DynamicResource Kd.Subtle}">
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton x:Name="KdTab" Style="{StaticResource Segment}" GroupName="tabs" IsChecked="True" Checked="OnTab" AutomationProperties.Name="{l:Tr icons.tabKd}">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Sparkle24" FontSize="16" Margin="0,0,8,0" />
+                            <TextBlock Text="{l:Tr icons.tabKd}" FontWeight="SemiBold" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="WinTab" Style="{StaticResource Segment}" GroupName="tabs" Checked="OnTab" AutomationProperties.Name="{l:Tr icons.tabWindows}">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Window24" FontSize="16" Margin="0,0,8,0" />
+                            <TextBlock Text="{l:Tr icons.tabWindows}" FontWeight="SemiBold" />
+                        </StackPanel>
+                    </RadioButton>
+                </StackPanel>
+            </Border>
+            <ui:TextBox x:Name="SearchBox" Width="280" HorizontalAlignment="Right" PlaceholderText="{l:Tr icons.search}"
+                        Icon="{ui:SymbolIcon Search24}" TextChanged="OnSearch" />
+        </Grid>
+
+        <!-- ── K-Desktop collection ─────────────────────────────── -->
+        <Grid x:Name="KdPanel" Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="170" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <ListBox x:Name="CategoryList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource NavItem}"
+                     SelectionChanged="OnCategory" Margin="0,0,12,0">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" FontSize="13" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <Border Grid.Column="1" Style="{StaticResource Card}" Margin="0" Padding="12,10">
+                <DockPanel>
+                    <WrapPanel DockPanel.Dock="Top" Margin="2,0,0,8">
+                        <StackPanel x:Name="Swatches" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,4" />
+                        <Border CornerRadius="6" Padding="2" Background="{DynamicResource Kd.Subtle}" VerticalAlignment="Center" Margin="0,0,0,4">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton x:Name="TileStyle" Style="{StaticResource Segment}" GroupName="style" IsChecked="True" Checked="OnStyle"
+                                             Content="{l:Tr icons.styleTile}" />
+                                <RadioButton x:Name="GlyphStyle" Style="{StaticResource Segment}" GroupName="style" Checked="OnStyle"
+                                             Content="{l:Tr icons.styleGlyph}" />
+                            </StackPanel>
+                        </Border>
+                    </WrapPanel>
+                    <TextBlock x:Name="KdHint" DockPanel.Dock="Bottom" Style="{StaticResource Caption}" Margin="2,8,0,0" />
+                    <ListBox x:Name="KdList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource IconCell}"
+                             ItemTemplate="{StaticResource IconTemplate}" ItemsPanel="{StaticResource WrapPanelTemplate}"
+                             VirtualizingPanel.IsVirtualizing="False" SelectionChanged="OnIconSelected" MouseDoubleClick="OnIconDoubleClick" />
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- ── Windows libraries ────────────────────────────────── -->
+        <DockPanel x:Name="WinPanel" Grid.Row="2" Visibility="Collapsed">
+            <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ComboBox x:Name="LibraryBox" IsEditable="True" SelectionChanged="OnLibraryChanged" KeyDown="OnLibraryKey" LostFocus="OnLibraryLostFocus" />
+                <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseLibrary" />
+                <TextBlock x:Name="LibraryCount" Grid.Column="2" Margin="14,0,4,0" VerticalAlignment="Center" Style="{StaticResource Caption}" />
+            </Grid>
+            <Border Style="{StaticResource Card}" Margin="0" Padding="12,10">
+                <Grid>
+                    <ListBox x:Name="WinList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource IconCell}"
+                             ItemTemplate="{StaticResource IconTemplate}" ItemsPanel="{StaticResource WrapPanelTemplate}"
+                             VirtualizingPanel.IsVirtualizing="False" SelectionChanged="OnIconSelected" MouseDoubleClick="OnIconDoubleClick" />
+                    <ui:ProgressRing x:Name="Loading" IsIndeterminate="True" Width="40" Height="40" Visibility="Collapsed" />
+                    <TextBlock x:Name="WinEmpty" Style="{StaticResource Caption}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Text="{l:Tr icons.noIcons}" Visibility="Collapsed" />
+                </Grid>
+            </Border>
+        </DockPanel>
+
+        <!-- ── Footer ───────────────────────────────────────────── -->
+        <Grid Grid.Row="3" Margin="0,14,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Border Width="56" Height="56" CornerRadius="10" Background="{DynamicResource Kd.Subtle}">
+                <Image x:Name="Preview" Width="44" Height="44" RenderOptions.BitmapScalingMode="HighQuality" RenderTransformOrigin="0.5,0.5">
+                    <Image.RenderTransform>
+                        <ScaleTransform x:Name="PreviewScale" />
+                    </Image.RenderTransform>
+                </Image>
+            </Border>
+            <StackPanel Grid.Column="1" Margin="14,0" VerticalAlignment="Center">
+                <TextBlock x:Name="PreviewName" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                <TextBlock x:Name="PreviewRef" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <ui:Button Content="{l:Tr icons.fromFile}" Icon="{ui:SymbolIcon Image24}" Click="OnFromFile" Margin="0,0,8,0" />
+                <ui:Button Content="{l:Tr icons.automatic}" Icon="{ui:SymbolIcon ArrowReset24}" Click="OnAutomatic" Margin="0,0,16,0" />
+                <ui:Button Content="{l:Tr common.cancel}" Click="OnCancel" Margin="0,0,8,0" />
+                <ui:Button x:Name="AcceptButton" Content="{l:Tr common.accept}" Appearance="Primary" Click="OnAccept" IsEnabled="False" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</ui:FluentWindow>

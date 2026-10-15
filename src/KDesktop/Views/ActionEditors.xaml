@@ -8,6 +8,8 @@
     <!-- Editors for every action type. Each one is picked automatically by its DataType. -->
 
     <v:InverseBoolConverter x:Key="InverseBool" />
+    <v:AudioDeviceStatusConverter x:Key="AudioStatus" />
+    <v:AudioDeviceSymbolConverter x:Key="AudioSymbol" />
 
     <Style x:Key="EdRow" TargetType="Grid">
         <Setter Property="Margin" Value="0,0,0,12" />
@@ -256,6 +258,120 @@
                 <Setter TargetName="LevelRow" Property="Visibility" Value="Collapsed" />
             </DataTrigger>
         </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <!-- ── Salida de audio ─────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:AudioOutputAction}">
+        <StackPanel>
+            <Grid Margin="0,0,0,6">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.audioDevices}" VerticalAlignment="Bottom" />
+                <ui:Button HorizontalAlignment="Right" Content="{l:Tr editor.addDevice}" Icon="{ui:SymbolIcon Add24}"
+                           Command="{x:Static v:EditorCommands.AddAudioDevice}" CommandParameter="{Binding}" />
+            </Grid>
+            <Border CornerRadius="6" Padding="4" Margin="0,0,0,6" Background="{DynamicResource Kd.Subtle}">
+                <Grid>
+                    <StackPanel x:Name="AllHint" Orientation="Horizontal" Margin="10,8" Visibility="Collapsed">
+                        <ui:SymbolIcon Symbol="ArrowRepeatAll24" FontSize="16" Foreground="{DynamicResource Kd.AccentText}" Margin="0,0,10,0" />
+                        <TextBlock Text="{l:Tr editor.audioAll}" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                    <ListBox ItemsSource="{Binding Devices}" Background="Transparent" BorderThickness="0" v:DragReorder.IsEnabled="True"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border x:Name="B" CornerRadius="5" Padding="6,4" Background="Transparent">
+                                                <ContentPresenter />
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="B" Property="Background" Value="{DynamicResource Kd.SubtleHover}" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="{x:Type m:AudioDeviceRef}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="22" />
+                                        <ColumnDefinition Width="30" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Background="Transparent" Cursor="SizeNS" v:DragReorder.IsHandle="True" ToolTip="{l:Tr macro.dragHint}">
+                                        <ui:SymbolIcon Symbol="ReOrderDotsVertical24" FontSize="14" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                    </Border>
+                                    <ui:SymbolIcon Grid.Column="1" Symbol="{Binding Converter={StaticResource AudioSymbol}}" FontSize="18"
+                                                   Foreground="{DynamicResource Kd.AccentText}" HorizontalAlignment="Left" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                               Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                    <TextBlock Grid.Column="3" Text="{Binding Converter={StaticResource AudioStatus}}" Margin="10,0" FontSize="12"
+                                               VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                    <ui:Button Grid.Column="4" Style="{StaticResource IconButton}" ToolTip="{l:Tr common.remove}"
+                                               Command="{x:Static v:EditorCommands.RemoveAudioDevice}" CommandParameter="{Binding}">
+                                        <ui:SymbolIcon Symbol="Dismiss24" FontSize="12" />
+                                    </ui:Button>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+            <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" Text="{l:Tr editor.audioHint}" />
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.audioSound}" />
+            <Grid Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ComboBox IsEditable="True" Text="{Binding Sound, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Source={x:Static v:Lookups.SoundNames}}" />
+                <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon Play24}" ToolTip="{l:Tr editor.preview}"
+                           Command="{x:Static v:EditorCommands.PreviewSound}" CommandParameter="{Binding Sound}" />
+            </Grid>
+            <WrapPanel>
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.audioCommunications}" IsChecked="{Binding Communications}" />
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            </WrapPanel>
+        </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Devices.Count}" Value="0">
+                <Setter TargetName="AllHint" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <!-- ── K-Board ─────────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:KBoardAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.KBoardActionModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.kboardProfile}" />
+                    <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.KBoardList}}" DisplayMemberPath="Name" SelectedValuePath="Id"
+                              SelectedValue="{Binding ProfileId}" />
+                </StackPanel>
+                <ui:Button Grid.Column="3" Margin="8,0,0,0" VerticalAlignment="Bottom" Content="{l:Tr editor.editKBoard}" Icon="{ui:SymbolIcon Edit24}"
+                           Command="{x:Static v:EditorCommands.EditKBoard}" CommandParameter="{Binding ProfileId}" />
+            </Grid>
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+        </StackPanel>
     </DataTemplate>
 
     <!-- ── Sonido ──────────────────────────────────────────────────────── -->

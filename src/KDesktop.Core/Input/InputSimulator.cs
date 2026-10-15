@@ -119,6 +119,10 @@ public static class InputSimulator
         if (Win32.GetCursorPos(out var p)) Win32.SetCursorPos(p.X + dx, p.Y + dy);
     }
 
+    /// <summary>Relative movement through SendInput: what games and 3D programs read (pointer speed and acceleration apply).</summary>
+    public static void MoveRaw(int dx, int dy) =>
+        Send(new Win32.INPUT { type = Win32.INPUT_MOUSE, U = new Win32.InputUnion { mi = new Win32.MOUSEINPUT { dx = dx, dy = dy, dwFlags = Win32.MOUSEEVENTF_MOVE, dwExtraInfo = Marker } } });
+
     public static (int X, int Y) CursorPosition() => Win32.GetCursorPos(out var p) ? (p.X, p.Y) : (0, 0);
 
     // ── helpers ──────────────────────────────────────────────────────────

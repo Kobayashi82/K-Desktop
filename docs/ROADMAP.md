@@ -39,17 +39,29 @@
 - [x] `--data "carpeta"` (instancia independiente con otros datos) y `--page nombre`.
 - [x] Correcciones: menú de la bandeja traducido; las acciones ya no guardan `kind`/`summary` en config.json; textos fijos pasados a los idiomas.
 
-## Siguiente (sesión 3)
+## Hecho (sesión 3)
 
-- [ ] **Salida de audio**: cambiar el dispositivo predeterminado; con varios elegidos, cada ejecución pasa al siguiente (como en la 4.0), con mensaje en pantalla.
-- [ ] **Energía → Cambiar usuario**.
-- [ ] **Selector de iconos**: iconos de las bibliotecas de Windows (shell32, imageres… con índice) y una colección nueva y moderna de K-Desktop 5 (los de la 4.0 se consideran obsoletos).
-- [ ] **Macros → paso «Desplazar ratón»** (movimiento relativo).
-- [ ] **«Sabías que…»**: trucos de atajos de Windows y navegadores (en Opciones o en Acerca de).
-- [ ] **K-Board, bien hecho**: estudiar el de la 4.0 y rediseñarlo.
+- [x] **Salida de audio**: acción que cambia el dispositivo de sonido predeterminado (también el de comunicaciones si se quiere); con varios elegidos, cada ejecución pasa al siguiente conectado, con mensaje en pantalla y sonido de prueba opcional. Lista ordenable arrastrando; sin dispositivos elegidos, rota por todos los conectados. Se importa de la 4.0.
+- [x] **Energía → Cambiar de usuario** (también se importa así de la 4.0, antes se convertía en «Bloquear»).
+- [x] **Selector de iconos** nuevo:
+  - colección propia de K-Desktop 5: mosaicos vectoriales con degradado y cualquier símbolo de Windows 11 (más de 9.000, con buscador), 15 colores y estilo mosaico o símbolo;
+  - iconos de las bibliotecas de Windows (imageres, shell32, ddores… o cualquier dll/exe) con su índice;
+  - desde archivo, o volver al icono automático;
+  - los iconos por defecto de las acciones y de las ubicaciones especiales usan la colección nueva; se han quitado los de la 4.0.
+- [x] **Macros → paso «Desplazar ratón»** (relativo), exacto en píxeles o «en bruto» para juegos.
+- [x] **¿Sabías que…?** en Acerca de: 134 trucos (Windows, Explorador, navegadores, texto y K-Desktop) en un carrusel animado con filtros, avance automático y logros.
+- [x] **K-Board** rehecho desde cero:
+  - perfiles con reasignaciones de teclas, botones del ratón y rueda → teclas o combinaciones, texto, nada o un comando;
+  - capas con modificadores (Ctrl + J → ↓ suelta Ctrl mientras tanto) y comodín (Shift + Bloq Mayús usa la regla de Bloq Mayús);
+  - se mantienen pulsadas como la original y se sueltan exactamente al soltarla, aunque se apague el perfil a medias;
+  - por aplicaciones (o en todas, respetando «Desactivar en»), activables a mano, desde un comando (acción K-Board), desde la bandeja;
+  - editor visual: teclado ISO español completo con bloque numérico y ratón dibujados, capas, captura de teclas y lista de reasignaciones;
+  - estadísticas y logros propios.
 
 ## Pendiente
 
+- [ ] Probar el K-Board en el uso diario (sobre todo juegos y combinaciones con modificadores).
+- [ ] Probar la salida de audio con varios dispositivos reales.
 - [ ] Probar a fondo en el uso diario: hotkeys, bloqueo, acordes, elevación y macros.
 - [ ] Publicación: build Release self-contained / ReadyToRun, y un instalador o zip portable.
 - [ ] Favicons para las acciones web.

@@ -11,7 +11,7 @@ public sealed record HotkeyTrigger(string Hotkey, IReadOnlyList<Command> Command
 /// Turns raw hook events into hotkeys ("CTRL + ALT + O", "Mouse 4 + Mouse 1", "CTRL + Wheel Up"),
 /// decides synchronously whether the event must be swallowed and dispatches the work off the hook thread.
 /// </summary>
-public sealed class HotkeyRouter : IDisposable
+public sealed partial class HotkeyRouter : IDisposable
 {
     private readonly InputHook _hook = new();
     private volatile HotkeyIndex _index = HotkeyIndex.Empty;
@@ -93,6 +93,7 @@ public sealed class HotkeyRouter : IDisposable
     {
         if (e.Injected) return false;
         var vk = e.Vk;
+        if (KBoardKey(e)) return true;
 
         if (_recorder is { } recorder)
         {
@@ -181,7 +182,7 @@ public sealed class HotkeyRouter : IDisposable
                 Environment.TickCount64 - InputSimulatorState.LastModifierRelease > 2000)
                 _physicalMods &= ~flag;
         }
-        return _physicalMods;
+        return _physicalMods | _kbOutputMods;
     }
 
     private static readonly (Modifiers Flag, int A, int B)[] ModifierKeys =
@@ -205,6 +206,7 @@ public sealed class HotkeyRouter : IDisposable
     private bool OnMouse(MouseInput e)
     {
         if (e.Injected) return false;
+        if (KBoardMouse(e)) return true;
         if (_recorder is { } recorder) return recorder.OnMouse(e);
 
         if (e.Message == MouseMessage.Down && e.Button == MouseButton.Left && _windowPicker is { } picker)

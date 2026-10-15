@@ -119,6 +119,7 @@ public partial class App : Application
         Router.CancelRequested += Engine.CancelAll;
         Router.IsPlayingMacro = () => Engine.IsPlayingMacro;
         Router.StopMacrosRequested += Engine.StopMacros;
+        Router.KBoardUsed += () => Achievements.Increment(Stat.KBoardRemapped);
         RebuildIndex();
         _indexDebounce.Tick += (_, _) =>
         {
@@ -229,7 +230,11 @@ public partial class App : Application
         return report;
     }
 
-    private void RebuildIndex() => Router.UpdateIndex(new HotkeyIndex(Config.Commands, Config.Settings));
+    private void RebuildIndex()
+    {
+        Router.UpdateIndex(new HotkeyIndex(Config.Commands, Config.Settings));
+        Router.UpdateKBoard(new KBoardIndex(Config.KBoards, Config.Commands, Config.Settings.DisabledIn));
+    }
 
     /// <summary>Applies settings that have side effects (theme, tray, UDP).</summary>
     public void ApplySettings()
@@ -248,6 +253,7 @@ public partial class App : Application
             Loc.Instance.Load(s.Language);
             foreach (var action in Config.Commands.SelectMany(c => c.Actions)) action.RefreshSummary();
             foreach (var macro in Config.Macros) macro.RefreshTexts();
+            foreach (var profile in Config.KBoards) profile.RefreshTexts();
             Achievements.Unlock("polyglot");
             // The tray menu is built in code: rebuild it in the new language.
             _tray?.Dispose();
@@ -275,6 +281,10 @@ public partial class App : Application
         menu.Items.Add(new Separator());
         foreach (var qm in Config.QuickMenus.Take(1))
             menu.Items.Add(TrayItem(Loc.T("tray.openMenu", qm.Name), (_, _) => QuickMenus.Show(qm.Id, ForegroundWindow.Capture())));
+        var kboard = new MenuItem { Header = "K-Board" };
+        kboard.Items.Add(new MenuItem()); // placeholder so it opens as a submenu; filled when opened
+        kboard.SubmenuOpened += (_, _) => FillKBoardMenu(kboard);
+        menu.Items.Add(kboard);
         menu.Items.Add(TrayItem(Loc.T("tray.achievements"), (_, _) => ShowMainWindow(w => w.Navigate("achievements"))));
         menu.Items.Add(TrayItem(Loc.T("tray.data"), (_, _) =>
         {
@@ -293,6 +303,25 @@ public partial class App : Application
         };
         _tray.TrayLeftMouseUp += (_, _) => ShowMainWindow();
         _tray.ForceCreate(false);
+    }
+
+    /// <summary>One checkable entry per K-Board profile (switches it on / off) and a shortcut to the page.</summary>
+    private void FillKBoardMenu(MenuItem parent)
+    {
+        parent.Items.Clear();
+        foreach (var profile in Config.KBoards.OrderBy(k => k.Name, StringComparer.CurrentCultureIgnoreCase))
+        {
+            var item = new MenuItem { Header = profile.Name, IsCheckable = true, IsChecked = profile.Active, StaysOpenOnClick = true };
+            item.Click += (_, _) =>
+            {
+                profile.Active = item.IsChecked;
+                Ui.ShowOsd(Loc.T(profile.Active ? "osd.kboardOn" : "osd.kboardOff", profile.Name), profile.Active ? OsdKind.Success : OsdKind.Info);
+            };
+            parent.Items.Add(item);
+        }
+        if (Config.KBoards.Count == 0) parent.Items.Add(new MenuItem { Header = Loc.T("kboard.listEmptyShort"), IsEnabled = false });
+        parent.Items.Add(new Separator());
+        parent.Items.Add(TrayItem(Loc.T("tray.kboard"), (_, _) => ShowMainWindow(w => w.Navigate("kboard"))));
     }
 
     private static MenuItem TrayItem(string header, RoutedEventHandler click)

@@ -10,10 +10,13 @@ Atajos de teclado y ratón, QuickMenus y control remoto por UDP para Windows. Es
   - Clic izquierdo ejecuta y cierra.
   - Clic derecho ejecuta y deja el menú abierto.
   - Clic central edita el elemento.
-- **Macros**: graba teclado y ratón con sus tiempos, edita los pasos y reprodúcelas desde cualquier comando (repeticiones, bucle, velocidad). Mayús + Esc las detiene.
+- **Macros**: graba teclado y ratón con sus tiempos, edita los pasos (también desplazamientos relativos del ratón, en bruto para juegos) y reprodúcelas desde cualquier comando (repeticiones, bucle, velocidad). Mayús + Esc las detiene.
+- **K-Board**: perfiles que reasignan teclas, botones del ratón y la rueda a otras teclas o combinaciones, a un texto, a un comando o a nada; en todas las aplicaciones o solo en las que elijas. Se mantienen pulsadas como las originales (Bloq Mayús → Ctrl, botón lateral → tecla en un juego…), admiten capas con modificadores (Ctrl + J → ↓) y se editan sobre un teclado y un ratón dibujados. Se activan a mano, desde un comando o desde la bandeja.
+- **Iconos**: colección propia de K-Desktop 5 (mosaicos vectoriales con cualquier símbolo de Windows 11, 15 colores y dos estilos), los iconos de las bibliotecas de Windows (shell32, imageres… con su índice) o cualquier imagen.
 - **Logros y estadísticas**: más de 100 logros con notificación animada, y estadísticas de uso (comandos más usados, cómo los ejecutas…).
 - **Control remoto UDP**: compatible con el protocolo de K-Desktop 4 (puerto 2501: `lista`, número, nombre, `sk …`, `tasks`…).
 - **Interfaz moderna** con tema claro/oscuro (o el del sistema) y animaciones.
+- **¿Sabías que…?**: más de 130 trucos de atajos de Windows, el Explorador, los navegadores, la edición de texto y K-Desktop, en «Acerca de».
 - **Multiidioma** (español e inglés). Para añadir un idioma basta con dejar un JSON en `Languages`.
 - **Importación automática** de los datos de K-Desktop 4 (comandos, QuickMenus, opciones e iconos) la primera vez que se ejecuta.
 
@@ -23,9 +26,9 @@ Atajos de teclado y ratón, QuickMenus y control remoto por UDP para Windows. Es
 |---|---|---|---|
 | Ejecutar aplicación | Enviar pulsación / texto | Siempre visible | Abrir QuickMenu |
 | Abrir carpeta / ubicación especial | Volumen | Archivos ocultos | Comandos (ejecutar / habilitar…) |
-| Abrir página web | Reproducir sonido | Desactivar en la app actual | Esperar |
-| Controlar aplicación (activar / cerrar / esperar) | Reproducir macro | Mostrar mensaje | |
-| Script CMD / PowerShell | | Energía (apagar, reiniciar…) | |
+| Abrir página web | Salida de audio (rotar dispositivos) | Desactivar en la app actual | Esperar |
+| Controlar aplicación (activar / cerrar / esperar) | Reproducir sonido | Mostrar mensaje | K-Board (activar / desactivar) |
+| Script CMD / PowerShell | Reproducir macro | Energía (apagar, reiniciar, cambiar de usuario…) | |
 
 ## Línea de comandos
 
@@ -33,7 +36,7 @@ Atajos de teclado y ratón, QuickMenus y control remoto por UDP para Windows. Es
 KDesktop.exe --menu "Principal"     abre un QuickMenu (en la instancia en ejecución)
 KDesktop.exe --run "Nombre"         ejecuta un comando
 KDesktop.exe --show | --exit
-KDesktop.exe --page macros          abre K-Desktop en una página (commands, quickmenus, macros, achievements, stats, settings, about)
+KDesktop.exe --page macros          abre K-Desktop en una página (commands, quickmenus, macros, kboard, achievements, stats, settings, about)
 KDesktop.exe --no-hooks --no-udp --no-elevate   diagnóstico
 KDesktop.exe --data "C:\Carpeta"    usa otra carpeta de datos (instancia independiente: pruebas, copia portátil)
 ```
@@ -45,7 +48,7 @@ src/KDesktop.Core   núcleo sin UI: modelo, almacenamiento JSON, hooks, motor de
 src/KDesktop        aplicación WPF: ventana principal, QuickMenu, OSD, bandeja, temas, idiomas
 ```
 
-Los datos se guardan en `%APPDATA%\K-Desktop 5\config.json` (comandos, QuickMenus, macros y opciones), con copias de seguridad diarias en `Backups`. Los logros y estadísticas van aparte, en `stats.json`.
+Los datos se guardan en `%APPDATA%\K-Desktop 5\config.json` (comandos, QuickMenus, macros, perfiles de K-Board y opciones), con copias de seguridad diarias en `Backups`. Los logros y estadísticas van aparte, en `stats.json`.
 
 ## Compilar
 

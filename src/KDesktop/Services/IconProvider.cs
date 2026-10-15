@@ -31,36 +31,52 @@ public static class IconProvider
 
     public static ImageSource? ForCommand(Command? command)
     {
-        if (command is null) return Asset("Accion_Comandos");
+        if (command is null) return Kd("Flash24", "gold");
         if (command.Icon is { } own && FromConfigIcon(own) is { } img) return img;
-        return command.PrimaryAction is { } action ? ForAction(action) : Asset("Accion_Comandos");
+        return command.PrimaryAction is { } action ? ForAction(action) : Kd("Flash24", "gold");
     }
 
     public static ImageSource? ForAction(CommandAction action) => action switch
     {
-        RunAppAction a => PathIcon(a.Path) ?? (LooksLikeUrl(a.Path) ? Asset("WebPage") : Asset("Accion_Aplicacion")),
-        OpenFolderAction { Special: { } s } => Asset(SpecialFolders.Get(s)?.Icon ?? "Accion_AbrirCarpeta"),
-        OpenFolderAction a => PathIcon(a.Path) ?? Asset("Accion_AbrirCarpeta"),
-        OpenUrlAction a => Asset(Browsers.Get(a.Browser)?.Icon ?? "WebPage"),
-        AppControlAction => Asset("Accion_Aplicaciones"),
-        RunScriptAction => Asset("Accion_BAT"),
-        SendInputAction => Asset("Accion_EnviarPulsacion"),
-        VolumeAction => Asset("Accion_Volumen"),
-        PlaySoundAction => Asset("Accion_ReproducirSonido"),
-        TopMostAction => Asset("Accion_TopMost"),
-        HiddenFilesAction => Asset("Accion_Archivos_Ocultos"),
-        ToggleDisabledInAction => Asset("Accion_Desactivar"),
-        ShowMessageAction => Asset("Accion_Mensaje"),
-        PowerAction => Asset("Accion_Apagar_Equipo"),
-        OpenQuickMenuAction => Asset("Accion_QuickMenu"),
-        CommandControlAction => Asset("Accion_Comandos"),
-        WaitAction => Asset("Accion_Esperar"),
-        PlayMacroAction => Asset("Accion_Macros"),
+        RunAppAction a => PathIcon(a.Path) ?? (LooksLikeUrl(a.Path) ? Kd("Globe24", "sky") : Kd("Open24", "blue")),
+        OpenFolderAction { Special: { } s } => Named(SpecialFolders.Get(s)?.Icon) ?? Kd("Folder24", "yellow"),
+        OpenFolderAction a => PathIcon(a.Path) ?? Kd("Folder24", "yellow"),
+        OpenUrlAction a => Browsers.Get(a.Browser)?.Icon is { } browser ? Asset(browser) : Kd("Globe24", "sky"),
+        AppControlAction => Kd("WindowApps24", "indigo"),
+        RunScriptAction => Kd("WindowConsole20", "dark"),
+        SendInputAction => Kd("Keyboard24", "sky"),
+        VolumeAction => Kd("Speaker224", "teal"),
+        AudioOutputAction => Kd("HeadphonesSoundWave24", "teal"),
+        PlaySoundAction => Kd("MusicNote224", "pink"),
+        TopMostAction => Kd("Pin24", "orange"),
+        HiddenFilesAction => Kd("EyeOff24", "gray"),
+        ToggleDisabledInAction => Kd("Prohibited24", "red"),
+        ShowMessageAction => Kd("Chat24", "green"),
+        PowerAction => Kd("Power24", "red"),
+        OpenQuickMenuAction => Kd("Navigation24", "gold"),
+        CommandControlAction => Kd("Flash24", "gold"),
+        WaitAction => Kd("Timer24", "purple"),
+        PlayMacroAction => Kd("Record24", "red"),
+        KBoardAction => Kd("KeyboardLayoutFloat24", "indigo"),
         _ => null,
     };
 
-    public static ImageSource? FromConfigIcon(string icon) =>
-        AppPaths.ResolveIcon(icon) is { } path ? FromFile(path) : null;
+    /// <summary>
+    /// Icon stored in the configuration: "kd:Folder24:yellow" (K-Desktop collection), "imageres.dll,109" (icon of a
+    /// Windows library or program, by index), or an image file (name inside the Icons folder or absolute path).
+    /// </summary>
+    public static ImageSource? FromConfigIcon(string icon)
+    {
+        if (KdIconSpec.TryParse(icon, out var kd)) return KdIcons.Render(kd);
+        if (TryParseLibrary(icon, out var file, out var index)) return Library(file, index);
+        return AppPaths.ResolveIcon(icon) is { } path ? FromFile(path) : null;
+    }
+
+    /// <summary>K-Desktop icon ("kd:…") or bundled asset name.</summary>
+    private static ImageSource? Named(string? key) =>
+        key is null ? null : KdIconSpec.TryParse(key, out var kd) ? KdIcons.Render(kd) : Asset(key);
+
+    public static ImageSource? Kd(string symbol, string color) => KdIcons.Render(new KdIconSpec(symbol, color));
 
     private static ImageSource? PathIcon(string path)
     {
@@ -92,6 +108,66 @@ public static class IconProvider
         {
             using var stream = File.OpenRead(path);
             return BestFrame(BitmapDecoder.Create(stream, BitmapCreateOptions.None, BitmapCacheOption.OnLoad));
+        }
+        catch { return null; }
+    });
+
+    // ── icon libraries (shell32.dll, imageres.dll, any exe…) ─────────────
+
+    private static readonly string[] LibraryExtensions = [".dll", ".exe", ".cpl", ".icl", ".ocx", ".scr", ".mun", ".ico"];
+
+    /// <summary>"imageres.dll,109" / "C:\App\app.exe,2" → file and index.</summary>
+    public static bool TryParseLibrary(string? value, out string file, out int index)
+    {
+        file = string.Empty;
+        index = 0;
+        if (string.IsNullOrWhiteSpace(value)) return false;
+        var comma = value.LastIndexOf(',');
+        if (comma <= 0 || !int.TryParse(value[(comma + 1)..].Trim(), out index)) return false;
+        file = value[..comma].Trim().Trim('"');
+        return LibraryExtensions.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Value stored for an icon of a library: short name for the System32 ones ("shell32.dll,15").</summary>
+    public static string LibraryReference(string file, int index)
+    {
+        var full = ResolveLibrary(file);
+        var system = Environment.GetFolderPath(Environment.SpecialFolder.System);
+        var name = Path.GetDirectoryName(full)?.Equals(system, StringComparison.OrdinalIgnoreCase) == true ? Path.GetFileName(full) : full;
+        return $"{name},{index}";
+    }
+
+    public static string ResolveLibrary(string file)
+    {
+        var f = Environment.ExpandEnvironmentVariables(file);
+        return Path.IsPathRooted(f) ? f : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), f);
+    }
+
+    /// <summary>Number of icons inside a library or program.</summary>
+    public static int LibraryCount(string file)
+    {
+        try { return (int)ExtractIconEx(ResolveLibrary(file), -1, null, null, 0); }
+        catch { return 0; }
+    }
+
+    /// <summary>Icon number <paramref name="index"/> of a library, at 48 px.</summary>
+    public static ImageSource? Library(string file, int index) => Cache.GetOrAdd($"lib:{file},{index}", _ =>
+    {
+        try
+        {
+            if (SHDefExtractIcon(ResolveLibrary(file), index, 0, out var large, out var small, (uint)(Size | (16 << 16))) != 0 || large == IntPtr.Zero)
+                return null;
+            try
+            {
+                var bmp = Imaging.CreateBitmapSourceFromHIcon(large, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+                bmp.Freeze();
+                return bmp;
+            }
+            finally
+            {
+                DestroyIcon(large);
+                if (small != IntPtr.Zero) DestroyIcon(small);
+            }
         }
         catch { return null; }
     });
@@ -208,6 +284,16 @@ public static class IconProvider
 
     [DllImport("gdi32.dll")]
     private static extern int GetObject(IntPtr h, int size, ref DIBSECTION obj);
+
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+    private static extern int SHDefExtractIcon(string iconFile, int index, uint flags, out IntPtr large, out IntPtr small, uint iconSize);
+
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+    private static extern uint ExtractIconEx(string file, int index, IntPtr[]? large, IntPtr[]? small, uint icons);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool DestroyIcon(IntPtr icon);
 
     [DllImport("gdi32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]

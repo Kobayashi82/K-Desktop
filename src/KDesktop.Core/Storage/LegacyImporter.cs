@@ -219,6 +219,16 @@ public static class LegacyImporter
             case "reproducir sonido":
                 return new PlaySoundAction { Sound = Sound(At(0)) ?? string.Empty, Wait = B(1) };
 
+            case "salida de audio":
+            {
+                // Sound|OSD|font|colour|device id|device id…
+                var known = Platform.AudioDevices.Playback();
+                var action = new AudioOutputAction { Sound = Sound(At(0)), ShowOsd = B(1) };
+                foreach (var id in s.Skip(4).Select(x => x.Trim()).Where(x => x.Length > 0).Distinct())
+                    action.Devices.Add(new AudioDeviceRef { Id = id, Name = known.FirstOrDefault(d => d.Id == id)?.Name ?? id });
+                return action;
+            }
+
             case "volumen":
                 return At(0) switch
                 {
@@ -251,7 +261,7 @@ public static class LegacyImporter
                     {
                         "Reiniciar Equipo" => PowerMode.Restart,
                         "Cerrar Sesion" => PowerMode.LogOff,
-                        "Cambiar Usuario" => PowerMode.Lock,
+                        "Cambiar Usuario" => PowerMode.SwitchUser,
                         _ => PowerMode.Shutdown,
                     },
                     DelaySeconds = (int)Seconds(At(2), At(3), 0),

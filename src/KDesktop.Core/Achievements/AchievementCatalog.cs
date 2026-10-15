@@ -37,7 +37,7 @@ public static class AchievementCatalog
     public const string First = "first";
 
     public static IReadOnlyList<string> Categories { get; } =
-        ["commands", "actions", "menus", "macros", "apps", "system", "remote", "time", "kinds", "misc"];
+        ["commands", "actions", "menus", "macros", "kboard", "apps", "system", "remote", "time", "kinds", "misc"];
 
     public static string CategorySymbol(string category) => category switch
     {
@@ -45,6 +45,7 @@ public static class AchievementCatalog
         "actions" => "Rocket24",
         "menus" => "Navigation24",
         "macros" => "Record24",
+        "kboard" => "KeyboardLayoutFloat24",
         "apps" => "WindowApps24",
         "system" => "Wrench24",
         "remote" => "PlugConnected24",
@@ -93,6 +94,11 @@ public static class AchievementCatalog
         list.Add(new("macro-long", "macros", Stat.MacroLongest, 100));
         list.Add(new("macro-loop", "macros", Secret: true));
 
+        // K-Board
+        Tier("kboard", "kboard-create", Stat.KBoardsCreated, 1, 10);
+        Tier("kboard", "kboard-remap", Stat.KBoardRemapped, 100, 1000, 10000, 100000);
+        Tier("kboard", "kboard-toggle", Stat.KBoardToggled, 1, 100);
+
         // Applications, folders, web, scripts
         Tier("apps", "app", Stat.AppsLaunched, 1, 10, 100, 1000);
         Tier("apps", "folder", Stat.FoldersOpened, 1, 10, 100);
@@ -108,6 +114,7 @@ public static class AchievementCatalog
         Tier("system", "disabledin", Stat.DisabledInToggled, 1, 10, 100);
         Tier("system", "topmost", Stat.TopMostToggled, 1, 10, 100);
         Tier("system", "volume", Stat.VolumeChanged, 1, 100);
+        Tier("system", "audio", Stat.AudioSwitched, 1, 10, 100);
         Tier("system", "icon", Stat.IconsChanged, 1, 10);
         list.Add(new("custom-sound", "system"));
 
@@ -127,6 +134,7 @@ public static class AchievementCatalog
         list.Add(new("welcome", "misc", Stat.AppStarted, 1));
         list.Add(new(First, "misc"));
         list.Add(new("about", "misc"));
+        Tier("misc", "tips", Stat.TipsSeen, 10, 50);
         list.Add(new("curious", "misc"));
         list.Add(new("export", "misc"));
         list.Add(new("import", "misc"));

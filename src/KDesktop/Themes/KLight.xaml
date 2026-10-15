@@ -35,6 +35,9 @@
     <SolidColorBrush x:Key="Kd.Selected" Color="#14000000" />
     <SolidColorBrush x:Key="Kd.ChipBackground" Color="#0F000000" />
     <SolidColorBrush x:Key="Kd.Danger" Color="#C42B1C" />
+    <SolidColorBrush x:Key="Kd.DangerSoft" Color="#22C42B1C" />
+    <SolidColorBrush x:Key="Kd.KeyMapped" Color="#59E0A815" />
+    <SolidColorBrush x:Key="Kd.KeyDisabled" Color="#40C42B1C" />
     <SolidColorBrush x:Key="Kd.Success" Color="#0F7B0F" />
     <SolidColorBrush x:Key="Kd.Warning" Color="#9D5D00" />
 </ResourceDictionary>

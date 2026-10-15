@@ -59,6 +59,18 @@
                         </StackPanel>
                     </StackPanel>
 
+                    <!-- Relative movement -->
+                    <StackPanel Margin="0,0,16,8" Visibility="{Binding IsRelativeMove, Converter={StaticResource BoolToCollapsed}}">
+                        <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr macro.offset}" />
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="X" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                            <ui:TextBox Width="80" Text="{Binding X, UpdateSourceTrigger=PropertyChanged}" ToolTip="{l:Tr macro.offsetXHint}" />
+                            <TextBlock Text="Y" Margin="12,0,6,0" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                            <ui:TextBox Width="80" Text="{Binding Y, UpdateSourceTrigger=PropertyChanged}" ToolTip="{l:Tr macro.offsetYHint}" />
+                            <CheckBox Margin="16,0,0,0" Content="{l:Tr macro.raw}" IsChecked="{Binding Raw}" ToolTip="{l:Tr macro.rawHint}" />
+                        </StackPanel>
+                    </StackPanel>
+
                     <!-- Wheel -->
                     <StackPanel Margin="0,0,16,8" Visibility="{Binding IsWheel, Converter={StaticResource BoolToCollapsed}}">
                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr macro.wheel}" />

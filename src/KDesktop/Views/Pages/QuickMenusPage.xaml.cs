@@ -714,9 +714,9 @@ public partial class QuickMenusPage : UserControl, IDisposable
             if (row.HasCustomLabel) menu.Items.Add(Item(Loc.T("qm.resetName"), "ArrowUndo24", () => Mutate(() => row.Item.Label = null)));
             menu.Items.Add(Item(Loc.T("qm.changeIcon"), "Image24", () =>
             {
-                if (IconPicker.Pick("qm-" + row.Item.Id) is not { } file) return;
-                Mutate(() => row.Item.Icon = file);
-                _app.Achievements.Increment(Stat.IconsChanged);
+                if (Dialogs.IconPicker.Pick(Window.GetWindow(this), row.Item.Icon, "qm-" + row.Item.Id) is not { } icon) return;
+                Mutate(() => row.Item.Icon = icon.Length == 0 ? null : icon);
+                if (icon.Length > 0) _app.Achievements.Increment(Stat.IconsChanged);
             }));
             if (row.Item.Icon is not null) menu.Items.Add(Item(Loc.T("qm.resetIcon"), "SubtractCircle24", () => Mutate(() => row.Item.Icon = null)));
         }

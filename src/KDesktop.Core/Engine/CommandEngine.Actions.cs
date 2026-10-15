@@ -29,6 +29,8 @@ public sealed partial class CommandEngine
         CommandControlAction a => CommandControlAsync(a, ctx),
         WaitAction a => WaitAsync(a, ctx),
         PlayMacroAction a => PlayMacroAsync(a, ctx),
+        AudioOutputAction a => AudioOutputAsync(a),
+        KBoardAction a => Run(() => KBoard(a)),
         _ => Task.CompletedTask,
     };
 
@@ -240,6 +242,24 @@ public sealed partial class CommandEngine
         }
     });
 
+    private async Task AudioOutputAsync(AudioOutputAction a)
+    {
+        var rotation = a.Devices.Select(d => d.Id).ToList();
+        var device = await Task.Run(() => AudioDevices.Next(rotation, a.Communications)).ConfigureAwait(false);
+        if (device is null)
+        {
+            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.audioNone"), OsdKind.Warning);
+            return;
+        }
+        if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.audioOutput", device.Name), OsdKind.Success);
+        if (!string.IsNullOrWhiteSpace(a.Sound))
+        {
+            // Give Windows a moment to move the audio streams to the new device.
+            await Task.Delay(250).ConfigureAwait(false);
+            Sounds.Play(a.Sound);
+        }
+    }
+
     // ── Ventanas y sistema ───────────────────────────────────────────────
 
     private void TopMost(TopMostAction a, ExecutionContext ctx)
@@ -339,6 +359,20 @@ public sealed partial class CommandEngine
                 _ui.ShowOsd(Loc.T(enabled ? "osd.commandEnabled" : "osd.commandDisabled", target.Name));
                 break;
         }
+    }
+
+    private void KBoard(KBoardAction a)
+    {
+        if (Config.FindKBoard(a.ProfileId) is not { } profile) return;
+        var active = a.Mode switch
+        {
+            KBoardActionMode.Activate => true,
+            KBoardActionMode.Deactivate => false,
+            _ => !profile.Active,
+        };
+        _ui.RunOnUi(() => profile.Active = active);
+        if (a.ShowOsd)
+            _ui.ShowOsd(Loc.T(active ? "osd.kboardOn" : "osd.kboardOff", profile.Name), active ? OsdKind.Success : OsdKind.Info);
     }
 
     private async Task WaitAsync(WaitAction a, ExecutionContext ctx)

@@ -27,6 +27,8 @@ public static class Lookups
     public static IReadOnlyList<Option<VolumeMode>> VolumeModes { get; } = Enum<VolumeMode>("enum.volume");
     public static IReadOnlyList<Option<PowerMode>> PowerModes { get; } = Enum<PowerMode>("power");
     public static IReadOnlyList<Option<CommandControlMode>> CommandControlModes { get; } = Enum<CommandControlMode>("enum.commandControl");
+    public static IReadOnlyList<Option<KBoardActionMode>> KBoardActionModes { get; } = Enum<KBoardActionMode>("enum.kboardMode");
+    public static IReadOnlyList<Option<RemapKind>> RemapKinds { get; } = Enum<RemapKind>("enum.remapKind");
     public static IReadOnlyList<Option<ScriptShell>> ScriptShells { get; } = Enum<ScriptShell>("enum.shell");
     public static IReadOnlyList<Option<AppTheme>> Themes { get; } = Enum<AppTheme>("enum.theme");
     public static IReadOnlyList<Option<OsdPosition>> OsdPositions { get; } = Enum<OsdPosition>("enum.osdPosition");
@@ -44,6 +46,8 @@ public static class Lookups
     public static IEnumerable<QuickMenu> QuickMenuList => App.Current.Config.QuickMenus;
 
     public static IEnumerable<Macro> MacroList => App.Current.Config.Macros;
+
+    public static IEnumerable<KBoardProfile> KBoardList => App.Current.Config.KBoards;
 
     public static IReadOnlyList<Option<double>> MacroSpeeds { get; } =
         [.. new[] { 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 5, 10 }.Select(s => new Option<double>(s, s == 1 ? "editor.speedNormal" : $"×{s:0.##}"))];
@@ -94,4 +98,7 @@ public static class EditorCommands
     public static readonly RoutedUICommand EditMacro = new("EditMacro", nameof(EditMacro), typeof(EditorCommands));
     public static readonly RoutedUICommand CaptureStepKey = new("CaptureStepKey", nameof(CaptureStepKey), typeof(EditorCommands));
     public static readonly RoutedUICommand CaptureStepPosition = new("CaptureStepPosition", nameof(CaptureStepPosition), typeof(EditorCommands));
+    public static readonly RoutedUICommand AddAudioDevice = new("AddAudioDevice", nameof(AddAudioDevice), typeof(EditorCommands));
+    public static readonly RoutedUICommand RemoveAudioDevice = new("RemoveAudioDevice", nameof(RemoveAudioDevice), typeof(EditorCommands));
+    public static readonly RoutedUICommand EditKBoard = new("EditKBoard", nameof(EditKBoard), typeof(EditorCommands));
 }

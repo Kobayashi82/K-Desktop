@@ -263,6 +263,12 @@ internal static class Win32
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool LockWorkStation();
 
+    /// <summary>Disconnects the session: Windows shows the sign-in screen so another user can log in ("Switch user").</summary>
+    [DllImport("wtsapi32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool WTSDisconnectSession(IntPtr hServer, int sessionId, [MarshalAs(UnmanagedType.Bool)] bool bWait);
+    public const int WTS_CURRENT_SESSION = -1;
+
     // ── Processes / tokens ───────────────────────────────────────────────
     public const uint PROCESS_QUERY_INFORMATION = 0x0400, PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
     public const uint TOKEN_ASSIGN_PRIMARY = 0x0001, TOKEN_DUPLICATE = 0x0002, TOKEN_IMPERSONATE = 0x0004,

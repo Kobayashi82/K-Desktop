@@ -91,6 +91,14 @@ public static class PowerTools
             case PowerMode.Lock:
                 Win32.LockWorkStation();
                 return;
+            case PowerMode.SwitchUser:
+                // Same as "Switch user" in the Start menu: the session stays open and the sign-in screen appears.
+                if (!Win32.WTSDisconnectSession(IntPtr.Zero, Win32.WTS_CURRENT_SESSION, false))
+                {
+                    Log.Warn($"WTSDisconnectSession falló (error {System.Runtime.InteropServices.Marshal.GetLastWin32Error()}); se bloquea el equipo");
+                    Win32.LockWorkStation();
+                }
+                return;
             case PowerMode.Sleep:
             case PowerMode.Hibernate:
                 Win32.EnablePrivilege("SeShutdownPrivilege");

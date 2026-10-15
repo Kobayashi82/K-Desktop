@@ -58,6 +58,12 @@ public static class MacroPlayer
             case MacroStepKind.MouseMove:
                 InputSimulator.MoveTo(s.X, s.Y);
                 break;
+            case MacroStepKind.MouseMoveBy when s.Raw:
+                InputSimulator.MoveRaw(s.X, s.Y);
+                break;
+            case MacroStepKind.MouseMoveBy:
+                InputSimulator.MoveBy(s.X, s.Y);
+                break;
             case MacroStepKind.MouseDown:
                 InputSimulator.MoveTo(s.X, s.Y);
                 InputSimulator.MouseDown(s.Button);

@@ -12,6 +12,7 @@ public sealed class AppConfig
     public ObservableCollection<Command> Commands { get; set; } = [];
     public ObservableCollection<QuickMenu> QuickMenus { get; set; } = [];
     public ObservableCollection<Macro> Macros { get; set; } = [];
+    public ObservableCollection<KBoardProfile> KBoards { get; set; } = [];
 
     public Command? FindCommand(string? id) =>
         string.IsNullOrEmpty(id) ? null : Commands.FirstOrDefault(c => c.Id == id);
@@ -26,9 +27,18 @@ public sealed class AppConfig
                 case OpenQuickMenuAction q: q.MenuName = FindMenu(q.MenuId)?.Name; break;
                 case CommandControlAction c: c.CommandName = FindCommand(c.CommandId)?.Name; break;
                 case PlayMacroAction p: p.MacroName = FindMacro(p.MacroId)?.Name; break;
+                case KBoardAction k: k.ProfileName = FindKBoard(k.ProfileId)?.Name; break;
             }
         }
+        foreach (var remap in KBoards.SelectMany(k => k.Remaps).Where(r => r.Kind == RemapKind.Command))
+            remap.CommandName = FindCommand(remap.CommandId)?.Name;
     }
+
+    public KBoardProfile? FindKBoard(string? idOrName) =>
+        string.IsNullOrEmpty(idOrName)
+            ? null
+            : KBoards.FirstOrDefault(k => k.Id == idOrName) ??
+              KBoards.FirstOrDefault(k => k.Name.Equals(idOrName, StringComparison.OrdinalIgnoreCase));
 
     public Macro? FindMacro(string? idOrName) =>
         string.IsNullOrEmpty(idOrName)

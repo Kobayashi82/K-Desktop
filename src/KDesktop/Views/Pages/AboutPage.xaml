@@ -3,8 +3,37 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:l="clr-namespace:KDesktop.Localization">
+    <UserControl.Resources>
+        <Style x:Key="FilterPill" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="B" CornerRadius="13" Padding="11,4" BorderThickness="1"
+                                Background="Transparent" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="B" Property="Background" Value="{DynamicResource Kd.SubtleHover}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="B" Property="Background" Value="{DynamicResource Kd.AccentSoft}" />
+                                <Setter TargetName="B" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Kd.AccentText}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24,12,24,24">
-        <StackPanel MaxWidth="820" HorizontalAlignment="Left">
+        <StackPanel MaxWidth="900" HorizontalAlignment="Left">
             <Border Style="{StaticResource Card}" Padding="28,24">
                 <StackPanel Orientation="Horizontal">
                     <Image Source="pack://application:,,,/KDesktop;component/Assets/Icons/KDesktop.ico" Width="84" Height="84" RenderOptions.BitmapScalingMode="HighQuality" />
@@ -17,10 +46,60 @@
                 </StackPanel>
             </Border>
 
-            <Border Style="{StaticResource Card}">
+            <!-- Did you know… -->
+            <Border Style="{StaticResource Card}" Padding="22,18">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr about.tips}" />
-                    <TextBlock Style="{StaticResource Caption}" FontSize="13" LineHeight="22" Text="{l:Tr about.tipsText}" />
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0">
+                            <ui:SymbolIcon Symbol="Lightbulb24" Filled="True" FontSize="20" Foreground="{DynamicResource Kd.AccentText}" Margin="0,0,10,0" />
+                            <TextBlock Text="{l:Tr tips.title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        </StackPanel>
+                        <WrapPanel x:Name="Filters" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                    </Grid>
+
+                    <Grid x:Name="TipHost" MinHeight="128" ClipToBounds="True" Background="Transparent" MouseEnter="OnTipEnter" MouseLeave="OnTipLeave">
+                        <Grid x:Name="TipCard">
+                            <Grid.RenderTransform>
+                                <TranslateTransform x:Name="TipShift" />
+                            </Grid.RenderTransform>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Image x:Name="TipIcon" Width="60" Height="60" VerticalAlignment="Top" Margin="0,2,20,0" />
+                            <StackPanel Grid.Column="1">
+                                <TextBlock x:Name="TipCategory" Style="{StaticResource Caption}" FontWeight="SemiBold" Margin="0,0,0,8" />
+                                <WrapPanel x:Name="TipKeys" Margin="0,0,0,10" />
+                                <TextBlock x:Name="TipText" FontSize="16" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+
+                    <Grid Margin="0,16,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid VerticalAlignment="Center" Margin="0,0,16,0">
+                            <Border Height="3" CornerRadius="1.5" Background="{DynamicResource Kd.BarTrack}" />
+                            <Border Height="3" CornerRadius="1.5" Background="{DynamicResource Kd.Bar}" RenderTransformOrigin="0,0.5">
+                                <Border.RenderTransform>
+                                    <ScaleTransform x:Name="Progress" ScaleX="0" />
+                                </Border.RenderTransform>
+                            </Border>
+                        </Grid>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <TextBlock x:Name="Counter" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <ui:Button Style="{StaticResource IconButton}" Padding="8" Icon="{ui:SymbolIcon ChevronLeft24}" ToolTip="{l:Tr tips.previous}" Click="OnPrevious" />
+                            <ui:Button x:Name="PlayButton" Style="{StaticResource IconButton}" Padding="8" Icon="{ui:SymbolIcon Pause24}" ToolTip="{l:Tr tips.pause}" Click="OnPlayPause" />
+                            <ui:Button Style="{StaticResource IconButton}" Padding="8" Icon="{ui:SymbolIcon ArrowShuffle24}" ToolTip="{l:Tr tips.random}" Click="OnRandom" />
+                            <ui:Button Style="{StaticResource IconButton}" Padding="8" Icon="{ui:SymbolIcon ChevronRight24}" ToolTip="{l:Tr tips.next}" Click="OnNext" />
+                        </StackPanel>
+                    </Grid>
                 </StackPanel>
             </Border>
 

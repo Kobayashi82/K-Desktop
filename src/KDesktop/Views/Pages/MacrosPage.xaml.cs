@@ -350,8 +350,8 @@ public partial class MacrosPage : UserControl, IDisposable
             Kind = kind,
             Delay = 100,
             Vk = kind is MacroStepKind.KeyDown or MacroStepKind.KeyUp or MacroStepKind.KeyPress ? KeyNames.VK_RETURN : 0,
-            X = x,
-            Y = y,
+            X = kind == MacroStepKind.MouseMoveBy ? 100 : x,
+            Y = kind == MacroStepKind.MouseMoveBy ? 0 : y,
             Wheel = kind == MacroStepKind.Wheel ? 120 : 0,
             Text = kind == MacroStepKind.Text ? "" : null,
         };
@@ -428,6 +428,7 @@ public sealed class StepIconConverter : IValueConverter
         MacroStepKind.KeyPress => SymbolRegular.Keyboard24,
         MacroStepKind.Text => SymbolRegular.TextT24,
         MacroStepKind.MouseMove => SymbolRegular.Cursor24,
+        MacroStepKind.MouseMoveBy => SymbolRegular.ArrowMove24,
         MacroStepKind.Wheel => SymbolRegular.ArrowSort24,
         _ => SymbolRegular.CursorClick24,
     };

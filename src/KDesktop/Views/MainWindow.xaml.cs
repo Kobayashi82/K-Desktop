@@ -65,6 +65,12 @@ public partial class MainWindow : FluentWindow
         if (macroId is not null && _pages.GetValueOrDefault("macros") is Pages.MacrosPage page) page.Select(macroId);
     }
 
+    public void OpenKBoard(string? profileId)
+    {
+        Navigate("kboard");
+        if (profileId is not null && _pages.GetValueOrDefault("kboard") is Pages.KBoardPage page) page.Select(profileId);
+    }
+
     public void Navigate(string key, bool fromList = false)
     {
         if (key == "stats")
@@ -91,6 +97,7 @@ public partial class MainWindow : FluentWindow
             {
                 "quickmenus" => new Pages.QuickMenusPage(),
                 "macros" => new Pages.MacrosPage(),
+                "kboard" => new Pages.KBoardPage(),
                 "achievements" => new Pages.AchievementsPage(),
                 "settings" => new Pages.SettingsPage(),
                 "about" => new Pages.AboutPage(),

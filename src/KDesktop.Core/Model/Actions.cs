@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -11,7 +12,7 @@ public enum ActionKind
     SendInput, Volume, PlaySound,
     TopMost, HiddenFiles, ToggleDisabledIn, ShowMessage, Power,
     OpenQuickMenu, CommandControl, Wait,
-    PlayMacro,
+    PlayMacro, AudioOutput, KBoard,
 }
 
 public enum WindowMode { Normal, Minimized, Maximized, Hidden }
@@ -20,7 +21,7 @@ public enum AppControlMode { Activate, Close, WaitFor }
 public enum WaitCondition { Activated, Opened, Closed }
 public enum SendInputMode { Keys, Text, MouseMoveTo, MouseMoveBy }
 public enum VolumeMode { Set, Up, Down, ToggleMute }
-public enum PowerMode { Shutdown, Restart, LogOff, Lock, Sleep, Hibernate }
+public enum PowerMode { Shutdown, Restart, LogOff, SwitchUser, Lock, Sleep, Hibernate }
 public enum CommandControlMode { Run, Enable, Disable, Toggle }
 public enum ScriptShell { Cmd, PowerShell }
 
@@ -43,6 +44,8 @@ public enum ScriptShell { Cmd, PowerShell }
 [JsonDerivedType(typeof(CommandControlAction), "commandControl")]
 [JsonDerivedType(typeof(WaitAction), "wait")]
 [JsonDerivedType(typeof(PlayMacroAction), "playMacro")]
+[JsonDerivedType(typeof(AudioOutputAction), "audioOutput")]
+[JsonDerivedType(typeof(KBoardAction), "kboard")]
 public abstract partial class CommandAction : ObservableObject
 {
     [ObservableProperty] private bool _enabled = true;
@@ -186,6 +189,48 @@ public partial class VolumeAction : CommandAction
         VolumeMode.Up => Value > 0 ? Loc.T("summary.volume.upBy", Value) : Loc.T("summary.volume.up"),
         VolumeMode.Down => Value > 0 ? Loc.T("summary.volume.downBy", Value) : Loc.T("summary.volume.down"),
         _ => Loc.T("summary.volume.mute"),
+    };
+}
+
+/// <summary>A playback device chosen in "Audio output" (the name is kept to show it while it is disconnected).</summary>
+public sealed class AudioDeviceRef
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+}
+
+public partial class AudioOutputAction : CommandAction
+{
+    /// <summary>Devices to rotate through, in order. Empty = every connected device.</summary>
+    public ObservableCollection<AudioDeviceRef> Devices
+    {
+        get;
+        set
+        {
+            if (field is not null) field.CollectionChanged -= OnDevicesChanged;
+            field = value ?? [];
+            field.CollectionChanged += OnDevicesChanged;
+        }
+    } = [];
+
+    /// <summary>Also make it the default communications device (calls, Teams, Discord…).</summary>
+    [ObservableProperty] private bool _communications = true;
+    [ObservableProperty] private bool _showOsd = true;
+
+    /// <summary>Sound played on the new device right after switching (empty = none).</summary>
+    [ObservableProperty] private string? _sound;
+
+    public AudioOutputAction() => Devices.CollectionChanged += OnDevicesChanged;
+
+    private void OnDevicesChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) =>
+        OnPropertyChanged(nameof(Devices));
+
+    public override ActionKind Kind => ActionKind.AudioOutput;
+    public override string Summary => Devices.Count switch
+    {
+        0 => Loc.T("summary.audio.all"),
+        1 => Loc.T("summary.audio.one", Devices[0].Name),
+        _ => string.Join("  →  ", Devices.Select(d => d.Name)),
     };
 }
 

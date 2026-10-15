@@ -49,6 +49,12 @@ public static class Stat
     public const string IconsChanged = "icons.changed";
     public const string Cancelled = "countdowns.cancelled";
     public const string MouseChords = "hotkeys.chords";
+    public const string AudioSwitched = "audio.switched";
+    public const string TipsSeen = "tips.seen";
+
+    public const string KBoardsCreated = "kboard.created";
+    public const string KBoardRemapped = "kboard.remapped";
+    public const string KBoardToggled = "kboard.toggled";
 
     // Not real counters: computed by the service.
     public const string Days = "@days";
@@ -60,7 +66,8 @@ public static class Stat
         ("commands", [CommandsRun, CommandsCreated, CommandsDeleted, ActionsRun, ActionsCreated, ActionsDeleted]),
         ("menus", [MenusOpened, MenusCreated, MenusDeleted, RemoteRun]),
         ("apps", [AppsLaunched, FoldersOpened, WebOpened, ScriptsRun, KeysSent, MacrosPlayed, MacrosRecorded]),
-        ("system", [VolumeChanged, SoundsPlayed, TopMostToggled, HiddenFilesToggled, DisabledInToggled, RecycleEmptied, PowerUsed, IconsChanged, AppStarted]),
+        ("kboard", [KBoardRemapped, KBoardToggled, KBoardsCreated]),
+        ("system", [VolumeChanged, AudioSwitched, SoundsPlayed, TopMostToggled, HiddenFilesToggled, DisabledInToggled, RecycleEmptied, PowerUsed, IconsChanged, TipsSeen, AppStarted]),
     ];
 }
 

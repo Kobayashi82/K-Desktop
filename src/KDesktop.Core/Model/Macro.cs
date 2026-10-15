@@ -11,7 +11,7 @@ namespace KDesktop.Core.Model;
 public enum MacroStepKind
 {
     KeyDown, KeyUp, KeyPress, Text,
-    MouseDown, MouseUp, Click, MouseMove, Wheel,
+    MouseDown, MouseUp, Click, MouseMove, MouseMoveBy, Wheel,
 }
 
 /// <summary>A recorded (or hand-written) sequence of keyboard and mouse events with their timing.</summary>
@@ -131,11 +131,15 @@ public partial class MacroStep : ObservableObject
     /// <summary>Text to type (Text steps).</summary>
     [ObservableProperty] private string? _text;
 
+    /// <summary>MouseMoveBy: relative "raw" movement (what games read) instead of moving the pointer exactly X, Y pixels.</summary>
+    [ObservableProperty] private bool _raw;
+
     [JsonIgnore] public bool IsKey => Kind is MacroStepKind.KeyDown or MacroStepKind.KeyUp or MacroStepKind.KeyPress;
     [JsonIgnore] public bool IsMouseButton => Kind is MacroStepKind.MouseDown or MacroStepKind.MouseUp or MacroStepKind.Click;
     [JsonIgnore] public bool HasPosition => IsMouseButton || Kind == MacroStepKind.MouseMove;
     [JsonIgnore] public bool IsText => Kind == MacroStepKind.Text;
     [JsonIgnore] public bool IsWheel => Kind == MacroStepKind.Wheel;
+    [JsonIgnore] public bool IsRelativeMove => Kind == MacroStepKind.MouseMoveBy;
 
     [JsonIgnore] public string KeyName
     {
@@ -160,11 +164,14 @@ public partial class MacroStep : ObservableObject
         MacroStepKind.MouseUp => Loc.T("macro.step.MouseUp", ButtonName(Button), X, Y),
         MacroStepKind.Click => Loc.T("macro.step.Click", ButtonName(Button), X, Y),
         MacroStepKind.MouseMove => Loc.T("macro.step.MouseMove", X, Y),
+        MacroStepKind.MouseMoveBy => Loc.T(Raw ? "macro.step.MouseMoveByRaw" : "macro.step.MouseMoveBy", Signed(X), Signed(Y)),
         MacroStepKind.Wheel => Loc.T(Horizontal ? "macro.step.HWheel" : "macro.step.Wheel", Wheel > 0 ? "↑" : "↓", Math.Max(1, Math.Abs(Wheel) / 120)),
         _ => Kind.ToString(),
     };
 
     public static string ButtonName(MouseButton b) => Loc.T($"macro.button.{b}");
+
+    private static string Signed(int v) => v > 0 ? "+" + v : v.ToString();
 
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
@@ -180,6 +187,7 @@ public partial class MacroStep : ObservableObject
                 base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(HasPosition)));
                 base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(IsText)));
                 base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(IsWheel)));
+                base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(IsRelativeMove)));
             }
         }
     }
@@ -190,7 +198,7 @@ public partial class MacroStep : ObservableObject
     public MacroStep Clone() => new()
     {
         Kind = Kind, Delay = Delay, Vk = Vk, Extended = Extended, Button = Button,
-        X = X, Y = Y, Wheel = Wheel, Horizontal = Horizontal, Text = Text,
+        X = X, Y = Y, Wheel = Wheel, Horizontal = Horizontal, Text = Text, Raw = Raw,
     };
 }
 

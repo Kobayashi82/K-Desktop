@@ -217,6 +217,8 @@ public sealed class AchievementService : IDisposable
                 stats.Add(Stat.MacrosPlayed);
                 if (m.UntilStopped) special = "macro-loop";
                 break;
+            case AudioOutputAction: stats.Add(Stat.AudioSwitched); break;
+            case KBoardAction: stats.Add(Stat.KBoardToggled); break;
         }
 
         List<AchievementDef> unlocked = [];

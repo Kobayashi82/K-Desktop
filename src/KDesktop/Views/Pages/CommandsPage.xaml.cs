@@ -224,9 +224,9 @@ public partial class CommandsPage : UserControl, IDisposable
     private void OnChooseIcon(object sender, RoutedEventArgs e)
     {
         if (_selected is null) return;
-        if (IconPicker.Pick("cmd-" + _selected.Id) is not { } file) return;
-        _selected.Icon = file;
-        _app.Achievements.Increment(Stat.IconsChanged);
+        if (Dialogs.IconPicker.Pick(Window.GetWindow(this), _selected.Icon, "cmd-" + _selected.Id) is not { } icon) return;
+        _selected.Icon = icon.Length == 0 ? null : icon;
+        if (icon.Length > 0) _app.Achievements.Increment(Stat.IconsChanged);
     }
 
     private void OnResetIcon(object sender, RoutedEventArgs e)
@@ -309,6 +309,11 @@ public partial class CommandsPage : UserControl, IDisposable
             pm.MacroId = macro.Id;
             pm.MacroName = macro.Name;
         }
+        if (action is KBoardAction kb && Config.KBoards.FirstOrDefault() is { } profile)
+        {
+            kb.ProfileId = profile.Id;
+            kb.ProfileName = profile.Name;
+        }
         action.PropertyChanged += OnActionReferenceChanged;
         _selected.Actions.Add(action);
         _app.Achievements.Increment(Stat.ActionsCreated);
@@ -333,6 +338,9 @@ public partial class CommandsPage : UserControl, IDisposable
                 break;
             case PlayMacroAction m when e.PropertyName == nameof(PlayMacroAction.MacroId):
                 m.MacroName = Config.FindMacro(m.MacroId)?.Name;
+                break;
+            case KBoardAction k when e.PropertyName == nameof(KBoardAction.ProfileId):
+                k.ProfileName = Config.FindKBoard(k.ProfileId)?.Name;
                 break;
         }
     }
@@ -457,6 +465,36 @@ public partial class CommandsPage : UserControl, IDisposable
     private void OnEditMacro(object sender, ExecutedRoutedEventArgs e) =>
         (Window.GetWindow(this) as MainWindow)?.OpenMacro(e.Parameter as string);
 
+    private void OnEditKBoard(object sender, ExecutedRoutedEventArgs e) =>
+        (Window.GetWindow(this) as MainWindow)?.OpenKBoard(e.Parameter as string);
+
+    private void OnAddAudioDevice(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.Parameter is not AudioOutputAction a) return;
+        AudioDeviceCache.Invalidate();
+        var menu = new ContextMenu { PlacementTarget = e.OriginalSource as UIElement, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom };
+        var devices = AudioDeviceCache.Devices.Where(d => a.Devices.All(x => x.Id != d.Id)).ToList();
+        foreach (var device in devices)
+        {
+            var item = new MenuItem
+            {
+                Header = device.Name + (device.IsDefault ? "  ·  " + Loc.T("editor.audioDefault") : device.IsActive ? "" : "  ·  " + Loc.T("editor.audioDisconnected")),
+                ToolTip = device.Adapter,
+                Icon = new SymbolIcon { Symbol = AudioDeviceSymbolConverter.Symbol(device.FormFactor) },
+            };
+            item.Click += (_, _) => a.Devices.Add(new AudioDeviceRef { Id = device.Id, Name = device.Name });
+            menu.Items.Add(item);
+        }
+        if (devices.Count == 0) menu.Items.Add(new MenuItem { Header = Loc.T("editor.audioNoMore"), IsEnabled = false });
+        menu.IsOpen = true;
+    }
+
+    private void OnRemoveAudioDevice(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (_selected is null || e.Parameter is not AudioDeviceRef device) return;
+        foreach (var a in _selected.Actions.OfType<AudioOutputAction>()) a.Devices.Remove(device);
+    }
+
     // ── processes ────────────────────────────────────────────────────────
 
     private void OnProcessDropDown(object sender, EventArgs e) => ProcessBox.ItemsSource = Lookups.RunningProcesses();
@@ -489,49 +527,3 @@ public partial class CommandsPage : UserControl, IDisposable
     }
 }
 
-/// <summary>Lets the user pick an image/ico/exe and stores it in the icons folder.</summary>
-public static class IconPicker
-{
-    public static string? Pick(string baseName)
-    {
-        var dlg = new OpenFileDialog
-        {
-            Title = Loc.T("editor.chooseIcon"),
-            Filter = Loc.T("editor.filterIcons") + "|*.ico;*.png;*.jpg;*.jpeg;*.bmp;*.exe;*.dll;*.lnk|" + Loc.T("editor.filterAll") + "|*.*",
-            DereferenceLinks = false,
-        };
-        if (dlg.ShowDialog() != true) return null;
-        return Import(dlg.FileName, baseName);
-    }
-
-    /// <summary>Copies an image (or the icon of an exe/lnk) into the icons folder and returns the file name.</summary>
-    public static string? Import(string source, string baseName)
-    {
-        try
-        {
-            Directory.CreateDirectory(AppPaths.IconsDir);
-            var ext = Path.GetExtension(source).ToLowerInvariant();
-            var stamp = DateTime.Now.ToString("yyMMddHHmmss");
-            if (ext is ".ico" or ".png" or ".jpg" or ".jpeg" or ".bmp")
-            {
-                var file = $"{baseName}-{stamp}{ext}";
-                File.Copy(source, Path.Combine(AppPaths.IconsDir, file), true);
-                return file;
-            }
-            if (IconProvider.Shell(source) is BitmapSource bmp)
-            {
-                var file = $"{baseName}-{stamp}.png";
-                using var stream = File.Create(Path.Combine(AppPaths.IconsDir, file));
-                var encoder = new PngBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(bmp));
-                encoder.Save(stream);
-                return file;
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Error("No se pudo importar el icono", ex);
-        }
-        return null;
-    }
-}

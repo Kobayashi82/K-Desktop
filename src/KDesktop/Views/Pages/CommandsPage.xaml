@@ -83,6 +83,9 @@
         <CommandBinding Command="{x:Static v:EditorCommands.RemoveHotkey}" Executed="OnRemoveHotkey" />
         <CommandBinding Command="{x:Static v:EditorCommands.RemoveProcess}" Executed="OnRemoveProcess" />
         <CommandBinding Command="{x:Static v:EditorCommands.EditMacro}" Executed="OnEditMacro" />
+        <CommandBinding Command="{x:Static v:EditorCommands.AddAudioDevice}" Executed="OnAddAudioDevice" />
+        <CommandBinding Command="{x:Static v:EditorCommands.RemoveAudioDevice}" Executed="OnRemoveAudioDevice" />
+        <CommandBinding Command="{x:Static v:EditorCommands.EditKBoard}" Executed="OnEditKBoard" />
     </UserControl.CommandBindings>
 
     <Grid Margin="24,12,0,0">
@@ -187,7 +190,8 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <Button x:Name="IconButton" Width="60" Height="60" Padding="8" Cursor="Hand" Click="OnChooseIcon" ToolTip="{l:Tr commands.changeIcon}">
+                            <Button x:Name="IconButton" Width="60" Height="60" Padding="8" Cursor="Hand" Click="OnChooseIcon" ToolTip="{l:Tr commands.changeIcon}"
+                                    AutomationProperties.Name="{l:Tr commands.changeIcon}">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
                                         <Border x:Name="B" CornerRadius="10" Background="{DynamicResource Kd.Subtle}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
