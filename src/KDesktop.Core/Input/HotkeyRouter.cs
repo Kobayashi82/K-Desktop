@@ -5,8 +5,7 @@ namespace KDesktop.Core.Input;
 
 public enum BuiltInHotkey { ShowWindow, Exit }
 
-/// <param name="IsHeld">For keyboard hotkeys: whether its key is still physically down (hold-to-talk).</param>
-public sealed record HotkeyTrigger(string Hotkey, IReadOnlyList<Command> Commands, bool IsRepeat, ForegroundWindow Foreground, Func<bool>? IsHeld = null);
+public sealed record HotkeyTrigger(string Hotkey, IReadOnlyList<Command> Commands, bool IsRepeat, ForegroundWindow Foreground);
 
 /// <summary>
 /// Turns raw hook events into hotkeys ("CTRL + ALT + O", "Mouse 4 + Mouse 1", "CTRL + Wheel Up"),
@@ -37,6 +36,16 @@ public sealed partial class HotkeyRouter : IDisposable
 
     public event Action<HotkeyTrigger>? Triggered;
     public event Action<BuiltInHotkey>? BuiltIn;
+
+    /// <summary>
+    /// The voice hotkey was pressed. The argument tells whether it is still held (hold to talk); for the wheel it
+    /// is always false (a tap).
+    /// </summary>
+    public event Action<Func<bool>>? VoiceRequested;
+
+    // Mouse button used as the voice hotkey while it is held (hook thread writes, the voice session reads).
+    private MouseButton? _voiceButton;
+    private volatile bool _voiceButtonHeld;
 
     /// <summary>Asked when Escape is pressed: return true if something cancellable is running.</summary>
     public Func<bool>? HasCancellable { get; set; }
@@ -160,6 +169,12 @@ public sealed partial class HotkeyRouter : IDisposable
             return Block(vk, mods);
         }
 
+        if (index.VoiceHotkey.Length > 0 && hotkey.Equals(index.VoiceHotkey, StringComparison.OrdinalIgnoreCase))
+        {
+            if (!repeat) Post(() => VoiceRequested?.Invoke(() => IsKeyHeld(vk)));
+            return Block(vk, mods);
+        }
+
         if (vk == KeyNames.VK_ESCAPE && mods == Modifiers.None && HasCancellable?.Invoke() == true)
         {
             Post(() => CancelRequested?.Invoke());
@@ -169,7 +184,7 @@ public sealed partial class HotkeyRouter : IDisposable
         if (!index.Contains(hotkey)) return false;
         var fg = ForegroundWindow.Capture();
         var commands = index.Resolve(hotkey, fg.ProcessName, out var block);
-        if (commands.Count > 0) Post(() => Triggered?.Invoke(new HotkeyTrigger(hotkey, commands, repeat, fg, () => IsKeyHeld(vk))));
+        if (commands.Count > 0) Post(() => Triggered?.Invoke(new HotkeyTrigger(hotkey, commands, repeat, fg)));
         return block && Block(vk, mods);
     }
 
@@ -262,6 +277,15 @@ public sealed partial class HotkeyRouter : IDisposable
         }
 
         var index = _index;
+        if (index.VoiceHotkey.Length > 0 && hotkey.Equals(index.VoiceHotkey, StringComparison.OrdinalIgnoreCase))
+        {
+            _armed = false; // nothing fires on release
+            _voiceButton = button;
+            _voiceButtonHeld = true;
+            _blockedButtons.Add(button);
+            Post(() => VoiceRequested?.Invoke(() => _voiceButtonHeld));
+            return true;
+        }
         var block = false;
         ForegroundWindow? fg = null;
         if (button is MouseButton.X1 or MouseButton.X2 && index.BlockSideButtons)
@@ -281,6 +305,11 @@ public sealed partial class HotkeyRouter : IDisposable
     private bool OnMouseUp(MouseButton button)
     {
         var name = ButtonName(button);
+        if (_voiceButton == button)
+        {
+            _voiceButton = null;
+            _voiceButtonHeld = false;
+        }
         var fire = _armed && _chord.Count > 0 ? Hotkey.Format(CurrentModifiers(), string.Join(Hotkey.Separator, _chord)) : null;
         _armed = false;
         _chord.Remove(name);
@@ -314,6 +343,12 @@ public sealed partial class HotkeyRouter : IDisposable
         }
 
         var index = _index;
+        if (index.VoiceHotkey.Length > 0 && hotkey.Equals(index.VoiceHotkey, StringComparison.OrdinalIgnoreCase))
+        {
+            _armed = false;
+            Post(() => VoiceRequested?.Invoke(static () => false));
+            return true;
+        }
         if (!index.Contains(hotkey)) return false;
         var fg = ForegroundWindow.Capture();
         var commands = index.Resolve(hotkey, fg.ProcessName, out var block);

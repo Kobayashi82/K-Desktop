@@ -130,8 +130,9 @@ embeddings multilingües → LLM opcional) y siete etapas con su commit cada una
       `VoiceActivity` (Silero VAD, fin tras 0,8 s de silencio), `SpeechToText` (Parakeet int8 con sherpa-onnx 1.13.8,
       carga perezosa, se descarga de memoria tras `VoiceUnloadMinutes`), `IntentMatcher` (cobertura del nombre con
       raíces «abre/abrir», verbos opcionales, sinónimos es↔en y penalización de palabras sobrantes) y `VoiceService`.
-      Acción «Escuchar orden de voz»: con atajo de teclado escucha mientras se mantiene (`HotkeyRouter.IsKeyHeld`),
-      un toque o cualquier otro origen escucha hasta el silencio; repetirla la termina antes y Esc la cancela. OSD con
+      Atajo propio en Opciones › Voz (`VoiceHotkey`, integrado en `HotkeyRouter` como los de abrir/salir; no es una
+      acción de comando): tecla o botón del ratón mantenido = escucha mientras se mantiene (`IsKeyHeld`), un toque o la
+      rueda = hasta el silencio; pulsarlo otra vez la termina antes y Esc la cancela. OSD con
       medidor de nivel; origen «voz» en estadísticas; icono de estado. Los comandos con «Energía» no se ejecutan por voz
       hasta tener confirmaciones (etapa 6). Modelos en `Models` de la carpeta de datos (`VoiceModels`).
       Diagnóstico sin micro: `KDesktop.exe --voice-test a.wav carpeta "frase"… [--no-open]` → `Logs\voice-test.txt`.

@@ -109,8 +109,10 @@ comandos reales (un test o un modo de diagnóstico).
 - OSD (reutilizar OsdWindow): «Escuchando…» con nivel de micro → texto entendido → comando que se va a ejecutar (o la
   pregunta «¿Ejecutar X? Di sí/no», que se responde por voz, o Enter/Esc).
 - Sonidos opcionales al empezar y terminar de escuchar (sistema de sonidos existente).
-- Icono o estado en la bandeja: voz activa/en pausa; acción nueva «Voz: pausar/reanudar» y acción «Escuchar orden»
-  (para asignar el atajo de mantener pulsado; reutilizar HotkeyRouter).
+- Icono o estado en la bandeja: voz activa/en pausa.
+- **Decisión del usuario (2026-10-16):** la voz no es una acción de comando. Se activa con su propio atajo en
+  Opciones › Voz (como los de abrir/salir: mantener pulsado para hablar, o un toque) y con las palabras de activación
+  (puede haber varias, cada una con su grabación). Lo que se dice después elige y ejecuta el comando.
 - Estadísticas: ejecuciones con origen «voz». Si encaja, algunos logros de voz.
 - Opciones → página/sección «Voz»: activar, micrófono, atajo, palabra de activación (asistente), sensibilidad, modelos
   (descargar/estado/borrar), confirmaciones, descargar los modelos de la memoria tras X min, capa LLM sí/no.

@@ -123,6 +123,9 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private bool _webInput = true;
 
     // Voice
+    /// <summary>Hold to talk (or tap and talk). Empty: no hotkey.</summary>
+    [ObservableProperty] private string _voiceHotkey = string.Empty;
+
     /// <summary>Microphone for voice orders (endpoint id); null: the Windows default one.</summary>
     [ObservableProperty] private string? _voiceMicId;
 

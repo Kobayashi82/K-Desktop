@@ -15,8 +15,7 @@ public sealed record ExecutionContext(
     ForegroundWindow Foreground,
     bool IsRepeat,
     CancellationToken Token,
-    int Depth = 0,
-    Func<bool>? IsHeld = null)
+    int Depth = 0)
 {
     public bool Quiet => Source is TriggerSource.Startup or TriggerSource.Exit;
 
@@ -58,9 +57,6 @@ public sealed partial class CommandEngine
     /// </summary>
     public bool IsPaused => Config.Settings.Paused;
 
-    /// <summary>Voice orders (the «Listen for an order» action); set by the app.</summary>
-    public Voice.VoiceService? Voice { get; set; }
-
     /// <summary>True while a cancellable operation (countdown, wait, message) is in progress.</summary>
     public bool HasCancellable => !_cancellable.IsEmpty;
 
@@ -81,7 +77,7 @@ public sealed partial class CommandEngine
     public Task RunByIdAsync(string id, TriggerSource source, ForegroundWindow? foreground = null) =>
         Config.FindCommand(id) is { } cmd ? RunAsync(cmd, source, foreground) : Task.CompletedTask;
 
-    private async Task RunAsync(Command command, TriggerSource source, ForegroundWindow foreground, bool isRepeat, int depth, Func<bool>? isHeld = null)
+    private async Task RunAsync(Command command, TriggerSource source, ForegroundWindow foreground, bool isRepeat, int depth)
     {
         if (depth > MaxNesting)
         {
@@ -106,7 +102,7 @@ public sealed partial class CommandEngine
         }
         if (!isRepeat) _running[command.Id] = cts;
 
-        var ctx = new ExecutionContext(command, source, foreground, isRepeat, cts.Token, depth, isHeld);
+        var ctx = new ExecutionContext(command, source, foreground, isRepeat, cts.Token, depth);
         try
         {
             if (!isRepeat && !ctx.Quiet) Sounds.Play(command.Sound);
@@ -163,7 +159,7 @@ public sealed partial class CommandEngine
     public void OnHotkey(HotkeyTrigger trigger)
     {
         foreach (var cmd in trigger.Commands)
-            _ = RunAsync(cmd, TriggerSource.Hotkey, trigger.Foreground, trigger.IsRepeat, 0, trigger.IsHeld);
+            _ = RunAsync(cmd, TriggerSource.Hotkey, trigger.Foreground, trigger.IsRepeat, 0);
     }
 
     /// <summary>Wraps a long operation so Escape can cancel it.</summary>

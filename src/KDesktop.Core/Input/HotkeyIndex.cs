@@ -18,6 +18,9 @@ public sealed class HotkeyIndex
 
     public string ShowWindowHotkey { get; }
     public string ExitHotkey { get; }
+
+    /// <summary>Hold to talk (Settings › Voice); empty when unset or paused.</summary>
+    public string VoiceHotkey { get; }
     public bool BlockSideButtons { get; }
 
     /// <param name="paused">K-Desktop paused: only its own hotkeys (show window, exit) stay; no commands, no blocking.</param>
@@ -46,6 +49,7 @@ public sealed class HotkeyIndex
         _sideButtonsBlockedIn = settings.BlockSideButtonsIn.Select(ProcessNames.Normalize).ToHashSet();
         ShowWindowHotkey = Hotkey.Normalize(settings.ShowWindowHotkey);
         ExitHotkey = Hotkey.Normalize(settings.ExitHotkey);
+        VoiceHotkey = paused || string.IsNullOrWhiteSpace(settings.VoiceHotkey) ? string.Empty : Hotkey.Normalize(settings.VoiceHotkey);
         BlockSideButtons = settings.BlockSideButtons && !paused;
     }
 

@@ -54,23 +54,31 @@ public sealed class VoiceService : IDisposable
 
     public static IEnumerable<Command> VoiceCommands(AppConfig config) =>
         config.Commands.Where(c => c.Enabled
-            && !c.Actions.Any(a => a is VoiceListenAction)
             // Until voice confirmations exist, nothing that switches the PC off or logs out runs by voice.
             && !c.Actions.Any(a => a is PowerAction));
 
+    private CancellationTokenSource? _abort;
+
+    /// <summary>Drops the current session without running anything (Escape).</summary>
+    public void Cancel()
+    {
+        try { _abort?.Cancel(); } catch (ObjectDisposedException) { }
+    }
+
     /// <summary>
-    /// One listening session. With <paramref name="held"/> it lasts while that returns true (a quick tap instead
-    /// switches to «until silence»); without it, until the speaker goes quiet. A second call during a session ends
-    /// the first one early. <paramref name="stop"/> ends it and still processes what was said;
-    /// <paramref name="abort"/> drops it (Escape).
+    /// One listening session (the voice hotkey, later the wake word). With <paramref name="held"/> it lasts while
+    /// that returns true (a quick tap instead switches to «until silence»); without it, until the speaker goes
+    /// quiet. A second call during a session ends the first one early, keeping what was said.
     /// </summary>
-    public async Task ListenAsync(Func<bool>? held, CancellationToken stop, CancellationToken abort)
+    public async Task ListenAsync(Func<bool>? held)
     {
         if (Interlocked.CompareExchange(ref _active, 1, 0) != 0)
         {
             _stopRequested = true;
             return;
         }
+        using var abort = new CancellationTokenSource();
+        _abort = abort;
         try
         {
             if (!VoiceModels.Ready)
@@ -80,16 +88,21 @@ public sealed class VoiceService : IDisposable
             }
             _stopRequested = false;
             StateChanged?.Invoke();
-            await SessionAsync(held, stop, abort).ConfigureAwait(false);
+            await SessionAsync(held, abort.Token).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Error en la orden de voz", ex);
         }
         finally
         {
+            _abort = null;
             _active = 0;
             StateChanged?.Invoke();
         }
     }
 
-    private async Task SessionAsync(Func<bool>? held, CancellationToken stop, CancellationToken abort)
+    private async Task SessionAsync(Func<bool>? held, CancellationToken abort)
     {
         var settings = _config().Settings;
         SpeechToText.IdleUnload = TimeSpan.FromMinutes(Math.Max(1, settings.VoiceUnloadMinutes));
@@ -133,7 +146,7 @@ public sealed class VoiceService : IDisposable
                     osd.Finish(Loc.T("voice.cancelled"), OsdKind.Info);
                     return;
                 }
-                if (stop.IsCancellationRequested || _stopRequested) break;
+                if (_stopRequested) break;
                 if (held is not null)
                 {
                     if (held()) continue;

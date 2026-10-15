@@ -123,7 +123,10 @@ public partial class MainWindow : FluentWindow
         var voiceReady = Core.Voice.VoiceModels.Ready;
         SetStatus(VoiceStatus, VoiceIcon, voiceReady ? SymbolRegular.Mic24 : SymbolRegular.MicOff24,
             app.Voice.IsListening ? "Kd.Accent" : voiceReady ? "Kd.Success" : "TextFillColorTertiaryBrush",
-            Loc.T(app.Voice.IsListening ? "status.voiceListening" : voiceReady ? "status.voiceReady" : "status.voiceNoModels"),
+            app.Voice.IsListening ? Loc.T("status.voiceListening")
+            : !voiceReady ? Loc.T("status.voiceNoModels")
+            : string.IsNullOrWhiteSpace(s.VoiceHotkey) ? Loc.T("status.voiceNoHotkey")
+            : Loc.T("status.voiceReady", s.VoiceHotkey),
             Loc.T("status.clickOptions"));
     }
 

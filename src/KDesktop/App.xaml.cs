@@ -118,7 +118,6 @@ public partial class App : Application
         Ui = new UiServices(Dispatcher, () => Config.Settings, () => ShowMainWindow(), () => _ = ExitAsync());
         Engine = new CommandEngine(Store, Ui);
         Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice));
-        Engine.Voice = Voice;
         Voice.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
         Voice.Models.Changed += () =>
         {
@@ -158,8 +157,10 @@ public partial class App : Application
             if (hotkey == BuiltInHotkey.ShowWindow) ShowMainWindow();
             else _ = ExitAsync(Config.Settings.ExitSound);
         });
-        Router.HasCancellable = () => Engine.HasCancellable;
+        Router.HasCancellable = () => Engine.HasCancellable || Voice.IsListening;
         Router.CancelRequested += Engine.CancelAll;
+        Router.CancelRequested += Voice.Cancel;
+        Router.VoiceRequested += held => _ = Voice.ListenAsync(held);
         Router.IsPlayingMacro = () => Engine.IsPlayingMacro;
         Router.StopMacrosRequested += Engine.StopMacros;
         Router.KBoardUsed += () => Achievements.Increment(Stat.KBoardRemapped);
@@ -359,6 +360,7 @@ public partial class App : Application
         }
 
         UpdateTray();
+        _main?.UpdateStatus(); // e.g. the voice hotkey shown in its tooltip
 
         if (s.UdpEnabled && !UdpDisabled) Udp.Start(s.UdpPort, s.UdpAllowRemote);
         else Udp.Stop();

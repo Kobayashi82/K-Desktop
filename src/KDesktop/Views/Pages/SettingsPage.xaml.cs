@@ -106,6 +106,7 @@ public partial class SettingsPage : UserControl
         if (chosen is not null && mics.All(m => m.Id != chosen)) mics.Add(new MicOption(chosen, Loc.T("settings.voiceMicMissing")));
         VoiceMicBox.ItemsSource = mics;
         VoiceMicBox.SelectedItem = mics.First(m => m.Id == chosen);
+        UpdateVoiceHotkey();
         VoiceUnloadBox.ItemsSource = new[] { 1, 5, 10, 30, 60 }.Select(m => new MinutesOption(m, Loc.T("settings.voiceUnloadMinutes", m))).ToList();
         _loadingVoice = false;
     }
@@ -145,14 +146,31 @@ public partial class SettingsPage : UserControl
         UpdateVoiceModels();
     }
 
-    /// <summary>A ready command with the «listen» action; it opens in the editor to give it a hotkey.</summary>
-    private void OnCreateVoiceCommand(object sender, RoutedEventArgs e)
+    private void UpdateVoiceHotkey()
     {
-        var command = new Command { Name = Loc.T("voice.commandName") };
-        command.Actions.Add(new VoiceListenAction());
-        _app.Config.Commands.Add(command);
-        _app.Achievements.Increment(Core.Achievements.Stat.CommandsCreated);
-        (Window.GetWindow(this) as MainWindow)?.OpenCommand(command.Id);
+        var hotkey = _app.Config.Settings.VoiceHotkey;
+        var none = string.IsNullOrWhiteSpace(hotkey);
+        VoiceHotkeyButton.Content = none ? Loc.T("settings.voiceNoHotkey") : hotkey;
+        VoiceHotkeyClear.Visibility = none ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void OnCaptureVoiceHotkey(object sender, RoutedEventArgs e)
+    {
+        VoiceHotkeyButton.Content = Loc.T("commands.pressHotkey");
+        HotkeyCapture.Start(
+            preview => VoiceHotkeyButton.Content = preview + "…",
+            hotkey =>
+            {
+                if (hotkey is not null) _app.Config.Settings.VoiceHotkey = Hotkey.Normalize(hotkey);
+                UpdateVoiceHotkey();
+            },
+            Window.GetWindow(this));
+    }
+
+    private void OnClearVoiceHotkey(object sender, RoutedEventArgs e)
+    {
+        _app.Config.Settings.VoiceHotkey = string.Empty;
+        UpdateVoiceHotkey();
     }
 
     // ── web ──────────────────────────────────────────────────────────────
