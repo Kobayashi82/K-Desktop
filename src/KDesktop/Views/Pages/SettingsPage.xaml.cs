@@ -114,7 +114,11 @@ public partial class SettingsPage : UserControl
 
     // ── data ─────────────────────────────────────────────────────────────
 
-    private void OnOpenData(object sender, RoutedEventArgs e) => ShellTools.OpenSpecial("KDesktopData");
+    private void OnOpenData(object sender, RoutedEventArgs e)
+    {
+        _app.Achievements.Unlock("curious");
+        ShellTools.OpenSpecial("KDesktopData");
+    }
 
     private void OnOpenLog(object sender, RoutedEventArgs e)
     {
@@ -129,6 +133,7 @@ public partial class SettingsPage : UserControl
         _app.Store.SaveNow();
         File.Copy(AppPaths.ConfigFile, dlg.FileName, true);
         _app.Ui.ShowOsd(Loc.T("settings.exported"), OsdKind.Success);
+        _app.Achievements.Unlock("export");
     }
 
     private async void OnImport(object sender, RoutedEventArgs e)
@@ -143,6 +148,7 @@ public partial class SettingsPage : UserControl
             _app.ApplySettings();
             _app.ShowMainWindow(w => w.Navigate("commands"));
             _app.Ui.ShowOsd(Loc.T("settings.imported"), OsdKind.Success);
+            _app.Achievements.Unlock("import");
         }
         catch (Exception ex)
         {

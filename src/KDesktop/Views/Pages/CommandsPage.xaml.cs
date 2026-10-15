@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using KDesktop.Core;
+using KDesktop.Core.Achievements;
 using KDesktop.Core.Engine;
 using KDesktop.Core.Input;
 using KDesktop.Core.Localization;
@@ -141,6 +142,7 @@ public partial class CommandsPage : UserControl, IDisposable
     private void OnNewCommand(object sender, RoutedEventArgs e)
     {
         var cmd = new Command { Name = UniqueName(Loc.T("commands.newName")) };
+        _app.Achievements.Increment(Stat.CommandsCreated);
         Config.Commands.Add(cmd);
         if (!string.IsNullOrEmpty(SearchBox.Text)) SearchBox.Text = string.Empty;
         CommandList.SelectedItem = cmd;
@@ -165,6 +167,7 @@ public partial class CommandsPage : UserControl, IDisposable
         var copy = _selected.Duplicate();
         copy.Name = UniqueName(_selected.Name);
         copy.Hotkeys.Clear(); // two commands with the same hotkey is rarely what you want
+        _app.Achievements.Increment(Stat.CommandsCreated);
         Config.Commands.Add(copy);
         CommandList.SelectedItem = copy;
         CommandList.ScrollIntoView(copy);
@@ -188,6 +191,7 @@ public partial class CommandsPage : UserControl, IDisposable
         {
             foreach (var menu in Config.QuickMenus) RemoveReferences(menu.Items, cmd.Id);
             Config.Commands.Remove(cmd);
+            _app.Achievements.Increment(Stat.CommandsDeleted);
         });
         if (!_view.IsEmpty) CommandList.SelectedIndex = Math.Clamp(index, 0, _view.Count - 1);
     }
@@ -220,7 +224,9 @@ public partial class CommandsPage : UserControl, IDisposable
     private void OnChooseIcon(object sender, RoutedEventArgs e)
     {
         if (_selected is null) return;
-        if (IconPicker.Pick("cmd-" + _selected.Id) is { } file) _selected.Icon = file;
+        if (IconPicker.Pick("cmd-" + _selected.Id) is not { } file) return;
+        _selected.Icon = file;
+        _app.Achievements.Increment(Stat.IconsChanged);
     }
 
     private void OnResetIcon(object sender, RoutedEventArgs e)
@@ -298,8 +304,14 @@ public partial class CommandsPage : UserControl, IDisposable
             q.MenuId = first.Id;
             q.MenuName = first.Name;
         }
+        if (action is PlayMacroAction pm && Config.Macros.FirstOrDefault() is { } macro)
+        {
+            pm.MacroId = macro.Id;
+            pm.MacroName = macro.Name;
+        }
         action.PropertyChanged += OnActionReferenceChanged;
         _selected.Actions.Add(action);
+        _app.Achievements.Increment(Stat.ActionsCreated);
         ActionList.SelectedItem = action;
         RefreshHeader();
         Dispatcher.BeginInvoke(() =>
@@ -319,6 +331,9 @@ public partial class CommandsPage : UserControl, IDisposable
             case CommandControlAction c when e.PropertyName == nameof(CommandControlAction.CommandId):
                 c.CommandName = Config.FindCommand(c.CommandId)?.Name;
                 break;
+            case PlayMacroAction m when e.PropertyName == nameof(PlayMacroAction.MacroId):
+                m.MacroName = Config.FindMacro(m.MacroId)?.Name;
+                break;
         }
     }
 
@@ -331,6 +346,7 @@ public partial class CommandsPage : UserControl, IDisposable
     {
         if (_selected is null || e.Parameter is not CommandAction a) return;
         _selected.Actions.Remove(a);
+        _app.Achievements.Increment(Stat.ActionsDeleted);
         RefreshHeader();
     }
 
@@ -339,6 +355,7 @@ public partial class CommandsPage : UserControl, IDisposable
         if (_selected is null || e.Parameter is not CommandAction a) return;
         var copy = a.Clone();
         _selected.Actions.Insert(_selected.Actions.IndexOf(a) + 1, copy);
+        _app.Achievements.Increment(Stat.ActionsCreated);
         ActionList.SelectedItem = copy;
     }
 
@@ -353,6 +370,12 @@ public partial class CommandsPage : UserControl, IDisposable
         if (i < 0 || j < 0 || j >= _selected.Actions.Count) return;
         _selected.Actions.Move(i, j);
         ActionList.SelectedItem = action;
+    }
+
+    private void OnActionReordered(object? sender, ReorderedEventArgs e)
+    {
+        _app.Achievements.Increment(Stat.ActionsReordered);
+        _app.Achievements.Unlock("reorder");
     }
 
     private void OnActionListWheel(object sender, MouseWheelEventArgs e)
@@ -430,6 +453,9 @@ public partial class CommandsPage : UserControl, IDisposable
         a.Value = $"{x},{y}";
         _app.Ui.ShowOsd($"{x}, {y}", OsdKind.Success);
     }
+
+    private void OnEditMacro(object sender, ExecutedRoutedEventArgs e) =>
+        (Window.GetWindow(this) as MainWindow)?.OpenMacro(e.Parameter as string);
 
     // ── processes ────────────────────────────────────────────────────────
 

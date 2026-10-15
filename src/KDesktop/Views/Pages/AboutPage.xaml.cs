@@ -12,5 +12,6 @@ public partial class AboutPage : UserControl
         var version = typeof(App).Assembly.GetName().Version;
         VersionText.Text = Loc.T("about.version", version?.ToString(3) ?? "5.0",
             Loc.T(ProcessLauncher.IsElevated ? "about.elevated" : "about.notElevated"));
+        Loaded += (_, _) => App.Current.Achievements.Unlock("about");
     }
 }

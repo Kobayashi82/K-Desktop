@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using KDesktop.Core;
+using KDesktop.Core.Achievements;
 using KDesktop.Core.Engine;
 using KDesktop.Core.Input;
 using KDesktop.Core.Localization;
@@ -101,6 +102,7 @@ public partial class QuickMenusPage : UserControl, IDisposable
         if (string.IsNullOrWhiteSpace(name)) return;
         var menu = new QuickMenu { Name = name.Trim() };
         Config.QuickMenus.Add(menu);
+        _app.Achievements.Increment(Stat.MenusCreated);
         MenuBox.SelectedItem = menu;
     }
 
@@ -123,6 +125,7 @@ public partial class QuickMenusPage : UserControl, IDisposable
         copy.Name = _menu.Name + " (2)";
         foreach (var item in copy.Descendants()) item.Id = Ids.New();
         Config.QuickMenus.Add(copy);
+        _app.Achievements.Increment(Stat.MenusCreated);
         MenuBox.SelectedItem = copy;
     }
 
@@ -139,6 +142,7 @@ public partial class QuickMenusPage : UserControl, IDisposable
         };
         if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         Config.QuickMenus.Remove(menu);
+        _app.Achievements.Increment(Stat.MenusDeleted);
         MenuBox.SelectedIndex = Config.QuickMenus.Count > 0 ? 0 : -1;
     }
 
@@ -220,6 +224,7 @@ public partial class QuickMenusPage : UserControl, IDisposable
     {
         if (QuickCommandDialog.Create(Window.GetWindow(this)) is not { } cmd) return;
         Config.Commands.Add(cmd);
+        _app.Achievements.Increment(Stat.CommandsCreated);
         var (list, index) = DefaultInsertionPoint();
         Mutate(() => InsertNew(list, index, QuickMenuOps.NewCommandItem(cmd)));
     }
@@ -535,6 +540,7 @@ public partial class QuickMenusPage : UserControl, IDisposable
                 {
                     if (CommandFactory.FromTarget(file) is not { } newCmd) continue;
                     Config.Commands.Add(newCmd);
+                    _app.Achievements.Increment(Stat.CommandsCreated);
                     select = QuickMenuOps.NewCommandItem(newCmd);
                     list.Insert(at++, select);
                 }
@@ -544,6 +550,7 @@ public partial class QuickMenusPage : UserControl, IDisposable
         else if (ExternalUrl(data) is { } url && CommandFactory.FromTarget(url) is { } urlCmd)
         {
             Config.Commands.Add(urlCmd);
+            _app.Achievements.Increment(Stat.CommandsCreated);
             select = QuickMenuOps.NewCommandItem(urlCmd);
             Mutate(() => list.Insert(Math.Clamp(index, 0, list.Count), select));
             _app.Ui.ShowOsd(Loc.T("qm.commandsCreated", 1), OsdKind.Success);
@@ -707,7 +714,9 @@ public partial class QuickMenusPage : UserControl, IDisposable
             if (row.HasCustomLabel) menu.Items.Add(Item(Loc.T("qm.resetName"), "ArrowUndo24", () => Mutate(() => row.Item.Label = null)));
             menu.Items.Add(Item(Loc.T("qm.changeIcon"), "Image24", () =>
             {
-                if (IconPicker.Pick("qm-" + row.Item.Id) is { } file) Mutate(() => row.Item.Icon = file);
+                if (IconPicker.Pick("qm-" + row.Item.Id) is not { } file) return;
+                Mutate(() => row.Item.Icon = file);
+                _app.Achievements.Increment(Stat.IconsChanged);
             }));
             if (row.Item.Icon is not null) menu.Items.Add(Item(Loc.T("qm.resetIcon"), "SubtractCircle24", () => Mutate(() => row.Item.Icon = null)));
         }
@@ -801,6 +810,7 @@ public partial class QuickMenusPage : UserControl, IDisposable
         {
             if (QuickCommandDialog.Create(Window.GetWindow(this)) is not { } cmd) return;
             Config.Commands.Add(cmd);
+            _app.Achievements.Increment(Stat.CommandsCreated);
             var item = QuickMenuOps.NewCommandItem(cmd);
             Mutate(() => list.Insert(Math.Clamp(index, 0, list.Count), item));
             Done(item);

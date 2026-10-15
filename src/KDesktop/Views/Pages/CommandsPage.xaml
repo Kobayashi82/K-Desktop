@@ -82,6 +82,7 @@
         <CommandBinding Command="{x:Static v:EditorCommands.DuplicateAction}" Executed="OnDuplicateAction" />
         <CommandBinding Command="{x:Static v:EditorCommands.RemoveHotkey}" Executed="OnRemoveHotkey" />
         <CommandBinding Command="{x:Static v:EditorCommands.RemoveProcess}" Executed="OnRemoveProcess" />
+        <CommandBinding Command="{x:Static v:EditorCommands.EditMacro}" Executed="OnEditMacro" />
     </UserControl.CommandBindings>
 
     <Grid Margin="24,12,0,0">
@@ -280,6 +281,7 @@
                             </Grid>
                             <TextBlock x:Name="NoActions" Style="{StaticResource Caption}" Text="{l:Tr commands.noActions}" Margin="0,4,0,8" />
                             <ListBox x:Name="ActionList" ItemsSource="{Binding Actions}" ItemContainerStyle="{StaticResource ActionRow}"
+                                     v:DragReorder.IsEnabled="True" v:DragReorder.Reordered="OnActionReordered"
                                      Background="Transparent" BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Disabled"
                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled" PreviewMouseWheel="OnActionListWheel">
                                 <ListBox.Template>
@@ -290,13 +292,18 @@
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel>
-                                            <Grid x:Name="Header" Background="Transparent" Cursor="Hand">
+                                            <Grid x:Name="Header" Background="Transparent" Cursor="Hand" v:DragReorder.IsHandle="True"
+                                                  ToolTip="{l:Tr commands.dragHint}" ToolTipService.InitialShowDelay="1200">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto" />
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
-                                                <Border Width="34" Height="34" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}" Margin="0,0,12,0">
+                                                <!-- Drag grip, visible on hover -->
+                                                <ui:SymbolIcon x:Name="Grip" Symbol="ReOrderDotsVertical24" FontSize="16" Margin="-8,0,0,0" Width="14"
+                                                               HorizontalAlignment="Left" VerticalAlignment="Center" Opacity="0" Cursor="SizeNS"
+                                                               Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                                <Border Width="34" Height="34" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}" Margin="10,0,12,0">
                                                     <Image Width="22" Height="22" RenderOptions.BitmapScalingMode="HighQuality">
                                                         <Image.Source>
                                                             <MultiBinding Converter="{StaticResource ActionIcon}">
@@ -340,6 +347,9 @@
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding Enabled}" Value="False">
                                                 <Setter TargetName="Header" Property="Opacity" Value="0.5" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                                <Setter TargetName="Grip" Property="Opacity" Value="0.8" />
                                             </DataTrigger>
                                         </DataTemplate.Triggers>
                                     </DataTemplate>

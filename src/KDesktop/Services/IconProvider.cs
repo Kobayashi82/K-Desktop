@@ -55,6 +55,7 @@ public static class IconProvider
         OpenQuickMenuAction => Asset("Accion_QuickMenu"),
         CommandControlAction => Asset("Accion_Comandos"),
         WaitAction => Asset("Accion_Esperar"),
+        PlayMacroAction => Asset("Accion_Macros"),
         _ => null,
     };
 

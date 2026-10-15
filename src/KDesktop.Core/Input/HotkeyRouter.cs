@@ -35,6 +35,24 @@ public sealed class HotkeyRouter : IDisposable
     public Func<bool>? HasCancellable { get; set; }
     public event Action? CancelRequested;
 
+    /// <summary>Asked when SHIFT + Escape is pressed: return true if a macro is playing.</summary>
+    public Func<bool>? IsPlayingMacro { get; set; }
+    public event Action? StopMacrosRequested;
+
+    private volatile IInputRecorder? _recorder;
+
+    /// <summary>
+    /// Sends every physical keyboard/mouse event (mouse movements included) to <paramref name="recorder"/>
+    /// instead of processing hotkeys. Pass null to stop.
+    /// </summary>
+    public void SetRecorder(IInputRecorder? recorder)
+    {
+        _recorder = recorder;
+        _hook.ForwardMouseMove = recorder is not null;
+    }
+
+    public bool IsRecording => _recorder is not null;
+
     public HotkeyRouter()
     {
         _hook.KeyboardHandler = OnKey;
@@ -76,6 +94,16 @@ public sealed class HotkeyRouter : IDisposable
         if (e.Injected) return false;
         var vk = e.Vk;
 
+        if (_recorder is { } recorder)
+        {
+            if (KeyNames.IsModifierVk(vk))
+            {
+                var f = ModifierOf(vk);
+                if (e.IsDown) _physicalMods |= f; else _physicalMods &= ~f;
+            }
+            return recorder.OnKey(e);
+        }
+
         if (KeyNames.IsModifierVk(vk))
         {
             var flag = ModifierOf(vk);
@@ -94,6 +122,12 @@ public sealed class HotkeyRouter : IDisposable
         var hotkey = Hotkey.Format(mods, KeyNames.FromVk(vk, e.Extended));
         var repeat = _lastDownVk == vk;
         _lastDownVk = vk;
+
+        if (vk == KeyNames.VK_ESCAPE && mods == Modifiers.Shift && IsPlayingMacro?.Invoke() == true)
+        {
+            Post(() => StopMacrosRequested?.Invoke());
+            return Block(vk, mods);
+        }
 
         if (vk == KeyNames.VK_ESCAPE && _windowPicker is { } cancelPick)
         {
@@ -171,6 +205,7 @@ public sealed class HotkeyRouter : IDisposable
     private bool OnMouse(MouseInput e)
     {
         if (e.Injected) return false;
+        if (_recorder is { } recorder) return recorder.OnMouse(e);
 
         if (e.Message == MouseMessage.Down && e.Button == MouseButton.Left && _windowPicker is { } picker)
         {

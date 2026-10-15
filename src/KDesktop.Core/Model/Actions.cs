@@ -11,6 +11,7 @@ public enum ActionKind
     SendInput, Volume, PlaySound,
     TopMost, HiddenFiles, ToggleDisabledIn, ShowMessage, Power,
     OpenQuickMenu, CommandControl, Wait,
+    PlayMacro,
 }
 
 public enum WindowMode { Normal, Minimized, Maximized, Hidden }
@@ -41,6 +42,7 @@ public enum ScriptShell { Cmd, PowerShell }
 [JsonDerivedType(typeof(OpenQuickMenuAction), "quickMenu")]
 [JsonDerivedType(typeof(CommandControlAction), "commandControl")]
 [JsonDerivedType(typeof(WaitAction), "wait")]
+[JsonDerivedType(typeof(PlayMacroAction), "playMacro")]
 public abstract partial class CommandAction : ObservableObject
 {
     [ObservableProperty] private bool _enabled = true;
@@ -275,6 +277,34 @@ public partial class WaitAction : CommandAction
 
     public override ActionKind Kind => ActionKind.Wait;
     public override string Summary => Loc.T("summary.waitSeconds", Seconds) + (string.IsNullOrWhiteSpace(Message) ? "" : $"  ·  \"{Message}\"");
+}
+
+public partial class PlayMacroAction : CommandAction
+{
+    [ObservableProperty] private string _macroId = string.Empty;
+
+    /// <summary>How many times the macro is played.</summary>
+    [ObservableProperty] private int _repeat = 1;
+
+    /// <summary>Repeats until SHIFT + Escape is pressed (ignores <see cref="Repeat"/>).</summary>
+    [ObservableProperty] private bool _untilStopped;
+
+    /// <summary>Playback speed (1 = as recorded, 2 = twice as fast…).</summary>
+    [ObservableProperty] private double _speed = 1;
+
+    /// <summary>Pause between repetitions, in milliseconds.</summary>
+    [ObservableProperty] private int _repeatDelay;
+
+    [ObservableProperty] private bool _showOsd = true;
+
+    [ObservableProperty]
+    [property: JsonIgnore] private string? _macroName;
+
+    public override ActionKind Kind => ActionKind.PlayMacro;
+    public override string Summary =>
+        Loc.T("summary.playMacro", string.IsNullOrWhiteSpace(MacroName) ? "?" : MacroName) +
+        (UntilStopped ? "  ·  ∞" : Repeat > 1 ? $"  ·  ×{Repeat}" : "") +
+        (Math.Abs(Speed - 1) > 0.001 ? $"  ·  {Speed:0.##}x" : "");
 }
 
 public static class PowerNames

@@ -10,7 +10,7 @@ namespace KDesktop.Services;
 /// </summary>
 public sealed class SingleInstance : IDisposable
 {
-    private const string WindowName = "KDesktop5.Messenger";
+    private static readonly string WindowName = "KDesktop5.Messenger" + KDesktop.Core.AppPaths.InstanceSuffix;
     private const int WM_COPYDATA = 0x004A;
     private static readonly IntPtr HWND_MESSAGE = new(-3);
     private static readonly uint ShowMessage = RegisterWindowMessage("KDesktop5.Show");

@@ -141,8 +141,10 @@ public sealed class ConfigStore : IDisposable
         c.Settings.Modified += (_, _) => MarkDirty();
         foreach (var cmd in c.Commands) cmd.Modified += OnItemModified;
         foreach (var m in c.QuickMenus) m.Modified += OnItemModified;
+        foreach (var m in c.Macros) m.Modified += OnItemModified;
         c.Commands.CollectionChanged += OnCollectionChanged;
         c.QuickMenus.CollectionChanged += OnCollectionChanged;
+        c.Macros.CollectionChanged += OnCollectionChanged;
     }
 
     private void OnItemModified(object? sender, EventArgs e) => MarkDirty();
@@ -154,12 +156,14 @@ public sealed class ConfigStore : IDisposable
             {
                 if (item is Command cmd) cmd.Modified += OnItemModified;
                 if (item is QuickMenu m) m.Modified += OnItemModified;
+                if (item is Macro macro) macro.Modified += OnItemModified;
             }
         if (e.OldItems is not null)
             foreach (var item in e.OldItems)
             {
                 if (item is Command cmd) cmd.Modified -= OnItemModified;
                 if (item is QuickMenu m) m.Modified -= OnItemModified;
+                if (item is Macro macro) macro.Modified -= OnItemModified;
             }
         MarkDirty();
     }

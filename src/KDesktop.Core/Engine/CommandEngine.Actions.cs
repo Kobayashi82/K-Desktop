@@ -28,6 +28,7 @@ public sealed partial class CommandEngine
         OpenQuickMenuAction a => Run(() => _ui.ShowQuickMenu(a.MenuId, ctx.Foreground)),
         CommandControlAction a => CommandControlAsync(a, ctx),
         WaitAction a => WaitAsync(a, ctx),
+        PlayMacroAction a => PlayMacroAsync(a, ctx),
         _ => Task.CompletedTask,
     };
 

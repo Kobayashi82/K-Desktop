@@ -30,6 +30,9 @@ public static class Lookups
     public static IReadOnlyList<Option<ScriptShell>> ScriptShells { get; } = Enum<ScriptShell>("enum.shell");
     public static IReadOnlyList<Option<AppTheme>> Themes { get; } = Enum<AppTheme>("enum.theme");
     public static IReadOnlyList<Option<OsdPosition>> OsdPositions { get; } = Enum<OsdPosition>("enum.osdPosition");
+    public static IReadOnlyList<Option<MacroStepKind>> MacroStepKinds { get; } = Enum<MacroStepKind>("enum.stepKind");
+    public static IReadOnlyList<Option<KDesktop.Core.Input.MouseButton>> MouseButtons { get; } =
+        [.. Enum<KDesktop.Core.Input.MouseButton>("macro.button").Where(o => o.Value != KDesktop.Core.Input.MouseButton.None)];
 
     public static IReadOnlyList<Option<string>> BrowserOptions { get; } =
         [new Option<string>(string.Empty, "browser.default"), .. Browsers.All.Select(b => new Option<string>(b.Id, b.Name))];
@@ -39,6 +42,11 @@ public static class Lookups
         [new Option<string?>(null, "folder.custom"), .. SpecialFolders.All.Select(e => new Option<string?>(e.Key, $"folder.{e.Key}"))];
 
     public static IEnumerable<QuickMenu> QuickMenuList => App.Current.Config.QuickMenus;
+
+    public static IEnumerable<Macro> MacroList => App.Current.Config.Macros;
+
+    public static IReadOnlyList<Option<double>> MacroSpeeds { get; } =
+        [.. new[] { 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 5, 10 }.Select(s => new Option<double>(s, s == 1 ? "editor.speedNormal" : $"×{s:0.##}"))];
 
     public static IEnumerable<Command> CommandList =>
         App.Current.Config.Commands.OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
@@ -83,4 +91,7 @@ public static class EditorCommands
     public static readonly RoutedUICommand DuplicateAction = new("DuplicateAction", nameof(DuplicateAction), typeof(EditorCommands));
     public static readonly RoutedUICommand RemoveHotkey = new("RemoveHotkey", nameof(RemoveHotkey), typeof(EditorCommands));
     public static readonly RoutedUICommand RemoveProcess = new("RemoveProcess", nameof(RemoveProcess), typeof(EditorCommands));
+    public static readonly RoutedUICommand EditMacro = new("EditMacro", nameof(EditMacro), typeof(EditorCommands));
+    public static readonly RoutedUICommand CaptureStepKey = new("CaptureStepKey", nameof(CaptureStepKey), typeof(EditorCommands));
+    public static readonly RoutedUICommand CaptureStepPosition = new("CaptureStepPosition", nameof(CaptureStepPosition), typeof(EditorCommands));
 }

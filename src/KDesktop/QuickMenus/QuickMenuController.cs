@@ -32,6 +32,9 @@ public sealed class QuickMenuController
     /// <summary>(commandId, menuId) — commandId is null to edit the whole menu.</summary>
     public event Action<string?, string?>? EditRequested;
 
+    /// <summary>Raised when a menu is opened (statistics).</summary>
+    public event Action? Opened;
+
     public bool IsOpen => _levels.Count > 0;
 
     public QuickMenuController(Func<AppConfig> config, CommandEngine engine)
@@ -101,6 +104,7 @@ public sealed class QuickMenuController
         root.Activate();
         WindowTools.ForceForeground(root.Hwnd);
         Keyboard.Focus(root);
+        Opened?.Invoke();
     }
 
     public void CloseAll(bool restoreFocus = true)

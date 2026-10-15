@@ -21,7 +21,7 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <ui:TextBox x:Name="TargetBox" PlaceholderText="C:\…\programa.exe · C:\Carpeta · https://…" TextChanged="OnTargetChanged" />
+            <ui:TextBox x:Name="TargetBox" PlaceholderText="{l:Tr qm.quickTargetHint}" TextChanged="OnTargetChanged" />
             <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon Document24}" ToolTip="{l:Tr editor.chooseFile}" Click="OnBrowseFile" />
             <ui:Button Grid.Column="2" Margin="6,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.chooseFolder}" Click="OnBrowseFolder" />
         </Grid>

@@ -23,16 +23,25 @@
 - [x] Tema claro, oscuro o del sistema; idiomas español e inglés en JSON con cambio en caliente.
 - [x] Instancia única, línea de comandos (`--menu`, `--run`, `--show`, `--exit`), bandeja e inicio con Windows (tarea programada).
 
+## Hecho (sesión 2)
+
+- [x] **Logros y estadísticas** (empiezan de cero en la 5.0, sin importar los de la 4.0):
+  - 112 logros en 10 categorías, con niveles, progreso y logros secretos; nombres clásicos de la 4.0 y nuevos (macros, acordes, QuickMenus anidados, noctámbulo…);
+  - estadísticas en `stats.json`: contadores, ejecuciones por comando y por origen (atajo, QuickMenu, remoto…);
+  - notificación animada (insignia, destello, barra de tiempo, sonido `Logro`), en cola, clic para abrir la página;
+  - página propia con pestañas Logros / Estadísticas, filtros, búsqueda y reinicio.
+- [x] **Macros**:
+  - grabación de teclado y ratón con tiempos (barra flotante con cuenta atrás, pausa y detener; Mayús+Esc termina);
+  - editor de pasos: insertar, editar, arrastrar, eliminar, deshacer y simplificar (unir pulsaciones, quitar movimientos, cambiar tiempos);
+  - acción "Reproducir macro" con repeticiones, bucle, velocidad y pausa entre repeticiones;
+  - Mayús+Esc la detiene en cualquier momento y suelta las teclas y botones que hubiera pulsado.
+- [x] Reordenar acciones (y pasos de macro) arrastrando, con animación.
+- [x] `--data "carpeta"` (instancia independiente con otros datos) y `--page nombre`.
+- [x] Correcciones: menú de la bandeja traducido; las acciones ya no guardan `kind`/`summary` en config.json; textos fijos pasados a los idiomas.
+
 ## Siguiente
 
-- [ ] Probar a fondo en el uso diario: hotkeys, bloqueo, acordes y elevación.
-- [ ] **Logros y estadísticas**: estadísticas en `stats.json`, logros con notificación animada y página propia. Recuperar el progreso de la 4.0 si es posible.
-- [ ] **Macros**:
-  - grabación de teclado y ratón con tiempos;
-  - editor de pasos;
-  - acción "Reproducir macro" con repeticiones;
-  - parada con Mayús+Esc.
-- [ ] Reordenar acciones arrastrando en el editor de comandos.
+- [ ] Probar a fondo en el uso diario: hotkeys, bloqueo, acordes, elevación y macros.
 - [ ] Publicación: build Release self-contained / ReadyToRun, y un instalador o zip portable.
 - [ ] Favicons para las acciones web.
 

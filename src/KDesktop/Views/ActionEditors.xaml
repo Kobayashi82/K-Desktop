@@ -7,6 +7,8 @@
 
     <!-- Editors for every action type. Each one is picked automatically by its DataType. -->
 
+    <v:InverseBoolConverter x:Key="InverseBool" />
+
     <Style x:Key="EdRow" TargetType="Grid">
         <Setter Property="Margin" Value="0,0,0,12" />
     </Style>
@@ -354,6 +356,58 @@
                           SelectedValue="{Binding CommandId}" IsTextSearchEnabled="True" TextSearch.TextPath="Name" MaxDropDownHeight="420" />
             </StackPanel>
         </Grid>
+    </DataTemplate>
+
+    <!-- ── Reproducir macro ────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:PlayMacroAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.macro}" />
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.MacroList}}" SelectedValuePath="Id" SelectedValue="{Binding MacroId}"
+                          IsTextSearchEnabled="True" TextSearch.TextPath="Name" MaxDropDownHeight="420">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type m:Macro}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Name}" />
+                                <TextBlock Text="{Binding Summary}" Margin="10,0,0,0" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.editMacro}" Icon="{ui:SymbolIcon Edit24}"
+                           Command="{x:Static v:EditorCommands.EditMacro}" CommandParameter="{Binding MacroId}" />
+            </Grid>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel IsEnabled="{Binding UntilStopped, Converter={StaticResource InverseBool}}">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.repeat}" />
+                    <ui:TextBox Text="{Binding Repeat, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.speed}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.MacroSpeeds}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Speed}" />
+                </StackPanel>
+                <StackPanel Grid.Column="4">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.repeatDelay}" />
+                    <ui:TextBox Text="{Binding RepeatDelay, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Grid>
+            <WrapPanel>
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.untilStopped}" IsChecked="{Binding UntilStopped}" />
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            </WrapPanel>
+            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr editor.macroHint}" />
+        </StackPanel>
     </DataTemplate>
 
     <!-- ── Esperar ─────────────────────────────────────────────────────── -->

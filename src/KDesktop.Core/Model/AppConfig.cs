@@ -11,6 +11,7 @@ public sealed class AppConfig
     public AppSettings Settings { get; set; } = new();
     public ObservableCollection<Command> Commands { get; set; } = [];
     public ObservableCollection<QuickMenu> QuickMenus { get; set; } = [];
+    public ObservableCollection<Macro> Macros { get; set; } = [];
 
     public Command? FindCommand(string? id) =>
         string.IsNullOrEmpty(id) ? null : Commands.FirstOrDefault(c => c.Id == id);
@@ -24,9 +25,16 @@ public sealed class AppConfig
             {
                 case OpenQuickMenuAction q: q.MenuName = FindMenu(q.MenuId)?.Name; break;
                 case CommandControlAction c: c.CommandName = FindCommand(c.CommandId)?.Name; break;
+                case PlayMacroAction p: p.MacroName = FindMacro(p.MacroId)?.Name; break;
             }
         }
     }
+
+    public Macro? FindMacro(string? idOrName) =>
+        string.IsNullOrEmpty(idOrName)
+            ? null
+            : Macros.FirstOrDefault(m => m.Id == idOrName) ??
+              Macros.FirstOrDefault(m => m.Name.Equals(idOrName, StringComparison.OrdinalIgnoreCase));
 
     public QuickMenu? FindMenu(string? idOrName) =>
         string.IsNullOrEmpty(idOrName)
@@ -54,6 +62,14 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private string? _startupSound;
     [ObservableProperty] private string? _startupMessage;
     [ObservableProperty] private bool _showHiddenCommands;
+
+    // Achievements
+    [ObservableProperty] private bool _achievementNotifications = true;
+    [ObservableProperty] private bool _achievementSound = true;
+
+    // Macros
+    /// <summary>Record mouse movements (not only clicks) when recording a macro.</summary>
+    [ObservableProperty] private bool _macroRecordMoves = true;
 
     // Remote (UDP)
     [ObservableProperty] private bool _udpEnabled = true;

@@ -6,10 +6,29 @@ public static class AppPaths
     public const string AppName = "K-Desktop";
     public const string VersionName = "K-Desktop 5.0";
 
-    public static string DataDir { get; } =
+    private static readonly string DefaultDataDir =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "K-Desktop 5");
 
+    public static string DataDir { get; private set; } = DefaultDataDir;
+
+    /// <summary>
+    /// Empty for the normal data folder. With <c>--data</c> it identifies the alternative folder, so that instance
+    /// gets its own single-instance mutex and never talks to (or blocks) the normal one.
+    /// </summary>
+    public static string InstanceSuffix { get; private set; } = string.Empty;
+
+    /// <summary>Uses another data folder (<c>--data "C:\folder"</c>: tests, portable copies…). Call before anything else.</summary>
+    public static void UseDataDir(string dir)
+    {
+        var full = Path.GetFullPath(Environment.ExpandEnvironmentVariables(dir.Trim().Trim('"')));
+        if (full.Equals(DefaultDataDir, StringComparison.OrdinalIgnoreCase)) return;
+        DataDir = full;
+        InstanceSuffix = "." + Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(
+            System.Text.Encoding.UTF8.GetBytes(full.ToLowerInvariant())))[..8];
+    }
+
     public static string ConfigFile => Path.Combine(DataDir, "config.json");
+    public static string StatsFile => Path.Combine(DataDir, "stats.json");
     public static string BackupDir => Path.Combine(DataDir, "Backups");
     public static string IconsDir => Path.Combine(DataDir, "Icons");
     public static string LogDir => Path.Combine(DataDir, "Logs");

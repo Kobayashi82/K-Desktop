@@ -24,6 +24,7 @@ public static class ActionCatalog
         new(ActionKind.SendInput, "input", "Keyboard24", () => new SendInputAction()),
         new(ActionKind.Volume, "input", "Speaker224", () => new VolumeAction()),
         new(ActionKind.PlaySound, "input", "MusicNote224", () => new PlaySoundAction()),
+        new(ActionKind.PlayMacro, "input", "Record24", () => new PlayMacroAction()),
 
         new(ActionKind.TopMost, "system", "Pin24", () => new TopMostAction()),
         new(ActionKind.HiddenFiles, "system", "EyeOff24", () => new HiddenFilesAction()),

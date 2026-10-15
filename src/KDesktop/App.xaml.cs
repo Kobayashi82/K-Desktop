@@ -6,6 +6,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using H.NotifyIcon;
 using KDesktop.Core;
+using KDesktop.Core.Achievements;
 using KDesktop.Core.Engine;
 using KDesktop.Core.Input;
 using KDesktop.Core.Localization;
@@ -49,6 +50,8 @@ public partial class App : Application
     public UdpServer Udp { get; private set; } = null!;
     public UiServices Ui { get; private set; } = null!;
     public QuickMenuController QuickMenus { get; private set; } = null!;
+    public AchievementService Achievements { get; } = new();
+    public AchievementNotifier Notifier { get; private set; } = null!;
 
     public AppConfig Config => Store.Config;
 
@@ -90,10 +93,20 @@ public partial class App : Application
         Ui.QuickMenus = QuickMenus;
         QuickMenus.EditRequested += (commandId, menuId) =>
         {
+            Achievements.Unlock("quick-opener");
             if (commandId is not null) ShowMainWindow(w => w.OpenCommand(commandId));
             else ShowMainWindow(w => w.OpenQuickMenu(menuId));
         };
+        QuickMenus.Opened += () => Achievements.Increment(Stat.MenusOpened);
         QuickMenus.Prewarm();
+
+        // Achievements and statistics
+        Notifier = new AchievementNotifier(() => Config.Settings, key => ShowMainWindow(w => w.Navigate(key)));
+        Achievements.Unlocked += def => Dispatcher.BeginInvoke(() => Notifier.Show(def));
+        Achievements.Load();
+        Engine.Executed += Achievements.CommandExecuted;
+        Engine.ActionStarting += (action, _) => Achievements.ActionExecuted(action);
+        Engine.Cancelled += () => Achievements.Unlock("cancel");
 
         // Hotkeys
         Router.Triggered += Engine.OnHotkey;
@@ -104,12 +117,16 @@ public partial class App : Application
         });
         Router.HasCancellable = () => Engine.HasCancellable;
         Router.CancelRequested += Engine.CancelAll;
+        Router.IsPlayingMacro = () => Engine.IsPlayingMacro;
+        Router.StopMacrosRequested += Engine.StopMacros;
         RebuildIndex();
         _indexDebounce.Tick += (_, _) =>
         {
             _indexDebounce.Stop();
             RebuildIndex();
             ApplySettings();
+            Achievements.CheckConfig(Config);
+            Config.RefreshReferenceNames(); // renamed macros, menus or commands
         };
         Store.Changed += (_, _) => Dispatcher.BeginInvoke(() =>
         {
@@ -120,7 +137,11 @@ public partial class App : Application
         else Log.Warn("Hooks desactivados por la línea de comandos (--no-hooks)");
 
         // Keep the hooks healthy: reinstall them periodically and after unlocking the session.
-        _hookRefresh.Tick += (_, _) => Router.Reinstall();
+        _hookRefresh.Tick += (_, _) =>
+        {
+            Router.Reinstall();
+            Achievements.CheckTime();
+        };
         _hookRefresh.Start();
         SystemEvents.SessionSwitch += (_, args) =>
         {
@@ -148,7 +169,15 @@ public partial class App : Application
         var requestsSomething = Program.ValueOf(Arguments, "--menu") is not null || Program.ValueOf(Arguments, "--run") is not null;
         if ((!StartedByWindows && !requestsSomething) || ImportReport is not null) ShowMainWindow();
         HandleArguments(Arguments);
-        Log.Info($"Listo: {Config.Commands.Count} comandos, {Config.QuickMenus.Count} QuickMenus");
+        Log.Info($"Listo: {Config.Commands.Count} comandos, {Config.QuickMenus.Count} QuickMenus, {Config.Macros.Count} macros");
+
+        // After the window: the first notifications ("welcome"…) appear once everything is on screen.
+        Dispatcher.BeginInvoke(() =>
+        {
+            Achievements.Increment(Stat.AppStarted);
+            Achievements.CheckTime();
+            Achievements.CheckConfig(Config);
+        }, DispatcherPriority.ApplicationIdle);
     }
 
     /// <summary>Command-line requests: --menu "Name", --run "Name", --show, --exit.</summary>
@@ -163,6 +192,7 @@ public partial class App : Application
             else Log.Warn($"--run: comando no encontrado '{name}'");
         }
         if (args.Contains("--show", StringComparer.OrdinalIgnoreCase)) ShowMainWindow();
+        if (Program.ValueOf(args, "--page") is { } page) ShowMainWindow(w => w.Navigate(page.ToLowerInvariant()));
         if (args.Contains("--exit", StringComparer.OrdinalIgnoreCase)) _ = ExitAsync();
     }
 
@@ -209,6 +239,7 @@ public partial class App : Application
         {
             _appliedTheme = s.Theme;
             ThemeService.Apply(s.Theme);
+            Achievements.Unlock("theme");
         }
 
         if (s.Language != _appliedLanguage)
@@ -216,6 +247,11 @@ public partial class App : Application
             _appliedLanguage = s.Language;
             Loc.Instance.Load(s.Language);
             foreach (var action in Config.Commands.SelectMany(c => c.Actions)) action.RefreshSummary();
+            foreach (var macro in Config.Macros) macro.RefreshTexts();
+            Achievements.Unlock("polyglot");
+            // The tray menu is built in code: rebuild it in the new language.
+            _tray?.Dispose();
+            _tray = null;
         }
 
         if (s.ShowTrayIcon) EnsureTray();
@@ -235,13 +271,18 @@ public partial class App : Application
     {
         if (_tray is not null) return;
         var menu = new ContextMenu();
-        menu.Items.Add(TrayItem("Abrir K-Desktop", (_, _) => ShowMainWindow()));
+        menu.Items.Add(TrayItem(Loc.T("tray.open"), (_, _) => ShowMainWindow()));
         menu.Items.Add(new Separator());
         foreach (var qm in Config.QuickMenus.Take(1))
-            menu.Items.Add(TrayItem($"Abrir QuickMenu {qm.Name}", (_, _) => QuickMenus.Show(qm.Id, ForegroundWindow.Capture())));
-        menu.Items.Add(TrayItem("Carpeta de datos", (_, _) => ShellTools.OpenSpecial("KDesktopData")));
+            menu.Items.Add(TrayItem(Loc.T("tray.openMenu", qm.Name), (_, _) => QuickMenus.Show(qm.Id, ForegroundWindow.Capture())));
+        menu.Items.Add(TrayItem(Loc.T("tray.achievements"), (_, _) => ShowMainWindow(w => w.Navigate("achievements"))));
+        menu.Items.Add(TrayItem(Loc.T("tray.data"), (_, _) =>
+        {
+            Achievements.Unlock("curious");
+            ShellTools.OpenSpecial("KDesktopData");
+        }));
         menu.Items.Add(new Separator());
-        menu.Items.Add(TrayItem("Salir", (_, _) => _ = ExitAsync()));
+        menu.Items.Add(TrayItem(Loc.T("tray.exit"), (_, _) => _ = ExitAsync()));
 
         _tray = new TaskbarIcon
         {
@@ -327,6 +368,7 @@ public partial class App : Application
         Log.Info($"La sesión termina ({e.Reason})");
         try { Engine.RunExitCommandsAsync().Wait(TimeSpan.FromSeconds(4)); } catch { /* ignore */ }
         Store.Flush();
+        Achievements.Flush();
     }
 
     protected override void OnExit(ExitEventArgs e)
@@ -335,6 +377,7 @@ public partial class App : Application
         Router.Dispose();
         Udp?.Dispose();
         Store.Dispose();
+        Achievements.Dispose();
         _tray?.Dispose();
         _instance?.Dispose();
         Log.Info("K-Desktop cerrado");

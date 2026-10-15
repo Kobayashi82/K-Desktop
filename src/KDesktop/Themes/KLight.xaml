@@ -21,6 +21,13 @@
     <SolidColorBrush x:Key="Kd.OsdBackground" Color="#F2FBFBFB" />
     <SolidColorBrush x:Key="Kd.OsdBorder" Color="#1F000000" />
     <SolidColorBrush x:Key="Kd.OsdText" Color="#FF1A1A1A" />
+    <SolidColorBrush x:Key="Kd.OsdTextSecondary" Color="#B3000000" />
+    <SolidColorBrush x:Key="Kd.ToastBorder" Color="#66E0A815" />
+
+    <!-- Achievements -->
+    <SolidColorBrush x:Key="Kd.Locked" Color="#14000000" />
+    <SolidColorBrush x:Key="Kd.Bar" Color="#C99A10" />
+    <SolidColorBrush x:Key="Kd.BarTrack" Color="#14000000" />
 
     <!-- Main window extras -->
     <SolidColorBrush x:Key="Kd.Subtle" Color="#08000000" />

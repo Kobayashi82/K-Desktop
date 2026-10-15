@@ -15,9 +15,9 @@ public static class InputSimulator
 
     // ── keyboard ─────────────────────────────────────────────────────────
 
-    public static void KeyDown(int vk) => Send(Key(vk, false));
-    public static void KeyUp(int vk) => Send(Key(vk, true));
-    public static void KeyPress(int vk) => Send(Key(vk, false), Key(vk, true));
+    public static void KeyDown(int vk, bool extended = false) => Send(Key(vk, false, extended));
+    public static void KeyUp(int vk, bool extended = false) => Send(Key(vk, true, extended));
+    public static void KeyPress(int vk, bool extended = false) => Send(Key(vk, false, extended), Key(vk, true, extended));
 
     /// <summary>
     /// Sends an unassigned virtual key. Used after swallowing a key while ALT/WIN is held so that
@@ -63,9 +63,9 @@ public static class InputSimulator
     }
 
     /// <summary>Types arbitrary Unicode text, independent of the keyboard layout.</summary>
-    public static void SendText(string text)
+    public static void SendText(string text, bool releaseModifiers = true)
     {
-        ReleaseModifiers();
+        if (releaseModifiers) ReleaseModifiers();
         var inputs = new List<Win32.INPUT>(text.Length * 2);
         foreach (var ch in text.Replace("\r\n", "\n"))
         {
@@ -95,6 +95,18 @@ public static class InputSimulator
         var (downFlag, upFlag, data) = ButtonFlags(button);
         if (downFlag == 0) return;
         Send(Mouse(downFlag, data), Mouse(upFlag, data));
+    }
+
+    public static void MouseDown(MouseButton button)
+    {
+        var (downFlag, _, data) = ButtonFlags(button);
+        if (downFlag != 0) Send(Mouse(downFlag, data));
+    }
+
+    public static void MouseUp(MouseButton button)
+    {
+        var (_, upFlag, data) = ButtonFlags(button);
+        if (upFlag != 0) Send(Mouse(upFlag, data));
     }
 
     public static void Wheel(int delta, bool horizontal = false) =>

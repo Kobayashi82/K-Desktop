@@ -59,8 +59,20 @@ public partial class MainWindow : FluentWindow
         if (NavList.SelectedItem is ListBoxItem { Tag: string key }) Navigate(key, fromList: true);
     }
 
+    public void OpenMacro(string? macroId)
+    {
+        Navigate("macros");
+        if (macroId is not null && _pages.GetValueOrDefault("macros") is Pages.MacrosPage page) page.Select(macroId);
+    }
+
     public void Navigate(string key, bool fromList = false)
     {
+        if (key == "stats")
+        {
+            Navigate("achievements");
+            (_pages.GetValueOrDefault("achievements") as Pages.AchievementsPage)?.ShowStats();
+            return;
+        }
         if (!fromList)
         {
             var item = NavList.Items.OfType<ListBoxItem>().FirstOrDefault(i => (string)i.Tag == key);
@@ -78,6 +90,8 @@ public partial class MainWindow : FluentWindow
             page = key switch
             {
                 "quickmenus" => new Pages.QuickMenusPage(),
+                "macros" => new Pages.MacrosPage(),
+                "achievements" => new Pages.AchievementsPage(),
                 "settings" => new Pages.SettingsPage(),
                 "about" => new Pages.AboutPage(),
                 _ => new Pages.CommandsPage(),

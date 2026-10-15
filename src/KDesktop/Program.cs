@@ -12,14 +12,15 @@ namespace KDesktop;
 /// <item><c>--menu "Name"</c> open a QuickMenu · <c>--run "Name"</c> run a command · <c>--show</c> · <c>--exit</c>
 /// (forwarded to the running instance when there is one)</item>
 /// <item><c>--startup</c> started by Windows (no window) · <c>--no-elevate</c> · <c>--no-hooks</c> · <c>--no-udp</c></item>
+/// <item><c>--data "folder"</c> use another data folder (an independent instance) · <c>--page name</c> open a page</item>
 /// </list>
 /// </summary>
 public static class Program
 {
     public const string StartupArgument = "--startup";
-    private const string MutexName = @"Local\KDesktop5.Instance";
+    private static string MutexName => @"Local\KDesktop5.Instance" + AppPaths.InstanceSuffix;
 
-    private static readonly string[] ForwardedArguments = ["--menu", "--run", "--show", "--exit"];
+    private static readonly string[] ForwardedArguments = ["--menu", "--run", "--show", "--exit", "--page"];
 
     [STAThread]
     public static int Main(string[] args)
@@ -27,6 +28,9 @@ public static class Program
         // Helper mode: start a program as the normal (non-elevated) user and exit. No UI involved.
         if (args.Length >= 2 && args[0] == ProcessLauncher.HelperArgument)
             return ProcessLauncher.RunHelper(args[1]);
+
+        // Alternative data folder (tests, portable copies). Must be set before anything reads AppPaths.
+        if (ValueOf(args, "--data") is { } dataDir) AppPaths.UseDataDir(dataDir);
 
         // Already running? Forward the request (works across elevation levels) and leave.
         var forward = args.Any(a => ForwardedArguments.Contains(a, StringComparer.OrdinalIgnoreCase));

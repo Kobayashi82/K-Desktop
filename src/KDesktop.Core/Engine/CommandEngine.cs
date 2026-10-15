@@ -41,16 +41,24 @@ public sealed partial class CommandEngine
     /// <summary>Raised after a command finished (for statistics / UI feedback).</summary>
     public event Action<Command, TriggerSource>? Executed;
 
+    /// <summary>Raised when an action of a command is about to run (statistics).</summary>
+    public event Action<CommandAction, ExecutionContext>? ActionStarting;
+
+    /// <summary>Raised after Escape cancelled something.</summary>
+    public event Action? Cancelled;
+
     /// <summary>True while a cancellable operation (countdown, wait, message) is in progress.</summary>
     public bool HasCancellable => !_cancellable.IsEmpty;
 
     /// <summary>Cancels every cancellable operation (bound to Escape).</summary>
     public void CancelAll()
     {
+        var any = false;
         foreach (var cts in _cancellable.Keys)
         {
-            try { cts.Cancel(); } catch (ObjectDisposedException) { }
+            try { cts.Cancel(); any = true; } catch (ObjectDisposedException) { }
         }
+        if (any) Cancelled?.Invoke();
     }
 
     public Task RunAsync(Command command, TriggerSource source, ForegroundWindow? foreground = null, bool isRepeat = false) =>
@@ -91,6 +99,7 @@ public sealed partial class CommandEngine
                 if (isRepeat && action is not VolumeAction) continue;
                 try
                 {
+                    if (!isRepeat) ActionStarting?.Invoke(action, ctx);
                     await ExecuteActionAsync(action, ctx).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)

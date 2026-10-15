@@ -64,6 +64,18 @@
                             <TextBlock Text="{l:Tr nav.quickmenus}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
+                    <ListBoxItem Tag="macros">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Record24" FontSize="18" />
+                            <TextBlock Text="{l:Tr nav.macros}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="achievements">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Trophy24" FontSize="18" />
+                            <TextBlock Text="{l:Tr nav.achievements}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
                     <ListBoxItem Tag="settings">
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="Settings24" FontSize="18" />
