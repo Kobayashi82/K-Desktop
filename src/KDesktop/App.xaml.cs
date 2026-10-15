@@ -436,12 +436,13 @@ public partial class App : Application
                 try
                 {
                     if (p.Id == self) { p.Dispose(); continue; }
-                    var path = p.MainModule?.FileName;
-                    if (path is not null && path.Equals(ours, StringComparison.OrdinalIgnoreCase)) { p.Dispose(); continue; }
-                    if (FileVersionInfo.GetVersionInfo(path ?? "").FileMajorPart >= 5) { p.Dispose(); continue; }
+                    // MainModule is denied for an elevated process (a K-Desktop 5 started as administrator): the
+                    // limited query works across elevation levels. Not even that: better no warning than a wrong one.
+                    var path = WindowTools.ProcessPath(p.Id);
+                    if (path is null || path.Equals(ours, StringComparison.OrdinalIgnoreCase)) { p.Dispose(); continue; }
+                    if (FileVersionInfo.GetVersionInfo(path).FileMajorPart >= 5) { p.Dispose(); continue; }
                     result.Add(p);
                 }
-                catch (Win32Exception) { result.Add(p); }
                 catch { p.Dispose(); }
             }
         }

@@ -62,6 +62,9 @@ public static class WindowTools
         return result;
     }
 
+    /// <summary>Full path of a process's exe. Works across elevation levels (Process.MainModule does not).</summary>
+    public static string? ProcessPath(int pid) => Win32.GetProcessPath((uint)pid);
+
     public static Process[] FindProcesses(string name)
     {
         var n = ProcessNames.Normalize(name);

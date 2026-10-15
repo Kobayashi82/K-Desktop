@@ -3,6 +3,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Media3D;
 using System.Windows.Threading;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Platform;
@@ -36,6 +38,7 @@ public partial class SoundPicker : UserControl
             UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
             TargetNullValue = string.Empty,
         });
+        Box.AddHandler(PreviewMouseMoveEvent, new MouseEventHandler(OnBoxMouseMove), handledEventsToo: true);
     }
 
     /// <summary>Built-in sound name or path of a .wav file; null for none.</summary>
@@ -54,16 +57,35 @@ public partial class SoundPicker : UserControl
     /// <summary>Last sound previewed from the open list, so moving over the same item does not restart it.</summary>
     private string? _previewed;
 
-    private void OnDropDownOpened(object? sender, EventArgs e) => _previewed = null;
+    private void OnDropDownOpened(object? sender, EventArgs e)
+    {
+        // Mouse over the current item: no sound until the mouse moves to another one.
+        _previewed = Box.SelectedItem as string;
+        DeselectText();
+    }
 
-    /// <summary>With the list open, each sound plays as the mouse goes over it.</summary>
-    private void OnItemMouseEnter(object sender, MouseEventArgs e) => Preview((sender as ComboBoxItem)?.Content as string);
+    /// <summary>
+    /// With the list open, each sound plays as the mouse goes over it. The open combo captures the mouse, so the
+    /// items get no MouseEnter: follow the moves on the combo (the list's events reach it) and find the item below.
+    /// </summary>
+    private void OnBoxMouseMove(object sender, MouseEventArgs e)
+    {
+        if (!Box.IsDropDownOpen) return;
+        var item = e.OriginalSource as DependencyObject;
+        while (item is not null and not ComboBoxItem) item = item is Visual or Visual3D ? VisualTreeHelper.GetParent(item) : LogicalTreeHelper.GetParent(item);
+        if (item is ComboBoxItem { Content: string sound }) Preview(sound);
+    }
 
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         // Only what the user picks: the binding also selects the matching item when the editor loads.
         if (!Box.IsDropDownOpen && !Box.IsKeyboardFocusWithin) return;
-        if (e.AddedItems is [string sound, ..]) Preview(sound);
+        // Choosing always plays it, even right after hovering over it.
+        if (e.AddedItems is [string sound, ..])
+        {
+            _previewed = sound;
+            Sounds.Play(sound);
+        }
         DeselectText();
     }
 
