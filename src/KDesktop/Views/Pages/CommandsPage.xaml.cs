@@ -47,12 +47,17 @@ public partial class CommandsPage : UserControl, IDisposable
             FillMenuFilter();
             if (CommandList.SelectedItem is null && !_view.IsEmpty) CommandList.SelectedIndex = 0;
         };
-        Unloaded += (_, _) => HotkeyCapture.CancelActive();
+        Unloaded += (_, _) =>
+        {
+            HotkeyCapture.CancelActive();
+            EnsureName(_selected);
+        };
     }
 
     public void Dispose()
     {
         HotkeyCapture.CancelActive();
+        EnsureName(_selected);
         Config.Commands.CollectionChanged -= OnCommandsChanged;
         IconProvider.StaticPropertyChanged -= OnIconsChanged;
         if (_selected is not null) _selected.PropertyChanged -= OnSelectedChanged;
@@ -167,7 +172,9 @@ public partial class CommandsPage : UserControl, IDisposable
         HotkeyCapture.CancelActive();
         if (_selected is not null) _selected.PropertyChanged -= OnSelectedChanged;
         var previous = _selected;
+        if (previous is not null && string.IsNullOrWhiteSpace(previous.Name)) EnsureName(previous);
         _selected = CommandList.SelectedItem as Command;
+        NameError.Visibility = Visibility.Collapsed;
         // The selected command was just hidden: it left the list, so the next one (or the previous, at the end) takes its place.
         if (_selected is null && previous is { Hidden: true } && !_view.IsEmpty)
         {
@@ -212,6 +219,32 @@ public partial class CommandsPage : UserControl, IDisposable
         // Runs before the live filter takes it out of the list.
         if (e.PropertyName is nameof(Command.Hidden) && _selected is { Hidden: true }) _hiddenIndex = Math.Max(0, CommandList.SelectedIndex);
         if (e.PropertyName is nameof(Command.Icon) or nameof(Command.PrimaryAction)) RefreshHeader();
+        if (e.PropertyName is nameof(Command.Name))
+            NameError.Visibility = string.IsNullOrWhiteSpace(_selected?.Name) ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    // ── name (never empty) ───────────────────────────────────────────────
+
+    /// <summary>Name the command had when the name box got the focus: an emptied name goes back to it.</summary>
+    private string? _nameBeforeEdit;
+
+    private void OnNameFocus(object sender, KeyboardFocusChangedEventArgs e) => _nameBeforeEdit = _selected?.Name;
+
+    private void OnNameLostFocus(object sender, KeyboardFocusChangedEventArgs e) => EnsureName(NameBox.DataContext as Command);
+
+    private void OnNameKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter) EnsureName(_selected);
+        if (e.Key == Key.Escape && _selected is { } cmd && !string.IsNullOrWhiteSpace(_nameBeforeEdit)) cmd.Name = _nameBeforeEdit;
+    }
+
+    private void EnsureName(Command? cmd)
+    {
+        if (cmd is null) return;
+        if (string.IsNullOrWhiteSpace(cmd.Name))
+            cmd.Name = !string.IsNullOrWhiteSpace(_nameBeforeEdit) ? _nameBeforeEdit : UniqueName(Loc.T("commands.newName"));
+        else if (cmd.Name != cmd.Name.Trim()) cmd.Name = cmd.Name.Trim();
+        if (ReferenceEquals(cmd, _selected)) NameError.Visibility = Visibility.Collapsed;
     }
 
     private void OnIconsChanged(object? sender, PropertyChangedEventArgs e) => RefreshHeader();
@@ -305,6 +338,63 @@ public partial class CommandsPage : UserControl, IDisposable
         if (_selected is { } cmd) _ = _app.Engine.RunAsync(cmd, TriggerSource.Manual);
     }
 
+    // ── list context menu ────────────────────────────────────────────────
+
+    private void OnCommandRightClick(object sender, MouseButtonEventArgs e)
+    {
+        // Right-clicking a row has already selected it.
+        if (ItemsControl.ContainerFromElement(CommandList, e.OriginalSource as DependencyObject) is not ListBoxItem { DataContext: Command cmd } row) return;
+        e.Handled = true;
+        CommandList.SelectedItem = cmd;
+        row.Focus();
+
+        var menu = new ContextMenu { PlacementTarget = row, Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint };
+        menu.Items.Add(MenuEntry(Loc.T("commands.run"), SymbolRegular.Play24, () => OnRunCommand(this, e)));
+        menu.Items.Add(MenuEntry(Loc.T("common.duplicate"), SymbolRegular.Copy24, () => OnDuplicateCommand(this, e)));
+        menu.Items.Add(MenuEntry(Loc.T("commands.rename"), SymbolRegular.Rename24, () =>
+        {
+            NameBox.Focus();
+            NameBox.SelectAll();
+        }));
+        menu.Items.Add(new Separator());
+        menu.Items.Add(MenuEntry(cmd.Enabled ? Loc.T("commands.disable") : Loc.T("commands.enable"),
+            cmd.Enabled ? SymbolRegular.Prohibited24 : SymbolRegular.CheckmarkCircle24, () => cmd.Enabled = !cmd.Enabled));
+        menu.Items.Add(MenuEntry(cmd.Hidden ? Loc.T("commands.unhide") : Loc.T("commands.hide"),
+            cmd.Hidden ? SymbolRegular.Eye24 : SymbolRegular.EyeOff24, () => cmd.Hidden = !cmd.Hidden));
+        menu.Items.Add(MenuEntry(Loc.T("commands.webOption"), SymbolRegular.Phone24, () => cmd.Web = !cmd.Web, cmd.Web));
+        menu.Items.Add(MenuEntry(Loc.T("commands.remoteOption"), SymbolRegular.PlugConnected24, () => cmd.Remote = !cmd.Remote, cmd.Remote));
+        menu.Items.Add(new Separator());
+        menu.Items.Add(MenuEntry(Loc.T("common.delete"), SymbolRegular.Delete24, () => OnDeleteCommand(this, e)));
+        menu.IsOpen = true;
+    }
+
+    private static MenuItem MenuEntry(string header, SymbolRegular symbol, Action click, bool? check = null)
+    {
+        var item = new MenuItem { Header = header, Icon = new SymbolIcon { Symbol = symbol } };
+        if (check is { } c)
+        {
+            item.IsCheckable = true;
+            item.IsChecked = c;
+        }
+        item.Click += (_, _) => click();
+        return item;
+    }
+
+    private void OnCommandListKey(object sender, KeyEventArgs e)
+    {
+        if (_selected is null || e.OriginalSource is System.Windows.Controls.Primitives.TextBoxBase) return;
+        switch (e.Key)
+        {
+            case Key.Delete: OnDeleteCommand(this, e); break;
+            case Key.F2:
+                NameBox.Focus();
+                NameBox.SelectAll();
+                break;
+            default: return;
+        }
+        e.Handled = true;
+    }
+
     // ── icon ─────────────────────────────────────────────────────────────
 
     private void OnChooseIcon(object sender, RoutedEventArgs e)
@@ -362,7 +452,14 @@ public partial class CommandsPage : UserControl, IDisposable
 
     private void OnAddAction(object sender, RoutedEventArgs e)
     {
-        var menu = new ContextMenu { PlacementTarget = AddActionButton, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom };
+        var menu = new ContextMenu
+        {
+            PlacementTarget = AddActionButton,
+            Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom,
+            Style = (Style)FindResource("ScrollingContextMenu"),
+            // The decorator around the menu adds 30 px of shadow room on each side.
+            MaxHeight = SystemParameters.WorkArea.Height - 20,
+        };
         foreach (var group in ActionCatalog.All.GroupBy(a => a.CategoryKey))
         {
             if (menu.Items.Count > 0) menu.Items.Add(new Separator());
@@ -600,20 +697,16 @@ public partial class CommandsPage : UserControl, IDisposable
 
     // ── processes ────────────────────────────────────────────────────────
 
-    private void OnProcessDropDown(object sender, EventArgs e) => ProcessBox.ItemsSource = Lookups.RunningProcesses();
+    private void OnProcessDropDown(object sender, EventArgs e) => ProcessCombo.Fill(ProcessBox, _selected?.Processes);
+
+    private void OnProcessPicked(object sender, EventArgs e) => ProcessCombo.AddPicked(ProcessBox, _selected?.Processes);
 
     private void OnProcessKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter) OnAddProcess(sender, e);
     }
 
-    private void OnAddProcess(object sender, RoutedEventArgs e)
-    {
-        if (_selected is null) return;
-        var name = ProcessNames.Normalize(ProcessBox.Text);
-        if (name.Length > 0 && !_selected.Processes.Contains(name)) _selected.Processes.Add(name);
-        ProcessBox.Text = string.Empty;
-    }
+    private void OnAddProcess(object sender, RoutedEventArgs e) => ProcessCombo.AddTyped(ProcessBox, _selected?.Processes);
 
     private void OnPickProcess(object sender, RoutedEventArgs e)
     {

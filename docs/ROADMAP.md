@@ -113,6 +113,14 @@
       de inicio) salvo lo que se lanza a mano desde el editor; los atajos de mostrar la ventana y salir siguen. Estado
       abajo a la izquierda como iconos (pausa, UDP, app web y voz, esta aún sin función) con tooltip, color y clic a
       sus opciones; los atajos desactivados salen como aviso arriba.
+- [x] **Copia completa en .zip** (Opciones › Datos): configuración, logros y estadísticas, iconos, sonidos e idiomas
+      propios (`DataArchive`). Fuera quedan registros, copias automáticas, favicons, modelos de voz y los dispositivos
+      emparejados (sus claves son de este PC). Importar acepta .zip o el config.json antiguo, guarda antes la copia
+      actual en `Backups\antes de importar <fecha>.zip` y reconstruye las páginas (antes seguían con la configuración vieja).
+- [x] **Lista de comandos**: segunda línea con atajos · lo que hace la primera acción y «+N» si hay más (tooltip con
+      todas); menú del botón derecho (ejecutar, duplicar, cambiar nombre, habilitar, ocultar, web, UDP, eliminar), Supr y
+      F2. El nombre no puede quedar vacío (vuelve el anterior). Elegir un proceso del desplegable lo añade al momento.
+      «Añadir acción» con scroll; X en el lanzador y en el aviso de logro.
 - [ ] Web: micrófono del móvil como otra fuente de audio de la voz (después de la voz).
       APK solo si hace falta algo que la web no puede (widgets, ajustes rápidos).
 - [ ] Probar la app web en el móvil real a través de Caddy (instalación como PWA, iPhone y Android).

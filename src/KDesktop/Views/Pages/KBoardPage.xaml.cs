@@ -193,20 +193,16 @@ public partial class KBoardPage : UserControl, IDisposable
 
     // ── applications ─────────────────────────────────────────────────────
 
-    private void OnProcessDropDown(object sender, EventArgs e) => ProcessBox.ItemsSource = Lookups.RunningProcesses();
+    private void OnProcessDropDown(object sender, EventArgs e) => ProcessCombo.Fill(ProcessBox, _selected?.Processes);
+
+    private void OnProcessPicked(object sender, EventArgs e) => ProcessCombo.AddPicked(ProcessBox, _selected?.Processes);
 
     private void OnProcessKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Enter) OnAddProcess(sender, e);
     }
 
-    private void OnAddProcess(object sender, RoutedEventArgs e)
-    {
-        if (_selected is null) return;
-        var name = ProcessNames.Normalize(ProcessBox.Text);
-        if (name.Length > 0 && !_selected.Processes.Contains(name)) _selected.Processes.Add(name);
-        ProcessBox.Text = string.Empty;
-    }
+    private void OnAddProcess(object sender, RoutedEventArgs e) => ProcessCombo.AddTyped(ProcessBox, _selected?.Processes);
 
     private void OnPickProcess(object sender, RoutedEventArgs e)
     {

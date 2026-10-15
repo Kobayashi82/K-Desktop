@@ -275,6 +275,19 @@ public sealed class AchievementService : IDisposable
         }
     }
 
+    /// <summary>Replaces everything with an imported stats.json. Throws when it is not valid.</summary>
+    public void Replace(string statsJson)
+    {
+        var data = Json.Deserialize<StatsData>(statsJson) ?? throw new InvalidDataException("stats.json empty");
+        lock (_gate)
+        {
+            _data = Normalize(data);
+            _dirty = true;
+        }
+        Flush();
+        Changed?.Invoke();
+    }
+
     /// <summary>Clears everything (statistics, achievements and the first-use date).</summary>
     public void Reset()
     {

@@ -44,7 +44,7 @@
                         </Border.Background>
                     </Border>
 
-                    <Grid Margin="18,16,20,18">
+                    <Grid Margin="18,16,32,18">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
@@ -114,6 +114,24 @@
                         </Rectangle.RenderTransform>
                     </Rectangle>
                 </Grid>
+
+                <!-- Close (stronger on hover of the card) -->
+                <Button x:Name="CloseButton" Width="24" Height="24" Margin="0,8,8,0" HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Cursor="Arrow" Opacity="0.45" Focusable="False" Click="OnCloseClick">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="B" CornerRadius="12" Background="Transparent">
+                                <ui:SymbolIcon Symbol="Dismiss24" FontSize="13" Foreground="{DynamicResource Kd.OsdText}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="B" Property="Background" Value="#33808080" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
             </Grid>
         </Border>
     </Grid>

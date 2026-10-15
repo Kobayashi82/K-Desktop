@@ -309,14 +309,29 @@ public partial class SettingsPage : UserControl
 
     // ── process lists ────────────────────────────────────────────────────
 
+    /// <summary>The list a process combo adds to.</summary>
+    private ObservableCollection<string>? ListOf(object? box) =>
+        ReferenceEquals(box, DisabledInBox) ? _app.Config.Settings.DisabledIn
+        : ReferenceEquals(box, SideButtonsBox) ? _app.Config.Settings.BlockSideButtonsIn : null;
+
     private void OnProcessDropDown(object? sender, EventArgs e)
     {
-        if (sender is ComboBox box) box.ItemsSource = Lookups.RunningProcesses();
+        if (sender is ComboBox box) ProcessCombo.Fill(box, ListOf(box));
     }
 
-    private void OnAddDisabledIn(object sender, RoutedEventArgs e) => AddProcess(DisabledInBox, _app.Config.Settings.DisabledIn);
+    private void OnProcessPicked(object? sender, EventArgs e)
+    {
+        if (sender is ComboBox box) ProcessCombo.AddPicked(box, ListOf(box));
+    }
 
-    private void OnAddSideButtons(object sender, RoutedEventArgs e) => AddProcess(SideButtonsBox, _app.Config.Settings.BlockSideButtonsIn);
+    private void OnProcessKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (e.Key == System.Windows.Input.Key.Enter && sender is ComboBox box) ProcessCombo.AddTyped(box, ListOf(box));
+    }
+
+    private void OnAddDisabledIn(object sender, RoutedEventArgs e) => ProcessCombo.AddTyped(DisabledInBox, _app.Config.Settings.DisabledIn);
+
+    private void OnAddSideButtons(object sender, RoutedEventArgs e) => ProcessCombo.AddTyped(SideButtonsBox, _app.Config.Settings.BlockSideButtonsIn);
 
     private void OnPickDisabledIn(object sender, RoutedEventArgs e) => PickInto(_app.Config.Settings.DisabledIn);
 
@@ -327,13 +342,6 @@ public partial class SettingsPage : UserControl
         {
             if (!list.Contains(name)) list.Add(name);
         });
-
-    private static void AddProcess(ComboBox box, ObservableCollection<string> list)
-    {
-        var name = ProcessNames.Normalize(box.Text);
-        if (name.Length > 0 && !list.Contains(name)) list.Add(name);
-        box.Text = string.Empty;
-    }
 
     private void OnRemoveChip(object sender, RoutedEventArgs e)
     {
@@ -356,31 +364,77 @@ public partial class SettingsPage : UserControl
 
     private void OnExport(object sender, RoutedEventArgs e)
     {
-        var dlg = new SaveFileDialog { Filter = "JSON|*.json", FileName = $"K-Desktop {DateTime.Now:yyyy-MM-dd}.json" };
+        var dlg = new SaveFileDialog
+        {
+            Filter = Loc.T("settings.archiveFilter") + "|*.zip",
+            FileName = $"K-Desktop {DateTime.Now:yyyy-MM-dd}.zip",
+        };
         if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
+        try
+        {
+            SaveAll();
+            DataArchive.Export(dlg.FileName);
+            _app.Ui.ShowOsd(Loc.T("settings.exported"), OsdKind.Success);
+            _app.Achievements.Unlock("export");
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Error exportando la copia", ex);
+            _app.Ui.ShowOsd(Loc.T("settings.exportError"), OsdKind.Warning);
+        }
+    }
+
+    private void SaveAll()
+    {
         _app.Store.SaveNow();
-        File.Copy(AppPaths.ConfigFile, dlg.FileName, true);
-        _app.Ui.ShowOsd(Loc.T("settings.exported"), OsdKind.Success);
-        _app.Achievements.Unlock("export");
+        _app.Achievements.Flush();
     }
 
     private async void OnImport(object sender, RoutedEventArgs e)
     {
-        var dlg = new OpenFileDialog { Filter = "JSON|*.json" };
+        // A .zip from "Exportar copia", or a bare config.json (older copies).
+        var dlg = new OpenFileDialog { Filter = Loc.T("settings.archiveFilter") + "|*.zip;*.json" };
         if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
-        if (!await Confirm(Loc.T("settings.importConfirm"))) return;
+
+        DataArchive.Contents? archive = null;
+        AppConfig config;
         try
         {
-            var config = Json.Deserialize<AppConfig>(await File.ReadAllTextAsync(dlg.FileName)) ?? throw new InvalidDataException();
-            _app.Store.Replace(config);
-            _app.ApplySettings();
+            if (Path.GetExtension(dlg.FileName).Equals(".zip", StringComparison.OrdinalIgnoreCase))
+            {
+                archive = DataArchive.Read(dlg.FileName);
+                config = archive.Config;
+            }
+            else config = Json.Deserialize<AppConfig>(await File.ReadAllTextAsync(dlg.FileName)) ?? throw new InvalidDataException();
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Error leyendo la copia a importar", ex);
+            _app.Ui.ShowOsd(Loc.T("settings.importError"), OsdKind.Warning);
+            return;
+        }
+        if (!await Confirm(Loc.T(archive is null ? "settings.importConfirmJson" : "settings.importConfirm"))) return;
+
+        try
+        {
+            // What is replaced is kept first, in case the copy was not the right one.
+            SaveAll();
+            Directory.CreateDirectory(AppPaths.BackupDir);
+            DataArchive.Export(Path.Combine(AppPaths.BackupDir, $"antes de importar {DateTime.Now:yyyy-MM-dd HHmmss}.zip"));
+
+            if (archive is not null)
+            {
+                DataArchive.ExtractFiles(archive);
+                if (archive.StatsJson is { } stats) _app.Achievements.Replace(stats);
+            }
+            _app.ReplaceConfig(config);
             _app.ShowMainWindow(w => w.Navigate("commands"));
             _app.Ui.ShowOsd(Loc.T("settings.imported"), OsdKind.Success);
             _app.Achievements.Unlock("import");
         }
         catch (Exception ex)
         {
-            Log.Error("Error importando configuración", ex);
+            Log.Error("Error importando la copia", ex);
             _app.Ui.ShowOsd(Loc.T("settings.importError"), OsdKind.Warning);
         }
     }

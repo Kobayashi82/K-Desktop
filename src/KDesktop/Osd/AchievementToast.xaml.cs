@@ -30,10 +30,20 @@ public partial class AchievementToast : Window
         InitializeComponent();
         SourceInitialized += (_, _) => UiNative.AddExStyle(UiNative.Handle(this), toolWindow: true, noActivate: true, clickThrough: false);
         Card.SizeChanged += (_, e) => CardClip.Rect = new Rect(e.NewSize);
-        MouseEnter += (_, _) => _timeClock?.Controller?.Pause();
-        MouseLeave += (_, _) => _timeClock?.Controller?.Resume();
+        MouseEnter += (_, _) =>
+        {
+            _timeClock?.Controller?.Pause();
+            CloseButton.BeginAnimation(OpacityProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(120)));
+        };
+        MouseLeave += (_, _) =>
+        {
+            _timeClock?.Controller?.Resume();
+            CloseButton.BeginAnimation(OpacityProperty, new DoubleAnimation(0.45, TimeSpan.FromMilliseconds(200)));
+        };
         MouseLeftButtonUp += OnClick;
     }
+
+    private void OnCloseClick(object sender, RoutedEventArgs e) => Hide(fast: true);
 
     /// <summary>Shows the card and completes when it has disappeared.</summary>
     public Task ShowAsync(AchievementDef def, TimeSpan duration)

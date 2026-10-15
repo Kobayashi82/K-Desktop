@@ -127,6 +127,8 @@ public partial class LauncherWindow : Window
         e.Handled = true;
     }
 
+    private void OnCloseClick(object sender, RoutedEventArgs e) => CloseRequested?.Invoke();
+
     private static LauncherItem? ItemFrom(object source) =>
         source is FrameworkElement { DataContext: LauncherItem a } ? a
         : source is FrameworkContentElement { DataContext: LauncherItem b } ? b : null;

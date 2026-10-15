@@ -5,6 +5,56 @@
     <BooleanToVisibilityConverter x:Key="BoolToVis" />
     <CubicEase x:Key="KdEaseOut" EasingMode="EaseOut" />
 
+    <!-- WPF-UI's context menu look, but with a scroll bar: long menus (Add action…) never get cut at the screen edge.
+         Set MaxHeight on the menu (the work area height) so the popup fits. -->
+    <Style x:Key="ScrollingContextMenu" TargetType="ContextMenu">
+        <Setter Property="Foreground" Value="{DynamicResource ContextMenuForeground}" />
+        <Setter Property="Background" Value="{DynamicResource ContextMenuBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ContextMenuBorderBrush}" />
+        <Setter Property="MinWidth" Value="140" />
+        <Setter Property="ContextMenuService.HasDropShadow" Value="False" />
+        <Setter Property="Grid.IsSharedSizeScope" Value="True" />
+        <Setter Property="Popup.PopupAnimation" Value="None" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContextMenu">
+                    <ui:EffectThicknessDecorator Thickness="30">
+                        <Border x:Name="Border" BorderThickness="1" Padding="0,3" CornerRadius="8"
+                                BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}">
+                            <Border.RenderTransform>
+                                <TranslateTransform />
+                            </Border.RenderTransform>
+                            <Border.Effect>
+                                <DropShadowEffect ShadowDepth="10" Color="#FF202020" Direction="270" Opacity="0.135" BlurRadius="20" />
+                            </Border.Effect>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False">
+                                <StackPanel Orientation="Vertical" IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
+                            </ScrollViewer>
+                        </Border>
+                    </ui:EffectThicknessDecorator>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsOpen" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Border" Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                                                         From="-24" To="0" Duration="0:0:0.167">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CircleEase EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ── Typography ───────────────────────────────────────────────── -->
     <Style x:Key="PageTitle" TargetType="TextBlock">
         <Setter Property="FontSize" Value="26" />

@@ -212,19 +212,22 @@ public partial class MainWindow : FluentWindow
         PageShift.BeginAnimation(System.Windows.Media.TranslateTransform.YProperty, new DoubleAnimation(16, 0, duration) { EasingFunction = EaseOut });
     }
 
-    private void OnLanguageChanged()
+    // Pages build some texts in code: rebuild them so everything follows the new language.
+    private void OnLanguageChanged() => Dispatcher.BeginInvoke(RebuildPages);
+
+    /// <summary>
+    /// Throws away the cached pages and shows the current one again: after a language change, or when the whole
+    /// configuration is replaced (imports), since the pages hold on to the collections of the old one.
+    /// </summary>
+    public void RebuildPages()
     {
-        // Pages build some texts in code: rebuild them so everything follows the new language.
-        Dispatcher.BeginInvoke(() =>
-        {
-            foreach (var page in _pages.Values.OfType<IDisposable>()) page.Dispose();
-            _pages.Clear();
-            var key = _current;
-            PageHost.Content = null;
-            Navigate(key, fromList: true);
-            ShowBanners();
-            UpdateStatus();
-        });
+        foreach (var page in _pages.Values.OfType<IDisposable>()) page.Dispose();
+        _pages.Clear();
+        var key = _current;
+        PageHost.Content = null;
+        Navigate(key, fromList: true);
+        ShowBanners();
+        UpdateStatus();
     }
 
     /// <summary>

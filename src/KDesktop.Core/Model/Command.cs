@@ -58,6 +58,12 @@ public partial class Command : ObservableObject
 
     [JsonIgnore] public CommandAction? PrimaryAction => Actions.FirstOrDefault(a => a.Enabled) ?? Actions.FirstOrDefault();
 
+    /// <summary>"+2" when there are more actions besides the primary one, empty otherwise.</summary>
+    [JsonIgnore] public string MoreActionsText => Actions.Count > 1 ? $"+{Actions.Count - 1}" : string.Empty;
+
+    /// <summary>Every action's summary, one per line (tooltip of the list).</summary>
+    [JsonIgnore] public string ActionsText => string.Join(Environment.NewLine, Actions.Select(a => "• " + a.Summary));
+
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);
@@ -86,13 +92,24 @@ public partial class Command : ObservableObject
             foreach (var a in e.NewItems.OfType<CommandAction>()) a.PropertyChanged += OnActionChanged;
 
         if (ReferenceEquals(sender, Hotkeys)) OnPropertyChanged(nameof(HotkeysText));
-        if (ReferenceEquals(sender, Actions)) OnPropertyChanged(nameof(PrimaryAction));
+        if (ReferenceEquals(sender, Actions))
+        {
+            OnPropertyChanged(nameof(PrimaryAction));
+            base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(MoreActionsText)));
+            base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(ActionsText)));
+        }
         Modified?.Invoke(this, EventArgs.Empty);
     }
 
     private void OnActionChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(CommandAction.Summary)) return;
+        if (e.PropertyName == nameof(CommandAction.Summary))
+        {
+            // Display only: not a change to save.
+            base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(ActionsText)));
+            return;
+        }
+        if (e.PropertyName == nameof(CommandAction.Enabled)) base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(PrimaryAction)));
         Modified?.Invoke(this, EventArgs.Empty);
     }
 

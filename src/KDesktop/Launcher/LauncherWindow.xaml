@@ -93,7 +93,27 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
+                <Button x:Name="CloseButton" Grid.Column="2" Width="30" Height="30" Margin="8,0,-4,0" VerticalAlignment="Center"
+                        Focusable="False" Cursor="Hand" ToolTip="{l:Tr common.close}" Click="OnCloseClick"
+                        AutomationProperties.Name="{l:Tr common.close}">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="B" CornerRadius="6" Background="Transparent">
+                                <Path x:Name="X" Width="10" Height="10" Stretch="Uniform" Data="M0,0 L10,10 M10,0 L0,10"
+                                      Stroke="{DynamicResource Kd.MenuTextSecondary}" StrokeThickness="1.6"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="B" Property="Background" Value="{DynamicResource Kd.MenuHover}" />
+                                    <Setter TargetName="X" Property="Stroke" Value="{DynamicResource Kd.MenuText}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
                 <Path Width="18" Height="18" Margin="4,0,12,0" VerticalAlignment="Center" Stretch="Uniform"
                       Stroke="{DynamicResource Kd.Accent}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                       Data="M7,0 A7,7 0 1 1 6.99,0 M12,12 L17,17" />

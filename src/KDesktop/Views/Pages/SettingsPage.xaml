@@ -523,7 +523,7 @@
                     <ItemsControl ItemsSource="{Binding DisabledIn}" ItemTemplate="{StaticResource ProcessChip}" ItemsPanel="{StaticResource Wrap}" />
                     <Border Height="1" Margin="0,6,0,12" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
                     <StackPanel Orientation="Horizontal">
-                        <ComboBox x:Name="DisabledInBox" IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnProcessDropDown" />
+                        <ComboBox x:Name="DisabledInBox" IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnProcessDropDown" DropDownClosed="OnProcessPicked" KeyDown="OnProcessKeyDown" />
                         <ui:Button Margin="8,0,0,0" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddDisabledIn" />
                         <ui:Button Margin="8,0,0,0" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickDisabledIn" ToolTip="{l:Tr picker.tooltip}" />
                     </StackPanel>
@@ -544,7 +544,7 @@
                     <ItemsControl Margin="0,6,0,0" ItemsSource="{Binding BlockSideButtonsIn}" ItemTemplate="{StaticResource ProcessChip}" ItemsPanel="{StaticResource Wrap}" />
                     <Border Height="1" Margin="0,6,0,12" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
                     <StackPanel Orientation="Horizontal">
-                        <ComboBox x:Name="SideButtonsBox" IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnProcessDropDown" />
+                        <ComboBox x:Name="SideButtonsBox" IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnProcessDropDown" DropDownClosed="OnProcessPicked" KeyDown="OnProcessKeyDown" />
                         <ui:Button Margin="8,0,0,0" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddSideButtons" />
                         <ui:Button Margin="8,0,0,0" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickSideButtons" ToolTip="{l:Tr picker.tooltip}" />
                     </StackPanel>

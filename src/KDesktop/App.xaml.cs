@@ -291,11 +291,18 @@ public partial class App : Application
         Store.SaveNow();
         var (config, report) = LegacyImporter.Import();
         config.Settings.Theme = Config.Settings.Theme;
+        ReplaceConfig(config);
+        return report;
+    }
+
+    /// <summary>Swaps in a whole new configuration (imports) and brings everything in line with it.</summary>
+    public void ReplaceConfig(AppConfig config)
+    {
         Store.Replace(config);
         IconProvider.Invalidate();
         RebuildIndex();
         ApplySettings();
-        return report;
+        _main?.RebuildPages();
     }
 
     private void RebuildIndex()

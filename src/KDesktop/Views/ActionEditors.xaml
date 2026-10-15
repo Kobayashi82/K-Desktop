@@ -73,7 +73,6 @@
                 <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.runAsAdmin}" IsChecked="{Binding RunAsAdmin}" />
                 <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.topMost}" IsChecked="{Binding TopMost}" />
             </WrapPanel>
-            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr editor.runAsAdminHint}" />
         </StackPanel>
     </DataTemplate>
 
