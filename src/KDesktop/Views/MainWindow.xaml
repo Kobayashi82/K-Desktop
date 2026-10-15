@@ -47,6 +47,10 @@
                             <Ellipse x:Name="UdpDot" Width="8" Height="8" Fill="{DynamicResource Kd.Success}" VerticalAlignment="Center" />
                             <TextBlock x:Name="UdpText" Margin="8,0,0,0" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                         </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Ellipse x:Name="WebDot" Width="8" Height="8" Fill="{DynamicResource Kd.Success}" VerticalAlignment="Center" />
+                            <TextBlock x:Name="WebText" Margin="8,0,0,0" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 

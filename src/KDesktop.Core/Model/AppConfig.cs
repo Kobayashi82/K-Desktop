@@ -89,6 +89,25 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private bool _udpAllowRemote = true;
     [ObservableProperty] private int _udpPort = 2501;
 
+    // Remote web app (PWA)
+    [ObservableProperty] private bool _webEnabled;
+    [ObservableProperty] private int _webPort = 2502;
+
+    /// <summary>Accept connections from the network (the proxy on another machine, or devices directly), not only this PC.</summary>
+    [ObservableProperty] private bool _webAllowRemote = true;
+
+    /// <summary>Path of the app behind the proxy ("/kdesktop"); empty at the root of its domain.</summary>
+    [ObservableProperty] private string _webBasePath = string.Empty;
+
+    /// <summary>Public address of the app (https://…), for the pairing QR. Empty: the one seen through the proxy.</summary>
+    [ObservableProperty] private string _webPublicUrl = string.Empty;
+
+    /// <summary>IP of the reverse proxy: its X-Forwarded-* headers are trusted.</summary>
+    [ObservableProperty] private string _webTrustedProxy = string.Empty;
+
+    /// <summary>From the network, accept only the proxy (devices must go through HTTPS).</summary>
+    [ObservableProperty] private bool _webProxyOnly;
+
     // OSD
     [ObservableProperty] private OsdPosition _osdPosition = OsdPosition.BottomCenter;
     [ObservableProperty] private double _osdSeconds = 1.6;

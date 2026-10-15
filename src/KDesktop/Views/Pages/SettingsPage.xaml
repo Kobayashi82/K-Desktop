@@ -178,6 +178,72 @@
                 </StackPanel>
             </Border>
 
+            <!-- Remote web app (PWA) -->
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.web}" />
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.webEnabled}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webEnabledHint}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding WebEnabled}" />
+                    </Grid>
+                    <StackPanel IsEnabled="{Binding WebEnabled}">
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{l:Tr settings.webRemote}" />
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webRemoteHint}" />
+                            </StackPanel>
+                            <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding WebAllowRemote}" />
+                        </Grid>
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="140" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{l:Tr settings.webPort}" />
+                                <TextBlock x:Name="WebStateText" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <ui:TextBox Grid.Column="1" Text="{Binding WebPort, UpdateSourceTrigger=LostFocus}" />
+                        </Grid>
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{l:Tr settings.webPublicUrl}" />
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webPublicUrlHint}" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <ui:TextBox Grid.Column="1" PlaceholderText="https://kdesktop.example.com" Text="{Binding WebPublicUrl, UpdateSourceTrigger=LostFocus}" />
+                        </Grid>
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{l:Tr settings.webBasePath}" />
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webBasePathHint}" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <ui:TextBox Grid.Column="1" PlaceholderText="/kdesktop" Text="{Binding WebBasePath, UpdateSourceTrigger=LostFocus}" />
+                        </Grid>
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{l:Tr settings.webProxy}" />
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webProxyHint}" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <ui:TextBox Grid.Column="1" PlaceholderText="192.168.1.150" Text="{Binding WebTrustedProxy, UpdateSourceTrigger=LostFocus}" />
+                        </Grid>
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{l:Tr settings.webProxyOnly}" />
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webProxyOnlyHint}" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding WebProxyOnly}" />
+                        </Grid>
+                        <ui:Button Margin="0,6,0,0" Content="{l:Tr settings.webOpen}" Icon="{ui:SymbolIcon Globe24}" Click="OnOpenWeb" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
             <!-- Disabled in -->
             <Border Style="{StaticResource Card}">
                 <StackPanel>

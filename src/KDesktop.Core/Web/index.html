@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>K-Desktop</title>
+</head>
+<body>
+  <h1>K-Desktop</h1>
+  <p id="status">…</p>
+  <script>
+    fetch('./api/ping').then(r => r.json()).then(j => {
+      document.getElementById('status').textContent = j.app + ' · ' + j.machine;
+    });
+  </script>
+</body>
+</html>

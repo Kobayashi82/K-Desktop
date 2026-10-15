@@ -52,6 +52,19 @@ public partial class MainWindow : FluentWindow
             : app.Udp.IsRunning ? Loc.T("status.udpOn", s.UdpPort) : Loc.T("status.udpError", s.UdpPort);
         UdpDot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty,
             !s.UdpEnabled ? "TextFillColorTertiaryBrush" : app.Udp.IsRunning ? "Kd.Success" : "Kd.Danger");
+
+        var web = app.Web.State;
+        WebText.Text = !s.WebEnabled || !app.WebAllowed ? Loc.T("status.webOff")
+            : web switch
+            {
+                Core.Remote.Web.WebServerState.Running => Loc.T("status.webOn", s.WebPort),
+                Core.Remote.Web.WebServerState.LocalOnly => Loc.T("status.webLocal", s.WebPort),
+                _ => Loc.T("status.webError", s.WebPort),
+            };
+        WebDot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty,
+            !s.WebEnabled || !app.WebAllowed ? "TextFillColorTertiaryBrush"
+            : web == Core.Remote.Web.WebServerState.Running ? "Kd.Success"
+            : web == Core.Remote.Web.WebServerState.LocalOnly ? "Kd.Warning" : "Kd.Danger");
     }
 
     private void OnNavigate(object sender, SelectionChangedEventArgs e)

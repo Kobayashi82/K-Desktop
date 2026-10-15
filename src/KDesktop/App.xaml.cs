@@ -13,6 +13,7 @@ using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
 using KDesktop.Core.Platform;
 using KDesktop.Core.Remote;
+using KDesktop.Core.Remote.Web;
 using KDesktop.Core.Storage;
 using KDesktop.Launcher;
 using KDesktop.QuickMenus;
@@ -45,14 +46,19 @@ public partial class App : Application
 
     private bool HooksDisabled => Arguments.Contains("--no-hooks");
     private bool UdpDisabled => Arguments.Contains("--no-udp");
+    private bool WebDisabled => Arguments.Contains("--no-web");
 
     /// <summary>False when UDP was disabled from the command line.</summary>
     public bool UdpAllowed => !UdpDisabled;
+
+    /// <summary>False when the web server was disabled from the command line.</summary>
+    public bool WebAllowed => !WebDisabled;
 
     public ConfigStore Store { get; } = new();
     public HotkeyRouter Router { get; } = new();
     public CommandEngine Engine { get; private set; } = null!;
     public UdpServer Udp { get; private set; } = null!;
+    public WebServer Web { get; } = new();
     public UiServices Ui { get; private set; } = null!;
     public QuickMenuController QuickMenus { get; private set; } = null!;
     public LauncherController Launcher { get; private set; } = null!;
@@ -178,6 +184,7 @@ public partial class App : Application
 
         // Remote control
         Udp = new UdpServer(Engine, Ui);
+        Web.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
         ApplySettings();
         if (ProcessLauncher.IsElevated) Task.Run(FirewallRule.Ensure);
 
@@ -322,6 +329,10 @@ public partial class App : Application
 
         if (s.UdpEnabled && !UdpDisabled) Udp.Start(s.UdpPort, s.UdpAllowRemote);
         else Udp.Stop();
+
+        if (s.WebEnabled && !WebDisabled)
+            Web.Start(new WebServerOptions(s.WebPort, s.WebAllowRemote, s.WebBasePath, s.WebTrustedProxy, s.WebProxyOnly));
+        else Web.Stop();
     }
 
     // ── tray ─────────────────────────────────────────────────────────────
@@ -458,6 +469,7 @@ public partial class App : Application
         _hookRefresh.Stop();
         Router.Dispose();
         Udp?.Dispose();
+        Web.Dispose();
         Store.Dispose();
         Achievements.Dispose();
         _tray?.Dispose();

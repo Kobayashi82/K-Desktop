@@ -1,7 +1,5 @@
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
 using System.Windows;
 using System.Windows.Controls;
 using KDesktop.Core;
@@ -10,6 +8,7 @@ using KDesktop.Core.Input;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
 using KDesktop.Core.Platform;
+using KDesktop.Core.Remote.Web;
 using KDesktop.Core.Storage;
 using KDesktop.Services;
 using Microsoft.Win32;
@@ -31,7 +30,36 @@ public partial class SettingsPage : UserControl
         StartupSoundBox.ItemsSource = Sounds.Available();
         StartupToggle.IsChecked = StartupTask.IsRegistered();
         DataPathText.Text = AppPaths.DataDir;
-        IpText.Text = Loc.T("settings.udpAddresses", string.Join("  ·  ", LocalAddresses()));
+        IpText.Text = Loc.T("settings.udpAddresses", string.Join("  ·  ", NetworkInfo.LocalIPv4()));
+
+        // Pages are kept while the window lives: follow the server only while this one is shown.
+        void OnWebState() => Dispatcher.BeginInvoke(UpdateWebState);
+        Loaded += (_, _) =>
+        {
+            UpdateWebState();
+            _app.Web.StateChanged += OnWebState;
+        };
+        Unloaded += (_, _) => _app.Web.StateChanged -= OnWebState;
+    }
+
+    // ── web ──────────────────────────────────────────────────────────────
+
+    private void UpdateWebState()
+    {
+        var s = _app.Config.Settings;
+        WebStateText.Text = _app.Web.State switch
+        {
+            WebServerState.Running => Loc.T("settings.webRunning", string.Join("  ·  ", WebServer.LocalUrls(s.WebPort, s.WebBasePath))),
+            WebServerState.LocalOnly => Loc.T("settings.webLocalOnly"),
+            WebServerState.Error => Loc.T("settings.webError"),
+            _ => !_app.WebAllowed ? Loc.T("settings.webDisabledArg") : Loc.T("settings.webStopped"),
+        };
+    }
+
+    private void OnOpenWeb(object sender, RoutedEventArgs e)
+    {
+        var s = _app.Config.Settings;
+        ProcessLauncher.Launch(new LaunchSpec($"http://localhost:{s.WebPort}{WebServer.NormalizeBasePath(s.WebBasePath)}/"), asAdmin: false);
     }
 
     private void LoadLanguages() =>
@@ -69,21 +97,6 @@ public partial class SettingsPage : UserControl
             Log.Error("Error exportando la plantilla de idioma", ex);
             _app.Ui.ShowOsd(Loc.T("settings.templateError"), OsdKind.Warning);
         }
-    }
-
-    private static IEnumerable<string> LocalAddresses()
-    {
-        try
-        {
-            return NetworkInterface.GetAllNetworkInterfaces()
-                .Where(n => n.OperationalStatus == OperationalStatus.Up && n.NetworkInterfaceType != NetworkInterfaceType.Loopback)
-                .SelectMany(n => n.GetIPProperties().UnicastAddresses)
-                .Where(a => a.Address.AddressFamily == AddressFamily.InterNetwork)
-                .Select(a => a.Address.ToString())
-                .Distinct()
-                .ToList();
-        }
-        catch { return []; }
     }
 
     private void OnStartupToggle(object sender, RoutedEventArgs e)
