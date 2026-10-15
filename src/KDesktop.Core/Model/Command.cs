@@ -56,6 +56,14 @@ public partial class Command : ObservableObject
 
     [JsonIgnore] public string HotkeysText => Hotkeys.Count == 0 ? string.Empty : string.Join("   ·   ", Hotkeys);
 
+    [JsonIgnore] public string FirstHotkey => Hotkeys.FirstOrDefault() ?? string.Empty;
+
+    /// <summary>"+1" when there are more hotkeys besides the first one, empty otherwise.</summary>
+    [JsonIgnore] public string MoreHotkeysText => Hotkeys.Count > 1 ? $"+{Hotkeys.Count - 1}" : string.Empty;
+
+    /// <summary>Every hotkey, one per line (tooltip of the list).</summary>
+    [JsonIgnore] public string HotkeysList => string.Join(Environment.NewLine, Hotkeys);
+
     [JsonIgnore] public CommandAction? PrimaryAction => Actions.FirstOrDefault(a => a.Enabled) ?? Actions.FirstOrDefault();
 
     /// <summary>"+2" when there are more actions besides the primary one, empty otherwise.</summary>
@@ -91,7 +99,13 @@ public partial class Command : ObservableObject
         if (e.NewItems is not null)
             foreach (var a in e.NewItems.OfType<CommandAction>()) a.PropertyChanged += OnActionChanged;
 
-        if (ReferenceEquals(sender, Hotkeys)) OnPropertyChanged(nameof(HotkeysText));
+        if (ReferenceEquals(sender, Hotkeys))
+        {
+            OnPropertyChanged(nameof(HotkeysText));
+            base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(FirstHotkey)));
+            base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(MoreHotkeysText)));
+            base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(HotkeysList)));
+        }
         if (ReferenceEquals(sender, Actions))
         {
             OnPropertyChanged(nameof(PrimaryAction));

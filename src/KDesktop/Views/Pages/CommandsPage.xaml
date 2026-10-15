@@ -19,6 +19,20 @@
             <v:BoolToCollapsedConverter x:Key="BoolToCollapsed" />
             <v:BoolToCollapsedConverter x:Key="BoolToVisibleInv" Invert="True" />
 
+            <!-- "+N" pill right after a list line (more actions / more hotkeys) -->
+            <Style x:Key="MoreBadge" TargetType="Border">
+                <Setter Property="Margin" Value="6,0,0,0" />
+                <Setter Property="Padding" Value="5,0" />
+                <Setter Property="CornerRadius" Value="6" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Background" Value="{DynamicResource Kd.AccentSoft}" />
+            </Style>
+            <Style x:Key="MoreBadgeText" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="11" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{DynamicResource Kd.AccentText}" />
+            </Style>
+
             <!-- A hotkey drawn as key caps -->
             <DataTemplate x:Key="KeyCaps">
                 <ItemsControl ItemsSource="{Binding Converter={StaticResource HotkeyParts}}" Focusable="False">
@@ -142,7 +156,7 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <Image Width="26" Height="26" Margin="0,0,12,0" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality">
+                            <Image Width="30" Height="30" Margin="0,0,12,0" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality">
                                 <Image.Source>
                                     <MultiBinding Converter="{StaticResource CommandIcon}">
                                         <Binding />
@@ -156,19 +170,22 @@
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                <!-- Hotkeys (accent) · what the first action does, +N when there are more -->
-                                <DockPanel>
-                                    <TextBlock x:Name="Keys" DockPanel.Dock="Left" Text="{Binding HotkeysText}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                               Foreground="{DynamicResource Kd.AccentText}" />
-                                    <TextBlock x:Name="Dot" DockPanel.Dock="Left" Text="·" FontSize="12" Margin="6,0"
-                                               Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                                    <Border x:Name="More" DockPanel.Dock="Right" Margin="6,0,0,0" Padding="5,0" CornerRadius="6" VerticalAlignment="Center"
-                                            Background="{DynamicResource Kd.AccentSoft}" ToolTip="{Binding ActionsText}">
-                                        <TextBlock Text="{Binding MoreActionsText}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Kd.AccentText}" />
+                                <!-- What the first action does, +N when there are more (tooltip: all of them) -->
+                                <v:InlineBadgePanel x:Name="ActionLine" Margin="0,1,0,0">
+                                    <TextBlock Text="{Binding PrimaryAction.Summary}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                    <Border x:Name="MoreActions" Style="{StaticResource MoreBadge}" Background="{DynamicResource Kd.Subtle}" ToolTip="{Binding ActionsText}">
+                                        <TextBlock Text="{Binding MoreActionsText}" Style="{StaticResource MoreBadgeText}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                     </Border>
-                                    <TextBlock x:Name="Summary" Text="{Binding PrimaryAction.Summary}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                               Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                                </DockPanel>
+                                </v:InlineBadgePanel>
+                                <!-- First hotkey, +N when there are more (tooltip: all of them); only when it has any -->
+                                <v:InlineBadgePanel x:Name="KeyLine" Margin="0,1,0,0">
+                                    <TextBlock Text="{Binding FirstHotkey}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                               Foreground="{DynamicResource Kd.AccentText}" />
+                                    <Border x:Name="MoreKeys" Style="{StaticResource MoreBadge}" ToolTip="{Binding HotkeysList}">
+                                        <TextBlock Text="{Binding MoreHotkeysText}" Style="{StaticResource MoreBadgeText}" />
+                                    </Border>
+                                </v:InlineBadgePanel>
                             </StackPanel>
                             <!-- Right margin: keeps the icons clear of the list's scrollbar -->
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,10,0">
@@ -184,16 +201,17 @@
                             </StackPanel>
                         </Grid>
                         <DataTemplate.Triggers>
-                            <DataTrigger Binding="{Binding HotkeysText}" Value="">
-                                <Setter TargetName="Keys" Property="Visibility" Value="Collapsed" />
-                                <Setter TargetName="Dot" Property="Visibility" Value="Collapsed" />
+                            <DataTrigger Binding="{Binding FirstHotkey}" Value="">
+                                <Setter TargetName="KeyLine" Property="Visibility" Value="Collapsed" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding PrimaryAction}" Value="{x:Null}">
-                                <Setter TargetName="Dot" Property="Visibility" Value="Collapsed" />
-                                <Setter TargetName="Summary" Property="Visibility" Value="Collapsed" />
+                                <Setter TargetName="ActionLine" Property="Visibility" Value="Collapsed" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding MoreActionsText}" Value="">
-                                <Setter TargetName="More" Property="Visibility" Value="Collapsed" />
+                                <Setter TargetName="MoreActions" Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding MoreHotkeysText}" Value="">
+                                <Setter TargetName="MoreKeys" Property="Visibility" Value="Collapsed" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Enabled}" Value="False">
                                 <Setter TargetName="Root" Property="Opacity" Value="0.45" />
