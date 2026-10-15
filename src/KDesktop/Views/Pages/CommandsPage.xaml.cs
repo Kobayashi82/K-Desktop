@@ -166,7 +166,12 @@ public partial class CommandsPage : UserControl, IDisposable
     {
         HotkeyCapture.CancelActive();
         if (_selected is not null) _selected.PropertyChanged -= OnSelectedChanged;
+        var previous = _selected;
         _selected = CommandList.SelectedItem as Command;
+        // The filter keeps the selected command listed (so marking it hidden does not close its editor): once
+        // another one is chosen, a command that no longer passes it goes away.
+        if (previous is not null && !ReferenceEquals(previous, _selected) && !Filter(previous))
+            Dispatcher.BeginInvoke(() => _view.Refresh(), System.Windows.Threading.DispatcherPriority.Background);
         Editor.DataContext = _selected;
         HotkeyWarning.Visibility = Visibility.Collapsed;
 

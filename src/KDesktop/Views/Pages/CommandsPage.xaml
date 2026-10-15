@@ -112,8 +112,22 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <ui:Button Content="{l:Tr commands.new}" Icon="{ui:SymbolIcon Add24}" Appearance="Primary" Click="OnNewCommand" HorizontalAlignment="Stretch" />
-                    <ToggleButton x:Name="ShowHiddenToggle" Grid.Column="1" Margin="8,0,0,0" Padding="9,6" ToolTip="{l:Tr commands.showHidden}" Click="OnShowHidden">
-                        <ui:SymbolIcon Symbol="Eye24" />
+                    <ToggleButton x:Name="ShowHiddenToggle" Grid.Column="1" Margin="8,0,0,0" Padding="9,6" ToolTip="{l:Tr commands.showHidden}" Checked="OnShowHidden" Unchecked="OnShowHidden">
+                        <ui:SymbolIcon>
+                            <!-- Checked, the button turns accent-coloured: the icon goes dark on it to stay visible -->
+                            <ui:SymbolIcon.Style>
+                                <Style TargetType="ui:SymbolIcon">
+                                    <Setter Property="Symbol" Value="EyeOff24" />
+                                    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=ToggleButton}}" Value="True">
+                                            <Setter Property="Symbol" Value="Eye24" />
+                                            <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:SymbolIcon.Style>
+                        </ui:SymbolIcon>
                     </ToggleButton>
                 </Grid>
             </StackPanel>
@@ -162,6 +176,9 @@
                             <DataTrigger Binding="{Binding HotkeysText}" Value="">
                                 <Setter TargetName="Sub" Property="Text" Value="{Binding PrimaryAction.Summary}" />
                                 <Setter TargetName="Sub" Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Hidden}" Value="True">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.6" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Enabled}" Value="False">
                                 <Setter TargetName="Root" Property="Opacity" Value="0.45" />

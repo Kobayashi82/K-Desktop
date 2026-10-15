@@ -340,7 +340,7 @@
                             <TextBlock Text="{l:Tr settings.udpPort}" />
                             <TextBlock x:Name="IpText" Style="{StaticResource Caption}" />
                         </StackPanel>
-                        <ui:TextBox Grid.Column="1" Text="{Binding UdpPort, UpdateSourceTrigger=LostFocus}" />
+                        <ui:TextBox Grid.Column="1" v:PortInput.IsEnabled="True" Text="{Binding UdpPort, UpdateSourceTrigger=LostFocus}" />
                     </Grid>
                 </StackPanel>
             </Border>
@@ -372,7 +372,7 @@
                                 <TextBlock Text="{l:Tr settings.webPort}" />
                                 <TextBlock x:Name="WebStateText" Style="{StaticResource Caption}" TextWrapping="Wrap" />
                             </StackPanel>
-                            <ui:TextBox Grid.Column="1" Text="{Binding WebPort, UpdateSourceTrigger=LostFocus}" />
+                            <ui:TextBox Grid.Column="1" v:PortInput.IsEnabled="True" Text="{Binding WebPort, UpdateSourceTrigger=LostFocus}" />
                         </Grid>
                         <Grid Style="{StaticResource SettingRow}">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
@@ -448,7 +448,8 @@
                     <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.disabledIn}" />
                     <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,10" Text="{l:Tr settings.disabledInHint}" />
                     <ItemsControl ItemsSource="{Binding DisabledIn}" ItemTemplate="{StaticResource ProcessChip}" ItemsPanel="{StaticResource Wrap}" />
-                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                    <Border Height="1" Margin="0,6,0,12" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+                    <StackPanel Orientation="Horizontal">
                         <ComboBox x:Name="DisabledInBox" IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnProcessDropDown" />
                         <ui:Button Margin="8,0,0,0" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddDisabledIn" />
                         <ui:Button Margin="8,0,0,0" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickDisabledIn" ToolTip="{l:Tr picker.tooltip}" />
@@ -468,7 +469,8 @@
                         <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding BlockSideButtons}" />
                     </Grid>
                     <ItemsControl Margin="0,6,0,0" ItemsSource="{Binding BlockSideButtonsIn}" ItemTemplate="{StaticResource ProcessChip}" ItemsPanel="{StaticResource Wrap}" />
-                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                    <Border Height="1" Margin="0,6,0,12" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+                    <StackPanel Orientation="Horizontal">
                         <ComboBox x:Name="SideButtonsBox" IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnProcessDropDown" />
                         <ui:Button Margin="8,0,0,0" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddSideButtons" />
                         <ui:Button Margin="8,0,0,0" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickSideButtons" ToolTip="{l:Tr picker.tooltip}" />
@@ -480,7 +482,8 @@
             <Border Style="{StaticResource Card}" Tag="data">
                 <StackPanel>
                     <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.data}" />
-                    <TextBlock x:Name="DataPathText" Style="{StaticResource Caption}" Margin="0,0,0,12" />
+                    <TextBlock x:Name="DataPathText" Style="{StaticResource Caption}" Margin="0,0,0,6" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" Text="{l:Tr settings.exportHint}" />
                     <WrapPanel>
                         <ui:Button Margin="0,0,8,8" Content="{l:Tr settings.openData}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnOpenData" />
                         <ui:Button Margin="0,0,8,8" Content="{l:Tr settings.export}" Icon="{ui:SymbolIcon ArrowExport24}" Click="OnExport" />
