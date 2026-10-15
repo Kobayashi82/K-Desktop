@@ -79,6 +79,30 @@
       arranca ~200 ms más lento y usa ~75 MB más de RAM todo el rato (descomprime en memoria). Sin
       ReadyToRun 142 MB. Decisión: exe sin comprimir y distribuir en zip.
 - [x] Favicons para las acciones web: se descargan de la propia web (link rel=icon, manifest de app web, /favicon.ico; SVG con SharpVectors), uno por host+puerto, en `Favicons` de la carpeta de datos. Opción en Apariencia (y botón para volver a descargarlos).
+- [x] **Lanzador** (acción «Lanzador»): caja de búsqueda centrada sobre los comandos, los programas del menú Inicio
+      (shell:AppsFolder, también apps de la Store) y la web, con calculadora. Búsqueda difusa (`FuzzyMatch`: inicio,
+      palabras, iniciales, letras sueltas; sin acentos) y orden por uso (ejecuciones de comandos y `launcher.json`).
+- [ ] **Web/PWA de control remoto**: servidor HTTP dentro de K-Desktop (solo red local; HTTPS a través del Caddy del
+      usuario como proxy inverso), emparejado por QR con token. Comandos con iconos agrupados como los QuickMenus,
+      resultado en el móvil, volumen y salida de audio, opcionalmente touchpad/teclado y micrófono para la voz.
+      APK solo si hace falta algo que la web no puede (widgets, ajustes rápidos).
+- [ ] **Voz** (investigado 2026-10-15, ver abajo).
+
+### Plan de la voz
+
+- Activación: mantener un atajo mientras se habla **y** palabra clave. Palabra clave con el *keyword spotting* de
+  sherpa-onnx (frases propias sin entrenar, modelo de streaming pequeño; sus modelos son inglés/chino, así que la frase
+  sería tipo «Hey K-Desktop»; hay que probar la tasa de falsos positivos). Detector de voz Silero (incluido en sherpa-onnx).
+- Voz a texto: **Parakeet TDT 0.6B v3** (25 idiomas europeos, español incluido) con sherpa-onnx
+  (NuGet `org.k2fsa.sherpa.onnx`, 1.13.8, API de C#), en CPU. Whisper descartado. Modelos descargables y
+  configurables desde Opciones (nunca dentro del exe).
+- Decisión: como Jev (TypeSafe AI, que es un servicio de pago en la nube que *elige* entre opciones con probabilidades
+  en vez de generar texto) pero local. Por capas: 1) coincidencia directa con los nombres (`FuzzyMatch`, ya hecho);
+  2) LLM pequeño local (Qwen3 0.6B/1.7B en GGUF con LLamaSharp 0.27, CPU o GPU) con la salida forzada por gramática a
+  los ids de comandos existentes y la confianza sacada de las probabilidades de los tokens; umbral de confianza para
+  pedir confirmación. Medir latencia y aciertos con los comandos reales antes de integrarlo.
+- Seguridad: casilla «Disponible por voz» por comando; confirmación para los peligrosos. OSD de «Escuchando…» →
+  texto entendido → lo que se va a ejecutar.
 
 **Primer arranque:** si «Iniciar con Windows» está activado (por defecto lo está) y es una copia con
 carpeta de datos normal, se registra la tarea del Programador de tareas automáticamente la primera vez,
@@ -88,5 +112,3 @@ sin tener que abrir Ajustes.
 
 - K-Link (crear enlaces duros / uniones de carpeta) y Zona Wi-Fi móvil (sustituta de la Red Ad-Hoc): sin decidir.
 - Captura de pantalla, grabación de pantalla y de audio: descartadas por ahora.
-- Búsqueda rápida de comandos tipo lanzador (atajo → escribir → Enter).
-- Cliente web/móvil para el control remoto.

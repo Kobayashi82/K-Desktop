@@ -6,7 +6,7 @@ using KDesktop.Core.Storage;
 
 namespace KDesktop.Core.Engine;
 
-public enum TriggerSource { Hotkey, QuickMenu, Remote, Startup, Exit, Manual, Command }
+public enum TriggerSource { Hotkey, QuickMenu, Remote, Startup, Exit, Manual, Command, Launcher }
 
 /// <summary>Information about one execution of a command.</summary>
 public sealed record ExecutionContext(
@@ -18,6 +18,9 @@ public sealed record ExecutionContext(
     int Depth = 0)
 {
     public bool Quiet => Source is TriggerSource.Startup or TriggerSource.Exit;
+
+    /// <summary>Run from a menu-like window (QuickMenu, launcher): actions that type or click go back to the window it was opened over.</summary>
+    public bool FromPopup => Source is TriggerSource.QuickMenu or TriggerSource.Launcher;
 }
 
 /// <summary>Runs commands: sequential actions, cancellation, filters and the "Esc" cancel of long operations.</summary>

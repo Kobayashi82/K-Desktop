@@ -1,4 +1,5 @@
 using KDesktop.Core.Input;
+using KDesktop.Core.Model;
 
 namespace KDesktop.Core.Engine;
 
@@ -18,6 +19,9 @@ public interface IUiServices
 
     /// <summary>Opens a QuickMenu at the mouse position.</summary>
     void ShowQuickMenu(string menuId, ForegroundWindow previousForeground);
+
+    /// <summary>Opens the launcher (search box) on the monitor of the mouse.</summary>
+    void ShowLauncher(LauncherAction options, ForegroundWindow previousForeground);
 
     void ShowMainWindow();
 

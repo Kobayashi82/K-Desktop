@@ -14,6 +14,7 @@ using KDesktop.Core.Model;
 using KDesktop.Core.Platform;
 using KDesktop.Core.Remote;
 using KDesktop.Core.Storage;
+using KDesktop.Launcher;
 using KDesktop.QuickMenus;
 using KDesktop.Services;
 using KDesktop.Views;
@@ -54,6 +55,7 @@ public partial class App : Application
     public UdpServer Udp { get; private set; } = null!;
     public UiServices Ui { get; private set; } = null!;
     public QuickMenuController QuickMenus { get; private set; } = null!;
+    public LauncherController Launcher { get; private set; } = null!;
     public AchievementService Achievements { get; } = new();
     public AchievementNotifier Notifier { get; private set; } = null!;
 
@@ -122,6 +124,11 @@ public partial class App : Application
         Notifier = new AchievementNotifier(() => Config.Settings, key => ShowMainWindow(w => w.Navigate(key)));
         Achievements.Unlocked += def => Dispatcher.BeginInvoke(() => Notifier.Show(def));
         Achievements.Load();
+
+        // Launcher (search box): its window is created now so the first opening is instant.
+        Launcher = new LauncherController(() => Config, Engine, Achievements, Ui);
+        Ui.Launcher = Launcher;
+        Launcher.Prewarm();
         Engine.Executed += Achievements.CommandExecuted;
         Engine.ActionStarting += (action, _) => Achievements.ActionExecuted(action);
         Engine.Cancelled += () => Achievements.Unlock("cancel");

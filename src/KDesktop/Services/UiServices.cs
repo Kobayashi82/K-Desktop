@@ -2,6 +2,7 @@ using System.Windows.Threading;
 using KDesktop.Core.Engine;
 using KDesktop.Core.Input;
 using KDesktop.Core.Model;
+using KDesktop.Launcher;
 using KDesktop.Osd;
 using KDesktop.QuickMenus;
 
@@ -13,6 +14,8 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     private OsdWindow? _osd;
 
     public QuickMenuController? QuickMenus { get; set; }
+
+    public LauncherController? Launcher { get; set; }
 
     private OsdWindow Osd
     {
@@ -38,6 +41,9 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
 
     public void ShowQuickMenu(string menuId, ForegroundWindow previousForeground) =>
         dispatcher.BeginInvoke(() => QuickMenus?.Show(menuId, previousForeground));
+
+    public void ShowLauncher(LauncherAction options, ForegroundWindow previousForeground) =>
+        dispatcher.BeginInvoke(() => Launcher?.Show(options, previousForeground));
 
     public void ShowMainWindow() => dispatcher.BeginInvoke(showMainWindow);
 

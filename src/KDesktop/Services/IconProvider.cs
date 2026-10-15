@@ -69,6 +69,7 @@ public static class IconProvider
         ShowMessageAction => Kd("Chat24", "green"),
         PowerAction => Kd("Power24", "red"),
         OpenQuickMenuAction => Kd("Navigation24", "gold"),
+        LauncherAction => Kd("Search24", "gold"),
         CommandControlAction => Kd("Flash24", "gold"),
         WaitAction => Kd("Timer24", "purple"),
         PlayMacroAction => Kd("Record24", "red"),

@@ -27,7 +27,7 @@ public sealed partial class CommandEngine
         if (Config.FindMacro(a.MacroId) is not { } macro) return;
 
         // From the QuickMenu, give the focus back to the window the menu was opened over.
-        if (ctx.Source == TriggerSource.QuickMenu && ctx.Foreground.Handle != IntPtr.Zero)
+        if (ctx.FromPopup && ctx.Foreground.Handle != IntPtr.Zero)
         {
             WindowTools.ForceForeground(ctx.Foreground.Handle);
             await Task.Delay(80, ctx.Token).ConfigureAwait(false);

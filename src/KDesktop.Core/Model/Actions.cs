@@ -12,7 +12,7 @@ public enum ActionKind
     SendInput, Volume, PlaySound,
     TopMost, HiddenFiles, ToggleDisabledIn, ShowMessage, Power,
     OpenQuickMenu, CommandControl, Wait,
-    PlayMacro, AudioOutput, KBoard,
+    PlayMacro, AudioOutput, KBoard, Launcher,
 }
 
 public enum WindowMode { Normal, Minimized, Maximized, Hidden }
@@ -46,6 +46,7 @@ public enum ScriptShell { Cmd, PowerShell }
 [JsonDerivedType(typeof(PlayMacroAction), "playMacro")]
 [JsonDerivedType(typeof(AudioOutputAction), "audioOutput")]
 [JsonDerivedType(typeof(KBoardAction), "kboard")]
+[JsonDerivedType(typeof(LauncherAction), "launcher")]
 public abstract partial class CommandAction : ObservableObject
 {
     [ObservableProperty] private bool _enabled = true;
@@ -300,6 +301,16 @@ public partial class OpenQuickMenuAction : CommandAction
 
     public override ActionKind Kind => ActionKind.OpenQuickMenu;
     public override string Summary => Loc.T("summary.openMenu", string.IsNullOrWhiteSpace(MenuName) ? MenuId : MenuName);
+}
+
+/// <summary>Opens the launcher: a search box over the commands and, optionally, the installed programs and the web.</summary>
+public partial class LauncherAction : CommandAction
+{
+    [ObservableProperty] private bool _includeApps = true;
+    [ObservableProperty] private bool _webSearch = true;
+
+    public override ActionKind Kind => ActionKind.Launcher;
+    public override string Summary => Loc.T(IncludeApps ? "summary.launcherApps" : "summary.launcher");
 }
 
 public partial class CommandControlAction : CommandAction

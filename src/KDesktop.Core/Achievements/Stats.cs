@@ -21,6 +21,7 @@ public static class Stat
     public const string MenusCreated = "menus.created";
     public const string MenusDeleted = "menus.deleted";
     public const string MenusOpened = "menus.opened";
+    public const string LauncherUsed = "launcher.used";
     public const string MenuDepth = "menus.depth";
 
     public const string RemoteRun = "remote.run";
@@ -64,7 +65,7 @@ public static class Stat
     public static IReadOnlyList<(string Group, string[] Keys)> Display { get; } =
     [
         ("commands", [CommandsRun, CommandsCreated, CommandsDeleted, ActionsRun, ActionsCreated, ActionsDeleted]),
-        ("menus", [MenusOpened, MenusCreated, MenusDeleted, RemoteRun]),
+        ("menus", [MenusOpened, MenusCreated, MenusDeleted, LauncherUsed, RemoteRun]),
         ("apps", [AppsLaunched, FoldersOpened, WebOpened, ScriptsRun, KeysSent, MacrosPlayed, MacrosRecorded]),
         ("kboard", [KBoardRemapped, KBoardToggled, KBoardsCreated]),
         ("system", [VolumeChanged, AudioSwitched, SoundsPlayed, TopMostToggled, HiddenFilesToggled, DisabledInToggled, RecycleEmptied, PowerUsed, IconsChanged, TipsSeen, AppStarted]),
@@ -111,8 +112,9 @@ public static class TriggerSourceNames
         TriggerSource.Remote => "remote",
         TriggerSource.Startup or TriggerSource.Exit => "auto",
         TriggerSource.Command => "command",
+        TriggerSource.Launcher => "launcher",
         _ => "manual",
     };
 
-    public static readonly string[] All = ["hotkey", "quickMenu", "remote", "manual", "command", "auto"];
+    public static readonly string[] All = ["hotkey", "quickMenu", "launcher", "remote", "manual", "command", "auto"];
 }

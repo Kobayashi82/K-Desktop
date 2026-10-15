@@ -26,6 +26,7 @@ public sealed partial class CommandEngine
         ShowMessageAction a => ShowMessageAsync(a, ctx),
         PowerAction a => PowerAsync(a, ctx),
         OpenQuickMenuAction a => Run(() => _ui.ShowQuickMenu(a.MenuId, ctx.Foreground)),
+        LauncherAction a => Run(() => _ui.ShowLauncher(a, ctx.Foreground)),
         CommandControlAction a => CommandControlAsync(a, ctx),
         WaitAction a => WaitAsync(a, ctx),
         PlayMacroAction a => PlayMacroAsync(a, ctx),
@@ -186,7 +187,7 @@ public sealed partial class CommandEngine
         if (string.IsNullOrEmpty(a.Value)) return;
 
         // From the QuickMenu, give the focus back to the window the menu was opened over.
-        if (ctx.Source == TriggerSource.QuickMenu && ctx.Foreground.Handle != IntPtr.Zero)
+        if (ctx.FromPopup && ctx.Foreground.Handle != IntPtr.Zero)
         {
             WindowTools.ForceForeground(ctx.Foreground.Handle);
             await Task.Delay(60, ctx.Token).ConfigureAwait(false);
