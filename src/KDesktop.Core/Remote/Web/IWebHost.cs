@@ -1,5 +1,6 @@
 using KDesktop.Core.Engine;
 using KDesktop.Core.Model;
+using KDesktop.Core.Voice;
 
 namespace KDesktop.Core.Remote.Web;
 
@@ -20,4 +21,10 @@ public interface IWebHost
 
     /// <summary>How many times each command has run (by id), to rank search results.</summary>
     IReadOnlyDictionary<string, long> Runs();
+
+    /// <summary>Voice orders can be understood (the models are downloaded).</summary>
+    bool VoiceReady { get; }
+
+    /// <summary>A voice order recorded on the phone: 16 kHz mono samples.</summary>
+    Task<RemoteVoiceResult> VoiceAsync(float[] samples);
 }

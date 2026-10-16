@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Voice orders: the phone records them and K-Desktop understands them -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Updating itself from K-Desktop (the system installer still asks the user) -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 

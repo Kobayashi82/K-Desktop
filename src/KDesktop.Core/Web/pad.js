@@ -495,6 +495,90 @@ function keyButton(label, className, onTap) {
   return b;
 }
 
+/** The special keys scroll sideways with the mouse wheel too (on a computer). */
+function wheelScrollsSideways(row) {
+  row.addEventListener('wheel', e => {
+    if (row.scrollWidth <= row.clientWidth || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+    e.preventDefault();
+    row.scrollBy({ left: e.deltaY * (e.deltaMode === 1 ? 32 : 1), behavior: 'auto' });
+  }, { passive: false });
+}
+
+// ── on-screen keyboard ─────────────────────────────────────────────
+
+/** No touch screen: the keyboard button shows an on-screen keyboard (the physical one types as well). */
+const noTouch = () => !matchMedia('(any-pointer: coarse)').matches;
+const VK_ROWS = [
+  ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', ['Backspace', '⌫', 'wide']],
+  ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+  ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'ñ', ['Enter', '↵', 'wide']],
+  [['Shift', '⇧', 'wide shift'], 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '-'],
+  [['Space', '', 'space']],
+];
+let vkShift = false;
+
+function vkType(ch) {
+  const combo = onceMods();
+  if ((combo.length || MODS.some(m => mods[m] === 2)) && /^[a-z0-9]$/i.test(ch)) {
+    // Ctrl + C and friends: as a key, not as text.
+    send({ t: 'k', k: ch.toUpperCase(), m: combo });
+    clearOnceMods();
+  } else {
+    send({ t: 't', s: vkShift ? ch.toUpperCase() : ch });
+    if (combo.length) clearOnceMods();
+  }
+  if (vkShift) setVkShift(false);
+  buzz(4);
+}
+
+function setVkShift(on) {
+  vkShift = on;
+  const vk = document.getElementById('vk');
+  vk.querySelector('.shift')?.classList.toggle('on', on);
+  for (const b of vk.querySelectorAll('[data-ch]')) b.textContent = on ? b.dataset.ch.toUpperCase() : b.dataset.ch;
+}
+
+function buildVk() {
+  document.getElementById('vk').replaceChildren(...VK_ROWS.map(row => {
+    const r = document.createElement('div');
+    r.className = 'vk-row';
+    r.append(...row.map(k => {
+      if (typeof k === 'string') {
+        const b = keyButton(k, '', () => vkType(k));
+        b.dataset.ch = k;
+        return b;
+      }
+      const [key, label, cls] = k;
+      if (key === 'Shift') return keyButton(label, cls, () => { buzz(5); setVkShift(!vkShift); });
+      if (key === 'Space') return keyButton(label, cls, () => vkType(' '));
+      const b = keyButton(label, cls, () => {
+        pressKey(key);
+        if (key !== 'Backspace') return;
+        let timer = setTimeout(function again() {
+          if (!b.classList.contains('down')) return;
+          send({ t: 'k', k: key, m: [] });
+          timer = setTimeout(again, 55);
+        }, 420);
+        b.addEventListener('pointerup', () => clearTimeout(timer), { once: true });
+      });
+      return b;
+    }));
+    return r;
+  }));
+  setVkShift(false);
+}
+
+function setVk(on) {
+  document.getElementById('vk').hidden = !on;
+  document.getElementById('keyboardButton').classList.toggle('active', on);
+  ctx.store.set('padVk', on);
+  const input = document.getElementById('kbInput');
+  if (on) {
+    resetKb();
+    input.focus({ preventScroll: true }); // the physical keyboard types too
+  } else input.blur();
+}
+
 function buildKeys() {
   const modRow = document.getElementById('keysMods');
   modRow.replaceChildren(...MODS.map(m => {
@@ -583,14 +667,20 @@ function keyboardUp() {
 }
 
 function updateKbState() {
+  if (noTouch()) return; // the on-screen keyboard has its own state
   const focused = document.activeElement === document.getElementById('kbInput');
-  document.body.classList.toggle('kb-open', focused && (keyboardUp() || !matchMedia('(pointer: coarse)').matches));
+  document.body.classList.toggle('kb-open', focused && keyboardUp());
   document.getElementById('keyboardButton').classList.toggle('active', focused);
 }
 
 function toggleKeyboard() {
   const input = document.getElementById('kbInput');
   buzz(5);
+  if (noTouch()) {
+    setVk(document.getElementById('vk').hidden);
+    if (!document.getElementById('vk').hidden) setKeysPanel(true);
+    return;
+  }
   // Focused but the keyboard closed (Android's back button): open it again instead.
   if (document.activeElement === input && (keyboardUp() || !matchMedia('(pointer: coarse)').matches)) {
     input.blur();
@@ -649,6 +739,8 @@ export function setupPad(deps) {
 
   wireButtons();
   buildKeys();
+  buildVk();
+  wheelScrollsSideways(document.getElementById('keysNav'));
   loadSettings();
   setKeysPanel(!!ctx.store.get('padKeys', false));
 
@@ -697,6 +789,10 @@ export function padActive(on, allowed = true) {
   document.querySelector('.pad-bar').hidden = !allowed;
   if (!allowed) document.getElementById('keysPanel').hidden = true;
   else setKeysPanel(!!ctx.store.get('padKeys', false));
+  if (noTouch()) {
+    if (on && allowed) setVk(!!ctx.store.get('padVk', false));
+    else document.getElementById('vk').hidden = true;
+  }
 
   if (on && allowed) {
     wanted = true;

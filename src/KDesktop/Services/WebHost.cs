@@ -13,7 +13,7 @@ using KDesktop.Core.Remote.Web;
 namespace KDesktop.Services;
 
 /// <summary>The web server's view of the app: UI-thread access and the icons, drawn to PNG.</summary>
-public sealed class WebHost(Dispatcher dispatcher, CommandEngine engine, AchievementService achievements) : IWebHost
+public sealed class WebHost(Dispatcher dispatcher, CommandEngine engine, AchievementService achievements, Core.Voice.VoiceService voice) : IWebHost
 {
     /// <summary>Pixels of the PNGs: sharp on a phone at 2-3× for a ~44 px tile icon.</summary>
     private const int IconSize = 96;
@@ -46,6 +46,10 @@ public sealed class WebHost(Dispatcher dispatcher, CommandEngine engine, Achieve
     }
 
     public IReadOnlyDictionary<string, long> Runs() => achievements.Snapshot().Data.CommandRuns;
+
+    public bool VoiceReady => Core.Voice.VoiceModels.Ready;
+
+    public Task<Core.Voice.RemoteVoiceResult> VoiceAsync(float[] samples) => voice.RunRemoteAsync(samples);
 
     private static WebIcon Render(ImageSource source)
     {

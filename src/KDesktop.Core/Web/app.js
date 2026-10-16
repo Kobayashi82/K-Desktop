@@ -2,6 +2,7 @@
 // Every URL is relative, so the app works at the root of a domain or under a path behind the proxy.
 import { searchKey, tokens, score } from './fuzzy.js';
 import { setupPad, padActive, padTexts } from './pad.js';
+import { setupVoice, voiceAvailable } from './voice.js';
 
 const $ = id => document.getElementById(id);
 
@@ -32,6 +33,7 @@ const ICONS = {
   all: '<path d="M13 2.5L4.5 13.5H12l-1 8 8.5-11H12z"/>',
   settings: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
   ok: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>',
   error: '<path d="M7 7l10 10M17 7L7 17"/>',
   warning: '<path d="M12 7v6M12 17v.01"/>',
   running: '<circle cx="12" cy="12" r="7"/><path d="M12 8.5V12l2.5 1.5"/>',
@@ -140,6 +142,22 @@ async function api(path, { method = 'GET', body } = {}) {
   }
   const data = await r.json().catch(() => ({}));
   if (!r.ok) throw Object.assign(new Error(data.error || String(r.status)), { status: r.status, data });
+  return data;
+}
+
+/** Sends raw bytes (a voice order's recording) and returns the JSON answer. */
+async function postBinary(path, buffer) {
+  const headers = { 'X-KD': '1', 'Content-Type': 'application/octet-stream' };
+  const token = store.get('token');
+  if (token) headers.Authorization = 'Bearer ' + token;
+  const r = await fetch('api/' + path, { method: 'POST', headers, body: buffer, cache: 'no-store', credentials: 'same-origin' });
+  if (r.status === 401) {
+    showPair();
+    throw Object.assign(new Unpaired(), { unpaired: true });
+  }
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(data.error || String(r.status)), { status: r.status, data });
+  setOnline(true);
   return data;
 }
 
@@ -873,6 +891,7 @@ function fillSession(s = state.session) {
   // This same PC needs no pairing, so there is nothing to undo.
   $('unpairButton').hidden = !!s.local;
   $('padSettings').hidden = s.input === false;
+  voiceAvailable(!!s.voice);
   if (state.tab === 'pad') padActive(true, s.input !== false);
   fillAddresses(s);
   offerAppUpdate(s);
@@ -1181,6 +1200,16 @@ function wireDial() {
   };
   dial.addEventListener('pointerup', end);
   dial.addEventListener('pointercancel', end);
+  // The mouse wheel over the dial: 2 % per notch (touchpads send many small steps: they add up).
+  let wheel = 0;
+  $('volumeCard').querySelector('.dial').addEventListener('wheel', e => {
+    e.preventDefault();
+    wheel += e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY;
+    const notches = Math.trunc(wheel / 100);
+    if (!notches) return;
+    wheel -= notches * 100;
+    stepVolume(-2 * notches);
+  }, { passive: false });
   dial.addEventListener('keydown', e => {
     const step = { ArrowUp: 2, ArrowRight: 2, ArrowDown: -2, ArrowLeft: -2, PageUp: 10, PageDown: -10 }[e.key];
     if (!step) return;
@@ -1192,6 +1221,7 @@ function wireDial() {
 function wire() {
   for (const e of document.querySelectorAll('[data-icon]')) e.innerHTML = svg(e.dataset.icon);
   setupPad({ t, store, svg, toast, online: setOnline, onUnpaired: () => showPair() });
+  setupVoice({ t, toast, post: postBinary });
 
   for (const b of $('tabbar').querySelectorAll('button'))
     b.addEventListener('click', () => {

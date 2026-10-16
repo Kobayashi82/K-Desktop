@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using KDesktop.Core.Engine;
 using KDesktop.Core.Localization;
+using KDesktop.Core.Voice;
 
 namespace KDesktop.Core.Remote.Web;
 
@@ -70,6 +71,7 @@ public sealed partial class WebServer
                     device = new { device.Id, Name = request.IsLocal ? Loc.T("pwa.thisPc") : device.Name },
                     local = request.IsLocal,
                     input = InputAllowed,
+                    voice = _host.VoiceReady,
                     addresses = Addresses(),
                     android = AndroidApp.Current is { } apk ? new { apk.Version, apk.Code } : null,
                     cookie,
@@ -91,6 +93,9 @@ public sealed partial class WebServer
                 break;
             case ("POST", "/api/run"):
                 await RunAsync(context).ConfigureAwait(false);
+                break;
+            case ("POST", "/api/voice"):
+                await VoiceAsync(context).ConfigureAwait(false);
                 break;
             case ("GET", "/api/audio"):
                 await AudioStateAsync(response).ConfigureAwait(false);
@@ -148,6 +153,31 @@ public sealed partial class WebServer
         var finished = await Task.WhenAny(run, Task.Delay(RunWait)).ConfigureAwait(false) == run;
         var status = !finished ? "running" : feedback.HasError ? "error" : feedback.HasWarning ? "warning" : "ok";
         await WriteJsonAsync(context.Response, new { status, messages = feedback.Messages }).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// A voice order said into the phone: the body is the recording as 16-bit little-endian PCM, 16 kHz, mono.
+    /// The PC transcribes it and runs it like its own orders, and answers with what it heard and did.
+    /// </summary>
+    private async Task VoiceAsync(HttpListenerContext context)
+    {
+        var max = (int)(VoiceService.RemoteMax.TotalSeconds * MicCapture.SampleRate * 2);
+        var bytes = new byte[max];
+        var length = 0;
+        var input = context.Request.InputStream;
+        int read;
+        while (length < max && (read = await input.ReadAsync(bytes.AsMemory(length, max - length)).ConfigureAwait(false)) > 0) length += read;
+        if (length == max && input.ReadByte() >= 0)
+        {
+            await WriteJsonAsync(context.Response, new { status = "error", error = "tooLong" }, 413).ConfigureAwait(false);
+            return;
+        }
+        var samples = new float[length / 2];
+        for (var i = 0; i < samples.Length; i++) samples[i] = BitConverter.ToInt16(bytes, i * 2) / 32768f;
+
+        var result = await _host.VoiceAsync(samples).ConfigureAwait(false);
+        var status = result.Kind switch { OsdKind.Success => "ok", OsdKind.Warning => "warning", _ => "info" };
+        await WriteJsonAsync(context.Response, new { status, text = result.Text, message = result.Message }).ConfigureAwait(false);
     }
 
     private async Task IconAsync(string file, HttpListenerResponse response)

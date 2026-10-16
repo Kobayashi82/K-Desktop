@@ -213,6 +213,12 @@ public sealed partial class VoiceService : IDisposable
             osd.Finish(Loc.T("voice.cancelled"), OsdKind.Info);
             return;
         }
+        await HandleTextAsync(text, osd).ConfigureAwait(false);
+    }
+
+    /// <summary>The transcribed order (without a leading wake word) → run it, telling the user on the OSD.</summary>
+    private async Task HandleTextAsync(string text, IVoiceOsd osd)
+    {
         if (text.Length == 0)
         {
             osd.Finish(Loc.T("voice.notUnderstood"), OsdKind.Warning);

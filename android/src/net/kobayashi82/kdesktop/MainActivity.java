@@ -1,19 +1,25 @@
 package net.kobayashi82.kdesktop;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageInstaller;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
+import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Base64;
 import android.view.View;
 import android.view.Window;
 import android.webkit.CookieManager;
@@ -29,12 +35,14 @@ import android.webkit.WebViewClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * K-Desktop for Android: the K-Desktop web app in a window of its own. The first time (or from the app's
@@ -72,6 +80,13 @@ public class MainActivity extends Activity {
 
     /** An update waiting for the user to allow installing apps from K-Desktop (Settings, then back here). */
     private String pendingUpdate;
+
+    /** Voice orders: recorded here (a browser only lets pages use the microphone over HTTPS). */
+    private static final int VOICE_PERMISSION = 7;
+    private static final int VOICE_RATE = 16000;
+    private static final int VOICE_MAX_BYTES = VOICE_RATE * 2 * 31 / 2; // 15.5 s, under what K-Desktop accepts
+    private volatile boolean voiceRun;
+    private volatile boolean voiceSend;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable loadTimeout = () -> {
         web.stopLoading();
@@ -400,6 +415,87 @@ public class MainActivity extends Activity {
         tellPage(status == PackageInstaller.STATUS_FAILURE_ABORTED ? "cancelled" : "error", message == null ? "" : message);
     }
 
+    // ── voice orders ─────────────────────────────────────────────────
+
+    private void startVoice() {
+        if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] { Manifest.permission.RECORD_AUDIO }, VOICE_PERMISSION);
+            return;
+        }
+        recordVoice();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
+        super.onRequestPermissionsResult(requestCode, permissions, results);
+        if (requestCode != VOICE_PERMISSION) return;
+        if (results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED) recordVoice();
+        else js("window.kdVoiceError && window.kdVoiceError('denied')");
+    }
+
+    @SuppressLint("MissingPermission")
+    private void recordVoice() {
+        int min = AudioRecord.getMinBufferSize(VOICE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+        AudioRecord recorder;
+        try {
+            recorder = new AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION, VOICE_RATE,
+                    AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, Math.max(min, 3200) * 2);
+        } catch (Exception e) {
+            js("window.kdVoiceError && window.kdVoiceError('mic')");
+            return;
+        }
+        if (recorder.getState() != AudioRecord.STATE_INITIALIZED) {
+            recorder.release();
+            js("window.kdVoiceError && window.kdVoiceError('mic')");
+            return;
+        }
+        voiceRun = true;
+        voiceSend = false;
+        new Thread(() -> record(recorder), "K-Desktop voice").start();
+    }
+
+    private void record(AudioRecord recorder) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream(VOICE_RATE * 2 * 6);
+        short[] samples = new short[VOICE_RATE / 20]; // 50 ms
+        byte[] bytes = new byte[samples.length * 2];
+        try {
+            recorder.startRecording();
+            while (voiceRun && out.size() < VOICE_MAX_BYTES) {
+                int n = recorder.read(samples, 0, samples.length);
+                if (n < 0) throw new IllegalStateException("read " + n);
+                if (n == 0) continue;
+                double sum = 0;
+                for (int i = 0; i < n; i++) {
+                    sum += (double) samples[i] * samples[i];
+                    bytes[2 * i] = (byte) (samples[i] & 0xff);
+                    bytes[2 * i + 1] = (byte) ((samples[i] >> 8) & 0xff);
+                }
+                out.write(bytes, 0, n * 2);
+                js("window.kdVoiceLevel && window.kdVoiceLevel(" + String.format(Locale.ROOT, "%.4f", Math.sqrt(sum / n) / 32768.0) + ")");
+            }
+            // Full: wait for the page to finish (it stops itself at its own limit).
+            for (int i = 0; i < 60 && voiceRun; i++) Thread.sleep(50);
+        } catch (Exception e) {
+            voiceSend = false;
+            js("window.kdVoiceError && window.kdVoiceError('mic')");
+        } finally {
+            try { recorder.stop(); } catch (Exception ignored) { }
+            recorder.release();
+        }
+        if (voiceSend) js("window.kdVoiceData && window.kdVoiceData('" + Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP) + "')");
+    }
+
+    private void js(String script) {
+        runOnUiThread(() -> web.evaluateJavascript(script, null));
+    }
+
+    @Override
+    protected void onStop() {
+        voiceSend = false;
+        voiceRun = false;
+        super.onStop();
+    }
+
     private void tellPage(String state, String detail) {
         String script = "window.kdAppUpdate && window.kdAppUpdate(" + JSONObject.quote(state) + ", " + JSONObject.quote(detail) + ")";
         runOnUiThread(() -> web.evaluateJavascript(script, null));
@@ -546,6 +642,26 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public int versionCode() {
             return MainActivity.this.versionCode();
+        }
+
+        /** Starts recording a voice order (asks for the microphone the first time). The level goes to kdVoiceLevel. */
+        @JavascriptInterface
+        public String startVoice() {
+            runOnUiThread(MainActivity.this::startVoice);
+            return "ok";
+        }
+
+        /** Done speaking: the recording goes to kdVoiceData (base64, 16-bit PCM, 16 kHz, mono). */
+        @JavascriptInterface
+        public void stopVoice() {
+            voiceSend = true;
+            voiceRun = false;
+        }
+
+        @JavascriptInterface
+        public void cancelVoice() {
+            voiceSend = false;
+            voiceRun = false;
         }
 
         /** Updates the app from K-Desktop (url: its api/android). */

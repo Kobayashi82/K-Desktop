@@ -51,6 +51,7 @@
       <button class="conn" id="connPill" data-state="connecting">
         <i></i><span id="machine"></span>
       </button>
+      <button class="icon-btn voice-btn" id="voiceButton" data-icon="mic" data-i18n-title="pwa.voice.button" hidden></button>
     </header>
 
     <main class="views">
@@ -102,6 +103,8 @@
           <button data-button="m" class="middle" data-i18n-title="pwa.pad.middle"></button>
           <button data-button="r" data-i18n-title="pwa.pad.right"></button>
         </div>
+        <!-- On a computer there is no phone keyboard to open: an on-screen one instead -->
+        <div class="vk" id="vk" hidden></div>
         <p class="pad-off" id="padOff" data-i18n="pwa.pad.disabled" hidden></p>
         <textarea class="kb-input" id="kbInput" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false"
                   enterkeyhint="enter" aria-hidden="true" tabindex="-1"></textarea>
@@ -241,6 +244,13 @@
       <button data-tab="audio"><span data-icon="speaker"></span><b data-i18n="pwa.tab.audio"></b></button>
       <button data-tab="settings"><span data-icon="settings"></span><b data-i18n="pwa.tab.settings"></b></button>
     </nav>
+  </div>
+
+  <!-- Voice order: listening on the phone, the PC understands it and runs it -->
+  <div class="voice-sheet" id="voiceSheet" hidden>
+    <button class="voice-orb" id="voiceOrb" data-i18n-title="pwa.voice.stop"><span class="voice-ring" id="voiceRing"></span><span class="voice-mic" data-icon="mic"></span></button>
+    <p class="voice-text" id="voiceText"></p>
+    <button class="voice-cancel" id="voiceCancel" data-icon="error" data-i18n-title="pwa.voice.cancel"></button>
   </div>
 
   <div class="toasts" id="toasts" aria-live="polite"></div>
