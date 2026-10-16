@@ -110,6 +110,12 @@
             <StackPanel Margin="4,4,0,0">
                 <TextBlock Style="{StaticResource Caption}"><Run Text="© Kobayashi82" FontWeight="SemiBold" /><Run Text="  ·  " /><Run Text="{l:Tr about.created}" /></TextBlock>
                 <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                    <ui:SymbolIcon Symbol="Code24" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
+                    <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center">
+                        <Hyperlink NavigateUri="https://github.com/Kobayashi82" RequestNavigate="OnOpenLink" Foreground="{DynamicResource Kd.AccentText}" ToolTip="https://github.com/Kobayashi82">github.com/Kobayashi82</Hyperlink>
+                    </TextBlock>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                     <ui:SymbolIcon Symbol="Sparkle24" Filled="True" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
                     <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Text="{l:Tr about.claude}" />
                 </StackPanel>

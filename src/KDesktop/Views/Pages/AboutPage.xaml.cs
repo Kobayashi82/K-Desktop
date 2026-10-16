@@ -21,6 +21,13 @@ public partial class AboutPage : UserControl
     private bool _paused;
     private bool _hovering;
 
+    /// <summary>A link of the page (GitHub): opens in the browser as the normal user, not elevated like K-Desktop.</summary>
+    private void OnOpenLink(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+    {
+        ProcessLauncher.Launch(new LaunchSpec(e.Uri.AbsoluteUri), asAdmin: false);
+        e.Handled = true;
+    }
+
     public AboutPage()
     {
         InitializeComponent();
