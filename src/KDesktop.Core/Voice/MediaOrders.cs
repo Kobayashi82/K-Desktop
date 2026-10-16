@@ -8,6 +8,8 @@ public enum MediaOrderKind
     Pause, Resume, Next, Previous,
     VolumeUp, VolumeDown, VolumeSet, Mute, Unmute,
     MusicOn, MusicOff,
+    /// <summary>Cancels what is counting down or waiting (like Escape); always on, even without the media orders.</summary>
+    Cancel,
 }
 
 /// <summary>How much «sube el volumen» should move it when no number was said.</summary>
@@ -42,7 +44,9 @@ public sealed record MediaCandidate(MediaOrder Order, double Score, string Phras
 /// <item><c>voice.numbers.and</c>, <c>voice.numbers.percent</c>: what joins number words, and «por ciento» («|» list);</item>
 /// <item><c>voice.media.to</c>: «a», «al»… before a number: a level, not a step («sube el volumen a 80»);</item>
 /// <item><c>voice.media.little</c>, <c>voice.media.lot</c>: «un poco», «mucho» («|» lists);</item>
-/// <item><c>voice.media.keep</c>: filler words that mean something here («para» in «para la música»).</item>
+/// <item><c>voice.media.keep</c>: filler words that mean something here («para» in «para la música»);</item>
+/// <item><c>voice.media.things</c>: what can be paused or skipped («música vídeo película serie»): any of them stands
+/// for the others in pause, resume, next and previous — the media keys work the same for all.</item>
 /// </list>
 /// </summary>
 public static class MediaOrders
@@ -55,6 +59,7 @@ public static class MediaOrders
         public readonly HashSet<string> And = new(StringComparer.Ordinal);
         public readonly HashSet<string> To = new(StringComparer.Ordinal);
         public readonly HashSet<string> Keep = new(StringComparer.Ordinal);
+        public readonly HashSet<string> Things = new(StringComparer.Ordinal);
         public readonly List<string[]> Percent = [];
         public readonly List<string[]> Little = [];
         public readonly List<string[]> Lot = [];
@@ -85,6 +90,7 @@ public static class MediaOrders
                 if (Enum.TryParse<MediaOrderKind>(name, out var kind)) v.Phrases[kind].AddRange(Phrases(value));
                 else if (name == "to") v.To.UnionWith(TextSimilarity.Words(value));
                 else if (name == "keep") v.Keep.UnionWith(TextSimilarity.Words(value));
+                else if (name == "things") v.Things.UnionWith(TextSimilarity.Words(value));
                 else if (name == "little") v.Little.AddRange(Phrases(value));
                 else if (name == "lot") v.Lot.AddRange(Phrases(value));
             }
@@ -127,9 +133,11 @@ public static class MediaOrders
     public static List<MediaCandidate> Match(string text)
     {
         var w = Words;
-        var words = TextSimilarity.Words(text).ToList();
-        if (words.Count == 0) return [];
+        var said = TextSimilarity.Words(text);
+        if (said.Length == 0) return [];
 
+        // The amount and the number only matter to the volume («siete» in «siete la música» is a slip, not a level).
+        var words = said.ToList();
         var amount = MediaAmount.Normal;
         if (RemovePhrase(words, w.Little)) amount = MediaAmount.Little;
         else if (RemovePhrase(words, w.Lot)) amount = MediaAmount.Lot;
@@ -142,14 +150,31 @@ public static class MediaOrders
             var content = all.Where(x => !filler.Contains(x) || w.Keep.Contains(x)).ToArray();
             return content.Length > 0 ? content : all;
         }
-        var spoken = Content(words);
-        if (spoken.Length == 0) return [];
+        // «para la película», «siguiente capítulo»: one word for all of them.
+        const string Thing = "#thing"; // spoken words never have a #
+        string[] Things(string[] list) => list.Select(x => w.Things.Contains(x) ? Thing : x).ToArray();
+        var forVolume = Content(words);
+        var plain = Content(said);
+        var plainThings = Things(plain);
 
         var result = new List<MediaCandidate>();
         foreach (var (kind, phrases) in w.Phrases)
         {
             if (phrases.Count == 0 || (kind == MediaOrderKind.VolumeSet && number is null)) continue;
-            var (best, phrase) = phrases.Select(p => (Score: IntentMatcher.Score(spoken, Content(p), synonyms: false), Phrase: p)).MaxBy(p => p.Score);
+            var volume = kind is MediaOrderKind.VolumeUp or MediaOrderKind.VolumeDown or MediaOrderKind.VolumeSet or MediaOrderKind.Mute or MediaOrderKind.Unmute;
+            var things = kind is MediaOrderKind.Pause or MediaOrderKind.Resume or MediaOrderKind.Next or MediaOrderKind.Previous;
+            var spoken = volume ? forVolume : things ? plainThings : plain;
+            if (spoken.Length == 0) continue;
+            double PhraseScore(string[] p)
+            {
+                var written = things ? Things(Content(p)) : Content(p);
+                // Both name the thing («para la película» / «para la música»): the verb alone decides, or «siguiente
+                // capítulo» would come close to «sigue con la música».
+                if (things && spoken.Contains(Thing) && written.Contains(Thing) && spoken.Any(x => x != Thing) && written.Any(x => x != Thing))
+                    return IntentMatcher.Score(spoken.Where(x => x != Thing).ToArray(), written.Where(x => x != Thing).ToArray(), synonyms: false);
+                return IntentMatcher.Score(spoken, written, synonyms: false);
+            }
+            var (best, phrase) = phrases.Select(p => (Score: PhraseScore(p), Phrase: p)).MaxBy(p => p.Score);
             if (best <= 0.3) continue;
             var order = kind switch
             {

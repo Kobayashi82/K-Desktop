@@ -123,6 +123,12 @@ public partial class App : Application
         Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice),
             action => Engine.TestActionAsync(action, new Command { Name = Loc.T("settings.nav.media") }));
         Voice.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
+        Voice.CancelPending = () =>
+        {
+            var any = Engine.HasCancellable;
+            Engine.CancelAll();
+            return any;
+        };
         WakeListener = new Core.Voice.WakeWordListener(Voice, () => Config.Settings);
         WakeListener.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
         Voice.WakeHeard += _ => Achievements.Increment(Stat.WakeWords);

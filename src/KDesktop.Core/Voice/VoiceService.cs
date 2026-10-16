@@ -278,11 +278,22 @@ public sealed partial class VoiceService : IDisposable
             osd.Finish(Loc.T("voice.runningMany", string.Join(" · ", plan.Parts.Select(p => p.Winner!.Name)))
                        + (plan.Unmatched.Count > 0 ? "\n" + Loc.T("voice.partNotUnderstood", string.Join("», «", plan.Unmatched)) : ""),
                        plan.Unmatched.Count > 0 ? OsdKind.Warning : OsdKind.Success);
-        foreach (var part in plan.Parts)
+        // Not awaited: a command may take long (a countdown, a macro) and the next order — «cancela» — must be heard.
+        _ = Task.Run(async () =>
         {
-            if (part.Winner!.Media is { } media) await RunMediaAsync(media).ConfigureAwait(false);
-            else await _run(part.Winner.Command!).ConfigureAwait(false);
-        }
+            foreach (var part in plan.Parts)
+            {
+                try
+                {
+                    if (part.Winner!.Media is { } media) await RunMediaAsync(media).ConfigureAwait(false);
+                    else await _run(part.Winner.Command!).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Error ejecutando «{part.Winner!.Name}» por voz", ex);
+                }
+            }
+        });
     }
 
     // ── wake word ────────────────────────────────────────────────────────
@@ -301,6 +312,9 @@ public sealed partial class VoiceService : IDisposable
 
     /// <summary>How long, after the wake word, the user may wait before starting the order.</summary>
     private static readonly TimeSpan WaitForOrder = TimeSpan.FromSeconds(5);
+
+    /// <summary>How long the order may still take after something that was not one (the end of the word, a noise).</summary>
+    private static readonly TimeSpan WaitAfterPause = TimeSpan.FromSeconds(3);
 
     /// <summary>
     /// The always-on detector heard <paramref name="word"/> (phase 1, <paramref name="score"/>). Phase 2: Parakeet
@@ -364,8 +378,14 @@ public sealed partial class VoiceService : IDisposable
             WakeHeard?.Invoke(word);
             StateChanged?.Invoke();
 
-            // The order: until the speaker goes quiet, or nothing said in a few seconds.
+            // The order: until the speaker goes quiet, or nothing said in a few seconds. The detector fires before the
+            // word is over, so what comes first may be only its last syllable: if that says nothing, the order may
+            // still come after a pause («KDesktop… apaga el ordenador») and the listening goes on.
             using var osd = _ui.ShowVoiceOsd(Loc.T("voice.listening"));
+            var commands = Commands().ToList();
+            (List<IntentPlan> Plans, bool Confirmed)? found = null;
+            var checkedSegments = 0;
+            var waitFrom = TimeSpan.Zero;
             while (true)
             {
                 await Task.Delay(40, CancellationToken.None).ConfigureAwait(false);
@@ -375,37 +395,27 @@ public sealed partial class VoiceService : IDisposable
                     osd.Finish(Loc.T("voice.cancelled"), OsdKind.Info);
                     return;
                 }
-                if (_stopRequested || capture.Ended || capture.Elapsed > MaxSession) break;
-                if (!capture.HeardSpeech && capture.Elapsed > WaitForOrder) break;
+                if (_stopRequested || capture.Elapsed > MaxSession) break;
+                if (capture.SegmentCount > checkedSegments)
+                {
+                    var (sofar, finished) = capture.Snapshot();
+                    found = await OrderPlansAsync(sofar, finished, checkedSegments).ConfigureAwait(false);
+                    if (!found.Value.Confirmed || found.Value.Plans.Any(p => p.Parts.Count > 0)) break;
+                    Log.Info("Voz: lo oído tras la palabra no es una orden (" +
+                             string.Join(" | ", found.Value.Plans.Select(p => $"«{p.Whole.Text}»")) + "); se sigue escuchando");
+                    checkedSegments = finished.Count;
+                    waitFrom = capture.Elapsed;
+                    continue;
+                }
+                if (checkedSegments == 0 && !capture.HeardSpeech && capture.Elapsed > WaitForOrder) break;
+                if (checkedSegments > 0 && !capture.Speaking && capture.Elapsed - waitFrom > WaitAfterPause) break;
             }
             var (after, segments) = capture.Stop();
             osd.SetText(Loc.T("voice.thinking"));
-
-            // What to take as the order: what came after the trigger; or, said without a pause, the word and the order
-            // transcribed together with the word cut out; or the start of the order caught in the word's own clip.
-            var options = new List<string>();
-            var confirmed = !provisional;
-            if (!provisional && match?.Rest is { Length: > 0 } inWord) options.Add(inWord);
-            if (segments.Count > 0)
-            {
-                var pad = MicCapture.SampleRate / 5;
-                var from = Math.Max(0, segments[0].Start - pad);
-                var to = Math.Min(after.Length, segments[^1].Start + segments[^1].Length + pad);
-                var orderClip = after[from..to];
-                options.Add(await Task.Run(() => SpeechToText.Transcribe(orderClip)).ConfigureAwait(false));
-                var joined = new float[wordClip.Length + orderClip.Length];
-                wordClip.CopyTo(joined, 0);
-                orderClip.CopyTo(joined, wordClip.Length);
-                var full = await Task.Run(() => SpeechToText.Transcribe(joined)).ConfigureAwait(false);
-                if (WakeWordVerifier.Find(full, word) is { } cut && cut.Score >= word.EffectiveThreshold - 0.15)
-                {
-                    confirmed = true;
-                    if (cut.Rest.Length > 0) options.Add(cut.Rest);
-                }
-                if (provisional) Log.Info($"Palabra de activación «{word.Name}» con la orden: «{full}» → {(confirmed ? "confirmada" : "no está")}");
-            }
+            if (found is null || segments.Count > checkedSegments && found.Value.Plans.All(p => p.Parts.Count == 0))
+                found = await OrderPlansAsync(after, segments, checkedSegments).ConfigureAwait(false);
             duck?.Dispose();
-            if (!confirmed)
+            if (!found.Value.Confirmed)
             {
                 osd.Finish(Loc.T("voice.nothingHeard"), OsdKind.Info);
                 return;
@@ -415,16 +425,47 @@ public sealed partial class VoiceService : IDisposable
                 osd.Finish(Loc.T("voice.cancelled"), OsdKind.Info);
                 return;
             }
-            options = options.Select(o => o.Trim()).Where(o => o.Any(char.IsLetterOrDigit)).Distinct().ToList();
-            if (options.Count == 0)
+            var plans = found.Value.Plans;
+            if (plans.Count == 0)
             {
                 osd.Finish(Loc.T("voice.nothingHeard"), OsdKind.Info);
                 return;
             }
-            var commands = Commands().ToList();
-            var plans = options.Select(o => IntentMatcher.Plan(o, commands, MediaEnabled)).ToList();
             Log.Info("Voz: orden tras la palabra, opciones: " + string.Join(" | ", plans.Select(p => $"«{p.Whole.Text}» {p.Score:0.00}")));
             await RunPlanAsync(plans.MaxBy(p => p.Score)!, osd).ConfigureAwait(false);
+
+            // What to take as the order: what came after the trigger (and, after a pause, only what came after the
+            // pause); or, said without a pause, the word and the order transcribed together with the word cut out; or
+            // the start of the order caught in the word's own clip.
+            async Task<(List<IntentPlan>, bool)> OrderPlansAsync(float[] audio, List<(int Start, int Length)> parts, int fresh)
+            {
+                var options = new List<string>();
+                var confirmed = !provisional;
+                if (!provisional && match?.Rest is { Length: > 0 } inWord) options.Add(inWord);
+                if (parts.Count > 0)
+                {
+                    var orderClip = Span(audio, parts, 0);
+                    options.Add(await Task.Run(() => SpeechToText.Transcribe(orderClip)).ConfigureAwait(false));
+                    if (fresh > 0 && fresh < parts.Count)
+                    {
+                        var afterPause = Span(audio, parts, fresh);
+                        options.Add(await Task.Run(() => SpeechToText.Transcribe(afterPause)).ConfigureAwait(false));
+                    }
+                    var joined = new float[wordClip.Length + orderClip.Length];
+                    wordClip.CopyTo(joined, 0);
+                    orderClip.CopyTo(joined, wordClip.Length);
+                    var full = await Task.Run(() => SpeechToText.Transcribe(joined)).ConfigureAwait(false);
+                    if (WakeWordVerifier.Find(full, word) is { } cut && cut.Score >= word.EffectiveThreshold - 0.15)
+                    {
+                        confirmed = true;
+                        if (cut.Rest.Length > 0) options.Add(cut.Rest);
+                    }
+                    if (provisional) Log.Info($"Palabra de activación «{word.Name}» con la orden: «{full}» → {(confirmed ? "confirmada" : "no está")}");
+                }
+                var plans = options.Select(o => o.Trim()).Where(o => o.Any(char.IsLetterOrDigit)).Distinct()
+                    .Select(o => IntentMatcher.Plan(o, commands, MediaEnabled)).ToList();
+                return (plans, confirmed);
+            }
         }
         catch (Exception ex)
         {
@@ -437,6 +478,15 @@ public sealed partial class VoiceService : IDisposable
             _active = 0;
             StateChanged?.Invoke();
         }
+    }
+
+    /// <summary>The order's audio from segment <paramref name="first"/> to the last, a little silence around it.</summary>
+    private static float[] Span(float[] audio, List<(int Start, int Length)> segments, int first)
+    {
+        var pad = MicCapture.SampleRate / 5;
+        var from = Math.Max(0, segments[first].Start - pad);
+        var to = Math.Min(audio.Length, segments[^1].Start + segments[^1].Length + pad);
+        return audio[from..to];
     }
 
     /// <summary>The other programs turned down while an order is said (Settings › Voz), or null.</summary>

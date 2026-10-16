@@ -44,6 +44,10 @@ public sealed partial class VoiceService
                     return await MusicOnAsync(settings).ConfigureAwait(false);
                 case MediaOrderKind.MusicOff:
                     return await MusicOffAsync(settings).ConfigureAwait(false);
+                case MediaOrderKind.Cancel:
+                    return CancelPending?.Invoke() == true
+                        ? (Loc.T("voice.media.done.Cancel"), OsdKind.Success)
+                        : (Loc.T("voice.media.nothingToCancel"), OsdKind.Info);
             }
         }
         catch (Exception ex)
@@ -52,6 +56,9 @@ public sealed partial class VoiceService
         }
         return (Loc.T("voice.media.error"), OsdKind.Warning);
     }
+
+    /// <summary>Cancels the countdowns and waits in progress (as Escape does); false when there was none.</summary>
+    public Func<bool>? CancelPending { get; set; }
 
     /// <summary>«un poco» is half the usual step, «mucho» twice it.</summary>
     private static int StepFor(MediaAmount amount, int step)

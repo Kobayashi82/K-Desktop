@@ -39,6 +39,24 @@ public sealed class WakeCapture : IDisposable
         get { lock (_gate) return _vad.Ended; }
     }
 
+    /// <summary>Speech going on right now.</summary>
+    public bool Speaking
+    {
+        get { lock (_gate) return _vad.Speaking; }
+    }
+
+    /// <summary>How many stretches of speech have finished (each one followed by the end silence).</summary>
+    public int SegmentCount
+    {
+        get { lock (_gate) return _vad.Segments.Count; }
+    }
+
+    /// <summary>What came after the trigger so far and its finished speech segments, still recording.</summary>
+    public (float[] Audio, List<(int Start, int Length)> Segments) Snapshot()
+    {
+        lock (_gate) return (_audio.ToArray(), [.. _vad.Segments]);
+    }
+
     public void Add(float[] samples)
     {
         lock (_gate)

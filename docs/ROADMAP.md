@@ -292,6 +292,15 @@ embeddings multilingües → LLM opcional) y siete etapas con su commit cada una
       pulsar la tecla de voz se baja el volumen de cada programa que suena (mezclador, no el maestro) y se recupera
       con una rampa al tener la orden (antes de ejecutarla); si el usuario lo mueve entretanto, se respeta.
       Sin probar con el micro real.
+- [x] **Pausa tras la palabra, «cancela», vídeos** (2026-10-16, 5.0.8). El detector salta antes de que acabe la
+      palabra: su última sílaba (+ 800 ms de silencio) cerraba la orden y «KDesktop… (pausa) orden» acababa en «No he
+      oído nada». Ahora cada tramo que termina se transcribe y, si no es una orden, se sigue escuchando 3 s más
+      (`WakeCapture.Snapshot`/`SegmentCount`); lo dicho tras la pausa también se prueba solo. «Cancela» / «cancela la
+      cuenta atrás» (`MediaOrderKind.Cancel`, siempre activa) hace lo de Escape; los comandos que se ejecutan por voz ya
+      no bloquean la escucha (antes una cuenta atrás lanzada por voz impedía oír la siguiente orden). Pausar, seguir,
+      siguiente y anterior valen para «vídeo», «película», «serie», «capítulo»… (`voice.media.things`). El número solo
+      cuenta para el volumen («Siete la música» ponía música: «siete» se quitaba como número). «Cierra la música» con
+      el reproductor en la bandeja (5.0.7): orden de salida de AIMP / Winamp.
 - [ ] Etapa 5: capa de embeddings.
 - [ ] Etapa 6: seguridad, confirmaciones y estadísticas.
 - [ ] Etapa 7: capa LLM opcional.

@@ -29,6 +29,9 @@ public sealed class VoiceActivity : IDisposable
     /// <summary>True once some speech has been heard.</summary>
     public bool HeardSpeech { get; private set; }
 
+    /// <summary>Speech going on right now (a segment open).</summary>
+    public bool Speaking => _vad.IsSpeechDetected();
+
     /// <summary>True when speech was heard and then the end silence passed: the utterance is complete.</summary>
     public bool Ended { get; private set; }
 

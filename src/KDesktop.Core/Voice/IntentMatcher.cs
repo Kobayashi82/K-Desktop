@@ -100,7 +100,9 @@ public static class IntentMatcher
         if (spoken.Length == 0) return new IntentResult(text, null, []);
 
         var all = commands.Select(c => new IntentCandidate(c, Score(spoken, Content(TextSimilarity.Words(c.Name)))));
-        if (media) all = all.Concat(MediaOrders.Match(text).Select(m => new IntentCandidate(null, m.Score, m.Order, m.Phrase)));
+        // «Cancela» is always there; the rest of the media orders only when they are on.
+        all = all.Concat(MediaOrders.Match(text).Where(m => media || m.Order.Kind == MediaOrderKind.Cancel)
+            .Select(m => new IntentCandidate(null, m.Score, m.Order, m.Phrase)));
         var ranked = all
             .Where(c => c.Score > 0.3)
             .OrderByDescending(c => c.Score)
