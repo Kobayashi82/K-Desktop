@@ -204,6 +204,12 @@ public partial class AppSettings : ObservableObject
     /// <summary>Opens the launcher (Settings › Lanzador); empty = no hotkey.</summary>
     [ObservableProperty] private string _launcherHotkey = string.Empty;
 
+    /// <summary>The application in front doesn't get the key of the launcher hotkey.</summary>
+    [ObservableProperty] private bool _launcherBlockKey = true;
+
+    /// <summary>The application in front doesn't get the key of the voice hotkey.</summary>
+    [ObservableProperty] private bool _voiceBlockKey = true;
+
     /// <summary>The launcher hotkey works in the applications of «Desactivar en» too.</summary>
     [ObservableProperty] private bool _launcherIgnoreDisabledApps;
 

@@ -17,6 +17,10 @@ public sealed class HotkeyIndex
     private readonly HashSet<string> _sideButtonsBlockedIn;
     private readonly bool _voiceAnywhere, _launcherAnywhere;
 
+    /// <summary>The voice / launcher hotkey is swallowed (the application in front never gets it).</summary>
+    public bool VoiceBlock { get; }
+    public bool LauncherBlock { get; }
+
     public string ShowWindowHotkey { get; }
     public string ExitHotkey { get; }
 
@@ -61,6 +65,8 @@ public sealed class HotkeyIndex
         BlockSideButtons = settings.BlockSideButtons && !paused;
         _voiceAnywhere = settings.VoiceIgnoreDisabledApps;
         _launcherAnywhere = settings.LauncherIgnoreDisabledApps;
+        VoiceBlock = settings.VoiceBlockKey;
+        LauncherBlock = settings.LauncherBlockKey;
     }
 
     public bool Contains(string hotkey) => _map.ContainsKey(hotkey);

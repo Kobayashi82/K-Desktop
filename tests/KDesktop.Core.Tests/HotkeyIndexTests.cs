@@ -83,5 +83,9 @@ public class HotkeyIndexTests
         Assert.True(index.IsVoiceHotkey(voice, () => "game"));
         Assert.True(index.IsLauncherHotkey(launcher, () => "game"));
         Assert.False(new HotkeyIndex([], settings, paused: true).IsLauncherHotkey(launcher, () => "notepad"));
+
+        Assert.True(index.VoiceBlock && index.LauncherBlock); // swallowed unless asked
+        settings.LauncherBlockKey = false;
+        Assert.False(new HotkeyIndex([], settings).LauncherBlock);
     }
 }

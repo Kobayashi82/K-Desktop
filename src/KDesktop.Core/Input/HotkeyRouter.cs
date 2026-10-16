@@ -175,13 +175,13 @@ public sealed partial class HotkeyRouter : IDisposable
         if (index.IsVoiceHotkey(hotkey, FrontProcess))
         {
             if (!repeat) Post(() => VoiceRequested?.Invoke(() => IsKeyHeld(vk)));
-            return Block(vk, mods);
+            return index.VoiceBlock && Block(vk, mods);
         }
 
         if (index.IsLauncherHotkey(hotkey, FrontProcess))
         {
             if (!repeat) Post(() => BuiltIn?.Invoke(BuiltInHotkey.Launcher));
-            return Block(vk, mods);
+            return index.LauncherBlock && Block(vk, mods);
         }
 
         if (index.IsDisabledInHotkey(hotkey))
@@ -301,13 +301,19 @@ public sealed partial class HotkeyRouter : IDisposable
             _armed = false; // nothing fires on release
             _voiceButton = button;
             _voiceButtonHeld = true;
-            _blockedButtons.Add(button);
+            if (index.VoiceBlock) _blockedButtons.Add(button);
             Post(() => VoiceRequested?.Invoke(() => _voiceButtonHeld));
-            return true;
+            return index.VoiceBlock;
         }
-        if (index.IsDisabledInHotkey(hotkey) || index.IsLauncherHotkey(hotkey, FrontProcess))
+        if (index.IsDisabledInHotkey(hotkey))
         {
             _blockedButtons.Add(button); // it fires on release (Dispatch)
+            return true;
+        }
+        if (index.IsLauncherHotkey(hotkey, FrontProcess))
+        {
+            if (!index.LauncherBlock) return false; // the application gets it too; it still fires on release
+            _blockedButtons.Add(button);
             return true;
         }
         var block = false;
@@ -371,13 +377,13 @@ public sealed partial class HotkeyRouter : IDisposable
         {
             _armed = false;
             Post(() => VoiceRequested?.Invoke(static () => false));
-            return true;
+            return index.VoiceBlock;
         }
         if (index.IsLauncherHotkey(hotkey, FrontProcess))
         {
             _armed = false;
             Post(() => BuiltIn?.Invoke(BuiltInHotkey.Launcher));
-            return true;
+            return index.LauncherBlock;
         }
         if (index.IsDisabledInHotkey(hotkey))
         {
