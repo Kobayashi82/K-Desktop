@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark system theme: the WebView reports prefers-color-scheme: dark to the web app. -->
+    <style name="KTheme" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/window</item>
+        <item name="android:statusBarColor">@color/window</item>
+        <item name="android:navigationBarColor">@color/window</item>
+        <item name="android:colorAccent">@color/gold</item>
+    </style>
+</resources>

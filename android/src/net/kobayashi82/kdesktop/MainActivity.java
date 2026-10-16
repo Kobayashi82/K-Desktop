@@ -5,10 +5,13 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.view.Window;
 import android.webkit.CookieManager;
@@ -16,6 +19,7 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -30,8 +34,16 @@ public class MainActivity extends Activity {
     private static final String KEY_SERVER = "server";
     private static final String SETUP = "file:///android_asset/setup.html";
 
+    /** A PC that is off often leaves the connection hanging instead of refusing it: give up after this. */
+    private static final long LOAD_TIMEOUT_MS = 12000;
+
     private WebView web;
     private SharedPreferences prefs;
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final Runnable loadTimeout = () -> {
+        web.stopLoading();
+        openSetup(getString(R.string.timeout));
+    };
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -115,7 +127,7 @@ public class MainActivity extends Activity {
     private void openServer() {
         String server = server();
         if (server == null) web.loadUrl(SETUP);
-        else web.loadUrl(server);
+        else load(server);
     }
 
     private void openSetup(String error) {
@@ -152,7 +164,14 @@ public class MainActivity extends Activity {
         }
         prefs.edit().putString(KEY_SERVER, server).apply();
         String fragment = Uri.parse(link.trim()).getEncodedFragment();
-        web.loadUrl(fragment != null ? server + "#" + fragment : server);
+        load(fragment != null ? server + "#" + fragment : server);
+    }
+
+    /** Loads a page of K-Desktop, with a deadline: a hanging connection shows the setup page with the error. */
+    private void load(String url) {
+        handler.removeCallbacks(loadTimeout);
+        handler.postDelayed(loadTimeout, LOAD_TIMEOUT_MS);
+        web.loadUrl(url);
     }
 
     private static String sharedLink(Intent intent) {
@@ -199,6 +218,25 @@ public class MainActivity extends Activity {
 
     private class Client extends WebViewClient {
         @Override
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            if (url.startsWith(SETUP)) handler.removeCallbacks(loadTimeout);
+        }
+
+        @Override
+        public void onPageCommitVisible(WebView view, String url) {
+            // Something of the page arrived: K-Desktop answered.
+            handler.removeCallbacks(loadTimeout);
+        }
+
+        @Override
+        public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse response) {
+            // The page itself failing (a proxy with K-Desktop off answers 502/503) is "cannot connect" too.
+            if (!request.isForMainFrame() || response.getStatusCode() < 500) return;
+            handler.removeCallbacks(loadTimeout);
+            openSetup("HTTP " + response.getStatusCode());
+        }
+
+        @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             Uri url = request.getUrl();
             String server = server();
@@ -218,6 +256,7 @@ public class MainActivity extends Activity {
             // Only the page itself: the web app copes with failed API calls (it keeps the last commands).
             if (!request.isForMainFrame()) return;
             if (request.getUrl().toString().startsWith(SETUP)) return;
+            handler.removeCallbacks(loadTimeout);
             openSetup(String.valueOf(error.getDescription()));
         }
     }
@@ -237,7 +276,7 @@ public class MainActivity extends Activity {
             prefs.edit().putString(KEY_SERVER, server).apply();
             String fragment = Uri.parse(input.trim().matches("(?i)^https?://.*") ? input.trim() : "http://" + input.trim()).getEncodedFragment();
             final String target = fragment != null ? server + "#" + fragment : server;
-            runOnUiThread(() -> web.loadUrl(target));
+            runOnUiThread(() -> load(target));
             return server;
         }
 

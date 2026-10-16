@@ -69,12 +69,12 @@
 </head>
 <body>
   <div class="ambient"><i></i><i></i></div>
-  <form class="card" id="form" autocomplete="off">
+  <form class="card" id="form" autocomplete="off" novalidate>
     <div class="logo"><img src="icon.png" alt=""></div>
     <h1 data-t="title"></h1>
     <p data-t="text"></p>
     <label for="server" data-t="label"></label>
-    <input id="server" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://kdesktop.example.com">
+    <input id="server" type="text" inputmode="url" enterkeyhint="go" autocapitalize="off" spellcheck="false" placeholder="https://kdesktop.example.com">
     <div class="hint" data-t="hint"></div>
     <div class="error" id="error"></div>
     <button type="submit" data-t="connect"></button>
