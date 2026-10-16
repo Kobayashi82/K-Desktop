@@ -302,6 +302,7 @@ public partial class App : Application
         IconProvider.Invalidate();
         RebuildIndex();
         ApplySettings();
+        Voice.WakeWords.Reload();
         _main?.RebuildPages();
     }
 

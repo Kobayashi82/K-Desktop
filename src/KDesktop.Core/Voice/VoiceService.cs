@@ -33,6 +33,9 @@ public sealed class VoiceService : IDisposable
 
     public SpeechToText SpeechToText { get; } = new();
 
+    /// <summary>The wake words recorded by the user (Settings › Voice).</summary>
+    public WakeWordStore WakeWords { get; } = new();
+
     /// <summary>Downloads the models (Settings › Voice).</summary>
     public ModelDownloader Models { get; } = new();
 
@@ -201,6 +204,18 @@ public sealed class VoiceService : IDisposable
             return;
         }
 
+        // «KDesktop, abre Firefox»: the wake word at the start is not part of the order.
+        if (WakeWordVerifier.FindAny(text, WakeWords.Active) is { Start: <= 1 } wake)
+        {
+            Log.Info($"Voz: palabra de activación «{wake.Word.Name}» ({wake.Score:0.00}) al principio de la orden");
+            text = wake.Rest;
+            if (text.Length == 0)
+            {
+                osd.Finish(Loc.T("voice.wakeOnly", wake.Word.Name), OsdKind.Info);
+                return;
+            }
+        }
+
         var result = IntentMatcher.Match(text, Commands());
         Log.Info($"Voz → {(result.Command?.Name ?? "nada")} · " +
                  string.Join(", ", result.Candidates.Select(c => $"{c.Command.Name} {c.Score:0.00}")));
@@ -232,5 +247,6 @@ public sealed class VoiceService : IDisposable
     {
         _mic.Dispose();
         SpeechToText.Dispose();
+        WakeWords.Dispose();
     }
 }

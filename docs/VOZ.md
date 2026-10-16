@@ -78,7 +78,8 @@ Asistente en un diálogo con estilo WPF-UI, textos en es/en:
 1. «Silencio» 3 s → mide el nivel de ruido (y guarda negativos).
 2. «Di la palabra» × 6 (mínimo 4), con medidor de nivel. Cada grabación se recorta con el VAD y se descarta si es
    demasiado corta o larga, está saturada, es muy baja o es atípica respecto a las demás por DTW («Repítela»). Se
-   muestra lo que entendió Parakeet cada vez.
+   muestra lo que entendió Parakeet cada vez. (Etapa 3: lo atípico se mide por duración; el DTW llega con los
+   embeddings en la etapa 4.)
 3. «Habla normal sin decirla» 10 s → negativos y calibración automática del umbral.
 4. Prueba en vivo: «Dila otra vez» → ✓ detectada. Se muestra la puntuación.
 5. Guardar en `Voice/WakeWord/` de la carpeta de datos: wavs, plantillas, pesos del clasificador, variantes de texto,

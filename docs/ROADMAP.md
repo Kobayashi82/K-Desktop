@@ -152,7 +152,23 @@ embeddings multilingües → LLM opcional) y siete etapas con su commit cada una
       estado/descargar/cancelar/borrar con progreso, micrófono (predeterminado o uno concreto, que se recuerda aunque
       esté desconectado), liberar la memoria tras N min, cómo usarla y botón «Crear el comando «Orden de voz»». El icono
       de estado de la voz abre esa sección. Probado: descarga, cancelación, reanudación y borrado.
-- [ ] Etapa 3: clave fonética + fase 2 + asistente de grabación.
+- [x] Etapa 3: clave fonética + fase 2 + asistente de grabación.
+      `PhoneticKey` (reglas de VOZ.md; además y final → i, ge/gi → j, x → ks, ph → f y una letra suelta se lee por su
+      nombre: «K desktop» → «kadesktop»). `WakeWordVerifier`: busca en lo transcrito el tramo de palabras (hasta las de
+      la variante más larga + 2) que más se parece por sonido a alguna variante (Levenshtein normalizado), devuelve lo
+      dicho después como orden y calibra el umbral: por encima de lo que alcanza el habla normal (+0,1) y por debajo de
+      lo que alcanzan las grabaciones entre sí (dejando una fuera). Sensibilidad por palabra (±0,15 al umbral).
+      Varias palabras de activación en Opciones › Voz (lista con sensibilidad, activar, probar, volver a grabar,
+      borrar), cada una en `Voice\WakeWords\<id>\` (wakeword.json + word_N.wav, silence.wav, speech.wav para la etapa 4;
+      entran en la copia .zip). Asistente `WakeWordDialog`: nombre → silencio 3 s (ruido de fondo) → 6 tomas seguidas
+      (mínimo 4; recortadas con el VAD y descartadas si son cortas, largas, bajas, saturadas o de duración atípica; se
+      muestra lo que entendió Parakeet) → 10 s de habla normal (calibración) → prueba en vivo con puntuación y orden.
+      Mientras no hay escucha continua, una orden por atajo que empieza por la palabra («KDesktop, abre Firefox») la
+      quita. Diagnóstico sin micro: `--wake-test "KDesktop" carpeta` (word*/speech*/test*.wav) → `Logs\wake-test.txt`;
+      para probar el asistente sin micro, `KDESKTOP_VOICE_FAKE=<carpeta de wavs>` hace que cada grabación lea el
+      siguiente .wav. Probado con voz sintética (Helena): «K Desktop, abre Firefox» → sí (1,00) y orden «Abre Firefox»;
+      «Cadktop sube el volumen» → sí (0,78); habla normal ≤ 0,50 → no. Sin probar con micrófono real.
+      Pendiente para la etapa 4: el descarte de tomas «atípicas» por DTW (ahora solo por duración).
 - [ ] Etapa 4: fase 1 (port del preprocesado de openWakeWord, DTW, clasificador).
 - [ ] Etapa 5: capa de embeddings.
 - [ ] Etapa 6: seguridad, confirmaciones y estadísticas.

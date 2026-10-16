@@ -4,14 +4,14 @@ using KDesktop.Core.Model;
 namespace KDesktop.Core.Storage;
 
 /// <summary>
-/// Full backup of the data folder as a .zip: configuration, achievements and statistics, own icons, sounds and
-/// languages. Leaves out what is rebuilt or downloaded again (logs, automatic backups, favicons, voice models) and the
+/// Full backup of the data folder as a .zip: configuration, achievements and statistics, own icons, sounds,
+/// languages and wake words. Leaves out what is rebuilt or downloaded again (logs, automatic backups, favicons, voice models) and the
 /// paired web devices (their keys are secrets and belong to this PC).
 /// </summary>
 public static class DataArchive
 {
     /// <summary>Folders of the data dir that go into the archive.</summary>
-    private static readonly string[] Folders = ["Icons", "Sounds", "Languages"];
+    private static readonly string[] Folders = ["Icons", "Sounds", "Languages", "Voice"];
 
     private static readonly string[] Files = ["config.json", "stats.json"];
 

@@ -107,6 +107,7 @@ public partial class SettingsPage : UserControl
         VoiceMicBox.ItemsSource = mics;
         VoiceMicBox.SelectedItem = mics.First(m => m.Id == chosen);
         UpdateVoiceHotkey();
+        UpdateWakeWords();
         VoiceUnloadBox.ItemsSource = new[] { 1, 5, 10, 30, 60 }.Select(m => new MinutesOption(m, Loc.T("settings.voiceUnloadMinutes", m))).ToList();
         _loadingVoice = false;
     }
@@ -133,6 +134,41 @@ public partial class SettingsPage : UserControl
         VoiceDownloadButton.Visibility = !download.IsDownloading && !ready ? Visibility.Visible : Visibility.Collapsed;
         VoiceCancelButton.Visibility = download.IsDownloading ? Visibility.Visible : Visibility.Collapsed;
         VoiceDeleteButton.Visibility = !download.IsDownloading && installed > 0 ? Visibility.Visible : Visibility.Collapsed;
+        // Recording a wake word needs the models (silence detection and transcription).
+        WakeAddButton.IsEnabled = ready && !download.IsDownloading;
+        WakeAddButton.ToolTip = ready ? null : Loc.T("wake.needModels");
+    }
+
+    // ── wake words ───────────────────────────────────────────────────────
+
+    private void UpdateWakeWords()
+    {
+        WakeList.ItemsSource = _app.Voice.WakeWords.Words;
+        WakeNone.Visibility = _app.Voice.WakeWords.Words.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void OnAddWakeWord(object sender, RoutedEventArgs e)
+    {
+        if (Dialogs.WakeWordDialog.Record(Window.GetWindow(this)) is not null) UpdateWakeWords();
+    }
+
+    private void OnTestWakeWord(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: WakeWord word }) Dialogs.WakeWordDialog.Test(Window.GetWindow(this), word);
+    }
+
+    private void OnRerecordWakeWord(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: WakeWord word } && Dialogs.WakeWordDialog.Record(Window.GetWindow(this), word) is not null)
+            UpdateWakeWords();
+    }
+
+    private async void OnDeleteWakeWord(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: WakeWord word }) return;
+        if (!await Confirm(Loc.T("settings.wakeDeleteConfirm", word.Name))) return;
+        _app.Voice.WakeWords.Delete(word);
+        UpdateWakeWords();
     }
 
     private void OnVoiceDownload(object sender, RoutedEventArgs e) => _app.Voice.Models.Start();

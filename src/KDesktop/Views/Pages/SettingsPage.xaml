@@ -501,6 +501,60 @@
                         </StackPanel>
                         <ComboBox x:Name="VoiceUnloadBox" Grid.Column="1" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding VoiceUnloadMinutes}" />
                     </Grid>
+
+                    <!-- Wake words: recorded with the user's voice, as many as wanted -->
+                    <Border Height="1" Margin="0,6,0,14" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.wakeWords}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.wakeWordsHint}" />
+                        </StackPanel>
+                        <ui:Button x:Name="WakeAddButton" Grid.Column="1" VerticalAlignment="Center" Content="{l:Tr settings.wakeAdd}" Icon="{ui:SymbolIcon Add24}" Click="OnAddWakeWord" />
+                    </Grid>
+                    <TextBlock x:Name="WakeNone" Style="{StaticResource Caption}" Margin="0,0,0,10" Text="{l:Tr settings.wakeNone}" />
+                    <ItemsControl x:Name="WakeList" Focusable="False" Margin="0,0,0,8">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,8" Padding="14,10" CornerRadius="8" BorderThickness="1"
+                                        Background="{DynamicResource Kd.Subtle}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
+                                            <ui:SymbolIcon Symbol="PersonVoice24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                            <TextBlock Text="{Binding Summary}" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Summary}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,14,0" ToolTip="{l:Tr settings.wakeSensitivityHint}">
+                                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.wakeSensitivity}" />
+                                            <Slider Width="130" Minimum="0" Maximum="1" SmallChange="0.05" LargeChange="0.1" Value="{Binding Sensitivity}" />
+                                        </StackPanel>
+                                        <ui:ToggleSwitch Grid.Column="3" VerticalAlignment="Center" Margin="0,0,10,0" IsChecked="{Binding Enabled}" ToolTip="{l:Tr common.enabled}" />
+                                        <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <ui:Button Style="{StaticResource IconButton}" ToolTip="{l:Tr settings.wakeTest}" AutomationProperties.Name="{l:Tr settings.wakeTest}" Click="OnTestWakeWord">
+                                                <ui:SymbolIcon Symbol="Play24" FontSize="16" />
+                                            </ui:Button>
+                                            <ui:Button Style="{StaticResource IconButton}" ToolTip="{l:Tr settings.wakeRerecord}" AutomationProperties.Name="{l:Tr settings.wakeRerecord}" Click="OnRerecordWakeWord">
+                                                <ui:SymbolIcon Symbol="Mic24" FontSize="16" />
+                                            </ui:Button>
+                                            <ui:Button Style="{StaticResource IconButton}" ToolTip="{l:Tr settings.wakeDelete}" AutomationProperties.Name="{l:Tr settings.wakeDelete}" Click="OnDeleteWakeWord">
+                                                <ui:SymbolIcon Symbol="Delete24" FontSize="16" Foreground="{DynamicResource Kd.Danger}" />
+                                            </ui:Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                     <Border Style="{StaticResource InfoBox}">
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>

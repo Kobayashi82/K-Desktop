@@ -14,6 +14,7 @@ namespace KDesktop;
 /// <item><c>--startup</c> started by Windows (no window) · <c>--no-elevate</c> · <c>--no-hooks</c> · <c>--no-udp</c> · <c>--no-web</c></item>
 /// <item><c>--data "folder"</c> use another data folder (an independent instance) · <c>--page name</c> open a page</item>
 /// <item><c>--voice-test a.wav folder "phrase"…</c> voice diagnostics without microphone or UI (report in Logs)</item>
+/// <item><c>--wake-test "name" folder</c> wake word set-up and verification from word*/speech*/test*.wav (report in Logs)</item>
 /// </list>
 /// </summary>
 public static class Program
@@ -36,6 +37,8 @@ public static class Program
         // Voice diagnostics: transcribe / match and exit, without touching the running instance.
         var voiceTest = Array.FindIndex(args, a => a.Equals("--voice-test", StringComparison.OrdinalIgnoreCase));
         if (voiceTest >= 0) return VoiceTest(args.Skip(voiceTest + 1).Where(a => a != "--no-open").ToArray(), open: !args.Contains("--no-open"));
+        var wakeTest = Array.FindIndex(args, a => a.Equals("--wake-test", StringComparison.OrdinalIgnoreCase));
+        if (wakeTest >= 0 && args.Length > wakeTest + 2) return WakeTest(args[wakeTest + 1], args[wakeTest + 2], open: !args.Contains("--no-open"));
 
         // Already running? Forward the request (works across elevation levels) and leave.
         var forward = args.Any(a => ForwardedArguments.Contains(a, StringComparer.OrdinalIgnoreCase));
@@ -90,6 +93,24 @@ public static class Program
         catch (Exception ex)
         {
             Log.Error("--voice-test", ex);
+            Log.Flush();
+            return 1;
+        }
+    }
+
+    private static int WakeTest(string name, string folder, bool open)
+    {
+        try
+        {
+            AppPaths.EnsureCreated();
+            var report = Core.Voice.VoiceDiagnostics.RunWake(name, folder);
+            Log.Flush();
+            if (open) Process.Start(new ProcessStartInfo(report) { UseShellExecute = true });
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Log.Error("--wake-test", ex);
             Log.Flush();
             return 1;
         }
