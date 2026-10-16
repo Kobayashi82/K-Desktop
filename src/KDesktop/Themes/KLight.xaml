@@ -4,14 +4,13 @@
     <Color x:Key="Kd.AccentColor">#B57F00</Color>
     <SolidColorBrush x:Key="Kd.Accent" Color="#C58A00" />
     <SolidColorBrush x:Key="Kd.AccentSoft" Color="#29C58A00" />
-    <SolidColorBrush x:Key="Kd.AccentText" Color="#8F6400" />
-
+    <SolidColorBrush x:Key="Kd.AccentText" Color="#7A5200" />
     <!-- QuickMenu -->
     <SolidColorBrush x:Key="Kd.MenuTint" Color="#C8F7F7F7" />
     <SolidColorBrush x:Key="Kd.MenuTintOpaque" Color="#FFF9F9F9" />
     <SolidColorBrush x:Key="Kd.MenuBorder" Color="#1A000000" />
     <SolidColorBrush x:Key="Kd.MenuText" Color="#E6000000" />
-    <SolidColorBrush x:Key="Kd.MenuTextSecondary" Color="#8C000000" />
+    <SolidColorBrush x:Key="Kd.MenuTextSecondary" Color="#AB000000" />
     <SolidColorBrush x:Key="Kd.MenuHover" Color="#0F000000" />
     <SolidColorBrush x:Key="Kd.MenuPressed" Color="#08000000" />
     <SolidColorBrush x:Key="Kd.MenuSeparator" Color="#14000000" />
@@ -21,7 +20,7 @@
     <SolidColorBrush x:Key="Kd.OsdBackground" Color="#F2FBFBFB" />
     <SolidColorBrush x:Key="Kd.OsdBorder" Color="#1F000000" />
     <SolidColorBrush x:Key="Kd.OsdText" Color="#FF1A1A1A" />
-    <SolidColorBrush x:Key="Kd.OsdTextSecondary" Color="#B3000000" />
+    <SolidColorBrush x:Key="Kd.OsdTextSecondary" Color="#C2000000" />
     <SolidColorBrush x:Key="Kd.ToastBorder" Color="#66E0A815" />
 
     <!-- Achievements -->
@@ -41,5 +40,5 @@
     <SolidColorBrush x:Key="Kd.Success" Color="#0F7B0F" />
     <SolidColorBrush x:Key="Kd.Warning" Color="#9D5D00" />
     <!-- Descriptions under a name: a step dimmer than the secondary text so both read apart -->
-    <SolidColorBrush x:Key="Kd.TextDim" Color="#82000000" />
+    <SolidColorBrush x:Key="Kd.TextDim" Color="#A3000000" />
 </ResourceDictionary>

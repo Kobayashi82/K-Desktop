@@ -13,7 +13,7 @@ using KDesktop.Core.Model;
 namespace KDesktop.Services;
 
 /// <summary>Resolves and caches icons for commands, actions and QuickMenu items.</summary>
-public static class IconProvider
+public static partial class IconProvider
 {
     private const int Size = 48;
     private static readonly ConcurrentDictionary<string, ImageSource?> Cache = new(StringComparer.OrdinalIgnoreCase);
@@ -53,10 +53,10 @@ public static class IconProvider
 
     public static ImageSource? ForAction(CommandAction action) => action switch
     {
-        RunAppAction a => PathIcon(a.Path) ?? (LooksLikeUrl(a.Path) ? Favicons.Get(a.Path) ?? Kd("Globe24", "sky") : Kd("Open24", "blue")),
+        RunAppAction a => PathIcon(a.Path) ?? (LooksLikeUrl(a.Path) ? ForTheme(Favicons.Get(a.Path)) ?? Kd("Globe24", "sky") : Kd("Open24", "blue")),
         OpenFolderAction { Special: { } s } => Named(SpecialFolders.Get(s)?.Icon) ?? Kd("Folder24", "yellow"),
         OpenFolderAction a => PathIcon(a.Path) ?? Kd("Folder24", "yellow"),
-        OpenUrlAction a => Favicons.Get(a.Url) ?? (Browsers.Get(a.Browser)?.Icon is { } browser ? Asset(browser) : Kd("Globe24", "sky")),
+        OpenUrlAction a => ForTheme(Favicons.Get(a.Url)) ?? (Browsers.Get(a.Browser)?.Icon is { } browser ? Asset(browser) : Kd("Globe24", "sky")),
         AppControlAction => Kd("WindowApps24", "indigo"),
         RunScriptAction => Kd("WindowConsole20", "dark"),
         SendInputAction => Kd("Keyboard24", "sky"),
@@ -84,8 +84,8 @@ public static class IconProvider
     public static ImageSource? FromConfigIcon(string icon)
     {
         if (KdIconSpec.TryParse(icon, out var kd)) return KdIcons.Render(kd);
-        if (TryParseLibrary(icon, out var file, out var index)) return Library(file, index);
-        return AppPaths.ResolveIcon(icon) is { } path ? FromFile(path) : null;
+        if (TryParseLibrary(icon, out var file, out var index)) return ForTheme(Library(file, index));
+        return AppPaths.ResolveIcon(icon) is { } path ? ForTheme(FromFile(path)) : null;
     }
 
     /// <summary>K-Desktop icon ("kd:…") or bundled asset name.</summary>
@@ -99,7 +99,8 @@ public static class IconProvider
         if (string.IsNullOrWhiteSpace(path)) return null;
         var p = Environment.ExpandEnvironmentVariables(path.Trim().Trim('"'));
         if (!Path.IsPathRooted(p) && !p.StartsWith(@"\\", StringComparison.Ordinal)) return null;
-        return File.Exists(p) || Directory.Exists(p) ? Shell(p) : null;
+        // Folders with a custom icon are often white glyphs (see ForTheme); file icons are Windows-drawn and left alone.
+        return File.Exists(p) ? Shell(p) : Directory.Exists(p) ? ForTheme(Shell(p)) : null;
     }
 
     public static bool LooksLikeUrl(string s) => s.Contains("://", StringComparison.Ordinal) || s.StartsWith("www.", StringComparison.OrdinalIgnoreCase);
