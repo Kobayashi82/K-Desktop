@@ -29,6 +29,14 @@ public sealed class QuickMenuController
     private QuickMenu? _menu;
     private bool _closing;
 
+    /// <summary>
+    /// After a right click (run and keep the menu open), what was started may take the focus: until then the menu
+    /// takes it back instead of closing.
+    /// </summary>
+    private DateTime _keepOpenUntil;
+
+    private static readonly TimeSpan KeepOpenAfterRun = TimeSpan.FromSeconds(4);
+
     /// <summary>(commandId, menuId) — commandId is null to edit the whole menu.</summary>
     public event Action<string?, string?>? EditRequested;
 
@@ -112,6 +120,7 @@ public sealed class QuickMenuController
     {
         if (!IsOpen || _closing) return;
         _closing = true;
+        _keepOpenUntil = default;
         try
         {
             _hoverTimer.Stop();
@@ -152,15 +161,35 @@ public sealed class QuickMenuController
             w.PreviewKeyDown += OnKeyDown;
             w.Deactivated += (_, _) =>
             {
-                if (!IsOpen) return;
+                if (!IsOpen || _closing) return;
                 // The focus went to one of its own submenus: the menu is still in use.
                 var foreground = ForegroundWindow.Capture();
                 if (_levels.Any(l => l.Hwnd == foreground.Handle)) return;
+                if (DateTime.UtcNow < _keepOpenUntil)
+                {
+                    TakeFocusBack(w);
+                    return;
+                }
                 Log.Info($"QuickMenu: se cierra al perder el foco (activa: {foreground.ProcessName})");
                 CloseAll(restoreFocus: false);
             };
         }
         return w;
+    }
+
+    /// <summary>A program started with a right click took the focus: the menu stays open and takes it back.</summary>
+    private void TakeFocusBack(QuickMenuWindow root)
+    {
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(120) };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            if (!IsOpen || !ReferenceEquals(root, _root)) return;
+            root.Activate();
+            WindowTools.ForceForeground(root.Hwnd);
+            Keyboard.Focus(root);
+        };
+        timer.Start();
     }
 
     private QuickMenuWindow RentSubmenu() => _pool.Count > 0 ? _pool.Pop() : CreateWindow(isSubmenu: true);
@@ -411,6 +440,7 @@ public sealed class QuickMenuController
         }
         else
         {
+            _keepOpenUntil = DateTime.UtcNow + KeepOpenAfterRun;
             entry.IsFlashing = true;
             var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(260) };
             timer.Tick += (_, _) => { timer.Stop(); entry.IsFlashing = false; };
