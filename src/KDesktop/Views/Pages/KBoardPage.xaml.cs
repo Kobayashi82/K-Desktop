@@ -5,6 +5,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
+using Wpf.Ui.Controls;
 using KDesktop.Core.Achievements;
 using KDesktop.Core.Input;
 using KDesktop.Core.Localization;
@@ -84,13 +85,13 @@ public partial class KBoardPage : UserControl, IDisposable
     {
         CountText.Text = Config.KBoards.Count.ToString();
         ListEmpty.Visibility = Config.KBoards.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        ProfileList.IsEnabled = Config.KBoards.Count > 0;
     }
 
     public void Select(string id)
     {
         if (Config.FindKBoard(id) is not { } profile) return;
         ProfileList.SelectedItem = profile;
-        ProfileList.ScrollIntoView(profile);
     }
 
     private void OnProfileSelected(object sender, SelectionChangedEventArgs e)
@@ -100,6 +101,7 @@ public partial class KBoardPage : UserControl, IDisposable
         Editor.DataContext = _selected;
         Surface.Profile = _selected;
         SelectSource(null);
+        DuplicateButton.IsEnabled = DeleteButton.IsEnabled = CommandButton.IsEnabled = _selected is not null;
         if (_selected is null)
         {
             EditorScroll.Visibility = Visibility.Collapsed;
@@ -137,7 +139,6 @@ public partial class KBoardPage : UserControl, IDisposable
         Config.KBoards.Add(profile);
         _app.Achievements.Increment(Stat.KBoardsCreated);
         ProfileList.SelectedItem = profile;
-        ProfileList.ScrollIntoView(profile);
         Dispatcher.BeginInvoke(() =>
         {
             NameBox.Focus();
@@ -419,9 +420,24 @@ public partial class KBoardPage : UserControl, IDisposable
 
     private void OnDeleteRemap(object sender, RoutedEventArgs e)
     {
-        if (_selected is null || sender is not FrameworkElement { Tag: KeyRemap remap }) return;
+        if (sender is FrameworkElement { Tag: KeyRemap remap }) DeleteRemap(remap);
+    }
+
+    private void DeleteRemap(KeyRemap remap)
+    {
+        if (_selected is null) return;
         _selected.Remaps.Remove(remap);
         if (ReferenceEquals(remap, _remap)) SelectSource(_source);
+    }
+
+    private void OnRemapRightClick(object sender, MouseButtonEventArgs e)
+    {
+        if (ListContextMenu.SelectRow(RemapList, e) is not { DataContext: KeyRemap remap } row) return;
+        ListContextMenu.Open(row,
+            ListContextMenu.Entry(remap.Enabled ? Loc.T("commands.disable") : Loc.T("commands.enable"),
+                remap.Enabled ? SymbolRegular.Prohibited24 : SymbolRegular.CheckmarkCircle24, () => remap.Enabled = !remap.Enabled),
+            new Separator(),
+            ListContextMenu.Entry(Loc.T("common.delete"), SymbolRegular.Delete24, () => DeleteRemap(remap)));
     }
 
     private async void OnClearAll(object sender, RoutedEventArgs e)

@@ -50,10 +50,12 @@ public sealed class ConfigStore : IDisposable
     /// <summary>Swaps the whole configuration (after an import, for example).</summary>
     public void Replace(AppConfig config, bool save = true)
     {
+        var upgraded = config.Upgrade();
         Config = config;
         Attach();
         RaiseChanged();
         if (save) SaveNow();
+        else if (upgraded) MarkDirty();
     }
 
     /// <summary>Runs <paramref name="action"/> without triggering a save/change for every intermediate step.</summary>

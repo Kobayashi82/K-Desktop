@@ -10,7 +10,7 @@ namespace KDesktop;
 /// Command line:
 /// <list type="bullet">
 /// <item><c>--menu "Name"</c> open a QuickMenu · <c>--run "Name"</c> run a command · <c>--show</c> · <c>--exit</c>
-/// (forwarded to the running instance when there is one)</item>
+/// (forwarded to the running instance when there is one; <c>--exit</c> does nothing when none is running)</item>
 /// <item><c>--startup</c> started by Windows (no window) · <c>--no-elevate</c> · <c>--no-hooks</c> · <c>--no-udp</c> · <c>--no-web</c></item>
 /// <item><c>--data "folder"</c> use another data folder (an independent instance) · <c>--page name</c> open a page</item>
 /// <item><c>--voice-test a.wav folder "phrase"…</c> voice diagnostics without microphone or UI (report in Logs)</item>
@@ -46,6 +46,9 @@ public static class Program
         // Already running? Forward the request (works across elevation levels) and leave.
         var forward = args.Any(a => ForwardedArguments.Contains(a, StringComparer.OrdinalIgnoreCase));
         if (SingleInstance.SignalExisting(forward ? args : null)) return 0;
+
+        // --exit with nothing running: there is nothing to close (don't start it, ask for elevation or show anything).
+        if (args.Contains("--exit", StringComparer.OrdinalIgnoreCase)) return 0;
 
         // The main instance needs elevation so its hooks also see elevated windows.
         if (!ProcessLauncher.IsElevated && !args.Contains("--no-elevate"))

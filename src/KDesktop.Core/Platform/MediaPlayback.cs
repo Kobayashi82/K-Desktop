@@ -41,11 +41,47 @@ public static class MediaPlayback
         return true;
     }
 
+    private const int WM_APPCOMMAND = 0x0319;
+    private const int APPCOMMAND_MEDIA_PLAY_PAUSE = 14;
+
+    /// <summary>
+    /// Play / pause sent to one program only (WM_APPCOMMAND to its window), so another player that is sounding is not
+    /// touched. False when it has no window to send it to.
+    /// </summary>
+    public static bool PlayPauseIn(string processName)
+    {
+        var processes = WindowTools.FindProcesses(processName);
+        try
+        {
+            if (processes.Length == 0) return false;
+            var window = WindowTools.TopLevelWindows(processes.Select(p => (uint)p.Id).ToHashSet()).FirstOrDefault();
+            if (window == IntPtr.Zero) window = processes.Select(p => p.MainWindowHandle).FirstOrDefault(h => h != IntPtr.Zero);
+            if (window == IntPtr.Zero) return false;
+            Native.Win32.PostMessage(window, WM_APPCOMMAND, window, (IntPtr)(APPCOMMAND_MEDIA_PLAY_PAUSE << 16));
+            return true;
+        }
+        finally
+        {
+            foreach (var p in processes) p.Dispose();
+        }
+    }
+
+    /// <summary>Whether a program named <paramref name="processName"/> is sounding (see <see cref="IsPlaying(int)"/>).</summary>
+    public static bool? IsPlaying(string processName, int milliseconds = 240)
+    {
+        var processes = WindowTools.FindProcesses(processName);
+        var pids = processes.Select(p => (uint)p.Id).ToHashSet();
+        foreach (var p in processes) p.Dispose();
+        return pids.Count == 0 ? false : IsPlaying(milliseconds, pids.Contains);
+    }
+
     /// <summary>
     /// Whether another program is playing sound on the default output, watched for a moment (a quiet passage of a song
     /// still moves the meter within it). Null when Windows could not tell.
     /// </summary>
-    public static bool? IsPlaying(int milliseconds = 240)
+    public static bool? IsPlaying(int milliseconds = 240) => IsPlaying(milliseconds, null);
+
+    private static bool? IsPlaying(int milliseconds, Func<uint, bool>? process)
     {
         try
         {
@@ -59,7 +95,9 @@ public static class MediaPlayback
             for (var i = 0; i < sessions.Count; i++)
             {
                 var session = sessions[i];
-                if (session.State == AudioSessionState.AudioSessionStateActive && session.GetProcessID != own) active.Add(session);
+                if (session.State == AudioSessionState.AudioSessionStateActive && session.GetProcessID != own &&
+                    (process is null || process(session.GetProcessID)))
+                    active.Add(session);
             }
             if (active.Count == 0) return false;
             var watch = Stopwatch.StartNew();

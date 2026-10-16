@@ -278,10 +278,13 @@ public sealed partial class CommandEngine
         if (a.ShowOsd) _ui.ShowOsd(Loc.T(visible ? "osd.hiddenShown" : "osd.hiddenHidden"));
     }
 
-    private void ToggleDisabledIn(ToggleDisabledInAction a, ExecutionContext ctx)
+    private void ToggleDisabledIn(ToggleDisabledInAction a, ExecutionContext ctx) => ToggleDisabledIn(ctx.Foreground, a.ShowOsd);
+
+    /// <summary>Adds <paramref name="window"/>'s app to «Desactivar en», or takes it out (its hotkey in the options).</summary>
+    public void ToggleDisabledIn(ForegroundWindow window, bool showOsd = true)
     {
-        var process = ctx.Foreground.ProcessName;
-        if (process.Length == 0 || ctx.Foreground.ProcessId == (uint)Environment.ProcessId) return;
+        var process = window.ProcessName;
+        if (process.Length == 0 || window.ProcessId == (uint)Environment.ProcessId) return;
         var list = Config.Settings.DisabledIn;
         var disable = !list.Any(p => ProcessNames.Normalize(p) == process);
         _ui.RunOnUi(() =>
@@ -289,7 +292,7 @@ public sealed partial class CommandEngine
             if (disable) list.Add(process);
             else foreach (var p in list.Where(p => ProcessNames.Normalize(p) == process).ToList()) list.Remove(p);
         });
-        if (a.ShowOsd)
+        if (showOsd)
             _ui.ShowOsd(Loc.T(disable ? "osd.disabledIn" : "osd.enabledIn", process), disable ? OsdKind.Warning : OsdKind.Success);
     }
 

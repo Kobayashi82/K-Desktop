@@ -6,6 +6,7 @@
              xmlns:v="clr-namespace:KDesktop.Views"
              xmlns:s="clr-namespace:KDesktop.Services"
              xmlns:qe="clr-namespace:KDesktop.Views.QuickMenuEditor"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              Focusable="True"
              PreviewKeyDown="OnKeyDown">
     <UserControl.Resources>
@@ -13,6 +14,11 @@
         <v:NullToCollapsedConverter x:Key="NullToCollapsed" />
         <v:BoolToCollapsedConverter x:Key="BoolToCollapsed" />
         <v:BoolToCollapsedConverter x:Key="BoolToVisibleInv" Invert="True" />
+
+        <!-- The menu's size, as the real menu shows it (set from the code when the size changes) -->
+        <sys:Double x:Key="Qm.FontSize">13</sys:Double>
+        <sys:Double x:Key="Qm.IconSize">18</sys:Double>
+        <sys:Double x:Key="Qm.RowHeight">30.5</sys:Double>
 
         <!-- ── A row of the menu canvas ─────────────────────────────── -->
         <DataTemplate x:Key="RowTemplate" DataType="{x:Type qe:QmRow}">
@@ -22,7 +28,7 @@
                 <!-- separator -->
                 <Border x:Name="Sep" Height="1" Margin="10,5" Background="{DynamicResource Kd.MenuSeparator}" Visibility="Collapsed" />
 
-                <Grid x:Name="Content" Height="32" MinWidth="220">
+                <Grid x:Name="Content" Height="{DynamicResource Qm.RowHeight}" MinWidth="220">
                     <Border x:Name="Bg" CornerRadius="5" Background="Transparent" />
                     <Border x:Name="TitleBand" CornerRadius="5" Background="{DynamicResource Kd.MenuTitle}" Visibility="Collapsed" />
                     <Border x:Name="Outline" CornerRadius="5" BorderThickness="1.5" BorderBrush="{DynamicResource Kd.Accent}" Opacity="0" />
@@ -32,7 +38,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Image Width="18" Height="18" Margin="0,0,10,0" Source="{Binding Icon}" RenderOptions.BitmapScalingMode="HighQuality"
+                        <Image Width="{DynamicResource Qm.IconSize}" Height="{DynamicResource Qm.IconSize}" Margin="0,0,10,0" Source="{Binding Icon}" RenderOptions.BitmapScalingMode="HighQuality"
                                Visibility="{Binding HasIcon, Converter={StaticResource BoolToCollapsed}}" />
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock x:Name="Label" Text="{Binding Label}" TextTrimming="CharacterEllipsis" MaxWidth="280"
@@ -105,7 +111,7 @@
                 <Border x:Name="Surface" CornerRadius="8" Padding="4" MinWidth="230" MinHeight="44" AllowDrop="True"
                         Background="{DynamicResource Kd.MenuTintOpaque}" BorderBrush="{DynamicResource Kd.MenuBorder}" BorderThickness="1"
                         DragOver="OnColumnDragOver" DragLeave="OnColumnDragLeave" Drop="OnColumnDrop" MouseRightButtonUp="OnColumnRightClick"
-                        TextElement.FontFamily="Segoe UI Variable Text, Segoe UI" TextElement.FontSize="13">
+                        TextElement.FontFamily="Segoe UI Variable Text, Segoe UI" TextElement.FontSize="{DynamicResource Qm.FontSize}">
                     <Border.Effect>
                         <DropShadowEffect BlurRadius="18" ShadowDepth="4" Direction="270" Opacity="0.22" />
                     </Border.Effect>

@@ -38,6 +38,7 @@ public partial class CommandsPage : UserControl, IDisposable
         _view.LiveFilteringProperties.Add(nameof(Command.Hidden));
         CommandList.ItemsSource = _view;
         ShowHiddenToggle.IsChecked = Config.Settings.ShowHiddenCommands;
+        _menuFilter ??= string.IsNullOrEmpty(Config.Settings.CommandsMenuFilter) ? FilterNone : Config.Settings.CommandsMenuFilter;
         Config.Commands.CollectionChanged += OnCommandsChanged;
         IconProvider.StaticPropertyChanged += OnIconsChanged;
         UpdateCount();
@@ -75,8 +76,11 @@ public partial class CommandsPage : UserControl, IDisposable
         public override string ToString() => Name;
     }
 
-    /// <summary>Chosen filter: "none" (commands in no QuickMenu, the default), "all", or a QuickMenu id.</summary>
-    private static string _menuFilter = FilterNone;
+    /// <summary>
+    /// Chosen filter: "none" (commands in no QuickMenu, the default), "all", or a QuickMenu id. Starts with the one
+    /// chosen last time (Settings.CommandsMenuFilter).
+    /// </summary>
+    private static string? _menuFilter;
 
     /// <summary>Ids of the commands the filter is about (those of every menu, or of the chosen one); null for "all".</summary>
     private HashSet<string>? _menuCommands;
@@ -103,6 +107,7 @@ public partial class CommandsPage : UserControl, IDisposable
     {
         if (_fillingFilter || MenuFilter.SelectedItem is not MenuFilterOption option) return;
         _menuFilter = option.Key;
+        Config.Settings.CommandsMenuFilter = option.Key;
         ApplyMenuFilter();
     }
 
@@ -342,35 +347,22 @@ public partial class CommandsPage : UserControl, IDisposable
 
     private void OnCommandRightClick(object sender, MouseButtonEventArgs e)
     {
-        // Right-clicking a row has already selected it.
-        if (ItemsControl.ContainerFromElement(CommandList, e.OriginalSource as DependencyObject) is not ListBoxItem { DataContext: Command cmd } row) return;
-        e.Handled = true;
-        CommandList.SelectedItem = cmd;
-        row.Focus();
-
-        var menu = new ContextMenu { PlacementTarget = row, Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint };
-        menu.Items.Add(MenuEntry(Loc.T("commands.run"), SymbolRegular.Play24, () => OnRunCommand(this, e)));
-        menu.Items.Add(MenuEntry(Loc.T("common.duplicate"), SymbolRegular.Copy24, () => OnDuplicateCommand(this, e)));
-        menu.Items.Add(MenuEntry(Loc.T("commands.rename"), SymbolRegular.Rename24, () =>
-        {
-            NameBox.Focus();
-            NameBox.SelectAll();
-        }));
-        menu.Items.Add(new Separator());
-        menu.Items.Add(MenuEntry(cmd.Enabled ? Loc.T("commands.disable") : Loc.T("commands.enable"),
-            cmd.Enabled ? SymbolRegular.Prohibited24 : SymbolRegular.CheckmarkCircle24, () => cmd.Enabled = !cmd.Enabled));
-        menu.Items.Add(MenuEntry(cmd.Hidden ? Loc.T("commands.unhide") : Loc.T("commands.hide"),
-            cmd.Hidden ? SymbolRegular.Eye24 : SymbolRegular.EyeOff24, () => cmd.Hidden = !cmd.Hidden));
-        menu.Items.Add(new Separator());
-        menu.Items.Add(MenuEntry(Loc.T("common.delete"), SymbolRegular.Delete24, () => OnDeleteCommand(this, e)));
-        menu.IsOpen = true;
-    }
-
-    private static MenuItem MenuEntry(string header, SymbolRegular symbol, Action click)
-    {
-        var item = new MenuItem { Header = header, Icon = new SymbolIcon { Symbol = symbol } };
-        item.Click += (_, _) => click();
-        return item;
+        if (ListContextMenu.SelectRow(CommandList, e) is not { DataContext: Command cmd } row) return;
+        ListContextMenu.Open(row,
+            ListContextMenu.Entry(Loc.T("commands.run"), SymbolRegular.Play24, () => OnRunCommand(this, e)),
+            ListContextMenu.Entry(Loc.T("common.duplicate"), SymbolRegular.Copy24, () => OnDuplicateCommand(this, e)),
+            ListContextMenu.Entry(Loc.T("commands.rename"), SymbolRegular.Rename24, () =>
+            {
+                NameBox.Focus();
+                NameBox.SelectAll();
+            }),
+            new Separator(),
+            ListContextMenu.Entry(cmd.Enabled ? Loc.T("commands.disable") : Loc.T("commands.enable"),
+                cmd.Enabled ? SymbolRegular.Prohibited24 : SymbolRegular.CheckmarkCircle24, () => cmd.Enabled = !cmd.Enabled),
+            ListContextMenu.Entry(cmd.Hidden ? Loc.T("commands.unhide") : Loc.T("commands.hide"),
+                cmd.Hidden ? SymbolRegular.Eye24 : SymbolRegular.EyeOff24, () => cmd.Hidden = !cmd.Hidden),
+            new Separator(),
+            ListContextMenu.Entry(Loc.T("common.delete"), SymbolRegular.Delete24, () => OnDeleteCommand(this, e)));
     }
 
     private void OnCommandListKey(object sender, KeyEventArgs e)
@@ -429,7 +421,9 @@ public partial class CommandsPage : UserControl, IDisposable
     {
         var others = Config.Commands.Where(c => !ReferenceEquals(c, cmd) && c.Hotkeys.Contains(hotkey, Hotkey.Comparer)).Select(c => c.Name).ToList();
         if (Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.ShowWindowHotkey)) ||
-            Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.ExitHotkey)))
+            Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.ExitHotkey)) ||
+            Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.VoiceHotkey)) ||
+            Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.DisabledInHotkey)))
             others.Add("K-Desktop");
         HotkeyWarning.Text = others.Count > 0 ? Loc.T("commands.hotkeyConflict", hotkey, string.Join(", ", others)) : string.Empty;
         HotkeyWarning.Visibility = others.Count > 0 ? Visibility.Visible : Visibility.Collapsed;

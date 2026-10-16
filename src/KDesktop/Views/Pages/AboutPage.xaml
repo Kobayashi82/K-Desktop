@@ -39,8 +39,11 @@
                 <StackPanel Orientation="Horizontal">
                     <Image Source="pack://application:,,,/KDesktop;component/Assets/Icons/KDesktop.ico" Width="84" Height="84" RenderOptions.BitmapScalingMode="HighQuality" />
                     <StackPanel Margin="24,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="{x:Static core:AppPaths.VersionName}" FontSize="30" FontWeight="SemiBold" FontFamily="Segoe UI Variable Display, Segoe UI"
-                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        <!-- As in the sidebar: the name, and the version smaller in the accent colour -->
+                        <TextBlock FontFamily="Segoe UI Variable Display, Segoe UI" FontWeight="SemiBold">
+                            <Run Text="{x:Static core:AppPaths.AppName}" FontSize="30" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <Run Text=" " FontSize="30" /><Run Text="{x:Static core:AppPaths.ShortVersion}" FontSize="20" Foreground="{DynamicResource Kd.AccentText}" />
+                        </TextBlock>
                         <TextBlock Text="{l:Tr about.tagline}" Style="{StaticResource Caption}" FontSize="14" Margin="0,4,0,0" />
                         <TextBlock x:Name="VersionText" Style="{StaticResource Caption}" Margin="0,8,0,0" />
                     </StackPanel>
@@ -104,7 +107,13 @@
                 </StackPanel>
             </Border>
 
-            <TextBlock Style="{StaticResource Caption}" Margin="4,4,0,0" Text="© Kobayashi82" />
+            <StackPanel Margin="4,4,0,0">
+                <TextBlock Style="{StaticResource Caption}"><Run Text="© Kobayashi82" FontWeight="SemiBold" /><Run Text="  ·  " /><Run Text="{l:Tr about.created}" /></TextBlock>
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                    <ui:SymbolIcon Symbol="Sparkle24" Filled="True" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
+                    <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Text="{l:Tr about.claude}" />
+                </StackPanel>
+            </StackPanel>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

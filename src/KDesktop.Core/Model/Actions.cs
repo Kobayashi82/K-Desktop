@@ -261,6 +261,10 @@ public partial class HiddenFilesAction : CommandAction
     public override string Summary => Loc.T("action.HiddenFiles.desc");
 }
 
+/// <summary>
+/// Only read from configurations of older versions: it is now a hotkey of its own (Settings › Desactivar en), and
+/// <see cref="AppConfig.Upgrade"/> turns it into that hotkey.
+/// </summary>
 public partial class ToggleDisabledInAction : CommandAction
 {
     [ObservableProperty] private bool _showOsd = true;

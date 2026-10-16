@@ -240,7 +240,7 @@
             <!-- Appearance -->
             <Border Style="{StaticResource Card}" Tag="appearance">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.appearance}" />
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.appearance}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
@@ -312,7 +312,7 @@
             <!-- General -->
             <Border Style="{StaticResource Card}" Tag="general">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.general}" />
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.general}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
@@ -392,7 +392,7 @@
             <!-- OSD -->
             <Border Style="{StaticResource Card}" Tag="osd">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.osd}" />
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.osd}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
                         <TextBlock VerticalAlignment="Center" Text="{l:Tr settings.osdPosition}" />
@@ -414,7 +414,7 @@
             <!-- Remote -->
             <Border Style="{StaticResource Card}" Tag="remote">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.remote}" />
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.remote}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
@@ -435,7 +435,11 @@
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="140" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.udpPort}" />
-                            <TextBlock x:Name="IpText" Style="{StaticResource Caption}" />
+                            <!-- The addresses are in the tooltip, one per line -->
+                            <StackPanel x:Name="IpInfo" Orientation="Horizontal" HorizontalAlignment="Left" Background="Transparent" ToolTipService.InitialShowDelay="150">
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.udpAddresses}" />
+                                <ui:SymbolIcon Symbol="Info24" FontSize="14" Margin="6,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
+                            </StackPanel>
                         </StackPanel>
                         <ui:TextBox Grid.Column="1" v:PortInput.IsEnabled="True" Text="{Binding UdpPort, UpdateSourceTrigger=LostFocus}" />
                     </Grid>
@@ -445,7 +449,7 @@
             <!-- Remote web app (PWA) -->
             <Border Style="{StaticResource Card}" Tag="web">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.web}" />
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.web}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
@@ -467,7 +471,8 @@
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="140" /></Grid.ColumnDefinitions>
                             <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                                 <TextBlock Text="{l:Tr settings.webPort}" />
-                                <TextBlock x:Name="WebStateText" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+                                <!-- The addresses are in the tooltip, one per line -->
+                                <TextBlock x:Name="WebStateInfo" Style="{StaticResource Caption}" Background="Transparent" ToolTipService.InitialShowDelay="150"><Run x:Name="WebStateText" /><InlineUIContainer BaselineAlignment="Center"><ui:SymbolIcon x:Name="WebStateIcon" Symbol="Info24" FontSize="14" Margin="6,0,0,0" Foreground="{DynamicResource Kd.AccentText}" /></InlineUIContainer></TextBlock>
                             </StackPanel>
                             <ui:TextBox Grid.Column="1" v:PortInput.IsEnabled="True" Text="{Binding WebPort, UpdateSourceTrigger=LostFocus}" />
                         </Grid>
@@ -542,7 +547,7 @@
             <!-- Voice -->
             <Border Style="{StaticResource Card}" Tag="voice">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.voice}" />
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.voice}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
@@ -671,7 +676,7 @@
             <!-- Multimedia: built-in voice orders for the music and the volume -->
             <Border Style="{StaticResource Card}" Tag="media">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.media}" />
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.media}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
@@ -746,7 +751,7 @@
             <!-- Disabled in -->
             <Border Style="{StaticResource Card}" Tag="disabledIn">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.disabledIn}" />
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.disabledIn}" />
                     <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,10" Text="{l:Tr settings.disabledInHint}" />
                     <ItemsControl ItemsSource="{Binding DisabledIn}" ItemTemplate="{StaticResource ProcessChip}" ItemsPanel="{StaticResource Wrap}" />
                     <Border Height="1" Margin="0,6,0,12" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
@@ -755,6 +760,19 @@
                         <ui:Button Margin="8,0,0,0" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddDisabledIn" />
                         <ui:Button Margin="8,0,0,0" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickDisabledIn" ToolTip="{l:Tr picker.tooltip}" />
                     </StackPanel>
+                    <Border Height="1" Margin="0,14,0,6" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.disabledInHotkey}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.disabledInHotkeyHint}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <ui:Button x:Name="DisabledInHotkeyButton" MinWidth="200" Click="OnCaptureDisabledInHotkey" />
+                            <ui:Button x:Name="DisabledInHotkeyClear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
+                                       AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearDisabledInHotkey" />
+                        </StackPanel>
+                    </Grid>
                 </StackPanel>
             </Border>
 
@@ -764,7 +782,7 @@
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                            <TextBlock Style="{StaticResource SectionTitle}" Margin="0" Text="{l:Tr settings.sideButtons}" />
+                            <TextBlock Style="{StaticResource CardTitle}" Margin="0" Text="{l:Tr settings.sideButtons}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.sideButtonsHint}" />
                         </StackPanel>
                         <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding BlockSideButtons}" />
@@ -782,7 +800,7 @@
             <!-- Data -->
             <Border Style="{StaticResource Card}" Tag="data">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.data}" />
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.data}" />
                     <TextBlock x:Name="DataPathText" Style="{StaticResource Caption}" Margin="0,0,0,6" />
                     <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" Text="{l:Tr settings.exportHint}" />
                     <WrapPanel>
@@ -806,7 +824,7 @@
             <!-- Updates -->
             <Border Style="{StaticResource Card}" Tag="updates">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.updates}" />
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.updates}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">

@@ -169,6 +169,11 @@ public partial class App : Application
         Router.CancelRequested += Engine.CancelAll;
         Router.CancelRequested += Voice.Cancel;
         Router.VoiceRequested += held => _ = Voice.ListenAsync(held);
+        Router.DisabledInToggleRequested += window =>
+        {
+            Engine.ToggleDisabledIn(window);
+            Achievements.Increment(Stat.DisabledInToggled);
+        };
         Router.IsPlayingMacro = () => Engine.IsPlayingMacro;
         Router.StopMacrosRequested += Engine.StopMacros;
         Router.KBoardUsed += () => Achievements.Increment(Stat.KBoardRemapped);

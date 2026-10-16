@@ -224,6 +224,31 @@ public static class PowerTools
 
 public static class ShellTools
 {
+    /// <summary>What a shortcut (.lnk) points to; null when <paramref name="path"/> is not one or it can't be read.</summary>
+    public static string? ShortcutTarget(string path)
+    {
+        if (!path.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase) || !File.Exists(path)) return null;
+        try
+        {
+            if (Type.GetTypeFromProgID("WScript.Shell") is not { } type) return null;
+            dynamic shell = Activator.CreateInstance(type)!;
+            try
+            {
+                string target = shell.CreateShortcut(path).TargetPath;
+                return string.IsNullOrWhiteSpace(target) ? null : target;
+            }
+            finally
+            {
+                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shell);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warn($"No se pudo leer el acceso directo {path}: {ex.Message}");
+            return null;
+        }
+    }
+
     /// <summary>Opens a special location; returns false for unknown keys.</summary>
     public static bool OpenSpecial(string key)
     {

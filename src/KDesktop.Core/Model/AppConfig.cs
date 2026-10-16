@@ -7,12 +7,45 @@ namespace KDesktop.Core.Model;
 /// <summary>Root of the persisted configuration (config.json).</summary>
 public sealed class AppConfig
 {
-    public int SchemaVersion { get; set; } = 1;
+    public int SchemaVersion { get; set; } = 2;
     public AppSettings Settings { get; set; } = new();
     public ObservableCollection<Command> Commands { get; set; } = [];
     public ObservableCollection<QuickMenu> QuickMenus { get; set; } = [];
     public ObservableCollection<Macro> Macros { get; set; } = [];
     public ObservableCollection<KBoardProfile> KBoards { get; set; } = [];
+
+    /// <summary>Brings a configuration saved by an older version up to date. Returns true when something changed.</summary>
+    public bool Upgrade()
+    {
+        var changed = false;
+
+        // «Desactivar en (on/off)» is no longer an action: it has its own hotkey (Settings › Desactivar en). The first
+        // hotkey of the command that had it becomes that hotkey, and a command left without actions goes away.
+        foreach (var cmd in Commands.ToList())
+        {
+            var toggles = cmd.Actions.OfType<ToggleDisabledInAction>().ToList();
+            if (toggles.Count == 0) continue;
+            changed = true;
+            if (string.IsNullOrWhiteSpace(Settings.DisabledInHotkey) && cmd.Enabled && toggles.Any(t => t.Enabled) &&
+                cmd.Hotkeys.FirstOrDefault(h => !string.IsNullOrWhiteSpace(h)) is { } hotkey)
+                Settings.DisabledInHotkey = Input.Hotkey.Normalize(hotkey);
+            foreach (var toggle in toggles) cmd.Actions.Remove(toggle);
+            if (cmd.Actions.Count == 0 && !IsReferenced(cmd.Id)) Commands.Remove(cmd);
+        }
+        if (SchemaVersion < 2)
+        {
+            SchemaVersion = 2;
+            changed = true;
+        }
+        return changed;
+    }
+
+    /// <summary>Whether a menu, another command, a K-Board or the options use the command.</summary>
+    private bool IsReferenced(string id) =>
+        QuickMenus.SelectMany(m => m.Descendants()).Any(i => i.CommandId == id) ||
+        Commands.SelectMany(c => c.Actions).OfType<CommandControlAction>().Any(a => a.CommandId == id) ||
+        KBoards.SelectMany(k => k.Remaps).Any(r => r.CommandId == id) ||
+        Settings.VoiceMusicOnCommand == id || Settings.VoiceMusicOffCommand == id;
 
     public Command? FindCommand(string? id) =>
         string.IsNullOrEmpty(id) ? null : Commands.FirstOrDefault(c => c.Id == id);
@@ -92,6 +125,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>Played when K-Desktop is closed with <see cref="ExitHotkey"/>.</summary>
     [ObservableProperty] private string? _exitSound;
     [ObservableProperty] private bool _showHiddenCommands;
+
+    /// <summary>Which commands the list shows: "none" (those in no QuickMenu), "all", or a QuickMenu id.</summary>
+    [ObservableProperty] private string _commandsMenuFilter = "none";
 
     /// <summary>Main window position and size when it was last closed: "left,top,width,height[,max]" (DIPs, invariant).</summary>
     [ObservableProperty] private string? _windowBounds;
@@ -181,6 +217,9 @@ public partial class AppSettings : ObservableObject
     // Mouse
     /// <summary>Block the mouse back/forward buttons in <see cref="BlockSideButtonsIn"/>.</summary>
     [ObservableProperty] private bool _blockSideButtons = true;
+
+    /// <summary>Adds the app in front to <see cref="DisabledIn"/>, or takes it out (it works there too). Empty: none.</summary>
+    [ObservableProperty] private string _disabledInHotkey = string.Empty;
 
     /// <summary>Processes where K-Desktop hotkeys are ignored ("Desactivar en").</summary>
     public ObservableCollection<string> DisabledIn { get; set { field = value ?? []; field.CollectionChanged += (_, _) => Touch(); } } = [];

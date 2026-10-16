@@ -8,7 +8,7 @@ namespace KDesktop.Core.Input;
 /// </summary>
 public sealed class HotkeyIndex
 {
-    private sealed record Entry(Command Command, string[] Processes, bool IgnoreDisabledApps, bool CanToggleDisabled, bool Block);
+    private sealed record Entry(Command Command, string[] Processes, bool IgnoreDisabledApps, bool Block);
 
     public static readonly HotkeyIndex Empty = new([], new AppSettings());
 
@@ -21,6 +21,9 @@ public sealed class HotkeyIndex
 
     /// <summary>Hold to talk (Settings › Voice); empty when unset or paused.</summary>
     public string VoiceHotkey { get; }
+
+    /// <summary>Turns «Desactivar en» on/off for the app in front (Settings › Desactivar en); empty when unset or paused.</summary>
+    public string DisabledInHotkey { get; }
     public bool BlockSideButtons { get; }
 
     /// <param name="paused">K-Desktop paused: only its own hotkeys (show window, exit) stay; no commands, no blocking.</param>
@@ -34,7 +37,6 @@ public sealed class HotkeyIndex
                 cmd,
                 cmd.Processes.Select(ProcessNames.Normalize).Where(p => p.Length > 0).ToArray(),
                 cmd.IgnoreDisabledApps,
-                cmd.Actions.Any(a => a is ToggleDisabledInAction && a.Enabled),
                 cmd.BlockKey);
             foreach (var hk in cmd.Hotkeys.ToArray())
             {
@@ -50,10 +52,14 @@ public sealed class HotkeyIndex
         ShowWindowHotkey = Hotkey.Normalize(settings.ShowWindowHotkey);
         ExitHotkey = Hotkey.Normalize(settings.ExitHotkey);
         VoiceHotkey = paused || string.IsNullOrWhiteSpace(settings.VoiceHotkey) ? string.Empty : Hotkey.Normalize(settings.VoiceHotkey);
+        DisabledInHotkey = paused || string.IsNullOrWhiteSpace(settings.DisabledInHotkey) ? string.Empty : Hotkey.Normalize(settings.DisabledInHotkey);
         BlockSideButtons = settings.BlockSideButtons && !paused;
     }
 
     public bool Contains(string hotkey) => _map.ContainsKey(hotkey);
+
+    public bool IsDisabledInHotkey(string hotkey) =>
+        DisabledInHotkey.Length > 0 && hotkey.Equals(DisabledInHotkey, StringComparison.OrdinalIgnoreCase);
 
     public bool IsDisabledIn(string process) => _disabledIn.Contains(process);
 
@@ -69,7 +75,7 @@ public sealed class HotkeyIndex
         foreach (var e in entries)
         {
             if (e.Processes.Length > 0 && Array.IndexOf(e.Processes, process) < 0) continue;
-            if (disabledHere && !e.IgnoreDisabledApps && !e.CanToggleDisabled) continue;
+            if (disabledHere && !e.IgnoreDisabledApps) continue;
             (result ??= []).Add(e.Command);
             block |= e.Block;
         }

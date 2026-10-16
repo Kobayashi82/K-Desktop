@@ -35,7 +35,7 @@ public partial class SettingsPage : UserControl
         StartupToggle.IsChecked = StartupTask.IsRegistered();
         DataPathText.Text = AppPaths.DataDir;
         UpdateTrayImage();
-        IpText.Text = Loc.T("settings.udpAddresses", string.Join("  ·  ", NetworkInfo.LocalIPv4()));
+        IpInfo.ToolTip = string.Join(Environment.NewLine, NetworkInfo.LocalIPv4());
 
         // Pages are kept while the window lives: follow the server only while this one is shown.
         void OnWebState() => Dispatcher.BeginInvoke(UpdateWebState);
@@ -143,7 +143,7 @@ public partial class SettingsPage : UserControl
         if (chosen is not null && mics.All(m => m.Id != chosen)) mics.Add(new MicOption(chosen, Loc.T("settings.voiceMicMissing")));
         VoiceMicBox.ItemsSource = mics;
         VoiceMicBox.SelectedItem = mics.First(m => m.Id == chosen);
-        UpdateVoiceHotkey();
+        UpdateOptionalHotkeys();
         UpdateWakeWords();
         VoiceUnloadBox.ItemsSource = new[] { 1, 5, 10, 30, 60 }.Select(m => new MinutesOption(m, Loc.T("settings.voiceUnloadMinutes", m))).ToList();
         _loadingVoice = false;
@@ -221,31 +221,49 @@ public partial class SettingsPage : UserControl
         UpdateVoiceModels();
     }
 
-    private void UpdateVoiceHotkey()
+    private void UpdateOptionalHotkeys()
     {
-        var hotkey = _app.Config.Settings.VoiceHotkey;
-        var none = string.IsNullOrWhiteSpace(hotkey);
-        VoiceHotkeyButton.Content = none ? Loc.T("settings.voiceNoHotkey") : hotkey;
-        VoiceHotkeyClear.Visibility = none ? Visibility.Collapsed : Visibility.Visible;
+        ShowOptionalHotkey(VoiceHotkeyButton, VoiceHotkeyClear, _app.Config.Settings.VoiceHotkey);
+        ShowOptionalHotkey(DisabledInHotkeyButton, DisabledInHotkeyClear, _app.Config.Settings.DisabledInHotkey);
     }
 
-    private void OnCaptureVoiceHotkey(object sender, RoutedEventArgs e)
+    /// <summary>A hotkey that may be unset: «Sin atajo» and no clear button then.</summary>
+    private static void ShowOptionalHotkey(Wpf.Ui.Controls.Button button, Wpf.Ui.Controls.Button clear, string hotkey)
     {
-        VoiceHotkeyButton.Content = Loc.T("commands.pressHotkey");
+        var none = string.IsNullOrWhiteSpace(hotkey);
+        button.Content = none ? Loc.T("settings.voiceNoHotkey") : hotkey;
+        clear.Visibility = none ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void CaptureOptionalHotkey(Wpf.Ui.Controls.Button button, Action<string> set)
+    {
+        button.Content = Loc.T("commands.pressHotkey");
         HotkeyCapture.Start(
-            preview => VoiceHotkeyButton.Content = preview + "…",
+            preview => button.Content = preview + "…",
             hotkey =>
             {
-                if (hotkey is not null) _app.Config.Settings.VoiceHotkey = Hotkey.Normalize(hotkey);
-                UpdateVoiceHotkey();
+                if (hotkey is not null) set(Hotkey.Normalize(hotkey));
+                UpdateOptionalHotkeys();
             },
             Window.GetWindow(this));
     }
 
+    private void OnCaptureVoiceHotkey(object sender, RoutedEventArgs e) =>
+        CaptureOptionalHotkey(VoiceHotkeyButton, hk => _app.Config.Settings.VoiceHotkey = hk);
+
     private void OnClearVoiceHotkey(object sender, RoutedEventArgs e)
     {
         _app.Config.Settings.VoiceHotkey = string.Empty;
-        UpdateVoiceHotkey();
+        UpdateOptionalHotkeys();
+    }
+
+    private void OnCaptureDisabledInHotkey(object sender, RoutedEventArgs e) =>
+        CaptureOptionalHotkey(DisabledInHotkeyButton, hk => _app.Config.Settings.DisabledInHotkey = hk);
+
+    private void OnClearDisabledInHotkey(object sender, RoutedEventArgs e)
+    {
+        _app.Config.Settings.DisabledInHotkey = string.Empty;
+        UpdateOptionalHotkeys();
     }
 
     // ── web ──────────────────────────────────────────────────────────────
@@ -291,9 +309,12 @@ public partial class SettingsPage : UserControl
     private void UpdateWebState()
     {
         var s = _app.Config.Settings;
+        var running = _app.Web.State == WebServerState.Running;
+        WebStateIcon.Visibility = running ? Visibility.Visible : Visibility.Collapsed;
+        WebStateInfo.ToolTip = running ? string.Join(Environment.NewLine, WebServer.LocalUrls(s.WebPort, s.WebBasePath)) : null;
         WebStateText.Text = _app.Web.State switch
         {
-            WebServerState.Running => Loc.T("settings.webRunning", string.Join("  ·  ", WebServer.LocalUrls(s.WebPort, s.WebBasePath))),
+            WebServerState.Running => Loc.T("settings.webRunning"),
             WebServerState.LocalOnly => Loc.T("settings.webLocalOnly"),
             WebServerState.Error => Loc.T("settings.webError"),
             _ => !_app.WebAllowed ? Loc.T("settings.webDisabledArg") : Loc.T("settings.webStopped"),

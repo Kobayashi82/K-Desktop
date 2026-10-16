@@ -126,7 +126,7 @@
                 <ui:Button Content="{l:Tr macro.new}" Icon="{ui:SymbolIcon Add24}" Appearance="Primary" Click="OnNewMacro" HorizontalAlignment="Stretch" Margin="0,0,0,10" />
             </StackPanel>
             <TextBlock x:Name="ListEmpty" DockPanel.Dock="Top" Style="{StaticResource Caption}" Text="{l:Tr macro.listEmpty}" Margin="4,8" />
-            <ListBox x:Name="MacroList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource RowItem}" SelectionChanged="OnMacroSelected">
+            <ListBox x:Name="MacroList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource RowItem}" SelectionChanged="OnMacroSelected" PreviewMouseRightButtonUp="OnMacroRightClick">
                 <ListBox.ItemTemplate>
                     <DataTemplate DataType="{x:Type m:Macro}">
                         <Grid>

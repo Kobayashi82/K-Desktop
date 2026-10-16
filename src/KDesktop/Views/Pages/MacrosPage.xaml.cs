@@ -154,6 +154,22 @@ public partial class MacrosPage : UserControl, IDisposable
         (Window.GetWindow(this) as MainWindow)?.OpenCommand(cmd.Id);
     }
 
+    private void OnMacroRightClick(object sender, MouseButtonEventArgs e)
+    {
+        if (ListContextMenu.SelectRow(MacroList, e) is not { } row) return;
+        ListContextMenu.Open(row,
+            ListContextMenu.Entry(Loc.T("macro.test"), SymbolRegular.Play24, () => OnTest(this, e)),
+            ListContextMenu.Entry(Loc.T("macro.createCommand"), SymbolRegular.FlashAdd20, () => OnCreateCommand(this, e)),
+            ListContextMenu.Entry(Loc.T("common.duplicate"), SymbolRegular.Copy24, () => OnDuplicate(this, e)),
+            ListContextMenu.Entry(Loc.T("commands.rename"), SymbolRegular.Rename24, () =>
+            {
+                NameBox.Focus();
+                NameBox.SelectAll();
+            }),
+            new Separator(),
+            ListContextMenu.Entry(Loc.T("common.delete"), SymbolRegular.Delete24, () => OnDelete(this, e)));
+    }
+
     private void OnRecordMoves(object sender, RoutedEventArgs e) => Config.Settings.MacroRecordMoves = RecordMovesToggle.IsChecked == true;
 
     // ── recording ────────────────────────────────────────────────────────

@@ -70,6 +70,13 @@
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
     </Style>
 
+    <!-- Title of a card in the options: bigger than the semibold titles of its rows -->
+    <Style x:Key="CardTitle" TargetType="TextBlock" BasedOn="{StaticResource SectionTitle}">
+        <Setter Property="FontSize" Value="17" />
+        <Setter Property="FontFamily" Value="Segoe UI Variable Display, Segoe UI" />
+        <Setter Property="Margin" Value="0,0,0,12" />
+    </Style>
+
     <Style x:Key="Caption" TargetType="TextBlock">
         <Setter Property="FontSize" Value="12" />
         <Setter Property="TextWrapping" Value="Wrap" />
@@ -102,8 +109,16 @@
         <Setter Property="Margin" Value="0,0,0,12" />
     </Style>
 
-    <!-- Setting row: title + description on the left, control on the right -->
+    <!-- Setting row: title + description on the left, control on the right. The title (any TextBlock without a style
+         of its own) is semibold so it stands apart from its description (Caption). -->
     <Style x:Key="SettingRow" TargetType="Grid">
+        <Style.Resources>
+            <Style TargetType="TextBlock">
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Margin" Value="0,0,0,2" />
+                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+            </Style>
+        </Style.Resources>
         <Setter Property="Margin" Value="0,6" />
         <Setter Property="MinHeight" Value="40" />
     </Style>

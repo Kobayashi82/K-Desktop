@@ -30,7 +30,6 @@ public static class ActionCatalog
 
         new(ActionKind.TopMost, "system", "Pin24", () => new TopMostAction()),
         new(ActionKind.HiddenFiles, "system", "EyeOff24", () => new HiddenFilesAction()),
-        new(ActionKind.ToggleDisabledIn, "system", "Prohibited24", () => new ToggleDisabledInAction()),
         new(ActionKind.ShowMessage, "system", "Chat24", () => new ShowMessageAction()),
         new(ActionKind.Power, "system", "Power24", () => new PowerAction()),
 

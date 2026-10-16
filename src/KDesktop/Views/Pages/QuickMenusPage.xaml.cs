@@ -242,8 +242,19 @@ public partial class QuickMenusPage : UserControl, IDisposable
         }, System.Windows.Threading.DispatcherPriority.Background);
     }
 
+    /// <summary>The rows grow with the menu's size like the real menu does (QuickMenuWindow.ApplySize).</summary>
+    private void ApplySize(int size)
+    {
+        size = Math.Clamp(size, 0, 5);
+        Resources["Qm.FontSize"] = 12.0 + size;
+        Resources["Qm.IconSize"] = 16.0 + size * 2;
+        Resources["Qm.RowHeight"] = 28.0 + size * 2.5;
+        if (SizeBox.SelectedItem is not int shown || shown != size) SizeBox.SelectedItem = size;
+    }
+
     private void Rebuild()
     {
+        ApplySize(_menu?.Size ?? 1);
         var columns = new List<QmColumn>();
         if (_menu is { } menu)
         {

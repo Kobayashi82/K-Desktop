@@ -132,12 +132,11 @@ public partial class MainWindow : FluentWindow
             Loc.T("status.clickOptions"));
     }
 
-    /// <summary>Icon, colour (icon and dot) and tooltip of one status button.</summary>
+    /// <summary>Icon, colour and tooltip of one status button.</summary>
     private static void SetStatus(System.Windows.Controls.Button button, SymbolIcon icon, SymbolRegular symbol, string brush, string text, string? hint)
     {
         icon.Symbol = symbol;
-        icon.SetResourceReference(ForegroundProperty, brush == "TextFillColorTertiaryBrush" ? "TextFillColorSecondaryBrush" : brush);
-        button.SetResourceReference(TagProperty, brush);
+        icon.SetResourceReference(ForegroundProperty, brush);
         button.ToolTip = hint is null ? text : text + "\n" + hint;
         System.Windows.Automation.AutomationProperties.SetName(button, text);
     }

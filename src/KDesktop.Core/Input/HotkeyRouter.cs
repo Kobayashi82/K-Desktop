@@ -43,6 +43,9 @@ public sealed partial class HotkeyRouter : IDisposable
     /// </summary>
     public event Action<Func<bool>>? VoiceRequested;
 
+    /// <summary>The «Desactivar en» hotkey was pressed in the window given (Settings › Desactivar en).</summary>
+    public event Action<ForegroundWindow>? DisabledInToggleRequested;
+
     // Mouse button used as the voice hotkey while it is held (hook thread writes, the voice session reads).
     private MouseButton? _voiceButton;
     private volatile bool _voiceButtonHeld;
@@ -175,6 +178,16 @@ public sealed partial class HotkeyRouter : IDisposable
             return Block(vk, mods);
         }
 
+        if (index.IsDisabledInHotkey(hotkey))
+        {
+            if (!repeat)
+            {
+                var window = ForegroundWindow.Capture();
+                Post(() => DisabledInToggleRequested?.Invoke(window));
+            }
+            return Block(vk, mods);
+        }
+
         if (vk == KeyNames.VK_ESCAPE && mods == Modifiers.None && HasCancellable?.Invoke() == true)
         {
             Post(() => CancelRequested?.Invoke());
@@ -286,6 +299,11 @@ public sealed partial class HotkeyRouter : IDisposable
             Post(() => VoiceRequested?.Invoke(() => _voiceButtonHeld));
             return true;
         }
+        if (index.IsDisabledInHotkey(hotkey))
+        {
+            _blockedButtons.Add(button); // it fires on release (Dispatch)
+            return true;
+        }
         var block = false;
         ForegroundWindow? fg = null;
         if (button is MouseButton.X1 or MouseButton.X2 && index.BlockSideButtons)
@@ -349,6 +367,13 @@ public sealed partial class HotkeyRouter : IDisposable
             Post(() => VoiceRequested?.Invoke(static () => false));
             return true;
         }
+        if (index.IsDisabledInHotkey(hotkey))
+        {
+            _armed = false;
+            var window = ForegroundWindow.Capture();
+            Post(() => DisabledInToggleRequested?.Invoke(window));
+            return true;
+        }
         if (!index.Contains(hotkey)) return false;
         var fg = ForegroundWindow.Capture();
         var commands = index.Resolve(hotkey, fg.ProcessName, out var block);
@@ -361,6 +386,12 @@ public sealed partial class HotkeyRouter : IDisposable
     private void Dispatch(string hotkey)
     {
         var index = _index;
+        if (index.IsDisabledInHotkey(hotkey))
+        {
+            var window = ForegroundWindow.Capture();
+            Post(() => DisabledInToggleRequested?.Invoke(window));
+            return;
+        }
         if (!index.Contains(hotkey)) return;
         var fg = ForegroundWindow.Capture();
         var commands = index.Resolve(hotkey, fg.ProcessName, out _);
