@@ -49,6 +49,9 @@ public partial class QmRow : ObservableObject
 
     [ObservableProperty] private bool _isSelected;
     [ObservableProperty] private bool _isOnPath;
+
+    /// <summary>Arrived here from «QuickMenus: …» of a command: the row flashes so it is easy to spot.</summary>
+    [ObservableProperty] private bool _isFound;
     [ObservableProperty] private bool _isRenaming;
     [ObservableProperty] private DropHint _dropHint;
     [ObservableProperty] private string _editText;

@@ -46,10 +46,11 @@ public partial class MainWindow : FluentWindow
         if (eventId is not null && _pages.GetValueOrDefault("events") is Pages.EventsPage page) page.Select(eventId);
     }
 
-    public void OpenQuickMenu(string? menuId)
+    /// <param name="commandId">The command to point at inside the menu (opens its submenus and flashes it).</param>
+    public void OpenQuickMenu(string? menuId, string? commandId = null)
     {
         Navigate("quickmenus");
-        if (menuId is not null && _pages.GetValueOrDefault("quickmenus") is Pages.QuickMenusPage page) page.Select(menuId);
+        if (menuId is not null && _pages.GetValueOrDefault("quickmenus") is Pages.QuickMenusPage page) page.Select(menuId, commandId);
     }
 
     public void OpenSettings(string section)

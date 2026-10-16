@@ -218,7 +218,7 @@
 - [x] **Editor de comandos sin interruptores** (2026-10-16): «Oculto» (ojo) y «Control remoto» (enchufe) son iconos junto
       al nombre; «Bloquear el atajo» (candado) y «Ejecutar siempre» (prohibido en gris / play en dorado) van en la cabecera de Atajos
       (`Views/IconToggle.cs`: símbolo y color según el estado, tooltip con nombre, Sí/No y explicación). En Opciones,
-      una fila «Eventos:» y otra «QuickMenus:» con enlaces, cada una solo si hay alguno.
+      una fila «Eventos:» y otra «QuickMenus:» con enlaces, cada una solo si hay alguno; el de un QuickMenu abre los submenús hasta el comando, lo selecciona y lo hace parpadear.
 - [x] **Eventos: «Dispositivo conectado» y «Llamada desde fuera»** (2026-10-16). Dispositivo: mando (Bluetooth o
       USB), teclado, cascos, aparato USB… por parte del nombre o cualquiera, con «Al terminar» al desconectarlo.
       `RegisterDeviceNotification` (todas las interfaces) en la ventana oculta → 1 s de espera → lista de SetupAPI

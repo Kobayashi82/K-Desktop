@@ -32,6 +32,7 @@
                     <Border x:Name="Bg" CornerRadius="5" Background="Transparent" />
                     <Border x:Name="TitleBand" CornerRadius="5" Background="{DynamicResource Kd.MenuTitle}" Visibility="Collapsed" />
                     <Border x:Name="Outline" CornerRadius="5" BorderThickness="1.5" BorderBrush="{DynamicResource Kd.Accent}" Opacity="0" />
+                    <Border x:Name="Found" CornerRadius="5" Background="{DynamicResource Kd.Accent}" Opacity="0" IsHitTestVisible="False" />
                     <Grid Margin="10,0,8,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -90,6 +91,16 @@
                 <DataTrigger Binding="{Binding IsSelected}" Value="True">
                     <Setter TargetName="Outline" Property="Opacity" Value="1" />
                     <Setter TargetName="Bg" Property="Background" Value="{DynamicResource Kd.AccentSoft}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsFound}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard BeginTime="0:0:0.25">
+                                <DoubleAnimation Storyboard.TargetName="Found" Storyboard.TargetProperty="Opacity" From="0" To="0.45"
+                                                 Duration="0:0:0.35" AutoReverse="True" RepeatBehavior="3x" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding DropHint}" Value="Before">
                     <Setter TargetName="DropBefore" Property="Visibility" Value="Visible" />

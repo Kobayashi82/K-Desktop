@@ -277,7 +277,8 @@ public partial class CommandsPage : UserControl, IDisposable
         AddUsedByRow("commands.usedByMenus", Config.QuickMenus.Where(m => m.Descendants().Any(i => i.CommandId == cmd.Id)).Select(menu =>
         {
             var id = menu.Id;
-            return ($"«{menu.Name}»", (Action)(() => (Window.GetWindow(this) as MainWindow)?.OpenQuickMenu(id)));
+            var commandId = cmd.Id;
+            return ($"«{menu.Name}»", (Action)(() => (Window.GetWindow(this) as MainWindow)?.OpenQuickMenu(id, commandId)));
         }));
         UsedByPanel.Visibility = UsedByPanel.Children.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
     }

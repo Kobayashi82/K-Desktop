@@ -66,9 +66,37 @@ public partial class QuickMenusPage : UserControl, IDisposable
         Config.Commands.CollectionChanged -= OnCommandsChanged;
     }
 
-    public void Select(string menuId)
+    /// <summary>
+    /// Shows a menu. With <paramref name="commandId"/> (from «QuickMenus: …» of a command) the submenus that lead to it
+    /// open, it is selected and its rows flash.
+    /// </summary>
+    public void Select(string menuId, string? commandId = null)
     {
-        if (Config.FindMenu(menuId) is { } menu) MenuBox.SelectedItem = menu;
+        if (Config.FindMenu(menuId) is not { } menu) return;
+        MenuBox.SelectedItem = menu;
+        if (commandId is null || menu.Descendants().FirstOrDefault(i => i.CommandId == commandId) is not { } item) return;
+        _found = commandId;
+        SelectItem(item);
+        _found = null;
+        // Bring the row into view once the columns are laid out.
+        Dispatcher.BeginInvoke(() =>
+        {
+            var row = FindVisualChildren<FrameworkElement>(ColumnsControl).FirstOrDefault(fe => fe is Grid { Name: "Row" } && fe.DataContext is QmRow { IsFound: true });
+            row?.BringIntoView();
+        }, System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    /// <summary>Command whose rows flash in the next rebuild (only that one).</summary>
+    private string? _found;
+
+    private static IEnumerable<T> FindVisualChildren<T>(DependencyObject parent) where T : DependencyObject
+    {
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T t) yield return t;
+            foreach (var c in FindVisualChildren<T>(child)) yield return c;
+        }
     }
 
     // ── menu selection & management ──────────────────────────────────────
@@ -294,6 +322,7 @@ public partial class QuickMenusPage : UserControl, IDisposable
             {
                 IsSelected = item.Id == _selectedId,
                 IsOnPath = _path.Contains(item.Id),
+                IsFound = _found is not null && item.CommandId == _found,
             });
         }
     }
