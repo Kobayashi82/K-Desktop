@@ -451,6 +451,7 @@
   "pwa.filter.hidden": "Nascosti",
   "pwa.filter.empty": "Nessun comando con questo filtro.",
   "pwa.home": "Vai ai comandi",
+  "pwa.settings.appVersion": "App Android {0}",
   "pwa.voice.button": "Comando vocale",
   "pwa.voice.listening": "Ascolto… tocca per finire",
   "pwa.voice.thinking": "Ci penso…",

@@ -451,6 +451,7 @@
   "pwa.filter.hidden": "Hidden",
   "pwa.filter.empty": "No commands match this filter.",
   "pwa.home": "Go to Commands",
+  "pwa.settings.appVersion": "Android app {0}",
   "pwa.voice.button": "Voice order",
   "pwa.voice.listening": "Listening… tap to finish",
   "pwa.voice.thinking": "Thinking…",

@@ -67,6 +67,7 @@ public sealed partial class WebServer
                 await WriteJsonAsync(response, new
                 {
                     app = AppPaths.VersionName,
+                    version = AppPaths.FullVersion,
                     machine = Environment.MachineName,
                     device = new { device.Id, Name = request.IsLocal ? Loc.T("pwa.thisPc") : device.Name },
                     local = request.IsLocal,

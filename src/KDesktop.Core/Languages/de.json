@@ -451,6 +451,7 @@
   "pwa.filter.hidden": "Versteckte",
   "pwa.filter.empty": "Keine Befehle mit diesem Filter.",
   "pwa.home": "Zu den Befehlen",
+  "pwa.settings.appVersion": "Android-App {0}",
   "pwa.voice.button": "Sprachbefehl",
   "pwa.voice.listening": "Höre zu… zum Beenden tippen",
   "pwa.voice.thinking": "Denke nach…",

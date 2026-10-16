@@ -7,6 +7,9 @@ public static class AppPaths
     /// <summary>"5.0": the version as shown everywhere except About (major.minor of the assembly version).</summary>
     public static string ShortVersion { get; } = typeof(AppPaths).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}" : "5.0";
 
+    /// <summary>"5.0.2": the whole version (About, the web app's settings).</summary>
+    public static string FullVersion { get; } = typeof(AppPaths).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "5.0.0";
+
     /// <summary>"K-Desktop 5.0".</summary>
     public static string VersionName { get; } = AppName + " " + ShortVersion;
 

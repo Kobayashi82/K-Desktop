@@ -451,6 +451,7 @@
   "pwa.filter.hidden": "Masqués",
   "pwa.filter.empty": "Aucune commande avec ce filtre.",
   "pwa.home": "Aller aux commandes",
+  "pwa.settings.appVersion": "App Android {0}",
   "pwa.voice.button": "Ordre vocal",
   "pwa.voice.listening": "J’écoute… touchez pour terminer",
   "pwa.voice.thinking": "Je réfléchis…",

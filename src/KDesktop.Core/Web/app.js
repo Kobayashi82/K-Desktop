@@ -891,7 +891,11 @@ function fillSession(s = state.session) {
   if (!s) return;
   $('deviceName').textContent = s.device?.name ?? '';
   $('connectedTo').textContent = t('pwa.settings.connected', s.machine);
-  $('version').textContent = s.app;
+  $('version').textContent = s.version ? 'K-Desktop ' + s.version : s.app;
+  // Inside the Android app: its own version too.
+  const appVersion = window.KDesktopApp?.version?.();
+  $('appVersion').hidden = !appVersion;
+  if (appVersion) $('appVersion').textContent = t('pwa.settings.appVersion', appVersion);
   if (!$('machine').textContent) $('machine').textContent = s.machine;
   // This same PC needs no pairing, so there is nothing to undo.
   $('unpairButton').hidden = !!s.local;
@@ -904,15 +908,18 @@ function fillSession(s = state.session) {
 
 // ── Android app update ─────────────────────────────────────────────
 
-/** K-Desktop carries the Android app: inside an older one, offer the new one (once a toast, always a row in Settings). */
+let appUpdateOffered = 0;
+
+/** K-Desktop carries the Android app: inside an older one, offer the new one (a toast on opening, always a row in Settings). */
 function offerAppUpdate(s) {
   const app = window.KDesktopApp;
   const newer = app?.versionCode && s.android && s.android.code > app.versionCode();
   $('appUpdateButton').hidden = !newer;
   if (!newer) return;
   $('appUpdateText').textContent = t('pwa.appUpdate.version', app.version(), s.android.version);
-  if (store.get('appUpdateSeen') !== s.android.code) {
-    store.set('appUpdateSeen', s.android.code);
+  // Every time the app opens while it is pending (once ever was too easy to miss).
+  if (appUpdateOffered !== s.android.code) {
+    appUpdateOffered = s.android.code;
     toast('info', t('pwa.appUpdate.available'), t('pwa.appUpdate.where'), 8000, updateApp);
   }
 }
