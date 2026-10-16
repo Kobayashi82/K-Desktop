@@ -361,21 +361,14 @@ public partial class CommandsPage : UserControl, IDisposable
             cmd.Enabled ? SymbolRegular.Prohibited24 : SymbolRegular.CheckmarkCircle24, () => cmd.Enabled = !cmd.Enabled));
         menu.Items.Add(MenuEntry(cmd.Hidden ? Loc.T("commands.unhide") : Loc.T("commands.hide"),
             cmd.Hidden ? SymbolRegular.Eye24 : SymbolRegular.EyeOff24, () => cmd.Hidden = !cmd.Hidden));
-        menu.Items.Add(MenuEntry(Loc.T("commands.webOption"), SymbolRegular.Phone24, () => cmd.Web = !cmd.Web, cmd.Web));
-        menu.Items.Add(MenuEntry(Loc.T("commands.remoteOption"), SymbolRegular.PlugConnected24, () => cmd.Remote = !cmd.Remote, cmd.Remote));
         menu.Items.Add(new Separator());
         menu.Items.Add(MenuEntry(Loc.T("common.delete"), SymbolRegular.Delete24, () => OnDeleteCommand(this, e)));
         menu.IsOpen = true;
     }
 
-    private static MenuItem MenuEntry(string header, SymbolRegular symbol, Action click, bool? check = null)
+    private static MenuItem MenuEntry(string header, SymbolRegular symbol, Action click)
     {
         var item = new MenuItem { Header = header, Icon = new SymbolIcon { Symbol = symbol } };
-        if (check is { } c)
-        {
-            item.IsCheckable = true;
-            item.IsChecked = c;
-        }
         item.Click += (_, _) => click();
         return item;
     }

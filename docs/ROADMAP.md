@@ -118,7 +118,7 @@
       emparejados (sus claves son de este PC). Importar acepta .zip o el config.json antiguo, guarda antes la copia
       actual en `Backups\antes de importar <fecha>.zip` y reconstruye las páginas (antes seguían con la configuración vieja).
 - [x] **Lista de comandos**: tres líneas (nombre; lo que hace la primera acción con «+N» si hay más; primer atajo con
-      «+N», solo si tiene), los «+N» con tooltip de todas/todos; menú del botón derecho (ejecutar, duplicar, cambiar nombre, habilitar, ocultar, web, UDP, eliminar), Supr y
+      «+N», solo si tiene), los «+N» con tooltip de todas/todos; menú del botón derecho (ejecutar, duplicar, cambiar nombre, habilitar, ocultar, eliminar), Supr y
       F2. El nombre no puede quedar vacío (vuelve el anterior). Elegir un proceso del desplegable lo añade al momento.
       «Añadir acción» con scroll; X en el lanzador y en el aviso de logro.
 - [ ] Web: micrófono del móvil como otra fuente de audio de la voz (después de la voz).
