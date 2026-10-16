@@ -257,6 +257,33 @@ embeddings multilingües → LLM opcional) y siete etapas con su commit cada una
       comandos en `IntentMatcher`: un comando del usuario a 0,06 o menos gana (su propio «Siguiente»). Se encadenan
       con los comandos («pausa y abre la papelera»). Probado con `--voice-test` en los seis idiomas; sin probar con el
       micro.
+      Después (2026-10-16): «pon música» con un programa lo abre si está cerrado y lo pone a sonar (play/pause a su
+      ventana con WM_APPCOMMAND; si no responde y no suena nada, la tecla multimedia), o lo reanuda si está en pausa;
+      «cierra la música» cierra el reproductor y «para», «detén», «quita la música», «apaga la música» solo pausan.
+- [x] **Voz con música o películas sonando** (2026-10-16). Con música el micro oía los altavoces y fallaban las tres
+      fases (detector, verificación y el VAD que decide cuándo acaba la orden). Ahora:
+      · **Cancelación de eco** (Opciones › Voz › «Ignorar lo que suena en el PC», `VoiceEchoCancel`, activada):
+      `PlaybackReference` captura en loopback la salida predeterminada (`WasapiRecorder`, sigue al dispositivo
+      predeterminado) y `MicCapture` también usa `WasapiRecorder`; ambos dan la marca QPC de cada paquete
+      (el loopback, la hora en que sonará: unos 40 ms en el futuro), así cada trama de 10 ms del micro se empareja
+      con lo que sonaba entonces (`AudioClock`, `StreamClock`, `EchoStage`, la referencia 30 ms adelantada).
+      El cancelador es el filtro adaptativo MDF de **SpeexDSP** (paquete `SpeexDSPSharp.Natives`, filtro de 256 ms)
+      **solo lineal**: se probó primero el AEC3 de WebRTC y su supresor (pensado para llamadas) se comía el principio de
+      la voz —justo la palabra de activación— y, con música tonal, la voz entera. `EchoDelay` (GCC-PHAT cada 2 s)
+      mide si el eco llega más tarde de lo que dice Windows (Bluetooth, TV por HDMI) y recoloca la referencia si el eco
+      cae fuera de 10–100 ms del filtro. Pruebas (mezclas de una toma real de «KDesktop» que el detector no vio + orden
+      con TTS, sobre música sintética o una «película» en inglés, sala simulada con reverberación y algo de
+      distorsión): sin cancelación el detector no pasa de 0,47 (umbral 0,52) con la música 6 dB por encima de la voz;
+      con ella detecta 0,85–0,99 en los 12 casos y ejecuta la orden de punta a punta (oyente real con
+      `KDESKTOP_VOICE_FAKE_STREAM` + `KDESKTOP_VOICE_FAKE_RENDER`), también con +180 ms de retardo; sin falsos positivos
+      con solo música/película. Falla la película 12 dB por encima de la voz. `--aec-test mic.wav altavoz.wav`.
+      · **Fase 2**: si el recorte por VAD no convence se prueba el último tramo sin recortar; y si el detector está
+      muy seguro pero la palabra sola no se entiende (con música de fondo Parakeet la toma por inglés: «Can't take it
+      up»), se acepta provisionalmente y se confirma transcribiéndola junto con la orden.
+      · **Bajar el volumen mientras hablas** (`VoiceDuck`, al 20 %; `AudioDucker`): al detectar la palabra (fase 1) o al
+      pulsar la tecla de voz se baja el volumen de cada programa que suena (mezclador, no el maestro) y se recupera
+      con una rampa al tener la orden (antes de ejecutarla); si el usuario lo mueve entretanto, se respeta.
+      Sin probar con el micro real.
 - [ ] Etapa 5: capa de embeddings.
 - [ ] Etapa 6: seguridad, confirmaciones y estadísticas.
 - [ ] Etapa 7: capa LLM opcional.

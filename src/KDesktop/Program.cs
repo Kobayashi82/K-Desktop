@@ -15,6 +15,7 @@ namespace KDesktop;
 /// <item><c>--data "folder"</c> use another data folder (an independent instance) · <c>--page name</c> open a page</item>
 /// <item><c>--voice-test a.wav folder "phrase"…</c> voice diagnostics without microphone or UI (report in Logs)</item>
 /// <item><c>--wake-test "name" folder</c> wake word set-up and verification from word*/speech*/test*.wav (report in Logs)</item>
+/// <item><c>--aec-test mic.wav speakers.wav</c> the echo canceller on recordings (cleaned audio next to mic.wav, report in Logs)</item>
 /// </list>
 /// </summary>
 public static class Program
@@ -39,6 +40,8 @@ public static class Program
         if (voiceTest >= 0) return VoiceTest(args.Skip(voiceTest + 1).Where(a => a != "--no-open").ToArray(), open: !args.Contains("--no-open"));
         var wakeTest = Array.FindIndex(args, a => a.Equals("--wake-test", StringComparison.OrdinalIgnoreCase));
         if (wakeTest >= 0 && args.Length > wakeTest + 2) return WakeTest(args[wakeTest + 1], args[wakeTest + 2], open: !args.Contains("--no-open"));
+        var aecTest = Array.FindIndex(args, a => a.Equals("--aec-test", StringComparison.OrdinalIgnoreCase));
+        if (aecTest >= 0 && args.Length > aecTest + 2) return Diagnose("--aec-test", () => Core.Voice.VoiceDiagnostics.RunEcho(args[aecTest + 1], args[aecTest + 2]), open: !args.Contains("--no-open"));
 
         // Started by the previous version after installing an update: wait until it has left, then tidy up.
         var updatedFrom = KDesktop.Core.Updates.UpdateService.FinishPendingUpdate(args);
@@ -119,6 +122,24 @@ public static class Program
         catch (Exception ex)
         {
             Log.Error("--wake-test", ex);
+            Log.Flush();
+            return 1;
+        }
+    }
+
+    private static int Diagnose(string name, Func<string> run, bool open)
+    {
+        try
+        {
+            AppPaths.EnsureCreated();
+            var report = run();
+            Log.Flush();
+            if (open) Process.Start(new ProcessStartInfo(report) { UseShellExecute = true });
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Log.Error(name, ex);
             Log.Flush();
             return 1;
         }

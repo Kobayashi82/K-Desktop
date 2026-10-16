@@ -7,16 +7,21 @@ namespace KDesktop.Core.Voice;
 /// <summary>
 /// Records a microphone (shared mode, whatever format the device uses) and hands out mono 16 kHz float samples,
 /// the format of every voice model. Only runs between <see cref="Start"/> and <see cref="Stop"/>: nothing is recorded
-/// while voice is idle.
+/// while voice is idle. With <see cref="EchoCancel"/>, what the PC is playing is taken out of it (see
+/// <see cref="EchoCanceller"/>).
 /// </summary>
 public sealed class MicCapture : IDisposable
 {
     public const int SampleRate = 16000;
 
     private readonly object _gate = new();
-    private WasapiCapture? _capture;
+    private readonly List<float> _output = new(SampleRate / 10);
+    private readonly StreamClock _clock = new();
+    private WasapiRecorder? _capture;
     private BufferedWaveProvider? _buffer;
     private ISampleProvider? _resampled;
+    private EchoStage? _echo;
+    private byte[] _bytes = [];
     private float[] _chunk = new float[4096];
 
     /// <summary>New 16 kHz mono samples (on the capture thread).</summary>
@@ -27,6 +32,12 @@ public sealed class MicCapture : IDisposable
 
     public bool IsRunning => _capture is not null;
 
+    /// <summary>Take what the PC plays out of the microphone (from the next <see cref="Start"/>).</summary>
+    public bool EchoCancel { get; set; }
+
+    /// <summary>The echo canceller is working in this recording.</summary>
+    public bool EchoCancelling => _echo is not null;
+
     /// <summary>Starts recording <paramref name="deviceId"/> (null: the Windows default microphone).</summary>
     public void Start(string? deviceId)
     {
@@ -35,54 +46,84 @@ public sealed class MicCapture : IDisposable
             if (_capture is not null) return;
             using var enumerator = new MMDeviceEnumerator();
             var device = FindDevice(enumerator, deviceId) ?? enumerator.GetDefaultAudioEndpoint(DataFlow.Capture, Role.Console);
-            var capture = new WasapiCapture(device, useEventSync: true, audioBufferMillisecondsLength: 50);
+            var capture = new WasapiRecorderBuilder().WithDevice(device).WithSharedMode().WithEventSync().Build();
             _buffer = new BufferedWaveProvider(capture.WaveFormat, TimeSpan.FromSeconds(2)) { DiscardOnBufferOverflow = true, ReadFully = false };
-            ISampleProvider samples = _buffer.ToSampleProvider();
-            if (samples.WaveFormat.Channels > 1) samples = new MonoMix(samples);
-            _resampled = samples.WaveFormat.SampleRate == SampleRate ? samples : new WdlResamplingSampleProvider(samples, SampleRate);
+            _resampled = AudioFormats.ToVoice(_buffer.ToSampleProvider());
+            _clock.Reset();
+            if (EchoCancel && EchoCanceller.TryCreate() is { } canceller) _echo = new EchoStage(canceller, PlaybackReference.Acquire());
             capture.DataAvailable += OnData;
             capture.RecordingStopped += (_, e) =>
             {
                 if (e.Exception is not null) Log.Warn("El micrófono dejó de grabar: " + e.Exception.Message);
             };
-            capture.StartRecording();
+            try
+            {
+                capture.StartRecording();
+            }
+            catch
+            {
+                capture.Dispose();
+                DropEcho();
+                throw;
+            }
             _capture = capture;
-            Log.Info($"Micrófono: {device.FriendlyName} ({capture.WaveFormat})");
+            Log.Info($"Micrófono: {device.FriendlyName} ({capture.WaveFormat}){(_echo is not null ? " · con cancelación de eco" : "")}");
         }
     }
 
     public void Stop()
     {
+        WasapiRecorder capture;
         lock (_gate)
         {
-            if (_capture is not { } capture) return;
+            if (_capture is null) return;
+            capture = _capture;
             _capture = null;
             capture.DataAvailable -= OnData;
-            try { capture.StopRecording(); } catch { /* already stopped */ }
-            capture.Dispose();
             _buffer = null;
             _resampled = null;
+            DropEcho();
             Level = 0;
         }
+        // Outside the lock: stopping waits for the capture thread, which may be waiting for the lock in OnData.
+        try { capture.StopRecording(); } catch { /* already stopped */ }
+        capture.Dispose();
     }
 
-    private void OnData(object? sender, WaveInEventArgs e)
+    private void DropEcho()
     {
+        if (_echo is null) return;
+        _echo.Dispose();
+        _echo = null;
+        PlaybackReference.Release();
+    }
+
+    private void OnData(ReadOnlySpan<byte> data, AudioClientBufferFlags flags, long devicePosition, long qpc)
+    {
+        if (data.IsEmpty) return;
         float[] output;
         lock (_gate)
         {
             if (_buffer is null || _resampled is null) return;
-            _buffer.AddSamples(e.Buffer, 0, e.BytesRecorded);
-            var total = 0;
-            while (true)
-            {
-                if (total == _chunk.Length) Array.Resize(ref _chunk, _chunk.Length * 2);
-                var read = _resampled.Read(_chunk.AsSpan(total));
-                if (read <= 0) break;
-                total += read;
-            }
+            if (_bytes.Length < data.Length) _bytes = new byte[data.Length];
+            if ((flags & AudioClientBufferFlags.Silent) != 0) Array.Clear(_bytes, 0, data.Length);
+            else data.CopyTo(_bytes);
+            _buffer.AddSamples(_bytes, 0, data.Length);
+            var total = AudioFormats.ReadAll(_resampled, ref _chunk);
             if (total == 0) return;
-            output = _chunk[..total];
+            if (_echo is null) output = _chunk[..total];
+            else
+            {
+                // On the clock shared with the speakers' loopback, so each frame meets what was playing then.
+                var now = AudioClock.Now;
+                var stamped = qpc > 0 && (flags & AudioClientBufferFlags.TimestampError) == 0;
+                var tick = _clock.Place(stamped ? AudioClock.FromQpc(qpc) : now - total, total,
+                    (flags & AudioClientBufferFlags.DataDiscontinuity) != 0);
+                _output.Clear();
+                _echo.Process(_chunk.AsSpan(0, total), tick, now, _output);
+                if (_output.Count == 0) return;
+                output = _output.ToArray();
+            }
         }
         var peak = 0f;
         foreach (var s in output) peak = Math.Max(peak, Math.Abs(s));
@@ -120,6 +161,30 @@ public sealed class MicCapture : IDisposable
     }
 
     public void Dispose() => Stop();
+}
+
+/// <summary>Conversions of captured audio to the voice format (mono 16 kHz float).</summary>
+internal static class AudioFormats
+{
+    /// <summary><paramref name="source"/> mixed down to one channel and resampled to <see cref="MicCapture.SampleRate"/>.</summary>
+    public static ISampleProvider ToVoice(ISampleProvider source)
+    {
+        if (source.WaveFormat.Channels > 1) source = new MonoMix(source);
+        return source.WaveFormat.SampleRate == MicCapture.SampleRate ? source : new WdlResamplingSampleProvider(source, MicCapture.SampleRate);
+    }
+
+    /// <summary>Reads everything <paramref name="source"/> has ready into <paramref name="chunk"/> (grown as needed).</summary>
+    public static int ReadAll(ISampleProvider source, ref float[] chunk)
+    {
+        var total = 0;
+        while (true)
+        {
+            if (total == chunk.Length) Array.Resize(ref chunk, chunk.Length * 2);
+            var read = source.Read(chunk.AsSpan(total));
+            if (read <= 0) return total;
+            total += read;
+        }
+    }
 
     /// <summary>Averages every channel into one.</summary>
     private sealed class MonoMix(ISampleProvider source) : ISampleProvider

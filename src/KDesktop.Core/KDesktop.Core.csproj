@@ -12,6 +12,8 @@
     <!-- Only the .NET wrapper: it uses the onnxruntime.dll that sherpa-onnx already ships (1.28.2; the C API is
          backward compatible), so there is a single native runtime. Keep it at or below that version. -->
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.28.0" />
+    <!-- SpeexDSP's echo canceller (native only; Voice/EchoCanceller.cs). BSD (Xiph.org). -->
+    <PackageReference Include="SpeexDSPSharp.Natives" Version="1.3.0" />
   </ItemGroup>
 
   <!-- Built-in languages and sounds travel inside the assembly (and so inside the single-file exe).

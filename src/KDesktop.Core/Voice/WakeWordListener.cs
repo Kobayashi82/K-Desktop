@@ -62,8 +62,9 @@ public sealed class WakeWordListener : IDisposable
             var wanted = s.VoiceWakeListen && !s.Paused && models && words.Any(w => w.Detector is not null);
             lock (_gate)
             {
-                if (wanted && IsRunning && _micId != s.VoiceMicId) StopLocked(); // another microphone chosen
-                if (wanted && !IsRunning) StartLocked(s.VoiceMicId);
+                // Another microphone chosen, or the echo cancellation switched: start again with it.
+                if (wanted && IsRunning && (_micId != s.VoiceMicId || _echoCancel != s.VoiceEchoCancel)) StopLocked();
+                if (wanted && !IsRunning) StartLocked(s.VoiceMicId, s.VoiceEchoCancel);
                 else if (!wanted && IsRunning) StopLocked();
             }
         }
@@ -98,8 +99,9 @@ public sealed class WakeWordListener : IDisposable
     }
 
     private string? _micId;
+    private bool _echoCancel;
 
-    private void StartLocked(string? micId)
+    private void StartLocked(string? micId, bool echoCancel)
     {
         _stream = new OwwStream(_voice.Features);
         _recent.Clear();
@@ -108,14 +110,16 @@ public sealed class WakeWordListener : IDisposable
         _queue = Channel.CreateBounded<float[]>(new BoundedChannelOptions(64) { FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true });
         var queue = _queue;
         _worker = Task.Factory.StartNew(() => Work(queue), TaskCreationOptions.LongRunning);
-        if (Environment.GetEnvironmentVariable("KDESKTOP_VOICE_FAKE_STREAM") is { Length: > 0 } fake) StartFake(File.Exists(fake) ? fake : null);
-        else if (Environment.GetEnvironmentVariable("KDESKTOP_VOICE_FAKE") is { Length: > 0 }) StartFake(null); // tests: never the real microphone
+        if (Environment.GetEnvironmentVariable("KDESKTOP_VOICE_FAKE_STREAM") is { Length: > 0 } fake) StartFake(File.Exists(fake) ? fake : null, echoCancel);
+        else if (Environment.GetEnvironmentVariable("KDESKTOP_VOICE_FAKE") is { Length: > 0 }) StartFake(null, false); // tests: never the real microphone
         else
         {
             _mic.Samples += OnSamples;
+            _mic.EchoCancel = echoCancel;
             _mic.Start(micId);
         }
         _micId = micId;
+        _echoCancel = echoCancel;
         IsRunning = true;
         Log.Info("Escuchando las palabras de activación: " + string.Join(", ", _voice.WakeWords.Active.Where(w => w.Detector is not null).Select(w => $"«{w.Name}» ({w.DetectorThreshold:0.00})")));
     }
@@ -124,13 +128,20 @@ public sealed class WakeWordListener : IDisposable
 
     /// <summary>
     /// Tests only (<c>KDESKTOP_VOICE_FAKE_STREAM</c> = a .wav, or <c>KDESKTOP_VOICE_FAKE</c> set): plays that file in real
-    /// time instead of the microphone, after a second of silence, then silence (only silence without a file).
+    /// time instead of the microphone, after a second of silence, then silence (only silence without a file). With
+    /// <c>KDESKTOP_VOICE_FAKE_RENDER</c> = a .wav of what "the PC played" meanwhile (in step with the first one), the
+    /// echo canceller takes it out as it would with the speakers.
     /// </summary>
-    private void StartFake(string? path)
+    private void StartFake(string? path, bool echoCancel)
     {
         var audio = path is null ? [] : VoiceDiagnostics.ReadWav(path);
         var cts = _fake = new CancellationTokenSource();
-        Log.Info("Escucha simulada con " + (path ?? "silencio"));
+        EchoStage? echo = null;
+        if (echoCancel && Environment.GetEnvironmentVariable("KDESKTOP_VOICE_FAKE_RENDER") is { Length: > 0 } render && File.Exists(render) &&
+            EchoCanceller.TryCreate() is { } canceller)
+            echo = new EchoStage(canceller, new FileReference(VoiceDiagnostics.ReadWav(render)));
+        var cleaned = new List<float>();
+        Log.Info("Escucha simulada con " + (path ?? "silencio") + (echo is not null ? " y cancelación de eco" : ""));
         Task.Run(async () =>
         {
             var position = -MicCapture.SampleRate;
@@ -142,11 +153,20 @@ public sealed class WakeWordListener : IDisposable
                 var due = watch.ElapsedMilliseconds * MicCapture.SampleRate / 1000 - sent;
                 if (due <= 0) continue;
                 var chunk = new float[due];
+                var start = position;
                 for (var i = 0; i < chunk.Length; i++, position++)
                     chunk[i] = position >= 0 && position < audio.Length ? audio[position] : 0;
                 sent += due;
-                OnSamples(chunk);
+                if (echo is null)
+                {
+                    OnSamples(chunk);
+                    continue;
+                }
+                cleaned.Clear();
+                echo.Process(chunk, start, start, cleaned);
+                if (cleaned.Count > 0) OnSamples(cleaned.ToArray());
             }
+            echo?.Dispose();
         });
     }
 

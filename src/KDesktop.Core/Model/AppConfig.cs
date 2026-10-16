@@ -192,6 +192,15 @@ public partial class AppSettings : ObservableObject
     /// <summary>When the detector is very sure, skip the check with Parakeet (faster, a little riskier).</summary>
     [ObservableProperty] private bool _voiceWakeTrust;
 
+    /// <summary>Take what the PC is playing (music, a film…) out of the microphone: echo cancellation.</summary>
+    [ObservableProperty] private bool _voiceEchoCancel = true;
+
+    /// <summary>Turn the other programs down while an order is being said.</summary>
+    [ObservableProperty] private bool _voiceDuck = true;
+
+    /// <summary>How far <see cref="VoiceDuck"/> turns them down: % of their volume.</summary>
+    [ObservableProperty] private int _voiceDuckLevel = 20;
+
     // Multimedia (built-in voice orders: pause, next, volume…)
     [ObservableProperty] private bool _voiceMedia = true;
 

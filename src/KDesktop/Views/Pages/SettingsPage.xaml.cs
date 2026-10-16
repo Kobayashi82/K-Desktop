@@ -146,6 +146,7 @@ public partial class SettingsPage : UserControl
         UpdateOptionalHotkeys();
         UpdateWakeWords();
         VoiceUnloadBox.ItemsSource = new[] { 1, 5, 10, 30, 60 }.Select(m => new MinutesOption(m, Loc.T("settings.voiceUnloadMinutes", m))).ToList();
+        VoiceDuckBox.ItemsSource = new[] { 0, 10, 20, 35, 50 }.Select(p => new MinutesOption(p, $"{p} %")).ToList();
         _loadingVoice = false;
     }
 

@@ -582,6 +582,26 @@
                         <ComboBox x:Name="VoiceMicBox" Grid.Column="1" DisplayMemberPath="Name" SelectionChanged="OnVoiceMicChanged" />
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.voiceEcho}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.voiceEchoHint}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding VoiceEchoCancel}" AutomationProperties.Name="{l:Tr settings.voiceEcho}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.voiceDuck}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.voiceDuckHint}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <ComboBox x:Name="VoiceDuckBox" Width="110" Margin="0,0,16,0" DisplayMemberPath="Name" SelectedValuePath="Value"
+                                      SelectedValue="{Binding VoiceDuckLevel}" IsEnabled="{Binding VoiceDuck}" ToolTip="{l:Tr settings.voiceDuckLevel}" />
+                            <ui:ToggleSwitch IsChecked="{Binding VoiceDuck}" AutomationProperties.Name="{l:Tr settings.voiceDuck}" />
+                        </StackPanel>
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.voiceUnload}" />
@@ -592,7 +612,7 @@
 
                     <!-- Wake words: recorded with the user's voice, as many as wanted -->
                     <Border Height="1" Margin="0,6,0,14" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
-                    <Grid Margin="0,0,0,10">
+                    <Grid Style="{StaticResource SettingRow}" Margin="0,0,0,10">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.wakeWords}" />

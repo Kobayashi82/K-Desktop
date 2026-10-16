@@ -149,6 +149,48 @@ public static class VoiceDiagnostics
         return output;
     }
 
+    /// <summary>
+    /// <c>--aec-test mic.wav altavoz.wav</c>: the echo canceller on a recording of the microphone (<paramref name="micPath"/>)
+    /// and what the PC played meanwhile (<paramref name="renderPath"/>, in step with it). Writes the cleaned audio next
+    /// to the first one (*.aec.wav) and the level, second by second, to Logsaec-test.txt.
+    /// </summary>
+    public static string RunEcho(string micPath, string renderPath)
+    {
+        var mic = ReadWav(micPath);
+        var render = ReadWav(renderPath);
+        var canceller = EchoCanceller.TryCreate() ?? throw new InvalidOperationException("webrtc-apm no disponible");
+        using var stage = new EchoStage(canceller, new FileReference(render), inline: true);
+        var cleaned = new List<float>(mic.Length);
+        var watch = Stopwatch.StartNew();
+        const int chunk = MicCapture.SampleRate / 50; // 20 ms, as the microphone delivers it
+        for (var i = 0; i < mic.Length; i += chunk) stage.Process(mic.AsSpan(i, Math.Min(chunk, mic.Length - i)), i, i, cleaned);
+        var elapsed = watch.ElapsedMilliseconds;
+
+        var outPath = Path.ChangeExtension(micPath, ".aec.wav");
+        using (var writer = new WaveFileWriter(outPath, WaveFormat.CreateIeeeFloatWaveFormat(MicCapture.SampleRate, 1)))
+            writer.WriteSamples(cleaned.ToArray(), 0, cleaned.Count);
+
+        static double Db(IReadOnlyList<float> a, int from, int to)
+        {
+            double sum = 0;
+            for (var i = from; i < Math.Min(to, a.Count); i++) sum += a[i] * a[i];
+            return 10 * Math.Log10(sum / Math.Max(1, Math.Min(to, a.Count) - from) + 1e-12);
+        }
+        var report = new StringBuilder();
+        report.AppendLine($"K-Desktop · prueba de cancelación de eco · {DateTime.Now:g}");
+        report.AppendLine($"{Path.GetFileName(micPath)} + {Path.GetFileName(renderPath)} → {Path.GetFileName(outPath)} ({mic.Length / (double)MicCapture.SampleRate:0.0} s en {elapsed} ms)");
+        report.AppendLine("  s   micro   altavoz  limpio");
+        for (var s = 0; s * MicCapture.SampleRate < mic.Length; s++)
+        {
+            int from = s * MicCapture.SampleRate, to = from + MicCapture.SampleRate;
+            report.AppendLine($"{s,3} {Db(mic, from, to),7:0.0} {Db(render, from, to),8:0.0} {Db(cleaned, from, to),7:0.0}");
+        }
+        var output = Path.Combine(AppPaths.LogDir, "aec-test.txt");
+        Directory.CreateDirectory(AppPaths.LogDir);
+        File.WriteAllText(output, report.ToString(), new UTF8Encoding(true));
+        return output;
+    }
+
     private static void Describe(StringBuilder report, IntentPlan plan)
     {
         report.AppendLine($"  Comando: {(plan.Parts.Count == 0 ? "(ninguno)" : string.Join(" + ", plan.Parts.Select(p => p.Winner!.Name)))}");

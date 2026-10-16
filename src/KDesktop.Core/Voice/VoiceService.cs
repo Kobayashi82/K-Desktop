@@ -2,6 +2,7 @@ using System.Diagnostics;
 using KDesktop.Core.Engine;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
+using KDesktop.Core.Platform;
 
 namespace KDesktop.Core.Voice;
 
@@ -133,8 +134,10 @@ public sealed partial class VoiceService : IDisposable
             return;
         }
         _mic.Samples += OnSamples;
+        using var duck = Duck(settings);
         try
         {
+            _mic.EchoCancel = settings.VoiceEchoCancel;
             _mic.Start(settings.VoiceMicId);
         }
         catch (Exception ex)
@@ -200,6 +203,10 @@ public sealed partial class VoiceService : IDisposable
             Log.Error("Error transcribiendo la orden de voz", ex);
             osd.Finish(Loc.T("voice.sttError"), OsdKind.Warning);
             return;
+        }
+        finally
+        {
+            duck?.Dispose(); // the order is said: the others sound again (before it runs: «pausa» pauses them anyway)
         }
         if (abort.IsCancellationRequested)
         {
@@ -311,22 +318,43 @@ public sealed partial class VoiceService : IDisposable
             var settings = _config().Settings;
             SpeechToText.IdleUnload = TimeSpan.FromMinutes(Math.Max(1, settings.VoiceUnloadMinutes));
 
+            // Turned down at once, so the order that follows is heard over the music; back up if the word isn't confirmed.
+            using var duck = Duck(settings);
+
             // Phase 2, on the word itself.
+            var sure = score >= word.DetectorThreshold + 0.25;
+            bool Accepted(double verification) =>
+                verification >= word.EffectiveThreshold
+                || (sure && verification >= word.EffectiveThreshold - 0.15)
+                || (settings.VoiceWakeTrust && score >= Math.Max(0.9, word.DetectorThreshold + 0.25));
             var wordClip = LastUtterance(capture.Preroll);
             var wordText = wordClip.Length > 0 ? await Task.Run(() => SpeechToText.Transcribe(wordClip)).ConfigureAwait(false) : "";
             var match = WakeWordVerifier.Find(wordText, word);
+            if (!Accepted(match?.Score ?? 0) && capture.Preroll.Length > 0)
+            {
+                // With sound in the background (what the echo canceller leaves of music, a noisy room) the speech
+                // detector may cut the word badly: the last moments as they are, uncut.
+                var tail = capture.Preroll[Math.Max(0, capture.Preroll.Length - MicCapture.SampleRate * 8 / 5)..];
+                var tailText = await Task.Run(() => SpeechToText.Transcribe(tail)).ConfigureAwait(false);
+                if (WakeWordVerifier.Find(tailText, word) is { } tailMatch && tailMatch.Score > (match?.Score ?? 0))
+                {
+                    Log.Info($"Palabra de activación «{word.Name}»: recortada «{wordText}», entera «{tailText}»");
+                    (wordClip, wordText, match) = (tail, tailText, tailMatch);
+                }
+            }
             var verification = match?.Score ?? 0;
-            var sure = score >= word.DetectorThreshold + 0.25;
-            var accepted = verification >= word.EffectiveThreshold
-                           || (sure && verification >= word.EffectiveThreshold - 0.15)
-                           || (settings.VoiceWakeTrust && score >= Math.Max(0.9, word.DetectorThreshold + 0.25));
-            if (!accepted)
+            var accepted = Accepted(verification);
+            // The detector very sure but the word alone not understood (alone and with music behind, Parakeet may take it
+            // for another language): it is confirmed afterwards with the order, transcribed together with it.
+            var provisional = !accepted && sure;
+            if (!accepted && !provisional)
             {
                 Log.Info($"Palabra de activación «{word.Name}» descartada por la verificación: «{wordText}» → {verification:0.00} " +
                          $"(necesita {word.EffectiveThreshold:0.00}{(sure ? $" o {word.EffectiveThreshold - 0.15:0.00} con el detector tan seguro" : "")}; detector {score:0.00})");
                 return;
             }
-            Log.Info($"Palabra de activación «{word.Name}»: detector {score:0.00}, verificación «{wordText}» {verification:0.00}");
+            Log.Info($"Palabra de activación «{word.Name}»: detector {score:0.00}, verificación «{wordText}» {verification:0.00}" +
+                     (provisional ? " (dudosa: se confirmará con la orden)" : ""));
             WakeHeard?.Invoke(word);
             StateChanged?.Invoke();
 
@@ -350,7 +378,8 @@ public sealed partial class VoiceService : IDisposable
             // What to take as the order: what came after the trigger; or, said without a pause, the word and the order
             // transcribed together with the word cut out; or the start of the order caught in the word's own clip.
             var options = new List<string>();
-            if (match?.Rest is { Length: > 0 } inWord) options.Add(inWord);
+            var confirmed = !provisional;
+            if (!provisional && match?.Rest is { Length: > 0 } inWord) options.Add(inWord);
             if (segments.Count > 0)
             {
                 var pad = MicCapture.SampleRate / 5;
@@ -362,7 +391,18 @@ public sealed partial class VoiceService : IDisposable
                 wordClip.CopyTo(joined, 0);
                 orderClip.CopyTo(joined, wordClip.Length);
                 var full = await Task.Run(() => SpeechToText.Transcribe(joined)).ConfigureAwait(false);
-                if (WakeWordVerifier.Find(full, word) is { Rest.Length: > 0 } cut && cut.Score >= word.EffectiveThreshold - 0.15) options.Add(cut.Rest);
+                if (WakeWordVerifier.Find(full, word) is { } cut && cut.Score >= word.EffectiveThreshold - 0.15)
+                {
+                    confirmed = true;
+                    if (cut.Rest.Length > 0) options.Add(cut.Rest);
+                }
+                if (provisional) Log.Info($"Palabra de activación «{word.Name}» con la orden: «{full}» → {(confirmed ? "confirmada" : "no está")}");
+            }
+            duck?.Dispose();
+            if (!confirmed)
+            {
+                osd.Finish(Loc.T("voice.nothingHeard"), OsdKind.Info);
+                return;
             }
             if (abort.IsCancellationRequested)
             {
@@ -392,6 +432,10 @@ public sealed partial class VoiceService : IDisposable
             StateChanged?.Invoke();
         }
     }
+
+    /// <summary>The other programs turned down while an order is said (Settings › Voz), or null.</summary>
+    private static AudioDucker? Duck(AppSettings settings) =>
+        settings.VoiceDuck && settings.VoiceDuckLevel < 100 ? AudioDucker.Duck(settings.VoiceDuckLevel / 100.0) : null;
 
     /// <summary>The last stretch of speech in <paramref name="audio"/> (the wake word), a little silence around it.</summary>
     private static float[] LastUtterance(float[] audio)
