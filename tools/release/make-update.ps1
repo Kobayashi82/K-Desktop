@@ -77,7 +77,7 @@ New-Item -ItemType Directory -Force $releaseDir | Out-Null
 $zip = Join-Path $releaseDir "K-Desktop-$version.zip"
 Get-ChildItem $releaseDir -Filter "K-Desktop-*.zip" | Where-Object { $_.FullName -ne $zip } | Remove-Item -Force
 if (Test-Path $zip) { Remove-Item $zip -Force }
-Add-Type -AssemblyName System.IO.Compression.FileSystem
+Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
 $archive = [System.IO.Compression.ZipFile]::Open($zip, [System.IO.Compression.ZipArchiveMode]::Create)
 try { [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, $Exe, "K-Desktop/KDesktop.exe", [System.IO.Compression.CompressionLevel]::Optimal) | Out-Null }
 finally { $archive.Dispose() }
