@@ -764,6 +764,8 @@ input.switch:checked::before { transform: translateX(20px); }
   animation: toast-in .45s var(--spring);
 }
 .toast.out { animation: toast-out .25s ease-in forwards; }
+.toast.tappable { cursor: pointer; border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.toast.tappable .toast-text span { color: var(--accent-text); font-weight: 600; }
 @keyframes toast-in { from { opacity: 0; transform: translateY(18px) scale(.94); } }
 @keyframes toast-out { to { opacity: 0; transform: translateY(10px) scale(.96); } }
 .toast-icon { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: #fff; }

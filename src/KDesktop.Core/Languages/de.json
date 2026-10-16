@@ -497,7 +497,7 @@
   "pwa.appUpdate.button": "App aktualisieren",
   "pwa.appUpdate.version": "{0} → {1}",
   "pwa.appUpdate.available": "Eine neue Version der App ist verfügbar",
-  "pwa.appUpdate.where": "Aktualisiere sie in den Einstellungen",
+  "pwa.appUpdate.where": "Hier tippen, um sie zu aktualisieren (oder in den Einstellungen)",
   "pwa.appUpdate.downloading": "App wird heruntergeladen…",
   "pwa.appUpdate.failed": "Die App konnte nicht aktualisiert werden",
   "pwa.installIos": "Als App: Teilen-Taste › „Zum Home-Bildschirm“.",

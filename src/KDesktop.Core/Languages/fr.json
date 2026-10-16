@@ -497,7 +497,7 @@
   "pwa.appUpdate.button": "Mettre à jour l’app",
   "pwa.appUpdate.version": "{0} → {1}",
   "pwa.appUpdate.available": "Une nouvelle version de l’app est disponible",
-  "pwa.appUpdate.where": "Mettez-la à jour depuis Réglages",
+  "pwa.appUpdate.where": "Touchez ici pour la mettre à jour (ou depuis Réglages)",
   "pwa.appUpdate.downloading": "Téléchargement de l’app…",
   "pwa.appUpdate.failed": "Impossible de mettre à jour l’app",
   "pwa.installIos": "Pour l’avoir comme application : bouton Partager › « Sur l’écran d’accueil ».",

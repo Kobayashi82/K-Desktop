@@ -669,8 +669,10 @@ function keyboardUp() {
 function updateKbState() {
   if (noTouch()) return; // the on-screen keyboard has its own state
   const focused = document.activeElement === document.getElementById('kbInput');
-  document.body.classList.toggle('kb-open', focused && keyboardUp());
-  document.getElementById('keyboardButton').classList.toggle('active', focused);
+  // Closed with Android's back button the box keeps the focus: what counts is whether the keyboard is up.
+  const up = focused && keyboardUp();
+  document.body.classList.toggle('kb-open', up);
+  document.getElementById('keyboardButton').classList.toggle('active', up);
 }
 
 function toggleKeyboard() {

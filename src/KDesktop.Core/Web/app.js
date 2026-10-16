@@ -555,7 +555,8 @@ async function run(id, target, label) {
 
 // ── toasts ─────────────────────────────────────────────────────────
 
-function toast(kind, title, detail, ms = 2500) {
+/** A short message at the bottom. With <onTap>, tapping it does that (and it says so by its look). */
+function toast(kind, title, detail, ms = 2500, onTap = null) {
   const box = $('toasts');
   while (box.children.length >= 3) box.firstElementChild.remove();
   const tEl = el('div', 'toast ' + kind);
@@ -571,7 +572,11 @@ function toast(kind, title, detail, ms = 2500) {
     tEl.classList.add('out');
     tEl.addEventListener('animationend', () => tEl.remove());
   };
-  tEl.addEventListener('click', close);
+  if (onTap) tEl.classList.add('tappable');
+  tEl.addEventListener('click', () => {
+    close();
+    onTap?.();
+  });
   setTimeout(close, ms);
 }
 
@@ -908,7 +913,7 @@ function offerAppUpdate(s) {
   $('appUpdateText').textContent = t('pwa.appUpdate.version', app.version(), s.android.version);
   if (store.get('appUpdateSeen') !== s.android.code) {
     store.set('appUpdateSeen', s.android.code);
-    toast('info', t('pwa.appUpdate.available'), t('pwa.appUpdate.where'), 6000);
+    toast('info', t('pwa.appUpdate.available'), t('pwa.appUpdate.where'), 8000, updateApp);
   }
 }
 
@@ -1221,7 +1226,7 @@ function wireDial() {
 function wire() {
   for (const e of document.querySelectorAll('[data-icon]')) e.innerHTML = svg(e.dataset.icon);
   setupPad({ t, store, svg, toast, online: setOnline, onUnpaired: () => showPair() });
-  setupVoice({ t, toast, post: postBinary });
+  setupVoice({ t, toast, post: postBinary, updateApp });
 
   for (const b of $('tabbar').querySelectorAll('button'))
     b.addEventListener('click', () => {

@@ -89,10 +89,6 @@
             <button class="icon-btn small" id="keyboardButton" data-icon="keyboard" data-i18n-title="pwa.pad.keyboard"></button>
           </span>
         </div>
-        <div class="keys" id="keysPanel" hidden>
-          <div class="keys-row" id="keysMods"></div>
-          <div class="keys-row" id="keysNav"></div>
-        </div>
         <div class="pad" id="pad">
           <div class="pad-glow" aria-hidden="true"></div>
           <p class="pad-hint" id="padHint" data-i18n="pwa.pad.hint"></p>
@@ -102,6 +98,11 @@
           <button data-button="l" data-i18n-title="pwa.pad.left"></button>
           <button data-button="m" class="middle" data-i18n-title="pwa.pad.middle"></button>
           <button data-button="r" data-i18n-title="pwa.pad.right"></button>
+        </div>
+        <!-- The special keys go down here, right above the keyboard (the phone one or the on-screen one) -->
+        <div class="keys" id="keysPanel" hidden>
+          <div class="keys-row" id="keysMods"></div>
+          <div class="keys-row" id="keysNav"></div>
         </div>
         <!-- On a computer there is no phone keyboard to open: an on-screen one instead -->
         <div class="vk" id="vk" hidden></div>

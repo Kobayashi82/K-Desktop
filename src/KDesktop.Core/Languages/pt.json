@@ -497,7 +497,7 @@
   "pwa.appUpdate.button": "Atualizar a app",
   "pwa.appUpdate.version": "{0} → {1}",
   "pwa.appUpdate.available": "Há uma versão nova da app",
-  "pwa.appUpdate.where": "Atualize-a nos Ajustes",
+  "pwa.appUpdate.where": "Toca aqui para a atualizar (ou nas Definições)",
   "pwa.appUpdate.downloading": "A transferir a app…",
   "pwa.appUpdate.failed": "Não foi possível atualizar a app",
   "pwa.installIos": "Para tê-lo como app: botão Compartilhar › “Adicionar à Tela de Início”.",

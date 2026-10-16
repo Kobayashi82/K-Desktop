@@ -497,7 +497,7 @@
   "pwa.appUpdate.button": "Update the app",
   "pwa.appUpdate.version": "{0} → {1}",
   "pwa.appUpdate.available": "A new version of the app is available",
-  "pwa.appUpdate.where": "Update it from Settings",
+  "pwa.appUpdate.where": "Tap here to update it (or from Settings)",
   "pwa.appUpdate.downloading": "Downloading the app…",
   "pwa.appUpdate.failed": "The app could not be updated",
   "pwa.installIos": "To have it as an app: Share button › \"Add to Home Screen\".",

@@ -53,7 +53,7 @@ async function start() {
   const app = nativeApp();
   if (!app && !navigator.mediaDevices?.getUserMedia) {
     // An older Android app, or a browser over plain http.
-    if (window.KDesktopApp) ctx.toast('info', ctx.t('pwa.appUpdate.available'), ctx.t('pwa.appUpdate.where'), 5000);
+    if (window.KDesktopApp) ctx.toast('info', ctx.t('pwa.appUpdate.available'), ctx.t('pwa.appUpdate.where'), 8000, ctx.updateApp);
     else ctx.toast('warning', ctx.t('pwa.voice.noMic'), ctx.t('pwa.voice.needsHttps'), 6000);
     return;
   }
