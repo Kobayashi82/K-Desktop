@@ -144,7 +144,7 @@
       conexión en vivo, halo del color de cada icono (se calcula en el navegador), submenús como carpetas con vista
       previa, migas de pan, «Más usados» y secciones por letra, dial de volumen arrastrable, Ajustes en lista agrupada.
 - [x] **App de Android** (`android\`, `tools\android\build-apk.ps1` → `artifacts\android\KDesktop.apk`, ~125 KB):
-      la web en su propia ventana (WebView, sin AndroidX ni Gradle: aapt2 + javac + d8 + apksigner; minSdk 24,
+      la web en su propia ventana (WebView, sin AndroidX ni Gradle: aapt2 + javac + d8 + apksigner; minSdk 21 (Android 5.0),
       target 34). La primera vez pide la dirección (proxy HTTPS o `IP:2502`; vale pegar el enlace de emparejar) y la
       recuerda; «Cambiar de servidor» en Ajustes de la web (`window.KDesktopApp`); si no conecta vuelve a esa pantalla
       con el error y «Reintentar». Atrás cierra submenús; los enlaces externos van al navegador; acepta «Compartir»

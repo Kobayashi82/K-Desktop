@@ -196,13 +196,14 @@ public class MainActivity extends Activity {
         Window w = getWindow();
         boolean dark = isDark();
         int bar = dark ? Color.rgb(13, 13, 15) : Color.rgb(245, 243, 238);
-        w.setStatusBarColor(bar);
-        w.setNavigationBarColor(bar);
+        // Before Android 6 (status bar) and 8 (navigation bar) their icons are always white: a light bar would hide them.
+        boolean lightStatus = !dark && Build.VERSION.SDK_INT >= 23;
+        boolean lightNavigation = !dark && Build.VERSION.SDK_INT >= 26;
+        w.setStatusBarColor(dark || lightStatus ? bar : Color.BLACK);
+        w.setNavigationBarColor(dark || lightNavigation ? bar : Color.BLACK);
         int flags = 0;
-        if (!dark) {
-            flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-            if (Build.VERSION.SDK_INT >= 26) flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
-        }
+        if (lightStatus) flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        if (lightNavigation) flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
         w.getDecorView().setSystemUiVisibility(flags);
     }
 
@@ -229,6 +230,12 @@ public class MainActivity extends Activity {
         }
 
         @Override
+        public void onPageFinished(WebView view, String url) {
+            // Android 5-6 have no onPageCommitVisible.
+            if (Build.VERSION.SDK_INT < 23) handler.removeCallbacks(loadTimeout);
+        }
+
+        @Override
         public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse response) {
             // The page itself failing (a proxy with K-Desktop off answers 502/503) is "cannot connect" too.
             if (!request.isForMainFrame() || response.getStatusCode() < 500) return;
@@ -238,7 +245,17 @@ public class MainActivity extends Activity {
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-            Uri url = request.getUrl();
+            return openOutside(request.getUrl());
+        }
+
+        @SuppressWarnings("deprecation")
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            // Android 5-6 only call this one.
+            return openOutside(Uri.parse(url));
+        }
+
+        private boolean openOutside(Uri url) {
             String server = server();
             String scheme = url.getScheme();
             if ("file".equals(scheme)) return false;
@@ -258,6 +275,15 @@ public class MainActivity extends Activity {
             if (request.getUrl().toString().startsWith(SETUP)) return;
             handler.removeCallbacks(loadTimeout);
             openSetup(String.valueOf(error.getDescription()));
+        }
+
+        @SuppressWarnings("deprecation")
+        @Override
+        public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+            // Android 5 only calls this one (and only for the page itself).
+            if (Build.VERSION.SDK_INT >= 23 || failingUrl == null || failingUrl.startsWith(SETUP)) return;
+            handler.removeCallbacks(loadTimeout);
+            openSetup(description);
         }
     }
 

@@ -38,7 +38,7 @@ New-Item -ItemType Directory -Force "$build\gen", "$build\classes", "$build\dex"
 "Recursos…"
 Run "$bt\aapt2.exe" @("compile", "--dir", "$src\res", "-o", "$build\res.zip")
 Run "$bt\aapt2.exe" @("link", "-o", "$build\base.apk", "-I", $platform, "--manifest", "$src\AndroidManifest.xml",
-  "-A", "$src\assets", "--java", "$build\gen", "--min-sdk-version", "24", "--target-sdk-version", "34",
+  "-A", "$src\assets", "--java", "$build\gen", "--min-sdk-version", "21", "--target-sdk-version", "34",
   "--version-code", "$code", "--version-name", $version, "$build\res.zip")
 
 "Java…"
@@ -48,7 +48,7 @@ Run "javac" (@("-encoding", "UTF-8", "-source", "11", "-target", "11", "-nowarn"
 
 "Dex…"
 $classes = @(Get-ChildItem -Recurse "$build\classes" -Filter *.class | ForEach-Object { $_.FullName })
-Run "$bt\d8.bat" (@("--release", "--min-api", "24", "--lib", $platform, "--output", "$build\dex") + $classes)
+Run "$bt\d8.bat" (@("--release", "--min-api", "21", "--lib", $platform, "--output", "$build\dex") + $classes)
 
 "Empaquetado…"
 Copy-Item "$build\base.apk" "$build\unsigned.apk"
