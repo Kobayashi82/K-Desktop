@@ -363,7 +363,8 @@ public partial class MainWindow : FluentWindow
             {
                 Title = Loc.T("banner.importTitle"),
                 Message = Loc.T("banner.importMessage", report.Commands, report.Actions, report.QuickMenus, report.MenuItems, report.Icons) +
-                          (report.Skipped.Count > 0 ? " " + Loc.T("banner.importSkipped", report.Skipped.Count) : ""),
+                          (report.Skipped.Count > 0 ? " " + Loc.T("banner.importSkipped", report.Skipped.Count,
+                              string.Join(", ", report.Skipped.Take(4)) + (report.Skipped.Count > 4 ? "…" : "")) : ""),
                 Severity = InfoBarSeverity.Success,
                 IsOpen = true,
                 IsClosable = true,

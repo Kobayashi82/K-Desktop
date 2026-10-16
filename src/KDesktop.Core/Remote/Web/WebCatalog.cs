@@ -3,8 +3,11 @@ using KDesktop.Core.Model;
 
 namespace KDesktop.Core.Remote.Web;
 
-/// <summary>A command as the web app sees it. <c>IconLight</c>: the icon for light backgrounds when it differs.</summary>
-public sealed record WebCommandInfo(string Id, string Name, string? Icon, long Runs, string? IconLight = null);
+/// <summary>
+/// A command as the web app sees it. <c>IconLight</c>: the icon for light backgrounds when it differs. Hidden commands
+/// are sent too: the web has its own "show hidden" filter.
+/// </summary>
+public sealed record WebCommandInfo(string Id, string Name, string? Icon, long Runs, string? IconLight = null, bool Hidden = false);
 
 /// <summary>A QuickMenu item; only commands available on the web (and the containers that keep some) are included.</summary>
 public sealed record WebMenuNode(string Id, string Kind, string? Label, string? CommandId, string? Icon, IReadOnlyList<WebMenuNode>? Children, string? IconLight = null);
@@ -30,11 +33,10 @@ internal sealed class WebCatalog(IWebHost host)
         return host.Invoke(() =>
         {
             var config = host.Engine.Config;
-            var showHidden = config.Settings.ShowHiddenCommands;
             var commands = config.Commands
-                .Where(c => Available(c) && (showHidden || !c.Hidden))
+                .Where(Available)
                 .OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase)
-                .Select(c => new WebCommandInfo(c.Id, c.Name, Keep(host.Icon(c)), runs.GetValueOrDefault(c.Id), KeepLight(host.Icon(c), host.Icon(c, light: true))))
+                .Select(c => new WebCommandInfo(c.Id, c.Name, Keep(host.Icon(c)), runs.GetValueOrDefault(c.Id), KeepLight(host.Icon(c), host.Icon(c, light: true)), c.Hidden))
                 .ToList();
 
             var menus = config.QuickMenus

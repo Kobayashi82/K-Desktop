@@ -148,17 +148,14 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 }
 .top.scrolled { background: var(--glass); border-bottom-color: var(--line); }
 .brand-mark { width: 32px; height: 32px; border-radius: 9px; box-shadow: 0 4px 14px var(--accent-glow); }
-/* the app name, replaced by the section title once the big title scrolls away */
-.top-titles { flex: 1 0 auto; position: relative; display: flex; align-items: center; }
-.top-titles > span {
-  min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  transition: opacity .25s var(--ease), transform .3s var(--ease);
+/* logo + app name: goes to the Commands tab */
+.brand {
+  flex: 1 0 auto; display: flex; align-items: center; gap: 10px; margin-right: auto; padding: 0; text-align: left;
+  transition: transform .2s var(--spring);
 }
-.top-brand { font-weight: 700; font-size: 17px; letter-spacing: -.01em; }
+.brand:active { transform: scale(.96); }
+.top-brand { white-space: nowrap; font-weight: 700; font-size: 17px; letter-spacing: -.01em; }
 .top-brand b { font-weight: 700; color: var(--accent-text); }
-.top-title { position: absolute; inset: 0; line-height: 32px; font-weight: 650; font-size: 16px; opacity: 0; transform: translateY(6px); }
-.top.scrolled .top-title { opacity: 1; transform: none; }
-.top.scrolled .top-brand { opacity: 0; transform: translateY(-6px); }
 
 .conn {
   display: flex; align-items: center; gap: 7px; min-width: 0; max-width: 46vw; height: 34px; padding: 0 12px 0 10px;
@@ -182,7 +179,7 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 .icon-btn.small { width: 36px; height: 36px; }
 .icon-btn.spin svg { animation: spin .8s linear infinite; }
 
-.views { flex: 1; width: 100%; padding: 2px 14px calc(env(safe-area-inset-bottom) + 104px); }
+.views { position: relative; flex: 1; width: 100%; padding: 2px 14px calc(env(safe-area-inset-bottom) + 104px); }
 .big-title { font-size: 33px; font-weight: 750; letter-spacing: -.025em; margin: 4px 4px 16px; line-height: 1.1; }
 .view { display: none; }
 .view.active { display: block; animation: view-in .38s var(--ease); }
@@ -198,7 +195,7 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 .tabbar {
   position: fixed; z-index: 6; left: 50%; transform: translateX(-50%);
   bottom: calc(env(safe-area-inset-bottom) + 12px);
-  display: flex; gap: 2px; padding: 6px;
+  display: flex; gap: 2px; padding: 6px; overflow: hidden;
   background: var(--glass-strong); border: 1px solid var(--line); border-radius: 26px; box-shadow: var(--shadow-lift);
   transition: transform .35s var(--ease), opacity .25s;
 }
@@ -217,7 +214,8 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
   position: absolute; z-index: 0; top: 6px; bottom: 6px; left: 0; width: 0;
   border-radius: 20px; background: var(--accent-soft);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
-  transition: transform .45s var(--spring), width .45s var(--spring);
+  /* no overshoot: a springy pill went past the ends of the bar on the first and last tabs */
+  transition: transform .4s var(--ease), width .4s var(--ease);
 }
 
 /* ── chips, breadcrumbs, sections ─────────────────────────────── */
@@ -234,6 +232,16 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 }
 .chip:active { transform: scale(.94); }
 .chip.active { background: var(--gold); color: var(--on-accent); border-color: transparent; box-shadow: 0 6px 18px var(--accent-glow); }
+
+/* Commands tab filters: all, not in a QuickMenu, each QuickMenu ("hidden" is the eye in the search bar) */
+.chips.filters { margin: 10px -14px 4px; padding: 2px 14px 10px; }
+.hidden-toggle {
+  flex: none; width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; color: var(--text-3);
+  transition: background-color .2s, color .2s, transform .2s var(--spring);
+}
+.hidden-toggle svg { width: 19px; height: 19px; }
+.hidden-toggle:active { transform: scale(.88); }
+.hidden-toggle.active { background: var(--accent-soft); color: var(--accent-text); }
 
 .crumbs { display: flex; align-items: center; gap: 8px; margin: -6px 0 14px; animation: view-in .3s var(--ease); }
 .crumb-back {
@@ -490,15 +498,14 @@ input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: 0; bo
 /* The pad fills the screen between the header and the tab bar (or the phone keyboard). */
 .shell:has(.pad-view.active) { height: 100dvh; min-height: 0; }
 .shell:has(.pad-view.active) .views { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-.shell:has(.pad-view.active) .big-title { display: none; }
-.shell:has(.pad-view.active) .top-title { opacity: 1; transform: none; }
-.shell:has(.pad-view.active) .top-brand { opacity: 0; transform: translateY(-6px); }
 .pad-view.active { display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0; }
 body.kb-open .views { padding-bottom: 10px; }
 body.kb-open .tabbar { transform: translate(-50%, 160%); opacity: 0; pointer-events: none; }
 body.kb-open .big-title { display: none; }
 
-.pad-bar { display: flex; align-items: center; justify-content: space-between; margin: -4px -4px 0 2px; }
+/* the keys / keyboard buttons sit on the title line, like the other tabs keep their title */
+.pad-bar { position: absolute; top: 2px; right: 14px; display: flex; justify-content: flex-end; }
+body.kb-open .pad-bar { position: static; margin: -4px -4px 0 0; }
 .pad-bar-buttons { display: flex; gap: 4px; }
 .pad-bar .icon-btn { background: var(--tile); border: 1px solid var(--line); }
 .pad-bar .icon-btn.active { background: var(--accent-soft); color: var(--accent-text); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
@@ -640,7 +647,7 @@ select option { background-color: var(--bg-2); color: var(--text); }
 .segmented { position: relative; display: flex; padding: 3px; border-radius: 12px; background: color-mix(in srgb, var(--text) 7%, transparent); }
 .segmented button { position: relative; z-index: 1; padding: 6px 11px; border-radius: 9px; font-size: 13px; font-weight: 600; color: var(--text-2); transition: color .25s; }
 .segmented button.active { color: var(--text); }
-.seg-pill { position: absolute; top: 3px; bottom: 3px; left: 0; border-radius: 9px; background: var(--glass-strong); box-shadow: var(--shadow); transition: transform .4s var(--spring), width .4s var(--spring); }
+.seg-pill { position: absolute; top: 3px; bottom: 3px; left: 0; border-radius: 9px; background: var(--glass-strong); box-shadow: var(--shadow); transition: transform .4s var(--ease), width .4s var(--ease); }
 
 input.switch {
   -webkit-appearance: none; appearance: none; flex: none; position: relative; width: 50px; height: 30px; margin: 0;
@@ -709,7 +716,7 @@ input.switch:checked::before { transform: translateX(20px); }
 }
 .toast {
   pointer-events: auto; display: flex; align-items: center; gap: 11px;
-  max-width: 460px; width: 100%; padding: 11px 14px; border-radius: 18px;
+  max-width: min(460px, 100%); padding: 11px 18px 11px 14px; border-radius: 18px;
   background: var(--glass-strong); border: 1px solid var(--line); box-shadow: var(--shadow-lift);
   animation: toast-in .45s var(--spring);
 }

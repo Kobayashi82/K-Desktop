@@ -24,10 +24,10 @@ const settings = { speed: 2, scroll: 1.6, natural: true, tap: true };
 
 function setStatus(s) {
   status = s;
-  const box = document.getElementById('padStatus');
-  box.dataset.state = s;
-  document.getElementById('padStatusText').textContent = ctx.t('pwa.pad.' + s);
   document.getElementById('pad').classList.toggle('offline', s !== 'connected');
+  // The connection shows in the header, next to the PC name.
+  if (s === 'connected') ctx.online?.(true);
+  else if (s === 'offline') ctx.online?.(false);
 }
 
 function connect() {

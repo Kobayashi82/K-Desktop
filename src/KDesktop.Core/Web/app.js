@@ -24,6 +24,8 @@ const store = {
 
 const ICONS = {
   refresh: '<path d="M20 11a8 8 0 1 0-2.34 5.66"/><path d="M20 4v7h-7"/>',
+  eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
+  eyeOff: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/><path d="M4 4l16 16"/>',
   back: '<path d="M15 18l-6-6 6-6"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
   menus: '<rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/>',
@@ -81,6 +83,8 @@ const state = {
   session: null,
   tab: store.get('tab', 'all'),
   menuId: store.get('menu', null),
+  filter: store.get('filter', 'all'),       // commands tab: "all", "none" (in no QuickMenu) or a QuickMenu id
+  showHidden: store.get('showHidden', false),
   path: [],          // ids of the open submenus
   lastLoad: 0,
 };
@@ -182,7 +186,6 @@ const TABS = ['all', 'menus', 'pad', 'audio', 'settings'];
 function setTitles() {
   const title = t('pwa.tab.' + state.tab);
   $('bigTitle').textContent = title;
-  $('smallTitle').textContent = title;
 }
 
 function setTab(tab) {
@@ -205,7 +208,7 @@ function setTab(tab) {
   padActive(tab === 'pad', state.session?.input !== false);
 }
 
-/** The big title scrolls away; then the bar turns to glass and shows the small one. */
+/** The big title scrolls away; then the bar turns to glass. */
 function updateHeader() {
   const title = $('bigTitle');
   const scrolled = title.getBoundingClientRect().bottom < $('top').getBoundingClientRect().bottom + 4;
@@ -715,15 +718,70 @@ function letterOf(name) {
   return /[A-ZÑ]/.test(ch) ? ch : '#';
 }
 
+/** Ids of the commands in a QuickMenu (one, or all of them). */
+function menuCommands(menuId) {
+  const ids = new Set();
+  const walk = nodes => {
+    for (const n of nodes ?? []) {
+      if (n.commandId) ids.add(n.commandId);
+      walk(n.children);
+    }
+  };
+  for (const m of state.catalog?.menus ?? []) if (!menuId || m.id === menuId) walk(m.items);
+  return ids;
+}
+
+/** The filter chips: all, not in a QuickMenu, each QuickMenu. */
+function renderFilters() {
+  const menus = state.catalog?.menus ?? [];
+  if (!['all', 'none'].includes(state.filter) && !menus.some(m => m.id === state.filter)) state.filter = 'all';
+  const options = [['all', t('pwa.filter.all')], ['none', t('pwa.filter.none')], ...menus.map(m => [m.id, m.name])];
+  const chips = options.map(([key, label]) => {
+    const c = el('button', 'chip' + (key === state.filter ? ' active' : ''), label);
+    c.addEventListener('click', () => {
+      if (key === state.filter) return;
+      navigator.vibrate?.(4);
+      state.filter = key;
+      store.set('filter', key);
+      renderAll();
+    });
+    return c;
+  });
+  // "Hidden" is a switch in the search bar (always in sight), only when there are hidden commands.
+  const h = $('hiddenToggle');
+  h.hidden = !(state.catalog?.commands ?? []).some(c => c.hidden);
+  h.classList.toggle('active', state.showHidden);
+  h.setAttribute('aria-pressed', String(state.showHidden));
+  h.innerHTML = svg(state.showHidden ? 'eye' : 'eyeOff');
+  const box = $('cmdFilters');
+  box.hidden = !state.catalog;
+  box.replaceChildren(...chips);
+}
+
+/** The commands that pass the filters. */
+function filteredCommands() {
+  let list = state.catalog?.commands ?? [];
+  if (!state.showHidden) list = list.filter(c => !c.hidden);
+  if (state.filter === 'none') {
+    const inMenus = menuCommands(null);
+    list = list.filter(c => !inMenus.has(c.id));
+  } else if (state.filter !== 'all') {
+    const inMenu = menuCommands(state.filter);
+    list = list.filter(c => inMenu.has(c.id));
+  }
+  return list;
+}
+
 function renderAll() {
-  const commands = state.catalog?.commands ?? [];
   const grid = $('allGrid');
   const q = $('searchBox').value.trim();
+  renderFilters();
   if (!state.catalog) {
     grid.replaceChildren(skeletonGrid());
     $('topStrip').hidden = true;
     return;
   }
+  const commands = filteredCommands();
   let list = commands;
   if (q) {
     const toks = tokens(q);
@@ -763,14 +821,13 @@ function renderAll() {
   }
   const empty = $('allEmpty');
   empty.hidden = list.length > 0;
-  empty.textContent = q ? t('pwa.noResults', q) : t('pwa.noCommands');
+  empty.textContent = q ? t('pwa.noResults', q)
+    : state.catalog.commands.length && (state.filter !== 'all' || !state.showHidden) ? t('pwa.filter.empty') : t('pwa.noCommands');
 }
 
 // ── catalog / session ──────────────────────────────────────────────
 
 async function loadCatalog(manual = false) {
-  const button = $('refreshButton');
-  button.classList.add('spin');
   try {
     const catalog = await api('catalog');
     state.lastLoad = Date.now();
@@ -790,8 +847,6 @@ async function loadCatalog(manual = false) {
       setOnline(false);
       toast('error', t('pwa.offline'), '', 3000);
     }
-  } finally {
-    button.classList.remove('spin');
   }
 }
 
@@ -990,7 +1045,8 @@ async function loadSession() {
   } catch { /* offline or unpaired: handled elsewhere */ }
 }
 
-async function connect() {
+/** Session and catalog again. <manual>: tapped on the PC name, so say when it is done. */
+async function connect(manual = false) {
   setOnline(null);
   try {
     state.session = await api('session');
@@ -999,7 +1055,7 @@ async function connect() {
     fillSession();
     showShell();
     startEvents();
-    await loadCatalog();
+    await loadCatalog(manual);
   } catch (e) {
     if (e instanceof Unpaired) return;
     // K-Desktop not reachable: the cached commands are still shown.
@@ -1135,7 +1191,7 @@ function wireDial() {
 
 function wire() {
   for (const e of document.querySelectorAll('[data-icon]')) e.innerHTML = svg(e.dataset.icon);
-  setupPad({ t, store, svg, toast, onUnpaired: () => showPair() });
+  setupPad({ t, store, svg, toast, online: setOnline, onUnpaired: () => showPair() });
 
   for (const b of $('tabbar').querySelectorAll('button'))
     b.addEventListener('click', () => {
@@ -1151,8 +1207,21 @@ function wire() {
       setTab(b.dataset.tab);
     });
 
-  $('refreshButton').addEventListener('click', () => loadCatalog(true));
-  $('connPill').addEventListener('click', () => connect());
+  $('connPill').addEventListener('click', () => {
+    navigator.vibrate?.(6);
+    connect(true);
+  });
+  $('hiddenToggle').addEventListener('click', () => {
+    navigator.vibrate?.(4);
+    state.showHidden = !state.showHidden;
+    store.set('showHidden', state.showHidden);
+    renderAll();
+  });
+  $('homeButton').addEventListener('click', () => {
+    navigator.vibrate?.(4);
+    if (state.tab === 'all') window.scrollTo({ top: 0, behavior: 'smooth' });
+    else setTab('all');
+  });
   $('reloadButton').addEventListener('click', () => loadCatalog(true));
   $('appUpdateButton').addEventListener('click', updateApp);
   $('backButton').addEventListener('click', () => history.back());

@@ -44,15 +44,13 @@
   <!-- App -->
   <div class="shell" id="shell" hidden>
     <header class="top" id="top">
-      <img class="brand-mark" src="icons/favicon.png" alt="">
-      <div class="top-titles">
+      <button class="brand" id="homeButton" data-i18n-title="pwa.home">
+        <img class="brand-mark" src="icons/favicon.png" alt="">
         <span class="top-brand">K-Desktop <b>5.0</b></span>
-        <span class="top-title" id="smallTitle"></span>
-      </div>
+      </button>
       <button class="conn" id="connPill" data-state="connecting">
         <i></i><span id="machine"></span>
       </button>
-      <button class="icon-btn" id="refreshButton" data-i18n-title="pwa.settings.refresh" data-icon="refresh"></button>
     </header>
 
     <main class="views">
@@ -72,7 +70,9 @@
           <span class="search-icon" data-icon="search"></span>
           <input id="searchBox" type="search" enterkeyhint="go" autocomplete="off" data-i18n-placeholder="pwa.search">
           <span class="count" id="allCount"></span>
+          <button class="hidden-toggle" id="hiddenToggle" data-i18n-title="pwa.filter.hidden" aria-pressed="false" hidden></button>
         </div>
+        <nav class="chips filters" id="cmdFilters"></nav>
         <div class="top-strip" id="topStrip" hidden>
           <h3 class="section-title" data-i18n="pwa.mostUsed"></h3>
           <div class="strip" id="topList"></div>
@@ -83,7 +83,6 @@
 
       <section class="view pad-view" data-view="pad">
         <div class="pad-bar">
-          <span class="pad-status" id="padStatus"><i></i><span id="padStatusText"></span></span>
           <span class="pad-bar-buttons">
             <button class="icon-btn small" id="keysButton" data-icon="keys" data-i18n-title="pwa.pad.keys"></button>
             <button class="icon-btn small" id="keyboardButton" data-icon="keyboard" data-i18n-title="pwa.pad.keyboard"></button>
