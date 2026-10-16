@@ -208,6 +208,7 @@ public partial class App : Application
         Web = new WebServer(new WebHost(Dispatcher, Engine, Achievements));
         Web.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
         ApplySettings();
+        InitUpdates();
         if (ProcessLauncher.IsElevated) Task.Run(FirewallRule.Ensure);
 
         // First run with a normal data folder: honour the default "start with Windows" by registering the
@@ -230,16 +231,19 @@ public partial class App : Application
             () => Dispatcher.BeginInvoke(() => ShowMainWindow()),
             args => Dispatcher.BeginInvoke(() => HandleArguments(args)));
 
-        // Startup feedback and "run on startup" commands.
+        // Startup feedback and "run on startup" commands; a restart after an update is not a new start.
         var s = Config.Settings;
-        Sounds.Play(s.StartupSound);
-        if (!string.IsNullOrWhiteSpace(s.StartupMessage))
-            Ui.ShowOsd(s.StartupMessage.Replace("\"version\"", AppPaths.VersionName, StringComparison.OrdinalIgnoreCase)
-                                       .Replace("\"ver\"", AppPaths.VersionName, StringComparison.OrdinalIgnoreCase));
-        _ = Engine.RunStartupCommandsAsync();
+        if (UpdatedFrom is null)
+        {
+            Sounds.Play(s.StartupSound);
+            if (!string.IsNullOrWhiteSpace(s.StartupMessage))
+                Ui.ShowOsd(s.StartupMessage.Replace("\"version\"", AppPaths.VersionName, StringComparison.OrdinalIgnoreCase)
+                                           .Replace("\"ver\"", AppPaths.VersionName, StringComparison.OrdinalIgnoreCase));
+            _ = Engine.RunStartupCommandsAsync();
+        }
 
         var requestsSomething = Program.ValueOf(Arguments, "--menu") is not null || Program.ValueOf(Arguments, "--run") is not null;
-        if ((!StartedByWindows && !requestsSomething && s.ShowWindowOnStart) || ImportReport is not null) ShowMainWindow();
+        if ((!StartedByWindows && UpdatedFrom is null && !requestsSomething && s.ShowWindowOnStart) || ImportReport is not null) ShowMainWindow();
         HandleArguments(Arguments);
         Log.Info($"Listo: {Config.Commands.Count} comandos, {Config.QuickMenus.Count} QuickMenus, {Config.Macros.Count} macros");
 
@@ -551,6 +555,7 @@ public partial class App : Application
         Router.Dispose();
         Udp?.Dispose();
         Web?.Dispose();
+        Updates.Dispose();
         WakeListener?.Dispose();
         Voice?.Dispose();
         Store.Dispose();

@@ -268,7 +268,7 @@ public partial class MainWindow : FluentWindow
     }
 
     /// <summary>Info bars: hotkeys off, paused, K-Desktop 4 still running, import summary.</summary>
-    private void ShowBanners()
+    public void ShowBanners()
     {
         Banners.Children.Clear();
         var app = App.Current;
@@ -328,6 +328,34 @@ public partial class MainWindow : FluentWindow
             };
             AddBanner(bar, close);
             foreach (var p in legacy) p.Dispose();
+        }
+
+        if (app.Updates.Available is { } update && app.Updates.State is Core.Updates.UpdateState.Available
+                or Core.Updates.UpdateState.Downloading or Core.Updates.UpdateState.Ready)
+        {
+            var state = app.Updates.State;
+            var install = new Wpf.Ui.Controls.Button
+            {
+                Content = Loc.T(Core.Updates.UpdateService.CanInstall ? "updates.install" : "updates.openDownload"),
+                Icon = new SymbolIcon(SymbolRegular.ArrowDownload24),
+                Appearance = ControlAppearance.Primary,
+                IsEnabled = state != Core.Updates.UpdateState.Downloading,
+            };
+            install.Click += (_, _) => _ = app.InstallUpdateAsync();
+            AddBanner(new InfoBar
+            {
+                Title = Loc.T("banner.updateTitle", update.Version.ToString(3)),
+                Message = Loc.T(state switch
+                {
+                    _ when !Core.Updates.UpdateService.CanInstall => "updates.notPortable",
+                    Core.Updates.UpdateState.Downloading => "banner.updateDownloading",
+                    Core.Updates.UpdateState.Ready => "banner.updateReady",
+                    _ => "banner.updateMessage",
+                }),
+                Severity = InfoBarSeverity.Informational,
+                IsOpen = true,
+                IsClosable = true,
+            }, install);
         }
 
         if (app.ImportReport is { } report)

@@ -3,11 +3,11 @@ using KDesktop.Core.Model;
 
 namespace KDesktop.Core.Remote.Web;
 
-/// <summary>A command as the web app sees it.</summary>
-public sealed record WebCommandInfo(string Id, string Name, string? Icon, long Runs);
+/// <summary>A command as the web app sees it. <c>IconLight</c>: the icon for light backgrounds when it differs.</summary>
+public sealed record WebCommandInfo(string Id, string Name, string? Icon, long Runs, string? IconLight = null);
 
 /// <summary>A QuickMenu item; only commands available on the web (and the containers that keep some) are included.</summary>
-public sealed record WebMenuNode(string Id, string Kind, string? Label, string? CommandId, string? Icon, IReadOnlyList<WebMenuNode>? Children);
+public sealed record WebMenuNode(string Id, string Kind, string? Label, string? CommandId, string? Icon, IReadOnlyList<WebMenuNode>? Children, string? IconLight = null);
 
 public sealed record WebMenuInfo(string Id, string Name, IReadOnlyList<WebMenuNode> Items);
 
@@ -34,7 +34,7 @@ internal sealed class WebCatalog(IWebHost host)
             var commands = config.Commands
                 .Where(c => Available(c) && (showHidden || !c.Hidden))
                 .OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase)
-                .Select(c => new WebCommandInfo(c.Id, c.Name, Keep(host.Icon(c)), runs.GetValueOrDefault(c.Id)))
+                .Select(c => new WebCommandInfo(c.Id, c.Name, Keep(host.Icon(c)), runs.GetValueOrDefault(c.Id), KeepLight(host.Icon(c), host.Icon(c, light: true))))
                 .ToList();
 
             var menus = config.QuickMenus
@@ -68,8 +68,9 @@ internal sealed class WebCatalog(IWebHost host)
                 QuickMenuItemKind.Command when runnable => "command",
                 _ => "submenu",
             };
+            var icon = host.Icon(command, item);
             nodes.Add(new WebMenuNode(item.Id, kind, item.Label ?? command?.Name, runnable ? command!.Id : null,
-                Keep(host.Icon(command, item)), hasChildren ? children : null));
+                Keep(icon), hasChildren ? children : null, KeepLight(icon, host.Icon(command, item, light: true))));
         }
         if (nodes.Count > 0 && nodes[^1].Kind == "separator") nodes.RemoveAt(nodes.Count - 1);
         // Titles left without anything under them.
@@ -78,6 +79,9 @@ internal sealed class WebCatalog(IWebHost host)
                 nodes.RemoveAt(i);
         return nodes;
     }
+
+    /// <summary>The light-background icon, only when it is not the same picture.</summary>
+    private string? KeepLight(WebIcon? normal, WebIcon? light) => light is null || light.Hash == normal?.Hash ? null : Keep(light);
 
     private string? Keep(WebIcon? icon)
     {

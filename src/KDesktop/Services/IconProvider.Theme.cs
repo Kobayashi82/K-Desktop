@@ -25,8 +25,25 @@ public static partial class IconProvider
     /// </summary>
     private static ImageSource? ForTheme(ImageSource? source)
     {
-        if (source is not BitmapSource bitmap || ThemeService.IsDark) return source;
+        var light = _background switch { IconBackground.Dark => false, IconBackground.Light => true, _ => !ThemeService.IsDark };
+        if (source is not BitmapSource bitmap || !light) return source;
         return _lightVersions.GetValue(bitmap, _ => IsLightMonochrome(bitmap) ? Inverted(bitmap) : bitmap);
+    }
+
+    public enum IconBackground { App, Dark, Light }
+
+    [ThreadStatic] private static IconBackground _background;
+
+    /// <summary>
+    /// Icons for a background other than the app's own theme (the web app has its own): runs <paramref name="get"/>
+    /// with every theme adaptation done for <paramref name="background"/>.
+    /// </summary>
+    public static T For<T>(IconBackground background, Func<T> get)
+    {
+        var previous = _background;
+        _background = background;
+        try { return get(); }
+        finally { _background = previous; }
     }
 
     private static byte[]? Pixels(BitmapSource source, out int width, out int height)

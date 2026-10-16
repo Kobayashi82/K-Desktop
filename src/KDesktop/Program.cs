@@ -40,6 +40,9 @@ public static class Program
         var wakeTest = Array.FindIndex(args, a => a.Equals("--wake-test", StringComparison.OrdinalIgnoreCase));
         if (wakeTest >= 0 && args.Length > wakeTest + 2) return WakeTest(args[wakeTest + 1], args[wakeTest + 2], open: !args.Contains("--no-open"));
 
+        // Started by the previous version after installing an update: wait until it has left, then tidy up.
+        var updatedFrom = KDesktop.Core.Updates.UpdateService.FinishPendingUpdate(args);
+
         // Already running? Forward the request (works across elevation levels) and leave.
         var forward = args.Any(a => ForwardedArguments.Contains(a, StringComparer.OrdinalIgnoreCase));
         if (SingleInstance.SignalExisting(forward ? args : null)) return 0;
@@ -72,6 +75,7 @@ public static class Program
         var app = new App
         {
             StartedByWindows = args.Contains(StartupArgument),
+            UpdatedFrom = updatedFrom,
             Arguments = args,
         };
         app.InitializeComponent();

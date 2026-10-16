@@ -121,6 +121,25 @@
       «+N», solo si tiene), los «+N» con tooltip de todas/todos; menú del botón derecho (ejecutar, duplicar, cambiar nombre, habilitar, ocultar, eliminar), Supr y
       F2. El nombre no puede quedar vacío (vuelve el anterior). Elegir un proceso del desplegable lo añade al momento.
       «Añadir acción» con scroll; X en el lanzador y en el aviso de logro.
+- [x] **Tema claro legible** (2026-10-16): los grises de texto de WPF-UI se oscurecen en claro (`ThemeService`,
+      en los recursos de la aplicación porque WPF-UI escribe ahí algunas claves), texto oscuro en los botones dorados
+      y los iconos propios casi blancos y sin color (también favicons y carpetas con icono propio) se invierten en el
+      tema claro (`IconProvider.Theme.cs`; la web pide la variante de su propio tema: `icon` / `iconLight`).
+- [x] **Icono nuevo** (squircle dorado con una K y una chispa), generado en vectores por `tools\icon\make-icon.ps1`
+      (ico 16…256, PNG de la web y capas para Android). Opciones › Apariencia › «Icono de la bandeja» (cualquier icono,
+      y volver al de K-Desktop; `TrayIcons`). La versión corta (5.0) sale del ensamblado (`AppPaths.ShortVersion`);
+      Acerca de muestra la completa (5.0.0).
+- [x] **Actualizaciones automáticas** (Opciones › Actualizaciones; `Core/Updates/UpdateService`): manifiesto JSON
+      (`version`, `date`, `url` relativa o absoluta, `sha256`, `size`, `notes` por idioma) en una dirección
+      configurable (por defecto `https://kobayashi82.net/kdesktop/latest.json`). Modos: no buscar / avisar /
+      instalarla sola (por defecto). Comprueba al minuto de arrancar y cada 6 h. Descarga a `Updates`, verifica SHA-256
+      y que el exe sea esa versión de K-Desktop, renombra el exe en uso a `*.old`, copia el nuevo y lo arranca con
+      `--after-update <pid> <versión>`: espera a que salga el viejo, borra el `.old` y avisa «Actualizado a…» (sin
+      sonido ni comandos de inicio; los de salida tampoco corren). En modo automático espera a que no se use (ventana
+      cerrada, sin macros, cuentas atrás, voz ni QuickMenus). Solo el portable de un único exe se actualiza solo; los
+      demás abren la descarga. Publicar: subir `<Version>` en Directory.Build.props, publicar el portable y
+      `tools\release\make-update.ps1 -NotesEs "…" -NotesEn "…"` → `artifacts\update\` (exe + latest.json) al VPS.
+      Probado en local de punta a punta (5.0.0 → 5.0.1 con un servidor en 127.0.0.1).
 - [ ] Web: micrófono del móvil como otra fuente de audio de la voz (después de la voz).
       APK solo si hace falta algo que la web no puede (widgets, ajustes rápidos).
 - [ ] Probar la app web en el móvil real a través de Caddy (instalación como PWA, iPhone y Android).

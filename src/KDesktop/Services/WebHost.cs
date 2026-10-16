@@ -25,9 +25,11 @@ public sealed class WebHost(Dispatcher dispatcher, CommandEngine engine, Achieve
 
     public T Invoke<T>(Func<T> func) => dispatcher.CheckAccess() ? func() : dispatcher.Invoke(func);
 
-    public WebIcon? Icon(Command? command, QuickMenuItem? item = null)
+    public WebIcon? Icon(Command? command, QuickMenuItem? item = null, bool light = false)
     {
-        var source = item is not null ? IconProvider.ForMenuItem(item, command) : command is not null ? IconProvider.ForCommand(command) : null;
+        // The web app has its own theme: icons for its background, not for the desktop app's.
+        var source = IconProvider.For(light ? IconProvider.IconBackground.Light : IconProvider.IconBackground.Dark,
+            () => item is not null ? IconProvider.ForMenuItem(item, command) : command is not null ? IconProvider.ForCommand(command) : null);
         if (source is null) return null;
         if (_png.TryGetValue(source, out var cached)) return cached;
         try

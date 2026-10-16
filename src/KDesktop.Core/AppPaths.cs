@@ -4,7 +4,14 @@ namespace KDesktop.Core;
 public static class AppPaths
 {
     public const string AppName = "K-Desktop";
-    public const string VersionName = "K-Desktop 5.0";
+    /// <summary>"5.0": the version as shown everywhere except About (major.minor of the assembly version).</summary>
+    public static string ShortVersion { get; } = typeof(AppPaths).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}" : "5.0";
+
+    /// <summary>"K-Desktop 5.0".</summary>
+    public static string VersionName { get; } = AppName + " " + ShortVersion;
+
+    /// <summary>Name for things that must not change between versions (the firewall rule).</summary>
+    public const string StableName = "K-Desktop 5.0";
 
     private static readonly string DefaultDataDir =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "K-Desktop 5");

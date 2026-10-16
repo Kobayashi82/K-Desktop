@@ -159,6 +159,20 @@
                         </StackPanel>
                     </Grid>
                 </ListBoxItem>
+                <ListBoxItem Tag="updates">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
+                            <ui:SymbolIcon Symbol="ArrowSync24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.nav.updates}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{l:Tr settings.nav.updates.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </ListBoxItem>
             </ListBox>
         </DockPanel>
 
@@ -656,6 +670,55 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.resetAchHint}" />
                         </StackPanel>
                         <ui:Button Grid.Column="1" Margin="12,0,0,0" Appearance="Danger" Content="{l:Tr ach.resetButton}" Icon="{ui:SymbolIcon ArrowReset24}" Click="OnResetAchievements" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Updates -->
+            <Border Style="{StaticResource Card}" Tag="updates">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.updates}" />
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock x:Name="UpdateCurrentText" />
+                            <TextBlock x:Name="UpdateStatusText" Style="{StaticResource Caption}" />
+                        </StackPanel>
+                        <ui:Button x:Name="UpdateCheckButton" Grid.Column="1" Content="{l:Tr updates.check}" Icon="{ui:SymbolIcon ArrowSync24}" Click="OnCheckUpdates" />
+                    </Grid>
+                    <!-- A newer version: what it brings and the button to install it -->
+                    <Border x:Name="UpdatePanel" Style="{StaticResource InfoBox}" Margin="0,4,0,8" Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock x:Name="UpdateTitleText" FontSize="15" FontWeight="SemiBold" />
+                            <TextBlock x:Name="UpdateNotesText" Style="{StaticResource Caption}" Margin="0,6,0,0" TextWrapping="Wrap" />
+                            <ProgressBar x:Name="UpdateProgress" Margin="0,12,0,0" Height="4" Maximum="1" Visibility="Collapsed" />
+                            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                <ui:Button x:Name="UpdateInstallButton" Appearance="Primary" Icon="{ui:SymbolIcon ArrowDownload24}" Click="OnInstallUpdate" />
+                                <ui:Button x:Name="UpdateCancelButton" Margin="8,0,0,0" Content="{l:Tr common.cancel}" Click="OnCancelUpdate" Visibility="Collapsed" />
+                            </StackPanel>
+                            <TextBlock x:Name="UpdatePortableText" Style="{StaticResource Caption}" Margin="0,10,0,0" TextWrapping="Wrap"
+                                       Text="{l:Tr updates.notPortable}" Visibility="Collapsed" />
+                        </StackPanel>
+                    </Border>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr updates.mode}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr updates.modeHint}" />
+                        </StackPanel>
+                        <ComboBox Grid.Column="1" ItemsSource="{x:Static v:Lookups.UpdateModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding UpdateMode}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr updates.url}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr updates.urlHint}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <ui:TextBox Width="340" Text="{Binding UpdateUrl, UpdateSourceTrigger=LostFocus}" />
+                            <ui:Button Margin="8,0,0,0" Icon="{ui:SymbolIcon ArrowReset24}" ToolTip="{l:Tr updates.urlReset}"
+                                       AutomationProperties.Name="{l:Tr updates.urlReset}" Click="OnResetUpdateUrl" />
+                        </StackPanel>
                     </Grid>
                 </StackPanel>
             </Border>

@@ -9,7 +9,7 @@ namespace KDesktop.Core.Remote.Web;
 /// </summary>
 internal static class WebFirewall
 {
-    private static string RuleName => $"{AppPaths.VersionName} (web{AppPaths.InstanceSuffix})";
+    private static string RuleName => $"{AppPaths.StableName} (web{AppPaths.InstanceSuffix})";
 
     private static WebServerOptions? _applied;
 

@@ -3,7 +3,8 @@
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                  xmlns:l="clr-namespace:KDesktop.Localization"
-                 Title="K-Desktop 5.0"
+                 xmlns:core="clr-namespace:KDesktop.Core;assembly=KDesktop.Core"
+                 Title="{x:Static core:AppPaths.VersionName}"
                  Width="1300" Height="840"
                  MinWidth="1000" MinHeight="640"
                  WindowStartupLocation="CenterScreen"
@@ -53,7 +54,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <ui:TitleBar Grid.Row="0" Title="K-Desktop 5.0" ShowHelp="False">
+        <ui:TitleBar Grid.Row="0" Title="{x:Static core:AppPaths.VersionName}" ShowHelp="False">
             <ui:TitleBar.Icon>
                 <ui:ImageIcon Source="pack://application:,,,/KDesktop;component/Assets/Icons/KDesktop.ico" Width="16" Height="16" />
             </ui:TitleBar.Icon>
@@ -71,7 +72,7 @@
                     <Image x:Name="Logo" Width="38" Height="38" RenderOptions.BitmapScalingMode="HighQuality" />
                     <TextBlock Margin="12,0,0,0" VerticalAlignment="Center" FontFamily="Segoe UI Variable Display, Segoe UI">
                         <Run Text="K-Desktop" FontSize="19" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                        <Run Text=" 5.0" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Kd.AccentText}" />
+                        <Run Text=" " /><Run Text="{x:Static core:AppPaths.ShortVersion}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Kd.AccentText}" />
                     </TextBlock>
                 </StackPanel>
 

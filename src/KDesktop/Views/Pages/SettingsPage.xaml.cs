@@ -12,6 +12,7 @@ using KDesktop.Core.Model;
 using KDesktop.Core.Platform;
 using KDesktop.Core.Remote.Web;
 using KDesktop.Core.Storage;
+using KDesktop.Core.Updates;
 using KDesktop.Core.Voice;
 using KDesktop.Services;
 using Microsoft.Win32;
@@ -40,18 +41,22 @@ public partial class SettingsPage : UserControl
         void OnWebState() => Dispatcher.BeginInvoke(UpdateWebState);
         void OnDevices() => Dispatcher.BeginInvoke(LoadDevices);
         void OnVoiceModels() => Dispatcher.BeginInvoke(UpdateVoiceModels);
+        void OnUpdates() => Dispatcher.BeginInvoke(UpdateUpdates);
         LoadVoice();
         Loaded += (_, _) =>
         {
             UpdateWebState();
             LoadDevices();
             UpdateVoiceModels();
+            UpdateUpdates();
+            _app.Updates.Changed += OnUpdates;
             _app.Web.StateChanged += OnWebState;
             _app.Web.Devices.Changed += OnDevices;
             _app.Voice.Models.Changed += OnVoiceModels;
         };
         Unloaded += (_, _) =>
         {
+            _app.Updates.Changed -= OnUpdates;
             _app.Web.StateChanged -= OnWebState;
             _app.Web.Devices.Changed -= OnDevices;
             _app.Voice.Models.Changed -= OnVoiceModels;
@@ -274,6 +279,53 @@ public partial class SettingsPage : UserControl
     private void LoadLanguages() =>
         LanguageBox.ItemsSource = new[] { new LanguageOption(null, Loc.T("settings.languageSystem")) }
             .Concat(Loc.Available().Select(l => new LanguageOption(l.Code, l.Name))).ToList();
+
+    // ── updates ──────────────────────────────────────────────────────────
+
+    private void UpdateUpdates()
+    {
+        var u = _app.Updates;
+        UpdateCurrentText.Text = Loc.T("updates.current", UpdateService.CurrentVersion.ToString(3));
+        UpdateStatusText.Text = u.State switch
+        {
+            UpdateState.Checking => Loc.T("updates.checking"),
+            UpdateState.UpToDate => Loc.T("updates.upToDate") + LastCheck(),
+            UpdateState.Error => Loc.T("updates.error", u.Error ?? "?") + LastCheck(),
+            UpdateState.Available or UpdateState.Downloading or UpdateState.Ready when u.Available is { } a => Loc.T("updates.available", a.Version.ToString(3)),
+            _ => u.LastCheck is null ? string.Empty : LastCheck().TrimStart(' ', '·'),
+        };
+        UpdateCheckButton.IsEnabled = u.State is not (UpdateState.Checking or UpdateState.Downloading);
+
+        var info = u.Available;
+        UpdatePanel.Visibility = info is not null && u.State is UpdateState.Available or UpdateState.Downloading or UpdateState.Ready
+            ? Visibility.Visible : Visibility.Collapsed;
+        if (info is null) return;
+        UpdateTitleText.Text = info.Date is { } date
+            ? Loc.T("updates.availableDate", info.Version.ToString(3), date.ToString("d", Loc.Instance.Culture))
+            : Loc.T("updates.available", info.Version.ToString(3));
+        UpdateNotesText.Text = info.Notes ?? string.Empty;
+        UpdateNotesText.Visibility = string.IsNullOrWhiteSpace(info.Notes) ? Visibility.Collapsed : Visibility.Visible;
+        var downloading = u.State == UpdateState.Downloading;
+        UpdateProgress.Visibility = downloading ? Visibility.Visible : Visibility.Collapsed;
+        UpdateProgress.Value = u.Progress;
+        UpdateCancelButton.Visibility = downloading ? Visibility.Visible : Visibility.Collapsed;
+        UpdatePortableText.Visibility = UpdateService.CanInstall ? Visibility.Collapsed : Visibility.Visible;
+        UpdateInstallButton.IsEnabled = !downloading;
+        UpdateInstallButton.Content = !UpdateService.CanInstall ? Loc.T("updates.openDownload")
+            : downloading ? Loc.T("updates.downloading", u.Progress.ToString("P0", Loc.Instance.Culture))
+            : Loc.T("updates.install");
+    }
+
+    private string LastCheck() =>
+        _app.Updates.LastCheck is { } t ? " · " + Loc.T("updates.lastCheck", t.ToString("g", Loc.Instance.Culture)) : string.Empty;
+
+    private void OnCheckUpdates(object sender, RoutedEventArgs e) => _ = _app.CheckForUpdatesAsync(manual: true);
+
+    private void OnInstallUpdate(object sender, RoutedEventArgs e) => _ = _app.InstallUpdateAsync();
+
+    private void OnCancelUpdate(object sender, RoutedEventArgs e) => _app.Updates.CancelDownload();
+
+    private void OnResetUpdateUrl(object sender, RoutedEventArgs e) => _app.Config.Settings.UpdateUrl = AppSettings.DefaultUpdateUrl;
 
     private void UpdateTrayImage()
     {

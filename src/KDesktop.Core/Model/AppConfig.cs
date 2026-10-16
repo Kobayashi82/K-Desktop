@@ -56,6 +56,9 @@ public sealed class AppConfig
 public enum OsdPosition { BottomCenter, TopCenter, Center, BottomRight, TopRight }
 public enum AppTheme { System, Dark, Light }
 
+/// <summary>What K-Desktop does about new versions.</summary>
+public enum UpdateMode { Off, Notify, Auto }
+
 public partial class AppSettings : ObservableObject
 {
     // Appearance
@@ -89,6 +92,15 @@ public partial class AppSettings : ObservableObject
 
     /// <summary>Main window position and size when it was last closed: "left,top,width,height[,max]" (DIPs, invariant).</summary>
     [ObservableProperty] private string? _windowBounds;
+
+    // Updates
+    /// <summary>Off: never checks; Notify: checks and tells; Auto: also downloads and installs (restarting when idle).</summary>
+    [ObservableProperty] private UpdateMode _updateMode = UpdateMode.Auto;
+
+    /// <summary>The update manifest (JSON) to check; see UpdateService.</summary>
+    [ObservableProperty] private string _updateUrl = DefaultUpdateUrl;
+
+    public const string DefaultUpdateUrl = "https://kobayashi82.net/kdesktop/latest.json";
 
     // Achievements
     [ObservableProperty] private bool _achievementNotifications = true;

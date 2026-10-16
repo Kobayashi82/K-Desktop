@@ -15,7 +15,8 @@ public interface IWebHost
     T Invoke<T>(Func<T> func);
 
     /// <summary>Icon of a command or of a QuickMenu item (UI thread). Null when it has none.</summary>
-    WebIcon? Icon(Command? command, QuickMenuItem? item = null);
+    /// <param name="light">For a light background (white glyph icons are shown inverted), else for a dark one.</param>
+    WebIcon? Icon(Command? command, QuickMenuItem? item = null, bool light = false);
 
     /// <summary>How many times each command has run (by id), to rank search results.</summary>
     IReadOnlyDictionary<string, long> Runs();
