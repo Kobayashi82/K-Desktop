@@ -65,4 +65,27 @@ public sealed class FileEventTests : IDisposable
         Assert.Equal(1, runs);
         Assert.NotNull(rule.LastFired);
     }
+
+    [Fact]
+    public async Task UdpCallFiresTheEvent()
+    {
+        var store = new ConfigStore();
+        var command = new Command { Name = "door" };
+        command.Actions.Add(new WaitAction { Seconds = 0 });
+        store.Config.Commands.Add(command);
+        var rule = new EventRule { Name = "Puerta", Trigger = new RemoteCallTrigger() };
+        rule.Commands.Add(command.Id);
+        store.Config.Events.Add(rule);
+        var engine = new CommandEngine(store, new FakeUi());
+        var runs = 0;
+        engine.Executed += (_, s) => { if (s == TriggerSource.Event) Interlocked.Increment(ref runs); };
+        using var service = new EventService(engine, new FakeUi(), () => store.Config, new EventState(Path.Combine(_dir, "state.json")));
+        service.Start(afterUpdate: false);
+        var udp = new KDesktop.Core.Remote.UdpServer(engine, new FakeUi());
+
+        Assert.Contains("(done)", udp.Handle("evento puerta"));
+        Assert.Contains("Ningún", udp.Handle("evento ventana"));
+        for (var i = 0; i < 30 && runs == 0; i++) await Task.Delay(100);
+        Assert.Equal(1, runs);
+    }
 }

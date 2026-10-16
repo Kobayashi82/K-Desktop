@@ -48,6 +48,12 @@ public sealed partial class CommandEngine
     /// <summary>An event fired (true: its «Al terminar» commands), before its commands run (statistics, «last time»).</summary>
     public event Action<EventRule, bool, TriggerSource>? EventFired;
 
+    /// <summary>
+    /// «Llamada remota»: fires the events that answer to <c>name</c> and says how many (set by the EventService; UDP and the
+    /// web call it).
+    /// </summary>
+    public Func<string, string, int>? RemoteCall { get; set; }
+
     /// <summary>Raised when an action of a command is about to run (statistics).</summary>
     public event Action<CommandAction, ExecutionContext>? ActionStarting;
 

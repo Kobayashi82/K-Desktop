@@ -88,6 +88,7 @@ public sealed class EventService : IDisposable
         _config = config;
         _state = state ?? new EventState(EventState.DefaultFile);
         _engine.EventFired += OnEventFired;
+        _engine.RemoteCall = FireRemoteCall;
     }
 
     /// <summary>
@@ -154,6 +155,19 @@ public sealed class EventService : IDisposable
 
     /// <summary>Runs an event now from a command, the command line…: no conditions, but not while paused.</summary>
     public Task RunNowAsync(EventRule rule, TriggerSource source) => _engine.RunEventAsync(rule, false, source);
+
+    /// <summary>
+    /// «Llamada remota»: fires the enabled events that answer to <paramref name="name"/> (with their conditions,
+    /// «no repetir» and the pause like any other). Returns how many there were.
+    /// </summary>
+    public int FireRemoteCall(string name, string from)
+    {
+        List<EventRule> rules;
+        lock (_lock) rules = Rules<RemoteCallTrigger>().Where(r => r.Trigger.Answers(name, r.Rule)).Select(r => r.Rule).ToList();
+        Log.Info($"Eventos: llamada «{name}» desde {from}: {(rules.Count == 0 ? "ningún evento la espera" : string.Join(", ", rules.Select(r => r.Name)))}");
+        foreach (var rule in rules) Fire(rule, false);
+        return rules.Count;
+    }
 
     /// <summary>Stopped for a while because it fired too often (a loop).</summary>
     public bool IsSuspended(EventRule rule) => _guard.IsSuspended(rule.Id, DateTime.UtcNow);
@@ -795,6 +809,7 @@ public sealed class EventService : IDisposable
         }
         _watcher?.Dispose();
         _engine.EventFired -= OnEventFired;
+        if (_engine.RemoteCall == FireRemoteCall) _engine.RemoteCall = null;
         if (NeedsHeartbeat()) _state.Seen(DateTime.UtcNow, save: false);
         _state.Dispose();
     }

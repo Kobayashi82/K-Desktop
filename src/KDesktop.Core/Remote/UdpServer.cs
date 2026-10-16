@@ -183,6 +183,14 @@ public sealed class UdpServer : IDisposable
             return $"SendKey [{keys}] (done)";
         }
 
+        // «Llamada remota» event.
+        if (lower.StartsWith("evento ", StringComparison.Ordinal) || lower.StartsWith("event ", StringComparison.Ordinal))
+        {
+            var name = text[(text.IndexOf(' ') + 1)..].Trim();
+            var fired = _engine.RemoteCall?.Invoke(name, "UDP") ?? 0;
+            return fired > 0 ? $"Evento [{name}] (done)" : $"Evento [{name}]\r\nNingún evento espera esa llamada";
+        }
+
         // Built-in by name.
         for (var b = 0; b < BuiltIns.Length; b++)
         {
@@ -217,6 +225,7 @@ public sealed class UdpServer : IDisposable
         sb.Append("\r\n[0] - Comandos, Lista, List");
         for (var i = 0; i < BuiltIns.Length; i++) sb.Append($"\r\n[{i + 1}] - {BuiltIns[i].Name}");
         sb.Append("\r\n\r\nSendKey [Letra], SK [Letra]");
+        sb.Append("\r\nEvento [Nombre]");
         sb.Append("\r\n\r\n---------------[COMANDOS]---------------\r\n");
         for (var i = 0; i < remote.Count; i++) sb.Append($"\r\n[{FirstCommandIndex + i}] - {remote[i].Name}");
         return sb.ToString();

@@ -93,4 +93,16 @@ public class EventGuardTests
         Assert.False(t.Matches("Altavoces (Realtek Audio)"));
         Assert.True(new KDesktop.Core.Model.AudioDeviceTrigger().Matches("Lo que sea"));
     }
+
+    [Fact]
+    public void RemoteCallNames()
+    {
+        var rule = new KDesktop.Core.Model.EventRule { Name = "Puerta Garaje" };
+        var byRule = new KDesktop.Core.Model.RemoteCallTrigger();
+        Assert.True(byRule.Answers(" puerta garaje ", rule));
+        Assert.False(byRule.Answers("puerta", rule));
+        var own = new KDesktop.Core.Model.RemoteCallTrigger { Name = "Música" };
+        Assert.True(own.Answers("musica", rule));
+        Assert.False(own.Answers("Puerta Garaje", rule));
+    }
 }

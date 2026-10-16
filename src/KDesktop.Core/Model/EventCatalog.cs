@@ -34,6 +34,7 @@ public static class EventCatalog
         new(EventKind.Device, "UsbStick24", "gray", () => new DriveTrigger()),
         new(EventKind.Network, "Wifi124", "teal", () => new NetworkTrigger()),
         new(EventKind.File, "DocumentAdd24", "yellow", () => new FileTrigger()),
+        new(EventKind.RemoteCall, "PlugConnected24", "pink", () => new RemoteCallTrigger()),
     ];
 
     private static readonly Dictionary<EventKind, EventKindInfo> ByKind = All.ToDictionary(k => k.Kind);

@@ -227,6 +227,7 @@ public enum EventKind
 {
     AppStart, AppExit, Time, Interval, ProcessStart, Foreground, Idle, Session,
     AudioDevice, Device, Network, PowerSource, File,
+    RemoteCall,
 }
 
 public enum SessionEvent { Lock, Unlock, Suspend, Resume }
@@ -255,6 +256,7 @@ public enum AudioDeviceEvent { Connected, BecomesDefault }
 [JsonDerivedType(typeof(DriveTrigger), "drive")]
 [JsonDerivedType(typeof(NetworkTrigger), "network")]
 [JsonDerivedType(typeof(AudioDeviceTrigger), "audioDevice")]
+[JsonDerivedType(typeof(RemoteCallTrigger), "remoteCall")]
 public abstract partial class EventTrigger : ObservableObject
 {
     [JsonIgnore] public abstract EventKind Kind { get; }
@@ -503,5 +505,26 @@ public sealed partial class AudioDeviceTrigger : EventTrigger
         if (string.IsNullOrWhiteSpace(Name)) return true;
         var folded = new string(deviceName.Select(Engine.FuzzyMatch.Fold).ToArray());
         return Engine.FuzzyMatch.Tokens(Name).All(token => folded.Contains(token, StringComparison.Ordinal));
+    }
+}
+
+/// <summary>
+/// Something outside asks for it by name: a UDP message «evento nombre» (the remote control port) or POST api/event
+/// {"name": "nombre"} to the web server. Home Assistant, a script, another PC…
+/// </summary>
+public sealed partial class RemoteCallTrigger : EventTrigger
+{
+    /// <summary>The name to call it by; empty = the event's own name.</summary>
+    [ObservableProperty] private string _name = string.Empty;
+
+    public override EventKind Kind => EventKind.RemoteCall;
+    public override string Summary => Loc.T("event.summary.remoteCall", string.IsNullOrWhiteSpace(Name) ? "…" : Name.Trim());
+
+    /// <summary>Whether a call named <paramref name="call"/> is for <paramref name="rule"/> (no case, no accents).</summary>
+    public bool Answers(string call, EventRule rule)
+    {
+        var name = string.IsNullOrWhiteSpace(Name) ? rule.Name : Name;
+        static string Fold(string s) => new(s.Trim().Select(Engine.FuzzyMatch.Fold).ToArray());
+        return Fold(name).Length > 0 && Fold(name) == Fold(call);
     }
 }

@@ -206,6 +206,18 @@
                 </StackPanel>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type m:RemoteCallTrigger}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.callName}" />
+                    <ui:TextBox Width="280" HorizontalAlignment="Left" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr event.callPlaceholder}"
+                                Icon="{ui:SymbolIcon PlugConnected24}" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,8,0,0" TextWrapping="Wrap" Text="{l:Tr event.hint.remoteCall}" />
+                    <TextBox Margin="0,8,0,0" IsReadOnly="True" BorderThickness="0" Background="Transparent" TextWrapping="Wrap"
+                             FontFamily="Cascadia Mono, Consolas" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                             Text="{l:Tr event.hint.remoteCallExamples}" />
+                </StackPanel>
+            </DataTemplate>
+
             <!-- A command of «Ejecutar» / «Al terminar» -->
             <DataTemplate x:Key="CommandRow">
                 <Grid>

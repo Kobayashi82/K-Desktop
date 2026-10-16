@@ -95,6 +95,9 @@ public sealed partial class WebServer
             case ("POST", "/api/run"):
                 await RunAsync(context).ConfigureAwait(false);
                 break;
+            case ("POST", "/api/event"):
+                await RemoteEventAsync(context, request).ConfigureAwait(false);
+                break;
             case ("POST", "/api/voice"):
                 await VoiceAsync(context).ConfigureAwait(false);
                 break;
@@ -128,6 +131,15 @@ public sealed partial class WebServer
         }
         SetTokenCookie(context.Response, request, token);
         await WriteJsonAsync(context.Response, new { token, device = new { device.Id, device.Name } }).ConfigureAwait(false);
+    }
+
+    /// <summary>«Llamada remota»: {"name": "…"} fires the events waiting for it. 404 when none is.</summary>
+    private async Task RemoteEventAsync(HttpListenerContext context, WebRequest request)
+    {
+        var body = await ReadJsonAsync(context.Request).ConfigureAwait(false);
+        var name = (Str(body, "name") ?? string.Empty).Trim();
+        var fired = name.Length == 0 ? 0 : _host.Engine.RemoteCall?.Invoke(name, "web " + request.ClientIp) ?? 0;
+        await WriteJsonAsync(context.Response, new { fired }, fired > 0 ? 200 : 404).ConfigureAwait(false);
     }
 
     /// <summary>Runs a command and answers with what happened (or "running" when it takes long).</summary>
