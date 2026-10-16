@@ -678,7 +678,6 @@ function toggleKeyboard() {
   buzz(5);
   if (noTouch()) {
     setVk(document.getElementById('vk').hidden);
-    if (!document.getElementById('vk').hidden) setKeysPanel(true);
     return;
   }
   // Focused but the keyboard closed (Android's back button): open it again instead.
@@ -689,8 +688,7 @@ function toggleKeyboard() {
   input.blur();
   resetKb();
   input.focus({ preventScroll: true });
-  // The extra keys come with the keyboard.
-  setKeysPanel(true);
+  // The special keys have a button of their own: each button opens and closes only its panel.
 }
 
 function setKeysPanel(on) {
