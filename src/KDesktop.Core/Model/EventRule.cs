@@ -246,6 +246,7 @@ public enum PowerSource { Battery, Mains }
 [JsonDerivedType(typeof(SessionTrigger), "session")]
 [JsonDerivedType(typeof(PowerSourceTrigger), "powerSource")]
 [JsonDerivedType(typeof(FileTrigger), "file")]
+[JsonDerivedType(typeof(DriveTrigger), "drive")]
 public abstract partial class EventTrigger : ObservableObject
 {
     [JsonIgnore] public abstract EventKind Kind { get; }
@@ -406,5 +407,30 @@ public sealed partial class FileTrigger : EventTrigger
             var filter = string.IsNullOrWhiteSpace(Filter) || Filter.Trim() == "*" ? string.Empty : " (" + Filter.Trim() + ")";
             return Loc.T("event.summary.file", folder.Length == 0 ? "?" : folder) + filter;
         }
+    }
+}
+
+/// <summary>A drive is connected (USB stick, disk, memory card…); it ends when it is removed.</summary>
+public sealed partial class DriveTrigger : EventTrigger
+{
+    /// <summary>A letter («E:») or part of the drive's name («Kingston»); empty = any.</summary>
+    [ObservableProperty] private string _filter = string.Empty;
+
+    public override EventKind Kind => EventKind.Device;
+    public override bool HasEnd => true;
+    public override int DefaultCooldown => 2;
+    public override string Summary => string.IsNullOrWhiteSpace(Filter) ? Loc.T("event.summary.driveAny") : Loc.T("event.summary.drive", Filter.Trim());
+
+    /// <summary>Whether the drive (its letter and its name, if known) is the one asked for.</summary>
+    public static bool Matches(string filter, char letter, string? label)
+    {
+        filter = filter.Trim();
+        if (filter.Length == 0) return true;
+        var asLetter = filter.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar, ':');
+        if (asLetter.Length == 1 && char.IsLetter(asLetter[0])) return char.ToUpperInvariant(asLetter[0]) == char.ToUpperInvariant(letter);
+        if (string.IsNullOrEmpty(label)) return false;
+        var tokens = Engine.FuzzyMatch.Tokens(filter);
+        var folded = new string(label.Select(Engine.FuzzyMatch.Fold).ToArray());
+        return tokens.All(token => folded.Contains(token, StringComparison.Ordinal));
     }
 }

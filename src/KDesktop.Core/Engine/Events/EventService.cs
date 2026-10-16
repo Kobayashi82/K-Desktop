@@ -61,6 +61,9 @@ public sealed class EventService : IDisposable
     private readonly Dictionary<string, FileSystemWatcher> _fileWatchers = new(StringComparer.Ordinal);
     private readonly HashSet<string> _settling = new(StringComparer.OrdinalIgnoreCase);
 
+    // «Unidad conectada»: letters that matched each event when they arrived
+    private readonly Dictionary<string, HashSet<char>> _drives = new(StringComparer.Ordinal);
+
     // «Sin usar el PC»
     private Timer? _idleTimer;
     private readonly Dictionary<string, bool> _idleActive = new(StringComparer.Ordinal);
@@ -120,6 +123,7 @@ public sealed class EventService : IDisposable
         _foregroundActive.Remove(id);
         _foregroundGroups.Remove(id);
         if (_fileWatchers.Remove(id, out var watcher)) watcher.Dispose();
+        _drives.Remove(id);
         _guard.Reset(id);
     }
 
@@ -533,7 +537,9 @@ public sealed class EventService : IDisposable
         var foreground = _foregroundGroups.Count > 0;
         var session = Rules<SessionTrigger>().Any();
         var power = Rules<PowerSourceTrigger>().Any();
-        if (!foreground && !session && !power)
+        var drives = Rules<DriveTrigger>().Any();
+        if (!drives) _drives.Clear();
+        if (!foreground && !session && !power && !drives)
         {
             _watcher?.Dispose();
             _watcher = null;
@@ -545,6 +551,7 @@ public sealed class EventService : IDisposable
             _watcher.ForegroundChanged += OnForegroundChanged;
             _watcher.SessionChanged = OnSession;
             _watcher.PowerSourceChanged += OnPowerSource;
+            _watcher.DriveChanged += OnDriveChanged;
         }
         _watcher.WatchForeground(foreground);
         _watcher.WatchPower(power);
@@ -572,6 +579,36 @@ public sealed class EventService : IDisposable
         lock (_lock) rules = Rules<PowerSourceTrigger>().Where(r => r.Trigger.Source == source).Select(r => r.Rule).ToList();
         Log.Info($"Eventos: el PC pasa a {(battery ? "batería" : "corriente")}");
         foreach (var rule in rules) Fire(rule, false);
+    }
+
+    private void OnDriveChanged(char letter, bool arrived)
+    {
+        // The name is read off the watcher's thread: a new drive may take a moment to answer.
+        _ = Task.Run(() =>
+        {
+            string? label = null;
+            if (arrived)
+            {
+                try
+                {
+                    var drive = new DriveInfo(letter + ":\\");
+                    label = drive.IsReady ? drive.VolumeLabel : null;
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException) { }
+            }
+            Log.Info($"Eventos: unidad {letter}: {(arrived ? "conectada" : "retirada")}{(string.IsNullOrEmpty(label) ? "" : $" ({label})")}");
+            List<(EventRule Rule, bool End)> fire = [];
+            lock (_lock)
+            {
+                foreach (var (rule, t) in Rules<DriveTrigger>())
+                {
+                    if (!_drives.TryGetValue(rule.Id, out var letters)) _drives[rule.Id] = letters = [];
+                    if (arrived && DriveTrigger.Matches(t.Filter, letter, label) && letters.Add(letter)) fire.Add((rule, false));
+                    else if (!arrived && letters.Remove(letter)) fire.Add((rule, true));
+                }
+            }
+            foreach (var (rule, end) in fire) Fire(rule, end);
+        });
     }
 
     private static string[] Normalize(IEnumerable<string> processes) =>

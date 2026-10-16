@@ -45,4 +45,16 @@ public class EventGuardTests
         for (var i = 0; i < 50; i++)
             Assert.Equal(EventGuard.Verdict.Run, guard.TryFire("a", 0, T0.AddSeconds(i * 7)));
     }
+
+    [Theory]
+    [InlineData("", 'E', null, true)]
+    [InlineData("E:", 'E', "USB", true)]
+    [InlineData("e", 'E', null, true)]
+    [InlineData("E:\\", 'F', "USB", false)]
+    [InlineData("kingston", 'F', "KINGSTON 64", true)]
+    [InlineData("música", 'G', "Musica", true)]
+    [InlineData("sandisk", 'F', "KINGSTON", false)]
+    [InlineData("sandisk", 'F', null, false)]
+    public void DriveFilter(string filter, char letter, string? label, bool expected) =>
+        Assert.Equal(expected, KDesktop.Core.Model.DriveTrigger.Matches(filter, letter, label));
 }

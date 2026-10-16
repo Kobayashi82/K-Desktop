@@ -11,6 +11,8 @@ namespace KDesktop.Core.Platform;
 /// </summary>
 public sealed class SystemWatcher : IDisposable
 {
+    private const uint WM_DEVICECHANGE = 0x0219;
+    private const int DBT_DEVICEARRIVAL = 0x8000, DBT_DEVICEREMOVECOMPLETE = 0x8004, DBT_DEVTYP_VOLUME = 2;
     private const uint WM_CLOSE = 0x0010, WM_WTSSESSION_CHANGE = 0x02B1, WM_POWERBROADCAST = 0x0218, WM_SETFOREGROUNDHOOK = 0x8001, WM_SETPOWERWATCH = 0x8002;
     private const int WTS_SESSION_LOCK = 7, WTS_SESSION_UNLOCK = 8;
     private const int PBT_APMSUSPEND = 4, PBT_APMRESUMESUSPEND = 7, PBT_APMRESUMEAUTOMATIC = 0x12, PBT_POWERSETTINGCHANGE = 0x8013;
@@ -45,6 +47,9 @@ public sealed class SystemWatcher : IDisposable
         _thread.Start();
         _ready.Wait(TimeSpan.FromSeconds(3));
     }
+
+    /// <summary>A drive letter appeared (true) or went away (false): USB sticks, disks, cards, discs.</summary>
+    public event Action<char, bool>? DriveChanged;
 
     /// <summary>The PC went on battery (true) or on mains power (false).</summary>
     public event Action<bool>? PowerSourceChanged;
@@ -119,6 +124,16 @@ public sealed class SystemWatcher : IDisposable
                         _onBattery = -1;
                     }
                     return IntPtr.Zero;
+
+                case WM_DEVICECHANGE when (int)wParam is DBT_DEVICEARRIVAL or DBT_DEVICEREMOVECOMPLETE && lParam != IntPtr.Zero:
+                    // DEV_BROADCAST_HDR { size, devicetype, reserved } then, for a volume, the mask of its letters.
+                    if (Marshal.ReadInt32(lParam, 4) == DBT_DEVTYP_VOLUME)
+                    {
+                        var mask = (uint)Marshal.ReadInt32(lParam, 12);
+                        for (var i = 0; i < 26; i++)
+                            if ((mask & (1u << i)) != 0) DriveChanged?.Invoke((char)('A' + i), (int)wParam == DBT_DEVICEARRIVAL);
+                    }
+                    return 1;
 
                 case WM_WTSSESSION_CHANGE:
                     if ((int)wParam == WTS_SESSION_LOCK) Raise(SessionEvent.Lock);

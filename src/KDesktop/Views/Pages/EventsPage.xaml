@@ -148,6 +148,15 @@
                 </StackPanel>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type m:DriveTrigger}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.drive}" />
+                    <ui:TextBox Width="280" HorizontalAlignment="Left" Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr event.drivePlaceholder}"
+                                Icon="{ui:SymbolIcon UsbStick24}" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" TextWrapping="Wrap" Text="{l:Tr event.hint.drive}" />
+                </StackPanel>
+            </DataTemplate>
+
             <!-- A command of «Ejecutar» / «Al terminar» -->
             <DataTemplate x:Key="CommandRow">
                 <Grid>
