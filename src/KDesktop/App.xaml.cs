@@ -416,6 +416,7 @@ public partial class App : Application
         var s = Config.Settings;
         // Paused, the replay doesn't keep listening either.
         Engine.Recording.ConfigureReplay(s.AudioReplay && !s.Paused, s.AudioReplaySeconds, s.AudioReplaySource);
+        Engine.Magnifier.Configure(s.ZoomMode, s.ZoomLensSize);
         if (s.Theme != _appliedTheme)
         {
             _appliedTheme = s.Theme;

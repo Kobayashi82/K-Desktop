@@ -416,6 +416,12 @@ public partial class AudioRecordAction : CommandAction
 
 // ── Lupa ──────────────────────────────────────────────────────────────────
 
+/// <summary>«Lupa»: a lens around the mouse, or the whole main monitor enlarged.</summary>
+public enum ZoomMode { Lens, FullScreen }
+
+/// <summary>How big the lens is.</summary>
+public enum ZoomLensSize { Small, Medium, Large }
+
 /// <summary>Zooms the screen around the mouse (it follows it), or takes the zoom away.</summary>
 public partial class MagnifierAction : CommandAction
 {

@@ -470,6 +470,10 @@ sin tener que abrir Ajustes. Lo que se ejecuta al arrancar K-Desktop está en Ev
       bajo el ratón se queda bajo el ratón, así los clics caen donde se ve. Solo el monitor principal. Acción «Lupa» y
       botón en el touchpad de la web/app (− ×2 + flotando en el touchpad mientras está encendida; el PC avisa del
       estado por el WebSocket: z {on, z}).
+- [x] 5.0.33: la **Lupa** es por defecto una **lente** alrededor del ratón (ventana propia con el control «Magnifier» de
+      Windows, transparente a los clics, borde dorado redondeado, se excluye a sí misma con MagSetWindowFilterList;
+      tamaño pequeña/mediana/grande); la pantalla completa queda como opción (Opciones › Capturas y lupa). Probada de
+      verdad: amplía y queda anclada al puntero.
 - Vídeo (grabación de pantalla / repetición de vídeo): no hecho, a la espera de que se vaya a usar de verdad.
 - Sin probar con efecto real: arrastrar en el selector de región (el velo se abre y cancela bien), la lupa ampliando
   de verdad (Windows acepta la API), grabar con el micrófono.

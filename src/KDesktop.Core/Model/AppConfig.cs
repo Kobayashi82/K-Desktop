@@ -211,6 +211,8 @@ public partial class AppSettings : ObservableObject
 
     /// <summary>«Lupa»: how much it zooms (the web app and actions without their own level).</summary>
     [ObservableProperty] private double _zoomLevel = 2;
+    [ObservableProperty] private ZoomMode _zoomMode = ZoomMode.Lens;
+    [ObservableProperty] private ZoomLensSize _zoomLensSize = ZoomLensSize.Medium;
 
     /// <summary>Icon of the notification-area (tray) icon, as command icons are stored; null or empty: K-Desktop's own.</summary>
     [ObservableProperty] private string? _trayIcon;

@@ -45,6 +45,8 @@ public static class Lookups
     public static IReadOnlyList<Option<CaptureArea>> CaptureAreas { get; } = Enum<CaptureArea>("enum.captureArea");
     public static IReadOnlyList<Option<RecordMode>> RecordModes { get; } = Enum<RecordMode>("enum.recordMode");
     public static IReadOnlyList<Option<AudioSource>> AudioSources { get; } = Enum<AudioSource>("enum.audioSource");
+    public static IReadOnlyList<Option<ZoomMode>> ZoomModes { get; } = Enum<ZoomMode>("enum.zoomMode");
+    public static IReadOnlyList<Option<ZoomLensSize>> ZoomLensSizes { get; } = Enum<ZoomLensSize>("enum.zoomLensSize");
 
     /// <summary>Zoom levels of «Lupa» (Settings).</summary>
     public static IReadOnlyList<Option<double>> ZoomLevels { get; } =

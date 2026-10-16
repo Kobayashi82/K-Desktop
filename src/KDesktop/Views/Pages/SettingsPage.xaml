@@ -1028,6 +1028,16 @@
                         </StackPanel>
                         <ComboBox Grid.Column="1" Width="120" ItemsSource="{x:Static v:Lookups.ZoomLevels}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding ZoomLevel}" />
                     </Grid>
+                    <WrapPanel Margin="0,4,0,0">
+                        <StackPanel Margin="0,0,12,0">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.zoomMode}" />
+                            <ComboBox Width="280" ItemsSource="{x:Static v:Lookups.ZoomModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding ZoomMode}" />
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.zoomLensSize}" />
+                            <ComboBox Width="200" ItemsSource="{x:Static v:Lookups.ZoomLensSizes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding ZoomLensSize}" />
+                        </StackPanel>
+                    </WrapPanel>
                 </StackPanel>
             </Border>
 
