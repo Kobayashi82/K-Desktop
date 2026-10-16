@@ -79,7 +79,7 @@ const state = {
   catalog: store.get('catalog', null),
   catalogJson: '',
   session: null,
-  tab: store.get('tab', 'menus'),
+  tab: store.get('tab', 'all'),
   menuId: store.get('menu', null),
   path: [],          // ids of the open submenus
   lastLoad: 0,
@@ -177,7 +177,7 @@ function movePill(pill, target) {
 
 // ── tabs ───────────────────────────────────────────────────────────
 
-const TABS = ['menus', 'all', 'pad', 'audio', 'settings'];
+const TABS = ['all', 'menus', 'pad', 'audio', 'settings'];
 
 function setTitles() {
   const title = t('pwa.tab.' + state.tab);
@@ -186,7 +186,7 @@ function setTitles() {
 }
 
 function setTab(tab) {
-  if (!TABS.includes(tab)) tab = 'menus';
+  if (!TABS.includes(tab)) tab = 'all';
   const back = TABS.indexOf(tab) < TABS.indexOf(state.tab);
   state.tab = tab;
   store.set('tab', tab);

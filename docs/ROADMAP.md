@@ -125,7 +125,7 @@
       en los recursos de la aplicación porque WPF-UI escribe ahí algunas claves), texto oscuro en los botones dorados
       y los iconos propios casi blancos y sin color (también favicons y carpetas con icono propio) se invierten en el
       tema claro (`IconProvider.Theme.cs`; la web pide la variante de su propio tema: `icon` / `iconLight`).
-- [x] **Icono nuevo** (squircle dorado con una K y una chispa), generado en vectores por `tools\icon\make-icon.ps1`
+- [x] **Icono nuevo** (squircle dorado con una K), generado en vectores por `tools\icon\make-icon.ps1`
       (ico 16…256, PNG de la web y capas para Android). Opciones › Apariencia › «Icono de la bandeja» (cualquier icono,
       y volver al de K-Desktop; `TrayIcons`). La versión corta (5.0) sale del ensamblado (`AppPaths.ShortVersion`);
       Acerca de muestra la completa (5.0.0).

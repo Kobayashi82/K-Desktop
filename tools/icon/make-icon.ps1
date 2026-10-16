@@ -3,7 +3,7 @@
     src\KDesktop\Assets\Icons\KDesktop.ico      exe, windows and tray (16…256 px)
     src\KDesktop.Core\Web\icons\*.png          web app / PWA
     tools\icon\out\*.png                       other sizes (Android launcher icons, previews)
-  Design: a gold squircle (the app's accent) with a dark geometric "K"; the K's upper arm ends in a spark.
+  Design: a gold squircle (the app's accent) with a dark geometric "K".
   Run: powershell -ExecutionPolicy Bypass -File tools\icon\make-icon.ps1
 #>
 param([string]$Root = (Resolve-Path "$PSScriptRoot\..\.."))
@@ -15,7 +15,6 @@ function Color($hex) { [System.Windows.Media.ColorConverter]::ConvertFromString(
 # Draws the icon on a 256-unit canvas. $full: square background to the edges (maskable / apple-touch), $small: bolder
 # strokes and less margin for 16-24 px.
 function Draw-Icon([System.Windows.Media.DrawingContext]$dc, [bool]$full, [bool]$small, [double]$glyphScale = 1.0) {
-  $W = [System.Windows.Media.Brushes]::White
   $m = if ($full) { 0 } elseif ($small) { 4 } else { 12 }
   $r = if ($full) { 0 } elseif ($small) { 52 } else { 58 }
   $rect = New-Object System.Windows.Rect($m, $m, (256 - 2 * $m), (256 - 2 * $m))
@@ -52,19 +51,6 @@ function Draw-Icon([System.Windows.Media.DrawingContext]$dc, [bool]$full, [bool]
   # upper arm, from the stem up to the right; the lower leg leaves from a third of the way along it
   $dc.DrawLine($pen, (New-Object System.Windows.Point(88, 150)), (New-Object System.Windows.Point(166, 74)))
   $dc.DrawLine($pen, (New-Object System.Windows.Point(116, 123)), (New-Object System.Windows.Point(170, 186)))
-  if (-not $small) {
-    # spark at the tip of the upper arm: a four-point star in white
-    $g = New-Object System.Windows.Media.StreamGeometry
-    $ctx = $g.Open()
-    $cx = 202; $cy = 56; $R = 19; $k = 4.5
-    $ctx.BeginFigure((New-Object System.Windows.Point($cx, ($cy - $R))), $true, $true)
-    $pts = @(
-      @(($cx + $k), ($cy - $k)), @(($cx + $R), $cy), @(($cx + $k), ($cy + $k)), @($cx, ($cy + $R)),
-      @(($cx - $k), ($cy + $k)), @(($cx - $R), $cy), @(($cx - $k), ($cy - $k)))
-    foreach ($p in $pts) { $ctx.LineTo((New-Object System.Windows.Point($p[0], $p[1])), $true, $true) }
-    $ctx.Close(); $g.Freeze()
-    $dc.DrawGeometry($W, $null, $g)
-  }
   $dc.Pop()
 }
 
