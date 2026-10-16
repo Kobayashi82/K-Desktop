@@ -92,6 +92,8 @@
   "commands.addHotkey": "Add hotkey",
   "commands.pressHotkey": "Press a combination… (Esc cancels)",
   "commands.hotkeyConflict": "“{0}” is also used by: {1}",
+  "commands.hotkeyWins": "In {0} this one is used instead of “{1}”",
+  "commands.hotkeyLoses": "In {0} “{1}” is used instead of this one",
   "commands.hotkeysHint": "Keys, mouse buttons (Mouse 4, Mouse 5…), button combinations such as “Mouse 4 + Mouse 1” or the wheel with modifiers.",
   "commands.actions": "Actions",
   "commands.addAction": "Add action",

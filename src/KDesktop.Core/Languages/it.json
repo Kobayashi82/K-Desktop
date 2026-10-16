@@ -92,6 +92,8 @@
   "commands.addHotkey": "Aggiungi scorciatoia",
   "commands.pressHotkey": "Premi una combinazione… (Esc annulla)",
   "commands.hotkeyConflict": "«{0}» è usata anche da: {1}",
+  "commands.hotkeyWins": "In {0} verrà usato questo invece di «{1}»",
+  "commands.hotkeyLoses": "In {0} verrà usato «{1}» invece di questo",
   "commands.hotkeysHint": "Tasti, pulsanti del mouse (Mouse 4, Mouse 5…), combinazioni di pulsanti come «Mouse 4 + Mouse 1» o la rotellina con modificatori.",
   "commands.actions": "Azioni",
   "commands.addAction": "Aggiungi azione",

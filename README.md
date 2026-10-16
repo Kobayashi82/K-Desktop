@@ -4,7 +4,7 @@ Atajos de teclado y ratón, QuickMenus y control remoto por UDP para Windows. Es
 
 ## Funciones
 
-- **Comandos**: secuencias de acciones que se lanzan con atajos de teclado o ratón (`CTRL + ALT + O`, `Mouse 5`, combinaciones de botones como `Mouse 4 + Mouse 1`, `CTRL + Wheel Up`…), desde un QuickMenu, por UDP o por línea de comandos.
+- **Comandos**: secuencias de acciones que se lanzan con atajos de teclado o ratón (`CTRL + ALT + O`, `Mouse 5`, combinaciones de botones como `Mouse 4 + Mouse 1`, `CTRL + Wheel Up`…), desde un QuickMenu, por UDP o por línea de comandos. Si un atajo lo tienen a la vez un comando para todas las aplicaciones y otro limitado a algunas, en esas aplicaciones gana el específico (en Photoshop, «Mouse 5» abre su menú y no el general); dos comandos generales, o dos del mismo programa, se ejecutan los dos.
 - **Ejecución con o sin administrador**: K-Desktop corre elevado, para que sus atajos también funcionen sobre ventanas elevadas, pero cada acción elige si su programa arranca como administrador o como usuario normal.
 - **QuickMenu**: menú en cascada en la posición del ratón, con fondo acrílico, iconos y navegación con teclado:
   - Clic izquierdo ejecuta y cierra.
@@ -12,7 +12,7 @@ Atajos de teclado y ratón, QuickMenus y control remoto por UDP para Windows. Es
   - Clic central edita el elemento.
 - **Lanzador**: una acción que abre una caja de búsqueda en el centro de la pantalla. Escribe parte del nombre (vale con las iniciales o letras sueltas) y Enter ejecuta el comando, abre el programa del menú Inicio o busca en la web; también hace cuentas. Los más usados salen primero.
 - **Macros**: graba teclado y ratón con sus tiempos, edita los pasos (también desplazamientos relativos del ratón, en bruto para juegos) y reprodúcelas desde cualquier comando (repeticiones, bucle, velocidad). Mayús + Esc las detiene.
-- **K-Board**: perfiles que reasignan teclas, botones del ratón y la rueda a otras teclas o combinaciones, a un texto, a un comando o a nada; en todas las aplicaciones o solo en las que elijas. Se mantienen pulsadas como las originales (Bloq Mayús → Ctrl, botón lateral → tecla en un juego…), admiten capas con modificadores (Ctrl + J → ↓) y se editan sobre un teclado y un ratón dibujados. Se activan a mano, desde un comando o desde la bandeja.
+- **K-Board**: perfiles que reasignan teclas, botones del ratón y la rueda a otras teclas o combinaciones, a un texto, a un comando o a nada; en todas las aplicaciones o solo en las que elijas (un perfil de la aplicación en primer plano gana al general). Se mantienen pulsadas como las originales (Bloq Mayús → Ctrl, botón lateral → tecla en un juego…), admiten capas con modificadores (Ctrl + J → ↓) y se editan sobre un teclado y un ratón dibujados. Se activan a mano, desde un comando o desde la bandeja.
 - **Iconos**: colección propia de K-Desktop 5 (mosaicos vectoriales con cualquier símbolo de Windows 11, 15 colores y dos estilos), los iconos de las bibliotecas de Windows (shell32, imageres… con su índice), cualquier imagen o, en las acciones web, el icono de la propia página (favicon, descargado una vez de la web).
 - **Logros y estadísticas**: más de 100 logros con notificación animada, y estadísticas de uso (comandos más usados, cómo los ejecutas…).
 - **Control remoto UDP**: compatible con el protocolo de K-Desktop 4 (puerto 2501: `lista`, número, nombre, `sk …`, `tasks`…).
@@ -47,6 +47,7 @@ KDesktop.exe --data "C:\Carpeta"    usa otra carpeta de datos (instancia indepen
 ```
 src/KDesktop.Core   núcleo sin UI: modelo, almacenamiento JSON, hooks, motor de acciones, UDP, importador de K-Desktop 4
 src/KDesktop        aplicación WPF: ventana principal, QuickMenu, OSD, bandeja, temas, idiomas
+tests/KDesktop.Core.Tests   pruebas de las partes puras del núcleo (dotnet test tests\KDesktop.Core.Tests)
 ```
 
 Los datos se guardan en `%APPDATA%\K-Desktop 5\config.json` (comandos, QuickMenus, macros, perfiles de K-Board y opciones), con copias de seguridad diarias en `Backups`. Los logros y estadísticas van aparte, en `stats.json`.

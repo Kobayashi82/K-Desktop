@@ -65,20 +65,30 @@ public sealed class HotkeyIndex
 
     public bool BlocksSideButtonsIn(string process) => BlockSideButtons && _sideButtonsBlockedIn.Contains(process);
 
-    /// <summary>Commands that should run for <paramref name="hotkey"/> in <paramref name="process"/>.</summary>
+    /// <summary>
+    /// Commands that should run for <paramref name="hotkey"/> in <paramref name="process"/>. The specific one wins:
+    /// when a command limited to some programs matches, the commands for every program with that hotkey don't run.
+    /// </summary>
     public IReadOnlyList<Command> Resolve(string hotkey, string process, out bool block)
     {
         block = false;
         if (!_map.TryGetValue(hotkey, out var entries)) return [];
         var disabledHere = _disabledIn.Contains(process);
+        var specific = false;
+        foreach (var e in entries)
+            if (e.Processes.Length > 0 && Matches(e, process, disabledHere)) { specific = true; break; }
+
         List<Command>? result = null;
         foreach (var e in entries)
         {
-            if (e.Processes.Length > 0 && Array.IndexOf(e.Processes, process) < 0) continue;
-            if (disabledHere && !e.IgnoreDisabledApps) continue;
+            if (!Matches(e, process, disabledHere)) continue;
+            if (specific && e.Processes.Length == 0) continue;
             (result ??= []).Add(e.Command);
             block |= e.Block;
         }
         return result ?? (IReadOnlyList<Command>)[];
     }
+
+    private static bool Matches(Entry e, string process, bool disabledHere) =>
+        (e.Processes.Length == 0 || Array.IndexOf(e.Processes, process) >= 0) && (!disabledHere || e.IgnoreDisabledApps);
 }

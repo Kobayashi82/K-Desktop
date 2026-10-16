@@ -92,6 +92,8 @@
   "commands.addHotkey": "Ajouter un raccourci",
   "commands.pressHotkey": "Appuyez sur une combinaison… (Échap annule)",
   "commands.hotkeyConflict": "« {0} » est aussi utilisé par : {1}",
+  "commands.hotkeyWins": "Dans {0}, celui-ci sera utilisé à la place de « {1} »",
+  "commands.hotkeyLoses": "Dans {0}, « {1} » sera utilisé à la place de celui-ci",
   "commands.hotkeysHint": "Touches, boutons de la souris (Souris 4, Souris 5…), combinaisons de boutons comme « Souris 4 + Souris 1 » ou la molette avec des modificateurs.",
   "commands.actions": "Actions",
   "commands.addAction": "Ajouter une action",

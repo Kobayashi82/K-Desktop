@@ -92,6 +92,8 @@
   "commands.addHotkey": "Adicionar atalho",
   "commands.pressHotkey": "Pressione uma combinação… (Esc cancela)",
   "commands.hotkeyConflict": "“{0}” também é usado por: {1}",
+  "commands.hotkeyWins": "Em {0} será usado este em vez de “{1}”",
+  "commands.hotkeyLoses": "Em {0} será usado “{1}” em vez deste",
   "commands.hotkeysHint": "Teclas, botões do mouse (Mouse 4, Mouse 5…), combinações de botões como “Mouse 4 + Mouse 1” ou a roda com modificadores.",
   "commands.actions": "Ações",
   "commands.addAction": "Adicionar ação",

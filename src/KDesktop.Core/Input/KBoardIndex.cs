@@ -83,20 +83,21 @@ public sealed class KBoardIndex
     private Rule? Match(string key, Func<string> process)
     {
         if (!_map.TryGetValue(key, out var rules)) return null;
+        // The specific one wins: a profile for this program goes before the profiles for every program.
+        Rule? general = null;
         foreach (var r in rules)
         {
             if (!r.Profile.Active) continue;
             if (r.Processes.Length > 0)
             {
-                if (Array.IndexOf(r.Processes, process()) < 0) continue;
+                if (Array.IndexOf(r.Processes, process()) >= 0) return r;
             }
-            else if (_disabledIn.Count > 0 && _disabledIn.Contains(process()))
+            else if (general is null && !(_disabledIn.Count > 0 && _disabledIn.Contains(process())))
             {
-                continue; // profiles for "every application" respect "Desactivar en"
+                general = r; // profiles for "every application" respect "Desactivar en"
             }
-            return r;
         }
-        return null;
+        return general;
     }
 
     private static Rule? Compile(KBoardProfile profile, string[] processes, KeyRemap remap, string from, Dictionary<string, Command> commands)

@@ -3,4 +3,9 @@
     <Project Path="src/KDesktop.Core/KDesktop.Core.csproj" />
     <Project Path="src/KDesktop/KDesktop.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/KDesktop.Core.Tests/KDesktop.Core.Tests.csproj">
+      <Platform Project="x64" />
+    </Project>
+  </Folder>
 </Solution>

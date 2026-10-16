@@ -92,6 +92,8 @@
   "commands.addHotkey": "Tastenkürzel hinzufügen",
   "commands.pressHotkey": "Drücke eine Kombination… (Esc bricht ab)",
   "commands.hotkeyConflict": "„{0}“ wird auch verwendet von: {1}",
+  "commands.hotkeyWins": "In {0} wird dieser statt „{1}“ verwendet",
+  "commands.hotkeyLoses": "In {0} wird „{1}“ statt diesem verwendet",
   "commands.hotkeysHint": "Tasten, Maustasten (Maus 4, Maus 5…), Tastenkombinationen wie „Maus 4 + Maus 1“ oder das Mausrad mit Zusatztasten.",
   "commands.actions": "Aktionen",
   "commands.addAction": "Aktion hinzufügen",

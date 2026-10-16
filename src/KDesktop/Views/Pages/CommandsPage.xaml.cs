@@ -419,14 +419,27 @@ public partial class CommandsPage : UserControl, IDisposable
 
     private void ShowConflicts(Command cmd, string hotkey)
     {
-        var others = Config.Commands.Where(c => !ReferenceEquals(c, cmd) && c.Hotkeys.Contains(hotkey, Hotkey.Comparer)).Select(c => c.Name).ToList();
+        // Same hotkey: both run when both are for every program or for the same one; a command limited to some
+        // programs wins over one for every program there (HotkeyIndex.Resolve); different programs don't meet.
+        static string[] Procs(Command c) => c.Processes.Select(ProcessNames.Normalize).Where(p => p.Length > 0).Distinct().ToArray();
+        var mine = Procs(cmd);
+        var others = new List<string>();
+        var lines = new List<string>();
+        foreach (var other in Config.Commands.Where(c => !ReferenceEquals(c, cmd) && c.Hotkeys.Contains(hotkey, Hotkey.Comparer)))
+        {
+            var theirs = Procs(other);
+            if (mine.Length == 0 && theirs.Length == 0 || mine.Intersect(theirs).Any()) others.Add(other.Name);
+            else if (mine.Length > 0 && theirs.Length == 0) lines.Add(Loc.T("commands.hotkeyWins", string.Join(", ", mine), other.Name));
+            else if (mine.Length == 0 && theirs.Length > 0) lines.Add(Loc.T("commands.hotkeyLoses", string.Join(", ", theirs), other.Name));
+        }
         if (Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.ShowWindowHotkey)) ||
             Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.ExitHotkey)) ||
             Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.VoiceHotkey)) ||
             Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.DisabledInHotkey)))
             others.Add("K-Desktop");
-        HotkeyWarning.Text = others.Count > 0 ? Loc.T("commands.hotkeyConflict", hotkey, string.Join(", ", others)) : string.Empty;
-        HotkeyWarning.Visibility = others.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        if (others.Count > 0) lines.Insert(0, Loc.T("commands.hotkeyConflict", hotkey, string.Join(", ", others)));
+        HotkeyWarning.Text = string.Join(Environment.NewLine, lines);
+        HotkeyWarning.Visibility = lines.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void OnRemoveHotkey(object sender, ExecutedRoutedEventArgs e)
