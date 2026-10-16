@@ -4,9 +4,9 @@
     %LOCALAPPDATA%\Programs\jdk-17   and   %LOCALAPPDATA%\Android\Sdk   (or JAVA_HOME / ANDROID_HOME).
   The version is K-Desktop's (Directory.Build.props); KDesktop.apk.json beside the app says it. A Release build of
   K-Desktop runs this script by itself (when the JDK and the SDK are there) and carries the app inside.
-  The signing key is created the first time in
-  %USERPROFILE%\.android\kdesktop-release.jks (its password beside it): keep both, updates of the app must be signed
-  with the same key.
+  The signing key (kdesktop-release.jks, its password in kdesktop-release.jks.password.txt) is taken from keys\ in the
+  project (git ignores it) or else from %USERPROFILE%\.android; the first time it is created in keys\. Keep both:
+  updates of the app must be signed with the same key. See docs\COMPILAR.md.
   Run: powershell -ExecutionPolicy Bypass -File tools\android\build-apk.ps1
 #>
 $ErrorActionPreference = "Stop"
@@ -59,7 +59,10 @@ try { Run "jar" @("uf", "$build\unsigned.apk", "classes.dex") } finally { Pop-Lo
 Run "$bt\zipalign.exe" @("-f", "-p", "4", "$build\unsigned.apk", "$build\aligned.apk")
 
 "Firma…"
-$keyDir = Join-Path $env:USERPROFILE ".android"
+$keyDir = Join-Path $root "keys"
+if (-not (Test-Path (Join-Path $keyDir "kdesktop-release.jks")) -and (Test-Path "$env:USERPROFILE\.android\kdesktop-release.jks")) {
+  $keyDir = Join-Path $env:USERPROFILE ".android"
+}
 $keystore = Join-Path $keyDir "kdesktop-release.jks"
 $passFile = "$keystore.password.txt"
 if (-not (Test-Path $keystore)) {

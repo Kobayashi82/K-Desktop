@@ -4,6 +4,9 @@ obj/
 publish/
 artifacts/
 
+## Android signing key (docs/COMPILAR.md): never in the repository
+keys/
+
 ## IDE
 .vs/
 .vscode/

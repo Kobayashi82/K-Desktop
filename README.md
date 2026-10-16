@@ -53,7 +53,8 @@ Los datos se guardan en `%APPDATA%\K-Desktop 5\config.json` (comandos, QuickMenu
 
 ## Compilar
 
-Requiere el SDK de .NET 10.
+Requiere el SDK de .NET 10. Guía completa (portable, APK, clave de firma, actualizaciones, pruebas):
+[docs/COMPILAR.md](docs/COMPILAR.md).
 
 ```
 dotnet build KDesktop.slnx
