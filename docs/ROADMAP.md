@@ -141,8 +141,8 @@ embeddings multilingües → LLM opcional) y siete etapas con su commit cada una
       Atajo propio en Opciones › Voz (`VoiceHotkey`, integrado en `HotkeyRouter` como los de abrir/salir; no es una
       acción de comando): tecla o botón del ratón mantenido = escucha mientras se mantiene (`IsKeyHeld`), un toque o la
       rueda = hasta el silencio; pulsarlo otra vez la termina antes y Esc la cancela. OSD con
-      medidor de nivel; origen «voz» en estadísticas; icono de estado. Los comandos con «Energía» no se ejecutan por voz
-      hasta tener confirmaciones (etapa 6). Modelos en `Models` de la carpeta de datos (`VoiceModels`).
+      medidor de nivel; origen «voz» en estadísticas; icono de estado. Por voz se pueden ejecutar todos los comandos,
+      también los de «Energía» (decisión del usuario, 2026-10-16). Modelos en `Models` de la carpeta de datos (`VoiceModels`).
       Diagnóstico sin micro: `KDesktop.exe --voice-test a.wav carpeta "frase"… [--no-open]` → `Logs\voice-test.txt`.
       Medido: carga del modelo ~1,4 s; cada orden ~90 ms ya cargado. Sin probar con micrófono real.
 - [x] Etapa 2: descarga de modelos y página de Opciones.

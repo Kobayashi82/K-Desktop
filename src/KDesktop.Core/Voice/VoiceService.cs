@@ -56,9 +56,7 @@ public sealed class VoiceService : IDisposable
     public IEnumerable<Command> Commands() => VoiceCommands(_config());
 
     public static IEnumerable<Command> VoiceCommands(AppConfig config) =>
-        config.Commands.Where(c => c.Enabled
-            // Until voice confirmations exist, nothing that switches the PC off or logs out runs by voice.
-            && !c.Actions.Any(a => a is PowerAction));
+        config.Commands.Where(c => c.Enabled);
 
     private CancellationTokenSource? _abort;
 
