@@ -227,6 +227,20 @@
                         </StackPanel>
                     </Grid>
                 </ListBoxItem>
+                <ListBoxItem Tag="capture">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
+                            <ui:SymbolIcon Symbol="Screenshot24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.nav.capture}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{l:Tr settings.nav.capture.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </ListBoxItem>
                 <ListBoxItem Tag="data">
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
@@ -969,6 +983,51 @@
                         <ui:Button Margin="8,0,0,0" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddSideButtons" />
                         <ui:Button Margin="8,0,0,0" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickSideButtons" ToolTip="{l:Tr picker.tooltip}" />
                     </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Captures, recordings and zoom -->
+            <Border Style="{StaticResource Card}" Tag="capture">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.capture}" />
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.captureFolder}" />
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <ui:TextBox Text="{Binding CaptureFolder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.captureFolderHint}" />
+                        <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseCaptureFolder" />
+                    </Grid>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.recordFolder}" />
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <ui:TextBox Text="{Binding RecordFolder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.recordFolderHint}" />
+                        <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseRecordFolder" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.audioReplay}" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.audioReplayHint}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AudioReplay}" />
+                    </Grid>
+                    <WrapPanel IsEnabled="{Binding AudioReplay}" Margin="0,4,0,8">
+                        <StackPanel Margin="0,0,12,0">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.audioReplaySeconds}" />
+                            <ui:TextBox Width="120" Text="{Binding AudioReplaySeconds, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.recordSource}" />
+                            <ComboBox Width="260" ItemsSource="{x:Static v:Lookups.AudioSources}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding AudioReplaySource}" />
+                        </StackPanel>
+                    </WrapPanel>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.zoomLevel}" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.zoomHint}" />
+                        </StackPanel>
+                        <ComboBox Grid.Column="1" Width="120" ItemsSource="{x:Static v:Lookups.ZoomLevels}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding ZoomLevel}" />
+                    </Grid>
                 </StackPanel>
             </Border>
 

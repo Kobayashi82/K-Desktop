@@ -15,7 +15,9 @@ namespace KDesktop.Core.Remote.Web;
 /// <c>auth {token}</c> (only when the cookie did not come), <c>m {x, y}</c> move by pixels,
 /// <c>b {b: "l"|"r"|"m", d: bool}</c> button down/up, <c>c {b, n}</c> click n times, <c>w {x, y}</c> wheel
 /// (120 = one notch), <c>t {s}</c> type text, <c>k {k, m: ["CTRL"…]}</c> press a key with modifiers,
-/// <c>kd {k}</c> / <c>ku {k}</c> hold / release a key (locked modifiers), <c>p</c> ping (answered with <c>p</c>).
+/// <c>kd {k}</c> / <c>ku {k}</c> hold / release a key (locked modifiers), <c>p</c> ping (answered with <c>p</c>),
+/// <c>z {a: "toggle"|"in"|"out"|"off"|"state"}</c> the zoom («Lupa»). To the phone: <c>z {on, z}</c> whenever the zoom
+/// changes (whoever changed it), and <c>p</c>.
 /// Whatever the phone holds down is released when it goes away.
 /// </remarks>
 public sealed partial class WebServer
@@ -25,6 +27,53 @@ public sealed partial class WebServer
     private static readonly TimeSpan InputAuthWait = TimeSpan.FromSeconds(5);
 
     private readonly ConcurrentDictionary<WebSocket, byte> _inputSockets = new();
+
+    /// <summary>One message at a time per socket (the ping answer and the zoom state may cross).</summary>
+    private readonly ConcurrentDictionary<WebSocket, SemaphoreSlim> _sendLocks = new();
+
+    private async Task SendInputAsync(WebSocket socket, byte[] message, CancellationToken token)
+    {
+        var gate = _sendLocks.GetOrAdd(socket, _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(token).ConfigureAwait(false);
+        try
+        {
+            if (socket.State == WebSocketState.Open) await socket.SendAsync(message, WebSocketMessageType.Text, true, token).ConfigureAwait(false);
+        }
+        finally { gate.Release(); }
+    }
+
+    private byte[] ZoomState()
+    {
+        var magnifier = _host.Engine.Magnifier;
+        return JsonSerializer.SerializeToUtf8Bytes(new { t = "z", on = magnifier.IsOn, z = Math.Round(magnifier.IsOn ? magnifier.Zoom : _host.Engine.Config.Settings.ZoomLevel, 2) });
+    }
+
+    /// <summary>Every open touchpad shows the zoom as it is now.</summary>
+    private void BroadcastZoom()
+    {
+        var state = ZoomState();
+        foreach (var socket in _inputSockets.Keys)
+            _ = Task.Run(async () =>
+            {
+                try { await SendInputAsync(socket, state, CancellationToken.None).ConfigureAwait(false); }
+                catch (Exception ex) when (ex is WebSocketException or ObjectDisposedException or InvalidOperationException) { }
+            });
+    }
+
+    /// <summary>«z» from the phone: the zoom around the mouse.</summary>
+    private async Task ZoomAsync(WebSocket socket, string? action, CancellationToken token)
+    {
+        var magnifier = _host.Engine.Magnifier;
+        var level = _host.Engine.Config.Settings.ZoomLevel;
+        switch (action)
+        {
+            case "toggle": await Task.Run(() => magnifier.Toggle(level), token).ConfigureAwait(false); break;
+            case "in": await Task.Run(() => magnifier.Step(+1), token).ConfigureAwait(false); break;
+            case "out": await Task.Run(() => magnifier.Step(-1), token).ConfigureAwait(false); break;
+            case "off": await Task.Run(magnifier.Off, token).ConfigureAwait(false); break;
+            default: await SendInputAsync(socket, ZoomState(), token).ConfigureAwait(false); break; // "state"
+        }
+    }
 
     /// <summary>Touchpad and keyboard allowed (setting). Turning it off closes the open ones.</summary>
     public bool InputAllowed
@@ -127,7 +176,12 @@ public sealed partial class WebServer
                 }
                 if (type == "p")
                 {
-                    await socket.SendAsync("{\"t\":\"p\"}"u8.ToArray(), WebSocketMessageType.Text, true, token).ConfigureAwait(false);
+                    await SendInputAsync(socket, "{\"t\":\"p\"}"u8.ToArray(), token).ConfigureAwait(false);
+                    continue;
+                }
+                if (type == "z")
+                {
+                    await ZoomAsync(socket, Str(msg, "a"), token).ConfigureAwait(false);
                     continue;
                 }
                 try { session.Handle(type, msg); }
@@ -141,6 +195,7 @@ public sealed partial class WebServer
         finally
         {
             _inputSockets.TryRemove(socket, out _);
+            if (_sendLocks.TryRemove(socket, out var gate)) gate.Dispose();
             session.ReleaseAll();
             socket.Dispose();
         }

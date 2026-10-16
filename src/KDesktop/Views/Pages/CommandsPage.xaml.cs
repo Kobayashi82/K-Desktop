@@ -689,7 +689,12 @@ public partial class CommandsPage : UserControl, IDisposable
 
     private void OnBrowseFolder(object sender, ExecutedRoutedEventArgs e)
     {
-        if (e.Parameter is OpenFolderAction a && PickFolder(a.Path) is { } path) a.Path = path;
+        switch (e.Parameter)
+        {
+            case OpenFolderAction a when PickFolder(a.Path) is { } path: a.Path = path; break;
+            case ScreenshotAction s when PickFolder(s.Folder) is { } path: s.Folder = path; break;
+            case AudioRecordAction r when PickFolder(r.Folder) is { } path: r.Folder = path; break;
+        }
     }
 
     private void OnBrowseWorkingDirectory(object sender, ExecutedRoutedEventArgs e)

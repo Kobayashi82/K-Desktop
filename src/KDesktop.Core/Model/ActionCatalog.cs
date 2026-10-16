@@ -28,10 +28,13 @@ public static class ActionCatalog
         new(ActionKind.Volume, "input", "Speaker224", () => new VolumeAction()),
         new(ActionKind.AudioOutput, "input", "HeadphonesSoundWave24", () => new AudioOutputAction()),
         new(ActionKind.PlaySound, "input", "MusicNote224", () => new PlaySoundAction()),
+        new(ActionKind.AudioRecord, "input", "MicRecord24", () => new AudioRecordAction()),
         new(ActionKind.PlayMacro, "input", "Record24", () => new PlayMacroAction()),
         new(ActionKind.KBoard, "input", "KeyboardLayoutFloat24", () => new KBoardAction()),
 
         new(ActionKind.Window, "system", "WindowNew24", () => new WindowAction()),
+        new(ActionKind.Screenshot, "system", "Screenshot24", () => new ScreenshotAction()),
+        new(ActionKind.Magnifier, "system", "ZoomIn24", () => new MagnifierAction()),
         new(ActionKind.TopMost, "system", "Pin24", () => new TopMostAction()),
         new(ActionKind.Display, "system", "Desktop24", () => new DisplayAction()),
         new(ActionKind.WindowsTheme, "system", "DarkTheme24", () => new WindowsThemeAction()),

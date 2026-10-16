@@ -42,6 +42,16 @@ public static class Lookups
     public static IReadOnlyList<Option<ConditionElse>> ConditionElses { get; } = Enum<ConditionElse>("enum.conditionElse");
     public static IReadOnlyList<Option<LoadResource>> LoadResources { get; } = Enum<LoadResource>("enum.loadResource");
     public static IReadOnlyList<Option<LoadComparison>> LoadComparisons { get; } = Enum<LoadComparison>("enum.loadComparison");
+    public static IReadOnlyList<Option<CaptureArea>> CaptureAreas { get; } = Enum<CaptureArea>("enum.captureArea");
+    public static IReadOnlyList<Option<RecordMode>> RecordModes { get; } = Enum<RecordMode>("enum.recordMode");
+    public static IReadOnlyList<Option<AudioSource>> AudioSources { get; } = Enum<AudioSource>("enum.audioSource");
+
+    /// <summary>Zoom levels of «Lupa» (Settings).</summary>
+    public static IReadOnlyList<Option<double>> ZoomLevels { get; } =
+        [.. new[] { 1.5, 2, 2.5, 3, 4, 5 }.Select(z => new Option<double>(z, string.Create(System.Globalization.CultureInfo.CurrentCulture, $"×{z:0.#}")))];
+
+    /// <summary>Zoom levels of the action: the first one is «the one in Settings».</summary>
+    public static IReadOnlyList<Option<double>> ActionZoomLevels { get; } = [new Option<double>(0, "editor.zoomDefault"), .. ZoomLevels];
 
     /// <summary>The power plans of this PC (read when the editor opens).</summary>
     public static IReadOnlyList<PowerPlan> PowerPlanList => PowerPlans.All();

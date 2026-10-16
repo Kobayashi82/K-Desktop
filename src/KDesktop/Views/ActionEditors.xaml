@@ -1033,6 +1033,95 @@
         </StackPanel>
     </DataTemplate>
 
+    <!-- ── Captura de pantalla ─────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:ScreenshotAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.captureArea}" />
+            <ComboBox Margin="0,0,0,12" ItemsSource="{x:Static v:Lookups.CaptureAreas}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Area}" />
+            <WrapPanel>
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.captureCopy}" IsChecked="{Binding Copy}" />
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.captureSave}" IsChecked="{Binding Save}" />
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.captureOpen}" IsChecked="{Binding Open}" />
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            </WrapPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Margin="0,6,0,4" Text="{l:Tr editor.folder}" />
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:TextBox Text="{Binding Folder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.captureFolderHint}" />
+                <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}"
+                           Command="{x:Static v:EditorCommands.BrowseFolder}" CommandParameter="{Binding}" />
+            </Grid>
+            <TextBlock x:Name="Hint" Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.captureHint}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <!-- ── Grabar audio ────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:AudioRecordAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.RecordModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
+                </StackPanel>
+                <StackPanel x:Name="SourceRow" Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.recordSource}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.AudioSources}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Source}" />
+                </StackPanel>
+            </Grid>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.folder}" />
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:TextBox Text="{Binding Folder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.recordFolderHint}" />
+                <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}"
+                           Command="{x:Static v:EditorCommands.BrowseFolder}" CommandParameter="{Binding}" />
+            </Grid>
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            <TextBlock x:Name="Hint" Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.recordHint}" />
+        </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Mode}" Value="SaveReplay">
+                <Setter TargetName="SourceRow" Property="Visibility" Value="Hidden" />
+                <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.replayHint}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Mode}" Value="Stop">
+                <Setter TargetName="SourceRow" Property="Visibility" Value="Hidden" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <!-- ── Lupa ────────────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:MagnifierAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.SwitchModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.zoom}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.ActionZoomLevels}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Zoom}" />
+                </StackPanel>
+            </Grid>
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.zoomHint}" />
+        </StackPanel>
+    </DataTemplate>
+
     <!-- ── Si… ─────────────────────────────────────────────────────────── -->
     <DataTemplate DataType="{x:Type m:ConditionAction}">
         <StackPanel>

@@ -197,6 +197,21 @@ public partial class AppSettings : ObservableObject
     /// <summary>Where they go; empty = the Backups folder of the data dir (another disk, OneDrive or a NAS is safer).</summary>
     [ObservableProperty] private string _autoBackupFolder = string.Empty;
 
+    // Captures and recordings (Settings › Capturas)
+    /// <summary>Where screenshots go; empty = PicturesK-Desktop.</summary>
+    [ObservableProperty] private string _captureFolder = string.Empty;
+
+    /// <summary>Where audio recordings go; empty = MusicK-Desktop.</summary>
+    [ObservableProperty] private string _recordFolder = string.Empty;
+
+    /// <summary>Keep the last seconds of audio all the time, to save them with «Grabar audio › Guardar la repetición».</summary>
+    [ObservableProperty] private bool _audioReplay;
+    [ObservableProperty] private int _audioReplaySeconds = 30;
+    [ObservableProperty] private AudioSource _audioReplaySource = AudioSource.Output;
+
+    /// <summary>«Lupa»: how much it zooms (the web app and actions without their own level).</summary>
+    [ObservableProperty] private double _zoomLevel = 2;
+
     /// <summary>Icon of the notification-area (tray) icon, as command icons are stored; null or empty: K-Desktop's own.</summary>
     [ObservableProperty] private string? _trayIcon;
 

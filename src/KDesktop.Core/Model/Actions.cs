@@ -14,6 +14,7 @@ public enum ActionKind
     OpenQuickMenu, CommandControl, Wait,
     PlayMacro, AudioOutput, KBoard, Launcher, HttpRequest,
     Window, Clipboard, WakeOnLan, Display, PowerPlan, WindowsTheme, Radio, Condition,
+    Screenshot, AudioRecord, Magnifier,
 }
 
 public enum WindowMode { Normal, Minimized, Maximized, Hidden }
@@ -63,6 +64,9 @@ public enum ScriptShell { Cmd, PowerShell }
 [JsonDerivedType(typeof(WindowsThemeAction), "windowsTheme")]
 [JsonDerivedType(typeof(RadioAction), "radio")]
 [JsonDerivedType(typeof(ConditionAction), "condition")]
+[JsonDerivedType(typeof(ScreenshotAction), "screenshot")]
+[JsonDerivedType(typeof(AudioRecordAction), "audioRecord")]
+[JsonDerivedType(typeof(MagnifierAction), "magnifier")]
 public abstract partial class CommandAction : ObservableObject
 {
     [ObservableProperty] private bool _enabled = true;

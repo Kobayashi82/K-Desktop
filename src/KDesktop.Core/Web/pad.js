@@ -43,10 +43,16 @@ function connect() {
     // The cookie usually authenticates already; the token covers the cases where it does not travel.
     const token = ctx.store.get('token');
     if (token) ws.send(JSON.stringify({ t: 'auth', token }));
+    ws.send(JSON.stringify({ t: 'z', a: 'state' }));
     retry = 0;
     setStatus('connected');
     clearInterval(pingTimer);
     pingTimer = setInterval(() => send({ t: 'p' }), 15000);
+  };
+  ws.onmessage = e => {
+    let msg;
+    try { msg = JSON.parse(e.data); } catch { return; }
+    if (msg.t === 'z') showZoom(!!msg.on, Number(msg.z) || 2);
   };
   ws.onclose = e => {
     if (socket === ws) socket = null;
@@ -761,6 +767,12 @@ export function setupPad(deps) {
   // Cancelling pointerdown keeps the focus in the text box; the keyboard itself only opens from a click.
   kbButton.addEventListener('pointerdown', e => e.preventDefault());
   kbButton.addEventListener('click', toggleKeyboard);
+  // The zoom around the mouse («Lupa»): on the PC's main monitor, it follows the pointer.
+  document.getElementById('zoomButton').addEventListener('click', () => { buzz(5); send({ t: 'z', a: 'toggle' }); });
+  document.getElementById('zoomIn').addEventListener('click', () => { buzz(5); send({ t: 'z', a: 'in' }); });
+  document.getElementById('zoomOut').addEventListener('click', () => { buzz(5); send({ t: 'z', a: 'out' }); });
+  // Inside the pad: touching them is not moving the pointer.
+  for (const type of ['pointerdown', 'pointermove', 'pointerup']) document.getElementById('zoomSteps').addEventListener(type, e => e.stopPropagation());
   document.getElementById('keysButton').addEventListener('click', () => {
     buzz(5);
     setKeysPanel(document.getElementById('keysPanel').hidden);
@@ -779,6 +791,13 @@ export function setupPad(deps) {
     }
   });
   setStatus('off');
+}
+
+/** The PC says how the zoom is (on, level): the button lights up and − / + show. */
+function showZoom(on, level) {
+  document.getElementById('zoomButton').classList.toggle('active', on);
+  document.getElementById('zoomSteps').hidden = !on;
+  document.getElementById('zoomText').textContent = '×' + (Math.round(level * 10) / 10).toLocaleString();
 }
 
 /** Called when the tab opens or closes, and when the session says whether the PC allows it. */

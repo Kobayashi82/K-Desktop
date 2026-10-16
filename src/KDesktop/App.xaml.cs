@@ -131,6 +131,10 @@ public partial class App : Application
         Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice),
             action => Engine.TestActionAsync(action, new Command { Name = Loc.T("settings.nav.media") }));
         Voice.History = Engine.History;
+        Engine.Recording.Changed += () => Dispatcher.BeginInvoke(ApplyTrayIcon);
+        Engine.Magnifier.Changed += () => Ui.ShowOsd(Engine.Magnifier.IsOn
+            ? Loc.T("osd.zoomOn", Engine.Magnifier.Zoom.ToString("0.#", System.Globalization.CultureInfo.CurrentCulture))
+            : Loc.T("osd.zoomOff"));
         Voice.StateChanged += () => Dispatcher.BeginInvoke(() =>
         {
             _main?.UpdateStatus();
@@ -410,6 +414,8 @@ public partial class App : Application
     public void ApplySettings()
     {
         var s = Config.Settings;
+        // Paused, the replay doesn't keep listening either.
+        Engine.Recording.ConfigureReplay(s.AudioReplay && !s.Paused, s.AudioReplaySeconds, s.AudioReplaySource);
         if (s.Theme != _appliedTheme)
         {
             _appliedTheme = s.Theme;
@@ -508,7 +514,7 @@ public partial class App : Application
         if (_tray is null) return;
         var wanted = Config.Settings.TrayIcon ?? string.Empty;
         // While the voice listens, the icon shows a red dot.
-        var listening = Voice?.IsListening == true;
+        var listening = Voice?.IsListening == true || Engine?.Recording.IsRecording == true;
         var key = wanted + (listening ? "|voice" : "");
         if (_appliedTrayIcon == key) return;
         _appliedTrayIcon = key;
@@ -662,6 +668,8 @@ public partial class App : Application
         Store.Flush();
         Achievements.Flush();
         Engine.History.Save();
+        Engine.Magnifier.Off();
+        Engine.Recording.Stop();
     }
 
     protected override void OnExit(ExitEventArgs e)
@@ -678,6 +686,8 @@ public partial class App : Application
         Store.Dispose();
         Achievements.Dispose();
         Engine?.History.Dispose();
+        Engine?.Magnifier.Dispose();
+        Engine?.Recording.Dispose(); // a recording in progress is closed properly
         _tray?.Dispose();
         _instance?.Dispose();
         Log.Info("K-Desktop cerrado");

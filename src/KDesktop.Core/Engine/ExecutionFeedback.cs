@@ -89,4 +89,6 @@ internal sealed class FeedbackUiServices(IUiServices inner) : IUiServices
     public void RunOnUi(Action action) => inner.RunOnUi(action);
     public void RequestExit() => inner.RequestExit();
     public bool SetClipboardText(string text) => inner.SetClipboardText(text);
+    public bool SetClipboardImage(Platform.BgraImage image) => inner.SetClipboardImage(image);
+    public Task<Platform.ScreenRect?> SelectRegionAsync(Platform.BgraImage desktop, Platform.ScreenRect bounds) => inner.SelectRegionAsync(desktop, bounds);
 }

@@ -613,6 +613,20 @@ public partial class SettingsPage : UserControl
             : Loc.T("settings.autoBackupLast", last.Time.ToString("g", System.Globalization.CultureInfo.CurrentCulture));
     }
 
+    private void OnBrowseCaptureFolder(object sender, RoutedEventArgs e)
+    {
+        var s = _app.Config.Settings;
+        var dlg = new OpenFolderDialog { Title = Loc.T("editor.chooseFolder"), InitialDirectory = CommandEngine.FolderFor(null, s.CaptureFolder, Environment.SpecialFolder.MyPictures) };
+        if (dlg.ShowDialog(Window.GetWindow(this)) == true) s.CaptureFolder = dlg.FolderName;
+    }
+
+    private void OnBrowseRecordFolder(object sender, RoutedEventArgs e)
+    {
+        var s = _app.Config.Settings;
+        var dlg = new OpenFolderDialog { Title = Loc.T("editor.chooseFolder"), InitialDirectory = CommandEngine.FolderFor(null, s.RecordFolder, Environment.SpecialFolder.MyMusic) };
+        if (dlg.ShowDialog(Window.GetWindow(this)) == true) s.RecordFolder = dlg.FolderName;
+    }
+
     private void OnBrowseBackupFolder(object sender, RoutedEventArgs e)
     {
         var dlg = new OpenFolderDialog { Title = Loc.T("editor.chooseFolder"), InitialDirectory = AutoBackup.FolderOf(_app.Config.Settings) };

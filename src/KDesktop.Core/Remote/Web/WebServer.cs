@@ -31,6 +31,7 @@ public sealed partial class WebServer : IDisposable
     {
         _host = host;
         _catalog = new WebCatalog(host);
+        _host.Engine.Magnifier.Changed += BroadcastZoom;
     }
 
     /// <summary>Paired devices and pairing codes.</summary>
@@ -253,6 +254,7 @@ public sealed partial class WebServer : IDisposable
 
     public void Dispose()
     {
+        _host.Engine.Magnifier.Changed -= BroadcastZoom;
         Stop();
         Devices.Flush();
     }

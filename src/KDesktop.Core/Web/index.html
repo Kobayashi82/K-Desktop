@@ -87,10 +87,16 @@
           <span class="pad-bar-buttons">
             <button class="icon-btn small" id="keysButton" data-icon="keys" data-i18n-title="pwa.pad.keys"></button>
             <button class="icon-btn small" id="keyboardButton" data-icon="keyboard" data-i18n-title="pwa.pad.keyboard"></button>
+            <button class="icon-btn small" id="zoomButton" data-icon="zoom" data-i18n-title="pwa.pad.zoom"></button>
           </span>
         </div>
         <div class="pad" id="pad">
           <div class="pad-glow" aria-hidden="true"></div>
+          <span class="zoom-steps" id="zoomSteps" hidden>
+            <button class="icon-btn small" id="zoomOut" data-icon="minus" data-i18n-title="pwa.pad.zoomOut"></button>
+            <b id="zoomText"></b>
+            <button class="icon-btn small" id="zoomIn" data-icon="plus" data-i18n-title="pwa.pad.zoomIn"></button>
+          </span>
           <p class="pad-hint" id="padHint" data-i18n="pwa.pad.hint"></p>
           <span class="pad-drag" id="padDrag" data-i18n="pwa.pad.dragging"></span>
         </div>

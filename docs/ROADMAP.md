@@ -456,7 +456,25 @@ sin tener que abrir Ajustes. Lo que se ejecuta al arrancar K-Desktop está en Ev
   programa (sin cambiar valores), Ventana sobre una ventana de prueba. Sin probar con efecto real: brillo DDC/CI,
   proyección, cambio de modo, apagar pantallas, cambiar Wi-Fi/Bluetooth, tema, plan, Wake-on-LAN despertando de verdad.
 
+## Hecho (2026-10-16, 5.0.32)
+
+- [x] **Captura de pantalla**: región elegida con el ratón (la pantalla se congela y oscurece, una ventana por monitor
+      en píxeles físicos; un clic solo = ese monitor; Esc o botón derecho cancela), ventana activa, monitor del ratón o
+      todos; copiar, guardar PNG (codificador propio, Platform/ScreenCapture.cs) y abrir. Carpeta en Opciones › Capturas
+      (por defecto Imágenes\K-Desktop).
+- [x] **Grabar audio**: lo que suena (loopback), el micrófono o los dos mezclados, en .wav 48 kHz estéreo; empezar,
+      parar o alternar; punto rojo en la bandeja mientras graba. **Repetición de audio** (Opciones › Capturas): los
+      últimos N s siempre en memoria, «Guardar la repetición» los escribe. Platform/AudioRecording.cs (AudioTap: línea
+      de tiempo común, silencios = ceros).
+- [x] **Lupa**: ampliación de pantalla completa de Windows (MagSetFullscreenTransform) anclada al puntero: lo que hay
+      bajo el ratón se queda bajo el ratón, así los clics caen donde se ve. Solo el monitor principal. Acción «Lupa» y
+      botón en el touchpad de la web/app (− ×2 + flotando en el touchpad mientras está encendida; el PC avisa del
+      estado por el WebSocket: z {on, z}).
+- Vídeo (grabación de pantalla / repetición de vídeo): no hecho, a la espera de que se vaya a usar de verdad.
+- Sin probar con efecto real: arrastrar en el selector de región (el velo se abre y cancela bien), la lupa ampliando
+  de verdad (Windows acepta la API), grabar con el micrófono.
+
 ## Ideas
 
 - K-Link (crear enlaces duros / uniones de carpeta) y Zona Wi-Fi móvil (sustituta de la Red Ad-Hoc): sin decidir.
-- Captura de pantalla, grabación de pantalla y de audio: descartadas por ahora (argumentos a favor dados el 2026-10-16; decide el usuario).
+- Grabación de vídeo de la pantalla y repetición de vídeo: pendiente de decidir (capturas y audio hechos en 5.0.32).

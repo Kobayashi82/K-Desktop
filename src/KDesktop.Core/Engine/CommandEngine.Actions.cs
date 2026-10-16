@@ -39,6 +39,9 @@ public sealed partial class CommandEngine
         PowerPlanAction a => Run(() => PowerPlan(a)),
         WindowsThemeAction a => Run(() => WindowsTheme(a)),
         RadioAction a => Run(() => Radio(a)),
+        ScreenshotAction a => ScreenshotAsync(a, ctx),
+        AudioRecordAction a => Run(() => AudioRecord(a)),
+        MagnifierAction a => Run(() => Magnify(a)),
         _ => Task.CompletedTask,
     };
 

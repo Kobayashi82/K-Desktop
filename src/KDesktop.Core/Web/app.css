@@ -520,7 +520,13 @@ body.kb-open .big-title { display: none; }
    margin: positioned absolutely they jumped into the pad while the view slid in, its transform being their box) */
 .pad-bar { align-self: flex-end; display: flex; margin: -55px 0 9px; }
 body.kb-open .pad-bar { margin: -4px -4px 0 0; }
-.pad-bar-buttons { display: flex; gap: 4px; }
+.pad-bar-buttons { display: flex; gap: 4px; align-items: center; }
+/* The zoom's − ×2 + float at the top of the pad while the magnifier is on (the bar has no room on a phone). */
+.zoom-steps { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 2; display: flex; gap: 4px;
+  align-items: center; padding: 3px; border-radius: 999px; background: var(--tile); border: 1px solid var(--line); }
+.zoom-steps .icon-btn { width: 32px; height: 32px; }
+.zoom-steps[hidden] { display: none; }
+.zoom-steps b { min-width: 34px; text-align: center; font-size: 13px; color: var(--accent-text); font-variant-numeric: tabular-nums; }
 .pad-bar .icon-btn { background: var(--tile); border: 1px solid var(--line); }
 .pad-bar .icon-btn.active { background: var(--accent-soft); color: var(--accent-text); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
 .pad-status { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-2); }

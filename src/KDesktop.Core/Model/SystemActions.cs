@@ -357,3 +357,73 @@ public partial class ConditionAction : CommandAction
         }
     }
 }
+
+// ── Captura de pantalla ───────────────────────────────────────────────────
+
+/// <summary>What «Captura de pantalla» takes.</summary>
+public enum CaptureArea { Region, ActiveWindow, Monitor, AllMonitors }
+
+/// <summary>Takes a picture of the screen: a region chosen with the mouse, the window in front, a monitor or all of them.</summary>
+public partial class ScreenshotAction : CommandAction
+{
+    [ObservableProperty] private CaptureArea _area = CaptureArea.Region;
+    [ObservableProperty] private bool _copy = true;
+    [ObservableProperty] private bool _save = true;
+
+    /// <summary>Where it is saved; empty = Settings › Capturas (Pictures\K-Desktop by default).</summary>
+    [ObservableProperty] private string _folder = string.Empty;
+
+    /// <summary>Open the picture afterwards (to draw on it, crop it…).</summary>
+    [ObservableProperty] private bool _open;
+    [ObservableProperty] private bool _showOsd = true;
+
+    public override ActionKind Kind => ActionKind.Screenshot;
+    public override string Summary
+    {
+        get
+        {
+            var parts = new List<string> { Loc.T($"enum.captureArea.{Area}") };
+            if (Copy) parts.Add(Loc.T("summary.capture.copy"));
+            if (Save) parts.Add(Loc.T("summary.capture.save"));
+            if (Open) parts.Add(Loc.T("summary.capture.open"));
+            return string.Join("  ·  ", parts);
+        }
+    }
+}
+
+// ── Grabar audio ──────────────────────────────────────────────────────────
+
+/// <summary>What «Grabar audio» records: what the PC plays, the microphone, or both mixed.</summary>
+public enum AudioSource { Output, Microphone, Both }
+
+/// <summary>Start/stop a recording, or save the last seconds kept by the replay (Settings › Grabación).</summary>
+public enum RecordMode { Toggle, Start, Stop, SaveReplay }
+
+public partial class AudioRecordAction : CommandAction
+{
+    [ObservableProperty] private RecordMode _mode = RecordMode.Toggle;
+    [ObservableProperty] private AudioSource _source = AudioSource.Output;
+
+    /// <summary>Where it is saved; empty = Settings › Grabación (Music\K-Desktop by default).</summary>
+    [ObservableProperty] private string _folder = string.Empty;
+    [ObservableProperty] private bool _showOsd = true;
+
+    public override ActionKind Kind => ActionKind.AudioRecord;
+    public override string Summary => Mode == RecordMode.SaveReplay
+        ? Loc.T("enum.recordMode.SaveReplay")
+        : $"{Loc.T($"enum.recordMode.{Mode}")}  ·  {Loc.T($"enum.audioSource.{Source}")}";
+}
+
+// ── Lupa ──────────────────────────────────────────────────────────────────
+
+/// <summary>Zooms the screen around the mouse (it follows it), or takes the zoom away.</summary>
+public partial class MagnifierAction : CommandAction
+{
+    [ObservableProperty] private SwitchMode _mode = SwitchMode.Toggle;
+
+    /// <summary>How much (2 = twice as big); 0 = the level of Settings.</summary>
+    [ObservableProperty] private double _zoom;
+
+    public override ActionKind Kind => ActionKind.Magnifier;
+    public override string Summary => Loc.T($"summary.zoom.{Mode}") + (Zoom > 1 ? string.Create(CultureInfo.CurrentCulture, $"  ·  ×{Zoom:0.#}") : "");
+}

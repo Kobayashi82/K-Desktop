@@ -91,6 +91,10 @@ public static partial class IconProvider
         RadioAction { Radio: RadioDevice.Bluetooth } => Kd("Bluetooth24", "blue"),
         RadioAction => Kd("Wifi124", "teal"),
         ConditionAction => Kd("BranchFork24", "orange"),
+        ScreenshotAction => Kd("Screenshot24", "sky"),
+        AudioRecordAction { Mode: RecordMode.SaveReplay } => Kd("History24", "red"),
+        AudioRecordAction => Kd("MicRecord24", "red"),
+        MagnifierAction => Kd("ZoomIn24", "indigo"),
         _ => null,
     };
 

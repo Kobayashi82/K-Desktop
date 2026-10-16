@@ -100,6 +100,28 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
 
     public void RequestExit() => dispatcher.BeginInvoke(requestExit);
 
+    public bool SetClipboardImage(Core.Platform.BgraImage image) => dispatcher.Invoke(() =>
+    {
+        var bitmap = System.Windows.Media.Imaging.BitmapSource.Create(image.Width, image.Height, 96, 96,
+            System.Windows.Media.PixelFormats.Bgra32, null, image.Pixels, image.Stride);
+        for (var attempt = 0; attempt < 6; attempt++)
+        {
+            try
+            {
+                System.Windows.Clipboard.SetImage(bitmap);
+                return true;
+            }
+            catch (System.Runtime.InteropServices.COMException)
+            {
+                Thread.Sleep(30);
+            }
+        }
+        return false;
+    });
+
+    public Task<Core.Platform.ScreenRect?> SelectRegionAsync(Core.Platform.BgraImage desktop, Core.Platform.ScreenRect bounds) =>
+        dispatcher.Invoke(() => RegionSelector.SelectAsync(desktop, bounds));
+
     public bool SetClipboardText(string text) => dispatcher.Invoke(() =>
     {
         // Another program may have the clipboard open for a moment.

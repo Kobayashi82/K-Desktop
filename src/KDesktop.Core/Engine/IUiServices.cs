@@ -36,6 +36,15 @@ public interface IUiServices
 
     /// <summary>Puts <paramref name="text"/> in the clipboard as plain text (empty clears it). Returns whether it could.</summary>
     bool SetClipboardText(string text) => false;
+
+    /// <summary>Puts a picture in the clipboard. Returns whether it could.</summary>
+    bool SetClipboardImage(Platform.BgraImage image) => false;
+
+    /// <summary>
+    /// «Captura de pantalla › Región»: shows <paramref name="desktop"/> (a picture of <paramref name="bounds"/>, every
+    /// monitor) frozen and lets the user drag a rectangle; null when cancelled (Esc, right click).
+    /// </summary>
+    Task<Platform.ScreenRect?> SelectRegionAsync(Platform.BgraImage desktop, Platform.ScreenRect bounds) => Task.FromResult<Platform.ScreenRect?>(null);
 }
 
 /// <summary>Handle to the voice OSD. Thread-safe.</summary>

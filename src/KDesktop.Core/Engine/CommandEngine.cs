@@ -43,6 +43,12 @@ public sealed partial class CommandEngine
 
     public AppConfig Config => _store.Config;
 
+    /// <summary>«Lupa»: the zoom around the mouse (actions, the web app).</summary>
+    public Magnifier Magnifier { get; } = new();
+
+    /// <summary>«Grabar audio»: the recording in progress and the replay.</summary>
+    public AudioRecording Recording { get; } = new();
+
     /// <summary>The «Registro»: the last runs, from where and how they went.</summary>
     public ExecutionHistory History { get; }
 
