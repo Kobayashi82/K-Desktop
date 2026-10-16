@@ -157,6 +157,33 @@
                 </StackPanel>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type m:NetworkTrigger}">
+                <StackPanel>
+                    <Grid Style="{StaticResource EdRow}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.sessionWhen}" />
+                            <ComboBox ItemsSource="{x:Static v:Lookups.NetworkStates}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding State}" />
+                        </StackPanel>
+                        <StackPanel x:Name="NamePanel" Grid.Column="2">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.networkName}" />
+                            <ComboBox IsEditable="True" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr event.networkPlaceholder}"
+                                      ItemsSource="{Binding Source={x:Static v:Lookups.ConnectedNetworksNow}}" />
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr event.hint.network}" />
+                </StackPanel>
+                <DataTemplate.Triggers>
+                    <DataTrigger Binding="{Binding State}" Value="Offline">
+                        <Setter TargetName="NamePanel" Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
+                </DataTemplate.Triggers>
+            </DataTemplate>
+
             <!-- A command of «Ejecutar» / «Al terminar» -->
             <DataTemplate x:Key="CommandRow">
                 <Grid>

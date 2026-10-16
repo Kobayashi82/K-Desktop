@@ -31,6 +31,7 @@ public static class EventCatalog
         new(EventKind.Session, "LockClosed24", "orange", () => new SessionTrigger()),
         new(EventKind.PowerSource, "BatteryCharge24", "lime", () => new PowerSourceTrigger()),
         new(EventKind.Device, "UsbStick24", "gray", () => new DriveTrigger()),
+        new(EventKind.Network, "Wifi124", "teal", () => new NetworkTrigger()),
         new(EventKind.File, "DocumentAdd24", "yellow", () => new FileTrigger()),
     ];
 

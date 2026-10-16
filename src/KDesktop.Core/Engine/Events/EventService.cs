@@ -64,6 +64,12 @@ public sealed class EventService : IDisposable
     // «Unidad conectada»: letters that matched each event when they arrived
     private readonly Dictionary<string, HashSet<char>> _drives = new(StringComparer.Ordinal);
 
+    // «Red»
+    private bool _networkWatching;
+    private Timer? _networkTimer;
+    private IReadOnlyList<string> _networks = [];
+    private readonly Dictionary<string, bool> _networkActive = new(StringComparer.Ordinal);
+
     // «Sin usar el PC»
     private Timer? _idleTimer;
     private readonly Dictionary<string, bool> _idleActive = new(StringComparer.Ordinal);
@@ -109,6 +115,7 @@ public sealed class EventService : IDisposable
             ConfigureForeground();
             ConfigureIdle();
             ConfigureFiles();
+            ConfigureNetwork();
             ConfigureWatcher();
             _initial = false;
         }
@@ -124,6 +131,7 @@ public sealed class EventService : IDisposable
         _foregroundGroups.Remove(id);
         if (_fileWatchers.Remove(id, out var watcher)) watcher.Dispose();
         _drives.Remove(id);
+        _networkActive.Remove(id);
         _guard.Reset(id);
     }
 
@@ -530,6 +538,66 @@ public sealed class EventService : IDisposable
         });
     }
 
+    // ── «Red» ────────────────────────────────────────────────────────────
+
+    private void ConfigureNetwork()
+    {
+        foreach (var id in _networkActive.Keys.Where(id => !_rules.TryGetValue(id, out var r) || r.Rule.Trigger is not NetworkTrigger).ToList())
+            _networkActive.Remove(id);
+        var rules = Rules<NetworkTrigger>().ToList();
+        if (rules.Count == 0)
+        {
+            if (_networkWatching)
+            {
+                System.Net.NetworkInformation.NetworkChange.NetworkAddressChanged -= OnNetworkChanged;
+                _networkWatching = false;
+            }
+            _networkTimer?.Dispose();
+            _networkTimer = null;
+            return;
+        }
+        if (!_networkWatching)
+        {
+            _networks = NetworkInfo.ConnectedNetworks();
+            Log.Info($"Eventos: redes conectadas: {(_networks.Count == 0 ? "ninguna" : string.Join(", ", _networks))}");
+            System.Net.NetworkInformation.NetworkChange.NetworkAddressChanged += OnNetworkChanged;
+            _networkWatching = true;
+        }
+        // Already connected (or offline) when the event appears: not «connecting».
+        foreach (var (rule, t) in rules) _networkActive.TryAdd(rule.Id, t.IsActive(_networks));
+    }
+
+    /// <summary>Addresses change several times while a network comes up: wait until it settles.</summary>
+    private void OnNetworkChanged(object? sender, EventArgs e)
+    {
+        lock (_lock)
+        {
+            if (_disposed || !_networkWatching) return;
+            _networkTimer ??= new Timer(_ => OnNetworkSettled(), null, Timeout.Infinite, Timeout.Infinite);
+            _networkTimer.Change(TimeSpan.FromSeconds(3), Timeout.InfiniteTimeSpan);
+        }
+    }
+
+    private void OnNetworkSettled()
+    {
+        var networks = NetworkInfo.ConnectedNetworks();
+        List<(EventRule Rule, bool Active)> changes = [];
+        lock (_lock)
+        {
+            if (_disposed || !_networkWatching || networks.SequenceEqual(_networks)) return;
+            _networks = networks;
+            foreach (var (rule, t) in Rules<NetworkTrigger>())
+            {
+                var active = t.IsActive(networks);
+                if (_networkActive.GetValueOrDefault(rule.Id) == active) continue;
+                _networkActive[rule.Id] = active;
+                changes.Add((rule, active));
+            }
+        }
+        Log.Info($"Eventos: redes conectadas: {(networks.Count == 0 ? "ninguna" : string.Join(", ", networks))}");
+        foreach (var (rule, active) in changes) Fire(rule, !active);
+    }
+
     // ── sesión y ventana oculta ──────────────────────────────────────────
 
     private void ConfigureWatcher()
@@ -625,6 +693,9 @@ public sealed class EventService : IDisposable
             _foregroundTimer?.Dispose();
             _idleTimer?.Dispose();
             foreach (var w in _fileWatchers.Values) w.Dispose();
+            _networkTimer?.Dispose();
+            if (_networkWatching) System.Net.NetworkInformation.NetworkChange.NetworkAddressChanged -= OnNetworkChanged;
+            _networkWatching = false;
             _fileWatchers.Clear();
         }
         _watcher?.Dispose();

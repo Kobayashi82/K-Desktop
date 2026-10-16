@@ -41,6 +41,10 @@ public static class Lookups
         App.Current.Config.Events.OrderBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
     public static IReadOnlyList<Option<SessionEvent>> SessionEvents { get; } = Enum<SessionEvent>("enum.session");
     public static IReadOnlyList<Option<PowerSource>> PowerSources { get; } = Enum<PowerSource>("enum.powerSource");
+    public static IReadOnlyList<Option<NetworkState>> NetworkStates { get; } = Enum<NetworkState>("enum.networkState");
+
+    /// <summary>Names of the networks connected now (for the editable box of «Red»).</summary>
+    public static IReadOnlyList<string> ConnectedNetworksNow => NetworkInfo.ConnectedNetworks();
     public static IReadOnlyList<Option<AppTheme>> Themes { get; } = Enum<AppTheme>("enum.theme");
     public static IReadOnlyList<Option<UpdateMode>> UpdateModes { get; } = Enum<UpdateMode>("enum.updateMode");
     public static IReadOnlyList<Option<OsdPosition>> OsdPositions { get; } = Enum<OsdPosition>("enum.osdPosition");

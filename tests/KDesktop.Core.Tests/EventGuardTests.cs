@@ -57,4 +57,25 @@ public class EventGuardTests
     [InlineData("sandisk", 'F', null, false)]
     public void DriveFilter(string filter, char letter, string? label, bool expected) =>
         Assert.Equal(expected, KDesktop.Core.Model.DriveTrigger.Matches(filter, letter, label));
+
+    [Fact]
+    public void NetworkStates()
+    {
+        var home = new KDesktop.Core.Model.NetworkTrigger { Name = "miwifi" };
+        Assert.True(home.IsActive(["MiWiFi_5G"]));
+        Assert.False(home.IsActive(["Red 2"]));
+        Assert.False(home.IsActive([]));
+        Assert.True(new KDesktop.Core.Model.NetworkTrigger().IsActive(["Red 2"]));
+        var offline = new KDesktop.Core.Model.NetworkTrigger { State = KDesktop.Core.Model.NetworkState.Offline };
+        Assert.True(offline.IsActive([]));
+        Assert.False(offline.IsActive(["Red 2"]));
+    }
+
+    [Fact]
+    public void ConnectedNetworksCanBeRead()
+    {
+        // This PC has a network: Windows' list manager answers without throwing.
+        var names = KDesktop.Core.Platform.NetworkInfo.ConnectedNetworks();
+        Assert.NotNull(names);
+    }
 }

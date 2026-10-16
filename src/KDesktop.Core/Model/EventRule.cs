@@ -234,6 +234,9 @@ public enum SessionEvent { Lock, Unlock, Suspend, Resume }
 /// <summary>Where the PC takes its power from (laptops).</summary>
 public enum PowerSource { Battery, Mains }
 
+/// <summary>«Red»: connected to a network, or without any.</summary>
+public enum NetworkState { Connected, Offline }
+
 /// <summary>What makes an event fire.</summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(AppStartTrigger), "appStart")]
@@ -247,6 +250,7 @@ public enum PowerSource { Battery, Mains }
 [JsonDerivedType(typeof(PowerSourceTrigger), "powerSource")]
 [JsonDerivedType(typeof(FileTrigger), "file")]
 [JsonDerivedType(typeof(DriveTrigger), "drive")]
+[JsonDerivedType(typeof(NetworkTrigger), "network")]
 public abstract partial class EventTrigger : ObservableObject
 {
     [JsonIgnore] public abstract EventKind Kind { get; }
@@ -432,5 +436,34 @@ public sealed partial class DriveTrigger : EventTrigger
         var tokens = Engine.FuzzyMatch.Tokens(filter);
         var folded = new string(label.Select(Engine.FuzzyMatch.Fold).ToArray());
         return tokens.All(token => folded.Contains(token, StringComparison.Ordinal));
+    }
+}
+
+/// <summary>Connected to a network (by name, or any) or left without network; it ends when that changes back.</summary>
+public sealed partial class NetworkTrigger : EventTrigger
+{
+    [ObservableProperty] private NetworkState _state = NetworkState.Connected;
+
+    /// <summary>Part of the network's name («MiWifi»); empty = any network.</summary>
+    [ObservableProperty] private string _name = string.Empty;
+
+    public override EventKind Kind => EventKind.Network;
+    public override bool HasEnd => true;
+    public override int DefaultCooldown => 2;
+
+    public override string Summary => State == NetworkState.Offline ? Loc.T("event.summary.offline")
+        : string.IsNullOrWhiteSpace(Name) ? Loc.T("event.summary.networkAny") : Loc.T("event.summary.network", Name.Trim());
+
+    /// <summary>Whether it is «on» with these networks connected.</summary>
+    public bool IsActive(IReadOnlyCollection<string> networks)
+    {
+        if (State == NetworkState.Offline) return networks.Count == 0;
+        if (string.IsNullOrWhiteSpace(Name)) return networks.Count > 0;
+        var tokens = Engine.FuzzyMatch.Tokens(Name);
+        return networks.Any(n =>
+        {
+            var folded = new string(n.Select(Engine.FuzzyMatch.Fold).ToArray());
+            return tokens.All(token => folded.Contains(token, StringComparison.Ordinal));
+        });
     }
 }
