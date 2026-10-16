@@ -450,17 +450,17 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 .media-row .play { width: 66px; height: 66px; background: var(--gold); color: var(--on-accent); border: 0; box-shadow: 0 8px 22px var(--accent-glow); }
 .media-row .play svg { width: 28px; height: 28px; }
 
-/* Arrows and space for the player in front, as a cross like a remote control */
+/* Arrows and space for the player in front, laid out like a keyboard: the arrows, and the space bar below them */
 .keys-pad { width: 100%; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; }
 .keys-hint { margin: 0 0 12px; font-size: 13px; color: var(--text-3); text-align: center; }
-.keys-grid { display: grid; grid-template-columns: repeat(3, 58px); grid-template-rows: repeat(3, 58px); gap: 10px; }
+.keys-grid { display: grid; grid-template-columns: repeat(3, 58px); grid-template-rows: 58px 58px 52px; gap: 10px; }
 .keys-grid .round-btn { width: 58px; height: 58px; border-radius: 18px; touch-action: none; user-select: none; -webkit-user-select: none; }
 .keys-grid .round-btn svg { width: 24px; height: 24px; }
 .key-up { grid-column: 2; grid-row: 1; }
 .key-left { grid-column: 1; grid-row: 2; }
-.key-space { grid-column: 2; grid-row: 2; background: var(--accent-soft) !important; color: var(--accent-text); border-color: transparent !important; }
+.key-space { grid-column: 1 / 4; grid-row: 3; width: auto !important; height: 52px !important; margin-top: 4px; background: var(--accent-soft) !important; color: var(--accent-text); border-color: transparent !important; }
 .key-right { grid-column: 3; grid-row: 2; }
-.key-down { grid-column: 2; grid-row: 3; }
+.key-down { grid-column: 2; grid-row: 2; }
 .keys-grid .round-btn.held { transform: scale(.9); background: var(--tile-pressed); }
 
 input[type="range"] {
