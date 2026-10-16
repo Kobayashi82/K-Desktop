@@ -349,7 +349,7 @@
         <!-- ── Editor ────────────────────────────────────────────────── -->
         <Grid Grid.Column="1">
             <StackPanel x:Name="EmptyState" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.75" MaxWidth="440">
-                <ui:SymbolIcon Symbol="FlashFlow24" FontSize="56" Foreground="{DynamicResource Kd.Accent}" HorizontalAlignment="Center" />
+                <ui:SymbolIcon Symbol="ArrowForwardDownLightning24" FontSize="56" Foreground="{DynamicResource Kd.Accent}" HorizontalAlignment="Center" />
                 <TextBlock Margin="0,12,0,4" Text="{l:Tr event.emptyTitle}" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center"
                            Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                 <TextBlock Text="{l:Tr event.emptyText}" Style="{StaticResource Caption}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
