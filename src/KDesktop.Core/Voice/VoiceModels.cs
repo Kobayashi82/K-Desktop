@@ -14,7 +14,18 @@ public static class VoiceModels
     public static string ParakeetJoiner => Path.Combine(ParakeetDir, "joiner.int8.onnx");
     public static string ParakeetTokens => Path.Combine(ParakeetDir, "tokens.txt");
 
+    /// <summary>openWakeWord's feature models (mel spectrogram + Google speech embedding), for the wake word detector.</summary>
+    public static string WakeDir => Path.Combine(AppPaths.ModelsDir, "openwakeword");
+
+    public static string WakeMelspec => Path.Combine(WakeDir, "melspectrogram.onnx");
+    public static string WakeEmbedding => Path.Combine(WakeDir, "embedding_model.onnx");
+
     public static bool HasVad => File.Exists(VadFile);
+
+    public static bool HasWakeDetector => File.Exists(WakeMelspec) && File.Exists(WakeEmbedding);
+
+    /// <summary>Every model file is there (voice orders and the always-on wake word detector).</summary>
+    public static bool AllInstalled => Ready && HasWakeDetector;
 
     public static bool HasSpeechToText =>
         File.Exists(ParakeetEncoder) && File.Exists(ParakeetDecoder) && File.Exists(ParakeetJoiner) && File.Exists(ParakeetTokens);

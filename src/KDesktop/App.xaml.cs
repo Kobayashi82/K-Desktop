@@ -66,6 +66,9 @@ public partial class App : Application
     public AchievementNotifier Notifier { get; private set; } = null!;
     public Core.Voice.VoiceService Voice { get; private set; } = null!;
 
+    /// <summary>Always-on wake word detection.</summary>
+    public Core.Voice.WakeWordListener WakeListener { get; private set; } = null!;
+
     public AppConfig Config => Store.Config;
 
     /// <summary>Set when this run imported the K-Desktop 4 data.</summary>
@@ -119,12 +122,16 @@ public partial class App : Application
         Engine = new CommandEngine(Store, Ui);
         Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice));
         Voice.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
+        WakeListener = new Core.Voice.WakeWordListener(Voice, () => Config.Settings);
+        WakeListener.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
+        Voice.WakeHeard += _ => Achievements.Increment(Stat.WakeWords);
         Voice.Models.Changed += () =>
         {
             if (Voice.Models.IsDownloading) return;
             Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
+            WakeListener.Refresh();
             if (Voice.Models.Error is { } error) Ui.ShowOsd(Loc.T("voice.downloadError", error), OsdKind.Warning, TimeSpan.FromSeconds(5));
-            else if (Core.Voice.VoiceModels.Ready) Ui.ShowOsd(Loc.T("voice.downloaded"), OsdKind.Success);
+            else if (Core.Voice.VoiceModels.AllInstalled) Ui.ShowOsd(Loc.T("voice.downloaded"), OsdKind.Success);
         };
         QuickMenus = new QuickMenuController(() => Config, Engine);
         Ui.QuickMenus = QuickMenus;
@@ -328,6 +335,7 @@ public partial class App : Application
         Config.Settings.Paused = paused;
         RebuildIndex();
         Log.Info(paused ? "K-Desktop en pausa" : "K-Desktop reanudado");
+        WakeListener.Refresh(); // paused: the microphone closes
         Ui.ShowOsd(Loc.T(paused ? "pause.osdOn" : "pause.osdOff"));
         if (_tray is not null) _tray.ToolTipText = TrayTooltip();
         PausedChanged?.Invoke();
@@ -368,6 +376,7 @@ public partial class App : Application
         }
 
         UpdateTray();
+        WakeListener?.Refresh(); // the option, the microphone or the pause changed
         _main?.UpdateStatus(); // e.g. the voice hotkey shown in its tooltip
 
         if (s.UdpEnabled && !UdpDisabled) Udp.Start(s.UdpPort, s.UdpAllowRemote);
@@ -527,6 +536,7 @@ public partial class App : Application
         Router.Dispose();
         Udp?.Dispose();
         Web?.Dispose();
+        WakeListener?.Dispose();
         Voice?.Dispose();
         Store.Dispose();
         Achievements.Dispose();

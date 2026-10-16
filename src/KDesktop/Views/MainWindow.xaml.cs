@@ -125,8 +125,10 @@ public partial class MainWindow : FluentWindow
             app.Voice.IsListening ? "Kd.Accent" : voiceReady ? "Kd.Success" : "TextFillColorTertiaryBrush",
             app.Voice.IsListening ? Loc.T("status.voiceListening")
             : !voiceReady ? Loc.T("status.voiceNoModels")
-            : string.IsNullOrWhiteSpace(s.VoiceHotkey) ? Loc.T("status.voiceNoHotkey")
-            : Loc.T("status.voiceReady", s.VoiceHotkey),
+            : (string.IsNullOrWhiteSpace(s.VoiceHotkey) ? Loc.T("status.voiceNoHotkey") : Loc.T("status.voiceReady", s.VoiceHotkey))
+              + (app.WakeListener.IsRunning
+                  ? Environment.NewLine + Loc.T("status.voiceWake", string.Join(", ", app.Voice.WakeWords.Active.Where(w => w.Detector is not null).Select(w => $"«{w.Name}»")))
+                  : ""),
             Loc.T("status.clickOptions"));
     }
 

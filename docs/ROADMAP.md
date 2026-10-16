@@ -169,7 +169,32 @@ embeddings multilingües → LLM opcional) y siete etapas con su commit cada una
       siguiente .wav. Probado con voz sintética (Helena): «K Desktop, abre Firefox» → sí (1,00) y orden «Abre Firefox»;
       «Cadktop sube el volumen» → sí (0,78); habla normal ≤ 0,50 → no. Sin probar con micrófono real.
       Pendiente para la etapa 4: el descarte de tomas «atípicas» por DTW (ahora solo por duración).
-- [ ] Etapa 4: fase 1 (port del preprocesado de openWakeWord, DTW, clasificador).
+- [x] Etapa 4: fase 1 (port del preprocesado de openWakeWord, DTW, clasificador).
+      `OwwFeatures`/`OwwStream`: port de `AudioFeatures` (openwakeword/utils.py, comprobado contra el código fuente):
+      audio como valores de 16 bits → `melspectrogram.onnx` → x/10 + 2 → ventanas de 76 frames cada 8 →
+      `embedding_model.onnx` → 96 valores cada 80 ms; en streaming, cada bloque de 1280 muestras con las 480 anteriores
+      da 8 frames y el búfer mel empieza a unos, como el original. Modelos de la release v0.5.1 de openWakeWord (2,3 MB)
+      en `Models\openwakeword`, en la misma descarga de Opciones. ONNX Runtime: solo `Microsoft.ML.OnnxRuntime.Managed`
+      1.28.0, que usa el `onnxruntime.dll` 1.28.2 que ya trae sherpa-onnx (un solo runtime nativo).
+      `WakeDetector` por palabra (`detector.json`): plantillas de las tomas comparadas por DTW (subsecuencia que acaba en
+      el último embedding, distancia coseno) escaladas entre «tomas entre sí» y «habla normal», y regresión logística
+      sobre los últimos 16 embeddings entrenada en el PC (~3,5 s, en segundo plano) con las tomas + variaciones
+      (velocidad ±10 %, volumen, ruido de la habitación) frente al silencio, el habla normal, ruido y la palabra a medias.
+      Puntuación = media geométrica de ambas; umbral entre lo que alcanza el habla normal y lo que alcanzan las tomas,
+      movido por la sensibilidad. `WakeWordListener`: micro abierto mientras haya alguna palabra activa con detector y
+      «Escucha continua» (por defecto sí; se para con la pausa), trabajo en su propio hilo, 2 s de audio previo; al
+      detectar sigue grabando hasta que te callas (o 0,9 s si no dices nada más), precarga Parakeet y pasa a la fase 2
+      (`VoiceService.HandleWakeAsync`): si Parakeet confirma la palabra, lo dicho después es la orden; si no hay orden,
+      se abre la escucha normal. Opción «Fiarse del detector cuando está muy seguro» (salta la fase 2). Los «casi» se
+      apuntan en el registro para ajustar la sensibilidad. El asistente ahora descarta tomas atípicas por DTW, entrena el
+      detector mientras pruebas y enseña las dos puntuaciones. Estadística `voice.wakewords`.
+      Probado sin micrófono: embeddings en streaming frente a clip entero, similitud coseno media 0,983 (mín. 0,96);
+      con las grabaciones reales del usuario (5 para entrenar, la 6.ª de prueba) → 0,97 y verificación 0,89; frases sin
+      la palabra → 0,00; de extremo a extremo con audio simulado (`KDESKTOP_VOICE_FAKE_STREAM`): 10 s de habla sin falsas
+      alarmas y «Cadextop. Prueba mensaje» → ejecuta «Prueba mensaje». Escuchando gasta ~3 % de un núcleo.
+      No hecho: valores de referencia de Python (no hay Python en el PC; la comprobación fue streaming frente a clip
+      entero y con audio real) y el paquete opcional de negativos de openWakeWord (por ahora no hizo falta).
+      Sin probar con micrófono real.
 - [ ] Etapa 5: capa de embeddings.
 - [ ] Etapa 6: seguridad, confirmaciones y estadísticas.
 - [ ] Etapa 7: capa LLM opcional.

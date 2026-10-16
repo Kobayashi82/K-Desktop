@@ -50,6 +50,12 @@ public partial class WakeWord : ObservableObject
 
     [JsonIgnore] public string Folder => Path.Combine(WakeWordStore.Root, Id);
 
+    /// <summary>The always-on detector learnt from the recordings (null until trained).</summary>
+    [JsonIgnore] public WakeDetector? Detector { get; set; }
+
+    /// <summary>Phase-1 score needed, after the sensitivity.</summary>
+    [JsonIgnore] public double DetectorThreshold => Detector?.Threshold(Sensitivity) ?? 1;
+
     /// <summary>One line for the list in Settings: recordings, how Parakeet wrote it, threshold in use.</summary>
     [JsonIgnore] public string Summary => Localization.Loc.T("settings.wakeInfo", Recordings.Count,
         string.Join(", ", Variants.Take(3).Select(v => $"«{v}»")) + (Variants.Count > 3 ? "…" : ""),
@@ -58,6 +64,7 @@ public partial class WakeWord : ObservableObject
     partial void OnSensitivityChanged(double value)
     {
         OnPropertyChanged(nameof(EffectiveThreshold));
+        OnPropertyChanged(nameof(DetectorThreshold));
         OnPropertyChanged(nameof(Summary));
     }
 }
@@ -74,7 +81,7 @@ public sealed class WakeWordStore : IDisposable
     public WakeWordStore()
     {
         _saveTimer = new Timer(_ => Flush(), null, Timeout.Infinite, Timeout.Infinite);
-        Reload();
+        ReloadWords();
     }
 
     /// <summary>Lives on the UI thread's side: change it only from there.</summary>
@@ -83,8 +90,86 @@ public sealed class WakeWordStore : IDisposable
     /// <summary>The ones in use.</summary>
     public IEnumerable<WakeWord> Active => Words.Where(w => w.Enabled && w.Variants.Count > 0);
 
+    /// <summary>Raised (any thread) when words are added, removed, switched on/off or (re)trained.</summary>
+    public event Action? Changed;
+
+    private void RaiseChanged()
+    {
+        try { Changed?.Invoke(); }
+        catch (Exception ex) { Log.Error("Error avisando de un cambio en las palabras de activación", ex); }
+    }
+
+    // ── detector ─────────────────────────────────────────────────────────
+
+    private const string DetectorFile = "detector.json";
+
+    private static string DetectorPath(WakeWord word) => Path.Combine(word.Folder, DetectorFile);
+
+    /// <summary>Reads the saved detector of <paramref name="word"/> (null if missing, broken or from an older version).</summary>
+    private static WakeDetector? LoadDetector(WakeWord word)
+    {
+        try
+        {
+            var path = DetectorPath(word);
+            if (!File.Exists(path)) return null;
+            var detector = Json.Deserialize<WakeDetector>(File.ReadAllText(path));
+            return detector is { Version: WakeDetector.CurrentVersion, Templates.Count: > 0 } ? detector : null;
+        }
+        catch (Exception ex)
+        {
+            Log.Warn($"No se pudo leer el detector de «{word.Name}»: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>The recordings of a word: the takes, the silence and the normal speech (those that exist).</summary>
+    public static (List<float[]> Takes, float[]? Silence, float[]? Speech) ReadRecordings(WakeWord word)
+    {
+        float[]? Read(string name)
+        {
+            var path = Path.Combine(word.Folder, name);
+            return File.Exists(path) ? VoiceDiagnostics.ReadWav(path) : null;
+        }
+        var takes = word.Recordings.Select(Read).OfType<float[]>().ToList();
+        return (takes, Read("silence.wav"), Read("speech.wav"));
+    }
+
+    /// <summary>Trains the detector of <paramref name="word"/> from its recordings and saves it (slow: call off the UI thread).</summary>
+    public WakeDetector.Report? Train(WakeWord word, OwwFeatures features)
+    {
+        var (takes, silence, speech) = ReadRecordings(word);
+        if (takes.Count == 0) return null;
+        var (detector, report) = WakeDetector.Train(features, takes, silence, speech);
+        Save(word, detector);
+        Log.Info($"Detector de «{word.Name}» entrenado en {report.Milliseconds} ms: {report.Positives} positivos, {report.Negatives} negativos; " +
+                 $"tomas ≥ {report.PositiveScore:0.00}, habla normal ≤ {report.NegativeScore:0.00} → umbral {detector.Threshold(word.Sensitivity):0.00}");
+        return report;
+    }
+
+    /// <summary>Stores an already trained detector (the set-up trains it while you try the word).</summary>
+    public void Save(WakeWord word, WakeDetector detector)
+    {
+        word.Detector = detector;
+        try
+        {
+            Directory.CreateDirectory(word.Folder);
+            File.WriteAllText(DetectorPath(word), Json.Serialize(detector));
+        }
+        catch (Exception ex)
+        {
+            Log.Error("No se pudo guardar el detector de la palabra de activación", ex);
+        }
+        RaiseChanged();
+    }
+
     /// <summary>Reads every wake word again (after an import, for example).</summary>
     public void Reload()
+    {
+        ReloadWords();
+        RaiseChanged();
+    }
+
+    private void ReloadWords()
     {
         Flush();
         foreach (var w in Words) w.PropertyChanged -= OnWordChanged;
@@ -98,6 +183,7 @@ public sealed class WakeWordStore : IDisposable
             {
                 if (Json.Deserialize<WakeWord>(File.ReadAllText(file)) is not { } word) continue;
                 word.Id = Path.GetFileName(dir);
+                word.Detector = LoadDetector(word);
                 Add(word);
             }
             catch (Exception ex)
@@ -125,6 +211,7 @@ public sealed class WakeWordStore : IDisposable
             Words[Words.IndexOf(existing)] = word;
             word.PropertyChanged += OnWordChanged;
         }
+        RaiseChanged();
     }
 
     public void Delete(WakeWord word)
@@ -140,13 +227,15 @@ public sealed class WakeWordStore : IDisposable
         {
             Log.Error("No se pudo borrar la palabra de activación", ex);
         }
+        RaiseChanged();
     }
 
     private void OnWordChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (sender is not WakeWord word || e.PropertyName is nameof(WakeWord.EffectiveThreshold) or nameof(WakeWord.Summary)) return;
+        if (sender is not WakeWord word || e.PropertyName is nameof(WakeWord.EffectiveThreshold) or nameof(WakeWord.DetectorThreshold) or nameof(WakeWord.Summary)) return;
         lock (_dirty) _dirty.Add(word);
         _saveTimer.Change(500, Timeout.Infinite);
+        if (e.PropertyName == nameof(WakeWord.Enabled)) RaiseChanged();
     }
 
     public void Flush()

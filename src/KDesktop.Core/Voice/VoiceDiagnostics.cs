@@ -68,9 +68,11 @@ public static class VoiceDiagnostics
         report.AppendLine().AppendLine("Grabaciones de la palabra:");
         var kept = new List<double>();
         var variants = new List<string>();
+        var takes = new List<float[]>();
         foreach (var file in Wavs("word"))
         {
             var take = WakeWordRecorder.Check(ReadWav(file), noiseRms: 0, kept);
+            if (take.Issue == TakeIssue.None) takes.Add(take.Speech);
             var text = take.Speech.Length > 0 ? WakeWordVerifier.Clean(stt.Transcribe(take.Speech)) : "";
             report.AppendLine($"  {Path.GetFileName(file)}: {take.Seconds:0.00} s, pico {take.Peak:0.00} → {take.Issue}; «{text}» → {PhoneticKey.Of(text)}");
             if (take.Issue != TakeIssue.None || text.Length == 0) continue;
@@ -94,14 +96,52 @@ public static class VoiceDiagnostics
         report.AppendLine().AppendLine($"Calibración: umbral {cal.Threshold:0.000} · habla normal hasta {cal.Negative:0.000} · " +
                                        $"grabaciones entre sí {string.Join(" ", cal.Positives.Select(p => p.ToString("0.00")))}");
 
+        // Phase 1: the detector, trained here from the same recordings.
+        WakeDetector? detector = null;
+        OwwFeatures? features = null;
+        if (VoiceModels.HasWakeDetector && takes.Count > 0)
+        {
+            features = new OwwFeatures();
+            var silence = Wavs("silence").Select(ReadWav).FirstOrDefault();
+            var speech = Wavs("speech").Select(ReadWav).FirstOrDefault();
+            (detector, var trained) = WakeDetector.Train(features, takes, silence, speech);
+            report.AppendLine().AppendLine($"Detector (fase 1): {trained.Positives} positivos, {trained.Negatives} negativos, {trained.Milliseconds} ms; " +
+                                           $"tomas ≥ {trained.PositiveScore:0.000}, habla normal ≤ {trained.NegativeScore:0.000}; umbral {detector.Threshold(0.5):0.000}; " +
+                                           $"DTW: tomas {detector.PositiveDistance:0.000}, habla {detector.NegativeDistance:0.000}");
+
+            // Port check: the streaming path must give (almost) the embeddings of the whole-clip path.
+            var probe = ReadWav(Wavs("speech").Concat(Wavs("word")).First());
+            var whole = features.EmbedClip(probe);
+            var stream = new OwwStream(features);
+            var streamed = new List<float[]>();
+            for (var i = 0; i < probe.Length; i += 512) streamed.AddRange(stream.Accept(probe.AsSpan(i, Math.Min(512, probe.Length - i))));
+            // Streamed embedding j ends at chunk j (sample 1280·(j+1)); whole-clip embedding k ends near WindowEnd(k).
+            var sims = new List<double>();
+            for (var k = 0; k < whole.Length; k++)
+            {
+                var j = (int)Math.Round(OwwFeatures.WindowEnd(k) / (double)OwwFeatures.Chunk) - 1;
+                if (j >= 0 && j < streamed.Count) sims.Add(1 - Dtw.CosineDistance(whole[k], streamed[j]));
+            }
+            report.AppendLine($"Comprobación del port: {whole.Length} embeddings del clip entero frente a {streamed.Count} en streaming; " +
+                              $"similitud coseno media {sims.DefaultIfEmpty(0).Average():0.0000}, mínima {sims.DefaultIfEmpty(0).Min():0.0000}");
+        }
+
         report.AppendLine().AppendLine("Pruebas:");
         foreach (var file in Wavs("test"))
         {
-            var text = stt.Transcribe(ReadWav(file));
+            var audio = ReadWav(file);
+            var text = stt.Transcribe(audio);
             var match = WakeWordVerifier.Find(text, word);
-            report.AppendLine($"  {Path.GetFileName(file)}: «{text}» → {(match is { Accepted: true } ? "SÍ" : "no")} " +
+            var phase1 = "";
+            if (detector is not null && features is not null)
+            {
+                var (best, bestDtw, bestCls) = detector.BestLive(features, audio);
+                phase1 = $"fase 1 {(best >= detector.Threshold(0.5) ? "SÍ" : "no")} {best:0.000} (DTW {bestDtw:0.00}, clasif. {bestCls:0.00}) · ";
+            }
+            report.AppendLine($"  {Path.GetFileName(file)}: «{text}» → {phase1}fase 2 {(match is { Accepted: true } ? "SÍ" : "no")} " +
                               $"({match?.Score ?? 0:0.000}){(match is { Accepted: true, Rest.Length: > 0 } ? $" · orden: «{match.Rest}»" : "")}");
         }
+        features?.Dispose();
 
         var output = Path.Combine(AppPaths.LogDir, "wake-test.txt");
         Directory.CreateDirectory(AppPaths.LogDir);

@@ -132,6 +132,12 @@ public partial class AppSettings : ObservableObject
     /// <summary>Minutes without use after which the speech model leaves memory.</summary>
     [ObservableProperty] private int _voiceUnloadMinutes = 10;
 
+    /// <summary>Always listen for the wake words (the microphone stays open while there is any active one).</summary>
+    [ObservableProperty] private bool _voiceWakeListen = true;
+
+    /// <summary>When the detector is very sure, skip the check with Parakeet (faster, a little riskier).</summary>
+    [ObservableProperty] private bool _voiceWakeTrust;
+
     // OSD
     [ObservableProperty] private OsdPosition _osdPosition = OsdPosition.BottomCenter;
     [ObservableProperty] private double _osdSeconds = 1.6;

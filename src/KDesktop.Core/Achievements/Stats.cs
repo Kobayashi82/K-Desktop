@@ -26,6 +26,9 @@ public static class Stat
 
     public const string RemoteRun = "remote.run";
 
+    /// <summary>Wake words heard (both phases passed).</summary>
+    public const string WakeWords = "voice.wakewords";
+
     public const string MacrosRecorded = "macros.recorded";
     public const string MacrosPlayed = "macros.played";
     public const string MacroLongest = "macros.longest";

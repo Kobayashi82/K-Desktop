@@ -14,8 +14,12 @@ public sealed class ModelDownloader
 {
     private const string Parakeet = "https://huggingface.co/csukuangfj/sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8/resolve/main/";
 
+    private const string OpenWakeWord = "https://github.com/dscripka/openWakeWord/releases/download/v0.5.1/";
+
     public static IReadOnlyList<ModelFile> Files { get; } =
     [
+        new(OpenWakeWord + "melspectrogram.onnx", VoiceModels.WakeMelspec, 1_087_958, "ba2b0e0f8b7b875369a2c89cb13360ff53bac436f2895cced9f479fa65eb176f"),
+        new(OpenWakeWord + "embedding_model.onnx", VoiceModels.WakeEmbedding, 1_326_578, "70d164290c1d095d1d4ee149bc5e00543250a7316b59f31d056cff7bd3075c1f"),
         new("https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx",
             VoiceModels.VadFile, 643_854, "9e2449e1087496d8d4caba907f23e0bd3f78d91fa552479bb9c23ac09cbb1fd6"),
         new(Parakeet + "tokens.txt", VoiceModels.ParakeetTokens, 93_939, "d58544679ea4bc6ac563d1f545eb7d474bd6cfa467f0a6e2c1dc1c7d37e3c35d"),

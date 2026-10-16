@@ -124,6 +124,13 @@ public sealed class VoiceService : IDisposable
         }
 
         using var osd = _ui.ShowVoiceOsd(Loc.T("voice.listening"));
+        if (Environment.GetEnvironmentVariable("KDESKTOP_VOICE_FAKE_STREAM") is { Length: > 0 } || Environment.GetEnvironmentVariable("KDESKTOP_VOICE_FAKE") is { Length: > 0 })
+        {
+            // Tests with simulated audio never open the real microphone.
+            Log.Info("Escucha simulada: la sesión no abre el micrófono");
+            osd.Finish(Loc.T("voice.nothingHeard"), OsdKind.Info);
+            return;
+        }
         _mic.Samples += OnSamples;
         try
         {
@@ -216,6 +223,12 @@ public sealed class VoiceService : IDisposable
             }
         }
 
+        await RunTextAsync(text, osd).ConfigureAwait(false);
+    }
+
+    /// <summary>The spoken order → the command → run it, telling the user on the OSD.</summary>
+    private async Task RunTextAsync(string text, IVoiceOsd osd)
+    {
         var result = IntentMatcher.Match(text, Commands());
         Log.Info($"Voz → {(result.Command?.Name ?? "nada")} · " +
                  string.Join(", ", result.Candidates.Select(c => $"{c.Command.Name} {c.Score:0.00}")));
@@ -229,6 +242,73 @@ public sealed class VoiceService : IDisposable
         else
             osd.Finish(Loc.T("voice.noMatch", text), OsdKind.Warning);
     }
+
+    // ── wake word ────────────────────────────────────────────────────────
+
+    private readonly object _featuresGate = new();
+    private OwwFeatures? _features;
+
+    /// <summary>openWakeWord's feature models, loaded on first use and shared (ONNX sessions are thread-safe).</summary>
+    public OwwFeatures Features
+    {
+        get
+        {
+            lock (_featuresGate) return _features ??= new OwwFeatures();
+        }
+    }
+
+    /// <summary>
+    /// The always-on detector heard <paramref name="word"/> (phase 1, <paramref name="score"/>): <paramref name="audio"/>
+    /// runs from a couple of seconds before it until the speaker went quiet. Phase 2 checks it with Parakeet; what was
+    /// said after the word is the order, and if nothing was, a normal listening session starts.
+    /// </summary>
+    public async Task HandleWakeAsync(float[] audio, WakeWord word, double score)
+    {
+        if (Interlocked.CompareExchange(ref _active, 1, 0) != 0) return;
+        var listen = false;
+        try
+        {
+            if (!VoiceModels.Ready) return;
+            StateChanged?.Invoke();
+            var settings = _config().Settings;
+            SpeechToText.IdleUnload = TimeSpan.FromMinutes(Math.Max(1, settings.VoiceUnloadMinutes));
+            var text = await Task.Run(() => SpeechToText.Transcribe(audio)).ConfigureAwait(false);
+            var match = WakeWordVerifier.Find(text, word);
+            var trusted = settings.VoiceWakeTrust && score >= Math.Max(0.9, word.DetectorThreshold + 0.25);
+            if (match is not { Accepted: true } && !trusted)
+            {
+                Log.Info($"Palabra de activación «{word.Name}» descartada por la verificación: «{text}» → {match?.Score ?? 0:0.00} " +
+                         $"(necesita {word.EffectiveThreshold:0.00}; detector {score:0.00})");
+                return;
+            }
+            var order = match is { Accepted: true } ? match.Rest : "";
+            Log.Info($"Palabra de activación «{word.Name}»: detector {score:0.00}, verificación {match?.Score ?? 0:0.00}" +
+                     (trusted && match is not { Accepted: true } ? " (sin verificar: el detector estaba muy seguro)" : "") +
+                     (order.Length > 0 ? $"; orden «{order}»" : "; sin orden: escuchando"));
+            WakeHeard?.Invoke(word);
+            if (order.Length == 0)
+            {
+                listen = true;
+                return;
+            }
+            using var osd = _ui.ShowVoiceOsd(Loc.T("voice.thinking"));
+            await RunTextAsync(order, osd).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Error tras la palabra de activación", ex);
+        }
+        finally
+        {
+            _active = 0;
+            StateChanged?.Invoke();
+        }
+        // Only the word: listen for the order now (until the speaker goes quiet).
+        if (listen) await ListenAsync(null).ConfigureAwait(false);
+    }
+
+    /// <summary>Raised (any thread) when a wake word passed both phases.</summary>
+    public event Action<WakeWord>? WakeHeard;
 
     /// <summary>
     /// The audio to transcribe: from a little before the first speech to a little after the last. Without detected
@@ -248,5 +328,6 @@ public sealed class VoiceService : IDisposable
         _mic.Dispose();
         SpeechToText.Dispose();
         WakeWords.Dispose();
+        lock (_featuresGate) _features?.Dispose();
     }
 }

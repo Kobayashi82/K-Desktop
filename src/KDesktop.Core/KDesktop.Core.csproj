@@ -9,6 +9,9 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="NAudio.Wasapi" Version="3.1.0" />
     <PackageReference Include="org.k2fsa.sherpa.onnx" Version="1.13.8" />
+    <!-- Only the .NET wrapper: it uses the onnxruntime.dll that sherpa-onnx already ships (1.28.2; the C API is
+         backward compatible), so there is a single native runtime. Keep it at or below that version. -->
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.28.0" />
   </ItemGroup>
 
   <!-- Built-in languages and sounds travel inside the assembly (and so inside the single-file exe).

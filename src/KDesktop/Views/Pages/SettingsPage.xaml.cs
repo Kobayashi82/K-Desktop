@@ -122,12 +122,14 @@ public partial class SettingsPage : UserControl
     private void UpdateVoiceModels()
     {
         var download = _app.Voice.Models;
-        var ready = VoiceModels.Ready;
+        var ready = VoiceModels.AllInstalled;
         var installed = ModelDownloader.InstalledSize();
         VoiceModelsText.Text = download.IsDownloading
             ? Loc.T("settings.voiceDownloading", Megabytes(download.Done), Megabytes(ModelDownloader.TotalSize))
             : ready ? Loc.T("settings.voiceInstalled", Megabytes(installed))
-            : Loc.T("settings.voiceMissing", Megabytes(ModelDownloader.TotalSize)) +
+            // Some already there (e.g. after an update adds a model): only the rest is downloaded.
+            : (installed > 0 ? Loc.T("settings.voicePartial", Megabytes(Math.Max(1048576, ModelDownloader.TotalSize - installed)))
+                             : Loc.T("settings.voiceMissing", Megabytes(ModelDownloader.TotalSize))) +
               (download.Error is { } error ? " " + Loc.T("settings.voiceLastError", error) : "");
         VoiceProgress.Visibility = download.IsDownloading ? Visibility.Visible : Visibility.Collapsed;
         VoiceProgress.Value = (double)download.Done / ModelDownloader.TotalSize;

@@ -133,6 +133,7 @@ public partial class WakeWordDialog : FluentWindow
             case 4:
                 _meter = TestLevel;
                 TestText.Text = Loc.T("wake.testText", _testOnly ? _existing!.Name : WordName);
+                TrainDetector();
                 break;
             default: _meter = null; break;
         }
@@ -194,7 +195,7 @@ public partial class WakeWordDialog : FluentWindow
     private async Task Busy(Func<CancellationToken, Task> work)
     {
         if (_busy) return;
-        if (!VoiceModels.Ready)
+        if (!VoiceModels.AllInstalled)
         {
             ShowError(Loc.T("wake.needModels"));
             return;
@@ -270,17 +271,36 @@ public partial class WakeWordDialog : FluentWindow
             RecordButton.Content = Loc.T("wake.speakNow", Kept.Count() + 1, Wanted, WordName);
             var audio = await _recorder.RecordUtteranceAsync(_app.Config.Settings.VoiceMicId, TimeSpan.FromSeconds(4), cancel);
             var take = WakeWordRecorder.Check(audio, _noise, Kept.Select(t => t.Take.Seconds).ToList());
+            float[][]? template = null;
             if (take.Issue == TakeIssue.None)
             {
                 RecordButton.Content = Loc.T("wake.understanding");
                 take.Text = WakeWordVerifier.Clean(await Task.Run(() => _app.Voice.SpeechToText.Transcribe(take.Speech), cancel));
+                // Sounds unlike the other takes (another word, a cough…)?
+                var silence = _silence;
+                template = await Task.Run(() => WakeDetector.TemplateFor(_app.Voice.Features, take.Speech, silence), cancel);
+                if (IsOdd(template)) take = take with { Issue = TakeIssue.Odd };
             }
-            _takes.Add(new TakeRow(take));
+            _takes.Add(new TakeRow(take) { Template = template });
             UpdateTakes();
             if (take.Issue != TakeIssue.None) break;
             await Task.Delay(500, cancel);
         }
     });
+
+    /// <summary>
+    /// Much further (DTW over openWakeWord embeddings) from the takes already kept than they are from each other.
+    /// </summary>
+    private bool IsOdd(float[][] template)
+    {
+        var others = Kept.Select(t => t.Template).OfType<float[][]>().ToList();
+        if (others.Count < 2) return false;
+        var distance = others.Min(o => Dtw.EndAligned(o, template));
+        var typical = others.Select(o => others.Where(x => !ReferenceEquals(x, o)).Min(x => Dtw.EndAligned(x, o))).Order().ToList()[others.Count / 2];
+        var odd = distance > Math.Max(typical * 2.2, typical + 0.08);
+        Log.Info($"Toma de «{WordName}»: distancia {distance:0.000} a las demás (normal entre ellas {typical:0.000}){(odd ? " → atípica" : "")}");
+        return odd;
+    }
 
     private void OnRemoveTake(object sender, RoutedEventArgs e)
     {
@@ -317,6 +337,9 @@ public partial class WakeWordDialog : FluentWindow
     public sealed class TakeRow(WakeTake take)
     {
         public WakeTake Take { get; } = take;
+
+        /// <summary>Its embedding sequence (to compare takes by sound).</summary>
+        public float[][]? Template { get; init; }
 
         public SymbolRegular Symbol => Take.Issue == TakeIssue.None ? SymbolRegular.CheckmarkCircle24 : SymbolRegular.ErrorCircle24;
 
@@ -369,6 +392,40 @@ public partial class WakeWordDialog : FluentWindow
         NoiseLevel = _noise,
     };
 
+    /// <summary>The always-on detector of the word, trained in the background while the user tries it.</summary>
+    private Task<WakeDetector?>? _detector;
+
+    private void TrainDetector()
+    {
+        if (_testOnly)
+        {
+            var word = _existing!;
+            _detector = word.Detector is { } trained ? Task.FromResult<WakeDetector?>(trained)
+                : Task.Run(() =>
+                {
+                    _app.Voice.WakeWords.Train(word, _app.Voice.Features);
+                    return word.Detector;
+                });
+            return;
+        }
+        var takes = Kept.Select(t => t.Take.Speech).ToList();
+        var (silence, speech, name) = (_silence, _speech, WordName);
+        _detector = Task.Run(() =>
+        {
+            try
+            {
+                var (detector, report) = WakeDetector.Train(_app.Voice.Features, takes, silence, speech);
+                Log.Info($"Detector de prueba de «{name}»: {report.Milliseconds} ms, tomas ≥ {report.PositiveScore:0.00}, habla normal ≤ {report.NegativeScore:0.00}");
+                return detector;
+            }
+            catch (Exception ex)
+            {
+                Log.Error("No se pudo entrenar el detector de la palabra de activación", ex);
+                return null;
+            }
+        });
+    }
+
     private async void OnTest(object sender, RoutedEventArgs e) => await Busy(async cancel =>
     {
         TestButton.Content = Loc.T("wake.listening");
@@ -383,21 +440,35 @@ public partial class WakeWordDialog : FluentWindow
             var to = Math.Min(audio.Length, segments[^1].Start + segments[^1].Length + pad);
             text = await Task.Run(() => _app.Voice.SpeechToText.Transcribe(audio[from..to]), cancel);
         }
+        // Phase 1: the detector, hearing the recording as it would live.
+        (double Score, double Dtw, double Classifier)? live = null;
+        if (_detector is not null)
+        {
+            if (!_detector.IsCompleted) TestButton.Content = Loc.T("wake.training");
+            if (await _detector is { } trained) live = await Task.Run(() => trained.BestLive(_app.Voice.Features, audio), cancel);
+        }
         TestButton.Content = Loc.T("wake.test");
 
         var word = Candidate();
+        if (!_testOnly && _detector is { IsCompletedSuccessfully: true }) word.Detector = _detector.Result;
         var match = WakeWordVerifier.Find(text, word);
-        var yes = match is { Accepted: true };
+        var heard = live is null || live.Value.Score >= word.DetectorThreshold;
+        var yes = heard && match is { Accepted: true };
         TestCard.Visibility = Visibility.Visible;
         TestIcon.Symbol = yes ? SymbolRegular.CheckmarkCircle24 : SymbolRegular.DismissCircle24;
         TestIcon.SetResourceReference(ForegroundProperty, yes ? "Kd.Success" : "Kd.Warning");
         TestVerdict.Text = Loc.T(yes ? "wake.testYes" : "wake.testNo");
         var c = Loc.Instance.Culture;
         TestDetail.Text = text.Length == 0 ? Loc.T("wake.testNothing")
-            : Loc.T("wake.testDetail", text, (match?.Score ?? 0).ToString("0.00", c), word.EffectiveThreshold.ToString("0.00", c))
+            : Loc.T("wake.testDetail", text)
+              + "\n" + (live is { } l
+                  ? Loc.T("wake.testScores", l.Score.ToString("0.00", c), word.DetectorThreshold.ToString("0.00", c),
+                          (match?.Score ?? 0).ToString("0.00", c), word.EffectiveThreshold.ToString("0.00", c))
+                  : Loc.T("wake.testScore2", (match?.Score ?? 0).ToString("0.00", c), word.EffectiveThreshold.ToString("0.00", c)))
               + (yes && match!.Rest.Length > 0 ? "\n" + Loc.T("wake.testOrder", match.Rest) : "");
         TestCard.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(200)));
-        Log.Info($"Prueba de «{word.Name}»: «{text}» → {match?.Score ?? 0:0.000} (umbral {word.EffectiveThreshold:0.000})");
+        Log.Info($"Prueba de «{word.Name}»: «{text}» → detector {(live is { } d ? $"{d.Score:0.000} (DTW {d.Dtw:0.00}, clasificador {d.Classifier:0.00}; umbral {word.DetectorThreshold:0.000})" : "—")}, " +
+                 $"verificación {match?.Score ?? 0:0.000} (umbral {word.EffectiveThreshold:0.000})");
     });
 
     // ── save ─────────────────────────────────────────────────────────────
@@ -422,6 +493,8 @@ public partial class WakeWordDialog : FluentWindow
             word.Microphone = MicCapture.Devices().FirstOrDefault(d => d.Id == micId).Name;
             word.Created = DateTime.Now;
             _app.Voice.WakeWords.Save(word);
+            // The detector trained while trying it; otherwise the listener trains it from the recordings.
+            if (_detector is { IsCompletedSuccessfully: true, Result: { } detector }) _app.Voice.WakeWords.Save(word, detector);
             Saved = word;
             Log.Info($"Palabra de activación guardada: «{word.Name}» ({word.Recordings.Count} grabaciones, umbral {word.Threshold:0.000})");
             Close();
