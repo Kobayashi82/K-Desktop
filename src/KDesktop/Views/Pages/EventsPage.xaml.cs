@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -362,6 +363,14 @@ public partial class EventsPage : UserControl, IDisposable
         {
             if (!list.Contains(name)) list.Add(name);
         });
+    }
+
+    private void OnBrowseFolder(object sender, RoutedEventArgs e)
+    {
+        if (_selected?.Trigger is not FileTrigger t) return;
+        var dlg = new Microsoft.Win32.OpenFolderDialog { Title = Loc.T("editor.chooseFolder") };
+        if (Directory.Exists(t.Folder)) dlg.InitialDirectory = t.Folder;
+        if (dlg.ShowDialog(Window.GetWindow(this)) == true) t.Folder = dlg.FolderName;
     }
 
     private void OnRemoveProcess(object sender, ExecutedRoutedEventArgs e)

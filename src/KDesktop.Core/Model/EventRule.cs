@@ -245,6 +245,7 @@ public enum PowerSource { Battery, Mains }
 [JsonDerivedType(typeof(IdleTrigger), "idle")]
 [JsonDerivedType(typeof(SessionTrigger), "session")]
 [JsonDerivedType(typeof(PowerSourceTrigger), "powerSource")]
+[JsonDerivedType(typeof(FileTrigger), "file")]
 public abstract partial class EventTrigger : ObservableObject
 {
     [JsonIgnore] public abstract EventKind Kind { get; }
@@ -385,4 +386,25 @@ public sealed partial class PowerSourceTrigger : EventTrigger
     public override EventKind Kind => EventKind.PowerSource;
     public override int DefaultCooldown => 2;
     public override string Summary => Loc.T($"event.summary.power.{Source}");
+}
+
+/// <summary>A new file appears in a folder (once it has stopped growing).</summary>
+public sealed partial class FileTrigger : EventTrigger
+{
+    [ObservableProperty] private string _folder = string.Empty;
+
+    /// <summary>«*.png», «*.mp4»… (empty or «*» = any file).</summary>
+    [ObservableProperty] private string _filter = "*";
+    [ObservableProperty] private bool _subfolders;
+
+    public override EventKind Kind => EventKind.File;
+    public override string Summary
+    {
+        get
+        {
+            var folder = Path.GetFileName(Folder.Trim().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            var filter = string.IsNullOrWhiteSpace(Filter) || Filter.Trim() == "*" ? string.Empty : " (" + Filter.Trim() + ")";
+            return Loc.T("event.summary.file", folder.Length == 0 ? "?" : folder) + filter;
+        }
+    }
 }

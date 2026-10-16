@@ -57,6 +57,10 @@ public sealed class EventService : IDisposable
     private readonly Dictionary<string, string[]> _foregroundGroups = new(StringComparer.Ordinal);
     private readonly Dictionary<string, bool> _foregroundActive = new(StringComparer.Ordinal);
 
+    // «Archivo nuevo en una carpeta»
+    private readonly Dictionary<string, FileSystemWatcher> _fileWatchers = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _settling = new(StringComparer.OrdinalIgnoreCase);
+
     // «Sin usar el PC»
     private Timer? _idleTimer;
     private readonly Dictionary<string, bool> _idleActive = new(StringComparer.Ordinal);
@@ -101,6 +105,7 @@ public sealed class EventService : IDisposable
             ConfigureProcesses();
             ConfigureForeground();
             ConfigureIdle();
+            ConfigureFiles();
             ConfigureWatcher();
             _initial = false;
         }
@@ -114,6 +119,7 @@ public sealed class EventService : IDisposable
         _idleActive.Remove(id);
         _foregroundActive.Remove(id);
         _foregroundGroups.Remove(id);
+        if (_fileWatchers.Remove(id, out var watcher)) watcher.Dispose();
         _guard.Reset(id);
     }
 
@@ -454,6 +460,72 @@ public sealed class EventService : IDisposable
         }
     }
 
+    // ── «Archivo nuevo en una carpeta» ───────────────────────────────────
+
+    private void ConfigureFiles()
+    {
+        foreach (var id in _fileWatchers.Keys.Where(id => !_rules.TryGetValue(id, out var r) || r.Rule.Trigger is not FileTrigger).ToList())
+            if (_fileWatchers.Remove(id, out var old)) old.Dispose();
+        foreach (var (rule, t) in Rules<FileTrigger>())
+        {
+            if (_fileWatchers.ContainsKey(rule.Id)) continue;
+            var folder = Environment.ExpandEnvironmentVariables(t.Folder.Trim().Trim('"'));
+            if (folder.Length == 0) continue;
+            if (!Directory.Exists(folder))
+            {
+                Log.Warn($"Evento «{rule.Name}»: la carpeta no existe ({folder})");
+                continue;
+            }
+            var filter = string.IsNullOrWhiteSpace(t.Filter) ? "*" : t.Filter.Trim();
+            try
+            {
+                var watcher = new FileSystemWatcher(folder, filter)
+                {
+                    IncludeSubdirectories = t.Subfolders,
+                    NotifyFilter = NotifyFilters.FileName,
+                    InternalBufferSize = 64 * 1024,
+                };
+                var captured = rule;
+                watcher.Created += (_, e) => OnFileAppeared(captured, filter, e.FullPath);
+                watcher.Renamed += (_, e) => OnFileAppeared(captured, filter, e.FullPath);
+                watcher.Error += (_, e) => Log.Warn($"Evento «{captured.Name}»: se perdieron avisos de la carpeta ({e.GetException().Message})");
+                watcher.EnableRaisingEvents = true;
+                _fileWatchers[rule.Id] = watcher;
+            }
+            catch (Exception ex)
+            {
+                Log.Warn($"Evento «{rule.Name}»: no se puede vigilar {folder}: {ex.Message}");
+            }
+        }
+    }
+
+    /// <summary>A file appeared (created, or renamed to a matching name): wait until it is complete, then fire.</summary>
+    private void OnFileAppeared(EventRule rule, string filter, string path)
+    {
+        if (!System.IO.Enumeration.FileSystemName.MatchesSimpleExpression(filter, Path.GetFileName(path))) return;
+        if (Directory.Exists(path)) return; // a folder, not a file
+        lock (_lock)
+        {
+            if (_disposed || !_settling.Add(rule.Id + "|" + path)) return;
+        }
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                if (await FileSettler.WaitAsync(path, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(10), CancellationToken.None).ConfigureAwait(false))
+                {
+                    Log.Info($"Eventos: archivo nuevo {path} («{rule.Name}»)");
+                    await FireAsync(rule, false).ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex) { Log.Error($"Evento «{rule.Name}»: error esperando a {path}", ex); }
+            finally
+            {
+                lock (_lock) _settling.Remove(rule.Id + "|" + path);
+            }
+        });
+    }
+
     // ── sesión y ventana oculta ──────────────────────────────────────────
 
     private void ConfigureWatcher()
@@ -515,6 +587,8 @@ public sealed class EventService : IDisposable
             _processTimer?.Dispose();
             _foregroundTimer?.Dispose();
             _idleTimer?.Dispose();
+            foreach (var w in _fileWatchers.Values) w.Dispose();
+            _fileWatchers.Clear();
         }
         _watcher?.Dispose();
         _engine.EventFired -= OnEventFired;
