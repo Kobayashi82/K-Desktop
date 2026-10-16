@@ -154,6 +154,15 @@
 - [x] **Idiomas**: francés, alemán, italiano y portugués (Brasil) incluidos, también los «¿Sabías que…?», las
       palabras de la voz (`voice.words.*`, `voice.syn.*`) y la web. Sin idioma elegido se usa el de Windows si existe.
 - [ ] Web: micrófono del móvil como otra fuente de audio de la voz (después de la voz).
+- [x] **Emparejar una vez, cualquier dirección** (2026-10-16): K-Desktop dice sus direcciones en `api/session`
+      (`WebServer.Addresses()`: la pública configurada o vista por el proxy, y las de la red local salvo con «solo el
+      proxy»). La app de Android guarda el token y las direcciones (`Addresses.java`) y al abrirse, al fallar la
+      carga o al volver tras 20 s en segundo plano prueba todas (`api/ping`, comprobando el nombre del PC) y usa la
+      local si responde o si no la primera que conteste: en casa y fuera con el mismo emparejamiento. En el navegador
+      (cada dirección es otro sitio para él) Ajustes muestra «Usar también en …»: un código de enlace de un solo uso
+      (`api/link`, `#link=`) empareja esa dirección como el mismo dispositivo (`WebDevice.LinkedTokenHashes`). Con
+      solo la cabecera Bearer `api/session` pone la cookie (iconos y eventos la necesitan). Desemparejar desde
+      cualquier dirección quita el dispositivo entero. Probado con dos proxies en el emulador (app y Chrome).
 - [ ] Probar la app web en el móvil real a través de Caddy (instalación como PWA, iPhone y Android).
 - [ ] **Voz** (plan en [VOZ.md](VOZ.md), etapas abajo). Va después del touchpad/teclado de la web.
 

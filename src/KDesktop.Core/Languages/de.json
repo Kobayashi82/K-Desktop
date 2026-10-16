@@ -469,6 +469,8 @@
   "pwa.settings.refresh": "Befehle neu laden",
   "pwa.settings.unpair": "Entkoppeln",
   "pwa.settings.unpairConfirm": "Dieses Gerät entkoppeln? Um die App wieder zu nutzen, musst du es erneut koppeln.",
+  "pwa.settings.otherAddress": "Auch verwenden unter",
+  "pwa.settings.linkFailed": "Die andere Adresse ließ sich nicht verknüpfen: mit einem neuen Code koppeln.",
   "pwa.refreshed": "Befehle aktualisiert",
   "pwa.offline": "Keine Verbindung zu K-Desktop",
   "pwa.thisPc": "Dieser PC (ohne Kopplung)",

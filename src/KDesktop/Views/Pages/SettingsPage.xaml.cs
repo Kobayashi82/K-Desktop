@@ -265,8 +265,7 @@ public partial class SettingsPage : UserControl
     private string PairingBaseUrl()
     {
         var s = _app.Config.Settings;
-        if (!string.IsNullOrWhiteSpace(s.WebPublicUrl)) return s.WebPublicUrl.Trim().TrimEnd('/') + "/";
-        if (_app.Web.SeenPublicUrl is { } seen) return seen;
+        if (_app.Web.PublicAddress is { } address) return address;
         return WebServer.LocalUrls(s.WebPort, s.WebBasePath).FirstOrDefault()
                ?? $"http://localhost:{s.WebPort}{WebServer.NormalizeBasePath(s.WebBasePath)}/";
     }

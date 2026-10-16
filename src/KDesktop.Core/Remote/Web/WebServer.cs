@@ -43,6 +43,23 @@ public sealed partial class WebServer : IDisposable
     /// <summary>Last public address seen through the proxy (scheme://host/prefix/), used when none is configured.</summary>
     public string? SeenPublicUrl { get; private set; }
 
+    /// <summary>The app's address on the internet: the configured one (Settings), else the one seen through the proxy.</summary>
+    public string? PublicAddress =>
+        _host.Engine.Config.Settings.WebPublicUrl.Trim() is { Length: > 0 } url ? url.TrimEnd('/') + "/" : SeenPublicUrl;
+
+    /// <summary>
+    /// Every address a device can reach the app at: the public one first, then this PC's on the local network (unless
+    /// only the proxy is accepted). The Android app tries them all and uses the one that answers.
+    /// </summary>
+    public IReadOnlyList<string> Addresses()
+    {
+        var list = new List<string>();
+        if (PublicAddress is { } address) list.Add(address);
+        if (Options is { AllowRemote: true } o && State == WebServerState.Running && !(o.ProxyOnly && !string.IsNullOrEmpty(o.TrustedProxy)))
+            list.AddRange(LocalUrls(o.Port, o.BasePath));
+        return list.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
     public event Action? StateChanged;
 
     public void Start(WebServerOptions options)

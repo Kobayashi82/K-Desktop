@@ -59,6 +59,10 @@ public sealed partial class WebServer
         switch (request.Method, request.Path)
         {
             case ("GET", "/api/session"):
+                // Signed in by the header alone (the app moved to another address with its token): the cookie too,
+                // which images and the event stream need.
+                var cookie = !request.IsLocal && TokenOf(context.Request) is { } token && context.Request.Cookies[CookieName]?.Value != token;
+                if (cookie) SetTokenCookie(response, request, TokenOf(context.Request));
                 await WriteJsonAsync(response, new
                 {
                     app = AppPaths.VersionName,
@@ -66,7 +70,14 @@ public sealed partial class WebServer
                     device = new { device.Id, Name = request.IsLocal ? Loc.T("pwa.thisPc") : device.Name },
                     local = request.IsLocal,
                     input = InputAllowed,
+                    addresses = Addresses(),
+                    cookie,
                 }).ConfigureAwait(false);
+                break;
+            case ("POST", "/api/link"):
+                // Pair this same device at another address (see WebDevices.NewLinkCode).
+                if (request.IsLocal) await WriteJsonAsync(response, new { error = "local" }, 400).ConfigureAwait(false);
+                else await WriteJsonAsync(response, new { code = Devices.NewLinkCode(device) }).ConfigureAwait(false);
                 break;
             case ("GET", "/api/events"):
                 await EventsAsync(response).ConfigureAwait(false);

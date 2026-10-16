@@ -58,6 +58,7 @@ const ICONS = {
   natural: '<path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/>',
   tap: '<circle cx="12" cy="9" r="3"/><path d="M12 15v6M6.5 5.5a8 8 0 0 1 11 0"/>',
   install: '<path d="M12 3.5v11M7.5 10l4.5 4.5 4.5-4.5"/><path d="M4.5 16v2.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V16"/>',
+  link: '<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>',
   server: '<rect x="3.5" y="4" width="17" height="7" rx="2"/><rect x="3.5" y="13" width="17" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/>',
   unlink: '<path d="M9.5 14.5l5-5M10 6.5l1.5-1.5a4 4 0 0 1 5.66 5.66L15.5 12M14 17.5L12.5 19a4 4 0 0 1-5.66-5.66L8.5 12"/><path d="M3.5 3.5l3 3M20.5 20.5l-3-3"/>',
 };
@@ -818,6 +819,75 @@ function fillSession(s = state.session) {
   $('unpairButton').hidden = !!s.local;
   $('padSettings').hidden = s.input === false;
   if (state.tab === 'pad') padActive(true, s.input !== false);
+  fillAddresses(s);
+}
+
+// ── addresses ──────────────────────────────────────────────────────
+
+/** This app's own address (scheme://host/path/), to tell it apart from the others. */
+const here = () => new URL('.', location.href).href.toLowerCase();
+
+/**
+ * The PC can be reached at several addresses (its IP at home, the proxy's domain outside). The Android app keeps
+ * them all and uses the one that answers; a browser keeps its pairing per address, so it gets a button to pair this
+ * same device at the other ones in one tap.
+ */
+function fillAddresses(s) {
+  const addresses = s.addresses ?? [];
+  const app = window.KDesktopApp;
+  if (app?.setAddresses) {
+    if (addresses.length) app.setAddresses(JSON.stringify({ machine: s.machine, addresses }));
+    return;
+  }
+  const others = s.local ? [] : addresses.filter(a => a.toLowerCase() !== here());
+  const rows = $('addressRows');
+  rows.hidden = others.length === 0;
+  rows.replaceChildren(...others.map(address => {
+    const row = document.createElement('button');
+    row.className = 'row row-button';
+    row.innerHTML = `<span class="row-icon">${svg('link')}</span><span class="row-label"><span></span><small class="row-sub"></small></span><span class="row-chevron">${svg('chevron')}</span>`;
+    row.querySelector('.row-label > span').textContent = t('pwa.settings.otherAddress');
+    row.querySelector('.row-sub').textContent = address;
+    row.addEventListener('click', () => openAt(address, row));
+    return row;
+  }));
+}
+
+/** Pairs this device at another address too (a one-time link code) and goes there. */
+async function openAt(address, row) {
+  row.disabled = true;
+  try {
+    const { code } = await api('link', { method: 'POST' });
+    location.href = address + '#link=' + code;
+  } catch (e) {
+    if (!(e instanceof Unpaired)) toast('error', t('pwa.offline'), '', 3000);
+    row.disabled = false;
+  }
+}
+
+/** Arrived from another address of the same PC with a link code: paired at once, as the same device. */
+async function linkHere(code) {
+  try {
+    const r = await fetch('api/pair', {
+      method: 'POST', cache: 'no-store',
+      headers: { 'X-KD': '1', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, name: store.get('deviceName', '') || deviceName() }),
+    });
+    if (!r.ok) throw new Error(String(r.status));
+    const data = await r.json();
+    keepToken(data.token);
+    toast('ok', t('pwa.pair.done'), data.device?.name ?? '', 2000);
+    await connect();
+  } catch {
+    showPair();
+    $('pairError').textContent = t('pwa.settings.linkFailed');
+  }
+}
+
+/** The token, also in the Android app: it moves between the PC's addresses with it. */
+function keepToken(token) {
+  store.set('token', token);
+  window.KDesktopApp?.setToken?.(token ?? '');
 }
 
 // ── live events ────────────────────────────────────────────────────
@@ -897,6 +967,7 @@ async function connect() {
   try {
     state.session = await api('session');
     store.set('session', state.session);
+    if (state.session.cookie) state.catalogJson = '';
     fillSession();
     showShell();
     startEvents();
@@ -956,7 +1027,7 @@ async function pair(e) {
     });
     if (!r.ok) throw new Error(String(r.status));
     const data = await r.json();
-    store.set('token', data.token);
+    keepToken(data.token);
     navigator.vibrate?.(20);
     toast('ok', t('pwa.pair.done'), data.device?.name ?? '', 2000);
     await connect();
@@ -988,7 +1059,7 @@ function fillLanguages() {
 async function unpair() {
   if (!confirm(t('pwa.settings.unpairConfirm'))) return;
   try { await api('logout', { method: 'POST' }); } catch { /* already gone */ }
-  store.set('token', null);
+  keepToken(null);
   store.set('catalog', null);
   store.set('session', null);
   state.catalog = null;
@@ -1143,11 +1214,21 @@ async function start() {
   const textsLoaded = loadTexts();
   if (!state.texts) await textsLoaded;
 
-  // Opened from the QR: #pair=CODE.
+  // The Android app keeps the token itself: the same one works at every address of the PC.
+  const appToken = window.KDesktopApp?.getToken?.();
+  if (appToken && appToken !== store.get('token')) store.set('token', appToken);
+  else if (!appToken && store.get('token')) window.KDesktopApp?.setToken?.(store.get('token'));
+
+  // Opened from the QR: #pair=CODE. From another address of this PC: #link=CODE.
   const code = /[#&]pair=([A-Za-z0-9-]+)/.exec(location.hash)?.[1];
+  const link = /[#&]link=([a-f0-9]+)/.exec(location.hash)?.[1];
+  if (code || link) history.replaceState(null, '', location.pathname + location.search);
   if (code) {
-    history.replaceState(null, '', location.pathname + location.search);
     showPair(code, true);
+    return;
+  }
+  if (link) {
+    await linkHere(link);
     return;
   }
   // Last known state first (instant, and it works with the PC off), then the live one.

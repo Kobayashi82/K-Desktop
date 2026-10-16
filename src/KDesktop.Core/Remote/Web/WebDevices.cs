@@ -10,6 +10,12 @@ public sealed class WebDevice
     public string Id { get; set; } = Ids.New();
     public string Name { get; set; } = string.Empty;
     public string TokenHash { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Tokens of the same device at its other addresses (a browser keeps one per address: the local IP and the
+    /// proxy's domain are different sites to it). See <see cref="WebDevices.NewLinkCode"/>.
+    /// </summary>
+    public List<string> LinkedTokenHashes { get; set; } = [];
     public DateTime Created { get; set; } = DateTime.Now;
     public DateTime LastSeen { get; set; } = DateTime.Now;
     public string? LastIp { get; set; }
@@ -30,11 +36,15 @@ public sealed class WebDevices
     private const string CodeAlphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
     private const int CodeLength = 8;
     private const int MaxFailures = 5;
+    private const int MaxLinkedTokens = 8;
 
     private readonly Lock _lock = new();
     private List<WebDevice> _devices = [];
     private WebPairingCode? _code;
     private int _failures;
+
+    /// <summary>One-time codes that pair an already paired device at another address: code → device id.</summary>
+    private readonly Dictionary<string, (string DeviceId, DateTime Expires)> _linkCodes = [];
     private DateTime _lastSave = DateTime.MinValue;
 
     private static string FilePath => Path.Combine(AppPaths.DataDir, "web-devices.json");
@@ -68,6 +78,21 @@ public sealed class WebDevices
         }
     }
 
+    /// <summary>
+    /// A one-time code for <paramref name="device"/> to pair itself at another address of the app (it opens
+    /// <c>other-address#link=CODE</c>): the same device, not a new one.
+    /// </summary>
+    public string NewLinkCode(WebDevice device)
+    {
+        var code = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(16));
+        lock (_lock)
+        {
+            foreach (var old in _linkCodes.Where(c => c.Value.Expires < DateTime.Now).Select(c => c.Key).ToList()) _linkCodes.Remove(old);
+            _linkCodes[code] = (device.Id, DateTime.Now + CodeLifetime);
+        }
+        return code;
+    }
+
     public void CancelCode()
     {
         lock (_lock) _code = null;
@@ -76,6 +101,7 @@ public sealed class WebDevices
     /// <summary>Exchanges a pairing code for a device token; null when the code is wrong or expired.</summary>
     public (WebDevice Device, string Token)? Pair(string? code, string? name, string? ip)
     {
+        if (Link(code, ip) is { } linked) return linked;
         var typed = new string((code ?? string.Empty).ToUpperInvariant().Where(char.IsLetterOrDigit).ToArray());
         WebDevice device;
         string token;
@@ -109,6 +135,28 @@ public sealed class WebDevices
         return (device, token);
     }
 
+    /// <summary>A link code (see <see cref="NewLinkCode"/>): a new token for the device it belongs to.</summary>
+    private (WebDevice Device, string Token)? Link(string? code, string? ip)
+    {
+        if (string.IsNullOrEmpty(code) || code.Length > 40) return null;
+        WebDevice? device;
+        var token = Base64Url(RandomNumberGenerator.GetBytes(32));
+        lock (_lock)
+        {
+            if (!_linkCodes.Remove(code, out var link) || DateTime.Now > link.Expires) return null;
+            device = _devices.FirstOrDefault(d => d.Id == link.DeviceId);
+            if (device is null) return null;
+            device.LinkedTokenHashes.Add(Hash(token));
+            if (device.LinkedTokenHashes.Count > MaxLinkedTokens) device.LinkedTokenHashes.RemoveAt(0);
+            device.LastSeen = DateTime.Now;
+            device.LastIp = ip ?? device.LastIp;
+            SaveLocked();
+        }
+        Log.Info($"Web: «{device.Name}» emparejado también en otra dirección ({ip})");
+        Changed?.Invoke();
+        return (device, token);
+    }
+
     /// <summary>The device that owns <paramref name="token"/>, or null.</summary>
     public WebDevice? Authenticate(string? token, string? ip)
     {
@@ -116,8 +164,9 @@ public sealed class WebDevices
         var hash = Hash(token);
         lock (_lock)
         {
-            var device = _devices.FirstOrDefault(d => CryptographicOperations.FixedTimeEquals(
-                Encoding.ASCII.GetBytes(d.TokenHash), Encoding.ASCII.GetBytes(hash)));
+            var bytes = Encoding.ASCII.GetBytes(hash);
+            var device = _devices.FirstOrDefault(d => d.LinkedTokenHashes.Prepend(d.TokenHash)
+                .Any(h => CryptographicOperations.FixedTimeEquals(Encoding.ASCII.GetBytes(h), bytes)));
             if (device is null) return null;
             device.LastSeen = DateTime.Now;
             device.LastIp = ip ?? device.LastIp;

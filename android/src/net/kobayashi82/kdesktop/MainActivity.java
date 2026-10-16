@@ -24,14 +24,26 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * K-Desktop for Android: the K-Desktop web app in a window of its own. The first time (or from the app's
  * settings) a local page asks for the address of K-Desktop (the Caddy HTTPS address or http://IP:2502) and
  * it is remembered. Links to other sites open in the browser; the back button goes back inside the app.
+ * Once paired, K-Desktop tells the app all its addresses (see {@link Addresses}): on opening it uses the one that
+ * answers (home or away) with the same token, so one pairing is enough.
  */
 public class MainActivity extends Activity {
     private static final String PREFS = "kdesktop";
     private static final String KEY_SERVER = "server";
+    private static final String KEY_TOKEN = "token";
+
+    /** Back after this long in the background, the app checks whether another address suits better (left home…). */
+    private static final long RECHECK_AFTER_MS = 20000;
     private static final String SETUP = "file:///android_asset/setup.html";
 
     /** A PC that is off often leaves the connection hanging instead of refusing it: give up after this. */
@@ -39,10 +51,19 @@ public class MainActivity extends Activity {
 
     private WebView web;
     private SharedPreferences prefs;
+    private Addresses addresses;
+
+    /** The address loaded now (null: the set-up page or nothing yet). */
+    private String current;
+
+    /** A failure already made it try the other addresses. */
+    private boolean retried;
+
+    private long pausedAt;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable loadTimeout = () -> {
         web.stopLoading();
-        openSetup(getString(R.string.timeout));
+        failed(getString(R.string.timeout));
     };
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -50,6 +71,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+        addresses = new Addresses(prefs);
         paintBars();
 
         web = new WebView(this);
@@ -95,10 +117,19 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         web.onResume();
+        // Left home (or came back) meanwhile: maybe another address of the PC suits better now.
+        if (pausedAt > 0 && System.currentTimeMillis() - pausedAt > RECHECK_AFTER_MS && current != null) {
+            List<String> candidates = addresses.all(server());
+            if (candidates.size() > 1) pick(candidates, best -> {
+                if (best != null && !best.equals(current)) use(best);
+            });
+        }
+        pausedAt = 0;
     }
 
     @Override
     protected void onPause() {
+        pausedAt = System.currentTimeMillis();
         web.onPause();
         CookieManager.getInstance().flush();
         super.onPause();
@@ -124,13 +155,62 @@ public class MainActivity extends Activity {
         return prefs.getString(KEY_SERVER, null);
     }
 
+    /** Opens K-Desktop at the address that answers now (the only one known, or the best of several). */
     private void openServer() {
         String server = server();
-        if (server == null) web.loadUrl(SETUP);
-        else load(server);
+        if (server == null) {
+            current = null;
+            web.loadUrl(SETUP);
+            return;
+        }
+        List<String> candidates = addresses.all(server);
+        if (candidates.size() < 2) {
+            load(server);
+            return;
+        }
+        pick(candidates, best -> {
+            if (best != null) use(best);
+            else load(server);
+        });
+    }
+
+    /** Uses <code>address</code> from now on and opens it. */
+    private void use(String address) {
+        prefs.edit().putString(KEY_SERVER, address).apply();
+        load(address);
+    }
+
+    private interface Picked {
+        void run(String best);
+    }
+
+    /** Asks every address in the background; <code>then</code> runs on the UI thread with the one to use (or null). */
+    private void pick(List<String> candidates, Picked then) {
+        new Thread(() -> {
+            String best = addresses.pick(candidates);
+            runOnUiThread(() -> then.run(best));
+        }).start();
+    }
+
+    /** The page did not load: first try the other addresses of the PC, then show the set-up page with the error. */
+    private void failed(String error) {
+        handler.removeCallbacks(loadTimeout);
+        String server = server();
+        List<String> others = new ArrayList<>(addresses.all(server));
+        others.remove(current);
+        if (!retried && server != null && !others.isEmpty()) {
+            retried = true;
+            pick(others, best -> {
+                if (best != null) use(best);
+                else openSetup(error);
+            });
+            return;
+        }
+        openSetup(error);
     }
 
     private void openSetup(String error) {
+        current = null;
         String url = SETUP;
         if (server() != null) url += "?server=" + Uri.encode(server());
         if (error != null) url += (url.contains("?") ? "&" : "?") + "error=" + Uri.encode(error);
@@ -169,6 +249,7 @@ public class MainActivity extends Activity {
 
     /** Loads a page of K-Desktop, with a deadline: a hanging connection shows the setup page with the error. */
     private void load(String url) {
+        current = normalize(url);
         handler.removeCallbacks(loadTimeout);
         handler.postDelayed(loadTimeout, LOAD_TIMEOUT_MS);
         web.loadUrl(url);
@@ -223,24 +304,28 @@ public class MainActivity extends Activity {
             if (url.startsWith(SETUP)) handler.removeCallbacks(loadTimeout);
         }
 
+        private void loaded() {
+            handler.removeCallbacks(loadTimeout);
+            retried = false;
+        }
+
         @Override
         public void onPageCommitVisible(WebView view, String url) {
             // Something of the page arrived: K-Desktop answered.
-            handler.removeCallbacks(loadTimeout);
+            loaded();
         }
 
         @Override
         public void onPageFinished(WebView view, String url) {
             // Android 5-6 have no onPageCommitVisible.
-            if (Build.VERSION.SDK_INT < 23) handler.removeCallbacks(loadTimeout);
+            if (Build.VERSION.SDK_INT < 23 && !url.startsWith(SETUP)) loaded();
         }
 
         @Override
         public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse response) {
             // The page itself failing (a proxy with K-Desktop off answers 502/503) is "cannot connect" too.
             if (!request.isForMainFrame() || response.getStatusCode() < 500) return;
-            handler.removeCallbacks(loadTimeout);
-            openSetup("HTTP " + response.getStatusCode());
+            failed("HTTP " + response.getStatusCode());
         }
 
         @Override
@@ -259,7 +344,7 @@ public class MainActivity extends Activity {
             String server = server();
             String scheme = url.getScheme();
             if ("file".equals(scheme)) return false;
-            if (server != null && url.toString().startsWith(server)) return false;
+            for (String address : addresses.all(server)) if (url.toString().startsWith(address)) return false;
             // Anything else (a command's web page, a help link…) goes to the browser.
             try {
                 startActivity(new Intent(Intent.ACTION_VIEW, url));
@@ -273,8 +358,7 @@ public class MainActivity extends Activity {
             // Only the page itself: the web app copes with failed API calls (it keeps the last commands).
             if (!request.isForMainFrame()) return;
             if (request.getUrl().toString().startsWith(SETUP)) return;
-            handler.removeCallbacks(loadTimeout);
-            openSetup(String.valueOf(error.getDescription()));
+            failed(String.valueOf(error.getDescription()));
         }
 
         @SuppressWarnings("deprecation")
@@ -282,8 +366,7 @@ public class MainActivity extends Activity {
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
             // Android 5 only calls this one (and only for the page itself).
             if (Build.VERSION.SDK_INT >= 23 || failingUrl == null || failingUrl.startsWith(SETUP)) return;
-            handler.removeCallbacks(loadTimeout);
-            openSetup(description);
+            failed(description);
         }
     }
 
@@ -299,11 +382,41 @@ public class MainActivity extends Activity {
         public String setServer(String input) {
             String server = normalize(input);
             if (server == null) return "";
+            // Another K-Desktop: the addresses of the previous one no longer apply.
+            if (!addresses.knows(server)) addresses.forget();
             prefs.edit().putString(KEY_SERVER, server).apply();
             String fragment = Uri.parse(input.trim().matches("(?i)^https?://.*") ? input.trim() : "http://" + input.trim()).getEncodedFragment();
             final String target = fragment != null ? server + "#" + fragment : server;
             runOnUiThread(() -> load(target));
             return server;
+        }
+
+        /** The pairing token: kept by the app, so it works at every address of the PC. */
+        @JavascriptInterface
+        public String getToken() {
+            return prefs.getString(KEY_TOKEN, "");
+        }
+
+        @JavascriptInterface
+        public void setToken(String token) {
+            if (token == null || token.isEmpty()) prefs.edit().remove(KEY_TOKEN).apply();
+            else prefs.edit().putString(KEY_TOKEN, token).apply();
+        }
+
+        /** {"machine": "PC", "addresses": ["https://…/", "http://192.168.1.5:2502/"]}, from the session. */
+        @JavascriptInterface
+        public void setAddresses(String json) {
+            try {
+                JSONObject info = new JSONObject(json);
+                JSONArray list = info.getJSONArray("addresses");
+                List<String> clean = new ArrayList<>();
+                for (int i = 0; i < list.length(); i++) {
+                    String address = normalize(list.getString(i));
+                    if (address != null && !clean.contains(address)) clean.add(address);
+                }
+                if (!clean.isEmpty()) addresses.save(clean, info.optString("machine"));
+            } catch (Exception ignored) {
+            }
         }
 
         @JavascriptInterface

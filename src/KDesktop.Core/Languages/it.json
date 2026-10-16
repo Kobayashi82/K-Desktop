@@ -469,6 +469,8 @@
   "pwa.settings.refresh": "Ricarica i comandi",
   "pwa.settings.unpair": "Rimuovi abbinamento",
   "pwa.settings.unpairConfirm": "Rimuovere l’abbinamento di questo dispositivo? Per usare di nuovo l’app dovrai abbinarlo ancora.",
+  "pwa.settings.otherAddress": "Usa anche su",
+  "pwa.settings.linkFailed": "Impossibile collegare l'altro indirizzo: associa con un nuovo codice.",
   "pwa.refreshed": "Comandi aggiornati",
   "pwa.offline": "Nessuna connessione con K-Desktop",
   "pwa.thisPc": "Questo PC (senza abbinamento)",

@@ -469,6 +469,8 @@
   "pwa.settings.refresh": "Recargar los comandos",
   "pwa.settings.unpair": "Desemparejar",
   "pwa.settings.unpairConfirm": "¿Desemparejar este dispositivo? Para volver a usar la app tendrás que emparejarlo otra vez.",
+  "pwa.settings.otherAddress": "Usar también en",
+  "pwa.settings.linkFailed": "No se pudo enlazar con la otra dirección: empareja con un código nuevo.",
   "pwa.refreshed": "Comandos actualizados",
   "pwa.offline": "Sin conexión con K-Desktop",
   "pwa.thisPc": "Este PC (sin emparejar)",

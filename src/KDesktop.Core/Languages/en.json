@@ -469,6 +469,8 @@
   "pwa.settings.refresh": "Reload the commands",
   "pwa.settings.unpair": "Unpair",
   "pwa.settings.unpairConfirm": "Unpair this device? To use the app again you will have to pair it again.",
+  "pwa.settings.otherAddress": "Use it at",
+  "pwa.settings.linkFailed": "Could not link with the other address: pair with a new code.",
   "pwa.refreshed": "Commands updated",
   "pwa.offline": "No connection to K-Desktop",
   "pwa.thisPc": "This PC (no pairing)",

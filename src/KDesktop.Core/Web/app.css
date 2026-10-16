@@ -604,7 +604,9 @@ body.kb-open .big-title { display: none; }
   position: relative; display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 9px 14px;
   text-align: left;
 }
-.row + .row::before { content: ""; position: absolute; top: 0; left: 56px; right: 0; height: 1px; background: var(--line); }
+#addressRows { display: contents; }
+#addressRows[hidden] { display: none; }
+.row + .row::before, #addressRows + .row::before, #addressRows > .row:first-child::before { content: ""; position: absolute; top: 0; left: 56px; right: 0; height: 1px; background: var(--line); }
 .row-icon {
   flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
   background: var(--accent-soft); color: var(--accent-text);

@@ -469,6 +469,8 @@
   "pwa.settings.refresh": "Recharger les commandes",
   "pwa.settings.unpair": "Dissocier",
   "pwa.settings.unpairConfirm": "Dissocier cet appareil ? Pour réutiliser l’application, il faudra l’associer de nouveau.",
+  "pwa.settings.otherAddress": "Utiliser aussi sur",
+  "pwa.settings.linkFailed": "Impossible de lier l'autre adresse : associez avec un nouveau code.",
   "pwa.refreshed": "Commandes mises à jour",
   "pwa.offline": "Pas de connexion avec K-Desktop",
   "pwa.thisPc": "Ce PC (sans association)",
