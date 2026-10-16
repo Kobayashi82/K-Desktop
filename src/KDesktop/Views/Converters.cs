@@ -176,3 +176,55 @@ public sealed class KeyCapsConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 }
+
+/// <summary>Event (+ dependencies used only to re-trigger) → its icon, or the one of its type.</summary>
+public sealed class EventIconConverter : IMultiValueConverter
+{
+    public object? Convert(object[] values, Type targetType, object parameter, CultureInfo culture) =>
+        values.Length > 0 && values[0] is EventRule rule ? IconProvider.ForEvent(rule) : null;
+
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>Command id (in an event) → its name (parameter "name") or icon (parameter "icon").</summary>
+public sealed class EventCommandConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object parameter, CultureInfo culture)
+    {
+        var command = value is string id ? App.Current.Config.FindCommand(id) : null;
+        return parameter as string == "icon"
+            ? command is null ? IconProvider.Kd("Warning24", "orange") : IconProvider.ForCommand(command)
+            : command?.Name ?? Core.Localization.Loc.T("event.commandGone");
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>When an event last fired: «Hoy 9:00», «Ayer 21:30», «12/10 9:00» or «Nunca».</summary>
+public sealed class LastFiredConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is not DateTime time) return Core.Localization.Loc.T("event.never");
+        var loc = Core.Localization.Loc.Instance.Culture;
+        var hour = time.ToString("H:mm", CultureInfo.InvariantCulture);
+        if (time.Date == DateTime.Today) return Core.Localization.Loc.T("event.today", hour);
+        if (time.Date == DateTime.Today.AddDays(-1)) return Core.Localization.Loc.T("event.yesterday", hour);
+        return time.ToString(loc.DateTimeFormat.ShortDatePattern, loc) + " " + hour;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>Text of a time box → visible (a warning) when it is not a valid «HH:mm»; empty is fine unless parameter is "required".</summary>
+public sealed class InvalidTimeConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object parameter, CultureInfo culture)
+    {
+        var text = value as string ?? string.Empty;
+        var invalid = text.Trim().Length == 0 ? parameter as string == "required" : EventTime.Parse(text) is null;
+        return invalid ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
+}

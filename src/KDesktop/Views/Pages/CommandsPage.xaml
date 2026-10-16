@@ -437,10 +437,12 @@
                                 <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding Remote}" Content="{l:Tr commands.remoteOption}" ToolTip="{l:Tr commands.remoteHint}" />
                                 <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding IgnoreDisabledApps}" Content="{l:Tr commands.ignoreDisabled}" ToolTip="{l:Tr commands.ignoreDisabledHint}" />
                                 <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding Web}" Content="{l:Tr commands.webOption}" ToolTip="{l:Tr commands.webHint}" />
-                                <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding RunOnStartup}" Content="{l:Tr commands.runOnStartup}" ToolTip="{l:Tr commands.runOnStartupHint}" />
+                                <Border />
                                 <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding Hidden}" Content="{l:Tr commands.hiddenOption}" ToolTip="{l:Tr commands.hiddenHint}" />
-                                <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding RunOnExit}" Content="{l:Tr commands.runOnExit}" ToolTip="{l:Tr commands.runOnExitHint}" />
                             </UniformGrid>
+
+                            <!-- Who runs it besides its hotkeys: events and QuickMenus (click to go there) -->
+                            <WrapPanel x:Name="UsedByPanel" Margin="0,0,0,14" Visibility="Collapsed" />
 
                             <TextBlock Style="{StaticResource FieldLabel}" Margin="0,8,0,4" Text="{l:Tr commands.sound}" />
                             <v:SoundPicker Margin="0,0,0,14" MinWidth="380" MaxWidth="460" HorizontalAlignment="Left" Sound="{Binding Sound}" />

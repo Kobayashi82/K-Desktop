@@ -23,6 +23,9 @@ public enum SendInputMode { Keys, Text, MouseMoveTo, MouseMoveBy }
 public enum VolumeMode { Set, Up, Down, ToggleMute }
 public enum PowerMode { Shutdown, Restart, LogOff, SwitchUser, Lock, Sleep, Hibernate }
 public enum CommandControlMode { Run, Enable, Disable, Toggle }
+
+/// <summary>What «Comandos» acts on: a command or an event.</summary>
+public enum CommandControlTarget { Command, Event }
 public enum ScriptShell { Cmd, PowerShell }
 
 /// <summary>Base class of every action a command can perform.</summary>
@@ -324,13 +327,22 @@ public partial class LauncherAction : CommandAction
 public partial class CommandControlAction : CommandAction
 {
     [ObservableProperty] private CommandControlMode _mode = CommandControlMode.Run;
+    [ObservableProperty] private CommandControlTarget _target = CommandControlTarget.Command;
     [ObservableProperty] private string _commandId = string.Empty;
+
+    /// <summary>The event, when <see cref="Target"/> is <see cref="CommandControlTarget.Event"/>.</summary>
+    [ObservableProperty] private string _eventId = string.Empty;
 
     [ObservableProperty]
     [property: JsonIgnore] private string? _commandName;
 
+    [ObservableProperty]
+    [property: JsonIgnore] private string? _eventName;
+
     public override ActionKind Kind => ActionKind.CommandControl;
-    public override string Summary => Loc.T($"summary.command.{Mode}", string.IsNullOrWhiteSpace(CommandName) ? CommandId : CommandName);
+    public override string Summary => Target == CommandControlTarget.Event
+        ? Loc.T($"summary.event.{Mode}", string.IsNullOrWhiteSpace(EventName) ? EventId : EventName)
+        : Loc.T($"summary.command.{Mode}", string.IsNullOrWhiteSpace(CommandName) ? CommandId : CommandName);
 }
 
 public partial class WaitAction : CommandAction

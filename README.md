@@ -5,6 +5,7 @@ Atajos de teclado y ratón, QuickMenus y control remoto por UDP para Windows. Es
 ## Funciones
 
 - **Comandos**: secuencias de acciones que se lanzan con atajos de teclado o ratón (`CTRL + ALT + O`, `Mouse 5`, combinaciones de botones como `Mouse 4 + Mouse 1`, `CTRL + Wheel Up`…), desde un QuickMenu, por UDP o por línea de comandos. Si un atajo lo tienen a la vez un comando para todas las aplicaciones y otro limitado a algunas, en esas aplicaciones gana el específico (en Photoshop, «Mouse 5» abre su menú y no el general); dos comandos generales, o dos del mismo programa, se ejecutan los dos.
+- **Eventos**: reglas «cuando pase X, ejecuta estos comandos»: al iniciar o salir de K-Desktop (lo que antes era «Ejecutar al iniciar / al salir» de cada comando), a una hora (con días de la semana y «si se perdió, ejecutarlo al arrancar»), cada N minutos, al abrir un programa (y al cerrarse), con un programa en primer plano, tras un rato sin usar el PC (y al volver), al bloquear o desbloquear, y al suspender o reanudar. Cada evento puede tener comandos «Al terminar», condiciones «Solo si» (franja horaria, días, un programa abierto o no), «no repetir antes de» y protección contra bucles. Respetan la pausa; no miran «Desactivar en». La acción Comandos también ejecuta, activa o desactiva eventos, y la bandeja tiene un submenú para activarlos.
 - **Ejecución con o sin administrador**: K-Desktop corre elevado, para que sus atajos también funcionen sobre ventanas elevadas, pero cada acción elige si su programa arranca como administrador o como usuario normal.
 - **QuickMenu**: menú en cascada en la posición del ratón, con fondo acrílico, iconos y navegación con teclado:
   - Clic izquierdo ejecuta y cierra.
@@ -37,8 +38,9 @@ Atajos de teclado y ratón, QuickMenus y control remoto por UDP para Windows. Es
 ```
 KDesktop.exe --menu "Principal"     abre un QuickMenu (en la instancia en ejecución)
 KDesktop.exe --run "Nombre"         ejecuta un comando
+KDesktop.exe --event "Nombre"       ejecuta los comandos de un evento
 KDesktop.exe --show | --exit
-KDesktop.exe --page macros          abre K-Desktop en una página (commands, quickmenus, macros, kboard, achievements, stats, settings, about)
+KDesktop.exe --page macros          abre K-Desktop en una página (commands, quickmenus, events, macros, kboard, achievements, stats, settings, about)
 KDesktop.exe --no-hooks --no-udp --no-elevate   diagnóstico
 KDesktop.exe --data "C:\Carpeta"    usa otra carpeta de datos (instancia independiente: pruebas, copia portátil)
 ```

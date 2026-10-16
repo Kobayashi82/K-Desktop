@@ -35,6 +35,9 @@ public sealed class ConfigStore : IDisposable
             try
             {
                 config = Json.Deserialize<AppConfig>(File.ReadAllText(AppPaths.ConfigFile)) ?? new AppConfig();
+                // A configuration of an older version is about to be upgraded: keep it as it was, once.
+                if (config.SchemaVersion < AppConfig.CurrentSchema)
+                    TryCopy(AppPaths.ConfigFile, Path.Combine(AppPaths.BackupDir, $"config.schema{config.SchemaVersion}.{DateTime.Now:yyyy-MM-dd}.json"));
             }
             catch (Exception ex)
             {
@@ -145,10 +148,12 @@ public sealed class ConfigStore : IDisposable
         foreach (var m in c.QuickMenus) m.Modified += OnItemModified;
         foreach (var m in c.Macros) m.Modified += OnItemModified;
         foreach (var k in c.KBoards) k.Modified += OnItemModified;
+        foreach (var ev in c.Events) ev.Modified += OnItemModified;
         c.Commands.CollectionChanged += OnCollectionChanged;
         c.QuickMenus.CollectionChanged += OnCollectionChanged;
         c.Macros.CollectionChanged += OnCollectionChanged;
         c.KBoards.CollectionChanged += OnCollectionChanged;
+        c.Events.CollectionChanged += OnCollectionChanged;
     }
 
     private void OnItemModified(object? sender, EventArgs e) => MarkDirty();
@@ -162,6 +167,7 @@ public sealed class ConfigStore : IDisposable
                 if (item is QuickMenu m) m.Modified += OnItemModified;
                 if (item is Macro macro) macro.Modified += OnItemModified;
                 if (item is KBoardProfile kb) kb.Modified += OnItemModified;
+                if (item is EventRule ev) ev.Modified += OnItemModified;
             }
         if (e.OldItems is not null)
             foreach (var item in e.OldItems)
@@ -170,6 +176,7 @@ public sealed class ConfigStore : IDisposable
                 if (item is QuickMenu m) m.Modified -= OnItemModified;
                 if (item is Macro macro) macro.Modified -= OnItemModified;
                 if (item is KBoardProfile kb) kb.Modified -= OnItemModified;
+                if (item is EventRule ev) ev.Modified -= OnItemModified;
             }
         MarkDirty();
     }

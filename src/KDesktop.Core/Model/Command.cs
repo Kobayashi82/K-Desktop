@@ -24,8 +24,13 @@ public partial class Command : ObservableObject
     /// <summary>Swallow the hotkey so the foreground application never receives it.</summary>
     [ObservableProperty] private bool _blockKey = true;
 
-    [ObservableProperty] private bool _runOnStartup;
-    [ObservableProperty] private bool _runOnExit;
+    /// <summary>Only read from configurations before 5.0.19: <see cref="AppConfig.Upgrade"/> turns it into an «Al iniciar K-Desktop» event.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool RunOnStartup { get; set; }
+
+    /// <summary>Only read from configurations before 5.0.19: it becomes an «Al salir de K-Desktop» event.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool RunOnExit { get; set; }
 
     /// <summary>Runs even in applications where K-Desktop is disabled ("Desactivar en").</summary>
     [ObservableProperty] private bool _ignoreDisabledApps;

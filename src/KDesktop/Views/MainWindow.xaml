@@ -105,6 +105,12 @@
                             <TextBlock Text="{l:Tr nav.quickmenu}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
+                    <ListBoxItem Tag="events">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="FlashFlow24" FontSize="18" />
+                            <TextBlock Text="{l:Tr nav.events}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
                     <ListBoxItem Tag="kboard">
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="KeyboardLayoutFloat24" FontSize="18" />

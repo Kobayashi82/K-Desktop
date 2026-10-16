@@ -20,6 +20,10 @@
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="KDesktop.Core.Tests" />
+  </ItemGroup>
+
   <!-- Built-in languages and sounds travel inside the assembly (and so inside the single-file exe).
        Files in %APPDATA%\K-Desktop 5\Languages and \Sounds add to them and win on duplicates. -->
   <ItemGroup>

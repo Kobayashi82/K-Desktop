@@ -7,12 +7,18 @@ namespace KDesktop.Core.Model;
 /// <summary>Root of the persisted configuration (config.json).</summary>
 public sealed class AppConfig
 {
-    public int SchemaVersion { get; set; } = 2;
+    /// <summary>3: «Ejecutar al iniciar / al salir» became events.</summary>
+    public const int CurrentSchema = 3;
+
+    public int SchemaVersion { get; set; } = CurrentSchema;
     public AppSettings Settings { get; set; } = new();
     public ObservableCollection<Command> Commands { get; set; } = [];
     public ObservableCollection<QuickMenu> QuickMenus { get; set; } = [];
     public ObservableCollection<Macro> Macros { get; set; } = [];
     public ObservableCollection<KBoardProfile> KBoards { get; set; } = [];
+
+    /// <summary>Automations: «when X happens, run these commands».</summary>
+    public ObservableCollection<EventRule> Events { get; set; } = [];
 
     /// <summary>Brings a configuration saved by an older version up to date. Returns true when something changed.</summary>
     public bool Upgrade()
@@ -38,20 +44,61 @@ public sealed class AppConfig
             Settings.VoiceListenSound = "Toc";
             changed = true;
         }
-        if (SchemaVersion < 2)
+        changed |= MigrateStartupAndExit();
+        if (SchemaVersion < CurrentSchema)
         {
-            SchemaVersion = 2;
+            SchemaVersion = CurrentSchema;
             changed = true;
         }
         return changed;
     }
 
-    /// <summary>Whether a menu, another command, a K-Board or the options use the command.</summary>
-    private bool IsReferenced(string id) =>
+    /// <summary>
+    /// «Ejecutar al iniciar» and «Ejecutar al salir» are no longer options of a command: each becomes one event
+    /// («Al iniciar K-Desktop» / «Al salir de K-Desktop») with those commands in the order of the list. A disabled
+    /// command goes in too: it didn't run because it was disabled and it still won't, but enabling it brings it back.
+    /// </summary>
+    private bool MigrateStartupAndExit()
+    {
+        var startup = Commands.Where(c => c.RunOnStartup).ToList();
+        var exit = Commands.Where(c => c.RunOnExit).ToList();
+        if (startup.Count == 0 && exit.Count == 0) return false;
+        if (startup.Count > 0) Events.Add(MigratedEvent(Text("event.migrated.startup"), new AppStartTrigger(), startup));
+        if (exit.Count > 0) Events.Add(MigratedEvent(Text("event.migrated.exit"), new AppExitTrigger(), exit));
+        foreach (var c in startup.Concat(exit)) c.RunOnStartup = c.RunOnExit = false;
+        if (startup.Count > 0) Log.Info($"«Ejecutar al iniciar» pasa a un evento con {startup.Count} comandos: {string.Join(", ", startup.Select(c => c.Name))}");
+        if (exit.Count > 0) Log.Info($"«Ejecutar al salir» pasa a un evento con {exit.Count} comandos: {string.Join(", ", exit.Select(c => c.Name))}");
+        return true;
+    }
+
+    /// <summary>A text in the language of this configuration (it loads before its language is applied).</summary>
+    private string Text(string key) =>
+        Settings.Language is { } code && Localization.Loc.Strings(code, key).TryGetValue(key, out var text) ? text : Localization.Loc.T(key);
+
+    /// <summary>An event created from the old options (also by the K-Desktop 4 import).</summary>
+    public static EventRule MigratedEvent(string name, EventTrigger trigger, IEnumerable<Command> commands)
+    {
+        var rule = new EventRule { Name = name, Trigger = trigger, Icon = trigger is AppStartTrigger ? "kd:Play24:green" : "kd:Power24:red" };
+        foreach (var c in commands) rule.Commands.Add(c.Id);
+        return rule;
+    }
+
+    /// <summary>Whether a menu, another command, a K-Board, an event or the options use the command.</summary>
+    public bool IsReferenced(string id) =>
         QuickMenus.SelectMany(m => m.Descendants()).Any(i => i.CommandId == id) ||
         Commands.SelectMany(c => c.Actions).OfType<CommandControlAction>().Any(a => a.CommandId == id) ||
         KBoards.SelectMany(k => k.Remaps).Any(r => r.CommandId == id) ||
+        Events.Any(e => e.Commands.Contains(id) || e.EndCommands.Contains(id)) ||
         Settings.VoiceMusicOnCommand == id || Settings.VoiceMusicOffCommand == id;
+
+    /// <summary>The events that run the command (when it fires or when it ends).</summary>
+    public IEnumerable<EventRule> EventsUsing(string id) => Events.Where(e => e.Commands.Contains(id) || e.EndCommands.Contains(id));
+
+    public EventRule? FindEvent(string? idOrName) =>
+        string.IsNullOrEmpty(idOrName)
+            ? null
+            : Events.FirstOrDefault(e => e.Id == idOrName) ??
+              Events.FirstOrDefault(e => e.Name.Equals(idOrName, StringComparison.CurrentCultureIgnoreCase));
 
     public Command? FindCommand(string? id) =>
         string.IsNullOrEmpty(id) ? null : Commands.FirstOrDefault(c => c.Id == id);
@@ -64,7 +111,10 @@ public sealed class AppConfig
             switch (action)
             {
                 case OpenQuickMenuAction q: q.MenuName = FindMenu(q.MenuId)?.Name; break;
-                case CommandControlAction c: c.CommandName = FindCommand(c.CommandId)?.Name; break;
+                case CommandControlAction c:
+                    c.CommandName = FindCommand(c.CommandId)?.Name;
+                    c.EventName = FindEvent(c.EventId)?.Name;
+                    break;
                 case PlayMacroAction p: p.MacroName = FindMacro(p.MacroId)?.Name; break;
                 case KBoardAction k: k.ProfileName = FindKBoard(k.ProfileId)?.Name; break;
             }

@@ -51,6 +51,10 @@ public static partial class IconProvider
         return command.PrimaryAction is { } action ? ForAction(action) : Kd("Flash24", "gold");
     }
 
+    /// <summary>The event's own icon, or the one of its type (a clock for «a una hora»…).</summary>
+    public static ImageSource? ForEvent(EventRule rule) =>
+        (rule.Icon is { } own ? FromConfigIcon(own) : null) ?? FromConfigIcon(EventCatalog.Get(rule.Trigger.Kind).Icon);
+
     public static ImageSource? ForAction(CommandAction action) => action switch
     {
         RunAppAction a => PathIcon(a.Path) ?? (LooksLikeUrl(a.Path) ? ForTheme(Favicons.Get(a.Path)) ?? Kd("Globe24", "sky") : Kd("Open24", "blue")),

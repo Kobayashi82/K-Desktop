@@ -37,13 +37,14 @@ public static class AchievementCatalog
     public const string First = "first";
 
     public static IReadOnlyList<string> Categories { get; } =
-        ["commands", "actions", "menus", "macros", "kboard", "apps", "system", "remote", "voice", "time", "kinds", "misc"];
+        ["commands", "actions", "menus", "events", "macros", "kboard", "apps", "system", "remote", "voice", "time", "kinds", "misc"];
 
     public static string CategorySymbol(string category) => category switch
     {
         "commands" => "Flash24",
         "actions" => "Rocket24",
         "menus" => "Navigation24",
+        "events" => "FlashFlow24",
         "macros" => "Record24",
         "kboard" => "KeyboardLayoutFloat24",
         "apps" => "WindowApps24",
@@ -88,6 +89,11 @@ public static class AchievementCatalog
         Tier("menus", "menu-delete", Stat.MenusDeleted, 1, 10);
         Tier("menus", "menu-open", Stat.MenusOpened, 1, 10, 100, 1000);
         list.Add(new("menu-nested", "menus", Stat.MenuDepth, 3));
+
+        // Events
+        Tier("events", "event-create", Stat.EventsCreated, 1, 10);
+        Tier("events", "event-fire", Stat.EventsFired, 10, 100, 1000);
+        Tier("events", "event-end", Stat.EventsEnded, 1);
 
         // Macros
         Tier("macros", "macro-record", Stat.MacrosRecorded, 1, 10);

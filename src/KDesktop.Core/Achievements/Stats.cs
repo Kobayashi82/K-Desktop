@@ -62,6 +62,12 @@ public static class Stat
     public const string AudioSwitched = "audio.switched";
     public const string TipsSeen = "tips.seen";
 
+    public const string EventsCreated = "events.created";
+    public const string EventsFired = "events.fired";
+
+    /// <summary>«Al terminar» commands run.</summary>
+    public const string EventsEnded = "events.ended";
+
     public const string KBoardsCreated = "kboard.created";
     public const string KBoardRemapped = "kboard.remapped";
     public const string KBoardToggled = "kboard.toggled";
@@ -76,6 +82,7 @@ public static class Stat
         ("commands", [CommandsRun, CommandsCreated, CommandsDeleted, ActionsRun, ActionsCreated, ActionsDeleted]),
         ("menus", [MenusOpened, MenusCreated, MenusDeleted, LauncherUsed, RemoteRun]),
         ("apps", [AppsLaunched, FoldersOpened, WebOpened, ScriptsRun, KeysSent, MacrosPlayed, MacrosRecorded]),
+        ("events", [EventsFired, EventsEnded, EventsCreated]),
         ("kboard", [KBoardRemapped, KBoardToggled, KBoardsCreated]),
         ("voice", [VoiceOrders, VoiceMeaning, WakeWords]),
         ("system", [VolumeChanged, AudioSwitched, SoundsPlayed, TopMostToggled, HiddenFilesToggled, DisabledInToggled, RecycleEmptied, PowerUsed, IconsChanged, TipsSeen, AppStarted]),
@@ -125,8 +132,9 @@ public static class TriggerSourceNames
         TriggerSource.Launcher => "launcher",
         TriggerSource.Web => "web",
         TriggerSource.Voice => "voice",
+        TriggerSource.Event => "event",
         _ => "manual",
     };
 
-    public static readonly string[] All = ["hotkey", "quickMenu", "launcher", "voice", "remote", "web", "manual", "command", "auto"];
+    public static readonly string[] All = ["hotkey", "quickMenu", "launcher", "voice", "remote", "web", "event", "manual", "command", "auto"];
 }

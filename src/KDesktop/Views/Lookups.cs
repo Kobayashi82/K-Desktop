@@ -34,6 +34,12 @@ public static class Lookups
         [.. System.Enum.GetValues<HttpVerb>().Select(v => new Option<HttpVerb>(v, v.ToString().ToUpperInvariant()))];
     public static IReadOnlyList<Option<HttpResultDisplay>> HttpResultDisplays { get; } = Enum<HttpResultDisplay>("enum.httpResult");
     public static IReadOnlyList<string> ContentTypes { get; } = ["application/json", "application/x-www-form-urlencoded", "text/plain", "application/xml"];
+    public static IReadOnlyList<EventKindInfo> EventKinds => EventCatalog.All;
+    public static IReadOnlyList<Option<CommandControlTarget>> CommandControlTargets { get; } = Enum<CommandControlTarget>("enum.controlTarget");
+
+    public static IEnumerable<EventRule> EventList =>
+        App.Current.Config.Events.OrderBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+    public static IReadOnlyList<Option<SessionEvent>> SessionEvents { get; } = Enum<SessionEvent>("enum.session");
     public static IReadOnlyList<Option<AppTheme>> Themes { get; } = Enum<AppTheme>("enum.theme");
     public static IReadOnlyList<Option<UpdateMode>> UpdateModes { get; } = Enum<UpdateMode>("enum.updateMode");
     public static IReadOnlyList<Option<OsdPosition>> OsdPositions { get; } = Enum<OsdPosition>("enum.osdPosition");

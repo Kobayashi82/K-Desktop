@@ -30,8 +30,11 @@ public partial class CommandPicker : FluentWindow
 
     private void OnSearch(object sender, TextChangedEventArgs e)
     {
-        var q = SearchBox.Text.Trim();
-        List.ItemsSource = q.Length == 0 ? _all : _all.Where(c => c.Name.Contains(q, StringComparison.CurrentCultureIgnoreCase)).ToList();
+        // Like the launcher: initials, loose letters, no accents; the best matches first.
+        var tokens = KDesktop.Core.Engine.FuzzyMatch.Tokens(SearchBox.Text);
+        List.ItemsSource = tokens.Length == 0 ? _all
+            : _all.Select(c => (Command: c, Score: KDesktop.Core.Engine.FuzzyMatch.Score(tokens, new KDesktop.Core.Engine.SearchKey(c.Name))))
+                  .Where(x => x.Score > 0).OrderByDescending(x => x.Score).Select(x => x.Command).ToList();
         if (List.Items.Count > 0) List.SelectedIndex = 0;
     }
 

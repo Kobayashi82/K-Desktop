@@ -1,0 +1,48 @@
+using KDesktop.Core.Engine.Events;
+
+namespace KDesktop.Core.Tests;
+
+public class EventGuardTests
+{
+    private static readonly DateTime T0 = new(2026, 10, 16, 10, 0, 0, DateTimeKind.Utc);
+
+    [Fact]
+    public void CooldownBlocksRepeatsForAWhile()
+    {
+        var guard = new EventGuard();
+        Assert.Equal(EventGuard.Verdict.Run, guard.TryFire("a", 5, T0));
+        Assert.Equal(EventGuard.Verdict.Cooldown, guard.TryFire("a", 5, T0.AddSeconds(4)));
+        Assert.Equal(EventGuard.Verdict.Run, guard.TryFire("a", 5, T0.AddSeconds(5)));
+        Assert.Equal(EventGuard.Verdict.Run, guard.TryFire("b", 5, T0.AddSeconds(1))); // each event on its own
+    }
+
+    [Fact]
+    public void NoCooldownRunsAlways()
+    {
+        var guard = new EventGuard();
+        Assert.Equal(EventGuard.Verdict.Run, guard.TryFire("a", 0, T0));
+        Assert.Equal(EventGuard.Verdict.Run, guard.TryFire("a", 0, T0));
+    }
+
+    [Fact]
+    public void ALoopStopsTheEvent()
+    {
+        var guard = new EventGuard();
+        for (var i = 0; i < EventGuard.MaxPerMinute; i++)
+            Assert.Equal(EventGuard.Verdict.Run, guard.TryFire("a", 0, T0.AddSeconds(i)));
+        Assert.Equal(EventGuard.Verdict.Loop, guard.TryFire("a", 0, T0.AddSeconds(20)));
+        Assert.True(guard.IsSuspended("a", T0.AddSeconds(21)));
+        Assert.Equal(EventGuard.Verdict.Suspended, guard.TryFire("a", 0, T0.AddMinutes(5)));
+        // After the pause it works again, counting from zero
+        Assert.Equal(EventGuard.Verdict.Run, guard.TryFire("a", 0, T0.AddSeconds(20) + EventGuard.Pause));
+        Assert.False(guard.IsSuspended("a", T0.AddSeconds(21) + EventGuard.Pause));
+    }
+
+    [Fact]
+    public void SpreadOutFiringIsNotALoop()
+    {
+        var guard = new EventGuard();
+        for (var i = 0; i < 50; i++)
+            Assert.Equal(EventGuard.Verdict.Run, guard.TryFire("a", 0, T0.AddSeconds(i * 7)));
+    }
+}

@@ -568,20 +568,37 @@
     <DataTemplate DataType="{x:Type m:CommandControlAction}">
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200" />
-                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="130" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="180" />
+                <ColumnDefinition Width="12" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <StackPanel>
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.controlTarget}" />
+                <ComboBox ItemsSource="{x:Static v:Lookups.CommandControlTargets}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Target}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2">
                 <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
                 <ComboBox ItemsSource="{x:Static v:Lookups.CommandControlModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
             </StackPanel>
-            <StackPanel Grid.Column="2">
+            <StackPanel x:Name="CommandPanel" Grid.Column="4">
                 <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.command}" />
                 <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.CommandList}}" DisplayMemberPath="Name" SelectedValuePath="Id"
                           SelectedValue="{Binding CommandId}" IsTextSearchEnabled="True" TextSearch.TextPath="Name" MaxDropDownHeight="420" />
             </StackPanel>
+            <StackPanel x:Name="EventPanel" Grid.Column="4" Visibility="Collapsed">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.event}" />
+                <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.EventList}}" DisplayMemberPath="Name" SelectedValuePath="Id"
+                          SelectedValue="{Binding EventId}" IsTextSearchEnabled="True" TextSearch.TextPath="Name" MaxDropDownHeight="420" />
+            </StackPanel>
         </Grid>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Target}" Value="Event">
+                <Setter TargetName="CommandPanel" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="EventPanel" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
     </DataTemplate>
 
     <!-- ── Reproducir macro ────────────────────────────────────────────── -->

@@ -367,6 +367,11 @@ public sealed partial class CommandEngine
 
     private async Task CommandControlAsync(CommandControlAction a, ExecutionContext ctx)
     {
+        if (a.Target == CommandControlTarget.Event)
+        {
+            await EventControlAsync(a, ctx).ConfigureAwait(false);
+            return;
+        }
         if (Config.FindCommand(a.CommandId) is not { } target) return;
         switch (a.Mode)
         {
@@ -384,6 +389,29 @@ public sealed partial class CommandEngine
                 var enabled = !target.Enabled;
                 _ui.RunOnUi(() => target.Enabled = enabled);
                 _ui.ShowOsd(Loc.T(enabled ? "osd.commandEnabled" : "osd.commandDisabled", target.Name));
+                break;
+        }
+    }
+
+    /// <summary>«Comandos» on an event: run its commands now (no conditions), or switch it on / off.</summary>
+    private async Task EventControlAsync(CommandControlAction a, ExecutionContext ctx)
+    {
+        if (Config.FindEvent(a.EventId) is not { } rule) return;
+        switch (a.Mode)
+        {
+            case CommandControlMode.Run:
+                await RunEventAsync(rule, false, TriggerSource.Command, ctx.Foreground, ctx.Depth + 1).ConfigureAwait(false);
+                break;
+            case CommandControlMode.Enable:
+                _ui.RunOnUi(() => rule.Enabled = true);
+                break;
+            case CommandControlMode.Disable:
+                _ui.RunOnUi(() => rule.Enabled = false);
+                break;
+            case CommandControlMode.Toggle:
+                var enabled = !rule.Enabled;
+                _ui.RunOnUi(() => rule.Enabled = enabled);
+                _ui.ShowOsd(Loc.T(enabled ? "osd.eventEnabled" : "osd.eventDisabled", rule.Name));
                 break;
         }
     }

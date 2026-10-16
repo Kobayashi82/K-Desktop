@@ -40,6 +40,12 @@ public partial class MainWindow : FluentWindow
         if (_pages.GetValueOrDefault("commands") is Pages.CommandsPage page) page.Select(commandId);
     }
 
+    public void OpenEvent(string? eventId)
+    {
+        Navigate("events");
+        if (eventId is not null && _pages.GetValueOrDefault("events") is Pages.EventsPage page) page.Select(eventId);
+    }
+
     public void OpenQuickMenu(string? menuId)
     {
         Navigate("quickmenus");
@@ -203,6 +209,7 @@ public partial class MainWindow : FluentWindow
             page = key switch
             {
                 "quickmenus" => new Pages.QuickMenusPage(),
+                "events" => new Pages.EventsPage(),
                 "macros" => new Pages.MacrosPage(),
                 "kboard" => new Pages.KBoardPage(),
                 "achievements" => new Pages.AchievementsPage(),

@@ -57,6 +57,9 @@ public partial class App : Application
     public ConfigStore Store { get; } = new();
     public HotkeyRouter Router { get; } = new();
     public CommandEngine Engine { get; private set; } = null!;
+
+    /// <summary>Automations (Eventos): watches what they wait for and runs their commands.</summary>
+    public Core.Engine.Events.EventService Events { get; private set; } = null!;
     public UdpServer Udp { get; private set; } = null!;
     public WebServer Web { get; private set; } = null!;
     public UiServices Ui { get; private set; } = null!;
@@ -120,6 +123,7 @@ public partial class App : Application
 
         Ui = new UiServices(Dispatcher, () => Config.Settings, () => ShowMainWindow(), () => _ = ExitAsync());
         Engine = new CommandEngine(Store, Ui);
+        Events = new Core.Engine.Events.EventService(Engine, Ui, () => Config);
         Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice),
             action => Engine.TestActionAsync(action, new Command { Name = Loc.T("settings.nav.media") }));
         Voice.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
@@ -168,6 +172,10 @@ public partial class App : Application
         Engine.Executed += Achievements.CommandExecuted;
         Engine.ActionStarting += (action, _) => Achievements.ActionExecuted(action);
         Engine.Cancelled += () => Achievements.Unlock("cancel");
+        Engine.EventFired += (_, end, source) =>
+        {
+            if (source != TriggerSource.Manual) Achievements.Increment(end ? Stat.EventsEnded : Stat.EventsFired);
+        };
 
         // Hotkeys
         Router.Triggered += Engine.OnHotkey;
@@ -193,6 +201,7 @@ public partial class App : Application
         {
             _indexDebounce.Stop();
             RebuildIndex();
+            Events.Rebuild();
             ApplySettings();
             Achievements.CheckConfig(Config);
             Config.RefreshReferenceNames(); // renamed macros, menus or commands
@@ -248,7 +257,8 @@ public partial class App : Application
             () => Dispatcher.BeginInvoke(() => ShowMainWindow()),
             args => Dispatcher.BeginInvoke(() => HandleArguments(args)));
 
-        // Startup feedback and "run on startup" commands; a restart after an update is not a new start.
+        // Startup feedback and the «Al iniciar K-Desktop» events; a restart after an update is not a new start.
+        Events.Start(afterUpdate: UpdatedFrom is not null);
         var s = Config.Settings;
         if (UpdatedFrom is null)
         {
@@ -259,7 +269,8 @@ public partial class App : Application
             _ = Engine.RunStartupCommandsAsync();
         }
 
-        var requestsSomething = Program.ValueOf(Arguments, "--menu") is not null || Program.ValueOf(Arguments, "--run") is not null;
+        var requestsSomething = Program.ValueOf(Arguments, "--menu") is not null || Program.ValueOf(Arguments, "--run") is not null ||
+                                Program.ValueOf(Arguments, "--event") is not null;
         if ((!StartedByWindows && UpdatedFrom is null && !requestsSomething && s.ShowWindowOnStart) || ImportReport is not null) ShowMainWindow();
         HandleArguments(Arguments);
         Log.Info($"Listo: {Config.Commands.Count} comandos, {Config.QuickMenus.Count} QuickMenus, {Config.Macros.Count} macros");
@@ -283,6 +294,11 @@ public partial class App : Application
                       Config.Commands.FirstOrDefault(c => c.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
             if (cmd is not null) _ = Engine.RunAsync(cmd, TriggerSource.Manual);
             else Log.Warn($"--run: comando no encontrado '{name}'");
+        }
+        if (Program.ValueOf(args, "--event") is { } eventName)
+        {
+            if (Config.FindEvent(eventName) is { } rule) _ = Events.RunNowAsync(rule, TriggerSource.Manual);
+            else Log.Warn($"--event: evento no encontrado '{eventName}'");
         }
         if (args.Contains("--show", StringComparer.OrdinalIgnoreCase)) ShowMainWindow();
         if (Program.ValueOf(args, "--page") is { } page) ShowMainWindow(w => w.Navigate(page.ToLowerInvariant()));
@@ -329,6 +345,7 @@ public partial class App : Application
         Store.Replace(config);
         IconProvider.Invalidate();
         RebuildIndex();
+        Events.Rebuild();
         ApplySettings();
         Voice.WakeWords.Reload();
         _main?.RebuildPages();
@@ -382,6 +399,7 @@ public partial class App : Application
             foreach (var action in Config.Commands.SelectMany(c => c.Actions)) action.RefreshSummary();
             foreach (var macro in Config.Macros) macro.RefreshTexts();
             foreach (var profile in Config.KBoards) profile.RefreshTexts();
+            foreach (var rule in Config.Events) rule.RefreshTexts();
             Achievements.Unlock("polyglot");
             // The tray menu is built in code: rebuild it in the new language.
             _tray?.Dispose();
@@ -433,6 +451,10 @@ public partial class App : Application
         kboard.Items.Add(new MenuItem()); // placeholder so it opens as a submenu; filled when opened
         kboard.SubmenuOpened += (_, _) => FillKBoardMenu(kboard);
         menu.Items.Add(kboard);
+        var events = new MenuItem { Header = Loc.T("tray.events") };
+        events.Items.Add(new MenuItem()); // placeholder so it opens as a submenu; filled when opened
+        events.SubmenuOpened += (_, _) => FillEventsMenu(events);
+        menu.Items.Add(events);
         menu.Items.Add(TrayItem(Loc.T("tray.achievements"), (_, _) => ShowMainWindow(w => w.Navigate("achievements"))));
         menu.Items.Add(new Separator());
         var pause = TrayItem(string.Empty, (_, _) => SetPaused(!Config.Settings.Paused));
@@ -482,6 +504,25 @@ public partial class App : Application
         if (Config.KBoards.Count == 0) parent.Items.Add(new MenuItem { Header = Loc.T("kboard.listEmptyShort"), IsEnabled = false });
         parent.Items.Add(new Separator());
         parent.Items.Add(TrayItem(Loc.T("tray.kboard"), (_, _) => ShowMainWindow(w => w.Navigate("kboard"))));
+    }
+
+    /// <summary>One checkable entry per event (switches it on / off) and a shortcut to the page.</summary>
+    private void FillEventsMenu(MenuItem parent)
+    {
+        parent.Items.Clear();
+        foreach (var rule in Config.Events)
+        {
+            var item = new MenuItem { Header = rule.Name, IsCheckable = true, IsChecked = rule.Enabled, StaysOpenOnClick = true, ToolTip = rule.Summary };
+            item.Click += (_, _) =>
+            {
+                rule.Enabled = item.IsChecked;
+                Ui.ShowOsd(Loc.T(rule.Enabled ? "osd.eventEnabled" : "osd.eventDisabled", rule.Name), rule.Enabled ? OsdKind.Success : OsdKind.Info);
+            };
+            parent.Items.Add(item);
+        }
+        if (Config.Events.Count == 0) parent.Items.Add(new MenuItem { Header = Loc.T("tray.noEvents"), IsEnabled = false });
+        parent.Items.Add(new Separator());
+        parent.Items.Add(TrayItem(Loc.T("tray.openEvents"), (_, _) => ShowMainWindow(w => w.Navigate("events"))));
     }
 
     private static MenuItem TrayItem(string header, RoutedEventHandler click)
@@ -553,6 +594,8 @@ public partial class App : Application
         var playing = string.IsNullOrWhiteSpace(sound) ? Task.CompletedTask : Sounds.PlayAndWaitAsync(sound, CancellationToken.None);
         QuickMenus.CloseAll(restoreFocus: false);
         _main?.Close();
+        // Leaving is not «the program closed»: the events stop before the exit ones run (no «Al terminar» now).
+        Events.Dispose();
         try { await Engine.RunExitCommandsAsync(); } catch (Exception ex) { Log.Error("Error en los comandos de salida", ex); }
         try { await playing; } catch (Exception ex) { Log.Warn("No se pudo reproducir el sonido de salida: " + ex.Message); }
         Shutdown();
@@ -561,6 +604,7 @@ public partial class App : Application
     private void OnSessionEnding(object? sender, SessionEndingEventArgs e)
     {
         Log.Info($"La sesión termina ({e.Reason})");
+        Events.Dispose();
         try { Engine.RunExitCommandsAsync().Wait(TimeSpan.FromSeconds(4)); } catch { /* ignore */ }
         Store.Flush();
         Achievements.Flush();
@@ -569,6 +613,7 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         _hookRefresh.Stop();
+        Events?.Dispose();
         Router.Dispose();
         Udp?.Dispose();
         Web?.Dispose();

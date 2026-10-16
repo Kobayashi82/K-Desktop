@@ -88,6 +88,8 @@ public static class LegacyImporter
         using var cmds = root.OpenSubKey("Comandos");
         if (cmds is null) return;
 
+        var startup = new HashSet<string>();
+        var exit = new HashSet<string>();
         foreach (var keyName in cmds.GetSubKeyNames())
         {
             using var k = cmds.OpenSubKey(keyName);
@@ -102,8 +104,6 @@ public static class LegacyImporter
                 Name = name,
                 Sound = Sound(Str(k, "Sonido")),
                 Remote = Bool(k, "Remote"),
-                RunOnStartup = Bool(k, "EjecutarIniciar"),
-                RunOnExit = Bool(k, "EjecutarSalir"),
                 IgnoreDisabledApps = Bool(k, "EjecutarSiempre"),
                 Enabled = !Bool(k, "Deshabilitar"),
                 BlockKey = Bool(k, "BloquearPulsacion"),
@@ -143,6 +143,8 @@ public static class LegacyImporter
                 }
             }
 
+            if (Bool(k, "EjecutarIniciar")) startup.Add(cmd.Id);
+            if (Bool(k, "EjecutarSalir")) exit.Add(cmd.Id);
             config.Commands.Add(cmd);
             report.Commands++;
         }
@@ -150,6 +152,16 @@ public static class LegacyImporter
         var sorted = config.Commands.OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
         config.Commands.Clear();
         foreach (var c in sorted) config.Commands.Add(c);
+        AddStartupEvents(config, startup, exit);
+    }
+
+    /// <summary>«EjecutarIniciar» / «EjecutarSalir» of K-Desktop 4 become the «Al iniciar / Al salir de K-Desktop» events.</summary>
+    internal static void AddStartupEvents(AppConfig config, IReadOnlySet<string> startup, IReadOnlySet<string> exit)
+    {
+        var onStart = config.Commands.Where(c => startup.Contains(c.Id)).ToList();
+        var onExit = config.Commands.Where(c => exit.Contains(c.Id)).ToList();
+        if (onStart.Count > 0) config.Events.Add(AppConfig.MigratedEvent(Localization.Loc.T("event.migrated.startup"), new AppStartTrigger(), onStart));
+        if (onExit.Count > 0) config.Events.Add(AppConfig.MigratedEvent(Localization.Loc.T("event.migrated.exit"), new AppExitTrigger(), onExit));
     }
 
     internal static CommandAction? ConvertAction(string type, string settings, out string? note)

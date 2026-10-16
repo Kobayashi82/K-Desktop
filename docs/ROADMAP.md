@@ -186,6 +186,36 @@
       conservan tal cual y el editor pide volver a escribirlas. Variables {fecha}/{date}, {hora}/{time} y
       {portapapeles}/{clipboard} en URL y cuerpo (`TextVariables`, escapadas para URL o JSON; servirá también para
       «Enviar texto»). Botón «Probar» en el editor con el código y la respuesta. Sin probar con un Home Assistant real.
+- [x] **Eventos** (2026-10-16, etapas 1–3; página `EventsPage`, `--page events`, `--event "Nombre"`): reglas
+      «cuando pase X, ejecuta estos comandos» (`Model/EventRule.cs`, `Config.Events`, por id de comando, en orden).
+      Tipos: al iniciar / al salir de K-Desktop, a una hora (días, «si se perdió, ejecutarlo al arrancar»), cada N
+      minutos, al abrir un programa (fin: se cierra el último), en primer plano (fin: deja de estarlo; 300 ms de
+      margen), sin usar el PC N minutos (fin: al volver; la entrada inyectada por macros, K-Board o el touchpad web
+      cuenta como uso), bloquear / desbloquear / suspender / reanudar. «Al terminar», «Solo si» (franja que puede
+      cruzar medianoche, días, programa abierto / no abierto), «no repetir antes de» (2 s por defecto en programas y
+      sesión) y limitador de bucles (más de 10 disparos en un minuto → se detiene 10 min con aviso).
+      **«Ejecutar al iniciar / al salir» salen de los comandos**: `AppConfig.Upgrade` (esquema 3) los convierte en dos
+      eventos con esos comandos en el orden de la lista (también los deshabilitados) y guarda antes
+      `Backups\config.schema2.<fecha>.json`; el importador de K-Desktop 4 crea esos eventos directamente.
+      `RunStartupCommandsAsync` (en serie, `TriggerSource.Startup`) y `RunExitCommandsAsync` (a la vez, 5 s,
+      `TriggerSource.Exit`) leen ahora los eventos; tras `--after-update` no corren, la pausa los bloquea.
+      Motor `Engine/Events/EventService.cs`: solo enciende los detectores que algún evento activo necesita.
+      Hora/intervalo: un temporizador que se revisa cada 30 s como mucho (nota el PC dormido y los cambios de reloj;
+      una hora vista con más de 2 min de retraso cuenta como perdida); `EventSchedule` en UTC (cambio de hora: la hora
+      que no existe salta al cambio, la repetida una vez). Programas: instantánea Toolhelp cada 2 s (~1 ms, sin
+      administrador; se descartó WMI `Win32_ProcessStartTrace` por fiabilidad y porque su nombre puede venir cortado).
+      Primer plano y sesión: ventana oculta propia (`Platform/SystemWatcher.cs`: `SetWinEventHook`,
+      `WTSRegisterSessionNotification`, `WM_POWERBROADCAST`; al suspender espera hasta 2 s a los comandos).
+      Inactividad: `GetLastInputInfo` cada 5 s (1 s mientras se está fuera). Estado (última vez, hasta cuándo se
+      estuvo mirando) en `events-state.json`, no en config.json. Al salir de K-Desktop no corren los «Al terminar».
+      «Desactivar en» no afecta a los eventos (es para que los atajos no molesten en una aplicación).
+      Integración: `TriggerSource.Event` (estadísticas «Eventos»), «Lo usan: evento…/QuickMenu…» en el editor de
+      comandos con enlace, acción Comandos sobre un evento (ejecutar / activar / desactivar / alternar), submenú en la
+      bandeja, logros (categoría Eventos: crear 1/10, disparos 10/100/1000, primer «Al terminar»; los migrados no
+      cuentan como creados). El buscador de «Añadir comando» usa `FuzzyMatch`.
+      Probado de verdad: al iniciar (migrado), abrir/cerrar el Bloc de notas, a una hora, primer plano (con la ventana
+      de una instancia de prueba). **Sin probar**: bloquear/desbloquear, suspender/reanudar, inactividad real.
+- [ ] Eventos, fase 2: dispositivo de audio, USB/unidad, red, batería/corriente, archivo nuevo en una carpeta.
 
 ### Plan de la voz
 
@@ -363,7 +393,7 @@ embeddings multilingües → LLM opcional) y siete etapas con su commit cada una
 
 **Primer arranque:** si «Iniciar con Windows» está activado (por defecto lo está) y es una copia con
 carpeta de datos normal, se registra la tarea del Programador de tareas automáticamente la primera vez,
-sin tener que abrir Ajustes.
+sin tener que abrir Ajustes. Lo que se ejecuta al arrancar K-Desktop está en Eventos › «Al iniciar K-Desktop».
 
 ## Ideas
 

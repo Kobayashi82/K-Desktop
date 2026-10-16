@@ -6,7 +6,7 @@ using KDesktop.Core.Storage;
 
 namespace KDesktop.Core.Engine;
 
-public enum TriggerSource { Hotkey, QuickMenu, Remote, Startup, Exit, Manual, Command, Launcher, Web, Voice }
+public enum TriggerSource { Hotkey, QuickMenu, Remote, Startup, Exit, Manual, Command, Launcher, Web, Voice, Event }
 
 /// <summary>Information about one execution of a command.</summary>
 public sealed record ExecutionContext(
@@ -44,6 +44,9 @@ public sealed partial class CommandEngine
 
     /// <summary>Raised after a command finished (for statistics / UI feedback).</summary>
     public event Action<Command, TriggerSource>? Executed;
+
+    /// <summary>An event fired (true: its «Al terminar» commands), before its commands run (statistics, «last time»).</summary>
+    public event Action<EventRule, bool, TriggerSource>? EventFired;
 
     /// <summary>Raised when an action of a command is about to run (statistics).</summary>
     public event Action<CommandAction, ExecutionContext>? ActionStarting;
@@ -139,21 +142,90 @@ public sealed partial class CommandEngine
     public Task TestActionAsync(CommandAction action, Command owner) =>
         ExecuteActionAsync(action, new ExecutionContext(owner, TriggerSource.Manual, ForegroundWindow.Capture(), false, CancellationToken.None));
 
-    /// <summary>Runs the "on startup" commands.</summary>
-    public async Task RunStartupCommandsAsync()
+    /// <summary>
+    /// Runs the commands of an event, one after another (<paramref name="end"/>: its «Al terminar» ones). A command that no
+    /// longer exists is skipped. Conditions, «no repetir» and the like are the caller's business (EventService); the
+    /// pause is checked here like everywhere else.
+    /// </summary>
+    public Task RunEventAsync(EventRule rule, bool end, TriggerSource source = TriggerSource.Event, ForegroundWindow? foreground = null) =>
+        RunEventAsync(rule, end, source, foreground ?? ForegroundWindow.Capture(), 0);
+
+    /// <param name="depth">Nesting: an event run by a command that an event ran… stops like nested commands do.</param>
+    private async Task RunEventAsync(EventRule rule, bool end, TriggerSource source, ForegroundWindow foreground, int depth)
     {
-        foreach (var cmd in Config.Commands.Where(c => c.Enabled && c.RunOnStartup).ToArray())
-            await RunAsync(cmd, TriggerSource.Startup).ConfigureAwait(false);
+        if (depth > MaxNesting)
+        {
+            Log.Warn($"Demasiados comandos anidados, se detiene en el evento «{rule.Name}»");
+            return;
+        }
+        if (IsPaused && source is not TriggerSource.Manual)
+        {
+            Log.Info($"En pausa: no se ejecuta el evento «{rule.Name}»");
+            return;
+        }
+        EventFired?.Invoke(rule, end, source);
+        foreach (var command in EventCommands(rule, end))
+        {
+            Log.Info($"Evento «{rule.Name}»{(end ? " (al terminar)" : "")} → «{command.Name}»");
+            await RunAsync(command, source, foreground, false, depth).ConfigureAwait(false);
+        }
     }
 
-    /// <summary>Runs the "on exit" commands (with a time limit so exiting never hangs).</summary>
+    private IEnumerable<Command> EventCommands(EventRule rule, bool end)
+    {
+        foreach (var id in (end ? rule.EndCommands : rule.Commands).ToArray())
+        {
+            if (Config.FindCommand(id) is { } command) yield return command;
+            else Log.Warn($"Evento «{rule.Name}»: se salta un comando que ya no existe ({id})");
+        }
+    }
+
+    /// <summary>The «Al iniciar / Al salir de K-Desktop» events that may run now (enabled, «Solo si» met), in list order.</summary>
+    private EventRule[] AppEvents<T>() where T : EventTrigger
+    {
+        var now = DateTime.Now;
+        HashSet<string>? running = null;
+        bool IsRunning(string name) => (running ??= ProcessSnapshot.Names()).Contains(name);
+        return Config.Events.Where(e => e.Enabled && e.Trigger is T).ToArray().Where(e =>
+        {
+            if (e.Conditions.Allows(now, IsRunning, out var reason)) return true;
+            Log.Info($"Evento «{e.Name}»: no se ejecuta ({reason})");
+            return false;
+        }).ToArray();
+    }
+
+    /// <summary>Runs the «Al iniciar K-Desktop» events: their commands one after another, event after event.</summary>
+    public async Task RunStartupCommandsAsync()
+    {
+        foreach (var rule in AppEvents<AppStartTrigger>())
+            await RunEventAsync(rule, false, TriggerSource.Startup).ConfigureAwait(false);
+    }
+
+    /// <summary>Runs the «Al salir de K-Desktop» events: every command at once, 5 s at most so exiting never hangs.</summary>
     public async Task RunExitCommandsAsync()
     {
-        var commands = Config.Commands.Where(c => c.Enabled && c.RunOnExit).ToArray();
-        if (commands.Length == 0) return;
-        var all = Task.WhenAll(commands.Select(c => RunAsync(c, TriggerSource.Exit)));
-        await Task.WhenAny(all, Task.Delay(TimeSpan.FromSeconds(5))).ConfigureAwait(false);
+        if (IsPaused)
+        {
+            Log.Info("En pausa: no se ejecutan los eventos al salir");
+            return;
+        }
+        var rules = AppEvents<AppExitTrigger>();
+        if (rules.Length == 0) return;
+        var runs = new List<Task>();
+        foreach (var rule in rules)
+        {
+            EventFired?.Invoke(rule, false, TriggerSource.Exit);
+            foreach (var command in EventCommands(rule, false))
+            {
+                Log.Info($"Evento «{rule.Name}» → «{command.Name}»");
+                runs.Add(RunAsync(command, TriggerSource.Exit));
+            }
+        }
+        await Task.WhenAny(Task.WhenAll(runs), Task.Delay(ExitLimit)).ConfigureAwait(false);
     }
+
+    /// <summary>Longest wait for the «Al salir» commands.</summary>
+    public static readonly TimeSpan ExitLimit = TimeSpan.FromSeconds(5);
 
     /// <summary>Handles a hotkey coming from <see cref="HotkeyRouter"/>.</summary>
     public void OnHotkey(HotkeyTrigger trigger)

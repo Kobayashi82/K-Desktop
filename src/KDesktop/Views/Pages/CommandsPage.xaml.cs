@@ -259,6 +259,40 @@ public partial class CommandsPage : UserControl, IDisposable
         if (_selected is null) return;
         HeaderIcon.Source = IconProvider.ForCommand(_selected);
         NoActions.Visibility = _selected.Actions.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        RefreshUsedBy();
+    }
+
+    /// <summary>«Lo usan: evento «Al abrir Steam» · QuickMenu «Juegos»», each one a link to it.</summary>
+    private void RefreshUsedBy()
+    {
+        UsedByPanel.Children.Clear();
+        UsedByPanel.Visibility = Visibility.Collapsed;
+        if (_selected is not { } cmd) return;
+        var text = new System.Windows.Controls.TextBlock { TextWrapping = TextWrapping.Wrap, Style = (Style)FindResource("Caption") };
+        text.Inlines.Add(new System.Windows.Documents.Run(Loc.T("commands.usedBy") + " "));
+        var first = true;
+        void Link(string label, Action open)
+        {
+            if (!first) text.Inlines.Add(new System.Windows.Documents.Run("  ·  "));
+            first = false;
+            var link = new System.Windows.Documents.Hyperlink(new System.Windows.Documents.Run(label)) { Foreground = (System.Windows.Media.Brush)FindResource("Kd.AccentText") };
+            link.Click += (_, _) => open();
+            text.Inlines.Add(link);
+        }
+        foreach (var rule in Config.EventsUsing(cmd.Id))
+        {
+            var key = rule.Commands.Contains(cmd.Id) ? "commands.usedByEvent" : "commands.usedByEventEnd";
+            var id = rule.Id;
+            Link(Loc.T(key, rule.Name), () => (Window.GetWindow(this) as MainWindow)?.OpenEvent(id));
+        }
+        foreach (var menu in Config.QuickMenus.Where(m => m.Descendants().Any(i => i.CommandId == cmd.Id)))
+        {
+            var id = menu.Id;
+            Link(Loc.T("commands.usedByMenu", menu.Name), () => (Window.GetWindow(this) as MainWindow)?.OpenQuickMenu(id));
+        }
+        if (first) return;
+        UsedByPanel.Children.Add(text);
+        UsedByPanel.Visibility = Visibility.Visible;
     }
 
     // ── command buttons ──────────────────────────────────────────────────
@@ -518,6 +552,9 @@ public partial class CommandsPage : UserControl, IDisposable
                 break;
             case CommandControlAction c when e.PropertyName == nameof(CommandControlAction.CommandId):
                 c.CommandName = Config.FindCommand(c.CommandId)?.Name;
+                break;
+            case CommandControlAction c when e.PropertyName == nameof(CommandControlAction.EventId):
+                c.EventName = Config.FindEvent(c.EventId)?.Name;
                 break;
             case PlayMacroAction m when e.PropertyName == nameof(PlayMacroAction.MacroId):
                 m.MacroName = Config.FindMacro(m.MacroId)?.Name;
