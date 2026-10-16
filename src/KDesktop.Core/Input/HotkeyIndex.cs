@@ -22,6 +22,9 @@ public sealed class HotkeyIndex
     /// <summary>Hold to talk (Settings › Voice); empty when unset or paused.</summary>
     public string VoiceHotkey { get; }
 
+    /// <summary>Opens the launcher (Settings › Lanzador); empty when unset or paused.</summary>
+    public string LauncherHotkey { get; }
+
     /// <summary>Turns «Desactivar en» on/off for the app in front (Settings › Desactivar en); empty when unset or paused.</summary>
     public string DisabledInHotkey { get; }
     public bool BlockSideButtons { get; }
@@ -53,6 +56,7 @@ public sealed class HotkeyIndex
         ExitHotkey = Hotkey.Normalize(settings.ExitHotkey);
         VoiceHotkey = paused || string.IsNullOrWhiteSpace(settings.VoiceHotkey) ? string.Empty : Hotkey.Normalize(settings.VoiceHotkey);
         DisabledInHotkey = paused || string.IsNullOrWhiteSpace(settings.DisabledInHotkey) ? string.Empty : Hotkey.Normalize(settings.DisabledInHotkey);
+        LauncherHotkey = paused || string.IsNullOrWhiteSpace(settings.LauncherHotkey) ? string.Empty : Hotkey.Normalize(settings.LauncherHotkey);
         BlockSideButtons = settings.BlockSideButtons && !paused;
     }
 
@@ -60,6 +64,9 @@ public sealed class HotkeyIndex
 
     public bool IsDisabledInHotkey(string hotkey) =>
         DisabledInHotkey.Length > 0 && hotkey.Equals(DisabledInHotkey, StringComparison.OrdinalIgnoreCase);
+
+    public bool IsLauncherHotkey(string hotkey) =>
+        LauncherHotkey.Length > 0 && hotkey.Equals(LauncherHotkey, StringComparison.OrdinalIgnoreCase);
 
     public bool IsDisabledIn(string process) => _disabledIn.Contains(process);
 

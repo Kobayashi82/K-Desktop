@@ -179,11 +179,20 @@ public partial class App : Application
 
         // Hotkeys
         Router.Triggered += Engine.OnHotkey;
-        Router.BuiltIn += hotkey => Dispatcher.BeginInvoke(() =>
+        Router.BuiltIn += hotkey =>
         {
-            if (hotkey == BuiltInHotkey.ShowWindow) ShowMainWindow();
-            else _ = ExitAsync(Config.Settings.ExitSound);
-        });
+            // The window in front now, before the launcher takes its place.
+            var front = ForegroundWindow.Capture();
+            Dispatcher.BeginInvoke(() =>
+            {
+                switch (hotkey)
+                {
+                    case BuiltInHotkey.ShowWindow: ShowMainWindow(); break;
+                    case BuiltInHotkey.Launcher: Launcher.Show(front); break;
+                    default: _ = ExitAsync(Config.Settings.ExitSound); break;
+                }
+            });
+        };
         Router.HasCancellable = () => Engine.HasCancellable || Voice.IsListening;
         Router.CancelRequested += Engine.CancelAll;
         Router.CancelRequested += Voice.Cancel;
@@ -270,7 +279,7 @@ public partial class App : Application
         }
 
         var requestsSomething = Program.ValueOf(Arguments, "--menu") is not null || Program.ValueOf(Arguments, "--run") is not null ||
-                                Program.ValueOf(Arguments, "--event") is not null;
+                                Program.ValueOf(Arguments, "--event") is not null || Arguments.Contains("--launcher", StringComparer.OrdinalIgnoreCase);
         if ((!StartedByWindows && UpdatedFrom is null && !requestsSomething && s.ShowWindowOnStart) || ImportReport is not null) ShowMainWindow();
         HandleArguments(Arguments);
         Log.Info($"Listo: {Config.Commands.Count} comandos, {Config.QuickMenus.Count} QuickMenus, {Config.Macros.Count} macros");
@@ -300,6 +309,7 @@ public partial class App : Application
             if (Config.FindEvent(eventName) is { } rule) _ = Events.RunNowAsync(rule, TriggerSource.Manual);
             else Log.Warn($"--event: evento no encontrado '{eventName}'");
         }
+        if (args.Contains("--launcher", StringComparer.OrdinalIgnoreCase)) Launcher.Show(ForegroundWindow.Capture());
         if (args.Contains("--show", StringComparer.OrdinalIgnoreCase)) ShowMainWindow();
         if (Program.ValueOf(args, "--page") is { } page) ShowMainWindow(w => w.Navigate(page.ToLowerInvariant()));
         if (args.Contains("--exit", StringComparer.OrdinalIgnoreCase)) _ = ExitAsync();
@@ -455,6 +465,7 @@ public partial class App : Application
         events.Items.Add(new MenuItem()); // placeholder so it opens as a submenu; filled when opened
         events.SubmenuOpened += (_, _) => FillEventsMenu(events);
         menu.Items.Add(events);
+        menu.Items.Add(TrayItem(Loc.T("tray.launcher"), (_, _) => Launcher.Show(ForegroundWindow.Capture())));
         menu.Items.Add(TrayItem(Loc.T("tray.achievements"), (_, _) => ShowMainWindow(w => w.Navigate("achievements"))));
         menu.Items.Add(new Separator());
         var pause = TrayItem(string.Empty, (_, _) => SetPaused(!Config.Settings.Paused));

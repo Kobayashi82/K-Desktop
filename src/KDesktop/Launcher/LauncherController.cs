@@ -16,8 +16,8 @@ using KDesktop.Services;
 namespace KDesktop.Launcher;
 
 /// <summary>
-/// The launcher (Launcher action): a search box over the commands, the installed programs and the web, with a small
-/// calculator. Results are ranked by how well they match and by how often they are used.
+/// The launcher (its hotkey and options in Settings › Lanzador): a search box over the commands, the installed programs
+/// and the web, with a small calculator. Results are ranked by how well they match and, if wanted, by how often they are used.
 /// </summary>
 public sealed partial class LauncherController
 {
@@ -31,7 +31,6 @@ public sealed partial class LauncherController
     private readonly LauncherUsage _usage = new();
 
     private LauncherWindow? _window;
-    private LauncherAction _options = new();
     private ForegroundWindow _previous;
     private List<Candidate> _commands = [];
     private List<Candidate> _apps = [];
@@ -48,11 +47,13 @@ public sealed partial class LauncherController
         ThemeService.Changed += () => _window?.ApplyTheme();
         InstalledApps.Updated += () => Application.Current?.Dispatcher.BeginInvoke(() =>
         {
-            if (IsOpen && _options.IncludeApps) Search(_window!.Query); // the list arrived while typing
+            if (IsOpen && Settings.LauncherApps) Search(_window!.Query); // the list arrived while typing
         });
     }
 
     public bool IsOpen => _window?.IsVisible == true;
+
+    private AppSettings Settings => _config().Settings;
 
     /// <summary>Creates the window once so the first opening is instant, and reads the programs in the background.</summary>
     public void Prewarm()
@@ -78,11 +79,12 @@ public sealed partial class LauncherController
             w.ItemHovered += item => Select(_items.IndexOf(item), scroll: false);
             w.ItemClicked += Execute;
             w.Deactivated += (_, _) => { if (IsOpen) Close(restoreFocus: false); };
+            w.Dropped += RememberPosition;
             return _window = w;
         }
     }
 
-    public void Show(LauncherAction options, ForegroundWindow previous)
+    public void Show(ForegroundWindow previous)
     {
         // The same hotkey again closes it.
         if (IsOpen)
@@ -91,16 +93,15 @@ public sealed partial class LauncherController
             return;
         }
 
-        _options = options;
         _previous = previous;
         _commands = CommandCandidates();
-        if (options.IncludeApps) InstalledApps.Refresh();
+        if (Settings.LauncherApps) InstalledApps.Refresh();
 
         var w = Window;
         w.ResetQuery();
         Search(string.Empty);
 
-        // Centred on the monitor of the mouse, a bit above the middle (like the Start menu search).
+        // On the monitor of the mouse: where it was left, or centred a bit above the middle (like the Start menu search).
         var cursor = UiNative.CursorPosition();
         var work = UiNative.WorkAreaAt(cursor);
         w.Left = -32000;
@@ -108,12 +109,40 @@ public sealed partial class LauncherController
         w.Show();
         var scale = UiNative.GetDpiForWindow(w.Hwnd) / 96.0;
         var width = (int)Math.Round(w.Width * scale);
-        UiNative.MoveWindow(w.Hwnd, work.Left + (work.Width - width) / 2, work.Top + work.Height / 5);
+        var (fx, fy) = SavedPosition() ?? (0.5, 0.2);
+        var x = (int)Math.Round(work.Left + fx * work.Width - width / 2.0);
+        var y = (int)Math.Round(work.Top + fy * work.Height);
+        UiNative.MoveWindow(w.Hwnd, Math.Clamp(x, work.Left, Math.Max(work.Left, work.Right - width)), Math.Clamp(y, work.Top, Math.Max(work.Top, work.Bottom - 120)));
         w.PlayShow();
         w.Activate();
         WindowTools.ForceForeground(w.Hwnd);
         w.FocusSearch();
     }
+
+    private (double X, double Y)? SavedPosition()
+    {
+        var parts = Settings.LauncherPosition.Split(';');
+        return parts.Length == 2 &&
+               double.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out var x) &&
+               double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out var y) &&
+               x is >= 0 and <= 1 && y is >= 0 and <= 1
+            ? (x, y) : null;
+    }
+
+    /// <summary>Dropped somewhere: remember it relative to the screen it is on (top edge centre).</summary>
+    private void RememberPosition()
+    {
+        if (_window is not { } w || !UiNative.GetWindowRect(w.Hwnd, out var rect)) return;
+        var work = UiNative.WorkAreaAt(new UiNative.POINT { X = (rect.Left + rect.Right) / 2, Y = rect.Top + 10 });
+        if (work.Width <= 0 || work.Height <= 0) return;
+        var fx = Math.Clamp(((rect.Left + rect.Right) / 2.0 - work.Left) / work.Width, 0, 1);
+        var fy = Math.Clamp((rect.Top - work.Top) / (double)work.Height, 0, 1);
+        Settings.LauncherPosition = string.Create(CultureInfo.InvariantCulture, $"{fx:0.####};{fy:0.####}");
+        w.FocusSearch();
+    }
+
+    /// <summary>Forgets which programs were opened most (Settings › Lanzador).</summary>
+    public void ClearUsage() => _usage.Clear();
 
     public void Close(bool restoreFocus)
     {
@@ -133,7 +162,7 @@ public sealed partial class LauncherController
         var config = _config();
         var runs = _achievements.Snapshot().Data.CommandRuns;
         return config.Commands
-            .Where(c => c.Enabled && (config.Settings.ShowHiddenCommands || !c.Hidden) && !c.Actions.Any(a => a is LauncherAction))
+            .Where(c => c.Enabled && (config.Settings.LauncherHidden || !c.Hidden))
             .Select(c =>
             {
                 var details = string.Join("  ", c.Actions.Where(a => a.Enabled).Select(a => a.Summary));
@@ -158,19 +187,21 @@ public sealed partial class LauncherController
 
     private void Search(string query)
     {
-        var candidates = _options.IncludeApps ? _commands.Concat(AppCandidates()) : _commands;
+        var settings = Settings;
+        var candidates = settings.LauncherApps ? _commands.Concat(AppCandidates()) : _commands;
+        var byUse = settings.LauncherByUse;
         var tokens = FuzzyMatch.Tokens(query);
         var items = new List<LauncherItem>();
 
         if (tokens.Length == 0)
         {
-            // Nothing typed yet: the most used ones.
-            items.AddRange(candidates.Where(c => c.Usage() > 0).OrderByDescending(c => c.Usage()).Take(EmptyResults).Select(c => c.Create()));
+            // Nothing typed yet: the most used ones (if wanted).
+            if (byUse) items.AddRange(candidates.Where(c => c.Usage() > 0).OrderByDescending(c => c.Usage()).Take(EmptyResults).Select(c => c.Create()));
             ShowItems(items, Loc.T("launcher.hint"));
             return;
         }
 
-        var result = Calculate(query);
+        var result = settings.LauncherCalculator ? Calculate(query) : null;
         if (result is not null)
             items.Add(new LauncherItem(LauncherItemKind.Calculator, "= " + result, Loc.T("launcher.calculator"), Loc.T("launcher.copy"),
                 () => IconProvider.Kd("Calculator24", "teal"), result));
@@ -180,7 +211,7 @@ public sealed partial class LauncherController
             {
                 var score = FuzzyMatch.Score(tokens, c.Name);
                 if (c.Extra is { } extra) score = Math.Max(score, FuzzyMatch.Score(tokens, extra) * 6 / 10);
-                return (Candidate: c, Score: score == 0 ? 0 : score + c.Bonus + UsageBoost(c.Usage()));
+                return (Candidate: c, Score: score == 0 ? 0 : score + c.Bonus + (byUse ? UsageBoost(c.Usage()) : 0));
             })
             .Where(x => x.Score > 0)
             .OrderByDescending(x => x.Score)
@@ -188,8 +219,8 @@ public sealed partial class LauncherController
             .Take(MaxResults)
             .Select(x => x.Candidate.Create()));
 
-        if (_options.WebSearch && result is null)
-            items.Add(new LauncherItem(LauncherItemKind.Web, Loc.T("launcher.web", query.Trim()), "Google", "",
+        if (settings.LauncherWeb && result is null)
+            items.Add(new LauncherItem(LauncherItemKind.Web, Loc.T("launcher.web", query.Trim()), SearchEngines.Name(settings), "",
                 () => IconProvider.Kd("Globe24", "sky"), query.Trim()));
 
         ShowItems(items, Loc.T("launcher.noResults"));
@@ -273,7 +304,8 @@ public sealed partial class LauncherController
                 break;
             case string text when item.Kind == LauncherItemKind.Web:
                 Close(restoreFocus: false);
-                _ = Task.Run(() => ProcessLauncher.Launch(new LaunchSpec("https://www.google.com/search?q=" + Uri.EscapeDataString(text)), asAdmin: false));
+                var url = SearchEngines.Url(Settings, text);
+                _ = Task.Run(() => ProcessLauncher.Launch(new LaunchSpec(url), asAdmin: false));
                 break;
             case string result when item.Kind == LauncherItemKind.Calculator:
                 try { Clipboard.SetText(result); } catch (Exception ex) { Log.Warn("No se pudo copiar el resultado: " + ex.Message); }
@@ -282,6 +314,34 @@ public sealed partial class LauncherController
                 break;
         }
     }
+}
+
+/// <summary>The web searches the launcher offers (Settings › Lanzador).</summary>
+public static class SearchEngines
+{
+    public static readonly (string Id, string Name, string Url)[] All =
+    [
+        ("google", "Google", "https://www.google.com/search?q={0}"),
+        ("duckduckgo", "DuckDuckGo", "https://duckduckgo.com/?q={0}"),
+        ("bing", "Bing", "https://www.bing.com/search?q={0}"),
+        ("brave", "Brave Search", "https://search.brave.com/search?q={0}"),
+    ];
+
+    public static string Name(AppSettings s) =>
+        s.LauncherSearchEngine == "custom" ? CustomHost(s) : All.FirstOrDefault(e => e.Id == s.LauncherSearchEngine).Name ?? "Google";
+
+    /// <summary>The address to open for <paramref name="text"/> ({0} in a custom one is the text; without it, it goes at the end).</summary>
+    public static string Url(AppSettings s, string text)
+    {
+        var template = s.LauncherSearchEngine == "custom" && s.LauncherSearchUrl.Trim().Length > 0
+            ? CommandEngine.NormalizeUrl(s.LauncherSearchUrl.Trim())
+            : All.FirstOrDefault(e => e.Id == s.LauncherSearchEngine).Url ?? All[0].Url;
+        var escaped = Uri.EscapeDataString(text);
+        return template.Contains("{0}", StringComparison.Ordinal) ? template.Replace("{0}", escaped, StringComparison.Ordinal) : template + escaped;
+    }
+
+    private static string CustomHost(AppSettings s) =>
+        Uri.TryCreate(CommandEngine.NormalizeUrl(s.LauncherSearchUrl.Trim().Replace("{0}", "x")), UriKind.Absolute, out var u) ? u.Host : "Web";
 }
 
 /// <summary>How many times each program was opened from the launcher (DataDir\launcher.json), to rank it higher.</summary>
@@ -294,6 +354,14 @@ internal sealed class LauncherUsage
     private Dictionary<string, long> Apps => _apps ??= Load();
 
     public long Get(string id) => Apps.GetValueOrDefault(id);
+
+    /// <summary>Forgets which programs were used (Settings › Lanzador).</summary>
+    public void Clear()
+    {
+        Apps.Clear();
+        try { if (File.Exists(FilePath)) File.Delete(FilePath); }
+        catch (Exception ex) { Log.Warn("No se pudo borrar el uso del lanzador: " + ex.Message); }
+    }
 
     public void Increment(string id)
     {

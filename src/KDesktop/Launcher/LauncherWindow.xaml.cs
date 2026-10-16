@@ -25,6 +25,13 @@ public partial class LauncherWindow : Window
             QueryChanged?.Invoke(SearchBox.Text);
         };
         PreviewKeyDown += OnKeyDown;
+        // Dragged from its edge or the lens (the text box and the results are for typing and choosing).
+        Surface.MouseLeftButtonDown += (_, e) =>
+        {
+            if (e.OriginalSource is DependencyObject d && (IsInside(d, SearchBox) || IsInside(d, ResultsControl) || IsInside(d, CloseButton))) return;
+            try { DragMove(); } catch (InvalidOperationException) { return; }
+            Dropped?.Invoke();
+        };
         ResultsControl.MouseMove += (_, e) =>
         {
             if (ItemFrom(e.OriginalSource) is { } item) ItemHovered?.Invoke(item);
@@ -45,6 +52,9 @@ public partial class LauncherWindow : Window
     public event Action? CloseRequested;
     public event Action<LauncherItem>? ItemHovered;
     public event Action<LauncherItem>? ItemClicked;
+
+    /// <summary>The user dragged the window somewhere else.</summary>
+    public event Action? Dropped;
 
     private void OnSourceInitialized(object? sender, EventArgs e)
     {
@@ -128,6 +138,13 @@ public partial class LauncherWindow : Window
     }
 
     private void OnCloseClick(object sender, RoutedEventArgs e) => CloseRequested?.Invoke();
+
+    private static bool IsInside(DependencyObject d, DependencyObject ancestor)
+    {
+        for (var p = d; p is not null; p = p is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(p) : LogicalTreeHelper.GetParent(p))
+            if (ReferenceEquals(p, ancestor)) return true;
+        return false;
+    }
 
     private static LauncherItem? ItemFrom(object source) =>
         source is FrameworkElement { DataContext: LauncherItem a } ? a

@@ -44,6 +44,7 @@ public partial class SettingsPage : UserControl
         void OnUpdates() => Dispatcher.BeginInvoke(UpdateUpdates);
         LoadVoice();
         LoadMedia();
+        LoadLauncher();
         Loaded += (_, _) =>
         {
             UpdateWebState();
@@ -229,6 +230,7 @@ public partial class SettingsPage : UserControl
     {
         ShowOptionalHotkey(VoiceHotkeyButton, VoiceHotkeyClear, _app.Config.Settings.VoiceHotkey);
         ShowOptionalHotkey(DisabledInHotkeyButton, DisabledInHotkeyClear, _app.Config.Settings.DisabledInHotkey);
+        ShowOptionalHotkey(LauncherHotkeyButton, LauncherHotkeyClear, _app.Config.Settings.LauncherHotkey);
     }
 
     /// <summary>A hotkey that may be unset: «Sin atajo» and no clear button then.</summary>
@@ -268,6 +270,43 @@ public partial class SettingsPage : UserControl
     {
         _app.Config.Settings.DisabledInHotkey = string.Empty;
         UpdateOptionalHotkeys();
+    }
+
+    // ── launcher ─────────────────────────────────────────────────────────
+
+    private sealed record EngineOption(string Id, string Name);
+
+    private void LoadLauncher()
+    {
+        LauncherEngineBox.ItemsSource = KDesktop.Launcher.SearchEngines.All.Select(e => new EngineOption(e.Id, e.Name))
+            .Append(new EngineOption("custom", Loc.T("settings.launcherEngineCustom"))).ToList();
+        LauncherEngineBox.SelectionChanged += (_, _) => UpdateLauncherUrl();
+        UpdateLauncherUrl();
+    }
+
+    /// <summary>The address box is only for «Otro».</summary>
+    private void UpdateLauncherUrl() =>
+        LauncherUrlBox.Visibility = _app.Config.Settings.LauncherSearchEngine == "custom" ? Visibility.Visible : Visibility.Collapsed;
+
+    private void OnCaptureLauncherHotkey(object sender, RoutedEventArgs e) =>
+        CaptureOptionalHotkey(LauncherHotkeyButton, hk => _app.Config.Settings.LauncherHotkey = hk);
+
+    private void OnClearLauncherHotkey(object sender, RoutedEventArgs e)
+    {
+        _app.Config.Settings.LauncherHotkey = string.Empty;
+        UpdateOptionalHotkeys();
+    }
+
+    private void OnResetLauncherPlace(object sender, RoutedEventArgs e)
+    {
+        _app.Config.Settings.LauncherPosition = string.Empty;
+        _app.Ui.ShowOsd(Loc.T("settings.launcherPlaceReset"), OsdKind.Success);
+    }
+
+    private void OnForgetLauncherUsage(object sender, RoutedEventArgs e)
+    {
+        _app.Launcher.ClearUsage();
+        _app.Ui.ShowOsd(Loc.T("settings.launcherForgotten"), OsdKind.Success);
     }
 
     // ── web ──────────────────────────────────────────────────────────────

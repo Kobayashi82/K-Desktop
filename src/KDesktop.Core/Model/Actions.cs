@@ -314,14 +314,17 @@ public partial class OpenQuickMenuAction : CommandAction
     public override string Summary => Loc.T("summary.openMenu", string.IsNullOrWhiteSpace(MenuName) ? MenuId : MenuName);
 }
 
-/// <summary>Opens the launcher: a search box over the commands and, optionally, the installed programs and the web.</summary>
+/// <summary>
+/// Only read from configurations of older versions: the launcher has its own hotkey and options now (Settings ›
+/// Lanzador), and <see cref="AppConfig.Upgrade"/> moves it there.
+/// </summary>
 public partial class LauncherAction : CommandAction
 {
     [ObservableProperty] private bool _includeApps = true;
     [ObservableProperty] private bool _webSearch = true;
 
     public override ActionKind Kind => ActionKind.Launcher;
-    public override string Summary => Loc.T(IncludeApps ? "summary.launcherApps" : "summary.launcher");
+    public override string Summary => Loc.T("settings.launcher");
 }
 
 public partial class CommandControlAction : CommandAction

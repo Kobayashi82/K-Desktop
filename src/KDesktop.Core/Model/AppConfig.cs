@@ -38,6 +38,25 @@ public sealed class AppConfig
             foreach (var toggle in toggles) cmd.Actions.Remove(toggle);
             if (cmd.Actions.Count == 0 && !IsReferenced(cmd.Id)) Commands.Remove(cmd);
         }
+        // The launcher is no longer an action: it lives in Settings › Lanzador with its own hotkey. The first hotkey of a
+        // command that opened it becomes that hotkey, its options become the settings, and an emptied command goes away.
+        foreach (var cmd in Commands.ToList())
+        {
+            var launchers = cmd.Actions.OfType<LauncherAction>().ToList();
+            if (launchers.Count == 0) continue;
+            changed = true;
+            var first = launchers[0];
+            if (string.IsNullOrWhiteSpace(Settings.LauncherHotkey) && cmd.Enabled && first.Enabled &&
+                cmd.Hotkeys.FirstOrDefault(h => !string.IsNullOrWhiteSpace(h)) is { } hotkey)
+            {
+                Settings.LauncherHotkey = Input.Hotkey.Normalize(hotkey);
+                Settings.LauncherApps = first.IncludeApps;
+                Settings.LauncherWeb = first.WebSearch;
+            }
+            foreach (var launcher in launchers) cmd.Actions.Remove(launcher);
+            Log.Info($"La acción «Lanzador» de «{cmd.Name}» pasa a Opciones › Lanzador");
+            if (cmd.Actions.Count == 0 && !IsReferenced(cmd.Id)) Commands.Remove(cmd);
+        }
         // The built-in listening sound was called «Escuchar» in 5.0.11–5.0.14.
         if (Settings.VoiceListenSound == "Escuchar")
         {
@@ -181,6 +200,36 @@ public partial class AppSettings : ObservableObject
     /// <summary>Played when K-Desktop is closed with <see cref="ExitHotkey"/>.</summary>
     [ObservableProperty] private string? _exitSound;
     [ObservableProperty] private bool _showHiddenCommands;
+
+    /// <summary>Opens the launcher (Settings › Lanzador); empty = no hotkey.</summary>
+    [ObservableProperty] private string _launcherHotkey = string.Empty;
+
+    /// <summary>The launcher also finds the programs of the Start menu.</summary>
+    [ObservableProperty] private bool _launcherApps = true;
+
+    /// <summary>The launcher offers a web search when nothing else answers.</summary>
+    [ObservableProperty] private bool _launcherWeb = true;
+
+    /// <summary>"google", "duckduckgo", "bing", "brave" or "custom" (then <see cref="LauncherSearchUrl"/>).</summary>
+    [ObservableProperty] private string _launcherSearchEngine = "google";
+
+    /// <summary>Address of a search engine of your own; {0} is where the text goes.</summary>
+    [ObservableProperty] private string _launcherSearchUrl = string.Empty;
+
+    /// <summary>The launcher works out sums typed in it («12*3,5»).</summary>
+    [ObservableProperty] private bool _launcherCalculator = true;
+
+    /// <summary>Hidden commands appear in the launcher too.</summary>
+    [ObservableProperty] private bool _launcherHidden;
+
+    /// <summary>The most used first (and shown before typing anything).</summary>
+    [ObservableProperty] private bool _launcherByUse = true;
+
+    /// <summary>
+    /// Where the launcher was dragged to: "x;y" as fractions of the work area of its screen (the centre of its top edge),
+    /// so it lands in the same place on any monitor. Empty = centred, a bit above the middle.
+    /// </summary>
+    [ObservableProperty] private string _launcherPosition = string.Empty;
 
     /// <summary>Which commands the list shows: "none" (those in no QuickMenu), "all", or a QuickMenu id.</summary>
     [ObservableProperty] private string _commandsMenuFilter = "none";

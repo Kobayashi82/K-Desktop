@@ -11,7 +11,7 @@ Atajos de teclado y ratón, QuickMenus y control remoto por UDP para Windows. Es
   - Clic izquierdo ejecuta y cierra.
   - Clic derecho ejecuta y deja el menú abierto.
   - Clic central edita el elemento.
-- **Lanzador**: una acción que abre una caja de búsqueda en el centro de la pantalla. Escribe parte del nombre (vale con las iniciales o letras sueltas) y Enter ejecuta el comando, abre el programa del menú Inicio o busca en la web; también hace cuentas. Los más usados salen primero.
+- **Lanzador** (Opciones › Lanzador, con su propio atajo): una caja de búsqueda en el centro de la pantalla, que se puede arrastrar a otro sitio y lo recuerda. Escribe parte del nombre (vale con las iniciales o letras sueltas) y Enter ejecuta el comando, abre el programa del menú Inicio o busca en la web; también hace cuentas. Los más usados salen primero.
 - **Macros**: graba teclado y ratón con sus tiempos, edita los pasos (también desplazamientos relativos del ratón, en bruto para juegos) y reprodúcelas desde cualquier comando (repeticiones, bucle, velocidad). Mayús + Esc las detiene.
 - **K-Board**: perfiles que reasignan teclas, botones del ratón y la rueda a otras teclas o combinaciones, a un texto, a un comando o a nada; en todas las aplicaciones o solo en las que elijas (un perfil de la aplicación en primer plano gana al general). Se mantienen pulsadas como las originales (Bloq Mayús → Ctrl, botón lateral → tecla en un juego…), admiten capas con modificadores (Ctrl + J → ↓) y se editan sobre un teclado y un ratón dibujados. Se activan a mano, desde un comando o desde la bandeja.
 - **Iconos**: colección propia de K-Desktop 5 (mosaicos vectoriales con cualquier símbolo de Windows 11, 15 colores y dos estilos), los iconos de las bibliotecas de Windows (shell32, imageres… con su índice), cualquier imagen o, en las acciones web, el icono de la propia página (favicon, descargado una vez de la web).
@@ -39,6 +39,7 @@ Atajos de teclado y ratón, QuickMenus y control remoto por UDP para Windows. Es
 KDesktop.exe --menu "Principal"     abre un QuickMenu (en la instancia en ejecución)
 KDesktop.exe --run "Nombre"         ejecuta un comando
 KDesktop.exe --event "Nombre"       ejecuta los comandos de un evento
+KDesktop.exe --launcher             abre el lanzador
 KDesktop.exe --show | --exit
 KDesktop.exe --page macros          abre K-Desktop en una página (commands, quickmenus, events, macros, kboard, achievements, stats, settings, about)
 KDesktop.exe --no-hooks --no-udp --no-elevate   diagnóstico

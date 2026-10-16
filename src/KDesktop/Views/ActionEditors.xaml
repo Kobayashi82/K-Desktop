@@ -554,15 +554,6 @@
         </StackPanel>
     </DataTemplate>
 
-    <DataTemplate DataType="{x:Type m:LauncherAction}">
-        <StackPanel>
-            <TextBlock Style="{StaticResource FieldLabel}" Margin="0,0,0,8" TextWrapping="Wrap" Text="{l:Tr editor.launcherHint}" />
-            <WrapPanel>
-                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.launcherApps}" IsChecked="{Binding IncludeApps}" />
-                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.launcherWeb}" IsChecked="{Binding WebSearch}" />
-            </WrapPanel>
-        </StackPanel>
-    </DataTemplate>
 
     <!-- ── Comandos ────────────────────────────────────────────────────── -->
     <DataTemplate DataType="{x:Type m:CommandControlAction}">

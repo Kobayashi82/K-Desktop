@@ -26,7 +26,6 @@ public sealed partial class CommandEngine
         ShowMessageAction a => ShowMessageAsync(a, ctx),
         PowerAction a => PowerAsync(a, ctx),
         OpenQuickMenuAction a => Run(() => _ui.ShowQuickMenu(a.MenuId, ctx.Foreground)),
-        LauncherAction a => Run(() => _ui.ShowLauncher(a, ctx.Foreground)),
         CommandControlAction a => CommandControlAsync(a, ctx),
         WaitAction a => WaitAsync(a, ctx),
         PlayMacroAction a => PlayMacroAsync(a, ctx),

@@ -117,4 +117,23 @@ public class EventMigrationTests
         Assert.Equal(EventCatalog.All.Select(k => k.Kind), back.Events.Select(e => e.Trigger.Kind));
         foreach (var rule in back.Events) Assert.False(string.IsNullOrWhiteSpace(rule.Summary));
     }
+
+    [Fact]
+    public void LauncherActionMovesToTheSettings()
+    {
+        var json = """
+            { "schemaVersion": 3, "commands": [
+              { "id": "a", "name": "Lanzador", "hotkeys": ["ALT + Space"], "actions": [ { "type": "launcher", "includeApps": false, "webSearch": true } ] },
+              { "id": "b", "name": "Otro", "actions": [ { "type": "launcher" }, { "type": "showMessage", "text": "x" } ] } ] }
+            """;
+        var config = Json.Deserialize<AppConfig>(json)!;
+        Assert.True(config.Upgrade());
+        Assert.Equal(KDesktop.Core.Input.Hotkey.Normalize("ALT + Space"), config.Settings.LauncherHotkey);
+        Assert.False(config.Settings.LauncherApps);
+        Assert.True(config.Settings.LauncherWeb);
+        var left = Assert.Single(config.Commands); // the emptied one goes away
+        Assert.Equal("Otro", left.Name);
+        Assert.IsType<ShowMessageAction>(Assert.Single(left.Actions));
+        Assert.DoesNotContain(ActionCatalog.All, a => a.Kind == ActionKind.Launcher);
+    }
 }

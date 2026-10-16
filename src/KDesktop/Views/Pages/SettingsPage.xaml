@@ -115,6 +115,20 @@
                         </StackPanel>
                     </Grid>
                 </ListBoxItem>
+                <ListBoxItem Tag="launcher">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
+                            <ui:SymbolIcon Symbol="Search24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.nav.launcher}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{l:Tr settings.nav.launcher.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </ListBoxItem>
                 <ListBoxItem Tag="remote">
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
@@ -426,6 +440,94 @@
             </Border>
 
             <!-- Remote -->
+            <!-- Launcher -->
+            <Border Style="{StaticResource Card}" Tag="launcher">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.launcher}" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,10" TextWrapping="Wrap" Text="{l:Tr settings.launcherIntro}" />
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.launcherHotkey}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherHotkeyHint}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <ui:Button x:Name="LauncherHotkeyButton" MinWidth="200" Click="OnCaptureLauncherHotkey" />
+                            <ui:Button x:Name="LauncherHotkeyClear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
+                                       AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearLauncherHotkey" />
+                        </StackPanel>
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.launcherApps}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherAppsHint}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding LauncherApps}" AutomationProperties.Name="{l:Tr settings.launcherApps}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.launcherHidden}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherHiddenHint}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding LauncherHidden}" AutomationProperties.Name="{l:Tr settings.launcherHidden}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.launcherCalculator}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherCalculatorHint}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding LauncherCalculator}" AutomationProperties.Name="{l:Tr settings.launcherCalculator}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.launcherByUse}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherByUseHint}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding LauncherByUse}" AutomationProperties.Name="{l:Tr settings.launcherByUse}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.launcherWeb}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherWebHint}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding LauncherWeb}" AutomationProperties.Name="{l:Tr settings.launcherWeb}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}" IsEnabled="{Binding LauncherWeb}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.launcherEngine}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherEngineHint}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <ComboBox x:Name="LauncherEngineBox" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding LauncherSearchEngine}" />
+                            <ui:TextBox x:Name="LauncherUrlBox" Margin="0,8,0,0" Text="{Binding LauncherSearchUrl, UpdateSourceTrigger=PropertyChanged}"
+                                        PlaceholderText="https://buscador.ejemplo/?q={0}" />
+                        </StackPanel>
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.launcherPlace}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherPlaceHint}" />
+                        </StackPanel>
+                        <ui:Button Grid.Column="1" VerticalAlignment="Center" Content="{l:Tr settings.launcherResetPlace}" Icon="{ui:SymbolIcon ArrowReset24}" Click="OnResetLauncherPlace" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.launcherForget}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherForgetHint}" />
+                        </StackPanel>
+                        <ui:Button Grid.Column="1" VerticalAlignment="Center" Content="{l:Tr settings.launcherForgetButton}" Icon="{ui:SymbolIcon Delete24}" Click="OnForgetLauncherUsage" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
             <Border Style="{StaticResource Card}" Tag="remote">
                 <StackPanel>
                     <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.remote}" />

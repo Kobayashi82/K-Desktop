@@ -3,7 +3,7 @@ using KDesktop.Core.Native;
 
 namespace KDesktop.Core.Input;
 
-public enum BuiltInHotkey { ShowWindow, Exit }
+public enum BuiltInHotkey { ShowWindow, Exit, Launcher }
 
 public sealed record HotkeyTrigger(string Hotkey, IReadOnlyList<Command> Commands, bool IsRepeat, ForegroundWindow Foreground);
 
@@ -178,6 +178,12 @@ public sealed partial class HotkeyRouter : IDisposable
             return Block(vk, mods);
         }
 
+        if (index.IsLauncherHotkey(hotkey))
+        {
+            if (!repeat) Post(() => BuiltIn?.Invoke(BuiltInHotkey.Launcher));
+            return Block(vk, mods);
+        }
+
         if (index.IsDisabledInHotkey(hotkey))
         {
             if (!repeat)
@@ -299,7 +305,7 @@ public sealed partial class HotkeyRouter : IDisposable
             Post(() => VoiceRequested?.Invoke(() => _voiceButtonHeld));
             return true;
         }
-        if (index.IsDisabledInHotkey(hotkey))
+        if (index.IsDisabledInHotkey(hotkey) || index.IsLauncherHotkey(hotkey))
         {
             _blockedButtons.Add(button); // it fires on release (Dispatch)
             return true;
@@ -367,6 +373,12 @@ public sealed partial class HotkeyRouter : IDisposable
             Post(() => VoiceRequested?.Invoke(static () => false));
             return true;
         }
+        if (index.IsLauncherHotkey(hotkey))
+        {
+            _armed = false;
+            Post(() => BuiltIn?.Invoke(BuiltInHotkey.Launcher));
+            return true;
+        }
         if (index.IsDisabledInHotkey(hotkey))
         {
             _armed = false;
@@ -386,6 +398,11 @@ public sealed partial class HotkeyRouter : IDisposable
     private void Dispatch(string hotkey)
     {
         var index = _index;
+        if (index.IsLauncherHotkey(hotkey))
+        {
+            Post(() => BuiltIn?.Invoke(BuiltInHotkey.Launcher));
+            return;
+        }
         if (index.IsDisabledInHotkey(hotkey))
         {
             var window = ForegroundWindow.Capture();

@@ -22,7 +22,6 @@ internal sealed class FakeUi : IUiServices
 
     public IVoiceOsd ShowVoiceOsd(string text) => throw new NotSupportedException();
     public void ShowQuickMenu(string menuId, ForegroundWindow previousForeground) { }
-    public void ShowLauncher(LauncherAction options, ForegroundWindow previousForeground) { }
     public void ShowMainWindow() { }
     public void RunOnUi(Action action) => action();
     public void RequestExit() { }

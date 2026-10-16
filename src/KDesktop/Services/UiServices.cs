@@ -90,9 +90,6 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     public void ShowQuickMenu(string menuId, ForegroundWindow previousForeground) =>
         dispatcher.BeginInvoke(() => QuickMenus?.Show(menuId, previousForeground));
 
-    public void ShowLauncher(LauncherAction options, ForegroundWindow previousForeground) =>
-        dispatcher.BeginInvoke(() => Launcher?.Show(options, previousForeground));
-
     public void ShowMainWindow() => dispatcher.BeginInvoke(showMainWindow);
 
     public void RunOnUi(Action action)

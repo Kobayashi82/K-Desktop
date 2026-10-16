@@ -92,10 +92,11 @@
             <Grid Height="48" Margin="8,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Button x:Name="CloseButton" Grid.Column="2" Width="30" Height="30" Margin="8,0,-4,0" VerticalAlignment="Center"
+                <Button x:Name="CloseButton" Grid.Column="3" Width="30" Height="30" Margin="8,0,-4,0" VerticalAlignment="Center"
                         Focusable="False" Cursor="Hand" ToolTip="{l:Tr common.close}" Click="OnCloseClick"
                         AutomationProperties.Name="{l:Tr common.close}">
                     <Button.Template>
@@ -114,14 +115,19 @@
                         </ControlTemplate>
                     </Button.Template>
                 </Button>
-                <Path Width="18" Height="18" Margin="4,0,12,0" VerticalAlignment="Center" Stretch="Uniform"
+                <!-- Grip: drag the launcher anywhere (it remembers where) -->
+                <Border x:Name="Grip" Width="14" Margin="-4,0,6,0" Background="Transparent" Cursor="SizeAll" ToolTip="{l:Tr launcher.dragHint}" VerticalAlignment="Stretch">
+                    <Path Width="6" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{DynamicResource Kd.MenuTextSecondary}" Opacity="0.8"
+                          Data="M1,1 m-1,0 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0 M5,1 m-1,0 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0 M1,7 m-1,0 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0 M5,7 m-1,0 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0 M1,13 m-1,0 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0 M5,13 m-1,0 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0" />
+                </Border>
+                <Path x:Name="Lens" Grid.Column="1" Width="18" Height="18" Margin="0,0,12,0" VerticalAlignment="Center" Stretch="Uniform"
                       Stroke="{DynamicResource Kd.Accent}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                       Data="M7,0 A7,7 0 1 1 6.99,0 M12,12 L17,17" />
-                <TextBox x:Name="SearchBox" Grid.Column="1" Style="{x:Null}" VerticalAlignment="Center" FontSize="19"
+                <TextBox x:Name="SearchBox" Grid.Column="2" Style="{x:Null}" VerticalAlignment="Center" FontSize="19"
                          Background="Transparent" BorderThickness="0" Padding="0"
                          Foreground="{DynamicResource Kd.MenuText}" CaretBrush="{DynamicResource Kd.Accent}"
                          SelectionBrush="{DynamicResource Kd.Accent}" AutomationProperties.Name="{l:Tr launcher.placeholder}" />
-                <TextBlock x:Name="Placeholder" Grid.Column="1" VerticalAlignment="Center" FontSize="19" IsHitTestVisible="False"
+                <TextBlock x:Name="Placeholder" Grid.Column="2" VerticalAlignment="Center" FontSize="19" IsHitTestVisible="False"
                            Margin="2,0,0,0" Text="{l:Tr launcher.placeholder}" Foreground="{DynamicResource Kd.MenuTextSecondary}" />
             </Grid>
 

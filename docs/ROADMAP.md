@@ -215,6 +215,13 @@
       cuentan como creados). El buscador de «Añadir comando» usa `FuzzyMatch`.
       Probado de verdad: al iniciar (migrado), abrir/cerrar el Bloc de notas, a una hora, primer plano (con la ventana
       de una instancia de prueba). **Sin probar**: bloquear/desbloquear, suspender/reanudar, inactividad real.
+- [x] **Lanzador en Opciones** (2026-10-16): ya no es una acción; Opciones › Lanzador tiene su atajo (lo gestiona el
+      router como el de la voz: teclas, botones y rueda; no en pausa), programas del menú Inicio, comandos ocultos,
+      calculadora, «los más usados primero», buscar en la web con buscador elegible (Google, DuckDuckGo, Bing, Brave u
+      otro con {0}), «volver a la posición inicial» y «olvidar los programas más usados». También desde la bandeja y
+      `--launcher`. Se arrastra desde el asa de la izquierda (o el borde) y recuerda el sitio en proporción a la pantalla
+      (`LauncherPosition`, vale en cualquier monitor). `AppConfig.Upgrade` pasa la acción antigua a las opciones (su
+      primer atajo y sus casillas) y quita el comando si se queda vacío. Sin probar: arrastrarlo con el ratón real.
 - [x] **Editor de comandos sin interruptores** (2026-10-16): «Oculto» (ojo) y «Control remoto» (enchufe) son iconos junto
       al nombre; «Bloquear el atajo» (candado) y «Ejecutar siempre» (prohibido en gris / play en dorado) van en la cabecera de Atajos
       (`Views/IconToggle.cs`: símbolo y color según el estado, tooltip con nombre, Sí/No y explicación). En Opciones,
