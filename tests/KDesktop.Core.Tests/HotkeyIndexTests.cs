@@ -63,4 +63,25 @@ public class HotkeyIndexTests
         var index = new HotkeyIndex([general, Cmd("photoshop", "Mouse 5", "photoshop")], settings);
         Assert.Equal(["general"], Run(index, "photoshop"));
     }
+
+    [Fact]
+    public void VoiceAndLauncherRespectDisabledInUnlessAskedNot()
+    {
+        var settings = new AppSettings { VoiceHotkey = "Scroll", LauncherHotkey = "ALT + Space" };
+        settings.DisabledIn.Add("game");
+        var voice = Hotkey.Normalize("Scroll");
+        var launcher = Hotkey.Normalize("ALT + Space");
+
+        var index = new HotkeyIndex([], settings);
+        Assert.True(index.IsVoiceHotkey(voice, () => "notepad"));
+        Assert.False(index.IsVoiceHotkey(voice, () => "game"));
+        Assert.True(index.IsLauncherHotkey(launcher, () => "notepad"));
+        Assert.False(index.IsLauncherHotkey(launcher, () => "game"));
+
+        settings.VoiceIgnoreDisabledApps = settings.LauncherIgnoreDisabledApps = true;
+        index = new HotkeyIndex([], settings);
+        Assert.True(index.IsVoiceHotkey(voice, () => "game"));
+        Assert.True(index.IsLauncherHotkey(launcher, () => "game"));
+        Assert.False(new HotkeyIndex([], settings, paused: true).IsLauncherHotkey(launcher, () => "notepad"));
+    }
 }

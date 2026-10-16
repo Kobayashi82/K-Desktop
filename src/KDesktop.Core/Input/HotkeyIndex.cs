@@ -15,6 +15,7 @@ public sealed class HotkeyIndex
     private readonly Dictionary<string, Entry[]> _map;
     private readonly HashSet<string> _disabledIn;
     private readonly HashSet<string> _sideButtonsBlockedIn;
+    private readonly bool _voiceAnywhere, _launcherAnywhere;
 
     public string ShowWindowHotkey { get; }
     public string ExitHotkey { get; }
@@ -58,6 +59,8 @@ public sealed class HotkeyIndex
         DisabledInHotkey = paused || string.IsNullOrWhiteSpace(settings.DisabledInHotkey) ? string.Empty : Hotkey.Normalize(settings.DisabledInHotkey);
         LauncherHotkey = paused || string.IsNullOrWhiteSpace(settings.LauncherHotkey) ? string.Empty : Hotkey.Normalize(settings.LauncherHotkey);
         BlockSideButtons = settings.BlockSideButtons && !paused;
+        _voiceAnywhere = settings.VoiceIgnoreDisabledApps;
+        _launcherAnywhere = settings.LauncherIgnoreDisabledApps;
     }
 
     public bool Contains(string hotkey) => _map.ContainsKey(hotkey);
@@ -65,8 +68,18 @@ public sealed class HotkeyIndex
     public bool IsDisabledInHotkey(string hotkey) =>
         DisabledInHotkey.Length > 0 && hotkey.Equals(DisabledInHotkey, StringComparison.OrdinalIgnoreCase);
 
-    public bool IsLauncherHotkey(string hotkey) =>
-        LauncherHotkey.Length > 0 && hotkey.Equals(LauncherHotkey, StringComparison.OrdinalIgnoreCase);
+    /// <summary>
+    /// The launcher hotkey, and it may work here: not in the applications of «Desactivar en» unless its «Ejecutar
+    /// siempre» is on (<paramref name="process"/> is asked only then). Elsewhere the key reaches the application.
+    /// </summary>
+    public bool IsLauncherHotkey(string hotkey, Func<string> process) =>
+        LauncherHotkey.Length > 0 && hotkey.Equals(LauncherHotkey, StringComparison.OrdinalIgnoreCase) && (_launcherAnywhere || !DisabledHere(process));
+
+    /// <summary>The voice hotkey, and it may work here (like <see cref="IsLauncherHotkey"/>).</summary>
+    public bool IsVoiceHotkey(string hotkey, Func<string> process) =>
+        VoiceHotkey.Length > 0 && hotkey.Equals(VoiceHotkey, StringComparison.OrdinalIgnoreCase) && (_voiceAnywhere || !DisabledHere(process));
+
+    private bool DisabledHere(Func<string> process) => _disabledIn.Count > 0 && _disabledIn.Contains(process());
 
     public bool IsDisabledIn(string process) => _disabledIn.Contains(process);
 

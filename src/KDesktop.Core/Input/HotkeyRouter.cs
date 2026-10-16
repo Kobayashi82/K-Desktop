@@ -172,13 +172,13 @@ public sealed partial class HotkeyRouter : IDisposable
             return Block(vk, mods);
         }
 
-        if (index.VoiceHotkey.Length > 0 && hotkey.Equals(index.VoiceHotkey, StringComparison.OrdinalIgnoreCase))
+        if (index.IsVoiceHotkey(hotkey, FrontProcess))
         {
             if (!repeat) Post(() => VoiceRequested?.Invoke(() => IsKeyHeld(vk)));
             return Block(vk, mods);
         }
 
-        if (index.IsLauncherHotkey(hotkey))
+        if (index.IsLauncherHotkey(hotkey, FrontProcess))
         {
             if (!repeat) Post(() => BuiltIn?.Invoke(BuiltInHotkey.Launcher));
             return Block(vk, mods);
@@ -296,7 +296,7 @@ public sealed partial class HotkeyRouter : IDisposable
         }
 
         var index = _index;
-        if (index.VoiceHotkey.Length > 0 && hotkey.Equals(index.VoiceHotkey, StringComparison.OrdinalIgnoreCase))
+        if (index.IsVoiceHotkey(hotkey, FrontProcess))
         {
             _armed = false; // nothing fires on release
             _voiceButton = button;
@@ -305,7 +305,7 @@ public sealed partial class HotkeyRouter : IDisposable
             Post(() => VoiceRequested?.Invoke(() => _voiceButtonHeld));
             return true;
         }
-        if (index.IsDisabledInHotkey(hotkey) || index.IsLauncherHotkey(hotkey))
+        if (index.IsDisabledInHotkey(hotkey) || index.IsLauncherHotkey(hotkey, FrontProcess))
         {
             _blockedButtons.Add(button); // it fires on release (Dispatch)
             return true;
@@ -367,13 +367,13 @@ public sealed partial class HotkeyRouter : IDisposable
         }
 
         var index = _index;
-        if (index.VoiceHotkey.Length > 0 && hotkey.Equals(index.VoiceHotkey, StringComparison.OrdinalIgnoreCase))
+        if (index.IsVoiceHotkey(hotkey, FrontProcess))
         {
             _armed = false;
             Post(() => VoiceRequested?.Invoke(static () => false));
             return true;
         }
-        if (index.IsLauncherHotkey(hotkey))
+        if (index.IsLauncherHotkey(hotkey, FrontProcess))
         {
             _armed = false;
             Post(() => BuiltIn?.Invoke(BuiltInHotkey.Launcher));
@@ -398,7 +398,7 @@ public sealed partial class HotkeyRouter : IDisposable
     private void Dispatch(string hotkey)
     {
         var index = _index;
-        if (index.IsLauncherHotkey(hotkey))
+        if (index.IsLauncherHotkey(hotkey, FrontProcess))
         {
             Post(() => BuiltIn?.Invoke(BuiltInHotkey.Launcher));
             return;
@@ -424,6 +424,9 @@ public sealed partial class HotkeyRouter : IDisposable
         MouseButton.X2 => "Mouse 5",
         _ => "Mouse ?",
     };
+
+    /// <summary>The program in front, asked only when a hotkey that respects «Desactivar en» is pressed.</summary>
+    private static string FrontProcess() => ForegroundWindow.Capture().ProcessName;
 
     private static void Post(Action action) => ThreadPool.UnsafeQueueUserWorkItem(static a =>
     {

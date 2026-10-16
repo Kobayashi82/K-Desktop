@@ -218,7 +218,7 @@
 - [x] **Lanzador en Opciones** (2026-10-16): ya no es una acción; Opciones › Lanzador tiene su atajo (lo gestiona el
       router como el de la voz: teclas, botones y rueda; no en pausa), programas del menú Inicio, comandos ocultos,
       calculadora, «los más usados primero», buscar en la web con buscador elegible (Google, DuckDuckGo, Bing, Brave u
-      otro con {0}), «volver a la posición inicial» y «olvidar los programas más usados». También desde la bandeja y
+      otro con {0}), «volver a la posición inicial» y «olvidar los programas más usados». Los atajos de la voz y del lanzador respetan «Desactivar en» salvo que se active su «Ejecutar siempre» (icono junto al atajo). También desde la bandeja y
       `--launcher`. Se arrastra desde el asa de la izquierda (o el borde) y recuerda el sitio en proporción a la pantalla
       (`LauncherPosition`, vale en cualquier monitor). `AppConfig.Upgrade` pasa la acción antigua a las opciones (su
       primer atajo y sus casillas) y quita el comando si se queda vacío. Sin probar: arrastrarlo con el ratón real.

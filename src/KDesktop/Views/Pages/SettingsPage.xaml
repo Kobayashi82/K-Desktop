@@ -452,6 +452,8 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherHotkeyHint}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <v:IconToggle Margin="0,0,8,0" IsChecked="{Binding LauncherIgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
+                                          Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
                             <ui:Button x:Name="LauncherHotkeyButton" MinWidth="200" Click="OnCaptureLauncherHotkey" />
                             <ui:Button x:Name="LauncherHotkeyClear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearLauncherHotkey" />
@@ -707,6 +709,8 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.voiceHotkeyHint}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <v:IconToggle Margin="0,0,8,0" IsChecked="{Binding VoiceIgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
+                                          Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
                             <ui:Button x:Name="VoiceHotkeyButton" MinWidth="200" Click="OnCaptureVoiceHotkey" />
                             <ui:Button x:Name="VoiceHotkeyClear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearVoiceHotkey" />
