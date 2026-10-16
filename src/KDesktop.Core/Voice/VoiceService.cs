@@ -290,6 +290,7 @@ public sealed partial class VoiceService : IDisposable
         if (plan.Parts is [{ Winner.Media: { } single }] && plan.Unmatched.Count == 0)
         {
             // A media order says how it went («Volumen: 30 %», «No suena nada»).
+            OrderRun?.Invoke(plan.Parts[0].Winner!);
             var (message, kind) = await RunMediaAsync(single).ConfigureAwait(false);
             osd.Finish(Loc.T("voice.running", text, message), kind);
             return;
@@ -300,6 +301,7 @@ public sealed partial class VoiceService : IDisposable
             osd.Finish(Loc.T("voice.runningMany", string.Join(" · ", plan.Parts.Select(p => p.Winner!.Name)))
                        + (plan.Unmatched.Count > 0 ? "\n" + Loc.T("voice.partNotUnderstood", string.Join("», «", plan.Unmatched)) : ""),
                        plan.Unmatched.Count > 0 ? OsdKind.Warning : OsdKind.Success);
+        foreach (var part in plan.Parts) OrderRun?.Invoke(part.Winner!);
         // Not awaited: a command may take long (a countdown, a macro) and the next order — «cancela» — must be heard.
         _ = Task.Run(async () =>
         {
@@ -537,6 +539,9 @@ public sealed partial class VoiceService : IDisposable
         var (start, length) = segments[^1];
         return audio[Math.Max(0, start - pad)..Math.Min(audio.Length, start + length + pad)];
     }
+
+    /// <summary>Raised (any thread) for each order run by voice (statistics).</summary>
+    public event Action<IntentCandidate>? OrderRun;
 
     /// <summary>Raised (any thread) when a wake word passed both phases.</summary>
     public event Action<WakeWord>? WakeHeard;

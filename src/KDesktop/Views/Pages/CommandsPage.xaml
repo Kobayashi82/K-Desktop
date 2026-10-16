@@ -469,6 +469,10 @@
                                 <ui:Button Margin="8,0,0,0" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickProcess" ToolTip="{l:Tr picker.tooltip}" />
                             </StackPanel>
 
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr commands.voicePhrases}" />
+                            <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,8" Text="{l:Tr commands.voicePhrasesHint}" TextWrapping="Wrap" />
+                            <TextBox Margin="0,0,0,14" Text="{Binding VoicePhrases, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
+
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr commands.notes}" />
                             <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
                         </StackPanel>

@@ -29,6 +29,12 @@ public static class Stat
     /// <summary>Wake words heard (both phases passed).</summary>
     public const string WakeWords = "voice.wakewords";
 
+    /// <summary>Orders run by voice (commands and built-in orders such as «pausa» or «cancela»).</summary>
+    public const string VoiceOrders = "voice.orders";
+
+    /// <summary>Orders understood by their meaning, without saying the command's name.</summary>
+    public const string VoiceMeaning = "voice.meaning";
+
     public const string MacrosRecorded = "macros.recorded";
     public const string MacrosPlayed = "macros.played";
     public const string MacroLongest = "macros.longest";
@@ -71,6 +77,7 @@ public static class Stat
         ("menus", [MenusOpened, MenusCreated, MenusDeleted, LauncherUsed, RemoteRun]),
         ("apps", [AppsLaunched, FoldersOpened, WebOpened, ScriptsRun, KeysSent, MacrosPlayed, MacrosRecorded]),
         ("kboard", [KBoardRemapped, KBoardToggled, KBoardsCreated]),
+        ("voice", [VoiceOrders, VoiceMeaning, WakeWords]),
         ("system", [VolumeChanged, AudioSwitched, SoundsPlayed, TopMostToggled, HiddenFilesToggled, DisabledInToggled, RecycleEmptied, PowerUsed, IconsChanged, TipsSeen, AppStarted]),
     ];
 }

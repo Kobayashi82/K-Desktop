@@ -117,9 +117,12 @@ public sealed class SemanticMatcher : IDisposable
     /// <summary>The command turns off, restarts, logs off or suspends the PC (<see cref="AcceptPower"/>).</summary>
     public static bool IsPower(Command c) => c.Actions.Any(a => a is PowerAction { Enabled: true, Mode: not PowerMode.Lock });
 
-    /// <summary>The name, and what the first actions do when their description says it (not a path or a URL).</summary>
+    /// <summary>
+    /// The name, the user's voice phrases, and what the first actions do when their description says it (not a path or
+    /// a URL).
+    /// </summary>
     private static IEnumerable<string> CommandAnchors(Command c) =>
-        c.Actions.Where(a => a.Enabled).Take(3).Select(Describe).OfType<string>().Prepend(Name(c)).Distinct();
+        new[] { Name(c) }.Concat(c.VoicePhraseList).Concat(c.Actions.Where(a => a.Enabled).Take(3).Select(Describe).OfType<string>()).Distinct();
 
     private static string? Describe(CommandAction action) => action switch
     {

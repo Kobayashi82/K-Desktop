@@ -132,6 +132,11 @@ public partial class App : Application
         WakeListener = new Core.Voice.WakeWordListener(Voice, () => Config.Settings);
         WakeListener.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
         Voice.WakeHeard += _ => Achievements.Increment(Stat.WakeWords);
+        Voice.OrderRun += order =>
+        {
+            Achievements.Increment(Stat.VoiceOrders);
+            if (order.Semantic) Achievements.Increment(Stat.VoiceMeaning);
+        };
         Voice.Models.Changed += () =>
         {
             if (Voice.Models.IsDownloading) return;

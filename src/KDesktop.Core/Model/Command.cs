@@ -37,6 +37,9 @@ public partial class Command : ObservableObject
 
     [ObservableProperty] private string? _notes;
 
+    /// <summary>Other ways of calling it by voice, one per line («gestor de contraseñas»): more names for the voice.</summary>
+    [ObservableProperty] private string? _voicePhrases;
+
     public ObservableCollection<string> Hotkeys { get; set => Rewire(ref field, value); } = [];
 
     /// <summary>When not empty, the command only runs while one of these processes is in the foreground.</summary>
@@ -63,6 +66,10 @@ public partial class Command : ObservableObject
 
     /// <summary>Every hotkey, one per line (tooltip of the list).</summary>
     [JsonIgnore] public string HotkeysList => string.Join(Environment.NewLine, Hotkeys);
+
+    /// <summary>The lines of <see cref="VoicePhrases"/>, trimmed, without empty ones.</summary>
+    [JsonIgnore] public IEnumerable<string> VoicePhraseList =>
+        (VoicePhrases ?? "").Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Where(p => p.Length > 0);
 
     [JsonIgnore] public CommandAction? PrimaryAction => Actions.FirstOrDefault(a => a.Enabled) ?? Actions.FirstOrDefault();
 

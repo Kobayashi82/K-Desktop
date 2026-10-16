@@ -333,8 +333,18 @@ embeddings multilingües → LLM opcional) y siete etapas con su commit cada una
       (ComfyUI Output / ComfyUI (Updated) - Output).
       Probado de punta a punta con la palabra grabada del usuario + TTS («limpia la papelera»; «déjalo, no lo hagas»
       cancelando una cuenta atrás lanzada por voz). Sin probar con el micro real.
-- [ ] Etapa 6: estadísticas y detalles (alias de voz por comando, sonidos al escuchar, estado en la bandeja). Sin
-      confirmación por voz (decisión del usuario, 2026-10-16).
+- [x] **Etapa 6** (2026-10-16, 5.0.11–5.0.12; sin confirmación por voz, decisión del usuario):
+      · **Sonido al escuchar** (Opciones › Voz, `VoiceListenSound`): sonido integrado nuevo «Escuchar» (dos notas,
+      0,26 s, generado; los de Windows duraban más de un segundo), al confirmar la palabra o pulsar la tecla de voz.
+      · **Frases de voz por comando** (`Command.VoicePhrases`, una por línea, en el editor): cuentan como su nombre
+      en las dos capas (palabras y significado). Para lo que el modelo no puede saber: «gestor de contraseñas» →
+      KeePassXC, «terminal de linux» → WSL (y «quiero el bash de linux» llega por significado).
+      · **Estadísticas** (grupo «Voz»): órdenes por voz (comandos e integradas), entendidas por el significado, palabras
+      de activación oídas. **Logros** (categoría «Voz», 10): órdenes 1/10/100/1000, palabra 1/100/1000, por
+      significado 1/10/100.
+      · Capa de palabras: «misma raíz» exige que la parte común sea ≥ 60 % de la palabra corta («contraseñas» ya no
+      es «continúa»).
+      · Pendiente si se quiere: estado de la voz en el icono de la bandeja.
 - ~~Etapa 7: capa LLM opcional~~ — descartada por el usuario (2026-10-16).
 
 **Primer arranque:** si «Iniciar con Windows» está activado (por defecto lo está) y es una copia con

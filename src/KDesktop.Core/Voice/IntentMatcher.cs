@@ -151,7 +151,9 @@ public static class IntentMatcher
         var spoken = Content(TextSimilarity.Words(text));
         if (spoken.Length == 0) return new IntentResult(text, null, []);
 
-        var all = commands.Select(c => new IntentCandidate(c, Score(spoken, Content(TextSimilarity.Words(c.Name)))));
+        // The name or any of its voice phrases, whichever fits best.
+        var all = commands.Select(c => new IntentCandidate(c, c.VoicePhraseList.Prepend(c.Name)
+            .Max(n => Score(spoken, Content(TextSimilarity.Words(n))))));
         // «Cancela» is always there; the rest of the media orders only when they are on.
         all = all.Concat(MediaOrders.Match(text).Where(m => media || m.Order.Kind == MediaOrderKind.Cancel)
             .Select(m => new IntentCandidate(null, m.Score, m.Order, m.Phrase)));

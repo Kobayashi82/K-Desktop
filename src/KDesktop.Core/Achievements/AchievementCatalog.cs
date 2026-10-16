@@ -37,7 +37,7 @@ public static class AchievementCatalog
     public const string First = "first";
 
     public static IReadOnlyList<string> Categories { get; } =
-        ["commands", "actions", "menus", "macros", "kboard", "apps", "system", "remote", "time", "kinds", "misc"];
+        ["commands", "actions", "menus", "macros", "kboard", "apps", "system", "remote", "voice", "time", "kinds", "misc"];
 
     public static string CategorySymbol(string category) => category switch
     {
@@ -49,6 +49,7 @@ public static class AchievementCatalog
         "apps" => "WindowApps24",
         "system" => "Wrench24",
         "remote" => "PlugConnected24",
+        "voice" => "Mic24",
         "time" => "CalendarStar24",
         "kinds" => "Sparkle24",
         _ => "Star24",
@@ -120,6 +121,11 @@ public static class AchievementCatalog
 
         // Remote
         Tier("remote", "remote", Stat.RemoteRun, 1, 10, 100);
+
+        // Voice
+        Tier("voice", "voice", Stat.VoiceOrders, 1, 10, 100, 1000);
+        Tier("voice", "wake", Stat.WakeWords, 1, 100, 1000);
+        Tier("voice", "meaning", Stat.VoiceMeaning, 1, 10, 100);
 
         // Time of use
         Tier("time", "days", Stat.Days, 7, 30, 365);

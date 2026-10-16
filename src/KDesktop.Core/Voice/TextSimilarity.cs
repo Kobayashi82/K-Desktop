@@ -50,7 +50,8 @@ public static class TextSimilarity
         var prefix = 0;
         while (prefix < a.Length && prefix < b.Length && a[prefix] == b[prefix]) prefix++;
         var shorter = Math.Min(a.Length, b.Length);
-        var stem = prefix >= 4 || (prefix >= 3 && prefix >= 0.75 * shorter) ? 0.85 : 0;
+        // A shared start long enough for the words: «contraseñas» and «continúa» share «cont» and nothing else.
+        var stem = (prefix >= 4 && prefix >= 0.6 * shorter) || (prefix >= 3 && prefix >= 0.75 * shorter) ? 0.85 : 0;
         return Math.Max(stem, Ratio(a, b));
     }
 }
