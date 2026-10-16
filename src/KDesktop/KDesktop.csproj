@@ -56,4 +56,9 @@
           DestinationFiles="$(PublishDir)\KDesktop.exe.$([System.DateTime]::Now.ToString('yyyyMMddHHmmss')).old" />
   </Target>
 
+  <!-- …and artifacts\update gets what goes to the update server (tools\release\make-update.ps1). -->
+  <Target Name="MakeUpdate" AfterTargets="Publish" Condition="'$(PublishProfile)' == 'SelfContained' and '$(MakeUpdate)' != 'false'">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)..\..\tools\release\make-update.ps1&quot; -Exe &quot;$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '$(PublishDir)'))KDesktop.exe&quot;" />
+  </Target>
+
 </Project>

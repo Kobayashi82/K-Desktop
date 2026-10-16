@@ -820,7 +820,35 @@ function fillSession(s = state.session) {
   $('padSettings').hidden = s.input === false;
   if (state.tab === 'pad') padActive(true, s.input !== false);
   fillAddresses(s);
+  offerAppUpdate(s);
 }
+
+// ── Android app update ─────────────────────────────────────────────
+
+/** K-Desktop carries the Android app: inside an older one, offer the new one (once a toast, always a row in Settings). */
+function offerAppUpdate(s) {
+  const app = window.KDesktopApp;
+  const newer = app?.versionCode && s.android && s.android.code > app.versionCode();
+  $('appUpdateButton').hidden = !newer;
+  if (!newer) return;
+  $('appUpdateText').textContent = t('pwa.appUpdate.version', app.version(), s.android.version);
+  if (store.get('appUpdateSeen') !== s.android.code) {
+    store.set('appUpdateSeen', s.android.code);
+    toast('info', t('pwa.appUpdate.available'), t('pwa.appUpdate.where'), 6000);
+  }
+}
+
+function updateApp() {
+  $('appUpdateButton').disabled = true;
+  toast('info', t('pwa.appUpdate.downloading'), '', 4000);
+  window.KDesktopApp.updateApp(new URL('api/android', location.href).href);
+}
+
+/** The Android app tells how the update went: installing (the system asks now), cancelled or error. */
+window.kdAppUpdate = (result, detail) => {
+  $('appUpdateButton').disabled = false;
+  if (result === 'error') toast('error', t('pwa.appUpdate.failed'), detail, 5000);
+};
 
 // ── addresses ──────────────────────────────────────────────────────
 
@@ -1126,6 +1154,7 @@ function wire() {
   $('refreshButton').addEventListener('click', () => loadCatalog(true));
   $('connPill').addEventListener('click', () => connect());
   $('reloadButton').addEventListener('click', () => loadCatalog(true));
+  $('appUpdateButton').addEventListener('click', updateApp);
   $('backButton').addEventListener('click', () => history.back());
   window.addEventListener('popstate', () => closeSubmenu());
   window.addEventListener('scroll', updateHeader, { passive: true });

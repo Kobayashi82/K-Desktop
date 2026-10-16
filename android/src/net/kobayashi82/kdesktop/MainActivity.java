@@ -2,7 +2,9 @@ package net.kobayashi82.kdesktop;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.pm.PackageInstaller;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -27,6 +29,10 @@ import android.webkit.WebViewClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +52,9 @@ public class MainActivity extends Activity {
     private static final long RECHECK_AFTER_MS = 20000;
     private static final String SETUP = "file:///android_asset/setup.html";
 
+    /** The system installer answers here (onNewIntent) while updating the app. */
+    private static final String ACTION_INSTALLED = "net.kobayashi82.kdesktop.INSTALLED";
+
     /** A PC that is off often leaves the connection hanging instead of refusing it: give up after this. */
     private static final long LOAD_TIMEOUT_MS = 12000;
 
@@ -60,6 +69,9 @@ public class MainActivity extends Activity {
     private boolean retried;
 
     private long pausedAt;
+
+    /** An update waiting for the user to allow installing apps from K-Desktop (Settings, then back here). */
+    private String pendingUpdate;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable loadTimeout = () -> {
         web.stopLoading();
@@ -103,6 +115,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        if (ACTION_INSTALLED.equals(intent.getAction())) {
+            installerAnswered(intent);
+            return;
+        }
         String shared = sharedLink(intent);
         if (shared != null) openLink(shared);
     }
@@ -125,6 +141,12 @@ public class MainActivity extends Activity {
             });
         }
         pausedAt = 0;
+        if (pendingUpdate != null) {
+            String url = pendingUpdate;
+            pendingUpdate = null;
+            if (mayInstall()) updateApp(url);
+            else tellPage("cancelled", "");
+        }
     }
 
     @Override
@@ -296,6 +318,93 @@ public class MainActivity extends Activity {
         }
     }
 
+    @SuppressWarnings("deprecation")
+    private int versionCode() {
+        try {
+            return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    // ── updating the app ─────────────────────────────────────────────
+
+    /**
+     * Downloads the app K-Desktop carries (api/android, with the pairing token) and hands it to the system installer,
+     * which asks the user. The page hears how it went through window.kdAppUpdate(state, detail).
+     */
+    private void updateApp(String url) {
+        // Android 8+ asks once whether K-Desktop may install apps: ask first, carry on when the user is back.
+        if (!mayInstall()) {
+            pendingUpdate = url;
+            try {
+                startActivity(new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getPackageName())));
+                return;
+            } catch (Exception e) {
+                pendingUpdate = null;
+            }
+        }
+        new Thread(() -> {
+            PackageInstaller.Session session = null;
+            try {
+                HttpURLConnection http = (HttpURLConnection) new URL(url).openConnection();
+                http.setConnectTimeout(15000);
+                http.setReadTimeout(60000);
+                String token = prefs.getString(KEY_TOKEN, "");
+                if (!token.isEmpty()) http.setRequestProperty("Authorization", "Bearer " + token);
+                String cookie = CookieManager.getInstance().getCookie(url);
+                if (cookie != null) http.setRequestProperty("Cookie", cookie);
+                if (http.getResponseCode() != 200) throw new Exception("HTTP " + http.getResponseCode());
+                long length = http.getContentLength();
+
+                PackageInstaller installer = getPackageManager().getPackageInstaller();
+                PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL);
+                if (length > 0) params.setSize(length);
+                session = installer.openSession(installer.createSession(params));
+                try (InputStream in = http.getInputStream(); OutputStream out = session.openWrite("KDesktop.apk", 0, length)) {
+                    byte[] buffer = new byte[65536];
+                    for (int n; (n = in.read(buffer)) > 0; ) out.write(buffer, 0, n);
+                    session.fsync(out);
+                }
+                Intent answer = new Intent(this, MainActivity.class).setAction(ACTION_INSTALLED);
+                // The installer adds its answer to the intent: it must be mutable (Android 12+).
+                int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 31 ? PendingIntent.FLAG_MUTABLE : 0);
+                session.commit(PendingIntent.getActivity(this, 0, answer, flags).getIntentSender());
+                session.close();
+                tellPage("installing", "");
+            } catch (Exception e) {
+                if (session != null) session.abandon();
+                tellPage("error", String.valueOf(e.getMessage()));
+            }
+        }).start();
+    }
+
+    private boolean mayInstall() {
+        return Build.VERSION.SDK_INT < 26 || getPackageManager().canRequestPackageInstalls();
+    }
+
+    /** The system installer: it needs the user's confirmation (shown now), or it finished. */
+    @SuppressWarnings("deprecation")
+    private void installerAnswered(Intent intent) {
+        int status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE);
+        if (status == PackageInstaller.STATUS_PENDING_USER_ACTION) {
+            Intent confirm = intent.getParcelableExtra(Intent.EXTRA_INTENT);
+            if (confirm != null) {
+                confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(confirm);
+            }
+            return;
+        }
+        if (status == PackageInstaller.STATUS_SUCCESS) return;
+        String message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
+        tellPage(status == PackageInstaller.STATUS_FAILURE_ABORTED ? "cancelled" : "error", message == null ? "" : message);
+    }
+
+    private void tellPage(String state, String detail) {
+        String script = "window.kdAppUpdate && window.kdAppUpdate(" + JSONObject.quote(state) + ", " + JSONObject.quote(detail) + ")";
+        runOnUiThread(() -> web.evaluateJavascript(script, null));
+    }
+
     // ── web view ─────────────────────────────────────────────────────
 
     private class Client extends WebViewClient {
@@ -432,6 +541,17 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public String version() {
             return versionName();
+        }
+
+        @JavascriptInterface
+        public int versionCode() {
+            return MainActivity.this.versionCode();
+        }
+
+        /** Updates the app from K-Desktop (url: its api/android). */
+        @JavascriptInterface
+        public void updateApp(String url) {
+            runOnUiThread(() -> MainActivity.this.updateApp(url));
         }
     }
 }

@@ -13,7 +13,7 @@
   <link rel="icon" href="icons/favicon.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="stylesheet" href="app.css">
-  <title>K-Desktop</title>
+  <title>K-Desktop 5.0</title>
   <script type="module" src="app.js"></script>
 </head>
 <body>
@@ -198,6 +198,11 @@
           <button class="row row-button" id="reloadButton">
             <span class="row-icon" data-icon="refresh"></span>
             <span class="row-label" data-i18n="pwa.settings.refresh"></span>
+            <span class="row-chevron" data-icon="chevron"></span>
+          </button>
+          <button class="row row-button accent" id="appUpdateButton" hidden>
+            <span class="row-icon" data-icon="install"></span>
+            <span class="row-label"><span data-i18n="pwa.appUpdate.button"></span><small class="row-sub" id="appUpdateText"></small></span>
             <span class="row-chevron" data-icon="chevron"></span>
           </button>
           <button class="row row-button accent" id="installButton" hidden>

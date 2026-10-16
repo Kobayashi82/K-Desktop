@@ -71,6 +71,7 @@ public sealed partial class WebServer
                     local = request.IsLocal,
                     input = InputAllowed,
                     addresses = Addresses(),
+                    android = AndroidApp.Current is { } apk ? new { apk.Version, apk.Code } : null,
                     cookie,
                 }).ConfigureAwait(false);
                 break;
@@ -84,6 +85,9 @@ public sealed partial class WebServer
                 break;
             case ("GET", "/api/catalog"):
                 await WriteJsonAsync(response, _catalog.Build()).ConfigureAwait(false);
+                break;
+            case ("GET", "/api/android"):
+                await AndroidAsync(response).ConfigureAwait(false);
                 break;
             case ("POST", "/api/run"):
                 await RunAsync(context).ConfigureAwait(false);
@@ -159,6 +163,21 @@ public sealed partial class WebServer
         response.Headers["Cache-Control"] = "private, max-age=31536000, immutable";
         response.ContentLength64 = png.Length;
         await response.OutputStream.WriteAsync(png).ConfigureAwait(false);
+    }
+
+    /// <summary>The Android app this K-Desktop carries, for an older one to update itself.</summary>
+    private static async Task AndroidAsync(HttpListenerResponse response)
+    {
+        if (AndroidApp.Current is not { } apk)
+        {
+            await WriteJsonAsync(response, new { error = "notFound" }, 404).ConfigureAwait(false);
+            return;
+        }
+        response.ContentType = "application/vnd.android.package-archive";
+        response.Headers["Cache-Control"] = "no-store";
+        response.Headers["Content-Disposition"] = $"attachment; filename=\"KDesktop-{apk.Version}.apk\"";
+        response.ContentLength64 = apk.Bytes.Length;
+        await response.OutputStream.WriteAsync(apk.Bytes).ConfigureAwait(false);
     }
 
     /// <summary>The web app's texts ("pwa.*") in the requested language, or in the language of the PC.</summary>

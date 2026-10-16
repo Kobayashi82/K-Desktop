@@ -137,8 +137,10 @@
       `--after-update <pid> <versión>`: espera a que salga el viejo, borra el `.old` y avisa «Actualizado a…» (sin
       sonido ni comandos de inicio; los de salida tampoco corren). En modo automático espera a que no se use (ventana
       cerrada, sin macros, cuentas atrás, voz ni QuickMenus). Solo el portable de un único exe se actualiza solo; los
-      demás abren la descarga. Publicar: subir `<Version>` en Directory.Build.props, publicar el portable y
-      `tools\release\make-update.ps1 -NotesEs "…" -NotesEn "…"` → `artifacts\update\` (exe + latest.json) al VPS.
+      demás abren la descarga. Publicar: subir `<Version>` en Directory.Build.props y publicar el portable: el propio
+      publish deja en `artifacts\update\` el exe, la APK y latest.json (con `android`: versión, código, url, sha256),
+      listos para subir al VPS. Notas: `tools\release\make-update.ps1 -NotesEs "…" -NotesEn "…"` (se conservan
+      mientras no cambie la versión).
       Probado en local de punta a punta (5.0.0 → 5.0.1 con un servidor en 127.0.0.1).
 - [x] **App web rediseñada** (2026-10-16): luz ambiental y cristal, título grande que se compacta, píldora de
       conexión en vivo, halo del color de cada icono (se calcula en el navegador), submenús como carpetas con vista
@@ -151,6 +153,12 @@
       un enlace de emparejar. Versión = la de K-Desktop (5.0.0 → código 50000). Firma: `%USERPROFILE%\.android\
       kdesktop-release.jks` (+ `.password.txt`), creada la primera vez: guardarla, las actualizaciones necesitan la
       misma. JDK 17 portable en `%LOCALAPPDATA%\Programs\jdk-17` y SDK en `%LOCALAPPDATA%\Android\Sdk`.
+      **Se actualiza desde el PC** (2026-10-16): una compilación Release de KDesktop.Core crea la APK (si cambió
+      `android\` y están el JDK y el SDK) y la lleva dentro (`Remote/Web/AndroidApp`); la sesión dice su versión y la
+      web, dentro de una app más vieja, avisa una vez y muestra «Actualizar la app» en Ajustes → la app la baja de
+      `api/android` con su token y la instala con PackageInstaller (la primera vez pide antes «instalar apps de este
+      origen» y sigue sola al volver). Probado en el emulador 5.0.0 → 5.0.1. Las apps anteriores a esto no saben
+      actualizarse: hay que instalar esta a mano una vez.
 - [x] **Idiomas**: francés, alemán, italiano y portugués (Brasil) incluidos, también los «¿Sabías que…?», las
       palabras de la voz (`voice.words.*`, `voice.syn.*`) y la web. Sin idioma elegido se usa el de Windows si existe.
 - [ ] Web: micrófono del móvil como otra fuente de audio de la voz (después de la voz).

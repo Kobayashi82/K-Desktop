@@ -2,7 +2,9 @@
   Builds the Android app (android\) into artifacts\android\KDesktop.apk without Gradle: aapt2 → javac → d8 →
   zipalign → apksigner. Needs JDK 17 and the Android SDK (platform 34, build-tools 34.0.0):
     %LOCALAPPDATA%\Programs\jdk-17   and   %LOCALAPPDATA%\Android\Sdk   (or JAVA_HOME / ANDROID_HOME).
-  The version is K-Desktop's (Directory.Build.props). The signing key is created the first time in
+  The version is K-Desktop's (Directory.Build.props); KDesktop.apk.json beside the app says it. A Release build of
+  K-Desktop runs this script by itself (when the JDK and the SDK are there) and carries the app inside.
+  The signing key is created the first time in
   %USERPROFILE%\.android\kdesktop-release.jks (its password beside it): keep both, updates of the app must be signed
   with the same key.
   Run: powershell -ExecutionPolicy Bypass -File tools\android\build-apk.ps1
@@ -74,4 +76,7 @@ Run "$bt\apksigner.bat" @("sign", "--ks", $keystore, "--ks-key-alias", "kdesktop
   "--key-pass", "pass:$password", "--out", $apk, "$build\aligned.apk")
 Run "$bt\apksigner.bat" @("verify", $apk)
 Remove-Item "$apk.idsig" -ErrorAction SilentlyContinue
+# Its version, for K-Desktop: it carries the app and offers it to older ones (api/android).
+$info = "{`"version`": `"$version`", `"code`": $code}"
+[System.IO.File]::WriteAllText("$apk.json", $info, (New-Object System.Text.UTF8Encoding($false)))
 "K-Desktop $version (código $code) -> $apk ($([Math]::Round((Get-Item $apk).Length / 1KB)) KB)"

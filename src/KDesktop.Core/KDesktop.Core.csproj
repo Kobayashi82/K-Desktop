@@ -30,4 +30,40 @@
     <EmbeddedResource Include="Web\**" LogicalName="Web/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
+  <!--
+    The Android app travels inside too: K-Desktop offers it to phones with an older one (api/android). A Release
+    build makes it first (tools\android\build-apk.ps1, only when android\ changed and the JDK and the SDK are on this
+    PC); any build carries the last one made, if there is one.
+  -->
+  <PropertyGroup>
+    <_AndroidDir>$(MSBuildThisFileDirectory)..\..\android\</_AndroidDir>
+    <_AndroidApk>$(MSBuildThisFileDirectory)..\..\artifacts\android\KDesktop.apk</_AndroidApk>
+    <_AndroidScript>$(MSBuildThisFileDirectory)..\..\tools\android\build-apk.ps1</_AndroidScript>
+    <_AndroidJdk Condition="'$(JAVA_HOME)' != ''">$(JAVA_HOME)</_AndroidJdk>
+    <_AndroidJdk Condition="'$(JAVA_HOME)' == ''">$(LOCALAPPDATA)\Programs\jdk-17</_AndroidJdk>
+    <_AndroidSdk Condition="'$(ANDROID_HOME)' != ''">$(ANDROID_HOME)</_AndroidSdk>
+    <_AndroidSdk Condition="'$(ANDROID_HOME)' == ''">$(LOCALAPPDATA)\Android\Sdk</_AndroidSdk>
+  </PropertyGroup>
+
+  <Target Name="BuildAndroidApp" BeforeTargets="BeforeBuild"
+          Condition="'$(Configuration)' == 'Release' and '$(DesignTimeBuild)' != 'true' and Exists('$(_AndroidJdk)\bin\javac.exe') and Exists('$(_AndroidSdk)\build-tools\34.0.0')"
+          Inputs="@(_AndroidSources);$(MSBuildThisFileDirectory)..\..\Directory.Build.props;$(_AndroidScript)" Outputs="$(_AndroidApk);$(_AndroidApk).json"
+          DependsOnTargets="_AndroidSources">
+    <Message Importance="high" Text="KDesktop.Core -&gt; creando la app de Android..." />
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(_AndroidScript)&quot;" StandardOutputImportance="low" />
+  </Target>
+
+  <Target Name="_AndroidSources">
+    <ItemGroup>
+      <_AndroidSources Include="$(_AndroidDir)**\*" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="EmbedAndroidApp" BeforeTargets="BeforeBuild" AfterTargets="BuildAndroidApp" Condition="Exists('$(_AndroidApk).json')">
+    <ItemGroup>
+      <EmbeddedResource Include="$(_AndroidApk)" LogicalName="Android/KDesktop.apk" />
+      <EmbeddedResource Include="$(_AndroidApk).json" LogicalName="Android/KDesktop.apk.json" />
+    </ItemGroup>
+  </Target>
+
 </Project>
