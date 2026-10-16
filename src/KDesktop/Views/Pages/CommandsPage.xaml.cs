@@ -262,16 +262,32 @@ public partial class CommandsPage : UserControl, IDisposable
         RefreshUsedBy();
     }
 
-    /// <summary>«Lo usan: evento «Al abrir Steam» · QuickMenu «Juegos»», each one a link to it.</summary>
+    /// <summary>«Eventos: «Al abrir Steam» · …» and «QuickMenus: «Juegos» · …», each one a link to it; a row only when there are some.</summary>
     private void RefreshUsedBy()
     {
         UsedByPanel.Children.Clear();
         UsedByPanel.Visibility = Visibility.Collapsed;
         if (_selected is not { } cmd) return;
-        var text = new System.Windows.Controls.TextBlock { TextWrapping = TextWrapping.Wrap, Style = (Style)FindResource("Caption") };
-        text.Inlines.Add(new System.Windows.Documents.Run(Loc.T("commands.usedBy") + " "));
+        AddUsedByRow("commands.usedByEvents", Config.EventsUsing(cmd.Id).Select(rule =>
+        {
+            var id = rule.Id;
+            var label = rule.Commands.Contains(cmd.Id) ? $"«{rule.Name}»" : Loc.T("commands.usedByEnd", rule.Name);
+            return (label, (Action)(() => (Window.GetWindow(this) as MainWindow)?.OpenEvent(id)));
+        }));
+        AddUsedByRow("commands.usedByMenus", Config.QuickMenus.Where(m => m.Descendants().Any(i => i.CommandId == cmd.Id)).Select(menu =>
+        {
+            var id = menu.Id;
+            return ($"«{menu.Name}»", (Action)(() => (Window.GetWindow(this) as MainWindow)?.OpenQuickMenu(id)));
+        }));
+        UsedByPanel.Visibility = UsedByPanel.Children.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void AddUsedByRow(string titleKey, IEnumerable<(string Label, Action Open)> links)
+    {
+        var text = new System.Windows.Controls.TextBlock { TextWrapping = TextWrapping.Wrap, Style = (Style)FindResource("Caption"), Margin = new Thickness(0, 0, 0, 4) };
+        text.Inlines.Add(new System.Windows.Documents.Run(Loc.T(titleKey) + " "));
         var first = true;
-        void Link(string label, Action open)
+        foreach (var (label, open) in links)
         {
             if (!first) text.Inlines.Add(new System.Windows.Documents.Run("  ·  "));
             first = false;
@@ -279,20 +295,7 @@ public partial class CommandsPage : UserControl, IDisposable
             link.Click += (_, _) => open();
             text.Inlines.Add(link);
         }
-        foreach (var rule in Config.EventsUsing(cmd.Id))
-        {
-            var key = rule.Commands.Contains(cmd.Id) ? "commands.usedByEvent" : "commands.usedByEventEnd";
-            var id = rule.Id;
-            Link(Loc.T(key, rule.Name), () => (Window.GetWindow(this) as MainWindow)?.OpenEvent(id));
-        }
-        foreach (var menu in Config.QuickMenus.Where(m => m.Descendants().Any(i => i.CommandId == cmd.Id)))
-        {
-            var id = menu.Id;
-            Link(Loc.T("commands.usedByMenu", menu.Name), () => (Window.GetWindow(this) as MainWindow)?.OpenQuickMenu(id));
-        }
-        if (first) return;
-        UsedByPanel.Children.Add(text);
-        UsedByPanel.Visibility = Visibility.Visible;
+        if (!first) UsedByPanel.Children.Add(text);
     }
 
     // ── command buttons ──────────────────────────────────────────────────

@@ -270,9 +270,21 @@
                                 <Image x:Name="HeaderIcon" RenderOptions.BitmapScalingMode="HighQuality" />
                             </Button>
                             <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center">
-                                <ui:TextBox x:Name="NameBox" FontSize="16" FontWeight="SemiBold" PlaceholderText="{l:Tr commands.namePlaceholder}"
-                                            Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
-                                            GotKeyboardFocus="OnNameFocus" LostKeyboardFocus="OnNameLostFocus" KeyDown="OnNameKeyDown" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <ui:TextBox x:Name="NameBox" FontSize="16" FontWeight="SemiBold" PlaceholderText="{l:Tr commands.namePlaceholder}"
+                                                Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                                                GotKeyboardFocus="OnNameFocus" LostKeyboardFocus="OnNameLostFocus" KeyDown="OnNameKeyDown" />
+                                    <!-- Options of the command as icons: hidden in the list, remote control -->
+                                    <v:IconToggle Grid.Column="1" Margin="8,0,0,0" IsChecked="{Binding Hidden}" OnSymbol="EyeOff24" OffSymbol="Eye24"
+                                                  Title="{l:Tr commands.hiddenOption}" Hint="{l:Tr commands.hiddenHint}" />
+                                    <v:IconToggle Grid.Column="2" IsChecked="{Binding Remote}" OnSymbol="PlugConnected24" OffSymbol="PlugDisconnected24"
+                                                  Title="{l:Tr commands.remoteOption}" Hint="{l:Tr commands.remoteHint}" />
+                                </Grid>
                                 <TextBlock x:Name="NameError" Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{l:Tr commands.nameRequired}"
                                            Foreground="{DynamicResource Kd.Danger}" Visibility="Collapsed" />
                                 <TextBlock x:Name="NotesHint" Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{Binding Notes}"
@@ -290,7 +302,16 @@
                     <!-- Hotkeys -->
                     <Border Style="{StaticResource Card}">
                         <StackPanel>
-                            <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr commands.hotkeys}" />
+                            <Grid>
+                                <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr commands.hotkeys}" />
+                                <!-- What the hotkeys do besides running the command -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,0,0">
+                                    <v:IconToggle IsChecked="{Binding BlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
+                                                  Title="{l:Tr commands.blockKey}" Hint="{l:Tr commands.blockKeyHint}" />
+                                    <v:IconToggle IsChecked="{Binding IgnoreDisabledApps}" OnSymbol="ShieldCheckmark24" OffSymbol="Shield24"
+                                                  Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
+                                </StackPanel>
+                            </Grid>
                             <WrapPanel>
                                 <ItemsControl ItemsSource="{Binding Hotkeys}" Focusable="False">
                                     <ItemsControl.ItemsPanel>
@@ -428,18 +449,10 @@
                     <Border Style="{StaticResource Card}">
                         <StackPanel>
                             <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr commands.options}" />
-                            <!-- Row by row: running on the left, where it shows up on the right -->
-                            <UniformGrid Columns="2">
-                                <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding BlockKey}" Content="{l:Tr commands.blockKey}" ToolTip="{l:Tr commands.blockKeyHint}" />
-                                <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding Remote}" Content="{l:Tr commands.remoteOption}" ToolTip="{l:Tr commands.remoteHint}" />
-                                <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding IgnoreDisabledApps}" Content="{l:Tr commands.ignoreDisabled}" ToolTip="{l:Tr commands.ignoreDisabledHint}" />
-                                <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding Hidden}" Content="{l:Tr commands.hiddenOption}" ToolTip="{l:Tr commands.hiddenHint}" />
-                            </UniformGrid>
+                            <!-- Who runs it besides its hotkeys: a row of events and one of QuickMenus, each only when there are some (click to go there) -->
+                            <StackPanel x:Name="UsedByPanel" Margin="0,0,0,14" Visibility="Collapsed" />
 
-                            <!-- Who runs it besides its hotkeys: events and QuickMenus (click to go there) -->
-                            <WrapPanel x:Name="UsedByPanel" Margin="0,0,0,14" Visibility="Collapsed" />
-
-                            <TextBlock Style="{StaticResource FieldLabel}" Margin="0,8,0,4" Text="{l:Tr commands.sound}" />
+                            <TextBlock Style="{StaticResource FieldLabel}" Margin="0,0,0,4" Text="{l:Tr commands.sound}" />
                             <v:SoundPicker Margin="0,0,0,14" MinWidth="380" MaxWidth="460" HorizontalAlignment="Left" Sound="{Binding Sound}" />
 
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr commands.processes}" />
