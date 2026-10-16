@@ -227,20 +227,34 @@ public sealed class VoiceService : IDisposable
     }
 
     /// <summary>The spoken order → the command → run it, telling the user on the OSD.</summary>
-    private async Task RunTextAsync(string text, IVoiceOsd osd)
+    private Task RunTextAsync(string text, IVoiceOsd osd) => RunPlanAsync(IntentMatcher.Plan(text, Commands()), osd);
+
+    /// <summary>Runs what the order asked for (one command or several, in order), telling the user on the OSD.</summary>
+    private async Task RunPlanAsync(IntentPlan plan, IVoiceOsd osd)
     {
-        var result = IntentMatcher.Match(text, Commands());
-        Log.Info($"Voz → {(result.Command?.Name ?? "nada")} · " +
-                 string.Join(", ", result.Candidates.Select(c => $"{c.Command.Name} {c.Score:0.00}")));
-        if (result.Command is { } command)
+        var whole = plan.Whole;
+        var text = whole.Text;
+        Log.Info($"Voz → {(plan.Parts.Count == 0 ? "nada" : string.Join(" + ", plan.Parts.Select(p => p.Command!.Name)))} · " +
+                 string.Join(", ", whole.Candidates.Select(c => $"{c.Command.Name} {c.Score:0.00}")) +
+                 (plan.Parts.Count > 1 || plan.Unmatched.Count > 0
+                     ? " · por partes: " + string.Join(" | ", plan.Parts.Select(p => $"«{p.Text}» → {p.Command!.Name} {p.Confidence:0.00}")
+                         .Concat(plan.Unmatched.Select(u => $"«{u}» → nada")))
+                     : ""));
+        if (plan.Parts.Count == 0)
         {
-            osd.Finish(Loc.T("voice.running", text, command.Name), OsdKind.Success);
-            await _run(command).ConfigureAwait(false);
+            if (whole.Candidates.Count > 0 && whole.Confidence >= 0.6)
+                osd.Finish(Loc.T("voice.unsure", text, whole.Candidates[0].Command.Name), OsdKind.Warning);
+            else
+                osd.Finish(Loc.T("voice.noMatch", text), OsdKind.Warning);
+            return;
         }
-        else if (result.Candidates.Count > 0 && result.Confidence >= 0.6)
-            osd.Finish(Loc.T("voice.unsure", text, result.Candidates[0].Command.Name), OsdKind.Warning);
+        if (plan.Parts.Count == 1 && plan.Unmatched.Count == 0)
+            osd.Finish(Loc.T("voice.running", text, plan.Parts[0].Command!.Name), OsdKind.Success);
         else
-            osd.Finish(Loc.T("voice.noMatch", text), OsdKind.Warning);
+            osd.Finish(Loc.T("voice.runningMany", string.Join(" · ", plan.Parts.Select(p => p.Command!.Name)))
+                       + (plan.Unmatched.Count > 0 ? "\n" + Loc.T("voice.partNotUnderstood", string.Join("», «", plan.Unmatched)) : ""),
+                       plan.Unmatched.Count > 0 ? OsdKind.Warning : OsdKind.Success);
+        foreach (var part in plan.Parts) await _run(part.Command!).ConfigureAwait(false);
     }
 
     // ── wake word ────────────────────────────────────────────────────────
@@ -257,42 +271,99 @@ public sealed class VoiceService : IDisposable
         }
     }
 
+    /// <summary>How long, after the wake word, the user may wait before starting the order.</summary>
+    private static readonly TimeSpan WaitForOrder = TimeSpan.FromSeconds(5);
+
     /// <summary>
-    /// The always-on detector heard <paramref name="word"/> (phase 1, <paramref name="score"/>): <paramref name="audio"/>
-    /// runs from a couple of seconds before it until the speaker went quiet. Phase 2 checks it with Parakeet; what was
-    /// said after the word is the order, and if nothing was, a normal listening session starts.
+    /// The always-on detector heard <paramref name="word"/> (phase 1, <paramref name="score"/>). Phase 2: Parakeet
+    /// transcribes the word alone (trimmed, as in the set-up) and it must sound like the word; when the detector is very
+    /// sure, a somewhat looser transcription is enough. Then the order: <paramref name="capture"/> has been recording
+    /// since the trigger without a gap, so it may already be on its way or come after a pause («Escuchando…»).
     /// </summary>
-    public async Task HandleWakeAsync(float[] audio, WakeWord word, double score)
+    public async Task HandleWakeAsync(WakeWord word, double score, WakeCapture capture)
     {
-        if (Interlocked.CompareExchange(ref _active, 1, 0) != 0) return;
-        var listen = false;
+        if (Interlocked.CompareExchange(ref _active, 1, 0) != 0)
+        {
+            capture.Stop();
+            return;
+        }
+        using var abort = new CancellationTokenSource();
+        _abort = abort;
+        _stopRequested = false;
         try
         {
             if (!VoiceModels.Ready) return;
-            StateChanged?.Invoke();
             var settings = _config().Settings;
             SpeechToText.IdleUnload = TimeSpan.FromMinutes(Math.Max(1, settings.VoiceUnloadMinutes));
-            var text = await Task.Run(() => SpeechToText.Transcribe(audio)).ConfigureAwait(false);
-            var match = WakeWordVerifier.Find(text, word);
-            var trusted = settings.VoiceWakeTrust && score >= Math.Max(0.9, word.DetectorThreshold + 0.25);
-            if (match is not { Accepted: true } && !trusted)
+
+            // Phase 2, on the word itself.
+            var wordClip = LastUtterance(capture.Preroll);
+            var wordText = wordClip.Length > 0 ? await Task.Run(() => SpeechToText.Transcribe(wordClip)).ConfigureAwait(false) : "";
+            var match = WakeWordVerifier.Find(wordText, word);
+            var verification = match?.Score ?? 0;
+            var sure = score >= word.DetectorThreshold + 0.25;
+            var accepted = verification >= word.EffectiveThreshold
+                           || (sure && verification >= word.EffectiveThreshold - 0.15)
+                           || (settings.VoiceWakeTrust && score >= Math.Max(0.9, word.DetectorThreshold + 0.25));
+            if (!accepted)
             {
-                Log.Info($"Palabra de activación «{word.Name}» descartada por la verificación: «{text}» → {match?.Score ?? 0:0.00} " +
-                         $"(necesita {word.EffectiveThreshold:0.00}; detector {score:0.00})");
+                Log.Info($"Palabra de activación «{word.Name}» descartada por la verificación: «{wordText}» → {verification:0.00} " +
+                         $"(necesita {word.EffectiveThreshold:0.00}{(sure ? $" o {word.EffectiveThreshold - 0.15:0.00} con el detector tan seguro" : "")}; detector {score:0.00})");
                 return;
             }
-            var order = match is { Accepted: true } ? match.Rest : "";
-            Log.Info($"Palabra de activación «{word.Name}»: detector {score:0.00}, verificación {match?.Score ?? 0:0.00}" +
-                     (trusted && match is not { Accepted: true } ? " (sin verificar: el detector estaba muy seguro)" : "") +
-                     (order.Length > 0 ? $"; orden «{order}»" : "; sin orden: escuchando"));
+            Log.Info($"Palabra de activación «{word.Name}»: detector {score:0.00}, verificación «{wordText}» {verification:0.00}");
             WakeHeard?.Invoke(word);
-            if (order.Length == 0)
+            StateChanged?.Invoke();
+
+            // The order: until the speaker goes quiet, or nothing said in a few seconds.
+            using var osd = _ui.ShowVoiceOsd(Loc.T("voice.listening"));
+            while (true)
             {
-                listen = true;
+                await Task.Delay(40, CancellationToken.None).ConfigureAwait(false);
+                osd.SetLevel(capture.Level);
+                if (abort.IsCancellationRequested)
+                {
+                    osd.Finish(Loc.T("voice.cancelled"), OsdKind.Info);
+                    return;
+                }
+                if (_stopRequested || capture.Ended || capture.Elapsed > MaxSession) break;
+                if (!capture.HeardSpeech && capture.Elapsed > WaitForOrder) break;
+            }
+            var (after, segments) = capture.Stop();
+            osd.SetText(Loc.T("voice.thinking"));
+
+            // What to take as the order: what came after the trigger; or, said without a pause, the word and the order
+            // transcribed together with the word cut out; or the start of the order caught in the word's own clip.
+            var options = new List<string>();
+            if (match?.Rest is { Length: > 0 } inWord) options.Add(inWord);
+            if (segments.Count > 0)
+            {
+                var pad = MicCapture.SampleRate / 5;
+                var from = Math.Max(0, segments[0].Start - pad);
+                var to = Math.Min(after.Length, segments[^1].Start + segments[^1].Length + pad);
+                var orderClip = after[from..to];
+                options.Add(await Task.Run(() => SpeechToText.Transcribe(orderClip)).ConfigureAwait(false));
+                var joined = new float[wordClip.Length + orderClip.Length];
+                wordClip.CopyTo(joined, 0);
+                orderClip.CopyTo(joined, wordClip.Length);
+                var full = await Task.Run(() => SpeechToText.Transcribe(joined)).ConfigureAwait(false);
+                if (WakeWordVerifier.Find(full, word) is { Rest.Length: > 0 } cut && cut.Score >= word.EffectiveThreshold - 0.15) options.Add(cut.Rest);
+            }
+            if (abort.IsCancellationRequested)
+            {
+                osd.Finish(Loc.T("voice.cancelled"), OsdKind.Info);
                 return;
             }
-            using var osd = _ui.ShowVoiceOsd(Loc.T("voice.thinking"));
-            await RunTextAsync(order, osd).ConfigureAwait(false);
+            options = options.Select(o => o.Trim()).Where(o => o.Any(char.IsLetterOrDigit)).Distinct().ToList();
+            if (options.Count == 0)
+            {
+                osd.Finish(Loc.T("voice.nothingHeard"), OsdKind.Info);
+                return;
+            }
+            var commands = Commands().ToList();
+            var plans = options.Select(o => IntentMatcher.Plan(o, commands)).ToList();
+            Log.Info("Voz: orden tras la palabra, opciones: " + string.Join(" | ", plans.Select(p => $"«{p.Whole.Text}» {p.Score:0.00}")));
+            await RunPlanAsync(plans.MaxBy(p => p.Score)!, osd).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -300,11 +371,21 @@ public sealed class VoiceService : IDisposable
         }
         finally
         {
+            capture.Stop();
+            _abort = null;
             _active = 0;
             StateChanged?.Invoke();
         }
-        // Only the word: listen for the order now (until the speaker goes quiet).
-        if (listen) await ListenAsync(null).ConfigureAwait(false);
+    }
+
+    /// <summary>The last stretch of speech in <paramref name="audio"/> (the wake word), a little silence around it.</summary>
+    private static float[] LastUtterance(float[] audio)
+    {
+        var segments = WakeWordRecorder.Segments(audio);
+        if (segments.Count == 0) return audio[Math.Max(0, audio.Length - MicCapture.SampleRate * 6 / 5)..];
+        var pad = MicCapture.SampleRate / 8;
+        var (start, length) = segments[^1];
+        return audio[Math.Max(0, start - pad)..Math.Min(audio.Length, start + length + pad)];
     }
 
     /// <summary>Raised (any thread) when a wake word passed both phases.</summary>

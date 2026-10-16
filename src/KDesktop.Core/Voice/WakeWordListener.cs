@@ -15,8 +15,6 @@ public sealed class WakeWordListener : IDisposable
 {
     private const int Preroll = MicCapture.SampleRate * 2;
     private const int KeepEmbeddings = 40;
-    private static readonly TimeSpan PauseAfterTrigger = TimeSpan.FromSeconds(1.5);
-    private static readonly TimeSpan NothingAfter = TimeSpan.FromMilliseconds(900), MaxAfter = TimeSpan.FromSeconds(8);
 
     private readonly VoiceService _voice;
     private readonly Func<AppSettings> _settings;
@@ -34,9 +32,8 @@ public sealed class WakeWordListener : IDisposable
     private int _training;
     private volatile bool _clearRecent;
 
-    // After a trigger: the audio until the speaker goes quiet.
-    private List<float>? _after;
-    private VoiceActivity? _afterVad;
+    /// <summary>After a trigger: everything heard since, until the order is over.</summary>
+    private WakeCapture? _capture;
 
     public WakeWordListener(VoiceService voice, Func<AppSettings> settings)
     {
@@ -195,13 +192,7 @@ public sealed class WakeWordListener : IDisposable
                 _ringFull = true;
             }
         }
-        if (_after is { } after)
-            lock (after)
-                if (ReferenceEquals(_after, after))
-                {
-                    after.AddRange(samples);
-                    _afterVad!.Accept(samples);
-                }
+        _capture?.Add(samples);
         if (_clearRecent)
         {
             _clearRecent = false;
@@ -214,7 +205,7 @@ public sealed class WakeWordListener : IDisposable
             _recent.Add(e);
             if (_recent.Count > KeepEmbeddings) _recent.RemoveAt(0);
         }
-        if (embeddings.Count == 0 || _after is not null || _voice.IsListening || DateTime.Now < _quietUntil) return;
+        if (embeddings.Count == 0 || _capture is not null || _voice.IsListening || DateTime.Now < _quietUntil) return;
 
         foreach (var word in _voice.WakeWords.Active)
         {
@@ -236,7 +227,10 @@ public sealed class WakeWordListener : IDisposable
         }
     }
 
-    /// <summary>Keeps recording until the speaker goes quiet, then hands everything to phase 2.</summary>
+    /// <summary>
+    /// Keeps recording, without a gap, into a <see cref="WakeCapture"/> and hands it to phase 2, which checks the word
+    /// and then waits for the order (however long the pause after the word).
+    /// </summary>
     private void Trigger(WakeWord word, double score)
     {
         var preroll = new float[_ringFull ? _ring.Length : _ringPos];
@@ -247,45 +241,29 @@ public sealed class WakeWordListener : IDisposable
         }
         else Array.Copy(_ring, preroll, _ringPos);
 
-        // Parakeet loads (if it was freed) while the rest of the order is still being said.
+        // Parakeet loads (if it was freed) while the user goes on talking.
         _voice.SpeechToText.Preload();
-        var after = new List<float>(MicCapture.SampleRate * 4);
-        var vad = new VoiceActivity(TimeSpan.FromMilliseconds(700));
-        _after = after;
-        _afterVad = vad;
+        var capture = new WakeCapture(preroll, TimeSpan.FromMilliseconds(800));
+        _capture = capture;
         _quietUntil = DateTime.MaxValue;
 
         Task.Run(async () =>
         {
-            var watch = Stopwatch.StartNew();
             try
             {
-                // «KDesktop» alone: a short pause ends it. «KDesktop, abre Firefox»: until the order ends.
-                while (watch.Elapsed < MaxAfter)
-                {
-                    await Task.Delay(50).ConfigureAwait(false);
-                    bool heard, ended;
-                    lock (after) (heard, ended) = (vad.HeardSpeech, vad.Ended);
-                    if (ended || (!heard && watch.Elapsed > NothingAfter)) break;
-                }
+                await _voice.HandleWakeAsync(word, score, capture).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 Log.Error("Error tras detectar la palabra de activación", ex);
             }
-            float[] audio;
-            lock (after)
+            finally
             {
-                _after = null;
-                audio = new float[preroll.Length + after.Count];
-                preroll.CopyTo(audio, 0);
-                after.CopyTo(audio, preroll.Length);
-                vad.Dispose();
+                _capture = null;
+                capture.Dispose();
+                _clearRecent = true;
+                _quietUntil = DateTime.Now + TimeSpan.FromSeconds(1);
             }
-            _clearRecent = true;
-            _quietUntil = DateTime.Now + PauseAfterTrigger;
-            await _voice.HandleWakeAsync(audio, word, score).ConfigureAwait(false);
-            _quietUntil = DateTime.Now + TimeSpan.FromSeconds(1);
         });
     }
 

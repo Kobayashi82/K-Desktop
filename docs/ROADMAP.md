@@ -195,6 +195,16 @@ embeddings multilingües → LLM opcional) y siete etapas con su commit cada una
       No hecho: valores de referencia de Python (no hay Python en el PC; la comprobación fue streaming frente a clip
       entero y con audio real) y el paquete opcional de negativos de openWakeWord (por ahora no hizo falta).
       Sin probar con micrófono real.
+      Ajustes tras probarlo con el micro (2026-10-16): tras la detección se sigue grabando sin cortes (`WakeCapture`); la
+      fase 2 transcribe la palabra sola, recortada como en el asistente (con el audio entero salían «Connect», «Alex»…), y
+      con el detector muy seguro basta una verificación 0,15 por debajo; si la verificación pasa aparece «Escuchando…» y
+      espera hasta 5 s a la orden (decir la palabra, pausa y orden ya funciona); la orden se elige entre lo dicho tras la
+      palabra, todo junto sin la palabra o lo que quedó en el recorte, la que mejor casa. Varias órdenes en una frase
+      («abre YouTube y vacía la papelera»): si la frase entera no es un comando, se parte por «y», «luego», comas… y se
+      ejecuta cada parte (`IntentMatcher.Plan`). Las palabras de la voz (muletillas, verbos, «hazlo», enlaces y
+      sinónimos por concepto) están ahora en los archivos de idioma (`voice.words.*`, `voice.syn.*`) y cuentan todos los
+      idiomas instalados a la vez (`VoiceVocabulary`); comparación por sonido entre palabras y dos palabras dichas por
+      una («va hacia» → vacía).
 - [ ] Etapa 5: capa de embeddings.
 - [ ] Etapa 6: seguridad, confirmaciones y estadísticas.
 - [ ] Etapa 7: capa LLM opcional.
