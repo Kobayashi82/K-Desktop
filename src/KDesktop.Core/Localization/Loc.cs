@@ -80,9 +80,12 @@ public sealed class Loc : INotifyPropertyChanged
         return Regex.Replace(json, "\"_language\"\\s*:\\s*\"[^\"]*\"", $"\"_language\": {JsonSerializer.Serialize(code)}", RegexOptions.None, TimeSpan.FromSeconds(1));
     }
 
-    /// <summary>Language to use when the user has not chosen one: Spanish for Spanish Windows, English otherwise.</summary>
-    public static string SystemDefault() =>
-        CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("es", StringComparison.OrdinalIgnoreCase) ? "es" : Fallback;
+    /// <summary>Language to use when the user has not chosen one: Windows' own if there is a file for it, else English.</summary>
+    public static string SystemDefault()
+    {
+        var code = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+        return Available().Any(l => l.Code.Equals(code, StringComparison.OrdinalIgnoreCase)) ? code.ToLowerInvariant() : Fallback;
+    }
 
     public void Load(string? code)
     {

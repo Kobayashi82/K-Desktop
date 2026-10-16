@@ -151,6 +151,8 @@
       un enlace de emparejar. Versión = la de K-Desktop (5.0.0 → código 50000). Firma: `%USERPROFILE%\.android\
       kdesktop-release.jks` (+ `.password.txt`), creada la primera vez: guardarla, las actualizaciones necesitan la
       misma. JDK 17 portable en `%LOCALAPPDATA%\Programs\jdk-17` y SDK en `%LOCALAPPDATA%\Android\Sdk`.
+- [x] **Idiomas**: francés, alemán, italiano y portugués (Brasil) incluidos, también los «¿Sabías que…?», las
+      palabras de la voz (`voice.words.*`, `voice.syn.*`) y la web. Sin idioma elegido se usa el de Windows si existe.
 - [ ] Web: micrófono del móvil como otra fuente de audio de la voz (después de la voz).
 - [ ] Probar la app web en el móvil real a través de Caddy (instalación como PWA, iPhone y Android).
 - [ ] **Voz** (plan en [VOZ.md](VOZ.md), etapas abajo). Va después del touchpad/teclado de la web.
