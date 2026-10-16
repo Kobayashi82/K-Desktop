@@ -153,7 +153,10 @@ public sealed class QuickMenuController
             w.Deactivated += (_, _) =>
             {
                 if (!IsOpen) return;
-                Log.Info($"QuickMenu: se cierra al perder el foco (activa: {ForegroundWindow.Capture().ProcessName})");
+                // The focus went to one of its own submenus: the menu is still in use.
+                var foreground = ForegroundWindow.Capture();
+                if (_levels.Any(l => l.Hwnd == foreground.Handle)) return;
+                Log.Info($"QuickMenu: se cierra al perder el foco (activa: {foreground.ProcessName})");
                 CloseAll(restoreFocus: false);
             };
         }

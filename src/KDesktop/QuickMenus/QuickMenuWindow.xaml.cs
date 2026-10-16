@@ -47,11 +47,27 @@ public partial class QuickMenuWindow : Window
     private void OnSourceInitialized(object? sender, EventArgs e)
     {
         Hwnd = new WindowInteropHelper(this).Handle;
-        if (HwndSource.FromHwnd(Hwnd) is { } src) src.CompositionTarget.BackgroundColor = Colors.Transparent;
+        if (HwndSource.FromHwnd(Hwnd) is { } src)
+        {
+            src.CompositionTarget.BackgroundColor = Colors.Transparent;
+            if (IsSubmenu) src.AddHook(NoActivateOnClick);
+        }
         UiNative.AddExStyle(Hwnd, toolWindow: true, noActivate: IsSubmenu);
         UiNative.SetCorners(Hwnd, UiNative.Corner.Round);
         _backdrop = UiNative.SetBackdrop(Hwnd, UiNative.Backdrop.Acrylic);
         ApplyTheme();
+    }
+
+    /// <summary>
+    /// A click on a submenu must not activate it (WS_EX_NOACTIVATE alone did not stop it): the root would lose the
+    /// focus and close the whole menu before the click arrived.
+    /// </summary>
+    private static IntPtr NoActivateOnClick(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        const int WM_MOUSEACTIVATE = 0x0021, MA_NOACTIVATE = 3;
+        if (msg != WM_MOUSEACTIVATE) return IntPtr.Zero;
+        handled = true;
+        return MA_NOACTIVATE;
     }
 
     /// <summary>Updates DWM dark mode and the tint so it matches the current theme.</summary>
