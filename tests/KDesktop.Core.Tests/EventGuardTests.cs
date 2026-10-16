@@ -78,4 +78,19 @@ public class EventGuardTests
         var names = KDesktop.Core.Platform.NetworkInfo.ConnectedNetworks();
         Assert.NotNull(names);
     }
+
+    [Fact]
+    public void AudioNotificationsCanBeRegistered()
+    {
+        using var watcher = new KDesktop.Core.Platform.AudioWatcher();
+    }
+
+    [Fact]
+    public void AudioDeviceNames()
+    {
+        var t = new KDesktop.Core.Model.AudioDeviceTrigger { Name = "auriculares" };
+        Assert.True(t.Matches("Auriculares (Realtek Audio)"));
+        Assert.False(t.Matches("Altavoces (Realtek Audio)"));
+        Assert.True(new KDesktop.Core.Model.AudioDeviceTrigger().Matches("Lo que sea"));
+    }
 }

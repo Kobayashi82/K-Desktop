@@ -105,4 +105,16 @@ public class EventMigrationTests
         Assert.Equal("22:00", back.Events[1].Conditions.TimeFrom);
         Assert.Equal(SessionEvent.Unlock, Assert.IsType<SessionTrigger>(back.Events[2].Trigger).Event);
     }
+
+    [Fact]
+    public void EveryKindOfTheCatalogRoundTrips()
+    {
+        var config = new AppConfig();
+        foreach (var info in EventCatalog.All) config.Events.Add(new EventRule { Name = info.Kind.ToString(), Trigger = info.Create() });
+        var json = Json.Serialize(config);
+        Assert.DoesNotContain("\"hasEnd\"", json);
+        var back = Json.Deserialize<AppConfig>(json)!;
+        Assert.Equal(EventCatalog.All.Select(k => k.Kind), back.Events.Select(e => e.Trigger.Kind));
+        foreach (var rule in back.Events) Assert.False(string.IsNullOrWhiteSpace(rule.Summary));
+    }
 }

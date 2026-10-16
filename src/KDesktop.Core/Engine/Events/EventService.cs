@@ -70,6 +70,12 @@ public sealed class EventService : IDisposable
     private IReadOnlyList<string> _networks = [];
     private readonly Dictionary<string, bool> _networkActive = new(StringComparer.Ordinal);
 
+    // «Dispositivo de audio»: matching connected devices per event, and whether the default one matches
+    private AudioWatcher? _audio;
+    private readonly Dictionary<string, HashSet<string>> _audioConnected = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, bool> _audioDefaultActive = new(StringComparer.Ordinal);
+    private IReadOnlyList<AudioDeviceInfo> _audioDevices = [];
+
     // «Sin usar el PC»
     private Timer? _idleTimer;
     private readonly Dictionary<string, bool> _idleActive = new(StringComparer.Ordinal);
@@ -116,6 +122,7 @@ public sealed class EventService : IDisposable
             ConfigureIdle();
             ConfigureFiles();
             ConfigureNetwork();
+            ConfigureAudio();
             ConfigureWatcher();
             _initial = false;
         }
@@ -132,6 +139,8 @@ public sealed class EventService : IDisposable
         if (_fileWatchers.Remove(id, out var watcher)) watcher.Dispose();
         _drives.Remove(id);
         _networkActive.Remove(id);
+        _audioConnected.Remove(id);
+        _audioDefaultActive.Remove(id);
         _guard.Reset(id);
     }
 
@@ -553,6 +562,8 @@ public sealed class EventService : IDisposable
                 _networkWatching = false;
             }
             _networkTimer?.Dispose();
+            _audio?.Dispose();
+            _audio = null;
             _networkTimer = null;
             return;
         }
@@ -596,6 +607,90 @@ public sealed class EventService : IDisposable
         }
         Log.Info($"Eventos: redes conectadas: {(networks.Count == 0 ? "ninguna" : string.Join(", ", networks))}");
         foreach (var (rule, active) in changes) Fire(rule, !active);
+    }
+
+    // ── «Dispositivo de audio» ───────────────────────────────────────────
+
+    private void ConfigureAudio()
+    {
+        var rules = Rules<AudioDeviceTrigger>().ToList();
+        foreach (var id in _audioConnected.Keys.Concat(_audioDefaultActive.Keys).Where(id => rules.All(r => r.Rule.Id != id)).ToList())
+        {
+            _audioConnected.Remove(id);
+            _audioDefaultActive.Remove(id);
+        }
+        if (rules.Count == 0)
+        {
+            _audio?.Dispose();
+            _audio = null;
+            return;
+        }
+        if (_audio is null)
+        {
+            _audioDevices = AudioDevices.Playback();
+            try
+            {
+                _audio = new AudioWatcher();
+                _audio.Changed += OnAudioChanged;
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("Eventos: no se pueden vigilar los dispositivos de audio: " + ex.Message);
+                return;
+            }
+        }
+        // What is already there when the event appears doesn't count as connecting.
+        foreach (var (rule, t) in rules)
+        {
+            if (t.Event == AudioDeviceEvent.Connected)
+                _audioConnected.TryAdd(rule.Id, _audioDevices.Where(d => d.IsActive && t.Matches(d.Name)).Select(d => d.Id).ToHashSet());
+            else
+                _audioDefaultActive.TryAdd(rule.Id, _audioDevices.Any(d => d.IsDefault && t.Matches(d.Name)));
+        }
+    }
+
+    private void OnAudioChanged()
+    {
+        var devices = AudioDevices.Playback();
+        List<(EventRule Rule, bool End)> fire = [];
+        lock (_lock)
+        {
+            if (_disposed || _audio is null) return;
+            var oldDefault = _audioDevices.FirstOrDefault(d => d.IsDefault)?.Id;
+            var newDefault = devices.FirstOrDefault(d => d.IsDefault);
+            _audioDevices = devices;
+            foreach (var (rule, t) in Rules<AudioDeviceTrigger>())
+            {
+                if (t.Event == AudioDeviceEvent.Connected)
+                {
+                    var now = devices.Where(d => d.IsActive && t.Matches(d.Name)).Select(d => d.Id).ToHashSet();
+                    var before = _audioConnected.GetValueOrDefault(rule.Id) ?? [];
+                    foreach (var _ in before.Except(now)) fire.Add((rule, true));
+                    foreach (var added in now.Except(before))
+                    {
+                        Log.Info($"Eventos: dispositivo de audio conectado: {devices.First(d => d.Id == added).Name} («{rule.Name}»)");
+                        fire.Add((rule, false));
+                    }
+                    _audioConnected[rule.Id] = now;
+                }
+                else
+                {
+                    var was = _audioDefaultActive.GetValueOrDefault(rule.Id);
+                    var isNow = newDefault is not null && t.Matches(newDefault.Name);
+                    var changed = newDefault?.Id != oldDefault;
+                    // With no name, any new default counts (it ends first, then starts again).
+                    var any = string.IsNullOrWhiteSpace(t.Name);
+                    if (was && (!isNow || changed && any)) fire.Add((rule, true));
+                    if (isNow && (!was || changed && any))
+                    {
+                        Log.Info($"Eventos: salida de audio predeterminada: {newDefault!.Name} («{rule.Name}»)");
+                        fire.Add((rule, false));
+                    }
+                    _audioDefaultActive[rule.Id] = isNow;
+                }
+            }
+        }
+        foreach (var (rule, end) in fire) Fire(rule, end);
     }
 
     // ── sesión y ventana oculta ──────────────────────────────────────────

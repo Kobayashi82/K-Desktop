@@ -42,6 +42,10 @@ public static class Lookups
     public static IReadOnlyList<Option<SessionEvent>> SessionEvents { get; } = Enum<SessionEvent>("enum.session");
     public static IReadOnlyList<Option<PowerSource>> PowerSources { get; } = Enum<PowerSource>("enum.powerSource");
     public static IReadOnlyList<Option<NetworkState>> NetworkStates { get; } = Enum<NetworkState>("enum.networkState");
+    public static IReadOnlyList<Option<AudioDeviceEvent>> AudioDeviceEvents { get; } = Enum<AudioDeviceEvent>("enum.audioDeviceEvent");
+
+    /// <summary>Names of the playback devices (for the editable box of «Dispositivo de audio»).</summary>
+    public static IReadOnlyList<string> AudioDeviceNames => AudioDevices.Playback().Select(d => d.Name).Distinct().ToList();
 
     /// <summary>Names of the networks connected now (for the editable box of «Red»).</summary>
     public static IReadOnlyList<string> ConnectedNetworksNow => NetworkInfo.ConnectedNetworks();

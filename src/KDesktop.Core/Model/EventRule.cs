@@ -237,6 +237,9 @@ public enum PowerSource { Battery, Mains }
 /// <summary>«Red»: connected to a network, or without any.</summary>
 public enum NetworkState { Connected, Offline }
 
+/// <summary>«Dispositivo de audio»: one is connected, or one becomes the default output.</summary>
+public enum AudioDeviceEvent { Connected, BecomesDefault }
+
 /// <summary>What makes an event fire.</summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(AppStartTrigger), "appStart")]
@@ -251,6 +254,7 @@ public enum NetworkState { Connected, Offline }
 [JsonDerivedType(typeof(FileTrigger), "file")]
 [JsonDerivedType(typeof(DriveTrigger), "drive")]
 [JsonDerivedType(typeof(NetworkTrigger), "network")]
+[JsonDerivedType(typeof(AudioDeviceTrigger), "audioDevice")]
 public abstract partial class EventTrigger : ObservableObject
 {
     [JsonIgnore] public abstract EventKind Kind { get; }
@@ -465,5 +469,39 @@ public sealed partial class NetworkTrigger : EventTrigger
             var folded = new string(n.Select(Engine.FuzzyMatch.Fold).ToArray());
             return tokens.All(token => folded.Contains(token, StringComparison.Ordinal));
         });
+    }
+}
+
+/// <summary>
+/// A playback device is connected (headphones, a USB or Bluetooth speaker…) or becomes the default output; it ends
+/// when it is disconnected or stops being the default.
+/// </summary>
+public sealed partial class AudioDeviceTrigger : EventTrigger
+{
+    [ObservableProperty] private AudioDeviceEvent _event = AudioDeviceEvent.Connected;
+
+    /// <summary>Part of the device's name («Auriculares», «JBL»); empty = any.</summary>
+    [ObservableProperty] private string _name = string.Empty;
+
+    public override EventKind Kind => EventKind.AudioDevice;
+    public override bool HasEnd => true;
+    public override int DefaultCooldown => 2;
+
+    public override string Summary
+    {
+        get
+        {
+            var any = string.IsNullOrWhiteSpace(Name);
+            return Event == AudioDeviceEvent.Connected
+                ? any ? Loc.T("event.summary.audioAny") : Loc.T("event.summary.audio", Name.Trim())
+                : any ? Loc.T("event.summary.audioDefaultAny") : Loc.T("event.summary.audioDefault", Name.Trim());
+        }
+    }
+
+    public bool Matches(string deviceName)
+    {
+        if (string.IsNullOrWhiteSpace(Name)) return true;
+        var folded = new string(deviceName.Select(Engine.FuzzyMatch.Fold).ToArray());
+        return Engine.FuzzyMatch.Tokens(Name).All(token => folded.Contains(token, StringComparison.Ordinal));
     }
 }

@@ -184,6 +184,28 @@
                 </DataTemplate.Triggers>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type m:AudioDeviceTrigger}">
+                <StackPanel>
+                    <Grid Style="{StaticResource EdRow}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="260" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.sessionWhen}" />
+                            <ComboBox ItemsSource="{x:Static v:Lookups.AudioDeviceEvents}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Event}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.audioDevice}" />
+                            <ComboBox IsEditable="True" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr event.networkPlaceholder}"
+                                      ItemsSource="{Binding Source={x:Static v:Lookups.AudioDeviceNames}}" />
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr event.hint.audio}" />
+                </StackPanel>
+            </DataTemplate>
+
             <!-- A command of «Ejecutar» / «Al terminar» -->
             <DataTemplate x:Key="CommandRow">
                 <Grid>

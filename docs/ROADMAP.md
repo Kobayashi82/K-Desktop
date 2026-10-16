@@ -215,7 +215,13 @@
       cuentan como creados). El buscador de «Añadir comando» usa `FuzzyMatch`.
       Probado de verdad: al iniciar (migrado), abrir/cerrar el Bloc de notas, a una hora, primer plano (con la ventana
       de una instancia de prueba). **Sin probar**: bloquear/desbloquear, suspender/reanudar, inactividad real.
-- [ ] Eventos, fase 2: dispositivo de audio, USB/unidad, red, batería/corriente, archivo nuevo en una carpeta.
+- [x] **Eventos, fase 2** (2026-10-16, un commit por tipo): batería o corriente (`RegisterPowerSettingNotification`),
+      archivo nuevo en una carpeta (`FileSystemWatcher` + `FileSettler`: espera a que deje de crecer y se pueda leer;
+      una vez por archivo), unidad conectada por letra o etiqueta con «Al terminar» al retirarla (`WM_DEVICECHANGE`),
+      red por nombre o cualquiera / sin red (`NetworkChange` + nombres del Network List Manager, 3 s de espera) y
+      dispositivo de audio conectado o predeterminado (`AudioWatcher`: `IMMNotificationClient` propio, NAudio 3 lo
+      tiene interno; 700 ms de espera). Probados: archivo (de extremo a extremo), lectura de redes, registro de avisos
+      de audio. **Sin probar de verdad**: batería, USB, cambio de red, conectar unos cascos.
 
 ### Plan de la voz
 
