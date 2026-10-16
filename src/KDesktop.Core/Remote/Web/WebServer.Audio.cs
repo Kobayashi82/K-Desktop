@@ -12,10 +12,11 @@ public sealed partial class WebServer
         await WriteJsonAsync(response, await Task.Run(AudioState).ConfigureAwait(false)).ConfigureAwait(false);
 
     /// <summary>
-    /// POST {volume} | {muted} | {device} | {media: "playPause" | "next" | "previous"}: applies it and answers with
-    /// the new state.
+    /// POST {volume} | {muted} | {device} | {media: "playPause" | "next" | "previous"} | {key: "left" | "right" | "up" |
+    /// "down" | "space"}: applies it and answers with the new state. The keys go to the window in front (a player:
+    /// seek, its own volume, pause), so only when «Touchpad y teclado» is allowed.
     /// </summary>
-    private static async Task AudioChangeAsync(HttpListenerContext context)
+    private async Task AudioChangeAsync(HttpListenerContext context)
     {
         var body = await ReadJsonAsync(context.Request).ConfigureAwait(false);
         var state = await Task.Run(() =>
@@ -40,6 +41,19 @@ public sealed partial class WebServer
                         _ => 0,
                     };
                     if (vk != 0) InputSimulator.KeyPress(vk);
+                }
+                if (b.TryGetProperty("key", out var key) && InputAllowed)
+                {
+                    var (vk, extended) = key.GetString() switch
+                    {
+                        "left" => (0x25, true),
+                        "up" => (0x26, true),
+                        "right" => (0x27, true),
+                        "down" => (0x28, true),
+                        "space" => (0x20, false),
+                        _ => (0, false),
+                    };
+                    if (vk != 0) InputSimulator.KeyPress(vk, extended);
                 }
             }
             catch (Exception ex)

@@ -215,6 +215,10 @@
       cuentan como creados). El buscador de «Añadir comando» usa `FuzzyMatch`.
       Probado de verdad: al iniciar (migrado), abrir/cerrar el Bloc de notas, a una hora, primer plano (con la ventana
       de una instancia de prueba). **Sin probar**: bloquear/desbloquear, suspender/reanudar, inactividad real.
+- [x] **Web, pestaña Audio** (2026-10-16): cruceta de flechas con Espacio en el centro para el reproductor que esté
+      delante (avanzar/retroceder, su propio volumen, pausar); mantener una flecha la repite. `POST api/audio {key}`,
+      solo con «Touchpad y teclado» permitido (si no, la cruceta no sale). La casilla «Aplicación web» de los comandos
+      desaparece: todos los comandos habilitados están en la web (la propiedad `web` de config.json se ignora).
 - [x] **Eventos, fase 2** (2026-10-16, un commit por tipo): batería o corriente (`RegisterPowerSettingNotification`),
       archivo nuevo en una carpeta (`FileSystemWatcher` + `FileSettler`: espera a que deje de crecer y se pueda leer;
       una vez por archivo), unidad conectada por letra o etiqueta con «Al terminar» al retirarla (`WM_DEVICECHANGE`),

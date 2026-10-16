@@ -196,9 +196,6 @@
                                 <ui:SymbolIcon Symbol="PlugConnected24" FontSize="14" Margin="4,0,0,0" ToolTip="{l:Tr commands.remote}"
                                                Foreground="{DynamicResource TextFillColorTertiaryBrush}"
                                                Visibility="{Binding Remote, Converter={StaticResource BoolToCollapsed}}" />
-                                <ui:SymbolIcon Symbol="Phone24" FontSize="14" Margin="4,0,0,0" ToolTip="{l:Tr commands.webListed}"
-                                               Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                               Visibility="{Binding Web, Converter={StaticResource BoolToCollapsed}}" />
                                 <ui:SymbolIcon Symbol="EyeOff24" FontSize="14" Margin="4,0,0,0" ToolTip="{l:Tr commands.hidden}"
                                                Foreground="{DynamicResource TextFillColorTertiaryBrush}"
                                                Visibility="{Binding Hidden, Converter={StaticResource BoolToCollapsed}}" />
@@ -436,8 +433,6 @@
                                 <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding BlockKey}" Content="{l:Tr commands.blockKey}" ToolTip="{l:Tr commands.blockKeyHint}" />
                                 <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding Remote}" Content="{l:Tr commands.remoteOption}" ToolTip="{l:Tr commands.remoteHint}" />
                                 <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding IgnoreDisabledApps}" Content="{l:Tr commands.ignoreDisabled}" ToolTip="{l:Tr commands.ignoreDisabledHint}" />
-                                <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding Web}" Content="{l:Tr commands.webOption}" ToolTip="{l:Tr commands.webHint}" />
-                                <Border />
                                 <ui:ToggleSwitch Margin="0,0,0,12" IsChecked="{Binding Hidden}" Content="{l:Tr commands.hiddenOption}" ToolTip="{l:Tr commands.hiddenHint}" />
                             </UniformGrid>
 

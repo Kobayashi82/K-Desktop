@@ -25,7 +25,7 @@ internal sealed class WebCatalog(IWebHost host)
     public byte[]? IconPng(string hash) => _icons.TryGetValue(hash, out var png) ? png : null;
 
     /// <summary>Commands the web may show and run.</summary>
-    public static bool Available(Command c) => c.Enabled && c.Web;
+    public static bool Available(Command c) => c.Enabled;
 
     public WebCatalogInfo Build()
     {

@@ -46,6 +46,11 @@ const ICONS = {
   previous: '<path d="M7 6v12"/><path d="M18 6l-8 6 8 6z"/>',
   next: '<path d="M17 6v12"/><path d="M6 6l8 6-8 6z"/>',
   playPause: '<path d="M4.5 6l7 6-7 6z"/><path d="M15 6v12M19.5 6v12"/>',
+  arrowUp: '<path d="M12 19V5M6 11l6-6 6 6"/>',
+  arrowDown: '<path d="M12 5v14M6 13l6 6 6-6"/>',
+  arrowLeft: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+  arrowRight: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  space: '<path d="M4 10.5v3.5h16v-3.5"/>',
   speakers: '<rect x="6" y="3" width="12" height="18" rx="2.5"/><circle cx="12" cy="14" r="3"/><path d="M12 7.5h.01"/>',
   headphones: '<path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3.5" y="14" width="4" height="6" rx="1.5"/><rect x="16.5" y="14" width="4" height="6" rx="1.5"/>',
   headset: '<path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3.5" y="13" width="4" height="6" rx="1.5"/><rect x="16.5" y="13" width="4" height="6" rx="1.5"/><path d="M18.5 19c0 1.5-1.5 2.5-4.5 2.5"/>',
@@ -234,6 +239,31 @@ function updateHeader() {
 }
 
 // ── audio ──────────────────────────────────────────────────────────
+
+/** The cross of arrows and space: a tap sends the key once; holding an arrow repeats it (seek, player volume). */
+function wireKeys() {
+  for (const b of document.querySelectorAll('[data-key]')) {
+    let delay = 0, repeat = 0;
+    const send = () => api('audio', { method: 'POST', body: { key: b.dataset.key } }).catch(() => {});
+    const stop = () => {
+      clearTimeout(delay);
+      clearInterval(repeat);
+      delay = repeat = 0;
+      b.classList.remove('held');
+    };
+    b.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      stop();
+      b.setPointerCapture?.(e.pointerId);
+      b.classList.add('held');
+      navigator.vibrate?.(8);
+      send();
+      if (b.dataset.key !== 'space') delay = setTimeout(() => { repeat = setInterval(send, 140); }, 420);
+    });
+    for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(type, stop);
+    b.addEventListener('contextmenu', e => e.preventDefault());
+  }
+}
 
 const audio = { state: null, timer: 0, dragging: false, busy: false, sendTimer: 0, pending: null };
 
@@ -900,6 +930,7 @@ function fillSession(s = state.session) {
   // This same PC needs no pairing, so there is nothing to undo.
   $('unpairButton').hidden = !!s.local;
   $('padSettings').hidden = s.input === false;
+  $('keysPad').hidden = s.input === false;
   voiceAvailable(!!s.voice);
   if (state.tab === 'pad') padActive(true, s.input !== false);
   fillAddresses(s);
@@ -1335,6 +1366,7 @@ function wire() {
       navigator.vibrate?.(8);
       changeAudio({ media: b.dataset.media });
     });
+  wireKeys();
 
   $('pairForm').addEventListener('submit', pair);
   $('pairCode').addEventListener('input', e => {
