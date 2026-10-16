@@ -4,7 +4,9 @@ namespace KDesktop.Core.Voice;
 
 /// <summary>One thing an order may ask for: a command, or a built-in media order (<see cref="MediaOrders"/>).</summary>
 /// <param name="Semantic">Found by its meaning (<see cref="SemanticMatcher"/>), not by its words.</param>
-public sealed record IntentCandidate(Command? Command, double Score, MediaOrder? Media = null, string? Phrase = null, bool Semantic = false)
+/// <param name="ByName">Its score comes from the command's name, not from one of its voice phrases.</param>
+public sealed record IntentCandidate(Command? Command, double Score, MediaOrder? Media = null, string? Phrase = null, bool Semantic = false,
+                                     bool ByName = false)
 {
     public string Name => Media?.Name ?? Command!.Name;
 
@@ -152,8 +154,12 @@ public static class IntentMatcher
         if (spoken.Length == 0) return new IntentResult(text, null, []);
 
         // The name or any of its voice phrases, whichever fits best.
-        var all = commands.Select(c => new IntentCandidate(c, c.VoicePhraseList.Prepend(c.Name)
-            .Max(n => Score(spoken, Content(TextSimilarity.Words(n))))));
+        var all = commands.Select(c =>
+        {
+            var byName = Score(spoken, Content(TextSimilarity.Words(c.Name)));
+            var byPhrase = c.VoicePhraseList.Select(p => Score(spoken, Content(TextSimilarity.Words(p)))).DefaultIfEmpty(0).Max();
+            return new IntentCandidate(c, Math.Max(byName, byPhrase), ByName: byName >= byPhrase);
+        });
         // «Cancela» is always there; the rest of the media orders only when they are on.
         all = all.Concat(MediaOrders.Match(text).Where(m => media || m.Order.Kind == MediaOrderKind.Cancel)
             .Select(m => new IntentCandidate(null, m.Score, m.Order, m.Phrase)));
@@ -177,6 +183,16 @@ public static class IntentMatcher
         }
         var second = rivals.FirstOrDefault();
         var winner = top.Score >= Accept && (second is null || top.Score - second.Score >= Margin) ? top : null;
+        // A tie between a command's name and another one's voice phrase («Patata Frita» and a phrase «patata frita»):
+        // the name wins, it is what the user sees in the list.
+        if (winner is null && top.Score >= Accept && rivals.Where(r => top.Score - r.Score < Margin).Prepend(top).ToList() is var close
+            && close.All(c => c.Command is not null) && close.Count(c => c.ByName) == 1
+            && close.Single(c => c.ByName) is var named && named.Score >= top.Score)
+        {
+            winner = named;
+            ranked.Remove(named);
+            ranked.Insert(0, named);
+        }
         return new IntentResult(text, winner, ranked);
     }
 

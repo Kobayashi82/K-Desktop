@@ -89,7 +89,7 @@ Asistente en un diálogo con estilo WPF-UI, textos en es/en:
 ## Del texto al comando (`IntentMatcher`, por capas)
 
 1. Coincidencia directa con los nombres (y alias de voz) de los comandos reutilizando `FuzzyMatch`. Si hay un claro
-   ganador, ejecutar.
+   ganador, ejecutar. Si el nombre de un comando empata con una frase de voz de otro, gana el nombre (5.0.14).
 2. Clasificador por embeddings: modelo de embeddings multilingüe pequeño en ONNX (p. ej. multilingual-e5-small;
    tokenizador con Microsoft.ML.Tokenizers/SentencePiece). Para cada comando «disponible por voz» se precalculan los
    embeddings de su nombre, alias y frases de ejemplo (caché en disco, invalidada cuando cambian los comandos).
