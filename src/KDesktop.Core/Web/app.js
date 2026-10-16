@@ -1012,7 +1012,11 @@ let events = null;
 function startEvents() {
   if (events || !window.EventSource || document.visibilityState !== 'visible') return;
   events = new EventSource('api/events');
-  events.addEventListener('open', () => setOnline(true));
+  events.addEventListener('open', () => {
+    setOnline(true);
+    // The stream came back: maybe K-Desktop restarted, perhaps as a newer version.
+    loadSession();
+  });
   events.addEventListener('catalog', () => loadCatalog());
   events.addEventListener('session', () => loadSession());
   events.addEventListener('error', () => {
@@ -1068,9 +1072,25 @@ function setupInstall() {
 }
 
 /** The session again (what the PC allows changed). */
+/**
+ * K-Desktop was updated while this page was open (an app back from the background keeps its page, and the PC
+ * restarting does not reload it): load the new web app. Only live answers count, compared within this page.
+ */
+let liveVersion = null;
+function reloadIfUpdated(s) {
+  if (!s?.version) return false;
+  if (liveVersion && liveVersion !== s.version) {
+    location.reload();
+    return true;
+  }
+  liveVersion = s.version;
+  return false;
+}
+
 async function loadSession() {
   try {
     state.session = await api('session');
+    if (reloadIfUpdated(state.session)) return;
     store.set('session', state.session);
     fillSession();
   } catch { /* offline or unpaired: handled elsewhere */ }
@@ -1081,6 +1101,7 @@ async function connect(manual = false) {
   setOnline(null);
   try {
     state.session = await api('session');
+    if (reloadIfUpdated(state.session)) return;
     store.set('session', state.session);
     if (state.session.cookie) state.catalogJson = '';
     fillSession();
@@ -1335,7 +1356,10 @@ function wire() {
     }
     if (!state.session) return;
     startEvents();
-    if (Date.now() - state.lastLoad > 5000) loadCatalog();
+    if (Date.now() - state.lastLoad > 5000) {
+      loadSession();
+      loadCatalog();
+    }
   });
 }
 
