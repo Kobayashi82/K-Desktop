@@ -174,6 +174,12 @@ public partial class MainWindow : FluentWindow
 
     public void Navigate(string key, bool fromList = false)
     {
+        // "settings/android": a section of the settings (--page settings/android).
+        if (key.StartsWith("settings/", StringComparison.Ordinal))
+        {
+            OpenSettings(key["settings/".Length..]);
+            return;
+        }
         if (key == "stats")
         {
             Navigate("achievements");

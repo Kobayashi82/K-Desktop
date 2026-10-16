@@ -50,6 +50,7 @@ public partial class SettingsPage : UserControl
             LoadDevices();
             UpdateVoiceModels();
             UpdateUpdates();
+            FillAndroid();
             _app.Updates.Changed += OnUpdates;
             _app.Web.StateChanged += OnWebState;
             _app.Web.Devices.Changed += OnDevices;
@@ -326,6 +327,46 @@ public partial class SettingsPage : UserControl
     {
         var s = _app.Config.Settings;
         ProcessLauncher.Launch(new LaunchSpec($"http://localhost:{s.WebPort}{WebServer.NormalizeBasePath(s.WebBasePath)}/"), asAdmin: false);
+    }
+
+    // ── Android app ──────────────────────────────────────────────────────
+
+    /// <summary>The Android app this build carries: its version, and the button to save a copy.</summary>
+    private void FillAndroid()
+    {
+        if (AndroidApp.Current is not { } apk)
+        {
+            AndroidVersionText.Text = Loc.T("settings.androidNone");
+            AndroidInfoText.Text = Loc.T("settings.androidNoneHint");
+            AndroidSaveButton.IsEnabled = false;
+            return;
+        }
+        AndroidVersionText.Text = Loc.T("settings.androidVersion", apk.Version);
+        AndroidInfoText.Text = Loc.T("settings.androidInfo", AppPaths.FullVersion, Math.Max(1, apk.Bytes.Length / 1024), apk.Code);
+        AndroidSaveButton.IsEnabled = true;
+    }
+
+    private void OnSaveApk(object sender, RoutedEventArgs e)
+    {
+        if (AndroidApp.Current is not { } apk) return;
+        var dlg = new SaveFileDialog
+        {
+            Title = Loc.T("settings.androidSave"),
+            Filter = Loc.T("settings.androidFilter") + "|*.apk",
+            FileName = $"KDesktop-{apk.Version}.apk",
+            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+        };
+        if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
+        try
+        {
+            File.WriteAllBytes(dlg.FileName, apk.Bytes);
+            _app.Ui.ShowOsd(Loc.T("settings.androidSaved", Path.GetFileName(dlg.FileName)), OsdKind.Success);
+        }
+        catch (Exception ex)
+        {
+            Log.Error("No se pudo guardar la APK", ex);
+            _app.Ui.ShowOsd(ex.Message, OsdKind.Warning);
+        }
     }
 
     private void LoadLanguages() =>
