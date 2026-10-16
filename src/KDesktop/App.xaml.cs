@@ -120,7 +120,8 @@ public partial class App : Application
 
         Ui = new UiServices(Dispatcher, () => Config.Settings, () => ShowMainWindow(), () => _ = ExitAsync());
         Engine = new CommandEngine(Store, Ui);
-        Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice));
+        Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice),
+            action => Engine.TestActionAsync(action, new Command { Name = Loc.T("settings.nav.media") }));
         Voice.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
         WakeListener = new Core.Voice.WakeWordListener(Voice, () => Config.Settings);
         WakeListener.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());

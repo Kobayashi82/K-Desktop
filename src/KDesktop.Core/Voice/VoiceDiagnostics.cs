@@ -26,7 +26,7 @@ public static class VoiceDiagnostics
             if (files is null)
             {
                 report.AppendLine().AppendLine($"Frase: «{input}»");
-                Describe(report, IntentMatcher.Plan(input, commands));
+                Describe(report, IntentMatcher.Plan(input, commands, config.Settings.VoiceMedia));
                 continue;
             }
             foreach (var file in files)
@@ -38,7 +38,7 @@ public static class VoiceDiagnostics
                     var watch = Stopwatch.StartNew();
                     var text = stt.Transcribe(samples);
                     report.AppendLine($"  Texto: «{text}» ({samples.Length / (double)MicCapture.SampleRate:0.0} s, {watch.ElapsedMilliseconds} ms)");
-                    Describe(report, IntentMatcher.Plan(text, commands));
+                    Describe(report, IntentMatcher.Plan(text, commands, config.Settings.VoiceMedia));
                 }
                 catch (Exception ex)
                 {
@@ -151,11 +151,11 @@ public static class VoiceDiagnostics
 
     private static void Describe(StringBuilder report, IntentPlan plan)
     {
-        report.AppendLine($"  Comando: {(plan.Parts.Count == 0 ? "(ninguno)" : string.Join(" + ", plan.Parts.Select(p => p.Command!.Name)))}");
-        foreach (var c in plan.Whole.Candidates) report.AppendLine($"    {c.Score:0.000}  {c.Command.Name}");
+        report.AppendLine($"  Comando: {(plan.Parts.Count == 0 ? "(ninguno)" : string.Join(" + ", plan.Parts.Select(p => p.Winner!.Name)))}");
+        foreach (var c in plan.Whole.Candidates) report.AppendLine($"    {c.Score:0.000}  {c.Describe}");
         if (plan.Parts.Count > 1 || plan.Unmatched.Count > 0)
         {
-            foreach (var part in plan.Parts) report.AppendLine($"    parte «{part.Text}» → {part.Command!.Name} {part.Confidence:0.000}");
+            foreach (var part in plan.Parts) report.AppendLine($"    parte «{part.Text}» → {part.Winner!.Name} {part.Confidence:0.000}");
             foreach (var part in plan.Unmatched) report.AppendLine($"    parte «{part}» → nada");
         }
     }

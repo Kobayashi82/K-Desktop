@@ -2,11 +2,18 @@ using KDesktop.Core.Model;
 
 namespace KDesktop.Core.Voice;
 
-public sealed record IntentCandidate(Command Command, double Score);
+/// <summary>One thing an order may ask for: a command, or a built-in media order (<see cref="MediaOrders"/>).</summary>
+public sealed record IntentCandidate(Command? Command, double Score, MediaOrder? Media = null, string? Phrase = null)
+{
+    public string Name => Media?.Name ?? Command!.Name;
 
-/// <param name="Command">The command to run, when there is a clear winner.</param>
+    /// <summary>For the log: a media order with the phrase it matched.</summary>
+    public string Describe => Media is null ? Command!.Name : $"{Media.Name} [{Media.Kind}{(Media.Value is { } v ? " " + v : "")}{(Media.Amount != MediaAmount.Normal ? " " + Media.Amount : "")} · «{Phrase}»]";
+}
+
+/// <param name="Winner">What to run, when there is a clear winner.</param>
 /// <param name="Candidates">Best matches first (at most a few).</param>
-public sealed record IntentResult(string Text, Command? Command, IReadOnlyList<IntentCandidate> Candidates)
+public sealed record IntentResult(string Text, IntentCandidate? Winner, IReadOnlyList<IntentCandidate> Candidates)
 {
     public double Confidence => Candidates.Count > 0 ? Candidates[0].Score : 0;
 }
@@ -34,13 +41,19 @@ public static class IntentMatcher
     /// <summary>The winner must beat the second by this much.</summary>
     public const double Margin = 0.08;
 
+    /// <summary>
+    /// A command of the user this close to a media order wins over it (it may be their own «Siguiente»); enough for a
+    /// «pon» more or less.
+    /// </summary>
+    private const double UserFirst = 0.06;
+
     /// <summary>Filler words, verbs, synonyms and joiners of every installed language (see <see cref="VoiceVocabulary"/>).</summary>
     private static VoiceVocabulary Words => VoiceVocabulary.Current;
 
-    private static double WordScore(string written, string said)
+    private static double WordScore(string written, string said, bool synonyms)
     {
         var s = TextSimilarity.WordSimilarity(written, said);
-        if (s < 1 && Words.Synonyms.TryGetValue(written, out var a) && Words.Synonyms.TryGetValue(said, out var b) && a == b) s = Math.Max(s, 0.9);
+        if (synonyms && s < 1 && Words.Synonyms.TryGetValue(written, out var a) && Words.Synonyms.TryGetValue(said, out var b) && a == b) s = Math.Max(s, 0.9);
         return Math.Max(s, SoundsLike(written, said));
     }
 
@@ -58,18 +71,19 @@ public static class IntentMatcher
     /// The whole text as one order; if that names no command clearly, the text split at «y», «luego», «después»,
     /// commas… and each piece matched on its own.
     /// </summary>
-    public static IntentPlan Plan(string text, IEnumerable<Command> commands)
+    /// <param name="media">Also the built-in media orders (Settings › Multimedia).</param>
+    public static IntentPlan Plan(string text, IEnumerable<Command> commands, bool media = false)
     {
         var list = commands as IReadOnlyCollection<Command> ?? commands.ToList();
-        var whole = Match(text, list);
-        if (whole.Command is not null) return new IntentPlan(whole, [whole], []);
+        var whole = Match(text, list, media);
+        if (whole.Winner is not null) return new IntentPlan(whole, [whole], []);
         var pieces = SplitOrders(text);
         if (pieces.Count < 2) return new IntentPlan(whole, [], []);
-        var results = pieces.Select(p => Match(p, list)).ToList();
-        var matched = results.Where(r => r.Command is not null).ToList();
+        var results = pieces.Select(p => Match(p, list, media)).ToList();
+        var matched = results.Where(r => r.Winner is not null).ToList();
         return matched.Count == 0
             ? new IntentPlan(whole, [], [])
-            : new IntentPlan(whole, matched, results.Where(r => r.Command is null).Select(r => r.Text).ToList());
+            : new IntentPlan(whole, matched, results.Where(r => r.Winner is null).Select(r => r.Text).ToList());
     }
 
     /// <summary>The orders of a multiple one; pieces without letters are dropped.</summary>
@@ -80,21 +94,33 @@ public static class IntentMatcher
             .ToList();
 
 
-    public static IntentResult Match(string text, IEnumerable<Command> commands)
+    public static IntentResult Match(string text, IEnumerable<Command> commands, bool media = false)
     {
         var spoken = Content(TextSimilarity.Words(text));
         if (spoken.Length == 0) return new IntentResult(text, null, []);
 
-        var ranked = commands
-            .Select(c => new IntentCandidate(c, Score(spoken, Content(TextSimilarity.Words(c.Name)))))
+        var all = commands.Select(c => new IntentCandidate(c, Score(spoken, Content(TextSimilarity.Words(c.Name)))));
+        if (media) all = all.Concat(MediaOrders.Match(text).Select(m => new IntentCandidate(null, m.Score, m.Order, m.Phrase)));
+        var ranked = all
             .Where(c => c.Score > 0.3)
             .OrderByDescending(c => c.Score)
             .Take(5)
             .ToList();
 
-        Command? winner = null;
-        if (ranked.Count > 0 && ranked[0].Score >= Accept && (ranked.Count == 1 || ranked[0].Score - ranked[1].Score >= Margin))
-            winner = ranked[0].Command;
+        if (ranked.Count == 0) return new IntentResult(text, null, ranked);
+        var top = ranked[0];
+        var rivals = ranked.Skip(1).ToList();
+        // A command of the user about as good as the best is what they meant (their own «Siguiente» or «Música»): it
+        // goes first and the media orders do not count against it.
+        if (ranked.FirstOrDefault(c => c.Command is not null) is { } own && top.Score - own.Score <= UserFirst)
+        {
+            rivals = ranked.Where(c => c.Command is not null && c != own).ToList();
+            ranked.Remove(own);
+            ranked.Insert(0, own);
+            top = own;
+        }
+        var second = rivals.FirstOrDefault();
+        var winner = top.Score >= Accept && (second is null || top.Score - second.Score >= Margin) ? top : null;
         return new IntentResult(text, winner, ranked);
     }
 
@@ -109,9 +135,10 @@ public static class IntentMatcher
     /// <summary>
     /// Average, over the name's words, of how well each one was said; minus a little for each extra spoken word
     /// (a verb like «abre» costs little; a whole different phrase costs a lot). The name said as a whole, without
-    /// spaces, also counts.
+    /// spaces, also counts. Without <paramref name="synonyms"/> words of the same concept do not count as alike (the
+    /// media phrases list every wording themselves, and «pon» must not pass for «riprendi»).
     /// </summary>
-    internal static double Score(string[] spoken, string[] name)
+    internal static double Score(string[] spoken, string[] name, bool synonyms = true)
     {
         if (name.Length == 0) return 0;
         var vocabulary = Words;
@@ -124,7 +151,7 @@ public static class IntentMatcher
             var bestIsPair = false;
             for (var i = 0; i < spoken.Length; i++)
             {
-                var s = WordScore(word, spoken[i]);
+                var s = WordScore(word, spoken[i], synonyms);
                 if (s > best)
                 {
                     best = s;
@@ -158,7 +185,9 @@ public static class IntentMatcher
         // Spoken words the name does not explain: «abre» costs little, «cierra» or «apaga» a lot (they ask for
         // something else: «cierra AIMP» is not "AIMP").
         // A second word of something already matched costs nothing («recycle bin» for «papelera»).
-        var matchedConcepts = spoken.Where((_, i) => used[i]).Select(w => vocabulary.Synonyms.GetValueOrDefault(w)).OfType<string>().ToHashSet();
+        var matchedConcepts = synonyms
+            ? spoken.Where((_, i) => used[i]).Select(w => vocabulary.Synonyms.GetValueOrDefault(w)).OfType<string>().ToHashSet()
+            : [];
         var extra = 0.0;
         for (var i = 0; i < spoken.Length; i++)
         {

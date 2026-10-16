@@ -236,6 +236,18 @@ embeddings multilingües → LLM opcional) y siete etapas con su commit cada una
       sinónimos por concepto) están ahora en los archivos de idioma (`voice.words.*`, `voice.syn.*`) y cuentan todos los
       idiomas instalados a la vez (`VoiceVocabulary`); comparación por sonido entre palabras y dos palabras dichas por
       una («va hacia» → vacía).
+- [x] **Órdenes multimedia integradas** (Opciones › Multimedia, `VoiceMedia`, activadas por defecto): pausar,
+      reanudar, siguiente, anterior, subir/bajar el volumen (paso configurable; «un poco» = la mitad, «mucho» = el
+      doble, o un número dicho), volumen a N («al 40 %», «al máximo», «a la mitad»), silenciar, quitar el silencio,
+      «pon música» (reanudar, un comando o abrir un programa —si ya está abierto solo reanuda—) y «quita la música»
+      (pausar, un comando o cerrar un proceso). Sin crear comandos (`MediaOrders`, `VoiceService.Media.cs`). Pausar
+      y reanudar miran antes si algo suena (picos de las sesiones de audio, `MediaPlayback`): «pausa» no arranca la
+      música ni «continúa» la para. Frases por orden en los idiomas (`voice.media.<Orden>`, «|»), números en palabras
+      (`voice.numbers`, compuestos como «treinta y cinco», «fünfunddreißig», «trentacinque», «quatre-vingt-dix»),
+      todos los idiomas a la vez y sin sinónimos entre conceptos («pon» no vale por «riprendi»). Compiten con los
+      comandos en `IntentMatcher`: un comando del usuario a 0,06 o menos gana (su propio «Siguiente»). Se encadenan
+      con los comandos («pausa y abre la papelera»). Probado con `--voice-test` en los seis idiomas; sin probar con el
+      micro.
 - [ ] Etapa 5: capa de embeddings.
 - [ ] Etapa 6: seguridad, confirmaciones y estadísticas.
 - [ ] Etapa 7: capa LLM opcional.

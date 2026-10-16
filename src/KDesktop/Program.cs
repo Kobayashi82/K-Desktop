@@ -89,6 +89,7 @@ public static class Program
             AppPaths.EnsureCreated();
             var store = new Core.Storage.ConfigStore();
             store.Load();
+            Core.Localization.Loc.Instance.Load(store.Config.Settings.Language);
             var report = Core.Voice.VoiceDiagnostics.Run(inputs, store.Config);
             Log.Flush();
             if (open) Process.Start(new ProcessStartInfo(report) { UseShellExecute = true });

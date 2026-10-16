@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:v="clr-namespace:KDesktop.Views"
-             xmlns:l="clr-namespace:KDesktop.Localization">
+             xmlns:l="clr-namespace:KDesktop.Localization"
+             xmlns:m="clr-namespace:KDesktop.Core.Model;assembly=KDesktop.Core">
     <UserControl.Resources>
         <!-- Removable process chip; Tag of the button = the list it belongs to -->
         <DataTemplate x:Key="ProcessChip">
@@ -20,6 +21,45 @@
         <ItemsPanelTemplate x:Key="Wrap">
             <WrapPanel />
         </ItemsPanelTemplate>
+        <!-- Parts shown for one choice of «Pon música» / «Quita la música» (Tag = the MusicHandler they belong to) -->
+        <Style x:Key="MusicOnPart" TargetType="FrameworkElement">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding VoiceMusicOn}" Value="{x:Static m:MusicHandler.Command}" />
+                        <Condition Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Command" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding VoiceMusicOn}" Value="{x:Static m:MusicHandler.Program}" />
+                        <Condition Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Program" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="MusicOffPart" TargetType="FrameworkElement">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding VoiceMusicOff}" Value="{x:Static m:MusicHandler.Command}" />
+                        <Condition Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Command" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding VoiceMusicOff}" Value="{x:Static m:MusicHandler.Program}" />
+                        <Condition Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="Program" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
 
     <Grid Margin="24,12,0,0">
@@ -113,6 +153,20 @@
                             <TextBlock Text="{l:Tr settings.nav.voice}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                             <TextBlock Text="{l:Tr settings.nav.voice.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </ListBoxItem>
+                <ListBoxItem Tag="media">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
+                            <ui:SymbolIcon Symbol="MusicNote224" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.nav.media}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{l:Tr settings.nav.media.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
                                        Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
                         </StackPanel>
                     </Grid>
@@ -608,6 +662,81 @@
                                 <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.voiceHowTo}" />
                                 <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="{l:Tr settings.voiceWakeSoon}" />
                                 <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="{l:Tr settings.voicePrivacy}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Multimedia: built-in voice orders for the music and the volume -->
+            <Border Style="{StaticResource Card}" Tag="media">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr settings.media}" />
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.mediaVoice}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.mediaVoiceHint}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding VoiceMedia}" AutomationProperties.Name="{l:Tr settings.mediaVoice}" />
+                    </Grid>
+                    <StackPanel IsEnabled="{Binding VoiceMedia}">
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                <TextBlock Text="{l:Tr settings.mediaStep}" />
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.mediaStepHint}" />
+                            </StackPanel>
+                            <ComboBox x:Name="MediaStepBox" Grid.Column="1" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding VoiceMediaStep}" />
+                        </Grid>
+
+                        <Border Height="1" Margin="0,6,0,14" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                <TextBlock Text="{l:Tr settings.musicOn}" />
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.musicOnHint}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <ComboBox x:Name="MusicOnBox" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding VoiceMusicOn}" />
+                                <Border Tag="Command" Style="{StaticResource MusicOnPart}" Margin="0,8,0,0">
+                                    <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.CommandList}}" DisplayMemberPath="Name" SelectedValuePath="Id"
+                                              SelectedValue="{Binding VoiceMusicOnCommand}" IsTextSearchEnabled="True" TextSearch.TextPath="Name" MaxDropDownHeight="420" />
+                                </Border>
+                                <Grid Tag="Program" Style="{StaticResource MusicOnPart}" Margin="0,8,0,0">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <ui:TextBox Text="{Binding VoiceMusicOnProgram, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr settings.musicProgramPlaceholder}" />
+                                    <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.chooseFile}"
+                                               AutomationProperties.Name="{l:Tr editor.chooseFile}" Click="OnBrowseMusicProgram" />
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                <TextBlock Text="{l:Tr settings.musicOff}" />
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.musicOffHint}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <ComboBox x:Name="MusicOffBox" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding VoiceMusicOff}" />
+                                <Border Tag="Command" Style="{StaticResource MusicOffPart}" Margin="0,8,0,0">
+                                    <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.CommandList}}" DisplayMemberPath="Name" SelectedValuePath="Id"
+                                              SelectedValue="{Binding VoiceMusicOffCommand}" IsTextSearchEnabled="True" TextSearch.TextPath="Name" MaxDropDownHeight="420" />
+                                </Border>
+                                <Border Tag="Program" Style="{StaticResource MusicOffPart}" Margin="0,8,0,0">
+                                    <ComboBox IsEditable="True" Text="{Binding VoiceMusicOffProcess, UpdateSourceTrigger=PropertyChanged}"
+                                              v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnMusicProcessDropDown" />
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                    <Border Style="{StaticResource InfoBox}">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Symbol="Info24" FontSize="18" Margin="0,0,12,0" VerticalAlignment="Top" Foreground="{DynamicResource Kd.AccentText}" />
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.mediaExamples}" />
+                                <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="{l:Tr settings.mediaNotes}" />
                             </StackPanel>
                         </Grid>
                     </Border>

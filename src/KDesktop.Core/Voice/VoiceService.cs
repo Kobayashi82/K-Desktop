@@ -9,7 +9,7 @@ namespace KDesktop.Core.Voice;
 /// Voice orders: listen (while a key is held, or until the speaker goes quiet) → transcribe with Parakeet → pick the
 /// command → run it. Nothing listens in between: the microphone is only open during a session.
 /// </summary>
-public sealed class VoiceService : IDisposable
+public sealed partial class VoiceService : IDisposable
 {
     private static readonly TimeSpan EndSilence = TimeSpan.FromMilliseconds(800);
     private static readonly TimeSpan TapLimit = TimeSpan.FromMilliseconds(350);
@@ -19,16 +19,19 @@ public sealed class VoiceService : IDisposable
     private readonly IUiServices _ui;
     private readonly Func<AppConfig> _config;
     private readonly Func<Command, Task> _run;
+    private readonly Func<CommandAction, Task> _runAction;
     private readonly MicCapture _mic = new();
     private volatile bool _stopRequested;
     private int _active;
 
     /// <param name="run">Runs a chosen command (with the voice trigger source).</param>
-    public VoiceService(IUiServices ui, Func<AppConfig> config, Func<Command, Task> run)
+    /// <param name="runAction">Runs a single action outside any command (the media orders start and close programs).</param>
+    public VoiceService(IUiServices ui, Func<AppConfig> config, Func<Command, Task> run, Func<CommandAction, Task> runAction)
     {
         _ui = ui;
         _config = config;
         _run = run;
+        _runAction = runAction;
     }
 
     public SpeechToText SpeechToText { get; } = new();
@@ -225,34 +228,48 @@ public sealed class VoiceService : IDisposable
     }
 
     /// <summary>The spoken order → the command → run it, telling the user on the OSD.</summary>
-    private Task RunTextAsync(string text, IVoiceOsd osd) => RunPlanAsync(IntentMatcher.Plan(text, Commands()), osd);
+    private Task RunTextAsync(string text, IVoiceOsd osd) => RunPlanAsync(IntentMatcher.Plan(text, Commands(), MediaEnabled), osd);
+
+    /// <summary>The built-in media orders are on (Settings › Multimedia).</summary>
+    private bool MediaEnabled => _config().Settings.VoiceMedia;
 
     /// <summary>Runs what the order asked for (one command or several, in order), telling the user on the OSD.</summary>
     private async Task RunPlanAsync(IntentPlan plan, IVoiceOsd osd)
     {
         var whole = plan.Whole;
         var text = whole.Text;
-        Log.Info($"Voz → {(plan.Parts.Count == 0 ? "nada" : string.Join(" + ", plan.Parts.Select(p => p.Command!.Name)))} · " +
-                 string.Join(", ", whole.Candidates.Select(c => $"{c.Command.Name} {c.Score:0.00}")) +
+        Log.Info($"Voz → {(plan.Parts.Count == 0 ? "nada" : string.Join(" + ", plan.Parts.Select(p => p.Winner!.Name)))} · " +
+                 string.Join(", ", whole.Candidates.Select(c => $"{c.Describe} {c.Score:0.00}")) +
                  (plan.Parts.Count > 1 || plan.Unmatched.Count > 0
-                     ? " · por partes: " + string.Join(" | ", plan.Parts.Select(p => $"«{p.Text}» → {p.Command!.Name} {p.Confidence:0.00}")
+                     ? " · por partes: " + string.Join(" | ", plan.Parts.Select(p => $"«{p.Text}» → {p.Winner!.Name} {p.Confidence:0.00}")
                          .Concat(plan.Unmatched.Select(u => $"«{u}» → nada")))
                      : ""));
         if (plan.Parts.Count == 0)
         {
             if (whole.Candidates.Count > 0 && whole.Confidence >= 0.6)
-                osd.Finish(Loc.T("voice.unsure", text, whole.Candidates[0].Command.Name), OsdKind.Warning);
+                osd.Finish(Loc.T("voice.unsure", text, whole.Candidates[0].Name), OsdKind.Warning);
             else
                 osd.Finish(Loc.T("voice.noMatch", text), OsdKind.Warning);
             return;
         }
+        if (plan.Parts is [{ Winner.Media: { } single }] && plan.Unmatched.Count == 0)
+        {
+            // A media order says how it went («Volumen: 30 %», «No suena nada»).
+            var (message, kind) = await RunMediaAsync(single).ConfigureAwait(false);
+            osd.Finish(Loc.T("voice.running", text, message), kind);
+            return;
+        }
         if (plan.Parts.Count == 1 && plan.Unmatched.Count == 0)
-            osd.Finish(Loc.T("voice.running", text, plan.Parts[0].Command!.Name), OsdKind.Success);
+            osd.Finish(Loc.T("voice.running", text, plan.Parts[0].Winner!.Name), OsdKind.Success);
         else
-            osd.Finish(Loc.T("voice.runningMany", string.Join(" · ", plan.Parts.Select(p => p.Command!.Name)))
+            osd.Finish(Loc.T("voice.runningMany", string.Join(" · ", plan.Parts.Select(p => p.Winner!.Name)))
                        + (plan.Unmatched.Count > 0 ? "\n" + Loc.T("voice.partNotUnderstood", string.Join("», «", plan.Unmatched)) : ""),
                        plan.Unmatched.Count > 0 ? OsdKind.Warning : OsdKind.Success);
-        foreach (var part in plan.Parts) await _run(part.Command!).ConfigureAwait(false);
+        foreach (var part in plan.Parts)
+        {
+            if (part.Winner!.Media is { } media) await RunMediaAsync(media).ConfigureAwait(false);
+            else await _run(part.Winner.Command!).ConfigureAwait(false);
+        }
     }
 
     // ── wake word ────────────────────────────────────────────────────────
@@ -359,7 +376,7 @@ public sealed class VoiceService : IDisposable
                 return;
             }
             var commands = Commands().ToList();
-            var plans = options.Select(o => IntentMatcher.Plan(o, commands)).ToList();
+            var plans = options.Select(o => IntentMatcher.Plan(o, commands, MediaEnabled)).ToList();
             Log.Info("Voz: orden tras la palabra, opciones: " + string.Join(" | ", plans.Select(p => $"«{p.Whole.Text}» {p.Score:0.00}")));
             await RunPlanAsync(plans.MaxBy(p => p.Score)!, osd).ConfigureAwait(false);
         }

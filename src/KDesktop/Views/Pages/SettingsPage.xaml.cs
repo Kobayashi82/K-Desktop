@@ -43,6 +43,7 @@ public partial class SettingsPage : UserControl
         void OnVoiceModels() => Dispatcher.BeginInvoke(UpdateVoiceModels);
         void OnUpdates() => Dispatcher.BeginInvoke(UpdateUpdates);
         LoadVoice();
+        LoadMedia();
         Loaded += (_, _) =>
         {
             UpdateWebState();
@@ -93,6 +94,36 @@ public partial class SettingsPage : UserControl
 
         Sections.BeginAnimation(OpacityProperty, new DoubleAnimation(0.4, 1, TimeSpan.FromMilliseconds(180)));
         SectionShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(10, 0, TimeSpan.FromMilliseconds(220)) { EasingFunction = EaseOut });
+    }
+
+    // ── multimedia ───────────────────────────────────────────────────────
+
+    private sealed record StepOption(int Value, string Name);
+    private sealed record HandlerOption(MusicHandler Value, string Name);
+
+    private void LoadMedia()
+    {
+        MediaStepBox.ItemsSource = new[] { 2, 5, 10, 15, 20, 25 }.Select(p => new StepOption(p, $"{p} %")).ToList();
+        MusicOnBox.ItemsSource = Enum.GetValues<MusicHandler>().Select(h => new HandlerOption(h, Loc.T($"settings.musicOn.{h}"))).ToList();
+        MusicOffBox.ItemsSource = Enum.GetValues<MusicHandler>().Select(h => new HandlerOption(h, Loc.T($"settings.musicOff.{h}"))).ToList();
+    }
+
+    private void OnBrowseMusicProgram(object sender, RoutedEventArgs e)
+    {
+        var s = _app.Config.Settings;
+        var dlg = new OpenFileDialog
+        {
+            Title = Loc.T("editor.chooseFile"),
+            Filter = Loc.T("editor.filterPrograms") + "|*.exe;*.lnk|" + Loc.T("editor.filterAll") + "|*.*",
+            DereferenceLinks = false,
+        };
+        if (Path.GetDirectoryName(s.VoiceMusicOnProgram.Trim()) is { Length: > 0 } dir && Directory.Exists(dir)) dlg.InitialDirectory = dir;
+        if (dlg.ShowDialog(Window.GetWindow(this)) == true) s.VoiceMusicOnProgram = dlg.FileName;
+    }
+
+    private void OnMusicProcessDropDown(object sender, EventArgs e)
+    {
+        if (sender is ComboBox box) box.ItemsSource = Lookups.RunningProcesses();
     }
 
     // ── voice ────────────────────────────────────────────────────────────

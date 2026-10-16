@@ -59,6 +59,9 @@ public enum AppTheme { System, Dark, Light }
 /// <summary>What K-Desktop does about new versions.</summary>
 public enum UpdateMode { Off, Notify, Auto }
 
+/// <summary>What «pon música» / «quita la música» do: the default (resume / pause), a command, or a player.</summary>
+public enum MusicHandler { Default, Command, Program }
+
 public partial class AppSettings : ObservableObject
 {
     // Appearance
@@ -152,6 +155,24 @@ public partial class AppSettings : ObservableObject
 
     /// <summary>When the detector is very sure, skip the check with Parakeet (faster, a little riskier).</summary>
     [ObservableProperty] private bool _voiceWakeTrust;
+
+    // Multimedia (built-in voice orders: pause, next, volume…)
+    [ObservableProperty] private bool _voiceMedia = true;
+
+    /// <summary>How much «sube / baja el volumen» moves it, in %.</summary>
+    [ObservableProperty] private int _voiceMediaStep = 10;
+
+    [ObservableProperty] private MusicHandler _voiceMusicOn;
+    [ObservableProperty] private string? _voiceMusicOnCommand;
+
+    /// <summary>The player «pon música» opens (when it is open already, it only resumes).</summary>
+    [ObservableProperty] private string _voiceMusicOnProgram = string.Empty;
+
+    [ObservableProperty] private MusicHandler _voiceMusicOff;
+    [ObservableProperty] private string? _voiceMusicOffCommand;
+
+    /// <summary>The process «quita la música» closes; empty: the player of «pon música».</summary>
+    [ObservableProperty] private string _voiceMusicOffProcess = string.Empty;
 
     // OSD
     [ObservableProperty] private OsdPosition _osdPosition = OsdPosition.BottomCenter;
