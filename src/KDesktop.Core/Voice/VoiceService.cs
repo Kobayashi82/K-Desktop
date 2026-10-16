@@ -129,6 +129,7 @@ public sealed partial class VoiceService : IDisposable
         }
 
         using var osd = _ui.ShowVoiceOsd(Loc.T("voice.listening"));
+        ListenSound(settings);
         if (Environment.GetEnvironmentVariable("KDESKTOP_VOICE_FAKE_STREAM") is { Length: > 0 } || Environment.GetEnvironmentVariable("KDESKTOP_VOICE_FAKE") is { Length: > 0 })
         {
             // Tests with simulated audio never open the real microphone.
@@ -403,6 +404,7 @@ public sealed partial class VoiceService : IDisposable
             // word is over, so what comes first may be only its last syllable: if that says nothing, the order may
             // still come after a pause («KDesktop… apaga el ordenador») and the listening goes on.
             using var osd = _ui.ShowVoiceOsd(Loc.T("voice.listening"));
+            ListenSound(settings);
             var commands = Commands().ToList();
             (List<IntentPlan> Plans, bool Confirmed)? found = null;
             var checkedSegments = 0;
@@ -509,6 +511,17 @@ public sealed partial class VoiceService : IDisposable
         var from = Math.Max(0, segments[first].Start - pad);
         var to = Math.Min(audio.Length, segments[^1].Start + segments[^1].Length + pad);
         return audio[from..to];
+    }
+
+    /// <summary>
+    /// «I'm listening» (Settings › Voz): short, so it is over before the order starts; the echo canceller takes it out of
+    /// the microphone like any other sound of the PC.
+    /// </summary>
+    private static void ListenSound(AppSettings settings)
+    {
+        if (string.IsNullOrWhiteSpace(settings.VoiceListenSound)) return;
+        try { Sounds.Play(settings.VoiceListenSound); }
+        catch (Exception ex) { Log.Warn($"No se pudo reproducir el sonido de escucha: {ex.Message}"); }
     }
 
     /// <summary>The other programs turned down while an order is said (Settings › Voz), or null.</summary>

@@ -343,6 +343,8 @@
   "settings.voiceEchoHint": "Quita del micrófono la música, las películas y el resto del sonido del PC (cancelación de eco), para que te entienda aunque esté sonando algo",
   "settings.voiceDuck": "Bajar el volumen mientras hablas",
   "settings.voiceDuckHint": "Al oír la palabra de activación o pulsar la tecla de voz, baja los demás programas hasta que termina la orden",
+  "settings.voiceListenSound": "Sonido al escuchar",
+  "settings.voiceListenSoundHint": "Suena al oír la palabra de activación o pulsar la tecla de voz: ya puedes decir la orden",
   "settings.voiceDuckLevel": "Volumen al que se bajan",
   "settings.voiceMicDefault": "Predeterminado de Windows",
   "settings.voiceMicMissing": "El elegido (no conectado ahora)",

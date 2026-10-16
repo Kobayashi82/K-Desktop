@@ -343,6 +343,8 @@
   "settings.voiceEchoHint": "Retire du micro la musique, les films et tout autre son du PC (annulation d'écho), pour vous comprendre même quand quelque chose joue",
   "settings.voiceDuck": "Baisser le volume pendant que vous parlez",
   "settings.voiceDuckHint": "Quand il entend le mot d'activation ou que la touche vocale est pressée, il baisse les autres programmes jusqu'à la fin de l'ordre",
+  "settings.voiceListenSound": "Son à l'écoute",
+  "settings.voiceListenSoundHint": "Retentit quand il entend le mot d'activation ou que la touche vocale est pressée : vous pouvez dire l'ordre",
   "settings.voiceDuckLevel": "Volume auquel ils sont baissés",
   "settings.voiceMicDefault": "Par défaut de Windows",
   "settings.voiceMicMissing": "Celui choisi (non connecté pour l’instant)",

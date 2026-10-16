@@ -201,6 +201,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>How far <see cref="VoiceDuck"/> turns them down: % of their volume.</summary>
     [ObservableProperty] private int _voiceDuckLevel = 20;
 
+    /// <summary>Sound when it starts listening for the order (built-in name or .wav path); empty for none.</summary>
+    [ObservableProperty] private string? _voiceListenSound = "Escuchar";
+
     // Multimedia (built-in voice orders: pause, next, volume…)
     [ObservableProperty] private bool _voiceMedia = true;
 

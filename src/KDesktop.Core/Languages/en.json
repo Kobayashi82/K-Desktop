@@ -343,6 +343,8 @@
   "settings.voiceEchoHint": "Takes music, films and any other PC sound out of the microphone (echo cancellation), so it understands you even while something plays",
   "settings.voiceDuck": "Turn the volume down while you speak",
   "settings.voiceDuckHint": "When it hears the wake word or the voice hotkey is pressed, it turns the other programs down until the order is over",
+  "settings.voiceListenSound": "Sound when listening",
+  "settings.voiceListenSoundHint": "Plays when it hears the wake word or the voice hotkey is pressed: you can say the order",
   "settings.voiceDuckLevel": "Volume they are turned down to",
   "settings.voiceMicDefault": "Windows default",
   "settings.voiceMicMissing": "The chosen one (not connected now)",

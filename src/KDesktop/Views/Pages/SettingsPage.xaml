@@ -627,6 +627,14 @@
                         <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding VoiceEchoCancel}" AutomationProperties.Name="{l:Tr settings.voiceEcho}" />
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.voiceListenSound}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.voiceListenSoundHint}" />
+                        </StackPanel>
+                        <v:SoundPicker Grid.Column="1" Sound="{Binding VoiceListenSound}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.voiceDuck}" />
