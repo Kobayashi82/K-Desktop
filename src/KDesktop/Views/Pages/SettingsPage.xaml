@@ -195,6 +195,21 @@
                         </StackPanel>
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.trayImage}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.trayImageHint}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="36" Height="36" Margin="0,0,12,0" CornerRadius="6" Background="{DynamicResource Kd.Subtle}">
+                                <Image x:Name="TrayImagePreview" Width="24" Height="24" RenderOptions.BitmapScalingMode="HighQuality" />
+                            </Border>
+                            <ui:Button Margin="0,0,8,0" Content="{l:Tr settings.trayImageChange}" Icon="{ui:SymbolIcon Image24}" Click="OnChangeTrayImage" />
+                            <ui:Button x:Name="TrayImageReset" Icon="{ui:SymbolIcon ArrowReset24}" ToolTip="{l:Tr settings.trayImageReset}"
+                                       AutomationProperties.Name="{l:Tr settings.trayImageReset}" Click="OnResetTrayImage" />
+                        </StackPanel>
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.language}" />

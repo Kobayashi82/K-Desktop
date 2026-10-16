@@ -81,11 +81,12 @@ public static partial class IconProvider
     /// Icon stored in the configuration: "kd:Folder24:yellow" (K-Desktop collection), "imageres.dll,109" (icon of a
     /// Windows library or program, by index), or an image file (name inside the Icons folder or absolute path).
     /// </summary>
-    public static ImageSource? FromConfigIcon(string icon)
+    public static ImageSource? FromConfigIcon(string icon, bool adaptToTheme = true)
     {
         if (KdIconSpec.TryParse(icon, out var kd)) return KdIcons.Render(kd);
-        if (TryParseLibrary(icon, out var file, out var index)) return ForTheme(Library(file, index));
-        return AppPaths.ResolveIcon(icon) is { } path ? ForTheme(FromFile(path)) : null;
+        var image = TryParseLibrary(icon, out var file, out var index) ? Library(file, index)
+            : AppPaths.ResolveIcon(icon) is { } path ? FromFile(path) : null;
+        return adaptToTheme ? ForTheme(image) : image;
     }
 
     /// <summary>K-Desktop icon ("kd:…") or bundled asset name.</summary>

@@ -376,6 +376,7 @@ public partial class App : Application
         }
 
         UpdateTray();
+        ApplyTrayIcon();
         WakeListener?.Refresh(); // the option, the microphone or the pause changed
         _main?.UpdateStatus(); // e.g. the voice hotkey shown in its tooltip
 
@@ -421,12 +422,26 @@ public partial class App : Application
         _tray = new TaskbarIcon
         {
             ToolTipText = TrayTooltip(),
-            IconSource = BitmapFrame.Create(new Uri("pack://application:,,,/KDesktop;component/Assets/Icons/KDesktop.ico")),
             ContextMenu = menu,
             NoLeftClickDelay = true,
         };
         _tray.TrayLeftMouseUp += (_, _) => ShowMainWindow();
+        _appliedTrayIcon = null;
+        ApplyTrayIcon();
         _tray.ForceCreate(false);
+    }
+
+    private string? _appliedTrayIcon;
+
+    /// <summary>K-Desktop's icon or the one chosen in Settings › Appearance.</summary>
+    private void ApplyTrayIcon()
+    {
+        if (_tray is null) return;
+        var wanted = Config.Settings.TrayIcon ?? string.Empty;
+        if (_appliedTrayIcon == wanted) return;
+        _appliedTrayIcon = wanted;
+        if (TrayIcons.Custom(wanted) is { } custom) _tray.Icon = custom;
+        else _tray.IconSource = TrayIcons.Default();
     }
 
     /// <summary>One checkable entry per K-Board profile (switches it on / off) and a shortcut to the page.</summary>

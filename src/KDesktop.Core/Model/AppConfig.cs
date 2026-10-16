@@ -67,6 +67,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>Show the websites' own icons (favicons) on "Open web" actions; they are downloaded from each site.</summary>
     [ObservableProperty] private bool _webFavicons = true;
 
+    /// <summary>Icon of the notification-area (tray) icon, as command icons are stored; null or empty: K-Desktop's own.</summary>
+    [ObservableProperty] private string? _trayIcon;
+
     // General
     /// <summary>K-Desktop paused: no command runs; only its show-window and exit hotkeys work. Kept across restarts.</summary>
     [ObservableProperty] private bool _paused;

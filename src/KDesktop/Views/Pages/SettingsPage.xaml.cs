@@ -33,6 +33,7 @@ public partial class SettingsPage : UserControl
         SectionList.SelectedIndex = Math.Clamp(_lastSection, 0, SectionList.Items.Count - 1);
         StartupToggle.IsChecked = StartupTask.IsRegistered();
         DataPathText.Text = AppPaths.DataDir;
+        UpdateTrayImage();
         IpText.Text = Loc.T("settings.udpAddresses", string.Join("  ·  ", NetworkInfo.LocalIPv4()));
 
         // Pages are kept while the window lives: follow the server only while this one is shown.
@@ -273,6 +274,28 @@ public partial class SettingsPage : UserControl
     private void LoadLanguages() =>
         LanguageBox.ItemsSource = new[] { new LanguageOption(null, Loc.T("settings.languageSystem")) }
             .Concat(Loc.Available().Select(l => new LanguageOption(l.Code, l.Name))).ToList();
+
+    private void UpdateTrayImage()
+    {
+        var custom = _app.Config.Settings.TrayIcon;
+        TrayImagePreview.Source = (string.IsNullOrEmpty(custom) ? null : IconProvider.FromConfigIcon(custom, adaptToTheme: false))
+            ?? TrayIcons.Default();
+        TrayImageReset.IsEnabled = !string.IsNullOrEmpty(custom);
+    }
+
+    private void OnChangeTrayImage(object sender, RoutedEventArgs e)
+    {
+        // "" = the picker's "Automatic", which here means K-Desktop's own icon.
+        if (Dialogs.IconPicker.Pick(Window.GetWindow(this), _app.Config.Settings.TrayIcon, "tray") is not { } choice) return;
+        _app.Config.Settings.TrayIcon = choice.Length == 0 ? null : choice;
+        UpdateTrayImage();
+    }
+
+    private void OnResetTrayImage(object sender, RoutedEventArgs e)
+    {
+        _app.Config.Settings.TrayIcon = null;
+        UpdateTrayImage();
+    }
 
     private void OnRefreshFavicons(object sender, RoutedEventArgs e)
     {
