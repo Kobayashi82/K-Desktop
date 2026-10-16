@@ -420,6 +420,8 @@
   "pwa.back": "Atrás",
   "pwa.openSub": "Abrir el submenú",
   "pwa.count": "{0} comandos",
+  "pwa.mostUsed": "Más usados",
+  "pwa.tagline": "Atajos, QuickMenus y control remoto para Windows",
   "pwa.run.ok": "Hecho",
   "pwa.run.error": "Error",
   "pwa.run.warning": "Aviso",

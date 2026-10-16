@@ -1,4 +1,4 @@
-// K-Desktop web app: pairing, QuickMenus, all commands with search, settings.
+// K-Desktop web app: pairing, QuickMenus, all commands with search, touchpad, audio, settings.
 // Every URL is relative, so the app works at the root of a domain or under a path behind the proxy.
 import { searchKey, tokens, score } from './fuzzy.js';
 import { setupPad, padActive, padTexts } from './pad.js';
@@ -50,6 +50,15 @@ const ICONS = {
   touchpad: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 15h18M12 15v5"/>',
   keyboard: '<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M7.5 14h9"/>',
   keys: '<path d="M5 9h3M5 15h3M10 9h9M10 15h9"/><rect x="2.5" y="5" width="19" height="14" rx="2.5"/>',
+  phone: '<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/>',
+  theme: '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17A8.5 8.5 0 0 0 12 3.5z" fill="currentColor"/>',
+  language: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.5 3.5 5.5 3.5 8.5s-1 6-3.5 8.5c-2.5-2.5-3.5-5.5-3.5-8.5s1-6 3.5-8.5z"/>',
+  pointer: '<path d="M6 3.5l12 7.5-5.5 1.5L10 18z"/>',
+  scroll: '<rect x="7" y="3" width="10" height="18" rx="5"/><path d="M12 7v3"/>',
+  natural: '<path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/>',
+  tap: '<circle cx="12" cy="9" r="3"/><path d="M12 15v6M6.5 5.5a8 8 0 0 1 11 0"/>',
+  install: '<path d="M12 3.5v11M7.5 10l4.5 4.5 4.5-4.5"/><path d="M4.5 16v2.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V16"/>',
+  unlink: '<path d="M9.5 14.5l5-5M10 6.5l1.5-1.5a4 4 0 0 1 5.66 5.66L15.5 12M14 17.5L12.5 19a4 4 0 0 1-5.66-5.66L8.5 12"/><path d="M3.5 3.5l3 3M20.5 20.5l-3-3"/>',
 };
 
 const svg = name => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] ?? ''}</svg>`;
@@ -94,6 +103,7 @@ function applyTexts() {
   }
   fillLanguages();
   padTexts();
+  setTitles();
 }
 
 async function loadTexts() {
@@ -127,7 +137,14 @@ async function api(path, { method = 'GET', body } = {}) {
   return data;
 }
 
+/** Header pill: is K-Desktop reachable right now? */
+function setOnline(value) {
+  $('connPill').dataset.state = value === null ? 'connecting' : value ? 'online' : 'offline';
+}
+
 // ── theme ──────────────────────────────────────────────────────────
+
+let lightTheme = false;
 
 function applyTheme(theme) {
   const root = document.documentElement;
@@ -137,8 +154,17 @@ function applyTheme(theme) {
   movePill($('themeSwitch').querySelector('.seg-pill'), $('themeSwitch').querySelector('button.active'));
   requestAnimationFrame(() => {
     const bg = getComputedStyle(root).getPropertyValue('--bg').trim();
-    document.querySelector('meta[name="theme-color"]').content = bg || '#1c1c1e';
+    document.querySelector('meta[name="theme-color"]').content = bg || '#0e0e10';
   });
+  // White glyph icons come in a dark-on-light version for the light theme.
+  const light = theme === 'light' || (theme !== 'dark' && !matchMedia('(prefers-color-scheme: dark)').matches);
+  if (light !== lightTheme) {
+    lightTheme = light;
+    if (!$('shell').hidden) {
+      renderMenus();
+      renderAll();
+    }
+  }
 }
 
 function movePill(pill, target) {
@@ -150,6 +176,12 @@ function movePill(pill, target) {
 // ── tabs ───────────────────────────────────────────────────────────
 
 const TABS = ['menus', 'all', 'pad', 'audio', 'settings'];
+
+function setTitles() {
+  const title = t('pwa.tab.' + state.tab);
+  $('bigTitle').textContent = title;
+  $('smallTitle').textContent = title;
+}
 
 function setTab(tab) {
   if (!TABS.includes(tab)) tab = 'menus';
@@ -163,10 +195,19 @@ function setTab(tab) {
   }
   for (const b of $('tabbar').querySelectorAll('button')) b.classList.toggle('active', b.dataset.tab === tab);
   movePill($('tabPill'), $('tabbar').querySelector('button.active'));
+  setTitles();
   window.scrollTo({ top: 0 });
+  updateHeader();
   if (tab === 'audio') startAudio();
   else stopAudio();
   padActive(tab === 'pad', state.session?.input !== false);
+}
+
+/** The big title scrolls away; then the bar turns to glass and shows the small one. */
+function updateHeader() {
+  const title = $('bigTitle');
+  const scrolled = title.getBoundingClientRect().bottom < $('top').getBoundingClientRect().bottom + 4;
+  $('top').classList.toggle('scrolled', scrolled);
 }
 
 // ── audio ──────────────────────────────────────────────────────────
@@ -189,8 +230,12 @@ async function loadAudio() {
   if (audio.busy || audio.dragging || audio.pending) return;
   try {
     renderAudio(await api('audio'));
+    setOnline(true);
   } catch (e) {
-    if (!(e instanceof Unpaired)) stopAudio();
+    if (!(e instanceof Unpaired)) {
+      stopAudio();
+      setOnline(false);
+    }
   }
 }
 
@@ -257,11 +302,29 @@ function renderAudio(state) {
   }));
 }
 
+/** The dial: a 270° arc from bottom-left to bottom-right; 0 % at the start, 100 % at the end. */
+const DIAL = { cx: 110, cy: 110, r: 92, start: 135, sweep: 270 };
+
 function setVolumeUi(value) {
   const slider = $('volumeSlider');
   slider.value = value;
   slider.style.setProperty('--fill', value + '%');
   $('volumeValue').textContent = value;
+  $('dialFill').style.strokeDasharray = `${value * DIAL.sweep / 360} 100`;
+  const a = (DIAL.start + DIAL.sweep * value / 100) * Math.PI / 180;
+  $('dialKnob').setAttribute('cx', (DIAL.cx + DIAL.r * Math.cos(a)).toFixed(2));
+  $('dialKnob').setAttribute('cy', (DIAL.cy + DIAL.r * Math.sin(a)).toFixed(2));
+  $('dial').setAttribute('aria-valuenow', value);
+}
+
+/** Volume from a touch on the dial (its angle around the centre). */
+function dialValue(e) {
+  const r = $('dial').getBoundingClientRect();
+  const x = e.clientX - (r.left + r.width / 2), y = e.clientY - (r.top + r.height / 2);
+  let deg = Math.atan2(y, x) * 180 / Math.PI - DIAL.start;
+  while (deg < 0) deg += 360;
+  if (deg > DIAL.sweep) deg = deg - DIAL.sweep < (360 - DIAL.sweep) / 2 ? DIAL.sweep : 0; // the gap at the bottom
+  return Math.round(deg / DIAL.sweep * 100);
 }
 
 /** Sends the volume while dragging, at most every 90 ms, and always the last value. */
@@ -290,19 +353,87 @@ function stepVolume(delta) {
 
 // ── tiles ──────────────────────────────────────────────────────────
 
+/** The icon for the current theme (a light-background version exists for white glyph icons). */
+const iconOf = node => (lightTheme && node.iconLight) || node.icon;
+
+const tints = new Map();
+
+/** A soft glow in the icon's own colour: its average colour, brightened if very dark. */
+function tintFrom(img, target) {
+  const key = img.src;
+  if (tints.has(key)) {
+    if (tints.get(key)) target.style.setProperty('--tint', tints.get(key));
+    return;
+  }
+  try {
+    const c = document.createElement('canvas');
+    c.width = c.height = 12;
+    const g = c.getContext('2d', { willReadFrequently: true });
+    g.drawImage(img, 0, 0, 12, 12);
+    const d = g.getImageData(0, 0, 12, 12).data;
+    let r = 0, gr = 0, b = 0, w = 0;
+    for (let i = 0; i < d.length; i += 4) {
+      const a = d[i + 3] / 255;
+      const max = Math.max(d[i], d[i + 1], d[i + 2]), min = Math.min(d[i], d[i + 1], d[i + 2]);
+      const weight = a * (0.25 + (max - min) / 255); // colourful pixels count more than greys
+      r += d[i] * weight; gr += d[i + 1] * weight; b += d[i + 2] * weight; w += weight;
+    }
+    if (w < 1) { tints.set(key, null); return; }
+    r /= w; gr /= w; b /= w;
+    const lift = Math.max(0, 110 - Math.max(r, gr, b));
+    const value = `${Math.round(r + lift)}, ${Math.round(gr + lift)}, ${Math.round(b + lift)}`;
+    tints.set(key, value);
+    target.style.setProperty('--tint', value);
+  } catch { tints.set(key, null); }
+}
+
+function iconImage(hash, onLoad) {
+  const img = new Image();
+  img.src = `api/icon/${hash}.png`;
+  img.alt = '';
+  img.decoding = 'async';
+  img.onerror = () => img.remove();
+  if (onLoad) img.onload = () => onLoad(img);
+  return img;
+}
+
+/** Icons of the first commands inside a submenu, for its folder preview. */
+function previewIcons(node, max = 4) {
+  const found = [];
+  const walk = nodes => {
+    for (const n of nodes ?? []) {
+      if (found.length >= max) return;
+      if (n.kind === 'command' && iconOf(n)) found.push(iconOf(n));
+      else if (n.children) walk(n.children);
+    }
+  };
+  walk(node.children);
+  return found;
+}
+
+function countItems(node) {
+  let n = 0;
+  for (const c of node.children ?? []) n += c.kind === 'title' ? countItems(c) : c.kind === 'separator' ? 0 : 1;
+  return n;
+}
+
 /** A command (or submenu) tile. */
-function tile({ label, icon, commandId, folder, onOpen, index }) {
+function tile({ label, icon, commandId, folder, node, onOpen, index }) {
   const b = el('button', 'tile' + (folder ? ' folder' : ''));
   b.style.setProperty('--n', Math.min(index ?? 0, 24));
   const iconBox = el('span', 'tile-icon');
-  if (icon) {
-    const img = new Image();
-    img.src = `api/icon/${icon}.png`;
-    img.alt = '';
-    img.decoding = 'async';
-    img.loading = 'lazy';
-    img.onerror = () => img.remove();
-    iconBox.append(img);
+  if (folder && node) {
+    const icons = previewIcons(node);
+    if (icons.length <= 1 && icon) {
+      iconBox.classList.add('single');
+      iconBox.append(iconImage(icon, img => tintFrom(img, b)));
+    } else {
+      icons.forEach((h, i) => iconBox.append(iconImage(h, i === 0 ? img => tintFrom(img, b) : null)));
+    }
+    const count = countItems(node);
+    if (count) b.append(el('span', 'tile-count', String(count)));
+  } else if (icon) {
+    iconBox.append(iconImage(icon, img => tintFrom(img, b)));
   }
   b.append(iconBox, el('span', 'tile-label', label ?? ''));
 
@@ -328,6 +459,16 @@ function tile({ label, icon, commandId, folder, onOpen, index }) {
   return b;
 }
 
+function skeletonGrid(count = 12) {
+  const grid = el('div', 'grid');
+  for (let i = 0; i < count; i++) {
+    const s = el('div', 'tile skeleton');
+    s.append(el('span', 'tile-icon'), el('span', 'tile-label'));
+    grid.append(s);
+  }
+  return grid;
+}
+
 function ripple(target, e) {
   const r = target.getBoundingClientRect();
   const size = Math.max(r.width, r.height) * 2;
@@ -345,6 +486,14 @@ function badge(target, kind) {
   b.innerHTML = svg(kind === 'running' ? 'running' : kind === 'warning' ? 'warning' : kind === 'error' ? 'error' : 'ok');
   target.append(b);
   b.addEventListener('animationend', e => { if (e.animationName === 'badge-out') b.remove(); });
+  if (kind === 'ok') {
+    const burst = el('span', 'burst');
+    target.append(burst);
+    burst.addEventListener('animationend', () => burst.remove());
+    target.classList.remove('done');
+    void target.offsetWidth;
+    target.classList.add('done');
+  }
 }
 
 // ── running commands ───────────────────────────────────────────────
@@ -356,9 +505,11 @@ async function run(id, target, label) {
   let result;
   try {
     result = await api('run', { method: 'POST', body: { id } });
+    setOnline(true);
   } catch (e) {
     if (e instanceof Unpaired) return;
     result = { status: e.status === 404 ? 'unavailable' : 'offline', messages: [] };
+    if (!e.status) setOnline(false);
   } finally {
     target.classList.remove('busy');
   }
@@ -408,7 +559,7 @@ function currentMenu() {
   return menus.find(m => m.id === state.menuId) ?? menus[0] ?? null;
 }
 
-/** The nodes of the open level, and its title (null at the root). */
+/** The nodes of the open level and the trail of submenus that lead to it. */
 function currentLevel(menu) {
   let nodes = menu.items;
   const trail = [];
@@ -419,7 +570,7 @@ function currentLevel(menu) {
     nodes = node.children;
   }
   state.path = trail.map(n => n.id);
-  return { nodes, title: trail.at(-1)?.label ?? null };
+  return { nodes, trail };
 }
 
 /** Finds a node among the nodes of a level, including the children of its titles (they show inline). */
@@ -443,6 +594,7 @@ function renderMenus(direction) {
     const c = el('button', 'chip' + (m === menu ? ' active' : ''), m.name);
     c.addEventListener('click', () => {
       if (m === menu) return;
+      navigator.vibrate?.(4);
       state.menuId = m.id;
       store.set('menu', m.id);
       state.path = [];
@@ -452,19 +604,52 @@ function renderMenus(direction) {
   }));
 
   const stack = $('menuStack');
+  if (!state.catalog) {
+    $('crumbs').hidden = true;
+    stack.replaceChildren(skeletonGrid(8));
+    return;
+  }
   if (!menu) {
     $('crumbs').hidden = true;
     stack.replaceChildren(el('p', 'empty', t('pwa.noMenus')));
     return;
   }
-  const { nodes, title } = currentLevel(menu);
-  $('crumbs').hidden = title === null;
-  $('crumbTitle').textContent = title ?? '';
+  const { nodes, trail } = currentLevel(menu);
+  renderCrumbs(menu, trail);
 
   const level = el('div', 'level' + (direction === 'back' ? ' back' : ''));
   renderNodes(nodes, level, { i: 0 });
   stack.replaceChildren(level);
 }
+
+/** "Menu › Submenu › Submenu": each part goes back to that level. */
+function renderCrumbs(menu, trail) {
+  $('crumbs').hidden = trail.length === 0;
+  if (!trail.length) return;
+  const path = $('crumbPath');
+  const parts = [{ label: menu.name, depth: 0 }, ...trail.map((n, i) => ({ label: n.label ?? '', depth: i + 1 }))];
+  path.replaceChildren(...parts.flatMap((p, i) => {
+    const b = el('button', '', p.label);
+    b.addEventListener('click', () => goToDepth(p.depth));
+    if (i === 0) return [b];
+    const sep = el('span', 'sep');
+    sep.innerHTML = svg('chevron');
+    return [sep, b];
+  }));
+  requestAnimationFrame(() => { path.scrollLeft = path.scrollWidth; });
+}
+
+function goToDepth(depth) {
+  if (depth >= state.path.length) return;
+  const steps = state.path.length - depth;
+  state.path.length = depth;
+  renderMenus('back');
+  // Keep the history entries of the submenus in step (back button / gesture): one popstate for the jump.
+  ignorePops++;
+  history.go(-steps);
+}
+
+let ignorePops = 0;
 
 function renderNodes(nodes, container, counter) {
   let grid = null;
@@ -487,8 +672,8 @@ function renderNodes(nodes, container, counter) {
     }
     const open = node.children ? () => openSubmenu(node) : null;
     grid.append(tile({
-      label: node.label, icon: node.icon, commandId: node.commandId,
-      folder: node.kind === 'submenu', onOpen: open, index: counter.i++,
+      label: node.label, icon: iconOf(node), commandId: node.commandId,
+      folder: node.kind === 'submenu', node, onOpen: open, index: counter.i++,
     }));
   }
 }
@@ -502,6 +687,10 @@ function openSubmenu(node) {
 }
 
 function closeSubmenu() {
+  if (ignorePops > 0) {
+    ignorePops--;
+    return;
+  }
   if (!state.path.length) return;
   state.path.pop();
   renderMenus('back');
@@ -518,9 +707,21 @@ const keyOf = c => {
 
 let shownAll = [];
 
+/** First letter for the sections (accents folded, digits and symbols together). */
+function letterOf(name) {
+  const ch = (name ?? '').trim().charAt(0).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+  return /[A-ZÑ]/.test(ch) ? ch : '#';
+}
+
 function renderAll() {
   const commands = state.catalog?.commands ?? [];
+  const grid = $('allGrid');
   const q = $('searchBox').value.trim();
+  if (!state.catalog) {
+    grid.replaceChildren(skeletonGrid());
+    $('topStrip').hidden = true;
+    return;
+  }
   let list = commands;
   if (q) {
     const toks = tokens(q);
@@ -530,8 +731,34 @@ function renderAll() {
       .map(x => x.c);
   }
   shownAll = list;
-  $('allGrid').replaceChildren(...list.map((c, i) => tile({ label: c.name, icon: c.icon, commandId: c.id, index: q ? Math.min(i, 8) : i })));
-  $('allCount').textContent = list.length ? t('pwa.count', list.length) : '';
+  $('allCount').textContent = list.length ? String(list.length) : '';
+
+  // Most used: only without a search, and only when there is a history.
+  const top = q ? [] : [...commands].filter(c => c.runs > 0).sort((a, b) => b.runs - a.runs).slice(0, 10);
+  $('topStrip').hidden = top.length < 3;
+  $('topList').replaceChildren(...top.map((c, i) => tile({ label: c.name, icon: iconOf(c), commandId: c.id, index: i })));
+
+  if (q) {
+    const g = el('div', 'grid');
+    g.append(...list.map((c, i) => tile({ label: c.name, icon: iconOf(c), commandId: c.id, index: Math.min(i, 8) })));
+    grid.replaceChildren(g);
+  } else {
+    // A section per letter: quicker to find something among many commands.
+    const groups = new Map();
+    for (const c of list) {
+      const letter = letterOf(c.name);
+      if (!groups.has(letter)) groups.set(letter, []);
+      groups.get(letter).push(c);
+    }
+    let n = 0;
+    grid.replaceChildren(...[...groups].map(([letter, items]) => {
+      const section = el('section', 'letter');
+      const g = el('div', 'grid');
+      g.append(...items.map(c => tile({ label: c.name, icon: iconOf(c), commandId: c.id, index: n++ })));
+      section.append(el('h3', 'section-title', letter), g);
+      return section;
+    }));
+  }
   const empty = $('allEmpty');
   empty.hidden = list.length > 0;
   empty.textContent = q ? t('pwa.noResults', q) : t('pwa.noCommands');
@@ -545,6 +772,7 @@ async function loadCatalog(manual = false) {
   try {
     const catalog = await api('catalog');
     state.lastLoad = Date.now();
+    setOnline(true);
     const json = JSON.stringify(catalog);
     if (json !== state.catalogJson) {
       state.catalogJson = json;
@@ -556,7 +784,10 @@ async function loadCatalog(manual = false) {
     }
     if (manual) toast('ok', t('pwa.refreshed'), '', 1500);
   } catch (e) {
-    if (!(e instanceof Unpaired)) toast('error', t('pwa.offline'), '', 3000);
+    if (!(e instanceof Unpaired)) {
+      setOnline(false);
+      toast('error', t('pwa.offline'), '', 3000);
+    }
   } finally {
     button.classList.remove('spin');
   }
@@ -581,6 +812,7 @@ function fillSession(s = state.session) {
   $('deviceName').textContent = s.device?.name ?? '';
   $('connectedTo').textContent = t('pwa.settings.connected', s.machine);
   $('version').textContent = s.app;
+  if (!$('machine').textContent) $('machine').textContent = s.machine;
   // This same PC needs no pairing, so there is nothing to undo.
   $('unpairButton').hidden = !!s.local;
   $('padSettings').hidden = s.input === false;
@@ -595,11 +827,13 @@ let events = null;
 function startEvents() {
   if (events || !window.EventSource || document.visibilityState !== 'visible') return;
   events = new EventSource('api/events');
+  events.addEventListener('open', () => setOnline(true));
   events.addEventListener('catalog', () => loadCatalog());
   events.addEventListener('session', () => loadSession());
   events.addEventListener('error', () => {
     // A refused stream (unpaired, too many) is not retried by the browser.
     if (events?.readyState === EventSource.CLOSED) events = null;
+    else setOnline(null);
   });
 }
 
@@ -647,6 +881,7 @@ async function loadSession() {
 }
 
 async function connect() {
+  setOnline(null);
   try {
     state.session = await api('session');
     store.set('session', state.session);
@@ -657,6 +892,7 @@ async function connect() {
   } catch (e) {
     if (e instanceof Unpaired) return;
     // K-Desktop not reachable: the cached commands are still shown.
+    setOnline(false);
     if (state.catalog) showShell();
     toast('error', t('pwa.offline'), '', 3500);
   }
@@ -670,7 +906,7 @@ function deviceName() {
     : /Windows/.test(ua) ? 'Windows' : /Mac OS/.test(ua) ? 'Mac' : /Linux/.test(ua) ? 'Linux' : 'Web';
   const model = /Android[^;)]*;\s*([^;)]+?)(?:\s+Build\/|\))/.exec(ua)?.[1];
   if (model && model.length > 2) os = model;
-  const browser = /EdgA?\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /SamsungBrowser/.test(ua) ? 'Samsung Internet'
+  const browser = /KDesktopApp/.test(ua) ? 'App' : /EdgA?\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /SamsungBrowser/.test(ua) ? 'Samsung Internet'
     : /Firefox|FxiOS/.test(ua) ? 'Firefox' : /Chrome|CriOS/.test(ua) ? 'Chrome' : /Safari/.test(ua) ? 'Safari' : '';
   return browser ? `${os} · ${browser}` : os;
 }
@@ -750,6 +986,42 @@ async function unpair() {
 
 // ── wiring ─────────────────────────────────────────────────────────
 
+function wireDial() {
+  const dial = $('dial');
+  const set = e => {
+    const v = dialValue(e);
+    if (v === Number($('volumeSlider').value)) return;
+    if (v % 10 === 0) navigator.vibrate?.(3);
+    setVolumeUi(v);
+    sendVolume(v);
+  };
+  dial.addEventListener('pointerdown', e => {
+    // Only the ring: the centre has the mute button.
+    const r = dial.getBoundingClientRect();
+    const dist = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2));
+    if (dist < r.width * 0.3) return;
+    dial.setPointerCapture(e.pointerId);
+    audio.dragging = true;
+    dial.classList.add('dragging');
+    set(e);
+  });
+  dial.addEventListener('pointermove', e => { if (dial.hasPointerCapture(e.pointerId)) set(e); });
+  const end = e => {
+    if (!dial.hasPointerCapture?.(e.pointerId)) return;
+    dial.releasePointerCapture(e.pointerId);
+    audio.dragging = false;
+    dial.classList.remove('dragging');
+  };
+  dial.addEventListener('pointerup', end);
+  dial.addEventListener('pointercancel', end);
+  dial.addEventListener('keydown', e => {
+    const step = { ArrowUp: 2, ArrowRight: 2, ArrowDown: -2, ArrowLeft: -2, PageUp: 10, PageDown: -10 }[e.key];
+    if (!step) return;
+    e.preventDefault();
+    stepVolume(step);
+  });
+}
+
 function wire() {
   for (const e of document.querySelectorAll('[data-icon]')) e.innerHTML = svg(e.dataset.icon);
   setupPad({ t, store, svg, toast, onUnpaired: () => showPair() });
@@ -758,24 +1030,29 @@ function wire() {
     b.addEventListener('click', () => {
       navigator.vibrate?.(4);
       if (b.dataset.tab === state.tab && state.tab === 'menus' && state.path.length) {
-        state.path = [];
-        renderMenus('back');
+        goToDepth(0);
+        return;
+      }
+      if (b.dataset.tab === state.tab) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
       setTab(b.dataset.tab);
     });
 
   $('refreshButton').addEventListener('click', () => loadCatalog(true));
+  $('connPill').addEventListener('click', () => connect());
   $('reloadButton').addEventListener('click', () => loadCatalog(true));
   $('backButton').addEventListener('click', () => history.back());
   window.addEventListener('popstate', () => closeSubmenu());
+  window.addEventListener('scroll', updateHeader, { passive: true });
 
   const search = $('searchBox');
   search.addEventListener('input', renderAll);
   search.addEventListener('keydown', e => {
     if (e.key !== 'Enter' || !shownAll.length) return;
     e.preventDefault();
-    $('allGrid').firstElementChild?.click();
+    $('allGrid').querySelector('.tile')?.click();
   });
 
   for (const b of $('themeSwitch').querySelectorAll('button'))
@@ -798,17 +1075,7 @@ function wire() {
   });
   $('unpairButton').addEventListener('click', unpair);
 
-  const slider = $('volumeSlider');
-  slider.addEventListener('pointerdown', () => { audio.dragging = true; });
-  slider.addEventListener('input', () => {
-    setVolumeUi(Number(slider.value));
-    sendVolume(Number(slider.value));
-  });
-  slider.addEventListener('change', () => {
-    audio.dragging = false;
-    sendVolume(Number(slider.value));
-  });
-  window.addEventListener('pointerup', () => { audio.dragging = false; });
+  wireDial();
   $('volDown').addEventListener('click', () => stepVolume(-2));
   $('volUp').addEventListener('click', () => stepVolume(2));
   $('muteButton').addEventListener('click', () => {
@@ -816,6 +1083,7 @@ function wire() {
     const muted = !audio.state?.muted;
     $('volumeCard').classList.toggle('muted', muted);
     $('muteButton').innerHTML = svg(muted ? 'speakerOff' : 'speaker');
+    if (audio.state) audio.state.muted = muted;
     changeAudio({ muted });
   });
   for (const b of document.querySelectorAll('[data-media]'))

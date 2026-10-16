@@ -1,6 +1,6 @@
 // K-Desktop service worker: the app opens even when the PC is off (with the last commands it saw),
 // new versions arrive at once (network first), and command icons are kept (their names are content hashes).
-const SHELL = 'kd-shell-v2';
+const SHELL = 'kd-shell-v3';
 const ICONS = 'kd-icons-v1';
 const FILES = ['./', 'app.css', 'app.js', 'fuzzy.js', 'pad.js', 'manifest.webmanifest',
   'icons/favicon.png', 'icons/icon-192.png', 'icons/apple-touch-icon.png'];

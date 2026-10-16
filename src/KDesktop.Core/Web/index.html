@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <meta name="color-scheme" content="light dark">
-  <meta name="theme-color" content="#1c1c1e">
+  <meta name="theme-color" content="#0e0e10">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -17,10 +17,13 @@
   <script type="module" src="app.js"></script>
 </head>
 <body>
+  <!-- Slow golden light behind the glass surfaces -->
+  <div class="ambient" aria-hidden="true"><i></i><i></i><i></i></div>
+
   <!-- Pairing -->
   <section class="pair" id="pair" hidden>
     <div class="pair-card">
-      <img class="pair-logo" src="icons/icon-192.png" alt="">
+      <div class="pair-logo"><img src="icons/icon-192.png" alt=""></div>
       <h1 data-i18n="pwa.pair.title"></h1>
       <p class="muted" data-i18n="pwa.pair.text"></p>
       <form id="pairForm" autocomplete="off">
@@ -40,23 +43,23 @@
 
   <!-- App -->
   <div class="shell" id="shell" hidden>
-    <header class="top">
-      <div class="brand">
-        <img src="icons/favicon.png" alt="">
-        <div>
-          <h1>K-Desktop</h1>
-          <small id="machine"></small>
-        </div>
-      </div>
+    <header class="top" id="top">
+      <img class="brand-mark" src="icons/favicon.png" alt="">
+      <span class="top-title" id="smallTitle"></span>
+      <button class="conn" id="connPill" data-state="connecting">
+        <i></i><span id="machine"></span>
+      </button>
       <button class="icon-btn" id="refreshButton" data-i18n-title="pwa.settings.refresh" data-icon="refresh"></button>
     </header>
 
     <main class="views">
+      <h1 class="big-title" id="bigTitle"></h1>
+
       <section class="view" data-view="menus">
         <nav class="chips" id="menuChips"></nav>
         <div class="crumbs" id="crumbs" hidden>
-          <button class="icon-btn small" id="backButton" data-i18n-title="pwa.back" data-icon="back"></button>
-          <span id="crumbTitle"></span>
+          <button class="crumb-back" id="backButton" data-i18n-title="pwa.back" data-icon="back"></button>
+          <div class="crumb-path" id="crumbPath"></div>
         </div>
         <div class="stack" id="menuStack"></div>
       </section>
@@ -64,10 +67,14 @@
       <section class="view" data-view="all">
         <div class="search">
           <span class="search-icon" data-icon="search"></span>
-          <input id="searchBox" type="search" enterkeyhint="go" data-i18n-placeholder="pwa.search">
+          <input id="searchBox" type="search" enterkeyhint="go" autocomplete="off" data-i18n-placeholder="pwa.search">
+          <span class="count" id="allCount"></span>
         </div>
-        <p class="count muted" id="allCount"></p>
-        <div class="grid" id="allGrid"></div>
+        <div class="top-strip" id="topStrip" hidden>
+          <h3 class="section-title" data-i18n="pwa.mostUsed"></h3>
+          <div class="strip" id="topList"></div>
+        </div>
+        <div id="allGrid"></div>
         <p class="empty" id="allEmpty" hidden></p>
       </section>
 
@@ -84,6 +91,7 @@
           <div class="keys-row" id="keysNav"></div>
         </div>
         <div class="pad" id="pad">
+          <div class="pad-glow" aria-hidden="true"></div>
           <p class="pad-hint" id="padHint" data-i18n="pwa.pad.hint"></p>
           <span class="pad-drag" id="padDrag" data-i18n="pwa.pad.dragging"></span>
         </div>
@@ -99,19 +107,32 @@
 
       <section class="view" data-view="audio">
         <div class="card volume-card" id="volumeCard">
-          <div class="volume-head">
-            <button class="mute-btn" id="muteButton"></button>
-            <div class="volume-value"><b id="volumeValue">–</b><span>%</span></div>
+          <div class="dial" id="dial" role="slider" aria-valuemin="0" aria-valuemax="100" tabindex="0">
+            <svg viewBox="0 0 220 220" aria-hidden="true">
+              <defs>
+                <linearGradient id="dialGradient" x1="0" y1="1" x2="1" y2="0">
+                  <stop offset="0" stop-color="#f7b32b" />
+                  <stop offset="1" stop-color="#ffd970" />
+                </linearGradient>
+              </defs>
+              <circle class="dial-track" cx="110" cy="110" r="92" pathLength="100" />
+              <circle class="dial-fill" id="dialFill" cx="110" cy="110" r="92" pathLength="100" />
+              <circle class="dial-knob" id="dialKnob" cx="110" cy="18" r="11" />
+            </svg>
+            <div class="dial-center">
+              <div class="volume-value"><b id="volumeValue">–</b><span>%</span></div>
+              <button class="mute-btn" id="muteButton"></button>
+            </div>
           </div>
           <div class="volume-row">
-            <button class="icon-btn" id="volDown" data-icon="minus" aria-label="−"></button>
+            <button class="round-btn" id="volDown" data-icon="minus" aria-label="−"></button>
             <input type="range" id="volumeSlider" min="0" max="100" step="1" value="0">
-            <button class="icon-btn" id="volUp" data-icon="plus" aria-label="+"></button>
+            <button class="round-btn" id="volUp" data-icon="plus" aria-label="+"></button>
           </div>
           <div class="media-row">
-            <button class="icon-btn" data-media="previous" data-icon="previous" data-i18n-title="pwa.audio.previous"></button>
-            <button class="icon-btn play" data-media="playPause" data-icon="playPause" data-i18n-title="pwa.audio.playPause"></button>
-            <button class="icon-btn" data-media="next" data-icon="next" data-i18n-title="pwa.audio.next"></button>
+            <button class="round-btn" data-media="previous" data-icon="previous" data-i18n-title="pwa.audio.previous"></button>
+            <button class="round-btn play" data-media="playPause" data-icon="playPause" data-i18n-title="pwa.audio.playPause"></button>
+            <button class="round-btn" data-media="next" data-icon="next" data-i18n-title="pwa.audio.next"></button>
           </div>
         </div>
         <h3 class="section-title" data-i18n="pwa.audio.output"></h3>
@@ -119,10 +140,19 @@
       </section>
 
       <section class="view" data-view="settings">
-        <div class="card">
-          <h2 data-i18n="pwa.settings.appearance"></h2>
+        <div class="device-hero card">
+          <span class="device-avatar" data-icon="phone"></span>
+          <div>
+            <p class="device-name" id="deviceName"></p>
+            <p class="muted" id="connectedTo"></p>
+          </div>
+        </div>
+
+        <h3 class="section-title" data-i18n="pwa.settings.appearance"></h3>
+        <div class="group">
           <div class="row">
-            <span data-i18n="pwa.settings.theme"></span>
+            <span class="row-icon" data-icon="theme"></span>
+            <span class="row-label" data-i18n="pwa.settings.theme"></span>
             <div class="segmented" id="themeSwitch">
               <button data-theme="system" data-i18n="pwa.theme.system"></button>
               <button data-theme="light" data-i18n="pwa.theme.light"></button>
@@ -130,42 +160,63 @@
               <span class="seg-pill"></span>
             </div>
           </div>
-          <div class="row">
-            <span data-i18n="pwa.settings.language"></span>
+          <label class="row">
+            <span class="row-icon" data-icon="language"></span>
+            <span class="row-label" data-i18n="pwa.settings.language"></span>
             <select id="langSelect"></select>
+          </label>
+        </div>
+
+        <div id="padSettings">
+          <h3 class="section-title" data-i18n="pwa.tab.pad"></h3>
+          <div class="group">
+            <label class="row slider-row">
+              <span class="row-icon" data-icon="pointer"></span>
+              <span class="row-label" data-i18n="pwa.pad.speed"></span>
+              <input type="range" id="padSpeed" min="0.5" max="4" step="0.1">
+            </label>
+            <label class="row slider-row">
+              <span class="row-icon" data-icon="scroll"></span>
+              <span class="row-label" data-i18n="pwa.pad.scrollSpeed"></span>
+              <input type="range" id="padScroll" min="0.5" max="4" step="0.1">
+            </label>
+            <label class="row">
+              <span class="row-icon" data-icon="natural"></span>
+              <span class="row-label" data-i18n="pwa.pad.natural"></span>
+              <input type="checkbox" class="switch" id="padNatural">
+            </label>
+            <label class="row">
+              <span class="row-icon" data-icon="tap"></span>
+              <span class="row-label" data-i18n="pwa.pad.tapClick"></span>
+              <input type="checkbox" class="switch" id="padTap">
+            </label>
           </div>
         </div>
-        <div class="card" id="padSettings">
-          <h2 data-i18n="pwa.tab.pad"></h2>
-          <label class="row slider-row">
-            <span data-i18n="pwa.pad.speed"></span>
-            <input type="range" id="padSpeed" min="0.5" max="4" step="0.1">
-          </label>
-          <label class="row slider-row">
-            <span data-i18n="pwa.pad.scrollSpeed"></span>
-            <input type="range" id="padScroll" min="0.5" max="4" step="0.1">
-          </label>
-          <label class="row">
-            <span data-i18n="pwa.pad.natural"></span>
-            <input type="checkbox" class="switch" id="padNatural">
-          </label>
-          <label class="row">
-            <span data-i18n="pwa.pad.tapClick"></span>
-            <input type="checkbox" class="switch" id="padTap">
-          </label>
+
+        <h3 class="section-title" data-i18n="pwa.settings.device"></h3>
+        <div class="group">
+          <button class="row row-button" id="reloadButton">
+            <span class="row-icon" data-icon="refresh"></span>
+            <span class="row-label" data-i18n="pwa.settings.refresh"></span>
+            <span class="row-chevron" data-icon="chevron"></span>
+          </button>
+          <button class="row row-button accent" id="installButton" hidden>
+            <span class="row-icon" data-icon="install"></span>
+            <span class="row-label" data-i18n="pwa.install"></span>
+            <span class="row-chevron" data-icon="chevron"></span>
+          </button>
+          <button class="row row-button danger" id="unpairButton">
+            <span class="row-icon" data-icon="unlink"></span>
+            <span class="row-label" data-i18n="pwa.settings.unpair"></span>
+          </button>
         </div>
-        <div class="card">
-          <h2 data-i18n="pwa.settings.device"></h2>
-          <p class="device-name" id="deviceName"></p>
-          <p class="muted" id="connectedTo"></p>
-          <div class="buttons">
-            <button class="btn" id="reloadButton" data-i18n="pwa.settings.refresh"></button>
-            <button class="btn danger" id="unpairButton" data-i18n="pwa.settings.unpair"></button>
-            <button class="btn primary" id="installButton" data-i18n="pwa.install" hidden></button>
-          </div>
+        <p class="muted center small" id="iosHint" data-i18n="pwa.installIos" hidden></p>
+
+        <div class="about">
+          <img src="icons/icon-192.png" alt="">
+          <b id="version"></b>
+          <span class="muted" data-i18n="pwa.tagline"></span>
         </div>
-        <p class="muted center" id="iosHint" data-i18n="pwa.installIos" hidden></p>
-        <p class="muted center" id="version"></p>
       </section>
     </main>
 
