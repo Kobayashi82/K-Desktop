@@ -200,7 +200,7 @@ public partial class AchievementsPage : UserControl, IDisposable
         [
             (Loc.T("stat.commands.run"), d.Get(Stat.CommandsRun), "Flash24"),
             (Loc.T("stat.actions.run"), d.Get(Stat.ActionsRun), "Rocket24"),
-            (Loc.T("stat.menus.opened"), d.Get(Stat.MenusOpened), "Navigation24"),
+            (Loc.T("stat.menus.opened"), d.Get(Stat.MenusOpened), "TextBulletListTree24"),
             (Loc.T("stats.days"), days, "CalendarStar24"),
         ];
         foreach (var (label, value, symbol) in tiles)

@@ -43,7 +43,7 @@ public static class AchievementCatalog
     {
         "commands" => "Flash24",
         "actions" => "Rocket24",
-        "menus" => "Navigation24",
+        "menus" => "TextBulletListTree24",
         "events" => "FlashFlow24",
         "macros" => "Record24",
         "kboard" => "KeyboardLayoutFloat24",

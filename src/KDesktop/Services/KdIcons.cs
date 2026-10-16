@@ -74,7 +74,7 @@ public static class KdIcons
 
         Add("apps", "blue", "Apps24", "AppsList24", "Window24", "WindowApps24", "WindowNew24", "TabDesktop24", "Open24");
         Add("apps", "gold", "Flash24", "Star24", "Sparkle24", "Rocket24", "Lightbulb24", "Trophy24");
-        Add("apps", "indigo", "Navigation24", "Grid24", "Board24", "PanelLeft24", "MoreHorizontal24");
+        Add("apps", "indigo", "Navigation24", "TextBulletListTree24", "Grid24", "Board24", "PanelLeft24", "MoreHorizontal24");
         Add("apps", "red", "Heart24", "Fire24", "Record24", "Pin24");
         Add("apps", "purple", "Bot24", "BrainCircuit24", "Cube24", "Diamond24", "Gift24");
 

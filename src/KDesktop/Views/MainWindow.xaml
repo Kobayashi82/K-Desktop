@@ -101,7 +101,7 @@
                     </ListBoxItem>
                     <ListBoxItem Tag="quickmenus">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Navigation24" FontSize="18" />
+                            <ui:SymbolIcon Symbol="TextBulletListTree24" FontSize="18" />
                             <TextBlock Text="{l:Tr nav.quickmenu}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
