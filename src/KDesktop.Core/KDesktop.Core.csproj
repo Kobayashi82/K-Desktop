@@ -14,6 +14,8 @@
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Managed" Version="1.28.0" />
     <!-- SpeexDSP's echo canceller (native only; Voice/EchoCanceller.cs). BSD (Xiph.org). -->
     <PackageReference Include="SpeexDSPSharp.Natives" Version="1.3.0" />
+    <!-- SentencePiece tokenizer of EmbeddingGemma (Voice/TextEmbedder.cs). MIT (.NET Foundation). -->
+    <PackageReference Include="Microsoft.ML.Tokenizers" Version="2.0.1" />
   </ItemGroup>
 
   <!-- Built-in languages and sounds travel inside the assembly (and so inside the single-file exe).

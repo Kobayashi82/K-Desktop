@@ -7,9 +7,11 @@ using NAudio.Wave.SampleProviders;
 namespace KDesktop.Core.Voice;
 
 /// <summary>
-/// <c>KDesktop.exe --voice-test a.wav carpeta "abre la papelera" …</c>: transcribes each .wav (or every .wav of a
-/// folder) and matches it, or matches a phrase given as text, against the real commands. No microphone, no UI; the
-/// report goes to Logs\voice-test.txt.
+/// <c>KDesktop.exe --voice-test a.wav carpeta "abre la papelera" pruebas.txt …</c>: transcribes each .wav (or every
+/// .wav of a folder) and matches it, or matches a phrase given as text, against the real commands (words and, with
+/// its model, meaning). A .txt is an evaluation: one «frase => Comando» per line («=> -» when nothing should run, «=>
+/// #Pause» for a built-in order), with the hits, the wrong ones and the time per order at the end. No microphone, no
+/// UI; the report goes to Logs\voice-test.txt.
 /// </summary>
 public static class VoiceDiagnostics
 {
@@ -19,14 +21,22 @@ public static class VoiceDiagnostics
         var commands = VoiceService.VoiceCommands(config).ToList();
         report.AppendLine($"K-Desktop · prueba de voz · {DateTime.Now:g} · {commands.Count} comandos disponibles por voz");
         using var stt = new SpeechToText();
+        using var semantic = new SemanticMatcher();
+        report.AppendLine(SemanticMatcher.Available ? "Capa de significado: EmbeddingGemma" : "Capa de significado: sin instalar (solo las palabras)");
+        IntentPlan Plan(string text) => IntentMatcher.Plan(text, commands, config.Settings.VoiceMedia, semantic);
         foreach (var input in inputs)
         {
+            if (input.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) && File.Exists(input))
+            {
+                Evaluate(report, input, Plan);
+                continue;
+            }
             var files = Directory.Exists(input) ? Directory.GetFiles(input, "*.wav").Order().ToArray()
                       : File.Exists(input) ? [input] : null;
             if (files is null)
             {
                 report.AppendLine().AppendLine($"Frase: «{input}»");
-                Describe(report, IntentMatcher.Plan(input, commands, config.Settings.VoiceMedia));
+                Describe(report, Plan(input));
                 continue;
             }
             foreach (var file in files)
@@ -38,7 +48,7 @@ public static class VoiceDiagnostics
                     var watch = Stopwatch.StartNew();
                     var text = stt.Transcribe(samples);
                     report.AppendLine($"  Texto: «{text}» ({samples.Length / (double)MicCapture.SampleRate:0.0} s, {watch.ElapsedMilliseconds} ms)");
-                    Describe(report, IntentMatcher.Plan(text, commands, config.Settings.VoiceMedia));
+                    Describe(report, Plan(text));
                 }
                 catch (Exception ex)
                 {
@@ -191,10 +201,41 @@ public static class VoiceDiagnostics
         return output;
     }
 
+    /// <summary>One «frase => Comando» per line: what is run for each, and the totals.</summary>
+    private static void Evaluate(StringBuilder report, string file, Func<string, IntentPlan> plan)
+    {
+        report.AppendLine().AppendLine($"Evaluación: {Path.GetFileName(file)}");
+        int right = 0, wrong = 0, missed = 0, quiet = 0;
+        var times = new List<long>();
+        foreach (var line in File.ReadAllLines(file))
+        {
+            var cut = line.IndexOf("=>", StringComparison.Ordinal);
+            if (line.TrimStart().StartsWith('#') || cut < 0) continue;
+            var (text, expected) = (line[..cut].Trim(), line[(cut + 2)..].Trim());
+            var nothing = expected is "-" or "";
+            var watch = Stopwatch.StartNew();
+            var result = plan(text);
+            times.Add(watch.ElapsedMilliseconds);
+            var got = result.Parts.Count == 0 ? null : result.Parts[0].Winner!;
+            var gotName = got is null ? "-" : got.Media is { } m ? "#" + m.Kind : got.Command!.Name;
+            string mark;
+            if (got is null) (mark, missed, quiet) = nothing ? ("ok ", missed, quiet + 1) : ("---", missed + 1, quiet);
+            else if (string.Equals(gotName, expected, StringComparison.OrdinalIgnoreCase)) (mark, right) = ("OK ", right + 1);
+            else (mark, wrong) = ("MAL", wrong + 1);
+            var how = got is null ? "" : got.Semantic ? " ≈" : " =";
+            report.AppendLine($"  {mark}{how} «{text}» → {gotName} {(got?.Score ?? result.Whole.Confidence):0.00}" +
+                              (mark is "MAL" or "---" && !nothing ? $" (quería {expected})" : mark == "MAL" ? " (no debía hacer nada)" : "") +
+                              (result.Whole.Note is { } note && mark is "MAL" or "---" ? $"  [{note}]" : ""));
+        }
+        report.AppendLine($"  Total: {right} bien, {wrong} mal, {missed} sin entender, {quiet} sin hacer nada (bien); " +
+                          $"{(times.Count > 1 ? times.Skip(1).Average() : 0):0} ms por orden");
+    }
+
     private static void Describe(StringBuilder report, IntentPlan plan)
     {
-        report.AppendLine($"  Comando: {(plan.Parts.Count == 0 ? "(ninguno)" : string.Join(" + ", plan.Parts.Select(p => p.Winner!.Name)))}");
+        report.AppendLine($"  Comando: {(plan.Parts.Count == 0 ? "(ninguno)" : string.Join(" + ", plan.Parts.Select(p => p.Winner!.Describe)))}");
         foreach (var c in plan.Whole.Candidates) report.AppendLine($"    {c.Score:0.000}  {c.Describe}");
+        if (plan.Whole.Note is { } note) report.AppendLine($"    {note}");
         if (plan.Parts.Count > 1 || plan.Unmatched.Count > 0)
         {
             foreach (var part in plan.Parts) report.AppendLine($"    parte «{part.Text}» → {part.Winner!.Name} {part.Confidence:0.000}");

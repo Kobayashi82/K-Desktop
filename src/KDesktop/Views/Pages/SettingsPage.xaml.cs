@@ -162,17 +162,19 @@ public partial class SettingsPage : UserControl
     {
         var download = _app.Voice.Models;
         var ready = VoiceModels.AllInstalled;
+        // The meaning model is optional (the rest works without it) but it is offered with the others.
+        var complete = VoiceModels.Complete;
         var installed = ModelDownloader.InstalledSize();
         VoiceModelsText.Text = download.IsDownloading
             ? Loc.T("settings.voiceDownloading", Megabytes(download.Done), Megabytes(ModelDownloader.TotalSize))
-            : ready ? Loc.T("settings.voiceInstalled", Megabytes(installed))
+            : complete ? Loc.T("settings.voiceInstalled", Megabytes(installed))
             // Some already there (e.g. after an update adds a model): only the rest is downloaded.
             : (installed > 0 ? Loc.T("settings.voicePartial", Megabytes(Math.Max(1048576, ModelDownloader.TotalSize - installed)))
                              : Loc.T("settings.voiceMissing", Megabytes(ModelDownloader.TotalSize))) +
               (download.Error is { } error ? " " + Loc.T("settings.voiceLastError", error) : "");
         VoiceProgress.Visibility = download.IsDownloading ? Visibility.Visible : Visibility.Collapsed;
         VoiceProgress.Value = (double)download.Done / ModelDownloader.TotalSize;
-        VoiceDownloadButton.Visibility = !download.IsDownloading && !ready ? Visibility.Visible : Visibility.Collapsed;
+        VoiceDownloadButton.Visibility = !download.IsDownloading && !complete ? Visibility.Visible : Visibility.Collapsed;
         VoiceCancelButton.Visibility = download.IsDownloading ? Visibility.Visible : Visibility.Collapsed;
         VoiceDeleteButton.Visibility = !download.IsDownloading && installed > 0 ? Visibility.Visible : Visibility.Collapsed;
         // Recording a wake word needs the models (silence detection and transcription).

@@ -129,6 +129,16 @@ public static class MediaOrders
         }
     }
 
+    /// <summary>The ways of saying each order in one language, as written in its file (for the meaning layer).</summary>
+    public static Dictionary<MediaOrderKind, List<string>> Sentences(string language)
+    {
+        var result = new Dictionary<MediaOrderKind, List<string>>();
+        foreach (var (key, value) in Loc.Strings(language, "voice.media."))
+            if (Enum.TryParse<MediaOrderKind>(key["voice.media.".Length..], out var kind))
+                result[kind] = value.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+        return result;
+    }
+
     /// <summary>The media orders that fit <paramref name="text"/>, best first (at most one per kind).</summary>
     public static List<MediaCandidate> Match(string text)
     {

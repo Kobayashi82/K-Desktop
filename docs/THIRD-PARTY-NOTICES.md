@@ -44,3 +44,14 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
+
+## Modelos que se descargan aparte
+
+No van dentro del ejecutable: se descargan desde Opciones › Voz a la carpeta `Models` de los datos.
+
+- **EmbeddingGemma 300M** (Google; versión ONNX int8 de
+  [onnx-community/embeddinggemma-300m-ONNX](https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX)): la capa
+  de significado de las órdenes de voz (`Voice/TextEmbedder.cs`, `Voice/SemanticMatcher.cs`). Se distribuye bajo los
+  [Gemma Terms of Use](https://ai.google.dev/gemma/terms) y su
+  [política de uso prohibido](https://ai.google.dev/gemma/prohibited_use_policy).
+- Parakeet TDT 0.6B v3 (NVIDIA, CC BY 4.0), Silero VAD (MIT) y los modelos de openWakeWord (Apache 2.0).

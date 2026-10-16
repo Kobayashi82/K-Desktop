@@ -301,7 +301,32 @@ embeddings multilingües → LLM opcional) y siete etapas con su commit cada una
       siguiente y anterior valen para «vídeo», «película», «serie», «capítulo»… (`voice.media.things`). El número solo
       cuenta para el volumen («Siete la música» ponía música: «siete» se quitaba como número). «Cierra la música» con
       el reproductor en la bandeja (5.0.7): orden de salida de AIMP / Winamp.
-- [ ] Etapa 5: capa de embeddings.
+- [x] **Etapa 5: capa de significado** (2026-10-16, 5.0.9). Si las palabras no nombran un comando claro, se mira qué
+      quiere decir la orden: «limpia la papelera» → Vaciar Papelera, «monta la bóveda» → Vault Mount, «cierra kokoro»
+      → Kokoro - Close, «vide la corbeille», «haz que suene más bajo», «déjalo, no lo hagas» (cancela)… sin
+      sinónimos por comando.
+      · **Modelo**: EmbeddingGemma 300M (Google, Gemma Terms of Use), int8 ONNX de onnx-community (309 MB, se descarga
+      con los demás; opcional: sin él solo cuentan las palabras y la palabra de activación sigue funcionando).
+      `TextEmbedder`: tokenizador SentencePiece (Microsoft.ML.Tokenizers 2.0.1, `<bos>`…`<eos>`), salida
+      `sentence_embedding`, ~65 ms por orden en CPU; se carga mientras hablas y se descarga tras los minutos sin uso.
+      Comprobado contra la referencia (transformers.js): mismos tokens y coseno 1,00000 en 8 textos (acentos, emoji,
+      japonés).
+      · **Elección medida** con los 115 comandos reales y 50 órdenes dichas de otra forma: multilingual-e5-small 29/50,
+      Granite Embedding R2 97M 26/50 (el mejor de su tamaño en búsqueda, pero con nombres cortos todo le parece
+      ~0,85), EmbeddingGemma 44/50 con el prompt «task: sentence similarity» (búsqueda 41, clasificación 38; q4 es 8×
+      más rápido pero 40/50). Centrar los vectores no ayuda.
+      · **Decisión** (`SemanticMatcher`, `IntentMatcher.MatchMeaning`): el más parecido gana con ≥ 0,62 y 0,02 de
+      ventaja sobre el siguiente; las órdenes integradas (multimedia si están activadas, «cancela» siempre; por sus
+      frases del idioma de la interfaz y del inglés, de dos palabras o más) necesitan 0,80 (sus frases atraían «abre
+      spotify»). Compiten frases «no es mío» (`voice.none`: luces, tele, alarmas, el tiempo, llamadas…; se ignora la
+      que se parezca ≥ 0,88 a un comando del usuario). Vectores de los nombres en `Models\embeddinggemma\anchors.bin`.
+      Lo de Energía encontrado solo por significado no se ejecuta: «¿Apagar Equipo? di el nombre del comando» (etapa 6).
+      · **Evaluación** `--voice-test pruebas.txt` («frase => Comando», «=> -», «=> #Pause»): 93 frases → solo palabras
+      19 bien, 41 sin entender; con significado 44 bien, 0 mal, 17 sin entender, y los 32 negativos sin ejecutar nada.
+      Lo que no entiende es conocimiento del mundo (KeePassXC = gestor de contraseñas, WSL = terminal de Linux) o
+      comandos casi iguales (ComfyUI Output / ComfyUI (Updated) - Output): para eso, la etapa 7 (LLM).
+      Probado de punta a punta con la palabra grabada del usuario + TTS («limpia la papelera»; «déjalo, no lo hagas»
+      cancelando una cuenta atrás lanzada por voz). Sin probar con el micro real.
 - [ ] Etapa 6: seguridad, confirmaciones y estadísticas.
 - [ ] Etapa 7: capa LLM opcional.
 

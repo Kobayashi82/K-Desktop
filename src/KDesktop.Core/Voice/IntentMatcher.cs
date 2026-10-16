@@ -3,17 +3,27 @@ using KDesktop.Core.Model;
 namespace KDesktop.Core.Voice;
 
 /// <summary>One thing an order may ask for: a command, or a built-in media order (<see cref="MediaOrders"/>).</summary>
-public sealed record IntentCandidate(Command? Command, double Score, MediaOrder? Media = null, string? Phrase = null)
+/// <param name="Semantic">Found by its meaning (<see cref="SemanticMatcher"/>), not by its words.</param>
+public sealed record IntentCandidate(Command? Command, double Score, MediaOrder? Media = null, string? Phrase = null, bool Semantic = false)
 {
     public string Name => Media?.Name ?? Command!.Name;
 
-    /// <summary>For the log: a media order with the phrase it matched.</summary>
-    public string Describe => Media is null ? Command!.Name : $"{Media.Name} [{Media.Kind}{(Media.Value is { } v ? " " + v : "")}{(Media.Amount != MediaAmount.Normal ? " " + Media.Amount : "")} · «{Phrase}»]";
+    /// <summary>For the log: a media order with the phrase it matched; «≈» for the meaning.</summary>
+    public string Describe => Media is null
+        ? (Semantic ? "≈" : "") + Command!.Name
+        : $"{(Semantic ? "≈" : "")}{Media.Name} [{Media.Kind}{(Media.Value is { } v ? " " + v : "")}{(Media.Amount != MediaAmount.Normal ? " " + Media.Amount : "")} · «{Phrase}»]";
+
+    /// <summary>
+    /// Found only by meaning and it would turn off, restart or log off the PC: not run without the user saying it by
+    /// its name (a wrong guess there costs too much).
+    /// </summary>
+    public bool NeedsName => Semantic && Command is { } c && c.Actions.Any(a => a is PowerAction { Enabled: true });
 }
 
 /// <param name="Winner">What to run, when there is a clear winner.</param>
 /// <param name="Candidates">Best matches first (at most a few).</param>
-public sealed record IntentResult(string Text, IntentCandidate? Winner, IReadOnlyList<IntentCandidate> Candidates)
+/// <param name="Note">For the log: what the meaning layer said, when it was asked.</param>
+public sealed record IntentResult(string Text, IntentCandidate? Winner, IReadOnlyList<IntentCandidate> Candidates, string? Note = null)
 {
     public double Confidence => Candidates.Count > 0 ? Candidates[0].Score : 0;
 }
@@ -29,9 +39,10 @@ public sealed record IntentPlan(IntentResult Whole, IReadOnlyList<IntentResult> 
 }
 
 /// <summary>
-/// Spoken text → command, first layer: how much of a command's name is in what was said. Words may differ in their
+/// Spoken text → command. First layer: how much of a command's name is in what was said. Words may differ in their
 /// ending («abre» / «abrir»), have small transcription slips, be split or joined («you tube» / YouTube), and filler
-/// words («la», «por favor»…) are ignored. Later layers (embeddings, LLM) come into play when this one is unsure.
+/// words («la», «por favor»…) are ignored. When it names nothing clearly, the second layer: what the order means
+/// (<see cref="SemanticMatcher"/>, when its model is installed). A later LLM layer may come after.
 /// </summary>
 public static class IntentMatcher
 {
@@ -72,14 +83,15 @@ public static class IntentMatcher
     /// commas… and each piece matched on its own.
     /// </summary>
     /// <param name="media">Also the built-in media orders (Settings › Multimedia).</param>
-    public static IntentPlan Plan(string text, IEnumerable<Command> commands, bool media = false)
+    /// <param name="semantic">The meaning layer, or null for the words only.</param>
+    public static IntentPlan Plan(string text, IEnumerable<Command> commands, bool media = false, SemanticMatcher? semantic = null)
     {
         var list = commands as IReadOnlyCollection<Command> ?? commands.ToList();
-        var whole = Match(text, list, media);
+        var whole = Match(text, list, media, semantic);
         if (whole.Winner is not null) return new IntentPlan(whole, [whole], []);
         var pieces = SplitOrders(text);
         if (pieces.Count < 2) return new IntentPlan(whole, [], []);
-        var results = pieces.Select(p => Match(p, list, media)).ToList();
+        var results = pieces.Select(p => Match(p, list, media, semantic)).ToList();
         var matched = results.Where(r => r.Winner is not null).ToList();
         return matched.Count == 0
             ? new IntentPlan(whole, [], [])
@@ -94,7 +106,51 @@ public static class IntentMatcher
             .ToList();
 
 
-    public static IntentResult Match(string text, IEnumerable<Command> commands, bool media = false)
+    public static IntentResult Match(string text, IEnumerable<Command> commands, bool media = false, SemanticMatcher? semantic = null)
+    {
+        var list = commands as IReadOnlyCollection<Command> ?? commands.ToList();
+        var words = MatchWords(text, list, media);
+        return words.Winner is not null || semantic is null || !SemanticMatcher.Available ? words : MatchMeaning(words, list, media, semantic);
+    }
+
+    /// <summary>
+    /// The words named nothing clearly: the closest command in meaning, if close enough and ahead of the next command
+    /// and of the «not mine» phrases. When the words already pointed to the same command, a little less is enough.
+    /// </summary>
+    private static IntentResult MatchMeaning(IntentResult words, IReadOnlyCollection<Command> commands, bool media, SemanticMatcher semantic)
+    {
+        SemanticScores? scores;
+        try
+        {
+            scores = semantic.Score(words.Text, commands, media);
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Error en la capa de significado", ex);
+            return words;
+        }
+        if (scores is not { Ranked: [var top, ..] }) return words;
+        var rival = Math.Max(scores.Ranked.Count > 1 ? scores.Ranked[1].Score : -1, scores.None);
+        var agrees = words.Candidates.FirstOrDefault() is { Score: >= 0.6 } guess
+                     && (top.Command is not null ? guess.Command == top.Command : guess.Media?.Kind == top.Media);
+        var accepted = scores.None < top.Score
+                       && (top.Media is null || top.Score >= SemanticMatcher.AcceptOrder)
+                       && (top.Score >= SemanticMatcher.Accept && top.Score - rival >= SemanticMatcher.Margin
+                           || agrees && top.Score >= SemanticMatcher.Accept - SemanticMatcher.Margin && top.Score > rival);
+        var found = scores.Ranked.Take(3).Select(r => r.Media is { } kind
+            ? new IntentCandidate(null, r.Score, new MediaOrder(kind), r.Anchor, Semantic: true)
+            : new IntentCandidate(r.Command, r.Score, Semantic: true)).ToList();
+        var note = $"significado: {string.Join(", ", found.Select(f => $"{f.Describe} {f.Score:0.00}"))}; «{scores.NonePhrase}» {scores.None:0.00}" +
+                   (accepted ? "" : " → nada");
+        // The winner first; otherwise the words' guesses as before, and what the meaning suggests after them (nothing
+        // when an everyday «not mine» request was closer: «¿Querías decir Apagar Equipo?» for «apaga la tele» is no help).
+        List<IntentCandidate> candidates = accepted ? [found[0], .. words.Candidates, .. found.Skip(1)]
+            : scores.None >= top.Score ? [.. words.Candidates]
+            : [.. words.Candidates, .. found];
+        return new IntentResult(words.Text, accepted ? found[0] : null, candidates, note);
+    }
+
+    private static IntentResult MatchWords(string text, IEnumerable<Command> commands, bool media)
     {
         var spoken = Content(TextSimilarity.Words(text));
         if (spoken.Length == 0) return new IntentResult(text, null, []);

@@ -138,7 +138,7 @@ public partial class App : Application
             Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
             WakeListener.Refresh();
             if (Voice.Models.Error is { } error) Ui.ShowOsd(Loc.T("voice.downloadError", error), OsdKind.Warning, TimeSpan.FromSeconds(5));
-            else if (Core.Voice.VoiceModels.AllInstalled) Ui.ShowOsd(Loc.T("voice.downloaded"), OsdKind.Success);
+            else if (Core.Voice.VoiceModels.Complete) Ui.ShowOsd(Loc.T("voice.downloaded"), OsdKind.Success);
         };
         QuickMenus = new QuickMenuController(() => Config, Engine);
         Ui.QuickMenus = QuickMenus;

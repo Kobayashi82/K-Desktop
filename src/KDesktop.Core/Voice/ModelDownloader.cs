@@ -14,6 +14,8 @@ public sealed class ModelDownloader
 {
     private const string Parakeet = "https://huggingface.co/csukuangfj/sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8/resolve/main/";
 
+    private const string EmbeddingGemma = "https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX/resolve/5090578d9565bb06545b4552f76e6bc2c93e4a66/";
+
     private const string OpenWakeWord = "https://github.com/dscripka/openWakeWord/releases/download/v0.5.1/";
 
     public static IReadOnlyList<ModelFile> Files { get; } =
@@ -26,6 +28,9 @@ public sealed class ModelDownloader
         new(Parakeet + "decoder.int8.onnx", VoiceModels.ParakeetDecoder, 11_845_275, "179e50c43d1a9de79c8a24149a2f9bac6eb5981823f2a2ed88d655b24248db4e"),
         new(Parakeet + "joiner.int8.onnx", VoiceModels.ParakeetJoiner, 6_355_277, "3164c13fc2821009440d20fcb5fdc78bff28b4db2f8d0f0b329101719c0948b3"),
         new(Parakeet + "encoder.int8.onnx", VoiceModels.ParakeetEncoder, 652_184_281, "acfc2b4456377e15d04f0243af540b7fe7c992f8d898d751cf134c3a55fd2247"),
+        new(EmbeddingGemma + "tokenizer.model", VoiceModels.EmbeddingTokenizer, 4_689_074, "1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c"),
+        new(EmbeddingGemma + "onnx/model_quantized.onnx", VoiceModels.EmbeddingModel, 567_874, "172efde319fe1542dc41f31be6154910b05b78f7a861c265c4600eec906bd6d8"),
+        new(EmbeddingGemma + "onnx/model_quantized.onnx_data", VoiceModels.EmbeddingWeights, 308_890_624, "705626e28e4c23c82ade34566b4197d97f534c12275fa406dfb71e9937d388c0"),
     ];
 
     public static long TotalSize => Files.Sum(f => f.Size);
@@ -92,12 +97,15 @@ public sealed class ModelDownloader
             TryDelete(file.Path);
             TryDelete(file.Path + ".part");
         }
-        try
+        TryDelete(SemanticMatcher.CacheFile);
+        foreach (var dir in new[] { VoiceModels.ParakeetDir, VoiceModels.EmbeddingDir })
         {
-            if (Directory.Exists(VoiceModels.ParakeetDir) && !Directory.EnumerateFileSystemEntries(VoiceModels.ParakeetDir).Any())
-                Directory.Delete(VoiceModels.ParakeetDir);
+            try
+            {
+                if (Directory.Exists(dir) && !Directory.EnumerateFileSystemEntries(dir).Any()) Directory.Delete(dir);
+            }
+            catch { /* not empty or in use */ }
         }
-        catch { /* not empty or in use */ }
     }
 
     private async Task DownloadAllAsync(CancellationToken token)

@@ -45,7 +45,9 @@ public sealed partial class VoiceService
                 case MediaOrderKind.MusicOff:
                     return await MusicOffAsync(settings).ConfigureAwait(false);
                 case MediaOrderKind.Cancel:
-                    return CancelPending?.Invoke() == true
+                    var cancelled = CancelPending?.Invoke() == true;
+                    Log.Info(cancelled ? "Voz: cancelado lo que estaba en marcha" : "Voz: «cancela» sin nada que cancelar");
+                    return cancelled
                         ? (Loc.T("voice.media.done.Cancel"), OsdKind.Success)
                         : (Loc.T("voice.media.nothingToCancel"), OsdKind.Info);
             }

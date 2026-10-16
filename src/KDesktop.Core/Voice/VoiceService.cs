@@ -37,6 +37,9 @@ public sealed partial class VoiceService : IDisposable
 
     public SpeechToText SpeechToText { get; } = new();
 
+    /// <summary>What an order means, when the words name no command (optional model, <see cref="SemanticMatcher"/>).</summary>
+    public SemanticMatcher Semantic { get; } = new();
+
     /// <summary>The wake words recorded by the user (Settings › Voice).</summary>
     public WakeWordStore WakeWords { get; } = new();
 
@@ -47,6 +50,7 @@ public sealed partial class VoiceService : IDisposable
     public void DeleteModels()
     {
         SpeechToText.Unload();
+        Semantic.Embedder.Unload();
         ModelDownloader.Delete();
         StateChanged?.Invoke();
     }
@@ -110,8 +114,7 @@ public sealed partial class VoiceService : IDisposable
     private async Task SessionAsync(Func<bool>? held, CancellationToken abort)
     {
         var settings = _config().Settings;
-        SpeechToText.IdleUnload = TimeSpan.FromMinutes(Math.Max(1, settings.VoiceUnloadMinutes));
-        SpeechToText.Preload(); // loads while the user speaks
+        PreloadModels(settings); // they load while the user speaks
 
         var audio = new List<float>(MicCapture.SampleRate * 6);
         using var vad = new VoiceActivity(EndSilence);
@@ -241,7 +244,24 @@ public sealed partial class VoiceService : IDisposable
     }
 
     /// <summary>The spoken order → the command → run it, telling the user on the OSD.</summary>
-    private Task RunTextAsync(string text, IVoiceOsd osd) => RunPlanAsync(IntentMatcher.Plan(text, Commands(), MediaEnabled), osd);
+    private async Task RunTextAsync(string text, IVoiceOsd osd) => await RunPlanAsync(await PlanAsync(text, Commands().ToList()).ConfigureAwait(false), osd).ConfigureAwait(false);
+
+    /// <summary>What to run for a text: the words, then (if they name nothing clearly) the meaning. Off the caller's thread.</summary>
+    private Task<IntentPlan> PlanAsync(string text, IReadOnlyCollection<Command> commands)
+    {
+        var media = MediaEnabled;
+        return Task.Run(() => IntentMatcher.Plan(text, commands, media, Semantic));
+    }
+
+    /// <summary>Parakeet and the meaning model load in the background while the user is still speaking.</summary>
+    private void PreloadModels(AppSettings settings)
+    {
+        var idle = TimeSpan.FromMinutes(Math.Max(1, settings.VoiceUnloadMinutes));
+        SpeechToText.IdleUnload = idle;
+        Semantic.IdleUnload = idle;
+        SpeechToText.Preload();
+        Semantic.Preload(Commands().ToList(), settings.VoiceMedia);
+    }
 
     /// <summary>The built-in media orders are on (Settings › Multimedia).</summary>
     private bool MediaEnabled => _config().Settings.VoiceMedia;
@@ -251,12 +271,19 @@ public sealed partial class VoiceService : IDisposable
     {
         var whole = plan.Whole;
         var text = whole.Text;
-        Log.Info($"Voz → {(plan.Parts.Count == 0 ? "nada" : string.Join(" + ", plan.Parts.Select(p => p.Winner!.Name)))} · " +
+        Log.Info($"Voz → {(plan.Parts.Count == 0 ? "nada" : string.Join(" + ", plan.Parts.Select(p => p.Winner!.Describe)))} · " +
                  string.Join(", ", whole.Candidates.Select(c => $"{c.Describe} {c.Score:0.00}")) +
                  (plan.Parts.Count > 1 || plan.Unmatched.Count > 0
-                     ? " · por partes: " + string.Join(" | ", plan.Parts.Select(p => $"«{p.Text}» → {p.Winner!.Name} {p.Confidence:0.00}")
+                     ? " · por partes: " + string.Join(" | ", plan.Parts.Select(p => $"«{p.Text}» → {p.Winner!.Describe} {p.Confidence:0.00}")
                          .Concat(plan.Unmatched.Select(u => $"«{u}» → nada")))
-                     : ""));
+                     : "") +
+                 (whole.Note is { } note ? " · " + note : ""));
+        // Turning off the PC on a guess of meaning costs too much: it is said by its name, or (stage 6) confirmed.
+        if (plan.Parts.FirstOrDefault(p => p.Winner!.NeedsName) is { } risky)
+        {
+            osd.Finish(Loc.T("voice.sayName", text, risky.Winner!.Name), OsdKind.Warning);
+            return;
+        }
         if (plan.Parts.Count == 0)
         {
             if (whole.Candidates.Count > 0 && whole.Confidence >= 0.6)
@@ -336,7 +363,7 @@ public sealed partial class VoiceService : IDisposable
         {
             if (!VoiceModels.Ready) return;
             var settings = _config().Settings;
-            SpeechToText.IdleUnload = TimeSpan.FromMinutes(Math.Max(1, settings.VoiceUnloadMinutes));
+            PreloadModels(settings);
 
             // Turned down at once, so the order that follows is heard over the music; back up if the word isn't confirmed.
             using var duck = Duck(settings);
@@ -462,8 +489,9 @@ public sealed partial class VoiceService : IDisposable
                     }
                     if (provisional) Log.Info($"Palabra de activación «{word.Name}» con la orden: «{full}» → {(confirmed ? "confirmada" : "no está")}");
                 }
-                var plans = options.Select(o => o.Trim()).Where(o => o.Any(char.IsLetterOrDigit)).Distinct()
-                    .Select(o => IntentMatcher.Plan(o, commands, MediaEnabled)).ToList();
+                var plans = new List<IntentPlan>();
+                foreach (var option in options.Select(o => o.Trim()).Where(o => o.Any(char.IsLetterOrDigit)).Distinct())
+                    plans.Add(await PlanAsync(option, commands).ConfigureAwait(false));
                 return (plans, confirmed);
             }
         }
@@ -523,6 +551,7 @@ public sealed partial class VoiceService : IDisposable
     {
         _mic.Dispose();
         SpeechToText.Dispose();
+        Semantic.Dispose();
         WakeWords.Dispose();
         lock (_featuresGate) _features?.Dispose();
     }

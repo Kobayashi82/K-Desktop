@@ -95,6 +95,13 @@ Asistente en un diálogo con estilo WPF-UI, textos en es/en:
    embeddings de su nombre, alias y frases de ejemplo (caché en disco, invalidada cuando cambian los comandos).
    Similitud coseno → softmax con temperatura → probabilidad. Umbral alto → ejecutar; umbral medio → pedir
    confirmación; bajo → no entendido.
+   **Hecho (2026-10-16), tras medirlo con los comandos reales:** EmbeddingGemma 300M int8, no e5-small. Con los
+   nombres cortos y mezclados de los comandos, e5-small y Granite R2 97M lo ven todo parecido (~0,85) y aciertan
+   26–29 de 50; EmbeddingGemma con el prompt «task: sentence similarity» acierta 44. En vez de softmax: el más
+   parecido gana si pasa 0,62 (0,80 para las órdenes integradas) y saca 0,02 al siguiente, y compiten frases de
+   «esto no es mío» (`voice.none`: luces, tele, alarmas…) para que «apaga la tele» no sea "Apagar Equipo". El umbral
+   medio es el «¿Querías decir…?» de siempre; lo de Energía encontrado solo por significado no se ejecuta (etapa 6:
+   confirmar por voz).
 3. (Opcional, al final y detrás de una opción) LLM local pequeño (Qwen3 0.6B/1.7B GGUF con LLamaSharp) con la salida
    forzada por gramática a los ids de los comandos. La probabilidad sale de los logprobs, renormalizados solo entre las
    opciones válidas (los logprobs de llama.cpp son anteriores a la máscara de la gramática). Ids de un solo token si es
