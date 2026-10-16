@@ -64,7 +64,7 @@ public class MainActivity extends Activity {
     private static final String ACTION_INSTALLED = "net.kobayashi82.kdesktop.INSTALLED";
 
     /** A PC that is off often leaves the connection hanging instead of refusing it: give up after this. */
-    private static final long LOAD_TIMEOUT_MS = 12000;
+    private static final long LOAD_TIMEOUT_MS = 8000;
 
     private WebView web;
     private SharedPreferences prefs;
@@ -73,8 +73,16 @@ public class MainActivity extends Activity {
     /** The address loaded now (null: the set-up page or nothing yet). */
     private String current;
 
-    /** A failure already made it try the other addresses. */
+    /** A failure already made it try the other addresses (or none answered already: nothing left to try). */
     private boolean retried;
+
+    /** Each search for the PC; a newer one (or the set-up page) makes the answer of an older one irrelevant. */
+    private int attempt;
+
+    /** The "connecting" page is on screen; until then what comes next waits (it would replace it unseen). */
+    private boolean connectingShown;
+    private Runnable afterConnecting;
+    private final Runnable connectingFallback = () -> connectingVisible();
 
     private long pausedAt;
 
@@ -102,7 +110,8 @@ public class MainActivity extends Activity {
         paintBars();
 
         web = new WebView(this);
-        web.setBackgroundColor(isDark() ? Color.rgb(13, 13, 15) : Color.rgb(245, 243, 238));
+        // See-through: until a page draws, the window shows the logo (res/drawable/splash.xml) instead of a blank screen.
+        web.setBackgroundColor(Color.TRANSPARENT);
         setContentView(web);
 
         WebSettings s = web.getSettings();
@@ -200,15 +209,44 @@ public class MainActivity extends Activity {
             web.loadUrl(SETUP);
             return;
         }
-        List<String> candidates = addresses.all(server);
-        if (candidates.size() < 2) {
+        // Something to look at at once: finding out that the PC is off can take a few seconds.
+        showConnecting();
+        int mine = ++attempt;
+        pick(addresses.all(server), best -> whenConnectingShown(() -> {
+            if (mine != attempt) return;
+            if (best != null) {
+                use(best);
+                return;
+            }
+            // Nobody answers: still load it (over HTTPS the web app opens from its cache with the last commands),
+            // but there is no point in asking the other addresses again when it fails.
+            retried = true;
             load(server);
-            return;
-        }
-        pick(candidates, best -> {
-            if (best != null) use(best);
-            else load(server);
-        });
+        }));
+    }
+
+    /** "Connecting to K-Desktop…" (the set-up page in its waiting mode), while the addresses are asked. */
+    private void showConnecting() {
+        String server = server();
+        connectingShown = false;
+        afterConnecting = null;
+        web.loadUrl(SETUP + "?connecting=1" + (server != null ? "&server=" + Uri.encode(server) : ""));
+        // Should the page never say it is visible (old WebViews), go on anyway.
+        handler.removeCallbacks(connectingFallback);
+        handler.postDelayed(connectingFallback, 1500);
+    }
+
+    private void whenConnectingShown(Runnable next) {
+        if (connectingShown) next.run();
+        else afterConnecting = next;
+    }
+
+    private void connectingVisible() {
+        handler.removeCallbacks(connectingFallback);
+        connectingShown = true;
+        Runnable next = afterConnecting;
+        afterConnecting = null;
+        if (next != null) next.run();
     }
 
     /** Uses <code>address</code> from now on and opens it. */
@@ -237,16 +275,21 @@ public class MainActivity extends Activity {
         others.remove(current);
         if (!retried && server != null && !others.isEmpty()) {
             retried = true;
-            pick(others, best -> {
+            showConnecting();
+            int mine = ++attempt;
+            pick(others, best -> whenConnectingShown(() -> {
+                if (mine != attempt) return;
                 if (best != null) use(best);
                 else openSetup(error);
-            });
+            }));
             return;
         }
         openSetup(error);
     }
 
     private void openSetup(String error) {
+        attempt++; // a search still running must not take the user away from here
+        handler.removeCallbacks(loadTimeout);
         current = null;
         String url = SETUP;
         if (server() != null) url += "?server=" + Uri.encode(server());
@@ -516,14 +559,17 @@ public class MainActivity extends Activity {
 
         @Override
         public void onPageCommitVisible(WebView view, String url) {
-            // Something of the page arrived: K-Desktop answered.
-            loaded();
+            // Something of the page arrived: K-Desktop answered (the set-up page itself does not count).
+            if (!url.startsWith(SETUP)) loaded();
+            else if (url.contains("connecting=1")) connectingVisible();
         }
 
         @Override
         public void onPageFinished(WebView view, String url) {
             // Android 5-6 have no onPageCommitVisible.
-            if (Build.VERSION.SDK_INT < 23 && !url.startsWith(SETUP)) loaded();
+            if (Build.VERSION.SDK_INT >= 23) return;
+            if (!url.startsWith(SETUP)) loaded();
+            else if (url.contains("connecting=1")) connectingVisible();
         }
 
         @Override

@@ -63,6 +63,16 @@
     }
     button:active { transform: scale(.97); }
     button.ghost { margin-top: 10px; background: none; box-shadow: none; color: var(--text); border: 1px solid var(--line); }
+    /* Waiting mode (?connecting=1): only the logo, what it is doing and a way out */
+    .wait { display: none; }
+    body.connecting .wait { display: block; }
+    body.connecting .setup { display: none; }
+    .wait .server { margin: -12px 0 22px; font-size: 13px; word-break: break-all; }
+    .dots { display: flex; justify-content: center; gap: 8px; margin: 0 0 24px; }
+    .dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--gold); animation: dot 1.2s ease-in-out infinite; }
+    .dots i:nth-child(2) { animation-delay: .15s; }
+    .dots i:nth-child(3) { animation-delay: .3s; }
+    @keyframes dot { 0%, 80%, 100% { transform: scale(.55); opacity: .45; } 40% { transform: scale(1); opacity: 1; } }
     .shake { animation: shake .4s; }
     @keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
   </style>
@@ -71,6 +81,13 @@
   <div class="ambient"><i></i><i></i></div>
   <form class="card" id="form" autocomplete="off" novalidate>
     <div class="logo"><img src="icon.png" alt=""></div>
+    <div class="wait">
+      <h1 data-t="connecting"></h1>
+      <p class="server" id="waitServer"></p>
+      <div class="dots"><i></i><i></i><i></i></div>
+      <button type="button" class="ghost" id="change" data-t="change"></button>
+    </div>
+    <div class="setup">
     <h1 data-t="title"></h1>
     <p data-t="text"></p>
     <label for="server" data-t="label"></label>
@@ -79,27 +96,28 @@
     <div class="error" id="error"></div>
     <button type="submit" data-t="connect"></button>
     <button type="button" class="ghost" id="retry" data-t="retry" hidden></button>
+    </div>
   </form>
   <script>
     const T = {
       es: { title: 'Conectar con K-Desktop', text: 'Escribe la dirección de K-Desktop en tu PC. Solo hace falta la primera vez.', label: 'Dirección',
             hint: 'La de tu proxy con HTTPS (<code>kdesktop.tudominio.net</code>) o la del PC en tu red (<code>192.168.1.10:2502</code>). También vale el enlace de emparejar.',
-            connect: 'Conectar', retry: 'Reintentar', bad: 'Esa dirección no es válida', failed: 'No se pudo conectar: {0}' },
+            connect: 'Conectar', retry: 'Reintentar', connecting: 'Conectando con K-Desktop…', change: 'Cambiar la dirección', bad: 'Esa dirección no es válida', failed: 'No se pudo conectar: {0}' },
       en: { title: 'Connect to K-Desktop', text: 'Type the address of K-Desktop on your PC. Only needed the first time.', label: 'Address',
             hint: 'Your HTTPS proxy (<code>kdesktop.yourdomain.net</code>) or the PC on your network (<code>192.168.1.10:2502</code>). A pairing link works too.',
-            connect: 'Connect', retry: 'Retry', bad: 'That address is not valid', failed: 'Could not connect: {0}' },
+            connect: 'Connect', retry: 'Retry', connecting: 'Connecting to K-Desktop…', change: 'Change the address', bad: 'That address is not valid', failed: 'Could not connect: {0}' },
       fr: { title: 'Se connecter à K-Desktop', text: 'Saisissez l’adresse de K-Desktop sur votre PC. Seulement la première fois.', label: 'Adresse',
             hint: 'Celle de votre proxy HTTPS (<code>kdesktop.votredomaine.net</code>) ou du PC sur votre réseau (<code>192.168.1.10:2502</code>). Un lien d’association fonctionne aussi.',
-            connect: 'Se connecter', retry: 'Réessayer', bad: 'Cette adresse n’est pas valide', failed: 'Connexion impossible : {0}' },
+            connect: 'Se connecter', retry: 'Réessayer', connecting: 'Connexion à K-Desktop…', change: 'Changer l’adresse', bad: 'Cette adresse n’est pas valide', failed: 'Connexion impossible : {0}' },
       de: { title: 'Mit K-Desktop verbinden', text: 'Gib die Adresse von K-Desktop auf deinem PC ein. Nur beim ersten Mal nötig.', label: 'Adresse',
             hint: 'Die deines HTTPS-Proxys (<code>kdesktop.deinedomain.net</code>) oder die des PCs im Netzwerk (<code>192.168.1.10:2502</code>). Ein Kopplungslink geht auch.',
-            connect: 'Verbinden', retry: 'Erneut versuchen', bad: 'Diese Adresse ist ungültig', failed: 'Verbindung fehlgeschlagen: {0}' },
+            connect: 'Verbinden', retry: 'Erneut versuchen', connecting: 'Verbinde mit K-Desktop…', change: 'Adresse ändern', bad: 'Diese Adresse ist ungültig', failed: 'Verbindung fehlgeschlagen: {0}' },
       it: { title: 'Connetti a K-Desktop', text: 'Scrivi l’indirizzo di K-Desktop sul tuo PC. Serve solo la prima volta.', label: 'Indirizzo',
             hint: 'Quello del tuo proxy HTTPS (<code>kdesktop.tuodominio.net</code>) o del PC nella tua rete (<code>192.168.1.10:2502</code>). Va bene anche il link di abbinamento.',
-            connect: 'Connetti', retry: 'Riprova', bad: 'Questo indirizzo non è valido', failed: 'Impossibile connettersi: {0}' },
+            connect: 'Connetti', retry: 'Riprova', connecting: 'Connessione a K-Desktop…', change: 'Cambia indirizzo', bad: 'Questo indirizzo non è valido', failed: 'Impossibile connettersi: {0}' },
       pt: { title: 'Conectar ao K-Desktop', text: 'Digite o endereço do K-Desktop no seu PC. Só é preciso na primeira vez.', label: 'Endereço',
             hint: 'O do seu proxy HTTPS (<code>kdesktop.seudominio.net</code>) ou o do PC na sua rede (<code>192.168.1.10:2502</code>). O link de pareamento também serve.',
-            connect: 'Conectar', retry: 'Tentar de novo', bad: 'Esse endereço não é válido', failed: 'Não foi possível conectar: {0}' },
+            connect: 'Conectar', retry: 'Tentar de novo', connecting: 'A ligar ao K-Desktop…', change: 'Mudar o endereço', bad: 'Esse endereço não é válido', failed: 'Não foi possível conectar: {0}' },
     };
     const lang = (navigator.language || 'en').slice(0, 2).toLowerCase();
     const t = T[lang] || T.en;
@@ -115,6 +133,12 @@
       if (input.value) document.getElementById('retry').hidden = false;
     }
     document.getElementById('retry').addEventListener('click', () => app && app.retry());
+    if (params.get('connecting')) {
+      document.body.classList.add('connecting');
+      document.getElementById('waitServer').textContent = input.value;
+      // The form, now: the app stops waiting for the PC.
+      document.getElementById('change').addEventListener('click', () => app && app.changeServer());
+    }
     document.getElementById('form').addEventListener('submit', e => {
       e.preventDefault();
       const ok = app && app.setServer(input.value);
@@ -123,7 +147,7 @@
       const card = document.getElementById('form');
       card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
     });
-    if (!input.value) input.focus();
+    if (!input.value && !params.get('connecting')) input.focus();
   </script>
 </body>
 </html>
