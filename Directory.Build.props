@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework>
     <LangVersion>latest</LangVersion>
@@ -7,13 +7,15 @@
     <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <Version>5.0.2</Version>
+    <Version>5.0.3</Version>
+    <!-- The Android app has a version of its own: raise it only when android\ changes (see tools\android\build-apk.ps1). -->
+    <AndroidVersion>1.0.0</AndroidVersion>
     <Authors>Kobayashi82</Authors>
     <Company>Kobayashi82</Company>
     <Product>K-Desktop</Product>
     <AssemblyTitle>K-Desktop</AssemblyTitle>
     <Description>K-Desktop: lanzador de acciones, atajos de teclado y control remoto para el escritorio.</Description>
-    <Copyright>Â© Kobayashi82</Copyright>
+    <Copyright>© Kobayashi82</Copyright>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
   </PropertyGroup>
@@ -22,7 +24,7 @@
   <PropertyGroup Condition="'$(PublishProfile)' == 'SelfContained'">
     <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)artifacts\build\$(MSBuildProjectName)\obj\</BaseIntermediateOutputPath>
     <BaseOutputPath>$(MSBuildThisFileDirectory)artifacts\build\$(MSBuildProjectName)\bin\</BaseOutputPath>
-    <!-- â€¦and must not pick up the generated sources of the normal build. -->
+    <!-- …and must not pick up the generated sources of the normal build. -->
     <DefaultItemExcludes>$(DefaultItemExcludes);bin\**;obj\**</DefaultItemExcludes>
   </PropertyGroup>
 

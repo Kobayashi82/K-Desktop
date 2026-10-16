@@ -2,7 +2,7 @@
   Builds the Android app (android\) into artifacts\android\KDesktop.apk without Gradle: aapt2 → javac → d8 →
   zipalign → apksigner. Needs JDK 17 and the Android SDK (platform 34, build-tools 34.0.0):
     %LOCALAPPDATA%\Programs\jdk-17   and   %LOCALAPPDATA%\Android\Sdk   (or JAVA_HOME / ANDROID_HOME).
-  The version is K-Desktop's (Directory.Build.props); KDesktop.apk.json beside the app says it. A Release build of
+  The app has a version of its own (AndroidVersion in Directory.Build.props); KDesktop.apk.json beside the app says it. A Release build of
   K-Desktop runs this script by itself (when the JDK and the SDK are there) and carries the app inside.
   The signing key (kdesktop-release.jks, its password in kdesktop-release.jks.password.txt) is taken from keys\ in the
   project (git ignores it) or else from %USERPROFILE%\.android; the first time it is created in keys\. Keep both:
@@ -28,11 +28,13 @@ function Run([string]$exe, [string[]]$arguments) {
   if ($LASTEXITCODE -ne 0) { throw "$exe terminó con código $LASTEXITCODE" }
 }
 
-# Version from Directory.Build.props: 5.0.0 → name 5.0.0, code 50000.
-[xml]$props = Get-Content (Join-Path $root "Directory.Build.props")
-$version = ($props.Project.PropertyGroup | Where-Object { $_.Version } | Select-Object -First 1).Version
+# The app's own version, AndroidVersion in Directory.Build.props: 1.0.0 → name 1.0.0, code 1010000.
+# The codes start at 1000000 because the first builds carried K-Desktop's version (5.0.2 = 50002) and Android only
+# installs an update with a higher code.
+[xml]$props = Get-Content -Encoding UTF8 (Join-Path $root "Directory.Build.props")
+$version = ($props.Project.PropertyGroup | Where-Object { $_.AndroidVersion } | Select-Object -First 1).AndroidVersion
 $parts = $version.Split('.') + @('0', '0')
-$code = [int]$parts[0] * 10000 + [int]$parts[1] * 100 + [int]$parts[2]
+$code = 1000000 + [int]$parts[0] * 10000 + [int]$parts[1] * 100 + [int]$parts[2]
 
 if (Test-Path $build) { Remove-Item -Recurse -Force $build }
 New-Item -ItemType Directory -Force "$build\gen", "$build\classes", "$build\dex" | Out-Null

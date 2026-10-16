@@ -44,12 +44,14 @@ se borran solos en la siguiente publicación.
 
 ## Sacar una versión nueva (actualización)
 
-1. Sube la versión en `Directory.Build.props`, por ejemplo `<Version>5.0.1</Version>`. Es la versión del programa
-   y también la de la APK (5.0.1 → código 50001).
+1. Sube la versión en `Directory.Build.props`, por ejemplo `<Version>5.0.3</Version>`. Si también ha cambiado la
+   app de Android (la carpeta `android\`), sube además `<AndroidVersion>`, por ejemplo `1.0.1`: la app tiene su
+   propia versión (1.0.0 → código interno 1010000; empieza en un millón porque las primeras APK llevaban el código de
+   K-Desktop, 50002, y Android solo instala una actualización con un código mayor).
 2. Compila: `dotnet build KDesktop.slnx -c Release`.
 3. En `artifacts\update\` quedan:
-   - `KDesktop-5.0.1.exe`: el programa.
-   - `KDesktop-5.0.1.apk`: la app de Android, por si quieres instalarla a mano en otro móvil.
+   - `KDesktop-5.0.3.exe`: el programa.
+   - `KDesktop-1.0.1.apk`: la app de Android (con su versión), por si quieres instalarla a mano en otro móvil.
    - `latest.json`: lo que consulta K-Desktop para saber si hay versión nueva.
 4. Opcional: notas que se ven en el aviso de actualización. Se conservan mientras no cambies la versión:
    ```
@@ -61,9 +63,9 @@ se borran solos en la siguiente publicación.
 
 ### Cómo se actualiza la app del móvil
 
-La app de Android **no** consulta el servidor: se la pasa el propio PC. Cada K-Desktop lleva dentro la APK de su
-versión. Cuando el móvil se conecta a un PC con una APK más nueva, avisa una vez y en Ajustes aparece «Actualizar la
-app». Al pulsarlo la descarga del PC y abre el instalador de Android. La primera vez Android pide permiso para
+La app de Android **no** consulta el servidor: se la pasa el propio PC. Cada K-Desktop lleva dentro la última APK
+compilada. Cuando el móvil se conecta a un PC con una APK más nueva, avisa cada vez que se abre la app (tocando el
+aviso se actualiza) y en Ajustes aparece «Actualizar la app». Al pulsarlo la descarga del PC y abre el instalador de Android. La primera vez Android pide permiso para
 «instalar apps de este origen»; se activa y continúa solo.
 
 Las apps instaladas antes del 16-10-2026 no saben actualizarse: hay que instalar una vez a mano la nueva
