@@ -422,6 +422,7 @@
   "pwa.count": "{0} comandos",
   "pwa.mostUsed": "Más usados",
   "pwa.tagline": "Atajos, QuickMenus y control remoto para Windows",
+  "pwa.app.changeServer": "Cambiar de servidor",
   "pwa.run.ok": "Hecho",
   "pwa.run.error": "Error",
   "pwa.run.warning": "Aviso",

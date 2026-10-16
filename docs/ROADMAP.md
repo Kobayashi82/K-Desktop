@@ -140,8 +140,18 @@
       demás abren la descarga. Publicar: subir `<Version>` en Directory.Build.props, publicar el portable y
       `tools\release\make-update.ps1 -NotesEs "…" -NotesEn "…"` → `artifacts\update\` (exe + latest.json) al VPS.
       Probado en local de punta a punta (5.0.0 → 5.0.1 con un servidor en 127.0.0.1).
+- [x] **App web rediseñada** (2026-10-16): luz ambiental y cristal, título grande que se compacta, píldora de
+      conexión en vivo, halo del color de cada icono (se calcula en el navegador), submenús como carpetas con vista
+      previa, migas de pan, «Más usados» y secciones por letra, dial de volumen arrastrable, Ajustes en lista agrupada.
+- [x] **App de Android** (`android\`, `tools\android\build-apk.ps1` → `artifacts\android\KDesktop.apk`, ~125 KB):
+      la web en su propia ventana (WebView, sin AndroidX ni Gradle: aapt2 + javac + d8 + apksigner; minSdk 24,
+      target 34). La primera vez pide la dirección (proxy HTTPS o `IP:2502`; vale pegar el enlace de emparejar) y la
+      recuerda; «Cambiar de servidor» en Ajustes de la web (`window.KDesktopApp`); si no conecta vuelve a esa pantalla
+      con el error y «Reintentar». Atrás cierra submenús; los enlaces externos van al navegador; acepta «Compartir»
+      un enlace de emparejar. Versión = la de K-Desktop (5.0.0 → código 50000). Firma: `%USERPROFILE%\.android\
+      kdesktop-release.jks` (+ `.password.txt`), creada la primera vez: guardarla, las actualizaciones necesitan la
+      misma. JDK 17 portable en `%LOCALAPPDATA%\Programs\jdk-17` y SDK en `%LOCALAPPDATA%\Android\Sdk`.
 - [ ] Web: micrófono del móvil como otra fuente de audio de la voz (después de la voz).
-      APK solo si hace falta algo que la web no puede (widgets, ajustes rápidos).
 - [ ] Probar la app web en el móvil real a través de Caddy (instalación como PWA, iPhone y Android).
 - [ ] **Voz** (plan en [VOZ.md](VOZ.md), etapas abajo). Va después del touchpad/teclado de la web.
 

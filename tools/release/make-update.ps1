@@ -1,4 +1,4 @@
-<#
+﻿<#
   Prepares an update for K-Desktop's auto-updater from the portable build:
     artifacts\update\KDesktop-<version>.exe
     artifacts\update\latest.json          { version, date, url, sha256, size, notes }

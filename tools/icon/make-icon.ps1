@@ -1,4 +1,4 @@
-<#
+﻿<#
   Generates K-Desktop's icon from vector shapes (WPF), so every size is drawn sharp instead of scaled:
     src\KDesktop\Assets\Icons\KDesktop.ico      exe, windows and tray (16…256 px)
     src\KDesktop.Core\Web\icons\*.png          web app / PWA

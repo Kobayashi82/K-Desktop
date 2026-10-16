@@ -58,6 +58,7 @@ const ICONS = {
   natural: '<path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/>',
   tap: '<circle cx="12" cy="9" r="3"/><path d="M12 15v6M6.5 5.5a8 8 0 0 1 11 0"/>',
   install: '<path d="M12 3.5v11M7.5 10l4.5 4.5 4.5-4.5"/><path d="M4.5 16v2.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V16"/>',
+  server: '<rect x="3.5" y="4" width="17" height="7" rx="2"/><rect x="3.5" y="13" width="17" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/>',
   unlink: '<path d="M9.5 14.5l5-5M10 6.5l1.5-1.5a4 4 0 0 1 5.66 5.66L15.5 12M14 17.5L12.5 19a4 4 0 0 1-5.66-5.66L8.5 12"/><path d="M3.5 3.5l3 3M20.5 20.5l-3-3"/>',
 };
 
@@ -853,6 +854,7 @@ function setupInstall() {
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
+    if (window.KDesktopApp) return;
     installPrompt = e;
     $('installButton').hidden = false;
   });
@@ -869,6 +871,16 @@ function setupInstall() {
   });
   // Safari on iPhone/iPad has no install prompt: say how.
   $('iosHint').hidden = standalone || !/iPhone|iPad|iPod/.test(navigator.userAgent) || !window.isSecureContext;
+
+  // Inside the Android app (window.KDesktopApp): it is installed already; offer to point it at another K-Desktop.
+  const app = window.KDesktopApp;
+  if (app) {
+    $('installButton').hidden = true;
+    $('iosHint').hidden = true;
+    $('serverButton').hidden = false;
+    $('serverText').textContent = app.getServer?.() ?? '';
+    $('serverButton').addEventListener('click', () => app.changeServer());
+  }
 }
 
 /** The session again (what the PC allows changed). */

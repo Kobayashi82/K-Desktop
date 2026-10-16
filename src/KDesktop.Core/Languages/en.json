@@ -422,6 +422,7 @@
   "pwa.count": "{0} commands",
   "pwa.mostUsed": "Most used",
   "pwa.tagline": "Hotkeys, QuickMenus and remote control for Windows",
+  "pwa.app.changeServer": "Change server",
   "pwa.run.ok": "Done",
   "pwa.run.error": "Error",
   "pwa.run.warning": "Warning",
