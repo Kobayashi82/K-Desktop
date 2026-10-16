@@ -40,7 +40,10 @@ public sealed class HistoryRow(HistoryEntry entry)
     {
         get
         {
-            var parts = new List<string> { Loc.T($"history.source.{Entry.Source}") };
+            var parts = new List<string>();
+            // «Evento «Juegos»» already says where it came from.
+            var eventDetail = Entry.Source is TriggerSource.Event or TriggerSource.Startup or TriggerSource.Exit && !string.IsNullOrWhiteSpace(Entry.Detail);
+            if (!eventDetail) parts.Add(Loc.T($"history.source.{Entry.Source}"));
             if (!string.IsNullOrWhiteSpace(Entry.Detail)) parts.Add(Entry.Detail!);
             var outcome = Entry.Outcome switch
             {

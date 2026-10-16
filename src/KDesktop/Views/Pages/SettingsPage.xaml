@@ -988,6 +988,42 @@
                     <Grid Style="{StaticResource SettingRow}" Margin="0,12,0,0">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.autoBackup}" />
+                            <TextBlock x:Name="AutoBackupStatus" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AutoBackup}" />
+                    </Grid>
+                    <StackPanel IsEnabled="{Binding AutoBackup}" Margin="0,4,0,0">
+                        <WrapPanel>
+                            <StackPanel Margin="0,0,12,8">
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.autoBackupDays}" />
+                                <ui:TextBox Width="120" Text="{Binding AutoBackupDays, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,12,8">
+                                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.autoBackupKeep}" />
+                                <ui:TextBox Width="120" Text="{Binding AutoBackupKeep, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </WrapPanel>
+                        <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.autoBackupFolder}" />
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBox Text="{Binding AutoBackupFolder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr settings.autoBackupFolderHint}" />
+                            <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseBackupFolder" />
+                        </Grid>
+                    </StackPanel>
+                    <StackPanel>
+                        <WrapPanel>
+                            <ui:Button Margin="0,0,8,8" Content="{l:Tr settings.backupNow}" Icon="{ui:SymbolIcon Save24}" Click="OnBackupNow" />
+                            <ui:Button Margin="0,0,8,8" Content="{l:Tr settings.openBackups}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnOpenBackups" />
+                        </WrapPanel>
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.autoBackupHint}" />
+                    </StackPanel>
+                    <Grid Style="{StaticResource SettingRow}" Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr ach.reset}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.resetAchHint}" />
                         </StackPanel>

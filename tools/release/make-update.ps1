@@ -71,7 +71,19 @@ if ((Test-Path $Apk) -and (Test-Path "$Apk.json")) {
 # UTF-8 without BOM (PowerShell 5.1's -Encoding utf8 adds one).
 $json = $manifest | ConvertTo-Json -Depth 4
 [System.IO.File]::WriteAllText($manifestPath, $json, (New-Object System.Text.UTF8Encoding($false)))
+# The zip to hand out (artifacts\release): the portable exe compressed, 170 MB → about 70 MB. Only this version's.
+$releaseDir = Join-Path $root "artifacts\release"
+New-Item -ItemType Directory -Force $releaseDir | Out-Null
+$zip = Join-Path $releaseDir "K-Desktop-$version.zip"
+Get-ChildItem $releaseDir -Filter "K-Desktop-*.zip" | Where-Object { $_.FullName -ne $zip } | Remove-Item -Force
+if (Test-Path $zip) { Remove-Item $zip -Force }
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$archive = [System.IO.Compression.ZipFile]::Open($zip, [System.IO.Compression.ZipArchiveMode]::Create)
+try { [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, $Exe, "K-Desktop/KDesktop.exe", [System.IO.Compression.CompressionLevel]::Optimal) | Out-Null }
+finally { $archive.Dispose() }
+
 "K-Desktop $version -> $OutDir"
+"  release: $zip ($([Math]::Round((Get-Item $zip).Length / 1MB, 1)) MB)"
 "  $name ($([Math]::Round($size / 1MB, 1)) MB)"
 if ($manifest.android) { "  $($manifest.android.url) ($([Math]::Round($manifest.android.size / 1KB)) KB)" }
 "  latest.json (sha256 $sha)"

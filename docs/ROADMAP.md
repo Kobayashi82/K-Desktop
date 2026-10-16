@@ -74,7 +74,8 @@
       versión/empresa completos, single file SIN compresión (no parece un "packer"), ReadyToRun (sin
       compilación en runtime) y sin recorte de IL. Si aun así algún motor da falso positivo, enviar la
       muestra a su portal (Microsoft: aka.ms/wdsi) para que lo incluyan en la lista blanca.
-- [ ] Instalador (Inno Setup) o zip portable a partir de `artifacts\portable`.
+- [x] Zip portable: publicar el portable deja también `artifacts\release\K-Desktop-<versión>.zip`
+      (tools\release\make-update.ps1). Instalador con Inno Setup: no hecho (la app se actualiza sola).
       Tamaño (medido 2026-10-15): exe actual 162 MB → zip 69 MB. Comprimido dentro del exe 74 MB, pero
       arranca ~200 ms más lento y usa ~75 MB más de RAM todo el rato (descomprime en memoria). Sin
       ReadyToRun 142 MB. Decisión: exe sin comprimir y distribuir en zip.
@@ -419,14 +420,43 @@ embeddings multilingües → LLM opcional) y siete etapas con su commit cada una
       significado 1/10/100.
       · Capa de palabras: «misma raíz» exige que la parte común sea ≥ 60 % de la palabra corta («contraseñas» ya no
       es «continúa»).
-      · Pendiente si se quiere: estado de la voz en el icono de la bandeja.
+      · Estado de la voz en el icono de la bandeja: punto rojo mientras escucha una orden (5.0.31).
 - ~~Etapa 7: capa LLM opcional~~ — descartada por el usuario (2026-10-16).
 
 **Primer arranque:** si «Iniciar con Windows» está activado (por defecto lo está) y es una copia con
 carpeta de datos normal, se registra la tarea del Programador de tareas automáticamente la primera vez,
 sin tener que abrir Ajustes. Lo que se ejecuta al arrancar K-Desktop está en Eventos › «Al iniciar K-Desktop».
 
+## Hecho (2026-10-16, 5.0.31)
+
+- [x] Acciones nuevas: **Ventana** (maximizar, minimizar, restaurar, colocar en mitades/cuartos/tercios o a medida en % del
+      área de trabajo, centrar, pasar a otro monitor manteniendo la proporción, transparencia on/off; compensa los bordes
+      invisibles de Windows 11), **Portapapeles** (copiar un texto con {fecha}/{hora}/{portapapeles}, quitar formato,
+      MAYÚSCULAS/minúsculas/Cada Palabra, quitar espacios, limpiar enlaces de rastreo, vaciar; «copiar antes la
+      selección» y «pegar después»), **Despertar equipo** (Wake-on-LAN a todas las redes o a una dirección, «Averiguar
+      MAC» por ARP, esperar a que responda al ping), **Pantalla** (apagar, proyectar como Win+P con SetDisplayConfig,
+      brillo por DDC/CI y WMI, resolución y frecuencia de un monitor), **Plan de energía** (uno o el siguiente),
+      **Tema de Windows** (claro/oscuro/alternar, apps y/o sistema), **Wi-Fi y Bluetooth** (Windows.Devices.Radios
+      llamado a mano por v-table, sin la proyección del SDK de 25 MB). «Enviar texto» acepta las mismas variables.
+- [x] **Volumen** con «Qué»: altavoces, micrófono (predeterminado y de comunicaciones), un programa o la aplicación de
+      delante (sesiones del mezclador en todas las salidas); modos Silenciar y Activar además de alternar.
+- [x] **«Si…»**: condición (programa abierto, aplicación delante o título, horario, dispositivo conectado, salida de
+      audio, algo sonando, red, batería/corriente, un equipo responde al ping, existe un archivo, portapapeles, uso de
+      CPU/GPU/memoria), «Al revés (no)», y si no se cumple: detener el comando o saltar las N siguientes (cuentan por
+      posición; se ven sangradas, también anidadas). «Probar» dice si se cumple ahora.
+- [x] Evento **«Uso del equipo»**: CPU (GetSystemTimes), GPU (contadores PDH «GPU Engine», motor 3D) o memoria por
+      encima/debajo de un % durante N s, medido cada 2 s solo si hay eventos así; «Al terminar» cuando deja de cumplirse
+      el mismo tiempo. Para: juego → plan Alto rendimiento; render o descarga terminados → apagar.
+- [x] **Registro** (página nueva): últimas 500 ejecuciones en history.json, con origen y detalle (evento, lo que oyó la
+      voz, dispositivo de la web, IP del UDP), duración y resultado (bien, error, detenido por «Si…», cancelado, voz no
+      entendida); filtro por origen o «solo con problemas», búsqueda, doble clic abre el comando.
+- [x] **Copias automáticas**: el .zip completo de «Exportar» cada N días, guardando las últimas N, en una carpeta
+      elegible (OneDrive, NAS…); «Hacer copia ahora». Sigue además la copia diaria de config.json.
+- Probado en este PC: monitores y modos, planes, carga CPU/GPU, ARP, radios (solo lectura), micrófono y volumen por
+  programa (sin cambiar valores), Ventana sobre una ventana de prueba. Sin probar con efecto real: brillo DDC/CI,
+  proyección, cambio de modo, apagar pantallas, cambiar Wi-Fi/Bluetooth, tema, plan, Wake-on-LAN despertando de verdad.
+
 ## Ideas
 
 - K-Link (crear enlaces duros / uniones de carpeta) y Zona Wi-Fi móvil (sustituta de la Red Ad-Hoc): sin decidir.
-- Captura de pantalla, grabación de pantalla y de audio: descartadas por ahora.
+- Captura de pantalla, grabación de pantalla y de audio: descartadas por ahora (argumentos a favor dados el 2026-10-16; decide el usuario).

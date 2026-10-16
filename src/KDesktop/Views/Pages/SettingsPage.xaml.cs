@@ -34,6 +34,7 @@ public partial class SettingsPage : UserControl
         SectionList.SelectedIndex = Math.Clamp(_lastSection, 0, SectionList.Items.Count - 1);
         StartupToggle.IsChecked = StartupTask.IsRegistered();
         DataPathText.Text = AppPaths.DataDir;
+        ShowBackupStatus();
         UpdateTrayImage();
         IpInfo.ToolTip = string.Join(Environment.NewLine, NetworkInfo.LocalIPv4());
 
@@ -601,6 +602,46 @@ public partial class SettingsPage : UserControl
     {
         _app.Achievements.Unlock("curious");
         ShellTools.OpenSpecial("KDesktopData");
+    }
+
+    /// <summary>«Última copia: …» under the automatic backup switch.</summary>
+    private void ShowBackupStatus()
+    {
+        var last = AutoBackup.List(AutoBackup.FolderOf(_app.Config.Settings)).FirstOrDefault();
+        AutoBackupStatus.Text = last.Path is null
+            ? Loc.T("settings.autoBackupNone")
+            : Loc.T("settings.autoBackupLast", last.Time.ToString("g", System.Globalization.CultureInfo.CurrentCulture));
+    }
+
+    private void OnBrowseBackupFolder(object sender, RoutedEventArgs e)
+    {
+        var dlg = new OpenFolderDialog { Title = Loc.T("editor.chooseFolder"), InitialDirectory = AutoBackup.FolderOf(_app.Config.Settings) };
+        if (dlg.ShowDialog(Window.GetWindow(this)) == true)
+        {
+            _app.Config.Settings.AutoBackupFolder = dlg.FolderName;
+            ShowBackupStatus();
+        }
+    }
+
+    private async void OnBackupNow(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (await _app.BackupIfDueAsync(force: true) is { } path)
+                _app.Ui.ShowOsd(Loc.T("settings.backupDone", Path.GetFileName(path)), OsdKind.Success);
+        }
+        catch (Exception ex)
+        {
+            _app.Ui.ShowOsd(Loc.T("settings.backupError", ex.Message), OsdKind.Warning);
+        }
+        ShowBackupStatus();
+    }
+
+    private void OnOpenBackups(object sender, RoutedEventArgs e)
+    {
+        var folder = AutoBackup.FolderOf(_app.Config.Settings);
+        Directory.CreateDirectory(folder);
+        ProcessLauncher.Launch(new LaunchSpec("explorer.exe", $"\"{folder}\""), asAdmin: false);
     }
 
     private void OnOpenLog(object sender, RoutedEventArgs e)

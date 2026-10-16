@@ -198,9 +198,14 @@ public partial class DisplayAction : CommandAction
             LevelChange.Up => Loc.T("summary.brightness.up", Brightness),
             _ => Loc.T("summary.brightness.down", Brightness),
         },
-        DisplayOperation.Mode => (string.IsNullOrWhiteSpace(MonitorName) ? Monitor.Replace(@"\\.\", "") : MonitorName) + ": " + DescribeMode(Width, Height, Frequency),
+        DisplayOperation.Mode => MonitorLabel + ": " + DescribeMode(Width, Height, Frequency),
         _ => Loc.T("enum.displayOp.MonitorOff"),
     };
+
+    /// <summary>The monitor's own name, or «Monitor 2» from its GDI name while it isn't known.</summary>
+    private string MonitorLabel =>
+        !string.IsNullOrWhiteSpace(MonitorName) ? MonitorName
+        : new string(Monitor.Where(char.IsDigit).ToArray()) is { Length: > 0 } number ? Loc.T("summary.monitor", number) : "?";
 
     public static string DescribeMode(int width, int height, int frequency)
     {

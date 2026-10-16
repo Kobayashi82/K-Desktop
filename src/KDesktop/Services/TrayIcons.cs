@@ -16,16 +16,18 @@ public static class TrayIcons
     /// The chosen icon (same references as command icons) drawn at the size the tray uses for the current DPI, or null
     /// when there is none or it cannot be loaded (then the default is used).
     /// </summary>
-    public static System.Drawing.Icon? Custom(string? reference)
+    public static System.Drawing.Icon? Custom(string? reference, bool listening = false)
     {
-        if (string.IsNullOrWhiteSpace(reference)) return null;
+        ImageSource? image;
+        if (string.IsNullOrWhiteSpace(reference)) image = listening ? Default() : null;
         // As is: the taskbar may be dark while the app is light, so no theme adaptation here.
-        if (IconProvider.FromConfigIcon(reference, adaptToTheme: false) is not { } image) return null;
+        else image = IconProvider.FromConfigIcon(reference, adaptToTheme: false) ?? (listening ? Default() : null);
+        if (image is null) return null;
         try
         {
             var size = GetSystemMetricsForDpi(SM_CXSMICON, GetDpiForSystem());
             if (size <= 0) size = 16;
-            var bitmap = Render(image, size);
+            var bitmap = Render(image, size, listening);
             return new System.Drawing.Icon(new MemoryStream(IcoBytes(bitmap)), size, size);
         }
         catch (Exception ex)
@@ -35,7 +37,8 @@ public static class TrayIcons
         }
     }
 
-    private static BitmapSource Render(ImageSource image, int size)
+    /// <param name="listening">The voice is listening: a red dot in the bottom-right corner, like a recording light.</param>
+    private static BitmapSource Render(ImageSource image, int size, bool listening)
     {
         var visual = new DrawingVisual();
         RenderOptions.SetBitmapScalingMode(visual, BitmapScalingMode.HighQuality);
@@ -47,6 +50,12 @@ public static class TrayIcons
             var scale = Math.Min(size / w, size / h);
             var rect = new Rect((size - w * scale) / 2, (size - h * scale) / 2, w * scale, h * scale);
             dc.DrawImage(image, rect);
+            if (listening)
+            {
+                var r = size * 0.24;
+                var centre = new Point(size - r - 0.5, size - r - 0.5);
+                dc.DrawEllipse(new SolidColorBrush(Color.FromRgb(0xE8, 0x2A, 0x2A)), new Pen(Brushes.White, Math.Max(1, size / 16.0)), centre, r, r);
+            }
         }
         var bmp = new RenderTargetBitmap(size, size, 96, 96, PixelFormats.Pbgra32);
         bmp.Render(visual);

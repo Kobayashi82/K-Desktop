@@ -27,6 +27,10 @@ public partial class App : Application
 {
     private readonly DispatcherTimer _indexDebounce = new() { Interval = TimeSpan.FromMilliseconds(120) };
     private readonly DispatcherTimer _hookRefresh = new() { Interval = TimeSpan.FromMinutes(10) };
+
+    /// <summary>Automatic backups: first look a couple of minutes after starting, then every hour.</summary>
+    private readonly DispatcherTimer _backupTimer = new() { Interval = TimeSpan.FromMinutes(2) };
+    private bool _backingUp;
     private TaskbarIcon? _tray;
     private SingleInstance? _instance;
     private MainWindow? _main;
@@ -127,7 +131,11 @@ public partial class App : Application
         Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice),
             action => Engine.TestActionAsync(action, new Command { Name = Loc.T("settings.nav.media") }));
         Voice.History = Engine.History;
-        Voice.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
+        Voice.StateChanged += () => Dispatcher.BeginInvoke(() =>
+        {
+            _main?.UpdateStatus();
+            ApplyTrayIcon();
+        });
         Voice.CancelPending = () =>
         {
             var any = Engine.HasCancellable;
@@ -233,6 +241,12 @@ public partial class App : Application
             Achievements.CheckTime();
         };
         _hookRefresh.Start();
+        _backupTimer.Tick += (_, _) =>
+        {
+            _backupTimer.Interval = TimeSpan.FromHours(1);
+            _ = BackupIfDueAsync();
+        };
+        _backupTimer.Start();
         SystemEvents.SessionSwitch += (_, args) =>
         {
             if (args.Reason is SessionSwitchReason.SessionUnlock or SessionSwitchReason.ConsoleConnect) Router.Reinstall();
@@ -493,9 +507,12 @@ public partial class App : Application
     {
         if (_tray is null) return;
         var wanted = Config.Settings.TrayIcon ?? string.Empty;
-        if (_appliedTrayIcon == wanted) return;
-        _appliedTrayIcon = wanted;
-        if (TrayIcons.Custom(wanted) is { } custom) _tray.Icon = custom;
+        // While the voice listens, the icon shows a red dot.
+        var listening = Voice?.IsListening == true;
+        var key = wanted + (listening ? "|voice" : "");
+        if (_appliedTrayIcon == key) return;
+        _appliedTrayIcon = key;
+        if (TrayIcons.Custom(wanted, listening) is { } custom) _tray.Icon = custom;
         else _tray.IconSource = TrayIcons.Default();
     }
 
@@ -613,6 +630,30 @@ public partial class App : Application
         Shutdown();
     }
 
+    /// <summary>Makes the automatic backup when it is due (off the UI thread; saving first, on it).</summary>
+    public async Task<string?> BackupIfDueAsync(bool force = false)
+    {
+        if (_backingUp || _exiting) return null;
+        var settings = Config.Settings;
+        if (!force && !AutoBackup.IsDue(settings, DateTime.Now)) return null;
+        _backingUp = true;
+        try
+        {
+            return await Task.Run(() => AutoBackup.Create(settings, () => Dispatcher.Invoke(() =>
+            {
+                Store.SaveNow();
+                Achievements.Flush();
+            })));
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Error en la copia automática", ex);
+            if (force) throw;
+            return null;
+        }
+        finally { _backingUp = false; }
+    }
+
     private void OnSessionEnding(object? sender, SessionEndingEventArgs e)
     {
         Log.Info($"La sesión termina ({e.Reason})");
@@ -626,6 +667,7 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         _hookRefresh.Stop();
+        _backupTimer.Stop();
         Events?.Dispose();
         Router.Dispose();
         Udp?.Dispose();

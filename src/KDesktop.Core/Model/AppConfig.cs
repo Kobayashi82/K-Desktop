@@ -185,6 +185,18 @@ public partial class AppSettings : ObservableObject
     /// <summary>Show the websites' own icons (favicons) on "Open web" actions; they are downloaded from each site.</summary>
     [ObservableProperty] private bool _webFavicons = true;
 
+    // Automatic backups (Storage/AutoBackup): a full .zip every few days, the last ones kept
+    [ObservableProperty] private bool _autoBackup = true;
+
+    /// <summary>Days between automatic backups (1 = daily).</summary>
+    [ObservableProperty] private int _autoBackupDays = 1;
+
+    /// <summary>How many automatic backups are kept (older ones are deleted).</summary>
+    [ObservableProperty] private int _autoBackupKeep = 10;
+
+    /// <summary>Where they go; empty = the Backups folder of the data dir (another disk, OneDrive or a NAS is safer).</summary>
+    [ObservableProperty] private string _autoBackupFolder = string.Empty;
+
     /// <summary>Icon of the notification-area (tray) icon, as command icons are stored; null or empty: K-Desktop's own.</summary>
     [ObservableProperty] private string? _trayIcon;
 

@@ -152,7 +152,7 @@ public sealed partial class CommandEngine
                         {
                             Log.Info($"'{command.Name}': no se cumple «{what}», se detiene");
                             outcome = RunOutcome.Stopped;
-                            message = what;
+                            message = Localization.Loc.T("history.notMet", what);
                             break;
                         }
                         skip = Math.Max(1, condition.SkipCount);
