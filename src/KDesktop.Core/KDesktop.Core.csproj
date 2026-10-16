@@ -16,6 +16,8 @@
     <PackageReference Include="SpeexDSPSharp.Natives" Version="1.3.0" />
     <!-- SentencePiece tokenizer of EmbeddingGemma (Voice/TextEmbedder.cs). MIT (.NET Foundation). -->
     <PackageReference Include="Microsoft.ML.Tokenizers" Version="2.0.1" />
+    <!-- DPAPI: secret headers of «Petición web» (Platform/Secrets.cs). MIT (.NET Foundation). -->
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.0" />
   </ItemGroup>
 
   <!-- Built-in languages and sounds travel inside the assembly (and so inside the single-file exe).

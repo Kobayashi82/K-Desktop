@@ -12,7 +12,7 @@ public enum ActionKind
     SendInput, Volume, PlaySound,
     TopMost, HiddenFiles, ToggleDisabledIn, ShowMessage, Power,
     OpenQuickMenu, CommandControl, Wait,
-    PlayMacro, AudioOutput, KBoard, Launcher,
+    PlayMacro, AudioOutput, KBoard, Launcher, HttpRequest,
 }
 
 public enum WindowMode { Normal, Minimized, Maximized, Hidden }
@@ -47,6 +47,7 @@ public enum ScriptShell { Cmd, PowerShell }
 [JsonDerivedType(typeof(AudioOutputAction), "audioOutput")]
 [JsonDerivedType(typeof(KBoardAction), "kboard")]
 [JsonDerivedType(typeof(LauncherAction), "launcher")]
+[JsonDerivedType(typeof(HttpRequestAction), "httpRequest")]
 public abstract partial class CommandAction : ObservableObject
 {
     [ObservableProperty] private bool _enabled = true;
@@ -66,6 +67,9 @@ public abstract partial class CommandAction : ObservableObject
 
     /// <summary>Re-evaluates <see cref="Summary"/> (after a language change).</summary>
     public void RefreshSummary() => base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(Summary)));
+
+    /// <summary>A display-only property (not a change to save).</summary>
+    public virtual bool IsTransient(string? property) => property is nameof(Summary);
 
     public CommandAction Clone() => Json.Clone(this);
 

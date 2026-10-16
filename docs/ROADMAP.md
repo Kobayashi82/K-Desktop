@@ -173,6 +173,19 @@
       cualquier dirección quita el dispositivo entero. Probado con dos proxies en el emulador (app y Chrome).
 - [ ] Probar la app web en el móvil real a través de Caddy (instalación como PWA, iPhone y Android).
 - [ ] **Voz** (plan en [VOZ.md](VOZ.md), etapas abajo). Va después del touchpad/teclado de la web.
+- [x] **Atajos: lo específico gana** (2026-10-16): si un atajo lo tienen un comando para todas las aplicaciones y otro
+      limitado a algunas, en esas aplicaciones solo corre el específico (`HotkeyIndex.Resolve`, para teclas, botones,
+      acordes y rueda); dos generales o dos del mismo programa siguen corriendo los dos. En el K-Board, el perfil de la
+      aplicación en primer plano gana al general aunque vaya después. El aviso de atajo repetido lo explica.
+      Pruebas en `tests/KDesktop.Core.Tests` (xUnit, `dotnet test tests\KDesktop.Core.Tests`).
+- [x] **Acción «Petición web»** (2026-10-16, `HttpRequestAction`, `Engine/HttpRequests.cs`): GET/POST/PUT/PATCH/DELETE
+      sin abrir el navegador, con cabeceras, cuerpo (JSON por defecto), límite de tiempo (10 s), «mostrar la respuesta»
+      (nunca / solo si falla / siempre, por el OSD y `ExecutionFeedback`, así llega a la web) y «aceptar cualquier
+      certificado». Un `HttpClient` compartido; Esc la cancela. Cabeceras **secretas**: casilla por cabecera, se
+      guardan cifradas con DPAPI para el usuario de Windows (`Platform/Secrets.cs`); en otro PC no se pueden leer, se
+      conservan tal cual y el editor pide volver a escribirlas. Variables {fecha}/{date}, {hora}/{time} y
+      {portapapeles}/{clipboard} en URL y cuerpo (`TextVariables`, escapadas para URL o JSON; servirá también para
+      «Enviar texto»). Botón «Probar» en el editor con el código y la respuesta. Sin probar con un Home Assistant real.
 
 ### Plan de la voz
 

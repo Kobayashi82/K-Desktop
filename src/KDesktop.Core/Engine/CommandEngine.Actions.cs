@@ -32,6 +32,7 @@ public sealed partial class CommandEngine
         PlayMacroAction a => PlayMacroAsync(a, ctx),
         AudioOutputAction a => AudioOutputAsync(a),
         KBoardAction a => Run(() => KBoard(a)),
+        HttpRequestAction a => HttpRequestAsync(a, ctx),
         _ => Task.CompletedTask,
     };
 
@@ -178,6 +179,28 @@ public sealed partial class CommandEngine
         {
             await Task.Run(() => ProcessLauncher.Launch(spec, a.RunAsAdmin)).ConfigureAwait(false);
         }
+    }
+
+    private async Task HttpRequestAsync(HttpRequestAction a, ExecutionContext ctx)
+    {
+        if (string.IsNullOrWhiteSpace(a.Url)) return;
+        var cts = BeginCancellable(ctx.Token); // Esc cancels it
+        try
+        {
+            var result = await HttpRequests.SendAsync(a, cts.Token).ConfigureAwait(false);
+            var text = Loc.T("http.result", a.Summary, result.Describe());
+            if (result.Success)
+            {
+                Log.Info($"Petición web: {a.Summary} → {result.Status} ({result.Milliseconds} ms)");
+                if (a.ShowResult == HttpResultDisplay.Always) _ui.ShowOsd(text, OsdKind.Success);
+            }
+            else
+            {
+                Log.Warn(text);
+                if (a.ShowResult != HttpResultDisplay.Never) _ui.ShowOsd(text, OsdKind.Warning);
+            }
+        }
+        finally { EndCancellable(cts); }
     }
 
     // ── Entrada y sonido ─────────────────────────────────────────────────

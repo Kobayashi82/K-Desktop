@@ -695,6 +695,48 @@ public partial class CommandsPage : UserControl, IDisposable
         foreach (var a in _selected.Actions.OfType<AudioOutputAction>()) a.Devices.Remove(device);
     }
 
+    private void OnAddHttpHeader(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.Parameter is HttpRequestAction a) a.Headers.Add(new HttpHeader());
+    }
+
+    private void OnRemoveHttpHeader(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (_selected is null || e.Parameter is not HttpHeader header) return;
+        foreach (var a in _selected.Actions.OfType<HttpRequestAction>()) a.Headers.Remove(header);
+    }
+
+    /// <summary>Sends the request now and shows the code and the answer under the button.</summary>
+    private async void OnTestHttpRequest(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.Parameter is not HttpRequestAction a || a.Testing) return;
+        a.Testing = true;
+        a.TestResult = null;
+        try
+        {
+            var result = await HttpRequests.SendAsync(a, CancellationToken.None);
+            a.TestResult = result.Error is not null
+                ? Loc.T("editor.httpTestError", result.Error)
+                : $"{result.Status} {result.Reason}  ·  {result.Milliseconds} ms" + (result.Body.Length > 0 ? Environment.NewLine + Environment.NewLine + Indented(result.Body) : "");
+        }
+        catch (Exception ex)
+        {
+            a.TestResult = Loc.T("editor.httpTestError", ex.Message);
+        }
+        finally { a.Testing = false; }
+
+        // A JSON answer, easier to read.
+        static string Indented(string body)
+        {
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(body);
+                return System.Text.Json.JsonSerializer.Serialize(doc.RootElement, Json.Options);
+            }
+            catch (System.Text.Json.JsonException) { return body; }
+        }
+    }
+
     // ── processes ────────────────────────────────────────────────────────
 
     private void OnProcessDropDown(object sender, EventArgs e) => ProcessCombo.Fill(ProcessBox, _selected?.Processes);

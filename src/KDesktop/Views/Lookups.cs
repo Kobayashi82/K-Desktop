@@ -30,6 +30,10 @@ public static class Lookups
     public static IReadOnlyList<Option<KBoardActionMode>> KBoardActionModes { get; } = Enum<KBoardActionMode>("enum.kboardMode");
     public static IReadOnlyList<Option<RemapKind>> RemapKinds { get; } = Enum<RemapKind>("enum.remapKind");
     public static IReadOnlyList<Option<ScriptShell>> ScriptShells { get; } = Enum<ScriptShell>("enum.shell");
+    public static IReadOnlyList<Option<HttpVerb>> HttpVerbs { get; } =
+        [.. System.Enum.GetValues<HttpVerb>().Select(v => new Option<HttpVerb>(v, v.ToString().ToUpperInvariant()))];
+    public static IReadOnlyList<Option<HttpResultDisplay>> HttpResultDisplays { get; } = Enum<HttpResultDisplay>("enum.httpResult");
+    public static IReadOnlyList<string> ContentTypes { get; } = ["application/json", "application/x-www-form-urlencoded", "text/plain", "application/xml"];
     public static IReadOnlyList<Option<AppTheme>> Themes { get; } = Enum<AppTheme>("enum.theme");
     public static IReadOnlyList<Option<UpdateMode>> UpdateModes { get; } = Enum<UpdateMode>("enum.updateMode");
     public static IReadOnlyList<Option<OsdPosition>> OsdPositions { get; } = Enum<OsdPosition>("enum.osdPosition");
@@ -100,4 +104,7 @@ public static class EditorCommands
     public static readonly RoutedUICommand AddAudioDevice = new("AddAudioDevice", nameof(AddAudioDevice), typeof(EditorCommands));
     public static readonly RoutedUICommand RemoveAudioDevice = new("RemoveAudioDevice", nameof(RemoveAudioDevice), typeof(EditorCommands));
     public static readonly RoutedUICommand EditKBoard = new("EditKBoard", nameof(EditKBoard), typeof(EditorCommands));
+    public static readonly RoutedUICommand AddHttpHeader = new("AddHttpHeader", nameof(AddHttpHeader), typeof(EditorCommands));
+    public static readonly RoutedUICommand RemoveHttpHeader = new("RemoveHttpHeader", nameof(RemoveHttpHeader), typeof(EditorCommands));
+    public static readonly RoutedUICommand TestHttpRequest = new("TestHttpRequest", nameof(TestHttpRequest), typeof(EditorCommands));
 }

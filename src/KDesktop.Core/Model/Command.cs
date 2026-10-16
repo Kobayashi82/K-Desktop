@@ -126,7 +126,7 @@ public partial class Command : ObservableObject
 
     private void OnActionChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(CommandAction.Summary))
+        if (sender is CommandAction action && action.IsTransient(e.PropertyName))
         {
             // Display only: not a change to save.
             base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(ActionsText)));

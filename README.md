@@ -30,6 +30,7 @@ Atajos de teclado y ratón, QuickMenus y control remoto por UDP para Windows. Es
 | Abrir página web | Salida de audio (rotar dispositivos) | Desactivar en la app actual | Esperar |
 | Controlar aplicación (activar / cerrar / esperar) | Reproducir sonido | Mostrar mensaje | K-Board (activar / desactivar) |
 | Script CMD / PowerShell | Reproducir macro | Energía (apagar, reiniciar, cambiar de usuario…) | |
+| Petición web (GET, POST…: Home Assistant, APIs) | | | |
 
 ## Línea de comandos
 

@@ -59,6 +59,7 @@ public static partial class IconProvider
         OpenUrlAction a => ForTheme(Favicons.Get(a.Url)) ?? (Browsers.Get(a.Browser)?.Icon is { } browser ? Asset(browser) : Kd("Globe24", "sky")),
         AppControlAction => Kd("WindowApps24", "indigo"),
         RunScriptAction => Kd("WindowConsole20", "dark"),
+        HttpRequestAction => Kd("GlobeArrowForward24", "teal"),
         SendInputAction => Kd("Keyboard24", "sky"),
         VolumeAction => Kd("Speaker224", "teal"),
         AudioOutputAction => Kd("HeadphonesSoundWave24", "teal"),

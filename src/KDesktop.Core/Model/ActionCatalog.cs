@@ -20,6 +20,7 @@ public static class ActionCatalog
         new(ActionKind.OpenUrl, "apps", "Globe24", () => new OpenUrlAction()),
         new(ActionKind.AppControl, "apps", "WindowApps24", () => new AppControlAction()),
         new(ActionKind.RunScript, "apps", "WindowConsole20", () => new RunScriptAction()),
+        new(ActionKind.HttpRequest, "apps", "GlobeArrowForward24", () => new HttpRequestAction()),
 
         new(ActionKind.SendInput, "input", "Keyboard24", () => new SendInputAction()),
         new(ActionKind.Volume, "input", "Speaker224", () => new VolumeAction()),

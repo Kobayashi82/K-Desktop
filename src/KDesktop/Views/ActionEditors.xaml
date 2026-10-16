@@ -189,6 +189,126 @@
         </StackPanel>
     </DataTemplate>
 
+    <!-- ── Petición web ────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:HttpRequestAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="120" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.httpMethod}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.HttpVerbs}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Method}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="URL" />
+                    <ui:TextBox Text="{Binding Url, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="http://homeassistant.local:8123/api/services/light/turn_off" />
+                </StackPanel>
+            </Grid>
+
+            <Grid Margin="0,0,0,6">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.httpHeaders}" VerticalAlignment="Bottom" />
+                <ui:Button HorizontalAlignment="Right" Content="{l:Tr editor.httpAddHeader}" Icon="{ui:SymbolIcon Add24}"
+                           Command="{x:Static v:EditorCommands.AddHttpHeader}" CommandParameter="{Binding}" />
+            </Grid>
+            <ItemsControl ItemsSource="{Binding Headers}" Margin="0,0,0,6">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type m:HttpHeader}">
+                        <StackPanel Margin="0,0,0,6">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*" />
+                                    <ColumnDefinition Width="8" />
+                                    <ColumnDefinition Width="3*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <ui:TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Authorization" />
+                                <ui:TextBox x:Name="PlainBox" Grid.Column="2" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.httpHeaderValue}" />
+                                <ui:PasswordBox x:Name="SecretBox" Grid.Column="2" Visibility="Collapsed" Password="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                PlaceholderText="{l:Tr editor.httpHeaderValue}" />
+                                <CheckBox Grid.Column="3" Margin="10,0,0,0" MinWidth="0" Content="{l:Tr editor.httpSecret}" IsChecked="{Binding Secret}"
+                                          ToolTip="{l:Tr editor.httpSecretHint}" VerticalAlignment="Center" />
+                                <ui:Button Grid.Column="4" Margin="4,0,0,0" Style="{StaticResource IconButton}" ToolTip="{l:Tr common.remove}" VerticalAlignment="Center"
+                                           Command="{x:Static v:EditorCommands.RemoveHttpHeader}" CommandParameter="{Binding}">
+                                    <ui:SymbolIcon Symbol="Dismiss24" FontSize="12" />
+                                </ui:Button>
+                            </Grid>
+                            <TextBlock x:Name="UnreadableHint" Style="{StaticResource Caption}" Margin="0,4,0,0" Visibility="Collapsed"
+                                       Foreground="{DynamicResource SystemFillColorCautionBrush}" Text="{l:Tr editor.httpUnreadable}" />
+                        </StackPanel>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding Secret}" Value="True">
+                                <Setter TargetName="PlainBox" Property="Visibility" Value="Collapsed" />
+                                <Setter TargetName="SecretBox" Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Unreadable}" Value="True">
+                                <Setter TargetName="UnreadableHint" Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <StackPanel x:Name="BodyPanel">
+                <Grid Margin="0,6,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="260" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Style="{StaticResource FieldLabel}" Margin="0" Text="{l:Tr editor.httpBody}" VerticalAlignment="Center" />
+                    <ComboBox Grid.Column="1" IsEditable="True" ItemsSource="{x:Static v:Lookups.ContentTypes}"
+                              Text="{Binding ContentType, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="application/json" />
+                </Grid>
+                <TextBox Margin="0,0,0,6" Text="{Binding Body, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" AcceptsTab="True"
+                         MinHeight="80" MaxHeight="300" VerticalScrollBarVisibility="Auto" TextWrapping="NoWrap" HorizontalScrollBarVisibility="Auto"
+                         FontFamily="Cascadia Mono, Consolas" FontSize="13" />
+            </StackPanel>
+            <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" TextWrapping="Wrap" Text="{l:Tr editor.httpVariables}" />
+
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="140" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.timeout}" />
+                    <ui:TextBox Text="{Binding TimeoutSeconds, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.httpShowResult}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.HttpResultDisplays}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding ShowResult}" />
+                </StackPanel>
+            </Grid>
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.httpInsecure}" IsChecked="{Binding IgnoreCertificateErrors}" />
+            <TextBlock x:Name="InsecureHint" Style="{StaticResource Caption}" Margin="0,0,0,6" TextWrapping="Wrap" Visibility="Collapsed"
+                       Foreground="{DynamicResource SystemFillColorCautionBrush}" Text="{l:Tr editor.httpInsecureHint}" />
+
+            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                <ui:Button Content="{l:Tr editor.httpTest}" Icon="{ui:SymbolIcon Send24}" IsEnabled="{Binding Testing, Converter={StaticResource InverseBool}}"
+                           Command="{x:Static v:EditorCommands.TestHttpRequest}" CommandParameter="{Binding}" />
+                <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18" Margin="12,0,0,0" VerticalAlignment="Center"
+                                 Visibility="{Binding Testing, Converter={StaticResource BoolToVis}}" />
+            </StackPanel>
+            <TextBox x:Name="ResultBox" Margin="0,8,0,0" IsReadOnly="True" Text="{Binding TestResult, Mode=OneWay}" TextWrapping="Wrap"
+                     MaxHeight="220" VerticalScrollBarVisibility="Auto" FontFamily="Cascadia Mono, Consolas" FontSize="12" />
+        </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Method}" Value="Get">
+                <Setter TargetName="BodyPanel" Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IgnoreCertificateErrors}" Value="True">
+                <Setter TargetName="InsecureHint" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding TestResult}" Value="{x:Null}">
+                <Setter TargetName="ResultBox" Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
     <!-- ── Enviar pulsación / texto ────────────────────────────────────── -->
     <DataTemplate DataType="{x:Type m:SendInputAction}">
         <StackPanel>
