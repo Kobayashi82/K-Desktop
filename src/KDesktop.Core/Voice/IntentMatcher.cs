@@ -28,7 +28,9 @@ public static class IntentMatcher
     [
         "el", "la", "los", "las", "lo", "un", "una", "unos", "unas", "de", "del", "al", "a", "en", "por", "para",
         "favor", "porfa", "porfavor", "me", "mi", "mis", "tu", "que", "y", "o", "con", "eh", "pues", "venga", "ahora",
-        "the", "an", "to", "please", "my", "of", "and", "now",
+        // Asking politely («¿puedes vaciar la papelera?», «oye, abre…»).
+        "puedes", "puede", "pueden", "podrias", "podria", "podeis", "quieres", "oye", "hey",
+        "the", "an", "to", "please", "my", "of", "and", "now", "can", "could", "would", "you",
     ];
 
     /// <summary>Verbs that name what every command does: leaving them out of the order is fine.</summary>
