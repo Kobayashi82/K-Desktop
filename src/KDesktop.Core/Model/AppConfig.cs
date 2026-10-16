@@ -32,6 +32,12 @@ public sealed class AppConfig
             foreach (var toggle in toggles) cmd.Actions.Remove(toggle);
             if (cmd.Actions.Count == 0 && !IsReferenced(cmd.Id)) Commands.Remove(cmd);
         }
+        // The built-in listening sound was called «Escuchar» in 5.0.11–5.0.14.
+        if (Settings.VoiceListenSound == "Escuchar")
+        {
+            Settings.VoiceListenSound = "Toc";
+            changed = true;
+        }
         if (SchemaVersion < 2)
         {
             SchemaVersion = 2;
@@ -202,7 +208,7 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private int _voiceDuckLevel = 20;
 
     /// <summary>Sound when it starts listening for the order (built-in name or .wav path); empty for none.</summary>
-    [ObservableProperty] private string? _voiceListenSound = "Escuchar";
+    [ObservableProperty] private string? _voiceListenSound = "Toc";
 
     // Multimedia (built-in voice orders: pause, next, volume…)
     [ObservableProperty] private bool _voiceMedia = true;

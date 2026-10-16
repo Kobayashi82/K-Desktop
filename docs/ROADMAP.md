@@ -334,8 +334,9 @@ embeddings multilingües → LLM opcional) y siete etapas con su commit cada una
       Probado de punta a punta con la palabra grabada del usuario + TTS («limpia la papelera»; «déjalo, no lo hagas»
       cancelando una cuenta atrás lanzada por voz). Sin probar con el micro real.
 - [x] **Etapa 6** (2026-10-16, 5.0.11–5.0.12; sin confirmación por voz, decisión del usuario):
-      · **Sonido al escuchar** (Opciones › Voz, `VoiceListenSound`): sonido integrado nuevo «Escuchar» (dos notas,
-      0,26 s, generado; los de Windows duraban más de un segundo), al confirmar la palabra o pulsar la tecla de voz.
+      · **Sonido al escuchar** (Opciones › Voz, `VoiceListenSound`): sonido integrado nuevo «Toc» (golpecito de
+      madera grave, La4, 0,16 s, generado; los de Windows duraban más de un segundo; en 5.0.11–5.0.14 era «Escuchar»,
+      dos notas agudas, y se cambia solo al cargar), al confirmar la palabra o pulsar la tecla de voz.
       · **Frases de voz por comando** (`Command.VoicePhrases`, una por línea, en el editor): cuentan como su nombre
       en las dos capas (palabras y significado). Para lo que el modelo no puede saber: «gestor de contraseñas» →
       KeePassXC, «terminal de linux» → WSL (y «quiero el bash de linux» llega por significado).
