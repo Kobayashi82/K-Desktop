@@ -95,6 +95,7 @@
         <CommandBinding Command="{x:Static v:EditorCommands.DuplicateAction}" Executed="OnDuplicateAction" />
         <CommandBinding Command="{x:Static v:EditorCommands.RemoveHotkey}" Executed="OnRemoveHotkey" />
         <CommandBinding Command="{x:Static v:EditorCommands.RemoveProcess}" Executed="OnRemoveProcess" />
+        <CommandBinding Command="{x:Static v:EditorCommands.RemoveVoicePhrase}" Executed="OnRemoveVoicePhrase" />
         <CommandBinding Command="{x:Static v:EditorCommands.EditMacro}" Executed="OnEditMacro" />
         <CommandBinding Command="{x:Static v:EditorCommands.AddAudioDevice}" Executed="OnAddAudioDevice" />
         <CommandBinding Command="{x:Static v:EditorCommands.RemoveAudioDevice}" Executed="OnRemoveAudioDevice" />
@@ -471,7 +472,30 @@
 
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr commands.voicePhrases}" />
                             <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,8" Text="{l:Tr commands.voicePhrasesHint}" TextWrapping="Wrap" />
-                            <TextBox Margin="0,0,0,14" Text="{Binding VoicePhrases, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
+                            <ItemsControl ItemsSource="{Binding VoicePhrases}" Focusable="False">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource Chip}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding}" Style="{StaticResource ChipText}" />
+                                                <ui:Button Style="{StaticResource IconButton}" Padding="4" Margin="4,0,0,0"
+                                                           Command="{x:Static v:EditorCommands.RemoveVoicePhrase}" CommandParameter="{Binding}">
+                                                    <ui:SymbolIcon Symbol="Dismiss24" FontSize="12" />
+                                                </ui:Button>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <StackPanel Orientation="Horizontal" Margin="0,2,0,14">
+                                <ui:TextBox x:Name="VoicePhraseBox" Width="320" PlaceholderText="{l:Tr commands.voicePhrasePlaceholder}" KeyDown="OnVoicePhraseKeyDown" />
+                                <ui:Button Margin="8,0,0,0" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddVoicePhrase" />
+                            </StackPanel>
 
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr commands.notes}" />
                             <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />

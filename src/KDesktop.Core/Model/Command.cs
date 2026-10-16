@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -37,9 +38,6 @@ public partial class Command : ObservableObject
 
     [ObservableProperty] private string? _notes;
 
-    /// <summary>Other ways of calling it by voice, one per line («gestor de contraseñas»): more names for the voice.</summary>
-    [ObservableProperty] private string? _voicePhrases;
-
     public ObservableCollection<string> Hotkeys { get; set => Rewire(ref field, value); } = [];
 
     /// <summary>When not empty, the command only runs while one of these processes is in the foreground.</summary>
@@ -47,10 +45,15 @@ public partial class Command : ObservableObject
 
     public ObservableCollection<CommandAction> Actions { get; set => Rewire(ref field, value); } = [];
 
+    /// <summary>Other ways of calling it by voice («gestor de contraseñas»): more names for the voice.</summary>
+    [JsonConverter(typeof(PhrasesConverter))]
+    public ObservableCollection<string> VoicePhrases { get; set => Rewire(ref field, value); } = [];
+
     public Command()
     {
         Hotkeys.CollectionChanged += OnChildCollectionChanged;
         Processes.CollectionChanged += OnChildCollectionChanged;
+        VoicePhrases.CollectionChanged += OnChildCollectionChanged;
         Actions.CollectionChanged += OnChildCollectionChanged;
     }
 
@@ -67,9 +70,8 @@ public partial class Command : ObservableObject
     /// <summary>Every hotkey, one per line (tooltip of the list).</summary>
     [JsonIgnore] public string HotkeysList => string.Join(Environment.NewLine, Hotkeys);
 
-    /// <summary>The lines of <see cref="VoicePhrases"/>, trimmed, without empty ones.</summary>
-    [JsonIgnore] public IEnumerable<string> VoicePhraseList =>
-        (VoicePhrases ?? "").Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Where(p => p.Length > 0);
+    /// <summary><see cref="VoicePhrases"/> trimmed, without empty ones.</summary>
+    [JsonIgnore] public IEnumerable<string> VoicePhraseList => VoicePhrases.Select(p => p.Trim()).Where(p => p.Length > 0);
 
     [JsonIgnore] public CommandAction? PrimaryAction => Actions.FirstOrDefault(a => a.Enabled) ?? Actions.FirstOrDefault();
 
@@ -148,4 +150,18 @@ public partial class Command : ObservableObject
 public static class Ids
 {
     public static string New() => Guid.NewGuid().ToString("N")[..12];
+}
+
+/// <summary>The voice phrases as a list; also as the text, one per line, that 5.0.12 saved.</summary>
+internal sealed class PhrasesConverter : JsonConverter<ObservableCollection<string>>
+{
+    public override ObservableCollection<string> Read(ref Utf8JsonReader reader, Type type, JsonSerializerOptions options) => reader.TokenType switch
+    {
+        JsonTokenType.String => new(reader.GetString()!.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)),
+        JsonTokenType.Null => [],
+        _ => new(JsonSerializer.Deserialize<List<string>>(ref reader, options) ?? []),
+    };
+
+    public override void Write(Utf8JsonWriter writer, ObservableCollection<string> value, JsonSerializerOptions options) =>
+        JsonSerializer.Serialize(writer, value.ToList(), options);
 }

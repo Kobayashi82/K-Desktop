@@ -117,7 +117,8 @@
   "commands.processesHint": "Leer lassen, damit es überall funktioniert. Wähle eine laufende App aus der Liste (sie wird sofort hinzugefügt) oder gib den Prozessnamen ein (z. B. chrome).",
   "commands.notes": "Notizen",
   "commands.voicePhrases": "Sprachphrasen",
-  "commands.voicePhrasesHint": "Andere Arten, ihn per Sprache aufzurufen, eine pro Zeile (z. B. „Passwortmanager“). Sie gelten wie sein Name; mit anderen Worten gesagt werden sie auch verstanden.",
+  "commands.voicePhrasesHint": "Andere Arten, ihn per Sprache aufzurufen (z. B. „Passwortmanager“). Sie gelten wie sein Name; mit anderen Worten gesagt werden sie auch verstanden.",
+  "commands.voicePhrasePlaceholder": "Phrase (z. B. Passwortmanager)",
 
   "editor.path": "Programm, Datei oder Verknüpfung",
   "editor.pathHint": "C:\\Pfad\\programm.exe, .lnk, .vbs, URL…",

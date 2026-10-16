@@ -93,6 +93,7 @@ public static class EditorCommands
     public static readonly RoutedUICommand DuplicateAction = new("DuplicateAction", nameof(DuplicateAction), typeof(EditorCommands));
     public static readonly RoutedUICommand RemoveHotkey = new("RemoveHotkey", nameof(RemoveHotkey), typeof(EditorCommands));
     public static readonly RoutedUICommand RemoveProcess = new("RemoveProcess", nameof(RemoveProcess), typeof(EditorCommands));
+    public static readonly RoutedUICommand RemoveVoicePhrase = new("RemoveVoicePhrase", nameof(RemoveVoicePhrase), typeof(EditorCommands));
     public static readonly RoutedUICommand EditMacro = new("EditMacro", nameof(EditMacro), typeof(EditorCommands));
     public static readonly RoutedUICommand CaptureStepKey = new("CaptureStepKey", nameof(CaptureStepKey), typeof(EditorCommands));
     public static readonly RoutedUICommand CaptureStepPosition = new("CaptureStepPosition", nameof(CaptureStepPosition), typeof(EditorCommands));

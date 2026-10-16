@@ -117,7 +117,8 @@
   "commands.processesHint": "Deixe vazio para funcionar em todo lugar. Escolha um app aberto na lista (é adicionado na hora) ou digite o nome do processo (ex.: chrome).",
   "commands.notes": "Notas",
   "commands.voicePhrases": "Frases de voz",
-  "commands.voicePhrasesHint": "Outras formas de chamá-lo por voz, uma por linha (por exemplo “gerenciador de senhas”). Valem como o nome dele; ditas com outras palavras também são entendidas.",
+  "commands.voicePhrasesHint": "Outras formas de chamá-lo por voz (por exemplo “gerenciador de senhas”). Valem como o nome dele; ditas com outras palavras também são entendidas.",
+  "commands.voicePhrasePlaceholder": "Frase (ex. gerenciador de senhas)",
 
   "editor.path": "Programa, arquivo ou atalho",
   "editor.pathHint": "C:\\Caminho\\programa.exe, .lnk, .vbs, URL…",

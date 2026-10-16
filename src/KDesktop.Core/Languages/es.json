@@ -117,7 +117,8 @@
   "commands.processesHint": "Si la lista está vacía funciona en todas. Elige una aplicación abierta en la lista (se añade al momento) o escribe el nombre del proceso (p. ej. chrome).",
   "commands.notes": "Notas",
   "commands.voicePhrases": "Frases de voz",
-  "commands.voicePhrasesHint": "Otras formas de llamarlo por voz, una por línea (por ejemplo «gestor de contraseñas»). Valen como su nombre; dichas con otras palabras también se entienden.",
+  "commands.voicePhrasesHint": "Otras formas de llamarlo por voz (por ejemplo «gestor de contraseñas»). Valen como su nombre; dichas con otras palabras también se entienden.",
+  "commands.voicePhrasePlaceholder": "Frase (p. ej. gestor de contraseñas)",
 
   "editor.path": "Programa, archivo o acceso directo",
   "editor.pathHint": "C:\\Ruta\\programa.exe, .lnk, .vbs, URL…",

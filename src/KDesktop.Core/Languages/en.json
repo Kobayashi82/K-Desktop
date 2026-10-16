@@ -117,7 +117,8 @@
   "commands.processesHint": "Leave empty to work everywhere. Pick a running app from the list (it is added right away) or type the process name (e.g. chrome).",
   "commands.notes": "Notes",
   "commands.voicePhrases": "Voice phrases",
-  "commands.voicePhrasesHint": "Other ways to call it by voice, one per line (e.g. “password manager”). They count as its name; said in other words they are understood too.",
+  "commands.voicePhrasesHint": "Other ways to call it by voice (e.g. “password manager”). They count as its name; said in other words they are understood too.",
+  "commands.voicePhrasePlaceholder": "Phrase (e.g. password manager)",
 
   "editor.path": "Program, file or shortcut",
   "editor.pathHint": "C:\\Path\\program.exe, .lnk, .vbs, URL…",

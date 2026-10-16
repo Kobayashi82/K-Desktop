@@ -117,7 +117,8 @@
   "commands.processesHint": "Lascia vuoto per farlo funzionare ovunque. Scegli un’app aperta dall’elenco (viene aggiunta subito) o scrivi il nome del processo (es. chrome).",
   "commands.notes": "Note",
   "commands.voicePhrases": "Frasi vocali",
-  "commands.voicePhrasesHint": "Altri modi di chiamarlo a voce, uno per riga (es. «gestore di password»). Valgono come il suo nome; dette con altre parole vengono capite lo stesso.",
+  "commands.voicePhrasesHint": "Altri modi di chiamarlo a voce (es. «gestore di password»). Valgono come il suo nome; dette con altre parole vengono capite lo stesso.",
+  "commands.voicePhrasePlaceholder": "Frase (es. gestore di password)",
 
   "editor.path": "Programma, file o collegamento",
   "editor.pathHint": "C:\\Percorso\\programma.exe, .lnk, .vbs, URL…",

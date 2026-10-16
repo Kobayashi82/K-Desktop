@@ -117,7 +117,8 @@
   "commands.processesHint": "Laissez vide pour fonctionner partout. Choisissez une application ouverte dans la liste (elle est ajoutée tout de suite) ou tapez le nom du processus (ex. chrome).",
   "commands.notes": "Notes",
   "commands.voicePhrases": "Phrases vocales",
-  "commands.voicePhrasesHint": "D’autres façons de l’appeler à la voix, une par ligne (par ex. « gestionnaire de mots de passe »). Elles valent comme son nom ; dites autrement, elles sont aussi comprises.",
+  "commands.voicePhrasesHint": "D’autres façons de l’appeler à la voix (par ex. « gestionnaire de mots de passe »). Elles valent comme son nom ; dites autrement, elles sont aussi comprises.",
+  "commands.voicePhrasePlaceholder": "Phrase (ex. gestionnaire de mots de passe)",
 
   "editor.path": "Programme, fichier ou raccourci",
   "editor.pathHint": "C:\\Chemin\\programme.exe, .lnk, .vbs, URL…",

@@ -708,5 +708,30 @@ public partial class CommandsPage : UserControl, IDisposable
     {
         if (_selected is not null && e.Parameter is string p) _selected.Processes.Remove(p);
     }
+
+    // ── voice phrases ────────────────────────────────────────────────────
+
+    private void OnVoicePhraseKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter) return;
+        OnAddVoicePhrase(sender, e);
+        e.Handled = true;
+    }
+
+    /// <summary>The typed phrase becomes a chip (once; the same phrase twice, ignoring case and spaces, is kept once).</summary>
+    private void OnAddVoicePhrase(object sender, RoutedEventArgs e)
+    {
+        var phrase = string.Join(' ', VoicePhraseBox.Text.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        if (_selected is null || phrase.Length == 0) return;
+        if (!_selected.VoicePhrases.Any(p => string.Equals(p, phrase, StringComparison.CurrentCultureIgnoreCase)))
+            _selected.VoicePhrases.Add(phrase);
+        VoicePhraseBox.Text = "";
+        VoicePhraseBox.Focus();
+    }
+
+    private void OnRemoveVoicePhrase(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (_selected is not null && e.Parameter is string p) _selected.VoicePhrases.Remove(p);
+    }
 }
 
