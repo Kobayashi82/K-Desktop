@@ -216,7 +216,7 @@
       Probado de verdad: al iniciar (migrado), abrir/cerrar el Bloc de notas, a una hora, primer plano (con la ventana
       de una instancia de prueba). **Sin probar**: bloquear/desbloquear, suspender/reanudar, inactividad real.
 - [x] **Editor de comandos sin interruptores** (2026-10-16): «Oculto» (ojo) y «Control remoto» (enchufe) son iconos junto
-      al nombre; «Bloquear el atajo» (candado) y «Ejecutar siempre» (escudo) van en la cabecera de Atajos
+      al nombre; «Bloquear el atajo» (candado) y «Ejecutar siempre» (prohibido en gris / play en dorado) van en la cabecera de Atajos
       (`Views/IconToggle.cs`: símbolo y color según el estado, tooltip con nombre, Sí/No y explicación). En Opciones,
       una fila «Eventos:» y otra «QuickMenus:» con enlaces, cada una solo si hay alguno.
 - [x] **Eventos: «Dispositivo conectado» y «Llamada desde fuera»** (2026-10-16). Dispositivo: mando (Bluetooth o

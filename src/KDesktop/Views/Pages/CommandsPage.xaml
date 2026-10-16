@@ -308,7 +308,7 @@
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,0,0">
                                     <v:IconToggle IsChecked="{Binding BlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
                                                   Title="{l:Tr commands.blockKey}" Hint="{l:Tr commands.blockKeyHint}" />
-                                    <v:IconToggle IsChecked="{Binding IgnoreDisabledApps}" OnSymbol="ShieldCheckmark24" OffSymbol="Shield24"
+                                    <v:IconToggle IsChecked="{Binding IgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
                                                   Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
                                 </StackPanel>
                             </Grid>
