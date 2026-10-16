@@ -121,6 +121,15 @@
                 </StackPanel>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type m:PowerSourceTrigger}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.sessionWhen}" />
+                    <ComboBox Width="260" HorizontalAlignment="Left" ItemsSource="{x:Static v:Lookups.PowerSources}" DisplayMemberPath="Name"
+                              SelectedValuePath="Value" SelectedValue="{Binding Source}" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" TextWrapping="Wrap" Text="{l:Tr event.hint.power}" />
+                </StackPanel>
+            </DataTemplate>
+
             <!-- A command of «Ejecutar» / «Al terminar» -->
             <DataTemplate x:Key="CommandRow">
                 <Grid>

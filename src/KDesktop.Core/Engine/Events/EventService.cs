@@ -460,7 +460,8 @@ public sealed class EventService : IDisposable
     {
         var foreground = _foregroundGroups.Count > 0;
         var session = Rules<SessionTrigger>().Any();
-        if (!foreground && !session)
+        var power = Rules<PowerSourceTrigger>().Any();
+        if (!foreground && !session && !power)
         {
             _watcher?.Dispose();
             _watcher = null;
@@ -471,8 +472,10 @@ public sealed class EventService : IDisposable
             _watcher = new SystemWatcher();
             _watcher.ForegroundChanged += OnForegroundChanged;
             _watcher.SessionChanged = OnSession;
+            _watcher.PowerSourceChanged += OnPowerSource;
         }
         _watcher.WatchForeground(foreground);
+        _watcher.WatchPower(power);
     }
 
     private Task? OnSession(SessionEvent change)
@@ -488,6 +491,15 @@ public sealed class EventService : IDisposable
             _ => "el PC se reanuda",
         }}");
         return Task.WhenAll(rules.Select(r => FireAsync(r, false)));
+    }
+
+    private void OnPowerSource(bool battery)
+    {
+        var source = battery ? PowerSource.Battery : PowerSource.Mains;
+        List<EventRule> rules;
+        lock (_lock) rules = Rules<PowerSourceTrigger>().Where(r => r.Trigger.Source == source).Select(r => r.Rule).ToList();
+        Log.Info($"Eventos: el PC pasa a {(battery ? "batería" : "corriente")}");
+        foreach (var rule in rules) Fire(rule, false);
     }
 
     private static string[] Normalize(IEnumerable<string> processes) =>

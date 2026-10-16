@@ -231,6 +231,9 @@ public enum EventKind
 
 public enum SessionEvent { Lock, Unlock, Suspend, Resume }
 
+/// <summary>Where the PC takes its power from (laptops).</summary>
+public enum PowerSource { Battery, Mains }
+
 /// <summary>What makes an event fire.</summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(AppStartTrigger), "appStart")]
@@ -241,6 +244,7 @@ public enum SessionEvent { Lock, Unlock, Suspend, Resume }
 [JsonDerivedType(typeof(ForegroundTrigger), "foreground")]
 [JsonDerivedType(typeof(IdleTrigger), "idle")]
 [JsonDerivedType(typeof(SessionTrigger), "session")]
+[JsonDerivedType(typeof(PowerSourceTrigger), "powerSource")]
 public abstract partial class EventTrigger : ObservableObject
 {
     [JsonIgnore] public abstract EventKind Kind { get; }
@@ -371,4 +375,14 @@ public sealed partial class SessionTrigger : EventTrigger
     public override EventKind Kind => EventKind.Session;
     public override int DefaultCooldown => 2;
     public override string Summary => Loc.T($"event.summary.session.{Event}");
+}
+
+/// <summary>A laptop goes on battery or back on mains power.</summary>
+public sealed partial class PowerSourceTrigger : EventTrigger
+{
+    [ObservableProperty] private PowerSource _source = PowerSource.Battery;
+
+    public override EventKind Kind => EventKind.PowerSource;
+    public override int DefaultCooldown => 2;
+    public override string Summary => Loc.T($"event.summary.power.{Source}");
 }

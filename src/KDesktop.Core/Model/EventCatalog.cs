@@ -29,6 +29,7 @@ public static class EventCatalog
         new(EventKind.Foreground, "WindowArrowUp24", "purple", () => new ForegroundTrigger()),
         new(EventKind.Idle, "WeatherMoon24", "dark", () => new IdleTrigger()),
         new(EventKind.Session, "LockClosed24", "orange", () => new SessionTrigger()),
+        new(EventKind.PowerSource, "BatteryCharge24", "lime", () => new PowerSourceTrigger()),
     ];
 
     private static readonly Dictionary<EventKind, EventKindInfo> ByKind = All.ToDictionary(k => k.Kind);

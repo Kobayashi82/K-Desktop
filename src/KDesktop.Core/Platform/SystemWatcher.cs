@@ -11,9 +11,10 @@ namespace KDesktop.Core.Platform;
 /// </summary>
 public sealed class SystemWatcher : IDisposable
 {
-    private const uint WM_CLOSE = 0x0010, WM_WTSSESSION_CHANGE = 0x02B1, WM_POWERBROADCAST = 0x0218, WM_SETFOREGROUNDHOOK = 0x8001;
+    private const uint WM_CLOSE = 0x0010, WM_WTSSESSION_CHANGE = 0x02B1, WM_POWERBROADCAST = 0x0218, WM_SETFOREGROUNDHOOK = 0x8001, WM_SETPOWERWATCH = 0x8002;
     private const int WTS_SESSION_LOCK = 7, WTS_SESSION_UNLOCK = 8;
-    private const int PBT_APMSUSPEND = 4, PBT_APMRESUMESUSPEND = 7, PBT_APMRESUMEAUTOMATIC = 0x12;
+    private const int PBT_APMSUSPEND = 4, PBT_APMRESUMESUSPEND = 7, PBT_APMRESUMEAUTOMATIC = 0x12, PBT_POWERSETTINGCHANGE = 0x8013;
+    private static readonly Guid GUID_ACDC_POWER_SOURCE = new("5d3e9a59-e9D5-4b00-a6bd-ff34ff516548");
     private const uint EVENT_SYSTEM_FOREGROUND = 0x0003, WINEVENT_OUTOFCONTEXT = 0;
     private const uint WS_POPUP = 0x80000000, WS_EX_TOOLWINDOW = 0x00000080;
 
@@ -24,6 +25,8 @@ public sealed class SystemWatcher : IDisposable
     private IntPtr _hwnd;
     private IntPtr _foregroundHook;
     private long _lastResume;
+    private IntPtr _powerNotify;
+    private int _onBattery = -1; // unknown until Windows tells the current state
 
     /// <summary>The window in front changed (on the watcher's thread; keep it short).</summary>
     public event Action<IntPtr>? ForegroundChanged;
@@ -41,6 +44,15 @@ public sealed class SystemWatcher : IDisposable
         _thread = new Thread(Run) { IsBackground = true, Name = "K-Desktop events" };
         _thread.Start();
         _ready.Wait(TimeSpan.FromSeconds(3));
+    }
+
+    /// <summary>The PC went on battery (true) or on mains power (false).</summary>
+    public event Action<bool>? PowerSourceChanged;
+
+    /// <summary>Starts or stops watching battery / mains power.</summary>
+    public void WatchPower(bool on)
+    {
+        if (_hwnd != IntPtr.Zero) PostMessage(_hwnd, WM_SETPOWERWATCH, on ? 1 : 0, IntPtr.Zero);
     }
 
     /// <summary>Starts or stops watching the window in front.</summary>
@@ -75,6 +87,7 @@ public sealed class SystemWatcher : IDisposable
             Win32.DispatchMessage(ref msg);
         }
         if (_foregroundHook != IntPtr.Zero) UnhookWinEvent(_foregroundHook);
+        if (_powerNotify != IntPtr.Zero) UnregisterPowerSettingNotification(_powerNotify);
     }
 
     private IntPtr OnMessage(IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam)
@@ -93,6 +106,20 @@ public sealed class SystemWatcher : IDisposable
                     }
                     return IntPtr.Zero;
 
+                case WM_SETPOWERWATCH:
+                    if (wParam != 0 && _powerNotify == IntPtr.Zero)
+                    {
+                        var guid = GUID_ACDC_POWER_SOURCE;
+                        _powerNotify = RegisterPowerSettingNotification(hwnd, ref guid, 0);
+                    }
+                    else if (wParam == 0 && _powerNotify != IntPtr.Zero)
+                    {
+                        UnregisterPowerSettingNotification(_powerNotify);
+                        _powerNotify = IntPtr.Zero;
+                        _onBattery = -1;
+                    }
+                    return IntPtr.Zero;
+
                 case WM_WTSSESSION_CHANGE:
                     if ((int)wParam == WTS_SESSION_LOCK) Raise(SessionEvent.Lock);
                     else if ((int)wParam == WTS_SESSION_UNLOCK) Raise(SessionEvent.Unlock);
@@ -103,6 +130,14 @@ public sealed class SystemWatcher : IDisposable
                     {
                         case PBT_APMSUSPEND:
                             Raise(SessionEvent.Suspend)?.Wait(TimeSpan.FromSeconds(2));
+                            break;
+                        case PBT_POWERSETTINGCHANGE when lParam != IntPtr.Zero:
+                            // POWERBROADCAST_SETTING: GUID, DataLength, then a DWORD (0 mains, 1 battery, 2 UPS).
+                            if (Marshal.PtrToStructure<Guid>(lParam) != GUID_ACDC_POWER_SOURCE) break;
+                            var battery = Marshal.ReadInt32(lParam, 20) != 0 ? 1 : 0;
+                            var before = Interlocked.Exchange(ref _onBattery, battery);
+                            // The first notice right after registering is just the current state.
+                            if (before != -1 && before != battery) PowerSourceChanged?.Invoke(battery == 1);
                             break;
                         case PBT_APMRESUMEAUTOMATIC or PBT_APMRESUMESUSPEND:
                             // Both arrive when someone wakes the PC by hand: once is enough.
@@ -192,6 +227,12 @@ public sealed class SystemWatcher : IDisposable
 
     [DllImport("user32.dll")]
     private static extern bool UnhookWinEvent(IntPtr hook);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr RegisterPowerSettingNotification(IntPtr recipient, ref Guid setting, int flags);
+
+    [DllImport("user32.dll")]
+    private static extern bool UnregisterPowerSettingNotification(IntPtr handle);
 
     [DllImport("wtsapi32.dll", SetLastError = true)]
     private static extern bool WTSRegisterSessionNotification(IntPtr hwnd, int flags);
