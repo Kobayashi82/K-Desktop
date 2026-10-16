@@ -106,6 +106,7 @@ public static class WindowTools
             else
             {
                 var pids = processes.Select(p => (uint)p.Id).ToHashSet();
+                QuitPlayers(pids);
                 foreach (var hwnd in TopLevelWindows(pids)) Win32.PostMessage(hwnd, Win32.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
                 foreach (var p in processes)
                 {
@@ -113,16 +114,45 @@ public static class WindowTools
                 }
             }
             // Give them a moment to exit.
-            for (var i = 0; i < 30 && FindProcesses(processName) is { Length: > 0 } left; i++)
+            for (var i = 0; i < 30; i++)
             {
+                var left = FindProcesses(processName);
                 foreach (var l in left) l.Dispose();
+                if (left.Length == 0) return true;
                 await Task.Delay(100, token);
             }
-            return true;
+            return false;
         }
         finally
         {
             foreach (var p in processes) p.Dispose();
         }
+    }
+
+    private const int WM_COMMAND = 0x0111;
+    private const int WM_AIMP_COMMAND = Win32.WM_USER + 0x75, AIMP_RA_CMD_QUIT = 21;
+    private const int WINAMP_FILE_QUIT = 40001;
+
+    /// <summary>
+    /// Music players live in the tray with every window hidden, where WM_CLOSE reaches nothing (and closing the main
+    /// window often just hides it): the ones with a remote control are asked to quit through it — AIMP's own, and
+    /// Winamp's, which AIMP, Winamp and others answer.
+    /// </summary>
+    private static void QuitPlayers(ICollection<uint> pids)
+    {
+        IntPtr aimp = IntPtr.Zero, winamp = IntPtr.Zero;
+        Win32.EnumWindows((hwnd, _) =>
+        {
+            Win32.GetWindowThreadProcessId(hwnd, out var pid);
+            if (!pids.Contains(pid)) return true;
+            switch (Win32.GetClassName(hwnd))
+            {
+                case "AIMP2_RemoteInfo": aimp = hwnd; break;
+                case "Winamp v1.x": winamp = hwnd; break;
+            }
+            return true;
+        }, IntPtr.Zero);
+        if (aimp != IntPtr.Zero) Win32.PostMessage(aimp, WM_AIMP_COMMAND, (IntPtr)AIMP_RA_CMD_QUIT, IntPtr.Zero);
+        else if (winamp != IntPtr.Zero) Win32.PostMessage(winamp, WM_COMMAND, (IntPtr)WINAMP_FILE_QUIT, IntPtr.Zero);
     }
 }

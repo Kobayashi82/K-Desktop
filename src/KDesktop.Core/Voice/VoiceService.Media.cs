@@ -120,7 +120,9 @@ public sealed partial class VoiceService
     {
         if (!IsRunning(process)) return (Loc.T("voice.media.notRunning", process), OsdKind.Info);
         await _runAction(new AppControlAction { Mode = AppControlMode.Close, ProcessName = process }).ConfigureAwait(false);
-        return (Loc.T("voice.media.done.MusicOff"), OsdKind.Success);
+        return IsRunning(process)
+            ? (Loc.T("voice.media.notClosed", process), OsdKind.Warning)
+            : (Loc.T("voice.media.done.MusicOff"), OsdKind.Success);
     }
 
     /// <summary>The process name of the player (the target of a shortcut when it is one).</summary>

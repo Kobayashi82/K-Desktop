@@ -1081,6 +1081,7 @@
   "voice.media.nothingPlaying": "Es läuft nichts",
   "voice.media.alreadyPlaying": "Läuft bereits",
   "voice.media.notRunning": "{0} ist nicht geöffnet",
+  "voice.media.notClosed": "{0} wurde nicht geschlossen",
   "voice.media.noCommand": "Wähle den Befehl unter Einstellungen › Multimedia",
   "voice.media.error": "Das ging nicht",
   "voice.wakeOnly": "„{0}“ gehört: Sag den Befehl nach dem Wort",

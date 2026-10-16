@@ -1081,6 +1081,7 @@
   "voice.media.nothingPlaying": "Rien ne joue",
   "voice.media.alreadyPlaying": "Ça joue déjà",
   "voice.media.notRunning": "{0} n'est pas ouvert",
+  "voice.media.notClosed": "{0} ne s'est pas fermé",
   "voice.media.noCommand": "Choisissez la commande dans Paramètres › Multimédia",
   "voice.media.error": "Impossible de le faire",
   "voice.wakeOnly": "« {0} » entendu : dites l’ordre après le mot",

@@ -1081,6 +1081,7 @@
   "voice.media.nothingPlaying": "Nothing is playing",
   "voice.media.alreadyPlaying": "Already playing",
   "voice.media.notRunning": "{0} is not open",
+  "voice.media.notClosed": "{0} did not close",
   "voice.media.noCommand": "Choose the command in Settings › Multimedia",
   "voice.media.error": "It could not be done",
   "voice.wakeOnly": "Heard “{0}”: say the order after the word",

@@ -1081,6 +1081,7 @@
   "voice.media.nothingPlaying": "No suena nada",
   "voice.media.alreadyPlaying": "Ya está sonando",
   "voice.media.notRunning": "{0} no está abierto",
+  "voice.media.notClosed": "{0} no se ha cerrado",
   "voice.media.noCommand": "Elige el comando en Opciones › Multimedia",
   "voice.media.error": "No se pudo hacer",
   "voice.wakeOnly": "He oído «{0}»: di la orden después de la palabra",
