@@ -770,9 +770,9 @@ function renderFilters() {
     });
     return c;
   });
-  // "Hidden" is a switch in the search bar (always in sight), only when there are hidden commands.
+  // "Hidden" is a switch in the search bar, always in sight (also with no hidden commands: then it shows the same).
   const h = $('hiddenToggle');
-  h.hidden = !(state.catalog?.commands ?? []).some(c => c.hidden);
+  h.hidden = !state.catalog;
   h.classList.toggle('active', state.showHidden);
   h.setAttribute('aria-pressed', String(state.showHidden));
   h.innerHTML = svg(state.showHidden ? 'eye' : 'eyeOff');
