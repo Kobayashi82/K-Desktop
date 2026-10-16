@@ -21,7 +21,9 @@ public sealed record SemanticScores(IReadOnlyList<SemanticHit> Ranked, double No
 /// and every command name become vectors (<see cref="TextEmbedder"/>) and the closest name wins if it is close enough
 /// and clearly ahead — of the other commands and of a list of everyday requests that are not K-Desktop's (lights,
 /// the TV, alarms, the weather…, in the language files), which is what keeps «apaga la tele» away from "Apagar Equipo".
-/// No synonyms per command: «borra el directorio» finds "Eliminar carpeta" by itself, in any language. The built-in
+/// No synonyms per command: «borra el directorio» finds "Eliminar carpeta" by itself, in any language. Besides its
+/// name, a command is also compared with what its actions say they do when that is telling («Apagar el equipo»,
+/// «Papelera de reciclaje», «Cerrar AIMP»…; not paths or addresses). The built-in
 /// orders compete too, by the phrases of the interface language and English (two words or more: a lone word makes a
 /// poor vector): «cancela» always, the media ones when they are on; the volume to a number stays with the words.
 /// The names' vectors are kept on disk (<see cref="CacheFile"/>), so only new names cost anything.
@@ -39,6 +41,13 @@ public sealed class SemanticMatcher : IDisposable
     /// spotify» → put music on). Right ones measured from 0.81, wrong ones up to 0.79.
     /// </summary>
     public const double AcceptOrder = 0.80;
+
+    /// <summary>
+    /// What turns off, restarts or logs off the PC needs to be said clearly: «apaga el ordenador / el pc / el portátil»
+    /// measure 0.91–0.98 against «apagar el ordenador», other devices («la consola», «el monitor», «la impresora») up
+    /// to 0.875. It still runs at once; it only has to be closer.
+    /// </summary>
+    public const double AcceptPower = 0.90;
 
     /// <summary>Lead over the next command (or the closest «not mine» phrase).</summary>
     public const double Margin = 0.02;
@@ -86,7 +95,7 @@ public sealed class SemanticMatcher : IDisposable
         var query = Embedder.Embed([text])[0];
         var hits = commands
             .Where(c => Name(c).Length > 0)
-            .Select(c => new SemanticHit(c, null, Name(c), TextEmbedder.Similarity(query, vectors[Name(c)])))
+            .Select(c => CommandAnchors(c).Select(a => new SemanticHit(c, null, a, TextEmbedder.Similarity(query, vectors[a]))).MaxBy(h => h.Score)!)
             .Concat(texts.Orders.Select(o => new SemanticHit(null, o.Kind, o.Phrase, TextEmbedder.Similarity(query, vectors[o.Phrase]))))
             .OrderByDescending(h => h.Score)
             .DistinctBy(h => h.Key)
@@ -105,6 +114,22 @@ public sealed class SemanticMatcher : IDisposable
 
     private static string Name(Command c) => c.Name.Trim();
 
+    /// <summary>The command turns off, restarts, logs off or suspends the PC (<see cref="AcceptPower"/>).</summary>
+    public static bool IsPower(Command c) => c.Actions.Any(a => a is PowerAction { Enabled: true, Mode: not PowerMode.Lock });
+
+    /// <summary>The name, and what the first actions do when their description says it (not a path or a URL).</summary>
+    private static IEnumerable<string> CommandAnchors(Command c) =>
+        c.Actions.Where(a => a.Enabled).Take(3).Select(Describe).OfType<string>().Prepend(Name(c)).Distinct();
+
+    private static string? Describe(CommandAction action) => action switch
+    {
+        // «Apagar el equipo» would fit any device («equipo» is any appliance): the voice says what is turned off.
+        PowerAction p => Loc.T($"voice.power.{p.Mode}"),
+        OpenFolderAction { Special: not null } f => f.Summary,
+        VolumeAction or TopMostAction or HiddenFilesAction or AudioOutputAction or AppControlAction => action.Summary,
+        _ => null,
+    } is { } text && text.Trim().Length > 0 ? text.Trim() : null;
+
     private sealed record Anchors(List<string> Names, List<(MediaOrderKind Kind, string Phrase)> Orders, List<string> None)
     {
         public IEnumerable<string> All => Names.Concat(Orders.Select(o => o.Phrase)).Concat(None);
@@ -116,7 +141,7 @@ public sealed class SemanticMatcher : IDisposable
     /// </summary>
     private static Anchors Texts(IReadOnlyCollection<Command> commands, bool media)
     {
-        var names = commands.Select(Name).Where(n => n.Length > 0).Distinct().ToList();
+        var names = commands.Where(c => Name(c).Length > 0).SelectMany(CommandAnchors).Distinct().ToList();
         var orders = new[] { Loc.Instance.Language, Loc.Fallback }.Distinct()
             .SelectMany(language => MediaOrders.Sentences(language))
             .Where(p => p.Key == MediaOrderKind.Cancel || media && p.Key != MediaOrderKind.VolumeSet)

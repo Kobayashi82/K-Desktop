@@ -100,9 +100,9 @@ Asistente en un diálogo con estilo WPF-UI, textos en es/en:
    26–29 de 50; EmbeddingGemma con el prompt «task: sentence similarity» acierta 44. En vez de softmax: el más
    parecido gana si pasa 0,62 (0,80 para las órdenes integradas) y saca 0,02 al siguiente, y compiten frases de
    «esto no es mío» (`voice.none`: luces, tele, alarmas…) para que «apaga la tele» no sea "Apagar Equipo". El umbral
-   medio es el «¿Querías decir…?» de siempre; lo de Energía encontrado solo por significado no se ejecuta (etapa 6:
-   confirmar por voz).
-3. (Opcional, al final y detrás de una opción) LLM local pequeño (Qwen3 0.6B/1.7B GGUF con LLamaSharp) con la salida
+   medio es el «¿Querías decir…?» de siempre. Lo que apaga o reinicia el PC necesita 0,90 contra «apagar el
+   ordenador» (`voice.power.*`) y se ejecuta a la primera.
+3. **Descartada por el usuario (2026-10-16):** no se hace la capa LLM. Era: (Opcional, al final y detrás de una opción) LLM local pequeño (Qwen3 0.6B/1.7B GGUF con LLamaSharp) con la salida
    forzada por gramática a los ids de los comandos. La probabilidad sale de los logprobs, renormalizados solo entre las
    opciones válidas (los logprobs de llama.cpp son anteriores a la máscara de la gramática). Ids de un solo token si es
    posible. Sin «thinking». Solo se usa si las capas 1 y 2 no están seguras.
@@ -116,6 +116,9 @@ comandos reales (un test o un modo de diagnóstico).
   Casilla «Pedir confirmación por voz» (activada por defecto en Energía, cerrar procesos y similares).
 - OSD (reutilizar OsdWindow): «Escuchando…» con nivel de micro → texto entendido → comando que se va a ejecutar (o la
   pregunta «¿Ejecutar X? Di sí/no», que se responde por voz, o Enter/Esc).
+- **Decisión del usuario (2026-10-16):** sin confirmación por voz: «apaga el ordenador» ejecuta el comando a la primera
+  (con la cuenta atrás que tenga el propio comando, que «cancela» anula). Tampoco «Disponible por voz»: la voz ejecuta
+  todos los comandos.
 - Sonidos opcionales al empezar y terminar de escuchar (sistema de sonidos existente).
 - Icono o estado en la bandeja: voz activa/en pausa.
 - **Decisión del usuario (2026-10-16):** la voz no es una acción de comando. Se activa con su propio atajo en
@@ -134,8 +137,8 @@ Cada una se compila y se sube con su commit, y al terminarla se actualiza `ROADM
 3. Clave fonética + fase 2 + asistente de grabación.
 4. Fase 1 (port del preprocesado de openWakeWord, DTW, clasificador).
 5. Capa de embeddings.
-6. Seguridad/confirmaciones/estadísticas.
-7. Capa LLM opcional.
+6. Seguridad/confirmaciones/estadísticas (sin confirmación por voz, ver arriba).
+7. ~~Capa LLM opcional~~ (descartada).
 
 ## Pruebas
 

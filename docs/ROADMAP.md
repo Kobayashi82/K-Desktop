@@ -320,15 +320,22 @@ embeddings multilingües → LLM opcional) y siete etapas con su commit cada una
       frases del idioma de la interfaz y del inglés, de dos palabras o más) necesitan 0,80 (sus frases atraían «abre
       spotify»). Compiten frases «no es mío» (`voice.none`: luces, tele, alarmas, el tiempo, llamadas…; se ignora la
       que se parezca ≥ 0,88 a un comando del usuario). Vectores de los nombres en `Models\embeddinggemma\anchors.bin`.
-      Lo de Energía encontrado solo por significado no se ejecuta: «¿Apagar Equipo? di el nombre del comando» (etapa 6).
-      · **Evaluación** `--voice-test pruebas.txt` («frase => Comando», «=> -», «=> #Pause»): 93 frases → solo palabras
-      19 bien, 41 sin entender; con significado 44 bien, 0 mal, 17 sin entender, y los 32 negativos sin ejecutar nada.
-      Lo que no entiende es conocimiento del mundo (KeePassXC = gestor de contraseñas, WSL = terminal de Linux) o
-      comandos casi iguales (ComfyUI Output / ComfyUI (Updated) - Output): para eso, la etapa 7 (LLM).
+      · **Más que el nombre** (5.0.10): cada comando se compara también con lo que dicen sus acciones cuando es
+      descriptivo (Energía, carpetas especiales como la papelera, volumen, cerrar un programa…; no rutas ni URLs). Las
+      de Energía con su texto de voz (`voice.power.*`: «apagar el ordenador»; «Apagar el equipo» valía para cualquier
+      aparato) y necesitan 0,90: «apaga el ordenador / el pc / el portátil», «shut down the computer», «éteins
+      l'ordinateur» dan 0,91–0,99 y se ejecutan a la primera (sin confirmación, decisión del usuario); «apaga la
+      consola / la xbox / la impresora / el monitor» no pasan de 0,875 y no hacen nada. Añadir esos aparatos a
+      `voice.none` se probó y se descartó: empataban con «apaga el ordenador» (0,88 / 0,88).
+      · **Evaluación** `tools\voice\pruebas.txt` (`--voice-test`; «frase => Comando», «=> -», «=> #Pause»): 108 frases
+      → 52 bien, 0 mal, 13 sin entender, 42 negativos sin ejecutar nada (solo palabras: 19 bien). Lo que no entiende
+      es conocimiento del mundo (KeePassXC = gestor de contraseñas, WSL = terminal de Linux) o comandos casi iguales
+      (ComfyUI Output / ComfyUI (Updated) - Output).
       Probado de punta a punta con la palabra grabada del usuario + TTS («limpia la papelera»; «déjalo, no lo hagas»
       cancelando una cuenta atrás lanzada por voz). Sin probar con el micro real.
-- [ ] Etapa 6: seguridad, confirmaciones y estadísticas.
-- [ ] Etapa 7: capa LLM opcional.
+- [ ] Etapa 6: estadísticas y detalles (alias de voz por comando, sonidos al escuchar, estado en la bandeja). Sin
+      confirmación por voz (decisión del usuario, 2026-10-16).
+- ~~Etapa 7: capa LLM opcional~~ — descartada por el usuario (2026-10-16).
 
 **Primer arranque:** si «Iniciar con Windows» está activado (por defecto lo está) y es una copia con
 carpeta de datos normal, se registra la tarea del Programador de tareas automáticamente la primera vez,

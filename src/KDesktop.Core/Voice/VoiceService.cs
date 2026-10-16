@@ -278,12 +278,6 @@ public sealed partial class VoiceService : IDisposable
                          .Concat(plan.Unmatched.Select(u => $"«{u}» → nada")))
                      : "") +
                  (whole.Note is { } note ? " · " + note : ""));
-        // Turning off the PC on a guess of meaning costs too much: it is said by its name, or (stage 6) confirmed.
-        if (plan.Parts.FirstOrDefault(p => p.Winner!.NeedsName) is { } risky)
-        {
-            osd.Finish(Loc.T("voice.sayName", text, risky.Winner!.Name), OsdKind.Warning);
-            return;
-        }
         if (plan.Parts.Count == 0)
         {
             if (whole.Candidates.Count > 0 && whole.Confidence >= 0.6)

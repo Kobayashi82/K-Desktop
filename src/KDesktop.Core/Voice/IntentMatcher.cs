@@ -13,11 +13,6 @@ public sealed record IntentCandidate(Command? Command, double Score, MediaOrder?
         ? (Semantic ? "≈" : "") + Command!.Name
         : $"{(Semantic ? "≈" : "")}{Media.Name} [{Media.Kind}{(Media.Value is { } v ? " " + v : "")}{(Media.Amount != MediaAmount.Normal ? " " + Media.Amount : "")} · «{Phrase}»]";
 
-    /// <summary>
-    /// Found only by meaning and it would turn off, restart or log off the PC: not run without the user saying it by
-    /// its name (a wrong guess there costs too much).
-    /// </summary>
-    public bool NeedsName => Semantic && Command is { } c && c.Actions.Any(a => a is PowerAction { Enabled: true });
 }
 
 /// <param name="Winner">What to run, when there is a clear winner.</param>
@@ -135,6 +130,7 @@ public static class IntentMatcher
                      && (top.Command is not null ? guess.Command == top.Command : guess.Media?.Kind == top.Media);
         var accepted = scores.None < top.Score
                        && (top.Media is null || top.Score >= SemanticMatcher.AcceptOrder)
+                       && (top.Command is null || !SemanticMatcher.IsPower(top.Command) || top.Score >= SemanticMatcher.AcceptPower)
                        && (top.Score >= SemanticMatcher.Accept && top.Score - rival >= SemanticMatcher.Margin
                            || agrees && top.Score >= SemanticMatcher.Accept - SemanticMatcher.Margin && top.Score > rival);
         var found = scores.Ranked.Take(3).Select(r => r.Media is { } kind
