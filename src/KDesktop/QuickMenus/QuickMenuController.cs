@@ -102,8 +102,9 @@ public sealed class QuickMenuController
         }, cursor);
 
         root.Activate();
-        WindowTools.ForceForeground(root.Hwnd);
+        var focused = WindowTools.ForceForeground(root.Hwnd);
         Keyboard.Focus(root);
+        Log.Info($"QuickMenu «{menu.Name}» abierto (sobre {previous.ProcessName}{(focused ? "" : "; no consiguió el foco")})");
         Opened?.Invoke();
     }
 
@@ -151,7 +152,9 @@ public sealed class QuickMenuController
             w.PreviewKeyDown += OnKeyDown;
             w.Deactivated += (_, _) =>
             {
-                if (IsOpen) CloseAll(restoreFocus: false);
+                if (!IsOpen) return;
+                Log.Info($"QuickMenu: se cierra al perder el foco (activa: {ForegroundWindow.Capture().ProcessName})");
+                CloseAll(restoreFocus: false);
             };
         }
         return w;
@@ -279,6 +282,7 @@ public sealed class QuickMenuController
     private void OnEntryClicked(QuickMenuWindow window, QuickMenuEntry entry, MouseButton button)
     {
         if (entry.IsSeparator) return;
+        Log.Info($"QuickMenu: clic {button} en «{entry.Label}» (nivel {window.Level}{(entry.IsRunnable ? "" : ", no ejecutable")})");
         switch (button)
         {
             case MouseButton.Left:
@@ -391,6 +395,7 @@ public sealed class QuickMenuController
     private void Execute(QuickMenuEntry entry, bool close)
     {
         if (entry.Command is not { } command) return;
+        Log.Info($"QuickMenu → {command.Name}");
         var previous = _previous;
         if (close)
         {

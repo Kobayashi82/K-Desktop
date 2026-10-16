@@ -147,7 +147,11 @@ public partial class QuickMenuWindow : Window
 
     private void OnMouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (EntryFrom(e.OriginalSource) is not { } entry) return;
+        if (EntryFrom(e.OriginalSource) is not { } entry)
+        {
+            KDesktop.Core.Log.Info($"QuickMenu: clic {e.ChangedButton} fuera de un elemento ({e.OriginalSource.GetType().Name}, nivel {Level})");
+            return;
+        }
         e.Handled = true;
         EntryClicked?.Invoke(this, entry, e.ChangedButton);
     }

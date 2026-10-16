@@ -28,6 +28,12 @@ public static class Program
     [STAThread]
     public static int Main(string[] args)
     {
+        // Started from a VS Code terminal (or any Electron app): what it leaves in the environment would reach every
+        // program K-Desktop starts, and ELECTRON_RUN_AS_NODE=1 makes VS Code, Discord… run as bare Node and exit.
+        foreach (var name in Environment.GetEnvironmentVariables().Keys.OfType<string>()
+                     .Where(n => n.StartsWith("ELECTRON_", StringComparison.OrdinalIgnoreCase) || n.StartsWith("VSCODE_", StringComparison.OrdinalIgnoreCase)).ToList())
+            Environment.SetEnvironmentVariable(name, null);
+
         // Helper mode: start a program as the normal (non-elevated) user and exit. No UI involved.
         if (args.Length >= 2 && args[0] == ProcessLauncher.HelperArgument)
             return ProcessLauncher.RunHelper(args[1]);
