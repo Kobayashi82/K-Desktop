@@ -22,6 +22,12 @@ public partial class Macro : ObservableObject
     [ObservableProperty] private string? _notes;
     [ObservableProperty] private DateTime _created = DateTime.Now;
 
+    /// <summary>
+    /// For games: clicks do not move the pointer, the mouse is recorded as raw relative movement, and key presses and
+    /// clicks are held long enough for games that check the keys once per frame.
+    /// </summary>
+    [ObservableProperty] private bool _gameMode;
+
     public ObservableCollection<MacroStep> Steps
     {
         get;
@@ -242,7 +248,7 @@ public static class MacroTools
         var carried = 0;
         foreach (var s in steps)
         {
-            if (s.Kind == MacroStepKind.MouseMove)
+            if (s.Kind is MacroStepKind.MouseMove or MacroStepKind.MouseMoveBy)
             {
                 carried += s.Delay;
                 continue;

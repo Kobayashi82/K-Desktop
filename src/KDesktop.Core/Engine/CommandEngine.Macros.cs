@@ -63,7 +63,7 @@ public sealed partial class CommandEngine
                     osd = _ui.ShowPersistentOsd(text);
                     previous?.Dispose();
                 }
-                await MacroPlayer.PlayAsync(steps, speed, cts.Token).ConfigureAwait(false);
+                await MacroPlayer.PlayAsync(steps, speed, macro.GameMode, cts.Token).ConfigureAwait(false);
                 if (i + 1 < times)
                     await Task.Delay(Math.Max(repeatDelay, times == int.MaxValue ? 20 : 0), cts.Token).ConfigureAwait(false);
             }

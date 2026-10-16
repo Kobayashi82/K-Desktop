@@ -861,6 +861,8 @@
   "macro.deleteText": "Das Makro „{0}“ löschen?",
   "macro.deleteUsed": "{0} Aktion(en) „Makro abspielen“ verwenden es und funktionieren dann nicht mehr.",
   "macro.recordMoves": "Mausbewegungen aufnehmen",
+  "macro.gameMode": "Spielmodus",
+  "macro.gameModeHint": "Für Spiele: Klicks bewegen den Zeiger nicht, die Maus wird als relative Bewegung aufgezeichnet (das lesen Spiele, auch wenn sie den Zeiger sperren), und Tasten und Klicks werden kurz gehalten, damit das Spiel sie bemerkt. Spiele mit Anti-Cheat können simulierte Eingaben ignorieren.",
   "macro.recordMovesHint": "Aus: Nur Klicks (mit Position), das Mausrad und die Tastatur werden aufgenommen.",
   "macro.stopHint": "Umschalt + Esc beendet die Aufnahme oder stoppt die Wiedergabe.",
   "macro.steps": "Schritte",

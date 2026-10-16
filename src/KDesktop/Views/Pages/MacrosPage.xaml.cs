@@ -195,7 +195,7 @@ public partial class MacrosPage : UserControl, IDisposable
                 return;
             }
 
-            var recorder = new MacroRecorder(Config.Settings.MacroRecordMoves);
+            using var recorder = new MacroRecorder(Config.Settings.MacroRecordMoves, macro.GameMode);
             var done = new TaskCompletionSource();
             recorder.StopRequested += () => done.TrySetResult();
             bar.StopClicked += () => done.TrySetResult();

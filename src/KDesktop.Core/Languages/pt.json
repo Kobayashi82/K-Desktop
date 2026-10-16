@@ -861,6 +861,8 @@
   "macro.deleteText": "Excluir a macro “{0}”?",
   "macro.deleteUsed": "{0} ação(ões) “Reproduzir macro” a usam e vão parar de funcionar.",
   "macro.recordMoves": "Gravar os movimentos do mouse",
+  "macro.gameMode": "Modo jogo",
+  "macro.gameModeHint": "Para jogos: os cliques não movem o ponteiro, o rato é gravado como movimento relativo (o que os jogos leem mesmo quando bloqueiam o ponteiro) e as teclas e os cliques ficam premidos um momento para que o jogo os veja. Jogos com anti-batota podem ignorar qualquer entrada simulada.",
   "macro.recordMovesHint": "Desligado, só se gravam os cliques (com a posição), a roda e o teclado.",
   "macro.stopHint": "Shift + Esc termina a gravação ou para a reprodução.",
   "macro.steps": "Passos",

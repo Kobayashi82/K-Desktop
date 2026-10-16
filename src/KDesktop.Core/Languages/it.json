@@ -861,6 +861,8 @@
   "macro.deleteText": "Eliminare la macro «{0}»?",
   "macro.deleteUsed": "{0} azione/i «Riproduci macro» la usano e smetteranno di funzionare.",
   "macro.recordMoves": "Registra i movimenti del mouse",
+  "macro.gameMode": "Modalità gioco",
+  "macro.gameModeHint": "Per i giochi: i clic non spostano il puntatore, il mouse viene registrato come movimento relativo (quello che leggono i giochi anche quando bloccano il puntatore) e tasti e clic restano premuti un attimo perché il gioco li veda. I giochi con anti-cheat possono ignorare qualsiasi input simulato.",
   "macro.recordMovesHint": "Disattivato, si registrano solo i clic (con la posizione), la rotellina e la tastiera.",
   "macro.stopHint": "Maiusc + Esc termina la registrazione o ferma la riproduzione.",
   "macro.steps": "Passi",

@@ -16,8 +16,10 @@ public interface IInputRecorder
 /// <summary>
 /// Records keyboard and mouse events with their timing. Runs on the hook thread (it only appends to a list).
 /// SHIFT + Escape stops the recording; clicks on K-Desktop's own windows (the recording bar) are not recorded.
+/// In game mode the mouse movement is recorded as the device reports it (relative, raw: <see cref="RawMouseListener"/>)
+/// instead of pointer positions, which mean nothing while a game keeps the pointer locked.
 /// </summary>
-public sealed class MacroRecorder : IInputRecorder
+public sealed class MacroRecorder : IInputRecorder, IDisposable
 {
     /// <summary>Consecutive mouse movements closer than this (ms) are merged into one step.</summary>
     private const int MoveInterval = 15;
@@ -25,6 +27,7 @@ public sealed class MacroRecorder : IInputRecorder
     private readonly List<MacroStep> _steps = [];
     private readonly HashSet<MouseButton> _ignoredButtons = [];
     private readonly bool _recordMoves;
+    private readonly RawMouseListener? _raw;
     private long _last = -1;
     private long _lastMove;
     private bool _shiftDown;
@@ -32,7 +35,15 @@ public sealed class MacroRecorder : IInputRecorder
     private volatile bool _stopped;
     private int _count;
 
-    public MacroRecorder(bool recordMoves) => _recordMoves = recordMoves;
+    public MacroRecorder(bool recordMoves, bool gameMode = false)
+    {
+        _recordMoves = recordMoves && !gameMode;
+        if (recordMoves && gameMode)
+        {
+            _raw = new RawMouseListener();
+            _raw.Moved += OnRawMove;
+        }
+    }
 
     /// <summary>While paused nothing is recorded (and the paused time does not count).</summary>
     public bool Paused { get; set; }
@@ -121,6 +132,24 @@ public sealed class MacroRecorder : IInputRecorder
         return false;
     }
 
+    /// <summary>Game mode: relative movements, merged like the absolute ones (their offsets add up).</summary>
+    private void OnRawMove(int dx, int dy)
+    {
+        if (_stopped || Paused) return;
+        var now = Environment.TickCount64;
+        lock (_steps)
+        {
+            if (_steps.Count > 0 && _steps[^1] is { Kind: MacroStepKind.MouseMoveBy, Raw: true } last && now - _lastMove < MoveInterval)
+            {
+                last.X += dx;
+                last.Y += dy;
+                return;
+            }
+        }
+        _lastMove = now;
+        Add(new MacroStep { Kind = MacroStepKind.MouseMoveBy, X = dx, Y = dy, Raw = true });
+    }
+
     /// <summary>Restarts the clock after a pause so the paused time is not recorded as a delay.</summary>
     public void Resume()
     {
@@ -139,6 +168,7 @@ public sealed class MacroRecorder : IInputRecorder
     public List<MacroStep> Finish()
     {
         _stopped = true;
+        Dispose();
         List<MacroStep> steps;
         lock (_steps) steps = [.. _steps];
 
@@ -159,6 +189,8 @@ public sealed class MacroRecorder : IInputRecorder
         if (steps.Count > 0) steps[0].Delay = 0;
         return steps;
     }
+
+    public void Dispose() => _raw?.Dispose();
 
     private void Add(MacroStep step)
     {

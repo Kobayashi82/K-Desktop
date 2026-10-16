@@ -861,6 +861,8 @@
   "macro.deleteText": "Supprimer la macro « {0} » ?",
   "macro.deleteUsed": "{0} action(s) « Lire une macro » l’utilisent et ne fonctionneront plus.",
   "macro.recordMoves": "Enregistrer les mouvements de la souris",
+  "macro.gameMode": "Mode jeu",
+  "macro.gameModeHint": "Pour les jeux : les clics ne déplacent pas le pointeur, la souris est enregistrée en mouvement relatif (ce que lisent les jeux même quand ils bloquent le pointeur) et les touches et clics restent enfoncés un instant pour que le jeu les voie. Les jeux avec anti-triche peuvent ignorer toute saisie simulée.",
   "macro.recordMovesHint": "Désactivé, seuls les clics (avec leur position), la molette et le clavier sont enregistrés.",
   "macro.stopHint": "Maj + Échap termine l’enregistrement ou arrête la lecture.",
   "macro.steps": "Étapes",

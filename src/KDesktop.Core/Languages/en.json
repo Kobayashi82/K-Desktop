@@ -861,6 +861,8 @@
   "macro.deleteText": "Delete the macro “{0}”?",
   "macro.deleteUsed": "{0} “Play macro” action(s) use it and will stop working.",
   "macro.recordMoves": "Record mouse movements",
+  "macro.gameMode": "Game mode",
+  "macro.gameModeHint": "For games: clicks do not move the pointer, the mouse is recorded as relative movement (what games read even when they lock the pointer) and keys and clicks are held for a moment so the game sees them. Games with anti-cheat may ignore any simulated input.",
   "macro.recordMovesHint": "When off, only clicks (with their position), the wheel and the keyboard are recorded.",
   "macro.stopHint": "Shift + Esc ends the recording or stops the playback.",
   "macro.steps": "Steps",
