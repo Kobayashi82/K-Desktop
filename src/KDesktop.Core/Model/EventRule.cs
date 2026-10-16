@@ -227,7 +227,7 @@ public enum EventKind
 {
     AppStart, AppExit, Time, Interval, ProcessStart, Foreground, Idle, Session,
     AudioDevice, Device, Network, PowerSource, File,
-    RemoteCall,
+    RemoteCall, Gadget,
 }
 
 public enum SessionEvent { Lock, Unlock, Suspend, Resume }
@@ -257,6 +257,7 @@ public enum AudioDeviceEvent { Connected, BecomesDefault }
 [JsonDerivedType(typeof(NetworkTrigger), "network")]
 [JsonDerivedType(typeof(AudioDeviceTrigger), "audioDevice")]
 [JsonDerivedType(typeof(RemoteCallTrigger), "remoteCall")]
+[JsonDerivedType(typeof(GadgetTrigger), "gadget")]
 public abstract partial class EventTrigger : ObservableObject
 {
     [JsonIgnore] public abstract EventKind Kind { get; }
@@ -518,7 +519,7 @@ public sealed partial class RemoteCallTrigger : EventTrigger
     [ObservableProperty] private string _name = string.Empty;
 
     public override EventKind Kind => EventKind.RemoteCall;
-    public override string Summary => Loc.T("event.summary.remoteCall", string.IsNullOrWhiteSpace(Name) ? "…" : Name.Trim());
+    public override string Summary => string.IsNullOrWhiteSpace(Name) ? Loc.T("event.summary.remoteCallOwn") : Loc.T("event.summary.remoteCall", Name.Trim());
 
     /// <summary>Whether a call named <paramref name="call"/> is for <paramref name="rule"/> (no case, no accents).</summary>
     public bool Answers(string call, EventRule rule)
@@ -526,5 +527,27 @@ public sealed partial class RemoteCallTrigger : EventTrigger
         var name = string.IsNullOrWhiteSpace(Name) ? rule.Name : Name;
         static string Fold(string s) => new(s.Trim().Select(Engine.FuzzyMatch.Fold).ToArray());
         return Fold(name).Length > 0 && Fold(name) == Fold(call);
+    }
+}
+
+/// <summary>
+/// A device is connected: a controller (Bluetooth or USB), a keyboard, a headset, a USB gadget…; it ends when it is
+/// disconnected. Paired Bluetooth devices count only while they are connected.
+/// </summary>
+public sealed partial class GadgetTrigger : EventTrigger
+{
+    /// <summary>Part of the device's name («8Bitdo», «Xbox»); empty = any device.</summary>
+    [ObservableProperty] private string _name = string.Empty;
+
+    public override EventKind Kind => EventKind.Gadget;
+    public override bool HasEnd => true;
+    public override int DefaultCooldown => 2;
+    public override string Summary => string.IsNullOrWhiteSpace(Name) ? Loc.T("event.summary.gadgetAny") : Loc.T("event.summary.gadget", Name.Trim());
+
+    public bool Matches(string deviceName)
+    {
+        if (string.IsNullOrWhiteSpace(Name)) return true;
+        var folded = new string(deviceName.Select(Engine.FuzzyMatch.Fold).ToArray());
+        return Engine.FuzzyMatch.Tokens(Name).All(token => folded.Contains(token, StringComparison.Ordinal));
     }
 }

@@ -30,6 +30,7 @@ public static class EventCatalog
         new(EventKind.Idle, "WeatherMoon24", "dark", () => new IdleTrigger()),
         new(EventKind.Session, "LockClosed24", "orange", () => new SessionTrigger()),
         new(EventKind.PowerSource, "BatteryCharge24", "lime", () => new PowerSourceTrigger()),
+        new(EventKind.Gadget, "XboxController24", "green", () => new GadgetTrigger()),
         new(EventKind.AudioDevice, "HeadphonesSoundWave24", "teal", () => new AudioDeviceTrigger()),
         new(EventKind.Device, "UsbStick24", "gray", () => new DriveTrigger()),
         new(EventKind.Network, "Wifi124", "teal", () => new NetworkTrigger()),

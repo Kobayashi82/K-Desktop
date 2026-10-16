@@ -12,8 +12,9 @@ namespace KDesktop.Core.Platform;
 public sealed class SystemWatcher : IDisposable
 {
     private const uint WM_DEVICECHANGE = 0x0219;
-    private const int DBT_DEVICEARRIVAL = 0x8000, DBT_DEVICEREMOVECOMPLETE = 0x8004, DBT_DEVTYP_VOLUME = 2;
-    private const uint WM_CLOSE = 0x0010, WM_WTSSESSION_CHANGE = 0x02B1, WM_POWERBROADCAST = 0x0218, WM_SETFOREGROUNDHOOK = 0x8001, WM_SETPOWERWATCH = 0x8002;
+    private const int DBT_DEVICEARRIVAL = 0x8000, DBT_DEVICEREMOVECOMPLETE = 0x8004, DBT_DEVTYP_VOLUME = 2, DBT_DEVTYP_DEVICEINTERFACE = 5;
+    private const int DEVICE_NOTIFY_ALL_INTERFACE_CLASSES = 4;
+    private const uint WM_CLOSE = 0x0010, WM_WTSSESSION_CHANGE = 0x02B1, WM_POWERBROADCAST = 0x0218, WM_SETFOREGROUNDHOOK = 0x8001, WM_SETPOWERWATCH = 0x8002, WM_SETDEVICEWATCH = 0x8003;
     private const int WTS_SESSION_LOCK = 7, WTS_SESSION_UNLOCK = 8;
     private const int PBT_APMSUSPEND = 4, PBT_APMRESUMESUSPEND = 7, PBT_APMRESUMEAUTOMATIC = 0x12, PBT_POWERSETTINGCHANGE = 0x8013;
     private static readonly Guid GUID_ACDC_POWER_SOURCE = new("5d3e9a59-e9D5-4b00-a6bd-ff34ff516548");
@@ -28,6 +29,7 @@ public sealed class SystemWatcher : IDisposable
     private IntPtr _foregroundHook;
     private long _lastResume;
     private IntPtr _powerNotify;
+    private IntPtr _deviceNotify;
     private int _onBattery = -1; // unknown until Windows tells the current state
 
     /// <summary>The window in front changed (on the watcher's thread; keep it short).</summary>
@@ -50,6 +52,15 @@ public sealed class SystemWatcher : IDisposable
 
     /// <summary>A drive letter appeared (true) or went away (false): USB sticks, disks, cards, discs.</summary>
     public event Action<char, bool>? DriveChanged;
+
+    /// <summary>Some device (controller, keyboard, USB gadget, Bluetooth…) was connected or disconnected.</summary>
+    public event Action? DevicesChanged;
+
+    /// <summary>Starts or stops the notices of every device that comes and goes (drives arrive anyway).</summary>
+    public void WatchDevices(bool on)
+    {
+        if (_hwnd != IntPtr.Zero) PostMessage(_hwnd, WM_SETDEVICEWATCH, on ? 1 : 0, IntPtr.Zero);
+    }
 
     /// <summary>The PC went on battery (true) or on mains power (false).</summary>
     public event Action<bool>? PowerSourceChanged;
@@ -93,6 +104,7 @@ public sealed class SystemWatcher : IDisposable
         }
         if (_foregroundHook != IntPtr.Zero) UnhookWinEvent(_foregroundHook);
         if (_powerNotify != IntPtr.Zero) UnregisterPowerSettingNotification(_powerNotify);
+        if (_deviceNotify != IntPtr.Zero) UnregisterDeviceNotification(_deviceNotify);
     }
 
     private IntPtr OnMessage(IntPtr hwnd, uint msg, IntPtr wParam, IntPtr lParam)
@@ -127,6 +139,7 @@ public sealed class SystemWatcher : IDisposable
 
                 case WM_DEVICECHANGE when (int)wParam is DBT_DEVICEARRIVAL or DBT_DEVICEREMOVECOMPLETE && lParam != IntPtr.Zero:
                     // DEV_BROADCAST_HDR { size, devicetype, reserved } then, for a volume, the mask of its letters.
+                    if (Marshal.ReadInt32(lParam, 4) == DBT_DEVTYP_DEVICEINTERFACE) DevicesChanged?.Invoke();
                     if (Marshal.ReadInt32(lParam, 4) == DBT_DEVTYP_VOLUME)
                     {
                         var mask = (uint)Marshal.ReadInt32(lParam, 12);
@@ -134,6 +147,27 @@ public sealed class SystemWatcher : IDisposable
                             if ((mask & (1u << i)) != 0) DriveChanged?.Invoke((char)('A' + i), (int)wParam == DBT_DEVICEARRIVAL);
                     }
                     return 1;
+
+                case WM_SETDEVICEWATCH:
+                    if (wParam != 0 && _deviceNotify == IntPtr.Zero)
+                    {
+                        // DEV_BROADCAST_DEVICEINTERFACE with no class: every interface (DEVICE_NOTIFY_ALL_INTERFACE_CLASSES).
+                        var filter = Marshal.AllocHGlobal(32);
+                        try
+                        {
+                            for (var i = 0; i < 32; i += 4) Marshal.WriteInt32(filter, i, 0);
+                            Marshal.WriteInt32(filter, 0, 32);
+                            Marshal.WriteInt32(filter, 4, DBT_DEVTYP_DEVICEINTERFACE);
+                            _deviceNotify = RegisterDeviceNotification(hwnd, filter, DEVICE_NOTIFY_ALL_INTERFACE_CLASSES);
+                        }
+                        finally { Marshal.FreeHGlobal(filter); }
+                    }
+                    else if (wParam == 0 && _deviceNotify != IntPtr.Zero)
+                    {
+                        UnregisterDeviceNotification(_deviceNotify);
+                        _deviceNotify = IntPtr.Zero;
+                    }
+                    return IntPtr.Zero;
 
                 case WM_WTSSESSION_CHANGE:
                     if ((int)wParam == WTS_SESSION_LOCK) Raise(SessionEvent.Lock);
@@ -248,6 +282,12 @@ public sealed class SystemWatcher : IDisposable
 
     [DllImport("user32.dll")]
     private static extern bool UnregisterPowerSettingNotification(IntPtr handle);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr RegisterDeviceNotification(IntPtr recipient, IntPtr filter, int flags);
+
+    [DllImport("user32.dll")]
+    private static extern bool UnregisterDeviceNotification(IntPtr handle);
 
     [DllImport("wtsapi32.dll", SetLastError = true)]
     private static extern bool WTSRegisterSessionNotification(IntPtr hwnd, int flags);

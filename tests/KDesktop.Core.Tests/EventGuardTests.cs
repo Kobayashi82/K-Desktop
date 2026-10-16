@@ -105,4 +105,17 @@ public class EventGuardTests
         Assert.True(own.Answers("musica", rule));
         Assert.False(own.Answers("Puerta Garaje", rule));
     }
+
+    [Fact]
+    public void GadgetNamesAndDeviceList()
+    {
+        var t = new KDesktop.Core.Model.GadgetTrigger { Name = "8bitdo" };
+        Assert.True(t.Matches("8Bitdo SN30 Pro"));
+        Assert.False(t.Matches("Pro Controller"));
+        // The list can be read on this PC, and paired Bluetooth devices that are off only show up when asked for.
+        var present = KDesktop.Core.Platform.PnpDevices.Present();
+        var paired = KDesktop.Core.Platform.PnpDevices.Present(pairedToo: true);
+        Assert.True(paired.Count >= present.Count);
+        Assert.DoesNotContain(present, d => d.Id.StartsWith("ROOT", StringComparison.OrdinalIgnoreCase) || d.Id.StartsWith("{"));
+    }
 }

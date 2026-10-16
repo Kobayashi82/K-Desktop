@@ -23,6 +23,7 @@ public sealed class EventService : IDisposable
     private static readonly TimeSpan LateLimit = TimeSpan.FromMinutes(2);
 
     private const int ForegroundSettleMs = 300;
+    private static readonly TimeSpan GadgetPoll = TimeSpan.FromSeconds(15);
 
     private readonly CommandEngine _engine;
     private readonly IUiServices _ui;
@@ -76,6 +77,10 @@ public sealed class EventService : IDisposable
     private readonly Dictionary<string, bool> _audioDefaultActive = new(StringComparer.Ordinal);
     private IReadOnlyList<AudioDeviceInfo> _audioDevices = [];
 
+    // «Dispositivo conectado»: matching device nodes per event
+    private Timer? _gadgetTimer;
+    private readonly Dictionary<string, HashSet<string>> _gadgets = new(StringComparer.Ordinal);
+
     // «Sin usar el PC»
     private Timer? _idleTimer;
     private readonly Dictionary<string, bool> _idleActive = new(StringComparer.Ordinal);
@@ -124,6 +129,7 @@ public sealed class EventService : IDisposable
             ConfigureFiles();
             ConfigureNetwork();
             ConfigureAudio();
+            ConfigureGadgets();
             ConfigureWatcher();
             _initial = false;
         }
@@ -142,6 +148,7 @@ public sealed class EventService : IDisposable
         _networkActive.Remove(id);
         _audioConnected.Remove(id);
         _audioDefaultActive.Remove(id);
+        _gadgets.Remove(id);
         _guard.Reset(id);
     }
 
@@ -578,6 +585,7 @@ public sealed class EventService : IDisposable
             _networkTimer?.Dispose();
             _audio?.Dispose();
             _audio = null;
+            _gadgetTimer?.Dispose();
             _networkTimer = null;
             return;
         }
@@ -707,6 +715,81 @@ public sealed class EventService : IDisposable
         foreach (var (rule, end) in fire) Fire(rule, end);
     }
 
+    // ── «Dispositivo conectado» ──────────────────────────────────────────
+
+    private void ConfigureGadgets()
+    {
+        var rules = Rules<GadgetTrigger>().ToList();
+        foreach (var id in _gadgets.Keys.Where(id => rules.All(r => r.Rule.Id != id)).ToList()) _gadgets.Remove(id);
+        if (rules.Count == 0)
+        {
+            _gadgetTimer?.Dispose();
+            _gadgetTimer = null;
+            return;
+        }
+        var present = PnpDevices.Present();
+        // Already connected when the event appears: not «connecting».
+        foreach (var (rule, t) in rules)
+            _gadgets.TryAdd(rule.Id, present.Where(d => t.Matches(d.Name)).Select(d => d.Id).ToHashSet(StringComparer.OrdinalIgnoreCase));
+        // Notices come with every interface (a controller brings several): wait until they settle. A Bluetooth device
+        // that only changes its «connected» flag sends nothing, so look again every now and then too.
+        _gadgetTimer ??= new Timer(_ => OnGadgetsSettled(), null, GadgetPoll, GadgetPoll);
+    }
+
+    private void OnDevicesChanged()
+    {
+        lock (_lock) _gadgetTimer?.Change(TimeSpan.FromSeconds(1), GadgetPoll);
+    }
+
+    private void OnGadgetsSettled()
+    {
+        IReadOnlyList<PnpDevice> present;
+        try { present = PnpDevices.Present(); }
+        catch (Exception ex)
+        {
+            Log.Error("Eventos: error leyendo los dispositivos", ex);
+            return;
+        }
+        List<(EventRule Rule, bool End)> fire = [];
+        lock (_lock)
+        {
+            if (_disposed || _gadgetTimer is null) return;
+            foreach (var (rule, t) in Rules<GadgetTrigger>())
+            {
+                var now = present.Where(d => t.Matches(d.Name)).Select(d => d.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+                var before = _gadgets.GetValueOrDefault(rule.Id) ?? [];
+                var added = present.Where(d => now.Contains(d.Id) && !before.Contains(d.Id)).Select(d => d.Name).Distinct().ToList();
+                var gone = before.Count(id => !now.Contains(id));
+                _gadgets[rule.Id] = now;
+                if (string.IsNullOrWhiteSpace(t.Name))
+                {
+                    // Any device: once per batch that brings or takes devices.
+                    if (gone > 0) fire.Add((rule, true));
+                    if (added.Count > 0)
+                    {
+                        Log.Info($"Eventos: dispositivo conectado: {string.Join(", ", added)} («{rule.Name}»)");
+                        fire.Add((rule, false));
+                    }
+                }
+                else
+                {
+                    // A named one (a controller brings several nodes): it starts when the first appears and ends with the last.
+                    if (before.Count > 0 && now.Count == 0) fire.Add((rule, true));
+                    if (before.Count == 0 && now.Count > 0)
+                    {
+                        Log.Info($"Eventos: dispositivo conectado: {string.Join(", ", added)} («{rule.Name}»)");
+                        fire.Add((rule, false));
+                    }
+                }
+            }
+        }
+        foreach (var (rule, end) in fire)
+        {
+            if (end) Log.Info($"Eventos: dispositivo desconectado («{rule.Name}»)");
+            Fire(rule, end);
+        }
+    }
+
     // ── sesión y ventana oculta ──────────────────────────────────────────
 
     private void ConfigureWatcher()
@@ -715,8 +798,9 @@ public sealed class EventService : IDisposable
         var session = Rules<SessionTrigger>().Any();
         var power = Rules<PowerSourceTrigger>().Any();
         var drives = Rules<DriveTrigger>().Any();
+        var gadgets = Rules<GadgetTrigger>().Any();
         if (!drives) _drives.Clear();
-        if (!foreground && !session && !power && !drives)
+        if (!foreground && !session && !power && !drives && !gadgets)
         {
             _watcher?.Dispose();
             _watcher = null;
@@ -729,9 +813,11 @@ public sealed class EventService : IDisposable
             _watcher.SessionChanged = OnSession;
             _watcher.PowerSourceChanged += OnPowerSource;
             _watcher.DriveChanged += OnDriveChanged;
+            _watcher.DevicesChanged += OnDevicesChanged;
         }
         _watcher.WatchForeground(foreground);
         _watcher.WatchPower(power);
+        _watcher.WatchDevices(gadgets);
     }
 
     private Task? OnSession(SessionEvent change)

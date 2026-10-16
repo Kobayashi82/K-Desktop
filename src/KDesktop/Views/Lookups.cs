@@ -44,6 +44,11 @@ public static class Lookups
     public static IReadOnlyList<Option<NetworkState>> NetworkStates { get; } = Enum<NetworkState>("enum.networkState");
     public static IReadOnlyList<Option<AudioDeviceEvent>> AudioDeviceEvents { get; } = Enum<AudioDeviceEvent>("enum.audioDeviceEvent");
 
+    /// <summary>Names of the devices one connects, paired Bluetooth ones included (for «Dispositivo conectado»).</summary>
+    public static IReadOnlyList<string> GadgetNames =>
+        PnpDevices.Present(pairedToo: true).Select(d => d.Name).Distinct(StringComparer.CurrentCultureIgnoreCase)
+            .Order(StringComparer.CurrentCultureIgnoreCase).ToList();
+
     /// <summary>Names of the playback devices (for the editable box of «Dispositivo de audio»).</summary>
     public static IReadOnlyList<string> AudioDeviceNames => AudioDevices.Playback().Select(d => d.Name).Distinct().ToList();
 

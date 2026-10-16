@@ -215,6 +215,16 @@
       cuentan como creados). El buscador de «Añadir comando» usa `FuzzyMatch`.
       Probado de verdad: al iniciar (migrado), abrir/cerrar el Bloc de notas, a una hora, primer plano (con la ventana
       de una instancia de prueba). **Sin probar**: bloquear/desbloquear, suspender/reanudar, inactividad real.
+- [x] **Eventos: «Dispositivo conectado» y «Llamada desde fuera»** (2026-10-16). Dispositivo: mando (Bluetooth o
+      USB), teclado, cascos, aparato USB… por parte del nombre o cualquiera, con «Al terminar» al desconectarlo.
+      `RegisterDeviceNotification` (todas las interfaces) en la ventana oculta → 1 s de espera → lista de SetupAPI
+      (`Platform/PnpDevices.cs`, ~15 ms; fuera los buses del propio PC y los adaptadores virtuales). Un Bluetooth
+      emparejado está en Windows aunque esté apagado: solo cuenta con `{83DA6326-…} 15` (conectado) = true, y además
+      se mira cada 15 s porque ese cambio no siempre avisa. El editor lista también los emparejados apagados.
+      Llamada: UDP «evento nombre» o `POST api/event {"name"}` (con `X-KD: 1` y, desde otro equipo, el token de un
+      dispositivo emparejado; 404 si ningún evento la espera); sin mayúsculas ni acentos, vacío = nombre del evento.
+      Probados: llamada por UDP (test) y HTTP (instancia real), lectura de dispositivos y del estado Bluetooth.
+      **Sin probar**: encender un mando de verdad.
 - [x] **Web, pestaña Audio** (2026-10-16): cruceta de flechas con Espacio en el centro para el reproductor que esté
       delante (avanzar/retroceder, su propio volumen, pausar); mantener una flecha la repite. `POST api/audio {key}`,
       solo con «Touchpad y teclado» permitido (si no, la cruceta no sale). La casilla «Aplicación web» de los comandos
