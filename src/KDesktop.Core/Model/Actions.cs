@@ -13,6 +13,7 @@ public enum ActionKind
     TopMost, HiddenFiles, ToggleDisabledIn, ShowMessage, Power,
     OpenQuickMenu, CommandControl, Wait,
     PlayMacro, AudioOutput, KBoard, Launcher, HttpRequest,
+    Window, Clipboard, WakeOnLan, Display, PowerPlan, WindowsTheme, Radio, Condition,
 }
 
 public enum WindowMode { Normal, Minimized, Maximized, Hidden }
@@ -20,7 +21,10 @@ public enum ProcessPriorityLevel { Idle, BelowNormal, Normal, AboveNormal, High,
 public enum AppControlMode { Activate, Close, WaitFor }
 public enum WaitCondition { Activated, Opened, Closed }
 public enum SendInputMode { Keys, Text, MouseMoveTo, MouseMoveBy }
-public enum VolumeMode { Set, Up, Down, ToggleMute }
+public enum VolumeMode { Set, Up, Down, ToggleMute, Mute, Unmute }
+
+/// <summary>What «Volumen» changes: the speakers, the microphone, one program, or the program in front.</summary>
+public enum VolumeTarget { System, Microphone, App, ForegroundApp }
 public enum PowerMode { Shutdown, Restart, LogOff, SwitchUser, Lock, Sleep, Hibernate }
 public enum CommandControlMode { Run, Enable, Disable, Toggle }
 
@@ -51,9 +55,21 @@ public enum ScriptShell { Cmd, PowerShell }
 [JsonDerivedType(typeof(KBoardAction), "kboard")]
 [JsonDerivedType(typeof(LauncherAction), "launcher")]
 [JsonDerivedType(typeof(HttpRequestAction), "httpRequest")]
+[JsonDerivedType(typeof(WindowAction), "window")]
+[JsonDerivedType(typeof(ClipboardAction), "clipboard")]
+[JsonDerivedType(typeof(WakeOnLanAction), "wakeOnLan")]
+[JsonDerivedType(typeof(DisplayAction), "display")]
+[JsonDerivedType(typeof(PowerPlanAction), "powerPlan")]
+[JsonDerivedType(typeof(WindowsThemeAction), "windowsTheme")]
+[JsonDerivedType(typeof(RadioAction), "radio")]
+[JsonDerivedType(typeof(ConditionAction), "condition")]
 public abstract partial class CommandAction : ObservableObject
 {
     [ObservableProperty] private bool _enabled = true;
+
+    /// <summary>How far in the editor shows it: inside the block of a «Si…» (see <see cref="Command.Indent"/>).</summary>
+    [ObservableProperty]
+    [property: JsonIgnore] private int _indent;
 
     [JsonIgnore] public abstract ActionKind Kind { get; }
 
@@ -72,7 +88,7 @@ public abstract partial class CommandAction : ObservableObject
     public void RefreshSummary() => base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(Summary)));
 
     /// <summary>A display-only property (not a change to save).</summary>
-    public virtual bool IsTransient(string? property) => property is nameof(Summary);
+    public virtual bool IsTransient(string? property) => property is nameof(Summary) or nameof(Indent);
 
     public CommandAction Clone() => Json.Clone(this);
 
@@ -184,20 +200,54 @@ public partial class SendInputAction : CommandAction
 
 public partial class VolumeAction : CommandAction
 {
+    [ObservableProperty] private VolumeTarget _target = VolumeTarget.System;
+
+    /// <summary>The program, for <see cref="VolumeTarget.App"/>.</summary>
+    [ObservableProperty] private string _processName = string.Empty;
+
     [ObservableProperty] private VolumeMode _mode = VolumeMode.Set;
 
-    /// <summary>Set: target level (0-100). Up/Down: step in % (0 = use the media keys).</summary>
+    /// <summary>Set: target level (0-100). Up/Down: step in % (0 = use the media keys; other targets: 5).</summary>
     [ObservableProperty] private int _value = 50;
     [ObservableProperty] private bool _showOsd = true;
 
+    /// <summary>Up/Down of anything but the speakers have no media keys: 0 means this step.</summary>
+    public const int DefaultStep = 5;
+
     public override ActionKind Kind => ActionKind.Volume;
-    public override string Summary => Mode switch
+    public override string Summary
     {
-        VolumeMode.Set => Loc.T("summary.volume.set", Value),
-        VolumeMode.Up => Value > 0 ? Loc.T("summary.volume.upBy", Value) : Loc.T("summary.volume.up"),
-        VolumeMode.Down => Value > 0 ? Loc.T("summary.volume.downBy", Value) : Loc.T("summary.volume.down"),
-        _ => Loc.T("summary.volume.mute"),
-    };
+        get
+        {
+            if (Target == VolumeTarget.System)
+                return Mode switch
+                {
+                    VolumeMode.Set => Loc.T("summary.volume.set", Value),
+                    VolumeMode.Up => Value > 0 ? Loc.T("summary.volume.upBy", Value) : Loc.T("summary.volume.up"),
+                    VolumeMode.Down => Value > 0 ? Loc.T("summary.volume.downBy", Value) : Loc.T("summary.volume.down"),
+                    VolumeMode.Mute => Loc.T("summary.volume.muteOn"),
+                    VolumeMode.Unmute => Loc.T("summary.volume.muteOff"),
+                    _ => Loc.T("summary.volume.mute"),
+                };
+            var step = Value > 0 ? Value : DefaultStep;
+            var what = Mode switch
+            {
+                VolumeMode.Set => Loc.T("summary.level.set", Value),
+                VolumeMode.Up => Loc.T("summary.level.up", step),
+                VolumeMode.Down => Loc.T("summary.level.down", step),
+                VolumeMode.Mute => Loc.T("summary.level.mute"),
+                VolumeMode.Unmute => Loc.T("summary.level.unmute"),
+                _ => Loc.T("summary.level.toggleMute"),
+            };
+            var who = Target switch
+            {
+                VolumeTarget.Microphone => Loc.T("enum.volumeTarget.Microphone"),
+                VolumeTarget.ForegroundApp => Loc.T("enum.volumeTarget.ForegroundApp"),
+                _ => string.IsNullOrWhiteSpace(ProcessName) ? "?" : ProcessName.Trim(),
+            };
+            return $"{who}: {what}";
+        }
+    }
 }
 
 /// <summary>A playback device chosen in "Audio output" (the name is kept to show it while it is disconnected).</summary>

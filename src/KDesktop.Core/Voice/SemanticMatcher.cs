@@ -122,7 +122,7 @@ public sealed class SemanticMatcher : IDisposable
     /// a URL).
     /// </summary>
     private static IEnumerable<string> CommandAnchors(Command c) =>
-        new[] { Name(c) }.Concat(c.VoicePhraseList).Concat(c.Actions.Where(a => a.Enabled).Take(3).Select(Describe).OfType<string>()).Distinct();
+        new[] { Name(c) }.Concat(c.VoicePhraseList).Concat(c.Actions.Where(a => a.Enabled && a is not ConditionAction).Take(3).Select(Describe).OfType<string>()).Distinct();
 
     private static string? Describe(CommandAction action) => action switch
     {
@@ -130,6 +130,8 @@ public sealed class SemanticMatcher : IDisposable
         PowerAction p => Loc.T($"voice.power.{p.Mode}"),
         OpenFolderAction { Special: not null } f => f.Summary,
         VolumeAction or TopMostAction or HiddenFilesAction or AudioOutputAction or AppControlAction => action.Summary,
+        WindowAction or DisplayAction or PowerPlanAction or RadioAction => action.Summary,
+        WindowsThemeAction or WakeOnLanAction or ClipboardAction => action.Info.Name + " " + action.Summary,
         _ => null,
     } is { } text && text.Trim().Length > 0 ? text.Trim() : null;
 

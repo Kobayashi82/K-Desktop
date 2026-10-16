@@ -106,6 +106,7 @@ public partial class App
         {
             Store.Flush();
             Achievements.Flush();
+            Engine.History.Save();
             Updates.Install(RestartArguments());
         }
         catch (Exception ex)

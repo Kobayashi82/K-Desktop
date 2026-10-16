@@ -18,6 +18,8 @@
     <PackageReference Include="Microsoft.ML.Tokenizers" Version="2.0.1" />
     <!-- DPAPI: secret headers of «Petición web» (Platform/Secrets.cs). MIT (.NET Foundation). -->
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.0" />
+    <!-- WMI: the brightness of a laptop's own screen («Pantalla», Platform/DisplayTools.cs). MIT (.NET Foundation). -->
+    <PackageReference Include="System.Management" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>

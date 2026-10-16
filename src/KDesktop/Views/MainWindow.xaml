@@ -123,6 +123,12 @@
                             <TextBlock Text="{l:Tr nav.macros}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
+                    <ListBoxItem Tag="history">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="History24" FontSize="18" />
+                            <TextBlock Text="{l:Tr nav.history}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
                     <ListBoxItem Tag="achievements">
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="Trophy24" FontSize="18" />

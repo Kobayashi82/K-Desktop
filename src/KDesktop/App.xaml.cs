@@ -122,10 +122,11 @@ public partial class App : Application
         Favicons.Prefetch(Config.Commands.SelectMany(c => c.Actions));
 
         Ui = new UiServices(Dispatcher, () => Config.Settings, () => ShowMainWindow(), () => _ = ExitAsync());
-        Engine = new CommandEngine(Store, Ui);
+        Engine = new CommandEngine(Store, Ui, new ExecutionHistory(ExecutionHistory.DefaultFile));
         Events = new Core.Engine.Events.EventService(Engine, Ui, () => Config);
         Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice),
             action => Engine.TestActionAsync(action, new Command { Name = Loc.T("settings.nav.media") }));
+        Voice.History = Engine.History;
         Voice.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
         Voice.CancelPending = () =>
         {
@@ -619,6 +620,7 @@ public partial class App : Application
         try { Engine.RunExitCommandsAsync().Wait(TimeSpan.FromSeconds(4)); } catch { /* ignore */ }
         Store.Flush();
         Achievements.Flush();
+        Engine.History.Save();
     }
 
     protected override void OnExit(ExitEventArgs e)
@@ -633,6 +635,7 @@ public partial class App : Application
         Voice?.Dispose();
         Store.Dispose();
         Achievements.Dispose();
+        Engine?.History.Dispose();
         _tray?.Dispose();
         _instance?.Dispose();
         Log.Info("K-Desktop cerrado");

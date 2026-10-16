@@ -125,6 +125,7 @@ public sealed class AppConfig
     /// <summary>Fills the display-only names of actions that reference menus/commands.</summary>
     public void RefreshReferenceNames()
     {
+        IReadOnlyList<Platform.MonitorInfo>? monitors = null;
         foreach (var action in Commands.SelectMany(c => c.Actions))
         {
             switch (action)
@@ -136,6 +137,9 @@ public sealed class AppConfig
                     break;
                 case PlayMacroAction p: p.MacroName = FindMacro(p.MacroId)?.Name; break;
                 case KBoardAction k: k.ProfileName = FindKBoard(k.ProfileId)?.Name; break;
+                case DisplayAction { Operation: DisplayOperation.Mode } d when d.Monitor.Length > 0:
+                    d.MonitorName = (monitors ??= Platform.DisplayTools.Monitors()).FirstOrDefault(m => m.DeviceName == d.Monitor)?.Name;
+                    break;
             }
         }
         foreach (var remap in KBoards.SelectMany(k => k.Remaps).Where(r => r.Kind == RemapKind.Command))

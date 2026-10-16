@@ -100,6 +100,25 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
 
     public void RequestExit() => dispatcher.BeginInvoke(requestExit);
 
+    public bool SetClipboardText(string text) => dispatcher.Invoke(() =>
+    {
+        // Another program may have the clipboard open for a moment.
+        for (var attempt = 0; attempt < 6; attempt++)
+        {
+            try
+            {
+                if (text.Length == 0) System.Windows.Clipboard.Clear();
+                else System.Windows.Clipboard.SetDataObject(text, copy: true);
+                return true;
+            }
+            catch (System.Runtime.InteropServices.COMException)
+            {
+                Thread.Sleep(30);
+            }
+        }
+        return false;
+    });
+
     private sealed class Callback(Action action) : IDisposable
     {
         private int _done;

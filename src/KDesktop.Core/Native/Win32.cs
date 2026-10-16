@@ -451,4 +451,7 @@ internal static class Win32
 
     [DllImport("kernel32.dll")]
     public static extern bool GlobalUnlock(IntPtr hMem);
+
+    [DllImport("user32.dll")]
+    public static extern uint GetClipboardSequenceNumber();
 }

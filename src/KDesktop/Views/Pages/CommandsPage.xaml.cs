@@ -535,6 +535,20 @@ public partial class CommandsPage : UserControl, IDisposable
             kb.ProfileId = profile.Id;
             kb.ProfileName = profile.Name;
         }
+        if (action is PowerPlanAction plan && PowerPlans.All() is { Count: > 0 } plans)
+        {
+            // The one that isn't active: switching to it is what one usually wants.
+            var other = plans.FirstOrDefault(p => !p.IsActive) ?? plans[0];
+            plan.PlanId = other.Key;
+            plan.PlanName = other.Name;
+        }
+        if (action is DisplayAction display && DisplayTools.Monitors() is { Count: > 0 } monitors)
+        {
+            var primary = monitors.FirstOrDefault(m => m.IsPrimary) ?? monitors[0];
+            display.Monitor = primary.DeviceName;
+            display.MonitorName = primary.Name;
+            if (DisplayTools.CurrentMode(primary.DeviceName) is { } mode) display.ModeKey = mode.Key;
+        }
         action.PropertyChanged += OnActionReferenceChanged;
         _selected.Actions.Add(action);
         _app.Achievements.Increment(Stat.ActionsCreated);
@@ -565,6 +579,14 @@ public partial class CommandsPage : UserControl, IDisposable
                 break;
             case KBoardAction k when e.PropertyName == nameof(KBoardAction.ProfileId):
                 k.ProfileName = Config.FindKBoard(k.ProfileId)?.Name;
+                break;
+            case PowerPlanAction p when e.PropertyName == nameof(PowerPlanAction.PlanId):
+                if (PowerPlans.All().FirstOrDefault(plan => plan.Key == p.PlanId) is { } chosen) p.PlanName = chosen.Name;
+                break;
+            case DisplayAction d when e.PropertyName == nameof(DisplayAction.Monitor):
+                d.MonitorName = DisplayTools.Monitors().FirstOrDefault(m => m.DeviceName == d.Monitor)?.Name;
+                // A mode this monitor doesn't have is not kept: its current one is proposed.
+                if (!DisplayTools.Modes(d.Monitor).Any(m => m.Key == d.ModeKey) && DisplayTools.CurrentMode(d.Monitor) is { } current) d.ModeKey = current.Key;
                 break;
         }
     }
@@ -748,6 +770,31 @@ public partial class CommandsPage : UserControl, IDisposable
     }
 
     /// <summary>Sends the request now and shows the code and the answer under the button.</summary>
+    /// <summary>«Averiguar MAC»: asks the network for the MAC of the machine in «Equipo» (it must be on).</summary>
+    private async void OnFindMac(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.Parameter is not WakeOnLanAction a) return;
+        if (string.IsNullOrWhiteSpace(a.Host))
+        {
+            _app.Ui.ShowOsd(Loc.T("osd.wolNeedHost"), OsdKind.Warning);
+            return;
+        }
+        try
+        {
+            var mac = await WakeOnLan.FindMacAsync(a.Host);
+            if (mac is null) _app.Ui.ShowOsd(Loc.T("osd.wolMacNotFound", a.Host.Trim()), OsdKind.Warning);
+            else
+            {
+                a.Mac = WakeOnLan.FormatMac(mac);
+                _app.Ui.ShowOsd(Loc.T("osd.wolMacFound", a.Mac), OsdKind.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            _app.Ui.ShowOsd(Loc.T("osd.wolMacNotFound", a.Host.Trim()) + " · " + ex.Message, OsdKind.Warning);
+        }
+    }
+
     private async void OnTestHttpRequest(object sender, ExecutedRoutedEventArgs e)
     {
         if (e.Parameter is not HttpRequestAction a || a.Testing) return;

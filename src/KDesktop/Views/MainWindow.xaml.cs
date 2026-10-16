@@ -214,6 +214,7 @@ public partial class MainWindow : FluentWindow
                 "macros" => new Pages.MacrosPage(),
                 "kboard" => new Pages.KBoardPage(),
                 "achievements" => new Pages.AchievementsPage(),
+                "history" => new Pages.HistoryPage(),
                 "settings" => new Pages.SettingsPage(),
                 "about" => new Pages.AboutPage(),
                 _ => new Pages.CommandsPage(),

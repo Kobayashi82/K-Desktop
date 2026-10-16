@@ -10,6 +10,7 @@
     <v:InverseBoolConverter x:Key="InverseBool" />
     <v:AudioDeviceStatusConverter x:Key="AudioStatus" />
     <v:AudioDeviceSymbolConverter x:Key="AudioSymbol" />
+    <v:DisplayModesConverter x:Key="DisplayModes" />
 
     <Style x:Key="EdRow" TargetType="Grid">
         <Setter Property="Margin" Value="0,0,0,12" />
@@ -348,8 +349,26 @@
     <!-- ── Volumen ─────────────────────────────────────────────────────── -->
     <DataTemplate DataType="{x:Type m:VolumeAction}">
         <StackPanel>
-            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
-            <ComboBox Margin="0,0,0,12" ItemsSource="{x:Static v:Lookups.VolumeModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.volumeTarget}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.VolumeTargets}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Target}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.VolumeModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
+                </StackPanel>
+            </Grid>
+            <StackPanel x:Name="ProcessRow" Margin="0,0,0,12" Visibility="Collapsed">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.process}" />
+                <ComboBox IsEditable="True" Text="{Binding ProcessName, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr common.processPlaceholder}"
+                          ItemsSource="{Binding Source={x:Static v:Lookups.RunningProcessesNow}}" />
+            </StackPanel>
             <Grid x:Name="LevelRow" Margin="0,0,0,12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -359,10 +378,11 @@
                 <TextBlock Grid.Column="1" Text="{Binding Value, StringFormat={}{0} %}" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="SemiBold" />
             </Grid>
             <StackPanel x:Name="StepRow" Visibility="Collapsed" Margin="0,0,0,12">
-                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.volumeStep}" />
+                <TextBlock x:Name="StepLabel" Style="{StaticResource FieldLabel}" Text="{l:Tr editor.volumeStep}" />
                 <ui:TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Width="120" HorizontalAlignment="Left" />
             </StackPanel>
             <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            <TextBlock x:Name="TargetHint" Style="{StaticResource Caption}" TextWrapping="Wrap" Visibility="Collapsed" />
         </StackPanel>
         <DataTemplate.Triggers>
             <DataTrigger Binding="{Binding Mode}" Value="Up">
@@ -375,6 +395,26 @@
             </DataTrigger>
             <DataTrigger Binding="{Binding Mode}" Value="ToggleMute">
                 <Setter TargetName="LevelRow" Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Mode}" Value="Mute">
+                <Setter TargetName="LevelRow" Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Mode}" Value="Unmute">
+                <Setter TargetName="LevelRow" Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Target}" Value="App">
+                <Setter TargetName="ProcessRow" Property="Visibility" Value="Visible" />
+                <Setter TargetName="StepLabel" Property="Text" Value="{l:Tr editor.levelStep}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Target}" Value="Microphone">
+                <Setter TargetName="StepLabel" Property="Text" Value="{l:Tr editor.levelStep}" />
+                <Setter TargetName="TargetHint" Property="Visibility" Value="Visible" />
+                <Setter TargetName="TargetHint" Property="Text" Value="{l:Tr editor.micHint}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Target}" Value="ForegroundApp">
+                <Setter TargetName="StepLabel" Property="Text" Value="{l:Tr editor.levelStep}" />
+                <Setter TargetName="TargetHint" Property="Visibility" Value="Visible" />
+                <Setter TargetName="TargetHint" Property="Text" Value="{l:Tr editor.foregroundAppHint}" />
             </DataTrigger>
         </DataTemplate.Triggers>
     </DataTemplate>
@@ -664,5 +704,472 @@
             </Grid>
             <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.countdown}" IsChecked="{Binding Countdown}" />
         </StackPanel>
+    </DataTemplate>
+
+    <!-- ── Ventana ─────────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:WindowAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.windowTarget}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.WindowTargets}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Target}" />
+                </StackPanel>
+                <StackPanel x:Name="ProcessRow" Grid.Column="2" Visibility="Hidden">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.process}" />
+                    <ComboBox IsEditable="True" Text="{Binding ProcessName, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr common.processPlaceholder}"
+                              ItemsSource="{Binding Source={x:Static v:Lookups.RunningProcessesNow}}" />
+                </StackPanel>
+            </Grid>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.windowOperation}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.WindowOperations}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Operation}" />
+                </StackPanel>
+                <StackPanel x:Name="SnapRow" Grid.Column="2" Visibility="Collapsed">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.windowSnap}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.WindowSnaps}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Snap}" MaxDropDownHeight="420" />
+                </StackPanel>
+                <StackPanel x:Name="MonitorRow" Grid.Column="2" Visibility="Collapsed">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.windowMonitor}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ComboBox ItemsSource="{x:Static v:Lookups.MonitorChoices}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Monitor}" />
+                        <ui:TextBox x:Name="MonitorNumber" Grid.Column="1" Width="70" Margin="8,0,0,0" Visibility="Collapsed"
+                                    Text="{Binding MonitorNumber, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+                </StackPanel>
+                <Grid x:Name="OpacityRow" Grid.Column="2" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="56" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.windowOpacity}" />
+                    <Slider Grid.Row="1" Minimum="10" Maximum="95" Value="{Binding Opacity}" IsSnapToTickEnabled="True" TickFrequency="5" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Opacity, StringFormat={}{0} %}" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="SemiBold" />
+                </Grid>
+            </Grid>
+            <Grid x:Name="CustomRow" Style="{StaticResource EdRow}" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.windowX}" />
+                    <ui:TextBox Text="{Binding X, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.windowY}" />
+                    <ui:TextBox Text="{Binding Y, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="4">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.windowWidth}" />
+                    <ui:TextBox Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="6">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.windowHeight}" />
+                    <ui:TextBox Text="{Binding Height, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Grid>
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.windowHint}" />
+        </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Target}" Value="Process">
+                <Setter TargetName="ProcessRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Operation}" Value="Snap">
+                <Setter TargetName="SnapRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Operation}" Value="MoveToMonitor">
+                <Setter TargetName="MonitorRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Operation}" Value="Opacity">
+                <Setter TargetName="OpacityRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Monitor}" Value="Number">
+                <Setter TargetName="MonitorNumber" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <MultiDataTrigger>
+                <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding Operation}" Value="Snap" />
+                    <Condition Binding="{Binding Snap}" Value="Custom" />
+                </MultiDataTrigger.Conditions>
+                <Setter TargetName="CustomRow" Property="Visibility" Value="Visible" />
+            </MultiDataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <!-- ── Portapapeles ────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:ClipboardAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+            <ComboBox Margin="0,0,0,12" ItemsSource="{x:Static v:Lookups.ClipboardModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
+            <StackPanel x:Name="TextRow" Visibility="Collapsed">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.clipboardText}" />
+                <TextBox Margin="0,0,0,6" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap"
+                         MinHeight="70" MaxHeight="260" VerticalScrollBarVisibility="Auto" FontSize="14" />
+                <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" TextWrapping="Wrap" Text="{l:Tr editor.clipboardVariables}" />
+            </StackPanel>
+            <WrapPanel>
+                <CheckBox x:Name="CopyFirstCheck" Style="{StaticResource EdCheck}" Content="{l:Tr editor.clipboardCopyFirst}" IsChecked="{Binding CopyFirst}" />
+                <CheckBox x:Name="PasteCheck" Style="{StaticResource EdCheck}" Content="{l:Tr editor.clipboardPaste}" IsChecked="{Binding Paste}" />
+            </WrapPanel>
+            <TextBlock x:Name="Hint" Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.clipboardHint}" />
+        </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Mode}" Value="SetText">
+                <Setter TargetName="TextRow" Property="Visibility" Value="Visible" />
+                <Setter TargetName="CopyFirstCheck" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="Hint" Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Mode}" Value="Clear">
+                <Setter TargetName="CopyFirstCheck" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="PasteCheck" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="Hint" Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Mode}" Value="CleanUrl">
+                <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.clipboardCleanHint}" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <!-- ── Despertar equipo ────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:WakeOnLanAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.wolHost}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ui:TextBox Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="192.168.1.150" Icon="{ui:SymbolIcon Server24}" />
+                        <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.wolFindMac}" Icon="{ui:SymbolIcon Search24}"
+                                   ToolTip="{l:Tr editor.wolFindMacHint}" Command="{x:Static v:EditorCommands.FindMac}" CommandParameter="{Binding}" />
+                    </Grid>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.wolMac}" />
+                    <ui:TextBox Text="{Binding Mac, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="AA:BB:CC:DD:EE:FF" FontFamily="Cascadia Mono, Consolas" />
+                </StackPanel>
+            </Grid>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="90" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="150" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.wolAddress}" />
+                    <ui:TextBox Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.wolAddressHint}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.port}" />
+                    <ui:TextBox Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="4">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.wolWait}" />
+                    <ui:TextBox Text="{Binding WaitSeconds, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Grid>
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.wolHint}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <!-- ── Pantalla ────────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:DisplayAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+            <ComboBox Margin="0,0,0,12" ItemsSource="{x:Static v:Lookups.DisplayOperations}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Operation}" />
+            <StackPanel x:Name="ProjectionRow" Margin="0,0,0,12" Visibility="Collapsed">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.projection}" />
+                <ComboBox ItemsSource="{x:Static v:Lookups.Projections}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Projection}" />
+            </StackPanel>
+            <Grid x:Name="BrightnessRow" Style="{StaticResource EdRow}" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="180" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="56" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.brightness}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.LevelChanges}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding BrightnessMode}" />
+                </StackPanel>
+                <Slider Grid.Column="2" Minimum="0" Maximum="100" Value="{Binding Brightness}" IsSnapToTickEnabled="True" TickFrequency="5" VerticalAlignment="Bottom" Margin="0,0,0,8" />
+                <TextBlock Grid.Column="3" Text="{Binding Brightness, StringFormat={}{0} %}" VerticalAlignment="Bottom" Margin="0,0,0,10" HorizontalAlignment="Right" FontWeight="SemiBold" />
+            </Grid>
+            <Grid x:Name="ModeRow" Style="{StaticResource EdRow}" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.monitor}" />
+                    <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.MonitorList}}" DisplayMemberPath="Display" SelectedValuePath="DeviceName" SelectedValue="{Binding Monitor}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.displayMode}" />
+                    <ComboBox ItemsSource="{Binding Monitor, Converter={StaticResource DisplayModes}}" DisplayMemberPath="Name" SelectedValuePath="Key"
+                              SelectedValue="{Binding ModeKey}" MaxDropDownHeight="420" />
+                </StackPanel>
+            </Grid>
+            <CheckBox x:Name="OsdCheck" Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            <TextBlock x:Name="Hint" Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.monitorOffHint}" />
+        </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Operation}" Value="MonitorOff">
+                <Setter TargetName="OsdCheck" Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Operation}" Value="Projection">
+                <Setter TargetName="ProjectionRow" Property="Visibility" Value="Visible" />
+                <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.projectionHint}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Operation}" Value="Brightness">
+                <Setter TargetName="BrightnessRow" Property="Visibility" Value="Visible" />
+                <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.brightnessHint}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Operation}" Value="Mode">
+                <Setter TargetName="ModeRow" Property="Visibility" Value="Visible" />
+                <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.displayModeHint}" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <!-- ── Plan de energía ─────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:PowerPlanAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.PowerPlanModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
+                </StackPanel>
+                <StackPanel x:Name="PlanRow" Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.powerPlan}" />
+                    <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.PowerPlanList}}" DisplayMemberPath="Name" SelectedValuePath="Key" SelectedValue="{Binding PlanId}" />
+                </StackPanel>
+            </Grid>
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.powerPlanHint}" />
+        </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Mode}" Value="Cycle">
+                <Setter TargetName="PlanRow" Property="Visibility" Value="Hidden" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <!-- ── Tema de Windows ─────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:WindowsThemeAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+            <ComboBox Margin="0,0,0,12" Width="260" HorizontalAlignment="Left" ItemsSource="{x:Static v:Lookups.ThemeChoices}" DisplayMemberPath="Name"
+                      SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
+            <WrapPanel>
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.themeApps}" IsChecked="{Binding Apps}" />
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.themeSystem}" IsChecked="{Binding System}" />
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            </WrapPanel>
+        </StackPanel>
+    </DataTemplate>
+
+    <!-- ── Wi-Fi y Bluetooth ───────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:RadioAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.radio}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.RadioDevices}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Radio}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.SwitchModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
+                </StackPanel>
+            </Grid>
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.radioHint}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <!-- ── Si… ─────────────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:ConditionAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifCondition}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.ConditionKinds}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Condition}"
+                              MaxDropDownHeight="460" />
+                </StackPanel>
+                <CheckBox Grid.Column="1" Margin="16,0,0,4" VerticalAlignment="Bottom" Content="{l:Tr editor.ifNegate}" IsChecked="{Binding Negate}"
+                          ToolTip="{l:Tr editor.ifNegateHint}" />
+            </Grid>
+
+            <!-- what it looks at -->
+            <StackPanel x:Name="ProcessRow" Margin="0,0,0,12" Visibility="Collapsed">
+                <TextBlock x:Name="ProcessLabel" Style="{StaticResource FieldLabel}" Text="{l:Tr editor.process}" />
+                <ComboBox IsEditable="True" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr common.processPlaceholder}"
+                          ItemsSource="{Binding Source={x:Static v:Lookups.RunningProcessesNow}}" />
+            </StackPanel>
+            <StackPanel x:Name="DeviceRow" Margin="0,0,0,12" Visibility="Collapsed">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.audioDevice}" />
+                <ComboBox IsEditable="True" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr event.networkPlaceholder}"
+                          ItemsSource="{Binding Source={x:Static v:Lookups.ConnectedGadgetNames}}" MaxDropDownHeight="420" />
+            </StackPanel>
+            <StackPanel x:Name="AudioRow" Margin="0,0,0,12" Visibility="Collapsed">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.audioDevice}" />
+                <ComboBox IsEditable="True" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr event.networkPlaceholder}"
+                          ItemsSource="{Binding Source={x:Static v:Lookups.AudioDeviceNames}}" />
+            </StackPanel>
+            <StackPanel x:Name="NetworkRow" Margin="0,0,0,12" Visibility="Collapsed">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.networkName}" />
+                <ComboBox IsEditable="True" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr event.networkPlaceholder}"
+                          ItemsSource="{Binding Source={x:Static v:Lookups.ConnectedNetworksNow}}" />
+            </StackPanel>
+            <StackPanel x:Name="TextRow" Margin="0,0,0,12" Visibility="Collapsed">
+                <TextBlock x:Name="TextLabel" Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifText}" />
+                <ui:TextBox x:Name="TextBox" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+            <StackPanel x:Name="ScheduleRow" Margin="0,0,0,12" Visibility="Collapsed">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                    <StackPanel Width="110" Margin="0,0,12,0">
+                        <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.from}" />
+                        <ui:TextBox Text="{Binding TimeFrom, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="hh:mm" />
+                    </StackPanel>
+                    <StackPanel Width="110">
+                        <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.to}" />
+                        <ui:TextBox Text="{Binding TimeTo, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="hh:mm" />
+                    </StackPanel>
+                </StackPanel>
+                <v:WeekDaysPicker Days="{Binding Days}" />
+            </StackPanel>
+            <StackPanel x:Name="PowerRow" Margin="0,0,0,12" Visibility="Collapsed">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifPower}" />
+                <ComboBox Width="260" HorizontalAlignment="Left" ItemsSource="{x:Static v:Lookups.PowerSources}" DisplayMemberPath="Name"
+                          SelectedValuePath="Value" SelectedValue="{Binding PowerSource}" />
+            </StackPanel>
+            <StackPanel x:Name="LoadRow" Orientation="Horizontal" Margin="0,0,0,12" Visibility="Collapsed">
+                <StackPanel Margin="0,0,12,0">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.loadResource}" />
+                    <ComboBox Width="190" ItemsSource="{x:Static v:Lookups.LoadResources}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Resource}" />
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifAbove}" />
+                    <ui:TextBox Width="100" Text="{Binding Percent, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- otherwise -->
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="140" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifElse}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.ConditionElses}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Else}" />
+                </StackPanel>
+                <StackPanel x:Name="SkipRow" Grid.Column="2" Visibility="Hidden">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifSkipCount}" />
+                    <ui:TextBox Text="{Binding SkipCount, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Grid>
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.ifHint}" />
+        </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Else}" Value="Skip">
+                <Setter TargetName="SkipRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Condition}" Value="ProcessRunning">
+                <Setter TargetName="ProcessRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Condition}" Value="Foreground">
+                <Setter TargetName="ProcessRow" Property="Visibility" Value="Visible" />
+                <Setter TargetName="ProcessLabel" Property="Text" Value="{l:Tr editor.ifForeground}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Condition}" Value="AudioPlaying">
+                <Setter TargetName="ProcessRow" Property="Visibility" Value="Visible" />
+                <Setter TargetName="ProcessLabel" Property="Text" Value="{l:Tr editor.ifAudioPlaying}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Condition}" Value="Schedule">
+                <Setter TargetName="ScheduleRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Condition}" Value="Device">
+                <Setter TargetName="DeviceRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Condition}" Value="AudioOutput">
+                <Setter TargetName="AudioRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Condition}" Value="Network">
+                <Setter TargetName="NetworkRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Condition}" Value="PowerSource">
+                <Setter TargetName="PowerRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Condition}" Value="HostReachable">
+                <Setter TargetName="TextRow" Property="Visibility" Value="Visible" />
+                <Setter TargetName="TextLabel" Property="Text" Value="{l:Tr editor.ifHost}" />
+                <Setter TargetName="TextBox" Property="PlaceholderText" Value="192.168.1.150" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Condition}" Value="FileExists">
+                <Setter TargetName="TextRow" Property="Visibility" Value="Visible" />
+                <Setter TargetName="TextLabel" Property="Text" Value="{l:Tr editor.ifPath}" />
+                <Setter TargetName="TextBox" Property="PlaceholderText" Value="%USERPROFILE%\Desktop\…" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Condition}" Value="Clipboard">
+                <Setter TargetName="TextRow" Property="Visibility" Value="Visible" />
+                <Setter TargetName="TextLabel" Property="Text" Value="{l:Tr editor.ifClipboard}" />
+                <Setter TargetName="TextBox" Property="PlaceholderText" Value="{l:Tr editor.ifClipboardHint}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Condition}" Value="Load">
+                <Setter TargetName="LoadRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
     </DataTemplate>
 </ResourceDictionary>

@@ -13,6 +13,7 @@
             </ResourceDictionary.MergedDictionaries>
             <v:CommandIconConverter x:Key="CommandIcon" />
             <v:ActionIconConverter x:Key="ActionIcon" />
+            <v:IndentMarginConverter x:Key="IndentMargin" />
             <v:HotkeyPartsConverter x:Key="HotkeyParts" />
             <v:NullToCollapsedConverter x:Key="NullToCollapsed" />
             <v:NullToCollapsedConverter x:Key="NullToVisible" Invert="True" />
@@ -56,7 +57,8 @@
 
             <!-- Action rows: clicking a row expands its editor -->
             <Style x:Key="ActionRow" TargetType="ListBoxItem">
-                <Setter Property="Margin" Value="0,0,0,8" />
+                <!-- Inside the block of a «Si…», a step in. -->
+                <Setter Property="Margin" Value="{Binding Indent, Converter={StaticResource IndentMargin}}" />
                 <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                 <Setter Property="Template">
@@ -103,6 +105,7 @@
         <CommandBinding Command="{x:Static v:EditorCommands.AddHttpHeader}" Executed="OnAddHttpHeader" />
         <CommandBinding Command="{x:Static v:EditorCommands.RemoveHttpHeader}" Executed="OnRemoveHttpHeader" />
         <CommandBinding Command="{x:Static v:EditorCommands.TestHttpRequest}" Executed="OnTestHttpRequest" />
+        <CommandBinding Command="{x:Static v:EditorCommands.FindMac}" Executed="OnFindMac" />
     </UserControl.CommandBindings>
 
     <Grid Margin="24,12,0,0">

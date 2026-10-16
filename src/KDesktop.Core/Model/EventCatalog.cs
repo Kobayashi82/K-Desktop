@@ -35,6 +35,7 @@ public static class EventCatalog
         new(EventKind.Device, "UsbStick24", "gray", () => new DriveTrigger()),
         new(EventKind.Network, "Wifi124", "teal", () => new NetworkTrigger()),
         new(EventKind.File, "DocumentAdd24", "yellow", () => new FileTrigger()),
+        new(EventKind.Load, "DataUsage24", "orange", () => new LoadTrigger()),
         new(EventKind.RemoteCall, "PlugConnected24", "pink", () => new RemoteCallTrigger()),
     ];
 

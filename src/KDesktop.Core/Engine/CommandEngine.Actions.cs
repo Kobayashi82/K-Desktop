@@ -18,7 +18,7 @@ public sealed partial class CommandEngine
         AppControlAction a => AppControlAsync(a, ctx),
         RunScriptAction a => RunScriptAsync(a, ctx),
         SendInputAction a => SendInputAsync(a, ctx),
-        VolumeAction a => VolumeAsync(a),
+        VolumeAction a => VolumeAsync(a, ctx),
         PlaySoundAction a => a.Wait ? Sounds.PlayAndWaitAsync(a.Sound, ctx.Token) : Run(() => Sounds.Play(a.Sound)),
         TopMostAction a => Run(() => TopMost(a, ctx)),
         HiddenFilesAction a => Run(() => HiddenFiles(a)),
@@ -32,6 +32,13 @@ public sealed partial class CommandEngine
         AudioOutputAction a => AudioOutputAsync(a),
         KBoardAction a => Run(() => KBoard(a)),
         HttpRequestAction a => HttpRequestAsync(a, ctx),
+        WindowAction a => Run(() => Window(a, ctx)),
+        ClipboardAction a => ClipboardAsync(a, ctx),
+        WakeOnLanAction a => WakeOnLanAsync(a, ctx),
+        DisplayAction a => DisplayAsync(a),
+        PowerPlanAction a => Run(() => PowerPlan(a)),
+        WindowsThemeAction a => Run(() => WindowsTheme(a)),
+        RadioAction a => Run(() => Radio(a)),
         _ => Task.CompletedTask,
     };
 
@@ -221,7 +228,7 @@ public sealed partial class CommandEngine
                 if (!InputSimulator.SendCombo(a.Value)) Log.Warn($"Combinación no válida: {a.Value}");
                 break;
             case SendInputMode.Text:
-                InputSimulator.SendText(a.Value);
+                InputSimulator.SendText(TextVariables.Expand(a.Value));
                 break;
             case SendInputMode.MouseMoveTo when TryParsePoint(a.Value, out var x, out var y):
                 InputSimulator.MoveTo(x, y);
@@ -243,8 +250,13 @@ public sealed partial class CommandEngine
                int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out y);
     }
 
-    private Task VolumeAsync(VolumeAction a) => Task.Run(() =>
+    private Task VolumeAsync(VolumeAction a, ExecutionContext ctx) => Task.Run(() =>
     {
+        if (a.Target != VolumeTarget.System)
+        {
+            OtherVolume(a, ctx);
+            return;
+        }
         switch (a.Mode)
         {
             case VolumeMode.Set:
@@ -261,6 +273,10 @@ public sealed partial class CommandEngine
             case VolumeMode.ToggleMute:
                 var muted = AudioTools.ToggleMute();
                 if (a.ShowOsd) _ui.ShowOsd(Loc.T(muted ? "osd.muted" : "osd.unmuted"));
+                break;
+            case VolumeMode.Mute or VolumeMode.Unmute:
+                AudioTools.SetMute(a.Mode == VolumeMode.Mute);
+                if (a.ShowOsd) _ui.ShowOsd(Loc.T(a.Mode == VolumeMode.Mute ? "osd.muted" : "osd.unmuted"));
                 break;
         }
     });

@@ -228,3 +228,23 @@ public sealed class InvalidTimeConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 }
+
+/// <summary>A monitor's GDI name → the resolutions and refresh rates it supports («Pantalla»).</summary>
+public sealed class DisplayModesConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        value is string monitor && monitor.Length > 0 ? KDesktop.Core.Platform.DisplayTools.Modes(monitor) : Array.Empty<KDesktop.Core.Platform.DisplayModeInfo>();
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>The indentation of an action inside the block of a «Si…» → the row's margin.</summary>
+public sealed class IndentMarginConverter : IValueConverter
+{
+    public double Step { get; set; } = 28;
+
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        new Thickness(value is int indent ? indent * Step : 0, 0, 0, 8);
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
+}

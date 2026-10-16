@@ -81,6 +81,12 @@ public sealed class EventService : IDisposable
     private Timer? _gadgetTimer;
     private readonly Dictionary<string, HashSet<string>> _gadgets = new(StringComparer.Ordinal);
 
+    // «Uso del equipo»: since when each event's threshold holds (or stopped holding, once it started)
+    private static readonly TimeSpan LoadPoll = TimeSpan.FromSeconds(2);
+    private Timer? _loadTimer;
+    private SystemLoad? _load;
+    private readonly Dictionary<string, (bool Active, DateTime? Since)> _loadState = new(StringComparer.Ordinal);
+
     // «Sin usar el PC»
     private Timer? _idleTimer;
     private readonly Dictionary<string, bool> _idleActive = new(StringComparer.Ordinal);
@@ -130,6 +136,7 @@ public sealed class EventService : IDisposable
             ConfigureNetwork();
             ConfigureAudio();
             ConfigureGadgets();
+            ConfigureLoad();
             ConfigureWatcher();
             _initial = false;
         }
@@ -149,6 +156,7 @@ public sealed class EventService : IDisposable
         _audioConnected.Remove(id);
         _audioDefaultActive.Remove(id);
         _gadgets.Remove(id);
+        _loadState.Remove(id);
         _guard.Reset(id);
     }
 
@@ -790,6 +798,70 @@ public sealed class EventService : IDisposable
         }
     }
 
+    // ── «Uso del equipo» ─────────────────────────────────────────────────
+
+    private void ConfigureLoad()
+    {
+        var rules = Rules<LoadTrigger>().ToList();
+        foreach (var id in _loadState.Keys.Where(id => rules.All(r => r.Rule.Id != id)).ToList()) _loadState.Remove(id);
+        if (rules.Count == 0)
+        {
+            _loadTimer?.Dispose();
+            _loadTimer = null;
+            _load?.Dispose();
+            _load = null;
+            return;
+        }
+        foreach (var (rule, _) in rules) _loadState.TryAdd(rule.Id, (false, null));
+        _load ??= new SystemLoad();
+        _loadTimer ??= new Timer(_ => OnLoadTick(), null, LoadPoll, LoadPoll);
+    }
+
+    private void OnLoadTick()
+    {
+        List<(EventRule Rule, bool End, int Value)> fire = [];
+        lock (_lock)
+        {
+            if (_disposed || _loadTimer is null || _load is null) return;
+            var now = DateTime.UtcNow;
+            var readings = new Dictionary<LoadResource, int>();
+            foreach (var (rule, t) in Rules<LoadTrigger>())
+            {
+                if (!readings.TryGetValue(t.Resource, out var value))
+                {
+                    try { value = _load.Read(t.Resource); }
+                    catch (Exception ex)
+                    {
+                        Log.Warn("Eventos: no se pudo medir el uso del equipo: " + ex.Message);
+                        value = 0;
+                    }
+                    readings[t.Resource] = value;
+                }
+                var (active, since) = _loadState.GetValueOrDefault(rule.Id);
+                var needed = TimeSpan.FromSeconds(Math.Max(2, t.Seconds));
+                // Before it starts it waits for the threshold to hold; once started, for it to stop holding.
+                var waiting = active ? !t.Holds(value) : t.Holds(value);
+                if (!waiting)
+                {
+                    _loadState[rule.Id] = (active, null);
+                    continue;
+                }
+                since ??= now;
+                if (now - since >= needed)
+                {
+                    _loadState[rule.Id] = (!active, null);
+                    fire.Add((rule, active, value));
+                }
+                else _loadState[rule.Id] = (active, since);
+            }
+        }
+        foreach (var (rule, end, value) in fire)
+        {
+            Log.Info($"Eventos: uso del equipo {(end ? "vuelve a la normalidad" : "alcanza el límite")} ({value} %) («{rule.Name}»)");
+            Fire(rule, end);
+        }
+    }
+
     // ── sesión y ventana oculta ──────────────────────────────────────────
 
     private void ConfigureWatcher()
@@ -887,6 +959,8 @@ public sealed class EventService : IDisposable
             _processTimer?.Dispose();
             _foregroundTimer?.Dispose();
             _idleTimer?.Dispose();
+            _loadTimer?.Dispose();
+            _load?.Dispose();
             foreach (var w in _fileWatchers.Values) w.Dispose();
             _networkTimer?.Dispose();
             if (_networkWatching) System.Net.NetworkInformation.NetworkChange.NetworkAddressChanged -= OnNetworkChanged;

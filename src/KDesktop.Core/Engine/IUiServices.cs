@@ -33,6 +33,9 @@ public interface IUiServices
 
     /// <summary>Runs exit commands and closes K-Desktop.</summary>
     void RequestExit();
+
+    /// <summary>Puts <paramref name="text"/> in the clipboard as plain text (empty clears it). Returns whether it could.</summary>
+    bool SetClipboardText(string text) => false;
 }
 
 /// <summary>Handle to the voice OSD. Thread-safe.</summary>

@@ -1,0 +1,107 @@
+<UserControl x:Class="KDesktop.Views.Pages.HistoryPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:p="clr-namespace:KDesktop.Views.Pages"
+             xmlns:l="clr-namespace:KDesktop.Localization">
+    <UserControl.Resources>
+        <Style x:Key="Row" TargetType="ListBoxItem">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="B" CornerRadius="8" Padding="12,8" BorderThickness="1"
+                                Background="{DynamicResource Kd.Subtle}" BorderBrush="Transparent">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="B" Property="Background" Value="{DynamicResource Kd.SubtleHover}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="B" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate x:Key="RowTemplate" DataType="{x:Type p:HistoryRow}">
+            <Grid Margin="{Binding Indent}" Background="Transparent" MouseLeftButtonDown="OnRowClick">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:SymbolIcon x:Name="State" Symbol="{Binding Symbol}" FontSize="18" Margin="0,0,12,0" VerticalAlignment="Center"
+                               Foreground="{DynamicResource Kd.Success}" />
+                <Border Grid.Column="1" Width="30" Height="30" CornerRadius="7" Background="{DynamicResource Kd.AccentSoft}" Margin="0,0,12,0">
+                    <Image Source="{Binding Icon}" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality" />
+                </Border>
+                <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                    <TextBlock Text="{Binding Line}" FontSize="12" TextTrimming="CharacterEllipsis" ToolTip="{Binding Line}"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+                <StackPanel Grid.Column="3" Margin="12,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding When}" FontSize="12" HorizontalAlignment="Right" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    <TextBlock Text="{Binding Duration}" FontSize="11" HorizontalAlignment="Right" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                </StackPanel>
+            </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding Outcome}" Value="Error">
+                    <Setter TargetName="State" Property="Foreground" Value="{DynamicResource Kd.Danger}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Outcome}" Value="Stopped">
+                    <Setter TargetName="State" Property="Foreground" Value="{DynamicResource Kd.Warning}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Outcome}" Value="Cancelled">
+                    <Setter TargetName="State" Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Outcome}" Value="NotUnderstood">
+                    <Setter TargetName="State" Property="Foreground" Value="{DynamicResource Kd.Warning}" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <DockPanel Margin="24,12,24,16">
+        <StackPanel DockPanel.Dock="Top">
+            <Grid Margin="0,0,0,6">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource PageTitle}" Text="{l:Tr nav.history}" />
+                    <Border Margin="10,6,0,0" Padding="8,1" CornerRadius="10" VerticalAlignment="Center" Background="{DynamicResource Kd.AccentSoft}">
+                        <TextBlock x:Name="CountText" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Kd.AccentText}" />
+                    </Border>
+                </StackPanel>
+                <ui:Button HorizontalAlignment="Right" VerticalAlignment="Center" Content="{l:Tr history.clear}" Icon="{ui:SymbolIcon Delete24}" Click="OnClear" />
+            </Grid>
+            <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" TextWrapping="Wrap" Text="{l:Tr history.hint}" />
+            <Grid Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="240" />
+                </Grid.ColumnDefinitions>
+                <ui:TextBox x:Name="SearchBox" PlaceholderText="{l:Tr history.search}" Icon="{ui:SymbolIcon Search24}" ClearButtonEnabled="True"
+                            TextChanged="OnFilterChanged" />
+                <ComboBox x:Name="SourceFilter" Grid.Column="2" DisplayMemberPath="Name" SelectionChanged="OnFilterChanged" />
+            </Grid>
+        </StackPanel>
+
+        <Grid>
+            <ListBox x:Name="List" ItemContainerStyle="{StaticResource Row}" ItemTemplate="{StaticResource RowTemplate}"
+                     Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" VirtualizingPanel.ScrollUnit="Pixel" />
+            <StackPanel x:Name="Empty" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed">
+                <ui:SymbolIcon Symbol="History24" FontSize="48" Foreground="{DynamicResource TextFillColorTertiaryBrush}" HorizontalAlignment="Center" />
+                <TextBlock Margin="0,12,0,0" FontSize="15" HorizontalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           Text="{l:Tr history.empty}" />
+            </StackPanel>
+        </Grid>
+    </DockPanel>
+</UserControl>

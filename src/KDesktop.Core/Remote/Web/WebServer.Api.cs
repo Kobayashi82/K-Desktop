@@ -93,7 +93,7 @@ public sealed partial class WebServer
                 await AndroidAsync(response).ConfigureAwait(false);
                 break;
             case ("POST", "/api/run"):
-                await RunAsync(context).ConfigureAwait(false);
+                await RunAsync(context, device.Name).ConfigureAwait(false);
                 break;
             case ("POST", "/api/event"):
                 await RemoteEventAsync(context, request).ConfigureAwait(false);
@@ -143,7 +143,7 @@ public sealed partial class WebServer
     }
 
     /// <summary>Runs a command and answers with what happened (or "running" when it takes long).</summary>
-    private async Task RunAsync(HttpListenerContext context)
+    private async Task RunAsync(HttpListenerContext context, string deviceName)
     {
         var body = await ReadJsonAsync(context.Request).ConfigureAwait(false);
         var id = Str(body, "id");
@@ -162,7 +162,9 @@ public sealed partial class WebServer
 
         var feedback = new ExecutionFeedback();
         Task run;
-        using (feedback.Begin()) run = _host.Engine.RunAsync(command, TriggerSource.Web);
+        using (feedback.Begin())
+        using (ExecutionHistory.Describe(deviceName))
+            run = _host.Engine.RunAsync(command, TriggerSource.Web);
         var finished = await Task.WhenAny(run, Task.Delay(RunWait)).ConfigureAwait(false) == run;
         var status = !finished ? "running" : feedback.HasError ? "error" : feedback.HasWarning ? "warning" : "ok";
         await WriteJsonAsync(context.Response, new { status, messages = feedback.Messages }).ConfigureAwait(false);

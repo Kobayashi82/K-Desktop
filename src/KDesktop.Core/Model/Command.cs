@@ -75,7 +75,10 @@ public partial class Command : ObservableObject
     /// <summary><see cref="VoicePhrases"/> trimmed, without empty ones.</summary>
     [JsonIgnore] public IEnumerable<string> VoicePhraseList => VoicePhrases.Select(p => p.Trim()).Where(p => p.Length > 0);
 
-    [JsonIgnore] public CommandAction? PrimaryAction => Actions.FirstOrDefault(a => a.Enabled) ?? Actions.FirstOrDefault();
+    /// <summary>The action that gives the command its icon: the first enabled one that does something («Si…» only checks).</summary>
+    [JsonIgnore]
+    public CommandAction? PrimaryAction =>
+        Actions.FirstOrDefault(a => a.Enabled && a is not ConditionAction) ?? Actions.FirstOrDefault(a => a is not ConditionAction) ?? Actions.FirstOrDefault();
 
     /// <summary>"+2" when there are more actions besides the primary one, empty otherwise.</summary>
     [JsonIgnore] public string MoreActionsText => Actions.Count > 1 ? $"+{Actions.Count - 1}" : string.Empty;
@@ -100,7 +103,26 @@ public partial class Command : ObservableObject
         field = value ?? [];
         field.CollectionChanged += OnChildCollectionChanged;
         if (typeof(T) == typeof(CommandAction))
+        {
             foreach (var a in field.OfType<CommandAction>()) a.PropertyChanged += OnActionChanged;
+            Indent(field.OfType<CommandAction>().ToList());
+        }
+    }
+
+    /// <summary>
+    /// Sets <see cref="CommandAction.Indent"/>: the actions a «Si…» skips when it is not met go one step in, so its
+    /// block shows (blocks inside blocks, further in).
+    /// </summary>
+    public static void Indent(IReadOnlyList<CommandAction> actions)
+    {
+        var open = new List<int>(); // actions left in each open block
+        foreach (var action in actions)
+        {
+            action.Indent = open.Count;
+            for (var i = open.Count - 1; i >= 0; i--)
+                if (--open[i] <= 0) open.RemoveAt(i);
+            if (action is ConditionAction { Governs: > 0 } condition) open.Add(condition.Governs);
+        }
     }
 
     private void OnChildCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -119,6 +141,7 @@ public partial class Command : ObservableObject
         }
         if (ReferenceEquals(sender, Actions))
         {
+            Indent(Actions);
             OnPropertyChanged(nameof(PrimaryAction));
             base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(MoreActionsText)));
             base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(ActionsText)));
@@ -128,6 +151,8 @@ public partial class Command : ObservableObject
 
     private void OnActionChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (sender is ConditionAction && e.PropertyName is nameof(ConditionAction.SkipCount) or nameof(ConditionAction.Else) or nameof(CommandAction.Enabled))
+            Indent(Actions);
         if (sender is CommandAction action && action.IsTransient(e.PropertyName))
         {
             // Display only: not a change to save.

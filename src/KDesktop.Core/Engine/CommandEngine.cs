@@ -33,14 +33,18 @@ public sealed partial class CommandEngine
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _running = new();
     private readonly ConcurrentDictionary<CancellationTokenSource, byte> _cancellable = new();
 
-    public CommandEngine(ConfigStore store, IUiServices ui)
+    public CommandEngine(ConfigStore store, IUiServices ui, ExecutionHistory? history = null)
     {
         _store = store;
+        History = history ?? new ExecutionHistory(null);
         // Messages shown while a command runs also reach a remote caller (see ExecutionFeedback).
         _ui = new FeedbackUiServices(ui);
     }
 
     public AppConfig Config => _store.Config;
+
+    /// <summary>The «Registro»: the last runs, from where and how they went.</summary>
+    public ExecutionHistory History { get; }
 
     /// <summary>Raised after a command finished (for statistics / UI feedback).</summary>
     public event Action<Command, TriggerSource>? Executed;
@@ -112,41 +116,91 @@ public sealed partial class CommandEngine
         if (!isRepeat) _running[command.Id] = cts;
 
         var ctx = new ExecutionContext(command, source, foreground, isRepeat, cts.Token, depth);
+        var started = Environment.TickCount64;
+        var detail = depth == 0 ? ExecutionHistory.CurrentDetail : null;
+        var outcome = RunOutcome.Ok;
+        string? message = null;
         try
         {
             if (!isRepeat && !ctx.Quiet) Sounds.Play(command.Sound);
 
-            foreach (var action in command.Actions.ToArray())
+            var actions = command.Actions.ToArray();
+            var skip = 0;
+            foreach (var action in actions)
             {
-                if (cts.IsCancellationRequested) break;
+                if (cts.IsCancellationRequested)
+                {
+                    outcome = RunOutcome.Cancelled;
+                    break;
+                }
+                // «Si…» not met skips the next actions by their place in the list, enabled or not.
+                if (skip > 0)
+                {
+                    skip--;
+                    continue;
+                }
                 if (!action.Enabled) continue;
                 if (isRepeat && action is not VolumeAction) continue;
                 try
                 {
                     if (!isRepeat) ActionStarting?.Invoke(action, ctx);
+                    if (action is ConditionAction condition)
+                    {
+                        if (await Conditions.IsMetAsync(condition, ctx.Foreground, ctx.Token).ConfigureAwait(false)) continue;
+                        var what = condition.Describe();
+                        if (condition.Else == ConditionElse.Stop)
+                        {
+                            Log.Info($"'{command.Name}': no se cumple «{what}», se detiene");
+                            outcome = RunOutcome.Stopped;
+                            message = what;
+                            break;
+                        }
+                        skip = Math.Max(1, condition.SkipCount);
+                        Log.Info($"'{command.Name}': no se cumple «{what}», se salta{(skip == 1 ? " 1 acción" : $"n {skip} acciones")}");
+                        continue;
+                    }
                     await ExecuteActionAsync(action, ctx).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
+                    outcome = RunOutcome.Cancelled;
                     break;
                 }
                 catch (Exception ex)
                 {
                     Log.Error($"Error en '{command.Name}' → {action.Info.Name}", ex);
+                    if (outcome == RunOutcome.Ok)
+                    {
+                        outcome = RunOutcome.Error;
+                        message = $"{action.Info.Name}: {ex.Message}";
+                    }
                 }
             }
             if (!isRepeat) Executed?.Invoke(command, source);
         }
         finally
         {
+            if (!isRepeat)
+                History.Add(new HistoryEntry(DateTime.Now, command.Id, command.Name, source, detail, outcome, message,
+                    (int)Math.Min(int.MaxValue, Environment.TickCount64 - started), depth));
             _running.TryRemove(new KeyValuePair<string, CancellationTokenSource>(command.Id, cts));
             cts.Dispose();
         }
     }
 
     /// <summary>Executes a single action outside of a command (the "test" button of the editor).</summary>
-    public Task TestActionAsync(CommandAction action, Command owner) =>
-        ExecuteActionAsync(action, new ExecutionContext(owner, TriggerSource.Manual, ForegroundWindow.Capture(), false, CancellationToken.None));
+    public async Task TestActionAsync(CommandAction action, Command owner)
+    {
+        var ctx = new ExecutionContext(owner, TriggerSource.Manual, ForegroundWindow.Capture(), false, CancellationToken.None);
+        if (action is ConditionAction condition)
+        {
+            // «Probar» on «Si…» says whether it is met now.
+            var met = await Conditions.IsMetAsync(condition, ctx.Foreground, ctx.Token).ConfigureAwait(false);
+            _ui.ShowOsd(Localization.Loc.T(met ? "osd.ifMet" : "osd.ifNotMet", condition.Describe()), met ? OsdKind.Success : OsdKind.Warning);
+            return;
+        }
+        await ExecuteActionAsync(action, ctx).ConfigureAwait(false);
+    }
 
     /// <summary>
     /// Runs the commands of an event, one after another (<paramref name="end"/>: its «Al terminar» ones). A command that no
@@ -170,6 +224,7 @@ public sealed partial class CommandEngine
             return;
         }
         EventFired?.Invoke(rule, end, source);
+        using var origin = ExecutionHistory.Describe(Localization.Loc.T(end ? "history.eventEnd" : "history.event", rule.Name));
         foreach (var command in EventCommands(rule, end))
         {
             Log.Info($"Evento «{rule.Name}»{(end ? " (al terminar)" : "")} → «{command.Name}»");
@@ -221,6 +276,7 @@ public sealed partial class CommandEngine
         foreach (var rule in rules)
         {
             EventFired?.Invoke(rule, false, TriggerSource.Exit);
+            using var origin = ExecutionHistory.Describe(Localization.Loc.T("history.event", rule.Name));
             foreach (var command in EventCommands(rule, false))
             {
                 Log.Info($"Evento «{rule.Name}» → «{command.Name}»");

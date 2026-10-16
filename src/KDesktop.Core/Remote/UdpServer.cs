@@ -117,7 +117,8 @@ public sealed class UdpServer : IDisposable
             {
                 try
                 {
-                    var reply = Handle(text);
+                    string? reply;
+                    using (ExecutionHistory.Describe(remote.Address.ToString())) reply = Handle(text);
                     if (reply is not null) await SendAsync(reply, remote).ConfigureAwait(false);
                 }
                 catch (Exception ex)

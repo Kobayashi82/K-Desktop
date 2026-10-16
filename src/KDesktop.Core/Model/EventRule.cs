@@ -227,8 +227,11 @@ public enum EventKind
 {
     AppStart, AppExit, Time, Interval, ProcessStart, Foreground, Idle, Session,
     AudioDevice, Device, Network, PowerSource, File,
-    RemoteCall, Gadget,
+    RemoteCall, Gadget, Load,
 }
+
+/// <summary>«Uso del equipo»: above or below the threshold.</summary>
+public enum LoadComparison { Above, Below }
 
 public enum SessionEvent { Lock, Unlock, Suspend, Resume }
 
@@ -258,6 +261,7 @@ public enum AudioDeviceEvent { Connected, BecomesDefault }
 [JsonDerivedType(typeof(AudioDeviceTrigger), "audioDevice")]
 [JsonDerivedType(typeof(RemoteCallTrigger), "remoteCall")]
 [JsonDerivedType(typeof(GadgetTrigger), "gadget")]
+[JsonDerivedType(typeof(LoadTrigger), "load")]
 public abstract partial class EventTrigger : ObservableObject
 {
     [JsonIgnore] public abstract EventKind Kind { get; }
@@ -550,4 +554,25 @@ public sealed partial class GadgetTrigger : EventTrigger
         var folded = new string(deviceName.Select(Engine.FuzzyMatch.Fold).ToArray());
         return Engine.FuzzyMatch.Tokens(Name).All(token => folded.Contains(token, StringComparison.Ordinal));
     }
+}
+
+/// <summary>
+/// The processor, the graphics card or the memory stays above (or below) a % for a while: a game or a render starts,
+/// a download or a long task has finished… It ends when that stops for the same time.
+/// </summary>
+public sealed partial class LoadTrigger : EventTrigger
+{
+    [ObservableProperty] private LoadResource _resource = LoadResource.Cpu;
+    [ObservableProperty] private LoadComparison _comparison = LoadComparison.Above;
+    [ObservableProperty] private int _percent = 80;
+
+    /// <summary>How long it must hold, in seconds.</summary>
+    [ObservableProperty] private int _seconds = 60;
+
+    public override EventKind Kind => EventKind.Load;
+    public override bool HasEnd => true;
+    public override string Summary => Loc.T($"event.summary.load.{Comparison}", Loc.T($"enum.loadResource.{Resource}"), Percent, Seconds);
+
+    /// <summary>Whether a reading of <paramref name="percent"/> % is on the side it waits for.</summary>
+    public bool Holds(int percent) => Comparison == LoadComparison.Above ? percent > Percent : percent < Percent;
 }

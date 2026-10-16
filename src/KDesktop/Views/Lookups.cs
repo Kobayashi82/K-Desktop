@@ -25,6 +25,33 @@ public static class Lookups
     public static IReadOnlyList<Option<WaitCondition>> WaitConditions { get; } = Enum<WaitCondition>("enum.waitFor");
     public static IReadOnlyList<Option<SendInputMode>> SendInputModes { get; } = Enum<SendInputMode>("enum.sendInput");
     public static IReadOnlyList<Option<VolumeMode>> VolumeModes { get; } = Enum<VolumeMode>("enum.volume");
+    public static IReadOnlyList<Option<VolumeTarget>> VolumeTargets { get; } = Enum<VolumeTarget>("enum.volumeTarget");
+    public static IReadOnlyList<Option<WindowTarget>> WindowTargets { get; } = Enum<WindowTarget>("enum.windowTarget");
+    public static IReadOnlyList<Option<WindowOperation>> WindowOperations { get; } = Enum<WindowOperation>("enum.windowOp");
+    public static IReadOnlyList<Option<WindowSnap>> WindowSnaps { get; } = Enum<WindowSnap>("enum.windowSnap");
+    public static IReadOnlyList<Option<MonitorChoice>> MonitorChoices { get; } = Enum<MonitorChoice>("enum.monitorChoice");
+    public static IReadOnlyList<Option<ClipboardMode>> ClipboardModes { get; } = Enum<ClipboardMode>("enum.clipboard");
+    public static IReadOnlyList<Option<DisplayOperation>> DisplayOperations { get; } = Enum<DisplayOperation>("enum.displayOp");
+    public static IReadOnlyList<Option<ProjectionMode>> Projections { get; } = Enum<ProjectionMode>("enum.projection");
+    public static IReadOnlyList<Option<LevelChange>> LevelChanges { get; } = Enum<LevelChange>("enum.levelChange");
+    public static IReadOnlyList<Option<PowerPlanMode>> PowerPlanModes { get; } = Enum<PowerPlanMode>("enum.powerPlan");
+    public static IReadOnlyList<Option<ThemeChoice>> ThemeChoices { get; } = Enum<ThemeChoice>("enum.themeChoice");
+    public static IReadOnlyList<Option<RadioDevice>> RadioDevices { get; } = Enum<RadioDevice>("enum.radio");
+    public static IReadOnlyList<Option<SwitchMode>> SwitchModes { get; } = Enum<SwitchMode>("enum.switchMode");
+    public static IReadOnlyList<Option<ConditionKind>> ConditionKinds { get; } = Enum<ConditionKind>("enum.condition");
+    public static IReadOnlyList<Option<ConditionElse>> ConditionElses { get; } = Enum<ConditionElse>("enum.conditionElse");
+    public static IReadOnlyList<Option<LoadResource>> LoadResources { get; } = Enum<LoadResource>("enum.loadResource");
+    public static IReadOnlyList<Option<LoadComparison>> LoadComparisons { get; } = Enum<LoadComparison>("enum.loadComparison");
+
+    /// <summary>The power plans of this PC (read when the editor opens).</summary>
+    public static IReadOnlyList<PowerPlan> PowerPlanList => PowerPlans.All();
+
+    /// <summary>The monitors that are on.</summary>
+    public static IReadOnlyList<MonitorInfo> MonitorList => DisplayTools.Monitors();
+
+    /// <summary>Names of the devices connected now (for «Si… está conectado»).</summary>
+    public static IReadOnlyList<string> ConnectedGadgetNames =>
+        PnpDevices.Present().Select(d => d.Name).Distinct(StringComparer.CurrentCultureIgnoreCase).Order(StringComparer.CurrentCultureIgnoreCase).ToList();
     public static IReadOnlyList<Option<PowerMode>> PowerModes { get; } = Enum<PowerMode>("power");
     public static IReadOnlyList<Option<CommandControlMode>> CommandControlModes { get; } = Enum<CommandControlMode>("enum.commandControl");
     public static IReadOnlyList<Option<KBoardActionMode>> KBoardActionModes { get; } = Enum<KBoardActionMode>("enum.kboardMode");
@@ -127,4 +154,5 @@ public static class EditorCommands
     public static readonly RoutedUICommand AddHttpHeader = new("AddHttpHeader", nameof(AddHttpHeader), typeof(EditorCommands));
     public static readonly RoutedUICommand RemoveHttpHeader = new("RemoveHttpHeader", nameof(RemoveHttpHeader), typeof(EditorCommands));
     public static readonly RoutedUICommand TestHttpRequest = new("TestHttpRequest", nameof(TestHttpRequest), typeof(EditorCommands));
+    public static readonly RoutedUICommand FindMac = new("FindMac", nameof(FindMac), typeof(EditorCommands));
 }

@@ -227,6 +227,32 @@
                 </StackPanel>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type m:LoadTrigger}">
+                <StackPanel>
+                    <WrapPanel>
+                        <StackPanel Margin="0,0,12,8">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.loadResource}" />
+                            <ComboBox Width="190" ItemsSource="{x:Static v:Lookups.LoadResources}" DisplayMemberPath="Name"
+                                      SelectedValuePath="Value" SelectedValue="{Binding Resource}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,8">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.loadComparison}" />
+                            <ComboBox Width="170" ItemsSource="{x:Static v:Lookups.LoadComparisons}" DisplayMemberPath="Name"
+                                      SelectedValuePath="Value" SelectedValue="{Binding Comparison}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,12,8">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="%" />
+                            <ui:TextBox Width="90" Text="{Binding Percent, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,0,8">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.loadSeconds}" />
+                            <ui:TextBox Width="110" Text="{Binding Seconds, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </WrapPanel>
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr event.hint.load}" />
+                </StackPanel>
+            </DataTemplate>
+
             <!-- A command of «Ejecutar» / «Al terminar» -->
             <DataTemplate x:Key="CommandRow">
                 <Grid>

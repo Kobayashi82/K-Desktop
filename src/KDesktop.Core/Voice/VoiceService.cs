@@ -279,20 +279,25 @@ public sealed partial class VoiceService : IDisposable
                          .Concat(plan.Unmatched.Select(u => $"«{u}» → nada")))
                      : "") +
                  (whole.Note is { } note ? " · " + note : ""));
+        var heard = $"«{text}»";
         if (plan.Parts.Count == 0)
         {
-            if (whole.Candidates.Count > 0 && whole.Confidence >= 0.6)
-                osd.Finish(Loc.T("voice.unsure", text, whole.Candidates[0].Name), OsdKind.Warning);
-            else
-                osd.Finish(Loc.T("voice.noMatch", text), OsdKind.Warning);
+            var unsure = whole.Candidates.Count > 0 && whole.Confidence >= 0.6;
+            var why = unsure ? Loc.T("voice.unsure", text, whole.Candidates[0].Name) : Loc.T("voice.noMatch", text);
+            osd.Finish(why, OsdKind.Warning);
+            History?.Add(new HistoryEntry(DateTime.Now, null, heard, TriggerSource.Voice, null, RunOutcome.NotUnderstood,
+                unsure ? Loc.T("history.voiceUnsure", whole.Candidates[0].Name) : null, 0));
             return;
         }
         if (plan.Parts is [{ Winner.Media: { } single }] && plan.Unmatched.Count == 0)
         {
             // A media order says how it went («Volumen: 30 %», «No suena nada»).
             OrderRun?.Invoke(plan.Parts[0].Winner!);
+            var started = Environment.TickCount64;
             var (message, kind) = await RunMediaAsync(single).ConfigureAwait(false);
             osd.Finish(Loc.T("voice.running", text, message), kind);
+            History?.Add(new HistoryEntry(DateTime.Now, null, plan.Parts[0].Winner!.Name, TriggerSource.Voice, heard,
+                kind == OsdKind.Warning ? RunOutcome.Error : RunOutcome.Ok, message, (int)(Environment.TickCount64 - started)));
             return;
         }
         if (plan.Parts.Count == 1 && plan.Unmatched.Count == 0)
@@ -305,6 +310,7 @@ public sealed partial class VoiceService : IDisposable
         // Not awaited: a command may take long (a countdown, a macro) and the next order — «cancela» — must be heard.
         _ = Task.Run(async () =>
         {
+            using var origin = ExecutionHistory.Describe(heard);
             foreach (var part in plan.Parts)
             {
                 try
@@ -542,6 +548,9 @@ public sealed partial class VoiceService : IDisposable
 
     /// <summary>Raised (any thread) for each order run by voice (statistics).</summary>
     public event Action<IntentCandidate>? OrderRun;
+
+    /// <summary>The «Registro»: orders not understood and built-in media orders go there too (commands, by the engine).</summary>
+    public ExecutionHistory? History { get; set; }
 
     /// <summary>Raised (any thread) when a wake word passed both phases.</summary>
     public event Action<WakeWord>? WakeHeard;
