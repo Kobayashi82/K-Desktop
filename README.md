@@ -2,7 +2,7 @@
   <img src="src/KDesktop.Core/Web/icons/icon-192.png" width="96" alt="K-Desktop">
 </p>
 
-<h1 align="center">K-Desktop 5</h1>
+<h1 align="center">K-Desktop 5.0</h1>
 
 <p align="center">
   Atajos de teclado y ratón, QuickMenus, macros, eventos, control por voz y mando a distancia desde el móvil para Windows.
@@ -83,10 +83,16 @@ ejecuta importa los comandos, QuickMenus e iconos de la versión anterior.
 
 ## Instalación
 
-K-Desktop es un único `KDesktop.exe` portátil que no necesita instalar .NET. Al abrirlo por primera vez se registra
-para arrancar con Windows (se puede desactivar en Opciones). Los datos se guardan en `%APPDATA%\K-Desktop 5`.
+Descarga la última versión desde [Releases](https://github.com/Kobayashi82/K-Desktop-5.0/releases/latest):
 
-Requiere Windows 10 u 11 de 64 bits.
+- **[KDesktop.exe](https://github.com/Kobayashi82/K-Desktop-5.0/releases/latest/download/KDesktop.exe)**: el
+  programa, un único ejecutable portátil que no necesita instalar .NET. Requiere Windows 10 u 11 de 64 bits.
+- **[KDesktop.apk](https://github.com/Kobayashi82/K-Desktop-5.0/releases/latest/download/KDesktop.apk)**: la app de
+  Android para controlar el PC desde el móvil (Android 5.0 o superior). También se puede descargar desde el propio
+  K-Desktop, que la mantiene actualizada.
+
+Al abrir K-Desktop por primera vez se registra para arrancar con Windows (se puede desactivar en Opciones). Los datos
+se guardan en `%APPDATA%\K-Desktop 5`.
 
 ## Línea de comandos
 
