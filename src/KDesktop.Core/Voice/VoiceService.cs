@@ -366,10 +366,26 @@ public sealed partial class VoiceService : IDisposable
         {
             if (!VoiceModels.Ready) return;
             var settings = _config().Settings;
+            var cold = !SpeechToText.IsLoaded;
             PreloadModels(settings);
 
             // Turned down at once, so the order that follows is heard over the music; back up if the word isn't confirmed.
             using var duck = Duck(settings);
+
+            // With Parakeet still to load (a second or two) the verification would hold «Escuchando…» back: shown at
+            // once instead, since the capture is already recording; hidden without a word if the word isn't confirmed.
+            using var early = cold ? _ui.ShowVoiceOsd(Loc.T("voice.listening")) : null;
+            if (early is not null) ListenSound(settings);
+            async Task<string> TranscribeWord(float[] clip)
+            {
+                var task = Task.Run(() => SpeechToText.Transcribe(clip));
+                while (early is not null && !task.IsCompleted)
+                {
+                    early.SetLevel(capture.Level);
+                    await Task.WhenAny(task, Task.Delay(40)).ConfigureAwait(false);
+                }
+                return await task.ConfigureAwait(false);
+            }
 
             // Phase 2, on the word itself.
             var sure = score >= word.DetectorThreshold + 0.25;
@@ -378,14 +394,14 @@ public sealed partial class VoiceService : IDisposable
                 || (sure && verification >= word.EffectiveThreshold - 0.15)
                 || (settings.VoiceWakeTrust && score >= Math.Max(0.9, word.DetectorThreshold + 0.25));
             var wordClip = LastUtterance(capture.Preroll);
-            var wordText = wordClip.Length > 0 ? await Task.Run(() => SpeechToText.Transcribe(wordClip)).ConfigureAwait(false) : "";
+            var wordText = wordClip.Length > 0 ? await TranscribeWord(wordClip).ConfigureAwait(false) : "";
             var match = WakeWordVerifier.Find(wordText, word);
             if (!Accepted(match?.Score ?? 0) && capture.Preroll.Length > 0)
             {
                 // With sound in the background (what the echo canceller leaves of music, a noisy room) the speech
                 // detector may cut the word badly: the last moments as they are, uncut.
                 var tail = capture.Preroll[Math.Max(0, capture.Preroll.Length - MicCapture.SampleRate * 8 / 5)..];
-                var tailText = await Task.Run(() => SpeechToText.Transcribe(tail)).ConfigureAwait(false);
+                var tailText = await TranscribeWord(tail).ConfigureAwait(false);
                 if (WakeWordVerifier.Find(tailText, word) is { } tailMatch && tailMatch.Score > (match?.Score ?? 0))
                 {
                     Log.Info($"Palabra de activación «{word.Name}»: recortada «{wordText}», entera «{tailText}»");
@@ -411,8 +427,8 @@ public sealed partial class VoiceService : IDisposable
             // The order: until the speaker goes quiet, or nothing said in a few seconds. The detector fires before the
             // word is over, so what comes first may be only its last syllable: if that says nothing, the order may
             // still come after a pause («KDesktop… apaga el ordenador») and the listening goes on.
-            using var osd = _ui.ShowVoiceOsd(Loc.T("voice.listening"));
-            ListenSound(settings);
+            using var osd = early ?? _ui.ShowVoiceOsd(Loc.T("voice.listening"));
+            if (early is null) ListenSound(settings);
             var commands = Commands().ToList();
             (List<IntentPlan> Plans, bool Confirmed)? found = null;
             var checkedSegments = 0;
