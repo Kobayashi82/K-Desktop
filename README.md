@@ -1,37 +1,92 @@
-# K-Desktop 5.0
+<p align="center">
+  <img src="src/KDesktop.Core/Web/icons/icon-192.png" width="96" alt="K-Desktop">
+</p>
 
-Atajos de teclado y ratón, QuickMenus y control remoto por UDP para Windows. Es la reescritura completa de K-Desktop 4 (VB.NET / WinForms) en **C# / WPF / .NET 10**.
+<h1 align="center">K-Desktop 5</h1>
+
+<p align="center">
+  Atajos de teclado y ratón, QuickMenus, macros, eventos, control por voz y mando a distancia desde el móvil para Windows.
+</p>
+
+<p align="center">
+  <img alt="Windows 10/11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows&logoColor=white">
+  <img alt=".NET 10" src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white">
+  <img alt="WPF" src="https://img.shields.io/badge/UI-WPF-5C2D91">
+  <img alt="Idiomas" src="https://img.shields.io/badge/idiomas-es%20%7C%20en%20%7C%20fr%20%7C%20de%20%7C%20it%20%7C%20pt-F5C542">
+</p>
+
+<p align="center">
+  <img src="docs/images/k-desktop.png" alt="Ventana principal de K-Desktop con la lista de comandos y el editor de un comando" width="900">
+</p>
+
+K-Desktop convierte cualquier tecla, botón del ratón o combinación en una secuencia de acciones: abrir programas,
+colocar ventanas, cambiar el volumen, hacer capturas, lanzar peticiones a Home Assistant… Todo se puede lanzar
+también desde un menú en el ratón, por voz, desde el móvil, por red o cuando pasa algo en el equipo.
+
+Es la reescritura completa de K-Desktop 4 (VB.NET / WinForms) en **C# / WPF / .NET 10**, y la primera vez que se
+ejecuta importa los comandos, QuickMenus e iconos de la versión anterior.
 
 ## Funciones
 
-- **Comandos**: secuencias de acciones que se lanzan con atajos de teclado o ratón (`CTRL + ALT + O`, `Mouse 5`, combinaciones de botones como `Mouse 4 + Mouse 1`, `CTRL + Wheel Up`…), desde un QuickMenu, por UDP o por línea de comandos. Si un atajo lo tienen a la vez un comando para todas las aplicaciones y otro limitado a algunas, en esas aplicaciones gana el específico (en Photoshop, «Mouse 5» abre su menú y no el general); dos comandos generales, o dos del mismo programa, se ejecutan los dos.
-- **Eventos**: reglas «cuando pase X, ejecuta estos comandos»: al iniciar o salir de K-Desktop (lo que antes era «Ejecutar al iniciar / al salir» de cada comando), a una hora (con días de la semana y «si se perdió, ejecutarlo al arrancar»), cada N minutos, al abrir un programa (y al cerrarse), con un programa en primer plano, tras un rato sin usar el PC (y al volver), al bloquear o desbloquear, al suspender o reanudar, al pasar a batería o a la corriente, con un archivo nuevo en una carpeta, al conectar un mando u otro dispositivo (Bluetooth o USB), al conectar una unidad USB, cuando otro equipo o Home Assistant lo llama por su nombre (UDP «evento nombre» o la web), al conectarse a una red (o quedarse sin ella) y al conectar un dispositivo de audio o cambiar la salida predeterminada. Cada evento puede tener comandos «Al terminar», condiciones «Solo si» (franja horaria, días, un programa abierto o no), «no repetir antes de» y protección contra bucles. Respetan la pausa; no miran «Desactivar en». La acción Comandos también ejecuta, activa o desactiva eventos, y la bandeja tiene un submenú para activarlos.
-- **Ejecución con o sin administrador**: K-Desktop corre elevado, para que sus atajos también funcionen sobre ventanas elevadas, pero cada acción elige si su programa arranca como administrador o como usuario normal.
-- **QuickMenu**: menú en cascada en la posición del ratón, con fondo acrílico, iconos y navegación con teclado:
-  - Clic izquierdo ejecuta y cierra.
-  - Clic derecho ejecuta y deja el menú abierto.
-  - Clic central edita el elemento.
-- **Lanzador** (Opciones › Lanzador, con su propio atajo): una caja de búsqueda en el centro de la pantalla, que se puede arrastrar a otro sitio y lo recuerda. Escribe parte del nombre (vale con las iniciales o letras sueltas) y Enter ejecuta el comando, abre el programa del menú Inicio o busca en la web; también hace cuentas. Los más usados salen primero.
-- **Macros**: graba teclado y ratón con sus tiempos, edita los pasos (también desplazamientos relativos del ratón, en bruto para juegos) y reprodúcelas desde cualquier comando (repeticiones, bucle, velocidad). Mayús + Esc las detiene.
-- **K-Board**: perfiles que reasignan teclas, botones del ratón y la rueda a otras teclas o combinaciones, a un texto, a un comando o a nada; en todas las aplicaciones o solo en las que elijas (un perfil de la aplicación en primer plano gana al general). Se mantienen pulsadas como las originales (Bloq Mayús → Ctrl, botón lateral → tecla en un juego…), admiten capas con modificadores (Ctrl + J → ↓) y se editan sobre un teclado y un ratón dibujados. Se activan a mano, desde un comando o desde la bandeja.
-- **Iconos**: colección propia de K-Desktop 5 (mosaicos vectoriales con cualquier símbolo de Windows 11, 15 colores y dos estilos), los iconos de las bibliotecas de Windows (shell32, imageres… con su índice), cualquier imagen o, en las acciones web, el icono de la propia página (favicon, descargado una vez de la web).
-- **Logros y estadísticas**: más de 100 logros con notificación animada, y estadísticas de uso (comandos más usados, cómo los ejecutas…).
-- **Control remoto UDP**: compatible con el protocolo de K-Desktop 4 (puerto 2501: `lista`, número, nombre, `sk …`, `tasks`…).
-- **Interfaz moderna** con tema claro/oscuro (o el del sistema) y animaciones.
-- **¿Sabías que…?**: más de 130 trucos de atajos de Windows, el Explorador, los navegadores, la edición de texto y K-Desktop, en «Acerca de».
-- **Multiidioma** (español e inglés, incluidos en el ejecutable). Para añadir un idioma o cambiar textos basta con dejar un JSON en `%APPDATA%\K-Desktop 5\Languages`.
-- **Importación automática** de los datos de K-Desktop 4 (comandos, QuickMenus, opciones e iconos) la primera vez que se ejecuta.
+- **Comandos**: secuencias de acciones que se lanzan con atajos de teclado o ratón (`CTRL + ALT + O`, `Mouse 5`,
+  `Mouse 4 + Mouse 1`, `CTRL + Wheel Up`…). Un comando puede limitarse a ciertas aplicaciones; si un atajo existe a la
+  vez para todas y para una concreta, en esa aplicación gana el específico.
+- **QuickMenu**: menú en cascada en la posición del ratón, con fondo acrílico, iconos y navegación con teclado. Clic
+  izquierdo ejecuta y cierra, clic derecho ejecuta y lo deja abierto, clic central edita el elemento.
+- **Lanzador**: caja de búsqueda con su propio atajo. Encuentra comandos y programas del menú Inicio con solo unas
+  letras, busca en la web y hace cuentas. Los más usados salen primero.
+- **Eventos**: «cuando pase X, ejecuta estos comandos». A una hora o cada N minutos, al abrir o cerrar un programa,
+  con un programa en primer plano, tras un rato sin usar el PC, al bloquear o suspender, al pasar a batería, con un
+  archivo nuevo en una carpeta, al conectar un mando, una unidad USB o un dispositivo de audio, al cambiar de red,
+  según el uso de CPU/GPU/memoria o cuando otro equipo (o Home Assistant) lo llama por su nombre. Con condiciones,
+  tiempo mínimo entre ejecuciones y protección contra bucles.
+- **Voz**: palabra de activación propia (se graba en unos segundos desde Opciones) o tecla para hablar. Reconoce lo
+  que dices con Parakeet (sherpa-onnx) y elige el comando por su nombre o por su significado (EmbeddingGemma), todo
+  en local y sin conexión. Entiende órdenes de música («pon música», «sube el volumen»…) y cancela el eco de lo que
+  está sonando.
+- **Control remoto desde el móvil**: app web instalable (PWA) y app de Android con la lista de comandos y menús,
+  touchpad y teclado, controles de audio, zoom y micrófono para dar órdenes por voz. Se empareja con un código QR y
+  cada dispositivo se puede revocar.
+- **Macros**: graba teclado y ratón con sus tiempos, edita los pasos y reprodúcelas con repeticiones, bucle o a otra
+  velocidad. Tienen un modo para juegos (movimiento relativo en bruto).
+- **K-Board**: perfiles que reasignan teclas, botones del ratón y la rueda a otras teclas, combinaciones, textos o
+  comandos, en todas las aplicaciones o solo en algunas. Admiten capas con modificadores y se editan sobre un
+  teclado y un ratón dibujados.
+- **Ejecución con o sin administrador**: K-Desktop corre elevado para que sus atajos funcionen también sobre
+  ventanas elevadas, pero cada acción decide si su programa arranca como administrador o como usuario normal.
+- **Registro**: historial de lo que se ha ejecutado, cuándo y desde dónde (atajo, menú, voz, web, evento…).
+- **Logros y estadísticas**: más de 100 logros con notificación animada y estadísticas de uso.
+- **Iconos**: colección propia de iconos vectoriales (cualquier símbolo de Windows 11 en 15 colores), los de las
+  bibliotecas de Windows, cualquier imagen o el favicon de la página web.
+- **Interfaz moderna** con tema claro, oscuro o del sistema, y animaciones.
+- **Seis idiomas** (español, inglés, francés, alemán, italiano y portugués) incluidos en el ejecutable. Para añadir
+  otro o cambiar textos basta con dejar un JSON en `%APPDATA%\K-Desktop 5\Languages`.
+- **Copias de seguridad** diarias de la configuración, copias completas en `.zip` cada N días y exportar/importar.
+- **Actualizaciones automáticas** del programa y de la app de Android.
+- **Control por UDP** compatible con el protocolo de K-Desktop 4 (puerto 2501).
 
 ## Acciones
 
 | Aplicaciones | Entrada y sonido | Ventanas y sistema | K-Desktop |
 |---|---|---|---|
-| Ejecutar aplicación | Enviar pulsación / texto | Siempre visible | Abrir QuickMenu |
-| Abrir carpeta / ubicación especial | Volumen | Archivos ocultos | Comandos (ejecutar / habilitar…) |
-| Abrir página web | Salida de audio (rotar dispositivos) | Desactivar en la app actual | Esperar |
-| Controlar aplicación (activar / cerrar / esperar) | Reproducir sonido | Mostrar mensaje | K-Board (activar / desactivar) |
-| Script CMD / PowerShell | Reproducir macro | Energía (apagar, reiniciar, cambiar de usuario…) | |
-| Petición web (GET, POST…: Home Assistant, APIs) | | | |
+| Ejecutar aplicación | Enviar pulsación / texto | Ventana (colocar, mover, minimizar…) | Si… (condiciones) |
+| Abrir carpeta o ubicación especial | Portapapeles | Captura de pantalla | Abrir QuickMenu |
+| Abrir página web | Volumen (sistema, micrófono o una app) | Lupa | Comandos y eventos |
+| Controlar aplicación | Salida de audio | Siempre visible | Esperar |
+| Ejecutar script (CMD / PowerShell) | Reproducir sonido | Pantalla (brillo, proyección, apagar) | |
+| Petición web (GET, POST…) | Grabar audio | Tema de Windows | |
+| Despertar equipo (Wake-on-LAN) | Reproducir macro | Wi-Fi y Bluetooth | |
+| | K-Board | Archivos ocultos | |
+| | | Mostrar mensaje | |
+| | | Plan de energía | |
+| | | Energía (apagar, reiniciar, bloquear…) | |
+
+## Instalación
+
+K-Desktop es un único `KDesktop.exe` portátil que no necesita instalar .NET. Al abrirlo por primera vez se registra
+para arrancar con Windows (se puede desactivar en Opciones). Los datos se guardan en `%APPDATA%\K-Desktop 5`.
+
+Requiere Windows 10 u 11 de 64 bits.
 
 ## Línea de comandos
 
@@ -40,31 +95,36 @@ KDesktop.exe --menu "Principal"     abre un QuickMenu (en la instancia en ejecuc
 KDesktop.exe --run "Nombre"         ejecuta un comando
 KDesktop.exe --event "Nombre"       ejecuta los comandos de un evento
 KDesktop.exe --launcher             abre el lanzador
-KDesktop.exe --show | --exit
-KDesktop.exe --page macros          abre K-Desktop en una página (commands, quickmenus, events, macros, kboard, achievements, stats, settings, about)
-KDesktop.exe --no-hooks --no-udp --no-elevate   diagnóstico
-KDesktop.exe --data "C:\Carpeta"    usa otra carpeta de datos (instancia independiente: pruebas, copia portátil)
+KDesktop.exe --show | --exit        muestra la ventana / cierra K-Desktop
+KDesktop.exe --page macros          abre la ventana en una página (commands, quickmenus, events, macros, kboard, achievements, stats, settings, about)
+KDesktop.exe --data "C:\Carpeta"    usa otra carpeta de datos (instancia independiente)
+KDesktop.exe --no-hooks --no-udp --no-web --no-elevate   diagnóstico
 ```
+
+## Compilar
+
+Requiere el SDK de .NET 10.
+
+```
+dotnet build KDesktop.slnx                 # Debug
+dotnet build KDesktop.slnx -c Release      # Release + portable en artifacts\portable\KDesktop.exe
+dotnet test tests\KDesktop.Core.Tests      # pruebas
+```
+
+La compilación en Release genera además el ejecutable portátil (un solo `.exe` con idiomas, sonidos e iconos dentro).
+Para saltárselo: `-p:BuildPortable=false`. Si están el JDK 17 y el SDK de Android, también compila la app de Android
+(`tools\android\build-apk.ps1`).
 
 ## Estructura
 
 ```
-src/KDesktop.Core   núcleo sin UI: modelo, almacenamiento JSON, hooks, motor de acciones, UDP, importador de K-Desktop 4
-src/KDesktop        aplicación WPF: ventana principal, QuickMenu, OSD, bandeja, temas, idiomas
-tests/KDesktop.Core.Tests   pruebas de las partes puras del núcleo (dotnet test tests\KDesktop.Core.Tests)
+src/KDesktop.Core           núcleo sin interfaz: modelo, almacenamiento, hooks, motor de acciones, eventos, voz, servidor web y UDP
+src/KDesktop                aplicación WPF: ventana principal, QuickMenu, lanzador, OSD, bandeja, temas
+android/                    app de Android (WebView de la app web del PC, con micrófono nativo)
+tests/KDesktop.Core.Tests   pruebas del núcleo
+tools/                      icono, APK y paquete de actualización
 ```
 
-Los datos se guardan en `%APPDATA%\K-Desktop 5\config.json` (comandos, QuickMenus, macros, perfiles de K-Board y opciones), con copias de seguridad diarias en `Backups`. Los logros y estadísticas van aparte, en `stats.json`.
+## Licencias de terceros
 
-## Compilar
-
-Requiere el SDK de .NET 10. Guía completa (portable, APK, clave de firma, actualizaciones, pruebas):
-[docs/COMPILAR.md](docs/COMPILAR.md).
-
-```
-dotnet build KDesktop.slnx
-```
-
-En Release (`dotnet build KDesktop.slnx -c Release`) se genera además el portable en `artifacts\portable\KDesktop.exe`: un solo ejecutable que no necesita .NET instalado. Idiomas (español e inglés), sonidos e iconos van dentro del ejecutable. Para saltarse el portable: `-p:BuildPortable=false`.
-
-Los archivos de `%APPDATA%\K-Desktop 5\Languages` (`<código>.json`) y `%APPDATA%\K-Desktop 5\Sounds` (`*.wav`) se suman a los incluidos; si coinciden, gana el de la carpeta (en los idiomas, clave a clave).
+Ver [docs/THIRD-PARTY-NOTICES.md](docs/THIRD-PARTY-NOTICES.md).
