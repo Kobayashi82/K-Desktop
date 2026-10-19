@@ -22,9 +22,18 @@ public class KBoardIndexTests
     }
 
     [Fact]
-    public void GeneralProfileRespectsDisabledIn()
+    public void GeneralProfileRespectsDisabledInWithoutAlwaysRun()
+    {
+        var profile = Profile("general", "F2");
+        profile.IgnoreDisabledApps = false;
+        var index = new KBoardIndex([profile], [], ["game"]);
+        Assert.Null(index.Resolve(Modifiers.None, "F1", () => "game"));
+    }
+
+    [Fact]
+    public void GeneralProfileWithAlwaysRunWorksInDisabledApps()
     {
         var index = new KBoardIndex([Profile("general", "F2")], [], ["game"]);
-        Assert.Null(index.Resolve(Modifiers.None, "F1", () => "game"));
+        Assert.Equal("general", index.Resolve(Modifiers.None, "F1", () => "game")?.Profile.Name);
     }
 }

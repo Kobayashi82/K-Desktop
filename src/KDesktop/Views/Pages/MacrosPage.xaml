@@ -9,27 +9,27 @@
     <UserControl.Resources>
         <v:BoolToCollapsedConverter x:Key="BoolToCollapsed" />
         <p:StepIconConverter x:Key="StepIcon" />
-        <p:PlusOneConverter x:Key="PlusOne" />
 
         <!-- Editor of the selected step -->
         <DataTemplate x:Key="StepEditorTemplate" DataType="{x:Type m:MacroStep}">
             <StackPanel>
                 <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr macro.stepTitle}" />
                 <WrapPanel>
-                    <StackPanel Width="210" Margin="0,0,16,8">
+                    <StackPanel Width="230" Margin="0,0,16,8">
                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr macro.stepKind}" />
-                        <ComboBox ItemsSource="{x:Static v:Lookups.MacroStepKinds}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Kind}" />
+                        <ComboBox ItemsSource="{x:Static v:Lookups.MacroStepKinds}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Kind}"
+                                  MaxDropDownHeight="420" />
                     </StackPanel>
                     <StackPanel Width="110" Margin="0,0,16,8">
                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr macro.delay}" />
-                        <ui:TextBox Text="{Binding Delay, UpdateSourceTrigger=PropertyChanged}" />
+                        <ui:TextBox Text="{Binding Delay, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" ClearButtonEnabled="False" />
                     </StackPanel>
 
                     <!-- Key -->
                     <StackPanel Margin="0,0,16,8" Visibility="{Binding IsKey, Converter={StaticResource BoolToCollapsed}}">
                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr macro.key}" />
                         <StackPanel Orientation="Horizontal">
-                            <ui:TextBox Width="150" Text="{Binding KeyName, UpdateSourceTrigger=LostFocus}" />
+                            <ui:TextBox Width="150" Text="{Binding KeyName, UpdateSourceTrigger=LostFocus}" ClearButtonEnabled="False" />
                             <ui:Button Margin="6,0,0,0" Content="{l:Tr editor.captureKeys}" Icon="{ui:SymbolIcon Keyboard24}"
                                        Command="{x:Static v:EditorCommands.CaptureStepKey}" CommandParameter="{Binding}" />
                         </StackPanel>
@@ -51,9 +51,9 @@
                     <StackPanel Margin="0,0,16,8" Visibility="{Binding HasPosition, Converter={StaticResource BoolToCollapsed}}">
                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr macro.position}" />
                         <StackPanel Orientation="Horizontal">
-                            <ui:TextBox Width="80" Text="{Binding X, UpdateSourceTrigger=PropertyChanged}" />
+                            <ui:TextBox Width="80" Text="{Binding X, UpdateSourceTrigger=PropertyChanged}" ClearButtonEnabled="False" />
                             <TextBlock Text="," Margin="4,0" VerticalAlignment="Center" />
-                            <ui:TextBox Width="80" Text="{Binding Y, UpdateSourceTrigger=PropertyChanged}" />
+                            <ui:TextBox Width="80" Text="{Binding Y, UpdateSourceTrigger=PropertyChanged}" ClearButtonEnabled="False" />
                             <ui:Button Margin="6,0,0,0" Content="{l:Tr editor.captureMouse}" Icon="{ui:SymbolIcon Cursor24}"
                                        Command="{x:Static v:EditorCommands.CaptureStepPosition}" CommandParameter="{Binding}" />
                         </StackPanel>
@@ -64,9 +64,9 @@
                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr macro.offset}" />
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="X" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                            <ui:TextBox Width="80" Text="{Binding X, UpdateSourceTrigger=PropertyChanged}" ToolTip="{l:Tr macro.offsetXHint}" />
+                            <ui:TextBox Width="80" Text="{Binding X, UpdateSourceTrigger=PropertyChanged}" ToolTip="{l:Tr macro.offsetXHint}" ClearButtonEnabled="False" />
                             <TextBlock Text="Y" Margin="12,0,6,0" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                            <ui:TextBox Width="80" Text="{Binding Y, UpdateSourceTrigger=PropertyChanged}" ToolTip="{l:Tr macro.offsetYHint}" />
+                            <ui:TextBox Width="80" Text="{Binding Y, UpdateSourceTrigger=PropertyChanged}" ToolTip="{l:Tr macro.offsetYHint}" ClearButtonEnabled="False" />
                             <CheckBox Margin="16,0,0,0" Content="{l:Tr macro.raw}" IsChecked="{Binding Raw}" ToolTip="{l:Tr macro.rawHint}" />
                         </StackPanel>
                     </StackPanel>
@@ -75,7 +75,7 @@
                     <StackPanel Margin="0,0,16,8" Visibility="{Binding IsWheel, Converter={StaticResource BoolToCollapsed}}">
                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr macro.wheel}" />
                         <StackPanel Orientation="Horizontal">
-                            <ui:TextBox Width="90" Text="{Binding Wheel, UpdateSourceTrigger=PropertyChanged}" ToolTip="{l:Tr macro.wheelHint}" />
+                            <ui:TextBox Width="90" Text="{Binding Wheel, UpdateSourceTrigger=PropertyChanged}" ToolTip="{l:Tr macro.wheelHint}" ClearButtonEnabled="False" />
                             <CheckBox Margin="12,0,0,0" Content="{l:Tr macro.horizontal}" IsChecked="{Binding Horizontal}" />
                         </StackPanel>
                     </StackPanel>
@@ -84,7 +84,8 @@
         </DataTemplate>
 
         <Style x:Key="StepRow" TargetType="ListBoxItem">
-            <Setter Property="Margin" Value="0,1" />
+            <!-- Right margin: keeps the row's buttons clear of the list's scrollbar -->
+            <Setter Property="Margin" Value="0,1,14,1" />
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="Template">
@@ -106,46 +107,73 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Small icon buttons of a step row -->
+        <Style x:Key="RowButton" TargetType="ui:Button" BasedOn="{StaticResource IconButton}">
+            <Setter Property="Padding" Value="4" />
+        </Style>
+        <Style x:Key="RowMoveButton" TargetType="ui:Button" BasedOn="{StaticResource MoveButton}">
+            <Setter Property="Padding" Value="4" />
+        </Style>
     </UserControl.Resources>
 
+    <UserControl.CommandBindings>
+        <CommandBinding Command="{x:Static p:MacrosPage.MoveStepUp}" Executed="OnMoveStepUp" CanExecute="OnCanMoveStepUp" />
+        <CommandBinding Command="{x:Static p:MacrosPage.MoveStepDown}" Executed="OnMoveStepDown" CanExecute="OnCanMoveStepDown" />
+        <CommandBinding Command="{x:Static p:MacrosPage.DuplicateStep}" Executed="OnDuplicateStep" />
+        <CommandBinding Command="{x:Static p:MacrosPage.DeleteStep}" Executed="OnDeleteStep" />
+    </UserControl.CommandBindings>
+
     <Grid Margin="24,12,0,0">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
-            <TextBlock Style="{StaticResource PageTitle}" Text="{l:Tr nav.macros}" />
-            <Border Margin="10,6,0,0" Padding="8,1" CornerRadius="10" VerticalAlignment="Center" Background="{DynamicResource Kd.AccentSoft}">
-                <TextBlock x:Name="CountText" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Kd.AccentText}" />
-            </Border>
-        </StackPanel>
+        <!-- ── Macro list ────────────────────────────────────────────── -->
+        <DockPanel Grid.Column="0" Margin="0,0,16,16">
+            <StackPanel DockPanel.Dock="Top">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                    <TextBlock Style="{StaticResource PageTitle}" Text="{l:Tr nav.macros}" />
+                    <Border Margin="10,6,0,0" Padding="8,1" CornerRadius="10" VerticalAlignment="Center" Background="{DynamicResource Kd.AccentSoft}">
+                        <TextBlock x:Name="CountText" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Kd.AccentText}" />
+                    </Border>
+                </StackPanel>
+                <ui:TextBox x:Name="SearchBox" PlaceholderText="{l:Tr macro.search}" Icon="{ui:SymbolIcon Search24}"
+                            TextChanged="OnSearchChanged" ClearButtonEnabled="True" Margin="0,0,0,10" />
+                <ui:Button Margin="0,0,0,10" Content="{l:Tr macro.new}" Icon="{ui:SymbolIcon Add24}" Appearance="Primary" Click="OnNewMacro" HorizontalAlignment="Stretch" />
+            </StackPanel>
 
-        <!-- ── Toolbar: the macros (as in QuickMenus and K-Board), so the steps get the whole width ── -->
-        <WrapPanel Grid.Row="1" Margin="0,0,24,12">
-            <ComboBox x:Name="MacroList" Width="320" SelectionChanged="OnMacroSelected" MaxDropDownHeight="420" Margin="0,0,6,6">
-                <ComboBox.ItemTemplate>
+            <ListBox x:Name="MacroList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource RowItem}"
+                     SelectionChanged="OnMacroSelected" PreviewMouseRightButtonUp="OnMacroRightClick" KeyDown="OnMacroListKey">
+                <ListBox.ItemTemplate>
                     <DataTemplate DataType="{x:Type m:Macro}">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Record24" FontSize="14" Margin="0,0,10,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
-                            <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" MaxWidth="150" VerticalAlignment="Center" />
-                            <ui:SymbolIcon Symbol="XboxController24" FontSize="14" Margin="6,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Border Width="30" Height="30" Margin="0,0,12,0" CornerRadius="15" Background="{DynamicResource Kd.AccentSoft}">
+                                <ui:SymbolIcon Symbol="Record24" FontSize="16" Foreground="{DynamicResource Kd.AccentText}" />
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                <TextBlock Margin="0,1,0,0" Text="{Binding Summary}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                            <ui:SymbolIcon Grid.Column="2" Symbol="XboxController24" FontSize="14" Margin="6,0,10,0" VerticalAlignment="Center"
+                                           ToolTip="{l:Tr macro.gameMode}" Foreground="{DynamicResource TextFillColorTertiaryBrush}"
                                            Visibility="{Binding GameMode, Converter={StaticResource BoolToCollapsed}}" />
-                            <TextBlock Text="{Binding Summary}" Margin="10,0,0,0" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="110"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
+                        </Grid>
                     </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
-            <ui:Button Icon="{ui:SymbolIcon Add24}" ToolTip="{l:Tr macro.new}" AutomationProperties.Name="{l:Tr macro.new}" Click="OnNewMacro" Margin="0,0,6,6" />
-            <ui:Button x:Name="DuplicateButton" Icon="{ui:SymbolIcon Copy24}" ToolTip="{l:Tr macro.duplicate}" AutomationProperties.Name="{l:Tr macro.duplicate}" Click="OnDuplicate" Margin="0,0,6,6" IsEnabled="False" />
-            <ui:Button x:Name="DeleteButton" Icon="{ui:SymbolIcon Delete24}" ToolTip="{l:Tr macro.delete}" AutomationProperties.Name="{l:Tr macro.delete}" Click="OnDelete" Margin="0,0,18,6" IsEnabled="False" />
-            <ui:Button x:Name="CommandButton" Icon="{ui:SymbolIcon FlashAdd20}" ToolTip="{l:Tr macro.createCommand}" AutomationProperties.Name="{l:Tr macro.createCommand}" Click="OnCreateCommand" Margin="0,0,6,6" IsEnabled="False" />
-        </WrapPanel>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </DockPanel>
 
         <!-- ── Editor ────────────────────────────────────────────────── -->
-        <Grid Grid.Row="2" Margin="0,0,24,16">
+        <Grid Grid.Column="1" Margin="0,0,24,16">
             <!-- Empty state -->
             <StackPanel x:Name="EmptyState" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.85" MaxWidth="520">
                 <ui:SymbolIcon Symbol="Record24" FontSize="56" Foreground="{DynamicResource Kd.Accent}" HorizontalAlignment="Center" />
@@ -153,7 +181,6 @@
                            Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                 <TextBlock Text="{l:Tr macro.emptyText}" Style="{StaticResource Caption}" TextAlignment="Center" />
                 <TextBlock x:Name="ListEmpty" Margin="0,8,0,0" Text="{l:Tr macro.listEmpty}" Style="{StaticResource Caption}" TextAlignment="Center" />
-                <ui:Button Margin="0,16,0,0" HorizontalAlignment="Center" Appearance="Primary" Content="{l:Tr macro.new}" Icon="{ui:SymbolIcon Add24}" Click="OnNewMacro" />
             </StackPanel>
 
             <DockPanel x:Name="Editor" Visibility="Collapsed">
@@ -163,37 +190,56 @@
 
                 <!-- Header -->
                 <Border DockPanel.Dock="Top" Style="{StaticResource Card}">
-                    <StackPanel>
-                        <Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Width="60" Height="60" CornerRadius="30" VerticalAlignment="Top" Background="{DynamicResource Kd.AccentSoft}">
+                            <ui:SymbolIcon Symbol="Record24" FontSize="28" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <Grid Grid.Column="1" Margin="16,0,0,0" v:ResponsiveHeader.MinNameWidth="200">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <Border Width="52" Height="52" CornerRadius="26" Background="{DynamicResource Kd.AccentSoft}">
-                                <ui:SymbolIcon Symbol="Record24" FontSize="26" Foreground="{DynamicResource Kd.AccentText}" />
-                            </Border>
-                            <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center">
-                                <ui:TextBox x:Name="NameBox" FontSize="16" FontWeight="SemiBold" PlaceholderText="{l:Tr macro.namePlaceholder}"
-                                            Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBlock Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{Binding Summary}" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <ui:TextBox x:Name="NameBox" FontSize="16" FontWeight="SemiBold" PlaceholderText="{l:Tr macro.namePlaceholder}"
+                                        Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                                        GotKeyboardFocus="OnNameFocus" LostKeyboardFocus="OnNameLostFocus" KeyDown="OnNameKeyDown" />
+                            <StackPanel Grid.Column="1" Margin="16,0,0,0" Orientation="Horizontal" VerticalAlignment="Center" v:ResponsiveHeader.IsSide="True">
                                 <ui:Button x:Name="RecordButton" Content="{l:Tr macro.record}" Appearance="Danger" Click="OnRecord" Margin="0,0,8,0">
                                     <ui:Button.Icon>
                                         <ui:SymbolIcon Symbol="Record24" Filled="True" />
                                     </ui:Button.Icon>
                                 </ui:Button>
-                                <ui:Button Content="{l:Tr macro.test}" Icon="{ui:SymbolIcon Play24}" Click="OnTest" ToolTip="{l:Tr macro.testHint}" />
+                                <ui:Button Content="{l:Tr macro.test}" Icon="{ui:SymbolIcon Play24}" Click="OnTest" ToolTip="{l:Tr macro.testHint}" Margin="0,0,8,0" />
+                                <ui:Button Icon="{ui:SymbolIcon FlashAdd20}" ToolTip="{l:Tr macro.createCommand}" AutomationProperties.Name="{l:Tr macro.createCommand}"
+                                           Click="OnCreateCommand" Margin="0,0,8,0" />
+                                <ui:Button Icon="{ui:SymbolIcon Copy24}" ToolTip="{l:Tr macro.duplicate}" AutomationProperties.Name="{l:Tr macro.duplicate}"
+                                           Click="OnDuplicate" Margin="0,0,8,0" />
+                                <ui:Button Icon="{ui:SymbolIcon Delete24}" ToolTip="{l:Tr macro.delete}" AutomationProperties.Name="{l:Tr macro.delete}" Click="OnDelete" />
                             </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.ColumnSpan="2">
+                                <TextBlock x:Name="NameError" Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{l:Tr macro.nameRequired}"
+                                           Foreground="{DynamicResource Kd.Danger}" Visibility="Collapsed" />
+                                <TextBlock Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{Binding Summary}" />
+                            </StackPanel>
+                            <!-- The options of the recording, with the reminder of how it ends on the same line -->
+                            <WrapPanel Grid.Row="2" Grid.ColumnSpan="2" Margin="0,10,0,0">
+                                <ui:ToggleSwitch IsChecked="{Binding GameMode}" Content="{l:Tr macro.gameMode}" Margin="0,0,24,8" VerticalAlignment="Center"
+                                                 ToolTip="{l:Tr macro.gameModeHint}" />
+                                <ui:ToggleSwitch x:Name="RecordMovesToggle" Content="{l:Tr macro.recordMoves}" Click="OnRecordMoves" Margin="0,0,24,8"
+                                                 VerticalAlignment="Center" ToolTip="{l:Tr macro.recordMovesHint}" />
+                                <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,0,8" Text="{l:Tr macro.stopHint}" />
+                            </WrapPanel>
                         </Grid>
-                        <WrapPanel Margin="68,12,0,0">
-                            <ui:ToggleSwitch IsChecked="{Binding GameMode}" Content="{l:Tr macro.gameMode}" Margin="0,0,24,8" ToolTip="{l:Tr macro.gameModeHint}" />
-                            <ui:ToggleSwitch x:Name="RecordMovesToggle" Content="{l:Tr macro.recordMoves}" Click="OnRecordMoves" Margin="0,0,24,8"
-                                             ToolTip="{l:Tr macro.recordMovesHint}" />
-                            <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Text="{l:Tr macro.stopHint}" />
-                        </WrapPanel>
-                    </StackPanel>
+                    </Grid>
                 </Border>
 
                 <!-- Selected step -->
@@ -202,22 +248,23 @@
                 </Border>
 
                 <!-- Steps -->
-                <Border Style="{StaticResource Card}" Padding="14,12">
+                <Border Style="{StaticResource Card}" Padding="14,12,4,12">
                     <DockPanel>
-                        <Grid DockPanel.Dock="Top" Margin="4,0,0,8">
+                        <Grid DockPanel.Dock="Top" Margin="4,0,10,8">
                             <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr macro.steps}" Margin="0" VerticalAlignment="Center" />
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                 <ui:Button x:Name="InsertButton" Content="{l:Tr macro.insert}" Icon="{ui:SymbolIcon Add24}" Click="OnInsert" Margin="0,0,6,0" />
                                 <ui:Button x:Name="SimplifyButton" Content="{l:Tr macro.simplify}" Icon="{ui:SymbolIcon Wand24}" Click="OnSimplify" Margin="0,0,6,0" />
                                 <ui:Button x:Name="UndoButton" Icon="{ui:SymbolIcon ArrowUndo24}" ToolTip="{l:Tr macro.undo}" Click="OnUndo" IsEnabled="False" Margin="0,0,6,0" />
-                                <ui:Button Icon="{ui:SymbolIcon Delete24}" ToolTip="{l:Tr macro.deleteSteps}" Click="OnDeleteSteps" />
+                                <ui:Button x:Name="RedoButton" Icon="{ui:SymbolIcon ArrowRedo24}" ToolTip="{l:Tr macro.redo}" Click="OnRedo" IsEnabled="False" Margin="0,0,6,0" />
+                                <ui:Button x:Name="DeleteStepsButton" Icon="{ui:SymbolIcon Delete24}" ToolTip="{l:Tr macro.deleteSteps}" Click="OnDeleteSteps" IsEnabled="False" />
                             </StackPanel>
                         </Grid>
                         <TextBlock x:Name="NoSteps" DockPanel.Dock="Top" Style="{StaticResource Caption}" Text="{l:Tr macro.noSteps}" Margin="4,8" />
                         <ListBox x:Name="StepList" ItemsSource="{Binding Steps}" ItemContainerStyle="{StaticResource StepRow}" SelectionMode="Extended"
                                  Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                 VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" VirtualizingPanel.ScrollUnit="Pixel"
-                                 AlternationCount="2147483647" v:DragReorder.IsEnabled="True" SelectionChanged="OnStepSelected" KeyDown="OnStepKey">
+                                 VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Standard" VirtualizingPanel.ScrollUnit="Pixel"
+                                 v:DragReorder.IsEnabled="True" SelectionChanged="OnStepSelected" KeyDown="OnStepKey">
                             <ListBox.ItemTemplate>
                                 <DataTemplate DataType="{x:Type m:MacroStep}">
                                     <Grid Height="30">
@@ -227,12 +274,13 @@
                                             <ColumnDefinition Width="28" />
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
                                         <Border Background="Transparent" Cursor="SizeNS" v:DragReorder.IsHandle="True" ToolTip="{l:Tr macro.dragHint}">
                                             <ui:SymbolIcon Symbol="ReOrderDotsVertical24" FontSize="14" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
                                         </Border>
                                         <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                                   Text="{Binding (ItemsControl.AlternationIndex), RelativeSource={RelativeSource AncestorType=ListBoxItem}, Converter={StaticResource PlusOne}}" />
+                                                   Text="{Binding Number}" />
                                         <ui:SymbolIcon Grid.Column="2" Symbol="{Binding Kind, Converter={StaticResource StepIcon}}" FontSize="16"
                                                        Foreground="{DynamicResource Kd.AccentText}" HorizontalAlignment="Left" />
                                         <TextBlock Grid.Column="3" Text="{Binding Description}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
@@ -240,8 +288,27 @@
                                         <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
                                             <ui:SymbolIcon Symbol="Timer24" FontSize="13" Margin="0,0,6,0" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
                                             <TextBox Text="{Binding Delay, UpdateSourceTrigger=LostFocus}" Width="72" Padding="6,2" MinHeight="0" FontSize="12"
-                                                     TextAlignment="Right" ToolTip="{l:Tr macro.delayHint}" />
-                                            <TextBlock Text="ms" Margin="6,0,4,0" FontSize="12" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                                     TextAlignment="Right" ToolTip="{l:Tr macro.delayHint}" v:NumberInput.IsEnabled="True" />
+                                            <TextBlock Text="ms" Margin="6,0,10,0" FontSize="12" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                        </StackPanel>
+                                        <!-- On the selection when the row is part of it (several steps), else on this step -->
+                                        <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <ui:Button Style="{StaticResource RowMoveButton}" ToolTip="{l:Tr common.moveUp}"
+                                                       Command="{x:Static p:MacrosPage.MoveStepUp}" CommandParameter="{Binding}">
+                                                <ui:SymbolIcon Symbol="ArrowUp24" FontSize="14" />
+                                            </ui:Button>
+                                            <ui:Button Style="{StaticResource RowMoveButton}" ToolTip="{l:Tr common.moveDown}"
+                                                       Command="{x:Static p:MacrosPage.MoveStepDown}" CommandParameter="{Binding}">
+                                                <ui:SymbolIcon Symbol="ArrowDown24" FontSize="14" />
+                                            </ui:Button>
+                                            <ui:Button Style="{StaticResource RowButton}" ToolTip="{l:Tr common.duplicate}"
+                                                       Command="{x:Static p:MacrosPage.DuplicateStep}" CommandParameter="{Binding}">
+                                                <ui:SymbolIcon Symbol="Copy24" FontSize="14" />
+                                            </ui:Button>
+                                            <ui:Button Style="{StaticResource RowButton}" ToolTip="{l:Tr common.delete}"
+                                                       Command="{x:Static p:MacrosPage.DeleteStep}" CommandParameter="{Binding}">
+                                                <ui:SymbolIcon Symbol="Delete24" FontSize="14" Foreground="{DynamicResource Kd.Danger}" />
+                                            </ui:Button>
                                         </StackPanel>
                                     </Grid>
                                 </DataTemplate>

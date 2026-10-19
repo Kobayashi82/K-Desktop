@@ -92,9 +92,9 @@ public sealed class KBoardIndex
             {
                 if (Array.IndexOf(r.Processes, process()) >= 0) return r;
             }
-            else if (general is null && !(_disabledIn.Count > 0 && _disabledIn.Contains(process())))
+            else if (general is null && (r.Profile.IgnoreDisabledApps || !(_disabledIn.Count > 0 && _disabledIn.Contains(process()))))
             {
-                general = r; // profiles for "every application" respect "Desactivar en"
+                general = r; // profiles for "every application" respect "Desactivar en" unless «Ejecutar siempre»
             }
         }
         return general;

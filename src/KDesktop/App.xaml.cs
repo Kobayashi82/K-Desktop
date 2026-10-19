@@ -420,6 +420,7 @@ public partial class App : Application
         foreach (var macro in Config.Macros) macro.RefreshTexts();
         foreach (var profile in Config.KBoards) profile.RefreshTexts();
         foreach (var rule in Config.Events) rule.RefreshTexts();
+        foreach (var menu in Config.QuickMenus) menu.RefreshTexts();
         // The tray menu is built in code: rebuild it in the new language.
         _tray?.Dispose();
         _tray = null;

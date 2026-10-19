@@ -347,7 +347,9 @@ public partial class EventsPage : UserControl, IDisposable
 
     private void OnProcessKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter && sender is ComboBox box) ProcessCombo.AddTyped(box, Processes);
+        if (e.Key != Key.Enter || sender is not ComboBox box) return;
+        ProcessCombo.AddTyped(box, Processes);
+        e.Handled = true;
     }
 
     private void OnAddProcess(object sender, RoutedEventArgs e)

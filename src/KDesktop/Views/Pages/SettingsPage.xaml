@@ -449,17 +449,17 @@
             </Border>
 
             <!-- OSD -->
-            <Border Style="{StaticResource Card}" Tag="osd">
+            <Border Style="{StaticResource Card}" Tag="osd" MinWidth="560">
                 <StackPanel>
                     <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.osd}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" Text="{l:Tr settings.osdPosition}" />
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.osdPosition}" />
                         <ComboBox Grid.Column="1" ItemsSource="{x:Static v:Lookups.OsdPositions}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding OsdPosition}" />
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" Text="{l:Tr settings.osdDuration}" />
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.osdDuration}" />
                         <Grid Grid.Column="1">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                             <Slider Margin="0,0,14,0" Minimum="0.5" Maximum="6" Value="{Binding OsdSeconds}" TickFrequency="0.1" IsSnapToTickEnabled="True" VerticalAlignment="Center" />

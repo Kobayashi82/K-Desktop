@@ -31,7 +31,18 @@ public partial class QuickMenu : ObservableObject
 
     public event EventHandler? Modified;
 
-    private void Hook(ObservableCollection<QuickMenuItem> items) => QuickMenuItem.HookTree(items, () => Modified?.Invoke(this, EventArgs.Empty));
+    private void Hook(ObservableCollection<QuickMenuItem> items) => QuickMenuItem.HookTree(items, () =>
+    {
+        base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(Summary)));
+        Modified?.Invoke(this, EventArgs.Empty);
+    });
+
+    /// <summary>«12 comandos» (in every submenu), under its name in the list.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string Summary => Localization.Loc.T("qm.summary", Descendants().Count(i => i.Kind == QuickMenuItemKind.Command));
+
+    /// <summary>Re-evaluates the localised texts (after a language change).</summary>
+    public void RefreshTexts() => base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(Summary)));
 
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {

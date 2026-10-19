@@ -18,36 +18,40 @@ public static class ActionCatalog
         new(ActionKind.RunApp, "apps", "Open24", () => new RunAppAction()),
         new(ActionKind.OpenFolder, "apps", "FolderOpen24", () => new OpenFolderAction()),
         new(ActionKind.OpenUrl, "apps", "Globe24", () => new OpenUrlAction()),
-        new(ActionKind.AppControl, "apps", "WindowApps24", () => new AppControlAction()),
         new(ActionKind.RunScript, "apps", "WindowConsole20", () => new RunScriptAction()),
-        new(ActionKind.HttpRequest, "apps", "GlobeArrowForward24", () => new HttpRequestAction()),
-        new(ActionKind.WakeOnLan, "apps", "DesktopPulse24", () => new WakeOnLanAction()),
+
+        new(ActionKind.AppControl, "windows", "WindowApps24", () => new AppControlAction()),
+        new(ActionKind.Window, "windows", "WindowNew24", () => new WindowAction()),
+        new(ActionKind.TopMost, "windows", "Pin24", () => new TopMostAction()),
 
         new(ActionKind.SendInput, "input", "Keyboard24", () => new SendInputAction()),
         new(ActionKind.Clipboard, "input", "ClipboardTextEdit24", () => new ClipboardAction()),
-        new(ActionKind.Volume, "input", "Speaker224", () => new VolumeAction()),
-        new(ActionKind.AudioOutput, "input", "HeadphonesSoundWave24", () => new AudioOutputAction()),
-        new(ActionKind.PlaySound, "input", "MusicNote224", () => new PlaySoundAction()),
-        new(ActionKind.AudioRecord, "input", "MicRecord24", () => new AudioRecordAction()),
         new(ActionKind.PlayMacro, "input", "Record24", () => new PlayMacroAction()),
         new(ActionKind.KBoard, "input", "KeyboardLayoutFloat24", () => new KBoardAction()),
 
-        new(ActionKind.Window, "system", "WindowNew24", () => new WindowAction()),
-        new(ActionKind.Screenshot, "system", "Screenshot24", () => new ScreenshotAction()),
-        new(ActionKind.Magnifier, "system", "ZoomIn24", () => new MagnifierAction()),
-        new(ActionKind.TopMost, "system", "Pin24", () => new TopMostAction()),
-        new(ActionKind.Display, "system", "Desktop24", () => new DisplayAction()),
-        new(ActionKind.WindowsTheme, "system", "DarkTheme24", () => new WindowsThemeAction()),
-        new(ActionKind.Radio, "system", "Wifi124", () => new RadioAction()),
+        new(ActionKind.Volume, "sound", "Speaker224", () => new VolumeAction()),
+        new(ActionKind.AudioOutput, "sound", "HeadphonesSoundWave24", () => new AudioOutputAction()),
+        new(ActionKind.PlaySound, "sound", "MusicNote224", () => new PlaySoundAction()),
+        new(ActionKind.AudioRecord, "sound", "MicRecord24", () => new AudioRecordAction()),
+
+        new(ActionKind.Screenshot, "screen", "Screenshot24", () => new ScreenshotAction()),
+        new(ActionKind.Magnifier, "screen", "ZoomIn24", () => new MagnifierAction()),
+        new(ActionKind.Display, "screen", "Desktop24", () => new DisplayAction()),
+        new(ActionKind.WindowsTheme, "screen", "DarkTheme24", () => new WindowsThemeAction()),
+
+        new(ActionKind.HttpRequest, "network", "GlobeArrowForward24", () => new HttpRequestAction()),
+        new(ActionKind.WakeOnLan, "network", "DesktopPulse24", () => new WakeOnLanAction()),
+        new(ActionKind.Radio, "network", "Wifi124", () => new RadioAction()),
+
         new(ActionKind.HiddenFiles, "system", "EyeOff24", () => new HiddenFilesAction()),
-        new(ActionKind.ShowMessage, "system", "Chat24", () => new ShowMessageAction()),
         new(ActionKind.PowerPlan, "system", "Battery1024", () => new PowerPlanAction()),
         new(ActionKind.Power, "system", "Power24", () => new PowerAction()),
 
+        new(ActionKind.ShowMessage, "kdesktop", "Chat24", () => new ShowMessageAction()),
         new(ActionKind.Condition, "kdesktop", "BranchFork24", () => new ConditionAction()),
-        new(ActionKind.OpenQuickMenu, "kdesktop", "TextBulletListTree24", () => new OpenQuickMenuAction()),
-        new(ActionKind.CommandControl, "kdesktop", "Flash24", () => new CommandControlAction()),
         new(ActionKind.Wait, "kdesktop", "Timer24", () => new WaitAction()),
+        new(ActionKind.CommandControl, "kdesktop", "Flash24", () => new CommandControlAction()),
+        new(ActionKind.OpenQuickMenu, "kdesktop", "TextBulletListTree24", () => new OpenQuickMenuAction()),
     ];
 
     private static readonly Dictionary<ActionKind, ActionInfo> ByKind = All.ToDictionary(a => a.Kind);

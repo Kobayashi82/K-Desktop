@@ -12,6 +12,9 @@ public enum MacroStepKind
 {
     KeyDown, KeyUp, KeyPress, Text,
     MouseDown, MouseUp, Click, MouseMove, MouseMoveBy, Wheel,
+
+    /// <summary>Nothing: only its delay (a pause in the middle of a macro).</summary>
+    Pause,
 }
 
 /// <summary>A recorded (or hand-written) sequence of keyboard and mouse events with their timing.</summary>
@@ -75,12 +78,19 @@ public partial class Macro : ObservableObject
     {
         if (e.OldItems is not null) foreach (MacroStep s in e.OldItems) s.PropertyChanged -= OnStepChanged;
         if (e.NewItems is not null) foreach (MacroStep s in e.NewItems) s.PropertyChanged += OnStepChanged;
+        Renumber();
         RaiseSummary();
+    }
+
+    /// <summary>Each step knows its place (the number shown in the list).</summary>
+    private void Renumber()
+    {
+        for (var i = 0; i < Steps.Count; i++) Steps[i].Number = i + 1;
     }
 
     private void OnStepChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(MacroStep.Description)) return;
+        if (e.PropertyName is nameof(MacroStep.Description) or nameof(MacroStep.Number)) return;
         if (e.PropertyName is nameof(MacroStep.Delay)) RaiseSummary();
         else Modified?.Invoke(this, EventArgs.Empty);
     }
@@ -147,6 +157,14 @@ public partial class MacroStep : ObservableObject
     [JsonIgnore] public bool IsWheel => Kind == MacroStepKind.Wheel;
     [JsonIgnore] public bool IsRelativeMove => Kind == MacroStepKind.MouseMoveBy;
 
+    /// <summary>Its place in the macro, from 1 (kept by the macro).</summary>
+    [JsonIgnore]
+    public int Number
+    {
+        get;
+        set => SetProperty(ref field, value);
+    }
+
     [JsonIgnore] public string KeyName
     {
         get => Vk == 0 ? "?" : KeyNames.FromVk(Vk, Extended);
@@ -172,6 +190,7 @@ public partial class MacroStep : ObservableObject
         MacroStepKind.MouseMove => Loc.T("macro.step.MouseMove", X, Y),
         MacroStepKind.MouseMoveBy => Loc.T(Raw ? "macro.step.MouseMoveByRaw" : "macro.step.MouseMoveBy", Signed(X), Signed(Y)),
         MacroStepKind.Wheel => Loc.T(Horizontal ? "macro.step.HWheel" : "macro.step.Wheel", Wheel > 0 ? "↑" : "↓", Math.Max(1, Math.Abs(Wheel) / 120)),
+        MacroStepKind.Pause => Loc.T("macro.step.Pause"),
         _ => Kind.ToString(),
     };
 
@@ -182,7 +201,7 @@ public partial class MacroStep : ObservableObject
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);
-        if (e.PropertyName is not (nameof(Description) or nameof(Delay)))
+        if (e.PropertyName is not (nameof(Description) or nameof(Delay) or nameof(Number)))
         {
             base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(Description)));
             if (e.PropertyName is nameof(Vk) or nameof(Extended)) base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(KeyName)));

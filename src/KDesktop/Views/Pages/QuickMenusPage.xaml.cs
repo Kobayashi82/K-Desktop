@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -49,14 +50,20 @@ public partial class QuickMenusPage : UserControl, IDisposable
 
     private AppConfig Config => _app.Config;
 
+    private readonly ListCollectionView _view;
+
     public QuickMenusPage()
     {
         InitializeComponent();
-        SizeBox.ItemsSource = Lookups.MenuSizes;
-        MenuBox.ItemsSource = Config.QuickMenus;
+        _view = new ListCollectionView(Config.QuickMenus) { Filter = Filter, IsLiveFiltering = true };
+        _view.LiveFilteringProperties.Add(nameof(QuickMenu.Name));
+        MenuList.ItemsSource = _view;
         Config.Commands.CollectionChanged += OnCommandsChanged;
+        Config.QuickMenus.CollectionChanged += OnMenusChanged;
         RefreshPalette();
-        if (Config.QuickMenus.Count > 0) MenuBox.SelectedIndex = 0;
+        UpdateCount();
+        if (!_view.IsEmpty) MenuList.SelectedIndex = 0;
+        else ShowEditor();
         Loaded += (_, _) => Canvas.Focus();
     }
 
@@ -64,6 +71,94 @@ public partial class QuickMenusPage : UserControl, IDisposable
     {
         if (_menu is not null) _menu.Modified -= OnMenuModified;
         Config.Commands.CollectionChanged -= OnCommandsChanged;
+        Config.QuickMenus.CollectionChanged -= OnMenusChanged;
+        _view.DetachFromSourceCollection();
+    }
+
+    private void OnMenusChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) => UpdateCount();
+
+    private void UpdateCount() => CountText.Text = Config.QuickMenus.Count.ToString();
+
+    private bool Filter(object o)
+    {
+        var q = SearchBox?.Text?.Trim();
+        return string.IsNullOrEmpty(q) || o is QuickMenu m && m.Name.Contains(q, StringComparison.CurrentCultureIgnoreCase);
+    }
+
+    private void OnSearchChanged(object sender, TextChangedEventArgs e) => _view.Refresh();
+
+    private void OnMenuListKey(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Delete && _menu is not null)
+        {
+            OnDeleteMenu(sender, e);
+            e.Handled = true;
+        }
+    }
+
+    private void OnMenuRightClick(object sender, MouseButtonEventArgs e)
+    {
+        if (ListContextMenu.SelectRow(MenuList, e) is not { DataContext: QuickMenu } row) return;
+        ListContextMenu.Open(row,
+            ListContextMenu.Entry(Loc.T("qm.test"), SymbolRegular.Play24, () => OnTest(row, new RoutedEventArgs())),
+            ListContextMenu.Entry(Loc.T("qm.renameMenu"), SymbolRegular.Rename24, FocusName),
+            ListContextMenu.Entry(Loc.T("qm.duplicateMenu"), SymbolRegular.Copy24, () => OnDuplicateMenu(row, new RoutedEventArgs())),
+            new Separator(),
+            ListContextMenu.Entry(Loc.T("qm.deleteMenu"), SymbolRegular.Delete24, () => OnDeleteMenu(row, new RoutedEventArgs())));
+    }
+
+    private void FocusName() => Dispatcher.BeginInvoke(() =>
+    {
+        NameBox.Focus();
+        NameBox.SelectAll();
+    }, System.Windows.Threading.DispatcherPriority.Input);
+
+    /// <summary>The editor of the chosen menu, or the empty state when there is none.</summary>
+    private void ShowEditor()
+    {
+        Editor.DataContext = _menu;
+        NameError.Visibility = Visibility.Collapsed;
+        if (_menu is null)
+        {
+            Editor.Visibility = Visibility.Collapsed;
+            EmptyState.Visibility = Visibility.Visible;
+            return;
+        }
+        EmptyState.Visibility = Visibility.Collapsed;
+        Editor.Visibility = Visibility.Visible;
+        Editor.BeginAnimation(OpacityProperty, new DoubleAnimation(0.4, 1, TimeSpan.FromMilliseconds(180)));
+        EditorShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(10, 0, TimeSpan.FromMilliseconds(220)) { EasingFunction = EaseOut });
+    }
+
+    // ── name ─────────────────────────────────────────────────────────────
+
+    private string? _nameBeforeEdit;
+
+    private void OnNameFocus(object sender, KeyboardFocusChangedEventArgs e) => _nameBeforeEdit = _menu?.Name;
+
+    private void OnNameLostFocus(object sender, KeyboardFocusChangedEventArgs e) => EnsureName(NameBox.DataContext as QuickMenu);
+
+    private void OnNameKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter) EnsureName(_menu);
+        if (e.Key == Key.Escape && _menu is { } menu && !string.IsNullOrWhiteSpace(_nameBeforeEdit)) menu.Name = _nameBeforeEdit;
+    }
+
+    /// <summary>A menu never stays without a name: an emptied name goes back to the one it had.</summary>
+    private void EnsureName(QuickMenu? menu)
+    {
+        if (menu is null) return;
+        var empty = string.IsNullOrWhiteSpace(menu.Name);
+        if (empty) menu.Name = !string.IsNullOrWhiteSpace(_nameBeforeEdit) ? _nameBeforeEdit : UniqueName(Loc.T("qm.newName"));
+        else if (menu.Name != menu.Name.Trim()) menu.Name = menu.Name.Trim();
+        if (ReferenceEquals(menu, _menu)) NameError.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private string UniqueName(string baseName)
+    {
+        var name = baseName;
+        for (var i = 2; Config.QuickMenus.Any(m => m.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase)); i++) name = $"{baseName} {i}";
+        return name;
     }
 
     /// <summary>
@@ -73,7 +168,9 @@ public partial class QuickMenusPage : UserControl, IDisposable
     public void Select(string menuId, string? commandId = null)
     {
         if (Config.FindMenu(menuId) is not { } menu) return;
-        MenuBox.SelectedItem = menu;
+        if (!_view.Contains(menu)) SearchBox.Text = string.Empty;
+        MenuList.SelectedItem = menu;
+        MenuList.ScrollIntoView(menu);
         if (commandId is null || menu.Descendants().FirstOrDefault(i => i.CommandId == commandId) is not { } item) return;
         _found = commandId;
         SelectItem(item);
@@ -103,46 +200,39 @@ public partial class QuickMenusPage : UserControl, IDisposable
 
     private void OnMenuSelected(object sender, SelectionChangedEventArgs e)
     {
-        if (_menu is not null) _menu.Modified -= OnMenuModified;
-        _menu = MenuBox.SelectedItem as QuickMenu;
+        if (_menu is not null)
+        {
+            EnsureName(_menu);
+            _menu.Modified -= OnMenuModified;
+        }
+        _menu = MenuList.SelectedItem as QuickMenu;
         _undo.Clear();
         _redo.Clear();
         _path.Clear();
         _selectedId = null;
         _lastColumnCount = 0;
-        if (_menu is not null)
-        {
-            _menu.Modified += OnMenuModified;
-            SizeBox.SelectedItem = _menu.Size;
-        }
+        if (_menu is not null) _menu.Modified += OnMenuModified;
+        ShowEditor();
         UpdateUndoButtons();
         Rebuild();
     }
 
-    private void OnSizeChanged(object sender, SelectionChangedEventArgs e)
+    private void OnSizeChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (_menu is not null && SizeBox.SelectedItem is int size && size != _menu.Size) _menu.Size = size;
+        var size = (int)Math.Round(SizeSlider.Value);
+        SizeText.Text = Loc.T($"qm.size{size}");
+        if (_menu is not null && size != _menu.Size) _menu.Size = size;
     }
 
-    private async void OnNewMenu(object sender, RoutedEventArgs e)
+    private void OnNewMenu(object sender, RoutedEventArgs e)
     {
-        var name = await Prompt(Loc.T("qm.newMenu"), Loc.T("qm.menuName"), "");
-        if (string.IsNullOrWhiteSpace(name)) return;
-        var menu = new QuickMenu { Name = name.Trim() };
+        var menu = new QuickMenu { Name = UniqueName(Loc.T("qm.newName")) };
+        SearchBox.Text = string.Empty;
         Config.QuickMenus.Add(menu);
         _app.Achievements.Increment(Stat.MenusCreated);
-        MenuBox.SelectedItem = menu;
-    }
-
-    private async void OnRenameMenu(object sender, RoutedEventArgs e)
-    {
-        if (_menu is null) return;
-        var name = await Prompt(Loc.T("qm.renameMenu"), Loc.T("qm.menuName"), _menu.Name);
-        if (string.IsNullOrWhiteSpace(name)) return;
-        _menu.Name = name.Trim();
-        MenuBox.Items.Refresh();
-        Config.RefreshReferenceNames();
-        Rebuild();
+        MenuList.SelectedItem = menu;
+        MenuList.ScrollIntoView(menu);
+        FocusName();
     }
 
     private void OnDuplicateMenu(object sender, RoutedEventArgs e)
@@ -150,11 +240,11 @@ public partial class QuickMenusPage : UserControl, IDisposable
         if (_menu is null) return;
         var copy = Json.Clone(_menu);
         copy.Id = Ids.New();
-        copy.Name = _menu.Name + " (2)";
+        copy.Name = UniqueName(_menu.Name);
         foreach (var item in copy.Descendants()) item.Id = Ids.New();
         Config.QuickMenus.Add(copy);
         _app.Achievements.Increment(Stat.MenusCreated);
-        MenuBox.SelectedItem = copy;
+        MenuList.SelectedItem = copy;
     }
 
     private async void OnDeleteMenu(object sender, RoutedEventArgs e)
@@ -169,35 +259,15 @@ public partial class QuickMenusPage : UserControl, IDisposable
             CloseButtonText = Loc.T("common.cancel"),
         };
         if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        var index = MenuList.SelectedIndex;
         Config.QuickMenus.Remove(menu);
         _app.Achievements.Increment(Stat.MenusDeleted);
-        MenuBox.SelectedIndex = Config.QuickMenus.Count > 0 ? 0 : -1;
+        MenuList.SelectedIndex = _view.IsEmpty ? -1 : Math.Clamp(index, 0, _view.Count - 1);
     }
 
     private void OnTest(object sender, RoutedEventArgs e)
     {
         if (_menu is not null) _app.QuickMenus.Show(_menu.Id, ForegroundWindow.Capture());
-    }
-
-    private static async Task<string?> Prompt(string title, string label, string initial)
-    {
-        var box = new TextBox { Text = initial, MinWidth = 320, Margin = new Thickness(0, 8, 0, 0) };
-        var panel = new StackPanel();
-        panel.Children.Add(new TextBlock { Text = label });
-        panel.Children.Add(box);
-        var dlg = new Wpf.Ui.Controls.MessageBox
-        {
-            Title = title,
-            Content = panel,
-            PrimaryButtonText = Loc.T("common.accept"),
-            CloseButtonText = Loc.T("common.cancel"),
-        };
-        dlg.Loaded += (_, _) =>
-        {
-            box.Focus();
-            box.SelectAll();
-        };
-        return await dlg.ShowDialogAsync() == Wpf.Ui.Controls.MessageBoxResult.Primary ? box.Text : null;
     }
 
     // ── palette ───────────────────────────────────────────────────────────
@@ -206,10 +276,14 @@ public partial class QuickMenusPage : UserControl, IDisposable
 
     private void OnPaletteSearch(object sender, TextChangedEventArgs e) => RefreshPalette();
 
+    private void OnPaletteShowHidden(object sender, RoutedEventArgs e) => RefreshPalette();
+
     private void RefreshPalette()
     {
         var q = PaletteSearch?.Text?.Trim() ?? string.Empty;
+        var hidden = ShowHiddenToggle?.IsChecked == true;
         Palette.ItemsSource = Config.Commands
+            .Where(c => hidden || !c.Hidden)
             .Where(c => q.Length == 0 || c.Name.Contains(q, StringComparison.CurrentCultureIgnoreCase))
             .OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
@@ -277,7 +351,8 @@ public partial class QuickMenusPage : UserControl, IDisposable
         Resources["Qm.FontSize"] = 12.0 + size;
         Resources["Qm.IconSize"] = 16.0 + size * 2;
         Resources["Qm.RowHeight"] = 28.0 + size * 2.5;
-        if (SizeBox.SelectedItem is not int shown || shown != size) SizeBox.SelectedItem = size;
+        if ((int)Math.Round(SizeSlider.Value) != size) SizeSlider.Value = size;
+        SizeText.Text = Loc.T($"qm.size{size}");
     }
 
     private void Rebuild()

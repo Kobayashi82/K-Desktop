@@ -438,7 +438,7 @@ public partial class CommandsPage : UserControl, IDisposable
     private void OnAddHotkey(object sender, RoutedEventArgs e)
     {
         if (_selected is not { } cmd) return;
-        AddHotkeyButton.Visibility = Visibility.Collapsed;
+        AddHotkeyButton.IsEnabled = false;
         CaptureChip.Visibility = Visibility.Visible;
         CaptureText.Text = Loc.T("commands.pressHotkey");
         HotkeyCapture.Start(
@@ -446,7 +446,7 @@ public partial class CommandsPage : UserControl, IDisposable
             hotkey =>
             {
                 CaptureChip.Visibility = Visibility.Collapsed;
-                AddHotkeyButton.Visibility = Visibility.Visible;
+                AddHotkeyButton.IsEnabled = true;
                 if (hotkey is null) return;
                 var normalized = Hotkey.Normalize(hotkey);
                 if (!cmd.Hotkeys.Contains(normalized, Hotkey.Comparer)) cmd.Hotkeys.Add(normalized);
@@ -492,31 +492,7 @@ public partial class CommandsPage : UserControl, IDisposable
 
     private void OnAddAction(object sender, RoutedEventArgs e)
     {
-        var menu = new ContextMenu
-        {
-            PlacementTarget = AddActionButton,
-            Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom,
-            Style = (Style)FindResource("ScrollingContextMenu"),
-            // The decorator around the menu adds 30 px of shadow room on each side.
-            MaxHeight = SystemParameters.WorkArea.Height - 20,
-        };
-        foreach (var group in ActionCatalog.All.GroupBy(a => a.CategoryKey))
-        {
-            if (menu.Items.Count > 0) menu.Items.Add(new Separator());
-            menu.Items.Add(new MenuItem { Header = group.First().Category, IsEnabled = false, FontWeight = FontWeights.SemiBold });
-            foreach (var info in group)
-            {
-                var item = new MenuItem
-                {
-                    Header = info.Name,
-                    ToolTip = info.Description,
-                    Icon = new SymbolIcon { Symbol = Enum.Parse<SymbolRegular>(info.Symbol) },
-                };
-                item.Click += (_, _) => AddAction(info.Create());
-                menu.Items.Add(item);
-            }
-        }
-        menu.IsOpen = true;
+        if (Dialogs.ActionPicker.Pick(Window.GetWindow(this)) is { } info) AddAction(info.Create());
     }
 
     private void AddAction(CommandAction action)
@@ -626,7 +602,15 @@ public partial class CommandsPage : UserControl, IDisposable
         if (i < 0 || j < 0 || j >= _selected.Actions.Count) return;
         _selected.Actions.Move(i, j);
         ActionList.SelectedItem = action;
+        CommandManager.InvalidateRequerySuggested(); // the arrows of the first and last rows
     }
+
+    /// <summary>The arrows only where the action can move (they hide otherwise).</summary>
+    private void OnCanMoveActionUp(object sender, CanExecuteRoutedEventArgs e) =>
+        e.CanExecute = e.Parameter is CommandAction a && _selected?.Actions.IndexOf(a) > 0;
+
+    private void OnCanMoveActionDown(object sender, CanExecuteRoutedEventArgs e) =>
+        e.CanExecute = e.Parameter is CommandAction a && _selected is { } cmd && cmd.Actions.IndexOf(a) is var i && i >= 0 && i < cmd.Actions.Count - 1;
 
     private void OnActionReordered(object? sender, ReorderedEventArgs e)
     {
@@ -840,7 +824,9 @@ public partial class CommandsPage : UserControl, IDisposable
 
     private void OnProcessKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter) OnAddProcess(sender, e);
+        if (e.Key != Key.Enter) return;
+        OnAddProcess(sender, e);
+        e.Handled = true; // stays in the box to add another
     }
 
     private void OnAddProcess(object sender, RoutedEventArgs e) => ProcessCombo.AddTyped(ProcessBox, _selected?.Processes);

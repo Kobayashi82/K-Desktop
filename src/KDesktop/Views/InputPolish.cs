@@ -20,6 +20,28 @@ public static class InputPolish
         EventManager.RegisterClassHandler(typeof(Wpf.Ui.Controls.Button), FrameworkElement.LoadedEvent, new RoutedEventHandler(OnButtonLoaded));
         // Only the main window: in the dialogs Enter presses their default button.
         EventManager.RegisterClassHandler(typeof(MainWindow), UIElement.KeyDownEvent, new KeyEventHandler(OnWindowKeyDown));
+        EventManager.RegisterClassHandler(typeof(ComboBox), UIElement.PreviewMouseLeftButtonDownEvent, new MouseButtonEventHandler(OnComboDown), true);
+        EventManager.RegisterClassHandler(typeof(ComboBoxItem), UIElement.PreviewMouseLeftButtonUpEvent, new MouseButtonEventHandler(OnComboItemUp));
+    }
+
+    // ── combos that close at once ────────────────────────────────────────
+
+    // A combo near the bottom of the window opens its list upwards, over the mouse: releasing the click that opened
+    // it then picked the item under the pointer and closed the list. The release right after opening is ignored.
+    private static readonly DependencyProperty OpenedAtProperty = DependencyProperty.RegisterAttached(
+        "OpenedAt", typeof(long), typeof(InputPolish), new PropertyMetadata(0L));
+
+    private static void OnComboDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is ComboBox combo && !combo.IsDropDownOpen && ItemsControl.ContainerFromElement(combo, (DependencyObject)e.OriginalSource) is null)
+            combo.SetValue(OpenedAtProperty, Environment.TickCount64);
+    }
+
+    private static void OnComboItemUp(object sender, MouseButtonEventArgs e)
+    {
+        if (ItemsControl.ItemsControlFromItemContainer((DependencyObject)sender) is ComboBox combo &&
+            Environment.TickCount64 - (long)combo.GetValue(OpenedAtProperty) < 400)
+            e.Handled = true;
     }
 
     // ── pressed buttons ──────────────────────────────────────────────────

@@ -151,6 +151,15 @@
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
+    <!-- Move up / down arrows of a row: hidden (keeping their place) where the row can't move that way -->
+    <Style x:Key="MoveButton" TargetType="ui:Button" BasedOn="{StaticResource IconButton}">
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Visibility" Value="Hidden" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <!-- ── Sidebar navigation ───────────────────────────────────────── -->
     <Style x:Key="NavItem" TargetType="ListBoxItem">
         <Setter Property="Height" Value="40" />

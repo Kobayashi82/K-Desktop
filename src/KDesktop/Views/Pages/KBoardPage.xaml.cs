@@ -32,9 +32,10 @@ public partial class KBoardPage : UserControl, IDisposable
     public KBoardPage()
     {
         InitializeComponent();
-        _view = new ListCollectionView(Config.KBoards) { IsLiveSorting = true };
+        _view = new ListCollectionView(Config.KBoards) { Filter = Filter, IsLiveSorting = true, IsLiveFiltering = true };
         _view.SortDescriptions.Add(new SortDescription(nameof(KBoardProfile.Name), ListSortDirection.Ascending));
         _view.LiveSortingProperties.Add(nameof(KBoardProfile.Name));
+        _view.LiveFilteringProperties.Add(nameof(KBoardProfile.Name));
         ProfileList.ItemsSource = _view;
         TargetKeyBox.ItemsSource = TargetKeys;
         Config.KBoards.CollectionChanged += OnProfilesChanged;
@@ -85,23 +86,78 @@ public partial class KBoardPage : UserControl, IDisposable
     {
         CountText.Text = Config.KBoards.Count.ToString();
         ListEmpty.Visibility = Config.KBoards.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        ProfileList.IsEnabled = Config.KBoards.Count > 0;
     }
 
     public void Select(string id)
     {
         if (Config.FindKBoard(id) is not { } profile) return;
+        if (!_view.Contains(profile)) SearchBox.Text = string.Empty;
         ProfileList.SelectedItem = profile;
+        ProfileList.ScrollIntoView(profile);
+    }
+
+    private bool Filter(object o)
+    {
+        var q = SearchBox?.Text?.Trim();
+        return string.IsNullOrEmpty(q) || o is KBoardProfile p && p.Name.Contains(q, StringComparison.CurrentCultureIgnoreCase);
+    }
+
+    private void OnSearchChanged(object sender, TextChangedEventArgs e) => _view.Refresh();
+
+    private void OnProfileListKey(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Delete && _selected is not null)
+        {
+            OnDelete(sender, e);
+            e.Handled = true;
+        }
+    }
+
+    private void OnProfileRightClick(object sender, MouseButtonEventArgs e)
+    {
+        if (ListContextMenu.SelectRow(ProfileList, e) is not { DataContext: KBoardProfile profile } row) return;
+        ListContextMenu.Open(row,
+            ListContextMenu.Entry(profile.Active ? Loc.T("commands.disable") : Loc.T("commands.enable"),
+                profile.Active ? SymbolRegular.Prohibited24 : SymbolRegular.CheckmarkCircle24, () => profile.Active = !profile.Active),
+            ListContextMenu.Entry(Loc.T("kboard.createCommand"), SymbolRegular.FlashAdd20, () => OnCreateCommand(row, new RoutedEventArgs())),
+            ListContextMenu.Entry(Loc.T("kboard.duplicate"), SymbolRegular.Copy24, () => OnDuplicate(row, new RoutedEventArgs())),
+            new Separator(),
+            ListContextMenu.Entry(Loc.T("kboard.delete"), SymbolRegular.Delete24, () => OnDelete(row, new RoutedEventArgs())));
+    }
+
+    // ── name ─────────────────────────────────────────────────────────────
+
+    private string? _nameBeforeEdit;
+
+    private void OnNameFocus(object sender, KeyboardFocusChangedEventArgs e) => _nameBeforeEdit = _selected?.Name;
+
+    private void OnNameLostFocus(object sender, KeyboardFocusChangedEventArgs e) => EnsureName(NameBox.DataContext as KBoardProfile);
+
+    private void OnNameKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter) EnsureName(_selected);
+        if (e.Key == Key.Escape && _selected is { } profile && !string.IsNullOrWhiteSpace(_nameBeforeEdit)) profile.Name = _nameBeforeEdit;
+    }
+
+    /// <summary>A profile never stays without a name: an emptied name goes back to the one it had.</summary>
+    private void EnsureName(KBoardProfile? profile)
+    {
+        if (profile is null) return;
+        var empty = string.IsNullOrWhiteSpace(profile.Name);
+        if (empty) profile.Name = !string.IsNullOrWhiteSpace(_nameBeforeEdit) ? _nameBeforeEdit : UniqueName(Loc.T("kboard.newName"));
+        else if (profile.Name != profile.Name.Trim()) profile.Name = profile.Name.Trim();
+        if (ReferenceEquals(profile, _selected)) NameError.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void OnProfileSelected(object sender, SelectionChangedEventArgs e)
     {
         HotkeyCapture.CancelActive();
+        if (_selected is { } previous) EnsureName(previous);
         Watch(ProfileList.SelectedItem as KBoardProfile);
         Editor.DataContext = _selected;
         Surface.Profile = _selected;
         SelectSource(null);
-        DuplicateButton.IsEnabled = DeleteButton.IsEnabled = CommandButton.IsEnabled = _selected is not null;
+        NameError.Visibility = Visibility.Collapsed;
         if (_selected is null)
         {
             EditorScroll.Visibility = Visibility.Collapsed;
@@ -136,6 +192,7 @@ public partial class KBoardPage : UserControl, IDisposable
     private void OnNewProfile(object sender, RoutedEventArgs e)
     {
         var profile = new KBoardProfile { Name = UniqueName(Loc.T("kboard.newName")) };
+        SearchBox.Text = string.Empty;
         Config.KBoards.Add(profile);
         _app.Achievements.Increment(Stat.KBoardsCreated);
         ProfileList.SelectedItem = profile;
@@ -176,8 +233,9 @@ public partial class KBoardPage : UserControl, IDisposable
             CloseButtonText = Loc.T("common.cancel"),
         };
         if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        var index = ProfileList.SelectedIndex;
         Config.KBoards.Remove(profile);
-        if (!_view.IsEmpty) ProfileList.SelectedIndex = 0;
+        if (!_view.IsEmpty) ProfileList.SelectedIndex = Math.Clamp(index, 0, _view.Count - 1);
     }
 
     /// <summary>Creates a command that switches this profile on and off.</summary>
@@ -200,7 +258,9 @@ public partial class KBoardPage : UserControl, IDisposable
 
     private void OnProcessKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter) OnAddProcess(sender, e);
+        if (e.Key != Key.Enter) return;
+        OnAddProcess(sender, e);
+        e.Handled = true; // stays in the box to add another
     }
 
     private void OnAddProcess(object sender, RoutedEventArgs e) => ProcessCombo.AddTyped(ProcessBox, _selected?.Processes);
@@ -410,9 +470,32 @@ public partial class KBoardPage : UserControl, IDisposable
 
     // ── list of remaps ───────────────────────────────────────────────────
 
+    /// <summary>A remap picked with the mouse, waiting for the button to be released.</summary>
+    private KeyRemap? _pendingRemap;
+
     private void OnRemapSelected(object sender, SelectionChangedEventArgs e)
     {
         if (_updating || RemapList.SelectedItem is not KeyRemap remap) return;
+        // Showing it changes the panel above the list, which moves the list: with the button still pressed, the
+        // list would then select whatever ended up under the mouse. So with the mouse it is shown on release.
+        if (Mouse.LeftButton == MouseButtonState.Pressed && RemapList.IsMouseOver)
+        {
+            _pendingRemap = remap;
+            return;
+        }
+        ShowRemapOf(remap);
+    }
+
+    private void OnRemapMouseUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_pendingRemap is not { } remap) return;
+        _pendingRemap = null;
+        Dispatcher.BeginInvoke(() => ShowRemapOf(remap), System.Windows.Threading.DispatcherPriority.Input);
+    }
+
+    private void ShowRemapOf(KeyRemap remap)
+    {
+        if (_selected is null || !_selected.Remaps.Contains(remap)) return;
         var (mods, main) = Hotkey.Parse(remap.From);
         SetLayer(mods);
         SelectSource(main);

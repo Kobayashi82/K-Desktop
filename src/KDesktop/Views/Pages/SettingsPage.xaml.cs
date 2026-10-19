@@ -594,7 +594,9 @@ public partial class SettingsPage : UserControl
 
     private void OnProcessKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
-        if (e.Key == System.Windows.Input.Key.Enter && sender is ComboBox box) ProcessCombo.AddTyped(box, ListOf(box));
+        if (e.Key != System.Windows.Input.Key.Enter || sender is not ComboBox box) return;
+        ProcessCombo.AddTyped(box, ListOf(box));
+        e.Handled = true;
     }
 
     private void OnAddDisabledIn(object sender, RoutedEventArgs e) => ProcessCombo.AddTyped(DisabledInBox, _app.Config.Settings.DisabledIn);

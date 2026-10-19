@@ -71,6 +71,7 @@ public sealed class HistoryRow(HistoryEntry entry)
     }
 
     public string Duration => Entry.Outcome == RunOutcome.NotUnderstood ? string.Empty
+        : Entry.Milliseconds < 1 ? "< 1 ms"
         : Entry.Milliseconds < 1000 ? $"{Entry.Milliseconds} ms"
         : Entry.Milliseconds < 60_000 ? string.Create(CultureInfo.CurrentCulture, $"{Entry.Milliseconds / 1000.0:0.#} s")
         : string.Create(CultureInfo.CurrentCulture, $"{Entry.Milliseconds / 60_000.0:0.#} min");

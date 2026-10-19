@@ -23,6 +23,12 @@ public partial class KBoardProfile : ObservableObject
     /// <summary>On / off. Commands can toggle it with the "K-Board" action.</summary>
     [ObservableProperty] private bool _active = true;
 
+    /// <summary>
+    /// «Ejecutar siempre»: also in the applications of «Desactivar en» (a game, say), where the hotkeys of the commands
+    /// stay off but the keys are still changed. A profile limited to some applications always works in them.
+    /// </summary>
+    [ObservableProperty] private bool _ignoreDisabledApps = true;
+
     [ObservableProperty] private string? _notes;
 
     /// <summary>When not empty, the profile only works while one of these applications is in the foreground.</summary>

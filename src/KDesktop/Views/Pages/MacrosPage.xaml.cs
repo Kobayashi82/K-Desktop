@@ -19,11 +19,15 @@ namespace KDesktop.Views.Pages;
 /// <summary>Macros: list, recording, step editor, test and "create command".</summary>
 public partial class MacrosPage : UserControl, IDisposable
 {
+    public static readonly RoutedCommand MoveStepUp = new();
+    public static readonly RoutedCommand MoveStepDown = new();
+    public static readonly RoutedCommand DuplicateStep = new();
+    public static readonly RoutedCommand DeleteStep = new();
+
     private static readonly IEasingFunction EaseOut = new CubicEase { EasingMode = EasingMode.EaseOut };
     private readonly App _app = App.Current;
     private readonly ListCollectionView _view;
     private Macro? _selected;
-    private (Macro Macro, List<MacroStep> Steps)? _undo;
     private bool _busy;
 
     private AppConfig Config => _app.Config;
@@ -31,9 +35,10 @@ public partial class MacrosPage : UserControl, IDisposable
     public MacrosPage()
     {
         InitializeComponent();
-        _view = new ListCollectionView(Config.Macros) { IsLiveSorting = true };
+        _view = new ListCollectionView(Config.Macros) { Filter = Filter, IsLiveSorting = true, IsLiveFiltering = true };
         _view.SortDescriptions.Add(new SortDescription(nameof(Macro.Name), ListSortDirection.Ascending));
         _view.LiveSortingProperties.Add(nameof(Macro.Name));
+        _view.LiveFilteringProperties.Add(nameof(Macro.Name));
         MacroList.ItemsSource = _view;
         RecordMovesToggle.IsChecked = Config.Settings.MacroRecordMoves;
         Config.Macros.CollectionChanged += OnMacrosChanged;
@@ -50,6 +55,7 @@ public partial class MacrosPage : UserControl, IDisposable
     public void Dispose()
     {
         HotkeyCapture.CancelActive();
+        Track(null);
         Config.Macros.CollectionChanged -= OnMacrosChanged;
         _view.DetachFromSourceCollection();
     }
@@ -60,22 +66,34 @@ public partial class MacrosPage : UserControl, IDisposable
     {
         CountText.Text = Config.Macros.Count.ToString();
         ListEmpty.Visibility = Config.Macros.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        MacroList.IsEnabled = Config.Macros.Count > 0;
     }
 
     public void Select(string id)
     {
         if (Config.FindMacro(id) is not { } macro) return;
+        if (!_view.Contains(macro)) SearchBox.Text = string.Empty;
         MacroList.SelectedItem = macro;
+        MacroList.ScrollIntoView(macro);
     }
+
+    // ── list ─────────────────────────────────────────────────────────────
+
+    private bool Filter(object o)
+    {
+        var q = SearchBox?.Text?.Trim();
+        return string.IsNullOrEmpty(q) || o is Macro m && m.Name.Contains(q, StringComparison.CurrentCultureIgnoreCase);
+    }
+
+    private void OnSearchChanged(object sender, TextChangedEventArgs e) => _view.Refresh();
 
     private void OnMacroSelected(object sender, SelectionChangedEventArgs e)
     {
         HotkeyCapture.CancelActive();
-        _selected = MacroList.SelectedItem as Macro;
+        if (_selected is { } previous) EnsureName(previous);
+        Track(MacroList.SelectedItem as Macro);
         Editor.DataContext = _selected;
         StepPanel.Visibility = Visibility.Collapsed;
-        DuplicateButton.IsEnabled = DeleteButton.IsEnabled = CommandButton.IsEnabled = _selected is not null;
+        NameError.Visibility = Visibility.Collapsed;
         if (_selected is null)
         {
             Editor.Visibility = Visibility.Collapsed;
@@ -89,12 +107,62 @@ public partial class MacrosPage : UserControl, IDisposable
         EditorShift.BeginAnimation(System.Windows.Media.TranslateTransform.YProperty, new DoubleAnimation(10, 0, TimeSpan.FromMilliseconds(220)) { EasingFunction = EaseOut });
     }
 
+    private void OnMacroListKey(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Delete && _selected is not null)
+        {
+            OnDelete(sender, e);
+            e.Handled = true;
+        }
+    }
+
+    private void OnMacroRightClick(object sender, MouseButtonEventArgs e)
+    {
+        if (ListContextMenu.SelectRow(MacroList, e) is not { DataContext: Macro } row) return;
+        ListContextMenu.Open(row,
+            ListContextMenu.Entry(Loc.T("macro.createCommand"), SymbolRegular.FlashAdd20, () => OnCreateCommand(row, new RoutedEventArgs())),
+            ListContextMenu.Entry(Loc.T("macro.duplicate"), SymbolRegular.Copy24, () => OnDuplicate(row, new RoutedEventArgs())),
+            new Separator(),
+            ListContextMenu.Entry(Loc.T("macro.delete"), SymbolRegular.Delete24, () => OnDelete(row, new RoutedEventArgs())));
+    }
+
     private void UpdateStepsState()
     {
         var empty = _selected is null || _selected.Steps.Count == 0;
         NoSteps.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
         StepList.Visibility = empty ? Visibility.Collapsed : Visibility.Visible;
-        UndoButton.IsEnabled = _undo is { } u && ReferenceEquals(u.Macro, _selected);
+        DeleteStepsButton.IsEnabled = StepList.SelectedItems.Count > 0;
+        UpdateUndoButtons();
+    }
+
+    // ── name ─────────────────────────────────────────────────────────────
+
+    private string? _nameBeforeEdit;
+
+    private void OnNameFocus(object sender, KeyboardFocusChangedEventArgs e) => _nameBeforeEdit = _selected?.Name;
+
+    private void OnNameLostFocus(object sender, KeyboardFocusChangedEventArgs e) => EnsureName(NameBox.DataContext as Macro);
+
+    private void OnNameKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter) EnsureName(_selected);
+        if (e.Key == Key.Escape && _selected is { } macro && !string.IsNullOrWhiteSpace(_nameBeforeEdit)) macro.Name = _nameBeforeEdit;
+    }
+
+    /// <summary>A macro never stays without a name: an emptied name goes back to the one it had.</summary>
+    private void EnsureName(Macro? macro)
+    {
+        if (macro is null) return;
+        if (string.IsNullOrWhiteSpace(macro.Name))
+        {
+            macro.Name = !string.IsNullOrWhiteSpace(_nameBeforeEdit) ? _nameBeforeEdit : UniqueName(Loc.T("macro.newName"));
+            if (ReferenceEquals(macro, _selected)) NameError.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            if (macro.Name != macro.Name.Trim()) macro.Name = macro.Name.Trim();
+            if (ReferenceEquals(macro, _selected)) NameError.Visibility = Visibility.Collapsed;
+        }
     }
 
     // ── macros ───────────────────────────────────────────────────────────
@@ -102,8 +170,10 @@ public partial class MacrosPage : UserControl, IDisposable
     private void OnNewMacro(object sender, RoutedEventArgs e)
     {
         var macro = new Macro { Name = UniqueName(Loc.T("macro.newName")) };
+        SearchBox.Text = string.Empty;
         Config.Macros.Add(macro);
         MacroList.SelectedItem = macro;
+        MacroList.ScrollIntoView(macro);
         Dispatcher.BeginInvoke(() =>
         {
             NameBox.Focus();
@@ -139,8 +209,10 @@ public partial class MacrosPage : UserControl, IDisposable
             CloseButtonText = Loc.T("common.cancel"),
         };
         if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+        var index = MacroList.SelectedIndex;
         Config.Macros.Remove(macro);
-        if (!_view.IsEmpty) MacroList.SelectedIndex = 0;
+        _histories.Remove(macro);
+        if (!_view.IsEmpty) MacroList.SelectedIndex = Math.Clamp(index, 0, _view.Count - 1);
     }
 
     private void OnCreateCommand(object sender, RoutedEventArgs e)
@@ -216,7 +288,6 @@ public partial class MacrosPage : UserControl, IDisposable
                 _app.Ui.ShowOsd(Loc.T("macro.nothingRecorded"), OsdKind.Warning);
                 return;
             }
-            SaveUndo(macro);
             if (append) steps[0].Delay = 250;
             macro.ReplaceSteps(append ? [.. macro.Steps, .. steps] : steps);
             _app.Achievements.Increment(Stat.MacrosRecorded);
@@ -264,6 +335,8 @@ public partial class MacrosPage : UserControl, IDisposable
     private void OnStepSelected(object sender, SelectionChangedEventArgs e)
     {
         HotkeyCapture.CancelActive();
+        DeleteStepsButton.IsEnabled = StepList.SelectedItems.Count > 0;
+        CommandManager.InvalidateRequerySuggested();
         if (StepList.SelectedItems.Count == 1 && StepList.SelectedItem is MacroStep step)
         {
             StepEditor.ContentTemplate = (DataTemplate)FindResource("StepEditorTemplate");
@@ -291,36 +364,85 @@ public partial class MacrosPage : UserControl, IDisposable
         }
         else if (e.Key == Key.Z && Keyboard.Modifiers == ModifierKeys.Control)
         {
-            OnUndo(sender, e);
+            Undo();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Y && Keyboard.Modifiers == ModifierKeys.Control || e.Key == Key.Z && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+        {
+            Redo();
             e.Handled = true;
         }
     }
 
     private List<MacroStep> SelectedSteps() => StepList.SelectedItems.OfType<MacroStep>().ToList();
 
-    private void SaveUndo(Macro macro)
+    /// <summary>
+    /// What a row button works on: the whole selection when the row is part of a selection of several steps,
+    /// otherwise just that row.
+    /// </summary>
+    private List<MacroStep> Targets(object? parameter)
     {
-        _undo = (macro, macro.Steps.Select(s => s.Clone()).ToList());
-        UndoButton.IsEnabled = ReferenceEquals(macro, _selected);
+        if (parameter is not MacroStep step) return SelectedSteps();
+        var selected = SelectedSteps();
+        return selected.Count > 1 && selected.Contains(step) ? selected : [step];
     }
 
-    private void OnUndo(object sender, RoutedEventArgs e)
+    /// <summary>Indexes of <paramref name="steps"/> in the macro, in order.</summary>
+    private List<int> IndexesOf(IEnumerable<MacroStep> steps) =>
+        _selected is { } macro ? steps.Select(s => macro.Steps.IndexOf(s)).Where(i => i >= 0).Order().ToList() : [];
+
+    private void OnCanMoveStepUp(object sender, CanExecuteRoutedEventArgs e) =>
+        e.CanExecute = IndexesOf(Targets(e.Parameter)) is [var first, ..] && first > 0;
+
+    private void OnCanMoveStepDown(object sender, CanExecuteRoutedEventArgs e) =>
+        e.CanExecute = _selected is { } macro && IndexesOf(Targets(e.Parameter)) is [.., var last] && last < macro.Steps.Count - 1;
+
+    private void OnMoveStepUp(object sender, ExecutedRoutedEventArgs e) => MoveSteps(Targets(e.Parameter), -1);
+
+    private void OnMoveStepDown(object sender, ExecutedRoutedEventArgs e) => MoveSteps(Targets(e.Parameter), +1);
+
+    /// <summary>Moves the steps one place up or down, as a block that keeps its order (and its selection).</summary>
+    private void MoveSteps(List<MacroStep> steps, int delta)
     {
-        if (_undo is not { } u || !ReferenceEquals(u.Macro, _selected)) return;
-        _undo = null;
-        u.Macro.ReplaceSteps(u.Steps);
-        UpdateStepsState();
+        if (_selected is not { } macro || steps.Count == 0) return;
+        var indexes = IndexesOf(steps);
+        if (indexes.Count == 0 || indexes[0] + delta < 0 || indexes[^1] + delta >= macro.Steps.Count) return;
+        var keep = SelectedSteps();
+        foreach (var i in delta < 0 ? indexes : Enumerable.Reverse(indexes)) macro.Steps.Move(i, i + delta);
+        Reselect(keep.Count > 0 ? keep : steps);
+        CommandManager.InvalidateRequerySuggested();
     }
 
-    private void OnDeleteSteps(object sender, RoutedEventArgs e)
+    private void Reselect(IReadOnlyCollection<MacroStep> steps)
+    {
+        StepList.SelectedItems.Clear();
+        foreach (var s in steps) StepList.SelectedItems.Add(s);
+        if (steps.FirstOrDefault() is { } first) StepList.ScrollIntoView(first);
+    }
+
+    private void OnDuplicateStep(object sender, ExecutedRoutedEventArgs e)
     {
         if (_selected is not { } macro) return;
-        var selected = SelectedSteps();
-        if (selected.Count == 0) return;
-        SaveUndo(macro);
-        var index = macro.Steps.IndexOf(selected[0]);
-        var keep = new HashSet<MacroStep>(selected);
-        macro.ReplaceSteps(macro.Steps.Where(s => !keep.Contains(s)).ToList());
+        var indexes = IndexesOf(Targets(e.Parameter));
+        if (indexes.Count == 0) return;
+        // The copies go right after the last one, in the same order.
+        var copies = indexes.Select(i => macro.Steps[i].Clone()).ToList();
+        var at = indexes[^1] + 1;
+        for (var k = 0; k < copies.Count; k++) macro.Steps.Insert(at + k, copies[k]);
+        UpdateStepsState();
+        Reselect(copies);
+    }
+
+    private void OnDeleteStep(object sender, ExecutedRoutedEventArgs e) => DeleteSteps(Targets(e.Parameter));
+
+    private void OnDeleteSteps(object sender, RoutedEventArgs e) => DeleteSteps(SelectedSteps());
+
+    private void DeleteSteps(List<MacroStep> steps)
+    {
+        if (_selected is not { } macro || steps.Count == 0) return;
+        var index = IndexesOf(steps).FirstOrDefault();
+        var drop = new HashSet<MacroStep>(steps);
+        macro.ReplaceSteps(macro.Steps.Where(s => !drop.Contains(s)).ToList());
         UpdateStepsState();
         if (macro.Steps.Count > 0) StepList.SelectedIndex = Math.Clamp(index, 0, macro.Steps.Count - 1);
     }
@@ -348,7 +470,7 @@ public partial class MacrosPage : UserControl, IDisposable
         var step = new MacroStep
         {
             Kind = kind,
-            Delay = 100,
+            Delay = kind == MacroStepKind.Pause ? 1000 : 100,
             Vk = kind is MacroStepKind.KeyDown or MacroStepKind.KeyUp or MacroStepKind.KeyPress ? KeyNames.VK_RETURN : 0,
             X = kind == MacroStepKind.MouseMoveBy ? 100 : x,
             Y = kind == MacroStepKind.MouseMoveBy ? 0 : y,
@@ -381,17 +503,143 @@ public partial class MacrosPage : UserControl, IDisposable
         menu.IsOpen = true;
     }
 
-    /// <summary>Applies a transformation to a copy of the steps (so it can be undone).</summary>
+    /// <summary>Applies a transformation to a copy of the steps (one change in the undo history).</summary>
     private void Transform(Func<List<MacroStep>, List<MacroStep>> transform)
     {
         if (_selected is not { } macro || macro.Steps.Count == 0) return;
-        SaveUndo(macro);
         var before = macro.Steps.Count;
         var result = transform(macro.Steps.Select(s => s.Clone()).ToList());
         macro.ReplaceSteps(result);
         UpdateStepsState();
         _app.Ui.ShowOsd(Loc.T("macro.simplified", before, result.Count, Macro.FormatDuration(macro.Duration)), OsdKind.Success);
     }
+
+    // ── undo / redo ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// The steps of a macro as they were after each change. Any change counts (recording, deleting, moving, a delay,
+    /// the kind of a step…); quick edits of the same step (typing a delay) make a single change.
+    /// </summary>
+    private sealed class History
+    {
+        public readonly Stack<List<MacroStep>> Undo = new();
+        public readonly Stack<List<MacroStep>> Redo = new();
+        public List<MacroStep> Current = [];
+        public int LastStep = -1;
+        public long LastTime;
+    }
+
+    private const int MaxUndo = 60;
+    private readonly Dictionary<Macro, History> _histories = [];
+    private bool _snapshotQueued;
+
+    private static List<MacroStep> Snapshot(Macro macro) => macro.Steps.Select(s => s.Clone()).ToList();
+
+    private void Track(Macro? macro)
+    {
+        if (_selected is not null) _selected.Modified -= OnMacroModified;
+        _selected = macro;
+        if (macro is null) return;
+        macro.Modified += OnMacroModified;
+        // Changes made while it was not shown are where its history starts from.
+        if (!_histories.TryGetValue(macro, out var history)) _histories[macro] = history = new History();
+        history.Current = Snapshot(macro);
+    }
+
+    private void OnMacroModified(object? sender, EventArgs e)
+    {
+        // A change usually comes as several notifications (the kind of a step, a whole recording): looked at once.
+        if (_snapshotQueued) return;
+        _snapshotQueued = true;
+        Dispatcher.BeginInvoke(() =>
+        {
+            _snapshotQueued = false;
+            TakeSnapshot();
+        }, System.Windows.Threading.DispatcherPriority.Background);
+    }
+
+    private void TakeSnapshot()
+    {
+        if (_selected is not { } macro || !_histories.TryGetValue(macro, out var h)) return;
+        var now = Snapshot(macro);
+        var changed = Difference(h.Current, now);
+        if (changed is null) return; // the name, the game mode… not the steps
+        var time = Environment.TickCount64;
+        var sameEdit = changed >= 0 && changed == h.LastStep && time - h.LastTime < 1500;
+        if (!sameEdit)
+        {
+            h.Undo.Push(h.Current);
+            if (h.Undo.Count > MaxUndo) Trim(h.Undo);
+        }
+        h.Redo.Clear();
+        h.Current = now;
+        h.LastStep = changed.Value;
+        h.LastTime = time;
+        UpdateUndoButtons();
+        UpdateStepsState();
+    }
+
+    private static void Trim(Stack<List<MacroStep>> stack)
+    {
+        var keep = stack.Take(MaxUndo).Reverse().ToList();
+        stack.Clear();
+        foreach (var s in keep) stack.Push(s);
+    }
+
+    /// <summary>Null: the same steps. The index of the only step that changed, or -1 when more than that changed.</summary>
+    private static int? Difference(List<MacroStep> a, List<MacroStep> b)
+    {
+        if (a.Count != b.Count) return -1;
+        int? found = null;
+        for (var i = 0; i < a.Count; i++)
+        {
+            if (Same(a[i], b[i])) continue;
+            if (found is not null) return -1;
+            found = i;
+        }
+        return found;
+    }
+
+    private static bool Same(MacroStep a, MacroStep b) =>
+        a.Kind == b.Kind && a.Delay == b.Delay && a.Vk == b.Vk && a.Extended == b.Extended && a.Button == b.Button &&
+        a.X == b.X && a.Y == b.Y && a.Wheel == b.Wheel && a.Horizontal == b.Horizontal && a.Text == b.Text && a.Raw == b.Raw;
+
+    private void UpdateUndoButtons()
+    {
+        var h = _selected is { } macro ? _histories.GetValueOrDefault(macro) : null;
+        UndoButton.IsEnabled = h is { Undo.Count: > 0 };
+        RedoButton.IsEnabled = h is { Redo.Count: > 0 };
+    }
+
+    private void OnUndo(object sender, RoutedEventArgs e) => Undo();
+
+    private void OnRedo(object sender, RoutedEventArgs e) => Redo();
+
+    private void Undo()
+    {
+        if (_selected is not { } macro || !_histories.TryGetValue(macro, out var h) || h.Undo.Count == 0) return;
+        TakeSnapshot(); // a pending change is undone first
+        if (h.Undo.Count == 0) return;
+        h.Redo.Push(h.Current);
+        Apply(macro, h, h.Undo.Pop());
+    }
+
+    private void Redo()
+    {
+        if (_selected is not { } macro || !_histories.TryGetValue(macro, out var h) || h.Redo.Count == 0) return;
+        h.Undo.Push(h.Current);
+        Apply(macro, h, h.Redo.Pop());
+    }
+
+    private void Apply(Macro macro, History h, List<MacroStep> steps)
+    {
+        h.Current = steps;
+        h.LastStep = -1;
+        macro.ReplaceSteps(steps.Select(s => s.Clone()));
+        UpdateStepsState();
+    }
+
+    // ── capture ──────────────────────────────────────────────────────────
 
     private void OnCaptureStepKey(object sender, ExecutedRoutedEventArgs e)
     {
@@ -430,17 +678,12 @@ public sealed class StepIconConverter : IValueConverter
         MacroStepKind.MouseMove => SymbolRegular.Cursor24,
         MacroStepKind.MouseMoveBy => SymbolRegular.ArrowMove24,
         MacroStepKind.Wheel => SymbolRegular.ArrowSort24,
+        MacroStepKind.Pause => SymbolRegular.Timer24,
         _ => SymbolRegular.CursorClick24,
     };
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
         value is MacroStepKind k ? Symbol(k) : SymbolRegular.Record24;
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
-}
-
-public sealed class PlusOneConverter : IValueConverter
-{
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => value is int i ? (i + 1).ToString(culture) : "";
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 }

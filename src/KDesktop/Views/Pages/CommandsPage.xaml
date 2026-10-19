@@ -55,6 +55,27 @@
                 </ItemsControl>
             </DataTemplate>
 
+            <!-- The same, smaller: the hotkeys of the command -->
+            <DataTemplate x:Key="SmallKeyCaps">
+                <ItemsControl ItemsSource="{Binding Converter={StaticResource HotkeyParts}}" Focusable="False">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,3,0" Padding="5,1" CornerRadius="4" MinWidth="20"
+                                    Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1,1,1,2">
+                                <TextBlock Text="{Binding}" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center"
+                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </DataTemplate>
+
             <!-- Action rows: clicking a row expands its editor -->
             <Style x:Key="ActionRow" TargetType="ListBoxItem">
                 <!-- Inside the block of a «Si…», a step in. -->
@@ -92,8 +113,8 @@
         <CommandBinding Command="{x:Static v:EditorCommands.CaptureMouse}" Executed="OnCaptureMouse" />
         <CommandBinding Command="{x:Static v:EditorCommands.TestAction}" Executed="OnTestAction" />
         <CommandBinding Command="{x:Static v:EditorCommands.RemoveAction}" Executed="OnRemoveAction" />
-        <CommandBinding Command="{x:Static v:EditorCommands.MoveActionUp}" Executed="OnMoveActionUp" />
-        <CommandBinding Command="{x:Static v:EditorCommands.MoveActionDown}" Executed="OnMoveActionDown" />
+        <CommandBinding Command="{x:Static v:EditorCommands.MoveActionUp}" Executed="OnMoveActionUp" CanExecute="OnCanMoveActionUp" />
+        <CommandBinding Command="{x:Static v:EditorCommands.MoveActionDown}" Executed="OnMoveActionDown" CanExecute="OnCanMoveActionDown" />
         <CommandBinding Command="{x:Static v:EditorCommands.DuplicateAction}" Executed="OnDuplicateAction" />
         <CommandBinding Command="{x:Static v:EditorCommands.RemoveHotkey}" Executed="OnRemoveHotkey" />
         <CommandBinding Command="{x:Static v:EditorCommands.RemoveProcess}" Executed="OnRemoveProcess" />
@@ -110,7 +131,7 @@
 
     <Grid Margin="24,12,0,0">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="330" />
+            <ColumnDefinition Width="300" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
@@ -248,7 +269,6 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <Button x:Name="IconButton" Width="60" Height="60" Padding="8" Cursor="Hand" Click="OnChooseIcon" ToolTip="{l:Tr commands.changeIcon}"
                                     AutomationProperties.Name="{l:Tr commands.changeIcon}">
@@ -272,33 +292,40 @@
                                 </Button.ContextMenu>
                                 <Image x:Name="HeaderIcon" RenderOptions.BitmapScalingMode="HighQuality" />
                             </Button>
-                            <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <ui:TextBox x:Name="NameBox" FontSize="16" FontWeight="SemiBold" PlaceholderText="{l:Tr commands.namePlaceholder}"
-                                                Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
-                                                GotKeyboardFocus="OnNameFocus" LostKeyboardFocus="OnNameLostFocus" KeyDown="OnNameKeyDown" />
-                                    <!-- Options of the command as icons: hidden in the list, remote control -->
-                                    <v:IconToggle Grid.Column="1" Margin="8,0,0,0" IsChecked="{Binding Hidden}" OnSymbol="EyeOff24" OffSymbol="Eye24"
-                                                  Title="{l:Tr commands.hiddenOption}" Hint="{l:Tr commands.hiddenHint}" />
-                                    <v:IconToggle Grid.Column="2" IsChecked="{Binding Remote}" OnSymbol="PlugConnected24" OffSymbol="PlugDisconnected24"
-                                                  Title="{l:Tr commands.remoteOption}" Hint="{l:Tr commands.remoteHint}" />
-                                </Grid>
-                                <TextBlock x:Name="NameError" Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{l:Tr commands.nameRequired}"
-                                           Foreground="{DynamicResource Kd.Danger}" Visibility="Collapsed" />
-                                <TextBlock x:Name="NotesHint" Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{Binding Notes}"
-                                           Visibility="{Binding Notes, Converter={StaticResource NullToCollapsed}}" Foreground="{DynamicResource Kd.Warning}" />
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                <ui:ToggleSwitch IsChecked="{Binding Enabled}" OnContent="{l:Tr common.enabled}" OffContent="{l:Tr common.disabled}" Margin="0,0,16,0" />
-                                <ui:Button Content="{l:Tr commands.run}" Icon="{ui:SymbolIcon Play24}" Appearance="Primary" Click="OnRunCommand" Margin="0,0,8,0" />
-                                <ui:Button Icon="{ui:SymbolIcon Copy24}" ToolTip="{l:Tr commands.duplicate}" Click="OnDuplicateCommand" Margin="0,0,8,0" />
-                                <ui:Button Icon="{ui:SymbolIcon Delete24}" ToolTip="{l:Tr commands.delete}" Click="OnDeleteCommand" />
-                            </StackPanel>
+                            <!-- Name and buttons; when the window is narrow the buttons go under the name -->
+                            <Grid Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center" v:ResponsiveHeader.MinNameWidth="200">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <ui:TextBox x:Name="NameBox" FontSize="16" FontWeight="SemiBold" PlaceholderText="{l:Tr commands.namePlaceholder}"
+                                            Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                                            GotKeyboardFocus="OnNameFocus" LostKeyboardFocus="OnNameLostFocus" KeyDown="OnNameKeyDown" />
+                                <!-- Options of the command as icons: hidden in the list, remote control -->
+                                <v:IconToggle Grid.Column="1" Margin="8,0,0,0" IsChecked="{Binding Hidden}" OnSymbol="EyeOff24" OffSymbol="Eye24"
+                                              Title="{l:Tr commands.hiddenOption}" Hint="{l:Tr commands.hiddenHint}" />
+                                <v:IconToggle Grid.Column="2" IsChecked="{Binding Remote}" OnSymbol="PlugConnected24" OffSymbol="PlugDisconnected24"
+                                              Title="{l:Tr commands.remoteOption}" Hint="{l:Tr commands.remoteHint}" />
+                                <StackPanel Grid.Column="3" Margin="16,0,0,0" Orientation="Horizontal" VerticalAlignment="Center" v:ResponsiveHeader.IsSide="True">
+                                    <ui:ToggleSwitch IsChecked="{Binding Enabled}" OnContent="{l:Tr common.enabled}" OffContent="{l:Tr common.disabled}" Margin="0,0,16,0" />
+                                    <ui:Button Content="{l:Tr commands.run}" Icon="{ui:SymbolIcon Play24}" Appearance="Primary" Click="OnRunCommand" Margin="0,0,8,0" />
+                                    <ui:Button Icon="{ui:SymbolIcon Copy24}" ToolTip="{l:Tr commands.duplicate}" Click="OnDuplicateCommand" Margin="0,0,8,0" />
+                                    <ui:Button Icon="{ui:SymbolIcon Delete24}" ToolTip="{l:Tr commands.delete}" Click="OnDeleteCommand" />
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.ColumnSpan="4">
+                                    <TextBlock x:Name="NameError" Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{l:Tr commands.nameRequired}"
+                                               Foreground="{DynamicResource Kd.Danger}" Visibility="Collapsed" />
+                                    <TextBlock x:Name="NotesHint" Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{Binding Notes}"
+                                               Visibility="{Binding Notes, Converter={StaticResource NullToCollapsed}}" Foreground="{DynamicResource Kd.Warning}" />
+                                </StackPanel>
+                            </Grid>
                         </Grid>
                     </Border>
 
@@ -309,6 +336,7 @@
                                 <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr commands.hotkeys}" />
                                 <!-- What the hotkeys do besides running the command -->
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,0,0">
+                                    <ui:Button x:Name="AddHotkeyButton" Content="{l:Tr commands.addHotkey}" Icon="{ui:SymbolIcon Add24}" Click="OnAddHotkey" Margin="0,0,8,0" />
                                     <v:IconToggle IsChecked="{Binding BlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
                                                   Title="{l:Tr commands.blockKey}" Hint="{l:Tr commands.blockKeyHint}" />
                                     <v:IconToggle IsChecked="{Binding IgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
@@ -324,10 +352,10 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Style="{StaticResource Chip}">
+                                            <Border Style="{StaticResource Chip}" Padding="6,3,2,3">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource KeyCaps}" VerticalAlignment="Center" />
-                                                    <ui:Button Style="{StaticResource IconButton}" Padding="4" Margin="2,0,0,0" ToolTip="{l:Tr common.remove}"
+                                                    <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource SmallKeyCaps}" VerticalAlignment="Center" />
+                                                    <ui:Button Style="{StaticResource IconButton}" Padding="3" Margin="0" ToolTip="{l:Tr common.remove}"
                                                                Command="{x:Static v:EditorCommands.RemoveHotkey}" CommandParameter="{Binding}">
                                                         <ui:SymbolIcon Symbol="Dismiss24" FontSize="12" />
                                                     </ui:Button>
@@ -352,7 +380,6 @@
                                         <TextBlock x:Name="CaptureText" Style="{StaticResource ChipText}" Foreground="{DynamicResource Kd.AccentText}" />
                                     </StackPanel>
                                 </Border>
-                                <ui:Button x:Name="AddHotkeyButton" Content="{l:Tr commands.addHotkey}" Icon="{ui:SymbolIcon Add24}" Click="OnAddHotkey" Margin="0,0,0,6" />
                             </WrapPanel>
                             <TextBlock x:Name="HotkeyWarning" Style="{StaticResource Caption}" Foreground="{DynamicResource Kd.Warning}" Visibility="Collapsed" Margin="0,4,0,0" />
                             <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="{l:Tr commands.hotkeysHint}" />
@@ -415,10 +442,10 @@
                                                     <ui:Button Style="{StaticResource IconButton}" ToolTip="{l:Tr common.duplicate}" Command="{x:Static v:EditorCommands.DuplicateAction}" CommandParameter="{Binding}">
                                                         <ui:SymbolIcon Symbol="Copy24" FontSize="16" />
                                                     </ui:Button>
-                                                    <ui:Button Style="{StaticResource IconButton}" ToolTip="{l:Tr common.moveUp}" Command="{x:Static v:EditorCommands.MoveActionUp}" CommandParameter="{Binding}">
+                                                    <ui:Button Style="{StaticResource MoveButton}" ToolTip="{l:Tr common.moveUp}" Command="{x:Static v:EditorCommands.MoveActionUp}" CommandParameter="{Binding}">
                                                         <ui:SymbolIcon Symbol="ArrowUp24" FontSize="16" />
                                                     </ui:Button>
-                                                    <ui:Button Style="{StaticResource IconButton}" ToolTip="{l:Tr common.moveDown}" Command="{x:Static v:EditorCommands.MoveActionDown}" CommandParameter="{Binding}">
+                                                    <ui:Button Style="{StaticResource MoveButton}" ToolTip="{l:Tr common.moveDown}" Command="{x:Static v:EditorCommands.MoveActionDown}" CommandParameter="{Binding}">
                                                         <ui:SymbolIcon Symbol="ArrowDown24" FontSize="16" />
                                                     </ui:Button>
                                                     <ui:Button Style="{StaticResource IconButton}" ToolTip="{l:Tr common.remove}" Command="{x:Static v:EditorCommands.RemoveAction}" CommandParameter="{Binding}">

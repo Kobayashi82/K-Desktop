@@ -71,8 +71,10 @@ public sealed class KBoardSurface : Viewbox
         get => _selected;
         set
         {
-            if (_selected is not null && _keys.TryGetValue(_selected, out var old)) Paint(old);
+            // The old key is repainted once it is no longer the selected one (before, it kept its outline).
+            var previous = _selected;
             _selected = value;
+            if (previous is not null && _keys.TryGetValue(previous, out var old)) Paint(old);
             if (value is not null && _keys.TryGetValue(value, out var now))
             {
                 Paint(now);

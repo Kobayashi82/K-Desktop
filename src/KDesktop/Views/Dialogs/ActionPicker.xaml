@@ -1,0 +1,119 @@
+<ui:FluentWindow x:Class="KDesktop.Views.Dialogs.ActionPicker"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:l="clr-namespace:KDesktop.Localization"
+                 xmlns:d="clr-namespace:KDesktop.Views.Dialogs"
+                 Title="K-Desktop"
+                 Width="940" Height="660" MinWidth="640" MinHeight="420"
+                 WindowStartupLocation="CenterOwner"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica"
+                 ResizeMode="CanResize"
+                 ShowInTaskbar="False">
+    <ui:FluentWindow.Resources>
+        <!-- An action: its icon, its name and what it does. Click to add it. -->
+        <Style x:Key="ActionCard" TargetType="Button">
+            <Setter Property="Width" Value="300" />
+            <Setter Property="Margin" Value="0,0,10,10" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="B" CornerRadius="8" Padding="12,10" BorderThickness="1"
+                                Background="{DynamicResource Kd.Subtle}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="B" Property="Background" Value="{DynamicResource Kd.SubtleHover}" />
+                                <Setter TargetName="B" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="B" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="B" Property="Background" Value="{DynamicResource Kd.AccentSoft}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate x:Key="CardTemplate" DataType="{x:Type d:ActionChoice}">
+            <Button Style="{StaticResource ActionCard}" Click="OnPick" Tag="{Binding}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Width="36" Height="36" CornerRadius="8" VerticalAlignment="Top" Margin="0,2,12,0" Background="{DynamicResource Kd.AccentSoft}">
+                        <ui:SymbolIcon Symbol="{Binding Symbol}" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                    </Border>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        <TextBlock Margin="0,2,0,0" Text="{Binding Description}" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+            </Button>
+        </DataTemplate>
+    </ui:FluentWindow.Resources>
+
+    <Grid Margin="16,0,0,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <ui:TitleBar Grid.Row="0" Title="{l:Tr commands.addAction}" ShowMinimize="False" Margin="-16,0,0,0" />
+        <ui:TextBox x:Name="SearchBox" Grid.Row="1" Margin="0,4,16,12" PlaceholderText="{l:Tr actionPicker.search}" Icon="{ui:SymbolIcon Search24}"
+                    TextChanged="OnSearch" PreviewKeyDown="OnSearchKey" />
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="210" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Categories -->
+            <ListBox x:Name="Categories" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource RowItem}" Margin="0,0,12,16"
+                     SelectionChanged="OnCategory">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type d:ActionCategory}">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="{Binding Symbol}" FontSize="16" Margin="0,0,10,0" Foreground="{DynamicResource Kd.AccentText}" />
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <!-- The actions, by category -->
+            <ScrollViewer x:Name="Scroll" Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="0,0,6,16">
+                <StackPanel>
+                    <ItemsControl x:Name="Groups" Focusable="False">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type d:ActionCategory}">
+                                <StackPanel Margin="0,0,0,8">
+                                    <TextBlock Text="{Binding Name}" Style="{StaticResource SectionTitle}" Margin="2,0,0,8" />
+                                    <ItemsControl ItemsSource="{Binding Shown}" ItemTemplate="{StaticResource CardTemplate}" Focusable="False">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock x:Name="NothingFound" Style="{StaticResource Caption}" Margin="2,8,0,0" Text="{l:Tr actionPicker.none}" Visibility="Collapsed" />
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</ui:FluentWindow>
