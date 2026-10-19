@@ -105,6 +105,7 @@ public partial class App
         try
         {
             Store.Flush();
+            Achievements.Unlock("update");
             Achievements.Flush();
             Engine.History.Save();
             Updates.Install(RestartArguments());

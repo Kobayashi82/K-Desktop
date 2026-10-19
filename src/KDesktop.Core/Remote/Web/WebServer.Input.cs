@@ -184,6 +184,11 @@ public sealed partial class WebServer
                     await ZoomAsync(socket, Str(msg, "a"), token).ConfigureAwait(false);
                     continue;
                 }
+                if (type == "m" && !session.Moved)
+                {
+                    session.Moved = true;
+                    PointerMoved?.Invoke();
+                }
                 try { session.Handle(type, msg); }
                 catch (Exception ex) { Log.Warn($"Web: error en la entrada remota ({type}): {ex.Message}"); }
             }
@@ -214,6 +219,9 @@ public sealed partial class WebServer
     private sealed class InputSession
     {
         private readonly HashSet<MouseButton> _buttons = [];
+
+        /// <summary>The touchpad has moved the pointer at least once.</summary>
+        public bool Moved { get; set; }
         private readonly HashSet<int> _keys = [];
 
         public void Handle(string? type, JsonElement msg)

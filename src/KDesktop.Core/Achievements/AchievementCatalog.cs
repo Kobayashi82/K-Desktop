@@ -77,6 +77,7 @@ public static class AchievementCatalog
         Tier("commands", "cmd-owned", Stat.CommandsOwned, 50);
         list.Add(new("multi", "commands"));
         list.Add(new("chord", "commands"));
+        list.Add(new("speedrun", "commands", Secret: true));
 
         // Actions
         Tier("actions", "act-create", Stat.ActionsCreated, 1, 10, 100);
@@ -89,6 +90,7 @@ public static class AchievementCatalog
         Tier("menus", "menu-delete", Stat.MenusDeleted, 1, 10);
         Tier("menus", "menu-open", Stat.MenusOpened, 1, 10, 100, 1000);
         list.Add(new("menu-nested", "menus", Stat.MenuDepth, 3));
+        Tier("menus", "launcher", Stat.LauncherUsed, 1, 10, 100);
 
         // Events
         Tier("events", "event-create", Stat.EventsCreated, 1, 10);
@@ -127,15 +129,20 @@ public static class AchievementCatalog
 
         // Remote
         Tier("remote", "remote", Stat.RemoteRun, 1, 10, 100);
+        list.Add(new("pair", "remote"));
+        list.Add(new("touchpad", "remote", Secret: true));
 
         // Voice
         Tier("voice", "voice", Stat.VoiceOrders, 1, 10, 100, 1000);
         Tier("voice", "wake", Stat.WakeWords, 1, 100, 1000);
         Tier("voice", "meaning", Stat.VoiceMeaning, 1, 10, 100);
+        list.Add(new("wake-create", "voice"));
 
         // Time of use
         Tier("time", "days", Stat.Days, 7, 30, 365);
         list.Add(new("night-owl", "time", Secret: true));
+        list.Add(new("sunday", "time", Secret: true));
+        list.Add(new("marathon", "time", Secret: true));
 
         // One per action type
         foreach (var info in ActionCatalog.All)
@@ -144,16 +151,17 @@ public static class AchievementCatalog
 
         // Miscellaneous
         list.Add(new("welcome", "misc", Stat.AppStarted, 1));
-        list.Add(new(First, "misc"));
-        list.Add(new("about", "misc"));
+        list.Add(new(First, "misc", Secret: true));
         Tier("misc", "tips", Stat.TipsSeen, 10, 50);
-        list.Add(new("curious", "misc"));
+        list.Add(new("curious", "misc", Secret: true));
         list.Add(new("export", "misc"));
         list.Add(new("import", "misc"));
         list.Add(new("quick-opener", "misc", Secret: true));
         list.Add(new("polyglot", "misc"));
         list.Add(new("theme", "misc"));
         list.Add(new("cancel", "misc", Secret: true));
+        list.Add(new("pause", "misc"));
+        list.Add(new("update", "misc"));
         list.Add(new(Master, "misc"));
 
         return list;

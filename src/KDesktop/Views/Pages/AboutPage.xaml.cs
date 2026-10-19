@@ -38,7 +38,6 @@ public partial class AboutPage : UserControl
         _index = _random.Next(_tips.Count);
         Loaded += (_, _) =>
         {
-            App.Current.Achievements.Unlock("about");
             ShowTip(0);
         };
         Unloaded += (_, _) => Progress.BeginAnimation(ScaleTransform.ScaleXProperty, null);

@@ -262,6 +262,8 @@ public partial class App : Application
         // Remote control
         Udp = new UdpServer(Engine, Ui);
         Web = new WebServer(new WebHost(Dispatcher, Engine, Achievements, Voice));
+        Web.Devices.Paired += _ => Achievements.Unlock("pair");
+        Web.PointerMoved += () => Achievements.Unlock("touchpad");
         Web.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
         ApplySettings();
         InitUpdates();
@@ -404,6 +406,7 @@ public partial class App : Application
         Config.Settings.Paused = paused;
         RebuildIndex();
         Log.Info(paused ? "K-Desktop en pausa" : "K-Desktop reanudado");
+        if (paused) Achievements.Unlock("pause");
         WakeListener.Refresh(); // paused: the microphone closes
         Ui.ShowOsd(Loc.T(paused ? "pause.osdOn" : "pause.osdOff"));
         if (_tray is not null) _tray.ToolTipText = TrayTooltip();

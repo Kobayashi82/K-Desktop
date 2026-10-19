@@ -499,6 +499,7 @@ public partial class WakeWordDialog : FluentWindow
             // The detector trained while trying it; otherwise the listener trains it from the recordings.
             if (_detector is { IsCompletedSuccessfully: true, Result: { } detector }) _app.Voice.WakeWords.Save(word, detector);
             Saved = word;
+            _app.Achievements.Unlock("wake-create");
             Log.Info($"Palabra de activación guardada: «{word.Name}» ({word.Recordings.Count} grabaciones, umbral {word.Threshold:0.000})");
             Close();
         }

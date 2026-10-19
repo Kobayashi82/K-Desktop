@@ -56,6 +56,8 @@ public sealed class AchievementService : IDisposable
         d.RunsBySource ??= new();
         d.ActionKinds ??= [];
         d.Unlocked ??= new();
+        // Achievements that no longer exist (e.g. «about», removed in 5.0.42)
+        foreach (var id in d.Unlocked.Keys.Where(id => AchievementCatalog.Get(id) is null).ToList()) d.Unlocked.Remove(id);
         if (d.FirstUse == default || d.FirstUse > DateTime.Now) d.FirstUse = DateTime.Now;
         return d;
     }
@@ -161,6 +163,9 @@ public sealed class AchievementService : IDisposable
         Raise(unlocked);
     }
 
+    /// <summary>When the last commands run by hand (hotkeys, menus, remote…) were started, for «speedrun».</summary>
+    private readonly Queue<DateTime> _recentRuns = new();
+
     /// <summary>A command finished: counters per command, per origin, and command-level achievements.</summary>
     public void CommandExecuted(Command command, TriggerSource source)
     {
@@ -176,7 +181,17 @@ public sealed class AchievementService : IDisposable
             unlocked = Evaluate(Stat.CommandsRun);
             unlocked.AddRange(Evaluate(Stat.RemoteRun));
             if (command.Actions.Count(a => a.Enabled) >= 5) UnlockLocked(AchievementCatalog.Get("multi")!, unlocked);
-            if (DateTime.Now.Hour is >= 3 and < 5 && source != TriggerSource.Startup) UnlockLocked(AchievementCatalog.Get("night-owl")!, unlocked);
+            if (source is not (TriggerSource.Startup or TriggerSource.Exit or TriggerSource.Event or TriggerSource.Command))
+            {
+                var now = DateTime.Now;
+                if (now.Hour is >= 3 and < 5) UnlockLocked(AchievementCatalog.Get("night-owl")!, unlocked);
+                if (now.DayOfWeek == DayOfWeek.Sunday) UnlockLocked(AchievementCatalog.Get("sunday")!, unlocked);
+                // 10 commands within a minute
+                _recentRuns.Enqueue(now);
+                while (_recentRuns.Count > 10) _recentRuns.Dequeue();
+                if (_recentRuns.Count == 10 && now - _recentRuns.Peek() <= TimeSpan.FromMinutes(1))
+                    UnlockLocked(AchievementCatalog.Get("speedrun")!, unlocked);
+            }
             Touch();
         }
         Raise(unlocked);
@@ -267,7 +282,13 @@ public sealed class AchievementService : IDisposable
     public void CheckTime()
     {
         List<AchievementDef> unlocked;
-        lock (_gate) unlocked = Evaluate(Stat.Days);
+        lock (_gate)
+        {
+            unlocked = Evaluate(Stat.Days);
+            // Three days in a row without closing K-Desktop
+            if (DateTime.Now - System.Diagnostics.Process.GetCurrentProcess().StartTime >= TimeSpan.FromDays(3))
+                UnlockLocked(AchievementCatalog.Get("marathon")!, unlocked);
+        }
         if (unlocked.Count > 0)
         {
             lock (_gate) Touch();

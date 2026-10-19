@@ -64,8 +64,7 @@
         <!-- Achievement card -->
         <DataTemplate x:Key="AchievementCard" DataType="{x:Type p:AchievementItem}">
             <Border x:Name="Frame" Height="104" Margin="0,0,10,10" CornerRadius="10" Padding="14,12" BorderThickness="1"
-                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                    ToolTip="{Binding Description}">
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />

@@ -39,4 +39,16 @@ public class LanguageTests
             if (info.Create().HasEnd) Assert.Contains($"event.endHint.{info.Kind}", es.Keys);
         }
     }
+
+    [Fact]
+    public void EveryAchievementHasItsTexts()
+    {
+        var es = Load("es");
+        foreach (var def in Achievements.AchievementCatalog.All.Where(a => a.Kind is null))
+        {
+            Assert.Contains($"ach.{def.Id}.name", es.Keys);
+            if (def.Stat is null || def.Stat == Achievements.Stat.Kinds) Assert.Contains($"ach.{def.Id}.desc", es.Keys);
+            else Assert.Contains(def.Target == 1 ? $"goal.{def.Stat}.1" : $"goal.{def.Stat}", es.Keys);
+        }
+    }
 }

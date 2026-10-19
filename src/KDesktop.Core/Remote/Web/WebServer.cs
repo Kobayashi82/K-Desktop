@@ -65,6 +65,9 @@ public sealed partial class WebServer : IDisposable
 
     public event Action? StateChanged;
 
+    /// <summary>A touchpad moved this PC's pointer (once per connection).</summary>
+    public event Action? PointerMoved;
+
     public void Start(WebServerOptions options)
     {
         options = options with { BasePath = NormalizeBasePath(options.BasePath) };
