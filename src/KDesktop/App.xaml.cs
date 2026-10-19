@@ -87,6 +87,7 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        Views.InputPolish.Register();
         DispatcherUnhandledException += (_, args) =>
         {
             Log.Error("Excepción no controlada en la UI", args.Exception);
@@ -202,6 +203,7 @@ public partial class App : Application
                 {
                     case BuiltInHotkey.ShowWindow: ShowMainWindow(); break;
                     case BuiltInHotkey.Launcher: Launcher.Show(front); break;
+                    case BuiltInHotkey.Pause: SetPaused(!Config.Settings.Paused); break;
                     default: _ = ExitAsync(Config.Settings.ExitSound); break;
                 }
             });
@@ -410,6 +412,20 @@ public partial class App : Application
 
     private string TrayTooltip() => Config.Settings.Paused ? Loc.T("pause.tooltip", AppPaths.VersionName) : AppPaths.VersionName;
 
+    /// <summary>Reads the chosen language again (its files may have changed) and redoes the texts built in code.</summary>
+    public void ReloadLanguage()
+    {
+        Loc.Instance.Load(Config.Settings.Language);
+        foreach (var action in Config.Commands.SelectMany(c => c.Actions)) action.RefreshSummary();
+        foreach (var macro in Config.Macros) macro.RefreshTexts();
+        foreach (var profile in Config.KBoards) profile.RefreshTexts();
+        foreach (var rule in Config.Events) rule.RefreshTexts();
+        // The tray menu is built in code: rebuild it in the new language.
+        _tray?.Dispose();
+        _tray = null;
+        UpdateTray();
+    }
+
     /// <summary>Applies settings that have side effects (theme, tray, UDP).</summary>
     public void ApplySettings()
     {
@@ -427,15 +443,8 @@ public partial class App : Application
         if (s.Language != _appliedLanguage)
         {
             _appliedLanguage = s.Language;
-            Loc.Instance.Load(s.Language);
-            foreach (var action in Config.Commands.SelectMany(c => c.Actions)) action.RefreshSummary();
-            foreach (var macro in Config.Macros) macro.RefreshTexts();
-            foreach (var profile in Config.KBoards) profile.RefreshTexts();
-            foreach (var rule in Config.Events) rule.RefreshTexts();
+            ReloadLanguage();
             Achievements.Unlock("polyglot");
-            // The tray menu is built in code: rebuild it in the new language.
-            _tray?.Dispose();
-            _tray = null;
         }
 
         if (s.WebFavicons != _appliedFavicons)

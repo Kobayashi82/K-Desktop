@@ -473,7 +473,9 @@ public partial class CommandsPage : UserControl, IDisposable
         if (Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.ShowWindowHotkey)) ||
             Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.ExitHotkey)) ||
             Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.VoiceHotkey)) ||
-            Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.DisabledInHotkey)))
+            Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.DisabledInHotkey)) ||
+            Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.PauseHotkey)) ||
+            Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.LauncherHotkey)))
             others.Add("K-Desktop");
         if (others.Count > 0) lines.Insert(0, Loc.T("commands.hotkeyConflict", hotkey, string.Join(", ", others)));
         HotkeyWarning.Text = string.Join(Environment.NewLine, lines);

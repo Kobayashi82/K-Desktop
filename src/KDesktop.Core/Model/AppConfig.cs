@@ -63,6 +63,12 @@ public sealed class AppConfig
             Settings.VoiceListenSound = "Toc";
             changed = true;
         }
+        // Until 5.0.34 the update address was the whole manifest; now it is the server and «kdesktop.json» is added.
+        if (Settings.UpdateUrl == "https://kobayashi82.net/kdesktop/latest.json")
+        {
+            Settings.UpdateUrl = AppSettings.DefaultUpdateUrl;
+            changed = true;
+        }
         changed |= MigrateStartupAndExit();
         if (SchemaVersion < CurrentSchema)
         {
@@ -286,10 +292,21 @@ public partial class AppSettings : ObservableObject
     /// <summary>Off: never checks; Notify: checks and tells; Auto: also downloads and installs (restarting when idle).</summary>
     [ObservableProperty] private UpdateMode _updateMode = UpdateMode.Auto;
 
-    /// <summary>The update manifest (JSON) to check; see UpdateService.</summary>
+    /// <summary>Where the updates are: the manifest is «kdesktop.json» there (see <see cref="ManifestUrl"/>).</summary>
     [ObservableProperty] private string _updateUrl = DefaultUpdateUrl;
 
-    public const string DefaultUpdateUrl = "https://kobayashi82.net/kdesktop/latest.json";
+    public const string DefaultUpdateUrl = "https://kobayashi82.net";
+
+    /// <summary>The name of the update manifest, added to <see cref="UpdateUrl"/>.</summary>
+    public const string ManifestName = "kdesktop.json";
+
+    /// <summary>The manifest to check for an address: «https://server/path» → «https://server/path/kdesktop.json».
+    /// A full address of a .json (as older versions saved it) is used as it is.</summary>
+    public static string ManifestUrl(string? address)
+    {
+        var url = string.IsNullOrWhiteSpace(address) ? DefaultUpdateUrl : address.Trim();
+        return url.EndsWith(".json", StringComparison.OrdinalIgnoreCase) ? url : url.TrimEnd('/') + "/" + ManifestName;
+    }
 
     // Achievements
     [ObservableProperty] private bool _achievementNotifications = true;
@@ -382,6 +399,9 @@ public partial class AppSettings : ObservableObject
 
     /// <summary>Adds the app in front to <see cref="DisabledIn"/>, or takes it out (it works there too). Empty: none.</summary>
     [ObservableProperty] private string _disabledInHotkey = string.Empty;
+
+    /// <summary>Pauses K-Desktop or resumes it (it works while paused, like show-window and exit). Empty: none.</summary>
+    [ObservableProperty] private string _pauseHotkey = string.Empty;
 
     /// <summary>Processes where K-Desktop hotkeys are ignored ("Desactivar en").</summary>
     public ObservableCollection<string> DisabledIn { get; set { field = value ?? []; field.CollectionChanged += (_, _) => Touch(); } } = [];

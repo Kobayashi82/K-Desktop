@@ -4,7 +4,7 @@
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                  xmlns:l="clr-namespace:KDesktop.Localization"
                  xmlns:core="clr-namespace:KDesktop.Core;assembly=KDesktop.Core"
-                 Title="{x:Static core:AppPaths.VersionName}"
+                 Title="{x:Static core:AppPaths.AppName}"
                  Width="1300" Height="840"
                  MinWidth="1000" MinHeight="640"
                  WindowStartupLocation="CenterScreen"
@@ -51,7 +51,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <ui:TitleBar Grid.Row="0" Title="{x:Static core:AppPaths.VersionName}" ShowHelp="False">
+        <ui:TitleBar Grid.Row="0" Title="{x:Static core:AppPaths.AppName}" ShowHelp="False">
             <ui:TitleBar.Icon>
                 <ui:ImageIcon Source="pack://application:,,,/KDesktop;component/Assets/Icons/KDesktop.ico" Width="16" Height="16" />
             </ui:TitleBar.Icon>

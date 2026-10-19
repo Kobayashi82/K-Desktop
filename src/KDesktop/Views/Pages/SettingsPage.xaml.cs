@@ -148,8 +148,9 @@ public partial class SettingsPage : UserControl
         VoiceMicBox.SelectedItem = mics.First(m => m.Id == chosen);
         UpdateOptionalHotkeys();
         UpdateWakeWords();
-        VoiceUnloadBox.ItemsSource = new[] { 1, 5, 10, 30, 60 }.Select(m => new MinutesOption(m, Loc.T("settings.voiceUnloadMinutes", m))).ToList();
-        VoiceDuckBox.ItemsSource = new[] { 0, 10, 20, 35, 50 }.Select(p => new MinutesOption(p, $"{p} %")).ToList();
+        VoiceUnloadBox.ItemsSource = new[] { 1, 5, 10, 30, 60, 0 }
+            .Select(m => new MinutesOption(m, m == 0 ? Loc.T("settings.voiceUnloadNever") : Loc.T("settings.voiceUnloadMinutes", m))).ToList();
+        VoiceDuckBox.ItemsSource = new[] { 0, 10, 20, 35, 50, 80 }.Select(p => new MinutesOption(p, $"{p} %")).ToList();
         _loadingVoice = false;
     }
 
@@ -232,6 +233,7 @@ public partial class SettingsPage : UserControl
         ShowOptionalHotkey(VoiceHotkeyButton, VoiceHotkeyClear, _app.Config.Settings.VoiceHotkey);
         ShowOptionalHotkey(DisabledInHotkeyButton, DisabledInHotkeyClear, _app.Config.Settings.DisabledInHotkey);
         ShowOptionalHotkey(LauncherHotkeyButton, LauncherHotkeyClear, _app.Config.Settings.LauncherHotkey);
+        ShowOptionalHotkey(PauseHotkeyButton, PauseHotkeyClear, _app.Config.Settings.PauseHotkey);
     }
 
     /// <summary>A hotkey that may be unset: «Sin atajo» and no clear button then.</summary>
@@ -358,7 +360,7 @@ public partial class SettingsPage : UserControl
         WebStateInfo.ToolTip = running ? string.Join(Environment.NewLine, WebServer.LocalUrls(s.WebPort, s.WebBasePath)) : null;
         WebStateText.Text = _app.Web.State switch
         {
-            WebServerState.Running => Loc.T("settings.webRunning"),
+            WebServerState.Running => Loc.T("settings.udpAddresses"),
             WebServerState.LocalOnly => Loc.T("settings.webLocalOnly"),
             WebServerState.Error => Loc.T("settings.webError"),
             _ => !_app.WebAllowed ? Loc.T("settings.webDisabledArg") : Loc.T("settings.webStopped"),
@@ -414,6 +416,15 @@ public partial class SettingsPage : UserControl
     private void LoadLanguages() =>
         LanguageBox.ItemsSource = new[] { new LanguageOption(null, Loc.T("settings.languageSystem")) }
             .Concat(Loc.Available().Select(l => new LanguageOption(l.Code, l.Name))).ToList();
+
+    /// <summary>Looks for new language files and reads the chosen one again (after editing a translation).</summary>
+    private void OnReloadLanguages(object sender, RoutedEventArgs e)
+    {
+        _app.ReloadLanguage();
+        LoadLanguages();
+        LanguageBox.SelectedValue = _app.Config.Settings.Language;
+        _app.Ui.ShowOsd(Loc.T("settings.languagesReloaded"), OsdKind.Success);
+    }
 
     // ── updates ──────────────────────────────────────────────────────────
 
@@ -524,6 +535,15 @@ public partial class SettingsPage : UserControl
     }
 
     private void OnPauseToggle(object sender, RoutedEventArgs e) => _app.SetPaused(PauseToggle.IsChecked == true);
+
+    private void OnCapturePauseHotkey(object sender, RoutedEventArgs e) =>
+        CaptureOptionalHotkey(PauseHotkeyButton, hk => _app.Config.Settings.PauseHotkey = hk);
+
+    private void OnClearPauseHotkey(object sender, RoutedEventArgs e)
+    {
+        _app.Config.Settings.PauseHotkey = string.Empty;
+        UpdateOptionalHotkeys();
+    }
 
     private void OnStartupToggle(object sender, RoutedEventArgs e)
     {

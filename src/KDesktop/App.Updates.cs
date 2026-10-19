@@ -55,7 +55,7 @@ public partial class App
     {
         var s = Config.Settings;
         if (!manual && s.UpdateMode == UpdateMode.Off) return;
-        var info = await Updates.CheckAsync(s.UpdateUrl);
+        var info = await Updates.CheckAsync(AppSettings.ManifestUrl(s.UpdateUrl));
         if (info is null) return;
 
         if (s.UpdateMode == UpdateMode.Auto && UpdateService.CanInstall && !manual)

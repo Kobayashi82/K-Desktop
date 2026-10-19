@@ -2,7 +2,7 @@
   Prepares an update for K-Desktop's auto-updater from the portable build:
     artifacts\update\KDesktop-<version>.exe
     artifacts\update\KDesktop-<version>.apk   the Android app (it also travels inside the exe: phones update from the PC)
-    artifacts\update\latest.json          { version, date, url, sha256, size, notes, android }
+    artifacts\update\kdesktop.json          { version, date, url, sha256, size, notes, android }
   Upload the folder's files to where the "Update address" points (default https://kobayashi82.net/kdesktop/).
   Publishing the portable runs it by itself (target MakeUpdate in KDesktop.csproj).
 
@@ -32,7 +32,7 @@ $name = "KDesktop-$version.exe"
 New-Item -ItemType Directory -Force $OutDir | Out-Null
 
 # The notes of this same version when none are given (the build runs this script without them).
-$manifestPath = Join-Path $OutDir "latest.json"
+$manifestPath = Join-Path $OutDir "kdesktop.json"
 $previous = $null
 if (Test-Path $manifestPath) { try { $previous = [System.IO.File]::ReadAllText($manifestPath) | ConvertFrom-Json } catch { } }
 
@@ -86,4 +86,4 @@ finally { $archive.Dispose() }
 "  release: $zip ($([Math]::Round((Get-Item $zip).Length / 1MB, 1)) MB)"
 "  $name ($([Math]::Round($size / 1MB, 1)) MB)"
 if ($manifest.android) { "  $($manifest.android.url) ($([Math]::Round($manifest.android.size / 1KB)) KB)" }
-"  latest.json (sha256 $sha)"
+"  kdesktop.json (sha256 $sha)"

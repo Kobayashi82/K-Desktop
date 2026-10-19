@@ -63,8 +63,11 @@ public partial class WakeWordDialog : FluentWindow
             if (_meter is not null) _meter.Value = _busy ? Math.Sqrt(_recorder.Level) : 0;
         };
         _meterTimer.Start();
+        // Saying the word here is a recording or a test, not a call: the always-on listening waits until it closes.
+        var hold = _app.WakeListener.Hold();
         Closed += (_, _) =>
         {
+            hold.Dispose();
             _cancel.Cancel();
             _meterTimer.Stop();
             _recorder.Dispose();

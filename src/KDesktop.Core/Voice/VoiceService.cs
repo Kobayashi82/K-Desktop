@@ -254,10 +254,14 @@ public sealed partial class VoiceService : IDisposable
         return Task.Run(() => IntentMatcher.Plan(text, commands, media, Semantic));
     }
 
+    /// <summary>How long the models stay in memory without use (0 = «Nunca»: they stay loaded).</summary>
+    private static TimeSpan UnloadAfter(AppSettings settings) =>
+        settings.VoiceUnloadMinutes <= 0 ? Timeout.InfiniteTimeSpan : TimeSpan.FromMinutes(settings.VoiceUnloadMinutes);
+
     /// <summary>Parakeet and the meaning model load in the background while the user is still speaking.</summary>
     private void PreloadModels(AppSettings settings)
     {
-        var idle = TimeSpan.FromMinutes(Math.Max(1, settings.VoiceUnloadMinutes));
+        var idle = UnloadAfter(settings);
         SpeechToText.IdleUnload = idle;
         Semantic.IdleUnload = idle;
         SpeechToText.Preload();

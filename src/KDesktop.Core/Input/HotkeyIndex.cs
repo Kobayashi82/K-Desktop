@@ -32,6 +32,9 @@ public sealed class HotkeyIndex
 
     /// <summary>Turns «Desactivar en» on/off for the app in front (Settings › Desactivar en); empty when unset or paused.</summary>
     public string DisabledInHotkey { get; }
+
+    /// <summary>Pauses or resumes K-Desktop (Settings › General); it stays while paused. Empty when unset.</summary>
+    public string PauseHotkey { get; }
     public bool BlockSideButtons { get; }
 
     /// <param name="paused">K-Desktop paused: only its own hotkeys (show window, exit) stay; no commands, no blocking.</param>
@@ -61,6 +64,7 @@ public sealed class HotkeyIndex
         ExitHotkey = Hotkey.Normalize(settings.ExitHotkey);
         VoiceHotkey = paused || string.IsNullOrWhiteSpace(settings.VoiceHotkey) ? string.Empty : Hotkey.Normalize(settings.VoiceHotkey);
         DisabledInHotkey = paused || string.IsNullOrWhiteSpace(settings.DisabledInHotkey) ? string.Empty : Hotkey.Normalize(settings.DisabledInHotkey);
+        PauseHotkey = string.IsNullOrWhiteSpace(settings.PauseHotkey) ? string.Empty : Hotkey.Normalize(settings.PauseHotkey);
         LauncherHotkey = paused || string.IsNullOrWhiteSpace(settings.LauncherHotkey) ? string.Empty : Hotkey.Normalize(settings.LauncherHotkey);
         BlockSideButtons = settings.BlockSideButtons && !paused;
         _voiceAnywhere = settings.VoiceIgnoreDisabledApps;
@@ -70,6 +74,9 @@ public sealed class HotkeyIndex
     }
 
     public bool Contains(string hotkey) => _map.ContainsKey(hotkey);
+
+    public bool IsPauseHotkey(string hotkey) =>
+        PauseHotkey.Length > 0 && hotkey.Equals(PauseHotkey, StringComparison.OrdinalIgnoreCase);
 
     public bool IsDisabledInHotkey(string hotkey) =>
         DisabledInHotkey.Length > 0 && hotkey.Equals(DisabledInHotkey, StringComparison.OrdinalIgnoreCase);

@@ -24,7 +24,7 @@ public sealed partial class VoiceService
         {
             StateChanged?.Invoke();
             var settings = _config().Settings;
-            SpeechToText.IdleUnload = TimeSpan.FromMinutes(Math.Max(1, settings.VoiceUnloadMinutes));
+            SpeechToText.IdleUnload = UnloadAfter(settings);
 
             float[] clip;
             using (var vad = new VoiceActivity(EndSilence))

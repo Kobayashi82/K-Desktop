@@ -44,6 +44,30 @@ public sealed class WakeWordListener : IDisposable
 
     public bool IsRunning { get; private set; }
 
+    private int _holds;
+
+    /// <summary>
+    /// Stops listening while the returned object lives (the wake word dialog records and tests the word itself: hearing
+    /// it there is not a real call).
+    /// </summary>
+    public IDisposable Hold()
+    {
+        Interlocked.Increment(ref _holds);
+        Refresh();
+        var released = 0;
+        return new Releaser(() =>
+        {
+            if (Interlocked.Exchange(ref released, 1) != 0) return;
+            Interlocked.Decrement(ref _holds);
+            Refresh();
+        });
+    }
+
+    private sealed class Releaser(Action release) : IDisposable
+    {
+        public void Dispose() => release();
+    }
+
     /// <summary>Raised (any thread) when the listening starts or stops.</summary>
     public event Action? StateChanged;
 
@@ -59,7 +83,7 @@ public sealed class WakeWordListener : IDisposable
             var models = VoiceModels.AllInstalled;
             var words = _voice.WakeWords.Active.ToList();
             if (models && words.Any(w => w.Detector is null)) TrainMissing(words);
-            var wanted = s.VoiceWakeListen && !s.Paused && models && words.Any(w => w.Detector is not null);
+            var wanted = s.VoiceWakeListen && !s.Paused && Volatile.Read(ref _holds) == 0 && models && words.Any(w => w.Detector is not null);
             lock (_gate)
             {
                 // Another microphone chosen, or the echo cancellation switched: start again with it.
