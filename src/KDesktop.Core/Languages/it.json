@@ -1232,8 +1232,8 @@
   "nav.kboard": "K-Board",
   "nav.achievements": "Obiettivi",
 
-  "tray.open": "Apri K-Desktop",
-  "tray.achievements": "Obiettivi e statistiche",
+  "tray.show": "Mostra",
+  "tray.hide": "Nascondi",
   "tray.kboard": "Apri K-Board",
   "tray.exit": "Esci",
 

@@ -1232,8 +1232,8 @@
   "nav.kboard": "K-Board",
   "nav.achievements": "Erfolge",
 
-  "tray.open": "K-Desktop öffnen",
-  "tray.achievements": "Erfolge und Statistiken",
+  "tray.show": "Anzeigen",
+  "tray.hide": "Ausblenden",
   "tray.kboard": "K-Board öffnen",
   "tray.exit": "Beenden",
 

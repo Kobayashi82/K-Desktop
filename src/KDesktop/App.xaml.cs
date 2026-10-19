@@ -487,23 +487,34 @@ public partial class App : Application
     {
         if (_tray is not null) return;
         var menu = new ContextMenu();
-        menu.Items.Add(TrayItem(Loc.T("tray.open"), (_, _) => ShowMainWindow()));
+        // Show or hide, by whether the window is on screen (minimized counts as hidden).
+        var window = TrayItem(string.Empty, (_, _) =>
+        {
+            if (MainWindowShown) _main!.Close();
+            else ShowMainWindow();
+        });
+        menu.Items.Add(window);
         menu.Items.Add(new Separator());
-        var kboard = new MenuItem { Header = "K-Board" };
-        kboard.Items.Add(new MenuItem()); // placeholder so it opens as a submenu; filled when opened
-        kboard.SubmenuOpened += (_, _) => FillKBoardMenu(kboard);
-        menu.Items.Add(kboard);
+        menu.Items.Add(TrayItem(Loc.T("tray.launcher"), (_, _) => Launcher.Show(ForegroundWindow.Capture())));
+        menu.Items.Add(new Separator());
         var events = new MenuItem { Header = Loc.T("tray.events") };
         events.Items.Add(new MenuItem()); // placeholder so it opens as a submenu; filled when opened
         events.SubmenuOpened += (_, _) => FillEventsMenu(events);
         menu.Items.Add(events);
-        menu.Items.Add(TrayItem(Loc.T("tray.launcher"), (_, _) => Launcher.Show(ForegroundWindow.Capture())));
-        menu.Items.Add(TrayItem(Loc.T("tray.achievements"), (_, _) => ShowMainWindow(w => w.Navigate("achievements"))));
+        var kboard = new MenuItem { Header = "K-Board" };
+        kboard.Items.Add(new MenuItem()); // placeholder so it opens as a submenu; filled when opened
+        kboard.SubmenuOpened += (_, _) => FillKBoardMenu(kboard);
+        menu.Items.Add(kboard);
         menu.Items.Add(new Separator());
         var pause = TrayItem(string.Empty, (_, _) => SetPaused(!Config.Settings.Paused));
         menu.Items.Add(pause);
-        menu.Opened += (_, _) => pause.Header = Loc.T(Config.Settings.Paused ? "pause.resume" : "pause.pause");
+        menu.Items.Add(new Separator());
         menu.Items.Add(TrayItem(Loc.T("tray.exit"), (_, _) => _ = ExitAsync()));
+        menu.Opened += (_, _) =>
+        {
+            window.Header = Loc.T(MainWindowShown ? "tray.hide" : "tray.show");
+            pause.Header = Loc.T(Config.Settings.Paused ? "pause.resume" : "pause.pause");
+        };
 
         _tray = new TaskbarIcon
         {
@@ -516,6 +527,8 @@ public partial class App : Application
         ApplyTrayIcon();
         _tray.ForceCreate(false);
     }
+
+    private bool MainWindowShown => _main is { IsVisible: true } m && m.WindowState != WindowState.Minimized;
 
     private string? _appliedTrayIcon;
 
