@@ -411,7 +411,7 @@
   "settings.webStopped": "Fermo.",
   "settings.webDisabledArg": "Disattivato dalla riga di comando (--no-web).",
   "settings.webPublicUrl": "Indirizzo internet",
-  "settings.webPublicUrlHint": "Facoltativo, solo se entri da fuori tramite un proxy (es. https://kdesktop.miodominio.com o https://miodominio.com/kdesktop). Va nel codice QR e l’app Android lo prova insieme a quello di casa.",
+  "settings.webPublicUrlHint": "Facoltativo, solo se entri da fuori tramite un proxy.",
   "settings.webInput": "Touchpad e tastiera",
   "settings.webInputHint": "L’app web può muovere il mouse, fare clic e scrivere su questo PC.",
   "settings.webOpen": "Apri nel browser",
@@ -1029,9 +1029,6 @@
   "editor.event": "Evento",
   "osd.eventEnabled": "Evento attivato: {0}",
   "osd.eventDisabled": "Evento disattivato: {0}",
-  "tray.events": "Eventi",
-  "tray.openEvents": "Apri Eventi",
-  "tray.noEvents": "Nessun evento",
   "summary.waitSeconds": "Attendi {0} s",
 
   "power.Shutdown": "Arresta",
@@ -1225,7 +1222,6 @@
 
   "tray.show": "Mostra",
   "tray.hide": "Nascondi",
-  "tray.kboard": "Apri K-Board",
   "tray.exit": "Esci",
 
   "commands.dragHint": "Trascina per cambiare l’ordine",
@@ -2008,7 +2004,6 @@
   "kboard.new": "Nuovo profilo",
   "kboard.newName": "Nuovo profilo",
   "kboard.listEmpty": "Crea un profilo per riassegnare tasti e pulsanti del mouse: Bloc Maiusc come Ctrl, disattivare il tasto Windows nei giochi, pulsanti laterali che copiano e incollano…",
-  "kboard.listEmptyShort": "Nessun profilo",
   "kboard.emptyTitle": "Nessun profilo selezionato",
   "kboard.emptyText": "K-Board cambia ciò che fanno i tasti e i pulsanti del mouse, ovunque o solo nelle applicazioni che scegli.",
   "kboard.namePlaceholder": "Nome del profilo",

@@ -411,7 +411,7 @@
   "settings.webStopped": "Stopped.",
   "settings.webDisabledArg": "Disabled from the command line (--no-web).",
   "settings.webPublicUrl": "Internet address",
-  "settings.webPublicUrlHint": "Optional, only if you come in from outside through a proxy (e.g. https://kdesktop.mydomain.com or https://mydomain.com/kdesktop). It goes in the QR code and the Android app tries it as well as the home one.",
+  "settings.webPublicUrlHint": "Optional, only if you come in from outside through a proxy.",
   "settings.webInput": "Touchpad and keyboard",
   "settings.webInputHint": "The web app can move the mouse, click and type on this PC.",
   "settings.webOpen": "Open in the browser",
@@ -1029,9 +1029,6 @@
   "editor.event": "Event",
   "osd.eventEnabled": "Event on: {0}",
   "osd.eventDisabled": "Event off: {0}",
-  "tray.events": "Events",
-  "tray.openEvents": "Open Events",
-  "tray.noEvents": "No events",
   "summary.waitSeconds": "Wait {0} s",
 
   "power.Shutdown": "Shut down",
@@ -1225,7 +1222,6 @@
 
   "tray.show": "Show",
   "tray.hide": "Hide",
-  "tray.kboard": "Open K-Board",
   "tray.exit": "Exit",
 
   "commands.dragHint": "Drag to change the order",
@@ -2008,7 +2004,6 @@
   "kboard.new": "New profile",
   "kboard.newName": "New profile",
   "kboard.listEmpty": "Create a profile to remap keys and mouse buttons: Caps Lock as Ctrl, disable the Windows key in games, side buttons that copy and paste…",
-  "kboard.listEmptyShort": "No profiles",
   "kboard.emptyTitle": "No profile selected",
   "kboard.emptyText": "K-Board changes what keys and mouse buttons do, everywhere or only in the applications you choose.",
   "kboard.namePlaceholder": "Profile name",

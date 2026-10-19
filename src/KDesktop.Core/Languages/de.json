@@ -411,7 +411,7 @@
   "settings.webStopped": "Angehalten.",
   "settings.webDisabledArg": "Über die Befehlszeile deaktiviert (--no-web).",
   "settings.webPublicUrl": "Internetadresse",
-  "settings.webPublicUrlHint": "Optional, nur wenn du von außen über einen Proxy zugreifst (z. B. https://kdesktop.meinedomain.de oder https://meinedomain.de/kdesktop). Sie kommt in den QR-Code und die Android-App probiert sie neben der Adresse zu Hause.",
+  "settings.webPublicUrlHint": "Optional, nur wenn du von außen über einen Proxy zugreifst.",
   "settings.webInput": "Touchpad und Tastatur",
   "settings.webInputHint": "Die Web-App kann die Maus bewegen, klicken und auf diesem PC tippen.",
   "settings.webOpen": "Im Browser öffnen",
@@ -1029,9 +1029,6 @@
   "editor.event": "Ereignis",
   "osd.eventEnabled": "Ereignis aktiviert: {0}",
   "osd.eventDisabled": "Ereignis deaktiviert: {0}",
-  "tray.events": "Ereignisse",
-  "tray.openEvents": "Ereignisse öffnen",
-  "tray.noEvents": "Keine Ereignisse",
   "summary.waitSeconds": "{0} s warten",
 
   "power.Shutdown": "Herunterfahren",
@@ -1225,7 +1222,6 @@
 
   "tray.show": "Anzeigen",
   "tray.hide": "Ausblenden",
-  "tray.kboard": "K-Board öffnen",
   "tray.exit": "Beenden",
 
   "commands.dragHint": "Ziehen, um die Reihenfolge zu ändern",
@@ -2008,7 +2004,6 @@
   "kboard.new": "Neues Profil",
   "kboard.newName": "Neues Profil",
   "kboard.listEmpty": "Erstelle ein Profil, um Tasten und Maustasten neu zu belegen: Feststelltaste als Strg, Windows-Taste in Spielen deaktivieren, Seitentasten zum Kopieren und Einfügen…",
-  "kboard.listEmptyShort": "Keine Profile",
   "kboard.emptyTitle": "Kein Profil ausgewählt",
   "kboard.emptyText": "K-Board ändert, was Tasten und Maustasten tun, überall oder nur in den Anwendungen, die du wählst.",
   "kboard.namePlaceholder": "Name des Profils",

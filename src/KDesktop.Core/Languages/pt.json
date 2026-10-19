@@ -411,7 +411,7 @@
   "settings.webStopped": "Parado.",
   "settings.webDisabledArg": "Desativado pela linha de comando (--no-web).",
   "settings.webPublicUrl": "Endereço de internet",
-  "settings.webPublicUrlHint": "Opcional, só se você entra de fora por um proxy (ex.: https://kdesktop.meudominio.com ou https://meudominio.com/kdesktop). Vai no código QR e o app Android o tenta junto com o de casa.",
+  "settings.webPublicUrlHint": "Opcional, só se você entra de fora por um proxy.",
   "settings.webInput": "Touchpad e teclado",
   "settings.webInputHint": "O app web pode mover o mouse, clicar e digitar neste PC.",
   "settings.webOpen": "Abrir no navegador",
@@ -1029,9 +1029,6 @@
   "editor.event": "Evento",
   "osd.eventEnabled": "Evento ativado: {0}",
   "osd.eventDisabled": "Evento desativado: {0}",
-  "tray.events": "Eventos",
-  "tray.openEvents": "Abrir Eventos",
-  "tray.noEvents": "Sem eventos",
   "summary.waitSeconds": "Esperar {0} s",
 
   "power.Shutdown": "Desligar",
@@ -1225,7 +1222,6 @@
 
   "tray.show": "Mostrar",
   "tray.hide": "Ocultar",
-  "tray.kboard": "Abrir o K-Board",
   "tray.exit": "Sair",
 
   "commands.dragHint": "Arraste para mudar a ordem",
@@ -2008,7 +2004,6 @@
   "kboard.new": "Novo perfil",
   "kboard.newName": "Novo perfil",
   "kboard.listEmpty": "Crie um perfil para remapear teclas e botões do mouse: Caps Lock como Ctrl, desativar a tecla Windows nos jogos, botões laterais que copiam e colam…",
-  "kboard.listEmptyShort": "Nenhum perfil",
   "kboard.emptyTitle": "Nenhum perfil selecionado",
   "kboard.emptyText": "O K-Board muda o que fazem as teclas e os botões do mouse, em todo lugar ou só nos aplicativos que você escolher.",
   "kboard.namePlaceholder": "Nome do perfil",

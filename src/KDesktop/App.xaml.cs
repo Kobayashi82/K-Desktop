@@ -497,12 +497,6 @@ public partial class App : Application
         menu.Items.Add(new Separator());
         menu.Items.Add(TrayItem(Loc.T("tray.launcher"), (_, _) => Launcher.Show(ForegroundWindow.Capture())));
         menu.Items.Add(new Separator());
-        // The submenus are filled when the menu opens: filled as they open, the popup was placed with the old size.
-        var events = new MenuItem { Header = Loc.T("tray.events") };
-        menu.Items.Add(events);
-        var kboard = new MenuItem { Header = "K-Board" };
-        menu.Items.Add(kboard);
-        menu.Items.Add(new Separator());
         var pause = TrayItem(string.Empty, (_, _) => SetPaused(!Config.Settings.Paused));
         menu.Items.Add(pause);
         menu.Items.Add(new Separator());
@@ -511,8 +505,6 @@ public partial class App : Application
         {
             window.Header = Loc.T(MainWindowShown ? "tray.hide" : "tray.show");
             pause.Header = Loc.T(Config.Settings.Paused ? "pause.resume" : "pause.pause");
-            FillEventsMenu(events);
-            FillKBoardMenu(kboard);
         };
 
         _tray = new TaskbarIcon
@@ -543,44 +535,6 @@ public partial class App : Application
         _appliedTrayIcon = key;
         if (TrayIcons.Custom(wanted, listening) is { } custom) _tray.Icon = custom;
         else _tray.IconSource = TrayIcons.Default();
-    }
-
-    /// <summary>One checkable entry per K-Board profile (switches it on / off) and a shortcut to the page.</summary>
-    private void FillKBoardMenu(MenuItem parent)
-    {
-        parent.Items.Clear();
-        foreach (var profile in Config.KBoards.OrderBy(k => k.Name, StringComparer.CurrentCultureIgnoreCase))
-        {
-            var item = new MenuItem { Header = profile.Name, IsCheckable = true, IsChecked = profile.Active, StaysOpenOnClick = true };
-            item.Click += (_, _) =>
-            {
-                profile.Active = item.IsChecked;
-                Ui.ShowOsd(Loc.T(profile.Active ? "osd.kboardOn" : "osd.kboardOff", profile.Name), profile.Active ? OsdKind.Success : OsdKind.Info);
-            };
-            parent.Items.Add(item);
-        }
-        if (Config.KBoards.Count == 0) parent.Items.Add(new MenuItem { Header = Loc.T("kboard.listEmptyShort"), IsEnabled = false });
-        parent.Items.Add(new Separator());
-        parent.Items.Add(TrayItem(Loc.T("tray.kboard"), (_, _) => ShowMainWindow(w => w.Navigate("kboard"))));
-    }
-
-    /// <summary>One checkable entry per event (switches it on / off) and a shortcut to the page.</summary>
-    private void FillEventsMenu(MenuItem parent)
-    {
-        parent.Items.Clear();
-        foreach (var rule in Config.Events)
-        {
-            var item = new MenuItem { Header = rule.Name, IsCheckable = true, IsChecked = rule.Enabled, StaysOpenOnClick = true, ToolTip = rule.Summary };
-            item.Click += (_, _) =>
-            {
-                rule.Enabled = item.IsChecked;
-                Ui.ShowOsd(Loc.T(rule.Enabled ? "osd.eventEnabled" : "osd.eventDisabled", rule.Name), rule.Enabled ? OsdKind.Success : OsdKind.Info);
-            };
-            parent.Items.Add(item);
-        }
-        if (Config.Events.Count == 0) parent.Items.Add(new MenuItem { Header = Loc.T("tray.noEvents"), IsEnabled = false });
-        parent.Items.Add(new Separator());
-        parent.Items.Add(TrayItem(Loc.T("tray.openEvents"), (_, _) => ShowMainWindow(w => w.Navigate("events"))));
     }
 
     private static MenuItem TrayItem(string header, RoutedEventHandler click)

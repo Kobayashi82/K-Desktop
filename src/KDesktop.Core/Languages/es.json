@@ -411,7 +411,7 @@
   "settings.webStopped": "Detenido.",
   "settings.webDisabledArg": "Desactivado desde la línea de comandos (--no-web).",
   "settings.webPublicUrl": "Dirección de internet",
-  "settings.webPublicUrlHint": "Opcional, solo si entras desde fuera a través de un proxy (p. ej. https://kdesktop.midominio.com o https://midominio.com/kdesktop). Va en el código QR y la app de Android la prueba junto a la de casa.",
+  "settings.webPublicUrlHint": "Opcional, solo si entras desde fuera a través de un proxy.",
   "settings.webInput": "Touchpad y teclado",
   "settings.webInputHint": "La aplicación web puede mover el ratón, hacer clic y escribir en este PC.",
   "settings.webOpen": "Abrir en el navegador",
@@ -1029,9 +1029,6 @@
   "editor.event": "Evento",
   "osd.eventEnabled": "Evento activado: {0}",
   "osd.eventDisabled": "Evento desactivado: {0}",
-  "tray.events": "Eventos",
-  "tray.openEvents": "Abrir Eventos",
-  "tray.noEvents": "Sin eventos",
   "summary.waitSeconds": "Esperar {0} s",
 
   "power.Shutdown": "Apagar el equipo",
@@ -1225,7 +1222,6 @@
 
   "tray.show": "Mostrar",
   "tray.hide": "Ocultar",
-  "tray.kboard": "Abrir K-Board",
   "tray.exit": "Salir",
 
   "commands.dragHint": "Arrastra para cambiar el orden",
@@ -2008,7 +2004,6 @@
   "kboard.new": "Nuevo perfil",
   "kboard.newName": "Nuevo perfil",
   "kboard.listEmpty": "Crea un perfil para reasignar teclas y botones del ratón: Bloq Mayús como Ctrl, desactivar la tecla Windows en juegos, botones laterales que copian y pegan…",
-  "kboard.listEmptyShort": "Sin perfiles",
   "kboard.emptyTitle": "Ningún perfil seleccionado",
   "kboard.emptyText": "K-Board cambia lo que hacen las teclas y los botones del ratón, en todas partes o solo en las aplicaciones que elijas.",
   "kboard.namePlaceholder": "Nombre del perfil",

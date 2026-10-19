@@ -411,7 +411,7 @@
   "settings.webStopped": "Arrêté.",
   "settings.webDisabledArg": "Désactivé depuis la ligne de commande (--no-web).",
   "settings.webPublicUrl": "Adresse internet",
-  "settings.webPublicUrlHint": "Facultatif, seulement si vous entrez de l’extérieur via un proxy (ex. https://kdesktop.mondomaine.com ou https://mondomaine.com/kdesktop). Elle figure dans le code QR et l’application Android l’essaie en plus de celle de la maison.",
+  "settings.webPublicUrlHint": "Facultatif, seulement si vous entrez de l’extérieur via un proxy.",
   "settings.webInput": "Pavé tactile et clavier",
   "settings.webInputHint": "L’application web peut déplacer la souris, cliquer et taper sur ce PC.",
   "settings.webOpen": "Ouvrir dans le navigateur",
@@ -1029,9 +1029,6 @@
   "editor.event": "Événement",
   "osd.eventEnabled": "Événement activé : {0}",
   "osd.eventDisabled": "Événement désactivé : {0}",
-  "tray.events": "Événements",
-  "tray.openEvents": "Ouvrir les événements",
-  "tray.noEvents": "Aucun événement",
   "summary.waitSeconds": "Attendre {0} s",
 
   "power.Shutdown": "Éteindre",
@@ -1225,7 +1222,6 @@
 
   "tray.show": "Afficher",
   "tray.hide": "Masquer",
-  "tray.kboard": "Ouvrir K-Board",
   "tray.exit": "Quitter",
 
   "commands.dragHint": "Faites glisser pour changer l’ordre",
@@ -2008,7 +2004,6 @@
   "kboard.new": "Nouveau profil",
   "kboard.newName": "Nouveau profil",
   "kboard.listEmpty": "Créez un profil pour réaffecter touches et boutons de la souris : Verr. Maj comme Ctrl, désactiver la touche Windows dans les jeux, boutons latéraux qui copient et collent…",
-  "kboard.listEmptyShort": "Aucun profil",
   "kboard.emptyTitle": "Aucun profil sélectionné",
   "kboard.emptyText": "K-Board change ce que font les touches et les boutons de la souris, partout ou seulement dans les applications que vous choisissez.",
   "kboard.namePlaceholder": "Nom du profil",
