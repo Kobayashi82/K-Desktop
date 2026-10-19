@@ -17,11 +17,45 @@ public static class InputPolish
 {
     public static void Register()
     {
-        EventManager.RegisterClassHandler(typeof(Wpf.Ui.Controls.Button), FrameworkElement.LoadedEvent, new RoutedEventHandler(OnButtonLoaded));
+        // Loaded never reaches class handlers (WPF only broadcasts it to elements with handlers of their own): the
+        // button is hooked when it is about to be pressed instead.
+        EventManager.RegisterClassHandler(typeof(Wpf.Ui.Controls.Button), UIElement.PreviewMouseLeftButtonDownEvent, new MouseButtonEventHandler((s, _) => HookPressed(s)), true);
+        EventManager.RegisterClassHandler(typeof(Wpf.Ui.Controls.Button), UIElement.PreviewKeyDownEvent, new KeyEventHandler((s, _) => HookPressed(s)), true);
         // Only the main window: in the dialogs Enter presses their default button.
         EventManager.RegisterClassHandler(typeof(MainWindow), UIElement.KeyDownEvent, new KeyEventHandler(OnWindowKeyDown));
         EventManager.RegisterClassHandler(typeof(ComboBox), UIElement.PreviewMouseLeftButtonDownEvent, new MouseButtonEventHandler(OnComboDown), true);
         EventManager.RegisterClassHandler(typeof(ComboBoxItem), UIElement.PreviewMouseLeftButtonUpEvent, new MouseButtonEventHandler(OnComboItemUp));
+        EventManager.RegisterClassHandler(typeof(System.Windows.Controls.TextBox), TextBoxBase.TextChangedEvent, new TextChangedEventHandler(OnTextChanged));
+    }
+
+    // ── empty is not an error ────────────────────────────────────────────
+
+    // A box bound to a number gets the red error border as soon as it is emptied (an empty text is not a number),
+    // while the user is just about to type another value. An empty box never shows it; leaving it puts a value back.
+    private static void OnTextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (sender is not System.Windows.Controls.TextBox { Text.Length: 0 } box) return;
+        box.Dispatcher.BeginInvoke(() =>
+        {
+            if (box.Text.Length == 0 && Validation.GetHasError(box) && box.GetBindingExpression(System.Windows.Controls.TextBox.TextProperty) is { } binding)
+                Validation.ClearInvalid(binding);
+        }, System.Windows.Threading.DispatcherPriority.Input);
+    }
+
+    // ── wheel of lists that don't scroll ─────────────────────────────────
+
+    /// <summary>
+    /// For a list inside a scrolling editor that doesn't scroll by itself: hands the wheel to the editor. Not when it
+    /// comes from an open drop-down (a combo of an item): the preview event reaches the list first through the combo,
+    /// and taking it there left long drop-downs without a way to reach their last options.
+    /// </summary>
+    public static void ForwardWheel(object sender, MouseWheelEventArgs e, UIElement scroller)
+    {
+        if (e.Handled) return;
+        if (e.OriginalSource is DependencyObject source && sender is Visual list &&
+            PresentationSource.FromDependencyObject(source) is { } from && !ReferenceEquals(from, PresentationSource.FromVisual(list))) return;
+        e.Handled = true;
+        scroller.RaiseEvent(new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta) { RoutedEvent = UIElement.MouseWheelEvent, Source = sender });
     }
 
     // ── combos that close at once ────────────────────────────────────────
@@ -52,7 +86,7 @@ public static class InputPolish
     private static readonly DependencyProperty PressedProperty = DependencyProperty.RegisterAttached(
         "Pressed", typeof(bool), typeof(InputPolish), new PropertyMetadata(false, OnPressedChanged));
 
-    private static void OnButtonLoaded(object sender, RoutedEventArgs e)
+    private static void HookPressed(object sender)
     {
         if (sender is Wpf.Ui.Controls.Button button && BindingOperations.GetBinding(button, PressedProperty) is null)
             button.SetBinding(PressedProperty, new Binding(nameof(ButtonBase.IsPressed)) { Source = button });

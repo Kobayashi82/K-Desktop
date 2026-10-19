@@ -63,7 +63,7 @@ public static partial class IconProvider
         OpenUrlAction a => ForTheme(Favicons.Get(a.Url)) ?? (Browsers.Get(a.Browser)?.Icon is { } browser ? Asset(browser) : Kd("Globe24", "sky")),
         AppControlAction => Kd("WindowApps24", "indigo"),
         RunScriptAction => Kd("WindowConsole20", "dark"),
-        HttpRequestAction => Kd("GlobeArrowForward24", "teal"),
+        HttpRequestAction => Kd("ArrowSwap24", "teal"),
         SendInputAction => Kd("Keyboard24", "sky"),
         VolumeAction { Target: VolumeTarget.Microphone } => Kd("Mic24", "teal"),
         VolumeAction { Target: VolumeTarget.App or VolumeTarget.ForegroundApp } => Kd("SoundSource24", "teal"),
@@ -93,7 +93,7 @@ public static partial class IconProvider
         ConditionAction => Kd("BranchFork24", "orange"),
         ScreenshotAction => Kd("Screenshot24", "sky"),
         AudioRecordAction { Mode: RecordMode.SaveReplay } => Kd("History24", "red"),
-        AudioRecordAction => Kd("MicRecord24", "red"),
+        AudioRecordAction => Kd("MicPulse24", "red"),
         MagnifierAction => Kd("ZoomIn24", "indigo"),
         _ => null,
     };

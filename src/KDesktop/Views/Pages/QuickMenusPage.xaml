@@ -222,7 +222,7 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <ui:TextBox x:Name="NameBox" FontSize="16" FontWeight="SemiBold" PlaceholderText="{l:Tr qm.namePlaceholder}"
+                            <ui:TextBox x:Name="NameBox" ClearButtonEnabled="False" FontSize="16" FontWeight="SemiBold" PlaceholderText="{l:Tr qm.namePlaceholder}"
                                         Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                                         GotKeyboardFocus="OnNameFocus" LostKeyboardFocus="OnNameLostFocus" KeyDown="OnNameKeyDown" />
                             <StackPanel Grid.Column="1" Margin="16,0,0,0" Orientation="Horizontal" VerticalAlignment="Center" v:ResponsiveHeader.IsSide="True">

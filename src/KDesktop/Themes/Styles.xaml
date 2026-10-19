@@ -294,9 +294,15 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListBox">
-                    <ScrollViewer Focusable="False" Padding="{TemplateBinding Padding}" CanContentScroll="True">
+                    <ScrollViewer x:Name="Scroller" Focusable="False" Padding="{TemplateBinding Padding}" CanContentScroll="True">
                         <ItemsPresenter />
                     </ScrollViewer>
+                    <ControlTemplate.Triggers>
+                        <!-- The scroll bar floats over the content: the rows make room for it instead of going under it -->
+                        <Trigger SourceName="Scroller" Property="ComputedVerticalScrollBarVisibility" Value="Visible">
+                            <Setter TargetName="Scroller" Property="Padding" Value="0,0,14,0" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

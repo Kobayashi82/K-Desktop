@@ -32,14 +32,14 @@ public static class ActionCatalog
         new(ActionKind.Volume, "sound", "Speaker224", () => new VolumeAction()),
         new(ActionKind.AudioOutput, "sound", "HeadphonesSoundWave24", () => new AudioOutputAction()),
         new(ActionKind.PlaySound, "sound", "MusicNote224", () => new PlaySoundAction()),
-        new(ActionKind.AudioRecord, "sound", "MicRecord24", () => new AudioRecordAction()),
+        new(ActionKind.AudioRecord, "sound", "MicPulse24", () => new AudioRecordAction()),
 
         new(ActionKind.Screenshot, "screen", "Screenshot24", () => new ScreenshotAction()),
         new(ActionKind.Magnifier, "screen", "ZoomIn24", () => new MagnifierAction()),
         new(ActionKind.Display, "screen", "Desktop24", () => new DisplayAction()),
         new(ActionKind.WindowsTheme, "screen", "DarkTheme24", () => new WindowsThemeAction()),
 
-        new(ActionKind.HttpRequest, "network", "GlobeArrowForward24", () => new HttpRequestAction()),
+        new(ActionKind.HttpRequest, "network", "ArrowSwap24", () => new HttpRequestAction()),
         new(ActionKind.WakeOnLan, "network", "DesktopPulse24", () => new WakeOnLanAction()),
         new(ActionKind.Radio, "network", "Wifi124", () => new RadioAction()),
 

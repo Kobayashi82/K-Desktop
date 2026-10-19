@@ -27,7 +27,7 @@ public sealed class AchievementItem
 
     public SymbolRegular Symbol =>
         Hidden ? SymbolRegular.QuestionCircle24
-        : Def.Id == AchievementCatalog.Master ? SymbolRegular.Crown24
+        : Def.Id == AchievementCatalog.Master ? SymbolRegular.Crown20
         : Enum.TryParse<SymbolRegular>(Def.Symbol, out var s) ? s : SymbolRegular.Trophy24;
 
     public bool ShowProgress => !Unlocked && Def.HasProgress && !Hidden;

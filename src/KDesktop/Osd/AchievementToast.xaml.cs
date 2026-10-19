@@ -52,7 +52,7 @@ public partial class AchievementToast : Window
         NameText.Text = def.Name;
         DescText.Text = def.Description;
         if (Enum.TryParse<SymbolRegular>(def.Symbol, out var symbol)) BadgeIcon.Symbol = symbol;
-        if (def.Id == AchievementCatalog.Master) BadgeIcon.Symbol = SymbolRegular.Crown24;
+        if (def.Id == AchievementCatalog.Master) BadgeIcon.Symbol = SymbolRegular.Crown20;
 
         Show();
         Reposition();

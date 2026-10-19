@@ -81,7 +81,7 @@ public static class KdIcons
         Add("files", "yellow", "Folder24", "FolderOpen24", "Archive24", "Box24");
         Add("files", "blue", "Document24", "DocumentText24", "Save24", "Copy24", "ClipboardPaste24", "Cut24");
         Add("files", "red", "DocumentPdf24");
-        Add("files", "teal", "ArrowDownload24", "Cloud24", "Database24", "Storage24", "HardDrive24", "UsbStick24");
+        Add("files", "teal", "ArrowDownload24", "Cloud24", "Database24", "Storage24", "HardDrive20", "UsbStick24");
         Add("files", "green", "Image24", "Album24");
         Add("files", "gray", "Delete24", "Broom24", "Search24", "Filter24", "Tag24", "Bookmark24");
 
@@ -103,7 +103,7 @@ public static class KdIcons
         Add("web", "blue", "Mail24", "Send24", "Chat24", "News24", "Translate24");
         Add("web", "orange", "Alert24", "CalendarLtr24", "Location24", "Map24");
 
-        Add("office", "blue", "Calendar24", "Note24", "Notepad24", "NotepadEdit20", "Notebook24", "Book24", "BookOpen24", "Library24");
+        Add("office", "blue", "CalendarMonth24", "Note24", "Notepad24", "NotepadEdit20", "Notebook24", "Book24", "BookOpen24", "Library24");
         Add("office", "green", "Calculator24", "Table24", "ChartMultiple24", "DataBarVertical24", "DataPie24", "DataTrending24");
         Add("office", "orange", "Edit24", "Pen24", "PaintBrush24", "Color24", "Ruler24", "Shapes24", "TextFont24", "TextBulletListLtr24", "TaskListLtr24", "Clipboard24");
         Add("office", "brown", "Briefcase24", "Building24", "Organization24", "Money24", "Wallet24", "Savings24", "Cart24", "ShoppingBag24", "Receipt24", "HatGraduation24");
@@ -149,11 +149,22 @@ public static class KdIcons
     private static readonly ConcurrentDictionary<string, ImageSource?> Cache = new(StringComparer.OrdinalIgnoreCase);
     private static GlyphTypeface? _font;
 
+    // Names the symbol enum has but the bundled font draws as another character (the enum is newer than the font);
+    // icons saved with them are drawn with a symbol that exists.
+    private static readonly Dictionary<string, string> Replaced = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Calendar24"] = "CalendarMonth24",
+        ["HardDrive24"] = "HardDrive20",
+        ["GlobeArrowForward24"] = "ArrowSwap24",
+        ["MicRecord24"] = "MicPulse24",
+    };
+
     public static ImageSource? Render(KdIconSpec spec) => Cache.GetOrAdd(spec.ToString(), _ => Draw(spec));
 
     private static ImageSource? Draw(KdIconSpec spec)
     {
-        if (!Enum.TryParse<SymbolFilled>(spec.Symbol, out var symbol) || Font() is not { } font) return null;
+        var name = Replaced.GetValueOrDefault(spec.Symbol, spec.Symbol);
+        if (!Enum.TryParse<SymbolFilled>(name, out var symbol) || Font() is not { } font) return null;
         if (!font.CharacterToGlyphMap.TryGetValue((int)symbol, out var glyph)) return null;
 
         const double size = 48;

@@ -504,28 +504,7 @@ public partial class QuickMenusPage : UserControl, IDisposable
     // ── drag & drop ───────────────────────────────────────────────────────
 
     private bool CanAccept(IDataObject data) =>
-        data.GetDataPresent(ItemFormat) || data.GetDataPresent(CommandFormat) || data.GetDataPresent(KindFormat) ||
-        data.GetDataPresent(DataFormats.FileDrop) || ExternalUrl(data) is not null;
-
-    private static string? ExternalUrl(IDataObject data)
-    {
-        foreach (var format in new[] { "UniformResourceLocatorW", "UniformResourceLocator", DataFormats.UnicodeText, DataFormats.Text })
-        {
-            if (!data.GetDataPresent(format)) continue;
-            var value = data.GetData(format) switch
-            {
-                string s => s,
-                System.IO.MemoryStream ms => format.EndsWith('W')
-                    ? System.Text.Encoding.Unicode.GetString(ms.ToArray())
-                    : System.Text.Encoding.ASCII.GetString(ms.ToArray()),
-                _ => null,
-            };
-            value = value?.Split('\0', '\r', '\n')[0].Trim();
-            if (!string.IsNullOrEmpty(value) && (value.Contains("://", StringComparison.Ordinal) || value.StartsWith("www.", StringComparison.OrdinalIgnoreCase)))
-                return value;
-        }
-        return null;
-    }
+        data.GetDataPresent(ItemFormat) || data.GetDataPresent(CommandFormat) || data.GetDataPresent(KindFormat);
 
     private QuickMenuItem? DraggedItem(IDataObject data) =>
         data.GetData(ItemFormat) is string id ? _menu?.Descendants().FirstOrDefault(i => i.Id == id) : null;
@@ -645,30 +624,6 @@ public partial class QuickMenusPage : UserControl, IDisposable
         {
             select = NewItemOfKind(kind);
             Mutate(() => list.Insert(Math.Clamp(index, 0, list.Count), select));
-        }
-        else if (data.GetData(DataFormats.FileDrop) is string[] files && files.Length > 0)
-        {
-            Mutate(() =>
-            {
-                var at = Math.Clamp(index, 0, list.Count);
-                foreach (var file in files)
-                {
-                    if (CommandFactory.FromTarget(file) is not { } newCmd) continue;
-                    Config.Commands.Add(newCmd);
-                    _app.Achievements.Increment(Stat.CommandsCreated);
-                    select = QuickMenuOps.NewCommandItem(newCmd);
-                    list.Insert(at++, select);
-                }
-            });
-            _app.Ui.ShowOsd(Loc.T("qm.commandsCreated", files.Length), OsdKind.Success);
-        }
-        else if (ExternalUrl(data) is { } url && CommandFactory.FromTarget(url) is { } urlCmd)
-        {
-            Config.Commands.Add(urlCmd);
-            _app.Achievements.Increment(Stat.CommandsCreated);
-            select = QuickMenuOps.NewCommandItem(urlCmd);
-            Mutate(() => list.Insert(Math.Clamp(index, 0, list.Count), select));
-            _app.Ui.ShowOsd(Loc.T("qm.commandsCreated", 1), OsdKind.Success);
         }
 
         if (select is null) return;

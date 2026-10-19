@@ -601,7 +601,7 @@ public partial class CommandsPage : UserControl, IDisposable
         var j = i + delta;
         if (i < 0 || j < 0 || j >= _selected.Actions.Count) return;
         _selected.Actions.Move(i, j);
-        ActionList.SelectedItem = action;
+        // The open action stays open; the moved one isn't opened (its arrows were pressed, not the action).
         CommandManager.InvalidateRequerySuggested(); // the arrows of the first and last rows
     }
 
@@ -648,12 +648,7 @@ public partial class CommandsPage : UserControl, IDisposable
         return false;
     }
 
-    private void OnActionListWheel(object sender, MouseWheelEventArgs e)
-    {
-        if (e.Handled) return;
-        e.Handled = true;
-        EditorScroll.RaiseEvent(new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta) { RoutedEvent = MouseWheelEvent, Source = sender });
-    }
+    private void OnActionListWheel(object sender, MouseWheelEventArgs e) => InputPolish.ForwardWheel(sender, e, EditorScroll);
 
     // ── editor commands ──────────────────────────────────────────────────
 

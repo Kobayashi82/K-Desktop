@@ -305,7 +305,7 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
-                                <ui:TextBox x:Name="NameBox" FontSize="16" FontWeight="SemiBold" PlaceholderText="{l:Tr commands.namePlaceholder}"
+                                <ui:TextBox x:Name="NameBox" ClearButtonEnabled="False" FontSize="16" FontWeight="SemiBold" PlaceholderText="{l:Tr commands.namePlaceholder}"
                                             Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                                             GotKeyboardFocus="OnNameFocus" LostKeyboardFocus="OnNameLostFocus" KeyDown="OnNameKeyDown" />
                                 <!-- Options of the command as icons: hidden in the list, remote control -->

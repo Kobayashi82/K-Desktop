@@ -92,7 +92,7 @@ public partial class MacrosPage : UserControl, IDisposable
         if (_selected is { } previous) EnsureName(previous);
         Track(MacroList.SelectedItem as Macro);
         Editor.DataContext = _selected;
-        StepPanel.Visibility = Visibility.Collapsed;
+        StepList.Tag = null;
         NameError.Visibility = Visibility.Collapsed;
         if (_selected is null)
         {
@@ -337,27 +337,45 @@ public partial class MacrosPage : UserControl, IDisposable
         HotkeyCapture.CancelActive();
         DeleteStepsButton.IsEnabled = StepList.SelectedItems.Count > 0;
         CommandManager.InvalidateRequerySuggested();
-        if (StepList.SelectedItems.Count == 1 && StepList.SelectedItem is MacroStep step)
-        {
-            StepEditor.ContentTemplate = (DataTemplate)FindResource("StepEditorTemplate");
-            StepEditor.Content = step;
-            if (StepPanel.Visibility != Visibility.Visible)
-            {
-                StepPanel.Visibility = Visibility.Visible;
-                StepPanel.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180)));
-            }
-        }
-        else
-        {
-            StepEditor.Content = null;
-            StepPanel.Visibility = Visibility.Collapsed;
-        }
+        // The step opens under its row when it is the only one selected (the rows' editors look at the list's Tag).
+        StepList.Tag = StepList.SelectedItems.Count == 1 ? StepList.SelectedItem : null;
+    }
+
+    /// <summary>Step that was already open when its row was pressed: releasing there closes it.</summary>
+    private object? _pressedOpenStep;
+    private Point _stepPressPoint;
+
+    private void OnStepHeaderDown(object sender, MouseButtonEventArgs e)
+    {
+        _pressedOpenStep = null;
+        if (sender is not FrameworkElement header || Keyboard.Modifiers != ModifierKeys.None || IsInsideControl(e.OriginalSource as DependencyObject, header)) return;
+        if (StepList.Tag is { } open && ReferenceEquals(open, header.DataContext)) _pressedOpenStep = open;
+        _stepPressPoint = e.GetPosition(this);
+    }
+
+    private void OnStepHeaderUp(object sender, MouseButtonEventArgs e)
+    {
+        var open = _pressedOpenStep;
+        _pressedOpenStep = null;
+        if (open is null || sender is not FrameworkElement header || !ReferenceEquals(open, header.DataContext)) return;
+        // A drag (reordering) handles its own release before this; a small wobble is still a click.
+        if ((e.GetPosition(this) - _stepPressPoint).Length > 6) return;
+        StepList.SelectedItem = null;
+    }
+
+    /// <summary>The click was on a button or a box of the row (they do their own thing).</summary>
+    private static bool IsInsideControl(DependencyObject? source, DependencyObject header)
+    {
+        for (var d = source; d is not null && !ReferenceEquals(d, header); d = d is System.Windows.Media.Visual ? System.Windows.Media.VisualTreeHelper.GetParent(d) : LogicalTreeHelper.GetParent(d))
+            if (d is System.Windows.Controls.Primitives.ButtonBase or System.Windows.Controls.Primitives.TextBoxBase) return true;
+        return false;
     }
 
     private void OnStepKey(object sender, KeyEventArgs e)
     {
         if (e.OriginalSource is System.Windows.Controls.TextBox) return;
-        if (e.Key == Key.Delete)
+        // Delete inside the open editor of a step (a combo…) is not «delete the steps».
+        if (e.Key == Key.Delete && e.OriginalSource is ListBoxItem or ListBox)
         {
             OnDeleteSteps(sender, e);
             e.Handled = true;
@@ -409,7 +427,9 @@ public partial class MacrosPage : UserControl, IDisposable
         if (indexes.Count == 0 || indexes[0] + delta < 0 || indexes[^1] + delta >= macro.Steps.Count) return;
         var keep = SelectedSteps();
         foreach (var i in delta < 0 ? indexes : Enumerable.Reverse(indexes)) macro.Steps.Move(i, i + delta);
-        Reselect(keep.Count > 0 ? keep : steps);
+        // What was selected stays so; steps moved with their arrows are not selected (nor opened) for it.
+        if (keep.Count > 0) Reselect(keep);
+        StepList.ScrollIntoView(steps[0]);
         CommandManager.InvalidateRequerySuggested();
     }
 

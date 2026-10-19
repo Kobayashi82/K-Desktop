@@ -319,12 +319,7 @@ public partial class EventsPage : UserControl, IDisposable
     }
 
     /// <summary>The inner lists don't scroll: the wheel goes to the editor.</summary>
-    private void OnInnerListWheel(object sender, MouseWheelEventArgs e)
-    {
-        if (e.Handled) return;
-        e.Handled = true;
-        EditorScroll.RaiseEvent(new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta) { RoutedEvent = MouseWheelEvent, Source = sender });
-    }
+    private void OnInnerListWheel(object sender, MouseWheelEventArgs e) => InputPolish.ForwardWheel(sender, e, EditorScroll);
 
     // ── processes («al abrir», «en primer plano») ────────────────────────
 

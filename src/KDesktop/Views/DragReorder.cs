@@ -310,7 +310,8 @@ public static class DragReorder
             {
                 if (list.ItemContainerGenerator.ContainerFromItem(item) is ListBoxItem landed)
                 {
-                    landed.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0.4, 1, TimeSpan.FromMilliseconds(260)));
+                    // Stop, not HoldEnd: a held opacity would keep the item visible under its ghost the next time.
+                    landed.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0.4, 1, TimeSpan.FromMilliseconds(260)) { FillBehavior = FillBehavior.Stop });
                 }
             }, DispatcherPriority.Loaded);
             list.RaiseEvent(new ReorderedEventArgs(ReorderedEvent, item, _from, _to));
@@ -376,10 +377,13 @@ public static class DragReorder
             var bitmap = new RenderTargetBitmap((int)Math.Ceiling(w * dpi.DpiScaleX), (int)Math.Ceiling(h * dpi.DpiScaleY),
                 dpi.PixelsPerInchX, dpi.PixelsPerInchY, PixelFormats.Pbgra32);
             var drawing = new DrawingVisual();
+            // The brush draws the item where it sits in its parent: the view box starts at that offset (at 0,0 only
+            // the first item of the list came out; any other was an empty picture).
+            var offset = VisualTreeHelper.GetOffset(item);
             using (var ctx = drawing.RenderOpen()) ctx.DrawRectangle(new VisualBrush(item)
             {
                 // Exactly the item bounds (its content bounds may be larger, which would squeeze the picture).
-                Viewbox = new Rect(0, 0, w, h), ViewboxUnits = BrushMappingMode.Absolute,
+                Viewbox = new Rect(offset.X, offset.Y, w, h), ViewboxUnits = BrushMappingMode.Absolute,
             }, null, new Rect(0, 0, w, h));
             bitmap.Render(drawing);
             bitmap.Freeze();

@@ -538,10 +538,5 @@ public partial class KBoardPage : UserControl, IDisposable
         SelectSource(_source);
     }
 
-    private void OnListWheel(object sender, MouseWheelEventArgs e)
-    {
-        if (e.Handled) return;
-        e.Handled = true;
-        EditorScroll.RaiseEvent(new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta) { RoutedEvent = MouseWheelEvent, Source = sender });
-    }
+    private void OnListWheel(object sender, MouseWheelEventArgs e) => InputPolish.ForwardWheel(sender, e, EditorScroll);
 }

@@ -9,20 +9,16 @@
     <UserControl.Resources>
         <v:BoolToCollapsedConverter x:Key="BoolToCollapsed" />
         <p:StepIconConverter x:Key="StepIcon" />
+        <v:SameItemToVisibleConverter x:Key="SameItem" />
 
-        <!-- Editor of the selected step -->
+        <!-- Editor of a step, open under its row (the wait before it is on the row itself) -->
         <DataTemplate x:Key="StepEditorTemplate" DataType="{x:Type m:MacroStep}">
             <StackPanel>
-                <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr macro.stepTitle}" />
                 <WrapPanel>
                     <StackPanel Width="230" Margin="0,0,16,8">
                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr macro.stepKind}" />
                         <ComboBox ItemsSource="{x:Static v:Lookups.MacroStepKinds}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Kind}"
                                   MaxDropDownHeight="420" />
-                    </StackPanel>
-                    <StackPanel Width="110" Margin="0,0,16,8">
-                        <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr macro.delay}" />
-                        <ui:TextBox Text="{Binding Delay, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" ClearButtonEnabled="False" />
                     </StackPanel>
 
                     <!-- Key -->
@@ -209,7 +205,7 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <ui:TextBox x:Name="NameBox" FontSize="16" FontWeight="SemiBold" PlaceholderText="{l:Tr macro.namePlaceholder}"
+                            <ui:TextBox x:Name="NameBox" ClearButtonEnabled="False" FontSize="16" FontWeight="SemiBold" PlaceholderText="{l:Tr macro.namePlaceholder}"
                                         Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                                         GotKeyboardFocus="OnNameFocus" LostKeyboardFocus="OnNameLostFocus" KeyDown="OnNameKeyDown" />
                             <StackPanel Grid.Column="1" Margin="16,0,0,0" Orientation="Horizontal" VerticalAlignment="Center" v:ResponsiveHeader.IsSide="True">
@@ -242,11 +238,6 @@
                     </Grid>
                 </Border>
 
-                <!-- Selected step -->
-                <Border x:Name="StepPanel" DockPanel.Dock="Bottom" Style="{StaticResource Card}" Margin="0" Visibility="Collapsed">
-                    <ContentControl x:Name="StepEditor" Focusable="False" />
-                </Border>
-
                 <!-- Steps -->
                 <Border Style="{StaticResource Card}" Padding="14,12,4,12">
                     <DockPanel>
@@ -267,7 +258,9 @@
                                  v:DragReorder.IsEnabled="True" SelectionChanged="OnStepSelected" KeyDown="OnStepKey">
                             <ListBox.ItemTemplate>
                                 <DataTemplate DataType="{x:Type m:MacroStep}">
-                                    <Grid Height="30">
+                                    <StackPanel>
+                                    <Grid x:Name="Header" Height="30" Background="Transparent"
+                                          PreviewMouseLeftButtonDown="OnStepHeaderDown" PreviewMouseLeftButtonUp="OnStepHeaderUp">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="20" />
                                             <ColumnDefinition Width="44" />
@@ -311,6 +304,16 @@
                                             </ui:Button>
                                         </StackPanel>
                                     </Grid>
+                                    <!-- Editor, open under the step when it is the only one selected -->
+                                    <ContentControl Margin="92,8,8,4" Content="{Binding}" ContentTemplate="{StaticResource StepEditorTemplate}" Focusable="False">
+                                        <ContentControl.Visibility>
+                                            <MultiBinding Converter="{StaticResource SameItem}">
+                                                <Binding />
+                                                <Binding Path="Tag" RelativeSource="{RelativeSource AncestorType=ListBox}" />
+                                            </MultiBinding>
+                                        </ContentControl.Visibility>
+                                    </ContentControl>
+                                    </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
