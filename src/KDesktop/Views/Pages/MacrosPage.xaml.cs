@@ -341,36 +341,6 @@ public partial class MacrosPage : UserControl, IDisposable
         StepList.Tag = StepList.SelectedItems.Count == 1 ? StepList.SelectedItem : null;
     }
 
-    /// <summary>Step that was already open when its row was pressed: releasing there closes it.</summary>
-    private object? _pressedOpenStep;
-    private Point _stepPressPoint;
-
-    private void OnStepHeaderDown(object sender, MouseButtonEventArgs e)
-    {
-        _pressedOpenStep = null;
-        if (sender is not FrameworkElement header || Keyboard.Modifiers != ModifierKeys.None || IsInsideControl(e.OriginalSource as DependencyObject, header)) return;
-        if (StepList.Tag is { } open && ReferenceEquals(open, header.DataContext)) _pressedOpenStep = open;
-        _stepPressPoint = e.GetPosition(this);
-    }
-
-    private void OnStepHeaderUp(object sender, MouseButtonEventArgs e)
-    {
-        var open = _pressedOpenStep;
-        _pressedOpenStep = null;
-        if (open is null || sender is not FrameworkElement header || !ReferenceEquals(open, header.DataContext)) return;
-        // A drag (reordering) handles its own release before this; a small wobble is still a click.
-        if ((e.GetPosition(this) - _stepPressPoint).Length > 6) return;
-        StepList.SelectedItem = null;
-    }
-
-    /// <summary>The click was on a button or a box of the row (they do their own thing).</summary>
-    private static bool IsInsideControl(DependencyObject? source, DependencyObject header)
-    {
-        for (var d = source; d is not null && !ReferenceEquals(d, header); d = d is System.Windows.Media.Visual ? System.Windows.Media.VisualTreeHelper.GetParent(d) : LogicalTreeHelper.GetParent(d))
-            if (d is System.Windows.Controls.Primitives.ButtonBase or System.Windows.Controls.Primitives.TextBoxBase) return true;
-        return false;
-    }
-
     private void OnStepKey(object sender, KeyEventArgs e)
     {
         if (e.OriginalSource is System.Windows.Controls.TextBox) return;

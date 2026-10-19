@@ -255,12 +255,11 @@
                         <ListBox x:Name="StepList" ItemsSource="{Binding Steps}" ItemContainerStyle="{StaticResource StepRow}" SelectionMode="Extended"
                                  Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                  VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Standard" VirtualizingPanel.ScrollUnit="Pixel"
-                                 v:DragReorder.IsEnabled="True" SelectionChanged="OnStepSelected" KeyDown="OnStepKey">
+                                 v:DragReorder.IsEnabled="True" v:DragReorder.ClickToggles="True" SelectionChanged="OnStepSelected" KeyDown="OnStepKey">
                             <ListBox.ItemTemplate>
                                 <DataTemplate DataType="{x:Type m:MacroStep}">
                                     <StackPanel>
-                                    <Grid x:Name="Header" Height="30" Background="Transparent"
-                                          PreviewMouseLeftButtonDown="OnStepHeaderDown" PreviewMouseLeftButtonUp="OnStepHeaderUp">
+                                    <Grid x:Name="Header" Height="30" Background="Transparent" Cursor="Hand" v:DragReorder.IsHandle="True">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="20" />
                                             <ColumnDefinition Width="44" />
@@ -269,7 +268,7 @@
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <Border Background="Transparent" Cursor="SizeNS" v:DragReorder.IsHandle="True" ToolTip="{l:Tr macro.dragHint}">
+                                        <Border Background="Transparent" Cursor="SizeNS" v:DragReorder.IsGrip="True" ToolTip="{l:Tr macro.dragHint}">
                                             <ui:SymbolIcon Symbol="ReOrderDotsVertical24" FontSize="14" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
                                         </Border>
                                         <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource TextFillColorTertiaryBrush}"

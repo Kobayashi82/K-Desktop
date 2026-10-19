@@ -31,9 +31,12 @@ public static class NumberInput
                 args.CancelCommand();
         });
         // Before LostFocus, which is when a LostFocus binding saves the text.
-        box.PreviewLostKeyboardFocus += (_, _) =>
-        {
-            if (string.IsNullOrWhiteSpace(box.Text)) box.Text = "0";
-        };
+        box.PreviewLostKeyboardFocus += (_, _) => Fill(box);
+    }
+
+    /// <summary>An empty number box gets its 0 (also called before the focus is cleared, which skips PreviewLostKeyboardFocus).</summary>
+    public static void Fill(TextBox box)
+    {
+        if (GetIsEnabled(box) && string.IsNullOrWhiteSpace(box.Text)) box.Text = "0";
     }
 }

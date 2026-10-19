@@ -103,9 +103,10 @@ public static class Lookups
     public static IReadOnlyList<Option<string>> BrowserOptions { get; } =
         [new Option<string>(string.Empty, "browser.default"), .. Browsers.All.Select(b => new Option<string>(b.Id, b.Name))];
 
-    /// <summary>"Custom folder" (null) followed by the special locations.</summary>
-    public static IReadOnlyList<Option<string?>> FolderTargets { get; } =
-        [new Option<string?>(null, "folder.custom"), .. SpecialFolders.All.Select(e => new Option<string?>(e.Key, $"folder.{e.Key}"))];
+    /// <summary>"Custom folder" (null) followed by the special locations in alphabetical order (of the current language).</summary>
+    public static IReadOnlyList<Option<string?>> FolderTargets =>
+        [new Option<string?>(null, "folder.custom"),
+         .. SpecialFolders.All.Select(e => new Option<string?>(e.Key, $"folder.{e.Key}")).OrderBy(o => o.Name, StringComparer.CurrentCultureIgnoreCase)];
 
     public static IEnumerable<QuickMenu> QuickMenuList => App.Current.Config.QuickMenus;
 

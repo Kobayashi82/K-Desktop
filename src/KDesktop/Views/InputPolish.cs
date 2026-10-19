@@ -23,6 +23,7 @@ public static class InputPolish
         EventManager.RegisterClassHandler(typeof(Wpf.Ui.Controls.Button), UIElement.PreviewKeyDownEvent, new KeyEventHandler((s, _) => HookPressed(s)), true);
         // Only the main window: in the dialogs Enter presses their default button.
         EventManager.RegisterClassHandler(typeof(MainWindow), UIElement.KeyDownEvent, new KeyEventHandler(OnWindowKeyDown));
+        EventManager.RegisterClassHandler(typeof(MainWindow), UIElement.PreviewMouseLeftButtonDownEvent, new MouseButtonEventHandler(OnWindowMouseDown), true);
         EventManager.RegisterClassHandler(typeof(ComboBox), UIElement.PreviewMouseLeftButtonDownEvent, new MouseButtonEventHandler(OnComboDown), true);
         EventManager.RegisterClassHandler(typeof(ComboBoxItem), UIElement.PreviewMouseLeftButtonUpEvent, new MouseButtonEventHandler(OnComboItemUp));
         EventManager.RegisterClassHandler(typeof(System.Windows.Controls.TextBox), TextBoxBase.TextChangedEvent, new TextChangedEventHandler(OnTextChanged));
@@ -106,24 +107,57 @@ public static class InputPolish
         else button.BeginAnimation(Control.ForegroundProperty, null);
     }
 
-    // ── Enter leaves the field ───────────────────────────────────────────
+    // ── leaving a field: Enter, Escape or a click anywhere else ─────────
 
     private static void OnWindowKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Handled || e.Key != Key.Enter || Keyboard.Modifiers != ModifierKeys.None) return;
-        if (e.OriginalSource is not DependencyObject source) return;
-        var field = source as Control;
-        if (source is TextBoxBase box)
-        {
-            if (box is System.Windows.Controls.TextBox { AcceptsReturn: true } or System.Windows.Controls.RichTextBox) return;
-            // The text part of an editable combo: the combo is the field.
-            field = (box.TemplatedParent as ComboBox) ?? (Control)box;
-        }
-        else if (source is not ComboBox) return;
+        if (e.Handled || e.Key is not (Key.Enter or Key.Escape) || Keyboard.Modifiers != ModifierKeys.None) return;
+        if (Field(e.OriginalSource as DependencyObject) is not { } field) return;
+        // Enter writes a new line in a multi-line box: there only Escape leaves.
+        if (e.Key == Key.Enter && e.OriginalSource is System.Windows.Controls.TextBox { AcceptsReturn: true } or System.Windows.Controls.RichTextBox) return;
         if (field is ComboBox { IsDropDownOpen: true }) return;
+        e.Handled = true;
+        Leave(field);
+    }
 
+    // A click on the background (or anything that doesn't take the focus itself) leaves the field being typed in.
+    private static void OnWindowMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (Field(Keyboard.FocusedElement as DependencyObject) is not { } field || e.OriginalSource is not DependencyObject source) return;
+        // Inside the field, or in a drop-down (its own or another window's): nothing to do.
+        if (Inside(source, field) || PresentationSource.FromDependencyObject(source) is { } from && !ReferenceEquals(from, PresentationSource.FromVisual(field))) return;
+        field.Dispatcher.BeginInvoke(() =>
+        {
+            // Whatever was clicked took the focus by itself (a button, a list, another box): nothing to do.
+            if (Keyboard.FocusedElement is DependencyObject now && (ReferenceEquals(now, field) || Inside(now, field))) Leave(field);
+        }, System.Windows.Threading.DispatcherPriority.Input);
+    }
+
+    /// <summary>The text box or combo that has the focus in <paramref name="source"/> (the text part of an editable combo is the combo).</summary>
+    private static Control? Field(DependencyObject? source) => source switch
+    {
+        TextBoxBase box => (box.TemplatedParent as ComboBox) ?? (Control)box,
+        ComboBox combo => combo,
+        _ => null,
+    };
+
+    private static bool Inside(DependencyObject element, DependencyObject field)
+    {
+        for (var d = element; d is not null; d = d is Visual ? VisualTreeHelper.GetParent(d) : LogicalTreeHelper.GetParent(d))
+            if (ReferenceEquals(d, field)) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Keyboard focus first, then the logical one: a box bound on LostFocus gets its last fix (an emptied number becomes
+    /// 0) before it is saved, and WPF-UI hides the X only if the keyboard has already gone when the box loses focus.
+    /// </summary>
+    private static void Leave(Control field)
+    {
         var scope = FocusManager.GetFocusScope(field);
-        if (scope is not null) FocusManager.SetFocusedElement(scope, null);
+        // Clearing the focus raises LostFocus (which saves) without PreviewLostKeyboardFocus first.
+        if (Keyboard.FocusedElement is System.Windows.Controls.TextBox box) NumberInput.Fill(box);
         Keyboard.ClearFocus();
+        if (scope is not null) FocusManager.SetFocusedElement(scope, null);
     }
 }

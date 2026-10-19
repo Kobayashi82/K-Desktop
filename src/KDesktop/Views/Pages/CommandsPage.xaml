@@ -396,7 +396,7 @@
                             </Grid>
                             <TextBlock x:Name="NoActions" Style="{StaticResource Caption}" Text="{l:Tr commands.noActions}" Margin="0,4,0,8" />
                             <ListBox x:Name="ActionList" ItemsSource="{Binding Actions}" ItemContainerStyle="{StaticResource ActionRow}"
-                                     v:DragReorder.IsEnabled="True" v:DragReorder.Reordered="OnActionReordered"
+                                     v:DragReorder.IsEnabled="True" v:DragReorder.ClickToggles="True" v:DragReorder.Reordered="OnActionReordered"
                                      Background="Transparent" BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Disabled"
                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled" PreviewMouseWheel="OnActionListWheel">
                                 <ListBox.Template>
@@ -408,17 +408,18 @@
                                     <DataTemplate>
                                         <StackPanel>
                                             <Grid x:Name="Header" Background="Transparent" Cursor="Hand" v:DragReorder.IsHandle="True"
-                                                  PreviewMouseLeftButtonDown="OnActionHeaderDown" PreviewMouseLeftButtonUp="OnActionHeaderUp"
                                                   ToolTip="{l:Tr commands.dragHint}" ToolTipService.InitialShowDelay="1200">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto" />
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
-                                                <!-- Drag grip, visible on hover -->
-                                                <ui:SymbolIcon x:Name="Grip" Symbol="ReOrderDotsVertical24" FontSize="16" Margin="-8,0,0,0" Width="14"
-                                                               HorizontalAlignment="Left" VerticalAlignment="Center" Opacity="0" Cursor="SizeNS"
-                                                               Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                                <!-- Drag grip, visible on hover (only drags: a click on it doesn't open or close) -->
+                                                <Border x:Name="Grip" Margin="-12,-10,0,-10" Width="22" HorizontalAlignment="Left" Background="Transparent"
+                                                        Opacity="0" Cursor="SizeNS" v:DragReorder.IsGrip="True">
+                                                    <ui:SymbolIcon Symbol="ReOrderDotsVertical24" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                                </Border>
                                                 <Border Width="34" Height="34" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}" Margin="10,0,12,0">
                                                     <Image Width="22" Height="22" RenderOptions.BitmapScalingMode="HighQuality">
                                                         <Image.Source>

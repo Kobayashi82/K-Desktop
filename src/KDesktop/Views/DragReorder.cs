@@ -43,6 +43,23 @@ public static class DragReorder
     public static bool GetIsHandle(DependencyObject d) => (bool)d.GetValue(IsHandleProperty);
     public static void SetIsHandle(DependencyObject d, bool value) => d.SetValue(IsHandleProperty, value);
 
+    /// <summary>
+    /// For lists whose rows open when selected (actions, macro steps): pressing a handle doesn't select the row, a
+    /// drag leaves the selection as it was, and a click without moving opens the row or closes it if it was open.
+    /// </summary>
+    public static readonly DependencyProperty ClickTogglesProperty =
+        DependencyProperty.RegisterAttached("ClickToggles", typeof(bool), typeof(DragReorder), new PropertyMetadata(false));
+
+    public static bool GetClickToggles(DependencyObject d) => (bool)d.GetValue(ClickTogglesProperty);
+    public static void SetClickToggles(DependencyObject d, bool value) => d.SetValue(ClickTogglesProperty, value);
+
+    /// <summary>The dotted grip: only for dragging, a click on it neither opens nor closes the row.</summary>
+    public static readonly DependencyProperty IsGripProperty =
+        DependencyProperty.RegisterAttached("IsGrip", typeof(bool), typeof(DragReorder), new PropertyMetadata(false));
+
+    public static bool GetIsGrip(DependencyObject d) => (bool)d.GetValue(IsGripProperty);
+    public static void SetIsGrip(DependencyObject d, bool value) => d.SetValue(IsGripProperty, value);
+
     /// <summary>Raised on the ListBox after an item was moved.</summary>
     public static readonly RoutedEvent ReorderedEvent =
         EventManager.RegisterRoutedEvent("Reordered", RoutingStrategy.Bubble, typeof(EventHandler<ReorderedEventArgs>), typeof(DragReorder));
@@ -83,6 +100,8 @@ public static class DragReorder
         private readonly DispatcherTimer _scrollTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };
         private Point _start;
         private ListBoxItem? _pressed;
+        private bool _pressedGrip;
+        private List<object>? _before; // selection when the press began (ClickToggles lists), put back after a drag
         private ListBoxItem? _dragged;
         private int _from, _to;
         private double _height;
@@ -95,11 +114,26 @@ public static class DragReorder
         public void OnDown(object sender, MouseButtonEventArgs e)
         {
             _pressed = null;
+            _before = null;
             if (e.OriginalSource is not DependencyObject source) return;
             if (ItemsControl.ContainerFromElement(list, source) is not ListBoxItem container) return;
             if (!CanStartFrom(source, container)) return;
             _pressed = container;
             _start = e.GetPosition(list);
+            if (GetClickToggles(list) && Keyboard.Modifiers == ModifierKeys.None)
+            {
+                // The row is not selected by the press: a click toggles it on release, a drag doesn't touch it.
+                _before = list.SelectedItems.Cast<object>().ToList();
+                _pressedGrip = IsOnGrip(source, container);
+                e.Handled = true;
+            }
+        }
+
+        private static bool IsOnGrip(DependencyObject source, ListBoxItem container)
+        {
+            for (var d = source; d is not null && d != container; d = Parent(d))
+                if (GetIsGrip(d)) return true;
+            return false;
         }
 
         public void OnMove(object sender, MouseEventArgs e)
@@ -121,8 +155,22 @@ public static class DragReorder
 
         public void OnUp(object sender, MouseButtonEventArgs e)
         {
+            var pressed = _pressed;
             _pressed = null;
-            if (_dragged is null) return;
+            if (_dragged is null)
+            {
+                if (pressed is not null && _before is not null)
+                {
+                    _before = null;
+                    e.Handled = true;
+                    // A press that wandered off (a list of one row doesn't drag) is not a click either.
+                    var p = e.GetPosition(list);
+                    var still = Math.Abs(p.Y - _start.Y) < SystemParameters.MinimumVerticalDragDistance * 2 &&
+                                Math.Abs(p.X - _start.X) < SystemParameters.MinimumHorizontalDragDistance * 2;
+                    if (!_pressedGrip && still) Toggle(pressed);
+                }
+                return;
+            }
             e.Handled = true;
             End(commit: true);
         }
@@ -159,13 +207,29 @@ public static class DragReorder
         private static DependencyObject? Parent(DependencyObject d) =>
             d is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(d) : LogicalTreeHelper.GetParent(d);
 
+        /// <summary>Click on a row of a ClickToggles list: opens it alone, or closes it if it was the open one.</summary>
+        private void Toggle(ListBoxItem container)
+        {
+            var item = list.ItemContainerGenerator.ItemFromContainer(container);
+            if (item == DependencyProperty.UnsetValue) return;
+            if (container.IsSelected && list.SelectedItems.Count == 1) list.SelectedItem = null;
+            else
+            {
+                if (list.SelectionMode != SelectionMode.Single) list.SelectedItems.Clear();
+                list.SelectedItem = item;
+            }
+            container.Focus();
+        }
+
         private void Begin(ListBoxItem container, Point p)
         {
             var index = list.ItemContainerGenerator.IndexFromContainer(container);
             if (index < 0 || list.ItemsSource is not IList { Count: > 1 }) return;
 
-            // Items that expand when selected (the action editor) are dragged folded; End() selects it again.
-            list.SelectedItem = null;
+            // Items that expand when selected (the action editor) are dragged folded; End() opens it again
+            // (ClickToggles lists: only the dragged row is folded, and End() puts back the selection it had).
+            if (_before is null) list.SelectedItem = null;
+            else if (container.IsSelected) list.SelectedItems.Remove(list.ItemContainerGenerator.ItemFromContainer(container));
             list.UpdateLayout();
             p = Mouse.GetPosition(list);
             _dragged = container;
@@ -290,9 +354,12 @@ public static class DragReorder
             _offsets.Clear();
             dragged.Opacity = 1;
 
+            var before = _before;
+            _before = null;
             if (!commit || _to == _from || list.ItemsSource is not IList items)
             {
-                list.SelectedItem = list.ItemContainerGenerator.ItemFromContainer(dragged);
+                if (before is not null) Restore(before);
+                else list.SelectedItem = list.ItemContainerGenerator.ItemFromContainer(dragged);
                 return;
             }
             var item = items[_from]!;
@@ -303,7 +370,8 @@ public static class DragReorder
                 items.RemoveAt(_from);
                 items.Insert(_to, item);
             }
-            list.SelectedItem = item;
+            if (before is not null) Restore(before);
+            else list.SelectedItem = item;
 
             // Little "landing" pulse on the moved item.
             list.Dispatcher.BeginInvoke(() =>
@@ -315,6 +383,16 @@ public static class DragReorder
                 }
             }, DispatcherPriority.Loaded);
             list.RaiseEvent(new ReorderedEventArgs(ReorderedEvent, item, _from, _to));
+        }
+
+        private void Restore(List<object> selection)
+        {
+            if (list.SelectionMode == SelectionMode.Single) list.SelectedItem = selection.FirstOrDefault();
+            else
+            {
+                list.SelectedItems.Clear();
+                foreach (var s in selection) list.SelectedItems.Add(s);
+            }
         }
 
         private static ScrollViewer? FindScroller(DependencyObject d)
