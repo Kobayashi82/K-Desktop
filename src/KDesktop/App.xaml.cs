@@ -465,7 +465,7 @@ public partial class App : Application
         else Udp.Stop();
 
         if (s.WebEnabled && !WebDisabled)
-            Web.Start(new WebServerOptions(s.WebPort, s.WebAllowRemote, s.WebBasePath, s.WebTrustedProxy, s.WebProxyOnly));
+            Web.Start(new WebServerOptions(s.WebPort, WebServer.BasePathOf(s.WebPublicUrl)));
         else Web.Stop();
         Web.InputAllowed = s.WebInput;
     }
@@ -497,13 +497,10 @@ public partial class App : Application
         menu.Items.Add(new Separator());
         menu.Items.Add(TrayItem(Loc.T("tray.launcher"), (_, _) => Launcher.Show(ForegroundWindow.Capture())));
         menu.Items.Add(new Separator());
+        // The submenus are filled when the menu opens: filled as they open, the popup was placed with the old size.
         var events = new MenuItem { Header = Loc.T("tray.events") };
-        events.Items.Add(new MenuItem()); // placeholder so it opens as a submenu; filled when opened
-        events.SubmenuOpened += (_, _) => FillEventsMenu(events);
         menu.Items.Add(events);
         var kboard = new MenuItem { Header = "K-Board" };
-        kboard.Items.Add(new MenuItem()); // placeholder so it opens as a submenu; filled when opened
-        kboard.SubmenuOpened += (_, _) => FillKBoardMenu(kboard);
         menu.Items.Add(kboard);
         menu.Items.Add(new Separator());
         var pause = TrayItem(string.Empty, (_, _) => SetPaused(!Config.Settings.Paused));
@@ -514,6 +511,8 @@ public partial class App : Application
         {
             window.Header = Loc.T(MainWindowShown ? "tray.hide" : "tray.show");
             pause.Header = Loc.T(Config.Settings.Paused ? "pause.resume" : "pause.pause");
+            FillEventsMenu(events);
+            FillKBoardMenu(kboard);
         };
 
         _tray = new TaskbarIcon

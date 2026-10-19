@@ -325,20 +325,11 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private bool _webEnabled;
     [ObservableProperty] private int _webPort = 2502;
 
-    /// <summary>Accept connections from the network (the proxy on another machine, or devices directly), not only this PC.</summary>
-    [ObservableProperty] private bool _webAllowRemote = true;
-
-    /// <summary>Path of the app behind the proxy ("/kdesktop"); empty at the root of its domain.</summary>
-    [ObservableProperty] private string _webBasePath = string.Empty;
-
-    /// <summary>Public address of the app (https://…), for the pairing QR. Empty: the one seen through the proxy.</summary>
+    /// <summary>
+    /// Internet address of the app through the proxy (https://…, maybe with a path such as /kdesktop, which becomes
+    /// the base path), for the pairing QR and the Android app. Empty: the one seen through the proxy.
+    /// </summary>
     [ObservableProperty] private string _webPublicUrl = string.Empty;
-
-    /// <summary>IP of the reverse proxy: its X-Forwarded-* headers are trusted.</summary>
-    [ObservableProperty] private string _webTrustedProxy = string.Empty;
-
-    /// <summary>From the network, accept only the proxy (devices must go through HTTPS).</summary>
-    [ObservableProperty] private bool _webProxyOnly;
 
     /// <summary>The web app may move the mouse and type (its touchpad and keyboard).</summary>
     [ObservableProperty] private bool _webInput = true;

@@ -5,8 +5,11 @@ using KDesktop.Core.Platform;
 
 namespace KDesktop.Core.Remote.Web;
 
-/// <summary>How the web server is set up (built from the settings; a change restarts it).</summary>
-public sealed record WebServerOptions(int Port, bool AllowRemote, string BasePath, string? TrustedProxy, bool ProxyOnly);
+/// <summary>
+/// How the web server is set up (built from the settings; a change restarts it). The base path is the one of the
+/// internet address ("/kdesktop" in https://example.com/kdesktop): it only applies to what comes through the proxy.
+/// </summary>
+public sealed record WebServerOptions(int Port, string BasePath);
 
 public enum WebServerState { Stopped, Running, LocalOnly, Error }
 
@@ -49,15 +52,14 @@ public sealed partial class WebServer : IDisposable
         _host.Engine.Config.Settings.WebPublicUrl.Trim() is { Length: > 0 } url ? url.TrimEnd('/') + "/" : SeenPublicUrl;
 
     /// <summary>
-    /// Every address a device can reach the app at: the public one first, then this PC's on the local network (unless
-    /// only the proxy is accepted). The Android app tries them all and uses the one that answers.
+    /// Every address a device can reach the app at: the public one first, then this PC's on the local network. The
+    /// Android app tries them all and uses the one that answers.
     /// </summary>
     public IReadOnlyList<string> Addresses()
     {
         var list = new List<string>();
         if (PublicAddress is { } address) list.Add(address);
-        if (Options is { AllowRemote: true } o && State == WebServerState.Running && !(o.ProxyOnly && !string.IsNullOrEmpty(o.TrustedProxy)))
-            list.AddRange(LocalUrls(o.Port, o.BasePath));
+        if (Options is { } o && State == WebServerState.Running) list.AddRange(LocalUrls(o.Port));
         return list.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     }
 
@@ -65,7 +67,7 @@ public sealed partial class WebServer : IDisposable
 
     public void Start(WebServerOptions options)
     {
-        options = options with { BasePath = NormalizeBasePath(options.BasePath), TrustedProxy = options.TrustedProxy?.Trim() };
+        options = options with { BasePath = NormalizeBasePath(options.BasePath) };
         if (IsRunning && options == Options) return;
         Stop();
         Options = options;
@@ -248,9 +250,13 @@ public sealed partial class WebServer : IDisposable
         return p.Length == 0 ? string.Empty : "/" + p;
     }
 
+    /// <summary>The path of an internet address: "https://example.com/kdesktop" → "/kdesktop"; none or invalid → "".</summary>
+    public static string BasePathOf(string? publicUrl) =>
+        Uri.TryCreate(publicUrl?.Trim(), UriKind.Absolute, out var uri) ? NormalizeBasePath(uri.AbsolutePath) : string.Empty;
+
     /// <summary>Addresses of this PC on the local network, as the web app URLs to type in a browser.</summary>
-    public static IReadOnlyList<string> LocalUrls(int port, string basePath) =>
-        NetworkInfo.LocalIPv4().Select(ip => $"http://{ip}:{port}{NormalizeBasePath(basePath)}/").ToList();
+    public static IReadOnlyList<string> LocalUrls(int port) =>
+        NetworkInfo.LocalIPv4().Select(ip => $"http://{ip}:{port}/").ToList();
 
     public void Dispose()
     {

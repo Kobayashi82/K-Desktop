@@ -330,8 +330,7 @@ public partial class SettingsPage : UserControl
     {
         var s = _app.Config.Settings;
         if (_app.Web.PublicAddress is { } address) return address;
-        return WebServer.LocalUrls(s.WebPort, s.WebBasePath).FirstOrDefault()
-               ?? $"http://localhost:{s.WebPort}{WebServer.NormalizeBasePath(s.WebBasePath)}/";
+        return WebServer.LocalUrls(s.WebPort).FirstOrDefault() ?? $"http://localhost:{s.WebPort}/";
     }
 
     private void OnPairWeb(object sender, RoutedEventArgs e)
@@ -357,7 +356,7 @@ public partial class SettingsPage : UserControl
         var s = _app.Config.Settings;
         var running = _app.Web.State == WebServerState.Running;
         WebStateIcon.Visibility = running ? Visibility.Visible : Visibility.Collapsed;
-        WebStateInfo.ToolTip = running ? string.Join(Environment.NewLine, WebServer.LocalUrls(s.WebPort, s.WebBasePath)) : null;
+        WebStateInfo.ToolTip = running ? string.Join(Environment.NewLine, WebServer.LocalUrls(s.WebPort)) : null;
         WebStateText.Text = _app.Web.State switch
         {
             WebServerState.Running => Loc.T("settings.udpAddresses"),
@@ -370,7 +369,7 @@ public partial class SettingsPage : UserControl
     private void OnOpenWeb(object sender, RoutedEventArgs e)
     {
         var s = _app.Config.Settings;
-        ProcessLauncher.Launch(new LaunchSpec($"http://localhost:{s.WebPort}{WebServer.NormalizeBasePath(s.WebBasePath)}/"), asAdmin: false);
+        ProcessLauncher.Launch(new LaunchSpec($"http://localhost:{s.WebPort}/"), asAdmin: false);
     }
 
     // ── Android app ──────────────────────────────────────────────────────

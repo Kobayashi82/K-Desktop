@@ -611,14 +611,6 @@
                     </Grid>
                     <StackPanel IsEnabled="{Binding WebEnabled}">
                         <Grid Style="{StaticResource SettingRow}">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                                <TextBlock Text="{l:Tr settings.webRemote}" />
-                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webRemoteHint}" />
-                            </StackPanel>
-                            <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding WebAllowRemote}" />
-                        </Grid>
-                        <Grid Style="{StaticResource SettingRow}">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="140" /></Grid.ColumnDefinitions>
                             <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                                 <TextBlock Text="{l:Tr settings.webPort}" />
@@ -628,44 +620,20 @@
                             <ui:TextBox Grid.Column="1" v:PortInput.IsEnabled="True" Text="{Binding WebPort, UpdateSourceTrigger=LostFocus}" />
                         </Grid>
                         <Grid Style="{StaticResource SettingRow}">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                                <TextBlock Text="{l:Tr settings.webPublicUrl}" />
-                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webPublicUrlHint}" TextWrapping="Wrap" />
-                            </StackPanel>
-                            <ui:TextBox Grid.Column="1" PlaceholderText="https://kdesktop.example.com" Text="{Binding WebPublicUrl, UpdateSourceTrigger=LostFocus}" />
-                        </Grid>
-                        <Grid Style="{StaticResource SettingRow}">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                                <TextBlock Text="{l:Tr settings.webBasePath}" />
-                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webBasePathHint}" TextWrapping="Wrap" />
-                            </StackPanel>
-                            <ui:TextBox Grid.Column="1" PlaceholderText="/kdesktop" Text="{Binding WebBasePath, UpdateSourceTrigger=LostFocus}" />
-                        </Grid>
-                        <Grid Style="{StaticResource SettingRow}">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                                <TextBlock Text="{l:Tr settings.webProxy}" />
-                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webProxyHint}" TextWrapping="Wrap" />
-                            </StackPanel>
-                            <ui:TextBox Grid.Column="1" PlaceholderText="192.168.1.150" Text="{Binding WebTrustedProxy, UpdateSourceTrigger=LostFocus}" />
-                        </Grid>
-                        <Grid Style="{StaticResource SettingRow}">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                                <TextBlock Text="{l:Tr settings.webProxyOnly}" />
-                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webProxyOnlyHint}" TextWrapping="Wrap" />
-                            </StackPanel>
-                            <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding WebProxyOnly}" />
-                        </Grid>
-                        <Grid Style="{StaticResource SettingRow}">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                             <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                                 <TextBlock Text="{l:Tr settings.webInput}" />
                                 <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webInputHint}" TextWrapping="Wrap" />
                             </StackPanel>
                             <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding WebInput}" />
+                        </Grid>
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                <TextBlock Text="{l:Tr settings.webPublicUrl}" />
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webPublicUrlHint}" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <ui:TextBox Grid.Column="1" PlaceholderText="https://kdesktop.example.com" Text="{Binding WebPublicUrl, UpdateSourceTrigger=LostFocus}" />
                         </Grid>
                         <WrapPanel Margin="0,6,0,0">
                             <ui:Button Margin="0,0,8,8" Appearance="Primary" Content="{l:Tr settings.webPair}" Icon="{ui:SymbolIcon QrCode24}" Click="OnPairWeb" />
