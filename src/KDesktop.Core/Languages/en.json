@@ -2689,5 +2689,15 @@
   "brain.error.unreachable": "Can't connect to the server.",
   "brain.error.pullMissing": "Ollama doesn't have that model.",
   "brain.error.pullCut": "The download stopped before finishing.",
-  "brain.error.key": "The server doesn't accept the API key."
+  "brain.error.key": "The server doesn't accept the API key.",
+
+  "assistantOptions.model": "Thinks with",
+  "assistantOptions.modelGeneral": "The general model",
+  "assistantOptions.modelGeneralIs": "The general one ({0})",
+  "assistantOptions.modelMissing": "{0} (not there: uses the general one)",
+  "assistantOptions.modelSuggested": "It suggests thinking with {0}, which you don't have.",
+  "assistantOptions.modelDownloading": "Downloading {0}… (see Brain)",
+  "assistantOptions.modelDownload": "Download",
+  "assistantCard.modelOffer": "Also download {0}, the model it suggests thinking with",
+  "assistantCard.modelHint": "Without it, it thinks with your general model. You can change it any time in Settings › Assistants."
 }

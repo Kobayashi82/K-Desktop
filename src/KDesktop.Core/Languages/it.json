@@ -2689,5 +2689,15 @@
   "brain.error.unreachable": "Impossibile connettersi al server.",
   "brain.error.pullMissing": "Ollama non ha quel modello.",
   "brain.error.pullCut": "Il download si è interrotto prima di finire.",
-  "brain.error.key": "Il server non accetta la chiave API."
+  "brain.error.key": "Il server non accetta la chiave API.",
+
+  "assistantOptions.model": "Pensa con",
+  "assistantOptions.modelGeneral": "Il modello generale",
+  "assistantOptions.modelGeneralIs": "Il generale ({0})",
+  "assistantOptions.modelMissing": "{0} (non presente: usa il generale)",
+  "assistantOptions.modelSuggested": "Suggerisce di pensare con {0}, che non hai.",
+  "assistantOptions.modelDownloading": "Download di {0}… (vedi Cervello)",
+  "assistantOptions.modelDownload": "Scarica",
+  "assistantCard.modelOffer": "Scarica anche {0}, il modello con cui suggerisce di pensare",
+  "assistantCard.modelHint": "Senza di esso, pensa con il tuo modello generale. Puoi cambiarlo quando vuoi in Impostazioni › Assistenti."
 }

@@ -113,6 +113,11 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </StackPanel>
+            <!-- The model it suggests, when Ollama does not have it: offered unticked, never downloaded without asking (stage 3.2) -->
+            <StackPanel x:Name="ModelPanel" Margin="0,12,0,0" Visibility="Collapsed">
+                <CheckBox x:Name="ModelCheck" IsChecked="False" />
+                <TextBlock Margin="28,0,0,0" Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantCard.modelHint}" />
+            </StackPanel>
             <CheckBox x:Name="ActivateCheck" Margin="0,12,0,0" Content="{l:Tr assistantCard.activate}" IsChecked="True" />
             <TextBlock x:Name="ModuleOffText" Margin="0,4,0,0" Style="{StaticResource Caption}" TextWrapping="Wrap"
                        Text="{l:Tr assistantCard.moduleOff}" Visibility="Collapsed" />

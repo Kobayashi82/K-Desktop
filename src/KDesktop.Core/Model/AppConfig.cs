@@ -470,6 +470,12 @@ public partial class AppSettings : ObservableObject
     /// <summary>The general model; empty: chosen automatically (about 4 B, with tools).</summary>
     [ObservableProperty] private string _assistantBrainModel = string.Empty;
 
+    /// <summary>
+    /// The model of each assistant that has its own: assistant id → model (absent: the general one, also when the server
+    /// does not have it). Replaced whole on every change (so it is saved).
+    /// </summary>
+    [ObservableProperty] private Dictionary<string, string> _assistantModels = [];
+
     // OSD
     [ObservableProperty] private OsdPosition _osdPosition = OsdPosition.BottomCenter;
     [ObservableProperty] private double _osdSeconds = 1.6;

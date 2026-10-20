@@ -17,6 +17,8 @@ public partial class AssistantPackageDialog : FluentWindow
     private readonly App _app;
     private PackageInfo? _package;
     private List<HotkeyOffer> _offers = [];
+    /// <summary>The model it suggests that Ollama does not have, or null.</summary>
+    private string? _suggestedModel;
 
     /// <summary>A command the card offers to create: an extra with the hotkey it suggests.</summary>
     private sealed class HotkeyOffer(ManifestExtra extra, string hotkey, string text, string? conflict)
@@ -121,6 +123,9 @@ public partial class AssistantPackageDialog : FluentWindow
         if (settings.AssistantsOnDesktop.Contains(manifest.Id)) ActivateCheck.Visibility = Visibility.Collapsed;
         if (!settings.AssistantEnabled) ModuleOffText.Visibility = Visibility.Visible;
         ShowHotkeyOffers(manifest);
+        _suggestedModel = _app.MissingSuggestedModel(manifest);
+        ModelCheck.Content = _suggestedModel is { } model ? new System.Windows.Controls.TextBlock { Text = Loc.T("assistantCard.modelOffer", model), TextWrapping = TextWrapping.Wrap } : null;
+        ModelPanel.Visibility = _suggestedModel is null ? Visibility.Collapsed : Visibility.Visible;
 
         InstallButton.Content = Loc.T(package.Action switch
         {
@@ -165,6 +170,7 @@ public partial class AssistantPackageDialog : FluentWindow
                 .Select(o => installed.Manifest.Extras.FirstOrDefault(x => x.Id == o.Extra.Id))
                 .OfType<ManifestExtra>()
                 .Select(x => new InstalledExtra(installed, x)));
+            if (_suggestedModel is { } model && ModelCheck.IsChecked == true) _app.AskAssistantBrain("pull", model);
             Close();
         }
         catch (Exception ex)

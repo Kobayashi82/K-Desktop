@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using KDesktop.Assistant.Brain.Models;
+using KDesktop.Core.Assistant.Brain;
 
 namespace KDesktop.Assistant.Brain;
 
@@ -25,13 +26,10 @@ public static partial class ModelPicker
     }
 
     /// <summary>The model of that name («qwen3.5:4b» also finds «qwen3.5:4b:latest»…), or null.</summary>
-    public static ModelInfo? Find(IReadOnlyList<ModelInfo> models, string? name)
-    {
-        if (string.IsNullOrWhiteSpace(name)) return null;
-        name = name.Trim();
-        return models.FirstOrDefault(m => string.Equals(m.Name, name, StringComparison.OrdinalIgnoreCase))
-            ?? models.FirstOrDefault(m => string.Equals(m.Name, name + ":latest", StringComparison.OrdinalIgnoreCase));
-    }
+    public static ModelInfo? Find(IReadOnlyList<ModelInfo> models, string? name) =>
+        string.IsNullOrWhiteSpace(name) ? null
+        : models.FirstOrDefault(m => string.Equals(m.Name, name.Trim(), StringComparison.OrdinalIgnoreCase))
+          ?? models.FirstOrDefault(m => BrainProviders.SameModel(m.Name, name));
 
     /// <summary>The models one can talk with (not those that only make vectors).</summary>
     public static IEnumerable<ModelInfo> Chat(IEnumerable<ModelInfo> models) => models.Where(m => !m.IsEmbeddingOnly);

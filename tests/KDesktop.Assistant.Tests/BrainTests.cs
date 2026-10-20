@@ -132,7 +132,40 @@ public class BrainTests
         Assert.Equal(BrainConfig.Default, BrainConfig.FromJson(null));
     }
 
+    [Fact]
+    public void EachAssistantsModelTravelsToo()
+    {
+        var config = BrainConfig.Default with { Models = new Dictionary<string, string> { ["lander"] = "gemma4-e4b" } };
+        var back = BrainConfig.FromJson(config.ToJson());
+        Assert.Equal("gemma4-e4b", back.AssistantModels["lander"]);
+        Assert.Empty(BrainConfig.Default.AssistantModels);
+    }
+
+    [Theory]
+    [InlineData("qwen3.5:4b", "qwen3.5:4b:latest", true)]
+    [InlineData("Qwen3.5:4B", "qwen3.5:4b", true)]
+    [InlineData("qwen3.5:4b", "qwen3.5:2b", false)]
+    public void ModelNamesMatchWithOrWithoutLatest(string a, string b, bool same) => Assert.Equal(same, BrainProviders.SameModel(a, b));
+
     // ── the service against a fake Ollama ───────────────────────────────
+
+    /// <summary>Stage 3.2: the Lander thinks with its own model and the module without a body with the general one.</summary>
+    [Fact]
+    public async Task EachAssistantThinksWithItsOwnModelOrTheGeneralOne()
+    {
+        var ollama = new FakeOllama { Models = ["qwen3.5-4b:latest|4.7B", "gemma4-e4b:latest|7.5B"] };
+        using var brain = new BrainService(() => 12, ollama);
+        var own = new Dictionary<string, string> { ["lander"] = "gemma4-e4b", ["dot"] = "not-there:1b" };
+        await ConfigureAsync(brain, BrainConfig.Default with { Models = own });
+        Assert.Equal("gemma4-e4b:latest", brain.ModelFor("lander"));
+        Assert.Equal("qwen3.5-4b:latest", brain.ModelFor("dot"));
+        Assert.Equal("qwen3.5-4b:latest", brain.ModelFor(null));
+
+        // Changing only an assistant's model takes effect without looking at the server again.
+        brain.Configure(BrainConfig.Default with { Models = new Dictionary<string, string>() });
+        Assert.Equal("qwen3.5-4b:latest", brain.ModelFor("lander"));
+    }
+
 
     [Fact]
     public async Task ItIsReadyWithTheModelItPicks()

@@ -32,11 +32,16 @@ public enum EndpointPlace
 
 /// <summary>
 /// Options → Assistant → Brain, as the assistant process gets it (the <c>brain</c> section of <c>config</c>): the provider,
-/// its address (the usual one when empty), its key in plain text (the pipe is only the user's) and the general model
-/// (empty: chosen automatically).
+/// its address (the usual one when empty), its key in plain text (the pipe is only the user's), the general model
+/// (empty: chosen automatically) and the model of each assistant that has its own (stage 3.2; when the server does not
+/// have it, that assistant uses the general one).
 /// </summary>
-public sealed record BrainConfig(BrainProvider Provider, string Endpoint = "", string ApiKey = "", string Model = "")
+public sealed record BrainConfig(BrainProvider Provider, string Endpoint = "", string ApiKey = "", string Model = "",
+    IReadOnlyDictionary<string, string>? Models = null)
 {
+    /// <summary>Each assistant's own model (never null).</summary>
+    public IReadOnlyDictionary<string, string> AssistantModels => Models ?? new Dictionary<string, string>();
+
     public static BrainConfig Default { get; } = new(BrainProvider.Ollama);
 
     /// <summary>The address to use: the one typed, or the provider's usual one.</summary>
@@ -48,13 +53,18 @@ public sealed record BrainConfig(BrainProvider Provider, string Endpoint = "", s
         ["endpoint"] = Address,
         ["apiKey"] = ApiKey,
         ["model"] = Model,
+        ["models"] = new JsonObject(AssistantModels.Select(p => KeyValuePair.Create(p.Key, (JsonNode?)p.Value))),
     };
 
     public static BrainConfig FromJson(JsonObject? json)
     {
         if (json is null) return Default;
         static string Text(JsonNode? node) => node is JsonValue v && v.TryGetValue<string>(out var s) ? s : string.Empty;
-        return new BrainConfig(BrainProviders.Parse(Text(json["provider"])), Text(json["endpoint"]), Text(json["apiKey"]), Text(json["model"]));
+        var models = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (json["models"] is JsonObject own)
+            foreach (var (id, model) in own)
+                if (Text(model) is { Length: > 0 } name) models[id] = name;
+        return new BrainConfig(BrainProviders.Parse(Text(json["provider"])), Text(json["endpoint"]), Text(json["apiKey"]), Text(json["model"]), models);
     }
 }
 
@@ -67,6 +77,16 @@ public static class BrainProviders
         BrainProvider.OpenAICompatible => "http://localhost:1234",
         _ => "http://localhost:11434",
     };
+
+    /// <summary>Whether two model names are the same one («qwen3.5:4b» is «qwen3.5:4b:latest» too, as Ollama says).</summary>
+    public static bool SameModel(string a, string b)
+    {
+        a = a.Trim();
+        b = b.Trim();
+        return string.Equals(a, b, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(a + ":latest", b, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(a, b + ":latest", StringComparison.OrdinalIgnoreCase);
+    }
 
     /// <summary>Whether the server may ask for an API key (Ollama never does).</summary>
     public static bool UsesApiKey(this BrainProvider provider) => provider is BrainProvider.LlamaSwap or BrainProvider.OpenAICompatible;

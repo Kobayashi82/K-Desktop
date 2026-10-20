@@ -42,7 +42,7 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                                 <Border Width="48" Height="48" CornerRadius="12" Background="{DynamicResource Kd.ChipBackground}" VerticalAlignment="Top">
                                     <Grid>
                                         <ui:SymbolIcon Symbol="Bot24" FontSize="26" Foreground="{DynamicResource Kd.AccentText}"
@@ -65,8 +65,9 @@
                                                TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                                Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}" />
                                 </StackPanel>
-                                <!-- Its wake word: the word chooses who you talk to (under the text, as wide as the row) -->
-                                <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="14,8,0,0" Orientation="Horizontal">
+                                <!-- Its wake word (the word chooses who you talk to) and the model it thinks with, under the text -->
+                                <WrapPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="14,8,0,0">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,24,4">
                                     <ui:SymbolIcon Symbol="Mic24" FontSize="15" Margin="0,0,6,0" VerticalAlignment="Center"
                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                     <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,8,0"
@@ -76,6 +77,24 @@
                                               SelectionChanged="OnWakeChanged" AutomationProperties.Name="{l:Tr assistantOptions.wakeWord}" />
                                     <ui:Button Margin="6,0,0,0" VerticalAlignment="Center" Icon="{ui:SymbolIcon Record24}" Click="OnRecordWake"
                                                ToolTip="{l:Tr assistantOptions.wakeRecord}" AutomationProperties.Name="{l:Tr assistantOptions.wakeRecord}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4" Visibility="{Binding HasBrain, Converter={StaticResource BoolToVis}}">
+                                    <ui:SymbolIcon Symbol="BrainCircuit24" FontSize="15" Margin="0,0,6,0" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                    <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,8,0"
+                                               Text="{l:Tr assistantOptions.model}" />
+                                    <ComboBox MinWidth="190" MaxWidth="400" VerticalAlignment="Center" ItemsSource="{Binding ModelOptions}"
+                                              SelectedItem="{Binding SelectedModel, Mode=OneTime}" DisplayMemberPath="Name"
+                                              SelectionChanged="OnModelChanged" AutomationProperties.Name="{l:Tr assistantOptions.model}" />
+                                </StackPanel>
+                                </WrapPanel>
+                                <!-- The model it suggests, when Ollama does not have it: offered, never downloaded without asking -->
+                                <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="14,4,0,0" Orientation="Horizontal"
+                                            Visibility="{Binding HasSuggestedModel, Converter={StaticResource BoolToVis}}">
+                                    <ui:SymbolIcon Symbol="Sparkle24" FontSize="15" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
+                                    <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,8,0" Text="{Binding SuggestedModelText}" />
+                                    <ui:Button VerticalAlignment="Center" Padding="10,3" Icon="{ui:SymbolIcon ArrowDownload24}" Content="{l:Tr assistantOptions.modelDownload}"
+                                               Click="OnDownloadModel" Visibility="{Binding CanDownloadSuggested, Converter={StaticResource BoolToVis}}" />
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                     <ui:Button Margin="0,0,8,0" Content="{l:Tr assistantOptions.settings}" Icon="{ui:SymbolIcon Options24}"

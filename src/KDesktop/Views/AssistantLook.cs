@@ -15,6 +15,12 @@ public sealed record WakeOption(string? Id, string Name)
     public override string ToString() => Name;
 }
 
+/// <summary>A model to think with, for one assistant (stage 3.2): <paramref name="Value"/> empty is the general one.</summary>
+public sealed record ModelOption(string Value, string Name)
+{
+    public override string ToString() => Name;
+}
+
 /// <summary>An installed assistant as the pages show it: icon, name, version, description and whether it is on the desktop.</summary>
 public sealed class AssistantRow
 {
@@ -24,6 +30,7 @@ public sealed class AssistantRow
         IsOnDesktop = app.IsOnDesktop(installed.Id);
         Icon = AssistantLook.Icon(installed);
         WakeWordId = app.Config.Settings.AssistantWakeWords.GetValueOrDefault(installed.Id);
+        ModelName = app.Config.Settings.AssistantModels.GetValueOrDefault(installed.Id) ?? string.Empty;
     }
 
     public InstalledAssistant Installed { get; }
@@ -56,6 +63,27 @@ public sealed class AssistantRow
     public IReadOnlyList<WakeOption> WakeOptions { get; set; } = [];
 
     public WakeOption? SelectedWake => WakeOptions.FirstOrDefault(o => o.Id == WakeWordId);
+
+    /// <summary>Its own model (stage 3.2), or empty: the general one.</summary>
+    public string ModelName { get; set; } = string.Empty;
+
+    /// <summary>The models to choose from (the general one first). Filled by the list.</summary>
+    public IReadOnlyList<ModelOption> ModelOptions { get; set; } = [];
+
+    public ModelOption? SelectedModel => ModelOptions.FirstOrDefault(o => string.Equals(o.Value, ModelName, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>Whether there is a brain to choose a model of (not «no AI»).</summary>
+    public bool HasBrain { get; set; }
+
+    /// <summary>The model it suggests when Ollama does not have it (offered, never downloaded without asking), or null.</summary>
+    public string? SuggestedModel { get; set; }
+
+    public bool HasSuggestedModel => SuggestedModel is not null;
+
+    /// <summary>Its offer: «Suggests X» with the button, or that it is downloading.</summary>
+    public string SuggestedModelText { get; set; } = string.Empty;
+
+    public bool CanDownloadSuggested { get; set; }
 
     /// <summary>The name it suggests to be called by (its manifest's wakeWord, or its name).</summary>
     public string SuggestedWakeWord => Installed.Manifest.WakeWord is { Length: > 0 } word ? word : Name;

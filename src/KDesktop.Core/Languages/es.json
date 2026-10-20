@@ -2689,5 +2689,15 @@
   "brain.error.unreachable": "No se puede conectar con el servidor.",
   "brain.error.pullMissing": "Ollama no tiene ese modelo.",
   "brain.error.pullCut": "La descarga se ha cortado antes de terminar.",
-  "brain.error.key": "El servidor no acepta la clave de API."
+  "brain.error.key": "El servidor no acepta la clave de API.",
+
+  "assistantOptions.model": "Piensa con",
+  "assistantOptions.modelGeneral": "El modelo general",
+  "assistantOptions.modelGeneralIs": "El general ({0})",
+  "assistantOptions.modelMissing": "{0} (no está: usa el general)",
+  "assistantOptions.modelSuggested": "Sugiere pensar con {0}, que no tienes.",
+  "assistantOptions.modelDownloading": "Descargando {0}… (lo ves en Cerebro)",
+  "assistantOptions.modelDownload": "Descargar",
+  "assistantCard.modelOffer": "Descargar también {0}, el modelo con el que sugiere pensar",
+  "assistantCard.modelHint": "Sin él, piensa con tu modelo general. Puedes cambiarlo cuando quieras en Opciones › Asistentes."
 }

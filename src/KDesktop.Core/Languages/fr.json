@@ -2689,5 +2689,15 @@
   "brain.error.unreachable": "Impossible de se connecter au serveur.",
   "brain.error.pullMissing": "Ollama n'a pas ce modèle.",
   "brain.error.pullCut": "Le téléchargement s'est interrompu avant la fin.",
-  "brain.error.key": "Le serveur n'accepte pas la clé d'API."
+  "brain.error.key": "Le serveur n'accepte pas la clé d'API.",
+
+  "assistantOptions.model": "Pense avec",
+  "assistantOptions.modelGeneral": "Le modèle général",
+  "assistantOptions.modelGeneralIs": "Le général ({0})",
+  "assistantOptions.modelMissing": "{0} (absent : utilise le général)",
+  "assistantOptions.modelSuggested": "Il suggère de penser avec {0}, que vous n'avez pas.",
+  "assistantOptions.modelDownloading": "Téléchargement de {0}… (voir Cerveau)",
+  "assistantOptions.modelDownload": "Télécharger",
+  "assistantCard.modelOffer": "Télécharger aussi {0}, le modèle avec lequel il suggère de penser",
+  "assistantCard.modelHint": "Sans lui, il pense avec votre modèle général. Vous pouvez le changer à tout moment dans Paramètres › Assistants."
 }

@@ -1,5 +1,7 @@
 using System.Text.Json.Nodes;
+using KDesktop.Core;
 using KDesktop.Core.Assistant.Brain;
+using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Platform;
 
@@ -25,8 +27,30 @@ public partial class App
     private JsonObject AssistantBrainConfig()
     {
         var s = Config.Settings;
-        return new BrainConfig(s.AssistantBrainProvider, s.AssistantBrainEndpoint, AssistantBrainApiKey, s.AssistantBrainModel).ToJson();
+        return new BrainConfig(s.AssistantBrainProvider, s.AssistantBrainEndpoint, AssistantBrainApiKey, s.AssistantBrainModel, s.AssistantModels).ToJson();
     }
+
+    /// <summary>An assistant's own model (stage 3.2); null or empty: the general one.</summary>
+    public void SetAssistantModel(string assistant, string? model)
+    {
+        var models = new Dictionary<string, string>(Config.Settings.AssistantModels, StringComparer.Ordinal);
+        if (string.IsNullOrWhiteSpace(model)) models.Remove(assistant);
+        else models[assistant] = model.Trim();
+        Config.Settings.AssistantModels = models;
+        Log.Info($"Asistente: modelo de «{assistant}»: {(string.IsNullOrWhiteSpace(model) ? "el general" : model)}");
+        AssistantChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// The model an assistant suggests when Ollama does not have it yet (to offer it, never to download it without asking);
+    /// null when it suggests none, it is there, the brain is not Ollama or nothing is known of it yet.
+    /// </summary>
+    public string? MissingSuggestedModel(AssistantManifest manifest) =>
+        manifest.Model?.Suggested is { Length: > 0 } suggested
+        && Config.Settings.AssistantBrainProvider == BrainProvider.Ollama
+        && AssistantBrain is { State: "ready" or "noModels" or "modelMissing", Models: { } models }
+        && !models.Any(m => BrainProviders.SameModel(m.Name, suggested))
+            ? suggested : null;
 
     /// <summary>The API key in plain text (empty when there is none or it was saved on another PC).</summary>
     public string AssistantBrainApiKey =>

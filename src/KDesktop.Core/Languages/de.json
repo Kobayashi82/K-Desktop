@@ -2689,5 +2689,15 @@
   "brain.error.unreachable": "Keine Verbindung zum Server.",
   "brain.error.pullMissing": "Ollama hat dieses Modell nicht.",
   "brain.error.pullCut": "Der Download wurde vor dem Ende abgebrochen.",
-  "brain.error.key": "Der Server akzeptiert den API-Schlüssel nicht."
+  "brain.error.key": "Der Server akzeptiert den API-Schlüssel nicht.",
+
+  "assistantOptions.model": "Denkt mit",
+  "assistantOptions.modelGeneral": "Das allgemeine Modell",
+  "assistantOptions.modelGeneralIs": "Das allgemeine ({0})",
+  "assistantOptions.modelMissing": "{0} (nicht vorhanden: nutzt das allgemeine)",
+  "assistantOptions.modelSuggested": "Es schlägt {0} zum Denken vor, das du nicht hast.",
+  "assistantOptions.modelDownloading": "{0} wird heruntergeladen… (siehe Gehirn)",
+  "assistantOptions.modelDownload": "Herunterladen",
+  "assistantCard.modelOffer": "Auch {0} herunterladen, das Modell, das es zum Denken vorschlägt",
+  "assistantCard.modelHint": "Ohne es denkt er mit deinem allgemeinen Modell. Du kannst es jederzeit unter Einstellungen › Assistenten ändern."
 }

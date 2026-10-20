@@ -64,14 +64,32 @@ public sealed class BrainService : IDisposable
         get { lock (_gate) return _state.State == "ready" ? _state.Model : null; }
     }
 
+    /// <summary>
+    /// The model an assistant talks with (stage 3.2): its own when it has one and the server has it; otherwise the general
+    /// one (also with no assistant: the module without a body). Null when neither is there.
+    /// </summary>
+    public string? ModelFor(string? assistant)
+    {
+        lock (_gate)
+        {
+            if (assistant is not null && _config.AssistantModels.TryGetValue(assistant, out var own)
+                && _state.Models?.FirstOrDefault(m => BrainProviders.SameModel(m.Name, own)) is { } found)
+                return found.Name;
+            return _state.State == "ready" ? _state.Model : null;
+        }
+    }
+
     /// <summary>Options changed (or the process got its welcome): a new client, and a look at it.</summary>
     public void Configure(BrainConfig config)
     {
         lock (_gate)
         {
-            if (_disposed || (config == _config && _client is not null)) return;
+            if (_disposed) return;
             var sameServer = config.Provider == _config.Provider && BrainScout.SameEndpoint(config.Address, _config.Address) && config.ApiKey == _config.ApiKey;
+            var sameModel = sameServer && config.Model == _config.Model && _client is not null;
             _config = config;
+            // Only the assistants' own models changed: nothing to look at again.
+            if (sameModel) return;
             if (!sameServer || _client is null)
             {
                 _client?.Dispose();

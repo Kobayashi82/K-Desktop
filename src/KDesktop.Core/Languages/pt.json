@@ -2689,5 +2689,15 @@
   "brain.error.unreachable": "Não é possível conectar ao servidor.",
   "brain.error.pullMissing": "O Ollama não tem esse modelo.",
   "brain.error.pullCut": "O download parou antes de terminar.",
-  "brain.error.key": "O servidor não aceita a chave de API."
+  "brain.error.key": "O servidor não aceita a chave de API.",
+
+  "assistantOptions.model": "Pensa com",
+  "assistantOptions.modelGeneral": "O modelo geral",
+  "assistantOptions.modelGeneralIs": "O geral ({0})",
+  "assistantOptions.modelMissing": "{0} (não está lá: usa o geral)",
+  "assistantOptions.modelSuggested": "Ele sugere pensar com o {0}, que você não tem.",
+  "assistantOptions.modelDownloading": "Baixando {0}… (veja em Cérebro)",
+  "assistantOptions.modelDownload": "Baixar",
+  "assistantCard.modelOffer": "Baixar também o {0}, o modelo com que ele sugere pensar",
+  "assistantCard.modelHint": "Sem ele, pensa com o seu modelo geral. Você pode mudar quando quiser em Configurações › Assistentes."
 }
