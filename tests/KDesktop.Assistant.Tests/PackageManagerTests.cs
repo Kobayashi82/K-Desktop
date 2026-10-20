@@ -193,4 +193,35 @@ public class PackageManagerTests
     [InlineData("lib/com1.dll", false)]
     [InlineData("lib/a<b", false)]
     public void PathsArePlainRelativeOnes(string path, bool safe) => Assert.Equal(safe, AssistantPackages.IsSafePath(path));
+
+    [Theory]
+    [InlineData("http://example.com/dot.kdassistant")]
+    [InlineData("file:///C:/Windows/notepad.exe")]
+    [InlineData("not an address")]
+    public async Task OnlyHttpsDownloads(string url)
+    {
+        var ex = await Assert.ThrowsAsync<PackageException>(() => AssistantPackages.DownloadAsync(url, "Dot"));
+        Assert.Equal(PackageProblem.NotAPackage, ex.Problem);
+    }
+
+    [Fact]
+    public void OnlyDownloadsAreForgotten()
+    {
+        Directory.CreateDirectory(AssistantPackages.DownloadFolder);
+        var downloaded = Path.Combine(AssistantPackages.DownloadFolder, $"{Guid.NewGuid():N}{AssistantPackages.Extension}");
+        File.WriteAllText(downloaded, "x");
+        var mine = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}{AssistantPackages.Extension}");
+        File.WriteAllText(mine, "x");
+        try
+        {
+            AssistantPackages.ForgetDownload(downloaded);
+            AssistantPackages.ForgetDownload(mine);
+            Assert.False(File.Exists(downloaded));
+            Assert.True(File.Exists(mine)); // a package the user opened is never deleted
+        }
+        finally
+        {
+            File.Delete(mine);
+        }
+    }
 }

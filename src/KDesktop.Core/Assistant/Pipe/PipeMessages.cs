@@ -118,6 +118,12 @@ public sealed record PanelMessage(JsonObject Data) : PipeMessage
     public override string Type => "panel";
 }
 
+/// <summary>Right-click menu → «Hide»: K-Desktop takes the assistant off the desktop (the module goes on without a body).</summary>
+public sealed record HideMessage : PipeMessage
+{
+    public override string Type => "hide";
+}
+
 /// <summary>Reading and writing messages as lines.</summary>
 public static class PipeJson
 {
@@ -155,6 +161,7 @@ public static class PipeJson
         ["notify"] = typeof(NotifyMessage),
         ["open"] = typeof(OpenMessage),
         ["panel"] = typeof(PanelMessage),
+        ["hide"] = typeof(HideMessage),
     };
 
     /// <summary>[JsonIgnore] on the abstract Type is not inherited by the overrides: drop it here.</summary>

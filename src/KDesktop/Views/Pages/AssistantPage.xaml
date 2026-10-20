@@ -1,0 +1,124 @@
+<UserControl x:Class="KDesktop.Views.Pages.AssistantPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:l="clr-namespace:KDesktop.Localization">
+    <UserControl.Resources>
+        <!-- A label and its value in the status card -->
+        <Style x:Key="StatusLabel" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,5,24,5" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        </Style>
+        <Style x:Key="StatusValue" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,5" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24,12,24,24">
+        <StackPanel MaxWidth="980" HorizontalAlignment="Left" MinWidth="560">
+            <DockPanel Margin="0,0,0,14">
+                <ui:Button DockPanel.Dock="Right" VerticalAlignment="Center" Content="{l:Tr assistantPanel.options}"
+                           Icon="{ui:SymbolIcon Settings24}" Click="OnOptions" />
+                <TextBlock Style="{StaticResource PageTitle}" Text="{l:Tr nav.assistant}" />
+            </DockPanel>
+
+            <!-- The module is off -->
+            <Border x:Name="OffPanel" Style="{StaticResource Card}" Visibility="Collapsed">
+                <StackPanel Margin="0,20" HorizontalAlignment="Center">
+                    <Border Width="72" Height="72" CornerRadius="18" Background="{DynamicResource Kd.AccentSoft}" HorizontalAlignment="Center">
+                        <ui:SymbolIcon Symbol="Bot24" FontSize="38" Foreground="{DynamicResource Kd.AccentText}" />
+                    </Border>
+                    <TextBlock Margin="0,16,0,6" HorizontalAlignment="Center" FontSize="17" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{l:Tr assistantPanel.offTitle}" />
+                    <TextBlock Style="{StaticResource Caption}" MaxWidth="460" TextAlignment="Center" Text="{l:Tr assistantPanel.offHint}" />
+                    <ui:Button Margin="0,16,0,0" HorizontalAlignment="Center" Appearance="Primary" Icon="{ui:SymbolIcon Power24}"
+                               Content="{l:Tr assistantPanel.turnOn}" Click="OnTurnOn" />
+                </StackPanel>
+            </Border>
+
+            <StackPanel x:Name="OnPanel">
+                <!-- Who is on the desktop -->
+                <Border Style="{StaticResource Card}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Width="72" Height="72" CornerRadius="16" Background="{DynamicResource Kd.ChipBackground}" VerticalAlignment="Top">
+                            <Grid>
+                                <ui:SymbolIcon x:Name="HeroFallback" Symbol="Bot24" FontSize="38" Foreground="{DynamicResource Kd.AccentText}" />
+                                <Image x:Name="HeroIcon" Margin="8" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+                            </Grid>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="18,0,16,0" VerticalAlignment="Center">
+                            <TextBlock x:Name="HeroName" FontSize="22" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       FontFamily="Segoe UI Variable Display, Segoe UI" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock x:Name="HeroByline" Style="{StaticResource Caption}" Margin="0,2,0,0" />
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <Ellipse x:Name="HeroDot" Width="9" Height="9" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                <TextBlock x:Name="HeroState" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                            <ui:Button x:Name="HideButton" HorizontalAlignment="Stretch" Content="{l:Tr assistantOptions.hide}"
+                                       Icon="{ui:SymbolIcon EyeOff24}" Click="OnHide" />
+                            <ui:Button x:Name="ChooseButton" Margin="0,8,0,0" HorizontalAlignment="Stretch" Content="{l:Tr assistantPanel.choose}"
+                                       Icon="{ui:SymbolIcon PeopleCommunity24}" Click="OnChoose" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- How the process is doing -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr assistantPanel.status}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Style="{StaticResource StatusLabel}" Text="{l:Tr assistantPanel.process}" />
+                            <TextBlock x:Name="ProcessText" Grid.Row="0" Grid.Column="1" Style="{StaticResource StatusValue}" />
+                            <TextBlock Grid.Row="1" Style="{StaticResource StatusLabel}" Text="{l:Tr assistantPanel.activity}" />
+                            <TextBlock x:Name="ActivityText" Grid.Row="1" Grid.Column="1" Style="{StaticResource StatusValue}" />
+                            <TextBlock Grid.Row="2" Style="{StaticResource StatusLabel}" Text="{l:Tr assistantPanel.memory}" />
+                            <TextBlock x:Name="MemoryText" Grid.Row="2" Grid.Column="1" Style="{StaticResource StatusValue}" />
+                            <TextBlock Grid.Row="3" Style="{StaticResource StatusLabel}" Text="{l:Tr assistantPanel.cpu}" />
+                            <TextBlock x:Name="CpuText" Grid.Row="3" Grid.Column="1" Style="{StaticResource StatusValue}" />
+                            <TextBlock x:Name="ModelLabel" Grid.Row="4" Style="{StaticResource StatusLabel}" Text="{l:Tr assistantPanel.model}" />
+                            <TextBlock x:Name="ModelText" Grid.Row="4" Grid.Column="1" Style="{StaticResource StatusValue}" />
+                            <TextBlock Grid.Row="5" Style="{StaticResource StatusLabel}" Text="{l:Tr assistantPanel.lastError}" />
+                            <TextBlock x:Name="ErrorText" Grid.Row="5" Grid.Column="1" Style="{StaticResource StatusValue}" />
+                        </Grid>
+                        <WrapPanel Margin="0,14,0,0">
+                            <ui:Button x:Name="RestartButton" Margin="0,0,8,0" Content="{l:Tr assistantPanel.restart}"
+                                       Icon="{ui:SymbolIcon ArrowClockwise24}" Click="OnRestart" />
+                            <ui:Button Content="{l:Tr assistantPanel.log}" Icon="{ui:SymbolIcon DocumentText24}" Click="OnOpenLog" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- What is still to come here -->
+                <Border Style="{StaticResource InfoBox}">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <ui:SymbolIcon Symbol="Info24" FontSize="18" Margin="0,0,12,0" VerticalAlignment="Top" Foreground="{DynamicResource Kd.AccentText}" />
+                        <TextBlock Grid.Column="1" Style="{StaticResource Caption}" Text="{l:Tr assistantPanel.comingSoon}" />
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

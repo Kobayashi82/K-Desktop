@@ -4,6 +4,7 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:v="clr-namespace:KDesktop.Views"
              xmlns:l="clr-namespace:KDesktop.Localization"
+             xmlns:local="clr-namespace:KDesktop.Views.Pages"
              xmlns:m="clr-namespace:KDesktop.Core.Model;assembly=KDesktop.Core">
     <UserControl.Resources>
         <!-- Removable process chip; Tag of the button = the list it belongs to -->
@@ -265,6 +266,39 @@
                             <TextBlock Text="{l:Tr settings.nav.updates}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                             <TextBlock Text="{l:Tr settings.nav.updates.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </ListBoxItem>
+                <!-- The assistant module: a group of its own (more pages come with the brain, the tools and the voice) -->
+                <ListBoxItem IsEnabled="False" IsHitTestVisible="False" Focusable="False">
+                    <TextBlock Margin="2,14,0,0" FontSize="12" FontWeight="SemiBold" Text="{l:Tr settings.nav.assistantGroup}"
+                               Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                </ListBoxItem>
+                <ListBoxItem Tag="assistant">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
+                            <ui:SymbolIcon Symbol="Bot24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.nav.assistant}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{l:Tr settings.nav.assistant.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </ListBoxItem>
+                <ListBoxItem Tag="assistants">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
+                            <ui:SymbolIcon Symbol="PeopleCommunity24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.nav.assistants}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{l:Tr settings.nav.assistants.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
                                        Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
                         </StackPanel>
                     </Grid>
@@ -1134,6 +1168,10 @@
                     </Grid>
                 </StackPanel>
             </Border>
+
+            <!-- Assistant -->
+            <local:AssistantGeneralSection Tag="assistant" />
+            <local:AssistantListSection Tag="assistants" />
         </StackPanel>
     </ScrollViewer>
     </Grid>

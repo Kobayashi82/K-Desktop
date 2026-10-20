@@ -78,7 +78,10 @@ public partial class SettingsPage : UserControl
     public void ShowSection(string key)
     {
         if (SectionList.Items.OfType<ListBoxItem>().FirstOrDefault(i => i.Tag as string == key) is { } item)
+        {
             SectionList.SelectedItem = item;
+            SectionList.ScrollIntoView(item);
+        }
     }
 
     /// <summary>Shows only the chosen section (each card's Tag names its section).</summary>
@@ -759,6 +762,7 @@ public partial class SettingsPage : UserControl
             _app.ShowMainWindow(w => w.Navigate("commands"));
             _app.Ui.ShowOsd(Loc.T("settings.imported"), OsdKind.Success);
             _app.Achievements.Unlock("import");
+            if (archive is not null) await _app.OfferMissingAssistantsAsync(archive.Assistants);
         }
         catch (Exception ex)
         {

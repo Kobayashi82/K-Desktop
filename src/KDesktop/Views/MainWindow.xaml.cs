@@ -26,10 +26,13 @@ public partial class MainWindow : FluentWindow
         };
         Loc.Instance.Changed += OnLanguageChanged;
         App.Current.PausedChanged += OnPausedChanged;
+        App.Current.AssistantChanged += UpdateStatus;
+        SourceInitialized += (_, _) => FileDrop.Attach(this, OnFilesDropped);
         Closed += (_, _) =>
         {
             Loc.Instance.Changed -= OnLanguageChanged;
             App.Current.PausedChanged -= OnPausedChanged;
+            App.Current.AssistantChanged -= UpdateStatus;
             foreach (var page in _pages.Values.OfType<IDisposable>()) page.Dispose();
         };
     }
@@ -137,6 +140,16 @@ public partial class MainWindow : FluentWindow
                   ? Environment.NewLine + Loc.T("status.voiceWake", string.Join(", ", app.Voice.WakeWords.Active.Where(w => w.Detector is not null).Select(w => $"«{w.Name}»")))
                   : ""),
             Loc.T("status.clickOptions"));
+
+        // The assistant: its page and its icon only while the module is on.
+        var assistantOn = app.Assistant is not null;
+        AssistantNav.Visibility = AssistantStatus.Visibility = assistantOn ? Visibility.Visible : Visibility.Collapsed;
+        StatusGrid.Columns = assistantOn ? 5 : 4;
+        if (assistantOn)
+        {
+            var (text, brush) = AssistantLook.Summary(app);
+            SetStatus(AssistantStatus, AssistantIcon, SymbolRegular.Bot24, brush, Loc.T("status.assistant", text), Loc.T("status.clickPanel"));
+        }
     }
 
     /// <summary>Icon, colour and tooltip of one status button.</summary>
@@ -155,6 +168,20 @@ public partial class MainWindow : FluentWindow
     private void OnWebStatus(object sender, RoutedEventArgs e) => OpenSettings("web");
 
     private void OnVoiceStatus(object sender, RoutedEventArgs e) => OpenSettings("voice");
+
+    private void OnAssistantStatus(object sender, RoutedEventArgs e) => Navigate("assistant");
+
+    /// <summary>Files dropped on the window: assistant packages open their card; anything else is not ours.</summary>
+    private void OnFilesDropped(IReadOnlyList<string> files)
+    {
+        var packages = files.Where(f => f.EndsWith(Core.Assistant.Packages.AssistantPackages.Extension, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (packages.Count == 0)
+        {
+            App.Current.Ui.ShowOsd(Loc.T("assistant.dropOnlyPackages"), Core.Engine.OsdKind.Info);
+            return;
+        }
+        foreach (var package in packages) App.Current.OpenAssistantPackage(package);
+    }
 
     private void OnPausedChanged()
     {
@@ -215,6 +242,7 @@ public partial class MainWindow : FluentWindow
                 "kboard" => new Pages.KBoardPage(),
                 "achievements" => new Pages.AchievementsPage(),
                 "history" => new Pages.HistoryPage(),
+                "assistant" => new Pages.AssistantPage(),
                 "settings" => new Pages.SettingsPage(),
                 "about" => new Pages.AboutPage(),
                 _ => new Pages.CommandsPage(),

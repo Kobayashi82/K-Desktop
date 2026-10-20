@@ -75,7 +75,7 @@
 
                 <!-- Status (bottom): one icon per service; tooltip with the details, click to its options -->
                 <Border DockPanel.Dock="Bottom" CornerRadius="8" Padding="4" Background="{DynamicResource Kd.Subtle}">
-                    <UniformGrid Columns="4">
+                    <UniformGrid x:Name="StatusGrid" Columns="4">
                         <Button x:Name="PauseStatus" Style="{StaticResource StatusButton}" Click="OnPauseStatus">
                             <ui:SymbolIcon x:Name="PauseIcon" Symbol="Power24" FontSize="18" />
                         </Button>
@@ -87,6 +87,10 @@
                         </Button>
                         <Button x:Name="VoiceStatus" Style="{StaticResource StatusButton}" Click="OnVoiceStatus">
                             <ui:SymbolIcon x:Name="VoiceIcon" Symbol="MicOff24" FontSize="18" />
+                        </Button>
+                        <!-- Only while the assistant module is on -->
+                        <Button x:Name="AssistantStatus" Style="{StaticResource StatusButton}" Click="OnAssistantStatus" Visibility="Collapsed">
+                            <ui:SymbolIcon x:Name="AssistantIcon" Symbol="Bot24" FontSize="18" />
                         </Button>
                     </UniformGrid>
                 </Border>
@@ -133,6 +137,12 @@
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="Trophy24" FontSize="18" />
                             <TextBlock Text="{l:Tr nav.achievements}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem x:Name="AssistantNav" Tag="assistant" Visibility="Collapsed">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Bot24" FontSize="18" />
+                            <TextBlock Text="{l:Tr nav.assistant}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Tag="settings">

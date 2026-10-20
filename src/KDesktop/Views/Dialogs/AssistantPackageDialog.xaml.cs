@@ -24,9 +24,11 @@ public partial class AssistantPackageDialog : FluentWindow
     }
 
     /// <summary>Opens the card of <paramref name="file"/> (not modal: K-Desktop keeps working meanwhile).</summary>
-    public static void Open(App app, Window? owner, string file)
+    /// <param name="downloaded">A temporary download: it is deleted when the card closes.</param>
+    public static void Open(App app, Window? owner, string file, bool downloaded = false)
     {
         var dialog = new AssistantPackageDialog(app, file);
+        if (downloaded) dialog.Closed += (_, _) => AssistantPackages.ForgetDownload(file);
         if (owner is { IsVisible: true }) dialog.Owner = owner;
         else dialog.WindowStartupLocation = WindowStartupLocation.CenterScreen;
         dialog.Show();

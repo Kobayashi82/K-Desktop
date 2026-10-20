@@ -3,6 +3,7 @@ using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Localization;
+using KDesktop.Core.Storage;
 using KDesktop.Services;
 using KDesktop.Views.Dialogs;
 
@@ -43,13 +44,18 @@ public partial class App
         if (s.AssistantEnabled && _assistant is null)
         {
             var supervisor = new AssistantSupervisor(AssistantWelcome);
-            supervisor.StateChanged += _ => Dispatcher.BeginInvoke(() => AssistantChanged?.Invoke());
+            supervisor.StateChanged += state => Dispatcher.BeginInvoke(() =>
+            {
+                if (state != AssistantProcessState.Running)
+                {
+                    AssistantConnectedAt = null;
+                    AssistantStatus = null;
+                }
+                AssistantChanged?.Invoke();
+            });
             supervisor.AssistantFailed += id => Dispatcher.BeginInvoke(() => OnAssistantFailed(id));
             supervisor.Connected += () => OnAssistantConnected(supervisor);
-            supervisor.Received += message =>
-            {
-                if (message is LoadedMessage loaded) Dispatcher.BeginInvoke(() => OnAssistantLoaded(loaded));
-            };
+            supervisor.Received += message => Dispatcher.BeginInvoke(() => OnAssistantMessage(message));
             _assistant = supervisor;
             _assistantLook = (Loc.Instance.Language, ThemeService.IsDark);
             Log.Info("Asistente: módulo activado");
@@ -59,6 +65,8 @@ public partial class App
         else if (!s.AssistantEnabled && _assistant is { } running)
         {
             _assistant = null;
+            AssistantStatus = null;
+            AssistantConnectedAt = null;
             Log.Info("Asistente: módulo desactivado");
             _ = running.DisposeAsync().AsTask();
             AssistantChanged?.Invoke();
@@ -80,9 +88,59 @@ public partial class App
     /// </summary>
     private void OnAssistantConnected(AssistantSupervisor supervisor)
     {
+        Dispatcher.BeginInvoke(() =>
+        {
+            AssistantConnectedAt = DateTime.Now;
+            AssistantStatus = null;
+        });
         AssistantPackages.CleanUp();
         LoadActiveAssistant(supervisor, "startup");
     }
+
+    /// <summary>A message from the assistant process (UI thread).</summary>
+    private void OnAssistantMessage(PipeMessage message)
+    {
+        switch (message)
+        {
+            case LoadedMessage loaded:
+                OnAssistantLoaded(loaded);
+                break;
+            case StatusMessage status:
+                AssistantStatus = status;
+                if (status.LastError is { Length: > 0 } error) SetAssistantError(error);
+                AssistantChanged?.Invoke();
+                break;
+            case OpenMessage open:
+                ShowMainWindow(w => w.Navigate(open.Page switch
+                {
+                    "assistant" => "assistant",
+                    "assistantSettings" => "settings/assistants",
+                    _ => "settings/assistant",
+                }));
+                break;
+            case NotifyMessage notify:
+                Ui.ShowOsd(notify.Title.Length > 0 ? $"{notify.Title}: {notify.Text}" : notify.Text, Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(5));
+                break;
+            case HideMessage when Config.Settings.AssistantActive is { } id:
+                var name = AssistantPackages.Find(id)?.Manifest.Name ?? id;
+                ActivateAssistant(null);
+                Ui.ShowOsd(Loc.T("assistant.hidden", name), Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(5));
+                break;
+        }
+    }
+
+    // ── what Panel → Assistant shows ─────────────────────────────────────
+
+    /// <summary>The last status the assistant process sent (null until it sends one).</summary>
+    public StatusMessage? AssistantStatus { get; private set; }
+
+    /// <summary>When the process connected the last time (null while it is not running).</summary>
+    public DateTime? AssistantConnectedAt { get; private set; }
+
+    /// <summary>The last thing that went wrong with the module, and when.</summary>
+    public (string Text, DateTime At)? AssistantError { get; private set; }
+
+    private void SetAssistantError(string text) => AssistantError = (text, DateTime.Now);
 
     /// <summary>Sends <c>load</c> with the active assistant, if there is one installed. Any thread.</summary>
     private void LoadActiveAssistant(AssistantSupervisor supervisor, string entrance)
@@ -105,19 +163,91 @@ public partial class App
     private void OnAssistantLoaded(LoadedMessage loaded)
     {
         if (!loaded.Ok)
-            Ui.ShowOsd(Loc.T("assistant.loadFailed", loaded.Assistant, loaded.Error), Core.Engine.OsdKind.Warning, TimeSpan.FromSeconds(6));
+        {
+            var text = Loc.T("assistant.loadFailed", loaded.Assistant, loaded.Error);
+            SetAssistantError(text);
+            Ui.ShowOsd(text, Core.Engine.OsdKind.Warning, TimeSpan.FromSeconds(6));
+        }
         AssistantChanged?.Invoke();
     }
 
     private void OnAssistantFailed(string id)
     {
         if (Config.Settings.AssistantActive == id) Config.Settings.AssistantActive = null;
-        Ui.ShowOsd(Loc.T("assistant.failed", id), Core.Engine.OsdKind.Warning, TimeSpan.FromSeconds(6));
+        var text = Loc.T("assistant.failed", id);
+        SetAssistantError(text);
+        Ui.ShowOsd(text, Core.Engine.OsdKind.Warning, TimeSpan.FromSeconds(6));
         AssistantChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// The tray's «Assistant» submenu, only while the module is on: which one is on the desktop (or none), and the
+    /// way to its panel.
+    /// </summary>
+    private void FillAssistantTrayMenu(System.Windows.Controls.MenuItem menu)
+    {
+        menu.Items.Clear();
+        menu.Visibility = _assistant is null ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
+        if (_assistant is null) return;
+        var active = Config.Settings.AssistantActive;
+        void Add(string? id, string name)
+        {
+            var item = new System.Windows.Controls.MenuItem { Header = name, IsCheckable = true, IsChecked = id == active };
+            item.Click += (_, _) => ActivateAssistant(id);
+            menu.Items.Add(item);
+        }
+        foreach (var row in Views.AssistantLook.Rows(active)) Add(row.Id, row.Name);
+        Add(null, Loc.T("assistantOptions.none"));
+        menu.Items.Add(new System.Windows.Controls.Separator());
+        var panel = new System.Windows.Controls.MenuItem { Header = Loc.T("assistantMenu.panel") };
+        panel.Click += (_, _) => ShowMainWindow(w => w.Navigate("assistant"));
+        menu.Items.Add(panel);
+    }
+
+    /// <summary>Closes the assistant process and starts a new one (Panel → Assistant).</summary>
+    public void RestartAssistantProcess()
+    {
+        if (_assistant is not { } supervisor) return;
+        Log.Info("Asistente: reinicio pedido desde el panel");
+        supervisor.Restart();
     }
 
     /// <summary>Shows the card of a package (<c>--install-assistant</c>, «Add assistant», a file dropped on the window).</summary>
     public void OpenAssistantPackage(string file) => AssistantPackageDialog.Open(this, _main, file);
+
+    /// <summary>
+    /// After restoring a backup: its assistants that are not installed here. Their data and settings came back with
+    /// it, their packages did not; those that say where they are published are downloaded and shown with their card.
+    /// </summary>
+    public async Task OfferMissingAssistantsAsync(IReadOnlyList<DataArchive.ArchivedAssistant> archived)
+    {
+        var missing = archived.Where(a => AssistantPackages.Find(a.Id) is null).ToList();
+        if (missing.Count == 0) return;
+        var downloadable = missing.Where(a => a.Updates is { Length: > 0 }).ToList();
+        var list = string.Join(Environment.NewLine, missing.Select(a => $"• {a.Name} {a.Version}"));
+        var box = new Wpf.Ui.Controls.MessageBox
+        {
+            Title = "K-Desktop",
+            Content = Loc.T(downloadable.Count > 0 ? "assistant.restoreMissing" : "assistant.restoreMissingManual", list),
+            CloseButtonText = Loc.T(downloadable.Count > 0 ? "common.cancel" : "common.close"),
+        };
+        if (downloadable.Count > 0) box.PrimaryButtonText = Loc.T("assistant.restoreDownload", downloadable.Count);
+        if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+
+        foreach (var assistant in downloadable)
+        {
+            Ui.ShowOsd(Loc.T("assistant.downloading", assistant.Name), Core.Engine.OsdKind.Info);
+            try
+            {
+                var file = await AssistantPackages.DownloadAsync(assistant.Updates!, assistant.Name);
+                AssistantPackageDialog.Open(this, _main, file, downloaded: true);
+            }
+            catch (PackageException ex)
+            {
+                Ui.ShowOsd(ex.Message, Core.Engine.OsdKind.Warning, TimeSpan.FromSeconds(6));
+            }
+        }
+    }
 
     /// <summary>
     /// Installs a package checked with <see cref="AssistantPackages.Inspect"/>. A new version of the assistant on the

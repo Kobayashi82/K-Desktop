@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Windows.Threading;
 using KDesktop.Assistant.Host.Engine;
+using KDesktop.Assistant.Host.Input;
 using KDesktop.Assistant.Host.Pipe;
 using KDesktop.Assistant.Host.Runtime;
 using KDesktop.Assistant.Sdk;
@@ -50,6 +51,7 @@ internal sealed class AssistantSession : IDisposable
         };
         Engine.Tick = Runtime.Tick;
         Engine.Schedule = Runtime.NextTick;
+        Runtime.MenuRequested += request => Ui.BeginInvoke(() => ShowMenu(request));
         Engine.Start();
 
         if (Link is { } link)
@@ -106,6 +108,29 @@ internal sealed class AssistantSession : IDisposable
                 break;
             case ConfigMessage { Section: "assistantSettings", Value: { } value }:
                 Runtime.ApplySettings(JsonSerializer.SerializeToElement(value));
+                break;
+        }
+    }
+
+    /// <summary>The right-click menu, on the UI thread; what is chosen goes to K-Desktop or to the assistant.</summary>
+    private void ShowMenu(MenuRequest request)
+    {
+        if (Volatile.Read(ref _shuttingDown) != 0) return;
+        var linked = Link is { IsConnected: true };
+        var (choice, extra) = AssistantMenu.Show(request, Link?.Theme == "dark", linked);
+        switch (choice)
+        {
+            case MenuChoice.Panel:
+                Link?.Send(new OpenMessage("assistant"));
+                break;
+            case MenuChoice.Settings:
+                Link?.Send(new OpenMessage("assistantSettings"));
+                break;
+            case MenuChoice.Hide:
+                Link?.Send(new HideMessage());
+                break;
+            case MenuChoice.Extra when extra is not null:
+                Engine.Post(() => _ = Runtime.RunExtraAsync(extra));
                 break;
         }
     }

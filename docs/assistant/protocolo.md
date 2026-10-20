@@ -133,7 +133,8 @@ Dirección: **A→K** del asistente a K-Desktop; **K→A** de K-Desktop al asist
 | `chat` | A→K | `role` (`user`, `assistant`), `text`, `final` (si es parcial, llegan más con el mismo `turn`), `turn` | Conversación del panel |
 | `panel` | A→K | `data` | Datos del panel propio del asistente (los `bind` de su `panel.json`) |
 | `notify` | A→K | `title`, `text` | Aviso de K-Desktop (logro desbloqueado…) |
-| `open` | A→K | `page` (`assistant`, `assistantSettings`, `assistantVoice`, …) | Abre esa página de Opciones (menú del clic derecho → *Ajustes*) |
+| `open` | A→K | `page` (`assistant`, `assistantSettings`, `assistantVoice`, …) | Abre esa página de Opciones (menú del clic derecho → *Ajustes*). `assistant` es Panel → Asistente |
+| `hide` | A→K | — | Menú del clic derecho → *Esconder*: K-Desktop quita el asistente del escritorio (`unload` con `hiding`) y el módulo sigue sin cuerpo |
 | `undo` | K→A | `undo` (id) | Deshacer una entrada del registro desde el panel |
 
 ## Reglas de la coreografía (§3.2 del plan)

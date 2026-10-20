@@ -8,7 +8,9 @@ using KDesktop.Assistant.Host.Rendering;
 using KDesktop.Assistant.Host.World;
 using KDesktop.Assistant.Sdk;
 using KDesktop.Core;
+using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Assistant.Pipe;
+using KDesktop.Core.Localization;
 
 namespace KDesktop.Assistant.Host.Runtime;
 
@@ -28,6 +30,9 @@ internal sealed class AssistantRuntime : IDisposable
     private double _nextOnTop;
     private int _faults;
     private WeakReference? _context;
+    private AssistantManifest? _manifest;
+    /// <summary>Cancels the extras still running when the assistant leaves.</summary>
+    private CancellationTokenSource _extras = new();
 
     public AssistantRuntime(EngineLoop engine, KDesktopLink? link)
     {
@@ -55,6 +60,9 @@ internal sealed class AssistantRuntime : IDisposable
 
     /// <summary>The assistant was unloaded because it kept failing (its id).</summary>
     public event Action<string>? Faulted;
+
+    /// <summary>The right button on the assistant: show the host's menu. Engine thread.</summary>
+    public event Action<MenuRequest>? MenuRequested;
 
     /// <summary>On the engine thread, before the first tick.</summary>
     public void Start()
@@ -111,6 +119,7 @@ internal sealed class AssistantRuntime : IDisposable
         var package = PackageLoader.Load(folder, data);
         _context = package.Context;
         await LoadAsync(package.Assistant, package.Manifest.Id, package.Folder, package.DataFolder, package.Settings, entrance).ConfigureAwait(true);
+        if (Current is not null) _manifest = package.Manifest;
         return package.Manifest.Id;
     }
 
@@ -153,6 +162,17 @@ internal sealed class AssistantRuntime : IDisposable
         Guard(a => a.OnSettingsChanged(settings), "OnSettingsChanged");
     }
 
+    /// <summary>Runs one of the assistant's extras (from its menu); it is cancelled if the assistant leaves.</summary>
+    public async Task RunExtraAsync(string extraId)
+    {
+        Task? running = null;
+        var token = _extras.Token;
+        if (!Guard(a => running = a.OnExtraAsync(extraId, token), "OnExtraAsync") || running is null) return;
+        try { await running.ConfigureAwait(true); }
+        catch (OperationCanceledException) { /* it left */ }
+        catch (Exception ex) { Log.Error($"Asistente: el extra «{extraId}» ha fallado", ex); }
+    }
+
     /// <summary>K-Desktop was paused or resumed.</summary>
     public void SetPaused(bool paused) => Watcher.SetPaused(paused);
 
@@ -167,6 +187,7 @@ internal sealed class AssistantRuntime : IDisposable
     public void Dispose()
     {
         if (Current is { } assistant) Drop(assistant);
+        _extras.Dispose();
         Watcher.Dispose();
         Pointer?.Dispose();
         Rendering?.Dispose();
@@ -203,6 +224,10 @@ internal sealed class AssistantRuntime : IDisposable
         catch (Exception ex) { Log.Error("Asistente: error al liberarlo", ex); }
         Current = null;
         CurrentHost = null;
+        _manifest = null;
+        _extras.Cancel();
+        _extras.Dispose();
+        _extras = new CancellationTokenSource();
         // What it left behind goes with it: surfaces, hit areas and its subscriptions to the world.
         Rendering?.DisposeSurfaces();
         Pointer?.Dispose();
@@ -222,7 +247,13 @@ internal sealed class AssistantRuntime : IDisposable
         foreach (var handle in Pointer.Handles) yield return handle;
     }
 
-    private void OnMenu(string area, Point at) =>
-        // The host's menu (talk, write, extras, settings…) comes with Options → Assistant (stage 1.8).
-        Log.Info($"Asistente: menú pedido en «{area}» ({at.X:0},{at.Y:0})");
+    /// <summary>The host's menu (panel, settings, extras, hide; talking and writing come with the brain).</summary>
+    private void OnMenu(string area, Point at)
+    {
+        if (CurrentHost is not { } host) return;
+        var language = Loc.Instance.Language;
+        var name = _manifest?.Name ?? host.Id;
+        var extras = _manifest?.Extras.Select(e => (e.Id, e.Name.In(language))).ToList() ?? [];
+        MenuRequested?.Invoke(new MenuRequest(name, extras, at));
+    }
 }

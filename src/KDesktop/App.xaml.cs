@@ -504,6 +504,8 @@ public partial class App : Application
         menu.Items.Add(window);
         menu.Items.Add(new Separator());
         menu.Items.Add(TrayItem(Loc.T("tray.launcher"), (_, _) => Launcher.Show(ForegroundWindow.Capture())));
+        var assistant = new MenuItem { Header = Loc.T("nav.assistant") };
+        menu.Items.Add(assistant);
         menu.Items.Add(new Separator());
         var pause = TrayItem(string.Empty, (_, _) => SetPaused(!Config.Settings.Paused));
         menu.Items.Add(pause);
@@ -513,6 +515,7 @@ public partial class App : Application
         {
             window.Header = Loc.T(MainWindowShown ? "tray.hide" : "tray.show");
             pause.Header = Loc.T(Config.Settings.Paused ? "pause.resume" : "pause.pause");
+            FillAssistantTrayMenu(assistant);
         };
 
         _tray = new TaskbarIcon
