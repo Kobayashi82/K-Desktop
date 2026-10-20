@@ -1,0 +1,114 @@
+{
+  "$schema": "../../esquemas/settings.schema.json",
+  "pages": [
+    {
+      "title": "General",
+      "icon": "kd:Settings",
+      "sections": [
+        {
+          "title": "Modo manual",
+          "items": [
+            { "type": "hotkey", "label": "Atajo para tomar el control", "extra": "lander.manual" },
+            { "type": "slider", "key": "manualTimeout", "label": "Devolver el control automáticamente", "description": "Si no tocas ninguna tecla durante este tiempo, el lander vuelve a volar solo.", "min": 10, "max": 120, "step": 5, "default": 30, "format": "{0} s" },
+            { "type": "button", "label": "Pilotar ahora", "description": "Toma o devuelve el control sin usar el teclado.", "extra": "lander.manual" },
+            { "type": "button", "label": "Carrera contrarreloj", "description": "Se ponen balizas numeradas sobre tus ventanas: posa el lander en cada una, en orden, y vuelve a la base. El cronómetro arranca al despegar.", "extra": "lander.race" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Aspecto",
+      "icon": "kd:Color",
+      "sections": [
+        {
+          "items": [
+            { "type": "slider", "key": "size", "label": "Tamaño", "description": "Altura del lander. Se ajusta además al escalado de cada monitor.", "min": 32, "max": 96, "step": 4, "default": 48, "format": "{0} px" },
+            { "type": "gallery", "key": "skin", "label": "Modelo", "description": "Se desbloquean más modelos al subir de nivel pilotando.", "source": "skins", "default": "classic" },
+            { "type": "gallery", "key": "trail", "label": "Estela del motor", "description": "El color del humo.", "source": "trails", "default": "white" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Comportamiento",
+      "icon": "kd:Robot",
+      "sections": [
+        {
+          "items": [
+            { "type": "slider", "key": "activity", "label": "Actividad", "description": "Cada cuánto se anima a volar a otro sitio cuando está en automático.", "min": 0, "max": 2, "step": 0.1, "default": 1, "minLabel": "Tranquilo", "maxLabel": "Activo" },
+            { "type": "slider", "key": "shyness", "label": "Timidez", "description": "Si huye del cursor cuando se le acerca o si, al contrario, lo sigue.", "min": 0, "max": 1, "step": 0.05, "default": 0.5, "minLabel": "Lo sigue", "maxLabel": "Huye" },
+            { "type": "choice", "key": "pilotErrors", "label": "Despistes del piloto", "description": "Para que no parezca un robot: a veces calcula mal la frenada o llega torcido.", "options": [ { "value": 0, "label": "Ninguno" }, { "value": 1, "label": "Pocos" }, { "value": 2, "label": "Normales" }, { "value": 3, "label": "Muchos" } ], "default": 2 },
+            { "type": "choice", "key": "acrobatics", "label": "Acrobacias", "description": "Volteretas, caídas libres, saltos balísticos, picados y vuelos ondulantes.", "options": [ { "value": 0, "label": "Ninguna" }, { "value": 1, "label": "Pocas" }, { "value": 2, "label": "Normales" }, { "value": 3, "label": "Muchas" } ], "default": 2 },
+            { "type": "toggle", "key": "visitClock", "label": "Visitar el reloj a las horas en punto", "description": "Vuela hasta el reloj de la barra de tareas y lo celebra (solo si estás delante del PC).", "default": true },
+            { "type": "toggle", "key": "reactToNotifications", "label": "Reaccionar a las notificaciones", "description": "Da un saltito de sorpresa cuando llega una notificación.", "default": true },
+            { "type": "toggle", "key": "allowDragging", "label": "Cogerlo con el ratón", "description": "Arrástralo y suéltalo para lanzarlo. Si lo desactivas, el ratón lo atraviesa siempre.", "default": true }
+          ]
+        },
+        {
+          "title": "Contenido de las ventanas",
+          "items": [
+            { "type": "toggle", "key": "landOnContent", "label": "Posarse en el contenido (experimental)", "description": "Mira la pantalla de vez en cuando para encontrar bordes claros dentro de las ventanas y posarse en ellos.", "default": false },
+            { "type": "apps", "key": "contentExcludedApps", "label": "Aplicaciones excluidas", "description": "Nunca se mira su contenido. Siempre se excluyen los gestores de contraseñas, la banca y la navegación privada.", "enabledWhen": "landOnContent", "default": [] }
+          ]
+        },
+        {
+          "title": "Misiones",
+          "items": [
+            { "type": "choice", "key": "missionFrequency", "label": "Frecuencia de misiones", "description": "De vez en cuando aparece un aviso junto al lander. Toma el control para aceptarla.", "options": [ { "value": "never", "label": "Nunca" }, { "value": "few", "label": "Pocas" }, { "value": "normal", "label": "Normal" }, { "value": "many", "label": "Muchas" } ], "default": "normal" },
+            { "type": "button", "label": "Proponer una misión ahora", "extra": "lander.mission" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Pilotaje",
+      "icon": "kd:Games",
+      "sections": [
+        {
+          "title": "Controles",
+          "items": [
+            { "type": "keys", "items": [
+              { "keys": ["↑"], "text": "Motor principal: empuja hacia donde apunta la nave" },
+              { "keys": ["←", "→"], "text": "Girar con los propulsores de giro. Al soltar, mantienen la inclinación" },
+              { "keys": ["A", "D"], "text": "Desplazarse a un lado con los propulsores de traslación, sin girar" },
+              { "keys": ["↓"], "text": "Enderezar la nave" },
+              { "keys": ["G"], "text": "Sacar o recoger las patas (sin patas, aterrizar es mucho más delicado)" },
+              { "keys": ["Espacio"], "text": "Impulso de emergencia (gasta mucho combustible)" },
+              { "keys": ["Esc"], "text": "Soltar el control" }
+            ] }
+          ]
+        },
+        {
+          "title": "Aterrizajes",
+          "items": [
+            { "type": "info", "text": "Perfecto: despacio, recto y con las dos patas sobre la plataforma. Duro: algo rápido o inclinado. Accidente: demasiado rápido o de lado. La barra de tareas es la base: aterriza ahí para repostar y reparar daños." }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Sonido",
+      "icon": "kd:Speaker2",
+      "sections": [
+        {
+          "items": [
+            { "type": "toggle", "key": "sound", "label": "Sonido", "default": false },
+            { "type": "slider", "key": "volume", "label": "Volumen", "min": 0, "max": 1, "step": 0.05, "default": 0.5, "format": "{0:P0}", "enabledWhen": "sound" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Piloto",
+      "icon": "kd:Person",
+      "sections": [
+        {
+          "items": [
+            { "type": "info", "text": "El nivel, las estadísticas, los récords y los logros están en Panel → Asistente → Lander." },
+            { "type": "button", "label": "Empezar de cero", "description": "Borra el nivel, los puntos, los récords y los logros.", "resetData": true, "confirm": "¿Seguro? Se perderá todo el progreso del piloto." }
+          ]
+        }
+      ]
+    }
+  ]
+}

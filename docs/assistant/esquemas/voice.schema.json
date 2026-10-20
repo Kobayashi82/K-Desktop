@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kdesktop/assistant/voice.schema.json",
+  "title": "Perfil de voz",
+  "description": "Motor de síntesis y cadena de efectos (§10 del plan). Lo traen los asistentes (voice/<id>.json) y se exporta e importa desde Opciones → Asistente → Voz.",
+  "type": "object",
+  "required": ["name", "engine"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 40 },
+    "engine": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "enum": ["pocket", "windows", "beeps"] },
+        "voice": { "type": "string" },
+        "speed": { "type": "number", "minimum": 0.5, "maximum": 2 },
+        "volume": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "chain": { "$ref": "#/$defs/chain" },
+    "moods": {
+      "description": "Efectos que se añaden en ciertas situaciones: error, far (desde otro monitor), happy, crash…",
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z][A-Za-z0-9]*$" },
+      "additionalProperties": { "$ref": "#/$defs/chain" }
+    }
+  },
+  "$defs": {
+    "mix": { "type": "number", "minimum": 0, "maximum": 1 },
+    "chain": { "type": "array", "items": { "$ref": "#/$defs/effect" } },
+    "effect": {
+      "type": "object",
+      "required": ["fx"],
+      "properties": {
+        "fx": { "enum": ["pitch", "formant", "ring", "vocoder", "bitcrush", "radio", "chorus", "flanger", "echo", "glitch"] },
+        "enabled": { "type": "boolean" }
+      },
+      "allOf": [
+        { "if": { "properties": { "fx": { "const": "pitch" } } }, "then": { "required": ["semitones"], "properties": { "semitones": { "type": "number", "minimum": -24, "maximum": 24 } } } },
+        { "if": { "properties": { "fx": { "const": "formant" } } }, "then": { "required": ["shift"], "properties": { "shift": { "type": "number", "minimum": 0.5, "maximum": 2 } } } },
+        { "if": { "properties": { "fx": { "const": "ring" } } }, "then": { "required": ["freq"], "properties": { "freq": { "type": "number", "minimum": 1, "maximum": 2000 }, "mix": { "$ref": "#/$defs/mix" } } } },
+        { "if": { "properties": { "fx": { "const": "vocoder" } } }, "then": { "properties": { "note": { "type": "number", "minimum": 20, "maximum": 1000 }, "bands": { "type": "integer", "minimum": 4, "maximum": 64 }, "mix": { "$ref": "#/$defs/mix" } } } },
+        { "if": { "properties": { "fx": { "const": "bitcrush" } } }, "then": { "properties": { "bits": { "type": "integer", "minimum": 1, "maximum": 16 }, "rate": { "type": "number", "minimum": 1000, "maximum": 48000 } } } },
+        { "if": { "properties": { "fx": { "const": "radio" } } }, "then": { "properties": { "bandwidth": { "type": "number", "minimum": 300, "maximum": 8000 }, "noise": { "$ref": "#/$defs/mix" }, "beep": { "type": "boolean" } } } },
+        { "if": { "properties": { "fx": { "enum": ["chorus", "flanger"] } } }, "then": { "properties": { "rate": { "type": "number", "minimum": 0.01, "maximum": 20 }, "depth": { "$ref": "#/$defs/mix" }, "mix": { "$ref": "#/$defs/mix" } } } },
+        { "if": { "properties": { "fx": { "const": "echo" } } }, "then": { "required": ["ms"], "properties": { "ms": { "type": "number", "minimum": 1, "maximum": 2000 }, "feedback": { "type": "number", "minimum": 0, "maximum": 0.95 }, "mix": { "$ref": "#/$defs/mix" } } } },
+        { "if": { "properties": { "fx": { "const": "glitch" } } }, "then": { "required": ["chance"], "properties": { "chance": { "$ref": "#/$defs/mix" } } } }
+      ]
+    }
+  }
+}

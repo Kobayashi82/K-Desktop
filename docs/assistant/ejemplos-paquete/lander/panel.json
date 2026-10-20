@@ -1,0 +1,16 @@
+{
+  "$schema": "../../esquemas/panel.schema.json",
+  "cards": [
+    { "type": "stat", "label": "Nivel de piloto", "bind": "pilot.level" },
+    { "type": "progress", "label": "Hasta el siguiente nivel", "bind": "pilot.points", "max": "pilot.nextLevel", "format": "{0} / {1} puntos" },
+    { "type": "stat", "label": "Aterrizajes perfectos", "bind": "stats.perfect" },
+    { "type": "stat", "label": "Mejor racha", "bind": "stats.bestStreak" },
+    { "type": "list", "label": "Récords de carrera", "bind": "races.best", "empty": "Todavía no has corrido ninguna carrera." },
+    { "type": "achievements", "label": "Logros", "bind": "achievements" },
+    { "type": "buttons", "items": [
+      { "label": "Modo manual", "extra": "lander.manual" },
+      { "label": "Empezar una carrera", "extra": "lander.race" },
+      { "label": "Proponer una misión", "extra": "lander.mission" }
+    ] }
+  ]
+}

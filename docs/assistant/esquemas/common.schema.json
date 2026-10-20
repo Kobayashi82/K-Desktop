@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kdesktop/assistant/common.schema.json",
+  "title": "Tipos comunes de los paquetes de asistente",
+  "$defs": {
+    "text": {
+      "description": "Texto para la interfaz: una cadena (en el idioma del asistente) o un objeto idioma → texto. K-Desktop usa su idioma si está y, si no, el primero.",
+      "oneOf": [
+        { "type": "string", "minLength": 1 },
+        {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "pattern": "^[a-z]{2}(-[A-Z]{2})?$" },
+          "additionalProperties": { "type": "string", "minLength": 1 }
+        }
+      ]
+    },
+    "key": {
+      "description": "Clave de un ajuste o de un dato (camelCase; con puntos para anidar: «pilot.level»).",
+      "type": "string",
+      "pattern": "^[a-z][A-Za-z0-9]*(\\.[a-z][A-Za-z0-9]*)*$"
+    },
+    "id": {
+      "description": "Identificador en minúsculas: letras, números, puntos y guiones.",
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9.-]{0,63}$"
+    },
+    "packagePath": {
+      "description": "Ruta relativa dentro del paquete, con barras normales y sin «..».",
+      "type": "string",
+      "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9_./{}-]+$"
+    },
+    "icon": {
+      "description": "Imagen del paquete (ruta relativa) o símbolo de K-Desktop («kd:Nombre»).",
+      "type": "string",
+      "minLength": 1
+    },
+    "hotkey": {
+      "description": "Atajo en el formato de K-Desktop: «CTRL + ALT + L».",
+      "type": "string",
+      "pattern": "^((CTRL|ALT|SHIFT|WIN) \\+ )*[A-Z0-9][A-Z0-9]*$"
+    }
+  }
+}

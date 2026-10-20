@@ -1,0 +1,13 @@
+{
+  "t": "keys",
+  "capture": [
+    "Up",
+    "Down",
+    "Left",
+    "Right",
+    "A",
+    "D",
+    "G",
+    "Escape"
+  ]
+}

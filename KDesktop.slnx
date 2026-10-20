@@ -1,9 +1,15 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/KDesktop.Assistant.Sdk/KDesktop.Assistant.Sdk.csproj">
+      <Platform Project="x64" />
+    </Project>
     <Project Path="src/KDesktop.Core/KDesktop.Core.csproj" />
     <Project Path="src/KDesktop/KDesktop.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/KDesktop.Assistant.Tests/KDesktop.Assistant.Tests.csproj">
+      <Platform Project="x64" />
+    </Project>
     <Project Path="tests/KDesktop.Core.Tests/KDesktop.Core.Tests.csproj">
       <Platform Project="x64" />
     </Project>

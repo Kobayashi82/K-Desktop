@@ -1,0 +1,10 @@
+{
+  "t": "listen",
+  "seconds": 6,
+  "expect": [
+    "sí",
+    "no",
+    "cancela",
+    "el primero"
+  ]
+}

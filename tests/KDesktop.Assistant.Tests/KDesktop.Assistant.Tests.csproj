@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Tests of the assistant module: contracts (pipe messages, package schemas), SDK, and later the router, the
+       tools and the choreographer with DotAssistant. `dotnet test tests\KDesktop.Assistant.Tests`. -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JsonSchema.Net" Version="8.0.5" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <!-- UseWPF leaves System.IO out of the implicit usings. -->
+    <Using Include="System.IO" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\KDesktop.Assistant.Sdk\KDesktop.Assistant.Sdk.csproj" />
+  </ItemGroup>
+
+  <!-- The contract files live in docs\assistant: the tests read them from there. -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>DocsDir</_Parameter1>
+      <_Parameter2>$(MSBuildThisFileDirectory)..\..\docs\assistant</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>

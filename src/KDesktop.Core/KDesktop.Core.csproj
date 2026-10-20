@@ -22,6 +22,11 @@
     <PackageReference Include="System.Management" Version="10.0.0" />
   </ItemGroup>
 
+  <!-- Types shared with the assistant process: gestures for the choreography map (Assistant/). -->
+  <ItemGroup>
+    <ProjectReference Include="..\KDesktop.Assistant.Sdk\KDesktop.Assistant.Sdk.csproj" />
+  </ItemGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="KDesktop.Core.Tests" />
   </ItemGroup>

@@ -1,0 +1,9 @@
+{
+  "t": "config",
+  "section": "assistantSettings",
+  "value": {
+    "shyness": 40,
+    "mistakes": true,
+    "speed": "Normales"
+  }
+}

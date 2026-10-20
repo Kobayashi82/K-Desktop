@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kdesktop/assistant/settings.schema.json",
+  "title": "Ajustes de un asistente (settings.json)",
+  "description": "K-Desktop los dibuja con sus propios controles en Opciones → Asistente → Asistentes → su ficha → Ajustes, sin cargar código del asistente. Los valores llegan al asistente como un objeto clave → valor.",
+  "type": "object",
+  "required": ["pages"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "pages": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/page" }
+    }
+  },
+  "$defs": {
+    "text": { "$ref": "common.schema.json#/$defs/text" },
+    "page": {
+      "type": "object",
+      "required": ["title", "sections"],
+      "additionalProperties": false,
+      "properties": {
+        "title": { "$ref": "#/$defs/text" },
+        "icon": { "$ref": "common.schema.json#/$defs/icon" },
+        "sections": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/section" } }
+      }
+    },
+    "section": {
+      "type": "object",
+      "required": ["items"],
+      "additionalProperties": false,
+      "properties": {
+        "title": { "$ref": "#/$defs/text" },
+        "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/item" } }
+      }
+    },
+    "base": {
+      "properties": {
+        "type": true,
+        "key": { "$ref": "common.schema.json#/$defs/key" },
+        "label": { "$ref": "#/$defs/text" },
+        "description": { "$ref": "#/$defs/text" },
+        "icon": { "$ref": "common.schema.json#/$defs/icon" },
+        "enabledWhen": {
+          "description": "Clave de un interruptor que tiene que estar encendido («!clave»: apagado).",
+          "type": "string",
+          "pattern": "^!?[a-z][A-Za-z0-9]*(\\.[a-z][A-Za-z0-9]*)*$"
+        }
+      }
+    },
+    "option": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "required": ["value", "label"],
+          "additionalProperties": false,
+          "properties": { "value": { "type": ["string", "number"] }, "label": { "$ref": "#/$defs/text" } }
+        }
+      ]
+    },
+    "item": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "enum": ["toggle", "slider", "number", "choice", "text", "color", "gallery", "apps", "hotkey", "button", "info", "keys"] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "toggle" } } },
+          "then": {
+            "required": ["key", "label"],
+            "unevaluatedProperties": false,
+            "$ref": "#/$defs/base",
+            "properties": { "default": { "type": "boolean" } }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "enum": ["slider", "number"] } } },
+          "then": {
+            "required": ["key", "label", "min", "max"],
+            "unevaluatedProperties": false,
+            "$ref": "#/$defs/base",
+            "properties": {
+              "min": { "type": "number" },
+              "max": { "type": "number" },
+              "step": { "type": "number", "exclusiveMinimum": 0 },
+              "default": { "type": "number" },
+              "format": { "description": "Cómo se muestra el valor: «{0} s», «{0:0} px», «{0:P0}».", "type": "string" },
+              "minLabel": { "$ref": "#/$defs/text" },
+              "maxLabel": { "$ref": "#/$defs/text" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "choice" } } },
+          "then": {
+            "required": ["key", "label", "options"],
+            "unevaluatedProperties": false,
+            "$ref": "#/$defs/base",
+            "properties": {
+              "options": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/option" } },
+              "default": { "type": ["string", "number"] },
+              "style": { "enum": ["list", "buttons"] }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "text" } } },
+          "then": {
+            "required": ["key", "label"],
+            "unevaluatedProperties": false,
+            "$ref": "#/$defs/base",
+            "properties": {
+              "default": { "type": "string" },
+              "placeholder": { "$ref": "#/$defs/text" },
+              "maxLength": { "type": "integer", "minimum": 1 }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "color" } } },
+          "then": {
+            "required": ["key", "label"],
+            "unevaluatedProperties": false,
+            "$ref": "#/$defs/base",
+            "properties": { "default": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" } }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "gallery" } } },
+          "then": {
+            "required": ["key", "label"],
+            "unevaluatedProperties": false,
+            "$ref": "#/$defs/base",
+            "description": "Galería de imágenes. Con «source», los elementos los publica el asistente (PublishPanel) bajo esa clave: [{ id, name, image, locked, lockText }].",
+            "properties": {
+              "source": { "$ref": "common.schema.json#/$defs/key" },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["id", "name", "image"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": { "type": "string" },
+                    "name": { "$ref": "#/$defs/text" },
+                    "image": { "$ref": "common.schema.json#/$defs/packagePath" }
+                  }
+                }
+              },
+              "default": { "type": "string" }
+            },
+            "oneOf": [{ "required": ["source"] }, { "required": ["items"] }]
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "apps" } } },
+          "then": {
+            "required": ["key", "label"],
+            "unevaluatedProperties": false,
+            "$ref": "#/$defs/base",
+            "description": "Lista de aplicaciones (nombres de proceso), elegidas como en K-Desktop.",
+            "properties": { "default": { "type": "array", "items": { "type": "string" } } }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "hotkey" } } },
+          "then": {
+            "required": ["label", "extra"],
+            "unevaluatedProperties": false,
+            "$ref": "#/$defs/base",
+            "description": "Atajo para uno de sus extras: crea o edita el comando de K-Desktop que lo lanza.",
+            "properties": { "extra": { "$ref": "common.schema.json#/$defs/id" } }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "button" } } },
+          "then": {
+            "required": ["label"],
+            "unevaluatedProperties": false,
+            "$ref": "#/$defs/base",
+            "properties": {
+              "extra": { "description": "Extra que lanza.", "$ref": "common.schema.json#/$defs/id" },
+              "resetData": { "description": "Borra su carpeta de datos (progreso) tras confirmar.", "const": true },
+              "confirm": { "$ref": "#/$defs/text" }
+            },
+            "oneOf": [{ "required": ["extra"] }, { "required": ["resetData"] }]
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "info" } } },
+          "then": {
+            "required": ["text"],
+            "unevaluatedProperties": false,
+            "$ref": "#/$defs/base",
+            "properties": { "text": { "$ref": "#/$defs/text" } }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "keys" } } },
+          "then": {
+            "required": ["items"],
+            "unevaluatedProperties": false,
+            "$ref": "#/$defs/base",
+            "description": "Tabla de teclas con su explicación (controles de un juego).",
+            "properties": {
+              "items": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["keys", "text"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "keys": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+                    "text": { "$ref": "#/$defs/text" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

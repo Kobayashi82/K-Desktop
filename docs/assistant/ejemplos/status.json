@@ -1,0 +1,8 @@
+{
+  "t": "status",
+  "state": "idle",
+  "model": "qwen3.5:4b",
+  "modelLoaded": true,
+  "busy": false,
+  "memoryMb": 182
+}

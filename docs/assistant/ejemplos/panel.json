@@ -1,0 +1,21 @@
+{
+  "t": "panel",
+  "data": {
+    "pilot": {
+      "level": 7
+    },
+    "stats": {
+      "perfect": 132
+    },
+    "races": {
+      "best": [
+        "Circuito A — 0:41.2",
+        "Circuito B — 0:58.0"
+      ]
+    },
+    "achievements": [
+      "firstLanding",
+      "perfect10"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "t": "welcome",
+  "lang": "es",
+  "theme": "dark",
+  "paused": false,
+  "config": {
+    "general": {
+      "speed": "normal",
+      "choreography": "assistantOnly"
+    },
+    "privacy": {
+      "network": true
+    }
+  }
+}

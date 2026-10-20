@@ -1,0 +1,33 @@
+{
+  "t": "matched",
+  "id": "m-1",
+  "score": 0.94,
+  "unmatched": [],
+  "parts": [
+    {
+      "text": "vacía la papelera",
+      "candidates": [
+        {
+          "command": "3f9a1c0b7d2e",
+          "name": "Vaciar papelera",
+          "score": 0.97
+        }
+      ]
+    },
+    {
+      "text": "pon el chrome a la izquierda",
+      "candidates": [
+        {
+          "command": "a1b2c3d4e5f6",
+          "name": "Chrome a la izquierda",
+          "score": 0.91
+        },
+        {
+          "command": "0c1d2e3f4a5b",
+          "name": "Chrome a la derecha",
+          "score": 0.74
+        }
+      ]
+    }
+  ]
+}

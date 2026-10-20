@@ -1,0 +1,36 @@
+{
+  "$schema": "../../esquemas/assistant.schema.json",
+  "id": "lander",
+  "name": "Lander",
+  "version": "1.0.0",
+  "author": "Kobayashi82",
+  "description": {
+    "es": "Un pequeño módulo lunar que vuela por tus ventanas. Incluye su juego.",
+    "en": "A little lunar module that flies around your windows. Game included."
+  },
+  "homepage": "https://github.com/Kobayashi82/K-Desktop-Assistants",
+  "license": "MIT",
+  "sdk": "1.0",
+  "entry": "lib/Lander.Assistant.dll!Lander.Assistant.LanderAssistant",
+  "icon": "icon.png",
+  "preview": "preview.png",
+  "wakeWord": "Lander",
+  "model": { "suggested": "qwen3.5:4b", "min": "2b" },
+  "voice": "voice/lander.json",
+  "persona": "persona/{lang}.json",
+  "traits": {
+    "travel": "fly",
+    "travelSpeed": 900,
+    "canMoveWindows": true,
+    "canReachMaximized": true,
+    "gestures": ["pointAt", "goTo", "pressButton", "moveWindow", "activateWindow", "waitForWindow", "mark", "scan", "communicate", "react"]
+  },
+  "extras": [
+    { "id": "lander.manual", "name": { "es": "Modo manual", "en": "Manual mode" }, "icon": "assets/icons/joystick.png", "hotkey": "CTRL + ALT + L" },
+    { "id": "lander.race", "name": { "es": "Empezar una carrera", "en": "Start a race" }, "icon": "assets/icons/flag.png" },
+    { "id": "lander.race.repeat", "name": { "es": "Repetir la carrera", "en": "Repeat the race" }, "icon": "assets/icons/flag.png" },
+    { "id": "lander.mission", "name": { "es": "Proponer una misión", "en": "Offer a mission" }, "icon": "assets/icons/mission.png" }
+  ],
+  "updates": "https://github.com/Kobayashi82/K-Desktop-Assistants/releases/latest/download/lander.kdassistant",
+  "importFrom": ["%APPDATA%\\Lander\\settings.json", "%APPDATA%\\Lander\\progress.json"]
+}

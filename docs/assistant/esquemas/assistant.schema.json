@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kdesktop/assistant/assistant.schema.json",
+  "title": "Manifiesto de un asistente (assistant.json)",
+  "type": "object",
+  "required": ["id", "name", "version", "author", "sdk", "entry", "traits"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": { "$ref": "common.schema.json#/$defs/id" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 40 },
+    "version": {
+      "description": "Versión semántica. Instalar uno con el mismo id y versión mayor lo actualiza.",
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$"
+    },
+    "author": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "description": { "$ref": "common.schema.json#/$defs/text" },
+    "homepage": { "type": "string", "format": "uri" },
+    "license": { "type": "string" },
+    "sdk": {
+      "description": "Versión del SDK contra la que se compiló («1.0»). Mismo número mayor que el de K-Desktop = compatible.",
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "entry": {
+      "description": "Ensamblado y tipo que implementa IAssistant: «lib/Archivo.dll!Espacio.De.Nombres.Tipo».",
+      "type": "string",
+      "pattern": "^lib/[A-Za-z0-9_.-]+\\.dll![A-Za-z_][A-Za-z0-9_.]*$"
+    },
+    "icon": { "$ref": "common.schema.json#/$defs/packagePath" },
+    "preview": { "$ref": "common.schema.json#/$defs/packagePath" },
+    "wakeWord": {
+      "description": "Nombre sugerido para llamarlo. Al instalarlo, K-Desktop propone grabarlo con tu voz.",
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 30
+    },
+    "model": {
+      "description": "Modelo de IA sugerido. K-Desktop lo ofrece; nunca lo descarga sin preguntar.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "suggested": { "type": "string", "minLength": 1 },
+        "min": { "type": "string", "pattern": "^\\d+(\\.\\d+)?[bB]$" }
+      }
+    },
+    "voice": { "description": "Su perfil de voz por defecto.", "$ref": "common.schema.json#/$defs/packagePath" },
+    "persona": {
+      "description": "Personalidad y frases. Puede llevar «{lang}» (persona/{lang}.json); si no está tu idioma se usa el primero que haya.",
+      "$ref": "common.schema.json#/$defs/packagePath"
+    },
+    "settings": { "description": "Esquema de sus ajustes (por defecto settings.json).", "$ref": "common.schema.json#/$defs/packagePath" },
+    "panel": { "description": "Esquema de su panel (por defecto panel.json).", "$ref": "common.schema.json#/$defs/packagePath" },
+    "traits": {
+      "type": "object",
+      "required": ["travel", "gestures"],
+      "additionalProperties": false,
+      "properties": {
+        "travel": { "enum": ["fly", "walk", "teleport"] },
+        "travelSpeed": { "type": "number", "exclusiveMinimum": 0, "default": 600 },
+        "canMoveWindows": { "type": "boolean", "default": false },
+        "canReachMaximized": { "type": "boolean", "default": false },
+        "gestures": {
+          "description": "Gestos que sabe hacer (communicate y react se dan siempre por sabidos).",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": ["pointAt", "goTo", "pressButton", "moveWindow", "activateWindow", "waitForWindow", "mark", "scan", "typing", "communicate", "react"]
+          }
+        }
+      }
+    },
+    "extras": {
+      "description": "Acciones propias, que aparecen como «Asistente: acción» en los comandos de K-Desktop.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
+          "name": { "$ref": "common.schema.json#/$defs/text" },
+          "description": { "$ref": "common.schema.json#/$defs/text" },
+          "icon": { "$ref": "common.schema.json#/$defs/icon" },
+          "hotkey": { "description": "Atajo que K-Desktop ofrece crear al instalarlo.", "$ref": "common.schema.json#/$defs/hotkey" }
+        }
+      }
+    },
+    "updates": {
+      "description": "URL del último paquete (.kdassistant) para comprobar actualizaciones.",
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "importFrom": {
+      "description": "Datos de una versión independiente que K-Desktop puede ofrecer importar (rutas con variables de entorno).",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

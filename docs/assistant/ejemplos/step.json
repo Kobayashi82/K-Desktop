@@ -1,0 +1,30 @@
+{
+  "t": "step",
+  "run": "r-7f3",
+  "index": 1,
+  "count": 3,
+  "depth": 0,
+  "kind": "Window",
+  "op": "Snap",
+  "summary": "Ajustar a la izquierda",
+  "target": {
+    "hwnd": 1312544,
+    "process": "chrome.exe",
+    "title": "GitHub — Google Chrome",
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 1040
+    },
+    "result": {
+      "x": 0,
+      "y": 0,
+      "w": 960,
+      "h": 1040
+    },
+    "state": "maximized",
+    "elevated": false
+  },
+  "timeoutMs": 6000
+}

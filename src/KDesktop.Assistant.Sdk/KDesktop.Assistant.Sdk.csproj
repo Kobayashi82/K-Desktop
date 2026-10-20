@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The assistant SDK: the only assembly an assistant package compiles against. Types only, no dependency on
+    K-Desktop. The host always provides it (never the package), so an assistant built against SDK 1.x runs on any
+    host with SDK 1.y. Assistants draw with WPF's DrawingContext; the host plays that on the GPU.
+  -->
+  <PropertyGroup>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>KDesktop.Assistant.Sdk</RootNamespace>
+    <AssemblyName>KDesktop.Assistant.Sdk</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- New assistant projects build with the recommended analyzers (the rest of K-Desktop predates them). -->
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <!-- CA1716/CA1720: names that clash with Visual Basic keywords (GoTo, Loop, Step) or type names (Pointer); assistants are C#. -->
+    <NoWarn>$(NoWarn);CS1591;CS1573;CA1716;CA1720</NoWarn>
+    <!-- SDK version (major = compatibility): goes into assistant.json as "sdk". -->
+    <SdkContractVersion>1.0</SdkContractVersion>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+  </PropertyGroup>
+
+</Project>
