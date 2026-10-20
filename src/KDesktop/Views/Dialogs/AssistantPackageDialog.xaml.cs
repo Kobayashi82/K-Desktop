@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using KDesktop.Core;
 using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Localization;
 using Wpf.Ui.Controls;
@@ -44,12 +45,23 @@ public partial class AssistantPackageDialog : FluentWindow
         }
         catch (PackageException ex)
         {
-            ErrorFile.Text = file;
-            ErrorText.Text = ex.Message;
-            ErrorPanel.Visibility = Visibility.Visible;
-            CancelButton.Content = Loc.T("common.close");
+            ShowError(file, ex.Message);
+        }
+        catch (Exception ex)
+        {
+            // Never leave the card spinning: anything unexpected is said, and logged.
+            Log.Error($"Asistente: no se ha podido revisar «{file}»", ex);
+            ShowError(file, Loc.T("assistantPkg.installFailed", Path.GetFileName(file), ex.Message));
         }
         LoadingPanel.Visibility = Visibility.Collapsed;
+    }
+
+    private void ShowError(string file, string message)
+    {
+        ErrorFile.Text = file;
+        ErrorText.Text = message;
+        ErrorPanel.Visibility = Visibility.Visible;
+        CancelButton.Content = Loc.T("common.close");
     }
 
     private void ShowCard(PackageInfo package)
@@ -113,9 +125,10 @@ public partial class AssistantPackageDialog : FluentWindow
             await _app.InstallAssistantAsync(package, ActivateCheck.Visibility == Visibility.Visible && ActivateCheck.IsChecked == true);
             Close();
         }
-        catch (PackageException ex)
+        catch (Exception ex)
         {
-            InstallError.Text = ex.Message;
+            if (ex is not PackageException) Log.Error($"Asistente: no se ha podido instalar «{package.Manifest.Id}»", ex);
+            InstallError.Text = ex is PackageException ? ex.Message : Loc.T("assistantPkg.installFailed", package.Manifest.Name, ex.Message);
             InstallError.Visibility = Visibility.Visible;
             InstallButton.IsEnabled = CancelButton.IsEnabled = true;
         }
