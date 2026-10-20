@@ -51,6 +51,8 @@ public partial class App
                     AssistantConnectedAt = null;
                     AssistantStatus = null;
                     _assistantStates.Clear();
+                    // A process that fell cannot ask to let the keys go.
+                    if (_assistant == supervisor) ResetAssistantInput();
                 }
                 AssistantChanged?.Invoke();
             });
@@ -61,6 +63,7 @@ public partial class App
             _assistantLook = (Loc.Instance.Language, ThemeService.IsDark);
             Log.Info("Asistente: módulo activado");
             supervisor.Start();
+            UpdateAssistantInput();
             AssistantChanged?.Invoke();
         }
         else if (!s.AssistantEnabled && _assistant is { } running)
@@ -70,6 +73,7 @@ public partial class App
             AssistantConnectedAt = null;
             _assistantStates.Clear();
             Log.Info("Asistente: módulo desactivado");
+            ResetAssistantInput();
             _ = running.DisposeAsync().AsTask();
             AssistantChanged?.Invoke();
         }
@@ -79,10 +83,11 @@ public partial class App
             _assistantLook = (Loc.Instance.Language, ThemeService.IsDark);
             current.Restart();
         }
+        if (_assistant is { IsRunning: true }) SendAssistantGeneral();
     }
 
     private WelcomeMessage AssistantWelcome() =>
-        new(Loc.Instance.Language, ThemeService.IsDark ? "dark" : "light", Config.Settings.Paused);
+        new(Loc.Instance.Language, ThemeService.IsDark ? "dark" : "light", Config.Settings.Paused, new() { ["general"] = AssistantGeneral() });
 
     /// <summary>
     /// A new assistant process said hello (pool thread): what was left to delete goes now that nothing holds it, and
@@ -96,6 +101,7 @@ public partial class App
             AssistantConnectedAt = DateTime.Now;
             AssistantStatus = null;
             _assistantStates.Clear();
+            ResetAssistantInput();
             foreach (var id in Config.Settings.AssistantsOnDesktop.ToList()) LoadAssistant(supervisor, id, "startup");
         });
     }
@@ -132,6 +138,12 @@ public partial class App
                 break;
             case PanelMessage panel:
                 OnAssistantPanel(panel);
+                break;
+            case KeysMessage keys when IsOnDesktop(keys.Assistant):
+                OnAssistantKeys(keys);
+                break;
+            case WatchWheelMessage watch:
+                OnAssistantWatchWheel(watch);
                 break;
             case HideMessage hide when IsOnDesktop(hide.Assistant):
                 HideAssistant(hide.Assistant);
@@ -216,8 +228,9 @@ public partial class App
     }
 
     /// <summary>Sends <c>unload</c> for an assistant (it leaves with its exit; the others stay).</summary>
-    private static void UnloadAssistant(AssistantSupervisor supervisor, string id, string reason)
+    private void UnloadAssistant(AssistantSupervisor supervisor, string id, string reason)
     {
+        ReleaseAssistantKeys(id);
         supervisor.Send(new UnloadMessage(id, reason));
         supervisor.MarkUnloaded(id);
     }
@@ -226,6 +239,7 @@ public partial class App
     {
         if (!loaded.Ok)
         {
+            ReleaseAssistantKeys(loaded.Assistant);
             // It is not on the desktop (it would only show «coming out…» for ever); putting it there again retries.
             Config.Settings.AssistantsOnDesktop.Remove(loaded.Assistant);
             var text = Loc.T("assistant.loadFailed", AssistantName(loaded.Assistant), loaded.Error);
@@ -239,6 +253,7 @@ public partial class App
     private void OnAssistantFailed(string id)
     {
         Config.Settings.AssistantsOnDesktop.Remove(id);
+        ReleaseAssistantKeys(id);
         var text = Loc.T("assistant.failed", AssistantName(id));
         SetAssistantError(text);
         Ui.ShowOsd(text, Core.Engine.OsdKind.Warning, TimeSpan.FromSeconds(6));

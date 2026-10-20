@@ -99,6 +99,44 @@ public sealed record ExtraMessage(string Assistant, string Action) : PipeMessage
     public override string Type => "extra";
 }
 
+// ── keyboard and wheel (K-Desktop's hook, which also works over elevated windows) ──
+
+/// <summary>
+/// K-Desktop swallows these keys (WPF <c>Key</c> names: «Up», «A», «Escape»…) while pressed without Ctrl, Alt or Win,
+/// and sends their changes to that assistant (the Lander's game). Empty: let them go.
+/// </summary>
+public sealed record KeysMessage(string Assistant, IReadOnlyList<string> Capture) : PipeMessage
+{
+    public override string Type => "keys";
+}
+
+/// <summary>A captured key went down or up.</summary>
+public sealed record KeyMessage(string Assistant, string Key, bool Down) : PipeMessage
+{
+    public override string Type => "key";
+}
+
+/// <summary>Whether the process wants every turn of the mouse wheel (<see cref="WheelMessage"/>): only while an assistant asks.</summary>
+public sealed record WatchWheelMessage(bool Watch) : PipeMessage
+{
+    public override string Type => "watchWheel";
+}
+
+/// <summary>
+/// The wheel turned: where (screen pixels), how much (120 per notch; positive is up or to the right, as Windows says)
+/// and over which top-level window.
+/// </summary>
+public sealed record WheelMessage(int X, int Y, int Delta, bool Horizontal, long Hwnd) : PipeMessage
+{
+    public override string Type => "wheel";
+}
+
+/// <summary>The user scrolled hard (always sent: it is rare). <paramref name="Strength"/> 0…1, positive downwards.</summary>
+public sealed record FastScrollMessage(double Strength, int X, int Y) : PipeMessage
+{
+    public override string Type => "fastScroll";
+}
+
 // ── from the assistant to K-Desktop's panel ─────────────────────────────
 
 /// <param name="Assistant">Whose state; null: the process's (the model, the memory).</param>
@@ -180,6 +218,11 @@ public static class PipeJson
         ["panel"] = typeof(PanelMessage),
         ["hide"] = typeof(HideMessage),
         ["extra"] = typeof(ExtraMessage),
+        ["keys"] = typeof(KeysMessage),
+        ["key"] = typeof(KeyMessage),
+        ["watchWheel"] = typeof(WatchWheelMessage),
+        ["wheel"] = typeof(WheelMessage),
+        ["fastScroll"] = typeof(FastScrollMessage),
     };
 
     /// <summary>[JsonIgnore] on the abstract Type is not inherited by the overrides: drop it here.</summary>

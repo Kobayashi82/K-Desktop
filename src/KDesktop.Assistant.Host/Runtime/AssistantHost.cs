@@ -27,9 +27,9 @@ internal sealed class AssistantHost(AssistantRuntime runtime, AssistantSlot slot
 
     public IPointer Pointer { get; } = slot.Pointer;
 
-    public IKeyboard Keyboard { get; } = new HostKeyboard();
+    public IKeyboard Keyboard => slot.Keyboard;
 
-    public IAudio Audio { get; } = new SilentAudio();
+    public IAudio Audio => slot.Audio;
 
     public IWindowServices Windows => runtime.WindowServices;
 
@@ -68,48 +68,44 @@ internal sealed class PrefixedLog(string id) : IAssistantLog
 }
 
 /// <summary>
-/// The keyboard: reading the state always works; capturing keys (K-Desktop swallowing them for the game) needs the
-/// <c>keys</c> message, which comes with the Lander's game (phase 2). Until then capturing only reads.
+/// The keyboard of one assistant. Reading works for any key; captured keys are swallowed by K-Desktop's hook (the
+/// <c>keys</c> message), so Windows no longer sees them pressed: their state comes from K-Desktop's <c>key</c> messages.
+/// Without K-Desktop's hook (paused, hooks off) nothing is swallowed and the state is read as usual.
 /// </summary>
-internal sealed partial class HostKeyboard : IKeyboard
+internal sealed partial class HostKeyboard(Action<IReadOnlyCollection<Key>> capture) : IKeyboard
 {
-    public event Action<Key, bool>? KeyChanged { add { } remove { } }
+    private HashSet<Key> _captured = [];
+    private readonly HashSet<Key> _down = [];
+
+    public event Action<Key, bool>? KeyChanged;
+
+    public bool IsCapturing => _captured.Count > 0;
 
     public bool IsDown(Key key)
     {
+        if (_down.Contains(key)) return true;
         var vk = KeyInterop.VirtualKeyFromKey(key);
         return vk != 0 && (GetAsyncKeyState(vk) & 0x8000) != 0;
     }
 
-    public void Capture(IReadOnlyCollection<Key> keys) { }
+    public void Capture(IReadOnlyCollection<Key> keys)
+    {
+        var next = keys.Where(k => k != Key.None).ToHashSet();
+        if (next.SetEquals(_captured)) return;
+        _captured = next;
+        _down.IntersectWith(next);
+        capture(next);
+    }
 
-    public void Release() { }
+    public void Release() => Capture([]);
+
+    /// <summary>K-Desktop's <c>key</c> (engine thread).</summary>
+    internal void OnKey(Key key, bool down)
+    {
+        if (down && !_captured.Contains(key)) return;
+        if (down ? _down.Add(key) : _down.Remove(key)) KeyChanged?.Invoke(key, down);
+    }
 
     [LibraryImport("user32.dll")]
     private static partial short GetAsyncKeyState(int key);
-}
-
-/// <summary>No sound yet: the host's mixer arrives with the Lander (phase 2). Sounds load and play as silence.</summary>
-internal sealed class SilentAudio : IAudio
-{
-    public bool Enabled => false;
-
-    public ISound Load(float[] samples, int sampleRate, int channels = 1) =>
-        new Sound(TimeSpan.FromSeconds(samples.Length / (double)Math.Max(1, sampleRate * Math.Max(1, channels))));
-
-    public ISound LoadWav(string path) => new Sound(TimeSpan.Zero);
-
-    public void Play(ISound sound, double gain = 1, double pan = 0) { }
-
-    public ILoop Loop(ISound sound) => new SilentLoop();
-
-    private sealed record Sound(TimeSpan Duration) : ISound;
-
-    private sealed class SilentLoop : ILoop
-    {
-        public double Gain { get; set; }
-        public double Pitch { get; set; } = 1;
-        public double Pan { get; set; }
-        public void Dispose() { }
-    }
 }

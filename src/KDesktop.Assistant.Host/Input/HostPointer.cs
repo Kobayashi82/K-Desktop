@@ -11,9 +11,22 @@ namespace KDesktop.Assistant.Host.Input;
 /// of the body, as in Kobii; everywhere else the mouse reaches the windows below as if nothing were there. Their
 /// events go to the assistant on the engine thread; the right button opens the host's menu.
 /// </summary>
-internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, Point> menu) : IPointer, IDisposable
+internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, Point> menu, Action wheelChanged) : IPointer, IDisposable
 {
     private readonly List<HitArea> _areas = [];
+    private bool _watchWheel;
+
+    /// <summary>Every turn of the wheel reaches it (K-Desktop sends them while some assistant asks).</summary>
+    public bool WatchWheel
+    {
+        get => _watchWheel;
+        set
+        {
+            if (_watchWheel == value) return;
+            _watchWheel = value;
+            wheelChanged();
+        }
+    }
 
     /// <summary>Handles of the hit windows (left out of the world).</summary>
     public IEnumerable<nint> Handles => _areas.Select(a => a.Handle);

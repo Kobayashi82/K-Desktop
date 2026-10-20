@@ -49,8 +49,27 @@ asistentes instalados, no los paquetes.
 ## El ejemplo
 
 `samples/DotAssistant` (Dot) es el asistente mínimo completo: un punto que se teletransporta, se puede arrastrar,
-reacciona a la papelera, a los avisos y a la hora en punto, tiene un extra (`dot.jump`), ajustes con un botón para
-ese extra y otro para «Poner a cero los saltos», una tarjeta y un botón en el panel, y guarda sus datos en su carpeta.
+reacciona a la papelera, a los avisos, a la hora en punto y al scroll fuerte, suena al saltar (un sonido hecho en
+código), tiene un extra (`dot.jump`), ajustes con un botón para ese extra y otro para «Poner a cero los saltos», una
+tarjeta y un botón en el panel, y guarda sus datos en su carpeta.
+
+## Lo que da el host
+
+- **Sonido** (`IAudio`): `Load` (muestras en coma flotante, mono o estéreo, a cualquier frecuencia) o `LoadWav` (del
+  paquete), `Play` con ganancia y panorama, y `Loop` con ganancia, tono y panorama en vivo (para un motor). El host lo
+  mezcla todo bajo el volumen de Opciones → Asistente → General; el dispositivo solo se abre mientras suena algo. Con el
+  sonido apagado, `Enabled` es falso y todo suena a silencio.
+- **Teclado** (`IKeyboard`): `IsDown` siempre; `Capture` hace que K-Desktop se trague esas teclas (pulsadas sin Ctrl, Alt
+  ni Win, así los atajos siguen) mientras se juega, y sus cambios llegan a `KeyChanged`. `Release` al terminar (también
+  se sueltan solas si el asistente sale, el proceso se cae o K-Desktop se pausa).
+- **Rueda del ratón:** `SystemEvent.FastScroll` llega siempre que el usuario gira la rueda con fuerza (con la posición
+  del cursor); cada giro (`SystemEvent.WheelTurned`, con la ventana bajo el cursor) solo con `Pointer.WatchWheel = true`:
+  cuesta un mensaje por muesca, así que mejor solo mientras importa. Salen del gancho de K-Desktop, que también ve la
+  rueda sobre ventanas de administrador.
+- **Ventanas** (`IWindowServices`): `TryMove`, botones de la barra de título, `Thumbnail` (una imagen de la ventana,
+  congelada; si la ventana no se deja dibujar, lo que se ve de ella en pantalla) y `AppIcon` (el icono de su programa, en caché).
+- **Papelera:** `SystemEvent.RecycleBinEmptied` trae dónde está su icono en el escritorio (o null si no está o los
+  iconos están ocultos).
 
 ## Ajustes y panel
 

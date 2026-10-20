@@ -2,7 +2,7 @@
   "$schema": "../../../docs/assistant/esquemas/assistant.schema.json",
   "id": "dot",
   "name": "Dot",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": "Kobayashi82",
   "description": {
     "es": "El asistente mínimo de ejemplo: un punto que se teletransporta.",

@@ -427,6 +427,12 @@ public partial class AppSettings : ObservableObject
     /// </summary>
     [ObservableProperty] private Dictionary<string, string> _assistantWakeWords = [];
 
+    /// <summary>The assistants' sounds (engines, landings…), mixed by their process.</summary>
+    [ObservableProperty] private bool _assistantSound = true;
+
+    /// <summary>Volume of the assistants' sounds, 0–100 (each assistant may have its own on top).</summary>
+    [ObservableProperty] private int _assistantVolume = 100;
+
     // OSD
     [ObservableProperty] private OsdPosition _osdPosition = OsdPosition.BottomCenter;
     [ObservableProperty] private double _osdSeconds = 1.6;

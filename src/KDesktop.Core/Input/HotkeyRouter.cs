@@ -108,7 +108,7 @@ public sealed partial class HotkeyRouter : IDisposable
 
     // ── keyboard ─────────────────────────────────────────────────────────
 
-    private bool OnKey(KeyboardInput e)
+    internal bool OnKey(KeyboardInput e)
     {
         if (e.Injected) return false;
         var vk = e.Vk;
@@ -124,6 +124,8 @@ public sealed partial class HotkeyRouter : IDisposable
             }
             return recorder.OnKey(e);
         }
+
+        if (GameKey(e)) return true;
 
         if (KeyNames.IsModifierVk(vk))
         {
@@ -253,6 +255,7 @@ public sealed partial class HotkeyRouter : IDisposable
     private bool OnMouse(MouseInput e)
     {
         if (e.Injected) return false;
+        if (e.Message is MouseMessage.Wheel or MouseMessage.HWheel) WheelObserver?.Invoke(e);
         if (KBoardMouse(e)) return true;
         if (_recorder is { } recorder) return recorder.OnMouse(e);
 

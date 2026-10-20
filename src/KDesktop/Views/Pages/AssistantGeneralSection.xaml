@@ -18,6 +18,33 @@
                 <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AssistantEnabled}" AutomationProperties.Name="{l:Tr assistantOptions.enable}" />
             </Grid>
 
+            <Grid Style="{StaticResource SettingRow}" IsEnabled="{Binding AssistantEnabled}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="{l:Tr assistantOptions.sound}" />
+                    <TextBlock Style="{StaticResource Caption}" Text="{l:Tr assistantOptions.soundHint}" />
+                </StackPanel>
+                <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AssistantSound}" AutomationProperties.Name="{l:Tr assistantOptions.sound}" />
+            </Grid>
+            <Grid>
+                <Grid.Style>
+                    <Style TargetType="Grid" BasedOn="{StaticResource SettingRow}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding AssistantEnabled}" Value="False"><Setter Property="IsEnabled" Value="False" /></DataTrigger>
+                            <DataTrigger Binding="{Binding AssistantSound}" Value="False"><Setter Property="IsEnabled" Value="False" /></DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
+                <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr assistantOptions.volume}" />
+                <Grid Grid.Column="1">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <Slider Margin="0,0,14,0" Minimum="0" Maximum="100" Value="{Binding AssistantVolume}" TickFrequency="5" IsSnapToTickEnabled="True"
+                            SmallChange="5" LargeChange="10" VerticalAlignment="Center" AutomationProperties.Name="{l:Tr assistantOptions.volume}" />
+                    <TextBlock Grid.Column="1" MinWidth="40" TextAlignment="Right" Text="{Binding AssistantVolume, StringFormat={}{0} %}" VerticalAlignment="Center" />
+                </Grid>
+            </Grid>
+
             <!-- How the module is doing, with a way to the panel -->
             <Border x:Name="StatePanel" Style="{StaticResource InfoBox}">
                 <Grid>

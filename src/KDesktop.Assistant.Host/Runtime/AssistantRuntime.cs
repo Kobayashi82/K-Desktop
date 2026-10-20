@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Windows;
+using KDesktop.Assistant.Host.Audio;
 using KDesktop.Assistant.Host.Engine;
 using KDesktop.Assistant.Host.Input;
 using KDesktop.Assistant.Host.Pipe;
@@ -51,6 +52,9 @@ internal sealed class AssistantRuntime : IDisposable
     public WorldWatcher Watcher { get; }
 
     public IWindowServices WindowServices { get; }
+
+    /// <summary>The sound of every assistant (one mixer, one output that only exists while something sounds).</summary>
+    public HostAudio Audio { get; } = new();
 
     /// <summary>The ids of the assistants on the desktop, in the order they were loaded.</summary>
     public IReadOnlyList<string> Loaded => [.. _slots.Select(s => s.Id)];
@@ -136,7 +140,9 @@ internal sealed class AssistantRuntime : IDisposable
         if (Find(id) is not null) await UnloadAsync(id, ExitKind.Switching).ConfigureAwait(true);
         if (!Watcher.IsStarted) Watcher.Start(_engine.Now, _engine.Post);
         var slot = new AssistantSlot(id, assistant, manifest, context, Rendering, World) { LastTick = _engine.Now };
-        slot.Pointer = new HostPointer(e => Guard(slot, a => a.OnPointer(e), "OnPointer"), (area, at) => OnMenu(slot, at));
+        slot.Pointer = new HostPointer(e => Guard(slot, a => a.OnPointer(e), "OnPointer"), (area, at) => OnMenu(slot, at), UpdateWheel);
+        slot.Keyboard = new HostKeyboard(keys => _link?.Send(new KeysMessage(id, [.. keys.Select(k => k.ToString())])));
+        slot.Audio = new AssistantAudio(Audio, package);
         slot.Host = new AssistantHost(this, slot, package, data, settings);
         _slots.Add(slot);
         if (!Guard(slot, a => a.Attach(slot.Host), "Attach") || !Guard(slot, a => a.Enter(entrance), "Enter"))
@@ -189,6 +195,41 @@ internal sealed class AssistantRuntime : IDisposable
         catch (Exception ex) { Log.Error($"Asistente: el extra «{extraId}» de «{id}» ha fallado", ex); }
     }
 
+    /// <summary>K-Desktop's <c>key</c>: a key it captures for that assistant went down or up.</summary>
+    public void OnKey(string id, string key, bool down)
+    {
+        if (Find(id) is not { } slot || !Enum.TryParse<System.Windows.Input.Key>(key, out var parsed)) return;
+        Guard(slot, _ => slot.Keyboard.OnKey(parsed, down), "KeyChanged");
+    }
+
+    /// <summary>K-Desktop's <c>wheel</c>: to those watching it.</summary>
+    public void OnWheel(WheelMessage wheel)
+    {
+        var e = new SystemEvent.WheelTurned(new Point(wheel.X, wheel.Y), wheel.Delta / 120.0, wheel.Horizontal, wheel.Hwnd);
+        Each(slot =>
+        {
+            if (slot.Pointer.WatchWheel) Guard(slot, a => a.OnSystemEvent(e), "OnSystemEvent");
+        });
+    }
+
+    /// <summary>K-Desktop's <c>fastScroll</c>: to everybody.</summary>
+    public void OnFastScroll(FastScrollMessage scroll)
+    {
+        var e = new SystemEvent.FastScroll(Math.Clamp(scroll.Strength, -1, 1), new Point(scroll.X, scroll.Y));
+        Each(slot => Guard(slot, a => a.OnSystemEvent(e), "OnSystemEvent"));
+    }
+
+    /// <summary>Asks K-Desktop for every turn of the wheel while some assistant watches it.</summary>
+    private void UpdateWheel()
+    {
+        var watch = _slots.Any(s => !s.Dropped && s.Pointer?.WatchWheel == true);
+        if (watch == _wheelWatched) return;
+        _wheelWatched = watch;
+        _link?.Send(new WatchWheelMessage(watch));
+    }
+
+    private bool _wheelWatched;
+
     /// <summary>K-Desktop was paused or resumed.</summary>
     public void SetPaused(bool paused) => Watcher.SetPaused(paused);
 
@@ -210,6 +251,7 @@ internal sealed class AssistantRuntime : IDisposable
         foreach (var slot in _slots.ToList()) Drop(slot);
         Watcher.Dispose();
         Rendering?.Dispose();
+        Audio.Dispose();
     }
 
     private AssistantSlot? Find(string id) => _slots.FirstOrDefault(s => s.Id == id);
@@ -257,6 +299,9 @@ internal sealed class AssistantRuntime : IDisposable
         slot.Surfaces.DisposeAll();
         slot.Pointer.Dispose();
         slot.World.Forget();
+        slot.Audio.DisposeAll();
+        if (slot.Keyboard.IsCapturing) slot.Keyboard.Release();
+        UpdateWheel();
         if (slot.Context is { } context)
         {
             var id = slot.Id;
@@ -307,6 +352,10 @@ internal sealed class AssistantSlot(string id, IAssistant assistant, AssistantMa
     public WorldView World { get; } = new(world);
 
     public HostPointer Pointer { get; set; } = null!;
+
+    public HostKeyboard Keyboard { get; set; } = null!;
+
+    public AssistantAudio Audio { get; set; } = null!;
 
     public CancellationTokenSource Extras { get; } = new();
 

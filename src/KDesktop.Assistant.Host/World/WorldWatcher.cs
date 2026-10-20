@@ -98,7 +98,12 @@ internal sealed class WorldWatcher : IDisposable
         try
         {
             _recycleBin = new RecycleBinWatcher(_events.Handle, post);
-            _recycleBin.Emptied += () => _raise(new SystemEvent.RecycleBinEmptied());
+            _recycleBin.Emptied += () =>
+            {
+                var icon = DesktopIcons.FindRecycleBin();
+                Log.Info($"Asistente: papelera vaciada (icono {(icon is { } p ? $"en {p.X:0},{p.Y:0}" : "no visible")})");
+                _raise(new SystemEvent.RecycleBinEmptied(icon));
+            };
         }
         catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException or COMException)
         {

@@ -127,6 +127,21 @@ internal sealed unsafe class WindowScanner(ISet<nint> ownWindows)
         return _processes[pid] = (name, elevated);
     }
 
+    /// <summary>Full path of the executable that owns a window (null if it cannot be read).</summary>
+    public static string? PathOf(nint hwnd)
+    {
+        GetWindowThreadProcessId(hwnd, out var pid);
+        var process = pid == 0 ? 0 : OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
+        if (process == 0) return null;
+        try
+        {
+            var buffer = stackalloc char[1024];
+            uint size = 1024;
+            return QueryFullProcessImageName(process, 0, buffer, ref size) ? new string(buffer, 0, (int)size) : null;
+        }
+        finally { CloseHandle(process); }
+    }
+
     private static bool IsElevated(nint process)
     {
         // Our own token is medium integrity: opening an elevated process's token is denied, which says as much.

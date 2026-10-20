@@ -6,7 +6,9 @@
   "config": {
     "general": {
       "speed": "normal",
-      "choreography": "assistantOnly"
+      "choreography": "assistantOnly",
+      "sound": true,
+      "volume": 0.8
     },
     "privacy": {
       "network": true

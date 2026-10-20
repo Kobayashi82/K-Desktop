@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Windows.Threading;
 using KDesktop.Assistant.Host.Engine;
 using KDesktop.Assistant.Host.Input;
@@ -62,6 +63,7 @@ internal sealed class AssistantSession : IDisposable
             {
                 link.Send(new StatusMessage("idle"));
                 Engine.Post(() => Runtime.SetPaused(welcome.Paused));
+                if (welcome.Config?["general"] is JsonObject general) ApplyGeneral(general);
             };
             link.Received += message => Engine.Post(() => OnMessage(message));
             link.Ended += reason => Shutdown(reason);
@@ -112,10 +114,30 @@ internal sealed class AssistantSession : IDisposable
             case ConfigMessage { Section: "assistantSettings", Assistant: { } id, Value: { } value }:
                 Runtime.ApplySettings(id, JsonSerializer.SerializeToElement(value));
                 break;
+            case ConfigMessage { Section: "general", Value: JsonObject general }:
+                ApplyGeneral(general);
+                break;
             case ExtraMessage extra:
                 _ = Runtime.RunExtraAsync(extra.Assistant, extra.Action);
                 break;
+            case KeyMessage key:
+                Runtime.OnKey(key.Assistant, key.Key, key.Down);
+                break;
+            case WheelMessage wheel:
+                Runtime.OnWheel(wheel);
+                break;
+            case FastScrollMessage scroll:
+                Runtime.OnFastScroll(scroll);
+                break;
         }
+    }
+
+    /// <summary>The module's settings of Options → Assistant that the process uses (the sound).</summary>
+    private void ApplyGeneral(JsonObject general)
+    {
+        var sound = general["sound"] is JsonValue on && on.TryGetValue<bool>(out var b) ? b : true;
+        var volume = general["volume"] is JsonValue v && v.TryGetValue<double>(out var d) ? d : 1;
+        Runtime.Audio.Apply(sound, volume);
     }
 
     /// <summary>Runs a load or an unload after the ones before it (engine thread).</summary>

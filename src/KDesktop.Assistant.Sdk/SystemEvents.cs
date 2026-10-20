@@ -1,3 +1,5 @@
+using System.Windows;
+
 namespace KDesktop.Assistant.Sdk;
 
 /// <summary>
@@ -26,10 +28,21 @@ public abstract record SystemEvent
 
     public sealed record PowerChanged(bool OnBattery, bool BatteryLow, bool PowerSaver) : SystemEvent;
 
-    public sealed record RecycleBinEmptied : SystemEvent;
+    /// <param name="Icon">Centre of the Recycle Bin icon on the desktop (screen pixels), or null when it is not there.</param>
+    public sealed record RecycleBinEmptied(Point? Icon) : SystemEvent;
 
-    /// <summary>The user scrolled hard (wheel). <paramref name="Strength"/> 0…1, positive downwards.</summary>
-    public sealed record FastScroll(double Strength) : SystemEvent;
+    /// <summary>
+    /// The user scrolled hard (several quick notches of the wheel), anywhere. <paramref name="Strength"/> 0…1, positive
+    /// downwards; <paramref name="Position"/> is the cursor's.
+    /// </summary>
+    public sealed record FastScroll(double Strength, Point Position) : SystemEvent;
+
+    /// <summary>
+    /// One turn of the mouse wheel, only while the assistant asks for them (<see cref="IPointer.WatchWheel"/>).
+    /// </summary>
+    /// <param name="Notches">Notches turned (fractions with smooth wheels): positive is up, or right when <paramref name="Horizontal"/>.</param>
+    /// <param name="Window">Handle of the top-level window under the cursor (0 if none): what is scrolling.</param>
+    public sealed record WheelTurned(Point Position, double Notches, bool Horizontal, long Window) : SystemEvent;
 
     public sealed record ThemeChanged(bool Dark) : SystemEvent;
 

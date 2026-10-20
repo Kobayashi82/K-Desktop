@@ -418,6 +418,7 @@ public partial class App : Application
         Ui.ShowOsd(Loc.T(paused ? "pause.osdOn" : "pause.osdOff"));
         if (_tray is not null) _tray.ToolTipText = TrayTooltip();
         _assistant?.Send(new Core.Assistant.Pipe.PauseMessage(paused));
+        UpdateAssistantInput();
         PausedChanged?.Invoke();
     }
 

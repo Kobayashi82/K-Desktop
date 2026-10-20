@@ -2594,5 +2594,8 @@
   "assistantState.onDesktopMany": "Sul desktop: {0}",
   "assistantState.notOnDesktop": "{0} non è sul desktop",
   "assistantPanel.whom": "Assistenti sul desktop",
-  "assistantPanel.addAnother": "Aggiungine un altro"
+  "assistantPanel.addAnother": "Aggiungine un altro",
+  "assistantOptions.sound": "Suoni degli assistenti",
+  "assistantOptions.soundHint": "Motori, atterraggi e altri effetti. Ogni assistente può avere anche un volume proprio nelle sue impostazioni.",
+  "assistantOptions.volume": "Volume"
 }

@@ -35,6 +35,7 @@ public sealed class Dot : IAssistant
     private double _size = 28;
     private Color _color = Colors.DodgerBlue;
     private bool _wander = true;
+    private ISound _blip = null!;
 
     public Point? BubbleAnchor => new Point(_at.X, _at.Y - Radius);
 
@@ -52,6 +53,22 @@ public sealed class Dot : IAssistant
         _hit = host.Pointer.CreateHitArea();
         _jumps = LoadJumps();
         ReadSettings(host.Settings);
+        _blip = host.Audio.Load(Blip(), 48000);
+    }
+
+    /// <summary>A short blip that rises in pitch: sounds can be made in code (or loaded with LoadWav from the package).</summary>
+    private static float[] Blip()
+    {
+        const int rate = 48000;
+        var samples = new float[rate / 12];
+        var phase = 0.0;
+        for (var i = 0; i < samples.Length; i++)
+        {
+            var t = i / (double)samples.Length;
+            phase += Math.Tau * (600 + 900 * t) / rate;
+            samples[i] = (float)(Math.Sin(phase) * 0.25 * Math.Sin(Math.PI * t));
+        }
+        return samples;
     }
 
     public void Enter(EntranceKind how)
@@ -149,6 +166,9 @@ public sealed class Dot : IAssistant
         _jumpTo = to;
         _jumpStart = Now;
         _nextWander = Now + 8 + _random.NextDouble() * 12;
+        // Panned towards where it lands, on the main monitor's width.
+        var width = _host.World.Current.PrimaryMonitor?.Bounds.Width ?? 1920;
+        _host.Audio.Play(_blip, gain: 1, pan: Math.Clamp(to.X / width * 2 - 1, -1, 1));
         _jumps++;
         SaveJumps();
         Publish();
@@ -252,6 +272,7 @@ public sealed class Dot : IAssistant
                 React(Reaction.Celebration);
                 break;
             case SystemEvent.NotificationShown:
+            case SystemEvent.FastScroll:
                 React(Reaction.Warning);
                 break;
             case SystemEvent.MonitorsChanged or SystemEvent.FullscreenChanged when RandomSpot() is { } spot:

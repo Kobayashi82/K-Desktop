@@ -1,3 +1,8 @@
+using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using KDesktop.Assistant.Sdk;
 using static KDesktop.Assistant.Host.Interop.Native;
 
@@ -39,8 +44,91 @@ internal sealed unsafe class HostWindowServices(WindowScanner scanner) : IWindow
             new PixelRect(left + 2 * third, top, outer.Left + area.Right, bottom));
     }
 
-    // Pictures of windows (ghosts of elevated windows, effects) come with the gestures that use them (phases 6–7).
-    public System.Windows.Media.ImageSource? Thumbnail(long handle, int maxSize) => null;
+    /// <summary>
+    /// The window as it draws itself (<c>PrintWindow</c> with DWM, so covered parts are there too); when it will not
+    /// (elevated windows refuse a normal-user process), what the screen shows of it. Scaled to fit
+    /// <paramref name="maxSize"/> and frozen.
+    /// </summary>
+    public ImageSource? Thumbnail(long handle, int maxSize)
+    {
+        var hwnd = (nint)handle;
+        if (maxSize < 1 || !IsWindow(hwnd) || !GetWindowRect(hwnd, out var outer) || !WindowScanner.TryGetBounds(hwnd, out var frame)) return null;
+        int width = outer.Right - outer.Left, height = outer.Bottom - outer.Top;
+        if (width < 1 || height < 1 || width > 16384 || height > 16384) return null;
 
-    public System.Windows.Media.ImageSource? AppIcon(long handle) => null;
+        var screen = GetDC(0);
+        var memory = CreateCompatibleDC(screen);
+        var header = new BITMAPINFOHEADER
+        {
+            biSize = (uint)sizeof(BITMAPINFOHEADER),
+            biWidth = width,
+            biHeight = -height, // top-down
+            biPlanes = 1,
+            biBitCount = 32,
+        };
+        var bitmap = CreateDIBSection(screen, &header, 0, out var bits, 0, 0);
+        try
+        {
+            if (bitmap == 0 || bits is null) return null;
+            var previous = SelectObject(memory, bitmap);
+            if (!PrintWindow(hwnd, memory, PW_RENDERFULLCONTENT))
+                BitBlt(memory, 0, 0, width, height, screen, outer.Left, outer.Top, SRCCOPY);
+            SelectObject(memory, previous);
+
+            // Without the invisible borders and the shadow: what DWM calls the window.
+            var crop = new Int32Rect(frame.Left - outer.Left, frame.Top - outer.Top, frame.Right - frame.Left, frame.Bottom - frame.Top);
+            if (crop.X < 0 || crop.Y < 0 || crop.Width < 1 || crop.Height < 1 || crop.X + crop.Width > width || crop.Y + crop.Height > height)
+                crop = new Int32Rect(0, 0, width, height);
+            var stride = width * 4;
+            var full = BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgr32, null, (nint)bits, stride * height, stride);
+            BitmapSource picture = new CroppedBitmap(full, crop);
+            var scale = Math.Min(1.0, maxSize / (double)Math.Max(crop.Width, crop.Height));
+            if (scale < 1) picture = new TransformedBitmap(picture, new ScaleTransform(scale, scale));
+            // Copied out of the DIB before it goes, and frozen so any thread can use it.
+            var result = new WriteableBitmap(picture);
+            result.Freeze();
+            return result;
+        }
+        finally
+        {
+            if (bitmap != 0) DeleteObject(bitmap);
+            DeleteDC(memory);
+            ReleaseDC(0, screen);
+        }
+    }
+
+    /// <summary>The large icon of the window's executable, cached per executable.</summary>
+    public ImageSource? AppIcon(long handle)
+    {
+        var path = WindowScanner.PathOf((nint)handle);
+        if (path is null) return null;
+        lock (_icons)
+        {
+            if (_icons.TryGetValue(path, out var cached)) return cached;
+            if (_icons.Count > 128) _icons.Clear();
+            return _icons[path] = ExtractIcon(path);
+        }
+    }
+
+    private readonly Dictionary<string, ImageSource?> _icons = new(StringComparer.OrdinalIgnoreCase);
+
+    private static BitmapSource? ExtractIcon(string path)
+    {
+        var info = default(SHFILEINFOW);
+        if (SHGetFileInfo(path, 0, &info, (uint)sizeof(SHFILEINFOW), SHGFI_ICON | SHGFI_LARGEICON) == 0 || info.hIcon == 0) return null;
+        try
+        {
+            var source = Imaging.CreateBitmapSourceFromHIcon(info.hIcon, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+            source.Freeze();
+            return source;
+        }
+        catch (Exception ex) when (ex is ArgumentException or System.ComponentModel.Win32Exception or COMException)
+        {
+            return null;
+        }
+        finally
+        {
+            DestroyIcon(info.hIcon);
+        }
+    }
 }

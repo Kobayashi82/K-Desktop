@@ -11,6 +11,13 @@ namespace KDesktop.Assistant.Sdk;
 public interface IPointer
 {
     IHitArea CreateHitArea(string id = "body");
+
+    /// <summary>
+    /// Whether every turn of the mouse wheel reaches it (<see cref="SystemEvent.WheelTurned"/>), anywhere on the
+    /// screen. It costs a message per notch: turn it on only while it matters (the cursor near the character, standing
+    /// on a window that scrolls). Hard scrolls (<see cref="SystemEvent.FastScroll"/>) arrive anyway.
+    /// </summary>
+    bool WatchWheel { get; set; }
 }
 
 public interface IHitArea : IDisposable

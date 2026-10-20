@@ -47,6 +47,31 @@ public class WorldTests
         }
     }
 
+    [Fact]
+    public async Task WindowsGiveTheirPictureAndTheirIcon()
+    {
+        var services = new KDesktop.Assistant.Host.World.HostWindowServices(new KDesktop.Assistant.Host.World.WindowScanner(new HashSet<nint>()));
+        await RunWindowAsync("KDesktop miniatura", async (window, handle) =>
+        {
+            await Task.Delay(200);
+            var picture = Assert.IsAssignableFrom<System.Windows.Media.Imaging.BitmapSource>(services.Thumbnail(handle, 100));
+            Assert.True(picture.IsFrozen);
+            Assert.InRange(Math.Max(picture.PixelWidth, picture.PixelHeight), 90, 100);
+            Assert.NotNull(services.AppIcon(handle));
+            Assert.Same(services.AppIcon(handle), services.AppIcon(handle)); // cached per executable
+        });
+        Assert.Null(services.Thumbnail(0, 100));
+    }
+
+    [Fact]
+    public void TheRecycleBinIconIsOnTheScreenOrNowhere()
+    {
+        // The desktop of whoever runs the tests: it may have no Recycle Bin icon, but asking must not fail.
+        if (KDesktop.Assistant.Host.World.DesktopIcons.FindRecycleBin() is not { } icon) return;
+        Assert.InRange(icon.X, SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth * 4);
+        Assert.InRange(icon.Y, SystemParameters.VirtualScreenTop, SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight * 4);
+    }
+
     /// <summary>A plain window of this test on an STA thread of its own, shown without taking the focus; closed at the end.</summary>
     private static Task<long> RunWindowAsync(string title, Func<Window, long, Task> steps)
     {

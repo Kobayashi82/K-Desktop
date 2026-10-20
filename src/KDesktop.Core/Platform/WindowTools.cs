@@ -13,6 +13,13 @@ public static class WindowTools
         Win32.SetWindowPos(hwnd, topMost ? Win32.HWND_TOPMOST : Win32.HWND_NOTOPMOST, 0, 0, 0, 0,
             Win32.SWP_NOMOVE | Win32.SWP_NOSIZE | Win32.SWP_NOACTIVATE);
 
+    /// <summary>The top-level window under a screen point (zero over none).</summary>
+    public static IntPtr TopLevelAt(int x, int y)
+    {
+        var hwnd = Win32.WindowFromPoint(new Win32.POINT { X = x, Y = y });
+        return hwnd == IntPtr.Zero ? IntPtr.Zero : Win32.GetAncestor(hwnd, Win32.GA_ROOT);
+    }
+
     /// <summary>Toggles "always on top" and returns the new state.</summary>
     public static bool ToggleTopMost(IntPtr hwnd)
     {

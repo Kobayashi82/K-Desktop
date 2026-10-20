@@ -2594,5 +2594,8 @@
   "assistantState.onDesktopMany": "On the desktop: {0}",
   "assistantState.notOnDesktop": "{0} is not on the desktop",
   "assistantPanel.whom": "Assistants on the desktop",
-  "assistantPanel.addAnother": "Add another"
+  "assistantPanel.addAnother": "Add another",
+  "assistantOptions.sound": "Assistant sounds",
+  "assistantOptions.soundHint": "Engines, landings and other effects. Each assistant may also have its own volume in its settings.",
+  "assistantOptions.volume": "Volume"
 }

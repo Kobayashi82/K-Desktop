@@ -47,7 +47,8 @@ en `assistant`:
 - **A→K:** quién lo dice (`loaded`, `status`, `listen`, `talk`, `run`, `keys`, `log`, `chat`, `panel`, `notify`, `open`,
   `hide`). El host lo pone él: un asistente nunca habla en nombre de otro.
 - **Del proceso entero**, sin `assistant`: conexión, `pause`, `config` de las secciones del módulo, `status` sin
-  `assistant` (modelo, memoria), `match`, `media`, `window`/`windowDone` y `embed`/`embedded`.
+  `assistant` (modelo, memoria), `match`, `media`, `window`/`windowDone`, `embed`/`embedded` y la rueda del ratón
+  (`watchWheel`, `wheel`, `fastScroll`: el host la reparte entre los que la siguen).
 
 **A quién va cada cosa.** La palabra de activación elige: cada asistente puede tener la suya (Opciones → Asistentes) y
 esa orden va a él, que contesta, hace los gestos y habla con su voz. Lo que **no va dirigido a nadie** (un comando con
@@ -100,7 +101,7 @@ Dirección: **A→K** del asistente a K-Desktop; **K→A** de K-Desktop al asist
 
 | `t` | Dir. | Campos | Qué es |
 |---|---|---|---|
-| `config` | K→A | `section`, `value`, `assistant` (solo en `assistantSettings`) | Cambió algo en Opciones → Asistente. Secciones: `general`, `brain`, `voice`, `tools`, `privacy`, `assistantSettings` (ajustes de ese asistente, según su `settings.json`: todos sus valores, cada vez que se cambia uno en Opciones) |
+| `config` | K→A | `section`, `value`, `assistant` (solo en `assistantSettings`) | Cambió algo en Opciones → Asistente. Secciones: `general` (de momento `sound`, sí/no, y `volume`, 0…1: el sonido de los asistentes, que mezcla el host), `brain`, `voice`, `tools`, `privacy`, `assistantSettings` (ajustes de ese asistente, según su `settings.json`: todos sus valores, cada vez que se cambia uno en Opciones). La bienvenida trae las secciones del módulo en `config` |
 | `pause` | K→A | `paused` | Se ha pausado o reanudado K-Desktop: en pausa no se atienden órdenes |
 | `load` | K→A | `assistant` (id), `version`, `path` (carpeta del paquete), `data` (su carpeta de datos), `entrance` (`startup`, `switched`) | Pone este asistente en el escritorio, junto a los que ya haya. Si ya estaba (otra versión: `switched`), el nuevo código se carga y después el viejo sale y entra el nuevo |
 | `unload` | K→A | `assistant`, `reason` (`disabled`, `uninstalling`, `hiding`, `reloading`) | Quita ese asistente del escritorio (con su salida); los demás siguen. Sin ninguno, el módulo sigue sin cuerpo. `reloading`: vuelve enseguida con un `load` (p. ej. tras «Empezar de cero», que borra su carpeta de datos) |
@@ -142,8 +143,11 @@ Dirección: **A→K** del asistente a K-Desktop; **K→A** de K-Desktop al asist
 | `windowDone` | K→A | `id`, `ok` | Resultado |
 | `embed` | A→K | `id`, `texts` (lista, máx. 64) | Vectores de significado con el EmbeddingGemma de K-Desktop |
 | `embedded` | K→A | `id`, `vectors` (lista de listas de números), `model` | Resultado (vectores normalizados). Si K-Desktop no tiene el modelo: `error` con `code: "noModel"` |
-| `keys` | A→K | `assistant`, `capture` (lista de teclas; vacía = soltar) | Que K-Desktop se trague esas teclas y se las reenvíe a ese asistente (juego del Lander) |
-| `key` | K→A | `assistant`, `key`, `down` | Una tecla capturada |
+| `keys` | A→K | `assistant`, `capture` (lista de teclas, nombres de `Key` de WPF: `Up`, `A`, `Escape`…; vacía = soltar) | Que K-Desktop se trague esas teclas cuando se pulsan sin Ctrl, Alt ni Win (así los atajos siguen funcionando) y se las reenvíe a ese asistente (juego del Lander). Los modificadores no se capturan. En pausa, o si el asistente sale o el proceso se cae, K-Desktop las suelta solo |
+| `key` | K→A | `assistant`, `key`, `down` | Una tecla capturada bajó o subió (la repetición automática no se manda) |
+| `watchWheel` | A→K | `watch` | Que K-Desktop mande cada giro de la rueda (`wheel`) o deje de hacerlo. El host lo pide mientras algún asistente lo quiera (`IPointer.WatchWheel`) |
+| `wheel` | K→A | `x`, `y`, `delta` (120 por muesca; positivo = arriba o a la derecha), `horizontal`, `hwnd` (la ventana de nivel superior bajo el cursor) | Un giro de la rueda. Sale del gancho de K-Desktop, que la ve también sobre ventanas de administrador |
+| `fastScroll` | K→A | `strength` (0…1, positivo = hacia abajo), `x`, `y` | El usuario ha girado la rueda con fuerza (varias muescas seguidas; luego descansa 1,2 s). Se manda siempre: es raro |
 
 ### Del asistente al panel de K-Desktop
 
