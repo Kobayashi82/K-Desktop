@@ -2616,5 +2616,6 @@
   "assistantSettings.hotkeyCreates": "Beim Aufnehmen wird ein K-Desktop-Befehl erstellt.",
   "assistantSettings.hotkeyUsed": "Wird auch von {0} verwendet.",
   "assistantSettings.hotkeyCommand": "Befehl „{0}“.",
-  "assistantSettings.openCommand": "Befehl öffnen"
+  "assistantSettings.openCommand": "Befehl öffnen",
+  "assistantPkg.sdkNewer": "„{0}“ braucht SDK {1}, dieses K-Desktop hat {2}. Aktualisiere K-Desktop, um es zu installieren."
 }

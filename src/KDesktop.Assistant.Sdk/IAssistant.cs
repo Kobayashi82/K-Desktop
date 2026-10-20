@@ -107,3 +107,15 @@ public enum AssistantState
     Busy,
     Sleeping,
 }
+
+/// <summary>How one of its extras shows in its menu and its panel (<see cref="IAssistantHost.SetExtraState"/>).</summary>
+public enum ExtraState
+{
+    Shown,
+
+    /// <summary>Visible but greyed out: it exists, just not now.</summary>
+    Disabled,
+
+    /// <summary>Not there at all (it would make no sense yet).</summary>
+    Hidden,
+}

@@ -235,6 +235,7 @@ public partial class App : Application
             ApplySettings();
             Achievements.CheckConfig(Config);
             Config.RefreshReferenceNames(); // renamed macros, menus or commands
+            SendAssistantExtraKeys(); // the hotkeys of the commands that run assistants' extras
             Favicons.Prefetch(Config.Commands.SelectMany(c => c.Actions)); // new or edited web actions
             Web?.NotifyCatalogChanged();
         };

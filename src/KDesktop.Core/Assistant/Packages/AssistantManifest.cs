@@ -46,6 +46,16 @@ public sealed partial record AssistantManifest
     [JsonIgnore]
     public int SdkMajor => int.TryParse(Sdk.Split('.')[0], out var major) ? major : -1;
 
+    /// <summary>Minor version of the SDK it was built against (0 when it does not say).</summary>
+    [JsonIgnore]
+    public int SdkMinor => Sdk.Split('.') is [_, var minor, ..] && int.TryParse(minor, out var value) ? value : 0;
+
+    /// <summary>
+    /// Whether a host with SDK <paramref name="host"/> can run it: the same major version, and a minor version at least
+    /// as new as the one it was built against (a newer minor adds members an older host does not have).
+    /// </summary>
+    public bool RunsOn(Version host) => SdkMajor == host.Major && SdkMinor <= host.Minor;
+
     /// <summary>settings.json of the package (the manifest may name another file).</summary>
     [JsonIgnore]
     public string SettingsFile => Settings ?? "settings.json";

@@ -9,9 +9,12 @@ namespace KDesktop.Assistant.Host.Input;
 /// <summary>What the right-click menu offers, gathered on the engine thread.</summary>
 /// <param name="Id">The assistant clicked (there may be several on the desktop).</param>
 /// <param name="Name">Its name.</param>
-/// <param name="Extras">Its extras (id and name in K-Desktop's language).</param>
+/// <param name="Extras">Its extras that are not hidden, in K-Desktop's language.</param>
 /// <param name="At">Where it was clicked, in screen pixels.</param>
-internal sealed record MenuRequest(string Id, string Name, IReadOnlyList<(string Id, string Name)> Extras, Point At);
+internal sealed record MenuRequest(string Id, string Name, IReadOnlyList<MenuExtra> Extras, Point At);
+
+/// <summary>An extra in the menu: greyed out when the assistant says it cannot be done now.</summary>
+internal sealed record MenuExtra(string Id, string Name, bool Enabled);
 
 internal enum MenuChoice
 {
@@ -23,9 +26,9 @@ internal enum MenuChoice
 }
 
 /// <summary>
-/// The menu of the right button on the assistant (stage 1.8): Windows' own popup menu, so the keyboard, clicking
-/// outside and the monitor's scale work as anywhere else, in K-Desktop's theme. It runs on the UI thread: the
-/// assistant keeps moving on the engine thread while it is open.
+/// The menu of the right button on the assistant when K-Desktop cannot draw it (not connected, or in development):
+/// Windows' own popup menu, so the keyboard, clicking outside and the monitor's scale work as anywhere else, in
+/// K-Desktop's theme. It runs on the UI thread: the assistant keeps moving on the engine thread while it is open.
 /// </summary>
 internal static class AssistantMenu
 {
@@ -61,7 +64,7 @@ internal static class AssistantMenu
             {
                 AppendMenu(menu, MF_SEPARATOR, 0, null);
                 for (var i = 0; i < request.Extras.Count; i++)
-                    AppendMenu(menu, MF_STRING, FirstExtraId + (uint)i, Escape(request.Extras[i].Name));
+                    AppendMenu(menu, request.Extras[i].Enabled ? MF_STRING : MF_STRING | MF_GRAYED, FirstExtraId + (uint)i, Escape(request.Extras[i].Name));
             }
             AppendMenu(menu, MF_SEPARATOR, 0, null);
             AppendMenu(menu, needsLink, HideId, Loc.T("assistantMenu.hide", name));

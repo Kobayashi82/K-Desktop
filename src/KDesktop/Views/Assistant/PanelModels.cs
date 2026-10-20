@@ -116,17 +116,30 @@ public sealed class AchievementsCard(AssistantPanelModel owner, PanelCard card) 
     }
 }
 
-public sealed record PanelButtonModel(string Label, string Extra, SymbolRegular Symbol)
+/// <param name="Enabled">The assistant did not grey out its extra (SDK 1.1, <c>extraState</c>).</param>
+public sealed record PanelButtonModel(string Label, string Extra, SymbolRegular Symbol, bool Enabled = true)
 {
     public override string ToString() => Label;
 }
 
+/// <summary>Buttons that run its extras; those it hides are left out and those it greys out are disabled.</summary>
 public sealed class ButtonsCard(AssistantPanelModel owner, PanelCard card) : PanelCardModel(owner, card)
 {
-    public IReadOnlyList<PanelButtonModel> Buttons { get; } =
-        [.. card.Items.Select(b => new PanelButtonModel(AssistantLook.Text(b.Label), b.Extra, AssistantLook.Symbol(b.Icon) ?? SymbolRegular.Play24))];
+    public IReadOnlyList<PanelButtonModel> Buttons { get; private set; } = [];
 
-    public override void Refresh(JsonObject? data) { }
+    public override void Refresh(JsonObject? data)
+    {
+        var app = App.Current;
+        var id = Owner.Assistant.Id;
+        IReadOnlyList<PanelButtonModel> buttons = [.. Card.Items
+            .Select(b => (Item: b, State: app.ExtraStateOf(id, b.Extra)))
+            .Where(b => b.State != KDesktop.Assistant.Sdk.ExtraState.Hidden)
+            .Select(b => new PanelButtonModel(AssistantLook.Text(b.Item.Label), b.Item.Extra, AssistantLook.Symbol(b.Item.Icon) ?? SymbolRegular.Play24,
+                b.State != KDesktop.Assistant.Sdk.ExtraState.Disabled))];
+        if (buttons.SequenceEqual(Buttons)) return;
+        Buttons = buttons;
+        Notify(nameof(Buttons));
+    }
 }
 
 public sealed class TextCard(AssistantPanelModel owner, PanelCard card) : PanelCardModel(owner, card)

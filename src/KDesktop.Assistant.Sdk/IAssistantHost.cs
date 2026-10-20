@@ -47,6 +47,20 @@ public interface IAssistantHost
     /// <summary>Shows a short notice from it (K-Desktop's toast), e.g. «Achievement unlocked».</summary>
     void Notify(string title, string text);
 
+    /// <summary>
+    /// Shows, greys out or hides one of its extras in its right-click menu and its panel buttons, by what makes sense
+    /// right now («Repeat the race» only after a race). Every extra is <see cref="ExtraState.Shown"/> each time it is
+    /// loaded. Commands and voice still reach <see cref="IAssistant.OnExtraAsync"/>: say there why it cannot be done.
+    /// Cheap: only changes are sent. (SDK 1.1.)
+    /// </summary>
+    void SetExtraState(string extraId, ExtraState state);
+
+    /// <summary>
+    /// The hotkey of the K-Desktop command that runs one of its extras, as K-Desktop shows it («CTRL + ALT + L»), or null
+    /// when no command with a hotkey runs it. Up to date whenever the user changes the commands. (SDK 1.1.)
+    /// </summary>
+    string? ExtraHotkey(string extraId);
+
     /// <summary>Asks for a tick as soon as possible. Can be called from any thread.</summary>
     void RequestTick();
 

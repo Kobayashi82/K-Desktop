@@ -85,6 +85,11 @@ K-Desktop los dibuja con sus propios controles, sin cargar código del asistente
   `buttons` y `text`. Los datos llegan con `PublishPanel`, que se **fusiona** con lo publicado antes: publica todo en
   `Enter` y después solo lo que cambie. Una galería con `source` toma sus imágenes de esos mismos datos
   (`[{ id, name, image, locked, lockText }]`).
+- **Extras según el momento** (SDK 1.1, pon `"sdk": "1.1"`): `SetExtraState(id, Shown | Disabled | Hidden)`
+  enseña, atenúa o esconde un extra en el menú del clic derecho (que dibuja K-Desktop, con el icono y el atajo de
+  cada extra) y en los botones del panel; tras cada carga todos vuelven a `Shown`. `ExtraHotkey(id)` da el atajo del
+  comando de K-Desktop que lo ejecuta («CTRL + ALT + L»), para decirle al usuario qué pulsar. Los comandos y la voz
+  siguen llegando a `OnExtraAsync` aunque esté escondido: explica allí por qué no se puede.
 
 ## Reglas
 

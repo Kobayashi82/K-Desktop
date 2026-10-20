@@ -2616,5 +2616,6 @@
   "assistantSettings.hotkeyCreates": "Registrandola si crea un comando di K-Desktop.",
   "assistantSettings.hotkeyUsed": "È usata anche da {0}.",
   "assistantSettings.hotkeyCommand": "Comando «{0}».",
-  "assistantSettings.openCommand": "Apri il comando"
+  "assistantSettings.openCommand": "Apri il comando",
+  "assistantPkg.sdkNewer": "«{0}» richiede l’SDK {1} e questo K-Desktop ha il {2}. Aggiorna K-Desktop per installarlo."
 }

@@ -2616,5 +2616,6 @@
   "assistantSettings.hotkeyCreates": "Recording it creates a K-Desktop command.",
   "assistantSettings.hotkeyUsed": "Also used by {0}.",
   "assistantSettings.hotkeyCommand": "Command “{0}”.",
-  "assistantSettings.openCommand": "Open the command"
+  "assistantSettings.openCommand": "Open the command",
+  "assistantPkg.sdkNewer": "“{0}” needs SDK {1} and this K-Desktop has {2}. Update K-Desktop to install it."
 }

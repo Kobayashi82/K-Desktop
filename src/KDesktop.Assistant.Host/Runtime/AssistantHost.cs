@@ -45,6 +45,10 @@ internal sealed class AssistantHost(AssistantRuntime runtime, AssistantSlot slot
 
     public void Notify(string title, string text) => runtime.Notify(Id, title, text);
 
+    public void SetExtraState(string extraId, ExtraState state) => runtime.SetExtraState(slot, extraId, state);
+
+    public string? ExtraHotkey(string extraId) => runtime.ExtraHotkey(Id, extraId);
+
     public void RequestTick() => runtime.RequestTick(slot);
 
     public void Post(Action action) => runtime.Post(action);

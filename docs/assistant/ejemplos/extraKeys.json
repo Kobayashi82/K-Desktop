@@ -1,0 +1,7 @@
+{
+  "t": "extraKeys",
+  "assistant": "lander",
+  "keys": {
+    "lander.manual": "CTRL + ALT + L"
+  }
+}

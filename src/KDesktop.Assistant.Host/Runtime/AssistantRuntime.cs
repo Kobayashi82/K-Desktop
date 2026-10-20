@@ -31,6 +31,8 @@ internal sealed class AssistantRuntime : IDisposable
     private readonly PanelPublisher _panel;
     /// <summary>On the desktop, in the order they were loaded (the order they tick in).</summary>
     private readonly List<AssistantSlot> _slots = [];
+    /// <summary>The hotkeys of each assistant's extras, as K-Desktop last sent them (by id: they may come before its load).</summary>
+    private readonly Dictionary<string, IReadOnlyDictionary<string, string>> _extraKeys = new(StringComparer.Ordinal);
     private double _nextOnTop;
 
     public AssistantRuntime(EngineLoop engine, KDesktopLink? link)
@@ -237,6 +239,30 @@ internal sealed class AssistantRuntime : IDisposable
 
     public void Notify(string assistant, string title, string text) => _link?.Send(new NotifyMessage(title, text, assistant));
 
+    /// <summary>
+    /// An assistant shows, greys out or hides one of its extras (<see cref="IAssistantHost.SetExtraState"/>): kept for the
+    /// host's own menu, and sent to K-Desktop when it changes.
+    /// </summary>
+    public void SetExtraState(AssistantSlot slot, string extra, ExtraState state)
+    {
+        if (slot.Dropped || string.IsNullOrEmpty(extra) || slot.ExtraStates.GetValueOrDefault(extra, ExtraState.Shown) == state) return;
+        if (state == ExtraState.Shown) slot.ExtraStates.Remove(extra);
+        else slot.ExtraStates[extra] = state;
+        _link?.Send(new ExtraStateMessage(slot.Id, extra, state switch
+        {
+            ExtraState.Disabled => "disabled",
+            ExtraState.Hidden => "hidden",
+            _ => "shown",
+        }));
+    }
+
+    /// <summary>K-Desktop's <c>extraKeys</c>: the hotkeys of the commands that run an assistant's extras.</summary>
+    public void SetExtraKeys(string assistant, IReadOnlyDictionary<string, string> keys) => _extraKeys[assistant] = keys;
+
+    /// <summary>The hotkey of the command that runs an extra («CTRL + ALT + L»), or null.</summary>
+    public string? ExtraHotkey(string assistant, string extra) =>
+        _extraKeys.TryGetValue(assistant, out var keys) && keys.TryGetValue(extra, out var key) && key.Length > 0 ? key : null;
+
     /// <summary>A tick for this assistant as soon as possible (any thread).</summary>
     public void RequestTick(AssistantSlot slot)
     {
@@ -325,7 +351,10 @@ internal sealed class AssistantRuntime : IDisposable
         if (slot.Dropped) return;
         var language = Loc.Instance.Language;
         var name = slot.Manifest?.Name ?? slot.Id;
-        var extras = slot.Manifest?.Extras.Select(e => (e.Id, e.Name.In(language))).ToList() ?? [];
+        var extras = slot.Manifest?.Extras
+            .Where(e => slot.ExtraStates.GetValueOrDefault(e.Id) != ExtraState.Hidden)
+            .Select(e => new MenuExtra(e.Id, e.Name.In(language), slot.ExtraStates.GetValueOrDefault(e.Id) != ExtraState.Disabled))
+            .ToList() ?? [];
         MenuRequested?.Invoke(new MenuRequest(slot.Id, name, extras, at));
     }
 }
@@ -358,6 +387,9 @@ internal sealed class AssistantSlot(string id, IAssistant assistant, AssistantMa
     public AssistantAudio Audio { get; set; } = null!;
 
     public CancellationTokenSource Extras { get; } = new();
+
+    /// <summary>Its extras that are not simply shown (<see cref="IAssistantHost.SetExtraState"/>).</summary>
+    public Dictionary<string, ExtraState> ExtraStates { get; } = new(StringComparer.Ordinal);
 
     public int Faults { get; set; }
 

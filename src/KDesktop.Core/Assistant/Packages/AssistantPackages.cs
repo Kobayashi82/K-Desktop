@@ -96,8 +96,11 @@ public static partial class AssistantPackages
 
     private static readonly object Gate = new();
 
+    /// <summary>Version of the SDK this K-Desktop gives assistants (major and minor).</summary>
+    public static Version SdkVersion { get; } = typeof(IAssistant).Assembly.GetName().Version is { } v ? new Version(v.Major, v.Minor) : new Version(1, 0);
+
     /// <summary>Major version of the SDK this K-Desktop gives assistants.</summary>
-    public static int SdkMajor { get; } = typeof(IAssistant).Assembly.GetName().Version?.Major ?? 1;
+    public static int SdkMajor => SdkVersion.Major;
 
     /// <summary>Opens and checks a package. Throws <see cref="PackageException"/> with what is wrong.</summary>
     public static PackageInfo Inspect(string file)
@@ -118,6 +121,7 @@ public static partial class AssistantPackages
 
             if (AssistantPaths.Reserved.Contains(manifest.Id)) throw Fail(PackageProblem.ReservedId, "assistantPkg.reservedId", manifest.Id);
             if (manifest.SdkMajor != SdkMajor) throw Fail(PackageProblem.Sdk, "assistantPkg.sdk", manifest.Name, manifest.Sdk, SdkMajor);
+            if (!manifest.RunsOn(SdkVersion)) throw Fail(PackageProblem.Sdk, "assistantPkg.sdkNewer", manifest.Name, manifest.Sdk, SdkVersion.ToString(2));
             var dll = manifest.EntryParts.Assembly;
             if (!entries.ContainsKey(dll)) throw Fail(PackageProblem.Missing, "assistantPkg.missing", dll);
 

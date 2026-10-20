@@ -46,6 +46,23 @@ public class ManifestTests
     public void BadManifestsSayWhy(string json, string says) =>
         Assert.Contains(says, Assert.Throws<ManifestException>(() => AssistantManifest.Parse(json)).Message);
 
+    /// <summary>SDK 1.1 (stage 2.3): a package built against a newer minor version needs a newer K-Desktop.</summary>
+    [Theory]
+    [InlineData("1.0", 1, 1, true)]
+    [InlineData("1.1", 1, 1, true)]
+    [InlineData("1", 1, 0, true)]
+    [InlineData("1.2", 1, 1, false)]
+    [InlineData("2.0", 1, 9, false)]
+    [InlineData("1.1", 2, 0, false)]
+    public void APackageRunsOnTheSameMajorAndAnEqualOrNewerMinor(string sdk, int major, int minor, bool runs)
+    {
+        var manifest = AssistantManifest.Parse($$$"""{"id":"dot","name":"D","version":"1.0.0","author":"a","sdk":"{{{sdk}}}","entry":"lib/D.dll!D.D","traits":{"travel":"fly"}}""");
+        Assert.Equal(runs, manifest.RunsOn(new Version(major, minor)));
+    }
+
+    [Fact]
+    public void ThisHostGivesSdk11() => Assert.Equal(new Version(1, 1), AssistantPackages.SdkVersion);
+
     [Fact]
     public void SettingDefaultsComeFromTheSettingsFile()
     {

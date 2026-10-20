@@ -117,6 +117,9 @@ internal sealed class AssistantSession : IDisposable
             case ConfigMessage { Section: "general", Value: JsonObject general }:
                 ApplyGeneral(general);
                 break;
+            case ExtraKeysMessage keys:
+                Runtime.SetExtraKeys(keys.Assistant, keys.Keys);
+                break;
             case ExtraMessage extra:
                 _ = Runtime.RunExtraAsync(extra.Assistant, extra.Action);
                 break;
@@ -150,11 +153,21 @@ internal sealed class AssistantSession : IDisposable
         await change().ConfigureAwait(true);
     }
 
-    /// <summary>The right-click menu, on the UI thread; what is chosen goes to K-Desktop or to the assistant.</summary>
+    /// <summary>
+    /// The right-click menu, on the UI thread. Connected, K-Desktop draws it like the rest of its menus (stage 2.3) and does
+    /// what is chosen; it may take the foreground for that. Otherwise (or in development, where K-Desktop does not know
+    /// the assistant), Windows' own menu here, and what is chosen goes to K-Desktop or to the assistant.
+    /// </summary>
     private void ShowMenu(MenuRequest request)
     {
         if (Volatile.Read(ref _shuttingDown) != 0) return;
         var linked = Link is { IsConnected: true };
+        if (linked && _dev is null && Options.Probe is null)
+        {
+            Interop.Native.AllowSetForegroundWindow(Interop.Native.ASFW_ANY);
+            Link!.Send(new MenuMessage(request.Id, (int)Math.Round(request.At.X), (int)Math.Round(request.At.Y)));
+            return;
+        }
         var (choice, extra) = AssistantMenu.Show(request, Link?.Theme == "dark", linked);
         switch (choice)
         {

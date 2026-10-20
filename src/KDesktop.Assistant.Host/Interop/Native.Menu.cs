@@ -39,6 +39,13 @@ internal static partial class Native
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool PostMessage(nint hwnd, uint message, nint wParam, nint lParam);
 
+    /// <summary>Lets any process take the foreground once (K-Desktop, to open the assistant's menu after its click).</summary>
+    public const uint ASFW_ANY = 0xFFFFFFFF;
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool AllowSetForegroundWindow(uint processId);
+
     [LibraryImport("uxtheme.dll", EntryPoint = "#135")]
     public static partial int SetPreferredAppMode(int mode);
 

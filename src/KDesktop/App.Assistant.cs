@@ -51,6 +51,7 @@ public partial class App
                     AssistantConnectedAt = null;
                     AssistantStatus = null;
                     _assistantStates.Clear();
+                    ClearAssistantExtras();
                     // A process that fell cannot ask to let the keys go.
                     if (_assistant == supervisor) ResetAssistantInput();
                 }
@@ -72,6 +73,7 @@ public partial class App
             AssistantStatus = null;
             AssistantConnectedAt = null;
             _assistantStates.Clear();
+            ClearAssistantExtras();
             _pendingExtras.Clear();
             Log.Info("Asistente: módulo desactivado");
             ResetAssistantInput();
@@ -102,6 +104,7 @@ public partial class App
             AssistantConnectedAt = DateTime.Now;
             AssistantStatus = null;
             _assistantStates.Clear();
+            ClearAssistantExtras();
             ResetAssistantInput();
             foreach (var id in Config.Settings.AssistantsOnDesktop.ToList()) LoadAssistant(supervisor, id, "startup");
         });
@@ -145,6 +148,12 @@ public partial class App
                 break;
             case WatchWheelMessage watch:
                 OnAssistantWatchWheel(watch);
+                break;
+            case MenuMessage menu:
+                OnAssistantMenu(menu);
+                break;
+            case ExtraStateMessage state:
+                OnAssistantExtraState(state);
                 break;
             case HideMessage hide when IsOnDesktop(hide.Assistant):
                 HideAssistant(hide.Assistant);
@@ -225,6 +234,7 @@ public partial class App
         }
         Log.Info($"Asistente: se carga «{id}» {installed.Version}");
         ForgetAssistantPanel(id);
+        ForgetAssistantExtras(id);
         supervisor.Send(new LoadMessage(id, installed.Version, installed.Folder, AssistantPaths.Data(id), entrance));
     }
 
@@ -247,6 +257,7 @@ public partial class App
             SetAssistantError(text);
             Ui.ShowOsd(text, Core.Engine.OsdKind.Warning, TimeSpan.FromSeconds(6));
         }
+        if (loaded.Ok) SendAssistantExtraKeys();
         SendPendingExtra(loaded);
         AssistantChanged?.Invoke();
     }

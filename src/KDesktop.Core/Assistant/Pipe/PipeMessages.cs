@@ -99,6 +99,15 @@ public sealed record ExtraMessage(string Assistant, string Action) : PipeMessage
     public override string Type => "extra";
 }
 
+/// <summary>
+/// The hotkeys of the commands that run an assistant's extras, as K-Desktop shows them (extra id → «CTRL + ALT + L»;
+/// extras without one are left out). Sent after its <c>load</c> and whenever the commands change.
+/// </summary>
+public sealed record ExtraKeysMessage(string Assistant, IReadOnlyDictionary<string, string> Keys) : PipeMessage
+{
+    public override string Type => "extraKeys";
+}
+
 // ── keyboard and wheel (K-Desktop's hook, which also works over elevated windows) ──
 
 /// <summary>
@@ -173,6 +182,24 @@ public sealed record PanelMessage(JsonObject Data, string? Assistant = null) : P
     public override string Type => "panel";
 }
 
+/// <summary>
+/// Right click on an assistant: K-Desktop shows its menu (panel, settings, its extras, hide) at that point, in screen
+/// pixels, like the rest of its menus.
+/// </summary>
+public sealed record MenuMessage(string Assistant, int X, int Y) : PipeMessage
+{
+    public override string Type => "menu";
+}
+
+/// <summary>
+/// An assistant shows, greys out or hides one of its extras in its menu and its panel buttons (all are shown after each
+/// <c>load</c>). <paramref name="State"/>: <c>shown</c>, <c>disabled</c> or <c>hidden</c>.
+/// </summary>
+public sealed record ExtraStateMessage(string Assistant, string Extra, string State) : PipeMessage
+{
+    public override string Type => "extraState";
+}
+
 /// <summary>Right-click menu → «Hide»: K-Desktop takes that assistant off the desktop (the others stay).</summary>
 public sealed record HideMessage(string Assistant) : PipeMessage
 {
@@ -218,6 +245,9 @@ public static class PipeJson
         ["panel"] = typeof(PanelMessage),
         ["hide"] = typeof(HideMessage),
         ["extra"] = typeof(ExtraMessage),
+        ["extraKeys"] = typeof(ExtraKeysMessage),
+        ["extraState"] = typeof(ExtraStateMessage),
+        ["menu"] = typeof(MenuMessage),
         ["keys"] = typeof(KeysMessage),
         ["key"] = typeof(KeyMessage),
         ["watchWheel"] = typeof(WatchWheelMessage),

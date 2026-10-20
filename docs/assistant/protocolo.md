@@ -1,6 +1,7 @@
 # Protocolo de la tubería K-Desktop ↔ asistente
 
-Versión del protocolo: **2** (la 2, de la etapa 1.11, lleva el id del asistente en los mensajes: puede haber varios a la vez).
+Versión del protocolo: **3** (la 2, de la etapa 1.11, lleva el id del asistente en los mensajes: puede haber varios a la vez; la 3,
+de la etapa 2.3, deja el menú del clic derecho a K-Desktop —`menu`— y añade `extraState` y `extraKeys`).
 
 K-Desktop (proceso elevado) y el proceso del asistente (`KDesktop.exe --assistant`, usuario normal) se hablan por
 una *named pipe* local. Este documento es el contrato entre los dos. Cada mensaje tiene un ejemplo en
@@ -133,6 +134,7 @@ Dirección: **A→K** del asistente a K-Desktop; **K→A** de K-Desktop al asist
 | `media` | A→K | `order` (`play`, `pause`, `next`, `previous`, `volumeUp`, `volumeDown`, `mute`, …) | Orden de música integrada de K-Desktop (salida de `match`) |
 | `say` | K→A | `assistant`, `text` | Acción «Asistente: decir» (al de la acción o, si no dice cuál, al de Opciones → Asistentes) |
 | `extra` | K→A | `assistant`, `action` (id del extra, p. ej. `lander.manual`) | Acción «Asistente: acción», o un botón de sus ajustes o de su panel. Si el asistente no estaba en el escritorio, K-Desktop lo pone, espera a su `loaded` y entonces lo manda (si tarda más de 20 s, no): puede llegar antes de que el asistente tenga su mundo listo, y entonces debe guardarlo y hacerlo al arrancar |
+| `extraKeys` | K→A | `assistant`, `keys` (objeto: id del extra → atajo como lo enseña K-Desktop, `"CTRL + ALT + L"`; los que no tienen, no salen) | Los atajos de los comandos que ejecutan sus extras. Llega tras cada `load` y cada vez que cambian los comandos. El SDK lo da con `IAssistantHost.ExtraHotkey` (p. ej. para decir «pulsa Ctrl+Alt+L») |
 | `observed` | K→A | `assistant`, `source` (`hotkey`, `menu`, `voice`, `web`, `udp`, `event`), `command`, `steps` | (Opcional, desactivado por defecto) un comando lanzado por otra vía, para adornarlo (al de Opciones → Asistentes) |
 
 ### Ventanas, voz y teclado
@@ -159,6 +161,8 @@ Dirección: **A→K** del asistente a K-Desktop; **K→A** de K-Desktop al asist
 | `panel` | A→K | `data`, `assistant` (id, lo pone el host) | Datos del panel propio del asistente (los `bind` de su `panel.json` y las galerías con `source` de su `settings.json`). Se **fusionan** con lo publicado antes: los objetos clave a clave; lo demás (números, textos, listas) sustituye. El host manda como mucho cuatro por segundo por asistente y K-Desktop lo olvida en cada `load` de ese asistente |
 | `notify` | A→K | `assistant` (lo pone el host), `title`, `text` | Aviso de K-Desktop (logro desbloqueado…) |
 | `open` | A→K | `page` (`assistant`, `assistantSettings`, `assistantVoice`, …), `assistant` (opcional) | Abre esa página de Opciones (menú del clic derecho → *Ajustes*), la de ese asistente si lo dice. `assistant` es Panel → Asistente |
+| `menu` | A→K | `assistant`, `x`, `y` (píxeles de pantalla) | Clic derecho sobre el asistente: K-Desktop enseña su menú allí, como los demás menús de K-Desktop (panel, ajustes, sus extras con su icono y su atajo, esconder). Sin conexión, el host enseña uno nativo con lo mismo |
+| `extraState` | A→K | `assistant` (lo pone el host), `extra`, `state` (`shown`, `disabled`, `hidden`) | Enseña, atenúa o esconde uno de sus extras en su menú y en los botones de su panel (`IAssistantHost.SetExtraState`). Tras cada `load` todos vuelven a `shown`. Los comandos y la voz lo siguen mandando: el asistente decide qué hacer |
 | `hide` | A→K | `assistant` | Menú del clic derecho → *Esconder*: K-Desktop quita ese asistente del escritorio (`unload` con `hiding`); los demás siguen |
 | `undo` | K→A | `assistant`, `undo` (id) | Deshacer una entrada de su registro desde el panel |
 

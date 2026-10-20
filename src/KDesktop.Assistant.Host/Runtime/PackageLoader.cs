@@ -48,7 +48,7 @@ internal static class PackageLoader
     {
         var manifest = AssistantManifest.Load(folder);
         var host = typeof(IAssistant).Assembly.GetName().Version ?? new Version(1, 0);
-        if (manifest.SdkMajor != host.Major)
+        if (!manifest.RunsOn(host))
             throw new InvalidOperationException($"«{manifest.Id}» necesita el SDK {manifest.Sdk}; este K-Desktop tiene el {host.Major}.{host.Minor}");
 
         var (dll, typeName) = manifest.EntryParts;
