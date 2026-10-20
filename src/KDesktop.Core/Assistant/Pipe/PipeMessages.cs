@@ -263,6 +263,44 @@ public sealed record BrainStateMessage(
     public override string Type => "brainState";
 }
 
+// ── tools: activity, undo and asking (stage 3.3) ────────────────────────
+
+/// <summary>One line of the activity (Panel → Assistant → Activity).</summary>
+/// <param name="Id">Unique in the process run, so a later line can refer to it.</param>
+/// <param name="Heard">What it was asked (empty: it did it by itself, a timer that rang…).</param>
+/// <param name="Route"><c>rule</c>, <c>kdesktop</c>, <c>ai</c>, <c>undo</c> or <c>timer</c>.</param>
+/// <param name="Did">What it did, in words for people.</param>
+/// <param name="Undo">Id to undo it with (<see cref="UndoMessage"/>), when it can be undone.</param>
+/// <param name="Undid">For <c>undo</c>: the <see cref="Undo"/> id it undid.</param>
+public sealed record ActivityEntry(string Id, DateTimeOffset At, string Heard, string Route, string Did, bool Ok, string? Undo = null, string? Undid = null);
+
+/// <param name="Assistant">Who did it (null: the module without a body).</param>
+public sealed record LogMessage(ActivityEntry Entry, string? Assistant = null) : PipeMessage
+{
+    public override string Type => "log";
+}
+
+/// <summary>Panel → Assistant → Activity → «Undo»: undo that line (answered with a <c>log</c> of route <c>undo</c>).</summary>
+public sealed record UndoMessage(string Undo, string? Assistant = null) : PipeMessage
+{
+    public override string Type => "undo";
+}
+
+/// <summary>
+/// A tool needs the user's permission (plan §8): K-Desktop asks («¿Lo hago?») and answers with <see cref="AnswerMessage"/>.
+/// <paramref name="CanTrust"/>: «yes, and don't ask again» may be offered (a tool that asks only the first time).
+/// </summary>
+public sealed record AskMessage(string Id, string Tool, string Text, bool CanTrust, int Seconds, string? Assistant = null) : PipeMessage
+{
+    public override string Type => "ask";
+}
+
+/// <param name="Choice"><c>yes</c>, <c>no</c>, <c>always</c> (yes, and that tool no longer asks) or <c>timeout</c>.</param>
+public sealed record AnswerMessage(string Id, string Choice) : PipeMessage
+{
+    public override string Type => "answer";
+}
+
 /// <summary>Reading and writing messages as lines.</summary>
 public static class PipeJson
 {
@@ -312,6 +350,10 @@ public static class PipeJson
         ["fastScroll"] = typeof(FastScrollMessage),
         ["brain"] = typeof(BrainMessage),
         ["brainState"] = typeof(BrainStateMessage),
+        ["log"] = typeof(LogMessage),
+        ["undo"] = typeof(UndoMessage),
+        ["ask"] = typeof(AskMessage),
+        ["answer"] = typeof(AnswerMessage),
     };
 
     /// <summary>[JsonIgnore] on the abstract Type is not inherited by the overrides: drop it here.</summary>

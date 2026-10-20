@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/KDesktop.Assistant.Brain/KDesktop.Assistant.Brain.csproj" />
     <Project Path="src/KDesktop.Assistant.Host/KDesktop.Assistant.Host.csproj" />
+    <Project Path="src/KDesktop.Assistant.Tools/KDesktop.Assistant.Tools.csproj" />
     <Project Path="src/KDesktop.Assistant.Sdk/KDesktop.Assistant.Sdk.csproj">
       <Platform Project="x64" />
     </Project>

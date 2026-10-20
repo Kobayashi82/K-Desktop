@@ -1,0 +1,51 @@
+<Window x:Class="KDesktop.Views.Assistant.AskWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        xmlns:l="clr-namespace:KDesktop.Localization"
+        Title="K-Desktop"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        Topmost="True"
+        SizeToContent="WidthAndHeight"
+        UseLayoutRounding="True">
+    <!-- An assistant asks before doing something (stage 3.3): yes, no, or yes and don't ask again. No answer is a no. -->
+    <Grid x:Name="Root" Margin="24" Opacity="0">
+        <Grid.RenderTransform>
+            <TranslateTransform x:Name="RootShift" X="60" />
+        </Grid.RenderTransform>
+        <Border CornerRadius="14" Background="{DynamicResource Kd.OsdBackground}" BorderBrush="{DynamicResource Kd.ToastBorder}"
+                BorderThickness="1" Width="400" Padding="16,14,16,12">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="26" ShadowDepth="6" Direction="270" Opacity="0.35" Color="Black" />
+            </Border.Effect>
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource Kd.AccentSoft}" VerticalAlignment="Top">
+                        <Grid>
+                            <ui:SymbolIcon x:Name="Fallback" Symbol="Bot24" FontSize="22" Foreground="{DynamicResource Kd.AccentText}" />
+                            <Image x:Name="AssistantIcon" Margin="4" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+                        </Grid>
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                        <TextBlock x:Name="WhoText" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        <TextBlock x:Name="QuestionText" Margin="0,2,0,0" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                    </StackPanel>
+                </Grid>
+                <WrapPanel Margin="0,12,0,0" HorizontalAlignment="Right">
+                    <ui:Button x:Name="AlwaysButton" Margin="0,0,8,0" Content="{l:Tr assistantAsk.always}" Click="OnAlways" />
+                    <ui:Button Margin="0,0,8,0" Content="{l:Tr assistantAsk.no}" Click="OnNo" />
+                    <ui:Button x:Name="YesButton" Appearance="Primary" MinWidth="80" Content="{l:Tr assistantAsk.yes}" Click="OnYes" />
+                </WrapPanel>
+                <!-- The time left to answer -->
+                <ProgressBar x:Name="TimeBar" Height="3" Margin="0,12,0,0" Maximum="1" Value="1" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

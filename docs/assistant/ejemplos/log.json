@@ -2,11 +2,12 @@
   "t": "log",
   "assistant": "lander",
   "entry": {
+    "id": "3f9a1c2b7d10",
     "at": "2026-10-20T13:42:05+02:00",
-    "heard": "vacía la papelera",
-    "route": "kdesktop",
-    "did": "Vaciar papelera",
+    "heard": "avísame en diez minutos",
+    "route": "rule",
+    "did": "Temporizador para las 13:52",
     "ok": true,
-    "undo": null
+    "undo": "8c2d4e6f0a1b"
   }
 }

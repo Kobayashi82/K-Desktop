@@ -1,9 +1,6 @@
-using System.IO;
 using System.Runtime.InteropServices;
-using KDesktop.Core;
-using KDesktop.Core.Platform;
 
-namespace KDesktop.Services;
+namespace KDesktop.Core.Platform;
 
 /// <param name="Id">Item of shell:AppsFolder: an app id (Store apps) or a path relative to a known folder (programs).</param>
 public sealed record InstalledApp(string Name, string Id)
@@ -14,7 +11,8 @@ public sealed record InstalledApp(string Name, string Id)
 
 /// <summary>
 /// The programs of the Start menu, read from the shell's "Applications" folder (shell:AppsFolder), which lists both
-/// classic programs and Store apps. Read on a background STA thread and refreshed at most every few minutes.
+/// classic programs and Store apps. Read on a background STA thread and refreshed at most every few minutes. Used by the
+/// launcher and by the assistant's «open an app» tool (in the assistant process).
 /// </summary>
 public static class InstalledApps
 {
@@ -53,6 +51,30 @@ public static class InstalledApps
         }) { IsBackground = true, Name = "K-Desktop apps" };
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
+    }
+
+    /// <summary>The list, read now if it is empty or old (waits for it).</summary>
+    public static async Task<IReadOnlyList<InstalledApp>> GetAsync()
+    {
+        if (_apps.Count > 0 && DateTime.UtcNow - _loadedUtc < MaxAge) return _apps;
+        var done = new TaskCompletionSource<IReadOnlyList<InstalledApp>>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                _apps = Read();
+                _loadedUtc = DateTime.UtcNow;
+                done.TrySetResult(_apps);
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("No se pudo leer la lista de programas: " + ex.Message);
+                done.TrySetResult(_apps);
+            }
+        }) { IsBackground = true, Name = "K-Desktop apps" };
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        return await done.Task.ConfigureAwait(false);
     }
 
     public static bool Launch(InstalledApp app) =>

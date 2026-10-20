@@ -476,6 +476,9 @@ public partial class AppSettings : ObservableObject
     /// </summary>
     [ObservableProperty] private Dictionary<string, string> _assistantModels = [];
 
+    /// <summary>The tools that no longer ask before doing something («yes, and don't ask again»). Replaced whole on every change.</summary>
+    [ObservableProperty] private List<string> _assistantTrustedTools = [];
+
     // OSD
     [ObservableProperty] private OsdPosition _osdPosition = OsdPosition.BottomCenter;
     [ObservableProperty] private double _osdSeconds = 1.6;

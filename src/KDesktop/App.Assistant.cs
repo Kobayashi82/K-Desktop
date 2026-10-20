@@ -53,6 +53,7 @@ public partial class App
                     _assistantStates.Clear();
                     ClearAssistantExtras();
                     ForgetAssistantBrain();
+                    AbandonAssistantQuestions();
                     // A process that fell cannot ask to let the keys go.
                     if (_assistant == supervisor) ResetAssistantInput();
                 }
@@ -77,6 +78,7 @@ public partial class App
             ClearAssistantExtras();
             _pendingExtras.Clear();
             ForgetAssistantBrain();
+            AbandonAssistantQuestions();
             Log.Info("Asistente: módulo desactivado");
             ResetAssistantInput();
             _ = running.DisposeAsync().AsTask();
@@ -92,6 +94,7 @@ public partial class App
         {
             SendAssistantGeneral();
             SendAssistantBrainConfig();
+            SendAssistantToolsConfig();
         }
     }
 
@@ -99,7 +102,10 @@ public partial class App
     {
         var brain = AssistantBrainConfig();
         _assistantBrainSent = brain.ToJsonString();
-        return new(Loc.Instance.Language, ThemeService.IsDark ? "dark" : "light", Config.Settings.Paused, new() { ["general"] = AssistantGeneral(), ["brain"] = brain });
+        var tools = AssistantToolsConfig();
+        _assistantToolsSent = tools.ToJsonString();
+        return new(Loc.Instance.Language, ThemeService.IsDark ? "dark" : "light", Config.Settings.Paused,
+            new() { ["general"] = AssistantGeneral(), ["brain"] = brain, ["tools"] = tools });
     }
 
     /// <summary>
@@ -167,6 +173,12 @@ public partial class App
                 break;
             case BrainStateMessage brain:
                 OnAssistantBrainState(brain);
+                break;
+            case AskMessage ask:
+                OnAssistantAsk(ask);
+                break;
+            case LogMessage log:
+                OnAssistantLog(log);
                 break;
             case HideMessage hide when IsOnDesktop(hide.Assistant):
                 HideAssistant(hide.Assistant);

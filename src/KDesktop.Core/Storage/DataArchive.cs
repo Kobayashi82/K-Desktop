@@ -13,7 +13,7 @@ namespace KDesktop.Core.Storage;
 public static class DataArchive
 {
     /// <summary>Folders of the data dir that go into the archive.</summary>
-    private static readonly string[] Folders = ["Icons", "Sounds", "Languages", "Voice", "Assistants/Data", "Assistants/Settings"];
+    private static readonly string[] Folders = ["Icons", "Sounds", "Languages", "Voice", "Assistants/Data", "Assistants/Settings", "Assistant"];
 
     private static readonly string[] Files = ["config.json", "stats.json"];
 

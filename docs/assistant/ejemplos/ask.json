@@ -1,0 +1,9 @@
+{
+  "t": "ask",
+  "id": "a71c09d4e2f3",
+  "assistant": "lander",
+  "tool": "close_window",
+  "text": "¿Puedo cerrar Word?",
+  "canTrust": true,
+  "seconds": 10
+}

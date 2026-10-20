@@ -29,6 +29,7 @@
     <ProjectReference Include="..\KDesktop.Core\KDesktop.Core.csproj" />
     <ProjectReference Include="..\KDesktop.Assistant.Sdk\KDesktop.Assistant.Sdk.csproj" />
     <ProjectReference Include="..\KDesktop.Assistant.Brain\KDesktop.Assistant.Brain.csproj" />
+    <ProjectReference Include="..\KDesktop.Assistant.Tools\KDesktop.Assistant.Tools.csproj" />
   </ItemGroup>
 
   <ItemGroup>

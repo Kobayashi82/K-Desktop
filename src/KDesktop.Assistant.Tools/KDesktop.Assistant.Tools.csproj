@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The assistants' tools (stage 3.3): what a tool is, the registry, the permissions, the activity with undo, and the
+    built-in tools (ported from Kobii). They run in the assistant process, as the normal user, never in K-Desktop.
+  -->
+  <PropertyGroup>
+    <RootNamespace>KDesktop.Assistant.Tools</RootNamespace>
+    <AssemblyName>KDesktop.Assistant.Tools</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KDesktop.Core\KDesktop.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="KDesktop.Assistant.Tests" />
+  </ItemGroup>
+
+</Project>

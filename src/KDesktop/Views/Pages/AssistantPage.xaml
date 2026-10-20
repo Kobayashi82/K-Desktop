@@ -111,6 +111,9 @@
                     </StackPanel>
                 </Border>
 
+                <!-- What the assistants did, with undo (stage 3.3) -->
+                <a:ActivityView />
+
                 <!-- For development: the process, what it uses and its log -->
                 <ui:CardExpander x:Name="TechExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Wrench24}" Expanded="OnTechExpanded"
                                  AutomationProperties.Name="{l:Tr assistantPanel.tech}">

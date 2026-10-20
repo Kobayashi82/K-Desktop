@@ -34,7 +34,11 @@ internal sealed class AssistantSession : IDisposable
         Runtime = new AssistantRuntime(Engine, Link);
         // The brain answers Options → Assistant → Brain: only with K-Desktop there.
         if (Link is not null) Brain = new BrainService(World.VideoMemory.Gigabytes);
+        if (Link is not null) Tools = new ModuleTools(Link);
     }
+
+    /// <summary>The tools of all the assistants of the process (null without K-Desktop).</summary>
+    public ModuleTools? Tools { get; }
 
     /// <summary>The AI of all the assistants of the process (null without K-Desktop).</summary>
     public BrainService? Brain { get; }
@@ -73,6 +77,8 @@ internal sealed class AssistantSession : IDisposable
                 Engine.Post(() => Runtime.SetPaused(welcome.Paused));
                 if (welcome.Config?["general"] is JsonObject general) ApplyGeneral(general);
                 Brain?.Configure(BrainConfig.FromJson(welcome.Config?["brain"] as JsonObject));
+                Tools?.Configure(welcome.Config?["tools"] as JsonObject);
+                Tools?.Start();
             };
             // The brain's requests do not wait for the engine.
             link.Received += message =>
@@ -84,6 +90,15 @@ internal sealed class AssistantSession : IDisposable
                         return;
                     case ConfigMessage { Section: "brain" } config when Brain is { } brain:
                         brain.Configure(BrainConfig.FromJson(config.Value as JsonObject));
+                        return;
+                    case ConfigMessage { Section: "tools" } config when Tools is { } tools:
+                        tools.Configure(config.Value as JsonObject);
+                        return;
+                    case AnswerMessage answer when Tools is { } tools:
+                        tools.OnAnswer(answer);
+                        return;
+                    case UndoMessage undo when Tools is { } tools:
+                        _ = tools.UndoAsync(undo);
                         return;
                 }
                 Engine.Post(() => OnMessage(message));
@@ -252,6 +267,7 @@ internal sealed class AssistantSession : IDisposable
             // Not on the UI thread's context: it has already stopped.
             try { Task.Run(async () => await link.DisposeAsync()).Wait(TimeSpan.FromSeconds(2)); } catch { /* closing anyway */ }
         }
+        Tools?.Dispose();
         Brain?.Dispose();
         Engine.Dispose();
     }
