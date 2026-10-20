@@ -20,6 +20,9 @@ public sealed record AssistantOptions
     /// <summary>Close the running assistant process of this data folder and leave.</summary>
     public bool Exit { get; init; }
 
+    /// <summary>Where to show the built-in probe circle (<c>--assistant-probe x,y</c>, diagnostics); null: none.</summary>
+    public System.Windows.Point? Probe { get; init; }
+
     /// <summary>Stay elevated if started so (tests). Normally an elevated start relaunches itself as the user.</summary>
     public bool AllowElevated { get; init; }
 
@@ -32,6 +35,9 @@ public sealed record AssistantOptions
         DevFolder = ValueOf(args, DevArgument) is { } dev ? Path.GetFullPath(dev.Trim('"')) : null,
         Exit = args.Any(a => a.Equals("--exit", StringComparison.OrdinalIgnoreCase)),
         AllowElevated = args.Any(a => a.Equals("--allow-elevated", StringComparison.OrdinalIgnoreCase)),
+        Probe = ValueOf(args, "--assistant-probe") is { } probe && probe.Split(',') is [var x, var y] &&
+                int.TryParse(x, System.Globalization.CultureInfo.InvariantCulture, out var px) && int.TryParse(y, System.Globalization.CultureInfo.InvariantCulture, out var py)
+            ? new System.Windows.Point(px, py) : null,
     };
 
     private static string? ValueOf(IReadOnlyList<string> args, string name)

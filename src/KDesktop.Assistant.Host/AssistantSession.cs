@@ -1,14 +1,17 @@
+using System.Text.Json;
 using System.Windows.Threading;
 using KDesktop.Assistant.Host.Engine;
 using KDesktop.Assistant.Host.Pipe;
+using KDesktop.Assistant.Host.Runtime;
+using KDesktop.Assistant.Sdk;
 using KDesktop.Core;
 using KDesktop.Core.Assistant.Pipe;
 
 namespace KDesktop.Assistant.Host;
 
 /// <summary>
-/// Everything one run of the assistant process owns: the UI thread (menus, the text box), the engine thread, the
-/// link with K-Desktop and, as the stages add them, the overlay, the world and the loaded assistant.
+/// Everything one run of the assistant process owns: the UI thread (menus, the text box), the engine thread with
+/// the overlay and the loaded assistant, and the link with K-Desktop.
 /// </summary>
 internal sealed class AssistantSession : IDisposable
 {
@@ -21,6 +24,7 @@ internal sealed class AssistantSession : IDisposable
         // Launched by K-Desktop: its pipe. In development: this data folder's, if K-Desktop is running.
         var pipe = options.Pipe ?? (options.DevFolder is not null ? AssistantPipe.Name : null);
         if (pipe is not null) Link = new KDesktopLink(pipe, optional: options.Pipe is null);
+        Runtime = new AssistantRuntime(Engine, Link);
     }
 
     public AssistantOptions Options { get; }
@@ -31,12 +35,16 @@ internal sealed class AssistantSession : IDisposable
 
     public KDesktopLink? Link { get; }
 
+    public AssistantRuntime Runtime { get; }
+
     public int ExitCode { get; private set; }
 
     public void Start()
     {
-        Engine.Started += () => Log.Info("Asistente: motor en marcha");
-        Engine.Tick = _ => 60; // nothing to do yet: the next stages give it work
+        Engine.Started += OnEngineStarted;
+        Engine.Stopping += Runtime.Dispose;
+        Engine.Tick = Runtime.Tick;
+        Engine.Schedule = Runtime.NextTick;
         Engine.Start();
 
         if (Link is { } link)
@@ -46,6 +54,14 @@ internal sealed class AssistantSession : IDisposable
             link.Ended += reason => Shutdown(reason);
             link.Start();
         }
+    }
+
+    private void OnEngineStarted()
+    {
+        Runtime.Start();
+        Log.Info("Asistente: motor en marcha");
+        if (Options.Probe is { } probe)
+            _ = Runtime.LoadAsync(new ProbeAssistant(probe), "probe", AppContext.BaseDirectory, Path.GetTempPath(), default(JsonElement), EntranceKind.Startup);
     }
 
     /// <summary>A message from K-Desktop, on the engine thread.</summary>
@@ -62,12 +78,22 @@ internal sealed class AssistantSession : IDisposable
         }
     }
 
-    /// <summary>Closes the process: stops the engine and ends the UI thread. Any thread; only the first call counts.</summary>
+    /// <summary>
+    /// Closes the process: the assistant leaves (its exit, up to 3 s), the engine stops and the UI thread ends. Any
+    /// thread but the engine's; only the first call counts.
+    /// </summary>
     public void Shutdown(string reason, int exitCode = 0)
     {
         if (Interlocked.Exchange(ref _shuttingDown, 1) != 0) return;
         Log.Info($"Asistente: cerrando ({reason})");
         ExitCode = exitCode;
+        var left = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        Engine.Post(async () =>
+        {
+            try { await Runtime.UnloadAsync(ExitKind.Shutdown); }
+            finally { left.TrySetResult(); }
+        });
+        left.Task.Wait(TimeSpan.FromSeconds(3.5));
         Engine.Stop(TimeSpan.FromSeconds(3));
         Ui.BeginInvokeShutdown(DispatcherPriority.Normal);
     }

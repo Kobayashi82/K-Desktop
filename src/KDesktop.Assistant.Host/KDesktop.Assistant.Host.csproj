@@ -17,6 +17,14 @@
     <Using Include="System.IO" />
   </ItemGroup>
 
+  <!-- Direct3D 11, Direct2D and DirectComposition for the overlay (the same as Lander and Kobii). MIT. -->
+  <ItemGroup>
+    <PackageReference Include="Vortice.Direct2D1" Version="3.8.3" />
+    <PackageReference Include="Vortice.Direct3D11" Version="3.8.3" />
+    <PackageReference Include="Vortice.DirectComposition" Version="3.8.3" />
+    <PackageReference Include="Vortice.DXGI" Version="3.8.3" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\KDesktop.Core\KDesktop.Core.csproj" />
     <ProjectReference Include="..\KDesktop.Assistant.Sdk\KDesktop.Assistant.Sdk.csproj" />

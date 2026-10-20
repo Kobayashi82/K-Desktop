@@ -4,6 +4,7 @@
        tools and the choreographer with DotAssistant. `dotnet test tests\KDesktop.Assistant.Tests`. -->
   <PropertyGroup>
     <IsPackable>false</IsPackable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsTestProject>true</IsTestProject>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
