@@ -1,0 +1,16 @@
+{
+  "t": "brainState",
+  "state": "ready",
+  "provider": "ollama",
+  "endpoint": "http://localhost:11434",
+  "model": "qwen3.5:4b",
+  "automatic": true,
+  "models": [
+    { "name": "qwen3.5:4b", "billions": 4.7, "sizeBytes": 3400000000, "tools": true },
+    { "name": "gemma4-12b-vision:latest", "billions": 11.9, "sizeBytes": 7600000000, "tools": true }
+  ],
+  "loaded": ["qwen3.5:4b"],
+  "ollama": { "installed": true, "canInstall": true },
+  "job": { "kind": "pull", "state": "running", "model": "qwen3.5:2b", "completed": 1200000000, "total": 2700000000 },
+  "videoMemoryGb": 12
+}

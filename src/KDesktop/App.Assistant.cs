@@ -52,6 +52,7 @@ public partial class App
                     AssistantStatus = null;
                     _assistantStates.Clear();
                     ClearAssistantExtras();
+                    ForgetAssistantBrain();
                     // A process that fell cannot ask to let the keys go.
                     if (_assistant == supervisor) ResetAssistantInput();
                 }
@@ -75,6 +76,7 @@ public partial class App
             _assistantStates.Clear();
             ClearAssistantExtras();
             _pendingExtras.Clear();
+            ForgetAssistantBrain();
             Log.Info("Asistente: módulo desactivado");
             ResetAssistantInput();
             _ = running.DisposeAsync().AsTask();
@@ -86,11 +88,19 @@ public partial class App
             _assistantLook = (Loc.Instance.Language, ThemeService.IsDark);
             current.Restart();
         }
-        if (_assistant is { IsRunning: true }) SendAssistantGeneral();
+        if (_assistant is { IsRunning: true })
+        {
+            SendAssistantGeneral();
+            SendAssistantBrainConfig();
+        }
     }
 
-    private WelcomeMessage AssistantWelcome() =>
-        new(Loc.Instance.Language, ThemeService.IsDark ? "dark" : "light", Config.Settings.Paused, new() { ["general"] = AssistantGeneral() });
+    private WelcomeMessage AssistantWelcome()
+    {
+        var brain = AssistantBrainConfig();
+        _assistantBrainSent = brain.ToJsonString();
+        return new(Loc.Instance.Language, ThemeService.IsDark ? "dark" : "light", Config.Settings.Paused, new() { ["general"] = AssistantGeneral(), ["brain"] = brain });
+    }
 
     /// <summary>
     /// A new assistant process said hello (pool thread): what was left to delete goes now that nothing holds it, and
@@ -154,6 +164,9 @@ public partial class App
                 break;
             case ExtraStateMessage state:
                 OnAssistantExtraState(state);
+                break;
+            case BrainStateMessage brain:
+                OnAssistantBrainState(brain);
                 break;
             case HideMessage hide when IsOnDesktop(hide.Assistant):
                 HideAssistant(hide.Assistant);

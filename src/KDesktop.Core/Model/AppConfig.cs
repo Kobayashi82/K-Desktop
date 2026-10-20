@@ -458,6 +458,18 @@ public partial class AppSettings : ObservableObject
     /// <summary>Volume of the assistants' sounds, 0–100 (each assistant may have its own on top).</summary>
     [ObservableProperty] private int _assistantVolume = 100;
 
+    /// <summary>Where the assistants' AI runs (Options → Assistant → Brain).</summary>
+    [ObservableProperty] private Assistant.Brain.BrainProvider _assistantBrainProvider;
+
+    /// <summary>Its address; empty: the usual one of the provider.</summary>
+    [ObservableProperty] private string _assistantBrainEndpoint = string.Empty;
+
+    /// <summary>Its API key (llama-swap, OpenAI compatible), protected with DPAPI (<see cref="Platform.Secrets"/>); empty: none.</summary>
+    [ObservableProperty] private string _assistantBrainApiKey = string.Empty;
+
+    /// <summary>The general model; empty: chosen automatically (about 4 B, with tools).</summary>
+    [ObservableProperty] private string _assistantBrainModel = string.Empty;
+
     // OSD
     [ObservableProperty] private OsdPosition _osdPosition = OsdPosition.BottomCenter;
     [ObservableProperty] private double _osdSeconds = 1.6;

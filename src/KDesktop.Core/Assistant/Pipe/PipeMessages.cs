@@ -206,6 +206,63 @@ public sealed record HideMessage(string Assistant) : PipeMessage
     public override string Type => "hide";
 }
 
+// ── the brain (Options → Assistant → Brain) ─────────────────────────────
+
+/// <summary>
+/// Options → Assistant → Brain asks the process for something: <c>check</c> (look at the server now), <c>scan</c> (look in
+/// the usual places of this PC), <c>installOllama</c> (with winget, as the user), <c>startOllama</c>,
+/// <c>downloadPage</c> (Ollama's, in the user's browser), <c>pull</c> (download <paramref name="Model"/>), <c>cancel</c>
+/// (the download) or <c>unload</c> (free the graphics card). Answered with <see cref="BrainStateMessage"/>.
+/// </summary>
+public sealed record BrainMessage(string Op, string? Model = null) : PipeMessage
+{
+    public override string Type => "brain";
+}
+
+/// <summary>A model the server has.</summary>
+/// <param name="Billions">Its size in billions of parameters (0: unknown).</param>
+public sealed record BrainModel(string Name, double Billions, long SizeBytes, bool Tools);
+
+/// <summary>A download or an installation going on, or how it ended.</summary>
+/// <param name="Kind"><c>pull</c> or <c>install</c>.</param>
+/// <param name="State"><c>running</c>, <c>done</c>, <c>failed</c> or <c>cancelled</c>.</param>
+public sealed record BrainJob(string Kind, string State, string? Model = null, long Completed = 0, long Total = 0, string? Error = null);
+
+/// <summary>A model to download when there is none (by the video memory).</summary>
+public sealed record BrainSuggestion(string Name, double DownloadGb);
+
+/// <summary>A server that answered in a usual place of this PC.</summary>
+public sealed record BrainFound(string Provider, string Endpoint, int Models);
+
+/// <summary>Ollama on this PC.</summary>
+public sealed record BrainOllama(bool Installed, bool CanInstall);
+
+/// <summary>
+/// How the brain is (process → K-Desktop), after each change and each <see cref="BrainMessage"/>.
+/// <paramref name="State"/>: <c>off</c> (no AI chosen), <c>checking</c>, <c>ready</c>, <c>unreachable</c> (no server
+/// there), <c>noModels</c>, <c>modelMissing</c> (the chosen one is not there) or <c>error</c>.
+/// </summary>
+/// <param name="Model">The model in use: the chosen one or, with <paramref name="Automatic"/>, the one picked.</param>
+/// <param name="Loaded">Models in memory now (when the server says).</param>
+/// <param name="Message">What went wrong, in the user's language.</param>
+public sealed record BrainStateMessage(
+    string State,
+    string Provider,
+    string Endpoint,
+    string? Model = null,
+    bool Automatic = false,
+    IReadOnlyList<BrainModel>? Models = null,
+    IReadOnlyList<string>? Loaded = null,
+    string? Message = null,
+    BrainOllama? Ollama = null,
+    BrainJob? Job = null,
+    BrainSuggestion? Suggested = null,
+    IReadOnlyList<BrainFound>? Found = null,
+    double? VideoMemoryGb = null) : PipeMessage
+{
+    public override string Type => "brainState";
+}
+
 /// <summary>Reading and writing messages as lines.</summary>
 public static class PipeJson
 {
@@ -253,6 +310,8 @@ public static class PipeJson
         ["watchWheel"] = typeof(WatchWheelMessage),
         ["wheel"] = typeof(WheelMessage),
         ["fastScroll"] = typeof(FastScrollMessage),
+        ["brain"] = typeof(BrainMessage),
+        ["brainState"] = typeof(BrainStateMessage),
     };
 
     /// <summary>[JsonIgnore] on the abstract Type is not inherited by the overrides: drop it here.</summary>

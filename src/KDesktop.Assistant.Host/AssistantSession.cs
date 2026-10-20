@@ -1,12 +1,14 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Windows.Threading;
+using KDesktop.Assistant.Brain;
 using KDesktop.Assistant.Host.Engine;
 using KDesktop.Assistant.Host.Input;
 using KDesktop.Assistant.Host.Pipe;
 using KDesktop.Assistant.Host.Runtime;
 using KDesktop.Assistant.Sdk;
 using KDesktop.Core;
+using KDesktop.Core.Assistant.Brain;
 using KDesktop.Core.Assistant.Pipe;
 
 namespace KDesktop.Assistant.Host;
@@ -30,7 +32,12 @@ internal sealed class AssistantSession : IDisposable
         var pipe = options.Pipe ?? (options.DevFolder is not null ? AssistantPipe.Name : null);
         if (pipe is not null) Link = new KDesktopLink(pipe, optional: options.Pipe is null);
         Runtime = new AssistantRuntime(Engine, Link);
+        // The brain answers Options → Assistant → Brain: only with K-Desktop there.
+        if (Link is not null) Brain = new BrainService(World.VideoMemory.Gigabytes);
     }
+
+    /// <summary>The AI of all the assistants of the process (null without K-Desktop).</summary>
+    public BrainService? Brain { get; }
 
     public AssistantOptions Options { get; }
 
@@ -59,13 +66,28 @@ internal sealed class AssistantSession : IDisposable
 
         if (Link is { } link)
         {
+            if (Brain is { } brain) brain.Changed += state => link.Send(state);
             link.Connected += welcome =>
             {
                 link.Send(new StatusMessage("idle"));
                 Engine.Post(() => Runtime.SetPaused(welcome.Paused));
                 if (welcome.Config?["general"] is JsonObject general) ApplyGeneral(general);
+                Brain?.Configure(BrainConfig.FromJson(welcome.Config?["brain"] as JsonObject));
             };
-            link.Received += message => Engine.Post(() => OnMessage(message));
+            // The brain's requests do not wait for the engine.
+            link.Received += message =>
+            {
+                switch (message)
+                {
+                    case BrainMessage request when Brain is { } brain:
+                        _ = brain.HandleAsync(request);
+                        return;
+                    case ConfigMessage { Section: "brain" } config when Brain is { } brain:
+                        brain.Configure(BrainConfig.FromJson(config.Value as JsonObject));
+                        return;
+                }
+                Engine.Post(() => OnMessage(message));
+            };
             link.Ended += reason => Shutdown(reason);
             link.Start();
         }
@@ -230,6 +252,7 @@ internal sealed class AssistantSession : IDisposable
             // Not on the UI thread's context: it has already stopped.
             try { Task.Run(async () => await link.DisposeAsync()).Wait(TimeSpan.FromSeconds(2)); } catch { /* closing anyway */ }
         }
+        Brain?.Dispose();
         Engine.Dispose();
     }
 }

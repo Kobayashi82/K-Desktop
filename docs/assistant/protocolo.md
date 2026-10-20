@@ -102,7 +102,7 @@ Dirección: **A→K** del asistente a K-Desktop; **K→A** de K-Desktop al asist
 
 | `t` | Dir. | Campos | Qué es |
 |---|---|---|---|
-| `config` | K→A | `section`, `value`, `assistant` (solo en `assistantSettings`) | Cambió algo en Opciones → Asistente. Secciones: `general` (de momento `sound`, sí/no, y `volume`, 0…1: el sonido de los asistentes, que mezcla el host), `brain`, `voice`, `tools`, `privacy`, `assistantSettings` (ajustes de ese asistente, según su `settings.json`: todos sus valores, cada vez que se cambia uno en Opciones). La bienvenida trae las secciones del módulo en `config` |
+| `config` | K→A | `section`, `value`, `assistant` (solo en `assistantSettings`) | Cambió algo en Opciones → Asistente. Secciones: `general` (de momento `sound`, sí/no, y `volume`, 0…1: el sonido de los asistentes, que mezcla el host), `brain` (`provider`: `ollama`, `llamaSwap`, `openai` o `none`; `endpoint`, siempre con la dirección que se usa; `apiKey`, en claro; `model`, vacío = automático), `voice`, `tools`, `privacy`, `assistantSettings` (ajustes de ese asistente, según su `settings.json`: todos sus valores, cada vez que se cambia uno en Opciones). La bienvenida trae las secciones del módulo en `config` |
 | `pause` | K→A | `paused` | Se ha pausado o reanudado K-Desktop: en pausa no se atienden órdenes |
 | `load` | K→A | `assistant` (id), `version`, `path` (carpeta del paquete), `data` (su carpeta de datos), `entrance` (`startup`, `switched`) | Pone este asistente en el escritorio, junto a los que ya haya. Si ya estaba (otra versión: `switched`), el nuevo código se carga y después el viejo sale y entra el nuevo |
 | `unload` | K→A | `assistant`, `reason` (`disabled`, `uninstalling`, `hiding`, `reloading`) | Quita ese asistente del escritorio (con su salida); los demás siguen. Sin ninguno, el módulo sigue sin cuerpo. `reloading`: vuelve enseguida con un `load` (p. ej. tras «Empezar de cero», que borra su carpeta de datos) |
@@ -150,6 +150,15 @@ Dirección: **A→K** del asistente a K-Desktop; **K→A** de K-Desktop al asist
 | `watchWheel` | A→K | `watch` | Que K-Desktop mande cada giro de la rueda (`wheel`) o deje de hacerlo. El host lo pide mientras algún asistente lo quiera (`IPointer.WatchWheel`) |
 | `wheel` | K→A | `x`, `y`, `delta` (120 por muesca; positivo = arriba o a la derecha), `horizontal`, `hwnd` (la ventana de nivel superior bajo el cursor) | Un giro de la rueda. Sale del gancho de K-Desktop, que la ve también sobre ventanas de administrador |
 | `fastScroll` | K→A | `strength` (0…1, positivo = hacia abajo), `x`, `y` | El usuario ha girado la rueda con fuerza (varias muescas seguidas; luego descansa 1,2 s). Se manda siempre: es raro |
+
+### El cerebro (Opciones → Asistente → Cerebro)
+
+Lo hace todo el proceso del asistente (sin administrador): buscar el servidor, instalar Ollama con winget y descargar modelos. K-Desktop solo enseña y pide.
+
+| `t` | Dir. | Campos | Qué es |
+|---|---|---|---|
+| `brain` | K→A | `op` (`check`, `scan`, `installOllama`, `startOllama`, `downloadPage`, `pull`, `cancel`, `unload`), `model` (para `pull`) | Mirar el servidor otra vez, buscar en los sitios habituales de este PC, instalar Ollama, abrirlo, abrir su página de descarga en el navegador del usuario, descargar un modelo, cancelar la descarga o liberar la gráfica. Se contesta con `brainState` |
+| `brainState` | A→K | `state` (`off`, `checking`, `ready`, `unreachable`, `noModels`, `modelMissing`, `error`), `provider`, `endpoint`, `model` (el que se usa), `automatic`, `models` (`name`, `billions`, `sizeBytes`, `tools`), `loaded` (los que están en memoria), `message` (qué falló, en el idioma del usuario), `ollama` (`installed`, `canInstall`; solo con Ollama en este PC), `job` (`kind`: `pull` o `install`; `state`: `running`, `done`, `failed`, `cancelled`; `model`, `completed`, `total`, `error`), `suggested` (`name`, `downloadGb`: el modelo para descargar según la memoria de vídeo), `found` (otros servidores encontrados: `provider`, `endpoint`, `models`), `videoMemoryGb` | Cómo está el cerebro: tras cada cambio y cada `brain`. Durante una descarga, como mucho 4 por segundo |
 
 ### Del asistente al panel de K-Desktop
 

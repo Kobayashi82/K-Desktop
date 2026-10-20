@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The assistants' brain (phase 3): the AI providers (Ollama, llama-swap, OpenAI compatible), choosing the model,
+    installing Ollama and downloading models, and later the router and the memory. It runs in the assistant process
+    (as the normal user), never in K-Desktop. Ported from Kobii.Brain.
+  -->
+  <PropertyGroup>
+    <RootNamespace>KDesktop.Assistant.Brain</RootNamespace>
+    <AssemblyName>KDesktop.Assistant.Brain</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KDesktop.Core\KDesktop.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="KDesktop.Assistant.Tests" />
+  </ItemGroup>
+
+</Project>
