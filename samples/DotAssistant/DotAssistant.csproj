@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Dot, the minimal example assistant (§11.10 of the plan): a dot that teleports, knows Communicate and React, and
+    has one setting page and one panel card. `dotnet build` makes bin\…\dot-1.0.0.kdassistant.
+  -->
+  <PropertyGroup>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>DotAssistant</RootNamespace>
+    <AssemblyName>DotAssistant</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The host provides the SDK: compile against it, never ship it. -->
+    <ProjectReference Include="..\..\src\KDesktop.Assistant.Sdk\KDesktop.Assistant.Sdk.csproj" Private="false" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Package\**" />
+  </ItemGroup>
+
+  <Import Project="..\..\src\KDesktop.Assistant.Sdk\build\KDesktop.Assistant.Sdk.targets" />
+
+</Project>

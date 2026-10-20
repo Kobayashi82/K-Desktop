@@ -1,0 +1,28 @@
+{
+  "$schema": "../../../docs/assistant/esquemas/assistant.schema.json",
+  "id": "dot",
+  "name": "Dot",
+  "version": "1.0.0",
+  "author": "Kobayashi82",
+  "description": {
+    "es": "El asistente mínimo de ejemplo: un punto que se teletransporta.",
+    "en": "The minimal example assistant: a dot that teleports.",
+    "fr": "L’assistant minimal d’exemple : un point qui se téléporte.",
+    "de": "Der minimale Beispielassistent: ein Punkt, der sich teleportiert.",
+    "it": "L’assistente minimo di esempio: un punto che si teletrasporta.",
+    "pt": "O assistente mínimo de exemplo: um ponto que se teletransporta."
+  },
+  "homepage": "https://github.com/Kobayashi82/K-Desktop-5.0",
+  "license": "MIT",
+  "sdk": "1.0",
+  "entry": "lib/DotAssistant.dll!DotAssistant.Dot",
+  "icon": "icon.png",
+  "wakeWord": "Dot",
+  "traits": {
+    "travel": "teleport",
+    "travelSpeed": 5000,
+    "canMoveWindows": false,
+    "canReachMaximized": true,
+    "gestures": ["communicate", "react"]
+  }
+}

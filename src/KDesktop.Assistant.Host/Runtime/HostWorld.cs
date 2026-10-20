@@ -24,4 +24,7 @@ internal sealed class HostWorld(Func<double> clock) : IWorld
     }
 
     internal void Publish(SystemState state) => System = state;
+
+    /// <summary>Forgets the subscribers (the assistant that made them was unloaded).</summary>
+    internal void ForgetSubscribers() => Changed = null;
 }

@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Kobayashi82",
+  "classifications": [ "K-Desktop", "Assistant" ],
+  "identity": "KDesktop.Assistant.Template",
+  "name": "K-Desktop assistant",
+  "description": "A character for K-Desktop's assistant module: builds into a .kdassistant package.",
+  "shortName": "kdassistant",
+  "sourceName": "MyAssistant",
+  "preferNameDirectory": true,
+  "tags": { "language": "C#", "type": "project" },
+  "symbols": {
+    "sdk": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "..\\..\\src\\KDesktop.Assistant.Sdk",
+      "replaces": "SDK_FOLDER",
+      "description": "Folder of KDesktop.Assistant.Sdk in a clone of K-Desktop (absolute, or relative to the new project)."
+    },
+    "authorName": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "Me",
+      "replaces": "AUTHOR_NAME",
+      "description": "Author shown in K-Desktop when the assistant is installed."
+    },
+    "assistantId": {
+      "type": "generated",
+      "generator": "casing",
+      "parameters": { "source": "name", "toLower": true },
+      "replaces": "myassistant-id"
+    }
+  }
+}

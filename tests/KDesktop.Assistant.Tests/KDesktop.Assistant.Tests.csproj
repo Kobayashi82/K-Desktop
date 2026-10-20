@@ -28,6 +28,8 @@
     <ProjectReference Include="..\..\src\KDesktop.Assistant.Host\KDesktop.Assistant.Host.csproj" />
     <!-- Only built first: the process tests start the real KDesktop.exe in assistant mode. -->
     <ProjectReference Include="..\..\src\KDesktop\KDesktop.csproj" ReferenceOutputAssembly="false" />
+    <!-- Its package (bin\…\package) is loaded by the package tests. -->
+    <ProjectReference Include="..\..\samples\DotAssistant\DotAssistant.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <!-- The contract files live in docs\assistant: the tests read them from there. -->

@@ -16,6 +16,7 @@ namespace KDesktop.Assistant.Host;
 internal sealed class AssistantSession : IDisposable
 {
     private int _shuttingDown;
+    private DevLoader? _dev;
 
     public AssistantSession(AssistantOptions options, Dispatcher ui)
     {
@@ -42,7 +43,11 @@ internal sealed class AssistantSession : IDisposable
     public void Start()
     {
         Engine.Started += OnEngineStarted;
-        Engine.Stopping += Runtime.Dispose;
+        Engine.Stopping += () =>
+        {
+            _dev?.Dispose();
+            Runtime.Dispose();
+        };
         Engine.Tick = Runtime.Tick;
         Engine.Schedule = Runtime.NextTick;
         Engine.Start();
@@ -66,6 +71,11 @@ internal sealed class AssistantSession : IDisposable
         Log.Info("Asistente: motor en marcha");
         if (Options.Probe is { } probe)
             _ = Runtime.LoadAsync(new ProbeAssistant(probe), "probe", AppContext.BaseDirectory, Path.GetTempPath(), default(JsonElement), EntranceKind.Startup);
+        else if (Options.DevFolder is { } dev)
+        {
+            _dev = new DevLoader(dev, Runtime, Engine.Post);
+            _dev.Start();
+        }
     }
 
     /// <summary>A message from K-Desktop, on the engine thread.</summary>
@@ -80,6 +90,39 @@ internal sealed class AssistantSession : IDisposable
             case ErrorMessage error:
                 Log.Warn($"Asistente: K-Desktop responde con un error ({error.Code}: {error.Message})");
                 break;
+            case LoadMessage load when _dev is not null || Options.Probe is not null:
+                Log.Info($"Asistente: se ignora «load» de «{load.Assistant}» (modo desarrollo o sonda)");
+                break;
+            case LoadMessage load:
+                _ = LoadAsync(load);
+                break;
+            case UnloadMessage unload:
+                _ = Runtime.UnloadAsync(unload.Reason switch
+                {
+                    "hiding" => ExitKind.Hiding,
+                    "uninstalling" => ExitKind.Uninstalling,
+                    _ => ExitKind.Shutdown,
+                });
+                break;
+            case ConfigMessage { Section: "assistantSettings", Value: { } value }:
+                Runtime.ApplySettings(JsonSerializer.SerializeToElement(value));
+                break;
+        }
+    }
+
+    /// <summary>K-Desktop's «load»: the assistant it wants on the desktop, answered with «loaded».</summary>
+    private async Task LoadAsync(LoadMessage load)
+    {
+        try
+        {
+            var entrance = load.Entrance == "switched" ? EntranceKind.Switched : EntranceKind.Startup;
+            var id = await Runtime.LoadPackageAsync(load.Path, load.Data, entrance);
+            Link?.Send(new LoadedMessage(id, true));
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"Asistente: no se ha podido cargar «{load.Assistant}»", ex);
+            Link?.Send(new LoadedMessage(load.Assistant, false, ex.Message));
         }
     }
 

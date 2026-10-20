@@ -1,0 +1,55 @@
+<Project>
+
+  <!--
+    Packs an assistant project into a .kdassistant after every build (stage 1.6 of the plan).
+
+    The project keeps the package's files in a Package\ folder (assistant.json, icon.png, settings.json, panel.json,
+    persona\, voice\, assets\…). After the build:
+      $(OutDir)package\                     the package as it will be installed: Package\ plus lib\ with the build
+                                            output (without the SDK, which the host always provides)
+      $(OutDir)<id>-<version>.kdassistant   that folder zipped, ready for «Add assistant»
+    The id and the version are read from Package\assistant.json. To try it without installing, run K-Desktop in
+    assistant development mode with the project folder: it takes the newest bin\…\package and reloads it on rebuilds.
+  -->
+
+  <PropertyGroup>
+    <!-- Its own AssemblyLoadContext in the host: dependencies resolved through its .deps.json. -->
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <AssistantSource Condition="'$(AssistantSource)' == ''">$(MSBuildProjectDirectory)\Package\</AssistantSource>
+  </PropertyGroup>
+
+  <Target Name="PackKDesktopAssistant" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true'">
+    <!-- Inside the target: OutDir is only known once the SDK targets are in (this file is imported before them). -->
+    <PropertyGroup>
+      <_AssistantOut>$([System.IO.Path]::GetFullPath($([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '$(OutDir)'))))</_AssistantOut>
+      <AssistantStaging>$(_AssistantOut)package\</AssistantStaging>
+      <_AssistantSourceFull>$([System.IO.Path]::GetFullPath('$(AssistantSource)'))</_AssistantSourceFull>
+    </PropertyGroup>
+
+    <Error Condition="!Exists('$(AssistantSource)assistant.json')" Text="Falta $(AssistantSource)assistant.json (el manifiesto del asistente)." />
+    <!-- The staging folder is wiped on every build: never let it be the sources (or anything outside the output). -->
+    <Error Condition="'$(OutDir)' == '' or '$(AssistantStaging.ToLowerInvariant())' == '$(_AssistantSourceFull.ToLowerInvariant())' or '$(AssistantStaging.ToLowerInvariant().Contains(`\bin\`))' != 'true'"
+           Text="La carpeta del paquete ($(AssistantStaging)) tiene que estar dentro de bin y no ser la de origen." />
+
+    <PropertyGroup>
+      <_AssistantManifest>$([System.IO.File]::ReadAllText('$(AssistantSource)assistant.json'))</_AssistantManifest>
+      <!-- The first "id" and "version" of the manifest (the top-level ones come before the extras). -->
+      <_AssistantId>$([System.Text.RegularExpressions.Regex]::Replace($(_AssistantManifest), '(?s)^.*?"id"\s*:\s*"([^"]+)".*$', '$1'))</_AssistantId>
+      <_AssistantVersion>$([System.Text.RegularExpressions.Regex]::Replace($(_AssistantManifest), '(?s)^.*?"version"\s*:\s*"([^"]+)".*$', '$1'))</_AssistantVersion>
+      <AssistantPackage>$(_AssistantOut)$(_AssistantId)-$(_AssistantVersion).kdassistant</AssistantPackage>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_AssistantContent Include="$(AssistantSource)**\*" />
+      <_AssistantLib Include="$(_AssistantOut)**\*"
+                     Exclude="$(AssistantStaging)**;$(_AssistantOut)*.kdassistant;$(_AssistantOut)KDesktop.Assistant.Sdk.*;$(_AssistantOut)**\*.xml" />
+    </ItemGroup>
+
+    <RemoveDir Directories="$(AssistantStaging)" />
+    <Copy SourceFiles="@(_AssistantContent)" DestinationFiles="@(_AssistantContent->'$(AssistantStaging)%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(_AssistantLib)" DestinationFiles="@(_AssistantLib->'$(AssistantStaging)lib\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <ZipDirectory SourceDirectory="$(AssistantStaging)" DestinationFile="$(AssistantPackage)" Overwrite="true" />
+    <Message Importance="high" Text="$(MSBuildProjectName) -> $(AssistantPackage)" />
+  </Target>
+
+</Project>

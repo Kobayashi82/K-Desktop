@@ -27,6 +27,7 @@ internal sealed class AssistantRuntime : IDisposable
     private double _lastTick;
     private double _nextOnTop;
     private int _faults;
+    private WeakReference? _context;
 
     public AssistantRuntime(EngineLoop engine, KDesktopLink? link)
     {
@@ -60,6 +61,7 @@ internal sealed class AssistantRuntime : IDisposable
     {
         Rendering = new HostRendering();
         Pointer = new HostPointer(e => Guard(a => a.OnPointer(e), "OnPointer"), OnMenu);
+        Faulted += id => _link?.Send(new LoadedMessage(id, false, "falla una y otra vez"));
         Watcher.MonitorsChanged += Rendering.UpdateBounds;
         _lastTick = _engine.Now;
     }
@@ -102,6 +104,16 @@ internal sealed class AssistantRuntime : IDisposable
     public double NextTick(double now, double interval) =>
         interval <= Rendering.FrameInterval * 1.5 ? Rendering.Pacer.Align(now + interval) : now + interval;
 
+    /// <summary>Loads an assistant package from its folder (unloading the current one first). Returns its id.</summary>
+    public async Task<string> LoadPackageAsync(string folder, string? data, EntranceKind entrance)
+    {
+        if (Current is not null) await UnloadAsync(ExitKind.Switching).ConfigureAwait(true);
+        var package = PackageLoader.Load(folder, data);
+        _context = package.Context;
+        await LoadAsync(package.Assistant, package.Manifest.Id, package.Folder, package.DataFolder, package.Settings, entrance).ConfigureAwait(true);
+        return package.Manifest.Id;
+    }
+
     /// <summary>Loads an assistant (unloading the current one first, with its exit).</summary>
     public async Task LoadAsync(IAssistant assistant, string id, string package, string data, JsonElement settings, EntranceKind entrance)
     {
@@ -132,6 +144,13 @@ internal sealed class AssistantRuntime : IDisposable
         }
         Drop(assistant);
         Log.Info($"Asistente: «{id}» descargado ({why})");
+    }
+
+    /// <summary>The settings of the loaded assistant changed in K-Desktop's Options.</summary>
+    public void ApplySettings(JsonElement settings)
+    {
+        if (CurrentHost is { } host) host.Settings = settings;
+        Guard(a => a.OnSettingsChanged(settings), "OnSettingsChanged");
     }
 
     /// <summary>K-Desktop was paused or resumed.</summary>
@@ -179,10 +198,21 @@ internal sealed class AssistantRuntime : IDisposable
 
     private void Drop(IAssistant assistant)
     {
+        var id = CurrentHost?.Id ?? "?";
         try { assistant.Dispose(); }
         catch (Exception ex) { Log.Error("Asistente: error al liberarlo", ex); }
         Current = null;
         CurrentHost = null;
+        // What it left behind goes with it: surfaces, hit areas and its subscriptions to the world.
+        Rendering?.DisposeSurfaces();
+        Pointer?.Dispose();
+        World.ForgetSubscribers();
+        if (_context is { } context)
+        {
+            _context = null;
+            // Later, from the engine queue: now the caller's frames (async ones too) still hold the assistant.
+            _engine.Post(() => PackageLoader.Unload(context, id));
+        }
     }
 
     private IEnumerable<nint> OwnWindows()

@@ -37,6 +37,7 @@ internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, P
         foreach (var area in _areas) area.KeepOnTop();
     }
 
+    /// <summary>Removes every hit area (an assistant unloaded without disposing its own).</summary>
     public void Dispose()
     {
         foreach (var area in _areas.ToList()) area.Dispose();

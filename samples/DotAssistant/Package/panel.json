@@ -1,0 +1,10 @@
+{
+  "$schema": "../../../docs/assistant/esquemas/panel.schema.json",
+  "cards": [
+    {
+      "type": "stat",
+      "label": { "es": "Saltos", "en": "Jumps", "fr": "Sauts", "de": "Sprünge", "it": "Salti", "pt": "Saltos" },
+      "bind": "jumps"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "../../../docs/assistant/esquemas/settings.schema.json",
+  "pages": [
+    {
+      "title": { "es": "Dot", "en": "Dot", "fr": "Dot", "de": "Dot", "it": "Dot", "pt": "Dot" },
+      "sections": [
+        {
+          "items": [
+            {
+              "type": "slider",
+              "key": "size",
+              "label": { "es": "Tamaño", "en": "Size", "fr": "Taille", "de": "Größe", "it": "Dimensione", "pt": "Tamanho" },
+              "min": 12, "max": 64, "step": 2, "default": 28, "format": "{0} px"
+            },
+            {
+              "type": "choice",
+              "key": "color",
+              "label": { "es": "Color", "en": "Colour", "fr": "Couleur", "de": "Farbe", "it": "Colore", "pt": "Cor" },
+              "options": [
+                { "value": "blue", "label": { "es": "Azul", "en": "Blue", "fr": "Bleu", "de": "Blau", "it": "Blu", "pt": "Azul" } },
+                { "value": "orange", "label": { "es": "Naranja", "en": "Orange", "fr": "Orange", "de": "Orange", "it": "Arancione", "pt": "Laranja" } },
+                { "value": "green", "label": { "es": "Verde", "en": "Green", "fr": "Vert", "de": "Grün", "it": "Verde", "pt": "Verde" } }
+              ],
+              "default": "blue"
+            },
+            {
+              "type": "toggle",
+              "key": "wander",
+              "label": { "es": "Saltar solo de vez en cuando", "en": "Jump on its own now and then", "fr": "Sauter tout seul de temps en temps", "de": "Ab und zu von selbst springen", "it": "Saltare da solo ogni tanto", "pt": "Saltar sozinho de vez em quando" },
+              "default": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- A K-Desktop assistant. `dotnet build` makes bin\…\<id>-<version>.kdassistant (see Package\assistant.json). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>MyAssistant</RootNamespace>
+    <!-- Where the SDK is (a clone of K-Desktop) until it is on NuGet. -->
+    <KDesktopAssistantSdk Condition="'$(KDesktopAssistantSdk)' == ''">SDK_FOLDER</KDesktopAssistantSdk>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="System.IO" />
+    <None Remove="Package\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The host provides the SDK: compile against it, never ship it. -->
+    <ProjectReference Include="$(KDesktopAssistantSdk)\KDesktop.Assistant.Sdk.csproj" Private="false" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <Import Project="$(KDesktopAssistantSdk)\build\KDesktop.Assistant.Sdk.targets" />
+
+</Project>

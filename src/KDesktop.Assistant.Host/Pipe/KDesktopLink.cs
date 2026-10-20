@@ -97,11 +97,9 @@ internal sealed class KDesktopLink : IAsyncDisposable
             if (outcome == ConnectOutcome.Rejected)
             {
                 Log.Warn($"Asistente: K-Desktop ha rechazado la conexión ({client.RejectReason})");
-                if (!_optional)
-                {
-                    Ended?.Invoke("rechazado por K-Desktop");
-                    return;
-                }
+                // Launched: nothing to do without K-Desktop. In development: go on alone, without asking again.
+                if (!_optional) Ended?.Invoke("rechazado por K-Desktop");
+                return;
             }
             else if (!_optional && !everConnected && DateTime.UtcNow > deadline)
             {
