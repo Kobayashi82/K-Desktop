@@ -42,6 +42,7 @@ public sealed partial class CommandEngine
         ScreenshotAction a => ScreenshotAsync(a, ctx),
         AudioRecordAction a => Run(() => AudioRecord(a)),
         MagnifierAction a => Run(() => Magnify(a)),
+        AssistantExtraAction a => Run(() => _ui.RunAssistantExtra(a.Assistant, a.Extra)),
         _ => Task.CompletedTask,
     };
 

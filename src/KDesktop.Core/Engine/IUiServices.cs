@@ -28,6 +28,9 @@ public interface IUiServices
 
     void ShowMainWindow();
 
+    /// <summary>«Asistente: acción»: sends an extra to its assistant (bringing it onto the desktop first if needed).</summary>
+    void RunAssistantExtra(string assistant, string extra) { }
+
     /// <summary>Runs <paramref name="action"/> on the UI thread (needed to modify bound collections).</summary>
     void RunOnUi(Action action);
 

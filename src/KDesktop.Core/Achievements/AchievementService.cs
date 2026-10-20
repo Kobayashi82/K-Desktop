@@ -118,7 +118,7 @@ public sealed class AchievementService : IDisposable
     {
         null => data.Unlocked.ContainsKey(def.Id) ? 1 : 0,
         Stat.Days => (long)Math.Floor((DateTime.Now - data.FirstUse).TotalDays),
-        Stat.Kinds => data.ActionKinds.Count(k => Enum.TryParse<ActionKind>(k, out _)),
+        Stat.Kinds => data.ActionKinds.Count(k => Enum.TryParse<ActionKind>(k, out var kind) && ActionCatalog.Everyday.Any(a => a.Kind == kind)),
         _ => data.Get(def.Stat),
     };
 

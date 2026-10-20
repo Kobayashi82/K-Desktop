@@ -26,5 +26,13 @@ internal sealed class FakeUi : IUiServices
     public void RunOnUi(Action action) => action();
     public void RequestExit() { }
 
+    /// <summary>The extras «Asistente: acción» asked for (assistant, extra).</summary>
+    public List<(string Assistant, string Extra)> Extras { get; } = [];
+
+    public void RunAssistantExtra(string assistant, string extra)
+    {
+        lock (Extras) Extras.Add((assistant, extra));
+    }
+
     private sealed class Nothing : IDisposable { public void Dispose() { } }
 }

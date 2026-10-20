@@ -132,7 +132,7 @@ Dirección: **A→K** del asistente a K-Desktop; **K→A** de K-Desktop al asist
 | `end` | K→A | `run`, `status` (`ok`, `failed`, `cancelled`), `messages` (lista) | Fin de la ejecución |
 | `media` | A→K | `order` (`play`, `pause`, `next`, `previous`, `volumeUp`, `volumeDown`, `mute`, …) | Orden de música integrada de K-Desktop (salida de `match`) |
 | `say` | K→A | `assistant`, `text` | Acción «Asistente: decir» (al de la acción o, si no dice cuál, al de Opciones → Asistentes) |
-| `extra` | K→A | `assistant`, `action` (id del extra, p. ej. `lander.manual`) | Acción «Asistente: acción», o un botón de sus ajustes o de su panel |
+| `extra` | K→A | `assistant`, `action` (id del extra, p. ej. `lander.manual`) | Acción «Asistente: acción», o un botón de sus ajustes o de su panel. Si el asistente no estaba en el escritorio, K-Desktop lo pone, espera a su `loaded` y entonces lo manda (si tarda más de 20 s, no): puede llegar antes de que el asistente tenga su mundo listo, y entonces debe guardarlo y hacerlo al arrancar |
 | `observed` | K→A | `assistant`, `source` (`hotkey`, `menu`, `voice`, `web`, `udp`, `event`), `command`, `steps` | (Opcional, desactivado por defecto) un comando lanzado por otra vía, para adornarlo (al de Opciones → Asistentes) |
 
 ### Ventanas, voz y teclado

@@ -72,6 +72,7 @@ public partial class App
             AssistantStatus = null;
             AssistantConnectedAt = null;
             _assistantStates.Clear();
+            _pendingExtras.Clear();
             Log.Info("Asistente: módulo desactivado");
             ResetAssistantInput();
             _ = running.DisposeAsync().AsTask();
@@ -246,6 +247,7 @@ public partial class App
             SetAssistantError(text);
             Ui.ShowOsd(text, Core.Engine.OsdKind.Warning, TimeSpan.FromSeconds(6));
         }
+        SendPendingExtra(loaded);
         AssistantChanged?.Invoke();
     }
 
@@ -339,21 +341,23 @@ public partial class App
 
     /// <summary>
     /// Installs a package checked with <see cref="AssistantPackages.Inspect"/>. A new version of the assistant on the
-    /// desktop replaces it there at once; <paramref name="activate"/> puts another one on the desktop. Throws
-    /// <see cref="PackageException"/>.
+    /// desktop replaces it there at once; <paramref name="activate"/> puts another one on the desktop. Returns what was
+    /// installed. Throws <see cref="PackageException"/>.
     /// </summary>
-    public async Task InstallAssistantAsync(PackageInfo package, bool activate)
+    public async Task<InstalledAssistant> InstallAssistantAsync(PackageInfo package, bool activate)
     {
         // The old version stays loaded meanwhile: the new one goes to a folder of its own, and the old one is
         // deleted once the process lets it go.
         var installed = await Task.Run(() => AssistantPackages.Install(package));
         Ui.ShowOsd(Loc.T("assistant.installed", installed.Manifest.Name), Core.Engine.OsdKind.Success);
+        RefreshExtraNames();
         if (IsOnDesktop(installed.Id))
         {
             if (_assistant is { IsRunning: true } supervisor) LoadAssistant(supervisor, installed.Id, "switched");
         }
         else if (activate) ShowAssistant(installed.Id);
         AssistantChanged?.Invoke();
+        return installed;
     }
 
     /// <summary>Puts an installed assistant on the desktop, next to those already there.</summary>
@@ -398,6 +402,7 @@ public partial class App
             await Task.Delay(ExitTime);
         }
         await Task.Run(() => AssistantPackages.Uninstall(id, keepData));
+        RefreshExtraNames();
         AssistantChanged?.Invoke();
     }
 

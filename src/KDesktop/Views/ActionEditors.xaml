@@ -1122,6 +1122,45 @@
         </StackPanel>
     </DataTemplate>
 
+    <!-- ── Asistente: acción ───────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:AssistantExtraAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.assistantExtra}" />
+            <ComboBox x:Name="ExtraBox" Margin="0,0,0,8" ItemsSource="{Binding Source={x:Static v:Lookups.AssistantExtraList}}" SelectedValuePath="Target"
+                      SelectedValue="{Binding Target}" IsTextSearchEnabled="True" TextSearch.TextPath="Name" MaxDropDownHeight="420"
+                      AutomationProperties.Name="{l:Tr editor.assistantExtra}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type v:ExtraChoice}">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="{Binding Icon}" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"
+                                   RenderOptions.BitmapScalingMode="HighQuality" />
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock x:Name="Description" Margin="0,0,0,8" TextWrapping="Wrap" Visibility="Collapsed"
+                       Text="{Binding SelectedItem.Description, ElementName=ExtraBox}" />
+            <TextBlock x:Name="Missing" Margin="0,0,0,8" TextWrapping="Wrap" Visibility="Collapsed" Foreground="{DynamicResource Kd.Warning}"
+                       Text="{Binding Summary}" />
+            <TextBlock x:Name="Hint" Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.assistantExtraHint}" />
+        </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding SelectedItem.HasDescription, ElementName=ExtraBox}" Value="True">
+                <Setter TargetName="Description" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding ExtraName}" Value="{x:Null}">
+                <Setter TargetName="Missing" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Extra}" Value="">
+                <Setter TargetName="Missing" Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding HasItems, ElementName=ExtraBox}" Value="False">
+                <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.assistantExtraNone}" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
     <!-- ── Si… ─────────────────────────────────────────────────────────── -->
     <DataTemplate DataType="{x:Type m:ConditionAction}">
         <StackPanel>

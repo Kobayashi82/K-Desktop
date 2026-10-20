@@ -35,4 +35,5 @@ aparece un `ActionKind` sin gesto o sin riesgo.
 | Comandos (`CommandControl`) | Ejecutar | `communicate` ★ (sus pasos llegan con `depth` + 1) | el del comando llamado |
 | | Activar / desactivar | `communicate` ★ | 🟡 |
 | Portapapeles, Wake on LAN, Sonido, Grabar audio, Mensaje, Archivos ocultos, «Desactivar en», K-Board, QuickMenu, Lanzador | | `communicate` ★ (icono de cada una) | 🟢 |
+| Asistente: acción (`AssistantExtra`) | | `communicate` ★ (icono `assistant`); el extra lo hace el asistente que lo declara | 🟢 |
 | «Si…» (`Condition`) | | ninguno: solo decide qué acciones corren | 🟢 |

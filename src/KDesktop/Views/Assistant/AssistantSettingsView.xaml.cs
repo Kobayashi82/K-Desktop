@@ -147,6 +147,23 @@ public partial class AssistantSettingsView : UserControl
         }
     }
 
+    private void OnCaptureHotkey(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: HotkeySetting hotkey }) hotkey.Capture(Window.GetWindow(this));
+    }
+
+    private void OnClearHotkey(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: HotkeySetting hotkey }) hotkey.Clear();
+    }
+
+    /// <summary>The command behind a hotkey, in the command editor (to add it to a QuickMenu, give it phrases…).</summary>
+    private void OnOpenHotkeyCommand(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: HotkeySetting { Command: { } command } })
+            (Window.GetWindow(this) as MainWindow)?.OpenCommand(command.Id);
+    }
+
     private void OnGalleryTile(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { DataContext: GalleryTile tile, Tag: GallerySetting gallery }) gallery.Choose(tile);

@@ -21,6 +21,9 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
 
     public LauncherController? Launcher { get; set; }
 
+    /// <summary>Runs «Asistente: acción» (assistant id, extra id) on the UI thread.</summary>
+    public Action<string, string>? AssistantExtra { get; set; }
+
     private OsdWindow Osd
     {
         get
@@ -91,6 +94,8 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
         dispatcher.BeginInvoke(() => QuickMenus?.Show(menuId, previousForeground));
 
     public void ShowMainWindow() => dispatcher.BeginInvoke(showMainWindow);
+
+    public void RunAssistantExtra(string assistant, string extra) => dispatcher.BeginInvoke(() => AssistantExtra?.Invoke(assistant, extra));
 
     public void RunOnUi(Action action)
     {

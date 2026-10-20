@@ -151,6 +151,7 @@ public sealed class AppConfig
                     break;
                 case PlayMacroAction p: p.MacroName = FindMacro(p.MacroId)?.Name; break;
                 case KBoardAction k: k.ProfileName = FindKBoard(k.ProfileId)?.Name; break;
+                case AssistantExtraAction x: x.ExtraName = ExtraName(x.Assistant, x.Extra); break;
                 case DisplayAction { Operation: DisplayOperation.Mode } d when d.Monitor.Length > 0:
                     d.MonitorName = (monitors ??= Platform.DisplayTools.Monitors()).FirstOrDefault(m => m.DeviceName == d.Monitor)?.Name;
                     break;
@@ -158,6 +159,26 @@ public sealed class AppConfig
         }
         foreach (var remap in KBoards.SelectMany(k => k.Remaps).Where(r => r.Kind == RemapKind.Command))
             remap.CommandName = FindCommand(remap.CommandId)?.Name;
+    }
+
+    /// <summary>«Lander: Modo manual» for an installed assistant's extra, or null when it is not installed (or has no such extra).</summary>
+    public static string? ExtraName(string assistant, string extra) =>
+        extra.Length == 0 ? null : Assistant.Packages.AssistantExtras.Find(assistant, extra)?.DisplayName(Localization.Loc.Instance.Language);
+
+    /// <summary>
+    /// Who else answers <paramref name="hotkey"/> for every program: the names of the enabled commands with it that are
+    /// not limited to some programs (but <paramref name="except"/>), and «K-Desktop» when it is one of its own hotkeys.
+    /// </summary>
+    public IReadOnlyList<string> HotkeyUsers(string hotkey, Command? except = null)
+    {
+        var key = Input.Hotkey.Normalize(hotkey);
+        if (key.Length == 0) return [];
+        var users = Commands
+            .Where(c => !ReferenceEquals(c, except) && c.Enabled && c.Processes.Count == 0 && c.Hotkeys.Any(h => Input.Hotkey.Comparer.Equals(Input.Hotkey.Normalize(h), key)))
+            .Select(c => c.Name)
+            .ToList();
+        if (Settings.OwnHotkeys.Any(h => Input.Hotkey.Comparer.Equals(Input.Hotkey.Normalize(h), key))) users.Add("K-Desktop");
+        return users;
     }
 
     public KBoardProfile? FindKBoard(string? idOrName) =>
@@ -255,6 +276,10 @@ public partial class AppSettings : ObservableObject
     /// <summary>Open the main window when K-Desktop is started by hand (never when Windows starts it).</summary>
     [ObservableProperty] private bool _showWindowOnStart = true;
     [ObservableProperty] private bool _showTrayIcon = true;
+    /// <summary>K-Desktop's own hotkeys (show the window, exit, voice, «Desactivar en», pause, launcher); unset ones are empty.</summary>
+    [JsonIgnore]
+    public IEnumerable<string> OwnHotkeys => [ShowWindowHotkey, ExitHotkey, VoiceHotkey, DisabledInHotkey, PauseHotkey, LauncherHotkey];
+
     [ObservableProperty] private string _showWindowHotkey = "CTRL + ALT + Home";
     [ObservableProperty] private string _exitHotkey = "CTRL + ALT + End";
     [ObservableProperty] private string? _startupSound;

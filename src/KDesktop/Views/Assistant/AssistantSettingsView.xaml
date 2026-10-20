@@ -257,13 +257,30 @@
         <DataTemplate DataType="{x:Type a:HotkeySetting}">
             <Grid Style="{StaticResource SettingRow}">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                    <TextBlock Text="{Binding Label}" TextWrapping="Wrap" />
-                    <TextBlock Style="{StaticResource Caption}" Text="{l:Tr assistantSettings.hotkeySoon}" />
+                <StackPanel VerticalAlignment="Center">
+                    <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource RowText}" />
+                    <TextBlock x:Name="Status" Margin="0,0,20,0" Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{Binding Status}" />
                 </StackPanel>
-                <ui:Button Grid.Column="1" MinWidth="160" VerticalAlignment="Center" IsEnabled="False" Icon="{ui:SymbolIcon Keyboard24}"
-                           Content="{l:Tr assistantSettings.noHotkey}" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <ui:Button MinWidth="160" Icon="{ui:SymbolIcon Keyboard24}" Content="{Binding ButtonText}" IsEnabled="{Binding CanRecord}"
+                               AutomationProperties.Name="{Binding Label}" Click="OnCaptureHotkey" />
+                    <ui:Button x:Name="Clear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
+                               AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearHotkey" />
+                    <ui:Button x:Name="Open" Margin="8,0,0,0" Icon="{ui:SymbolIcon Open24}" ToolTip="{l:Tr assistantSettings.openCommand}"
+                               AutomationProperties.Name="{l:Tr assistantSettings.openCommand}" Click="OnOpenHotkeyCommand" />
+                </StackPanel>
             </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding HasHotkey}" Value="False">
+                    <Setter TargetName="Clear" Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding HasCommand}" Value="False">
+                    <Setter TargetName="Open" Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding HasConflict}" Value="True">
+                    <Setter TargetName="Status" Property="Foreground" Value="{DynamicResource Kd.Warning}" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
         </DataTemplate>
 
         <!-- With a description, a row (text on the left, the button on the right); without one, the button alone -->

@@ -92,6 +92,27 @@
 
             <TextBlock x:Name="KeepDataText" Margin="0,10,0,0" Style="{StaticResource Caption}" TextWrapping="Wrap"
                        Text="{l:Tr assistantCard.keepsData}" Visibility="Collapsed" />
+            <!-- The hotkeys its extras suggest: each one, a K-Desktop command («Asistente: acción») -->
+            <StackPanel x:Name="HotkeyPanel" Margin="0,14,0,0" Visibility="Collapsed">
+                <TextBlock FontWeight="SemiBold" Text="{l:Tr assistantCard.hotkeys}" />
+                <TextBlock Margin="0,2,0,4" Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantCard.hotkeysHint}" />
+                <ItemsControl x:Name="HotkeyList">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,4,0,0">
+                                <CheckBox IsChecked="{Binding IsChecked}" Content="{Binding Text}" />
+                                <TextBlock x:Name="Conflict" Margin="28,0,0,0" Style="{StaticResource Caption}" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource Kd.Warning}" Text="{Binding Conflict}" />
+                            </StackPanel>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding Conflict}" Value="{x:Null}">
+                                    <Setter TargetName="Conflict" Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
             <CheckBox x:Name="ActivateCheck" Margin="0,12,0,0" Content="{l:Tr assistantCard.activate}" IsChecked="True" />
             <TextBlock x:Name="ModuleOffText" Margin="0,4,0,0" Style="{StaticResource Caption}" TextWrapping="Wrap"
                        Text="{l:Tr assistantCard.moduleOff}" Visibility="Collapsed" />

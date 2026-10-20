@@ -145,9 +145,9 @@ public static class AchievementCatalog
         list.Add(new("marathon", "time", Secret: true));
 
         // One per action type
-        foreach (var info in ActionCatalog.All)
+        foreach (var info in ActionCatalog.Everyday)
             list.Add(new($"kind-{info.Kind}", "kinds", Kind: info.Kind));
-        list.Add(new("completist", "kinds", Stat.Kinds, ActionCatalog.All.Count));
+        list.Add(new("completist", "kinds", Stat.Kinds, ActionCatalog.Everyday.Count));
 
         // Miscellaneous
         list.Add(new("welcome", "misc", Stat.AppStarted, 1));

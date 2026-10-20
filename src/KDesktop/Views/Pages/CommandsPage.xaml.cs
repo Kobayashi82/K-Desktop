@@ -470,13 +470,7 @@ public sealed partial class CommandsPage : UserControl, IDisposable
             else if (mine.Length > 0 && theirs.Length == 0) lines.Add(Loc.T("commands.hotkeyWins", string.Join(", ", mine), other.Name));
             else if (mine.Length == 0 && theirs.Length > 0) lines.Add(Loc.T("commands.hotkeyLoses", string.Join(", ", theirs), other.Name));
         }
-        if (Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.ShowWindowHotkey)) ||
-            Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.ExitHotkey)) ||
-            Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.VoiceHotkey)) ||
-            Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.DisabledInHotkey)) ||
-            Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.PauseHotkey)) ||
-            Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(Config.Settings.LauncherHotkey)))
-            others.Add("K-Desktop");
+        if (Config.Settings.OwnHotkeys.Any(h => Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(h)))) others.Add("K-Desktop");
         if (others.Count > 0) lines.Insert(0, Loc.T("commands.hotkeyConflict", hotkey, string.Join(", ", others)));
         HotkeyWarning.Text = string.Join(Environment.NewLine, lines);
         HotkeyWarning.Visibility = lines.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -527,6 +521,11 @@ public sealed partial class CommandsPage : UserControl, IDisposable
             display.MonitorName = primary.Name;
             if (DisplayTools.CurrentMode(primary.DeviceName) is { } mode) display.ModeKey = mode.Key;
         }
+        if (action is AssistantExtraAction extra && Core.Assistant.Packages.AssistantExtras.All() is [var firstExtra, ..])
+        {
+            extra.Target = firstExtra.Target;
+            extra.ExtraName = firstExtra.DisplayName(Loc.Instance.Language);
+        }
         action.PropertyChanged += OnActionReferenceChanged;
         _selected.Actions.Add(action);
         _app.Achievements.Increment(Stat.ActionsCreated);
@@ -560,6 +559,9 @@ public sealed partial class CommandsPage : UserControl, IDisposable
                 break;
             case PowerPlanAction p when e.PropertyName == nameof(PowerPlanAction.PlanId):
                 if (PowerPlans.All().FirstOrDefault(plan => plan.Key == p.PlanId) is { } chosen) p.PlanName = chosen.Name;
+                break;
+            case AssistantExtraAction x when e.PropertyName is nameof(AssistantExtraAction.Assistant) or nameof(AssistantExtraAction.Extra):
+                x.ExtraName = AppConfig.ExtraName(x.Assistant, x.Extra);
                 break;
             case DisplayAction d when e.PropertyName == nameof(DisplayAction.Monitor):
                 d.MonitorName = DisplayTools.Monitors().FirstOrDefault(m => m.DeviceName == d.Monitor)?.Name;

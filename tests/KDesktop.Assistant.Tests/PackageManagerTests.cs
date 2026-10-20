@@ -104,6 +104,40 @@ public class PackageManagerTests
     }
 
     [Fact]
+    public void ExtrasOfTheInstalledAssistantsBecomeCommands()
+    {
+        const string id = "dot-extras";
+        AssistantPackages.Install(AssistantPackages.Inspect(MakePackage(id, manifest: m =>
+        {
+            m["name"] = "Punto";
+            m["extras"] = JsonNode.Parse("""[{ "id": "dot.jump", "name": { "es": "Saltar ahora", "en": "Jump now" }, "hotkey": "CTRL + ALT + J" }]""");
+        })));
+        var extra = AssistantExtras.Find(id, "dot.jump");
+        Assert.NotNull(extra);
+        Assert.Equal("Punto: Saltar ahora", extra.DisplayName("es"));
+        Assert.Equal("Punto: Jump now", extra.DisplayName("en-GB"));
+        Assert.Null(AssistantExtras.Find(id, "dot.nope"));
+        Assert.Contains(AssistantExtras.All(), e => e.Target == $"{id}/dot.jump");
+
+        // The command the card offers: its name, the suggested hotkey and the action.
+        var config = new KDesktop.Core.Model.AppConfig();
+        Assert.Empty(AssistantExtras.CommandsFor(config, id, "dot.jump"));
+        var command = AssistantExtras.NewCommand(extra, "es", extra.Extra.Hotkey);
+        config.Commands.Add(command);
+        Assert.Equal("Punto: Saltar ahora", command.Name);
+        Assert.Equal([KDesktop.Core.Input.Hotkey.Normalize("CTRL + ALT + J")], command.Hotkeys);
+        var action = Assert.IsType<KDesktop.Core.Model.AssistantExtraAction>(Assert.Single(command.Actions));
+        Assert.Equal($"{id}/dot.jump", action.Target);
+        Assert.Same(command, Assert.Single(AssistantExtras.CommandsFor(config, id, "dot.jump")));
+        action.Enabled = false;
+        Assert.Empty(AssistantExtras.CommandsFor(config, id, "dot.jump"));
+
+        AssistantPackages.Uninstall(id, keepData: false);
+        Assert.Null(AssistantExtras.Find(id, "dot.jump"));
+        Assert.Null(KDesktop.Core.Model.AppConfig.ExtraName(id, "dot.jump"));
+    }
+
+    [Fact]
     public void FilesInUseAreDeletedLater()
     {
         const string id = "dot-busy";

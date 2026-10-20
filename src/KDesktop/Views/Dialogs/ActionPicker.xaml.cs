@@ -40,7 +40,9 @@ public partial class ActionPicker : FluentWindow
     private ActionPicker()
     {
         InitializeComponent();
-        _categories = ActionCatalog.All.GroupBy(a => a.CategoryKey)
+        // The assistant module's actions only while it is on (off, K-Desktop is the one of always).
+        var assistant = App.Current.Config.Settings.AssistantEnabled;
+        _categories = ActionCatalog.All.Where(a => assistant || !a.NeedsAssistant).GroupBy(a => a.CategoryKey)
             .Select(g => new ActionCategory(g.Key, g.First().Category, CategorySymbol(g.Key), g.Select(a => new ActionChoice(a)).ToList()))
             .ToList();
         var all = new ActionCategory(null, Loc.T("actionPicker.all"), SymbolRegular.Grid24, []);
@@ -65,6 +67,7 @@ public partial class ActionPicker : FluentWindow
         "screen" => SymbolRegular.Desktop24,
         "network" => SymbolRegular.Globe24,
         "system" => SymbolRegular.Settings24,
+        "assistant" => SymbolRegular.Bot24,
         _ => SymbolRegular.Flash24,
     };
 

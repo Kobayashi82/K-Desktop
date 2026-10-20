@@ -16,6 +16,22 @@ public partial class AssistantPackageDialog : FluentWindow
 {
     private readonly App _app;
     private PackageInfo? _package;
+    private List<HotkeyOffer> _offers = [];
+
+    /// <summary>A command the card offers to create: an extra with the hotkey it suggests.</summary>
+    private sealed class HotkeyOffer(ManifestExtra extra, string hotkey, string text, string? conflict)
+    {
+        public ManifestExtra Extra { get; } = extra;
+        public string Hotkey { get; } = hotkey;
+        public string Text { get; } = text;
+
+        /// <summary>Who else uses that hotkey already (then it is not ticked), or null.</summary>
+        public string? Conflict { get; } = conflict;
+
+        public bool IsChecked { get; set; } = conflict is null;
+
+        public override string ToString() => Text;
+    }
 
     private AssistantPackageDialog(App app, string file)
     {
@@ -104,6 +120,7 @@ public partial class AssistantPackageDialog : FluentWindow
         // The one on the desktop is replaced by the new version anyway.
         if (settings.AssistantsOnDesktop.Contains(manifest.Id)) ActivateCheck.Visibility = Visibility.Collapsed;
         if (!settings.AssistantEnabled) ModuleOffText.Visibility = Visibility.Visible;
+        ShowHotkeyOffers(manifest);
 
         InstallButton.Content = Loc.T(package.Action switch
         {
@@ -115,6 +132,27 @@ public partial class AssistantPackageDialog : FluentWindow
         CardPanel.Visibility = Visibility.Visible;
     }
 
+    /// <summary>
+    /// Its extras that suggest a hotkey (and do not have a command yet, as after an update): ticked unless something
+    /// else already answers that hotkey.
+    /// </summary>
+    private void ShowHotkeyOffers(AssistantManifest manifest)
+    {
+        var config = _app.Config;
+        var language = Loc.Instance.Language;
+        _offers = [.. manifest.Extras
+            .Where(e => Core.Input.Hotkey.Normalize(e.Hotkey ?? string.Empty).Length > 0 && !AssistantExtras.CommandsFor(config, manifest.Id, e.Id).Any())
+            .Select(e =>
+            {
+                var hotkey = Core.Input.Hotkey.Normalize(e.Hotkey!);
+                var users = config.HotkeyUsers(hotkey);
+                return new HotkeyOffer(e, hotkey, Loc.T("assistantCard.hotkeyOffer", hotkey, e.Name.In(language)),
+                    users.Count > 0 ? Loc.T("assistantCard.hotkeyUsed", string.Join(", ", users)) : null);
+            })];
+        HotkeyList.ItemsSource = _offers;
+        HotkeyPanel.Visibility = _offers.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
     private async void OnInstall(object sender, RoutedEventArgs e)
     {
         if (_package is not { } package) return;
@@ -122,7 +160,11 @@ public partial class AssistantPackageDialog : FluentWindow
         InstallError.Visibility = Visibility.Collapsed;
         try
         {
-            await _app.InstallAssistantAsync(package, ActivateCheck.Visibility == Visibility.Visible && ActivateCheck.IsChecked == true);
+            var installed = await _app.InstallAssistantAsync(package, ActivateCheck.Visibility == Visibility.Visible && ActivateCheck.IsChecked == true);
+            _app.CreateExtraCommands(_offers.Where(o => o.IsChecked)
+                .Select(o => installed.Manifest.Extras.FirstOrDefault(x => x.Id == o.Extra.Id))
+                .OfType<ManifestExtra>()
+                .Select(x => new InstalledExtra(installed, x)));
             Close();
         }
         catch (Exception ex)

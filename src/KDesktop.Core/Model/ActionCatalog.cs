@@ -9,6 +9,9 @@ public sealed record ActionInfo(ActionKind Kind, string CategoryKey, string Symb
     public string Name => Loc.T($"action.{Kind}.name");
     public string Description => Loc.T($"action.{Kind}.desc");
     public string Category => Loc.T($"category.{CategoryKey}");
+
+    /// <summary>It belongs to the assistant module: only offered while the module is on, and outside the achievements.</summary>
+    public bool NeedsAssistant => CategoryKey == "assistant";
 }
 
 public static class ActionCatalog
@@ -52,7 +55,12 @@ public static class ActionCatalog
         new(ActionKind.Wait, "kdesktop", "Timer24", () => new WaitAction()),
         new(ActionKind.CommandControl, "kdesktop", "Flash24", () => new CommandControlAction()),
         new(ActionKind.OpenQuickMenu, "kdesktop", "TextBulletListTree24", () => new OpenQuickMenuAction()),
+
+        new(ActionKind.AssistantExtra, "assistant", "Bot24", () => new AssistantExtraAction()),
     ];
+
+    /// <summary>The actions of K-Desktop itself (without the assistant module's): the ones the achievements count.</summary>
+    public static IReadOnlyList<ActionInfo> Everyday { get; } = [.. All.Where(a => !a.NeedsAssistant)];
 
     private static readonly Dictionary<ActionKind, ActionInfo> ByKind = All.ToDictionary(a => a.Kind);
 

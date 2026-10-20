@@ -95,8 +95,30 @@ public static partial class IconProvider
         AudioRecordAction { Mode: RecordMode.SaveReplay } => Kd("History24", "red"),
         AudioRecordAction => Kd("MicPulse24", "red"),
         MagnifierAction => Kd("ZoomIn24", "indigo"),
+        AssistantExtraAction x => ForExtra(x.Assistant, x.Extra),
         _ => null,
     };
+
+    /// <summary>
+    /// The icon of an assistant's extra: its own («kd:XboxController», with or without a colour, or an image of the
+    /// package), else the assistant's, else a robot (grey when the assistant is not installed). Cached until
+    /// <see cref="ForgetAssistantIcons"/>.
+    /// </summary>
+    public static ImageSource? ForExtra(string assistant, string extra) => Cache.GetOrAdd($"extra:{assistant}/{extra}", _ =>
+    {
+        if (Core.Assistant.Packages.AssistantPackages.Find(assistant) is not { } installed) return Kd("Bot24", "gray");
+        var icon = installed.Manifest.Extras.FirstOrDefault(e => e.Id == extra)?.Icon;
+        if (Views.AssistantLook.Symbol(icon) is { } symbol)
+            return Kd(symbol.ToString(), KdIconSpec.TryParse(icon, out var spec) && icon!.Split(':').Length > 2 ? spec.Color : "indigo");
+        return (icon is null ? null : Views.AssistantLook.Image(installed, icon, Size)) ?? Views.AssistantLook.Icon(installed) ?? Kd("Bot24", "indigo");
+    });
+
+    /// <summary>Assistants were installed or removed: the icons of their extras are looked up again.</summary>
+    public static void ForgetAssistantIcons()
+    {
+        foreach (var key in Cache.Keys.Where(k => k.StartsWith("extra:", StringComparison.Ordinal)).ToList()) Cache.TryRemove(key, out _);
+        BumpRevision();
+    }
 
     /// <summary>
     /// Icon stored in the configuration: "kd:Folder24:yellow" (K-Desktop collection), "imageres.dll,109" (icon of a

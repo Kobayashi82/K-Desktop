@@ -469,8 +469,90 @@ public sealed class AppsSetting : SettingModel
     }
 }
 
-/// <summary>A hotkey for one of its extras: it will create the K-Desktop command («Assistant: action», stage 2.6).</summary>
-public sealed class HotkeySetting(AssistantSettingsModel owner, SettingItem item) : SettingModel(owner, item);
+/// <summary>
+/// A hotkey for one of its extras (stage 2.6): the hotkey of the K-Desktop command that runs it («Asistente: acción»),
+/// created with the first hotkey recorded. Nothing goes into the assistant's settings: the command is the hotkey.
+/// </summary>
+public sealed class HotkeySetting : SettingModel
+{
+    private string? _capturing;
+
+    public HotkeySetting(AssistantSettingsModel owner, SettingItem item) : base(owner, item) =>
+        Extra = item.Extra is { } id && owner.Assistant.Manifest.Extras.FirstOrDefault(e => e.Id == id) is { } extra
+            ? new InstalledExtra(owner.Assistant, extra)
+            : null;
+
+    /// <summary>The extra, or null when its manifest does not have it (then it cannot be recorded).</summary>
+    public InstalledExtra? Extra { get; }
+
+    /// <summary>The command that runs the extra (the simplest), or null when there is none yet.</summary>
+    public Core.Model.Command? Command =>
+        Extra is { } e ? AssistantExtras.CommandsFor(App.Current.Config, e.Assistant.Id, e.Extra.Id).FirstOrDefault() : null;
+
+    public string Hotkey => Command?.FirstHotkey ?? string.Empty;
+
+    public bool HasHotkey => Hotkey.Length > 0;
+
+    public bool HasCommand => Command is not null;
+
+    public bool CanRecord => Extra is not null;
+
+    public string ButtonText => _capturing ?? (HasHotkey ? Hotkey : Loc.T("assistantSettings.noHotkey"));
+
+    /// <summary>Who else answers its hotkey («also used by …»), or what the hotkey is (the command, or that one is created).</summary>
+    public string Status
+    {
+        get
+        {
+            if (Extra is null) return Loc.T("assistantSettings.hotkeyNoExtra", Item.Extra ?? "?");
+            if (Command is not { } command) return Loc.T("assistantSettings.hotkeyCreates");
+            var users = HasHotkey ? App.Current.Config.HotkeyUsers(Hotkey, command) : [];
+            return users.Count > 0
+                ? Loc.T("assistantSettings.hotkeyUsed", string.Join(", ", users))
+                : Loc.T("assistantSettings.hotkeyCommand", command.Name);
+        }
+    }
+
+    public bool HasConflict => HasHotkey && Command is { } command && App.Current.Config.HotkeyUsers(Hotkey, command).Count > 0;
+
+    public override void Load(JsonObject values) => NotifyAll();
+
+    /// <summary>Waits for a hotkey and gives it to the command (creating it if there is none).</summary>
+    public void Capture(System.Windows.Window? window)
+    {
+        if (Extra is not { } extra) return;
+        _capturing = Loc.T("commands.pressHotkey");
+        Notify(nameof(ButtonText));
+        HotkeyCapture.Start(
+            preview =>
+            {
+                _capturing = preview.Length > 0 ? preview + "…" : Loc.T("commands.pressHotkey");
+                Notify(nameof(ButtonText));
+            },
+            hotkey =>
+            {
+                _capturing = null;
+                if (hotkey is not null && Core.Input.Hotkey.Normalize(hotkey) is { Length: > 0 } normalized &&
+                    App.Current.ExtraCommand(extra, create: true) is { } command)
+                {
+                    // The one shown is replaced; any other hotkey the command has stays.
+                    var existing = command.Hotkeys.ToList().FindIndex(h => Core.Input.Hotkey.Comparer.Equals(h, normalized));
+                    if (existing > 0) command.Hotkeys.Move(existing, 0);
+                    else if (existing < 0 && command.Hotkeys.Count > 0) command.Hotkeys[0] = normalized;
+                    else if (existing < 0) command.Hotkeys.Add(normalized);
+                }
+                NotifyAll();
+            },
+            window);
+    }
+
+    /// <summary>Takes the hotkey shown away from the command (the command stays, for menus, the launcher or the voice).</summary>
+    public void Clear()
+    {
+        if (Command is { Hotkeys.Count: > 0 } command) command.Hotkeys.RemoveAt(0);
+        NotifyAll();
+    }
+}
 
 public sealed class ButtonSetting(AssistantSettingsModel owner, SettingItem item) : SettingModel(owner, item)
 {

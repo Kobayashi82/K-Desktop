@@ -73,6 +73,9 @@ public static class ActionGestures
         ActionKind.Launcher => Say("search"),
         ActionKind.CommandControl => Say("command"),
 
+        // An extra is the assistant's own: whoever runs the command says so, and the one it belongs to does it.
+        ActionKind.AssistantExtra => Say("assistant"),
+
         // «Si…» decides which actions run; it does nothing visible itself.
         ActionKind.Condition => [],
 

@@ -13,6 +13,14 @@ public sealed record Option<T>(T Value, string Key)
     public override string ToString() => Name;
 }
 
+/// <summary>An extra of an installed assistant in the editor of «Asistente: acción».</summary>
+public sealed record ExtraChoice(string Target, string Name, string Description, System.Windows.Media.ImageSource? Icon)
+{
+    public bool HasDescription => Description.Length > 0;
+
+    public override string ToString() => Name;
+}
+
 /// <summary>Item sources for the editors (all display names are translated).</summary>
 public static class Lookups
 {
@@ -121,6 +129,11 @@ public static class Lookups
         App.Current.Config.Commands.OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
 
     public static IReadOnlyList<string> RunningProcessesNow => RunningProcesses();
+
+    /// <summary>The extras of the installed assistants («Lander: Modo manual»), read when an editor opens.</summary>
+    public static IReadOnlyList<ExtraChoice> AssistantExtraList =>
+        [.. Core.Assistant.Packages.AssistantExtras.All().Select(e => new ExtraChoice(e.Target, e.DisplayName(Loc.Instance.Language),
+            AssistantLook.Text(e.Extra.Description), Services.IconProvider.ForExtra(e.Assistant.Id, e.Extra.Id)))];
 
 
     public static IReadOnlyList<int> MenuSizes { get; } = [0, 1, 2, 3, 4, 5];
