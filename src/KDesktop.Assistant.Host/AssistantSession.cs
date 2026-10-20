@@ -49,7 +49,11 @@ internal sealed class AssistantSession : IDisposable
 
         if (Link is { } link)
         {
-            link.Connected += _ => link.Send(new StatusMessage("idle"));
+            link.Connected += welcome =>
+            {
+                link.Send(new StatusMessage("idle"));
+                Engine.Post(() => Runtime.SetPaused(welcome.Paused));
+            };
             link.Received += message => Engine.Post(() => OnMessage(message));
             link.Ended += reason => Shutdown(reason);
             link.Start();
@@ -65,12 +69,13 @@ internal sealed class AssistantSession : IDisposable
     }
 
     /// <summary>A message from K-Desktop, on the engine thread.</summary>
-    private static void OnMessage(PipeMessage message)
+    private void OnMessage(PipeMessage message)
     {
         switch (message)
         {
             case PauseMessage pause:
                 Log.Info(pause.Paused ? "Asistente: K-Desktop en pausa" : "Asistente: K-Desktop reanudado");
+                Runtime.SetPaused(pause.Paused);
                 break;
             case ErrorMessage error:
                 Log.Warn($"Asistente: K-Desktop responde con un error ({error.Code}: {error.Message})");

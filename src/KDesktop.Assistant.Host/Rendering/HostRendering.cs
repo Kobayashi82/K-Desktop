@@ -10,7 +10,8 @@ namespace KDesktop.Assistant.Host.Rendering;
 /// <summary>
 /// <see cref="IRendering"/> on the overlay: the GPU devices, the layer, the replayer of WPF drawings and the pace of
 /// the compositor. Everything on the engine thread. If the GPU is lost (driver update, remote session) everything is
-/// made again and every surface replays its last WPF frame.
+/// made again and every surface replays its last WPF frame; the same when it is given back after a full-screen game
+/// (<see cref="Suspend"/>).
 /// </summary>
 internal sealed class HostRendering : IRendering, IDisposable
 {
@@ -39,6 +40,9 @@ internal sealed class HostRendering : IRendering, IDisposable
 
     public bool HardwareAccelerated => !Gpu.IsSoftware;
 
+    /// <summary>The GPU was freed for a full-screen game or presentation: nothing is drawn until <see cref="Resume"/>.</summary>
+    public bool Suspended { get; private set; }
+
     public double FrameInterval => Pacer.SmoothInterval;
 
     /// <summary>The overlay's own window (left out of the world and of hit tests).</summary>
@@ -58,7 +62,7 @@ internal sealed class HostRendering : IRendering, IDisposable
     /// <summary>Sends this tick's changes to the compositor in one go (images and positions move together).</summary>
     public void Commit()
     {
-        if (!_dirty) return;
+        if (!_dirty || Suspended) return;
         _dirty = false;
         try { Overlay.Commit(); }
         catch (SharpGenException ex) { DeviceLost(ex); }
@@ -67,26 +71,44 @@ internal sealed class HostRendering : IRendering, IDisposable
     /// <summary>Monitors changed: the layer follows the virtual screen and the surfaces keep their place on screen.</summary>
     public void UpdateBounds()
     {
-        if (!Overlay.UpdateBounds()) return;
+        if (Suspended || !Overlay.UpdateBounds()) return;
         foreach (var surface in _surfaces) surface.Reposition();
         MarkDirty();
     }
 
     /// <summary>Takes back the top of the «always on top» windows (others may have taken it).</summary>
-    public void KeepOnTop() => Overlay.Window.BringToTop();
+    public void KeepOnTop()
+    {
+        if (!Suspended) Overlay.Window.BringToTop();
+    }
+
+    /// <summary>Frees the GPU and the layer (a DirectX game or a presentation holds the screen).</summary>
+    public void Suspend()
+    {
+        if (Suspended) return;
+        Teardown();
+        Suspended = true;
+        Log.Info("Asistente: pantalla completa exclusiva; se libera la GPU");
+    }
+
+    /// <summary>Makes the layer again and every surface shows its last frame.</summary>
+    public void Resume()
+    {
+        if (!Suspended) return;
+        Build(preferSoftware: _losses >= 3);
+        Suspended = false;
+        foreach (var surface in _surfaces) surface.Restore();
+        MarkDirty();
+        Log.Info("Asistente: se recupera la GPU");
+    }
 
     internal void DeviceLost(Exception ex)
     {
         _losses++;
         Log.Warn($"Asistente: se ha perdido la GPU ({ex.Message}); se rehace la capa ({_losses})");
-        foreach (var surface in _surfaces) surface.DropStage();
-        Replayer.Dispose();
-        Overlay.Dispose();
-        Gpu.Dispose();
+        Teardown();
         // After three losses, stay on WARP: a GPU that keeps failing is worse than a slower one.
-        Gpu = GpuDevice.Create(preferSoftware: _losses >= 3);
-        Overlay = new Overlay(Gpu);
-        Replayer = new DrawingReplayer(Gpu.D2DFactory);
+        Build(preferSoftware: _losses >= 3);
         foreach (var surface in _surfaces) surface.Restore();
         MarkDirty();
     }
@@ -94,9 +116,22 @@ internal sealed class HostRendering : IRendering, IDisposable
     public void Dispose()
     {
         foreach (var surface in _surfaces.ToList()) surface.Dispose();
+        if (!Suspended) Teardown();
+    }
+
+    private void Teardown()
+    {
+        foreach (var surface in _surfaces) surface.DropStage();
         Replayer.Dispose();
         Overlay.Dispose();
         Gpu.Dispose();
+    }
+
+    private void Build(bool preferSoftware)
+    {
+        Gpu = GpuDevice.Create(preferSoftware);
+        Overlay = new Overlay(Gpu);
+        Replayer = new DrawingReplayer(Gpu.D2DFactory);
     }
 }
 
@@ -122,12 +157,18 @@ internal sealed class HostSurface(HostRendering rendering, SurfaceLayer layer) :
         using (var dc = drawing.Open()) draw(dc);
         drawing.Freeze();
         _last = drawing;
+        if (rendering.Suspended)
+        {
+            _area = area; // shown when the GPU comes back
+            return;
+        }
         Draw(area, drawing);
     }
 
     public bool PresentGpu(PixelRect area, Action<GpuTarget> draw)
     {
         if (_disposed) return false;
+        if (rendering.Suspended) return true;
         if (rendering.Gpu.IsSoftware) return false;
         if (area.IsEmpty)
         {

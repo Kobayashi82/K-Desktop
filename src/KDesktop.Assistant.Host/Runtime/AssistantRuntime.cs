@@ -5,6 +5,7 @@ using KDesktop.Assistant.Host.Engine;
 using KDesktop.Assistant.Host.Input;
 using KDesktop.Assistant.Host.Pipe;
 using KDesktop.Assistant.Host.Rendering;
+using KDesktop.Assistant.Host.World;
 using KDesktop.Assistant.Sdk;
 using KDesktop.Core;
 using KDesktop.Core.Assistant.Pipe;
@@ -31,15 +32,21 @@ internal sealed class AssistantRuntime : IDisposable
     {
         _engine = engine;
         _link = link;
+        World = new HostWorld(() => engine.Now);
+        Watcher = new WorldWatcher(World, () => engine.Now, OwnWindows, e => Guard(a => a.OnSystemEvent(e), "OnSystemEvent"), engine.RequestTick);
+        WindowServices = new HostWindowServices(Watcher.Scanner);
     }
 
     public HostRendering Rendering { get; private set; } = null!;
 
     public HostPointer Pointer { get; private set; } = null!;
 
-    public HostWorld World { get; } = new();
+    public HostWorld World { get; }
 
-    public IWindowServices WindowServices { get; } = new HostWindowServices();
+    /// <summary>Watches the desktop once an assistant is loaded (with none, nothing is watched).</summary>
+    public WorldWatcher Watcher { get; }
+
+    public IWindowServices WindowServices { get; }
 
     public IAssistant? Current { get; private set; }
 
@@ -53,6 +60,7 @@ internal sealed class AssistantRuntime : IDisposable
     {
         Rendering = new HostRendering();
         Pointer = new HostPointer(e => Guard(a => a.OnPointer(e), "OnPointer"), OnMenu);
+        Watcher.MonitorsChanged += Rendering.UpdateBounds;
         _lastTick = _engine.Now;
     }
 
@@ -61,10 +69,19 @@ internal sealed class AssistantRuntime : IDisposable
     {
         Rendering.Pacer.Update(now);
         var interval = 60.0;
+        if (Watcher.IsStarted)
+        {
+            interval = Watcher.Update(now);
+            // A DirectX game or a presentation holds the screen: give the GPU back to it.
+            if (Watcher.ExclusiveFullscreen) Rendering.Suspend();
+            else Rendering.Resume();
+        }
         if (Current is { } assistant)
         {
             var elapsed = Math.Clamp(now - _lastTick, 0, 0.25);
-            if (!Guard(a => interval = a.Tick(new TickInfo(now, elapsed)), "Tick")) interval = 1;
+            var wanted = 1.0;
+            if (!Guard(a => wanted = a.Tick(new TickInfo(now, elapsed)), "Tick")) wanted = 1;
+            interval = Math.Min(interval, wanted);
         }
         _lastTick = now;
         if (now >= _nextOnTop)
@@ -89,6 +106,7 @@ internal sealed class AssistantRuntime : IDisposable
     public async Task LoadAsync(IAssistant assistant, string id, string package, string data, JsonElement settings, EntranceKind entrance)
     {
         if (Current is not null) await UnloadAsync(ExitKind.Switching).ConfigureAwait(true);
+        if (!Watcher.IsStarted) Watcher.Start(_engine.Now, _engine.Post);
         var host = new AssistantHost(this, id, package, data, settings);
         Current = assistant;
         CurrentHost = host;
@@ -116,6 +134,9 @@ internal sealed class AssistantRuntime : IDisposable
         Log.Info($"Asistente: «{id}» descargado ({why})");
     }
 
+    /// <summary>K-Desktop was paused or resumed.</summary>
+    public void SetPaused(bool paused) => Watcher.SetPaused(paused);
+
     public void PublishPanel(JsonObject data) => _link?.Send(new PanelMessage(data));
 
     public void Notify(string title, string text) => _link?.Send(new NotifyMessage(title, text));
@@ -127,6 +148,7 @@ internal sealed class AssistantRuntime : IDisposable
     public void Dispose()
     {
         if (Current is { } assistant) Drop(assistant);
+        Watcher.Dispose();
         Pointer?.Dispose();
         Rendering?.Dispose();
     }
@@ -161,6 +183,13 @@ internal sealed class AssistantRuntime : IDisposable
         catch (Exception ex) { Log.Error("Asistente: error al liberarlo", ex); }
         Current = null;
         CurrentHost = null;
+    }
+
+    private IEnumerable<nint> OwnWindows()
+    {
+        if (Rendering is not null) yield return Rendering.OverlayHandle;
+        if (Pointer is null) yield break;
+        foreach (var handle in Pointer.Handles) yield return handle;
     }
 
     private void OnMenu(string area, Point at) =>
