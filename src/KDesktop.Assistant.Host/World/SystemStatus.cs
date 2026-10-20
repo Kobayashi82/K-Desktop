@@ -93,11 +93,18 @@ internal sealed class SystemStatus
 
     /// <summary>
     /// The window in front covering a whole monitor (video, borderless game, presentation). Maximized windows cover
-    /// the work area, not the whole monitor, so they do not count.
+    /// the work area, not the whole monitor, so they do not count. With an exclusive game or a presentation every
+    /// monitor counts: nothing shows anyway (the overlay is suspended), so no assistant should go on flying unseen —
+    /// as the standalone Lander, which hid and stopped.
     /// </summary>
     private void DetectFullscreen(IReadOnlyList<MonitorInfo> monitors, ISet<nint> ownWindows)
     {
         FullscreenMonitors.Clear();
+        if (ExclusiveFullscreen)
+        {
+            foreach (var monitor in monitors) FullscreenMonitors.Add(monitor.Index);
+            return;
+        }
         var foreground = GetForegroundWindow();
         if (foreground == 0 || ownWindows.Contains(foreground) || foreground == GetShellWindow() || foreground == GetDesktopWindow()) return;
         if (WindowScanner.GetClassName(foreground) is "Progman" or "WorkerW" or "Shell_TrayWnd" or "Shell_SecondaryTrayWnd" or "Windows.UI.Core.CoreWindow")

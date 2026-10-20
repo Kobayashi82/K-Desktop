@@ -1,3 +1,4 @@
+using System.Runtime.Loader;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Windows;
@@ -137,7 +138,7 @@ internal sealed class AssistantRuntime : IDisposable
 
     /// <summary>Loads an assistant next to the others (one with its id leaves first, with its exit).</summary>
     public async Task LoadAsync(IAssistant assistant, string id, string package, string data, JsonElement settings, EntranceKind entrance,
-        AssistantManifest? manifest = null, WeakReference? context = null)
+        AssistantManifest? manifest = null, AssemblyLoadContext? context = null)
     {
         if (Find(id) is not null) await UnloadAsync(id, ExitKind.Switching).ConfigureAwait(true);
         if (!Watcher.IsStarted) Watcher.Start(_engine.Now, _engine.Post);
@@ -328,10 +329,9 @@ internal sealed class AssistantRuntime : IDisposable
         slot.Audio.DisposeAll();
         if (slot.Keyboard.IsCapturing) slot.Keyboard.Release();
         UpdateWheel();
-        if (slot.Context is { } context)
+        if (slot.Release() is { } context)
         {
             var id = slot.Id;
-            slot.Release();
             // Later, from the engine queue: now the caller's frames (async ones too) still hold the assistant.
             _engine.Post(() => PackageLoader.Unload(context, id));
         }
@@ -363,16 +363,16 @@ internal sealed class AssistantRuntime : IDisposable
 /// One assistant on the desktop and what is only its own: its host, its surfaces, its hit areas, its subscriptions to
 /// the world, its failures, its running extras and when it wants its next tick. Engine thread.
 /// </summary>
-internal sealed class AssistantSlot(string id, IAssistant assistant, AssistantManifest? manifest, WeakReference? context, HostRendering rendering, HostWorld world)
+internal sealed class AssistantSlot(string id, IAssistant assistant, AssistantManifest? manifest, AssemblyLoadContext? context, HostRendering rendering, HostWorld world)
 {
+    /// <summary>Its code's load context (null for the built-in probe), held while it runs (see <see cref="LoadedPackage"/>).</summary>
+    private AssemblyLoadContext? _context = context;
+
     public string Id { get; } = id;
 
     public IAssistant Assistant { get; private set; } = assistant;
 
     public AssistantManifest? Manifest { get; } = manifest;
-
-    /// <summary>Its code's load context (null for the built-in probe).</summary>
-    public WeakReference? Context { get; } = context;
 
     public AssistantHost Host { get; set; } = null!;
 
@@ -405,11 +405,17 @@ internal sealed class AssistantSlot(string id, IAssistant assistant, AssistantMa
 
     private bool _tickRequested;
 
-    /// <summary>Lets go of the instance and its host, so its load context can be collected.</summary>
-    public void Release()
+    /// <summary>
+    /// Lets go of the instance, its host and its load context, so the context can be collected. Returns a weak
+    /// reference to the context to unload it (null for the probe).
+    /// </summary>
+    public WeakReference? Release()
     {
+        var context = _context is null ? null : new WeakReference(_context);
+        _context = null;
         Assistant = null!;
         Host = null!;
+        return context;
     }
 }
 

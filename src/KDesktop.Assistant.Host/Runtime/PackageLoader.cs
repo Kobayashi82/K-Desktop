@@ -28,14 +28,19 @@ internal sealed class AssistantLoadContext(string entry) : AssemblyLoadContext("
         _resolver.ResolveUnmanagedDllToPath(unmanagedDllName) is { } path ? LoadUnmanagedDllFromPath(path) : 0;
 }
 
-/// <summary>An assistant ready to attach: its instance, its manifest, its folders and its settings.</summary>
+/// <summary>
+/// An assistant ready to attach: its instance, its manifest, its folders, its settings and its load context. The
+/// context has to be held for as long as the assistant runs: a collectible one that nothing references is finalized,
+/// and its finalizer starts unloading it — the code already loaded goes on, but every assembly it loads later fails
+/// (5.0.60: the Lander's Vortice, after a GC, once it had been updated).
+/// </summary>
 internal sealed record LoadedPackage(
     IAssistant Assistant,
     AssistantManifest Manifest,
     string Folder,
     string DataFolder,
     JsonElement Settings,
-    WeakReference Context);
+    AssemblyLoadContext Context);
 
 /// <summary>Loads and unloads assistant packages (installed, or a build folder in development).</summary>
 internal static class PackageLoader
@@ -69,7 +74,7 @@ internal static class PackageLoader
             Directory.CreateDirectory(data);
             var settings = JsonSerializer.SerializeToElement(AssistantSettingsValues.Read(folder, manifest));
             Log.Info($"Asistente: paquete «{manifest.Id}» {manifest.Version} cargado desde {folder}");
-            return new LoadedPackage(assistant, manifest, folder, data, settings, new WeakReference(context));
+            return new LoadedPackage(assistant, manifest, folder, data, settings, context);
         }
         catch
         {

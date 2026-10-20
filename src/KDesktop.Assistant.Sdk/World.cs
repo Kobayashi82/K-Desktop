@@ -85,7 +85,10 @@ public sealed record SystemState
     /// <summary>«Do not disturb» / focus assist: stay still and silent.</summary>
     public bool QuietMode { get; init; }
 
-    /// <summary>Monitors with a full-screen application (game, video): no manoeuvres there.</summary>
+    /// <summary>
+    /// Monitors with a full-screen application (game, video): no manoeuvres there. With an exclusive game or a
+    /// presentation all of them (the host hides its overlay then).
+    /// </summary>
     public IReadOnlySet<int> FullscreenMonitors { get; init; } = new HashSet<int>();
 
     /// <summary>K-Desktop is paused: the assistant may keep flying, but takes no orders.</summary>

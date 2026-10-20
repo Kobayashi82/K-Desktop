@@ -54,6 +54,9 @@ ejecuta importa los comandos, QuickMenus e iconos de la versión anterior.
   teclado y un ratón dibujados.
 - **Ejecución con o sin administrador**: K-Desktop corre elevado para que sus atajos funcionen también sobre
   ventanas elevadas, pero cada acción decide si su programa arranca como administrador o como usuario normal.
+- **Asistentes** (en desarrollo): personajes que viven sobre tus ventanas, como el
+  [Lander](https://github.com/Kobayashi82/K-Desktop-Assistants/tree/main/Lander) con su juego. Se instalan como
+  paquetes `.kai` y sus acciones se pueden lanzar desde cualquier comando. Ver [Asistentes](#asistentes).
 - **Registro**: historial de lo que se ha ejecutado, cuándo y desde dónde (atajo, menú, voz, web, evento…).
 - **Logros y estadísticas**: más de 100 logros con notificación animada y estadísticas de uso.
 - **Iconos**: colección propia de iconos vectoriales (cualquier símbolo de Windows 11 en 15 colores), los de las
@@ -94,6 +97,26 @@ Descarga la última versión desde [Releases](https://github.com/Kobayashi82/K-D
 Al abrir K-Desktop por primera vez se registra para arrancar con Windows (se puede desactivar en Opciones). Los datos
 se guardan en `%APPDATA%\K-Desktop 5`.
 
+## Asistentes
+
+El módulo Asistente está en desarrollo. Apagado, K-Desktop es el de siempre: no carga nada nuevo.
+
+1. **Opciones → Módulo Asistente → General → «Activar el módulo Asistente»**.
+2. Consigue el paquete del asistente (`lander-<versión>.kai`): el CI de
+   [K-Desktop-Assistants](https://github.com/Kobayashi82/K-Desktop-Assistants) lo deja en cada compilación
+   (**Actions** → la última ejecución de **CI** → **Artifacts**; viene dentro de un `.zip`), o compílalo tú (ver su README).
+3. Ábrelo con un doble clic o desde **Opciones → Módulo Asistente → Asistentes → «Añadir asistente»**. La ficha
+   enseña qué es y qué sabe hacer y, si tiene acciones con atajo (el modo manual del Lander con `CTRL + ALT + L`),
+   ofrece crear sus comandos. Pulsa **Instalar** (con «Ponerlo en el escritorio» marcado sale al momento).
+4. En esa lista, **«Poner en el escritorio»** y **«Esconder»** lo sacan y lo guardan, y **Ajustes** abre sus opciones;
+   **Panel → Asistente** enseña su estado (en el Lander, su nivel, estadísticas y logros). El clic derecho sobre el
+   asistente abre su menú.
+
+Instalar una versión nueva encima de la que está en el escritorio la cambia en caliente, sin perder sus datos (que
+están en `%APPDATA%\K-Desktop 5\Assistants\Data\<id>` y entran en las copias de seguridad). Cada asistente corre en
+otro proceso, sin permisos de administrador; su registro está en `Logs\assistant.log`. Para crear uno:
+[docs/assistant/crear-un-asistente.md](docs/assistant/crear-un-asistente.md).
+
 ## Línea de comandos
 
 ```
@@ -126,8 +149,14 @@ Para saltárselo: `-p:BuildPortable=false`. Si están el JDK 17 y el SDK de Andr
 ```
 src/KDesktop.Core           núcleo sin interfaz: modelo, almacenamiento, hooks, motor de acciones, eventos, voz, servidor web y UDP
 src/KDesktop                aplicación WPF: ventana principal, QuickMenu, lanzador, OSD, bandeja, temas
+src/KDesktop.Assistant.Sdk  SDK de los asistentes (IAssistant y lo que les da el host) y el empaquetado en .kai
+src/KDesktop.Assistant.Host el proceso de los asistentes (KDesktop.exe --assistant): capa de dibujo, mundo, sonido
+samples/DotAssistant        asistente mínimo de ejemplo
+templates/kdassistant       plantilla de `dotnet new` para empezar uno
 android/                    app de Android (WebView de la app web del PC, con micrófono nativo)
 tests/KDesktop.Core.Tests   pruebas del núcleo
+tests/KDesktop.Assistant.Tests  pruebas del módulo Asistente (con el proceso real)
+docs/assistant/             protocolo, esquemas de los paquetes y guía para crear un asistente
 tools/                      icono, APK y paquete de actualización
 ```
 
