@@ -2433,6 +2433,7 @@
   "tip.k.kboard.keys": "Verr. Maj",
   "tip.k.kboard": "Avec K-Board, vous pouvez transformer Verr. Maj en Ctrl, désactiver la touche Windows dans les jeux ou faire copier-coller un bouton latéral.",
   "tip.k.disabledin.keys": "Désactiver dans",
-  "tip.k.disabledin": "Dans Paramètres → « Désactiver K-Desktop dans », ajoutez vos jeux pour qu’aucun raccourci ne gêne pendant que vous jouez."
+  "tip.k.disabledin": "Dans Paramètres → « Désactiver K-Desktop dans », ajoutez vos jeux pour qu’aucun raccourci ne gêne pendant que vous jouez.",
 
+  "assistant.failed": "L’assistant « {0} » a planté trois fois de suite et a été désactivé."
 }

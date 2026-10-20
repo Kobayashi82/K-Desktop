@@ -2433,6 +2433,7 @@
   "tip.k.kboard.keys": "Caps Lock",
   "tip.k.kboard": "With K-Board you can turn Caps Lock into Ctrl, disable the Windows key in games or make a side button copy and paste.",
   "tip.k.disabledin.keys": "Disable in",
-  "tip.k.disabledin": "In Settings → “Disable K-Desktop in”, add your games so no hotkey gets in the way while you play."
+  "tip.k.disabledin": "In Settings → “Disable K-Desktop in”, add your games so no hotkey gets in the way while you play.",
 
+  "assistant.failed": "The assistant «{0}» failed three times in a row and has been turned off."
 }

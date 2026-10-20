@@ -2433,6 +2433,7 @@
   "tip.k.kboard.keys": "Caps Lock",
   "tip.k.kboard": "Com o K-Board você pode transformar o Caps Lock em Ctrl, desativar a tecla Windows nos jogos ou fazer um botão lateral copiar e colar.",
   "tip.k.disabledin.keys": "Desativar em",
-  "tip.k.disabledin": "Em Configurações → “Desativar o K-Desktop em”, adicione seus jogos para nenhum atalho atrapalhar enquanto você joga."
+  "tip.k.disabledin": "Em Configurações → “Desativar o K-Desktop em”, adicione seus jogos para nenhum atalho atrapalhar enquanto você joga.",
 
+  "assistant.failed": "O assistente «{0}» falhou três vezes seguidas e foi desativado."
 }

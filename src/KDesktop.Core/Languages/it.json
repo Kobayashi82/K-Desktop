@@ -2433,6 +2433,7 @@
   "tip.k.kboard.keys": "Bloc Maiusc",
   "tip.k.kboard": "Con K-Board puoi trasformare Bloc Maiusc in Ctrl, disattivare il tasto Windows nei giochi o far copiare e incollare a un pulsante laterale.",
   "tip.k.disabledin.keys": "Disattiva in",
-  "tip.k.disabledin": "In Impostazioni → «Disattiva K-Desktop in» aggiungi i tuoi giochi, così nessuna scorciatoia disturba mentre giochi."
+  "tip.k.disabledin": "In Impostazioni → «Disattiva K-Desktop in» aggiungi i tuoi giochi, così nessuna scorciatoia disturba mentre giochi.",
 
+  "assistant.failed": "L’assistente «{0}» si è bloccato tre volte di seguito ed è stato disattivato."
 }

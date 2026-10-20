@@ -380,6 +380,12 @@ public partial class AppSettings : ObservableObject
     /// <summary>The process «quita la música» closes; empty: the player of «pon música».</summary>
     [ObservableProperty] private string _voiceMusicOffProcess = string.Empty;
 
+    // Assistant module (off: K-Desktop starts nothing of it)
+    [ObservableProperty] private bool _assistantEnabled;
+
+    /// <summary>Id of the installed assistant shown on the desktop; null: none (the module works without a body).</summary>
+    [ObservableProperty] private string? _assistantActive;
+
     // OSD
     [ObservableProperty] private OsdPosition _osdPosition = OsdPosition.BottomCenter;
     [ObservableProperty] private double _osdSeconds = 1.6;

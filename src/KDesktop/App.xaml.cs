@@ -411,6 +411,7 @@ public partial class App : Application
         WakeListener.Refresh(); // paused: the microphone closes
         Ui.ShowOsd(Loc.T(paused ? "pause.osdOn" : "pause.osdOff"));
         if (_tray is not null) _tray.ToolTipText = TrayTooltip();
+        _assistant?.Send(new Core.Assistant.Pipe.PauseMessage(paused));
         PausedChanged?.Invoke();
     }
 
@@ -472,6 +473,7 @@ public partial class App : Application
             Web.Start(new WebServerOptions(s.WebPort, WebServer.BasePathOf(s.WebPublicUrl)));
         else Web.Stop();
         Web.InputAllowed = s.WebInput;
+        ApplyAssistant();
     }
 
     // ── tray ─────────────────────────────────────────────────────────────
@@ -657,6 +659,7 @@ public partial class App : Application
     {
         _hookRefresh.Stop();
         _backupTimer.Stop();
+        StopAssistant();
         Events?.Dispose();
         Router.Dispose();
         Udp?.Dispose();

@@ -2433,6 +2433,7 @@
   "tip.k.kboard.keys": "Feststelltaste",
   "tip.k.kboard": "Mit K-Board kannst du die Feststelltaste in Strg verwandeln, die Windows-Taste in Spielen deaktivieren oder eine Seitentaste kopieren und einfügen lassen.",
   "tip.k.disabledin.keys": "Deaktivieren in",
-  "tip.k.disabledin": "Füge unter Einstellungen → „K-Desktop deaktivieren in“ deine Spiele hinzu, damit kein Tastenkürzel beim Spielen stört."
+  "tip.k.disabledin": "Füge unter Einstellungen → „K-Desktop deaktivieren in“ deine Spiele hinzu, damit kein Tastenkürzel beim Spielen stört.",
 
+  "assistant.failed": "Der Assistent „{0}“ ist dreimal hintereinander abgestürzt und wurde deaktiviert."
 }

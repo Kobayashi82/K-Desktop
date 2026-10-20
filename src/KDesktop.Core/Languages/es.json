@@ -2433,6 +2433,7 @@
   "tip.k.kboard.keys": "Bloq Mayús",
   "tip.k.kboard": "Con K-Board puedes convertir Bloq Mayús en Ctrl, desactivar la tecla Windows en los juegos o hacer que un botón lateral copie y pegue.",
   "tip.k.disabledin.keys": "Desactivar en",
-  "tip.k.disabledin": "En Opciones → «Desactivar K-Desktop en» añade tus juegos para que ningún atajo moleste mientras juegas."
+  "tip.k.disabledin": "En Opciones → «Desactivar K-Desktop en» añade tus juegos para que ningún atajo moleste mientras juegas.",
 
+  "assistant.failed": "El asistente «{0}» ha fallado tres veces seguidas y se ha desactivado."
 }
