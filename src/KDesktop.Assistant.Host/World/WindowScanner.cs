@@ -69,6 +69,37 @@ internal sealed unsafe class WindowScanner(ISet<nint> ownWindows)
         return true;
     }
 
+    /// <summary>
+    /// How full-screen detection sees a window (see <see cref="SystemStatus.CoveredMonitors"/>): one that can cover a
+    /// monitor (not a maximized window with its title bar, and not a layered overlay unless it is the one in front) and
+    /// whether it hides what is below it on its monitor (an ordinary window that is not «always on top»; pop-ups, tool
+    /// windows and see-through overlays never do).
+    /// </summary>
+    public static bool TryLayer(nint hwnd, ISet<nint> ownWindows, nint foreground, out ScreenLayer layer)
+    {
+        layer = default;
+        if (ownWindows.Contains(hwnd) || !IsWindowVisible(hwnd) || IsIconic(hwnd)) return false;
+        var exStyle = (uint)(long)GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+        var style = (uint)(long)GetWindowLongPtr(hwnd, GWL_STYLE);
+        if ((exStyle & WS_EX_TRANSPARENT) != 0 && (exStyle & WS_EX_LAYERED) != 0) return false;
+        if ((exStyle & WS_EX_TOOLWINDOW) != 0 && (exStyle & WS_EX_APPWINDOW) == 0) return false;
+        if (IsCloaked(hwnd)) return false;
+        var className = GetClassName(hwnd);
+        if (className is null || IgnoredClasses.Contains(className)) return false;
+        if (!TryGetBounds(hwnd, out var bounds) || bounds.Right - bounds.Left < MinWidth || bounds.Bottom - bounds.Top < MinHeight)
+            return false;
+
+        var hasCaption = (style & WS_CAPTION) == WS_CAPTION;
+        var popup = GetWindow(hwnd, GW_OWNER) != 0 && !hasCaption && (exStyle & WS_EX_APPWINDOW) == 0;
+        var canCover = !(hasCaption && IsZoomed(hwnd)) && (hwnd == foreground || (exStyle & WS_EX_LAYERED) == 0);
+        var blocks = !popup && (exStyle & WS_EX_TOPMOST) == 0 && (hasCaption || GetTitle(hwnd).Length > 0);
+        layer = new ScreenLayer(bounds.ToPixelRect(), canCover, blocks);
+        return true;
+    }
+
+    /// <summary>The top-level windows, topmost first.</summary>
+    public static List<nint> TopLevel() => EnumerateTopLevel();
+
     public static bool IsCloaked(nint hwnd)
     {
         var cloaked = 0;

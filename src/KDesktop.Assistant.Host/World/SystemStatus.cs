@@ -4,6 +4,9 @@ using static KDesktop.Assistant.Host.Interop.Native;
 
 namespace KDesktop.Assistant.Host.World;
 
+/// <summary>A visible window for full-screen detection (<see cref="WindowScanner.TryLayer"/>).</summary>
+internal readonly record struct ScreenLayer(PixelRect Bounds, bool CanCover, bool Blocks);
+
 /// <summary>
 /// The state of the PC that matters to an assistant (from Kobii): idleness, battery, power saving, dark mode, «do not
 /// disturb» and full-screen applications. The expensive readings are spaced out.
@@ -92,10 +95,11 @@ internal sealed class SystemStatus
     }
 
     /// <summary>
-    /// The window in front covering a whole monitor (video, borderless game, presentation). Maximized windows cover
-    /// the work area, not the whole monitor, so they do not count. With an exclusive game or a presentation every
-    /// monitor counts: nothing shows anyway (the overlay is suspended), so no assistant should go on flying unseen —
-    /// as the standalone Lander, which hid and stopped.
+    /// Monitors covered by a full-screen window (video, borderless game, presentation), whether it has the focus or not:
+    /// a film on one monitor while the user works on the other counts too (5.0.61; before, only the window in front did,
+    /// and the Lander came out over the film until the user clicked on it). With an exclusive game or a presentation every
+    /// monitor counts: nothing shows anyway (the overlay is suspended), so no assistant should go on flying unseen — as
+    /// the standalone Lander, which hid and stopped.
     /// </summary>
     private void DetectFullscreen(IReadOnlyList<MonitorInfo> monitors, ISet<nint> ownWindows)
     {
@@ -105,16 +109,45 @@ internal sealed class SystemStatus
             foreach (var monitor in monitors) FullscreenMonitors.Add(monitor.Index);
             return;
         }
+        FullscreenMonitors.UnionWith(CoveredMonitors(Layers(ownWindows), monitors));
+    }
+
+    /// <summary>The windows as full-screen detection sees them, topmost first (read lazily: it stops when it can).</summary>
+    private static IEnumerable<ScreenLayer> Layers(ISet<nint> ownWindows)
+    {
         var foreground = GetForegroundWindow();
-        if (foreground == 0 || ownWindows.Contains(foreground) || foreground == GetShellWindow() || foreground == GetDesktopWindow()) return;
-        if (WindowScanner.GetClassName(foreground) is "Progman" or "WorkerW" or "Shell_TrayWnd" or "Shell_SecondaryTrayWnd" or "Windows.UI.Core.CoreWindow")
-            return;
-        if (!GetWindowRect(foreground, out var rect)) return;
-        foreach (var monitor in monitors)
+        foreach (var hwnd in WindowScanner.TopLevel())
+            if (WindowScanner.TryLayer(hwnd, ownWindows, foreground, out var layer)) yield return layer;
+    }
+
+    /// <summary>
+    /// Goes down the windows of each monitor from the top: the first that covers it whole makes it full screen; an
+    /// ordinary window over part of it first means it is not. Overlays, pop-ups and «always on top» windows (a
+    /// picture-in-picture, sticky notes) neither decide nor hide what is below them.
+    /// </summary>
+    public static HashSet<int> CoveredMonitors(IEnumerable<ScreenLayer> topFirst, IReadOnlyList<MonitorInfo> monitors)
+    {
+        var covered = new HashSet<int>();
+        var open = monitors.ToList();
+        foreach (var layer in topFirst)
         {
-            var b = monitor.Bounds;
-            if (rect.Left <= b.Left && rect.Top <= b.Top && rect.Right >= b.Right && rect.Bottom >= b.Bottom) FullscreenMonitors.Add(monitor.Index);
+            for (var i = open.Count - 1; i >= 0; i--)
+            {
+                var b = open[i].Bounds;
+                var bounds = layer.Bounds;
+                if (layer.CanCover && bounds.Left <= b.Left && bounds.Top <= b.Top && bounds.Right >= b.Right && bounds.Bottom >= b.Bottom)
+                {
+                    covered.Add(open[i].Index);
+                    open.RemoveAt(i);
+                }
+                else if (layer.Blocks && bounds.Intersects(b))
+                {
+                    open.RemoveAt(i);
+                }
+            }
+            if (open.Count == 0) break;
         }
+        return covered;
     }
 
     private static bool ReadDarkMode()
