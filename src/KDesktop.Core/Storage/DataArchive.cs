@@ -1,19 +1,27 @@
 using System.IO.Compression;
+using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Model;
 
 namespace KDesktop.Core.Storage;
 
 /// <summary>
 /// Full backup of the data folder as a .zip: configuration, achievements and statistics, own icons, sounds,
-/// languages and wake words. Leaves out what is rebuilt or downloaded again (logs, automatic backups, favicons, voice models) and the
+/// languages, wake words, and the assistants' data and settings with the list of those installed (not their packages:
+/// those are downloaded again). Leaves out what is rebuilt or downloaded again (logs, automatic backups, favicons, voice models) and the
 /// paired web devices (their keys are secrets and belong to this PC).
 /// </summary>
 public static class DataArchive
 {
     /// <summary>Folders of the data dir that go into the archive.</summary>
-    private static readonly string[] Folders = ["Icons", "Sounds", "Languages", "Voice"];
+    private static readonly string[] Folders = ["Icons", "Sounds", "Languages", "Voice", "Assistants/Data", "Assistants/Settings"];
 
     private static readonly string[] Files = ["config.json", "stats.json"];
+
+    /// <summary>The assistants installed when the archive was made (only a list).</summary>
+    private const string AssistantsList = "assistants.json";
+
+    /// <summary>An assistant that was installed when the archive was made, and where to get it again.</summary>
+    public sealed record ArchivedAssistant(string Id, string Name, string Version, string? Updates);
 
     /// <summary>Writes the archive. Save the configuration and the statistics first.</summary>
     public static void Export(string zipPath)
@@ -34,6 +42,13 @@ public static class DataArchive
                 foreach (var file in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories))
                     zip.CreateEntryFromFile(file, folder + "/" + Path.GetRelativePath(dir, file).Replace('\\', '/'), CompressionLevel.Optimal);
             }
+            var assistants = AssistantPackages.Installed()
+                .Select(a => new ArchivedAssistant(a.Id, a.Manifest.Name, a.Version, a.Manifest.Updates)).ToList();
+            if (assistants.Count > 0)
+            {
+                using var writer = new StreamWriter(zip.CreateEntry(AssistantsList, CompressionLevel.Optimal).Open());
+                writer.Write(Json.Serialize(assistants));
+            }
         }
         File.Move(tmp, zipPath, overwrite: true);
     }
@@ -45,6 +60,9 @@ public static class DataArchive
 
         /// <summary>Contents of stats.json (achievements and statistics), null when the archive has none.</summary>
         public string? StatsJson { get; init; }
+
+        /// <summary>The assistants that were installed (empty in older archives).</summary>
+        public IReadOnlyList<ArchivedAssistant> Assistants { get; init; } = [];
 
         public required string ZipPath { get; init; }
     }
@@ -59,6 +77,7 @@ public static class DataArchive
         {
             Config = config,
             StatsJson = zip.GetEntry("stats.json") is { } stats ? ReadText(stats) : null,
+            Assistants = zip.GetEntry(AssistantsList) is { } list ? ReadAssistants(list) : [],
             ZipPath = zipPath,
         };
     }
@@ -77,6 +96,13 @@ public static class DataArchive
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
             entry.ExtractToFile(target, overwrite: true);
         }
+    }
+
+    /// <summary>Only informative: a broken list is never a reason to turn the archive down.</summary>
+    private static List<ArchivedAssistant> ReadAssistants(ZipArchiveEntry entry)
+    {
+        try { return Json.Deserialize<List<ArchivedAssistant>>(ReadText(entry)) ?? []; }
+        catch (System.Text.Json.JsonException) { return []; }
     }
 
     private static string ReadText(ZipArchiveEntry entry)

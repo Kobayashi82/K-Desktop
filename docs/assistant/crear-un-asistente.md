@@ -33,6 +33,19 @@ Carga el `bin\…\package` más reciente (una copia, para que se pueda recompila
 K-Desktop está abierto con la misma carpeta de datos, se conecta a él; si no, funciona solo. El registro está en
 `Logs\assistant.log` de la carpeta de datos. `KDesktop.exe --assistant --exit` lo cierra.
 
+## Instalar
+
+Con el módulo Asistente activado, un doble clic en el `.kdassistant` (o `KDesktop.exe --install-assistant
+"archivo"`) abre su ficha en K-Desktop. Antes de enseñarla, K-Desktop comprueba el paquete **sin cargar su
+código**: rutas seguras y tamaños, `assistant.json`, `settings.json`, `panel.json`, la persona y la voz contra los
+esquemas, que estén la DLL de entrada y las imágenes (PNG o JPEG), el número mayor del SDK y que el id no esté
+reservado (`data`, `settings`, `dev`). Si algo falla, la ficha dice qué.
+
+Se instala en `Assistants\<id>\<versión>\`. Una versión nueva sustituye a la anterior (también en caliente, si es
+la que está en el escritorio) y conserva `Assistants\Data\<id>\` y los ajustes; lo que siga en uso se borra cuando
+el proceso del asistente lo suelta. Las copias de seguridad de K-Desktop guardan esos datos y la lista de
+asistentes instalados, no los paquetes.
+
 ## El ejemplo
 
 `samples/DotAssistant` (Dot) es el asistente mínimo completo: un punto que se teletransporta, se puede arrastrar,

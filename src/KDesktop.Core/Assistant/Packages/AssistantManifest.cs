@@ -76,6 +76,9 @@ public sealed partial record AssistantManifest
     public static AssistantManifest Load(string folder) =>
         Parse(File.ReadAllText(Path.Combine(folder, FileName)));
 
+    /// <summary>Whether <paramref name="id"/> can be an assistant's id (also a safe folder name).</summary>
+    public static bool IsValidId(string id) => IdPattern().IsMatch(id);
+
     private void Check()
     {
         if (!IdPattern().IsMatch(Id)) throw new ManifestException($"El id «{Id}» no es válido (minúsculas, números, puntos y guiones)");

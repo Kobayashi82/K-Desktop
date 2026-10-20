@@ -20,6 +20,9 @@
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.0" />
     <!-- WMI: the brightness of a laptop's own screen («Pantalla», Platform/DisplayTools.cs). MIT (.NET Foundation). -->
     <PackageReference Include="System.Management" Version="10.0.0" />
+    <!-- JSON Schema: checking assistant packages (Assistant/Packages). MIT up to 8.x (9 is not). Its global «Json»
+         namespace would hide K-Desktop's Json class in the projects that use Core: only its runtime goes on. -->
+    <PackageReference Include="JsonSchema.Net" Version="8.0.5" PrivateAssets="compile" />
   </ItemGroup>
 
   <!-- Types shared with the assistant process: gestures for the choreography map (Assistant/). -->
@@ -37,6 +40,11 @@
     <None Remove="Languages\*.json" />
     <EmbeddedResource Include="Languages\*.json" LogicalName="Languages/%(Filename)%(Extension)" />
     <EmbeddedResource Include="Assets\Sounds\*.wav" LogicalName="Sounds/%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!-- The schemas of assistant packages (docs\assistant\esquemas): K-Desktop checks a package with them. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\docs\assistant\esquemas\*.schema.json" LogicalName="AssistantSchemas/%(Filename)%(Extension)" />
   </ItemGroup>
 
   <!-- The remote web app (PWA), served by Remote/Web/WebServer. -->

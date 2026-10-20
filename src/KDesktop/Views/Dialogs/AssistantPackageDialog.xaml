@@ -1,0 +1,107 @@
+<ui:FluentWindow x:Class="KDesktop.Views.Dialogs.AssistantPackageDialog"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:l="clr-namespace:KDesktop.Localization"
+                 Title="K-Desktop"
+                 Width="480" SizeToContent="Height"
+                 WindowStartupLocation="CenterOwner"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica"
+                 ResizeMode="NoResize"
+                 ShowInTaskbar="True">
+    <StackPanel Margin="24,0,24,20">
+        <ui:TitleBar Title="{l:Tr assistantCard.title}" ShowMinimize="False" ShowMaximize="False" Margin="-24,0,-24,4" />
+
+        <!-- While the package is read -->
+        <StackPanel x:Name="LoadingPanel" Margin="0,24" HorizontalAlignment="Center">
+            <ui:ProgressRing IsIndeterminate="True" Width="32" Height="32" />
+        </StackPanel>
+
+        <!-- A package that cannot be installed -->
+        <Grid x:Name="ErrorPanel" Visibility="Collapsed" Margin="0,8,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <ui:SymbolIcon Symbol="ErrorCircle24" FontSize="32" Foreground="{DynamicResource Kd.Danger}" VerticalAlignment="Top" />
+            <StackPanel Grid.Column="1" Margin="14,0,0,0">
+                <TextBlock Text="{l:Tr assistantCard.cannot}" FontSize="16" FontWeight="SemiBold" />
+                <TextBlock x:Name="ErrorFile" Margin="0,2,0,0" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" />
+                <TextBlock x:Name="ErrorText" Margin="0,10,0,0" TextWrapping="Wrap" />
+            </StackPanel>
+        </Grid>
+
+        <!-- The card -->
+        <StackPanel x:Name="CardPanel" Visibility="Collapsed" Margin="0,8,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Width="64" Height="64" CornerRadius="14" Background="{DynamicResource Kd.ChipBackground}" ClipToBounds="True">
+                    <Grid>
+                        <ui:SymbolIcon x:Name="IconFallback" Symbol="Bot24" FontSize="34" Foreground="{DynamicResource Kd.AccentText}" />
+                        <Image x:Name="IconImage" Stretch="Uniform" Margin="6" RenderOptions.BitmapScalingMode="HighQuality" />
+                    </Grid>
+                </Border>
+                <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center">
+                    <TextBlock x:Name="NameText" FontSize="22" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <TextBlock x:Name="ByText" Margin="0,2,0,0" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" />
+                    <Border x:Name="ActionBadge" Margin="0,6,0,0" HorizontalAlignment="Left" CornerRadius="9" Padding="9,2"
+                            Background="{DynamicResource Kd.AccentSoft}">
+                        <TextBlock x:Name="ActionText" FontSize="12" Foreground="{DynamicResource Kd.AccentText}" />
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <Border x:Name="PreviewBorder" Margin="0,16,0,0" CornerRadius="10" ClipToBounds="True" HorizontalAlignment="Center"
+                    MaxHeight="200" Visibility="Collapsed">
+                <Image x:Name="PreviewImage" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+            </Border>
+
+            <TextBlock x:Name="DescriptionText" Margin="0,16,0,0" TextWrapping="Wrap" />
+
+            <TextBlock Margin="0,16,0,6" FontWeight="SemiBold" Text="{l:Tr assistantCard.gestures}" />
+            <ItemsControl x:Name="GestureList">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="0,0,6,6" CornerRadius="10" Padding="10,3" Background="{DynamicResource Kd.ChipBackground}">
+                            <TextBlock Text="{Binding}" FontSize="12" />
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock x:Name="DetailsText" Margin="0,6,0,0" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+
+            <Border Margin="0,16,0,0" CornerRadius="8" Padding="12,10" Background="{DynamicResource Kd.Subtle}"
+                    BorderBrush="{DynamicResource Kd.Warning}" BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ui:SymbolIcon Symbol="Warning24" FontSize="18" Foreground="{DynamicResource Kd.Warning}" VerticalAlignment="Top" />
+                    <TextBlock Grid.Column="1" Margin="10,0,0,0" TextWrapping="Wrap" Text="{l:Tr assistantCard.warning}" />
+                </Grid>
+            </Border>
+
+            <TextBlock x:Name="KeepDataText" Margin="0,10,0,0" Style="{StaticResource Caption}" TextWrapping="Wrap"
+                       Text="{l:Tr assistantCard.keepsData}" Visibility="Collapsed" />
+            <CheckBox x:Name="ActivateCheck" Margin="0,12,0,0" Content="{l:Tr assistantCard.activate}" IsChecked="True" />
+            <TextBlock x:Name="ModuleOffText" Margin="0,4,0,0" Style="{StaticResource Caption}" TextWrapping="Wrap"
+                       Text="{l:Tr assistantCard.moduleOff}" Visibility="Collapsed" />
+            <TextBlock x:Name="InstallError" Margin="0,10,0,0" TextWrapping="Wrap" Foreground="{DynamicResource Kd.Danger}"
+                       Visibility="Collapsed" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <ui:Button x:Name="CancelButton" Content="{l:Tr common.cancel}" Click="OnCancel" Margin="0,0,8,0" />
+            <ui:Button x:Name="InstallButton" Appearance="Primary" Click="OnInstall" Visibility="Collapsed" MinWidth="110" />
+        </StackPanel>
+    </StackPanel>
+</ui:FluentWindow>

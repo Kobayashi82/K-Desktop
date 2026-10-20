@@ -7,6 +7,7 @@ using System.Windows.Threading;
 using H.NotifyIcon;
 using KDesktop.Core;
 using KDesktop.Core.Achievements;
+using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Engine;
 using KDesktop.Core.Input;
 using KDesktop.Core.Localization;
@@ -317,7 +318,7 @@ public partial class App : Application
         }, DispatcherPriority.ApplicationIdle);
     }
 
-    /// <summary>Command-line requests: --menu "Name", --run "Name", --show, --exit.</summary>
+    /// <summary>Command-line requests: --menu "Name", --run "Name", --show, --install-assistant "file", --exit.</summary>
     public void HandleArguments(IReadOnlyList<string> args)
     {
         if (Program.ValueOf(args, "--menu") is { } menu) QuickMenus.Show(menu, ForegroundWindow.Capture());
@@ -336,6 +337,7 @@ public partial class App : Application
         if (args.Contains("--launcher", StringComparer.OrdinalIgnoreCase)) Launcher.Show(ForegroundWindow.Capture());
         if (args.Contains("--show", StringComparer.OrdinalIgnoreCase)) ShowMainWindow();
         if (Program.ValueOf(args, "--page") is { } page) ShowMainWindow(w => w.Navigate(page.ToLowerInvariant()));
+        if (Program.ValueOf(args, PackageAssociation.Argument) is { } package) OpenAssistantPackage(package);
         if (args.Contains("--exit", StringComparer.OrdinalIgnoreCase)) _ = ExitAsync();
     }
 
