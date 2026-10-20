@@ -5,7 +5,7 @@ using Microsoft.Win32;
 namespace KDesktop.Core.Assistant.Packages;
 
 /// <summary>
-/// Opening a <c>.kdassistant</c> with a double click: <c>KDesktop.exe --install-assistant "file"</c>, which the
+/// Opening a <c>.kai</c> with a double click: <c>KDesktop.exe --install-assistant "file"</c>, which the
 /// running K-Desktop receives and answers with the package's card. Registered for the current user (HKCU) while the
 /// assistant module is on, and only by the normal data folder (a test instance leaves the user's files alone).
 /// </summary>
@@ -17,6 +17,9 @@ public static partial class PackageAssociation
     private const string ExtensionKey = @"Software\Classes\" + AssistantPackages.Extension;
     private const string ProgIdKey = @"Software\Classes\" + ProgId;
 
+    /// <summary>The extension packages had before 5.0.52.</summary>
+    private const string OldExtensionKey = @"Software\Classes\.kdassistant";
+
     /// <summary>Registers the extension (or brings it up to date if K-Desktop moved), or removes it.</summary>
     /// <param name="typeName">What Explorer shows as the file's type.</param>
     public static void Apply(bool on, string typeName)
@@ -24,7 +27,8 @@ public static partial class PackageAssociation
         if (AppPaths.InstanceSuffix.Length > 0) return;
         try
         {
-            if (on ? Register(typeName) : Unregister()) SHChangeNotify(SHCNE_ASSOCCHANGED, 0, 0, 0);
+            var changed = RemoveOldExtension();
+            if ((on ? Register(typeName) : Unregister()) || changed) SHChangeNotify(SHCNE_ASSOCCHANGED, 0, 0, 0);
         }
         catch (Exception ex) when (ex is UnauthorizedAccessException or IOException or SecurityException)
         {
@@ -57,6 +61,16 @@ public static partial class PackageAssociation
         using (var ext = Registry.CurrentUser.OpenSubKey(ExtensionKey)) ours = ext?.GetValue(null) as string == ProgId;
         if (ours) Registry.CurrentUser.DeleteSubKeyTree(ExtensionKey, throwOnMissingSubKey: false);
         Log.Info($"Asistentes: {AssistantPackages.Extension} ya no se abre con K-Desktop");
+        return true;
+    }
+
+    /// <summary>Removes the old extension if it is still ours.</summary>
+    private static bool RemoveOldExtension()
+    {
+        using (var old = Registry.CurrentUser.OpenSubKey(OldExtensionKey))
+            if (old?.GetValue(null) as string != ProgId) return false;
+        Registry.CurrentUser.DeleteSubKeyTree(OldExtensionKey, throwOnMissingSubKey: false);
+        Log.Info("Asistentes: quitada la extensión antigua .kdassistant");
         return true;
     }
 

@@ -2437,7 +2437,7 @@
 
   "assistant.failed": "O assistente «{0}» falhou três vezes seguidas e foi desativado.",
 
-  "assistantPkg.notPackage": "«{0}» não é um pacote de assistente (.kdassistant) válido.",
+  "assistantPkg.notPackage": "«{0}» não é um pacote de assistente (.kai) válido.",
   "assistantPkg.unsafePath": "O pacote tem um caminho não permitido: «{0}».",
   "assistantPkg.tooBig": "O pacote é grande demais ou está danificado ({0}).",
   "assistantPkg.missing": "Falta «{0}» no pacote.",
@@ -2494,7 +2494,7 @@
   "assistantOptions.none": "Nenhum",
   "assistantOptions.openPanel": "Ver o painel",
   "assistantOptions.list": "Assistentes",
-  "assistantOptions.listHint": "Pacotes .kdassistant. Você também pode arrastar um para esta janela ou abri-lo com clique duplo.",
+  "assistantOptions.listHint": "Pacotes .kai. Você também pode arrastar um para esta janela ou abri-lo com clique duplo.",
   "assistantOptions.add": "Adicionar assistente",
   "assistantOptions.addTitle": "Escolha um assistente",
   "assistantOptions.empty": "Não há assistentes instalados",
@@ -2538,7 +2538,6 @@
   "assistantPanel.memoryValue": "{0} em uso · {1} reservados",
   "assistantPanel.modelLoaded": "{0} (carregado)",
   "assistantPanel.modelNotLoaded": "{0} (não carregado)",
-  "assistantPanel.noError": "Nenhum",
   "assistantPanel.seconds": "{0} s",
   "assistantPanel.minutes": "{0} min",
   "assistantPanel.hours": "{0} h {1} min",
@@ -2553,7 +2552,7 @@
   "status.assistant": "Assistente · {0}",
   "status.clickPanel": "Clique para ver o painel dele",
   "assistant.hidden": "{0} se escondeu. Traga-o de volta em Configurações › Assistente ou no ícone da bandeja.",
-  "assistant.dropOnlyPackages": "Aqui só é possível soltar assistentes (.kdassistant)",
+  "assistant.dropOnlyPackages": "Aqui só é possível soltar assistentes (.kai)",
   "assistant.restoreMissing": "O backup tinha estes assistentes, que não estão instalados neste PC:\n\n{0}\n\nOs dados e configurações deles já foram restaurados. Baixá-los agora? Você verá a ficha de cada um antes de instalá-lo.",
   "assistant.restoreMissingManual": "O backup tinha estes assistentes, que não estão instalados neste PC:\n\n{0}\n\nOs dados e configurações deles já foram restaurados; adicione-os de novo em Configurações › Assistentes.",
   "assistant.restoreDownload": "Baixar ({0})",
@@ -2562,5 +2561,7 @@
   "assistantPkg.downloadFailed": "Não foi possível baixar “{0}”: {1}",
   "assistantMenu.panel": "Painel do assistente",
   "assistantMenu.settings": "Configurações de {0}",
-  "assistantMenu.hide": "Esconder {0}"
+  "assistantMenu.hide": "Esconder {0}",
+  "assistantPanel.tech": "Detalhes técnicos",
+  "assistantPanel.techHint": "Para desenvolvimento: o processo, o consumo e o registro"
 }

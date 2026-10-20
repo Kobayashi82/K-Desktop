@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- A K-Desktop assistant. `dotnet build` makes bin\…\<id>-<version>.kdassistant (see Package\assistant.json). -->
+  <!-- A K-Desktop assistant. `dotnet build` makes bin\…\<id>-<version>.kai (see Package\assistant.json). -->
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>

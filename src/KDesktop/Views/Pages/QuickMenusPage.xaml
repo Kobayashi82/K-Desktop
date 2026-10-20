@@ -24,7 +24,7 @@
         <DataTemplate x:Key="RowTemplate" DataType="{x:Type qe:QmRow}">
             <Grid x:Name="Row" Background="Transparent" AllowDrop="True" Margin="0,1"
                   PreviewMouseLeftButtonDown="OnRowMouseDown" PreviewMouseMove="OnRowMouseMove" MouseLeftButtonUp="OnRowMouseUp"
-                  MouseRightButtonUp="OnRowRightClick" DragOver="OnRowDragOver" DragLeave="OnRowDragLeave" Drop="OnRowDrop">
+                  MouseRightButtonUp="OnRowRightClick" DragOver="OnRowDragOver" Drop="OnRowDrop">
                 <!-- separator -->
                 <Border x:Name="Sep" Height="1" Margin="10,5" Background="{DynamicResource Kd.MenuSeparator}" Visibility="Collapsed" />
 
@@ -255,7 +255,7 @@
 
                     <!-- Canvas -->
                     <Border CornerRadius="8" Background="{DynamicResource Kd.Subtle}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1"
-                            AllowDrop="True" DragOver="OnCanvasDragOver" Drop="OnCanvasDrop">
+                            AllowDrop="True" DragOver="OnCanvasDragOver" DragLeave="OnCanvasDragLeave" Drop="OnCanvasDrop">
                         <ScrollViewer x:Name="Canvas" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Padding="18" Focusable="True"
                                       MouseLeftButtonDown="OnCanvasClick">
                             <ItemsControl x:Name="ColumnsControl" ItemTemplate="{StaticResource ColumnTemplate}" Focusable="False">

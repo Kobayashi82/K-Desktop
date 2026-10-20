@@ -1,13 +1,13 @@
 <Project>
 
   <!--
-    Packs an assistant project into a .kdassistant after every build (stage 1.6 of the plan).
+    Packs an assistant project into a .kai after every build (stage 1.6 of the plan).
 
     The project keeps the package's files in a Package\ folder (assistant.json, icon.png, settings.json, panel.json,
     persona\, voice\, assets\…). After the build:
       $(OutDir)package\                     the package as it will be installed: Package\ plus lib\ with the build
                                             output (without the SDK, which the host always provides)
-      $(OutDir)<id>-<version>.kdassistant   that folder zipped, ready for «Add assistant»
+      $(OutDir)<id>-<version>.kai   that folder zipped, ready for «Add assistant»
     The id and the version are read from Package\assistant.json. To try it without installing, run K-Desktop in
     assistant development mode with the project folder: it takes the newest bin\…\package and reloads it on rebuilds.
   -->
@@ -36,13 +36,13 @@
       <!-- The first "id" and "version" of the manifest (the top-level ones come before the extras). -->
       <_AssistantId>$([System.Text.RegularExpressions.Regex]::Replace($(_AssistantManifest), '(?s)^.*?"id"\s*:\s*"([^"]+)".*$', '$1'))</_AssistantId>
       <_AssistantVersion>$([System.Text.RegularExpressions.Regex]::Replace($(_AssistantManifest), '(?s)^.*?"version"\s*:\s*"([^"]+)".*$', '$1'))</_AssistantVersion>
-      <AssistantPackage>$(_AssistantOut)$(_AssistantId)-$(_AssistantVersion).kdassistant</AssistantPackage>
+      <AssistantPackage>$(_AssistantOut)$(_AssistantId)-$(_AssistantVersion).kai</AssistantPackage>
     </PropertyGroup>
 
     <ItemGroup>
       <_AssistantContent Include="$(AssistantSource)**\*" />
       <_AssistantLib Include="$(_AssistantOut)**\*"
-                     Exclude="$(AssistantStaging)**;$(_AssistantOut)*.kdassistant;$(_AssistantOut)KDesktop.Assistant.Sdk.*;$(_AssistantOut)**\*.xml" />
+                     Exclude="$(AssistantStaging)**;$(_AssistantOut)*.kai;$(_AssistantOut)KDesktop.Assistant.Sdk.*;$(_AssistantOut)**\*.xml" />
     </ItemGroup>
 
     <RemoveDir Directories="$(AssistantStaging)" />

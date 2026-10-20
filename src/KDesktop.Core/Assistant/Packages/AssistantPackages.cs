@@ -76,13 +76,13 @@ public sealed class PackageInfo
 }
 
 /// <summary>
-/// The package manager (stage 1.7, §11.7): checks a <c>.kdassistant</c> without ever loading its code (K-Desktop is
+/// The package manager (stage 1.7, §11.7): checks a <c>.kai</c> without ever loading its code (K-Desktop is
 /// elevated), installs it in <c>Assistants\&lt;id&gt;\&lt;version&gt;</c>, and removes it. A folder that cannot be
 /// deleted because the assistant process still holds its files gets a mark and goes in <see cref="CleanUp"/>.
 /// </summary>
 public static partial class AssistantPackages
 {
-    public const string Extension = ".kdassistant";
+    public const string Extension = ".kai";
 
     internal const long MaxSize = 512L << 20;
     internal const int MaxFiles = 10_000;

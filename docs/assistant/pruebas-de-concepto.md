@@ -47,7 +47,7 @@ Vortice 3.8.2.
   en las dos. Sirve para cambiar de asistente y para `--assistant-dev`.
 - A tener en cuenta en la fase 1:
   - `ProjectReference` con `Private=false` **no** evita que el SDK se copie a la salida del asistente
-    (`EnableDynamicLoading`): el empaquetador del `.kdassistant` debe excluir `KDesktop.Assistant.Sdk.*`.
+    (`EnableDynamicLoading`): el empaquetador del `.kai` debe excluir `KDesktop.Assistant.Sdk.*`.
   - Un asistente que registre `DependencyProperty` o tipos de WPF globales podría impedir la descarga (WPF guarda
     esos tipos en tablas estáticas). Plan B si pasa: cambiar de asistente reiniciando el proceso del asistente,
     que es barato.

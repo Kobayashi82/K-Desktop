@@ -88,7 +88,7 @@
       }
     },
     "updates": {
-      "description": "URL del último paquete (.kdassistant) para comprobar actualizaciones.",
+      "description": "URL del último paquete (.kai) para comprobar actualizaciones.",
       "type": "string",
       "format": "uri",
       "pattern": "^https://"

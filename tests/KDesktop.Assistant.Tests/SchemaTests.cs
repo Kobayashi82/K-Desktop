@@ -38,7 +38,7 @@ public class SchemaTests
     [InlineData("sdk", "uno")]
     [InlineData("entry", "../evil.dll!X")]
     [InlineData("voice", "../../config.json")]
-    [InlineData("updates", "http://example.com/x.kdassistant")]
+    [InlineData("updates", "http://example.com/x.kai")]
     public void ManifestWithBadValueIsRejected(string field, string value)
     {
         var json = Contracts.Mutate(Path.Combine(Contracts.LanderPackage, "assistant.json"), m => m[field] = value);

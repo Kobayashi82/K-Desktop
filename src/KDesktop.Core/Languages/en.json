@@ -2437,7 +2437,7 @@
 
   "assistant.failed": "The assistant «{0}» failed three times in a row and has been turned off.",
 
-  "assistantPkg.notPackage": "“{0}” is not a valid assistant package (.kdassistant).",
+  "assistantPkg.notPackage": "“{0}” is not a valid assistant package (.kai).",
   "assistantPkg.unsafePath": "The package has a path that is not allowed: “{0}”.",
   "assistantPkg.tooBig": "The package is too big or damaged ({0}).",
   "assistantPkg.missing": "“{0}” is missing from the package.",
@@ -2494,7 +2494,7 @@
   "assistantOptions.none": "None",
   "assistantOptions.openPanel": "Open the panel",
   "assistantOptions.list": "Assistants",
-  "assistantOptions.listHint": ".kdassistant packages. You can also drag one onto this window or double-click it.",
+  "assistantOptions.listHint": ".kai packages. You can also drag one onto this window or double-click it.",
   "assistantOptions.add": "Add assistant",
   "assistantOptions.addTitle": "Choose an assistant",
   "assistantOptions.empty": "No assistants installed",
@@ -2538,7 +2538,6 @@
   "assistantPanel.memoryValue": "{0} in use · {1} committed",
   "assistantPanel.modelLoaded": "{0} (loaded)",
   "assistantPanel.modelNotLoaded": "{0} (not loaded)",
-  "assistantPanel.noError": "None",
   "assistantPanel.seconds": "{0} s",
   "assistantPanel.minutes": "{0} min",
   "assistantPanel.hours": "{0} h {1} min",
@@ -2553,7 +2552,7 @@
   "status.assistant": "Assistant · {0}",
   "status.clickPanel": "Click to open its panel",
   "assistant.hidden": "{0} is hidden. Bring it back from Settings › Assistant or from the tray icon.",
-  "assistant.dropOnlyPackages": "Only assistants (.kdassistant) can be dropped here",
+  "assistant.dropOnlyPackages": "Only assistants (.kai) can be dropped here",
   "assistant.restoreMissing": "The backup had these assistants, which are not installed on this PC:\n\n{0}\n\nTheir data and settings have been restored. Download them now? You will see each one’s card before installing it.",
   "assistant.restoreMissingManual": "The backup had these assistants, which are not installed on this PC:\n\n{0}\n\nTheir data and settings have been restored; add them again from Settings › Assistants.",
   "assistant.restoreDownload": "Download ({0})",
@@ -2562,5 +2561,7 @@
   "assistantPkg.downloadFailed": "Could not download “{0}”: {1}",
   "assistantMenu.panel": "Assistant panel",
   "assistantMenu.settings": "{0} settings",
-  "assistantMenu.hide": "Hide {0}"
+  "assistantMenu.hide": "Hide {0}",
+  "assistantPanel.tech": "Technical details",
+  "assistantPanel.techHint": "For development: the process, what it uses and its log"
 }

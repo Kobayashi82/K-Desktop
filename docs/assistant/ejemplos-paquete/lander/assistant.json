@@ -31,6 +31,6 @@
     { "id": "lander.race.repeat", "name": { "es": "Repetir la carrera", "en": "Repeat the race" }, "icon": "assets/icons/flag.png" },
     { "id": "lander.mission", "name": { "es": "Proponer una misión", "en": "Offer a mission" }, "icon": "assets/icons/mission.png" }
   ],
-  "updates": "https://github.com/Kobayashi82/K-Desktop-Assistants/releases/latest/download/lander.kdassistant",
+  "updates": "https://github.com/Kobayashi82/K-Desktop-Assistants/releases/latest/download/lander.kai",
   "importFrom": ["%APPDATA%\\Lander\\settings.json", "%APPDATA%\\Lander\\progress.json"]
 }

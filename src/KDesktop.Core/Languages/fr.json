@@ -2437,7 +2437,7 @@
 
   "assistant.failed": "L’assistant « {0} » a planté trois fois de suite et a été désactivé.",
 
-  "assistantPkg.notPackage": "« {0} » n’est pas un paquet d’assistant (.kdassistant) valide.",
+  "assistantPkg.notPackage": "« {0} » n’est pas un paquet d’assistant (.kai) valide.",
   "assistantPkg.unsafePath": "Le paquet contient un chemin non autorisé : « {0} ».",
   "assistantPkg.tooBig": "Le paquet est trop volumineux ou endommagé ({0}).",
   "assistantPkg.missing": "« {0} » manque dans le paquet.",
@@ -2494,7 +2494,7 @@
   "assistantOptions.none": "Aucun",
   "assistantOptions.openPanel": "Voir le panneau",
   "assistantOptions.list": "Assistants",
-  "assistantOptions.listHint": "Paquets .kdassistant. Vous pouvez aussi en glisser un sur cette fenêtre ou l’ouvrir d’un double-clic.",
+  "assistantOptions.listHint": "Paquets .kai. Vous pouvez aussi en glisser un sur cette fenêtre ou l’ouvrir d’un double-clic.",
   "assistantOptions.add": "Ajouter un assistant",
   "assistantOptions.addTitle": "Choisissez un assistant",
   "assistantOptions.empty": "Aucun assistant installé",
@@ -2538,7 +2538,6 @@
   "assistantPanel.memoryValue": "{0} utilisés · {1} réservés",
   "assistantPanel.modelLoaded": "{0} (chargé)",
   "assistantPanel.modelNotLoaded": "{0} (non chargé)",
-  "assistantPanel.noError": "Aucune",
   "assistantPanel.seconds": "{0} s",
   "assistantPanel.minutes": "{0} min",
   "assistantPanel.hours": "{0} h {1} min",
@@ -2553,7 +2552,7 @@
   "status.assistant": "Assistant · {0}",
   "status.clickPanel": "Cliquez pour voir son panneau",
   "assistant.hidden": "{0} s’est caché. Faites-le revenir depuis Paramètres › Assistant ou l’icône de la zone de notification.",
-  "assistant.dropOnlyPackages": "Seuls des assistants (.kdassistant) peuvent être déposés ici",
+  "assistant.dropOnlyPackages": "Seuls des assistants (.kai) peuvent être déposés ici",
   "assistant.restoreMissing": "La sauvegarde contenait ces assistants, qui ne sont pas installés sur ce PC :\n\n{0}\n\nLeurs données et réglages ont été restaurés. Les télécharger maintenant ? Vous verrez la fiche de chacun avant de l’installer.",
   "assistant.restoreMissingManual": "La sauvegarde contenait ces assistants, qui ne sont pas installés sur ce PC :\n\n{0}\n\nLeurs données et réglages ont été restaurés ; ajoutez-les à nouveau depuis Paramètres › Assistants.",
   "assistant.restoreDownload": "Télécharger ({0})",
@@ -2562,5 +2561,7 @@
   "assistantPkg.downloadFailed": "Impossible de télécharger « {0} » : {1}",
   "assistantMenu.panel": "Panneau de l’assistant",
   "assistantMenu.settings": "Réglages de {0}",
-  "assistantMenu.hide": "Cacher {0}"
+  "assistantMenu.hide": "Cacher {0}",
+  "assistantPanel.tech": "Détails techniques",
+  "assistantPanel.techHint": "Pour le développement : le processus, sa consommation et son journal"
 }

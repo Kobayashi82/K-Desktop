@@ -6,7 +6,7 @@ using KDesktop.Core.Assistant.Packages;
 namespace KDesktop.Assistant.Tests;
 
 /// <summary>
-/// Stage 1.7: the package manager checks a .kdassistant without loading it, installs, updates and removes it, and
+/// Stage 1.7: the package manager checks a .kai without loading it, installs, updates and removes it, and
 /// turns down broken ones. Every test uses its own id (the data folder is the temporary one of TestSetup).
 /// </summary>
 public class PackageManagerTests
@@ -22,7 +22,7 @@ public class PackageManagerTests
         Action<ZipArchive>? extra = null, Func<string, bool>? skip = null)
     {
         Directory.CreateDirectory(Work);
-        var file = Path.Combine(Work, $"{id}-{version}-{Guid.NewGuid().ToString("N")[..4]}.kdassistant");
+        var file = Path.Combine(Work, $"{id}-{version}-{Guid.NewGuid().ToString("N")[..4]}.kai");
         using (var zip = ZipFile.Open(file, ZipArchiveMode.Create))
         {
             foreach (var path in Directory.EnumerateFiles(DotFolder, "*", SearchOption.AllDirectories))
@@ -56,7 +56,7 @@ public class PackageManagerTests
     [Fact]
     public void TheBuiltDotPackageIsValid()
     {
-        var built = Directory.GetFiles(Path.GetDirectoryName(DotFolder)!, "dot-*.kdassistant").Single();
+        var built = Directory.GetFiles(Path.GetDirectoryName(DotFolder)!, "dot-*.kai").Single();
         var info = AssistantPackages.Inspect(built);
         Assert.Equal("dot", info.Manifest.Id);
         Assert.NotNull(info.Icon);
@@ -137,7 +137,7 @@ public class PackageManagerTests
     [Fact]
     public void BrokenPackagesAreRejected()
     {
-        var notZip = Path.Combine(Work, "text.kdassistant");
+        var notZip = Path.Combine(Work, "text.kai");
         Directory.CreateDirectory(Work);
         File.WriteAllText(notZip, "hola");
         Assert.Equal(PackageProblem.NotAPackage, Rejected(notZip));
@@ -195,7 +195,7 @@ public class PackageManagerTests
     public void PathsArePlainRelativeOnes(string path, bool safe) => Assert.Equal(safe, AssistantPackages.IsSafePath(path));
 
     [Theory]
-    [InlineData("http://example.com/dot.kdassistant")]
+    [InlineData("http://example.com/dot.kai")]
     [InlineData("file:///C:/Windows/notepad.exe")]
     [InlineData("not an address")]
     public async Task OnlyHttpsDownloads(string url)

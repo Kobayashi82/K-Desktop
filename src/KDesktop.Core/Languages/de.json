@@ -2437,7 +2437,7 @@
 
   "assistant.failed": "Der Assistent „{0}“ ist dreimal hintereinander abgestürzt und wurde deaktiviert.",
 
-  "assistantPkg.notPackage": "„{0}“ ist kein gültiges Assistentenpaket (.kdassistant).",
+  "assistantPkg.notPackage": "„{0}“ ist kein gültiges Assistentenpaket (.kai).",
   "assistantPkg.unsafePath": "Das Paket enthält einen unzulässigen Pfad: „{0}“.",
   "assistantPkg.tooBig": "Das Paket ist zu groß oder beschädigt ({0}).",
   "assistantPkg.missing": "„{0}“ fehlt im Paket.",
@@ -2494,7 +2494,7 @@
   "assistantOptions.none": "Keiner",
   "assistantOptions.openPanel": "Panel öffnen",
   "assistantOptions.list": "Assistenten",
-  "assistantOptions.listHint": ".kdassistant-Pakete. Du kannst auch eines auf dieses Fenster ziehen oder es doppelklicken.",
+  "assistantOptions.listHint": ".kai-Pakete. Du kannst auch eines auf dieses Fenster ziehen oder es doppelklicken.",
   "assistantOptions.add": "Assistent hinzufügen",
   "assistantOptions.addTitle": "Assistent auswählen",
   "assistantOptions.empty": "Keine Assistenten installiert",
@@ -2538,7 +2538,6 @@
   "assistantPanel.memoryValue": "{0} belegt · {1} reserviert",
   "assistantPanel.modelLoaded": "{0} (geladen)",
   "assistantPanel.modelNotLoaded": "{0} (nicht geladen)",
-  "assistantPanel.noError": "Keiner",
   "assistantPanel.seconds": "{0} s",
   "assistantPanel.minutes": "{0} Min.",
   "assistantPanel.hours": "{0} Std. {1} Min.",
@@ -2553,7 +2552,7 @@
   "status.assistant": "Assistent · {0}",
   "status.clickPanel": "Klicken, um sein Panel zu öffnen",
   "assistant.hidden": "{0} hat sich versteckt. Hol ihn über Einstellungen › Assistent oder das Infobereich-Symbol zurück.",
-  "assistant.dropOnlyPackages": "Hier können nur Assistenten (.kdassistant) abgelegt werden",
+  "assistant.dropOnlyPackages": "Hier können nur Assistenten (.kai) abgelegt werden",
   "assistant.restoreMissing": "Die Sicherung enthielt diese Assistenten, die auf diesem PC nicht installiert sind:\n\n{0}\n\nIhre Daten und Einstellungen wurden wiederhergestellt. Jetzt herunterladen? Vor der Installation siehst du jeweils ihre Karte.",
   "assistant.restoreMissingManual": "Die Sicherung enthielt diese Assistenten, die auf diesem PC nicht installiert sind:\n\n{0}\n\nIhre Daten und Einstellungen wurden wiederhergestellt; füge sie über Einstellungen › Assistenten erneut hinzu.",
   "assistant.restoreDownload": "Herunterladen ({0})",
@@ -2562,5 +2561,7 @@
   "assistantPkg.downloadFailed": "„{0}“ konnte nicht heruntergeladen werden: {1}",
   "assistantMenu.panel": "Assistenten-Panel",
   "assistantMenu.settings": "Einstellungen von {0}",
-  "assistantMenu.hide": "{0} verstecken"
+  "assistantMenu.hide": "{0} verstecken",
+  "assistantPanel.tech": "Technische Details",
+  "assistantPanel.techHint": "Für die Entwicklung: der Prozess, sein Verbrauch und sein Protokoll"
 }

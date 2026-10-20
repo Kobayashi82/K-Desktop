@@ -300,6 +300,7 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
         if (e.LeftButton != MouseButtonState.Pressed || _dragSource is not Command cmd || !MovedEnough(e)) return;
         _dragSource = null;
         DragDrop.DoDragDrop(Palette, new DataObject(CommandFormat, cmd.Id), DragDropEffects.Copy);
+        ClearDropHints();
     }
 
     private void OnPaletteDoubleClick(object sender, MouseButtonEventArgs e)
@@ -320,6 +321,7 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
         if (e.LeftButton != MouseButtonState.Pressed || _dragSource is not string kind || !MovedEnough(e)) return;
         _dragSource = null;
         DragDrop.DoDragDrop((DependencyObject)sender, new DataObject(KindFormat, kind), DragDropEffects.Copy);
+        ClearDropHints();
     }
 
     private void OnQuickCommand(object sender, RoutedEventArgs e)
@@ -529,23 +531,32 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
         var hint = ComputeHint(row, (FrameworkElement)sender, e);
         var dragged = DraggedItem(e.Data);
         if (dragged is not null && ReferenceEquals(dragged, row.Item)) hint = DropHint.None;
-        if (row.DropHint != hint)
-        {
-            ClearDropHints();
-            row.DropHint = hint;
-        }
         e.Effects = hint == DropHint.None ? DragDropEffects.None : dragged is not null ? DragDropEffects.Move : DragDropEffects.Copy;
-    }
 
-    private void OnRowDragLeave(object sender, DragEventArgs e)
-    {
-        if (RowOf(sender) is { } row) row.DropHint = DropHint.None;
+        // «Above this row» is the same place as «below the previous one»: always shown on the previous row, so moving
+        // across the border between them never takes the line away and puts it back.
+        var target = row;
+        if (hint == DropHint.Before && row.Column.Rows.IndexOf(row) is > 0 and var index)
+        {
+            target = row.Column.Rows[index - 1];
+            hint = DropHint.After;
+        }
+        if (target.DropHint == hint) return;
+        ClearDropHints();
+        target.DropHint = hint;
     }
 
     private void OnRowDrop(object sender, DragEventArgs e)
     {
         e.Handled = true;
-        if (RowOf(sender) is not { } row) return;
+        if (RowOf(sender) is not { } dropped) return;
+        // The line may be on the previous row (see OnRowDragOver): drop where it is shown.
+        DropAtLine(dropped.Column.Rows.FirstOrDefault(r => r.DropHint != DropHint.None) ?? dropped, e.Data);
+    }
+
+    /// <summary>Drops where the row's line says (before, after or into it).</summary>
+    private void DropAtLine(QmRow row, IDataObject data)
+    {
         var hint = row.DropHint;
         ClearDropHints();
         if (hint == DropHint.None) return;
@@ -556,7 +567,7 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
             DropHint.After => (row.Column.List, index + 1),
             _ => (row.Item.Children, row.Item.Children.Count),
         };
-        HandleDrop(e.Data, list, at, intoOwner: hint == DropHint.Into ? row.Item : null);
+        HandleDrop(data, list, at, intoOwner: hint == DropHint.Into ? row.Item : null);
     }
 
     private void OnColumnDragOver(object sender, DragEventArgs e)
@@ -567,6 +578,8 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
             e.Effects = DragDropEffects.None;
             return;
         }
+        // Its padding and the gaps between its rows keep this column's line; a line left in another column goes.
+        if (_columns.Where(c => !ReferenceEquals(c, col)).SelectMany(c => c.Rows).Any(r => r.DropHint != DropHint.None)) ClearDropHints();
         var dragged = DraggedItem(e.Data);
         e.Effects = dragged is not null && _menu is not null && QuickMenuOps.WouldCreateCycle(_menu, dragged, col.List)
             ? DragDropEffects.None
@@ -578,15 +591,35 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
     private void OnColumnDrop(object sender, DragEventArgs e)
     {
         e.Handled = true;
-        ClearDropHints();
-        if (sender is FrameworkElement { DataContext: QmColumn col }) HandleDrop(e.Data, col.List, col.List.Count, null);
+        if (sender is not FrameworkElement { DataContext: QmColumn col })
+        {
+            ClearDropHints();
+            return;
+        }
+        // In the gap between two rows the line is still shown between them: drop there, not at the end.
+        if (col.Rows.FirstOrDefault(r => r.DropHint != DropHint.None) is { } lined) DropAtLine(lined, e.Data);
+        else
+        {
+            ClearDropHints();
+            HandleDrop(e.Data, col.List, col.List.Count, null);
+        }
     }
 
     private void OnCanvasDragOver(object sender, DragEventArgs e)
     {
-        // Dropping on the empty canvas appends to the deepest open level.
+        // Dropping on the empty canvas appends to the deepest open level: no line on any row.
+        ClearDropHints();
         e.Effects = CanAccept(e.Data) ? (DraggedItem(e.Data) is not null ? DragDropEffects.Move : DragDropEffects.Copy) : DragDropEffects.None;
         e.Handled = true;
+    }
+
+    /// <summary>
+    /// The line stays while the pointer moves inside the canvas (DragLeave also comes up from every child it crosses);
+    /// it goes when the drag really leaves.
+    /// </summary>
+    private void OnCanvasDragLeave(object sender, DragEventArgs e)
+    {
+        if (sender is FrameworkElement canvas && !new Rect(canvas.RenderSize).Contains(e.GetPosition(canvas))) ClearDropHints();
     }
 
     private void OnCanvasDrop(object sender, DragEventArgs e)

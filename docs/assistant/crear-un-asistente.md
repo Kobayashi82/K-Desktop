@@ -1,6 +1,6 @@
 # Crear un asistente
 
-Un asistente es un paquete `.kdassistant`: un `.zip` con su manifiesto (`assistant.json`), sus imágenes y ajustes, y
+Un asistente es un paquete `.kai`: un `.zip` con su manifiesto (`assistant.json`), sus imágenes y ajustes, y
 su código en `lib/`. Se escribe en C# contra el SDK (`src/KDesktop.Assistant.Sdk`), que K-Desktop pone siempre: el
 paquete nunca lo lleva. Mientras el SDK no esté en NuGet se usa por referencia a una copia de este repositorio.
 
@@ -10,7 +10,7 @@ paquete nunca lo lleva. Mientras el SDK no esté en NuGet se usa por referencia 
 dotnet new install "<K-Desktop>\templates\kdassistant"
 dotnet new kdassistant -n MiAsistente --sdk "<K-Desktop>\src\KDesktop.Assistant.Sdk" --authorName "Yo"
 cd MiAsistente
-dotnet build          # → bin\Debug\…\miasistente-1.0.0.kdassistant
+dotnet build          # → bin\Debug\…\miasistente-1.0.0.kai
 ```
 
 El proyecto tiene:
@@ -21,7 +21,7 @@ El proyecto tiene:
 | `Package\assistant.json` | El manifiesto (esquema en `docs/assistant/esquemas/assistant.schema.json`): id, versión, entrada, gestos… |
 | `Package\…` | Todo lo demás que va en el paquete tal cual: `icon.png`, `settings.json`, `panel.json`, `persona\`, `voice\`, `assets\` |
 
-Cada compilación deja en `bin\…\package\` el paquete tal y como se instala y, al lado, el `.kdassistant`.
+Cada compilación deja en `bin\…\package\` el paquete tal y como se instala y, al lado, el `.kai`.
 
 ## Probar sin instalar
 
@@ -35,7 +35,7 @@ K-Desktop está abierto con la misma carpeta de datos, se conecta a él; si no, 
 
 ## Instalar
 
-Con el módulo Asistente activado, un doble clic en el `.kdassistant` (o `KDesktop.exe --install-assistant
+Con el módulo Asistente activado, un doble clic en el `.kai` (o `KDesktop.exe --install-assistant
 "archivo"`) abre su ficha en K-Desktop. Antes de enseñarla, K-Desktop comprueba el paquete **sin cargar su
 código**: rutas seguras y tamaños, `assistant.json`, `settings.json`, `panel.json`, la persona y la voz contra los
 esquemas, que estén la DLL de entrada y las imágenes (PNG o JPEG), el número mayor del SDK y que el id no esté

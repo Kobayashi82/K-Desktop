@@ -69,16 +69,20 @@ public partial class AssistantPage : UserControl
         ModelLabel.Visibility = ModelText.Visibility = hasModel ? Visibility.Visible : Visibility.Collapsed;
         if (hasModel)
             ModelText.Text = status!.ModelLoaded == true ? Loc.T("assistantPanel.modelLoaded", status.Model) : Loc.T("assistantPanel.modelNotLoaded", status.Model);
-        ErrorText.Text = _app.AssistantError is { } error
-            ? $"{error.Text} ({error.At.ToString("g", Loc.Instance.Culture)})"
-            : Loc.T("assistantPanel.noError");
+        ErrorPanel.Visibility = _app.AssistantError is null ? Visibility.Collapsed : Visibility.Visible;
+        if (_app.AssistantError is { } error) ErrorText.Text = $"{error.Text} ({error.At.ToString("g", Loc.Instance.Culture)})";
         UpdateUsage();
     }
 
-    /// <summary>The process line, its memory and its processor use (every two seconds while the page is shown).</summary>
+    private void OnTechExpanded(object sender, RoutedEventArgs e) => UpdateUsage();
+
+    /// <summary>
+    /// The process line, its memory and its processor use: every two seconds while the page is shown and the
+    /// technical details are open.
+    /// </summary>
     private void UpdateUsage()
     {
-        if (_app.Assistant is not { } supervisor) return;
+        if (_app.Assistant is not { } supervisor || !TechExpander.IsExpanded) return;
         var pid = supervisor.ProcessId;
         ProcessText.Text = supervisor.State switch
         {

@@ -4,7 +4,7 @@
   "classifications": [ "K-Desktop", "Assistant" ],
   "identity": "KDesktop.Assistant.Template",
   "name": "K-Desktop assistant",
-  "description": "A character for K-Desktop's assistant module: builds into a .kdassistant package.",
+  "description": "A character for K-Desktop's assistant module: builds into a .kai package.",
   "shortName": "kdassistant",
   "sourceName": "MyAssistant",
   "preferNameDirectory": true,

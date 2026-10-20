@@ -72,7 +72,7 @@
                     </Grid>
                 </Border>
 
-                <!-- How the process is doing -->
+                <!-- What it is doing, in the user's words -->
                 <Border Style="{StaticResource Card}">
                     <StackPanel>
                         <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr assistantPanel.status}" />
@@ -84,23 +84,50 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Style="{StaticResource StatusLabel}" Text="{l:Tr assistantPanel.activity}" />
+                            <TextBlock x:Name="ActivityText" Grid.Row="0" Grid.Column="1" Style="{StaticResource StatusValue}" />
+                            <TextBlock x:Name="ModelLabel" Grid.Row="1" Style="{StaticResource StatusLabel}" Text="{l:Tr assistantPanel.model}" />
+                            <TextBlock x:Name="ModelText" Grid.Row="1" Grid.Column="1" Style="{StaticResource StatusValue}" />
+                        </Grid>
+                        <!-- Only when something went wrong -->
+                        <Border x:Name="ErrorPanel" Margin="0,10,0,0" CornerRadius="8" Padding="12,10" Visibility="Collapsed"
+                                Background="{DynamicResource Kd.DangerSoft}">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <ui:SymbolIcon Symbol="ErrorCircle24" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Top" Foreground="{DynamicResource Kd.Danger}" />
+                                <TextBlock x:Name="ErrorText" Grid.Column="1" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- For development: the process, what it uses and its log -->
+                <ui:CardExpander x:Name="TechExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Wrench24}" Expanded="OnTechExpanded"
+                                 AutomationProperties.Name="{l:Tr assistantPanel.tech}">
+                    <ui:CardExpander.Header>
+                        <StackPanel>
+                            <TextBlock FontWeight="SemiBold" Text="{l:Tr assistantPanel.tech}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr assistantPanel.techHint}" />
+                        </StackPanel>
+                    </ui:CardExpander.Header>
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <TextBlock Grid.Row="0" Style="{StaticResource StatusLabel}" Text="{l:Tr assistantPanel.process}" />
                             <TextBlock x:Name="ProcessText" Grid.Row="0" Grid.Column="1" Style="{StaticResource StatusValue}" />
-                            <TextBlock Grid.Row="1" Style="{StaticResource StatusLabel}" Text="{l:Tr assistantPanel.activity}" />
-                            <TextBlock x:Name="ActivityText" Grid.Row="1" Grid.Column="1" Style="{StaticResource StatusValue}" />
-                            <TextBlock Grid.Row="2" Style="{StaticResource StatusLabel}" Text="{l:Tr assistantPanel.memory}" />
-                            <TextBlock x:Name="MemoryText" Grid.Row="2" Grid.Column="1" Style="{StaticResource StatusValue}" />
-                            <TextBlock Grid.Row="3" Style="{StaticResource StatusLabel}" Text="{l:Tr assistantPanel.cpu}" />
-                            <TextBlock x:Name="CpuText" Grid.Row="3" Grid.Column="1" Style="{StaticResource StatusValue}" />
-                            <TextBlock x:Name="ModelLabel" Grid.Row="4" Style="{StaticResource StatusLabel}" Text="{l:Tr assistantPanel.model}" />
-                            <TextBlock x:Name="ModelText" Grid.Row="4" Grid.Column="1" Style="{StaticResource StatusValue}" />
-                            <TextBlock Grid.Row="5" Style="{StaticResource StatusLabel}" Text="{l:Tr assistantPanel.lastError}" />
-                            <TextBlock x:Name="ErrorText" Grid.Row="5" Grid.Column="1" Style="{StaticResource StatusValue}" />
+                            <TextBlock Grid.Row="1" Style="{StaticResource StatusLabel}" Text="{l:Tr assistantPanel.memory}" />
+                            <TextBlock x:Name="MemoryText" Grid.Row="1" Grid.Column="1" Style="{StaticResource StatusValue}" />
+                            <TextBlock Grid.Row="2" Style="{StaticResource StatusLabel}" Text="{l:Tr assistantPanel.cpu}" />
+                            <TextBlock x:Name="CpuText" Grid.Row="2" Grid.Column="1" Style="{StaticResource StatusValue}" />
                         </Grid>
                         <WrapPanel Margin="0,14,0,0">
                             <ui:Button x:Name="RestartButton" Margin="0,0,8,0" Content="{l:Tr assistantPanel.restart}"
@@ -108,7 +135,7 @@
                             <ui:Button Content="{l:Tr assistantPanel.log}" Icon="{ui:SymbolIcon DocumentText24}" Click="OnOpenLog" />
                         </WrapPanel>
                     </StackPanel>
-                </Border>
+                </ui:CardExpander>
 
                 <!-- What is still to come here -->
                 <Border Style="{StaticResource InfoBox}">
