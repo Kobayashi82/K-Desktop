@@ -24,3 +24,10 @@ desktop.ini
 docs/ROADMAP.md
 docs/VOZ.md
 docs/COMPILAR.md
+ARREGLAR.md
+CLAUDE.md
+Plan-Asistentes-KDesktop.md
+Fases-Asistentes-KDesktop.md
+
+## Assistants: their own repository (K-Desktop-Assistants), cloned here
+assistants/
