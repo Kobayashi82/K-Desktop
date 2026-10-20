@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -231,7 +232,7 @@ public static class Favicons
     /// <summary>Largest of "32x32 16x16"; vectors count as 128 px (they scale cleanly).</summary>
     private static int SizeOf(string? sizes, bool svg, int unknown) => svg ? 128 :
         (sizes ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
-            .Select(s => SizeToken.Match(s)).Where(m => m.Success).Select(m => int.Parse(m.Groups[1].Value)).DefaultIfEmpty(unknown).Max();
+            .Select(s => SizeToken.Match(s)).Where(m => m.Success).Select(m => int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture)).DefaultIfEmpty(unknown).Max();
 
     /// <summary>Prefers the smallest icon of at least 64 px (they are shown at 20-48 px), then the biggest one.</summary>
     private static int Score(int size) => size >= 64 ? (size <= MaxPixels ? 2000 - size : 1000 - size / 10) : size;

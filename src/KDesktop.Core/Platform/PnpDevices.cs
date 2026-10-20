@@ -30,12 +30,11 @@ public static class PnpDevices
         try
         {
             var info = new SP_DEVINFO_DATA { cbSize = (uint)Marshal.SizeOf<SP_DEVINFO_DATA>() };
-            var buffer = new StringBuilder(512);
+            var buffer = new char[512];
             for (uint i = 0; SetupDiEnumDeviceInfo(set, i, ref info); i++)
             {
-                buffer.Clear();
-                if (!SetupDiGetDeviceInstanceIdW(set, ref info, buffer, buffer.Capacity, out _)) continue;
-                var id = buffer.ToString();
+                if (!SetupDiGetDeviceInstanceIdW(set, ref info, buffer, buffer.Length, out _)) continue;
+                var id = new string(buffer, 0, Math.Max(0, Array.IndexOf(buffer, '\0')));
                 var slash = id.IndexOf('\\');
                 if (slash <= 0 || id[0] == '{' || Internal.Contains(id[..slash])) continue; // {GUID}\…: virtual adapters
                 var bus = id[..slash].ToUpperInvariant();
@@ -102,7 +101,7 @@ public static class PnpDevices
     private static extern bool SetupDiEnumDeviceInfo(IntPtr set, uint index, ref SP_DEVINFO_DATA info);
 
     [DllImport("setupapi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern bool SetupDiGetDeviceInstanceIdW(IntPtr set, ref SP_DEVINFO_DATA info, StringBuilder id, int size, out int required);
+    private static extern bool SetupDiGetDeviceInstanceIdW(IntPtr set, ref SP_DEVINFO_DATA info, [Out] char[] id, int size, out int required);
 
     [DllImport("setupapi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern bool SetupDiGetDeviceRegistryPropertyW(IntPtr set, ref SP_DEVINFO_DATA info, uint property, out uint type,

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Globalization;
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using KDesktop.Core.Input;
@@ -196,7 +197,7 @@ public partial class MacroStep : ObservableObject
 
     public static string ButtonName(MouseButton b) => Loc.T($"macro.button.{b}");
 
-    private static string Signed(int v) => v > 0 ? "+" + v : v.ToString();
+    private static string Signed(int v) => v > 0 ? "+" + v : v.ToString(CultureInfo.CurrentCulture);
 
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {

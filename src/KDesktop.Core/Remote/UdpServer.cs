@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -221,14 +222,14 @@ public sealed class UdpServer : IDisposable
     {
         var sb = new StringBuilder();
         var remote = RemoteCommands();
-        sb.Append($"[{remote.Count}] - {request} (done)");
-        sb.Append($"\r\n\r\n---------------[{AppPaths.VersionName.ToUpperInvariant()}] - [{Environment.MachineName}]---------------\r\n");
+        sb.Append(CultureInfo.InvariantCulture, $"[{remote.Count}] - {request} (done)");
+        sb.Append(CultureInfo.InvariantCulture, $"\r\n\r\n---------------[{AppPaths.VersionName.ToUpperInvariant()}] - [{Environment.MachineName}]---------------\r\n");
         sb.Append("\r\n[0] - Comandos, Lista, List");
-        for (var i = 0; i < BuiltIns.Length; i++) sb.Append($"\r\n[{i + 1}] - {BuiltIns[i].Name}");
+        for (var i = 0; i < BuiltIns.Length; i++) sb.Append(CultureInfo.InvariantCulture, $"\r\n[{i + 1}] - {BuiltIns[i].Name}");
         sb.Append("\r\n\r\nSendKey [Letra], SK [Letra]");
         sb.Append("\r\nEvento [Nombre]");
         sb.Append("\r\n\r\n---------------[COMANDOS]---------------\r\n");
-        for (var i = 0; i < remote.Count; i++) sb.Append($"\r\n[{FirstCommandIndex + i}] - {remote[i].Name}");
+        for (var i = 0; i < remote.Count; i++) sb.Append(CultureInfo.InvariantCulture, $"\r\n[{FirstCommandIndex + i}] - {remote[i].Name}");
         return sb.ToString();
     }
 

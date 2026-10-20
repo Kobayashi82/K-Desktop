@@ -17,7 +17,7 @@ using MenuItem = System.Windows.Controls.MenuItem;
 namespace KDesktop.Views.Pages;
 
 /// <summary>Macros: list, recording, step editor, test and "create command".</summary>
-public partial class MacrosPage : UserControl, IDisposable
+public sealed partial class MacrosPage : UserControl, IDisposable
 {
     public static readonly RoutedCommand MoveStepUp = new();
     public static readonly RoutedCommand MoveStepDown = new();
@@ -64,7 +64,7 @@ public partial class MacrosPage : UserControl, IDisposable
 
     private void UpdateCount()
     {
-        CountText.Text = Config.Macros.Count.ToString();
+        CountText.Text = Config.Macros.Count.ToString(Loc.Instance.Culture);
         ListEmpty.Visibility = Config.Macros.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -184,7 +184,7 @@ public partial class MacrosPage : UserControl, IDisposable
     private string UniqueName(string baseName)
     {
         var name = baseName;
-        for (var i = 2; Config.Macros.Any(m => m.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase)); i++) name = $"{baseName} {i}";
+        for (var i = 2; Config.Macros.Any(m => m.Name.Equals(name, StringComparison.OrdinalIgnoreCase)); i++) name = $"{baseName} {i}";
         return name;
     }
 

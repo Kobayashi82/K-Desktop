@@ -26,7 +26,7 @@ public sealed class WakeWordListener : IDisposable
     private readonly List<float[]> _recent = [];
     private Channel<float[]>? _queue;
     private Task? _worker;
-    private OwwStream? _stream;
+    private OwwStreamer? _stream;
     private DateTime _quietUntil;
     private DateTime _lastNearMiss;
     private int _training;
@@ -127,7 +127,7 @@ public sealed class WakeWordListener : IDisposable
 
     private void StartLocked(string? micId, bool echoCancel)
     {
-        _stream = new OwwStream(_voice.Features);
+        _stream = new OwwStreamer(_voice.Features);
         _recent.Clear();
         _ringPos = 0;
         _ringFull = false;

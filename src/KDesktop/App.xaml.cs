@@ -23,6 +23,7 @@ using Microsoft.Win32;
 
 namespace KDesktop;
 
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001", Justification = "The tray icon and the instance lock are disposed in OnExit.")]
 public partial class App : Application
 {
     private readonly DispatcherTimer _indexDebounce = new() { Interval = TimeSpan.FromMilliseconds(120) };
@@ -82,7 +83,7 @@ public partial class App : Application
     public LegacyImporter.Report? ImportReport { get; private set; }
 
     /// <summary>Running K-Desktop 4 processes (they would duplicate every hotkey).</summary>
-    public IReadOnlyList<Process> LegacyInstances => FindLegacyInstances();
+    public static IReadOnlyList<Process> LegacyInstances => FindLegacyInstances();
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -323,7 +324,7 @@ public partial class App : Application
         if (Program.ValueOf(args, "--run") is { } name)
         {
             var cmd = Config.FindCommand(name) ??
-                      Config.Commands.FirstOrDefault(c => c.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
+                      Config.Commands.FirstOrDefault(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
             if (cmd is not null) _ = Engine.RunAsync(cmd, TriggerSource.Manual);
             else Log.Warn($"--run: comando no encontrado '{name}'");
         }
@@ -455,7 +456,7 @@ public partial class App : Application
         {
             _appliedFavicons = Favicons.Enabled = s.WebFavicons;
             IconProvider.BumpRevision();
-            Web?.NotifyCatalogChanged();
+            Web.NotifyCatalogChanged();
             Favicons.Prefetch(Config.Commands.SelectMany(c => c.Actions));
         }
 

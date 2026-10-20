@@ -62,7 +62,7 @@ public sealed class WakeDetector
     /// </summary>
     public (double Score, double Dtw, double Classifier) BestLive(OwwFeatures features, float[] audio)
     {
-        var stream = new OwwStream(features);
+        var stream = new OwwStreamer(features);
         var recent = new List<float[]>();
         (double Score, double Dtw, double Classifier) best = (0, 0, 0);
         var live = new float[MicCapture.SampleRate * 3 / 2].Concat(audio).Concat(new float[MicCapture.SampleRate / 2]).ToArray();

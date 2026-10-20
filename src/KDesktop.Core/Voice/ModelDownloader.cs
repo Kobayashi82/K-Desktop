@@ -10,7 +10,7 @@ public sealed record ModelFile(string Url, string Path, long Size, string Sha256
 /// Downloads the voice models into <see cref="AppPaths.ModelsDir"/>: resumable (a <c>.part</c> file continues where
 /// it stopped), checked by size and SHA-256, in the background (closing the window does not stop it).
 /// </summary>
-public sealed class ModelDownloader
+public sealed class ModelDownloader : IDisposable
 {
     private const string Parakeet = "https://huggingface.co/csukuangfj/sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8/resolve/main/";
 
@@ -88,6 +88,9 @@ public sealed class ModelDownloader
     {
         try { _cts?.Cancel(); } catch (ObjectDisposedException) { }
     }
+
+    /// <summary>Stops a download in progress; its task disposes the token source when it ends.</summary>
+    public void Dispose() => Cancel();
 
     /// <summary>Removes every model file (and partial downloads). Unload the recognizer first.</summary>
     public static void Delete()

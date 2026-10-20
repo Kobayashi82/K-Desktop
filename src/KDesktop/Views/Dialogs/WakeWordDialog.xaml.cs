@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,6 +19,7 @@ namespace KDesktop.Views.Dialogs;
 /// (each take trimmed and checked; Parakeet's transcription shown) → 10 s of normal speech (calibrates the threshold)
 /// → a live try. Also opens straight on the try for a saved word.
 /// </summary>
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001", Justification = "The recorder and the token source are disposed when the window closes.")]
 public partial class WakeWordDialog : FluentWindow
 {
     private const int Wanted = 6, Minimum = 4;
@@ -31,7 +33,7 @@ public partial class WakeWordDialog : FluentWindow
     private readonly DispatcherTimer _meterTimer = new() { Interval = TimeSpan.FromMilliseconds(40) };
     private readonly StackPanel[] _steps;
     private readonly List<TakeRow> _takes = [];
-    private CancellationTokenSource _cancel = new();
+    private readonly CancellationTokenSource _cancel = new();
     private ProgressBar? _meter;
     private int _step;
     private bool _busy;
@@ -69,6 +71,7 @@ public partial class WakeWordDialog : FluentWindow
         {
             hold.Dispose();
             _cancel.Cancel();
+            _cancel.Dispose();
             _meterTimer.Stop();
             _recorder.Dispose();
         };
@@ -174,7 +177,7 @@ public partial class WakeWordDialog : FluentWindow
         if (_step < 4)
         {
             // A different word: the takes of the old one no longer count.
-            if (_step == 0 && _takes.Count > 0 && !string.Equals(_takesName, WordName, StringComparison.CurrentCultureIgnoreCase)) ClearTakes();
+            if (_step == 0 && _takes.Count > 0 && !string.Equals(_takesName, WordName, StringComparison.OrdinalIgnoreCase)) ClearTakes();
             ShowStep(_step + 1);
             return;
         }
@@ -235,7 +238,7 @@ public partial class WakeWordDialog : FluentWindow
         SilenceButton.Content = Loc.T("wake.again");
         _noise = WakeWordRecorder.Rms(_silence);
         var level = _noise < 0.01 ? "low" : _noise < 0.03 ? "medium" : "high";
-        SilenceResult.Text = Loc.T("wake.noise." + level, _noise.ToString("0.000"));
+        SilenceResult.Text = Loc.T("wake.noise." + level, _noise.ToString("0.000", Loc.Instance.Culture));
         SilenceResult.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, level == "high" ? "Kd.Warning" : "TextFillColorSecondaryBrush");
     });
 
@@ -377,7 +380,7 @@ public partial class WakeWordDialog : FluentWindow
             ? Loc.T("wake.speechNone", _calibration.Threshold.ToString("0.00", Loc.Instance.Culture))
             : Loc.T("wake.speechDone", _calibration.Negative.ToString("0.00", Loc.Instance.Culture), _calibration.Threshold.ToString("0.00", Loc.Instance.Culture));
         Log.Info($"Palabra de activación «{WordName}»: umbral {_calibration.Threshold:0.000}, habla normal {_calibration.Negative:0.000}, " +
-                 $"grabaciones {string.Join(" ", _calibration.Positives.Select(p => p.ToString("0.00")))}; negativos: {string.Join(" | ", negatives)}");
+                 $"grabaciones {string.Join(" ", _calibration.Positives.Select(p => p.ToString("0.00", CultureInfo.CurrentCulture)))}; negativos: {string.Join(" | ", negatives)}");
     });
 
     // ── 4 · try it ───────────────────────────────────────────────────────

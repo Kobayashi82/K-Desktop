@@ -1,3 +1,4 @@
+using System.Globalization;
 using KDesktop.Core.Engine.Events;
 using KDesktop.Core.Model;
 
@@ -107,7 +108,7 @@ public class EventScheduleTests
     public void TimeRangeCondition(string from, string to, string now, bool expected)
     {
         var c = new EventConditions { TimeFrom = from, TimeTo = to };
-        var at = new DateTime(2026, 10, 16) + TimeOnly.Parse(now).ToTimeSpan();
+        var at = new DateTime(2026, 10, 16) + TimeOnly.Parse(now, CultureInfo.InvariantCulture).ToTimeSpan();
         Assert.Equal(expected, c.Allows(at, _ => false, out _));
     }
 

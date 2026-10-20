@@ -1,0 +1,15 @@
+root = true
+
+[*.cs]
+# Analyzer rules that do not fit K-Desktop (AnalysisLevel latest-recommended, Directory.Build.props).
+
+# CA1707: underscores in names. Win32 constants and structs keep their SDK names (WM_KEYDOWN, MONITOR_DEFAULTTONEAREST…).
+dotnet_diagnostic.CA1707.severity = none
+# CA1806: ignored return values. Win32 calls whose result does not matter (ShowWindow, SetForegroundWindow…).
+dotnet_diagnostic.CA1806.severity = none
+# CA1716: names that are Visual Basic keywords (Option, Step, GoTo…). K-Desktop and its assistants are C#.
+dotnet_diagnostic.CA1716.severity = none
+# CA1859: concrete types instead of interfaces for speed. The abstractions are on purpose and the gain is nil here.
+dotnet_diagnostic.CA1859.severity = none
+# CA2020: (int)wParam and the like truncate, as Win32 means them (message numbers, styles); no overflow check wanted.
+dotnet_diagnostic.CA2020.severity = none

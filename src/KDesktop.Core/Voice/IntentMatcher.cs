@@ -128,7 +128,7 @@ public static class IntentMatcher
         }
         if (scores is not { Ranked: [var top, ..] }) return words;
         var rival = Math.Max(scores.Ranked.Count > 1 ? scores.Ranked[1].Score : -1, scores.None);
-        var agrees = words.Candidates.FirstOrDefault() is { Score: >= 0.6 } guess
+        var agrees = words.Candidates is [{ Score: >= 0.6 } guess, ..]
                      && (top.Command is not null ? guess.Command == top.Command : guess.Media?.Kind == top.Media);
         var accepted = scores.None < top.Score
                        && (top.Media is null || top.Score >= SemanticMatcher.AcceptOrder)

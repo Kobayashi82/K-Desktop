@@ -5,7 +5,7 @@ namespace KDesktop.Core.Engine.Events;
 /// configuration): when each one last fired and until when K-Desktop was watching (the times missed while it was
 /// closed or the PC asleep are counted from there).
 /// </summary>
-public sealed class EventState
+public sealed class EventState : IDisposable
 {
     private sealed class Data
     {

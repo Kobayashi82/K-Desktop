@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using KDesktop.Core.Model;
 using NAudio.Wave;
@@ -19,7 +20,7 @@ public static class VoiceDiagnostics
     {
         var report = new StringBuilder();
         var commands = VoiceService.VoiceCommands(config).ToList();
-        report.AppendLine($"K-Desktop · prueba de voz · {DateTime.Now:g} · {commands.Count} comandos disponibles por voz");
+        report.AppendLine(CultureInfo.CurrentCulture, $"K-Desktop · prueba de voz · {DateTime.Now:g} · {commands.Count} comandos disponibles por voz");
         using var stt = new SpeechToText();
         using var semantic = new SemanticMatcher();
         report.AppendLine(SemanticMatcher.Available ? "Capa de significado: EmbeddingGemma" : "Capa de significado: sin instalar (solo las palabras)");
@@ -35,19 +36,19 @@ public static class VoiceDiagnostics
                       : File.Exists(input) ? [input] : null;
             if (files is null)
             {
-                report.AppendLine().AppendLine($"Frase: «{input}»");
+                report.AppendLine().AppendLine(CultureInfo.CurrentCulture, $"Frase: «{input}»");
                 Describe(report, Plan(input));
                 continue;
             }
             foreach (var file in files)
             {
-                report.AppendLine().AppendLine($"Audio: {Path.GetFileName(file)}");
+                report.AppendLine().AppendLine(CultureInfo.CurrentCulture, $"Audio: {Path.GetFileName(file)}");
                 try
                 {
                     var samples = ReadWav(file);
                     var watch = Stopwatch.StartNew();
                     var text = stt.Transcribe(samples);
-                    report.AppendLine($"  Texto: «{text}» ({samples.Length / (double)MicCapture.SampleRate:0.0} s, {watch.ElapsedMilliseconds} ms)");
+                    report.AppendLine(CultureInfo.CurrentCulture, $"  Texto: «{text}» ({samples.Length / (double)MicCapture.SampleRate:0.0} s, {watch.ElapsedMilliseconds} ms)");
                     Describe(report, Plan(text));
                 }
                 catch (Exception ex)
@@ -70,8 +71,8 @@ public static class VoiceDiagnostics
     public static string RunWake(string name, string folder)
     {
         var report = new StringBuilder();
-        report.AppendLine($"K-Desktop · prueba de la palabra de activación «{name}» · {DateTime.Now:g}");
-        report.AppendLine($"Clave fonética del nombre: {PhoneticKey.Of(name)}");
+        report.AppendLine(CultureInfo.CurrentCulture, $"K-Desktop · prueba de la palabra de activación «{name}» · {DateTime.Now:g}");
+        report.AppendLine(CultureInfo.CurrentCulture, $"Clave fonética del nombre: {PhoneticKey.Of(name)}");
         using var stt = new SpeechToText();
         string[] Wavs(string prefix) => Directory.GetFiles(folder, prefix + "*.wav").Order().ToArray();
 
@@ -84,7 +85,7 @@ public static class VoiceDiagnostics
             var take = WakeWordRecorder.Check(ReadWav(file), noiseRms: 0, kept);
             if (take.Issue == TakeIssue.None) takes.Add(take.Speech);
             var text = take.Speech.Length > 0 ? WakeWordVerifier.Clean(stt.Transcribe(take.Speech)) : "";
-            report.AppendLine($"  {Path.GetFileName(file)}: {take.Seconds:0.00} s, pico {take.Peak:0.00} → {take.Issue}; «{text}» → {PhoneticKey.Of(text)}");
+            report.AppendLine(CultureInfo.CurrentCulture, $"  {Path.GetFileName(file)}: {take.Seconds:0.00} s, pico {take.Peak:0.00} → {take.Issue}; «{text}» → {PhoneticKey.Of(text)}");
             if (take.Issue != TakeIssue.None || text.Length == 0) continue;
             kept.Add(take.Seconds);
             variants.Add(text);
@@ -98,13 +99,13 @@ public static class VoiceDiagnostics
                 var text = stt.Transcribe(part);
                 if (text.Length == 0) continue;
                 negatives.Add(text);
-                report.AppendLine($"  {Path.GetFileName(file)}: «{text}»");
+                report.AppendLine(CultureInfo.CurrentCulture, $"  {Path.GetFileName(file)}: «{text}»");
             }
 
         var cal = WakeWordVerifier.Calibrate(name, variants, negatives);
         var word = new WakeWord { Name = name, Variants = variants.Distinct().ToList(), Threshold = cal.Threshold, NegativeScore = cal.Negative };
-        report.AppendLine().AppendLine($"Calibración: umbral {cal.Threshold:0.000} · habla normal hasta {cal.Negative:0.000} · " +
-                                       $"grabaciones entre sí {string.Join(" ", cal.Positives.Select(p => p.ToString("0.00")))}");
+        report.AppendLine().AppendLine(CultureInfo.CurrentCulture, $"Calibración: umbral {cal.Threshold:0.000} · habla normal hasta {cal.Negative:0.000} · " +
+                                       $"grabaciones entre sí {string.Join(" ", cal.Positives.Select(p => p.ToString("0.00", CultureInfo.CurrentCulture)))}");
 
         // Phase 1: the detector, trained here from the same recordings.
         WakeDetector? detector = null;
@@ -115,14 +116,14 @@ public static class VoiceDiagnostics
             var silence = Wavs("silence").Select(ReadWav).FirstOrDefault();
             var speech = Wavs("speech").Select(ReadWav).FirstOrDefault();
             (detector, var trained) = WakeDetector.Train(features, takes, silence, speech);
-            report.AppendLine().AppendLine($"Detector (fase 1): {trained.Positives} positivos, {trained.Negatives} negativos, {trained.Milliseconds} ms; " +
+            report.AppendLine().AppendLine(CultureInfo.CurrentCulture, $"Detector (fase 1): {trained.Positives} positivos, {trained.Negatives} negativos, {trained.Milliseconds} ms; " +
                                            $"tomas ≥ {trained.PositiveScore:0.000}, habla normal ≤ {trained.NegativeScore:0.000}; umbral {detector.Threshold(0.5):0.000}; " +
                                            $"DTW: tomas {detector.PositiveDistance:0.000}, habla {detector.NegativeDistance:0.000}");
 
             // Port check: the streaming path must give (almost) the embeddings of the whole-clip path.
             var probe = ReadWav(Wavs("speech").Concat(Wavs("word")).First());
             var whole = features.EmbedClip(probe);
-            var stream = new OwwStream(features);
+            var stream = new OwwStreamer(features);
             var streamed = new List<float[]>();
             for (var i = 0; i < probe.Length; i += 512) streamed.AddRange(stream.Accept(probe.AsSpan(i, Math.Min(512, probe.Length - i))));
             // Streamed embedding j ends at chunk j (sample 1280·(j+1)); whole-clip embedding k ends near WindowEnd(k).
@@ -132,7 +133,7 @@ public static class VoiceDiagnostics
                 var j = (int)Math.Round(OwwFeatures.WindowEnd(k) / (double)OwwFeatures.Chunk) - 1;
                 if (j >= 0 && j < streamed.Count) sims.Add(1 - Dtw.CosineDistance(whole[k], streamed[j]));
             }
-            report.AppendLine($"Comprobación del port: {whole.Length} embeddings del clip entero frente a {streamed.Count} en streaming; " +
+            report.AppendLine(CultureInfo.CurrentCulture, $"Comprobación del port: {whole.Length} embeddings del clip entero frente a {streamed.Count} en streaming; " +
                               $"similitud coseno media {sims.DefaultIfEmpty(0).Average():0.0000}, mínima {sims.DefaultIfEmpty(0).Min():0.0000}");
         }
 
@@ -148,7 +149,7 @@ public static class VoiceDiagnostics
                 var (best, bestDtw, bestCls) = detector.BestLive(features, audio);
                 phase1 = $"fase 1 {(best >= detector.Threshold(0.5) ? "SÍ" : "no")} {best:0.000} (DTW {bestDtw:0.00}, clasif. {bestCls:0.00}) · ";
             }
-            report.AppendLine($"  {Path.GetFileName(file)}: «{text}» → {phase1}fase 2 {(match is { Accepted: true } ? "SÍ" : "no")} " +
+            report.AppendLine(CultureInfo.CurrentCulture, $"  {Path.GetFileName(file)}: «{text}» → {phase1}fase 2 {(match is { Accepted: true } ? "SÍ" : "no")} " +
                               $"({match?.Score ?? 0:0.000}){(match is { Accepted: true, Rest.Length: > 0 } ? $" · orden: «{match.Rest}»" : "")}");
         }
         features?.Dispose();
@@ -187,13 +188,13 @@ public static class VoiceDiagnostics
             return 10 * Math.Log10(sum / Math.Max(1, Math.Min(to, a.Count) - from) + 1e-12);
         }
         var report = new StringBuilder();
-        report.AppendLine($"K-Desktop · prueba de cancelación de eco · {DateTime.Now:g}");
-        report.AppendLine($"{Path.GetFileName(micPath)} + {Path.GetFileName(renderPath)} → {Path.GetFileName(outPath)} ({mic.Length / (double)MicCapture.SampleRate:0.0} s en {elapsed} ms)");
+        report.AppendLine(CultureInfo.CurrentCulture, $"K-Desktop · prueba de cancelación de eco · {DateTime.Now:g}");
+        report.AppendLine(CultureInfo.CurrentCulture, $"{Path.GetFileName(micPath)} + {Path.GetFileName(renderPath)} → {Path.GetFileName(outPath)} ({mic.Length / (double)MicCapture.SampleRate:0.0} s en {elapsed} ms)");
         report.AppendLine("  s   micro   altavoz  limpio");
         for (var s = 0; s * MicCapture.SampleRate < mic.Length; s++)
         {
             int from = s * MicCapture.SampleRate, to = from + MicCapture.SampleRate;
-            report.AppendLine($"{s,3} {Db(mic, from, to),7:0.0} {Db(render, from, to),8:0.0} {Db(cleaned, from, to),7:0.0}");
+            report.AppendLine(CultureInfo.CurrentCulture, $"{s,3} {Db(mic, from, to),7:0.0} {Db(render, from, to),8:0.0} {Db(cleaned, from, to),7:0.0}");
         }
         var output = Path.Combine(AppPaths.LogDir, "aec-test.txt");
         Directory.CreateDirectory(AppPaths.LogDir);
@@ -204,7 +205,7 @@ public static class VoiceDiagnostics
     /// <summary>One «frase => Comando» per line: what is run for each, and the totals.</summary>
     private static void Evaluate(StringBuilder report, string file, Func<string, IntentPlan> plan)
     {
-        report.AppendLine().AppendLine($"Evaluación: {Path.GetFileName(file)}");
+        report.AppendLine().AppendLine(CultureInfo.CurrentCulture, $"Evaluación: {Path.GetFileName(file)}");
         int right = 0, wrong = 0, missed = 0, quiet = 0;
         var times = new List<long>();
         foreach (var line in File.ReadAllLines(file))
@@ -223,23 +224,23 @@ public static class VoiceDiagnostics
             else if (string.Equals(gotName, expected, StringComparison.OrdinalIgnoreCase)) (mark, right) = ("OK ", right + 1);
             else (mark, wrong) = ("MAL", wrong + 1);
             var how = got is null ? "" : got.Semantic ? " ≈" : " =";
-            report.AppendLine($"  {mark}{how} «{text}» → {gotName} {(got?.Score ?? result.Whole.Confidence):0.00}" +
-                              (mark is "MAL" or "---" && !nothing ? $" (quería {expected})" : mark == "MAL" ? " (no debía hacer nada)" : "") +
-                              (result.Whole.Note is { } note && mark is "MAL" or "---" ? $"  [{note}]" : ""));
+            var why = (mark is "MAL" or "---" && !nothing ? $" (quería {expected})" : mark == "MAL" ? " (no debía hacer nada)" : "") +
+                      (result.Whole.Note is { } note && mark is "MAL" or "---" ? $"  [{note}]" : "");
+            report.AppendLine(CultureInfo.CurrentCulture, $"  {mark}{how} «{text}» → {gotName} {(got?.Score ?? result.Whole.Confidence):0.00}{why}");
         }
-        report.AppendLine($"  Total: {right} bien, {wrong} mal, {missed} sin entender, {quiet} sin hacer nada (bien); " +
+        report.AppendLine(CultureInfo.CurrentCulture, $"  Total: {right} bien, {wrong} mal, {missed} sin entender, {quiet} sin hacer nada (bien); " +
                           $"{(times.Count > 1 ? times.Skip(1).Average() : 0):0} ms por orden");
     }
 
     private static void Describe(StringBuilder report, IntentPlan plan)
     {
-        report.AppendLine($"  Comando: {(plan.Parts.Count == 0 ? "(ninguno)" : string.Join(" + ", plan.Parts.Select(p => p.Winner!.Describe)))}");
-        foreach (var c in plan.Whole.Candidates) report.AppendLine($"    {c.Score:0.000}  {c.Describe}");
-        if (plan.Whole.Note is { } note) report.AppendLine($"    {note}");
+        report.AppendLine(CultureInfo.CurrentCulture, $"  Comando: {(plan.Parts.Count == 0 ? "(ninguno)" : string.Join(" + ", plan.Parts.Select(p => p.Winner!.Describe)))}");
+        foreach (var c in plan.Whole.Candidates) report.AppendLine(CultureInfo.CurrentCulture, $"    {c.Score:0.000}  {c.Describe}");
+        if (plan.Whole.Note is { } note) report.AppendLine(CultureInfo.CurrentCulture, $"    {note}");
         if (plan.Parts.Count > 1 || plan.Unmatched.Count > 0)
         {
-            foreach (var part in plan.Parts) report.AppendLine($"    parte «{part.Text}» → {part.Winner!.Name} {part.Confidence:0.000}");
-            foreach (var part in plan.Unmatched) report.AppendLine($"    parte «{part}» → nada");
+            foreach (var part in plan.Parts) report.AppendLine(CultureInfo.CurrentCulture, $"    parte «{part.Text}» → {part.Winner!.Name} {part.Confidence:0.000}");
+            foreach (var part in plan.Unmatched) report.AppendLine(CultureInfo.CurrentCulture, $"    parte «{part}» → nada");
         }
     }
 

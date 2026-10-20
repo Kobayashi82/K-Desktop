@@ -29,7 +29,8 @@ public static class AutoBackup
     public static bool IsDue(AppSettings settings, DateTime now)
     {
         if (!settings.AutoBackup) return false;
-        var last = List(FolderOf(settings)).FirstOrDefault();
+        var list = List(FolderOf(settings));
+        var last = list.Count > 0 ? list[0] : default;
         // A little early is fine: the hourly check would otherwise drift a day by an hour.
         return last.Path is null || now - last.Time >= TimeSpan.FromDays(Math.Max(1, settings.AutoBackupDays)) - TimeSpan.FromHours(1);
     }

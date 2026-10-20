@@ -98,7 +98,7 @@ public sealed class OwwFeatures : IDisposable
 /// (1280 samples); each chunk, with the 480 samples before it, gives 8 new mel frames, and the last 76 frames one
 /// new embedding. The mel buffer starts as ones, as in openWakeWord.
 /// </summary>
-public sealed class OwwStream(OwwFeatures features)
+public sealed class OwwStreamer(OwwFeatures features)
 {
     private readonly List<float> _pending = new(OwwFeatures.Chunk * 2);
     private readonly float[] _history = new float[OwwFeatures.Context];

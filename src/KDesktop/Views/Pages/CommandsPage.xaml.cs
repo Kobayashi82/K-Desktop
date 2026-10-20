@@ -20,7 +20,7 @@ using MenuItem = System.Windows.Controls.MenuItem;
 
 namespace KDesktop.Views.Pages;
 
-public partial class CommandsPage : UserControl, IDisposable
+public sealed partial class CommandsPage : UserControl, IDisposable
 {
     private static readonly IEasingFunction EaseOut = new CubicEase { EasingMode = EasingMode.EaseOut };
     private readonly App _app = App.Current;
@@ -157,7 +157,7 @@ public partial class CommandsPage : UserControl, IDisposable
 
     private void OnCommandsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) => UpdateCount();
 
-    private void UpdateCount() => CountText.Text = Config.Commands.Count.ToString();
+    private void UpdateCount() => CountText.Text = Config.Commands.Count.ToString(Loc.Instance.Culture);
 
     public void Select(string id)
     {
@@ -319,7 +319,7 @@ public partial class CommandsPage : UserControl, IDisposable
     private string UniqueName(string baseName)
     {
         var name = baseName;
-        for (var i = 2; Config.Commands.Any(c => c.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase)); i++) name = $"{baseName} {i}";
+        for (var i = 2; Config.Commands.Any(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase)); i++) name = $"{baseName} {i}";
         return name;
     }
 
@@ -824,7 +824,7 @@ public partial class CommandsPage : UserControl, IDisposable
     {
         var phrase = string.Join(' ', VoicePhraseBox.Text.Split(' ', StringSplitOptions.RemoveEmptyEntries));
         if (_selected is null || phrase.Length == 0) return;
-        if (!_selected.VoicePhrases.Any(p => string.Equals(p, phrase, StringComparison.CurrentCultureIgnoreCase)))
+        if (!_selected.VoicePhrases.Any(p => string.Equals(p, phrase, StringComparison.OrdinalIgnoreCase)))
             _selected.VoicePhrases.Add(phrase);
         VoicePhraseBox.Text = "";
         VoicePhraseBox.Focus();

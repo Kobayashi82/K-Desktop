@@ -1,5 +1,4 @@
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace KDesktop.Core.Native;
 
@@ -218,13 +217,13 @@ internal static class Win32
     public static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, [MarshalAs(UnmanagedType.Bool)] bool fAttach);
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+    public static extern int GetWindowText(IntPtr hWnd, [Out] char[] lpString, int nMaxCount);
 
     [DllImport("user32.dll")]
     public static extern int GetWindowTextLength(IntPtr hWnd);
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-    public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
+    public static extern int GetClassName(IntPtr hWnd, [Out] char[] lpClassName, int nMaxCount);
 
     [DllImport("user32.dll")]
     public static extern IntPtr GetAncestor(IntPtr hwnd, uint gaFlags);
@@ -292,7 +291,7 @@ internal static class Win32
 
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    public static extern bool QueryFullProcessImageName(IntPtr hProcess, uint dwFlags, StringBuilder lpExeName, ref uint lpdwSize);
+    public static extern bool QueryFullProcessImageName(IntPtr hProcess, uint dwFlags, [Out] char[] lpExeName, ref uint lpdwSize);
 
     [DllImport("kernel32.dll")]
     public static extern IntPtr GetCurrentProcess();
@@ -350,7 +349,7 @@ internal static class Win32
     [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool CreateProcessWithTokenW(IntPtr hToken, uint dwLogonFlags, string? lpApplicationName,
-        StringBuilder lpCommandLine, uint dwCreationFlags, IntPtr lpEnvironment, string? lpCurrentDirectory,
+        char[] lpCommandLine, uint dwCreationFlags, IntPtr lpEnvironment, string? lpCurrentDirectory,
         ref STARTUPINFO lpStartupInfo, out PROCESS_INFORMATION lpProcessInformation);
 
     [DllImport("userenv.dll", SetLastError = true)]
@@ -397,16 +396,14 @@ internal static class Win32
     {
         var len = GetWindowTextLength(hwnd);
         if (len <= 0) return string.Empty;
-        var sb = new StringBuilder(len + 1);
-        GetWindowText(hwnd, sb, sb.Capacity);
-        return sb.ToString();
+        var buffer = new char[len + 1];
+        return new string(buffer, 0, Math.Max(0, GetWindowText(hwnd, buffer, buffer.Length)));
     }
 
     public static string GetClassName(IntPtr hwnd)
     {
-        var sb = new StringBuilder(256);
-        GetClassName(hwnd, sb, sb.Capacity);
-        return sb.ToString();
+        var buffer = new char[256];
+        return new string(buffer, 0, Math.Max(0, GetClassName(hwnd, buffer, buffer.Length)));
     }
 
     public static string? GetProcessPath(uint pid)
@@ -415,9 +412,9 @@ internal static class Win32
         if (h == IntPtr.Zero) return null;
         try
         {
-            var sb = new StringBuilder(1024);
-            uint size = (uint)sb.Capacity;
-            return QueryFullProcessImageName(h, 0, sb, ref size) ? sb.ToString() : null;
+            var buffer = new char[1024];
+            var size = (uint)buffer.Length;
+            return QueryFullProcessImageName(h, 0, buffer, ref size) ? new string(buffer, 0, (int)size) : null;
         }
         finally { CloseHandle(h); }
     }

@@ -123,7 +123,7 @@ public sealed class AppConfig
         string.IsNullOrEmpty(idOrName)
             ? null
             : Events.FirstOrDefault(e => e.Id == idOrName) ??
-              Events.FirstOrDefault(e => e.Name.Equals(idOrName, StringComparison.CurrentCultureIgnoreCase));
+              Events.FirstOrDefault(e => e.Name.Equals(idOrName, StringComparison.OrdinalIgnoreCase));
 
     public Command? FindCommand(string? id) =>
         string.IsNullOrEmpty(id) ? null : Commands.FirstOrDefault(c => c.Id == id);

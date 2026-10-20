@@ -13,7 +13,7 @@ using Image = System.Windows.Controls.Image;
 namespace KDesktop.Views.Pages;
 
 /// <summary>Achievements (grouped cards with progress) and statistics (headline numbers, most used commands, origins).</summary>
-public partial class AchievementsPage : UserControl, IDisposable
+public sealed partial class AchievementsPage : UserControl, IDisposable
 {
     private static readonly IEasingFunction EaseOut = new CubicEase { EasingMode = EasingMode.EaseOut };
     private readonly App _app = App.Current;

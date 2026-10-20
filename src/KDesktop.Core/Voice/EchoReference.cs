@@ -233,6 +233,7 @@ internal sealed class EchoStage : IDisposable
 /// every microphone in use takes it with <see cref="Acquire"/> and gives it back with <see cref="Release"/>; it only
 /// records while someone uses it. Follows the default output when it changes.
 /// </summary>
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001", Justification = "Shared instance: Release stops its timer when the last user gives it back.")]
 public sealed class PlaybackReference : IEchoReference
 {
     private const int Length = MicCapture.SampleRate * 3;

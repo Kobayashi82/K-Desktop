@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -17,7 +18,7 @@ namespace KDesktop.Views.Pages;
 /// K-Board: profiles of key / mouse remappings. A visual keyboard and mouse to pick the source, the modifier "layer"
 /// (Ctrl + J is not the same key as J), and what the key does instead: other keys, text, nothing or a command.
 /// </summary>
-public partial class KBoardPage : UserControl, IDisposable
+public sealed partial class KBoardPage : UserControl, IDisposable
 {
     private static readonly IEasingFunction EaseOut = new CubicEase { EasingMode = EasingMode.EaseOut };
     private readonly App _app = App.Current;
@@ -63,7 +64,7 @@ public partial class KBoardPage : UserControl, IDisposable
     {
         var keys = new List<string>();
         for (var c = 'A'; c <= 'Z'; c++) keys.Add(c.ToString());
-        for (var d = 0; d <= 9; d++) keys.Add(d.ToString());
+        for (var d = 0; d <= 9; d++) keys.Add(d.ToString(CultureInfo.InvariantCulture));
         for (var f = 1; f <= 24; f++) keys.Add("F" + f);
         keys.AddRange([
             "Enter", "Escape", "Space", "Tab", "Backspace", "Delete", "Insert", "Home", "End", "PageUp", "PageDown",
@@ -84,7 +85,7 @@ public partial class KBoardPage : UserControl, IDisposable
 
     private void UpdateCount()
     {
-        CountText.Text = Config.KBoards.Count.ToString();
+        CountText.Text = Config.KBoards.Count.ToString(Loc.Instance.Culture);
         ListEmpty.Visibility = Config.KBoards.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -206,7 +207,7 @@ public partial class KBoardPage : UserControl, IDisposable
     private string UniqueName(string baseName)
     {
         var name = baseName;
-        for (var i = 2; Config.KBoards.Any(k => k.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase)); i++) name = $"{baseName} {i}";
+        for (var i = 2; Config.KBoards.Any(k => k.Name.Equals(name, StringComparison.OrdinalIgnoreCase)); i++) name = $"{baseName} {i}";
         return name;
     }
 

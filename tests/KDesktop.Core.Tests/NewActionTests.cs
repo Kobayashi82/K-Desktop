@@ -1,3 +1,4 @@
+using System.Globalization;
 using KDesktop.Core.Engine;
 using KDesktop.Core.Model;
 using KDesktop.Core.Platform;
@@ -227,7 +228,7 @@ public class HistoryTests
     {
         var history = new ExecutionHistory(null);
         for (var i = 0; i < ExecutionHistory.Capacity + 10; i++)
-            history.Add(new HistoryEntry(DateTime.Now, null, i.ToString(), TriggerSource.Manual, null, RunOutcome.Ok, null, 0));
+            history.Add(new HistoryEntry(DateTime.Now, null, i.ToString(CultureInfo.InvariantCulture), TriggerSource.Manual, null, RunOutcome.Ok, null, 0));
         Assert.Equal(ExecutionHistory.Capacity, history.Entries.Count);
         Assert.Equal("10", history.Entries[0].Name);
     }

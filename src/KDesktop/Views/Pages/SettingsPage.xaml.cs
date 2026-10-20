@@ -104,9 +104,13 @@ public partial class SettingsPage : UserControl
     private sealed record StepOption(int Value, string Name);
     private sealed record HandlerOption(MusicHandler Value, string Name);
 
+    private static readonly int[] MediaSteps = [2, 5, 10, 15, 20, 25];
+    private static readonly int[] VoiceUnloadMinutes = [1, 5, 10, 30, 60, 0];
+    private static readonly int[] VoiceDuckPercents = [0, 10, 20, 35, 50, 80];
+
     private void LoadMedia()
     {
-        MediaStepBox.ItemsSource = new[] { 2, 5, 10, 15, 20, 25 }.Select(p => new StepOption(p, $"{p} %")).ToList();
+        MediaStepBox.ItemsSource = MediaSteps.Select(p => new StepOption(p, $"{p} %")).ToList();
         MusicOnBox.ItemsSource = Enum.GetValues<MusicHandler>().Select(h => new HandlerOption(h, Loc.T($"settings.musicOn.{h}"))).ToList();
         MusicOffBox.ItemsSource = Enum.GetValues<MusicHandler>().Select(h => new HandlerOption(h, Loc.T($"settings.musicOff.{h}"))).ToList();
     }
@@ -148,9 +152,9 @@ public partial class SettingsPage : UserControl
         VoiceMicBox.SelectedItem = mics.First(m => m.Id == chosen);
         UpdateOptionalHotkeys();
         UpdateWakeWords();
-        VoiceUnloadBox.ItemsSource = new[] { 1, 5, 10, 30, 60, 0 }
+        VoiceUnloadBox.ItemsSource = VoiceUnloadMinutes
             .Select(m => new MinutesOption(m, m == 0 ? Loc.T("settings.voiceUnloadNever") : Loc.T("settings.voiceUnloadMinutes", m))).ToList();
-        VoiceDuckBox.ItemsSource = new[] { 0, 10, 20, 35, 50, 80 }.Select(p => new MinutesOption(p, $"{p} %")).ToList();
+        VoiceDuckBox.ItemsSource = VoiceDuckPercents.Select(p => new MinutesOption(p, $"{p} %")).ToList();
         _loadingVoice = false;
     }
 
@@ -330,7 +334,7 @@ public partial class SettingsPage : UserControl
     {
         var s = _app.Config.Settings;
         if (_app.Web.PublicAddress is { } address) return address;
-        return WebServer.LocalUrls(s.WebPort).FirstOrDefault() ?? $"http://localhost:{s.WebPort}/";
+        return WebServer.LocalUrls(s.WebPort) is [var first, ..] ? first : $"http://localhost:{s.WebPort}/";
     }
 
     private void OnPairWeb(object sender, RoutedEventArgs e)
@@ -628,7 +632,8 @@ public partial class SettingsPage : UserControl
     /// <summary>«Última copia: …» under the automatic backup switch.</summary>
     private void ShowBackupStatus()
     {
-        var last = AutoBackup.List(AutoBackup.FolderOf(_app.Config.Settings)).FirstOrDefault();
+        var list = AutoBackup.List(AutoBackup.FolderOf(_app.Config.Settings));
+        var last = list.Count > 0 ? list[0] : default;
         AutoBackupStatus.Text = last.Path is null
             ? Loc.T("settings.autoBackupNone")
             : Loc.T("settings.autoBackupLast", last.Time.ToString("g", System.Globalization.CultureInfo.CurrentCulture));

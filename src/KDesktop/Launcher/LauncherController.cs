@@ -31,7 +31,7 @@ public sealed partial class LauncherController
     private readonly LauncherUsage _usage = new();
 
     private LauncherWindow? _window;
-    private ForegroundWindow _previous;
+    private ForegroundWindow _previous = new(IntPtr.Zero, 0, string.Empty);
     private List<Candidate> _commands = [];
     private List<Candidate> _apps = [];
     private IReadOnlyList<InstalledApp>? _appsSource;

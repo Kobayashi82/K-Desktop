@@ -39,7 +39,7 @@ public class ProcessTrackerTests
         t.SetGroups(new Dictionary<string, string[]> { ["s"] = ["steam"], ["o"] = ["obs64"] }, Running("steam", "obs64"));
         Assert.True(t.IsOpen("s"));
         Assert.True(t.IsOpen("o"));
-        Assert.Equal(new[] { "obs64", "steam" }, t.Names.Order());
+        Assert.Equal(["obs64", "steam"], t.Names.Order());
     }
 
     [Fact]

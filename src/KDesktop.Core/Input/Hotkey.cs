@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace KDesktop.Core.Input;
 
 [Flags]
@@ -106,7 +108,7 @@ public static class KeyNames
         }
 
         for (var c = 'A'; c <= 'Z'; c++) Add(c, c.ToString());
-        for (var d = 0; d <= 9; d++) Add('0' + d, d.ToString(), "D" + d);
+        for (var d = 0; d <= 9; d++) Add('0' + d, d.ToString(CultureInfo.InvariantCulture), "D" + d);
         for (var f = 1; f <= 24; f++) Add(0x6F + f, "F" + f);
         for (var n = 0; n <= 9; n++) Add(0x60 + n, "NumPad" + n);
 

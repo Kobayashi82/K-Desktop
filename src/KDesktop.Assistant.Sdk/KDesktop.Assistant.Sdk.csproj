@@ -10,10 +10,8 @@
     <RootNamespace>KDesktop.Assistant.Sdk</RootNamespace>
     <AssemblyName>KDesktop.Assistant.Sdk</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <!-- New assistant projects build with the recommended analyzers (the rest of K-Desktop predates them). -->
-    <AnalysisLevel>latest-recommended</AnalysisLevel>
-    <!-- CA1716/CA1720: names that clash with Visual Basic keywords (GoTo, Loop, Step) or type names (Pointer); assistants are C#. -->
-    <NoWarn>$(NoWarn);CS1591;CS1573;CA1716;CA1720</NoWarn>
+    <!-- CA1720: names that are type names (Pointer); assistants are C#. -->
+    <NoWarn>$(NoWarn);CS1591;CS1573;CA1720</NoWarn>
     <!-- SDK version (major = compatibility): goes into assistant.json as "sdk". -->
     <SdkContractVersion>1.0</SdkContractVersion>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>

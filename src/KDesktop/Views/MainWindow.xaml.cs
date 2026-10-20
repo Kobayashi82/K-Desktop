@@ -319,7 +319,7 @@ public partial class MainWindow : FluentWindow
             }, resume);
         }
 
-        var legacy = app.LegacyInstances;
+        var legacy = App.LegacyInstances;
         if (legacy.Count > 0)
         {
             var bar = new InfoBar
@@ -333,7 +333,7 @@ public partial class MainWindow : FluentWindow
             var close = new Wpf.Ui.Controls.Button { Content = Loc.T("banner.legacyClose"), Appearance = ControlAppearance.Caution };
             close.Click += (_, _) =>
             {
-                foreach (var p in app.LegacyInstances)
+                foreach (var p in App.LegacyInstances)
                 {
                     try { p.Kill(); } catch { /* ignore */ }
                     p.Dispose();

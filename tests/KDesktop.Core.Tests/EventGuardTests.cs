@@ -116,6 +116,6 @@ public class EventGuardTests
         var present = KDesktop.Core.Platform.PnpDevices.Present();
         var paired = KDesktop.Core.Platform.PnpDevices.Present(pairedToo: true);
         Assert.True(paired.Count >= present.Count);
-        Assert.DoesNotContain(present, d => d.Id.StartsWith("ROOT", StringComparison.OrdinalIgnoreCase) || d.Id.StartsWith("{"));
+        Assert.DoesNotContain(present, d => d.Id.StartsWith("ROOT", StringComparison.OrdinalIgnoreCase) || d.Id.StartsWith('{'));
     }
 }

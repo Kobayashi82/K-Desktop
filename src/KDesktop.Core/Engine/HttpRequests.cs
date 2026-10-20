@@ -39,7 +39,10 @@ public static class HttpRequests
             PooledConnectionLifetime = TimeSpan.FromMinutes(5),
             AutomaticDecompression = System.Net.DecompressionMethods.All,
         };
+        // The action's own option «accept any certificate» (self-signed devices on the LAN): the user's choice.
+#pragma warning disable CA5359
         if (insecure) handler.SslOptions.RemoteCertificateValidationCallback = static (_, _, _, _) => true;
+#pragma warning restore CA5359
         var client = new HttpClient(handler) { Timeout = Timeout.InfiniteTimeSpan };
         client.DefaultRequestHeaders.UserAgent.ParseAdd($"K-Desktop/{typeof(HttpRequests).Assembly.GetName().Version?.ToString(3)}");
         return client;

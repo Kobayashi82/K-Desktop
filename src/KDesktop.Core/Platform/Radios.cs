@@ -134,7 +134,7 @@ public static unsafe class Radios
     private static void Await(IntPtr operation)
     {
         var iid = IidAsyncInfo;
-        Check(Marshal.QueryInterface(operation, ref iid, out var info));
+        Check(Marshal.QueryInterface(operation, in iid, out var info));
         try
         {
             var start = Environment.TickCount64;

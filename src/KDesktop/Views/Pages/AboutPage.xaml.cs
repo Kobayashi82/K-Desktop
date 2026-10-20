@@ -47,7 +47,7 @@ public partial class AboutPage : UserControl
 
     private void BuildFilters()
     {
-        foreach (var category in new[] { "all" }.Concat(Tips.Categories))
+        foreach (var category in Tips.Categories.Prepend("all"))
         {
             var pill = new RadioButton
             {
@@ -157,7 +157,7 @@ public partial class AboutPage : UserControl
         }
     }
 
-    private FrameworkElement Cap(string text)
+    private static FrameworkElement Cap(string text)
     {
         var cap = new Border
         {

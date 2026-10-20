@@ -25,7 +25,7 @@ namespace KDesktop.Views.Pages;
 /// Drag &amp; drop (items, commands from the palette, files/folders/links from outside), context menu,
 /// inline rename, icons, cut/copy/paste and undo/redo.
 /// </summary>
-public partial class QuickMenusPage : UserControl, IDisposable
+public sealed partial class QuickMenusPage : UserControl, IDisposable
 {
     private const string ItemFormat = "KDesktop.QmItem";
     private const string CommandFormat = "KDesktop.Command";
@@ -77,7 +77,7 @@ public partial class QuickMenusPage : UserControl, IDisposable
 
     private void OnMenusChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) => UpdateCount();
 
-    private void UpdateCount() => CountText.Text = Config.QuickMenus.Count.ToString();
+    private void UpdateCount() => CountText.Text = Config.QuickMenus.Count.ToString(Loc.Instance.Culture);
 
     private bool Filter(object o)
     {
@@ -157,7 +157,7 @@ public partial class QuickMenusPage : UserControl, IDisposable
     private string UniqueName(string baseName)
     {
         var name = baseName;
-        for (var i = 2; Config.QuickMenus.Any(m => m.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase)); i++) name = $"{baseName} {i}";
+        for (var i = 2; Config.QuickMenus.Any(m => m.Name.Equals(name, StringComparison.OrdinalIgnoreCase)); i++) name = $"{baseName} {i}";
         return name;
     }
 
@@ -503,7 +503,7 @@ public partial class QuickMenusPage : UserControl, IDisposable
 
     // ── drag & drop ───────────────────────────────────────────────────────
 
-    private bool CanAccept(IDataObject data) =>
+    private static bool CanAccept(IDataObject data) =>
         data.GetDataPresent(ItemFormat) || data.GetDataPresent(CommandFormat) || data.GetDataPresent(KindFormat);
 
     private QuickMenuItem? DraggedItem(IDataObject data) =>
@@ -798,7 +798,7 @@ public partial class QuickMenusPage : UserControl, IDisposable
         if (row.IsMissing || row.Command is not null)
             menu.Items.Add(Item(Loc.T("qm.changeCommand"), "Flash24", () =>
             {
-                if (CommandPicker.Pick(Window.GetWindow(this), Config.Commands).FirstOrDefault() is { } picked)
+                if (CommandPicker.Pick(Window.GetWindow(this), Config.Commands) is [var picked, ..])
                     Mutate(() => row.Item.CommandId = picked.Id);
             }));
         if (row.IsSubmenu || row.IsTitle)

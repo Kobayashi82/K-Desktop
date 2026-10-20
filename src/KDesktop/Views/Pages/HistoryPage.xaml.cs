@@ -82,7 +82,7 @@ public sealed class HistoryRow(HistoryEntry entry)
 }
 
 /// <summary>«Registro»: the last runs (newest first), from where, how long and how they went.</summary>
-public partial class HistoryPage : UserControl, IDisposable
+public sealed partial class HistoryPage : UserControl, IDisposable
 {
     /// <summary>What the source filter offers: everything, only what went wrong, or one origin.</summary>
     private sealed record SourceOption(string Name, Func<HistoryEntry, bool> Accepts);

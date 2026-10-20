@@ -49,7 +49,7 @@ public partial class RecorderBar : Window
 
         for (var i = seconds; i > 0 && !stopped; i--)
         {
-            CountdownText.Text = i.ToString();
+            CountdownText.Text = i.ToString(Loc.Instance.Culture);
             var pop = new DoubleAnimation(1.6, 1, TimeSpan.FromMilliseconds(350)) { EasingFunction = EaseOut };
             CountdownScale.BeginAnimation(ScaleTransform.ScaleXProperty, pop);
             CountdownScale.BeginAnimation(ScaleTransform.ScaleYProperty, pop);

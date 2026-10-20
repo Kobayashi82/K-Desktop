@@ -171,7 +171,9 @@ public static class ProcessLauncher
             Win32.CreateEnvironmentBlock(out env, hToken, false);
 
             var si = new Win32.STARTUPINFO { cb = Marshal.SizeOf<Win32.STARTUPINFO>() };
-            var cmd = new StringBuilder(commandLine, Math.Max(commandLine.Length + 1, 1024));
+            // Writable and null-terminated: CreateProcessWithTokenW may change the command line in place.
+            var cmd = new char[Math.Max(commandLine.Length + 1, 1024)];
+            commandLine.CopyTo(cmd);
             if (!Win32.CreateProcessWithTokenW(hToken, 0, application, cmd, Win32.CREATE_UNICODE_ENVIRONMENT, env,
                     Path.GetDirectoryName(application), ref si, out var pi))
                 return Fail("CreateProcessWithTokenW");

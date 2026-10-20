@@ -16,7 +16,7 @@ namespace KDesktop.Views.Pages;
 /// Eventos: «when X happens, run these commands». List on the left (in the order «Al iniciar» runs them, drag to
 /// reorder), editor on the right.
 /// </summary>
-public partial class EventsPage : UserControl, IDisposable
+public sealed partial class EventsPage : UserControl, IDisposable
 {
     public static readonly RoutedUICommand RemoveProcess = new("RemoveProcess", nameof(RemoveProcess), typeof(EventsPage));
     public static readonly RoutedUICommand RemoveCommand = new("RemoveCommand", nameof(RemoveCommand), typeof(EventsPage));
@@ -74,7 +74,7 @@ public partial class EventsPage : UserControl, IDisposable
 
     private void OnEventsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) => UpdateCount();
 
-    private void UpdateCount() => CountText.Text = Config.Events.Count.ToString();
+    private void UpdateCount() => CountText.Text = Config.Events.Count.ToString(Loc.Instance.Culture);
 
     public void Select(string id)
     {
@@ -186,7 +186,7 @@ public partial class EventsPage : UserControl, IDisposable
     private string UniqueName(string baseName)
     {
         var name = baseName;
-        for (var i = 2; Config.Events.Any(e => e.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase)); i++) name = $"{baseName} {i}";
+        for (var i = 2; Config.Events.Any(e => e.Name.Equals(name, StringComparison.OrdinalIgnoreCase)); i++) name = $"{baseName} {i}";
         return name;
     }
 

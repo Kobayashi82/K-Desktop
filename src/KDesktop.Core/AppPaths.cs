@@ -33,8 +33,11 @@ public static class AppPaths
         var full = Path.GetFullPath(Environment.ExpandEnvironmentVariables(dir.Trim().Trim('"')));
         if (full.Equals(DefaultDataDir, StringComparison.OrdinalIgnoreCase)) return;
         DataDir = full;
+        // SHA-1 only names the instance lock of this data folder (no security): changing it would rename the lock.
+#pragma warning disable CA5350
         InstanceSuffix = "." + Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(
             System.Text.Encoding.UTF8.GetBytes(full.ToLowerInvariant())))[..8];
+#pragma warning restore CA5350
     }
 
     public static string ConfigFile => Path.Combine(DataDir, "config.json");

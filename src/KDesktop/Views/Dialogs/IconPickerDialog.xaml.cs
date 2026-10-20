@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 using System.Windows.Media.Imaging;
 using KDesktop.Core;
@@ -46,7 +47,8 @@ public partial class IconPickerDialog : FluentWindow
     private KdIconStyle _style = KdIconStyle.Tile;
     private string _category = "all";
     private string? _library;
-    private CancellationTokenSource? _loading;
+    /// <summary>Raised by each library load (and on closing): a load that finds it changed is stale.</summary>
+    private int _loading;
     private bool _ready;
 
     /// <summary>The chosen icon; empty string = back to the automatic icon.</summary>
@@ -57,7 +59,7 @@ public partial class IconPickerDialog : FluentWindow
         InitializeComponent();
         _baseName = baseName;
 
-        CategoryList.ItemsSource = new[] { "all" }.Concat(KdIcons.Categories).Select(c => new Category(c, Loc.T($"icons.cat.{c}"))).ToList();
+        CategoryList.ItemsSource = KdIcons.Categories.Prepend("all").Select(c => new Category(c, Loc.T($"icons.cat.{c}"))).ToList();
         BuildSwatches();
         LibraryBox.ItemsSource = Libraries.Where(l => File.Exists(IconProvider.ResolveLibrary(Environment.ExpandEnvironmentVariables(l)))).ToList();
 
@@ -246,20 +248,19 @@ public partial class IconPickerDialog : FluentWindow
     {
         _library = library;
         if (!string.Equals(LibraryBox.Text, library, StringComparison.OrdinalIgnoreCase)) LibraryBox.Text = library;
-        _loading?.Cancel();
-        var cts = _loading = new CancellationTokenSource();
+        var load = ++_loading;
 
         var file = Environment.ExpandEnvironmentVariables(library);
         WinList.ItemsSource = null;
         WinEmpty.Visibility = Visibility.Collapsed;
         Loading.Visibility = Visibility.Visible;
         var count = await Task.Run(() => IconProvider.LibraryCount(file));
-        if (cts.IsCancellationRequested) return;
+        if (load != _loading) return;
 
         var items = Enumerable.Range(0, count).Select(i => new IconChoice
         {
             Reference = IconProvider.LibraryReference(file, i),
-            Caption = i.ToString(),
+            Caption = i.ToString(Loc.Instance.Culture),
             Tip = $"{Path.GetFileName(file)}, {i}",
         }).ToList();
         WinList.ItemsSource = items;
@@ -277,7 +278,7 @@ public partial class IconPickerDialog : FluentWindow
         foreach (var batch in items.Chunk(24))
         {
             var images = await Task.Run(() => batch.Select(i => IconProvider.TryParseLibrary(i.Reference, out var f, out var n) ? IconProvider.Library(f, n) : null).ToList());
-            if (cts.IsCancellationRequested) return;
+            if (load != _loading) return;
             for (var i = 0; i < batch.Length; i++) batch[i].Image = images[i];
             Loading.Visibility = Visibility.Collapsed;
         }
@@ -340,7 +341,7 @@ public partial class IconPickerDialog : FluentWindow
 
     protected override void OnClosed(EventArgs e)
     {
-        _loading?.Cancel();
+        _loading++;
         base.OnClosed(e);
     }
 }
@@ -358,7 +359,7 @@ public static class IconPicker
         {
             Directory.CreateDirectory(AppPaths.IconsDir);
             var ext = Path.GetExtension(source).ToLowerInvariant();
-            var stamp = DateTime.Now.ToString("yyMMddHHmmss");
+            var stamp = DateTime.Now.ToString("yyMMddHHmmss", CultureInfo.InvariantCulture);
             if (ext is ".ico" or ".png" or ".jpg" or ".jpeg" or ".bmp")
             {
                 var file = $"{baseName}-{stamp}{ext}";

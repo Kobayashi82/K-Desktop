@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Runtime.InteropServices;
 using NAudio.CoreAudioApi;
 
@@ -116,7 +117,7 @@ public static class AudioDevices
         {
             var props = device.Properties;
             if (!props.Contains(PropertyKeys.PKEY_AudioEndpoint_FormFactor)) return AudioFormFactor.Other;
-            return Convert.ToInt32(props[PropertyKeys.PKEY_AudioEndpoint_FormFactor].Value) switch
+            return Convert.ToInt32(props[PropertyKeys.PKEY_AudioEndpoint_FormFactor].Value, CultureInfo.InvariantCulture) switch
             {
                 1 => AudioFormFactor.Speakers,
                 3 => AudioFormFactor.Headphones,

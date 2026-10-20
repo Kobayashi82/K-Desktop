@@ -590,6 +590,7 @@ public sealed partial class VoiceService : IDisposable
 
     public void Dispose()
     {
+        Models.Dispose();
         _mic.Dispose();
         SpeechToText.Dispose();
         Semantic.Dispose();

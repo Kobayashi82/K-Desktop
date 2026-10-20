@@ -46,7 +46,7 @@ public static class Json
     /// <summary>Deep copy through a JSON round-trip (uses the runtime type for polymorphic objects).</summary>
     public static T Clone<T>(T value) where T : class
     {
-        var json = JsonSerializer.Serialize(value, typeof(T), Options);
-        return (T)JsonSerializer.Deserialize(json, typeof(T), Options)!;
+        var json = JsonSerializer.Serialize(value, Options);
+        return JsonSerializer.Deserialize<T>(json, Options)!;
     }
 }

@@ -187,7 +187,7 @@ public sealed partial class HotkeyRouter
         return held;
     }
 
-    private void Repeat(Held held)
+    private static void Repeat(Held held)
     {
         var rule = held.Rule;
         if (rule.Kind != RemapKind.Keys) return;

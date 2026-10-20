@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -106,7 +107,7 @@ public sealed class HttpRequestTests : IDisposable
         var result = await HttpRequests.SendAsync(new HttpRequestAction { Url = _base + path }, CancellationToken.None);
         Assert.False(result.Success);
         Assert.Equal(code, result.Status);
-        Assert.Contains(code.ToString(), result.Describe());
+        Assert.Contains(code.ToString(CultureInfo.InvariantCulture), result.Describe());
     }
 
     [Fact]
