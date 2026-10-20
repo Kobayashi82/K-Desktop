@@ -185,31 +185,41 @@ public sealed class PipeConnection : IAsyncDisposable
 
     private async Task HeartbeatLoopAsync(CancellationToken token)
     {
-        var pinged = false;
+        var pingedAt = long.MinValue;
+        var wait = _heartbeat.Idle;
         try
         {
             while (!token.IsCancellationRequested)
             {
-                await Task.Delay(_heartbeat.Check, token).ConfigureAwait(false);
-                var quiet = TimeSpan.FromMilliseconds(Environment.TickCount64 - Volatile.Read(ref _lastReceived));
+                await Task.Delay(wait, token).ConfigureAwait(false);
+                var now = Environment.TickCount64;
+                var last = Volatile.Read(ref _lastReceived);
+                var quiet = TimeSpan.FromMilliseconds(now - last);
                 if (quiet >= _heartbeat.Dead)
                 {
                     Close($"{_peer} no responde ({quiet.TotalSeconds:0} s sin mensajes)");
                     return;
                 }
-                if (quiet >= _heartbeat.Idle)
+                // One ping per silence: anything received since (its pong, often within the same 15.6 ms tick) starts a new one.
+                if (quiet >= _heartbeat.Idle && pingedAt <= last)
                 {
-                    if (!pinged) Send(new PingMessage());
-                    pinged = true;
+                    Send(new PingMessage());
+                    pingedAt = now;
                 }
-                else pinged = false;
+                // Sleep until the silence could reach the next limit (traffic meanwhile only moves it later): an
+                // idle connection wakes every few seconds, not every second (stage 1.10).
+                var next = (pingedAt > last ? _heartbeat.Dead : _heartbeat.Idle) - quiet;
+                wait = next > _heartbeat.Check ? next : _heartbeat.Check;
             }
         }
         catch (OperationCanceledException) { }
     }
 }
 
-/// <summary>Times of the heartbeat (protocolo.md: ping after 5 s of silence, dead after 15 s).</summary>
+/// <summary>
+/// Times of the heartbeat (protocolo.md: ping after 5 s of silence, dead after 15 s); <see cref="Check"/> is the
+/// shortest wait between two looks.
+/// </summary>
 public sealed record Heartbeat(TimeSpan Idle, TimeSpan Dead, TimeSpan Check)
 {
     public static Heartbeat Default { get; } = new(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(1));

@@ -524,10 +524,18 @@ public partial class App : Application
             ContextMenu = menu,
             NoLeftClickDelay = true,
         };
+        // The icon's id comes from the name; Windows ties it to the exe path, so another data folder run from the same
+        // exe needs its own (or its icon cannot be added).
+        if (AppPaths.InstanceSuffix.Length > 0) _tray.CustomName = "KDesktop" + AppPaths.InstanceSuffix;
         _tray.TrayLeftMouseUp += (_, _) => ShowMainWindow();
         _appliedTrayIcon = null;
         ApplyTrayIcon();
-        _tray.ForceCreate(false);
+        try { _tray.ForceCreate(false); }
+        catch (InvalidOperationException ex)
+        {
+            // Without the icon K-Desktop still works (window, hotkeys, launcher): better than not starting.
+            Log.Warn($"No se pudo crear el icono de la bandeja ({ex.Message})");
+        }
     }
 
     private bool MainWindowShown => _main is { IsVisible: true } m && m.WindowState != WindowState.Minimized;

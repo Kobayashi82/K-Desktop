@@ -20,6 +20,9 @@ internal sealed class WorldWatcher : IDisposable
     private const double SettleSeconds = 0.3;
     private const double SystemInterval = 1;
 
+    /// <summary>A new window that did not count yet is looked at again after this long.</summary>
+    private const double PendingCheck = 0.4;
+
     private readonly HostWorld _world;
     private readonly Func<double> _clock;
     private readonly Func<IEnumerable<nint>> _ownWindows;
@@ -28,6 +31,7 @@ internal sealed class WorldWatcher : IDisposable
     private readonly HashSet<nint> _own = [];
     private readonly HashSet<long> _seen = [];
     private readonly Dictionary<long, (PixelRect From, double Since)> _moving = [];
+    private readonly Dictionary<nint, double> _pending = [];
     private readonly SystemStatus _status = new();
     private NativeWindow? _events;
     private WinEventWatcher? _winEvents;
@@ -119,13 +123,14 @@ internal sealed class WorldWatcher : IDisposable
     {
         var close = _world.CloseWatchUntil > now;
         if (_monitorsDirty) ReadMonitors();
+        var pending = CheckPending(now);
         if (_dirty || _dragging || close || now >= _nextScan) Rescan(now);
         SettleMoves(now);
         if (now >= _nextSystem) UpdateSystem(now);
         else UpdateCursor(now);
         _recycleBin?.Update(now);
 
-        var wait = Math.Min(_nextScan, _nextSystem) - now;
+        var wait = Math.Min(Math.Min(_nextScan, _nextSystem), pending) - now;
         if (_dragging || close || _moving.Count > 0) wait = Math.Min(wait, 1.0 / 60);
         if (_recycleBin is { } bin) wait = Math.Min(wait, bin.CountIn(now));
         return Math.Max(wait, 0);
@@ -141,10 +146,44 @@ internal sealed class WorldWatcher : IDisposable
 
     // ── windows ──────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Most events are of windows that change nothing (child windows, tooltips and menus, overlays that report moves
+    /// without moving): only the ones that may change the picture rescan it (as the Lander does). Each rescan goes
+    /// through every window, and these events come by the dozen per second while the PC is in use.
+    /// </summary>
     private void OnWindowEvent(uint type, nint hwnd)
     {
+        if (_own.Contains(hwnd)) return;
+        var known = _windows.TryGetValue(hwnd, out var window);
+        if (type == EVENT_OBJECT_DESTROY && !known)
+        {
+            // A minimized one (or on another desktop) is not in the picture: reported here.
+            _notifications?.OnWindowEvent(type, hwnd, _clock(), _monitors);
+            if (_seen.Remove(hwnd)) _raise(new SystemEvent.WindowClosed(hwnd));
+            return;
+        }
+        if (!known && GetAncestor(hwnd, GA_ROOT) != hwnd) return;
+
         var now = _clock();
         if (_notifications?.OnWindowEvent(type, hwnd, now, _monitors) is { } toast) _raise(new SystemEvent.NotificationShown(toast));
+        switch (type)
+        {
+            case EVENT_OBJECT_LOCATIONCHANGE:
+                if (!known || (WindowScanner.TryGetBounds(hwnd, out var bounds) && bounds.ToPixelRect() == window!.Bounds)) return;
+                break;
+            case EVENT_OBJECT_HIDE or EVENT_OBJECT_CLOAKED or EVENT_SYSTEM_MINIMIZESTART or EVENT_OBJECT_DESTROY:
+                if (!known) return;
+                break;
+            case EVENT_OBJECT_SHOW or EVENT_OBJECT_UNCLOAKED or EVENT_SYSTEM_MINIMIZEEND when !known:
+                // A new one counts if it would be in the picture; some get their size or title a moment later.
+                if (!_scanner.TryDescribe(hwnd, out _))
+                {
+                    _pending.TryAdd(hwnd, now + PendingCheck);
+                    _requestTick();
+                    return;
+                }
+                break;
+        }
         switch (type)
         {
             case EVENT_SYSTEM_MOVESIZESTART:
@@ -161,17 +200,27 @@ internal sealed class WorldWatcher : IDisposable
                 // Our windows show on every desktop; just in case a Windows version leaves them behind.
                 _desktops?.Follow([.. _own], hwnd);
                 break;
-            case EVENT_OBJECT_LOCATIONCHANGE:
-                // Only windows that matter: overlays of other apps send this all the time without moving.
-                if (!_windows.ContainsKey(hwnd)) return;
-                break;
-            case EVENT_OBJECT_DESTROY:
-                // One in the picture is reported by the next scan (after the picture); a minimized one, here.
-                if (!_windows.ContainsKey(hwnd) && _seen.Remove(hwnd)) _raise(new SystemEvent.WindowClosed(hwnd));
-                break;
         }
         _dirty = true;
         _requestTick();
+    }
+
+    /// <summary>Looks again at the new windows that did not count when shown. Returns when the next one is due.</summary>
+    private double CheckPending(double now)
+    {
+        var next = double.PositiveInfinity;
+        if (_pending.Count == 0) return next;
+        foreach (var (hwnd, due) in _pending.ToList())
+        {
+            if (due > now)
+            {
+                next = Math.Min(next, due);
+                continue;
+            }
+            _pending.Remove(hwnd);
+            if (!_windows.ContainsKey(hwnd) && IsWindow(hwnd) && _scanner.TryDescribe(hwnd, out _)) _dirty = true;
+        }
+        return next;
     }
 
     private void Rescan(double now)

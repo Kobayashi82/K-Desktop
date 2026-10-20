@@ -110,6 +110,22 @@ public class PipeTests
     }
 
     [Fact]
+    public async Task OnePingingSideKeepsItselfAliveWithThePongs()
+    {
+        // The server never pings (its silence limits are far away): the client lives only on the pongs to its own pings,
+        // so it must ping again after each one, not just once.
+        var name = UniqueName();
+        var patient = new Heartbeat(TimeSpan.FromHours(1), TimeSpan.FromHours(2), TimeSpan.FromMilliseconds(50));
+        await using var server = new AssistantPipeServer(name, Me(), Welcome, patient);
+        server.Start();
+
+        await using var client = new AssistantPipeClient(name, Fast);
+        Assert.Equal(ConnectOutcome.Welcomed, await client.ConnectAsync(Hello(), Wait, CancellationToken.None));
+        await Task.Delay(TimeSpan.FromSeconds(2));
+        Assert.True(client.IsConnected);
+    }
+
+    [Fact]
     public async Task APeerThatStopsAnsweringIsGivenUp()
     {
         var name = UniqueName();
