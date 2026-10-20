@@ -102,9 +102,8 @@ se guardan en `%APPDATA%\K-Desktop 5`.
 El módulo Asistente está en desarrollo. Apagado, K-Desktop es el de siempre: no carga nada nuevo.
 
 1. **Opciones → Módulo Asistente → General → «Activar el módulo Asistente»**.
-2. Consigue el paquete del asistente (`lander-<versión>.kai`): el CI de
-   [K-Desktop-Assistants](https://github.com/Kobayashi82/K-Desktop-Assistants) lo deja en cada compilación
-   (**Actions** → la última ejecución de **CI** → **Artifacts**; viene dentro de un `.zip`), o compílalo tú (ver su README).
+2. Consigue el paquete del asistente (`lander-<versión>.kai`): se genera al compilar
+   [K-Desktop-Assistants](https://github.com/Kobayashi82/K-Desktop-Assistants) (ver su README).
 3. Ábrelo con un doble clic o desde **Opciones → Módulo Asistente → Asistentes → «Añadir asistente»**. La ficha
    enseña qué es y qué sabe hacer y, si tiene acciones con atajo (el modo manual del Lander con `CTRL + ALT + L`),
    ofrece crear sus comandos. Pulsa **Instalar** (con «Ponerlo en el escritorio» marcado sale al momento).
