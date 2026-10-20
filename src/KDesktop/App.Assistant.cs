@@ -11,8 +11,8 @@ namespace KDesktop;
 
 /// <summary>
 /// The assistant module from K-Desktop's side. Off (the default) there is nothing: no pipe, no process, no thread.
-/// On, an <see cref="AssistantSupervisor"/> runs the assistant process and keeps it alive, and the active assistant
-/// (<c>assistantActive</c>) is loaded into it each time it connects.
+/// On, an <see cref="AssistantSupervisor"/> runs the assistant process and keeps it alive, and the assistants on the
+/// desktop (<c>assistantsOnDesktop</c>, stage 1.11: several at once) are loaded into it each time it connects.
 /// </summary>
 public partial class App
 {
@@ -50,6 +50,7 @@ public partial class App
                 {
                     AssistantConnectedAt = null;
                     AssistantStatus = null;
+                    _assistantStates.Clear();
                 }
                 AssistantChanged?.Invoke();
             });
@@ -67,6 +68,7 @@ public partial class App
             _assistant = null;
             AssistantStatus = null;
             AssistantConnectedAt = null;
+            _assistantStates.Clear();
             Log.Info("Asistente: módulo desactivado");
             _ = running.DisposeAsync().AsTask();
             AssistantChanged?.Invoke();
@@ -84,17 +86,18 @@ public partial class App
 
     /// <summary>
     /// A new assistant process said hello (pool thread): what was left to delete goes now that nothing holds it, and
-    /// the active assistant comes onto the desktop.
+    /// the assistants on the desktop come onto it, in the order they were put there.
     /// </summary>
     private void OnAssistantConnected(AssistantSupervisor supervisor)
     {
+        AssistantPackages.CleanUp();
         Dispatcher.BeginInvoke(() =>
         {
             AssistantConnectedAt = DateTime.Now;
             AssistantStatus = null;
+            _assistantStates.Clear();
+            foreach (var id in Config.Settings.AssistantsOnDesktop.ToList()) LoadAssistant(supervisor, id, "startup");
         });
-        AssistantPackages.CleanUp();
-        LoadActiveAssistant(supervisor, "startup");
     }
 
     /// <summary>A message from the assistant process (UI thread).</summary>
@@ -105,6 +108,10 @@ public partial class App
             case LoadedMessage loaded:
                 OnAssistantLoaded(loaded);
                 break;
+            case StatusMessage { Assistant: { } id } status:
+                _assistantStates[id] = status;
+                AssistantChanged?.Invoke();
+                break;
             case StatusMessage status:
                 AssistantStatus = status;
                 if (status.LastError is { Length: > 0 } error) SetAssistantError(error);
@@ -113,8 +120,9 @@ public partial class App
             case OpenMessage open:
                 ShowMainWindow(w => w.Navigate(open.Page switch
                 {
+                    "assistant" when open.Assistant is { } id => "assistant/" + id,
                     "assistant" => "assistant",
-                    "assistantSettings" when Config.Settings.AssistantActive is { } active => "settings/assistants/" + active,
+                    "assistantSettings" when open.Assistant is { } id => "settings/assistants/" + id,
                     "assistantSettings" => "settings/assistants",
                     _ => "settings/assistant",
                 }));
@@ -125,18 +133,23 @@ public partial class App
             case PanelMessage panel:
                 OnAssistantPanel(panel);
                 break;
-            case HideMessage when Config.Settings.AssistantActive is { } id:
-                var name = AssistantPackages.Find(id)?.Manifest.Name ?? id;
-                ActivateAssistant(null);
-                Ui.ShowOsd(Loc.T("assistant.hidden", name), Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(5));
+            case HideMessage hide when IsOnDesktop(hide.Assistant):
+                HideAssistant(hide.Assistant);
+                Ui.ShowOsd(Loc.T("assistant.hidden", AssistantName(hide.Assistant)), Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(5));
                 break;
         }
     }
 
     // ── what Panel → Assistant shows ─────────────────────────────────────
 
-    /// <summary>The last status the assistant process sent (null until it sends one).</summary>
+    /// <summary>What each assistant last said of its state (<c>status</c> with its id), until the process ends.</summary>
+    private readonly Dictionary<string, StatusMessage> _assistantStates = new(StringComparer.Ordinal);
+
+    /// <summary>The last status of the assistant process itself (null until it sends one).</summary>
     public StatusMessage? AssistantStatus { get; private set; }
+
+    /// <summary>The last status an assistant sent of itself, or null.</summary>
+    public StatusMessage? AssistantStateOf(string id) => _assistantStates.GetValueOrDefault(id);
 
     /// <summary>When the process connected the last time (null while it is not running).</summary>
     public DateTime? AssistantConnectedAt { get; private set; }
@@ -146,64 +159,119 @@ public partial class App
 
     private void SetAssistantError(string text) => AssistantError = (text, DateTime.Now);
 
-    /// <summary>Sends <c>load</c> with the active assistant, if there is one installed. Any thread.</summary>
-    private void LoadActiveAssistant(AssistantSupervisor supervisor, string entrance)
+    /// <summary>The name of an installed assistant (its id if it is not installed).</summary>
+    public static string AssistantName(string id) => AssistantPackages.Find(id)?.Manifest.Name ?? id;
+
+    // ── who is on the desktop ────────────────────────────────────────────
+
+    /// <summary>The assistants on the desktop, in the order they were put there.</summary>
+    public IReadOnlyList<string> AssistantsOnDesktop => Config.Settings.AssistantsOnDesktop;
+
+    public bool IsOnDesktop(string id) => Config.Settings.AssistantsOnDesktop.Contains(id);
+
+    /// <summary>
+    /// The assistant for something not addressed to anyone (Options → Assistants decides), or null with nobody on the
+    /// desktop. Once per order: «at random» picks again on every call.
+    /// </summary>
+    public string? PickAssistant()
     {
-        if (Config.Settings.AssistantActive is not { } id) return;
+        var s = Config.Settings;
+        return AssistantTargeting.Pick(s.AssistantTarget, s.AssistantTargetId, s.AssistantLastTalkedTo, s.AssistantsOnDesktop);
+    }
+
+    /// <summary>The user talked to this assistant (its wake word; later, its talk click and its chat).</summary>
+    public void AssistantTalkedTo(string id)
+    {
+        if (Config.Settings.AssistantLastTalkedTo != id) Config.Settings.AssistantLastTalkedTo = id;
+    }
+
+    /// <summary>A wake word was heard (UI thread): if it is an assistant's, that is the one being talked to.</summary>
+    private void OnAssistantWakeWord(string wakeWordId)
+    {
+        if (_assistant is null || AssistantTargeting.ForWakeWord(Config.Settings.AssistantWakeWords, wakeWordId) is not { } id) return;
+        if (IsOnDesktop(id)) AssistantTalkedTo(id);
+    }
+
+    /// <summary>Gives an assistant its wake word (taken from any other one), or none.</summary>
+    public void SetAssistantWakeWord(string assistant, string? wakeWordId)
+    {
+        Config.Settings.AssistantWakeWords = AssistantTargeting.Assign(Config.Settings.AssistantWakeWords, assistant, wakeWordId);
+        Log.Info($"Asistente: palabra de activación de «{assistant}»: {wakeWordId ?? "ninguna"}");
+        AssistantChanged?.Invoke();
+    }
+
+    /// <summary>Sends <c>load</c> with an installed assistant (UI thread). One no longer installed leaves the desktop.</summary>
+    private void LoadAssistant(AssistantSupervisor supervisor, string id, string entrance)
+    {
         if (AssistantPackages.Find(id) is not { } installed)
         {
-            Log.Warn($"Asistente: «{id}» está elegido pero no instalado");
-            Dispatcher.BeginInvoke(() =>
-            {
-                if (Config.Settings.AssistantActive == id) Config.Settings.AssistantActive = null;
-                AssistantChanged?.Invoke();
-            });
+            Log.Warn($"Asistente: «{id}» está en el escritorio pero no instalado");
+            Config.Settings.AssistantsOnDesktop.Remove(id);
+            AssistantChanged?.Invoke();
             return;
         }
         Log.Info($"Asistente: se carga «{id}» {installed.Version}");
-        Dispatcher.BeginInvoke(() => ForgetAssistantPanel(id));
+        ForgetAssistantPanel(id);
         supervisor.Send(new LoadMessage(id, installed.Version, installed.Folder, AssistantPaths.Data(id), entrance));
+    }
+
+    /// <summary>Sends <c>unload</c> for an assistant (it leaves with its exit; the others stay).</summary>
+    private static void UnloadAssistant(AssistantSupervisor supervisor, string id, string reason)
+    {
+        supervisor.Send(new UnloadMessage(id, reason));
+        supervisor.MarkUnloaded(id);
     }
 
     private void OnAssistantLoaded(LoadedMessage loaded)
     {
         if (!loaded.Ok)
         {
-            var text = Loc.T("assistant.loadFailed", loaded.Assistant, loaded.Error);
+            // It is not on the desktop (it would only show «coming out…» for ever); putting it there again retries.
+            Config.Settings.AssistantsOnDesktop.Remove(loaded.Assistant);
+            var text = Loc.T("assistant.loadFailed", AssistantName(loaded.Assistant), loaded.Error);
             SetAssistantError(text);
             Ui.ShowOsd(text, Core.Engine.OsdKind.Warning, TimeSpan.FromSeconds(6));
         }
         AssistantChanged?.Invoke();
     }
 
+    /// <summary>It made the process fall again and again: it leaves the desktop (the others come back without it).</summary>
     private void OnAssistantFailed(string id)
     {
-        if (Config.Settings.AssistantActive == id) Config.Settings.AssistantActive = null;
-        var text = Loc.T("assistant.failed", id);
+        Config.Settings.AssistantsOnDesktop.Remove(id);
+        var text = Loc.T("assistant.failed", AssistantName(id));
         SetAssistantError(text);
         Ui.ShowOsd(text, Core.Engine.OsdKind.Warning, TimeSpan.FromSeconds(6));
         AssistantChanged?.Invoke();
     }
 
     /// <summary>
-    /// The tray's «Assistant» submenu, only while the module is on: which one is on the desktop (or none), and the
-    /// way to its panel.
+    /// The tray's «Assistant» submenu, only while the module is on: each installed assistant, ticked when it is on the
+    /// desktop (a click puts it there or hides it), hiding them all, and the way to the panel.
     /// </summary>
     private void FillAssistantTrayMenu(System.Windows.Controls.MenuItem menu)
     {
         menu.Items.Clear();
         menu.Visibility = _assistant is null ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
         if (_assistant is null) return;
-        var active = Config.Settings.AssistantActive;
-        void Add(string? id, string name)
+        foreach (var row in Views.AssistantLook.Rows(this))
         {
-            var item = new System.Windows.Controls.MenuItem { Header = name, IsCheckable = true, IsChecked = id == active };
-            item.Click += (_, _) => ActivateAssistant(id);
+            var item = new System.Windows.Controls.MenuItem { Header = row.Name, IsCheckable = true, IsChecked = row.IsOnDesktop };
+            var id = row.Id;
+            item.Click += (_, _) =>
+            {
+                if (IsOnDesktop(id)) HideAssistant(id);
+                else ShowAssistant(id);
+            };
             menu.Items.Add(item);
         }
-        foreach (var row in Views.AssistantLook.Rows(active)) Add(row.Id, row.Name);
-        Add(null, Loc.T("assistantOptions.none"));
-        menu.Items.Add(new System.Windows.Controls.Separator());
+        if (AssistantsOnDesktop.Count > 0)
+        {
+            var hideAll = new System.Windows.Controls.MenuItem { Header = Loc.T("assistantOptions.hideAll") };
+            hideAll.Click += (_, _) => HideAllAssistants();
+            menu.Items.Add(hideAll);
+        }
+        if (menu.Items.Count > 0) menu.Items.Add(new System.Windows.Controls.Separator());
         var panel = new System.Windows.Controls.MenuItem { Header = Loc.T("assistantMenu.panel") };
         panel.Click += (_, _) => ShowMainWindow(w => w.Navigate("assistant"));
         menu.Items.Add(panel);
@@ -265,41 +333,53 @@ public partial class App
         // deleted once the process lets it go.
         var installed = await Task.Run(() => AssistantPackages.Install(package));
         Ui.ShowOsd(Loc.T("assistant.installed", installed.Manifest.Name), Core.Engine.OsdKind.Success);
-        if (Config.Settings.AssistantActive == installed.Id)
+        if (IsOnDesktop(installed.Id))
         {
-            if (_assistant is { IsRunning: true } supervisor) LoadActiveAssistant(supervisor, "switched");
+            if (_assistant is { IsRunning: true } supervisor) LoadAssistant(supervisor, installed.Id, "switched");
         }
-        else if (activate) ActivateAssistant(installed.Id);
+        else if (activate) ShowAssistant(installed.Id);
         AssistantChanged?.Invoke();
     }
 
-    /// <summary>Puts an installed assistant on the desktop (null: none, the module works without a body).</summary>
-    public void ActivateAssistant(string? id)
+    /// <summary>Puts an installed assistant on the desktop, next to those already there.</summary>
+    public void ShowAssistant(string id)
     {
-        var previous = Config.Settings.AssistantActive;
-        if (previous == id) return;
-        Config.Settings.AssistantActive = id;
-        Log.Info($"Asistente: activo «{id ?? "ninguno"}»");
-        if (_assistant is { IsRunning: true } supervisor)
-        {
-            if (id is null)
-            {
-                supervisor.Send(new UnloadMessage("hiding"));
-                supervisor.LoadedAssistant = null;
-            }
-            else LoadActiveAssistant(supervisor, previous is null ? "startup" : "switched");
-        }
+        if (IsOnDesktop(id) || AssistantPackages.Find(id) is null) return;
+        Config.Settings.AssistantsOnDesktop.Add(id);
+        Log.Info($"Asistente: «{id}» al escritorio");
+        if (_assistant is { IsRunning: true } supervisor) LoadAssistant(supervisor, id, "startup");
         AssistantChanged?.Invoke();
+    }
+
+    /// <summary>Takes an assistant off the desktop (the others stay; with none, the module works without a body).</summary>
+    public void HideAssistant(string id)
+    {
+        if (!Config.Settings.AssistantsOnDesktop.Remove(id)) return;
+        Log.Info($"Asistente: «{id}» se esconde");
+        if (_assistant is { IsRunning: true } supervisor) UnloadAssistant(supervisor, id, "hiding");
+        AssistantChanged?.Invoke();
+    }
+
+    public void HideAllAssistants()
+    {
+        foreach (var id in AssistantsOnDesktop.ToList()) HideAssistant(id);
     }
 
     /// <summary>Removes an assistant (it leaves the desktop first), keeping its data or not.</summary>
     public async Task UninstallAssistantAsync(string id, bool keepData)
     {
-        if (Config.Settings.AssistantActive == id) Config.Settings.AssistantActive = null;
-        if (_assistant is { IsRunning: true } supervisor && supervisor.LoadedAssistant == id)
+        var s = Config.Settings;
+        s.AssistantsOnDesktop.Remove(id);
+        if (s.AssistantLastTalkedTo == id) s.AssistantLastTalkedTo = null;
+        if (s.AssistantTarget == Core.Model.AssistantTarget.Fixed && s.AssistantTargetId == id)
         {
-            supervisor.Send(new UnloadMessage("uninstalling"));
-            supervisor.LoadedAssistant = null;
+            s.AssistantTarget = Core.Model.AssistantTarget.LastTalkedTo;
+            s.AssistantTargetId = null;
+        }
+        if (s.AssistantWakeWords.ContainsKey(id)) s.AssistantWakeWords = AssistantTargeting.Assign(s.AssistantWakeWords, id, null);
+        if (_assistant is { IsRunning: true } supervisor && supervisor.IsLoaded(id))
+        {
+            UnloadAssistant(supervisor, id, "uninstalling");
             await Task.Delay(ExitTime);
         }
         await Task.Run(() => AssistantPackages.Uninstall(id, keepData));

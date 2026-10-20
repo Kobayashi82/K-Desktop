@@ -102,7 +102,7 @@ public partial class AssistantPackageDialog : FluentWindow
         var settings = _app.Config.Settings;
         KeepDataText.Visibility = package.Installed is null ? Visibility.Collapsed : Visibility.Visible;
         // The one on the desktop is replaced by the new version anyway.
-        if (settings.AssistantActive == manifest.Id) ActivateCheck.Visibility = Visibility.Collapsed;
+        if (settings.AssistantsOnDesktop.Contains(manifest.Id)) ActivateCheck.Visibility = Visibility.Collapsed;
         if (!settings.AssistantEnabled) ModuleOffText.Visibility = Visibility.Visible;
 
         InstallButton.Content = Loc.T(package.Action switch

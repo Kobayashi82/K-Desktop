@@ -214,6 +214,13 @@ public partial class MainWindow : FluentWindow
             OpenSettings(key["settings/".Length..]);
             return;
         }
+        // "assistant/dot": Panel → Assistant showing that one (several may be on the desktop).
+        if (key.StartsWith("assistant/", StringComparison.Ordinal))
+        {
+            Navigate("assistant");
+            (_pages.GetValueOrDefault("assistant") as Pages.AssistantPage)?.Show(key["assistant/".Length..]);
+            return;
+        }
         if (key == "stats")
         {
             Navigate("achievements");

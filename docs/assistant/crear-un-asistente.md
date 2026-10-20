@@ -60,7 +60,7 @@ K-Desktop los dibuja con sus propios controles, sin cargar código del asistente
   Páginas (pestañas si hay varias), secciones y controles: `toggle`, `slider`, `number`, `choice`, `text`, `color`,
   `gallery`, `apps`, `hotkey` (llega con la etapa 2.6), `button` (lanza un extra o, con `resetData`, borra su carpeta
   de datos tras confirmar), `info` y `keys`. `enabledWhen` atenúa un control mientras un interruptor esté apagado.
-  Lo que el usuario cambia se guarda en `AssistantsSettings<id>.json` (solo lo que difiere del valor por defecto)
+  Lo que el usuario cambia se guarda en `Assistants\Settings\<id>.json` (solo lo que difiere del valor por defecto)
   y, si está en el escritorio, le llega al momento: `OnSettingsChanged` con **todos** los valores.
 - **`panel.json`** → Panel → Asistente, debajo de su tarjeta: `stat` (en fila), `progress`, `list`, `achievements`,
   `buttons` y `text`. Los datos llegan con `PublishPanel`, que se **fusiona** con lo publicado antes: publica todo en
@@ -75,6 +75,11 @@ K-Desktop los dibuja con sus propios controles, sin cargar código del asistente
   dibuja (`Present`) cuando algo cambia: el último fotograma se queda en pantalla.
 - Coordenadas en **píxeles físicos** de la pantalla virtual. Para el tamaño, el escalado del monitor
   (`MonitorInfo.DpiScale`).
-- Un asistente que falla cinco veces seguidas se descarga; uno que hace caer el proceso tres veces seguidas se
-  desactiva. Al descargarlo, el host retira lo que haya dejado (superficies, zonas de clic, suscripciones).
+- **No estás solo:** puede haber otros asistentes en el escritorio a la vez, en el mismo proceso y sobre la misma
+  capa. No ocupes la pantalla entera ni des por hecho que eres el único; el mundo no te enseña a los demás (sus
+  zonas de clic no cuentan como ventanas). Lo que te llega (gestos, órdenes, extras, ajustes) es solo tuyo: el host
+  y K-Desktop deciden a quién va cada cosa.
+- Un asistente que falla cinco veces seguidas se descarga (solo él; los demás siguen); uno que hace caer el proceso
+  tres veces seguidas se quita del escritorio. Al descargarlo, el host retira lo que haya dejado (superficies, zonas
+  de clic, suscripciones).
 - El asistente no ve la IA, las herramientas, la tubería ni K-Desktop: solo el SDK.

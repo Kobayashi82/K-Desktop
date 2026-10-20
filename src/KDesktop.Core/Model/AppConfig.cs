@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace KDesktop.Core.Model;
@@ -67,6 +68,13 @@ public sealed class AppConfig
         if (Settings.UpdateUrl == "https://kobayashi82.net/kdesktop/latest.json")
         {
             Settings.UpdateUrl = AppSettings.DefaultUpdateUrl;
+            changed = true;
+        }
+        // Until 5.0.55 there was one assistant on the desktop at most; now there may be several.
+        if (Settings.AssistantActive is { } active)
+        {
+            if (!Settings.AssistantsOnDesktop.Contains(active)) Settings.AssistantsOnDesktop.Add(active);
+            Settings.AssistantActive = null;
             changed = true;
         }
         changed |= MigrateStartupAndExit();
@@ -173,6 +181,22 @@ public sealed class AppConfig
 
 public enum OsdPosition { BottomCenter, TopCenter, Center, BottomRight, TopRight }
 public enum AppTheme { System, Dark, Light }
+
+/// <summary>
+/// Which assistant takes what is not addressed to anyone (a command with gestures run by a hotkey, a notice, the generic
+/// wake word, the panel's chat without choosing).
+/// </summary>
+public enum AssistantTarget
+{
+    /// <summary>The last one the user talked to (until then, the first one put on the desktop).</summary>
+    LastTalkedTo,
+
+    /// <summary>One at random, chosen once per order.</summary>
+    Random,
+
+    /// <summary><see cref="AppSettings.AssistantTargetId"/> (when it is not on the desktop, as <see cref="LastTalkedTo"/>).</summary>
+    Fixed,
+}
 
 /// <summary>What K-Desktop does about new versions.</summary>
 public enum UpdateMode { Off, Notify, Auto }
@@ -383,8 +407,25 @@ public partial class AppSettings : ObservableObject
     // Assistant module (off: K-Desktop starts nothing of it)
     [ObservableProperty] private bool _assistantEnabled;
 
-    /// <summary>Id of the installed assistant shown on the desktop; null: none (the module works without a body).</summary>
-    [ObservableProperty] private string? _assistantActive;
+    /// <summary>Until 5.0.55, the one assistant on the desktop: only read, to move it to <see cref="AssistantsOnDesktop"/>.</summary>
+    [ObservableProperty]
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    private string? _assistantActive;
+
+    /// <summary>Who takes what is not addressed to anyone.</summary>
+    [ObservableProperty] private AssistantTarget _assistantTarget;
+
+    /// <summary>The assistant of <see cref="AssistantTarget.Fixed"/>.</summary>
+    [ObservableProperty] private string? _assistantTargetId;
+
+    /// <summary>The last assistant the user talked to (its wake word, its menu…), for <see cref="AssistantTarget.LastTalkedTo"/>.</summary>
+    [ObservableProperty] private string? _assistantLastTalkedTo;
+
+    /// <summary>
+    /// The wake word of each assistant: assistant id → id of a recorded wake word (VoiceWakeWords). A word belongs to
+    /// one assistant at most; words of none are K-Desktop's. Replaced whole on every change (so it is saved).
+    /// </summary>
+    [ObservableProperty] private Dictionary<string, string> _assistantWakeWords = [];
 
     // OSD
     [ObservableProperty] private OsdPosition _osdPosition = OsdPosition.BottomCenter;
@@ -403,6 +444,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>Processes where K-Desktop hotkeys are ignored ("Desactivar en").</summary>
     public ObservableCollection<string> DisabledIn { get; set { field = value ?? []; field.CollectionChanged += (_, _) => Touch(); } } = [];
 
+    /// <summary>The installed assistants on the desktop, in the order they were put there (empty: the module works without a body).</summary>
+    public ObservableCollection<string> AssistantsOnDesktop { get; set { field = value ?? []; field.CollectionChanged += (_, _) => Touch(); } } = [];
+
     public ObservableCollection<string> BlockSideButtonsIn { get; set { field = value ?? []; field.CollectionChanged += (_, _) => Touch(); } } =
         ["explorer", "chrome", "firefox", "msedge", "brave", "telegram", "systemsettings"];
 
@@ -410,6 +454,7 @@ public partial class AppSettings : ObservableObject
     {
         DisabledIn.CollectionChanged += (_, _) => Touch();
         BlockSideButtonsIn.CollectionChanged += (_, _) => Touch();
+        AssistantsOnDesktop.CollectionChanged += (_, _) => Touch();
     }
 
     public event EventHandler? Modified;

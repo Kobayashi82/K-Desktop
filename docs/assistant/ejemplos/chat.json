@@ -1,5 +1,6 @@
 {
   "t": "chat",
+  "assistant": "lander",
   "role": "assistant",
   "text": "Recibido. Papelera vaciada.",
   "turn": "t-12",

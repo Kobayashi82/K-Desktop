@@ -10,35 +10,7 @@
         <a:SymbolIconConverter x:Key="SymbolIcon" />
         <a:TextToVisibilityConverter x:Key="NonEmptyToVis" />
 
-        <!-- Pills: the page tabs and the choices shown as buttons. Radio buttons (a group of options for screen readers);
-             the model keeps only one checked. -->
-        <Style x:Key="Pill" TargetType="RadioButton">
-            <Setter Property="Margin" Value="0,0,6,6" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="Bg" CornerRadius="15" Padding="12,5" BorderThickness="1"
-                                Background="{DynamicResource Kd.Subtle}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
-                            <ContentPresenter TextElement.Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource Kd.SubtleHover}" />
-                            </Trigger>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource Kd.AccentSoft}" />
-                                <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
-                            </Trigger>
-                            <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+        <!-- Pills (the page tabs and the choices shown as buttons): «Pill» of Themes/Styles.xaml -->
         <ItemsPanelTemplate x:Key="Wrap">
             <WrapPanel />
         </ItemsPanelTemplate>

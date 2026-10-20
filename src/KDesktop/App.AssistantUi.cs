@@ -25,7 +25,7 @@ public partial class App
 
     private void OnAssistantPanel(PanelMessage panel)
     {
-        if ((panel.Assistant ?? _assistant?.LoadedAssistant) is not { } id) return;
+        if (panel.Assistant is not { } id) return;
         if (!_assistantPanels.TryGetValue(id, out var data)) _assistantPanels[id] = data = [];
         AssistantUi.Merge(data, panel.Data);
         AssistantPanelChanged?.Invoke(id);
@@ -38,7 +38,7 @@ public partial class App
     }
 
     /// <summary>Whether this assistant is on the desktop right now (it can take settings and run extras).</summary>
-    public bool IsAssistantLoaded(string id) => _assistant is { IsRunning: true } supervisor && supervisor.LoadedAssistant == id;
+    public bool IsAssistantLoaded(string id) => _assistant is { IsRunning: true } supervisor && supervisor.IsLoaded(id);
 
     /// <summary>
     /// Saves what the user changed in an assistant's settings (<paramref name="saved"/>, only what differs from the
@@ -52,7 +52,7 @@ public partial class App
             Log.Warn($"Asistente «{assistant.Id}»: no se han podido guardar sus ajustes ({ex.Message})");
             Ui.ShowOsd(Loc.T("assistantSettings.saveFailed", assistant.Manifest.Name, ex.Message), Core.Engine.OsdKind.Warning);
         }
-        if (IsAssistantLoaded(assistant.Id)) _assistant!.Send(new ConfigMessage("assistantSettings", values.DeepClone()));
+        if (IsAssistantLoaded(assistant.Id)) _assistant!.Send(new ConfigMessage("assistantSettings", values.DeepClone(), assistant.Id));
     }
 
     /// <summary>Runs one of an assistant's extras (a button of its settings or its panel). It has to be on the desktop.</summary>
@@ -61,11 +61,10 @@ public partial class App
         if (IsAssistantLoaded(id))
         {
             Log.Info($"Asistente: extra «{extra}» de «{id}»");
-            _assistant!.Send(new ExtraMessage(extra));
+            _assistant!.Send(new ExtraMessage(id, extra));
             return;
         }
-        var name = AssistantPackages.Find(id)?.Manifest.Name ?? id;
-        Ui.ShowOsd(Loc.T("assistantSettings.notOnDesktop", name), Core.Engine.OsdKind.Info);
+        Ui.ShowOsd(Loc.T("assistantSettings.notOnDesktop", AssistantName(id)), Core.Engine.OsdKind.Info);
     }
 
     /// <summary>
@@ -77,8 +76,7 @@ public partial class App
         var reload = IsAssistantLoaded(id);
         if (reload)
         {
-            _assistant!.Send(new UnloadMessage("reloading"));
-            _assistant.LoadedAssistant = null;
+            UnloadAssistant(_assistant!, id, "reloading");
             await Task.Delay(ExitTime);
         }
         try
@@ -93,8 +91,8 @@ public partial class App
         finally
         {
             ForgetAssistantPanel(id);
-            if (reload && Config.Settings.AssistantActive == id && _assistant is { IsRunning: true } supervisor)
-                LoadActiveAssistant(supervisor, "startup");
+            if (reload && IsOnDesktop(id) && _assistant is { IsRunning: true } supervisor)
+                LoadAssistant(supervisor, id, "startup");
             AssistantChanged?.Invoke();
         }
     }

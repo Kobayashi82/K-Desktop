@@ -1,5 +1,6 @@
 {
   "t": "config",
+  "assistant": "lander",
   "section": "assistantSettings",
   "value": {
     "shyness": 40,

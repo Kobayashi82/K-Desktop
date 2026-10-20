@@ -9,14 +9,21 @@ using Wpf.Ui.Controls;
 
 namespace KDesktop.Views;
 
-/// <summary>An installed assistant as the pages show it: icon, name, version and description.</summary>
+/// <summary>A choice of wake word for an assistant (null id: none).</summary>
+public sealed record WakeOption(string? Id, string Name)
+{
+    public override string ToString() => Name;
+}
+
+/// <summary>An installed assistant as the pages show it: icon, name, version, description and whether it is on the desktop.</summary>
 public sealed class AssistantRow
 {
-    public AssistantRow(InstalledAssistant installed, string? active)
+    public AssistantRow(InstalledAssistant installed, App app)
     {
         Installed = installed;
-        IsActive = installed.Id == active;
+        IsOnDesktop = app.IsOnDesktop(installed.Id);
         Icon = AssistantLook.Icon(installed);
+        WakeWordId = app.Config.Settings.AssistantWakeWords.GetValueOrDefault(installed.Id);
     }
 
     public InstalledAssistant Installed { get; }
@@ -38,10 +45,22 @@ public sealed class AssistantRow
 
     public bool NoIcon => Icon is null;
 
-    /// <summary>The one on the desktop.</summary>
-    public bool IsActive { get; }
+    public bool IsOnDesktop { get; }
 
-    public bool IsInactive => !IsActive;
+    public bool IsOffDesktop => !IsOnDesktop;
+
+    /// <summary>Its wake word (id of a recorded one), or null.</summary>
+    public string? WakeWordId { get; }
+
+    /// <summary>The wake words to choose from (none first; one of another assistant says whose it is). Filled by the list.</summary>
+    public IReadOnlyList<WakeOption> WakeOptions { get; set; } = [];
+
+    public WakeOption? SelectedWake => WakeOptions.FirstOrDefault(o => o.Id == WakeWordId);
+
+    /// <summary>The name it suggests to be called by (its manifest's wakeWord, or its name).</summary>
+    public string SuggestedWakeWord => Installed.Manifest.WakeWord is { Length: > 0 } word ? word : Name;
+
+    public override string ToString() => Name;
 }
 
 public static class AssistantLook
@@ -106,21 +125,42 @@ public static class AssistantLook
     /// </summary>
     public static (string Text, string Brush) Summary(App app)
     {
+        if (ProcessSummary(app) is { } process) return process;
+        var supervisor = app.Assistant!;
+        var onDesktop = app.AssistantsOnDesktop;
+        if (onDesktop.Count == 0) return (Loc.T("assistantState.noBody"), "Kd.Success");
+        if (onDesktop.FirstOrDefault(id => !supervisor.IsLoaded(id)) is { } loading)
+            return (Loc.T("assistantState.loading", App.AssistantName(loading)), "Kd.Warning");
+        return onDesktop.Count == 1
+            ? (Loc.T("assistantState.onDesktop", App.AssistantName(onDesktop[0])), "Kd.Success")
+            : (Loc.T("assistantState.onDesktopMany", string.Join(", ", onDesktop.Select(App.AssistantName))), "Kd.Success");
+    }
+
+    /// <summary>How one assistant is doing (the hero of Panel → Assistant).</summary>
+    public static (string Text, string Brush) Summary(App app, string id)
+    {
+        if (ProcessSummary(app) is { } process) return process;
+        var name = App.AssistantName(id);
+        if (!app.IsOnDesktop(id)) return (Loc.T("assistantState.notOnDesktop", name), "TextFillColorTertiaryBrush");
+        return app.Assistant!.IsLoaded(id)
+            ? (Loc.T("assistantState.onDesktop", name), "Kd.Success")
+            : (Loc.T("assistantState.loading", name), "Kd.Warning");
+    }
+
+    /// <summary>The module off, or its process not running: that says it all.</summary>
+    private static (string Text, string Brush)? ProcessSummary(App app)
+    {
         if (app.Assistant is not { } supervisor) return (Loc.T("assistantState.off"), "TextFillColorTertiaryBrush");
-        var active = app.Config.Settings.AssistantActive;
-        var name = active is null ? null : AssistantPackages.Find(active)?.Manifest.Name ?? active;
         return supervisor.State switch
         {
             AssistantProcessState.Starting => (Loc.T("assistantState.starting"), "Kd.Warning"),
             AssistantProcessState.Restarting => (Loc.T("assistantState.restarting"), "Kd.Warning"),
             AssistantProcessState.Off => (Loc.T("assistantState.stopped"), "Kd.Danger"),
-            _ when name is null => (Loc.T("assistantState.noBody"), "Kd.Success"),
-            _ when supervisor.LoadedAssistant == active => (Loc.T("assistantState.onDesktop", name), "Kd.Success"),
-            _ => (Loc.T("assistantState.loading", name), "Kd.Warning"),
+            _ => null,
         };
     }
 
-    /// <summary>The installed assistants as rows, the one on the desktop marked.</summary>
-    public static List<AssistantRow> Rows(string? active) =>
-        [.. AssistantPackages.Installed().Select(a => new AssistantRow(a, active)).OrderBy(r => r.Name, StringComparer.CurrentCultureIgnoreCase)];
+    /// <summary>The installed assistants as rows, those on the desktop marked.</summary>
+    public static List<AssistantRow> Rows(App app) =>
+        [.. AssistantPackages.Installed().Select(a => new AssistantRow(a, app)).OrderBy(r => r.Name, StringComparer.CurrentCultureIgnoreCase)];
 }

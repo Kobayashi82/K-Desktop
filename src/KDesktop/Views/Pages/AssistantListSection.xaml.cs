@@ -4,18 +4,28 @@ using System.Windows.Controls;
 using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Engine;
 using KDesktop.Core.Localization;
+using KDesktop.Core.Model;
+using KDesktop.Core.Voice;
 using Microsoft.Win32;
 
 namespace KDesktop.Views.Pages;
 
 /// <summary>
 /// Options → Assistant → Assistants (stage 1.8): the installed assistants with their icon, version and author;
-/// «Add assistant» opens a package's card, and each one can be put on the desktop, hidden or removed (asking
-/// whether to keep its data). «Settings» shows its own settings (stage 1.9) in place of the list.
+/// «Add assistant» opens a package's card, and each one can be put on the desktop (several at once, stage 1.11),
+/// hidden or removed (asking whether to keep its data), and given its own wake word. Below, who takes what is not
+/// addressed to anyone. «Settings» shows its own settings (stage 1.9) in place of the list.
 /// </summary>
 public partial class AssistantListSection : UserControl
 {
+    /// <summary>A choice of the «not addressed to anyone» box.</summary>
+    private sealed record TargetOption(AssistantTarget Target, string? Id, string Name)
+    {
+        public override string ToString() => Name;
+    }
+
     private readonly App _app = App.Current;
+    private bool _filling;
 
     public AssistantListSection()
     {
@@ -37,10 +47,37 @@ public partial class AssistantListSection : UserControl
             if (AssistantPackages.Find(open) is { } installed) SettingsView.Refresh(installed);
             else ShowList();
         }
-        var rows = AssistantLook.Rows(_app.Config.Settings.AssistantActive);
+        _filling = true;
+        var rows = AssistantLook.Rows(_app);
+        var words = _app.Voice.WakeWords.Words.ToList();
+        var owners = _app.Config.Settings.AssistantWakeWords;
+        foreach (var row in rows)
+        {
+            List<WakeOption> options = [new(null, Loc.T("assistantOptions.wakeNone"))];
+            foreach (var word in words)
+            {
+                // A word of another assistant says whose it is: choosing it here takes it from that one.
+                var owner = owners.FirstOrDefault(p => p.Value == word.Id).Key;
+                options.Add(new(word.Id, owner is null || owner == row.Id ? word.Name : Loc.T("assistantOptions.wakeOf", word.Name, App.AssistantName(owner))));
+            }
+            row.WakeOptions = options;
+        }
         AssistantList.ItemsSource = rows;
         EmptyPanel.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         ModuleOffText.Visibility = rows.Count > 0 && !_app.Config.Settings.AssistantEnabled ? Visibility.Visible : Visibility.Collapsed;
+
+        var s = _app.Config.Settings;
+        List<TargetOption> targets =
+        [
+            new(AssistantTarget.LastTalkedTo, null, Loc.T("assistantOptions.targetLast")),
+            new(AssistantTarget.Random, null, Loc.T("assistantOptions.targetRandom")),
+            .. rows.Select(r => new TargetOption(AssistantTarget.Fixed, r.Id, r.Name)),
+        ];
+        TargetBox.ItemsSource = targets;
+        TargetBox.SelectedItem = targets.FirstOrDefault(t => t.Target == s.AssistantTarget && (t.Target != AssistantTarget.Fixed || t.Id == s.AssistantTargetId))
+                                 ?? targets[0];
+        TargetCard.Visibility = rows.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        _filling = false;
     }
 
     /// <summary>Shows an installed assistant's settings in place of the list (<c>--page settings/assistants/&lt;id&gt;</c>).</summary>
@@ -81,10 +118,41 @@ public partial class AssistantListSection : UserControl
 
     private void OnActivate(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement { DataContext: AssistantRow row }) _app.ActivateAssistant(row.Id);
+        if (sender is FrameworkElement { DataContext: AssistantRow row }) _app.ShowAssistant(row.Id);
     }
 
-    private void OnHide(object sender, RoutedEventArgs e) => _app.ActivateAssistant(null);
+    private void OnHide(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: AssistantRow row }) _app.HideAssistant(row.Id);
+    }
+
+    private void OnTargetChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_filling || TargetBox.SelectedItem is not TargetOption option) return;
+        var s = _app.Config.Settings;
+        s.AssistantTarget = option.Target;
+        s.AssistantTargetId = option.Id;
+    }
+
+    private void OnWakeChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_filling || sender is not ComboBox { DataContext: AssistantRow row, SelectedItem: WakeOption option } || option.Id == row.WakeWordId) return;
+        // After this event: the list is made again when it changes.
+        Dispatcher.BeginInvoke(() => _app.SetAssistantWakeWord(row.Id, option.Id));
+    }
+
+    /// <summary>Records a new wake word (with the name the assistant suggests) and gives it to this assistant.</summary>
+    private void OnRecordWake(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: AssistantRow row }) return;
+        if (!VoiceModels.AllInstalled || _app.Voice.Models.IsDownloading)
+        {
+            _app.Ui.ShowOsd(Loc.T("wake.needModels"), OsdKind.Info);
+            return;
+        }
+        if (Dialogs.WakeWordDialog.Record(Window.GetWindow(this), suggestedName: row.SuggestedWakeWord) is { } word)
+            _app.SetAssistantWakeWord(row.Id, word.Id);
+    }
 
     private async void OnRemove(object sender, RoutedEventArgs e)
     {

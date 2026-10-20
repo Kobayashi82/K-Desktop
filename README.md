@@ -83,11 +83,11 @@ ejecuta importa los comandos, QuickMenus e iconos de la versión anterior.
 
 ## Instalación
 
-Descarga la última versión desde [Releases](https://github.com/Kobayashi82/K-Desktop-5.0/releases/latest):
+Descarga la última versión desde [Releases](https://github.com/Kobayashi82/K-Desktop/releases/latest):
 
-- **[KDesktop.exe](https://github.com/Kobayashi82/K-Desktop-5.0/releases/latest/download/KDesktop.exe)**: el
+- **[KDesktop.exe](https://github.com/Kobayashi82/K-Desktop/releases/latest/download/KDesktop.exe)**: el
   programa, un único ejecutable portátil que no necesita instalar .NET. Requiere Windows 10 u 11 de 64 bits.
-- **[KDesktop.apk](https://github.com/Kobayashi82/K-Desktop-5.0/releases/latest/download/KDesktop.apk)**: la app de
+- **[KDesktop.apk](https://github.com/Kobayashi82/K-Desktop/releases/latest/download/KDesktop.apk)**: la app de
   Android para controlar el PC desde el móvil (Android 5.0 o superior). También se puede descargar desde el propio
   K-Desktop, que la mantiene actualizada.
 

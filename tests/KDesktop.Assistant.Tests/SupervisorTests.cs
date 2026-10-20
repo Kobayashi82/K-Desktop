@@ -49,19 +49,22 @@ public class SupervisorTests
     }
 
     [Fact]
-    public async Task ThreeFallsWithTheSameAssistantUnloadIt()
+    public async Task ThreeFallsUnloadTheNewestAssistant()
     {
         // A process that dies at once, as if the assistant it loads made it crash.
         static Process? Crashing(string exe, string args) =>
             Process.Start(new ProcessStartInfo("cmd.exe", "/c exit 3") { UseShellExecute = false, CreateNoWindow = true });
 
-        await using var supervisor = new AssistantSupervisor(Welcome, Crashing, UniquePipe(), executable: Exe) { LoadedAssistant = "dot" };
+        await using var supervisor = new AssistantSupervisor(Welcome, Crashing, UniquePipe(), executable: Exe);
+        // Two on the desktop: the one put there last is the one blamed; the other stays.
+        supervisor.MarkLoaded("dot");
+        supervisor.MarkLoaded("blob");
         var failed = new TaskCompletionSource<string>();
         supervisor.AssistantFailed += id => failed.TrySetResult(id);
         supervisor.Start();
 
-        Assert.Equal("dot", await failed.Task.WaitAsync(TimeSpan.FromSeconds(20)));
-        Assert.Null(supervisor.LoadedAssistant);
+        Assert.Equal("blob", await failed.Task.WaitAsync(TimeSpan.FromSeconds(20)));
+        Assert.Equal(["dot"], supervisor.LoadedAssistants);
     }
 
     [Fact]

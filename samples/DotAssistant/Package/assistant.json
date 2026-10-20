@@ -12,7 +12,7 @@
     "it": "L’assistente minimo di esempio: un punto che si teletrasporta.",
     "pt": "O assistente mínimo de exemplo: um ponto que se teletransporta."
   },
-  "homepage": "https://github.com/Kobayashi82/K-Desktop-5.0",
+  "homepage": "https://github.com/Kobayashi82/K-Desktop",
   "license": "MIT",
   "sdk": "1.0",
   "entry": "lib/DotAssistant.dll!DotAssistant.Dot",

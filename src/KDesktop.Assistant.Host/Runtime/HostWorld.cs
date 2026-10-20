@@ -2,7 +2,10 @@ using KDesktop.Assistant.Sdk;
 
 namespace KDesktop.Assistant.Host.Runtime;
 
-/// <summary>The desktop as the assistant sees it (<see cref="IWorld"/>). Kept up to date by the world watcher.</summary>
+/// <summary>
+/// The desktop as the assistants see it (<see cref="IWorld"/>), shared by all of them; each one gets it through its own
+/// <see cref="WorldView"/>. Kept up to date by the world watcher.
+/// </summary>
 internal sealed class HostWorld(Func<double> clock) : IWorld
 {
     public WorldSnapshot Current { get; private set; } = WorldSnapshot.Empty;
@@ -24,7 +27,4 @@ internal sealed class HostWorld(Func<double> clock) : IWorld
     }
 
     internal void Publish(SystemState state) => System = state;
-
-    /// <summary>Forgets the subscribers (the assistant that made them was unloaded).</summary>
-    internal void ForgetSubscribers() => Changed = null;
 }

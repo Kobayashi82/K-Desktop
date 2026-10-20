@@ -8,21 +8,24 @@ using KDesktop.Core.Localization;
 
 namespace KDesktop.Assistant.Host.Runtime;
 
-/// <summary>What the host gives one loaded assistant (<see cref="IAssistantHost"/>).</summary>
-internal sealed class AssistantHost(AssistantRuntime runtime, string id, string packageDirectory, string dataDirectory, JsonElement settings)
+/// <summary>
+/// What the host gives one loaded assistant (<see cref="IAssistantHost"/>): the shared overlay and world through views
+/// of its own (<see cref="AssistantSlot"/>), so what it leaves behind goes with it.
+/// </summary>
+internal sealed class AssistantHost(AssistantRuntime runtime, AssistantSlot slot, string packageDirectory, string dataDirectory, JsonElement settings)
     : IAssistantHost
 {
-    public string Id { get; } = id;
+    public string Id { get; } = slot.Id;
 
     public Version SdkVersion { get; } = typeof(IAssistant).Assembly.GetName().Version is { } v ? new Version(v.Major, v.Minor) : new Version(1, 0);
 
     public string Language => Loc.Instance.Language;
 
-    public IWorld World => runtime.World;
+    public IWorld World { get; } = slot.World;
 
-    public IRendering Rendering => runtime.Rendering;
+    public IRendering Rendering { get; } = slot.Surfaces;
 
-    public IPointer Pointer => runtime.Pointer;
+    public IPointer Pointer { get; } = slot.Pointer;
 
     public IKeyboard Keyboard { get; } = new HostKeyboard();
 
@@ -36,13 +39,13 @@ internal sealed class AssistantHost(AssistantRuntime runtime, string id, string 
 
     public string PackageDirectory { get; } = packageDirectory;
 
-    public IAssistantLog Log { get; } = new PrefixedLog(id);
+    public IAssistantLog Log { get; } = new PrefixedLog(slot.Id);
 
     public void PublishPanel(JsonObject data) => runtime.PublishPanel(Id, data);
 
-    public void Notify(string title, string text) => runtime.Notify(title, text);
+    public void Notify(string title, string text) => runtime.Notify(Id, title, text);
 
-    public void RequestTick() => runtime.RequestTick();
+    public void RequestTick() => runtime.RequestTick(slot);
 
     public void Post(Action action) => runtime.Post(action);
 }

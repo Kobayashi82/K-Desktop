@@ -1,4 +1,5 @@
 {
   "t": "extra",
+  "assistant": "lander",
   "action": "lander.manual"
 }

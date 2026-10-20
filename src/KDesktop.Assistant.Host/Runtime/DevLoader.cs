@@ -18,6 +18,8 @@ internal sealed class DevLoader(string folder, AssistantRuntime runtime, Action<
     private string? _source;
     private int _copies;
     private bool _loading;
+    /// <summary>The id it loaded last (the others on the desktop, if any, are not its own).</summary>
+    private string? _loaded;
 
     /// <summary>Finds the package folder of a build: the folder itself, or the newest bin\…\package inside it.</summary>
     public static string? FindPackage(string folder)
@@ -67,10 +69,10 @@ internal sealed class DevLoader(string folder, AssistantRuntime runtime, Action<
         _loading = true;
         try
         {
-            if (runtime.Current is not null) await runtime.UnloadAsync(ExitKind.Reloading).ConfigureAwait(true);
+            if (_loaded is { } previous) await runtime.UnloadAsync(previous, ExitKind.Reloading).ConfigureAwait(true);
             var copy = Path.Combine(CopiesRoot, $"{Environment.ProcessId}-{++_copies}");
             CopyFolder(_source, copy);
-            var id = await runtime.LoadPackageAsync(copy, null, entrance).ConfigureAwait(true);
+            var id = _loaded = await runtime.LoadPackageAsync(copy, null, entrance).ConfigureAwait(true);
             Log.Info($"Asistente (desarrollo): «{id}» {(entrance == EntranceKind.Reloaded ? "recargado" : "cargado")}");
         }
         catch (Exception ex)

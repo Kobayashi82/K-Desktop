@@ -18,16 +18,6 @@
                 <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AssistantEnabled}" AutomationProperties.Name="{l:Tr assistantOptions.enable}" />
             </Grid>
 
-            <Grid Style="{StaticResource SettingRow}">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="260" /></Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                    <TextBlock Text="{l:Tr assistantOptions.active}" />
-                    <TextBlock Style="{StaticResource Caption}" Text="{l:Tr assistantOptions.activeHint}" />
-                </StackPanel>
-                <ComboBox x:Name="ActiveBox" Grid.Column="1" VerticalAlignment="Center" DisplayMemberPath="Name"
-                          SelectionChanged="OnActiveChanged" AutomationProperties.Name="{l:Tr assistantOptions.active}" />
-            </Grid>
-
             <!-- How the module is doing, with a way to the panel -->
             <Border x:Name="StatePanel" Style="{StaticResource InfoBox}">
                 <Grid>

@@ -151,7 +151,11 @@ public partial class App : Application
         };
         WakeListener = new Core.Voice.WakeWordListener(Voice, () => Config.Settings);
         WakeListener.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
-        Voice.WakeHeard += _ => Achievements.Increment(Stat.WakeWords);
+        Voice.WakeHeard += word =>
+        {
+            Achievements.Increment(Stat.WakeWords);
+            Dispatcher.BeginInvoke(() => OnAssistantWakeWord(word.Id));
+        };
         Voice.OrderRun += order =>
         {
             Achievements.Increment(Stat.VoiceOrders);

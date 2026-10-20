@@ -4,10 +4,12 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:l="clr-namespace:KDesktop.Localization"
              xmlns:a="clr-namespace:KDesktop.Views.Assistant">
-    <!-- Options → Assistant → Assistants: the installed ones, adding, putting on the desktop and removing; and the
-         settings of each one, in place of the list -->
+    <!-- Options → Assistant → Assistants: the installed ones, adding, putting on the desktop (several at once), hiding,
+         removing and the wake word of each; who takes what is not addressed to anyone; and the settings of each one,
+         in place of the list -->
     <Grid>
-    <Border x:Name="ListCard" Style="{StaticResource Card}">
+    <StackPanel x:Name="ListCard">
+    <Border Style="{StaticResource Card}">
         <StackPanel>
             <Grid Margin="0,0,0,4">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
@@ -40,6 +42,7 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                                 <Border Width="48" Height="48" CornerRadius="12" Background="{DynamicResource Kd.ChipBackground}" VerticalAlignment="Top">
                                     <Grid>
                                         <ui:SymbolIcon Symbol="Bot24" FontSize="26" Foreground="{DynamicResource Kd.AccentText}"
@@ -53,7 +56,7 @@
                                                    Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                         <Border Margin="10,0,0,0" CornerRadius="9" Padding="8,1" VerticalAlignment="Center"
                                                 Background="{DynamicResource Kd.AccentSoft}"
-                                                Visibility="{Binding IsActive, Converter={StaticResource BoolToVis}}">
+                                                Visibility="{Binding IsOnDesktop, Converter={StaticResource BoolToVis}}">
                                             <TextBlock FontSize="11" Foreground="{DynamicResource Kd.AccentText}" Text="{l:Tr assistantOptions.onDesktop}" />
                                         </Border>
                                     </StackPanel>
@@ -62,20 +65,32 @@
                                                TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                                Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}" />
                                 </StackPanel>
+                                <!-- Its wake word: the word chooses who you talk to (under the text, as wide as the row) -->
+                                <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="14,8,0,0" Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Mic24" FontSize="15" Margin="0,0,6,0" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                    <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,8,0"
+                                               Text="{l:Tr assistantOptions.wakeWord}" />
+                                    <ComboBox MinWidth="190" MaxWidth="260" VerticalAlignment="Center" ItemsSource="{Binding WakeOptions}"
+                                              SelectedItem="{Binding SelectedWake, Mode=OneTime}" DisplayMemberPath="Name"
+                                              SelectionChanged="OnWakeChanged" AutomationProperties.Name="{l:Tr assistantOptions.wakeWord}" />
+                                    <ui:Button Margin="6,0,0,0" VerticalAlignment="Center" Icon="{ui:SymbolIcon Record24}" Click="OnRecordWake"
+                                               ToolTip="{l:Tr assistantOptions.wakeRecord}" AutomationProperties.Name="{l:Tr assistantOptions.wakeRecord}" />
+                                </StackPanel>
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                     <ui:Button Margin="0,0,8,0" Content="{l:Tr assistantOptions.settings}" Icon="{ui:SymbolIcon Options24}"
                                                Click="OnSettings" Visibility="{Binding HasSettings, Converter={StaticResource BoolToVis}}" />
                                     <ui:Button Content="{l:Tr assistantOptions.putOnDesktop}" Icon="{ui:SymbolIcon Play24}" Click="OnActivate"
-                                               Visibility="{Binding IsInactive, Converter={StaticResource BoolToVis}}" />
+                                               Visibility="{Binding IsOffDesktop, Converter={StaticResource BoolToVis}}" />
                                     <ui:Button Content="{l:Tr assistantOptions.hide}" Icon="{ui:SymbolIcon EyeOff24}" Click="OnHide"
-                                               Visibility="{Binding IsActive, Converter={StaticResource BoolToVis}}" />
+                                               Visibility="{Binding IsOnDesktop, Converter={StaticResource BoolToVis}}" />
                                     <ui:Button Margin="8,0,0,0" Icon="{ui:SymbolIcon Delete24}" Click="OnRemove"
                                                ToolTip="{l:Tr assistantOptions.remove}" AutomationProperties.Name="{l:Tr assistantOptions.remove}" />
                                 </StackPanel>
                             </Grid>
                         </Border>
                         <DataTemplate.Triggers>
-                            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                            <DataTrigger Binding="{Binding IsOnDesktop}" Value="True">
                                 <Setter TargetName="Row" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
                             </DataTrigger>
                         </DataTemplate.Triggers>
@@ -87,6 +102,20 @@
                        Text="{l:Tr assistantCard.moduleOff}" />
         </StackPanel>
     </Border>
+
+    <!-- Who takes what is not addressed to anyone -->
+    <Border x:Name="TargetCard" Style="{StaticResource Card}" Visibility="Collapsed">
+        <Grid Style="{StaticResource SettingRow}">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="260" /></Grid.ColumnDefinitions>
+            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                <TextBlock Text="{l:Tr assistantOptions.target}" />
+                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr assistantOptions.targetHint}" />
+            </StackPanel>
+            <ComboBox x:Name="TargetBox" Grid.Column="1" VerticalAlignment="Center" DisplayMemberPath="Name"
+                      SelectionChanged="OnTargetChanged" AutomationProperties.Name="{l:Tr assistantOptions.target}" />
+        </Grid>
+    </Border>
+    </StackPanel>
 
     <a:AssistantSettingsView x:Name="SettingsView" Visibility="Collapsed" />
     </Grid>

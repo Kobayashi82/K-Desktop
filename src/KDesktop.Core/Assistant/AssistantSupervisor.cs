@@ -19,8 +19,9 @@ public enum AssistantProcessState
 /// <summary>
 /// Runs the assistant process for K-Desktop (stage 1.3): opens the pipe, launches <c>KDesktop.exe --assistant</c> as
 /// the normal user, and keeps it alive. If it ends or stops answering, it is started again after a growing wait
-/// (1, 2, 4… up to 60 s); three falls in a row with the same assistant loaded, each within two minutes of the
-/// previous one, unload that assistant (<see cref="AssistantFailed"/>). Only exists while the module is on, and is
+/// (1, 2, 4… up to 60 s); three falls in a row with the same assistant the last one loaded, each within two minutes of
+/// the previous one, take that assistant off the desktop (<see cref="AssistantFailed"/>): with several, the newest is
+/// the likeliest culprit, and if the falls go on the next one is blamed. Only exists while the module is on, and is
 /// used once: turning the module on again makes a new one.
 /// </summary>
 public sealed class AssistantSupervisor : IAsyncDisposable
@@ -45,6 +46,8 @@ public sealed class AssistantSupervisor : IAsyncDisposable
     private DateTime _lastFall = DateTime.MinValue;
     private string? _fallsWith;
     private int _failures;
+    /// <summary>The assistants loaded in the process now, in the order they were loaded.</summary>
+    private readonly List<string> _loaded = [];
 
     /// <param name="welcome">K-Desktop's language, theme, pause and options when the process connects.</param>
     /// <param name="start">Starts the process (executable, arguments); tests replace it. Default: as the normal user.</param>
@@ -78,10 +81,28 @@ public sealed class AssistantSupervisor : IAsyncDisposable
     public int ProcessId { get { lock (_gate) return _process is { } p ? SafeId(p) : 0; } }
 
     /// <summary>
-    /// Id of the assistant the process has loaded (it counts the falls «with the same assistant»). Set by whoever
-    /// sends <c>load</c>; cleared when it is unloaded.
+    /// The assistants the process has loaded, in the order they were loaded (their «loaded» came back ok). Whoever
+    /// sends <c>unload</c> calls <see cref="MarkUnloaded"/>; a new process starts with none.
     /// </summary>
-    public string? LoadedAssistant { get; set; }
+    public IReadOnlyList<string> LoadedAssistants { get { lock (_gate) return [.. _loaded]; } }
+
+    public bool IsLoaded(string id)
+    {
+        lock (_gate) return _loaded.Contains(id);
+    }
+
+    /// <summary>It is loaded (a «loaded» that went well; tests). A new version keeps its place.</summary>
+    public void MarkLoaded(string id)
+    {
+        lock (_gate)
+            if (!_loaded.Contains(id)) _loaded.Add(id);
+    }
+
+    /// <summary>It is no longer loaded («unload» sent, or its «loaded» failed).</summary>
+    public void MarkUnloaded(string id)
+    {
+        lock (_gate) _loaded.Remove(id);
+    }
 
     /// <summary>When the state changes (any thread).</summary>
     public event Action<AssistantProcessState>? StateChanged;
@@ -146,7 +167,11 @@ public sealed class AssistantSupervisor : IAsyncDisposable
 
     private void OnReceived(PipeMessage message)
     {
-        if (message is LoadedMessage loaded) LoadedAssistant = loaded.Ok ? loaded.Assistant : null;
+        if (message is LoadedMessage loaded)
+        {
+            if (loaded.Ok) MarkLoaded(loaded.Assistant);
+            else MarkUnloaded(loaded.Assistant);
+        }
         Received?.Invoke(message);
     }
 
@@ -181,6 +206,7 @@ public sealed class AssistantSupervisor : IAsyncDisposable
             if (first == connected)
             {
                 _failures = 0;
+                lock (_gate) _loaded.Clear(); // a new process: what the last one had loaded is gone
                 try { Connected?.Invoke(); } catch (Exception ex) { Log.Error("Asistente: error al conectar", ex); }
                 var lost = _lost.Task;
                 if (await Task.WhenAny(exited, lost).ConfigureAwait(false) == lost && !exited.IsCompleted)
@@ -219,11 +245,14 @@ public sealed class AssistantSupervisor : IAsyncDisposable
         }
     }
 
-    /// <summary>Three falls in a row with the same assistant, each within two minutes of the last: unload it.</summary>
+    /// <summary>
+    /// Three falls in a row with the same assistant the last one loaded, each within two minutes of the last: unload it.
+    /// </summary>
     private void CountFall()
     {
         var now = DateTime.UtcNow;
-        var with = LoadedAssistant;
+        string? with;
+        lock (_gate) with = _loaded.Count > 0 ? _loaded[^1] : null;
         _falls = with is not null && with == _fallsWith && now - _lastFall <= FallWindow ? _falls + 1 : 1;
         _fallsWith = with;
         _lastFall = now;
@@ -231,7 +260,7 @@ public sealed class AssistantSupervisor : IAsyncDisposable
         Log.Warn($"Asistente: «{with}» ha hecho caer el proceso 3 veces seguidas; se desactiva");
         _falls = 0;
         _fallsWith = null;
-        LoadedAssistant = null;
+        MarkUnloaded(with);
         try { AssistantFailed?.Invoke(with); } catch (Exception ex) { Log.Error("Asistente: error al desactivarlo", ex); }
     }
 

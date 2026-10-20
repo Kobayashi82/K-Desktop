@@ -63,7 +63,8 @@ public sealed record ErrorMessage(string Code, string Message, string? Id = null
 
 // ── configuration and state of K-Desktop ────────────────────────────────
 
-public sealed record ConfigMessage(string Section, JsonNode? Value = null) : PipeMessage
+/// <param name="Assistant">Whose settings, for the section <c>assistantSettings</c> (the others are the module's).</param>
+public sealed record ConfigMessage(string Section, JsonNode? Value = null, string? Assistant = null) : PipeMessage
 {
     public override string Type => "config";
 }
@@ -73,14 +74,16 @@ public sealed record PauseMessage(bool Paused) : PipeMessage
     public override string Type => "pause";
 }
 
+/// <summary>Puts an assistant on the desktop, next to those already there; one that is there already (another version) is replaced.</summary>
 /// <param name="Entrance"><c>startup</c> or <c>switched</c>.</param>
 public sealed record LoadMessage(string Assistant, string Version, string Path, string Data, string Entrance) : PipeMessage
 {
     public override string Type => "load";
 }
 
+/// <summary>Takes one assistant off the desktop (with its exit); the others stay.</summary>
 /// <param name="Reason"><c>disabled</c>, <c>uninstalling</c>, <c>hiding</c> or <c>reloading</c> (it comes back at once).</param>
-public sealed record UnloadMessage(string Reason) : PipeMessage
+public sealed record UnloadMessage(string Assistant, string Reason) : PipeMessage
 {
     public override string Type => "unload";
 }
@@ -91,30 +94,34 @@ public sealed record LoadedMessage(string Assistant, bool Ok, string? Error = nu
 }
 
 /// <summary>«Assistant: action», or a button of its settings or its panel: run one of its extras.</summary>
-public sealed record ExtraMessage(string Action) : PipeMessage
+public sealed record ExtraMessage(string Assistant, string Action) : PipeMessage
 {
     public override string Type => "extra";
 }
 
 // ── from the assistant to K-Desktop's panel ─────────────────────────────
 
+/// <param name="Assistant">Whose state; null: the process's (the model, the memory).</param>
 public sealed record StatusMessage(
     string State,
     string? Model = null,
     bool? ModelLoaded = null,
     bool? Busy = null,
     int? MemoryMb = null,
-    string? LastError = null) : PipeMessage
+    string? LastError = null,
+    string? Assistant = null) : PipeMessage
 {
     public override string Type => "status";
 }
 
-public sealed record NotifyMessage(string Title, string Text) : PipeMessage
+/// <param name="Assistant">Who says it (filled in by the host).</param>
+public sealed record NotifyMessage(string Title, string Text, string? Assistant = null) : PipeMessage
 {
     public override string Type => "notify";
 }
 
-public sealed record OpenMessage(string Page) : PipeMessage
+/// <param name="Assistant">The assistant the page is about (its panel, its settings), if any.</param>
+public sealed record OpenMessage(string Page, string? Assistant = null) : PipeMessage
 {
     public override string Type => "open";
 }
@@ -128,8 +135,8 @@ public sealed record PanelMessage(JsonObject Data, string? Assistant = null) : P
     public override string Type => "panel";
 }
 
-/// <summary>Right-click menu → «Hide»: K-Desktop takes the assistant off the desktop (the module goes on without a body).</summary>
-public sealed record HideMessage : PipeMessage
+/// <summary>Right-click menu → «Hide»: K-Desktop takes that assistant off the desktop (the others stay).</summary>
+public sealed record HideMessage(string Assistant) : PipeMessage
 {
     public override string Type => "hide";
 }

@@ -57,13 +57,6 @@ internal sealed class HostRendering : IRendering, IDisposable
 
     internal void Forget(HostSurface surface) => _surfaces.Remove(surface);
 
-    /// <summary>Removes every surface (an assistant unloaded without disposing its own).</summary>
-    public void DisposeSurfaces()
-    {
-        foreach (var surface in _surfaces.ToList()) surface.Dispose();
-        Commit();
-    }
-
     internal void MarkDirty() => _dirty = true;
 
     /// <summary>Sends this tick's changes to the compositor in one go (images and positions move together).</summary>
@@ -149,6 +142,8 @@ internal sealed class HostSurface(HostRendering rendering, SurfaceLayer layer) :
     private PixelRect _area;
     private DrawingGroup? _last;
     private bool _disposed;
+
+    internal bool IsDisposed => _disposed;
 
     public bool IsVisible => _stage is { IsAttached: true };
 

@@ -46,7 +46,7 @@ public partial class WakeWordDialog : FluentWindow
     /// <summary>The word saved (null when cancelled or only tried).</summary>
     public WakeWord? Saved { get; private set; }
 
-    private WakeWordDialog(WakeWord? existing, bool testOnly)
+    private WakeWordDialog(WakeWord? existing, bool testOnly, string? suggestedName = null)
     {
         InitializeComponent();
         _existing = existing;
@@ -58,7 +58,7 @@ public partial class WakeWordDialog : FluentWindow
         var micId = _app.Config.Settings.VoiceMicId;
         var mic = MicCapture.Devices().FirstOrDefault(d => d.Id == micId).Name ?? Loc.T("wake.micDefault");
         MicText.Text = Loc.T("wake.mic", mic);
-        NameBox.Text = existing?.Name ?? string.Empty;
+        NameBox.Text = existing?.Name ?? suggestedName ?? string.Empty;
 
         _meterTimer.Tick += (_, _) =>
         {
@@ -96,10 +96,13 @@ public partial class WakeWordDialog : FluentWindow
         };
     }
 
-    /// <summary>Records a new wake word, or <paramref name="existing"/> again. Returns the saved one.</summary>
-    public static WakeWord? Record(Window? owner, WakeWord? existing = null)
+    /// <summary>
+    /// Records a new wake word (its name proposed as <paramref name="suggestedName"/>), or <paramref name="existing"/>
+    /// again. Returns the saved one.
+    /// </summary>
+    public static WakeWord? Record(Window? owner, WakeWord? existing = null, string? suggestedName = null)
     {
-        var dlg = new WakeWordDialog(existing, testOnly: false) { Owner = owner };
+        var dlg = new WakeWordDialog(existing, testOnly: false, suggestedName) { Owner = owner };
         dlg.ShowDialog();
         return dlg.Saved;
     }

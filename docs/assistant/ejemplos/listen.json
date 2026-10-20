@@ -1,5 +1,6 @@
 {
   "t": "listen",
+  "assistant": "lander",
   "seconds": 6,
   "expect": [
     "sí",

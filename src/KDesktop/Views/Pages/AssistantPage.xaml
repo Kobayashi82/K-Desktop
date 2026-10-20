@@ -40,6 +40,9 @@
             </Border>
 
             <StackPanel x:Name="OnPanel">
+                <!-- Several on the desktop: whose card and panel are shown -->
+                <WrapPanel x:Name="Pickers" Margin="0,0,0,6" Visibility="Collapsed" AutomationProperties.Name="{l:Tr assistantPanel.whom}" />
+
                 <!-- Who is on the desktop -->
                 <Border Style="{StaticResource Card}">
                     <Grid>

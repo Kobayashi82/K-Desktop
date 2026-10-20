@@ -7,10 +7,11 @@ using static KDesktop.Assistant.Host.Interop.Native;
 namespace KDesktop.Assistant.Host.Input;
 
 /// <summary>What the right-click menu offers, gathered on the engine thread.</summary>
-/// <param name="Name">The assistant's name.</param>
+/// <param name="Id">The assistant clicked (there may be several on the desktop).</param>
+/// <param name="Name">Its name.</param>
 /// <param name="Extras">Its extras (id and name in K-Desktop's language).</param>
 /// <param name="At">Where it was clicked, in screen pixels.</param>
-internal sealed record MenuRequest(string Name, IReadOnlyList<(string Id, string Name)> Extras, Point At);
+internal sealed record MenuRequest(string Id, string Name, IReadOnlyList<(string Id, string Name)> Extras, Point At);
 
 internal enum MenuChoice
 {

@@ -226,14 +226,21 @@ public class DeclarativeUiTests
     }
 
     [Fact]
-    public void AnotherAssistantsDataIsNotMixedIn()
+    public async Task EachAssistantWaitsItsTurnWithoutMixing()
     {
         var sent = new List<PanelMessage>();
-        var publisher = new PanelPublisher(sent.Add);
-        publisher.Publish("dot", new JsonObject { ["a"] = 1 });
-        publisher.Publish("dot", new JsonObject { ["a"] = 2 }); // waits
-        publisher.Publish("lander", new JsonObject { ["b"] = 3 }); // the dot leftovers go first
-        Assert.Equal(["dot", "dot"], sent.Select(m => m.Assistant));
-        Assert.Equal(2, sent[1].Data["a"]!.GetValue<int>());
+        var publisher = new PanelPublisher(m => { lock (sent) sent.Add(m); });
+        publisher.Publish("dot", new JsonObject { ["a"] = 1 });    // at once
+        publisher.Publish("dot", new JsonObject { ["a"] = 2 });    // waits…
+        publisher.Publish("lander", new JsonObject { ["b"] = 3 }); // …and so does another assistant's, apart
+        publisher.Publish("dot", new JsonObject { ["a"] = 4 });    // merged with Dot's pending one
+        await Task.Delay(PanelPublisher.Interval * 2);
+        lock (sent)
+        {
+            Assert.Equal(["dot", "dot", "lander"], sent.Select(m => m.Assistant));
+            Assert.Equal(4, sent[1].Data["a"]!.GetValue<int>());
+            Assert.False(sent[1].Data.ContainsKey("b"));
+            Assert.Equal(["b"], sent[2].Data.Select(p => p.Key));
+        }
     }
 }

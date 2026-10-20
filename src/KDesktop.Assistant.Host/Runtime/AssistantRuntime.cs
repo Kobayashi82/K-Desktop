@@ -15,9 +15,10 @@ using KDesktop.Core.Localization;
 namespace KDesktop.Assistant.Host.Runtime;
 
 /// <summary>
-/// Runs the loaded assistant on the engine thread: owns the overlay, the hit areas and the world, ticks the
-/// assistant at the pace it asks for (in step with the compositor while it moves), and contains its failures:
-/// an exception is logged, and several in a row unload it. Without an assistant it costs nothing.
+/// Runs the assistants on the desktop on the engine thread (stage 1.11: several at once): owns the overlay and the
+/// world they share, ticks each one at the pace it asks for (in step with the compositor while it moves), and contains
+/// their failures one by one: an exception is logged, and several in a row unload that assistant only. Without
+/// assistants it costs nothing.
 /// </summary>
 internal sealed class AssistantRuntime : IDisposable
 {
@@ -27,13 +28,9 @@ internal sealed class AssistantRuntime : IDisposable
     private readonly EngineLoop _engine;
     private readonly KDesktopLink? _link;
     private readonly PanelPublisher _panel;
-    private double _lastTick;
+    /// <summary>On the desktop, in the order they were loaded (the order they tick in).</summary>
+    private readonly List<AssistantSlot> _slots = [];
     private double _nextOnTop;
-    private int _faults;
-    private WeakReference? _context;
-    private AssistantManifest? _manifest;
-    /// <summary>Cancels the extras still running when the assistant leaves.</summary>
-    private CancellationTokenSource _extras = new();
 
     public AssistantRuntime(EngineLoop engine, KDesktopLink? link)
     {
@@ -41,13 +38,12 @@ internal sealed class AssistantRuntime : IDisposable
         _link = link;
         _panel = new PanelPublisher(message => _link?.Send(message));
         World = new HostWorld(() => engine.Now);
-        Watcher = new WorldWatcher(World, () => engine.Now, OwnWindows, e => Guard(a => a.OnSystemEvent(e), "OnSystemEvent"), engine.RequestTick);
+        World.Changed += snapshot => Each(slot => Guard(slot, _ => slot.World.Raise(snapshot), "World.Changed"));
+        Watcher = new WorldWatcher(World, () => engine.Now, OwnWindows, e => Each(slot => Guard(slot, a => a.OnSystemEvent(e), "OnSystemEvent")), engine.RequestTick);
         WindowServices = new HostWindowServices(Watcher.Scanner);
     }
 
     public HostRendering Rendering { get; private set; } = null!;
-
-    public HostPointer Pointer { get; private set; } = null!;
 
     public HostWorld World { get; }
 
@@ -56,27 +52,26 @@ internal sealed class AssistantRuntime : IDisposable
 
     public IWindowServices WindowServices { get; }
 
-    public IAssistant? Current { get; private set; }
+    /// <summary>The ids of the assistants on the desktop, in the order they were loaded.</summary>
+    public IReadOnlyList<string> Loaded => [.. _slots.Select(s => s.Id)];
 
-    public AssistantHost? CurrentHost { get; private set; }
+    public bool IsLoaded(string id) => Find(id) is not null;
 
-    /// <summary>The assistant was unloaded because it kept failing (its id).</summary>
+    /// <summary>An assistant was unloaded because it kept failing (its id).</summary>
     public event Action<string>? Faulted;
 
-    /// <summary>The right button on the assistant: show the host's menu. Engine thread.</summary>
+    /// <summary>The right button on an assistant: show the host's menu. Engine thread.</summary>
     public event Action<MenuRequest>? MenuRequested;
 
     /// <summary>On the engine thread, before the first tick.</summary>
     public void Start()
     {
         Rendering = new HostRendering();
-        Pointer = new HostPointer(e => Guard(a => a.OnPointer(e), "OnPointer"), OnMenu);
         Faulted += id => _link?.Send(new LoadedMessage(id, false, "falla una y otra vez"));
         Watcher.MonitorsChanged += Rendering.UpdateBounds;
-        _lastTick = _engine.Now;
     }
 
-    /// <summary>One engine tick: returns the seconds it may sleep.</summary>
+    /// <summary>One engine tick: ticks the assistants that are due and returns the seconds it may sleep.</summary>
     public double Tick(double now)
     {
         Rendering.Pacer.Update(now);
@@ -88,20 +83,28 @@ internal sealed class AssistantRuntime : IDisposable
             if (Watcher.ExclusiveFullscreen) Rendering.Suspend();
             else Rendering.Resume();
         }
-        if (Current is { } assistant)
+        // Half a frame early still counts: the tick is placed on the compositor's beat, not on the exact moment asked.
+        var early = Rendering.FrameInterval / 2;
+        foreach (var slot in _slots.ToList())
         {
-            var elapsed = Math.Clamp(now - _lastTick, 0, 0.25);
-            var wanted = 1.0;
-            if (!Guard(a => wanted = a.Tick(new TickInfo(now, elapsed)), "Tick")) wanted = 1;
-            interval = Math.Min(interval, wanted);
+            if (slot.Dropped) continue;
+            if (slot.TickRequested || now >= slot.Due - early)
+            {
+                slot.TickRequested = false;
+                var elapsed = Math.Clamp(now - slot.LastTick, 0, 0.25);
+                var wanted = 1.0;
+                if (!Guard(slot, a => wanted = a.Tick(new TickInfo(now, elapsed)), "Tick")) wanted = 1;
+                slot.LastTick = now;
+                slot.Due = now + (double.IsFinite(wanted) ? Math.Clamp(wanted, 0, 60) : 1);
+            }
+            if (!slot.Dropped) interval = Math.Min(interval, Math.Max(0, slot.Due - now));
         }
-        _lastTick = now;
         if (now >= _nextOnTop)
         {
             // Other «always on top» windows may cover it: take the top back every few seconds, without fighting.
             _nextOnTop = now + 5;
             Rendering.KeepOnTop();
-            Pointer.KeepOnTop();
+            foreach (var slot in _slots) slot.Pointer.KeepOnTop();
         }
         Rendering.Commit();
         return interval;
@@ -114,65 +117,76 @@ internal sealed class AssistantRuntime : IDisposable
     public double NextTick(double now, double interval) =>
         interval <= Rendering.FrameInterval * 1.5 ? Rendering.Pacer.Align(now + interval) : now + interval;
 
-    /// <summary>Loads an assistant package from its folder (unloading the current one first). Returns its id.</summary>
+    /// <summary>
+    /// Loads an assistant package from its folder next to the others. One with the same id already on the desktop (an
+    /// older version) leaves first, once the new code has loaded. Returns its id.
+    /// </summary>
     public async Task<string> LoadPackageAsync(string folder, string? data, EntranceKind entrance)
     {
-        if (Current is not null) await UnloadAsync(ExitKind.Switching).ConfigureAwait(true);
         var package = PackageLoader.Load(folder, data);
-        _context = package.Context;
-        await LoadAsync(package.Assistant, package.Manifest.Id, package.Folder, package.DataFolder, package.Settings, entrance).ConfigureAwait(true);
-        if (Current is not null) _manifest = package.Manifest;
+        await LoadAsync(package.Assistant, package.Manifest.Id, package.Folder, package.DataFolder, package.Settings, entrance,
+            package.Manifest, package.Context).ConfigureAwait(true);
         return package.Manifest.Id;
     }
 
-    /// <summary>Loads an assistant (unloading the current one first, with its exit).</summary>
-    public async Task LoadAsync(IAssistant assistant, string id, string package, string data, JsonElement settings, EntranceKind entrance)
+    /// <summary>Loads an assistant next to the others (one with its id leaves first, with its exit).</summary>
+    public async Task LoadAsync(IAssistant assistant, string id, string package, string data, JsonElement settings, EntranceKind entrance,
+        AssistantManifest? manifest = null, WeakReference? context = null)
     {
-        if (Current is not null) await UnloadAsync(ExitKind.Switching).ConfigureAwait(true);
+        if (Find(id) is not null) await UnloadAsync(id, ExitKind.Switching).ConfigureAwait(true);
         if (!Watcher.IsStarted) Watcher.Start(_engine.Now, _engine.Post);
-        var host = new AssistantHost(this, id, package, data, settings);
-        Current = assistant;
-        CurrentHost = host;
-        _faults = 0;
-        if (!Guard(a => a.Attach(host), "Attach") || !Guard(a => a.Enter(entrance), "Enter")) return;
-        Log.Info($"Asistente: «{id}» cargado");
-        RequestTick();
+        var slot = new AssistantSlot(id, assistant, manifest, context, Rendering, World) { LastTick = _engine.Now };
+        slot.Pointer = new HostPointer(e => Guard(slot, a => a.OnPointer(e), "OnPointer"), (area, at) => OnMenu(slot, at));
+        slot.Host = new AssistantHost(this, slot, package, data, settings);
+        _slots.Add(slot);
+        if (!Guard(slot, a => a.Attach(slot.Host), "Attach") || !Guard(slot, a => a.Enter(entrance), "Enter"))
+        {
+            // Half attached it would only fail again on every tick: it does not stay.
+            Drop(slot);
+            throw new InvalidOperationException($"«{id}» ha fallado al entrar en el escritorio (detalles en assistant.log)");
+        }
+        Log.Info($"Asistente: «{id}» cargado ({_slots.Count} en el escritorio)");
+        RequestTick(slot);
     }
 
-    /// <summary>Lets the assistant leave (with a time limit) and drops it.</summary>
-    public async Task UnloadAsync(ExitKind why)
+    /// <summary>Lets an assistant leave (with a time limit) and drops it; the others go on.</summary>
+    public async Task UnloadAsync(string id, ExitKind why)
     {
-        if (Current is not { } assistant) return;
-        var id = CurrentHost?.Id;
+        if (Find(id) is not { } slot) return;
         try
         {
             using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(3));
-            await assistant.ExitAsync(why, limit.Token).WaitAsync(TimeSpan.FromSeconds(3)).ConfigureAwait(true);
+            await slot.Assistant.ExitAsync(why, limit.Token).WaitAsync(TimeSpan.FromSeconds(3)).ConfigureAwait(true);
         }
         catch (Exception ex) when (ex is not OutOfMemoryException)
         {
             Log.Warn($"Asistente: «{id}» no ha salido bien ({ex.Message})");
         }
-        Drop(assistant);
+        Drop(slot);
         Log.Info($"Asistente: «{id}» descargado ({why})");
     }
 
-    /// <summary>The settings of the loaded assistant changed in K-Desktop's Options.</summary>
-    public void ApplySettings(JsonElement settings)
+    /// <summary>All of them leave at once (each with its time limit).</summary>
+    public Task UnloadAllAsync(ExitKind why) => Task.WhenAll(_slots.Select(s => s.Id).ToList().Select(id => UnloadAsync(id, why)).ToList());
+
+    /// <summary>The settings of an assistant on the desktop changed in K-Desktop's Options.</summary>
+    public void ApplySettings(string id, JsonElement settings)
     {
-        if (CurrentHost is { } host) host.Settings = settings;
-        Guard(a => a.OnSettingsChanged(settings), "OnSettingsChanged");
+        if (Find(id) is not { } slot) return;
+        slot.Host.Settings = settings;
+        Guard(slot, a => a.OnSettingsChanged(settings), "OnSettingsChanged");
     }
 
-    /// <summary>Runs one of the assistant's extras (from its menu); it is cancelled if the assistant leaves.</summary>
-    public async Task RunExtraAsync(string extraId)
+    /// <summary>Runs one of an assistant's extras (from its menu); it is cancelled if the assistant leaves.</summary>
+    public async Task RunExtraAsync(string id, string extraId)
     {
+        if (Find(id) is not { } slot) return;
         Task? running = null;
-        var token = _extras.Token;
-        if (!Guard(a => running = a.OnExtraAsync(extraId, token), "OnExtraAsync") || running is null) return;
+        var token = slot.Extras.Token;
+        if (!Guard(slot, a => running = a.OnExtraAsync(extraId, token), "OnExtraAsync") || running is null) return;
         try { await running.ConfigureAwait(true); }
         catch (OperationCanceledException) { /* it left */ }
-        catch (Exception ex) { Log.Error($"Asistente: el extra «{extraId}» ha fallado", ex); }
+        catch (Exception ex) { Log.Error($"Asistente: el extra «{extraId}» de «{id}» ha fallado", ex); }
     }
 
     /// <summary>K-Desktop was paused or resumed.</summary>
@@ -180,63 +194,73 @@ internal sealed class AssistantRuntime : IDisposable
 
     public void PublishPanel(string assistant, JsonObject data) => _panel.Publish(assistant, data);
 
-    public void Notify(string title, string text) => _link?.Send(new NotifyMessage(title, text));
+    public void Notify(string assistant, string title, string text) => _link?.Send(new NotifyMessage(title, text, assistant));
 
-    public void RequestTick() => _engine.RequestTick();
+    /// <summary>A tick for this assistant as soon as possible (any thread).</summary>
+    public void RequestTick(AssistantSlot slot)
+    {
+        slot.TickRequested = true;
+        _engine.RequestTick();
+    }
 
     public void Post(Action action) => _engine.Post(action);
 
     public void Dispose()
     {
-        if (Current is { } assistant) Drop(assistant);
-        _extras.Dispose();
+        foreach (var slot in _slots.ToList()) Drop(slot);
         Watcher.Dispose();
-        Pointer?.Dispose();
         Rendering?.Dispose();
     }
 
-    /// <summary>Calls the assistant; false when it threw (counted; several in a row unload it).</summary>
-    private bool Guard(Action<IAssistant> call, string what)
+    private AssistantSlot? Find(string id) => _slots.FirstOrDefault(s => s.Id == id);
+
+    /// <summary>Something for every assistant on the desktop (one that fails and is dropped meanwhile is skipped).</summary>
+    private void Each(Action<AssistantSlot> action)
     {
-        if (Current is not { } assistant) return false;
+        foreach (var slot in _slots.ToList())
+            if (!slot.Dropped) action(slot);
+    }
+
+    /// <summary>Calls an assistant; false when it threw (counted; several in a row unload it).</summary>
+    private bool Guard(AssistantSlot slot, Action<IAssistant> call, string what)
+    {
+        if (slot.Dropped) return false;
         try
         {
-            call(assistant);
-            _faults = 0;
+            call(slot.Assistant);
+            slot.Faults = 0;
             return true;
         }
         catch (Exception ex)
         {
-            var id = CurrentHost?.Id ?? "?";
-            Log.Error($"Asistente: «{id}» ha fallado en {what}", ex);
-            if (++_faults >= MaxFaults)
+            Log.Error($"Asistente: «{slot.Id}» ha fallado en {what}", ex);
+            if (++slot.Faults >= MaxFaults)
             {
-                Log.Warn($"Asistente: «{id}» falla una y otra vez; se descarga");
-                Drop(assistant);
-                Faulted?.Invoke(id);
+                Log.Warn($"Asistente: «{slot.Id}» falla una y otra vez; se descarga");
+                Drop(slot);
+                Faulted?.Invoke(slot.Id);
             }
             return false;
         }
     }
 
-    private void Drop(IAssistant assistant)
+    private void Drop(AssistantSlot slot)
     {
-        var id = CurrentHost?.Id ?? "?";
-        try { assistant.Dispose(); }
-        catch (Exception ex) { Log.Error("Asistente: error al liberarlo", ex); }
-        Current = null;
-        CurrentHost = null;
-        _manifest = null;
-        _extras.Cancel();
-        _extras.Dispose();
-        _extras = new CancellationTokenSource();
-        // What it left behind goes with it: surfaces, hit areas and its subscriptions to the world.
-        Rendering?.DisposeSurfaces();
-        Pointer?.Dispose();
-        World.ForgetSubscribers();
-        if (_context is { } context)
+        if (slot.Dropped) return;
+        slot.Dropped = true;
+        _slots.Remove(slot);
+        try { slot.Assistant.Dispose(); }
+        catch (Exception ex) { Log.Error($"Asistente: error al liberar «{slot.Id}»", ex); }
+        slot.Extras.Cancel();
+        slot.Extras.Dispose();
+        // What it left behind goes with it: its surfaces, its hit areas and its subscriptions to the world.
+        slot.Surfaces.DisposeAll();
+        slot.Pointer.Dispose();
+        slot.World.Forget();
+        if (slot.Context is { } context)
         {
-            _context = null;
+            var id = slot.Id;
+            slot.Release();
             // Later, from the engine queue: now the caller's frames (async ones too) still hold the assistant.
             _engine.Post(() => PackageLoader.Unload(context, id));
         }
@@ -244,18 +268,113 @@ internal sealed class AssistantRuntime : IDisposable
 
     private IEnumerable<nint> OwnWindows()
     {
-        if (Rendering is not null) yield return Rendering.OverlayHandle;
-        if (Pointer is null) yield break;
-        foreach (var handle in Pointer.Handles) yield return handle;
+        var handles = new List<nint>();
+        if (Rendering is not null) handles.Add(Rendering.OverlayHandle);
+        foreach (var slot in _slots) handles.AddRange(slot.Pointer.Handles);
+        return handles;
     }
 
-    /// <summary>The host's menu (panel, settings, extras, hide; talking and writing come with the brain).</summary>
-    private void OnMenu(string area, Point at)
+    /// <summary>The host's menu for the assistant clicked (panel, settings, extras, hide; talking and writing come with the brain).</summary>
+    private void OnMenu(AssistantSlot slot, Point at)
     {
-        if (CurrentHost is not { } host) return;
+        if (slot.Dropped) return;
         var language = Loc.Instance.Language;
-        var name = _manifest?.Name ?? host.Id;
-        var extras = _manifest?.Extras.Select(e => (e.Id, e.Name.In(language))).ToList() ?? [];
-        MenuRequested?.Invoke(new MenuRequest(name, extras, at));
+        var name = slot.Manifest?.Name ?? slot.Id;
+        var extras = slot.Manifest?.Extras.Select(e => (e.Id, e.Name.In(language))).ToList() ?? [];
+        MenuRequested?.Invoke(new MenuRequest(slot.Id, name, extras, at));
     }
+}
+
+/// <summary>
+/// One assistant on the desktop and what is only its own: its host, its surfaces, its hit areas, its subscriptions to
+/// the world, its failures, its running extras and when it wants its next tick. Engine thread.
+/// </summary>
+internal sealed class AssistantSlot(string id, IAssistant assistant, AssistantManifest? manifest, WeakReference? context, HostRendering rendering, HostWorld world)
+{
+    public string Id { get; } = id;
+
+    public IAssistant Assistant { get; private set; } = assistant;
+
+    public AssistantManifest? Manifest { get; } = manifest;
+
+    /// <summary>Its code's load context (null for the built-in probe).</summary>
+    public WeakReference? Context { get; } = context;
+
+    public AssistantHost Host { get; set; } = null!;
+
+    public SurfaceScope Surfaces { get; } = new(rendering);
+
+    public WorldView World { get; } = new(world);
+
+    public HostPointer Pointer { get; set; } = null!;
+
+    public CancellationTokenSource Extras { get; } = new();
+
+    public int Faults { get; set; }
+
+    public bool Dropped { get; set; }
+
+    public double LastTick { get; set; }
+
+    /// <summary>When it asked to be ticked next (engine clock).</summary>
+    public double Due { get; set; }
+
+    /// <summary>It asked for a tick as soon as possible (<see cref="IAssistantHost.RequestTick"/>, any thread).</summary>
+    public bool TickRequested { get => Volatile.Read(ref _tickRequested); set => Volatile.Write(ref _tickRequested, value); }
+
+    private bool _tickRequested;
+
+    /// <summary>Lets go of the instance and its host, so its load context can be collected.</summary>
+    public void Release()
+    {
+        Assistant = null!;
+        Host = null!;
+    }
+}
+
+/// <summary>
+/// <see cref="IRendering"/> for one assistant: its surfaces go on the shared overlay, and are remembered so they go
+/// when it is unloaded (even if it did not dispose them).
+/// </summary>
+internal sealed class SurfaceScope(HostRendering rendering) : IRendering
+{
+    private readonly List<HostSurface> _own = [];
+
+    public bool HardwareAccelerated => rendering.HardwareAccelerated;
+
+    public double FrameInterval => rendering.FrameInterval;
+
+    public ISurface CreateSurface(SurfaceLayer layer = SurfaceLayer.Main)
+    {
+        _own.RemoveAll(s => s.IsDisposed);
+        var surface = (HostSurface)rendering.CreateSurface(layer);
+        _own.Add(surface);
+        return surface;
+    }
+
+    public void DisposeAll()
+    {
+        foreach (var surface in _own) surface.Dispose();
+        _own.Clear();
+        rendering.Commit();
+    }
+}
+
+/// <summary>
+/// <see cref="IWorld"/> for one assistant: the shared picture of the desktop, with subscribers of its own (forgotten
+/// when it is unloaded; an exception in one is that assistant's failure).
+/// </summary>
+internal sealed class WorldView(HostWorld world) : IWorld
+{
+    public WorldSnapshot Current => world.Current;
+
+    public SystemState System => world.System;
+
+    public event Action<WorldSnapshot>? Changed;
+
+    public void WatchClosely(double seconds) => world.WatchClosely(seconds);
+
+    internal void Raise(WorldSnapshot snapshot) => Changed?.Invoke(snapshot);
+
+    internal void Forget() => Changed = null;
 }

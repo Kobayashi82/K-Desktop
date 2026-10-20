@@ -12,12 +12,14 @@ namespace KDesktop.Assistant.Host;
 
 /// <summary>
 /// Everything one run of the assistant process owns: the UI thread (menus, the text box), the engine thread with
-/// the overlay and the loaded assistant, and the link with K-Desktop.
+/// the overlay and the assistants on the desktop, and the link with K-Desktop.
 /// </summary>
 internal sealed class AssistantSession : IDisposable
 {
     private int _shuttingDown;
     private DevLoader? _dev;
+    /// <summary>K-Desktop's loads and unloads, one after another (engine thread): an unload then a load of the same one keep their order.</summary>
+    private Task _changes = Task.CompletedTask;
 
     public AssistantSession(AssistantOptions options, Dispatcher ui)
     {
@@ -96,24 +98,34 @@ internal sealed class AssistantSession : IDisposable
                 Log.Info($"Asistente: se ignora «load» de «{load.Assistant}» (modo desarrollo o sonda)");
                 break;
             case LoadMessage load:
-                _ = LoadAsync(load);
+                Then(() => LoadAsync(load));
                 break;
             case UnloadMessage unload:
-                _ = Runtime.UnloadAsync(unload.Reason switch
+                Then(() => Runtime.UnloadAsync(unload.Assistant, unload.Reason switch
                 {
                     "hiding" => ExitKind.Hiding,
                     "uninstalling" => ExitKind.Uninstalling,
                     "reloading" => ExitKind.Reloading,
                     _ => ExitKind.Shutdown,
-                });
+                }));
                 break;
-            case ConfigMessage { Section: "assistantSettings", Value: { } value }:
-                Runtime.ApplySettings(JsonSerializer.SerializeToElement(value));
+            case ConfigMessage { Section: "assistantSettings", Assistant: { } id, Value: { } value }:
+                Runtime.ApplySettings(id, JsonSerializer.SerializeToElement(value));
                 break;
             case ExtraMessage extra:
-                _ = Runtime.RunExtraAsync(extra.Action);
+                _ = Runtime.RunExtraAsync(extra.Assistant, extra.Action);
                 break;
         }
+    }
+
+    /// <summary>Runs a load or an unload after the ones before it (engine thread).</summary>
+    private void Then(Func<Task> change) => _changes = After(_changes, change);
+
+    private static async Task After(Task previous, Func<Task> change)
+    {
+        try { await previous.ConfigureAwait(true); }
+        catch { /* logged where it failed */ }
+        await change().ConfigureAwait(true);
     }
 
     /// <summary>The right-click menu, on the UI thread; what is chosen goes to K-Desktop or to the assistant.</summary>
@@ -125,21 +137,21 @@ internal sealed class AssistantSession : IDisposable
         switch (choice)
         {
             case MenuChoice.Panel:
-                Link?.Send(new OpenMessage("assistant"));
+                Link?.Send(new OpenMessage("assistant", request.Id));
                 break;
             case MenuChoice.Settings:
-                Link?.Send(new OpenMessage("assistantSettings"));
+                Link?.Send(new OpenMessage("assistantSettings", request.Id));
                 break;
             case MenuChoice.Hide:
-                Link?.Send(new HideMessage());
+                Link?.Send(new HideMessage(request.Id));
                 break;
             case MenuChoice.Extra when extra is not null:
-                Engine.Post(() => _ = Runtime.RunExtraAsync(extra));
+                Engine.Post(() => _ = Runtime.RunExtraAsync(request.Id, extra));
                 break;
         }
     }
 
-    /// <summary>K-Desktop's «load»: the assistant it wants on the desktop, answered with «loaded».</summary>
+    /// <summary>K-Desktop's «load»: an assistant it wants on the desktop (next to the others), answered with «loaded».</summary>
     private async Task LoadAsync(LoadMessage load)
     {
         try
@@ -156,8 +168,8 @@ internal sealed class AssistantSession : IDisposable
     }
 
     /// <summary>
-    /// Closes the process: the assistant leaves (its exit, up to 3 s), the engine stops and the UI thread ends. Any
-    /// thread but the engine's; only the first call counts.
+    /// Closes the process: the assistants leave (their exits at once, up to 3 s), the engine stops and the UI thread
+    /// ends. Any thread but the engine's; only the first call counts.
     /// </summary>
     public void Shutdown(string reason, int exitCode = 0)
     {
@@ -167,7 +179,7 @@ internal sealed class AssistantSession : IDisposable
         var left = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         Engine.Post(async () =>
         {
-            try { await Runtime.UnloadAsync(ExitKind.Shutdown); }
+            try { await Runtime.UnloadAllAsync(ExitKind.Shutdown); }
             finally { left.TrySetResult(); }
         });
         left.Task.Wait(TimeSpan.FromSeconds(3.5));

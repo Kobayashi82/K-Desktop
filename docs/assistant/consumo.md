@@ -32,6 +32,24 @@ Memoria del proceso del asistente: unos 105 MB de conjunto de trabajo y 80 MB pr
 .NET, WPF (para que los asistentes dibujen con `DrawingContext`) y Direct3D/DirectComposition. De sus ~75 hilos, 55
 son del controlador de NVIDIA (`nvwgf2umx.dll`, Direct3D 11) y no gastan nada en reposo.
 
+## Con dos asistentes a la vez (etapa 1.11)
+
+Medido con la 5.0.56 (Release dependiente del marco): una instancia con Dot y otra con Dot y Blob (una copia de Dot
+con otro id), los dos quietos, arrancadas a la vez y medidas en las mismas condiciones. Esta vez el PC estaba **en
+uso** el 83 % del tiempo, así que las cifras absolutas son las de «con el PC en uso» (los eventos de ventana
+despiertan al motor) y no se comparan con la tabla de arriba; lo que cuenta es la diferencia entre las dos:
+
+| Caso | K-Desktop CPU | Proceso del asistente CPU | Proceso del asistente memoria (WS / privada) |
+|---|---|---|---|
+| Un asistente (Dot) | 0,077 % | 0,773 % | 115 / 84 MB |
+| Dos asistentes (Dot y Blob) | 0,085 % | 0,882 % | 114 / 82 MB |
+
+- **El segundo asistente cuesta poco: ✅.** El mundo, la capa, la GPU y la vigilancia del escritorio son de todos;
+  lo que se suma es su propio tick (cada asistente duerme lo que pide: uno quieto no despierta porque otro se mueva)
+  y lo que dibuja. +0,11 puntos con el PC en uso; la memoria no cambia (el código de Dot es pequeño y comparten el
+  runtime, WPF y Direct3D).
+- K-Desktop no nota la diferencia (la tubería lleva un mensaje más por asistente al cargarlo y su panel).
+
 ## Con el PC en uso
 
 Mientras se usa el PC, Windows avisa al asistente de todo lo que se mueve (eventos de ventana, incluido el cursor) y
@@ -75,7 +93,7 @@ que se asienten y mide los dos procesos de cada una:
 ```
 
 La carpeta de datos de prueba solo lleva un `config.json` sin comandos (con `showWindowOnStart` y `autoBackup`
-desactivados, y `assistantEnabled` / `assistantActive` según el caso) y, para los casos encendidos,
+desactivados, y `assistantEnabled` / `assistantsOnDesktop` según el caso) y, para los casos encendidos,
 `Assistants\dot\<versión>` y `Assistants\Settings\dot.json` (`{"wander": false}` para Dot quieto).
 
 Tres trampas que hacen salir cifras falsas:
