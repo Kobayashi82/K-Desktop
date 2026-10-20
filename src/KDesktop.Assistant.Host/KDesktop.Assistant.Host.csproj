@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The assistant process (assistant mode of KDesktop.exe, as the normal user): the overlay and its rendering, the world, the
+    package loader and the client end of the pipe. It ships inside KDesktop.exe but is only loaded in that mode:
+    with the module off, K-Desktop never touches this assembly.
+  -->
+  <PropertyGroup>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>KDesktop.Assistant.Host</RootNamespace>
+    <AssemblyName>KDesktop.Assistant.Host</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- UseWPF leaves System.IO out of the implicit usings. -->
+    <Using Include="System.IO" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KDesktop.Core\KDesktop.Core.csproj" />
+    <ProjectReference Include="..\KDesktop.Assistant.Sdk\KDesktop.Assistant.Sdk.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="KDesktop.Assistant.Tests" />
+  </ItemGroup>
+
+</Project>

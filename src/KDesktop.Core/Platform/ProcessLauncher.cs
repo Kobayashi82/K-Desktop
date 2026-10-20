@@ -126,7 +126,27 @@ public static class ProcessLauncher
         var payload = Convert.ToBase64String(Encoding.UTF8.GetBytes(Json.Serialize(spec)))
             .TrimEnd('=').Replace('+', '-').Replace('/', '_');
         var exe = AppPaths.ExecutablePath;
-        return CreateProcessAsShellUser(exe, $"\"{exe}\" {HelperArgument} {payload}");
+        return CreateProcessAsShellUser(exe, $"\"{exe}\" {HelperArgument} {payload}") is not null;
+    }
+
+    /// <summary>
+    /// Starts <paramref name="application"/> itself (no helper) as the normal user, from an elevated process, and
+    /// returns it to be watched (the assistant process). Null when it could not be started that way.
+    /// </summary>
+    public static Process? StartAsUser(string application, string arguments)
+    {
+        try
+        {
+            var pid = CreateProcessAsShellUser(application, $"\"{application}\" {arguments}", keepHandle: true, out var handle);
+            if (pid is null) return null;
+            try { return Process.GetProcessById((int)pid.Value); }
+            finally { Win32.CloseHandle(handle); } // held until Process has its own, so the id cannot be reused meanwhile
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"Error lanzando {application} sin elevación", ex);
+            return null;
+        }
     }
 
     /// <summary>Entry point of the helper process (called from Program.Main). Returns the exit code.</summary>
@@ -146,15 +166,22 @@ public static class ProcessLauncher
         }
     }
 
-    /// <summary>Starts a process with the token of the desktop shell (Explorer), i.e. not elevated.</summary>
-    private static bool CreateProcessAsShellUser(string application, string commandLine)
+    private static uint? CreateProcessAsShellUser(string application, string commandLine) =>
+        CreateProcessAsShellUser(application, commandLine, keepHandle: false, out _);
+
+    /// <summary>
+    /// Starts a process with the token of the desktop shell (Explorer), i.e. not elevated. Returns its id, or null.
+    /// With <paramref name="keepHandle"/> the process handle is left open in <paramref name="process"/> (close it).
+    /// </summary>
+    private static uint? CreateProcessAsShellUser(string application, string commandLine, bool keepHandle, out IntPtr process)
     {
+        process = IntPtr.Zero;
         Win32.EnablePrivilege("SeIncreaseQuotaPrivilege");
 
         var shell = Win32.GetShellWindow();
-        if (shell == IntPtr.Zero) return false;
+        if (shell == IntPtr.Zero) return null;
         Win32.GetWindowThreadProcessId(shell, out var shellPid);
-        if (shellPid == 0) return false;
+        if (shellPid == 0) return null;
 
         IntPtr hProcess = IntPtr.Zero, hShellToken = IntPtr.Zero, hToken = IntPtr.Zero, env = IntPtr.Zero;
         try
@@ -180,8 +207,9 @@ public static class ProcessLauncher
 
             Win32.AllowSetForegroundWindow((int)pi.dwProcessId);
             Win32.CloseHandle(pi.hThread);
-            Win32.CloseHandle(pi.hProcess);
-            return true;
+            if (keepHandle) process = pi.hProcess;
+            else Win32.CloseHandle(pi.hProcess);
+            return pi.dwProcessId;
         }
         finally
         {
@@ -191,10 +219,10 @@ public static class ProcessLauncher
             if (hProcess != IntPtr.Zero) Win32.CloseHandle(hProcess);
         }
 
-        static bool Fail(string what)
+        static uint? Fail(string what)
         {
             Log.Warn($"{what} falló: {new Win32Exception(Marshal.GetLastWin32Error()).Message}");
-            return false;
+            return null;
         }
     }
 }

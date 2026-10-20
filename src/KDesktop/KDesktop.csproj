@@ -20,6 +20,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\KDesktop.Core\KDesktop.Core.csproj" />
+    <!-- The assistant process (assistant mode of KDesktop.exe): only loaded in that mode. -->
+    <ProjectReference Include="..\KDesktop.Assistant.Host\KDesktop.Assistant.Host.csproj" />
   </ItemGroup>
 
   <ItemGroup>

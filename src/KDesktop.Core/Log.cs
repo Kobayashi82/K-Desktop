@@ -18,7 +18,13 @@ public static class Log
         Writer.Start();
     }
 
-    private static string FilePath => Path.Combine(AppPaths.LogDir, "kdesktop.log");
+    /// <summary>File name without extension: «kdesktop», or «assistant» in the assistant process.</summary>
+    private static string _name = "kdesktop";
+
+    private static string FilePath => Path.Combine(AppPaths.LogDir, _name + ".log");
+
+    /// <summary>Writes to another file of the Logs folder (call before the first line).</summary>
+    public static void UseFile(string name) => _name = name;
 
     public static void Info(string message) => Enqueue("INF", message);
     public static void Warn(string message) => Enqueue("WRN", message);
@@ -50,7 +56,7 @@ public static class Log
                 var fi = new FileInfo(FilePath);
                 if (fi.Exists && fi.Length > MaxFileSize)
                 {
-                    var old = Path.Combine(AppPaths.LogDir, "kdesktop.old.log");
+                    var old = Path.Combine(AppPaths.LogDir, _name + ".old.log");
                     File.Copy(FilePath, old, true);
                     File.Delete(FilePath);
                 }

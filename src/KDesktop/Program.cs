@@ -1,5 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using KDesktop.Assistant.Host;
 using KDesktop.Core;
 using KDesktop.Core.Platform;
 using KDesktop.Services;
@@ -40,6 +42,11 @@ public static class Program
 
         // Alternative data folder (tests, portable copies). Must be set before anything reads AppPaths.
         if (ValueOf(args, "--data") is { } dataDir) AppPaths.UseDataDir(dataDir);
+
+        // The assistant process: a mode of its own, with nothing of the normal instance (and the other way round).
+        // (Plain strings here: naming a type of KDesktop.Assistant.Host in Main would load that assembly every time.)
+        if (args.Any(a => a.Equals("--assistant", StringComparison.OrdinalIgnoreCase) || a.Equals("--assistant-dev", StringComparison.OrdinalIgnoreCase)))
+            return RunAssistant(args);
 
         // Voice diagnostics: transcribe / match and exit, without touching the running instance.
         var voiceTest = Array.FindIndex(args, a => a.Equals("--voice-test", StringComparison.OrdinalIgnoreCase));
@@ -93,6 +100,10 @@ public static class Program
         app.InitializeComponent();
         return app.Run();
     }
+
+    /// <summary>Kept apart so the assistant's assembly is only loaded in that mode.</summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static int RunAssistant(string[] args) => AssistantProcess.Run(args);
 
     private static int VoiceTest(string[] inputs, bool open)
     {
