@@ -36,7 +36,12 @@ public interface IAssistantHost
     /// <summary>Folder where its package was unpacked (read only: images, sounds…).</summary>
     string PackageDirectory { get; }
 
-    /// <summary>Publishes the data its panel.json binds to (Panel → Assistant). Cheap to call; the host throttles it.</summary>
+    /// <summary>
+    /// Publishes the data its panel.json binds to (Panel → Assistant; also the images of a gallery with «source» in its
+    /// settings). It is merged with what it published before: objects key by key, anything else (numbers, texts,
+    /// lists) replaces. Publish everything in <see cref="IAssistant.Enter"/>; after that, what changed is enough. Cheap
+    /// to call: the host sends it at most four times a second.
+    /// </summary>
     void PublishPanel(JsonObject data);
 
     /// <summary>Shows a short notice from it (K-Desktop's toast), e.g. «Achievement unlocked».</summary>

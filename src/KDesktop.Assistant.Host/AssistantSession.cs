@@ -103,11 +103,15 @@ internal sealed class AssistantSession : IDisposable
                 {
                     "hiding" => ExitKind.Hiding,
                     "uninstalling" => ExitKind.Uninstalling,
+                    "reloading" => ExitKind.Reloading,
                     _ => ExitKind.Shutdown,
                 });
                 break;
             case ConfigMessage { Section: "assistantSettings", Value: { } value }:
                 Runtime.ApplySettings(JsonSerializer.SerializeToElement(value));
+                break;
+            case ExtraMessage extra:
+                _ = Runtime.RunExtraAsync(extra.Action);
                 break;
         }
     }

@@ -26,6 +26,7 @@ internal sealed class AssistantRuntime : IDisposable
 
     private readonly EngineLoop _engine;
     private readonly KDesktopLink? _link;
+    private readonly PanelPublisher _panel;
     private double _lastTick;
     private double _nextOnTop;
     private int _faults;
@@ -38,6 +39,7 @@ internal sealed class AssistantRuntime : IDisposable
     {
         _engine = engine;
         _link = link;
+        _panel = new PanelPublisher(message => _link?.Send(message));
         World = new HostWorld(() => engine.Now);
         Watcher = new WorldWatcher(World, () => engine.Now, OwnWindows, e => Guard(a => a.OnSystemEvent(e), "OnSystemEvent"), engine.RequestTick);
         WindowServices = new HostWindowServices(Watcher.Scanner);
@@ -176,7 +178,7 @@ internal sealed class AssistantRuntime : IDisposable
     /// <summary>K-Desktop was paused or resumed.</summary>
     public void SetPaused(bool paused) => Watcher.SetPaused(paused);
 
-    public void PublishPanel(JsonObject data) => _link?.Send(new PanelMessage(data));
+    public void PublishPanel(string assistant, JsonObject data) => _panel.Publish(assistant, data);
 
     public void Notify(string title, string text) => _link?.Send(new NotifyMessage(title, text));
 

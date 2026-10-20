@@ -2,7 +2,7 @@
 
   <!--
     Dot, the minimal example assistant (§11.10 of the plan): a dot that teleports, knows Communicate and React, and
-    has one setting page and one panel card. `dotnet build` makes bin\…\dot-1.0.0.kai.
+    has an extra, one settings page and a panel with a card and a button. `dotnet build` makes bin\…\dot-1.1.0.kai.
   -->
   <PropertyGroup>
     <UseWPF>true</UseWPF>

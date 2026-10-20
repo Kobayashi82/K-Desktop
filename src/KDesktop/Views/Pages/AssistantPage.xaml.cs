@@ -13,8 +13,8 @@ namespace KDesktop.Views.Pages;
 
 /// <summary>
 /// Panel → Assistant (stage 1.8, §13.2): who is on the desktop and how the assistant process is doing (its state,
-/// memory, processor and the last error), with a restart and its log. The conversation, the activity log and the
-/// assistant's own panel come later.
+/// memory, processor and the last error), with a restart and its log, and the assistant's own cards (its panel.json,
+/// stage 1.9). The conversation and the activity log come later.
 /// </summary>
 public partial class AssistantPage : UserControl
 {
@@ -60,6 +60,8 @@ public partial class AssistantPage : UserControl
         HeroState.Text = state;
         HeroDot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, brush);
         HideButton.Visibility = active is null ? Visibility.Collapsed : Visibility.Visible;
+        SettingsButton.Visibility = active is not null && AssistantLook.HasSettings(active) ? Visibility.Visible : Visibility.Collapsed;
+        OwnPanel.Visibility = OwnPanel.Show(active) ? Visibility.Visible : Visibility.Collapsed;
         ChooseButton.Content = Loc.T(active is null ? "assistantPanel.choose" : "assistantPanel.change");
 
         // The process and what the assistant says of itself
@@ -129,6 +131,11 @@ public partial class AssistantPage : UserControl
     private void OnTurnOn(object sender, RoutedEventArgs e) => _app.Config.Settings.AssistantEnabled = true;
 
     private void OnHide(object sender, RoutedEventArgs e) => _app.ActivateAssistant(null);
+
+    private void OnAssistantSettings(object sender, RoutedEventArgs e)
+    {
+        if (_app.Config.Settings.AssistantActive is { } id) (Window.GetWindow(this) as MainWindow)?.Navigate("settings/assistants/" + id);
+    }
 
     private void OnChoose(object sender, RoutedEventArgs e) => (Window.GetWindow(this) as MainWindow)?.Navigate("settings/assistants");
 

@@ -51,18 +51,41 @@ public static class AssistantSettingsValues
             Log.Warn($"Asistente «{manifest.Id}»: {manifest.SettingsFile} no es válido ({ex.Message})");
             values = [];
         }
-        var saved = AssistantPaths.SettingsValues(manifest.Id);
-        if (!File.Exists(saved)) return values;
-        try
-        {
-            if (JsonNode.Parse(File.ReadAllText(saved)) is JsonObject user)
-                foreach (var (key, value) in user)
-                    if (values.ContainsKey(key)) values[key] = value?.DeepClone();
-        }
-        catch (Exception ex) when (ex is JsonException or IOException)
-        {
-            Log.Warn($"Asistente «{manifest.Id}»: no se han podido leer sus ajustes guardados ({ex.Message})");
-        }
+        foreach (var (key, value) in ReadSaved(manifest.Id))
+            if (values.ContainsKey(key)) values[key] = value?.DeepClone();
         return values;
     }
+
+    /// <summary>What the user changed (key → value; only what differs from the defaults), or nothing.</summary>
+    public static JsonObject ReadSaved(string id)
+    {
+        var saved = AssistantPaths.SettingsValues(id);
+        if (!File.Exists(saved)) return [];
+        try { return JsonNode.Parse(File.ReadAllText(saved)) as JsonObject ?? []; }
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        {
+            Log.Warn($"Asistente «{id}»: no se han podido leer sus ajustes guardados ({ex.Message})");
+            return [];
+        }
+    }
+
+    /// <summary>
+    /// Saves what the user changed (only what differs from the defaults, so a new default of an update reaches whoever
+    /// never touched it); nothing left deletes the file. Throws IOException.
+    /// </summary>
+    public static void WriteSaved(string id, JsonObject saved)
+    {
+        var file = AssistantPaths.SettingsValues(id);
+        if (saved.Count == 0)
+        {
+            File.Delete(file);
+            return;
+        }
+        Directory.CreateDirectory(Path.GetDirectoryName(file)!);
+        var tmp = file + ".tmp";
+        File.WriteAllText(tmp, saved.ToJsonString(Indented));
+        File.Move(tmp, file, overwrite: true);
+    }
+
+    private static readonly JsonSerializerOptions Indented = new() { WriteIndented = true };
 }

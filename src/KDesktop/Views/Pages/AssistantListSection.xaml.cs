@@ -11,7 +11,7 @@ namespace KDesktop.Views.Pages;
 /// <summary>
 /// Options → Assistant → Assistants (stage 1.8): the installed assistants with their icon, version and author;
 /// «Add assistant» opens a package's card, and each one can be put on the desktop, hidden or removed (asking
-/// whether to keep its data). Its own settings come in stage 1.9.
+/// whether to keep its data). «Settings» shows its own settings (stage 1.9) in place of the list.
 /// </summary>
 public partial class AssistantListSection : UserControl
 {
@@ -20,6 +20,7 @@ public partial class AssistantListSection : UserControl
     public AssistantListSection()
     {
         InitializeComponent();
+        SettingsView.Closed += ShowList;
         Loaded += (_, _) =>
         {
             _app.AssistantChanged += Refresh;
@@ -30,10 +31,40 @@ public partial class AssistantListSection : UserControl
 
     private void Refresh()
     {
+        // The assistant whose settings are open was removed or updated.
+        if (SettingsView.AssistantId is { } open && SettingsView.IsVisible)
+        {
+            if (AssistantPackages.Find(open) is { } installed) SettingsView.Refresh(installed);
+            else ShowList();
+        }
         var rows = AssistantLook.Rows(_app.Config.Settings.AssistantActive);
         AssistantList.ItemsSource = rows;
         EmptyPanel.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         ModuleOffText.Visibility = rows.Count > 0 && !_app.Config.Settings.AssistantEnabled ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    /// <summary>Shows an installed assistant's settings in place of the list (<c>--page settings/assistants/&lt;id&gt;</c>).</summary>
+    public void ShowSettings(string id)
+    {
+        if (AssistantPackages.Find(id) is not { } installed)
+        {
+            ShowList();
+            return;
+        }
+        SettingsView.Show(installed);
+        ListCard.Visibility = Visibility.Collapsed;
+        SettingsView.Visibility = Visibility.Visible;
+    }
+
+    public void ShowList()
+    {
+        SettingsView.Visibility = Visibility.Collapsed;
+        ListCard.Visibility = Visibility.Visible;
+    }
+
+    private void OnSettings(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: AssistantRow row }) ShowSettings(row.Id);
     }
 
     private void OnAdd(object sender, RoutedEventArgs e)

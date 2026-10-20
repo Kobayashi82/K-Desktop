@@ -74,9 +74,19 @@ public partial class SettingsPage : UserControl
 
     private static readonly IEasingFunction EaseOut = new CubicEase { EasingMode = EasingMode.EaseOut };
 
-    /// <summary>Opens a section by its key ("web", "remote"…), e.g. from the status icons.</summary>
+    /// <summary>
+    /// Opens a section by its key ("web", "remote"…), e.g. from the status icons. «assistants/&lt;id&gt;» opens that
+    /// assistant's own settings.
+    /// </summary>
     public void ShowSection(string key)
     {
+        if (key.StartsWith("assistants/", StringComparison.Ordinal))
+        {
+            ShowSection("assistants");
+            AssistantsSection.ShowSettings(key["assistants/".Length..]);
+            return;
+        }
+        if (key == "assistants") AssistantsSection.ShowList();
         if (SectionList.Items.OfType<ListBoxItem>().FirstOrDefault(i => i.Tag as string == key) is { } item)
         {
             SectionList.SelectedItem = item;

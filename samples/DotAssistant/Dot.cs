@@ -10,7 +10,7 @@ namespace DotAssistant;
 /// <summary>
 /// The minimal example assistant: a dot that teleports. It shows the whole contract in a few lines: drawing on a
 /// surface only when something changes (and sleeping otherwise), a round hit area, being dragged, reacting to the
-/// world, Communicate and React (the two gestures every assistant knows), its settings and its panel card.
+/// world, Communicate and React (the two gestures every assistant knows), an extra, its settings and its panel card.
 /// </summary>
 public sealed class Dot : IAssistant
 {
@@ -260,7 +260,12 @@ public sealed class Dot : IAssistant
         }
     }
 
-    public Task OnExtraAsync(string extraId, CancellationToken ct) => Task.CompletedTask;
+    public Task OnExtraAsync(string extraId, CancellationToken ct)
+    {
+        // Its only extra: from the right-click menu, its settings or its panel card.
+        if (extraId == "dot.jump" && !_dragging && RandomSpot() is { } spot) Jump(spot);
+        return Task.CompletedTask;
+    }
 
     public void OnSettingsChanged(JsonElement settings)
     {

@@ -2,7 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-             xmlns:l="clr-namespace:KDesktop.Localization">
+             xmlns:l="clr-namespace:KDesktop.Localization"
+             xmlns:a="clr-namespace:KDesktop.Views.Assistant">
     <UserControl.Resources>
         <!-- A label and its value in the status card -->
         <Style x:Key="StatusLabel" TargetType="TextBlock">
@@ -64,6 +65,8 @@
                             </StackPanel>
                         </StackPanel>
                         <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                            <ui:Button x:Name="SettingsButton" Margin="0,0,0,8" HorizontalAlignment="Stretch" Content="{l:Tr assistantPanel.settings}"
+                                       Icon="{ui:SymbolIcon Options24}" Click="OnAssistantSettings" />
                             <ui:Button x:Name="HideButton" HorizontalAlignment="Stretch" Content="{l:Tr assistantOptions.hide}"
                                        Icon="{ui:SymbolIcon EyeOff24}" Click="OnHide" />
                             <ui:Button x:Name="ChooseButton" Margin="0,8,0,0" HorizontalAlignment="Stretch" Content="{l:Tr assistantPanel.choose}"
@@ -71,6 +74,9 @@
                         </StackPanel>
                     </Grid>
                 </Border>
+
+                <!-- Its own cards (panel.json) -->
+                <a:AssistantPanelView x:Name="OwnPanel" Visibility="Collapsed" />
 
                 <!-- What it is doing, in the user's words -->
                 <Border Style="{StaticResource Card}">

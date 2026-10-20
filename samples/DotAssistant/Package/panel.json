@@ -4,7 +4,14 @@
     {
       "type": "stat",
       "label": { "es": "Saltos", "en": "Jumps", "fr": "Sauts", "de": "Sprünge", "it": "Salti", "pt": "Saltos" },
-      "bind": "jumps"
+      "bind": "jumps",
+      "icon": "kd:ArrowBounce"
+    },
+    {
+      "type": "buttons",
+      "items": [
+        { "label": { "es": "Saltar ahora", "en": "Jump now", "fr": "Sauter maintenant", "de": "Jetzt springen", "it": "Salta ora", "pt": "Saltar agora" }, "extra": "dot.jump", "icon": "kd:ArrowBounce" }
+      ]
     }
   ]
 }

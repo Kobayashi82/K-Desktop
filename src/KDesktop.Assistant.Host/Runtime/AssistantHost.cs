@@ -38,7 +38,7 @@ internal sealed class AssistantHost(AssistantRuntime runtime, string id, string 
 
     public IAssistantLog Log { get; } = new PrefixedLog(id);
 
-    public void PublishPanel(JsonObject data) => runtime.PublishPanel(data);
+    public void PublishPanel(JsonObject data) => runtime.PublishPanel(Id, data);
 
     public void Notify(string title, string text) => runtime.Notify(title, text);
 

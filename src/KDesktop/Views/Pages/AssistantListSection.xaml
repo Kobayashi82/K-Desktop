@@ -2,9 +2,12 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-             xmlns:l="clr-namespace:KDesktop.Localization">
-    <!-- Options → Assistant → Assistants: the installed ones, adding, putting on the desktop and removing -->
-    <Border Style="{StaticResource Card}">
+             xmlns:l="clr-namespace:KDesktop.Localization"
+             xmlns:a="clr-namespace:KDesktop.Views.Assistant">
+    <!-- Options → Assistant → Assistants: the installed ones, adding, putting on the desktop and removing; and the
+         settings of each one, in place of the list -->
+    <Grid>
+    <Border x:Name="ListCard" Style="{StaticResource Card}">
         <StackPanel>
             <Grid Margin="0,0,0,4">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
@@ -60,6 +63,8 @@
                                                Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}" />
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <ui:Button Margin="0,0,8,0" Content="{l:Tr assistantOptions.settings}" Icon="{ui:SymbolIcon Options24}"
+                                               Click="OnSettings" Visibility="{Binding HasSettings, Converter={StaticResource BoolToVis}}" />
                                     <ui:Button Content="{l:Tr assistantOptions.putOnDesktop}" Icon="{ui:SymbolIcon Play24}" Click="OnActivate"
                                                Visibility="{Binding IsInactive, Converter={StaticResource BoolToVis}}" />
                                     <ui:Button Content="{l:Tr assistantOptions.hide}" Icon="{ui:SymbolIcon EyeOff24}" Click="OnHide"
@@ -82,4 +87,7 @@
                        Text="{l:Tr assistantCard.moduleOff}" />
         </StackPanel>
     </Border>
+
+    <a:AssistantSettingsView x:Name="SettingsView" Visibility="Collapsed" />
+    </Grid>
 </UserControl>

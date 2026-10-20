@@ -39,10 +39,16 @@
       <AssistantPackage>$(_AssistantOut)$(_AssistantId)-$(_AssistantVersion).kai</AssistantPackage>
     </PropertyGroup>
 
+    <!-- Packages of earlier versions (and of the old .kdassistant extension) go: only the current one is left. -->
+    <ItemGroup>
+      <_AssistantOldPackages Include="$(_AssistantOut)$(_AssistantId)-*.kai;$(_AssistantOut)$(_AssistantId)-*.kdassistant" />
+    </ItemGroup>
+    <Delete Files="@(_AssistantOldPackages)" />
+
     <ItemGroup>
       <_AssistantContent Include="$(AssistantSource)**\*" />
       <_AssistantLib Include="$(_AssistantOut)**\*"
-                     Exclude="$(AssistantStaging)**;$(_AssistantOut)*.kai;$(_AssistantOut)KDesktop.Assistant.Sdk.*;$(_AssistantOut)**\*.xml" />
+                     Exclude="$(AssistantStaging)**;$(_AssistantOut)*.kai;$(_AssistantOut)*.kdassistant;$(_AssistantOut)KDesktop.Assistant.Sdk.*;$(_AssistantOut)**\*.xml" />
     </ItemGroup>
 
     <RemoveDir Directories="$(AssistantStaging)" />

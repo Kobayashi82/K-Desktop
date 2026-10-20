@@ -28,6 +28,22 @@
               "key": "wander",
               "label": { "es": "Saltar solo de vez en cuando", "en": "Jump on its own now and then", "fr": "Sauter tout seul de temps en temps", "de": "Ab und zu von selbst springen", "it": "Saltare da solo ogni tanto", "pt": "Saltar sozinho de vez em quando" },
               "default": true
+            },
+            {
+              "type": "button",
+              "label": { "es": "Saltar ahora", "en": "Jump now", "fr": "Sauter maintenant", "de": "Jetzt springen", "it": "Salta ora", "pt": "Saltar agora" },
+              "extra": "dot.jump"
+            }
+          ]
+        },
+        {
+          "title": { "es": "Saltos", "en": "Jumps", "fr": "Sauts", "de": "Sprünge", "it": "Salti", "pt": "Saltos" },
+          "items": [
+            {
+              "type": "button",
+              "label": { "es": "Poner a cero los saltos", "en": "Reset the jumps", "fr": "Remettre les sauts à zéro", "de": "Sprünge zurücksetzen", "it": "Azzera i salti", "pt": "Zerar os saltos" },
+              "description": { "es": "Borra el contador del panel.", "en": "Clears the counter on the panel.", "fr": "Efface le compteur du panneau.", "de": "Löscht den Zähler im Panel.", "it": "Cancella il contatore del pannello.", "pt": "Apaga o contador do painel." },
+              "resetData": true
             }
           ]
         }

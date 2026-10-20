@@ -79,10 +79,10 @@ Dirección: **A→K** del asistente a K-Desktop; **K→A** de K-Desktop al asist
 
 | `t` | Dir. | Campos | Qué es |
 |---|---|---|---|
-| `config` | K→A | `section`, `value` | Cambió algo en Opciones → Asistente. Secciones: `general`, `brain`, `voice`, `tools`, `privacy`, `assistantSettings` (ajustes del asistente activo, según su `settings.json`) |
+| `config` | K→A | `section`, `value` | Cambió algo en Opciones → Asistente. Secciones: `general`, `brain`, `voice`, `tools`, `privacy`, `assistantSettings` (ajustes del asistente activo, según su `settings.json`: todos sus valores, cada vez que se cambia uno en Opciones) |
 | `pause` | K→A | `paused` | Se ha pausado o reanudado K-Desktop: en pausa no se atienden órdenes |
 | `load` | K→A | `assistant` (id), `version`, `path` (carpeta del paquete), `data` (su carpeta de datos), `entrance` (`startup`, `switched`) | Carga este asistente (y descarga el anterior con su salida) |
-| `unload` | K→A | `reason` (`disabled`, `uninstalling`, `hiding`) | Descarga el asistente activo y sigue en modo sin cuerpo |
+| `unload` | K→A | `reason` (`disabled`, `uninstalling`, `hiding`, `reloading`) | Descarga el asistente activo y sigue en modo sin cuerpo. `reloading`: vuelve enseguida con un `load` (p. ej. tras «Empezar de cero», que borra su carpeta de datos) |
 | `loaded` | A→K | `assistant`, `ok`, `error` (si falló) | Resultado de `load` |
 
 ### Entradas: lo que se le dice al asistente
@@ -110,7 +110,7 @@ Dirección: **A→K** del asistente a K-Desktop; **K→A** de K-Desktop al asist
 | `end` | K→A | `run`, `status` (`ok`, `failed`, `cancelled`), `messages` (lista) | Fin de la ejecución |
 | `media` | A→K | `order` (`play`, `pause`, `next`, `previous`, `volumeUp`, `volumeDown`, `mute`, …) | Orden de música integrada de K-Desktop (salida de `match`) |
 | `say` | K→A | `text` | Acción «Asistente: decir» |
-| `extra` | K→A | `action` (id del extra, p. ej. `lander.manual`) | Acción «Asistente: acción» |
+| `extra` | K→A | `action` (id del extra, p. ej. `lander.manual`) | Acción «Asistente: acción», o un botón de sus ajustes o de su panel |
 | `observed` | K→A | `source` (`hotkey`, `menu`, `voice`, `web`, `udp`, `event`), `command`, `steps` | (Opcional, desactivado por defecto) un comando lanzado por otra vía, para adornarlo |
 
 ### Ventanas, voz y teclado
@@ -131,7 +131,7 @@ Dirección: **A→K** del asistente a K-Desktop; **K→A** de K-Desktop al asist
 | `status` | A→K | `state` (`idle`, `listening`, `thinking`, `speaking`, `awaitingConfirmation`, `busy`, `sleeping`), `model`, `modelLoaded`, `busy`, `memoryMb`, `lastError` | Estado para el panel |
 | `log` | A→K | `entry`: `at`, `heard`, `route` (`rule`, `kdesktop`, `ai`), `did`, `ok`, `undo` (id, si se puede deshacer) | Una línea del registro de actividad |
 | `chat` | A→K | `role` (`user`, `assistant`), `text`, `final` (si es parcial, llegan más con el mismo `turn`), `turn` | Conversación del panel |
-| `panel` | A→K | `data` | Datos del panel propio del asistente (los `bind` de su `panel.json`) |
+| `panel` | A→K | `data`, `assistant` (id, lo pone el host) | Datos del panel propio del asistente (los `bind` de su `panel.json` y las galerías con `source` de su `settings.json`). Se **fusionan** con lo publicado antes: los objetos clave a clave; lo demás (números, textos, listas) sustituye. El host manda como mucho cuatro por segundo y K-Desktop lo olvida en cada `load` |
 | `notify` | A→K | `title`, `text` | Aviso de K-Desktop (logro desbloqueado…) |
 | `open` | A→K | `page` (`assistant`, `assistantSettings`, `assistantVoice`, …) | Abre esa página de Opciones (menú del clic derecho → *Ajustes*). `assistant` es Panel → Asistente |
 | `hide` | A→K | — | Menú del clic derecho → *Esconder*: K-Desktop quita el asistente del escritorio (`unload` con `hiding`) y el módulo sigue sin cuerpo |

@@ -2,7 +2,7 @@
   "$schema": "../../../docs/assistant/esquemas/assistant.schema.json",
   "id": "dot",
   "name": "Dot",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "Kobayashi82",
   "description": {
     "es": "El asistente mínimo de ejemplo: un punto que se teletransporta.",
@@ -24,5 +24,8 @@
     "canMoveWindows": false,
     "canReachMaximized": true,
     "gestures": ["communicate", "react"]
-  }
+  },
+  "extras": [
+    { "id": "dot.jump", "name": { "es": "Saltar ahora", "en": "Jump now", "fr": "Sauter maintenant", "de": "Jetzt springen", "it": "Salta ora", "pt": "Saltar agora" }, "icon": "kd:ArrowBounce" }
+  ]
 }

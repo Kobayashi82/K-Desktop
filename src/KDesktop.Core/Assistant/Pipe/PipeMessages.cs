@@ -79,7 +79,7 @@ public sealed record LoadMessage(string Assistant, string Version, string Path, 
     public override string Type => "load";
 }
 
-/// <param name="Reason"><c>disabled</c>, <c>uninstalling</c> or <c>hiding</c>.</param>
+/// <param name="Reason"><c>disabled</c>, <c>uninstalling</c>, <c>hiding</c> or <c>reloading</c> (it comes back at once).</param>
 public sealed record UnloadMessage(string Reason) : PipeMessage
 {
     public override string Type => "unload";
@@ -88,6 +88,12 @@ public sealed record UnloadMessage(string Reason) : PipeMessage
 public sealed record LoadedMessage(string Assistant, bool Ok, string? Error = null) : PipeMessage
 {
     public override string Type => "loaded";
+}
+
+/// <summary>«Assistant: action», or a button of its settings or its panel: run one of its extras.</summary>
+public sealed record ExtraMessage(string Action) : PipeMessage
+{
+    public override string Type => "extra";
 }
 
 // ── from the assistant to K-Desktop's panel ─────────────────────────────
@@ -113,7 +119,11 @@ public sealed record OpenMessage(string Page) : PipeMessage
     public override string Type => "open";
 }
 
-public sealed record PanelMessage(JsonObject Data) : PipeMessage
+/// <summary>
+/// Data for the assistant's own panel (the binds of its panel.json), merged with what it published before (objects key
+/// by key; anything else replaces). <paramref name="Assistant"/> is whose it is, filled in by the host.
+/// </summary>
+public sealed record PanelMessage(JsonObject Data, string? Assistant = null) : PipeMessage
 {
     public override string Type => "panel";
 }
@@ -162,6 +172,7 @@ public static class PipeJson
         ["open"] = typeof(OpenMessage),
         ["panel"] = typeof(PanelMessage),
         ["hide"] = typeof(HideMessage),
+        ["extra"] = typeof(ExtraMessage),
     };
 
     /// <summary>[JsonIgnore] on the abstract Type is not inherited by the overrides: drop it here.</summary>

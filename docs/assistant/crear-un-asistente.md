@@ -49,8 +49,23 @@ asistentes instalados, no los paquetes.
 ## El ejemplo
 
 `samples/DotAssistant` (Dot) es el asistente mínimo completo: un punto que se teletransporta, se puede arrastrar,
-reacciona a la papelera, a los avisos y a la hora en punto, tiene tres ajustes y una tarjeta en el panel, y guarda
-sus datos en su carpeta.
+reacciona a la papelera, a los avisos y a la hora en punto, tiene un extra (`dot.jump`), ajustes con un botón para
+ese extra y otro para «Poner a cero los saltos», una tarjeta y un botón en el panel, y guarda sus datos en su carpeta.
+
+## Ajustes y panel
+
+K-Desktop los dibuja con sus propios controles, sin cargar código del asistente (§11.8 del plan):
+
+- **`settings.json`** → Opciones → Asistentes → *Ajustes* de cada uno (o el menú del clic derecho → *Ajustes*).
+  Páginas (pestañas si hay varias), secciones y controles: `toggle`, `slider`, `number`, `choice`, `text`, `color`,
+  `gallery`, `apps`, `hotkey` (llega con la etapa 2.6), `button` (lanza un extra o, con `resetData`, borra su carpeta
+  de datos tras confirmar), `info` y `keys`. `enabledWhen` atenúa un control mientras un interruptor esté apagado.
+  Lo que el usuario cambia se guarda en `AssistantsSettings<id>.json` (solo lo que difiere del valor por defecto)
+  y, si está en el escritorio, le llega al momento: `OnSettingsChanged` con **todos** los valores.
+- **`panel.json`** → Panel → Asistente, debajo de su tarjeta: `stat` (en fila), `progress`, `list`, `achievements`,
+  `buttons` y `text`. Los datos llegan con `PublishPanel`, que se **fusiona** con lo publicado antes: publica todo en
+  `Enter` y después solo lo que cambie. Una galería con `source` toma sus imágenes de esos mismos datos
+  (`[{ id, name, image, locked, lockText }]`).
 
 ## Reglas
 

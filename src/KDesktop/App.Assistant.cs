@@ -114,12 +114,16 @@ public partial class App
                 ShowMainWindow(w => w.Navigate(open.Page switch
                 {
                     "assistant" => "assistant",
+                    "assistantSettings" when Config.Settings.AssistantActive is { } active => "settings/assistants/" + active,
                     "assistantSettings" => "settings/assistants",
                     _ => "settings/assistant",
                 }));
                 break;
             case NotifyMessage notify:
                 Ui.ShowOsd(notify.Title.Length > 0 ? $"{notify.Title}: {notify.Text}" : notify.Text, Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(5));
+                break;
+            case PanelMessage panel:
+                OnAssistantPanel(panel);
                 break;
             case HideMessage when Config.Settings.AssistantActive is { } id:
                 var name = AssistantPackages.Find(id)?.Manifest.Name ?? id;
@@ -157,6 +161,7 @@ public partial class App
             return;
         }
         Log.Info($"Asistente: se carga «{id}» {installed.Version}");
+        Dispatcher.BeginInvoke(() => ForgetAssistantPanel(id));
         supervisor.Send(new LoadMessage(id, installed.Version, installed.Folder, AssistantPaths.Data(id), entrance));
     }
 

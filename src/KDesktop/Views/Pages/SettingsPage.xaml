@@ -1171,7 +1171,7 @@
 
             <!-- Assistant -->
             <local:AssistantGeneralSection Tag="assistant" />
-            <local:AssistantListSection Tag="assistants" />
+            <local:AssistantListSection x:Name="AssistantsSection" Tag="assistants" />
         </StackPanel>
     </ScrollViewer>
     </Grid>
