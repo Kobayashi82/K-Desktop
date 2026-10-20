@@ -23,6 +23,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\KDesktop.Assistant.Sdk\KDesktop.Assistant.Sdk.csproj" />
+    <ProjectReference Include="..\..\src\KDesktop.Core\KDesktop.Core.csproj" />
+    <ProjectReference Include="..\..\src\KDesktop.Assistant.Host\KDesktop.Assistant.Host.csproj" />
+    <!-- Only built first: the process tests start the real KDesktop.exe in assistant mode. -->
+    <ProjectReference Include="..\..\src\KDesktop\KDesktop.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <!-- The contract files live in docs\assistant: the tests read them from there. -->
@@ -30,6 +34,10 @@
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
       <_Parameter1>DocsDir</_Parameter1>
       <_Parameter2>$(MSBuildThisFileDirectory)..\..\docs\assistant</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>KDesktopExe</_Parameter1>
+      <_Parameter2>$(MSBuildThisFileDirectory)..\..\src\KDesktop\bin\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\KDesktop.exe</_Parameter2>
     </AssemblyAttribute>
   </ItemGroup>
 
