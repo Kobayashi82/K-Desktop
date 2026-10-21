@@ -43,6 +43,7 @@ public sealed partial class CommandEngine
         AudioRecordAction a => Run(() => AudioRecord(a)),
         MagnifierAction a => Run(() => Magnify(a)),
         AssistantExtraAction a => Run(() => _ui.RunAssistantExtra(a.Assistant, a.Extra)),
+        AssistantAskAction a => Run(() => _ui.AskAssistant(a.Assistant, a.Text)),
         _ => Task.CompletedTask,
     };
 

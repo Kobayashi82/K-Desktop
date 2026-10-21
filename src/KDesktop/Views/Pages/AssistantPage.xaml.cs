@@ -68,6 +68,7 @@ public partial class AssistantPage : UserControl
         HideButton.Visibility = active is null ? Visibility.Collapsed : Visibility.Visible;
         SettingsButton.Visibility = active is not null && AssistantLook.HasSettings(active) ? Visibility.Visible : Visibility.Collapsed;
         OwnPanel.Visibility = OwnPanel.Show(active) ? Visibility.Visible : Visibility.Collapsed;
+        Chat.Show(active?.Id, active?.Manifest.Name ?? "K-Desktop");
         // With somebody there, the way to put another one next to it.
         ChooseButton.Content = Loc.T(active is null ? "assistantPanel.choose" : "assistantPanel.addAnother");
 

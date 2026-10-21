@@ -128,7 +128,7 @@ public partial class App : Application
         });
         Favicons.Prefetch(Config.Commands.SelectMany(c => c.Actions));
 
-        Ui = new UiServices(Dispatcher, () => Config.Settings, () => ShowMainWindow(), () => _ = ExitAsync()) { AssistantExtra = RunExtraFromCommand };
+        Ui = new UiServices(Dispatcher, () => Config.Settings, () => ShowMainWindow(), () => _ = ExitAsync()) { AssistantExtra = RunExtraFromCommand, AssistantAsk = AskAssistantFromCommand };
         Engine = new CommandEngine(Store, Ui, new ExecutionHistory(ExecutionHistory.DefaultFile));
         Events = new Core.Engine.Events.EventService(Engine, Ui, () => Config);
         Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice),

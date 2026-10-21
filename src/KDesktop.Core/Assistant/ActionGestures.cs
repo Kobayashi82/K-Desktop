@@ -76,6 +76,9 @@ public static class ActionGestures
         // An extra is the assistant's own: whoever runs the command says so, and the one it belongs to does it.
         ActionKind.AssistantExtra => Say("assistant"),
 
+        // An order for an assistant: it answers it its own way.
+        ActionKind.AssistantAsk => Say("assistant"),
+
         // «Si…» decides which actions run; it does nothing visible itself.
         ActionKind.Condition => [],
 

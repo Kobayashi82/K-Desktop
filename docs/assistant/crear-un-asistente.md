@@ -55,6 +55,12 @@ tarjeta y un botón en el panel, y guarda sus datos en su carpeta.
 
 ## Lo que da el host
 
+- **Bocadillo:** cuando el asistente dice algo (`Communicate`), el host dibuja el bocadillo con el texto, apuntando a
+  `BubbleAnchor` (lo normal, lo alto de la cabeza; null si no se ve) y siguiéndolo mientras se mueve, el tiempo que
+  se tarda en leerlo. El asistente solo hace su gesto de «hablar» (o nada: el bocadillo sale igual). El clic central
+  sobre el personaje abre la caja para escribirle (y su menú del clic derecho, *Escribir*): el clic y el doble clic
+  izquierdos son tuyos.
+
 - **Sonido** (`IAudio`): `Load` (muestras en coma flotante, mono o estéreo, a cualquier frecuencia) o `LoadWav` (del
   paquete), `Play` con ganancia y panorama, y `Loop` con ganancia, tono y panorama en vivo (para un motor). El host lo
   mezcla todo bajo el volumen de Opciones → Asistente → General; el dispositivo solo se abre mientras suena algo. Con el

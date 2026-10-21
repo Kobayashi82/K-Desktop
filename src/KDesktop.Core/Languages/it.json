@@ -2811,5 +2811,24 @@
   "tool.calculate.examples": "quanto fa ventitré per quarantasette|calcola il quindici per cento di duecento|quanto fa 1200 diviso 12|radice quadrata di 144|se spendo 35 euro su 120 quanto mi resta|quanto fa 3 alla quinta|somma 45 più 78 più 12",
   "tool.open_web.examples": "apri youtube|vai su gmail|vai sulla pagina di wikipedia|apri il sito della banca|portami su amazon punto it|apri github",
   "tool.search_web.examples": "cerca ricette di lenticchie|cerca su internet come togliere una macchia di vino|trovami dei voli per Roma|guarda su google chi ha vinto la partita|cerca l'orario della farmacia|cerca informazioni sui vulcani",
-  "tool.open_app.examples": "apri la calcolatrice|apri il blocco note|avvia spotify|apri word|lancia photoshop|aprimi esplora file|apri visual studio code"
+  "tool.open_app.examples": "apri la calcolatrice|apri il blocco note|avvia spotify|apri word|lancia photoshop|aprimi esplora file|apri visual studio code",
+
+  "action.AssistantAsk.name": "Assistente: chiedi",
+  "action.AssistantAsk.desc": "Dice qualcosa a un assistente, come se lo dicessi a voce. Senza testo, apre la casella per scrivergli.",
+  "summary.assistantAskBox": "(apre la casella per scrivergli)",
+  "editor.assistantAskWho": "Assistente",
+  "editor.assistantAskDefault": "Quello delle Impostazioni (quando non parli a nessuno in particolare)",
+  "editor.assistantAskText": "Cosa gli dici",
+  "editor.assistantAskTextHint": "Cosa ho segnato?",
+  "editor.assistantAskHint": "Lo riceve come se glielo dicessi: regole, strumenti o IA, e risponde nel suo fumetto e nella chat del pannello. Lascialo vuoto e assegnagli una scorciatoia per scrivergli quando vuoi.",
+  "assistantMenu.write": "Scrivi a {0}…",
+  "assistantWrite.placeholder": "Scrivi a {0}…",
+  "assistantWrite.send": "Invia",
+  "assistantChat.title": "Conversazione",
+  "assistantChat.hint": "Quello che dici a {0} in qualsiasi modo e cosa risponde. Per scrivergli senza aprire questo: clic centrale sul personaggio o il suo menu → Scrivi.",
+  "assistantChat.empty": "Non avete ancora parlato.",
+  "assistantChat.clear": "Cancella",
+  "assistantChat.stop": "Ferma",
+  "assistantChat.you": "Tu",
+  "assistantChat.notRunning": "L'assistente non è in esecuzione al momento."
 }

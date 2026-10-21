@@ -53,6 +53,27 @@ public class AssistantExtraActionTests
     }
 
     [Fact]
+    public async Task AnOrderForAnAssistantIsSavedAndHandedToTheUi()
+    {
+        var command = new Command { Name = "Notas" };
+        command.Actions.Add(new AssistantAskAction { Assistant = "lander", Text = "¿qué tengo apuntado?" });
+        command.Actions.Add(new AssistantAskAction());
+        var json = Json.Serialize(command);
+        Assert.Contains("\"assistantAsk\"", json);
+        var back = Json.Deserialize<Command>(json)!;
+        var first = Assert.IsType<AssistantAskAction>(back.Actions[0]);
+        Assert.Equal(("lander", "¿qué tengo apuntado?"), (first.Assistant, first.Text));
+        Assert.Equal("«¿qué tengo apuntado?»", first.Summary);
+        Assert.NotEqual(string.Empty, Assert.IsType<AssistantAskAction>(back.Actions[1]).Summary);
+
+        var ui = new FakeUi();
+        var store = new ConfigStore();
+        store.Config.Commands.Add(back);
+        await new CommandEngine(store, ui).RunAsync(back, TriggerSource.Hotkey);
+        Assert.Equal([("lander", "¿qué tengo apuntado?"), ("", "")], ui.Asked);
+    }
+
+    [Fact]
     public void HotkeyUsersAreTheCommandsForEveryProgramAndKDesktop()
     {
         var config = new AppConfig();

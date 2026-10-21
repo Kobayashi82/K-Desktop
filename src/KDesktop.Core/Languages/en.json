@@ -2811,5 +2811,24 @@
   "tool.calculate.examples": "what is twenty-three times forty-seven|work out fifteen percent of two hundred|what is 1200 divided by 12|square root of 144|if I spend 35 out of 120 how much is left|what is 3 to the power of 5|add 45 plus 78 plus 12",
   "tool.open_web.examples": "open youtube|go to gmail|go to the wikipedia page|open the bank's website|take me to amazon dot com|open github",
   "tool.search_web.examples": "search for lentil recipes|look up how to remove a wine stain|find me flights to Rome|google who won the match|search for the pharmacy's opening hours|look up information about volcanoes",
-  "tool.open_app.examples": "open the calculator|open notepad|launch spotify|open word|start photoshop|open file explorer for me|open visual studio code"
+  "tool.open_app.examples": "open the calculator|open notepad|launch spotify|open word|start photoshop|open file explorer for me|open visual studio code",
+
+  "action.AssistantAsk.name": "Assistant: ask",
+  "action.AssistantAsk.desc": "Says something to an assistant, as if you said it out loud. Without text, it opens the box to write to it.",
+  "summary.assistantAskBox": "(opens the box to write to it)",
+  "editor.assistantAskWho": "Assistant",
+  "editor.assistantAskDefault": "The one in Settings (when you talk to nobody in particular)",
+  "editor.assistantAskText": "What you say",
+  "editor.assistantAskTextHint": "What did I write down?",
+  "editor.assistantAskHint": "It gets it as if you said it: rules, tools or AI, and it answers in its bubble and in the panel's chat. Leave it empty and give it a hotkey to write to it whenever you like.",
+  "assistantMenu.write": "Write to {0}…",
+  "assistantWrite.placeholder": "Write to {0}…",
+  "assistantWrite.send": "Send",
+  "assistantChat.title": "Conversation",
+  "assistantChat.hint": "What you say to {0} by any means and what it answers. To write to it without opening this: middle-click the character or its menu → Write.",
+  "assistantChat.empty": "You haven't talked yet.",
+  "assistantChat.clear": "Clear",
+  "assistantChat.stop": "Stop",
+  "assistantChat.you": "You",
+  "assistantChat.notRunning": "The assistant isn't running right now."
 }

@@ -182,6 +182,12 @@ public partial class App
             case MenuMessage menu:
                 OnAssistantMenu(menu);
                 break;
+            case WriteMessage write:
+                OnAssistantWrite(write);
+                break;
+            case ChatLineMessage line:
+                OnAssistantChat(line);
+                break;
             case ExtraStateMessage state:
                 OnAssistantExtraState(state);
                 break;

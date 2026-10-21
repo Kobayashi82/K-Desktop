@@ -2811,5 +2811,24 @@
   "tool.calculate.examples": "was ist dreiundzwanzig mal siebenundvierzig|rechne fünfzehn Prozent von zweihundert aus|was ist 1200 geteilt durch 12|Wurzel aus 144|wenn ich 35 von 120 Euro ausgebe, wie viel bleibt übrig|was ist 3 hoch 5|addiere 45 plus 78 plus 12",
   "tool.open_web.examples": "öffne youtube|geh auf gmail|geh auf die Wikipedia-Seite|öffne die Webseite der Bank|bring mich zu amazon punkt de|öffne github",
   "tool.search_web.examples": "such nach Linsenrezepten|such im Internet, wie man einen Weinfleck entfernt|such mir Flüge nach Rom|schau bei Google, wer das Spiel gewonnen hat|such die Öffnungszeiten der Apotheke|such Informationen über Vulkane",
-  "tool.open_app.examples": "öffne den Rechner|öffne den Editor|starte spotify|öffne Word|starte Photoshop|öffne mir den Datei-Explorer|öffne Visual Studio Code"
+  "tool.open_app.examples": "öffne den Rechner|öffne den Editor|starte spotify|öffne Word|starte Photoshop|öffne mir den Datei-Explorer|öffne Visual Studio Code",
+
+  "action.AssistantAsk.name": "Assistent: fragen",
+  "action.AssistantAsk.desc": "Sagt einem Assistenten etwas, als würdest du es laut sagen. Ohne Text öffnet sich das Feld, um ihm zu schreiben.",
+  "summary.assistantAskBox": "(öffnet das Feld zum Schreiben)",
+  "editor.assistantAskWho": "Assistent",
+  "editor.assistantAskDefault": "Der aus den Einstellungen (wenn du niemanden direkt ansprichst)",
+  "editor.assistantAskText": "Was du sagst",
+  "editor.assistantAskTextHint": "Was habe ich notiert?",
+  "editor.assistantAskHint": "Er bekommt es, als hättest du es gesagt: Regeln, Werkzeuge oder KI, und antwortet in seiner Sprechblase und im Chat des Panels. Lass es leer und gib ihm eine Tastenkombination, um ihm jederzeit zu schreiben.",
+  "assistantMenu.write": "{0} schreiben…",
+  "assistantWrite.placeholder": "Schreib {0}…",
+  "assistantWrite.send": "Senden",
+  "assistantChat.title": "Unterhaltung",
+  "assistantChat.hint": "Was du {0} auf jedem Weg sagst und was er antwortet. Um ihm zu schreiben, ohne das hier zu öffnen: Mittelklick auf die Figur oder ihr Menü → Schreiben.",
+  "assistantChat.empty": "Ihr habt noch nicht gesprochen.",
+  "assistantChat.clear": "Löschen",
+  "assistantChat.stop": "Stopp",
+  "assistantChat.you": "Du",
+  "assistantChat.notRunning": "Der Assistent läuft gerade nicht."
 }

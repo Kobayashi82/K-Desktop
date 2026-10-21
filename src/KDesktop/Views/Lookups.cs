@@ -21,6 +21,12 @@ public sealed record ExtraChoice(string Target, string Name, string Description,
     public override string ToString() => Name;
 }
 
+/// <summary>An installed assistant in the editor of «Asistente: preguntar» (empty id: the default one).</summary>
+public sealed record AssistantChoice(string Id, string Name, System.Windows.Media.ImageSource? Icon)
+{
+    public override string ToString() => Name;
+}
+
 /// <summary>Item sources for the editors (all display names are translated).</summary>
 public static class Lookups
 {
@@ -135,6 +141,11 @@ public static class Lookups
         [.. Core.Assistant.Packages.AssistantExtras.All().Select(e => new ExtraChoice(e.Target, e.DisplayName(Loc.Instance.Language),
             AssistantLook.Text(e.Extra.Description), Services.IconProvider.ForExtra(e.Assistant.Id, e.Extra.Id)))];
 
+
+    /// <summary>«Whoever Options says» and the installed assistants.</summary>
+    public static IReadOnlyList<AssistantChoice> AssistantList =>
+        [new(string.Empty, Loc.T("editor.assistantAskDefault"), null),
+         .. Core.Assistant.Packages.AssistantPackages.Installed().Select(a => new AssistantChoice(a.Id, a.Manifest.Name, AssistantLook.Icon(a)))];
 
     public static IReadOnlyList<int> MenuSizes { get; } = [0, 1, 2, 3, 4, 5];
 

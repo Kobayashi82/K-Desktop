@@ -24,6 +24,9 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     /// <summary>Runs «Asistente: acción» (assistant id, extra id) on the UI thread.</summary>
     public Action<string, string>? AssistantExtra { get; set; }
 
+    /// <summary>Runs «Asistente: preguntar» (assistant id or empty, the order or empty) on the UI thread.</summary>
+    public Action<string, string>? AssistantAsk { get; set; }
+
     private OsdWindow Osd
     {
         get
@@ -96,6 +99,8 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     public void ShowMainWindow() => dispatcher.BeginInvoke(showMainWindow);
 
     public void RunAssistantExtra(string assistant, string extra) => dispatcher.BeginInvoke(() => AssistantExtra?.Invoke(assistant, extra));
+
+    public void AskAssistant(string assistant, string text) => dispatcher.BeginInvoke(() => AssistantAsk?.Invoke(assistant, text));
 
     public void RunOnUi(Action action)
     {

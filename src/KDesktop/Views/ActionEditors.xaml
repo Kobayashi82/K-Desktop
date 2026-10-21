@@ -1161,6 +1161,29 @@
         </DataTemplate.Triggers>
     </DataTemplate>
 
+    <!-- ── Asistente: preguntar ────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:AssistantAskAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.assistantAskWho}" />
+            <ComboBox Margin="0,0,0,12" ItemsSource="{Binding Source={x:Static v:Lookups.AssistantList}}" SelectedValuePath="Id"
+                      SelectedValue="{Binding Assistant}" AutomationProperties.Name="{l:Tr editor.assistantAskWho}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type v:AssistantChoice}">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="{Binding Icon}" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"
+                                   RenderOptions.BitmapScalingMode="HighQuality" />
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.assistantAskText}" />
+            <ui:TextBox Margin="0,0,0,8" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.assistantAskTextHint}"
+                        AutomationProperties.Name="{l:Tr editor.assistantAskText}" MaxLength="500" />
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.assistantAskHint}" />
+        </StackPanel>
+    </DataTemplate>
+
     <!-- ── Si… ─────────────────────────────────────────────────────────── -->
     <DataTemplate DataType="{x:Type m:ConditionAction}">
         <StackPanel>

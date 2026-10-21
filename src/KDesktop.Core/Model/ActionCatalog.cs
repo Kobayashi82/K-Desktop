@@ -57,6 +57,7 @@ public static class ActionCatalog
         new(ActionKind.OpenQuickMenu, "kdesktop", "TextBulletListTree24", () => new OpenQuickMenuAction()),
 
         new(ActionKind.AssistantExtra, "assistant", "Bot24", () => new AssistantExtraAction()),
+        new(ActionKind.AssistantAsk, "assistant", "ChatBubblesQuestion24", () => new AssistantAskAction()),
     ];
 
     /// <summary>The actions of K-Desktop itself (without the assistant module's): the ones the achievements count.</summary>

@@ -78,6 +78,9 @@
                     </Grid>
                 </Border>
 
+                <!-- Talking with it (stage 3.6) -->
+                <a:AssistantChatView x:Name="Chat" />
+
                 <!-- Its own cards (panel.json) -->
                 <a:AssistantPanelView x:Name="OwnPanel" Visibility="Collapsed" />
 

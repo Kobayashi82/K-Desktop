@@ -34,5 +34,13 @@ internal sealed class FakeUi : IUiServices
         lock (Extras) Extras.Add((assistant, extra));
     }
 
+    /// <summary>The orders «Asistente: preguntar» gave (assistant, text).</summary>
+    public List<(string Assistant, string Text)> Asked { get; } = [];
+
+    public void AskAssistant(string assistant, string text)
+    {
+        lock (Asked) Asked.Add((assistant, text));
+    }
+
     private sealed class Nothing : IDisposable { public void Dispose() { } }
 }

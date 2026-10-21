@@ -192,6 +192,15 @@ public sealed record MenuMessage(string Assistant, int X, int Y) : PipeMessage
 }
 
 /// <summary>
+/// Middle click on an assistant (stage 3.6): K-Desktop opens the box to write to it above that point (where its bubble
+/// points), in screen pixels. What is written comes back as <c>heard</c> with source <c>bubble</c>.
+/// </summary>
+public sealed record WriteMessage(string Assistant, int X, int Y) : PipeMessage
+{
+    public override string Type => "write";
+}
+
+/// <summary>
 /// An assistant shows, greys out or hides one of its extras in its menu and its panel buttons (all are shown after each
 /// <c>load</c>). <paramref name="State"/>: <c>shown</c>, <c>disabled</c> or <c>hidden</c>.
 /// </summary>
@@ -397,6 +406,7 @@ public static class PipeJson
         ["extraKeys"] = typeof(ExtraKeysMessage),
         ["extraState"] = typeof(ExtraStateMessage),
         ["menu"] = typeof(MenuMessage),
+        ["write"] = typeof(WriteMessage),
         ["keys"] = typeof(KeysMessage),
         ["key"] = typeof(KeyMessage),
         ["watchWheel"] = typeof(WatchWheelMessage),

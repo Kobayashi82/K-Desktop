@@ -2811,5 +2811,24 @@
   "tool.calculate.examples": "combien font vingt-trois fois quarante-sept|calcule quinze pour cent de deux cents|combien font 1200 divisé par 12|racine carrée de 144|si je dépense 35 euros sur 120 combien il me reste|combien fait 3 puissance 5|additionne 45 plus 78 plus 12",
   "tool.open_web.examples": "ouvre youtube|va sur gmail|va sur la page de wikipédia|ouvre le site de la banque|emmène-moi sur amazon point fr|ouvre github",
   "tool.search_web.examples": "cherche des recettes de lentilles|cherche sur internet comment enlever une tache de vin|trouve-moi des vols pour Rome|regarde sur google qui a gagné le match|cherche les horaires de la pharmacie|cherche des informations sur les volcans",
-  "tool.open_app.examples": "ouvre la calculatrice|ouvre le bloc-notes|lance spotify|ouvre word|démarre photoshop|ouvre-moi l'explorateur de fichiers|ouvre visual studio code"
+  "tool.open_app.examples": "ouvre la calculatrice|ouvre le bloc-notes|lance spotify|ouvre word|démarre photoshop|ouvre-moi l'explorateur de fichiers|ouvre visual studio code",
+
+  "action.AssistantAsk.name": "Assistant : demander",
+  "action.AssistantAsk.desc": "Dit quelque chose à un assistant, comme si vous le disiez à voix haute. Sans texte, ouvre la zone pour lui écrire.",
+  "summary.assistantAskBox": "(ouvre la zone pour lui écrire)",
+  "editor.assistantAskWho": "Assistant",
+  "editor.assistantAskDefault": "Celui des Paramètres (quand vous ne parlez à personne en particulier)",
+  "editor.assistantAskText": "Ce que vous dites",
+  "editor.assistantAskTextHint": "Qu'est-ce que j'ai noté ?",
+  "editor.assistantAskHint": "Il le reçoit comme si vous le disiez : règles, outils ou IA, et répond dans sa bulle et dans le chat du panneau. Laissez-le vide et donnez-lui un raccourci pour lui écrire quand vous voulez.",
+  "assistantMenu.write": "Écrire à {0}…",
+  "assistantWrite.placeholder": "Écrivez à {0}…",
+  "assistantWrite.send": "Envoyer",
+  "assistantChat.title": "Conversation",
+  "assistantChat.hint": "Ce que vous dites à {0} par n'importe quel moyen et ce qu'il répond. Pour lui écrire sans ouvrir ceci : clic du milieu sur le personnage ou son menu → Écrire.",
+  "assistantChat.empty": "Vous n'avez pas encore parlé.",
+  "assistantChat.clear": "Effacer",
+  "assistantChat.stop": "Arrêter",
+  "assistantChat.you": "Vous",
+  "assistantChat.notRunning": "L'assistant n'est pas en marche pour le moment."
 }

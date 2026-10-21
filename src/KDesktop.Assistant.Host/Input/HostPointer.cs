@@ -11,7 +11,8 @@ namespace KDesktop.Assistant.Host.Input;
 /// of the body, as in Kobii; everywhere else the mouse reaches the windows below as if nothing were there. Their
 /// events go to the assistant on the engine thread; the right button opens the host's menu.
 /// </summary>
-internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, Point> menu, Action wheelChanged) : IPointer, IDisposable
+/// <param name="write">A middle click: the box to write to it (stage 3.6).</param>
+internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, Point> menu, Action wheelChanged, Action<string>? write = null) : IPointer, IDisposable
 {
     private readonly List<HitArea> _areas = [];
     private bool _watchWheel;
@@ -43,6 +44,8 @@ internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, P
     internal void Deliver(PointerEvent e) => deliver(e);
 
     internal void Menu(string area, Point at) => menu(area, at);
+
+    internal void Write(string area) => write?.Invoke(area);
 
     /// <summary>Keeps the hit windows on top of other «always on top» windows.</summary>
     public void KeepOnTop()
@@ -210,6 +213,10 @@ internal sealed unsafe class HitArea : IHitArea
 
             case WM_RBUTTONUP:
                 _owner.Menu(Id, CursorPoint());
+                return 0;
+
+            case WM_MBUTTONUP:
+                _owner.Write(Id);
                 return 0;
 
             case WM_SETCURSOR:

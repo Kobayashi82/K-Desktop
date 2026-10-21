@@ -113,8 +113,25 @@ internal sealed class AssistantRuntime : IDisposable
             Rendering.KeepOnTop();
             foreach (var slot in _slots) slot.Pointer.KeepOnTop();
         }
+        foreach (var slot in _slots)
+            if (slot.Bubble is { } bubble) interval = Math.Min(interval, UpdateBubble(slot, bubble, now));
         Rendering.Commit();
         return interval;
+    }
+
+    /// <summary>A bubble follows its character; one that faded out goes.</summary>
+    private double UpdateBubble(AssistantSlot slot, HostBubble bubble, double now)
+    {
+        if (bubble.IsOver(now) || slot.Dropped)
+        {
+            bubble.Dispose();
+            slot.Bubble = null;
+            return 60;
+        }
+        Point? anchor = null;
+        Guard(slot, a => anchor = a.BubbleAnchor, "BubbleAnchor");
+        var monitor = anchor is { } at ? World.Current.MonitorAt(at) ?? World.Current.PrimaryMonitor : null;
+        return bubble.Update(now, anchor, monitor, Rendering.FrameInterval);
     }
 
     /// <summary>
@@ -143,7 +160,7 @@ internal sealed class AssistantRuntime : IDisposable
         if (Find(id) is not null) await UnloadAsync(id, ExitKind.Switching).ConfigureAwait(true);
         if (!Watcher.IsStarted) Watcher.Start(_engine.Now, _engine.Post);
         var slot = new AssistantSlot(id, assistant, manifest, context, Rendering, World) { LastTick = _engine.Now };
-        slot.Pointer = new HostPointer(e => Guard(slot, a => a.OnPointer(e), "OnPointer"), (area, at) => OnMenu(slot, at), UpdateWheel);
+        slot.Pointer = new HostPointer(e => Guard(slot, a => a.OnPointer(e), "OnPointer"), (area, at) => OnMenu(slot, at), UpdateWheel, _ => OnWrite(slot));
         slot.Keyboard = new HostKeyboard(keys => _link?.Send(new KeysMessage(id, [.. keys.Select(k => k.ToString())])));
         slot.Audio = new AssistantAudio(Audio, package);
         slot.Host = new AssistantHost(this, slot, package, data, settings);
@@ -253,14 +270,40 @@ internal sealed class AssistantRuntime : IDisposable
     public async Task CommunicateAsync(string id, string text, TimeSpan duration, CancellationToken cancellationToken)
     {
         if (Find(id) is not { } slot) return;
-        var gesture = new Gesture.Communicate(text, null);
-        var can = false;
-        if (!Guard(slot, a => can = a.CanPerform(gesture), "CanPerform") || !can) return;
+        // The bubble is the host's (it says it whatever the gesture): over the character, for as long as it takes to read.
+        slot.Bubble?.Dispose();
+        var bubble = slot.Bubble = new HostBubble(Rendering.CreateSurface(SurfaceLayer.Front), text, _link?.Theme == "dark", _engine.Now, duration.TotalSeconds);
+        _engine.RequestTick();
         using var limit = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, slot.Extras.Token);
         limit.CancelAfter(duration);
+        try
+        {
+            await GestureAsync(slot, new Gesture.Communicate(text, null), duration, limit.Token).ConfigureAwait(true);
+        }
+        finally
+        {
+            bubble.Close(_engine.Now);
+            _engine.RequestTick();
+        }
+    }
+
+    /// <summary>
+    /// Communicate for the module: the character does its gesture while the bubble shows (one that cannot now just lets
+    /// the bubble talk until the time is up).
+    /// </summary>
+    private async Task GestureAsync(AssistantSlot slot, Gesture.Communicate gesture, TimeSpan duration, CancellationToken token)
+    {
+        var id = slot.Id;
+        var can = false;
         Task<GestureOutcome>? running = null;
         var context = new SpeechGestureContext(_engine, duration);
-        if (!Guard(slot, a => running = a.PerformAsync(gesture, context, limit.Token), "PerformAsync") || running is null) return;
+        if (!Guard(slot, a => can = a.CanPerform(gesture), "CanPerform") || !can
+            || !Guard(slot, a => running = a.PerformAsync(gesture, context, token), "PerformAsync") || running is null)
+        {
+            try { await Task.Delay(duration, token).ConfigureAwait(true); }
+            catch (OperationCanceledException) { }
+            return;
+        }
         try
         {
             // Its time is up when the token fires; a little more for it to finish, never forever.
@@ -363,6 +406,8 @@ internal sealed class AssistantRuntime : IDisposable
         slot.Extras.Cancel();
         slot.Extras.Dispose();
         // What it left behind goes with it: its surfaces, its hit areas and its subscriptions to the world.
+        slot.Bubble?.Dispose();
+        slot.Bubble = null;
         slot.Surfaces.DisposeAll();
         slot.Pointer.Dispose();
         slot.World.Forget();
@@ -383,6 +428,20 @@ internal sealed class AssistantRuntime : IDisposable
         if (Rendering is not null) handles.Add(Rendering.OverlayHandle);
         foreach (var slot in _slots) handles.AddRange(slot.Pointer.Handles);
         return handles;
+    }
+
+    /// <summary>
+    /// A middle click on an assistant: K-Desktop opens the box to write to it above it (where its bubbles point), and
+    /// takes the foreground for it.
+    /// </summary>
+    private void OnWrite(AssistantSlot slot)
+    {
+        if (slot.Dropped || _link is not { IsConnected: true } link) return;
+        Point? anchor = null;
+        Guard(slot, a => anchor = a.BubbleAnchor, "BubbleAnchor");
+        var at = anchor ?? (Interop.Native.GetCursorPos(out var cursor) ? new Point(cursor.X, cursor.Y) : default);
+        Interop.Native.AllowSetForegroundWindow(Interop.Native.ASFW_ANY);
+        link.Send(new WriteMessage(slot.Id, (int)Math.Round(at.X), (int)Math.Round(at.Y)));
     }
 
     /// <summary>The host's menu for the assistant clicked (panel, settings, extras, hide; talking and writing come with the brain).</summary>
@@ -427,6 +486,9 @@ internal sealed class AssistantSlot(string id, IAssistant assistant, AssistantMa
     public AssistantAudio Audio { get; set; } = null!;
 
     public CancellationTokenSource Extras { get; } = new();
+
+    /// <summary>The module's bubble over it while it says something (stage 3.6), or null.</summary>
+    public HostBubble? Bubble { get; set; }
 
     /// <summary>Its extras that are not simply shown (<see cref="IAssistantHost.SetExtraState"/>).</summary>
     public Dictionary<string, ExtraState> ExtraStates { get; } = new(StringComparer.Ordinal);

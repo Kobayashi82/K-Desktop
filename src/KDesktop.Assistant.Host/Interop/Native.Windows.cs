@@ -37,6 +37,7 @@ internal static unsafe partial class Native
     public const uint WM_LBUTTONUP = 0x0202;
     public const uint WM_LBUTTONDBLCLK = 0x0203;
     public const uint WM_RBUTTONUP = 0x0205;
+    public const uint WM_MBUTTONUP = 0x0208;
     public const uint WM_MOUSELEAVE = 0x02A3;
     public const uint WM_CAPTURECHANGED = 0x0215;
     public const uint WM_DPICHANGED = 0x02E0;

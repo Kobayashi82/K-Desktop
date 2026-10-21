@@ -107,6 +107,13 @@ public partial class App
         var menu = new ContextMenu { Placement = PlacementMode.MousePoint };
         var bringsPage = false;
         var extras = installed.Manifest.Extras.Where(e => ExtraStateOf(id, e.Id) != ExtraState.Hidden).ToList();
+        var at = new UiNative.POINT { X = message.X, Y = message.Y };
+        menu.Items.Add(Entry(Loc.T("assistantMenu.write", name), SymbolRegular.Keyboard24, () =>
+        {
+            bringsPage = true;
+            ShowAssistantWriteBox(id, at);
+        }));
+        menu.Items.Add(new Separator());
         foreach (var extra in extras)
         {
             var extraId = extra.Id;

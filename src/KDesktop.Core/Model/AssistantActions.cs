@@ -44,3 +44,21 @@ public partial class AssistantExtraAction : CommandAction
 
     public override bool IsTransient(string? property) => property is nameof(ExtraName) or nameof(Target) || base.IsTransient(property);
 }
+
+/// <summary>
+/// «Asistente: preguntar»: an order for an assistant, as if it had been said to it («¿qué tenía apuntado?»), with the
+/// same path as the voice and the chat (message <c>heard</c>, source <c>command</c>). Without text, the box to write it
+/// opens (so a hotkey can open it).
+/// </summary>
+public partial class AssistantAskAction : CommandAction
+{
+    /// <summary>The assistant's id; empty: the one Options → Assistants says for orders to nobody in particular.</summary>
+    [ObservableProperty] private string _assistant = string.Empty;
+
+    /// <summary>The order; empty: the box to write it opens.</summary>
+    [ObservableProperty] private string _text = string.Empty;
+
+    public override ActionKind Kind => ActionKind.AssistantAsk;
+
+    public override string Summary => Text.Trim().Length == 0 ? Loc.T("summary.assistantAskBox") : $"«{Text.Trim()}»";
+}
