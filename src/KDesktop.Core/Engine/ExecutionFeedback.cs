@@ -88,6 +88,7 @@ internal sealed class FeedbackUiServices(IUiServices inner) : IUiServices
     public void ShowMainWindow() => inner.ShowMainWindow();
     public void RunAssistantExtra(string assistant, string extra) => inner.RunAssistantExtra(assistant, extra);
     public void AskAssistant(string assistant, string text) => inner.AskAssistant(assistant, text);
+    public void AssistantSay(string assistant, string text) => inner.AssistantSay(assistant, text);
     public void RunOnUi(Action action) => inner.RunOnUi(action);
     public void RequestExit() => inner.RequestExit();
     public bool SetClipboardText(string text) => inner.SetClipboardText(text);

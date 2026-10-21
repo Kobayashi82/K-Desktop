@@ -135,6 +135,9 @@ internal sealed class AssistantSession : IDisposable
                     case CancelMessage cancel when Talk is { } talk:
                         talk.OnCancel(cancel);
                         return;
+                    case SayMessage say when Talk is { } talk:
+                        talk.OnSay(say);
+                        return;
                     case EmbeddedMessage embedded when Talk is { } talk:
                         talk.Meaning.OnEmbedded(embedded);
                         return;

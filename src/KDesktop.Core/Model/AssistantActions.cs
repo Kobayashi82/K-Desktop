@@ -62,3 +62,19 @@ public partial class AssistantAskAction : CommandAction
 
     public override string Summary => Text.Trim().Length == 0 ? Loc.T("summary.assistantAskBox") : $"«{Text.Trim()}»";
 }
+
+/// <summary>
+/// «Asistente: decir»: an assistant says something (message <c>say</c>), in its bubble and in the chat, without the AI:
+/// an event («the copy finished»), a reminder in a command. Without a body (nobody on the desktop), K-Desktop's OSD.
+/// </summary>
+public partial class AssistantSayAction : CommandAction
+{
+    /// <summary>The assistant's id; empty: the one Options → Assistants says for what is addressed to nobody.</summary>
+    [ObservableProperty] private string _assistant = string.Empty;
+
+    [ObservableProperty] private string _text = string.Empty;
+
+    public override ActionKind Kind => ActionKind.AssistantSay;
+
+    public override string Summary => Text.Trim().Length == 0 ? Loc.T("summary.assistantSayEmpty") : $"«{Text.Trim()}»";
+}

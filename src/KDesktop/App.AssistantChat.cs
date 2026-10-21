@@ -148,6 +148,25 @@ public partial class App
     }
 
     /// <summary>
+    /// «Asistente: decir»: the assistant (empty: the default one) says it, in its bubble and its chat; without anybody to
+    /// say it, K-Desktop's OSD (the chat line that comes back shows it).
+    /// </summary>
+    private void SayFromCommand(string id, string text)
+    {
+        text = text.Trim();
+        if (text.Length == 0) return;
+        if (_assistant is null)
+        {
+            Ui.ShowOsd(Loc.T("assistantExtra.moduleOff"), Core.Engine.OsdKind.Warning);
+            return;
+        }
+        var who = id.Length > 0 ? id : PickAssistant();
+        _chatSources[who ?? string.Empty] = "command";
+        if (!_assistant.IsRunning || !_assistant.Send(new SayMessage(text, who)))
+            Ui.ShowOsd(text, Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(Math.Clamp(2 + text.Length * 0.06, 4, 15)));
+    }
+
+    /// <summary>
     /// The box to write to an assistant (null: the module without a body), above <paramref name="at"/> (screen pixels,
     /// where the character is) or at the bottom of the monitor with the mouse.
     /// </summary>

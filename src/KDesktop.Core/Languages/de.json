@@ -2917,5 +2917,12 @@
   "tool.run_event.intent": "das Ereignis „{0}“ ausführen",
   "tool.run_event.done": "Hat das Ereignis „{0}“ ausgeführt",
   "tool.run_event.reply": "Ich habe das Ereignis „{0}“ ausgeführt.",
-  "tool.run_event.examples": "führe das Spiele-Ereignis aus|starte das Ereignis beim Heimkommen|aktiviere das Arbeits-Ereignis|löse das Nacht-Ereignis aus"
+  "tool.run_event.examples": "führe das Spiele-Ereignis aus|starte das Ereignis beim Heimkommen|aktiviere das Arbeits-Ereignis|löse das Nacht-Ereignis aus",
+
+  "action.AssistantSay.name": "Assistent: sagen",
+  "action.AssistantSay.desc": "Der Assistent sagt etwas in seiner Sprechblase, ohne KI. Praktisch in Ereignissen: „Die Sicherung ist fertig“.",
+  "summary.assistantSayEmpty": "(ohne Text)",
+  "editor.assistantSayText": "Was er sagt",
+  "editor.assistantSayTextHint": "Die Sicherung ist fertig.",
+  "editor.assistantSayHint": "Er sagt es wörtlich, in seiner Sprechblase und im Chat des Panels. Ohne Figur auf dem Desktop erscheint es als K-Desktop-Hinweis."
 }

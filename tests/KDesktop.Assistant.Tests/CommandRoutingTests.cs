@@ -126,6 +126,20 @@ public sealed class CommandRoutingTests : IDisposable
     }
 
     [Fact]
+    public async Task SayingSomethingNeedsNoAi()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        await talk.SayAsync("lander", "La copia de seguridad ha terminado.");
+        Assert.Equal("La copia de seguridad ha terminado.", LastAnswer);
+        Assert.Equal("lander", _chat[^1].Assistant);
+        Assert.Empty(_model.Requests);
+        // «Repite» says it again.
+        await talk.HandleAsync(new HeardMessage("repite", "panel", "lander"));
+        Assert.Equal("La copia de seguridad ha terminado.", LastAnswer);
+    }
+
+    [Fact]
     public async Task NothingClearGoesToTheAiWithTheCommandTools()
     {
         using var builtin = new BuiltinTools(_folder);
@@ -162,7 +176,7 @@ public sealed class CommandRoutingTests : IDisposable
             Matches[text] = new MatchedMessage("x", 0.95, [], [.. parts.Select(p => new MatchedPart(p.Name, true, [new MatchedCandidate(p.Command, p.Name, 0.95, p.Media)]))]);
 
         public Task<MatchedMessage?> MatchAsync(string text, CancellationToken cancellationToken) =>
-            Task.FromResult(Matches.GetValueOrDefault(text) ?? new MatchedMessage("x", 0, [], [new MatchedPart(text, false, [])]));
+            Task.FromResult<MatchedMessage?>(Matches.GetValueOrDefault(text) ?? new MatchedMessage("x", 0, [], [new MatchedPart(text, false, [])]));
 
         public Task<EndMessage?> RunAsync(string command, string? assistant, CancellationToken cancellationToken)
         {

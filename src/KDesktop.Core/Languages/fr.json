@@ -2917,5 +2917,12 @@
   "tool.run_event.intent": "lancer l'événement « {0} »",
   "tool.run_event.done": "A lancé l'événement « {0} »",
   "tool.run_event.reply": "J'ai lancé l'événement « {0} ».",
-  "tool.run_event.examples": "lance l'événement des jeux|exécute l'événement en rentrant à la maison|active l'événement du travail|déclenche l'événement du soir"
+  "tool.run_event.examples": "lance l'événement des jeux|exécute l'événement en rentrant à la maison|active l'événement du travail|déclenche l'événement du soir",
+
+  "action.AssistantSay.name": "Assistant : dire",
+  "action.AssistantSay.desc": "L'assistant dit quelque chose dans sa bulle, sans l'IA. Pratique dans les événements : « La sauvegarde est terminée ».",
+  "summary.assistantSayEmpty": "(sans texte)",
+  "editor.assistantSayText": "Ce qu'il dit",
+  "editor.assistantSayTextHint": "La sauvegarde est terminée.",
+  "editor.assistantSayHint": "Il le dit tel quel, dans sa bulle et dans le chat du panneau. Sans personne sur le bureau, cela s'affiche comme notification de K-Desktop."
 }

@@ -68,6 +68,13 @@ internal sealed class ModuleTalk : ITalkOutput
 
     public void OnCancel(CancelMessage cancel) => Service.Cancel(cancel.Assistant);
 
+    /// <summary>«Asistente: decir»: it says it (not in pause, like the orders).</summary>
+    public void OnSay(SayMessage say)
+    {
+        if (Paused) return;
+        _ = Service.SayAsync(say.Assistant, say.Text);
+    }
+
     /// <summary>An assistant came onto the desktop from <paramref name="folder"/> (a new version may bring another persona).</summary>
     public void Loaded(string id, string folder)
     {

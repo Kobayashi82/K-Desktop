@@ -387,6 +387,12 @@ public sealed record MemoryStateMessage(IReadOnlyList<MemoryEntry> Items) : Pipe
 
 // ── K-Desktop's commands (phase 4) ───────────────────────────────────────
 
+/// <summary>«Asistente: decir»: the assistant says this (bubble and chat), without the AI. Null assistant: the module without a body.</summary>
+public sealed record SayMessage(string Text, string? Assistant = null) : PipeMessage
+{
+    public override string Type => "say";
+}
+
 /// <summary>Which commands (or built-in media orders) an order names, without running anything (<c>IntentMatcher.Plan</c>).</summary>
 public sealed record MatchMessage(string Id, string Text) : PipeMessage
 {
@@ -542,6 +548,7 @@ public static class PipeJson
         ["embedded"] = typeof(EmbeddedMessage),
         ["memory"] = typeof(MemoryMessage),
         ["memoryState"] = typeof(MemoryStateMessage),
+        ["say"] = typeof(SayMessage),
         ["match"] = typeof(MatchMessage),
         ["matched"] = typeof(MatchedMessage),
         ["run"] = typeof(RunMessage),

@@ -34,6 +34,9 @@ public interface IUiServices
     /// <summary>«Asistente: preguntar»: an order for an assistant (empty: the default one); without text, the box to write it.</summary>
     void AskAssistant(string assistant, string text) { }
 
+    /// <summary>«Asistente: decir»: an assistant (empty: the default one) says this, without the AI.</summary>
+    void AssistantSay(string assistant, string text) { }
+
     /// <summary>Runs <paramref name="action"/> on the UI thread (needed to modify bound collections).</summary>
     void RunOnUi(Action action);
 

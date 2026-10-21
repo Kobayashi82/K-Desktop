@@ -2917,5 +2917,12 @@
   "tool.run_event.intent": "lanzar el evento «{0}»",
   "tool.run_event.done": "Lanzó el evento «{0}»",
   "tool.run_event.reply": "He lanzado el evento «{0}».",
-  "tool.run_event.examples": "lanza el evento de juegos|ejecuta el evento al llegar a casa|activa el evento de trabajo|dispara el evento de la noche"
+  "tool.run_event.examples": "lanza el evento de juegos|ejecuta el evento al llegar a casa|activa el evento de trabajo|dispara el evento de la noche",
+
+  "action.AssistantSay.name": "Asistente: decir",
+  "action.AssistantSay.desc": "El asistente dice algo en su bocadillo, sin la IA. Útil en los eventos: «La copia ha terminado».",
+  "summary.assistantSayEmpty": "(sin texto)",
+  "editor.assistantSayText": "Qué dice",
+  "editor.assistantSayTextHint": "La copia de seguridad ha terminado.",
+  "editor.assistantSayHint": "Lo dice tal cual, en su bocadillo y en el chat del panel. Si no hay nadie en el escritorio, sale como aviso de K-Desktop."
 }

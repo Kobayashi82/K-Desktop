@@ -2917,5 +2917,12 @@
   "tool.run_event.intent": "run the event \"{0}\"",
   "tool.run_event.done": "Ran the event \"{0}\"",
   "tool.run_event.reply": "I ran the event \"{0}\".",
-  "tool.run_event.examples": "run the games event|trigger the arriving home event|start the work event|fire the night event"
+  "tool.run_event.examples": "run the games event|trigger the arriving home event|start the work event|fire the night event",
+
+  "action.AssistantSay.name": "Assistant: say",
+  "action.AssistantSay.desc": "The assistant says something in its bubble, without the AI. Handy in events: \"The backup has finished\".",
+  "summary.assistantSayEmpty": "(no text)",
+  "editor.assistantSayText": "What it says",
+  "editor.assistantSayTextHint": "The backup has finished.",
+  "editor.assistantSayHint": "It says it as it is, in its bubble and in the panel's chat. With nobody on the desktop, it shows as a K-Desktop notice."
 }

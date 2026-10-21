@@ -2917,5 +2917,12 @@
   "tool.run_event.intent": "disparar o evento \"{0}\"",
   "tool.run_event.done": "Disparou o evento \"{0}\"",
   "tool.run_event.reply": "Disparei o evento \"{0}\".",
-  "tool.run_event.examples": "dispara o evento de jogos|executa o evento ao chegar em casa|ativa o evento de trabalho|aciona o evento da noite"
+  "tool.run_event.examples": "dispara o evento de jogos|executa o evento ao chegar em casa|ativa o evento de trabalho|aciona o evento da noite",
+
+  "action.AssistantSay.name": "Assistente: dizer",
+  "action.AssistantSay.desc": "O assistente diz algo no balão, sem a IA. Útil nos eventos: \"O backup terminou\".",
+  "summary.assistantSayEmpty": "(sem texto)",
+  "editor.assistantSayText": "O que ele diz",
+  "editor.assistantSayTextHint": "O backup terminou.",
+  "editor.assistantSayHint": "Ele diz do jeito que está, no balão e no chat do painel. Sem ninguém na área de trabalho, aparece como aviso do K-Desktop."
 }

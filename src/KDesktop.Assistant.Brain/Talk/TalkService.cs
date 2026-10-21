@@ -131,6 +131,33 @@ public sealed class TalkService
         _ = Task.Run(() => _memory.LearnAsync(client, model, said, answer.Text, new ToolContext(who), token), CancellationToken.None);
     }
 
+    /// <summary>
+    /// «Asistente: decir» (stage 4.5): the assistant says this, in its bubble and its chat, without the AI. It replaces
+    /// what it was saying; «repite» repeats it.
+    /// </summary>
+    public async Task SayAsync(string? who, string text)
+    {
+        text = text.Trim();
+        if (text.Length == 0) return;
+        var conversation = Of(who);
+        var (token, _) = conversation.Begin();
+        try
+        {
+            _output.Chat(new ChatLineMessage("assistant", text, Guid.NewGuid().ToString("N")[..12], true, who));
+            conversation.LastAnswer = text;
+            _output.State(who, "speaking");
+            await _output.SpeakAsync(who, text, token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            // Replaced by another order.
+        }
+        finally
+        {
+            if (conversation.End(token)) _output.State(who, "idle");
+        }
+    }
+
     /// <summary>«Para», Escape: stops what that assistant is answering (nothing to say).</summary>
     public void Cancel(string? assistant)
     {

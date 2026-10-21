@@ -74,6 +74,20 @@ public class AssistantExtraActionTests
     }
 
     [Fact]
+    public async Task SayingSomethingIsSavedAndHandedToTheUi()
+    {
+        var command = new Command { Name = "Copia terminada" };
+        command.Actions.Add(new AssistantSayAction { Assistant = "lander", Text = "La copia ha terminado." });
+        var back = Json.Deserialize<Command>(Json.Serialize(command))!;
+        Assert.Contains("\"assistantSay\"", Json.Serialize(command));
+        var ui = new FakeUi();
+        var store = new ConfigStore();
+        store.Config.Commands.Add(back);
+        await new CommandEngine(store, ui).RunAsync(back, TriggerSource.Event);
+        Assert.Equal([("lander", "La copia ha terminado.")], ui.Said);
+    }
+
+    [Fact]
     public void HotkeyUsersAreTheCommandsForEveryProgramAndKDesktop()
     {
         var config = new AppConfig();

@@ -2917,5 +2917,12 @@
   "tool.run_event.intent": "avviare l'evento «{0}»",
   "tool.run_event.done": "Ha avviato l'evento «{0}»",
   "tool.run_event.reply": "Ho avviato l'evento «{0}».",
-  "tool.run_event.examples": "avvia l'evento dei giochi|esegui l'evento quando arrivo a casa|attiva l'evento del lavoro|lancia l'evento della notte"
+  "tool.run_event.examples": "avvia l'evento dei giochi|esegui l'evento quando arrivo a casa|attiva l'evento del lavoro|lancia l'evento della notte",
+
+  "action.AssistantSay.name": "Assistente: dire",
+  "action.AssistantSay.desc": "L'assistente dice qualcosa nel suo fumetto, senza l'IA. Utile negli eventi: «Il backup è finito».",
+  "summary.assistantSayEmpty": "(senza testo)",
+  "editor.assistantSayText": "Cosa dice",
+  "editor.assistantSayTextHint": "Il backup è finito.",
+  "editor.assistantSayHint": "Lo dice così com'è, nel suo fumetto e nella chat del pannello. Senza nessuno sul desktop, compare come avviso di K-Desktop."
 }
