@@ -57,6 +57,9 @@ public sealed class SettingsPageModel(string title, SymbolRegular? symbol, IRead
     public SymbolRegular Symbol { get; } = symbol ?? SymbolRegular.Settings24;
     public IReadOnlyList<SettingsSectionModel> Sections { get; } = sections;
 
+    /// <summary>K-Desktop's own page, «Personalidad y voz» (5.0.105), not one of its settings.json.</summary>
+    public bool IsPersonal { get; init; }
+
     public override string ToString() => Title;
 }
 
@@ -607,7 +610,9 @@ public sealed class AssistantSettingsModel : Observable
                 [.. p.Sections.Select(s => new SettingsSectionModel(
                     s.Title is null ? null : AssistantLook.Text(s.Title),
                     [.. s.Items.Select(i => SettingModel.Create(this, i)).OfType<SettingModel>()]))],
-                page => CurrentPage = (SettingsPageModel)page))
+                page => CurrentPage = (SettingsPageModel)page)),
+            // What it has of its own (K-Desktop's page, after its own ones).
+            new SettingsPageModel(Loc.T("assistantPersonal.tab"), SymbolRegular.PersonVoice24, [], page => CurrentPage = (SettingsPageModel)page) { IsPersonal = true },
         ];
         _all.AddRange(Pages.SelectMany(p => p.Sections).SelectMany(s => s.Items));
         foreach (var item in _all) item.Load(_values);
@@ -623,6 +628,9 @@ public sealed class AssistantSettingsModel : Observable
     public IReadOnlyList<SettingsPageModel> Pages { get; }
 
     public bool HasTabs => Pages.Count > 1;
+
+    /// <summary>It has settings of its own (a settings.json), besides «Personalidad y voz».</summary>
+    public bool HasOwnSettings => Pages.Any(p => !p.IsPersonal);
 
     public SettingsPageModel? CurrentPage
     {

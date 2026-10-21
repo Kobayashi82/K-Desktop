@@ -121,6 +121,7 @@ public partial class App
             SendAssistantBrainConfig();
             SendAssistantToolsConfig();
             SendAssistantVoiceConfig();
+            SendAssistantPersonalConfig();
         }
     }
 
@@ -140,7 +141,7 @@ public partial class App
         var voice = AssistantVoiceConfig();
         _assistantVoiceSent = voice.ToJsonString();
         return new(AssistantLanguage, ThemeService.IsDark ? "dark" : "light", Config.Settings.Paused,
-            new() { ["general"] = AssistantGeneral(), ["brain"] = brain, ["tools"] = tools, ["voice"] = voice });
+            new() { ["general"] = AssistantGeneral(), ["brain"] = brain, ["tools"] = tools, ["voice"] = voice, ["personal"] = AssistantPersonalWelcome() });
     }
 
     /// <summary>
@@ -320,6 +321,7 @@ public partial class App
         Log.Info($"Asistente: se carga «{id}» {installed.Version}");
         ForgetAssistantPanel(id);
         ForgetAssistantExtras(id);
+        LoadingInLanguage(id);
         supervisor.Send(new LoadMessage(id, installed.Version, installed.Folder, AssistantPaths.Data(id), entrance));
     }
 

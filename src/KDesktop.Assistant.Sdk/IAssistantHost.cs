@@ -9,7 +9,10 @@ public interface IAssistantHost
     /// <summary>SDK version of the host («1.0»).</summary>
     Version SdkVersion { get; }
 
-    /// <summary>Interface language of K-Desktop («es», «en»…). Changes restart the assistant.</summary>
+    /// <summary>
+    /// The language it speaks in («es», «en»…): the one the user gave it in its settings, or the one all the assistants
+    /// speak in. Changes load the assistant again.
+    /// </summary>
     string Language { get; }
 
     IWorld World { get; }

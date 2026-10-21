@@ -4,5 +4,15 @@
   "windowsVoices": [
     "Microsoft Helena Desktop"
   ],
-  "kokoroLoaded": true
+  "kokoroLoaded": true,
+  "windowsVoicesOf": {
+    "es": [
+      "Microsoft Helena Desktop"
+    ],
+    "en": [
+      "Microsoft Zira Desktop",
+      "Microsoft David Desktop"
+    ],
+    "de": []
+  }
 }

@@ -188,10 +188,12 @@ public sealed class OpenAICompatibleChatModel : IChatModel
     /// <summary>
     /// The request. With <paramref name="disableReasoning"/> it asks not to «reason» before answering:
     /// <c>reasoning_effort</c> (Ollama, LM Studio) and <c>enable_thinking</c> in the template (llama.cpp, vLLM). Without it a
-    /// reasoning model spends all its tokens thinking and says nothing.
+    /// reasoning model spends all its tokens thinking and says nothing. With <see cref="ChatRequest.ThinkTokens"/> it
+    /// thinks instead, that many tokens at most (llama-server's <c>thinking_budget_tokens</c>), on top of its answer.
     /// </summary>
     internal static byte[] BuildChatBody(ChatRequest request, bool disableReasoning = true)
     {
+        var think = disableReasoning && request.ThinkTokens > 0;
         using var buffer = new MemoryStream();
         using (var json = new Utf8JsonWriter(buffer))
         {
@@ -199,8 +201,15 @@ public sealed class OpenAICompatibleChatModel : IChatModel
             json.WriteString("model", request.Model);
             json.WriteBoolean("stream", true);
             json.WriteNumber("temperature", request.Temperature);
-            json.WriteNumber("max_tokens", request.MaxTokens);
-            if (disableReasoning)
+            json.WriteNumber("max_tokens", request.MaxTokens + (think ? request.ThinkTokens : 0));
+            if (think)
+            {
+                json.WriteStartObject("chat_template_kwargs");
+                json.WriteBoolean("enable_thinking", true);
+                json.WriteEndObject();
+                json.WriteNumber("thinking_budget_tokens", request.ThinkTokens);
+            }
+            else if (disableReasoning)
             {
                 json.WriteString("reasoning_effort", "none");
                 json.WriteStartObject("chat_template_kwargs");

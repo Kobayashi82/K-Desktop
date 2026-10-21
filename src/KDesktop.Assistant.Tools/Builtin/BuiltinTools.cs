@@ -28,6 +28,7 @@ public sealed class BuiltinTools : IDisposable
         registry.Add(new RememberTool(Memory));
         registry.Add(new ForgetTool(Memory));
         registry.Add(new CalculateTool());
+        registry.Add(new DateMathTool(Timers.Time));
         registry.Add(new OpenWebTool());
         registry.Add(new SearchWebTool());
         registry.Add(new OpenAppTool());

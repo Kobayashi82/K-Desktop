@@ -33,7 +33,8 @@ public sealed record TalkAnswer(string Text, bool Remember = true, bool Failed =
 /// Talking with the model (plan §5.2): the instructions with the persona, the short history and the order; the model may
 /// call tools (through the <see cref="ToolRunner"/>, which asks permission and writes the activity), at most
 /// <see cref="MaxToolRounds"/> rounds and <see cref="MaxToolCalls"/> calls; then it must answer. Only the tools that fit
-/// the order are offered (<see cref="ToolChooser"/>). No thinking, short answers, cleaned for a bubble and a voice.
+/// the order are offered (<see cref="ToolChooser"/>). No thinking (5.0.105: thinking first did not make Bonsai better at
+/// dates and sums, only slower; <c>date_math</c> did), short answers, cleaned for a bubble and a voice.
 /// </summary>
 public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider time, TalkMemory? memory = null)
 {

@@ -26,9 +26,57 @@ public sealed class Loc : INotifyPropertyChanged
     /// <summary>Raised after the language changes.</summary>
     public event Action? Changed;
 
-    public string Language { get; private set; } = Fallback;
+    private string _language = Fallback;
+    private CultureInfo _culture = CultureInfo.GetCultureInfo(Fallback);
 
-    public CultureInfo Culture { get; private set; } = CultureInfo.GetCultureInfo(Fallback);
+    /// <summary>The language of what runs now: the one of <see cref="Use"/> around it, or the loaded one.</summary>
+    public string Language => _scope.Value?.Language ?? _language;
+
+    public CultureInfo Culture => _scope.Value?.Culture ?? _culture;
+
+    /// <summary>Another language for one flow of work (an assistant that speaks in its own, 5.0.105).</summary>
+    private sealed record Scoped(string Language, CultureInfo Culture, Dictionary<string, string> Strings);
+
+    private readonly AsyncLocal<Scoped?> _scope = new();
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, Scoped> _scopes = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// What runs inside (and everything it starts, awaits included) uses <paramref name="code"/> instead of the loaded
+    /// language, until the result is disposed; null, empty or the loaded one: nothing changes. The rest of the process
+    /// keeps its language (the assistant process: one assistant answers in English while another does in Spanish).
+    /// </summary>
+    public LanguageScope Use(string? code)
+    {
+        var before = _scope.Value;
+        if (string.IsNullOrWhiteSpace(code) || code.Equals(Language, StringComparison.OrdinalIgnoreCase)) return new LanguageScope(this, before, false);
+        _scope.Value = code.Equals(_language, StringComparison.OrdinalIgnoreCase) ? null : _scopes.GetOrAdd(code, c =>
+        {
+            CultureInfo culture;
+            try { culture = CultureInfo.GetCultureInfo(c); } catch (CultureNotFoundException) { culture = CultureInfo.InvariantCulture; }
+            return new Scoped(c, culture, c.Equals(Fallback, StringComparison.OrdinalIgnoreCase) ? LoadMerged(Fallback) : LoadMerged(c));
+        });
+        return new LanguageScope(this, before, true);
+    }
+
+    /// <summary>Back to the language there was before <see cref="Use"/>.</summary>
+    public readonly struct LanguageScope : IDisposable
+    {
+        private readonly Loc? _owner;
+        private readonly object? _before;
+        private readonly bool _changed;
+
+        internal LanguageScope(Loc owner, object? before, bool changed)
+        {
+            _owner = owner;
+            _before = before;
+            _changed = changed;
+        }
+
+        public void Dispose()
+        {
+            if (_changed && _owner is not null) _owner._scope.Value = (Scoped?)_before;
+        }
+    }
 
     /// <summary>Indexer used by XAML bindings: <c>{Binding [key], Source={x:Static Loc.Instance}}</c>.</summary>
     public string this[string key] => Get(key);
@@ -93,8 +141,9 @@ public sealed class Loc : INotifyPropertyChanged
         _fallback = LoadMerged(Fallback);
         _strings = code.Equals(Fallback, StringComparison.OrdinalIgnoreCase) ? _fallback : LoadMerged(code);
         if (_strings.Count == 0) code = Fallback;
-        Language = code;
-        try { Culture = CultureInfo.GetCultureInfo(code); } catch { Culture = CultureInfo.InvariantCulture; }
+        _language = code;
+        try { _culture = CultureInfo.GetCultureInfo(code); } catch { _culture = CultureInfo.InvariantCulture; }
+        _scopes.Clear();
 
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Item[]"));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Language)));
@@ -115,7 +164,7 @@ public sealed class Loc : INotifyPropertyChanged
     }
 
     private string Get(string key) =>
-        _strings.TryGetValue(key, out var s) ? s : _fallback.TryGetValue(key, out var f) ? f : key;
+        (_scope.Value is { } scoped ? scoped.Strings : _strings).TryGetValue(key, out var s) ? s : _fallback.TryGetValue(key, out var f) ? f : key;
 
     /// <summary>The built-in texts of the language, with the user's file (if any) on top: its keys win.</summary>
     private static Dictionary<string, string> LoadMerged(string code)

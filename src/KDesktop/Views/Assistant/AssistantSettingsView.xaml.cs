@@ -37,6 +37,7 @@ public partial class AssistantSettingsView : UserControl
             _app.AssistantChanged -= UpdateLive;
             _app.AssistantPanelChanged -= OnPanelChanged;
             _model?.Flush();
+            PersonalView.Flush();
         };
     }
 
@@ -50,20 +51,45 @@ public partial class AssistantSettingsView : UserControl
     public void Show(InstalledAssistant assistant)
     {
         _model?.Flush();
+        if (_model is not null) _model.PropertyChanged -= OnModelChanged;
         _shown = assistant;
-        var layout = SettingsLayout.Load(assistant);
-        _model = layout is null ? null : new AssistantSettingsModel(assistant, layout);
+        // Without a settings.json it still has «Personalidad y voz».
+        var layout = SettingsLayout.Load(assistant) ?? new SettingsLayout([]);
+        _model = new AssistantSettingsModel(assistant, layout);
+        _model.PropertyChanged += OnModelChanged;
         DataContext = _model;
+        PersonalView.Show(assistant);
 
         TitleText.Text = Loc.T("assistantSettings.title", assistant.Manifest.Name);
         var icon = AssistantLook.Icon(assistant);
         HeroIcon.Source = icon;
         HeroFallback.Visibility = icon is null ? Visibility.Visible : Visibility.Collapsed;
-        NonePanel.Visibility = _model is null ? Visibility.Visible : Visibility.Collapsed;
         NoneText.Text = Loc.T("assistantSettings.none", assistant.Manifest.Name);
-        ResetButton.Visibility = _model is null ? Visibility.Collapsed : Visibility.Visible;
-        PageTabs.Visibility = _model is { HasTabs: true } ? Visibility.Visible : Visibility.Collapsed;
+        PageTabs.Visibility = _model.HasTabs ? Visibility.Visible : Visibility.Collapsed;
+        ShowPage();
         UpdateLive();
+    }
+
+    /// <summary>Opens «Personalidad y voz» (<c>--page settings/assistants/&lt;id&gt;/personal</c>).</summary>
+    public void ShowPersonal()
+    {
+        if (_model?.Pages.FirstOrDefault(p => p.IsPersonal) is { } personal) _model.CurrentPage = personal;
+    }
+
+    private void OnModelChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(AssistantSettingsModel.CurrentPage)) ShowPage();
+    }
+
+    /// <summary>Its settings.json's page, or «Personalidad y voz» (whose changes «Restablecer» of the top does not undo).</summary>
+    private void ShowPage()
+    {
+        if (_model is null) return;
+        var personal = _model.CurrentPage is { IsPersonal: true };
+        PersonalView.Visibility = personal ? Visibility.Visible : Visibility.Collapsed;
+        SectionsList.Visibility = personal ? Visibility.Collapsed : Visibility.Visible;
+        ResetButton.Visibility = _model.HasOwnSettings && !personal ? Visibility.Visible : Visibility.Collapsed;
+        NonePanel.Visibility = Visibility.Collapsed;
     }
 
     /// <summary>The assistants changed: a new version of the one shown is shown again (its settings may be others).</summary>
@@ -91,6 +117,7 @@ public partial class AssistantSettingsView : UserControl
     private void OnBack(object sender, RoutedEventArgs e)
     {
         _model?.Flush();
+        PersonalView.Flush();
         Closed?.Invoke();
     }
 

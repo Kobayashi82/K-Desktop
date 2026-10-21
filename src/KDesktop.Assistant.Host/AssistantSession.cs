@@ -36,8 +36,9 @@ internal sealed class AssistantSession : IDisposable
         if (Link is not null) Brain = new BrainService(World.VideoMemory.Gigabytes);
         if (Link is not null) Commands = new ModuleCommands(Link) { Choreography = new ModuleChoreography(Link, Engine, Runtime), HasBody = Runtime.HasBody };
         if (Link is not null) Tools = new ModuleTools(Link, Commands!);
-        if (Link is not null) Voice = new ModuleVoice(Engine, Runtime);
-        if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!, Commands!, Voice!);
+        Runtime.LanguageOf = Personal.LanguageOf;
+        if (Link is not null) Voice = new ModuleVoice(Engine, Runtime, Personal);
+        if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!, Commands!, Voice!, Personal);
         if (Link is not null) Bench = new ModuleBench(Link, Brain!, Tools!, Talk!.Chooser, Commands!);
     }
 
@@ -46,6 +47,9 @@ internal sealed class AssistantSession : IDisposable
 
     /// <summary>Options → Brain → Test the model (null without K-Desktop).</summary>
     public ModuleBench? Bench { get; }
+
+    /// <summary>What each assistant has of its own: language, personality, voice (5.0.105).</summary>
+    public ModulePersonal Personal { get; } = new();
 
     /// <summary>Their voice (null without K-Desktop).</summary>
     public ModuleVoice? Voice { get; }
@@ -95,6 +99,7 @@ internal sealed class AssistantSession : IDisposable
                 if (welcome.Config?["general"] is JsonObject general) ApplyGeneral(general);
                 Brain?.Configure(BrainConfig.FromJson(welcome.Config?["brain"] as JsonObject));
                 Tools?.Configure(welcome.Config?["tools"] as JsonObject);
+                Personal.Configure(welcome.Config?["personal"] as JsonObject);
                 Voice?.Configure(welcome.Config?["voice"] as JsonObject);
                 Tools?.Start();
                 if (Talk is { } ready) _ = ready.WarmAsync();
@@ -109,6 +114,9 @@ internal sealed class AssistantSession : IDisposable
                         return;
                     case ConfigMessage { Section: "brain" } config when Brain is { } brain:
                         brain.Configure(BrainConfig.FromJson(config.Value as JsonObject));
+                        return;
+                    case ConfigMessage { Section: "personal" } config:
+                        Personal.Configure(config.Value as JsonObject);
                         return;
                     case ConfigMessage { Section: "voice" } config when Voice is { } voice:
                         voice.Configure(config.Value as JsonObject);

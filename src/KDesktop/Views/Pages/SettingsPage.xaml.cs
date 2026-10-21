@@ -73,10 +73,16 @@ public partial class SettingsPage : UserControl
 
     /// <summary>
     /// Opens a section by its key ("web", "remote"…), e.g. from the status icons. «assistants/&lt;id&gt;» opens that
-    /// assistant's own settings.
+    /// assistant's own settings, and «assistants/&lt;id&gt;/personal» its «Personalidad y voz».
     /// </summary>
     public void ShowSection(string key)
     {
+        if (key.StartsWith("assistants/", StringComparison.Ordinal) && key.EndsWith("/personal", StringComparison.Ordinal))
+        {
+            ShowSection(key[..^"/personal".Length]);
+            AssistantsSection.ShowPersonal();
+            return;
+        }
         if (SearchBox.Text.Length > 0) SearchBox.Text = string.Empty;
         if (Find(key) is not { } item)
         {

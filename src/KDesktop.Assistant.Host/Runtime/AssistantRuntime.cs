@@ -36,6 +36,9 @@ internal sealed class AssistantRuntime : IDisposable
     private readonly Dictionary<string, IReadOnlyDictionary<string, string>> _extraKeys = new(StringComparer.Ordinal);
     private double _nextOnTop;
 
+    /// <summary>The language each assistant speaks in (its own, or the process's): what its <c>host.Language</c> says.</summary>
+    public Func<string, string>? LanguageOf { get; set; }
+
     public AssistantRuntime(EngineLoop engine, KDesktopLink? link)
     {
         _engine = engine;

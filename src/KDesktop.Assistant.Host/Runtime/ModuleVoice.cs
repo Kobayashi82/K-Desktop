@@ -22,6 +22,7 @@ internal sealed class ModuleVoice : IDisposable
 
     private readonly EngineLoop _engine;
     private readonly AssistantRuntime _runtime;
+    private readonly ModulePersonal _personal;
     private readonly Dictionary<string, Speaker> _speakers = new(StringComparer.Ordinal);
     /// <summary>The moods of the tests of Options (turn → moods), instead of the ones of the moment.</summary>
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, IReadOnlyList<string>> _testMoods = new(StringComparer.Ordinal);
@@ -31,10 +32,11 @@ internal sealed class ModuleVoice : IDisposable
     private volatile bool _pan = true, _night, _hushFullscreen, _hushed;
     private CancellationTokenSource? _test;
 
-    public ModuleVoice(EngineLoop engine, AssistantRuntime runtime)
+    public ModuleVoice(EngineLoop engine, AssistantRuntime runtime, ModulePersonal personal)
     {
         _engine = engine;
         _runtime = runtime;
+        _personal = personal;
     }
 
     public Speech Speech { get; } = new();
@@ -43,14 +45,31 @@ internal sealed class ModuleVoice : IDisposable
     public Func<string, VoiceProfile?>? ProfileOf { get; set; }
 
     /// <summary>
-    /// How an assistant speaks now: Options' settings with the profile fixed there for all of them, or else its own
-    /// (or «Natural»), and the moods it is in.
+    /// How an assistant speaks now: Options' settings with what it has of its own on top (Options → Assistants → it,
+    /// 5.0.105); the profile chosen for it, or else the one fixed for all of them, or else its package's (or «Natural»);
+    /// and the moods it is in.
     /// </summary>
     public VoiceSettings SettingsFor(string assistant, IReadOnlyList<string> moods)
     {
-        var profile = VoiceProfile.Find(_profile) ?? (assistant.Length > 0 ? ProfileOf?.Invoke(assistant) : null) ?? VoiceProfile.Default;
-        return _settings with { Profile = profile, Moods = moods };
+        var settings = _settings;
+        var own = _personal.Of(assistant);
+        if (own is { HasOwnVoice: true })
+            settings = settings with
+            {
+                Engine = Enum.TryParse<SpeechEngineKind>(own.Engine, true, out var engine) ? engine : settings.Engine,
+                KokoroVoice = own.KokoroVoice.Length > 0 ? own.KokoroVoice : settings.KokoroVoice,
+                WindowsVoice = own.WindowsVoice.Length > 0 ? own.WindowsVoice : settings.WindowsVoice,
+                Speed = own.Speed is { } speed ? Math.Clamp(speed, 0.5, 2) : settings.Speed,
+            };
+        var package = assistant.Length > 0 ? ProfileOf?.Invoke(assistant) : null;
+        var profile = own?.Profile == Core.Assistant.AssistantPersonal.OwnProfile
+            ? package ?? VoiceProfile.Default
+            : VoiceProfile.Find(own?.Profile is { Length: > 0 } chosen ? chosen : null) ?? VoiceProfile.Find(_profile) ?? package ?? VoiceProfile.Default;
+        return settings with { Profile = profile, Moods = moods };
     }
+
+    /// <summary>The language <paramref name="assistant"/> speaks in (empty: the general one).</summary>
+    private string LanguageOf(string assistant) => _personal.LanguageOf(assistant.Length > 0 ? assistant : null);
 
     /// <summary>Options → Assistant → Voice (<c>config</c> section <c>voice</c>).</summary>
     public void Configure(JsonObject? voice)
@@ -143,16 +162,20 @@ internal sealed class ModuleVoice : IDisposable
     {
         var language = Loc.Instance.Language;
         var engine = _runtime.Audio.Enabled ? Speech.Resolve(language, _settings) : SpeechEngineKind.Off;
-        return new VoiceStateMessage(engine.ToString().ToLowerInvariant(), Speech.WindowsVoicesFor(language), Speech.Kokoro.IsLoaded);
+        var others = Loc.Available().Select(l => l.Code).Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(code => code, Speech.WindowsVoicesFor, StringComparer.OrdinalIgnoreCase);
+        return new VoiceStateMessage(engine.ToString().ToLowerInvariant(), Speech.WindowsVoicesFor(language), Speech.Kokoro.IsLoaded, others);
     }
 
     /// <summary>Whether answers are said aloud at all now (a voice chosen and the sound on).</summary>
     private bool Speaks => _settings.Engine != SpeechEngineKind.Off && _runtime.Audio.Enabled;
 
     /// <summary>The AI is thinking: Kokoro's model loads meanwhile, so the first sentence does not wait for it.</summary>
-    public void Warm()
+    public void Warm(string? assistant = null)
     {
-        if (Speaks) Speech.Warm(Loc.Instance.Language, _settings);
+        if (!Speaks) return;
+        var who = assistant ?? string.Empty;
+        Speech.Warm(LanguageOf(who), SettingsFor(who, []));
     }
 
     /// <summary>
@@ -274,7 +297,7 @@ internal sealed class ModuleVoice : IDisposable
         /// </summary>
         private async Task MakeAsync(CancellationToken token)
         {
-            var language = Loc.Instance.Language;
+            var language = _owner.LanguageOf(_assistant);
             try
             {
                 await foreach (var sentence in _sentences.Reader.ReadAllAsync(token).ConfigureAwait(false))

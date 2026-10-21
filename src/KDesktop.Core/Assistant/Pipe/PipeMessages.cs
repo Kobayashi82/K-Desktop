@@ -625,7 +625,9 @@ public sealed record VoiceMessage(string Op, string? Text = null, string? Assist
 
 /// <summary>How the voice is: the engine that really speaks (<c>kokoro</c>, <c>windows</c>, <c>beeps</c>, <c>off</c>) and Windows' voices for the language.</summary>
 /// <param name="KokoroLoaded">Kokoro's model is in memory now.</param>
-public sealed record VoiceStateMessage(string Engine, IReadOnlyList<string> WindowsVoices, bool KokoroLoaded = false) : PipeMessage
+/// <param name="WindowsVoicesOf">Windows' voices of every language (for an assistant that speaks in its own, 5.0.105).</param>
+public sealed record VoiceStateMessage(string Engine, IReadOnlyList<string> WindowsVoices, bool KokoroLoaded = false,
+    IReadOnlyDictionary<string, IReadOnlyList<string>>? WindowsVoicesOf = null) : PipeMessage
 {
     public override string Type => "voiceState";
 }

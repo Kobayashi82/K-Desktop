@@ -123,8 +123,11 @@ K-Desktop los dibuja con sus propios controles, sin cargar código del asistente
   (`voice/<id>.json`: motor y cadena de efectos —`pitch`, `formant`, `ring`, `vocoder`, `bitcrush`, `radio`, `chorus`,
   `flanger`, `echo`, `glitch`— y `moods`, los efectos que se añaden en ciertas situaciones). `OnVoiceLevel` le dice lo
   fuerte que suena mientras habla (para luces o una boca). Con SDK 1.2 (`"sdk": "1.2"`), `SetVoiceMood("error")`,
-  `SetVoiceMood("happy")` o `SetVoiceMood(null)` cambian el ánimo de lo que diga a partir de entonces; `far` lo pone el host
-  solo cuando habla desde otro monitor que el del ratón. Su personalidad, en `persona/{lang}.json`.
+  `SetVoiceMood("happy")` o `SetVoiceMood(null)` cambian el ánimo de lo que diga a partir de entonces (el host ya no pone
+  `far` solo). Su personalidad, en `persona/{lang}.json`.
+- **Lo que el usuario le cambia:** en Opciones → Asistentes → el tuyo → «Personalidad y voz» el usuario puede escribirle otra
+  personalidad (tus frases fijas siguen), darle otro idioma y otra voz (motor, voz, perfil, velocidad). Con otro idioma,
+  `host.Language` es ese y no el de K-Desktop: léelo en `Attach` (al cambiarlo, el host vuelve a cargar el asistente).
 
 ## Reglas
 

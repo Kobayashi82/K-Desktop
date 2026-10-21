@@ -28,6 +28,13 @@ public sealed record ChatRequest(string Model, IReadOnlyList<ChatMessage> Messag
 
     /// <summary>Longest answer, in tokens.</summary>
     public int MaxTokens { get; init; } = 300;
+
+    /// <summary>
+    /// Tokens it may think before answering (0: none, the usual; nothing asks for it yet: measured with Bonsai in 5.0.105,
+    /// it did not answer dates and sums better). Only servers that take a budget per request (llama-server's
+    /// <c>thinking_budget_tokens</c>) think; on the others it changes nothing.
+    /// </summary>
+    public int ThinkTokens { get; init; }
 }
 
 /// <summary>A piece of a streamed answer: new text, tool calls, or the end.</summary>

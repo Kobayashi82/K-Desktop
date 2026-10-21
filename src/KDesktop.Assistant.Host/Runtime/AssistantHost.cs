@@ -19,7 +19,8 @@ internal sealed class AssistantHost(AssistantRuntime runtime, AssistantSlot slot
 
     public Version SdkVersion { get; } = typeof(IAssistant).Assembly.GetName().Version is { } v ? new Version(v.Major, v.Minor) : new Version(1, 0);
 
-    public string Language => Loc.Instance.Language;
+    /// <summary>Its own language (Options → Assistants → it), or the one all of them speak in.</summary>
+    public string Language => runtime.LanguageOf?.Invoke(Id) ?? Loc.Instance.Language;
 
     public IWorld World { get; } = slot.World;
 

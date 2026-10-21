@@ -32,7 +32,8 @@ public partial class App
         get
         {
             if (_kokoroDownload is not null) return _kokoroDownload;
-            _kokoroDownload = new ModelDownloader(() => KokoroModels.Files(KokoroLanguage, KokoroVoice), "la voz de los asistentes");
+            // The general voice and the own ones of the assistants (another language, another voice).
+            _kokoroDownload = new ModelDownloader(KokoroFiles, "la voz de los asistentes");
             _kokoroDownload.Changed += () =>
             {
                 // espeak-ng comes packed: it is unpacked here, before the process looks for it (pool thread).
@@ -42,7 +43,7 @@ public partial class App
                     if (!_kokoroDownload.IsDownloading)
                     {
                         if (_kokoroDownload.Error is { } error) Ui.ShowOsd(Loc.T("assistantVoice.downloadError", error), Core.Engine.OsdKind.Warning, TimeSpan.FromSeconds(6));
-                        else if (KokoroModels.Installed(KokoroLanguage, KokoroVoice)) Ui.ShowOsd(Loc.T("assistantVoice.downloaded"), Core.Engine.OsdKind.Success);
+                        else if (!KokoroMissing) Ui.ShowOsd(Loc.T("assistantVoice.downloaded"), Core.Engine.OsdKind.Success);
                         // The process looks at the files on each sentence: it says which voice speaks now.
                         AskAssistantVoice("state");
                     }
@@ -100,6 +101,13 @@ public partial class App
         if (_assistant is not { IsRunning: true } supervisor || text.Trim().Length == 0) return;
         Voice.OwnVoices.Said("test", text.Trim(), DateTime.Now);
         supervisor.Send(new VoiceMessage("test", text.Trim(), who is null ? PickAssistant() : who.Length > 0 ? who : null, mood));
+    }
+
+    /// <summary>The test sentence in the language it is said in (it may not be K-Desktop's).</summary>
+    public static string TestSentence(string language, string name)
+    {
+        var text = Loc.Strings(language, "assistantVoice.testText").GetValueOrDefault("assistantVoice.testText") ?? Loc.T("assistantVoice.testText");
+        return string.Format(Loc.Instance.Culture, text, name);
     }
 
     /// <summary>Stops the test that is sounding.</summary>

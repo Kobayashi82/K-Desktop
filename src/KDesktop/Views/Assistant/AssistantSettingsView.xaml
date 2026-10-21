@@ -401,6 +401,9 @@
             </ItemsControl.ItemTemplate>
         </ItemsControl>
 
+        <!-- What it has of its own: personality, language, voice (5.0.105) -->
+        <a:AssistantPersonalView x:Name="PersonalView" Visibility="Collapsed" />
+
         <ItemsControl x:Name="SectionsList" ItemsSource="{Binding CurrentPage.Sections}" Focusable="False">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>

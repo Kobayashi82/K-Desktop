@@ -98,6 +98,83 @@ public class TalkProcessTests
         Assert.DoesNotContain("no se ha podido atender", log);
     }
 
+    /// <summary>
+    /// 5.0.105: what an assistant has of its own (the <c>personal</c> section). Dot speaks English and has the personality
+    /// the user wrote, while the process speaks Spanish; with nothing of its own, all of it is the general again.
+    /// </summary>
+    [Fact]
+    public async Task AnAssistantSpeaksInItsOwnLanguageWithItsOwnPersonality()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "kdesktop-tests", "personal-" + Guid.NewGuid().ToString("N")[..8]);
+        var data = Path.Combine(root, "data");
+        using var ollama = new FakeOllama("Beep. Hello.");
+        var name = "KDesktop.Assistant.Test." + Guid.NewGuid().ToString("N")[..12];
+        var config = new JsonObject
+        {
+            ["brain"] = new JsonObject { ["provider"] = "ollama", ["endpoint"] = ollama.Address, ["model"] = "" },
+            ["personal"] = new JsonObject { ["dot"] = new JsonObject { ["language"] = "en", ["prompt"] = "You are Zorg, a grumpy little robot." } },
+        };
+
+        Process? process = null;
+        var received = new ConcurrentQueue<PipeMessage>();
+        await using var server = new AssistantPipeServer(name, new ClientPolicy(Exe, pid => pid == process?.Id), () => new WelcomeMessage("es", "dark", false, config));
+        var hello = new TaskCompletionSource();
+        server.Connected += _ => hello.TrySetResult();
+        server.Received += received.Enqueue;
+        server.Received += m =>
+        {
+            if (m is EmbedMessage embed)
+                server.Send(new EmbeddedMessage(embed.Id, [.. embed.Texts.Select(t => new[] { 1f, t.Length % 7 / 7f })], "fake"));
+        };
+        server.Start();
+
+        process = Process.Start(new ProcessStartInfo(Exe, ["--assistant", "--pipe", name, "--data", data, "--allow-elevated"]) { UseShellExecute = false })!;
+        try
+        {
+            await hello.Task.WaitAsync(TimeSpan.FromSeconds(20));
+            Assert.True(server.Send(new LoadMessage("dot", "1.2.0", DotPackage, Path.Combine(data, "Assistants", "Data", "dot"), "startup")));
+            await Until(() => received.OfType<LoadedMessage>().Any() && received.OfType<BrainStateMessage>().Any(b => b.State == "ready"));
+
+            // A rule, said in Spanish, answered in its language.
+            Assert.True(server.Send(new HeardMessage("¿Qué hora es?", "panel", "dot")));
+            await Until(() => Answers(received).Count >= 1);
+            Assert.StartsWith("It's ", Answers(received)[0].Text, StringComparison.Ordinal);
+
+            // The AI: its personality and its language.
+            Assert.True(server.Send(new HeardMessage("cuéntame algo", "panel", "dot")));
+            await Until(() => Answers(received).Count >= 2);
+            using (var request = JsonDocument.Parse(ollama.RequestFor("cuéntame algo")))
+            {
+                var messages = request.RootElement.GetProperty("messages").EnumerateArray().ToList();
+                Assert.Contains("You are Zorg, a grumpy little robot.", messages[0].GetProperty("content").GetString(), StringComparison.Ordinal);
+                Assert.EndsWith("(Answer in English.)", messages[^1].GetProperty("content").GetString(), StringComparison.Ordinal);
+            }
+
+            // Nothing of its own: the general again, without loading it again.
+            Assert.True(server.Send(new ConfigMessage("personal", new JsonObject())));
+            await Task.Delay(300);
+            Assert.True(server.Send(new HeardMessage("cuéntame otra cosa", "panel", "dot")));
+            await Until(() => Answers(received).Count >= 3);
+            using (var request = JsonDocument.Parse(ollama.RequestFor("cuéntame otra cosa")))
+            {
+                var messages = request.RootElement.GetProperty("messages").EnumerateArray().ToList();
+                Assert.DoesNotContain("Zorg", messages[0].GetProperty("content").GetString(), StringComparison.Ordinal);
+                Assert.EndsWith("(Contesta en español.)", messages[^1].GetProperty("content").GetString(), StringComparison.Ordinal);
+            }
+
+            Assert.True(server.Send(new ByeMessage("exit")));
+            using var exited = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await process.WaitForExitAsync(exited.Token);
+        }
+        finally
+        {
+            if (!process.HasExited) process.Kill();
+            process.Dispose();
+        }
+        var log = await File.ReadAllTextAsync(Path.Combine(data, "Logs", "assistant.log"));
+        Assert.Contains("lo propio de «dot»: idioma en", log);
+    }
+
     private static List<ChatLineMessage> Answers(ConcurrentQueue<PipeMessage> received) =>
         [.. received.OfType<ChatLineMessage>().Where(c => c is { Role: "assistant", Final: true })];
 
@@ -138,6 +215,15 @@ public class TalkProcessTests
 
         public string LastRequest { get; private set; } = string.Empty;
 
+        private readonly ConcurrentQueue<string> _requests = new();
+
+        /// <summary>The chat of the order <paramref name="said"/> (not the learning that may come after it).</summary>
+        public string RequestFor(string said) => _requests.First(r =>
+        {
+            using var json = JsonDocument.Parse(r);
+            return json.RootElement.GetProperty("messages").EnumerateArray().Last().GetProperty("content").GetString()!.StartsWith(said + "\n", StringComparison.Ordinal);
+        });
+
         private async Task ServeAsync()
         {
             while (_listener.IsListening)
@@ -171,6 +257,7 @@ public class TalkProcessTests
                         }
                     Interlocked.Increment(ref _chats);
                     LastRequest = body;
+                    _requests.Enqueue(body);
                     var half = _answer.Length / 2;
                     text = Line(_answer[..half]) + "\n" + Line(_answer[half..]) + "\n" + """{"message":{"role":"assistant","content":""},"done":true}""" + "\n";
                     break;

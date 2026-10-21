@@ -27,14 +27,23 @@ internal sealed class ModuleTalk : ITalkOutput
     /// <summary>The package folder of each assistant K-Desktop loaded (its persona is read from there).</summary>
     private readonly ConcurrentDictionary<string, string> _folders = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, (string Language, AssistantPersona Persona)> _personas = new(StringComparer.Ordinal);
-    private readonly ModuleTools _tools;
 
-    public ModuleTalk(KDesktopLink link, EngineLoop engine, AssistantRuntime runtime, BrainService brain, ModuleTools tools, ModuleCommands commands, ModuleVoice voice)
+    private readonly ModuleTools _tools;
+    private readonly ModulePersonal _personal;
+
+    public ModuleTalk(KDesktopLink link, EngineLoop engine, AssistantRuntime runtime, BrainService brain, ModuleTools tools, ModuleCommands commands, ModuleVoice voice,
+        ModulePersonal personal)
     {
         _link = link;
         _engine = engine;
         _runtime = runtime;
         _tools = tools;
+        _personal = personal;
+        // Its personality or its language changed: its persona is read again for the next order.
+        personal.Changed += ids =>
+        {
+            foreach (var id in ids) _personas.TryRemove(id, out _);
+        };
         Voice = voice;
         Voice.ProfileOf = ProfileOf;
         Meaning = new ModuleMeaning(link);
@@ -70,7 +79,8 @@ internal sealed class ModuleTalk : ITalkOutput
             Log.Info("Asistente: orden ignorada (K-Desktop en pausa)");
             return;
         }
-        _ = Service.HandleAsync(heard);
+        // In its own language (its answer, its phrases, what it did), whatever the others speak in.
+        using (Loc.Instance.Use(_personal.LanguageOf(heard.Assistant))) _ = Service.HandleAsync(heard);
     }
 
     public void OnCancel(CancelMessage cancel)
@@ -95,8 +105,8 @@ internal sealed class ModuleTalk : ITalkOutput
         {
             if (!Paused)
             {
-                Service.Prepare(listening.Assistant);
-                Voice.Warm();
+                using (Loc.Instance.Use(_personal.LanguageOf(listening.Assistant))) Service.Prepare(listening.Assistant);
+                Voice.Warm(listening.Assistant);
             }
             _listening[key] = true;
             State(listening.Assistant, "listening");
@@ -108,7 +118,7 @@ internal sealed class ModuleTalk : ITalkOutput
     public void OnSay(SayMessage say)
     {
         if (Paused) return;
-        _ = Service.SayAsync(say.Assistant, say.Text);
+        using (Loc.Instance.Use(_personal.LanguageOf(say.Assistant))) _ = Service.SayAsync(say.Assistant, say.Text);
     }
 
     /// <summary>An assistant came onto the desktop from <paramref name="folder"/> (a new version may bring another persona).</summary>
@@ -144,13 +154,17 @@ internal sealed class ModuleTalk : ITalkOutput
         }
     });
 
-    /// <summary>Its persona in the user's language (read once per language), or the module's.</summary>
+    /// <summary>
+    /// Its persona in the language it speaks in (read once per language), or the module's; with the personality the user
+    /// wrote for it, that one instead of its package's (its fixed phrases stay).
+    /// </summary>
     private AssistantPersona PersonaOf(string? id)
     {
         if (id is null) return AssistantPersona.Module();
-        var language = Loc.Instance.Language;
+        var language = _personal.LanguageOf(id);
         if (_personas.TryGetValue(id, out var known) && known.Language == language) return known.Persona;
         var persona = ReadPersona(id, language);
+        if (_personal.Of(id)?.Prompt is { } own) persona = persona with { Prompt = own.Trim() };
         _personas[id] = (language, persona);
         return persona;
     }
@@ -176,7 +190,7 @@ internal sealed class ModuleTalk : ITalkOutput
     public void State(string? assistant, string state)
     {
         _link.Send(new StatusMessage(state, Assistant: assistant));
-        if (state == "thinking" && assistant is not null) Voice.Warm();
+        if (state == "thinking" && assistant is not null) Voice.Warm(assistant);
         if (assistant is null) return;
         var shown = state switch
         {

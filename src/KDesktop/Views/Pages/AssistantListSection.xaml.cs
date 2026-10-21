@@ -159,6 +159,12 @@ public partial class AssistantListSection : UserControl
         Shown?.Invoke(id);
     }
 
+    /// <summary>The assistant shown goes to its «Personalidad y voz».</summary>
+    public void ShowPersonal()
+    {
+        if (SettingsView.Visibility == Visibility.Visible) SettingsView.ShowPersonal();
+    }
+
     public void ShowList()
     {
         SettingsView.Visibility = Visibility.Collapsed;

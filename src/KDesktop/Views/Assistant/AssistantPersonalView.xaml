@@ -1,0 +1,132 @@
+<UserControl x:Class="KDesktop.Views.Assistant.AssistantPersonalView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:l="clr-namespace:KDesktop.Localization">
+    <!-- Options → Assistants → one assistant → «Personalidad y voz» (5.0.105): what it has of its own; the rest, the general -->
+    <StackPanel>
+        <!-- Its personality: the instructions for the AI -->
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
+                        <TextBlock Style="{StaticResource CardTitle}" Margin="0,0,0,2" Text="{l:Tr assistantPersonal.personalityTitle}" />
+                        <TextBlock x:Name="PersonalityState" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <ui:Button x:Name="PersonalityReset" Grid.Column="1" VerticalAlignment="Center" Icon="{ui:SymbolIcon ArrowReset24}"
+                               Content="{l:Tr assistantPersonal.reset}" Click="OnResetPersonality" />
+                </Grid>
+                <TextBlock Style="{StaticResource Caption}" Margin="0,8,0,10" TextWrapping="Wrap" Text="{l:Tr assistantPersonal.personalityIntro}" />
+                <TextBox x:Name="PromptBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="150" MaxHeight="380"
+                         VerticalScrollBarVisibility="Auto" SpellCheck.IsEnabled="False" TextChanged="OnPromptChanged"
+                         AutomationProperties.Name="{l:Tr assistantPersonal.personalityTitle}" />
+            </StackPanel>
+        </Border>
+
+        <!-- The language it speaks in -->
+        <Border Style="{StaticResource Card}">
+            <Grid Style="{StaticResource SettingRow}" Margin="0">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Style="{StaticResource CardTitle}" Margin="0,0,0,2" Text="{l:Tr assistantPersonal.languageTitle}" />
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantPersonal.languageHint}" />
+                </StackPanel>
+                <ComboBox x:Name="LanguageBox" Grid.Column="1" MinWidth="230" VerticalAlignment="Center" DisplayMemberPath="Name"
+                          SelectionChanged="OnLanguageChanged" AutomationProperties.Name="{l:Tr assistantPersonal.languageTitle}" />
+            </Grid>
+        </Border>
+
+        <!-- Its voice -->
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
+                        <TextBlock Style="{StaticResource CardTitle}" Margin="0,0,0,2" Text="{l:Tr assistantPersonal.voiceTitle}" />
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantPersonal.voiceIntro}" />
+                    </StackPanel>
+                    <ui:Button x:Name="VoiceReset" Grid.Column="1" VerticalAlignment="Center" Icon="{ui:SymbolIcon ArrowReset24}"
+                               Content="{l:Tr assistantPersonal.reset}" Click="OnResetVoice" />
+                </Grid>
+
+                <Grid Style="{StaticResource SettingRow}" Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr assistantVoice.engine}" />
+                    <ComboBox x:Name="EngineBox" Grid.Column="1" MinWidth="260" VerticalAlignment="Center" DisplayMemberPath="Name"
+                              SelectionChanged="OnVoiceChanged" AutomationProperties.Name="{l:Tr assistantVoice.engine}" />
+                </Grid>
+
+                <Grid Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr assistantVoice.profile}" />
+                    <ComboBox x:Name="ProfileBox" Grid.Column="1" MinWidth="260" VerticalAlignment="Center" DisplayMemberPath="Name"
+                              SelectionChanged="OnVoiceChanged" AutomationProperties.Name="{l:Tr assistantVoice.profile}" />
+                </Grid>
+
+                <StackPanel x:Name="KokoroRows">
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr assistantVoice.kokoroVoice}" />
+                            <TextBlock x:Name="KokoroHint" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <ComboBox x:Name="KokoroVoiceBox" Grid.Column="1" MinWidth="260" VerticalAlignment="Center" DisplayMemberPath="Name"
+                                  SelectionChanged="OnVoiceChanged" AutomationProperties.Name="{l:Tr assistantVoice.kokoroVoice}" />
+                    </Grid>
+                    <Grid x:Name="MixVoiceRow" Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr assistantVoice.mixWith}" />
+                        <ComboBox x:Name="MixVoiceBox" Grid.Column="1" MinWidth="260" VerticalAlignment="Center" DisplayMemberPath="Name"
+                                  SelectionChanged="OnVoiceChanged" AutomationProperties.Name="{l:Tr assistantVoice.mixWith}" />
+                    </Grid>
+                    <Grid x:Name="MixRow" Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="260" /></Grid.ColumnDefinitions>
+                        <TextBlock x:Name="MixLabel" VerticalAlignment="Center" Margin="0,0,24,0" TextWrapping="Wrap" />
+                        <Grid Grid.Column="1">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <Slider x:Name="MixSlider" Margin="0,0,14,0" Minimum="10" Maximum="90" TickFrequency="5" IsSnapToTickEnabled="True"
+                                    SmallChange="5" LargeChange="10" VerticalAlignment="Center" ValueChanged="OnSliderChanged"
+                                    AutomationProperties.Name="{l:Tr assistantVoice.mixShare}" />
+                            <TextBlock x:Name="MixValue" Grid.Column="1" MinWidth="44" TextAlignment="Right" VerticalAlignment="Center" />
+                        </Grid>
+                    </Grid>
+                </StackPanel>
+
+                <Grid Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr assistantVoice.windowsVoice}" />
+                        <TextBlock x:Name="WindowsHint" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <ComboBox x:Name="WindowsVoiceBox" Grid.Column="1" MinWidth="260" VerticalAlignment="Center" DisplayMemberPath="Name"
+                              SelectionChanged="OnVoiceChanged" AutomationProperties.Name="{l:Tr assistantVoice.windowsVoice}" />
+                </Grid>
+
+                <Grid Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="260" /></Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr assistantPersonal.ownSpeed}" />
+                    <ui:ToggleSwitch x:Name="SpeedSwitch" Grid.Column="1" Margin="0,0,16,0" VerticalAlignment="Center" Checked="OnSpeedSwitch" Unchecked="OnSpeedSwitch"
+                                     AutomationProperties.Name="{l:Tr assistantPersonal.ownSpeed}" />
+                    <Grid Grid.Column="2">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <Slider x:Name="SpeedSlider" Margin="0,0,14,0" Minimum="0.5" Maximum="2" TickFrequency="0.05" IsSnapToTickEnabled="True"
+                                SmallChange="0.05" LargeChange="0.25" VerticalAlignment="Center" ValueChanged="OnSliderChanged"
+                                AutomationProperties.Name="{l:Tr assistantVoice.speed}" />
+                        <TextBlock x:Name="SpeedValue" Grid.Column="1" MinWidth="44" TextAlignment="Right" VerticalAlignment="Center" />
+                    </Grid>
+                </Grid>
+
+                <!-- Hear it -->
+                <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                    <ui:Button x:Name="TestButton" Icon="{ui:SymbolIcon Play24}" Content="{l:Tr assistantPersonal.test}" Click="OnTest" />
+                    <ui:Button x:Name="StopButton" Margin="8,0,0,0" Padding="10,6" Click="OnStopTest"
+                               ToolTip="{l:Tr assistantVoice.testStop}" AutomationProperties.Name="{l:Tr assistantVoice.testStop}">
+                        <ui:SymbolIcon Symbol="RecordStop24" FontSize="16" />
+                    </ui:Button>
+                    <TextBlock x:Name="TestHint" Style="{StaticResource Caption}" Margin="12,0,0,0" VerticalAlignment="Center" TextWrapping="Wrap" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>
