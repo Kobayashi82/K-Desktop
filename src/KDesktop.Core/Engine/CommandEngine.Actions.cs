@@ -398,7 +398,7 @@ public sealed partial class CommandEngine
         {
             case CommandControlMode.Run:
                 if (ReferenceEquals(target, ctx.Command)) return;
-                await RunAsync(target, TriggerSource.Command, ctx.Foreground, false, ctx.Depth + 1).ConfigureAwait(false);
+                await RunAsync(target, TriggerSource.Command, ctx.Foreground, false, ctx.Depth + 1, ctx.Choreography, ctx.ChoreographyToken).ConfigureAwait(false);
                 break;
             case CommandControlMode.Enable:
                 _ui.RunOnUi(() => target.Enabled = true);
@@ -421,7 +421,7 @@ public sealed partial class CommandEngine
         switch (a.Mode)
         {
             case CommandControlMode.Run:
-                await RunEventAsync(rule, false, TriggerSource.Command, ctx.Foreground, ctx.Depth + 1).ConfigureAwait(false);
+                await RunEventAsync(rule, false, TriggerSource.Command, ctx.Foreground, ctx.Depth + 1, ctx.Choreography, ctx.ChoreographyToken).ConfigureAwait(false);
                 break;
             case CommandControlMode.Enable:
                 _ui.RunOnUi(() => rule.Enabled = true);

@@ -15,12 +15,19 @@ public sealed record ExecutionContext(
     ForegroundWindow Foreground,
     bool IsRepeat,
     CancellationToken Token,
-    int Depth = 0)
+    int Depth = 0,
+    IChoreography? Choreography = null)
 {
     public bool Quiet => Source is TriggerSource.Startup or TriggerSource.Exit;
 
     /// <summary>Run from a menu-like window (QuickMenu, launcher): actions that type or click go back to the window it was opened over.</summary>
     public bool FromPopup => Source is TriggerSource.QuickMenu or TriggerSource.Launcher;
+
+    /// <summary>
+    /// What stops the commands this one calls: a choreographed run stops whole (its assistant cancelled it); any other
+    /// one as always, each nested command on its own.
+    /// </summary>
+    public CancellationToken ChoreographyToken => Choreography is null ? CancellationToken.None : Token;
 }
 
 /// <summary>Runs commands: sequential actions, cancellation, filters and the "Esc" cancel of long operations.</summary>
@@ -96,7 +103,16 @@ public sealed partial class CommandEngine
     public Task RunByIdAsync(string id, TriggerSource source, ForegroundWindow? foreground = null) =>
         Config.FindCommand(id) is { } cmd ? RunAsync(cmd, source, foreground) : Task.CompletedTask;
 
-    private async Task RunAsync(Command command, TriggerSource source, ForegroundWindow foreground, bool isRepeat, int depth)
+    /// <summary>
+    /// Runs a command with an assistant's choreography (phase 6): before each action (also those of the commands it
+    /// calls) <paramref name="choreography"/> has its turn, at most its step time. <paramref name="cancellationToken"/>
+    /// stops it like re-triggering would.
+    /// </summary>
+    public Task RunChoreographedAsync(Command command, TriggerSource source, IChoreography choreography, CancellationToken cancellationToken = default) =>
+        RunAsync(command, source, ForegroundWindow.Capture(), false, 0, choreography, cancellationToken);
+
+    private async Task RunAsync(Command command, TriggerSource source, ForegroundWindow foreground, bool isRepeat, int depth,
+        IChoreography? choreography = null, CancellationToken cancellationToken = default)
     {
         if (depth > MaxNesting)
         {
@@ -120,8 +136,12 @@ public sealed partial class CommandEngine
             try { previous.Cancel(); } catch (ObjectDisposedException) { }
         }
         if (!isRepeat) _running[command.Id] = cts;
+        using var stop = cancellationToken.Register(() =>
+        {
+            try { cts.Cancel(); } catch (ObjectDisposedException) { }
+        });
 
-        var ctx = new ExecutionContext(command, source, foreground, isRepeat, cts.Token, depth);
+        var ctx = new ExecutionContext(command, source, foreground, isRepeat, cts.Token, depth, choreography);
         var started = Environment.TickCount64;
         var detail = depth == 0 ? ExecutionHistory.CurrentDetail : null;
         var outcome = RunOutcome.Ok;
@@ -132,6 +152,9 @@ public sealed partial class CommandEngine
 
             var actions = command.Actions.ToArray();
             var skip = 0;
+            // The steps of a choreographed run: the enabled actions (a «Si…» is not one: it only decides).
+            var steps = choreography is null ? 0 : actions.Count(a => a.Enabled && a is not ConditionAction);
+            var position = 0;
             foreach (var action in actions)
             {
                 if (cts.IsCancellationRequested)
@@ -147,9 +170,20 @@ public sealed partial class CommandEngine
                 }
                 if (!action.Enabled) continue;
                 if (isRepeat && action is not VolumeAction) continue;
+                ChoreographyStep? step = null;
                 try
                 {
                     if (!isRepeat) ActionStarting?.Invoke(action, ctx);
+                    if (choreography is not null && action is not ConditionAction)
+                    {
+                        step = new ChoreographyStep(action, ctx, ++position, steps);
+                        if (await AwaitStepAsync(choreography, step, ctx.Token).ConfigureAwait(false) == StepGo.Skip)
+                        {
+                            Log.Info($"'{command.Name}' → {action.Info.Name}: el asistente lo salta");
+                            choreography.After(step, StepOutcome.Skipped, null);
+                            continue;
+                        }
+                    }
                     if (action is ConditionAction condition)
                     {
                         if (await Conditions.IsMetAsync(condition, ctx.Foreground, ctx.Token).ConfigureAwait(false)) continue;
@@ -166,6 +200,7 @@ public sealed partial class CommandEngine
                         continue;
                     }
                     await ExecuteActionAsync(action, ctx).ConfigureAwait(false);
+                    if (step is not null) choreography!.After(step, StepOutcome.Ok, null);
                 }
                 catch (OperationCanceledException)
                 {
@@ -180,6 +215,7 @@ public sealed partial class CommandEngine
                         outcome = RunOutcome.Error;
                         message = $"{action.Info.Name}: {ex.Message}";
                     }
+                    if (step is not null) choreography!.After(step, StepOutcome.Failed, $"{action.Info.Name}: {ex.Message}");
                 }
             }
             if (!isRepeat) Executed?.Invoke(command, source);
@@ -191,6 +227,32 @@ public sealed partial class CommandEngine
                     (int)Math.Min(int.MaxValue, Environment.TickCount64 - started), depth));
             _running.TryRemove(new KeyValuePair<string, CancellationTokenSource>(command.Id, cts));
             cts.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// The assistant's turn before a step: at most <see cref="IChoreography.StepTimeout"/>; no answer, or an error of its
+    /// own, and the action runs anyway (an assistant never holds a command back). Cancelling the run cancels the wait.
+    /// </summary>
+    private static async Task<StepGo> AwaitStepAsync(IChoreography choreography, ChoreographyStep step, CancellationToken token)
+    {
+        try
+        {
+            return await choreography.BeforeAsync(step, token).WaitAsync(choreography.StepTimeout, token).ConfigureAwait(false);
+        }
+        catch (TimeoutException)
+        {
+            Log.Info($"'{step.Context.Command.Name}' → {step.Action.Info.Name}: el asistente no contesta en {choreography.StepTimeout.TotalSeconds:0.#} s; se ejecuta");
+            return StepGo.Run;
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            Log.Warn($"'{step.Context.Command.Name}' → {step.Action.Info.Name}: la coreografía falló ({ex.Message}); se ejecuta");
+            return StepGo.Run;
         }
     }
 
@@ -217,7 +279,8 @@ public sealed partial class CommandEngine
         RunEventAsync(rule, end, source, foreground ?? ForegroundWindow.Capture(), 0);
 
     /// <param name="depth">Nesting: an event run by a command that an event ran… stops like nested commands do.</param>
-    private async Task RunEventAsync(EventRule rule, bool end, TriggerSource source, ForegroundWindow foreground, int depth)
+    private async Task RunEventAsync(EventRule rule, bool end, TriggerSource source, ForegroundWindow foreground, int depth,
+        IChoreography? choreography = null, CancellationToken cancellationToken = default)
     {
         if (depth > MaxNesting)
         {
@@ -234,7 +297,8 @@ public sealed partial class CommandEngine
         foreach (var command in EventCommands(rule, end))
         {
             Log.Info($"Evento «{rule.Name}»{(end ? " (al terminar)" : "")} → «{command.Name}»");
-            await RunAsync(command, source, foreground, false, depth).ConfigureAwait(false);
+            if (cancellationToken.IsCancellationRequested) break;
+            await RunAsync(command, source, foreground, false, depth, choreography, cancellationToken).ConfigureAwait(false);
         }
     }
 
