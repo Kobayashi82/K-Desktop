@@ -1412,6 +1412,9 @@
   "voice.words.verbs": "ouvre ouvrir ouvrez lance lancer lancez démarre démarrer affiche afficher montre montrer exécute exécuter",
   "voice.words.doit": "mets mettre passe passer",
   "voice.words.joiners": "et ensuite|et puis|puis|ensuite|et aussi|et|après",
+  "voice.words.pronouns": "le la les l",
+  "voice.words.enclitics": "",
+  "voice.words.negation": "non ne pas",
   "voice.syn.empty": "vide vider videz",
   "voice.syn.close": "ferme fermer fermez quitte quitter",
   "voice.syn.open": "ouvre ouvrir ouvrez",
@@ -3016,6 +3019,7 @@
   "assistantOptions.adornHint": "Raccourcis, QuickMenus, le lanceur, la voix de K-Desktop, le téléphone, les événements… : l’assistant les décore rapidement, sans les retarder.",
 
   "assistant.prompt.commands": "Ses commandes qui pourraient être ce qu'il demande (si c'est le cas, exécute-la avec run_command et son nom exact) : {0}.",
+  "assistant.prompt.notRun": "(Tu n'as pas exécuté « {0} ». Si c'est ce qu'il demande, exécute-le maintenant avec run_command et ce nom ; sinon, réponds sans dire que tu l'as fait ni que tu vas le faire.)",
   "assistant.phrase.notDone": "Je n'ai pas fait « {0} ».",
   "assistant.reply.closers": "autre chose|d'autre|autre question|encore besoin|quelque chose de plus",
   "assistant.rule.openWeb": "ouvre {text}|ouvrir {text}|va sur {text}|va à {text}|aller sur {text}|emmène moi sur {text}|charge {text}",

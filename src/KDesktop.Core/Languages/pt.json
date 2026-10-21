@@ -1412,6 +1412,9 @@
   "voice.words.verbs": "abra abrir abre inicie iniciar mostre mostrar execute executar",
   "voice.words.doit": "coloque põe faça",
   "voice.words.joiners": "e depois|e então|e também|e|depois|então|também",
+  "voice.words.pronouns": "a o as os ela ele isso isto",
+  "voice.words.enclitics": "",
+  "voice.words.negation": "não nao",
   "voice.syn.empty": "esvazie esvaziar esvazia limpar",
   "voice.syn.close": "feche fechar fecha saia sair",
   "voice.syn.open": "abra abrir abre",
@@ -3016,6 +3019,7 @@
   "assistantOptions.adornHint": "Atalhos, QuickMenus, o iniciador, a voz do K-Desktop, o celular, os eventos…: o assistente os enfeita rapidinho, sem atrasá-los.",
 
   "assistant.prompt.commands": "Comandos dele que podem ser o que ele pede (se for, rode com run_command e o nome exato): {0}.",
+  "assistant.prompt.notRun": "(Você não executou \"{0}\". Se é isso que ele pede, execute agora com run_command e esse nome; se não, responda sem dizer que fez ou que vai fazer.)",
   "assistant.phrase.notDone": "“{0}” eu não fiz.",
   "assistant.reply.closers": "mais alguma|algo mais|outra coisa|mais algum|em que mais|alguma outra",
   "assistant.rule.openWeb": "abre {text}|abra {text}|abrir {text}|vai para {text}|vá para {text}|entra em {text}|entre em {text}|me leva para {text}|carrega {text}",

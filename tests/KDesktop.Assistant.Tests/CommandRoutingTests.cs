@@ -260,6 +260,27 @@ public sealed class CommandRoutingTests : IDisposable
         Assert.Equal(["media:pause"], _bridge.Done);
     }
 
+    [Fact]
+    public async Task NamingACommandWithoutRunningItGetsOneMoreRound()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        // What happened (21/10): «Let me try opening it with the "Abrir Papelera" command», and nothing ran.
+        _bridge.Matches["te pedí abrir la papelera y no la ha abierto"] = new MatchedMessage("x", 0.4, [],
+            [new MatchedPart("te pedí abrir la papelera y no la ha abierto", true, [new MatchedCandidate("open", "Abrir Papelera", 0.77), new MatchedCandidate("bin", "Vaciar Papelera", 0.71)])]);
+        _bridge.Sure("Abrir Papelera", ("open", "Abrir Papelera", null));
+        _model.Answers.Enqueue("Voy a intentarlo con el comando «Abrir Papelera».");
+        _model.Answers.Enqueue("call:run_command:Abrir Papelera");
+        _model.Answers.Enqueue("Hecho.");
+
+        await talk.HandleAsync(new HeardMessage("te pedí abrir la papelera y no la ha abierto", "panel", "lander"));
+        Assert.Equal(["run:open:lander"], _bridge.Done);
+        Assert.Equal(3, _model.Requests.Count);
+        Assert.Contains("Abrir Papelera", _model.Requests[1].Messages[^1].Content, StringComparison.Ordinal);
+        // Nothing of the answer taken back reached the chat.
+        Assert.DoesNotContain(_chat, c => c.Text.Contains("Voy a intentarlo", StringComparison.Ordinal));
+    }
+
     private sealed class Output(List<ChatLineMessage> chat, List<(string?, int)> listens) : ITalkOutput
     {
         public void Chat(ChatLineMessage line)
@@ -323,7 +344,10 @@ public sealed class CommandRoutingTests : IDisposable
             Requests.Add(request);
             var answer = Answers.TryDequeue(out var next) ? next : throw new InvalidOperationException("Nadie esperaba otra petición al modelo");
             await Task.Yield();
-            yield return new ChatChunk(answer);
+            // «call:run_command:Abrir Papelera»: the model calls a tool with that one argument.
+            if (answer.StartsWith("call:", StringComparison.Ordinal) && answer.Split(':', 3) is [_, var tool, var argument])
+                yield return new ChatChunk("", [new ToolCall(tool, System.Text.Json.JsonSerializer.SerializeToElement(new { command = argument }), "call_1")]);
+            else yield return new ChatChunk(answer);
             yield return new ChatChunk("", Done: true);
         }
 

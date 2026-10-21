@@ -55,6 +55,9 @@ public static class IntentMatcher
     /// </summary>
     private const double UserFirst = 0.06;
 
+    /// <summary>What a one-word order must measure by meaning alone (like a built-in order's phrase).</summary>
+    private const double LoneWord = SemanticMatcher.AcceptOrder;
+
     /// <summary>Filler words, verbs, synonyms and joiners of every installed language (see <see cref="VoiceVocabulary"/>).</summary>
     private static VoiceVocabulary Words => VoiceVocabulary.Current;
 
@@ -81,18 +84,95 @@ public static class IntentMatcher
     /// </summary>
     /// <param name="media">Also the built-in media orders (Settings › Multimedia).</param>
     /// <param name="semantic">The meaning layer, or null for the words only.</param>
+    /// <remarks>
+    /// A whole order that only its meaning matched may be one of its parts («vacía la papelera y ábrela» is close to
+    /// "Vaciar Papelera"): its pieces are matched too, and win when two or more of them name something. A piece that is
+    /// only a verb and a pronoun («la abres», «ábrela», «open it») is about the thing of the piece before.
+    /// </remarks>
     public static IntentPlan Plan(string text, IEnumerable<Command> commands, bool media = false, SemanticMatcher? semantic = null)
     {
         var list = commands as IReadOnlyCollection<Command> ?? commands.ToList();
         var whole = Match(text, list, media, semantic);
-        if (whole.Winner is not null) return new IntentPlan(whole, [whole], []);
+        if (whole.Winner is { Semantic: false }) return new IntentPlan(whole, [whole], []);
         var pieces = SplitOrders(text);
-        if (pieces.Count < 2) return new IntentPlan(whole, [], []);
-        var results = pieces.Select(p => Match(p, list, media, semantic)).ToList();
+        if (pieces.Count < 2) return whole.Winner is null ? new IntentPlan(whole, [], []) : new IntentPlan(whole, [whole], []);
+        var results = new List<IntentResult>();
+        for (var i = 0; i < pieces.Count; i++)
+        {
+            var result = Match(pieces[i], list, media, semantic);
+            if (result.Winner is null && i > 0 && WithThing(pieces[i], results[i - 1].Text) is { } meant
+                && Match(meant, list, media, semantic) is { Winner: not null } resolved)
+                result = resolved;
+            results.Add(result);
+        }
         var matched = results.Where(r => r.Winner is not null).ToList();
+        if (whole.Winner is not null && matched.Count < 2) return new IntentPlan(whole, [whole], []);
         return matched.Count == 0
             ? new IntentPlan(whole, [], [])
             : new IntentPlan(whole, matched, results.Where(r => r.Winner is null).Select(r => r.Text).ToList());
+    }
+
+    /// <summary>
+    /// «la abres» after «vacía la papelera» → «abres la papelera»: a piece that is a verb and a pronoun (on its own or at
+    /// the end of the verb: «ábrela») with the thing of <paramref name="before"/> (its words after the first, its verb).
+    /// Null when it is not that («la vuelta»: no verb).
+    /// </summary>
+    internal static string? WithThing(string piece, string before)
+    {
+        var vocabulary = Words;
+        string? verb = null;
+        var pronoun = false;
+        foreach (var word in TextSimilarity.Words(piece))
+        {
+            if (vocabulary.Pronouns.Contains(word)) pronoun = true;
+            else if (vocabulary.Filler.Contains(word)) continue;
+            else if (verb is not null) return null;
+            else verb = word;
+        }
+        if (verb is null) return null;
+        if (!pronoun && vocabulary.Enclitics.FirstOrDefault(e => verb.Length >= e.Length + 3 && verb.EndsWith(e, StringComparison.Ordinal)) is { } ending
+            && ActionOf(verb[..^ending.Length]) is { } stem)
+        {
+            verb = stem;
+            pronoun = true;
+        }
+        if (!pronoun || ActionOf(verb) is not { } action) return null;
+        verb = action;
+        var words = before.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var first = Array.FindIndex(words, w => TextSimilarity.Words(w) is [var f, ..] && !vocabulary.Filler.Contains(f));
+        var thing = first >= 0 && words.Skip(first + 1).Any(w => TextSimilarity.Words(w).Any(f => !vocabulary.Filler.Contains(f)))
+            ? string.Join(' ', words.Skip(first + 1))
+            : before;
+        return verb + " " + thing.Trim(' ', '.', ',', '!', '?');
+    }
+
+    /// <summary>
+    /// The word, if it is a verb of doing something to a thing; the verb it is a slip of (Parakeet's «habre» → «abre»);
+    /// or null.
+    /// </summary>
+    private static string? ActionOf(string word)
+    {
+        if (Words.Actions.Contains(word)) return word;
+        return Words.Actions.Where(a => a.Length >= 3)
+            .Select(a => (Verb: a, Score: TextSimilarity.WordSimilarity(a, word)))
+            .Where(p => p.Score >= 0.8)
+            .OrderByDescending(p => p.Score)
+            .Select(p => p.Score >= 0.85 ? word : p.Verb)
+            .FirstOrDefault();
+    }
+
+    /// <summary>
+    /// «no anterior», «no, la papelera no»: the order starts by saying no, so it does not ask for a command unless the
+    /// command itself says it («No molestar»).
+    /// </summary>
+    public static bool Refuses(string said, IntentCandidate candidate)
+    {
+        var vocabulary = Words;
+        if (TextSimilarity.Words(said).FirstOrDefault(w => !vocabulary.Filler.Contains(w) || vocabulary.Negation.Contains(w)) is not { } first
+            || !vocabulary.Negation.Contains(first))
+            return false;
+        var named = candidate.Media is null ? candidate.Command!.Name + " " + candidate.Phrase : candidate.Phrase ?? candidate.Media.Name;
+        return !TextSimilarity.Words(named).Any(vocabulary.Negation.Contains);
     }
 
     /// <summary>The orders of a multiple one; pieces without letters are dropped.</summary>
@@ -107,7 +187,8 @@ public static class IntentMatcher
     {
         var list = commands as IReadOnlyCollection<Command> ?? commands.ToList();
         var words = MatchWords(text, list, media);
-        return words.Winner is not null || semantic is null || !SemanticMatcher.Available ? words : MatchMeaning(words, list, media, semantic);
+        var result = words.Winner is not null || semantic is null || !SemanticMatcher.Available ? words : MatchMeaning(words, list, media, semantic);
+        return result.Winner is { } winner && Refuses(text, winner) ? result with { Winner = null } : result;
     }
 
     /// <summary>
@@ -130,7 +211,14 @@ public static class IntentMatcher
         var rival = Math.Max(scores.Ranked.Count > 1 ? scores.Ranked[1].Score : -1, scores.None);
         var agrees = words.Candidates is [{ Score: >= 0.6 } guess, ..]
                      && (top.Command is not null ? guess.Command == top.Command : guess.Media?.Kind == top.Media);
-        var accepted = scores.None < top.Score
+        // The words point to another one that the meaning puts nearly as close: the words know better («ejecuta el abrir
+        // papelera» was "Vaciar Papelera" 0.75 by meaning, "Abrir Papelera" 0.72).
+        var contradicted = !agrees && words.Candidates is [{ Score: >= 0.6 } said, ..]
+                           && scores.Ranked.FirstOrDefault(r => said.Command is not null ? r.Command == said.Command : r.Media == said.Media?.Kind) is { } named
+                           && top.Score - named.Score < Margin;
+        // A lone word makes a poor vector: «coño» was "Kokoro" at 0.71. Unless the words agree, it must be much closer.
+        var lone = Content(TextSimilarity.Words(words.Text)).Length == 1 && !agrees;
+        var accepted = !contradicted && (!lone || top.Score >= LoneWord) && scores.None < top.Score
                        && (top.Media is null || top.Score >= SemanticMatcher.AcceptOrder)
                        && (top.Command is null || !SemanticMatcher.IsPower(top.Command) || top.Score >= SemanticMatcher.AcceptPower)
                        && (top.Score >= SemanticMatcher.Accept && top.Score - rival >= SemanticMatcher.Margin

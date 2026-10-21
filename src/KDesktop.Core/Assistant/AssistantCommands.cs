@@ -34,12 +34,18 @@ public static class AssistantCommands
         return new MatchedMessage(request.Id, Math.Round(plan.Score, 3), plan.Unmatched, parts);
     }
 
-    /// <summary>A part with its candidates, without those that do the opposite of what it says (then it is not sure either).</summary>
+    /// <summary>
+    /// A part with its candidates, without those that do the opposite of what it says, nor those it says no to («no
+    /// anterior»; then it is not sure either).
+    /// </summary>
     private static MatchedPart Part(IntentResult result, bool sure)
     {
-        var kept = result.Candidates.Where(c => c.Command is null || !Contradicts(result.Text, c.Command)).ToList();
+        var kept = result.Candidates.Where(c => (c.Command is null || !Contradicts(result.Text, c.Command)) && !IntentMatcher.Refuses(result.Text, c)).ToList();
         var winnerKept = result.Winner is not null && kept.Count > 0 && ReferenceEquals(kept[0], result.Candidates[0]);
-        return new(result.Text, sure && winnerKept, [.. kept.Take(MaxCandidates).Select(Candidate)]);
+        // The winner first, then the rest best first, each command once (the words and the meaning both list it).
+        var ordered = winnerKept ? kept.Take(1).Concat(kept.Skip(1).OrderByDescending(c => c.Score)) : kept.OrderByDescending(c => c.Score);
+        var each = ordered.DistinctBy(c => c.Command is { } command ? command.Id : "#" + c.Media!.Kind + c.Media.Value);
+        return new(result.Text, sure && winnerKept, [.. each.Take(MaxCandidates).Select(Candidate)]);
     }
 
     /// <summary>

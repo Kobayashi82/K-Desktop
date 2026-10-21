@@ -1412,6 +1412,9 @@
   "voice.words.verbs": "apri aprire avvia avviare lancia lanciare mostra mostrare esegui eseguire",
   "voice.words.doit": "metti fai",
   "voice.words.joiners": "e poi|e dopo|e anche|e|poi|dopo|anche",
+  "voice.words.pronouns": "la lo li le",
+  "voice.words.enclitics": "la lo li le",
+  "voice.words.negation": "non no",
   "voice.syn.empty": "svuota svuotare",
   "voice.syn.close": "chiudi chiudere esci uscire",
   "voice.syn.open": "apri aprire",
@@ -3016,6 +3019,7 @@
   "assistantOptions.adornHint": "Scorciatoie, QuickMenu, il launcher, la voce di K-Desktop, il telefono, gli eventi…: l’assistente li accompagna in fretta, senza ritardarli.",
 
   "assistant.prompt.commands": "Suoi comandi che potrebbero essere quello che chiede (se sì, eseguilo con run_command e il suo nome esatto): {0}.",
+  "assistant.prompt.notRun": "(Non hai eseguito «{0}». Se è ciò che chiede, eseguilo ora con run_command e quel nome; altrimenti rispondi senza dire che l'hai fatto o che lo farai.)",
   "assistant.phrase.notDone": "«{0}» non l'ho fatto.",
   "assistant.reply.closers": "qualcos'altro|qualcosa d'altro|altro in cui|altro con cui|qualche altra|qualche altro|altro che posso",
   "assistant.rule.openWeb": "apri {text}|aprire {text}|vai su {text}|vai a {text}|portami su {text}|carica {text}",

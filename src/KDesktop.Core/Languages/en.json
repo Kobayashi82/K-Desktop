@@ -1412,6 +1412,9 @@
   "voice.words.verbs": "open run launch start show",
   "voice.words.doit": "turn bring",
   "voice.words.joiners": "and then|and also|and|then|also",
+  "voice.words.pronouns": "it them that this",
+  "voice.words.enclitics": "",
+  "voice.words.negation": "no not dont don't",
   "voice.syn.empty": "empty clear",
   "voice.syn.close": "close quit exit",
   "voice.syn.open": "open",
@@ -3016,6 +3019,7 @@
   "assistantOptions.adornHint": "Hotkeys, QuickMenus, the launcher, K-Desktop’s voice, the phone, events…: the assistant adorns them quickly, without delaying them at all.",
 
   "assistant.prompt.commands": "Commands of theirs that may be what they ask for (if so, run it with run_command and its exact name): {0}.",
+  "assistant.prompt.notRun": "(You have not run \"{0}\". If that is what they ask for, run it now with run_command and that name; if not, answer without saying you did it or will do it.)",
   "assistant.phrase.notDone": "I didn't do “{0}”.",
   "assistant.reply.closers": "anything else|something else|any other|what else|anything more",
   "assistant.rule.openWeb": "open {text}|go to {text}|take me to {text}|load {text}|browse to {text}|visit {text}",

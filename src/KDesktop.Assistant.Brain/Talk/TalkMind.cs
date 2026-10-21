@@ -79,15 +79,27 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         var acted = false;
         var used = new List<string>();
         var answer = string.Empty;
+        var nudged = false;
         try
         {
             for (var round = 0; round <= MaxToolRounds; round++)
             {
                 var offer = round < MaxToolRounds && calls < MaxToolCalls;
                 var request = new ChatRequest(modelName, messages, offer ? definitions : []) { Temperature = 0.5, MaxTokens = MaxTokens };
-                var (text, asked) = await RoundAsync(model, request, onText, cancellationToken).ConfigureAwait(false);
+                // With commands of theirs at hand, nothing is said while it writes: the text may be one to take back.
+                var (text, asked) = await RoundAsync(model, request, commands is { Count: > 0 } && !acted ? null : onText, cancellationToken).ConfigureAwait(false);
                 if (asked.Count == 0)
                 {
+                    // It names one of their commands without having run it («Let me try the "Abrir Papelera" command»):
+                    // once, it is told so, and runs it or answers without it.
+                    if (!nudged && !acted && offer && commands is { Count: > 0 } && NamedCommand(text, commands) is { } named)
+                    {
+                        nudged = true;
+                        Log.Info($"Asistente: la IA nombra «{named}» sin ejecutarlo: otra vuelta");
+                        messages.Add(ChatMessage.Assistant(text));
+                        messages.Add(ChatMessage.User(Loc.T("assistant.prompt.notRun", named)));
+                        continue;
+                    }
                     answer = text;
                     break;
                 }
@@ -146,6 +158,10 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     private static readonly string[] MemoryTools = ["remember", "forget"];
 
     private static readonly string[] NoteTools = ["save_note", "find_notes"];
+
+    /// <summary>The first of <paramref name="commands"/> the text names, or null.</summary>
+    public static string? NamedCommand(string text, IReadOnlyList<string> commands) =>
+        commands.FirstOrDefault(c => c.Trim().Length >= 3 && text.Contains(c.Trim(), StringComparison.OrdinalIgnoreCase));
 
     /// <summary>Whether the text says, in the words of run_command, that a command was run.</summary>
     public static bool ClaimsToHaveRun(string text)

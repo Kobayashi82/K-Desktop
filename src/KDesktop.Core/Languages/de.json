@@ -1412,6 +1412,9 @@
   "voice.words.verbs": "öffne öffnen starte starten zeige zeig anzeigen führe ausführen",
   "voice.words.doit": "mach mache schalte",
   "voice.words.joiners": "und dann|und danach|und auch|und|dann|danach|auch",
+  "voice.words.pronouns": "es sie ihn das",
+  "voice.words.enclitics": "",
+  "voice.words.negation": "nicht kein keine nein",
   "voice.syn.empty": "leere leeren",
   "voice.syn.close": "schließe schließen beende beenden",
   "voice.syn.open": "öffne öffnen",
@@ -3016,6 +3019,7 @@
   "assistantOptions.adornHint": "Tastenkürzel, QuickMenus, der Starter, die Stimme von K-Desktop, das Handy, Ereignisse…: Der Assistent schmückt sie schnell aus, ohne sie zu verzögern.",
 
   "assistant.prompt.commands": "Seine Befehle, die das Gewünschte sein könnten (wenn ja, führ ihn mit run_command und seinem genauen Namen aus): {0}.",
+  "assistant.prompt.notRun": "(Du hast „{0}“ nicht ausgeführt. Wenn der Nutzer das möchte, führe es jetzt mit run_command und diesem Namen aus; sonst antworte, ohne zu sagen, dass du es getan hast oder tun wirst.)",
   "assistant.phrase.notDone": "„{0}“ habe ich nicht gemacht.",
   "assistant.reply.closers": "sonst noch|noch etwas|etwas anderes|noch helfen|weiter helfen|sonst etwas",
   "assistant.rule.openWeb": "öffne {text}|öffnen {text}|geh auf {text}|gehe auf {text}|geh zu {text}|gehe zu {text}|lade {text}|{text} öffnen",

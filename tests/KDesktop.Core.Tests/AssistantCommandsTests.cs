@@ -33,6 +33,62 @@ public class AssistantCommandsTests
         Assert.True(matched.Score > 0.8);
     }
 
+    [Theory]
+    [InlineData("vacía la papelera, luego la abres")]
+    [InlineData("vacía la papelera y ábrela")]
+    [InlineData("vacía la papelera y luego habrela")]
+    public void ItOrThemIsTheThingOfTheOrderBefore(string said)
+    {
+        var empty = Make("Vaciar Papelera");
+        var open = Make("Abrir Papelera");
+        var matched = AssistantCommands.Match(new MatchMessage("m", said), [empty, open, Make("Anterior")], media: false, semantic: null);
+        Assert.Equal([empty.Id, open.Id], matched.Parts.Select(p => p.Candidates[0].Command));
+        Assert.All(matched.Parts, p => Assert.True(p.Sure));
+        Assert.Empty(matched.Unmatched);
+    }
+
+    [Fact]
+    public void AnArticleIsNotAPronoun()
+    {
+        var matched = AssistantCommands.Match(new MatchMessage("m", "vacía la papelera y la vuelta"), [Make("Vaciar Papelera"), Make("Abrir Papelera")], media: false, semantic: null);
+        Assert.Equal(["la vuelta"], matched.Unmatched);
+    }
+
+    [Fact]
+    public void WhatItSaysNoToIsNotACandidate()
+    {
+        var previous = Make("Anterior");
+        var commands = new[] { previous, Make("No molestar") };
+        var refused = Assert.Single(AssistantCommands.Match(new MatchMessage("m", "no anterior"), commands, media: false, semantic: null).Parts);
+        Assert.False(refused.Sure);
+        Assert.DoesNotContain(refused.Candidates, c => c.Command == previous.Id);
+        // A command whose name says no is still what it names.
+        var named = Assert.Single(AssistantCommands.Match(new MatchMessage("m", "no molestar"), commands, media: false, semantic: null).Parts);
+        Assert.True(named.Sure);
+        Assert.Equal("No molestar", named.Candidates[0].Name);
+    }
+
+    [Fact]
+    public void ALoneShortWordIsNotTheStartOfALongOne()
+    {
+        // «coño» ran the built-in «Reanudar» (its phrase «continúa»): three shared letters and a long ending.
+        Assert.True(Voice.TextSimilarity.WordSimilarity("cono", "continua") < 0.6);
+        Assert.True(Voice.TextSimilarity.WordSimilarity("abre", "abrir") >= 0.85);
+        var matched = AssistantCommands.Match(new MatchMessage("m", "coño"), [Make("Vaciar Papelera")], media: true, semantic: null);
+        Assert.DoesNotContain(matched.Parts, p => p.Sure);
+    }
+
+    [Fact]
+    public void EachCandidateComesOnceBestFirst()
+    {
+        var youtube = Make("YouTube");
+        youtube.VoicePhrases.Add("pon youtube");
+        var matched = AssistantCommands.Match(new MatchMessage("m", "abre la tele"), [youtube, Make("Abrir Telegram"), Make("Teletexto")], media: false, semantic: null);
+        var part = Assert.Single(matched.Parts);
+        Assert.Equal(part.Candidates.Count, part.Candidates.Select(c => c.Command).Distinct().Count());
+        Assert.Equal(part.Candidates.OrderByDescending(c => c.Score).Select(c => c.Score), part.Candidates.Select(c => c.Score));
+    }
+
     [Fact]
     public void CommandsThatAskAnAssistantAreNotItsToRun()
     {

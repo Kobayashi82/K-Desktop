@@ -1412,6 +1412,9 @@
   "voice.words.verbs": "abrir abre ejecutar ejecuta lanzar lanza iniciar inicia mostrar muestra ver",
   "voice.words.doit": "ábreme arranca muéstrame enseña enséñame pon ponme quiero dame activa haz",
   "voice.words.joiners": "y luego|y después|y también|luego|después|también|y|e",
+  "voice.words.pronouns": "la lo las los le les",
+  "voice.words.enclitics": "la lo las los le les",
+  "voice.words.negation": "no",
   "voice.syn.empty": "vaciar vacía vacíame",
   "voice.syn.close": "cerrar cierra cierre cierro salir sal",
   "voice.syn.open": "abrir abre ábreme",
@@ -3016,6 +3019,7 @@
   "assistantOptions.adornHint": "Atajos, QuickMenus, el lanzador, la voz de K-Desktop, el móvil, los eventos…: el asistente los adorna deprisa, sin retrasarlos nada.",
 
   "assistant.prompt.commands": "Comandos suyos que podrían ser lo que pide (si lo es, ejecútalo con run_command y su nombre exacto): {0}.",
+  "assistant.prompt.notRun": "(No has ejecutado «{0}». Si es lo que te pide, ejecútalo ahora con run_command y ese nombre; si no, contesta sin decir que lo has hecho ni que lo vas a hacer.)",
   "assistant.phrase.notDone": "Lo de «{0}» no lo he hecho.",
   "assistant.reply.closers": "algo más|alguna otra cosa|algún otro|alguna otra|en qué más|otra cosa|algo adicional",
   "assistant.rule.openWeb": "abre {text}|abrir {text}|ábreme {text}|entra en {text}|ve a {text}|vete a {text}|llévame a {text}|métete en {text}|carga {text}",
