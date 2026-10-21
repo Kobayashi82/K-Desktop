@@ -83,6 +83,7 @@ public sealed class AppConfig
             Settings.AssistantVoiceEngine = "kokoro";
             changed = true;
         }
+        changed |= MigrateBrain();
         changed |= MigrateStartupAndExit();
         if (SchemaVersion < CurrentSchema)
         {
@@ -90,6 +91,51 @@ public sealed class AppConfig
             changed = true;
         }
         return changed;
+    }
+
+    /// <summary>
+    /// Until 5.0.106 the assistants' brain was one provider; since 5.0.107 the assistant process starts its own llama-servers
+    /// and the other servers are a list. The llama-server goes to the list of servers; Ollama, llama-swap or an OpenAI-compatible
+    /// one becomes the other server «r1» (Ollama only if something of it was set: it was the default) and its models get its
+    /// id in front; «none» is the model «none».
+    /// </summary>
+    private bool MigrateBrain()
+    {
+        var s = Settings;
+        if (s.AssistantBrainProvider is not { } provider) return false;
+        if (s.AssistantBrainServer is { Length: > 0 } server && !s.AssistantBrainServers.Contains(server, StringComparer.OrdinalIgnoreCase))
+        {
+            s.AssistantBrainServers = [server, .. s.AssistantBrainServers];
+            // Its models were looked for around it; now only in the folders: the one next to it goes there.
+            if (Assistant.Brain.GgufFiles.ModelsFolderNear(server) is { } folder && !s.AssistantBrainFolders.Contains(folder, StringComparer.OrdinalIgnoreCase))
+                s.AssistantBrainFolders = [.. s.AssistantBrainFolders, folder];
+        }
+        var endpoint = s.AssistantBrainEndpoint ?? string.Empty;
+        if (provider == Assistant.Brain.BrainProvider.None)
+        {
+            s.AssistantBrainModel = Assistant.Brain.ModelRefs.None;
+        }
+        else if (provider != Assistant.Brain.BrainProvider.LlamaServer
+                 && (provider != Assistant.Brain.BrainProvider.Ollama || endpoint.Length > 0 || s.AssistantBrainModel.Length > 0 || s.AssistantModels.Count > 0))
+        {
+            const string id = "r1";
+            var kind = provider switch
+            {
+                Assistant.Brain.BrainProvider.LlamaSwap => Assistant.Brain.RemoteKind.LlamaSwap,
+                Assistant.Brain.BrainProvider.OpenAICompatible => Assistant.Brain.RemoteKind.OpenAI,
+                _ => Assistant.Brain.RemoteKind.Ollama,
+            };
+            s.AssistantBrainRemotes = [new Assistant.Brain.BrainRemote(id, kind, endpoint, s.AssistantBrainApiKey ?? string.Empty), .. s.AssistantBrainRemotes];
+            string Prefixed(string model) => model.Length == 0 || Assistant.Brain.ModelRefs.IsLocal(model) ? model : Assistant.Brain.ModelRefs.Remote(id, model);
+            s.AssistantBrainModel = Prefixed(s.AssistantBrainModel);
+            s.AssistantModels = s.AssistantModels.ToDictionary(p => p.Key, p => Prefixed(p.Value));
+        }
+        Log.Info($"Cerebro de los asistentes: «{provider}» pasa al cerebro propio ({s.AssistantBrainServers.Count} llama-server, {s.AssistantBrainRemotes.Count} servidores más)");
+        s.AssistantBrainProvider = null;
+        s.AssistantBrainEndpoint = null;
+        s.AssistantBrainApiKey = null;
+        s.AssistantBrainServer = null;
+        return true;
     }
 
     /// <summary>
@@ -526,26 +572,55 @@ public partial class AppSettings : ObservableObject
     /// <summary>Volume of the assistants' sounds, 0–100 (each assistant may have its own on top).</summary>
     [ObservableProperty] private int _assistantVolume = 100;
 
-    /// <summary>Where the assistants' AI runs (Options → Assistant → Brain).</summary>
-    [ObservableProperty] private Assistant.Brain.BrainProvider _assistantBrainProvider;
+    /// <summary>Until 5.0.106, where the assistants' AI ran: only read, to move it to the brain of 5.0.107 (see <see cref="AppConfig.Upgrade"/>).</summary>
+    [ObservableProperty]
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    private Assistant.Brain.BrainProvider? _assistantBrainProvider;
 
-    /// <summary>Its address; empty: the usual one of the provider.</summary>
-    [ObservableProperty] private string _assistantBrainEndpoint = string.Empty;
+    /// <summary>Until 5.0.106, the address of that provider: only read, to move it.</summary>
+    [ObservableProperty]
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    private string? _assistantBrainEndpoint;
 
-    /// <summary>Its API key (llama-swap, OpenAI compatible), protected with DPAPI (<see cref="Platform.Secrets"/>); empty: none.</summary>
-    [ObservableProperty] private string _assistantBrainApiKey = string.Empty;
+    /// <summary>Until 5.0.106, its API key (DPAPI): only read, to move it.</summary>
+    [ObservableProperty]
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    private string? _assistantBrainApiKey;
 
-    /// <summary>The general model; empty: chosen automatically (about 4 B, with tools).</summary>
+    /// <summary>Until 5.0.106, the one llama-server.exe: only read, to move it to <see cref="AssistantBrainServers"/>.</summary>
+    [ObservableProperty]
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    private string? _assistantBrainServer;
+
+    /// <summary>
+    /// The general model (a <see cref="Assistant.Brain.ModelRefs">reference</see>: a .gguf's path or «id/name» of another
+    /// server); empty: chosen automatically; «none»: no AI.
+    /// </summary>
     [ObservableProperty] private string _assistantBrainModel = string.Empty;
 
-    /// <summary>The llama-server.exe the assistant process starts with the provider «llama-server» (with its model, a .gguf).</summary>
-    [ObservableProperty] private string _assistantBrainServer = string.Empty;
+    /// <summary>The llama-server.exe the assistant process starts (the first one is the usual; a model near another one opens with that one). Replaced whole.</summary>
+    [ObservableProperty] private List<string> _assistantBrainServers = [];
+
+    /// <summary>Folders where the .gguf models are looked for, besides the downloads one. Replaced whole.</summary>
+    [ObservableProperty] private List<string> _assistantBrainFolders = [];
+
+    /// <summary>Where the models downloaded from Hugging Face go; empty: <c>Models\llm</c> in the data folder.</summary>
+    [ObservableProperty] private string _assistantBrainDownloads = string.Empty;
 
     /// <summary>Options added to llama-server's usual ones («-c 32768»…); empty: none.</summary>
     [ObservableProperty] private string _assistantBrainServerArgs = string.Empty;
 
-    /// <summary>Minutes the model stays in the graphics card without use (Ollama and llama-server); 0: it stays.</summary>
+    /// <summary>Minutes a model stays in the graphics card without use; 0: it stays.</summary>
     [ObservableProperty] private int _assistantBrainKeepMinutes = Assistant.Brain.BrainConfig.DefaultKeepMinutes;
+
+    /// <summary>Loading one model unloads the others (without it they stay while they fit in the graphics card).</summary>
+    [ObservableProperty] private bool _assistantBrainOneAtATime = true;
+
+    /// <summary>A vision projector (mmproj) next to a model is loaded with it.</summary>
+    [ObservableProperty] private bool _assistantBrainVision = true;
+
+    /// <summary>Other servers with models (Ollama, llama-swap, OpenAI compatible), their keys protected with DPAPI. Replaced whole.</summary>
+    [ObservableProperty] private List<Assistant.Brain.BrainRemote> _assistantBrainRemotes = [];
 
     /// <summary>The assistants learn what is worth remembering about the user from what they talk about (stage 3.7).</summary>
     [ObservableProperty] private bool _assistantMemoryLearn = true;

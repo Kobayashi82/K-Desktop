@@ -15,7 +15,7 @@
   "icon": "icon.png",
   "preview": "preview.png",
   "wakeWord": "Lander",
-  "model": { "suggested": "qwen3.5:4b", "min": "2b" },
+  "model": { "suggested": ["unsloth/Qwen3.5-9B-GGUF:Q4_K_M", "unsloth/Qwen3.5-4B-GGUF:Q4_K_M"], "min": "2b" },
   "voice": "voice/lander.json",
   "persona": "persona/{lang}.json",
   "traits": {

@@ -18,7 +18,7 @@ public partial class AssistantPackageDialog : FluentWindow
     private PackageInfo? _package;
     private List<HotkeyOffer> _offers = [];
     /// <summary>The model it suggests that Ollama does not have, or null.</summary>
-    private string? _suggestedModel;
+    private App.SuggestedModel? _suggestedModel;
 
     /// <summary>A command the card offers to create: an extra with the hotkey it suggests.</summary>
     private sealed class HotkeyOffer(ManifestExtra extra, string hotkey, string text, string? conflict)
@@ -124,9 +124,8 @@ public partial class AssistantPackageDialog : FluentWindow
         if (!settings.AssistantEnabled) ModuleOffText.Visibility = Visibility.Visible;
         ShowHotkeyOffers(manifest);
         ShowWakeOffer(manifest, updating: package.Installed is not null);
-        _suggestedModel = _app.MissingSuggestedModel(manifest);
-        ModelCheck.Content = _suggestedModel is { } model ? new System.Windows.Controls.TextBlock { Text = Loc.T("assistantCard.modelOffer", model), TextWrapping = TextWrapping.Wrap } : null;
-        ModelPanel.Visibility = _suggestedModel is null ? Visibility.Collapsed : Visibility.Visible;
+        ModelPanel.Visibility = Visibility.Collapsed;
+        _ = OfferModelAsync(manifest);
 
         InstallButton.Content = Loc.T(package.Action switch
         {
@@ -164,6 +163,19 @@ public partial class AssistantPackageDialog : FluentWindow
     /// it, or (with the voice models) the user records it after installing. Ticked: it is how it is meant to be talked to.
     /// Not when updating (that was decided when it was installed).
     /// </summary>
+    /// <summary>The model it suggests, when it is not here: offered with a box left unticked (Hugging Face is asked first).</summary>
+    private async Task OfferModelAsync(AssistantManifest manifest)
+    {
+        _suggestedModel = await _app.MissingSuggestedModelAsync(manifest);
+        if (_suggestedModel is not { } model) return;
+        ModelCheck.Content = new System.Windows.Controls.TextBlock
+        {
+            Text = Loc.T("assistantCard.modelOffer", model.Model.Name, (model.Size / 1e9).ToString("0.0", Loc.Instance.Culture)),
+            TextWrapping = TextWrapping.Wrap,
+        };
+        ModelPanel.Visibility = Visibility.Visible;
+    }
+
     private void ShowWakeOffer(AssistantManifest manifest, bool updating)
     {
         var name = manifest.WakeWord is { Length: > 0 } suggested ? suggested : manifest.Name;
@@ -187,7 +199,7 @@ public partial class AssistantPackageDialog : FluentWindow
                 .Select(o => installed.Manifest.Extras.FirstOrDefault(x => x.Id == o.Extra.Id))
                 .OfType<ManifestExtra>()
                 .Select(x => new InstalledExtra(installed, x)));
-            if (_suggestedModel is { } model && ModelCheck.IsChecked == true) _app.AskAssistantBrain("pull", model);
+            if (_suggestedModel is { } model && ModelCheck.IsChecked == true) _app.StartModelDownload(model.Model, model.Projector, installed.Id);
             var owner = Owner;
             Close();
             if (recordWake) _app.OfferAssistantWakeWord(installed.Id, owner);

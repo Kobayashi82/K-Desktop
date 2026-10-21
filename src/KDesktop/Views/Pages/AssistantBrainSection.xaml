@@ -4,8 +4,9 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:l="clr-namespace:KDesktop.Localization"
              xmlns:a="clr-namespace:KDesktop.Views.Assistant">
-    <!-- Options → Assistant → Brain (stage 3.1): where the AI is, which model, and getting it ready on a PC without
-         anything. What it does happens in the assistant process; this only shows and asks. -->
+    <!-- Options → Assistant → Brain (stage 3.1; its own brain since 5.0.107): which model, how it is now, the llama-servers
+         and folders of this PC, the models of Hugging Face and the other servers. What it does happens in the assistant
+         process (downloads are K-Desktop's); this only shows and asks. Rows are made in code (UI Automation sees them). -->
     <StackPanel>
     <Border Style="{StaticResource Card}">
         <StackPanel>
@@ -22,157 +23,178 @@
             </Border>
 
             <StackPanel x:Name="Body">
+                <!-- How it is now -->
+                <Border Style="{StaticResource InfoBox}" Margin="0,0,0,6">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Ellipse x:Name="StateDot" Width="10" Height="10" Margin="2,0,12,0" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock x:Name="StateText" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock x:Name="StateDetail" Style="{StaticResource Caption}" Margin="0,2,0,0" TextWrapping="Wrap" Visibility="Collapsed" />
+                        </StackPanel>
+                        <ui:Button x:Name="CheckButton" Grid.Column="2" Margin="12,0,0,0" Content="{l:Tr brainOptions.check}"
+                                   Icon="{ui:SymbolIcon ArrowSync24}" Click="OnCheck" />
+                    </Grid>
+                </Border>
+
+                <Grid Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="340" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr brainOptions.model}" />
+                        <TextBlock Style="{StaticResource Caption}" Text="{l:Tr brainOptions.modelHint}" />
+                    </StackPanel>
+                    <Grid Grid.Column="1" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <ComboBox x:Name="ModelBox" SelectionChanged="OnModelChanged" AutomationProperties.Name="{l:Tr brainOptions.model}" />
+                        <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr brainOptions.browse}" Click="OnBrowseModel"
+                                   AutomationProperties.Name="{l:Tr brainOptions.browseModelTitle}" />
+                    </Grid>
+                </Grid>
+
+                <Grid Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr brainOptions.oneAtATime}" />
+                        <TextBlock Style="{StaticResource Caption}" Text="{l:Tr brainOptions.oneAtATimeHint}" />
+                    </StackPanel>
+                    <ui:ToggleSwitch x:Name="OneAtATimeSwitch" Grid.Column="1" Checked="OnOneAtATime" Unchecked="OnOneAtATime" AutomationProperties.Name="{l:Tr brainOptions.oneAtATime}" />
+                </Grid>
+
+                <Grid Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr brainOptions.vision}" />
+                        <TextBlock Style="{StaticResource Caption}" Text="{l:Tr brainOptions.visionHint}" />
+                    </StackPanel>
+                    <ui:ToggleSwitch x:Name="VisionSwitch" Grid.Column="1" Checked="OnVision" Unchecked="OnVision" AutomationProperties.Name="{l:Tr brainOptions.vision}" />
+                </Grid>
+
                 <Grid Style="{StaticResource SettingRow}">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="300" /></Grid.ColumnDefinitions>
                     <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                        <TextBlock Text="{l:Tr brainOptions.provider}" />
-                        <TextBlock x:Name="ProviderHint" Style="{StaticResource Caption}" />
+                        <TextBlock Text="{l:Tr brainOptions.keep}" />
+                        <TextBlock Style="{StaticResource Caption}" Text="{l:Tr brainOptions.keepHint}" />
                     </StackPanel>
-                    <ComboBox x:Name="ProviderBox" Grid.Column="1" VerticalAlignment="Center" DisplayMemberPath="Name"
-                              SelectionChanged="OnProviderChanged" AutomationProperties.Name="{l:Tr brainOptions.provider}" />
+                    <ComboBox x:Name="KeepBox" Grid.Column="1" VerticalAlignment="Center" SelectionChanged="OnKeepChanged"
+                              AutomationProperties.Name="{l:Tr brainOptions.keep}" />
                 </Grid>
 
-                <StackPanel x:Name="ServerRows">
-                    <!-- llama-server started by the assistant process: the program and what is added to its options -->
-                    <StackPanel x:Name="LocalServerRows" Visibility="Collapsed">
-                        <Grid Style="{StaticResource SettingRow}">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="300" /></Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                                <TextBlock Text="{l:Tr brainOptions.server}" />
-                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr brainOptions.serverHint}" />
-                            </StackPanel>
-                            <Grid Grid.Column="1" VerticalAlignment="Center">
-                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                                <ui:TextBox x:Name="ServerBox" LostFocus="OnServerLeft" PlaceholderText="llama-server.exe"
-                                            AutomationProperties.Name="{l:Tr brainOptions.server}" />
-                                <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr brainOptions.browse}" Click="OnBrowseServer"
-                                           AutomationProperties.Name="{l:Tr brainOptions.browseServerTitle}" />
-                            </Grid>
-                        </Grid>
-
-                        <Grid Style="{StaticResource SettingRow}">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="300" /></Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                                <TextBlock Text="{l:Tr brainOptions.serverArgs}" />
-                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr brainOptions.serverArgsHint}" />
-                            </StackPanel>
-                            <ui:TextBox x:Name="ServerArgsBox" Grid.Column="1" VerticalAlignment="Center" LostFocus="OnServerArgsLeft"
-                                        PlaceholderText="-c 32768" AutomationProperties.Name="{l:Tr brainOptions.serverArgs}" />
-                        </Grid>
+                <Grid Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr brainOptions.free}" />
+                        <TextBlock x:Name="FreeText" Style="{StaticResource Caption}" TextWrapping="Wrap" />
                     </StackPanel>
-
-                    <Grid x:Name="EndpointRow" Style="{StaticResource SettingRow}">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="300" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                            <TextBlock Text="{l:Tr brainOptions.endpoint}" />
-                            <TextBlock x:Name="PlaceText" Style="{StaticResource Caption}" />
-                        </StackPanel>
-                        <ui:TextBox x:Name="EndpointBox" Grid.Column="1" VerticalAlignment="Center" LostFocus="OnEndpointLeft"
-                                    AutomationProperties.Name="{l:Tr brainOptions.endpoint}" />
-                    </Grid>
-
-                    <Grid x:Name="KeyRow" Style="{StaticResource SettingRow}">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="300" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                            <TextBlock Text="{l:Tr brainOptions.apiKey}" />
-                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr brainOptions.apiKeyHint}" />
-                        </StackPanel>
-                        <PasswordBox x:Name="KeyBox" Grid.Column="1" VerticalAlignment="Center" LostFocus="OnKeyLeft"
-                                     AutomationProperties.Name="{l:Tr brainOptions.apiKey}" />
-                    </Grid>
-
-                    <Grid Style="{StaticResource SettingRow}">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="300" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                            <TextBlock Text="{l:Tr brainOptions.model}" />
-                            <TextBlock x:Name="ModelHint" Style="{StaticResource Caption}" Text="{l:Tr brainOptions.modelHint}" />
-                        </StackPanel>
-                        <Grid Grid.Column="1" VerticalAlignment="Center">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                            <ComboBox x:Name="ModelBox" SelectionChanged="OnModelChanged" AutomationProperties.Name="{l:Tr brainOptions.model}" />
-                            <ui:Button x:Name="BrowseModelButton" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr brainOptions.browse}" Click="OnBrowseModel"
-                                       Visibility="Collapsed" AutomationProperties.Name="{l:Tr brainOptions.browseModelTitle}" />
-                        </Grid>
-                    </Grid>
-
-                    <Grid x:Name="KeepRow" Style="{StaticResource SettingRow}">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="300" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                            <TextBlock Text="{l:Tr brainOptions.keep}" />
-                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr brainOptions.keepHint}" />
-                        </StackPanel>
-                        <ComboBox x:Name="KeepBox" Grid.Column="1" VerticalAlignment="Center" SelectionChanged="OnKeepChanged"
-                                  AutomationProperties.Name="{l:Tr brainOptions.keep}" />
-                    </Grid>
-
-                    <!-- How it is now -->
-                    <Border Style="{StaticResource InfoBox}">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Ellipse x:Name="StateDot" Width="10" Height="10" Margin="2,0,12,0" VerticalAlignment="Center" />
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock x:Name="StateText" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                <TextBlock x:Name="StateDetail" Style="{StaticResource Caption}" Margin="0,2,0,0" Visibility="Collapsed" />
-                            </StackPanel>
-                            <ui:Button x:Name="CheckButton" Grid.Column="2" Margin="12,0,0,0" Content="{l:Tr brainOptions.check}"
-                                       Icon="{ui:SymbolIcon ArrowSync24}" Click="OnCheck" />
-                        </Grid>
-                    </Border>
-
-                    <!-- Getting it ready: install Ollama, open it, download a model -->
-                    <Border x:Name="SetupBox" Style="{StaticResource InfoBox}" Visibility="Collapsed">
-                        <StackPanel>
-                            <Grid>
-                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                                <ui:SymbolIcon Symbol="Sparkle24" FontSize="20" Margin="0,0,12,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
-                                <TextBlock x:Name="SetupText" Grid.Column="1" VerticalAlignment="Center" TextWrapping="Wrap"
-                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Center">
-                                    <ui:Button x:Name="SetupMain" Appearance="Primary" Click="OnSetupMain" />
-                                    <ui:Button x:Name="SetupOther" Margin="8,0,0,0" Click="OnSetupOther" />
-                                </StackPanel>
-                            </Grid>
-                            <ProgressBar x:Name="JobProgress" Height="4" Margin="0,12,0,0" Maximum="1" Visibility="Collapsed" />
-                            <TextBlock x:Name="JobText" Style="{StaticResource Caption}" Margin="0,6,0,0" Visibility="Collapsed" />
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Other servers found on this PC (presenters, not an ItemsControl: its items hide their buttons from UI Automation) -->
-                    <StackPanel x:Name="FoundList" Visibility="Collapsed">
-                        <StackPanel.Resources>
-                            <DataTemplate x:Key="FoundTemplate">
-                                <Border Style="{StaticResource InfoBox}" Margin="0,4,0,4">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                                        <ui:SymbolIcon Symbol="Search24" FontSize="18" Margin="0,0,12,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
-                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding Text}"
-                                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                        <ui:Button Grid.Column="2" Margin="12,0,0,0" Content="{l:Tr brainOptions.use}" Tag="{Binding}" Click="OnUseFound"
-                                                   AutomationProperties.Name="{Binding Text}" />
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </StackPanel.Resources>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <ui:Button x:Name="LoadButton" Margin="0,0,8,0" Content="{l:Tr brainOptions.loadButton}"
+                                   Icon="{ui:SymbolIcon ArrowUpload24}" Click="OnLoad" />
+                        <ui:Button x:Name="FreeButton" Content="{l:Tr brainOptions.freeButton}" Icon="{ui:SymbolIcon Broom24}" Click="OnFree" />
                     </StackPanel>
-
-                    <Grid x:Name="FreeRow" Style="{StaticResource SettingRow}" Margin="0,10,0,0">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                            <TextBlock Text="{l:Tr brainOptions.free}" />
-                            <TextBlock x:Name="FreeText" Style="{StaticResource Caption}" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:Button x:Name="LoadButton" Margin="0,0,8,0" Content="{l:Tr brainOptions.loadButton}"
-                                       Icon="{ui:SymbolIcon ArrowUpload24}" Click="OnLoad" Visibility="Collapsed" />
-                            <ui:Button x:Name="FreeButton" Content="{l:Tr brainOptions.freeButton}" Icon="{ui:SymbolIcon Broom24}" Click="OnFree" />
-                        </StackPanel>
-                    </Grid>
-                </StackPanel>
+                </Grid>
             </StackPanel>
+        </StackPanel>
+    </Border>
+
+    <!-- The models of this PC: llama-servers, folders, downloads from Hugging Face -->
+    <Border x:Name="LocalCard" Style="{StaticResource Card}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr brainModels.title}" />
+            <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,10" TextWrapping="Wrap" Text="{l:Tr brainModels.intro}" />
+
+            <Grid Margin="0,4,0,0">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{l:Tr brainModels.servers}" />
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr brainModels.serversHint}" />
+                </StackPanel>
+                <ui:Button Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainModels.addServer}" Icon="{ui:SymbolIcon Add24}" Click="OnAddServer" />
+            </Grid>
+            <StackPanel x:Name="ServerRows" Margin="0,4,0,10" />
+
+            <Grid Margin="0,4,0,0">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{l:Tr brainModels.folders}" />
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr brainModels.foldersHint}" />
+                </StackPanel>
+                <ui:Button Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainModels.addFolder}" Icon="{ui:SymbolIcon FolderAdd24}" Click="OnAddFolder" />
+            </Grid>
+            <StackPanel x:Name="FolderRows" Margin="0,4,0,10" />
+
+            <Grid Style="{StaticResource SettingRow}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="300" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="{l:Tr brainOptions.serverArgs}" />
+                    <TextBlock Style="{StaticResource Caption}" Text="{l:Tr brainOptions.serverArgsHint}" />
+                </StackPanel>
+                <ui:TextBox x:Name="ServerArgsBox" Grid.Column="1" VerticalAlignment="Center" LostFocus="OnServerArgsLeft"
+                            PlaceholderText="-c 32768" AutomationProperties.Name="{l:Tr brainOptions.serverArgs}" />
+            </Grid>
+
+            <!-- Models of Hugging Face -->
+            <Grid Margin="0,14,0,0">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{l:Tr brainModels.list}" />
+                    <TextBlock x:Name="ModelsCaption" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+                </StackPanel>
+                <ui:Button x:Name="AddModelButton" Grid.Column="1" Margin="12,0,0,0" Appearance="Primary" Content="{l:Tr brainModels.add}"
+                           Icon="{ui:SymbolIcon ArrowDownload24}" Click="OnAddModel" />
+            </Grid>
+
+            <Border x:Name="DownloadBox" Style="{StaticResource InfoBox}" Margin="0,8,0,0" Visibility="Collapsed">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <TextBlock x:Name="DownloadText" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        <ui:Button x:Name="CancelDownloadButton" Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr common.cancel}"
+                                   Icon="{ui:SymbolIcon Dismiss24}" Click="OnCancelDownload" />
+                    </Grid>
+                    <ProgressBar x:Name="DownloadProgress" Height="4" Margin="0,10,0,0" Maximum="1" />
+                </StackPanel>
+            </Border>
+
+            <StackPanel x:Name="ModelRows" Margin="0,6,0,0" />
+
+            <Grid Style="{StaticResource SettingRow}" Margin="0,10,0,0">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="{l:Tr brainModels.downloads}" />
+                    <TextBlock x:Name="DownloadsFolderText" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <ui:Button Margin="0,0,8,0" Content="{l:Tr brainModels.openFolder}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnOpenDownloads" />
+                    <ui:Button x:Name="MoveFolderButton" Content="{l:Tr brainModels.moveFolder}" Icon="{ui:SymbolIcon FolderArrowRight24}" Click="OnMoveDownloads" />
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </Border>
+
+    <!-- Other servers -->
+    <Border x:Name="RemoteCard" Style="{StaticResource Card}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr brainRemotes.title}" />
+            <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,10" TextWrapping="Wrap" Text="{l:Tr brainRemotes.intro}" />
+            <StackPanel x:Name="RemoteRows" />
+
+            <Grid Margin="0,10,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="170" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="170" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ComboBox x:Name="NewKindBox" SelectionChanged="OnNewKindChanged" AutomationProperties.Name="{l:Tr brainRemotes.kind}" />
+                <ui:TextBox x:Name="NewEndpointBox" Grid.Column="1" Margin="8,0,0,0" AutomationProperties.Name="{l:Tr brainRemotes.endpoint}" />
+                <PasswordBox x:Name="NewKeyBox" Grid.Column="2" Margin="8,0,0,0" VerticalContentAlignment="Center" AutomationProperties.Name="{l:Tr brainOptions.apiKey}"
+                             ToolTip="{l:Tr brainOptions.apiKeyHint}" />
+                <ui:Button Grid.Column="3" Margin="8,0,0,0" Content="{l:Tr brainRemotes.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddRemote" />
+            </Grid>
+            <TextBlock x:Name="NewPlaceText" Style="{StaticResource Caption}" Margin="0,4,0,0" TextWrapping="Wrap" />
         </StackPanel>
     </Border>
 

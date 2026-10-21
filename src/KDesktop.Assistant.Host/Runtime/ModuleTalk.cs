@@ -50,7 +50,7 @@ internal sealed class ModuleTalk : ITalkOutput
         Chooser = new ToolChooser(Meaning);
         Memory = new TalkMemory(tools.Builtin.Memory, tools.Runner, Meaning);
         Service = new TalkService(who => (brain.Client, brain.ModelFor(who)), tools.Runner, PersonaOf, this, chooser: Chooser, memory: Memory, learn: () => tools.Learn, commands: commands,
-            recheck: brain.RecheckAsync, freeBrain: brain.UnloadAsync, loadBrain: brain.LoadAsync);
+            recheck: brain.RecheckAsync, freeBrain: brain.UnloadAsync, loadBrain: () => brain.LoadAsync());
     }
 
     public TalkService Service { get; }

@@ -33,7 +33,7 @@ public class TalkProcessTests
         var data = Path.Combine(root, "data");
         using var ollama = new FakeOllama("Hola, soy Dot y **te escucho**.");
         var name = "KDesktop.Assistant.Test." + Guid.NewGuid().ToString("N")[..12];
-        var config = new JsonObject { ["brain"] = new JsonObject { ["provider"] = "ollama", ["endpoint"] = ollama.Address, ["model"] = "" } };
+        var config = new JsonObject { ["brain"] = new JsonObject { ["model"] = "", ["remotes"] = new JsonArray(new JsonObject { ["id"] = "r1", ["kind"] = "ollama", ["endpoint"] = ollama.Address }) } };
 
         Process? process = null;
         var received = new ConcurrentQueue<PipeMessage>();
@@ -111,7 +111,7 @@ public class TalkProcessTests
         var name = "KDesktop.Assistant.Test." + Guid.NewGuid().ToString("N")[..12];
         var config = new JsonObject
         {
-            ["brain"] = new JsonObject { ["provider"] = "ollama", ["endpoint"] = ollama.Address, ["model"] = "" },
+            ["brain"] = new JsonObject { ["model"] = "", ["remotes"] = new JsonArray(new JsonObject { ["id"] = "r1", ["kind"] = "ollama", ["endpoint"] = ollama.Address }) },
             ["personal"] = new JsonObject { ["dot"] = new JsonObject { ["language"] = "en", ["prompt"] = "You are Zorg, a grumpy little robot." } },
         };
 

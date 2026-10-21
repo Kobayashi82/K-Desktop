@@ -128,6 +128,10 @@ K-Desktop los dibuja con sus propios controles, sin cargar código del asistente
 - **Lo que el usuario le cambia:** en Opciones → Asistentes → el tuyo → «Personalidad y voz» el usuario puede escribirle otra
   personalidad (tus frases fijas siguen), darle otro idioma y otra voz (motor, voz, perfil, velocidad). Con otro idioma,
   `host.Language` es ese y no el de K-Desktop: léelo en `Attach` (al cambiarlo, el host vuelve a cargar el asistente).
+- **El modelo con el que piensa:** `"model": { "suggested": [...] }` en el manifiesto, modelos de Hugging Face
+  («usuario/repo/archivo.gguf» o «usuario/repo:Q4_K_M»), el mejor primero. K-Desktop ofrece (desmarcado) el primero que cabe
+  en la gráfica del usuario, con su proyector de visión si lo hay, y solo si no tiene ya ese archivo; al descargarlo, ese
+  asistente piensa con él. Por ejemplo, el Lander: `["unsloth/Qwen3.5-9B-GGUF:Q4_K_M", "unsloth/Qwen3.5-4B-GGUF:Q4_K_M"]`.
 
 ## Reglas
 

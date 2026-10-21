@@ -4,29 +4,33 @@ using System.Text.Json.Nodes;
 
 namespace KDesktop.Core.Assistant.Brain;
 
-/// <summary>Where the assistants' brain (the AI) runs.</summary>
+/// <summary>
+/// Until 5.0.106, where the brain ran (one provider for everything). Only read from old settings, to move them to the
+/// brain of 5.0.107 (<see cref="BrainConfig"/>).
+/// </summary>
 public enum BrainProvider
 {
-    /// <summary>Ollama, on this PC by default.</summary>
     Ollama,
-
-    /// <summary>llama-swap: starts and stops llama-server (llama.cpp) for the model asked.</summary>
     LlamaSwap,
-
-    /// <summary>Any server with OpenAI's API (LM Studio, llama-server, vLLM…).</summary>
     OpenAICompatible,
-
-    /// <summary>No AI: only the fixed rules and K-Desktop's commands.</summary>
     None,
-
-    /// <summary>
-    /// llama-server (llama.cpp, or a fork such as PrismML's for Bonsai) that the assistant process starts itself with a
-    /// <c>.gguf</c> model when it is needed and stops when asked or after a while unused.
-    /// </summary>
     LlamaServer,
 }
 
-/// <summary>Where the brain's server is, to say whether what is said to the assistant leaves the PC.</summary>
+/// <summary>The kind of another server with models (Options → Assistant → Brain → Other servers).</summary>
+public enum RemoteKind
+{
+    /// <summary>Ollama: says what it has loaded and unloads with <c>keep_alive</c>.</summary>
+    Ollama,
+
+    /// <summary>llama-swap: OpenAI's API plus <c>/running</c> and <c>/unload</c>.</summary>
+    LlamaSwap,
+
+    /// <summary>Any server with OpenAI's API (LM Studio, vLLM, a llama-server…): only lists and answers.</summary>
+    OpenAI,
+}
+
+/// <summary>Where a server is, to say whether what is said to the assistant leaves the PC.</summary>
 public enum EndpointPlace
 {
     Invalid,
@@ -37,16 +41,53 @@ public enum EndpointPlace
 }
 
 /// <summary>
-/// Options → Assistant → Brain, as the assistant process gets it (the <c>brain</c> section of <c>config</c>): the provider,
-/// its address (the usual one when empty), its key in plain text (the pipe is only the user's), the general model
-/// (empty: chosen automatically) and the model of each assistant that has its own (stage 3.2; when the server does not
-/// have it, that assistant uses the general one). With <see cref="BrainProvider.LlamaServer"/>, the models are paths of
-/// <c>.gguf</c> files, <paramref name="Server"/> is the <c>llama-server.exe</c> to start and <paramref name="ServerArgs"/>
-/// what is added to its usual options. <paramref name="KeepMinutes"/>: unused this long, the model leaves the graphics
-/// card (0: it stays; Ollama and llama-server).
+/// Another server with models. <paramref name="Id"/> is short and never changes (it goes in front of its models' names:
+/// <c>r1/qwen3:4b</c>); <paramref name="Endpoint"/> empty: the usual one of its kind. The key is in plain text on the pipe
+/// (only the user's) and protected with DPAPI in the settings.
 /// </summary>
-public sealed record BrainConfig(BrainProvider Provider, string Endpoint = "", string ApiKey = "", string Model = "",
-    IReadOnlyDictionary<string, string>? Models = null, string Server = "", string ServerArgs = "", int KeepMinutes = BrainConfig.DefaultKeepMinutes)
+public sealed record BrainRemote(string Id, RemoteKind Kind, string Endpoint = "", string ApiKey = "")
+{
+    /// <summary>The address to use: the one typed, or the usual one of its kind.</summary>
+    public string Address => Endpoint.Trim().TrimEnd('/') is { Length: > 0 } typed ? typed : Kind.DefaultEndpoint();
+
+    /// <summary>For the user: «Ollama · localhost:11434».</summary>
+    public string Name => $"{Kind.DisplayName()} · {(Uri.TryCreate(Address, UriKind.Absolute, out var uri) ? uri.Authority : Address)}";
+
+    public JsonObject ToJson() => new()
+    {
+        ["id"] = Id,
+        ["kind"] = Kind.Key(),
+        ["endpoint"] = Endpoint,
+        ["apiKey"] = ApiKey,
+    };
+
+    public static BrainRemote? FromJson(JsonNode? node) =>
+        node is JsonObject json && BrainConfig.Text(json["id"]) is { Length: > 0 } id
+            ? new BrainRemote(id, BrainProviders.ParseKind(BrainConfig.Text(json["kind"])), BrainConfig.Text(json["endpoint"]), BrainConfig.Text(json["apiKey"]))
+            : null;
+}
+
+/// <summary>
+/// Options → Assistant → Brain, as the assistant process gets it (the <c>brain</c> section of <c>config</c>), 5.0.107: the
+/// assistant process is its own llama-swap. It starts the <c>llama-server.exe</c> of <paramref name="Servers"/> (the first
+/// one is the usual; a model near another one opens with that one: Bonsai's) with the <c>.gguf</c> found in
+/// <paramref name="Folders"/> (the first one is K-Desktop's downloads), only when someone talks to an assistant, and
+/// stops it when asked or after <paramref name="KeepMinutes"/> unused (0: it stays). <paramref name="Remotes"/> are other
+/// servers whose models are listed too. Models are named by <see cref="ModelRefs"/>: the general one (empty: chosen
+/// automatically; <see cref="ModelRefs.None"/>: no AI) and each assistant's own (stage 3.2). With
+/// <paramref name="OneAtATime"/>, loading one model unloads the others; without it they stay while they fit in the
+/// graphics card. <paramref name="Vision"/>: a <c>mmproj</c> next to the model is loaded with it.
+/// </summary>
+public sealed record BrainConfig(
+    string Model = "",
+    IReadOnlyDictionary<string, string>? Models = null,
+    IReadOnlyList<string>? Servers = null,
+    IReadOnlyList<string>? Folders = null,
+    string ServerArgs = "",
+    int KeepMinutes = BrainConfig.DefaultKeepMinutes,
+    bool OneAtATime = true,
+    bool Vision = true,
+    IReadOnlyList<BrainRemote>? Remotes = null)
 {
     /// <summary>Minutes a model stays loaded without use, by default.</summary>
     public const int DefaultKeepMinutes = 30;
@@ -54,52 +95,130 @@ public sealed record BrainConfig(BrainProvider Provider, string Endpoint = "", s
     /// <summary>Each assistant's own model (never null).</summary>
     public IReadOnlyDictionary<string, string> AssistantModels => Models ?? new Dictionary<string, string>();
 
-    public static BrainConfig Default { get; } = new(BrainProvider.Ollama);
+    public IReadOnlyList<string> ServerList => Servers ?? [];
 
-    /// <summary>The address to use: the one typed, or the provider's usual one.</summary>
-    public string Address => Endpoint.Trim() is { Length: > 0 } typed ? typed : Provider.DefaultEndpoint();
+    public IReadOnlyList<string> FolderList => Folders ?? [];
+
+    public IReadOnlyList<BrainRemote> RemoteList => Remotes ?? [];
+
+    /// <summary>The user chose no AI: only the fixed rules and K-Desktop's commands.</summary>
+    public bool IsOff => Model == ModelRefs.None;
+
+    public static BrainConfig Default { get; } = new();
+
+    /// <summary>What decides which models there are and how they run (not which one is chosen): when it changes, everything is looked at again.</summary>
+    public string SourcesKey => new JsonObject
+    {
+        ["servers"] = new JsonArray([.. ServerList.Select(s => (JsonNode?)s)]),
+        ["folders"] = new JsonArray([.. FolderList.Select(s => (JsonNode?)s)]),
+        ["serverArgs"] = ServerArgs,
+        ["keepMinutes"] = KeepMinutes,
+        ["oneAtATime"] = OneAtATime,
+        ["vision"] = Vision,
+        ["remotes"] = new JsonArray([.. RemoteList.Select(r => (JsonNode?)r.ToJson())]),
+    }.ToJsonString();
 
     public JsonObject ToJson() => new()
     {
-        ["provider"] = Provider.Key(),
-        ["endpoint"] = Address,
-        ["apiKey"] = ApiKey,
         ["model"] = Model,
         ["models"] = new JsonObject(AssistantModels.Select(p => KeyValuePair.Create(p.Key, (JsonNode?)p.Value))),
-        ["server"] = Server,
+        ["servers"] = new JsonArray([.. ServerList.Select(s => (JsonNode?)s)]),
+        ["folders"] = new JsonArray([.. FolderList.Select(s => (JsonNode?)s)]),
         ["serverArgs"] = ServerArgs,
         ["keepMinutes"] = KeepMinutes,
+        ["oneAtATime"] = OneAtATime,
+        ["vision"] = Vision,
+        ["remotes"] = new JsonArray([.. RemoteList.Select(r => (JsonNode?)r.ToJson())]),
     };
 
     public static BrainConfig FromJson(JsonObject? json)
     {
         if (json is null) return Default;
-        static string Text(JsonNode? node) => node is JsonValue v && v.TryGetValue<string>(out var s) ? s : string.Empty;
         var models = new Dictionary<string, string>(StringComparer.Ordinal);
         if (json["models"] is JsonObject own)
             foreach (var (id, model) in own)
                 if (Text(model) is { Length: > 0 } name) models[id] = name;
+        static List<string> Texts(JsonNode? node) => node is JsonArray list ? [.. list.Select(Text).Where(t => t.Length > 0)] : [];
         var keep = json["keepMinutes"] is JsonValue k && k.TryGetValue<int>(out var minutes) ? Math.Max(0, minutes) : DefaultKeepMinutes;
-        return new BrainConfig(BrainProviders.Parse(Text(json["provider"])), Text(json["endpoint"]), Text(json["apiKey"]), Text(json["model"]), models,
-            Text(json["server"]), Text(json["serverArgs"]), keep);
+        return new BrainConfig(Text(json["model"]), models, Texts(json["servers"]), Texts(json["folders"]), Text(json["serverArgs"]), keep,
+            Flag(json["oneAtATime"], true), Flag(json["vision"], true),
+            json["remotes"] is JsonArray remotes ? [.. remotes.Select(BrainRemote.FromJson).OfType<BrainRemote>()] : []);
+    }
+
+    internal static string Text(JsonNode? node) => node is JsonValue v && v.TryGetValue<string>(out var s) ? s : string.Empty;
+
+    private static bool Flag(JsonNode? node, bool otherwise) => node is JsonValue v && v.TryGetValue<bool>(out var b) ? b : otherwise;
+}
+
+/// <summary>
+/// How a model is named (5.0.107), so two servers with a model of the same name never get mixed up: a <c>.gguf</c> on this
+/// PC is its full path; another server's model is <c>id/name</c> (<c>r1/qwen3:4b</c>); <see cref="None"/> is no AI.
+/// </summary>
+public static class ModelRefs
+{
+    public const string None = "none";
+
+    /// <summary>A <c>.gguf</c> file of this PC.</summary>
+    public static bool IsLocal(string model) =>
+        model.EndsWith(".gguf", StringComparison.OrdinalIgnoreCase) && Path.IsPathFullyQualified(model);
+
+    public static string Remote(string remoteId, string model) => remoteId + "/" + model;
+
+    /// <summary>The server and the model's own name of another server's model; null for a local one, none or a bare name.</summary>
+    public static (string Remote, string Model)? SplitRemote(string model)
+    {
+        if (IsLocal(model) || model == None) return null;
+        var slash = model.IndexOf('/', StringComparison.Ordinal);
+        return slash > 0 && slash < model.Length - 1 ? (model[..slash], model[(slash + 1)..]) : null;
+    }
+
+    /// <summary>Its name for the user: a <c>.gguf</c> without the folder and the extension, another server's without the server.</summary>
+    public static string Label(string model) =>
+        IsLocal(model) || model.EndsWith(".gguf", StringComparison.OrdinalIgnoreCase) ? Path.GetFileNameWithoutExtension(model)
+        : SplitRemote(model) is { } remote ? remote.Model
+        : model;
+
+    /// <summary>Whether two names are the same model (same file; same server and name, «x» being «x:latest» too).</summary>
+    public static bool Same(string a, string b)
+    {
+        a = a.Trim();
+        b = b.Trim();
+        if (IsLocal(a) || IsLocal(b))
+        {
+            try { return string.Equals(Path.GetFullPath(a), Path.GetFullPath(b), StringComparison.OrdinalIgnoreCase); }
+            catch (ArgumentException) { return false; }
+        }
+        if (SplitRemote(a) is { } x && SplitRemote(b) is { } y)
+            return string.Equals(x.Remote, y.Remote, StringComparison.Ordinal) && BrainProviders.SameModel(x.Model, y.Model);
+        return BrainProviders.SameModel(a, b);
+    }
+
+    /// <summary>
+    /// The model of <paramref name="available"/> that <paramref name="wanted"/> names: the same one, or —a bare name or a
+    /// file name, as old settings and messages have— the first one with that name. Null: none.
+    /// </summary>
+    public static string? Find(IEnumerable<string> available, string? wanted)
+    {
+        if (string.IsNullOrWhiteSpace(wanted) || wanted == None) return null;
+        var list = available as IReadOnlyCollection<string> ?? [.. available];
+        return list.FirstOrDefault(m => Same(m, wanted))
+            ?? (IsLocal(wanted) || SplitRemote(wanted) is not null ? null
+                : list.FirstOrDefault(m => BrainProviders.SameModel(Label(m), wanted) || BrainProviders.SameModel(Label(m), Path.GetFileNameWithoutExtension(wanted))));
     }
 }
 
 public static class BrainProviders
 {
-    /// <summary>The usual address of each server.</summary>
-    public static string DefaultEndpoint(this BrainProvider provider) => provider switch
+    /// <summary>The usual address of each kind of server.</summary>
+    public static string DefaultEndpoint(this RemoteKind kind) => kind switch
     {
-        BrainProvider.LlamaSwap => "http://localhost:8080",
-        BrainProvider.OpenAICompatible => "http://localhost:1234",
-        // Its own port, chosen when it starts: never typed.
-        BrainProvider.LlamaServer => "http://127.0.0.1",
+        RemoteKind.LlamaSwap => "http://localhost:8080",
+        RemoteKind.OpenAI => "http://localhost:1234",
         _ => "http://localhost:11434",
     };
 
-    /// <summary>A model's name for the user: a <c>.gguf</c> path is its file name without the extension.</summary>
-    public static string ModelLabel(string model) =>
-        model.EndsWith(".gguf", StringComparison.OrdinalIgnoreCase) ? Path.GetFileNameWithoutExtension(model) : model;
+    /// <summary>A model's name for the user (see <see cref="ModelRefs.Label"/>).</summary>
+    public static string ModelLabel(string model) => ModelRefs.Label(model);
 
     /// <summary>Whether two model names are the same one («qwen3.5:4b» is «qwen3.5:4b:latest» too, as Ollama says).</summary>
     public static bool SameModel(string a, string b)
@@ -112,34 +231,32 @@ public static class BrainProviders
     }
 
     /// <summary>Whether the server may ask for an API key (Ollama never does).</summary>
-    public static bool UsesApiKey(this BrainProvider provider) => provider is BrainProvider.LlamaSwap or BrainProvider.OpenAICompatible;
+    public static bool UsesApiKey(this RemoteKind kind) => kind is RemoteKind.LlamaSwap or RemoteKind.OpenAI;
 
-    /// <summary>Its name on the pipe.</summary>
-    public static string Key(this BrainProvider provider) => provider switch
+    /// <summary>Whether it says what it has loaded and can unload it.</summary>
+    public static bool CanUnload(this RemoteKind kind) => kind is RemoteKind.Ollama or RemoteKind.LlamaSwap;
+
+    /// <summary>Its name on the pipe and in the settings.</summary>
+    public static string Key(this RemoteKind kind) => kind switch
     {
-        BrainProvider.LlamaSwap => "llamaSwap",
-        BrainProvider.OpenAICompatible => "openai",
-        BrainProvider.None => "none",
-        BrainProvider.LlamaServer => "llamaServer",
+        RemoteKind.LlamaSwap => "llamaSwap",
+        RemoteKind.OpenAI => "openai",
         _ => "ollama",
     };
 
-    public static BrainProvider Parse(string? key) => key switch
+    public static RemoteKind ParseKind(string? key) => key switch
     {
-        "llamaSwap" => BrainProvider.LlamaSwap,
-        "openai" => BrainProvider.OpenAICompatible,
-        "none" => BrainProvider.None,
-        "llamaServer" => BrainProvider.LlamaServer,
-        _ => BrainProvider.Ollama,
+        "llamaSwap" => RemoteKind.LlamaSwap,
+        "openai" => RemoteKind.OpenAI,
+        _ => RemoteKind.Ollama,
     };
 
-    /// <summary>Its name for the user (the OpenAI-compatible one, llama-server and «none» are translated by the interface).</summary>
-    public static string DisplayName(this BrainProvider provider) => provider switch
+    /// <summary>Its name for the user (the OpenAI-compatible one is translated by the interface).</summary>
+    public static string DisplayName(this RemoteKind kind) => kind switch
     {
-        BrainProvider.LlamaSwap => "llama-swap",
-        BrainProvider.LlamaServer => "llama-server",
-        BrainProvider.Ollama => "Ollama",
-        _ => provider.Key(),
+        RemoteKind.LlamaSwap => "llama-swap",
+        RemoteKind.OpenAI => "OpenAI",
+        _ => "Ollama",
     };
 
     /// <summary>Whether an address is this PC, the home network or the internet.</summary>

@@ -1,5 +1,4 @@
 using KDesktop.Assistant.Brain.Models;
-using KDesktop.Assistant.Brain.Setup;
 using KDesktop.Core;
 using KDesktop.Core.Assistant.Brain;
 using KDesktop.Core.Assistant.Pipe;
@@ -8,40 +7,35 @@ using KDesktop.Core.Localization;
 namespace KDesktop.Assistant.Brain;
 
 /// <summary>
-/// The brain of the assistant process (stage 3.1), one for all the assistants: the server chosen in Options → Assistant →
-/// Brain, the model in use, and what Options asks of it (look again, look for servers, install Ollama, download a model,
-/// free the graphics card). Each change goes out as a <see cref="BrainStateMessage"/>. Thread-safe; the work runs on the
-/// thread pool.
+/// The brain of the assistant process (stage 3.1; its own llama-swap since 5.0.107), one for all the assistants: the models
+/// of this PC and of the other servers of Options → Assistant → Brain (<see cref="BrainHub"/>), the one in use, and what
+/// Options asks of it (look again, try a server, free the graphics card, load now). Each change goes out as a
+/// <see cref="BrainStateMessage"/>. Thread-safe; the work runs on the thread pool.
 /// </summary>
 public sealed class BrainService : IDisposable
 {
-    /// <summary>Waiting for a just-opened Ollama to answer.</summary>
-    private static readonly TimeSpan StartPatience = TimeSpan.FromSeconds(25);
-
-    /// <summary>Download progress is sent at most this often.</summary>
-    private static readonly TimeSpan ProgressEvery = TimeSpan.FromMilliseconds(250);
-
     private readonly object _gate = new();
     private readonly HttpClient _http;
     private readonly Func<double?> _videoMemory;
     private readonly SemaphoreSlim _checking = new(1, 1);
     private BrainConfig _config = BrainConfig.Default;
-    private IChatModel? _client;
-    private BrainStateMessage _state;
-    private CancellationTokenSource? _job;
+    private readonly LlamaServerPool _pool;
+    private BrainHub? _hub;
+    private BrainStateMessage _state = new("checking");
     private int _generation;
-    /// <summary>The <see cref="_generation"/> last looked at: looking again at the same server does not say «checking».</summary>
+    /// <summary>The <see cref="_generation"/> last looked at: looking again at the same sources does not say «checking».</summary>
     private int _checkedGeneration = -1;
     private bool _disposed;
 
-    /// <param name="videoMemory">The graphics card's own memory in GB (null: unknown), to recommend a model.</param>
+    /// <param name="videoMemory">The graphics card's own memory in GB (null: unknown), to know which models fit.</param>
     /// <param name="network">What answers the HTTP requests (tests put a fake server here).</param>
     public BrainService(Func<double?> videoMemory, HttpMessageHandler? network = null)
     {
         _videoMemory = videoMemory;
         _http = network is null ? new HttpClient() : new HttpClient(network);
         _http.Timeout = Timeout.InfiniteTimeSpan;
-        _state = Empty(_config, "checking");
+        _pool = new LlamaServerPool([], [], string.Empty, null, true, true, [], videoMemory, _http);
+        _pool.Changed += OnServerChanged;
     }
 
     /// <summary>Raised (any thread) with the new state after every change.</summary>
@@ -52,10 +46,10 @@ public sealed class BrainService : IDisposable
         get { lock (_gate) return _state; }
     }
 
-    /// <summary>The client of the server in use (null without AI). Do not dispose it.</summary>
+    /// <summary>All the models as one (null without AI). Do not dispose it.</summary>
     public IChatModel? Client
     {
-        get { lock (_gate) return _client; }
+        get { lock (_gate) return _config.IsOff ? null : _hub; }
     }
 
     /// <summary>The model to talk with now, or null while the brain is not ready.</summary>
@@ -65,46 +59,53 @@ public sealed class BrainService : IDisposable
     }
 
     /// <summary>
-    /// The model an assistant talks with (stage 3.2): its own when it has one and the server has it; otherwise the general
-    /// one (also with no assistant: the module without a body). Null when neither is there.
+    /// The model an assistant talks with (stage 3.2): its own when there is such a model; otherwise the general one (also
+    /// with no assistant: the module without a body). Null when neither is there.
     /// </summary>
     public string? ModelFor(string? assistant)
     {
         lock (_gate)
         {
+            if (_config.IsOff) return null;
             if (assistant is not null && _config.AssistantModels.TryGetValue(assistant, out var own)
-                && _state.Models?.FirstOrDefault(m => BrainProviders.SameModel(m.Name, own)) is { } found)
-                return found.Name;
+                && ModelRefs.Find(_state.Models?.Select(m => m.Name) ?? [], own) is { } found)
+                return found;
             return _state.State == "ready" ? _state.Model : null;
         }
     }
 
-    /// <summary>Options changed (or the process got its welcome): a new client, and a look at it.</summary>
+    /// <summary>Options changed (or the process got its welcome): new sources if they changed, and a look at them.</summary>
     public void Configure(BrainConfig config)
     {
+        BrainHub? old = null;
         lock (_gate)
         {
             if (_disposed) return;
-            var sameServer = config.Provider == _config.Provider && BrainScout.SameEndpoint(config.Address, _config.Address) && config.ApiKey == _config.ApiKey
-                && config.Server == _config.Server && config.ServerArgs == _config.ServerArgs && config.KeepMinutes == _config.KeepMinutes
-                // llama-server lists the model chosen (it may be anywhere).
-                && (config.Provider != BrainProvider.LlamaServer || config.Model == _config.Model);
-            var sameModel = sameServer && config.Model == _config.Model && _client is not null;
+            var sameSources = _hub is not null && config.SourcesKey == _config.SourcesKey
+                // A chosen .gguf outside the folders is listed too.
+                && ChosenFiles(config).SequenceEqual(ChosenFiles(_config), StringComparer.OrdinalIgnoreCase);
+            var sameModel = sameSources && config.Model == _config.Model;
             _config = config;
             // Only the assistants' own models changed: nothing to look at again.
             if (sameModel) return;
-            if (!sameServer || _client is null)
+            if (!sameSources)
             {
-                if (_client is LlamaServerChatModel old) old.Changed -= OnServerChanged;
-                _client?.Dispose();
-                _client = ChatModels.Create(config, _http);
-                if (_client is LlamaServerChatModel server) server.Changed += OnServerChanged;
+                old = _hub;
+                _pool.Configure(config.ServerList, config.FolderList, config.ServerArgs, config.KeepMinutes > 0 ? TimeSpan.FromMinutes(config.KeepMinutes) : null,
+                    config.OneAtATime, config.Vision, config.AssistantModels.Values.Append(config.Model));
+                _hub = new BrainHub(config, _pool, _http);
                 _generation++;
             }
         }
-        Log.Info($"Asistente: cerebro → {config.Provider.DisplayName()} {(config.Provider == BrainProvider.None ? "" : config.Address)}{(config.Model.Length > 0 ? $", modelo {config.Model}" : "")}");
-        _ = WaitForServerAsync();
+        old?.Dispose();
+        Log.Info($"Asistente: cerebro → {config.ServerList.Count} llama-server ({string.Join(", ", config.ServerList.Select(LlamaServerPool.ServerName))}), " +
+                 $"{config.FolderList.Count} carpetas de modelos, {config.RemoteList.Count} servidores más{(config.Model.Length > 0 ? $", modelo {BrainProviders.ModelLabel(config.Model)}" : "")}" +
+                 $"{(config.OneAtATime ? "" : ", varios modelos a la vez")}");
+        _ = WaitForServersAsync();
     }
+
+    private static IEnumerable<string> ChosenFiles(BrainConfig config) =>
+        config.AssistantModels.Values.Append(config.Model).Where(ModelRefs.IsLocal).Order(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>A server that is not there yet is looked at again this often…</summary>
     private static readonly TimeSpan AwayEvery = TimeSpan.FromSeconds(10);
@@ -113,24 +114,25 @@ public sealed class BrainService : IDisposable
     private static readonly TimeSpan AwayFor = TimeSpan.FromMinutes(5);
 
     /// <summary>
-    /// Looks at the server, and while it does not answer, again every <see cref="AwayEvery"/> for <see cref="AwayFor"/>:
-    /// K-Desktop starts with Windows before the Ollama of the Startup folder, and the first look found nothing.
+    /// Looks at everything, and while another server does not answer, again every <see cref="AwayEvery"/> for
+    /// <see cref="AwayFor"/>: K-Desktop starts with Windows before the servers of the Startup folder.
     /// </summary>
-    private async Task WaitForServerAsync()
+    private async Task WaitForServersAsync()
     {
         int generation;
         lock (_gate) generation = _generation;
-        await CheckAsync(scanIfMissing: true).ConfigureAwait(false);
+        await CheckAsync().ConfigureAwait(false);
         var until = DateTime.UtcNow + AwayFor;
-        while (State.State == "unreachable" && DateTime.UtcNow < until)
+        while (State.Remotes?.Any(r => r.State == "unreachable") == true && DateTime.UtcNow < until)
         {
             await Task.Delay(AwayEvery).ConfigureAwait(false);
             lock (_gate)
             {
                 if (_disposed || generation != _generation) return;
             }
-            await CheckAsync(scanIfMissing: false).ConfigureAwait(false);
-            if (State.State == "ready") Log.Info($"Asistente: el cerebro ya contesta ({State.Model})");
+            var was = State.Remotes?.Count(r => r.State == "ok") ?? 0;
+            await CheckAsync().ConfigureAwait(false);
+            if ((State.Remotes?.Count(r => r.State == "ok") ?? 0) > was) Log.Info("Asistente: otro servidor de modelos ya contesta");
         }
     }
 
@@ -140,7 +142,7 @@ public sealed class BrainService : IDisposable
     private DateTime _lastRecheck = DateTime.MinValue;
 
     /// <summary>
-    /// An order needs the AI and the brain is not ready: one more look now (the server may have opened since), at most
+    /// An order needs the AI and the brain is not ready: one more look now (a server may have opened since), at most
     /// once every <see cref="RecheckAfter"/>. Whether it is ready afterwards.
     /// </summary>
     public async Task<bool> RecheckAsync()
@@ -148,10 +150,10 @@ public sealed class BrainService : IDisposable
         if (State.State == "ready") return true;
         lock (_gate)
         {
-            if (_disposed || _client is null || DateTime.UtcNow - _lastRecheck < RecheckAfter) return false;
+            if (_disposed || _hub is null || _config.IsOff || DateTime.UtcNow - _lastRecheck < RecheckAfter) return false;
             _lastRecheck = DateTime.UtcNow;
         }
-        await CheckAsync(scanIfMissing: false).ConfigureAwait(false);
+        await CheckAsync().ConfigureAwait(false);
         var ready = State.State == "ready";
         Log.Info($"Asistente: cerebro mirado otra vez para una orden: {(ready ? "listo" : State.State)}");
         return ready;
@@ -160,53 +162,59 @@ public sealed class BrainService : IDisposable
     /// <summary>A request of Options → Assistant → Brain.</summary>
     public Task HandleAsync(BrainMessage message) => message.Op switch
     {
-        "check" => CheckAsync(scanIfMissing: false),
-        "scan" => ScanAsync(),
-        "installOllama" => InstallOllamaAsync(),
-        "startOllama" => StartOllamaAsync(),
-        "downloadPage" => Task.Run(OllamaSetup.OpenDownloadPage),
-        "pull" when message.Model is { Length: > 0 } model => PullAsync(model),
-        "cancel" => Cancel(),
+        "check" => CheckAsync(),
+        "rescan" => RescanAsync(),
+        "test" when message.Remote is { Length: > 0 } remote => TestAsync(remote),
         "unload" => UnloadAsync(),
-        "load" => LoadAsync(),
+        "load" => LoadAsync(message.Model),
         _ => Task.CompletedTask,
     };
 
-    /// <summary>llama-server started loading, loaded or stopped: the state says so.</summary>
-    private void OnServerChanged() => _ = CheckAsync(scanIfMissing: false);
+    /// <summary>A llama-server started loading, loaded or stopped: the state says so.</summary>
+    private void OnServerChanged() => _ = CheckAsync();
 
-    /// <summary>
-    /// Looks at the server: its models, which one is used and which are loaded. With <paramref name="scanIfMissing"/>, a
-    /// server that is not there makes it look in the usual places (to offer another one it found).
-    /// </summary>
-    public async Task CheckAsync(bool scanIfMissing)
+    private Task RescanAsync()
+    {
+        lock (_gate) _hub?.Local.Rescan();
+        return CheckAsync();
+    }
+
+    private async Task TestAsync(string remote)
+    {
+        BrainHub? hub;
+        lock (_gate) hub = _hub;
+        // Not there yet: the options that bring it are on their way, and they look at it anyway.
+        if (hub is null || hub.Config.RemoteList.All(r => r.Id != remote)) return;
+        Set(s => s with { Remotes = [.. (s.Remotes ?? hub.RemoteStates).Select(r => r.Id == remote ? new BrainRemoteState(remote, "checking") : r)] });
+        await hub.TestAsync(remote, CancellationToken.None).ConfigureAwait(false);
+        Log.Info($"Asistente: servidor {remote} probado: {hub.RemoteStates.FirstOrDefault(r => r.Id == remote)?.State}");
+        await CheckAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>Looks at every source: the models, which one is used and which are loaded.</summary>
+    public async Task CheckAsync()
     {
         BrainConfig config;
-        IChatModel? client;
+        BrainHub? hub;
         int generation;
         lock (_gate)
         {
             if (_disposed) return;
-            (config, client, generation) = (_config, _client, _generation);
+            (config, hub, generation) = (_config, _hub, _generation);
         }
-        if (client is null)
-        {
-            Set(_ => Empty(config, "off"));
-            return;
-        }
+        if (hub is null) return;
 
         await _checking.WaitAsync().ConfigureAwait(false);
         try
         {
             if (generation != Volatile.Read(ref _checkedGeneration)) Set(s => s with { State = "checking" });
-            var next = await LookAsync(config, client).ConfigureAwait(false);
+            var next = await LookAsync(config, hub).ConfigureAwait(false);
             lock (_gate)
             {
                 if (generation != _generation || _disposed) return;
                 _checkedGeneration = generation;
             }
-            Set(s => next with { Job = s.Job, Found = next.State == "ready" ? null : s.Found });
-            if (scanIfMissing && next.State == "unreachable") await ScanAsync().ConfigureAwait(false);
+            Set(_ => next);
         }
         finally
         {
@@ -214,227 +222,108 @@ public sealed class BrainService : IDisposable
         }
     }
 
-    private async Task<BrainStateMessage> LookAsync(BrainConfig config, IChatModel client)
+    private async Task<BrainStateMessage> LookAsync(BrainConfig config, BrainHub hub)
     {
-        var local = BrainProviders.PlaceOf(config.Address) == EndpointPlace.ThisPc && config.Provider == BrainProvider.Ollama;
-        var ollama = local ? new BrainOllama(OllamaSetup.IsInstalled, OllamaSetup.CanInstall) : null;
         var video = _videoMemory();
+        IReadOnlyList<ModelInfo> models;
+        IReadOnlyList<string> loaded;
         try
         {
-            var models = await client.ListModelsAsync(CancellationToken.None).ConfigureAwait(false);
-            IReadOnlyList<string> loaded;
-            try { loaded = await client.ListLoadedAsync(CancellationToken.None).ConfigureAwait(false); }
-            catch (ChatModelException) { loaded = []; }
-
-            var chat = ModelPicker.Chat(models).ToList();
-            var list = chat.Select(m => new BrainModel(m.Name, Math.Round(ModelPicker.SizeOf(m), 2), m.SizeBytes, m.SupportsTools)).ToList();
-            var suggested = config.Provider == BrainProvider.Ollama ? ModelAdvice.Recommend(video) : null;
-            var empty = Empty(config, "ready") with
-            {
-                Models = list, Loaded = loaded, Ollama = ollama, VideoMemoryGb = video, Loading = (client as LlamaServerChatModel)?.Loading is not null,
-            };
-            if (chat.Count == 0) return empty with { State = "noModels", Suggested = suggested };
-            if (config.Model.Length > 0)
-            {
-                return ModelPicker.Find(chat, config.Model) is { } chosen
-                    ? empty with { Model = chosen.Name }
-                    : empty with { State = "modelMissing", Model = config.Model, Message = Loc.T("brain.error.modelMissing", config.Model) };
-            }
-            var picked = config.Provider == BrainProvider.LlamaServer ? BiggestThatFits(chat, video) : ModelPicker.Choose(chat, null)!;
-            return empty with { Model = picked.Name, Automatic = true, Suggested = picked.SupportsTools ? null : suggested };
+            models = await hub.ListModelsAsync(CancellationToken.None).ConfigureAwait(false);
+            loaded = await hub.ListLoadedAsync(CancellationToken.None).ConfigureAwait(false);
         }
-        catch (ChatModelException ex)
+        catch (Exception ex) when (ex is ChatModelException or IOException or UnauthorizedAccessException)
         {
-            var state = ex.Failure is ChatModelFailure.Unreachable or ChatModelFailure.Timeout ? "unreachable" : "error";
-            return Empty(config, state) with { Message = ex.Message, Ollama = ollama, VideoMemoryGb = video, Suggested = local ? ModelAdvice.Recommend(video) : null };
+            return new BrainStateMessage("error", Message: ex.Message, VideoMemoryGb: video, Remotes: hub.RemoteStates);
         }
+
+        var local = hub.Local.Known;
+        var list = models.Select(m =>
+        {
+            var found = local.FirstOrDefault(l => string.Equals(l.Path, m.Name, StringComparison.OrdinalIgnoreCase));
+            return new BrainModel(m.Name, Math.Round(ModelPicker.SizeOf(m), 2), m.SizeBytes, m.SupportsTools, m.Capabilities.Contains("vision"),
+                found?.Server, ModelRefs.SplitRemote(m.Name)?.Remote);
+        }).ToList();
+        var servers = config.ServerList.Select(s => new BrainServerState(s, File.Exists(s), local.Count(l => string.Equals(l.Server, s, StringComparison.OrdinalIgnoreCase)))).ToList();
+        var empty = new BrainStateMessage("ready", Models: list, Loaded: loaded, Loading: hub.Local.Loading, VideoMemoryGb: video, Servers: servers, Remotes: hub.RemoteStates);
+
+        if (config.IsOff) return empty with { State = "off" };
+        if (list.Count == 0) return empty with { State = "noModels" };
+        if (config.Model.Length > 0)
+        {
+            return ModelRefs.Find(list.Select(m => m.Name), config.Model) is { } chosen
+                ? empty with { Model = chosen }
+                : empty with { State = "modelMissing", Model = config.Model, Message = Loc.T("brain.error.modelMissing", BrainProviders.ModelLabel(config.Model)) };
+        }
+        return empty with { Model = Automatic(models, local, video).Name, Automatic = true };
     }
 
-    /// <summary>Video memory left for Windows and the rest when a llama-server model is chosen by itself.</summary>
+    /// <summary>Video memory left for Windows and the rest when a model is chosen by itself.</summary>
     private const double SpareVideoGb = 3;
 
     /// <summary>
-    /// The .gguf llama-server takes by itself: whoever puts a big model next to the server wants that one (the smartest),
-    /// as long as it fits in the graphics card with room for the rest; none fits: the smallest.
+    /// The model taken by itself: of this PC, the biggest that fits in the graphics card with room for the rest —whoever
+    /// keeps a big model wants that one, the smartest; none fits: the smallest—; with none here, Kobii's rule over the
+    /// other servers' (about 4 B, with tools).
     /// </summary>
-    private static ModelInfo BiggestThatFits(IReadOnlyList<ModelInfo> models, double? videoGb)
+    private static ModelInfo Automatic(IReadOnlyList<ModelInfo> models, IReadOnlyList<LocalModel> local, double? videoGb)
     {
+        var mine = models.Where(m => ModelRefs.IsLocal(m.Name)).ToList();
+        if (mine.Count == 0) return ModelPicker.Choose(models, null)!;
         var room = videoGb is { } gb ? (gb - SpareVideoGb) * 1e9 : double.MaxValue;
-        return models.Where(m => m.SizeBytes <= room).OrderByDescending(m => m.SizeBytes).FirstOrDefault()
-            ?? models.OrderBy(m => m.SizeBytes).First();
-    }
-
-    /// <summary>Looks for servers in the usual places of this PC (not the one in use).</summary>
-    public async Task ScanAsync()
-    {
-        BrainConfig config;
-        lock (_gate) config = _config;
-        var found = await BrainScout.ScanAsync(config, c => ChatModels.Create(c, _http), CancellationToken.None).ConfigureAwait(false);
-        if (found.Count > 0) Log.Info($"Asistente: cerebros encontrados: {string.Join(", ", found.Select(f => $"{f.Provider} {f.Endpoint} ({f.Models})"))}");
-        Set(s => s with { Found = found });
-    }
-
-    private async Task InstallOllamaAsync()
-    {
-        if (OllamaSetup.IsInstalled)
-        {
-            await StartOllamaAsync().ConfigureAwait(false);
-            return;
-        }
-        if (!OllamaSetup.CanInstall)
-        {
-            OllamaSetup.OpenDownloadPage();
-            return;
-        }
-        var token = BeginJob(new BrainJob("install", "running"));
-        if (token is null) return;
-        Log.Info("Asistente: instalando Ollama con winget");
-        var error = await OllamaSetup.InstallAsync(token.Value).ConfigureAwait(false);
-        if (token.Value.IsCancellationRequested)
-        {
-            EndJob(new BrainJob("install", "cancelled"));
-            return;
-        }
-        EndJob(error is null ? new BrainJob("install", "done") : new BrainJob("install", "failed", Error: error));
-        if (error is null) await StartOllamaAsync().ConfigureAwait(false);
-    }
-
-    /// <summary>Opens Ollama (if it is not answering) and waits for it to answer.</summary>
-    private async Task StartOllamaAsync()
-    {
-        await CheckAsync(scanIfMissing: false).ConfigureAwait(false);
-        if (State.State != "unreachable" || !OllamaSetup.IsInstalled) return;
-        if (!OllamaSetup.Start()) return;
-        var until = DateTime.UtcNow + StartPatience;
-        while (DateTime.UtcNow < until && !_disposed)
-        {
-            await Task.Delay(1000).ConfigureAwait(false);
-            await CheckAsync(scanIfMissing: false).ConfigureAwait(false);
-            if (State.State != "unreachable") return;
-        }
-    }
-
-    private async Task PullAsync(string model)
-    {
-        BrainConfig config;
-        lock (_gate) config = _config;
-        if (config.Provider != BrainProvider.Ollama) return;
-        var token = BeginJob(new BrainJob("pull", "running", model));
-        if (token is null) return;
-
-        Log.Info($"Asistente: descargando el modelo {model}");
-        var expected = (long)((model == ModelAdvice.Standard.Name ? ModelAdvice.Standard.DownloadGb : model == ModelAdvice.Light.Name ? ModelAdvice.Light.DownloadGb : 0) * 1e9);
-        var last = DateTime.MinValue;
-        var progress = new Progress<PullProgress>(p =>
-        {
-            var now = DateTime.UtcNow;
-            if (now - last < ProgressEvery) return;
-            last = now;
-            Set(s => s.Job is { State: "running", Kind: "pull" } ? s with { Job = s.Job with { Completed = p.Completed, Total = p.Total } } : s);
-        });
-        try
-        {
-            await new OllamaPull(_http, config.Address).PullAsync(model, progress, expected, token.Value).ConfigureAwait(false);
-            Log.Info($"Asistente: modelo {model} descargado");
-            EndJob(new BrainJob("pull", "done", model));
-        }
-        catch (OperationCanceledException)
-        {
-            Log.Info($"Asistente: descarga de {model} cancelada");
-            EndJob(new BrainJob("pull", "cancelled", model));
-        }
-        catch (ChatModelException ex)
-        {
-            Log.Warn($"Asistente: no se ha podido descargar {model}: {ex.Message}");
-            EndJob(new BrainJob("pull", "failed", model, Error: ex.Message));
-        }
-        await CheckAsync(scanIfMissing: false).ConfigureAwait(false);
-    }
-
-    private Task Cancel()
-    {
-        lock (_gate) _job?.Cancel();
-        return Task.CompletedTask;
+        long Needs(ModelInfo m) => m.SizeBytes + (local.FirstOrDefault(l => l.Path == m.Name)?.ProjectorSize ?? 0);
+        return mine.Where(m => Needs(m) <= room).OrderByDescending(Needs).FirstOrDefault() ?? mine.OrderBy(Needs).First();
     }
 
     /// <summary>
-    /// Unloads what is in memory (or the model in use, when the server does not say what is loaded): Options, the action
-    /// «Asistente: cerebro» and «descarga el cerebro». Whether something was loaded (or loading).
+    /// Unloads everything loaded (also a model still loading): Options, the action «Asistente: cerebro» and «descarga el
+    /// cerebro». Whether something was loaded (or loading).
     /// </summary>
     public async Task<bool> UnloadAsync()
     {
-        var (client, state) = (Client, State);
-        if (client is null) return false;
-        var any = state.Loaded is { Count: > 0 } || state.Loading;
-        var models = state.Loaded is { Count: > 0 } loaded ? loaded : state.Model is { } model ? [model] : [];
-        // llama-server stops whatever it has (also a model still loading, which Loaded does not list).
-        if (client is LlamaServerChatModel && state.Model is { } path) models = [path];
-        await UnloadModelsAsync(client, models).ConfigureAwait(false);
-        await CheckAsync(scanIfMissing: false).ConfigureAwait(false);
+        BrainHub? hub;
+        lock (_gate) hub = _hub;
+        if (hub is null) return false;
+        var loaded = await hub.ListLoadedAsync(CancellationToken.None).ConfigureAwait(false);
+        var any = loaded.Count > 0 || hub.Local.Loading is not null;
+        hub.Local.StopAll("pedido");
+        foreach (var model in loaded.Where(m => !ModelRefs.IsLocal(m)))
+        {
+            try
+            {
+                await hub.UnloadAsync(model, CancellationToken.None).ConfigureAwait(false);
+                Log.Info($"Asistente: modelo {BrainProviders.ModelLabel(model)} liberado");
+            }
+            catch (Exception ex) when (ex is ChatModelException or HttpRequestException)
+            {
+                Log.Warn($"Asistente: no se ha podido liberar {BrainProviders.ModelLabel(model)}: {ex.Message}");
+            }
+        }
+        await CheckAsync().ConfigureAwait(false);
         return any;
     }
 
-    /// <summary>Loads the model in use now (Options, the action): the first answer does not wait for it.</summary>
-    public async Task LoadAsync()
+    /// <summary>Loads a model now (the one in use when none is said): Options, the action. The first answer does not wait for it.</summary>
+    public async Task LoadAsync(string? model = null)
     {
-        var (client, model) = (Client, Model);
-        if (client is null || model is null) return;
+        BrainHub? hub;
+        lock (_gate) hub = _config.IsOff ? null : _hub;
+        model = model is { Length: > 0 } wanted ? ModelRefs.Find(State.Models?.Select(m => m.Name) ?? [], wanted) ?? wanted : Model;
+        if (hub is null || model is null) return;
         Log.Info($"Asistente: cargando {BrainProviders.ModelLabel(model)} a petición");
         try
         {
-            using var limit = new CancellationTokenSource(LlamaServerChatModel.StartPatience);
-            await client.PreloadAsync(model, limit.Token).ConfigureAwait(false);
+            using var limit = new CancellationTokenSource(LlamaServerPool.StartPatience);
+            await hub.PreloadAsync(model, limit.Token).ConfigureAwait(false);
         }
-        catch (Exception ex) when (ex is ChatModelException or OperationCanceledException)
+        catch (Exception ex) when (ex is ChatModelException or OperationCanceledException or HttpRequestException)
         {
             Log.Warn($"Asistente: no se ha podido cargar {BrainProviders.ModelLabel(model)}: {ex.Message}");
             Set(s => s with { Message = ex.Message });
             return;
         }
-        await CheckAsync(scanIfMissing: false).ConfigureAwait(false);
+        await CheckAsync().ConfigureAwait(false);
     }
-
-    private static async Task UnloadModelsAsync(IChatModel client, IReadOnlyList<string> models)
-    {
-        foreach (var name in models)
-        {
-            try
-            {
-                await client.UnloadAsync(name, CancellationToken.None).ConfigureAwait(false);
-                Log.Info($"Asistente: modelo {BrainProviders.ModelLabel(name)} liberado");
-            }
-            catch (ChatModelException ex)
-            {
-                Log.Warn($"Asistente: no se ha podido liberar {BrainProviders.ModelLabel(name)}: {ex.Message}");
-            }
-        }
-    }
-
-    /// <summary>Starts a job (one at a time); null when another one is running.</summary>
-    private CancellationToken? BeginJob(BrainJob job)
-    {
-        CancellationTokenSource cts;
-        lock (_gate)
-        {
-            if (_disposed || _job is not null) return null;
-            _job = cts = new CancellationTokenSource();
-        }
-        Set(s => s with { Job = job });
-        return cts.Token;
-    }
-
-    private void EndJob(BrainJob job)
-    {
-        lock (_gate)
-        {
-            _job?.Dispose();
-            _job = null;
-        }
-        Set(s => s with { Job = job });
-    }
-
-    private static BrainStateMessage Empty(BrainConfig config, string state) =>
-        new(state, config.Provider.Key(), config.Provider == BrainProvider.None ? string.Empty : config.Address);
 
     private void Set(Func<BrainStateMessage, BrainStateMessage> change)
     {
@@ -443,22 +332,28 @@ public sealed class BrainService : IDisposable
         {
             if (_disposed) return;
             next = change(_state);
-            if (next == _state) return;
+            if (Same(next, _state)) return;
             _state = next;
         }
         Changed?.Invoke(next);
     }
 
+    /// <summary>Records with lists compare the lists by reference: the same state is the same JSON.</summary>
+    private static bool Same(BrainStateMessage a, BrainStateMessage b) =>
+        a == b || PipeJson.Serialize(a) == PipeJson.Serialize(b);
+
     public void Dispose()
     {
+        BrainHub? hub;
         lock (_gate)
         {
             if (_disposed) return;
             _disposed = true;
-            _job?.Cancel();
-            _client?.Dispose();
-            _client = null;
+            hub = _hub;
+            _hub = null;
         }
+        hub?.Dispose();
+        _pool.Dispose();
         _http.Dispose();
     }
 }

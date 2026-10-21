@@ -1,12 +1,12 @@
-using System.Text.Json.Nodes;
 using KDesktop.Assistant.Brain.Models;
 using KDesktop.Core.Assistant.Brain;
 
 namespace KDesktop.Assistant.Tests;
 
 /// <summary>
-/// The brain on a llama-server the assistant process starts itself (Bonsai 2 27B, 5.0.99): the models it finds, its
-/// options, the settings that travel to the process, and the tool calls a model leaves written as text.
+/// The brain on the llama-servers the assistant process starts itself (5.0.99; several since 5.0.107): the models found in
+/// the folders, which server opens each one, their vision projectors, the options they start with, and the tool calls a
+/// model leaves written as text.
 /// </summary>
 public sealed class LlamaServerTests : IDisposable
 {
@@ -46,62 +46,91 @@ public sealed class LlamaServerTests : IDisposable
     [Fact]
     public void ItsOptionsAreSplitLikeACommandLine()
     {
-        Assert.Equal(["-c", "32768", "--mmproj", @"C:\Mis modelos\v.gguf"], LlamaServerChatModel.SplitArgs(@"-c 32768  --mmproj ""C:\Mis modelos\v.gguf"""));
-        Assert.Empty(LlamaServerChatModel.SplitArgs("   "));
+        Assert.Equal(["-c", "32768", "--mmproj", @"C:\Mis modelos\v.gguf"], LlamaServerPool.SplitArgs(@"-c 32768  --mmproj ""C:\Mis modelos\v.gguf"""));
+        Assert.Empty(LlamaServerPool.SplitArgs("   "));
     }
 
-    /// <summary>The Bonsai demo's layout: the server in bin\cuda, the models in models\bonsai2-gguf\27B with their extras.</summary>
+    /// <summary>
+    /// The user's layout: llama.cpp with its «Models» (a folder per model, with their projectors) and Bonsai's demo (the
+    /// server in bin\cuda, the models in models\bonsai2-gguf\27B with their extras), and a model chosen elsewhere.
+    /// </summary>
     [Fact]
-    public void TheModelsNearTheServerAreFoundWithoutTheirExtras()
+    public void TheModelsOfTheFoldersAreFoundWithTheirServerAndVision()
     {
-        var server = Touch(@"bin\cuda\llama-server.exe");
-        Touch(@"models\bonsai2-gguf\27B\Ternary-Bonsai-2-27B-PQ2_0.gguf");
-        Touch(@"models\bonsai2-gguf\27B\Ternary-Bonsai-2-27B-PTQ1_0.gguf");
-        Touch(@"models\bonsai2-gguf\27B\Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf");
-        Touch(@"models\bonsai2-gguf\27B\Ternary-Bonsai-2-27B-dspark-dflash.gguf");
-        Touch(@"models\big\big-00001-of-00002.gguf");
-        Touch(@"models\big\big-00002-of-00002.gguf");
-        var elsewhere = Path.Combine(Path.GetTempPath(), "kdesktop-llama-other-" + Guid.NewGuid().ToString("N")[..8] + ".gguf");
-        File.WriteAllText(elsewhere, "x");
-        try
-        {
-            var found = LlamaServerChatModel.FindModels(server, elsewhere).Select(f => f.Name).ToList();
-            Assert.Equal(["big-00001-of-00002.gguf", Path.GetFileName(elsewhere), "Ternary-Bonsai-2-27B-PQ2_0.gguf", "Ternary-Bonsai-2-27B-PTQ1_0.gguf"], found);
-        }
-        finally
-        {
-            File.Delete(elsewhere);
-        }
+        var llama = Touch(@"Llama-CPP\llama-server.exe");
+        var bonsai = Touch(@"Bonsai\Bonsai-demo\bin\cuda\llama-server.exe");
+        Touch(@"Llama-CPP\Models\Qwen 3.5 9B\Qwen3.5-9B-Q4_K_M.gguf");
+        Touch(@"Llama-CPP\Models\Qwen 3.5 9B\Qwen3.5-9B-mmproj-BF16.gguf");
+        Touch(@"Llama-CPP\Models\Qwen 3.5 9B\Qwen3.5-9B-uncensored-heretic-Q4_K_M.gguf");
+        Touch(@"Llama-CPP\Models\Qwen 3.5 9B\Qwen3.5-9B-uncensored-heretic-mmproj-BF16.gguf");
+        Touch(@"Llama-CPP\Models\big\big-00001-of-00002.gguf", 3);
+        Touch(@"Llama-CPP\Models\big\big-00002-of-00002.gguf", 4);
+        Touch(@"Bonsai\Bonsai-demo\models\bonsai2-gguf\27B\Ternary-Bonsai-2-27B-PQ2_0.gguf");
+        Touch(@"Bonsai\Bonsai-demo\models\bonsai2-gguf\27B\Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf");
+        Touch(@"Bonsai\Bonsai-demo\models\bonsai2-gguf\27B\Ternary-Bonsai-2-27B-dspark-dflash.gguf");
+        var elsewhere = Touch(@"Otros\suelto.gguf");
+
+        var found = GgufFiles.Find([Path.Combine(_folder, @"Llama-CPP\Models"), Path.Combine(_folder, @"Bonsai\Bonsai-demo\models"), Path.Combine(_folder, "no-está")],
+            [elsewhere], [llama, bonsai]);
+        Assert.Equal(["big-00001-of-00002.gguf", "Qwen3.5-9B-Q4_K_M.gguf", "Qwen3.5-9B-uncensored-heretic-Q4_K_M.gguf", "suelto.gguf", "Ternary-Bonsai-2-27B-PQ2_0.gguf"],
+            found.Select(m => Path.GetFileName(m.Path)));
+        LocalModel Of(string name) => found.First(m => Path.GetFileName(m.Path) == name);
+        Assert.Equal(7, Of("big-00001-of-00002.gguf").Size);
+        Assert.Equal("Qwen3.5-9B-mmproj-BF16.gguf", Path.GetFileName(Of("Qwen3.5-9B-Q4_K_M.gguf").Projector));
+        Assert.Equal("Qwen3.5-9B-uncensored-heretic-mmproj-BF16.gguf", Path.GetFileName(Of("Qwen3.5-9B-uncensored-heretic-Q4_K_M.gguf").Projector));
+        Assert.Equal("Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf", Path.GetFileName(Of("Ternary-Bonsai-2-27B-PQ2_0.gguf").Projector));
+        Assert.Null(Of("suelto.gguf").Projector);
+        // Bonsai's models open with Bonsai's server; the rest with the usual one, the first.
+        Assert.Equal(bonsai, Of("Ternary-Bonsai-2-27B-PQ2_0.gguf").Server);
+        Assert.Equal(llama, Of("Qwen3.5-9B-Q4_K_M.gguf").Server);
+        Assert.Equal(llama, Of("suelto.gguf").Server);
+        Assert.Equal(Path.Combine(_folder, @"Bonsai\Bonsai-demo\models"), GgufFiles.ModelsFolderNear(bonsai));
+    }
+
+    [Theory]
+    [InlineData("Qwen3.5-4B-Q4_K_M.gguf", "Qwen3.5-4B-mmproj-F16.gguf")]
+    [InlineData("Qwen3.5-4B-abliterated.i1-Q4_K_M.gguf", "Qwen3.5-4B-mmproj-F16.gguf")]
+    [InlineData("Qwen3.8-27B-GSQ-RCO-IQ3_S.gguf", "mmproj-Qwen3.8-27B-BF16.gguf")]
+    public void TheProjectorWithTheMostWordsInCommonGoesWithTheModel(string model, string expected) =>
+        Assert.Equal(expected, GgufFiles.BestProjector(model, ["Qwen3.5-4B-heretic.mmproj-f16.gguf", "Qwen3.5-4B-mmproj-F16.gguf", "mmproj-Qwen3.8-27B-BF16.gguf"]));
+
+    [Fact]
+    public void TheOnlyProjectorOfAFolderIsTheOne() =>
+        Assert.Equal("mmproj-F16.gguf", GgufFiles.BestProjector("Qwen3.5-9B-Q4_K_M.gguf", ["mmproj-F16.gguf"]));
+
+    /// <summary>The options llama-server starts with: no fixed layers (<c>--fit</c> decides), an 8-bit cache, the projector, and the user's last.</summary>
+    [Fact]
+    public void ItStartsWithItsProjectorAndTheUsersOptionsLast()
+    {
+        using var pool = new LlamaServerPool([@"E:\l\llama-server.exe"], [], "-c 32768", null, oneAtATime: true, vision: true, [], () => 12);
+        var model = new LocalModel(@"E:\m\q.gguf", 5, @"E:\m\mmproj.gguf", 1, @"E:\l\llama-server.exe");
+        var args = pool.Arguments(model, 1234, "q");
+        Assert.Equal(["-m", @"E:\m\q.gguf", "--mmproj", @"E:\m\mmproj.gguf"], args.Take(4));
+        Assert.DoesNotContain("-ngl", args);
+        Assert.Contains("q8_0", args);
+        Assert.Equal(["-c", "32768"], args.TakeLast(2));
+        using var blind = new LlamaServerPool([@"E:\l\llama-server.exe"], [], "", null, oneAtATime: true, vision: false, [], () => 12);
+        Assert.DoesNotContain("--mmproj", blind.Arguments(model, 1234, "q"));
+        Assert.Equal("llama-server (Bonsai-demo)", LlamaServerPool.ServerName(@"E:\Bonsai-demo\bin\cuda\llama-server.exe"));
     }
 
     [Fact]
     public async Task WithoutTheProgramItSaysSoInsteadOfAnAddress()
     {
-        using var model = new LlamaServerChatModel(Path.Combine(_folder, "nada", "llama-server.exe"), "", null);
-        var error = await Assert.ThrowsAsync<ChatModelException>(() => model.ListModelsAsync(default));
+        var model = Touch(@"m\q.gguf");
+        using var pool = new LlamaServerPool([Path.Combine(_folder, "nada", "llama-server.exe")], [Path.Combine(_folder, "m")], "", null, true, true, [], () => 12);
+        Assert.Single(await pool.ListModelsAsync(default));
+        var error = await Assert.ThrowsAsync<ChatModelException>(() => pool.PreloadAsync(model, default));
         Assert.Equal(ChatModelFailure.Unreachable, error.Failure);
         Assert.Contains("llama-server.exe", error.Message, StringComparison.Ordinal);
-        Assert.Empty(await model.ListLoadedAsync(default));
+        Assert.Empty(await pool.ListLoadedAsync(default));
     }
 
-    [Fact]
-    public void ItsSettingsTravelToTheProcess()
-    {
-        var config = new BrainConfig(BrainProvider.LlamaServer, Model: @"E:\m\b.gguf", Server: @"E:\b\llama-server.exe", ServerArgs: "-c 32768", KeepMinutes: 0);
-        var back = BrainConfig.FromJson(JsonNode.Parse(config.ToJson().ToJsonString())!.AsObject());
-        Assert.Equal((BrainProvider.LlamaServer, @"E:\m\b.gguf", @"E:\b\llama-server.exe", "-c 32768", 0),
-            (back.Provider, back.Model, back.Server, back.ServerArgs, back.KeepMinutes));
-        // An older K-Desktop does not send it: the usual half hour.
-        Assert.Equal(BrainConfig.DefaultKeepMinutes, BrainConfig.FromJson(new JsonObject { ["provider"] = "ollama" }).KeepMinutes);
-        Assert.Equal("b", BrainProviders.ModelLabel(@"E:\m\b.gguf"));
-        Assert.Equal("qwen3:4b", BrainProviders.ModelLabel("qwen3:4b"));
-    }
-
-    private string Touch(string relative)
+    private string Touch(string relative, int bytes = 1)
     {
         var path = Path.Combine(_folder, relative);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        File.WriteAllText(path, "x");
+        File.WriteAllBytes(path, new byte[bytes]);
         return path;
     }
 

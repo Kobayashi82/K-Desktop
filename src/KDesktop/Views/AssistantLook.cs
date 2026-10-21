@@ -75,8 +75,8 @@ public sealed class AssistantRow
     /// <summary>Whether there is a brain to choose a model of (not «no AI»).</summary>
     public bool HasBrain { get; set; }
 
-    /// <summary>The model it suggests when Ollama does not have it (offered, never downloaded without asking), or null.</summary>
-    public string? SuggestedModel { get; set; }
+    /// <summary>The model it suggests when it is not here (offered, never downloaded without asking), or null.</summary>
+    public App.SuggestedModel? SuggestedModel { get; set; }
 
     public bool HasSuggestedModel => SuggestedModel is not null;
 

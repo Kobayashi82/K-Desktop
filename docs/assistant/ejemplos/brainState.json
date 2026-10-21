@@ -1,17 +1,20 @@
 {
   "t": "brainState",
   "state": "ready",
-  "provider": "ollama",
-  "endpoint": "http://localhost:11434",
-  "model": "qwen3.5:4b",
-  "automatic": true,
+  "model": "E:\\Modelos\\Bonsai\\Ternary-Bonsai-2-27B-PQ2_0.gguf",
+  "automatic": false,
   "models": [
-    { "name": "qwen3.5:4b", "billions": 4.7, "sizeBytes": 3400000000, "tools": true },
-    { "name": "gemma4-12b-vision:latest", "billions": 11.9, "sizeBytes": 7600000000, "tools": true }
+    { "name": "E:\\Modelos\\Bonsai\\Ternary-Bonsai-2-27B-PQ2_0.gguf", "billions": 27, "sizeBytes": 7200000000, "tools": true, "vision": true, "server": "E:\\Bonsai-demo\\bin\\cuda\\llama-server.exe" },
+    { "name": "E:\\Modelos\\Qwen 3.5 9B\\Qwen3.5-9B-Q4_K_M.gguf", "billions": 9, "sizeBytes": 5680522464, "tools": true, "vision": false, "server": "E:\\Llama-CPP\\llama-server.exe" },
+    { "name": "r1/qwen3.5:4b", "billions": 4.7, "sizeBytes": 3400000000, "tools": true, "vision": false, "remote": "r1" }
   ],
-  "loaded": ["qwen3.5:4b"],
-  "ollama": { "installed": true, "canInstall": true },
-  "job": { "kind": "pull", "state": "running", "model": "qwen3.5:2b", "completed": 1200000000, "total": 2700000000 },
+  "loaded": ["E:\\Modelos\\Bonsai\\Ternary-Bonsai-2-27B-PQ2_0.gguf"],
   "videoMemoryGb": 12,
-  "loading": false
+  "servers": [
+    { "path": "E:\\Llama-CPP\\llama-server.exe", "exists": true, "models": 1 },
+    { "path": "E:\\Bonsai-demo\\bin\\cuda\\llama-server.exe", "exists": true, "models": 1 }
+  ],
+  "remotes": [
+    { "id": "r1", "state": "ok", "models": 1, "ms": 12 }
+  ]
 }

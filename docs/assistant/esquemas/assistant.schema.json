@@ -37,11 +37,16 @@
       "maxLength": 30
     },
     "model": {
-      "description": "Modelo de IA sugerido. K-Desktop lo ofrece; nunca lo descarga sin preguntar.",
+      "description": "Modelo de IA sugerido: uno o varios de Hugging Face («usuario/repo/archivo.gguf» o «usuario/repo:Q4_K_M»), el mejor primero. K-Desktop ofrece el primero que cabe en la gráfica; nunca lo descarga sin preguntar.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "suggested": { "type": "string", "minLength": 1 },
+        "suggested": {
+          "oneOf": [
+            { "$ref": "#/$defs/hfModel" },
+            { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/hfModel" } }
+          ]
+        },
         "min": { "type": "string", "pattern": "^\\d+(\\.\\d+)?[bB]$" }
       }
     },
@@ -97,6 +102,13 @@
       "description": "Datos de una versión independiente que K-Desktop puede ofrecer importar (rutas con variables de entorno).",
       "type": "array",
       "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "$defs": {
+    "hfModel": {
+      "description": "Un modelo de Hugging Face: «usuario/repo/archivo.gguf» o «usuario/repo:CUANTIZACIÓN».",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(:[A-Za-z0-9_.-]+|/.+\\.gguf)?$"
     }
   }
 }

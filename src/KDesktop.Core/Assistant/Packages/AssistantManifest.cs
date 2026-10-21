@@ -107,7 +107,43 @@ public sealed partial record AssistantManifest
     private static partial Regex EntryPattern();
 }
 
-public sealed record ModelHint(string? Suggested = null, string? Min = null);
+/// <summary>
+/// The AI model an assistant suggests (5.0.107): one or several models of Hugging Face («owner/repo/file.gguf», or
+/// «owner/repo:Q4_K_M»), best first. K-Desktop offers the first one that fits in the graphics card, never downloading it
+/// without asking.
+/// </summary>
+public sealed record ModelHint(
+    [property: JsonConverter(typeof(OneOrManyConverter))] IReadOnlyList<string>? Suggested = null,
+    string? Min = null)
+{
+    /// <summary>The suggestions that can be read as models of Hugging Face, best first.</summary>
+    [JsonIgnore]
+    public IReadOnlyList<Brain.HfRef> Models => [.. (Suggested ?? []).Select(Brain.HuggingFace.Parse).OfType<Brain.HfRef>()];
+}
+
+/// <summary>A text or a list of texts, read as a list.</summary>
+public sealed class OneOrManyConverter : JsonConverter<IReadOnlyList<string>>
+{
+    public override IReadOnlyList<string>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.String) return [reader.GetString()!];
+        if (reader.TokenType != JsonTokenType.StartArray) throw new JsonException("se espera un texto o una lista de textos");
+        var list = new List<string>();
+        while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+        {
+            if (reader.TokenType != JsonTokenType.String) throw new JsonException("se espera una lista de textos");
+            list.Add(reader.GetString()!);
+        }
+        return list;
+    }
+
+    public override void Write(Utf8JsonWriter writer, IReadOnlyList<string> value, JsonSerializerOptions options)
+    {
+        writer.WriteStartArray();
+        foreach (var item in value) writer.WriteStringValue(item);
+        writer.WriteEndArray();
+    }
+}
 
 public sealed record ManifestTraits
 {

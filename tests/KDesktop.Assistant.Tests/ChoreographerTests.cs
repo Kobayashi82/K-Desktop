@@ -35,7 +35,7 @@ public class ChoreographerTests
     {
         var data = Path.Combine(Path.GetTempPath(), "kdesktop-tests", "gestures-" + Guid.NewGuid().ToString("N")[..8], "data");
         var name = "KDesktop.Assistant.Test." + Guid.NewGuid().ToString("N")[..12];
-        var config = new JsonObject { ["brain"] = new JsonObject { ["provider"] = "none", ["endpoint"] = "", ["model"] = "" } };
+        var config = new JsonObject { ["brain"] = new JsonObject { ["model"] = "none" } };
         Process? process = null;
         var received = new ConcurrentQueue<(PipeMessage Message, long At)>();
         var clock = Stopwatch.StartNew();

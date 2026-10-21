@@ -37,12 +37,14 @@ public partial class AssistantListSection : UserControl
         {
             _app.AssistantChanged += Refresh;
             _app.AssistantBrainChanged += OnBrainChanged;
+            _app.AssistantModelDownloadChanged += OnBrainChanged;
             Refresh();
         };
         Unloaded += (_, _) =>
         {
             _app.AssistantChanged -= Refresh;
             _app.AssistantBrainChanged -= OnBrainChanged;
+            _app.AssistantModelDownloadChanged -= OnBrainChanged;
         };
     }
 
@@ -72,6 +74,7 @@ public partial class AssistantListSection : UserControl
             row.WakeOptions = options;
             FillModels(row);
         }
+        LookUpSuggestions(rows);
         _brainShown = BrainShown();
         AssistantList.ItemsSource = rows;
         EmptyPanel.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -92,41 +95,58 @@ public partial class AssistantListSection : UserControl
     }
 
     /// <summary>The key of <see cref="_brainShown"/>: the models the server has and the download going on.</summary>
-    private string BrainShown() => _app.AssistantBrain is { } brain
-        ? $"{brain.State}|{string.Join(',', brain.Models?.Select(m => m.Name) ?? [])}|{brain.Job?.Kind}:{brain.Job?.State}:{brain.Job?.Model}"
-        : string.Empty;
+    private string BrainShown() => (_app.AssistantBrain is { } brain ? $"{brain.State}|{brain.Model}|{string.Join(',', brain.Models?.Select(m => m.Name) ?? [])}" : string.Empty)
+        + $"|{_app.AssistantModelDownload is { Running: true } d}|{string.Join(',', _suggestions.Select(p => $"{p.Key}:{p.Value?.Model.File}"))}";
 
     private void OnBrainChanged()
     {
         if (BrainShown() != _brainShown) Refresh();
     }
 
+    /// <summary>The model each assistant suggests that is not here (looked up in Hugging Face once per state of the brain).</summary>
+    private readonly Dictionary<string, App.SuggestedModel?> _suggestions = new(StringComparer.Ordinal);
+    private string? _suggestionsFor;
+
+    /// <summary>Looks up what each assistant suggests again when the models of the brain changed; the list is made again with it.</summary>
+    private async void LookUpSuggestions(IReadOnlyList<AssistantRow> rows)
+    {
+        var key = string.Join(',', _app.AssistantBrain?.Models?.Select(m => m.Name) ?? []) + "|" + string.Join(',', rows.Select(r => r.Id + r.Installed.Manifest.Version));
+        if (_app.AssistantBrain is null || key == _suggestionsFor) return;
+        _suggestionsFor = key;
+        var found = new Dictionary<string, App.SuggestedModel?>(StringComparer.Ordinal);
+        foreach (var row in rows) found[row.Id] = await _app.MissingSuggestedModelAsync(row.Installed.Manifest);
+        if (key != _suggestionsFor) return;
+        _suggestions.Clear();
+        foreach (var (id, model) in found) _suggestions[id] = model;
+        if (BrainShown() != _brainShown) Refresh();
+    }
+
     /// <summary>
-    /// The models one assistant can think with (stage 3.2): the general one first, then those of the server; its own when the
-    /// server does not have it says so. And the model it suggests, when Ollama does not have it.
+    /// The models one assistant can think with (stage 3.2): the general one first, then all of the brain (with their server
+    /// when they are of another one); its own when it is not there says so. And the model it suggests, when it is not here.
     /// </summary>
     private void FillModels(AssistantRow row)
     {
         var brain = _app.AssistantBrain;
-        row.HasBrain = _app.Config.Settings.AssistantBrainProvider != Core.Assistant.Brain.BrainProvider.None;
+        row.HasBrain = !_app.AssistantBrainOff;
         List<ModelOption> options =
         [
-            new(string.Empty, brain is { State: "ready", Model: { } general } ? Loc.T("assistantOptions.modelGeneralIs", Core.Assistant.Brain.BrainProviders.ModelLabel(general)) : Loc.T("assistantOptions.modelGeneral")),
-            .. (brain?.Models ?? []).Select(m => new ModelOption(m.Name, Core.Assistant.Brain.BrainProviders.ModelLabel(m.Name))),
+            new(string.Empty, brain is { State: "ready", Model: { } general } ? Loc.T("assistantOptions.modelGeneralIs", _app.BrainModelName(general)) : Loc.T("assistantOptions.modelGeneral")),
+            .. (brain?.Models ?? []).Select(m => new ModelOption(m.Name, _app.BrainModelName(m.Name))),
         ];
-        if (row.ModelName.Length > 0 && !options.Any(o => Core.Assistant.Brain.BrainProviders.SameModel(o.Value, row.ModelName)))
-            options.Add(new ModelOption(row.ModelName, brain is null ? Core.Assistant.Brain.BrainProviders.ModelLabel(row.ModelName)
-                : Loc.T("assistantOptions.modelMissing", Core.Assistant.Brain.BrainProviders.ModelLabel(row.ModelName))));
-        else if (row.ModelName.Length > 0 && options.FirstOrDefault(o => Core.Assistant.Brain.BrainProviders.SameModel(o.Value, row.ModelName)) is { } same)
-            row.ModelName = same.Value;
+        if (row.ModelName.Length > 0 && Core.Assistant.Brain.ModelRefs.Find(options.Skip(1).Select(o => o.Value), row.ModelName) is { } same)
+            row.ModelName = same;
+        else if (row.ModelName.Length > 0)
+            options.Add(new ModelOption(row.ModelName, brain is null ? _app.BrainModelName(row.ModelName)
+                : Loc.T("assistantOptions.modelMissing", _app.BrainModelName(row.ModelName))));
         row.ModelOptions = options;
 
-        row.SuggestedModel = _app.MissingSuggestedModel(row.Installed.Manifest);
-        var downloading = brain?.Job is { Kind: "pull", State: "running" } job ? job.Model : null;
+        row.SuggestedModel = _suggestions.GetValueOrDefault(row.Id);
+        var downloading = _app.AssistantModelDownload is { Running: true } download ? download : null;
         row.CanDownloadSuggested = row.SuggestedModel is not null && downloading is null;
         row.SuggestedModelText = row.SuggestedModel is not { } suggested ? string.Empty
-            : downloading is not null && Core.Assistant.Brain.BrainProviders.SameModel(downloading, suggested) ? Loc.T("assistantOptions.modelDownloading", suggested)
-            : Loc.T("assistantOptions.modelSuggested", suggested);
+            : downloading is not null && downloading.Name == suggested.Model.Name ? Loc.T("assistantOptions.modelDownloading", suggested.Model.Name)
+            : Loc.T("assistantOptions.modelSuggested", suggested.Model.Name, (suggested.Size / 1e9).ToString("0.0", Loc.Instance.Culture));
     }
 
     private void OnModelChanged(object sender, SelectionChangedEventArgs e)
@@ -136,10 +156,11 @@ public partial class AssistantListSection : UserControl
         Dispatcher.BeginInvoke(() => _app.SetAssistantModel(row.Id, option.Value));
     }
 
-    /// <summary>The model it suggests: downloaded only because the user asked here (its progress is in Options → Brain).</summary>
+    /// <summary>The model it suggests: downloaded only because the user asked here (its progress is in Options → Brain); it thinks with it once here.</summary>
     private void OnDownloadModel(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement { DataContext: AssistantRow { SuggestedModel: { } model } }) _app.AskAssistantBrain("pull", model);
+        if (sender is FrameworkElement { DataContext: AssistantRow { SuggestedModel: { } model } row } && _app.StartModelDownload(model.Model, model.Projector, row.Id))
+            Refresh();
     }
 
     /// <summary>The list (null) or an assistant's settings (its id) is shown now: the tree of Options follows.</summary>

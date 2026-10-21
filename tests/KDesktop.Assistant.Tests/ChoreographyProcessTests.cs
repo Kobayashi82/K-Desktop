@@ -26,7 +26,7 @@ public class ChoreographyProcessTests
     {
         var data = Path.Combine(Path.GetTempPath(), "kdesktop-tests", "choreo-" + Guid.NewGuid().ToString("N")[..8], "data");
         var name = "KDesktop.Assistant.Test." + Guid.NewGuid().ToString("N")[..12];
-        var config = new JsonObject { ["brain"] = new JsonObject { ["provider"] = "none", ["endpoint"] = "", ["model"] = "" } };
+        var config = new JsonObject { ["brain"] = new JsonObject { ["model"] = "none" } };
         Process? process = null;
         var received = new ConcurrentQueue<PipeMessage>();
         await using var server = new AssistantPipeServer(name, new ClientPolicy(Exe, pid => pid == process?.Id), () => new WelcomeMessage("es", "dark", false, config));

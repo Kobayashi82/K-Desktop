@@ -2,15 +2,15 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using KDesktop.Assistant.Brain;
 using KDesktop.Assistant.Brain.Models;
-using KDesktop.Assistant.Brain.Setup;
 using KDesktop.Core.Assistant.Brain;
 using KDesktop.Core.Assistant.Pipe;
 
 namespace KDesktop.Assistant.Tests;
 
-/// <summary>Stage 3.1: the providers' clients, choosing the model, and the brain service against a fake Ollama.</summary>
+/// <summary>Stage 3.1 (its own brain since 5.0.107): the servers' clients, naming and choosing the models, and the brain service against fake servers.</summary>
 public class BrainTests
 {
     private static ModelInfo Model(string name, double billions, params string[] caps) => new(name, billions, (long)(billions * 0.7e9), caps);
@@ -94,22 +94,6 @@ public class BrainTests
         Assert.Equal("""{"a":1}""", pending[0].Arguments.ToString());
     }
 
-    [Fact]
-    public void PullProgressAddsTheLayers()
-    {
-        var tracker = new PullTracker(expectedBytes: 0);
-        tracker.Feed("""{"status":"pulling manifest"}""");
-        tracker.Feed("""{"status":"pulling a","digest":"a","total":100,"completed":50}""");
-        var step = tracker.Feed("""{"status":"pulling b","digest":"b","total":300,"completed":30}""")!;
-        Assert.Equal(80, step.Completed);
-        Assert.Equal(400, step.Total);
-        Assert.False(tracker.Done);
-        var done = tracker.Feed("""{"status":"success"}""")!;
-        Assert.True(tracker.Done);
-        Assert.Equal(400, done.Completed);
-        Assert.Throws<ChatModelException>(() => new PullTracker(0).Feed("""{"error":"pull model manifest: file does not exist"}"""));
-    }
-
     [Theory]
     [InlineData("http://localhost:11434", EndpointPlace.ThisPc)]
     [InlineData("http://127.0.0.1:8080", EndpointPlace.ThisPc)]
@@ -123,21 +107,25 @@ public class BrainTests
     [Fact]
     public void TheConfigTravelsAsJson()
     {
-        var config = new BrainConfig(BrainProvider.LlamaSwap, "", "secret", "qwen");
-        var back = BrainConfig.FromJson(config.ToJson());
-        Assert.Equal(BrainProvider.LlamaSwap, back.Provider);
-        Assert.Equal("http://localhost:8080", back.Address);
-        Assert.Equal("secret", back.ApiKey);
-        Assert.Equal("qwen", back.Model);
+        var config = new BrainConfig("r1/qwen", Servers: [@"E:\a\llama-server.exe", @"E:\b\bin\cuda\llama-server.exe"], Folders: [@"E:\m"], ServerArgs: "-c 32768",
+            KeepMinutes: 0, OneAtATime: false, Vision: false, Remotes: [new BrainRemote("r1", RemoteKind.LlamaSwap, "", "secret")]);
+        var back = BrainConfig.FromJson(JsonNode.Parse(config.ToJson().ToJsonString())!.AsObject());
+        Assert.Equal(config.SourcesKey, back.SourcesKey);
+        Assert.Equal("r1/qwen", back.Model);
+        var remote = Assert.Single(back.RemoteList);
+        Assert.Equal(("http://localhost:8080", "secret", RemoteKind.LlamaSwap), (remote.Address, remote.ApiKey, remote.Kind));
         Assert.Equal(BrainConfig.Default, BrainConfig.FromJson(null));
+        // An older K-Desktop does not send them: one model at a time, with vision, the usual half hour.
+        var bare = BrainConfig.FromJson(new JsonObject());
+        Assert.Equal((true, true, BrainConfig.DefaultKeepMinutes), (bare.OneAtATime, bare.Vision, bare.KeepMinutes));
     }
 
     [Fact]
     public void EachAssistantsModelTravelsToo()
     {
-        var config = BrainConfig.Default with { Models = new Dictionary<string, string> { ["lander"] = "gemma4-e4b" } };
+        var config = BrainConfig.Default with { Models = new Dictionary<string, string> { ["lander"] = "r1/gemma4-e4b" } };
         var back = BrainConfig.FromJson(config.ToJson());
-        Assert.Equal("gemma4-e4b", back.AssistantModels["lander"]);
+        Assert.Equal("r1/gemma4-e4b", back.AssistantModels["lander"]);
         Assert.Empty(BrainConfig.Default.AssistantModels);
     }
 
@@ -147,7 +135,34 @@ public class BrainTests
     [InlineData("qwen3.5:4b", "qwen3.5:2b", false)]
     public void ModelNamesMatchWithOrWithoutLatest(string a, string b, bool same) => Assert.Equal(same, BrainProviders.SameModel(a, b));
 
-    // ── the service against a fake Ollama ───────────────────────────────
+    /// <summary>5.0.107: a model is named by where it is, so two servers with «qwen3:4b» are two models.</summary>
+    [Fact]
+    public void ModelsAreNamedByWhereTheyAre()
+    {
+        Assert.True(ModelRefs.IsLocal(@"E:\m\b.gguf"));
+        Assert.False(ModelRefs.IsLocal("r1/b.gguf"));
+        Assert.Equal(("r1", "unsloth/qwen:4b"), ModelRefs.SplitRemote("r1/unsloth/qwen:4b"));
+        Assert.Null(ModelRefs.SplitRemote(@"E:\m\b.gguf"));
+        Assert.Null(ModelRefs.SplitRemote("qwen3:4b"));
+        Assert.Equal("b", ModelRefs.Label(@"E:\m\b.gguf"));
+        Assert.Equal("qwen3:4b", ModelRefs.Label("r2/qwen3:4b"));
+        Assert.True(ModelRefs.Same("r1/qwen3:4b", "r1/qwen3:4b:latest"));
+        Assert.False(ModelRefs.Same("r1/qwen3:4b", "r2/qwen3:4b"));
+        Assert.True(ModelRefs.Same(@"E:\m\B.gguf", @"e:\m\b.gguf"));
+        string[] there = ["r1/qwen3:4b", "r2/qwen3:4b", @"E:\m\Bonsai.gguf"];
+        Assert.Equal("r2/qwen3:4b", ModelRefs.Find(there, "r2/qwen3:4b:latest"));
+        // A bare name (settings and messages of before) finds the first one with that name.
+        Assert.Equal("r1/qwen3:4b", ModelRefs.Find(there, "qwen3:4b"));
+        Assert.Equal(@"E:\m\Bonsai.gguf", ModelRefs.Find(there, "Bonsai"));
+        Assert.Null(ModelRefs.Find(there, "r3/qwen3:4b"));
+        Assert.Null(ModelRefs.Find(there, ModelRefs.None));
+    }
+
+    // ── the service against fake servers ────────────────────────────────
+
+    private static readonly BrainRemote Ollama = new("r1", RemoteKind.Ollama);
+
+    private static BrainConfig WithOllama => new(Remotes: [Ollama]);
 
     /// <summary>Stage 3.2: the Lander thinks with its own model and the module without a body with the general one.</summary>
     [Fact]
@@ -155,30 +170,45 @@ public class BrainTests
     {
         var ollama = new FakeOllama { Models = ["qwen3.5-4b:latest|4.7B", "gemma4-e4b:latest|7.5B"] };
         using var brain = new BrainService(() => 12, ollama);
-        var own = new Dictionary<string, string> { ["lander"] = "gemma4-e4b", ["dot"] = "not-there:1b" };
-        await ConfigureAsync(brain, BrainConfig.Default with { Models = own });
-        Assert.Equal("gemma4-e4b:latest", brain.ModelFor("lander"));
-        Assert.Equal("qwen3.5-4b:latest", brain.ModelFor("dot"));
-        Assert.Equal("qwen3.5-4b:latest", brain.ModelFor(null));
+        var own = new Dictionary<string, string> { ["lander"] = "r1/gemma4-e4b", ["dot"] = "r1/not-there:1b", ["blob"] = "gemma4-e4b" };
+        await ConfigureAsync(brain, WithOllama with { Models = own });
+        Assert.Equal("r1/gemma4-e4b:latest", brain.ModelFor("lander"));
+        Assert.Equal("r1/qwen3.5-4b:latest", brain.ModelFor("dot"));
+        Assert.Equal("r1/gemma4-e4b:latest", brain.ModelFor("blob"));
+        Assert.Equal("r1/qwen3.5-4b:latest", brain.ModelFor(null));
 
         // Changing only an assistant's model takes effect without looking at the server again.
-        brain.Configure(BrainConfig.Default with { Models = new Dictionary<string, string>() });
-        Assert.Equal("qwen3.5-4b:latest", brain.ModelFor("lander"));
+        brain.Configure(WithOllama with { Models = new Dictionary<string, string>() });
+        Assert.Equal("r1/qwen3.5-4b:latest", brain.ModelFor("lander"));
     }
-
 
     [Fact]
     public async Task ItIsReadyWithTheModelItPicks()
     {
         var ollama = new FakeOllama { Models = ["qwen3.5-4b:latest|4.7B", "Qwen3.8-27b:latest|26.9B"], Loaded = ["qwen3.5-4b:latest"] };
         using var brain = new BrainService(() => 12, ollama);
-        var state = await ConfigureAsync(brain, BrainConfig.Default);
+        var state = await ConfigureAsync(brain, WithOllama);
         Assert.Equal("ready", state.State);
-        Assert.Equal("qwen3.5-4b:latest", state.Model);
+        Assert.Equal("r1/qwen3.5-4b:latest", state.Model);
         Assert.True(state.Automatic);
-        Assert.Equal(["qwen3.5-4b:latest"], state.Loaded);
+        Assert.Equal(["r1/qwen3.5-4b:latest"], state.Loaded);
         Assert.Equal(2, state.Models!.Count);
-        Assert.Equal("qwen3.5-4b:latest", brain.Model);
+        Assert.All(state.Models, m => Assert.Equal("r1", m.Remote));
+        Assert.Equal("ok", Assert.Single(state.Remotes!).State);
+        Assert.Equal("r1/qwen3.5-4b:latest", brain.Model);
+    }
+
+    /// <summary>Two servers with a model of the same name: two models, each sent to its server.</summary>
+    [Fact]
+    public async Task TwoServersWithTheSameModelAreNotMixedUp()
+    {
+        var ollama = new FakeOllama { Models = ["qwen3.5-4b:latest|4.7B"], Ports = [11434, 11500] };
+        using var brain = new BrainService(() => 12, ollama);
+        var state = await ConfigureAsync(brain, new BrainConfig("r2/qwen3.5-4b", Remotes: [Ollama, new BrainRemote("r2", RemoteKind.Ollama, "http://localhost:11500")]));
+        Assert.Equal(["r1/qwen3.5-4b:latest", "r2/qwen3.5-4b:latest"], state.Models!.Select(m => m.Name));
+        Assert.Equal("r2/qwen3.5-4b:latest", state.Model);
+        await brain.LoadAsync();
+        Assert.Equal(11500, ollama.LastChatPort);
     }
 
     [Fact]
@@ -186,65 +216,40 @@ public class BrainTests
     {
         var ollama = new FakeOllama { Models = ["qwen3.5-4b:latest|4.7B"] };
         using var brain = new BrainService(() => 12, ollama);
-        var state = await ConfigureAsync(brain, BrainConfig.Default with { Model = "llama9:70b" });
+        var state = await ConfigureAsync(brain, WithOllama with { Model = "r1/llama9:70b" });
         Assert.Equal("modelMissing", state.State);
-        Assert.Equal("llama9:70b", state.Model);
+        Assert.Equal("r1/llama9:70b", state.Model);
         Assert.Null(brain.Model);
     }
 
     [Fact]
-    public async Task WithoutModelsItSuggestsOneForTheVideoMemory()
+    public async Task WithoutModelsItSaysSo()
     {
-        using var small = new BrainService(() => 4, new FakeOllama());
-        var state = await ConfigureAsync(small, BrainConfig.Default);
+        using var brain = new BrainService(() => 12, new FakeOllama { Models = ["embeddinggemma:300m|300M|embedding"] });
+        var state = await ConfigureAsync(brain, WithOllama);
         Assert.Equal("noModels", state.State);
-        Assert.Equal(ModelAdvice.Light.Name, state.Suggested!.Name);
-
-        using var big = new BrainService(() => 12, new FakeOllama { Models = ["embeddinggemma:300m|300M|embedding"] });
-        state = await ConfigureAsync(big, BrainConfig.Default);
-        Assert.Equal("noModels", state.State);
-        Assert.Equal(ModelAdvice.Standard.Name, state.Suggested!.Name);
+        Assert.Null(brain.Model);
     }
 
     [Fact]
-    public async Task NoServerIsUnreachable()
+    public async Task AServerThatDoesNotAnswerIsSaidButDoesNotStopTheRest()
     {
         using var brain = new BrainService(() => null, new FakeOllama { Down = true });
-        var state = await ConfigureAsync(brain, BrainConfig.Default);
-        Assert.Equal("unreachable", state.State);
-        Assert.NotNull(state.Message);
+        var state = await ConfigureAsync(brain, WithOllama);
+        Assert.Equal("noModels", state.State);
+        var remote = Assert.Single(state.Remotes!);
+        Assert.Equal("unreachable", remote.State);
+        Assert.NotNull(remote.Message);
     }
 
     [Fact]
     public async Task NoAIIsOff()
     {
-        using var brain = new BrainService(() => null, new FakeOllama());
-        var state = await ConfigureAsync(brain, new BrainConfig(BrainProvider.None));
+        using var brain = new BrainService(() => null, new FakeOllama { Models = ["qwen3.5-4b:latest|4.7B"] });
+        var state = await ConfigureAsync(brain, WithOllama with { Model = ModelRefs.None });
         Assert.Equal("off", state.State);
         Assert.Null(brain.Client);
-    }
-
-    [Fact]
-    public async Task ADownloadReportsItsProgressAndThenTheModelIsThere()
-    {
-        var ollama = new FakeOllama();
-        using var brain = new BrainService(() => 12, ollama);
-        await ConfigureAsync(brain, BrainConfig.Default);
-        var jobs = new List<BrainJob>();
-        var ready = new TaskCompletionSource<BrainStateMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
-        brain.Changed += s =>
-        {
-            if (s.Job is { } job) lock (jobs) jobs.Add(job);
-            if (s is { State: "ready", Job.State: "done" }) ready.TrySetResult(s);
-        };
-        await brain.HandleAsync(new BrainMessage("pull", "qwen3.5:4b"));
-        var state = await ready.Task.WaitAsync(TimeSpan.FromSeconds(10));
-        Assert.Equal("qwen3.5:4b", state.Model);
-        lock (jobs)
-        {
-            Assert.Contains(jobs, j => j is { State: "running", Kind: "pull" });
-            Assert.Equal("done", jobs[^1].State);
-        }
+        Assert.Null(brain.ModelFor(null));
     }
 
     [Fact]
@@ -252,10 +257,27 @@ public class BrainTests
     {
         var ollama = new FakeOllama { Models = ["qwen3.5-4b:latest|4.7B"], Loaded = ["qwen3.5-4b:latest"] };
         using var brain = new BrainService(() => 12, ollama);
-        await ConfigureAsync(brain, BrainConfig.Default);
+        await ConfigureAsync(brain, WithOllama);
         await brain.HandleAsync(new BrainMessage("unload"));
         Assert.Equal(["qwen3.5-4b:latest"], ollama.Unloaded);
         Assert.Empty(brain.State.Loaded!);
+    }
+
+    /// <summary>One model at a time: loading another one unloads what the servers of this PC have loaded.</summary>
+    [Fact]
+    public async Task OneModelAtATimeUnloadsTheOthers()
+    {
+        var ollama = new FakeOllama { Models = ["qwen3.5-4b:latest|4.7B", "gemma4-e4b:latest|7.5B"], Loaded = ["qwen3.5-4b:latest"] };
+        using var brain = new BrainService(() => 12, ollama);
+        await ConfigureAsync(brain, WithOllama);
+        await brain.HandleAsync(new BrainMessage("load", "r1/gemma4-e4b:latest"));
+        Assert.Equal(["qwen3.5-4b:latest"], ollama.Unloaded);
+
+        var many = new FakeOllama { Models = ["qwen3.5-4b:latest|4.7B", "gemma4-e4b:latest|7.5B"], Loaded = ["qwen3.5-4b:latest"] };
+        using var several = new BrainService(() => 12, many);
+        await ConfigureAsync(several, WithOllama with { OneAtATime = false });
+        await several.HandleAsync(new BrainMessage("load", "r1/gemma4-e4b:latest"));
+        Assert.Empty(many.Unloaded);
     }
 
     /// <summary>Configures and waits for the first state that is not «checking».</summary>
@@ -268,14 +290,13 @@ public class BrainTests
         }
         brain.Changed += OnChanged;
         brain.Configure(config);
-        if (brain.State.State != "checking") done.TrySetResult(brain.State);
         try { return await done.Task.WaitAsync(TimeSpan.FromSeconds(10)); }
         finally { brain.Changed -= OnChanged; }
     }
 
     /// <summary>
-    /// Ollama's API in memory: <c>/api/tags</c>, <c>/api/ps</c>, <c>/api/pull</c> (two layers, then the model is there) and
-    /// <c>/api/chat</c> with keep_alive 0 (unload). Models are «name|size|capability,…». Any other place does not answer.
+    /// Ollama's API in memory: <c>/api/tags</c>, <c>/api/ps</c> and <c>/api/chat</c> (keep_alive 0 unloads, any other
+    /// loads). Models are «name|size|capability,…». It answers on <see cref="Ports"/>; any other place does not answer.
     /// </summary>
     private sealed class FakeOllama : HttpMessageHandler
     {
@@ -287,9 +308,13 @@ public class BrainTests
 
         public bool Down { get; init; }
 
+        public int[] Ports { get; init; } = [11434];
+
+        public int LastChatPort { get; private set; }
+
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            if (Down || request.RequestUri!.Port != 11434) throw new HttpRequestException("No connection could be made");
+            if (Down || !Ports.Contains(request.RequestUri!.Port)) throw new HttpRequestException("No connection could be made");
             var body = request.Content is null ? "" : await request.Content.ReadAsStringAsync(cancellationToken);
             switch (request.RequestUri.AbsolutePath)
             {
@@ -297,23 +322,22 @@ public class BrainTests
                     lock (Models) return Json(new { models = Models.Select(ToModel).ToArray() });
                 case "/api/ps":
                     lock (Loaded) return Json(new { models = Loaded.Select(n => new { name = n }).ToArray() });
-                case "/api/pull":
-                    var name = JsonDocument.Parse(body).RootElement.GetProperty("model").GetString()!;
-                    var lines = new StringBuilder()
-                        .AppendLine("""{"status":"pulling manifest"}""")
-                        .AppendLine("""{"status":"pulling","digest":"a","total":1000,"completed":400}""")
-                        .AppendLine("""{"status":"pulling","digest":"a","total":1000,"completed":1000}""")
-                        .AppendLine("""{"status":"success"}""");
-                    lock (Models) Models.Add(name + "|4.7B");
-                    return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(lines.ToString()) };
                 case "/api/chat":
+                    LastChatPort = request.RequestUri.Port;
                     using (var json = JsonDocument.Parse(body))
                     {
                         var model = json.RootElement.GetProperty("model").GetString()!;
-                        if (json.RootElement.GetProperty("keep_alive").GetString() == "0")
+                        lock (Loaded)
                         {
-                            Unloaded.Add(model);
-                            lock (Loaded) Loaded.Remove(model);
+                            if (json.RootElement.GetProperty("keep_alive").GetString() == "0")
+                            {
+                                Unloaded.Add(model);
+                                Loaded.Remove(model);
+                            }
+                            else if (!Loaded.Contains(model))
+                            {
+                                Loaded.Add(model);
+                            }
                         }
                     }
                     return Json(new { done = true });

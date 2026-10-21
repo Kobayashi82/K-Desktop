@@ -1,5 +1,5 @@
 {
   "t": "brain",
-  "op": "pull",
-  "model": "qwen3.5:4b"
+  "op": "test",
+  "remote": "r1"
 }

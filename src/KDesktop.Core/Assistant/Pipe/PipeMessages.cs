@@ -218,58 +218,54 @@ public sealed record HideMessage(string Assistant) : PipeMessage
 // ── the brain (Options → Assistant → Brain) ─────────────────────────────
 
 /// <summary>
-/// Options → Assistant → Brain asks the process for something: <c>check</c> (look at the server now), <c>scan</c> (look in
-/// the usual places of this PC), <c>installOllama</c> (with winget, as the user), <c>startOllama</c>,
-/// <c>downloadPage</c> (Ollama's, in the user's browser), <c>pull</c> (download <paramref name="Model"/>), <c>cancel</c>
-/// (the download), <c>unload</c> (free the graphics card) or <c>load</c> (load the model now). Answered with <see cref="BrainStateMessage"/>.
+/// Options → Assistant → Brain asks the process for something (5.0.107): <c>check</c> (look again), <c>rescan</c> (also the
+/// folders of models, after a download), <c>test</c> (the other server <paramref name="Remote"/>, now), <c>unload</c> (free
+/// the graphics card: every model loaded) or <c>load</c> (the model in use now, or <paramref name="Model"/>). Answered
+/// with <see cref="BrainStateMessage"/>.
 /// </summary>
-public sealed record BrainMessage(string Op, string? Model = null) : PipeMessage
+public sealed record BrainMessage(string Op, string? Model = null, string? Remote = null) : PipeMessage
 {
     public override string Type => "brain";
 }
 
-/// <summary>A model the server has.</summary>
+/// <summary>
+/// A model one can talk to. <paramref name="Name"/> is its <see cref="Brain.ModelRefs">reference</see> (a <c>.gguf</c>'s
+/// path, or <c>id/name</c> of another server); <paramref name="Server"/> is the llama-server that opens a local one, and
+/// <paramref name="Remote"/> the id of the server of another one.
+/// </summary>
 /// <param name="Billions">Its size in billions of parameters (0: unknown).</param>
-public sealed record BrainModel(string Name, double Billions, long SizeBytes, bool Tools);
+/// <param name="Vision">It can see (a local one with its projector, and vision on).</param>
+public sealed record BrainModel(string Name, double Billions, long SizeBytes, bool Tools, bool Vision = false, string? Server = null, string? Remote = null);
 
-/// <summary>A download or an installation going on, or how it ended.</summary>
-/// <param name="Kind"><c>pull</c> or <c>install</c>.</param>
-/// <param name="State"><c>running</c>, <c>done</c>, <c>failed</c> or <c>cancelled</c>.</param>
-public sealed record BrainJob(string Kind, string State, string? Model = null, long Completed = 0, long Total = 0, string? Error = null);
+/// <summary>A llama-server of Options: whether it is there and how many models open with it.</summary>
+public sealed record BrainServerState(string Path, bool Exists, int Models = 0);
 
-/// <summary>A model to download when there is none (by the video memory).</summary>
-public sealed record BrainSuggestion(string Name, double DownloadGb);
-
-/// <summary>A server that answered in a usual place of this PC.</summary>
-public sealed record BrainFound(string Provider, string Endpoint, int Models);
-
-/// <summary>Ollama on this PC.</summary>
-public sealed record BrainOllama(bool Installed, bool CanInstall);
+/// <summary>
+/// Another server: <c>ok</c>, <c>unreachable</c> or <c>error</c> (with <paramref name="Message"/>), its models and how long
+/// it took to answer.
+/// </summary>
+public sealed record BrainRemoteState(string Id, string State, int Models = 0, long Ms = 0, string? Message = null);
 
 /// <summary>
 /// How the brain is (process → K-Desktop), after each change and each <see cref="BrainMessage"/>.
-/// <paramref name="State"/>: <c>off</c> (no AI chosen), <c>checking</c>, <c>ready</c>, <c>unreachable</c> (no server
-/// there), <c>noModels</c>, <c>modelMissing</c> (the chosen one is not there) or <c>error</c>.
+/// <paramref name="State"/>: <c>off</c> (no AI chosen), <c>checking</c>, <c>ready</c>, <c>noModels</c> (none anywhere),
+/// <c>modelMissing</c> (the chosen one is not there) or <c>error</c>.
 /// </summary>
-/// <param name="Model">The model in use: the chosen one or, with <paramref name="Automatic"/>, the one picked.</param>
-/// <param name="Loaded">Models in memory now (when the server says).</param>
+/// <param name="Model">The general model in use: the chosen one or, with <paramref name="Automatic"/>, the one picked.</param>
+/// <param name="Loaded">Models in memory now (those started here, and what the other servers on this PC say).</param>
+/// <param name="Loading">The model being loaded now (a llama-server starting).</param>
 /// <param name="Message">What went wrong, in the user's language.</param>
-/// <param name="Loading">The model is being loaded now (llama-server starting).</param>
 public sealed record BrainStateMessage(
     string State,
-    string Provider,
-    string Endpoint,
     string? Model = null,
     bool Automatic = false,
     IReadOnlyList<BrainModel>? Models = null,
     IReadOnlyList<string>? Loaded = null,
+    string? Loading = null,
     string? Message = null,
-    BrainOllama? Ollama = null,
-    BrainJob? Job = null,
-    BrainSuggestion? Suggested = null,
-    IReadOnlyList<BrainFound>? Found = null,
     double? VideoMemoryGb = null,
-    bool Loading = false) : PipeMessage
+    IReadOnlyList<BrainServerState>? Servers = null,
+    IReadOnlyList<BrainRemoteState>? Remotes = null) : PipeMessage
 {
     public override string Type => "brainState";
 }
