@@ -255,8 +255,10 @@ internal sealed class WorldWatcher : IDisposable
                 _moving[handle] = (from, now);
             }
         }
-        foreach (var handle in previous.Keys)
-            if (!current.ContainsKey(handle) && !IsWindow((nint)handle) && _seen.Remove(handle)) _raise(new SystemEvent.WindowClosed(handle));
+        // Every one seen that no longer exists is closed: also one that went (hidden first) between two looks, whose
+        // destruction came before or without this rescan.
+        foreach (var handle in _seen.Where(h => !current.ContainsKey(h) && !IsWindow((nint)h)).ToList())
+            if (_seen.Remove(handle)) _raise(new SystemEvent.WindowClosed(handle));
 
         if (_activated != 0 && current.TryGetValue(_activated, out var active))
         {

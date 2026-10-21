@@ -77,7 +77,8 @@ tarjeta y un botón en el panel, y guarda sus datos en su carpeta.
   del cursor); cada giro (`SystemEvent.WheelTurned`, con la ventana bajo el cursor) solo con `Pointer.WatchWheel = true`:
   cuesta un mensaje por muesca, así que mejor solo mientras importa. Salen del gancho de K-Desktop, que también ve la
   rueda sobre ventanas de administrador.
-- **Ventanas** (`IWindowServices`): `TryMove`, botones de la barra de título, `Thumbnail` (una imagen de la ventana,
+- **Ventanas** (`IWindowServices`): `TryMove` y `TryCommand` (minimizar, maximizar, restaurar, traer delante; SDK 1.3 —
+  las de un proceso de administrador y traer delante las hace K-Desktop por ti—), botones de la barra de título (de DWM), `Thumbnail` (una imagen de la ventana,
   congelada; si la ventana no se deja dibujar, lo que se ve de ella en pantalla) y `AppIcon` (el icono de su programa, en caché).
 - **Gestos de los comandos** (`CanPerform` / `PerformAsync`): cuando el usuario te pide un comando de K-Desktop, cada
   acción llega como uno o varios gestos (minimizar → `PressButton(Minimize)`, colocar → `MoveWindow` con el destino

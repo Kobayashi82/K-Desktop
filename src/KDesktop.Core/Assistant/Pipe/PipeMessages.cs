@@ -508,6 +508,23 @@ public sealed record StepResultMessage(string Run, int Index, string Status, str
     public override string Type => "result";
 }
 
+/// <summary>
+/// A window K-Desktop changes for the assistant's process (stage 6.5): one of an administrator's process, which it
+/// cannot touch itself, or bringing one to the front, which Windows only lets K-Desktop do.
+/// </summary>
+/// <param name="Op"><c>move</c> (to <paramref name="Rect"/>, its visible part), <c>minimize</c>, <c>maximize</c>,
+/// <c>restore</c> or <c>activate</c>.</param>
+public sealed record WindowMessage(string Id, long Hwnd, string Op, StepRect? Rect = null) : PipeMessage
+{
+    public override string Type => "window";
+}
+
+/// <summary>How a <see cref="WindowMessage"/> went.</summary>
+public sealed record WindowDoneMessage(string Id, bool Ok) : PipeMessage
+{
+    public override string Type => "windowDone";
+}
+
 /// <param name="Status"><c>ok</c>, <c>failed</c> or <c>cancelled</c>.</param>
 /// <param name="Messages">What the command said (its messages, warnings and errors), in the user's language.</param>
 public sealed record EndMessage(string Run, string Status, IReadOnlyList<string> Messages) : PipeMessage
@@ -666,6 +683,8 @@ public static class PipeJson
         ["done"] = typeof(DoneMessage),
         ["skip"] = typeof(SkipMessage),
         ["result"] = typeof(StepResultMessage),
+        ["window"] = typeof(WindowMessage),
+        ["windowDone"] = typeof(WindowDoneMessage),
         ["end"] = typeof(EndMessage),
         ["media"] = typeof(MediaMessage),
         ["describe"] = typeof(DescribeMessage),

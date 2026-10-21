@@ -107,6 +107,9 @@ public enum GestureOutcome
 
 public enum ManoeuvreSpeed { Showy, Normal, Fast }
 
+/// <summary>What <see cref="IWindowServices.TryCommand"/> does to a window.</summary>
+public enum WindowCommand { Minimize, Maximize, Restore, Activate }
+
 /// <summary>What the module gives an assistant while it performs a gesture.</summary>
 public interface IGestureContext
 {
@@ -141,10 +144,18 @@ public interface IGestureContext
 public interface IWindowServices
 {
     /// <summary>
-    /// Moves (and resizes) a window at once, for frame-by-frame dragging. Returns false if this process cannot touch
-    /// it (an elevated window: draw a «ghost» of it instead; K-Desktop places it at the end).
+    /// Moves (and resizes) a window at once, for frame-by-frame dragging (its visible part: no shadows nor invisible
+    /// borders). A window of an administrator's process is out of this process's reach: K-Desktop moves it (SDK 1.3), a
+    /// little behind, at most about 30 times a second. False when it cannot be moved (it is gone, or maximized).
     /// </summary>
     bool TryMove(long handle, PixelRect bounds);
+
+    /// <summary>
+    /// Minimizes, maximizes, restores or brings a window to the front (SDK 1.3). Bringing to the front, and anything on a
+    /// window of an administrator's process, goes through K-Desktop (Windows only lets it do that): true means it was
+    /// asked. False when the window is gone.
+    /// </summary>
+    bool TryCommand(long handle, WindowCommand command);
 
     /// <summary>Caption buttons of a window (asks DWM; null when they cannot be found).</summary>
     CaptionButtons? GetCaptionButtons(long handle);

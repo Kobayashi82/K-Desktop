@@ -44,7 +44,7 @@ internal sealed class AssistantRuntime : IDisposable
         World = new HostWorld(() => engine.Now);
         World.Changed += snapshot => Each(slot => Guard(slot, _ => slot.World.Raise(snapshot), "World.Changed"));
         Watcher = new WorldWatcher(World, () => engine.Now, OwnWindows, e => Each(slot => Guard(slot, a => a.OnSystemEvent(e), "OnSystemEvent")), engine.RequestTick);
-        WindowServices = new HostWindowServices(Watcher.Scanner);
+        WindowServices = new HostWindowServices(Watcher.Scanner, message => _link?.Send(message) == true);
     }
 
     public HostRendering Rendering { get; private set; } = null!;

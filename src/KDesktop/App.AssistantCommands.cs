@@ -49,6 +49,11 @@ public partial class App
                     }
                 });
                 return true;
+            case WindowMessage window:
+                // One after another, off the pipe's thread (a window that hangs only holds these back).
+                lock (_windowGate)
+                    _windowChain = _windowChain.ContinueWith(_ => supervisor.Send(new WindowDoneMessage(window.Id, AssistantWindows.Apply(window))), TaskScheduler.Default);
+                return true;
             case GoMessage or DoneMessage or SkipMessage:
                 var runId = message switch { GoMessage g => g.Run, DoneMessage d => d.Run, SkipMessage s => s.Run, _ => "" };
                 if (_choreographies.TryGetValue(runId, out var running)) running.Choreography.OnAnswer(message);
@@ -80,6 +85,11 @@ public partial class App
 
     /// <summary>Seconds to answer whether a command may run.</summary>
     private const int CommandAskSeconds = 20;
+
+    /// <summary>The windows changed for the assistants (stage 6.5), in the order they were asked.</summary>
+    private Task _windowChain = Task.CompletedTask;
+
+    private readonly object _windowGate = new();
 
     /// <summary>The choreographed runs going on (run id → whose and its choreography).</summary>
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (string Assistant, AssistantChoreography Choreography)> _choreographies = new(StringComparer.Ordinal);

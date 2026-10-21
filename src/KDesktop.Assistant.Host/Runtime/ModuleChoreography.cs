@@ -5,7 +5,6 @@ using KDesktop.Assistant.Sdk;
 using KDesktop.Core;
 using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Pipe;
-using static KDesktop.Assistant.Host.Interop.Native;
 
 namespace KDesktop.Assistant.Host.Runtime;
 
@@ -199,12 +198,12 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
 
     /// <summary>
     /// What a part that only leads to the action does at its Commit: a maximized window is restored before it is moved
-    /// (one of an administrator's process cannot be touched from here: K-Desktop's move restores it anyway).
+    /// (through K-Desktop when it is an administrator's window).
     /// </summary>
-    private static void Prepare(GestureStep part, WindowInfo? window)
+    private void Prepare(GestureStep part, WindowInfo? window)
     {
-        if (part is { Kind: GestureKind.PressButton, Button: CaptionButton.Restore } && window is { Elevated: false } w)
-            ShowWindow((nint)w.Handle, 9 /* SW_RESTORE */);
+        if (part is { Kind: GestureKind.PressButton, Button: CaptionButton.Restore } && window is not null)
+            runtime.WindowServices.TryCommand(window.Handle, WindowCommand.Restore);
     }
 
     /// <summary>For WaitForWindow: the first new window of that program, or null when none shows up in the step's time.</summary>

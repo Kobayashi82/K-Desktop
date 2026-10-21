@@ -10,20 +10,81 @@ namespace KDesktop.Assistant.Host.World;
 
 /// <summary>
 /// Moving and reading windows from the assistant process (<see cref="IWindowServices"/>). Windows of elevated
-/// processes are out of reach of a normal-user process: <see cref="TryMove"/> says no and K-Desktop places them.
+/// processes are out of reach of a normal-user process, and Windows only lets K-Desktop bring a window to the front:
+/// those go to K-Desktop (<c>window</c>, stage 6.5; the moves of a drag, the latest one at most every
+/// <see cref="MoveEvery"/>).
 /// </summary>
-internal sealed unsafe class HostWindowServices(WindowScanner scanner) : IWindowServices
+/// <param name="send">Sends a message to K-Desktop (null: no K-Desktop, those cannot be done).</param>
+internal sealed unsafe class HostWindowServices(WindowScanner scanner, Func<KDesktop.Core.Assistant.Pipe.PipeMessage, bool>? send = null) : IWindowServices
 {
+    /// <summary>The moves of an elevated window go to K-Desktop no more often than this (the latest one wins).</summary>
+    public const int MoveEvery = 33;
+
+    private readonly Dictionary<long, PixelRect> _moves = [];
+    private bool _flushing;
+    private long _sentAt;
+    private int _next;
+
     public bool TryMove(long handle, PixelRect bounds)
     {
         var hwnd = (nint)handle;
-        if (bounds.IsEmpty || !IsWindow(hwnd) || IsZoomed(hwnd) || scanner.ProcessOf(hwnd).Elevated) return false;
+        if (bounds.IsEmpty || !IsWindow(hwnd) || IsZoomed(hwnd)) return false;
+        if (scanner.ProcessOf(hwnd).Elevated) return MoveThroughKDesktop(handle, bounds);
         // The bounds are DWM's (no invisible borders); SetWindowPos wants the window rectangle, borders included.
         if (!GetWindowRect(hwnd, out var outer) || !WindowScanner.TryGetBounds(hwnd, out var frame)) return false;
         int left = frame.Left - outer.Left, top = frame.Top - outer.Top, right = outer.Right - frame.Right, bottom = outer.Bottom - frame.Bottom;
         return SetWindowPos(hwnd, 0, bounds.Left - left, bounds.Top - top, bounds.Width + left + right, bounds.Height + top + bottom,
             SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
     }
+
+    public bool TryCommand(long handle, WindowCommand command)
+    {
+        var hwnd = (nint)handle;
+        if (!IsWindow(hwnd)) return false;
+        if (command == WindowCommand.Activate || scanner.ProcessOf(hwnd).Elevated)
+            return Ask(handle, command.ToString().ToLowerInvariant(), null);
+        // ShowWindow answers whether it was visible before, not whether it worked.
+        ShowWindow(hwnd, command switch
+        {
+            WindowCommand.Minimize => 6,  // SW_MINIMIZE
+            WindowCommand.Maximize => 3,  // SW_SHOWMAXIMIZED
+            _ => 9,                       // SW_RESTORE
+        });
+        return true;
+    }
+
+    /// <summary>The latest move of each elevated window, to K-Desktop a little later (a drag sends one per frame).</summary>
+    private bool MoveThroughKDesktop(long handle, PixelRect bounds)
+    {
+        if (send is null) return false;
+        int wait;
+        lock (_moves)
+        {
+            _moves[handle] = bounds;
+            if (_flushing) return true;
+            _flushing = true;
+            wait = (int)Math.Clamp(MoveEvery - (Environment.TickCount64 - _sentAt), 0, MoveEvery);
+        }
+        _ = Task.Delay(wait).ContinueWith(_ => FlushMoves(), TaskScheduler.Default);
+        return true;
+    }
+
+    private void FlushMoves()
+    {
+        List<KeyValuePair<long, PixelRect>> moves;
+        lock (_moves)
+        {
+            moves = [.. _moves];
+            _moves.Clear();
+            _flushing = false;
+            _sentAt = Environment.TickCount64;
+        }
+        foreach (var (handle, bounds) in moves)
+            Ask(handle, "move", new KDesktop.Core.Assistant.Pipe.StepRect(bounds.Left, bounds.Top, bounds.Width, bounds.Height));
+    }
+
+    private bool Ask(long handle, string op, KDesktop.Core.Assistant.Pipe.StepRect? rect) =>
+        send?.Invoke(new KDesktop.Core.Assistant.Pipe.WindowMessage("w-" + Interlocked.Increment(ref _next), handle, op, rect)) == true;
 
     /// <summary>
     /// From DWM (<c>DWMWA_CAPTION_BUTTON_BOUNDS</c>, relative to the window rectangle): works with standard windows

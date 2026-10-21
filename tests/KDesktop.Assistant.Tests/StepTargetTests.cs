@@ -18,7 +18,7 @@ public class StepTargetTests
     [Fact]
     public async Task WhereAWindowEndsUpIsWhereTheEngineLeavesIt()
     {
-        await RunWindowAsync("KDesktop destino", async handle =>
+        await TestWindows.RunAsync("KDesktop destino", async handle =>
         {
             var hwnd = (IntPtr)handle;
             var front = ForegroundWindow.FromHandle(hwnd);
@@ -106,47 +106,4 @@ public class StepTargetTests
         public void AssistantSay(string assistant, string text) { }
         private sealed class Nothing : IDisposable { public void Dispose() { } }
     }
-
-    /// <summary>
-    /// A plain window of another process (the engine never touches its own process's windows), shown without taking the
-    /// focus; closed at the end.
-    /// </summary>
-    private static async Task RunWindowAsync(string title, Func<long, Task> steps)
-    {
-        const string form = """
-            Add-Type -AssemblyName System.Windows.Forms
-            Add-Type -ReferencedAssemblies System.Windows.Forms -TypeDefinition 'public class QuietForm : System.Windows.Forms.Form { protected override bool ShowWithoutActivation { get { return true; } } }'
-            $f = New-Object QuietForm
-            $f.Text = $env:KD_TEST_TITLE
-            $f.StartPosition = 'Manual'
-            $f.SetBounds(300, 300, 420, 300)
-            $f.ShowInTaskbar = $false
-            [System.Windows.Forms.Application]::Run($f)
-            """;
-        var start = new System.Diagnostics.ProcessStartInfo("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", form])
-        {
-            UseShellExecute = false, CreateNoWindow = true,
-        };
-        start.Environment["KD_TEST_TITLE"] = title;
-        using var process = System.Diagnostics.Process.Start(start)!;
-        try
-        {
-            var handle = IntPtr.Zero;
-            for (var i = 0; i < 150 && handle == IntPtr.Zero; i++)
-            {
-                await Task.Delay(100);
-                handle = FindWindow(null, title);
-            }
-            Assert.NotEqual(IntPtr.Zero, handle);
-            await Task.Delay(200);
-            await steps(handle.ToInt64());
-        }
-        finally
-        {
-            process.Kill();
-        }
-    }
-
-    [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
-    private static extern IntPtr FindWindow(string? className, string? windowName);
 }
