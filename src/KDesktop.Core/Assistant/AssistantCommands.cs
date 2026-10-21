@@ -50,7 +50,10 @@ public static class AssistantCommands
     /// </summary>
     /// <param name="who">Who asked, for the history («Lander»; «K-Desktop» without a body).</param>
     /// <param name="ask">Asks the user for this command and risk: <c>yes</c>, <c>always</c>, <c>no</c> or <c>timeout</c>.</param>
-    public static async Task<EndMessage> RunAsync(CommandEngine engine, RunMessage request, string who, Func<Command, ToolRisk, Task<string>> ask)
+    /// <param name="choreography">With <see cref="RunMessage.Choreography"/>: the assistant's turn before each step (stage
+    /// 6.3); cancelling it ends the run <c>cancelled</c>.</param>
+    public static async Task<EndMessage> RunAsync(CommandEngine engine, RunMessage request, string who, Func<Command, ToolRisk, Task<string>> ask,
+        AssistantChoreography? choreography = null)
     {
         if (engine.IsPaused) return new EndMessage(request.Run, "failed", [Loc.T("pause.refused")]);
         if (engine.Config.FindCommand(request.Command) is not { Enabled: true } command || !Available(engine.Config).Contains(command))
@@ -62,7 +65,9 @@ public static class AssistantCommands
         Task run;
         using (feedback.Begin())
         using (ExecutionHistory.Describe(who))
-            run = engine.RunAsync(command, TriggerSource.Assistant);
+            run = choreography is null
+                ? engine.RunAsync(command, TriggerSource.Assistant)
+                : engine.RunChoreographedAsync(command, TriggerSource.Assistant, choreography, choreography.Cancelled);
         try
         {
             await run.ConfigureAwait(false);
@@ -71,6 +76,7 @@ public static class AssistantCommands
         {
             return new EndMessage(request.Run, "cancelled", feedback.Messages);
         }
+        if (choreography?.Cancelled.IsCancellationRequested == true) return new EndMessage(request.Run, "cancelled", feedback.Messages);
         return new EndMessage(request.Run, feedback.HasError ? "failed" : "ok", feedback.Messages);
     }
 

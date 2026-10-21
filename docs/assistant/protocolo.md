@@ -125,11 +125,11 @@ Dirección: **A→K** del asistente a K-Desktop; **K→A** de K-Desktop al asist
 | `match` | A→K | `id`, `text` | Busca comandos para un texto, sin ejecutar: lo mismo que la voz (`IntentMatcher.Plan`: palabras, significado y, con Opciones → Multimedia, las órdenes de música), entre los comandos activos |
 | `matched` | K→A | `id`, `parts` (lista), `unmatched` (trozos sin casar), `score` | Resultado. Cada parte: `text`, `sure` (el primer candidato gana claro: por voz se ejecutaría) y `candidates` (mejor primero, 4 como mucho: `{ command, name, score }` o, para una orden de música integrada, `{ name, score, media, value }` con `media` = `volumeDown`, `pause`…). Si no nombra nada claro: una sola parte, el texto entero, sin `sure`, con lo más parecido |
 | `run` | A→K | `assistant` (vacío: el módulo sin cuerpo), `run` (id de ejecución), `command` (id), `choreography` (sí/no) | Ejecuta un comando (activo). Sale en el historial de K-Desktop con origen «Asistente» y quién lo pidió. Sin coreografía (fase 4) se contesta con `end` al terminar; en pausa o si el comando no existe, `end` `failed` al momento |
-| `step` | K→A | `run`, `index`, `count`, `depth`, `kind`, `op`, `summary`, `target` (opcional), `timeoutMs` | El paso que va a ejecutar. `target`: `hwnd`, `process`, `title`, `rect`, `result` (dónde quedará, si se sabe), `state` (`normal`, `maximized`, `minimized`), `elevated` |
+| `step` | K→A | `run`, `index` (único y creciente en el run: los pasos de los comandos que llama siguen contando), `count` (pasos del comando al que pertenece), `depth`, `kind` (`Window`, `Volume`…), `op` (`Snap`, `Minimize`, `Close`… o vacío), `summary`, `target` (opcional), `timeoutMs` | El paso que va a ejecutar. `target`: `hwnd` (0 si aún no hay ventana: un programa por abrir, solo `process`), `process`, `title`, `rect` (su parte visible ahora; no está si está minimizada), `result` (dónde quedará, si se sabe: «Colocar» y «Mover a otro monitor» al píxel, restaurar o centrar una maximizada a un par de píxeles), `state` (`normal`, `maximized`, `minimized`), `elevated` (de un proceso de administrador: solo K-Desktop puede moverla). Una acción que solo llama a otro comando o evento no es un paso: lo son sus acciones, con `depth` + 1. Solo llegan si el `run` pidió `choreography` (el host la pide cuando el asistente está en el escritorio) |
 | `go` | A→K | `run`, `index` | «Hazlo ahora» (en el impacto del disparo) |
 | `done` | A→K | `run`, `index` | «Ya lo he hecho yo» (ventana arrastrada). K-Desktop lo verifica y aplica el resultado exacto igualmente |
-| `skip` | A→K | `run`, `index` | No ejecutes este paso (cancelado desde el asistente) |
-| `result` | K→A | `run`, `index`, `status` (`ok`, `failed`, `skipped`), `message` | Resultado del paso |
+| `skip` | A→K | `run`, `index`, `all` (opcional) | No ejecutes este paso. Con `all: true` (y `index` 0), nada de lo que queda: la orden se canceló; K-Desktop termina con `end` `cancelled` |
+| `result` | K→A | `run`, `index`, `status` (`ok`, `failed`, `skipped`), `message` (si falló, en el idioma del usuario) | Resultado del paso |
 | `end` | K→A | `run`, `status` (`ok`, `failed`, `cancelled`, `declined` —el usuario no dio permiso—), `messages` (lista: lo que dijo el comando, sus avisos y errores, en el idioma del usuario) | Fin de la ejecución |
 | `describe` | A→K | `id`, `command` (id) | Qué hace un comando (herramienta `describe_command`), sin ejecutarlo |
 | `described` | K→A | `id`, `found`, `name`, `actions` (lo que hace cada acción activa, en orden: «Abrir programa: Steam»), `hotkeys`, `asks` (`no`, `once`, `always`: si un asistente tiene que preguntar antes) | Resultado |
@@ -210,8 +210,9 @@ pantalla completa, solo el bocadillo—; también en la bienvenida). Sin cuerpo 
 - Las acciones sin sitio (esperar, portapapeles, petición web…) llegan **sin** `target`.
 - Un comando que llama a otro: sus pasos llegan con el mismo `run` y `depth` + 1.
 - Los atajos, el móvil, la web, UDP, los eventos y la voz de «K-Desktop, …» **no** usan coreografía.
-- Un `cancel` mientras hay un `run` en curso: el asistente contesta `skip` a los pasos que lleguen; K-Desktop
-  termina con `end` y `status: "cancelled"`.
+- Un `cancel` mientras hay un `run` en curso: el asistente manda `skip` con `all`; K-Desktop termina con `end` y
+  `status: "cancelled"`. Si el usuario para al asistente desde K-Desktop (panel, Escape), K-Desktop corta el run él mismo.
+- Si el proceso del asistente se cae a mitad de un run, lo que queda se ejecuta sin esperar.
 
 ## Códigos de error
 

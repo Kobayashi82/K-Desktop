@@ -464,7 +464,49 @@ public sealed record StepRect(int X, int Y, int W, int H);
 /// <param name="Rect">Its visible part now (null when it is minimised).</param>
 /// <param name="Result">Its visible part when the step is done (null when it is not known or it disappears).</param>
 /// <param name="State"><c>normal</c>, <c>maximized</c> or <c>minimized</c>.</param>
-public sealed record StepTarget(long Hwnd, string Process, string Title, StepRect? Rect, StepRect? Result, string State, bool Elevated);
+public sealed record StepTarget(long Hwnd, string Process, string Title, string State, bool Elevated, StepRect? Rect = null, StepRect? Result = null);
+
+/// <summary>
+/// The step a choreographed run is about to take (stage 6.3): K-Desktop waits up to <paramref name="TimeoutMs"/> for
+/// <see cref="GoMessage"/>, <see cref="DoneMessage"/> or <see cref="SkipMessage"/>, and then runs it anyway.
+/// </summary>
+/// <param name="Index">Unique and increasing within the run (the steps of the commands it calls go on counting).</param>
+/// <param name="Count">How many steps the command this one belongs to has.</param>
+/// <param name="Depth">0 for the command run; 1 and up for the commands it calls.</param>
+/// <param name="Kind">The kind of action (<c>Window</c>, <c>Volume</c>…).</param>
+/// <param name="Op">What it does within its kind (<c>Snap</c>, <c>Minimize</c>, <c>Close</c>…), or empty.</param>
+/// <param name="Summary">The action in words, in the user's language.</param>
+/// <param name="Target">Where it happens; null for actions without a place.</param>
+public sealed record StepMessage(string Run, int Index, int Count, int Depth, string Kind, string Op, string Summary, int TimeoutMs,
+    StepTarget? Target = null) : PipeMessage
+{
+    public override string Type => "step";
+}
+
+/// <summary>«Do it now» (at the instant of the gesture: the impact of the shot).</summary>
+public sealed record GoMessage(string Run, int Index) : PipeMessage
+{
+    public override string Type => "go";
+}
+
+/// <summary>«I did it myself» (a window dragged): K-Desktop applies the exact result anyway.</summary>
+public sealed record DoneMessage(string Run, int Index) : PipeMessage
+{
+    public override string Type => "done";
+}
+
+/// <summary>Not to be run; with <paramref name="All"/>, nor anything left in the run (it was cancelled: it ends <c>cancelled</c>).</summary>
+public sealed record SkipMessage(string Run, int Index, bool? All = null) : PipeMessage
+{
+    public override string Type => "skip";
+}
+
+/// <param name="Status"><c>ok</c>, <c>failed</c> or <c>skipped</c>.</param>
+/// <param name="Message">What failed, in the user's language.</param>
+public sealed record StepResultMessage(string Run, int Index, string Status, string? Message = null) : PipeMessage
+{
+    public override string Type => "result";
+}
 
 /// <param name="Status"><c>ok</c>, <c>failed</c> or <c>cancelled</c>.</param>
 /// <param name="Messages">What the command said (its messages, warnings and errors), in the user's language.</param>
@@ -619,6 +661,11 @@ public static class PipeJson
         ["match"] = typeof(MatchMessage),
         ["matched"] = typeof(MatchedMessage),
         ["run"] = typeof(RunMessage),
+        ["step"] = typeof(StepMessage),
+        ["go"] = typeof(GoMessage),
+        ["done"] = typeof(DoneMessage),
+        ["skip"] = typeof(SkipMessage),
+        ["result"] = typeof(StepResultMessage),
         ["end"] = typeof(EndMessage),
         ["media"] = typeof(MediaMessage),
         ["describe"] = typeof(DescribeMessage),

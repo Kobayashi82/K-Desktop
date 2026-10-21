@@ -122,7 +122,11 @@ public partial class App
     }
 
     /// <summary>Stops what an assistant is answering (the chat's stop button).</summary>
-    public void StopAssistant(string? id) => _assistant?.Send(new CancelMessage("panel", id));
+    public void StopAssistant(string? id)
+    {
+        CancelChoreographies(id ?? string.Empty);
+        _assistant?.Send(new CancelMessage("panel", id));
+    }
 
     /// <summary>Forgets a conversation (the chat's clear button).</summary>
     public void ClearAssistantChat(string? id)

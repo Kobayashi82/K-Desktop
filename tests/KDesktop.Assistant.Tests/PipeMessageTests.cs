@@ -27,6 +27,18 @@ public class PipeMessageTests
         Assert.Equal(PipeJson.KnownTypes.Order(), checkedTypes.Order());
     }
 
+    /// <summary>Stage 6.3: what is null is left out, and must still come back (a minimised window has no rectangle).</summary>
+    [Fact]
+    public void StepsWithoutAPlaceOrARectangleComeBack()
+    {
+        var minimized = new StepMessage("r", 2, 3, 1, "Window", "Restore", "Restaurar", 6000, new StepTarget(42, "chrome", "GitHub", "minimized", false));
+        Assert.Equal(minimized, PipeJson.Parse(PipeJson.Serialize(minimized)));
+        var nowhere = new StepMessage("r", 3, 3, 1, "Wait", "", "Esperar 1 s", 6000);
+        Assert.Equal(nowhere, PipeJson.Parse(PipeJson.Serialize(nowhere)));
+        Assert.Equal(new SkipMessage("r", 0, true), PipeJson.Parse(PipeJson.Serialize(new SkipMessage("r", 0, true))));
+        Assert.Equal(new StepResultMessage("r", 1, "failed", "No hay ventana"), PipeJson.Parse(PipeJson.Serialize(new StepResultMessage("r", 1, "failed", "No hay ventana"))));
+    }
+
     [Fact]
     public void TheTypeGoesFirstOnOneLine()
     {

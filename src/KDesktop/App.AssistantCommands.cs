@@ -35,9 +35,23 @@ public partial class App
                 _ = Task.Run(async () =>
                 {
                     var who = AssistantPackages.Find(run.Assistant)?.Manifest.Name ?? (run.Assistant.Length > 0 ? run.Assistant : "K-Desktop");
-                    var end = await AssistantCommands.RunAsync(Engine, run, who, (command, risk) => AskCommandAsync(run, command, risk)).ConfigureAwait(false);
-                    supervisor.Send(end);
+                    // With choreography (stage 6.3) the assistant has its turn before each step, over the pipe.
+                    using var choreography = run.Choreography ? new AssistantChoreography(run.Run, m => supervisor.Send(m)) : null;
+                    if (choreography is not null) _choreographies[run.Run] = (run.Assistant, choreography);
+                    try
+                    {
+                        var end = await AssistantCommands.RunAsync(Engine, run, who, (command, risk) => AskCommandAsync(run, command, risk), choreography).ConfigureAwait(false);
+                        supervisor.Send(end);
+                    }
+                    finally
+                    {
+                        if (choreography is not null) _choreographies.TryRemove(run.Run, out _);
+                    }
                 });
+                return true;
+            case GoMessage or DoneMessage or SkipMessage:
+                var runId = message switch { GoMessage g => g.Run, DoneMessage d => d.Run, SkipMessage s => s.Run, _ => "" };
+                if (_choreographies.TryGetValue(runId, out var running)) running.Choreography.OnAnswer(message);
                 return true;
             case DescribeMessage describe:
                 supervisor.Send(AssistantCommands.Describe(Config, describe));
@@ -66,6 +80,22 @@ public partial class App
 
     /// <summary>Seconds to answer whether a command may run.</summary>
     private const int CommandAskSeconds = 20;
+
+    /// <summary>The choreographed runs going on (run id → whose and its choreography).</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (string Assistant, AssistantChoreography Choreography)> _choreographies = new(StringComparer.Ordinal);
+
+    /// <summary>The process stopped: the commands it was running with gestures go on without them.</summary>
+    private void AbandonChoreographies()
+    {
+        foreach (var (_, running) in _choreographies) running.Choreography.Abandon();
+    }
+
+    /// <summary>The user stopped an assistant: the commands it was running with gestures stop too.</summary>
+    private void CancelChoreographies(string? assistant)
+    {
+        foreach (var (_, running) in _choreographies)
+            if (assistant is null || running.Assistant == assistant) running.Choreography.Cancel();
+    }
 
     /// <summary>
     /// Before an assistant runs a command that is not trusted, or does something that always asks: the same window as

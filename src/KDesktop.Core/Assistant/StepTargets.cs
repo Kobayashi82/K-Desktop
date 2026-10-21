@@ -24,7 +24,7 @@ public static class StepTargets
                 AppControlAction { Mode: AppControlMode.Activate or AppControlMode.Close } a =>
                     Describe(WindowLayout.Find(WindowTarget.Process, a.ProcessName, IntPtr.Zero), null),
                 RunAppAction r when Path.GetExtension(r.Path).Equals(".exe", StringComparison.OrdinalIgnoreCase) =>
-                    new StepTarget(0, ProcessNames.Normalize(Path.GetFileName(r.Path)), string.Empty, null, null, "normal", false),
+                    new StepTarget(0, ProcessNames.Normalize(Path.GetFileName(r.Path)), string.Empty, "normal", false),
                 _ => null,
             };
         }
@@ -68,8 +68,8 @@ public static class StepTargets
     {
         Win32.GetWindowThreadProcessId(hwnd, out var pid);
         return new StepTarget(hwnd.ToInt64(), ProcessNames.Get(pid), Win32.GetWindowTitle(hwnd),
-            minimized ? null : Rect(WindowLayout.VisibleBounds(hwnd)), result is { } r ? Rect(r) : null,
-            minimized ? "minimized" : maximized ? "maximized" : "normal", WindowTools.IsElevated(hwnd));
+            minimized ? "minimized" : maximized ? "maximized" : "normal", WindowTools.IsElevated(hwnd),
+            minimized ? null : Rect(WindowLayout.VisibleBounds(hwnd)), result is { } r ? Rect(r) : null);
     }
 
     private static StepRect Rect(ScreenRect r) => new(r.Left, r.Top, r.Width, r.Height);

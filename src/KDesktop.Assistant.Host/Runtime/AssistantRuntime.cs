@@ -64,6 +64,13 @@ internal sealed class AssistantRuntime : IDisposable
 
     public bool IsLoaded(string id) => Find(id) is not null;
 
+    /// <summary>Whether that assistant is on the desktop now, from any thread (a copy kept as they come and go).</summary>
+    public bool HasBody(string id) => _bodies.Contains(id);
+
+    private volatile HashSet<string> _bodies = new(StringComparer.Ordinal);
+
+    private void BodiesChanged() => _bodies = new HashSet<string>(_slots.Where(s => !s.Dropped).Select(s => s.Id), StringComparer.Ordinal);
+
     /// <summary>An assistant was unloaded because it kept failing (its id).</summary>
     public event Action<string>? Faulted;
 
@@ -166,6 +173,7 @@ internal sealed class AssistantRuntime : IDisposable
         slot.Audio = new AssistantAudio(Audio, package);
         slot.Host = new AssistantHost(this, slot, package, data, settings);
         _slots.Add(slot);
+        BodiesChanged();
         if (!Guard(slot, a => a.Attach(slot.Host), "Attach") || !Guard(slot, a => a.Enter(entrance), "Enter"))
         {
             // Half attached it would only fail again on every tick: it does not stay.
@@ -448,6 +456,7 @@ internal sealed class AssistantRuntime : IDisposable
         if (slot.Dropped) return;
         slot.Dropped = true;
         _slots.Remove(slot);
+        BodiesChanged();
         try { slot.Assistant.Dispose(); }
         catch (Exception ex) { Log.Error($"Asistente: error al liberar «{slot.Id}»", ex); }
         slot.Extras.Cancel();

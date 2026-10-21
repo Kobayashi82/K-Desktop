@@ -29,8 +29,22 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
         AskAsync(_matches, id => new MatchMessage(id, text), MatchWait, cancellationToken);
 
     /// <param name="assistant">Who asks (empty: the module without a body), for K-Desktop's history.</param>
-    public Task<EndMessage?> RunAsync(string command, string? assistant, CancellationToken cancellationToken) =>
-        AskAsync(_runs, id => new RunMessage(assistant ?? string.Empty, id, command), RunWait, cancellationToken);
+    public Task<EndMessage?> RunAsync(string command, string? assistant, CancellationToken cancellationToken)
+    {
+        // One on the desktop shows each step (stage 6.3); without a body there is nothing to show.
+        var gestures = assistant is { Length: > 0 } who && HasBody?.Invoke(who) == true && Choreography is not null;
+        return AskAsync(_runs, id =>
+        {
+            if (gestures) Choreography!.Begin(id, assistant!, cancellationToken);
+            return new RunMessage(assistant ?? string.Empty, id, command, gestures);
+        }, RunWait, cancellationToken);
+    }
+
+    /// <summary>The steps of the runs with gestures (stage 6.3).</summary>
+    public ModuleChoreography? Choreography { get; set; }
+
+    /// <summary>Whether an assistant is on the desktop (any thread).</summary>
+    public Func<string, bool>? HasBody { get; set; }
 
     public Task<EndMessage?> MediaAsync(string order, int? value, CancellationToken cancellationToken) =>
         AskAsync(_runs, id => new MediaMessage(order, value, id), RunWait, cancellationToken);
@@ -53,6 +67,7 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
 
     public void OnEnd(EndMessage end)
     {
+        Choreography?.End(end.Run);
         if (_runs.TryRemove(end.Run, out var waiting)) waiting.TrySetResult(end);
     }
 

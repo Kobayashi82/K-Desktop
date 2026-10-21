@@ -60,6 +60,7 @@ public partial class App
                     ForgetAssistantBench();
                     ForgetAssistantVoice();
                     AbandonAssistantQuestions();
+                    AbandonChoreographies();
                     // A process that fell cannot ask to let the keys go.
                     if (_assistant == supervisor) ResetAssistantInput();
                 }
@@ -100,6 +101,7 @@ public partial class App
             ForgetAssistantBench();
             ForgetAssistantVoice();
             AbandonAssistantQuestions();
+            AbandonChoreographies();
             Log.Info("Asistente: módulo desactivado");
             ResetAssistantInput();
             _ = running.DisposeAsync().AsTask();
