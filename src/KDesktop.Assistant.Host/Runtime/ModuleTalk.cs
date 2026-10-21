@@ -88,8 +88,15 @@ internal sealed class ModuleTalk : ITalkOutput
     public void OnListening(ListeningMessage listening)
     {
         var key = listening.Assistant ?? string.Empty;
+        // You are talking to it: its voice steps back meanwhile, and its model and its voice get ready (stage 5.7).
+        Voice.Listening(key, listening.Active);
         if (listening.Active)
         {
+            if (!Paused)
+            {
+                Service.Prepare(listening.Assistant);
+                Voice.Warm();
+            }
             _listening[key] = true;
             State(listening.Assistant, "listening");
         }

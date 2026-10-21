@@ -21,7 +21,13 @@ public partial class App
             case MatchMessage match:
                 _ = Task.Run(() =>
                 {
-                    try { supervisor.Send(AssistantCommands.Match(match, AssistantCommands.Available(Config), Config.Settings.VoiceMedia, Voice.Semantic)); }
+                    var watch = System.Diagnostics.Stopwatch.StartNew();
+                    try
+                    {
+                        var matched = AssistantCommands.Match(match, AssistantCommands.Available(Config), Config.Settings.VoiceMedia, Voice.Semantic);
+                        supervisor.Send(matched);
+                        Log.Info($"Asistente: comandos buscados para «{match.Text}» en {watch.ElapsedMilliseconds} ms");
+                    }
                     catch (Exception ex) { Log.Error("Asistente: no se ha podido buscar el comando", ex); }
                 });
                 return true;

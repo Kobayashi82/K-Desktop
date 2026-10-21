@@ -74,6 +74,23 @@ internal sealed class ModuleVoice : IDisposable
     /// <summary>How loud a voice plays now: Options' volume, at night perhaps less.</summary>
     private double Volume => _volume * (_night ? NightFactor(DateTime.Now) : 1);
 
+    /// <summary>How loud its voice stays while you talk to it (K-Desktop listening): enough to know it was still talking.</summary>
+    public const double ListeningGain = 0.2;
+
+    /// <summary>Who K-Desktop is listening to now ("": the module without a body, that is, anyone).</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> _listening = new(StringComparer.Ordinal);
+
+    /// <summary>K-Desktop listens to <paramref name="assistant"/> ("": to the module): while it does, its voice steps back.</summary>
+    public void Listening(string assistant, bool active)
+    {
+        if (active) _listening[assistant] = true;
+        else _listening.TryRemove(assistant, out _);
+    }
+
+    /// <summary>How loud the voice of <paramref name="assistant"/> plays now.</summary>
+    private double GainFor(string assistant) =>
+        Volume * (_listening.ContainsKey(assistant) || _listening.ContainsKey(string.Empty) ? ListeningGain : 1);
+
     /// <summary>
     /// Options → Voice → «Probar» (stage 5.6): <paramref name="say"/> says <paramref name="text"/> in a turn of its own,
     /// with <paramref name="mood"/> (none: plain, not even «far») instead of the moods of the moment, and even with something
@@ -300,10 +317,11 @@ internal sealed class ModuleVoice : IDisposable
                 await foreach (var line in _lines.Reader.ReadAllAsync(token).ConfigureAwait(false))
                 {
                     _playing = line;
-                    _owner._runtime.Audio.Speak(line, _owner.Volume, _owner._pan ? await PanAsync().ConfigureAwait(false) : 0);
+                    _owner._runtime.Audio.Speak(line, _owner.GainFor(_assistant), _owner._pan ? await PanAsync().ConfigureAwait(false) : 0);
                     if (token.IsCancellationRequested) line.Stop();
                     while (!line.Ended.IsCompleted)
                     {
+                        line.Gain = _owner.GainFor(_assistant);
                         var level = line.LevelAt(line.Position);
                         _owner._engine.Post(() => _owner._runtime.VoiceLevel(_assistant, level));
                         await Task.WhenAny(line.Ended, Task.Delay(LevelEvery, CancellationToken.None)).ConfigureAwait(false);

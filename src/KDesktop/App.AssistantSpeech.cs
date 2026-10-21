@@ -89,6 +89,7 @@ public partial class App
     public void TestAssistantVoice(string text, string? mood = null, string? who = null)
     {
         if (_assistant is not { IsRunning: true } supervisor || text.Trim().Length == 0) return;
+        Voice.OwnVoices.Said("test", text.Trim(), DateTime.Now);
         supervisor.Send(new VoiceMessage("test", text.Trim(), who is null ? PickAssistant() : who.Length > 0 ? who : null, mood));
     }
 

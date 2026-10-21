@@ -78,7 +78,12 @@ public sealed class SemanticMatcher : IDisposable
         if (!Available) return;
         Task.Run(() =>
         {
-            try { Vectors(Texts(commands, media)); }
+            try
+            {
+                Vectors(Texts(commands, media));
+                // With every name already in the cache nothing above loaded the model, and the order itself will need it.
+                Embedder.Embed(["?"]);
+            }
             catch (Exception ex) { Log.Error("No se pudo preparar el modelo de significado", ex); }
         });
     }

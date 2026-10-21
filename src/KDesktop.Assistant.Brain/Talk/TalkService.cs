@@ -185,6 +185,40 @@ public sealed class TalkService
     public bool IsAnswering(string? assistant) =>
         _conversations.TryGetValue(assistant ?? string.Empty, out var conversation) && conversation.Busy;
 
+    /// <summary>A model asked to load less than this long ago is not asked again (it stays in memory a few minutes).</summary>
+    public static readonly TimeSpan PrepareEvery = TimeSpan.FromMinutes(1);
+
+    private readonly ConcurrentDictionary<string, DateTimeOffset> _prepared = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// The user started talking to <paramref name="assistant"/> (stage 5.7): its model loads while the order is said, so
+    /// an answer of the AI does not wait for it afterwards. Never an error; at most once every <see cref="PrepareEvery"/>
+    /// per model.
+    /// </summary>
+    public void Prepare(string? assistant)
+    {
+        var (client, model) = _brain(assistant);
+        if (client is null || string.IsNullOrEmpty(model)) return;
+        var now = _time.GetUtcNow();
+        if (_prepared.TryGetValue(model, out var last) && now - last < PrepareEvery) return;
+        _prepared[model] = now;
+        _ = Task.Run(async () =>
+        {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            try
+            {
+                using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                await client.PreloadAsync(model, limit.Token).ConfigureAwait(false);
+                Log.Info($"Asistente: modelo «{model}» listo mientras le hablan ({watch.ElapsedMilliseconds} ms)");
+            }
+            catch (Exception ex)
+            {
+                _prepared.TryRemove(model, out _);
+                Log.Warn($"Asistente: no se ha podido preparar el modelo «{model}»: {ex.Message}");
+            }
+        });
+    }
+
     /// <summary>Forgets what was talked with an assistant (it left the desktop).</summary>
     public void Forget(string? assistant)
     {

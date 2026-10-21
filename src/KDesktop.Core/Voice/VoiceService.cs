@@ -61,6 +61,12 @@ public sealed partial class VoiceService : IDisposable
     /// </summary>
     public Func<string, VoiceAddressee?>? AddresseeOf { get; set; }
 
+    /// <summary>
+    /// What the assistants are saying aloud (stage 5.7): heard after a wake word, it is their own voice, not an order (the
+    /// app tells it what they say).
+    /// </summary>
+    public Assistant.SelfEcho OwnVoices { get; } = new();
+
     /// <summary>Frees the recognizer and removes the model files.</summary>
     public void DeleteModels()
     {
@@ -468,6 +474,7 @@ public sealed partial class VoiceService : IDisposable
         _abort = abort;
         _stopRequested = false;
         VoiceAddressee? addressee = null;
+        var wakeAt = DateTime.Now;
         try
         {
             if (!VoiceModels.Ready) return;
@@ -514,6 +521,12 @@ public sealed partial class VoiceService : IDisposable
                     (wordClip, wordText, match) = (tail, tailText, tailMatch);
                 }
             }
+            // An assistant saying the word itself («Hola, soy Lander»): the words around it are its sentence.
+            if (OwnVoices.IsEcho(wordText, wakeAt, out var echoed))
+            {
+                Log.Info($"Palabra de activación «{word.Name}» descartada: «{wordText}» es la voz de un asistente («{echoed}»)");
+                return;
+            }
             var verification = match?.Score ?? 0;
             var accepted = Accepted(verification);
             // The detector very sure but the word alone not understood (alone and with music behind, Parakeet may take it
@@ -544,6 +557,10 @@ public sealed partial class VoiceService : IDisposable
                 addressee is null ? f.Plans.Any(p => p.Parts.Count > 0) : f.Said is not null;
             var checkedSegments = 0;
             var waitFrom = TimeSpan.Zero;
+            // Stage 5.7: at each short pause, what was said so far is already transcribed; if the order ends there, that
+            // is used instead of transcribing it again after the end silence.
+            var guessedPauses = 0;
+            (List<(int Start, int Length)> Segments, Task<(List<IntentPlan>, string?, bool)> Plans)? guess = null;
             while (true)
             {
                 await Task.Delay(40, CancellationToken.None).ConfigureAwait(false);
@@ -554,10 +571,22 @@ public sealed partial class VoiceService : IDisposable
                     return;
                 }
                 if (_stopRequested || capture.Elapsed > MaxSession) break;
+                if (capture.SegmentCount <= checkedSegments && capture.PauseCount > guessedPauses)
+                {
+                    guessedPauses = capture.PauseCount;
+                    if (capture.Guess() is { } sofarGuess)
+                        guess = (sofarGuess.Segments, OrderPlansAsync(sofarGuess.Audio, sofarGuess.Segments, checkedSegments));
+                }
                 if (capture.SegmentCount > checkedSegments)
                 {
                     var (sofar, finished) = capture.Snapshot();
-                    found = await OrderPlansAsync(sofar, finished, checkedSegments).ConfigureAwait(false);
+                    if (guess is { } ready && WakeCapture.SameSpeech(ready.Segments, finished))
+                    {
+                        found = await ready.Plans.ConfigureAwait(false);
+                        Log.Info("Voz: la orden ya estaba transcrita en la pausa");
+                    }
+                    else found = await OrderPlansAsync(sofar, finished, checkedSegments).ConfigureAwait(false);
+                    guess = null;
                     if (!found.Value.Confirmed || IsOrder(found.Value)) break;
                     Log.Info("Voz: lo oído tras la palabra no es una orden (" +
                              (addressee is null ? string.Join(" | ", found.Value.Plans.Select(p => $"«{p.Whole.Text}»")) : "solo la palabra") +
@@ -582,6 +611,14 @@ public sealed partial class VoiceService : IDisposable
             if (abort.IsCancellationRequested)
             {
                 osd.Finish(Loc.T("voice.cancelled"), OsdKind.Info);
+                return;
+            }
+            // What followed the word is what an assistant was saying: its own voice, not an order.
+            var heardText = addressee is not null ? found.Value.Said : found.Value.Plans.MaxBy(p => p.Score)?.Whole.Text;
+            if (heardText is not null && OwnVoices.IsEcho(heardText, wakeAt, out var echo))
+            {
+                Log.Info($"Voz: «{heardText}» tras «{word.Name}» es la voz de un asistente («{echo}»): se ignora");
+                osd.Finish(Loc.T("voice.nothingHeard"), OsdKind.Info);
                 return;
             }
             if (addressee is not null)

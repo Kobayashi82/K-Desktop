@@ -42,8 +42,20 @@ public partial class App
     /// <summary><c>listening</c> (stage 5.2): the character shows that it is being listened to.</summary>
     private void SendListening(string? who, bool active)
     {
-        if (_assistant is { IsRunning: true } supervisor) supervisor.Send(new ListeningMessage(active, who));
+        if (_assistant is not { IsRunning: true } supervisor) return;
+        supervisor.Send(new ListeningMessage(active, who));
+        if (active) WarmAssistantCommands();
     }
+
+    /// <summary>
+    /// While the order is said, a search of the commands gets everything ready (stage 5.7): the first one of a session
+    /// took a few hundred milliseconds more.
+    /// </summary>
+    private void WarmAssistantCommands() => Task.Run(() =>
+    {
+        try { AssistantCommands.Match(new MatchMessage("warm", "abre"), AssistantCommands.Available(Config), Config.Settings.VoiceMedia, Voice.Semantic); }
+        catch (Exception ex) { Log.Warn($"Asistente: no se ha podido preparar la búsqueda de comandos: {ex.Message}"); }
+    });
 
     /// <summary>
     /// The assistants' talk key (UI thread): while it is held, what is said goes to the one of «Cuando no le hablas a nadie
