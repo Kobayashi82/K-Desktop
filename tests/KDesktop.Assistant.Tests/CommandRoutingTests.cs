@@ -26,13 +26,45 @@ public sealed class CommandRoutingTests : IDisposable
         try { Directory.Delete(_folder, true); } catch (IOException) { }
     }
 
-    private TalkService Make(BuiltinTools builtin)
+    private TalkService Make(BuiltinTools builtin, bool memory = false)
     {
         var registry = new ToolRegistry();
         builtin.AddTo(registry);
         CommandTools.AddTo(registry, _bridge);
         var runner = new ToolRunner(registry, () => new HashSet<string>(), (_, _) => Task.FromResult("yes"), m => { lock (_log) _log.Add(m); }, Path.Combine(_folder, "undo.json"));
-        return new TalkService(_ => (_model, "fake:4b"), runner, _ => AssistantPersona.Module(), new Output(_chat, _listens), commands: _bridge);
+        return new TalkService(_ => (_model, "fake:4b"), runner, _ => AssistantPersona.Module(), new Output(_chat, _listens), commands: _bridge,
+            memory: memory ? new TalkMemory(builtin.Memory, runner, null) : null, learn: () => false);
+    }
+
+    [Fact]
+    public async Task APhraseTheUserTaughtWinsOverACommandThatSoundsLikeIt()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin, memory: true);
+        builtin.Memory.Remember("Cuando diga «la vuelta», quiere que se abra ejemplo.com", "fact", 0.9, "said");
+        // What happened (21/10): «la vuelta» named «Anterior» at 0.87 and ran it.
+        _bridge.Matches["vamos a hacer la vuelta"] = new MatchedMessage("x", 0.9, [], [new MatchedPart("la vuelta", true, [new MatchedCandidate("prev", "Anterior", 0.87)])]);
+        _model.Answers.Enqueue("Vale.");
+
+        await talk.HandleAsync(new HeardMessage("vamos a hacer la vuelta", "panel", "lander"));
+        Assert.Empty(_bridge.Done);
+        var request = Assert.Single(_model.Requests);
+        Assert.Contains("la vuelta", request.Messages[0].Content, StringComparison.Ordinal);
+        Assert.DoesNotContain("Anterior", request.Messages[0].Content, StringComparison.Ordinal);
+        Assert.Contains(request.Tools, t => t.Name == "open_web");
+        Assert.Empty(builtin.Memory.Triggered("dame una vuelta por el parque"));
+    }
+
+    [Fact]
+    public async Task TheSameCommandNamedTwiceRunsOnce()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        _bridge.Matches["la vuelta, es la vuelta"] = new MatchedMessage("x", 0.9, [],
+            [new MatchedPart("la vuelta", true, [new MatchedCandidate("prev", "Anterior", 0.87)]), new MatchedPart("es la vuelta", true, [new MatchedCandidate("prev", "Anterior", 0.85)])]);
+
+        await talk.HandleAsync(new HeardMessage("la vuelta, es la vuelta", "panel", "lander"));
+        Assert.Equal(["run:prev:lander"], _bridge.Done);
     }
 
     private string LastAnswer => _chat.Last(c => c is { Role: "assistant", Final: true }).Text;

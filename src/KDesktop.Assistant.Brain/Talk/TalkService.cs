@@ -289,10 +289,16 @@ public sealed class TalkService
         var forAi = said;
         IReadOnlyCollection<string>? leaveOut = null;
         IReadOnlyList<string>? close = null;
-        if (_commands is not null && !IsQuestion(said) && await _commands.MatchAsync(said, token).ConfigureAwait(false) is { } matched)
+        // A phrase the user taught it («cuando diga «la vuelta»…»): the AI, with that memory, before any command that sounds
+        // like it («la vuelta» ran «Anterior» at 0.87 and the memory never counted).
+        var taught = _memory?.Store.Triggered(said) ?? [];
+        if (taught.Count > 0) Log.Info($"Asistente: «{said}» dice una frase de la memoria: a la IA ({taught[0].Text})");
+        if (_commands is not null && taught.Count == 0 && !IsQuestion(said) && await _commands.MatchAsync(said, token).ConfigureAwait(false) is { } matched)
         {
             Log.Info("Asistente: comandos: " + CommandTools.Describe(matched));
-            var sure = matched.Parts.Where(p => p.Sure && p.Candidates[0].Score >= CommandTools.Direct).Select(p => p.Candidates[0]).ToList();
+            // The same command named twice in one order («la vuelta, es la vuelta») runs once.
+            var sure = matched.Parts.Where(p => p.Sure && p.Candidates[0].Score >= CommandTools.Direct).Select(p => p.Candidates[0])
+                .DistinctBy(c => (c.Command ?? c.Name, c.Media, c.Value)).ToList();
             // Not sure of any part, but the whole order is that near one command and well ahead of the rest («Va ser la
             // papelera», Parakeet's «vacía la papelera», 0.82): it is that one. K-Desktop still asks before what is risky.
             if (sure.Count == 0 && matched.Parts is [{ Sure: false, Candidates: [var only, ..] } whole] && only.Score >= CommandTools.Direct

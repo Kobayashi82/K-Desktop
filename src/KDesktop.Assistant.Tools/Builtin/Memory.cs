@@ -13,7 +13,7 @@ namespace KDesktop.Assistant.Tools.Builtin;
 /// text; past <see cref="Capacity"/> the least valuable goes (importance, freshness, use; what the user asked to
 /// remember or wrote weighs more). Options → Assistant → Memory shows, edits and deletes them. Thread-safe.
 /// </summary>
-public sealed class MemoryStore(string file, TimeProvider? time = null)
+public sealed partial class MemoryStore(string file, TimeProvider? time = null)
 {
     public const int Capacity = 250;
 
@@ -139,6 +139,31 @@ public sealed class MemoryStore(string file, TimeProvider? time = null)
             return [.. scored.Where(p => p.Shared == most).Select(p => p.Item)];
         }
     }
+
+    /// <summary>
+    /// The ones with a phrase of the user's in quotes that the order says («Cuando diga «la vuelta», quiere que se abra…»
+    /// and «vamos a hacer la vuelta»): the user taught it that phrase, so it wins over a command that sounds like it.
+    /// </summary>
+    public IReadOnlyList<MemoryEntry> Triggered(string said)
+    {
+        var words = TextSimilarity.Words(said);
+        if (words.Length == 0) return [];
+        lock (_gate)
+        {
+            return [.. Items().Where(m => Quoted().Matches(m.Text).Any(q => Contains(words, TextSimilarity.Words(q.Groups[1].Value))))];
+        }
+
+        static bool Contains(string[] words, string[] phrase)
+        {
+            if (phrase.Length == 0 || phrase.Length > words.Length) return false;
+            for (var i = 0; i + phrase.Length <= words.Length; i++)
+                if (phrase.AsSpan().SequenceEqual(words.AsSpan(i, phrase.Length))) return true;
+            return false;
+        }
+    }
+
+    [System.Text.RegularExpressions.GeneratedRegex("[«\"“„]([^«»\"“”„]{2,60})[»\"”“]")]
+    private static partial System.Text.RegularExpressions.Regex Quoted();
 
     /// <summary>Puts back one that was forgotten (undoing «olvida…»).</summary>
     public bool Restore(MemoryEntry entry)
