@@ -6,6 +6,17 @@
 > a los 0,35–0,4 s con el modelo cargado y a ~1,1 s en frío (carga del modelo y la voz, 0,7 s). Parakeet entiende las
 > tres voces en español (ef_dora, em_alex, em_santa) casi sin fallos: los que cuenta son cifras («44» por «cuarenta y
 > cuatro»). El modelo cuantizado (92 MB) era 4 veces más lento en este procesador: se usa el de 325 MB.
+>
+> **Desde 5.0.110 también Piper** (una voz = un modelo VITS de 20–115 MB). Medido en el PC del usuario con voces de
+> calidad media: 7,6 s de audio en 0,18 s con la voz cargada (unas 40 veces el tiempo real) y ~0,9 s en frío (carga de la
+> voz y de espeak-ng). Parakeet entiende frases normales en español, inglés y alemán casi sin fallos (davefx, mike,
+> thorsten). Dos cosas medidas que cambian cómo se le da el texto: varias frases suenan mejor dichas de una vez que una a
+> una (por separado, «Recibido. Abro la papelera.» se oía «Decidido. Par la parelera.»), así que Piper solo parte lo que
+> pasa de 400 fonemas; y una frase de una o dos palabras («Recibido.») va con la siguiente (`SentenceSplitter.JoinShort`,
+> solo con Piper: a Kokoro le retrasaría la primera frase). Los fonemas salen del mismo espeak-ng que Kokoro: comparados
+> con los de piper-tts 1.7, coinciden salvo detalles de la versión de espeak-ng (la `r` alemana tras consonante, alguna
+> `ʲ` en inglés); el espeak-ng antiguo con el que se entrenaron las voces da otras diferencias parecidas, así que no
+> compensa una segunda descarga.
 
 Medido el 21/10/2026 en el PC del usuario (RTX 4070 SUPER), con una instancia de prueba de K-Desktop (compilación
 Debug, `--data` de prueba), Dot y el Lander 0.7.0 en el escritorio, Ollama con `qwen3-4b-instruct`, Pocket TTS en

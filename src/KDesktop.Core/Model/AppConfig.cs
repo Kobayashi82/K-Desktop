@@ -538,8 +538,8 @@ public partial class AppSettings : ObservableObject
 
     /// <summary>
     /// Who says the assistants' answers aloud (Options → Assistant → Voice, stage 5.4): <c>auto</c> (Kokoro if it is
-    /// downloaded for the language, else Windows' voices, else beeps), <c>kokoro</c>, <c>windows</c>, <c>beeps</c> or
-    /// <c>off</c> (only the bubble). Until 5.0.93 the natural voice was Pocket TTS (<c>pocket</c>, read as <c>kokoro</c>).
+    /// downloaded for the language, else Piper, else Windows' voices, else beeps), <c>kokoro</c>, <c>piper</c> (5.0.110),
+    /// <c>windows</c>, <c>beeps</c> or <c>off</c> (only the bubble). Until 5.0.93 the natural voice was Pocket TTS (<c>pocket</c>, read as <c>kokoro</c>).
     /// </summary>
     [ObservableProperty] private string _assistantVoiceEngine = "auto";
 
@@ -548,6 +548,12 @@ public partial class AppSettings : ObservableObject
     /// language: its first one. Downloaded when chosen.
     /// </summary>
     [ObservableProperty] private string _assistantVoiceKokoro = string.Empty;
+
+    /// <summary>
+    /// The Piper voice for the language the assistants speak in («es_ES-davefx-medium», or «key#speaker» for one with several);
+    /// empty or not of the language: its default one (5.0.110).
+    /// </summary>
+    [ObservableProperty] private string _assistantVoicePiper = string.Empty;
 
     /// <summary>The Windows voice by name; empty: the first one of the language.</summary>
     [ObservableProperty] private string _assistantVoiceWindows = string.Empty;

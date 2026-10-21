@@ -36,7 +36,7 @@ public sealed class KokoroEngine : IDisposable
         language == "es"
             ? SpanishPhonemes.ToPhonemes(text)
             : EspeakPhonemes.ToPhonemes(text, KokoroModels.EspeakVoice(language, KokoroModels.Names(voice) is [var first, ..] ? first : "")
-                ?? throw new InvalidOperationException($"Kokoro no habla «{language}»"), KokoroModels.EspeakFolder);
+                ?? throw new InvalidOperationException($"Kokoro no habla «{language}»"), EspeakFiles.Folder);
 
     /// <summary>
     /// One sentence in audio (24 kHz mono, the voice as it is), handed to <paramref name="onAudio"/> piece by piece as it is

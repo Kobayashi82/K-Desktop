@@ -610,7 +610,7 @@ public sealed record MediaMessage(string Order, int? Value = null, string? Run =
 /// <summary>
 /// Options → Assistant → Voice: <c>state</c> (how the voice is: answered with <see cref="VoiceStateMessage"/>) or
 /// <c>test</c> (say <paramref name="Text"/> with the voice as it is set: the assistant gives it its bubble too), <c>stop</c>
-/// (the test stops) or <c>unload</c> (Kokoro leaves the memory).
+/// (the test stops) or <c>unload</c> (Kokoro, Piper and espeak-ng leave the memory: K-Desktop is about to delete them).
 /// </summary>
 /// <param name="Assistant">Who says the test; null: nobody on the desktop, only the voice.</param>
 /// <param name="Mood">The test said in that mood (<c>happy</c>, <c>error</c>, <c>far</c>; stage 5.6); null: as it is now.</param>
@@ -619,11 +619,12 @@ public sealed record VoiceMessage(string Op, string? Text = null, string? Assist
     public override string Type => "voice";
 }
 
-/// <summary>How the voice is: the engine that really speaks (<c>kokoro</c>, <c>windows</c>, <c>beeps</c>, <c>off</c>) and Windows' voices for the language.</summary>
+/// <summary>How the voice is: the engine that really speaks (<c>kokoro</c>, <c>piper</c>, <c>windows</c>, <c>beeps</c>, <c>off</c>) and Windows' voices for the language.</summary>
 /// <param name="KokoroLoaded">Kokoro's model is in memory now.</param>
 /// <param name="WindowsVoicesOf">Windows' voices of every language (for an assistant that speaks in its own, 5.0.105).</param>
+/// <param name="PiperLoaded">The key of the Piper voice in memory now, or null (5.0.110).</param>
 public sealed record VoiceStateMessage(string Engine, IReadOnlyList<string> WindowsVoices, bool KokoroLoaded = false,
-    IReadOnlyDictionary<string, IReadOnlyList<string>>? WindowsVoicesOf = null) : PipeMessage
+    IReadOnlyDictionary<string, IReadOnlyList<string>>? WindowsVoicesOf = null, string? PiperLoaded = null) : PipeMessage
 {
     public override string Type => "voiceState";
 }

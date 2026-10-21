@@ -8,7 +8,7 @@ namespace KDesktop.Core.Assistant;
 /// What one assistant has of its own (Options → Assistants → it → «Personalidad y voz», 5.0.105): its personality, the
 /// language it speaks in and its voice. What is left empty is the general one (Options → Assistant module), as before.
 /// The same record travels to the assistant process in the <c>personal</c> section of <c>config</c>, with its language
-/// and its Kokoro voice already resolved by K-Desktop.
+/// and its Kokoro and Piper voices already resolved by K-Desktop.
 /// </summary>
 public sealed record AssistantPersonal
 {
@@ -18,11 +18,14 @@ public sealed record AssistantPersonal
     /// <summary>Its instructions for the AI, written by the user; null: those of its package.</summary>
     public string? Prompt { get; init; }
 
-    /// <summary>Who says it aloud (<c>auto</c>, <c>kokoro</c>, <c>windows</c>, <c>beeps</c>, <c>off</c>); empty: the general one.</summary>
+    /// <summary>Who says it aloud (<c>auto</c>, <c>kokoro</c>, <c>piper</c>, <c>windows</c>, <c>beeps</c>, <c>off</c>); empty: the general one.</summary>
     public string Engine { get; init; } = string.Empty;
 
     /// <summary>Its Kokoro voice or mix of two; empty: the general one (if it is of its language, else the language's first).</summary>
     public string KokoroVoice { get; init; } = string.Empty;
+
+    /// <summary>Its Piper voice («key» or «key#speaker»); empty: the general one (if it is of its language, else the language's default).</summary>
+    public string PiperVoice { get; init; } = string.Empty;
 
     /// <summary>Its Windows voice by name; empty: the general one.</summary>
     public string WindowsVoice { get; init; } = string.Empty;
@@ -45,10 +48,10 @@ public sealed record AssistantPersonal
 
     /// <summary>Something of its voice is its own.</summary>
     [JsonIgnore]
-    public bool HasOwnVoice => Engine.Length > 0 || KokoroVoice.Length > 0 || WindowsVoice.Length > 0 || Profile.Length > 0 || Speed is not null;
+    public bool HasOwnVoice => Engine.Length > 0 || KokoroVoice.Length > 0 || PiperVoice.Length > 0 || WindowsVoice.Length > 0 || Profile.Length > 0 || Speed is not null;
 
     /// <summary>The voice as the general one again (its language and its personality stay).</summary>
-    public AssistantPersonal WithoutVoice() => this with { Engine = string.Empty, KokoroVoice = string.Empty, WindowsVoice = string.Empty, Profile = string.Empty, Speed = null };
+    public AssistantPersonal WithoutVoice() => this with { Engine = string.Empty, KokoroVoice = string.Empty, PiperVoice = string.Empty, WindowsVoice = string.Empty, Profile = string.Empty, Speed = null };
 
     /// <summary>The <c>personal</c> section: assistant id → what it has of its own.</summary>
     public static JsonObject ToJson(IReadOnlyDictionary<string, AssistantPersonal> all) =>

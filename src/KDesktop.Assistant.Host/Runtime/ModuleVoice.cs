@@ -58,6 +58,7 @@ internal sealed class ModuleVoice : IDisposable
             {
                 Engine = Enum.TryParse<SpeechEngineKind>(own.Engine, true, out var engine) ? engine : settings.Engine,
                 KokoroVoice = own.KokoroVoice.Length > 0 ? own.KokoroVoice : settings.KokoroVoice,
+                PiperVoice = own.PiperVoice.Length > 0 ? own.PiperVoice : settings.PiperVoice,
                 WindowsVoice = own.WindowsVoice.Length > 0 ? own.WindowsVoice : settings.WindowsVoice,
                 Speed = own.Speed is { } speed ? Math.Clamp(speed, 0.5, 2) : settings.Speed,
             };
@@ -77,7 +78,7 @@ internal sealed class ModuleVoice : IDisposable
         if (voice is null) return;
         var engine = Enum.TryParse<SpeechEngineKind>(voice["engine"]?.GetValue<string>(), true, out var e) ? e : SpeechEngineKind.Auto;
         _settings = new VoiceSettings(engine, voice["kokoroVoice"]?.GetValue<string>(), voice["windowsVoice"]?.GetValue<string>(),
-            voice["speed"]?.GetValue<double>() ?? 1);
+            voice["speed"]?.GetValue<double>() ?? 1, PiperVoice: voice["piperVoice"]?.GetValue<string>());
         _volume = Math.Clamp(voice["volume"]?.GetValue<double>() ?? 1, 0, 1);
         _profile = voice["profile"]?.GetValue<string>() is { Length: > 0 } fixedProfile ? fixedProfile : null;
         _pan = voice["pan"]?.GetValue<bool>() ?? true;
@@ -164,7 +165,7 @@ internal sealed class ModuleVoice : IDisposable
         var engine = _runtime.Audio.Enabled ? Speech.Resolve(language, _settings) : SpeechEngineKind.Off;
         var others = Loc.Available().Select(l => l.Code).Distinct(StringComparer.OrdinalIgnoreCase)
             .ToDictionary(code => code, Speech.WindowsVoicesFor, StringComparer.OrdinalIgnoreCase);
-        return new VoiceStateMessage(engine.ToString().ToLowerInvariant(), Speech.WindowsVoicesFor(language), Speech.Kokoro.IsLoaded, others);
+        return new VoiceStateMessage(engine.ToString().ToLowerInvariant(), Speech.WindowsVoicesFor(language), Speech.Kokoro.IsLoaded, others, Speech.Piper.Loaded);
     }
 
     /// <summary>Whether answers are said aloud at all now (a voice chosen and the sound on).</summary>
@@ -261,6 +262,8 @@ internal sealed class ModuleVoice : IDisposable
             _owner = owner;
             _assistant = assistant;
             Turn = turn;
+            // Piper says a lone «Recibido.» badly: it goes with the next sentence.
+            Splitter.JoinShort = owner.Speech.Resolve(owner.LanguageOf(assistant), owner.SettingsFor(assistant, [])) == SpeechEngineKind.Piper;
             var token = _stop.Token;
             Done = Task.WhenAll(Task.Run(() => MakeAsync(token)), Task.Run(() => PlayAsync(token))).ContinueWith(_ =>
             {

@@ -9,7 +9,8 @@ namespace KDesktop.Views.Pages;
 
 /// <summary>
 /// Options → Assistant → Voice (stage 5.4): who says the answers aloud (Kokoro, downloaded here for the interface
-/// language, with espeak-ng apart when the language needs it; Windows' voices; beeps; nobody), which voice or mix of two,
+/// language, with espeak-ng apart when the language needs it; Piper, a model per voice, since 5.0.110; Windows' voices;
+/// beeps; nobody), which voice or mix of two,
 /// how fast and how loud, and «Probar» (stage 5.6: by whom, in which mood, and stopping it); and when they speak aloud.
 /// What really speaks comes from the assistant process (<c>voiceState</c>).
 /// </summary>
@@ -53,6 +54,7 @@ public partial class AssistantVoiceSection : UserControl
         [
             new("auto", Loc.T("assistantVoice.engineAuto")),
             new("kokoro", Loc.T("assistantVoice.engineKokoro")),
+            new("piper", Loc.T("assistantVoice.enginePiper")),
             new("windows", Loc.T("assistantVoice.engineWindows")),
             new("beeps", Loc.T("assistantVoice.engineBeeps")),
             new("off", Loc.T("assistantVoice.engineOff")),
@@ -67,6 +69,7 @@ public partial class AssistantVoiceSection : UserControl
         StateText.Text = _app.AssistantVoice is not { } state ? Loc.T("assistantVoice.stateUnknown") : state.Engine switch
         {
             "kokoro" => Loc.T("assistantVoice.stateKokoro", VoiceTitle(_app.KokoroVoice)),
+            "piper" => Loc.T("assistantVoice.statePiper", PiperTitle(_app.PiperVoice)),
             "windows" => Loc.T("assistantVoice.stateWindows", s.AssistantVoiceWindows is { Length: > 0 } w && state.WindowsVoices.Contains(w) ? w : state.WindowsVoices.Count > 0 ? state.WindowsVoices[0] : "?"),
             "beeps" => Loc.T("assistantVoice.stateBeeps"),
             _ => Loc.T("assistantVoice.stateOff"),
@@ -115,6 +118,8 @@ public partial class AssistantVoiceSection : UserControl
             MixValue.Text = $"{MixSlider.Value:0} %";
         }
 
+        RefreshPiper(language);
+
         List<Option> windows = [new(string.Empty, Loc.T("assistantVoice.windowsFirst")), .. (_app.AssistantVoice?.WindowsVoices ?? []).Select(v => new Option(v, v))];
         WindowsVoiceBox.ItemsSource = windows;
         WindowsVoiceBox.SelectedItem = windows.FirstOrDefault(w => w.Value == s.AssistantVoiceWindows) ?? windows[0];
@@ -142,6 +147,67 @@ public partial class AssistantVoiceSection : UserControl
 
     /// <summary>The test sentence last put in the box (it is replaced while the user has not written another).</summary>
     private string? _testDefault;
+
+    /// <summary>Piper: what is on disk and what is missing, its voices of the language and, for one of several, who speaks.</summary>
+    private void RefreshPiper(string language)
+    {
+        var download = _app.PiperDownload;
+        var spec = _app.PiperVoice;
+        var missing = _app.PiperMissing ? PiperModels.Missing(spec) : 0;
+        var size = PiperModels.InstalledSize();
+        var unused = PiperModels.AllInstalled.Except(_app.PiperVoicesInUse()).Count();
+        PiperText.Text = download.IsDownloading ? Loc.T("assistantVoice.downloading", Mb(download.Done), Mb(download.Total))
+            : missing == 0 ? Loc.T("assistantVoice.piperReady", PiperTitle(spec), Mb(size))
+            : Loc.T("assistantVoice.piperMissing", PiperTitle(spec), Mb(missing));
+        PiperDownloadButton.Content = Loc.T("assistantVoice.download", Mb(missing));
+        PiperDownloadButton.Visibility = !download.IsDownloading && missing > 0 ? Visibility.Visible : Visibility.Collapsed;
+        PiperCancelButton.Visibility = download.IsDownloading ? Visibility.Visible : Visibility.Collapsed;
+        PiperDeleteButton.Visibility = !download.IsDownloading && size > 0 ? Visibility.Visible : Visibility.Collapsed;
+        PiperDeleteButton.Margin = new Thickness(PiperDownloadButton.Visibility == Visibility.Visible ? 8 : 0, 0, 0, 0);
+        PiperDeleteOthersButton.Content = Loc.T("assistantVoice.deleteUnused", unused);
+        PiperDeleteOthersButton.Visibility = !download.IsDownloading && unused > 0 ? Visibility.Visible : Visibility.Collapsed;
+        PiperBar.Visibility = download.IsDownloading ? Visibility.Visible : Visibility.Collapsed;
+        PiperBar.Value = download.Total > 0 ? download.Done / (double)download.Total : 0;
+
+        var voices = PiperModels.Voices(language).Select(v => new Option(v.Key, PiperOption(v))).ToList();
+        PiperVoiceBox.ItemsSource = voices;
+        PiperVoiceBox.SelectedItem = voices.FirstOrDefault(v => v.Value == PiperModels.KeyOf(spec));
+        var speakers = PiperModels.Find(spec)?.Speakers ?? [];
+        PiperSpeakerRow.Visibility = speakers.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        List<Option> who = [.. speakers.Select(name => new Option(name, SpeakerName(name, alone: true)))];
+        PiperSpeakerBox.ItemsSource = who;
+        PiperSpeakerBox.SelectedItem = who.FirstOrDefault(o => o.Value == PiperModels.SpeakerOf(spec)) ?? who.FirstOrDefault();
+    }
+
+    /// <summary>«Davefx (España, calidad media)», and «sin descargar» when it is not on disk.</summary>
+    internal static string PiperOption(PiperVoice voice)
+    {
+        var title = Loc.T("assistantVoice.piperTitle", voice.Name, Loc.T("assistantVoice.region." + voice.Region), Loc.T("assistantVoice.quality." + voice.Quality),
+            Mb(voice.Size));
+        return PiperModels.IsDownloaded(voice.Key) ? title : Loc.T("assistantVoice.voiceMissing", title);
+    }
+
+    /// <summary>«Sharvard (mujer)» for a voice and one of its speakers; «Davefx» for a voice of one.</summary>
+    internal static string PiperTitle(string spec)
+    {
+        if (PiperModels.Find(spec) is not { } voice) return spec;
+        return PiperModels.SpeakerOf(spec) is { } speaker ? $"{voice.Name} ({SpeakerName(speaker)})" : voice.Name;
+    }
+
+    /// <summary>
+    /// A speaker of a Piper voice: «M»/«F» as man/woman (as in «Dora (mujer)»; with <paramref name="alone"/>, «Mujer»), the
+    /// rest as they come, capitalised («Angry», «Jessica»).
+    /// </summary>
+    internal static string SpeakerName(string speaker, bool alone = false)
+    {
+        var name = speaker switch
+        {
+            "M" => Loc.T("assistantVoice.male"),
+            "F" => Loc.T("assistantVoice.female"),
+            _ => speaker,
+        };
+        return alone || name == speaker ? char.ToUpper(name[0], Loc.Instance.Culture) + name[1..] : name;
+    }
 
     /// <summary>«ef_dora» → «Dora (mujer)»; a mix → «Dora + Alex» (for English, also British or American).</summary>
     internal static string VoiceTitle(string spec, string? language = null)
@@ -193,6 +259,41 @@ public partial class AssistantVoiceSection : UserControl
             _app.ChooseKokoroVoice(spec);
             Refresh();
         });
+    }
+
+    /// <summary>Another Piper voice, or another speaker of it (a new voice starts with its first speaker).</summary>
+    private void OnPiperVoiceChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_filling || PiperVoiceBox.SelectedItem is not Option voice) return;
+        var speakers = PiperModels.Find(voice.Value)?.Speakers ?? [];
+        var speaker = ReferenceEquals(sender, PiperSpeakerBox) && PiperSpeakerBox.SelectedItem is Option chosen ? chosen.Value
+            : speakers.Count > 0 && PiperModels.KeyOf(_app.PiperVoice) == voice.Value ? PiperModels.SpeakerOf(_app.PiperVoice) : null;
+        var spec = PiperModels.Spec(voice.Value, speaker);
+        if (spec == _app.PiperVoice) return;
+        Dispatcher.BeginInvoke(() =>
+        {
+            _app.ChoosePiperVoice(spec);
+            Refresh();
+        });
+    }
+
+    private void OnPiperDownload(object sender, RoutedEventArgs e)
+    {
+        _app.PiperDownload.Start();
+        Refresh();
+    }
+
+    private void OnPiperCancel(object sender, RoutedEventArgs e) => _app.PiperDownload.Cancel();
+
+    private async void OnPiperDelete(object sender, RoutedEventArgs e) => await DeletePiper(PiperDeleteButton, onlyUnused: false);
+
+    private async void OnPiperDeleteOthers(object sender, RoutedEventArgs e) => await DeletePiper(PiperDeleteOthersButton, onlyUnused: true);
+
+    private async Task DeletePiper(Button button, bool onlyUnused)
+    {
+        button.IsEnabled = false;
+        try { await _app.DeletePiperAsync(onlyUnused); }
+        finally { button.IsEnabled = true; }
     }
 
     private void OnWindowsVoiceChanged(object sender, SelectionChangedEventArgs e)

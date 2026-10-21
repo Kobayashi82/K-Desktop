@@ -1,0 +1,830 @@
+{
+  "repository": "https://huggingface.co/rhasspy/piper-voices/resolve/5041a7a49ae5b3a0f30e6837769eb03fdbb231bd/",
+  "languages": {
+    "es": {
+      "default": "es_ES-davefx-medium",
+      "voices": {
+        "es_AR-daniela-high": {
+          "path": "es/es_AR/daniela/high/",
+          "region": "AR",
+          "quality": "high",
+          "rate": 22050,
+          "espeak": "es-419",
+          "size": 114199011,
+          "sha256": "7ceb1fc0dab349418c5b54a639ae9ee595212d7c9ea422220d8419163d5cc985",
+          "configSize": 7248,
+          "configSha256": "aedbf69647e1d754c62ecf8e0366ca5f16af3e768e3c6b5329af6eb6bde3852b"
+        },
+        "es_ES-carlfm-x_low": {
+          "path": "es/es_ES/carlfm/x_low/",
+          "region": "ES",
+          "quality": "x_low",
+          "rate": 16000,
+          "espeak": "es",
+          "size": 28130791,
+          "sha256": "d69677323a907cd4963f42b29c20a98b5d6bfa7f3e64df339915e4650c00d125",
+          "configSize": 4159,
+          "configSha256": "d9bdfa9ff01eb2bc9e62e7d2593939d1e4c4d8eb7cf75f972731539d12399966"
+        },
+        "es_ES-davefx-medium": {
+          "path": "es/es_ES/davefx/medium/",
+          "region": "ES",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "es",
+          "size": 63201294,
+          "sha256": "6658b03b1a6c316ee4c265a9896abc1393353c2d9e1bca7d66c2c442e222a917",
+          "configSize": 4817,
+          "configSha256": "0e0dda87c732f6f38771ff274a6380d9252f327dca77aa2963d5fbdf9ec54842"
+        },
+        "es_ES-mls_10246-low": {
+          "path": "es/es_ES/mls_10246/low/",
+          "region": "ES",
+          "quality": "low",
+          "rate": 16000,
+          "espeak": "es",
+          "size": 63104526,
+          "sha256": "3f9d76d2778778942297aab052aa7b2e67248d3f43614c889ee82901a230e197",
+          "configSize": 4160,
+          "configSha256": "a865944d7f6972af347263b0b8152466dabba3b78b8fe5a6985f7d3b19fd06a1"
+        },
+        "es_ES-mls_9972-low": {
+          "path": "es/es_ES/mls_9972/low/",
+          "region": "ES",
+          "quality": "low",
+          "rate": 16000,
+          "espeak": "es",
+          "size": 63104526,
+          "sha256": "afdd61beb26d3aba18245c0352a8173e7f96196fbe4979e115590e8f775c95f0",
+          "configSize": 4159,
+          "configSha256": "32234a0701c480bb6ba62d4f05d0c03a95369f2133aa655370db1c00b2193340"
+        },
+        "es_ES-sharvard-medium": {
+          "path": "es/es_ES/sharvard/medium/",
+          "region": "ES",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "es",
+          "size": 76733615,
+          "sha256": "40febfb1679c69a4505ff311dc136e121e3419a13a290ef264fdf43ddedd0fb1",
+          "configSize": 4903,
+          "configSha256": "7438c9b699c72b0c3388dae1b68d3f364dc66a2150fe554a1c11f03372957b2c",
+          "speakers": [
+            "M",
+            "F"
+          ]
+        },
+        "es_MX-ald-medium": {
+          "path": "es/es_MX/ald/medium/",
+          "region": "MX",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "es-419",
+          "size": 63201294,
+          "sha256": "019b3803293c93e34a206dd2e53a3889209a514e786fd7144f7b70196c579b63",
+          "configSize": 4878,
+          "configSha256": "5a71498158e04afc8099bfd019c7e87c68eb9d042505a2b1a87e5c1ac2b1a61d"
+        },
+        "es_MX-ald-x_low": {
+          "path": "es/es_MX/ald/x_low/",
+          "region": "MX",
+          "quality": "x_low",
+          "rate": 22050,
+          "espeak": "es-419",
+          "size": 20986952,
+          "sha256": "d8aae54aee9eafb37fb85d6da676facafca31c2d84d11acdca1a5b6dd82b1df6",
+          "configSize": 4877,
+          "configSha256": "5b372adf1f8c8d8f0610b9057fc2df001ad3f5f42cd9d6f853a78bef3f8b0644"
+        },
+        "es_MX-claude-high": {
+          "path": "es/es_MX/claude/high/",
+          "region": "MX",
+          "quality": "high",
+          "rate": 22050,
+          "espeak": "es-419",
+          "size": 63122309,
+          "sha256": "3ef40a71ea63852cd8ab7e6fa7d2ecdcfa67a0b47c9c48e3f10e02ee02083ea0",
+          "configSize": 4963,
+          "configSha256": "1afc81f703c0e4cb3b4d7c0dca096b8b54a98806807f0170cf5eb5557723c12d"
+        }
+      }
+    },
+    "en": {
+      "default": "en_US-lessac-medium",
+      "voices": {
+        "en_GB-alan-low": {
+          "path": "en/en_GB/alan/low/",
+          "region": "GB",
+          "quality": "low",
+          "rate": 16000,
+          "espeak": "en-gb-x-rp",
+          "size": 63104526,
+          "sha256": "a1f60584620a2bed203de823d08f5abb336fb15f3d6f33f8c341e3e2cabf5dde",
+          "configSize": 4170,
+          "configSha256": "c8164cc04b6ce102c651ce4a1e788e8429fa638501fca0723860718d4b44637e"
+        },
+        "en_GB-alan-medium": {
+          "path": "en/en_GB/alan/medium/",
+          "region": "GB",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en-gb-x-rp",
+          "size": 63201294,
+          "sha256": "0a309668932205e762801f1efc2736cd4b0120329622adf62be09e56339d3330",
+          "configSize": 4888,
+          "configSha256": "c0f0d124e5895c00e7c03b35dcc8287f319a6998a365b182deb5c8e752ee8c1e"
+        },
+        "en_GB-alba-medium": {
+          "path": "en/en_GB/alba/medium/",
+          "region": "GB",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en-gb-x-rp",
+          "size": 63201294,
+          "sha256": "401369c4a81d09fdd86c32c5c864440811dbdcc66466cde2d64f7133a66ad03b",
+          "configSize": 4888,
+          "configSha256": "aa965a2f02ecced632c2694e1fc72bbff6d65f265fab567ca945918c73dd89f4"
+        },
+        "en_GB-aru-medium": {
+          "path": "en/en_GB/aru/medium/",
+          "region": "GB",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en-gb-x-rp",
+          "size": 76754097,
+          "sha256": "9e74d089a8563f8b2446426d01becb046cd3c3bfbafe1a20fd03a9a79bd82619",
+          "configSize": 5048,
+          "configSha256": "00529fabf0e79f29a9cb10fda5b60f9b7cf80671faac2b316e13af20e7816d5e",
+          "speakers": [
+            "03",
+            "06",
+            "10",
+            "01",
+            "09",
+            "08",
+            "11",
+            "05",
+            "12",
+            "02",
+            "07",
+            "04"
+          ]
+        },
+        "en_GB-cori-high": {
+          "path": "en/en_GB/cori/high/",
+          "region": "GB",
+          "quality": "high",
+          "rate": 22050,
+          "espeak": "en",
+          "size": 114219352,
+          "sha256": "470b4dd634c98f8a4850d7626ffc3dfc90774628eeef6605a6dd8f88f30a5903",
+          "configSize": 4963,
+          "configSha256": "9e7fb5b5671612c22f3c81cbe46c1ae87b031a4632bcb509e499dad6f1e2adec"
+        },
+        "en_GB-cori-medium": {
+          "path": "en/en_GB/cori/medium/",
+          "region": "GB",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en",
+          "size": 63531379,
+          "sha256": "1899f98e5fb8310154f3c2973f4b8a929ba7245e722b3d3a85680b833d95f10d",
+          "configSize": 4966,
+          "configSha256": "e262c16d7f192f69d4edd6b4ef8a5915379e67495fcc402f1ab15eeb33da3d36"
+        },
+        "en_GB-jenny_dioco-medium": {
+          "path": "en/en_GB/jenny_dioco/medium/",
+          "region": "GB",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en-gb-x-rp",
+          "size": 63201294,
+          "sha256": "469c630d209e139dd392a66bf4abde4ab86390a0269c1e47b4e5d7ce81526b01",
+          "configSize": 4895,
+          "configSha256": "a9a7a93a317c9a3cb6563e37eb057df9ef09c06188a8a4341b0fcb58cba54dd4"
+        },
+        "en_GB-northern_english_male-medium": {
+          "path": "en/en_GB/northern_english_male/medium/",
+          "region": "GB",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en-gb-x-rp",
+          "size": 63201294,
+          "sha256": "57a219ae8e638873db7d18893304be5069c42868f392bb95c3ff17f0690d0689",
+          "configSize": 4847,
+          "configSha256": "69557ed3d974463453e9b0c09dd99a7ed0e52b8b87b64b357dbeeb2540a97d47"
+        },
+        "en_GB-semaine-medium": {
+          "path": "en/en_GB/semaine/medium/",
+          "region": "GB",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en-gb-x-rp",
+          "size": 76737711,
+          "sha256": "d6dab6f3b92db43ea3f78c7f20dc8eadb47a1f15d8a1c9d451cf3ccd201a2f66",
+          "configSize": 5076,
+          "configSha256": "6425dcb878684043b77d772b173ae006d86a583b110303edda48b8438ecee5ee",
+          "speakers": [
+            "prudence",
+            "spike",
+            "obadiah",
+            "poppy"
+          ]
+        },
+        "en_GB-southern_english_female-low": {
+          "path": "en/en_GB/southern_english_female/low/",
+          "region": "GB",
+          "quality": "low",
+          "rate": 16000,
+          "espeak": "en-gb-x-rp",
+          "size": 63104526,
+          "sha256": "f2f37aed1b3a093476f719d1379ba0c0b1b1cf6f1ef99288e2ebf502971a07c3",
+          "configSize": 4189,
+          "configSha256": "a1af43310f8756161506e849a2863d342a98b0853af9e2437581d39e9922d0e5"
+        },
+        "en_US-amy-low": {
+          "path": "en/en_US/amy/low/",
+          "region": "US",
+          "quality": "low",
+          "rate": 16000,
+          "espeak": "en-us",
+          "size": 63104526,
+          "sha256": "a5a91abb7de0f104358a25aded480ddacf1ff0762886325886ec406a2e86aab3",
+          "configSize": 4164,
+          "configSha256": "2250a9a605b8dc35a116717fadc5056695dd809e34a15d02f72a0f52d53d3ebb"
+        },
+        "en_US-amy-medium": {
+          "path": "en/en_US/amy/medium/",
+          "region": "US",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en-us",
+          "size": 63201294,
+          "sha256": "b3a6e47b57b8c7fbe6a0ce2518161a50f59a9cdd8a50835c02cb02bdd6206c18",
+          "configSize": 4882,
+          "configSha256": "95a23eb4d42909d38df73bb9ac7f45f597dbfcde2d1bf9526fdeaf5466977d77"
+        },
+        "en_US-arctic-medium": {
+          "path": "en/en_US/arctic/medium/",
+          "region": "US",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en-us",
+          "size": 76766385,
+          "sha256": "483303e294947a3ec2f910ea96093d876e1640f5772e9d89e511d6c82c667286",
+          "configSize": 5148,
+          "configSha256": "db2ca1a55db01cdd3ce28ae63037ac525133e9e00ca557430dec572643235efe",
+          "speakers": [
+            "awb",
+            "rms",
+            "slt",
+            "ksp",
+            "clb",
+            "lnh",
+            "aew",
+            "bdl",
+            "jmk",
+            "rxr",
+            "fem",
+            "ljm",
+            "slp",
+            "aup",
+            "ahw",
+            "axb",
+            "eey",
+            "gka"
+          ]
+        },
+        "en_US-bryce-medium": {
+          "path": "en/en_US/bryce/medium/",
+          "region": "US",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en",
+          "size": 63531379,
+          "sha256": "dc9caa6c313199ffb5ac698b6e542fa6cba388aeaf2731e25262e33b9810aef1",
+          "configSize": 4966,
+          "configSha256": "7ceb1bc4af6d4e41b6d1edbb86c67e91e01eaa71f66db4cd0ae92ac704d415be"
+        },
+        "en_US-danny-low": {
+          "path": "en/en_US/danny/low/",
+          "region": "US",
+          "quality": "low",
+          "rate": 16000,
+          "espeak": "en-us",
+          "size": 63104526,
+          "sha256": "56a9ae9499e961514f060aac2866cb323a21e5989592fc4f208e56fdc323ab64",
+          "configSize": 4166,
+          "configSha256": "191dea1ba9863199d8ca2e9048f83b219219fb450f62767ee02f1bc4568ce4f4"
+        },
+        "en_US-hfc_female-medium": {
+          "path": "en/en_US/hfc_female/medium/",
+          "region": "US",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en-us",
+          "size": 63201294,
+          "sha256": "914c473788fc1fa8b63ace1cdcdb44588f4ae523d3ab37df1536616835a140b7",
+          "configSize": 5033,
+          "configSha256": "03f1fa0622b80463283592d97aca9f6e89aec345a5c56b7257723e0093c58b6c"
+        },
+        "en_US-hfc_male-medium": {
+          "path": "en/en_US/hfc_male/medium/",
+          "region": "US",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en-us",
+          "size": 63201294,
+          "sha256": "d11e403a02bdf5a670c877b3dc56e0e1c8cece6fb30289586314dffdc0a78cb0",
+          "configSize": 5033,
+          "configSha256": "f66847424aed0bf99ecbb5d7cfde47c0a906f426a0daf7c46f305e7d21afd886"
+        },
+        "en_US-joe-medium": {
+          "path": "en/en_US/joe/medium/",
+          "region": "US",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en-us",
+          "size": 63201294,
+          "sha256": "58afce0321b8d9c46d7cdf9c16500cc55a793b4220212dba6b70fb788b3baf06",
+          "configSize": 4794,
+          "configSha256": "3d6d5410b3795cb1950595247ef8f06190719e6fdbfa3a2356d8ec368e1aad33"
+        },
+        "en_US-john-medium": {
+          "path": "en/en_US/john/medium/",
+          "region": "US",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en",
+          "size": 63531379,
+          "sha256": "789c6c875726e627ddee93d51d8727859abe9c091c3d141591f4b83c2072e988",
+          "configSize": 4965,
+          "configSha256": "af60f177b6b550f3d7a302720c0fb89e7f94a82b5dca464775ef63b1c69ba09a"
+        },
+        "en_US-kathleen-low": {
+          "path": "en/en_US/kathleen/low/",
+          "region": "US",
+          "quality": "low",
+          "rate": 16000,
+          "espeak": "en-us",
+          "size": 63104526,
+          "sha256": "87adf17f5326bc0782282147a8b9788406236245f0f9b0e68dacb651bc1de8b6",
+          "configSize": 4169,
+          "configSha256": "39ebab88416edce0f63781754651788620cb97b9bb73ddf3c01f28e29a648feb"
+        },
+        "en_US-kristin-medium": {
+          "path": "en/en_US/kristin/medium/",
+          "region": "US",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en",
+          "size": 63531379,
+          "sha256": "5849957f929cbf720c258f8458692d6103fff2f0e3d3b19c8259474bb06a18d4",
+          "configSize": 4968,
+          "configSha256": "5681426d4aead22195de70531eeeeddb46493cfaffc5764b2ea3db73428b651c"
+        },
+        "en_US-kusal-medium": {
+          "path": "en/en_US/kusal/medium/",
+          "region": "US",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en-us",
+          "size": 63201294,
+          "sha256": "438ae25bb305b2a7f6d632327d6102df25011f793e8222fa9db876e7321df8f3",
+          "configSize": 4884,
+          "configSha256": "ddd3c4dfd8b4f568150c934fb94912dd788d44db87f4f0a328c469d7a6761f41"
+        },
+        "en_US-lessac-high": {
+          "path": "en/en_US/lessac/high/",
+          "region": "US",
+          "quality": "high",
+          "rate": 22050,
+          "espeak": "en-us",
+          "size": 113895201,
+          "sha256": "4cabf7c3a638017137f34a1516522032d4fe3f38228a843cc9b764ddcbcd9e09",
+          "configSize": 4883,
+          "configSha256": "db42b97d9859f257bc1561b8ed980e7fb2398402050a74ddd6cbec931a92412f"
+        },
+        "en_US-lessac-low": {
+          "path": "en/en_US/lessac/low/",
+          "region": "US",
+          "quality": "low",
+          "rate": 16000,
+          "espeak": "en-us",
+          "size": 63201294,
+          "sha256": "f7d01dde371555732c4c314111ac79672b1a5ce2fc19266ab42178fd8df7f375",
+          "configSize": 4882,
+          "configSha256": "45754dfdebb3b8661c3fc564713772deec6e064feeb5b4e9594857dc7305193a"
+        },
+        "en_US-lessac-medium": {
+          "path": "en/en_US/lessac/medium/",
+          "region": "US",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en-us",
+          "size": 63201294,
+          "sha256": "5efe09e69902187827af646e1a6e9d269dee769f9877d17b16b1b46eeaaf019f",
+          "configSize": 4885,
+          "configSha256": "efe19c417bed055f2d69908248c6ba650fa135bc868b0e6abb3da181dab690a0"
+        },
+        "en_US-ljspeech-high": {
+          "path": "en/en_US/ljspeech/high/",
+          "region": "US",
+          "quality": "high",
+          "rate": 22050,
+          "espeak": "en",
+          "size": 114199011,
+          "sha256": "5d4f08ba6a2a48c44592eed3ce56bf85e9de3dd4e20df90541ae68a8310c029a",
+          "configSize": 4970,
+          "configSha256": "7e1f4634af596d83cca997fb7a931ba80b70f8a316a2655ee69c55365e0ace14"
+        },
+        "en_US-ljspeech-medium": {
+          "path": "en/en_US/ljspeech/medium/",
+          "region": "US",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en",
+          "size": 63531379,
+          "sha256": "6f52a751e2349abe7a76735eb09dc1875298c77ea2342ffd2fef79ff81b87f22",
+          "configSize": 4972,
+          "configSha256": "141d612cc0a95ed7efc1ca936b845c2364967f2e9217c5dbfcf69fc4d6c65860"
+        },
+        "en_US-mike-medium": {
+          "path": "en/en_US/mike/medium/",
+          "region": "US",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en-us",
+          "size": 63221984,
+          "sha256": "3157e69e2c580cab297483f4b301ee975a4590c17d35a9757e33347d0e90fae2",
+          "configSize": 5439,
+          "configSha256": "0a2538c0b1e06a6cab7c46b97c79abd5e6a34a6c05b74b9376874c7099d81dad"
+        },
+        "en_US-norman-medium": {
+          "path": "en/en_US/norman/medium/",
+          "region": "US",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en",
+          "size": 63531379,
+          "sha256": "b9739443232a80a59c7d18810dd856899bf16a7964725f5ab81ea49b1351cb71",
+          "configSize": 4968,
+          "configSha256": "6c2db7f558a4a8deb9fe822583c1c5105f6c4e834dd0f9de8ad17a888ee9fe1d"
+        },
+        "en_US-reza_ibrahim-medium": {
+          "path": "en/en_US/reza_ibrahim/medium/",
+          "region": "US",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en-us",
+          "size": 63511038,
+          "sha256": "99f0c31464a2120831ca87d079e10a9a2b3e426cc1ee662d80ff9042df15cd3c",
+          "configSize": 4976,
+          "configSha256": "465ddf1702917fe617b7d69ed81301d6a2f39f083a754bd1cf6db8955d09a381"
+        },
+        "en_US-ryan-high": {
+          "path": "en/en_US/ryan/high/",
+          "region": "US",
+          "quality": "high",
+          "rate": 22050,
+          "espeak": "en-us",
+          "size": 120786792,
+          "sha256": "b3990d7606e183ec8dbfba70a4607074f162de1a0c412e0180d1ff60bb154eca",
+          "configSize": 4166,
+          "configSha256": "c6d3b98f08315cb4bebf0d49d50fc4ff491b503c64b940cd3d5ca28543b48011"
+        },
+        "en_US-ryan-low": {
+          "path": "en/en_US/ryan/low/",
+          "region": "US",
+          "quality": "low",
+          "rate": 16000,
+          "espeak": "en-us",
+          "size": 63104526,
+          "sha256": "8d21a085cc4c0010f1f3e91d5008c8691277ccfa744eb0d747becd33a3444baf",
+          "configSize": 4165,
+          "configSha256": "b27147e56b0525962609f82f58171f4618cbf17c6fb043d7d724ff28cc4aed60"
+        },
+        "en_US-ryan-medium": {
+          "path": "en/en_US/ryan/medium/",
+          "region": "US",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en-us",
+          "size": 63201294,
+          "sha256": "abf4c274862564ed647ba0d2c47f8ee7c9b717d27bdad9219100eb310db4047a",
+          "configSize": 4883,
+          "configSha256": "44034c056cb15681b2ad494307c7f3f2e4499d1253c700c711fa0a4607ffe78d"
+        },
+        "en_US-sam-medium": {
+          "path": "en/en_US/sam/medium/",
+          "region": "US",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "en-us",
+          "size": 62950044,
+          "sha256": "56417b3b4afe8ec6bb4cabf06e17d67261fdd5bf334592abcfc80052fba11163",
+          "configSize": 5040,
+          "configSha256": "8c7fb47f19683b0b81037c5564f9a5ad4699a9da685e0e5da0a72fd3c3f5c1c4"
+        }
+      }
+    },
+    "fr": {
+      "default": "fr_FR-siwis-medium",
+      "voices": {
+        "fr_FR-gilles-low": {
+          "path": "fr/fr_FR/gilles/low/",
+          "region": "FR",
+          "quality": "low",
+          "rate": 16000,
+          "espeak": "fr",
+          "size": 63104526,
+          "sha256": "5cd711846720e261c2a176f6924c198a7424d0a75dd4b0a5357a5fb9cb739285",
+          "configSize": 4158,
+          "configSha256": "5a47cc0789e91267d17666bbec842dd92950669271a09023eb6970ee364cf88a"
+        },
+        "fr_FR-mls_1840-low": {
+          "path": "fr/fr_FR/mls_1840/low/",
+          "region": "FR",
+          "quality": "low",
+          "rate": 16000,
+          "espeak": "fr",
+          "size": 63104526,
+          "sha256": "dcea3d495b760f168179b6bd27c7daefa1d8304ce6ec48867e42bae7cb2e507a",
+          "configSize": 4160,
+          "configSha256": "294a643de0ae6a4a885d841d9b74470263efe35c81e7cf37dd43e2d663fbd8b3"
+        },
+        "fr_FR-siwis-low": {
+          "path": "fr/fr_FR/siwis/low/",
+          "region": "FR",
+          "quality": "low",
+          "rate": 16000,
+          "espeak": "fr",
+          "size": 28130791,
+          "sha256": "a7b7dcaf87229b32af8275cb1a719371234ea677bc0313d2289d5c50ab0ac53d",
+          "configSize": 4157,
+          "configSha256": "9722527d748c284f6dd7639c4b4e661853d4f7d4514079571f67d6a97a652b69"
+        },
+        "fr_FR-siwis-medium": {
+          "path": "fr/fr_FR/siwis/medium/",
+          "region": "FR",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "fr",
+          "size": 63201294,
+          "sha256": "641d1ab097da2b81128c076810edb052b385decc8be3381814802a64a73baf99",
+          "configSize": 4875,
+          "configSha256": "39479916c2db192b5ac9764daddd0c744d83e023ad890c6976c0633ae4df8959"
+        },
+        "fr_FR-tom-medium": {
+          "path": "fr/fr_FR/tom/medium/",
+          "region": "FR",
+          "quality": "medium",
+          "rate": 44100,
+          "espeak": "fr",
+          "size": 63511038,
+          "sha256": "bf65074ccdeeeeaa832e75edb1c0a513c01c9a972bdf085ff8a6e71ea234fd41",
+          "configSize": 4959,
+          "configSha256": "2f7f885ad5a0aad802e3cc24e4f57239febdcb142b4876de5d238094674361cc"
+        },
+        "fr_FR-upmc-medium": {
+          "path": "fr/fr_FR/upmc/medium/",
+          "region": "FR",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "fr",
+          "size": 76733615,
+          "sha256": "9abb3800c199148897a9ed64e100d224f3de83579f100044174ad19418f1786f",
+          "configSize": 4996,
+          "configSha256": "e8636ec15dfd5d72db37a02cb5320a20f2b8d339f2a0e4337da64c58a33a5868",
+          "speakers": [
+            "jessica",
+            "pierre"
+          ]
+        }
+      }
+    },
+    "de": {
+      "default": "de_DE-thorsten-medium",
+      "voices": {
+        "de_DE-eva_k-x_low": {
+          "path": "de/de_DE/eva_k/x_low/",
+          "region": "DE",
+          "quality": "x_low",
+          "rate": 16000,
+          "espeak": "de",
+          "size": 20628813,
+          "sha256": "e88cf290fbfb768bf111330d2e8a46e376b0d85e3423a28bfebbc863a260dad8",
+          "configSize": 4158,
+          "configSha256": "ef14b3dcb279ab4b18422a7a132877bee7a148821bd91152fb7ae9c4b3d79625"
+        },
+        "de_DE-karlsson-low": {
+          "path": "de/de_DE/karlsson/low/",
+          "region": "DE",
+          "quality": "low",
+          "rate": 16000,
+          "espeak": "de",
+          "size": 63104526,
+          "sha256": "f9793bf7e461a472b3916cf260774bfc9812e9eb72601b147ed649d01064e8fe",
+          "configSize": 4159,
+          "configSha256": "3b2095adbfeede316f22007a0a09d4bfc25514b7189850740b06800a6cfb9838"
+        },
+        "de_DE-kerstin-low": {
+          "path": "de/de_DE/kerstin/low/",
+          "region": "DE",
+          "quality": "low",
+          "rate": 16000,
+          "espeak": "de",
+          "size": 63104526,
+          "sha256": "d352a7641892cebf2903859af94e9ba81a141110215fe3943bcda7f7da401b7a",
+          "configSize": 4158,
+          "configSha256": "56e708556b7b9b7a53c4f8957e021421e69f11a600962bba554cffbe72cf2d47"
+        },
+        "de_DE-pavoque-low": {
+          "path": "de/de_DE/pavoque/low/",
+          "region": "DE",
+          "quality": "low",
+          "rate": 16000,
+          "espeak": "de",
+          "size": 63104526,
+          "sha256": "96cd41fe2303dfe4745422a2580658bdbc5f935b7ee67640a94da7435a502a26",
+          "configSize": 4158,
+          "configSha256": "07d43d8946e869209a12d9b4fd780e3f277fe9afb305c21491a68bd97e01b74f"
+        },
+        "de_DE-ramona-low": {
+          "path": "de/de_DE/ramona/low/",
+          "region": "DE",
+          "quality": "low",
+          "rate": 16000,
+          "espeak": "de",
+          "size": 63104526,
+          "sha256": "a1068592532aad8c49bf3d1a01b8749c11d7dba726689ee28ad64e7b627ae4c5",
+          "configSize": 4157,
+          "configSha256": "64906ab7a050ac685fa3dcea044baa798f67ed77be164f9c668a69298c6487d2"
+        },
+        "de_DE-thorsten-high": {
+          "path": "de/de_DE/thorsten/high/",
+          "region": "DE",
+          "quality": "high",
+          "rate": 22050,
+          "espeak": "de",
+          "size": 113895201,
+          "sha256": "9df1c43c61149ef9b39e618e2b861fbe41e1fcea9390b2dac62e8761573ea4f1",
+          "configSize": 4875,
+          "configSha256": "6de734444e4c3f9e33b7ebe2746dbc19b71e85f613e79c65acf623200b99a76a"
+        },
+        "de_DE-thorsten-low": {
+          "path": "de/de_DE/thorsten/low/",
+          "region": "DE",
+          "quality": "low",
+          "rate": 16000,
+          "espeak": "de",
+          "size": 63104526,
+          "sha256": "9ac27fad17cec5c1a791161976a64f026f16fc058b400b1fea62565b8b2cf375",
+          "configSize": 4159,
+          "configSha256": "df38e892ed949f62d0c40978bc666de0b341c5f7921840ae7c72f4df8e8ffa05"
+        },
+        "de_DE-thorsten-medium": {
+          "path": "de/de_DE/thorsten/medium/",
+          "region": "DE",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "de",
+          "size": 63201294,
+          "sha256": "7e64762d8e5118bb578f2eea6207e1a35a8e0c30595010b666f983fc87bb7819",
+          "configSize": 4819,
+          "configSha256": "974adee790533adb273a1ac88f49027d2a1b8f0f2cf4905954a4791e79264e85"
+        },
+        "de_DE-thorsten_emotional-medium": {
+          "path": "de/de_DE/thorsten_emotional/medium/",
+          "region": "DE",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "de",
+          "size": 76745905,
+          "sha256": "c1764e652266cd6dcebf1b95c61973df5970a5f5272e94b655ff1ddf9a99d1ff",
+          "configSize": 5031,
+          "configSha256": "92895b9e99f7cfc13f4a9879da615c3d6e0baa4d660e26d7b685abdd27a6d1d3",
+          "speakers": [
+            "amused",
+            "angry",
+            "disgusted",
+            "drunk",
+            "neutral",
+            "sleepy",
+            "surprised",
+            "whisper"
+          ]
+        }
+      }
+    },
+    "it": {
+      "default": "it_IT-paola-medium",
+      "voices": {
+        "it_IT-paola-medium": {
+          "path": "it/it_IT/paola/medium/",
+          "region": "IT",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "it",
+          "size": 63511038,
+          "sha256": "6fc918b5a0ea6137382833dddfa567bffbe6a5060c02043c87192ee59c04210c",
+          "configSize": 7099,
+          "configSha256": "aea19c0a7fce29fbc359b93f10e7902854401e4c95ae2ea328ae516b15d296cf"
+        },
+        "it_IT-riccardo-x_low": {
+          "path": "it/it_IT/riccardo/x_low/",
+          "region": "IT",
+          "quality": "x_low",
+          "rate": 16000,
+          "espeak": "it",
+          "size": 28130791,
+          "sha256": "1368de15f123275a7ef951c9e5e30be0f58a032daa14a0da44037443c1d1d21b",
+          "configSize": 4161,
+          "configSha256": "146ab9c634afe524e9fb7530f2510df7a42fb1db56b52658ca1fb3d98001a62a"
+        },
+        "it_IT-serena-high": {
+          "path": "it/it_IT/serena/high/",
+          "region": "IT",
+          "quality": "high",
+          "rate": 22050,
+          "espeak": "it",
+          "size": 114204024,
+          "sha256": "7462fbdf03727fb4c0c161286ad538fe6436b7e4b1c3059ef52930032475955f",
+          "configSize": 5252,
+          "configSha256": "60597bac737a20766591fe24d1315df9a3811dc3509e69bc394cdee19eccbae7"
+        },
+        "it_IT-serena-medium": {
+          "path": "it/it_IT/serena/medium/",
+          "region": "IT",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "it",
+          "size": 63516051,
+          "sha256": "fe4e26b2c1236e2a44d2e295cad564d94a0d8b0a9fca1ccdfd70dd4af3116eb5",
+          "configSize": 5254,
+          "configSha256": "14cb4995874138b2792ae07753b5540942124761af9ae6609f9b520f28837881"
+        }
+      }
+    },
+    "pt": {
+      "default": "pt_BR-faber-medium",
+      "voices": {
+        "pt_BR-cadu-medium": {
+          "path": "pt/pt_BR/cadu/medium/",
+          "region": "BR",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "pt-br",
+          "size": 62950044,
+          "sha256": "765f0809a6ea9035d4a6d0d008dbf8876e68b2dd32029312672fa8f405bdb535",
+          "configSize": 5040,
+          "configSha256": "5fe03aa3d4901880554905b12075713cd552598c8a350455a1ec73f8b4e6be19"
+        },
+        "pt_BR-edresson-low": {
+          "path": "pt/pt_BR/edresson/low/",
+          "region": "BR",
+          "quality": "low",
+          "rate": 16000,
+          "espeak": "pt-br",
+          "size": 63104526,
+          "sha256": "de4cecee38b30bb1a6378a337af605d59f0c377df702c6a6752870db8991cd84",
+          "configSize": 4168,
+          "configSha256": "f138992d2e777d1e3aa0bbb14c2d324307b0f342c1bcf20978765b3bea506c56"
+        },
+        "pt_BR-faber-medium": {
+          "path": "pt/pt_BR/faber/medium/",
+          "region": "BR",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "pt-br",
+          "size": 63201294,
+          "sha256": "858555e3a064209c57088fe6bd70c4c3dc54d03eaa00c45d5ecaf43a33f95aa7",
+          "configSize": 4855,
+          "configSha256": "7e694de195ae3fc36dd732c445eb04fb49b649854893cb5506b978f0d50a1d6f"
+        },
+        "pt_BR-jeff-medium": {
+          "path": "pt/pt_BR/jeff/medium/",
+          "region": "BR",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "pt-br",
+          "size": 62950044,
+          "sha256": "3a6f4c46355813c2b7bbc4d16b6d13d60ed72074b952a393baace82a7d0c94b5",
+          "configSize": 5041,
+          "configSha256": "7bf8145b572b36806f5ce0f1d3322b6711975bc7d0473e8d36fced4a9ec0030d"
+        },
+        "pt_PT-tugão-medium": {
+          "path": "pt/pt_PT/tugão/medium/",
+          "region": "PT",
+          "quality": "medium",
+          "rate": 22050,
+          "espeak": "pt",
+          "size": 63201294,
+          "sha256": "223a7aaca69a155c61897e8ada7c3b13bc306e16c72dbb9c2fed733e2b0927d4",
+          "configSize": 5026,
+          "configSha256": "fe0918dfc0f1a89264a6eea4afe8e95d8e9fed3cc6c81b5c2f87fcb2b50c7320"
+        }
+      }
+    }
+  }
+}

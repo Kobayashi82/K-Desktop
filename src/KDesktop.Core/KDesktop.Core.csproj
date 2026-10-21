@@ -44,6 +44,8 @@
     <EmbeddedResource Include="Assistant\Bench\*.json" LogicalName="AssistantBench/%(Filename)%(Extension)" WithCulture="false" />
     <!-- The files of Kokoro and espeak-ng (pinned commit and package, sizes and hashes): the assistants' voice (5.0.94). -->
     <EmbeddedResource Include="Assistant\Voice\kokoro.json" LogicalName="AssistantVoice/kokoro.json" />
+    <!-- The Piper voices (pinned commit of rhasspy/piper-voices, sizes and hashes): the second natural voice (5.0.110). -->
+    <EmbeddedResource Include="Assistant\Voice\piper.json" LogicalName="AssistantVoice/piper.json" />
     <!-- K-Desktop's six voice profiles (stage 5.5). -->
     <EmbeddedResource Include="Assistant\Voice\voice-profiles.json" LogicalName="AssistantVoice/voice-profiles.json" />
   </ItemGroup>

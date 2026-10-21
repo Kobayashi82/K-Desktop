@@ -14,6 +14,16 @@ public sealed class SentenceSplitter
 
     private int _taken;
     private string _seen = string.Empty;
+    private string? _held;
+
+    /// <summary>
+    /// A sentence of one or two words («Recibido.») waits for the next one and goes with it (Piper says a lone word badly;
+    /// Kokoro does not need it, and would start later).
+    /// </summary>
+    public bool JoinShort { get; set; }
+
+    /// <summary>Words of a sentence that is said with the next one, at most.</summary>
+    public const int ShortWords = 2;
 
     /// <summary>What has been handed out to be said so far.</summary>
     public string Taken => _seen[.._taken];
@@ -39,6 +49,7 @@ public sealed class SentenceSplitter
     public IReadOnlyList<string> Finish(string finalText, out bool diverged)
     {
         diverged = !finalText.StartsWith(Taken, StringComparison.Ordinal);
+        if (diverged) _held = null;
         var from = diverged ? 0 : _taken;
         _seen = finalText;
         var result = new List<string>();
@@ -48,6 +59,9 @@ public sealed class SentenceSplitter
             Add(result, finalText[from..end]);
             from = end;
         }
+        // A short one that waited for a next one that never came: alone.
+        if (_held is { } held) result.Add(held);
+        _held = null;
         _taken = finalText.Length;
         return result;
     }
@@ -73,10 +87,17 @@ public sealed class SentenceSplitter
         return null;
     }
 
-    private static void Add(List<string> sentences, string piece)
+    private void Add(List<string> sentences, string piece)
     {
         piece = piece.Trim();
-        if (piece.Any(char.IsLetterOrDigit)) sentences.Add(piece);
+        if (!piece.Any(char.IsLetterOrDigit)) return;
+        if (_held is { } held)
+        {
+            piece = held + " " + piece;
+            _held = null;
+        }
+        if (JoinShort && piece.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length <= ShortWords) _held = piece;
+        else sentences.Add(piece);
     }
 
     /// <summary>The punctuation that is read (it gives the intonation).</summary>

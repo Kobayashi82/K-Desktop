@@ -22,7 +22,7 @@ public partial class AssistantPersonalView : UserControl
         public override string ToString() => Name;
     }
 
-    private static readonly string[] Engines = ["auto", "kokoro", "windows", "beeps", "off"];
+    private static readonly string[] Engines = ["auto", "kokoro", "piper", "windows", "beeps", "off"];
 
     private readonly App _app = App.Current;
     private readonly DispatcherTimer _promptSave = new() { Interval = TimeSpan.FromMilliseconds(700) };
@@ -208,6 +208,24 @@ public partial class AssistantPersonalView : UserControl
                 : Loc.T("assistantVoice.kokoroVoiceHint");
         }
 
+        // Piper: the voices of its language («Como los demás» is the general one if it is of that language, else its default).
+        var ownPiper = own.PiperVoice.Length > 0 ? PiperModels.VoiceOrDefault(language, own.PiperVoice) : string.Empty;
+        List<Option> piperVoices =
+        [
+            new(string.Empty, AsOthers(AssistantVoiceSection.PiperTitle(PiperModels.VoiceOrDefault(language, s.AssistantVoicePiper)))),
+            .. PiperModels.Voices(language).Select(v => new Option(v.Key, AssistantVoiceSection.PiperOption(v))),
+        ];
+        PiperVoiceBox.ItemsSource = piperVoices;
+        PiperVoiceBox.SelectedItem = piperVoices.FirstOrDefault(v => v.Value == PiperModels.KeyOf(ownPiper)) ?? piperVoices[0];
+        var speakers = ownPiper.Length > 0 ? PiperModels.Find(ownPiper)?.Speakers ?? [] : [];
+        PiperSpeakerRow.Visibility = speakers.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        List<Option> who = [.. speakers.Select(name => new Option(name, AssistantVoiceSection.SpeakerName(name, alone: true)))];
+        PiperSpeakerBox.ItemsSource = who;
+        PiperSpeakerBox.SelectedItem = who.FirstOrDefault(o => o.Value == PiperModels.SpeakerOf(ownPiper)) ?? who.FirstOrDefault();
+        PiperHint.Text = _app.PiperDownload.IsDownloading ? Loc.T("assistantPersonal.kokoroDownloading")
+            : PiperModels.Installed(language, _app.PiperVoiceOf(Id)) ? Loc.T("assistantVoice.piperVoiceHint")
+            : Loc.T("assistantPersonal.piperNotDownloaded");
+
         var state = _app.AssistantVoice;
         var windowsVoices = state?.WindowsVoicesOf?.GetValueOrDefault(language) ?? (language == _app.AssistantLanguage ? state?.WindowsVoices : null) ?? [];
         List<Option> windows =
@@ -236,6 +254,7 @@ public partial class AssistantPersonalView : UserControl
     private static string EngineName(string engine) => engine switch
     {
         "kokoro" or "pocket" => Loc.T("assistantVoice.engineKokoro"),
+        "piper" => Loc.T("assistantVoice.enginePiper"),
         "windows" => Loc.T("assistantVoice.engineWindows"),
         "beeps" => Loc.T("assistantVoice.engineBeeps"),
         "off" => Loc.T("assistantVoice.engineOff"),
@@ -276,11 +295,16 @@ public partial class AssistantPersonalView : UserControl
         var mix = Value(MixVoiceBox);
         var spec = voice.Length == 0 ? string.Empty
             : KokoroModels.Mix(voice, mix.Length > 0 && mix != voice ? mix : null, MixRow.Visibility == Visibility.Visible ? MixSlider.Value / 100 : 0.5);
+        // Piper: the voice and, only while it is the same voice, the speaker chosen (another voice starts with its first).
+        var piper = Value(PiperVoiceBox);
+        var speaker = piper.Length > 0 && PiperModels.KeyOf(Own.PiperVoice) == piper && PiperSpeakerRow.Visibility == Visibility.Visible
+            ? Value(PiperSpeakerBox) : string.Empty;
         Save(o => o with
         {
             Engine = Value(EngineBox),
             Profile = Value(ProfileBox),
             KokoroVoice = KokoroRows.Visibility == Visibility.Visible ? spec : o.KokoroVoice,
+            PiperVoice = piper.Length == 0 ? string.Empty : PiperModels.Spec(piper, speaker),
             WindowsVoice = Value(WindowsVoiceBox),
             Speed = SpeedSwitch.IsChecked == true ? Math.Round(SpeedSlider.Value, 2) : null,
         });

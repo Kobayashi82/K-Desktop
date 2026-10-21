@@ -9,8 +9,8 @@ namespace KDesktop.Core.Assistant.Voice;
 /// <c>far</c> when it speaks from another monitor, <c>happy</c> when it celebrates…). K-Desktop has six of its own
 /// (<see cref="BuiltIn"/>); each assistant may bring its own (<c>voice</c> of its manifest).
 /// </summary>
-/// <param name="Engine"><c>kokoro</c>, <c>windows</c> or <c>beeps</c> (<c>pocket</c>, the voice until 5.0.93, is read as <c>kokoro</c>).</param>
-/// <param name="Voice">The engine's voice; empty or <c>default</c>: the one chosen in Options.</param>
+/// <param name="Engine"><c>kokoro</c>, <c>piper</c>, <c>windows</c> or <c>beeps</c> (<c>pocket</c>, the voice until 5.0.93, is read as <c>kokoro</c>).</param>
+/// <param name="Voice">The engine's voice (a Kokoro voice or mix, or a Piper voice); empty or <c>default</c>: the one chosen in Options.</param>
 /// <param name="Chain">The effects, in order (each an object with <c>fx</c> and its values).</param>
 public sealed record VoiceProfile(string Id, string Name, string Engine, string? Voice, double Speed, double Volume,
     JsonArray Chain, IReadOnlyDictionary<string, JsonArray> Moods)

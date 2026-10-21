@@ -119,9 +119,11 @@ El módulo Asistente está en desarrollo. Apagado, K-Desktop es el de siempre: n
 6. **Su voz:** contestan en voz alta, frase a frase mientras la IA escribe. En **Opciones → Módulo Asistente → Voz**
    se descarga la voz natural (Kokoro, unos 310 MB para todos los idiomas salvo el alemán; funciona en el procesador y
    sin internet) y se elige su voz (en español, Dora, Alex y Santa) o una mezcla de dos; sin ella hablan con las voces
-   de Windows, o con pitidos. En inglés, francés, italiano y portugués Kokoro necesita además espeak-ng (licencia GPL),
-   que no va dentro de K-Desktop: se descarga aparte con la voz (9 MB). Ahí están también la velocidad, el volumen y
-   «Probar».
+   de Windows, o con pitidos. La otra voz natural es **Piper**: un modelo por voz (20–115 MB), con voces en todos los
+   idiomas, también en alemán, y varias calidades; la que eliges se descarga, y las que ya no usas se borran con un
+   botón. En inglés, francés, italiano y portugués Kokoro necesita además espeak-ng (licencia GPL), y Piper lo necesita
+   siempre: no va dentro de K-Desktop, se descarga aparte con la voz (9 MB). Ahí están también la velocidad, el volumen
+   y «Probar».
 7. **Tus comandos, con gestos:** cuando le pides un comando («Lander, minimiza el Chrome»), cada paso se ve: el Lander
    vuela y dispara al botón, y la ventana se minimiza justo en el impacto. En **General**, «Maniobras» (vistosas,
    normales o rápidas: ninguna pasa de medio segundo), «Comandos largos» (con muchas acciones, solo se enseñan las de
@@ -169,7 +171,7 @@ src/KDesktop.Assistant.Sdk  SDK de los asistentes (IAssistant y lo que les da el
 src/KDesktop.Assistant.Host el proceso de los asistentes (KDesktop.exe --assistant): capa de dibujo, mundo, sonido
 src/KDesktop.Assistant.Brain  la IA de los asistentes: proveedores, enrutado de las órdenes, memoria, banco de pruebas
 src/KDesktop.Assistant.Tools  sus herramientas (temporizadores, notas, cálculo, tus comandos…) y los permisos
-src/KDesktop.Assistant.Voice  su voz: Kokoro en el procesador (español con reglas propias), voces de Windows y pitidos
+src/KDesktop.Assistant.Voice  su voz: Kokoro y Piper en el procesador (Kokoro en español con reglas propias), voces de Windows y pitidos
 samples/DotAssistant        asistente mínimo de ejemplo
 templates/kdassistant       plantilla de `dotnet new` para empezar uno
 android/                    app de Android (WebView de la app web del PC, con micrófono nativo)

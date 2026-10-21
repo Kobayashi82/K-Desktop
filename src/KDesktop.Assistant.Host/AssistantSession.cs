@@ -123,7 +123,7 @@ internal sealed class AssistantSession : IDisposable
                         link.Send(voice.State());
                         return;
                     case VoiceMessage { Op: "unload" } when Voice is { } voice:
-                        voice.Speech.Kokoro.Release();
+                        voice.Speech.Release();
                         return;
                     case VoiceMessage { Op: "state" } when Voice is { } voice:
                         link.Send(voice.State());

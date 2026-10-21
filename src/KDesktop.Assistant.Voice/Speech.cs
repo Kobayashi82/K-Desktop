@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using KDesktop.Assistant.Voice.Effects;
 using KDesktop.Assistant.Voice.Kokoro;
+using KDesktop.Assistant.Voice.Piper;
 using KDesktop.Core;
 using KDesktop.Core.Assistant.Voice;
 
@@ -9,9 +10,12 @@ namespace KDesktop.Assistant.Voice;
 /// <summary>Which voice says the answers (Options → Assistant → Voice).</summary>
 public enum SpeechEngineKind
 {
-    /// <summary>Kokoro if it is downloaded for the language, else Windows' voices, else beeps.</summary>
+    /// <summary>Kokoro if it is downloaded for the language, else Piper, else Windows' voices, else beeps.</summary>
     Auto,
     Kokoro,
+
+    /// <summary>Piper (5.0.110): voices of its own for each language, German too.</summary>
+    Piper,
     Windows,
     Beeps,
 
@@ -26,8 +30,9 @@ public enum SpeechEngineKind
 /// <param name="Speed">1 = normal (on top of the profile's).</param>
 /// <param name="Profile">Its voice profile (stage 5.5: engine and effects); null: «Natural».</param>
 /// <param name="Moods">The situations it is in (<c>error</c>, <c>far</c>, <c>happy</c>…): their effects are added.</param>
+/// <param name="PiperVoice">The Piper voice chosen in Options («key» or «key#speaker»); null: the language's default.</param>
 public sealed record VoiceSettings(SpeechEngineKind Engine = SpeechEngineKind.Auto, string? KokoroVoice = null, string? WindowsVoice = null, double Speed = 1,
-    VoiceProfile? Profile = null, IReadOnlyList<string>? Moods = null)
+    VoiceProfile? Profile = null, IReadOnlyList<string>? Moods = null, string? PiperVoice = null)
 {
     public VoiceProfile EffectiveProfile => Profile ?? VoiceProfile.Default;
 
@@ -39,6 +44,12 @@ public sealed record VoiceSettings(SpeechEngineKind Engine = SpeechEngineKind.Au
         EffectiveProfile.OwnVoice is { } own && KokoroModels.VoiceOrDefault(language, own) == own && KokoroModels.Installed(language, own)
             ? own
             : KokoroModels.VoiceOrDefault(language, KokoroVoice);
+
+    /// <summary>The Piper voice: the profile's own if it is a downloaded one of the language, else the one chosen in Options.</summary>
+    public string PiperVoiceFor(string language) =>
+        EffectiveProfile.OwnVoice is { } own && PiperModels.VoiceOrDefault(language, own) == own && PiperModels.Installed(language, own)
+            ? own
+            : PiperModels.VoiceOrDefault(language, PiperVoice);
 }
 
 /// <summary>A piece of a sentence being said: mono samples at their rate, and which voice says it.</summary>
@@ -60,6 +71,8 @@ public sealed class Speech : IDisposable
 
     public KokoroEngine Kokoro { get; } = new();
 
+    public PiperEngine Piper { get; } = new();
+
     /// <summary>The engine that will really speak: <see cref="SpeechEngineKind.Auto"/> resolved, and what is not there skipped.</summary>
     public SpeechEngineKind Resolve(string language, VoiceSettings settings)
     {
@@ -68,14 +81,39 @@ public sealed class Speech : IDisposable
         {
             "beeps" => SpeechEngineKind.Beeps,
             "windows" => SpeechEngineKind.Windows,
+            "piper" => SpeechEngineKind.Piper,
             _ => SpeechEngineKind.Auto,
         };
         if (wanted is SpeechEngineKind.Off or SpeechEngineKind.Beeps) return wanted;
-        var kokoro = KokoroModels.Supports(language) && KokoroEngine.Available(language, settings.KokoroVoiceFor(language));
-        // The one chosen if it is there; else the other one; else beeps.
-        if (wanted == SpeechEngineKind.Windows)
-            return HasWindows(language) ? SpeechEngineKind.Windows : kokoro ? SpeechEngineKind.Kokoro : SpeechEngineKind.Beeps;
-        return kokoro ? SpeechEngineKind.Kokoro : HasWindows(language) ? SpeechEngineKind.Windows : SpeechEngineKind.Beeps;
+        // The one chosen if it is there; else the others in order; else beeps.
+        SpeechEngineKind[] order = wanted switch
+        {
+            SpeechEngineKind.Windows => [SpeechEngineKind.Windows, SpeechEngineKind.Kokoro, SpeechEngineKind.Piper],
+            SpeechEngineKind.Piper => [SpeechEngineKind.Piper, SpeechEngineKind.Kokoro, SpeechEngineKind.Windows],
+            _ => [SpeechEngineKind.Kokoro, SpeechEngineKind.Piper, SpeechEngineKind.Windows],
+        };
+        return order.FirstOrDefault(e => Has(e, language, settings), SpeechEngineKind.Beeps);
+    }
+
+    /// <summary>That voice can speak the language now (downloaded, or Windows has one).</summary>
+    private bool Has(SpeechEngineKind engine, string language, VoiceSettings settings) => engine switch
+    {
+        SpeechEngineKind.Kokoro => KokoroModels.Supports(language) && KokoroEngine.Available(language, settings.KokoroVoiceFor(language)),
+        SpeechEngineKind.Piper => PiperEngine.Available(language, settings.PiperVoiceFor(language)),
+        SpeechEngineKind.Windows => HasWindows(language),
+        _ => true,
+    };
+
+    /// <summary>Who says it when <paramref name="failed"/> failed before saying anything: the next voice down, at last beeps.</summary>
+    private SpeechEngineKind After(SpeechEngineKind failed, string language, VoiceSettings settings)
+    {
+        SpeechEngineKind[] next = failed switch
+        {
+            SpeechEngineKind.Kokoro => [SpeechEngineKind.Piper, SpeechEngineKind.Windows],
+            SpeechEngineKind.Piper => [SpeechEngineKind.Windows],
+            _ => [],
+        };
+        return next.FirstOrDefault(e => Has(e, language, settings), SpeechEngineKind.Beeps);
     }
 
     /// <summary>Windows has a voice for this language.</summary>
@@ -86,7 +124,22 @@ public sealed class Speech : IDisposable
     /// <summary>Gets the voice ready while the AI thinks (Kokoro's model takes about half a second to load).</summary>
     public void Warm(string language, VoiceSettings settings)
     {
-        if (Resolve(language, settings) == SpeechEngineKind.Kokoro) Kokoro.Warm(settings.KokoroVoiceFor(language));
+        switch (Resolve(language, settings))
+        {
+            case SpeechEngineKind.Kokoro:
+                Kokoro.Warm(settings.KokoroVoiceFor(language));
+                break;
+            case SpeechEngineKind.Piper:
+                Piper.Warm(settings.PiperVoiceFor(language));
+                break;
+        }
+    }
+
+    /// <summary>Lets the natural voices and espeak-ng go now (K-Desktop is about to delete their files).</summary>
+    public void Release()
+    {
+        Kokoro.Release();
+        Piper.Release();
     }
 
     /// <summary>One sentence in audio, whole, or null when it is not said aloud (off, nothing speakable, cancelled).</summary>
@@ -104,9 +157,10 @@ public sealed class Speech : IDisposable
 
     /// <summary>
     /// One sentence in audio as it is made (Kokoro gives a long sentence in pieces, the first one sounding while the rest
-    /// is made; the other voices come whole), without the silence at the start and all at the same loudness, through the
-    /// effects of its profile and its moods (stage 5.5). Nothing when it is not said aloud (off, nothing speakable,
-    /// cancelled). A voice that fails before giving anything is replaced by the next one (Kokoro → Windows → beeps).
+    /// is made, Piper one sentence after another; the other voices come whole), without the silence at the start and all at
+    /// the same loudness, through the effects of its profile and its moods (stage 5.5). Nothing when it is not said aloud
+    /// (off, nothing speakable, cancelled). A voice that fails before giving anything is replaced by the next one (Kokoro →
+    /// Piper → Windows → beeps).
     /// </summary>
     public async IAsyncEnumerable<SpokenChunk> StreamAsync(string sentence, string language, VoiceSettings settings,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
@@ -117,8 +171,14 @@ public sealed class Speech : IDisposable
         {
             var given = false;
             var pieces = System.Threading.Channels.Channel.CreateUnbounded<float[]>();
-            var rate = engine switch { SpeechEngineKind.Kokoro => KokoroModel.SampleRate, SpeechEngineKind.Windows => WindowsVoices.SampleRate, _ => Beeps.SampleRate };
-            // Every voice says it at its own speed (Kokoro's model takes one).
+            var rate = engine switch
+            {
+                SpeechEngineKind.Kokoro => KokoroModel.SampleRate,
+                SpeechEngineKind.Piper => PiperEngine.SampleRateOf(settings.PiperVoiceFor(language)),
+                SpeechEngineKind.Windows => WindowsVoices.SampleRate,
+                _ => Beeps.SampleRate,
+            };
+            // Every voice says it at its own speed (Kokoro's and Piper's models take one).
             var chain = VoiceChain.Build(settings.EffectiveProfile, settings.Moods ?? [], rate, null, Seed(text));
             void Put(float[] piece)
             {
@@ -135,6 +195,11 @@ public sealed class Speech : IDisposable
                             var shaper = new Shaper(rate);
                             await Kokoro.SayAsync(text, language, settings.KokoroVoiceFor(language), settings.EffectiveSpeed, cancellationToken,
                                 piece => { if (shaper.Shape(piece) is { Length: > 0 } shaped) Put(shaped); }).ConfigureAwait(false);
+                            break;
+                        case SpeechEngineKind.Piper:
+                            var piperShaper = new Shaper(rate);
+                            await Piper.SayAsync(text, settings.PiperVoiceFor(language), settings.EffectiveSpeed, cancellationToken,
+                                piece => { if (piperShaper.Shape(piece) is { Length: > 0 } shaped) Put(shaped); }).ConfigureAwait(false);
                             break;
                         case SpeechEngineKind.Windows:
                             var windows = WindowsVoices.Say(text, language, settings.WindowsVoice, settings.EffectiveSpeed);
@@ -182,7 +247,7 @@ public sealed class Speech : IDisposable
             }
             await making.ConfigureAwait(false);
             if (!failed) yield break;
-            engine = engine == SpeechEngineKind.Kokoro && HasWindows(language) ? SpeechEngineKind.Windows : SpeechEngineKind.Beeps;
+            engine = After(engine, language, settings);
         }
     }
 
@@ -260,5 +325,9 @@ public sealed class Speech : IDisposable
         return audio;
     }
 
-    public void Dispose() => Kokoro.Dispose();
+    public void Dispose()
+    {
+        Kokoro.Dispose();
+        Piper.Dispose();
+    }
 }

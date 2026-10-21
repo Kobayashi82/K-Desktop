@@ -3,7 +3,8 @@
   <!--
     The assistants' voice (phase 5): Kokoro 82M (hexgrad, Apache 2.0) on the processor through ONNX Runtime, with
     Spanish phonemes by rules of our own and espeak-ng (GPL, downloaded apart by the user, loaded only if it is there)
-    for the other languages; Windows' own voices as a fallback without downloads, and beeps. It runs in the assistant
+    for the other languages; Piper's voices (5.0.110, one VITS model each, phonemes always by espeak-ng); Windows' own
+    voices as a fallback without downloads, and beeps. It runs in the assistant
     process (as the normal user), never in K-Desktop, which only downloads the models.
   -->
   <PropertyGroup>

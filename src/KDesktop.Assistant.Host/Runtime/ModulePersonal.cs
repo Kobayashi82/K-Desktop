@@ -44,6 +44,7 @@ internal sealed class ModulePersonal
         own.Prompt is not null ? $"personalidad propia ({own.Prompt.Length} letras)" : null,
         own.Engine.Length > 0 ? "motor " + own.Engine : null,
         own.KokoroVoice.Length > 0 ? "voz " + own.KokoroVoice : null,
+        own.PiperVoice.Length > 0 ? "voz de Piper " + own.PiperVoice : null,
         own.WindowsVoice.Length > 0 ? "voz de Windows " + own.WindowsVoice : null,
         own.Profile.Length > 0 ? "perfil " + own.Profile : null,
         own.Speed is { } speed ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $"velocidad {speed:0.00}") : null,

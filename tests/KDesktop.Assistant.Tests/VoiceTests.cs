@@ -1,5 +1,6 @@
 using KDesktop.Assistant.Voice;
 using KDesktop.Assistant.Voice.Kokoro;
+using KDesktop.Assistant.Voice.Piper;
 using KDesktop.Core.Assistant.Voice;
 
 namespace KDesktop.Assistant.Tests;
@@ -73,6 +74,92 @@ public class VoiceTests
         var expected = speech.HasWindows("es") ? SpeechEngineKind.Windows : SpeechEngineKind.Beeps;
         Assert.Equal(expected, speech.Resolve("es", new VoiceSettings(SpeechEngineKind.Auto)));
         Assert.Equal(expected, speech.Resolve("es", new VoiceSettings(SpeechEngineKind.Kokoro)));
+        // Nor Piper.
+        Assert.Equal(expected, speech.Resolve("es", new VoiceSettings(SpeechEngineKind.Piper, PiperVoice: "es_ES-davefx-medium")));
+        var german = speech.HasWindows("de") ? SpeechEngineKind.Windows : SpeechEngineKind.Beeps;
+        Assert.Equal(german, speech.Resolve("de", new VoiceSettings(SpeechEngineKind.Piper)));
+    }
+
+    [Fact]
+    public void ForPiperALoneShortSentenceGoesWithTheNextOne()
+    {
+        var splitter = new SentenceSplitter { JoinShort = true };
+        Assert.Empty(splitter.Feed("Recibido. Abro"));
+        Assert.Equal(["Recibido. Abro la papelera."], splitter.Feed("Recibido. Abro la papelera. Ya"));
+        Assert.Equal(["Ya está."], splitter.Finish("Recibido. Abro la papelera. Ya está.", out _));
+
+        // Nothing comes after it: it goes alone at the end.
+        var alone = new SentenceSplitter { JoinShort = true };
+        Assert.Empty(alone.Feed("Recibido. "));
+        Assert.Equal(["Recibido."], alone.Finish("Recibido.", out _));
+
+        // Kokoro does not wait.
+        Assert.Equal(["Recibido."], new SentenceSplitter().Feed("Recibido. Abro"));
+    }
+
+    [Fact]
+    public void TheCatalogHasPiperVoicesInEveryLanguage()
+    {
+        foreach (var language in new[] { "es", "en", "fr", "de", "it", "pt" })
+        {
+            Assert.True(PiperModels.Supports(language), language);
+            var voice = PiperModels.DefaultVoice(language);
+            Assert.Contains(PiperModels.Voices(language), v => v.Key == voice);
+            Assert.All(PiperModels.Voices(language), v => Assert.Equal(language, v.Language));
+            var files = PiperModels.Files(voice);
+            Assert.Equal(PiperModels.ModelFile(voice), files[0].Path);
+            Assert.Equal(PiperModels.ConfigFile(voice), files[1].Path);
+            Assert.All(files.Take(2), f => Assert.StartsWith("https://huggingface.co/rhasspy/piper-voices/resolve/", f.Url, StringComparison.Ordinal));
+            Assert.All(files.Take(2), f => Assert.Equal(64, f.Sha256.Length));
+            // Every Piper voice needs espeak-ng (the tests' folder has none): it comes with the first one.
+            Assert.Equal(EspeakFiles.Download, files[2]);
+        }
+        Assert.Equal("Jenny Dioco", PiperModels.Find("en_GB-jenny_dioco-medium")!.Name);
+        Assert.Equal(22050, PiperModels.Find("de_DE-thorsten-medium")!.SampleRate);
+        // A name that is not plain in a URL.
+        Assert.Contains("tug%C3%A3o", PiperModels.Files("pt_PT-tugão-medium")[0].Url, StringComparison.Ordinal);
+        Assert.Empty(PiperModels.Files("nobody"));
+    }
+
+    [Fact]
+    public void APiperVoiceIsOfItsLanguageAndItsSpeakerOfItsVoice()
+    {
+        Assert.Equal("es_ES-davefx-medium", PiperModels.VoiceOrDefault("es", "de_DE-thorsten-medium"));
+        Assert.Equal("es_ES-davefx-medium", PiperModels.VoiceOrDefault("es", ""));
+        Assert.Equal("es_MX-claude-high", PiperModels.VoiceOrDefault("es", "es_MX-claude-high"));
+        Assert.Equal("es_ES-sharvard-medium#F", PiperModels.VoiceOrDefault("es", "es_ES-sharvard-medium#F"));
+        Assert.Equal("es_ES-sharvard-medium", PiperModels.VoiceOrDefault("es", "es_ES-sharvard-medium#nadie"));
+        Assert.Equal(["M", "F"], PiperModels.Find("es_ES-sharvard-medium#F")!.Speakers);
+        Assert.Equal("F", PiperModels.SpeakerOf("es_ES-sharvard-medium#F"));
+        Assert.Null(PiperModels.SpeakerOf("es_ES-sharvard-medium"));
+        Assert.Equal("de_DE-thorsten_emotional-medium#angry", PiperModels.Spec("de_DE-thorsten_emotional-medium", "angry"));
+        Assert.Equal("es_ES-davefx-medium", PiperModels.Spec("es_ES-davefx-medium", null));
+    }
+
+    [Fact]
+    public void PiperNumbersItsPhonemesAsPiperPhonemize()
+    {
+        // From es_ES-davefx-medium.onnx.json and, for the vowel pair, en_US-mike-medium (piper 1.5).
+        const string map = """{ "_": [0], "^": [1], "$": [2], " ": [3], ",": [8], "a": [14], "h": [20], "l": [24], "o": [27], "ɪ": [74], "ˈ": [120], "aɪ": [161] }""";
+        static PiperIds Ids(string json) => new(System.Text.Json.JsonDocument.Parse(json).RootElement);
+        var davefx = Ids($$"""{ "phoneme_id_map": {{map}} }""");
+        Assert.Equal([1, 0, 120, 0, 27, 0, 24, 0, 14, 0, 8, 0, 2], davefx.Of("ˈola,"));
+        // Unknown phonemes are left out; without vowel_clusters a pair is two phonemes.
+        Assert.Equal([1, 0, 20, 0, 14, 0, 74, 0, 2], davefx.Of("hxaɪ"));
+        var mike = Ids($$"""{ "phoneme_id_map": {{map}}, "vowel_clusters": [["a", "ɪ"]] }""");
+        Assert.Equal([1, 0, 20, 0, 161, 0, 2], mike.Of("haɪ"));
+    }
+
+    [Fact]
+    public void PiperSaysWhatFitsInOneGo()
+    {
+        Assert.Equal(["ɹˈɛsɪbˌiðo. ˈabɾo la papelˈeɾa."], PiperEngine.Pieces("ɹˈɛsɪbˌiðo. ˈabɾo la papelˈeɾa."));
+        var sentence = string.Join(' ', Enumerable.Repeat("ˈuna fɾˈase kˈoɾta.", 60));
+        var pieces = PiperEngine.Pieces(sentence);
+        Assert.True(pieces.Count > 1);
+        Assert.All(pieces, p => Assert.InRange(p.Length, 1, PiperEngine.PieceLength + 1));
+        Assert.All(pieces, p => Assert.EndsWith(".", p, StringComparison.Ordinal));
+        Assert.Equal(sentence.Replace(" ", "", StringComparison.Ordinal), string.Concat(pieces).Replace(" ", "", StringComparison.Ordinal));
     }
 
     [Fact]

@@ -12,7 +12,7 @@ namespace KDesktop;
 /// <summary>
 /// What each assistant has of its own (5.0.105, Options → Assistants → it → «Personalidad y voz»): its personality,
 /// its language and its voice; what is left empty is the general one. Sent to the process in the <c>personal</c> section
-/// of <c>config</c>, with the language and the Kokoro voice resolved here.
+/// of <c>config</c>, with the language and the Kokoro and Piper voices resolved here.
 /// </summary>
 public partial class App
 {
@@ -34,6 +34,8 @@ public partial class App
         Config.Settings.AssistantPersonal = all;
         // A voice of its own (or of its language) that is not on disk comes now, if Kokoro is already there: half a megabyte.
         if (KokoroModels.ModelInstalled && !KokoroDownload.IsDownloading && KokoroMissing) KokoroDownload.Start();
+        // Its own Piper voice too, if Piper is already in use.
+        if (PiperModels.AnyInstalled && !PiperDownload.IsDownloading && PiperMissing) PiperDownload.Start();
         AssistantVoiceChanged?.Invoke();
     }
 
@@ -64,6 +66,29 @@ public partial class App
     /// <summary>Something Kokoro needs (for all of them or for one) is not on disk yet.</summary>
     public bool KokoroMissing => KokoroFiles().Any(f => !File.Exists(f.Path) || new FileInfo(f.Path).Length != f.Size);
 
+    /// <summary>The Piper voice <paramref name="id"/> speaks with: its own, or the general one if it is of its language (else the language's default).</summary>
+    public string PiperVoiceOf(string? id)
+    {
+        var language = LanguageOfAssistant(id);
+        var own = id is null ? string.Empty : AssistantPersonalOf(id).PiperVoice;
+        return PiperModels.VoiceOrDefault(language, own.Length > 0 ? own : Config.Settings.AssistantVoicePiper);
+    }
+
+    /// <summary>
+    /// What Piper needs on disk: the general voice, and those of the installed assistants that chose one of their own or
+    /// speak with Piper (not every language an assistant speaks in: a voice is 20–115 MB).
+    /// </summary>
+    internal IReadOnlyList<Core.Voice.ModelFile> PiperFiles()
+    {
+        var voices = new List<string> { PiperVoice };
+        foreach (var (id, own) in Config.Settings.AssistantPersonal)
+            if (AssistantPackages.Find(id) is not null && (own.PiperVoice.Length > 0 || own.Engine == "piper")) voices.Add(PiperVoiceOf(id));
+        return [.. voices.Select(PiperModels.KeyOf).Distinct(StringComparer.Ordinal).SelectMany(PiperModels.Files).DistinctBy(f => f.Path, StringComparer.OrdinalIgnoreCase)];
+    }
+
+    /// <summary>Something Piper needs (for all of them or for one) is not on disk yet.</summary>
+    public bool PiperMissing => PiperFiles().Any(f => !File.Exists(f.Path) || new FileInfo(f.Path).Length != f.Size);
+
     /// <summary>The personality its package brings, in the language it speaks in (to show it, and «Restablecer»).</summary>
     public static string PackagePrompt(InstalledAssistant assistant, string language) =>
         AssistantPersona.Read(assistant.Folder, assistant.Manifest, language).Prompt;
@@ -80,6 +105,7 @@ public partial class App
                 Language = language,
                 // Of its language: the one it chose, or the general one when it speaks another language.
                 KokoroVoice = own.KokoroVoice.Length > 0 || language.Length > 0 ? KokoroVoiceOf(id) : string.Empty,
+                PiperVoice = own.PiperVoice.Length > 0 || language.Length > 0 ? PiperVoiceOf(id) : string.Empty,
                 Speed = own.Speed is { } speed ? Math.Clamp(speed, 0.5, 2) : null,
             };
         }

@@ -96,6 +96,22 @@
                 <Grid Style="{StaticResource SettingRow}">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr assistantVoice.piperVoice}" />
+                        <TextBlock x:Name="PiperHint" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <ComboBox x:Name="PiperVoiceBox" Grid.Column="1" MinWidth="260" MaxWidth="360" VerticalAlignment="Center" DisplayMemberPath="Name"
+                              SelectionChanged="OnVoiceChanged" AutomationProperties.Name="{l:Tr assistantVoice.piperVoice}" />
+                </Grid>
+                <Grid x:Name="PiperSpeakerRow" Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr assistantVoice.piperSpeaker}" />
+                    <ComboBox x:Name="PiperSpeakerBox" Grid.Column="1" MinWidth="260" VerticalAlignment="Center" DisplayMemberPath="Name"
+                              SelectionChanged="OnVoiceChanged" AutomationProperties.Name="{l:Tr assistantVoice.piperSpeaker}" />
+                </Grid>
+
+                <Grid Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                         <TextBlock Text="{l:Tr assistantVoice.windowsVoice}" />
                         <TextBlock x:Name="WindowsHint" Style="{StaticResource Caption}" TextWrapping="Wrap" />
                     </StackPanel>

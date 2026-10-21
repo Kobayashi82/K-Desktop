@@ -170,24 +170,27 @@ Desde 5.0.107 el proceso del asistente (sin administrador) es su propio llama-sw
 ### La voz (Opciones → Asistente → Voz)
 
 Lo que contestan lo dicen en voz alta frase a frase, mientras la IA aún escribe (las frases que ya han terminado empiezan a
-sonar; Kokoro dice una frase larga a trozos, el primero mientras hace el resto). La síntesis es del proceso del asistente;
-K-Desktop solo descarga los modelos (`Models\kokoro\`, y `Models\espeak-ng\` para inglés, francés, italiano y portugués) y
-manda los ajustes en la sección `voice` de `config` (`engine`: `auto`, `kokoro`, `windows`, `beeps` u `off`; `profile`
-—el perfil fijo para todos, vacío = el de cada asistente—, `kokoroVoice` —una voz del idioma o una mezcla, `ef_dora:0.7,em_alex:0.3`—, `windowsVoice`, `speed` 0,5…2, `volume` 0…1, `pan` —suena desde donde está—, `night` —de 22:00 a 8:00, a la mitad— y `fullscreen` —con algo a
+sonar; Kokoro dice una frase larga a trozos, el primero mientras hace el resto; Piper, con una frase de una o dos palabras
+junta la siguiente). La síntesis es del proceso del asistente; K-Desktop solo descarga los modelos (`Models\kokoro\`,
+`Models\piper\` —un `.onnx` y su `.onnx.json` por voz— y `Models\espeak-ng\`, que usan Piper siempre y Kokoro para inglés,
+francés, italiano y portugués) y manda los ajustes en la sección `voice` de `config` (`engine`: `auto` —Kokoro, si no Piper,
+si no Windows, si no pitidos—, `kokoro`, `piper`, `windows`, `beeps` u `off`; `profile` —el perfil fijo para todos, vacío =
+el de cada asistente—, `kokoroVoice` —una voz del idioma o una mezcla, `ef_dora:0.7,em_alex:0.3`—, `piperVoice` —la clave
+de una voz del idioma, `es_ES-davefx-medium`, o `clave#hablante` para una de varios—, `windowsVoice`, `speed` 0,5…2, `volume` 0…1, `pan` —suena desde donde está—, `night` —de 22:00 a 8:00, a la mitad— y `fullscreen` —con algo a
 pantalla completa, solo el bocadillo—; también en la bienvenida). Sin cuerpo no se dice nada en voz alta.
 
 | `t` | Dir. | Campos | Qué es |
 |---|---|---|---|
-| `voice` | K→A | `op` (`state`, `test`, `stop`, `unload`), `text` (para `test`), `assistant` (para `test`: quién lo dice; sin él, solo la voz), `mood` (para `test`: `happy`, `error` o el que use el asistente; sin él, sin ánimo) | Preguntar cómo está la voz, decir una frase de prueba (con el bocadillo del asistente si está en el escritorio; suena aunque haya algo a pantalla completa), pararla o soltar el modelo de Kokoro de la memoria (antes de borrar sus archivos) |
-| `voiceState` | A→K | `engine` (el que habla de verdad: `kokoro`, `windows`, `beeps`, `off`), `windowsVoices` (las de Windows para el idioma), `kokoroLoaded`, `windowsVoicesOf` (las de Windows de cada idioma, para un asistente que habla en el suyo) | Tras cada `voice` `state` y cada cambio de la sección `voice` |
+| `voice` | K→A | `op` (`state`, `test`, `stop`, `unload`), `text` (para `test`), `assistant` (para `test`: quién lo dice; sin él, solo la voz), `mood` (para `test`: `happy`, `error` o el que use el asistente; sin él, sin ánimo) | Preguntar cómo está la voz, decir una frase de prueba (con el bocadillo del asistente si está en el escritorio; suena aunque haya algo a pantalla completa), pararla o soltar Kokoro, Piper y espeak-ng de la memoria (antes de borrar sus archivos) |
+| `voiceState` | A→K | `engine` (el que habla de verdad: `kokoro`, `piper`, `windows`, `beeps`, `off`), `windowsVoices` (las de Windows para el idioma), `kokoroLoaded`, `windowsVoicesOf` (las de Windows de cada idioma, para un asistente que habla en el suyo), `piperLoaded` (la clave de la voz de Piper en memoria, o nada) | Tras cada `voice` `state` y cada cambio de la sección `voice` |
 
 ### Lo propio de cada asistente
 
 Opciones → Asistentes → uno → «Personalidad y voz». La sección `personal` de `config` (también en la bienvenida, antes de los
 `load`) lleva, por id, solo los asistentes que tienen algo propio: `language` (en el que habla: sus respuestas, sus frases, su
 voz, lo que dice la actividad y su `host.Language`; vacío = el general), `prompt` (su personalidad escrita por el usuario, en
-vez de la de su paquete; sus frases fijas siguen siendo las del paquete), `engine`, `kokoroVoice` (ya resuelta para su idioma),
-`windowsVoice`, `profile` (uno de K-Desktop, `own` = el de su paquete aunque haya uno fijo para todos, vacío = lo general) y
+vez de la de su paquete; sus frases fijas siguen siendo las del paquete), `engine`, `kokoroVoice` y `piperVoice` (ya resueltas para
+su idioma), `windowsVoice`, `profile` (uno de K-Desktop, `own` = el de su paquete aunque haya uno fijo para todos, vacío = lo general) y
 `speed`. Lo que falta o va vacío es lo general. Cambiar el idioma de un asistente que está en el escritorio lo vuelve a cargar
 (`load`): su código lee `host.Language` al empezar.
 

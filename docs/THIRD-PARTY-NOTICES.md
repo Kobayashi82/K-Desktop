@@ -60,8 +60,13 @@ No van dentro del ejecutable: se descargan desde Opciones › Voz a la carpeta `
   los asistentes, que se descarga desde Opciones › Módulo Asistente › Voz a `Models\kokoro`. Los fonemas del español
   los escribe K-Desktop con reglas propias (`KDesktop.Assistant.Voice/Kokoro/SpanishPhonemes`), comprobadas contra lo
   que escribe espeak-ng; el vocabulario de fonemas y el tratamiento de cada idioma siguen a misaki (hexgrad, Apache 2.0).
+- **Piper** ([rhasspy/piper](https://github.com/rhasspy/piper), MIT) y sus voces
+  ([rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices), en un commit fijo): la segunda voz natural de los
+  asistentes. K-Desktop no lleva código de Piper: lee sus `.onnx` con ONNX Runtime y escribe los números de los fonemas
+  como piper-phonemize. Cada voz se descarga al elegirla a `Models\piper` y **tiene la licencia de sus grabaciones**
+  (su `MODEL_CARD` en el repositorio de voces).
 - **espeak-ng** ([espeak-ng](https://github.com/espeak-ng/espeak-ng), **GPL 3.0**): **no va dentro de K-Desktop**. Para
-  inglés, francés, italiano y portugués, Kokoro necesita sus fonemas: el usuario lo descarga aparte, como un modelo más
-  (el paquete para Windows de [espeakng-loader](https://pypi.org/project/espeakng-loader/), MIT, con la DLL y los datos
-  de espeak-ng), a `Models\espeak-ng`, y el proceso del asistente lo carga desde ahí solo si está y solo para esos
-  idiomas. El español no lo usa.
+  inglés, francés, italiano y portugués, Kokoro necesita sus fonemas, y Piper los necesita siempre: el usuario lo descarga
+  aparte, como un modelo más (el paquete para Windows de [espeakng-loader](https://pypi.org/project/espeakng-loader/), MIT,
+  con la DLL y los datos de espeak-ng), a `Models\espeak-ng`, y el proceso del asistente lo carga desde ahí solo si está
+  y solo cuando hace falta. Kokoro en español no lo usa.
