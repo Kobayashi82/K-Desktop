@@ -454,7 +454,7 @@
   "settings.voiceHowTo": "Mantén pulsado el atajo mientras dices qué hacer («abre la papelera»), o púlsalo una vez y habla: termina cuando te callas. Pulsarlo otra vez termina antes; Esc cancela. Se ejecuta el comando que nombres.",
   "settings.voiceWakeSoon": "Con la escucha continua, di la palabra y la orden seguidas («KDesktop, abre el navegador»), o solo la palabra y espera a que aparezca «Escuchando…». El micrófono queda abierto mientras haya alguna palabra activa (consume muy poco). Si alguna vez no la pilla o salta sola, mueve su sensibilidad.",
   "settings.wakeWords": "Palabras de activación",
-  "settings.wakeWordsHint": "Palabras que grabas con tu voz para llamar a K-Desktop. Puedes tener varias.",
+  "settings.wakeWordsHint": "Todas las palabras que has grabado con tu voz. Cada una es de K-Desktop (tus comandos), de un asistente o de nadie; las que grabas aquí son para K-Desktop.",
   "settings.wakeAdd": "Añadir palabra",
   "settings.wakeNone": "Aún no has grabado ninguna.",
   "settings.wakeListen": "Escucha continua",
@@ -3242,5 +3242,13 @@
   "addModel.vision": "Con visión: descargar también {0} ({1} GB)",
   "addModel.download": "Descargar",
   "addModel.page": "Ver en Hugging Face",
-  "addModel.busy": "Ya hay una descarga en marcha."
+  "addModel.busy": "Ya hay una descarga en marcha.",
+  "settings.wakeOwner": "Para",
+  "settings.wakeOwnerHint": "Quién contesta a esta palabra. Cada palabra es de uno solo; si no es de nadie, no se escucha.",
+  "settings.wakeOwnerKDesktop": "K-Desktop (comandos)",
+  "settings.wakeOwnerAny": "Cualquier asistente",
+  "settings.wakeOwnerNone": "Nadie (no se escucha)",
+  "assistantOptions.wakeOfKDesktop": "{0} (ahora de K-Desktop)",
+  "wake.reuse": "Usaré el silencio y tu forma de hablar que grabaste el {0}: solo tendrás que decir la palabra.",
+  "wake.reuseAgain": "Volver a medir el silencio y mi forma de hablar"
 }

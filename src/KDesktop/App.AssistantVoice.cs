@@ -16,45 +16,51 @@ namespace KDesktop;
 public partial class App
 {
     /// <summary>
-    /// An assistant's own word is only listened to while it is on the desktop (UI thread; called when the desktop, the
-    /// words or the module change): hidden, it neither answers nor runs K-Desktop's commands. The word «for the
-    /// assistant» always works.
+    /// Which recorded words are listened to now (UI thread; called when the desktop, the words, their owners or the module
+    /// change), 5.0.109: K-Desktop's always; an assistant's only while it is on the desktop (hidden, it neither answers nor
+    /// runs K-Desktop's commands); the one «for the assistant» while the module is on; nobody's never.
     /// </summary>
     private void UpdateSleepingWakeWords()
     {
-        ClaimWakeWordsByName();
         var s = Config.Settings;
-        Voice.WakeWords.Asleep = s.AssistantWakeWords
-            .Where(p => p.Key != AssistantTargeting.AnyAssistant && (!s.AssistantEnabled || !s.AssistantsOnDesktop.Contains(p.Key)))
-            .Select(p => p.Value)
-            .ToHashSet();
+        var words = Voice.WakeWords.Words.Select(w => w.Id).ToList();
+        // Until 5.0.108 every word no assistant had was K-Desktop's.
+        if (s.KDesktopWakeWords is null)
+        {
+            s.KDesktopWakeWords = WakeOwners.Migrated(words, s.AssistantWakeWords);
+            Log.Info($"Voz: palabras de K-Desktop: {string.Join(", ", Voice.WakeWords.Words.Where(w => s.KDesktopWakeWords.Contains(w.Id)).Select(w => $"«{w.Name}»"))}");
+        }
+        Voice.WakeWords.Asleep = WakeOwners.Asleep(words, s.AssistantWakeWords, s.KDesktopWakeWords, s.AssistantEnabled, s.AssistantsOnDesktop);
     }
 
-    /// <summary>
-    /// A recorded word with an installed assistant's name (the one its manifest suggests, or its name) that nobody has is
-    /// that assistant's (UI thread): saying «Dot» calls Dot, not K-Desktop's commands. Only once per assistant
-    /// (<see cref="Core.Model.AppSettings.AssistantWakeDecided"/>), so a word taken away from it by hand stays away. Not a
-    /// word with its name that is already someone else's («Lander» as the word for any assistant).
-    /// </summary>
-    private void ClaimWakeWordsByName()
+    /// <summary>Whose a recorded word is: <see cref="WakeOwners.KDesktop"/>, an assistant's id, «*» (any assistant) or null (nobody).</summary>
+    public string? WakeOwnerOf(string wordId) => WakeOwners.Of(wordId, Config.Settings.AssistantWakeWords, Config.Settings.KDesktopWakeWords);
+
+    /// <summary>Gives a recorded word to K-Desktop, an assistant, any assistant («*») or nobody (null); it stops being anyone else's.</summary>
+    public void SetWakeOwner(string wordId, string? owner)
     {
         var s = Config.Settings;
-        if (!s.AssistantEnabled) return;
-        foreach (var installed in AssistantPackages.Installed())
+        if (owner == WakeOwners.KDesktop || owner is null)
         {
-            var id = installed.Id;
-            if (s.AssistantWakeDecided.Contains(id)) continue;
-            if (s.AssistantWakeWords.ContainsKey(id))
-            {
-                s.AssistantWakeDecided = [.. s.AssistantWakeDecided, id];
-                continue;
-            }
-            var name = installed.Manifest.WakeWord is { Length: > 0 } suggested ? suggested : installed.Manifest.Name;
-            if (HasWakeWord(id, name) || FreeWakeWordNamed(name) is not { } word) continue;
-            s.AssistantWakeWords = AssistantTargeting.Assign(s.AssistantWakeWords, id, word.Id);
-            s.AssistantWakeDecided = [.. s.AssistantWakeDecided, id];
-            Log.Info($"Asistente: la palabra «{word.Name}» pasa a ser de «{id}» (se llama como él y no era de nadie)");
+            if (s.AssistantWakeWords.ContainsValue(wordId))
+                s.AssistantWakeWords = s.AssistantWakeWords.Where(p => p.Value != wordId).ToDictionary(p => p.Key, p => p.Value);
+            var kdesktop = (s.KDesktopWakeWords ?? []).Where(id => id != wordId).ToList();
+            if (owner is not null) kdesktop.Add(wordId);
+            s.KDesktopWakeWords = kdesktop;
+            Log.Info($"Voz: la palabra {wordId} es ahora {(owner is null ? "de nadie" : "de K-Desktop")}");
+            AssistantChanged?.Invoke();
+            return;
         }
+        SetAssistantWakeWord(owner, wordId);
+    }
+
+    /// <summary>A word was deleted: it is nobody's any more.</summary>
+    public void ForgetWakeWord(string wordId)
+    {
+        var s = Config.Settings;
+        if (s.KDesktopWakeWords?.Contains(wordId) == true) s.KDesktopWakeWords = [.. s.KDesktopWakeWords.Where(id => id != wordId)];
+        if (s.AssistantWakeWords.ContainsValue(wordId))
+            s.AssistantWakeWords = s.AssistantWakeWords.Where(p => p.Value != wordId).ToDictionary(p => p.Key, p => p.Value);
     }
 
     /// <summary>
@@ -228,14 +234,18 @@ public partial class App
     {
         var words = Config.Settings.AssistantWakeWords;
         if (words.ContainsKey(id)) return true;
-        var taken = words.Values.ToHashSet(StringComparer.Ordinal);
+        var taken = TakenWakeWords();
         return Voice.WakeWords.Words.Any(w => taken.Contains(w.Id) && string.Equals(w.Name.Trim(), name.Trim(), StringComparison.OrdinalIgnoreCase));
     }
 
-    /// <summary>A recorded word with this name that no assistant has yet (K-Desktop's own words count as free).</summary>
+    /// <summary>The words someone has (an assistant or K-Desktop).</summary>
+    private HashSet<string> TakenWakeWords() =>
+        [.. Config.Settings.AssistantWakeWords.Values.Concat(Config.Settings.KDesktopWakeWords ?? [])];
+
+    /// <summary>A recorded word with this name that nobody has yet (5.0.109: not K-Desktop's either).</summary>
     public WakeWord? FreeWakeWordNamed(string name)
     {
-        var taken = Config.Settings.AssistantWakeWords.Values.ToHashSet(StringComparer.Ordinal);
+        var taken = TakenWakeWords();
         return Voice.WakeWords.Words.FirstOrDefault(w => !taken.Contains(w.Id) && w.Variants.Count > 0
             && string.Equals(w.Name.Trim(), name.Trim(), StringComparison.OrdinalIgnoreCase));
     }

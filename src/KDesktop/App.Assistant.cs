@@ -304,9 +304,9 @@ public partial class App
     public void SetAssistantWakeWord(string assistant, string? wakeWordId)
     {
         Config.Settings.AssistantWakeWords = AssistantTargeting.Assign(Config.Settings.AssistantWakeWords, assistant, wakeWordId);
-        // The user decided: a word with its name is no longer given to it by itself (also «none»).
-        if (assistant != AssistantTargeting.AnyAssistant && !Config.Settings.AssistantWakeDecided.Contains(assistant))
-            Config.Settings.AssistantWakeDecided = [.. Config.Settings.AssistantWakeDecided, assistant];
+        // A word has one owner (5.0.109): given to an assistant, it no longer calls K-Desktop's commands.
+        if (wakeWordId is not null && Config.Settings.KDesktopWakeWords?.Contains(wakeWordId) == true)
+            Config.Settings.KDesktopWakeWords = [.. Config.Settings.KDesktopWakeWords.Where(id => id != wakeWordId)];
         Log.Info($"Asistente: palabra de activación de «{assistant}»: {wakeWordId ?? "ninguna"}");
         AssistantChanged?.Invoke();
     }

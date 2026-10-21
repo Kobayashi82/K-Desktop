@@ -39,6 +39,10 @@ public partial class WakeWordDialog : FluentWindow
     private bool _busy;
 
     private float[]? _silence, _speech;
+    /// <summary>What Parakeet understood of the normal speech (the negatives of the text check).</summary>
+    private IReadOnlyList<string>? _negatives;
+    /// <summary>The silence and the normal speech of the last time, used instead of measuring them again (5.0.109).</summary>
+    private WakeCalibration? _reused;
     private double _noise;
     private bool _speechDone;
     private WakeWordVerifier.Calibration? _calibration;
@@ -59,6 +63,12 @@ public partial class WakeWordDialog : FluentWindow
         var mic = MicCapture.Devices().FirstOrDefault(d => d.Id == micId).Name ?? Loc.T("wake.micDefault");
         MicText.Text = Loc.T("wake.mic", mic);
         NameBox.Text = existing?.Name ?? suggestedName ?? string.Empty;
+        if (!testOnly && WakeCalibration.Load(micId) is { } saved)
+        {
+            UseCalibration(saved);
+            ReusePanel.Visibility = Visibility.Visible;
+            ReuseText.Text = Loc.T("wake.reuse", saved.Recorded.ToString("d", Loc.Instance.Culture));
+        }
 
         _meterTimer.Tick += (_, _) =>
         {
@@ -116,17 +126,65 @@ public partial class WakeWordDialog : FluentWindow
 
     private string WordName => NameBox.Text.Trim();
 
+    /// <summary>The silence and the normal speech of the last time: only the word is asked (steps 1 and 3 are skipped).</summary>
+    private void UseCalibration(WakeCalibration saved)
+    {
+        _reused = saved;
+        _silence = saved.Silence;
+        _speech = saved.Speech;
+        _negatives = saved.Negatives;
+        _noise = WakeWordRecorder.Rms(saved.Silence);
+    }
+
+    /// <summary>«Volver a medirlos»: the silence and the normal speech are recorded again.</summary>
+    private void OnReuseAgain(object sender, RoutedEventArgs e)
+    {
+        if (ReuseAgain.IsChecked == true)
+        {
+            _reused = null;
+            _silence = _speech = null;
+            _negatives = null;
+            _speechDone = false;
+        }
+        else if (WakeCalibration.Load(_app.Config.Settings.VoiceMicId) is { } saved)
+        {
+            UseCalibration(saved);
+        }
+        ShowStep(_step, animate: false);
+    }
+
+    /// <summary>The step after (or before) this one: with the measures of the last time, silence and normal speech are skipped.</summary>
+    private int Neighbour(int step, int direction)
+    {
+        var next = step + direction;
+        while (_reused is not null && next is 1 or 3) next += direction;
+        return next;
+    }
+
+    /// <summary>With the measures of the last time: the text check is calibrated with the takes kept now.</summary>
+    private void CalibrateWithSaved()
+    {
+        if (_negatives is null) return;
+        _calibration = WakeWordVerifier.Calibrate(WordName, Kept.Select(t => t.Take.Text).Where(t => t.Length > 0).ToList(), _negatives);
+        _calibratedTakes = Kept.Count();
+        _speechDone = true;
+        Log.Info($"Palabra de activación «{WordName}»: umbral {_calibration.Threshold:0.000} con la habla normal guardada ({_reused?.Recorded:d})");
+    }
+
     // ── steps ────────────────────────────────────────────────────────────
 
     private void ShowStep(int step, bool animate = true)
     {
         _step = step;
         for (var i = 0; i < _steps.Length; i++) _steps[i].Visibility = i == step ? Visibility.Visible : Visibility.Collapsed;
-        StepTitle.Text = _testOnly ? Loc.T("wake.testTitle", _existing!.Name) : $"{step + 1}. " + Loc.T($"wake.step{step}");
+        // With the measures of the last time, silence and normal speech are skipped: the steps shown are counted.
+        var number = _reused is null ? step + 1 : step / 2 + 1;
+        StepTitle.Text = _testOnly ? Loc.T("wake.testTitle", _existing!.Name) : $"{number}. " + Loc.T($"wake.step{step}");
         for (var i = 0; i < StepDots.Children.Count; i++)
         {
             var dot = (Ellipse)StepDots.Children[i];
             dot.SetResourceReference(Shape.FillProperty, i == step ? "Kd.Accent" : i < step ? "Kd.AccentSoft" : "ControlStrokeColorDefaultBrush");
+            dot.Visibility = _reused is not null && i is 1 or 3 ? Visibility.Collapsed : Visibility.Visible;
         }
         ErrorText.Visibility = Visibility.Collapsed;
 
@@ -181,7 +239,9 @@ public partial class WakeWordDialog : FluentWindow
         {
             // A different word: the takes of the old one no longer count.
             if (_step == 0 && _takes.Count > 0 && !string.Equals(_takesName, WordName, StringComparison.OrdinalIgnoreCase)) ClearTakes();
-            ShowStep(_step + 1);
+            var next = Neighbour(_step, 1);
+            if (next == 4 && _reused is not null) CalibrateWithSaved();
+            ShowStep(next);
             return;
         }
         Save();
@@ -189,7 +249,7 @@ public partial class WakeWordDialog : FluentWindow
 
     private void OnBack(object sender, RoutedEventArgs e)
     {
-        if (_step > 0) ShowStep(_step - 1);
+        if (_step > 0) ShowStep(Neighbour(_step, -1));
     }
 
     private void OnCancel(object sender, RoutedEventArgs e) => Close();
@@ -376,6 +436,7 @@ public partial class WakeWordDialog : FluentWindow
             .Select(u => _app.Voice.SpeechToText.Transcribe(u)).Where(t => t.Length > 0).ToList(), cancel);
         SpeechButton.Content = Loc.T("wake.again");
 
+        _negatives = negatives;
         _calibration = WakeWordVerifier.Calibrate(WordName, Kept.Select(t => t.Take.Text).Where(t => t.Length > 0).ToList(), negatives);
         _calibratedTakes = Kept.Count();
         _speechDone = true;
@@ -500,6 +561,9 @@ public partial class WakeWordDialog : FluentWindow
             if (_speech is not null) WakeWordStore.WriteWav(System.IO.Path.Combine(word.Folder, "speech.wav"), _speech);
             var micId = _app.Config.Settings.VoiceMicId;
             word.Microphone = MicCapture.Devices().FirstOrDefault(d => d.Id == micId).Name;
+            // Measured now: the next word only asks for the word.
+            if (_reused is null && _silence is not null && _speech is not null && _negatives is not null)
+                new WakeCalibration(_silence, _speech, _negatives, micId, DateTime.Now).Save();
             word.Created = DateTime.Now;
             _app.Voice.WakeWords.Save(word);
             // The detector trained while trying it; otherwise the listener trains it from the recordings.

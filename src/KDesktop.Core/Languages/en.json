@@ -454,7 +454,7 @@
   "settings.voiceHowTo": "Hold the hotkey while you say what to do (“open the recycle bin”), or tap it once and speak: it ends when you stop talking. Pressing it again ends sooner; Esc cancels. The command you name runs.",
   "settings.voiceWakeSoon": "With always-on listening, say the word and the order together (“KDesktop, open the browser”), or just the word and wait for “Listening…”. The microphone stays open while any word is active (it uses very little). If it ever misses it or goes off on its own, move its sensitivity.",
   "settings.wakeWords": "Wake words",
-  "settings.wakeWordsHint": "Words you record with your voice to call K-Desktop. You can have several.",
+  "settings.wakeWordsHint": "All the words you have recorded with your voice. Each one belongs to K-Desktop (your commands), to an assistant or to nobody; the ones you record here are for K-Desktop.",
   "settings.wakeAdd": "Add word",
   "settings.wakeNone": "You haven’t recorded any yet.",
   "settings.wakeListen": "Always-on listening",
@@ -3242,5 +3242,13 @@
   "addModel.vision": "With vision: also download {0} ({1} GB)",
   "addModel.download": "Download",
   "addModel.page": "View on Hugging Face",
-  "addModel.busy": "A download is already running."
+  "addModel.busy": "A download is already running.",
+  "settings.wakeOwner": "For",
+  "settings.wakeOwnerHint": "Who answers this word. Each word belongs to one only; if it belongs to nobody, it isn't listened to.",
+  "settings.wakeOwnerKDesktop": "K-Desktop (commands)",
+  "settings.wakeOwnerAny": "Any assistant",
+  "settings.wakeOwnerNone": "Nobody (not listened to)",
+  "assistantOptions.wakeOfKDesktop": "{0} (now K-Desktop's)",
+  "wake.reuse": "I'll use the silence and the way you talk that you recorded on {0}: you only need to say the word.",
+  "wake.reuseAgain": "Measure the silence and the way I talk again"
 }

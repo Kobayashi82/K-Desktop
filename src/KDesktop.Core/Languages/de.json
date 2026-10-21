@@ -454,7 +454,7 @@
   "settings.voiceHowTo": "Halte das Tastenkürzel gedrückt, während du sagst, was zu tun ist („öffne den Papierkorb“), oder tippe es einmal an und sprich: Es endet, wenn du aufhörst zu reden. Erneutes Drücken beendet früher; Esc bricht ab. Der genannte Befehl wird ausgeführt.",
   "settings.voiceWakeSoon": "Mit Daueraufmerksamkeit sagst du Wort und Befehl zusammen („KDesktop, öffne den Browser“) oder nur das Wort und wartest auf „Hört zu…“. Das Mikrofon bleibt offen, solange ein Wort aktiv ist (es braucht sehr wenig). Wenn es das Wort verpasst oder von selbst anspringt, passe die Empfindlichkeit an.",
   "settings.wakeWords": "Aktivierungswörter",
-  "settings.wakeWordsHint": "Wörter, die du mit deiner Stimme aufnimmst, um K-Desktop zu rufen. Du kannst mehrere haben.",
+  "settings.wakeWordsHint": "Alle Wörter, die du mit deiner Stimme aufgenommen hast. Jedes gehört K-Desktop (deinen Befehlen), einem Assistenten oder niemandem; die hier aufgenommenen sind für K-Desktop.",
   "settings.wakeAdd": "Wort hinzufügen",
   "settings.wakeNone": "Du hast noch keines aufgenommen.",
   "settings.wakeListen": "Daueraufmerksamkeit",
@@ -3242,5 +3242,13 @@
   "addModel.vision": "Mit Sehen: auch {0} ({1} GB) herunterladen",
   "addModel.download": "Herunterladen",
   "addModel.page": "Auf Hugging Face ansehen",
-  "addModel.busy": "Es läuft bereits ein Download."
+  "addModel.busy": "Es läuft bereits ein Download.",
+  "settings.wakeOwner": "Für",
+  "settings.wakeOwnerHint": "Wer auf dieses Wort antwortet. Jedes Wort gehört nur einem; gehört es niemandem, wird nicht darauf gehört.",
+  "settings.wakeOwnerKDesktop": "K-Desktop (Befehle)",
+  "settings.wakeOwnerAny": "Jeder Assistent",
+  "settings.wakeOwnerNone": "Niemand (wird nicht gehört)",
+  "assistantOptions.wakeOfKDesktop": "{0} (gehört gerade K-Desktop)",
+  "wake.reuse": "Ich nutze die Stille und deine Sprechweise vom {0}: Du musst nur das Wort sagen.",
+  "wake.reuseAgain": "Stille und Sprechweise neu messen"
 }

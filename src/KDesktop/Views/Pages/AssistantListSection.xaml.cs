@@ -59,15 +59,15 @@ public partial class AssistantListSection : UserControl
         _filling = true;
         var rows = AssistantLook.Rows(_app);
         var words = _app.Voice.WakeWords.Words.ToList();
-        var owners = _app.Config.Settings.AssistantWakeWords;
         foreach (var row in rows)
         {
             List<WakeOption> options = [new(null, Loc.T("assistantOptions.wakeNone"))];
             foreach (var word in words)
             {
                 // A word of another assistant says whose it is: choosing it here takes it from that one.
-                var owner = owners.FirstOrDefault(p => p.Value == word.Id).Key;
+                var owner = _app.WakeOwnerOf(word.Id);
                 options.Add(new(word.Id, owner is null || owner == row.Id ? word.Name
+                    : owner == WakeOwners.KDesktop ? Loc.T("assistantOptions.wakeOfKDesktop", word.Name)
                     : owner == Core.Assistant.AssistantTargeting.AnyAssistant ? Loc.T("assistantOptions.wakeOfAny", word.Name)
                     : Loc.T("assistantOptions.wakeOf", word.Name, App.AssistantName(owner))));
             }

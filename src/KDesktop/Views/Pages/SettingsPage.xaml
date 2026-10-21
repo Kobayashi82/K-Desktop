@@ -715,21 +715,27 @@
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
                                         <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
                                             <ui:SymbolIcon Symbol="PersonVoice24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
                                         </Border>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
-                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                            <TextBlock Text="{Binding Word.Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
                                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                            <TextBlock Text="{Binding Summary}" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Summary}" />
+                                            <TextBlock Text="{Binding Word.Summary}" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Word.Summary}" />
                                         </StackPanel>
-                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,14,0" ToolTip="{l:Tr settings.wakeSensitivityHint}">
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,14,0" ToolTip="{l:Tr settings.wakeOwnerHint}">
+                                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.wakeOwner}" />
+                                            <ComboBox Width="205" ItemsSource="{Binding Owners}" SelectedItem="{Binding Owner, Mode=OneTime}"
+                                                      SelectionChanged="OnWakeOwnerChanged" AutomationProperties.Name="{l:Tr settings.wakeOwner}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="3" VerticalAlignment="Center" Margin="0,0,14,0" ToolTip="{l:Tr settings.wakeSensitivityHint}">
                                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.wakeSensitivity}" />
-                                            <Slider Width="130" Minimum="0" Maximum="1" SmallChange="0.05" LargeChange="0.1" Value="{Binding Sensitivity}" />
+                                            <Slider Width="130" Minimum="0" Maximum="1" SmallChange="0.05" LargeChange="0.1" Value="{Binding Word.Sensitivity}" />
                                         </StackPanel>
-                                        <ui:ToggleSwitch Grid.Column="3" VerticalAlignment="Center" Margin="0,0,10,0" IsChecked="{Binding Enabled}" ToolTip="{l:Tr common.enabled}" />
-                                        <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <ui:ToggleSwitch Grid.Column="4" VerticalAlignment="Center" Margin="0,0,10,0" IsChecked="{Binding Word.Enabled}" ToolTip="{l:Tr common.enabled}" />
+                                        <StackPanel Grid.Column="5" Orientation="Horizontal" VerticalAlignment="Center">
                                             <ui:Button Style="{StaticResource IconButton}" ToolTip="{l:Tr settings.wakeTest}" AutomationProperties.Name="{l:Tr settings.wakeTest}" Click="OnTestWakeWord">
                                                 <ui:SymbolIcon Symbol="Play24" FontSize="16" />
                                             </ui:Button>

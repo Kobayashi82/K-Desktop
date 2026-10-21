@@ -197,32 +197,80 @@ public partial class SettingsPage : UserControl
 
     // ── wake words ───────────────────────────────────────────────────────
 
-    private void UpdateWakeWords()
+    /// <summary>Who a word can be for (5.0.109): K-Desktop, each installed assistant, any assistant or nobody.</summary>
+    public sealed record WakeOwnerOption(string? Owner, string Name)
     {
-        WakeList.ItemsSource = _app.Voice.WakeWords.Words;
-        WakeNone.Visibility = _app.Voice.WakeWords.Words.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        public override string ToString() => Name;
     }
 
+    /// <summary>A recorded word of the pool, with whose it is.</summary>
+    public sealed class WakeRow(WakeWord word, IReadOnlyList<WakeOwnerOption> owners, WakeOwnerOption owner)
+    {
+        public WakeWord Word { get; } = word;
+        public IReadOnlyList<WakeOwnerOption> Owners { get; } = owners;
+        public WakeOwnerOption Owner { get; } = owner;
+        public override string ToString() => Word.Name;
+    }
+
+    private bool _fillingWake;
+
+    private void UpdateWakeWords()
+    {
+        _fillingWake = true;
+        List<WakeOwnerOption> owners =
+        [
+            new(WakeOwners.KDesktop, Loc.T("settings.wakeOwnerKDesktop")),
+            .. Core.Assistant.Packages.AssistantPackages.Installed().Select(a => new WakeOwnerOption(a.Id, a.Manifest.Name)),
+            new(Core.Assistant.AssistantTargeting.AnyAssistant, Loc.T("settings.wakeOwnerAny")),
+            new(null, Loc.T("settings.wakeOwnerNone")),
+        ];
+        WakeList.ItemsSource = _app.Voice.WakeWords.Words.Select(w =>
+        {
+            var owner = _app.WakeOwnerOf(w.Id);
+            // An assistant that is no longer installed still has it until it is given to someone else.
+            if (owners.FirstOrDefault(o => o.Owner == owner) is { } known) return new WakeRow(w, owners, known);
+            var gone = new WakeOwnerOption(owner, App.AssistantName(owner!));
+            return new WakeRow(w, [.. owners.SkipLast(1), gone, owners[^1]], gone);
+        }).ToList();
+        WakeNone.Visibility = _app.Voice.WakeWords.Words.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        _fillingWake = false;
+    }
+
+    /// <summary>A word recorded here calls K-Desktop's commands.</summary>
     private void OnAddWakeWord(object sender, RoutedEventArgs e)
     {
-        if (Dialogs.WakeWordDialog.Record(Window.GetWindow(this)) is not null) UpdateWakeWords();
+        if (Dialogs.WakeWordDialog.Record(Window.GetWindow(this)) is not { } word) return;
+        _app.SetWakeOwner(word.Id, WakeOwners.KDesktop);
+        UpdateWakeWords();
+    }
+
+    private void OnWakeOwnerChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_fillingWake || sender is not ComboBox { DataContext: WakeRow row, SelectedItem: WakeOwnerOption option } || option == row.Owner) return;
+        // After this event: the list is made again with the new owners.
+        Dispatcher.BeginInvoke(() =>
+        {
+            _app.SetWakeOwner(row.Word.Id, option.Owner);
+            UpdateWakeWords();
+        });
     }
 
     private void OnTestWakeWord(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement { DataContext: WakeWord word }) Dialogs.WakeWordDialog.Test(Window.GetWindow(this), word);
+        if (sender is FrameworkElement { DataContext: WakeRow row }) Dialogs.WakeWordDialog.Test(Window.GetWindow(this), row.Word);
     }
 
     private void OnRerecordWakeWord(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement { DataContext: WakeWord word } && Dialogs.WakeWordDialog.Record(Window.GetWindow(this), word) is not null)
+        if (sender is FrameworkElement { DataContext: WakeRow row } && Dialogs.WakeWordDialog.Record(Window.GetWindow(this), row.Word) is not null)
             UpdateWakeWords();
     }
 
     private async void OnDeleteWakeWord(object sender, RoutedEventArgs e)
     {
-        if (sender is not FrameworkElement { DataContext: WakeWord word }) return;
+        if (sender is not FrameworkElement { DataContext: WakeRow { Word: var word } }) return;
         if (!await Confirm(Loc.T("settings.wakeDeleteConfirm", word.Name))) return;
+        _app.ForgetWakeWord(word.Id);
         _app.Voice.WakeWords.Delete(word);
         UpdateWakeWords();
     }

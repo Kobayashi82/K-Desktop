@@ -58,6 +58,11 @@
                 <ui:TextBox x:Name="NameBox" Margin="0,14,0,0" FontSize="16" PlaceholderText="{l:Tr wake.namePlaceholder}" TextChanged="OnNameChanged" />
                 <TextBlock Style="{StaticResource Result}" Text="{l:Tr wake.nameTips}" />
                 <TextBlock x:Name="MicText" Style="{StaticResource Result}" />
+                <!-- The silence and the normal speech of the last time (5.0.109): only the word is asked -->
+                <StackPanel x:Name="ReusePanel" Margin="0,12,0,0" Visibility="Collapsed">
+                    <TextBlock x:Name="ReuseText" Style="{StaticResource Result}" TextWrapping="Wrap" />
+                    <CheckBox x:Name="ReuseAgain" Margin="0,6,0,0" Content="{l:Tr wake.reuseAgain}" Click="OnReuseAgain" />
+                </StackPanel>
             </StackPanel>
 
             <!-- 1 · Silence -->

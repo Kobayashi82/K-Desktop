@@ -509,10 +509,11 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private Dictionary<string, string> _assistantWakeWords = [];
 
     /// <summary>
-    /// The assistants whose wake word was already decided (taken by its name, or chosen by the user): a word recorded with
-    /// an assistant's name is given to it only once, so «none» chosen afterwards stays (5.0.108). Replaced whole.
+    /// The wake words that call K-Desktop's commands (5.0.109): every recorded word has one owner —K-Desktop, an assistant
+    /// (<see cref="AssistantWakeWords"/>) or nobody, and then it is not listened to. Null until moved from before (all the
+    /// words no assistant had). Replaced whole.
     /// </summary>
-    [ObservableProperty] private List<string> _assistantWakeDecided = [];
+    [ObservableProperty] private List<string>? _kDesktopWakeWords;
 
     /// <summary>
     /// Hold to talk to the assistants (Options → Assistant → General, stage 5.2): what is said goes to the one of

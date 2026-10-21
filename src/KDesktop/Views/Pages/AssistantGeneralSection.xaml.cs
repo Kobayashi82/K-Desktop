@@ -134,12 +134,16 @@ public partial class AssistantGeneralSection : UserControl
     private void FillAnyWake()
     {
         _filling = true;
-        var owners = _app.Config.Settings.AssistantWakeWords;
         List<WakeOption> options = [new(null, Loc.T("assistantOptions.wakeNone"))];
         foreach (var word in _app.Voice.WakeWords.Words)
         {
-            var owner = owners.FirstOrDefault(p => p.Value == word.Id).Key;
-            options.Add(new(word.Id, owner is null or AssistantTargeting.AnyAssistant ? word.Name : Loc.T("assistantOptions.wakeOf", word.Name, App.AssistantName(owner))));
+            var owner = _app.WakeOwnerOf(word.Id);
+            options.Add(new(word.Id, owner switch
+            {
+                null or AssistantTargeting.AnyAssistant => word.Name,
+                Core.Voice.WakeOwners.KDesktop => Loc.T("assistantOptions.wakeOfKDesktop", word.Name),
+                _ => Loc.T("assistantOptions.wakeOf", word.Name, App.AssistantName(owner)),
+            }));
         }
         AnyWakeBox.ItemsSource = options;
         AnyWakeBox.SelectedItem = options.FirstOrDefault(o => o.Id == _app.AnyAssistantWakeWord) ?? options[0];
