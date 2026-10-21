@@ -17,12 +17,24 @@ public partial class MainWindow : FluentWindow
         InitializeComponent();
         Logo.Source = Services.IconProvider.Asset("KDesktop");
         ApplySavedBounds(App.Current.Config.Settings.WindowBounds);
-        Closing += (_, _) => App.Current.Config.Settings.WindowBounds = SaveBounds();
+        Closing += (_, _) =>
+        {
+            var settings = App.Current.Config.Settings;
+            settings.WindowBounds = SaveBounds();
+            settings.WindowPage = _current;
+            if (Pages.SettingsPage.LastSection is { } section) settings.SettingsSection = section;
+        };
         Loaded += (_, _) =>
         {
-            NavList.SelectedIndex = 0;
-            ShowBanners();
             UpdateStatus();
+            // Where it was left (unless something already asked for a page, like --page).
+            if (NavList.SelectedItem is null)
+            {
+                var saved = App.Current.Config.Settings.WindowPage;
+                var item = NavList.Items.OfType<ListBoxItem>().FirstOrDefault(i => (string)i.Tag == saved && i.Visibility == Visibility.Visible);
+                NavList.SelectedItem = item ?? NavList.Items[0];
+            }
+            ShowBanners();
         };
         Loc.Instance.Changed += OnLanguageChanged;
         App.Current.PausedChanged += OnPausedChanged;

@@ -65,8 +65,8 @@ public partial class SettingsPage
         ]),
     ];
 
-    /// <summary>The section shown last, for when the window opens again.</summary>
-    private static string _lastSection = "appearance";
+    /// <summary>The section shown last, for when the window opens again (saved when it closes); null: none yet.</summary>
+    public static string? LastSection { get; private set; }
 
     private readonly List<NavItem> _groups = [];
     private NavItem? _current;
@@ -112,11 +112,10 @@ public partial class SettingsPage
             FillAssistants();
             ApplyAvailability();
 
-            // The groups left open; the first time, only the one with the section shown.
-            var start = Find(_lastSection) ?? Find("appearance")!;
+            // As it was left: the groups open (none the first time) and the section shown, even inside a folded group.
+            var start = Find(LastSection ?? _app.Config.Settings.SettingsSection ?? "appearance") is { } last && IsShown(last) ? last : Find("appearance")!;
             foreach (var group in _groups) group.IsExpanded = open?.Contains(group.Key) == true;
             _assistantsItem.IsExpanded = open?.Contains("assistants") == true;
-            Reveal(start);
             foreach (var group in _groups) UpdateChevron(group, animate: false);
             UpdateChevron(_assistantsItem, animate: false);
             Select(start);
@@ -272,6 +271,14 @@ public partial class SettingsPage
     private NavItem? Find(string key) =>
         _groups.SelectMany(g => g.Children).SelectMany(s => s.Children.Prepend(s)).FirstOrDefault(i => i.Key == key);
 
+    /// <summary>Neither it nor what holds it is hidden (the module's sections are, with the module off).</summary>
+    private static bool IsShown(NavItem item)
+    {
+        for (NavItem? i = item; i is not null; i = i.Owner)
+            if (i.Visibility != Visibility.Visible) return false;
+        return true;
+    }
+
     /// <summary>Opens what holds it (its group, «Asistentes» for an assistant).</summary>
     private static void Reveal(NavItem item)
     {
@@ -285,7 +292,18 @@ public partial class SettingsPage
         if (item.IsSelected) Open(item);
         else item.IsSelected = true;
         _byMouse = false;
-        Dispatcher.BeginInvoke(() => item.BringIntoView(), System.Windows.Threading.DispatcherPriority.Loaded);
+        // A TreeViewItem brought into view unfolds what holds it: only when it is already out.
+        Dispatcher.BeginInvoke(() =>
+        {
+            if (IsUnfolded(item)) item.BringIntoView();
+        }, System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    private static bool IsUnfolded(NavItem item)
+    {
+        for (var owner = item.Owner; owner is not null; owner = owner.Owner)
+            if (!owner.IsExpanded) return false;
+        return true;
     }
 
     private void OnNavSelected(object sender, RoutedEventArgs e)
@@ -311,7 +329,7 @@ public partial class SettingsPage
         if (_current is not null && _current != item) _current.IsCurrent = false;
         item.IsCurrent = true;
         _current = item;
-        _lastSection = item.Key;
+        LastSection = item.Key;
     }
 
     /// <summary>«Ajustes» of a row, or back to the list, inside «Asistentes»: the tree follows.</summary>

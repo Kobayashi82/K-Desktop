@@ -344,6 +344,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>Main window position and size when it was last closed: "left,top,width,height[,max]" (DIPs, invariant).</summary>
     [ObservableProperty] private string? _windowBounds;
 
+    /// <summary>The page of the main window shown when it was last closed (its tag: "commands", "settings"…); null: the first.</summary>
+    [ObservableProperty] private string? _windowPage;
+
     // Updates
     /// <summary>Off: never checks; Notify: checks and tells; Auto: also downloads and installs (restarting when idle).</summary>
     [ObservableProperty] private UpdateMode _updateMode = UpdateMode.Auto;
@@ -570,6 +573,9 @@ public partial class AppSettings : ObservableObject
 
     /// <summary>The groups of Options left open (and «assistants» when its assistants are shown); null: never folded yet.</summary>
     [ObservableProperty] private List<string>? _settingsNavOpen;
+
+    /// <summary>The section of Options shown last ("appearance", "assistants/lander"…); null: the first.</summary>
+    [ObservableProperty] private string? _settingsSection;
 
     /// <summary>The commands (ids) an assistant runs without asking first («yes, and don't ask again»). Replaced whole on every change.</summary>
     [ObservableProperty] private List<string> _assistantTrustedCommands = [];
