@@ -253,6 +253,62 @@ public sealed class TalkTests : IDisposable
         Assert.Equal("Dicho", ReplyText.Clean("«Dicho»"));
         Assert.Equal("Tienes pilas, piloto.", ReplyText.Clean("<bocadillo>Tienes pilas, piloto.</bocadillo>"));
         Assert.Equal("1 < 2 y 3 > 2", ReplyText.Clean("1 < 2 y 3 > 2"));
+
+        // The empty offer at the end goes (K-Desktop would listen for an answer nobody gives); a real question stays.
+        Assert.Equal("Wikipedia ya está en pantalla.", ReplyText.Clean("Wikipedia ya está en pantalla. ¿Hay algo más con lo que pueda ayudarte hoy?"));
+        Assert.Equal("Mi función es ser útil.", ReplyText.Clean("Mi función es ser útil. ¿Necesitas algo más? ¿Hay algún otro tema o aplicación que necesite su ayuda?"));
+        Assert.Equal("Done.", ReplyText.Clean("Done. Anything else?"));
+        Assert.Equal("Tengo dos. ¿Pongo la de las 8?", ReplyText.Clean("Tengo dos. ¿Pongo la de las 8?"));
+        Assert.Equal("¿Algo más?", ReplyText.Clean("¿Algo más?"));
+    }
+
+    [Theory]
+    [InlineData("abre la página web youPorn.com y pornhub.com", "youPorn.com|pornhub.com")]
+    [InlineData("Lander, abre github punto com", "github.com")]
+    [InlineData("puede abrir la web es.wikipedia.org/wiki/Luna", "es.wikipedia.org/wiki/Luna")]
+    [InlineData("open youtube.com please", "youtube.com")]
+    public void AWebAddressOpensWithoutTheAi(string said, string sites)
+    {
+        var rule = QuickRules.Match(said, ["Lander"]);
+        Assert.Equal(QuickRuleKind.OpenWeb, rule?.Kind);
+        Assert.Equal(sites.Split('|'), QuickRules.Sites(rule!.Text!));
+    }
+
+    [Theory]
+    [InlineData("abre Steam")]
+    [InlineData("abre steam.exe")]
+    [InlineData("abre la Wikipedia")]
+    public void OpeningSomethingThatIsNotAnAddressIsNotThatRule(string said) =>
+        Assert.NotEqual(QuickRuleKind.OpenWeb, QuickRules.Match(said, ["Lander"])?.Kind);
+
+    [Fact]
+    public async Task TheSameSiteIsNotOpenedTwiceInARow()
+    {
+        var opened = new List<Uri>();
+        var web = new OpenWebTool(u => { opened.Add(u); return true; });
+        await web.RunAsync(JsonSerializer.SerializeToElement(new { url = "es.wikipedia.org" }), new ToolContext("lander"), CancellationToken.None);
+        var again = await web.RunAsync(JsonSerializer.SerializeToElement(new { url = "wikipedia.org" }), new ToolContext("lander"), CancellationToken.None);
+        await web.RunAsync(JsonSerializer.SerializeToElement(new { url = "github.com" }), new ToolContext("lander"), CancellationToken.None);
+        Assert.False(again.Failed);
+        Assert.Equal(["es.wikipedia.org", "github.com"], opened.Select(u => u.Host));
+    }
+
+    [Fact]
+    public async Task ABrainThatWasNotThereIsLookedAtAgainWhenAnOrderNeedsIt()
+    {
+        var builtin = new BuiltinTools(_folder);
+        using var _ = builtin;
+        var registry = new ToolRegistry();
+        builtin.AddTo(registry);
+        var runner = new ToolRunner(registry, () => new HashSet<string>(), (_, _) => Task.FromResult("yes"), _ => { }, Path.Combine(_folder, "undo.json"));
+        _brain = false;
+        var looked = 0;
+        var talk = new TalkService(_ => _brain ? (_model, "fake:4b") : (null, null), runner, _ => Lander, new Output(this),
+            recheck: () => { looked++; _brain = true; return Task.FromResult(true); });
+        _model.Answers.Enqueue(_ => Text("Aquí Lander."));
+        await talk.HandleAsync(Heard("cuéntame algo"));
+        Assert.Equal(1, looked);
+        Assert.Equal("Aquí Lander.", LastAnswer);
     }
 
     [Fact]

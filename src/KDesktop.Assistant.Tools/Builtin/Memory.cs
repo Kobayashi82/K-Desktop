@@ -269,7 +269,7 @@ public sealed class RememberTool(MemoryStore memory) : ITool
 {
     public string Name => "remember";
 
-    public string Description => "Remembers a lasting fact about the user (name, family, work, likes, important dates) for later conversations. Use it when they ask you to remember something about them, not for to-dos (that is save_note).";
+    public string Description => "Remembers a lasting fact about the user (name, family, work, likes, important dates) for later conversations. Use it when they ask you to remember something about them, not for to-dos (that is save_note), and never for what they think of you or of what you can do.";
 
     public string ParametersSchemaJson =>
         """{"type":"object","properties":{"fact":{"type":"string","description":"The fact, short, in the user's language and in the third person (Their boss is called Luis)"},"kind":{"type":"string","enum":["fact","like","event"]},"importance":{"type":"number","description":"0 to 1"}},"required":["fact"]}""";

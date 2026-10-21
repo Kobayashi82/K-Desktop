@@ -34,7 +34,7 @@ public interface ITalkOutput
     {
     }
 
-    /// <summary>Says the final answer of a turn (what was said ahead is not said again).</summary>
+    /// <summary>Says the final answer of a turn (what was said ahead is not said again); over when its voice is (or its bubble, without one).</summary>
     Task SpeakTurnAsync(string? assistant, string turn, string text, CancellationToken cancellationToken) => SpeakAsync(assistant, text, cancellationToken);
 }
 
@@ -76,6 +76,7 @@ public sealed class TalkService
     private readonly TalkMemory? _memory;
     private readonly ICommandBridge? _commands;
     private readonly Func<bool> _learn;
+    private readonly Func<Task<bool>>? _recheck;
     private readonly ConcurrentDictionary<string, Conversation> _conversations = new(StringComparer.Ordinal);
 
     /// <param name="brain">The model client and model name for an assistant (null: no AI now).</param>
@@ -84,11 +85,13 @@ public sealed class TalkService
     /// <param name="memory">What is remembered about the user (null: nothing).</param>
     /// <param name="learn">Whether it learns from what is talked about (Options → Memory).</param>
     /// <param name="commands">The user's K-Desktop commands (null: none, the AI answers everything).</param>
+    /// <param name="recheck">Looks at the brain again when an order needs it and it is not ready; whether it is now.</param>
     public TalkService(Func<string?, (IChatModel? Client, string? Model)> brain, ToolRunner tools, Func<string?, AssistantPersona> persona,
         ITalkOutput output, TimeProvider? time = null, Random? random = null, ToolChooser? chooser = null, TalkMemory? memory = null, Func<bool>? learn = null,
-        ICommandBridge? commands = null)
+        ICommandBridge? commands = null, Func<Task<bool>>? recheck = null)
     {
         _commands = commands;
+        _recheck = recheck;
         _brain = brain;
         _tools = tools;
         _persona = persona;
@@ -265,6 +268,8 @@ public sealed class TalkService
                 return await ToolAsync(persona, "set_timer", arguments, context, said, acknowledge: true, token).ConfigureAwait(false);
             case { Kind: QuickRuleKind.Note, Text: { Length: > 0 } note }:
                 return await ToolAsync(persona, "save_note", new JsonObject { ["note"] = note }, context, said, acknowledge: true, token).ConfigureAwait(false);
+            case { Kind: QuickRuleKind.OpenWeb, Text: { } addresses }:
+                return await SitesAsync(persona, QuickRules.Sites(addresses), context, said, token).ConfigureAwait(false);
             case { Kind: QuickRuleKind.CancelTimer } cancelTimer:
                 var which = new JsonObject();
                 if (cancelTimer.Text is { Length: > 0 } words) which["reason"] = words;
@@ -307,7 +312,9 @@ public sealed class TalkService
         }
 
         var (client, model) = _brain(who);
-        if (client is null || model is null) return ran ?? new TalkAnswer(Phrase(persona, "noBrain"), Remember: false, Failed: true);
+        // Not ready: the server may have opened since it was last looked at (Ollama, after K-Desktop at start-up).
+        if ((client is null || model is null) && _recheck is not null && await _recheck().ConfigureAwait(false)) (client, model) = _brain(who);
+        if (client is null || model is null) return NotDone(persona, ran, forAi, Phrase(persona, "noBrain"));
         _output.State(who, "thinking");
         var shown = new PartialText(text =>
         {
@@ -360,6 +367,30 @@ public sealed class TalkService
         var text = failed ? string.Join(" ", replies) : Phrase(persona, "ok") + " " + string.Join(" ", replies);
         return new TalkAnswer(text, Failed: failed) { Tools = ["run_command"], Steps = steps };
     }
+
+    /// <summary>
+    /// «Abre youtube.com y github.com»: each address, in order, without the AI (which may judge the site and refuse it).
+    /// </summary>
+    private async Task<TalkAnswer> SitesAsync(AssistantPersona persona, IReadOnlyList<string> sites, ToolContext context, string said, CancellationToken token)
+    {
+        var steps = new List<ChatMessage>();
+        var failed = false;
+        foreach (var site in sites)
+        {
+            var arguments = new JsonObject { ["url"] = site };
+            var outcome = await _tools.RunAsync("open_web", JsonSerializer.SerializeToElement(arguments), context, said, "rule", token).ConfigureAwait(false);
+            steps.AddRange(Step("open_web", arguments, outcome.Result?.Text ?? "Not done: " + outcome.Entry.Did));
+            failed |= outcome.Result is not { Failed: false };
+        }
+        return new TalkAnswer(Phrase(persona, failed ? "error" : "ok"), Failed: failed) { Tools = ["open_web"], Steps = steps };
+    }
+
+    /// <summary>
+    /// No AI for what is left of an order: what ran is said and what was not done is named, never dropped in silence
+    /// («Lo de «cierra el navegador» no lo he hecho.»). Nothing ran: <paramref name="why"/>.
+    /// </summary>
+    private TalkAnswer NotDone(AssistantPersona persona, TalkAnswer? ran, string left, string why) =>
+        ran is null ? new TalkAnswer(why, Remember: false, Failed: true) : ran with { Text = ran.Text + " " + Phrase(persona, "notDone", left) };
 
     /// <summary>A question, not an order (it may name a command without asking to run it).</summary>
     public static bool IsQuestion(string said) => said.Contains('?', StringComparison.Ordinal);

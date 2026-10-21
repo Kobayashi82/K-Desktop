@@ -2772,7 +2772,7 @@
   "assistant.persona.name": "K-Desktop",
   "assistant.persona.default": "Tu es un assistant aimable et direct, avec une pointe d'humour. Tu parles naturellement, comme un collègue qui donne un coup de main.",
   "assistant.prompt.who": "Tu t'appelles {0} et tu vis sur le bureau Windows de l'utilisateur, dans K-Desktop.",
-  "assistant.prompt.style": "Réponds toujours en français, en une ou deux phrases courtes, sans listes, sans Markdown et sans emojis : ce que tu dis s'affiche dans une bulle. Écris les nombres et les heures en chiffres. Ne termine pas par une question, sauf s'il te manque une information pour faire ce qu'on te demande.",
+  "assistant.prompt.style": "Réponds toujours en français, en une ou deux phrases courtes, sans listes, sans Markdown et sans emojis : ce que tu dis s'affiche dans une bulle. Écris les nombres et les heures en chiffres. L'utilisateur est adulte : fais ce qu'il demande (ouvrir n'importe quel site ou programme) sans juger ni faire la morale. Ne termine pas par une question, sauf s'il te manque une information pour faire ce qu'on te demande.",
   "assistant.prompt.tools": "Utilise un outil quand on te demande de faire quelque chose ou de savoir quelque chose qu'il sait (l'heure, ses notes, ses minuteurs, un calcul) : ne le devine pas. Pour discuter, donner ton avis ou raconter quelque chose, aucun outil n'est nécessaire : réponds toi-même. Ne dis jamais que tu as fait quelque chose qu'aucun outil n'a fait dans cette réponse. Si aucun outil ne fait ce qu'il demande, dis-le simplement : n'en utilise pas un qui fait autre chose (ouvrir n'est pas fermer). Ses commandes K-Desktop s'exécutent avec run_command ; s'il demande ce que fait une commande ou quelles commandes il a, regarde avec describe_command ou find_command : n'invente pas ce qu'elles font. Ne nomme jamais tes outils à l'utilisateur.",
   "assistant.prompt.now": "Nous sommes le {0}.",
   "assistant.phrase.ok": "C'est fait.|Voilà.|D'accord.",
@@ -2860,7 +2860,7 @@
   "tool.remember.replyKnown": "Je le savais déjà.",
   "tool.remember.examples": "souviens-toi que mon chef s'appelle Luis|retiens que je suis allergique aux fruits de mer|mon anniversaire est le 3 mai|garde en tête que je travaille de nuit|n'oublie pas que ma fille s'appelle Ana|souviens-toi que je préfère le thé au café",
   "assistant.prompt.memory": "Ce que tu sais de l'utilisateur (utilise-le seulement si c'est utile, ne le récite pas) :",
-  "assistant.memory.learn": "Tu lis un échange entre un utilisateur et son assistant. Extrais SEULEMENT les faits nouveaux et durables sur l'utilisateur qui valent la peine d'être retenus pendant des mois : son nom, sa famille, ses animaux, son travail ou ses études, ses goûts et loisirs, sa santé, des dates importantes et ses projets. Ne prends que ce que l'utilisateur dit de lui-même, jamais ce que dit l'assistant.\nN'inclus pas les salutations, les humeurs passagères, les questions, les demandes ponctuelles ni rien sur l'assistant. Ne répète pas ce qui est déjà connu.\nÉcris chaque fait en français, en une phrase courte à la troisième personne (« Il s'appelle Marc », « Il adore le café »).\nRéponds SEULEMENT en JSON : {\"memories\":[{\"text\":\"...\",\"kind\":\"fact|like|event\",\"importance\":0.0-1.0}]}\nS'il n'y a rien de nouveau, réponds {\"memories\":[]}.",
+  "assistant.memory.learn": "Tu lis un échange entre un utilisateur et son assistant. Extrais SEULEMENT les faits nouveaux et durables sur l'utilisateur qui valent la peine d'être retenus pendant des mois : son nom, sa famille, ses animaux, son travail ou ses études, ses goûts et loisirs, sa santé, des dates importantes et ses projets. Ne prends que ce que l'utilisateur dit de lui-même, jamais ce que dit l'assistant.\nN'inclus pas les salutations, les humeurs passagères, les questions, les demandes ponctuelles ni rien sur l'assistant (ni plaintes, colère ou opinions sur lui ou sur ce qu'il peut ou ne peut pas faire). Ne répète pas ce qui est déjà connu.\nÉcris chaque fait en français, en une phrase courte à la troisième personne (« Il s'appelle Marc », « Il adore le café »).\nRéponds SEULEMENT en JSON : {\"memories\":[{\"text\":\"...\",\"kind\":\"fact|like|event\",\"importance\":0.0-1.0}]}\nS'il n'y a rien de nouveau, réponds {\"memories\":[]}.",
   "assistant.memory.known": "Déjà connu :",
   "assistant.memory.exchange": "L'échange :",
   "assistant.memory.user": "Utilisateur",
@@ -3021,5 +3021,16 @@
   "assistantOptions.adorn": "Montrer aussi les commandes que vous lancez",
   "assistantOptions.adornHint": "Raccourcis, QuickMenus, le lanceur, la voix de K-Desktop, le téléphone, les événements… : l’assistant les décore rapidement, sans les retarder.",
 
-  "assistant.prompt.commands": "Ses commandes qui pourraient être ce qu'il demande (si c'est le cas, exécute-la avec run_command et son nom exact) : {0}."
+  "assistant.prompt.commands": "Ses commandes qui pourraient être ce qu'il demande (si c'est le cas, exécute-la avec run_command et son nom exact) : {0}.",
+  "assistant.phrase.notDone": "Je n'ai pas fait « {0} ».",
+  "assistant.reply.closers": "autre chose|d'autre|autre question|encore besoin|quelque chose de plus",
+  "assistant.rule.openWeb": "ouvre {text}|ouvrir {text}|va sur {text}|va à {text}|aller sur {text}|emmène moi sur {text}|charge {text}",
+  "assistant.rule.dot": "point",
+  "assistant.verbs.close": "ferme|fermer|quitte|quitter|arrête|arrêter|tue|éteins|éteindre|minimise|réduis",
+  "assistant.verbs.open": "ouvre|ouvrir|lance|lancer|démarre|démarrer|allume|exécute",
+  "assistantOptions.askBefore": "Demander avant d’agir",
+  "assistantOptions.askBeforeHint": "Si l’assistant demande la permission avant de lancer une commande ou d’utiliser un outil. « Seulement ce qui est risqué » = éteindre ou redémarrer, scripts, touches simulées, macros et requêtes web.",
+  "assistantOptions.askNever": "Jamais",
+  "assistantOptions.askRisky": "Seulement ce qui est risqué",
+  "assistantOptions.askFirst": "Aussi la première fois"
 }

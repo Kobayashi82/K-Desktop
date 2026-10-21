@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using KDesktop.Core.Assistant;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
 using Wpf.Ui.Controls;
@@ -32,12 +33,14 @@ public partial class TrustView : UserControl
 
     private void OnSettingChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(AppSettings.AssistantTrustedCommands) or nameof(AppSettings.AssistantTrustedTools)) Fill();
+        if (e.PropertyName is nameof(AppSettings.AssistantTrustedCommands) or nameof(AppSettings.AssistantTrustedTools) or nameof(AppSettings.AssistantAskBefore)) Fill();
     }
 
     private void Fill()
     {
         var s = _app.Config.Settings;
+        // Only asking the first time leaves something trusted to take back.
+        Visibility = s.AssistantAskBefore == AskPolicy.First ? Visibility.Visible : Visibility.Collapsed;
         Rows.Children.Clear();
         foreach (var id in s.AssistantTrustedCommands)
         {

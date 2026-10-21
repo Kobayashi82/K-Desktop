@@ -2772,7 +2772,7 @@
   "assistant.persona.name": "K-Desktop",
   "assistant.persona.default": "Du bist ein freundlicher, direkter Assistent mit einer Prise Humor. Du sprichst natürlich, wie ein Kollege, der mit anpackt.",
   "assistant.prompt.who": "Du heißt {0} und lebst auf dem Windows-Desktop des Benutzers, in K-Desktop.",
-  "assistant.prompt.style": "Antworte immer auf Deutsch, in ein oder zwei kurzen Sätzen, ohne Listen, ohne Markdown und ohne Emojis: Was du sagst, erscheint in einer Sprechblase. Schreib Zahlen und Uhrzeiten in Ziffern. Ende nicht mit einer Frage, außer dir fehlt etwas, um zu tun, was er will.",
+  "assistant.prompt.style": "Antworte immer auf Deutsch, in ein oder zwei kurzen Sätzen, ohne Listen, ohne Markdown und ohne Emojis: Was du sagst, erscheint in einer Sprechblase. Schreib Zahlen und Uhrzeiten in Ziffern. Der Nutzer ist erwachsen: Tu, was er will (jede Website oder jedes Programm öffnen), ohne zu urteilen oder zu belehren. Ende nicht mit einer Frage, außer dir fehlt etwas, um zu tun, was er will.",
   "assistant.prompt.tools": "Benutze ein Werkzeug, wenn du etwas tun oder etwas wissen sollst, das es weiß (die Uhrzeit, die Notizen, die Timer, eine Rechnung): Rate nicht. Zum Plaudern, für eine Meinung oder zum Erzählen brauchst du keins: Antworte selbst. Sag nie, du hättest etwas getan, das in dieser Antwort kein Werkzeug getan hat. Kann kein Werkzeug, was er will, sag es einfach: Nimm keins, das etwas anderes tut (Öffnen ist nicht Schließen). Seine K-Desktop-Befehle führst du mit run_command aus; fragt er, was ein Befehl tut oder welche Befehle er hat, schau mit describe_command oder find_command nach: erfinde nicht, was sie tun. Nenne dem Benutzer nie deine Werkzeuge.",
   "assistant.prompt.now": "Jetzt ist {0}.",
   "assistant.phrase.ok": "Erledigt.|Fertig.|Alles klar.",
@@ -2860,7 +2860,7 @@
   "tool.remember.replyKnown": "Das wusste ich schon.",
   "tool.remember.examples": "merk dir, dass mein Chef Luis heißt|denk dran, dass ich gegen Meeresfrüchte allergisch bin|mein Geburtstag ist am 3. Mai|merk dir, dass ich nachts arbeite|vergiss nicht, dass meine Tochter Ana heißt|merk dir, dass ich Tee lieber mag als Kaffee",
   "assistant.prompt.memory": "Was du über den Nutzer weißt (nutze es nur, wenn es passt, sag es nicht auf):",
-  "assistant.memory.learn": "Du liest einen Austausch zwischen einem Nutzer und seinem Assistenten. Entnimm NUR neue, dauerhafte Fakten über den Nutzer, die es wert sind, monatelang behalten zu werden: Name, Familie, Haustiere, Arbeit oder Studium, Vorlieben und Hobbys, Gesundheit, wichtige Daten und Pläne. Nimm nur, was der Nutzer über sich selbst sagt, nie, was der Assistent sagt.\nKeine Grüße, vorübergehenden Stimmungen, Fragen, einmaligen Aufträge und nichts über den Assistenten. Wiederhole nicht, was schon bekannt ist.\nSchreib jeden Fakt auf Deutsch, als kurzen Satz in der dritten Person („Er heißt Markus“, „Er liebt Kaffee“).\nAntworte NUR mit JSON: {\"memories\":[{\"text\":\"...\",\"kind\":\"fact|like|event\",\"importance\":0.0-1.0}]}\nWenn es nichts Neues gibt, antworte {\"memories\":[]}.",
+  "assistant.memory.learn": "Du liest einen Austausch zwischen einem Nutzer und seinem Assistenten. Entnimm NUR neue, dauerhafte Fakten über den Nutzer, die es wert sind, monatelang behalten zu werden: Name, Familie, Haustiere, Arbeit oder Studium, Vorlieben und Hobbys, Gesundheit, wichtige Daten und Pläne. Nimm nur, was der Nutzer über sich selbst sagt, nie, was der Assistent sagt.\nKeine Grüße, vorübergehenden Stimmungen, Fragen, einmaligen Aufträge und nichts über den Assistenten (auch keine Beschwerden, keinen Ärger und keine Meinungen über ihn oder darüber, was er kann oder nicht kann). Wiederhole nicht, was schon bekannt ist.\nSchreib jeden Fakt auf Deutsch, als kurzen Satz in der dritten Person („Er heißt Markus“, „Er liebt Kaffee“).\nAntworte NUR mit JSON: {\"memories\":[{\"text\":\"...\",\"kind\":\"fact|like|event\",\"importance\":0.0-1.0}]}\nWenn es nichts Neues gibt, antworte {\"memories\":[]}.",
   "assistant.memory.known": "Schon bekannt:",
   "assistant.memory.exchange": "Der Austausch:",
   "assistant.memory.user": "Nutzer",
@@ -3021,5 +3021,16 @@
   "assistantOptions.adorn": "Auch die Befehle zeigen, die du startest",
   "assistantOptions.adornHint": "Tastenkürzel, QuickMenus, der Starter, die Stimme von K-Desktop, das Handy, Ereignisse…: Der Assistent schmückt sie schnell aus, ohne sie zu verzögern.",
 
-  "assistant.prompt.commands": "Seine Befehle, die das Gewünschte sein könnten (wenn ja, führ ihn mit run_command und seinem genauen Namen aus): {0}."
+  "assistant.prompt.commands": "Seine Befehle, die das Gewünschte sein könnten (wenn ja, führ ihn mit run_command und seinem genauen Namen aus): {0}.",
+  "assistant.phrase.notDone": "„{0}“ habe ich nicht gemacht.",
+  "assistant.reply.closers": "sonst noch|noch etwas|etwas anderes|noch helfen|weiter helfen|sonst etwas",
+  "assistant.rule.openWeb": "öffne {text}|öffnen {text}|geh auf {text}|gehe auf {text}|geh zu {text}|gehe zu {text}|lade {text}|{text} öffnen",
+  "assistant.rule.dot": "punkt",
+  "assistant.verbs.close": "schließe|schließ|schliesse|schließen|beende|beenden|stoppe|stopp|minimiere|minimieren",
+  "assistant.verbs.open": "öffne|öffnen|starte|starten|mach auf|führe aus|ausführen",
+  "assistantOptions.askBefore": "Vorher fragen",
+  "assistantOptions.askBeforeHint": "Ob der Assistent um Erlaubnis bittet, bevor er einen Befehl ausführt oder ein Werkzeug benutzt. „Nur Riskantes“ = Herunterfahren oder Neustarten, Skripte, simulierte Tasten, Makros und Webanfragen.",
+  "assistantOptions.askNever": "Nie",
+  "assistantOptions.askRisky": "Nur Riskantes",
+  "assistantOptions.askFirst": "Auch beim ersten Mal"
 }

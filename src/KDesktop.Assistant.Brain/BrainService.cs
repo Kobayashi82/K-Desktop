@@ -98,7 +98,58 @@ public sealed class BrainService : IDisposable
             }
         }
         Log.Info($"Asistente: cerebro → {config.Provider.DisplayName()} {(config.Provider == BrainProvider.None ? "" : config.Address)}{(config.Model.Length > 0 ? $", modelo {config.Model}" : "")}");
-        _ = CheckAsync(scanIfMissing: true);
+        _ = WaitForServerAsync();
+    }
+
+    /// <summary>A server that is not there yet is looked at again this often…</summary>
+    private static readonly TimeSpan AwayEvery = TimeSpan.FromSeconds(10);
+
+    /// <summary>…for this long after the options arrive (Ollama opens from the Startup folder, after K-Desktop).</summary>
+    private static readonly TimeSpan AwayFor = TimeSpan.FromMinutes(5);
+
+    /// <summary>
+    /// Looks at the server, and while it does not answer, again every <see cref="AwayEvery"/> for <see cref="AwayFor"/>:
+    /// K-Desktop starts with Windows before the Ollama of the Startup folder, and the first look found nothing.
+    /// </summary>
+    private async Task WaitForServerAsync()
+    {
+        int generation;
+        lock (_gate) generation = _generation;
+        await CheckAsync(scanIfMissing: true).ConfigureAwait(false);
+        var until = DateTime.UtcNow + AwayFor;
+        while (State.State == "unreachable" && DateTime.UtcNow < until)
+        {
+            await Task.Delay(AwayEvery).ConfigureAwait(false);
+            lock (_gate)
+            {
+                if (_disposed || generation != _generation) return;
+            }
+            await CheckAsync(scanIfMissing: false).ConfigureAwait(false);
+            if (State.State == "ready") Log.Info($"Asistente: el cerebro ya contesta ({State.Model})");
+        }
+    }
+
+    /// <summary>Not looked at again before this long since the last look that found nothing.</summary>
+    private static readonly TimeSpan RecheckAfter = TimeSpan.FromSeconds(3);
+
+    private DateTime _lastRecheck = DateTime.MinValue;
+
+    /// <summary>
+    /// An order needs the AI and the brain is not ready: one more look now (the server may have opened since), at most
+    /// once every <see cref="RecheckAfter"/>. Whether it is ready afterwards.
+    /// </summary>
+    public async Task<bool> RecheckAsync()
+    {
+        if (State.State == "ready") return true;
+        lock (_gate)
+        {
+            if (_disposed || _client is null || DateTime.UtcNow - _lastRecheck < RecheckAfter) return false;
+            _lastRecheck = DateTime.UtcNow;
+        }
+        await CheckAsync(scanIfMissing: false).ConfigureAwait(false);
+        var ready = State.State == "ready";
+        Log.Info($"Asistente: cerebro mirado otra vez para una orden: {(ready ? "listo" : State.State)}");
+        return ready;
     }
 
     /// <summary>A request of Options → Assistant → Brain.</summary>

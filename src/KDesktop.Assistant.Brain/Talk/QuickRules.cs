@@ -9,7 +9,7 @@ namespace KDesktop.Assistant.Brain.Talk;
 /// What a fixed rule understood. <see cref="First"/> and <see cref="Second"/> («el primero», «la otra») only count as the
 /// answer to «¿A o B?» (stage 4.4).
 /// </summary>
-public enum QuickRuleKind { Time, Timer, Note, CancelTimer, Cancel, Repeat, Undo, First, Second }
+public enum QuickRuleKind { Time, Timer, Note, CancelTimer, Cancel, Repeat, Undo, First, Second, OpenWeb }
 
 /// <summary>An order a fixed rule understood, with what filled its gaps.</summary>
 /// <param name="Seconds">For a timer: how long.</param>
@@ -23,7 +23,7 @@ public sealed record QuickRule(QuickRuleKind Kind, double? Seconds = null, strin
 /// («¿puedes…?»). Anything else goes to the AI. The language files have:
 /// <list type="bullet">
 /// <item><c>assistant.rule.&lt;kind&gt;</c> (<c>time</c>, <c>timer</c>, <c>note</c>, <c>cancelTimer</c>, <c>cancel</c>,
-/// <c>repeat</c>, <c>undo</c>): ways of saying it, separated by «|», with gaps <c>{dur}</c> (a duration: «diez
+/// <c>repeat</c>, <c>undo</c>, <c>openWeb</c> —only when its gap names web addresses—): ways of saying it, separated by «|», with gaps <c>{dur}</c> (a duration: «diez
 /// minutos», «una hora y media») and <c>{text}</c> (some words, kept as said), and <c>[optional words]</c>;</item>
 /// <item><c>assistant.rule.fillers</c>, <c>assistant.rule.polite</c>: what is taken off around it and at its start («|»);</item>
 /// <item><c>assistant.rule.units</c>: <c>word=seconds</c> separated by spaces («minutos=60»);</item>
@@ -31,7 +31,7 @@ public sealed record QuickRule(QuickRuleKind Kind, double? Seconds = null, strin
 /// <item><c>assistant.rule.half</c>: «y media» after a unit (half of it more).</item>
 /// </list>
 /// </summary>
-public static class QuickRules
+public static partial class QuickRules
 {
     private abstract record Piece;
     private sealed record Word(string Text) : Piece;
@@ -94,11 +94,45 @@ public static class QuickRules
             {
                 if (best is { } b && b.Pattern.Weight >= pattern.Weight) continue;
                 var gaps = new Gaps();
-                if (Fits(said, 0, pattern.Pieces, 0, w, gaps))
-                    best = (pattern, new QuickRule(pattern.Kind, gaps.Seconds, gaps.Text is { } t ? Original(text, t.From, t.To) : null));
+                if (!Fits(said, 0, pattern.Pieces, 0, w, gaps)) continue;
+                var gap = gaps.Text is { } t ? Original(text, t.From, t.To) : null;
+                // «Abre …» is a web only when it names addresses («abre youtube.com»); «abre Steam» is not this rule.
+                if (pattern.Kind == QuickRuleKind.OpenWeb && Sites(gap ?? string.Empty).Count == 0) continue;
+                best = (pattern, new QuickRule(pattern.Kind, gaps.Seconds, gap));
             }
         return best?.Rule;
     }
+
+    /// <summary>
+    /// The web addresses in what was said, in order and without repeats: «youPorn.com y pornhub.com», «github punto com»
+    /// (the word for «dot» of <c>assistant.rule.dot</c>, any language). Not files («steam.exe»).
+    /// </summary>
+    public static IReadOnlyList<string> Sites(string text)
+    {
+        foreach (var dot in Dots.Value) text = text.Replace(dot, ".", StringComparison.OrdinalIgnoreCase);
+        return [.. Address().Matches(text).Select(m => m.Value.TrimEnd('.', '/'))
+            .Where(s => !NotSites.Contains(s[(s.LastIndexOf('.') + 1)..].Split('/')[0]))
+            .Distinct(StringComparer.OrdinalIgnoreCase)];
+    }
+
+    private static readonly Lazy<string[]> Dots = new(() =>
+    [
+        .. Loc.Available()
+            .Select(l => Loc.Strings(l.Code, "assistant.rule.dot").GetValueOrDefault("assistant.rule.dot") ?? string.Empty)
+            .SelectMany(v => v.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            .Select(d => " " + d + " ")
+            .Distinct(StringComparer.OrdinalIgnoreCase),
+    ]);
+
+    /// <summary>Endings of files, not of web addresses.</summary>
+    private static readonly HashSet<string> NotSites = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "exe", "lnk", "bat", "cmd", "msi", "dll", "txt", "log", "ini", "json", "xml", "pdf", "doc", "docx", "xls", "xlsx",
+        "ppt", "pptx", "png", "jpg", "jpeg", "gif", "webp", "mp3", "mp4", "mkv", "avi", "wav", "zip", "rar",
+    };
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"(?:https?://)?(?:[\p{L}\p{N}-]+\.)+\p{L}{2,}(?:/[^\s,;]*)?", System.Text.RegularExpressions.RegexOptions.IgnoreCase)]
+    private static partial System.Text.RegularExpressions.Regex Address();
 
     private sealed class Gaps
     {

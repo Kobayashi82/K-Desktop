@@ -52,12 +52,28 @@ public sealed class OpenWebTool(Func<Uri, bool>? open = null) : ITool
 
     public string Intent(JsonElement arguments) => Loc.T("tool.open_web.intent", Browser.Address(arguments.GetString("url"))?.Host ?? ToolText.Clean(arguments.GetString("url")));
 
+    /// <summary>The same site is not opened twice this close together (a small model asked for es.wikipedia.org, then wikipedia.org).</summary>
+    public static readonly TimeSpan Again = TimeSpan.FromSeconds(20);
+
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> _opened = new(StringComparer.OrdinalIgnoreCase);
+
     public Task<ToolResult> RunAsync(JsonElement arguments, ToolContext context, CancellationToken cancellationToken)
     {
         if (Browser.Address(arguments.GetString("url")) is not { } uri) return Task.FromResult(ToolResult.Fail("That is not a web address."));
-        return Task.FromResult((open ?? Browser.Open)(uri)
-            ? new ToolResult($"Opened {uri.Host}.") { Done = Loc.T("tool.open_web.done", uri.Host) }
-            : ToolResult.Fail("The browser did not open."));
+        var site = SiteOf(uri);
+        var now = DateTime.UtcNow;
+        if (_opened.TryGetValue(site, out var last) && now - last < Again)
+            return Task.FromResult(new ToolResult($"{uri.Host} was already opened a moment ago; it is open.") { Done = Loc.T("tool.open_web.done", uri.Host) });
+        if (!(open ?? Browser.Open)(uri)) return Task.FromResult(ToolResult.Fail("The browser did not open."));
+        _opened[site] = now;
+        return Task.FromResult(new ToolResult($"Opened {uri.Host}.") { Done = Loc.T("tool.open_web.done", uri.Host) });
+    }
+
+    /// <summary>The site without its language or «www» and its ending («es.wikipedia.org» and «wikipedia.com» are «wikipedia»), with its path.</summary>
+    private static string SiteOf(Uri uri)
+    {
+        var labels = uri.Host.Split('.');
+        return (labels.Length >= 2 ? labels[^2] : uri.Host) + uri.AbsolutePath.TrimEnd('/');
     }
 }
 

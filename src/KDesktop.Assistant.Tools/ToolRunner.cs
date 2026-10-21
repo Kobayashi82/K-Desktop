@@ -31,6 +31,7 @@ public sealed class ToolRunner
     private readonly object _gate = new();
     private readonly ToolRegistry _registry;
     private readonly Func<IReadOnlySet<string>> _trusted;
+    private readonly Func<string> _askBefore;
     private readonly Func<AskMessage, CancellationToken, Task<string>> _ask;
     private readonly Action<LogMessage> _log;
     private readonly string _undoFile;
@@ -40,11 +41,13 @@ public sealed class ToolRunner
     /// <param name="ask">Asks the user (K-Desktop) and gives the choice: <c>yes</c>, <c>no</c>, <c>always</c> or <c>timeout</c>.</param>
     /// <param name="log">Sends a line of the activity.</param>
     /// <param name="undoFile">Where what can be undone is kept.</param>
+    /// <param name="askBefore">The user's <see cref="AskPolicy"/> (null: <see cref="AskPolicy.First"/>).</param>
     public ToolRunner(ToolRegistry registry, Func<IReadOnlySet<string>> trusted, Func<AskMessage, CancellationToken, Task<string>> ask,
-        Action<LogMessage> log, string undoFile)
+        Action<LogMessage> log, string undoFile, Func<string>? askBefore = null)
     {
         _registry = registry;
         _trusted = trusted;
+        _askBefore = askBefore ?? (() => AskPolicy.First);
         _ask = ask;
         _log = log;
         _undoFile = undoFile;
@@ -141,12 +144,7 @@ public sealed class ToolRunner
         return entry;
     }
 
-    private bool MustAsk(ITool tool) => tool.Risk switch
-    {
-        ToolRisk.Safe => false,
-        ToolRisk.AskOnce => !_trusted().Contains(tool.Name),
-        _ => true,
-    };
+    private bool MustAsk(ITool tool) => AskPolicy.Asks(tool.Risk, _askBefore(), _trusted().Contains(tool.Name));
 
     private async Task<string> AskAsync(ITool tool, string intent, ToolContext context, CancellationToken cancellationToken)
     {

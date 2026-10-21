@@ -40,7 +40,8 @@ internal sealed class ModuleTalk : ITalkOutput
         Meaning = new ModuleMeaning(link);
         Chooser = new ToolChooser(Meaning);
         Memory = new TalkMemory(tools.Builtin.Memory, tools.Runner, Meaning);
-        Service = new TalkService(who => (brain.Client, brain.ModelFor(who)), tools.Runner, PersonaOf, this, chooser: Chooser, memory: Memory, learn: () => tools.Learn, commands: commands);
+        Service = new TalkService(who => (brain.Client, brain.ModelFor(who)), tools.Runner, PersonaOf, this, chooser: Chooser, memory: Memory, learn: () => tools.Learn, commands: commands,
+            recheck: brain.RecheckAsync);
     }
 
     public TalkService Service { get; }
@@ -193,8 +194,9 @@ internal sealed class ModuleTalk : ITalkOutput
     public void SpeakAhead(string? assistant, string turn, string textSoFar) => Voice.Ahead(assistant, turn, textSoFar);
 
     /// <summary>
-    /// The bubble with the text (for as long as it takes to read it) and its voice (what was not said ahead): over when both
-    /// are, or it is cancelled.
+    /// The bubble with the text (for as long as it takes to read it) and its voice (what was not said ahead). Over when its
+    /// voice is (the bubble stays on its own until it has been read: an answer that asks listens for the reply right away,
+    /// not 15 s later); without a voice, when the bubble is; or when it is cancelled.
     /// </summary>
     public Task SpeakTurnAsync(string? assistant, string turn, string text, CancellationToken cancellationToken)
     {
@@ -207,7 +209,7 @@ internal sealed class ModuleTalk : ITalkOutput
             catch (Exception ex) { Log.Warn($"Asistente: «{assistant}» no ha podido decirlo: {ex.Message}"); }
             finally { said.TrySetResult(); }
         });
-        return said.Task;
+        return speaking.IsCompleted ? said.Task : Task.WhenAny(speaking, said.Task);
     }
 
     public void Listen(string? assistant, int seconds) => _link.Send(new ListenMessage(seconds, Assistant: assistant));

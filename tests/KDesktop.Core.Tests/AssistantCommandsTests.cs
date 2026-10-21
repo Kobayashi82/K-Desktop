@@ -108,6 +108,7 @@ public class AssistantCommandsTests
         var night = Make("Buenas noches");
         night.Actions.Add(new CommandControlAction { Mode = CommandControlMode.Run, CommandId = power.Id });
         foreach (var c in new[] { greet, power, night }) store.Config.Commands.Add(c);
+        store.Config.Settings.AssistantAskBefore = AskPolicy.First;
         var engine = new CommandEngine(store, new FakeUi());
         var asked = new List<(string Name, ToolRisk Risk)>();
         Func<Command, ToolRisk, Task<string>> no = (c, r) => { asked.Add((c.Name, r)); return Task.FromResult("no"); };
@@ -127,5 +128,66 @@ public class AssistantCommandsTests
         store.Config.Settings.AssistantTrustedCommands = [greet.Id, night.Id];
         Assert.Equal("declined", (await AssistantCommands.RunAsync(engine, new RunMessage("lander", "r-3", night.Id), "Lander", no)).Status);
         Assert.Equal(("Buenas noches", ToolRisk.AskAlways), asked[^1]);
+    }
+
+    [Fact]
+    public async Task ByDefaultOnlyWhatIsRiskyAsksAndNeverAsksNothing()
+    {
+        var store = new ConfigStore();
+        var greet = Make("Saludo");
+        var power = new Command { Name = "Apagar" };
+        power.Actions.Add(new PowerAction { Mode = PowerMode.Lock });
+        foreach (var c in new[] { greet, power }) store.Config.Commands.Add(c);
+        var engine = new CommandEngine(store, new FakeUi());
+        var asked = new List<string>();
+        Func<Command, ToolRisk, Task<string>> no = (c, _) => { asked.Add(c.Name); return Task.FromResult("no"); };
+
+        Assert.Equal(AskPolicy.Risky, store.Config.Settings.AssistantAskBefore);
+        Assert.Equal("ok", (await AssistantCommands.RunAsync(engine, new RunMessage("lander", "r-1", greet.Id), "Lander", no)).Status);
+        Assert.Equal("declined", (await AssistantCommands.RunAsync(engine, new RunMessage("lander", "r-2", power.Id), "Lander", no)).Status);
+        Assert.Equal(["Apagar"], asked);
+
+        // «Never»: not even power asks (it is not run here: only described).
+        Assert.Equal("always", AssistantCommands.Describe(store.Config, new DescribeMessage("d-1", power.Id)).Asks);
+        store.Config.Settings.AssistantAskBefore = AskPolicy.Never;
+        Assert.Equal("no", AssistantCommands.Describe(store.Config, new DescribeMessage("d-2", power.Id)).Asks);
+    }
+
+    [Theory]
+    [InlineData(ToolRisk.Safe, AskPolicy.First, false, false)]
+    [InlineData(ToolRisk.AskOnce, AskPolicy.First, false, true)]
+    [InlineData(ToolRisk.AskOnce, AskPolicy.First, true, false)]
+    [InlineData(ToolRisk.AskAlways, AskPolicy.First, true, true)]
+    [InlineData(ToolRisk.AskOnce, AskPolicy.Risky, false, false)]
+    [InlineData(ToolRisk.AskAlways, AskPolicy.Risky, false, true)]
+    [InlineData(ToolRisk.AskAlways, AskPolicy.Never, false, false)]
+    [InlineData(ToolRisk.AskAlways, "", false, true)]
+    public void ThePolicyDecidesWhatIsAsked(ToolRisk risk, string policy, bool trusted, bool asks) =>
+        Assert.Equal(asks, AskPolicy.Asks(risk, policy, trusted));
+
+    [Theory]
+    [InlineData("Sierra Steam", true)]
+    [InlineData("cierra Steam", true)]
+    [InlineData("close Steam", true)]
+    [InlineData("sal de Steam", true)]
+    [InlineData("abre Steam", false)]
+    [InlineData("Steam", false)]
+    [InlineData("abre Steam y cierra el navegador", false)]
+    public void AnOrderToCloseNeverRunsACommandThatOpens(string said, bool contradicts)
+    {
+        var steam = new Command { Name = "Steam" };
+        steam.Actions.Add(new RunAppAction { Path = "steam.exe" });
+        Assert.Equal(contradicts, AssistantCommands.Contradicts(said, steam));
+    }
+
+    [Fact]
+    public void AnOrderToOpenNeverRunsACommandThatCloses()
+    {
+        var close = new Command { Name = "Cerrar Steam" };
+        close.Actions.Add(new AppControlAction { Mode = AppControlMode.Close, ProcessName = "steam" });
+        Assert.True(AssistantCommands.Contradicts("abre Steam", close));
+        Assert.False(AssistantCommands.Contradicts("cierra Steam", close));
+        // A command that does something else (power, volume…) is never held back by the verbs.
+        Assert.False(AssistantCommands.Contradicts("apaga el ordenador", new Command { Name = "Apagar", Actions = { new PowerAction() } }));
     }
 }

@@ -16,6 +16,30 @@ public enum ToolRisk
 }
 
 /// <summary>
+/// The user's «Before doing something, ask» (setting <c>assistantAskBefore</c>): how much of <see cref="ToolRisk"/> is
+/// actually asked. Asking for every command by voice tired the user out; by default only what can do real harm asks.
+/// </summary>
+public static class AskPolicy
+{
+    /// <summary>Never asks, not even to switch the PC off.</summary>
+    public const string Never = "never";
+
+    /// <summary>Only what always asks (power, scripts, simulated input, macros, web requests). The default.</summary>
+    public const string Risky = "risky";
+
+    /// <summary>Also the first time a command or tool is used, until «yes, and don't ask again».</summary>
+    public const string First = "first";
+
+    /// <summary>Whether to ask before something of <paramref name="risk"/>; <paramref name="trusted"/>: the user said not to ask again about it.</summary>
+    public static bool Asks(ToolRisk risk, string? policy, bool trusted = false) => policy switch
+    {
+        Never => false,
+        First => risk == ToolRisk.AskAlways || (risk == ToolRisk.AskOnce && !trusted),
+        _ => risk == ToolRisk.AskAlways,
+    };
+}
+
+/// <summary>
 /// How risky a K-Desktop action or command is when the assistant runs it (tool ejecutar_comando, §6.1). K-Desktop
 /// computes it (it has the commands) and sends it with each candidate of «matched».
 /// </summary>

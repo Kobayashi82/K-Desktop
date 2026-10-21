@@ -62,6 +62,15 @@ public partial class AssistantGeneralSection : UserControl
         ManoeuvresBox.ItemsSource = speeds;
         ManoeuvresBox.SelectedItem = speeds.FirstOrDefault(o => o.Value == s.AssistantManoeuvres) ?? speeds[1];
 
+        List<Choice<string>> asks =
+        [
+            new(AskPolicy.Never, Loc.T("assistantOptions.askNever")),
+            new(AskPolicy.Risky, Loc.T("assistantOptions.askRisky")),
+            new(AskPolicy.First, Loc.T("assistantOptions.askFirst")),
+        ];
+        AskBeforeBox.ItemsSource = asks;
+        AskBeforeBox.SelectedItem = asks.FirstOrDefault(o => o.Value == s.AssistantAskBefore) ?? asks[1];
+
         List<Choice<int>> limits = [new(0, Loc.T("assistantOptions.animateAll")), .. AnimateLimits.Select(n => new Choice<int>(n, Loc.T("assistantOptions.animateMore", n)))];
         if (limits.All(o => o.Value != s.AssistantAnimateMax)) limits.Add(new(s.AssistantAnimateMax, Loc.T("assistantOptions.animateMore", s.AssistantAnimateMax)));
         AnimateBox.ItemsSource = limits;
@@ -72,6 +81,11 @@ public partial class AssistantGeneralSection : UserControl
     private void OnManoeuvresChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_filling && ManoeuvresBox.SelectedItem is Choice<string> choice) _app.Config.Settings.AssistantManoeuvres = choice.Value;
+    }
+
+    private void OnAskBeforeChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_filling && AskBeforeBox.SelectedItem is Choice<string> choice) _app.Config.Settings.AssistantAskBefore = choice.Value;
     }
 
     private void OnAnimateChanged(object sender, SelectionChangedEventArgs e)

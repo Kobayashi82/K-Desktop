@@ -535,6 +535,12 @@ public partial class AppSettings : ObservableObject
     /// </summary>
     [ObservableProperty] private Dictionary<string, string> _assistantModels = [];
 
+    /// <summary>
+    /// Before doing something, an assistant asks: <c>never</c>, <c>risky</c> (only power, scripts…; the default) or
+    /// <c>first</c> (also the first time, until «yes, and don't ask again»). <see cref="Assistant.AskPolicy"/>.
+    /// </summary>
+    [ObservableProperty] private string _assistantAskBefore = Assistant.AskPolicy.Risky;
+
     /// <summary>The tools that no longer ask before doing something («yes, and don't ask again»). Replaced whole on every change.</summary>
     [ObservableProperty] private List<string> _assistantTrustedTools = [];
 

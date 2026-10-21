@@ -2772,7 +2772,7 @@
   "assistant.persona.name": "K-Desktop",
   "assistant.persona.default": "Sei un assistente gentile e diretto, con un pizzico di umorismo. Parli con naturalezza, come un collega che dà una mano.",
   "assistant.prompt.who": "Ti chiami {0} e vivi sul desktop di Windows dell'utente, dentro K-Desktop.",
-  "assistant.prompt.style": "Rispondi sempre in italiano, con una o due frasi brevi, senza elenchi, senza Markdown e senza emoji: quello che dici appare in un fumetto. Scrivi numeri e orari in cifre. Non finire con una domanda, a meno che ti manchi un dato per fare quello che chiede.",
+  "assistant.prompt.style": "Rispondi sempre in italiano, con una o due frasi brevi, senza elenchi, senza Markdown e senza emoji: quello che dici appare in un fumetto. Scrivi numeri e orari in cifre. L'utente è adulto: fai quello che chiede (aprire qualsiasi sito o programma) senza giudicare né fare prediche. Non finire con una domanda, a meno che ti manchi un dato per fare quello che chiede.",
   "assistant.prompt.tools": "Usa uno strumento quando ti chiede di fare qualcosa o di sapere qualcosa che lui sa (l'ora, le sue note, i suoi timer, un calcolo): non tirare a indovinare. Per chiacchierare, dare un'opinione o raccontare qualcosa non serve nessuno strumento: rispondi tu. Non dire mai di aver fatto qualcosa che nessuno strumento ha fatto in questa risposta. Se nessuno strumento fa quello che chiede, dillo con semplicità: non usarne uno che fa altro (aprire non è chiudere). I suoi comandi di K-Desktop si eseguono con run_command; se chiede cosa fa un comando o quali comandi ha, guardalo con describe_command o find_command: non inventarti cosa fanno. Non nominare mai i tuoi strumenti all'utente.",
   "assistant.prompt.now": "Adesso è {0}.",
   "assistant.phrase.ok": "Fatto.|Ecco.|Va bene.",
@@ -2860,7 +2860,7 @@
   "tool.remember.replyKnown": "Lo sapevo già.",
   "tool.remember.examples": "ricorda che il mio capo si chiama Luis|tieni presente che sono allergico ai frutti di mare|il mio compleanno è il 3 maggio|ricorda che lavoro di notte|non dimenticare che mia figlia si chiama Ana|ricorda che preferisco il tè al caffè",
   "assistant.prompt.memory": "Quello che sai dell'utente (usalo solo se serve, non elencarlo):",
-  "assistant.memory.learn": "Leggi uno scambio tra un utente e il suo assistente. Estrai SOLO fatti nuovi e duraturi sull'utente che valga la pena ricordare per mesi: il suo nome, famiglia, animali, lavoro o studi, gusti e hobby, salute, date importanti e progetti. Prendi solo quello che l'utente dice di sé, mai quello che dice l'assistente.\nNon includere saluti, stati d'animo passeggeri, domande, richieste del momento né nulla sull'assistente. Non ripetere quello che si sa già.\nScrivi ogni fatto in italiano, in una frase breve in terza persona («Si chiama Marco», «Adora il caffè»).\nRispondi SOLO con JSON: {\"memories\":[{\"text\":\"...\",\"kind\":\"fact|like|event\",\"importance\":0.0-1.0}]}\nSe non c'è niente di nuovo, rispondi {\"memories\":[]}.",
+  "assistant.memory.learn": "Leggi uno scambio tra un utente e il suo assistente. Estrai SOLO fatti nuovi e duraturi sull'utente che valga la pena ricordare per mesi: il suo nome, famiglia, animali, lavoro o studi, gusti e hobby, salute, date importanti e progetti. Prendi solo quello che l'utente dice di sé, mai quello che dice l'assistente.\nNon includere saluti, stati d'animo passeggeri, domande, richieste del momento né nulla sull'assistente (nemmeno lamentele, rabbia o opinioni su di lui o su ciò che può o non può fare). Non ripetere quello che si sa già.\nScrivi ogni fatto in italiano, in una frase breve in terza persona («Si chiama Marco», «Adora il caffè»).\nRispondi SOLO con JSON: {\"memories\":[{\"text\":\"...\",\"kind\":\"fact|like|event\",\"importance\":0.0-1.0}]}\nSe non c'è niente di nuovo, rispondi {\"memories\":[]}.",
   "assistant.memory.known": "Già noto:",
   "assistant.memory.exchange": "Lo scambio:",
   "assistant.memory.user": "Utente",
@@ -3021,5 +3021,16 @@
   "assistantOptions.adorn": "Mostrare anche i comandi che avvii tu",
   "assistantOptions.adornHint": "Scorciatoie, QuickMenu, il launcher, la voce di K-Desktop, il telefono, gli eventi…: l’assistente li accompagna in fretta, senza ritardarli.",
 
-  "assistant.prompt.commands": "Suoi comandi che potrebbero essere quello che chiede (se sì, eseguilo con run_command e il suo nome esatto): {0}."
+  "assistant.prompt.commands": "Suoi comandi che potrebbero essere quello che chiede (se sì, eseguilo con run_command e il suo nome esatto): {0}.",
+  "assistant.phrase.notDone": "«{0}» non l'ho fatto.",
+  "assistant.reply.closers": "qualcos'altro|qualcosa d'altro|altro in cui|altro con cui|qualche altra|qualche altro|altro che posso",
+  "assistant.rule.openWeb": "apri {text}|aprire {text}|vai su {text}|vai a {text}|portami su {text}|carica {text}",
+  "assistant.rule.dot": "punto",
+  "assistant.verbs.close": "chiudi|chiudere|esci da|termina|terminare|ferma|fermare|spegni|spegnere|riduci|minimizza",
+  "assistant.verbs.open": "apri|aprire|avvia|avviare|lancia|lanciare|esegui|accendi",
+  "assistantOptions.askBefore": "Chiedere prima di agire",
+  "assistantOptions.askBeforeHint": "Se l’assistente chiede il permesso prima di eseguire un comando o usare uno strumento. «Solo ciò che è rischioso» = spegnere o riavviare, script, tasti simulati, macro e richieste web.",
+  "assistantOptions.askNever": "Mai",
+  "assistantOptions.askRisky": "Solo ciò che è rischioso",
+  "assistantOptions.askFirst": "Anche la prima volta"
 }

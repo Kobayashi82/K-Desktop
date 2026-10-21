@@ -104,7 +104,7 @@ public sealed class SaveNoteTool(NoteStore notes, TimeProvider? time = null) : I
 {
     public string Name => "save_note";
 
-    public string Description => "Writes a note for the user, as they said it, to read it later.";
+    public string Description => "Writes a note for the user, as they said it, to read it later. Only when they ask you to note or write something down; never for your own thoughts or about this conversation.";
 
     public string ParametersSchemaJson => ToolText.OneString("note", "The note, in the user's words");
 

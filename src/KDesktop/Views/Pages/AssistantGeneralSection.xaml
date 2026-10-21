@@ -74,6 +74,17 @@
                 </StackPanel>
             </Grid>
 
+            <!-- Whether it asks before doing something -->
+            <Grid Style="{StaticResource SettingRow}" IsEnabled="{Binding AssistantEnabled}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="{l:Tr assistantOptions.askBefore}" />
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantOptions.askBeforeHint}" />
+                </StackPanel>
+                <ComboBox x:Name="AskBeforeBox" Grid.Column="1" MinWidth="230" VerticalAlignment="Center" DisplayMemberPath="Name"
+                          SelectionChanged="OnAskBeforeChanged" AutomationProperties.Name="{l:Tr assistantOptions.askBefore}" />
+            </Grid>
+
             <!-- How orders are shown (stage 6.7) -->
             <Grid Style="{StaticResource SettingRow}" IsEnabled="{Binding AssistantEnabled}">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>

@@ -34,8 +34,51 @@ public static class AssistantCommands
         return new MatchedMessage(request.Id, Math.Round(plan.Score, 3), plan.Unmatched, parts);
     }
 
-    private static MatchedPart Part(IntentResult result, bool sure) =>
-        new(result.Text, sure && result.Winner is not null, [.. result.Candidates.Take(MaxCandidates).Select(Candidate)]);
+    /// <summary>A part with its candidates, without those that do the opposite of what it says (then it is not sure either).</summary>
+    private static MatchedPart Part(IntentResult result, bool sure)
+    {
+        var kept = result.Candidates.Where(c => c.Command is null || !Contradicts(result.Text, c.Command)).ToList();
+        var winnerKept = result.Winner is not null && kept.Count > 0 && ReferenceEquals(kept[0], result.Candidates[0]);
+        return new(result.Text, sure && winnerKept, [.. kept.Take(MaxCandidates).Select(Candidate)]);
+    }
+
+    /// <summary>
+    /// Whether an order says the opposite of what a command does: «cierra Steam» (or Parakeet's «Sierra Steam») must never
+    /// run the command that opens Steam, nor «abre…» one that closes it. With nothing asked first (<see cref="AskPolicy"/>),
+    /// this is what stops it. The verbs are <c>assistant.verbs.close</c> and <c>assistant.verbs.open</c>, any language.
+    /// </summary>
+    public static bool Contradicts(string said, Command command)
+    {
+        var does = Direction(command);
+        if (does == 0) return false;
+        var words = " " + string.Join(' ', TextSimilarity.Words(said)) + " ";
+        var (close, open) = Verbs.Value;
+        var saysClose = close.Any(v => words.Contains(v, StringComparison.Ordinal));
+        var saysOpen = open.Any(v => words.Contains(v, StringComparison.Ordinal));
+        return does > 0 ? saysClose && !saysOpen : saysOpen && !saysClose;
+    }
+
+    /// <summary>1: it opens (programs, webs, folders, a window brought forward) and closes nothing; -1: it closes and opens nothing; 0: neither.</summary>
+    private static int Direction(Command command)
+    {
+        var actions = command.Actions.Where(a => a.Enabled).ToList();
+        var opens = actions.Any(a => a is RunAppAction or OpenUrlAction or OpenFolderAction or AppControlAction { Mode: AppControlMode.Activate });
+        var closes = actions.Any(a => a is AppControlAction { Mode: AppControlMode.Close });
+        return opens == closes ? 0 : opens ? 1 : -1;
+    }
+
+    /// <summary>The verbs, folded, with spaces around (whole words; «sal de» is two).</summary>
+    private static readonly Lazy<(string[] Close, string[] Open)> Verbs = new(() => (Words("assistant.verbs.close"), Words("assistant.verbs.open")));
+
+    private static string[] Words(string key) =>
+    [
+        .. Loc.Available()
+            .Select(l => Loc.Strings(l.Code, key).GetValueOrDefault(key) ?? string.Empty)
+            .SelectMany(v => v.Split('|', StringSplitOptions.RemoveEmptyEntries))
+            .Select(v => " " + string.Join(' ', TextSimilarity.Words(v)) + " ")
+            .Where(v => v.Trim().Length > 0)
+            .Distinct(StringComparer.Ordinal),
+    ];
 
     private static MatchedCandidate Candidate(IntentCandidate candidate) => candidate.Media is { } media
         ? new MatchedCandidate(null, media.Name, Math.Round(candidate.Score, 3), char.ToLowerInvariant(media.Kind.ToString()[0]) + media.Kind.ToString()[1..], media.Value)
@@ -43,9 +86,9 @@ public static class AssistantCommands
 
     /// <summary>
     /// Runs a command for an assistant and says how it went with what the command said. First, its risk
-    /// (<see cref="ActionRisk.OfCommand"/>, with the commands it calls and every action of its «Si…»): unless it is
-    /// trusted and does nothing that always asks, <paramref name="ask"/> asks the user, and without a «yes» it does not
-    /// run (<c>declined</c>). Waits for it to finish (a long one makes its assistant wait, which it shows its own way).
+    /// (<see cref="ActionRisk.OfCommand"/>, with the commands it calls and every action of its «Si…»): when the user's
+    /// <see cref="AskPolicy"/> asks for it, <paramref name="ask"/> asks the user, and without a «yes» it does not run
+    /// (<c>declined</c>). Waits for it to finish (a long one makes its assistant wait, which it shows its own way).
     /// Paused, or not found: <c>failed</c> at once.
     /// </summary>
     /// <param name="who">Who asked, for the history («Lander»; «K-Desktop» without a body).</param>
@@ -59,7 +102,7 @@ public static class AssistantCommands
         if (engine.Config.FindCommand(request.Command) is not { Enabled: true } command || !Available(engine.Config).Contains(command))
             return new EndMessage(request.Run, "failed", [Loc.T("assistantCommand.notFound")]);
         var risk = ActionRisk.OfCommand(command, engine.Config.FindCommand, engine.Config.Settings.AssistantTrustedCommands.Contains(command.Id));
-        if (risk != ToolRisk.Safe && await ask(command, risk).ConfigureAwait(false) is not ("yes" or "always"))
+        if (AskPolicy.Asks(risk, engine.Config.Settings.AssistantAskBefore) && await ask(command, risk).ConfigureAwait(false) is not ("yes" or "always"))
             return new EndMessage(request.Run, "declined", [Loc.T("assistantCommand.declined", command.Name)]);
         var feedback = new ExecutionFeedback();
         Task run;
@@ -85,10 +128,11 @@ public static class AssistantCommands
     {
         if (config.FindCommand(request.Command) is not { } command) return new DescribedMessage(request.Id, false, string.Empty, [], [], "no");
         var risk = ActionRisk.OfCommand(command, config.FindCommand, config.Settings.AssistantTrustedCommands.Contains(command.Id));
+        var asks = AskPolicy.Asks(risk, config.Settings.AssistantAskBefore);
         return new DescribedMessage(request.Id, true, command.Name,
             [.. command.Actions.Where(a => a.Enabled).Select(a => $"{ActionCatalog.Get(a.Kind).Name}: {a.Summary}")],
             [.. command.Hotkeys],
-            risk switch { ToolRisk.AskAlways => "always", ToolRisk.AskOnce => "once", _ => "no" });
+            !asks ? "no" : risk == ToolRisk.AskAlways ? "always" : "once");
     }
 
     /// <summary>
@@ -110,7 +154,7 @@ public static class AssistantCommands
             .Select(c => ActionRisk.OfCommand(c, config.FindCommand, config.Settings.AssistantTrustedCommands.Contains(c.Id)))
             .DefaultIfEmpty(ToolRisk.Safe).Max();
         // An event is never trusted as a whole: it asks at least once a time, unless every command in it is trusted.
-        if (risk != ToolRisk.Safe && await ask(rule, risk).ConfigureAwait(false) is not ("yes" or "always"))
+        if (AskPolicy.Asks(risk, config.Settings.AssistantAskBefore) && await ask(rule, risk).ConfigureAwait(false) is not ("yes" or "always"))
             return new EndMessage(request.Run, "declined", [Loc.T("assistantCommand.declined", rule.Name)]);
         var feedback = new ExecutionFeedback();
         Task run;

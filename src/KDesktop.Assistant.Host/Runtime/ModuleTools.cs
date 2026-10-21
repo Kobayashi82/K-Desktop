@@ -4,6 +4,7 @@ using KDesktop.Assistant.Host.Pipe;
 using KDesktop.Assistant.Tools;
 using KDesktop.Assistant.Tools.Builtin;
 using KDesktop.Core;
+using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Localization;
@@ -21,6 +22,7 @@ internal sealed class ModuleTools : IDisposable
     private readonly KDesktopLink _link;
     private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _questions = new(StringComparer.Ordinal);
     private volatile IReadOnlySet<string> _trusted = new HashSet<string>(StringComparer.Ordinal);
+    private volatile string _askBefore = AskPolicy.Risky;
 
     /// <param name="commands">The user's K-Desktop commands (stage 4.4).</param>
     public ModuleTools(KDesktopLink link, ICommandBridge commands)
@@ -31,7 +33,7 @@ internal sealed class ModuleTools : IDisposable
         var registry = new ToolRegistry();
         Builtin.AddTo(registry);
         CommandTools.AddTo(registry, commands);
-        Runner = new ToolRunner(registry, () => _trusted, AskAsync, message => link.Send(message), Path.Combine(folder, "undo.json"));
+        Runner = new ToolRunner(registry, () => _trusted, AskAsync, message => link.Send(message), Path.Combine(folder, "undo.json"), () => _askBefore);
         Builtin.Timers.Rang += OnTimerRang;
         Builtin.Memory.Changed += SendMemory;
     }
@@ -46,7 +48,7 @@ internal sealed class ModuleTools : IDisposable
     /// <summary>Connected: the timers that came due while the process was off ring now.</summary>
     public void Start() => Builtin.Timers.Start();
 
-    /// <summary>The <c>tools</c> section of <c>config</c>: <c>trusted</c>, the tools that no longer ask.</summary>
+    /// <summary>The <c>tools</c> section of <c>config</c>: <c>trusted</c>, the tools that no longer ask, and <c>askBefore</c> (<see cref="AskPolicy"/>).</summary>
     public void Configure(JsonObject? tools)
     {
         var trusted = new HashSet<string>(StringComparer.Ordinal);
@@ -54,6 +56,7 @@ internal sealed class ModuleTools : IDisposable
             foreach (var item in list)
                 if (item is JsonValue v && v.TryGetValue<string>(out var name)) trusted.Add(name);
         _trusted = trusted;
+        _askBefore = tools?["askBefore"] is JsonValue ask && ask.TryGetValue<string>(out var policy) ? policy : AskPolicy.Risky;
         Learn = tools?["learn"] is not JsonValue learn || !learn.TryGetValue<bool>(out var on) || on;
     }
 

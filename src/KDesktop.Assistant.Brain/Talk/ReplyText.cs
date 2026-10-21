@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using KDesktop.Core.Localization;
+using KDesktop.Core.Voice;
 
 namespace KDesktop.Assistant.Brain.Talk;
 
@@ -35,8 +37,40 @@ public static partial class ReplyText
         var result = Spaces().Replace(clean.ToString(), " ").Trim();
         // A whole answer in quotes.
         if (result.Length > 2 && result[0] is '"' or '«' or '“' && result[^1] is '"' or '»' or '”') result = result[1..^1].Trim();
-        return result;
+        return DropClosers(result);
     }
+
+    /// <summary>
+    /// Without the empty offer small models end with («¿Hay algo más con lo que pueda ayudarte?»): asked aloud, K-Desktop
+    /// would listen for an answer nobody gives. A last question with words of <c>assistant.reply.closers</c> (any language)
+    /// goes, twice at most; never the whole answer.
+    /// </summary>
+    public static string DropClosers(string text)
+    {
+        for (var round = 0; round < 2; round++)
+        {
+            var trimmed = text.TrimEnd();
+            if (!trimmed.EndsWith('?')) break;
+            var start = trimmed.Length - 1;
+            while (start > 0 && trimmed[start - 1] is not ('.' or '!' or '?' or '…')) start--;
+            if (start == 0) break;
+            var last = " " + string.Join(' ', TextSimilarity.Words(trimmed[start..])) + " ";
+            if (!Closers.Value.Any(c => last.Contains(c, StringComparison.Ordinal))) break;
+            text = trimmed[..start].TrimEnd();
+        }
+        return text;
+    }
+
+    /// <summary>The words of an empty offer in every language, folded, with spaces around (whole words).</summary>
+    private static readonly Lazy<string[]> Closers = new(() =>
+    [
+        .. Loc.Available()
+            .Select(l => Loc.Strings(l.Code, "assistant.reply.closers").GetValueOrDefault("assistant.reply.closers") ?? string.Empty)
+            .SelectMany(v => v.Split('|', StringSplitOptions.RemoveEmptyEntries))
+            .Select(c => " " + string.Join(' ', TextSimilarity.Words(c)) + " ")
+            .Where(c => c.Trim().Length > 0)
+            .Distinct(StringComparer.Ordinal),
+    ]);
 
     /// <summary>«snake_case» keeps its «_».</summary>
     private static bool IsInsideWord(string text, int i) =>
