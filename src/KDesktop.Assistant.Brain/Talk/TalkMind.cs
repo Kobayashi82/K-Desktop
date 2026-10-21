@@ -37,6 +37,11 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     /// <summary>Tool calls for one order, in all its rounds.</summary>
     public const int MaxToolCalls = 3;
 
+    /// <summary>A big model gets more: «abre YouTube, abre Steam, vacía la papelera y ábrela» are four.</summary>
+    public const int CapableToolRounds = 5;
+
+    public const int CapableToolCalls = 8;
+
     /// <summary>Longest answer, in tokens (one or two sentences, with room for a tool call).</summary>
     public const int MaxTokens = 220;
 
@@ -46,10 +51,13 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     /// <param name="commands">The user's commands K-Desktop found close to the order: named in the instructions, and
     /// run_command is offered whatever the order's meaning says (with «abre Steam y Epic Games» it was not, and the model
     /// said it had opened them).</param>
+    /// <param name="capable">A big model: more rounds and calls, and the command tools always at hand.</param>
     public async Task<TalkAnswer> AnswerAsync(IChatModel model, string modelName, AssistantPersona persona, IReadOnlyList<ChatMessage> history,
         IReadOnlyCollection<string> recentTools, string said, ToolContext context, Action<string>? onText, CancellationToken cancellationToken,
-        IReadOnlyCollection<string>? leaveOut = null, IReadOnlyList<string>? commands = null)
+        IReadOnlyCollection<string>? leaveOut = null, IReadOnlyList<string>? commands = null, bool capable = false)
     {
+        var maxRounds = capable ? CapableToolRounds : MaxToolRounds;
+        var maxCalls = capable ? CapableToolCalls : MaxToolCalls;
         // The order's meaning once, for the tools and for what comes to mind.
         var order = await MeaningOfAsync(said, cancellationToken).ConfigureAwait(false);
         var known = memory is null ? [] : await memory.RecallAsync(said, order, cancellationToken).ConfigureAwait(false);
@@ -60,6 +68,7 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         var available = hidden.Count > 0 ? [.. tools.Registry.All.Where(t => !hidden.Contains(t.Name))] : tools.Registry.All;
         var always = new List<string>(recentTools.Where(t => !hidden.Contains(t)));
         if (commands is { Count: > 0 }) always.Add(RunCommandTool);
+        if (capable) always.AddRange(CommandToolNames.Where(t => !hidden.Contains(t) && tools.Registry.Find(t) is not null));
         if (aboutMemory) always.AddRange(MemoryTools);
         // «Cuando diga «la vuelta», abre…» came to mind: what it asks for must be at hand.
         if (known.Any(m => QuickRules.Sites(m.Text).Count > 0)) always.Add(OpenWebTool);
@@ -80,12 +89,14 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         var used = new List<string>();
         var answer = string.Empty;
         var nudged = false;
+        // The calls that failed in this order: the same one again is not run (it asked control_app for Steam three times).
+        var failed = new Dictionary<string, string>(StringComparer.Ordinal);
         try
         {
-            for (var round = 0; round <= MaxToolRounds; round++)
+            for (var round = 0; round <= maxRounds; round++)
             {
-                var offer = round < MaxToolRounds && calls < MaxToolCalls;
-                var request = new ChatRequest(modelName, messages, offer ? definitions : []) { Temperature = 0.5, MaxTokens = MaxTokens };
+                var offer = round < maxRounds && calls < maxCalls;
+                var request = new ChatRequest(modelName, messages, offer ? definitions : []) { Temperature = capable ? 0.3 : 0.5, MaxTokens = MaxTokens };
                 // With commands of theirs at hand, nothing is said while it writes: the text may be one to take back.
                 var (text, asked) = await RoundAsync(model, request, commands is { Count: > 0 } && !acted ? null : onText, cancellationToken).ConfigureAwait(false);
                 if (asked.Count == 0)
@@ -108,11 +119,16 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
                 foreach (var call in asked)
                 {
                     string result;
-                    if (++calls > MaxToolCalls) result = "Not done: too many tools for one order. Answer now.";
+                    var same = call.Name + " " + call.Arguments.GetRawText();
+                    if (++calls > maxCalls) result = "Not done: too many tools for one order. Answer now.";
+                    else if (failed.TryGetValue(same, out var before))
+                        result = "Not done: you already tried exactly this in this order and it failed (" + before + "). Try something else, or say plainly what could not be done.";
                     else
                     {
                         var outcome = await tools.RunAsync(call.Name, call.Arguments, context, said, "ai", cancellationToken).ConfigureAwait(false);
                         result = outcome.Result is { } done ? done.Text : "Not done: " + outcome.Entry.Did;
+                        Log.Info($"Asistente: la IA llama a {call.Name} {Short(call.Arguments.GetRawText())} → {Short(result)}");
+                        if (outcome.Result is not { Failed: false }) failed[same] = outcome.Entry.Did;
                         toolReply = outcome.Result is { Failed: false } ok ? ok.Reply ?? ok.Done ?? toolReply : outcome.Entry.Did;
                         if (outcome.Result is { Failed: false } worked)
                         {
@@ -156,6 +172,10 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     private const string OpenWebTool = "open_web";
 
     private static readonly string[] MemoryTools = ["remember", "forget"];
+
+    private static readonly string[] CommandToolNames = ["run_command", "find_command"];
+
+    private static string Short(string text) => text.Length > 160 ? text[..160] + "…" : text;
 
     private static readonly string[] NoteTools = ["save_note", "find_notes"];
 

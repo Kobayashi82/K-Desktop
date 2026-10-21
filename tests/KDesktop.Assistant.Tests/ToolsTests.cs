@@ -166,6 +166,12 @@ public sealed class ToolsTests : IDisposable
     [InlineData("240 * 18 %", 43.2)]
     [InlineData("50%", 0.5)]
     [InlineData("1,5 × 4", 6)]
+    // What Bonsai asked for «¿cuántos minutos hay en tres horas y cuarto?» (21/10/2026).
+    [InlineData("3*60 + 60/4", 195)]
+    [InlineData("3*60 + 15", 195)]
+    // «%» is a percent; the remainder is «mod» (Bonsai wrote «(24 - 2) % 7» for a day of the week).
+    [InlineData("(24 - 2) mod 7", 1)]
+    [InlineData("-1 MOD 7", 6)]
     public void ArithmeticWorks(string expression, double expected)
     {
         Assert.True(Arithmetic.TryEvaluate(expression, out var value, out _));

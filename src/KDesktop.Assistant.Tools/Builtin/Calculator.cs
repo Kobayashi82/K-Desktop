@@ -12,7 +12,7 @@ public sealed class CalculateTool : ITool
 
     public string Description => "Evaluates an arithmetic expression exactly. Use it for any calculation instead of doing it yourself.";
 
-    public string ParametersSchemaJson => ToolText.OneString("expression", "The expression, with + - * / ^, % for percent and parentheses, e.g. 18%*240 for 18 percent of 240");
+    public string ParametersSchemaJson => ToolText.OneString("expression", "The expression, with + - * / ^, % for percent, mod for the remainder of a division, and parentheses, e.g. 18%*240 for 18 percent of 240, 22 mod 7 for the remainder");
 
     public IReadOnlyList<string> Examples => ToolText.Examples(Name);
 
@@ -35,7 +35,7 @@ public sealed class CalculateTool : ITool
 }
 
 /// <summary>
-/// Arithmetic by recursive descent: + - * / ^, unary signs, parentheses and % as percent (what people mean: «18 %» is
+/// Arithmetic by recursive descent: + - * / ^, «mod» (the remainder), unary signs, parentheses and % as percent (what people mean: «18 %» is
 /// 0.18, and «18%240», as small models write «18 % of 240», is 43.2; never the remainder).
 /// </summary>
 public static class Arithmetic
@@ -94,6 +94,12 @@ public static class Arithmetic
                 SkipSpaces();
                 if (Accept('*')) value *= ParsePower();
                 else if (Accept('/')) value /= NotZero(ParsePower());
+                else if (AcceptWord("mod"))
+                {
+                    // The remainder as people count it (never negative): «(24 - 2) mod 7» = 1.
+                    var divisor = NotZero(ParsePower());
+                    value = ((value % divisor) + divisor) % divisor;
+                }
                 else if (Accept('%'))
                 {
                     value /= 100;
@@ -140,6 +146,13 @@ public static class Arithmetic
             return double.TryParse(text.AsSpan(start, _position - start), NumberStyles.Float, CultureInfo.InvariantCulture, out var number)
                 ? number
                 : throw new FormatException("a number is wrong");
+        }
+
+        private bool AcceptWord(string word)
+        {
+            if (_position + word.Length > text.Length || !text.AsSpan(_position, word.Length).Equals(word, StringComparison.OrdinalIgnoreCase)) return false;
+            _position += word.Length;
+            return true;
         }
 
         private bool Accept(char c)

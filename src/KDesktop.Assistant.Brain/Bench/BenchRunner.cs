@@ -72,7 +72,10 @@ public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimePro
         }
         var matched = rule is null && commands is not null && !TalkService.IsQuestion(item.Say) ? await commands.MatchAsync(item.Say, cancellationToken).ConfigureAwait(false) : null;
         if (matched is not null) Core.Log.Info("Asistente: banco, comandos: " + CommandTools.Describe(matched));
-        if (matched is not null && matched.Parts.All(p => p.Sure && p.Candidates[0].Score >= CommandTools.Direct) && matched.Unmatched.Count == 0)
+        // As TalkService: a big model gets the long sentences that name a command in passing.
+        var capable = TalkService.IsCapable(modelName);
+        if (matched is not null && matched.Parts.All(p => p.Sure && p.Candidates[0].Score >= CommandTools.Direct && (!capable || TalkService.IsShort(p.Text)))
+            && matched.Unmatched.Count == 0 && matched.Parts.Count > 0)
         {
             // What clearly names commands runs without the AI (here it only pretends).
             route = "command";
@@ -103,8 +106,10 @@ public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimePro
             var runner = new ToolRunner(registry, () => new HashSet<string>(registry.All.Select(t => t.Name)), (_, _) => Task.FromResult("yes"), _ => { },
                 Path.Combine(Path.GetTempPath(), "K-Desktop", "bench-undo.json"));
             var mind = new TalkMind(runner, chooser, time ?? TimeProvider.System);
-            IReadOnlyCollection<string>? leaveOut = matched is not null && !matched.Parts.SelectMany(p => p.Candidates).Any(c => c.Score >= CommandTools.Plausible) ? ["run_command"] : null;
-            var said = await mind.AnswerAsync(model, modelName, persona, [], [], item.Say, new ToolContext(null), null, cancellationToken, leaveOut).ConfigureAwait(false);
+            var close = matched is null ? null : TalkService.CloseCommands(matched, [], capable);
+            IReadOnlyCollection<string>? leaveOut = matched is not null && !capable && close is { Count: 0 } ? ["run_command"] : null;
+            var said = await mind.AnswerAsync(model, modelName, persona, [], [], item.Say, new ToolContext(null), null, cancellationToken, leaveOut, close, capable)
+                .ConfigureAwait(false);
             answer = said.Failed ? string.Empty : said.Text;
             if (said.Failed) route = "failed";
         }

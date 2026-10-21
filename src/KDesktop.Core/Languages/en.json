@@ -3169,5 +3169,6 @@
   "editor.assistantBrainHint": "Works with Ollama and llama-server. If you talk to it afterwards, the model loads again by itself.",
   "osd.brainFreed": "AI model out of the graphics card",
   "osd.brainNothing": "No AI model was loaded",
-  "osd.brainLoading": "Loading the AI model…"
+  "osd.brainLoading": "Loading the AI model…",
+  "assistant.prompt.act": "Do not ask for confirmation before doing what they ask: K-Desktop asks by itself when something is delicate. If they ask to open or do something they may have a command of their own for (a program, a website, a folder), use that command with run_command (look for it with find_command if you do not see it) before open_web or open_app. Do everything they ask, in the order they ask it."
 }

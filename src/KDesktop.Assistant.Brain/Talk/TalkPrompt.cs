@@ -25,6 +25,7 @@ public static class TalkPrompt
         text.AppendLine(Loc.T("assistant.prompt.style"));
         text.AppendLine(Loc.T("assistant.prompt.language"));
         text.AppendLine(Loc.T("assistant.prompt.tools"));
+        text.AppendLine(Loc.T("assistant.prompt.act"));
         if (commands is { Count: > 0 }) text.AppendLine(Loc.T("assistant.prompt.commands", string.Join(", ", commands.Select(c => $"«{c}»"))));
         text.Append(Loc.T("assistant.prompt.now", now.ToString("D", culture) + ", " + now.ToString("t", culture)));
         if (known is { Count: > 0 })

@@ -311,20 +311,32 @@ public sealed class TalkService
         // like it («la vuelta» ran «Anterior» at 0.87 and the memory never counted).
         var taught = _memory?.Store.Triggered(said) ?? [];
         if (taught.Count > 0) Log.Info($"Asistente: «{said}» dice una frase de la memoria: a la IA ({taught[0].Text})");
+        // A big model (Bonsai 27 B) is trusted with what a small one was kept from: it sees more of the user's commands,
+        // always has the command tools, and long sentences that only name a command in passing are its to understand.
+        var capable = IsCapable(_brain(who).Model);
+        if (_commands is not null && taught.Count > 0 && capable && !IsQuestion(said) && await _commands.MatchAsync(said, token).ConfigureAwait(false) is { } hinted)
+        {
+            // The taught phrase goes to the AI, but it must know «Steam» is one of the user's commands (it opened the web).
+            close = CloseCommands(hinted, [], capable);
+            Log.Info("Asistente: comandos para la IA: " + string.Join(", ", close));
+        }
         if (_commands is not null && taught.Count == 0 && !IsQuestion(said) && await _commands.MatchAsync(said, token).ConfigureAwait(false) is { } matched)
         {
             Log.Info("Asistente: comandos: " + CommandTools.Describe(matched));
+            // At once only what is sure and said shortly («vacía la papelera»); with a big model, «repite el comando anterior
+            // completo» is not the command «Anterior» (0.80) but a sentence for it.
+            bool Direct(MatchedPart part) => part.Sure && part.Candidates[0].Score >= CommandTools.Direct && (!capable || IsShort(part.Text));
             // The same command named twice in one order («la vuelta, es la vuelta») runs once.
-            var sure = matched.Parts.Where(p => p.Sure && p.Candidates[0].Score >= CommandTools.Direct).Select(p => p.Candidates[0])
+            var sure = matched.Parts.Where(Direct).Select(p => p.Candidates[0])
                 .DistinctBy(c => (c.Command ?? c.Name, c.Media, c.Value)).ToList();
             // Not sure of any part, but the whole order is that near one command and well ahead of the rest («Va ser la
             // papelera», Parakeet's «vacía la papelera», 0.82): it is that one. K-Desktop still asks before what is risky.
             if (sure.Count == 0 && matched.Parts is [{ Sure: false, Candidates: [var only, ..] } whole] && only.Score >= CommandTools.Direct
-                && (whole.Candidates.Count < 2 || only.Score - whole.Candidates[1].Score >= CommandTools.Ahead))
+                && (whole.Candidates.Count < 2 || only.Score - whole.Candidates[1].Score >= CommandTools.Ahead) && (!capable || IsShort(said)))
                 return await CommandsAsync(persona, [only], context, said, token).ConfigureAwait(false);
             // A part K-Desktop is not sure of, or not enough for running it at once, is left to the rules and the AI too
             // («abre Steam y minimízalo»: «minimiza steam» is no command).
-            var unmatched = matched.Unmatched.Concat(matched.Parts.Where(p => !(p.Sure && p.Candidates[0].Score >= CommandTools.Direct)).Select(p => p.Text)).ToList();
+            var unmatched = matched.Unmatched.Concat(matched.Parts.Where(p => !Direct(p)).Select(p => p.Text)).ToList();
             if (sure.Count > 0)
             {
                 ran = await CommandsAsync(persona, sure, context, said, token).ConfigureAwait(false);
@@ -338,10 +350,10 @@ public sealed class TalkService
                 conversation.AskChoice([first, second], _time.GetUtcNow());
                 return new TalkAnswer(Phrase(persona, "which", first.Name, second.Name), Remember: false) { AsksBack = true };
             }
-            // The commands that may be it go to the AI by name; none: the AI is not tempted to look for one.
-            close = [.. matched.Parts.SelectMany(p => p.Candidates).Where(c => c.Score >= CommandTools.Plausible && !sure.Contains(c))
-                .Select(c => c.Name).Distinct(StringComparer.OrdinalIgnoreCase).Take(AssistantCommandsShown)];
-            if (sure.Count == 0 && close.Count == 0) leaveOut = ["run_command"];
+            // The commands that may be it go to the AI by name; none: a small AI is not tempted to look for one (a big one
+            // keeps run_command: «ejecuta el comando de abrir Steam» at 0.69 left it unable to).
+            close = CloseCommands(matched, sure, capable);
+            if (sure.Count == 0 && close.Count == 0 && !capable) leaveOut = ["run_command"];
         }
 
         // Programs (stage 8.1): «minimiza Steam», «sal de Chrome», «abre Spotify», in what the user's own commands left.
@@ -380,13 +392,35 @@ public sealed class TalkService
             _output.SpeakAhead(who, turn, sofar);
         }, _time);
         var answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), conversation.History.LastTools(), forAi, context, shown.Show, token,
-            leaveOut, close).ConfigureAwait(false);
+            leaveOut, close, capable).ConfigureAwait(false);
         answer = answer with { Text = answer.Text.Length > 0 ? answer.Text : Phrase(persona, "ok"), FromAi = true };
         return ran is null ? answer : answer with { Text = ran.Text + " " + answer.Text, Tools = [.. ran.Tools, .. answer.Tools], Steps = [.. ran.Steps, .. answer.Steps] };
     }
 
-    /// <summary>Commands of the user named to the AI for an order, at most.</summary>
+    /// <summary>Commands of the user named to the AI for an order, at most (a big model, more and from further).</summary>
     private const int AssistantCommandsShown = 4;
+
+    private const int CapableCommandsShown = 6;
+
+    /// <summary>How near a command must be to be named to a big model (to a small one, <see cref="Plausible"/>).</summary>
+    public const double CapableNear = 0.55;
+
+    /// <summary>Models this big (in billions) are trusted with the long sentences and with all the command tools.</summary>
+    public const double CapableBillions = 14;
+
+    /// <summary>Whether the model is big enough to be trusted (by its size in the name: «…-27B-…», «qwen3:32b»).</summary>
+    public static bool IsCapable(string? model) =>
+        model is { Length: > 0 } && ModelPicker.SizeOf(new ModelInfo(Path.GetFileName(model), 0, 0, [])) >= CapableBillions;
+
+    /// <summary>At most this many words, an order (or part of one) is short enough to run a command it names without the AI.</summary>
+    public const int ShortOrderWords = 6;
+
+    public static bool IsShort(string text) => text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length <= ShortOrderWords;
+
+    /// <summary>The user's commands that may be what was asked, by name, for the AI (not those already run).</summary>
+    internal static List<string> CloseCommands(MatchedMessage matched, IReadOnlyCollection<MatchedCandidate> ran, bool capable) =>
+        [.. matched.Parts.SelectMany(p => p.Candidates).Where(c => c.Score >= (capable ? CapableNear : CommandTools.Plausible) && !ran.Contains(c))
+            .OrderByDescending(c => c.Score).Select(c => c.Name).Distinct(StringComparer.OrdinalIgnoreCase).Take(capable ? CapableCommandsShown : AssistantCommandsShown)];
 
     /// <summary>A tool the routing ran itself, as if the model had called it (for the history).</summary>
     private static IEnumerable<ChatMessage> Step(string tool, JsonObject arguments, string result)
