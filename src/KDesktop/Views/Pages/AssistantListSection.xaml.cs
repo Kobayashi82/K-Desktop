@@ -142,6 +142,9 @@ public partial class AssistantListSection : UserControl
         if (sender is FrameworkElement { DataContext: AssistantRow { SuggestedModel: { } model } }) _app.AskAssistantBrain("pull", model);
     }
 
+    /// <summary>The list (null) or an assistant's settings (its id) is shown now: the tree of Options follows.</summary>
+    public event Action<string?>? Shown;
+
     /// <summary>Shows an installed assistant's settings in place of the list (<c>--page settings/assistants/&lt;id&gt;</c>).</summary>
     public void ShowSettings(string id)
     {
@@ -153,12 +156,14 @@ public partial class AssistantListSection : UserControl
         SettingsView.Show(installed);
         ListCard.Visibility = Visibility.Collapsed;
         SettingsView.Visibility = Visibility.Visible;
+        Shown?.Invoke(id);
     }
 
     public void ShowList()
     {
         SettingsView.Visibility = Visibility.Collapsed;
         ListCard.Visibility = Visibility.Visible;
+        Shown?.Invoke(null);
     }
 
     private void OnSettings(object sender, RoutedEventArgs e)

@@ -3170,5 +3170,11 @@
   "osd.brainFreed": "KI-Modell aus der Grafikkarte entfernt",
   "osd.brainNothing": "Es war kein KI-Modell geladen",
   "osd.brainLoading": "KI-Modell wird geladen…",
-  "assistant.prompt.act": "Bitte nicht um Bestätigung, bevor du tust, was verlangt wird: K-Desktop fragt von selbst, wenn etwas heikel ist. Wenn etwas geöffnet oder getan werden soll, wofür der Nutzer einen eigenen Befehl haben kann (ein Programm, eine Website, ein Ordner), nutze diesen Befehl mit run_command (suche ihn mit find_command, wenn du ihn nicht siehst), bevor du open_web oder open_app nimmst. Tu alles, was verlangt wird, in der verlangten Reihenfolge."
+  "assistant.prompt.act": "Bitte nicht um Bestätigung, bevor du tust, was verlangt wird: K-Desktop fragt von selbst, wenn etwas heikel ist. Wenn etwas geöffnet oder getan werden soll, wofür der Nutzer einen eigenen Befehl haben kann (ein Programm, eine Website, ein Ordner), nutze diesen Befehl mit run_command (suche ihn mit find_command, wenn du ihn nicht siehst), bevor du open_web oder open_app nimmst. Tu alles, was verlangt wird, in der verlangten Reihenfolge.",
+  "settings.nav.group.general": "Allgemein",
+  "settings.nav.group.media": "Sprache und Medien",
+  "settings.nav.group.connections": "Verbindungen",
+  "settings.nav.group.system": "System",
+  "settings.nav.search": "Einstellungen durchsuchen (Strg+F)",
+  "settings.nav.noResults": "Nichts passt zu deiner Suche."
 }

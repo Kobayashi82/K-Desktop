@@ -3170,5 +3170,11 @@
   "osd.brainFreed": "Modelo da IA fora da placa de vídeo",
   "osd.brainNothing": "Nenhum modelo da IA estava carregado",
   "osd.brainLoading": "Carregando o modelo da IA…",
-  "assistant.prompt.act": "Não peça confirmação antes de fazer o que ele pede: o K-Desktop já pergunta sozinho quando algo é delicado. Se ele pedir para abrir ou fazer algo para o qual pode ter um comando próprio (um programa, um site, uma pasta), use esse comando com run_command (procure com find_command se não o vir) antes de open_web ou open_app. Faça tudo o que ele pede, na ordem em que pede."
+  "assistant.prompt.act": "Não peça confirmação antes de fazer o que ele pede: o K-Desktop já pergunta sozinho quando algo é delicado. Se ele pedir para abrir ou fazer algo para o qual pode ter um comando próprio (um programa, um site, uma pasta), use esse comando com run_command (procure com find_command se não o vir) antes de open_web ou open_app. Faça tudo o que ele pede, na ordem em que pede.",
+  "settings.nav.group.general": "Geral",
+  "settings.nav.group.media": "Voz e mídia",
+  "settings.nav.group.connections": "Conexões",
+  "settings.nav.group.system": "Sistema",
+  "settings.nav.search": "Pesquisar nas configurações (Ctrl+F)",
+  "settings.nav.noResults": "Nada corresponde à sua pesquisa."
 }

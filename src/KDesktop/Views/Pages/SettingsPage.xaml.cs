@@ -31,7 +31,7 @@ public partial class SettingsPage : UserControl
         DataContext = _app.Config.Settings;
 
         LoadLanguages();
-        SectionList.SelectedIndex = Math.Clamp(_lastSection, 0, SectionList.Items.Count - 1);
+        BuildNav();
         StartupToggle.IsChecked = StartupTask.IsRegistered();
         DataPathText.Text = AppPaths.DataDir;
         ShowBackupStatus();
@@ -67,10 +67,7 @@ public partial class SettingsPage : UserControl
         };
     }
 
-    // ── sections ─────────────────────────────────────────────────────────
-
-    /// <summary>Section shown last time, for when the window is opened again.</summary>
-    private static int _lastSection;
+    // ── sections (the tree is in SettingsPage.Nav.cs) ───────────────────────
 
     private static readonly IEasingFunction EaseOut = new CubicEase { EasingMode = EasingMode.EaseOut };
 
@@ -80,34 +77,24 @@ public partial class SettingsPage : UserControl
     /// </summary>
     public void ShowSection(string key)
     {
-        if (key.StartsWith("assistants/", StringComparison.Ordinal))
+        if (SearchBox.Text.Length > 0) SearchBox.Text = string.Empty;
+        if (Find(key) is not { } item)
         {
-            ShowSection("assistants");
-            AssistantsSection.ShowSettings(key["assistants/".Length..]);
-            return;
+            // An assistant that is not installed: the list.
+            if (!key.StartsWith("assistants/", StringComparison.Ordinal) || Find("assistants") is not { } list) return;
+            item = list;
         }
-        if (key == "assistants") AssistantsSection.ShowList();
-        if (SectionList.Items.OfType<ListBoxItem>().FirstOrDefault(i => i.Tag as string == key) is { } item)
-        {
-            SectionList.SelectedItem = item;
-            SectionList.ScrollIntoView(item);
-        }
+        Reveal(item);
+        Select(item);
     }
 
-    /// <summary>Shows only the chosen section (each card's Tag names its section).</summary>
-    private void OnSectionSelected(object sender, SelectionChangedEventArgs e)
+    /// <summary>Shows only that section's cards (each card's Tag names its section).</summary>
+    private void ShowCard(string key, bool animate)
     {
-        if (SectionList.SelectedItem is not ListBoxItem { Tag: string key })
-        {
-            // Never nothing selected: clicking the chosen one again keeps it.
-            if (e.RemovedItems is [var previous, ..]) SectionList.SelectedItem = previous;
-            return;
-        }
-        _lastSection = SectionList.SelectedIndex;
         foreach (var card in Sections.Children.OfType<FrameworkElement>())
             card.Visibility = card.Tag as string == key ? Visibility.Visible : Visibility.Collapsed;
+        if (!animate) return;
         SectionScroll.ScrollToTop();
-
         Sections.BeginAnimation(OpacityProperty, new DoubleAnimation(0.4, 1, TimeSpan.FromMilliseconds(180)));
         SectionShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(10, 0, TimeSpan.FromMilliseconds(220)) { EasingFunction = EaseOut });
     }

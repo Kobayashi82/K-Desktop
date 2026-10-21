@@ -61,305 +61,135 @@
                 </MultiDataTrigger>
             </Style.Triggers>
         </Style>
+        <!-- The tree of sections: no chrome of its own, it scrolls -->
+        <Style x:Key="NavTree" TargetType="TreeView">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TreeView">
+                        <ScrollViewer Focusable="False" CanContentScroll="False" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
+                                      Padding="0,0,8,0">
+                            <ItemsPresenter />
+                        </ScrollViewer>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- A row of the tree: hover, the section shown (pill, like the other lists), the keyboard ring, and its rows
+             inside, which appear sliding down and go fading -->
+        <Style x:Key="NavItem" TargetType="v:NavItem">
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="v:NavItem">
+                        <StackPanel>
+                            <Grid x:Name="Row" Background="Transparent" Margin="0,1" Cursor="Hand">
+                                <Border x:Name="Hover" CornerRadius="6" Background="{DynamicResource Kd.SubtleHover}" Opacity="0" />
+                                <Border x:Name="Sel" CornerRadius="6" Background="{DynamicResource Kd.Selected}" Opacity="0" />
+                                <Border x:Name="Ring" CornerRadius="6" BorderThickness="1.5" BorderBrush="{DynamicResource Kd.Accent}" Opacity="0" />
+                                <Border x:Name="Pill" Width="3" Height="20" CornerRadius="1.5" HorizontalAlignment="Left"
+                                        Background="{DynamicResource Kd.Accent}" RenderTransformOrigin="0.5,0.5">
+                                    <Border.RenderTransform>
+                                        <ScaleTransform x:Name="PillScale" ScaleY="0" />
+                                    </Border.RenderTransform>
+                                </Border>
+                                <ContentPresenter ContentSource="Header" Margin="10,6,8,6" />
+                            </Grid>
+                            <ItemsPresenter x:Name="Items" Visibility="Collapsed" Opacity="0">
+                                <ItemsPresenter.RenderTransform>
+                                    <TranslateTransform x:Name="ItemsShift" />
+                                </ItemsPresenter.RenderTransform>
+                            </ItemsPresenter>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger SourceName="Row" Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsCurrent" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Sel" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                            <DoubleAnimation Storyboard.TargetName="PillScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.22" EasingFunction="{StaticResource KdEaseOut}" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Sel" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                                            <DoubleAnimation Storyboard.TargetName="PillScale" Storyboard.TargetProperty="ScaleY" To="0" Duration="0:0:0.12" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="ShowFocus" Value="True">
+                                <Setter TargetName="Ring" Property="Opacity" Value="0.8" />
+                            </Trigger>
+                            <Trigger Property="IsExpanded" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Items" Storyboard.TargetProperty="Visibility">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Visible}" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                            <DoubleAnimation Storyboard.TargetName="Items" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18" />
+                                            <DoubleAnimation Storyboard.TargetName="ItemsShift" Storyboard.TargetProperty="Y" From="-8" To="0" Duration="0:0:0.22" EasingFunction="{StaticResource KdEaseOut}" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Items" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1" />
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Items" Storyboard.TargetProperty="Visibility">
+                                                <DiscreteObjectKeyFrame KeyTime="0:0:0.1" Value="{x:Static Visibility.Collapsed}" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
-    <Grid Margin="24,12,0,0">
+    <Grid Margin="24,12,0,0" PreviewKeyDown="OnPageKeyDown">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="280" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- ── Sections ──────────────────────────────────────────────── -->
+        <!-- ── Sections: groups that fold, their sections and the assistants inside «Asistentes» (SettingsPage.Nav.cs) ── -->
         <DockPanel Grid.Column="0" Margin="0,0,16,16">
-            <TextBlock DockPanel.Dock="Top" Style="{StaticResource PageTitle}" Text="{l:Tr nav.settings}" Margin="0,0,0,14" />
-            <ListBox x:Name="SectionList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource RowItem}"
-                     SelectionChanged="OnSectionSelected">
-                <ListBoxItem Tag="appearance">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="Color24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.appearance}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.appearance.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <ListBoxItem Tag="general">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="Settings24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.general}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.general.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <ListBoxItem Tag="osd">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="CommentNote24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.osd}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.osd.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <ListBoxItem Tag="launcher">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="Search24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.launcher}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.launcher.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <ListBoxItem Tag="remote">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="PlugConnected24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.remote}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.remote.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <ListBoxItem Tag="web">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="Phone24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.web}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.web.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <ListBoxItem Tag="android">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="PhoneUpdate24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.android}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.android.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <ListBoxItem Tag="voice">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="Mic24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.voice}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.voice.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <ListBoxItem Tag="media">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="MusicNote224" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.media}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.media.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <ListBoxItem Tag="disabledIn">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="Prohibited24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.disabledIn}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.disabledIn.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <ListBoxItem Tag="mouse">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="CursorClick24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.mouse}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.mouse.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <ListBoxItem Tag="capture">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="Screenshot24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.capture}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.capture.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <ListBoxItem Tag="data">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="Database24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.data}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.data.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <ListBoxItem Tag="updates">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="ArrowSync24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.updates}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.updates.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <!-- The assistant module: a group of its own (more pages come with the brain, the tools and the voice) -->
-                <ListBoxItem IsEnabled="False" IsHitTestVisible="False" Focusable="False">
-                    <TextBlock Margin="2,14,0,0" FontSize="12" FontWeight="SemiBold" Text="{l:Tr settings.nav.assistantGroup}"
-                               Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                </ListBoxItem>
-                <ListBoxItem Tag="assistant">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="Bot24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.assistant}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.assistant.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <ListBoxItem Tag="assistants">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="PeopleCommunity24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.assistants}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.assistants.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <ListBoxItem Tag="brain">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="BrainCircuit24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.brain}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.brain.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <ListBoxItem Tag="speech">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="PersonVoice24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.assistantVoice}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.assistantVoice.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <ListBoxItem Tag="memory">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="BookInformation24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.memory}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.memory.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-                <ListBoxItem Tag="notes">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
-                            <ui:SymbolIcon Symbol="Note24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="{l:Tr settings.nav.notes}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{l:Tr settings.nav.notes.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                        </StackPanel>
-                    </Grid>
-                </ListBoxItem>
-            </ListBox>
+            <TextBlock DockPanel.Dock="Top" Style="{StaticResource PageTitle}" Text="{l:Tr nav.settings}" Margin="0,0,0,12" />
+            <ui:TextBox x:Name="SearchBox" DockPanel.Dock="Top" Margin="0,0,8,10" Icon="{ui:SymbolIcon Search24}" ClearButtonEnabled="True"
+                        PlaceholderText="{l:Tr settings.nav.search}" AutomationProperties.Name="{l:Tr settings.nav.search}"
+                        TextChanged="OnSearchChanged" PreviewKeyDown="OnSearchKeyDown" />
+            <TextBlock x:Name="NoResults" DockPanel.Dock="Top" Margin="4,4,8,0" TextWrapping="Wrap" Visibility="Collapsed"
+                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="{l:Tr settings.nav.noResults}" />
+            <TreeView x:Name="NavTree" Style="{StaticResource NavTree}" AutomationProperties.Name="{l:Tr nav.settings}"
+                      PreviewMouseLeftButtonDown="OnNavMouseDown" PreviewKeyDown="OnNavKeyDown" />
         </DockPanel>
 
         <!-- ── The chosen section ────────────────────────────────────── -->
