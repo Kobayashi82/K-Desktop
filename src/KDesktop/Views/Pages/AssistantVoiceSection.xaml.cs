@@ -20,8 +20,8 @@ public partial class AssistantVoiceSection : UserControl
         public override string ToString() => Name;
     }
 
-    /// <summary>The moods «Probar» offers (empty: plain), the ones every profile has.</summary>
-    private static readonly string[] TestMoods = ["", "happy", "error", "far"];
+    /// <summary>The moods «Probar» offers (empty: plain), the ones the assistants set.</summary>
+    private static readonly string[] TestMoods = ["", "happy", "error"];
 
     private readonly App _app = App.Current;
     private bool _filling;

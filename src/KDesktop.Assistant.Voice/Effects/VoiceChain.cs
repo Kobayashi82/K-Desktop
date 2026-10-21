@@ -72,7 +72,7 @@ public sealed class VoiceChain
             "ring" => new RingModulator(Value("freq", 50), Value("mix", 0.5), sampleRate),
             "vocoder" => new Vocoder(HzToNote(Value("note", 130.8)), (int)Value("bands", 16), sampleRate),
             "bitcrush" => new Bitcrusher(Value("bits", 8), Value("rate", 8000), sampleRate),
-            "radio" => new Radio(Value("bandwidth", 3000), Value("noise", 0.03), fx["beep"]?.GetValue<bool>() ?? true, sampleRate, seed),
+            "radio" => new Radio(Value("bandwidth", 3000), Value("noise", 0.03), fx["beep"]?.GetValue<bool>() ?? true, sampleRate, seed, fx["squelch"]?.GetValue<bool>() ?? true),
             "chorus" => new Chorus(Value("rate", 1.5), Value("depth", 0.5), sampleRate),
             // A flanger is a chorus faster and deeper (the same delay that moves).
             "flanger" => new Chorus(Value("rate", 0.3) * 2, Math.Min(1, Value("depth", 0.7) * 1.3), sampleRate),

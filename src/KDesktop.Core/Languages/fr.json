@@ -2983,7 +2983,7 @@
   "assistantVoice.testText": "Bonjour, je suis {0}. Voilà comment je sonne quand je te réponds.",
 
   "assistantVoice.profile": "Comment ils sonnent",
-  "assistantVoice.profileHint": "Chaque assistant a sa voix (le Lander, celle du contrôle de mission) ; ou choisissez-en une pour tous. Depuis un autre écran ils parlent par radio et, s'ils s'écrasent, avec des parasites.",
+  "assistantVoice.profileHint": "Chaque assistant apporte sa voix (le Lander parle par radio, comme depuis la Lune) ; ou choisissez-en une pour tous. Quand ils s'écrasent, ils grésillent.",
   "assistantVoice.profileOwn": "Celle de chaque assistant",
   "assistantVoice.profile.natural": "Naturelle",
   "assistantVoice.profile.robot": "Robot classique",
@@ -2993,7 +2993,7 @@
   "assistantVoice.profile.beeps": "Bips",
 
   "assistantVoice.testTitle": "Essayer",
-  "assistantVoice.testHint": "Le son suit ce que vous avez choisi plus haut. Choisissez qui le dit et comment : content, après un échec ou depuis un autre écran (par radio).",
+  "assistantVoice.testHint": "Le son suit ce que vous avez choisi plus haut. Choisissez qui le dit et comment : normal, content ou après un échec.",
   "assistantVoice.testStop": "Arrêter",
   "assistantVoice.testWho": "Qui le dit",
   "assistantVoice.testVoiceOnly": "Seulement la voix (sans personnage)",
@@ -3001,7 +3001,6 @@
   "assistantVoice.mood.plain": "Normal",
   "assistantVoice.mood.happy": "Content",
   "assistantVoice.mood.error": "Après un échec",
-  "assistantVoice.mood.far": "Depuis un autre écran",
   "assistantVoice.whenTitle": "Quand ils parlent à voix haute",
   "assistantVoice.fullscreen": "Se taire quand quelque chose est en plein écran",
   "assistantVoice.fullscreenHint": "Pendant un film ou un jeu sur n'importe quel écran, ils répondent seulement avec la bulle. « Essayer » sonne quand même.",

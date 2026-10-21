@@ -232,7 +232,8 @@ public sealed class Bitcrusher(double bits, double rate, int sampleRate) : IVoic
 }
 
 /// <summary>A voice over the radio (mission control): a narrow band, a little overdrive, hiss, and a beep at the end.</summary>
-public sealed class Radio(double bandwidth, double noise, bool beep, int sampleRate, int seed) : IVoiceEffect
+/// <param name="squelch">The burst of hiss when it opens and closes (a walkie-talkie); without it, only the hiss under the voice.</param>
+public sealed class Radio(double bandwidth, double noise, bool beep, int sampleRate, int seed, bool squelch = true) : IVoiceEffect
 {
     private readonly Biquad _low = Biquad.HighPass(320, sampleRate);
     private readonly Biquad _low2 = Biquad.HighPass(320, sampleRate);
@@ -248,7 +249,8 @@ public sealed class Radio(double bandwidth, double noise, bool beep, int sampleR
         if (!_started)
         {
             _started = true;
-            for (var i = 0; i < sampleRate * 6 / 100; i++) output.Add(Hiss() * 6);
+            // Softer than it used to be: it stood out over the voice.
+            if (squelch) for (var i = 0; i < sampleRate * 6 / 100; i++) output.Add(Hiss() * 2.5f);
         }
         foreach (var x in input)
         {
@@ -267,13 +269,21 @@ public sealed class Radio(double bandwidth, double noise, bool beep, int sampleR
             for (var i = 0; i < sampleRate * 4 / 100; i++) output.Add(Hiss());
             var length = sampleRate * 12 / 100;
             for (var i = 0; i < length; i++)
-                output.Add((float)(Math.Sin(2 * Math.PI * 1250 * i / sampleRate) * 0.28 * Math.Min(1, Math.Min(i, length - i) / (sampleRate * 0.005))));
+                output.Add((float)(Math.Sin(2 * Math.PI * 1250 * i / sampleRate) * 0.15 * Math.Min(1, Math.Min(i, length - i) / (sampleRate * 0.005))));
         }
-        for (var i = 0; i < sampleRate * 5 / 100; i++) output.Add(Hiss() * 4 * (1 - i / (sampleRate * 0.05f)));
+        if (squelch) for (var i = 0; i < sampleRate * 5 / 100; i++) output.Add(Hiss() * 2 * (1 - i / (sampleRate * 0.05f)));
         return [.. output];
     }
 
-    private float Hiss() => (float)((_random.NextDouble() * 2 - 1) * Math.Clamp(noise, 0, 0.5));
+    /// <summary>
+    /// The radio's hiss, in the same band as the voice (white noise had its highs above everything, sharp and tiring);
+    /// louder than the raw noise so that it is heard about as much.
+    /// </summary>
+    private float Hiss() =>
+        _hissHigh.Next(_hissLow.Next((float)((_random.NextDouble() * 2 - 1) * Math.Clamp(noise, 0, 0.5)))) * 1.8f;
+
+    private readonly Biquad _hissLow = Biquad.HighPass(320, sampleRate);
+    private readonly Biquad _hissHigh = Biquad.LowPass(Math.Clamp(bandwidth, 800, 8000), sampleRate);
 }
 
 /// <summary>A voice that wavers, metallic (a Martian): the voice mixed with itself through a short delay that moves.</summary>

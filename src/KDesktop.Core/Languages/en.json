@@ -2983,7 +2983,7 @@
   "assistantVoice.testText": "Hello, I'm {0}. This is how I sound when I answer you.",
 
   "assistantVoice.profile": "How they sound",
-  "assistantVoice.profileHint": "Each assistant brings its own voice (the Lander, mission control's); or choose one for all. From another monitor they sound over the radio and, if they crash, glitchy.",
+  "assistantVoice.profileHint": "Each assistant brings its own voice (the Lander talks over the radio, as if from the Moon); or pick one for all. When they crash, they sound glitchy.",
   "assistantVoice.profileOwn": "Each assistant's own",
   "assistantVoice.profile.natural": "Natural",
   "assistantVoice.profile.robot": "Classic robot",
@@ -2993,7 +2993,7 @@
   "assistantVoice.profile.beeps": "Beeps",
 
   "assistantVoice.testTitle": "Try it",
-  "assistantVoice.testHint": "It sounds with what you chose above. Pick who says it and how: happy, after a failure or from another monitor (over the radio).",
+  "assistantVoice.testHint": "It sounds with what you chose above. Pick who says it and how: normal, happy or after a failure.",
   "assistantVoice.testStop": "Stop",
   "assistantVoice.testWho": "Who says it",
   "assistantVoice.testVoiceOnly": "Only the voice (no character)",
@@ -3001,7 +3001,6 @@
   "assistantVoice.mood.plain": "Normal",
   "assistantVoice.mood.happy": "Happy",
   "assistantVoice.mood.error": "After a failure",
-  "assistantVoice.mood.far": "From another monitor",
   "assistantVoice.whenTitle": "When they speak aloud",
   "assistantVoice.fullscreen": "Keep quiet with something full screen",
   "assistantVoice.fullscreenHint": "While you watch a film or play on any monitor, they answer only with the bubble. «Try» still sounds.",

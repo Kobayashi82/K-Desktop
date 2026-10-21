@@ -310,21 +310,11 @@ internal sealed class AssistantRuntime : IDisposable
     }
 
     /// <summary>
-    /// The moods its next sentence is said in: the one it set and <c>far</c> when it is on another monitor than the
-    /// mouse (it speaks «over the radio»). Engine thread.
+    /// The moods its next sentence is said in: the one it set (<c>SetVoiceMood</c>). Wherever it is, it sounds as if it
+    /// were on the monitor in use (the automatic «far» of 5.5 is gone, at the user's request). Engine thread.
     /// </summary>
-    public IReadOnlyList<string> VoiceMoods(string id)
-    {
-        if (Find(id) is not { } slot) return [];
-        var moods = new List<string>();
-        if (slot.VoiceMood is { } mood) moods.Add(mood);
-        Point? anchor = null;
-        Guard(slot, a => anchor = a.BubbleAnchor, "BubbleAnchor");
-        if (anchor is { } at && Interop.Native.GetCursorPos(out var cursor)
-            && World.Current.MonitorAt(at) is { } own && World.Current.MonitorAt(new Point(cursor.X, cursor.Y)) is { } mouse && own.Index != mouse.Index)
-            moods.Add("far");
-        return moods;
-    }
+    public IReadOnlyList<string> VoiceMoods(string id) =>
+        Find(id)?.VoiceMood is { } mood ? [mood] : [];
 
     /// <summary>
     /// Where its voice sounds, by where it is across all the monitors (−1 left … 1 right, never all to one side). Engine

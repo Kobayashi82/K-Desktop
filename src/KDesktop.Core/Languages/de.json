@@ -2983,7 +2983,7 @@
   "assistantVoice.testText": "Hallo, ich bin {0}. So klinge ich, wenn ich dir antworte.",
 
   "assistantVoice.profile": "Wie sie klingen",
-  "assistantVoice.profileHint": "Jeder Assistent bringt seine Stimme mit (der Lander die der Missionskontrolle); oder wähle eine für alle. Von einem anderen Monitor klingen sie wie über Funk und nach einem Absturz gestört.",
+  "assistantVoice.profileHint": "Jeder Assistent bringt seine Stimme mit (der Lander spricht über Funk, wie vom Mond); oder wähle eine für alle. Wenn sie abstürzen, klingen sie gestört.",
   "assistantVoice.profileOwn": "Die des jeweiligen Assistenten",
   "assistantVoice.profile.natural": "Natürlich",
   "assistantVoice.profile.robot": "Klassischer Roboter",
@@ -2993,7 +2993,7 @@
   "assistantVoice.profile.beeps": "Pieptöne",
 
   "assistantVoice.testTitle": "Ausprobieren",
-  "assistantVoice.testHint": "Es klingt mit dem, was du oben gewählt hast. Wähle, wer es sagt und wie: fröhlich, nach einem Fehler oder von einem anderen Monitor (über Funk).",
+  "assistantVoice.testHint": "Es klingt mit dem, was du oben gewählt hast. Wähle, wer es sagt und wie: normal, fröhlich oder nach einem Fehler.",
   "assistantVoice.testStop": "Stopp",
   "assistantVoice.testWho": "Wer es sagt",
   "assistantVoice.testVoiceOnly": "Nur die Stimme (ohne Figur)",
@@ -3001,7 +3001,6 @@
   "assistantVoice.mood.plain": "Normal",
   "assistantVoice.mood.happy": "Fröhlich",
   "assistantVoice.mood.error": "Nach einem Fehler",
-  "assistantVoice.mood.far": "Von einem anderen Monitor",
   "assistantVoice.whenTitle": "Wann sie laut sprechen",
   "assistantVoice.fullscreen": "Bei Vollbild schweigen",
   "assistantVoice.fullscreenHint": "Während du auf einem beliebigen Monitor einen Film schaust oder spielst, antworten sie nur mit der Sprechblase. „Ausprobieren“ klingt trotzdem.",

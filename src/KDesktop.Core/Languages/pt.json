@@ -2983,7 +2983,7 @@
   "assistantVoice.testText": "Olá, eu sou {0}. É assim que eu soo quando te respondo.",
 
   "assistantVoice.profile": "Como soam",
-  "assistantVoice.profileHint": "Cada assistente traz sua voz (o Lander, a do controle da missão); ou escolha uma para todos. De outro monitor soam pelo rádio e, se batem, com falhas.",
+  "assistantVoice.profileHint": "Cada assistente traz sua voz (o Lander fala pelo rádio, como se fosse da Lua); ou escolha uma para todos. Quando batem, a voz falha.",
   "assistantVoice.profileOwn": "A de cada assistente",
   "assistantVoice.profile.natural": "Natural",
   "assistantVoice.profile.robot": "Robô clássico",
@@ -2993,7 +2993,7 @@
   "assistantVoice.profile.beeps": "Bipes",
 
   "assistantVoice.testTitle": "Testar",
-  "assistantVoice.testHint": "Soa com o que você escolheu acima. Escolha quem fala e como: feliz, depois de uma falha ou de outro monitor (pelo rádio).",
+  "assistantVoice.testHint": "Soa com o que você escolheu acima. Escolha quem fala e como: normal, feliz ou depois de uma falha.",
   "assistantVoice.testStop": "Parar",
   "assistantVoice.testWho": "Quem fala",
   "assistantVoice.testVoiceOnly": "Só a voz (sem personagem)",
@@ -3001,7 +3001,6 @@
   "assistantVoice.mood.plain": "Normal",
   "assistantVoice.mood.happy": "Feliz",
   "assistantVoice.mood.error": "Depois de uma falha",
-  "assistantVoice.mood.far": "De outro monitor",
   "assistantVoice.whenTitle": "Quando falam em voz alta",
   "assistantVoice.fullscreen": "Ficar em silêncio com algo em tela cheia",
   "assistantVoice.fullscreenHint": "Enquanto você assiste a um filme ou joga em qualquer monitor, eles respondem só com o balão. «Testar» soa mesmo assim.",

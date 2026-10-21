@@ -64,7 +64,7 @@ public interface IAssistantHost
     /// <summary>
     /// The situation its voice speaks in (SDK 1.2): <c>error</c> (it crashed), <c>happy</c> (it celebrates) or any other
     /// its voice profile names in its <c>moods</c>; null, as usual. The effects of that mood are added to what it says from
-    /// then on (the host adds <c>far</c> by itself when it speaks from another monitor than the mouse's).
+    /// then on. Wherever it is, it sounds as if it were on the monitor in use.
     /// </summary>
     void SetVoiceMood(string? mood);
 

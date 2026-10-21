@@ -2983,7 +2983,7 @@
   "assistantVoice.testText": "Ciao, sono {0}. Ecco come suono quando ti rispondo.",
 
   "assistantVoice.profile": "Come suonano",
-  "assistantVoice.profileHint": "Ogni assistente porta la sua voce (il Lander, quella del controllo missione); oppure scegline una per tutti. Da un altro monitor suonano via radio e, se si schiantano, a scatti.",
+  "assistantVoice.profileHint": "Ogni assistente ha la sua voce (il Lander parla via radio, come dalla Luna); oppure scegline una per tutti. Quando si schiantano, la voce ha dei disturbi.",
   "assistantVoice.profileOwn": "Quella di ogni assistente",
   "assistantVoice.profile.natural": "Naturale",
   "assistantVoice.profile.robot": "Robot classico",
@@ -2993,7 +2993,7 @@
   "assistantVoice.profile.beeps": "Bip",
 
   "assistantVoice.testTitle": "Prova",
-  "assistantVoice.testHint": "Suona con ciò che hai scelto sopra. Scegli chi lo dice e come: contento, dopo un errore o da un altro monitor (via radio).",
+  "assistantVoice.testHint": "Suona con ciò che hai scelto sopra. Scegli chi lo dice e come: normale, contento o dopo un errore.",
   "assistantVoice.testStop": "Ferma",
   "assistantVoice.testWho": "Chi lo dice",
   "assistantVoice.testVoiceOnly": "Solo la voce (senza personaggio)",
@@ -3001,7 +3001,6 @@
   "assistantVoice.mood.plain": "Normale",
   "assistantVoice.mood.happy": "Contento",
   "assistantVoice.mood.error": "Dopo un errore",
-  "assistantVoice.mood.far": "Da un altro monitor",
   "assistantVoice.whenTitle": "Quando parlano ad alta voce",
   "assistantVoice.fullscreen": "Tacere con qualcosa a schermo intero",
   "assistantVoice.fullscreenHint": "Mentre guardi un film o giochi su qualsiasi monitor, rispondono solo con il fumetto. «Prova» suona lo stesso.",

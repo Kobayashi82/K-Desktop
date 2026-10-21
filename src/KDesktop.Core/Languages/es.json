@@ -2983,7 +2983,7 @@
   "assistantVoice.testText": "Hola, soy {0}. Así sueno cuando te contesto.",
 
   "assistantVoice.profile": "Cómo suenan",
-  "assistantVoice.profileHint": "Cada asistente trae su voz (el Lander, la de control de misión); o elige una para todos. Desde otro monitor suenan por radio y, si se estrellan, con fallos.",
+  "assistantVoice.profileHint": "Cada asistente trae su voz (el Lander habla por radio, como desde la Luna); o elige una para todos. Si se estrellan, suenan con fallos.",
   "assistantVoice.profileOwn": "La de cada asistente",
   "assistantVoice.profile.natural": "Natural",
   "assistantVoice.profile.robot": "Robot clásico",
@@ -2993,7 +2993,7 @@
   "assistantVoice.profile.beeps": "Pitidos",
 
   "assistantVoice.testTitle": "Probar",
-  "assistantVoice.testHint": "Suena con lo que tengas elegido arriba. Elige quién lo dice y cómo: contento, tras un fallo o desde otro monitor (por radio).",
+  "assistantVoice.testHint": "Suena con lo que tengas elegido arriba. Elige quién lo dice y cómo: normal, contento o tras un fallo.",
   "assistantVoice.testStop": "Parar",
   "assistantVoice.testWho": "Quién lo dice",
   "assistantVoice.testVoiceOnly": "Solo la voz (sin personaje)",
@@ -3001,7 +3001,6 @@
   "assistantVoice.mood.plain": "Normal",
   "assistantVoice.mood.happy": "Contento",
   "assistantVoice.mood.error": "Tras un fallo",
-  "assistantVoice.mood.far": "Desde otro monitor",
   "assistantVoice.whenTitle": "Cuándo hablan en voz alta",
   "assistantVoice.fullscreen": "Callar con algo a pantalla completa",
   "assistantVoice.fullscreenHint": "Mientras ves una película o juegas en cualquier monitor, contestan solo con el bocadillo. «Probar» suena igual.",
