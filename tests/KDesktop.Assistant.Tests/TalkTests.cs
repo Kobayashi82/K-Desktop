@@ -346,6 +346,42 @@ public sealed class TalkTests : IDisposable
         Assert.Equal(Core.Localization.Loc.T("assistant.persona.default"), persona.Prompt);
     }
 
+    /// <summary>«Descarga el cerebro» frees the graphics card without asking the AI (which would load it); «carga…» loads it.</summary>
+    [Fact]
+    public async Task TheBrainLeavesAndComesBackWithoutTheAi()
+    {
+        var builtin = new BuiltinTools(_folder);
+        using var _ = builtin;
+        var registry = new ToolRegistry();
+        builtin.AddTo(registry);
+        var runner = new ToolRunner(registry, () => new HashSet<string>(), (_, _) => Task.FromResult("yes"), _ => { }, Path.Combine(_folder, "undo.json"));
+        var (freed, loaded, wasLoaded) = (0, 0, true);
+        var talk = new TalkService(_ => (_model, "fake:4b"), runner, _ => Lander, new Output(this),
+            freeBrain: () => { freed++; return Task.FromResult(wasLoaded); }, loadBrain: () => { loaded++; return Task.CompletedTask; });
+
+        await talk.HandleAsync(Heard("Lander, descarga el cerebro"));
+        Assert.Equal(1, freed);
+        Assert.Contains("gráfica", LastAnswer, StringComparison.Ordinal);
+        wasLoaded = false;
+        await talk.HandleAsync(Heard("libera la gráfica, por favor"));
+        Assert.Equal(2, freed);
+        Assert.Contains("ya está libre", LastAnswer, StringComparison.Ordinal);
+        await talk.HandleAsync(Heard("carga el modelo"));
+        Assert.Equal(1, loaded);
+        Assert.Empty(_model.Requests);
+    }
+
+    [Theory]
+    [InlineData("descarga el cerebro", QuickRuleKind.FreeBrain)]
+    [InlineData("Lander, descarga el modelo de la memoria.", QuickRuleKind.FreeBrain)]
+    [InlineData("saca el modelo de memoria", QuickRuleKind.FreeBrain)]
+    [InlineData("apaga la IA", QuickRuleKind.FreeBrain)]
+    [InlineData("unload the model", QuickRuleKind.FreeBrain)]
+    [InlineData("libere a placa de vídeo", QuickRuleKind.FreeBrain)]
+    [InlineData("carga el cerebro", QuickRuleKind.LoadBrain)]
+    [InlineData("load the model", QuickRuleKind.LoadBrain)]
+    public void TheBrainRulesUnderstand(string said, QuickRuleKind kind) => Assert.Equal(kind, QuickRules.Match(said, ["Lander"])?.Kind);
+
     public void Dispose()
     {
         try { Directory.Delete(_folder, recursive: true); } catch (IOException) { } catch (UnauthorizedAccessException) { }

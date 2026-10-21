@@ -37,6 +37,9 @@ public interface IUiServices
     /// <summary>«Asistente: decir»: an assistant (empty: the default one) says this, without the AI.</summary>
     void AssistantSay(string assistant, string text) { }
 
+    /// <summary>«Asistente: cerebro»: the assistants' model out of the graphics card, or into it.</summary>
+    void AssistantBrain(Model.AssistantBrainOp op) { }
+
     /// <summary>Runs <paramref name="action"/> on the UI thread (needed to modify bound collections).</summary>
     void RunOnUi(Action action);
 

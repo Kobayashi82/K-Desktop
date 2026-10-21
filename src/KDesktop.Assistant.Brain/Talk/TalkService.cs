@@ -77,6 +77,8 @@ public sealed class TalkService
     private readonly ICommandBridge? _commands;
     private readonly Func<bool> _learn;
     private readonly Func<Task<bool>>? _recheck;
+    private readonly Func<Task<bool>>? _freeBrain;
+    private readonly Func<Task>? _loadBrain;
     private readonly ConcurrentDictionary<string, Conversation> _conversations = new(StringComparer.Ordinal);
 
     /// <param name="brain">The model client and model name for an assistant (null: no AI now).</param>
@@ -86,12 +88,16 @@ public sealed class TalkService
     /// <param name="learn">Whether it learns from what is talked about (Options → Memory).</param>
     /// <param name="commands">The user's K-Desktop commands (null: none, the AI answers everything).</param>
     /// <param name="recheck">Looks at the brain again when an order needs it and it is not ready; whether it is now.</param>
+    /// <param name="freeBrain">«Descarga el cerebro»: the model leaves the graphics card; whether it was in it.</param>
+    /// <param name="loadBrain">«Carga el cerebro»: the model loads now.</param>
     public TalkService(Func<string?, (IChatModel? Client, string? Model)> brain, ToolRunner tools, Func<string?, AssistantPersona> persona,
         ITalkOutput output, TimeProvider? time = null, Random? random = null, ToolChooser? chooser = null, TalkMemory? memory = null, Func<bool>? learn = null,
-        ICommandBridge? commands = null, Func<Task<bool>>? recheck = null)
+        ICommandBridge? commands = null, Func<Task<bool>>? recheck = null, Func<Task<bool>>? freeBrain = null, Func<Task>? loadBrain = null)
     {
         _commands = commands;
         _recheck = recheck;
+        _freeBrain = freeBrain;
+        _loadBrain = loadBrain;
         _brain = brain;
         _tools = tools;
         _persona = persona;
@@ -277,6 +283,16 @@ public sealed class TalkService
                 return Recall(persona);
             case { Kind: QuickRuleKind.Forget, Text: { Length: > 0 } forget } when _memory is not null:
                 return await ToolAsync(persona, "forget", new JsonObject { ["fact"] = forget }, context, said, acknowledge: true, token).ConfigureAwait(false);
+            case { Kind: QuickRuleKind.FreeBrain } when _freeBrain is not null:
+                // Talking to it loaded it again (stage 5.7): the next time it is talked to, it may load again.
+                _prepared.Clear();
+                return new TalkAnswer(Phrase(persona, await _freeBrain().ConfigureAwait(false) ? "brainFreed" : "brainNotLoaded"), Remember: false);
+            case { Kind: QuickRuleKind.LoadBrain } when _loadBrain is not null:
+                var (_, loading) = _brain(who);
+                if (loading is null) return new TalkAnswer(Phrase(persona, "noBrain"), Remember: false, Failed: true);
+                _output.State(who, "thinking");
+                await _loadBrain().ConfigureAwait(false);
+                return new TalkAnswer(Phrase(persona, "brainLoaded"), Remember: false);
             case { Kind: QuickRuleKind.CancelTimer } cancelTimer:
                 var which = new JsonObject();
                 if (cancelTimer.Text is { Length: > 0 } words) which["reason"] = words;

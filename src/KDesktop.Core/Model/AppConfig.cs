@@ -535,6 +535,15 @@ public partial class AppSettings : ObservableObject
     /// <summary>The general model; empty: chosen automatically (about 4 B, with tools).</summary>
     [ObservableProperty] private string _assistantBrainModel = string.Empty;
 
+    /// <summary>The llama-server.exe the assistant process starts with the provider «llama-server» (with its model, a .gguf).</summary>
+    [ObservableProperty] private string _assistantBrainServer = string.Empty;
+
+    /// <summary>Options added to llama-server's usual ones («-c 32768»…); empty: none.</summary>
+    [ObservableProperty] private string _assistantBrainServerArgs = string.Empty;
+
+    /// <summary>Minutes the model stays in the graphics card without use (Ollama and llama-server); 0: it stays.</summary>
+    [ObservableProperty] private int _assistantBrainKeepMinutes = Assistant.Brain.BrainConfig.DefaultKeepMinutes;
+
     /// <summary>The assistants learn what is worth remembering about the user from what they talk about (stage 3.7).</summary>
     [ObservableProperty] private bool _assistantMemoryLearn = true;
 

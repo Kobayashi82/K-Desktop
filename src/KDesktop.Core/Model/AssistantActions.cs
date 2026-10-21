@@ -63,6 +63,23 @@ public partial class AssistantAskAction : CommandAction
     public override string Summary => Text.Trim().Length == 0 ? Loc.T("summary.assistantAskBox") : $"«{Text.Trim()}»";
 }
 
+/// <summary>What «Asistente: cerebro» does: free the graphics card, or load the model before talking.</summary>
+public enum AssistantBrainOp { Unload, Load }
+
+/// <summary>
+/// «Asistente: cerebro»: the assistants' model leaves the graphics card (before a game, a render…) or loads now (the
+/// first answer does not wait for it). Message <c>brain</c> <c>unload</c> / <c>load</c>; without the module running there
+/// is nothing loaded by it.
+/// </summary>
+public partial class AssistantBrainAction : CommandAction
+{
+    [ObservableProperty] private AssistantBrainOp _op;
+
+    public override ActionKind Kind => ActionKind.AssistantBrain;
+
+    public override string Summary => Loc.T("summary.assistantBrain." + Op.ToString().ToLowerInvariant());
+}
+
 /// <summary>
 /// «Asistente: decir»: an assistant says something (message <c>say</c>), in its bubble and in the chat, without the AI:
 /// an event («the copy finished»), a reminder in a command. Without a body (nobody on the desktop), K-Desktop's OSD.

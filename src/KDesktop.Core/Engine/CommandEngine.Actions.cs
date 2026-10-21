@@ -45,6 +45,7 @@ public sealed partial class CommandEngine
         AssistantExtraAction a => Run(() => _ui.RunAssistantExtra(a.Assistant, a.Extra)),
         AssistantAskAction a => Run(() => _ui.AskAssistant(a.Assistant, a.Text)),
         AssistantSayAction a => Run(() => _ui.AssistantSay(a.Assistant, a.Text)),
+        AssistantBrainAction a => Run(() => _ui.AssistantBrain(a.Op)),
         _ => Task.CompletedTask,
     };
 

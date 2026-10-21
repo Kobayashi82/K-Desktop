@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using KDesktop.Core;
 using KDesktop.Core.Localization;
 
 namespace KDesktop.Assistant.Brain.Models;
@@ -114,6 +115,10 @@ public sealed class OpenAICompatibleChatModel : IChatModel
             await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
             using var reader = new StreamReader(stream, Encoding.UTF8);
             var pending = new SortedDictionary<int, PendingCall>();
+            var content = new StringBuilder();
+            // The answer starts like a tool call written as text: held back until the end, to be read as one.
+            var holding = false;
+            Action<JsonElement>? timings = LogTimings ? LogTiming : null;
             while (true)
             {
                 string? line;
@@ -127,20 +132,52 @@ public sealed class OpenAICompatibleChatModel : IChatModel
                 }
                 if (line is null || line.StartsWith("data: [DONE]", StringComparison.Ordinal))
                 {
-                    yield return new ChatChunk(string.Empty, Complete(pending), Done: true);
+                    foreach (var last in End(pending, content, holding)) yield return last;
                     yield break;
                 }
                 if (!line.StartsWith("data:", StringComparison.Ordinal)) continue;
 
-                var (content, finished) = ParseEvent(line[5..].Trim(), pending);
-                if (content.Length > 0) yield return new ChatChunk(content);
+                var (text, finished) = ParseEvent(line[5..].Trim(), pending, timings);
+                if (text.Length > 0)
+                {
+                    content.Append(text);
+                    if (!holding && pending.Count == 0 && TextToolCalls.Starts(content.ToString())) holding = true;
+                    if (!holding) yield return new ChatChunk(text);
+                }
                 if (finished)
                 {
-                    yield return new ChatChunk(string.Empty, Complete(pending), Done: true);
+                    foreach (var last in End(pending, content, holding)) yield return last;
                     yield break;
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// The end of an answer: its tool calls, or —when the server did not read them— those written as text
+    /// (<c>&lt;function=find_command&gt; &lt;parameter=query&gt;…</c>, as Bonsai sometimes leaves them), with the text
+    /// held back if it was not one after all.
+    /// </summary>
+    private static IEnumerable<ChatChunk> End(SortedDictionary<int, PendingCall> pending, StringBuilder content, bool holding)
+    {
+        IReadOnlyList<ToolCall>? calls = Complete(pending);
+        if (calls is null && TextToolCalls.Parse(content.ToString()) is { Count: > 0 } written)
+        {
+            Log.Info($"Asistente: llamada escrita como texto leída: {string.Join(", ", written.Select(c => c.Name))}");
+            calls = written;
+        }
+        else if (holding && content.Length > 0) yield return new ChatChunk(content.ToString());
+        yield return new ChatChunk(string.Empty, calls, Done: true);
+    }
+
+    /// <summary>Writes how long the server took (llama-server's <c>timings</c>): to see what the context costs.</summary>
+    public bool LogTimings { get; init; }
+
+    private static void LogTiming(JsonElement timings)
+    {
+        static double Number(JsonElement e, string name) => e.TryGetProperty(name, out var v) && v.TryGetDouble(out var d) ? d : 0;
+        Log.Info(string.Create(System.Globalization.CultureInfo.InvariantCulture,
+            $"Asistente: llama-server: prompt {Number(timings, "prompt_n") + Number(timings, "cache_n"):0} tokens ({Number(timings, "cache_n"):0} en caché) en {Number(timings, "prompt_ms"):0} ms, respuesta {Number(timings, "predicted_n"):0} tokens en {Number(timings, "predicted_ms"):0} ms"));
     }
 
     public void Dispose()
@@ -221,10 +258,14 @@ public sealed class OpenAICompatibleChatModel : IChatModel
     }
 
     /// <summary>One server-sent event: the new text and whether the model has finished.</summary>
-    internal static (string Content, bool Finished) ParseEvent(string data, SortedDictionary<int, PendingCall> pending)
+    internal static (string Content, bool Finished) ParseEvent(string data, SortedDictionary<int, PendingCall> pending, Action<JsonElement>? timings = null)
     {
         using var document = JsonDocument.Parse(data);
         var root = document.RootElement;
+        if (timings is not null && root.TryGetProperty("timings", out var timing) && timing.ValueKind == JsonValueKind.Object
+            && root.TryGetProperty("choices", out var ended) && ended.ValueKind == JsonValueKind.Array && ended.GetArrayLength() > 0
+            && ended[0].TryGetProperty("finish_reason", out var why) && why.ValueKind == JsonValueKind.String)
+            timings(timing);
         if (root.TryGetProperty("error", out var error))
         {
             var message = error.ValueKind == JsonValueKind.Object && error.TryGetProperty("message", out var m) ? m.GetString() : error.ToString();

@@ -15,7 +15,7 @@ public enum ActionKind
     PlayMacro, AudioOutput, KBoard, Launcher, HttpRequest,
     Window, Clipboard, WakeOnLan, Display, PowerPlan, WindowsTheme, Radio, Condition,
     Screenshot, AudioRecord, Magnifier,
-    AssistantExtra, AssistantAsk, AssistantSay,
+    AssistantExtra, AssistantAsk, AssistantSay, AssistantBrain,
 }
 
 public enum WindowMode { Normal, Minimized, Maximized, Hidden }
@@ -71,6 +71,7 @@ public enum ScriptShell { Cmd, PowerShell }
 [JsonDerivedType(typeof(AssistantExtraAction), "assistantExtra")]
 [JsonDerivedType(typeof(AssistantAskAction), "assistantAsk")]
 [JsonDerivedType(typeof(AssistantSayAction), "assistantSay")]
+[JsonDerivedType(typeof(AssistantBrainAction), "assistantBrain")]
 public abstract partial class CommandAction : ObservableObject
 {
     [ObservableProperty] private bool _enabled = true;

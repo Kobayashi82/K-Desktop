@@ -9,6 +9,8 @@
   <PropertyGroup>
     <RootNamespace>KDesktop.Assistant.Brain</RootNamespace>
     <AssemblyName>KDesktop.Assistant.Brain</AssemblyName>
+    <!-- LibraryImport (the job object that holds llama-server) -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

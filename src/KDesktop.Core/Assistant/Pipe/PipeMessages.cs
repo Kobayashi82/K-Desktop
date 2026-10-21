@@ -221,7 +221,7 @@ public sealed record HideMessage(string Assistant) : PipeMessage
 /// Options → Assistant → Brain asks the process for something: <c>check</c> (look at the server now), <c>scan</c> (look in
 /// the usual places of this PC), <c>installOllama</c> (with winget, as the user), <c>startOllama</c>,
 /// <c>downloadPage</c> (Ollama's, in the user's browser), <c>pull</c> (download <paramref name="Model"/>), <c>cancel</c>
-/// (the download) or <c>unload</c> (free the graphics card). Answered with <see cref="BrainStateMessage"/>.
+/// (the download), <c>unload</c> (free the graphics card) or <c>load</c> (load the model now). Answered with <see cref="BrainStateMessage"/>.
 /// </summary>
 public sealed record BrainMessage(string Op, string? Model = null) : PipeMessage
 {
@@ -254,6 +254,7 @@ public sealed record BrainOllama(bool Installed, bool CanInstall);
 /// <param name="Model">The model in use: the chosen one or, with <paramref name="Automatic"/>, the one picked.</param>
 /// <param name="Loaded">Models in memory now (when the server says).</param>
 /// <param name="Message">What went wrong, in the user's language.</param>
+/// <param name="Loading">The model is being loaded now (llama-server starting).</param>
 public sealed record BrainStateMessage(
     string State,
     string Provider,
@@ -267,7 +268,8 @@ public sealed record BrainStateMessage(
     BrainJob? Job = null,
     BrainSuggestion? Suggested = null,
     IReadOnlyList<BrainFound>? Found = null,
-    double? VideoMemoryGb = null) : PipeMessage
+    double? VideoMemoryGb = null,
+    bool Loading = false) : PipeMessage
 {
     public override string Type => "brainState";
 }

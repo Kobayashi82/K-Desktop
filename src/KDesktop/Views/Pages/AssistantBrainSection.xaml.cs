@@ -34,7 +34,15 @@ public partial class AssistantBrainSection : UserControl
 
     private enum SetupAction { None, Install, DownloadPage, Start, Pull, Cancel }
 
-    private static readonly BrainProvider[] Providers = [BrainProvider.Ollama, BrainProvider.LlamaSwap, BrainProvider.OpenAICompatible, BrainProvider.None];
+    private static readonly BrainProvider[] Providers = [BrainProvider.Ollama, BrainProvider.LlamaServer, BrainProvider.LlamaSwap, BrainProvider.OpenAICompatible, BrainProvider.None];
+
+    /// <summary>Minutes a model may stay unused in the graphics card (0: until asked).</summary>
+    private static readonly int[] KeepChoices = [5, 10, 15, 30, 60, 0];
+
+    private sealed record KeepOption(int Minutes, string Name)
+    {
+        public override string ToString() => Name;
+    }
 
     private readonly App _app = App.Current;
     private readonly DispatcherTimer _poll = new() { Interval = TimeSpan.FromSeconds(8) };
@@ -45,6 +53,12 @@ public partial class AssistantBrainSection : UserControl
     {
         InitializeComponent();
         ProviderBox.ItemsSource = Providers.Select(p => new ProviderOption(p, ProviderName(p))).ToList();
+        KeepBox.ItemsSource = KeepChoices.Select(m => new KeepOption(m, m switch
+        {
+            0 => Loc.T("brainOptions.keepNever"),
+            60 => Loc.T("brainOptions.keepHour"),
+            _ => Loc.T("brainOptions.keepMinutes", m),
+        })).ToList();
         _poll.Tick += (_, _) => _app.AskAssistantBrain("check");
         Loaded += (_, _) =>
         {
@@ -75,6 +89,7 @@ public partial class AssistantBrainSection : UserControl
     {
         BrainProvider.OpenAICompatible => Loc.T("brainOptions.provider.openai"),
         BrainProvider.None => Loc.T("brainOptions.provider.none"),
+        BrainProvider.LlamaServer => Loc.T("brainOptions.provider.llamaServer"),
         _ => provider.DisplayName(),
     };
 
@@ -96,7 +111,16 @@ public partial class AssistantBrainSection : UserControl
             ProviderBox.SelectedItem = ProviderBox.Items.OfType<ProviderOption>().FirstOrDefault(p => p.Value == config.Provider);
             ProviderHint.Text = Loc.T("brainOptions.provider." + config.Provider.Key() + ".hint");
             ServerRows.Visibility = config.Provider == BrainProvider.None ? Visibility.Collapsed : Visibility.Visible;
+            var local = config.Provider == BrainProvider.LlamaServer;
             KeyRow.Visibility = config.Provider.UsesApiKey() ? Visibility.Visible : Visibility.Collapsed;
+            EndpointRow.Visibility = local ? Visibility.Collapsed : Visibility.Visible;
+            LocalServerRows.Visibility = BrowseModelButton.Visibility = local ? Visibility.Visible : Visibility.Collapsed;
+            ModelHint.Text = Loc.T(local ? "brainOptions.modelHintGguf" : "brainOptions.modelHint");
+            if (!ServerBox.IsKeyboardFocusWithin) ServerBox.Text = s.AssistantBrainServer;
+            if (!ServerArgsBox.IsKeyboardFocusWithin) ServerArgsBox.Text = s.AssistantBrainServerArgs;
+            KeepRow.Visibility = config.Provider is BrainProvider.Ollama or BrainProvider.LlamaServer ? Visibility.Visible : Visibility.Collapsed;
+            KeepBox.SelectedItem = KeepBox.Items.OfType<KeepOption>().FirstOrDefault(k => k.Minutes == s.AssistantBrainKeepMinutes)
+                ?? KeepBox.Items.OfType<KeepOption>().First(k => k.Minutes == BrainConfig.DefaultKeepMinutes);
             if (!EndpointBox.IsKeyboardFocusWithin) EndpointBox.Text = s.AssistantBrainEndpoint;
             EndpointBox.PlaceholderText = config.Provider.DefaultEndpoint();
             if (!KeyBox.IsKeyboardFocusWithin && KeyBox.Password != _app.AssistantBrainApiKey) KeyBox.Password = _app.AssistantBrainApiKey;
@@ -125,17 +149,18 @@ public partial class AssistantBrainSection : UserControl
     {
         var options = new List<ModelOption>
         {
-            new(string.Empty, brain is { Automatic: true, Model: { } picked } ? Loc.T("brainOptions.modelAutoIs", picked) : Loc.T("brainOptions.modelAuto")),
+            new(string.Empty, brain is { Automatic: true, Model: { } picked } ? Loc.T("brainOptions.modelAutoIs", BrainProviders.ModelLabel(picked)) : Loc.T("brainOptions.modelAuto")),
         };
         foreach (var model in brain?.Models ?? [])
         {
-            var name = model.Name;
-            if (model.Billions > 0) name += " · " + Loc.T("brainOptions.billions", model.Billions.ToString("0.#", Culture));
+            var name = BrainProviders.ModelLabel(model.Name);
+            if (name != model.Name) name += " · " + Gb(model.SizeBytes) + " GB";
+            else if (model.Billions > 0) name += " · " + Loc.T("brainOptions.billions", model.Billions.ToString("0.#", Culture));
             if (!model.Tools) name += " · " + Loc.T("brainOptions.noTools");
             options.Add(new ModelOption(model.Name, name));
         }
         if (chosen.Length > 0 && !options.Any(o => o.Value.Length > 0 && BrainProviders.SameModel(o.Value, chosen)))
-            options.Add(new ModelOption(chosen, Loc.T("brainOptions.modelNotThere", chosen)));
+            options.Add(new ModelOption(chosen, Loc.T("brainOptions.modelNotThere", BrainProviders.ModelLabel(chosen))));
         if (!ModelBox.IsDropDownOpen)
         {
             ModelBox.ItemsSource = options;
@@ -151,11 +176,14 @@ public partial class AssistantBrainSection : UserControl
             (_, null) => (Loc.T("brainOptions.state.waiting"), null, "TextFillColorTertiaryBrush"),
             (_, { State: "off" }) => (Loc.T("brainOptions.state.off"), null, "TextFillColorTertiaryBrush"),
             (_, { State: "checking" }) => (Loc.T("brainOptions.state.checking"), null, "TextFillColorTertiaryBrush"),
+            (_, { State: "ready", Loading: true, Model: { } model }) => (Loc.T("brainOptions.state.loading", BrainProviders.ModelLabel(model)), null, "Kd.Warning"),
             (_, { State: "ready", Model: { } model } b) => (b.Loaded?.Contains(model, StringComparer.OrdinalIgnoreCase) == true
-                ? Loc.T("brainOptions.state.readyLoaded", model) : Loc.T("brainOptions.state.ready", model), null, "Kd.Success"),
+                ? Loc.T("brainOptions.state.readyLoaded", BrainProviders.ModelLabel(model)) : Loc.T("brainOptions.state.ready", BrainProviders.ModelLabel(model)), null, "Kd.Success"),
+            // llama-server not there: what is missing (the program or the model), not an address.
+            (_, { State: "unreachable", Provider: "llamaServer" } b) => (b.Message ?? Loc.T("brain.error.noServer"), null, "Kd.Danger"),
             (_, { State: "unreachable" } b) => (Loc.T("brainOptions.state.unreachable", ProviderName(BrainProviders.Parse(b.Provider)), b.Endpoint), b.Message, "Kd.Danger"),
             (_, { State: "noModels" } b) => (Loc.T("brainOptions.state.noModels", ProviderName(BrainProviders.Parse(b.Provider))), null, "Kd.Warning"),
-            (_, { State: "modelMissing" } b) => (Loc.T("brainOptions.state.modelMissing", b.Model ?? "", ProviderName(BrainProviders.Parse(b.Provider))), null, "Kd.Warning"),
+            (_, { State: "modelMissing" } b) => (Loc.T("brainOptions.state.modelMissing", BrainProviders.ModelLabel(b.Model ?? ""), ProviderName(BrainProviders.Parse(b.Provider))), null, "Kd.Warning"),
             (_, { } b) => (Loc.T("brainOptions.state.error"), b.Message, "Kd.Danger"),
         };
         StateText.Text = text;
@@ -200,7 +228,11 @@ public partial class AssistantBrainSection : UserControl
                 JobText.Visibility = Visibility.Visible;
             }
             var ollama = config.Provider == BrainProvider.Ollama;
-            if (brain.State == "unreachable" && brain.Ollama is { Installed: false } absent)
+            if (config.Provider == BrainProvider.LlamaServer && brain.State == "noModels")
+            {
+                text = Loc.T("brainOptions.setup.noGguf");
+            }
+            else if (brain.State == "unreachable" && brain.Ollama is { Installed: false } absent)
             {
                 text = Loc.T("brainOptions.setup.noOllama");
                 _main = absent.CanInstall ? (SetupAction.Install, null) : (SetupAction.DownloadPage, null);
@@ -277,10 +309,13 @@ public partial class AssistantBrainSection : UserControl
     private void FillFree(BrainConfig config, BrainStateMessage? brain)
     {
         // An OpenAI-compatible server neither says what it has loaded nor lets it be unloaded.
-        FreeButton.Parent.SetValue(VisibilityProperty, config.Provider == BrainProvider.OpenAICompatible ? Visibility.Collapsed : Visibility.Visible);
+        FreeRow.Visibility = config.Provider == BrainProvider.OpenAICompatible ? Visibility.Collapsed : Visibility.Visible;
         var loaded = brain?.Loaded ?? [];
-        FreeText.Text = loaded.Count > 0 ? Loc.T("brainOptions.freeLoaded", string.Join(", ", loaded)) : Loc.T("brainOptions.freeHint");
-        FreeButton.IsEnabled = loaded.Count > 0;
+        var loading = brain?.Loading == true;
+        FreeText.Text = loaded.Count > 0 ? Loc.T("brainOptions.freeLoaded", string.Join(", ", loaded.Select(BrainProviders.ModelLabel))) : Loc.T("brainOptions.freeHint");
+        FreeButton.IsEnabled = loaded.Count > 0 || loading;
+        LoadButton.Visibility = config.Provider is BrainProvider.Ollama or BrainProvider.LlamaServer ? Visibility.Visible : Visibility.Collapsed;
+        LoadButton.IsEnabled = brain is { State: "ready", Model: not null } && loaded.Count == 0 && !loading;
     }
 
     // ── changes ──────────────────────────────────────────────────────────
@@ -352,6 +387,60 @@ public partial class AssistantBrainSection : UserControl
     }
 
     private void OnFree(object sender, RoutedEventArgs e) => _app.AskAssistantBrain("unload");
+
+    private void OnLoad(object sender, RoutedEventArgs e) => _app.AskAssistantBrain("load");
+
+    private void OnKeepChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_filling || KeepBox.SelectedItem is not KeepOption option) return;
+        _app.Config.Settings.AssistantBrainKeepMinutes = option.Minutes;
+    }
+
+    private void OnServerLeft(object sender, RoutedEventArgs e)
+    {
+        var typed = ServerBox.Text.Trim().Trim('"');
+        if (typed == _app.Config.Settings.AssistantBrainServer) return;
+        _app.Config.Settings.AssistantBrainServer = typed;
+        Fill();
+    }
+
+    private void OnServerArgsLeft(object sender, RoutedEventArgs e)
+    {
+        var typed = ServerArgsBox.Text.Trim();
+        if (typed != _app.Config.Settings.AssistantBrainServerArgs) _app.Config.Settings.AssistantBrainServerArgs = typed;
+    }
+
+    private void OnBrowseServer(object sender, RoutedEventArgs e)
+    {
+        var s = _app.Config.Settings;
+        if (Browse(Loc.T("brainOptions.browseServerTitle"), "llama-server.exe|llama-server.exe|*.exe|*.exe", s.AssistantBrainServer) is not { } path) return;
+        s.AssistantBrainServer = path;
+        Fill();
+    }
+
+    private void OnBrowseModel(object sender, RoutedEventArgs e)
+    {
+        var s = _app.Config.Settings;
+        var near = s.AssistantBrainModel.Length > 0 ? s.AssistantBrainModel : s.AssistantBrainServer;
+        if (Browse(Loc.T("brainOptions.browseModelTitle"), "*.gguf|*.gguf", near) is not { } path) return;
+        s.AssistantBrainModel = path;
+        Fill();
+    }
+
+    /// <summary>A file chosen in the usual dialog, starting next to <paramref name="near"/>; null when cancelled.</summary>
+    private string? Browse(string title, string filter, string near)
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog { Title = title, Filter = filter, CheckFileExists = true };
+        try
+        {
+            if (near.Length > 0 && System.IO.Path.GetDirectoryName(near) is { } folder && System.IO.Directory.Exists(folder)) dialog.InitialDirectory = folder;
+        }
+        catch (ArgumentException)
+        {
+            // A path typed by hand that is not one.
+        }
+        return dialog.ShowDialog(Window.GetWindow(this)) == true ? dialog.FileName : null;
+    }
 
     private void OnGoGeneral(object sender, RoutedEventArgs e) =>
         (Window.GetWindow(this) as MainWindow)?.Navigate("settings/assistant");

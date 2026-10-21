@@ -18,6 +18,12 @@ public enum BrainProvider
 
     /// <summary>No AI: only the fixed rules and K-Desktop's commands.</summary>
     None,
+
+    /// <summary>
+    /// llama-server (llama.cpp, or a fork such as PrismML's for Bonsai) that the assistant process starts itself with a
+    /// <c>.gguf</c> model when it is needed and stops when asked or after a while unused.
+    /// </summary>
+    LlamaServer,
 }
 
 /// <summary>Where the brain's server is, to say whether what is said to the assistant leaves the PC.</summary>
@@ -34,11 +40,17 @@ public enum EndpointPlace
 /// Options → Assistant → Brain, as the assistant process gets it (the <c>brain</c> section of <c>config</c>): the provider,
 /// its address (the usual one when empty), its key in plain text (the pipe is only the user's), the general model
 /// (empty: chosen automatically) and the model of each assistant that has its own (stage 3.2; when the server does not
-/// have it, that assistant uses the general one).
+/// have it, that assistant uses the general one). With <see cref="BrainProvider.LlamaServer"/>, the models are paths of
+/// <c>.gguf</c> files, <paramref name="Server"/> is the <c>llama-server.exe</c> to start and <paramref name="ServerArgs"/>
+/// what is added to its usual options. <paramref name="KeepMinutes"/>: unused this long, the model leaves the graphics
+/// card (0: it stays; Ollama and llama-server).
 /// </summary>
 public sealed record BrainConfig(BrainProvider Provider, string Endpoint = "", string ApiKey = "", string Model = "",
-    IReadOnlyDictionary<string, string>? Models = null)
+    IReadOnlyDictionary<string, string>? Models = null, string Server = "", string ServerArgs = "", int KeepMinutes = BrainConfig.DefaultKeepMinutes)
 {
+    /// <summary>Minutes a model stays loaded without use, by default.</summary>
+    public const int DefaultKeepMinutes = 30;
+
     /// <summary>Each assistant's own model (never null).</summary>
     public IReadOnlyDictionary<string, string> AssistantModels => Models ?? new Dictionary<string, string>();
 
@@ -54,6 +66,9 @@ public sealed record BrainConfig(BrainProvider Provider, string Endpoint = "", s
         ["apiKey"] = ApiKey,
         ["model"] = Model,
         ["models"] = new JsonObject(AssistantModels.Select(p => KeyValuePair.Create(p.Key, (JsonNode?)p.Value))),
+        ["server"] = Server,
+        ["serverArgs"] = ServerArgs,
+        ["keepMinutes"] = KeepMinutes,
     };
 
     public static BrainConfig FromJson(JsonObject? json)
@@ -64,7 +79,9 @@ public sealed record BrainConfig(BrainProvider Provider, string Endpoint = "", s
         if (json["models"] is JsonObject own)
             foreach (var (id, model) in own)
                 if (Text(model) is { Length: > 0 } name) models[id] = name;
-        return new BrainConfig(BrainProviders.Parse(Text(json["provider"])), Text(json["endpoint"]), Text(json["apiKey"]), Text(json["model"]), models);
+        var keep = json["keepMinutes"] is JsonValue k && k.TryGetValue<int>(out var minutes) ? Math.Max(0, minutes) : DefaultKeepMinutes;
+        return new BrainConfig(BrainProviders.Parse(Text(json["provider"])), Text(json["endpoint"]), Text(json["apiKey"]), Text(json["model"]), models,
+            Text(json["server"]), Text(json["serverArgs"]), keep);
     }
 }
 
@@ -75,8 +92,14 @@ public static class BrainProviders
     {
         BrainProvider.LlamaSwap => "http://localhost:8080",
         BrainProvider.OpenAICompatible => "http://localhost:1234",
+        // Its own port, chosen when it starts: never typed.
+        BrainProvider.LlamaServer => "http://127.0.0.1",
         _ => "http://localhost:11434",
     };
+
+    /// <summary>A model's name for the user: a <c>.gguf</c> path is its file name without the extension.</summary>
+    public static string ModelLabel(string model) =>
+        model.EndsWith(".gguf", StringComparison.OrdinalIgnoreCase) ? Path.GetFileNameWithoutExtension(model) : model;
 
     /// <summary>Whether two model names are the same one («qwen3.5:4b» is «qwen3.5:4b:latest» too, as Ollama says).</summary>
     public static bool SameModel(string a, string b)
@@ -97,6 +120,7 @@ public static class BrainProviders
         BrainProvider.LlamaSwap => "llamaSwap",
         BrainProvider.OpenAICompatible => "openai",
         BrainProvider.None => "none",
+        BrainProvider.LlamaServer => "llamaServer",
         _ => "ollama",
     };
 
@@ -105,13 +129,15 @@ public static class BrainProviders
         "llamaSwap" => BrainProvider.LlamaSwap,
         "openai" => BrainProvider.OpenAICompatible,
         "none" => BrainProvider.None,
+        "llamaServer" => BrainProvider.LlamaServer,
         _ => BrainProvider.Ollama,
     };
 
-    /// <summary>Its name for the user (the OpenAI-compatible one and «none» are translated by the interface).</summary>
+    /// <summary>Its name for the user (the OpenAI-compatible one, llama-server and «none» are translated by the interface).</summary>
     public static string DisplayName(this BrainProvider provider) => provider switch
     {
         BrainProvider.LlamaSwap => "llama-swap",
+        BrainProvider.LlamaServer => "llama-server",
         BrainProvider.Ollama => "Ollama",
         _ => provider.Key(),
     };

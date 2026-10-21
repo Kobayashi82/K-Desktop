@@ -30,6 +30,9 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     /// <summary>Runs «Asistente: decir» (assistant id or empty, the text) on the UI thread.</summary>
     public Action<string, string>? AssistantSayer { get; set; }
 
+    /// <summary>Runs «Asistente: cerebro» on the UI thread.</summary>
+    public Action<Core.Model.AssistantBrainOp>? AssistantBrainer { get; set; }
+
     private OsdWindow Osd
     {
         get
@@ -106,6 +109,8 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     public void AskAssistant(string assistant, string text) => dispatcher.BeginInvoke(() => AssistantAsk?.Invoke(assistant, text));
 
     public void AssistantSay(string assistant, string text) => dispatcher.BeginInvoke(() => AssistantSayer?.Invoke(assistant, text));
+
+    public void AssistantBrain(Core.Model.AssistantBrainOp op) => dispatcher.BeginInvoke(() => AssistantBrainer?.Invoke(op));
 
     public void RunOnUi(Action action)
     {

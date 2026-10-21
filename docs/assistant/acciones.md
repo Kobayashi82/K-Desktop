@@ -37,5 +37,6 @@ aparece un `ActionKind` sin gesto o sin riesgo.
 | Portapapeles, Wake on LAN, Sonido, Grabar audio, Mensaje, Archivos ocultos, «Desactivar en», K-Board, QuickMenu, Lanzador | | `communicate` ★ (icono de cada una) | 🟢 |
 | Asistente: acción (`AssistantExtra`) | | `communicate` ★ (icono `assistant`); el extra lo hace el asistente que lo declara | 🟢 |
 | Asistente: decir (`AssistantSay`) | | `communicate` ★ (icono `assistant`): el asistente lo dice (`say`) | 🟢 |
+| Asistente: cerebro (`AssistantBrain`) | | `communicate` (icono `assistant`): saca el modelo de la gráfica o lo carga (`brain` `unload` / `load`) | 🟢 |
 | Asistente: preguntar (`AssistantAsk`) | | `communicate` ★ (icono `assistant`); la orden la contesta el asistente (`heard` con `source: "command"`); sin texto, abre la caja para escribirla | 🟢 |
 | «Si…» (`Condition`) | | ninguno: solo decide qué acciones corren | 🟢 |

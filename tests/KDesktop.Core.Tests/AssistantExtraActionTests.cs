@@ -74,6 +74,21 @@ public class AssistantExtraActionTests
     }
 
     [Fact]
+    public async Task TheBrainActionIsSavedAndHandedToTheUi()
+    {
+        var command = new Command { Name = "Antes de jugar" };
+        command.Actions.Add(new AssistantBrainAction { Op = AssistantBrainOp.Unload });
+        Assert.Contains("\"assistantBrain\"", Json.Serialize(command));
+        var back = Json.Deserialize<Command>(Json.Serialize(command))!;
+        Assert.Equal(AssistantBrainOp.Unload, Assert.IsType<AssistantBrainAction>(back.Actions[0]).Op);
+        var ui = new FakeUi();
+        var store = new ConfigStore();
+        store.Config.Commands.Add(back);
+        await new CommandEngine(store, ui).RunAsync(back, TriggerSource.Hotkey);
+        Assert.Equal([AssistantBrainOp.Unload], ui.Brain);
+    }
+
+    [Fact]
     public async Task SayingSomethingIsSavedAndHandedToTheUi()
     {
         var command = new Command { Name = "Copia terminada" };

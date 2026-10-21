@@ -56,9 +56,10 @@ public partial class BenchView : UserControl
         if (signature != _models && !ModelBox.IsDropDownOpen)
         {
             _models = signature;
-            var keep = ModelBox.SelectedItem as string ?? (bench?.Model is { Length: > 0 } tried ? tried : _app.AssistantBrain?.Model);
-            ModelBox.ItemsSource = models;
-            ModelBox.SelectedItem = models.FirstOrDefault(m => m == keep) ?? models.FirstOrDefault();
+            var keep = (ModelBox.SelectedItem as BenchModel)?.Value ?? (bench?.Model is { Length: > 0 } tried ? tried : _app.AssistantBrain?.Model);
+            var options = models.Select(m => new BenchModel(m)).ToList();
+            ModelBox.ItemsSource = options;
+            ModelBox.SelectedItem = options.FirstOrDefault(m => m.Value == keep) ?? options.FirstOrDefault();
         }
         ModelBox.IsEnabled = !running;
         RunButton.IsEnabled = connected && ModelBox.SelectedItem is not null;
@@ -69,7 +70,7 @@ public partial class BenchView : UserControl
         if (running)
         {
             Progress.Value = bench!.Total == 0 ? 0 : (double)bench.Done / bench.Total;
-            ProgressText.Text = Loc.T("bench.progress", bench.Model, bench.Done, bench.Total, bench.Passed);
+            ProgressText.Text = Loc.T("bench.progress", Core.Assistant.Brain.BrainProviders.ModelLabel(bench.Model), bench.Done, bench.Total, bench.Passed);
         }
         ResultText.Visibility = bench is { State: "done" or "failed" or "cancelled" } ? Visibility.Visible : Visibility.Collapsed;
         if (bench is { State: "done" }) ResultText.Text = Score(bench.Model, bench.Passed, bench.Total, bench.MeanMs);
@@ -97,9 +98,15 @@ public partial class BenchView : UserControl
         }
     }
 
+    /// <summary>A model of the list: a .gguf by its file name.</summary>
+    private sealed record BenchModel(string Value)
+    {
+        public override string ToString() => Core.Assistant.Brain.BrainProviders.ModelLabel(Value);
+    }
+
     /// <summary>«qwen3-4b-instruct: 29/32 (91 %) · 0,5 s».</summary>
     private static string Score(string model, int passed, int total, int meanMs) =>
-        Loc.T("bench.score", model, passed, total, total == 0 ? 0 : (int)Math.Round(100.0 * passed / total), (meanMs / 1000.0).ToString("0.0", Loc.Instance.Culture));
+        Loc.T("bench.score", Core.Assistant.Brain.BrainProviders.ModelLabel(model), passed, total, total == 0 ? 0 : (int)Math.Round(100.0 * passed / total), (meanMs / 1000.0).ToString("0.0", Loc.Instance.Culture));
 
     /// <summary>What was asked, what was expected and what it did.</summary>
     private static Border FailureRow(BenchCaseResult failure)
@@ -120,7 +127,7 @@ public partial class BenchView : UserControl
 
     private void OnRun(object sender, RoutedEventArgs e)
     {
-        if (ModelBox.SelectedItem is string model) _app.StartAssistantBench(model);
+        if (ModelBox.SelectedItem is BenchModel model) _app.StartAssistantBench(model.Value);
     }
 
     private void OnCancel(object sender, RoutedEventArgs e) => _app.CancelAssistantBench();

@@ -78,7 +78,10 @@ public partial class AssistantPage : UserControl
         var hasModel = status?.Model is { Length: > 0 };
         ModelLabel.Visibility = ModelText.Visibility = hasModel ? Visibility.Visible : Visibility.Collapsed;
         if (hasModel)
-            ModelText.Text = status!.ModelLoaded == true ? Loc.T("assistantPanel.modelLoaded", status.Model) : Loc.T("assistantPanel.modelNotLoaded", status.Model);
+        {
+            var label = Core.Assistant.Brain.BrainProviders.ModelLabel(status!.Model!);
+            ModelText.Text = status.ModelLoaded == true ? Loc.T("assistantPanel.modelLoaded", label) : Loc.T("assistantPanel.modelNotLoaded", label);
+        }
         ErrorPanel.Visibility = _app.AssistantError is null ? Visibility.Collapsed : Visibility.Visible;
         if (_app.AssistantError is { } error) ErrorText.Text = $"{error.Text} ({error.At.ToString("g", Loc.Instance.Culture)})";
         UpdateUsage();

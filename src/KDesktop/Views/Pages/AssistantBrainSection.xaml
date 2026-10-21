@@ -33,7 +33,35 @@
                 </Grid>
 
                 <StackPanel x:Name="ServerRows">
-                    <Grid Style="{StaticResource SettingRow}">
+                    <!-- llama-server started by the assistant process: the program and what is added to its options -->
+                    <StackPanel x:Name="LocalServerRows" Visibility="Collapsed">
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="300" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                <TextBlock Text="{l:Tr brainOptions.server}" />
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr brainOptions.serverHint}" />
+                            </StackPanel>
+                            <Grid Grid.Column="1" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                <ui:TextBox x:Name="ServerBox" LostFocus="OnServerLeft" PlaceholderText="llama-server.exe"
+                                            AutomationProperties.Name="{l:Tr brainOptions.server}" />
+                                <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr brainOptions.browse}" Click="OnBrowseServer"
+                                           AutomationProperties.Name="{l:Tr brainOptions.browseServerTitle}" />
+                            </Grid>
+                        </Grid>
+
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="300" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                <TextBlock Text="{l:Tr brainOptions.serverArgs}" />
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr brainOptions.serverArgsHint}" />
+                            </StackPanel>
+                            <ui:TextBox x:Name="ServerArgsBox" Grid.Column="1" VerticalAlignment="Center" LostFocus="OnServerArgsLeft"
+                                        PlaceholderText="-c 32768" AutomationProperties.Name="{l:Tr brainOptions.serverArgs}" />
+                        </Grid>
+                    </StackPanel>
+
+                    <Grid x:Name="EndpointRow" Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="300" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr brainOptions.endpoint}" />
@@ -57,10 +85,24 @@
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="300" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr brainOptions.model}" />
-                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr brainOptions.modelHint}" />
+                            <TextBlock x:Name="ModelHint" Style="{StaticResource Caption}" Text="{l:Tr brainOptions.modelHint}" />
                         </StackPanel>
-                        <ComboBox x:Name="ModelBox" Grid.Column="1" VerticalAlignment="Center" SelectionChanged="OnModelChanged"
-                                  AutomationProperties.Name="{l:Tr brainOptions.model}" />
+                        <Grid Grid.Column="1" VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <ComboBox x:Name="ModelBox" SelectionChanged="OnModelChanged" AutomationProperties.Name="{l:Tr brainOptions.model}" />
+                            <ui:Button x:Name="BrowseModelButton" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr brainOptions.browse}" Click="OnBrowseModel"
+                                       Visibility="Collapsed" AutomationProperties.Name="{l:Tr brainOptions.browseModelTitle}" />
+                        </Grid>
+                    </Grid>
+
+                    <Grid x:Name="KeepRow" Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="300" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr brainOptions.keep}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr brainOptions.keepHint}" />
+                        </StackPanel>
+                        <ComboBox x:Name="KeepBox" Grid.Column="1" VerticalAlignment="Center" SelectionChanged="OnKeepChanged"
+                                  AutomationProperties.Name="{l:Tr brainOptions.keep}" />
                     </Grid>
 
                     <!-- How it is now -->
@@ -117,14 +159,17 @@
                         </StackPanel.Resources>
                     </StackPanel>
 
-                    <Grid Style="{StaticResource SettingRow}" Margin="0,10,0,0">
+                    <Grid x:Name="FreeRow" Style="{StaticResource SettingRow}" Margin="0,10,0,0">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr brainOptions.free}" />
                             <TextBlock x:Name="FreeText" Style="{StaticResource Caption}" />
                         </StackPanel>
-                        <ui:Button x:Name="FreeButton" Grid.Column="1" VerticalAlignment="Center" Content="{l:Tr brainOptions.freeButton}"
-                                   Icon="{ui:SymbolIcon Broom24}" Click="OnFree" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <ui:Button x:Name="LoadButton" Margin="0,0,8,0" Content="{l:Tr brainOptions.loadButton}"
+                                       Icon="{ui:SymbolIcon ArrowUpload24}" Click="OnLoad" Visibility="Collapsed" />
+                            <ui:Button x:Name="FreeButton" Content="{l:Tr brainOptions.freeButton}" Icon="{ui:SymbolIcon Broom24}" Click="OnFree" />
+                        </StackPanel>
                     </Grid>
                 </StackPanel>
             </StackPanel>

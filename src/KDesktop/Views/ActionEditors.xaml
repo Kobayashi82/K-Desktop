@@ -1207,6 +1207,16 @@
         </StackPanel>
     </DataTemplate>
 
+    <!-- ── Asistente: cerebro ──────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:AssistantBrainAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+            <ComboBox Margin="0,0,0,8" ItemsSource="{x:Static v:Lookups.AssistantBrainOps}" DisplayMemberPath="Name" SelectedValuePath="Value"
+                      SelectedValue="{Binding Op}" AutomationProperties.Name="{l:Tr editor.mode}" />
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.assistantBrainHint}" />
+        </StackPanel>
+    </DataTemplate>
+
     <!-- ── Si… ─────────────────────────────────────────────────────────── -->
     <DataTemplate DataType="{x:Type m:ConditionAction}">
         <StackPanel>

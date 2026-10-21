@@ -85,15 +85,20 @@ public sealed class BrainService : IDisposable
         lock (_gate)
         {
             if (_disposed) return;
-            var sameServer = config.Provider == _config.Provider && BrainScout.SameEndpoint(config.Address, _config.Address) && config.ApiKey == _config.ApiKey;
+            var sameServer = config.Provider == _config.Provider && BrainScout.SameEndpoint(config.Address, _config.Address) && config.ApiKey == _config.ApiKey
+                && config.Server == _config.Server && config.ServerArgs == _config.ServerArgs && config.KeepMinutes == _config.KeepMinutes
+                // llama-server lists the model chosen (it may be anywhere).
+                && (config.Provider != BrainProvider.LlamaServer || config.Model == _config.Model);
             var sameModel = sameServer && config.Model == _config.Model && _client is not null;
             _config = config;
             // Only the assistants' own models changed: nothing to look at again.
             if (sameModel) return;
             if (!sameServer || _client is null)
             {
+                if (_client is LlamaServerChatModel old) old.Changed -= OnServerChanged;
                 _client?.Dispose();
                 _client = ChatModels.Create(config, _http);
+                if (_client is LlamaServerChatModel server) server.Changed += OnServerChanged;
                 _generation++;
             }
         }
@@ -163,8 +168,12 @@ public sealed class BrainService : IDisposable
         "pull" when message.Model is { Length: > 0 } model => PullAsync(model),
         "cancel" => Cancel(),
         "unload" => UnloadAsync(),
+        "load" => LoadAsync(),
         _ => Task.CompletedTask,
     };
+
+    /// <summary>llama-server started loading, loaded or stopped: the state says so.</summary>
+    private void OnServerChanged() => _ = CheckAsync(scanIfMissing: false);
 
     /// <summary>
     /// Looks at the server: its models, which one is used and which are loaded. With <paramref name="scanIfMissing"/>, a
@@ -220,7 +229,10 @@ public sealed class BrainService : IDisposable
             var chat = ModelPicker.Chat(models).ToList();
             var list = chat.Select(m => new BrainModel(m.Name, Math.Round(ModelPicker.SizeOf(m), 2), m.SizeBytes, m.SupportsTools)).ToList();
             var suggested = config.Provider == BrainProvider.Ollama ? ModelAdvice.Recommend(video) : null;
-            var empty = Empty(config, "ready") with { Models = list, Loaded = loaded, Ollama = ollama, VideoMemoryGb = video };
+            var empty = Empty(config, "ready") with
+            {
+                Models = list, Loaded = loaded, Ollama = ollama, VideoMemoryGb = video, Loading = (client as LlamaServerChatModel)?.Loading is not null,
+            };
             if (chat.Count == 0) return empty with { State = "noModels", Suggested = suggested };
             if (config.Model.Length > 0)
             {
@@ -228,7 +240,7 @@ public sealed class BrainService : IDisposable
                     ? empty with { Model = chosen.Name }
                     : empty with { State = "modelMissing", Model = config.Model, Message = Loc.T("brain.error.modelMissing", config.Model) };
             }
-            var picked = ModelPicker.Choose(chat, null)!;
+            var picked = config.Provider == BrainProvider.LlamaServer ? BiggestThatFits(chat, video) : ModelPicker.Choose(chat, null)!;
             return empty with { Model = picked.Name, Automatic = true, Suggested = picked.SupportsTools ? null : suggested };
         }
         catch (ChatModelException ex)
@@ -236,6 +248,20 @@ public sealed class BrainService : IDisposable
             var state = ex.Failure is ChatModelFailure.Unreachable or ChatModelFailure.Timeout ? "unreachable" : "error";
             return Empty(config, state) with { Message = ex.Message, Ollama = ollama, VideoMemoryGb = video, Suggested = local ? ModelAdvice.Recommend(video) : null };
         }
+    }
+
+    /// <summary>Video memory left for Windows and the rest when a llama-server model is chosen by itself.</summary>
+    private const double SpareVideoGb = 3;
+
+    /// <summary>
+    /// The .gguf llama-server takes by itself: whoever puts a big model next to the server wants that one (the smartest),
+    /// as long as it fits in the graphics card with room for the rest; none fits: the smallest.
+    /// </summary>
+    private static ModelInfo BiggestThatFits(IReadOnlyList<ModelInfo> models, double? videoGb)
+    {
+        var room = videoGb is { } gb ? (gb - SpareVideoGb) * 1e9 : double.MaxValue;
+        return models.Where(m => m.SizeBytes <= room).OrderByDescending(m => m.SizeBytes).FirstOrDefault()
+            ?? models.OrderBy(m => m.SizeBytes).First();
     }
 
     /// <summary>Looks for servers in the usual places of this PC (not the one in use).</summary>
@@ -331,25 +357,57 @@ public sealed class BrainService : IDisposable
         return Task.CompletedTask;
     }
 
-    /// <summary>Unloads what is in memory (or the model in use, when the server does not say what is loaded).</summary>
-    private async Task UnloadAsync()
+    /// <summary>
+    /// Unloads what is in memory (or the model in use, when the server does not say what is loaded): Options, the action
+    /// «Asistente: cerebro» and «descarga el cerebro». Whether something was loaded (or loading).
+    /// </summary>
+    public async Task<bool> UnloadAsync()
     {
         var (client, state) = (Client, State);
-        if (client is null) return;
+        if (client is null) return false;
+        var any = state.Loaded is { Count: > 0 } || state.Loading;
         var models = state.Loaded is { Count: > 0 } loaded ? loaded : state.Model is { } model ? [model] : [];
+        // llama-server stops whatever it has (also a model still loading, which Loaded does not list).
+        if (client is LlamaServerChatModel && state.Model is { } path) models = [path];
+        await UnloadModelsAsync(client, models).ConfigureAwait(false);
+        await CheckAsync(scanIfMissing: false).ConfigureAwait(false);
+        return any;
+    }
+
+    /// <summary>Loads the model in use now (Options, the action): the first answer does not wait for it.</summary>
+    public async Task LoadAsync()
+    {
+        var (client, model) = (Client, Model);
+        if (client is null || model is null) return;
+        Log.Info($"Asistente: cargando {BrainProviders.ModelLabel(model)} a petición");
+        try
+        {
+            using var limit = new CancellationTokenSource(LlamaServerChatModel.StartPatience);
+            await client.PreloadAsync(model, limit.Token).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is ChatModelException or OperationCanceledException)
+        {
+            Log.Warn($"Asistente: no se ha podido cargar {BrainProviders.ModelLabel(model)}: {ex.Message}");
+            Set(s => s with { Message = ex.Message });
+            return;
+        }
+        await CheckAsync(scanIfMissing: false).ConfigureAwait(false);
+    }
+
+    private static async Task UnloadModelsAsync(IChatModel client, IReadOnlyList<string> models)
+    {
         foreach (var name in models)
         {
             try
             {
                 await client.UnloadAsync(name, CancellationToken.None).ConfigureAwait(false);
-                Log.Info($"Asistente: modelo {name} liberado");
+                Log.Info($"Asistente: modelo {BrainProviders.ModelLabel(name)} liberado");
             }
             catch (ChatModelException ex)
             {
-                Log.Warn($"Asistente: no se ha podido liberar {name}: {ex.Message}");
+                Log.Warn($"Asistente: no se ha podido liberar {BrainProviders.ModelLabel(name)}: {ex.Message}");
             }
         }
-        await CheckAsync(scanIfMissing: false).ConfigureAwait(false);
     }
 
     /// <summary>Starts a job (one at a time); null when another one is running.</summary>

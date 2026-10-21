@@ -12,5 +12,6 @@
   "loaded": ["qwen3.5:4b"],
   "ollama": { "installed": true, "canInstall": true },
   "job": { "kind": "pull", "state": "running", "model": "qwen3.5:2b", "completed": 1200000000, "total": 2700000000 },
-  "videoMemoryGb": 12
+  "videoMemoryGb": 12,
+  "loading": false
 }

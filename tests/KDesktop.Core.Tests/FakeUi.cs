@@ -50,5 +50,12 @@ internal sealed class FakeUi : IUiServices
         lock (Said) Said.Add((assistant, text));
     }
 
+    public List<AssistantBrainOp> Brain { get; } = [];
+
+    public void AssistantBrain(AssistantBrainOp op)
+    {
+        lock (Brain) Brain.Add(op);
+    }
+
     private sealed class Nothing : IDisposable { public void Dispose() { } }
 }

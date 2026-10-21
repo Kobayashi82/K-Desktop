@@ -32,6 +32,8 @@ public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimePro
         [QuickRuleKind.OpenWeb] = "open_web",
         [QuickRuleKind.Remember] = "remember",
         [QuickRuleKind.Forget] = "forget",
+        [QuickRuleKind.Act] = "control_app",
+        [QuickRuleKind.OpenApp] = "open_app",
     };
 
     /// <param name="progress">Each order when it is done (any thread).</param>
@@ -57,6 +59,17 @@ public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimePro
         var ran = new List<string>();
         string route, answer;
         var rule = QuickRules.Match(item.Say, [persona.Name]);
+        // As in a real order: the rules about programs only count after the user's own commands («pon chrome a la
+        // derecha» is their command, not «minimiza…»), and «abre X» only when X is installed (else the AI).
+        if (rule is { Kind: QuickRuleKind.Act or QuickRuleKind.OpenApp })
+        {
+            var program = rule;
+            rule = null;
+            var matchedFirst = commands is not null && !TalkService.IsQuestion(item.Say) ? await commands.MatchAsync(item.Say, cancellationToken).ConfigureAwait(false) : null;
+            var byCommand = matchedFirst is not null && matchedFirst.Parts.Count > 0 && matchedFirst.Parts.All(p => p.Sure && p.Candidates[0].Score >= CommandTools.Direct)
+                && matchedFirst.Unmatched.Count == 0;
+            if (!byCommand && (program.Kind == QuickRuleKind.Act || await IsInstalledAsync(program.Text).ConfigureAwait(false))) rule = program;
+        }
         var matched = rule is null && commands is not null && !TalkService.IsQuestion(item.Say) ? await commands.MatchAsync(item.Say, cancellationToken).ConfigureAwait(false) : null;
         if (matched is not null) Core.Log.Info("Asistente: banco, comandos: " + CommandTools.Describe(matched));
         if (matched is not null && matched.Parts.All(p => p.Sure && p.Candidates[0].Score >= CommandTools.Direct) && matched.Unmatched.Count == 0)
@@ -99,6 +112,9 @@ public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimePro
         return new BenchCaseResult(item.Say, item.Expect.Describe(), passed, route, [.. used.Distinct()], answer, (int)watch.ElapsedMilliseconds,
             ran.Count > 0 ? [.. ran.Distinct()] : null);
     }
+
+    private async Task<bool> IsInstalledAsync(string? name) =>
+        name is { Length: > 0 } && tools.Find("open_app") is OpenAppTool open && await open.FindAsync(name).ConfigureAwait(false) is not null;
 
     private static IEnumerable<ITool> CommandToolsOn(ICommandBridge bridge)
     {

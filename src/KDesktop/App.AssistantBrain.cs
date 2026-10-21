@@ -3,6 +3,7 @@ using KDesktop.Core;
 using KDesktop.Core.Assistant.Brain;
 using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Assistant.Pipe;
+using KDesktop.Core.Localization;
 using KDesktop.Core.Platform;
 
 namespace KDesktop;
@@ -27,7 +28,8 @@ public partial class App
     private JsonObject AssistantBrainConfig()
     {
         var s = Config.Settings;
-        return new BrainConfig(s.AssistantBrainProvider, s.AssistantBrainEndpoint, AssistantBrainApiKey, s.AssistantBrainModel, s.AssistantModels).ToJson();
+        return new BrainConfig(s.AssistantBrainProvider, s.AssistantBrainEndpoint, AssistantBrainApiKey, s.AssistantBrainModel, s.AssistantModels,
+            s.AssistantBrainServer, s.AssistantBrainServerArgs, s.AssistantBrainKeepMinutes).ToJson();
     }
 
     /// <summary>An assistant's own model (stage 3.2); null or empty: the general one.</summary>
@@ -71,6 +73,23 @@ public partial class App
 
     /// <summary>Asks the process something for Options → Assistant → Brain (see <see cref="BrainMessage"/>).</summary>
     public void AskAssistantBrain(string op, string? model = null) => _assistant?.Send(new BrainMessage(op, model));
+
+    /// <summary>
+    /// «Asistente: cerebro» (and the tray): the model out of the graphics card, or loaded now. Without the module running,
+    /// nothing of it is loaded: said in the OSD.
+    /// </summary>
+    private void BrainFromCommand(Core.Model.AssistantBrainOp op)
+    {
+        if (_assistant is not { IsRunning: true } || Config.Settings.AssistantBrainProvider == BrainProvider.None)
+        {
+            Ui.ShowOsd(Loc.T(op == Core.Model.AssistantBrainOp.Unload ? "osd.brainNothing" : "assistantExtra.moduleOff"), Core.Engine.OsdKind.Warning);
+            return;
+        }
+        var loaded = AssistantBrain is { Loaded.Count: > 0 } or { Loading: true };
+        AskAssistantBrain(op == Core.Model.AssistantBrainOp.Unload ? "unload" : "load");
+        Ui.ShowOsd(Loc.T(op == Core.Model.AssistantBrainOp.Load ? "osd.brainLoading" : loaded ? "osd.brainFreed" : "osd.brainNothing"));
+        Log.Info($"Asistente: cerebro {(op == Core.Model.AssistantBrainOp.Unload ? "descargado" : "cargado")} con la acción");
+    }
 
     private void OnAssistantBrainState(BrainStateMessage state)
     {

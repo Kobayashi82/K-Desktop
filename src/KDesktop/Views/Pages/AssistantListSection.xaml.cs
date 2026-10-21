@@ -111,11 +111,12 @@ public partial class AssistantListSection : UserControl
         row.HasBrain = _app.Config.Settings.AssistantBrainProvider != Core.Assistant.Brain.BrainProvider.None;
         List<ModelOption> options =
         [
-            new(string.Empty, brain is { State: "ready", Model: { } general } ? Loc.T("assistantOptions.modelGeneralIs", general) : Loc.T("assistantOptions.modelGeneral")),
-            .. (brain?.Models ?? []).Select(m => new ModelOption(m.Name, m.Name)),
+            new(string.Empty, brain is { State: "ready", Model: { } general } ? Loc.T("assistantOptions.modelGeneralIs", Core.Assistant.Brain.BrainProviders.ModelLabel(general)) : Loc.T("assistantOptions.modelGeneral")),
+            .. (brain?.Models ?? []).Select(m => new ModelOption(m.Name, Core.Assistant.Brain.BrainProviders.ModelLabel(m.Name))),
         ];
         if (row.ModelName.Length > 0 && !options.Any(o => Core.Assistant.Brain.BrainProviders.SameModel(o.Value, row.ModelName)))
-            options.Add(new ModelOption(row.ModelName, brain is null ? row.ModelName : Loc.T("assistantOptions.modelMissing", row.ModelName)));
+            options.Add(new ModelOption(row.ModelName, brain is null ? Core.Assistant.Brain.BrainProviders.ModelLabel(row.ModelName)
+                : Loc.T("assistantOptions.modelMissing", Core.Assistant.Brain.BrainProviders.ModelLabel(row.ModelName))));
         else if (row.ModelName.Length > 0 && options.FirstOrDefault(o => Core.Assistant.Brain.BrainProviders.SameModel(o.Value, row.ModelName)) is { } same)
             row.ModelName = same.Value;
         row.ModelOptions = options;

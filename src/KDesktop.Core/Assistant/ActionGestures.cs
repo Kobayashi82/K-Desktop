@@ -107,6 +107,7 @@ public static class ActionGestures
         // An order for an assistant: it answers it its own way.
         ActionKind.AssistantAsk => Say("assistant"),
         ActionKind.AssistantSay => Say("assistant"),
+        ActionKind.AssistantBrain => Say("assistant"),
 
         // «Si…» decides which actions run; it does nothing visible itself.
         ActionKind.Condition => [],

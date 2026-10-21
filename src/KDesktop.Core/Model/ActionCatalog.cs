@@ -59,6 +59,7 @@ public static class ActionCatalog
         new(ActionKind.AssistantExtra, "assistant", "Bot24", () => new AssistantExtraAction()),
         new(ActionKind.AssistantAsk, "assistant", "ChatBubblesQuestion24", () => new AssistantAskAction()),
         new(ActionKind.AssistantSay, "assistant", "Megaphone24", () => new AssistantSayAction()),
+        new(ActionKind.AssistantBrain, "assistant", "BrainCircuit24", () => new AssistantBrainAction()),
     ];
 
     /// <summary>The actions of K-Desktop itself (without the assistant module's): the ones the achievements count.</summary>
