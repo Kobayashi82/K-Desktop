@@ -22,11 +22,39 @@ public partial class App
     /// </summary>
     private void UpdateSleepingWakeWords()
     {
+        ClaimWakeWordsByName();
         var s = Config.Settings;
         Voice.WakeWords.Asleep = s.AssistantWakeWords
             .Where(p => p.Key != AssistantTargeting.AnyAssistant && (!s.AssistantEnabled || !s.AssistantsOnDesktop.Contains(p.Key)))
             .Select(p => p.Value)
             .ToHashSet();
+    }
+
+    /// <summary>
+    /// A recorded word with an installed assistant's name (the one its manifest suggests, or its name) that nobody has is
+    /// that assistant's (UI thread): saying «Dot» calls Dot, not K-Desktop's commands. Only once per assistant
+    /// (<see cref="Core.Model.AppSettings.AssistantWakeDecided"/>), so a word taken away from it by hand stays away. Not a
+    /// word with its name that is already someone else's («Lander» as the word for any assistant).
+    /// </summary>
+    private void ClaimWakeWordsByName()
+    {
+        var s = Config.Settings;
+        if (!s.AssistantEnabled) return;
+        foreach (var installed in AssistantPackages.Installed())
+        {
+            var id = installed.Id;
+            if (s.AssistantWakeDecided.Contains(id)) continue;
+            if (s.AssistantWakeWords.ContainsKey(id))
+            {
+                s.AssistantWakeDecided = [.. s.AssistantWakeDecided, id];
+                continue;
+            }
+            var name = installed.Manifest.WakeWord is { Length: > 0 } suggested ? suggested : installed.Manifest.Name;
+            if (HasWakeWord(id, name) || FreeWakeWordNamed(name) is not { } word) continue;
+            s.AssistantWakeWords = AssistantTargeting.Assign(s.AssistantWakeWords, id, word.Id);
+            s.AssistantWakeDecided = [.. s.AssistantWakeDecided, id];
+            Log.Info($"Asistente: la palabra «{word.Name}» pasa a ser de «{id}» (se llama como él y no era de nadie)");
+        }
     }
 
     /// <summary>

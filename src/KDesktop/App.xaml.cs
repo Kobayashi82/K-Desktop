@@ -138,6 +138,8 @@ public partial class App : Application
         UpdateSleepingWakeWords();
         AssistantChanged += UpdateSleepingWakeWords;
         Store.Changed += (_, _) => Dispatcher.BeginInvoke(UpdateSleepingWakeWords);
+        // A word just recorded with an assistant's name is given to it.
+        Voice.WakeWords.Changed += () => Dispatcher.BeginInvoke(UpdateSleepingWakeWords);
         Engine.Recording.Changed += () => Dispatcher.BeginInvoke(ApplyTrayIcon);
         Engine.Magnifier.Changed += () => Ui.ShowOsd(Engine.Magnifier.IsOn
             ? Loc.T("osd.zoomOn", Engine.Magnifier.Zoom.ToString("0.#", System.Globalization.CultureInfo.CurrentCulture))
