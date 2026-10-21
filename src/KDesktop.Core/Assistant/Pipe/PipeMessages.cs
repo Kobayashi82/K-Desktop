@@ -332,6 +332,29 @@ public sealed record ChatLineMessage(string Role, string Text, string Turn, bool
     public override string Type => "chat";
 }
 
+// ── meaning (stage 3.5) ─────────────────────────────────────────────────
+
+/// <summary>
+/// Vectors of meaning for some texts, from K-Desktop's EmbeddingGemma (it already has it loaded for the voice): to
+/// choose the tools that fit an order. Answered with <see cref="EmbeddedMessage"/>, or an <c>error</c>
+/// <c>noModel</c> with this id when it is not downloaded.
+/// </summary>
+/// <param name="Texts">At most <see cref="MaxTexts"/>.</param>
+/// <param name="Keep">Texts asked for again and again (the example phrases of the tools): K-Desktop keeps their vectors on disk.</param>
+public sealed record EmbedMessage(string Id, IReadOnlyList<string> Texts, bool? Keep = null) : PipeMessage
+{
+    public const int MaxTexts = 64;
+
+    public override string Type => "embed";
+}
+
+/// <param name="Vectors">One unit-length vector per text, in the same order.</param>
+/// <param name="Model">Which model made them: vectors of different models do not compare.</param>
+public sealed record EmbeddedMessage(string Id, IReadOnlyList<float[]> Vectors, string Model) : PipeMessage
+{
+    public override string Type => "embedded";
+}
+
 /// <summary>Reading and writing messages as lines.</summary>
 public static class PipeJson
 {
@@ -388,6 +411,8 @@ public static class PipeJson
         ["heard"] = typeof(HeardMessage),
         ["cancel"] = typeof(CancelMessage),
         ["chat"] = typeof(ChatLineMessage),
+        ["embed"] = typeof(EmbedMessage),
+        ["embedded"] = typeof(EmbeddedMessage),
     };
 
     /// <summary>[JsonIgnore] on the abstract Type is not inherited by the overrides: drop it here.</summary>

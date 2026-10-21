@@ -15,7 +15,8 @@ namespace KDesktop.Assistant.Host.Runtime;
 /// Talking with the assistants of the process (stage 3.4): K-Desktop's <c>heard</c> and <c>cancel</c> go to the
 /// <see cref="TalkService"/> (fixed rules, then the AI with the persona of the one it was said to); its lines go back as
 /// <c>chat</c>, its state as <c>status</c>, and the character shows it (thinking, then Communicate while it «says» it).
-/// Without a body (no assistant, or one not on the desktop) only the chat gets it.
+/// Without a body (no assistant, or one not on the desktop) only the chat gets it. The tools that reach the AI are
+/// chosen by meaning, with K-Desktop's vectors (<see cref="Meaning"/>, stage 3.5).
 /// </summary>
 internal sealed class ModuleTalk : ITalkOutput
 {
@@ -25,16 +26,28 @@ internal sealed class ModuleTalk : ITalkOutput
     /// <summary>The package folder of each assistant K-Desktop loaded (its persona is read from there).</summary>
     private readonly ConcurrentDictionary<string, string> _folders = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, (string Language, AssistantPersona Persona)> _personas = new(StringComparer.Ordinal);
+    private readonly ModuleTools _tools;
 
     public ModuleTalk(KDesktopLink link, EngineLoop engine, AssistantRuntime runtime, BrainService brain, ModuleTools tools)
     {
         _link = link;
         _engine = engine;
         _runtime = runtime;
-        Service = new TalkService(who => (brain.Client, brain.ModelFor(who)), tools.Runner, PersonaOf, this);
+        _tools = tools;
+        Meaning = new ModuleMeaning(link);
+        Chooser = new ToolChooser(Meaning);
+        Service = new TalkService(who => (brain.Client, brain.ModelFor(who)), tools.Runner, PersonaOf, this, chooser: Chooser);
     }
 
     public TalkService Service { get; }
+
+    /// <summary>The vectors of meaning K-Desktop sends (<c>embedded</c>).</summary>
+    public ModuleMeaning Meaning { get; }
+
+    public ToolChooser Chooser { get; }
+
+    /// <summary>Connected: the example phrases of the tools get their vectors before the first order needs them.</summary>
+    public Task WarmAsync() => Chooser.WarmAsync(_tools.Runner.Registry.All, CancellationToken.None);
 
     /// <summary>K-Desktop is paused: orders are not answered.</summary>
     public bool Paused { get; set; }

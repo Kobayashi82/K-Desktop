@@ -46,8 +46,9 @@ public sealed class TalkService
 
     /// <param name="brain">The model client and model name for an assistant (null: no AI now).</param>
     /// <param name="persona">The persona of an assistant (null: the module without a body), in the user's language.</param>
+    /// <param name="chooser">Which tools reach the AI (null: by the words of the order).</param>
     public TalkService(Func<string?, (IChatModel? Client, string? Model)> brain, ToolRunner tools, Func<string?, AssistantPersona> persona,
-        ITalkOutput output, TimeProvider? time = null, Random? random = null)
+        ITalkOutput output, TimeProvider? time = null, Random? random = null, ToolChooser? chooser = null)
     {
         _brain = brain;
         _tools = tools;
@@ -55,7 +56,7 @@ public sealed class TalkService
         _output = output;
         _time = time ?? TimeProvider.System;
         _random = random ?? Random.Shared;
-        _mind = new TalkMind(tools, _time);
+        _mind = new TalkMind(tools, chooser ?? new ToolChooser(null), _time);
     }
 
     /// <summary>An order for an assistant. Completes when it has been answered (and said), or replaced by another.</summary>
@@ -74,7 +75,7 @@ public sealed class TalkService
             var answer = await AnswerAsync(conversation, persona, who, said, turn, wasBusy, token).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
             _output.Chat(new ChatLineMessage("assistant", answer.Text, turn, true, who));
-            if (answer.Remember) conversation.History.Add(said, answer.Text);
+            if (answer.Remember) conversation.History.Add(said, answer.Text, answer.Tools);
             if (answer.Text.Length > 0) conversation.LastAnswer = answer.Text;
             _output.State(who, "speaking");
             await _output.SpeakAsync(who, answer.Text, token).ConfigureAwait(false);
@@ -144,7 +145,7 @@ public sealed class TalkService
         if (client is null || model is null) return new TalkAnswer(Phrase(persona, "noBrain"), Remember: false, Failed: true);
         _output.State(who, "thinking");
         var shown = new PartialText(text => _output.Chat(new ChatLineMessage("assistant", text, turn, false, who)), _time);
-        var answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), said, context, shown.Show, token).ConfigureAwait(false);
+        var answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), conversation.History.LastTools(), said, context, shown.Show, token).ConfigureAwait(false);
         return answer with { Text = answer.Text.Length > 0 ? answer.Text : Phrase(persona, "ok") };
     }
 
@@ -155,7 +156,7 @@ public sealed class TalkService
         if (outcome.Result is not { } result) return new TalkAnswer(outcome.Entry.Did, Remember: true, Failed: true);
         if (result.Failed) return new TalkAnswer(result.Reply ?? Phrase(persona, "error"), Remember: true, Failed: true);
         var reply = result.Reply ?? Phrase(persona, "ok");
-        return new TalkAnswer(acknowledge && result.Reply is not null ? Phrase(persona, "ok") + " " + reply : reply);
+        return new TalkAnswer(acknowledge && result.Reply is not null ? Phrase(persona, "ok") + " " + reply : reply) { Tools = [tool] };
     }
 
     private string Phrase(AssistantPersona persona, string key, params object?[] args) => persona.Phrase(key, _random, args);

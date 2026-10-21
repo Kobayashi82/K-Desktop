@@ -16,12 +16,20 @@ internal static class ToolText
         return clean.Length <= MaxShown ? clean : clean[..MaxShown].TrimEnd() + "…";
     }
 
-    /// <summary>Its example phrases in the user's language (<c>tool.&lt;name&gt;.examples</c>, separated by «|»), or none.</summary>
+    private static readonly Lazy<IReadOnlyDictionary<string, string>> English = new(() => Loc.Strings(Loc.Fallback, "tool."));
+
+    /// <summary>
+    /// Its example phrases (<c>tool.&lt;name&gt;.examples</c>, separated by «|»): the user's language and English (orders
+    /// mix them: «pon un timer»), or none.
+    /// </summary>
     public static IReadOnlyList<string> Examples(string tool)
     {
         var key = $"tool.{tool}.examples";
-        var text = Loc.T(key);
-        return text == key ? [] : text.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var own = Loc.T(key);
+        return Split(own == key ? null : own).Concat(Split(English.Value.GetValueOrDefault(key)))
+            .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+        static string[] Split(string? text) => text?.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
     }
 
     /// <summary>The time as the user's language writes it («17:42»).</summary>

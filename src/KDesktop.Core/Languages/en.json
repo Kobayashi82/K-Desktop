@@ -2801,5 +2801,15 @@
   "assistant.rule.undo": "undo|undo that|undo it|undo the last thing|revert that|take that back|go back",
   "assistant.rule.units": "second=1 seconds=1 sec=1 secs=1 minute=60 minutes=60 min=60 mins=60 hour=3600 hours=3600 hr=3600 hrs=3600",
   "assistant.rule.durations": "half an hour=1800|a half hour=1800|half hour=1800|an hour and a half=5400|a quarter of an hour=900|quarter of an hour=900|a quarter hour=900|three quarters of an hour=2700|an hour=3600|a minute=60|a second=1",
-  "assistant.rule.half": "and a half"
+  "assistant.rule.half": "and a half",
+
+  "tool.get_time.examples": "what time is it|what day is it today|what's the date|how long is left on the timer|which timers do I have set|how long until the reminder goes off|what day of the week is it",
+  "tool.set_timer.examples": "set a timer for ten minutes|remind me in half an hour|remind me at five to call my mother|set an alarm for eight|let me know in twenty minutes to take the pizza out|remind me in an hour|wake me up in fifteen minutes",
+  "tool.cancel_timer.examples": "cancel the timer|turn off the alarm|no need to remind me anymore|delete the pizza reminder|cancel the five o'clock reminder|remove all the timers",
+  "tool.save_note.examples": "note that I have to buy milk|write down the plumber's number|take a note that the meeting is on Thursday|save this idea for later|put it on the shopping list|make a note to pay the insurance",
+  "tool.find_notes.examples": "what did I write down|what notes do I have|what did I have to buy|read me the shopping list|what did I note about the plumber|what did I have to do today|look in my notes for the insurance",
+  "tool.calculate.examples": "what is twenty-three times forty-seven|work out fifteen percent of two hundred|what is 1200 divided by 12|square root of 144|if I spend 35 out of 120 how much is left|what is 3 to the power of 5|add 45 plus 78 plus 12",
+  "tool.open_web.examples": "open youtube|go to gmail|go to the wikipedia page|open the bank's website|take me to amazon dot com|open github",
+  "tool.search_web.examples": "search for lentil recipes|look up how to remove a wine stain|find me flights to Rome|google who won the match|search for the pharmacy's opening hours|look up information about volcanoes",
+  "tool.open_app.examples": "open the calculator|open notepad|launch spotify|open word|start photoshop|open file explorer for me|open visual studio code"
 }

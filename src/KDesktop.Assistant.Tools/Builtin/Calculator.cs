@@ -12,7 +12,7 @@ public sealed class CalculateTool : ITool
 
     public string Description => "Evaluates an arithmetic expression exactly. Use it for any calculation instead of doing it yourself.";
 
-    public string ParametersSchemaJson => ToolText.OneString("expression", "The expression, with + - * / % ^ and parentheses, e.g. 240*18/100");
+    public string ParametersSchemaJson => ToolText.OneString("expression", "The expression, with + - * / ^, % for percent and parentheses, e.g. 18%*240 for 18 percent of 240");
 
     public IReadOnlyList<string> Examples => ToolText.Examples(Name);
 
@@ -32,7 +32,10 @@ public sealed class CalculateTool : ITool
     }
 }
 
-/// <summary>Arithmetic by recursive descent: + - * / % ^, unary signs and parentheses.</summary>
+/// <summary>
+/// Arithmetic by recursive descent: + - * / ^, unary signs, parentheses and % as percent (what people mean: «18 %» is
+/// 0.18, and «18%240», as small models write «18 % of 240», is 43.2; never the remainder).
+/// </summary>
 public static class Arithmetic
 {
     public static bool TryEvaluate(string expression, out double value, out string error)
@@ -89,7 +92,13 @@ public static class Arithmetic
                 SkipSpaces();
                 if (Accept('*')) value *= ParsePower();
                 else if (Accept('/')) value /= NotZero(ParsePower());
-                else if (Accept('%')) value %= NotZero(ParsePower());
+                else if (Accept('%'))
+                {
+                    value /= 100;
+                    SkipSpaces();
+                    // «18%240»: of what follows.
+                    if (!AtEnd && (char.IsDigit(Current) || Current == '(')) value *= ParsePower();
+                }
                 else return value;
             }
         }

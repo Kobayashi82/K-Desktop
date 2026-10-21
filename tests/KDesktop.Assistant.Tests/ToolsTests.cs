@@ -161,7 +161,10 @@ public sealed class ToolsTests : IDisposable
     [InlineData("240*18/100", 43.2)]
     [InlineData("2^10", 1024)]
     [InlineData("-(3+4)*2", -14)]
-    [InlineData("10 % 3", 1)]
+    [InlineData("18%240", 43.2)]
+    [InlineData("18% * 240", 43.2)]
+    [InlineData("240 * 18 %", 43.2)]
+    [InlineData("50%", 0.5)]
     [InlineData("1,5 × 4", 6)]
     public void ArithmeticWorks(string expression, double expected)
     {

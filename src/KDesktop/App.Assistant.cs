@@ -23,6 +23,9 @@ public partial class App
     private (string? Language, bool Dark) _assistantLook;
     private bool? _assistantAssociated;
 
+    /// <summary>Answers the process's <c>embed</c> with the voice's EmbeddingGemma (stage 3.5).</summary>
+    private AssistantMeaning? _assistantMeaning;
+
     /// <summary>The supervisor while the module is on (null when off).</summary>
     public AssistantSupervisor? Assistant => _assistant;
 
@@ -61,7 +64,18 @@ public partial class App
             });
             supervisor.AssistantFailed += id => Dispatcher.BeginInvoke(() => OnAssistantFailed(id));
             supervisor.Connected += () => OnAssistantConnected(supervisor);
-            supervisor.Received += message => Dispatcher.BeginInvoke(() => OnAssistantMessage(message));
+            supervisor.Received += message =>
+            {
+                // Vectors of meaning take a moment and need no window: on the pool.
+                if (message is EmbedMessage embed)
+                {
+                    _assistantMeaning ??= new AssistantMeaning(Voice.Semantic.Embedder);
+                    var meaning = _assistantMeaning;
+                    _ = Task.Run(() => supervisor.Send(meaning.Answer(embed)));
+                    return;
+                }
+                Dispatcher.BeginInvoke(() => OnAssistantMessage(message));
+            };
             _assistant = supervisor;
             _assistantLook = (Loc.Instance.Language, ThemeService.IsDark);
             Log.Info("Asistente: módulo activado");

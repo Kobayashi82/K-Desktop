@@ -2801,5 +2801,15 @@
   "assistant.rule.undo": "desfaz|desfaça|desfazer|desfaz isso|desfaça isso|desfaz o último|desfaz o que você fez|anula isso|volta atrás",
   "assistant.rule.units": "segundo=1 segundos=1 seg=1 minuto=60 minutos=60 min=60 hora=3600 horas=3600 h=3600",
   "assistant.rule.durations": "meia hora=1800|um quarto de hora=900|três quartos de hora=2700|uma hora e meia=5400",
-  "assistant.rule.half": "e meia|e meio"
+  "assistant.rule.half": "e meia|e meio",
+
+  "tool.get_time.examples": "que horas são|que dia é hoje|qual é a data de hoje|quanto falta no temporizador|quais temporizadores estão ligados|quanto falta para o lembrete tocar|que dia da semana é hoje",
+  "tool.set_timer.examples": "coloca um temporizador de dez minutos|me avisa em meia hora|me lembra às cinco de ligar para minha mãe|coloca um alarme para as oito|me avisa daqui a vinte minutos para tirar a pizza|me lembra disso em uma hora|me acorda em quinze minutos",
+  "tool.cancel_timer.examples": "cancela o temporizador|tira o alarme|não precisa mais me avisar|apaga o lembrete da pizza|cancela o lembrete das cinco|tira todos os temporizadores",
+  "tool.save_note.examples": "anota que preciso comprar leite|anota o telefone do encanador|toma nota que a reunião é na quinta|guarda essa ideia para depois|coloca na lista de compras|anota que tem que pagar o seguro",
+  "tool.find_notes.examples": "o que eu tinha anotado|quais notas eu tenho|o que eu tinha que comprar|lê a lista de compras para mim|o que anotei sobre o encanador|o que eu tinha que fazer hoje|procura nas minhas notas a do seguro",
+  "tool.calculate.examples": "quanto é vinte e três vezes quarenta e sete|calcula quinze por cento de duzentos|quanto é 1200 dividido por 12|raiz quadrada de 144|se eu gastar 35 de 120 quanto sobra|quanto dá 3 elevado a 5|soma 45 mais 78 mais 12",
+  "tool.open_web.examples": "abre o youtube|entra no gmail|vai para a página da wikipédia|abre o site do banco|me leva para amazon ponto com|abre o github",
+  "tool.search_web.examples": "procura receitas de lentilha|pesquisa na internet como tirar mancha de vinho|procura voos para Roma|vê no google quem ganhou o jogo|procura o horário da farmácia|pesquisa informações sobre vulcões",
+  "tool.open_app.examples": "abre a calculadora|abre o bloco de notas|inicia o spotify|abre o word|abre o photoshop|abre o explorador de arquivos para mim|abre o visual studio code"
 }

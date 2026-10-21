@@ -7,15 +7,19 @@ using KDesktop.Core.Assistant.Packages;
 namespace KDesktop.Assistant.Brain.Talk;
 
 /// <summary>An answer to say: its text, and whether it goes into the history (not «cancelled» or a repetition).</summary>
-public sealed record TalkAnswer(string Text, bool Remember = true, bool Failed = false);
+public sealed record TalkAnswer(string Text, bool Remember = true, bool Failed = false)
+{
+    /// <summary>The tools it used (offered again with the next order).</summary>
+    public IReadOnlyList<string> Tools { get; init; } = [];
+}
 
 /// <summary>
 /// Talking with the model (plan §5.2): the instructions with the persona, the short history and the order; the model may
 /// call tools (through the <see cref="ToolRunner"/>, which asks permission and writes the activity), at most
-/// <see cref="MaxToolRounds"/> rounds and <see cref="MaxToolCalls"/> calls; then it must answer. No thinking, short
-/// answers, cleaned for a bubble and a voice.
+/// <see cref="MaxToolRounds"/> rounds and <see cref="MaxToolCalls"/> calls; then it must answer. Only the tools that fit
+/// the order are offered (<see cref="ToolChooser"/>). No thinking, short answers, cleaned for a bubble and a voice.
 /// </summary>
-public sealed class TalkMind(ToolRunner tools, TimeProvider time)
+public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider time)
 {
     /// <summary>Rounds in which the model may call tools; after them it is asked without tools, to answer.</summary>
     public const int MaxToolRounds = 3;
@@ -26,11 +30,13 @@ public sealed class TalkMind(ToolRunner tools, TimeProvider time)
     /// <summary>Longest answer, in tokens (one or two sentences, with room for a tool call).</summary>
     public const int MaxTokens = 220;
 
+    /// <param name="recentTools">The tools used in the last exchange.</param>
     /// <param name="onText">The answer so far, cleaned, while it is written (any thread).</param>
     public async Task<TalkAnswer> AnswerAsync(IChatModel model, string modelName, AssistantPersona persona, IReadOnlyList<ChatMessage> history,
-        string said, ToolContext context, Action<string>? onText, CancellationToken cancellationToken)
+        IReadOnlyCollection<string> recentTools, string said, ToolContext context, Action<string>? onText, CancellationToken cancellationToken)
     {
-        var definitions = tools.Registry.All.Select(t => new ToolDefinition(t.Name, t.Description, t.ParametersSchemaJson)).ToList();
+        var offered = await chooser.ChooseAsync(tools.Registry.All, said, recentTools, cancellationToken).ConfigureAwait(false);
+        var definitions = offered.Tools.Select(t => new ToolDefinition(t.Name, t.Description, t.ParametersSchemaJson)).ToList();
         var messages = new List<ChatMessage> { ChatMessage.System(TalkPrompt.Compose(persona, time.GetLocalNow())) };
         messages.AddRange(history);
         messages.Add(ChatMessage.User(said));
@@ -40,6 +46,7 @@ public sealed class TalkMind(ToolRunner tools, TimeProvider time)
         // What the tools that worked say they did (null: one that has no words of its own), and whether one was an action.
         var replies = new List<string?>();
         var acted = false;
+        var used = new List<string>();
         var answer = string.Empty;
         try
         {
@@ -66,6 +73,7 @@ public sealed class TalkMind(ToolRunner tools, TimeProvider time)
                         toolReply = outcome.Result is { Failed: false } ok ? ok.Reply ?? ok.Done ?? toolReply : outcome.Entry.Did;
                         if (outcome.Result is { Failed: false } worked)
                         {
+                            if (!used.Contains(call.Name)) used.Add(call.Name);
                             replies.Add(worked.Reply);
                             acted |= worked.Undo is not null;
                         }
@@ -83,12 +91,12 @@ public sealed class TalkMind(ToolRunner tools, TimeProvider time)
         // It did something and every tool has its own words for it: those, exact (a small model may well say «in 25
         // minutes» for a timer set for 20). Its own text is for questions and chat.
         if (acted && replies.Count > 0 && replies.All(r => r is not null))
-            return new TalkAnswer(persona.Phrase("ok") + " " + string.Join(" ", replies));
+            return new TalkAnswer(persona.Phrase("ok") + " " + string.Join(" ", replies)) { Tools = used };
 
         var clean = ReplyText.Clean(answer);
         // Silent after doing something: what the tool says it did.
         if (clean.Length == 0) clean = toolReply ?? persona.Phrase("notFound");
-        return new TalkAnswer(clean);
+        return new TalkAnswer(clean) { Tools = used };
     }
 
     private static async Task<(string Text, List<ToolCall> Calls)> RoundAsync(IChatModel model, ChatRequest request, Action<string>? onText, CancellationToken cancellationToken)

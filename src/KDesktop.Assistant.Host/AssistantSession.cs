@@ -84,6 +84,7 @@ internal sealed class AssistantSession : IDisposable
                 Brain?.Configure(BrainConfig.FromJson(welcome.Config?["brain"] as JsonObject));
                 Tools?.Configure(welcome.Config?["tools"] as JsonObject);
                 Tools?.Start();
+                if (Talk is { } ready) _ = ready.WarmAsync();
             };
             // The brain's requests do not wait for the engine.
             link.Received += message =>
@@ -110,6 +111,11 @@ internal sealed class AssistantSession : IDisposable
                         return;
                     case CancelMessage cancel when Talk is { } talk:
                         talk.OnCancel(cancel);
+                        return;
+                    case EmbeddedMessage embedded when Talk is { } talk:
+                        talk.Meaning.OnEmbedded(embedded);
+                        return;
+                    case ErrorMessage error when Talk is { } talk && talk.Meaning.OnError(error):
                         return;
                     case PauseMessage pause when Talk is { } talk:
                         talk.Paused = pause.Paused;

@@ -1,4 +1,3 @@
-using System.Text;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
 
@@ -55,8 +54,7 @@ public sealed class SemanticMatcher : IDisposable
     private const string CacheMagic = "KDSEM1";
 
     private readonly object _gate = new();
-    private Dictionary<string, float[]>? _cache;
-    private bool _dirty;
+    private VectorCache? _cache;
 
     public TextEmbedder Embedder { get; } = new();
 
@@ -167,71 +165,18 @@ public sealed class SemanticMatcher : IDisposable
     {
         lock (_gate)
         {
-            _cache ??= Load();
-            var missing = texts.All.Where(t => !_cache.ContainsKey(t)).Distinct().ToList();
+            _cache ??= new VectorCache(CacheFile, CacheMagic);
+            var all = texts.All.Distinct().ToList();
+            var missing = all.Where(t => !_cache.TryGet(t, out _)).ToList();
             if (missing.Count > 0)
             {
                 var watch = System.Diagnostics.Stopwatch.StartNew();
                 var vectors = Embedder.Embed(missing);
-                for (var i = 0; i < missing.Count; i++) _cache[missing[i]] = vectors[i];
-                _dirty = true;
+                for (var i = 0; i < missing.Count; i++) _cache.Put(missing[i], vectors[i]);
                 Log.Info($"Significado: {missing.Count} nombre(s) o frase(s) nuevas preparadas en {watch.ElapsedMilliseconds} ms");
             }
-            if (_dirty) Save(texts.All.ToHashSet());
-            return _cache;
-        }
-    }
-
-    private static string Header => $"{CacheMagic}|{ModelDownloader.Files.First(f => f.Path == VoiceModels.EmbeddingWeights).Sha256}|{TextEmbedder.Prompt}";
-
-    private static Dictionary<string, float[]> Load()
-    {
-        var cache = new Dictionary<string, float[]>(StringComparer.Ordinal);
-        try
-        {
-            if (!File.Exists(CacheFile)) return cache;
-            using var reader = new BinaryReader(File.OpenRead(CacheFile), Encoding.UTF8);
-            if (reader.ReadString() != Header) return cache;
-            var count = reader.ReadInt32();
-            for (var i = 0; i < count; i++)
-            {
-                var text = reader.ReadString();
-                var vector = new float[TextEmbedder.Size];
-                for (var j = 0; j < vector.Length; j++) vector[j] = reader.ReadSingle();
-                cache[text] = vector;
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Warn($"No se pudo leer la caché del modelo de significado: {ex.Message}");
-            cache.Clear();
-        }
-        return cache;
-    }
-
-    /// <summary>Writes the cache keeping only what is in use (renamed or deleted commands leave it).</summary>
-    private void Save(HashSet<string> keep)
-    {
-        try
-        {
-            foreach (var old in _cache!.Keys.Where(k => !keep.Contains(k)).ToList()) _cache.Remove(old);
-            var temp = CacheFile + ".tmp";
-            using (var writer = new BinaryWriter(File.Create(temp), Encoding.UTF8))
-            {
-                writer.Write(Header);
-                writer.Write(_cache.Count);
-                foreach (var (text, vector) in _cache)
-                {
-                    writer.Write(text);
-                    foreach (var x in vector) writer.Write(x);
-                }
-            }
-            File.Move(temp, CacheFile, overwrite: true);
-            _dirty = false;
-        }
-        catch (Exception ex)
-        {
-            Log.Warn($"No se pudo guardar la caché del modelo de significado: {ex.Message}");
+            if (_cache.Dirty) _cache.Save(all.ToHashSet());
+            return all.ToDictionary(t => t, t => _cache.TryGet(t, out var v) ? v : throw new InvalidOperationException(t), StringComparer.Ordinal);
         }
     }
 

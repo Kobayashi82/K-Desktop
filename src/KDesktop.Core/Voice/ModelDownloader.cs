@@ -101,6 +101,7 @@ public sealed class ModelDownloader : IDisposable
             TryDelete(file.Path + ".part");
         }
         TryDelete(SemanticMatcher.CacheFile);
+        TryDelete(Assistant.AssistantMeaning.CacheFile);
         foreach (var dir in new[] { VoiceModels.ParakeetDir, VoiceModels.EmbeddingDir })
         {
             try

@@ -14,7 +14,8 @@ namespace KDesktop.Assistant.Tests;
 /// <summary>
 /// Stage 3.4 with the real KDesktop.exe in assistant mode, Dot on the desktop and a fake Ollama over HTTP: «¿qué hora
 /// es?» is answered by a rule without asking the model; anything else goes to the model and comes back as <c>chat</c>,
-/// with the assistant thinking first. Dot shows for a few seconds; the data folder is a temporary one.
+/// with the assistant thinking first. The tools reach the model chosen by meaning (stage 3.5): this fake K-Desktop
+/// answers <c>embed</c>. Dot shows for a few seconds; the data folder is a temporary one.
 /// </summary>
 public class TalkProcessTests
 {
@@ -40,6 +41,12 @@ public class TalkProcessTests
         var hello = new TaskCompletionSource();
         server.Connected += _ => hello.TrySetResult();
         server.Received += received.Enqueue;
+        // K-Desktop's EmbeddingGemma: any vectors will do, of the same model.
+        server.Received += m =>
+        {
+            if (m is EmbedMessage embed)
+                server.Send(new EmbeddedMessage(embed.Id, [.. embed.Texts.Select(t => new[] { 1f, t.Length % 7 / 7f })], "fake"));
+        };
         server.Start();
 
         process = Process.Start(new ProcessStartInfo(Exe, ["--assistant", "--pipe", name, "--data", data, "--allow-elevated"]) { UseShellExecute = false })!;
@@ -48,6 +55,8 @@ public class TalkProcessTests
             await hello.Task.WaitAsync(TimeSpan.FromSeconds(20));
             Assert.True(server.Send(new LoadMessage("dot", "1.2.0", DotPackage, Path.Combine(data, "Assistants", "Data", "dot"), "startup")));
             await Until(() => received.OfType<LoadedMessage>().Any() && received.OfType<BrainStateMessage>().Any(b => b.State == "ready"));
+            // Connected, it got the vectors of its tools' example phrases ready (kept by K-Desktop).
+            await Until(() => received.OfType<EmbedMessage>().Any(e => e.Keep == true));
             Assert.True(received.OfType<LoadedMessage>().Single().Ok);
 
             // A rule: no model involved.
@@ -65,7 +74,11 @@ public class TalkProcessTests
             Assert.Equal(1, ollama.Chats);
             Assert.Contains(received.OfType<StatusMessage>(), s => s is { State: "thinking", Assistant: "dot" });
             using (var request = JsonDocument.Parse(ollama.LastRequest))
+            {
                 Assert.Equal("cuéntame algo", request.RootElement.GetProperty("messages").EnumerateArray().Last().GetProperty("content").GetString());
+                Assert.InRange(request.RootElement.GetProperty("tools").GetArrayLength(), 3, 5);
+            }
+            Assert.Contains(received.OfType<EmbedMessage>(), e => e.Keep is null && e.Texts.SequenceEqual(["cuéntame algo"]));
             // The second order came while Dot was still saying the first, which it replaced: one «idle» at the end.
             await Until(() => received.OfType<StatusMessage>().LastOrDefault(s => s.Assistant == "dot") is { State: "idle" });
 

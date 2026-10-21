@@ -2801,5 +2801,15 @@
   "assistant.rule.undo": "défais|défais ça|défaire|annule la dernière action|annule ce que tu as fait|annule le dernier|reviens en arrière",
   "assistant.rule.units": "seconde=1 secondes=1 sec=1 minute=60 minutes=60 min=60 heure=3600 heures=3600 h=3600",
   "assistant.rule.durations": "une demi heure=1800|demi heure=1800|un quart d'heure=900|quart d'heure=900|trois quarts d'heure=2700|une heure et demie=5400",
-  "assistant.rule.half": "et demie|et demi"
+  "assistant.rule.half": "et demie|et demi",
+
+  "tool.get_time.examples": "quelle heure est-il|quel jour sommes-nous|quelle est la date d'aujourd'hui|combien de temps reste-t-il au minuteur|quels minuteurs sont en cours|dans combien de temps sonne le rappel|quel jour de la semaine on est",
+  "tool.set_timer.examples": "mets un minuteur de dix minutes|préviens-moi dans une demi-heure|rappelle-moi à cinq heures d'appeler ma mère|mets une alarme pour huit heures|préviens-moi dans vingt minutes pour sortir la pizza|rappelle-le-moi dans une heure|réveille-moi dans un quart d'heure",
+  "tool.cancel_timer.examples": "annule le minuteur|enlève l'alarme|ce n'est plus la peine de me prévenir|supprime le rappel de la pizza|annule le rappel de cinq heures|enlève tous les minuteurs",
+  "tool.save_note.examples": "note que je dois acheter du lait|note le numéro du plombier|prends note que la réunion est jeudi|garde cette idée pour plus tard|mets-le sur la liste de courses|note qu'il faut payer l'assurance",
+  "tool.find_notes.examples": "qu'est-ce que j'avais noté|quelles notes j'ai|qu'est-ce que je devais acheter|lis-moi la liste de courses|qu'est-ce que j'ai noté sur le plombier|qu'est-ce que je devais faire aujourd'hui|cherche dans mes notes ce qui concerne l'assurance",
+  "tool.calculate.examples": "combien font vingt-trois fois quarante-sept|calcule quinze pour cent de deux cents|combien font 1200 divisé par 12|racine carrée de 144|si je dépense 35 euros sur 120 combien il me reste|combien fait 3 puissance 5|additionne 45 plus 78 plus 12",
+  "tool.open_web.examples": "ouvre youtube|va sur gmail|va sur la page de wikipédia|ouvre le site de la banque|emmène-moi sur amazon point fr|ouvre github",
+  "tool.search_web.examples": "cherche des recettes de lentilles|cherche sur internet comment enlever une tache de vin|trouve-moi des vols pour Rome|regarde sur google qui a gagné le match|cherche les horaires de la pharmacie|cherche des informations sur les volcans",
+  "tool.open_app.examples": "ouvre la calculatrice|ouvre le bloc-notes|lance spotify|ouvre word|démarre photoshop|ouvre-moi l'explorateur de fichiers|ouvre visual studio code"
 }

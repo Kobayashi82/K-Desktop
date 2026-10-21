@@ -143,8 +143,8 @@ Dirección: **A→K** del asistente a K-Desktop; **K→A** de K-Desktop al asist
 |---|---|---|---|
 | `window` | A→K | `id`, `hwnd`, `op` (`move`, `minimize`, `maximize`, `restore`, `activate`, `close`), `rect` (para `move`) | Operación sobre una ventana de administrador (el asistente no puede tocarla) |
 | `windowDone` | K→A | `id`, `ok` | Resultado |
-| `embed` | A→K | `id`, `texts` (lista, máx. 64) | Vectores de significado con el EmbeddingGemma de K-Desktop |
-| `embedded` | K→A | `id`, `vectors` (lista de listas de números), `model` | Resultado (vectores normalizados). Si K-Desktop no tiene el modelo: `error` con `code: "noModel"` |
+| `embed` | A→K | `id`, `texts` (lista, máx. 64), `keep` (opcional) | Vectores de significado con el EmbeddingGemma que K-Desktop ya carga para la voz (una sola copia del modelo en memoria). Con `keep: true` (las frases de ejemplo de las herramientas, que se piden una y otra vez) K-Desktop guarda sus vectores en disco (`Modelsembeddinggemmaassistant.bin`); las órdenes nunca se guardan. El proceso espera 5 s por una orden y 30 s por las frases; sin respuesta, elige las herramientas por palabras |
+| `embedded` | K→A | `id`, `vectors` (lista de listas de números), `model` | Resultado (vectores normalizados, en el orden de `texts`). `model` dice qué modelo los hizo: vectores de modelos distintos no se comparan. Si K-Desktop no tiene el modelo: `error` con `code: "noModel"` y el `id` de la petición |
 | `keys` | A→K | `assistant`, `capture` (lista de teclas, nombres de `Key` de WPF: `Up`, `A`, `Escape`…; vacía = soltar) | Que K-Desktop se trague esas teclas cuando se pulsan sin Ctrl, Alt ni Win (así los atajos siguen funcionando) y se las reenvíe a ese asistente (juego del Lander). Los modificadores no se capturan. En pausa, o si el asistente sale o el proceso se cae, K-Desktop las suelta solo |
 | `key` | K→A | `assistant`, `key`, `down` | Una tecla capturada bajó o subió (la repetición automática no se manda) |
 | `watchWheel` | A→K | `watch` | Que K-Desktop mande cada giro de la rueda (`wheel`) o deje de hacerlo. El host lo pide mientras algún asistente lo quiera (`IPointer.WatchWheel`) |

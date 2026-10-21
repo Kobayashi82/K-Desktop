@@ -2801,5 +2801,15 @@
   "assistant.rule.undo": "rückgängig|mach das rückgängig|mach es rückgängig|mach rückgängig|rückgängig machen|das rückgängig machen|letzte aktion rückgängig|nimm das zurück",
   "assistant.rule.units": "sekunde=1 sekunden=1 sek=1 minute=60 minuten=60 min=60 stunde=3600 stunden=3600 std=3600",
   "assistant.rule.durations": "eine halbe stunde=1800|halbe stunde=1800|eine viertelstunde=900|viertelstunde=900|eine viertel stunde=900|eine dreiviertelstunde=2700|dreiviertelstunde=2700|anderthalb stunden=5400|eineinhalb stunden=5400|zweieinhalb stunden=9000",
-  "assistant.rule.half": "und eine halbe"
+  "assistant.rule.half": "und eine halbe",
+
+  "tool.get_time.examples": "wie spät ist es|welcher Tag ist heute|welches Datum haben wir|wie lange läuft der Timer noch|welche Timer sind gestellt|wann klingelt die Erinnerung|welcher Wochentag ist heute",
+  "tool.set_timer.examples": "stell einen Timer auf zehn Minuten|sag mir in einer halben Stunde Bescheid|erinnere mich um fünf daran, meine Mutter anzurufen|stell einen Wecker für acht Uhr|sag mir in zwanzig Minuten Bescheid, die Pizza rauszuholen|erinnere mich in einer Stunde daran|weck mich in fünfzehn Minuten",
+  "tool.cancel_timer.examples": "brich den Timer ab|schalte den Wecker aus|du musst mich nicht mehr erinnern|lösch die Erinnerung für die Pizza|streich die Erinnerung um fünf|lösch alle Timer",
+  "tool.save_note.examples": "notier, dass ich Milch kaufen muss|schreib die Nummer vom Klempner auf|mach dir eine Notiz, dass das Treffen am Donnerstag ist|speicher diese Idee für später|setz es auf die Einkaufsliste|notier, dass die Versicherung bezahlt werden muss",
+  "tool.find_notes.examples": "was hatte ich notiert|welche Notizen habe ich|was sollte ich kaufen|lies mir die Einkaufsliste vor|was habe ich zum Klempner notiert|was musste ich heute erledigen|such in meinen Notizen nach der Versicherung",
+  "tool.calculate.examples": "was ist dreiundzwanzig mal siebenundvierzig|rechne fünfzehn Prozent von zweihundert aus|was ist 1200 geteilt durch 12|Wurzel aus 144|wenn ich 35 von 120 Euro ausgebe, wie viel bleibt übrig|was ist 3 hoch 5|addiere 45 plus 78 plus 12",
+  "tool.open_web.examples": "öffne youtube|geh auf gmail|geh auf die Wikipedia-Seite|öffne die Webseite der Bank|bring mich zu amazon punkt de|öffne github",
+  "tool.search_web.examples": "such nach Linsenrezepten|such im Internet, wie man einen Weinfleck entfernt|such mir Flüge nach Rom|schau bei Google, wer das Spiel gewonnen hat|such die Öffnungszeiten der Apotheke|such Informationen über Vulkane",
+  "tool.open_app.examples": "öffne den Rechner|öffne den Editor|starte spotify|öffne Word|starte Photoshop|öffne mir den Datei-Explorer|öffne Visual Studio Code"
 }

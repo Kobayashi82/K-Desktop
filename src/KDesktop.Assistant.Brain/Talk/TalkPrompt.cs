@@ -39,15 +39,16 @@ public sealed class TalkHistory(TimeProvider time)
     public static readonly TimeSpan Forget = TimeSpan.FromMinutes(10);
 
     private readonly object _gate = new();
-    private readonly List<(string Said, string Answer)> _exchanges = [];
+    private readonly List<(string Said, string Answer, IReadOnlyList<string> Tools)> _exchanges = [];
     private DateTimeOffset _last;
 
-    public void Add(string said, string answer)
+    /// <param name="tools">The tools it used to answer (offered again with the next order).</param>
+    public void Add(string said, string answer, IReadOnlyList<string>? tools = null)
     {
         lock (_gate)
         {
             Expire();
-            _exchanges.Add((said, answer));
+            _exchanges.Add((said, answer, tools ?? []));
             if (_exchanges.Count > Kept) _exchanges.RemoveRange(0, _exchanges.Count - Kept);
             _last = time.GetUtcNow();
         }
@@ -60,6 +61,16 @@ public sealed class TalkHistory(TimeProvider time)
         {
             Expire();
             return [.. _exchanges.SelectMany(e => new[] { ChatMessage.User(e.Said), ChatMessage.Assistant(e.Answer) })];
+        }
+    }
+
+    /// <summary>The tools used in the last exchange (none when it was forgotten).</summary>
+    public IReadOnlyList<string> LastTools()
+    {
+        lock (_gate)
+        {
+            Expire();
+            return _exchanges.Count > 0 ? _exchanges[^1].Tools : [];
         }
     }
 

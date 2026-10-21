@@ -2801,5 +2801,15 @@
   "assistant.rule.undo": "disfa|disfalo|annulla l'ultima cosa|annulla l'ultima azione|annulla quello che hai fatto|annulla l'operazione|torna indietro",
   "assistant.rule.units": "secondo=1 secondi=1 sec=1 minuto=60 minuti=60 min=60 ora=3600 ore=3600",
   "assistant.rule.durations": "mezz'ora=1800|mezzora=1800|mezza ora=1800|un quarto d'ora=900|quarto d'ora=900|tre quarti d'ora=2700|un'ora e mezza=5400|un ora e mezza=5400",
-  "assistant.rule.half": "e mezza|e mezzo"
+  "assistant.rule.half": "e mezza|e mezzo",
+
+  "tool.get_time.examples": "che ore sono|che giorno è oggi|che data è oggi|quanto manca al timer|quali timer ho impostato|tra quanto suona il promemoria|che giorno della settimana è",
+  "tool.set_timer.examples": "metti un timer di dieci minuti|avvisami tra mezz'ora|ricordami alle cinque di chiamare mia madre|metti una sveglia per le otto|avvisami tra venti minuti per tirare fuori la pizza|ricordamelo tra un'ora|svegliami tra un quarto d'ora",
+  "tool.cancel_timer.examples": "annulla il timer|togli la sveglia|non serve più che mi avvisi|cancella il promemoria della pizza|annulla il promemoria delle cinque|togli tutti i timer",
+  "tool.save_note.examples": "segna che devo comprare il latte|annota il numero dell'idraulico|prendi nota che la riunione è giovedì|salvami questa idea per dopo|mettilo nella lista della spesa|segna che bisogna pagare l'assicurazione",
+  "tool.find_notes.examples": "cosa avevo segnato|che note ho|cosa dovevo comprare|leggimi la lista della spesa|cosa ho annotato sull'idraulico|cosa dovevo fare oggi|cerca nelle mie note quella dell'assicurazione",
+  "tool.calculate.examples": "quanto fa ventitré per quarantasette|calcola il quindici per cento di duecento|quanto fa 1200 diviso 12|radice quadrata di 144|se spendo 35 euro su 120 quanto mi resta|quanto fa 3 alla quinta|somma 45 più 78 più 12",
+  "tool.open_web.examples": "apri youtube|vai su gmail|vai sulla pagina di wikipedia|apri il sito della banca|portami su amazon punto it|apri github",
+  "tool.search_web.examples": "cerca ricette di lenticchie|cerca su internet come togliere una macchia di vino|trovami dei voli per Roma|guarda su google chi ha vinto la partita|cerca l'orario della farmacia|cerca informazioni sui vulcani",
+  "tool.open_app.examples": "apri la calcolatrice|apri il blocco note|avvia spotify|apri word|lancia photoshop|aprimi esplora file|apri visual studio code"
 }
