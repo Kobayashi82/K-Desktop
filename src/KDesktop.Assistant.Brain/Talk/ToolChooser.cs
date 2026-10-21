@@ -40,31 +40,41 @@ public sealed class ToolChooser(IMeaning? meaning)
     /// <summary>Beyond <see cref="Least"/>, only tools this close to the best one.</summary>
     public const double Spread = 0.08;
 
-    /// <summary>Texts per <c>embed</c> (the protocol's limit).</summary>
-    private const int Chunk = Core.Assistant.Pipe.EmbedMessage.MaxTexts;
+    private readonly MeaningShelf? _shelf = meaning is null ? null : new MeaningShelf(meaning, "frase(s) de herramientas");
 
-    private readonly object _gate = new();
-    /// <summary>The vectors of the phrases: replaced whole, never changed once published (read without the lock).</summary>
-    private Dictionary<string, float[]> _anchors = new(StringComparer.Ordinal);
-    private string? _model;
-    /// <summary>The phrases being asked for now: whoever needs them meanwhile waits for it instead of asking again.</summary>
-    private Task? _filling;
+    /// <summary>The vectors of meaning, or null without them.</summary>
+    public IMeaning? Meaning => meaning;
 
     /// <summary>Gets the vectors of the example phrases ready (connected: before the first order needs them).</summary>
     public async Task WarmAsync(IReadOnlyCollection<ITool> tools, CancellationToken cancellationToken)
     {
-        if (meaning is null || tools.Count <= Most) return;
-        try { await AnchorsAsync(tools, cancellationToken).ConfigureAwait(false); }
+        if (_shelf is null || tools.Count <= Most) return;
+        try { await _shelf.GetAsync(Anchors(tools), null, cancellationToken).ConfigureAwait(false); }
         catch (Exception ex) when (ex is not OperationCanceledException) { Log.Warn($"Asistente: no se han podido preparar las frases de las herramientas: {ex.Message}"); }
     }
 
     /// <param name="recent">The tools used in the last exchange.</param>
     public async Task<ToolChoice> ChooseAsync(IReadOnlyCollection<ITool> tools, string said, IReadOnlyCollection<string> recent, CancellationToken cancellationToken)
     {
+        MeaningVectors? order = null;
+        if (_shelf is not null && tools.Count > Most)
+        {
+            try { order = await _shelf.Meaning.EmbedAsync([said], keep: false, cancellationToken).ConfigureAwait(false); }
+            catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+            {
+                Log.Warn($"Asistente: sin significado para elegir herramientas: {ex.Message}");
+            }
+        }
+        return await ChooseAsync(tools, said, recent, order, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <param name="order">The order's vector, already asked for (null: without the meaning, by words).</param>
+    public async Task<ToolChoice> ChooseAsync(IReadOnlyCollection<ITool> tools, string said, IReadOnlyCollection<string> recent, MeaningVectors? order, CancellationToken cancellationToken)
+    {
         if (tools.Count <= Most) return new ToolChoice([.. tools], "all");
         var how = "meaning";
         IReadOnlyList<(ITool Tool, double Score)>? ranked = null;
-        try { ranked = await MeaningAsync(tools, said, cancellationToken).ConfigureAwait(false); }
+        try { ranked = await MeaningAsync(tools, order, cancellationToken).ConfigureAwait(false); }
         catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {
             Log.Warn($"Asistente: sin significado para elegir herramientas: {ex.Message}");
@@ -94,84 +104,20 @@ public sealed class ToolChooser(IMeaning? meaning)
     // ── by meaning ───────────────────────────────────────────────────────
 
     /// <summary>Each tool with its closest example to the order, closest first; null without the model.</summary>
-    private async Task<IReadOnlyList<(ITool Tool, double Score)>?> MeaningAsync(IReadOnlyCollection<ITool> tools, string said, CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<(ITool Tool, double Score)>?> MeaningAsync(IReadOnlyCollection<ITool> tools, MeaningVectors? order, CancellationToken cancellationToken)
     {
-        if (meaning is null) return null;
-        var order = meaning.EmbedAsync([said], keep: false, cancellationToken);
-        var anchors = await AnchorsAsync(tools, cancellationToken).ConfigureAwait(false);
-        if (await order.ConfigureAwait(false) is not { } asked || anchors is null) return null;
-        if (asked.Model != anchors.Value.Model)
-        {
-            // Another model now (downloaded again): the phrases' vectors no longer compare.
-            Log.Info($"Asistente: modelo de significado nuevo ({asked.Model}): se vuelven a preparar las frases");
-            lock (_gate)
-                if (_model == anchors.Value.Model)
-                {
-                    _anchors = new Dictionary<string, float[]>(StringComparer.Ordinal);
-                    _model = null;
-                }
-            anchors = await AnchorsAsync(tools, cancellationToken).ConfigureAwait(false);
-            if (anchors is null || asked.Model != anchors.Value.Model) return null;
-        }
-        var vector = asked.Vectors[0];
+        if (_shelf is null || order is null) return null;
+        if (await _shelf.GetAsync(Anchors(tools), order.Model, cancellationToken).ConfigureAwait(false) is not { } anchors) return null;
+        var vector = order.Vectors[0];
         return [.. tools
-            .Select(t => (Tool: t, Score: AnchorsOf(t).Max(a => anchors.Value.Vectors.TryGetValue(a, out var v) ? TextEmbedder.Similarity(vector, v) : -1)))
+            .Select(t => (Tool: t, Score: AnchorsOf(t).Max(a => anchors.Vectors.TryGetValue(a, out var v) ? TextEmbedder.Similarity(vector, v) : -1)))
             .OrderByDescending(r => r.Score)];
     }
 
     /// <summary>What stands for a tool's meaning: its example phrases, or its description.</summary>
     private static IReadOnlyList<string> AnchorsOf(ITool tool) => tool.Examples.Count > 0 ? tool.Examples : [tool.Description];
 
-    /// <summary>The vectors of every tool's phrases, asking for those still missing; null without the model.</summary>
-    private async Task<(string Model, Dictionary<string, float[]> Vectors)?> AnchorsAsync(IReadOnlyCollection<ITool> tools, CancellationToken cancellationToken)
-    {
-        var all = tools.SelectMany(AnchorsOf).Distinct(StringComparer.Ordinal).ToList();
-        // Twice at most: someone else's filling may have been for other tools.
-        for (var attempt = 0; attempt < 2; attempt++)
-        {
-            if (Ready(all) is { } ready) return ready;
-            Task filling;
-            bool mine;
-            lock (_gate)
-            {
-                mine = _filling is not { IsCompleted: false };
-                if (mine) _filling = FillAsync(all);
-                filling = _filling!;
-            }
-            await filling.WaitAsync(cancellationToken).ConfigureAwait(false);
-            if (mine) break;
-        }
-        return Ready(all);
-    }
-
-    /// <summary>Asks K-Desktop for the phrases still missing (not for one order: it is not cancelled with it).</summary>
-    private async Task FillAsync(List<string> all)
-    {
-        List<string> missing;
-        lock (_gate) missing = [.. all.Where(a => !_anchors.ContainsKey(a))];
-        var watch = System.Diagnostics.Stopwatch.StartNew();
-        for (var start = 0; start < missing.Count; start += Chunk)
-        {
-            var part = missing.Skip(start).Take(Chunk).ToList();
-            if (await meaning!.EmbedAsync(part, keep: true, CancellationToken.None).ConfigureAwait(false) is not { } got) return;
-            lock (_gate)
-            {
-                // Another model (downloaded again): what was there no longer compares.
-                var changed = got.Model != _model;
-                var next = changed ? new Dictionary<string, float[]>(StringComparer.Ordinal) : new Dictionary<string, float[]>(_anchors, StringComparer.Ordinal);
-                for (var i = 0; i < part.Count; i++) next[part[i]] = got.Vectors[i];
-                _anchors = next;
-                _model = got.Model;
-                if (changed && start > 0) return;
-            }
-        }
-        if (missing.Count > 0) Log.Info($"Asistente: {missing.Count} frase(s) de herramientas preparadas en {watch.ElapsedMilliseconds} ms");
-    }
-
-    private (string Model, Dictionary<string, float[]> Vectors)? Ready(List<string> all)
-    {
-        lock (_gate) return _model is { } model && all.All(_anchors.ContainsKey) ? (model, _anchors) : null;
-    }
+    private static List<string> Anchors(IReadOnlyCollection<ITool> tools) => [.. tools.SelectMany(AnchorsOf).Distinct(StringComparer.Ordinal)];
 
     // ── by words ─────────────────────────────────────────────────────────
 

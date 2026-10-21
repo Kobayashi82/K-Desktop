@@ -1,0 +1,15 @@
+{
+  "t": "memoryState",
+  "items": [
+    {
+      "id": "m-3f9a1c",
+      "text": "Su jefe se llama Luis",
+      "kind": "fact",
+      "importance": 0.7,
+      "createdAt": "2026-10-21T17:42:00+02:00",
+      "source": "said",
+      "lastRecalled": "2026-10-22T09:10:00+02:00",
+      "recallCount": 2
+    }
+  ]
+}

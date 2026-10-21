@@ -470,6 +470,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>The general model; empty: chosen automatically (about 4 B, with tools).</summary>
     [ObservableProperty] private string _assistantBrainModel = string.Empty;
 
+    /// <summary>The assistants learn what is worth remembering about the user from what they talk about (stage 3.7).</summary>
+    [ObservableProperty] private bool _assistantMemoryLearn = true;
+
     /// <summary>
     /// The model of each assistant that has its own: assistant id → model (absent: the general one, also when the server
     /// does not have it). Replaced whole on every change (so it is saved).

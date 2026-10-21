@@ -56,6 +56,7 @@ public partial class App
                     _assistantStates.Clear();
                     ClearAssistantExtras();
                     ForgetAssistantBrain();
+                    ForgetAssistantMemory();
                     AbandonAssistantQuestions();
                     // A process that fell cannot ask to let the keys go.
                     if (_assistant == supervisor) ResetAssistantInput();
@@ -92,6 +93,7 @@ public partial class App
             ClearAssistantExtras();
             _pendingExtras.Clear();
             ForgetAssistantBrain();
+            ForgetAssistantMemory();
             AbandonAssistantQuestions();
             Log.Info("Asistente: módulo desactivado");
             ResetAssistantInput();
@@ -187,6 +189,9 @@ public partial class App
                 break;
             case ChatLineMessage line:
                 OnAssistantChat(line);
+                break;
+            case MemoryStateMessage memory:
+                OnAssistantMemory(memory);
                 break;
             case ExtraStateMessage state:
                 OnAssistantExtraState(state);

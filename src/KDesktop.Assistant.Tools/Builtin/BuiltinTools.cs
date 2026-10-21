@@ -8,11 +8,15 @@ public sealed class BuiltinTools : IDisposable
     {
         Timers = new TimerStore(Path.Combine(folder, "timers.json"), time);
         Notes = new NoteStore(Path.Combine(folder, "notes.json"));
+        Memory = new MemoryStore(Path.Combine(folder, "memory.json"), time);
     }
 
     public TimerStore Timers { get; }
 
     public NoteStore Notes { get; }
+
+    /// <summary>What the assistants know about the user (stage 3.7).</summary>
+    public MemoryStore Memory { get; }
 
     public void AddTo(ToolRegistry registry)
     {
@@ -21,6 +25,7 @@ public sealed class BuiltinTools : IDisposable
         registry.Add(new CancelTimerTool(Timers));
         registry.Add(new SaveNoteTool(Notes, Timers.Time));
         registry.Add(new FindNotesTool(Notes));
+        registry.Add(new RememberTool(Memory));
         registry.Add(new CalculateTool());
         registry.Add(new OpenWebTool());
         registry.Add(new SearchWebTool());

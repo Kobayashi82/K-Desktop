@@ -364,6 +364,27 @@ public sealed record EmbeddedMessage(string Id, IReadOnlyList<float[]> Vectors, 
     public override string Type => "embedded";
 }
 
+// ── what the assistants know about the user (stage 3.7) ──────────────────
+
+/// <summary>Something the assistants know about the user («Su jefe se llama Luis»).</summary>
+/// <param name="Kind"><c>fact</c>, <c>like</c> or <c>event</c>.</param>
+/// <param name="Importance">0…1: the important ones come to mind first and are forgotten last.</param>
+/// <param name="Source"><c>said</c> (asked to remember it), <c>learned</c> (from a conversation) or <c>added</c> (Options).</param>
+public sealed record MemoryEntry(string Id, string Text, string Kind, double Importance, DateTimeOffset CreatedAt, string Source,
+    DateTimeOffset? LastRecalled = null, int RecallCount = 0);
+
+/// <summary>Options → Assistant → Memory: <c>list</c>, <c>add</c> (<paramref name="Text"/>), <c>edit</c> (<paramref name="Id"/>, <paramref name="Text"/>), <c>delete</c> (<paramref name="Id"/>) or <c>clear</c>.</summary>
+public sealed record MemoryMessage(string Op, string? Id = null, string? Text = null) : PipeMessage
+{
+    public override string Type => "memory";
+}
+
+/// <summary>All that is remembered, newest first: after every <c>memory</c> and whenever it changes.</summary>
+public sealed record MemoryStateMessage(IReadOnlyList<MemoryEntry> Items) : PipeMessage
+{
+    public override string Type => "memoryState";
+}
+
 /// <summary>Reading and writing messages as lines.</summary>
 public static class PipeJson
 {
@@ -423,6 +444,8 @@ public static class PipeJson
         ["chat"] = typeof(ChatLineMessage),
         ["embed"] = typeof(EmbedMessage),
         ["embedded"] = typeof(EmbeddedMessage),
+        ["memory"] = typeof(MemoryMessage),
+        ["memoryState"] = typeof(MemoryStateMessage),
     };
 
     /// <summary>[JsonIgnore] on the abstract Type is not inherited by the overrides: drop it here.</summary>

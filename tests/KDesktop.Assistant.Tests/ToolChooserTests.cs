@@ -48,7 +48,7 @@ public sealed class ToolChooserTests : IDisposable
         foreach (var chooser in new[] { new ToolChooser(new FakeMeaning()), new ToolChooser(null) })
         {
             var choice = await chooser.ChooseAsync(_tools, said, [], default);
-            Assert.Equal(20, _tools.Count);
+            Assert.True(_tools.Count >= 20);
             Assert.InRange(choice.Tools.Count, ToolChooser.Least, ToolChooser.Most);
             Assert.Contains(expected, choice.Tools.Select(t => t.Name));
         }
@@ -145,8 +145,8 @@ public sealed class ToolChooserTests : IDisposable
     }
 
     /// <summary>
-    /// A meaning model for tests: each word (folded, its first five letters) adds to one of 256 places, so phrases that
-    /// share words point alike, and a few everyday words add nothing.
+    /// A meaning model for tests: each word (folded, its first five letters) adds to one of 4096 places (a stable hash:
+    /// the same in every run), so phrases that share words point alike, and a few everyday words add nothing.
     /// </summary>
     private sealed class FakeMeaning : IMeaning
     {
@@ -166,13 +166,15 @@ public sealed class ToolChooserTests : IDisposable
 
         private static float[] Vector(string text)
         {
-            var v = new float[256];
+            var v = new float[4096];
             foreach (var word in TextSimilarity.Words(text).Where(w => !Stop.Contains(w)))
             {
                 var stem = word.Length > 5 ? word[..5] : word;
-                v[(int)((uint)StringComparer.Ordinal.GetHashCode(stem) % 256)] += 1;
+                var hash = 2166136261u;
+                foreach (var c in stem) hash = (hash ^ c) * 16777619u;
+                v[(int)(hash % 4095)] += 1;
             }
-            v[255] += 0.3f; // never all zeros
+            v[4095] += 0.3f; // never all zeros
             var norm = (float)Math.Sqrt(v.Sum(x => x * x));
             return [.. v.Select(x => x / norm)];
         }

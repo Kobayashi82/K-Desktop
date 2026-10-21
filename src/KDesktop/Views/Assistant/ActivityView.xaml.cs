@@ -54,6 +54,7 @@ public partial class ActivityView : UserControl
         {
             "undo" => (SymbolRegular.ArrowUndo24, entry.Ok ? "TextFillColorSecondaryBrush" : "Kd.Warning"),
             "timer" => (SymbolRegular.Timer24, "Kd.AccentText"),
+            "memory" when entry.Ok => (SymbolRegular.BrainCircuit24, "Kd.AccentText"),
             _ when !entry.Ok => (SymbolRegular.DismissCircle24, "Kd.Danger"),
             _ => (SymbolRegular.CheckmarkCircle24, "Kd.Success"),
         };

@@ -13,7 +13,8 @@ namespace KDesktop.Assistant.Host.Runtime;
 /// <summary>
 /// The tools of the process (stage 3.3), for all the assistants and the module without a body: the registry with the
 /// built-in ones, the runner (permissions, activity, undo), the questions K-Desktop asks for it (<c>ask</c> →
-/// <c>answer</c>), the tools the user trusts (<c>config</c> <c>tools</c>) and the timers ringing (<c>notify</c>).
+/// <c>answer</c>), the tools the user trusts (<c>config</c> <c>tools</c>) and the timers ringing (<c>notify</c>). Also
+/// what is remembered about the user (stage 3.7): Options → Memory asks (<c>memory</c>) and sees it (<c>memoryState</c>).
 /// </summary>
 internal sealed class ModuleTools : IDisposable
 {
@@ -30,7 +31,11 @@ internal sealed class ModuleTools : IDisposable
         Builtin.AddTo(registry);
         Runner = new ToolRunner(registry, () => _trusted, AskAsync, message => link.Send(message), Path.Combine(folder, "undo.json"));
         Builtin.Timers.Rang += OnTimerRang;
+        Builtin.Memory.Changed += SendMemory;
     }
+
+    /// <summary>The assistants learn from what is talked about (<c>config</c> <c>tools</c> <c>learn</c>).</summary>
+    public bool Learn { get; private set; } = true;
 
     public BuiltinTools Builtin { get; }
 
@@ -47,6 +52,7 @@ internal sealed class ModuleTools : IDisposable
             foreach (var item in list)
                 if (item is JsonValue v && v.TryGetValue<string>(out var name)) trusted.Add(name);
         _trusted = trusted;
+        Learn = tools?["learn"] is not JsonValue learn || !learn.TryGetValue<bool>(out var on) || on;
     }
 
     public void OnAnswer(AnswerMessage answer)
@@ -55,6 +61,33 @@ internal sealed class ModuleTools : IDisposable
     }
 
     public Task UndoAsync(UndoMessage undo) => Runner.UndoAsync(undo.Undo, CancellationToken.None);
+
+    /// <summary>Options → Memory: list, add, edit, delete or clear (each change sends the whole memory back).</summary>
+    public void OnMemory(MemoryMessage request)
+    {
+        var memory = Builtin.Memory;
+        switch (request.Op)
+        {
+            case "add" when request.Text is { } text:
+                memory.Remember(text, "fact", 0.7, "added");
+                break;
+            case "edit" when request is { Id: { } id, Text: { } text }:
+                memory.Edit(id, text);
+                break;
+            case "delete" when request.Id is { } id:
+                memory.Delete(id);
+                break;
+            case "clear":
+                memory.Clear();
+                Log.Info("Asistente: memoria borrada desde Opciones");
+                break;
+            default:
+                SendMemory();
+                break;
+        }
+    }
+
+    private void SendMemory() => _link.Send(new MemoryStateMessage(Builtin.Memory.All));
 
     private async Task<string> AskAsync(AskMessage question, CancellationToken cancellationToken)
     {
@@ -86,6 +119,7 @@ internal sealed class ModuleTools : IDisposable
     public void Dispose()
     {
         Builtin.Timers.Rang -= OnTimerRang;
+        Builtin.Memory.Changed -= SendMemory;
         Builtin.Dispose();
         foreach (var waiting in _questions.Values) waiting.TrySetResult("timeout");
     }

@@ -46,7 +46,11 @@ public partial class App
 
     private static string ActivityFile => Path.Combine(AppPaths.DataDir, "Assistant", "activity.json");
 
-    private JsonObject AssistantToolsConfig() => new() { ["trusted"] = new JsonArray([.. Config.Settings.AssistantTrustedTools.Select(t => (JsonNode)t)]) };
+    private JsonObject AssistantToolsConfig() => new()
+    {
+        ["trusted"] = new JsonArray([.. Config.Settings.AssistantTrustedTools.Select(t => (JsonNode)t)]),
+        ["learn"] = Config.Settings.AssistantMemoryLearn,
+    };
 
     /// <summary>After a settings change: the tools section, if it changed (UI thread).</summary>
     private void SendAssistantToolsConfig()

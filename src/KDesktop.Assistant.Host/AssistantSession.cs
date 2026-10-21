@@ -106,6 +106,9 @@ internal sealed class AssistantSession : IDisposable
                     case UndoMessage undo when Tools is { } tools:
                         _ = tools.UndoAsync(undo);
                         return;
+                    case MemoryMessage memory when Tools is { } tools:
+                        tools.OnMemory(memory);
+                        return;
                     case HeardMessage heard when Talk is { } talk:
                         talk.OnHeard(heard);
                         return;

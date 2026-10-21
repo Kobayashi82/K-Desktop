@@ -9,11 +9,12 @@ namespace KDesktop.Assistant.Brain.Talk;
 /// The instructions for the model (plan §5.2), short because they go with every order: who it is (the persona of the
 /// assistant it talks for), how it answers (in the user's language, one or two sentences, nothing a voice cannot say),
 /// how it uses the tools, and the date and time. In the user's language: small models answer better in the language
-/// of their instructions. The tools of this order go apart, as the model's tool definitions.
+/// of their instructions. The tools of this order go apart, as the model's tool definitions. What comes to mind about the
+/// user for this order (stage 3.7) goes at the end, to use only if it fits.
 /// </summary>
 public static class TalkPrompt
 {
-    public static string Compose(AssistantPersona persona, DateTimeOffset now)
+    public static string Compose(AssistantPersona persona, DateTimeOffset now, IReadOnlyList<Core.Assistant.Pipe.MemoryEntry>? known = null)
     {
         var culture = Loc.Instance.Culture;
         var text = new StringBuilder();
@@ -22,6 +23,11 @@ public static class TalkPrompt
         text.AppendLine(Loc.T("assistant.prompt.style"));
         text.AppendLine(Loc.T("assistant.prompt.tools"));
         text.Append(Loc.T("assistant.prompt.now", now.ToString("D", culture) + ", " + now.ToString("t", culture)));
+        if (known is { Count: > 0 })
+        {
+            text.AppendLine().Append(Loc.T("assistant.prompt.memory"));
+            foreach (var memory in known) text.AppendLine().Append("- ").Append(memory.Text);
+        }
         return text.ToString();
     }
 }

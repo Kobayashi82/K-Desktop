@@ -36,7 +36,8 @@ internal sealed class ModuleTalk : ITalkOutput
         _tools = tools;
         Meaning = new ModuleMeaning(link);
         Chooser = new ToolChooser(Meaning);
-        Service = new TalkService(who => (brain.Client, brain.ModelFor(who)), tools.Runner, PersonaOf, this, chooser: Chooser);
+        Memory = new TalkMemory(tools.Builtin.Memory, tools.Runner, Meaning);
+        Service = new TalkService(who => (brain.Client, brain.ModelFor(who)), tools.Runner, PersonaOf, this, chooser: Chooser, memory: Memory, learn: () => tools.Learn);
     }
 
     public TalkService Service { get; }
@@ -45,6 +46,9 @@ internal sealed class ModuleTalk : ITalkOutput
     public ModuleMeaning Meaning { get; }
 
     public ToolChooser Chooser { get; }
+
+    /// <summary>What comes to mind about the user and what is learned (stage 3.7).</summary>
+    public TalkMemory Memory { get; }
 
     /// <summary>Connected: the example phrases of the tools get their vectors before the first order needs them.</summary>
     public Task WarmAsync() => Chooser.WarmAsync(_tools.Runner.Registry.All, CancellationToken.None);

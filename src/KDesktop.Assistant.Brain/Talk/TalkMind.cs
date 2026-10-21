@@ -11,6 +11,9 @@ public sealed record TalkAnswer(string Text, bool Remember = true, bool Failed =
 {
     /// <summary>The tools it used (offered again with the next order).</summary>
     public IReadOnlyList<string> Tools { get; init; } = [];
+
+    /// <summary>The AI answered it (not a fixed rule): worth learning from.</summary>
+    public bool FromAi { get; init; }
 }
 
 /// <summary>
@@ -19,7 +22,7 @@ public sealed record TalkAnswer(string Text, bool Remember = true, bool Failed =
 /// <see cref="MaxToolRounds"/> rounds and <see cref="MaxToolCalls"/> calls; then it must answer. Only the tools that fit
 /// the order are offered (<see cref="ToolChooser"/>). No thinking, short answers, cleaned for a bubble and a voice.
 /// </summary>
-public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider time)
+public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider time, TalkMemory? memory = null)
 {
     /// <summary>Rounds in which the model may call tools; after them it is asked without tools, to answer.</summary>
     public const int MaxToolRounds = 3;
@@ -35,9 +38,12 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     public async Task<TalkAnswer> AnswerAsync(IChatModel model, string modelName, AssistantPersona persona, IReadOnlyList<ChatMessage> history,
         IReadOnlyCollection<string> recentTools, string said, ToolContext context, Action<string>? onText, CancellationToken cancellationToken)
     {
-        var offered = await chooser.ChooseAsync(tools.Registry.All, said, recentTools, cancellationToken).ConfigureAwait(false);
+        // The order's meaning once, for the tools and for what comes to mind.
+        var order = await MeaningOfAsync(said, cancellationToken).ConfigureAwait(false);
+        var offered = await chooser.ChooseAsync(tools.Registry.All, said, recentTools, order, cancellationToken).ConfigureAwait(false);
+        var known = memory is null ? [] : await memory.RecallAsync(said, order, cancellationToken).ConfigureAwait(false);
         var definitions = offered.Tools.Select(t => new ToolDefinition(t.Name, t.Description, t.ParametersSchemaJson)).ToList();
-        var messages = new List<ChatMessage> { ChatMessage.System(TalkPrompt.Compose(persona, time.GetLocalNow())) };
+        var messages = new List<ChatMessage> { ChatMessage.System(TalkPrompt.Compose(persona, time.GetLocalNow(), known)) };
         messages.AddRange(history);
         messages.Add(ChatMessage.User(said));
 
@@ -97,6 +103,17 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         // Silent after doing something: what the tool says it did.
         if (clean.Length == 0) clean = toolReply ?? persona.Phrase("notFound");
         return new TalkAnswer(clean) { Tools = used };
+    }
+
+    private async Task<MeaningVectors?> MeaningOfAsync(string said, CancellationToken cancellationToken)
+    {
+        if (chooser.Meaning is not { } meaning) return null;
+        try { return await meaning.EmbedAsync([said], keep: false, cancellationToken).ConfigureAwait(false); }
+        catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+        {
+            Log.Warn($"Asistente: sin significado para la orden: {ex.Message}");
+            return null;
+        }
     }
 
     private static async Task<(string Text, List<ToolCall> Calls)> RoundAsync(IChatModel model, ChatRequest request, Action<string>? onText, CancellationToken cancellationToken)

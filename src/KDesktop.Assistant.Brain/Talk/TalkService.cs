@@ -42,13 +42,17 @@ public sealed class TalkService
     private readonly TimeProvider _time;
     private readonly Random _random;
     private readonly TalkMind _mind;
+    private readonly TalkMemory? _memory;
+    private readonly Func<bool> _learn;
     private readonly ConcurrentDictionary<string, Conversation> _conversations = new(StringComparer.Ordinal);
 
     /// <param name="brain">The model client and model name for an assistant (null: no AI now).</param>
     /// <param name="persona">The persona of an assistant (null: the module without a body), in the user's language.</param>
     /// <param name="chooser">Which tools reach the AI (null: by the words of the order).</param>
+    /// <param name="memory">What is remembered about the user (null: nothing).</param>
+    /// <param name="learn">Whether it learns from what is talked about (Options → Memory).</param>
     public TalkService(Func<string?, (IChatModel? Client, string? Model)> brain, ToolRunner tools, Func<string?, AssistantPersona> persona,
-        ITalkOutput output, TimeProvider? time = null, Random? random = null, ToolChooser? chooser = null)
+        ITalkOutput output, TimeProvider? time = null, Random? random = null, ToolChooser? chooser = null, TalkMemory? memory = null, Func<bool>? learn = null)
     {
         _brain = brain;
         _tools = tools;
@@ -56,7 +60,9 @@ public sealed class TalkService
         _output = output;
         _time = time ?? TimeProvider.System;
         _random = random ?? Random.Shared;
-        _mind = new TalkMind(tools, chooser ?? new ToolChooser(null), _time);
+        _memory = memory;
+        _learn = learn ?? (() => true);
+        _mind = new TalkMind(tools, chooser ?? new ToolChooser(null), _time, memory);
     }
 
     /// <summary>An order for an assistant. Completes when it has been answered (and said), or replaced by another.</summary>
@@ -76,6 +82,7 @@ public sealed class TalkService
             token.ThrowIfCancellationRequested();
             _output.Chat(new ChatLineMessage("assistant", answer.Text, turn, true, who));
             if (answer.Remember) conversation.History.Add(said, answer.Text, answer.Tools);
+            Learn(who, said, answer, token);
             if (answer.Text.Length > 0) conversation.LastAnswer = answer.Text;
             _output.State(who, "speaking");
             await _output.SpeakAsync(who, answer.Text, token).ConfigureAwait(false);
@@ -92,6 +99,20 @@ public sealed class TalkService
         {
             if (conversation.End(token)) _output.State(who, "idle");
         }
+    }
+
+    /// <summary>
+    /// After an answer of the AI, the same model reads the exchange and remembers what is worth it, in the background (a
+    /// new order cancels it). Not for short orders, questions (the answer may recite what it knows), failures, or when it
+    /// already used «remember».
+    /// </summary>
+    private void Learn(string? who, string said, TalkAnswer answer, CancellationToken token)
+    {
+        if (_memory is null || !answer.FromAi || answer.Failed || !_learn() || answer.Tools.Contains("remember") || said.Contains('?', StringComparison.Ordinal)) return;
+        if (said.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length < 3) return;
+        var (client, model) = _brain(who);
+        if (client is null || model is null) return;
+        _ = Task.Run(() => _memory.LearnAsync(client, model, said, answer.Text, new ToolContext(who), token), CancellationToken.None);
     }
 
     /// <summary>«Para», Escape: stops what that assistant is answering (nothing to say).</summary>
@@ -146,7 +167,7 @@ public sealed class TalkService
         _output.State(who, "thinking");
         var shown = new PartialText(text => _output.Chat(new ChatLineMessage("assistant", text, turn, false, who)), _time);
         var answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), conversation.History.LastTools(), said, context, shown.Show, token).ConfigureAwait(false);
-        return answer with { Text = answer.Text.Length > 0 ? answer.Text : Phrase(persona, "ok") };
+        return answer with { Text = answer.Text.Length > 0 ? answer.Text : Phrase(persona, "ok"), FromAi = true };
     }
 
     /// <summary>A tool for a rule: what it says it did (after «Recibido.» for an action), or why not.</summary>
