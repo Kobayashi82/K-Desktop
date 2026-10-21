@@ -87,8 +87,25 @@ public sealed class WakeWordStore : IDisposable
     /// <summary>Lives on the UI thread's side: change it only from there.</summary>
     public ObservableCollection<WakeWord> Words { get; } = [];
 
-    /// <summary>The ones in use.</summary>
-    public IEnumerable<WakeWord> Active => Words.Where(w => w.Enabled && w.Variants.Count > 0);
+    /// <summary>The ones in use (not the <see cref="Asleep"/> ones).</summary>
+    public IEnumerable<WakeWord> Active => Words.Where(w => w.Enabled && w.Variants.Count > 0 && !_asleep.Contains(w.Id));
+
+    private volatile IReadOnlySet<string> _asleep = new HashSet<string>();
+
+    /// <summary>
+    /// Words switched on but not listened to now: an assistant's own word while it is not on the desktop. Set it (any
+    /// thread) when that changes; listening starts again with the new ones.
+    /// </summary>
+    public IReadOnlySet<string> Asleep
+    {
+        get => _asleep;
+        set
+        {
+            if (_asleep.SetEquals(value)) return;
+            _asleep = value;
+            RaiseChanged();
+        }
+    }
 
     /// <summary>Raised (any thread) when words are added, removed, switched on/off or (re)trained.</summary>
     public event Action? Changed;

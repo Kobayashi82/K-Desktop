@@ -135,6 +135,9 @@ public partial class App : Application
             action => Engine.TestActionAsync(action, new Command { Name = Loc.T("settings.nav.media") }));
         Voice.History = Engine.History;
         Voice.AddresseeOf = VoiceAddresseeOf;
+        UpdateSleepingWakeWords();
+        AssistantChanged += UpdateSleepingWakeWords;
+        Store.Changed += (_, _) => Dispatcher.BeginInvoke(UpdateSleepingWakeWords);
         Engine.Recording.Changed += () => Dispatcher.BeginInvoke(ApplyTrayIcon);
         Engine.Magnifier.Changed += () => Ui.ShowOsd(Engine.Magnifier.IsOn
             ? Loc.T("osd.zoomOn", Engine.Magnifier.Zoom.ToString("0.#", System.Globalization.CultureInfo.CurrentCulture))

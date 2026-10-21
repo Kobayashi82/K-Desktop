@@ -16,9 +16,23 @@ namespace KDesktop;
 public partial class App
 {
     /// <summary>
-    /// Who an order called with a wake word is for (any thread): an assistant's own word, that assistant (also when it is
-    /// not on the desktop: it answers without its body); the word «for the assistant», the one of «Cuando no le hablas a
-    /// nadie en concreto», or the module without a body with nobody on the desktop. Null: it is K-Desktop's.
+    /// An assistant's own word is only listened to while it is on the desktop (UI thread; called when the desktop, the
+    /// words or the module change): hidden, it neither answers nor runs K-Desktop's commands. The word «for the
+    /// assistant» always works.
+    /// </summary>
+    private void UpdateSleepingWakeWords()
+    {
+        var s = Config.Settings;
+        Voice.WakeWords.Asleep = s.AssistantWakeWords
+            .Where(p => p.Key != AssistantTargeting.AnyAssistant && (!s.AssistantEnabled || !s.AssistantsOnDesktop.Contains(p.Key)))
+            .Select(p => p.Value)
+            .ToHashSet();
+    }
+
+    /// <summary>
+    /// Who an order called with a wake word is for (any thread): an assistant's own word, that assistant (only listened to
+    /// while it is on the desktop: <see cref="UpdateSleepingWakeWords"/>); the word «for the assistant», the one of «Cuando
+    /// no le hablas a nadie en concreto», or the module without a body with nobody on the desktop. Null: it is K-Desktop's.
     /// </summary>
     private VoiceAddressee? VoiceAddresseeOf(string wakeWordId)
     {
