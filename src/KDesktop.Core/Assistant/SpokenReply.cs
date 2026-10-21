@@ -45,11 +45,33 @@ public static class SpokenReply
         foreach (var (kind, words) in w.Phrases)
             if (words.SequenceEqual(said, StringComparer.Ordinal)) return kind;
 
+        // «Sí, no vuelva a preguntar», «vale, siempre»: a way of saying «always» inside a short reply, a word or two
+        // misheard. Before the yes and the no, which it starts with. Not a lone «siempre» («no, siempre no»).
+        if (said.Count <= MaxWords)
+            foreach (var (kind, words) in w.Phrases)
+                if (kind == SpokenReplyKind.Always && words.Length > 1 && Contains(said, words)) return kind;
+
         // «Sí, hazlo ya», «no, déjalo»: a one-word yes or no that begins a short reply. «Always» needs its own words.
         if (said.Count <= 5)
             foreach (var (kind, words) in w.Phrases)
                 if (kind != SpokenReplyKind.Always && words.Length == 1 && words[0] == said[0]) return kind;
         return null;
+    }
+
+    /// <summary>A reply with an «always» inside has at most this many words.</summary>
+    private const int MaxWords = 8;
+
+    /// <summary>Whether <paramref name="phrase"/> is in <paramref name="said"/>, in a row, each word nearly the same.</summary>
+    private static bool Contains(List<string> said, string[] phrase)
+    {
+        for (var start = 0; start + phrase.Length <= said.Count; start++)
+        {
+            var all = true;
+            for (var i = 0; i < phrase.Length && all; i++)
+                all = said[start + i] == phrase[i] || TextSimilarity.WordSimilarity(said[start + i], phrase[i]) >= 0.8;
+            if (all) return true;
+        }
+        return false;
     }
 
     private static List<string> Trim(List<string> words, Vocabulary w)

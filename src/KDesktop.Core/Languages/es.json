@@ -2772,8 +2772,8 @@
   "assistant.persona.name": "K-Desktop",
   "assistant.persona.default": "Eres un asistente amable y directo, con un punto de humor. Hablas con naturalidad, como un compañero que echa una mano.",
   "assistant.prompt.who": "Te llamas {0} y vives en el escritorio de Windows del usuario, dentro de K-Desktop.",
-  "assistant.prompt.style": "Contesta siempre en español, con una o dos frases cortas, sin listas, sin Markdown y sin emojis: lo que dices sale en un bocadillo. Escribe los números y las horas con cifras.",
-  "assistant.prompt.tools": "Usa una herramienta cuando te pida hacer algo o saber algo que ella sabe (la hora, sus notas, sus temporizadores, una cuenta): no lo supongas. Para charlar, opinar o contar algo no hace falta ninguna: contesta tú. Nunca digas que has hecho algo que no ha hecho una herramienta. Sus comandos de K-Desktop se ejecutan con run_command; si pregunta qué hace un comando o qué comandos tiene, míralo con describe_command o find_command: no te inventes lo que hacen.",
+  "assistant.prompt.style": "Contesta siempre en español, con una o dos frases cortas, sin listas, sin Markdown y sin emojis: lo que dices sale en un bocadillo. Escribe los números y las horas con cifras. No acabes con una pregunta salvo que te falte un dato para hacer lo que pide.",
+  "assistant.prompt.tools": "Usa una herramienta cuando te pida hacer algo o saber algo que ella sabe (la hora, sus notas, sus temporizadores, una cuenta): no lo supongas. Para charlar, opinar o contar algo no hace falta ninguna: contesta tú. Nunca digas que has hecho algo que no ha hecho una herramienta en esta respuesta. Si ninguna herramienta hace lo que pide, dilo con sencillez: no uses otra que haga algo distinto (abrir no es cerrar). Sus comandos de K-Desktop se ejecutan con run_command; si pregunta qué hace un comando o qué comandos tiene, míralo con describe_command o find_command: no te inventes lo que hacen. No nombres nunca tus herramientas al usuario.",
   "assistant.prompt.now": "Ahora es {0}.",
   "assistant.phrase.ok": "Hecho.|Listo.|Vale.",
   "assistant.phrase.confirm": "¿Lo hago?",
@@ -2942,7 +2942,7 @@
 
   "assistantAsk.voiceHint": "Te escucho: di «sí» o «no»",
   "assistantAsk.sayYesNo": "«{0}»: no lo he entendido. Di «sí» o «no»",
-  "assistant.answer.yes": "sí|si|vale|claro|adelante|hazlo|de acuerdo|ok|okay|venga|correcto|afirmativo|por supuesto|dale|sí claro|claro que sí|sí hazlo|sí por favor|sí adelante|sí vale|vale sí|perfecto|muy bien|bien|sí señor|confirmo|confirmado",
+  "assistant.answer.yes": "sí|si|vale|claro|adelante|hazlo|de acuerdo|ok|okay|venga|correcto|afirmativo|por supuesto|dale|sí claro|claro que sí|sí hazlo|sí por favor|sí adelante|sí vale|vale sí|perfecto|muy bien|bien|sí señor|confirmo|confirmado|see",
   "assistant.answer.no": "no|no gracias|mejor no|ni hablar|para nada|negativo|déjalo|cancela|cancelar|no lo hagas|espera|todavía no|aún no|nada|nunca|no no|de ninguna manera",
   "assistant.answer.always": "siempre|sí siempre|sí y no vuelvas a preguntar|sí y no me vuelvas a preguntar|sí y no preguntes más|no vuelvas a preguntar|no me vuelvas a preguntar|no preguntes más|no me preguntes más|sí y no preguntes|hazlo siempre|sí para siempre",
 
@@ -3019,5 +3019,7 @@
   "assistantOptions.animateAll": "Enseñar todas las acciones",
   "assistantOptions.animateMore": "Con más de {0}: solo las de ventanas",
   "assistantOptions.adorn": "Enseñar también los comandos que lanzas tú",
-  "assistantOptions.adornHint": "Atajos, QuickMenus, el lanzador, la voz de K-Desktop, el móvil, los eventos…: el asistente los adorna deprisa, sin retrasarlos nada."
+  "assistantOptions.adornHint": "Atajos, QuickMenus, el lanzador, la voz de K-Desktop, el móvil, los eventos…: el asistente los adorna deprisa, sin retrasarlos nada.",
+
+  "assistant.prompt.commands": "Comandos suyos que podrían ser lo que pide (si lo es, ejecútalo con run_command y su nombre exacto): {0}."
 }

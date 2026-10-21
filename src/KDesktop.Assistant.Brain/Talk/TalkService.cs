@@ -55,8 +55,14 @@ public sealed class TalkService
     /// <summary>«¿A o B?» waits this long for its answer.</summary>
     public static readonly TimeSpan ChoiceWithin = TimeSpan.FromMinutes(1);
 
-    /// <summary>Two candidates are asked about when both are this close and less than <see cref="Close"/> apart.</summary>
-    public const double Plausible = 0.70;
+    /// <summary>
+    /// Two candidates are asked about when the best is this close, the second at least <see cref="Plausible"/>, and they
+    /// are less than <see cref="Close"/> apart. With a hundred real commands, anything is 0.70–0.75 away from anything
+    /// («minimiza la ventana actual» → «¿Bajar el volumen o Ventana de Incognito?»): only a near match is worth asking.
+    /// </summary>
+    public const double AskFrom = CommandTools.Direct;
+
+    public const double Plausible = CommandTools.Clear;
 
     public const double Close = 0.08;
 
@@ -110,7 +116,7 @@ public sealed class TalkService
             var answer = await AnswerAsync(conversation, persona, who, said, turn, wasBusy, token).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
             _output.Chat(new ChatLineMessage("assistant", answer.Text, turn, true, who));
-            if (answer.Remember) conversation.History.Add(said, answer.Text, answer.Tools);
+            if (answer.Remember) conversation.History.Add(said, answer.Text, answer.Tools, answer.Steps);
             Learn(who, said, answer, token);
             if (answer.Text.Length > 0) conversation.LastAnswer = answer.Text;
             _output.State(who, "speaking");
@@ -270,10 +276,16 @@ public sealed class TalkService
         TalkAnswer? ran = null;
         var forAi = said;
         IReadOnlyCollection<string>? leaveOut = null;
+        IReadOnlyList<string>? close = null;
         if (_commands is not null && !IsQuestion(said) && await _commands.MatchAsync(said, token).ConfigureAwait(false) is { } matched)
         {
             Log.Info("Asistente: comandos: " + CommandTools.Describe(matched));
             var sure = matched.Parts.Where(p => p.Sure && p.Candidates[0].Score >= CommandTools.Direct).Select(p => p.Candidates[0]).ToList();
+            // Not sure of any part, but the whole order is that near one command and well ahead of the rest («Va ser la
+            // papelera», Parakeet's «vacía la papelera», 0.82): it is that one. K-Desktop still asks before what is risky.
+            if (sure.Count == 0 && matched.Parts is [{ Sure: false, Candidates: [var only, ..] } whole] && only.Score >= CommandTools.Direct
+                && (whole.Candidates.Count < 2 || only.Score - whole.Candidates[1].Score >= CommandTools.Ahead))
+                return await CommandsAsync(persona, [only], context, said, token).ConfigureAwait(false);
             // A part K-Desktop is sure of but not enough for running it at once is left to the AI too.
             var unmatched = matched.Unmatched.Concat(matched.Parts.Where(p => p.Sure && p.Candidates[0].Score < CommandTools.Direct).Select(p => p.Text)).ToList();
             if (sure.Count > 0)
@@ -282,14 +294,16 @@ public sealed class TalkService
                 if (unmatched.Count == 0) return ran;
                 forAi = string.Join(", ", unmatched);
             }
-            else if (matched.Parts is [{ Candidates: [var first, var second, ..] }] && first.Score >= Plausible && second.Score >= Plausible
+            else if (matched.Parts is [{ Candidates: [var first, var second, ..] }] && first.Score >= AskFrom && second.Score >= Plausible
                      && first.Score - second.Score < Close)
             {
                 conversation.AskChoice([first, second], _time.GetUtcNow());
                 return new TalkAnswer(Phrase(persona, "which", first.Name, second.Name), Remember: false) { AsksBack = true };
             }
-            // No command of the user is anything like it: the AI is not tempted to look for one.
-            if (sure.Count == 0 && !matched.Parts.SelectMany(p => p.Candidates).Any(c => c.Score >= CommandTools.Plausible)) leaveOut = ["run_command"];
+            // The commands that may be it go to the AI by name; none: the AI is not tempted to look for one.
+            close = [.. matched.Parts.SelectMany(p => p.Candidates).Where(c => c.Score >= CommandTools.Plausible && !sure.Contains(c))
+                .Select(c => c.Name).Distinct(StringComparer.OrdinalIgnoreCase).Take(AssistantCommandsShown)];
+            if (sure.Count == 0 && close.Count == 0) leaveOut = ["run_command"];
         }
 
         var (client, model) = _brain(who);
@@ -301,9 +315,20 @@ public sealed class TalkService
             _output.Chat(new ChatLineMessage("assistant", sofar, turn, false, who));
             _output.SpeakAhead(who, turn, sofar);
         }, _time);
-        var answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), conversation.History.LastTools(), forAi, context, shown.Show, token, leaveOut).ConfigureAwait(false);
+        var answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), conversation.History.LastTools(), forAi, context, shown.Show, token,
+            leaveOut, close).ConfigureAwait(false);
         answer = answer with { Text = answer.Text.Length > 0 ? answer.Text : Phrase(persona, "ok"), FromAi = true };
-        return ran is null ? answer : answer with { Text = ran.Text + " " + answer.Text, Tools = [.. ran.Tools, .. answer.Tools] };
+        return ran is null ? answer : answer with { Text = ran.Text + " " + answer.Text, Tools = [.. ran.Tools, .. answer.Tools], Steps = [.. ran.Steps, .. answer.Steps] };
+    }
+
+    /// <summary>Commands of the user named to the AI for an order, at most.</summary>
+    private const int AssistantCommandsShown = 4;
+
+    /// <summary>A tool the routing ran itself, as if the model had called it (for the history).</summary>
+    private static IEnumerable<ChatMessage> Step(string tool, JsonObject arguments, string result)
+    {
+        var id = "call_" + Guid.NewGuid().ToString("N")[..8];
+        return [ChatMessage.Assistant(string.Empty, [new ToolCall(tool, JsonSerializer.SerializeToElement(arguments), id)]), ChatMessage.ToolResult(tool, result, id)];
     }
 
     /// <summary>
@@ -314,6 +339,7 @@ public sealed class TalkService
     private async Task<TalkAnswer> CommandsAsync(AssistantPersona persona, IReadOnlyList<MatchedCandidate> commands, ToolContext context, string said, CancellationToken token)
     {
         var replies = new List<string>();
+        var steps = new List<ChatMessage>();
         var failed = false;
         foreach (var command in commands)
         {
@@ -322,6 +348,8 @@ public sealed class TalkService
             if (command.Media is { } media) arguments["media"] = media;
             if (command.Value is { } value) arguments["value"] = value;
             var outcome = await _tools.RunAsync("run_command", JsonSerializer.SerializeToElement(arguments), context, said, "kdesktop", token).ConfigureAwait(false);
+            // The model only gives the name (the id and the media order are the routing's).
+            steps.AddRange(Step("run_command", new JsonObject { ["command"] = command.Name }, outcome.Result?.Text ?? "Not done: " + outcome.Entry.Did));
             if (outcome.Result is { Failed: false } done) replies.Add(done.Reply ?? command.Name);
             else
             {
@@ -330,7 +358,7 @@ public sealed class TalkService
             }
         }
         var text = failed ? string.Join(" ", replies) : Phrase(persona, "ok") + " " + string.Join(" ", replies);
-        return new TalkAnswer(text, Failed: failed) { Tools = ["run_command"] };
+        return new TalkAnswer(text, Failed: failed) { Tools = ["run_command"], Steps = steps };
     }
 
     /// <summary>A question, not an order (it may name a command without asking to run it).</summary>
@@ -360,10 +388,11 @@ public sealed class TalkService
     private async Task<TalkAnswer> ToolAsync(AssistantPersona persona, string tool, JsonObject arguments, ToolContext context, string said, bool acknowledge, CancellationToken token)
     {
         var outcome = await _tools.RunAsync(tool, JsonSerializer.SerializeToElement(arguments), context, said, "rule", token).ConfigureAwait(false);
-        if (outcome.Result is not { } result) return new TalkAnswer(outcome.Entry.Did, Remember: true, Failed: true);
-        if (result.Failed) return new TalkAnswer(result.Reply ?? Phrase(persona, "error"), Remember: true, Failed: true);
+        var steps = Step(tool, arguments, outcome.Result?.Text ?? "Not done: " + outcome.Entry.Did).ToList();
+        if (outcome.Result is not { } result) return new TalkAnswer(outcome.Entry.Did, Remember: true, Failed: true) { Steps = steps };
+        if (result.Failed) return new TalkAnswer(result.Reply ?? Phrase(persona, "error"), Remember: true, Failed: true) { Steps = steps };
         var reply = result.Reply ?? Phrase(persona, "ok");
-        return new TalkAnswer(acknowledge && result.Reply is not null ? Phrase(persona, "ok") + " " + reply : reply) { Tools = [tool] };
+        return new TalkAnswer(acknowledge && result.Reply is not null ? Phrase(persona, "ok") + " " + reply : reply) { Tools = [tool], Steps = steps };
     }
 
     private string Phrase(AssistantPersona persona, string key, params object?[] args) => persona.Phrase(key, _random, args);

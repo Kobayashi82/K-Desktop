@@ -3,6 +3,7 @@ using KDesktop.Assistant.Brain.Models;
 using KDesktop.Assistant.Tools;
 using KDesktop.Core;
 using KDesktop.Core.Assistant.Packages;
+using KDesktop.Core.Localization;
 
 namespace KDesktop.Assistant.Brain.Talk;
 
@@ -17,6 +18,9 @@ public sealed record TalkAnswer(string Text, bool Remember = true, bool Failed =
 
     /// <summary>It asks the user something back («¿A o B?»): the answer is listened for (stage 5.3).</summary>
     public bool AsksBack { get; init; }
+
+    /// <summary>The tool calls and their results between the order and this answer, for the history.</summary>
+    public IReadOnlyList<ChatMessage> Steps { get; init; } = [];
 }
 
 /// <summary>
@@ -39,19 +43,24 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     /// <param name="recentTools">The tools used in the last exchange.</param>
     /// <param name="onText">The answer so far, cleaned, while it is written (any thread).</param>
     /// <param name="leaveOut">Tools not to offer for this order (run_command when no command of the user is anything like it).</param>
+    /// <param name="commands">The user's commands K-Desktop found close to the order: named in the instructions, and
+    /// run_command is offered whatever the order's meaning says (with «abre Steam y Epic Games» it was not, and the model
+    /// said it had opened them).</param>
     public async Task<TalkAnswer> AnswerAsync(IChatModel model, string modelName, AssistantPersona persona, IReadOnlyList<ChatMessage> history,
         IReadOnlyCollection<string> recentTools, string said, ToolContext context, Action<string>? onText, CancellationToken cancellationToken,
-        IReadOnlyCollection<string>? leaveOut = null)
+        IReadOnlyCollection<string>? leaveOut = null, IReadOnlyList<string>? commands = null)
     {
         // The order's meaning once, for the tools and for what comes to mind.
         var order = await MeaningOfAsync(said, cancellationToken).ConfigureAwait(false);
         var available = leaveOut is { Count: > 0 } ? [.. tools.Registry.All.Where(t => !leaveOut.Contains(t.Name))] : tools.Registry.All;
-        var offered = await chooser.ChooseAsync(available, said, recentTools, order, cancellationToken).ConfigureAwait(false);
+        var always = commands is { Count: > 0 } ? [.. recentTools.Append(RunCommandTool).Distinct()] : recentTools;
+        var offered = await chooser.ChooseAsync(available, said, always, order, cancellationToken).ConfigureAwait(false);
         var known = memory is null ? [] : await memory.RecallAsync(said, order, cancellationToken).ConfigureAwait(false);
         var definitions = offered.Tools.Select(t => new ToolDefinition(t.Name, t.Description, t.ParametersSchemaJson)).ToList();
-        var messages = new List<ChatMessage> { ChatMessage.System(TalkPrompt.Compose(persona, time.GetLocalNow(), known)) };
+        var messages = new List<ChatMessage> { ChatMessage.System(TalkPrompt.Compose(persona, time.GetLocalNow(), known, commands)) };
         messages.AddRange(history);
         messages.Add(ChatMessage.User(said));
+        var first = messages.Count;
 
         var calls = 0;
         string? toolReply = null;
@@ -100,15 +109,33 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
             return new TalkAnswer(persona.Phrase("error"), Remember: false, Failed: true);
         }
 
+        var steps = messages.GetRange(first, messages.Count - first);
         // It did something and every tool has its own words for it: those, exact (a small model may well say «in 25
         // minutes» for a timer set for 20). Its own text is for questions and chat.
         if (acted && replies.Count > 0 && replies.All(r => r is not null))
-            return new TalkAnswer(persona.Phrase("ok") + " " + string.Join(" ", replies)) { Tools = used };
+            return new TalkAnswer(persona.Phrase("ok") + " " + string.Join(" ", replies)) { Tools = used, Steps = steps };
 
         var clean = ReplyText.Clean(answer);
         // Silent after doing something: what the tool says it did.
         if (clean.Length == 0) clean = toolReply ?? persona.Phrase("notFound");
-        return new TalkAnswer(clean) { Tools = used };
+        // «He ejecutado «Captura de pantalla».» with nothing run (and no such command): copied from an earlier answer.
+        if (!acted && ClaimsToHaveRun(clean))
+        {
+            Log.Warn($"Asistente: la IA dice que ha ejecutado algo sin hacerlo: «{clean}»");
+            clean = persona.Phrase("notFound");
+        }
+        return new TalkAnswer(clean) { Tools = used, Steps = steps };
+    }
+
+    private const string RunCommandTool = "run_command";
+
+    /// <summary>Whether the text says, in the words of run_command, that a command was run.</summary>
+    public static bool ClaimsToHaveRun(string text)
+    {
+        var reply = Loc.T("tool.run_command.reply", "\u0001");
+        var start = reply.IndexOf('\u0001', StringComparison.Ordinal);
+        var words = (start > 0 ? reply[..start] : reply).TrimEnd('«', '"', '“', '„', ' ');
+        return words.Length >= 4 && text.Contains(words, StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task<MeaningVectors?> MeaningOfAsync(string said, CancellationToken cancellationToken)

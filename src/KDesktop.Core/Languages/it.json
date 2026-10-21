@@ -2772,8 +2772,8 @@
   "assistant.persona.name": "K-Desktop",
   "assistant.persona.default": "Sei un assistente gentile e diretto, con un pizzico di umorismo. Parli con naturalezza, come un collega che dà una mano.",
   "assistant.prompt.who": "Ti chiami {0} e vivi sul desktop di Windows dell'utente, dentro K-Desktop.",
-  "assistant.prompt.style": "Rispondi sempre in italiano, con una o due frasi brevi, senza elenchi, senza Markdown e senza emoji: quello che dici appare in un fumetto. Scrivi numeri e orari in cifre.",
-  "assistant.prompt.tools": "Usa uno strumento quando ti chiede di fare qualcosa o di sapere qualcosa che lui sa (l'ora, le sue note, i suoi timer, un calcolo): non tirare a indovinare. Per chiacchierare, dare un'opinione o raccontare qualcosa non serve nessuno strumento: rispondi tu. Non dire mai di aver fatto qualcosa che nessuno strumento ha fatto. I suoi comandi di K-Desktop si eseguono con run_command; se chiede cosa fa un comando o quali comandi ha, guardalo con describe_command o find_command: non inventarti cosa fanno.",
+  "assistant.prompt.style": "Rispondi sempre in italiano, con una o due frasi brevi, senza elenchi, senza Markdown e senza emoji: quello che dici appare in un fumetto. Scrivi numeri e orari in cifre. Non finire con una domanda, a meno che ti manchi un dato per fare quello che chiede.",
+  "assistant.prompt.tools": "Usa uno strumento quando ti chiede di fare qualcosa o di sapere qualcosa che lui sa (l'ora, le sue note, i suoi timer, un calcolo): non tirare a indovinare. Per chiacchierare, dare un'opinione o raccontare qualcosa non serve nessuno strumento: rispondi tu. Non dire mai di aver fatto qualcosa che nessuno strumento ha fatto in questa risposta. Se nessuno strumento fa quello che chiede, dillo con semplicità: non usarne uno che fa altro (aprire non è chiudere). I suoi comandi di K-Desktop si eseguono con run_command; se chiede cosa fa un comando o quali comandi ha, guardalo con describe_command o find_command: non inventarti cosa fanno. Non nominare mai i tuoi strumenti all'utente.",
   "assistant.prompt.now": "Adesso è {0}.",
   "assistant.phrase.ok": "Fatto.|Ecco.|Va bene.",
   "assistant.phrase.confirm": "Lo faccio?",
@@ -3019,5 +3019,7 @@
   "assistantOptions.animateAll": "Mostrare tutte le azioni",
   "assistantOptions.animateMore": "Più di {0}: solo quelle delle finestre",
   "assistantOptions.adorn": "Mostrare anche i comandi che avvii tu",
-  "assistantOptions.adornHint": "Scorciatoie, QuickMenu, il launcher, la voce di K-Desktop, il telefono, gli eventi…: l’assistente li accompagna in fretta, senza ritardarli."
+  "assistantOptions.adornHint": "Scorciatoie, QuickMenu, il launcher, la voce di K-Desktop, il telefono, gli eventi…: l’assistente li accompagna in fretta, senza ritardarli.",
+
+  "assistant.prompt.commands": "Suoi comandi che potrebbero essere quello che chiede (se sì, eseguilo con run_command e il suo nome esatto): {0}."
 }

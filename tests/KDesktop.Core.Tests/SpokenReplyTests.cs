@@ -18,6 +18,11 @@ public class SpokenReplyTests
     [InlineData("Sí, y no vuelvas a preguntar.", SpokenReplyKind.Always)]
     [InlineData("no me preguntes más", SpokenReplyKind.Always)]
     [InlineData("siempre", SpokenReplyKind.Always)]
+    // As Parakeet heard them on the user's PC: «always» inside, a word misheard; «sí» heard as «see».
+    [InlineData("Sí, no vuelva a preguntar.", SpokenReplyKind.Always)]
+    [InlineData("Vale, siempre.", SpokenReplyKind.Always)]
+    [InlineData("No, siempre no.", SpokenReplyKind.No)]
+    [InlineData("See.", SpokenReplyKind.Yes)]
     // Any installed language, as the voice.
     [InlineData("Yes please", SpokenReplyKind.Yes)]
     [InlineData("nope", SpokenReplyKind.No)]

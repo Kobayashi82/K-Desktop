@@ -177,6 +177,57 @@ public sealed class CommandRoutingTests : IDisposable
         Assert.Empty(_bridge.Done);
     }
 
+    // What went wrong talking to the Lander on the user's PC (21/10/2026), with the scores K-Desktop gave.
+
+    [Fact]
+    public async Task AnOrderFarCloserToOneCommandRunsItThoughNoPartIsSure()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        // Parakeet's «vacía la papelera».
+        _bridge.Matches["Va ser la papelera."] = new MatchedMessage("x", 0.4, [],
+            [new MatchedPart("Va ser la papelera.", false, [new MatchedCandidate("bin", "Vaciar Papelera", 0.82), new MatchedCandidate("open", "Abrir Papelera", 0.70)])]);
+        await talk.HandleAsync(new HeardMessage("Va ser la papelera.", "voice", "lander"));
+        Assert.Equal(["run:bin:lander"], _bridge.Done);
+        Assert.Empty(_model.Requests);
+    }
+
+    [Fact]
+    public async Task TwoFarCandidatesAreNotAskedAboutAndTheAiHearsOfThem()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        // It asked «¿«Bajar el volumen» o «Ventana de Incognito»?».
+        _bridge.Matches["minimiza la ventana actual"] = new MatchedMessage("x", 0.4, [],
+            [new MatchedPart("minimiza la ventana actual", false, [new MatchedCandidate("down", "Bajar el volumen", 0.75), new MatchedCandidate("inc", "Ventana de Incognito", 0.74)])]);
+        _model.Answers.Enqueue("No sé minimizar ventanas todavía.");
+        await talk.HandleAsync(new HeardMessage("minimiza la ventana actual", "panel"));
+        Assert.Empty(_bridge.Done);
+        var request = Assert.Single(_model.Requests);
+        Assert.Contains("«Bajar el volumen»", request.Messages[0].Content, StringComparison.Ordinal);
+        Assert.DoesNotContain("Incognito", request.Messages[0].Content, StringComparison.Ordinal);
+        Assert.Contains(request.Tools, t => t.Name == "run_command");
+    }
+
+    [Fact]
+    public async Task TheHistoryHasWhatRanAndSayingSoWithoutRunningIsNotBelieved()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        _bridge.Sure("pausa la música", (null, "Pausar", "pause"));
+        await talk.HandleAsync(new HeardMessage("pausa la música", "panel"));
+
+        // It had seen «He ejecutado «Pausar».» and answered a screenshot with «He ejecutado «Captura de pantalla».».
+        _model.Answers.Enqueue("Recibido. " + Core.Localization.Loc.T("tool.run_command.reply", "Captura de pantalla"));
+        await talk.HandleAsync(new HeardMessage("haz una captura de pantalla", "panel"));
+        var request = Assert.Single(_model.Requests);
+        var call = request.Messages.Single(m => m.ToolCalls is { Count: > 0 });
+        Assert.Equal("run_command", call.ToolCalls![0].Name);
+        Assert.Contains(request.Messages, m => m.Role == ChatRole.Tool && m.ToolCallId == call.ToolCalls[0].Id && m.Content.StartsWith("Done", StringComparison.Ordinal));
+        Assert.DoesNotContain("Captura", LastAnswer, StringComparison.Ordinal);
+        Assert.Equal(["media:pause"], _bridge.Done);
+    }
+
     private sealed class Output(List<ChatLineMessage> chat, List<(string?, int)> listens) : ITalkOutput
     {
         public void Chat(ChatLineMessage line)

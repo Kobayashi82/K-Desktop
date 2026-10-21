@@ -14,7 +14,9 @@ namespace KDesktop.Assistant.Brain.Talk;
 /// </summary>
 public static class TalkPrompt
 {
-    public static string Compose(AssistantPersona persona, DateTimeOffset now, IReadOnlyList<Core.Assistant.Pipe.MemoryEntry>? known = null)
+    /// <param name="commands">The user's commands K-Desktop found close to the order (none: no line about them).</param>
+    public static string Compose(AssistantPersona persona, DateTimeOffset now, IReadOnlyList<Core.Assistant.Pipe.MemoryEntry>? known = null,
+        IReadOnlyList<string>? commands = null)
     {
         var culture = Loc.Instance.Culture;
         var text = new StringBuilder();
@@ -22,6 +24,7 @@ public static class TalkPrompt
         text.AppendLine(persona.Prompt);
         text.AppendLine(Loc.T("assistant.prompt.style"));
         text.AppendLine(Loc.T("assistant.prompt.tools"));
+        if (commands is { Count: > 0 }) text.AppendLine(Loc.T("assistant.prompt.commands", string.Join(", ", commands.Select(c => $"«{c}»"))));
         text.Append(Loc.T("assistant.prompt.now", now.ToString("D", culture) + ", " + now.ToString("t", culture)));
         if (known is { Count: > 0 })
         {
@@ -45,16 +48,18 @@ public sealed class TalkHistory(TimeProvider time)
     public static readonly TimeSpan Forget = TimeSpan.FromMinutes(10);
 
     private readonly object _gate = new();
-    private readonly List<(string Said, string Answer, IReadOnlyList<string> Tools)> _exchanges = [];
+    private readonly List<(string Said, string Answer, IReadOnlyList<string> Tools, IReadOnlyList<ChatMessage> Steps)> _exchanges = [];
     private DateTimeOffset _last;
 
     /// <param name="tools">The tools it used to answer (offered again with the next order).</param>
-    public void Add(string said, string answer, IReadOnlyList<string>? tools = null)
+    /// <param name="steps">The tool calls and their results between the order and the answer: a small model that only
+    /// saw «He ejecutado «Pausar».» answered the next order with those words instead of calling the tool.</param>
+    public void Add(string said, string answer, IReadOnlyList<string>? tools = null, IReadOnlyList<ChatMessage>? steps = null)
     {
         lock (_gate)
         {
             Expire();
-            _exchanges.Add((said, answer, tools ?? []));
+            _exchanges.Add((said, answer, tools ?? [], steps ?? []));
             if (_exchanges.Count > Kept) _exchanges.RemoveRange(0, _exchanges.Count - Kept);
             _last = time.GetUtcNow();
         }
@@ -66,7 +71,7 @@ public sealed class TalkHistory(TimeProvider time)
         lock (_gate)
         {
             Expire();
-            return [.. _exchanges.SelectMany(e => new[] { ChatMessage.User(e.Said), ChatMessage.Assistant(e.Answer) })];
+            return [.. _exchanges.SelectMany(e => e.Steps.Prepend(ChatMessage.User(e.Said)).Append(ChatMessage.Assistant(e.Answer)))];
         }
     }
 

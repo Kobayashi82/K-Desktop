@@ -92,7 +92,7 @@ public sealed class OpenAppTool(Func<Task<IReadOnlyList<InstalledApp>>>? apps = 
 {
     public string Name => "open_app";
 
-    public string Description => "Opens a program installed on the PC (from the Start menu) by its name.";
+    public string Description => "Opens (starts) a program installed on the PC (from the Start menu) by its name. Only opens: it cannot close, minimize or change a program.";
 
     public string ParametersSchemaJson => ToolText.OneString("name", "The program's name, e.g. Calculator, Spotify");
 
