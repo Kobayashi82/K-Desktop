@@ -35,7 +35,11 @@ internal sealed class AssistantSession : IDisposable
         // The brain answers Options → Assistant → Brain: only with K-Desktop there.
         if (Link is not null) Brain = new BrainService(World.VideoMemory.Gigabytes);
         if (Link is not null) Tools = new ModuleTools(Link);
+        if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!);
     }
+
+    /// <summary>Talking with the assistants: orders, answers and the chat (null without K-Desktop).</summary>
+    public ModuleTalk? Talk { get; }
 
     /// <summary>The tools of all the assistants of the process (null without K-Desktop).</summary>
     public ModuleTools? Tools { get; }
@@ -75,6 +79,7 @@ internal sealed class AssistantSession : IDisposable
             {
                 link.Send(new StatusMessage("idle"));
                 Engine.Post(() => Runtime.SetPaused(welcome.Paused));
+                if (Talk is { } talk) talk.Paused = welcome.Paused;
                 if (welcome.Config?["general"] is JsonObject general) ApplyGeneral(general);
                 Brain?.Configure(BrainConfig.FromJson(welcome.Config?["brain"] as JsonObject));
                 Tools?.Configure(welcome.Config?["tools"] as JsonObject);
@@ -100,6 +105,18 @@ internal sealed class AssistantSession : IDisposable
                     case UndoMessage undo when Tools is { } tools:
                         _ = tools.UndoAsync(undo);
                         return;
+                    case HeardMessage heard when Talk is { } talk:
+                        talk.OnHeard(heard);
+                        return;
+                    case CancelMessage cancel when Talk is { } talk:
+                        talk.OnCancel(cancel);
+                        return;
+                    case PauseMessage pause when Talk is { } talk:
+                        talk.Paused = pause.Paused;
+                        break;
+                    case UnloadMessage unload when Talk is { } talk:
+                        talk.Left(unload.Assistant);
+                        break;
                 }
                 Engine.Post(() => OnMessage(message));
             };
@@ -230,6 +247,7 @@ internal sealed class AssistantSession : IDisposable
         {
             var entrance = load.Entrance == "switched" ? EntranceKind.Switched : EntranceKind.Startup;
             var id = await Runtime.LoadPackageAsync(load.Path, load.Data, entrance);
+            Talk?.Loaded(id, load.Path);
             Link?.Send(new LoadedMessage(id, true));
         }
         catch (Exception ex)

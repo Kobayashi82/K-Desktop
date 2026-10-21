@@ -1,0 +1,230 @@
+using System.Collections.Concurrent;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using KDesktop.Assistant.Brain.Models;
+using KDesktop.Assistant.Tools;
+using KDesktop.Core;
+using KDesktop.Core.Assistant.Packages;
+using KDesktop.Core.Assistant.Pipe;
+using KDesktop.Core.Localization;
+
+namespace KDesktop.Assistant.Brain.Talk;
+
+/// <summary>Where what an assistant says goes (the host: K-Desktop's chat, its state, the character).</summary>
+public interface ITalkOutput
+{
+    /// <summary>A line of the conversation for K-Desktop (<c>chat</c>).</summary>
+    void Chat(ChatLineMessage line);
+
+    /// <summary>What it is doing now: <c>thinking</c>, <c>speaking</c> or <c>idle</c> (its <c>status</c>, and the character shows it).</summary>
+    void State(string? assistant, string state);
+
+    /// <summary>The character says it (Communicate) for as long as it takes to read; done at once without a body.</summary>
+    Task SpeakAsync(string? assistant, string text, CancellationToken cancellationToken);
+}
+
+/// <summary>
+/// The way an order goes (stage 3.4, plan §4): every <c>heard</c> first tries the fixed rules (the time, a timer, a
+/// note, «cancela», «repite», «deshaz»), answered at once with the assistant's phrases; anything else goes to the AI,
+/// with the persona of the assistant it was said to and its short history. One conversation per assistant (and one for
+/// the module without a body); a new order replaces the one still going. Commands (<c>match</c>) come in phase 4.
+/// Thread-safe.
+/// </summary>
+public sealed class TalkService
+{
+    /// <summary>«Deshaz» undoes what was done this long ago at most.</summary>
+    public static readonly TimeSpan UndoWithin = TimeSpan.FromMinutes(30);
+
+    private readonly Func<string?, (IChatModel? Client, string? Model)> _brain;
+    private readonly ToolRunner _tools;
+    private readonly Func<string?, AssistantPersona> _persona;
+    private readonly ITalkOutput _output;
+    private readonly TimeProvider _time;
+    private readonly Random _random;
+    private readonly TalkMind _mind;
+    private readonly ConcurrentDictionary<string, Conversation> _conversations = new(StringComparer.Ordinal);
+
+    /// <param name="brain">The model client and model name for an assistant (null: no AI now).</param>
+    /// <param name="persona">The persona of an assistant (null: the module without a body), in the user's language.</param>
+    public TalkService(Func<string?, (IChatModel? Client, string? Model)> brain, ToolRunner tools, Func<string?, AssistantPersona> persona,
+        ITalkOutput output, TimeProvider? time = null, Random? random = null)
+    {
+        _brain = brain;
+        _tools = tools;
+        _persona = persona;
+        _output = output;
+        _time = time ?? TimeProvider.System;
+        _random = random ?? Random.Shared;
+        _mind = new TalkMind(tools, _time);
+    }
+
+    /// <summary>An order for an assistant. Completes when it has been answered (and said), or replaced by another.</summary>
+    public async Task HandleAsync(HeardMessage heard)
+    {
+        var said = heard.Text.Trim();
+        if (said.Length == 0) return;
+        var who = heard.Assistant;
+        var conversation = Of(who);
+        var (token, wasBusy) = conversation.Begin();
+        var turn = Guid.NewGuid().ToString("N")[..12];
+        _output.Chat(new ChatLineMessage("user", said, turn, true, who));
+        try
+        {
+            var persona = _persona(who);
+            var answer = await AnswerAsync(conversation, persona, who, said, turn, wasBusy, token).ConfigureAwait(false);
+            token.ThrowIfCancellationRequested();
+            _output.Chat(new ChatLineMessage("assistant", answer.Text, turn, true, who));
+            if (answer.Remember) conversation.History.Add(said, answer.Text);
+            if (answer.Text.Length > 0) conversation.LastAnswer = answer.Text;
+            _output.State(who, "speaking");
+            await _output.SpeakAsync(who, answer.Text, token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            // Replaced by another order, or cancelled.
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"Asistente: no se ha podido atender «{said}»", ex);
+        }
+        finally
+        {
+            if (conversation.End(token)) _output.State(who, "idle");
+        }
+    }
+
+    /// <summary>«Para», Escape: stops what that assistant is answering (nothing to say).</summary>
+    public void Cancel(string? assistant)
+    {
+        if (_conversations.TryGetValue(assistant ?? string.Empty, out var conversation)) conversation.Cancel();
+    }
+
+    /// <summary>Forgets what was talked with an assistant (it left the desktop).</summary>
+    public void Forget(string? assistant)
+    {
+        if (!_conversations.TryRemove(assistant ?? string.Empty, out var conversation)) return;
+        conversation.Cancel();
+        conversation.Dispose();
+    }
+
+    private Conversation Of(string? assistant) => _conversations.GetOrAdd(assistant ?? string.Empty, _ => new Conversation(_time));
+
+    private async Task<TalkAnswer> AnswerAsync(Conversation conversation, AssistantPersona persona, string? who, string said, string turn, bool wasBusy, CancellationToken token)
+    {
+        var context = new ToolContext(who);
+        switch (QuickRules.Match(said, [persona.Name]))
+        {
+            case { Kind: QuickRuleKind.Cancel }:
+                return new TalkAnswer(Phrase(persona, wasBusy ? "cancelled" : "nothingToCancel"), Remember: false);
+            case { Kind: QuickRuleKind.Repeat }:
+                return new TalkAnswer(conversation.LastAnswer ?? Phrase(persona, "nothingToRepeat"), Remember: false);
+            case { Kind: QuickRuleKind.Undo }:
+                var undone = await _tools.UndoLastAsync(who, UndoWithin, token).ConfigureAwait(false);
+                return new TalkAnswer(undone switch
+                {
+                    null => Phrase(persona, "nothingToUndo"),
+                    { Ok: true } u => Phrase(persona, "undone", LowerFirst(u.Did)),
+                    _ => Phrase(persona, "undoFailed"),
+                });
+            case { Kind: QuickRuleKind.Time }:
+                return await ToolAsync(persona, "get_time", new JsonObject(), context, said, acknowledge: false, token).ConfigureAwait(false);
+            case { Kind: QuickRuleKind.Timer, Seconds: { } seconds } timer:
+                var arguments = new JsonObject { ["minutes"] = Math.Round(seconds / 60, 2) };
+                if (timer.Text is { Length: > 0 } reason) arguments["reason"] = reason;
+                return await ToolAsync(persona, "set_timer", arguments, context, said, acknowledge: true, token).ConfigureAwait(false);
+            case { Kind: QuickRuleKind.Note, Text: { Length: > 0 } note }:
+                return await ToolAsync(persona, "save_note", new JsonObject { ["note"] = note }, context, said, acknowledge: true, token).ConfigureAwait(false);
+            case { Kind: QuickRuleKind.CancelTimer } cancelTimer:
+                var which = new JsonObject();
+                if (cancelTimer.Text is { Length: > 0 } words) which["reason"] = words;
+                return await ToolAsync(persona, "cancel_timer", which, context, said, acknowledge: true, token).ConfigureAwait(false);
+        }
+
+        var (client, model) = _brain(who);
+        if (client is null || model is null) return new TalkAnswer(Phrase(persona, "noBrain"), Remember: false, Failed: true);
+        _output.State(who, "thinking");
+        var shown = new PartialText(text => _output.Chat(new ChatLineMessage("assistant", text, turn, false, who)), _time);
+        var answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), said, context, shown.Show, token).ConfigureAwait(false);
+        return answer with { Text = answer.Text.Length > 0 ? answer.Text : Phrase(persona, "ok") };
+    }
+
+    /// <summary>A tool for a rule: what it says it did (after «Recibido.» for an action), or why not.</summary>
+    private async Task<TalkAnswer> ToolAsync(AssistantPersona persona, string tool, JsonObject arguments, ToolContext context, string said, bool acknowledge, CancellationToken token)
+    {
+        var outcome = await _tools.RunAsync(tool, JsonSerializer.SerializeToElement(arguments), context, said, "rule", token).ConfigureAwait(false);
+        if (outcome.Result is not { } result) return new TalkAnswer(outcome.Entry.Did, Remember: true, Failed: true);
+        if (result.Failed) return new TalkAnswer(result.Reply ?? Phrase(persona, "error"), Remember: true, Failed: true);
+        var reply = result.Reply ?? Phrase(persona, "ok");
+        return new TalkAnswer(acknowledge && result.Reply is not null ? Phrase(persona, "ok") + " " + reply : reply);
+    }
+
+    private string Phrase(AssistantPersona persona, string key, params object?[] args) => persona.Phrase(key, _random, args);
+
+    private static string LowerFirst(string text) => text.Length > 1 && char.IsUpper(text[0]) && !char.IsUpper(text[1])
+        ? char.ToLower(text[0], Loc.Instance.Culture) + text[1..]
+        : text;
+
+    /// <summary>One assistant's conversation: its history, its last answer and the order going on now.</summary>
+    private sealed class Conversation(TimeProvider time) : IDisposable
+    {
+        private readonly object _gate = new();
+        private CancellationTokenSource? _current;
+
+        public TalkHistory History { get; } = new(time);
+
+        public string? LastAnswer { get; set; }
+
+        /// <summary>A new order: the one going on is cancelled. Whether there was one.</summary>
+        public (CancellationToken Token, bool WasBusy) Begin()
+        {
+            lock (_gate)
+            {
+                var previous = _current;
+                _current = new CancellationTokenSource();
+                previous?.Cancel();
+                return (_current.Token, previous is not null);
+            }
+        }
+
+        /// <summary>That order is over; true when it was still the current one.</summary>
+        public bool End(CancellationToken token)
+        {
+            lock (_gate)
+            {
+                if (_current is null || _current.Token != token) return false;
+                _current.Dispose();
+                _current = null;
+                return true;
+            }
+        }
+
+        public void Cancel()
+        {
+            lock (_gate) _current?.Cancel();
+        }
+
+        public void Dispose()
+        {
+            lock (_gate)
+            {
+                _current?.Dispose();
+                _current = null;
+            }
+        }
+    }
+
+    /// <summary>The answer so far, at most 8 times per second (the last one always comes as the final line).</summary>
+    private sealed class PartialText(Action<string> send, TimeProvider time)
+    {
+        private static readonly TimeSpan Every = TimeSpan.FromMilliseconds(125);
+        private long _last = long.MinValue;
+
+        public void Show(string text)
+        {
+            var now = time.GetTimestamp();
+            if (_last != long.MinValue && time.GetElapsedTime(_last, now) < Every) return;
+            _last = now;
+            send(text);
+        }
+    }
+}

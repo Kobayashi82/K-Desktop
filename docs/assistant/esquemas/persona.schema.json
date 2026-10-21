@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kdesktop/assistant/persona.schema.json",
   "title": "Personalidad de un asistente (persona/<idioma>.json)",
-  "description": "Instrucciones para la IA y frases fijas (las que dice sin IA). Si falta una clave de frases, se usa la del módulo.",
+  "description": "Instrucciones para la IA y frases fijas (las que dice sin IA). Si falta una clave de frases, se usa la del módulo (assistant.phrase.<clave> de los idiomas de K-Desktop). Las que usa el módulo: ok (antes de lo que hizo: «Recibido. Te aviso a las 17:42.»), cancelled, nothingToCancel, nothingToRepeat, nothingToUndo, undone («{0}»: lo que deshizo), undoFailed, error, notFound y noBrain. El archivo de un idioma que no esté se sustituye por el inglés o por cualquiera que haya.",
   "type": "object",
   "required": ["prompt"],
   "additionalProperties": false,

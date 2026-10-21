@@ -38,10 +38,7 @@ public sealed record MediaCandidate(MediaOrder Order, double Score, string Phras
 /// files (all installed languages at once, like <see cref="VoiceVocabulary"/>):
 /// <list type="bullet">
 /// <item><c>voice.media.&lt;Kind&gt;</c>: ways of saying it, separated by «|» («pausa|para la música|stop»);</item>
-/// <item><c>voice.numbers</c>: number words, <c>word=value</c> separated by spaces; compounds of them are understood
-/// («treinta y cinco», «fünfunddreißig», «trentacinque», «quatre-vingt»);</item>
-/// <item><c>voice.numbers.levels</c>: words that name a level («máximo=100 mitad=50»);</item>
-/// <item><c>voice.numbers.and</c>, <c>voice.numbers.percent</c>: what joins number words, and «por ciento» («|» list);</item>
+/// <item>the numbers, with <see cref="SpokenNumbers"/>, and <c>voice.numbers.percent</c>: «por ciento» («|» list);</item>
 /// <item><c>voice.media.to</c>: «a», «al»… before a number: a level, not a step («sube el volumen a 80»);</item>
 /// <item><c>voice.media.little</c>, <c>voice.media.lot</c>: «un poco», «mucho» («|» lists);</item>
 /// <item><c>voice.media.keep</c>: filler words that mean something here («para» in «para la música»);</item>
@@ -54,9 +51,6 @@ public static class MediaOrders
     private sealed class Vocabulary
     {
         public readonly Dictionary<MediaOrderKind, List<string[]>> Phrases = [];
-        public readonly Dictionary<string, int> Numbers = new(StringComparer.Ordinal);
-        public readonly HashSet<string> Levels = new(StringComparer.Ordinal);
-        public readonly HashSet<string> And = new(StringComparer.Ordinal);
         public readonly HashSet<string> To = new(StringComparer.Ordinal);
         public readonly HashSet<string> Keep = new(StringComparer.Ordinal);
         public readonly HashSet<string> Things = new(StringComparer.Ordinal);
@@ -94,16 +88,8 @@ public static class MediaOrders
                 else if (name == "little") v.Little.AddRange(Phrases(value));
                 else if (name == "lot") v.Lot.AddRange(Phrases(value));
             }
-            foreach (var (key, value) in Loc.Strings(language.Code, "voice.numbers"))
-            {
-                switch (key)
-                {
-                    case "voice.numbers": AddNumbers(v, value, level: false); break;
-                    case "voice.numbers.levels": AddNumbers(v, value, level: true); break;
-                    case "voice.numbers.and": v.And.UnionWith(TextSimilarity.Words(value)); break;
-                    case "voice.numbers.percent": v.Percent.AddRange(Phrases(value)); break;
-                }
-            }
+            foreach (var (key, value) in Loc.Strings(language.Code, "voice.numbers.percent"))
+                if (key == "voice.numbers.percent") v.Percent.AddRange(Phrases(value));
         }
         // Longest first: «un poco más» before «un poco».
         foreach (var list in v.Phrases.Values.Append(v.Percent).Append(v.Little).Append(v.Lot)) list.Sort((a, b) => b.Length - a.Length);
@@ -114,20 +100,6 @@ public static class MediaOrders
         list.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(TextSimilarity.Words)
             .Where(w => w.Length > 0);
-
-    private static void AddNumbers(Vocabulary v, string list, bool level)
-    {
-        foreach (var pair in list.Split(' ', StringSplitOptions.RemoveEmptyEntries))
-        {
-            var equals = pair.LastIndexOf('=');
-            if (equals <= 0 || !int.TryParse(pair[(equals + 1)..], NumberStyles.Integer, CultureInfo.InvariantCulture, out var number)) continue;
-            foreach (var word in TextSimilarity.Words(pair[..equals]))
-            {
-                v.Numbers.TryAdd(word, number);
-                if (level) v.Levels.Add(word);
-            }
-        }
-    }
 
     /// <summary>The ways of saying each order in one language, as written in its file (for the meaning layer).</summary>
     public static Dictionary<MediaOrderKind, List<string>> Sentences(string language)
@@ -233,20 +205,7 @@ public static class MediaOrders
         absolute = false;
         for (var start = 0; start < words.Count; start++)
         {
-            if (!TryWord(words[start], w, out var first, out var level)) continue;
-            var values = new List<int> { first };
-            var end = start + 1;
-            while (end < words.Count)
-            {
-                if (TryWord(words[end], w, out var next, out var l)) { values.Add(next); level |= l; end++; }
-                else if (w.And.Contains(words[end]) && end + 1 < words.Count && TryWord(words[end + 1], w, out next, out l))
-                {
-                    values.Add(next);
-                    level |= l;
-                    end += 2;
-                }
-                else break;
-            }
+            if (!SpokenNumbers.TryRead(words, start, out var number, out var end, out var level)) continue;
             // «por ciento» after it.
             foreach (var p in w.Percent)
                 if (IndexOf(words, p, end) == end)
@@ -257,48 +216,7 @@ public static class MediaOrders
             absolute = level || (start > 0 && w.To.Contains(words[start - 1]));
             if (start > 0 && w.To.Contains(words[start - 1])) start--;
             words.RemoveRange(start, end - start);
-            return Combine(values);
-        }
-        return null;
-    }
-
-    /// <summary>«treinta» «cinco» → 35; «one» «hundred» → 100; «quatre» «vingt» «dix» → 90.</summary>
-    private static int Combine(List<int> values)
-    {
-        var total = 0;
-        foreach (var v in values)
-        {
-            if (total is >= 1 and <= 9 && (v == 100 || (v == 20 && total == 4))) total *= v;
-            else total += v;
-        }
-        return total;
-    }
-
-    /// <summary>A number word, digits, or a word made of number words («fünfunddreißig», «trentacinque»).</summary>
-    private static bool TryWord(string word, Vocabulary w, out int value, out bool level)
-    {
-        level = w.Levels.Contains(word);
-        if (w.Numbers.TryGetValue(word, out value)) return true;
-        if (word.All(char.IsAsciiDigit) && word.Length <= 3) return int.TryParse(word, NumberStyles.None, CultureInfo.InvariantCulture, out value);
-        var parts = Split(word, w);
-        if (parts is not { Count: >= 2 }) return false;
-        value = Combine(parts);
-        return true;
-    }
-
-    /// <summary>The number words a compound is made of (joiners of three letters or more may sit between them).</summary>
-    private static List<int>? Split(string word, Vocabulary w)
-    {
-        if (word.Length < 5) return null;
-        for (var cut = word.Length - 2; cut >= 2; cut--)
-        {
-            var head = word[..cut];
-            if (!w.Numbers.TryGetValue(head, out var value) || w.Levels.Contains(head)) continue;
-            var rest = word[cut..];
-            if (w.Numbers.TryGetValue(rest, out var last) && !w.Levels.Contains(rest)) return [value, last];
-            foreach (var joiner in w.And.Where(j => j.Length >= 3 && rest.StartsWith(j, StringComparison.Ordinal)))
-                if (w.Numbers.TryGetValue(rest[joiner.Length..], out last)) return [value, last];
-            if (Split(rest, w) is { } more) return [value, .. more];
+            return number;
         }
         return null;
     }

@@ -215,7 +215,7 @@ public sealed class TimeTool(TimerStore timers) : ITool
         var now = timers.Time.GetLocalNow();
         var text = $"It is {now.ToString("HH:mm", CultureInfo.InvariantCulture)} on {now.ToString("dddd d MMMM yyyy", Loc.Instance.Culture)}.";
         if (timers.Pending is { Count: > 0 } pending) text += " Timers pending: " + SetTimerTool.Describe(pending, now) + ".";
-        return Task.FromResult(new ToolResult(text) { Done = Loc.T("tool.time.done", ToolText.Clock(now)) });
+        return Task.FromResult(new ToolResult(text) { Done = Loc.T("tool.time.done", ToolText.Clock(now)), Reply = Loc.T("tool.time.reply", ToolText.Clock(now), now.ToString("D", Loc.Instance.Culture)) });
     }
 }
 
@@ -266,6 +266,7 @@ public sealed class SetTimerTool(TimerStore timers) : ITool
         return Task.FromResult(new ToolResult($"Timer set for {item.Due.ToLocalTime():HH:mm} ({ToolText.Left(item.Due - now)} from now){(reason.Length > 0 ? ": " + reason : "")}.")
         {
             Done = reason.Length > 0 ? Loc.T("tool.set_timer.doneFor", clock, reason) : Loc.T("tool.set_timer.done", clock),
+            Reply = reason.Length > 0 ? Loc.T("tool.set_timer.replyFor", clock, reason) : Loc.T("tool.set_timer.reply", clock),
             Undo = new ToolUndo(Name, item.Id),
         });
     }
@@ -296,11 +297,13 @@ public sealed class CancelTimerTool(TimerStore timers) : ITool
 
     public Task<ToolResult> RunAsync(JsonElement arguments, ToolContext context, CancellationToken cancellationToken)
     {
-        if (timers.RemoveMatching(arguments.GetString("reason")) is not { } removed) return Task.FromResult(ToolResult.Fail("There is no such timer pending."));
+        if (timers.RemoveMatching(arguments.GetString("reason")) is not { } removed)
+            return Task.FromResult(ToolResult.Fail("There is no such timer pending.") with { Reply = Loc.T("tool.cancel_timer.none") });
         var clock = ToolText.Clock(removed.Due);
         return Task.FromResult(new ToolResult($"Removed the timer of {removed.Due.ToLocalTime():HH:mm}{(removed.Text.Length > 0 ? ": " + removed.Text : "")}.")
         {
             Done = removed.Text.Length > 0 ? Loc.T("tool.cancel_timer.doneFor", clock, removed.Text) : Loc.T("tool.cancel_timer.done", clock),
+            Reply = removed.Text.Length > 0 ? Loc.T("tool.cancel_timer.replyFor", clock, removed.Text) : Loc.T("tool.cancel_timer.reply", clock),
             Undo = new ToolUndo(Name, JsonSerializer.Serialize(removed)),
         });
     }

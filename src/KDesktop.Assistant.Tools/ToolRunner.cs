@@ -117,6 +117,22 @@ public sealed class ToolRunner
         return ok;
     }
 
+    /// <summary>
+    /// «Deshaz»: undoes the newest thing <paramref name="assistant"/> did that can be undone, if it was less than
+    /// <paramref name="within"/> ago. Null when there is nothing; otherwise whether it worked and what it was (for the activity).
+    /// </summary>
+    public async Task<(bool Ok, string Did)?> UndoLastAsync(string? assistant, TimeSpan within, CancellationToken cancellationToken)
+    {
+        StoredUndo? last;
+        lock (_gate)
+        {
+            var since = DateTimeOffset.Now - within;
+            last = Undos().LastOrDefault(u => u.Assistant == assistant && u.At >= since);
+        }
+        if (last is null) return null;
+        return (await UndoAsync(last.Id, cancellationToken).ConfigureAwait(false), last.Did);
+    }
+
     /// <summary>Writes a line of the activity that is not a tool call (a timer that rang…).</summary>
     public ActivityEntry Record(string? assistant, string heard, string route, string did, bool ok, string? undo = null, string? undid = null)
     {

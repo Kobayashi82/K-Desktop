@@ -43,6 +43,12 @@ public sealed record ToolResult(string Text)
     /// <summary>What it did, for the activity («Temporizador para las 17:42»); null: its intent.</summary>
     public string? Done { get; init; }
 
+    /// <summary>
+    /// What the assistant says when it was asked without the AI (a fixed rule, stage 3.4) or the AI says nothing, in the
+    /// user's language («Te aviso a las 17:42.»); null: the assistant's «ok».
+    /// </summary>
+    public string? Reply { get; init; }
+
     /// <summary>How to undo it, or null when it cannot be undone.</summary>
     public ToolUndo? Undo { get; init; }
 

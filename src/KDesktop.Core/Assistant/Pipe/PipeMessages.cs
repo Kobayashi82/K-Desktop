@@ -301,6 +301,37 @@ public sealed record AnswerMessage(string Id, string Choice) : PipeMessage
     public override string Type => "answer";
 }
 
+// ── talking to an assistant (stage 3.4) ─────────────────────────────────
+
+/// <summary>
+/// An order for an assistant: what the user said or wrote. <paramref name="Source"/>: <c>voice</c>, <c>panel</c> (the chat
+/// of the panel), <c>bubble</c> (the box of the character), <c>phone</c> or <c>command</c> («Asistente: preguntar»).
+/// </summary>
+/// <param name="Assistant">Who it is for; null: the module without a body.</param>
+public sealed record HeardMessage(string Text, string Source, string? Assistant = null) : PipeMessage
+{
+    public override string Type => "heard";
+}
+
+/// <summary>«Lander, para», Escape or the panel: stop what it is doing (the answer it is thinking, the order it is carrying out).</summary>
+/// <param name="Source"><c>voice</c>, <c>escape</c> or <c>panel</c>.</param>
+public sealed record CancelMessage(string Source, string? Assistant = null) : PipeMessage
+{
+    public override string Type => "cancel";
+}
+
+/// <summary>
+/// A line of the conversation, for the chat of the panel: what was heard (<c>user</c>) and what it answers
+/// (<c>assistant</c>). An answer being written comes several times with the same <paramref name="Turn"/>, each with all
+/// the text so far, the last one with <paramref name="Final"/>.
+/// </summary>
+/// <param name="Role"><c>user</c> or <c>assistant</c>.</param>
+/// <param name="Assistant">Whose conversation (filled in by the host; null: the module without a body).</param>
+public sealed record ChatLineMessage(string Role, string Text, string Turn, bool Final = true, string? Assistant = null) : PipeMessage
+{
+    public override string Type => "chat";
+}
+
 /// <summary>Reading and writing messages as lines.</summary>
 public static class PipeJson
 {
@@ -354,6 +385,9 @@ public static class PipeJson
         ["undo"] = typeof(UndoMessage),
         ["ask"] = typeof(AskMessage),
         ["answer"] = typeof(AnswerMessage),
+        ["heard"] = typeof(HeardMessage),
+        ["cancel"] = typeof(CancelMessage),
+        ["chat"] = typeof(ChatLineMessage),
     };
 
     /// <summary>[JsonIgnore] on the abstract Type is not inherited by the overrides: drop it here.</summary>

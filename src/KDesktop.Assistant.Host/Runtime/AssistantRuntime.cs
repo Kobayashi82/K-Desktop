@@ -240,6 +240,46 @@ internal sealed class AssistantRuntime : IDisposable
 
     public void Notify(string assistant, string title, string text) => _link?.Send(new NotifyMessage(title, text, assistant));
 
+    /// <summary>What the module is doing for an assistant (thinking, speaking…), for the character to show it.</summary>
+    public void SetState(string id, AssistantState state)
+    {
+        if (Find(id) is { } slot) Guard(slot, a => a.SetState(state), "SetState");
+    }
+
+    /// <summary>
+    /// The character «says» <paramref name="text"/> (Communicate) for <paramref name="duration"/>, or less if cancelled or it
+    /// leaves. One that cannot do it now (asleep in its game…) just lets it pass. Engine thread.
+    /// </summary>
+    public async Task CommunicateAsync(string id, string text, TimeSpan duration, CancellationToken cancellationToken)
+    {
+        if (Find(id) is not { } slot) return;
+        var gesture = new Gesture.Communicate(text, null);
+        var can = false;
+        if (!Guard(slot, a => can = a.CanPerform(gesture), "CanPerform") || !can) return;
+        using var limit = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, slot.Extras.Token);
+        limit.CancelAfter(duration);
+        Task<GestureOutcome>? running = null;
+        var context = new SpeechGestureContext(_engine, duration);
+        if (!Guard(slot, a => running = a.PerformAsync(gesture, context, limit.Token), "PerformAsync") || running is null) return;
+        try
+        {
+            // Its time is up when the token fires; a little more for it to finish, never forever.
+            await running.WaitAsync(duration + TimeSpan.FromSeconds(1), CancellationToken.None).ConfigureAwait(true);
+        }
+        catch (TimeoutException)
+        {
+            Log.Warn($"Asistente: «{id}» no termina el gesto Communicate");
+        }
+        catch (OperationCanceledException)
+        {
+            // Cancelled: the bubble is over.
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"Asistente: «{id}» ha fallado en PerformAsync", ex);
+        }
+    }
+
     /// <summary>
     /// An assistant shows, greys out or hides one of its extras (<see cref="IAssistantHost.SetExtraState"/>): kept for the
     /// host's own menu, and sent to K-Desktop when it changes.

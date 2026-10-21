@@ -2,8 +2,9 @@
 
   <!--
     The assistants' brain (phase 3): the AI providers (Ollama, llama-swap, OpenAI compatible), choosing the model,
-    installing Ollama and downloading models, and later the router and the memory. It runs in the assistant process
-    (as the normal user), never in K-Desktop. Ported from Kobii.Brain.
+    installing Ollama and downloading models, the way an order goes (fixed rules, then the AI with the assistant's
+    persona) and later the memory. It runs in the assistant process (as the normal user), never in K-Desktop. Ported
+    from Kobii.Brain.
   -->
   <PropertyGroup>
     <RootNamespace>KDesktop.Assistant.Brain</RootNamespace>
@@ -12,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\KDesktop.Core\KDesktop.Core.csproj" />
+    <ProjectReference Include="..\KDesktop.Assistant.Tools\KDesktop.Assistant.Tools.csproj" />
   </ItemGroup>
 
   <ItemGroup>

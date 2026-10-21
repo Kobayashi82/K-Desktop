@@ -122,6 +122,7 @@ public sealed class SaveNoteTool(NoteStore notes, TimeProvider? time = null) : I
         return Task.FromResult(new ToolResult(isNew ? "Noted." : "That note was already there.")
         {
             Done = Loc.T(isNew ? "tool.save_note.done" : "tool.save_note.known", ToolText.Clean(note.Text)),
+            Reply = Loc.T(isNew ? "tool.save_note.reply" : "tool.save_note.replyKnown", ToolText.Clean(note.Text)),
             Undo = isNew ? new ToolUndo(Name, note.Id) : null,
         });
     }
@@ -137,7 +138,7 @@ public sealed class FindNotesTool(NoteStore notes) : ITool
 
     public string Name => "find_notes";
 
-    public string Description => "Reads the user's notes: those about something, or the newest ones.";
+    public string Description => "Reads the user's notes (those about something, or the newest ones). Use it whenever they ask what they noted, had to do or had to buy: never answer that from memory.";
 
     public string ParametersSchemaJson => ToolText.Optional(("search", "string", "Words to look for (empty: the newest notes)"));
 
