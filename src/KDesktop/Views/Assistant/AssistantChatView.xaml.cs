@@ -17,7 +17,7 @@ public partial class AssistantChatView : UserControl
 {
     private readonly App _app = App.Current;
     private string? _id;
-    private string _name = "K-Desktop";
+    private string? _name;
     private bool _thinking;
 
     public AssistantChatView()
@@ -44,7 +44,7 @@ public partial class AssistantChatView : UserControl
         _name = name;
         Input.PlaceholderText = Loc.T("assistantWrite.placeholder", name);
         AutomationProperties.SetName(Input, Input.PlaceholderText);
-        HintText.Text = Loc.T("assistantChat.hint", name);
+        HintText.Text = id is null ? Loc.T("assistantChat.hintNobody") : Loc.T("assistantChat.hint", name);
         Fill();
     }
 

@@ -2864,5 +2864,7 @@
   "assistant.memory.known": "Già noto:",
   "assistant.memory.exchange": "Lo scambio:",
   "assistant.memory.user": "Utente",
-  "assistant.memory.assistant": "Assistente"
+  "assistant.memory.assistant": "Assistente",
+
+  "assistantChat.hintNobody": "Quello che dici a K-Desktop in qualsiasi modo e cosa risponde. Senza personaggio sul desktop, a quello che non chiedi qui risponde con un avviso."
 }

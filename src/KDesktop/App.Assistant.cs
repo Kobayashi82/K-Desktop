@@ -325,7 +325,8 @@ public partial class App
 
     /// <summary>
     /// The tray's «Assistant» submenu, only while the module is on: each installed assistant, ticked when it is on the
-    /// desktop (a click puts it there or hides it), hiding them all, and the way to the panel.
+    /// desktop (a click puts it there or hides it), hiding them all, writing to whoever answers (also without assistants:
+    /// the module without a body) and the way to the panel.
     /// </summary>
     private void FillAssistantTrayMenu(System.Windows.Controls.MenuItem menu)
     {
@@ -350,6 +351,10 @@ public partial class App
             menu.Items.Add(hideAll);
         }
         if (menu.Items.Count > 0) menu.Items.Add(new System.Windows.Controls.Separator());
+        var who = PickAssistant();
+        var write = new System.Windows.Controls.MenuItem { Header = Loc.T("assistantMenu.write", who is null ? "K-Desktop" : AssistantName(who)) };
+        write.Click += (_, _) => ShowAssistantWriteBox(who, null);
+        menu.Items.Add(write);
         var panel = new System.Windows.Controls.MenuItem { Header = Loc.T("assistantMenu.panel") };
         panel.Click += (_, _) => ShowMainWindow(w => w.Navigate("assistant"));
         menu.Items.Add(panel);

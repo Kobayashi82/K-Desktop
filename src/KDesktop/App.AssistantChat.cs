@@ -33,7 +33,9 @@ public sealed partial class ChatItem(string role, string turn, DateTime at) : Ob
 /// The inputs of the assistants (stage 3.6): the chat of Panel → Assistant, the box to write to one (its menu, a middle
 /// click on it, «Asistente: preguntar» without text) and «Asistente: preguntar». All of them send the same
 /// <c>heard</c> as the voice; the answer comes back as <c>chat</c> lines, kept here per assistant for this session (and
-/// for the module without a body under the empty key). Everything here runs on the UI thread.
+/// for the module without a body under the empty key). Without a body to say it (the module without one, stage 3.8, or an
+/// assistant that is not on the desktop), an answer to something not written in the panel's chat comes as K-Desktop's
+/// OSD. Everything here runs on the UI thread.
 /// </summary>
 public partial class App
 {
@@ -41,6 +43,9 @@ public partial class App
     private const int KeptChat = 100;
 
     private readonly Dictionary<string, List<ChatItem>> _chats = new(StringComparer.Ordinal);
+
+    /// <summary>Where the last order of each conversation came from (<c>panel</c>, <c>bubble</c>, <c>command</c>…).</summary>
+    private readonly Dictionary<string, string> _chatSources = new(StringComparer.Ordinal);
     private AssistantWriteWindow? _writeWindow;
 
     /// <summary>A conversation changed (its key: the assistant's id, or empty without a body).</summary>
@@ -70,6 +75,20 @@ public partial class App
         item.Text = line.Text;
         item.Final = line.Final;
         AssistantChatChanged?.Invoke(line.Assistant ?? string.Empty);
+        if (line is { Role: "assistant", Final: true }) ShowBodilessAnswer(line);
+    }
+
+    /// <summary>
+    /// An answer nobody on the desktop says (no body, or one that is not there): K-Desktop shows it, unless it was asked in
+    /// the panel's chat, where it is already seen. As long as it takes to read it.
+    /// </summary>
+    private void ShowBodilessAnswer(ChatLineMessage line)
+    {
+        if (line.Text.Length == 0 || (line.Assistant is { } id && IsOnDesktop(id))) return;
+        if (_chatSources.GetValueOrDefault(line.Assistant ?? string.Empty) == "panel") return;
+        var name = line.Assistant is { } who ? AssistantName(who) : "K-Desktop";
+        var seconds = Math.Clamp(2 + line.Text.Length * 0.06, 4, 15);
+        Ui.ShowOsd($"{name}: {line.Text}", Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(seconds));
     }
 
     /// <summary>Whether an assistant (null: the module without a body) is working on an answer now.</summary>
@@ -95,6 +114,7 @@ public partial class App
             return false;
         }
         if (id is not null && IsOnDesktop(id)) AssistantTalkedTo(id);
+        _chatSources[id ?? string.Empty] = source;
         Log.Info($"Asistente: orden por {source} para «{id ?? "(sin cuerpo)"}»");
         return true;
     }
