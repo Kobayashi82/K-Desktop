@@ -193,6 +193,9 @@ public partial class App
             case TalkMessage talk:
                 OnAssistantTalk(talk);
                 break;
+            case ListenMessage listen:
+                OnAssistantListen(listen);
+                break;
             case ChatLineMessage line:
                 OnAssistantChat(line);
                 break;

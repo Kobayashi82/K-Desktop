@@ -2938,5 +2938,11 @@
   "assistant.wakeTip": "Para chamar {0} pelo nome, grave a palavra dele em Configurações › Assistentes",
 
   "assistantOptions.talkKey": "Tecla para falar com o assistente",
-  "assistantOptions.talkKeyHint": "Mantenha pressionada enquanto fala: o que você disser vai para o assistente, sem dizer o nome dele. Manter o clique pressionado sobre ele também funciona."
+  "assistantOptions.talkKeyHint": "Mantenha pressionada enquanto fala: o que você disser vai para o assistente, sem dizer o nome dele. Manter o clique pressionado sobre ele também funciona.",
+
+  "assistantAsk.voiceHint": "Estou ouvindo: diga “sim” ou “não”",
+  "assistantAsk.sayYesNo": "“{0}”: não entendi. Diga “sim” ou “não”",
+  "assistant.answer.yes": "sim|claro|pode|pode sim|vai|faça|faz|ok|okay|beleza|certo|com certeza|afirmativo|sim por favor|sim pode|tá bom|está bem|perfeito|confirmo|confirmado",
+  "assistant.answer.no": "não|nao|não obrigado|não obrigada|melhor não|agora não|cancela|cancelar|espera|nunca|negativo|de jeito nenhum|deixa|ainda não|não faça",
+  "assistant.answer.always": "sempre|sim sempre|sim e não pergunte mais|não pergunte mais|não me pergunte mais|sim e não me pergunte mais|faça sempre"
 }

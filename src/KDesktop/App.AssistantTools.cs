@@ -82,6 +82,7 @@ public partial class App
             text, canTrust, TimeSpan.FromSeconds(Math.Clamp(seconds, 3, 30)));
         _questions[key] = window;
         window.Show();
+        if (TalkedByVoice(assistant)) ListenForAnswer(window, installed?.Manifest.Name ?? "K-Desktop", canTrust, TimeSpan.FromSeconds(Math.Clamp(seconds, 3, 30)));
         var choice = await window.Answer;
         _questions.Remove(key);
         Log.Info($"Asistente: «{text}» → {choice}");

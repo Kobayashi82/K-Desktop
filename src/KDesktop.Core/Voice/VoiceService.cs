@@ -96,21 +96,31 @@ public sealed partial class VoiceService : IDisposable
     /// (an assistant's talk key, a long click on it: stage 5.2) what is said goes to that assistant, unless it begins with
     /// another wake word.
     /// </summary>
-    public async Task ListenAsync(Func<bool>? held, VoiceAddressee? to = null)
+    public Task ListenAsync(Func<bool>? held, VoiceAddressee? to = null) => ListenCoreAsync(held, to, NothingSaid, brief: false, default);
+
+    /// <summary>
+    /// A short listening without the wake word for <paramref name="to"/> (stage 5.3): after a question of an assistant, to
+    /// hear its answer. It waits up to <paramref name="wait"/> for the user to start speaking, then until they go quiet;
+    /// nothing said (or <paramref name="stop"/>) closes it without a word. Never interrupts a session going on.
+    /// </summary>
+    public Task ListenForAsync(VoiceAddressee to, TimeSpan wait, CancellationToken stop = default) =>
+        _active != 0 ? Task.CompletedTask : ListenCoreAsync(null, to, wait, brief: true, stop);
+
+    private async Task ListenCoreAsync(Func<bool>? held, VoiceAddressee? to, TimeSpan nothingSaid, bool brief, CancellationToken stop)
     {
         if (Interlocked.CompareExchange(ref _active, 1, 0) != 0)
         {
-            _stopRequested = true;
+            if (!brief) _stopRequested = true;
             return;
         }
-        using var abort = new CancellationTokenSource();
+        using var abort = CancellationTokenSource.CreateLinkedTokenSource(stop);
         _abort = abort;
         var listening = false;
         try
         {
             if (!VoiceModels.Ready)
             {
-                _ui.ShowOsd(Loc.T("voice.noModels"), OsdKind.Warning, TimeSpan.FromSeconds(4));
+                if (!brief) _ui.ShowOsd(Loc.T("voice.noModels"), OsdKind.Warning, TimeSpan.FromSeconds(4));
                 return;
             }
             _stopRequested = false;
@@ -122,7 +132,7 @@ public sealed partial class VoiceService : IDisposable
                 // Once it has the order it says itself that it is no longer listening.
                 to = to with { Listening = active => { listening = false; shows(active); } };
             }
-            await SessionAsync(held, to, abort.Token).ConfigureAwait(false);
+            await SessionAsync(held, to, nothingSaid, brief, abort.Token).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -137,7 +147,9 @@ public sealed partial class VoiceService : IDisposable
         }
     }
 
-    private async Task SessionAsync(Func<bool>? held, VoiceAddressee? to, CancellationToken abort)
+    /// <param name="nothingSaid">How long to wait for speech before giving up.</param>
+    /// <param name="brief">A follow-up listening: when nothing is said, or it is stopped, the OSD just goes away.</param>
+    private async Task SessionAsync(Func<bool>? held, VoiceAddressee? to, TimeSpan nothingSaid, bool brief, CancellationToken abort)
     {
         var settings = _config().Settings;
         PreloadModels(settings); // they load while the user speaks
@@ -156,6 +168,12 @@ public sealed partial class VoiceService : IDisposable
 
         using var osd = _ui.ShowVoiceOsd(Loc.T("voice.listening"));
         ListenSound(settings);
+        // A brief listening that hears nothing just goes away: the user did not ask for it.
+        void End(string text)
+        {
+            if (brief) osd.Dispose();
+            else osd.Finish(text, OsdKind.Info);
+        }
         using var fake = new CancellationTokenSource();
         var simulated = Environment.GetEnvironmentVariable("KDESKTOP_VOICE_FAKE_STREAM") is { Length: > 0 } || Environment.GetEnvironmentVariable("KDESKTOP_VOICE_FAKE") is { Length: > 0 };
         if (simulated)
@@ -164,7 +182,7 @@ public sealed partial class VoiceService : IDisposable
             if (Environment.GetEnvironmentVariable("KDESKTOP_VOICE_FAKE_SESSION") is not { Length: > 0 } said || !File.Exists(said))
             {
                 Log.Info("Escucha simulada: la sesión no abre el micrófono");
-                osd.Finish(Loc.T("voice.nothingHeard"), OsdKind.Info);
+                End(Loc.T("voice.nothingHeard"));
                 return;
             }
             Log.Info($"Escucha simulada: la sesión oye {said}");
@@ -194,7 +212,7 @@ public sealed partial class VoiceService : IDisposable
                 osd.SetLevel(_mic.Level);
                 if (abort.IsCancellationRequested)
                 {
-                    osd.Finish(Loc.T("voice.cancelled"), OsdKind.Info);
+                    End(Loc.T("voice.cancelled"));
                     return;
                 }
                 if (_stopRequested) break;
@@ -208,7 +226,7 @@ public sealed partial class VoiceService : IDisposable
                 bool ended, heard;
                 lock (gate) (ended, heard) = (vad.Ended, vad.HeardSpeech);
                 if (ended || watch.Elapsed > MaxSession) break;
-                if (!heard && watch.Elapsed > NothingSaid) break;
+                if (!heard && watch.Elapsed > nothingSaid) break;
             }
         }
         finally
@@ -226,7 +244,7 @@ public sealed partial class VoiceService : IDisposable
         }
         if (clip.Length < MicCapture.SampleRate / 5)
         {
-            osd.Finish(Loc.T("voice.nothingHeard"), OsdKind.Info);
+            End(Loc.T("voice.nothingHeard"));
             return;
         }
 
@@ -248,7 +266,7 @@ public sealed partial class VoiceService : IDisposable
         }
         if (abort.IsCancellationRequested)
         {
-            osd.Finish(Loc.T("voice.cancelled"), OsdKind.Info);
+            End(Loc.T("voice.cancelled"));
             return;
         }
         if (to is not null) await HandleTextForAsync(text, osd, to).ConfigureAwait(false);

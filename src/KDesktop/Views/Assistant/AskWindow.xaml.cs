@@ -37,7 +37,19 @@ public partial class AskWindow : Window
     /// <summary>Closes it from outside (the process went away): it counts as no answer.</summary>
     public void Abandon() => Give("timeout");
 
-    private void Appear()
+    /// <summary>It was answered aloud (stage 5.3): as if that button were pressed.</summary>
+    public void Choose(string choice) => Give(choice);
+
+    /// <summary>K-Desktop is listening for the answer: «Di «sí» o «no»».</summary>
+    public void ShowListening()
+    {
+        VoiceHint.Visibility = Visibility.Visible;
+        // Taller now: back into its corner once it has its new size.
+        if (IsLoaded) Dispatcher.BeginInvoke(Place, System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    /// <summary>Bottom right of the work area of the monitor with the mouse.</summary>
+    private void Place()
     {
         var hwnd = UiNative.Handle(this);
         var work = UiNative.WorkAreaAt(UiNative.CursorPosition());
@@ -46,6 +58,11 @@ public partial class AskWindow : Window
             var gap = (int)(4 * UiNative.GetDpiForWindow(hwnd) / 96.0);
             UiNative.MoveWindow(hwnd, work.Right - r.Width - gap, work.Bottom - r.Height - gap);
         }
+    }
+
+    private void Appear()
+    {
+        Place();
         var d = TimeSpan.FromMilliseconds(260);
         Root.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, d));
         RootShift.BeginAnimation(System.Windows.Media.TranslateTransform.XProperty, new DoubleAnimation(60, 0, d) { EasingFunction = EaseOut });

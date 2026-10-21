@@ -159,6 +159,8 @@ internal sealed class ModuleTalk : ITalkOutput
         return said.Task;
     }
 
+    public void Listen(string? assistant, int seconds) => _link.Send(new ListenMessage(seconds, Assistant: assistant));
+
     /// <summary>How long a bubble stays: enough to read it (no voice yet; stage 5 says it aloud).</summary>
     public static TimeSpan ReadingTime(string text) => TimeSpan.FromSeconds(Math.Clamp(1.5 + text.Length * 0.065, 2.5, 15));
 }

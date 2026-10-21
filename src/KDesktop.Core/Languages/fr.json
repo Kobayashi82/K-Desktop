@@ -2938,5 +2938,11 @@
   "assistant.wakeTip": "Pour appeler {0} par son nom, enregistrez son mot dans Paramètres › Assistants",
 
   "assistantOptions.talkKey": "Touche pour parler à l'assistant",
-  "assistantOptions.talkKeyHint": "Maintenez-la enfoncée pendant que vous parlez : ce que vous dites va à l'assistant, sans dire son nom. Maintenir le clic sur lui fonctionne aussi."
+  "assistantOptions.talkKeyHint": "Maintenez-la enfoncée pendant que vous parlez : ce que vous dites va à l'assistant, sans dire son nom. Maintenir le clic sur lui fonctionne aussi.",
+
+  "assistantAsk.voiceHint": "Je vous écoute : dites « oui » ou « non »",
+  "assistantAsk.sayYesNo": "« {0} » : je n'ai pas compris. Dites « oui » ou « non »",
+  "assistant.answer.yes": "oui|ouais|d'accord|ok|okay|vas y|allez y|bien sûr|évidemment|exact|affirmatif|oui vas y|oui s'il te plaît|parfait|très bien|confirme|c'est bon",
+  "assistant.answer.no": "non|non merci|surtout pas|pas maintenant|annule|attends|jamais|négatif|pas question|laisse tomber|pas encore",
+  "assistant.answer.always": "toujours|oui toujours|oui et ne demande plus|ne demande plus|ne me demande plus|oui et ne me demande plus|fais le toujours"
 }

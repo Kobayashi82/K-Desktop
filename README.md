@@ -113,7 +113,9 @@ El módulo Asistente está en desarrollo. Apagado, K-Desktop es el de siempre: n
 5. **Hablarle:** cada asistente puede tener su palabra de activación (la ficha ofrece grabar su nombre; se cambia en
    la lista, «Se le llama con»). «Lander, ¿qué hora es?» le llega a él; «K-Desktop, …» sigue ejecutando tus comandos.
    En **General**, la «Palabra para el asistente» llama al de «Cuando no le hablas a nadie en concreto» (sin ninguno
-   en el escritorio, contesta K-Desktop sin personaje). La tecla de voz también vale: «Lander, …» al principio.
+   en el escritorio, contesta K-Desktop sin personaje). La tecla de voz también vale: «Lander, …» al principio. En
+   General está también la **tecla para hablar con el asistente** (sin decir su nombre); mantener pulsado el clic
+   sobre él hace lo mismo. Si te pregunta algo («¿A o B?», «¿Puedo…?»), contesta en voz alta sin volver a llamarlo.
 
 Instalar una versión nueva encima de la que está en el escritorio la cambia en caliente, sin perder sus datos (que
 están en `%APPDATA%\K-Desktop 5\Assistants\Data\<id>` y entran en las copias de seguridad). Cada asistente corre en

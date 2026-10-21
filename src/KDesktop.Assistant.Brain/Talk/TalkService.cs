@@ -23,6 +23,11 @@ public interface ITalkOutput
 
     /// <summary>The character says it (Communicate) for as long as it takes to read; done at once without a body.</summary>
     Task SpeakAsync(string? assistant, string text, CancellationToken cancellationToken);
+
+    /// <summary>It asked something back to an order said aloud: K-Desktop listens a few seconds for the answer (<c>listen</c>).</summary>
+    void Listen(string? assistant, int seconds)
+    {
+    }
 }
 
 /// <summary>
@@ -102,6 +107,9 @@ public sealed class TalkService
             if (answer.Text.Length > 0) conversation.LastAnswer = answer.Text;
             _output.State(who, "speaking");
             await _output.SpeakAsync(who, answer.Text, token).ConfigureAwait(false);
+            // Said aloud and answered with a question: the answer may come aloud too, without the wake word (stage 5.3).
+            if (heard.Source == "voice" && !token.IsCancellationRequested && (answer.AsksBack || EndsAsking(answer.Text)))
+                _output.Listen(who, FollowUpSeconds);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
@@ -235,7 +243,7 @@ public sealed class TalkService
                      && first.Score - second.Score < Close)
             {
                 conversation.AskChoice([first, second], _time.GetUtcNow());
-                return new TalkAnswer(Phrase(persona, "which", first.Name, second.Name), Remember: false);
+                return new TalkAnswer(Phrase(persona, "which", first.Name, second.Name), Remember: false) { AsksBack = true };
             }
             // No command of the user is anything like it: the AI is not tempted to look for one.
             if (sure.Count == 0 && !matched.Parts.SelectMany(p => p.Candidates).Any(c => c.Score >= CommandTools.Plausible)) leaveOut = ["run_command"];
@@ -279,6 +287,12 @@ public sealed class TalkService
 
     /// <summary>A question, not an order (it may name a command without asking to run it).</summary>
     public static bool IsQuestion(string said) => said.Contains('?', StringComparison.Ordinal);
+
+    /// <summary>Seconds K-Desktop waits for the answer to a question asked back.</summary>
+    public const int FollowUpSeconds = 6;
+
+    /// <summary>An answer that ends asking something («¿Quieres que lo apunte?»).</summary>
+    public static bool EndsAsking(string text) => text.TrimEnd().EndsWith('?');
 
     /// <summary>Which of the two asked about the answer names, or null (then it is a new order).</summary>
     private static MatchedCandidate? ChoiceOf(IReadOnlyList<MatchedCandidate> pending, QuickRule? rule, string said)

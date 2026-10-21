@@ -2938,5 +2938,11 @@
   "assistant.wakeTip": "Um {0} beim Namen zu rufen, nimm sein Wort unter Einstellungen › Assistenten auf",
 
   "assistantOptions.talkKey": "Taste, um mit dem Assistenten zu sprechen",
-  "assistantOptions.talkKeyHint": "Halte sie gedrückt, während du sprichst: Was du sagst, geht an den Assistenten, ohne seinen Namen zu sagen. Die Maustaste auf ihm gedrückt halten geht auch."
+  "assistantOptions.talkKeyHint": "Halte sie gedrückt, während du sprichst: Was du sagst, geht an den Assistenten, ohne seinen Namen zu sagen. Die Maustaste auf ihm gedrückt halten geht auch.",
+
+  "assistantAsk.voiceHint": "Ich höre zu: sag „ja“ oder „nein“",
+  "assistantAsk.sayYesNo": "„{0}“: nicht verstanden. Sag „ja“ oder „nein“",
+  "assistant.answer.yes": "ja|jo|klar|okay|ok|mach|mach das|mach es|los|natürlich|sicher|genau|richtig|bestätigt|ja bitte|ja mach|ja klar|gerne|in ordnung|passt",
+  "assistant.answer.no": "nein|nee|nein danke|lieber nicht|nicht jetzt|abbrechen|stopp|warte|niemals|negativ|auf keinen fall|noch nicht|lass es",
+  "assistant.answer.always": "immer|ja immer|ja und frag nicht mehr|frag nicht mehr|frag mich nicht mehr|ja und frag mich nicht mehr|mach das immer"
 }

@@ -14,6 +14,9 @@ public sealed record TalkAnswer(string Text, bool Remember = true, bool Failed =
 
     /// <summary>The AI answered it (not a fixed rule): worth learning from.</summary>
     public bool FromAi { get; init; }
+
+    /// <summary>It asks the user something back («¿A o B?»): the answer is listened for (stage 5.3).</summary>
+    public bool AsksBack { get; init; }
 }
 
 /// <summary>

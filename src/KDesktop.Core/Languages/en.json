@@ -2938,5 +2938,11 @@
   "assistant.wakeTip": "To call {0} by its name, record its word in Settings › Assistants",
 
   "assistantOptions.talkKey": "Key to talk to the assistant",
-  "assistantOptions.talkKeyHint": "Hold it while you speak: what you say goes to the assistant, without saying its name. Holding the mouse button on it works too."
+  "assistantOptions.talkKeyHint": "Hold it while you speak: what you say goes to the assistant, without saying its name. Holding the mouse button on it works too.",
+
+  "assistantAsk.voiceHint": "I'm listening: say “yes” or “no”",
+  "assistantAsk.sayYesNo": "“{0}”: I didn't get it. Say “yes” or “no”",
+  "assistant.answer.yes": "yes|yeah|yep|sure|ok|okay|go ahead|do it|of course|right|correct|affirmative|please do|yes please|sure thing|go for it|fine|alright|all right|confirm|confirmed",
+  "assistant.answer.no": "no|nope|nah|no thanks|no thank you|better not|not now|don't|do not|cancel|stop|wait|never|negative|no way|not yet",
+  "assistant.answer.always": "always|yes always|yes and don't ask again|yes and do not ask again|don't ask again|do not ask again|don't ask me again|stop asking|always do it|yes forever"
 }

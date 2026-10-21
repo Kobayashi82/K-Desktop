@@ -2938,5 +2938,11 @@
   "assistant.wakeTip": "Per chiamare {0} per nome, registra la sua parola in Impostazioni › Assistenti",
 
   "assistantOptions.talkKey": "Tasto per parlare con l'assistente",
-  "assistantOptions.talkKeyHint": "Tienilo premuto mentre parli: quello che dici va all'assistente, senza dire il suo nome. Funziona anche tenere premuto il clic su di lui."
+  "assistantOptions.talkKeyHint": "Tienilo premuto mentre parli: quello che dici va all'assistente, senza dire il suo nome. Funziona anche tenere premuto il clic su di lui.",
+
+  "assistantAsk.voiceHint": "Ti ascolto: di' «sì» o «no»",
+  "assistantAsk.sayYesNo": "«{0}»: non ho capito. Di' «sì» o «no»",
+  "assistant.answer.yes": "sì|si|va bene|certo|ok|okay|vai|fallo|d'accordo|esatto|affermativo|certamente|sì grazie|sì vai|sì fallo|perfetto|benissimo|confermo|confermato",
+  "assistant.answer.no": "no|no grazie|meglio di no|non ora|annulla|aspetta|mai|negativo|per niente|lascia stare|non ancora|non farlo",
+  "assistant.answer.always": "sempre|sì sempre|sì e non chiedere più|non chiedere più|non chiedermelo più|sì e non chiedermelo più|fallo sempre"
 }

@@ -19,6 +19,7 @@ public sealed class CommandRoutingTests : IDisposable
     private readonly ScriptedModel _model = new();
     private readonly List<LogMessage> _log = [];
     private readonly List<ChatLineMessage> _chat = [];
+    private readonly List<(string?, int)> _listens = [];
 
     public void Dispose()
     {
@@ -31,7 +32,7 @@ public sealed class CommandRoutingTests : IDisposable
         builtin.AddTo(registry);
         CommandTools.AddTo(registry, _bridge);
         var runner = new ToolRunner(registry, () => new HashSet<string>(), (_, _) => Task.FromResult("yes"), m => { lock (_log) _log.Add(m); }, Path.Combine(_folder, "undo.json"));
-        return new TalkService(_ => (_model, "fake:4b"), runner, _ => AssistantPersona.Module(), new Output(_chat), commands: _bridge);
+        return new TalkService(_ => (_model, "fake:4b"), runner, _ => AssistantPersona.Module(), new Output(_chat, _listens), commands: _bridge);
     }
 
     private string LastAnswer => _chat.Last(c => c is { Role: "assistant", Final: true }).Text;
@@ -85,6 +86,32 @@ public sealed class CommandRoutingTests : IDisposable
         await talk.HandleAsync(new HeardMessage("la otra", "panel"));
         Assert.Equal(["run:right:"], _bridge.Done);
         Assert.Empty(_model.Requests);
+    }
+
+    [Fact]
+    public async Task AQuestionToAnOrderSaidAloudIsListenedFor()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        _bridge.Matches["pon chrome"] = new MatchedMessage("x", 0.4, [],
+            [new MatchedPart("pon chrome", false, [new MatchedCandidate("left", "Chrome a la izquierda", 0.80), new MatchedCandidate("right", "Chrome a la derecha", 0.77)])]);
+        _bridge.Sure("Chrome a la izquierda", ("left", "Chrome a la izquierda", null));
+
+        // Written: nothing to listen for (to another one: its question stays with it).
+        await talk.HandleAsync(new HeardMessage("pon chrome", "panel", "dot"));
+        Assert.Empty(_listens);
+
+        // Said aloud: K-Desktop listens for «el primero» without the wake word.
+        await talk.HandleAsync(new HeardMessage("pon chrome", "voice", "lander"));
+        Assert.Equal([("lander", TalkService.FollowUpSeconds)], _listens);
+        await talk.HandleAsync(new HeardMessage("el primero", "voice", "lander"));
+        Assert.Equal(["run:left:lander"], _bridge.Done);
+        Assert.Single(_listens);
+
+        // The AI asking something back too.
+        _model.Answers.Enqueue("¿Te refieres al de casa o al del trabajo?");
+        await talk.HandleAsync(new HeardMessage("abre el correo de siempre", "voice", "lander"));
+        Assert.Equal(2, _listens.Count);
     }
 
     [Fact]
@@ -150,7 +177,7 @@ public sealed class CommandRoutingTests : IDisposable
         Assert.Empty(_bridge.Done);
     }
 
-    private sealed class Output(List<ChatLineMessage> chat) : ITalkOutput
+    private sealed class Output(List<ChatLineMessage> chat, List<(string?, int)> listens) : ITalkOutput
     {
         public void Chat(ChatLineMessage line)
         {
@@ -160,6 +187,11 @@ public sealed class CommandRoutingTests : IDisposable
         public void State(string? assistant, string state) { }
 
         public Task SpeakAsync(string? assistant, string text, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public void Listen(string? assistant, int seconds)
+        {
+            lock (listens) listens.Add((assistant, seconds));
+        }
     }
 
     /// <summary>K-Desktop for the tests: scripted matches, and every run written down.</summary>

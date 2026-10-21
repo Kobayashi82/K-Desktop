@@ -4,6 +4,7 @@ using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Voice;
+using KDesktop.Views.Assistant;
 
 namespace KDesktop;
 
@@ -54,6 +55,70 @@ public partial class App
         var who = PickAssistant();
         if (who is not null) AssistantTalkedTo(who);
         _ = Voice.ListenAsync(held, AddresseeFor(who));
+    }
+
+    /// <summary>
+    /// <c>listen</c> (stage 5.3, UI thread): the assistant asked something back to an order said aloud; a few seconds
+    /// without the wake word for its answer, which goes to it as usual.
+    /// </summary>
+    private void OnAssistantListen(ListenMessage listen)
+    {
+        if (_assistant is null || Config.Settings.Paused || !VoiceModels.Ready) return;
+        if (listen.Assistant is { } id && AssistantPackages.Find(id) is null) return;
+        var seconds = Math.Clamp(listen.Seconds, 1, ListenMessage.MaxSeconds);
+        Log.Info($"Asistente: «{listen.Assistant ?? "(sin cuerpo)"}» espera respuesta: se escucha {seconds} s sin palabra");
+        _ = Voice.ListenForAsync(AddresseeFor(listen.Assistant), TimeSpan.FromSeconds(seconds));
+    }
+
+    /// <summary>Whether the last order to this assistant (null: without a body) was said aloud: its questions may be answered aloud.</summary>
+    private bool TalkedByVoice(string? assistant) =>
+        VoiceModels.Ready && _chatSources.GetValueOrDefault(assistant ?? string.Empty) == "voice";
+
+    /// <summary>
+    /// The little window asks for permission and the order came by voice (stage 5.3): K-Desktop listens meanwhile, without
+    /// the wake word, and «sí», «no» or «sí, y no vuelvas a preguntar» answer it (twice at most, until it closes).
+    /// </summary>
+    private async void ListenForAnswer(AskWindow window, string who, bool canTrust, TimeSpan time)
+    {
+        // Not disposed: the window may be answered (and cancel it) after this is over.
+        var stop = new CancellationTokenSource();
+        _ = window.Answer.ContinueWith(_ => stop.Cancel(), TaskScheduler.Default);
+        window.ShowListening();
+        var until = DateTime.Now + time;
+        for (var attempt = 0; attempt < 2 && !window.Answer.IsCompleted; attempt++)
+        {
+            var left = until - DateTime.Now - TimeSpan.FromSeconds(1);
+            if (left < TimeSpan.FromSeconds(2)) break;
+            var understood = false;
+            var to = new VoiceAddressee(who, (text, _) =>
+            {
+                if (SpokenReply.Of(text) is not { } reply)
+                {
+                    Log.Info($"Asistente: «{text}» no es ni sí ni no");
+                    Ui.ShowOsd(Loc.T("assistantAsk.sayYesNo", text), Core.Engine.OsdKind.Warning);
+                    return false;
+                }
+                understood = true;
+                var choice = reply switch
+                {
+                    SpokenReplyKind.Yes => "yes",
+                    SpokenReplyKind.Always => canTrust ? "always" : "yes",
+                    _ => "no",
+                };
+                Log.Info($"Asistente: «{text}» → {choice} (por voz)");
+                Dispatcher.Invoke(() => window.Choose(choice));
+                return true;
+            });
+            try
+            {
+                await Voice.ListenForAsync(to, left < TimeSpan.FromSeconds(ListenMessage.MaxSeconds) ? left : TimeSpan.FromSeconds(ListenMessage.MaxSeconds), stop.Token);
+            }
+            catch (ObjectDisposedException)
+            {
+                break;
+            }
+            if (understood) break;
+        }
     }
 
     private volatile bool _talkHeld;

@@ -36,6 +36,12 @@
                         <TextBlock x:Name="WhoText" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                         <TextBlock x:Name="QuestionText" Margin="0,2,0,0" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"
                                    Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        <!-- Asked by voice: it may be answered aloud (stage 5.3) -->
+                        <StackPanel x:Name="VoiceHint" Orientation="Horizontal" Margin="0,6,0,0" Visibility="Collapsed">
+                            <ui:SymbolIcon Symbol="Mic24" FontSize="14" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
+                            <TextBlock FontSize="12" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                       Text="{l:Tr assistantAsk.voiceHint}" />
+                        </StackPanel>
                     </StackPanel>
                 </Grid>
                 <WrapPanel Margin="0,12,0,0" HorizontalAlignment="Right">

@@ -332,6 +332,19 @@ public sealed record ListeningMessage(bool Active, string? Assistant = null) : P
     public override string Type => "listening";
 }
 
+/// <summary>
+/// The assistant asked something back («¿A o B?», a question of the AI) to an order said aloud: K-Desktop listens a few
+/// seconds without the wake word (stage 5.3), and what is said comes as <c>heard</c> as usual.
+/// </summary>
+/// <param name="Seconds">How long to wait for the user to start speaking (at most <see cref="MaxSeconds"/>).</param>
+/// <param name="Expect">The answers it expects («sí», «el primero»), only as a hint.</param>
+public sealed record ListenMessage(int Seconds, IReadOnlyList<string>? Expect = null, string? Assistant = null) : PipeMessage
+{
+    public const int MaxSeconds = 10;
+
+    public override string Type => "listen";
+}
+
 /// <summary>A long click on the character starts recording the user, and letting go stops it (stage 5.2).</summary>
 public sealed record TalkMessage(string Assistant, bool Active) : PipeMessage
 {
@@ -560,6 +573,7 @@ public static class PipeJson
         ["heard"] = typeof(HeardMessage),
         ["listening"] = typeof(ListeningMessage),
         ["talk"] = typeof(TalkMessage),
+        ["listen"] = typeof(ListenMessage),
         ["cancel"] = typeof(CancelMessage),
         ["chat"] = typeof(ChatLineMessage),
         ["embed"] = typeof(EmbedMessage),
