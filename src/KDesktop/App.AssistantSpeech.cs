@@ -58,6 +58,7 @@ public partial class App
         return new JsonObject
         {
             ["engine"] = s.AssistantVoiceEngine,
+            ["profile"] = s.AssistantVoiceProfile,
             ["pocketVoice"] = PocketVoice,
             ["windowsVoice"] = s.AssistantVoiceWindows,
             ["speed"] = Math.Clamp(s.AssistantVoiceSpeed, 0.5, 2),

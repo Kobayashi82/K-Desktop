@@ -1,0 +1,239 @@
+[
+  {
+    "id": "natural",
+    "name": "Natural",
+    "engine": {
+      "type": "pocket",
+      "voice": "default"
+    },
+    "chain": [],
+    "moods": {
+      "error": [
+        {
+          "fx": "glitch",
+          "chance": 0.12
+        }
+      ],
+      "far": [
+        {
+          "fx": "radio",
+          "bandwidth": 3000,
+          "noise": 0.04,
+          "beep": false
+        }
+      ],
+      "happy": [
+        {
+          "fx": "pitch",
+          "semitones": 1.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "robot",
+    "name": "Robot clásico",
+    "engine": {
+      "type": "pocket",
+      "voice": "default"
+    },
+    "chain": [
+      {
+        "fx": "pitch",
+        "semitones": -1
+      },
+      {
+        "fx": "ring",
+        "freq": 48,
+        "mix": 0.5
+      },
+      {
+        "fx": "echo",
+        "ms": 12,
+        "feedback": 0.35,
+        "mix": 0.25
+      }
+    ],
+    "moods": {
+      "error": [
+        {
+          "fx": "glitch",
+          "chance": 0.2
+        }
+      ],
+      "far": [
+        {
+          "fx": "radio",
+          "bandwidth": 2800,
+          "noise": 0.04,
+          "beep": true
+        }
+      ],
+      "happy": [
+        {
+          "fx": "pitch",
+          "semitones": 2
+        }
+      ]
+    }
+  },
+  {
+    "id": "martian",
+    "name": "Marciano",
+    "engine": {
+      "type": "pocket",
+      "voice": "default"
+    },
+    "chain": [
+      {
+        "fx": "pitch",
+        "semitones": 3
+      },
+      {
+        "fx": "formant",
+        "shift": 1.15
+      },
+      {
+        "fx": "chorus",
+        "rate": 2.5,
+        "depth": 0.4
+      },
+      {
+        "fx": "ring",
+        "freq": 55,
+        "mix": 0.15
+      }
+    ],
+    "moods": {
+      "error": [
+        {
+          "fx": "glitch",
+          "chance": 0.15
+        }
+      ],
+      "far": [
+        {
+          "fx": "radio",
+          "bandwidth": 2800,
+          "noise": 0.05,
+          "beep": true
+        }
+      ],
+      "happy": [
+        {
+          "fx": "pitch",
+          "semitones": 2
+        }
+      ]
+    }
+  },
+  {
+    "id": "mission",
+    "name": "Control de misión",
+    "engine": {
+      "type": "pocket",
+      "voice": "default"
+    },
+    "chain": [
+      {
+        "fx": "radio",
+        "bandwidth": 3400,
+        "noise": 0.012,
+        "beep": true
+      }
+    ],
+    "moods": {
+      "error": [
+        {
+          "fx": "glitch",
+          "chance": 0.15
+        }
+      ],
+      "far": [
+        {
+          "fx": "radio",
+          "bandwidth": 2200,
+          "noise": 0.08,
+          "beep": false
+        }
+      ],
+      "happy": [
+        {
+          "fx": "pitch",
+          "semitones": 1.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "eightbit",
+    "name": "8 bits",
+    "engine": {
+      "type": "pocket",
+      "voice": "default"
+    },
+    "chain": [
+      {
+        "fx": "pitch",
+        "semitones": 2
+      },
+      {
+        "fx": "bitcrush",
+        "bits": 6,
+        "rate": 11025
+      }
+    ],
+    "moods": {
+      "error": [
+        {
+          "fx": "glitch",
+          "chance": 0.25
+        }
+      ],
+      "far": [
+        {
+          "fx": "radio",
+          "bandwidth": 2800,
+          "noise": 0.05,
+          "beep": true
+        }
+      ],
+      "happy": [
+        {
+          "fx": "pitch",
+          "semitones": 3
+        }
+      ]
+    }
+  },
+  {
+    "id": "beeps",
+    "name": "Pitidos",
+    "engine": {
+      "type": "beeps"
+    },
+    "chain": [],
+    "moods": {
+      "error": [
+        {
+          "fx": "glitch",
+          "chance": 0.3
+        }
+      ],
+      "far": [
+        {
+          "fx": "radio",
+          "bandwidth": 2800,
+          "noise": 0.05,
+          "beep": false
+        }
+      ],
+      "happy": [
+        {
+          "fx": "pitch",
+          "semitones": 4
+        }
+      ]
+    }
+  }
+]

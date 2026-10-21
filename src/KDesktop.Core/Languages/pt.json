@@ -2980,5 +2980,15 @@
   "assistantVoice.volume": "Volume da voz",
   "assistantVoice.testPlaceholder": "Algo para dizer",
   "assistantVoice.test": "Testar",
-  "assistantVoice.testText": "Olá, eu sou {0}. É assim que eu soo quando te respondo."
+  "assistantVoice.testText": "Olá, eu sou {0}. É assim que eu soo quando te respondo.",
+
+  "assistantVoice.profile": "Como soam",
+  "assistantVoice.profileHint": "Cada assistente traz sua voz (o Lander, a do controle da missão); ou escolha uma para todos. De outro monitor soam pelo rádio e, se batem, com falhas.",
+  "assistantVoice.profileOwn": "A de cada assistente",
+  "assistantVoice.profile.natural": "Natural",
+  "assistantVoice.profile.robot": "Robô clássico",
+  "assistantVoice.profile.martian": "Marciano",
+  "assistantVoice.profile.mission": "Controle da missão",
+  "assistantVoice.profile.eightbit": "8 bits",
+  "assistantVoice.profile.beeps": "Bipes"
 }

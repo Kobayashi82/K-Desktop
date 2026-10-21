@@ -1,6 +1,6 @@
 # Protocolo de la tubería K-Desktop ↔ asistente
 
-Versión del protocolo: **3** (la 2, de la etapa 1.11, lleva el id del asistente en los mensajes: puede haber varios a la vez; la 3,
+Versión del protocolo: **3** (SDK 1.2 desde la etapa 5.5: `SetVoiceMood`) (la 2, de la etapa 1.11, lleva el id del asistente en los mensajes: puede haber varios a la vez; la 3,
 de la etapa 2.3, deja el menú del clic derecho a K-Desktop —`menu`— y añade `extraState` y `extraKeys`).
 
 K-Desktop (proceso elevado) y el proceso del asistente (`KDesktop.exe --assistant`, usuario normal) se hablan por
@@ -171,7 +171,7 @@ Lo hace todo el proceso del asistente (sin administrador): buscar el servidor, i
 Lo que contestan lo dicen en voz alta frase a frase, mientras la IA aún escribe (las frases que ya han terminado empiezan a
 sonar; con Pocket TTS, unas décimas después de empezar a sintetizarse). La síntesis es del proceso del asistente; K-Desktop
 solo descarga los modelos (`Models\pocket-tts\<idioma>\`) y manda los ajustes en la sección `voice` de `config` (`engine`:
-`auto`, `pocket`, `windows`, `beeps` u `off`; `pocketVoice`, `windowsVoice`, `speed` 0,5…2, `volume` 0…1; también en la
+`auto`, `pocket`, `windows`, `beeps` u `off`; `profile` —el perfil fijo para todos, vacío = el de cada asistente—, `pocketVoice`, `windowsVoice`, `speed` 0,5…2, `volume` 0…1; también en la
 bienvenida). Sin cuerpo no se dice nada en voz alta.
 
 | `t` | Dir. | Campos | Qué es |

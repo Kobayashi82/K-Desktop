@@ -472,6 +472,12 @@ public partial class AppSettings : ObservableObject
     /// <summary>The Windows voice by name; empty: the first one of the language.</summary>
     [ObservableProperty] private string _assistantVoiceWindows = string.Empty;
 
+    /// <summary>
+    /// The voice profile for all of them (stage 5.5: one of K-Desktop's, <c>robot</c>, <c>mission</c>…); empty: each one's
+    /// own (the one its package brings, or «Natural»).
+    /// </summary>
+    [ObservableProperty] private string _assistantVoiceProfile = string.Empty;
+
     /// <summary>How fast they speak: 1 = normal (0.5 … 2).</summary>
     [ObservableProperty] private double _assistantVoiceSpeed = 1;
 

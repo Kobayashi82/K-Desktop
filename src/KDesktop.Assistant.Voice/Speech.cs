@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using KDesktop.Assistant.Voice.Effects;
 using KDesktop.Assistant.Voice.Pocket;
 using KDesktop.Core;
 using KDesktop.Core.Assistant.Voice;
@@ -19,10 +20,24 @@ public enum SpeechEngineKind
 }
 
 /// <summary>How an assistant speaks.</summary>
-/// <param name="PocketVoice">The voice of Pocket TTS («eve»…); null: the default one.</param>
+/// <param name="Engine">Options' choice; <see cref="SpeechEngineKind.Auto"/> follows the profile's.</param>
+/// <param name="PocketVoice">The voice of Pocket TTS («eve»…) chosen in Options; null: the default one.</param>
 /// <param name="WindowsVoice">The Windows voice by name; null: the first one of the language.</param>
-/// <param name="Speed">1 = normal (Windows' voices and beeps; Pocket TTS with the effects of stage 5.5).</param>
-public sealed record VoiceSettings(SpeechEngineKind Engine = SpeechEngineKind.Auto, string? PocketVoice = null, string? WindowsVoice = null, double Speed = 1);
+/// <param name="Speed">1 = normal (on top of the profile's).</param>
+/// <param name="Profile">Its voice profile (stage 5.5: engine and effects); null: «Natural».</param>
+/// <param name="Moods">The situations it is in (<c>error</c>, <c>far</c>, <c>happy</c>…): their effects are added.</param>
+public sealed record VoiceSettings(SpeechEngineKind Engine = SpeechEngineKind.Auto, string? PocketVoice = null, string? WindowsVoice = null, double Speed = 1,
+    VoiceProfile? Profile = null, IReadOnlyList<string>? Moods = null)
+{
+    public VoiceProfile EffectiveProfile => Profile ?? VoiceProfile.Default;
+
+    /// <summary>Its speed and the profile's together.</summary>
+    public double EffectiveSpeed => Math.Clamp(Speed * EffectiveProfile.Speed, 0.5, 2);
+
+    /// <summary>The Pocket TTS voice: the profile's own if it is downloaded, else the one chosen in Options.</summary>
+    public string PocketVoiceFor(string language) =>
+        EffectiveProfile.OwnVoice is { } own && PocketModels.Installed(language, own) ? own : PocketModels.VoiceOrDefault(language, PocketVoice);
+}
 
 /// <summary>A piece of a sentence being said: mono samples at their rate, and which voice says it.</summary>
 public sealed record SpokenChunk(float[] Samples, int SampleRate, SpeechEngineKind Engine);
@@ -46,10 +61,17 @@ public sealed class Speech : IDisposable
     /// <summary>The engine that will really speak: <see cref="SpeechEngineKind.Auto"/> resolved, and what is not there skipped.</summary>
     public SpeechEngineKind Resolve(string language, VoiceSettings settings)
     {
-        if (settings.Engine is SpeechEngineKind.Off or SpeechEngineKind.Beeps) return settings.Engine;
-        var pocket = PocketModels.Supports(language) && PocketEngine.Available(language, PocketModels.VoiceOrDefault(language, settings.PocketVoice));
+        // Automatic: the engine of the profile (a profile of beeps speaks in beeps).
+        var wanted = settings.Engine != SpeechEngineKind.Auto ? settings.Engine : settings.EffectiveProfile.Engine switch
+        {
+            "beeps" => SpeechEngineKind.Beeps,
+            "windows" => SpeechEngineKind.Windows,
+            _ => SpeechEngineKind.Auto,
+        };
+        if (wanted is SpeechEngineKind.Off or SpeechEngineKind.Beeps) return wanted;
+        var pocket = PocketModels.Supports(language) && PocketEngine.Available(language, settings.PocketVoiceFor(language));
         // The one chosen if it is there; else the other one; else beeps.
-        if (settings.Engine == SpeechEngineKind.Windows)
+        if (wanted == SpeechEngineKind.Windows)
             return HasWindows(language) ? SpeechEngineKind.Windows : pocket ? SpeechEngineKind.Pocket : SpeechEngineKind.Beeps;
         return pocket ? SpeechEngineKind.Pocket : HasWindows(language) ? SpeechEngineKind.Windows : SpeechEngineKind.Beeps;
     }
@@ -62,7 +84,7 @@ public sealed class Speech : IDisposable
     /// <summary>Gets the voice ready while the AI thinks (Pocket's model takes a second or two to load).</summary>
     public void Warm(string language, VoiceSettings settings)
     {
-        if (Resolve(language, settings) == SpeechEngineKind.Pocket) Pocket.Warm(language, PocketModels.VoiceOrDefault(language, settings.PocketVoice));
+        if (Resolve(language, settings) == SpeechEngineKind.Pocket) Pocket.Warm(language, settings.PocketVoiceFor(language));
     }
 
     /// <summary>One sentence in audio, whole, or null when it is not said aloud (off, nothing speakable, cancelled).</summary>
@@ -81,8 +103,9 @@ public sealed class Speech : IDisposable
     /// <summary>
     /// One sentence in audio as it is made (stage 5.4: Pocket TTS sounds a few tenths of a second after it starts, the
     /// rest comes while it plays; the other voices come whole), without the silence at the start and all at the same
-    /// loudness. Nothing when it is not said aloud (off, nothing speakable, cancelled). A voice that fails before giving
-    /// anything is replaced by the next one (Pocket → Windows → beeps).
+    /// loudness, through the effects of its profile and its moods (stage 5.5). Nothing when it is not said aloud (off,
+    /// nothing speakable, cancelled). A voice that fails before giving anything is replaced by the next one (Pocket →
+    /// Windows → beeps).
     /// </summary>
     public async IAsyncEnumerable<SpokenChunk> StreamAsync(string sentence, string language, VoiceSettings settings,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
@@ -94,6 +117,13 @@ public sealed class Speech : IDisposable
             var given = false;
             var pieces = System.Threading.Channels.Channel.CreateUnbounded<float[]>();
             var rate = engine switch { SpeechEngineKind.Pocket => PocketModel.SampleRate, SpeechEngineKind.Windows => WindowsVoices.SampleRate, _ => Beeps.SampleRate };
+            // Pocket TTS has no speed of its own: the chain gives it; the others say it at their speed.
+            var chain = VoiceChain.Build(settings.EffectiveProfile, settings.Moods ?? [], rate, engine == SpeechEngineKind.Pocket ? settings.EffectiveSpeed : null, Seed(text));
+            void Put(float[] piece)
+            {
+                var done = chain.Process(piece);
+                if (done.Length > 0) pieces.Writer.TryWrite(done);
+            }
             var making = Task.Run(async () =>
             {
                 try
@@ -102,18 +132,19 @@ public sealed class Speech : IDisposable
                     {
                         case SpeechEngineKind.Pocket:
                             var shaper = new Shaper(rate);
-                            await Pocket.SayAsync(text, language, PocketModels.VoiceOrDefault(language, settings.PocketVoice), Seed(text), cancellationToken,
-                                piece => { if (shaper.Shape(piece) is { Length: > 0 } shaped) pieces.Writer.TryWrite(shaped); }).ConfigureAwait(false);
+                            await Pocket.SayAsync(text, language, settings.PocketVoiceFor(language), Seed(text), cancellationToken,
+                                piece => { if (shaper.Shape(piece) is { Length: > 0 } shaped) Put(shaped); }).ConfigureAwait(false);
                             break;
                         case SpeechEngineKind.Windows:
-                            var windows = WindowsVoices.Say(text, language, settings.WindowsVoice, settings.Speed);
+                            var windows = WindowsVoices.Say(text, language, settings.WindowsVoice, settings.EffectiveSpeed);
                             if (windows.Length == 0) throw new InvalidOperationException("Sin voz de Windows");
-                            pieces.Writer.TryWrite(Normalize(Trim(windows, rate)));
+                            Put(Normalize(Trim(windows, rate)));
                             break;
                         default:
-                            pieces.Writer.TryWrite(Beeps.Say(text, settings.Speed));
+                            Put(Beeps.Say(text, settings.EffectiveSpeed));
                             break;
                     }
+                    if (chain.Finish() is { Length: > 0 } tail) pieces.Writer.TryWrite(tail);
                     pieces.Writer.TryComplete();
                 }
                 catch (Exception ex)

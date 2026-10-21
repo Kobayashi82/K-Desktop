@@ -14,7 +14,7 @@
     <NoWarn>$(NoWarn);CS1591;CS1573;CA1720</NoWarn>
     <!-- SDK version (major = compatibility): goes into assistant.json as "sdk". -->
     <SdkContractVersion>1.1</SdkContractVersion>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
   </PropertyGroup>
 
 </Project>

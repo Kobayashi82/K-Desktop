@@ -19,6 +19,16 @@
                           SelectionChanged="OnEngineChanged" AutomationProperties.Name="{l:Tr assistantVoice.engine}" />
             </Grid>
 
+            <Grid Style="{StaticResource SettingRow}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="{l:Tr assistantVoice.profile}" />
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantVoice.profileHint}" />
+                </StackPanel>
+                <ComboBox x:Name="ProfileBox" Grid.Column="1" MinWidth="230" VerticalAlignment="Center" DisplayMemberPath="Name"
+                          SelectionChanged="OnProfileChanged" AutomationProperties.Name="{l:Tr assistantVoice.profile}" />
+            </Grid>
+
             <!-- Which voice really speaks now -->
             <Border Style="{StaticResource InfoBox}" Margin="0,4,0,8">
                 <StackPanel Orientation="Horizontal">

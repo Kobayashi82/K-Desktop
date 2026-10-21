@@ -302,6 +302,23 @@ internal sealed class AssistantRuntime : IDisposable
     }
 
     /// <summary>
+    /// The moods its next sentence is said in: the one it set and <c>far</c> when it is on another monitor than the
+    /// mouse (it speaks «over the radio»). Engine thread.
+    /// </summary>
+    public IReadOnlyList<string> VoiceMoods(string id)
+    {
+        if (Find(id) is not { } slot) return [];
+        var moods = new List<string>();
+        if (slot.VoiceMood is { } mood) moods.Add(mood);
+        Point? anchor = null;
+        Guard(slot, a => anchor = a.BubbleAnchor, "BubbleAnchor");
+        if (anchor is { } at && Interop.Native.GetCursorPos(out var cursor)
+            && World.Current.MonitorAt(at) is { } own && World.Current.MonitorAt(new Point(cursor.X, cursor.Y)) is { } mouse && own.Index != mouse.Index)
+            moods.Add("far");
+        return moods;
+    }
+
+    /// <summary>
     /// Where its voice sounds, by where it is across all the monitors (−1 left … 1 right, never all to one side). Engine
     /// thread.
     /// </summary>
@@ -529,6 +546,11 @@ internal sealed class AssistantSlot(string id, IAssistant assistant, AssistantMa
 
     /// <summary>Its extras that are not simply shown (<see cref="IAssistantHost.SetExtraState"/>).</summary>
     public Dictionary<string, ExtraState> ExtraStates { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>The situation its voice speaks in (<c>SetVoiceMood</c>; read by the voice from another thread).</summary>
+    public string? VoiceMood { get => Volatile.Read(ref _voiceMood); set => Volatile.Write(ref _voiceMood, value); }
+
+    private string? _voiceMood;
 
     public int Faults { get; set; }
 

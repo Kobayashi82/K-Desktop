@@ -47,6 +47,8 @@ internal sealed class AssistantHost(AssistantRuntime runtime, AssistantSlot slot
 
     public void SetExtraState(string extraId, ExtraState state) => runtime.SetExtraState(slot, extraId, state);
 
+    public void SetVoiceMood(string? mood) => slot.VoiceMood = mood is { Length: > 0 } ? mood : null;
+
     public string? ExtraHotkey(string extraId) => runtime.ExtraHotkey(Id, extraId);
 
     public void RequestTick() => runtime.RequestTick(slot);

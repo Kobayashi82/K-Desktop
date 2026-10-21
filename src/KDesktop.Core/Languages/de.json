@@ -2980,5 +2980,15 @@
   "assistantVoice.volume": "Lautstärke der Stimme",
   "assistantVoice.testPlaceholder": "Etwas zum Sagen",
   "assistantVoice.test": "Testen",
-  "assistantVoice.testText": "Hallo, ich bin {0}. So klinge ich, wenn ich dir antworte."
+  "assistantVoice.testText": "Hallo, ich bin {0}. So klinge ich, wenn ich dir antworte.",
+
+  "assistantVoice.profile": "Wie sie klingen",
+  "assistantVoice.profileHint": "Jeder Assistent bringt seine Stimme mit (der Lander die der Missionskontrolle); oder wähle eine für alle. Von einem anderen Monitor klingen sie wie über Funk und nach einem Absturz gestört.",
+  "assistantVoice.profileOwn": "Die des jeweiligen Assistenten",
+  "assistantVoice.profile.natural": "Natürlich",
+  "assistantVoice.profile.robot": "Klassischer Roboter",
+  "assistantVoice.profile.martian": "Marsmensch",
+  "assistantVoice.profile.mission": "Missionskontrolle",
+  "assistantVoice.profile.eightbit": "8 Bit",
+  "assistantVoice.profile.beeps": "Pieptöne"
 }

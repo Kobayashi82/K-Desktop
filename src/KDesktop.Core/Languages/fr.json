@@ -2980,5 +2980,15 @@
   "assistantVoice.volume": "Volume de la voix",
   "assistantVoice.testPlaceholder": "Quelque chose à dire",
   "assistantVoice.test": "Essayer",
-  "assistantVoice.testText": "Bonjour, je suis {0}. Voilà comment je sonne quand je te réponds."
+  "assistantVoice.testText": "Bonjour, je suis {0}. Voilà comment je sonne quand je te réponds.",
+
+  "assistantVoice.profile": "Comment ils sonnent",
+  "assistantVoice.profileHint": "Chaque assistant a sa voix (le Lander, celle du contrôle de mission) ; ou choisissez-en une pour tous. Depuis un autre écran ils parlent par radio et, s'ils s'écrasent, avec des parasites.",
+  "assistantVoice.profileOwn": "Celle de chaque assistant",
+  "assistantVoice.profile.natural": "Naturelle",
+  "assistantVoice.profile.robot": "Robot classique",
+  "assistantVoice.profile.martian": "Martien",
+  "assistantVoice.profile.mission": "Contrôle de mission",
+  "assistantVoice.profile.eightbit": "8 bits",
+  "assistantVoice.profile.beeps": "Bips"
 }

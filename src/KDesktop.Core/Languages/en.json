@@ -2980,5 +2980,15 @@
   "assistantVoice.volume": "Voice volume",
   "assistantVoice.testPlaceholder": "Something to say",
   "assistantVoice.test": "Try",
-  "assistantVoice.testText": "Hello, I'm {0}. This is how I sound when I answer you."
+  "assistantVoice.testText": "Hello, I'm {0}. This is how I sound when I answer you.",
+
+  "assistantVoice.profile": "How they sound",
+  "assistantVoice.profileHint": "Each assistant brings its own voice (the Lander, mission control's); or choose one for all. From another monitor they sound over the radio and, if they crash, glitchy.",
+  "assistantVoice.profileOwn": "Each assistant's own",
+  "assistantVoice.profile.natural": "Natural",
+  "assistantVoice.profile.robot": "Classic robot",
+  "assistantVoice.profile.martian": "Martian",
+  "assistantVoice.profile.mission": "Mission control",
+  "assistantVoice.profile.eightbit": "8-bit",
+  "assistantVoice.profile.beeps": "Beeps"
 }

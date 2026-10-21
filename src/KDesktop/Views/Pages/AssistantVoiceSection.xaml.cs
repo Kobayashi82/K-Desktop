@@ -56,6 +56,10 @@ public partial class AssistantVoiceSection : UserControl
         EngineBox.ItemsSource = engines;
         EngineBox.SelectedItem = engines.FirstOrDefault(e => e.Value == s.AssistantVoiceEngine) ?? engines[0];
 
+        List<Option> profiles = [new(string.Empty, Loc.T("assistantVoice.profileOwn")), .. VoiceProfile.BuiltIn.Select(p => new Option(p.Id, Loc.T("assistantVoice.profile." + p.Id)))];
+        ProfileBox.ItemsSource = profiles;
+        ProfileBox.SelectedItem = profiles.FirstOrDefault(p => p.Value == s.AssistantVoiceProfile) ?? profiles[0];
+
         StateText.Text = _app.AssistantVoice is not { } state ? Loc.T("assistantVoice.stateUnknown") : state.Engine switch
         {
             "pocket" => Loc.T("assistantVoice.statePocket", Title(_app.PocketVoice)),
@@ -108,6 +112,12 @@ public partial class AssistantVoiceSection : UserControl
     {
         if (_filling || EngineBox.SelectedItem is not Option option) return;
         _app.Config.Settings.AssistantVoiceEngine = option.Value;
+    }
+
+    private void OnProfileChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_filling || ProfileBox.SelectedItem is not Option option) return;
+        _app.Config.Settings.AssistantVoiceProfile = option.Value;
     }
 
     private void OnPocketVoiceChanged(object sender, SelectionChangedEventArgs e)

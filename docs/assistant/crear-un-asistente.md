@@ -101,6 +101,12 @@ K-Desktop los dibuja con sus propios controles, sin cargar código del asistente
   cada extra) y en los botones del panel; tras cada carga todos vuelven a `Shown`. `ExtraHotkey(id)` da el atajo del
   comando de K-Desktop que lo ejecuta («CTRL + ALT + L»), para decirle al usuario qué pulsar. Los comandos y la voz
   siguen llegando a `OnExtraAsync` aunque esté escondido: explica allí por qué no se puede.
+- **Su voz:** lo que contesta lo dice en voz alta el host, con el perfil de `voice` de su manifiesto
+  (`voice/<id>.json`: motor y cadena de efectos —`pitch`, `formant`, `ring`, `vocoder`, `bitcrush`, `radio`, `chorus`,
+  `flanger`, `echo`, `glitch`— y `moods`, los efectos que se añaden en ciertas situaciones). `OnVoiceLevel` le dice lo
+  fuerte que suena mientras habla (para luces o una boca). Con SDK 1.2 (`"sdk": "1.2"`), `SetVoiceMood("error")`,
+  `SetVoiceMood("happy")` o `SetVoiceMood(null)` cambian el ánimo de lo que diga a partir de entonces; `far` lo pone el host
+  solo cuando habla desde otro monitor que el del ratón. Su personalidad, en `persona/{lang}.json`.
 
 ## Reglas
 

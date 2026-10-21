@@ -85,6 +85,35 @@ public class VoiceTests
     }
 
     [Fact]
+    public void TheSixProfilesAndTheirMoodsBuild()
+    {
+        Assert.Equal(["natural", "robot", "martian", "mission", "eightbit", "beeps"], VoiceProfile.BuiltIn.Select(p => p.Id));
+        var example = VoiceProfile.Load(Path.Combine(Contracts.DocsDir, "ejemplos-paquete", "lander", "voice", "lander.json"), "lander");
+        Assert.NotNull(example);
+        var noise = new Random(1);
+        var input = Enumerable.Range(0, 24000).Select(i => (float)(Math.Sin(i * 0.05) * 0.3 + (noise.NextDouble() - 0.5) * 0.05)).ToArray();
+        foreach (var profile in VoiceProfile.BuiltIn.Append(example!))
+            foreach (var moods in new[] { Array.Empty<string>(), ["error"], ["far", "happy"] })
+            {
+                var chain = Voice.Effects.VoiceChain.Build(profile, moods, 24000, speed: null, seed: 3);
+                var output = new List<float>();
+                for (var at = 0; at < input.Length; at += 1920) output.AddRange(chain.Process(input[at..Math.Min(input.Length, at + 1920)]));
+                output.AddRange(chain.Finish());
+                Assert.All(output, s => Assert.True(float.IsFinite(s) && Math.Abs(s) <= 1, $"{profile.Id}: {s}"));
+                Assert.True(output.Count >= input.Length * 0.9, $"{profile.Id} {string.Join('+', moods)}: {output.Count}");
+            }
+    }
+
+    [Fact]
+    public void FasterIsShorter()
+    {
+        var input = Enumerable.Range(0, 24000).Select(i => (float)Math.Sin(i * 0.05) * 0.3f).ToArray();
+        var chain = Voice.Effects.VoiceChain.Build(VoiceProfile.Default, [], 24000, speed: 1.25, seed: 1);
+        var output = chain.Process(input).Length + chain.Finish().Length;
+        Assert.InRange(output, 24000 / 1.25 * 0.95, 24000 / 1.25 * 1.05);
+    }
+
+    [Fact]
     public void TheCatalogHasEveryLanguageOfKDesktop()
     {
         foreach (var language in new[] { "es", "en", "fr", "de", "it", "pt" })

@@ -7,6 +7,7 @@ using KDesktop.Assistant.Sdk;
 using KDesktop.Core;
 using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Assistant.Pipe;
+using KDesktop.Core.Assistant.Voice;
 using KDesktop.Core.Localization;
 
 namespace KDesktop.Assistant.Host.Runtime;
@@ -35,6 +36,7 @@ internal sealed class ModuleTalk : ITalkOutput
         _runtime = runtime;
         _tools = tools;
         Voice = voice;
+        Voice.ProfileOf = ProfileOf;
         Meaning = new ModuleMeaning(link);
         Chooser = new ToolChooser(Meaning);
         Memory = new TalkMemory(tools.Builtin.Memory, tools.Runner, Meaning);
@@ -106,6 +108,7 @@ internal sealed class ModuleTalk : ITalkOutput
     {
         _folders[id] = folder;
         _personas.TryRemove(id, out _);
+        _profiles.TryRemove(id, out _);
     }
 
     /// <summary>An assistant left the desktop: what was talked with it is forgotten, and it stops talking.</summary>
@@ -114,6 +117,24 @@ internal sealed class ModuleTalk : ITalkOutput
         Service.Forget(id);
         Voice.Stop(id);
     }
+
+    private readonly ConcurrentDictionary<string, VoiceProfile?> _profiles = new(StringComparer.Ordinal);
+
+    /// <summary>The voice profile its package brings (its manifest's <c>voice</c>), read once per load; null: none.</summary>
+    private VoiceProfile? ProfileOf(string id) => _profiles.GetOrAdd(id, _ =>
+    {
+        var folder = _folders.GetValueOrDefault(id) ?? AssistantPackages.Find(id)?.Folder;
+        if (folder is null) return null;
+        try
+        {
+            var manifest = AssistantManifest.Parse(File.ReadAllText(Path.Combine(folder, AssistantManifest.FileName)));
+            return manifest.Voice is { Length: > 0 } path ? VoiceProfile.Load(Path.Combine(folder, path), id) : null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ManifestException)
+        {
+            return null;
+        }
+    });
 
     /// <summary>Its persona in the user's language (read once per language), or the module's.</summary>
     private AssistantPersona PersonaOf(string? id)

@@ -61,6 +61,13 @@ public interface IAssistantHost
     /// </summary>
     string? ExtraHotkey(string extraId);
 
+    /// <summary>
+    /// The situation its voice speaks in (SDK 1.2): <c>error</c> (it crashed), <c>happy</c> (it celebrates) or any other
+    /// its voice profile names in its <c>moods</c>; null, as usual. The effects of that mood are added to what it says from
+    /// then on (the host adds <c>far</c> by itself when it speaks from another monitor than the mouse's).
+    /// </summary>
+    void SetVoiceMood(string? mood);
+
     /// <summary>Asks for a tick as soon as possible. Can be called from any thread.</summary>
     void RequestTick();
 

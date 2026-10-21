@@ -4,6 +4,7 @@ using KDesktop.Assistant.Host.Engine;
 using KDesktop.Assistant.Voice;
 using KDesktop.Core;
 using KDesktop.Core.Assistant.Pipe;
+using KDesktop.Core.Assistant.Voice;
 using KDesktop.Core.Localization;
 
 namespace KDesktop.Assistant.Host.Runtime;
@@ -23,6 +24,7 @@ internal sealed class ModuleVoice : IDisposable
     private readonly AssistantRuntime _runtime;
     private readonly Dictionary<string, Speaker> _speakers = new(StringComparer.Ordinal);
     private volatile VoiceSettings _settings = new();
+    private volatile string? _profile;
     private double _volume = 1;
 
     public ModuleVoice(EngineLoop engine, AssistantRuntime runtime)
@@ -33,6 +35,19 @@ internal sealed class ModuleVoice : IDisposable
 
     public Speech Speech { get; } = new();
 
+    /// <summary>The voice profile an assistant brings (its package), or null (stage 5.5).</summary>
+    public Func<string, VoiceProfile?>? ProfileOf { get; set; }
+
+    /// <summary>
+    /// How an assistant speaks now: Options' settings with the profile fixed there for all of them, or else its own
+    /// (or «Natural»), and the moods it is in.
+    /// </summary>
+    public VoiceSettings SettingsFor(string assistant, IReadOnlyList<string> moods)
+    {
+        var profile = VoiceProfile.Find(_profile) ?? (assistant.Length > 0 ? ProfileOf?.Invoke(assistant) : null) ?? VoiceProfile.Default;
+        return _settings with { Profile = profile, Moods = moods };
+    }
+
     /// <summary>Options → Assistant → Voice (<c>config</c> section <c>voice</c>).</summary>
     public void Configure(JsonObject? voice)
     {
@@ -41,6 +56,7 @@ internal sealed class ModuleVoice : IDisposable
         _settings = new VoiceSettings(engine, voice["pocketVoice"]?.GetValue<string>(), voice["windowsVoice"]?.GetValue<string>(),
             voice["speed"]?.GetValue<double>() ?? 1);
         _volume = Math.Clamp(voice["volume"]?.GetValue<double>() ?? 1, 0, 1);
+        _profile = voice["profile"]?.GetValue<string>() is { Length: > 0 } fixedProfile ? fixedProfile : null;
         Log.Info($"Asistente: voz {engine} (en uso: {Speech.Resolve(Loc.Instance.Language, _settings)}), velocidad {_settings.Speed:0.00}, volumen {_volume:0.00}");
     }
 
@@ -190,13 +206,14 @@ internal sealed class ModuleVoice : IDisposable
                 {
                     var watch = System.Diagnostics.Stopwatch.StartNew();
                     SpeechLine? line = null;
-                    await foreach (var chunk in _owner.Speech.StreamAsync(sentence, language, _owner._settings, token).ConfigureAwait(false))
+                    var settings = _owner.SettingsFor(_assistant, await MoodsAsync().ConfigureAwait(false));
+                    await foreach (var chunk in _owner.Speech.StreamAsync(sentence, language, settings, token).ConfigureAwait(false))
                     {
                         if (line is null)
                         {
                             line = new SpeechLine(chunk.SampleRate);
                             _lines.Writer.TryWrite(line);
-                            Log.Info($"Asistente: «{_assistant}» empieza «{sentence}» ({chunk.Engine}, primer trozo en {watch.ElapsedMilliseconds} ms)");
+                            Log.Info($"Asistente: «{_assistant}» empieza «{sentence}» ({chunk.Engine}, {settings.EffectiveProfile.Id}{(settings.Moods is { Count: > 0 } m ? " " + string.Join('+', m) : "")}, primer trozo en {watch.ElapsedMilliseconds} ms)");
                         }
                         line.Append(chunk.Samples);
                     }
@@ -239,6 +256,15 @@ internal sealed class ModuleVoice : IDisposable
             {
                 // Stopped.
             }
+        }
+
+        /// <summary>The moods of the next sentence (engine thread: where it is, what it set).</summary>
+        private Task<IReadOnlyList<string>> MoodsAsync()
+        {
+            if (_assistant.Length == 0) return Task.FromResult<IReadOnlyList<string>>([]);
+            var moods = new TaskCompletionSource<IReadOnlyList<string>>(TaskCreationOptions.RunContinuationsAsynchronously);
+            _owner._engine.Post(() => moods.TrySetResult(_owner._runtime.VoiceMoods(_assistant)));
+            return moods.Task.WaitAsync(TimeSpan.FromMilliseconds(300)).ContinueWith(t => t.IsCompletedSuccessfully ? t.Result : [], TaskScheduler.Default);
         }
 
         private Task<double> PanAsync()
