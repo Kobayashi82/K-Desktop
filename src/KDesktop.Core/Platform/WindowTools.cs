@@ -20,6 +20,36 @@ public static class WindowTools
         return hwnd == IntPtr.Zero ? IntPtr.Zero : Win32.GetAncestor(hwnd, Win32.GA_ROOT);
     }
 
+    /// <summary>
+    /// Whether the process of a window runs as administrator: a normal process (an assistant's) cannot move it, K-Desktop
+    /// has to. When it cannot be asked (a protected process), it is taken as one.
+    /// </summary>
+    public static bool IsElevated(IntPtr hwnd)
+    {
+        Win32.GetWindowThreadProcessId(hwnd, out var pid);
+        var process = OpenProcess(0x1000 /* PROCESS_QUERY_LIMITED_INFORMATION */, false, pid);
+        if (process == IntPtr.Zero) return true;
+        try
+        {
+            if (!OpenProcessToken(process, 0x0008 /* TOKEN_QUERY */, out var token)) return true;
+            try { return !GetTokenInformation(token, 20 /* TokenElevation */, out var elevated, sizeof(int), out _) || elevated != 0; }
+            finally { CloseHandle(token); }
+        }
+        finally { CloseHandle(process); }
+    }
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+    private static extern IntPtr OpenProcess(uint access, bool inherit, uint pid);
+
+    [System.Runtime.InteropServices.DllImport("advapi32.dll")]
+    private static extern bool OpenProcessToken(IntPtr process, uint access, out IntPtr token);
+
+    [System.Runtime.InteropServices.DllImport("advapi32.dll")]
+    private static extern bool GetTokenInformation(IntPtr token, int infoClass, out int info, int length, out int returned);
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+    private static extern bool CloseHandle(IntPtr handle);
+
     /// <summary>Toggles "always on top" and returns the new state.</summary>
     public static bool ToggleTopMost(IntPtr hwnd)
     {

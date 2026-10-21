@@ -452,6 +452,20 @@ public sealed record RunMessage(string Assistant, string Run, string Command, bo
     public override string Type => "run";
 }
 
+/// <summary>A rectangle of the screen, in pixels (<c>x</c>, <c>y</c>, <c>w</c>, <c>h</c>).</summary>
+public sealed record StepRect(int X, int Y, int W, int H);
+
+/// <summary>
+/// Where a step of a choreographed run happens (stage 6.2): the window it acts on, where it is now and where it will
+/// end up (when K-Desktop knows), its state and whether it belongs to an administrator's process (then only K-Desktop
+/// can move it: <c>window</c>).
+/// </summary>
+/// <param name="Hwnd">The window; 0 when there is none yet (a program still to open: <paramref name="Process"/> only).</param>
+/// <param name="Rect">Its visible part now (null when it is minimised).</param>
+/// <param name="Result">Its visible part when the step is done (null when it is not known or it disappears).</param>
+/// <param name="State"><c>normal</c>, <c>maximized</c> or <c>minimized</c>.</param>
+public sealed record StepTarget(long Hwnd, string Process, string Title, StepRect? Rect, StepRect? Result, string State, bool Elevated);
+
 /// <param name="Status"><c>ok</c>, <c>failed</c> or <c>cancelled</c>.</param>
 /// <param name="Messages">What the command said (its messages, warnings and errors), in the user's language.</param>
 public sealed record EndMessage(string Run, string Status, IReadOnlyList<string> Messages) : PipeMessage

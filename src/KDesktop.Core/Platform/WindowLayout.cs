@@ -139,11 +139,14 @@ public static class WindowLayout
             Win32.SWP_NOZORDER | Win32.SWP_NOACTIVATE);
     }
 
-    /// <summary>Moves the window to another monitor keeping its place and size in proportion (maximised stays maximised).</summary>
-    public static bool MoveToMonitor(IntPtr hwnd, MonitorChoice choice, int number)
+    /// <summary>
+    /// The work area a window goes to for «Mover a otro monitor» (and the one it is on), or null when it would stay (one
+    /// monitor, or the one chosen is its own).
+    /// </summary>
+    public static (ScreenRect From, ScreenRect To)? MonitorTarget(IntPtr hwnd, MonitorChoice choice, int number)
     {
         var areas = WorkAreas();
-        if (areas.Count < 2 && choice != MonitorChoice.Number) return false;
+        if (areas.Count < 2 && choice != MonitorChoice.Number) return null;
         var from = WorkAreaOf(hwnd);
         var index = areas.ToList().FindIndex(a => a == from);
         if (index < 0) index = 0;
@@ -153,12 +156,38 @@ public static class WindowLayout
             MonitorChoice.Previous => (index - 1 + areas.Count) % areas.Count,
             _ => Math.Clamp(number, 1, areas.Count) - 1,
         };
-        if (target == index) return false;
+        return target == index ? null : (from, areas[target]);
+    }
+
+    /// <summary>Moves the window to another monitor keeping its place and size in proportion (maximised stays maximised).</summary>
+    public static bool MoveToMonitor(IntPtr hwnd, MonitorChoice choice, int number)
+    {
+        if (MonitorTarget(hwnd, choice, number) is not var (from, to)) return false;
         var maximized = IsZoomed(hwnd);
         if (maximized) Win32.ShowWindow(hwnd, Win32.SW_RESTORE);
-        MoveTo(hwnd, MapRect(VisibleBounds(hwnd), from, areas[target]));
+        MoveTo(hwnd, MapRect(VisibleBounds(hwnd), from, to));
         if (maximized) Win32.ShowWindow(hwnd, Win32.SW_SHOWMAXIMIZED);
         return true;
+    }
+
+    /// <summary>
+    /// Where the visible part of a window is when it is neither maximised nor minimised: now, or (maximised or minimised)
+    /// where restoring it would put it, from its placement and the usual invisible borders (a pixel or two may differ).
+    /// </summary>
+    public static ScreenRect RestoredBounds(IntPtr hwnd)
+    {
+        if (!IsZoomed(hwnd) && !Win32.IsIconic(hwnd)) return VisibleBounds(hwnd);
+        var placement = new WINDOWPLACEMENT { length = Marshal.SizeOf<WINDOWPLACEMENT>() };
+        if (!GetWindowPlacement(hwnd, ref placement)) return VisibleBounds(hwnd);
+        // Workspace coordinates: from the work area, not the monitor (they differ with the taskbar at the top or left).
+        var monitor = MonitorFromWindow(hwnd, 2 /* MONITOR_DEFAULTTONEAREST */);
+        var info = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+        int dx = 0, dy = 0;
+        if (GetMonitorInfo(monitor, ref info) && (Win32.GetWindowLongPtr(hwnd, Win32.GWL_EXSTYLE).ToInt64() & 0x80 /* WS_EX_TOOLWINDOW */) == 0)
+            (dx, dy) = (info.rcWork.Left - info.rcMonitor.Left, info.rcWork.Top - info.rcMonitor.Top);
+        var outer = placement.rcNormalPosition;
+        var border = GetSystemMetricsForDpi(32 /* SM_CXSIZEFRAME */, GetDpiForWindow(hwnd)) + GetSystemMetricsForDpi(92 /* SM_CXPADDEDBORDER */, GetDpiForWindow(hwnd));
+        return new ScreenRect(outer.Left + dx + border, outer.Top + dy, Math.Max(1, outer.Right - outer.Left - 2 * border), Math.Max(1, outer.Bottom - outer.Top - border));
     }
 
     /// <summary>
@@ -207,6 +236,25 @@ public static class WindowLayout
         public RECT rcWork;
         public uint dwFlags;
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct WINDOWPLACEMENT
+    {
+        public int length;
+        public int flags;
+        public int showCmd;
+        public int minX, minY, maxX, maxY;
+        public RECT rcNormalPosition;
+    }
+
+    [DllImport("user32.dll")]
+    private static extern bool GetWindowPlacement(IntPtr hwnd, ref WINDOWPLACEMENT placement);
+
+    [DllImport("user32.dll")]
+    private static extern int GetSystemMetricsForDpi(int index, uint dpi);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetDpiForWindow(IntPtr hwnd);
 
     private delegate bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdc, IntPtr rect, IntPtr data);
 
