@@ -85,6 +85,17 @@ public class AssistantChoreographyTests
     }
 
     [Fact]
+    public void MovingAWindowMayTakeLongerExceptInFast()
+    {
+        using var normal = new AssistantChoreography("r", _ => { }) { Speed = "normal" };
+        using var fast = new AssistantChoreography("r", _ => { }) { Speed = "fast" };
+        var snap = new WindowAction { Operation = WindowOperation.Snap };
+        Assert.Equal(TimeSpan.FromSeconds(10), normal.TimeoutOf(snap));
+        Assert.Equal(TimeSpan.FromSeconds(6), normal.TimeoutOf(new WindowAction { Operation = WindowOperation.Minimize }));
+        Assert.Equal(TimeSpan.FromSeconds(6), fast.TimeoutOf(snap));
+    }
+
+    [Fact]
     public void WindowActionsAreTheOnesOnWindows()
     {
         Assert.True(ActionGestures.IsWindowAction(new WindowAction()));

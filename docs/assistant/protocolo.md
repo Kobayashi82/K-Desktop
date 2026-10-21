@@ -202,7 +202,8 @@ pantalla completa, solo el bocadillo—; también en la bienvenida). Sin cuerpo 
 ## Reglas de la coreografía (§3.2 del plan)
 
 - **Tiempo máximo por paso** (`step.timeoutMs`). Si el asistente no contesta `go`, `done` o `skip` a tiempo,
-  K-Desktop ejecuta el paso y sigue. **Nunca se queda colgado.**
+  K-Desktop ejecuta el paso y sigue. **Nunca se queda colgado.** Son 6 s; los pasos que mueven una ventana (`Snap`,
+  `Center`, `MoveToMonitor`) tienen 10 s para remolcarla, salvo en `fast`.
 - **`done` siempre se verifica:** K-Desktop aplica igualmente el resultado exacto (las operaciones son
   idempotentes). Si la ventana quedó a 3 px, la deja en su sitio.
 - `target.result` lo calcula **K-Desktop**, que es quien sabe qué significa «Ajustar a la izquierda» o «Mover al

@@ -238,11 +238,11 @@ public sealed partial class CommandEngine
     {
         try
         {
-            return await choreography.BeforeAsync(step, token).WaitAsync(choreography.StepTimeout, token).ConfigureAwait(false);
+            return await choreography.BeforeAsync(step, token).WaitAsync(choreography.TimeoutOf(step), token).ConfigureAwait(false);
         }
         catch (TimeoutException)
         {
-            Log.Info($"'{step.Context.Command.Name}' → {step.Action.Info.Name}: el asistente no contesta en {choreography.StepTimeout.TotalSeconds:0.#} s; se ejecuta");
+            Log.Info($"'{step.Context.Command.Name}' → {step.Action.Info.Name}: el asistente no contesta en {choreography.TimeoutOf(step).TotalSeconds:0.#} s; se ejecuta");
             return StepGo.Run;
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)

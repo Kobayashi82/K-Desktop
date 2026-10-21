@@ -16,6 +16,12 @@ public sealed class AssistantChoreography : IChoreography, IDisposable
     /// <summary>The longest a step waits for its assistant, unless said otherwise.</summary>
     public static readonly TimeSpan DefaultStepTimeout = TimeSpan.FromSeconds(6);
 
+    /// <summary>
+    /// A step that moves a window (place it, centre it, take it to another monitor) waits this many times longer: towing it
+    /// across the screen takes a while (stage 7.3). Not in «fast», where every manoeuvre is short.
+    /// </summary>
+    public const double MoveTimeoutFactor = 10.0 / 6;
+
     private readonly Action<PipeMessage> _send;
     private readonly ConcurrentDictionary<int, TaskCompletionSource<StepGo>> _waiting = new();
     private readonly Dictionary<ChoreographyStep, int> _sent = new(ReferenceEqualityComparer.Instance);
@@ -60,8 +66,9 @@ public sealed class AssistantChoreography : IChoreography, IDisposable
         _waiting[index] = answer;
         lock (_sent) _sent[step] = index;
         var action = step.Action;
+        var timeout = TimeoutOf(action);
         _send(new StepMessage(Run, index, step.Count, step.Context.Depth, action.Kind.ToString(), ActionGestures.OpOf(action), action.Summary,
-            (int)StepTimeout.TotalMilliseconds, StepTargets.Of(action, step.Context.Foreground), Speed));
+            (int)timeout.TotalMilliseconds, StepTargets.Of(action, step.Context.Foreground), Speed));
         // Whatever ends the wait (the engine's time limit, the run cancelled), the step stops waiting here too.
         cancellationToken.Register(() =>
         {
@@ -69,6 +76,14 @@ public sealed class AssistantChoreography : IChoreography, IDisposable
         });
         return answer.Task;
     }
+
+    /// <summary>How long one step may wait: longer to move a window (unless fast).</summary>
+    public TimeSpan TimeoutOf(CommandAction action) =>
+        Speed != "fast" && action is WindowAction { Operation: WindowOperation.Snap or WindowOperation.Center or WindowOperation.MoveToMonitor }
+            ? StepTimeout * MoveTimeoutFactor
+            : StepTimeout;
+
+    TimeSpan IChoreography.TimeoutOf(ChoreographyStep step) => TimeoutOf(step.Action);
 
     public void After(ChoreographyStep step, StepOutcome outcome, string? message)
     {

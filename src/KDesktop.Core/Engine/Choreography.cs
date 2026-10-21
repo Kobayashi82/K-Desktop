@@ -35,6 +35,9 @@ public interface IChoreography
     /// <summary>The longest the engine waits for <see cref="BeforeAsync"/> of one step.</summary>
     TimeSpan StepTimeout { get; }
 
+    /// <summary>The longest the engine waits for this step (some take longer to show: towing a window).</summary>
+    TimeSpan TimeoutOf(ChoreographyStep step) => StepTimeout;
+
     /// <summary>
     /// Before <paramref name="step"/> runs: completes when the assistant says go, did it, or skip. Cancelled with the run.
     /// The engine stops waiting after <see cref="StepTimeout"/>, and an error counts as «run it».
