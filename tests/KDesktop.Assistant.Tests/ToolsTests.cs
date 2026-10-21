@@ -169,9 +169,14 @@ public sealed class ToolsTests : IDisposable
     // What Bonsai asked for «¿cuántos minutos hay en tres horas y cuarto?» (21/10/2026).
     [InlineData("3*60 + 60/4", 195)]
     [InlineData("3*60 + 15", 195)]
-    // «%» is a percent; the remainder is «mod» (Bonsai wrote «(24 - 2) % 7» for a day of the week).
+    // The remainder is «mod», and «%» between whole numbers with the first bigger (Bonsai wrote «(24 - 2) % 7» for a day of
+    // the week, and «2026 % 4» for a leap year).
     [InlineData("(24 - 2) mod 7", 1)]
     [InlineData("-1 MOD 7", 6)]
+    [InlineData("(24 - 2) % 7", 1)]
+    [InlineData("2026 % 4", 2)]
+    [InlineData("2026 % 100", 26)]
+    [InlineData("200 % 50.5", 101)]
     public void ArithmeticWorks(string expression, double expected)
     {
         Assert.True(Arithmetic.TryEvaluate(expression, out var value, out _));

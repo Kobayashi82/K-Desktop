@@ -21,6 +21,12 @@ public sealed record TalkAnswer(string Text, bool Remember = true, bool Failed =
 
     /// <summary>The tool calls and their results between the order and this answer, for the history.</summary>
     public IReadOnlyList<ChatMessage> Steps { get; init; } = [];
+
+    /// <summary>The «Recibido.» its text starts with (null: none): after something already done and said, it goes.</summary>
+    public string? Ack { get; init; }
+
+    /// <summary>The text without its <see cref="Ack"/>.</summary>
+    public string WithoutAck => Ack is { } ack && Text.StartsWith(ack, StringComparison.Ordinal) ? Text[ack.Length..].TrimStart() : Text;
 }
 
 /// <summary>
@@ -91,14 +97,28 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         var nudged = false;
         // The calls that failed in this order: the same one again is not run (it asked control_app for Steam three times).
         var failed = new Dictionary<string, string>(StringComparer.Ordinal);
+        var worked = new HashSet<string>(StringComparer.Ordinal);
+        // It asked again for a call it already made: going round in circles («chiste» as a command, an event, a command…
+        // eight times), it answers now.
+        var stuck = false;
+        ChatMessage? answerNow = null;
         try
         {
             for (var round = 0; round <= maxRounds; round++)
             {
-                var offer = round < maxRounds && calls < maxCalls;
+                var offer = round < maxRounds && calls < maxCalls && !stuck;
+                // Without tools it is told so: otherwise it writes one more call as text (and its answer was «Falló «chiste»»).
+                if (!offer && round > 0 && answerNow is null)
+                {
+                    answerNow = ChatMessage.User(Loc.T("assistant.prompt.answerNow"));
+                    messages.Add(answerNow);
+                }
                 var request = new ChatRequest(modelName, messages, offer ? definitions : []) { Temperature = capable ? 0.3 : 0.5, MaxTokens = MaxTokens };
-                // With commands of theirs at hand, nothing is said while it writes: the text may be one to take back.
-                var (text, asked) = await RoundAsync(model, request, commands is { Count: > 0 } && !acted ? null : onText, cancellationToken).ConfigureAwait(false);
+                // With commands of theirs at hand, nothing is said while it writes: the text may be one to take back. Nor
+                // once it acted with tools that have their own words: those replace its text (its «Recibido.» was said
+                // ahead, and then «Recibido, Houston. He ejecutado…» again from the start).
+                var silent = (commands is { Count: > 0 } && !acted) || (acted && replies.All(r => r is not null));
+                var (text, asked) = await RoundAsync(model, request, silent ? null : onText, cancellationToken).ConfigureAwait(false);
                 if (asked.Count == 0)
                 {
                     // It names one of their commands without having run it («Let me try the "Abrir Papelera" command»):
@@ -114,6 +134,13 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
                     answer = text;
                     break;
                 }
+                // A call where none was offered (written as text): not run; it answers with what it has.
+                if (!offer)
+                {
+                    Log.Warn($"Asistente: la IA pide {string.Join(", ", asked.Select(c => c.Name))} sin herramientas a mano: no se hace");
+                    answer = text;
+                    break;
+                }
 
                 messages.Add(ChatMessage.Assistant(text, asked));
                 foreach (var call in asked)
@@ -122,19 +149,30 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
                     var same = call.Name + " " + call.Arguments.GetRawText();
                     if (++calls > maxCalls) result = "Not done: too many tools for one order. Answer now.";
                     else if (failed.TryGetValue(same, out var before))
-                        result = "Not done: you already tried exactly this in this order and it failed (" + before + "). Try something else, or say plainly what could not be done.";
+                    {
+                        result = "Not done: you already tried exactly this in this order and it failed (" + before + "). Say plainly what could not be done.";
+                        stuck = true;
+                    }
+                    // Done already: once is what was asked (it ran «Anterior» twice more in one order).
+                    else if (worked.Contains(same))
+                    {
+                        result = "Not done again: you already did exactly this in this order and it worked. Do not repeat it.";
+                        stuck = true;
+                    }
                     else
                     {
                         var outcome = await tools.RunAsync(call.Name, call.Arguments, context, said, "ai", cancellationToken).ConfigureAwait(false);
                         result = outcome.Result is { } done ? done.Text : "Not done: " + outcome.Entry.Did;
                         Log.Info($"Asistente: la IA llama a {call.Name} {Short(call.Arguments.GetRawText())} → {Short(result)}");
                         if (outcome.Result is not { Failed: false }) failed[same] = outcome.Entry.Did;
-                        toolReply = outcome.Result is { Failed: false } ok ? ok.Reply ?? ok.Done ?? toolReply : outcome.Entry.Did;
-                        if (outcome.Result is { Failed: false } worked)
+                        // A failure's words for the user, if it has them (not the activity's «Falló «chiste»»).
+                        toolReply = outcome.Result is { Failed: false } ok ? ok.Reply ?? ok.Done ?? toolReply : outcome.Result?.Reply ?? toolReply;
+                        if (outcome.Result is { Failed: false } good)
                         {
                             if (!used.Contains(call.Name)) used.Add(call.Name);
-                            replies.Add(worked.Reply);
-                            acted |= worked.Undo is not null || worked.Acted;
+                            replies.Add(good.Reply);
+                            acted |= good.Undo is not null || good.Acted;
+                            worked.Add(same);
                         }
                     }
                     messages.Add(ChatMessage.ToolResult(call.Name, result, call.Id));
@@ -147,11 +185,14 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
             return new TalkAnswer(persona.Phrase("error"), Remember: false, Failed: true);
         }
 
-        var steps = messages.GetRange(first, messages.Count - first);
+        var steps = messages.GetRange(first, messages.Count - first).Where(m => !ReferenceEquals(m, answerNow)).ToList();
         // It did something and every tool has its own words for it: those, exact (a small model may well say «in 25
         // minutes» for a timer set for 20). Its own text is for questions and chat.
         if (acted && replies.Count > 0 && replies.All(r => r is not null))
-            return new TalkAnswer(persona.Phrase("ok") + " " + string.Join(" ", replies)) { Tools = used, Steps = steps };
+        {
+            var ack = persona.Phrase("ok");
+            return new TalkAnswer(ack + " " + string.Join(" ", replies)) { Tools = used, Steps = steps, Ack = ack };
+        }
 
         var clean = ReplyText.Clean(answer);
         // It did or looked something up: nothing is missing, so no question at the end («¿Listo para despegar?»).

@@ -3176,5 +3176,6 @@
   "settings.nav.group.connections": "Conexiones",
   "settings.nav.group.system": "Sistema",
   "settings.nav.search": "Buscar en Opciones (Ctrl+F)",
-  "settings.nav.noResults": "Nada coincide con lo que buscas."
+  "settings.nav.noResults": "Nada coincide con lo que buscas.",
+  "assistant.prompt.answerNow": "(Ya no hay más herramientas: contesta ahora al usuario con palabras, y si algo no se ha podido hacer, dilo con sencillez.)"
 }

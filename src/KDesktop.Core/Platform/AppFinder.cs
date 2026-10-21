@@ -13,8 +13,24 @@ namespace KDesktop.Core.Platform;
 /// <param name="Description">The exe's own name for itself («Google Chrome»), when it has one.</param>
 public sealed record OpenWindow(IntPtr Hwnd, uint Pid, string Process, string Title, string? Description)
 {
-    /// <summary>The name to say to the user: what the exe calls itself, or its process.</summary>
-    public string DisplayName => string.IsNullOrWhiteSpace(Description) ? Process : Description.Trim();
+    /// <summary>
+    /// The name to say to the user: a short title that is only a name («Steam», not «Steam Client WebHelper»); a folder
+    /// of the Explorer («Papelera de reciclaje», not «Explorador de Windows»); else what the exe calls itself, or its process.
+    /// </summary>
+    public string DisplayName
+    {
+        get
+        {
+            var title = Title.Trim();
+            var separator = title.LastIndexOf(" - ", StringComparison.Ordinal);
+            if (title.Length is > 0 and <= ShortTitle && separator < 0 && !title.Contains(" — ", StringComparison.Ordinal)) return title;
+            if (Process.Equals("explorer", StringComparison.OrdinalIgnoreCase) && separator > 0) return title[..separator].Trim();
+            return string.IsNullOrWhiteSpace(Description) ? Process : Description.Trim();
+        }
+    }
+
+    /// <summary>A title this short without « - » is the program's name.</summary>
+    public const int ShortTitle = 30;
 }
 
 /// <summary>

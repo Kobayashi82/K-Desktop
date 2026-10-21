@@ -4,6 +4,7 @@ using System.Text.Json;
 using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Localization;
+using KDesktop.Core.Voice;
 
 namespace KDesktop.Assistant.Tools.Builtin;
 
@@ -70,6 +71,22 @@ public static class CommandTools
         var second = part.Candidates.Count > 1 ? part.Candidates[1].Score : 0;
         return best.Score >= Clear && best.Score - second >= Ahead ? best : null;
     }
+
+    /// <summary>
+    /// Whether <paramref name="asked"/> names the command <paramref name="name"/> (not just means something like it): each
+    /// word of the name of three letters or more is in it, as said or nearly («vacía la papelera» names «Vaciar Papelera»).
+    /// </summary>
+    public static bool Names(string asked, string name)
+    {
+        var said = TextSimilarity.Words(asked);
+        var words = TextSimilarity.Words(name);
+        var named = words.Where(w => w.Length >= 3).ToArray();
+        if (named.Length == 0) return said.SequenceEqual(words);
+        return named.All(w => said.Any(s => TextSimilarity.WordSimilarity(w, s) >= NameWord));
+    }
+
+    /// <summary>How alike a word said must be to a word of a command's name (the same stem, a transcription slip).</summary>
+    public const double NameWord = 0.75;
 
     /// <summary>For the log: each part, whether it is sure, and its best candidate.</summary>
     public static string Describe(MatchedMessage matched) =>
@@ -140,6 +157,10 @@ public sealed class RunCommandTool(ICommandBridge bridge) : ITool
                 ? ToolResult.Fail("The user has no command like that. Use another of your tools if one fits, or say you cannot.")
                 : ToolResult.Fail($"Not sure which one. Candidates: {CommandTools.List(candidates)}. Ask the user, or call again with the exact name.");
         }
+        // The model's words only sound like it («la vuelta» ran «Anterior» three times: the user had taught it that «la
+        // vuelta» opens a web): it decides, with the name in front of it.
+        else if (!CommandTools.Names(asked, chosen.Name))
+            return ToolResult.Fail($"No command is called \"{asked}\"; the closest is \"{chosen.Name}\", which may be something else. If that is what they mean, call again with that exact name; if not, it is not one of their commands: use another tool (what you remember about them may say what they mean).");
         var end = chosen.Media is { } media
             ? await bridge.MediaAsync(media, chosen.Value, cancellationToken).ConfigureAwait(false)
             : await bridge.RunAsync(chosen.Command!, context.Assistant, cancellationToken).ConfigureAwait(false);

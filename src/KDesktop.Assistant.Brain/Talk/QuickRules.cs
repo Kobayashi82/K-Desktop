@@ -62,6 +62,9 @@ public static partial class QuickRules
     /// <summary>A word of what was said: folded, and where it is in the original text.</summary>
     private readonly record struct Token(string Folded, int Start, int End);
 
+    /// <summary>Words a program's name may have in an <c>{app}</c> gap at most («Microsoft Flight Simulator 2020»).</summary>
+    public const int MaxAppWords = 4;
+
     private static Vocabulary? _current;
     private static readonly object Gate = new();
 
@@ -105,6 +108,9 @@ public static partial class QuickRules
                 var gap = gaps.Text is { } t ? Original(text, t.From, t.To) : null;
                 // «Abre …» is a web only when it names addresses («abre youtube.com»); «abre Steam» is not this rule.
                 if (pattern.Kind == QuickRuleKind.OpenWeb && Sites(gap ?? string.Empty).Count == 0) continue;
+                // A program is named in a few words: «No has abierto equipo. Tenías que mover la ventana… a la derecha» is
+                // not «mueve {app} a la derecha».
+                if (pattern.Kind is QuickRuleKind.Act or QuickRuleKind.OpenApp && gaps.Text is { } g && said.IndexOf(g.To) - said.IndexOf(g.From) + 1 > MaxAppWords) continue;
                 best = (pattern, new QuickRule(pattern.Kind, gaps.Seconds, gap, pattern.Op));
             }
         return best?.Rule;

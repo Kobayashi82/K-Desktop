@@ -3176,5 +3176,6 @@
   "settings.nav.group.connections": "Verbindungen",
   "settings.nav.group.system": "System",
   "settings.nav.search": "Einstellungen durchsuchen (Strg+F)",
-  "settings.nav.noResults": "Nichts passt zu deiner Suche."
+  "settings.nav.noResults": "Nichts passt zu deiner Suche.",
+  "assistant.prompt.answerNow": "(Keine Werkzeuge mehr: Antworte dem Benutzer jetzt mit Worten, und wenn etwas nicht ging, sag es einfach.)"
 }

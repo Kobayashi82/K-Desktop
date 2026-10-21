@@ -26,14 +26,110 @@ public sealed class CommandRoutingTests : IDisposable
         try { Directory.Delete(_folder, true); } catch (IOException) { }
     }
 
-    private TalkService Make(BuiltinTools builtin, bool memory = false)
+    /// <param name="model">«fake-27B»: a big model (<see cref="TalkService.IsCapable"/>).</param>
+    private TalkService Make(BuiltinTools builtin, bool memory = false, string model = "fake:4b")
     {
         var registry = new ToolRegistry();
         builtin.AddTo(registry);
         CommandTools.AddTo(registry, _bridge);
         var runner = new ToolRunner(registry, () => new HashSet<string>(), (_, _) => Task.FromResult("yes"), m => { lock (_log) _log.Add(m); }, Path.Combine(_folder, "undo.json"));
-        return new TalkService(_ => (_model, "fake:4b"), runner, _ => AssistantPersona.Module(), new Output(_chat, _listens), commands: _bridge,
+        return new TalkService(_ => (_model, model), runner, _ => AssistantPersona.Module(), new Output(_chat, _listens), commands: _bridge,
             memory: memory ? new TalkMemory(builtin.Memory, runner, null) : null, learn: () => false);
+    }
+
+    private const string Big = "fake-27B";
+
+    // What went wrong with Bonsai 2 27B on the user's PC (21/10/2026, 5.0.101).
+
+    [Fact]
+    public async Task ABigModelGetsAllOfAnOrderOnlyPartOfWhichIsClear()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin, model: Big);
+        // «la otra de equipo» (0.82) opened «Equipo», and the rest was done wrong.
+        const string said = "la papelera del reciclaje, esa ventana muévela a la derecha y la otra de equipo";
+        _bridge.Matches[said] = new MatchedMessage("x", 0.6, [],
+            [new MatchedPart("la papelera del reciclaje", false, [new MatchedCandidate("open", "Abrir Papelera", 0.77)]),
+             new MatchedPart("esa ventana muévela a la derecha", true, [new MatchedCandidate("top", "TopMost", 0.74)]),
+             new MatchedPart("la otra de equipo", true, [new MatchedCandidate("pc", "Equipo", 0.82)])]);
+        _model.Answers.Enqueue("Vale.");
+        await talk.HandleAsync(new HeardMessage(said, "panel", "lander"));
+        Assert.Empty(_bridge.Done);
+        Assert.StartsWith(said, Assert.Single(_model.Requests).Messages[^1].Content, StringComparison.Ordinal);
+
+        // All of it clear: at once, as always.
+        _bridge.Sure("abre la papelera y abre equipo", ("open", "Abrir Papelera", null), ("pc", "Equipo", null));
+        await talk.HandleAsync(new HeardMessage("abre la papelera y abre equipo", "panel", "lander"));
+        Assert.Equal(["run:open:lander", "run:pc:lander"], _bridge.Done);
+        Assert.Single(_model.Requests);
+    }
+
+    [Fact]
+    public async Task WordsThatOnlySoundLikeACommandDoNotRunIt()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin, model: Big);
+        // The model asked run_command for «la vuelta» (a web the user taught it) and «Anterior» ran, three times.
+        _bridge.Matches["la vuelta"] = new MatchedMessage("x", 0.9, [], [new MatchedPart("la vuelta", true, [new MatchedCandidate("prev", "Anterior", 0.87)])]);
+        _bridge.Sure("Anterior", ("prev", "Anterior", null));
+        _model.Answers.Enqueue("call:run_command:la vuelta");
+        _model.Answers.Enqueue("call:run_command:Anterior");
+        _model.Answers.Enqueue("call:run_command:Anterior");
+        _model.Answers.Enqueue("Hecho.");
+        await talk.HandleAsync(new HeardMessage("haz lo de siempre", "panel", "lander"));
+        // Not by its words; by its exact name, once.
+        Assert.Equal(["run:prev:lander"], _bridge.Done);
+        Assert.Contains(_model.Requests[1].Messages, m => m.Role == ChatRole.Tool && m.Content.Contains("\"Anterior\"", StringComparison.Ordinal));
+        Assert.True(CommandTools.Names("vacía la papelera", "Vaciar Papelera"));
+        Assert.False(CommandTools.Names("la vuelta", "Anterior"));
+    }
+
+    [Fact]
+    public async Task GoingRoundInCirclesEndsInWords()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin, model: Big);
+        // «tú sí que has fallado»: run_command «chiste» eight times, and its answer was «Ejecutar el comando «chiste»».
+        _model.Answers.Enqueue("call:run_command:chiste");
+        _model.Answers.Enqueue("call:run_command:chiste");
+        _model.Answers.Enqueue("call:run_command:chiste");
+        await talk.HandleAsync(new HeardMessage("tú sí que has fallado", "panel", "lander"));
+        Assert.Equal(3, _model.Requests.Count);
+        // The third without tools and told so; what it wrote as a call is not run, nor said.
+        Assert.Empty(_model.Requests[2].Tools);
+        Assert.Equal(Core.Localization.Loc.T("assistant.prompt.answerNow"), _model.Requests[2].Messages[^1].Content);
+        Assert.Empty(_bridge.Done);
+        Assert.DoesNotContain("chiste", LastAnswer, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task WhatABigModelCanDoBetterThanARuleIsNotSaidBackAsHeard()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin, model: Big);
+        _bridge.ActReason = "noWindow";
+        _model.Answers.Enqueue("No veo Discord abierto.");
+        await talk.HandleAsync(new HeardMessage("minimiza Discord", "panel"));
+        Assert.Single(_model.Requests);
+        Assert.Equal("No veo Discord abierto.", LastAnswer);
+        // A sentence is not a program's name («No has abierto equipo. Tenías que mover… a la derecha»).
+        Assert.NotEqual(QuickRuleKind.Act, QuickRules.Match("No has abierto equipo. Tenías que mover la ventana del explorador de la unidad D al otro monitor y la de la papelera a la derecha")?.Kind);
+    }
+
+    [Fact]
+    public async Task WhatRanAndWhatTheAiDidSayOneAck()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        _bridge.Matches["vacía la papelera y luego la otra cosa"] = new MatchedMessage("x", 0.5, ["luego la otra cosa"],
+            [new MatchedPart("vacía la papelera", true, [new MatchedCandidate("bin", "Vaciar papelera", 0.97)])]);
+        _bridge.Sure("Abrir Papelera", ("open", "Abrir Papelera", null));
+        _model.Answers.Enqueue("call:run_command:Abrir Papelera");
+        _model.Answers.Enqueue("Recibido.");
+        await talk.HandleAsync(new HeardMessage("vacía la papelera y luego la otra cosa", "panel"));
+        Assert.Equal(["run:bin:", "run:open:"], _bridge.Done);
+        var oks = Core.Localization.Loc.T("assistant.phrase.ok").Split('|');
+        Assert.Equal(1, oks.Sum(ok => LastAnswer.Split(ok).Length - 1));
     }
 
     [Fact]

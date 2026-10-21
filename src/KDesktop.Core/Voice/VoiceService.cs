@@ -457,6 +457,9 @@ public sealed partial class VoiceService : IDisposable
     /// <summary>How long the order may still take after something that was not one (the end of the word, a noise).</summary>
     private static readonly TimeSpan WaitAfterPause = TimeSpan.FromSeconds(3);
 
+    /// <summary>The order alone has this many words more than with the wake word in front: the latter lost some.</summary>
+    private const int LostWords = 3;
+
     /// <summary>
     /// The always-on detector heard <paramref name="word"/> (phase 1, <paramref name="score"/>). Phase 2: Parakeet
     /// transcribes the word alone (trimmed, as in the set-up) and it must sound like the word; when the detector is very
@@ -677,7 +680,12 @@ public sealed partial class VoiceService : IDisposable
                 if (addressee is not null)
                 {
                     static string? Words(string? text) => text?.Trim() is { } t && t.Any(char.IsLetterOrDigit) ? t : null;
-                    var said = Words(afterPauseText) ?? (joinedRest is not null ? Words(joinedRest) : Words(StripWake(whole)))
+                    // With the word in front, Parakeet may drop the end of a long order (it lost «Cierra la ventana de la
+                    // papelera…» after three sentences): the order alone, when it has clearly more words.
+                    var alone = Words(StripWake(whole));
+                    var withWord = joinedRest is not null ? Words(joinedRest) : null;
+                    if (withWord is not null && alone is not null && Count(alone) >= Count(withWord) + LostWords) withWord = alone;
+                    var said = Words(afterPauseText) ?? (joinedRest is not null ? withWord : alone)
                                ?? (!provisional ? Words(match?.Rest) : null);
                     Log.Info($"Voz: para «{addressee.Name}»: sola «{whole}», tras la pausa «{afterPauseText}», con la palabra «{joinedRest}» → «{said}»");
                     return ([], said, confirmed);
@@ -687,6 +695,8 @@ public sealed partial class VoiceService : IDisposable
                     plans.Add(await PlanAsync(option, commands).ConfigureAwait(false));
                 return (plans, null, confirmed);
             }
+
+            static int Count(string text) => text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length;
 
             // The order alone may still begin with the end of the word («der, ¿qué hora es?» is not stripped, «Lander, …» is).
             string? StripWake(string? text) =>

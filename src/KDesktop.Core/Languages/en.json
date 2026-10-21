@@ -3176,5 +3176,6 @@
   "settings.nav.group.connections": "Connections",
   "settings.nav.group.system": "System",
   "settings.nav.search": "Search Settings (Ctrl+F)",
-  "settings.nav.noResults": "Nothing matches your search."
+  "settings.nav.noResults": "Nothing matches your search.",
+  "assistant.prompt.answerNow": "(No more tools: answer the user now in words, and if something could not be done, say so plainly.)"
 }

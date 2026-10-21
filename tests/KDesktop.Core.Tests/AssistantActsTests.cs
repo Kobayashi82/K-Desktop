@@ -40,6 +40,15 @@ public class AssistantActsTests
         AssistantActs.Build(new ActMessage("lander", "a-1", op, app), Windows, process ?? (_ => null), foreground ?? new ForegroundWindow(Steam.Hwnd, Steam.Pid, Steam.Process));
 
     [Fact]
+    public void WindowsAreNamedAsTheUserSeesThem()
+    {
+        Assert.Equal("Steam", Steam.DisplayName);
+        Assert.Equal("Google Chrome", Chrome.DisplayName);
+        Assert.Equal("Papelera de reciclaje", new OpenWindow(4, 30, "explorer", "Papelera de reciclaje - Explorador de archivos", "Explorador de Windows").DisplayName);
+        Assert.Equal("Visual Studio Code", new OpenWindow(5, 40, "Code", "Program.cs - K-Desktop - Visual Studio Code", "Visual Studio Code").DisplayName);
+    }
+
+    [Fact]
     public void ClosingAWindowIsThatWindowOnly()
     {
         var plan = Build("closeWindow", "YouTube");

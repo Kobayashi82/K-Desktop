@@ -36,7 +36,8 @@ public sealed class CalculateTool : ITool
 
 /// <summary>
 /// Arithmetic by recursive descent: + - * / ^, «mod» (the remainder), unary signs, parentheses and % as percent (what people mean: «18 %» is
-/// 0.18, and «18%240», as small models write «18 % of 240», is 43.2; never the remainder).
+/// 0.18, and «18%240», as small models write «18 % of 240», is 43.2), except between whole numbers where the first is bigger
+/// («2026 % 4», as a big model writes the remainder).
 /// </summary>
 public static class Arithmetic
 {
@@ -102,10 +103,21 @@ public static class Arithmetic
                 }
                 else if (Accept('%'))
                 {
-                    value /= 100;
                     SkipSpaces();
-                    // «18%240»: of what follows.
-                    if (!AtEnd && (char.IsDigit(Current) || Current == '(')) value *= ParsePower();
+                    if (AtEnd || !(char.IsDigit(Current) || Current == '('))
+                    {
+                        value /= 100;
+                        continue;
+                    }
+                    var other = ParsePower();
+                    // «2026 % 4»: whole numbers, the first the bigger, is a big model's remainder (a percent of something
+                    // smaller than itself is rare); «18%240» stays 18 percent of 240.
+                    if (value == Math.Floor(value) && other == Math.Floor(other) && Math.Abs(value) > Math.Abs(other))
+                    {
+                        var divisor = NotZero(other);
+                        value = ((value % divisor) + divisor) % divisor;
+                    }
+                    else value = value / 100 * other;
                 }
                 else return value;
             }

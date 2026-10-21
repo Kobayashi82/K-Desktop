@@ -329,6 +329,9 @@ public sealed class TalkService
             // The same command named twice in one order («la vuelta, es la vuelta») runs once.
             var sure = matched.Parts.Where(Direct).Select(p => p.Candidates[0])
                 .DistinctBy(c => (c.Command ?? c.Name, c.Media, c.Value)).ToList();
+            // A big model: all of the order at once, or all of it for the AI. Run in pieces, «…la papelera, esa ventana
+            // muévela a la derecha y la otra de equipo al otro monitor» opened «Equipo» and left the rest without it.
+            if (capable && (matched.Unmatched.Count > 0 || !matched.Parts.All(Direct))) sure = [];
             // Not sure of any part, but the whole order is that near one command and well ahead of the rest («Va ser la
             // papelera», Parakeet's «vacía la papelera», 0.82): it is that one. K-Desktop still asks before what is risky.
             if (sure.Count == 0 && matched.Parts is [{ Sure: false, Candidates: [var only, ..] } whole] && only.Score >= CommandTools.Direct
@@ -360,22 +363,25 @@ public sealed class TalkService
         if (taught.Count == 0 && !IsQuestion(said))
         {
             var acts = new List<(string Piece, QuickRule Rule)>();
-            foreach (var piece in leftover)
+            // A big model understands a long sentence better than a rule does.
+            foreach (var piece in leftover.Where(p => !capable || IsShort(p)))
                 if ((ReferenceEquals(piece, said) ? rule : QuickRules.Match(piece, [persona.Name])) is { Kind: QuickRuleKind.Act or QuickRuleKind.OpenApp } found
                     && (found.Kind == QuickRuleKind.Act || await IsInstalledAsync(found.Text).ConfigureAwait(false)))
                     acts.Add((piece, found));
-            if (acts.Count > 0)
+            var handled = new List<string>();
+            foreach (var (piece, found) in acts)
             {
-                var done = await ProgramsAsync(persona, [.. acts.Select(a => a.Rule)], context, said, first: ran is null, token).ConfigureAwait(false);
-                ran = ran is null ? done : ran with
-                {
-                    Text = ran.Text + " " + done.Text,
-                    Failed = ran.Failed || done.Failed,
-                    Tools = [.. ran.Tools, .. done.Tools],
-                    Steps = [.. ran.Steps, .. done.Steps],
-                };
-                leftover = [.. leftover.Where(p => !acts.Any(a => ReferenceEquals(a.Piece, p)))];
-                if (leftover.Count == 0) return ran;
+                var done = await ProgramsAsync(persona, [found], context, said, first: ran is null, token).ConfigureAwait(false);
+                // Not done («no veo ninguna ventana de…») and a big model at hand: the AI looks at it (the rule may have
+                // taken the wrong words for the program).
+                if (done.Failed && capable && _brain(who).Client is not null) continue;
+                ran = ran is null ? done : Join(ran, done);
+                handled.Add(piece);
+            }
+            if (handled.Count > 0)
+            {
+                leftover = [.. leftover.Where(p => !handled.Any(h => ReferenceEquals(h, p)))];
+                if (leftover.Count == 0) return ran!;
                 forAi = string.Join(", ", leftover);
             }
         }
@@ -394,8 +400,18 @@ public sealed class TalkService
         var answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), conversation.History.LastTools(), forAi, context, shown.Show, token,
             leaveOut, close, capable).ConfigureAwait(false);
         answer = answer with { Text = answer.Text.Length > 0 ? answer.Text : Phrase(persona, "ok"), FromAi = true };
-        return ran is null ? answer : answer with { Text = ran.Text + " " + answer.Text, Tools = [.. ran.Tools, .. answer.Tools], Steps = [.. ran.Steps, .. answer.Steps] };
+        // One «Recibido.», at the start («Recibido. He ejecutado «Equipo». Afirmativo. He pasado…» had two).
+        return ran is null ? answer : Join(ran, answer with { Text = answer.WithoutAck, Ack = null }) with { FromAi = true, Failed = answer.Failed };
     }
+
+    /// <summary>Two answers of one order, one after the other.</summary>
+    private static TalkAnswer Join(TalkAnswer first, TalkAnswer then) => first with
+    {
+        Text = (first.Text + " " + then.Text).Trim(),
+        Failed = first.Failed || then.Failed,
+        Tools = [.. first.Tools, .. then.Tools.Where(t => !first.Tools.Contains(t))],
+        Steps = [.. first.Steps, .. then.Steps],
+    };
 
     /// <summary>Commands of the user named to the AI for an order, at most (a big model, more and from further).</summary>
     private const int AssistantCommandsShown = 4;
