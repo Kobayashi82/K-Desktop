@@ -469,8 +469,8 @@ public partial class App
         Log.Info($"Asistente: «{id}» al escritorio");
         if (_assistant is { IsRunning: true } supervisor) LoadAssistant(supervisor, id, "startup");
         AssistantChanged?.Invoke();
-        // Without a word of its own it is only talked to by writing (or the general word): said once per run.
-        if (_assistant is not null && !Config.Settings.AssistantWakeWords.ContainsKey(id) && Core.Voice.VoiceModels.AllInstalled && _wakeTipShown.Add(id))
+        // Without a word to call it it is only talked to by writing: said once per run.
+        if (_assistant is not null && !HasWakeWord(id, AssistantName(id)) && Core.Voice.VoiceModels.AllInstalled && _wakeTipShown.Add(id))
             Ui.ShowOsd(Loc.T("assistant.wakeTip", AssistantName(id)), Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(6));
     }
 

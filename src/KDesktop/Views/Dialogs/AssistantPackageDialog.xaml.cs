@@ -123,7 +123,7 @@ public partial class AssistantPackageDialog : FluentWindow
         if (settings.AssistantsOnDesktop.Contains(manifest.Id)) ActivateCheck.Visibility = Visibility.Collapsed;
         if (!settings.AssistantEnabled) ModuleOffText.Visibility = Visibility.Visible;
         ShowHotkeyOffers(manifest);
-        ShowWakeOffer(manifest);
+        ShowWakeOffer(manifest, updating: package.Installed is not null);
         _suggestedModel = _app.MissingSuggestedModel(manifest);
         ModelCheck.Content = _suggestedModel is { } model ? new System.Windows.Controls.TextBlock { Text = Loc.T("assistantCard.modelOffer", model), TextWrapping = TextWrapping.Wrap } : null;
         ModelPanel.Visibility = _suggestedModel is null ? Visibility.Collapsed : Visibility.Visible;
@@ -160,14 +160,15 @@ public partial class AssistantPackageDialog : FluentWindow
     }
 
     /// <summary>
-    /// Without a word of its own yet: a free recorded word with the name it suggests is given to it, or (with the voice
-    /// models) the user records it after installing. Ticked: it is how it is meant to be talked to.
+    /// Installing it, without a way to call it by voice yet: a free recorded word with the name it suggests is given to
+    /// it, or (with the voice models) the user records it after installing. Ticked: it is how it is meant to be talked to.
+    /// Not when updating (that was decided when it was installed).
     /// </summary>
-    private void ShowWakeOffer(AssistantManifest manifest)
+    private void ShowWakeOffer(AssistantManifest manifest, bool updating)
     {
         var name = manifest.WakeWord is { Length: > 0 } suggested ? suggested : manifest.Name;
         var free = _app.FreeWakeWordNamed(name);
-        var offer = !_app.Config.Settings.AssistantWakeWords.ContainsKey(manifest.Id) && (free is not null || Core.Voice.VoiceModels.AllInstalled);
+        var offer = !updating && !_app.HasWakeWord(manifest.Id, name) && (free is not null || Core.Voice.VoiceModels.AllInstalled);
         WakeCheck.Content = new System.Windows.Controls.TextBlock { Text = Loc.T(free is null ? "assistantCard.wakeOffer" : "assistantCard.wakeUse", name), TextWrapping = TextWrapping.Wrap };
         WakePanel.Visibility = offer ? Visibility.Visible : Visibility.Collapsed;
     }

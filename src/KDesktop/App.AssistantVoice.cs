@@ -161,8 +161,9 @@ public partial class App
     /// </summary>
     public void OfferAssistantWakeWord(string id, System.Windows.Window? owner)
     {
-        if (AssistantPackages.Find(id) is not { } installed || Config.Settings.AssistantWakeWords.ContainsKey(id)) return;
+        if (AssistantPackages.Find(id) is not { } installed) return;
         var name = installed.Manifest.WakeWord is { Length: > 0 } suggested ? suggested : installed.Manifest.Name;
+        if (HasWakeWord(id, name)) return;
         if (FreeWakeWordNamed(name) is { } existing)
         {
             SetAssistantWakeWord(id, existing.Id);
@@ -175,6 +176,18 @@ public partial class App
             return;
         }
         if (Views.Dialogs.WakeWordDialog.Record(owner, suggestedName: name) is { } word) SetAssistantWakeWord(id, word.Id);
+    }
+
+    /// <summary>
+    /// Whether that assistant is called by voice already: its own word, or one with its name that is already in use (as
+    /// the word for any assistant, «Lander» on the user's PC). Another one would be the same word twice.
+    /// </summary>
+    public bool HasWakeWord(string id, string name)
+    {
+        var words = Config.Settings.AssistantWakeWords;
+        if (words.ContainsKey(id)) return true;
+        var taken = words.Values.ToHashSet(StringComparer.Ordinal);
+        return Voice.WakeWords.Words.Any(w => taken.Contains(w.Id) && string.Equals(w.Name.Trim(), name.Trim(), StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>A recorded word with this name that no assistant has yet (K-Desktop's own words count as free).</summary>
