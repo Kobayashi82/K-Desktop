@@ -110,6 +110,10 @@ El módulo Asistente está en desarrollo. Apagado, K-Desktop es el de siempre: n
 4. En esa lista, **«Poner en el escritorio»** y **«Esconder»** lo sacan y lo guardan, y **Ajustes** abre sus opciones;
    **Panel → Asistente** enseña su estado (en el Lander, su nivel, estadísticas y logros). El clic derecho sobre el
    asistente abre su menú.
+5. **Hablarle:** cada asistente puede tener su palabra de activación (la ficha ofrece grabar su nombre; se cambia en
+   la lista, «Se le llama con»). «Lander, ¿qué hora es?» le llega a él; «K-Desktop, …» sigue ejecutando tus comandos.
+   En **General**, la «Palabra para el asistente» llama al de «Cuando no le hablas a nadie en concreto» (sin ninguno
+   en el escritorio, contesta K-Desktop sin personaje). La tecla de voz también vale: «Lander, …» al principio.
 
 Instalar una versión nueva encima de la que está en el escritorio la cambia en caliente, sin perder sus datos (que
 están en `%APPDATA%\K-Desktop 5\Assistants\Data\<id>` y entran en las copias de seguridad). Cada asistente corre en

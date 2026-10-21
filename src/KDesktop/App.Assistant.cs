@@ -440,7 +440,16 @@ public partial class App
         Log.Info($"Asistente: «{id}» al escritorio");
         if (_assistant is { IsRunning: true } supervisor) LoadAssistant(supervisor, id, "startup");
         AssistantChanged?.Invoke();
+        // Without a word of its own it is only talked to by writing (or the general word): said once per run.
+        if (_assistant is not null && !Config.Settings.AssistantWakeWords.ContainsKey(id) && Core.Voice.VoiceModels.AllInstalled && _wakeTipShown.Add(id))
+            Ui.ShowOsd(Loc.T("assistant.wakeTip", AssistantName(id)), Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(6));
     }
+
+    /// <summary>The assistants already told how to call them by voice in this run.</summary>
+    private readonly HashSet<string> _wakeTipShown = new(StringComparer.Ordinal);
+
+    /// <summary>Its word is about to be recorded (its card): no tip about it.</summary>
+    public void SkipWakeTip(string id) => _wakeTipShown.Add(id);
 
     /// <summary>Takes an assistant off the desktop (the others stay; with none, the module works without a body).</summary>
     public void HideAssistant(string id)

@@ -134,6 +134,7 @@ public partial class App : Application
         Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice),
             action => Engine.TestActionAsync(action, new Command { Name = Loc.T("settings.nav.media") }));
         Voice.History = Engine.History;
+        Voice.AddresseeOf = VoiceAddresseeOf;
         Engine.Recording.Changed += () => Dispatcher.BeginInvoke(ApplyTrayIcon);
         Engine.Magnifier.Changed += () => Ui.ShowOsd(Engine.Magnifier.IsOn
             ? Loc.T("osd.zoomOn", Engine.Magnifier.Zoom.ToString("0.#", System.Globalization.CultureInfo.CurrentCulture))

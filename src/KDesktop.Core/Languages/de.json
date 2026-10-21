@@ -2924,5 +2924,16 @@
   "summary.assistantSayEmpty": "(ohne Text)",
   "editor.assistantSayText": "Was er sagt",
   "editor.assistantSayTextHint": "Die Sicherung ist fertig.",
-  "editor.assistantSayHint": "Er sagt es wörtlich, in seiner Sprechblase und im Chat des Panels. Ohne Figur auf dem Desktop erscheint es als K-Desktop-Hinweis."
+  "editor.assistantSayHint": "Er sagt es wörtlich, in seiner Sprechblase und im Chat des Panels. Ohne Figur auf dem Desktop erscheint es als K-Desktop-Hinweis.",
+
+  "voice.toAssistant": "„{1}“ → {0}",
+  "assistantOptions.anyWake": "Wort für den Assistenten",
+  "assistantOptions.anyWakeHint": "Ruft den Assistenten von „Wenn du niemanden bestimmten ansprichst“ (Einstellungen › Assistenten); ist keiner auf dem Desktop, antwortet K-Desktop ohne Figur. Jeder Assistent kann außerdem sein eigenes haben. Die übrigen Wörter gehören weiter K-Desktop und führen deine Befehle aus.",
+  "assistantOptions.anyWakeName": "Assistent",
+  "assistantOptions.wakeOfAny": "{0} (jetzt das für den Assistenten allgemein)",
+  "assistantCard.wakeOffer": "Nach der Installation „{0}“ aufnehmen, um ihn beim Namen zu rufen",
+  "assistantCard.wakeUse": "Ihn mit „{0}“ rufen, dem Wort, das du schon aufgenommen hast",
+  "assistantCard.wakeHint": "Was du nach seinem Namen sagst, geht an ihn; „K-Desktop, …“ führt weiter deine Befehle aus. Änderbar unter Einstellungen › Assistenten.",
+  "assistantCard.wakeGiven": "„{0}“ ruft jetzt {1}",
+  "assistant.wakeTip": "Um {0} beim Namen zu rufen, nimm sein Wort unter Einstellungen › Assistenten auf"
 }

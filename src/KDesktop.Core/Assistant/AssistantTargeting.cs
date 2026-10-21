@@ -10,6 +10,12 @@ namespace KDesktop.Core.Assistant;
 public static class AssistantTargeting
 {
     /// <summary>
+    /// The key of <c>assistantWakeWords</c> for the word «for the assistant» (stage 5.1): not of anyone in particular, it
+    /// goes to the one <see cref="Pick"/> gives, or to the module without a body when nobody is on the desktop.
+    /// </summary>
+    public const string AnyAssistant = "*";
+
+    /// <summary>
     /// The assistant for one order, or null with nobody on the desktop. Call it once per order: «at random» picks
     /// again on every call.
     /// </summary>

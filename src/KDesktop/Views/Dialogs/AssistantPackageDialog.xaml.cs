@@ -123,6 +123,7 @@ public partial class AssistantPackageDialog : FluentWindow
         if (settings.AssistantsOnDesktop.Contains(manifest.Id)) ActivateCheck.Visibility = Visibility.Collapsed;
         if (!settings.AssistantEnabled) ModuleOffText.Visibility = Visibility.Visible;
         ShowHotkeyOffers(manifest);
+        ShowWakeOffer(manifest);
         _suggestedModel = _app.MissingSuggestedModel(manifest);
         ModelCheck.Content = _suggestedModel is { } model ? new System.Windows.Controls.TextBlock { Text = Loc.T("assistantCard.modelOffer", model), TextWrapping = TextWrapping.Wrap } : null;
         ModelPanel.Visibility = _suggestedModel is null ? Visibility.Collapsed : Visibility.Visible;
@@ -158,6 +159,19 @@ public partial class AssistantPackageDialog : FluentWindow
         HotkeyPanel.Visibility = _offers.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    /// <summary>
+    /// Without a word of its own yet: a free recorded word with the name it suggests is given to it, or (with the voice
+    /// models) the user records it after installing. Ticked: it is how it is meant to be talked to.
+    /// </summary>
+    private void ShowWakeOffer(AssistantManifest manifest)
+    {
+        var name = manifest.WakeWord is { Length: > 0 } suggested ? suggested : manifest.Name;
+        var free = _app.FreeWakeWordNamed(name);
+        var offer = !_app.Config.Settings.AssistantWakeWords.ContainsKey(manifest.Id) && (free is not null || Core.Voice.VoiceModels.AllInstalled);
+        WakeCheck.Content = new System.Windows.Controls.TextBlock { Text = Loc.T(free is null ? "assistantCard.wakeOffer" : "assistantCard.wakeUse", name), TextWrapping = TextWrapping.Wrap };
+        WakePanel.Visibility = offer ? Visibility.Visible : Visibility.Collapsed;
+    }
+
     private async void OnInstall(object sender, RoutedEventArgs e)
     {
         if (_package is not { } package) return;
@@ -165,13 +179,17 @@ public partial class AssistantPackageDialog : FluentWindow
         InstallError.Visibility = Visibility.Collapsed;
         try
         {
+            var recordWake = WakePanel.Visibility == Visibility.Visible && WakeCheck.IsChecked == true;
+            if (recordWake) _app.SkipWakeTip(package.Manifest.Id);
             var installed = await _app.InstallAssistantAsync(package, ActivateCheck.Visibility == Visibility.Visible && ActivateCheck.IsChecked == true);
             _app.CreateExtraCommands(_offers.Where(o => o.IsChecked)
                 .Select(o => installed.Manifest.Extras.FirstOrDefault(x => x.Id == o.Extra.Id))
                 .OfType<ManifestExtra>()
                 .Select(x => new InstalledExtra(installed, x)));
             if (_suggestedModel is { } model && ModelCheck.IsChecked == true) _app.AskAssistantBrain("pull", model);
+            var owner = Owner;
             Close();
+            if (recordWake) _app.OfferAssistantWakeWord(installed.Id, owner);
         }
         catch (Exception ex)
         {

@@ -2924,5 +2924,16 @@
   "summary.assistantSayEmpty": "(senza testo)",
   "editor.assistantSayText": "Cosa dice",
   "editor.assistantSayTextHint": "Il backup è finito.",
-  "editor.assistantSayHint": "Lo dice così com'è, nel suo fumetto e nella chat del pannello. Senza nessuno sul desktop, compare come avviso di K-Desktop."
+  "editor.assistantSayHint": "Lo dice così com'è, nel suo fumetto e nella chat del pannello. Senza nessuno sul desktop, compare come avviso di K-Desktop.",
+
+  "voice.toAssistant": "«{1}» → {0}",
+  "assistantOptions.anyWake": "Parola per l'assistente",
+  "assistantOptions.anyWakeHint": "Chiama l'assistente di «Quando non parli con nessuno in particolare» (Impostazioni › Assistenti); se non ce n'è nessuno sul desktop, risponde K-Desktop senza personaggio. Ogni assistente può avere anche la sua. Le altre parole restano di K-Desktop ed eseguono i tuoi comandi.",
+  "assistantOptions.anyWakeName": "Assistente",
+  "assistantOptions.wakeOfAny": "{0} (ora quella dell'assistente in generale)",
+  "assistantCard.wakeOffer": "Registrare «{0}» dopo l'installazione, per chiamarlo per nome",
+  "assistantCard.wakeUse": "Chiamarlo con «{0}», la parola che hai già registrato",
+  "assistantCard.wakeHint": "Quello che dici dopo il suo nome arriva a lui; «K-Desktop, …» continua a eseguire i tuoi comandi. Si cambia in Impostazioni › Assistenti.",
+  "assistantCard.wakeGiven": "Ora «{0}» chiama {1}",
+  "assistant.wakeTip": "Per chiamare {0} per nome, registra la sua parola in Impostazioni › Assistenti"
 }

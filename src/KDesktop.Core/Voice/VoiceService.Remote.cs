@@ -52,7 +52,7 @@ public sealed partial class VoiceService
                 return osd.Result("");
             }
             Log.Info($"Voz (móvil): «{text}»");
-            await HandleTextAsync(text, osd).ConfigureAwait(false);
+            await HandleTextAsync(text, osd, "phone").ConfigureAwait(false);
             return osd.Result(text);
         }
         catch (Exception ex)

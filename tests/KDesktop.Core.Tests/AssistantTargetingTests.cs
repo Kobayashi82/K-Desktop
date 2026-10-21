@@ -70,6 +70,21 @@ public class AssistantTargetingTests
     }
 
     [Fact]
+    public void TheWordForTheAssistantIsOneMore()
+    {
+        var words = AssistantTargeting.Assign(new Dictionary<string, string>(), "dot", "w1");
+        words = AssistantTargeting.Assign(words, AssistantTargeting.AnyAssistant, "w2");
+        Assert.Equal(AssistantTargeting.AnyAssistant, AssistantTargeting.ForWakeWord(words, "w2"));
+        Assert.Equal("dot", AssistantTargeting.ForWakeWord(words, "w1"));
+
+        // Taking Dot's word for the general one leaves Dot without one.
+        words = AssistantTargeting.Assign(words, AssistantTargeting.AnyAssistant, "w1");
+        Assert.Equal(AssistantTargeting.AnyAssistant, AssistantTargeting.ForWakeWord(words, "w1"));
+        Assert.False(words.ContainsKey("dot"));
+        Assert.Null(AssistantTargeting.ForWakeWord(words, "w2"));
+    }
+
+    [Fact]
     public void WakeWordsOfTheAssistantsAreSaved()
     {
         var config = new AppConfig();

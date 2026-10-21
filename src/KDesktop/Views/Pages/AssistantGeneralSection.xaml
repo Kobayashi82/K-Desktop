@@ -45,6 +45,21 @@
                 </Grid>
             </Grid>
 
+            <!-- The word «for the assistant»: to whoever answers what is not addressed to anyone (stage 5.1) -->
+            <Grid Style="{StaticResource SettingRow}" IsEnabled="{Binding AssistantEnabled}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="{l:Tr assistantOptions.anyWake}" />
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantOptions.anyWakeHint}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <ComboBox x:Name="AnyWakeBox" MinWidth="190" MaxWidth="260" VerticalAlignment="Center" DisplayMemberPath="Name"
+                              SelectionChanged="OnAnyWakeChanged" AutomationProperties.Name="{l:Tr assistantOptions.anyWake}" />
+                    <ui:Button Margin="6,0,0,0" VerticalAlignment="Center" Icon="{ui:SymbolIcon Record24}" Click="OnRecordAnyWake"
+                               ToolTip="{l:Tr assistantOptions.wakeRecord}" AutomationProperties.Name="{l:Tr assistantOptions.wakeRecord}" />
+                </StackPanel>
+            </Grid>
+
             <!-- How the module is doing, with a way to the panel -->
             <Border x:Name="StatePanel" Style="{StaticResource InfoBox}">
                 <Grid>

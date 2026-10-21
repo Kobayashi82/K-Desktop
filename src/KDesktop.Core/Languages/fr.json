@@ -2924,5 +2924,16 @@
   "summary.assistantSayEmpty": "(sans texte)",
   "editor.assistantSayText": "Ce qu'il dit",
   "editor.assistantSayTextHint": "La sauvegarde est terminée.",
-  "editor.assistantSayHint": "Il le dit tel quel, dans sa bulle et dans le chat du panneau. Sans personne sur le bureau, cela s'affiche comme notification de K-Desktop."
+  "editor.assistantSayHint": "Il le dit tel quel, dans sa bulle et dans le chat du panneau. Sans personne sur le bureau, cela s'affiche comme notification de K-Desktop.",
+
+  "voice.toAssistant": "« {1} » → {0}",
+  "assistantOptions.anyWake": "Mot pour l'assistant",
+  "assistantOptions.anyWakeHint": "Appelle l'assistant de « Quand vous ne parlez à personne en particulier » (Paramètres › Assistants) ; sans aucun sur le bureau, K-Desktop répond sans personnage. Chaque assistant peut aussi avoir le sien. Les autres mots restent ceux de K-Desktop et lancent vos commandes.",
+  "assistantOptions.anyWakeName": "Assistant",
+  "assistantOptions.wakeOfAny": "{0} (actuellement celui de l'assistant en général)",
+  "assistantCard.wakeOffer": "Enregistrer « {0} » après l'installation, pour l'appeler par son nom",
+  "assistantCard.wakeUse": "L'appeler avec « {0} », le mot que vous avez déjà enregistré",
+  "assistantCard.wakeHint": "Ce que vous dites après son nom lui parvient ; « K-Desktop, … » lance toujours vos commandes. Modifiable dans Paramètres › Assistants.",
+  "assistantCard.wakeGiven": "« {0} » appelle désormais {1}",
+  "assistant.wakeTip": "Pour appeler {0} par son nom, enregistrez son mot dans Paramètres › Assistants"
 }

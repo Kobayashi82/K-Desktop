@@ -2924,5 +2924,16 @@
   "summary.assistantSayEmpty": "(no text)",
   "editor.assistantSayText": "What it says",
   "editor.assistantSayTextHint": "The backup has finished.",
-  "editor.assistantSayHint": "It says it as it is, in its bubble and in the panel's chat. With nobody on the desktop, it shows as a K-Desktop notice."
+  "editor.assistantSayHint": "It says it as it is, in its bubble and in the panel's chat. With nobody on the desktop, it shows as a K-Desktop notice.",
+
+  "voice.toAssistant": "“{1}” → {0}",
+  "assistantOptions.anyWake": "Word for the assistant",
+  "assistantOptions.anyWakeHint": "Calls the assistant of “When you are not talking to anyone in particular” (Settings › Assistants); with none on the desktop, K-Desktop answers without a character. Each assistant can also have its own. The other words are still K-Desktop's and run your commands.",
+  "assistantOptions.anyWakeName": "Assistant",
+  "assistantOptions.wakeOfAny": "{0} (now the one for the assistant in general)",
+  "assistantCard.wakeOffer": "Record “{0}” after installing it, to call it by its name",
+  "assistantCard.wakeUse": "Call it with “{0}”, the word you have already recorded",
+  "assistantCard.wakeHint": "What you say after its name goes to it; “K-Desktop, …” still runs your commands. You can change it in Settings › Assistants.",
+  "assistantCard.wakeGiven": "“{0}” now calls {1}",
+  "assistant.wakeTip": "To call {0} by its name, record its word in Settings › Assistants"
 }

@@ -113,6 +113,11 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </StackPanel>
+            <!-- Calling it by its name: a word already recorded with that name, or recording it after installing (stage 5.1) -->
+            <StackPanel x:Name="WakePanel" Margin="0,12,0,0" Visibility="Collapsed">
+                <CheckBox x:Name="WakeCheck" IsChecked="True" />
+                <TextBlock Margin="28,0,0,0" Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantCard.wakeHint}" />
+            </StackPanel>
             <!-- The model it suggests, when Ollama does not have it: offered unticked, never downloaded without asking (stage 3.2) -->
             <StackPanel x:Name="ModelPanel" Margin="0,12,0,0" Visibility="Collapsed">
                 <CheckBox x:Name="ModelCheck" IsChecked="False" />

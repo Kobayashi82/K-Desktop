@@ -65,7 +65,9 @@ public partial class AssistantListSection : UserControl
             {
                 // A word of another assistant says whose it is: choosing it here takes it from that one.
                 var owner = owners.FirstOrDefault(p => p.Value == word.Id).Key;
-                options.Add(new(word.Id, owner is null || owner == row.Id ? word.Name : Loc.T("assistantOptions.wakeOf", word.Name, App.AssistantName(owner))));
+                options.Add(new(word.Id, owner is null || owner == row.Id ? word.Name
+                    : owner == Core.Assistant.AssistantTargeting.AnyAssistant ? Loc.T("assistantOptions.wakeOfAny", word.Name)
+                    : Loc.T("assistantOptions.wakeOf", word.Name, App.AssistantName(owner))));
             }
             row.WakeOptions = options;
             FillModels(row);

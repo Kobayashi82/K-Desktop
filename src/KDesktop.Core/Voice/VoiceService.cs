@@ -7,6 +7,15 @@ using KDesktop.Core.Platform;
 namespace KDesktop.Core.Voice;
 
 /// <summary>
+/// Someone else an order is for (an assistant of the module, stage 5.1): what is said goes to it as text instead of
+/// running K-Desktop's commands.
+/// </summary>
+/// <param name="Name">Who, for the OSD («Lander»).</param>
+/// <param name="Send">Hands it the order (the text and where it came from: <c>voice</c> or <c>phone</c>); false when nobody could take it (it says why).</param>
+/// <param name="Listening">It is being listened to / no longer (the character shows it); null: nothing to show.</param>
+public sealed record VoiceAddressee(string Name, Func<string, string, bool> Send, Action<bool>? Listening = null);
+
+/// <summary>
 /// Voice orders: listen (while a key is held, or until the speaker goes quiet) → transcribe with Parakeet → pick the
 /// command → run it. Nothing listens in between: the microphone is only open during a session.
 /// </summary>
@@ -45,6 +54,12 @@ public sealed partial class VoiceService : IDisposable
 
     /// <summary>Downloads the models (Settings › Voice).</summary>
     public ModelDownloader Models { get; } = new();
+
+    /// <summary>
+    /// Who an order called with a wake word (its id) is for when it is not K-Desktop: an assistant's own word, with the
+    /// module on. Null, or a null answer: K-Desktop's commands, as always. Asked from any thread.
+    /// </summary>
+    public Func<string, VoiceAddressee?>? AddresseeOf { get; set; }
 
     /// <summary>Frees the recognizer and removes the model files.</summary>
     public void DeleteModels()
@@ -220,8 +235,11 @@ public sealed partial class VoiceService : IDisposable
         await HandleTextAsync(text, osd).ConfigureAwait(false);
     }
 
-    /// <summary>The transcribed order (without a leading wake word) → run it, telling the user on the OSD.</summary>
-    private async Task HandleTextAsync(string text, IVoiceOsd osd)
+    /// <summary>
+    /// The transcribed order (without a leading wake word) → run it, telling the user on the OSD. Begun with an assistant's
+    /// word («Lander, ¿qué hora es?»), it goes to that assistant instead (<paramref name="source"/>: <c>voice</c> or <c>phone</c>).
+    /// </summary>
+    private async Task HandleTextAsync(string text, IVoiceOsd osd, string source = "voice")
     {
         if (text.Length == 0)
         {
@@ -239,9 +257,23 @@ public sealed partial class VoiceService : IDisposable
                 osd.Finish(Loc.T("voice.wakeOnly", wake.Word.Name), OsdKind.Info);
                 return;
             }
+            if (AddresseeOf?.Invoke(wake.Word.Id) is { } addressee)
+            {
+                SendTo(addressee, text, source, osd);
+                return;
+            }
         }
 
         await RunTextAsync(text, osd).ConfigureAwait(false);
+    }
+
+    /// <summary>An order for an assistant: it gets the text, and the OSD says who heard what.</summary>
+    private static void SendTo(VoiceAddressee addressee, string text, string source, IVoiceOsd osd)
+    {
+        Log.Info($"Voz → asistente «{addressee.Name}»: «{text}»");
+        addressee.Listening?.Invoke(false);
+        if (addressee.Send(text, source)) osd.Finish(Loc.T("voice.toAssistant", addressee.Name, text), OsdKind.Info);
+        else osd.Dispose();
     }
 
     /// <summary>The spoken order → the command → run it, telling the user on the OSD.</summary>
@@ -366,6 +398,7 @@ public sealed partial class VoiceService : IDisposable
         using var abort = new CancellationTokenSource();
         _abort = abort;
         _stopRequested = false;
+        VoiceAddressee? addressee = null;
         try
         {
             if (!VoiceModels.Ready) return;
@@ -427,14 +460,19 @@ public sealed partial class VoiceService : IDisposable
                      (provisional ? " (dudosa: se confirmará con la orden)" : ""));
             WakeHeard?.Invoke(word);
             StateChanged?.Invoke();
+            // An assistant's own word (stage 5.1): what follows goes to it as it was said, not to the commands.
+            addressee = AddresseeOf?.Invoke(word.Id);
+            addressee?.Listening?.Invoke(true);
 
             // The order: until the speaker goes quiet, or nothing said in a few seconds. The detector fires before the
             // word is over, so what comes first may be only its last syllable: if that says nothing, the order may
             // still come after a pause («KDesktop… apaga el ordenador») and the listening goes on.
             using var osd = early ?? _ui.ShowVoiceOsd(Loc.T("voice.listening"));
             if (early is null) ListenSound(settings);
-            var commands = Commands().ToList();
-            (List<IntentPlan> Plans, bool Confirmed)? found = null;
+            var commands = addressee is null ? Commands().ToList() : [];
+            (List<IntentPlan> Plans, string? Said, bool Confirmed)? found = null;
+            bool IsOrder((List<IntentPlan> Plans, string? Said, bool Confirmed) f) =>
+                addressee is null ? f.Plans.Any(p => p.Parts.Count > 0) : f.Said is not null;
             var checkedSegments = 0;
             var waitFrom = TimeSpan.Zero;
             while (true)
@@ -451,9 +489,10 @@ public sealed partial class VoiceService : IDisposable
                 {
                     var (sofar, finished) = capture.Snapshot();
                     found = await OrderPlansAsync(sofar, finished, checkedSegments).ConfigureAwait(false);
-                    if (!found.Value.Confirmed || found.Value.Plans.Any(p => p.Parts.Count > 0)) break;
+                    if (!found.Value.Confirmed || IsOrder(found.Value)) break;
                     Log.Info("Voz: lo oído tras la palabra no es una orden (" +
-                             string.Join(" | ", found.Value.Plans.Select(p => $"«{p.Whole.Text}»")) + "); se sigue escuchando");
+                             (addressee is null ? string.Join(" | ", found.Value.Plans.Select(p => $"«{p.Whole.Text}»")) : "solo la palabra") +
+                             "); se sigue escuchando");
                     checkedSegments = finished.Count;
                     waitFrom = capture.Elapsed;
                     continue;
@@ -463,7 +502,7 @@ public sealed partial class VoiceService : IDisposable
             }
             var (after, segments) = capture.Stop();
             osd.SetText(Loc.T("voice.thinking"));
-            if (found is null || segments.Count > checkedSegments && found.Value.Plans.All(p => p.Parts.Count == 0))
+            if (found is null || segments.Count > checkedSegments && !IsOrder(found.Value))
                 found = await OrderPlansAsync(after, segments, checkedSegments).ConfigureAwait(false);
             duck?.Dispose();
             if (!found.Value.Confirmed)
@@ -474,6 +513,16 @@ public sealed partial class VoiceService : IDisposable
             if (abort.IsCancellationRequested)
             {
                 osd.Finish(Loc.T("voice.cancelled"), OsdKind.Info);
+                return;
+            }
+            if (addressee is not null)
+            {
+                if (found.Value.Said is { } said)
+                {
+                    SendTo(addressee, said, "voice", osd);
+                    addressee = null; // it has the order: it says it is no longer listening itself
+                }
+                else osd.Finish(Loc.T("voice.wakeOnly", word.Name), OsdKind.Info);
                 return;
             }
             var plans = found.Value.Plans;
@@ -487,20 +536,25 @@ public sealed partial class VoiceService : IDisposable
 
             // What to take as the order: what came after the trigger (and, after a pause, only what came after the
             // pause); or, said without a pause, the word and the order transcribed together with the word cut out; or
-            // the start of the order caught in the word's own clip.
-            async Task<(List<IntentPlan>, bool)> OrderPlansAsync(float[] audio, List<(int Start, int Length)> parts, int fresh)
+            // the start of the order caught in the word's own clip. For an assistant (which takes any words, not only a
+            // command's) one of them: what came after the pause; else the word and the order together with the word cut
+            // out (nothing left: it was only the end of the word); else the order alone.
+            async Task<(List<IntentPlan>, string?, bool)> OrderPlansAsync(float[] audio, List<(int Start, int Length)> parts, int fresh)
             {
                 var options = new List<string>();
                 var confirmed = !provisional;
+                string? whole = null, afterPauseText = null, joinedRest = null;
                 if (!provisional && match?.Rest is { Length: > 0 } inWord) options.Add(inWord);
                 if (parts.Count > 0)
                 {
                     var orderClip = Span(audio, parts, 0);
-                    options.Add(await Task.Run(() => SpeechToText.Transcribe(orderClip)).ConfigureAwait(false));
+                    whole = await Task.Run(() => SpeechToText.Transcribe(orderClip)).ConfigureAwait(false);
+                    options.Add(whole);
                     if (fresh > 0 && fresh < parts.Count)
                     {
                         var afterPause = Span(audio, parts, fresh);
-                        options.Add(await Task.Run(() => SpeechToText.Transcribe(afterPause)).ConfigureAwait(false));
+                        afterPauseText = await Task.Run(() => SpeechToText.Transcribe(afterPause)).ConfigureAwait(false);
+                        options.Add(afterPauseText);
                     }
                     var joined = new float[wordClip.Length + orderClip.Length];
                     wordClip.CopyTo(joined, 0);
@@ -509,15 +563,28 @@ public sealed partial class VoiceService : IDisposable
                     if (WakeWordVerifier.Find(full, word) is { } cut && cut.Score >= word.EffectiveThreshold - 0.15)
                     {
                         confirmed = true;
+                        joinedRest = cut.Rest;
                         if (cut.Rest.Length > 0) options.Add(cut.Rest);
                     }
                     if (provisional) Log.Info($"Palabra de activación «{word.Name}» con la orden: «{full}» → {(confirmed ? "confirmada" : "no está")}");
                 }
+                if (addressee is not null)
+                {
+                    static string? Words(string? text) => text?.Trim() is { } t && t.Any(char.IsLetterOrDigit) ? t : null;
+                    var said = Words(afterPauseText) ?? (joinedRest is not null ? Words(joinedRest) : Words(StripWake(whole)))
+                               ?? (!provisional ? Words(match?.Rest) : null);
+                    Log.Info($"Voz: para «{addressee.Name}»: sola «{whole}», tras la pausa «{afterPauseText}», con la palabra «{joinedRest}» → «{said}»");
+                    return ([], said, confirmed);
+                }
                 var plans = new List<IntentPlan>();
                 foreach (var option in options.Select(o => o.Trim()).Where(o => o.Any(char.IsLetterOrDigit)).Distinct())
                     plans.Add(await PlanAsync(option, commands).ConfigureAwait(false));
-                return (plans, confirmed);
+                return (plans, null, confirmed);
             }
+
+            // The order alone may still begin with the end of the word («der, ¿qué hora es?» is not stripped, «Lander, …» is).
+            string? StripWake(string? text) =>
+                text is not null && WakeWordVerifier.Find(text, word) is { Start: <= 1 } begins ? begins.Rest : text;
         }
         catch (Exception ex)
         {
@@ -525,6 +592,7 @@ public sealed partial class VoiceService : IDisposable
         }
         finally
         {
+            addressee?.Listening?.Invoke(false);
             capture.Stop();
             _abort = null;
             _active = 0;
