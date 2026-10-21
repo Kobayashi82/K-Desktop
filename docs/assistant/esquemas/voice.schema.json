@@ -14,7 +14,7 @@
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
-        "type": { "enum": ["pocket", "windows", "beeps"] },
+        "type": { "enum": ["kokoro", "windows", "beeps", "pocket"], "description": "pocket: la voz hasta 5.0.93, ahora es kokoro" },
         "voice": { "type": "string" },
         "speed": { "type": "number", "minimum": 0.5, "maximum": 2 },
         "volume": { "type": "number", "minimum": 0, "maximum": 1 }

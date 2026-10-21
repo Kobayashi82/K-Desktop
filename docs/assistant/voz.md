@@ -1,5 +1,12 @@
 # Voz de los asistentes: eco y rapidez (etapa 5.7)
 
+> **Desde 5.0.94 la voz natural es Kokoro**, no Pocket TTS (que es con lo que se midió esto). Kokoro no da el audio a
+> trozos de una décima: hace cada frase (o cada trozo de una frase larga, el primero hasta la primera coma) de una vez, en
+> unas 0,15 veces lo que dura. Medido en el PC del usuario: 8,6 s de audio en 1,35 s; la primera frase de «Probar» suena
+> a los 0,35–0,4 s con el modelo cargado y a ~1,1 s en frío (carga del modelo y la voz, 0,7 s). Parakeet entiende las
+> tres voces en español (ef_dora, em_alex, em_santa) casi sin fallos: los que cuenta son cifras («44» por «cuarenta y
+> cuatro»). El modelo cuantizado (92 MB) era 4 veces más lento en este procesador: se usa el de 325 MB.
+
 Medido el 21/10/2026 en el PC del usuario (RTX 4070 SUPER), con una instancia de prueba de K-Desktop (compilación
 Debug, `--data` de prueba), Dot y el Lander 0.7.0 en el escritorio, Ollama con `qwen3-4b-instruct`, Pocket TTS en
 español (voz «eve») y el micrófono simulado (`KDESKTOP_VOICE_FAKE_STREAM`) con órdenes dichas por la voz Helena de Windows.

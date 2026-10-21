@@ -55,8 +55,13 @@ No van dentro del ejecutable: se descargan desde Opciones › Voz a la carpeta `
   [Gemma Terms of Use](https://ai.google.dev/gemma/terms) y su
   [política de uso prohibido](https://ai.google.dev/gemma/prohibited_use_policy).
 - Parakeet TDT 0.6B v3 (NVIDIA, CC BY 4.0), Silero VAD (MIT) y los modelos de openWakeWord (Apache 2.0).
-- **Pocket TTS** ([Kyutai](https://kyutai.org/), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)), en la
-  exportación ONNX de [OpenVoiceOS/phoonnx-pocket-tts](https://huggingface.co/OpenVoiceOS/phoonnx-pocket-tts): la voz
-  natural de los asistentes, que se descarga desde Opciones › Módulo Asistente › Voz a `Models\pocket-tts`. El código
-  que lo ejecuta (`KDesktop.Assistant.Voice/Pocket`) sigue la implementación de Kyutai (Apache 2.0) y la de phoonnx, y
-  viene de Kobii.
+- **Kokoro 82M** ([hexgrad](https://huggingface.co/hexgrad/Kokoro-82M), Apache 2.0), en la exportación ONNX de
+  [onnx-community/Kokoro-82M-v1.0-ONNX](https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX): la voz natural de
+  los asistentes, que se descarga desde Opciones › Módulo Asistente › Voz a `Models\kokoro`. Los fonemas del español
+  los escribe K-Desktop con reglas propias (`KDesktop.Assistant.Voice/Kokoro/SpanishPhonemes`), comprobadas contra lo
+  que escribe espeak-ng; el vocabulario de fonemas y el tratamiento de cada idioma siguen a misaki (hexgrad, Apache 2.0).
+- **espeak-ng** ([espeak-ng](https://github.com/espeak-ng/espeak-ng), **GPL 3.0**): **no va dentro de K-Desktop**. Para
+  inglés, francés, italiano y portugués, Kokoro necesita sus fonemas: el usuario lo descarga aparte, como un modelo más
+  (el paquete para Windows de [espeakng-loader](https://pypi.org/project/espeakng-loader/), MIT, con la DLL y los datos
+  de espeak-ng), a `Models\espeak-ng`, y el proceso del asistente lo carga desde ahí solo si está y solo para esos
+  idiomas. El español no lo usa.

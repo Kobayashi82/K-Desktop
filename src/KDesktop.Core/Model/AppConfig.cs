@@ -77,6 +77,12 @@ public sealed class AppConfig
             Settings.AssistantActive = null;
             changed = true;
         }
+        // Until 5.0.93 the natural voice of the assistants was Pocket TTS; now it is Kokoro.
+        if (Settings.AssistantVoiceEngine == "pocket")
+        {
+            Settings.AssistantVoiceEngine = "kokoro";
+            changed = true;
+        }
         changed |= MigrateStartupAndExit();
         if (SchemaVersion < CurrentSchema)
         {
@@ -475,14 +481,17 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private bool _assistantAdorn;
 
     /// <summary>
-    /// Who says the assistants' answers aloud (Options → Assistant → Voice, stage 5.4): <c>auto</c> (Pocket TTS if it is
-    /// downloaded for the language, else Windows' voices, else beeps), <c>pocket</c>, <c>windows</c>, <c>beeps</c> or
-    /// <c>off</c> (only the bubble).
+    /// Who says the assistants' answers aloud (Options → Assistant → Voice, stage 5.4): <c>auto</c> (Kokoro if it is
+    /// downloaded for the language, else Windows' voices, else beeps), <c>kokoro</c>, <c>windows</c>, <c>beeps</c> or
+    /// <c>off</c> (only the bubble). Until 5.0.93 the natural voice was Pocket TTS (<c>pocket</c>, read as <c>kokoro</c>).
     /// </summary>
     [ObservableProperty] private string _assistantVoiceEngine = "auto";
 
-    /// <summary>The voice of Pocket TTS («eve»…); downloaded when chosen.</summary>
-    [ObservableProperty] private string _assistantVoicePocket = Assistant.Voice.PocketModels.DefaultVoice;
+    /// <summary>
+    /// The voice of Kokoro for the interface language, or a mix of two («ef_dora:0.7,em_alex:0.3»); empty or not of the
+    /// language: its first one. Downloaded when chosen.
+    /// </summary>
+    [ObservableProperty] private string _assistantVoiceKokoro = string.Empty;
 
     /// <summary>The Windows voice by name; empty: the first one of the language.</summary>
     [ObservableProperty] private string _assistantVoiceWindows = string.Empty;

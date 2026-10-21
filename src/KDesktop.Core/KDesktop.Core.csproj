@@ -42,8 +42,8 @@
     <EmbeddedResource Include="Assets\Sounds\*.wav" LogicalName="Sounds/%(Filename)%(Extension)" />
     <!-- «bench.es.json» is not a resource for Spanish culture (a satellite assembly): it goes in like the rest. -->
     <EmbeddedResource Include="Assistant\Bench\*.json" LogicalName="AssistantBench/%(Filename)%(Extension)" WithCulture="false" />
-    <!-- The files of Pocket TTS for each language (pinned commit, sizes and hashes): the assistants' voice (stage 5.4). -->
-    <EmbeddedResource Include="Assistant\Voice\pocket-tts.json" LogicalName="AssistantVoice/pocket-tts.json" />
+    <!-- The files of Kokoro and espeak-ng (pinned commit and package, sizes and hashes): the assistants' voice (5.0.94). -->
+    <EmbeddedResource Include="Assistant\Voice\kokoro.json" LogicalName="AssistantVoice/kokoro.json" />
     <!-- K-Desktop's six voice profiles (stage 5.5). -->
     <EmbeddedResource Include="Assistant\Voice\voice-profiles.json" LogicalName="AssistantVoice/voice-profiles.json" />
   </ItemGroup>

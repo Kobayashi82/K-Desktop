@@ -57,7 +57,7 @@ internal sealed class ModuleVoice : IDisposable
     {
         if (voice is null) return;
         var engine = Enum.TryParse<SpeechEngineKind>(voice["engine"]?.GetValue<string>(), true, out var e) ? e : SpeechEngineKind.Auto;
-        _settings = new VoiceSettings(engine, voice["pocketVoice"]?.GetValue<string>(), voice["windowsVoice"]?.GetValue<string>(),
+        _settings = new VoiceSettings(engine, voice["kokoroVoice"]?.GetValue<string>(), voice["windowsVoice"]?.GetValue<string>(),
             voice["speed"]?.GetValue<double>() ?? 1);
         _volume = Math.Clamp(voice["volume"]?.GetValue<double>() ?? 1, 0, 1);
         _profile = voice["profile"]?.GetValue<string>() is { Length: > 0 } fixedProfile ? fixedProfile : null;
@@ -143,13 +143,13 @@ internal sealed class ModuleVoice : IDisposable
     {
         var language = Loc.Instance.Language;
         var engine = _runtime.Audio.Enabled ? Speech.Resolve(language, _settings) : SpeechEngineKind.Off;
-        return new VoiceStateMessage(engine.ToString().ToLowerInvariant(), Speech.WindowsVoicesFor(language), Speech.Pocket.IsLoaded);
+        return new VoiceStateMessage(engine.ToString().ToLowerInvariant(), Speech.WindowsVoicesFor(language), Speech.Kokoro.IsLoaded);
     }
 
     /// <summary>Whether answers are said aloud at all now (a voice chosen and the sound on).</summary>
     private bool Speaks => _settings.Engine != SpeechEngineKind.Off && _runtime.Audio.Enabled;
 
-    /// <summary>The AI is thinking: Pocket's model loads meanwhile, so the first sentence does not wait for it.</summary>
+    /// <summary>The AI is thinking: Kokoro's model loads meanwhile, so the first sentence does not wait for it.</summary>
     public void Warm()
     {
         if (Speaks) Speech.Warm(Loc.Instance.Language, _settings);

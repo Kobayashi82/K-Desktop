@@ -35,6 +35,10 @@
     <ProjectReference Include="..\..\samples\DotAssistant\DotAssistant.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- espeak-ng's Spanish phonemes, to check ours (SpanishPhonemesTests). -->
+    <None Include="Data\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
   <!-- The contract files live in docs\assistant: the tests read them from there. -->
   <ItemGroup>
     <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">

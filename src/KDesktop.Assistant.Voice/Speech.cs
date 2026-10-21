@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using KDesktop.Assistant.Voice.Effects;
-using KDesktop.Assistant.Voice.Pocket;
+using KDesktop.Assistant.Voice.Kokoro;
 using KDesktop.Core;
 using KDesktop.Core.Assistant.Voice;
 
@@ -9,9 +9,9 @@ namespace KDesktop.Assistant.Voice;
 /// <summary>Which voice says the answers (Options → Assistant → Voice).</summary>
 public enum SpeechEngineKind
 {
-    /// <summary>Pocket TTS if it is downloaded for the language, else Windows' voices, else beeps.</summary>
+    /// <summary>Kokoro if it is downloaded for the language, else Windows' voices, else beeps.</summary>
     Auto,
-    Pocket,
+    Kokoro,
     Windows,
     Beeps,
 
@@ -21,12 +21,12 @@ public enum SpeechEngineKind
 
 /// <summary>How an assistant speaks.</summary>
 /// <param name="Engine">Options' choice; <see cref="SpeechEngineKind.Auto"/> follows the profile's.</param>
-/// <param name="PocketVoice">The voice of Pocket TTS («eve»…) chosen in Options; null: the default one.</param>
+/// <param name="KokoroVoice">The voice of Kokoro chosen in Options, or a mix («ef_dora:0.7,em_alex:0.3»); null: the language's default.</param>
 /// <param name="WindowsVoice">The Windows voice by name; null: the first one of the language.</param>
 /// <param name="Speed">1 = normal (on top of the profile's).</param>
 /// <param name="Profile">Its voice profile (stage 5.5: engine and effects); null: «Natural».</param>
 /// <param name="Moods">The situations it is in (<c>error</c>, <c>far</c>, <c>happy</c>…): their effects are added.</param>
-public sealed record VoiceSettings(SpeechEngineKind Engine = SpeechEngineKind.Auto, string? PocketVoice = null, string? WindowsVoice = null, double Speed = 1,
+public sealed record VoiceSettings(SpeechEngineKind Engine = SpeechEngineKind.Auto, string? KokoroVoice = null, string? WindowsVoice = null, double Speed = 1,
     VoiceProfile? Profile = null, IReadOnlyList<string>? Moods = null)
 {
     public VoiceProfile EffectiveProfile => Profile ?? VoiceProfile.Default;
@@ -34,9 +34,11 @@ public sealed record VoiceSettings(SpeechEngineKind Engine = SpeechEngineKind.Au
     /// <summary>Its speed and the profile's together.</summary>
     public double EffectiveSpeed => Math.Clamp(Speed * EffectiveProfile.Speed, 0.5, 2);
 
-    /// <summary>The Pocket TTS voice: the profile's own if it is downloaded, else the one chosen in Options.</summary>
-    public string PocketVoiceFor(string language) =>
-        EffectiveProfile.OwnVoice is { } own && PocketModels.Installed(language, own) ? own : PocketModels.VoiceOrDefault(language, PocketVoice);
+    /// <summary>The Kokoro voice: the profile's own if it is of the language and downloaded, else the one chosen in Options.</summary>
+    public string KokoroVoiceFor(string language) =>
+        EffectiveProfile.OwnVoice is { } own && KokoroModels.VoiceOrDefault(language, own) == own && KokoroModels.Installed(language, own)
+            ? own
+            : KokoroModels.VoiceOrDefault(language, KokoroVoice);
 }
 
 /// <summary>A piece of a sentence being said: mono samples at their rate, and which voice says it.</summary>
@@ -56,7 +58,7 @@ public sealed class Speech : IDisposable
 {
     private readonly ConcurrentDictionary<string, IReadOnlyList<string>> _windows = new(StringComparer.Ordinal);
 
-    public PocketEngine Pocket { get; } = new();
+    public KokoroEngine Kokoro { get; } = new();
 
     /// <summary>The engine that will really speak: <see cref="SpeechEngineKind.Auto"/> resolved, and what is not there skipped.</summary>
     public SpeechEngineKind Resolve(string language, VoiceSettings settings)
@@ -69,11 +71,11 @@ public sealed class Speech : IDisposable
             _ => SpeechEngineKind.Auto,
         };
         if (wanted is SpeechEngineKind.Off or SpeechEngineKind.Beeps) return wanted;
-        var pocket = PocketModels.Supports(language) && PocketEngine.Available(language, settings.PocketVoiceFor(language));
+        var kokoro = KokoroModels.Supports(language) && KokoroEngine.Available(language, settings.KokoroVoiceFor(language));
         // The one chosen if it is there; else the other one; else beeps.
         if (wanted == SpeechEngineKind.Windows)
-            return HasWindows(language) ? SpeechEngineKind.Windows : pocket ? SpeechEngineKind.Pocket : SpeechEngineKind.Beeps;
-        return pocket ? SpeechEngineKind.Pocket : HasWindows(language) ? SpeechEngineKind.Windows : SpeechEngineKind.Beeps;
+            return HasWindows(language) ? SpeechEngineKind.Windows : kokoro ? SpeechEngineKind.Kokoro : SpeechEngineKind.Beeps;
+        return kokoro ? SpeechEngineKind.Kokoro : HasWindows(language) ? SpeechEngineKind.Windows : SpeechEngineKind.Beeps;
     }
 
     /// <summary>Windows has a voice for this language.</summary>
@@ -81,10 +83,10 @@ public sealed class Speech : IDisposable
 
     public IReadOnlyList<string> WindowsVoicesFor(string language) => _windows.GetOrAdd(language, WindowsVoices.For);
 
-    /// <summary>Gets the voice ready while the AI thinks (Pocket's model takes a second or two to load).</summary>
+    /// <summary>Gets the voice ready while the AI thinks (Kokoro's model takes about half a second to load).</summary>
     public void Warm(string language, VoiceSettings settings)
     {
-        if (Resolve(language, settings) == SpeechEngineKind.Pocket) Pocket.Warm(language, settings.PocketVoiceFor(language));
+        if (Resolve(language, settings) == SpeechEngineKind.Kokoro) Kokoro.Warm(settings.KokoroVoiceFor(language));
     }
 
     /// <summary>One sentence in audio, whole, or null when it is not said aloud (off, nothing speakable, cancelled).</summary>
@@ -101,11 +103,10 @@ public sealed class Speech : IDisposable
     }
 
     /// <summary>
-    /// One sentence in audio as it is made (stage 5.4: Pocket TTS sounds a few tenths of a second after it starts, the
-    /// rest comes while it plays; the other voices come whole), without the silence at the start and all at the same
-    /// loudness, through the effects of its profile and its moods (stage 5.5). Nothing when it is not said aloud (off,
-    /// nothing speakable, cancelled). A voice that fails before giving anything is replaced by the next one (Pocket →
-    /// Windows → beeps).
+    /// One sentence in audio as it is made (Kokoro gives a long sentence in pieces, the first one sounding while the rest
+    /// is made; the other voices come whole), without the silence at the start and all at the same loudness, through the
+    /// effects of its profile and its moods (stage 5.5). Nothing when it is not said aloud (off, nothing speakable,
+    /// cancelled). A voice that fails before giving anything is replaced by the next one (Kokoro → Windows → beeps).
     /// </summary>
     public async IAsyncEnumerable<SpokenChunk> StreamAsync(string sentence, string language, VoiceSettings settings,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
@@ -116,9 +117,9 @@ public sealed class Speech : IDisposable
         {
             var given = false;
             var pieces = System.Threading.Channels.Channel.CreateUnbounded<float[]>();
-            var rate = engine switch { SpeechEngineKind.Pocket => PocketModel.SampleRate, SpeechEngineKind.Windows => WindowsVoices.SampleRate, _ => Beeps.SampleRate };
-            // Pocket TTS has no speed of its own: the chain gives it; the others say it at their speed.
-            var chain = VoiceChain.Build(settings.EffectiveProfile, settings.Moods ?? [], rate, engine == SpeechEngineKind.Pocket ? settings.EffectiveSpeed : null, Seed(text));
+            var rate = engine switch { SpeechEngineKind.Kokoro => KokoroModel.SampleRate, SpeechEngineKind.Windows => WindowsVoices.SampleRate, _ => Beeps.SampleRate };
+            // Every voice says it at its own speed (Kokoro's model takes one).
+            var chain = VoiceChain.Build(settings.EffectiveProfile, settings.Moods ?? [], rate, null, Seed(text));
             void Put(float[] piece)
             {
                 var done = chain.Process(piece);
@@ -130,9 +131,9 @@ public sealed class Speech : IDisposable
                 {
                     switch (engine)
                     {
-                        case SpeechEngineKind.Pocket:
+                        case SpeechEngineKind.Kokoro:
                             var shaper = new Shaper(rate);
-                            await Pocket.SayAsync(text, language, settings.PocketVoiceFor(language), Seed(text), cancellationToken,
+                            await Kokoro.SayAsync(text, language, settings.KokoroVoiceFor(language), settings.EffectiveSpeed, cancellationToken,
                                 piece => { if (shaper.Shape(piece) is { Length: > 0 } shaped) Put(shaped); }).ConfigureAwait(false);
                             break;
                         case SpeechEngineKind.Windows:
@@ -181,7 +182,7 @@ public sealed class Speech : IDisposable
             }
             await making.ConfigureAwait(false);
             if (!failed) yield break;
-            engine = engine == SpeechEngineKind.Pocket && HasWindows(language) ? SpeechEngineKind.Windows : SpeechEngineKind.Beeps;
+            engine = engine == SpeechEngineKind.Kokoro && HasWindows(language) ? SpeechEngineKind.Windows : SpeechEngineKind.Beeps;
         }
     }
 
@@ -259,5 +260,5 @@ public sealed class Speech : IDisposable
         return audio;
     }
 
-    public void Dispose() => Pocket.Dispose();
+    public void Dispose() => Kokoro.Dispose();
 }

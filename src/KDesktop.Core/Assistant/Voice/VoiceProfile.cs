@@ -9,7 +9,7 @@ namespace KDesktop.Core.Assistant.Voice;
 /// <c>far</c> when it speaks from another monitor, <c>happy</c> when it celebrates…). K-Desktop has six of its own
 /// (<see cref="BuiltIn"/>); each assistant may bring its own (<c>voice</c> of its manifest).
 /// </summary>
-/// <param name="Engine"><c>pocket</c>, <c>windows</c> or <c>beeps</c>.</param>
+/// <param name="Engine"><c>kokoro</c>, <c>windows</c> or <c>beeps</c> (<c>pocket</c>, the voice until 5.0.93, is read as <c>kokoro</c>).</param>
 /// <param name="Voice">The engine's voice; empty or <c>default</c>: the one chosen in Options.</param>
 /// <param name="Chain">The effects, in order (each an object with <c>fx</c> and its values).</param>
 public sealed record VoiceProfile(string Id, string Name, string Engine, string? Voice, double Speed, double Volume,
@@ -47,7 +47,7 @@ public sealed record VoiceProfile(string Id, string Name, string Engine, string?
                 foreach (var (mood, chain) in m)
                     if (chain is JsonArray list) moods[mood] = (JsonArray)list.DeepClone();
             return new VoiceProfile(id, json["name"]?.GetValue<string>() ?? id,
-                engine["type"]?.GetValue<string>() ?? "pocket",
+                engine["type"]?.GetValue<string>() is { } type && type != "pocket" ? type : "kokoro",
                 engine["voice"]?.GetValue<string>(),
                 Math.Clamp(engine["speed"]?.GetValue<double>() ?? 1, 0.5, 2),
                 Math.Clamp(engine["volume"]?.GetValue<double>() ?? 1, 0, 1),

@@ -59,7 +59,7 @@ public sealed class PitchShift(double semitones, int sampleRate) : IVoiceEffect
 
 /// <summary>
 /// Faster or slower without changing the pitch: the voice read faster (shorter, higher) and then brought back down to its
-/// own pitch. For the voices that have no speed of their own (Pocket TTS).
+/// own pitch. For the voices that have no speed of their own (Pocket TTS had none; Kokoro, Windows and the beeps do).
 /// </summary>
 public sealed class Speed(double speed, int sampleRate) : IVoiceEffect
 {

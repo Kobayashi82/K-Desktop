@@ -1,8 +1,8 @@
 {
   "t": "voiceState",
-  "engine": "pocket",
+  "engine": "kokoro",
   "windowsVoices": [
     "Microsoft Helena Desktop"
   ],
-  "pocketLoaded": true
+  "kokoroLoaded": true
 }

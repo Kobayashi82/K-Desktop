@@ -8,10 +8,10 @@ using KDesktop.Core.Localization;
 namespace KDesktop.Views.Pages;
 
 /// <summary>
-/// Options → Assistant → Voice (stage 5.4): who says the answers aloud (Pocket TTS, downloaded here for the interface
-/// language; Windows' voices; beeps; nobody), which voice, how fast and how loud, and «Probar» (stage 5.6: by whom, in
-/// which mood, and stopping it); and when they speak aloud. What really speaks comes from the assistant process
-/// (<c>voiceState</c>).
+/// Options → Assistant → Voice (stage 5.4): who says the answers aloud (Kokoro, downloaded here for the interface
+/// language, with espeak-ng apart when the language needs it; Windows' voices; beeps; nobody), which voice or mix of two,
+/// how fast and how loud, and «Probar» (stage 5.6: by whom, in which mood, and stopping it); and when they speak aloud.
+/// What really speaks comes from the assistant process (<c>voiceState</c>).
 /// </summary>
 public partial class AssistantVoiceSection : UserControl
 {
@@ -47,12 +47,12 @@ public partial class AssistantVoiceSection : UserControl
     {
         _filling = true;
         var s = _app.Config.Settings;
-        var language = App.PocketLanguage;
+        var language = App.KokoroLanguage;
 
         List<Option> engines =
         [
             new("auto", Loc.T("assistantVoice.engineAuto")),
-            new("pocket", Loc.T("assistantVoice.enginePocket")),
+            new("kokoro", Loc.T("assistantVoice.engineKokoro")),
             new("windows", Loc.T("assistantVoice.engineWindows")),
             new("beeps", Loc.T("assistantVoice.engineBeeps")),
             new("off", Loc.T("assistantVoice.engineOff")),
@@ -66,34 +66,54 @@ public partial class AssistantVoiceSection : UserControl
 
         StateText.Text = _app.AssistantVoice is not { } state ? Loc.T("assistantVoice.stateUnknown") : state.Engine switch
         {
-            "pocket" => Loc.T("assistantVoice.statePocket", Title(_app.PocketVoice)),
+            "kokoro" => Loc.T("assistantVoice.stateKokoro", VoiceTitle(_app.KokoroVoice)),
             "windows" => Loc.T("assistantVoice.stateWindows", s.AssistantVoiceWindows is { Length: > 0 } w && state.WindowsVoices.Contains(w) ? w : state.WindowsVoices.Count > 0 ? state.WindowsVoices[0] : "?"),
             "beeps" => Loc.T("assistantVoice.stateBeeps"),
             _ => Loc.T("assistantVoice.stateOff"),
         };
 
-        // Pocket TTS: downloaded, downloading or still to download.
-        var download = _app.PocketDownload;
-        var voice = _app.PocketVoice;
-        var missing = PocketModels.Missing(language, voice);
+        // Kokoro: downloaded, downloading or still to download (German has no Kokoro voice).
+        var download = _app.KokoroDownload;
+        var voice = _app.KokoroVoice;
         var languageName = CultureInfo.GetCultureInfo(language).NativeName;
-        PocketText.Text = download.IsDownloading
-            ? Loc.T("assistantVoice.downloading", Mb(download.Done), Mb(download.Total))
-            : missing == 0 ? Loc.T("assistantVoice.pocketReady", languageName, Mb(PocketModels.InstalledSize()))
-            : Loc.T("assistantVoice.pocketMissing", languageName, Mb(missing));
+        var supported = KokoroModels.Supports(language);
+        var missing = supported ? KokoroModels.Missing(language, voice) : 0;
+        var size = KokoroModels.InstalledSize();
+        KokoroText.Text = !supported ? Loc.T("assistantVoice.kokoroNoLanguage", languageName)
+            : download.IsDownloading ? Loc.T("assistantVoice.downloading", Mb(download.Done), Mb(download.Total))
+            : missing == 0 ? Loc.T("assistantVoice.kokoroReady", languageName, Mb(size))
+            : Loc.T("assistantVoice.kokoroMissing", languageName, Mb(missing));
+        EspeakText.Text = supported && KokoroModels.NeedsEspeak(language) ? Loc.T("assistantVoice.espeakNote", languageName) : string.Empty;
+        EspeakText.Visibility = EspeakText.Text.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         DownloadButton.Content = Loc.T("assistantVoice.download", Mb(missing));
-        DownloadButton.Visibility = !download.IsDownloading && missing > 0 ? Visibility.Visible : Visibility.Collapsed;
+        DownloadButton.Visibility = supported && !download.IsDownloading && missing > 0 ? Visibility.Visible : Visibility.Collapsed;
         CancelButton.Visibility = download.IsDownloading ? Visibility.Visible : Visibility.Collapsed;
-        DeleteButton.Visibility = !download.IsDownloading && PocketModels.InstalledSize() > 0 ? Visibility.Visible : Visibility.Collapsed;
+        DeleteButton.Visibility = !download.IsDownloading && size > 0 ? Visibility.Visible : Visibility.Collapsed;
         DeleteButton.Margin = new Thickness(DownloadButton.Visibility == Visibility.Visible ? 8 : 0, 0, 0, 0);
         DownloadBar.Visibility = download.IsDownloading ? Visibility.Visible : Visibility.Collapsed;
         DownloadBar.Value = download.Total > 0 ? download.Done / (double)download.Total : 0;
 
-        var installed = PocketModels.InstalledVoices(language);
-        var voices = PocketModels.Voices(language)
-            .Select(v => new Option(v, installed.Contains(v) ? Title(v) : Loc.T("assistantVoice.voiceMissing", Title(v)))).ToList();
-        PocketVoiceBox.ItemsSource = voices;
-        PocketVoiceBox.SelectedItem = voices.FirstOrDefault(v => v.Value == voice);
+        // The voice, and another one to mix it with.
+        KokoroVoices.Visibility = supported ? Visibility.Visible : Visibility.Collapsed;
+        var installed = KokoroModels.InstalledVoices(language);
+        var parts = KokoroModels.Parts(voice);
+        var first = parts.Count > 0 ? parts[0].Name : KokoroModels.DefaultVoice(language);
+        var second = parts.Count > 1 ? parts[1].Name : null;
+        Option Named(string v) => new(v, installed.Contains(v) ? VoiceTitle(v) : Loc.T("assistantVoice.voiceMissing", VoiceTitle(v)));
+        var voices = KokoroModels.Voices(language).Select(Named).ToList();
+        KokoroVoiceBox.ItemsSource = voices;
+        KokoroVoiceBox.SelectedItem = voices.FirstOrDefault(v => v.Value == first);
+        List<Option> mixes = [new(string.Empty, Loc.T("assistantVoice.mixNone")), .. KokoroModels.Voices(language).Where(v => v != first).Select(Named)];
+        MixVoiceBox.ItemsSource = mixes;
+        MixVoiceBox.SelectedItem = mixes.FirstOrDefault(v => v.Value == (second ?? string.Empty)) ?? mixes[0];
+        MixRow.Visibility = second is null ? Visibility.Collapsed : Visibility.Visible;
+        if (second is not null)
+        {
+            var share = parts[1].Weight / parts.Sum(p => p.Weight);
+            MixSlider.Value = Math.Clamp(Math.Round(share * 20) * 5, 10, 90);
+            MixLabel.Text = Loc.T("assistantVoice.mixShareOf", KokoroModels.DisplayName(second), KokoroModels.DisplayName(first));
+            MixValue.Text = $"{MixSlider.Value:0} %";
+        }
 
         List<Option> windows = [new(string.Empty, Loc.T("assistantVoice.windowsFirst")), .. (_app.AssistantVoice?.WindowsVoices ?? []).Select(v => new Option(v, v))];
         WindowsVoiceBox.ItemsSource = windows;
@@ -119,9 +139,16 @@ public partial class AssistantVoiceSection : UserControl
         _filling = false;
     }
 
-    /// <summary>«eve» → «Eve», «bill_boerst» → «Bill Boerst».</summary>
-    private static string Title(string voice) =>
-        string.Join(' ', voice.Split('_').Select(p => p.Length > 0 ? char.ToUpperInvariant(p[0]) + p[1..] : p));
+    /// <summary>«ef_dora» → «Dora (mujer)»; a mix → «Dora + Alex».</summary>
+    private static string VoiceTitle(string spec)
+    {
+        var names = KokoroModels.Names(spec);
+        if (names.Count != 1) return string.Join(" + ", names.Select(KokoroModels.DisplayName));
+        var voice = names[0];
+        var who = Loc.T(KokoroModels.IsFemale(voice) ? "assistantVoice.female" : "assistantVoice.male");
+        if (App.KokoroLanguage == "en") who += ", " + Loc.T(KokoroModels.IsBritish(voice) ? "assistantVoice.british" : "assistantVoice.american");
+        return $"{KokoroModels.DisplayName(voice)} ({who})";
+    }
 
     private static string Mb(long bytes) => (bytes / 1048576.0).ToString("0", Loc.Instance.Culture);
 
@@ -137,13 +164,29 @@ public partial class AssistantVoiceSection : UserControl
         _app.Config.Settings.AssistantVoiceProfile = option.Value;
     }
 
-    private void OnPocketVoiceChanged(object sender, SelectionChangedEventArgs e)
+    /// <summary>The voice or the one it is mixed with changed: the mix keeps its share (half when it is new).</summary>
+    private void OnKokoroVoiceChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_filling || PocketVoiceBox.SelectedItem is not Option option || option.Value == _app.PocketVoice) return;
+        if (_filling || KokoroVoiceBox.SelectedItem is not Option voice) return;
+        var with = MixVoiceBox.SelectedItem is Option { Value.Length: > 0 } mix && mix.Value != voice.Value ? mix.Value : null;
+        var share = MixRow.Visibility == Visibility.Visible ? MixSlider.Value / 100 : 0.5;
+        Choose(KokoroModels.Mix(voice.Value, with, share));
+    }
+
+    private void OnMixChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_filling || KokoroVoiceBox.SelectedItem is not Option voice || MixVoiceBox.SelectedItem is not Option { Value.Length: > 0 } mix) return;
+        MixValue.Text = $"{MixSlider.Value:0} %";
+        Choose(KokoroModels.Mix(voice.Value, mix.Value, MixSlider.Value / 100));
+    }
+
+    private void Choose(string spec)
+    {
+        if (spec == _app.KokoroVoice) return;
         // After this event: the lists are made again.
         Dispatcher.BeginInvoke(() =>
         {
-            _app.ChoosePocketVoice(option.Value);
+            _app.ChooseKokoroVoice(spec);
             Refresh();
         });
     }
@@ -156,16 +199,16 @@ public partial class AssistantVoiceSection : UserControl
 
     private void OnDownload(object sender, RoutedEventArgs e)
     {
-        _app.PocketDownload.Start();
+        _app.KokoroDownload.Start();
         Refresh();
     }
 
-    private void OnCancelDownload(object sender, RoutedEventArgs e) => _app.PocketDownload.Cancel();
+    private void OnCancelDownload(object sender, RoutedEventArgs e) => _app.KokoroDownload.Cancel();
 
     private async void OnDelete(object sender, RoutedEventArgs e)
     {
         DeleteButton.IsEnabled = false;
-        try { await _app.DeletePocketAsync(); }
+        try { await _app.DeleteKokoroAsync(); }
         finally { DeleteButton.IsEnabled = true; }
     }
 

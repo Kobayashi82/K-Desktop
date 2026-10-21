@@ -3,7 +3,7 @@
     "id": "natural",
     "name": "Natural",
     "engine": {
-      "type": "pocket",
+      "type": "kokoro",
       "voice": "default"
     },
     "chain": [],
@@ -34,7 +34,7 @@
     "id": "robot",
     "name": "Robot clásico",
     "engine": {
-      "type": "pocket",
+      "type": "kokoro",
       "voice": "default"
     },
     "chain": [
@@ -81,7 +81,7 @@
     "id": "martian",
     "name": "Marciano",
     "engine": {
-      "type": "pocket",
+      "type": "kokoro",
       "voice": "default"
     },
     "chain": [
@@ -131,7 +131,7 @@
     "id": "mission",
     "name": "Control de misión",
     "engine": {
-      "type": "pocket",
+      "type": "kokoro",
       "voice": "default"
     },
     "chain": [
@@ -169,7 +169,7 @@
     "id": "eightbit",
     "name": "8 bits",
     "engine": {
-      "type": "pocket",
+      "type": "kokoro",
       "voice": "default"
     },
     "chain": [

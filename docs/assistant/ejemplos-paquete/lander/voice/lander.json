@@ -1,7 +1,7 @@
 {
   "$schema": "../../../esquemas/voice.schema.json",
   "name": "Control de misión",
-  "engine": { "type": "pocket", "voice": "default", "speed": 1.05 },
+  "engine": { "type": "kokoro", "voice": "default", "speed": 1.05 },
   "chain": [
     { "fx": "pitch", "semitones": 2 },
     { "fx": "radio", "bandwidth": 3200, "noise": 0.03, "beep": true },

@@ -1,5 +1,5 @@
 using KDesktop.Assistant.Voice;
-using KDesktop.Assistant.Voice.Pocket;
+using KDesktop.Assistant.Voice.Kokoro;
 using KDesktop.Core.Assistant.Voice;
 
 namespace KDesktop.Assistant.Tests;
@@ -69,19 +69,52 @@ public class VoiceTests
     public void WithoutTheNaturalVoiceAutomaticFallsBack()
     {
         using var speech = new Speech();
-        // The tests' data folder has no Pocket TTS: Windows' voices if this PC has one for the language, else beeps.
+        // The tests' data folder has no Kokoro: Windows' voices if this PC has one for the language, else beeps.
         var expected = speech.HasWindows("es") ? SpeechEngineKind.Windows : SpeechEngineKind.Beeps;
         Assert.Equal(expected, speech.Resolve("es", new VoiceSettings(SpeechEngineKind.Auto)));
-        Assert.Equal(expected, speech.Resolve("es", new VoiceSettings(SpeechEngineKind.Pocket)));
+        Assert.Equal(expected, speech.Resolve("es", new VoiceSettings(SpeechEngineKind.Kokoro)));
     }
 
     [Fact]
-    public void ASentenceThatRamblesOrStopsIsNoticed()
+    public void ALongSentenceIsSaidInPieces()
     {
-        var (shortest, longest) = PocketEngine.Bounds("Recibido. He vaciado la papelera.");
-        Assert.InRange(2.0, shortest, longest);
-        Assert.True(6.4 > longest);   // what «javert» once did with it
-        Assert.True(0.16 < shortest);
+        var phonemes = SpanishPhonemes.ToPhonemes(string.Join(", ", Enumerable.Repeat("después busca la sección de sonido y elige el altavoz", 8)) + ".");
+        var pieces = KokoroEngine.Pieces(phonemes);
+        Assert.True(pieces.Count > 1);
+        Assert.All(pieces, p => Assert.InRange(KokoroModel.Tokens(p).Count, 1, KokoroEngine.PieceLength));
+        // Cut after a comma, and nothing lost.
+        Assert.All(pieces.SkipLast(1), p => Assert.EndsWith(",", p, StringComparison.Ordinal));
+        Assert.Equal(phonemes.Replace(" ", "", StringComparison.Ordinal), string.Concat(pieces).Replace(" ", "", StringComparison.Ordinal));
+        Assert.Single(KokoroEngine.Pieces(SpanishPhonemes.ToPhonemes("Recibido, Houston.")));
+    }
+
+    [Fact]
+    public void OnlyTheModelsSymbolsReachIt()
+    {
+        // Spaces and marks are symbols too; what it does not know («¿», digits) is left out.
+        Assert.Equal(KokoroModel.Tokens("ˈola, kˈe tˈal?").Count, "ˈola, kˈe tˈal?".Length);
+        Assert.Empty(KokoroModel.Tokens("¿¡123"));
+    }
+
+    [Fact]
+    public void VoicesAreMixedByTheirWeights()
+    {
+        var folder = Directory.CreateTempSubdirectory("kokoro-voices").FullName;
+        try
+        {
+            static byte[] Pack(float value) => System.Runtime.InteropServices.MemoryMarshal.AsBytes(
+                Enumerable.Repeat(value, KokoroModel.MaxPhonemes * KokoroModel.StyleSize).ToArray().AsSpan()).ToArray();
+            File.WriteAllBytes(Path.Combine(folder, "a.bin"), Pack(1));
+            File.WriteAllBytes(Path.Combine(folder, "b.bin"), Pack(3));
+            string File_(string name) => Path.Combine(folder, name + ".bin");
+            Assert.Equal(1f, KokoroModel.Voice("a", File_)[0]);
+            Assert.Equal(2f, KokoroModel.Voice("a,b", File_)[100], 4);
+            Assert.Equal(1.5f, KokoroModel.Voice("a:0.75,b:0.25", File_)[^1], 4);
+        }
+        finally
+        {
+            Directory.Delete(folder, true);
+        }
     }
 
     [Fact]
@@ -114,17 +147,42 @@ public class VoiceTests
     }
 
     [Fact]
-    public void TheCatalogHasEveryLanguageOfKDesktop()
+    public void TheCatalogHasEveryLanguageKokoroSpeaks()
     {
-        foreach (var language in new[] { "es", "en", "fr", "de", "it", "pt" })
+        foreach (var language in new[] { "es", "en", "fr", "it", "pt" })
         {
-            Assert.True(PocketModels.Supports(language), language);
-            Assert.Contains(PocketModels.DefaultVoice, PocketModels.Voices(language));
-            var files = PocketModels.Files(language, PocketModels.DefaultVoice);
-            Assert.Equal(7, files.Count);
-            Assert.All(files, f => Assert.StartsWith("https://huggingface.co/", f.Url, StringComparison.Ordinal));
-            Assert.All(files.Where(f => f.Path.EndsWith(".onnx", StringComparison.Ordinal)), f => Assert.Equal(64, f.Sha256.Length));
+            Assert.True(KokoroModels.Supports(language), language);
+            var voice = KokoroModels.DefaultVoice(language);
+            var files = KokoroModels.Files(language, voice);
+            Assert.Equal(KokoroModels.ModelFile, files[0].Path);
+            Assert.Equal(KokoroModels.VoiceFile(voice), files[1].Path);
+            Assert.All(files, f => Assert.Equal(64, f.Sha256.Length));
+            Assert.All(files.Take(2), f => Assert.StartsWith("https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/", f.Url, StringComparison.Ordinal));
+            // Spanish has rules of its own; the others need espeak-ng, downloaded apart (the tests' folder has none).
+            Assert.Equal(language != "es", KokoroModels.NeedsEspeak(language));
+            Assert.Equal(language == "es" ? 2 : 3, files.Count);
         }
-        Assert.Equal(PocketModels.DefaultVoice, PocketModels.VoiceOrDefault("es", "nobody"));
+        Assert.False(KokoroModels.Supports("de"));
+        Assert.Equal(["ef_dora", "em_alex", "em_santa"], KokoroModels.Voices("es"));
+        Assert.Equal("en-gb", KokoroModels.EspeakVoice("en", "bm_george"));
+        Assert.Equal("en-us", KokoroModels.EspeakVoice("en", "af_heart"));
+        Assert.Null(KokoroModels.EspeakVoice("es", "ef_dora"));
+    }
+
+    [Fact]
+    public void AVoiceOrAMixOfTheLanguageIsKept()
+    {
+        Assert.Equal("ef_dora", KokoroModels.VoiceOrDefault("es", "nobody"));
+        Assert.Equal("ef_dora", KokoroModels.VoiceOrDefault("es", "af_heart"));
+        Assert.Equal("em_alex", KokoroModels.VoiceOrDefault("es", "em_alex"));
+        var mix = KokoroModels.Mix("ef_dora", "em_alex", 0.3);
+        Assert.Equal("ef_dora:0.7,em_alex:0.3", mix);
+        Assert.Equal(mix, KokoroModels.VoiceOrDefault("es", mix));
+        Assert.Equal(["ef_dora", "em_alex"], KokoroModels.Names(mix));
+        Assert.Equal("ef_dora", KokoroModels.Mix("ef_dora", "ef_dora", 0.5));
+        Assert.Equal(3, KokoroModels.Files("es", mix).Count);
+        Assert.Equal("Dora", KokoroModels.DisplayName("ef_dora"));
+        Assert.True(KokoroModels.IsFemale("ef_dora"));
+        Assert.False(KokoroModels.IsFemale("em_santa"));
     }
 }

@@ -5,7 +5,7 @@ using KDesktop.Core.Assistant.Voice;
 namespace KDesktop.Assistant.Voice.Effects;
 
 /// <summary>
-/// The effects one sentence goes through (stage 5.5): the speed (only for a voice without its own: Pocket TTS), the chain
+/// The effects one sentence goes through (stage 5.5): the speed (only for a voice without its own; none now), the chain
 /// of its profile, the effects of the moods it is in (<c>error</c>, <c>far</c>, <c>happy</c>…) and a leveler that keeps
 /// every voice equally loud. Piece by piece, as it is made; one per sentence.
 /// </summary>

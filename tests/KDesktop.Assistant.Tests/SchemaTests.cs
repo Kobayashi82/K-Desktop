@@ -100,7 +100,7 @@ public class SchemaTests
     [InlineData("""{ "fx": "autotune" }""")]
     public void BrokenVoiceEffectIsRejected(string fx)
     {
-        var json = $$"""{ "name": "X", "engine": { "type": "pocket" }, "chain": [ {{fx}} ] }""";
+        var json = $$"""{ "name": "X", "engine": { "type": "kokoro" }, "chain": [ {{fx}} ] }""";
         Assert.NotEmpty(Contracts.Validate("voice", json));
     }
 
