@@ -83,7 +83,7 @@ public partial class App
                 Dispatcher.BeginInvoke(() => OnAssistantMessage(message));
             };
             _assistant = supervisor;
-            _assistantLook = (Loc.Instance.Language, ThemeService.IsDark);
+            _assistantLook = (AssistantLanguage, ThemeService.IsDark);
             Log.Info("Asistente: módulo activado");
             supervisor.Start();
             UpdateAssistantInput();
@@ -109,10 +109,10 @@ public partial class App
             _ = running.DisposeAsync().AsTask();
             AssistantChanged?.Invoke();
         }
-        else if (_assistant is { } current && _assistantLook != (Loc.Instance.Language, ThemeService.IsDark))
+        else if (_assistant is { } current && _assistantLook != (AssistantLanguage, ThemeService.IsDark))
         {
             // Language and theme reach the assistant in its welcome: a new process takes them.
-            _assistantLook = (Loc.Instance.Language, ThemeService.IsDark);
+            _assistantLook = (AssistantLanguage, ThemeService.IsDark);
             current.Restart();
         }
         if (_assistant is { IsRunning: true })
@@ -124,6 +124,13 @@ public partial class App
         }
     }
 
+    /// <summary>
+    /// The language the assistants speak in: the one of Options → Assistant → General, or K-Desktop's. The assistant
+    /// process runs in it (its answers, its voice, the texts of the assistants), whatever the user speaks in.
+    /// </summary>
+    public string AssistantLanguage =>
+        Config.Settings.AssistantLanguage is { Length: > 0 } chosen && Loc.Available().Any(l => l.Code == chosen) ? chosen : Loc.Instance.Language;
+
     private WelcomeMessage AssistantWelcome()
     {
         var brain = AssistantBrainConfig();
@@ -132,7 +139,7 @@ public partial class App
         _assistantToolsSent = tools.ToJsonString();
         var voice = AssistantVoiceConfig();
         _assistantVoiceSent = voice.ToJsonString();
-        return new(Loc.Instance.Language, ThemeService.IsDark ? "dark" : "light", Config.Settings.Paused,
+        return new(AssistantLanguage, ThemeService.IsDark ? "dark" : "light", Config.Settings.Paused,
             new() { ["general"] = AssistantGeneral(), ["brain"] = brain, ["tools"] = tools, ["voice"] = voice });
     }
 

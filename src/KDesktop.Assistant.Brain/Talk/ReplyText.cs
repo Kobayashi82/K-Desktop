@@ -61,6 +61,27 @@ public static partial class ReplyText
         return text;
     }
 
+    /// <summary>
+    /// Without the questions at the end of an answer that says something before them («Aterrizado en la web, Houston.
+    /// ¿Listo para despegar?»): for a turn in which a tool did or looked something up, where nothing is missing; asked
+    /// aloud, K-Desktop would listen for an answer nobody gives. An answer that is only a question stays.
+    /// </summary>
+    public static string DropQuestions(string text)
+    {
+        while (true)
+        {
+            var trimmed = text.TrimEnd();
+            if (!trimmed.EndsWith('?')) return text;
+            var start = trimmed.Length - 1;
+            while (start > 0 && trimmed[start - 1] is not ('.' or '!' or '?' or '…')) start--;
+            if (start == 0) return text;
+            var before = trimmed[..start].TrimEnd();
+            // «¿A? ¿B?»: all questions, nothing said before them: it stays as it is.
+            if (before.Length == 0 || TextSimilarity.Words(before).Length == 0) return text;
+            text = before;
+        }
+    }
+
     /// <summary>The words of an empty offer in every language, folded, with spaces around (whole words).</summary>
     private static readonly Lazy<string[]> Closers = new(() =>
     [

@@ -96,7 +96,7 @@ public sealed class CommandRoutingTests : IDisposable
 
         await talk.HandleAsync(new HeardMessage("vacía la papelera y cuéntame un chiste", "panel"));
         Assert.Equal(["run:bin:"], _bridge.Done);
-        Assert.Equal("cuéntame un chiste", _model.Requests.Single().Messages[^1].Content);
+        Assert.StartsWith("cuéntame un chiste\n", _model.Requests.Single().Messages[^1].Content, StringComparison.Ordinal);
         Assert.StartsWith(Core.Localization.Loc.T("tool.run_command.reply", "Vaciar papelera")[..5], LastAnswer.Split(' ', 2)[1], StringComparison.Ordinal);
         Assert.Contains("problemas", LastAnswer, StringComparison.Ordinal);
     }

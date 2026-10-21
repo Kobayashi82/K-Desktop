@@ -126,7 +126,8 @@ public sealed class TalkTests : IDisposable
         Assert.Contains("Te llamas Lander", system.Content, StringComparison.Ordinal);
         Assert.Contains(Lander.Prompt, system.Content, StringComparison.Ordinal);
         Assert.Contains("en español", system.Content, StringComparison.Ordinal);
-        Assert.Equal("¿quién eres?", request.Messages[^1].Content);
+        Assert.StartsWith("¿quién eres?\n", request.Messages[^1].Content, StringComparison.Ordinal);
+        Assert.EndsWith("(Contesta en español.)", request.Messages[^1].Content, StringComparison.Ordinal);
         Assert.NotEmpty(request.Tools);
         // Cleaned for a bubble and a voice.
         Assert.Equal("¡Aquí Lander, listo para despegar!", LastAnswer);
@@ -141,7 +142,8 @@ public sealed class TalkTests : IDisposable
         var last = _model.Requests[^1].Messages;
         Assert.Equal(1 + 2 * TalkHistory.Kept + 1, last.Count);
         Assert.Equal("pregunta 0", last[1].Content);
-        Assert.Equal("pregunta 3", last[^1].Content);
+        // The order with the language reminder; the history without it.
+        Assert.StartsWith("pregunta 3\n", last[^1].Content, StringComparison.Ordinal);
 
         // Each assistant has its own conversation.
         _model.Answers.Enqueue(_ => Text("Hola."));
@@ -241,6 +243,13 @@ public sealed class TalkTests : IDisposable
         // Only «piensa algo muy largo» went to the AI.
         Assert.Single(_model.Requests);
     }
+
+    [Theory]
+    [InlineData("Aterrizado en la web, Houston. ¿Listo para despegar?", "Aterrizado en la web, Houston.")]
+    [InlineData("Ninguna nota registrada, comandante. ¿Dónde aterrizamos? ¿Seguro?", "Ninguna nota registrada, comandante.")]
+    [InlineData("¿Para cuándo lo pongo?", "¿Para cuándo lo pongo?")]
+    [InlineData("Hecho.", "Hecho.")]
+    public void AfterDoingSomethingItDoesNotEndAsking(string said, string expected) => Assert.Equal(expected, ReplyText.DropQuestions(said));
 
     [Fact]
     public void RepliesAreCleanedForABubble()

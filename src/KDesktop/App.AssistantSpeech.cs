@@ -53,8 +53,8 @@ public partial class App
         }
     }
 
-    /// <summary>The language of Kokoro: the interface's (what the assistants speak).</summary>
-    public static string KokoroLanguage => Loc.Instance.Language;
+    /// <summary>The language of Kokoro: the one the assistants speak in.</summary>
+    public string KokoroLanguage => AssistantLanguage;
 
     /// <summary>The voice or mix of Kokoro chosen (of the language; else its first one).</summary>
     public string KokoroVoice => KokoroModels.VoiceOrDefault(KokoroLanguage, Config.Settings.AssistantVoiceKokoro);

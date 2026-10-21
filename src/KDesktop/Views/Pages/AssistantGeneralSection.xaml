@@ -74,6 +74,17 @@
                 </StackPanel>
             </Grid>
 
+            <!-- The language they speak in, whatever you speak to them in -->
+            <Grid Style="{StaticResource SettingRow}" IsEnabled="{Binding AssistantEnabled}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="{l:Tr assistantOptions.language}" />
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantOptions.languageHint}" />
+                </StackPanel>
+                <ComboBox x:Name="LanguageBox" Grid.Column="1" MinWidth="230" VerticalAlignment="Center" DisplayMemberPath="Name"
+                          SelectionChanged="OnLanguageChanged" AutomationProperties.Name="{l:Tr assistantOptions.language}" />
+            </Grid>
+
             <!-- Whether it asks before doing something -->
             <Grid Style="{StaticResource SettingRow}" IsEnabled="{Binding AssistantEnabled}">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>

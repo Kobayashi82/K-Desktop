@@ -214,6 +214,7 @@ public sealed class MemoryTests : IDisposable
     [InlineData("ricorda che mia figlia si chiama Ana", QuickRuleKind.Remember, "mia figlia si chiama Ana")]
     [InlineData("¿Qué tienes en la memoria?", QuickRuleKind.Recall, null)]
     [InlineData("que tienes en la memoria.", QuickRuleKind.Recall, null)]
+    [InlineData("qué tienes en en tu memoria?", QuickRuleKind.Recall, null)]
     [InlineData("¿qué sabes de mí?", QuickRuleKind.Recall, null)]
     [InlineData("what do you know about me?", QuickRuleKind.Recall, null)]
     [InlineData("olvida lo de la vuelta", QuickRuleKind.Forget, "la vuelta")]

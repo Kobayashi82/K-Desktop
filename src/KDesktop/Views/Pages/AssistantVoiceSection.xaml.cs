@@ -47,7 +47,7 @@ public partial class AssistantVoiceSection : UserControl
     {
         _filling = true;
         var s = _app.Config.Settings;
-        var language = App.KokoroLanguage;
+        var language = _app.KokoroLanguage;
 
         List<Option> engines =
         [
@@ -134,9 +134,20 @@ public partial class AssistantVoiceSection : UserControl
             MoodBox.ItemsSource = moods;
             MoodBox.SelectedItem = moods[0];
         }
-        if (TestBox.Text.Length == 0)
-            TestBox.Text = Loc.T("assistantVoice.testText", picked is { } name ? App.AssistantName(name) : "K-Desktop");
+        // Empty or still the sentence it had (another language, another assistant): the one for now.
+        if (TestBox.Text.Length == 0 || TestBox.Text == _testDefault)
+            TestBox.Text = _testDefault = TestText(language, picked is { } name ? App.AssistantName(name) : "K-Desktop");
         _filling = false;
+    }
+
+    /// <summary>The test sentence last put in the box (it is replaced while the user has not written another).</summary>
+    private string? _testDefault;
+
+    /// <summary>The test sentence in the language they speak in (it may not be K-Desktop's).</summary>
+    private static string TestText(string language, string name)
+    {
+        var text = Loc.Strings(language, "assistantVoice.testText").GetValueOrDefault("assistantVoice.testText") ?? Loc.T("assistantVoice.testText");
+        return string.Format(Loc.Instance.Culture, text, name);
     }
 
     /// <summary>«ef_dora» → «Dora (mujer)»; a mix → «Dora + Alex».</summary>
@@ -146,7 +157,7 @@ public partial class AssistantVoiceSection : UserControl
         if (names.Count != 1) return string.Join(" + ", names.Select(KokoroModels.DisplayName));
         var voice = names[0];
         var who = Loc.T(KokoroModels.IsFemale(voice) ? "assistantVoice.female" : "assistantVoice.male");
-        if (App.KokoroLanguage == "en") who += ", " + Loc.T(KokoroModels.IsBritish(voice) ? "assistantVoice.british" : "assistantVoice.american");
+        if (App.Current.KokoroLanguage == "en") who += ", " + Loc.T(KokoroModels.IsBritish(voice) ? "assistantVoice.british" : "assistantVoice.american");
         return $"{KokoroModels.DisplayName(voice)} ({who})";
     }
 

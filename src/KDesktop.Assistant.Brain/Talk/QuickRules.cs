@@ -80,7 +80,10 @@ public static partial class QuickRules
     public static QuickRule? Match(string text, IEnumerable<string>? names = null)
     {
         var w = Words;
+        // A word said twice in a row is one («qué tienes en en tu memoria»: Parakeet's stutter).
         var tokens = Tokenize(text);
+        for (var i = tokens.Count - 1; i > 0; i--)
+            if (tokens[i].Folded == tokens[i - 1].Folded) tokens.RemoveAt(i);
         var nameWords = (names ?? []).Select(TextSimilarity.Words).Where(n => n.Length > 0).ToList();
         var bare = Trim(tokens, w, nameWords);
         if (bare.Count == 0) return null;

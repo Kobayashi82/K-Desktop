@@ -46,7 +46,7 @@ public partial class App
     {
         try
         {
-            var file = BenchFile.EnsureUserFile(Loc.Instance.Language);
+            var file = BenchFile.EnsureUserFile(AssistantLanguage);
             ProcessLauncher.Launch(new LaunchSpec(file), asAdmin: false);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)

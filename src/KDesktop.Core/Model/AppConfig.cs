@@ -550,6 +550,12 @@ public partial class AppSettings : ObservableObject
     /// </summary>
     [ObservableProperty] private string _assistantAskBefore = Assistant.AskPolicy.Risky;
 
+    /// <summary>
+    /// The language the assistants speak in (its answers, its voice, its texts), whatever the user speaks to them in; empty:
+    /// K-Desktop's. The assistant process runs in it.
+    /// </summary>
+    [ObservableProperty] private string _assistantLanguage = string.Empty;
+
     /// <summary>The tools that no longer ask before doing something («yes, and don't ask again»). Replaced whole on every change.</summary>
     [ObservableProperty] private List<string> _assistantTrustedTools = [];
 

@@ -75,7 +75,7 @@ public class TalkProcessTests
             Assert.Contains(received.OfType<StatusMessage>(), s => s is { State: "thinking", Assistant: "dot" });
             using (var request = JsonDocument.Parse(ollama.LastRequest))
             {
-                Assert.Equal("cuéntame algo", request.RootElement.GetProperty("messages").EnumerateArray().Last().GetProperty("content").GetString());
+                Assert.StartsWith("cuéntame algo\n", request.RootElement.GetProperty("messages").EnumerateArray().Last().GetProperty("content").GetString(), StringComparison.Ordinal);
                 Assert.InRange(request.RootElement.GetProperty("tools").GetArrayLength(), 3, 5);
             }
             Assert.Contains(received.OfType<EmbedMessage>(), e => e.Keep is null && e.Texts.SequenceEqual(["cuéntame algo"]));

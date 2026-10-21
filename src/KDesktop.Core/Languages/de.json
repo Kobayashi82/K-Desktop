@@ -3068,5 +3068,10 @@
   "assistantVoice.female": "weiblich",
   "assistantVoice.male": "männlich",
   "assistantVoice.british": "britisch",
-  "assistantVoice.american": "amerikanisch"
+  "assistantVoice.american": "amerikanisch",
+  "assistantOptions.language": "Sprache, in der sie mit dir sprechen",
+  "assistantOptions.languageHint": "Sie antworten und sprechen in dieser Sprache, auch wenn du in einer anderen mit ihnen sprichst (sie verstehen dich trotzdem). Ihre Texte ändern sich auch, die Einstellungen von K-Desktop nicht.",
+  "assistantOptions.languageSame": "Die von K-Desktop",
+  "assistant.prompt.language": "Der Nutzer spricht vielleicht eine andere Sprache mit dir: Du antwortest trotzdem immer auf Deutsch.",
+  "assistant.prompt.answerIn": "(Antworte auf Deutsch.)"
 }

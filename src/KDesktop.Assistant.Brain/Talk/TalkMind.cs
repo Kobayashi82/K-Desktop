@@ -67,7 +67,9 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         var definitions = offered.Tools.Select(t => new ToolDefinition(t.Name, t.Description, t.ParametersSchemaJson)).ToList();
         var messages = new List<ChatMessage> { ChatMessage.System(TalkPrompt.Compose(persona, time.GetLocalNow(), known, commands)) };
         messages.AddRange(history);
-        messages.Add(ChatMessage.User(said));
+        // The language it speaks in, next to the order: a small model answers in the language it is spoken to otherwise
+        // (Options → Assistant → General → the language they speak in). Only for this order, not kept in the history.
+        messages.Add(ChatMessage.User(said + "\n\n" + Loc.T("assistant.prompt.answerIn")));
         var first = messages.Count;
 
         var calls = 0;
@@ -124,6 +126,8 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
             return new TalkAnswer(persona.Phrase("ok") + " " + string.Join(" ", replies)) { Tools = used, Steps = steps };
 
         var clean = ReplyText.Clean(answer);
+        // It did or looked something up: nothing is missing, so no question at the end («¿Listo para despegar?»).
+        if (used.Count > 0) clean = ReplyText.DropQuestions(clean);
         // Silent after doing something: what the tool says it did.
         if (clean.Length == 0) clean = toolReply ?? persona.Phrase("notFound");
         // «He ejecutado «Captura de pantalla».» with nothing run (and no such command): copied from an earlier answer.
