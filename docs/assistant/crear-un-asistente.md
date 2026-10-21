@@ -90,6 +90,13 @@ tarjeta y un botón en el panel, y guarda sus datos en su carpeta.
   eligió el usuario (`Showy`, `Normal`, `Fast`): en `Fast` haz el `Commit` antes de medio segundo (pasado ese tiempo,
   K-Desktop lo hace igual). Con «Enseñar también los comandos que lanzas tú» encendido, los comandos lanzados por otras
   vías también te llegan como gestos, siempre en `Fast`: son solo adorno, nada los espera y su `Commit` no hace nada.
+- **Cuerda** (`Rope`, SDK 1.4): una cuerda de Verlet en píxeles de pantalla para ganchos, cables y correas. El
+  principio lo sujetas tú (`Start` en cada tick); el final cuelga (`ReleaseEnd`, con la velocidad a la que lo sueltas) o
+  va sujeto (`PinEnd`: clavado en una ventana, en un proyectil). Solo resiste estirarse (se comba y se afloja), nunca pasa
+  de `MaxLength` con el final suelto y avanza a 120 Hz fijos (`Step(tick.Elapsed)`), así que se comporta igual a cualquier
+  ritmo. `Length` para recoger o soltar cable, `Gravity`, `Damping`, `Iterations`; `IsTaut`, `Overstretch` y `Pull` (hacia
+  el principio, lo que sobra de largo: lo que sigue una ventana remolcada). Se dibuja con `Draw(dc, pen)` (curva suave) y
+  `Bounds(margen)` dice el tamaño de la superficie.
 - **Papelera:** `SystemEvent.RecycleBinEmptied` trae dónde está su icono en el escritorio (o null si no está o los
   iconos están ocultos).
 
