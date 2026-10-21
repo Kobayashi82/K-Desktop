@@ -125,6 +125,15 @@ internal static unsafe partial class Native
     [LibraryImport("user32.dll")]
     public static partial nint GetCapture();
 
+    public const uint WM_TIMER = 0x0113;
+
+    [LibraryImport("user32.dll")]
+    public static partial nuint SetTimer(nint hWnd, nuint nIDEvent, uint uElapse, nint lpTimerFunc);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool KillTimer(nint hWnd, nuint uIDEvent);
+
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool TrackMouseEvent(ref TRACKMOUSEEVENT track);

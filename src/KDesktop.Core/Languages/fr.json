@@ -2935,5 +2935,8 @@
   "assistantCard.wakeUse": "L'appeler avec « {0} », le mot que vous avez déjà enregistré",
   "assistantCard.wakeHint": "Ce que vous dites après son nom lui parvient ; « K-Desktop, … » lance toujours vos commandes. Modifiable dans Paramètres › Assistants.",
   "assistantCard.wakeGiven": "« {0} » appelle désormais {1}",
-  "assistant.wakeTip": "Pour appeler {0} par son nom, enregistrez son mot dans Paramètres › Assistants"
+  "assistant.wakeTip": "Pour appeler {0} par son nom, enregistrez son mot dans Paramètres › Assistants",
+
+  "assistantOptions.talkKey": "Touche pour parler à l'assistant",
+  "assistantOptions.talkKeyHint": "Maintenez-la enfoncée pendant que vous parlez : ce que vous dites va à l'assistant, sans dire son nom. Maintenir le clic sur lui fonctionne aussi."
 }

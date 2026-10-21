@@ -190,6 +190,9 @@ public partial class App
             case WriteMessage write:
                 OnAssistantWrite(write);
                 break;
+            case TalkMessage talk:
+                OnAssistantTalk(talk);
+                break;
             case ChatLineMessage line:
                 OnAssistantChat(line);
                 break;

@@ -88,4 +88,20 @@ public class HotkeyIndexTests
         settings.LauncherBlockKey = false;
         Assert.False(new HotkeyIndex([], settings).LauncherBlock);
     }
+
+    [Fact]
+    public void TheTalkKeyOfTheAssistantsOnlyWorksWithTheModuleOn()
+    {
+        var settings = new AppSettings { VoiceHotkey = "Scroll", AssistantTalkHotkey = "Pause" };
+        var talk = Hotkey.Normalize("Pause");
+        Assert.Null(new HotkeyIndex([], settings).VoiceKey(talk, () => "notepad"));
+
+        settings.AssistantEnabled = true;
+        var index = new HotkeyIndex([], settings);
+        Assert.True(index.VoiceKey(talk, () => "notepad"));
+        Assert.False(index.VoiceKey(Hotkey.Normalize("Scroll"), () => "notepad"));
+        Assert.Null(index.VoiceKey(Hotkey.Normalize("F9"), () => "notepad"));
+        Assert.Null(new HotkeyIndex([], settings, paused: true).VoiceKey(talk, () => "notepad"));
+        Assert.Contains("Pause", settings.OwnHotkeys);
+    }
 }

@@ -322,6 +322,22 @@ public sealed record HeardMessage(string Text, string Source, string? Assistant 
     public override string Type => "heard";
 }
 
+/// <summary>
+/// K-Desktop is listening to the user for this assistant (its word was heard, its talk key or a long click on it) or no
+/// longer is (stage 5.2): the character shows it. It comes before the <c>heard</c> with what was said.
+/// </summary>
+/// <param name="Assistant">Who is listened to; null: the module without a body.</param>
+public sealed record ListeningMessage(bool Active, string? Assistant = null) : PipeMessage
+{
+    public override string Type => "listening";
+}
+
+/// <summary>A long click on the character starts recording the user, and letting go stops it (stage 5.2).</summary>
+public sealed record TalkMessage(string Assistant, bool Active) : PipeMessage
+{
+    public override string Type => "talk";
+}
+
 /// <summary>«Lander, para», Escape or the panel: stop what it is doing (the answer it is thinking, the order it is carrying out).</summary>
 /// <param name="Source"><c>voice</c>, <c>escape</c> or <c>panel</c>.</param>
 public sealed record CancelMessage(string Source, string? Assistant = null) : PipeMessage
@@ -542,6 +558,8 @@ public static class PipeJson
         ["ask"] = typeof(AskMessage),
         ["answer"] = typeof(AnswerMessage),
         ["heard"] = typeof(HeardMessage),
+        ["listening"] = typeof(ListeningMessage),
+        ["talk"] = typeof(TalkMessage),
         ["cancel"] = typeof(CancelMessage),
         ["chat"] = typeof(ChatLineMessage),
         ["embed"] = typeof(EmbedMessage),

@@ -1,6 +1,7 @@
 using KDesktop.Core;
 using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Packages;
+using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Voice;
 
@@ -28,8 +29,50 @@ public partial class App
             Log.Warn($"Asistente: la palabra de «{who}» llama a un asistente que ya no está instalado");
             return null;
         }
-        return new VoiceAddressee(who is null ? "K-Desktop" : AssistantName(who),
-            (text, source) => Dispatcher.Invoke(() => SendToAssistant(who, text, source)));
+        return AddresseeFor(who);
+    }
+
+    /// <summary>An assistant (null: the module without a body) as the one an order is for: it gets the text and shows that it listens.</summary>
+    private VoiceAddressee AddresseeFor(string? who) =>
+        new(who is null ? "K-Desktop" : AssistantName(who),
+            (text, source) => Dispatcher.Invoke(() => SendToAssistant(who, text, source)),
+            active => SendListening(who, active));
+
+    /// <summary><c>listening</c> (stage 5.2): the character shows that it is being listened to.</summary>
+    private void SendListening(string? who, bool active)
+    {
+        if (_assistant is { IsRunning: true } supervisor) supervisor.Send(new ListeningMessage(active, who));
+    }
+
+    /// <summary>
+    /// The assistants' talk key (UI thread): while it is held, what is said goes to the one of «Cuando no le hablas a nadie
+    /// en concreto» (with nobody on the desktop, the module without a body).
+    /// </summary>
+    private void TalkToAssistant(Func<bool> held)
+    {
+        if (_assistant is null) return;
+        var who = PickAssistant();
+        if (who is not null) AssistantTalkedTo(who);
+        _ = Voice.ListenAsync(held, AddresseeFor(who));
+    }
+
+    private volatile bool _talkHeld;
+    private string? _talking;
+
+    /// <summary><c>talk</c>: a long click on an assistant records the user for it while the button is held (UI thread).</summary>
+    private void OnAssistantTalk(TalkMessage talk)
+    {
+        if (!talk.Active)
+        {
+            if (_talking == talk.Assistant) _talkHeld = false;
+            return;
+        }
+        if (!IsOnDesktop(talk.Assistant)) return;
+        _talking = talk.Assistant;
+        _talkHeld = true;
+        AssistantTalkedTo(talk.Assistant);
+        Log.Info($"Asistente: clic mantenido sobre «{talk.Assistant}»: se le escucha");
+        _ = Voice.ListenAsync(() => _talkHeld, AddresseeFor(talk.Assistant));
     }
 
     /// <summary>The word «for the assistant» (Options → Assistant → General), or null.</summary>

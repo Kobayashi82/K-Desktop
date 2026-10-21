@@ -2935,5 +2935,8 @@
   "assistantCard.wakeUse": "Ihn mit „{0}“ rufen, dem Wort, das du schon aufgenommen hast",
   "assistantCard.wakeHint": "Was du nach seinem Namen sagst, geht an ihn; „K-Desktop, …“ führt weiter deine Befehle aus. Änderbar unter Einstellungen › Assistenten.",
   "assistantCard.wakeGiven": "„{0}“ ruft jetzt {1}",
-  "assistant.wakeTip": "Um {0} beim Namen zu rufen, nimm sein Wort unter Einstellungen › Assistenten auf"
+  "assistant.wakeTip": "Um {0} beim Namen zu rufen, nimm sein Wort unter Einstellungen › Assistenten auf",
+
+  "assistantOptions.talkKey": "Taste, um mit dem Assistenten zu sprechen",
+  "assistantOptions.talkKeyHint": "Halte sie gedrückt, während du sprichst: Was du sagst, geht an den Assistenten, ohne seinen Namen zu sagen. Die Maustaste auf ihm gedrückt halten geht auch."
 }

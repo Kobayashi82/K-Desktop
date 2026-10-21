@@ -92,9 +92,11 @@ public sealed partial class VoiceService : IDisposable
     /// <summary>
     /// One listening session (the voice hotkey, later the wake word). With <paramref name="held"/> it lasts while
     /// that returns true (a quick tap instead switches to «until silence»); without it, until the speaker goes
-    /// quiet. A second call during a session ends the first one early, keeping what was said.
+    /// quiet. A second call during a session ends the first one early, keeping what was said. With <paramref name="to"/>
+    /// (an assistant's talk key, a long click on it: stage 5.2) what is said goes to that assistant, unless it begins with
+    /// another wake word.
     /// </summary>
-    public async Task ListenAsync(Func<bool>? held)
+    public async Task ListenAsync(Func<bool>? held, VoiceAddressee? to = null)
     {
         if (Interlocked.CompareExchange(ref _active, 1, 0) != 0)
         {
@@ -103,6 +105,7 @@ public sealed partial class VoiceService : IDisposable
         }
         using var abort = new CancellationTokenSource();
         _abort = abort;
+        var listening = false;
         try
         {
             if (!VoiceModels.Ready)
@@ -112,7 +115,14 @@ public sealed partial class VoiceService : IDisposable
             }
             _stopRequested = false;
             StateChanged?.Invoke();
-            await SessionAsync(held, abort.Token).ConfigureAwait(false);
+            if (to?.Listening is { } shows)
+            {
+                shows(true);
+                listening = true;
+                // Once it has the order it says itself that it is no longer listening.
+                to = to with { Listening = active => { listening = false; shows(active); } };
+            }
+            await SessionAsync(held, to, abort.Token).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -120,13 +130,14 @@ public sealed partial class VoiceService : IDisposable
         }
         finally
         {
+            if (listening) to?.Listening?.Invoke(false);
             _abort = null;
             _active = 0;
             StateChanged?.Invoke();
         }
     }
 
-    private async Task SessionAsync(Func<bool>? held, CancellationToken abort)
+    private async Task SessionAsync(Func<bool>? held, VoiceAddressee? to, CancellationToken abort)
     {
         var settings = _config().Settings;
         PreloadModels(settings); // they load while the user speaks
@@ -145,19 +156,26 @@ public sealed partial class VoiceService : IDisposable
 
         using var osd = _ui.ShowVoiceOsd(Loc.T("voice.listening"));
         ListenSound(settings);
-        if (Environment.GetEnvironmentVariable("KDESKTOP_VOICE_FAKE_STREAM") is { Length: > 0 } || Environment.GetEnvironmentVariable("KDESKTOP_VOICE_FAKE") is { Length: > 0 })
+        using var fake = new CancellationTokenSource();
+        var simulated = Environment.GetEnvironmentVariable("KDESKTOP_VOICE_FAKE_STREAM") is { Length: > 0 } || Environment.GetEnvironmentVariable("KDESKTOP_VOICE_FAKE") is { Length: > 0 };
+        if (simulated)
         {
-            // Tests with simulated audio never open the real microphone.
-            Log.Info("Escucha simulada: la sesión no abre el micrófono");
-            osd.Finish(Loc.T("voice.nothingHeard"), OsdKind.Info);
-            return;
+            // Tests with simulated audio never open the real microphone; KDESKTOP_VOICE_FAKE_SESSION (a .wav) is what is said.
+            if (Environment.GetEnvironmentVariable("KDESKTOP_VOICE_FAKE_SESSION") is not { Length: > 0 } said || !File.Exists(said))
+            {
+                Log.Info("Escucha simulada: la sesión no abre el micrófono");
+                osd.Finish(Loc.T("voice.nothingHeard"), OsdKind.Info);
+                return;
+            }
+            Log.Info($"Escucha simulada: la sesión oye {said}");
+            PlayFake(VoiceDiagnostics.ReadWav(said), OnSamples, fake.Token);
         }
-        _mic.Samples += OnSamples;
+        else _mic.Samples += OnSamples;
         using var duck = Duck(settings);
         try
         {
             _mic.EchoCancel = settings.VoiceEchoCancel;
-            _mic.Start(settings.VoiceMicId);
+            if (!simulated) _mic.Start(settings.VoiceMicId);
         }
         catch (Exception ex)
         {
@@ -195,8 +213,9 @@ public sealed partial class VoiceService : IDisposable
         }
         finally
         {
+            fake.Cancel();
             _mic.Samples -= OnSamples;
-            _mic.Stop();
+            if (!simulated) _mic.Stop();
         }
 
         float[] clip;
@@ -232,7 +251,39 @@ public sealed partial class VoiceService : IDisposable
             osd.Finish(Loc.T("voice.cancelled"), OsdKind.Info);
             return;
         }
-        await HandleTextAsync(text, osd).ConfigureAwait(false);
+        if (to is not null) await HandleTextForAsync(text, osd, to).ConfigureAwait(false);
+        else await HandleTextAsync(text, osd).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// What was said to an assistant (its key, a long click on it). Begun with a wake word, that word decides: another
+    /// assistant's sends it there, K-Desktop's runs commands.
+    /// </summary>
+    private async Task HandleTextForAsync(string text, IVoiceOsd osd, VoiceAddressee to)
+    {
+        if (text.Length == 0)
+        {
+            osd.Finish(Loc.T("voice.notUnderstood"), OsdKind.Warning);
+            return;
+        }
+        if (WakeWordVerifier.FindAny(text, WakeWords.Active) is { Start: <= 1 } wake)
+        {
+            text = wake.Rest;
+            if (text.Length == 0)
+            {
+                osd.Finish(Loc.T("voice.wakeOnly", wake.Word.Name), OsdKind.Info);
+                return;
+            }
+            if (AddresseeOf?.Invoke(wake.Word.Id) is not { } other)
+            {
+                Log.Info($"Voz: «{wake.Word.Name}» al principio de lo dicho a «{to.Name}»: es de K-Desktop");
+                await RunTextAsync(text, osd).ConfigureAwait(false);
+                return;
+            }
+            to.Listening?.Invoke(false);
+            to = other;
+        }
+        SendTo(to, text, "voice", osd);
     }
 
     /// <summary>
@@ -599,6 +650,23 @@ public sealed partial class VoiceService : IDisposable
             StateChanged?.Invoke();
         }
     }
+
+    /// <summary>Tests only: <paramref name="audio"/> in real time as if from the microphone (in 30 ms pieces), then silence.</summary>
+    private static void PlayFake(float[] audio, Action<float[]> samples, CancellationToken stop) => Task.Run(async () =>
+    {
+        var watch = Stopwatch.StartNew();
+        var sent = 0L;
+        while (!stop.IsCancellationRequested)
+        {
+            await Task.Delay(30, CancellationToken.None).ConfigureAwait(false);
+            var due = watch.ElapsedMilliseconds * MicCapture.SampleRate / 1000 - sent;
+            if (due <= 0) continue;
+            var chunk = new float[due];
+            for (var i = 0; i < chunk.Length; i++) chunk[i] = sent + i < audio.Length ? audio[sent + i] : 0;
+            sent += due;
+            samples(chunk);
+        }
+    }, CancellationToken.None);
 
     /// <summary>The order's audio from segment <paramref name="first"/> to the last, a little silence around it.</summary>
     private static float[] Span(float[] audio, List<(int Start, int Length)> segments, int first)

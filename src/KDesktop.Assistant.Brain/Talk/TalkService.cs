@@ -164,6 +164,10 @@ public sealed class TalkService
         if (_conversations.TryGetValue(assistant ?? string.Empty, out var conversation)) conversation.Cancel();
     }
 
+    /// <summary>Whether that assistant is answering an order now (thinking or saying it).</summary>
+    public bool IsAnswering(string? assistant) =>
+        _conversations.TryGetValue(assistant ?? string.Empty, out var conversation) && conversation.Busy;
+
     /// <summary>Forgets what was talked with an assistant (it left the desktop).</summary>
     public void Forget(string? assistant)
     {
@@ -315,6 +319,15 @@ public sealed class TalkService
         public TalkHistory History { get; } = new(time);
 
         public string? LastAnswer { get; set; }
+
+        /// <summary>An order is going on.</summary>
+        public bool Busy
+        {
+            get
+            {
+                lock (_gate) return _current is not null;
+            }
+        }
 
         private (IReadOnlyList<MatchedCandidate> Candidates, DateTimeOffset At)? _choice;
 

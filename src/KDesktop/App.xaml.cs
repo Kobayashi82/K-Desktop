@@ -218,7 +218,11 @@ public partial class App : Application
         Router.HasCancellable = () => Engine.HasCancellable || Voice.IsListening;
         Router.CancelRequested += Engine.CancelAll;
         Router.CancelRequested += Voice.Cancel;
-        Router.VoiceRequested += held => _ = Voice.ListenAsync(held);
+        Router.VoiceRequested += (held, toAssistant) =>
+        {
+            if (toAssistant) Dispatcher.BeginInvoke(() => TalkToAssistant(held));
+            else _ = Voice.ListenAsync(held);
+        };
         Router.DisabledInToggleRequested += window =>
         {
             Engine.ToggleDisabledIn(window);

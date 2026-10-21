@@ -59,7 +59,12 @@ tarjeta y un botón en el panel, y guarda sus datos en su carpeta.
   `BubbleAnchor` (lo normal, lo alto de la cabeza; null si no se ve) y siguiéndolo mientras se mueve, el tiempo que
   se tarda en leerlo. El asistente solo hace su gesto de «hablar» (o nada: el bocadillo sale igual). El clic central
   sobre el personaje abre la caja para escribirle (y su menú del clic derecho, *Escribir*): el clic y el doble clic
-  izquierdos son tuyos.
+  izquierdos son tuyos. Mantener pulsado el botón izquierdo sin moverlo (450 ms) es hablarle: recibes `Down` y `Up`,
+  pero no `Click` ni arrastre.
+
+- **Estado** (`SetState`): K-Desktop te dice si te está escuchando (`Listening`: su palabra, la tecla para hablar o el
+  clic mantenido), si piensas (`Thinking`), si hablas (`Speaking`) o si vuelves a reposo (`Idle`). Enséñalo a tu
+  manera (el Lander enciende la luz de su antena; Dot se rodea de un anillo blanco al escuchar y late al pensar).
 
 - **Sonido** (`IAudio`): `Load` (muestras en coma flotante, mono o estéreo, a cualquier frecuencia) o `LoadWav` (del
   paquete), `Play` con ganancia y panorama, y `Loop` con ganancia, tono y panorama en vivo (para un motor). El host lo

@@ -2935,5 +2935,8 @@
   "assistantCard.wakeUse": "Call it with “{0}”, the word you have already recorded",
   "assistantCard.wakeHint": "What you say after its name goes to it; “K-Desktop, …” still runs your commands. You can change it in Settings › Assistants.",
   "assistantCard.wakeGiven": "“{0}” now calls {1}",
-  "assistant.wakeTip": "To call {0} by its name, record its word in Settings › Assistants"
+  "assistant.wakeTip": "To call {0} by its name, record its word in Settings › Assistants",
+
+  "assistantOptions.talkKey": "Key to talk to the assistant",
+  "assistantOptions.talkKeyHint": "Hold it while you speak: what you say goes to the assistant, without saying its name. Holding the mouse button on it works too."
 }

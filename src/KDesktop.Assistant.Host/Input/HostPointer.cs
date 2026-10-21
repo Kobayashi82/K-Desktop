@@ -12,8 +12,17 @@ namespace KDesktop.Assistant.Host.Input;
 /// events go to the assistant on the engine thread; the right button opens the host's menu.
 /// </summary>
 /// <param name="write">A middle click: the box to write to it (stage 3.6).</param>
-internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, Point> menu, Action wheelChanged, Action<string>? write = null) : IPointer, IDisposable
+/// <param name="talk">The left button held still on it: talking to it starts, and letting go ends it (stage 5.2).</param>
+internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, Point> menu, Action wheelChanged, Action<string>? write = null,
+    Action<string, bool>? talk = null) : IPointer, IDisposable
 {
+    /// <summary>How long the button must stay pressed, without dragging, to talk.</summary>
+    public const int TalkHoldMs = 450;
+
+    internal bool CanTalk => talk is not null;
+
+    internal void Talk(string area, bool active) => talk?.Invoke(area, active);
+
     private readonly List<HitArea> _areas = [];
     private bool _watchWheel;
 
@@ -70,7 +79,10 @@ internal sealed unsafe class HitArea : IHitArea
     private bool _hover;
     private bool _pressed;
     private bool _dragging;
+    /// <summary>The button was held long enough: the user is talking to it (no click, no drag).</summary>
+    private bool _talking;
     private POINT _pressPoint;
+    private const nuint TalkTimer = 1;
 
     public HitArea(HostPointer owner, string id)
     {
@@ -161,12 +173,13 @@ internal sealed unsafe class HitArea : IHitArea
                     TrackMouseEvent(ref track);
                     Raise(PointerEventKind.Enter);
                 }
-                if (_pressed && GetCursorPos(out var now))
+                if (_pressed && !_talking && GetCursorPos(out var now))
                 {
                     if (!_dragging && (Math.Abs(now.X - _pressPoint.X) > GetSystemMetrics(SM_CXDRAG) ||
                                        Math.Abs(now.Y - _pressPoint.Y) > GetSystemMetrics(SM_CYDRAG)))
                     {
                         _dragging = true;
+                        KillTimer(_window.Handle, TalkTimer);
                         Raise(PointerEventKind.DragStart);
                     }
                     else if (_dragging) Raise(PointerEventKind.DragMove);
@@ -181,20 +194,34 @@ internal sealed unsafe class HitArea : IHitArea
             case WM_LBUTTONDOWN:
                 if (GetCursorPos(out var down)) _pressPoint = down;
                 _pressed = true;
-                _dragging = false;
+                _dragging = _talking = false;
                 SetCapture(_window.Handle);
+                if (_owner.CanTalk) SetTimer(_window.Handle, TalkTimer, HostPointer.TalkHoldMs, 0);
                 Raise(PointerEventKind.Down);
+                return 0;
+
+            case WM_TIMER when (nuint)wParam == TalkTimer:
+                // Held still long enough: it is not a click, it is talking to it.
+                KillTimer(_window.Handle, TalkTimer);
+                if (_pressed && !_dragging && !_talking)
+                {
+                    _talking = true;
+                    _owner.Talk(Id, true);
+                }
                 return 0;
 
             case WM_LBUTTONUP:
             {
                 var wasPressed = _pressed;
                 var wasDragging = _dragging;
-                _pressed = _dragging = false;
+                var wasTalking = _talking;
+                _pressed = _dragging = _talking = false;
+                KillTimer(_window.Handle, TalkTimer);
                 if (GetCapture() == _window.Handle) ReleaseCapture();
                 if (!wasPressed) return 0;
                 Raise(PointerEventKind.Up);
-                Raise(wasDragging ? PointerEventKind.DragEnd : PointerEventKind.Click);
+                if (wasTalking) _owner.Talk(Id, false);
+                else Raise(wasDragging ? PointerEventKind.DragEnd : PointerEventKind.Click);
                 return 0;
             }
 
@@ -203,11 +230,13 @@ internal sealed unsafe class HitArea : IHitArea
                 return 0;
 
             case WM_CAPTURECHANGED:
+                KillTimer(_window.Handle, TalkTimer);
                 if (_pressed)
                 {
                     _pressed = false;
                     if (_dragging) Raise(PointerEventKind.DragEnd);
-                    _dragging = false;
+                    if (_talking) _owner.Talk(Id, false);
+                    _dragging = _talking = false;
                 }
                 return 0;
 

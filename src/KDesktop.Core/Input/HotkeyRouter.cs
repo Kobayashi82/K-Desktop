@@ -38,10 +38,10 @@ public sealed partial class HotkeyRouter : IDisposable
     public event Action<BuiltInHotkey>? BuiltIn;
 
     /// <summary>
-    /// The voice hotkey was pressed. The argument tells whether it is still held (hold to talk); for the wheel it
-    /// is always false (a tap).
+    /// The voice hotkey was pressed. The first argument tells whether it is still held (hold to talk); for the wheel it
+    /// is always false (a tap). The second is true for the assistants' talk key (stage 5.2).
     /// </summary>
-    public event Action<Func<bool>>? VoiceRequested;
+    public event Action<Func<bool>, bool>? VoiceRequested;
 
     /// <summary>The «Desactivar en» hotkey was pressed in the window given (Settings › Desactivar en).</summary>
     public event Action<ForegroundWindow>? DisabledInToggleRequested;
@@ -179,10 +179,10 @@ public sealed partial class HotkeyRouter : IDisposable
             return Block(vk, mods);
         }
 
-        if (index.IsVoiceHotkey(hotkey, FrontProcess))
+        if (index.VoiceKey(hotkey, FrontProcess) is { } keyToAssistant)
         {
-            if (!repeat) Post(() => VoiceRequested?.Invoke(() => IsKeyHeld(vk)));
-            return index.VoiceBlock && Block(vk, mods);
+            if (!repeat) Post(() => VoiceRequested?.Invoke(() => IsKeyHeld(vk), keyToAssistant));
+            return (index.VoiceBlock || keyToAssistant) && Block(vk, mods);
         }
 
         if (index.IsLauncherHotkey(hotkey, FrontProcess))
@@ -309,14 +309,15 @@ public sealed partial class HotkeyRouter : IDisposable
             _blockedButtons.Add(button); // it fires on release (Dispatch)
             return true;
         }
-        if (index.IsVoiceHotkey(hotkey, FrontProcess))
+        if (index.VoiceKey(hotkey, FrontProcess) is { } buttonToAssistant)
         {
             _armed = false; // nothing fires on release
             _voiceButton = button;
             _voiceButtonHeld = true;
-            if (index.VoiceBlock) _blockedButtons.Add(button);
-            Post(() => VoiceRequested?.Invoke(() => _voiceButtonHeld));
-            return index.VoiceBlock;
+            var blockButton = index.VoiceBlock || buttonToAssistant;
+            if (blockButton) _blockedButtons.Add(button);
+            Post(() => VoiceRequested?.Invoke(() => _voiceButtonHeld, buttonToAssistant));
+            return blockButton;
         }
         if (index.IsDisabledInHotkey(hotkey))
         {
@@ -392,11 +393,11 @@ public sealed partial class HotkeyRouter : IDisposable
             Post(() => BuiltIn?.Invoke(BuiltInHotkey.Pause));
             return true;
         }
-        if (index.IsVoiceHotkey(hotkey, FrontProcess))
+        if (index.VoiceKey(hotkey, FrontProcess) is { } wheelToAssistant)
         {
             _armed = false;
-            Post(() => VoiceRequested?.Invoke(static () => false));
-            return index.VoiceBlock;
+            Post(() => VoiceRequested?.Invoke(static () => false, wheelToAssistant));
+            return index.VoiceBlock || wheelToAssistant;
         }
         if (index.IsLauncherHotkey(hotkey, FrontProcess))
         {

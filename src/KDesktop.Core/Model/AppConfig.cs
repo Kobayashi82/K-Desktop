@@ -276,9 +276,10 @@ public partial class AppSettings : ObservableObject
     /// <summary>Open the main window when K-Desktop is started by hand (never when Windows starts it).</summary>
     [ObservableProperty] private bool _showWindowOnStart = true;
     [ObservableProperty] private bool _showTrayIcon = true;
-    /// <summary>K-Desktop's own hotkeys (show the window, exit, voice, «Desactivar en», pause, launcher); unset ones are empty.</summary>
+    /// <summary>K-Desktop's own hotkeys (show the window, exit, voice, «Desactivar en», pause, launcher, talk to the assistant); unset ones are empty.</summary>
     [JsonIgnore]
-    public IEnumerable<string> OwnHotkeys => [ShowWindowHotkey, ExitHotkey, VoiceHotkey, DisabledInHotkey, PauseHotkey, LauncherHotkey];
+    public IEnumerable<string> OwnHotkeys => [ShowWindowHotkey, ExitHotkey, VoiceHotkey, DisabledInHotkey, PauseHotkey, LauncherHotkey,
+        AssistantEnabled ? AssistantTalkHotkey : string.Empty];
 
     [ObservableProperty] private string _showWindowHotkey = "CTRL + ALT + Home";
     [ObservableProperty] private string _exitHotkey = "CTRL + ALT + End";
@@ -451,6 +452,12 @@ public partial class AppSettings : ObservableObject
     /// one assistant at most; words of none are K-Desktop's. Replaced whole on every change (so it is saved).
     /// </summary>
     [ObservableProperty] private Dictionary<string, string> _assistantWakeWords = [];
+
+    /// <summary>
+    /// Hold to talk to the assistants (Options → Assistant → General, stage 5.2): what is said goes to the one of
+    /// <see cref="AssistantTarget"/>, or to the module without a body. Empty: none.
+    /// </summary>
+    [ObservableProperty] private string _assistantTalkHotkey = string.Empty;
 
     /// <summary>The assistants' sounds (engines, landings…), mixed by their process.</summary>
     [ObservableProperty] private bool _assistantSound = true;

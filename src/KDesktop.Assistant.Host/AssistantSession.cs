@@ -132,6 +132,9 @@ internal sealed class AssistantSession : IDisposable
                     case HeardMessage heard when Talk is { } talk:
                         talk.OnHeard(heard);
                         return;
+                    case ListeningMessage listening when Talk is { } talk:
+                        talk.OnListening(listening);
+                        return;
                     case CancelMessage cancel when Talk is { } talk:
                         talk.OnCancel(cancel);
                         return;

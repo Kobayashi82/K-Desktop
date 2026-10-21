@@ -60,6 +60,20 @@
                 </StackPanel>
             </Grid>
 
+            <!-- Hold to talk to the assistant (stage 5.2) -->
+            <Grid Style="{StaticResource SettingRow}" IsEnabled="{Binding AssistantEnabled}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="{l:Tr assistantOptions.talkKey}" />
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantOptions.talkKeyHint}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <ui:Button x:Name="TalkKeyButton" MinWidth="200" Click="OnCaptureTalkKey" AutomationProperties.Name="{l:Tr assistantOptions.talkKey}" />
+                    <ui:Button x:Name="TalkKeyClear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
+                               AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearTalkKey" />
+                </StackPanel>
+            </Grid>
+
             <!-- How the module is doing, with a way to the panel -->
             <Border x:Name="StatePanel" Style="{StaticResource InfoBox}">
                 <Grid>

@@ -160,7 +160,8 @@ internal sealed class AssistantRuntime : IDisposable
         if (Find(id) is not null) await UnloadAsync(id, ExitKind.Switching).ConfigureAwait(true);
         if (!Watcher.IsStarted) Watcher.Start(_engine.Now, _engine.Post);
         var slot = new AssistantSlot(id, assistant, manifest, context, Rendering, World) { LastTick = _engine.Now };
-        slot.Pointer = new HostPointer(e => Guard(slot, a => a.OnPointer(e), "OnPointer"), (area, at) => OnMenu(slot, at), UpdateWheel, _ => OnWrite(slot));
+        slot.Pointer = new HostPointer(e => Guard(slot, a => a.OnPointer(e), "OnPointer"), (area, at) => OnMenu(slot, at), UpdateWheel, _ => OnWrite(slot),
+            (_, active) => OnTalk(slot, active));
         slot.Keyboard = new HostKeyboard(keys => _link?.Send(new KeysMessage(id, [.. keys.Select(k => k.ToString())])));
         slot.Audio = new AssistantAudio(Audio, package);
         slot.Host = new AssistantHost(this, slot, package, data, settings);
@@ -442,6 +443,13 @@ internal sealed class AssistantRuntime : IDisposable
         var at = anchor ?? (Interop.Native.GetCursorPos(out var cursor) ? new Point(cursor.X, cursor.Y) : default);
         Interop.Native.AllowSetForegroundWindow(Interop.Native.ASFW_ANY);
         link.Send(new WriteMessage(slot.Id, (int)Math.Round(at.X), (int)Math.Round(at.Y)));
+    }
+
+    /// <summary>A long click on an assistant (stage 5.2): K-Desktop records the user while the button is held, for it.</summary>
+    private void OnTalk(AssistantSlot slot, bool active)
+    {
+        if (slot.Dropped && active) return;
+        _link?.Send(new TalkMessage(slot.Id, active));
     }
 
     /// <summary>The host's menu for the assistant clicked (panel, settings, extras, hide; talking and writing come with the brain).</summary>

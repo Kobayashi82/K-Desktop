@@ -68,6 +68,24 @@ internal sealed class ModuleTalk : ITalkOutput
 
     public void OnCancel(CancelMessage cancel) => Service.Cancel(cancel.Assistant);
 
+    /// <summary>Who K-Desktop is listening to now (its word, its key, a long click on it).</summary>
+    private readonly ConcurrentDictionary<string, bool> _listening = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// K-Desktop is listening for an assistant, or no longer is (stage 5.2): the character shows it. When it ends without
+    /// an order, back to rest, unless it is still answering the one before.
+    /// </summary>
+    public void OnListening(ListeningMessage listening)
+    {
+        var key = listening.Assistant ?? string.Empty;
+        if (listening.Active)
+        {
+            _listening[key] = true;
+            State(listening.Assistant, "listening");
+        }
+        else if (_listening.TryRemove(key, out _) && !Service.IsAnswering(listening.Assistant)) State(listening.Assistant, "idle");
+    }
+
     /// <summary>«Asistente: decir»: it says it (not in pause, like the orders).</summary>
     public void OnSay(SayMessage say)
     {
@@ -120,6 +138,7 @@ internal sealed class ModuleTalk : ITalkOutput
         if (assistant is null) return;
         var shown = state switch
         {
+            "listening" => AssistantState.Listening,
             "thinking" => AssistantState.Thinking,
             "speaking" => AssistantState.Speaking,
             _ => AssistantState.Idle,

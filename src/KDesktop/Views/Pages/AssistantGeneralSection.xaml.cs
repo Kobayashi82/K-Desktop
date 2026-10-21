@@ -35,6 +35,34 @@ public partial class AssistantGeneralSection : UserControl
         StateDot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, brush);
         PanelButton.Visibility = _app.Assistant is null ? Visibility.Collapsed : Visibility.Visible;
         FillAnyWake();
+        ShowTalkKey();
+    }
+
+    private void ShowTalkKey()
+    {
+        var hotkey = _app.Config.Settings.AssistantTalkHotkey;
+        var none = string.IsNullOrWhiteSpace(hotkey);
+        TalkKeyButton.Content = none ? Loc.T("settings.voiceNoHotkey") : hotkey;
+        TalkKeyClear.Visibility = none ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void OnCaptureTalkKey(object sender, RoutedEventArgs e)
+    {
+        TalkKeyButton.Content = Loc.T("commands.pressHotkey");
+        HotkeyCapture.Start(
+            preview => TalkKeyButton.Content = preview + "…",
+            hotkey =>
+            {
+                if (hotkey is not null) _app.Config.Settings.AssistantTalkHotkey = Core.Input.Hotkey.Normalize(hotkey);
+                ShowTalkKey();
+            },
+            Window.GetWindow(this));
+    }
+
+    private void OnClearTalkKey(object sender, RoutedEventArgs e)
+    {
+        _app.Config.Settings.AssistantTalkHotkey = string.Empty;
+        ShowTalkKey();
     }
 
     /// <summary>The recorded words; one of an assistant says whose it is (choosing it here takes it from that one).</summary>
