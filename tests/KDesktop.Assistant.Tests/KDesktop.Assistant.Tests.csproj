@@ -28,6 +28,7 @@
     <ProjectReference Include="..\..\src\KDesktop.Assistant.Host\KDesktop.Assistant.Host.csproj" />
     <ProjectReference Include="..\..\src\KDesktop.Assistant.Brain\KDesktop.Assistant.Brain.csproj" />
     <ProjectReference Include="..\..\src\KDesktop.Assistant.Tools\KDesktop.Assistant.Tools.csproj" />
+    <ProjectReference Include="..\..\src\KDesktop.Assistant.Voice\KDesktop.Assistant.Voice.csproj" />
     <!-- Only built first: the process tests start the real KDesktop.exe in assistant mode. -->
     <ProjectReference Include="..\..\src\KDesktop\KDesktop.csproj" ReferenceOutputAssembly="false" />
     <!-- Its package (bin\…\package) is loaded by the package tests. -->

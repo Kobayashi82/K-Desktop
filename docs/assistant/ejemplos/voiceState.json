@@ -1,0 +1,8 @@
+{
+  "t": "voiceState",
+  "engine": "pocket",
+  "windowsVoices": [
+    "Microsoft Helena Desktop"
+  ],
+  "pocketLoaded": true
+}

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The assistants' voice (phase 5): Pocket TTS (Kyutai, CC BY 4.0) on the processor through ONNX Runtime, ported from
+    Kobii; Windows' own voices as a fallback without downloads, and beeps. It runs in the assistant process (as the
+    normal user), never in K-Desktop, which only downloads the models.
+  -->
+  <PropertyGroup>
+    <RootNamespace>KDesktop.Assistant.Voice</RootNamespace>
+    <AssemblyName>KDesktop.Assistant.Voice</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KDesktop.Core\KDesktop.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Windows' voices (SAPI 5), the fallback without Pocket TTS. MIT (.NET Foundation). -->
+    <PackageReference Include="System.Speech" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="KDesktop.Assistant.Tests" />
+  </ItemGroup>
+
+</Project>

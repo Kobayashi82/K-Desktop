@@ -487,6 +487,25 @@ public sealed record MediaMessage(string Order, int? Value = null, string? Run =
     public override string Type => "media";
 }
 
+// ── the voice (stage 5.4) ────────────────────────────────────────────────
+
+/// <summary>
+/// Options → Assistant → Voice: <c>state</c> (how the voice is: answered with <see cref="VoiceStateMessage"/>) or
+/// <c>test</c> (say <paramref name="Text"/> with the voice as it is set: the assistant gives it its bubble too).
+/// </summary>
+/// <param name="Assistant">Who says the test; null: nobody on the desktop, only the voice.</param>
+public sealed record VoiceMessage(string Op, string? Text = null, string? Assistant = null) : PipeMessage
+{
+    public override string Type => "voice";
+}
+
+/// <summary>How the voice is: the engine that really speaks (<c>pocket</c>, <c>windows</c>, <c>beeps</c>, <c>off</c>) and Windows' voices for the language.</summary>
+/// <param name="PocketLoaded">Pocket TTS's model is in memory now.</param>
+public sealed record VoiceStateMessage(string Engine, IReadOnlyList<string> WindowsVoices, bool PocketLoaded = false) : PipeMessage
+{
+    public override string Type => "voiceState";
+}
+
 // ── the test bench (stage 3.9) ───────────────────────────────────────────
 
 /// <summary>Options → Brain → Test the model: <c>start</c> (with <paramref name="Model"/>), <c>cancel</c> or <c>state</c>.</summary>
@@ -589,6 +608,8 @@ public static class PipeJson
         ["describe"] = typeof(DescribeMessage),
         ["described"] = typeof(DescribedMessage),
         ["runEvent"] = typeof(RunEventMessage),
+        ["voice"] = typeof(VoiceMessage),
+        ["voiceState"] = typeof(VoiceStateMessage),
         ["bench"] = typeof(BenchMessage),
         ["benchState"] = typeof(BenchStateMessage),
     };

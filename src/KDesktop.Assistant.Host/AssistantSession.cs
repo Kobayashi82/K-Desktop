@@ -36,7 +36,8 @@ internal sealed class AssistantSession : IDisposable
         if (Link is not null) Brain = new BrainService(World.VideoMemory.Gigabytes);
         if (Link is not null) Commands = new ModuleCommands(Link);
         if (Link is not null) Tools = new ModuleTools(Link, Commands!);
-        if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!, Commands!);
+        if (Link is not null) Voice = new ModuleVoice(Engine, Runtime);
+        if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!, Commands!, Voice!);
         if (Link is not null) Bench = new ModuleBench(Link, Brain!, Tools!, Talk!.Chooser, Commands!);
     }
 
@@ -45,6 +46,9 @@ internal sealed class AssistantSession : IDisposable
 
     /// <summary>Options → Brain → Test the model (null without K-Desktop).</summary>
     public ModuleBench? Bench { get; }
+
+    /// <summary>Their voice (null without K-Desktop).</summary>
+    public ModuleVoice? Voice { get; }
 
     /// <summary>Talking with the assistants: orders, answers and the chat (null without K-Desktop).</summary>
     public ModuleTalk? Talk { get; }
@@ -91,6 +95,7 @@ internal sealed class AssistantSession : IDisposable
                 if (welcome.Config?["general"] is JsonObject general) ApplyGeneral(general);
                 Brain?.Configure(BrainConfig.FromJson(welcome.Config?["brain"] as JsonObject));
                 Tools?.Configure(welcome.Config?["tools"] as JsonObject);
+                Voice?.Configure(welcome.Config?["voice"] as JsonObject);
                 Tools?.Start();
                 if (Talk is { } ready) _ = ready.WarmAsync();
             };
@@ -104,6 +109,24 @@ internal sealed class AssistantSession : IDisposable
                         return;
                     case ConfigMessage { Section: "brain" } config when Brain is { } brain:
                         brain.Configure(BrainConfig.FromJson(config.Value as JsonObject));
+                        return;
+                    case ConfigMessage { Section: "voice" } config when Voice is { } voice:
+                        voice.Configure(config.Value as JsonObject);
+                        link.Send(voice.State());
+                        return;
+                    case VoiceMessage { Op: "unload" } when Voice is { } voice:
+                        voice.Speech.Pocket.Release();
+                        return;
+                    case VoiceMessage { Op: "state" } when Voice is { } voice:
+                        link.Send(voice.State());
+                        return;
+                    case VoiceMessage { Op: "test", Text: { Length: > 0 } text } test when Voice is { } voice:
+                        // Said by whoever K-Desktop chose, with its bubble; with nobody, only the voice (who is there: engine thread).
+                        Engine.Post(() =>
+                        {
+                            if (test.Assistant is { } who && Runtime.IsLoaded(who) && Talk is { } speaker) _ = speaker.SpeakAsync(who, text, CancellationToken.None);
+                            else _ = voice.SayAloneAsync(text);
+                        });
                         return;
                     case ConfigMessage { Section: "tools" } config when Tools is { } tools:
                         tools.Configure(config.Value as JsonObject);
@@ -320,6 +343,7 @@ internal sealed class AssistantSession : IDisposable
             // Not on the UI thread's context: it has already stopped.
             try { Task.Run(async () => await link.DisposeAsync()).Wait(TimeSpan.FromSeconds(2)); } catch { /* closing anyway */ }
         }
+        Voice?.Dispose();
         Tools?.Dispose();
         Brain?.Dispose();
         Engine.Dispose();

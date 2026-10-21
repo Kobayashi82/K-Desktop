@@ -3,15 +3,20 @@ using System.Security.Cryptography;
 
 namespace KDesktop.Core.Voice;
 
-/// <summary>One file of a voice model: where it comes from, where it goes and how to check it.</summary>
+/// <summary>One file of a voice model: where it comes from, where it goes and how to check it (no hash: by its size only).</summary>
 public sealed record ModelFile(string Url, string Path, long Size, string Sha256);
 
 /// <summary>
 /// Downloads the voice models into <see cref="AppPaths.ModelsDir"/>: resumable (a <c>.part</c> file continues where
-/// it stopped), checked by size and SHA-256, in the background (closing the window does not stop it).
+/// it stopped), checked by size and SHA-256, in the background (closing the window does not stop it). By default the
+/// models of K-Desktop's voice; given other files, those (the assistants' voice, stage 5.4).
 /// </summary>
-public sealed class ModelDownloader : IDisposable
+/// <param name="files">What to download (asked on each start); null: <see cref="Files"/>.</param>
+/// <param name="what">For the log («los modelos de voz»).</param>
+public sealed class ModelDownloader(Func<IReadOnlyList<ModelFile>>? files = null, string what = "los modelos de voz") : IDisposable
 {
+    private readonly Func<IReadOnlyList<ModelFile>> _files = files ?? (() => Files);
+
     private const string Parakeet = "https://huggingface.co/csukuangfj/sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8/resolve/main/";
 
     private const string EmbeddingGemma = "https://huggingface.co/onnx-community/embeddinggemma-300m-ONNX/resolve/5090578d9565bb06545b4552f76e6bc2c93e4a66/";
@@ -34,6 +39,9 @@ public sealed class ModelDownloader : IDisposable
     ];
 
     public static long TotalSize => Files.Sum(f => f.Size);
+
+    /// <summary>Bytes of what this one downloads.</summary>
+    public long Total => _files().Sum(f => f.Size);
 
     private CancellationTokenSource? _cts;
 
@@ -64,16 +72,16 @@ public sealed class ModelDownloader : IDisposable
             try
             {
                 await DownloadAllAsync(token).ConfigureAwait(false);
-                Log.Info("Modelos de voz descargados");
+                Log.Info($"Descargados {what}");
             }
             catch (OperationCanceledException)
             {
-                Log.Info("Descarga de los modelos de voz cancelada");
+                Log.Info($"Descarga de {what} cancelada");
             }
             catch (Exception ex)
             {
                 Error = ex.Message;
-                Log.Error("Error descargando los modelos de voz", ex);
+                Log.Error($"Error descargando {what}", ex);
             }
             finally
             {
@@ -117,7 +125,7 @@ public sealed class ModelDownloader : IDisposable
         using var http = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
         http.DefaultRequestHeaders.UserAgent.ParseAdd(AppPaths.VersionName.Replace(' ', '-'));
         var finished = 0L;
-        foreach (var file in Files)
+        foreach (var file in _files())
         {
             if (File.Exists(file.Path) && new FileInfo(file.Path).Length == file.Size)
             {
@@ -160,6 +168,11 @@ public sealed class ModelDownloader : IDisposable
 
         if (new FileInfo(part).Length != file.Size)
             throw new IOException($"{System.IO.Path.GetFileName(file.Path)}: descarga incompleta");
+        if (file.Sha256.Length == 0)
+        {
+            File.Move(part, file.Path, overwrite: true);
+            return;
+        }
         string hash;
         await using (var check = File.OpenRead(part))
             hash = Convert.ToHexStringLower(await SHA256.HashDataAsync(check, token).ConfigureAwait(false));

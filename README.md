@@ -116,6 +116,10 @@ El módulo Asistente está en desarrollo. Apagado, K-Desktop es el de siempre: n
    en el escritorio, contesta K-Desktop sin personaje). La tecla de voz también vale: «Lander, …» al principio. En
    General está también la **tecla para hablar con el asistente** (sin decir su nombre); mantener pulsado el clic
    sobre él hace lo mismo. Si te pregunta algo («¿A o B?», «¿Puedo…?»), contesta en voz alta sin volver a llamarlo.
+6. **Su voz:** contestan en voz alta, frase a frase mientras la IA escribe. En **Opciones → Módulo Asistente → Voz**
+   se descarga la voz natural (Pocket TTS, unos 130 MB por idioma, funciona en el procesador y sin internet) y se elige
+   entre sus 26 voces; sin ella hablan con las voces de Windows, o con pitidos. Ahí están también la velocidad, el
+   volumen y «Probar».
 
 Instalar una versión nueva encima de la que está en el escritorio la cambia en caliente, sin perder sus datos (que
 están en `%APPDATA%\K-Desktop 5\Assistants\Data\<id>` y entran en las copias de seguridad). Cada asistente corre en
@@ -156,6 +160,9 @@ src/KDesktop.Core           núcleo sin interfaz: modelo, almacenamiento, hooks,
 src/KDesktop                aplicación WPF: ventana principal, QuickMenu, lanzador, OSD, bandeja, temas
 src/KDesktop.Assistant.Sdk  SDK de los asistentes (IAssistant y lo que les da el host) y el empaquetado en .kai
 src/KDesktop.Assistant.Host el proceso de los asistentes (KDesktop.exe --assistant): capa de dibujo, mundo, sonido
+src/KDesktop.Assistant.Brain  la IA de los asistentes: proveedores, enrutado de las órdenes, memoria, banco de pruebas
+src/KDesktop.Assistant.Tools  sus herramientas (temporizadores, notas, cálculo, tus comandos…) y los permisos
+src/KDesktop.Assistant.Voice  su voz: Pocket TTS en el procesador, voces de Windows y pitidos
 samples/DotAssistant        asistente mínimo de ejemplo
 templates/kdassistant       plantilla de `dotnet new` para empezar uno
 android/                    app de Android (WebView de la app web del PC, con micrófono nativo)

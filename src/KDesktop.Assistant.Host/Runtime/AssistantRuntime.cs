@@ -268,7 +268,7 @@ internal sealed class AssistantRuntime : IDisposable
     /// The character «says» <paramref name="text"/> (Communicate) for <paramref name="duration"/>, or less if cancelled or it
     /// leaves. One that cannot do it now (asleep in its game…) just lets it pass. Engine thread.
     /// </summary>
-    public async Task CommunicateAsync(string id, string text, TimeSpan duration, CancellationToken cancellationToken)
+    public async Task CommunicateAsync(string id, string text, TimeSpan duration, CancellationToken cancellationToken, Task? speaking = null)
     {
         if (Find(id) is not { } slot) return;
         // The bubble is the host's (it says it whatever the gesture): over the character, for as long as it takes to read.
@@ -280,12 +280,41 @@ internal sealed class AssistantRuntime : IDisposable
         try
         {
             await GestureAsync(slot, new Gesture.Communicate(text, null), duration, limit.Token).ConfigureAwait(true);
+            // Its voice (stage 5.4) may take longer than reading: the bubble stays until it has said it (a minute at most).
+            var until = _engine.Now + 60;
+            while (speaking is { IsCompleted: false } && !cancellationToken.IsCancellationRequested && !slot.Extras.IsCancellationRequested && _engine.Now < until)
+            {
+                bubble.KeepUntil(_engine.Now + 0.6);
+                await Task.WhenAny(speaking, Task.Delay(250, CancellationToken.None)).ConfigureAwait(true);
+            }
         }
         finally
         {
             bubble.Close(_engine.Now);
             _engine.RequestTick();
         }
+    }
+
+    /// <summary>How loud its voice is now (0…1, about 30 times a second while it speaks): lights or a mouth follow it.</summary>
+    public void VoiceLevel(string id, double level)
+    {
+        if (Find(id) is { } slot) Guard(slot, a => a.OnVoiceLevel(level), "OnVoiceLevel");
+    }
+
+    /// <summary>
+    /// Where its voice sounds, by where it is across all the monitors (−1 left … 1 right, never all to one side). Engine
+    /// thread.
+    /// </summary>
+    public double PanOf(string id)
+    {
+        if (Find(id) is not { } slot) return 0;
+        Point? anchor = null;
+        Guard(slot, a => anchor = a.BubbleAnchor, "BubbleAnchor");
+        var monitors = World.Current.Monitors;
+        if (anchor is not { } at || monitors.Count == 0) return 0;
+        var left = monitors.Min(m => m.Bounds.Left);
+        var right = monitors.Max(m => m.Bounds.Right);
+        return right > left ? Math.Clamp((at.X - left) / (right - left) * 2 - 1, -1, 1) * 0.6 : 0;
     }
 
     /// <summary>

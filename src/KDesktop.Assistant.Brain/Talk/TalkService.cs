@@ -28,6 +28,14 @@ public interface ITalkOutput
     void Listen(string? assistant, int seconds)
     {
     }
+
+    /// <summary>The answer of that turn so far, while it is written (at most 8 times a second): its voice may start (stage 5.4).</summary>
+    void SpeakAhead(string? assistant, string turn, string textSoFar)
+    {
+    }
+
+    /// <summary>Says the final answer of a turn (what was said ahead is not said again).</summary>
+    Task SpeakTurnAsync(string? assistant, string turn, string text, CancellationToken cancellationToken) => SpeakAsync(assistant, text, cancellationToken);
 }
 
 /// <summary>
@@ -106,7 +114,7 @@ public sealed class TalkService
             Learn(who, said, answer, token);
             if (answer.Text.Length > 0) conversation.LastAnswer = answer.Text;
             _output.State(who, "speaking");
-            await _output.SpeakAsync(who, answer.Text, token).ConfigureAwait(false);
+            await _output.SpeakTurnAsync(who, turn, answer.Text, token).ConfigureAwait(false);
             // Said aloud and answered with a question: the answer may come aloud too, without the wake word (stage 5.3).
             if (heard.Source == "voice" && !token.IsCancellationRequested && (answer.AsksBack || EndsAsking(answer.Text)))
                 _output.Listen(who, FollowUpSeconds);
@@ -151,10 +159,11 @@ public sealed class TalkService
         var (token, _) = conversation.Begin();
         try
         {
-            _output.Chat(new ChatLineMessage("assistant", text, Guid.NewGuid().ToString("N")[..12], true, who));
+            var turn = Guid.NewGuid().ToString("N")[..12];
+            _output.Chat(new ChatLineMessage("assistant", text, turn, true, who));
             conversation.LastAnswer = text;
             _output.State(who, "speaking");
-            await _output.SpeakAsync(who, text, token).ConfigureAwait(false);
+            await _output.SpeakTurnAsync(who, turn, text, token).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
@@ -252,7 +261,12 @@ public sealed class TalkService
         var (client, model) = _brain(who);
         if (client is null || model is null) return ran ?? new TalkAnswer(Phrase(persona, "noBrain"), Remember: false, Failed: true);
         _output.State(who, "thinking");
-        var shown = new PartialText(text => _output.Chat(new ChatLineMessage("assistant", (ran is null ? "" : ran.Text + " ") + text, turn, false, who)), _time);
+        var shown = new PartialText(text =>
+        {
+            var sofar = (ran is null ? "" : ran.Text + " ") + text;
+            _output.Chat(new ChatLineMessage("assistant", sofar, turn, false, who));
+            _output.SpeakAhead(who, turn, sofar);
+        }, _time);
         var answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), conversation.History.LastTools(), forAi, context, shown.Show, token, leaveOut).ConfigureAwait(false);
         answer = answer with { Text = answer.Text.Length > 0 ? answer.Text : Phrase(persona, "ok"), FromAi = true };
         return ran is null ? answer : answer with { Text = ran.Text + " " + answer.Text, Tools = [.. ran.Tools, .. answer.Tools] };

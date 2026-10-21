@@ -459,6 +459,25 @@ public partial class AppSettings : ObservableObject
     /// </summary>
     [ObservableProperty] private string _assistantTalkHotkey = string.Empty;
 
+    /// <summary>
+    /// Who says the assistants' answers aloud (Options → Assistant → Voice, stage 5.4): <c>auto</c> (Pocket TTS if it is
+    /// downloaded for the language, else Windows' voices, else beeps), <c>pocket</c>, <c>windows</c>, <c>beeps</c> or
+    /// <c>off</c> (only the bubble).
+    /// </summary>
+    [ObservableProperty] private string _assistantVoiceEngine = "auto";
+
+    /// <summary>The voice of Pocket TTS («eve»…); downloaded when chosen.</summary>
+    [ObservableProperty] private string _assistantVoicePocket = Assistant.Voice.PocketModels.DefaultVoice;
+
+    /// <summary>The Windows voice by name; empty: the first one of the language.</summary>
+    [ObservableProperty] private string _assistantVoiceWindows = string.Empty;
+
+    /// <summary>How fast they speak: 1 = normal (0.5 … 2).</summary>
+    [ObservableProperty] private double _assistantVoiceSpeed = 1;
+
+    /// <summary>Volume of their voice, 0–100 (under the assistants' volume).</summary>
+    [ObservableProperty] private int _assistantVoiceVolume = 100;
+
     /// <summary>The assistants' sounds (engines, landings…), mixed by their process.</summary>
     [ObservableProperty] private bool _assistantSound = true;
 

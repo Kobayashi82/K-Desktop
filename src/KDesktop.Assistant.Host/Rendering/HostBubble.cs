@@ -49,6 +49,9 @@ internal sealed class HostBubble : IDisposable
     /// <summary>Starts fading out now (the order was replaced or cancelled, or the gesture ended early).</summary>
     public void Close(double now) => _end = Math.Min(_end, now);
 
+    /// <summary>Stays at least until then (its voice is still saying it).</summary>
+    public void KeepUntil(double end) => _end = Math.Max(_end, end);
+
     /// <summary>
     /// Draws it again if it moved or is animating, and returns the seconds until it needs another look: every frame
     /// while it animates, a few times per second otherwise (to follow the character, whose own ticks move it).

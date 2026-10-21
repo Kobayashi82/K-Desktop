@@ -28,12 +28,13 @@ internal sealed class ModuleTalk : ITalkOutput
     private readonly ConcurrentDictionary<string, (string Language, AssistantPersona Persona)> _personas = new(StringComparer.Ordinal);
     private readonly ModuleTools _tools;
 
-    public ModuleTalk(KDesktopLink link, EngineLoop engine, AssistantRuntime runtime, BrainService brain, ModuleTools tools, ModuleCommands commands)
+    public ModuleTalk(KDesktopLink link, EngineLoop engine, AssistantRuntime runtime, BrainService brain, ModuleTools tools, ModuleCommands commands, ModuleVoice voice)
     {
         _link = link;
         _engine = engine;
         _runtime = runtime;
         _tools = tools;
+        Voice = voice;
         Meaning = new ModuleMeaning(link);
         Chooser = new ToolChooser(Meaning);
         Memory = new TalkMemory(tools.Builtin.Memory, tools.Runner, Meaning);
@@ -41,6 +42,9 @@ internal sealed class ModuleTalk : ITalkOutput
     }
 
     public TalkService Service { get; }
+
+    /// <summary>What they answer, said aloud (stage 5.4).</summary>
+    public ModuleVoice Voice { get; }
 
     /// <summary>The vectors of meaning K-Desktop sends (<c>embedded</c>).</summary>
     public ModuleMeaning Meaning { get; }
@@ -66,7 +70,11 @@ internal sealed class ModuleTalk : ITalkOutput
         _ = Service.HandleAsync(heard);
     }
 
-    public void OnCancel(CancelMessage cancel) => Service.Cancel(cancel.Assistant);
+    public void OnCancel(CancelMessage cancel)
+    {
+        Service.Cancel(cancel.Assistant);
+        Voice.Stop(cancel.Assistant);
+    }
 
     /// <summary>Who K-Desktop is listening to now (its word, its key, a long click on it).</summary>
     private readonly ConcurrentDictionary<string, bool> _listening = new(StringComparer.Ordinal);
@@ -100,8 +108,12 @@ internal sealed class ModuleTalk : ITalkOutput
         _personas.TryRemove(id, out _);
     }
 
-    /// <summary>An assistant left the desktop: what was talked with it is forgotten.</summary>
-    public void Left(string id) => Service.Forget(id);
+    /// <summary>An assistant left the desktop: what was talked with it is forgotten, and it stops talking.</summary>
+    public void Left(string id)
+    {
+        Service.Forget(id);
+        Voice.Stop(id);
+    }
 
     /// <summary>Its persona in the user's language (read once per language), or the module's.</summary>
     private AssistantPersona PersonaOf(string? id)
@@ -135,6 +147,7 @@ internal sealed class ModuleTalk : ITalkOutput
     public void State(string? assistant, string state)
     {
         _link.Send(new StatusMessage(state, Assistant: assistant));
+        if (state == "thinking" && assistant is not null) Voice.Warm();
         if (assistant is null) return;
         var shown = state switch
         {
@@ -146,13 +159,23 @@ internal sealed class ModuleTalk : ITalkOutput
         _engine.Post(() => _runtime.SetState(assistant, shown));
     }
 
-    public Task SpeakAsync(string? assistant, string text, CancellationToken cancellationToken)
+    public Task SpeakAsync(string? assistant, string text, CancellationToken cancellationToken) =>
+        SpeakTurnAsync(assistant, Guid.NewGuid().ToString("N")[..12], text, cancellationToken);
+
+    public void SpeakAhead(string? assistant, string turn, string textSoFar) => Voice.Ahead(assistant, turn, textSoFar);
+
+    /// <summary>
+    /// The bubble with the text (for as long as it takes to read it) and its voice (what was not said ahead): over when both
+    /// are, or it is cancelled.
+    /// </summary>
+    public Task SpeakTurnAsync(string? assistant, string turn, string text, CancellationToken cancellationToken)
     {
         if (assistant is null || text.Length == 0) return Task.CompletedTask;
+        var speaking = Voice.SayAsync(assistant, turn, text, cancellationToken);
         var said = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         _engine.Post(async () =>
         {
-            try { await _runtime.CommunicateAsync(assistant, text, ReadingTime(text), cancellationToken); }
+            try { await _runtime.CommunicateAsync(assistant, text, ReadingTime(text), cancellationToken, speaking); }
             catch (Exception ex) { Log.Warn($"Asistente: «{assistant}» no ha podido decirlo: {ex.Message}"); }
             finally { said.TrySetResult(); }
         });
@@ -161,6 +184,6 @@ internal sealed class ModuleTalk : ITalkOutput
 
     public void Listen(string? assistant, int seconds) => _link.Send(new ListenMessage(seconds, Assistant: assistant));
 
-    /// <summary>How long a bubble stays: enough to read it (no voice yet; stage 5 says it aloud).</summary>
+    /// <summary>How long a bubble stays at least: enough to read it (while its voice speaks, longer).</summary>
     public static TimeSpan ReadingTime(string text) => TimeSpan.FromSeconds(Math.Clamp(1.5 + text.Length * 0.065, 2.5, 15));
 }

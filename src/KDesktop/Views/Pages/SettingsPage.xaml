@@ -317,6 +317,20 @@
                         </StackPanel>
                     </Grid>
                 </ListBoxItem>
+                <ListBoxItem Tag="speech">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
+                            <ui:SymbolIcon Symbol="PersonVoice24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.nav.assistantVoice}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{l:Tr settings.nav.assistantVoice.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </ListBoxItem>
                 <ListBoxItem Tag="memory">
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
@@ -1201,6 +1215,7 @@
             <local:AssistantGeneralSection Tag="assistant" />
             <local:AssistantListSection x:Name="AssistantsSection" Tag="assistants" />
             <local:AssistantBrainSection Tag="brain" />
+            <local:AssistantVoiceSection Tag="speech" />
             <local:AssistantMemorySection Tag="memory" />
         </StackPanel>
     </ScrollViewer>

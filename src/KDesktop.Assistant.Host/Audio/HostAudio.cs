@@ -35,6 +35,13 @@ internal sealed class HostAudio : IDisposable
 
     public HostLoop Loop(HostSound sound) => _mixer.Loop(sound);
 
+    /// <summary>Starts a sentence of an assistant's voice (it ends at once with the sound off).</summary>
+    public void Speak(SpeechLine line, double gain, double pan)
+    {
+        _mixer.Speak(line, gain, pan);
+        if (Enabled) _output.Wake();
+    }
+
     /// <summary>A loop went up: the output must be running.</summary>
     public void Wake()
     {

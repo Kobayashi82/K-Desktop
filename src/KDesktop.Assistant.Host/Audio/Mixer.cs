@@ -77,6 +77,17 @@ internal sealed class Mixer
         return loop;
     }
 
+    /// <summary>Starts a sentence of an assistant's voice (stage 5.4), which may still be arriving.</summary>
+    public void Speak(SpeechLine line, double gain, double pan)
+    {
+        line.Gain = gain;
+        line.Pan = pan;
+        if (_muted) line.Drop();
+        else lock (_gate) _lines.Add(line);
+    }
+
+    private readonly List<SpeechLine> _lines = [];
+
     internal void Remove(HostLoop loop)
     {
         lock (_gate) _loops.Remove(loop);
@@ -85,7 +96,12 @@ internal sealed class Mixer
     /// <summary>Forgets the one-shot sounds playing (the sound was switched off).</summary>
     public void Silence()
     {
-        lock (_gate) _voices.Clear();
+        lock (_gate)
+        {
+            _voices.Clear();
+            foreach (var line in _lines) line.Drop();
+            _lines.Clear();
+        }
     }
 
     /// <summary>Whether anything would be heard (a one-shot sound, or a loop that is up or still fading out).</summary>
@@ -96,7 +112,7 @@ internal sealed class Mixer
             if (_muted) return false;
             lock (_gate)
             {
-                if (_voices.Count > 0) return true;
+                if (_voices.Count > 0 || _lines.Count > 0) return true;
                 foreach (var loop in _loops)
                     if (loop.Audible) return true;
                 return false;
@@ -117,6 +133,8 @@ internal sealed class Mixer
                 var voice = _voices[i];
                 if (!voice.Render(output, master)) _voices.RemoveAt(i);
             }
+            for (var i = _lines.Count - 1; i >= 0; i--)
+                if (!_lines[i].Render(output, master)) _lines.RemoveAt(i);
             foreach (var loop in _loops) loop.Render(output, master);
         }
     }
@@ -182,6 +200,144 @@ internal sealed class Mixer
             _position = Mixer.Render(sound, _position, sound.SampleRate / (double)Rate, false, output, gain * master, gain * master, pan);
             return _position < sound.Frames;
         }
+    }
+}
+
+/// <summary>
+/// A sentence of an assistant's voice (stage 5.4): mono samples at their rate that may still be arriving while it plays
+/// (<see cref="Append"/>, then <see cref="Complete"/>); if the mixer catches up with them it waits in silence. It plays
+/// once; <see cref="Stop"/> fades it out in one block (no click). <see cref="Position"/> is how far the mixer has got
+/// and <see cref="LevelAt"/> how loud it is there, for the character.
+/// </summary>
+internal sealed class SpeechLine(int sampleRate)
+{
+    /// <summary>The stretch of each level (<see cref="LevelAt"/>).</summary>
+    public const double LevelStep = 1 / 30.0;
+
+    private readonly Lock _gate = new();
+    private readonly TaskCompletionSource _ended = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly List<double> _levels = [];
+    private float[] _samples = new float[sampleRate * 4];
+    private int _length;
+    private bool _complete;
+    private double _position;
+    private float _applied = -1;
+    private volatile float _gain = 1;
+    private volatile float _pan;
+    private volatile bool _stopped;
+    private double _levelSum;
+    private int _levelCount;
+    private double _loudest = 1e-4;
+
+    public int SampleRate => sampleRate;
+
+    /// <summary>Seconds of it already mixed.</summary>
+    public double Position
+    {
+        get
+        {
+            lock (_gate) return _position / sampleRate;
+        }
+    }
+
+    /// <summary>Seconds of it that have arrived.</summary>
+    public double Arrived
+    {
+        get
+        {
+            lock (_gate) return _length / (double)sampleRate;
+        }
+    }
+
+    public double Pan { get => _pan; set => _pan = (float)Math.Clamp(value, -1, 1); }
+
+    public double Gain { get => _gain; set => _gain = (float)Math.Clamp(value, 0, 4); }
+
+    /// <summary>Completes when it has been said to the end, or stopped.</summary>
+    public Task Ended => _ended.Task;
+
+    /// <summary>More of it (any thread).</summary>
+    public void Append(float[] samples)
+    {
+        lock (_gate)
+        {
+            if (_complete) return;
+            if (_length + samples.Length > _samples.Length) Array.Resize(ref _samples, Math.Max(_samples.Length * 2, _length + samples.Length));
+            samples.CopyTo(_samples, _length);
+            _length += samples.Length;
+            // Its loudness in steps of LevelStep, as it comes.
+            var step = (int)(sampleRate * LevelStep);
+            foreach (var s in samples)
+            {
+                _levelSum += s * s;
+                if (++_levelCount < step) continue;
+                var rms = Math.Sqrt(_levelSum / _levelCount);
+                _loudest = Math.Max(_loudest, rms);
+                _levels.Add(rms);
+                _levelSum = 0;
+                _levelCount = 0;
+            }
+        }
+    }
+
+    /// <summary>Nothing more will come: it ends when it has played what it has.</summary>
+    public void Complete()
+    {
+        lock (_gate) _complete = true;
+    }
+
+    /// <summary>How loud it is at that second (0…1, against the loudest so far).</summary>
+    public double LevelAt(double seconds)
+    {
+        lock (_gate)
+        {
+            var index = (int)(seconds / LevelStep);
+            return index >= 0 && index < _levels.Count ? Math.Clamp(_levels[index] / _loudest, 0, 1) : 0;
+        }
+    }
+
+    public void Stop()
+    {
+        _stopped = true;
+        _gain = 0;
+    }
+
+    /// <summary>Not mixed (stopped before it started, or the sound was switched off): over at once.</summary>
+    internal void Drop()
+    {
+        Stop();
+        _ended.TrySetResult();
+    }
+
+    /// <summary>Adds its next block; false once it is over.</summary>
+    internal bool Render(Span<float> output, float master)
+    {
+        var target = _stopped ? 0 : _gain * master;
+        if (_applied < 0) _applied = target;
+        lock (_gate)
+        {
+            var count = output.Length / 2;
+            var step = sampleRate / (double)Mixer.Rate;
+            var (left, right) = Mixer.Pan(_pan);
+            for (var i = 0; i < count; i++)
+            {
+                // Caught up with what has arrived: silence until more comes (or the end).
+                if (_position >= _length - 1 && (!_complete || _position >= _length)) break;
+                var at = (int)_position;
+                var frac = (float)(_position - at);
+                var next = Math.Min(at + 1, _length - 1);
+                var gain = _applied + (target - _applied) * (i / (float)count);
+                var s = (_samples[at] + (_samples[next] - _samples[at]) * frac) * gain;
+                output[2 * i] += s * left;
+                output[2 * i + 1] += s * right;
+                _position += step;
+            }
+            _applied = target;
+            var over = (_stopped && target <= 0) || (_complete && _position >= _length - 1);
+            if (!over) return true;
+        }
+        _ended.TrySetResult();
+        return false;
     }
 }
 

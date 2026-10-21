@@ -102,7 +102,7 @@ Dirección: **A→K** del asistente a K-Desktop; **K→A** de K-Desktop al asist
 
 | `t` | Dir. | Campos | Qué es |
 |---|---|---|---|
-| `config` | K→A | `section`, `value`, `assistant` (solo en `assistantSettings`) | Cambió algo en Opciones → Asistente. Secciones: `general` (de momento `sound`, sí/no, y `volume`, 0…1: el sonido de los asistentes, que mezcla el host), `brain` (`provider`: `ollama`, `llamaSwap`, `openai` o `none`; `endpoint`, siempre con la dirección que se usa; `apiKey`, en claro; `model`, vacío = automático; `models`, el modelo propio de cada asistente que lo tenga, id → modelo: si el servidor no lo tiene, ese asistente usa el general), `voice`, `tools` (`trusted`: las herramientas que ya no piden permiso; `learn`: si aprenden de lo que se habla, Opciones → Memoria), `privacy`, `assistantSettings` (ajustes de ese asistente, según su `settings.json`: todos sus valores, cada vez que se cambia uno en Opciones). La bienvenida trae las secciones del módulo en `config` |
+| `config` | K→A | `section`, `value`, `assistant` (solo en `assistantSettings`) | Cambió algo en Opciones → Asistente. Secciones: `general` (de momento `sound`, sí/no, y `volume`, 0…1: el sonido de los asistentes, que mezcla el host), `brain` (`provider`: `ollama`, `llamaSwap`, `openai` o `none`; `endpoint`, siempre con la dirección que se usa; `apiKey`, en claro; `model`, vacío = automático; `models`, el modelo propio de cada asistente que lo tenga, id → modelo: si el servidor no lo tiene, ese asistente usa el general), `voice` (la voz: ver «La voz»), `tools` (`trusted`: las herramientas que ya no piden permiso; `learn`: si aprenden de lo que se habla, Opciones → Memoria), `privacy`, `assistantSettings` (ajustes de ese asistente, según su `settings.json`: todos sus valores, cada vez que se cambia uno en Opciones). La bienvenida trae las secciones del módulo en `config` |
 | `pause` | K→A | `paused` | Se ha pausado o reanudado K-Desktop: en pausa no se atienden órdenes |
 | `load` | K→A | `assistant` (id), `version`, `path` (carpeta del paquete), `data` (su carpeta de datos), `entrance` (`startup`, `switched`) | Pone este asistente en el escritorio, junto a los que ya haya. Si ya estaba (otra versión: `switched`), el nuevo código se carga y después el viejo sale y entra el nuevo |
 | `unload` | K→A | `assistant`, `reason` (`disabled`, `uninstalling`, `hiding`, `reloading`) | Quita ese asistente del escritorio (con su salida); los demás siguen. Sin ninguno, el módulo sigue sin cuerpo. `reloading`: vuelve enseguida con un `load` (p. ej. tras «Empezar de cero», que borra su carpeta de datos) |
@@ -165,6 +165,19 @@ Lo hace todo el proceso del asistente (sin administrador): buscar el servidor, i
 
 | `bench` | K→A | `op` (`start`, `cancel`, `state`), `model` (para `start`) | Opciones → Cerebro → *Probar modelo*: pasar el banco de pruebas con ese modelo (el propio, `Assistant\bench.json`, o el incluido en el idioma del usuario). Las órdenes van como de verdad (reglas y luego la IA con las herramientas elegidas por significado), pero las herramientas que hacen algo solo lo fingen; las que solo leen (`ReadsOnly`: hora, notas, cálculo) se ejecutan. Se contesta con `benchState` |
 | `benchState` | A→K | `state` (`idle`, `running`, `done`, `cancelled`, `failed`), `model`, `done`, `total`, `passed`, `meanMs`, `own` (es el banco propio), `failures` (al terminar: `say`, `expected`, `passed`, `route` —`rule`, `ai` o `failed`—, `tools`, `answer`, `ms`), `history` (la última puntuación de cada modelo: `model`, `passed`, `total`, `meanMs`, `at`, `own`), `message` (si falló) | Cómo va el banco: tras cada orden y al terminar. El historial se guarda en `Assistant\bench-results.json` |
+
+### La voz (Opciones → Asistente → Voz)
+
+Lo que contestan lo dicen en voz alta frase a frase, mientras la IA aún escribe (las frases que ya han terminado empiezan a
+sonar; con Pocket TTS, unas décimas después de empezar a sintetizarse). La síntesis es del proceso del asistente; K-Desktop
+solo descarga los modelos (`Models\pocket-tts\<idioma>\`) y manda los ajustes en la sección `voice` de `config` (`engine`:
+`auto`, `pocket`, `windows`, `beeps` u `off`; `pocketVoice`, `windowsVoice`, `speed` 0,5…2, `volume` 0…1; también en la
+bienvenida). Sin cuerpo no se dice nada en voz alta.
+
+| `t` | Dir. | Campos | Qué es |
+|---|---|---|---|
+| `voice` | K→A | `op` (`state`, `test`, `unload`), `text` (para `test`), `assistant` (para `test`: quién lo dice; sin él, solo la voz) | Preguntar cómo está la voz, decir una frase de prueba (con el bocadillo del asistente si está en el escritorio) o soltar el modelo de Pocket TTS de la memoria (antes de borrar sus archivos) |
+| `voiceState` | A→K | `engine` (el que habla de verdad: `pocket`, `windows`, `beeps`, `off`), `windowsVoices` (las de Windows para el idioma), `pocketLoaded` | Tras cada `voice` `state` y cada cambio de la sección `voice` |
 
 ### Del asistente al panel de K-Desktop
 

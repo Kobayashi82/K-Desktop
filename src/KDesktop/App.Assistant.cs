@@ -58,6 +58,7 @@ public partial class App
                     ForgetAssistantBrain();
                     ForgetAssistantMemory();
                     ForgetAssistantBench();
+                    ForgetAssistantVoice();
                     AbandonAssistantQuestions();
                     // A process that fell cannot ask to let the keys go.
                     if (_assistant == supervisor) ResetAssistantInput();
@@ -97,6 +98,7 @@ public partial class App
             ForgetAssistantBrain();
             ForgetAssistantMemory();
             ForgetAssistantBench();
+            ForgetAssistantVoice();
             AbandonAssistantQuestions();
             Log.Info("Asistente: módulo desactivado");
             ResetAssistantInput();
@@ -114,6 +116,7 @@ public partial class App
             SendAssistantGeneral();
             SendAssistantBrainConfig();
             SendAssistantToolsConfig();
+            SendAssistantVoiceConfig();
         }
     }
 
@@ -123,8 +126,10 @@ public partial class App
         _assistantBrainSent = brain.ToJsonString();
         var tools = AssistantToolsConfig();
         _assistantToolsSent = tools.ToJsonString();
+        var voice = AssistantVoiceConfig();
+        _assistantVoiceSent = voice.ToJsonString();
         return new(Loc.Instance.Language, ThemeService.IsDark ? "dark" : "light", Config.Settings.Paused,
-            new() { ["general"] = AssistantGeneral(), ["brain"] = brain, ["tools"] = tools });
+            new() { ["general"] = AssistantGeneral(), ["brain"] = brain, ["tools"] = tools, ["voice"] = voice });
     }
 
     /// <summary>
@@ -169,6 +174,7 @@ public partial class App
                     "assistant" => "assistant",
                     "assistantSettings" when open.Assistant is { } id => "settings/assistants/" + id,
                     "assistantSettings" => "settings/assistants",
+                    "assistantVoice" => "settings/speech",
                     _ => "settings/assistant",
                 }));
                 break;
@@ -210,6 +216,9 @@ public partial class App
                 break;
             case BrainStateMessage brain:
                 OnAssistantBrainState(brain);
+                break;
+            case VoiceStateMessage voiceState:
+                OnAssistantVoiceState(voiceState);
                 break;
             case AskMessage ask:
                 OnAssistantAsk(ask);
