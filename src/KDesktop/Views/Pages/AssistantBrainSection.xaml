@@ -133,5 +133,8 @@
 
     <!-- Test the model (stage 3.9) -->
     <a:BenchView />
+
+    <!-- What no longer asks (stage 4.3) -->
+    <a:TrustView />
     </StackPanel>
 </UserControl>

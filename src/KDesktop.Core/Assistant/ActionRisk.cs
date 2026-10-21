@@ -59,12 +59,14 @@ public static class ActionRisk
     /// Risk of running a whole command: the highest of its enabled actions, of the commands it runs (followed, with
     /// loops cut) and of both branches of every «Si…» (all its actions are looked at, whichever way it goes). Never
     /// below <see cref="ToolRisk.AskOnce"/>, so a command is confirmed the first time (§6.1), unless the user marked
-    /// it as trusted.
+    /// it as trusted. Trust never lifts what always asks (power, scripts, simulated input…, also when a called command has
+    /// it).
     /// </summary>
     public static ToolRisk OfCommand(Command command, Func<string, Command?> findCommand, bool trusted = false)
     {
         var risk = Walk(command, findCommand, []);
-        return trusted ? ToolRisk.Safe : risk < ToolRisk.AskOnce ? ToolRisk.AskOnce : risk;
+        if (risk == ToolRisk.AskAlways) return risk;
+        return trusted ? ToolRisk.Safe : ToolRisk.AskOnce;
     }
 
     private static ToolRisk Walk(Command command, Func<string, Command?> findCommand, HashSet<string> seen)

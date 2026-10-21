@@ -93,6 +93,8 @@ public class AssistantMapTests
         caller.Actions.Add(new CommandControlAction { Mode = CommandControlMode.Run, CommandId = power.Id });
 
         Assert.Equal(ToolRisk.AskAlways, ActionRisk.OfCommand(caller, id => id == power.Id ? power : null));
+        // Trusting it does not lift that.
+        Assert.Equal(ToolRisk.AskAlways, ActionRisk.OfCommand(caller, id => id == power.Id ? power : null, trusted: true));
     }
 
     [Fact]

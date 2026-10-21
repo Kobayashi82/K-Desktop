@@ -56,7 +56,7 @@ public class AssistantCommandsTests
         var command = Make("Saludo", "¡Hola!");
         store.Config.Commands.Add(command);
         var engine = new CommandEngine(store, new FakeUi());
-        var end = await AssistantCommands.RunAsync(engine, new RunMessage("lander", "r-1", command.Id), "Lander");
+        var end = await AssistantCommands.RunAsync(engine, new RunMessage("lander", "r-1", command.Id), "Lander", Yes);
         Assert.Equal(("r-1", "ok"), (end.Run, end.Status));
         var entry = Assert.Single(engine.History.Entries);
         Assert.Equal(TriggerSource.Assistant, entry.Source);
@@ -64,9 +64,9 @@ public class AssistantCommandsTests
         Assert.Equal(command.Id, entry.CommandId);
 
         // Gone, or turned off: failed at once, with why.
-        Assert.Equal("failed", (await AssistantCommands.RunAsync(engine, new RunMessage("lander", "r-2", "nope"), "Lander")).Status);
+        Assert.Equal("failed", (await AssistantCommands.RunAsync(engine, new RunMessage("lander", "r-2", "nope"), "Lander", Yes)).Status);
         command.Enabled = false;
-        var off = await AssistantCommands.RunAsync(engine, new RunMessage("lander", "r-3", command.Id), "Lander");
+        var off = await AssistantCommands.RunAsync(engine, new RunMessage("lander", "r-3", command.Id), "Lander", Yes);
         Assert.Equal("failed", off.Status);
         Assert.NotEmpty(off.Messages);
     }
@@ -79,8 +79,41 @@ public class AssistantCommandsTests
         store.Config.Commands.Add(command);
         store.Config.Settings.Paused = true;
         var engine = new CommandEngine(store, new FakeUi());
-        var end = await AssistantCommands.RunAsync(engine, new RunMessage("", "r-1", command.Id), "K-Desktop");
+        var end = await AssistantCommands.RunAsync(engine, new RunMessage("", "r-1", command.Id), "K-Desktop", Yes);
         Assert.Equal("failed", end.Status);
         Assert.Empty(engine.History.Entries);
+    }
+
+    private static Task<string> Yes(Command command, ToolRisk risk) => Task.FromResult("yes");
+
+    [Fact]
+    public async Task ItAsksFirstUnlessTrustedAndNotRisky()
+    {
+        var store = new ConfigStore();
+        var greet = Make("Saludo");
+        var power = new Command { Name = "Apagar" };
+        power.Actions.Add(new PowerAction());
+        var night = Make("Buenas noches");
+        night.Actions.Add(new CommandControlAction { Mode = CommandControlMode.Run, CommandId = power.Id });
+        foreach (var c in new[] { greet, power, night }) store.Config.Commands.Add(c);
+        var engine = new CommandEngine(store, new FakeUi());
+        var asked = new List<(string Name, ToolRisk Risk)>();
+        Func<Command, ToolRisk, Task<string>> no = (c, r) => { asked.Add((c.Name, r)); return Task.FromResult("no"); };
+
+        // The first time it asks, and without a «yes» nothing runs.
+        var end = await AssistantCommands.RunAsync(engine, new RunMessage("lander", "r-1", greet.Id), "Lander", no);
+        Assert.Equal("declined", end.Status);
+        Assert.Equal(("Saludo", ToolRisk.AskOnce), asked[^1]);
+        Assert.Empty(engine.History.Entries);
+
+        // Trusted: it runs without asking.
+        store.Config.Settings.AssistantTrustedCommands = [greet.Id];
+        Assert.Equal("ok", (await AssistantCommands.RunAsync(engine, new RunMessage("lander", "r-2", greet.Id), "Lander", no)).Status);
+        Assert.Single(asked);
+
+        // One that calls a power command always asks, trusted or not.
+        store.Config.Settings.AssistantTrustedCommands = [greet.Id, night.Id];
+        Assert.Equal("declined", (await AssistantCommands.RunAsync(engine, new RunMessage("lander", "r-3", night.Id), "Lander", no)).Status);
+        Assert.Equal(("Buenas noches", ToolRisk.AskAlways), asked[^1]);
     }
 }

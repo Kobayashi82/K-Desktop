@@ -38,15 +38,22 @@ public static class AssistantCommands
         : new MatchedCandidate(candidate.Command!.Id, candidate.Command.Name, Math.Round(candidate.Score, 3));
 
     /// <summary>
-    /// Runs a command for an assistant and says how it went with what the command said. Waits for it to finish (a long
-    /// one makes its assistant wait, which it shows its own way). Paused, or not found: <c>failed</c> at once.
+    /// Runs a command for an assistant and says how it went with what the command said. First, its risk
+    /// (<see cref="ActionRisk.OfCommand"/>, with the commands it calls and every action of its «Si…»): unless it is
+    /// trusted and does nothing that always asks, <paramref name="ask"/> asks the user, and without a «yes» it does not
+    /// run (<c>declined</c>). Waits for it to finish (a long one makes its assistant wait, which it shows its own way).
+    /// Paused, or not found: <c>failed</c> at once.
     /// </summary>
     /// <param name="who">Who asked, for the history («Lander»; «K-Desktop» without a body).</param>
-    public static async Task<EndMessage> RunAsync(CommandEngine engine, RunMessage request, string who)
+    /// <param name="ask">Asks the user for this command and risk: <c>yes</c>, <c>always</c>, <c>no</c> or <c>timeout</c>.</param>
+    public static async Task<EndMessage> RunAsync(CommandEngine engine, RunMessage request, string who, Func<Command, ToolRisk, Task<string>> ask)
     {
         if (engine.IsPaused) return new EndMessage(request.Run, "failed", [Loc.T("pause.refused")]);
         if (engine.Config.FindCommand(request.Command) is not { Enabled: true } command)
             return new EndMessage(request.Run, "failed", [Loc.T("assistantCommand.notFound")]);
+        var risk = ActionRisk.OfCommand(command, engine.Config.FindCommand, engine.Config.Settings.AssistantTrustedCommands.Contains(command.Id));
+        if (risk != ToolRisk.Safe && await ask(command, risk).ConfigureAwait(false) is not ("yes" or "always"))
+            return new EndMessage(request.Run, "declined", [Loc.T("assistantCommand.declined", command.Name)]);
         var feedback = new ExecutionFeedback();
         Task run;
         using (feedback.Begin())

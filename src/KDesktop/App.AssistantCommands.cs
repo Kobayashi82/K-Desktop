@@ -29,7 +29,7 @@ public partial class App
                 _ = Task.Run(async () =>
                 {
                     var who = AssistantPackages.Find(run.Assistant)?.Manifest.Name ?? (run.Assistant.Length > 0 ? run.Assistant : "K-Desktop");
-                    var end = await AssistantCommands.RunAsync(Engine, run, who).ConfigureAwait(false);
+                    var end = await AssistantCommands.RunAsync(Engine, run, who, (command, risk) => AskCommandAsync(run, command, risk)).ConfigureAwait(false);
                     supervisor.Send(end);
                 });
                 return true;
@@ -44,4 +44,20 @@ public partial class App
         }
         return false;
     }
+
+    /// <summary>Seconds to answer whether a command may run.</summary>
+    private const int CommandAskSeconds = 20;
+
+    /// <summary>
+    /// Before an assistant runs a command that is not trusted, or does something that always asks: the same window as
+    /// for its tools. «Yes, and don't ask again» (only for what asks once) makes the command trusted.
+    /// </summary>
+    private Task<string> AskCommandAsync(RunMessage run, Core.Model.Command command, Core.Assistant.ToolRisk risk) =>
+        Dispatcher.InvokeAsync(async () =>
+        {
+            var choice = await AskUserAsync("run-" + run.Run, run.Assistant, Loc.T("assistantCommand.ask", command.Name), risk == Core.Assistant.ToolRisk.AskOnce, CommandAskSeconds);
+            if (choice == "always" && !Config.Settings.AssistantTrustedCommands.Contains(command.Id))
+                Config.Settings.AssistantTrustedCommands = [.. Config.Settings.AssistantTrustedCommands, command.Id];
+            return choice;
+        }).Task.Unwrap();
 }

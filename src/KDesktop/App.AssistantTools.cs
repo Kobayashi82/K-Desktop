@@ -65,17 +65,27 @@ public partial class App
     /// <summary>A tool asks before doing something: the window, and its answer back (UI thread).</summary>
     private async void OnAssistantAsk(AskMessage ask)
     {
-        var installed = ask.Assistant is { } id ? AssistantPackages.Find(id) : null;
-        var window = new AskWindow(installed?.Manifest.Name ?? "K-Desktop", installed is null ? null : AssistantLook.Icon(installed),
-            ask.Text, ask.CanTrust, TimeSpan.FromSeconds(Math.Clamp(ask.Seconds, 3, 30)));
-        _questions[ask.Id] = window;
-        window.Show();
-        var choice = await window.Answer;
-        _questions.Remove(ask.Id);
-        Log.Info($"Asistente: «{ask.Text}» → {choice}");
+        var choice = await AskUserAsync(ask.Id, ask.Assistant, ask.Text, ask.CanTrust, ask.Seconds);
         if (choice == "always" && !Config.Settings.AssistantTrustedTools.Contains(ask.Tool))
             Config.Settings.AssistantTrustedTools = [.. Config.Settings.AssistantTrustedTools, ask.Tool];
         _assistant?.Send(new AnswerMessage(ask.Id, choice));
+    }
+
+    /// <summary>
+    /// Asks the user whether an assistant may do something (UI thread): the window at the bottom right, without taking
+    /// the focus. <c>yes</c>, <c>always</c>, <c>no</c> or <c>timeout</c>.
+    /// </summary>
+    private async Task<string> AskUserAsync(string key, string? assistant, string text, bool canTrust, int seconds)
+    {
+        var installed = assistant is { Length: > 0 } id ? AssistantPackages.Find(id) : null;
+        var window = new AskWindow(installed?.Manifest.Name ?? "K-Desktop", installed is null ? null : AssistantLook.Icon(installed),
+            text, canTrust, TimeSpan.FromSeconds(Math.Clamp(seconds, 3, 30)));
+        _questions[key] = window;
+        window.Show();
+        var choice = await window.Answer;
+        _questions.Remove(key);
+        Log.Info($"Asistente: «{text}» → {choice}");
+        return choice;
     }
 
     /// <summary>The process went away: nobody waits for those answers any more.</summary>

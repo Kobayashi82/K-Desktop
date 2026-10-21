@@ -1,0 +1,15 @@
+<UserControl x:Class="KDesktop.Views.Assistant.TrustView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:KDesktop.Localization">
+    <!-- Options → Brain → What no longer asks (stage 4.3): the commands and tools the user trusted with «yes, and don't
+         ask again», to take that back -->
+    <Border Style="{StaticResource Card}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr trust.title}" />
+            <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,8" TextWrapping="Wrap" Text="{l:Tr trust.hint}" />
+            <TextBlock x:Name="EmptyText" Style="{StaticResource Caption}" Margin="0,4,0,4" Text="{l:Tr trust.empty}" />
+            <StackPanel x:Name="Rows" />
+        </StackPanel>
+    </Border>
+</UserControl>

@@ -482,6 +482,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>The tools that no longer ask before doing something («yes, and don't ask again»). Replaced whole on every change.</summary>
     [ObservableProperty] private List<string> _assistantTrustedTools = [];
 
+    /// <summary>The commands (ids) an assistant runs without asking first («yes, and don't ask again»). Replaced whole on every change.</summary>
+    [ObservableProperty] private List<string> _assistantTrustedCommands = [];
+
     // OSD
     [ObservableProperty] private OsdPosition _osdPosition = OsdPosition.BottomCenter;
     [ObservableProperty] private double _osdSeconds = 1.6;

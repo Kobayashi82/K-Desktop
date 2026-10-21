@@ -2887,5 +2887,15 @@
 
   "assistantCommand.notFound": "That command no longer exists or is turned off.",
   "history.source.Assistant": "Assistant",
-  "source.assistant": "Assistant"
+  "source.assistant": "Assistant",
+
+  "assistantCommand.ask": "Shall I run \"{0}\"?",
+  "assistantCommand.declined": "I didn't run \"{0}\".",
+  "trust.title": "What no longer asks",
+  "trust.hint": "Commands and tools the assistants use without asking because you said \"Yes, and don't ask again\". What always asks (shutting down, scripts, simulated keys…) is never here.",
+  "trust.empty": "Everything asks first.",
+  "trust.command": "Command \"{0}\"",
+  "trust.tool": "Tool {0}",
+  "trust.gone": "(no longer exists)",
+  "trust.askAgain": "Ask again"
 }

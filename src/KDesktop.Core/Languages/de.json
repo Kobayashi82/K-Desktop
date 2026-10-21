@@ -2887,5 +2887,15 @@
 
   "assistantCommand.notFound": "Dieser Befehl existiert nicht mehr oder ist deaktiviert.",
   "history.source.Assistant": "Assistent",
-  "source.assistant": "Assistent"
+  "source.assistant": "Assistent",
+
+  "assistantCommand.ask": "Soll ich „{0}“ ausführen?",
+  "assistantCommand.declined": "Ich habe „{0}“ nicht ausgeführt.",
+  "trust.title": "Was nicht mehr fragt",
+  "trust.hint": "Befehle und Werkzeuge, die die Assistenten ohne Nachfrage verwenden, weil du „Ja, und nicht mehr fragen“ gesagt hast. Was immer fragt (Herunterfahren, Skripte, simulierte Tasten…), steht nie hier.",
+  "trust.empty": "Alles fragt vorher.",
+  "trust.command": "Befehl „{0}“",
+  "trust.tool": "Werkzeug {0}",
+  "trust.gone": "(existiert nicht mehr)",
+  "trust.askAgain": "Wieder fragen"
 }

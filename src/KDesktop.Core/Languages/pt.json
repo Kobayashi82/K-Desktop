@@ -2887,5 +2887,15 @@
 
   "assistantCommand.notFound": "Esse comando não existe mais ou está desativado.",
   "history.source.Assistant": "Assistente",
-  "source.assistant": "Assistente"
+  "source.assistant": "Assistente",
+
+  "assistantCommand.ask": "Executo \"{0}\"?",
+  "assistantCommand.declined": "Não executei \"{0}\".",
+  "trust.title": "O que não pergunta mais",
+  "trust.hint": "Comandos e ferramentas que os assistentes usam sem perguntar porque você disse \"Sim, e não pergunte de novo\". O que pergunta sempre (desligar, scripts, teclas simuladas…) nunca fica aqui.",
+  "trust.empty": "Tudo pergunta antes.",
+  "trust.command": "Comando \"{0}\"",
+  "trust.tool": "Ferramenta {0}",
+  "trust.gone": "(não existe mais)",
+  "trust.askAgain": "Perguntar de novo"
 }

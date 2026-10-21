@@ -2887,5 +2887,15 @@
 
   "assistantCommand.notFound": "Cette commande n'existe plus ou est désactivée.",
   "history.source.Assistant": "Assistant",
-  "source.assistant": "Assistant"
+  "source.assistant": "Assistant",
+
+  "assistantCommand.ask": "J'exécute « {0} » ?",
+  "assistantCommand.declined": "Je n'ai pas exécuté « {0} ».",
+  "trust.title": "Ce qui ne demande plus",
+  "trust.hint": "Commandes et outils que les assistants utilisent sans demander parce que vous avez dit « Oui, et ne redemande pas ». Ce qui demande toujours (éteindre, scripts, touches simulées…) n'est jamais ici.",
+  "trust.empty": "Tout demande d'abord.",
+  "trust.command": "Commande « {0} »",
+  "trust.tool": "Outil {0}",
+  "trust.gone": "(n'existe plus)",
+  "trust.askAgain": "Redemander"
 }
