@@ -23,9 +23,13 @@ internal sealed class ModuleVoice : IDisposable
     private readonly EngineLoop _engine;
     private readonly AssistantRuntime _runtime;
     private readonly Dictionary<string, Speaker> _speakers = new(StringComparer.Ordinal);
+    /// <summary>The moods of the tests of Options (turn → moods), instead of the ones of the moment.</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, IReadOnlyList<string>> _testMoods = new(StringComparer.Ordinal);
     private volatile VoiceSettings _settings = new();
     private volatile string? _profile;
     private double _volume = 1;
+    private volatile bool _pan = true, _night, _hushFullscreen, _hushed;
+    private CancellationTokenSource? _test;
 
     public ModuleVoice(EngineLoop engine, AssistantRuntime runtime)
     {
@@ -57,7 +61,64 @@ internal sealed class ModuleVoice : IDisposable
             voice["speed"]?.GetValue<double>() ?? 1);
         _volume = Math.Clamp(voice["volume"]?.GetValue<double>() ?? 1, 0, 1);
         _profile = voice["profile"]?.GetValue<string>() is { Length: > 0 } fixedProfile ? fixedProfile : null;
-        Log.Info($"Asistente: voz {engine} (en uso: {Speech.Resolve(Loc.Instance.Language, _settings)}), velocidad {_settings.Speed:0.00}, volumen {_volume:0.00}");
+        _pan = voice["pan"]?.GetValue<bool>() ?? true;
+        _night = voice["night"]?.GetValue<bool>() ?? false;
+        _hushFullscreen = voice["fullscreen"]?.GetValue<bool>() ?? false;
+        Log.Info($"Asistente: voz {engine} (en uso: {Speech.Resolve(Loc.Instance.Language, _settings)}), velocidad {_settings.Speed:0.00}, volumen {_volume:0.00}"
+            + $"{(_pan ? "" : ", sin panorama")}{(_night ? ", más bajo de noche" : "")}{(_hushFullscreen ? ", calla con pantalla completa" : "")}");
+    }
+
+    /// <summary>At night (22:00–8:00), with that option, half as loud.</summary>
+    public static double NightFactor(DateTime now) => now.Hour is >= 22 or < 8 ? 0.5 : 1;
+
+    /// <summary>How loud a voice plays now: Options' volume, at night perhaps less.</summary>
+    private double Volume => _volume * (_night ? NightFactor(DateTime.Now) : 1);
+
+    /// <summary>
+    /// Options → Voice → «Probar» (stage 5.6): <paramref name="say"/> says <paramref name="text"/> in a turn of its own,
+    /// with <paramref name="mood"/> (none: plain, not even «far») instead of the moods of the moment, and even with something
+    /// full screen. A new test or <see cref="StopTest"/> stops the one before.
+    /// </summary>
+    public void Test(string text, string? mood, Func<string, string, CancellationToken, Task> say)
+    {
+        var turn = "test-" + Guid.NewGuid().ToString("N")[..8];
+        _testMoods[turn] = mood is { Length: > 0 } ? [mood] : [];
+        var stop = new CancellationTokenSource();
+        Interlocked.Exchange(ref _test, stop)?.Cancel();
+        Log.Info($"Asistente: prueba de voz{(mood is { Length: > 0 } ? $" ({mood})" : "")}: «{text}»");
+        _ = say(turn, text, stop.Token).ContinueWith(_ =>
+        {
+            _testMoods.TryRemove(turn, out var _);
+            Interlocked.CompareExchange(ref _test, null, stop);
+            stop.Dispose();
+        }, TaskScheduler.Default);
+    }
+
+    /// <summary>Stops the test of Options that is sounding, if any.</summary>
+    public void StopTest()
+    {
+        if (Interlocked.Exchange(ref _test, null) is not { } test) return;
+        try { test.Cancel(); }
+        catch (ObjectDisposedException) { return; }
+        Log.Info("Asistente: prueba de voz parada");
+    }
+
+    private bool IsTest(string turn) => _testMoods.ContainsKey(turn.TrimEnd('+'));
+
+    /// <summary>
+    /// Whether a turn is said aloud: a voice chosen and the sound on, and not hushed by something full screen (tests are
+    /// said anyway: they were asked for).
+    /// </summary>
+    private bool SpeaksNow(string turn)
+    {
+        if (!Speaks) return false;
+        var hushed = _hushFullscreen && _runtime.World.System.FullscreenMonitors.Count > 0 && !IsTest(turn);
+        if (hushed != _hushed)
+        {
+            _hushed = hushed;
+            if (hushed) Log.Info("Asistente: hay algo a pantalla completa: solo el bocadillo");
+        }
+        return !hushed;
     }
 
     /// <summary>How the voice is, for Options → Assistant → Voice.</summary>
@@ -67,9 +128,6 @@ internal sealed class ModuleVoice : IDisposable
         var engine = _runtime.Audio.Enabled ? Speech.Resolve(language, _settings) : SpeechEngineKind.Off;
         return new VoiceStateMessage(engine.ToString().ToLowerInvariant(), Speech.WindowsVoicesFor(language), Speech.Pocket.IsLoaded);
     }
-
-    /// <summary>Options → Voice → Test with nobody on the desktop: only the voice.</summary>
-    public Task SayAloneAsync(string text) => SayAsync(string.Empty, Guid.NewGuid().ToString("N")[..12], text, CancellationToken.None);
 
     /// <summary>Whether answers are said aloud at all now (a voice chosen and the sound on).</summary>
     private bool Speaks => _settings.Engine != SpeechEngineKind.Off && _runtime.Audio.Enabled;
@@ -86,7 +144,7 @@ internal sealed class ModuleVoice : IDisposable
     /// </summary>
     public void Ahead(string? assistant, string turn, string textSoFar)
     {
-        if (assistant is null || !Speaks) return;
+        if (assistant is null || !SpeaksNow(turn)) return;
         var speaker = For(assistant, turn);
         foreach (var sentence in speaker.Splitter.Feed(textSoFar)) speaker.Queue(sentence);
     }
@@ -97,7 +155,7 @@ internal sealed class ModuleVoice : IDisposable
     /// </summary>
     public Task SayAsync(string? assistant, string turn, string text, CancellationToken cancellationToken)
     {
-        if (assistant is null || !Speaks) return Task.CompletedTask;
+        if (assistant is null || !SpeaksNow(turn)) return Task.CompletedTask;
         var speaker = For(assistant, turn);
         var rest = speaker.Splitter.Finish(text, out var diverged);
         if (diverged)
@@ -242,7 +300,7 @@ internal sealed class ModuleVoice : IDisposable
                 await foreach (var line in _lines.Reader.ReadAllAsync(token).ConfigureAwait(false))
                 {
                     _playing = line;
-                    _owner._runtime.Audio.Speak(line, _owner._volume, await PanAsync().ConfigureAwait(false));
+                    _owner._runtime.Audio.Speak(line, _owner.Volume, _owner._pan ? await PanAsync().ConfigureAwait(false) : 0);
                     if (token.IsCancellationRequested) line.Stop();
                     while (!line.Ended.IsCompleted)
                     {
@@ -261,6 +319,7 @@ internal sealed class ModuleVoice : IDisposable
         /// <summary>The moods of the next sentence (engine thread: where it is, what it set).</summary>
         private Task<IReadOnlyList<string>> MoodsAsync()
         {
+            if (_owner._testMoods.TryGetValue(Turn.TrimEnd('+'), out var test)) return Task.FromResult(test);
             if (_assistant.Length == 0) return Task.FromResult<IReadOnlyList<string>>([]);
             var moods = new TaskCompletionSource<IReadOnlyList<string>>(TaskCreationOptions.RunContinuationsAsynchronously);
             _owner._engine.Post(() => moods.TrySetResult(_owner._runtime.VoiceMoods(_assistant)));

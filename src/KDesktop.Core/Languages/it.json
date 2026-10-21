@@ -2990,5 +2990,23 @@
   "assistantVoice.profile.martian": "Marziano",
   "assistantVoice.profile.mission": "Controllo missione",
   "assistantVoice.profile.eightbit": "8 bit",
-  "assistantVoice.profile.beeps": "Bip"
+  "assistantVoice.profile.beeps": "Bip",
+
+  "assistantVoice.testTitle": "Prova",
+  "assistantVoice.testHint": "Suona con ciò che hai scelto sopra. Scegli chi lo dice e come: contento, dopo un errore o da un altro monitor (via radio).",
+  "assistantVoice.testStop": "Ferma",
+  "assistantVoice.testWho": "Chi lo dice",
+  "assistantVoice.testVoiceOnly": "Solo la voce (senza personaggio)",
+  "assistantVoice.testMood": "Come lo dice",
+  "assistantVoice.mood.plain": "Normale",
+  "assistantVoice.mood.happy": "Contento",
+  "assistantVoice.mood.error": "Dopo un errore",
+  "assistantVoice.mood.far": "Da un altro monitor",
+  "assistantVoice.whenTitle": "Quando parlano ad alta voce",
+  "assistantVoice.fullscreen": "Tacere con qualcosa a schermo intero",
+  "assistantVoice.fullscreenHint": "Mentre guardi un film o giochi su qualsiasi monitor, rispondono solo con il fumetto. «Prova» suona lo stesso.",
+  "assistantVoice.night": "Più piano di notte",
+  "assistantVoice.nightHint": "Dalle 22:00 alle 8:00, la voce a metà volume.",
+  "assistantVoice.pan": "Suonano da dove si trovano",
+  "assistantVoice.panHint": "Più dall'altoparlante sinistro o destro a seconda di dove si trova l'assistente sui tuoi monitor."
 }

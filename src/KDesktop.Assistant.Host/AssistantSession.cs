@@ -124,9 +124,13 @@ internal sealed class AssistantSession : IDisposable
                         // Said by whoever K-Desktop chose, with its bubble; with nobody, only the voice (who is there: engine thread).
                         Engine.Post(() =>
                         {
-                            if (test.Assistant is { } who && Runtime.IsLoaded(who) && Talk is { } speaker) _ = speaker.SpeakAsync(who, text, CancellationToken.None);
-                            else _ = voice.SayAloneAsync(text);
+                            if (test.Assistant is { } who && Runtime.IsLoaded(who) && Talk is { } speaker)
+                                voice.Test(text, test.Mood, (turn, said, stop) => speaker.SpeakTurnAsync(who, turn, said, stop));
+                            else voice.Test(text, test.Mood, (turn, said, stop) => voice.SayAsync(string.Empty, turn, said, stop));
                         });
+                        return;
+                    case VoiceMessage { Op: "stop" } when Voice is { } voice:
+                        voice.StopTest();
                         return;
                     case ConfigMessage { Section: "tools" } config when Tools is { } tools:
                         tools.Configure(config.Value as JsonObject);

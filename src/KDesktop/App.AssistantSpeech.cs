@@ -63,6 +63,9 @@ public partial class App
             ["windowsVoice"] = s.AssistantVoiceWindows,
             ["speed"] = Math.Clamp(s.AssistantVoiceSpeed, 0.5, 2),
             ["volume"] = Math.Clamp(s.AssistantVoiceVolume, 0, 100) / 100.0,
+            ["pan"] = s.AssistantVoicePan,
+            ["night"] = s.AssistantVoiceNight,
+            ["fullscreen"] = s.AssistantVoiceFullscreen,
         };
     }
 
@@ -79,12 +82,18 @@ public partial class App
     /// <summary>Asks the process about its voice (<c>state</c>, <c>unload</c>).</summary>
     public void AskAssistantVoice(string op) => _assistant?.Send(new VoiceMessage(op));
 
-    /// <summary>«Probar»: the one who answers what is not addressed to anyone says it (or only the voice, with nobody).</summary>
-    public void TestAssistantVoice(string text)
+    /// <summary>
+    /// «Probar»: <paramref name="who"/> says it (null: the one who answers what is not addressed to anyone; empty: only the
+    /// voice), in <paramref name="mood"/> (null: plain).
+    /// </summary>
+    public void TestAssistantVoice(string text, string? mood = null, string? who = null)
     {
         if (_assistant is not { IsRunning: true } supervisor || text.Trim().Length == 0) return;
-        supervisor.Send(new VoiceMessage("test", text.Trim(), PickAssistant()));
+        supervisor.Send(new VoiceMessage("test", text.Trim(), who is null ? PickAssistant() : who.Length > 0 ? who : null, mood));
     }
+
+    /// <summary>Stops the test that is sounding.</summary>
+    public void StopAssistantVoiceTest() => _assistant?.Send(new VoiceMessage("stop"));
 
     /// <summary>A Pocket TTS voice chosen: it is downloaded if the model is there and it is not (a few MB).</summary>
     public void ChoosePocketVoice(string voice)

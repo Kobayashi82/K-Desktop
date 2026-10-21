@@ -2990,5 +2990,23 @@
   "assistantVoice.profile.martian": "Martien",
   "assistantVoice.profile.mission": "Contrôle de mission",
   "assistantVoice.profile.eightbit": "8 bits",
-  "assistantVoice.profile.beeps": "Bips"
+  "assistantVoice.profile.beeps": "Bips",
+
+  "assistantVoice.testTitle": "Essayer",
+  "assistantVoice.testHint": "Le son suit ce que vous avez choisi plus haut. Choisissez qui le dit et comment : content, après un échec ou depuis un autre écran (par radio).",
+  "assistantVoice.testStop": "Arrêter",
+  "assistantVoice.testWho": "Qui le dit",
+  "assistantVoice.testVoiceOnly": "Seulement la voix (sans personnage)",
+  "assistantVoice.testMood": "Comment il le dit",
+  "assistantVoice.mood.plain": "Normal",
+  "assistantVoice.mood.happy": "Content",
+  "assistantVoice.mood.error": "Après un échec",
+  "assistantVoice.mood.far": "Depuis un autre écran",
+  "assistantVoice.whenTitle": "Quand ils parlent à voix haute",
+  "assistantVoice.fullscreen": "Se taire quand quelque chose est en plein écran",
+  "assistantVoice.fullscreenHint": "Pendant un film ou un jeu sur n'importe quel écran, ils répondent seulement avec la bulle. « Essayer » sonne quand même.",
+  "assistantVoice.night": "Plus bas la nuit",
+  "assistantVoice.nightHint": "De 22 h à 8 h, la voix à moitié du volume.",
+  "assistantVoice.pan": "Ils sonnent depuis leur position",
+  "assistantVoice.panHint": "Plus dans le haut-parleur gauche ou droit selon l'endroit où se trouve l'assistant sur vos écrans."
 }

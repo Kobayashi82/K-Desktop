@@ -2,5 +2,6 @@
   "t": "voice",
   "op": "test",
   "text": "Hola, soy el Lander. Así sueno.",
-  "assistant": "lander"
+  "assistant": "lander",
+  "mood": "far"
 }

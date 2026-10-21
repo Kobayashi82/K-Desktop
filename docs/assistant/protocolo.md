@@ -171,12 +171,12 @@ Lo hace todo el proceso del asistente (sin administrador): buscar el servidor, i
 Lo que contestan lo dicen en voz alta frase a frase, mientras la IA aún escribe (las frases que ya han terminado empiezan a
 sonar; con Pocket TTS, unas décimas después de empezar a sintetizarse). La síntesis es del proceso del asistente; K-Desktop
 solo descarga los modelos (`Models\pocket-tts\<idioma>\`) y manda los ajustes en la sección `voice` de `config` (`engine`:
-`auto`, `pocket`, `windows`, `beeps` u `off`; `profile` —el perfil fijo para todos, vacío = el de cada asistente—, `pocketVoice`, `windowsVoice`, `speed` 0,5…2, `volume` 0…1; también en la
-bienvenida). Sin cuerpo no se dice nada en voz alta.
+`auto`, `pocket`, `windows`, `beeps` u `off`; `profile` —el perfil fijo para todos, vacío = el de cada asistente—, `pocketVoice`, `windowsVoice`, `speed` 0,5…2, `volume` 0…1, `pan` —suena desde donde está—, `night` —de 22:00 a 8:00, a la mitad— y `fullscreen` —con algo a
+pantalla completa, solo el bocadillo—; también en la bienvenida). Sin cuerpo no se dice nada en voz alta.
 
 | `t` | Dir. | Campos | Qué es |
 |---|---|---|---|
-| `voice` | K→A | `op` (`state`, `test`, `unload`), `text` (para `test`), `assistant` (para `test`: quién lo dice; sin él, solo la voz) | Preguntar cómo está la voz, decir una frase de prueba (con el bocadillo del asistente si está en el escritorio) o soltar el modelo de Pocket TTS de la memoria (antes de borrar sus archivos) |
+| `voice` | K→A | `op` (`state`, `test`, `stop`, `unload`), `text` (para `test`), `assistant` (para `test`: quién lo dice; sin él, solo la voz), `mood` (para `test`: `happy`, `error`, `far`; sin él, sin ánimo, ni siquiera `far`) | Preguntar cómo está la voz, decir una frase de prueba (con el bocadillo del asistente si está en el escritorio; suena aunque haya algo a pantalla completa), pararla o soltar el modelo de Pocket TTS de la memoria (antes de borrar sus archivos) |
 | `voiceState` | A→K | `engine` (el que habla de verdad: `pocket`, `windows`, `beeps`, `off`), `windowsVoices` (las de Windows para el idioma), `pocketLoaded` | Tras cada `voice` `state` y cada cambio de la sección `voice` |
 
 ### Del asistente al panel de K-Desktop

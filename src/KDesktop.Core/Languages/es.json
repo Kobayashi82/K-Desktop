@@ -2990,5 +2990,23 @@
   "assistantVoice.profile.martian": "Marciano",
   "assistantVoice.profile.mission": "Control de misión",
   "assistantVoice.profile.eightbit": "8 bits",
-  "assistantVoice.profile.beeps": "Pitidos"
+  "assistantVoice.profile.beeps": "Pitidos",
+
+  "assistantVoice.testTitle": "Probar",
+  "assistantVoice.testHint": "Suena con lo que tengas elegido arriba. Elige quién lo dice y cómo: contento, tras un fallo o desde otro monitor (por radio).",
+  "assistantVoice.testStop": "Parar",
+  "assistantVoice.testWho": "Quién lo dice",
+  "assistantVoice.testVoiceOnly": "Solo la voz (sin personaje)",
+  "assistantVoice.testMood": "Cómo lo dice",
+  "assistantVoice.mood.plain": "Normal",
+  "assistantVoice.mood.happy": "Contento",
+  "assistantVoice.mood.error": "Tras un fallo",
+  "assistantVoice.mood.far": "Desde otro monitor",
+  "assistantVoice.whenTitle": "Cuándo hablan en voz alta",
+  "assistantVoice.fullscreen": "Callar con algo a pantalla completa",
+  "assistantVoice.fullscreenHint": "Mientras ves una película o juegas en cualquier monitor, contestan solo con el bocadillo. «Probar» suena igual.",
+  "assistantVoice.night": "Más bajito de noche",
+  "assistantVoice.nightHint": "De 22:00 a 8:00, la voz a la mitad del volumen.",
+  "assistantVoice.pan": "Suenan desde donde están",
+  "assistantVoice.panHint": "Más por el altavoz izquierdo o el derecho según dónde esté el asistente en tus monitores."
 }

@@ -2990,5 +2990,23 @@
   "assistantVoice.profile.martian": "Marsmensch",
   "assistantVoice.profile.mission": "Missionskontrolle",
   "assistantVoice.profile.eightbit": "8 Bit",
-  "assistantVoice.profile.beeps": "Pieptöne"
+  "assistantVoice.profile.beeps": "Pieptöne",
+
+  "assistantVoice.testTitle": "Ausprobieren",
+  "assistantVoice.testHint": "Es klingt mit dem, was du oben gewählt hast. Wähle, wer es sagt und wie: fröhlich, nach einem Fehler oder von einem anderen Monitor (über Funk).",
+  "assistantVoice.testStop": "Stopp",
+  "assistantVoice.testWho": "Wer es sagt",
+  "assistantVoice.testVoiceOnly": "Nur die Stimme (ohne Figur)",
+  "assistantVoice.testMood": "Wie es klingt",
+  "assistantVoice.mood.plain": "Normal",
+  "assistantVoice.mood.happy": "Fröhlich",
+  "assistantVoice.mood.error": "Nach einem Fehler",
+  "assistantVoice.mood.far": "Von einem anderen Monitor",
+  "assistantVoice.whenTitle": "Wann sie laut sprechen",
+  "assistantVoice.fullscreen": "Bei Vollbild schweigen",
+  "assistantVoice.fullscreenHint": "Während du auf einem beliebigen Monitor einen Film schaust oder spielst, antworten sie nur mit der Sprechblase. „Ausprobieren“ klingt trotzdem.",
+  "assistantVoice.night": "Nachts leiser",
+  "assistantVoice.nightHint": "Von 22:00 bis 8:00 Uhr die Stimme mit halber Lautstärke.",
+  "assistantVoice.pan": "Sie klingen von dort, wo sie sind",
+  "assistantVoice.panHint": "Mehr über den linken oder rechten Lautsprecher, je nachdem, wo der Assistent auf deinen Monitoren ist."
 }

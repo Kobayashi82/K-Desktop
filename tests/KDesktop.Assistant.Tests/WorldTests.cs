@@ -25,7 +25,8 @@ public class WorldTests
         try
         {
             await Until(() => Read(log).Contains("«probe» cargado"));
-            Assert.Matches(@"mundo con [1-9]\d* monitor\(es\) y [1-9]\d* ventanas", Read(log));
+            // No windows at all is possible (everything minimized): the test opens its own.
+            Assert.Matches(@"mundo con [1-9]\d* monitor\(es\) y \d+ ventanas", Read(log));
 
             var title = "KDesktop prueba " + Guid.NewGuid().ToString("N")[..6];
             var handle = await RunWindowAsync(title, async (window, events) =>

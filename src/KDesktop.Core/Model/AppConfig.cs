@@ -484,6 +484,15 @@ public partial class AppSettings : ObservableObject
     /// <summary>Volume of their voice, 0–100 (under the assistants' volume).</summary>
     [ObservableProperty] private int _assistantVoiceVolume = 100;
 
+    /// <summary>Their voice sounds from where they are (left or right speaker, stage 5.6).</summary>
+    [ObservableProperty] private bool _assistantVoicePan = true;
+
+    /// <summary>At night (22:00–8:00) they speak at half the volume.</summary>
+    [ObservableProperty] private bool _assistantVoiceNight;
+
+    /// <summary>With something full screen (a film, a game) they only use the bubble.</summary>
+    [ObservableProperty] private bool _assistantVoiceFullscreen;
+
     /// <summary>The assistants' sounds (engines, landings…), mixed by their process.</summary>
     [ObservableProperty] private bool _assistantSound = true;
 

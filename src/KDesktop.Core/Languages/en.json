@@ -2990,5 +2990,23 @@
   "assistantVoice.profile.martian": "Martian",
   "assistantVoice.profile.mission": "Mission control",
   "assistantVoice.profile.eightbit": "8-bit",
-  "assistantVoice.profile.beeps": "Beeps"
+  "assistantVoice.profile.beeps": "Beeps",
+
+  "assistantVoice.testTitle": "Try it",
+  "assistantVoice.testHint": "It sounds with what you chose above. Pick who says it and how: happy, after a failure or from another monitor (over the radio).",
+  "assistantVoice.testStop": "Stop",
+  "assistantVoice.testWho": "Who says it",
+  "assistantVoice.testVoiceOnly": "Only the voice (no character)",
+  "assistantVoice.testMood": "How it says it",
+  "assistantVoice.mood.plain": "Normal",
+  "assistantVoice.mood.happy": "Happy",
+  "assistantVoice.mood.error": "After a failure",
+  "assistantVoice.mood.far": "From another monitor",
+  "assistantVoice.whenTitle": "When they speak aloud",
+  "assistantVoice.fullscreen": "Keep quiet with something full screen",
+  "assistantVoice.fullscreenHint": "While you watch a film or play on any monitor, they answer only with the bubble. «Try» still sounds.",
+  "assistantVoice.night": "Quieter at night",
+  "assistantVoice.nightHint": "From 22:00 to 8:00, the voice at half the volume.",
+  "assistantVoice.pan": "They sound from where they are",
+  "assistantVoice.panHint": "More through the left or the right speaker depending on where the assistant is on your monitors."
 }

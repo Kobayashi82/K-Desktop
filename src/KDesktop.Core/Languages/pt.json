@@ -2990,5 +2990,23 @@
   "assistantVoice.profile.martian": "Marciano",
   "assistantVoice.profile.mission": "Controle da missão",
   "assistantVoice.profile.eightbit": "8 bits",
-  "assistantVoice.profile.beeps": "Bipes"
+  "assistantVoice.profile.beeps": "Bipes",
+
+  "assistantVoice.testTitle": "Testar",
+  "assistantVoice.testHint": "Soa com o que você escolheu acima. Escolha quem fala e como: feliz, depois de uma falha ou de outro monitor (pelo rádio).",
+  "assistantVoice.testStop": "Parar",
+  "assistantVoice.testWho": "Quem fala",
+  "assistantVoice.testVoiceOnly": "Só a voz (sem personagem)",
+  "assistantVoice.testMood": "Como fala",
+  "assistantVoice.mood.plain": "Normal",
+  "assistantVoice.mood.happy": "Feliz",
+  "assistantVoice.mood.error": "Depois de uma falha",
+  "assistantVoice.mood.far": "De outro monitor",
+  "assistantVoice.whenTitle": "Quando falam em voz alta",
+  "assistantVoice.fullscreen": "Ficar em silêncio com algo em tela cheia",
+  "assistantVoice.fullscreenHint": "Enquanto você assiste a um filme ou joga em qualquer monitor, eles respondem só com o balão. «Testar» soa mesmo assim.",
+  "assistantVoice.night": "Mais baixo à noite",
+  "assistantVoice.nightHint": "Das 22h às 8h, a voz na metade do volume.",
+  "assistantVoice.pan": "Soam de onde estão",
+  "assistantVoice.panHint": "Mais pelo alto-falante esquerdo ou direito conforme onde o assistente está nos seus monitores."
 }

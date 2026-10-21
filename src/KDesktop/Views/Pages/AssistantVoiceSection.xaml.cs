@@ -9,8 +9,9 @@ namespace KDesktop.Views.Pages;
 
 /// <summary>
 /// Options → Assistant → Voice (stage 5.4): who says the answers aloud (Pocket TTS, downloaded here for the interface
-/// language; Windows' voices; beeps; nobody), which voice, how fast and how loud, and «Probar». What really speaks comes
-/// from the assistant process (<c>voiceState</c>).
+/// language; Windows' voices; beeps; nobody), which voice, how fast and how loud, and «Probar» (stage 5.6: by whom, in
+/// which mood, and stopping it); and when they speak aloud. What really speaks comes from the assistant process
+/// (<c>voiceState</c>).
 /// </summary>
 public partial class AssistantVoiceSection : UserControl
 {
@@ -18,6 +19,9 @@ public partial class AssistantVoiceSection : UserControl
     {
         public override string ToString() => Name;
     }
+
+    /// <summary>The moods «Probar» offers (empty: plain), the ones every profile has.</summary>
+    private static readonly string[] TestMoods = ["", "happy", "error", "far"];
 
     private readonly App _app = App.Current;
     private bool _filling;
@@ -96,9 +100,22 @@ public partial class AssistantVoiceSection : UserControl
         WindowsVoiceBox.SelectedItem = windows.FirstOrDefault(w => w.Value == s.AssistantVoiceWindows) ?? windows[0];
         WindowsHint.Text = _app.AssistantVoice is { WindowsVoices.Count: 0 } ? Loc.T("assistantVoice.windowsNone", languageName) : Loc.T("assistantVoice.windowsVoiceHint");
 
-        TestButton.IsEnabled = _app.Assistant is { IsRunning: true };
+        // «Probar»: who says it (the assistants on the desktop, or only the voice) and in which mood.
+        var running = _app.Assistant is { IsRunning: true };
+        TestButton.IsEnabled = StopButton.IsEnabled = running;
+        var picked = _app.PickAssistant();
+        List<Option> who = [.. _app.AssistantsOnDesktop.Select(id => new Option(id, App.AssistantName(id))), new(string.Empty, Loc.T("assistantVoice.testVoiceOnly"))];
+        var chosen = (WhoBox.SelectedItem as Option)?.Value ?? picked ?? string.Empty;
+        WhoBox.ItemsSource = who;
+        WhoBox.SelectedItem = who.FirstOrDefault(o => o.Value == chosen) ?? who[0];
+        if (MoodBox.ItemsSource is null)
+        {
+            List<Option> moods = [.. TestMoods.Select(m => new Option(m, Loc.T("assistantVoice.mood." + (m.Length > 0 ? m : "plain"))))];
+            MoodBox.ItemsSource = moods;
+            MoodBox.SelectedItem = moods[0];
+        }
         if (TestBox.Text.Length == 0)
-            TestBox.Text = Loc.T("assistantVoice.testText", _app.PickAssistant() is { } who ? App.AssistantName(who) : "K-Desktop");
+            TestBox.Text = Loc.T("assistantVoice.testText", picked is { } name ? App.AssistantName(name) : "K-Desktop");
         _filling = false;
     }
 
@@ -152,12 +169,18 @@ public partial class AssistantVoiceSection : UserControl
         finally { DeleteButton.IsEnabled = true; }
     }
 
-    private void OnTest(object sender, RoutedEventArgs e) => _app.TestAssistantVoice(TestBox.Text);
+    private void OnTest(object sender, RoutedEventArgs e) => Test();
+
+    private void OnStopTest(object sender, RoutedEventArgs e) => _app.StopAssistantVoiceTest();
 
     private void OnTestKey(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Enter) return;
         e.Handled = true;
-        _app.TestAssistantVoice(TestBox.Text);
+        Test();
     }
+
+    private void Test() => _app.TestAssistantVoice(TestBox.Text,
+        MoodBox.SelectedItem is Option { Value.Length: > 0 } mood ? mood.Value : null,
+        (WhoBox.SelectedItem as Option)?.Value ?? string.Empty);
 }

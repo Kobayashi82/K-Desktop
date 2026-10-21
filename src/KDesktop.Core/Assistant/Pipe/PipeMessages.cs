@@ -491,10 +491,12 @@ public sealed record MediaMessage(string Order, int? Value = null, string? Run =
 
 /// <summary>
 /// Options → Assistant → Voice: <c>state</c> (how the voice is: answered with <see cref="VoiceStateMessage"/>) or
-/// <c>test</c> (say <paramref name="Text"/> with the voice as it is set: the assistant gives it its bubble too).
+/// <c>test</c> (say <paramref name="Text"/> with the voice as it is set: the assistant gives it its bubble too), <c>stop</c>
+/// (the test stops) or <c>unload</c> (Pocket TTS leaves the memory).
 /// </summary>
 /// <param name="Assistant">Who says the test; null: nobody on the desktop, only the voice.</param>
-public sealed record VoiceMessage(string Op, string? Text = null, string? Assistant = null) : PipeMessage
+/// <param name="Mood">The test said in that mood (<c>happy</c>, <c>error</c>, <c>far</c>; stage 5.6); null: as it is now.</param>
+public sealed record VoiceMessage(string Op, string? Text = null, string? Assistant = null, string? Mood = null) : PipeMessage
 {
     public override string Type => "voice";
 }
