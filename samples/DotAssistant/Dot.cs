@@ -37,6 +37,12 @@ public sealed class Dot : IAssistant
     private bool _wander = true;
     private ISound _blip = null!;
 
+    /// <summary>
+    /// Only for K-Desktop's tests (DOT_GESTURES): Dot pretends to know every gesture and behaves like a good or a bad
+    /// assistant would — commit, silent, slow, fail or baddone. Unset (always for users): only Communicate and React.
+    /// </summary>
+    private static readonly string? TestGestures = Environment.GetEnvironmentVariable("DOT_GESTURES");
+
     public Point? BubbleAnchor => new Point(_at.X, _at.Y - Radius);
 
     /// <summary>The host clock, from the last tick.</summary>
@@ -193,7 +199,7 @@ public sealed class Dot : IAssistant
         return new Point(work.Left + 60 + _random.NextDouble() * Math.Max(1, work.Width - 120), work.Bottom - Radius - 6);
     }
 
-    public bool CanPerform(Gesture gesture) => gesture.Kind is GestureKind.Communicate or GestureKind.React;
+    public bool CanPerform(Gesture gesture) => gesture.Kind is GestureKind.Communicate or GestureKind.React || TestGestures is { Length: > 0 };
 
     public async Task<GestureOutcome> PerformAsync(Gesture gesture, IGestureContext ctx, CancellationToken ct)
     {
@@ -212,7 +218,34 @@ public sealed class Dot : IAssistant
                 try { await Task.Delay(TimeSpan.FromSeconds(ReactTime), ct); } catch (OperationCanceledException) { }
                 return GestureOutcome.Committed;
             default:
-                return GestureOutcome.NotPerformed;
+                return TestGestures is { Length: > 0 } ? await TestGestureAsync(gesture, ctx, ct) : GestureOutcome.NotPerformed;
+        }
+    }
+
+    /// <summary>The behaviours K-Desktop's tests need from an assistant (see <see cref="TestGestures"/>).</summary>
+    private async Task<GestureOutcome> TestGestureAsync(Gesture gesture, IGestureContext ctx, CancellationToken ct)
+    {
+        switch (TestGestures)
+        {
+            case "silent":
+                // Never answers, not even its token.
+                await new TaskCompletionSource().Task;
+                return GestureOutcome.Committed;
+            case "slow":
+                try { await Task.Delay(TimeSpan.FromMinutes(1), ct); } catch (OperationCanceledException) { }
+                return GestureOutcome.Committed;
+            case "fail":
+                throw new InvalidOperationException("Dot no sabe hacer " + gesture.Kind);
+            case "baddone":
+                // Says it did it, a little off (K-Desktop puts it right).
+                if (gesture is Gesture.MoveWindow move)
+                    _host.Windows.TryMove(move.Window.Handle, new PixelRect(move.Destination.Left + 30, move.Destination.Top + 30, move.Destination.Right + 30, move.Destination.Bottom + 30));
+                return GestureOutcome.PerformedSelf;
+            default:
+                await Task.Delay(200, ct);
+                ctx.Commit();
+                await ctx.Committed.WaitAsync(ct);
+                return GestureOutcome.Committed;
         }
     }
 

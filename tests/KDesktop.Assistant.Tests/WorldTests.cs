@@ -10,6 +10,7 @@ namespace KDesktop.Assistant.Tests;
 /// Stage 1.5 with the real assistant process and its probe: it sees the monitors and the windows, and gets the
 /// events of a window this test opens (without activating it), moves and closes.
 /// </summary>
+[Collection(OnTheDesktop.Name)]
 public class WorldTests
 {
     private static string Exe { get; } = Path.GetFullPath(typeof(WorldTests).Assembly

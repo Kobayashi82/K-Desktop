@@ -34,7 +34,7 @@ internal sealed class AssistantSession : IDisposable
         Runtime = new AssistantRuntime(Engine, Link);
         // The brain answers Options → Assistant → Brain: only with K-Desktop there.
         if (Link is not null) Brain = new BrainService(World.VideoMemory.Gigabytes);
-        if (Link is not null) Commands = new ModuleCommands(Link) { Choreography = new ModuleChoreography(Link), HasBody = Runtime.HasBody };
+        if (Link is not null) Commands = new ModuleCommands(Link) { Choreography = new ModuleChoreography(Link, Engine, Runtime), HasBody = Runtime.HasBody };
         if (Link is not null) Tools = new ModuleTools(Link, Commands!);
         if (Link is not null) Voice = new ModuleVoice(Engine, Runtime);
         if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!, Commands!, Voice!);

@@ -49,7 +49,7 @@ public sealed class AssistantChoreography : IChoreography, IDisposable
         _waiting[index] = answer;
         lock (_sent) _sent[step] = index;
         var action = step.Action;
-        _send(new StepMessage(Run, index, step.Count, step.Context.Depth, action.Kind.ToString(), OpOf(action), action.Summary,
+        _send(new StepMessage(Run, index, step.Count, step.Context.Depth, action.Kind.ToString(), ActionGestures.OpOf(action), action.Summary,
             (int)StepTimeout.TotalMilliseconds, StepTargets.Of(action, step.Context.Foreground)));
         // Whatever ends the wait (the engine's time limit, the run cancelled), the step stops waiting here too.
         cancellationToken.Register(() =>
@@ -116,17 +116,6 @@ public sealed class AssistantChoreography : IChoreography, IDisposable
     {
         if (_waiting.TryRemove(index, out var waiting)) waiting.TrySetResult(go);
     }
-
-    /// <summary>What an action does within its kind, for the assistant to choose its gesture.</summary>
-    public static string OpOf(CommandAction action) => action switch
-    {
-        WindowAction w => w.Operation.ToString(),
-        AppControlAction a => a.Mode.ToString(),
-        SendInputAction s => s.Mode.ToString(),
-        VolumeAction v => v.Mode.ToString(),
-        CommandControlAction c => c.Mode.ToString(),
-        _ => string.Empty,
-    };
 
     public void Dispose() => _cancel.Dispose();
 }

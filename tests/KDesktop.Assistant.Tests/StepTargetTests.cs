@@ -12,6 +12,7 @@ namespace KDesktop.Assistant.Tests;
 /// Stage 6.2: each window action comes with the window it acts on and where it ends up, as the engine then leaves it.
 /// On a window of this test, given to the engine as the one in front (the user's windows are never touched).
 /// </summary>
+[Collection(OnTheDesktop.Name)]
 public class StepTargetTests
 {
     [Fact]

@@ -419,6 +419,19 @@ internal sealed class AssistantRuntime : IDisposable
         Audio.Dispose();
     }
 
+    /// <summary>
+    /// A gesture of a command's step (stage 6.4), if that assistant can do it now: its task, or null when it cannot (or
+    /// failed to start it). Engine thread.
+    /// </summary>
+    public Task<GestureOutcome>? TryPerform(string id, Gesture gesture, IGestureContext context, CancellationToken token)
+    {
+        if (Find(id) is not { } slot) return null;
+        var can = false;
+        Task<GestureOutcome>? running = null;
+        if (!Guard(slot, a => can = a.CanPerform(gesture), "CanPerform") || !can) return null;
+        return Guard(slot, a => running = a.PerformAsync(gesture, context, token), "PerformAsync " + gesture.Kind) ? running : null;
+    }
+
     private AssistantSlot? Find(string id) => _slots.FirstOrDefault(s => s.Id == id);
 
     /// <summary>Something for every assistant on the desktop (one that fails and is dropped meanwhile is skipped).</summary>

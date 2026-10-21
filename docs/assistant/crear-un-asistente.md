@@ -79,6 +79,13 @@ tarjeta y un botón en el panel, y guarda sus datos en su carpeta.
   rueda sobre ventanas de administrador.
 - **Ventanas** (`IWindowServices`): `TryMove`, botones de la barra de título, `Thumbnail` (una imagen de la ventana,
   congelada; si la ventana no se deja dibujar, lo que se ve de ella en pantalla) y `AppIcon` (el icono de su programa, en caché).
+- **Gestos de los comandos** (`CanPerform` / `PerformAsync`): cuando el usuario te pide un comando de K-Desktop, cada
+  acción llega como uno o varios gestos (minimizar → `PressButton(Minimize)`, colocar → `MoveWindow` con el destino
+  exacto, una maximizada antes `PressButton(Restore)`…). Llama a `ctx.Commit()` **en el instante del efecto** (el impacto
+  del disparo): la acción ocurre justo entonces, y `ctx.Committed` te dice si salió bien. O hazlo tú (`TryMove`) y
+  devuelve `PerformedSelf`: K-Desktop la deja luego al píxel. Lo que no sepas hacer (`CanPerform` falso) lo enseña el
+  host con el bocadillo mientras K-Desktop lo hace. Tienes `ctx.TimeLeft`: si te pasas, fallas o no contestas, K-Desktop
+  lo hace igual y te pide un `React(Warning)`. Nunca puedes dejar una orden a medias.
 - **Papelera:** `SystemEvent.RecycleBinEmptied` trae dónde está su icono en el escritorio (o null si no está o los
   iconos están ocultos).
 

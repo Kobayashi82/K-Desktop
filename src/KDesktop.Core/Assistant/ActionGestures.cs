@@ -20,19 +20,40 @@ public enum GesturePlace { Window, Tray, Clock, Point, None }
 public static class ActionGestures
 {
     /// <summary>Gestures for one action. <paramref name="maximized"/>: the target window is maximized now.</summary>
-    public static IReadOnlyList<GestureStep> For(CommandAction action, bool maximized = false) => action switch
+    public static IReadOnlyList<GestureStep> For(CommandAction action, bool maximized = false) => ForStep(action.Kind.ToString(), OpOf(action), maximized);
+
+    /// <summary>
+    /// Gestures for a step as it reaches the assistant (stage 6.4: its <c>kind</c> and <c>op</c>, and whether its window
+    /// is maximized). An unknown kind (a newer K-Desktop) is only said.
+    /// </summary>
+    public static IReadOnlyList<GestureStep> ForStep(string kind, string op, bool maximized = false)
     {
-        WindowAction w => ForWindow(w.Operation, maximized),
-        AppControlAction a => a.Mode switch
+        if (!Enum.TryParse<ActionKind>(kind, out var known)) return Say("command");
+        return known switch
         {
-            AppControlMode.Activate => [new(GestureKind.ActivateWindow)],
-            AppControlMode.Close => [new(GestureKind.PressButton, CaptionButton.Close)],
-            _ => [new(GestureKind.WaitForWindow, Place: GesturePlace.None)],
-        },
-        SendInputAction s => s.Mode is SendInputMode.MouseMoveTo or SendInputMode.MouseMoveBy
-            ? [new(GestureKind.GoTo, Place: GesturePlace.Point)]
-            : [new(GestureKind.Typing)],
-        _ => ForKind(action.Kind),
+            ActionKind.Window when Enum.TryParse<WindowOperation>(op, out var w) => ForWindow(w, maximized),
+            ActionKind.AppControl when Enum.TryParse<AppControlMode>(op, out var a) => a switch
+            {
+                AppControlMode.Activate => [new(GestureKind.ActivateWindow)],
+                AppControlMode.Close => [new(GestureKind.PressButton, CaptionButton.Close)],
+                _ => [new(GestureKind.WaitForWindow, Place: GesturePlace.None)],
+            },
+            ActionKind.SendInput when Enum.TryParse<SendInputMode>(op, out var s) => s is SendInputMode.MouseMoveTo or SendInputMode.MouseMoveBy
+                ? [new(GestureKind.GoTo, Place: GesturePlace.Point)]
+                : [new(GestureKind.Typing)],
+            _ => ForKind(known),
+        };
+    }
+
+    /// <summary>What an action does within its kind (the <c>op</c> of its step), or empty.</summary>
+    public static string OpOf(CommandAction action) => action switch
+    {
+        WindowAction w => w.Operation.ToString(),
+        AppControlAction a => a.Mode.ToString(),
+        SendInputAction s => s.Mode.ToString(),
+        VolumeAction v => v.Mode.ToString(),
+        CommandControlAction c => c.Mode.ToString(),
+        _ => string.Empty,
     };
 
     /// <summary>The gestures by kind alone (no settings): what the table in docs/assistant/acciones.md lists.</summary>
