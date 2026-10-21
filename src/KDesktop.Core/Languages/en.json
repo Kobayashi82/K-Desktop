@@ -2866,5 +2866,22 @@
   "assistant.memory.user": "User",
   "assistant.memory.assistant": "Assistant",
 
-  "assistantChat.hintNobody": "What you say to K-Desktop by any means and what it answers. With no character on the desktop, what you don't ask here is answered with a notice."
+  "assistantChat.hintNobody": "What you say to K-Desktop by any means and what it answers. With no character on the desktop, what you don't ask here is answered with a notice.",
+
+  "bench.title": "Test the model",
+  "bench.intro": "Runs the test bench (the built-in orders) with a model and gives the percentage of hits. What the tools do is not really done. To test with your real orders, open the bench and edit it.",
+  "bench.introOwn": "Runs your test bench (Assistant\\bench.json) with a model and gives the percentage of hits. What the tools do is not really done.",
+  "bench.model": "Model",
+  "bench.run": "Test",
+  "bench.open": "Open the bench",
+  "bench.progress": "{0}: {1} of {2} · {3} hits",
+  "bench.score": "{0}: {1}/{2} ({3}%) · {4} s on average",
+  "bench.failed": "It couldn't finish: {0}",
+  "bench.cancelled": "Cancelled.",
+  "bench.history": "Last results",
+  "bench.own": "your bench",
+  "bench.noTool": "no tools",
+  "bench.didFail": "the AI didn't answer",
+  "bench.expectedGot": "Expected: {0} · Did: {1}",
+  "bench.noBrain": "There is no AI server"
 }

@@ -1,0 +1,42 @@
+<UserControl x:Class="KDesktop.Views.Assistant.BenchView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:l="clr-namespace:KDesktop.Localization">
+    <!-- Options → Brain → Test the model (stage 3.9): the bench with a model, its score, what failed, and the last score
+         of each model -->
+    <Border Style="{StaticResource Card}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr bench.title}" />
+            <TextBlock x:Name="IntroText" Style="{StaticResource Caption}" Margin="0,0,0,10" TextWrapping="Wrap" />
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ComboBox x:Name="ModelBox" AutomationProperties.Name="{l:Tr bench.model}" />
+                <ui:Button x:Name="RunButton" Grid.Column="1" Margin="8,0,0,0" Appearance="Primary" Icon="{ui:SymbolIcon Play24}"
+                           Content="{l:Tr bench.run}" Click="OnRun" />
+                <ui:Button x:Name="CancelButton" Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon RecordStop24}" Visibility="Collapsed"
+                           Content="{l:Tr common.cancel}" Click="OnCancel" />
+                <ui:Button Grid.Column="2" Margin="8,0,0,0" Icon="{ui:SymbolIcon DocumentEdit24}" Content="{l:Tr bench.open}" Click="OnOpen" />
+            </Grid>
+
+            <!-- While it runs, and its result -->
+            <StackPanel x:Name="ProgressPanel" Margin="0,12,0,0" Visibility="Collapsed">
+                <ProgressBar x:Name="Progress" Height="4" Maximum="1" />
+                <TextBlock x:Name="ProgressText" Style="{StaticResource Caption}" Margin="0,6,0,0" />
+            </StackPanel>
+            <TextBlock x:Name="ResultText" Margin="0,12,0,0" FontSize="18" FontWeight="SemiBold" Visibility="Collapsed"
+                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+            <StackPanel x:Name="Failures" Margin="0,6,0,0" />
+
+            <!-- The last score of each model -->
+            <TextBlock x:Name="HistoryTitle" Margin="0,14,0,4" FontWeight="SemiBold" Text="{l:Tr bench.history}"
+                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+            <StackPanel x:Name="History" />
+        </StackPanel>
+    </Border>
+</UserControl>

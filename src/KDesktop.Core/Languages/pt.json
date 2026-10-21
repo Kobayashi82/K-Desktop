@@ -2866,5 +2866,22 @@
   "assistant.memory.user": "Usuário",
   "assistant.memory.assistant": "Assistente",
 
-  "assistantChat.hintNobody": "O que você diz ao K-Desktop por qualquer meio e o que ele responde. Sem personagem na área de trabalho, o que você não pergunta aqui é respondido com um aviso."
+  "assistantChat.hintNobody": "O que você diz ao K-Desktop por qualquer meio e o que ele responde. Sem personagem na área de trabalho, o que você não pergunta aqui é respondido com um aviso.",
+
+  "bench.title": "Testar modelo",
+  "bench.intro": "Roda o banco de testes (os comandos incluídos) com um modelo e dá a porcentagem de acertos. O que as ferramentas fazem não é feito de verdade. Para testar com seus comandos reais, abra o banco e edite.",
+  "bench.introOwn": "Roda seu banco de testes (Assistant\\bench.json) com um modelo e dá a porcentagem de acertos. O que as ferramentas fazem não é feito de verdade.",
+  "bench.model": "Modelo",
+  "bench.run": "Testar",
+  "bench.open": "Abrir o banco",
+  "bench.progress": "{0}: {1} de {2} · {3} acertos",
+  "bench.score": "{0}: {1}/{2} ({3}%) · {4} s em média",
+  "bench.failed": "Não foi possível terminar: {0}",
+  "bench.cancelled": "Cancelado.",
+  "bench.history": "Últimos resultados",
+  "bench.own": "seu banco",
+  "bench.noTool": "sem ferramentas",
+  "bench.didFail": "a IA não respondeu",
+  "bench.expectedGot": "Esperado: {0} · Fez: {1}",
+  "bench.noBrain": "Não há servidor de IA"
 }

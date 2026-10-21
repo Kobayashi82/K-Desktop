@@ -1,0 +1,5 @@
+{
+  "t": "bench",
+  "op": "start",
+  "model": "qwen3-4b-instruct"
+}

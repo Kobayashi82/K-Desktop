@@ -18,6 +18,8 @@ public sealed class CalculateTool : ITool
 
     public ToolRisk Risk => ToolRisk.Safe;
 
+    public bool ReadsOnly => true;
+
     public string Intent(JsonElement arguments) => Loc.T("tool.calculate.intent", ToolText.Clean(arguments.GetString("expression")));
 
     public Task<ToolResult> RunAsync(JsonElement arguments, ToolContext context, CancellationToken cancellationToken)

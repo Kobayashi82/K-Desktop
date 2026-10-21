@@ -2866,5 +2866,22 @@
   "assistant.memory.user": "Utilisateur",
   "assistant.memory.assistant": "Assistant",
 
-  "assistantChat.hintNobody": "Ce que vous dites à K-Desktop par n'importe quel moyen et ce qu'il répond. Sans personnage sur le bureau, ce que vous ne demandez pas ici reçoit sa réponse dans une notification."
+  "assistantChat.hintNobody": "Ce que vous dites à K-Desktop par n'importe quel moyen et ce qu'il répond. Sans personnage sur le bureau, ce que vous ne demandez pas ici reçoit sa réponse dans une notification.",
+
+  "bench.title": "Tester le modèle",
+  "bench.intro": "Passe le banc d'essai (les ordres inclus) avec un modèle et donne le pourcentage de réussite. Ce que font les outils n'est pas fait pour de vrai. Pour tester avec vos vrais ordres, ouvrez le banc et modifiez-le.",
+  "bench.introOwn": "Passe votre banc d'essai (Assistant\\bench.json) avec un modèle et donne le pourcentage de réussite. Ce que font les outils n'est pas fait pour de vrai.",
+  "bench.model": "Modèle",
+  "bench.run": "Tester",
+  "bench.open": "Ouvrir le banc",
+  "bench.progress": "{0} : {1} sur {2} · {3} réussites",
+  "bench.score": "{0} : {1}/{2} ({3} %) · {4} s en moyenne",
+  "bench.failed": "Impossible de terminer : {0}",
+  "bench.cancelled": "Annulé.",
+  "bench.history": "Derniers résultats",
+  "bench.own": "votre banc",
+  "bench.noTool": "sans outils",
+  "bench.didFail": "l'IA n'a pas répondu",
+  "bench.expectedGot": "Attendu : {0} · A fait : {1}",
+  "bench.noBrain": "Il n'y a pas de serveur d'IA"
 }

@@ -134,12 +134,12 @@ public partial class AssistantBrainSection : UserControl
             if (!model.Tools) name += " · " + Loc.T("brainOptions.noTools");
             options.Add(new ModelOption(model.Name, name));
         }
-        if (chosen.Length > 0 && !options.Any(o => string.Equals(o.Value, chosen, StringComparison.OrdinalIgnoreCase)))
+        if (chosen.Length > 0 && !options.Any(o => o.Value.Length > 0 && BrainProviders.SameModel(o.Value, chosen)))
             options.Add(new ModelOption(chosen, Loc.T("brainOptions.modelNotThere", chosen)));
         if (!ModelBox.IsDropDownOpen)
         {
             ModelBox.ItemsSource = options;
-            ModelBox.SelectedItem = options.FirstOrDefault(o => string.Equals(o.Value, chosen, StringComparison.OrdinalIgnoreCase)) ?? options[0];
+            ModelBox.SelectedItem = options.FirstOrDefault(o => chosen.Length == 0 ? o.Value.Length == 0 : o.Value.Length > 0 && BrainProviders.SameModel(o.Value, chosen)) ?? options[0];
         }
     }
 

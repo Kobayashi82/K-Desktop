@@ -27,6 +27,9 @@ public interface ITool
     /// <summary>The gesture it asks of the assistant (a <c>GestureKind</c> name, «communicate»…), or null.</summary>
     string? Gesture => null;
 
+    /// <summary>It only reads (the time, the notes, a sum): the test bench runs it for real; the others are only pretended.</summary>
+    bool ReadsOnly => false;
+
     /// <summary>What it is about to do with these arguments, for people («poner un temporizador de 10 min»): to ask and for the activity.</summary>
     string Intent(JsonElement arguments);
 

@@ -1,0 +1,31 @@
+{
+  "t": "benchState",
+  "state": "done",
+  "model": "qwen3-4b-instruct",
+  "done": 32,
+  "total": 32,
+  "passed": 29,
+  "meanMs": 540,
+  "own": false,
+  "failures": [
+    {
+      "say": "¿cuánto le queda al temporizador?",
+      "expected": "get_time",
+      "passed": false,
+      "route": "ai",
+      "tools": [],
+      "answer": "No tienes ningún temporizador.",
+      "ms": 410
+    }
+  ],
+  "history": [
+    {
+      "model": "qwen3-4b-instruct",
+      "passed": 29,
+      "total": 32,
+      "meanMs": 540,
+      "at": "2026-10-21T04:10:00+02:00",
+      "own": false
+    }
+  ]
+}

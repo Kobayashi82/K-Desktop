@@ -208,6 +208,8 @@ public sealed class TimeTool(TimerStore timers) : ITool
 
     public ToolRisk Risk => ToolRisk.Safe;
 
+    public bool ReadsOnly => true;
+
     public string Intent(JsonElement arguments) => Loc.T("tool.time.intent");
 
     public Task<ToolResult> RunAsync(JsonElement arguments, ToolContext context, CancellationToken cancellationToken)

@@ -2866,5 +2866,22 @@
   "assistant.memory.user": "Nutzer",
   "assistant.memory.assistant": "Assistent",
 
-  "assistantChat.hintNobody": "Was du K-Desktop auf jedem Weg sagst und was es antwortet. Ohne Figur auf dem Desktop kommt die Antwort auf das, was du nicht hier fragst, als Hinweis."
+  "assistantChat.hintNobody": "Was du K-Desktop auf jedem Weg sagst und was es antwortet. Ohne Figur auf dem Desktop kommt die Antwort auf das, was du nicht hier fragst, als Hinweis.",
+
+  "bench.title": "Modell testen",
+  "bench.intro": "Lässt die Testbank (die mitgelieferten Befehle) mit einem Modell laufen und gibt die Trefferquote an. Was die Werkzeuge tun, passiert nicht wirklich. Um mit deinen echten Befehlen zu testen, öffne die Testbank und bearbeite sie.",
+  "bench.introOwn": "Lässt deine Testbank (Assistant\\bench.json) mit einem Modell laufen und gibt die Trefferquote an. Was die Werkzeuge tun, passiert nicht wirklich.",
+  "bench.model": "Modell",
+  "bench.run": "Testen",
+  "bench.open": "Testbank öffnen",
+  "bench.progress": "{0}: {1} von {2} · {3} Treffer",
+  "bench.score": "{0}: {1}/{2} ({3} %) · {4} s im Schnitt",
+  "bench.failed": "Konnte nicht beendet werden: {0}",
+  "bench.cancelled": "Abgebrochen.",
+  "bench.history": "Letzte Ergebnisse",
+  "bench.own": "deine Testbank",
+  "bench.noTool": "ohne Werkzeuge",
+  "bench.didFail": "die KI hat nicht geantwortet",
+  "bench.expectedGot": "Erwartet: {0} · Getan: {1}",
+  "bench.noBrain": "Es gibt keinen KI-Server"
 }

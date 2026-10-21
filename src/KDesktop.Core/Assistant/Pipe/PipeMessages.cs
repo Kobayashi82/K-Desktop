@@ -385,6 +385,32 @@ public sealed record MemoryStateMessage(IReadOnlyList<MemoryEntry> Items) : Pipe
     public override string Type => "memoryState";
 }
 
+// ── the test bench (stage 3.9) ───────────────────────────────────────────
+
+/// <summary>Options → Brain → Test the model: <c>start</c> (with <paramref name="Model"/>), <c>cancel</c> or <c>state</c>.</summary>
+public sealed record BenchMessage(string Op, string? Model = null) : PipeMessage
+{
+    public override string Type => "bench";
+}
+
+/// <summary>One order of the bench and what happened.</summary>
+/// <param name="Route"><c>rule</c> or <c>ai</c>.</param>
+/// <param name="Tools">The tools it used (they did not really act).</param>
+public sealed record BenchCaseResult(string Say, string Expected, bool Passed, string Route, IReadOnlyList<string> Tools, string Answer, int Ms);
+
+/// <summary>A model's last result on the bench.</summary>
+public sealed record BenchScore(string Model, int Passed, int Total, int MeanMs, DateTimeOffset At, bool Own);
+
+/// <summary>How the bench goes: after each order while it runs, and its result; with the last score of each model.</summary>
+/// <param name="State"><c>idle</c>, <c>running</c>, <c>done</c>, <c>cancelled</c> or <c>failed</c>.</param>
+/// <param name="Own">It is the user's bench (<c>Assistantench.json</c>), not the built-in one.</param>
+/// <param name="Failures">The orders that did not do what was expected (when it is over).</param>
+public sealed record BenchStateMessage(string State, string? Model, int Done, int Total, int Passed, int MeanMs, bool Own,
+    IReadOnlyList<BenchCaseResult> Failures, IReadOnlyList<BenchScore> History, string? Message = null) : PipeMessage
+{
+    public override string Type => "benchState";
+}
+
 /// <summary>Reading and writing messages as lines.</summary>
 public static class PipeJson
 {
@@ -446,6 +472,8 @@ public static class PipeJson
         ["embedded"] = typeof(EmbeddedMessage),
         ["memory"] = typeof(MemoryMessage),
         ["memoryState"] = typeof(MemoryStateMessage),
+        ["bench"] = typeof(BenchMessage),
+        ["benchState"] = typeof(BenchStateMessage),
     };
 
     /// <summary>[JsonIgnore] on the abstract Type is not inherited by the overrides: drop it here.</summary>

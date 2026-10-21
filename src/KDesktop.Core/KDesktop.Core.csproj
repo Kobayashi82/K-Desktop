@@ -40,6 +40,8 @@
     <None Remove="Languages\*.json" />
     <EmbeddedResource Include="Languages\*.json" LogicalName="Languages/%(Filename)%(Extension)" />
     <EmbeddedResource Include="Assets\Sounds\*.wav" LogicalName="Sounds/%(Filename)%(Extension)" />
+    <!-- «bench.es.json» is not a resource for Spanish culture (a satellite assembly): it goes in like the rest. -->
+    <EmbeddedResource Include="Assistant\Bench\*.json" LogicalName="AssistantBench/%(Filename)%(Extension)" WithCulture="false" />
   </ItemGroup>
 
   <!-- The schemas of assistant packages (docs\assistant\esquemas): K-Desktop checks a package with them. -->

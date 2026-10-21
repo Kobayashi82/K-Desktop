@@ -146,6 +146,8 @@ public sealed class FindNotesTool(NoteStore notes) : ITool
 
     public ToolRisk Risk => ToolRisk.Safe;
 
+    public bool ReadsOnly => true;
+
     public string Intent(JsonElement arguments) => ToolText.Clean(arguments.GetString("search")) is { Length: > 0 } query
         ? Loc.T("tool.find_notes.intentFor", query)
         : Loc.T("tool.find_notes.intent");

@@ -36,7 +36,11 @@ internal sealed class AssistantSession : IDisposable
         if (Link is not null) Brain = new BrainService(World.VideoMemory.Gigabytes);
         if (Link is not null) Tools = new ModuleTools(Link);
         if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!);
+        if (Link is not null) Bench = new ModuleBench(Link, Brain!, Tools!, Talk!.Chooser);
     }
+
+    /// <summary>Options → Brain → Test the model (null without K-Desktop).</summary>
+    public ModuleBench? Bench { get; }
 
     /// <summary>Talking with the assistants: orders, answers and the chat (null without K-Desktop).</summary>
     public ModuleTalk? Talk { get; }
@@ -108,6 +112,9 @@ internal sealed class AssistantSession : IDisposable
                         return;
                     case MemoryMessage memory when Tools is { } tools:
                         tools.OnMemory(memory);
+                        return;
+                    case BenchMessage bench when Bench is { } module:
+                        module.OnBench(bench);
                         return;
                     case HeardMessage heard when Talk is { } talk:
                         talk.OnHeard(heard);
