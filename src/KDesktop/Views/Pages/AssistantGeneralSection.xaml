@@ -74,6 +74,34 @@
                 </StackPanel>
             </Grid>
 
+            <!-- How orders are shown (stage 6.7) -->
+            <Grid Style="{StaticResource SettingRow}" IsEnabled="{Binding AssistantEnabled}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="{l:Tr assistantOptions.manoeuvres}" />
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantOptions.manoeuvresHint}" />
+                </StackPanel>
+                <ComboBox x:Name="ManoeuvresBox" Grid.Column="1" MinWidth="230" VerticalAlignment="Center" DisplayMemberPath="Name"
+                          SelectionChanged="OnManoeuvresChanged" AutomationProperties.Name="{l:Tr assistantOptions.manoeuvres}" />
+            </Grid>
+            <Grid Style="{StaticResource SettingRow}" IsEnabled="{Binding AssistantEnabled}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="{l:Tr assistantOptions.animate}" />
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantOptions.animateHint}" />
+                </StackPanel>
+                <ComboBox x:Name="AnimateBox" Grid.Column="1" MinWidth="230" VerticalAlignment="Center" DisplayMemberPath="Name"
+                          SelectionChanged="OnAnimateChanged" AutomationProperties.Name="{l:Tr assistantOptions.animate}" />
+            </Grid>
+            <Grid Style="{StaticResource SettingRow}" IsEnabled="{Binding AssistantEnabled}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="{l:Tr assistantOptions.adorn}" />
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantOptions.adornHint}" />
+                </StackPanel>
+                <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AssistantAdorn}" AutomationProperties.Name="{l:Tr assistantOptions.adorn}" />
+            </Grid>
+
             <!-- How the module is doing, with a way to the panel -->
             <Border x:Name="StatePanel" Style="{StaticResource InfoBox}">
                 <Grid>

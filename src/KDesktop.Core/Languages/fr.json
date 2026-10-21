@@ -3007,5 +3007,17 @@
   "assistantVoice.night": "Plus bas la nuit",
   "assistantVoice.nightHint": "De 22 h à 8 h, la voix à moitié du volume.",
   "assistantVoice.pan": "Ils sonnent depuis leur position",
-  "assistantVoice.panHint": "Plus dans le haut-parleur gauche ou droit selon l'endroit où se trouve l'assistant sur vos écrans."
+  "assistantVoice.panHint": "Plus dans le haut-parleur gauche ou droit selon l'endroit où se trouve l'assistant sur vos écrans.",
+
+  "assistantOptions.manoeuvres": "Manœuvres",
+  "assistantOptions.manoeuvresHint": "Comment l’assistant montre chaque étape de ce que vous demandez (tirer sur le bouton, aller à la zone de notification…). En « Rapides », aucune ne dépasse une demi-seconde.",
+  "assistantOptions.manoeuvresShowy": "Spectaculaires",
+  "assistantOptions.manoeuvresNormal": "Normales",
+  "assistantOptions.manoeuvresFast": "Rapides",
+  "assistantOptions.animate": "Commandes longues",
+  "assistantOptions.animateHint": "Dans une commande avec beaucoup d’actions, ne montrer que celles qui déplacent, modifient ou ferment des fenêtres ; le reste se fait aussitôt.",
+  "assistantOptions.animateAll": "Montrer toutes les actions",
+  "assistantOptions.animateMore": "Plus de {0} : seulement celles des fenêtres",
+  "assistantOptions.adorn": "Montrer aussi les commandes que vous lancez",
+  "assistantOptions.adornHint": "Raccourcis, QuickMenus, le lanceur, la voix de K-Desktop, le téléphone, les événements… : l’assistant les décore rapidement, sans les retarder."
 }

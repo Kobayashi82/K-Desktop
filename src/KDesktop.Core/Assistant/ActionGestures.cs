@@ -45,6 +45,13 @@ public static class ActionGestures
         };
     }
 
+    /// <summary>
+    /// An action on a window (place it, minimize it, bring it to the front, close it…): the ones still shown in a long
+    /// command (stage 6.7: «more than N actions → only the window ones»).
+    /// </summary>
+    public static bool IsWindowAction(CommandAction action) =>
+        action is WindowAction || action is AppControlAction { Mode: AppControlMode.Activate or AppControlMode.Close };
+
     /// <summary>What an action does within its kind (the <c>op</c> of its step), or empty.</summary>
     public static string OpOf(CommandAction action) => action switch
     {

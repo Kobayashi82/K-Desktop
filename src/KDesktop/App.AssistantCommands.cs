@@ -36,7 +36,10 @@ public partial class App
                 {
                     var who = AssistantPackages.Find(run.Assistant)?.Manifest.Name ?? (run.Assistant.Length > 0 ? run.Assistant : "K-Desktop");
                     // With choreography (stage 6.3) the assistant has its turn before each step, over the pipe.
-                    using var choreography = run.Choreography ? new AssistantChoreography(run.Run, m => supervisor.Send(m)) : null;
+                    var settings = Config.Settings;
+                    using var choreography = run.Choreography
+                        ? new AssistantChoreography(run.Run, m => supervisor.Send(m)) { Speed = settings.AssistantManoeuvres, AnimateMax = Math.Max(0, settings.AssistantAnimateMax) }
+                        : null;
                     if (choreography is not null) _choreographies[run.Run] = (run.Assistant, choreography);
                     try
                     {

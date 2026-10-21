@@ -3007,5 +3007,17 @@
   "assistantVoice.night": "Más bajito de noche",
   "assistantVoice.nightHint": "De 22:00 a 8:00, la voz a la mitad del volumen.",
   "assistantVoice.pan": "Suenan desde donde están",
-  "assistantVoice.panHint": "Más por el altavoz izquierdo o el derecho según dónde esté el asistente en tus monitores."
+  "assistantVoice.panHint": "Más por el altavoz izquierdo o el derecho según dónde esté el asistente en tus monitores.",
+
+  "assistantOptions.manoeuvres": "Maniobras",
+  "assistantOptions.manoeuvresHint": "Cómo enseña el asistente cada paso de lo que le pides (disparar al botón, ir a la bandeja…). En «Rápidas», ninguna pasa de medio segundo.",
+  "assistantOptions.manoeuvresShowy": "Vistosas",
+  "assistantOptions.manoeuvresNormal": "Normales",
+  "assistantOptions.manoeuvresFast": "Rápidas",
+  "assistantOptions.animate": "Comandos largos",
+  "assistantOptions.animateHint": "En un comando con muchas acciones, enseñar solo las que mueven, cambian o cierran ventanas; el resto se hace al momento.",
+  "assistantOptions.animateAll": "Enseñar todas las acciones",
+  "assistantOptions.animateMore": "Con más de {0}: solo las de ventanas",
+  "assistantOptions.adorn": "Enseñar también los comandos que lanzas tú",
+  "assistantOptions.adornHint": "Atajos, QuickMenus, el lanzador, la voz de K-Desktop, el móvil, los eventos…: el asistente los adorna deprisa, sin retrasarlos nada."
 }

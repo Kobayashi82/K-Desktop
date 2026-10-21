@@ -460,6 +460,21 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private string _assistantTalkHotkey = string.Empty;
 
     /// <summary>
+    /// How the assistants carry out orders (stage 6.7): <c>showy</c>, <c>normal</c> or <c>fast</c> (no manoeuvre over half a
+    /// second).
+    /// </summary>
+    [ObservableProperty] private string _assistantManoeuvres = "normal";
+
+    /// <summary>A command with more actions than this shows only those on windows (the rest run at once); 0: all of them.</summary>
+    [ObservableProperty] private int _assistantAnimateMax = 5;
+
+    /// <summary>
+    /// The assistant also shows the commands launched other ways (hotkeys, menus, K-Desktop's voice, the phone…), quickly
+    /// and without holding them back (stage 6.7). Off by default.
+    /// </summary>
+    [ObservableProperty] private bool _assistantAdorn;
+
+    /// <summary>
     /// Who says the assistants' answers aloud (Options → Assistant → Voice, stage 5.4): <c>auto</c> (Pocket TTS if it is
     /// downloaded for the language, else Windows' voices, else beeps), <c>pocket</c>, <c>windows</c>, <c>beeps</c> or
     /// <c>off</c> (only the bubble).

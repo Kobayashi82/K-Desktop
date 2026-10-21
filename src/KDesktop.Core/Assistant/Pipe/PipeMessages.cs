@@ -477,10 +477,26 @@ public sealed record StepTarget(long Hwnd, string Process, string Title, string 
 /// <param name="Op">What it does within its kind (<c>Snap</c>, <c>Minimize</c>, <c>Close</c>…), or empty.</param>
 /// <param name="Summary">The action in words, in the user's language.</param>
 /// <param name="Target">Where it happens; null for actions without a place.</param>
+/// <param name="Speed">How long the manoeuvre may take (stage 6.7): <c>showy</c>, <c>normal</c> or <c>fast</c> (under half a
+/// second); null: normal.</param>
 public sealed record StepMessage(string Run, int Index, int Count, int Depth, string Kind, string Op, string Summary, int TimeoutMs,
-    StepTarget? Target = null) : PipeMessage
+    StepTarget? Target = null, string? Speed = null) : PipeMessage
 {
     public override string Type => "step";
+}
+
+/// <summary>One action of a command launched another way, for <see cref="ObservedMessage"/>.</summary>
+public sealed record ObservedStep(string Kind, string Op, string Summary, StepTarget? Target = null);
+
+/// <summary>
+/// The adornment (stage 6.7, off by default): an action of a command launched another way (a hotkey, a menu, K-Desktop's
+/// voice, the phone…) is about to run, and the assistant may show it. Nothing waits for it: it is only decoration.
+/// </summary>
+/// <param name="Source"><c>hotkey</c>, <c>menu</c>, <c>launcher</c>, <c>voice</c>, <c>web</c>, <c>udp</c>, <c>event</c> or <c>manual</c>.</param>
+/// <param name="Command">The command's id.</param>
+public sealed record ObservedMessage(string Assistant, string Source, string Command, IReadOnlyList<ObservedStep> Steps) : PipeMessage
+{
+    public override string Type => "observed";
 }
 
 /// <summary>«Do it now» (at the instant of the gesture: the impact of the shot).</summary>
@@ -679,6 +695,7 @@ public static class PipeJson
         ["matched"] = typeof(MatchedMessage),
         ["run"] = typeof(RunMessage),
         ["step"] = typeof(StepMessage),
+        ["observed"] = typeof(ObservedMessage),
         ["go"] = typeof(GoMessage),
         ["done"] = typeof(DoneMessage),
         ["skip"] = typeof(SkipMessage),

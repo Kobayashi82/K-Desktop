@@ -153,6 +153,9 @@ internal sealed class AssistantSession : IDisposable
                     case StepMessage step when Commands?.Choreography is { } choreography:
                         choreography.OnStep(step);
                         return;
+                    case ObservedMessage observed when Commands?.Choreography is { } choreography:
+                        choreography.OnObserved(observed);
+                        return;
                     case StepResultMessage result when Commands?.Choreography is { } choreography:
                         choreography.OnResult(result);
                         return;

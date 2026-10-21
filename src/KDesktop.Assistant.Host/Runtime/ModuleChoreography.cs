@@ -27,6 +27,15 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
     /// <summary>How long a step is said in the bubble while it happens (Communicate, or a gesture it cannot do).</summary>
     private static readonly TimeSpan SayFor = TimeSpan.FromSeconds(1.6);
 
+    /// <summary>
+    /// In «Fast» no manoeuvre takes over half a second (stage 6.7): past this the action happens anyway and the gesture is
+    /// left behind.
+    /// </summary>
+    private static readonly TimeSpan FastBudget = TimeSpan.FromMilliseconds(500);
+
+    /// <summary>What an adornment may take per gesture (it holds nothing back, but it should not drag on either).</summary>
+    private static readonly TimeSpan AdornBudget = TimeSpan.FromSeconds(1);
+
     /// <summary>The runs with gestures going on: run → whose.</summary>
     private readonly ConcurrentDictionary<string, string> _runs = new(StringComparer.Ordinal);
 
@@ -90,7 +99,9 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
     private async Task PlayAsync(string assistant, StepMessage step, TaskCompletionSource<bool> result)
     {
         StopPlaying(assistant);
+        var speed = StepGestures.SpeedOf(step.Speed);
         var budget = TimeSpan.FromMilliseconds(Math.Max(300, step.TimeoutMs - AnswerMargin.TotalMilliseconds));
+        if (speed == ManoeuvreSpeed.Fast && budget > FastBudget) budget = FastBudget;
         using var limit = new CancellationTokenSource(budget);
         _playing[assistant] = limit;
         var end = engine.Now + budget.TotalSeconds;
@@ -119,7 +130,7 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
                 }
                 var gesture = StepGestures.Build(part, step, window, runtime);
                 var context = new StepGestureContext(engine, end, step, part.Commits ? Go : () => Prepare(part, window), committed,
-                    gesture is Gesture.WaitForWindow wait ? AppearedAsync(wait.Process, limit.Token) : null);
+                    gesture is Gesture.WaitForWindow wait ? AppearedAsync(wait.Process, limit.Token) : null, speed);
                 var running = gesture is null ? null : runtime.TryPerform(assistant, gesture, context, limit.Token);
                 if (running is null)
                 {
@@ -181,6 +192,46 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
             Log.Error($"Asistente: «{assistant}» ha fallado en el gesto {kind}", ex);
         }
         return GestureOutcome.NotPerformed;
+    }
+
+    /// <summary>
+    /// An action of a command launched another way (stage 6.7, <c>observed</c>): shown quickly, without the bubble and
+    /// without anything waiting for it (the action happens on its own). Never over a step of an order being shown.
+    /// </summary>
+    public void OnObserved(ObservedMessage observed)
+    {
+        if (runtime.HasBody(observed.Assistant)) engine.Post(() => _ = AdornAsync(observed));
+    }
+
+    private async Task AdornAsync(ObservedMessage observed)
+    {
+        var assistant = observed.Assistant;
+        foreach (var item in observed.Steps)
+        {
+            if (_playing.ContainsKey(assistant)) return;
+            var step = new StepMessage("", 0, 1, 0, item.Kind, item.Op, item.Summary, (int)AdornBudget.TotalMilliseconds, item.Target, "fast");
+            var window = StepGestures.WindowOf(item.Target, runtime);
+            foreach (var part in ActionGestures.ForStep(item.Kind, item.Op, item.Target?.State == "maximized"))
+            {
+                if (part.Kind == GestureKind.Communicate || StepGestures.Build(part, step, window, runtime) is not { } gesture) continue;
+                using var limit = new CancellationTokenSource(AdornBudget);
+                var context = new StepGestureContext(engine, engine.Now + AdornBudget.TotalSeconds, step, () => { }, Task.FromResult(true), null,
+                    ManoeuvreSpeed.Fast);
+                if (runtime.TryPerform(assistant, gesture, context, limit.Token) is not { } running) continue;
+                try
+                {
+                    await running.WaitAsync(AdornBudget + Grace).ConfigureAwait(true);
+                }
+                catch (Exception ex) when (ex is TimeoutException or OperationCanceledException)
+                {
+                    // Only decoration: whatever it was doing is left there.
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Asistente: «{assistant}» ha fallado al adornar {item.Kind}", ex);
+                }
+            }
+        }
     }
 
     /// <summary>The step in its bubble, with its Communicate gesture, for a moment.</summary>

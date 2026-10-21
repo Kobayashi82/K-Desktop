@@ -3007,5 +3007,17 @@
   "assistantVoice.night": "Più piano di notte",
   "assistantVoice.nightHint": "Dalle 22:00 alle 8:00, la voce a metà volume.",
   "assistantVoice.pan": "Suonano da dove si trovano",
-  "assistantVoice.panHint": "Più dall'altoparlante sinistro o destro a seconda di dove si trova l'assistente sui tuoi monitor."
+  "assistantVoice.panHint": "Più dall'altoparlante sinistro o destro a seconda di dove si trova l'assistente sui tuoi monitor.",
+
+  "assistantOptions.manoeuvres": "Manovre",
+  "assistantOptions.manoeuvresHint": "Come l’assistente mostra ogni passo di ciò che chiedi (sparare al pulsante, andare all’area di notifica…). In «Rapide», nessuna supera il mezzo secondo.",
+  "assistantOptions.manoeuvresShowy": "Spettacolari",
+  "assistantOptions.manoeuvresNormal": "Normali",
+  "assistantOptions.manoeuvresFast": "Rapide",
+  "assistantOptions.animate": "Comandi lunghi",
+  "assistantOptions.animateHint": "In un comando con molte azioni, mostrare solo quelle che spostano, cambiano o chiudono finestre; il resto avviene subito.",
+  "assistantOptions.animateAll": "Mostrare tutte le azioni",
+  "assistantOptions.animateMore": "Più di {0}: solo quelle delle finestre",
+  "assistantOptions.adorn": "Mostrare anche i comandi che avvii tu",
+  "assistantOptions.adornHint": "Scorciatoie, QuickMenu, il launcher, la voce di K-Desktop, il telefono, gli eventi…: l’assistente li accompagna in fretta, senza ritardarli."
 }

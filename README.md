@@ -120,6 +120,11 @@ El módulo Asistente está en desarrollo. Apagado, K-Desktop es el de siempre: n
    se descarga la voz natural (Pocket TTS, unos 130 MB por idioma, funciona en el procesador y sin internet) y se elige
    entre sus 26 voces; sin ella hablan con las voces de Windows, o con pitidos. Ahí están también la velocidad, el
    volumen y «Probar».
+7. **Tus comandos, con gestos:** cuando le pides un comando («Lander, minimiza el Chrome»), cada paso se ve: el Lander
+   vuela y dispara al botón, y la ventana se minimiza justo en el impacto. En **General**, «Maniobras» (vistosas,
+   normales o rápidas: ninguna pasa de medio segundo), «Comandos largos» (con muchas acciones, solo se enseñan las de
+   ventanas) y «Enseñar también los comandos que lanzas tú» (atajos, menús, el móvil…: los adorna sin retrasarlos;
+   apagado por defecto).
 
 Instalar una versión nueva encima de la que está en el escritorio la cambia en caliente, sin perder sus datos (que
 están en `%APPDATA%\K-Desktop 5\Assistants\Data\<id>` y entran en las copias de seguridad). Cada asistente corre en

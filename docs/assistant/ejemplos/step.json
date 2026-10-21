@@ -26,5 +26,6 @@
     "state": "maximized",
     "elevated": false
   },
-  "timeoutMs": 6000
+  "timeoutMs": 6000,
+  "speed": "normal"
 }

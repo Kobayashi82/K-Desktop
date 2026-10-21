@@ -192,6 +192,7 @@ public partial class App : Application
         Launcher.Prewarm();
         Engine.Executed += Achievements.CommandExecuted;
         Engine.ActionStarting += (action, _) => Achievements.ActionExecuted(action);
+        Engine.ActionStarting += AdornAction;
         Engine.Cancelled += () => Achievements.Unlock("cancel");
         Engine.EventFired += (_, end, source) =>
         {

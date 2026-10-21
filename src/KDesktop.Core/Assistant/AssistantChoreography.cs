@@ -35,6 +35,15 @@ public sealed class AssistantChoreography : IChoreography, IDisposable
 
     public TimeSpan StepTimeout { get; }
 
+    /// <summary>How long each manoeuvre may take (<c>showy</c>, <c>normal</c>, <c>fast</c>), sent with every step (stage 6.7).</summary>
+    public string? Speed { get; init; }
+
+    /// <summary>
+    /// In a command with more actions than this, only those on windows are steps; the rest run at once without asking
+    /// (stage 6.7). 0: all of them.
+    /// </summary>
+    public int AnimateMax { get; init; }
+
     /// <summary>Cancelled when the assistant skips everything left (<c>skip</c> with <c>all</c>), or with <see cref="Cancel"/>.</summary>
     public CancellationToken Cancelled => _cancel.Token;
 
@@ -44,13 +53,15 @@ public sealed class AssistantChoreography : IChoreography, IDisposable
     {
         // Calling another command or event is only the way to its actions, which come as steps themselves.
         if (_abandoned || step.Action is CommandControlAction { Mode: CommandControlMode.Run }) return Task.FromResult(StepGo.Run);
+        // A long command: only what happens to windows is shown.
+        if (AnimateMax > 0 && step.Count > AnimateMax && !ActionGestures.IsWindowAction(step.Action)) return Task.FromResult(StepGo.Run);
         var index = Interlocked.Increment(ref _next);
         var answer = new TaskCompletionSource<StepGo>(TaskCreationOptions.RunContinuationsAsynchronously);
         _waiting[index] = answer;
         lock (_sent) _sent[step] = index;
         var action = step.Action;
         _send(new StepMessage(Run, index, step.Count, step.Context.Depth, action.Kind.ToString(), ActionGestures.OpOf(action), action.Summary,
-            (int)StepTimeout.TotalMilliseconds, StepTargets.Of(action, step.Context.Foreground)));
+            (int)StepTimeout.TotalMilliseconds, StepTargets.Of(action, step.Context.Foreground), Speed));
         // Whatever ends the wait (the engine's time limit, the run cancelled), the step stops waiting here too.
         cancellationToken.Register(() =>
         {

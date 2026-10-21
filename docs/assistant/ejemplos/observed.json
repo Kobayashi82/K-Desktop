@@ -6,8 +6,21 @@
   "steps": [
     {
       "kind": "Window",
-      "op": "Snap",
-      "summary": "Ajustar a la izquierda"
+      "op": "Minimize",
+      "summary": "Chrome: Minimizar",
+      "target": {
+        "hwnd": 1312544,
+        "process": "chrome.exe",
+        "title": "GitHub — Google Chrome",
+        "state": "normal",
+        "elevated": false,
+        "rect": {
+          "x": 200,
+          "y": 120,
+          "w": 1280,
+          "h": 860
+        }
+      }
     }
   ]
 }

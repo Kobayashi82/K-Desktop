@@ -3007,5 +3007,17 @@
   "assistantVoice.night": "Quieter at night",
   "assistantVoice.nightHint": "From 22:00 to 8:00, the voice at half the volume.",
   "assistantVoice.pan": "They sound from where they are",
-  "assistantVoice.panHint": "More through the left or the right speaker depending on where the assistant is on your monitors."
+  "assistantVoice.panHint": "More through the left or the right speaker depending on where the assistant is on your monitors.",
+
+  "assistantOptions.manoeuvres": "Manoeuvres",
+  "assistantOptions.manoeuvresHint": "How the assistant shows each step of what you ask (shooting at the button, going to the tray…). In «Fast», none takes over half a second.",
+  "assistantOptions.manoeuvresShowy": "Showy",
+  "assistantOptions.manoeuvresNormal": "Normal",
+  "assistantOptions.manoeuvresFast": "Fast",
+  "assistantOptions.animate": "Long commands",
+  "assistantOptions.animateHint": "In a command with many actions, show only those that move, change or close windows; the rest happen at once.",
+  "assistantOptions.animateAll": "Show every action",
+  "assistantOptions.animateMore": "More than {0}: only window ones",
+  "assistantOptions.adorn": "Also show the commands you launch",
+  "assistantOptions.adornHint": "Hotkeys, QuickMenus, the launcher, K-Desktop’s voice, the phone, events…: the assistant adorns them quickly, without delaying them at all."
 }

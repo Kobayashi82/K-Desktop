@@ -36,6 +36,47 @@ public partial class AssistantGeneralSection : UserControl
         PanelButton.Visibility = _app.Assistant is null ? Visibility.Collapsed : Visibility.Visible;
         FillAnyWake();
         ShowTalkKey();
+        FillManoeuvres();
+    }
+
+    /// <summary>An option of a combo with its value (manoeuvres, long commands).</summary>
+    private sealed record Choice<T>(T Value, string Name)
+    {
+        public override string ToString() => Name;
+    }
+
+    /// <summary>The choices for «more than N actions: only the window ones».</summary>
+    private static readonly int[] AnimateLimits = [3, 5, 8];
+
+    /// <summary>The speed of the manoeuvres and the rule for long commands (stage 6.7).</summary>
+    private void FillManoeuvres()
+    {
+        _filling = true;
+        var s = _app.Config.Settings;
+        List<Choice<string>> speeds =
+        [
+            new("showy", Loc.T("assistantOptions.manoeuvresShowy")),
+            new("normal", Loc.T("assistantOptions.manoeuvresNormal")),
+            new("fast", Loc.T("assistantOptions.manoeuvresFast")),
+        ];
+        ManoeuvresBox.ItemsSource = speeds;
+        ManoeuvresBox.SelectedItem = speeds.FirstOrDefault(o => o.Value == s.AssistantManoeuvres) ?? speeds[1];
+
+        List<Choice<int>> limits = [new(0, Loc.T("assistantOptions.animateAll")), .. AnimateLimits.Select(n => new Choice<int>(n, Loc.T("assistantOptions.animateMore", n)))];
+        if (limits.All(o => o.Value != s.AssistantAnimateMax)) limits.Add(new(s.AssistantAnimateMax, Loc.T("assistantOptions.animateMore", s.AssistantAnimateMax)));
+        AnimateBox.ItemsSource = limits;
+        AnimateBox.SelectedItem = limits.First(o => o.Value == s.AssistantAnimateMax);
+        _filling = false;
+    }
+
+    private void OnManoeuvresChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_filling && ManoeuvresBox.SelectedItem is Choice<string> choice) _app.Config.Settings.AssistantManoeuvres = choice.Value;
+    }
+
+    private void OnAnimateChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_filling && AnimateBox.SelectedItem is Choice<int> choice) _app.Config.Settings.AssistantAnimateMax = choice.Value;
     }
 
     private void ShowTalkKey()

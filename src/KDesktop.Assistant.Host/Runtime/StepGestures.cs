@@ -69,6 +69,14 @@ internal static class StepGestures
         (runtime.World.Current.MonitorAt(Cursor()) ?? runtime.World.Current.PrimaryMonitor)?.Bounds ?? default;
 
     public static PixelRect Pixel(StepRect r) => new(r.X, r.Y, r.X + r.W, r.Y + r.H);
+
+    /// <summary>The speed a step asks for (stage 6.7; none or unknown: normal).</summary>
+    public static ManoeuvreSpeed SpeedOf(string? speed) => speed?.ToLowerInvariant() switch
+    {
+        "showy" => ManoeuvreSpeed.Showy,
+        "fast" => ManoeuvreSpeed.Fast,
+        _ => ManoeuvreSpeed.Normal,
+    };
 }
 
 /// <summary>
@@ -77,7 +85,7 @@ internal static class StepGestures
 /// the step's.
 /// </summary>
 internal sealed class StepGestureContext(EngineLoop engine, double end, StepMessage step, Action commit, Task<bool> committed,
-    Task<WindowInfo?>? appeared) : IGestureContext
+    Task<WindowInfo?>? appeared, ManoeuvreSpeed speed = ManoeuvreSpeed.Normal) : IGestureContext
 {
     private int _committed;
 
@@ -94,7 +102,7 @@ internal sealed class StepGestureContext(EngineLoop engine, double end, StepMess
 
     public TimeSpan TimeLeft => TimeSpan.FromSeconds(Math.Max(0, end - engine.Now));
 
-    public ManoeuvreSpeed Speed => ManoeuvreSpeed.Normal;
+    public ManoeuvreSpeed Speed => speed;
 
     public int Step => step.Index;
 

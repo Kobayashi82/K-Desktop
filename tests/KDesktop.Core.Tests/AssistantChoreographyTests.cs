@@ -36,14 +36,14 @@ public class AssistantChoreographyTests
             AssistantCommands.RunAsync(Engine, new RunMessage("dot", choreography.Run, Command.Id, true), "Dot", (_, _) => Task.FromResult("yes"), choreography);
 
         /// <summary>A choreography that answers each step with <paramref name="answer"/> (null: no answer).</summary>
-        public AssistantChoreography Make(Func<StepMessage, PipeMessage?> answer, TimeSpan? timeout = null)
+        public AssistantChoreography Make(Func<StepMessage, PipeMessage?> answer, TimeSpan? timeout = null, string? speed = null, int animateMax = 0)
         {
             AssistantChoreography? made = null;
             made = new AssistantChoreography("r-1", m =>
             {
                 Sent.Enqueue(m);
                 if (m is StepMessage step && answer(step) is { } reply) Task.Run(() => made!.OnAnswer(reply));
-            }, timeout ?? TimeSpan.FromSeconds(10));
+            }, timeout ?? TimeSpan.FromSeconds(10)) { Speed = speed, AnimateMax = animateMax };
             return made;
         }
     }
@@ -61,6 +61,36 @@ public class AssistantChoreographyTests
         Assert.Equal([(1, 3, 0), (2, 1, 1), (3, 3, 0)], steps.Select(x => (x.Index, x.Count, x.Depth)));
         Assert.All(steps, x => Assert.Equal(("AssistantSay", "r-1", 10000), (x.Kind, x.Run, x.TimeoutMs)));
         Assert.Equal([1, 2, 3], s.Sent.OfType<StepResultMessage>().Where(r => r.Status == "ok").Select(r => r.Index));
+    }
+
+    [Fact]
+    public async Task EachStepCarriesTheSpeedOfTheManoeuvres()
+    {
+        var s = new Setup();
+        using var choreography = s.Make(step => new GoMessage(step.Run, step.Index), speed: "fast");
+        await s.RunAsync(choreography);
+        Assert.All(s.Sent.OfType<StepMessage>(), x => Assert.Equal("fast", x.Speed));
+    }
+
+    [Fact]
+    public async Task ALongCommandShowsOnlyItsWindowActions()
+    {
+        // «a» has 3 actions: over the limit of 2 nothing of it is a step (none is on a window); «b», with 1, still is.
+        var s = new Setup();
+        using var choreography = s.Make(step => new GoMessage(step.Run, step.Index), animateMax: 2);
+        var end = await s.RunAsync(choreography);
+        Assert.Equal("ok", end.Status);
+        Assert.Equal(["1", "2", "3"], s.Ui.Said.Select(x => x.Text));
+        Assert.Equal([1], s.Sent.OfType<StepMessage>().Select(x => x.Count));
+    }
+
+    [Fact]
+    public void WindowActionsAreTheOnesOnWindows()
+    {
+        Assert.True(ActionGestures.IsWindowAction(new WindowAction()));
+        Assert.True(ActionGestures.IsWindowAction(new AppControlAction { Mode = AppControlMode.Close }));
+        Assert.False(ActionGestures.IsWindowAction(new AppControlAction { Mode = AppControlMode.WaitFor }));
+        Assert.False(ActionGestures.IsWindowAction(new VolumeAction()));
     }
 
     [Fact]

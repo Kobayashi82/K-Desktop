@@ -3007,5 +3007,17 @@
   "assistantVoice.night": "Nachts leiser",
   "assistantVoice.nightHint": "Von 22:00 bis 8:00 Uhr die Stimme mit halber Lautstärke.",
   "assistantVoice.pan": "Sie klingen von dort, wo sie sind",
-  "assistantVoice.panHint": "Mehr über den linken oder rechten Lautsprecher, je nachdem, wo der Assistent auf deinen Monitoren ist."
+  "assistantVoice.panHint": "Mehr über den linken oder rechten Lautsprecher, je nachdem, wo der Assistent auf deinen Monitoren ist.",
+
+  "assistantOptions.manoeuvres": "Manöver",
+  "assistantOptions.manoeuvresHint": "Wie der Assistent jeden Schritt deiner Bitte zeigt (auf die Schaltfläche schießen, zum Infobereich fliegen…). Bei „Schnell“ dauert keines länger als eine halbe Sekunde.",
+  "assistantOptions.manoeuvresShowy": "Aufwendig",
+  "assistantOptions.manoeuvresNormal": "Normal",
+  "assistantOptions.manoeuvresFast": "Schnell",
+  "assistantOptions.animate": "Lange Befehle",
+  "assistantOptions.animateHint": "Bei einem Befehl mit vielen Aktionen nur die zeigen, die Fenster verschieben, ändern oder schließen; der Rest passiert sofort.",
+  "assistantOptions.animateAll": "Alle Aktionen zeigen",
+  "assistantOptions.animateMore": "Mehr als {0}: nur Fenster-Aktionen",
+  "assistantOptions.adorn": "Auch die Befehle zeigen, die du startest",
+  "assistantOptions.adornHint": "Tastenkürzel, QuickMenus, der Starter, die Stimme von K-Desktop, das Handy, Ereignisse…: Der Assistent schmückt sie schnell aus, ohne sie zu verzögern."
 }

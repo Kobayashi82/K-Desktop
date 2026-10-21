@@ -86,7 +86,10 @@ tarjeta y un botón en el panel, y guarda sus datos en su carpeta.
   del disparo): la acción ocurre justo entonces, y `ctx.Committed` te dice si salió bien. O hazlo tú (`TryMove`) y
   devuelve `PerformedSelf`: K-Desktop la deja luego al píxel. Lo que no sepas hacer (`CanPerform` falso) lo enseña el
   host con el bocadillo mientras K-Desktop lo hace. Tienes `ctx.TimeLeft`: si te pasas, fallas o no contestas, K-Desktop
-  lo hace igual y te pide un `React(Warning)`. Nunca puedes dejar una orden a medias.
+  lo hace igual y te pide un `React(Warning)`. Nunca puedes dejar una orden a medias. `ctx.Speed` es la rapidez que
+  eligió el usuario (`Showy`, `Normal`, `Fast`): en `Fast` haz el `Commit` antes de medio segundo (pasado ese tiempo,
+  K-Desktop lo hace igual). Con «Enseñar también los comandos que lanzas tú» encendido, los comandos lanzados por otras
+  vías también te llegan como gestos, siempre en `Fast`: son solo adorno, nada los espera y su `Commit` no hace nada.
 - **Papelera:** `SystemEvent.RecycleBinEmptied` trae dónde está su icono en el escritorio (o null si no está o los
   iconos están ocultos).
 
