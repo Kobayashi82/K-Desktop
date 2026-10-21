@@ -37,7 +37,7 @@ public static class StepTargets
 
     private static StepTarget? Window(WindowAction a, ForegroundWindow foreground)
     {
-        var hwnd = WindowLayout.Find(a.Target, a.ProcessName, foreground.RootHandle);
+        var hwnd = a.FindWindow(foreground.RootHandle);
         if (hwnd == IntPtr.Zero || !Win32.IsWindow(hwnd) || hwnd == Win32.GetShellWindow()) return null;
         Win32.GetWindowThreadProcessId(hwnd, out var pid);
         if (pid == (uint)Environment.ProcessId) return null; // the engine never touches K-Desktop's own windows
@@ -47,7 +47,7 @@ public static class StepTargets
         ScreenRect? result = a.Operation switch
         {
             WindowOperation.Maximize => area,
-            WindowOperation.Minimize => null,
+            WindowOperation.Minimize or WindowOperation.Close => null,
             WindowOperation.Restore => WindowLayout.RestoredBounds(hwnd),
             WindowOperation.ToggleMaximize => maximized ? WindowLayout.RestoredBounds(hwnd) : area,
             WindowOperation.Snap => WindowLayout.SnapRect(area, a.Snap, a.X, a.Y, a.Width, a.Height),

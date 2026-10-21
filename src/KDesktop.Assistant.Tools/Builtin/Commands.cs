@@ -24,6 +24,12 @@ public interface ICommandBridge
     Task<DescribedMessage?> DescribeAsync(string command, CancellationToken cancellationToken);
 
     Task<EndMessage?> RunEventAsync(string name, string? assistant, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// «minimiza Steam» (stage 8.1): one of <see cref="AssistantActs.Ops"/> done to a program K-Desktop finds by the
+    /// user's words (<paramref name="app"/>; empty: the window in front). Without K-Desktop (a test, the bench): null.
+    /// </summary>
+    Task<EndMessage?> ActAsync(string op, string app, int? value, string? assistant, CancellationToken cancellationToken) => Task.FromResult<EndMessage?>(null);
 }
 
 /// <summary>The command tools (stage 4.4), with the bridge to K-Desktop.</summary>
@@ -49,6 +55,7 @@ public static class CommandTools
         registry.Add(new FindCommandTool(bridge));
         registry.Add(new DescribeCommandTool(bridge));
         registry.Add(new RunEventTool(bridge));
+        registry.Add(new ControlAppTool(bridge));
     }
 
     /// <summary>The one candidate an order clearly means (a sure part, its exact name, or one well ahead), or null.</summary>

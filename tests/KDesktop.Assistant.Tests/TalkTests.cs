@@ -80,7 +80,7 @@ public sealed class TalkTests : IDisposable
     [Theory]
     [InlineData("¿Qué tiempo hará mañana?")]
     [InlineData("cuéntame un chiste")]
-    [InlineData("abre la calculadora")]
+    [InlineData("pon una canción alegre")]
     [InlineData("¿para qué sirve esto?")]
     [InlineData("en diez minutos")]
     [InlineData("apunta")]

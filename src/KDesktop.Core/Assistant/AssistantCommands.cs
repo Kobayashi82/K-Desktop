@@ -69,7 +69,7 @@ public static class AssistantCommands
     {
         var actions = command.Actions.Where(a => a.Enabled).ToList();
         var opens = actions.Any(a => a is RunAppAction or OpenUrlAction or OpenFolderAction or AppControlAction { Mode: AppControlMode.Activate });
-        var closes = actions.Any(a => a is AppControlAction { Mode: AppControlMode.Close });
+        var closes = actions.Any(a => a is AppControlAction { Mode: AppControlMode.Close } or WindowAction { Operation: WindowOperation.Close });
         return opens == closes ? 0 : opens ? 1 : -1;
     }
 
@@ -107,26 +107,36 @@ public static class AssistantCommands
         if (engine.IsPaused) return new EndMessage(request.Run, "failed", [Loc.T("pause.refused")]);
         if (engine.Config.FindCommand(request.Command) is not { Enabled: true } command || !Available(engine.Config).Contains(command))
             return new EndMessage(request.Run, "failed", [Loc.T("assistantCommand.notFound")]);
+        return await RunCommandAsync(engine, command, request.Run, who, ask, choreography).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Runs a command for an assistant (one of the user's, or one made for the occasion: <see cref="AssistantActs"/>):
+    /// its risk first, then the run, in the history as coming from <paramref name="who"/>.
+    /// </summary>
+    public static async Task<EndMessage> RunCommandAsync(CommandEngine engine, Command command, string run, string who, Func<Command, ToolRisk, Task<string>> ask,
+        AssistantChoreography? choreography = null)
+    {
         var risk = ActionRisk.OfCommand(command, engine.Config.FindCommand, engine.Config.Settings.AssistantTrustedCommands.Contains(command.Id));
         if (AskPolicy.Asks(risk, engine.Config.Settings.AssistantAskBefore) && await ask(command, risk).ConfigureAwait(false) is not ("yes" or "always"))
-            return new EndMessage(request.Run, "declined", [Loc.T("assistantCommand.declined", command.Name)]);
+            return new EndMessage(run, "declined", [Loc.T("assistantCommand.declined", command.Name)]);
         var feedback = new ExecutionFeedback();
-        Task run;
+        Task running;
         using (feedback.Begin())
         using (ExecutionHistory.Describe(who))
-            run = choreography is null
+            running = choreography is null
                 ? engine.RunAsync(command, TriggerSource.Assistant)
                 : engine.RunChoreographedAsync(command, TriggerSource.Assistant, choreography, choreography.Cancelled);
         try
         {
-            await run.ConfigureAwait(false);
+            await running.ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
-            return new EndMessage(request.Run, "cancelled", feedback.Messages);
+            return new EndMessage(run, "cancelled", feedback.Messages);
         }
-        if (choreography?.Cancelled.IsCancellationRequested == true) return new EndMessage(request.Run, "cancelled", feedback.Messages);
-        return new EndMessage(request.Run, feedback.HasError ? "failed" : "ok", feedback.Messages);
+        if (choreography?.Cancelled.IsCancellationRequested == true) return new EndMessage(run, "cancelled", feedback.Messages);
+        return new EndMessage(run, feedback.HasError ? "failed" : "ok", feedback.Messages);
     }
 
     /// <summary>What a command does: its enabled actions in words, its hotkeys and whether an assistant must ask first.</summary>

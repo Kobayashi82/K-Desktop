@@ -230,10 +230,10 @@ public sealed class CommandRoutingTests : IDisposable
         using var builtin = new BuiltinTools(_folder);
         var talk = Make(builtin);
         // It asked «¿«Bajar el volumen» o «Ventana de Incognito»?».
-        _bridge.Matches["minimiza la ventana actual"] = new MatchedMessage("x", 0.4, [],
-            [new MatchedPart("minimiza la ventana actual", false, [new MatchedCandidate("down", "Bajar el volumen", 0.75), new MatchedCandidate("inc", "Ventana de Incognito", 0.74)])]);
+        _bridge.Matches["pon algo para trabajar"] = new MatchedMessage("x", 0.4, [],
+            [new MatchedPart("pon algo para trabajar", false, [new MatchedCandidate("down", "Bajar el volumen", 0.75), new MatchedCandidate("inc", "Ventana de Incognito", 0.74)])]);
         _model.Answers.Enqueue("No sé minimizar ventanas todavía.");
-        await talk.HandleAsync(new HeardMessage("minimiza la ventana actual", "panel"));
+        await talk.HandleAsync(new HeardMessage("pon algo para trabajar", "panel"));
         Assert.Empty(_bridge.Done);
         var request = Assert.Single(_model.Requests);
         Assert.Contains("«Bajar el volumen»", request.Messages[0].Content, StringComparison.Ordinal);
@@ -279,6 +279,86 @@ public sealed class CommandRoutingTests : IDisposable
         Assert.Contains("Abrir Papelera", _model.Requests[1].Messages[^1].Content, StringComparison.Ordinal);
         // Nothing of the answer taken back reached the chat.
         Assert.DoesNotContain(_chat, c => c.Text.Contains("Voy a intentarlo", StringComparison.Ordinal));
+    }
+
+    // Stage 8.1: what is done to a program, by the rules and after the user's own commands.
+
+    [Theory]
+    [InlineData("minimiza Steam", "act:minimize:Steam:lander")]
+    [InlineData("por favor, cierra Chrome", "act:closeWindow:Chrome:lander")]
+    [InlineData("sal de Chrome", "act:quit:Chrome:lander")]
+    [InlineData("cierra Chrome del todo", "act:quit:Chrome:lander")]
+    [InlineData("minimiza esto", "act:minimize::lander")]
+    [InlineData("pasa la ventana al otro monitor", "act:otherMonitor::lander")]
+    [InlineData("silencia Spotify", "act:mute:Spotify:lander")]
+    [InlineData("quit Chrome", "act:quit:Chrome:lander")]
+    public async Task WhatIsDoneToAProgramNeedsNoAi(string said, string done)
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        await talk.HandleAsync(new HeardMessage(said, "panel", "lander"));
+        Assert.Equal([done], _bridge.Done);
+        Assert.Empty(_model.Requests);
+        Assert.Contains(_log, l => l.Entry is { Route: "rule", Ok: true });
+    }
+
+    [Fact]
+    public void ClosingIsAWindowAndQuittingTheProgram()
+    {
+        Assert.Equal("closeWindow", QuickRules.Match("cierra Steam")?.Op);
+        Assert.Equal("quit", QuickRules.Match("sal de Steam")?.Op);
+        Assert.Equal("Steam", QuickRules.Match("cierra Steam del todo")?.Text);
+        Assert.Null(QuickRules.Match("cierra esta ventana")?.Text);
+    }
+
+    [Fact]
+    public async Task TheUsersCommandsComeFirstAndTheRestIsAProgram()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        _bridge.Matches["abre YouTube y minimiza Steam"] = new MatchedMessage("x", 0.6, ["minimiza Steam"],
+            [new MatchedPart("abre YouTube", true, [new MatchedCandidate("yt", "YouTube", 0.95)])]);
+        await talk.HandleAsync(new HeardMessage("abre YouTube y minimiza Steam", "panel", "lander"));
+        Assert.Equal(["run:yt:lander", "act:minimize:Steam:lander"], _bridge.Done);
+        Assert.Empty(_model.Requests);
+        Assert.Contains("YouTube", LastAnswer, StringComparison.Ordinal);
+        Assert.Contains(Core.Localization.Loc.T("act.minimize.reply", "Program Steam"), LastAnswer, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task APartNoCommandIsSureOfIsNotLost()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        // «abre Steam y minimízalo»: K-Desktop resolves «minimiza steam», which is no command of the user.
+        _bridge.Matches["abre Steam y minimízalo"] = new MatchedMessage("x", 0.6, [],
+            [new MatchedPart("abre Steam", true, [new MatchedCandidate("steam", "Steam", 0.95)]),
+             new MatchedPart("minimiza steam", false, [new MatchedCandidate("down", "Bajar el volumen", 0.75)])]);
+        await talk.HandleAsync(new HeardMessage("abre Steam y minimízalo", "panel", "lander"));
+        Assert.Equal(["run:steam:lander", "act:minimize:steam:lander"], _bridge.Done);
+        Assert.Empty(_model.Requests);
+    }
+
+    [Fact]
+    public async Task WhatIsNotOpenIsSaid()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        _bridge.ActReason = "noWindow";
+        await talk.HandleAsync(new HeardMessage("minimiza Discord", "panel"));
+        Assert.Equal(Core.Localization.Loc.T("act.reason.noWindow", "Discord"), LastAnswer);
+        Assert.Empty(_model.Requests);
+    }
+
+    [Fact]
+    public async Task AQuestionAboutAProgramGoesToTheAi()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        _model.Answers.Enqueue("Sí, puedo.");
+        await talk.HandleAsync(new HeardMessage("¿cierras Chrome?", "panel"));
+        Assert.Empty(_bridge.Done);
+        Assert.Contains(_model.Requests.Single().Tools, t => t.Name == "control_app");
     }
 
     private sealed class Output(List<ChatLineMessage> chat, List<(string?, int)> listens) : ITalkOutput
@@ -331,6 +411,17 @@ public sealed class CommandRoutingTests : IDisposable
 
         public Task<EndMessage?> RunEventAsync(string name, string? assistant, CancellationToken cancellationToken) =>
             Task.FromResult<EndMessage?>(new EndMessage("r", Status, []));
+
+        /// <summary>The reason an act does not happen (null: it does), and the name K-Desktop finds.</summary>
+        public string? ActReason { get; set; }
+
+        public Task<EndMessage?> ActAsync(string op, string app, int? value, string? assistant, CancellationToken cancellationToken)
+        {
+            Done.Add($"act:{op}:{app}:{assistant}");
+            return Task.FromResult<EndMessage?>(ActReason is { } reason
+                ? new EndMessage("r", "failed", [], app, reason)
+                : new EndMessage("r", Status, [], app.Length > 0 ? "Program " + app : null));
+        }
     }
 
     private sealed class ScriptedModel : IChatModel

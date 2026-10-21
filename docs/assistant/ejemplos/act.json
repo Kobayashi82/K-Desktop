@@ -1,0 +1,8 @@
+{
+  "t": "act",
+  "assistant": "lander",
+  "run": "a-21",
+  "op": "minimize",
+  "app": "Steam",
+  "choreography": true
+}

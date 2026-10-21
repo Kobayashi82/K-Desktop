@@ -32,25 +32,13 @@ public partial class App
                 });
                 return true;
             case RunMessage run:
-                _ = Task.Run(async () =>
-                {
-                    var who = AssistantPackages.Find(run.Assistant)?.Manifest.Name ?? (run.Assistant.Length > 0 ? run.Assistant : "K-Desktop");
-                    // With choreography (stage 6.3) the assistant has its turn before each step, over the pipe.
-                    var settings = Config.Settings;
-                    using var choreography = run.Choreography
-                        ? new AssistantChoreography(run.Run, m => supervisor.Send(m)) { Speed = settings.AssistantManoeuvres, AnimateMax = Math.Max(0, settings.AssistantAnimateMax) }
-                        : null;
-                    if (choreography is not null) _choreographies[run.Run] = (run.Assistant, choreography);
-                    try
-                    {
-                        var end = await AssistantCommands.RunAsync(Engine, run, who, (command, risk) => AskCommandAsync(run, command, risk), choreography).ConfigureAwait(false);
-                        supervisor.Send(end);
-                    }
-                    finally
-                    {
-                        if (choreography is not null) _choreographies.TryRemove(run.Run, out _);
-                    }
-                });
+                RunForAssistant(supervisor, run.Assistant, run.Run, run.Choreography,
+                    (who, choreography) => AssistantCommands.RunAsync(Engine, run, who, (command, risk) => AskCommandAsync(run.Run, run.Assistant, command, risk, remember: true), choreography));
+                return true;
+            case ActMessage act:
+                // A command made for the occasion (stage 8.1): nothing to trust for next time.
+                RunForAssistant(supervisor, act.Assistant, act.Run, act.Choreography,
+                    (who, choreography) => AssistantActs.ActAsync(Engine, act, who, (command, risk) => AskCommandAsync(act.Run, act.Assistant, command, risk, remember: false), choreography));
                 return true;
             case WindowMessage window:
                 // One after another, off the pipe's thread (a window that hangs only holds these back).
@@ -86,6 +74,35 @@ public partial class App
         return false;
     }
 
+    /// <summary>
+    /// Runs something for an assistant off the pipe's thread and sends its <c>end</c>; with choreography (stage 6.3) the
+    /// assistant has its turn before each step, over the pipe.
+    /// </summary>
+    private void RunForAssistant(AssistantSupervisor supervisor, string assistant, string runId, bool choreographed,
+        Func<string, AssistantChoreography?, Task<EndMessage>> run) =>
+        _ = Task.Run(async () =>
+        {
+            var who = AssistantPackages.Find(assistant)?.Manifest.Name ?? (assistant.Length > 0 ? assistant : "K-Desktop");
+            var settings = Config.Settings;
+            using var choreography = choreographed
+                ? new AssistantChoreography(runId, m => supervisor.Send(m)) { Speed = settings.AssistantManoeuvres, AnimateMax = Math.Max(0, settings.AssistantAnimateMax) }
+                : null;
+            if (choreography is not null) _choreographies[runId] = (assistant, choreography);
+            try
+            {
+                supervisor.Send(await run(who, choreography).ConfigureAwait(false));
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Asistente: no se ha podido ejecutar lo que pedía", ex);
+                supervisor.Send(new EndMessage(runId, "failed", [ex.Message]));
+            }
+            finally
+            {
+                if (choreography is not null) _choreographies.TryRemove(runId, out _);
+            }
+        });
+
     /// <summary>Seconds to answer whether a command may run.</summary>
     private const int CommandAskSeconds = 20;
 
@@ -112,13 +129,14 @@ public partial class App
 
     /// <summary>
     /// Before an assistant runs a command that is not trusted, or does something that always asks: the same window as
-    /// for its tools. «Yes, and don't ask again» (only for what asks once) makes the command trusted.
+    /// for its tools. «Yes, and don't ask again» (only for what asks once, and a command that stays: <paramref name="remember"/>)
+    /// makes the command trusted.
     /// </summary>
-    private Task<string> AskCommandAsync(RunMessage run, Core.Model.Command command, Core.Assistant.ToolRisk risk) =>
+    private Task<string> AskCommandAsync(string run, string assistant, Core.Model.Command command, Core.Assistant.ToolRisk risk, bool remember) =>
         Dispatcher.InvokeAsync(async () =>
         {
-            var choice = await AskUserAsync("run-" + run.Run, run.Assistant, Loc.T("assistantCommand.ask", command.Name), risk == Core.Assistant.ToolRisk.AskOnce, CommandAskSeconds);
-            if (choice == "always" && !Config.Settings.AssistantTrustedCommands.Contains(command.Id))
+            var choice = await AskUserAsync("run-" + run, assistant, Loc.T("assistantCommand.ask", command.Name), remember && risk == Core.Assistant.ToolRisk.AskOnce, CommandAskSeconds);
+            if (remember && choice == "always" && !Config.Settings.AssistantTrustedCommands.Contains(command.Id))
                 Config.Settings.AssistantTrustedCommands = [.. Config.Settings.AssistantTrustedCommands, command.Id];
             return choice;
         }).Task.Unwrap();

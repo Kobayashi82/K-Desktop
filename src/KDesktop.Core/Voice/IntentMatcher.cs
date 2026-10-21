@@ -97,16 +97,21 @@ public static class IntentMatcher
         var pieces = SplitOrders(text);
         if (pieces.Count < 2) return whole.Winner is null ? new IntentPlan(whole, [], []) : new IntentPlan(whole, [whole], []);
         var results = new List<IntentResult>();
+        var referred = false;
         for (var i = 0; i < pieces.Count; i++)
         {
             var result = Match(pieces[i], list, media, semantic);
-            if (result.Winner is null && i > 0 && WithThing(pieces[i], results[i - 1].Text) is { } meant
-                && Match(meant, list, media, semantic) is { Winner: not null } resolved)
-                result = resolved;
+            // Resolved even when no command takes it: what is left says what it means («minimiza steam», not «minimízalo»).
+            if (result.Winner is null && i > 0 && WithThing(pieces[i], results[i - 1].Text) is { } meant)
+            {
+                result = Match(meant, list, media, semantic);
+                referred = true;
+            }
             results.Add(result);
         }
         var matched = results.Where(r => r.Winner is not null).ToList();
-        if (whole.Winner is not null && matched.Count < 2) return new IntentPlan(whole, [whole], []);
+        // A piece about the thing before («… y ciérralo») is another order for sure: one part named is enough.
+        if (whole.Winner is not null && matched.Count < (referred ? 1 : 2)) return new IntentPlan(whole, [whole], []);
         return matched.Count == 0
             ? new IntentPlan(whole, [], [])
             : new IntentPlan(whole, matched, results.Where(r => r.Winner is null).Select(r => r.Text).ToList());

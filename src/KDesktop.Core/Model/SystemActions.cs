@@ -10,7 +10,8 @@ namespace KDesktop.Core.Model;
 /// <summary>Which window «Ventana» acts on: the one in front, or the main window of a program.</summary>
 public enum WindowTarget { Active, Process }
 
-public enum WindowOperation { Maximize, Minimize, Restore, ToggleMaximize, Snap, Center, MoveToMonitor, Opacity }
+/// <summary><see cref="Close"/>: that window only, as its close button (the program may stay open with others).</summary>
+public enum WindowOperation { Maximize, Minimize, Restore, ToggleMaximize, Snap, Center, MoveToMonitor, Opacity, Close }
 
 /// <summary>Where «Colocar» puts the window, in its monitor's work area.</summary>
 public enum WindowSnap
@@ -47,6 +48,16 @@ public partial class WindowAction : CommandAction
     [ObservableProperty] private int _opacity = 80;
 
     [ObservableProperty] private bool _showOsd;
+
+    /// <summary>
+    /// The very window to act on, when it was chosen for the occasion (an assistant's «act»: «cierra YouTube» is that
+    /// window of Chrome, not another one). Not saved: a window does not outlive the command.
+    /// </summary>
+    [JsonIgnore] public IntPtr Handle { get; set; }
+
+    /// <summary>The window it acts on now: <see cref="Handle"/> while it exists, else as <see cref="Target"/> says.</summary>
+    public IntPtr FindWindow(IntPtr foreground) =>
+        Handle != IntPtr.Zero && Native.Win32.IsWindow(Handle) ? Handle : Platform.WindowLayout.Find(Target, ProcessName, foreground);
 
     public override ActionKind Kind => ActionKind.Window;
 

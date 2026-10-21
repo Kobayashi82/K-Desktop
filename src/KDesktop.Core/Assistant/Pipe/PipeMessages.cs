@@ -558,7 +558,9 @@ public sealed record WindowDoneMessage(string Id, bool Ok) : PipeMessage
 
 /// <param name="Status"><c>ok</c>, <c>failed</c> or <c>cancelled</c>.</param>
 /// <param name="Messages">What the command said (its messages, warnings and errors), in the user's language.</param>
-public sealed record EndMessage(string Run, string Status, IReadOnlyList<string> Messages) : PipeMessage
+/// <param name="Name">For an <c>act</c>: the program it found, by its own name («Google Chrome» for «chrome»).</param>
+/// <param name="Reason">For an <c>act</c> that did not happen: <c>noWindow</c>, <c>noProcess</c>, <c>notAllowed</c> (K-Desktop itself or the desktop).</param>
+public sealed record EndMessage(string Run, string Status, IReadOnlyList<string> Messages, string? Name = null, string? Reason = null) : PipeMessage
 {
     public override string Type => "end";
 }
@@ -582,6 +584,20 @@ public sealed record DescribedMessage(string Id, bool Found, string Name, IReadO
 public sealed record RunEventMessage(string Assistant, string Run, string Event) : PipeMessage
 {
     public override string Type => "runEvent";
+}
+
+/// <summary>
+/// «minimiza Steam», «sal de Chrome», «silencia Spotify» (stage 8.1): one thing done to a program, which K-Desktop finds
+/// by the user's words among the open windows and does as a command made for the occasion, with the actions of its
+/// catalogue (in its history, asking first like a command, with the assistant's steps when <paramref name="Choreography"/>).
+/// Only the operations of <see cref="AssistantActs"/>: never any action. Answered with <see cref="EndMessage"/>.
+/// </summary>
+/// <param name="Op">What to do: <see cref="AssistantActs.Ops"/>.</param>
+/// <param name="App">The program in the user's words; empty: the window in front.</param>
+/// <param name="Value">For <c>volume</c>: the level, 0 to 100.</param>
+public sealed record ActMessage(string Assistant, string Run, string Op, string App = "", int? Value = null, bool Choreography = false) : PipeMessage
+{
+    public override string Type => "act";
 }
 
 /// <summary>A built-in media order of K-Desktop (out of a <c>matched</c>); with <paramref name="Run"/>, answered with <see cref="EndMessage"/>.</summary>
@@ -724,6 +740,7 @@ public static class PipeJson
         ["describe"] = typeof(DescribeMessage),
         ["described"] = typeof(DescribedMessage),
         ["runEvent"] = typeof(RunEventMessage),
+        ["act"] = typeof(ActMessage),
         ["voice"] = typeof(VoiceMessage),
         ["voiceState"] = typeof(VoiceStateMessage),
         ["bench"] = typeof(BenchMessage),

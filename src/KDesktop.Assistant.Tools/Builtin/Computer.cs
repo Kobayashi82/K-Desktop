@@ -122,21 +122,18 @@ public sealed class OpenAppTool(Func<Task<IReadOnlyList<InstalledApp>>>? apps = 
     {
         var name = arguments.GetString("name")?.Trim();
         if (string.IsNullOrEmpty(name)) return ToolResult.Fail("Say which program.");
-        var list = await (apps ?? InstalledApps.GetAsync)().ConfigureAwait(false);
-        if (Find(list, name) is not { } app) return ToolResult.Fail($"There is no program called «{name}».");
+        if (await FindAsync(name).ConfigureAwait(false) is not { } app) return ToolResult.Fail($"There is no program called «{name}».");
         return (launch ?? InstalledApps.Launch)(app)
             ? new ToolResult($"Opened {app.Name}.") { Done = Loc.T("tool.open_app.done", app.Name) }
             : ToolResult.Fail($"{app.Name} did not open.");
     }
 
-    /// <summary>The best match, as the launcher scores it (a weak one is not taken).</summary>
-    public static InstalledApp? Find(IReadOnlyList<InstalledApp> apps, string name)
-    {
-        var tokens = FuzzyMatch.Tokens(name);
-        return apps.Select(a => (App: a, Score: FuzzyMatch.Score(tokens, new SearchKey(a.Name))))
-            .Where(p => p.Score >= 300)
-            .OrderByDescending(p => p.Score).ThenBy(p => p.App.Name.Length)
-            .Select(p => p.App)
-            .FirstOrDefault();
-    }
+    /// <summary>The installed program a name means, or null («abre Steam» without Steam installed goes to the AI).</summary>
+    public async Task<InstalledApp?> FindAsync(string name) => Find(await (apps ?? InstalledApps.GetAsync)().ConfigureAwait(false), name);
+
+    /// <summary>
+    /// The installed program a name means, word by word (<see cref="AppFinder"/>): the launcher's subsequence search took
+    /// «Steam» for "Inno Setup Example Scripts".
+    /// </summary>
+    public static InstalledApp? Find(IReadOnlyList<InstalledApp> apps, string name) => AppFinder.FindApp(name, apps);
 }

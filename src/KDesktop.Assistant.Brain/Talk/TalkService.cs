@@ -289,6 +289,8 @@ public sealed class TalkService
         var forAi = said;
         IReadOnlyCollection<string>? leaveOut = null;
         IReadOnlyList<string>? close = null;
+        // What is left of the order for the rules about programs and the AI: all of it, or what no command took.
+        IReadOnlyList<string> leftover = [said];
         // A phrase the user taught it («cuando diga «la vuelta»…»): the AI, with that memory, before any command that sounds
         // like it («la vuelta» ran «Anterior» at 0.87 and the memory never counted).
         var taught = _memory?.Store.Triggered(said) ?? [];
@@ -304,13 +306,15 @@ public sealed class TalkService
             if (sure.Count == 0 && matched.Parts is [{ Sure: false, Candidates: [var only, ..] } whole] && only.Score >= CommandTools.Direct
                 && (whole.Candidates.Count < 2 || only.Score - whole.Candidates[1].Score >= CommandTools.Ahead))
                 return await CommandsAsync(persona, [only], context, said, token).ConfigureAwait(false);
-            // A part K-Desktop is sure of but not enough for running it at once is left to the AI too.
-            var unmatched = matched.Unmatched.Concat(matched.Parts.Where(p => p.Sure && p.Candidates[0].Score < CommandTools.Direct).Select(p => p.Text)).ToList();
+            // A part K-Desktop is not sure of, or not enough for running it at once, is left to the rules and the AI too
+            // («abre Steam y minimízalo»: «minimiza steam» is no command).
+            var unmatched = matched.Unmatched.Concat(matched.Parts.Where(p => !(p.Sure && p.Candidates[0].Score >= CommandTools.Direct)).Select(p => p.Text)).ToList();
             if (sure.Count > 0)
             {
                 ran = await CommandsAsync(persona, sure, context, said, token).ConfigureAwait(false);
                 if (unmatched.Count == 0) return ran;
                 forAi = string.Join(", ", unmatched);
+                leftover = unmatched;
             }
             else if (matched.Parts is [{ Candidates: [var first, var second, ..] }] && first.Score >= AskFrom && second.Score >= Plausible
                      && first.Score - second.Score < Close)
@@ -322,6 +326,30 @@ public sealed class TalkService
             close = [.. matched.Parts.SelectMany(p => p.Candidates).Where(c => c.Score >= CommandTools.Plausible && !sure.Contains(c))
                 .Select(c => c.Name).Distinct(StringComparer.OrdinalIgnoreCase).Take(AssistantCommandsShown)];
             if (sure.Count == 0 && close.Count == 0) leaveOut = ["run_command"];
+        }
+
+        // Programs (stage 8.1): «minimiza Steam», «sal de Chrome», «abre Spotify», in what the user's own commands left.
+        if (taught.Count == 0 && !IsQuestion(said))
+        {
+            var acts = new List<(string Piece, QuickRule Rule)>();
+            foreach (var piece in leftover)
+                if ((ReferenceEquals(piece, said) ? rule : QuickRules.Match(piece, [persona.Name])) is { Kind: QuickRuleKind.Act or QuickRuleKind.OpenApp } found
+                    && (found.Kind == QuickRuleKind.Act || await IsInstalledAsync(found.Text).ConfigureAwait(false)))
+                    acts.Add((piece, found));
+            if (acts.Count > 0)
+            {
+                var done = await ProgramsAsync(persona, [.. acts.Select(a => a.Rule)], context, said, first: ran is null, token).ConfigureAwait(false);
+                ran = ran is null ? done : ran with
+                {
+                    Text = ran.Text + " " + done.Text,
+                    Failed = ran.Failed || done.Failed,
+                    Tools = [.. ran.Tools, .. done.Tools],
+                    Steps = [.. ran.Steps, .. done.Steps],
+                };
+                leftover = [.. leftover.Where(p => !acts.Any(a => ReferenceEquals(a.Piece, p)))];
+                if (leftover.Count == 0) return ran;
+                forAi = string.Join(", ", leftover);
+            }
         }
 
         var (client, model) = _brain(who);
@@ -379,6 +407,39 @@ public sealed class TalkService
         }
         var text = failed ? string.Join(" ", replies) : Phrase(persona, "ok") + " " + string.Join(" ", replies);
         return new TalkAnswer(text, Failed: failed) { Tools = ["run_command"], Steps = steps };
+    }
+
+    /// <summary>Whether a program by that name is installed (the rule «abre {app}» is only for programs).</summary>
+    private async Task<bool> IsInstalledAsync(string? name) =>
+        name is { Length: > 0 } && _tools.Registry.Find("open_app") is OpenAppTool open && await open.FindAsync(name).ConfigureAwait(false) is not null;
+
+    /// <summary>
+    /// What the rules about programs understood, in order, each through its tool (in the activity; K-Desktop asks before
+    /// closing), with each one's words for it. <paramref name="first"/>: nothing was said before (the «ok» goes first).
+    /// </summary>
+    private async Task<TalkAnswer> ProgramsAsync(AssistantPersona persona, IReadOnlyList<QuickRule> rules, ToolContext context, string said, bool first, CancellationToken token)
+    {
+        var replies = new List<string>();
+        var steps = new List<ChatMessage>();
+        var tools = new List<string>();
+        var failed = false;
+        foreach (var rule in rules)
+        {
+            var (tool, arguments) = rule.Kind == QuickRuleKind.OpenApp
+                ? ("open_app", new JsonObject { ["name"] = rule.Text })
+                : ("control_app", new JsonObject { ["action"] = rule.Op, ["app"] = rule.Text ?? string.Empty });
+            var outcome = await _tools.RunAsync(tool, JsonSerializer.SerializeToElement(arguments), context, said, "rule", token).ConfigureAwait(false);
+            steps.AddRange(Step(tool, arguments, outcome.Result?.Text ?? "Not done: " + outcome.Entry.Did));
+            if (!tools.Contains(tool)) tools.Add(tool);
+            if (outcome.Result is { Failed: false } done) replies.Add(done.Reply ?? done.Done ?? outcome.Entry.Did);
+            else
+            {
+                failed = true;
+                replies.Add(outcome.Result?.Reply ?? Phrase(persona, "error"));
+            }
+        }
+        var text = string.Join(" ", replies);
+        return new TalkAnswer(first && !failed ? Phrase(persona, "ok") + " " + text : text, Failed: failed) { Tools = tools, Steps = steps };
     }
 
     /// <summary>

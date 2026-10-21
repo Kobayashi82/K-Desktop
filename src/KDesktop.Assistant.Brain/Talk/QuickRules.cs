@@ -10,12 +10,14 @@ namespace KDesktop.Assistant.Brain.Talk;
 /// answer to «¿A o B?» (stage 4.4). <see cref="Remember"/>, <see cref="Recall"/> and <see cref="Forget"/> are the memory
 /// («recuerda que…», «¿qué sabes de mí?», «olvida que…»): a small model took them for notes.
 /// </summary>
-public enum QuickRuleKind { Time, Timer, Note, CancelTimer, Cancel, Repeat, Undo, First, Second, OpenWeb, Remember, Recall, Forget }
+/// <summary><see cref="Act"/> and <see cref="OpenApp"/> (stage 8.1) only count after the user's own commands.</summary>
+public enum QuickRuleKind { Time, Timer, Note, CancelTimer, Cancel, Repeat, Undo, First, Second, OpenWeb, Remember, Recall, Forget, Act, OpenApp }
 
 /// <summary>An order a fixed rule understood, with what filled its gaps.</summary>
 /// <param name="Seconds">For a timer: how long.</param>
-/// <param name="Text">What was said in its <c>{text}</c> gap, as it was said (the note, the reason of a timer…).</param>
-public sealed record QuickRule(QuickRuleKind Kind, double? Seconds = null, string? Text = null);
+/// <param name="Text">What was said in its <c>{text}</c> or <c>{app}</c> gap, as it was said (the note, the reason of a timer, the program…).</param>
+/// <param name="Op">For <see cref="QuickRuleKind.Act"/>: what to do (<c>minimize</c>…, <see cref="KDesktop.Core.Assistant.AssistantActs.Ops"/>).</param>
+public sealed record QuickRule(QuickRuleKind Kind, double? Seconds = null, string? Text = null, string? Op = null);
 
 /// <summary>
 /// The fixed rules (stage 3.4, plan §4): the orders answered at once, without the AI — the time, a timer, a note,
@@ -25,7 +27,7 @@ public sealed record QuickRule(QuickRuleKind Kind, double? Seconds = null, strin
 /// <list type="bullet">
 /// <item><c>assistant.rule.&lt;kind&gt;</c> (<c>time</c>, <c>timer</c>, <c>note</c>, <c>cancelTimer</c>, <c>cancel</c>,
 /// <c>repeat</c>, <c>undo</c>, <c>openWeb</c> —only when its gap names web addresses—, <c>remember</c>, <c>recall</c>,
-/// <c>forget</c>): ways of saying it, separated by «|», with gaps <c>{dur}</c> (a duration: «diez
+/// <c>forget</c>, <c>openApp</c>, and <c>act.&lt;op&gt;</c> for each operation on a program —«minimiza {app}»—): ways of saying it, separated by «|», with gaps <c>{dur}</c> (a duration: «diez
 /// minutos», «una hora y media») and <c>{text}</c> (some words, kept as said), and <c>[optional words]</c>;</item>
 /// <item><c>assistant.rule.fillers</c>, <c>assistant.rule.polite</c>: what is taken off around it and at its start («|»);</item>
 /// <item><c>assistant.rule.units</c>: <c>word=seconds</c> separated by spaces («minutos=60»);</item>
@@ -41,7 +43,7 @@ public static partial class QuickRules
     private sealed record DurationGap : Piece;
     private sealed record TextGap : Piece;
 
-    private sealed record Pattern(QuickRuleKind Kind, Piece[] Pieces)
+    private sealed record Pattern(QuickRuleKind Kind, Piece[] Pieces, string? Op = null)
     {
         /// <summary>Words it names: the more, the more precise (it wins over a looser one that also fits).</summary>
         public int Weight { get; } = Pieces.Sum(p => p is Word ? 2 : p is Optional o ? o.Words.Length : 0);
@@ -103,7 +105,7 @@ public static partial class QuickRules
                 var gap = gaps.Text is { } t ? Original(text, t.From, t.To) : null;
                 // «Abre …» is a web only when it names addresses («abre youtube.com»); «abre Steam» is not this rule.
                 if (pattern.Kind == QuickRuleKind.OpenWeb && Sites(gap ?? string.Empty).Count == 0) continue;
-                best = (pattern, new QuickRule(pattern.Kind, gaps.Seconds, gap));
+                best = (pattern, new QuickRule(pattern.Kind, gaps.Seconds, gap, pattern.Op));
             }
         return best?.Rule;
     }
@@ -300,6 +302,10 @@ public static partial class QuickRules
                     case "durations":
                         v.Durations.AddRange(Pairs(value.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)));
                         break;
+                    case var act when act.StartsWith("act.", StringComparison.Ordinal):
+                        foreach (var phrase in value.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                            if (Parse(phrase) is { Length: > 0 } pieces) v.Patterns.Add(new Pattern(QuickRuleKind.Act, pieces, act["act.".Length..]));
+                        break;
                     default:
                         if (!Enum.TryParse<QuickRuleKind>(name, ignoreCase: true, out var kind)) break;
                         foreach (var phrase in value.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
@@ -344,7 +350,7 @@ public static partial class QuickRules
                     if (TextSimilarity.Words(inside) is { Length: > 0 } words) pieces.Add(new Optional(words));
                 }
                 else if (inside == "dur") pieces.Add(new DurationGap());
-                else if (inside == "text") pieces.Add(new TextGap());
+                else if (inside is "text" or "app") pieces.Add(new TextGap());
                 else return [];
                 k = close + 1;
                 continue;

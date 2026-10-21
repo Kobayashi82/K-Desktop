@@ -121,6 +121,7 @@ public static class ActionGestures
         WindowOperation.Restore => [new(GestureKind.PressButton, CaptionButton.Restore)],
         WindowOperation.ToggleMaximize => [new(GestureKind.PressButton, maximized ? CaptionButton.Restore : CaptionButton.Maximize)],
         WindowOperation.Opacity => [new(GestureKind.PointAt)],
+        WindowOperation.Close => [new(GestureKind.PressButton, CaptionButton.Close)],
 
         // Snap, Center, MoveToMonitor: a maximized window is restored first (that part is the assistant's, not the action).
         _ => maximized

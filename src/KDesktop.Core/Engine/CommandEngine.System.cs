@@ -54,7 +54,7 @@ public sealed partial class CommandEngine
 
     private void Window(WindowAction a, ExecutionContext ctx)
     {
-        var hwnd = WindowLayout.Find(a.Target, a.ProcessName, ctx.Foreground.RootHandle);
+        var hwnd = a.FindWindow(ctx.Foreground.RootHandle);
         if (hwnd == IntPtr.Zero || !Win32.IsWindow(hwnd))
         {
             if (a.Target == WindowTarget.Process) Log.Warn($"Ventana: {a.ProcessName} no tiene ninguna ventana abierta");
@@ -89,13 +89,16 @@ public sealed partial class CommandEngine
             case WindowOperation.MoveToMonitor:
                 if (!WindowLayout.MoveToMonitor(hwnd, a.Monitor, a.MonitorNumber)) osd = Loc.T("osd.windowOneMonitor");
                 break;
+            case WindowOperation.Close:
+                Win32.PostMessage(hwnd, Win32.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+                break;
             case WindowOperation.Opacity:
                 var opacity = WindowLayout.ToggleOpacity(hwnd, a.Opacity);
                 osd = Loc.T("osd.windowOpacity", opacity);
                 break;
         }
         // From the QuickMenu or the launcher, the window keeps the focus it had.
-        if (a.Target == WindowTarget.Process && a.Operation is not WindowOperation.Minimize) WindowTools.ForceForeground(hwnd);
+        if (a.Target == WindowTarget.Process && a.Operation is not (WindowOperation.Minimize or WindowOperation.Close)) WindowTools.ForceForeground(hwnd);
         if (a.ShowOsd) _ui.ShowOsd(osd ?? a.Summary);
         else if (osd is not null && a.Operation == WindowOperation.MoveToMonitor) Log.Info("Ventana: solo hay un monitor");
     }
