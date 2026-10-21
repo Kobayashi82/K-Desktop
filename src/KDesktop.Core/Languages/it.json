@@ -2883,5 +2883,9 @@
   "bench.noTool": "senza strumenti",
   "bench.didFail": "l'IA non ha risposto",
   "bench.expectedGot": "Atteso: {0} · Ha fatto: {1}",
-  "bench.noBrain": "Non c'è un server di IA"
+  "bench.noBrain": "Non c'è un server di IA",
+
+  "assistantCommand.notFound": "Quel comando non esiste più o è disattivato.",
+  "history.source.Assistant": "Assistente",
+  "source.assistant": "Assistente"
 }

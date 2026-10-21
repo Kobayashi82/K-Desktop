@@ -101,6 +101,7 @@ public sealed partial class HistoryPage : UserControl, IDisposable
             new(Loc.T("history.source.Hotkey"), e => e.Source == TriggerSource.Hotkey),
             new(Loc.T("history.source.QuickMenu"), e => e.Source == TriggerSource.QuickMenu),
             new(Loc.T("history.source.Voice"), e => e.Source == TriggerSource.Voice),
+            new(Loc.T("history.source.Assistant"), e => e.Source == TriggerSource.Assistant),
             new(Loc.T("history.source.Web"), e => e.Source == TriggerSource.Web),
             new(Loc.T("history.source.Event"), e => e.Source is TriggerSource.Event or TriggerSource.Startup or TriggerSource.Exit),
             new(Loc.T("history.source.Remote"), e => e.Source == TriggerSource.Remote),

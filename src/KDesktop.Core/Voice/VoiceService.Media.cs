@@ -10,7 +10,7 @@ namespace KDesktop.Core.Voice;
 public sealed partial class VoiceService
 {
     /// <summary>Runs a built-in media order; returns what to tell the user.</summary>
-    private async Task<(string Message, OsdKind Kind)> RunMediaAsync(MediaOrder order)
+    public async Task<(string Message, OsdKind Kind)> RunMediaAsync(MediaOrder order)
     {
         var settings = _config().Settings;
         try

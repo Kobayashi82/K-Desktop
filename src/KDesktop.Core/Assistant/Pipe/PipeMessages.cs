@@ -385,6 +385,51 @@ public sealed record MemoryStateMessage(IReadOnlyList<MemoryEntry> Items) : Pipe
     public override string Type => "memoryState";
 }
 
+// ── K-Desktop's commands (phase 4) ───────────────────────────────────────
+
+/// <summary>Which commands (or built-in media orders) an order names, without running anything (<c>IntentMatcher.Plan</c>).</summary>
+public sealed record MatchMessage(string Id, string Text) : PipeMessage
+{
+    public override string Type => "match";
+}
+
+/// <param name="Command">The command's id; null for a built-in media order.</param>
+/// <param name="Media">The media order (<c>volumeDown</c>…), with its <paramref name="Value"/> when it has one (a volume).</param>
+public sealed record MatchedCandidate(string? Command, string Name, double Score, string? Media = null, int? Value = null);
+
+/// <param name="Sure">The first candidate is a clear winner (it would run by voice).</param>
+public sealed record MatchedPart(string Text, bool Sure, IReadOnlyList<MatchedCandidate> Candidates);
+
+/// <summary>
+/// What an order names: the orders it is made of, in order, each with its candidates (best first). Nothing clear: one
+/// part, the whole text, not <c>sure</c>, with what came closest.
+/// </summary>
+/// <param name="Unmatched">Pieces of a multiple order that named nothing.</param>
+public sealed record MatchedMessage(string Id, double Score, IReadOnlyList<string> Unmatched, IReadOnlyList<MatchedPart> Parts) : PipeMessage
+{
+    public override string Type => "matched";
+}
+
+/// <summary>Runs a command for an assistant (without choreography until phase 6). Answered with <see cref="EndMessage"/>.</summary>
+public sealed record RunMessage(string Assistant, string Run, string Command, bool Choreography = false) : PipeMessage
+{
+    public override string Type => "run";
+}
+
+/// <param name="Status"><c>ok</c>, <c>failed</c> or <c>cancelled</c>.</param>
+/// <param name="Messages">What the command said (its messages, warnings and errors), in the user's language.</param>
+public sealed record EndMessage(string Run, string Status, IReadOnlyList<string> Messages) : PipeMessage
+{
+    public override string Type => "end";
+}
+
+/// <summary>A built-in media order of K-Desktop (out of a <c>matched</c>); with <paramref name="Run"/>, answered with <see cref="EndMessage"/>.</summary>
+/// <param name="Order">The kind, camelCase (<c>volumeUp</c>, <c>pause</c>…).</param>
+public sealed record MediaMessage(string Order, int? Value = null, string? Run = null) : PipeMessage
+{
+    public override string Type => "media";
+}
+
 // ── the test bench (stage 3.9) ───────────────────────────────────────────
 
 /// <summary>Options → Brain → Test the model: <c>start</c> (with <paramref name="Model"/>), <c>cancel</c> or <c>state</c>.</summary>
@@ -403,7 +448,7 @@ public sealed record BenchScore(string Model, int Passed, int Total, int MeanMs,
 
 /// <summary>How the bench goes: after each order while it runs, and its result; with the last score of each model.</summary>
 /// <param name="State"><c>idle</c>, <c>running</c>, <c>done</c>, <c>cancelled</c> or <c>failed</c>.</param>
-/// <param name="Own">It is the user's bench (<c>Assistantench.json</c>), not the built-in one.</param>
+/// <param name="Own">It is the user's bench (<c>Assistant\bench.json</c>), not the built-in one.</param>
 /// <param name="Failures">The orders that did not do what was expected (when it is over).</param>
 public sealed record BenchStateMessage(string State, string? Model, int Done, int Total, int Passed, int MeanMs, bool Own,
     IReadOnlyList<BenchCaseResult> Failures, IReadOnlyList<BenchScore> History, string? Message = null) : PipeMessage
@@ -472,6 +517,11 @@ public static class PipeJson
         ["embedded"] = typeof(EmbeddedMessage),
         ["memory"] = typeof(MemoryMessage),
         ["memoryState"] = typeof(MemoryStateMessage),
+        ["match"] = typeof(MatchMessage),
+        ["matched"] = typeof(MatchedMessage),
+        ["run"] = typeof(RunMessage),
+        ["end"] = typeof(EndMessage),
+        ["media"] = typeof(MediaMessage),
         ["bench"] = typeof(BenchMessage),
         ["benchState"] = typeof(BenchStateMessage),
     };

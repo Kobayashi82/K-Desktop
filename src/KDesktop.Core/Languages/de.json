@@ -2883,5 +2883,9 @@
   "bench.noTool": "ohne Werkzeuge",
   "bench.didFail": "die KI hat nicht geantwortet",
   "bench.expectedGot": "Erwartet: {0} · Getan: {1}",
-  "bench.noBrain": "Es gibt keinen KI-Server"
+  "bench.noBrain": "Es gibt keinen KI-Server",
+
+  "assistantCommand.notFound": "Dieser Befehl existiert nicht mehr oder ist deaktiviert.",
+  "history.source.Assistant": "Assistent",
+  "source.assistant": "Assistent"
 }

@@ -2883,5 +2883,9 @@
   "bench.noTool": "no tools",
   "bench.didFail": "the AI didn't answer",
   "bench.expectedGot": "Expected: {0} · Did: {1}",
-  "bench.noBrain": "There is no AI server"
+  "bench.noBrain": "There is no AI server",
+
+  "assistantCommand.notFound": "That command no longer exists or is turned off.",
+  "history.source.Assistant": "Assistant",
+  "source.assistant": "Assistant"
 }

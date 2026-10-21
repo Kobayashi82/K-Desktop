@@ -76,6 +76,7 @@ public partial class App
                     _ = Task.Run(() => supervisor.Send(meaning.Answer(embed)));
                     return;
                 }
+                if (OnAssistantCommandRequest(supervisor, message)) return;
                 Dispatcher.BeginInvoke(() => OnAssistantMessage(message));
             };
             _assistant = supervisor;

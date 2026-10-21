@@ -34,10 +34,14 @@ internal sealed class AssistantSession : IDisposable
         Runtime = new AssistantRuntime(Engine, Link);
         // The brain answers Options → Assistant → Brain: only with K-Desktop there.
         if (Link is not null) Brain = new BrainService(World.VideoMemory.Gigabytes);
+        if (Link is not null) Commands = new ModuleCommands(Link);
         if (Link is not null) Tools = new ModuleTools(Link);
         if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!);
         if (Link is not null) Bench = new ModuleBench(Link, Brain!, Tools!, Talk!.Chooser);
     }
+
+    /// <summary>The user's K-Desktop commands (null without K-Desktop).</summary>
+    public ModuleCommands? Commands { get; }
 
     /// <summary>Options → Brain → Test the model (null without K-Desktop).</summary>
     public ModuleBench? Bench { get; }
@@ -115,6 +119,12 @@ internal sealed class AssistantSession : IDisposable
                         return;
                     case BenchMessage bench when Bench is { } module:
                         module.OnBench(bench);
+                        return;
+                    case MatchedMessage matched when Commands is { } commands:
+                        commands.OnMatched(matched);
+                        return;
+                    case EndMessage end when Commands is { } commands:
+                        commands.OnEnd(end);
                         return;
                     case HeardMessage heard when Talk is { } talk:
                         talk.OnHeard(heard);
