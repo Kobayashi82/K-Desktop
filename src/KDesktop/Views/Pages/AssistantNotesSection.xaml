@@ -1,0 +1,40 @@
+<UserControl x:Class="KDesktop.Views.Pages.AssistantNotesSection"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:l="clr-namespace:KDesktop.Localization">
+    <!-- Options → Assistant → Notes: what the assistants noted for the user («apunta que…»), to see, add, edit and delete.
+         The assistant process keeps them; this asks and shows. -->
+    <Border Style="{StaticResource Card}">
+        <StackPanel>
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel Margin="0,0,16,0">
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr notesOptions.title}" />
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr notesOptions.intro}" />
+                </StackPanel>
+                <ui:Button x:Name="ClearButton" Grid.Column="1" VerticalAlignment="Center" Icon="{ui:SymbolIcon Delete24}"
+                           Content="{l:Tr memoryOptions.clear}" Click="OnClear" />
+            </Grid>
+
+            <!-- The module is off, or its process is not running -->
+            <Border x:Name="OffBox" Style="{StaticResource InfoBox}" Margin="0,0,0,10" Visibility="Collapsed">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <TextBlock x:Name="OffText" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                    <ui:Button x:Name="GoGeneral" Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainOptions.goGeneral}" Click="OnGoGeneral" />
+                </Grid>
+            </Border>
+
+            <Grid x:Name="AddRow" Margin="0,0,0,8">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <ui:TextBox x:Name="AddBox" MaxLength="500" PlaceholderText="{l:Tr notesOptions.addHint}" ClearButtonEnabled="False"
+                            AutomationProperties.Name="{l:Tr memoryOptions.add}" PreviewKeyDown="OnAddKey" />
+                <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon Add24}" Content="{l:Tr memoryOptions.add}" Click="OnAdd" />
+            </Grid>
+
+            <TextBlock x:Name="EmptyText" Style="{StaticResource Caption}" Margin="0,6,0,4" Text="{l:Tr notesOptions.empty}" />
+            <StackPanel x:Name="Rows" />
+        </StackPanel>
+    </Border>
+</UserControl>

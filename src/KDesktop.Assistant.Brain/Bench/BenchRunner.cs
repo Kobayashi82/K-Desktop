@@ -30,6 +30,8 @@ public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimePro
         [QuickRuleKind.Note] = "save_note",
         [QuickRuleKind.CancelTimer] = "cancel_timer",
         [QuickRuleKind.OpenWeb] = "open_web",
+        [QuickRuleKind.Remember] = "remember",
+        [QuickRuleKind.Forget] = "forget",
     };
 
     /// <param name="progress">Each order when it is done (any thread).</param>

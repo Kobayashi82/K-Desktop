@@ -144,6 +144,9 @@ internal sealed class AssistantSession : IDisposable
                     case MemoryMessage memory when Tools is { } tools:
                         tools.OnMemory(memory);
                         return;
+                    case NotesMessage notes when Tools is { } tools:
+                        tools.OnNotes(notes);
+                        return;
                     case BenchMessage bench when Bench is { } module:
                         module.OnBench(bench);
                         return;

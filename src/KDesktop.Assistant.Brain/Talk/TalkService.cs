@@ -149,7 +149,8 @@ public sealed class TalkService
     /// </summary>
     private void Learn(string? who, string said, TalkAnswer answer, CancellationToken token)
     {
-        if (_memory is null || !answer.FromAi || answer.Failed || !_learn() || answer.Tools.Contains("remember") || said.Contains('?', StringComparison.Ordinal)) return;
+        if (_memory is null || !answer.FromAi || answer.Failed || !_learn() || answer.Tools.Contains("remember") || answer.Tools.Contains("forget")
+            || said.Contains('?', StringComparison.Ordinal) || TalkMemory.IsAbout(said)) return;
         if (said.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length < 3) return;
         var (client, model) = _brain(who);
         if (client is null || model is null) return;
@@ -270,6 +271,12 @@ public sealed class TalkService
                 return await ToolAsync(persona, "save_note", new JsonObject { ["note"] = note }, context, said, acknowledge: true, token).ConfigureAwait(false);
             case { Kind: QuickRuleKind.OpenWeb, Text: { } addresses }:
                 return await SitesAsync(persona, QuickRules.Sites(addresses), context, said, token).ConfigureAwait(false);
+            case { Kind: QuickRuleKind.Remember, Text: { Length: > 0 } fact } when _memory is not null:
+                return await RememberAsync(persona, who, fact, context, said, token).ConfigureAwait(false);
+            case { Kind: QuickRuleKind.Recall } when _memory is not null:
+                return Recall(persona);
+            case { Kind: QuickRuleKind.Forget, Text: { Length: > 0 } forget } when _memory is not null:
+                return await ToolAsync(persona, "forget", new JsonObject { ["fact"] = forget }, context, said, acknowledge: true, token).ConfigureAwait(false);
             case { Kind: QuickRuleKind.CancelTimer } cancelTimer:
                 var which = new JsonObject();
                 if (cancelTimer.Text is { Length: > 0 } words) which["reason"] = words;
@@ -413,6 +420,32 @@ public sealed class TalkService
             .OrderByDescending(p => p.Shared)
             .Select(p => (MatchedCandidate?)p.Candidate)
             .FirstOrDefault();
+    }
+
+    /// <summary>Memories told when asked «¿qué sabes de mí?», at most (the rest are in Options → Memory).</summary>
+    public const int RecallTold = 5;
+
+    /// <summary>«Recuerda que…»: kept (reworded by the model when there is one), and said back as understood.</summary>
+    private async Task<TalkAnswer> RememberAsync(AssistantPersona persona, string? who, string fact, ToolContext context, string said, CancellationToken token)
+    {
+        var (client, model) = _brain(who);
+        if (client is not null && model is not null) _output.State(who, "thinking");
+        var (facts, anyNew) = await _memory!.RememberSaidAsync(client, model, fact, context, said, token).ConfigureAwait(false);
+        if (facts.Count == 0) return new TalkAnswer(Phrase(persona, "error"), Failed: true);
+        var reply = anyNew ? Phrase(persona, "ok") + " " + Loc.T("tool.remember.replyFacts", string.Join(". ", facts))
+            : Loc.T("tool.remember.replyKnown");
+        return new TalkAnswer(reply) { Tools = ["remember"] };
+    }
+
+    /// <summary>«¿Qué sabes de mí?»: the most valuable memories, without the AI (it saw only a few and made the rest up).</summary>
+    private TalkAnswer Recall(AssistantPersona persona)
+    {
+        var store = _memory!.Store;
+        var best = store.Best(RecallTold);
+        if (best.Count == 0) return new TalkAnswer(Phrase(persona, "memoryEmpty"));
+        var listed = string.Join(". ", best.Select(m => m.Text.TrimEnd('.')));
+        var more = store.Count - best.Count;
+        return new TalkAnswer(more > 0 ? Phrase(persona, "memoryListMore", listed, more) : Phrase(persona, "memoryList", listed));
     }
 
     /// <summary>A tool for a rule: what it says it did (after «Recibido.» for an action), or why not.</summary>

@@ -173,9 +173,150 @@ public sealed class MemoryTests : IDisposable
         Assert.Empty(builtin.Memory.All);
     }
 
+    [Fact]
+    public void NumbersCountWhenComparing()
+    {
+        var store = Store();
+        store.Remember("Kobayashi tiene 44 años", "fact", 0.6, "said");
+        // «44» used to be dropped (two letters), leaving one word: the same fact was kept twice.
+        var again = store.Remember("Tiene 44 años", "fact", 0.8, "learned")!.Value;
+        Assert.False(again.IsNew);
+        Assert.Single(store.All);
+        Assert.True(store.Remember("Tiene 45 años de experiencia en el banco", "fact", 0.5, "said")!.Value.IsNew);
+    }
+
+    [Fact]
+    public async Task TheForgetToolForgetsAndIsUndone()
+    {
+        var store = Store();
+        store.Remember("Cuando diga «la vuelta», quiere que se abra ejemplo.com", "fact", 0.9, "said");
+        store.Remember("Se llama Kobayashi", "fact", 0.9, "said");
+        var tool = new ForgetTool(store);
+
+        var result = await tool.RunAsync(ToolArguments.Parse("""{"fact":"la vuelta"}"""), new ToolContext(null), default);
+        Assert.False(result.Failed);
+        Assert.Equal("Se llama Kobayashi", Assert.Single(store.All).Text);
+        Assert.True(await tool.UndoAsync(result.Undo!, default));
+        Assert.Equal(2, store.All.Count);
+
+        var none = await tool.RunAsync(ToolArguments.Parse("""{"fact":"mi coche rojo"}"""), new ToolContext(null), default);
+        Assert.True(none.Failed);
+        Assert.Equal(2, store.All.Count);
+    }
+
+    [Theory]
+    [InlineData("añade a la memoria que mido 1,65", QuickRuleKind.Remember, "mido 1,65")]
+    [InlineData("añada la memoria que mido 1.65.", QuickRuleKind.Remember, "mido 1.65")]
+    [InlineData("a la memoria que me llamo Kobayashi y tengo 44 años.", QuickRuleKind.Remember, "me llamo Kobayashi y tengo 44 años")]
+    [InlineData("Lander, recuerda que mi jefe se llama Luis", QuickRuleKind.Remember, "mi jefe se llama Luis")]
+    [InlineData("quiero que recuerdes que trabajo de noche", QuickRuleKind.Remember, "trabajo de noche")]
+    [InlineData("remember that I'm allergic to seafood", QuickRuleKind.Remember, "I'm allergic to seafood")]
+    [InlineData("ricorda che mia figlia si chiama Ana", QuickRuleKind.Remember, "mia figlia si chiama Ana")]
+    [InlineData("¿Qué tienes en la memoria?", QuickRuleKind.Recall, null)]
+    [InlineData("que tienes en la memoria.", QuickRuleKind.Recall, null)]
+    [InlineData("¿qué sabes de mí?", QuickRuleKind.Recall, null)]
+    [InlineData("what do you know about me?", QuickRuleKind.Recall, null)]
+    [InlineData("olvida lo de la vuelta", QuickRuleKind.Forget, "la vuelta")]
+    [InlineData("olvida que tengo 44 años", QuickRuleKind.Forget, "tengo 44 años")]
+    [InlineData("borra de tu memoria lo de mi jefe", QuickRuleKind.Forget, "lo de mi jefe")]
+    // The rules that were there still win.
+    [InlineData("apunta que tengo que comprar pilas", QuickRuleKind.Note, "tengo que comprar pilas")]
+    [InlineData("olvídalo", QuickRuleKind.Cancel, null)]
+    public void TheMemoryRulesUnderstand(string said, QuickRuleKind kind, string? text)
+    {
+        var rule = QuickRules.Match(said, ["Lander"]);
+        Assert.NotNull(rule);
+        Assert.Equal(kind, rule.Kind);
+        Assert.Equal(text, rule.Text);
+    }
+
+    [Fact]
+    public async Task WhatItIsAskedToRememberIsKeptToldAndForgotten()
+    {
+        var (talk, builtin, model, chat) = MakeTalk();
+        using var _ = builtin;
+        model.Answers.Enqueue("""{"memories":[{"text":"Se llama Kobayashi","kind":"fact"},{"text":"Tiene 44 años","kind":"fact"}]}""");
+
+        await talk.HandleAsync(new HeardMessage("añade a la memoria que me llamo Kobayashi y tengo 44 años", "panel"));
+        // The model only rewrote it: no tools, nothing else asked.
+        var rewrite = Assert.Single(model.Requests);
+        Assert.Empty(rewrite.Tools);
+        Assert.Equal(["Se llama Kobayashi", "Tiene 44 años"], builtin.Memory.All.Select(m => m.Text).Order());
+        Assert.All(builtin.Memory.All, m => Assert.Equal("said", m.Source));
+        Assert.Contains("Lo recordaré: Se llama Kobayashi. Tiene 44 años.", chat.Last(), StringComparison.Ordinal);
+
+        // Told without the AI.
+        await talk.HandleAsync(new HeardMessage("¿qué sabes de mí?", "panel"));
+        Assert.Single(model.Requests);
+        Assert.Contains("Se llama Kobayashi", chat.Last(), StringComparison.Ordinal);
+        Assert.Contains("Tiene 44 años", chat.Last(), StringComparison.Ordinal);
+
+        await talk.HandleAsync(new HeardMessage("olvida que tengo 44 años", "panel"));
+        Assert.Equal("Se llama Kobayashi", Assert.Single(builtin.Memory.All).Text);
+        // No notes were taken on the way.
+        Assert.Empty(builtin.Notes.All);
+    }
+
+    [Theory]
+    // What qwen3-4b-instruct gave for «mi perra se llama Kira y odio el cilantro»: the examples of its instructions too.
+    [InlineData("Su perra se llama Kira", "mi perra se llama Kira y odio el cilantro", true)]
+    [InlineData("Odia el cilantro", "mi perra se llama Kira y odio el cilantro", true)]
+    [InlineData("Tiene 44 años", "mi perra se llama Kira y odio el cilantro", false)]
+    [InlineData("Cuando diga «modo cine», quiere que se abra netflix.com", "mi perra se llama Kira y odio el cilantro", false)]
+    [InlineData("Mide 1,65 metros", "mido 1,65", true)]
+    [InlineData("Se llama Kobayashi", "me llamo Kobayashi y tengo 44 años", true)]
+    [InlineData("Cuando diga «la vuelta», quiere que se abra pornhub.com", "cuando te diga la vuelta es que abras la página de Pornhub.com", true)]
+    public void OnlyFactsFromWhatWasSaidAreKept(string fact, string said, bool kept) => Assert.Equal(kept, TalkMemory.Grounded(fact, said));
+
+    [Fact]
+    public async Task WithoutTheAiItIsKeptAsSaid()
+    {
+        var (talk, builtin, model, _) = MakeTalk(brain: false);
+        using var _ = builtin;
+        await talk.HandleAsync(new HeardMessage("añade a la memoria que mido 1,65", "panel"));
+        Assert.Empty(model.Requests);
+        Assert.Equal("Pidió recordar: «mido 1,65»", Assert.Single(builtin.Memory.All).Text);
+    }
+
+    [Fact]
+    public async Task TalkingAboutTheMemoryOffersItsToolsAndNotTheNotes()
+    {
+        var (talk, builtin, model, _) = MakeTalk();
+        using var _ = builtin;
+        model.Answers.Enqueue("Vale.");
+        await talk.HandleAsync(new HeardMessage("y eso añádelo también a la memoria", "panel"));
+        var offered = Assert.Single(model.Requests).Tools.Select(t => t.Name).ToList();
+        Assert.Contains("remember", offered);
+        Assert.Contains("forget", offered);
+        Assert.DoesNotContain("save_note", offered);
+        Assert.DoesNotContain("find_notes", offered);
+        // And it does not learn from talk about the memory itself.
+        await Task.Delay(200);
+        Assert.Single(model.Requests);
+    }
+
+    private (TalkService Talk, BuiltinTools Builtin, ScriptedModel Model, List<string> Chat) MakeTalk(bool brain = true)
+    {
+        var builtin = new BuiltinTools(_folder);
+        var registry = new ToolRegistry();
+        builtin.AddTo(registry);
+        var runner = new ToolRunner(registry, () => new HashSet<string>(), (_, _) => Task.FromResult("yes"), _ => { }, Path.Combine(_folder, "undo.json"));
+        var model = new ScriptedModel();
+        var output = new SilentOutput();
+        var talk = new TalkService(_ => brain ? (model, "fake:4b") : (null, null), runner, _ => AssistantPersona.Module(), output,
+            memory: new TalkMemory(builtin.Memory, runner, null));
+        return (talk, builtin, model, output.Said);
+    }
+
     private sealed class SilentOutput : ITalkOutput
     {
-        public void Chat(ChatLineMessage line) { }
+        /// <summary>The final answers, in order.</summary>
+        public List<string> Said { get; } = [];
+
+        public void Chat(ChatLineMessage line)
+        {
+            if (line is { Role: "assistant", Final: true }) Said.Add(line.Text);
+        }
 
         public void State(string? assistant, string state) { }
 

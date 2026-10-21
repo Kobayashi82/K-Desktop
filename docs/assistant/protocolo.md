@@ -197,6 +197,8 @@ pantalla completa, solo el bocadillo—; también en la bienvenida). Sin cuerpo 
 | `hide` | A→K | `assistant` | Menú del clic derecho → *Esconder*: K-Desktop quita ese asistente del escritorio (`unload` con `hiding`); los demás siguen |
 | `memory` | K→A | `op` (`list`, `add`, `edit`, `delete`, `clear`), `id` (para `edit` y `delete`), `text` (para `add` y `edit`) | Opciones → Asistente → Memoria: lo que saben de ti. Se contesta con `memoryState` |
 | `memoryState` | A→K | `items` (`id`, `text`, `kind`: `fact`, `like` o `event`; `importance` 0…1, `createdAt`, `source`: `said` —se lo pediste—, `learned` —lo sacó de una conversación— o `added` —desde Opciones—; `lastRecalled`, `recallCount`) | Todo lo que recuerdan del usuario (compartido por todos los asistentes), lo más nuevo primero: tras cada `memory` y cada vez que cambia. Lo que aprenden solos sale también en la actividad (`route: "memory"`) y se puede deshacer |
+| `notes` | K→A | `op` (`list`, `add`, `edit`, `delete`, `clear`), `id` (para `edit` y `delete`), `text` (para `add` y `edit`) | Opciones → Asistente → Notas: lo que te apuntan («apunta que…»). Se contesta con `notesState` |
+| `notesState` | A→K | `items` (`id`, `text`, `at`) | Todas las notas (compartidas por todos los asistentes), lo más nuevo primero: tras cada `notes` y cada vez que cambian |
 | `undo` | K→A | `assistant`, `undo` (id) | Deshacer una línea de la actividad desde el panel; se contesta con un `log` de `route` `undo` |
 
 ## Reglas de la coreografía (§3.2 del plan)

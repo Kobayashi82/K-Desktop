@@ -57,6 +57,7 @@ public partial class App
                     ClearAssistantExtras();
                     ForgetAssistantBrain();
                     ForgetAssistantMemory();
+                    ForgetAssistantNotes();
                     ForgetAssistantBench();
                     ForgetAssistantVoice();
                     AbandonAssistantQuestions();
@@ -98,6 +99,7 @@ public partial class App
             _pendingExtras.Clear();
             ForgetAssistantBrain();
             ForgetAssistantMemory();
+            ForgetAssistantNotes();
             ForgetAssistantBench();
             ForgetAssistantVoice();
             AbandonAssistantQuestions();
@@ -209,6 +211,9 @@ public partial class App
                 break;
             case MemoryStateMessage memory:
                 OnAssistantMemory(memory);
+                break;
+            case NotesStateMessage notes:
+                OnAssistantNotes(notes);
                 break;
             case BenchStateMessage bench:
                 OnAssistantBench(bench);

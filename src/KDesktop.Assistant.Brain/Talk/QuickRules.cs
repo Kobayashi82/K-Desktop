@@ -7,9 +7,10 @@ namespace KDesktop.Assistant.Brain.Talk;
 
 /// <summary>
 /// What a fixed rule understood. <see cref="First"/> and <see cref="Second"/> («el primero», «la otra») only count as the
-/// answer to «¿A o B?» (stage 4.4).
+/// answer to «¿A o B?» (stage 4.4). <see cref="Remember"/>, <see cref="Recall"/> and <see cref="Forget"/> are the memory
+/// («recuerda que…», «¿qué sabes de mí?», «olvida que…»): a small model took them for notes.
 /// </summary>
-public enum QuickRuleKind { Time, Timer, Note, CancelTimer, Cancel, Repeat, Undo, First, Second, OpenWeb }
+public enum QuickRuleKind { Time, Timer, Note, CancelTimer, Cancel, Repeat, Undo, First, Second, OpenWeb, Remember, Recall, Forget }
 
 /// <summary>An order a fixed rule understood, with what filled its gaps.</summary>
 /// <param name="Seconds">For a timer: how long.</param>
@@ -23,7 +24,8 @@ public sealed record QuickRule(QuickRuleKind Kind, double? Seconds = null, strin
 /// («¿puedes…?»). Anything else goes to the AI. The language files have:
 /// <list type="bullet">
 /// <item><c>assistant.rule.&lt;kind&gt;</c> (<c>time</c>, <c>timer</c>, <c>note</c>, <c>cancelTimer</c>, <c>cancel</c>,
-/// <c>repeat</c>, <c>undo</c>, <c>openWeb</c> —only when its gap names web addresses—): ways of saying it, separated by «|», with gaps <c>{dur}</c> (a duration: «diez
+/// <c>repeat</c>, <c>undo</c>, <c>openWeb</c> —only when its gap names web addresses—, <c>remember</c>, <c>recall</c>,
+/// <c>forget</c>): ways of saying it, separated by «|», with gaps <c>{dur}</c> (a duration: «diez
 /// minutos», «una hora y media») and <c>{text}</c> (some words, kept as said), and <c>[optional words]</c>;</item>
 /// <item><c>assistant.rule.fillers</c>, <c>assistant.rule.polite</c>: what is taken off around it and at its start («|»);</item>
 /// <item><c>assistant.rule.units</c>: <c>word=seconds</c> separated by spaces («minutos=60»);</item>

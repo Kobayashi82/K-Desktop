@@ -111,6 +111,86 @@ public sealed class TalkMemory(MemoryStore store, ToolRunner tools, IMeaning? me
         }
     }
 
+    /// <summary>What the user asked to remember counts as this important (above what it learns by itself).</summary>
+    public const double SaidImportance = 0.9;
+
+    /// <summary>Facts made of one «recuerda que…», at most.</summary>
+    public const int SaidAtMost = 3;
+
+    /// <summary>
+    /// «Recuerda que me llamo Kobayashi y tengo 44 años» (a fixed rule): the model turns what was said into short facts in
+    /// the third person («Se llama Kobayashi», «Tiene 44 años»); without it, or if it fails, it is kept as said. Each one goes
+    /// through the «remember» tool (route <c>rule</c>). The facts kept, and whether any was new.
+    /// </summary>
+    public async Task<(IReadOnlyList<string> Facts, bool AnyNew)> RememberSaidAsync(IChatModel? model, string? modelName, string text, ToolContext context,
+        string said, CancellationToken cancellationToken)
+    {
+        IReadOnlyList<MemoryCandidate> candidates = [];
+        if (model is not null && modelName is not null)
+        {
+            try
+            {
+                using var limit = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                limit.CancelAfter(TimeSpan.FromSeconds(10));
+                var request = new ChatRequest(modelName, [ChatMessage.System(Loc.T("assistant.memory.rephrase")), ChatMessage.User(text)], [])
+                {
+                    Temperature = 0.1,
+                    MaxTokens = 160,
+                };
+                var reply = new StringBuilder();
+                await foreach (var chunk in model.StreamAsync(request, limit.Token).ConfigureAwait(false)) reply.Append(chunk.Content);
+                candidates = [.. Parse(reply.ToString()).Where(c => Grounded(c.Text, text))];
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                Log.Warn("Asistente: la IA tarda en reescribir lo que hay que recordar: se guarda tal cual");
+            }
+            catch (ChatModelException ex)
+            {
+                Log.Warn($"Asistente: no se ha podido reescribir lo que hay que recordar ({ex.Failure}): se guarda tal cual");
+            }
+        }
+        if (candidates.Count == 0) candidates = [new MemoryCandidate(Loc.T("assistant.memory.asSaid", text.Trim().TrimEnd('.')), "fact", SaidImportance)];
+
+        var facts = new List<string>();
+        var anyNew = false;
+        foreach (var candidate in candidates.Take(SaidAtMost))
+        {
+            var arguments = new JsonObject { ["fact"] = candidate.Text, ["kind"] = candidate.Kind, ["importance"] = SaidImportance };
+            var outcome = await tools.RunAsync("remember", JsonSerializer.SerializeToElement(arguments), context, said, "rule", cancellationToken).ConfigureAwait(false);
+            if (outcome.Result is not { Failed: false } done) continue;
+            facts.Add(candidate.Text.Trim().TrimEnd('.'));
+            anyNew |= done.Undo is not null;
+        }
+        return (facts, anyNew);
+    }
+
+    /// <summary>
+    /// Whether a fact comes from what was said: most of its words start like one of it («Mide 1,65 metros» of «mido
+    /// 1,65»). qwen3-4b-instruct added the examples of its instructions («Se llama Marcos») to the facts it was given.
+    /// </summary>
+    public static bool Grounded(string fact, string said)
+    {
+        static string Root(string word) => word.All(char.IsDigit) || word.Length <= 3 ? word : word[..3];
+        var heard = MemoryStore.Keywords(said).Select(Root).ToHashSet();
+        var words = MemoryStore.Keywords(fact).Select(Root).ToList();
+        return words.Count == 0 || words.Count(heard.Contains) * 2 > words.Count;
+    }
+
+    private static readonly Lazy<HashSet<string>> MemoryWords = new(() =>
+    [
+        .. Loc.Available()
+            .Select(l => Loc.Strings(l.Code, "assistant.memory.words").GetValueOrDefault("assistant.memory.words") ?? string.Empty)
+            .SelectMany(v => v.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            .SelectMany(TextSimilarity.Words),
+    ]);
+
+    /// <summary>
+    /// Whether an order talks about the memory («añade a la memoria», «acuérdate»): then the model gets «remember» and
+    /// «forget» and not the notes (it took one for the other).
+    /// </summary>
+    public static bool IsAbout(string said) => TextSimilarity.Words(said).Any(MemoryWords.Value.Contains);
+
     /// <summary>The model's answer, read with tolerance: the JSON object even with text around it.</summary>
     public static IReadOnlyList<MemoryCandidate> Parse(string reply)
     {

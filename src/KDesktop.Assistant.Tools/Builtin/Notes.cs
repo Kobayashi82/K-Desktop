@@ -20,6 +20,9 @@ public sealed class NoteStore(string file)
     private readonly object _gate = new();
     private List<Note>? _notes;
 
+    /// <summary>A note was taken, changed or removed (any thread): Options → Notes shows it.</summary>
+    public event Action? Changed;
+
     public IReadOnlyList<Note> All
     {
         get { lock (_gate) return [.. Notes()]; }
@@ -30,16 +33,18 @@ public sealed class NoteStore(string file)
     {
         text = text.Trim();
         if (text.Length > MaxLength) text = text[..MaxLength].TrimEnd() + "…";
+        Note note;
         lock (_gate)
         {
             var notes = Notes();
             if (notes.FirstOrDefault(n => string.Equals(n.Text, text, StringComparison.OrdinalIgnoreCase)) is { } same) return (same, false);
-            var note = new Note(Guid.NewGuid().ToString("N")[..10], text, at);
+            note = new Note(Guid.NewGuid().ToString("N")[..10], text, at);
             notes.Add(note);
             if (notes.Count > MaxNotes) notes.RemoveRange(0, notes.Count - MaxNotes);
             Save(notes);
-            return (note, true);
         }
+        Changed?.Invoke();
+        return (note, true);
     }
 
     public bool Remove(string id)
@@ -49,8 +54,39 @@ public sealed class NoteStore(string file)
             var notes = Notes();
             if (notes.RemoveAll(n => n.Id == id) == 0) return false;
             Save(notes);
-            return true;
         }
+        Changed?.Invoke();
+        return true;
+    }
+
+    /// <summary>Changes the text of one (Options → Notes).</summary>
+    public bool Edit(string id, string text)
+    {
+        text = text.Trim();
+        if (text.Length == 0) return false;
+        if (text.Length > MaxLength) text = text[..MaxLength].TrimEnd() + "…";
+        lock (_gate)
+        {
+            var notes = Notes();
+            var index = notes.FindIndex(n => n.Id == id);
+            if (index < 0) return false;
+            notes[index] = notes[index] with { Text = text };
+            Save(notes);
+        }
+        Changed?.Invoke();
+        return true;
+    }
+
+    public void Clear()
+    {
+        lock (_gate)
+        {
+            var notes = Notes();
+            if (notes.Count == 0) return;
+            notes.Clear();
+            Save(notes);
+        }
+        Changed?.Invoke();
     }
 
     /// <summary>The notes with any of these words (no accents, any case), best first; nothing asked: the newest.</summary>

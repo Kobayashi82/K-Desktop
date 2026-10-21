@@ -414,6 +414,21 @@ public sealed record MemoryStateMessage(IReadOnlyList<MemoryEntry> Items) : Pipe
     public override string Type => "memoryState";
 }
 
+/// <summary>A note the assistants took for the user («apunta que…»).</summary>
+public sealed record NoteEntry(string Id, string Text, DateTimeOffset At);
+
+/// <summary>Options → Assistant → Notes: <c>list</c>, <c>add</c> (<paramref name="Text"/>), <c>edit</c> (<paramref name="Id"/>, <paramref name="Text"/>), <c>delete</c> (<paramref name="Id"/>) or <c>clear</c>.</summary>
+public sealed record NotesMessage(string Op, string? Id = null, string? Text = null) : PipeMessage
+{
+    public override string Type => "notes";
+}
+
+/// <summary>All the notes, newest first: after every <c>notes</c> and whenever they change.</summary>
+public sealed record NotesStateMessage(IReadOnlyList<NoteEntry> Items) : PipeMessage
+{
+    public override string Type => "notesState";
+}
+
 // ── K-Desktop's commands (phase 4) ───────────────────────────────────────
 
 /// <summary>«Asistente: decir»: the assistant says this (bubble and chat), without the AI. Null assistant: the module without a body.</summary>
@@ -690,6 +705,8 @@ public static class PipeJson
         ["embedded"] = typeof(EmbeddedMessage),
         ["memory"] = typeof(MemoryMessage),
         ["memoryState"] = typeof(MemoryStateMessage),
+        ["notes"] = typeof(NotesMessage),
+        ["notesState"] = typeof(NotesStateMessage),
         ["say"] = typeof(SayMessage),
         ["match"] = typeof(MatchMessage),
         ["matched"] = typeof(MatchedMessage),

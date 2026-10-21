@@ -123,6 +123,52 @@ public sealed class MemoryStore(string file, TimeProvider? time = null)
         return true;
     }
 
+    /// <summary>
+    /// The ones <paramref name="text"/> names («olvida lo de la vuelta»): those that share the most of its words, at least
+    /// half of them. Several only when they share as many.
+    /// </summary>
+    public IReadOnlyList<MemoryEntry> Find(string text)
+    {
+        var words = Keywords(text);
+        if (words.Count == 0) return [];
+        lock (_gate)
+        {
+            var scored = Items().Select(m => (Item: m, Shared: Keywords(m.Text).Count(words.Contains))).Where(p => p.Shared * 2 >= words.Count && p.Shared > 0).ToList();
+            if (scored.Count == 0) return [];
+            var most = scored.Max(p => p.Shared);
+            return [.. scored.Where(p => p.Shared == most).Select(p => p.Item)];
+        }
+    }
+
+    /// <summary>Puts back one that was forgotten (undoing «olvida…»).</summary>
+    public bool Restore(MemoryEntry entry)
+    {
+        lock (_gate)
+        {
+            var items = Items();
+            if (items.Any(m => m.Id == entry.Id)) return false;
+            items.Add(entry);
+            Save(items);
+        }
+        Changed?.Invoke();
+        return true;
+    }
+
+    /// <summary>The <paramref name="count"/> worth the most (what the user asked to remember first), to tell them what is known.</summary>
+    public IReadOnlyList<MemoryEntry> Best(int count)
+    {
+        lock (_gate)
+        {
+            var now = _time.GetLocalNow();
+            return [.. Items().OrderByDescending(m => Value(m, now)).Take(count)];
+        }
+    }
+
+    public int Count
+    {
+        get { lock (_gate) return Items().Count; }
+    }
+
     public void Clear()
     {
         lock (_gate)
@@ -208,9 +254,12 @@ public sealed class MemoryStore(string file, TimeProvider? time = null)
         return text.Length <= MaxLength ? text : text[..MaxLength].TrimEnd() + "…";
     }
 
-    /// <summary>The meaningful words, folded and cut to their stem («cafés» and «café» are the same).</summary>
+    /// <summary>
+    /// The meaningful words, folded and cut to their stem («cafés» and «café» are the same). Numbers always count: «Tiene
+    /// 44 años» is the same as «Kobayashi tiene 44 años».
+    /// </summary>
     public static HashSet<string> Keywords(string text) =>
-        [.. TextSimilarity.Words(text).Where(w => w.Length > 2 && !StopWords.Contains(w)).Select(w => w.Length > 6 ? w[..6] : w)];
+        [.. TextSimilarity.Words(text).Where(w => (w.Length > 2 || w.All(char.IsDigit)) && !StopWords.Contains(w)).Select(w => w.Length > 6 && !w.All(char.IsDigit) ? w[..6] : w)];
 
     /// <summary>Whether most of <paramref name="part"/> (two words or more) is in <paramref name="whole"/>.</summary>
     private static bool Inside(HashSet<string> part, HashSet<string> whole) => part.Count >= 2 && part.Count(whole.Contains) >= Contained * part.Count;
@@ -302,5 +351,47 @@ public sealed class RememberTool(MemoryStore memory) : ITool
     {
         var parts = undo.Data.Split('\n', 2);
         return Task.FromResult(parts.Length == 2 ? memory.Edit(parts[0], parts[1]) : memory.Delete(parts[0]));
+    }
+}
+
+/// <summary>«Olvida que tengo 44 años», «olvida lo de la vuelta»: forgets what it names (undoing it puts it back).</summary>
+public sealed class ForgetTool(MemoryStore memory) : ITool
+{
+    private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+
+    public string Name => "forget";
+
+    public string Description => "Forgets something remembered about the user, when they ask you to forget it or say it is no longer true.";
+
+    public string ParametersSchemaJson =>
+        """{"type":"object","properties":{"fact":{"type":"string","description":"What to forget, in a few words (their age, the thing about the trip)"}},"required":["fact"]}""";
+
+    public IReadOnlyList<string> Examples => ToolText.Examples(Name);
+
+    public ToolRisk Risk => ToolRisk.Safe;
+
+    public string Intent(JsonElement arguments) => Loc.T("tool.forget.intent", ToolText.Clean(arguments.GetString("fact")));
+
+    public Task<ToolResult> RunAsync(JsonElement arguments, ToolContext context, CancellationToken cancellationToken)
+    {
+        var found = memory.Find(arguments.GetString("fact") ?? string.Empty);
+        if (found.Count == 0)
+            return Task.FromResult(ToolResult.Fail("Nothing remembered about that.") with { Reply = Loc.T("tool.forget.none"), Done = Loc.T("tool.forget.noneDone") });
+        foreach (var entry in found) memory.Delete(entry.Id);
+        var text = ToolText.Clean(string.Join(" · ", found.Select(m => m.Text)));
+        return Task.FromResult(new ToolResult("Forgotten: " + string.Join("; ", found.Select(m => m.Text)))
+        {
+            Done = Loc.T("tool.forget.done", text),
+            Reply = Loc.T("tool.forget.reply", text),
+            Undo = new ToolUndo(Name, JsonSerializer.Serialize(found, Json)),
+        });
+    }
+
+    public Task<bool> UndoAsync(ToolUndo undo, CancellationToken cancellationToken)
+    {
+        var entries = JsonSerializer.Deserialize<List<MemoryEntry>>(undo.Data, Json) ?? [];
+        var restored = false;
+        foreach (var entry in entries) restored |= memory.Restore(entry);
+        return Task.FromResult(restored);
     }
 }

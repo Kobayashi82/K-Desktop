@@ -345,6 +345,20 @@
                         </StackPanel>
                     </Grid>
                 </ListBoxItem>
+                <ListBoxItem Tag="notes">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
+                            <ui:SymbolIcon Symbol="Note24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{l:Tr settings.nav.notes}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Text="{l:Tr settings.nav.notes.hint}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </ListBoxItem>
             </ListBox>
         </DockPanel>
 
@@ -1217,6 +1231,7 @@
             <local:AssistantBrainSection Tag="brain" />
             <local:AssistantVoiceSection Tag="speech" />
             <local:AssistantMemorySection Tag="memory" />
+            <local:AssistantNotesSection Tag="notes" />
         </StackPanel>
     </ScrollViewer>
     </Grid>

@@ -26,6 +26,7 @@ public sealed class BuiltinTools : IDisposable
         registry.Add(new SaveNoteTool(Notes, Timers.Time));
         registry.Add(new FindNotesTool(Notes));
         registry.Add(new RememberTool(Memory));
+        registry.Add(new ForgetTool(Memory));
         registry.Add(new CalculateTool());
         registry.Add(new OpenWebTool());
         registry.Add(new SearchWebTool());

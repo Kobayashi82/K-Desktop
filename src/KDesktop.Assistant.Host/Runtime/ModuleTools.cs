@@ -15,7 +15,8 @@ namespace KDesktop.Assistant.Host.Runtime;
 /// The tools of the process (stage 3.3), for all the assistants and the module without a body: the registry with the
 /// built-in ones, the runner (permissions, activity, undo), the questions K-Desktop asks for it (<c>ask</c> →
 /// <c>answer</c>), the tools the user trusts (<c>config</c> <c>tools</c>) and the timers ringing (<c>notify</c>). Also
-/// what is remembered about the user (stage 3.7): Options → Memory asks (<c>memory</c>) and sees it (<c>memoryState</c>).
+/// what is remembered about the user (stage 3.7): Options → Memory asks (<c>memory</c>) and sees it (<c>memoryState</c>);
+/// the notes, the same with Options → Notes (<c>notes</c>, <c>notesState</c>).
 /// </summary>
 internal sealed class ModuleTools : IDisposable
 {
@@ -36,6 +37,7 @@ internal sealed class ModuleTools : IDisposable
         Runner = new ToolRunner(registry, () => _trusted, AskAsync, message => link.Send(message), Path.Combine(folder, "undo.json"), () => _askBefore);
         Builtin.Timers.Rang += OnTimerRang;
         Builtin.Memory.Changed += SendMemory;
+        Builtin.Notes.Changed += SendNotes;
     }
 
     /// <summary>The assistants learn from what is talked about (<c>config</c> <c>tools</c> <c>learn</c>).</summary>
@@ -94,6 +96,34 @@ internal sealed class ModuleTools : IDisposable
 
     private void SendMemory() => _link.Send(new MemoryStateMessage(Builtin.Memory.All));
 
+    /// <summary>Options → Notes: list, add, edit, delete or clear (each change sends all the notes back).</summary>
+    public void OnNotes(NotesMessage request)
+    {
+        var notes = Builtin.Notes;
+        switch (request.Op)
+        {
+            case "add" when request.Text is { Length: > 0 } text:
+                notes.Add(text, DateTimeOffset.Now);
+                break;
+            case "edit" when request is { Id: { } id, Text: { } text }:
+                notes.Edit(id, text);
+                break;
+            case "delete" when request.Id is { } id:
+                notes.Remove(id);
+                break;
+            case "clear":
+                notes.Clear();
+                Log.Info("Asistente: notas borradas desde Opciones");
+                break;
+            default:
+                SendNotes();
+                break;
+        }
+    }
+
+    private void SendNotes() =>
+        _link.Send(new NotesStateMessage([.. Builtin.Notes.All.OrderByDescending(n => n.At).Select(n => new NoteEntry(n.Id, n.Text, n.At))]));
+
     private async Task<string> AskAsync(AskMessage question, CancellationToken cancellationToken)
     {
         var answer = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -125,6 +155,7 @@ internal sealed class ModuleTools : IDisposable
     {
         Builtin.Timers.Rang -= OnTimerRang;
         Builtin.Memory.Changed -= SendMemory;
+        Builtin.Notes.Changed -= SendNotes;
         Builtin.Dispose();
         foreach (var waiting in _questions.Values) waiting.TrySetResult("timeout");
     }

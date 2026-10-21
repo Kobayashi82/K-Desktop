@@ -52,10 +52,18 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     {
         // The order's meaning once, for the tools and for what comes to mind.
         var order = await MeaningOfAsync(said, cancellationToken).ConfigureAwait(false);
-        var available = leaveOut is { Count: > 0 } ? [.. tools.Registry.All.Where(t => !leaveOut.Contains(t.Name))] : tools.Registry.All;
-        var always = commands is { Count: > 0 } ? [.. recentTools.Append(RunCommandTool).Distinct()] : recentTools;
-        var offered = await chooser.ChooseAsync(available, said, always, order, cancellationToken).ConfigureAwait(false);
         var known = memory is null ? [] : await memory.RecallAsync(said, order, cancellationToken).ConfigureAwait(false);
+        // About the memory: its tools, and not the notes (a small model took «añade a la memoria» for a note).
+        var aboutMemory = memory is not null && TalkMemory.IsAbout(said);
+        var hidden = new HashSet<string>(leaveOut ?? [], StringComparer.Ordinal);
+        if (aboutMemory) hidden.UnionWith(NoteTools);
+        var available = hidden.Count > 0 ? [.. tools.Registry.All.Where(t => !hidden.Contains(t.Name))] : tools.Registry.All;
+        var always = new List<string>(recentTools.Where(t => !hidden.Contains(t)));
+        if (commands is { Count: > 0 }) always.Add(RunCommandTool);
+        if (aboutMemory) always.AddRange(MemoryTools);
+        // «Cuando diga «la vuelta», abre…» came to mind: what it asks for must be at hand.
+        if (known.Any(m => QuickRules.Sites(m.Text).Count > 0)) always.Add(OpenWebTool);
+        var offered = await chooser.ChooseAsync(available, said, [.. always.Distinct()], order, cancellationToken).ConfigureAwait(false);
         var definitions = offered.Tools.Select(t => new ToolDefinition(t.Name, t.Description, t.ParametersSchemaJson)).ToList();
         var messages = new List<ChatMessage> { ChatMessage.System(TalkPrompt.Compose(persona, time.GetLocalNow(), known, commands)) };
         messages.AddRange(history);
@@ -128,6 +136,12 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     }
 
     private const string RunCommandTool = "run_command";
+
+    private const string OpenWebTool = "open_web";
+
+    private static readonly string[] MemoryTools = ["remember", "forget"];
+
+    private static readonly string[] NoteTools = ["save_note", "find_notes"];
 
     /// <summary>Whether the text says, in the words of run_command, that a command was run.</summary>
     public static bool ClaimsToHaveRun(string text)
