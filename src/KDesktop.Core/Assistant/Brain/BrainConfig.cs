@@ -23,10 +23,13 @@ public enum RemoteKind
     /// <summary>Ollama: says what it has loaded and unloads with <c>keep_alive</c>.</summary>
     Ollama,
 
-    /// <summary>llama-swap: OpenAI's API plus <c>/running</c> and <c>/unload</c>.</summary>
+    /// <summary>
+    /// llama-swap: OpenAI's API plus <c>/running</c> and <c>/unload</c>. Since 5.0.111 Options no longer offers it apart: an
+    /// OpenAI one that answers <c>/running</c> is used as one (this stays for the servers added before).
+    /// </summary>
     LlamaSwap,
 
-    /// <summary>Any server with OpenAI's API (LM Studio, vLLM, a llama-server…): only lists and answers.</summary>
+    /// <summary>Any server with OpenAI's API (LM Studio, vLLM, a llama-server, llama-swap…): it lists and answers, and a llama-swap also unloads.</summary>
     OpenAI,
 }
 
@@ -77,13 +80,14 @@ public sealed record BrainRemote(string Id, RemoteKind Kind, string Endpoint = "
 /// automatically; <see cref="ModelRefs.None"/>: no AI) and each assistant's own (stage 3.2). With
 /// <paramref name="OneAtATime"/>, loading one model unloads the others; without it they stay while they fit in the
 /// graphics card. <paramref name="Vision"/>: a <c>mmproj</c> next to the model is loaded with it.
+/// <paramref name="ModelArgs"/>: each model's own llama-server options (its path → «-c 32768»), after the usual ones.
 /// </summary>
 public sealed record BrainConfig(
     string Model = "",
     IReadOnlyDictionary<string, string>? Models = null,
     IReadOnlyList<string>? Servers = null,
     IReadOnlyList<string>? Folders = null,
-    string ServerArgs = "",
+    IReadOnlyDictionary<string, string>? ModelArgs = null,
     int KeepMinutes = BrainConfig.DefaultKeepMinutes,
     bool OneAtATime = true,
     bool Vision = true,
@@ -101,6 +105,11 @@ public sealed record BrainConfig(
 
     public IReadOnlyList<BrainRemote> RemoteList => Remotes ?? [];
 
+    /// <summary>Each model's own llama-server options (never null).</summary>
+    public IReadOnlyDictionary<string, string> ModelArgList => ModelArgs ?? new Dictionary<string, string>();
+
+    private JsonObject ArgsJson() => new(ModelArgList.OrderBy(p => p.Key, StringComparer.OrdinalIgnoreCase).Select(p => KeyValuePair.Create(p.Key, (JsonNode?)p.Value)));
+
     /// <summary>The user chose no AI: only the fixed rules and K-Desktop's commands.</summary>
     public bool IsOff => Model == ModelRefs.None;
 
@@ -111,7 +120,7 @@ public sealed record BrainConfig(
     {
         ["servers"] = new JsonArray([.. ServerList.Select(s => (JsonNode?)s)]),
         ["folders"] = new JsonArray([.. FolderList.Select(s => (JsonNode?)s)]),
-        ["serverArgs"] = ServerArgs,
+        ["modelArgs"] = ArgsJson(),
         ["keepMinutes"] = KeepMinutes,
         ["oneAtATime"] = OneAtATime,
         ["vision"] = Vision,
@@ -124,7 +133,7 @@ public sealed record BrainConfig(
         ["models"] = new JsonObject(AssistantModels.Select(p => KeyValuePair.Create(p.Key, (JsonNode?)p.Value))),
         ["servers"] = new JsonArray([.. ServerList.Select(s => (JsonNode?)s)]),
         ["folders"] = new JsonArray([.. FolderList.Select(s => (JsonNode?)s)]),
-        ["serverArgs"] = ServerArgs,
+        ["modelArgs"] = ArgsJson(),
         ["keepMinutes"] = KeepMinutes,
         ["oneAtATime"] = OneAtATime,
         ["vision"] = Vision,
@@ -138,9 +147,13 @@ public sealed record BrainConfig(
         if (json["models"] is JsonObject own)
             foreach (var (id, model) in own)
                 if (Text(model) is { Length: > 0 } name) models[id] = name;
+        var args = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (json["modelArgs"] is JsonObject perModel)
+            foreach (var (path, line) in perModel)
+                if (Text(line) is { Length: > 0 } text) args[path] = text;
         static List<string> Texts(JsonNode? node) => node is JsonArray list ? [.. list.Select(Text).Where(t => t.Length > 0)] : [];
         var keep = json["keepMinutes"] is JsonValue k && k.TryGetValue<int>(out var minutes) ? Math.Max(0, minutes) : DefaultKeepMinutes;
-        return new BrainConfig(Text(json["model"]), models, Texts(json["servers"]), Texts(json["folders"]), Text(json["serverArgs"]), keep,
+        return new BrainConfig(Text(json["model"]), models, Texts(json["servers"]), Texts(json["folders"]), args, keep,
             Flag(json["oneAtATime"], true), Flag(json["vision"], true),
             json["remotes"] is JsonArray remotes ? [.. remotes.Select(BrainRemote.FromJson).OfType<BrainRemote>()] : []);
     }
@@ -233,8 +246,19 @@ public static class BrainProviders
     /// <summary>Whether the server may ask for an API key (Ollama never does).</summary>
     public static bool UsesApiKey(this RemoteKind kind) => kind is RemoteKind.LlamaSwap or RemoteKind.OpenAI;
 
-    /// <summary>Whether it says what it has loaded and can unload it.</summary>
-    public static bool CanUnload(this RemoteKind kind) => kind is RemoteKind.Ollama or RemoteKind.LlamaSwap;
+    /// <summary>Whether two addresses are the same server («localhost» is «127.0.0.1», a final slash or «/v1» changes nothing).</summary>
+    public static bool SameAddress(string a, string b)
+    {
+        static string Key(string address)
+        {
+            var text = address.Trim().TrimEnd('/');
+            if (text.EndsWith("/v1", StringComparison.OrdinalIgnoreCase)) text = text[..^3];
+            if (!Uri.TryCreate(text, UriKind.Absolute, out var uri)) return text.ToLowerInvariant();
+            var host = uri.IsLoopback ? "localhost" : uri.Host.ToLowerInvariant();
+            return $"{uri.Scheme}://{host}:{uri.Port}{uri.AbsolutePath.TrimEnd('/')}";
+        }
+        return Key(a) == Key(b);
+    }
 
     /// <summary>Its name on the pipe and in the settings.</summary>
     public static string Key(this RemoteKind kind) => kind switch

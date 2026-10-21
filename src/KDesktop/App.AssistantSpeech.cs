@@ -169,7 +169,7 @@ public partial class App
 
     /// <summary>The Piper voices in use: the general one and those of the installed assistants.</summary>
     public IReadOnlyCollection<string> PiperVoicesInUse() =>
-        [.. new[] { PiperVoice }.Concat(Config.Settings.AssistantPersonal.Keys.Where(id => AssistantPackages.Find(id) is not null).Select(PiperVoiceOf))
+        [.. new[] { PiperVoice }.Concat(Config.Settings.AssistantPersonal.Keys.Where(HasOwner).Select(PiperVoiceOf))
             .Select(PiperModels.KeyOf).Distinct(StringComparer.Ordinal)];
 
     /// <summary>

@@ -84,6 +84,16 @@
     </Style>
 
     <!-- Info box: a note set apart under a group of settings -->
+    <!-- A list inside a card (models, folders, servers…): a sunken panel with its rows -->
+    <Style x:Key="ListPanel" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource Kd.Subtle}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="14,2" />
+        <Setter Property="Margin" Value="0,6,0,4" />
+    </Style>
+
     <Style x:Key="InfoBox" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource Kd.Subtle}" />
         <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />

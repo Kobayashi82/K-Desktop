@@ -109,6 +109,7 @@ public partial class App
             if (ModelRefs.Same(s.AssistantBrainModel, path)) s.AssistantBrainModel = string.Empty;
             if (s.AssistantModels.Values.Any(m => ModelRefs.Same(m, path)))
                 s.AssistantModels = s.AssistantModels.Where(p => !ModelRefs.Same(p.Value, path)).ToDictionary(p => p.Key, p => p.Value);
+            SetBrainModelArgs(path, string.Empty);
         }
         AskAssistantBrain("rescan");
         return ok;
@@ -173,6 +174,8 @@ public partial class App
         s.AssistantBrainDownloads = string.Equals(target, Path.Combine(AppPaths.ModelsDir, "llm"), StringComparison.OrdinalIgnoreCase) ? string.Empty : target;
         s.AssistantBrainModel = Moved(s.AssistantBrainModel);
         s.AssistantModels = s.AssistantModels.ToDictionary(p => p.Key, p => Moved(p.Value));
+        if (s.AssistantBrainModelArgs.Keys.Any(m => IsInsideFolder(m, from)))
+            s.AssistantBrainModelArgs = s.AssistantBrainModelArgs.ToDictionary(p => Moved(p.Key), p => p.Value, StringComparer.OrdinalIgnoreCase);
         Ui.ShowOsd(Loc.T("brainModels.moved", target));
         AskAssistantBrain("rescan");
         AssistantModelDownloadChanged?.Invoke();

@@ -22,8 +22,14 @@ public partial class App
     /// <summary>The language each assistant was last told to speak in, to load again those whose language changed.</summary>
     private readonly Dictionary<string, string> _assistantLanguagesSent = new(StringComparer.Ordinal);
 
-    /// <summary>What <paramref name="id"/> has of its own (empty: nothing).</summary>
+    /// <summary>The id of K-Desktop answering without an assistant in what each one has of its own (5.0.111).</summary>
+    public const string BodilessId = "";
+
+    /// <summary>What <paramref name="id"/> has of its own (empty: nothing); <see cref="BodilessId"/> is K-Desktop without an assistant.</summary>
     public AssistantPersonal AssistantPersonalOf(string id) => Config.Settings.AssistantPersonal.GetValueOrDefault(id) ?? new AssistantPersonal();
+
+    /// <summary>Whether what is kept for <paramref name="id"/> is still of someone: an installed assistant, or K-Desktop.</summary>
+    private static bool HasOwner(string id) => id == BodilessId || AssistantPackages.Find(id) is not null;
 
     /// <summary>Keeps what <paramref name="id"/> has of its own (nothing: it is forgotten) and tells the process.</summary>
     public void SetAssistantPersonal(string id, AssistantPersonal personal)
@@ -39,15 +45,15 @@ public partial class App
         AssistantVoiceChanged?.Invoke();
     }
 
-    /// <summary>The language <paramref name="id"/> speaks in: its own, or the one all of them speak in.</summary>
+    /// <summary>The language <paramref name="id"/> speaks in (null: K-Desktop without an assistant): its own, or the one all of them speak in.</summary>
     public string LanguageOfAssistant(string? id) =>
-        id is not null && AssistantPersonalOf(id).Language is { Length: > 0 } own && Loc.Available().Any(l => l.Code == own) ? own : AssistantLanguage;
+        AssistantPersonalOf(id ?? BodilessId).Language is { Length: > 0 } own && Loc.Available().Any(l => l.Code == own) ? own : AssistantLanguage;
 
     /// <summary>The Kokoro voice <paramref name="id"/> speaks with: its own, or the general one if it is of its language (else the language's first).</summary>
     public string KokoroVoiceOf(string? id)
     {
         var language = LanguageOfAssistant(id);
-        var own = id is null ? string.Empty : AssistantPersonalOf(id).KokoroVoice;
+        var own = AssistantPersonalOf(id ?? BodilessId).KokoroVoice;
         return KokoroModels.VoiceOrDefault(language, own.Length > 0 ? own : Config.Settings.AssistantVoiceKokoro);
     }
 
@@ -59,7 +65,7 @@ public partial class App
     {
         var pairs = new List<(string Language, string Voice)> { (KokoroLanguage, KokoroVoice) };
         foreach (var id in Config.Settings.AssistantPersonal.Keys)
-            if (AssistantPackages.Find(id) is not null && KokoroModels.Supports(LanguageOfAssistant(id))) pairs.Add((LanguageOfAssistant(id), KokoroVoiceOf(id)));
+            if (HasOwner(id) && KokoroModels.Supports(LanguageOfAssistant(id))) pairs.Add((LanguageOfAssistant(id), KokoroVoiceOf(id)));
         return [.. pairs.Distinct().SelectMany(p => KokoroModels.Files(p.Language, p.Voice)).DistinctBy(f => f.Path, StringComparer.OrdinalIgnoreCase)];
     }
 
@@ -70,7 +76,7 @@ public partial class App
     public string PiperVoiceOf(string? id)
     {
         var language = LanguageOfAssistant(id);
-        var own = id is null ? string.Empty : AssistantPersonalOf(id).PiperVoice;
+        var own = AssistantPersonalOf(id ?? BodilessId).PiperVoice;
         return PiperModels.VoiceOrDefault(language, own.Length > 0 ? own : Config.Settings.AssistantVoicePiper);
     }
 
@@ -82,7 +88,7 @@ public partial class App
     {
         var voices = new List<string> { PiperVoice };
         foreach (var (id, own) in Config.Settings.AssistantPersonal)
-            if (AssistantPackages.Find(id) is not null && (own.PiperVoice.Length > 0 || own.Engine == "piper")) voices.Add(PiperVoiceOf(id));
+            if (HasOwner(id) && (own.PiperVoice.Length > 0 || own.Engine == "piper")) voices.Add(PiperVoiceOf(id));
         return [.. voices.Select(PiperModels.KeyOf).Distinct(StringComparer.Ordinal).SelectMany(PiperModels.Files).DistinctBy(f => f.Path, StringComparer.OrdinalIgnoreCase)];
     }
 

@@ -151,15 +151,6 @@
                         </WrapPanel>
                     </StackPanel>
                 </ui:CardExpander>
-
-                <!-- What is still to come here -->
-                <Border Style="{StaticResource InfoBox}">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <ui:SymbolIcon Symbol="Info24" FontSize="18" Margin="0,0,12,0" VerticalAlignment="Top" Foreground="{DynamicResource Kd.AccentText}" />
-                        <TextBlock Grid.Column="1" Style="{StaticResource Caption}" Text="{l:Tr assistantPanel.comingSoon}" />
-                    </Grid>
-                </Border>
             </StackPanel>
         </StackPanel>
     </ScrollViewer>

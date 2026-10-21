@@ -13,7 +13,8 @@ namespace KDesktop.Views.Assistant;
 /// <summary>
 /// What one assistant has of its own (5.0.105): its personality (its package's, shown and editable, with «Restablecer»),
 /// the language it speaks in and its voice. Every choice has «Como los demás», the general one of Options → Assistant
-/// module. Saved at once; the process gets it in the <c>personal</c> section.
+/// module. Saved at once; the process gets it in the <c>personal</c> section. With <see cref="Bodiless"/> (5.0.111) it
+/// is K-Desktop's own, for when it answers without an assistant on the desktop (Options → Assistant module → K-Desktop).
 /// </summary>
 public partial class AssistantPersonalView : UserControl
 {
@@ -27,6 +28,7 @@ public partial class AssistantPersonalView : UserControl
     private readonly App _app = App.Current;
     private readonly DispatcherTimer _promptSave = new() { Interval = TimeSpan.FromMilliseconds(700) };
     private InstalledAssistant? _assistant;
+    private bool _bodiless;
     private string _packagePrompt = string.Empty;
     private bool _filling;
 
@@ -53,15 +55,42 @@ public partial class AssistantPersonalView : UserControl
     {
         SavePrompt();
         _assistant = assistant;
+        _bodiless = false;
+        Refresh();
+    }
+
+    /// <summary>K-Desktop's own, for when it answers without an assistant (set in XAML).</summary>
+    public bool Bodiless
+    {
+        get => _bodiless;
+        set
+        {
+            if (!value) return;
+            SavePrompt();
+            _assistant = null;
+            _bodiless = true;
+            Refresh();
+        }
+    }
+
+    private void Refresh()
+    {
+        BodilessCard.Visibility = _bodiless ? Visibility.Visible : Visibility.Collapsed;
+        LanguageHint.Text = Loc.T(_bodiless ? "assistantPersonal.languageHintBodiless" : "assistantPersonal.languageHint");
         RefreshPersonality(force: true);
         RefreshLanguage();
         RefreshVoice();
     }
 
+    /// <summary>Whether it shows someone (an assistant, or K-Desktop).</summary>
+    private bool Shown => _assistant is not null || _bodiless;
+
+    private string WhoName => _assistant?.Manifest.Name ?? "K-Desktop";
+
     /// <summary>Saves the personality being written, if it is still waiting.</summary>
     public void Flush() => SavePrompt();
 
-    private string Id => _assistant!.Id;
+    private string Id => _bodiless ? App.BodilessId : _assistant!.Id;
 
     private AssistantPersonal Own => _app.AssistantPersonalOf(Id);
 
@@ -74,7 +103,7 @@ public partial class AssistantPersonalView : UserControl
 
     private void Save(Func<AssistantPersonal, AssistantPersonal> change)
     {
-        if (_assistant is null) return;
+        if (!Shown) return;
         var now = change(Own);
         if (now != Own) _app.SetAssistantPersonal(Id, now);
     }
@@ -84,10 +113,10 @@ public partial class AssistantPersonalView : UserControl
     /// <param name="force">Also while it is being written (another assistant, another language).</param>
     private void RefreshPersonality(bool force)
     {
-        if (_assistant is null) return;
+        if (!Shown) return;
         var language = SpokenLanguage;
-        // Its package's, in the language it speaks in (the module's, also in that language, when it brings none).
-        using (Loc.Instance.Use(language)) _packagePrompt = App.PackagePrompt(_assistant, language);
+        // Its package's, in the language it speaks in (the module's, also in that language, when it brings none or for K-Desktop).
+        using (Loc.Instance.Use(language)) _packagePrompt = _assistant is { } assistant ? App.PackagePrompt(assistant, language) : AssistantPersona.Module().Prompt;
         var own = Own.Prompt;
         if (force || !PromptBox.IsKeyboardFocusWithin)
         {
@@ -95,7 +124,8 @@ public partial class AssistantPersonalView : UserControl
             PromptBox.Text = own ?? _packagePrompt;
             _filling = false;
         }
-        PersonalityState.Text = own is null ? Loc.T("assistantPersonal.personalityPackage", LanguageName(language)) : Loc.T("assistantPersonal.personalityOwn");
+        PersonalityState.Text = own is not null ? Loc.T("assistantPersonal.personalityOwn")
+            : Loc.T(_bodiless ? "assistantPersonal.personalityModule" : "assistantPersonal.personalityPackage", LanguageName(language));
         PersonalityReset.IsEnabled = own is not null;
     }
 
@@ -109,7 +139,7 @@ public partial class AssistantPersonalView : UserControl
     /// <summary>What is written is its personality; empty or the same as its package's: its package's.</summary>
     private void SavePrompt()
     {
-        if (!_promptSave.IsEnabled || _assistant is null) return;
+        if (!_promptSave.IsEnabled || !Shown) return;
         _promptSave.Stop();
         var text = PromptBox.Text.Trim();
         string? prompt = text.Length == 0 || text == _packagePrompt.Trim() ? null : text;
@@ -128,7 +158,7 @@ public partial class AssistantPersonalView : UserControl
 
     private void RefreshLanguage()
     {
-        if (_assistant is null) return;
+        if (!Shown) return;
         _filling = true;
         List<Option> languages = [new(string.Empty, AsOthers(LanguageName(_app.AssistantLanguage))), .. Loc.Available().Select(l => new Option(l.Code, l.Name))];
         LanguageBox.ItemsSource = languages;
@@ -153,7 +183,7 @@ public partial class AssistantPersonalView : UserControl
 
     private void RefreshVoice()
     {
-        if (_assistant is null || !IsLoaded) return;
+        if (!Shown || !IsLoaded) return;
         _filling = true;
         var s = _app.Config.Settings;
         var own = Own;
@@ -164,11 +194,13 @@ public partial class AssistantPersonalView : UserControl
         EngineBox.ItemsSource = engines;
         EngineBox.SelectedItem = engines.FirstOrDefault(e => e.Value == own.Engine) ?? engines[0];
 
-        var general = s.AssistantVoiceProfile is { Length: > 0 } fixedProfile ? ProfileName(fixedProfile) : Loc.T("assistantVoice.profileOwn");
+        // Without a profile for all of them, each assistant uses its package's; K-Desktop has none: «Natural».
+        var general = s.AssistantVoiceProfile is { Length: > 0 } fixedProfile ? ProfileName(fixedProfile)
+            : _bodiless ? ProfileName(VoiceProfile.Default.Id) : Loc.T("assistantVoice.profileOwn");
         List<Option> profiles =
         [
             new(string.Empty, AsOthers(general)),
-            new(AssistantPersonal.OwnProfile, Loc.T("assistantPersonal.profilePackage")),
+            .. _bodiless ? [] : new[] { new Option(AssistantPersonal.OwnProfile, Loc.T("assistantPersonal.profilePackage")) },
             .. VoiceProfile.BuiltIn.Select(p => new Option(p.Id, ProfileName(p.Id))),
         ];
         ProfileBox.ItemsSource = profiles;
@@ -245,9 +277,9 @@ public partial class AssistantPersonalView : UserControl
         SpeedValue.Text = SpeedSlider.Value.ToString("0.00", Loc.Instance.Culture) + "×";
 
         VoiceReset.IsEnabled = own.HasOwnVoice;
-        var canTest = _app.Assistant is { IsRunning: true } && _app.IsAssistantLoaded(Id);
+        var canTest = _app.Assistant is { IsRunning: true } && (_bodiless || _app.IsAssistantLoaded(Id));
         TestButton.IsEnabled = StopButton.IsEnabled = canTest;
-        TestHint.Text = canTest ? string.Empty : Loc.T("assistantPersonal.testHint", _assistant.Manifest.Name);
+        TestHint.Text = canTest ? string.Empty : Loc.T(_bodiless ? "assistantPersonal.testHintBodiless" : "assistantPersonal.testHint", WhoName);
         _filling = false;
     }
 
@@ -274,7 +306,7 @@ public partial class AssistantPersonalView : UserControl
 
     private void OnSliderChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (_filling || _assistant is null) return;
+        if (_filling || !Shown) return;
         if (ReferenceEquals(sender, MixSlider)) MixValue.Text = $"{MixSlider.Value:0} %";
         else SpeedValue.Text = SpeedSlider.Value.ToString("0.00", Loc.Instance.Culture) + "×";
         SaveVoice();
@@ -318,8 +350,8 @@ public partial class AssistantPersonalView : UserControl
 
     private void OnTest(object sender, RoutedEventArgs e)
     {
-        if (_assistant is null) return;
-        _app.TestAssistantVoice(App.TestSentence(SpokenLanguage, _assistant.Manifest.Name), null, Id);
+        if (!Shown) return;
+        _app.TestAssistantVoice(App.TestSentence(SpokenLanguage, WhoName), null, Id);
     }
 
     private void OnStopTest(object sender, RoutedEventArgs e) => _app.StopAssistantVoiceTest();

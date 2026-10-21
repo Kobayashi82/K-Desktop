@@ -34,7 +34,7 @@ public sealed class BrainService : IDisposable
         _videoMemory = videoMemory;
         _http = network is null ? new HttpClient() : new HttpClient(network);
         _http.Timeout = Timeout.InfiniteTimeSpan;
-        _pool = new LlamaServerPool([], [], string.Empty, null, true, true, [], videoMemory, _http);
+        _pool = new LlamaServerPool([], [], null, null, true, true, [], videoMemory, _http);
         _pool.Changed += OnServerChanged;
     }
 
@@ -91,7 +91,7 @@ public sealed class BrainService : IDisposable
             if (!sameSources)
             {
                 old = _hub;
-                _pool.Configure(config.ServerList, config.FolderList, config.ServerArgs, config.KeepMinutes > 0 ? TimeSpan.FromMinutes(config.KeepMinutes) : null,
+                _pool.Configure(config.ServerList, config.FolderList, config.ModelArgList, config.KeepMinutes > 0 ? TimeSpan.FromMinutes(config.KeepMinutes) : null,
                     config.OneAtATime, config.Vision, config.AssistantModels.Values.Append(config.Model));
                 _hub = new BrainHub(config, _pool, _http);
                 _generation++;
@@ -165,6 +165,7 @@ public sealed class BrainService : IDisposable
         "check" => CheckAsync(),
         "rescan" => RescanAsync(),
         "test" when message.Remote is { Length: > 0 } remote => TestAsync(remote),
+        "unload" when message.Model is { Length: > 0 } model => UnloadOneAsync(model),
         "unload" => UnloadAsync(),
         "load" => LoadAsync(message.Model),
         _ => Task.CompletedTask,
@@ -301,6 +302,24 @@ public sealed class BrainService : IDisposable
         }
         await CheckAsync().ConfigureAwait(false);
         return any;
+    }
+
+    /// <summary>Takes one model out of memory (its «Liberar» in Options).</summary>
+    private async Task UnloadOneAsync(string model)
+    {
+        BrainHub? hub;
+        lock (_gate) hub = _hub;
+        if (hub is null) return;
+        try
+        {
+            await hub.UnloadAsync(model, CancellationToken.None).ConfigureAwait(false);
+            Log.Info($"Asistente: modelo {BrainProviders.ModelLabel(model)} liberado");
+        }
+        catch (Exception ex) when (ex is ChatModelException or HttpRequestException)
+        {
+            Log.Warn($"Asistente: no se ha podido liberar {BrainProviders.ModelLabel(model)}: {ex.Message}");
+        }
+        await CheckAsync().ConfigureAwait(false);
     }
 
     /// <summary>Loads a model now (the one in use when none is said): Options, the action. The first answer does not wait for it.</summary>

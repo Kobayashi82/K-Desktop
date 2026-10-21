@@ -37,7 +37,7 @@ public partial class App
         var s = Config.Settings;
         return new BrainConfig(s.AssistantBrainModel, s.AssistantModels, s.AssistantBrainServers,
             [AssistantModelsFolder, .. s.AssistantBrainFolders.Where(f => !string.Equals(f, AssistantModelsFolder, StringComparison.OrdinalIgnoreCase))],
-            s.AssistantBrainServerArgs, s.AssistantBrainKeepMinutes, s.AssistantBrainOneAtATime, s.AssistantBrainVision,
+            s.AssistantBrainModelArgs, s.AssistantBrainKeepMinutes, s.AssistantBrainOneAtATime, s.AssistantBrainVision,
             [.. s.AssistantBrainRemotes.Select(r => r with { ApiKey = Unprotect(r.ApiKey) })]).ToJson();
     }
 
@@ -91,10 +91,12 @@ public partial class App
 
     // ── other servers ────────────────────────────────────────────────────
 
-    /// <summary>Adds another server (its key protected) and gives back its id.</summary>
-    public string AddBrainRemote(RemoteKind kind, string endpoint, string apiKey)
+    /// <summary>Adds another server (its key protected) and gives back its id; null when that address is already there.</summary>
+    public string? AddBrainRemote(RemoteKind kind, string endpoint, string apiKey)
     {
         var s = Config.Settings;
+        var address = new BrainRemote("", kind, NormalEndpoint(kind, endpoint)).Address;
+        if (s.AssistantBrainRemotes.Any(r => BrainProviders.SameAddress(r.Address, address))) return null;
         var n = 1;
         while (s.AssistantBrainRemotes.Any(r => r.Id == $"r{n}")) n++;
         var remote = new BrainRemote($"r{n}", kind, NormalEndpoint(kind, endpoint), Protect(apiKey));
@@ -124,6 +126,21 @@ public partial class App
         if (From(s.AssistantBrainModel)) s.AssistantBrainModel = string.Empty;
         if (s.AssistantModels.Values.Any(From)) s.AssistantModels = s.AssistantModels.Where(p => !From(p.Value)).ToDictionary(p => p.Key, p => p.Value);
         Log.Info($"Asistente: servidor de modelos {id} quitado");
+    }
+
+    /// <summary>A model's own llama-server options (empty: none).</summary>
+    public string BrainModelArgs(string model) =>
+        Config.Settings.AssistantBrainModelArgs.FirstOrDefault(p => ModelRefs.Same(p.Key, model)).Value ?? string.Empty;
+
+    /// <summary>Keeps a model's own llama-server options (empty: it has none); they apply the next time it loads.</summary>
+    public void SetBrainModelArgs(string model, string args)
+    {
+        args = args.Trim();
+        if (args == BrainModelArgs(model)) return;
+        var all = Config.Settings.AssistantBrainModelArgs.Where(p => !ModelRefs.Same(p.Key, model)).ToDictionary(p => p.Key, p => p.Value, StringComparer.OrdinalIgnoreCase);
+        if (args.Length > 0) all[model] = args;
+        Config.Settings.AssistantBrainModelArgs = all;
+        Log.Info($"Asistente: opciones de llama-server de {BrainProviders.ModelLabel(model)}: {(args.Length > 0 ? args : "ninguna")}");
     }
 
     /// <summary>The key of another server in plain text (empty when there is none or it was saved on another PC).</summary>

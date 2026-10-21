@@ -56,9 +56,8 @@ public partial class WakeWord : ObservableObject
     /// <summary>Phase-1 score needed, after the sensitivity.</summary>
     [JsonIgnore] public double DetectorThreshold => Detector?.Threshold(Sensitivity) ?? 1;
 
-    /// <summary>One line for the list in Settings: recordings, how Parakeet wrote it, threshold in use.</summary>
+    /// <summary>One line for the list in Settings: recordings and threshold in use.</summary>
     [JsonIgnore] public string Summary => Localization.Loc.T("settings.wakeInfo", Recordings.Count,
-        string.Join(", ", Variants.Take(3).Select(v => $"«{v}»")) + (Variants.Count > 3 ? "…" : ""),
         EffectiveThreshold.ToString("0.00", Localization.Loc.Instance.Culture));
 
     partial void OnSensitivityChanged(double value)

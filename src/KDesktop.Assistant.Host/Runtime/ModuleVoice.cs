@@ -13,7 +13,8 @@ namespace KDesktop.Assistant.Host.Runtime;
 /// The voice of the assistants (stage 5.4): what each one answers is said aloud, sentence by sentence, while the AI still
 /// writes it (<see cref="Ahead"/>), and the rest when the answer is final (<see cref="SayAsync"/>). One synthesis at a
 /// time for the whole process (the processor), one sentence after another per assistant, through the host's mixer: its
-/// level reaches the character (<c>OnVoiceLevel</c>) and it sounds from where it is. Without a body nothing is said aloud.
+/// level reaches the character (<c>OnVoiceLevel</c>) and it sounds from where it is. K-Desktop answering without an
+/// assistant (null) speaks too since 5.0.111, with its own voice (Options → Assistant module → K-Desktop), from the middle.
 /// </summary>
 internal sealed class ModuleVoice : IDisposable
 {
@@ -185,8 +186,8 @@ internal sealed class ModuleVoice : IDisposable
     /// </summary>
     public void Ahead(string? assistant, string turn, string textSoFar)
     {
-        if (assistant is null || !SpeaksNow(turn)) return;
-        var speaker = For(assistant, turn);
+        if (!SpeaksNow(turn)) return;
+        var speaker = For(assistant ?? string.Empty, turn);
         foreach (var sentence in speaker.Splitter.Feed(textSoFar)) speaker.Queue(sentence);
     }
 
@@ -196,7 +197,8 @@ internal sealed class ModuleVoice : IDisposable
     /// </summary>
     public Task SayAsync(string? assistant, string turn, string text, CancellationToken cancellationToken)
     {
-        if (assistant is null || !SpeaksNow(turn)) return Task.CompletedTask;
+        if (!SpeaksNow(turn)) return Task.CompletedTask;
+        assistant ??= string.Empty;
         var speaker = For(assistant, turn);
         var rest = speaker.Splitter.Finish(text, out var diverged);
         if (diverged)
@@ -206,7 +208,7 @@ internal sealed class ModuleVoice : IDisposable
             speaker = For(assistant, turn + "+");
             rest = speaker.Splitter.Finish(text, out _);
         }
-        Log.Info($"Asistente: respuesta final de «{assistant}»: {rest.Count} frase(s) por decir{(diverged ? " (cambió: se dice entera)" : "")}");
+        Log.Info($"Asistente: respuesta final de «{(assistant.Length > 0 ? assistant : "K-Desktop")}»: {rest.Count} frase(s) por decir{(diverged ? " (cambió: se dice entera)" : "")}");
         foreach (var sentence in rest) speaker.Queue(sentence);
         speaker.Close();
         cancellationToken.Register(speaker.Stop);
@@ -216,9 +218,8 @@ internal sealed class ModuleVoice : IDisposable
     /// <summary>Stops what an assistant is saying (it was cancelled, or it left).</summary>
     public void Stop(string? assistant)
     {
-        if (assistant is null) return;
         Speaker? speaker;
-        lock (_speakers) _speakers.Remove(assistant, out speaker);
+        lock (_speakers) _speakers.Remove(assistant ?? string.Empty, out speaker);
         speaker?.Stop();
     }
 
@@ -274,6 +275,9 @@ internal sealed class ModuleVoice : IDisposable
 
         public string Turn { get; }
 
+        /// <summary>Its name for the log.</summary>
+        private string Who => _assistant.Length > 0 ? _assistant : "K-Desktop";
+
         public SentenceSplitter Splitter { get; } = new();
 
         public Task Done { get; }
@@ -314,7 +318,7 @@ internal sealed class ModuleVoice : IDisposable
                         {
                             line = new SpeechLine(chunk.SampleRate);
                             _lines.Writer.TryWrite(line);
-                            Log.Info($"Asistente: «{_assistant}» empieza «{sentence}» ({chunk.Engine}, {settings.EffectiveProfile.Id}{(settings.Moods is { Count: > 0 } m ? " " + string.Join('+', m) : "")}, primer trozo en {watch.ElapsedMilliseconds} ms)");
+                            Log.Info($"Asistente: «{Who}» empieza «{sentence}» ({chunk.Engine}, {settings.EffectiveProfile.Id}{(settings.Moods is { Count: > 0 } m ? " " + string.Join('+', m) : "")}, primer trozo en {watch.ElapsedMilliseconds} ms)");
                         }
                         line.Append(chunk.Samples);
                     }
@@ -327,7 +331,7 @@ internal sealed class ModuleVoice : IDisposable
             }
             catch (Exception ex)
             {
-                Log.Error($"Asistente: «{_assistant}» no ha podido hablar", ex);
+                Log.Error($"Asistente: «{Who}» no ha podido hablar", ex);
             }
             finally
             {

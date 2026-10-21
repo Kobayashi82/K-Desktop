@@ -98,18 +98,22 @@ public sealed class LlamaServerTests : IDisposable
     public void TheOnlyProjectorOfAFolderIsTheOne() =>
         Assert.Equal("mmproj-F16.gguf", GgufFiles.BestProjector("Qwen3.5-9B-Q4_K_M.gguf", ["mmproj-F16.gguf"]));
 
-    /// <summary>The options llama-server starts with: no fixed layers (<c>--fit</c> decides), an 8-bit cache, the projector, and the user's last.</summary>
+    /// <summary>The options llama-server starts with: no fixed layers (<c>--fit</c> decides), an 8-bit cache, the projector, and that model's own last.</summary>
     [Fact]
-    public void ItStartsWithItsProjectorAndTheUsersOptionsLast()
+    public void ItStartsWithItsProjectorAndTheModelsOwnOptionsLast()
     {
-        using var pool = new LlamaServerPool([@"E:\l\llama-server.exe"], [], "-c 32768", null, oneAtATime: true, vision: true, [], () => 12);
+        var own = new Dictionary<string, string> { [@"e:\M\q.gguf"] = "-c 32768" };
+        using var pool = new LlamaServerPool([@"E:\l\llama-server.exe"], [], own, null, oneAtATime: true, vision: true, [], () => 12);
         var model = new LocalModel(@"E:\m\q.gguf", 5, @"E:\m\mmproj.gguf", 1, @"E:\l\llama-server.exe");
         var args = pool.Arguments(model, 1234, "q");
         Assert.Equal(["-m", @"E:\m\q.gguf", "--mmproj", @"E:\m\mmproj.gguf"], args.Take(4));
         Assert.DoesNotContain("-ngl", args);
         Assert.Contains("q8_0", args);
         Assert.Equal(["-c", "32768"], args.TakeLast(2));
-        using var blind = new LlamaServerPool([@"E:\l\llama-server.exe"], [], "", null, oneAtATime: true, vision: false, [], () => 12);
+        // Another model does not get them.
+        var other = new LocalModel(@"E:\m\r.gguf", 5, null, 0, @"E:\l\llama-server.exe");
+        Assert.Equal("{\"enable_thinking\": false}", pool.Arguments(other, 1234, "r")[^1]);
+        using var blind = new LlamaServerPool([@"E:\l\llama-server.exe"], [], null, null, oneAtATime: true, vision: false, [], () => 12);
         Assert.DoesNotContain("--mmproj", blind.Arguments(model, 1234, "q"));
         Assert.Equal("llama-server (Bonsai-demo)", LlamaServerPool.ServerName(@"E:\Bonsai-demo\bin\cuda\llama-server.exe"));
     }
@@ -118,7 +122,7 @@ public sealed class LlamaServerTests : IDisposable
     public async Task WithoutTheProgramItSaysSoInsteadOfAnAddress()
     {
         var model = Touch(@"m\q.gguf");
-        using var pool = new LlamaServerPool([Path.Combine(_folder, "nada", "llama-server.exe")], [Path.Combine(_folder, "m")], "", null, true, true, [], () => 12);
+        using var pool = new LlamaServerPool([Path.Combine(_folder, "nada", "llama-server.exe")], [Path.Combine(_folder, "m")], null, null, true, true, [], () => 12);
         Assert.Single(await pool.ListModelsAsync(default));
         var error = await Assert.ThrowsAsync<ChatModelException>(() => pool.PreloadAsync(model, default));
         Assert.Equal(ChatModelFailure.Unreachable, error.Failure);

@@ -58,6 +58,7 @@ public partial class SettingsPage
         [
             new("assistant", "Bot24", "settings.nav.assistant"),
             new("assistants", "PeopleCommunity24", "settings.nav.assistants"),
+            new("bodiless", "Chat24", "settings.nav.bodiless"),
             new("brain", "BrainCircuit24", "settings.nav.brain"),
             new("speech", "PersonVoice24", "settings.nav.assistantVoice"),
             new("memory", "BookInformation24", "settings.nav.memory"),

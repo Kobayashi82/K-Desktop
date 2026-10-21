@@ -32,10 +32,21 @@ public sealed class OpenAICompatibleChatModel : IChatModel
     public Uri Endpoint { get; }
 
     /// <summary>Path from the server's root (not under /v1) that unloads the models, if it has one: <c>unload</c> in llama-swap.</summary>
-    public string? UnloadPath { get; init; }
+    public string? UnloadPath { get; set; }
 
     /// <summary>Path from the server's root that lists the models running: <c>running</c> in llama-swap.</summary>
-    public string? RunningPath { get; init; }
+    public string? RunningPath { get; set; }
+
+    /// <summary>
+    /// Whether to find out, the first time it lists its models, if it is a llama-swap (it answers <c>/running</c>): then it
+    /// also says what it has loaded and unloads (5.0.111: «llama-swap» is no longer a kind of its own in Options).
+    /// </summary>
+    public bool DetectLlamaSwap { get; init; }
+
+    private bool _detected;
+
+    /// <summary>It says what it has loaded and can unload it.</summary>
+    public bool CanUnload => UnloadPath is not null && RunningPath is not null;
 
     private Uri Root => new(Endpoint, "..");
 
@@ -73,7 +84,29 @@ public sealed class OpenAICompatibleChatModel : IChatModel
         if (document.RootElement.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
             foreach (var item in data.EnumerateArray())
                 if (item.TryGetProperty("id", out var id) && id.GetString() is { Length: > 0 } name) models.Add(new ModelInfo(name, 0, 0, []));
+        if (DetectLlamaSwap && !_detected) await DetectAsync(cancellationToken).ConfigureAwait(false);
         return models;
+    }
+
+    /// <summary>Whether it answers llama-swap's <c>/running</c> (asked once; a server that does not answer is asked again next time).</summary>
+    private async Task DetectAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var document = await GetJsonAsync(new Uri(Root, "running"), cancellationToken).ConfigureAwait(false);
+            if (document.RootElement.ValueKind == JsonValueKind.Object && document.RootElement.TryGetProperty("running", out var running) && running.ValueKind == JsonValueKind.Array)
+                (UnloadPath, RunningPath) = ("unload", "running");
+            _detected = true;
+        }
+        catch (ChatModelException ex) when (ex.Failure is not (ChatModelFailure.Unreachable or ChatModelFailure.Timeout))
+        {
+            // It has no /running: an ordinary one.
+            _detected = true;
+        }
+        catch (Exception ex) when (ex is ChatModelException or JsonException or OperationCanceledException)
+        {
+            // Not now: next time.
+        }
     }
 
     public async Task<IReadOnlyList<string>> ListLoadedAsync(CancellationToken cancellationToken)

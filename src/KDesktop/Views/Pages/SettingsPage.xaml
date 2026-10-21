@@ -5,6 +5,7 @@
              xmlns:v="clr-namespace:KDesktop.Views"
              xmlns:l="clr-namespace:KDesktop.Localization"
              xmlns:local="clr-namespace:KDesktop.Views.Pages"
+             xmlns:assistant="clr-namespace:KDesktop.Views.Assistant"
              xmlns:m="clr-namespace:KDesktop.Core.Model;assembly=KDesktop.Core">
     <UserControl.Resources>
         <!-- Removable process chip; Tag of the button = the list it belongs to -->
@@ -1064,6 +1065,7 @@
             <!-- Assistant -->
             <local:AssistantGeneralSection Tag="assistant" />
             <local:AssistantListSection x:Name="AssistantsSection" Tag="assistants" />
+            <assistant:AssistantPersonalView Tag="bodiless" Bodiless="True" />
             <local:AssistantBrainSection Tag="brain" />
             <local:AssistantVoiceSection Tag="speech" />
             <local:AssistantMemorySection Tag="memory" />

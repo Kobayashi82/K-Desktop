@@ -620,8 +620,8 @@ public partial class AppSettings : ObservableObject
     /// <summary>Where the models downloaded from Hugging Face go; empty: <c>Models\llm</c> in the data folder.</summary>
     [ObservableProperty] private string _assistantBrainDownloads = string.Empty;
 
-    /// <summary>Options added to llama-server's usual ones («-c 32768»…); empty: none.</summary>
-    [ObservableProperty] private string _assistantBrainServerArgs = string.Empty;
+    /// <summary>Each model's own options for llama-server, added to the usual ones (its path → «-c 32768»…). Replaced whole.</summary>
+    [ObservableProperty] private Dictionary<string, string> _assistantBrainModelArgs = [];
 
     /// <summary>Minutes a model stays in the graphics card without use; 0: it stays.</summary>
     [ObservableProperty] private int _assistantBrainKeepMinutes = Assistant.Brain.BrainConfig.DefaultKeepMinutes;

@@ -75,7 +75,8 @@ public partial class App
         item.Text = line.Text;
         item.Final = line.Final;
         // Said aloud by one on the desktop: heard back through the microphone it is not an order (stage 5.7).
-        if (line is { Role: "assistant", Assistant: { } speaker } && IsOnDesktop(speaker)) Voice.OwnVoices.Said(speaker + "/" + line.Turn, line.Text, DateTime.Now);
+        // K-Desktop without an assistant, or one that is not there, also speaks aloud (5.0.111).
+        if (line.Role == "assistant") Voice.OwnVoices.Said((line.Assistant ?? "k-desktop") + "/" + line.Turn, line.Text, DateTime.Now);
         AssistantChatChanged?.Invoke(line.Assistant ?? string.Empty);
         if (line is { Role: "assistant", Final: true }) ShowBodilessAnswer(line);
     }

@@ -107,10 +107,12 @@ public class BrainTests
     [Fact]
     public void TheConfigTravelsAsJson()
     {
-        var config = new BrainConfig("r1/qwen", Servers: [@"E:\a\llama-server.exe", @"E:\b\bin\cuda\llama-server.exe"], Folders: [@"E:\m"], ServerArgs: "-c 32768",
+        var config = new BrainConfig("r1/qwen", Servers: [@"E:\a\llama-server.exe", @"E:\b\bin\cuda\llama-server.exe"], Folders: [@"E:\m"],
+            ModelArgs: new Dictionary<string, string> { [@"E:\m\q.gguf"] = "-c 32768" },
             KeepMinutes: 0, OneAtATime: false, Vision: false, Remotes: [new BrainRemote("r1", RemoteKind.LlamaSwap, "", "secret")]);
         var back = BrainConfig.FromJson(JsonNode.Parse(config.ToJson().ToJsonString())!.AsObject());
         Assert.Equal(config.SourcesKey, back.SourcesKey);
+        Assert.Equal("-c 32768", back.ModelArgList[@"E:\m\q.gguf"]);
         Assert.Equal("r1/qwen", back.Model);
         var remote = Assert.Single(back.RemoteList);
         Assert.Equal(("http://localhost:8080", "secret", RemoteKind.LlamaSwap), (remote.Address, remote.ApiKey, remote.Kind));

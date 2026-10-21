@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using KDesktop.Core.Assistant.Brain;
@@ -11,15 +12,17 @@ using KDesktop.Views.Assistant;
 using Wpf.Ui.Controls;
 using Button = Wpf.Ui.Controls.Button;
 using TextBlock = System.Windows.Controls.TextBlock;
+using TextBox = Wpf.Ui.Controls.TextBox;
 
 namespace KDesktop.Views.Pages;
 
 /// <summary>
-/// Options → Assistant → Brain (stage 3.1; its own brain since 5.0.107): the general model, how it is now, one model at a
-/// time, vision, how long a model stays, freeing the graphics card; the llama-servers and folders of this PC with the
-/// models found, those of Hugging Face (add, download, delete, take the folder elsewhere); and the other servers (Ollama,
-/// llama-swap, OpenAI compatible) with «Probar». The work is the assistant process's (downloads are K-Desktop's): this
-/// sends <c>brain</c> requests and shows its <c>brainState</c>. While shown, it asks again every few seconds.
+/// Options → Assistant → Brain (stage 3.1; its own brain since 5.0.107): what is in memory now —each loaded model with its
+/// «Liberar»—, the general model with «Cargar», one model at a time, vision, how long a model stays; every model, those of
+/// this PC and those of each other server, each group in its panel (load, free, a model's own llama-server options,
+/// delete a downloaded one); the llama-servers and folders of this PC; and the other servers (Ollama or OpenAI compatible:
+/// a llama-swap is found out by itself) with «Probar». The work is the assistant process's (downloads are K-Desktop's):
+/// this sends <c>brain</c> requests and shows its <c>brainState</c>. While shown, it asks again every few seconds.
 /// </summary>
 public partial class AssistantBrainSection : UserControl
 {
@@ -45,7 +48,10 @@ public partial class AssistantBrainSection : UserControl
     private readonly DispatcherTimer _poll = new() { Interval = TimeSpan.FromSeconds(8) };
     private bool _filling;
     /// <summary>What each list of rows shows, so it is made again only when that changes (a button under the mouse stays).</summary>
-    private string? _serversShown, _foldersShown, _modelsShown, _remotesShown;
+    private string? _stateShown, _serversShown, _foldersShown, _modelsShown, _remotesShown;
+    /// <summary>The model whose own llama-server options are open for writing (null: none).</summary>
+    private string? _argsOpen;
+    private TextBox? _argsBox;
 
     public AssistantBrainSection()
     {
@@ -56,7 +62,7 @@ public partial class AssistantBrainSection : UserControl
             60 => Loc.T("brainOptions.keepHour"),
             _ => Loc.T("brainOptions.keepMinutes", m),
         })).ToList();
-        NewKindBox.ItemsSource = new[] { RemoteKind.Ollama, RemoteKind.LlamaSwap, RemoteKind.OpenAI }.Select(k => new KindOption(k, KindName(k))).ToList();
+        NewKindBox.ItemsSource = new[] { RemoteKind.Ollama, RemoteKind.OpenAI }.Select(k => new KindOption(k, KindName(k))).ToList();
         NewKindBox.SelectedIndex = 0;
         _poll.Tick += (_, _) => _app.AskAssistantBrain("check");
         Loaded += (_, _) =>
@@ -100,21 +106,20 @@ public partial class AssistantBrainSection : UserControl
             var s = _app.Config.Settings;
             var brain = _app.AssistantBrain;
             OffBox.Visibility = s.AssistantEnabled ? Visibility.Collapsed : Visibility.Visible;
-            Body.IsEnabled = LocalCard.IsEnabled = RemoteCard.IsEnabled = s.AssistantEnabled;
+            Body.IsEnabled = ModelsCard.IsEnabled = LocalCard.IsEnabled = RemoteCard.IsEnabled = s.AssistantEnabled;
+            CheckButton.IsEnabled = brain is not null;
 
             OneAtATimeSwitch.IsChecked = s.AssistantBrainOneAtATime;
             VisionSwitch.IsChecked = s.AssistantBrainVision;
             KeepBox.SelectedItem = KeepBox.Items.OfType<KeepOption>().FirstOrDefault(k => k.Minutes == s.AssistantBrainKeepMinutes)
                 ?? KeepBox.Items.OfType<KeepOption>().First(k => k.Minutes == BrainConfig.DefaultKeepMinutes);
-            if (!ServerArgsBox.IsKeyboardFocusWithin) ServerArgsBox.Text = s.AssistantBrainServerArgs;
 
             FillModelBox(s.AssistantBrainModel, brain);
             FillState(brain);
-            FillFree(brain);
-            FillServers(brain);
-            FillFolders();
             FillModels(brain);
             FillDownload();
+            FillServers(brain);
+            FillFolders();
             FillRemotes(brain);
             FillNewRemote();
         }
@@ -124,9 +129,9 @@ public partial class AssistantBrainSection : UserControl
         }
     }
 
-    // ── the general model and how it is ──────────────────────────────────
+    // ── the general model and what is in memory ─────────────────────────
 
-    /// <summary>What a model is, in a few words: its size, whether it sees, and the llama-server or server it is in.</summary>
+    /// <summary>What a model is, in a few words: its size, whether it sees, and the llama-server it opens with.</summary>
     private string Describe(BrainModel model)
     {
         var parts = new List<string>();
@@ -134,8 +139,7 @@ public partial class AssistantBrainSection : UserControl
         else if (model.Billions > 0) parts.Add(Loc.T("brainOptions.billions", model.Billions.ToString("0.#", Culture)));
         if (model.Vision) parts.Add(Loc.T("brainModels.vision"));
         if (!model.Tools) parts.Add(Loc.T("brainOptions.noTools"));
-        var servers = _app.Config.Settings.AssistantBrainServers;
-        if (model.Server is { } server && servers.Count > 1) parts.Add(ServerLabel(server));
+        if (model.Server is { } server && _app.Config.Settings.AssistantBrainServers.Count > 1) parts.Add(ServerLabel(server));
         return string.Join(" · ", parts);
     }
 
@@ -157,48 +161,239 @@ public partial class AssistantBrainSection : UserControl
             selected = new ModelOption(chosen, Loc.T("brainOptions.modelNotThere", _app.BrainModelName(chosen)));
             options.Insert(1, selected);
         }
+        // «Cargar» only while the model in use is not in memory (nor on its way).
+        LoadButton.Visibility = brain is { State: "ready", Model: { } inUse, Loading: null } && !InMemory(brain, inUse) ? Visibility.Visible : Visibility.Collapsed;
         if (ModelBox.IsDropDownOpen) return;
         ModelBox.ItemsSource = options;
         ModelBox.SelectedItem = selected;
     }
 
+    private static bool InMemory(BrainStateMessage? brain, string model) => brain?.Loaded?.Any(l => ModelRefs.Same(l, model)) == true;
+
+    /// <summary>The panel on top: each model in memory with its «Liberar», the one loading, or what is wrong.</summary>
     private void FillState(BrainStateMessage? brain)
     {
-        var (text, detail, brush) = (_app.Assistant, brain) switch
+        var loaded = brain?.Loaded ?? [];
+        var key = $"{_app.Assistant is null}|{brain?.State}|{brain?.Model}|{brain?.Loading}|{brain?.Message}|{string.Join('|', loaded)}|{brain?.Servers?.Count}";
+        if (key == _stateShown) return;
+        _stateShown = key;
+        StateRows.Children.Clear();
+        void Add(string brush, string text, string? detail = null, Button? button = null) => StateRows.Children.Add(StateRow(brush, text, detail, button));
+
+        if (_app.Assistant is null) Add("TextFillColorTertiaryBrush", Loc.T("brainOptions.state.moduleOff"));
+        else if (brain is null) Add("TextFillColorTertiaryBrush", Loc.T("brainOptions.state.waiting"));
+        else
         {
-            (null, _) => (Loc.T("brainOptions.state.moduleOff"), null, "TextFillColorTertiaryBrush"),
-            (_, null) => (Loc.T("brainOptions.state.waiting"), null, "TextFillColorTertiaryBrush"),
-            (_, { State: "off" }) => (Loc.T("brainOptions.state.off"), null, "TextFillColorTertiaryBrush"),
-            (_, { State: "checking" }) => (Loc.T("brainOptions.state.checking"), null, "TextFillColorTertiaryBrush"),
-            (_, { State: "ready", Loading: { } loading }) => (Loc.T("brainOptions.state.loading", _app.BrainModelName(loading)), null, "Kd.Warning"),
-            (_, { State: "ready", Model: { } model } b) => (b.Loaded?.Any(l => ModelRefs.Same(l, model)) == true
-                ? Loc.T("brainOptions.state.readyLoaded", _app.BrainModelName(model)) : Loc.T("brainOptions.state.ready", _app.BrainModelName(model)), b.Message, "Kd.Success"),
-            (_, { State: "noModels" }) => (Loc.T("brainOptions.state.noModels"), null, "Kd.Warning"),
-            (_, { State: "modelMissing" } b) => (Loc.T("brainOptions.state.modelMissing", _app.BrainModelName(b.Model ?? "")), null, "Kd.Warning"),
-            (_, { } b) => (Loc.T("brainOptions.state.error"), b.Message, "Kd.Danger"),
-        };
-        // A model that is not here because its llama-server is missing says so.
-        if (brain is { State: "ready", Servers: { } servers } && servers.Count == 0 && brain.Model is { } m && ModelRefs.IsLocal(m))
-            (detail, brush) = (Loc.T("brain.error.noServer"), "Kd.Warning");
-        StateText.Text = text;
-        StateDetail.Text = detail ?? string.Empty;
-        StateDetail.Visibility = string.IsNullOrWhiteSpace(detail) ? Visibility.Collapsed : Visibility.Visible;
-        StateDot.SetResourceReference(Shape.FillProperty, brush);
-        CheckButton.IsEnabled = brain is not null;
+            switch (brain.State)
+            {
+                case "off": Add("TextFillColorTertiaryBrush", Loc.T("brainOptions.state.off")); break;
+                case "checking" when loaded.Count == 0: Add("TextFillColorTertiaryBrush", Loc.T("brainOptions.state.checking")); break;
+                case "noModels": Add("Kd.Warning", Loc.T("brainOptions.state.noModels")); break;
+                case "modelMissing": Add("Kd.Warning", Loc.T("brainOptions.state.modelMissing", _app.BrainModelName(brain.Model ?? ""))); break;
+                case "error": Add("Kd.Danger", Loc.T("brainOptions.state.error"), brain.Message); break;
+            }
+            // A model of this PC without a llama-server to open it.
+            if (brain is { State: "ready", Servers.Count: 0, Model: { } m } && ModelRefs.IsLocal(m)) Add("Kd.Warning", Loc.T("brain.error.noServer"));
+            if (brain is { State: "ready", Message: { Length: > 0 } failed }) Add("Kd.Danger", Loc.T("brainOptions.state.loadFailed"), failed);
+            if (brain.Loading is { } loading)
+                Add("Kd.Warning", Loc.T("brainOptions.state.loading", _app.BrainModelName(loading)), null,
+                    Small(SymbolRegular.Dismiss24, Loc.T("common.cancel"), () => _app.AskAssistantBrain("unload", loading)));
+            foreach (var model in loaded)
+                Add("Kd.Success", Loc.T("brainOptions.state.inMemory", _app.BrainModelName(model)), null,
+                    Wide(SymbolRegular.Broom24, Loc.T("brainOptions.freeButton"), () => _app.AskAssistantBrain("unload", model)));
+            if (loaded.Count == 0 && brain.Loading is null && brain.State == "ready")
+                Add("TextFillColorTertiaryBrush", Loc.T("brainOptions.state.nothingLoaded"));
+        }
+        Trim(StateRows);
     }
 
-    private void FillFree(BrainStateMessage? brain)
+    private Border StateRow(string brush, string text, string? detail, Button? button)
     {
+        var grid = new Grid();
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        var dot = new Ellipse { Width = 10, Height = 10, Margin = new Thickness(2, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
+        dot.SetResourceReference(Shape.FillProperty, brush);
+        grid.Children.Add(dot);
+        var body = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+        Grid.SetColumn(body, 1);
+        var line = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap };
+        line.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorPrimaryBrush");
+        body.Children.Add(line);
+        if (detail is { Length: > 0 }) body.Children.Add(new TextBlock { Text = detail, Style = (Style)FindResource("Caption"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 2, 0, 0) });
+        grid.Children.Add(body);
+        if (button is not null)
+        {
+            button.Margin = new Thickness(12, 0, 0, 0);
+            Grid.SetColumn(button, 2);
+            grid.Children.Add(button);
+        }
+        var row = new Border { Child = grid, Padding = new Thickness(0, 9, 0, 9), BorderThickness = new Thickness(0, 0, 0, 1), MinHeight = 44 };
+        row.SetResourceReference(Border.BorderBrushProperty, "CardStrokeColorDefaultBrush");
+        AutomationProperties.SetName(row, text);
+        return row;
+    }
+
+    // ── every model ──────────────────────────────────────────────────────
+
+    private void FillModels(BrainStateMessage? brain)
+    {
+        var all = brain?.Models ?? [];
+        var local = all.Where(m => ModelRefs.IsLocal(m.Name)).ToList();
         var loaded = brain?.Loaded ?? [];
-        var loading = brain?.Loading is not null;
-        FreeText.Text = loaded.Count > 0 ? Loc.T("brainOptions.freeLoaded", string.Join(", ", loaded.Select(_app.BrainModelName))) : Loc.T("brainOptions.freeHint");
-        FreeButton.IsEnabled = loaded.Count > 0 || loading;
-        LoadButton.IsEnabled = brain is { State: "ready", Model: { } model } && !loading && !loaded.Any(l => ModelRefs.Same(l, model));
+        ModelsCaption.Text = brain is null ? Loc.T("brainModels.listWaiting")
+            : brain.VideoMemoryGb is { } gb ? Loc.T("brainModels.listCount", gb.ToString("0.#", Culture))
+            : Loc.T("brainModels.listHint");
+        var remotes = _app.Config.Settings.AssistantBrainRemotes;
+        var key = string.Join('|', all.Select(m => $"{m.Name}:{m.Vision}:{m.Server}:{InMemory(brain, m.Name)}:{brain?.Loading == m.Name}:{_app.BrainModelArgs(m.Name)}"))
+                  + $"|{brain is null}|{_argsOpen}|{_app.Config.Settings.AssistantBrainServers.Count}|"
+                  + string.Join('|', remotes.Select(r => $"{r.Id}:{r.Address}:{brain?.Remotes?.FirstOrDefault(x => x.Id == r.Id)?.State}"));
+        if (key == _modelsShown) return;
+        // Not while its options are being written.
+        if (_argsBox is { IsKeyboardFocusWithin: true }) return;
+        _modelsShown = key;
+        ModelGroups.Children.Clear();
+        _argsBox = null;
+
+        var mine = new StackPanel();
+        if (brain is not null && local.Count == 0) mine.Children.Add(Note(Loc.T("brainModels.listEmpty")));
+        foreach (var model in local) AddModel(mine, model, brain);
+        Group(Loc.T("brainModels.groupLocal"), SymbolRegular.Desktop24, mine);
+
+        foreach (var remote in remotes)
+        {
+            var rows = new StackPanel();
+            var state = brain?.Remotes?.FirstOrDefault(x => x.Id == remote.Id);
+            var theirs = all.Where(m => m.Remote == remote.Id).ToList();
+            if (state is { State: "ok" } && theirs.Count == 0) rows.Children.Add(Note(Loc.T("brainModels.remoteEmpty")));
+            else if (state is { State: "unreachable" or "error" }) rows.Children.Add(Note(Loc.T("brainModels.remoteAway")));
+            else if (theirs.Count == 0) rows.Children.Add(Note(Loc.T("brainRemotes.checking")));
+            foreach (var model in theirs) AddModel(rows, model, brain);
+            Group(RemoteName(remote), SymbolRegular.Cloud24, rows);
+        }
+    }
+
+    /// <summary>A group of models: its name, and its rows in a panel.</summary>
+    private void Group(string title, SymbolRegular symbol, StackPanel rows)
+    {
+        var header = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(2, ModelGroups.Children.Count == 0 ? 8 : 16, 0, 0) };
+        var icon = new SymbolIcon { Symbol = symbol, FontSize = 14, Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center };
+        icon.SetResourceReference(ForegroundProperty, "TextFillColorSecondaryBrush");
+        header.Children.Add(icon);
+        var text = new TextBlock { Text = title, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center };
+        text.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
+        header.Children.Add(text);
+        ModelGroups.Children.Add(header);
+        Trim(rows);
+        ModelGroups.Children.Add(new Border { Style = (Style)FindResource("ListPanel"), Child = rows });
+    }
+
+    private void AddModel(StackPanel rows, BrainModel model, BrainStateMessage? brain)
+    {
+        var isLoaded = InMemory(brain, model.Name);
+        var isLoading = brain?.Loading is { } loading && ModelRefs.Same(loading, model.Name);
+        var local = ModelRefs.IsLocal(model.Name);
+        var args = local ? _app.BrainModelArgs(model.Name) : string.Empty;
+        var caption = Describe(model)
+            + (isLoaded ? " · " + Loc.T("brainModels.loaded") : isLoading ? " · " + Loc.T("brainModels.loading") : "")
+            + (args.Length > 0 ? " · " + args : "");
+        var buttons = new List<Button>();
+        if (isLoaded) buttons.Add(Small(SymbolRegular.Broom24, Loc.T("brainOptions.freeButton"), () => _app.AskAssistantBrain("unload", model.Name)));
+        else if (!isLoading) buttons.Add(Small(SymbolRegular.ArrowUpload24, Loc.T("brainModels.load"), () => _app.AskAssistantBrain("load", model.Name)));
+        if (local)
+            buttons.Add(Small(SymbolRegular.Options24, Loc.T("brainModels.options"), () =>
+            {
+                _argsOpen = _argsOpen == model.Name ? null : model.Name;
+                FillModels(_app.AssistantBrain);
+                _argsBox?.Focus();
+            }));
+        if (_app.IsDownloadedModel(model.Name))
+            buttons.Add(Small(SymbolRegular.Delete24, Loc.T("brainModels.delete"), () => DeleteModel(model.Name)));
+        var name = local ? BrainProviders.ModelLabel(model.Name) : ModelRefs.Label(model.Name);
+        var row = Row(isLoaded ? SymbolRegular.BrainCircuit24 : SymbolRegular.Cube24, name, caption,
+            isLoaded ? "Kd.Success" : isLoading ? "Kd.Warning" : "Kd.AccentText", buttons);
+        row.ToolTip = local ? model.Name : _app.BrainModelName(model.Name);
+        rows.Children.Add(row);
+        if (_argsOpen == model.Name) rows.Children.Add(ArgsEditor(model.Name, args));
+    }
+
+    /// <summary>A model's own llama-server options, under its row: saved when the box is left or with Intro.</summary>
+    private Border ArgsEditor(string model, string args)
+    {
+        var box = new TextBox { Text = args, PlaceholderText = "-c 32768", Margin = new Thickness(0, 0, 0, 6) };
+        AutomationProperties.SetName(box, Loc.T("brainModels.options"));
+        void Save()
+        {
+            _app.SetBrainModelArgs(model, box.Text);
+        }
+        box.LostKeyboardFocus += (_, _) => Save();
+        box.KeyDown += (_, e) =>
+        {
+            if (e.Key is not (Key.Enter or Key.Escape)) return;
+            if (e.Key == Key.Escape) box.Text = _app.BrainModelArgs(model);
+            Save();
+            _argsOpen = null;
+            _argsBox = null;
+            FillModels(_app.AssistantBrain);
+            e.Handled = true;
+        };
+        _argsBox = box;
+        var panel = new StackPanel { Margin = new Thickness(30, 2, 0, 10) };
+        panel.Children.Add(box);
+        panel.Children.Add(new TextBlock { Text = Loc.T("brainModels.optionsHint"), Style = (Style)FindResource("Caption"), TextWrapping = TextWrapping.Wrap });
+        var row = new Border { Child = panel, BorderThickness = new Thickness(0, 0, 0, 1) };
+        row.SetResourceReference(Border.BorderBrushProperty, "CardStrokeColorDefaultBrush");
+        return row;
+    }
+
+    private async void DeleteModel(string path)
+    {
+        var name = BrainProviders.ModelLabel(path);
+        var result = await new Wpf.Ui.Controls.MessageBox
+        {
+            Title = Loc.T("brainModels.deleteTitle"),
+            Content = Loc.T("brainModels.deleteText", name),
+            PrimaryButtonText = Loc.T("brainModels.delete"),
+            CloseButtonText = Loc.T("common.cancel"),
+            Width = 480,
+            MaxWidth = 480,
+        }.ShowDialogAsync();
+        if (result == Wpf.Ui.Controls.MessageBoxResult.Primary) await _app.DeleteDownloadedModelAsync(path);
+    }
+
+    private void FillDownload()
+    {
+        var download = _app.AssistantModelDownload;
+        var moving = _app.MovingModelsFolder;
+        AddModelButton.IsEnabled = download is not { Running: true } && !moving;
+        if (moving)
+        {
+            DownloadBox.Visibility = Visibility.Visible;
+            DownloadText.Text = Loc.T("brainModels.moving");
+            DownloadProgress.IsIndeterminate = true;
+            DownloadProgress.Visibility = Visibility.Visible;
+            CancelDownloadButton.Visibility = Visibility.Collapsed;
+            return;
+        }
+        if (download is null || (!download.Running && download.Error is null))
+        {
+            DownloadBox.Visibility = Visibility.Collapsed;
+            return;
+        }
+        DownloadBox.Visibility = Visibility.Visible;
+        CancelDownloadButton.Visibility = download.Running ? Visibility.Visible : Visibility.Collapsed;
+        DownloadProgress.Visibility = download.Running ? Visibility.Visible : Visibility.Collapsed;
+        DownloadProgress.IsIndeterminate = download.Total <= 0;
+        DownloadProgress.Value = download.Total > 0 ? (double)download.Done / download.Total : 0;
+        DownloadText.Text = download.Running
+            ? Loc.T("brainModels.downloading", download.Name, Gb(download.Done), Gb(download.Total), download.Total > 0 ? (100.0 * download.Done / download.Total).ToString("0", Culture) : "0")
+            : Loc.T("brainModels.downloadFailed", download.Name, download.Error ?? "");
     }
 
     // ── llama-servers and folders ────────────────────────────────────────
 
-    /// <summary>«llama.cpp (Llama-CPP)», «Bonsai-demo»: the folder that tells a server apart.</summary>
+    /// <summary>«Llama-CPP», «Bonsai-demo»: the folder that tells a server apart.</summary>
     public static string ServerLabel(string server)
     {
         var folder = System.IO.Path.GetDirectoryName(server);
@@ -225,101 +420,39 @@ public partial class AssistantBrainSection : UserControl
             var buttons = new List<Button>();
             if (i > 0) buttons.Add(Small(SymbolRegular.ArrowUp24, Loc.T("brainModels.makeUsual"), () => _app.MakeBrainServerFirst(path)));
             buttons.Add(Small(SymbolRegular.Delete24, Loc.T("brainModels.remove"), () => _app.RemoveBrainServer(path)));
-            ServerRows.Children.Add(Row(SymbolRegular.Server24, $"{ServerLabel(path)}  —  {path}", caption, state is { Exists: false }, buttons));
+            var row = Row(SymbolRegular.Server24, ServerLabel(path), caption, state is { Exists: false } ? "Kd.Danger" : "Kd.AccentText", buttons);
+            row.ToolTip = path;
+            ServerRows.Children.Add(row);
         }
+        Trim(ServerRows);
     }
 
     private void FillFolders()
     {
         var folders = _app.Config.Settings.AssistantBrainFolders;
-        var key = _app.AssistantModelsFolder + "|" + string.Join('|', folders);
+        var busy = _app.AssistantModelDownload is { Running: true } || _app.MovingModelsFolder;
+        var key = _app.AssistantModelsFolder + "|" + busy + "|" + string.Join('|', folders);
         if (key == _foldersShown) return;
         _foldersShown = key;
         FolderRows.Children.Clear();
-        FolderRows.Children.Add(Row(SymbolRegular.ArrowDownload24, _app.AssistantModelsFolder, Loc.T("brainModels.downloadsFolder"), false, []));
+        var move = Small(SymbolRegular.FolderArrowRight24, Loc.T("brainModels.moveFolderTitle"), OnMoveDownloads);
+        move.IsEnabled = !busy;
+        FolderRows.Children.Add(Row(SymbolRegular.ArrowDownload24, _app.AssistantModelsFolder, Loc.T("brainModels.downloadsFolder"), "Kd.AccentText",
+            [Small(SymbolRegular.FolderOpen24, Loc.T("brainModels.openFolder"), OnOpenDownloads), move]));
         foreach (var folder in folders)
         {
             var exists = System.IO.Directory.Exists(folder);
-            FolderRows.Children.Add(Row(SymbolRegular.Folder24, folder, exists ? string.Empty : Loc.T("brainModels.folderMissing"), !exists,
+            FolderRows.Children.Add(Row(SymbolRegular.Folder24, folder, exists ? string.Empty : Loc.T("brainModels.folderMissing"), exists ? "Kd.AccentText" : "Kd.Danger",
                 [Small(SymbolRegular.Delete24, Loc.T("brainModels.remove"), () => _app.RemoveBrainFolder(folder))]));
         }
-        DownloadsFolderText.Text = _app.AssistantModelsFolder;
-    }
-
-    // ── the models of this PC ────────────────────────────────────────────
-
-    private void FillModels(BrainStateMessage? brain)
-    {
-        var local = (brain?.Models ?? []).Where(m => ModelRefs.IsLocal(m.Name)).ToList();
-        var loaded = brain?.Loaded ?? [];
-        ModelsCaption.Text = brain is null ? Loc.T("brainModels.listWaiting")
-            : local.Count == 0 ? Loc.T("brainModels.listEmpty")
-            : Loc.T("brainModels.listCount", local.Count, brain.VideoMemoryGb is { } gb ? gb.ToString("0.#", Culture) : "?");
-        var key = string.Join('|', local.Select(m => $"{m.Name}:{m.Vision}:{m.Server}:{loaded.Any(l => ModelRefs.Same(l, m.Name))}:{brain?.Loading == m.Name}"))
-                  + _app.Config.Settings.AssistantBrainServers.Count;
-        if (key == _modelsShown) return;
-        _modelsShown = key;
-        ModelRows.Children.Clear();
-        foreach (var model in local)
-        {
-            var isLoaded = loaded.Any(l => ModelRefs.Same(l, model.Name));
-            var caption = Describe(model) + (isLoaded ? " · " + Loc.T("brainModels.loaded") : brain?.Loading == model.Name ? " · " + Loc.T("brainModels.loading") : "");
-            var buttons = new List<Button>();
-            if (!isLoaded) buttons.Add(Small(SymbolRegular.ArrowUpload24, Loc.T("brainModels.load"), () => _app.AskAssistantBrain("load", model.Name)));
-            if (_app.IsDownloadedModel(model.Name))
-                buttons.Add(Small(SymbolRegular.Delete24, Loc.T("brainModels.delete"), () => DeleteModel(model.Name)));
-            var row = Row(isLoaded ? SymbolRegular.BrainCircuit24 : SymbolRegular.Cube24, BrainProviders.ModelLabel(model.Name), caption, false, buttons);
-            row.ToolTip = model.Name;
-            ModelRows.Children.Add(row);
-        }
-    }
-
-    private async void DeleteModel(string path)
-    {
-        var name = BrainProviders.ModelLabel(path);
-        var result = await new Wpf.Ui.Controls.MessageBox
-        {
-            Title = Loc.T("brainModels.deleteTitle"),
-            Content = Loc.T("brainModels.deleteText", name),
-            PrimaryButtonText = Loc.T("brainModels.delete"),
-            CloseButtonText = Loc.T("common.cancel"),
-            Width = 480,
-            MaxWidth = 480,
-        }.ShowDialogAsync();
-        if (result == Wpf.Ui.Controls.MessageBoxResult.Primary) await _app.DeleteDownloadedModelAsync(path);
-    }
-
-    private void FillDownload()
-    {
-        var download = _app.AssistantModelDownload;
-        var moving = _app.MovingModelsFolder;
-        AddModelButton.IsEnabled = download is not { Running: true } && !moving;
-        MoveFolderButton.IsEnabled = download is not { Running: true } && !moving;
-        if (moving)
-        {
-            DownloadBox.Visibility = Visibility.Visible;
-            DownloadText.Text = Loc.T("brainModels.moving");
-            DownloadProgress.IsIndeterminate = true;
-            DownloadProgress.Visibility = Visibility.Visible;
-            CancelDownloadButton.Visibility = Visibility.Collapsed;
-            return;
-        }
-        if (download is null || (!download.Running && download.Error is null))
-        {
-            DownloadBox.Visibility = Visibility.Collapsed;
-            return;
-        }
-        DownloadBox.Visibility = Visibility.Visible;
-        CancelDownloadButton.Visibility = download.Running ? Visibility.Visible : Visibility.Collapsed;
-        DownloadProgress.Visibility = download.Running ? Visibility.Visible : Visibility.Collapsed;
-        DownloadProgress.IsIndeterminate = download.Total <= 0;
-        DownloadProgress.Value = download.Total > 0 ? (double)download.Done / download.Total : 0;
-        DownloadText.Text = download.Running
-            ? Loc.T("brainModels.downloading", download.Name, Gb(download.Done), Gb(download.Total), download.Total > 0 ? (100.0 * download.Done / download.Total).ToString("0", Culture) : "0")
-            : Loc.T("brainModels.downloadFailed", download.Name, download.Error ?? "");
+        Trim(FolderRows);
     }
 
     // ── other servers ────────────────────────────────────────────────────
+
+    /// <summary>«Ollama · localhost:11434».</summary>
+    private static string RemoteName(BrainRemote remote) =>
+        $"{KindName(remote.Kind)} · {(Uri.TryCreate(remote.Address, UriKind.Absolute, out var uri) ? uri.Authority : remote.Address)}";
 
     private void FillRemotes(BrainStateMessage? brain)
     {
@@ -341,12 +474,13 @@ public partial class AssistantBrainSection : UserControl
             };
             caption += " · " + Place(remote.Address);
             var id = remote.Id;
-            RemoteRows.Children.Add(Row(SymbolRegular.Cloud24, $"{KindName(remote.Kind)}  —  {remote.Address}", caption, bad,
+            RemoteRows.Children.Add(Row(SymbolRegular.Cloud24, RemoteName(remote), caption, bad ? "Kd.Danger" : "Kd.AccentText",
             [
                 Small(SymbolRegular.PlugConnected24, Loc.T("brainRemotes.test"), () => _app.AskAssistantBrain("test", remote: id)),
                 Small(SymbolRegular.Delete24, Loc.T("brainModels.remove"), () => _app.RemoveBrainRemote(id)),
             ]));
         }
+        Trim(RemoteRows);
     }
 
     /// <summary>Whether what is said to the assistant leaves the PC.</summary>
@@ -362,25 +496,31 @@ public partial class AssistantBrainSection : UserControl
         };
     }
 
+    /// <summary>The address being typed, as it would be kept (the usual one of its kind when empty).</summary>
+    private string NewAddress(RemoteKind kind) =>
+        NewEndpointBox.Text.Trim() is { Length: > 0 } typed ? (typed.Contains("://", StringComparison.Ordinal) ? typed : "http://" + typed) : kind.DefaultEndpoint();
+
     private void FillNewRemote()
     {
         if (NewKindBox.SelectedItem is not KindOption kind) return;
         NewEndpointBox.PlaceholderText = kind.Kind.DefaultEndpoint();
         NewKeyBox.Visibility = kind.Kind.UsesApiKey() ? Visibility.Visible : Visibility.Hidden;
-        var address = NewEndpointBox.Text.Trim() is { Length: > 0 } typed ? (typed.Contains("://", StringComparison.Ordinal) ? typed : "http://" + typed) : kind.Kind.DefaultEndpoint();
-        NewPlaceText.Text = Place(address);
+        var address = NewAddress(kind.Kind);
+        NewPlaceText.Text = _app.Config.Settings.AssistantBrainRemotes.Any(r => BrainProviders.SameAddress(r.Address, address))
+            ? Loc.T("brainRemotes.duplicate")
+            : Place(address);
     }
 
     // ── rows ─────────────────────────────────────────────────────────────
 
-    private Border Row(SymbolRegular symbol, string title, string caption, bool bad, IReadOnlyList<Button> buttons)
+    private Border Row(SymbolRegular symbol, string title, string caption, string iconBrush, IReadOnlyList<Button> buttons)
     {
         var grid = new Grid();
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         var icon = new SymbolIcon { Symbol = symbol, FontSize = 18, Margin = new Thickness(0, 1, 12, 0), VerticalAlignment = VerticalAlignment.Center };
-        icon.SetResourceReference(ForegroundProperty, bad ? "Kd.Danger" : "Kd.AccentText");
+        icon.SetResourceReference(ForegroundProperty, iconBrush);
         grid.Children.Add(icon);
         var body = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         Grid.SetColumn(body, 1);
@@ -390,7 +530,7 @@ public partial class AssistantBrainSection : UserControl
         if (caption.Length > 0)
         {
             var under = new TextBlock { Text = caption, Style = (Style)FindResource("Caption"), TextWrapping = TextWrapping.Wrap };
-            if (bad) under.SetResourceReference(TextBlock.ForegroundProperty, "Kd.Danger");
+            if (iconBrush == "Kd.Danger") under.SetResourceReference(TextBlock.ForegroundProperty, "Kd.Danger");
             body.Children.Add(under);
         }
         grid.Children.Add(body);
@@ -398,13 +538,20 @@ public partial class AssistantBrainSection : UserControl
         Grid.SetColumn(panel, 2);
         foreach (var button in buttons) panel.Children.Add(button);
         grid.Children.Add(panel);
-        var row = new Border { Child = grid, Padding = new Thickness(0, 6, 0, 6), BorderThickness = new Thickness(0, 0, 0, 1) };
-        row.SetResourceReference(Border.BorderBrushProperty, "Kd.Subtle");
+        var row = new Border { Child = grid, Padding = new Thickness(0, 8, 0, 8), BorderThickness = new Thickness(0, 0, 0, 1) };
+        row.SetResourceReference(Border.BorderBrushProperty, "CardStrokeColorDefaultBrush");
         AutomationProperties.SetName(row, title);
         return row;
     }
 
-    private TextBlock Note(string text) => new() { Text = text, Style = (Style)FindResource("Caption"), Margin = new Thickness(30, 4, 0, 4), TextWrapping = TextWrapping.Wrap };
+    /// <summary>The last row of a panel without its line underneath.</summary>
+    private static void Trim(StackPanel rows)
+    {
+        foreach (var row in rows.Children.OfType<Border>()) row.BorderThickness = new Thickness(0, 0, 0, 1);
+        if (rows.Children.Count > 0 && rows.Children[^1] is Border last) last.BorderThickness = new Thickness(0);
+    }
+
+    private TextBlock Note(string text) => new() { Text = text, Style = (Style)FindResource("Caption"), Margin = new Thickness(0, 10, 0, 10), TextWrapping = TextWrapping.Wrap };
 
     private static Button Small(SymbolRegular symbol, string name, Action click)
     {
@@ -421,6 +568,14 @@ public partial class AssistantBrainSection : UserControl
         return button;
     }
 
+    /// <summary>A button with its text (the «Liberar» of what is in memory).</summary>
+    private static Button Wide(SymbolRegular symbol, string text, Action click)
+    {
+        var button = new Button { Icon = new SymbolIcon { Symbol = symbol }, Content = text };
+        button.Click += (_, _) => click();
+        return button;
+    }
+
     // ── changes ──────────────────────────────────────────────────────────
 
     private void OnModelChanged(object sender, SelectionChangedEventArgs e)
@@ -430,8 +585,6 @@ public partial class AssistantBrainSection : UserControl
     }
 
     private void OnCheck(object sender, RoutedEventArgs e) => _app.AskAssistantBrain("rescan");
-
-    private void OnFree(object sender, RoutedEventArgs e) => _app.AskAssistantBrain("unload");
 
     private void OnLoad(object sender, RoutedEventArgs e) => _app.AskAssistantBrain("load");
 
@@ -449,12 +602,6 @@ public partial class AssistantBrainSection : UserControl
     {
         if (_filling || KeepBox.SelectedItem is not KeepOption option) return;
         _app.Config.Settings.AssistantBrainKeepMinutes = option.Minutes;
-    }
-
-    private void OnServerArgsLeft(object sender, RoutedEventArgs e)
-    {
-        var typed = ServerArgsBox.Text.Trim();
-        if (typed != _app.Config.Settings.AssistantBrainServerArgs) _app.Config.Settings.AssistantBrainServerArgs = typed;
     }
 
     private void OnAddServer(object sender, RoutedEventArgs e)
@@ -481,14 +628,14 @@ public partial class AssistantBrainSection : UserControl
 
     private void OnCancelDownload(object sender, RoutedEventArgs e) => _app.CancelModelDownload();
 
-    private void OnOpenDownloads(object sender, RoutedEventArgs e)
+    private void OnOpenDownloads()
     {
         var folder = _app.AssistantModelsFolder;
         System.IO.Directory.CreateDirectory(folder);
         Core.Platform.ProcessLauncher.Launch(new Core.Platform.LaunchSpec("explorer.exe", $"\"{folder}\""), asAdmin: false);
     }
 
-    private async void OnMoveDownloads(object sender, RoutedEventArgs e)
+    private async void OnMoveDownloads()
     {
         var dialog = new Microsoft.Win32.OpenFolderDialog { Title = Loc.T("brainModels.moveFolderTitle") };
         if (dialog.ShowDialog(Window.GetWindow(this)) != true) return;
@@ -497,17 +644,22 @@ public partial class AssistantBrainSection : UserControl
 
     private void OnNewKindChanged(object sender, SelectionChangedEventArgs e) => FillNewRemote();
 
+    private void OnNewEndpointChanged(object sender, TextChangedEventArgs e) => FillNewRemote();
+
     private void OnAddRemote(object sender, RoutedEventArgs e)
     {
         if (NewKindBox.SelectedItem is not KindOption kind) return;
         var typed = NewEndpointBox.Text.Trim();
-        var address = typed.Length == 0 ? kind.Kind.DefaultEndpoint() : typed.Contains("://", StringComparison.Ordinal) ? typed : "http://" + typed;
-        if (BrainProviders.PlaceOf(address) == EndpointPlace.Invalid)
+        if (BrainProviders.PlaceOf(NewAddress(kind.Kind)) == EndpointPlace.Invalid)
         {
             NewPlaceText.Text = Loc.T("brainOptions.place.invalid");
             return;
         }
-        var id = _app.AddBrainRemote(kind.Kind, typed, kind.Kind.UsesApiKey() ? NewKeyBox.Password : string.Empty);
+        if (_app.AddBrainRemote(kind.Kind, typed, kind.Kind.UsesApiKey() ? NewKeyBox.Password : string.Empty) is not { } id)
+        {
+            NewPlaceText.Text = Loc.T("brainRemotes.duplicate");
+            return;
+        }
         NewEndpointBox.Text = string.Empty;
         NewKeyBox.Password = string.Empty;
         // Once the process has the new list, it is tried at once.

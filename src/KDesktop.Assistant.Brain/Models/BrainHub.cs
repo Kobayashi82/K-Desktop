@@ -51,7 +51,15 @@ public sealed class BrainHub : IChatModel
     {
         RemoteKind.Ollama => new OllamaChatModel(remote.Address, http) { KeepAlive = keepMinutes > 0 ? $"{keepMinutes}m" : "-1" },
         RemoteKind.LlamaSwap => new OpenAICompatibleChatModel(remote.Address, remote.ApiKey, http) { UnloadPath = "unload", RunningPath = "running" },
-        _ => new OpenAICompatibleChatModel(remote.Address, remote.ApiKey, http),
+        _ => new OpenAICompatibleChatModel(remote.Address, remote.ApiKey, http) { DetectLlamaSwap = true },
+    };
+
+    /// <summary>Whether that server says what it has loaded and unloads (Ollama, and an OpenAI one that turned out to be a llama-swap).</summary>
+    private static bool CanUnload(Remote remote) => remote.Client switch
+    {
+        OllamaChatModel => true,
+        OpenAICompatibleChatModel openai => openai.CanUnload,
+        _ => false,
     };
 
     /// <summary>The local models, then those of each other server that answers (a server that does not answer lists none).</summary>
@@ -107,7 +115,7 @@ public sealed class BrainHub : IChatModel
     public async Task<IReadOnlyList<string>> ListLoadedAsync(CancellationToken cancellationToken)
     {
         var loaded = new List<string>(await Local.ListLoadedAsync(cancellationToken).ConfigureAwait(false));
-        foreach (var remote in _remotes.Values.Where(r => r.Settings.Kind.CanUnload() && LastStateOk(r)))
+        foreach (var remote in _remotes.Values.Where(r => CanUnload(r) && LastStateOk(r)))
         {
             try
             {
@@ -170,7 +178,7 @@ public sealed class BrainHub : IChatModel
         }
         if (!Config.OneAtATime) return;
         if (!ModelRefs.IsLocal(model)) Local.StopAll("se usa un modelo de otro servidor (un modelo a la vez)");
-        foreach (var remote in _remotes.Values.Where(r => r.Settings.Kind.CanUnload() && BrainProviders.PlaceOf(r.Settings.Address) == EndpointPlace.ThisPc))
+        foreach (var remote in _remotes.Values.Where(r => CanUnload(r) && BrainProviders.PlaceOf(r.Settings.Address) == EndpointPlace.ThisPc))
         {
             try
             {

@@ -37,7 +37,7 @@ public sealed class LlamaServerPool : IChatModel
     /// <summary>The models found are looked for again after this long (Options asks every few seconds).</summary>
     private static readonly TimeSpan ModelsFor = TimeSpan.FromSeconds(30);
 
-    private IReadOnlyList<string> _extraArgs = [];
+    private Dictionary<string, IReadOnlyList<string>> _modelArgs = new(StringComparer.OrdinalIgnoreCase);
     private readonly Func<double?> _videoGb;
     private readonly HttpClient _http;
     private readonly bool _ownsClient;
@@ -56,17 +56,17 @@ public sealed class LlamaServerPool : IChatModel
 
     /// <param name="servers">The llama-server.exe of Options; the first one is the usual.</param>
     /// <param name="folders">Where the models are looked for.</param>
-    /// <param name="extraArgs">Options added to the usual ones (a later one wins: «-c 32768»).</param>
+    /// <param name="modelArgs">Each model's options added to the usual ones (model path → «-c 32768»; a later one wins).</param>
     /// <param name="keepFor">Unused this long, a model stops (null: it stays).</param>
     /// <param name="chosen">The models chosen in Options, listed even when they are not in the folders.</param>
     /// <param name="videoGb">The graphics card's own memory in GB (null: unknown), to know what fits.</param>
-    public LlamaServerPool(IReadOnlyList<string> servers, IReadOnlyList<string> folders, string extraArgs, TimeSpan? keepFor, bool oneAtATime, bool vision,
+    public LlamaServerPool(IReadOnlyList<string> servers, IReadOnlyList<string> folders, IReadOnlyDictionary<string, string>? modelArgs, TimeSpan? keepFor, bool oneAtATime, bool vision,
         IEnumerable<string> chosen, Func<double?> videoGb, HttpClient? http = null)
     {
         _videoGb = videoGb;
         _ownsClient = http is null;
         _http = http ?? new HttpClient();
-        Configure(servers, folders, extraArgs, keepFor, oneAtATime, vision, chosen);
+        Configure(servers, folders, modelArgs, keepFor, oneAtATime, vision, chosen);
         _idle = new Timer(_ => StopIdle(), null, IdleCheckEvery, IdleCheckEvery);
     }
 
@@ -74,14 +74,14 @@ public sealed class LlamaServerPool : IChatModel
     /// Options changed: what comes next follows them, and the models running go on (a server added or an option changed
     /// never unloads Bonsai; a new option applies the next time a model loads).
     /// </summary>
-    public void Configure(IReadOnlyList<string> servers, IReadOnlyList<string> folders, string extraArgs, TimeSpan? keepFor, bool oneAtATime, bool vision,
+    public void Configure(IReadOnlyList<string> servers, IReadOnlyList<string> folders, IReadOnlyDictionary<string, string>? modelArgs, TimeSpan? keepFor, bool oneAtATime, bool vision,
         IEnumerable<string> chosen)
     {
         lock (_gate)
         {
             Servers = [.. servers.Select(s => s.Trim().Trim('"')).Where(s => s.Length > 0)];
             Folders = folders;
-            _extraArgs = SplitArgs(extraArgs);
+            _modelArgs = (modelArgs ?? new Dictionary<string, string>()).ToDictionary(p => p.Key, p => SplitArgs(p.Value), StringComparer.OrdinalIgnoreCase);
             KeepFor = keepFor;
             OneAtATime = oneAtATime;
             Vision = vision;
@@ -385,7 +385,7 @@ public sealed class LlamaServerPool : IChatModel
     /// <summary>
     /// llama-server's options: the model (with its projector), a port of this PC only, a fixed context with an 8-bit
     /// cache, one conversation, the model's own chat template, without thinking, and —unset— the layers in the graphics
-    /// card and the experts of a big MoE out of it, as <c>--fit</c> decides by itself; then the user's.
+    /// card and the experts of a big MoE out of it, as <c>--fit</c> decides by itself; then that model's own of Options.
     /// </summary>
     public IReadOnlyList<string> Arguments(LocalModel model, int port, string alias)
     {
@@ -394,7 +394,7 @@ public sealed class LlamaServerPool : IChatModel
         args.AddRange(["--host", "127.0.0.1", "--port", port.ToString(CultureInfo.InvariantCulture),
             "-fa", "on", "-c", ContextTokens.ToString(CultureInfo.InvariantCulture), "--cache-type-k", "q8_0", "--cache-type-v", "q8_0",
             "-np", "1", "--jinja", "--alias", alias, "--chat-template-kwargs", "{\"enable_thinking\": false}"]);
-        args.AddRange(_extraArgs);
+        lock (_gate) args.AddRange(_modelArgs.GetValueOrDefault(model.Path) ?? []);
         return args;
     }
 

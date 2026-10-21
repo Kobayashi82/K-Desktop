@@ -160,7 +160,12 @@ internal sealed class ModuleTalk : ITalkOutput
     /// </summary>
     private AssistantPersona PersonaOf(string? id)
     {
-        if (id is null) return AssistantPersona.Module();
+        if (id is null)
+        {
+            // K-Desktop without an assistant: the module's, or the personality written for it.
+            var module = AssistantPersona.Module();
+            return _personal.Of(null)?.Prompt is { } mine ? module with { Prompt = mine.Trim() } : module;
+        }
         var language = _personal.LanguageOf(id);
         if (_personas.TryGetValue(id, out var known) && known.Language == language) return known.Persona;
         var persona = ReadPersona(id, language);
@@ -190,7 +195,7 @@ internal sealed class ModuleTalk : ITalkOutput
     public void State(string? assistant, string state)
     {
         _link.Send(new StatusMessage(state, Assistant: assistant));
-        if (state == "thinking" && assistant is not null) Voice.Warm(assistant);
+        if (state == "thinking") Voice.Warm(assistant);
         if (assistant is null) return;
         var shown = state switch
         {
@@ -210,11 +215,13 @@ internal sealed class ModuleTalk : ITalkOutput
     /// <summary>
     /// The bubble with the text (for as long as it takes to read it) and its voice (what was not said ahead). Over when its
     /// voice is (the bubble stays on its own until it has been read: an answer that asks listens for the reply right away,
-    /// not 15 s later); without a voice, when the bubble is; or when it is cancelled.
+    /// not 15 s later); without a voice, when the bubble is; or when it is cancelled. Without an assistant only the voice
+    /// (K-Desktop shows the text).
     /// </summary>
     public Task SpeakTurnAsync(string? assistant, string turn, string text, CancellationToken cancellationToken)
     {
-        if (assistant is null || text.Length == 0) return Task.CompletedTask;
+        if (text.Length == 0) return Task.CompletedTask;
+        if (assistant is null) return Voice.SayAsync(null, turn, text, cancellationToken);
         var speaking = Voice.SayAsync(assistant, turn, text, cancellationToken);
         var said = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         _engine.Post(async () =>

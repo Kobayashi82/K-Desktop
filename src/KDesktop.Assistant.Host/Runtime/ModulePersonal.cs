@@ -29,8 +29,8 @@ internal sealed class ModulePersonal
         Changed?.Invoke(changed);
     }
 
-    /// <summary>What <paramref name="id"/> has of its own (null: nothing, or no assistant).</summary>
-    public AssistantPersonal? Of(string? id) => id is not null && _all.TryGetValue(id, out var own) ? own : null;
+    /// <summary>What <paramref name="id"/> has of its own (null: nothing); <paramref name="id"/> null or empty is K-Desktop answering without an assistant (5.0.111).</summary>
+    public AssistantPersonal? Of(string? id) => _all.TryGetValue(id ?? string.Empty, out var own) ? own : null;
 
     /// <summary>The language <paramref name="id"/> speaks in: its own, or the process's (the general one).</summary>
     public string LanguageOf(string? id) =>
