@@ -5,7 +5,11 @@ using KDesktop.Core.Voice;
 
 namespace KDesktop.Assistant.Brain.Talk;
 
-public enum QuickRuleKind { Time, Timer, Note, CancelTimer, Cancel, Repeat, Undo }
+/// <summary>
+/// What a fixed rule understood. <see cref="First"/> and <see cref="Second"/> («el primero», «la otra») only count as the
+/// answer to «¿A o B?» (stage 4.4).
+/// </summary>
+public enum QuickRuleKind { Time, Timer, Note, CancelTimer, Cancel, Repeat, Undo, First, Second }
 
 /// <summary>An order a fixed rule understood, with what filled its gaps.</summary>
 /// <param name="Seconds">For a timer: how long.</param>

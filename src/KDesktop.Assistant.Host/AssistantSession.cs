@@ -35,9 +35,9 @@ internal sealed class AssistantSession : IDisposable
         // The brain answers Options → Assistant → Brain: only with K-Desktop there.
         if (Link is not null) Brain = new BrainService(World.VideoMemory.Gigabytes);
         if (Link is not null) Commands = new ModuleCommands(Link);
-        if (Link is not null) Tools = new ModuleTools(Link);
-        if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!);
-        if (Link is not null) Bench = new ModuleBench(Link, Brain!, Tools!, Talk!.Chooser);
+        if (Link is not null) Tools = new ModuleTools(Link, Commands!);
+        if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!, Commands!);
+        if (Link is not null) Bench = new ModuleBench(Link, Brain!, Tools!, Talk!.Chooser, Commands!);
     }
 
     /// <summary>The user's K-Desktop commands (null without K-Desktop).</summary>
@@ -125,6 +125,9 @@ internal sealed class AssistantSession : IDisposable
                         return;
                     case EndMessage end when Commands is { } commands:
                         commands.OnEnd(end);
+                        return;
+                    case DescribedMessage described when Commands is { } commands:
+                        commands.OnDescribed(described);
                         return;
                     case HeardMessage heard when Talk is { } talk:
                         talk.OnHeard(heard);

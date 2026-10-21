@@ -56,7 +56,7 @@ public partial class BenchView : UserControl
         if (signature != _models && !ModelBox.IsDropDownOpen)
         {
             _models = signature;
-            var keep = ModelBox.SelectedItem as string ?? bench?.Model ?? _app.AssistantBrain?.Model;
+            var keep = ModelBox.SelectedItem as string ?? (bench?.Model is { Length: > 0 } tried ? tried : _app.AssistantBrain?.Model);
             ModelBox.ItemsSource = models;
             ModelBox.SelectedItem = models.FirstOrDefault(m => m == keep) ?? models.FirstOrDefault();
         }
@@ -72,7 +72,7 @@ public partial class BenchView : UserControl
             ProgressText.Text = Loc.T("bench.progress", bench.Model, bench.Done, bench.Total, bench.Passed);
         }
         ResultText.Visibility = bench is { State: "done" or "failed" or "cancelled" } ? Visibility.Visible : Visibility.Collapsed;
-        if (bench is { State: "done" }) ResultText.Text = Score(bench.Model ?? "", bench.Passed, bench.Total, bench.MeanMs);
+        if (bench is { State: "done" }) ResultText.Text = Score(bench.Model, bench.Passed, bench.Total, bench.MeanMs);
         else if (bench is { State: "failed" }) ResultText.Text = Loc.T("bench.failed", bench.Message ?? "");
         else if (bench is { State: "cancelled" }) ResultText.Text = Loc.T("bench.cancelled");
 

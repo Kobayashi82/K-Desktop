@@ -15,7 +15,7 @@ namespace KDesktop.Assistant.Host.Runtime;
 /// K-Desktop after each order (<c>benchState</c>), and keeps the last score of each model
 /// (<c>Assistant\bench-results.json</c>).
 /// </summary>
-internal sealed class ModuleBench(KDesktopLink link, BrainService brain, ModuleTools tools, ToolChooser chooser)
+internal sealed class ModuleBench(KDesktopLink link, BrainService brain, ModuleTools tools, ToolChooser chooser, ModuleCommands commands)
 {
     /// <summary>Scores kept (the last of each model).</summary>
     private const int KeptScores = 30;
@@ -24,7 +24,7 @@ internal sealed class ModuleBench(KDesktopLink link, BrainService brain, ModuleT
 
     private readonly object _gate = new();
     private CancellationTokenSource? _running;
-    private BenchStateMessage _state = new("idle", null, 0, 0, 0, 0, false, [], []);
+    private BenchStateMessage _state = new("idle", string.Empty, 0, 0, 0, 0, false, [], []);
 
     private static string HistoryFile => Path.Combine(AppPaths.DataDir, "Assistant", "bench-results.json");
 
@@ -65,7 +65,7 @@ internal sealed class ModuleBench(KDesktopLink link, BrainService brain, ModuleT
         {
             if (brain.Client is not { } client) throw new InvalidOperationException(Loc.T("bench.noBrain"));
             Log.Info($"Asistente: banco de pruebas con {model} ({cases.Count} órdenes{(own ? ", el propio" : "")})");
-            var runner = new BenchRunner(tools.Runner.Registry, chooser);
+            var runner = new BenchRunner(tools.Runner.Registry, chooser, commands: commands);
             await runner.RunAsync(client, model, cases, result =>
             {
                 lock (done) done.Add(result);

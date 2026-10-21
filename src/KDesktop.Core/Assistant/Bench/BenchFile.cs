@@ -8,7 +8,8 @@ namespace KDesktop.Core.Assistant.Bench;
 /// <param name="Tools">It must use one of these (from a rule or the AI); empty: no condition.</param>
 /// <param name="NoTool">It must answer without tools.</param>
 /// <param name="AnswerContains">Its answer must contain one of these (any case); empty: no condition.</param>
-public sealed record BenchExpect(IReadOnlyList<string> Tools, bool NoTool, IReadOnlyList<string> AnswerContains)
+/// <param name="Commands">It must run one of these of the user's K-Desktop commands, by name (stage 4.4); empty: no condition.</param>
+public sealed record BenchExpect(IReadOnlyList<string> Tools, bool NoTool, IReadOnlyList<string> AnswerContains, IReadOnlyList<string>? Commands = null)
 {
     /// <summary>In a few words, for the results («save_note», «sin herramientas», «"43,2"»).</summary>
     public string Describe() => string.Join(" · ", new[]
@@ -16,6 +17,7 @@ public sealed record BenchExpect(IReadOnlyList<string> Tools, bool NoTool, IRead
         Tools.Count > 0 ? string.Join(" / ", Tools) : null,
         NoTool ? Loc.T("bench.noTool") : null,
         AnswerContains.Count > 0 ? string.Join(" / ", AnswerContains.Select(a => $"«{a}»")) : null,
+        Commands is { Count: > 0 } ? string.Join(" / ", Commands.Select(c => $"⚡{c}")) : null,
     }.Where(p => p is not null));
 }
 
@@ -23,8 +25,8 @@ public sealed record BenchCase(string Say, BenchExpect Expect);
 
 /// <summary>
 /// The test bench of the assistants (stage 3.9, plan §5.4): orders and what each one should do, in JSON
-/// (<c>{"cases":[{"say":"…","expect":{"tool":"save_note"}}]}</c>; <c>tool</c> may be a list, plus <c>noTool</c> and
-/// <c>answerContains</c>). The user's own (<see cref="UserFile"/>) wins; without it, the built-in one in the user's
+/// (<c>{"cases":[{"say":"…","expect":{"tool":"save_note"}}]}</c>; <c>tool</c> may be a list, plus <c>noTool</c>,
+/// <c>answerContains</c> and <c>command</c>, one of the user's commands by name, or a list). The user's own (<see cref="UserFile"/>) wins; without it, the built-in one in the user's
 /// language (or English).
 /// </summary>
 public static class BenchFile
@@ -73,7 +75,7 @@ public static class BenchFile
             if (item?["say"] is not JsonValue sayValue || !sayValue.TryGetValue<string>(out var say) || say.Trim().Length == 0) continue;
             var expect = item["expect"] as JsonObject;
             result.Add(new BenchCase(say.Trim(), new BenchExpect(Strings(expect?["tool"]), expect?["noTool"] is JsonValue v && v.TryGetValue<bool>(out var no) && no,
-                Strings(expect?["answerContains"]))));
+                Strings(expect?["answerContains"]), Strings(expect?["command"]))));
         }
         return result;
     }

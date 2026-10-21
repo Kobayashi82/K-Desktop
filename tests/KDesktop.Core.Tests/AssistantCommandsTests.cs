@@ -34,6 +34,18 @@ public class AssistantCommandsTests
     }
 
     [Fact]
+    public void CommandsThatAskAnAssistantAreNotItsToRun()
+    {
+        var config = new AppConfig();
+        var ask = new Command { Name = "Preguntar notas" };
+        ask.Actions.Add(new AssistantAskAction { Text = "¿qué notas tengo?" });
+        var greet = Make("Saludo");
+        config.Commands.Add(ask);
+        config.Commands.Add(greet);
+        Assert.Equal([greet], AssistantCommands.Available(config));
+    }
+
+    [Fact]
     public void NothingClearGivesTheWholeTextNotSure()
     {
         var matched = AssistantCommands.Match(new MatchMessage("m-2", "cuéntame un chiste"), [Make("Vaciar papelera")], media: false, semantic: null);

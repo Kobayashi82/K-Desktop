@@ -395,7 +395,8 @@ public sealed record MatchMessage(string Id, string Text) : PipeMessage
 
 /// <param name="Command">The command's id; null for a built-in media order.</param>
 /// <param name="Media">The media order (<c>volumeDown</c>…), with its <paramref name="Value"/> when it has one (a volume).</param>
-public sealed record MatchedCandidate(string? Command, string Name, double Score, string? Media = null, int? Value = null);
+/// (Every parameter has a default: a media order has no <c>command</c>, which is left out of the line and must read back.)
+public sealed record MatchedCandidate(string? Command = null, string Name = "", double Score = 0, string? Media = null, int? Value = null);
 
 /// <param name="Sure">The first candidate is a clear winner (it would run by voice).</param>
 public sealed record MatchedPart(string Text, bool Sure, IReadOnlyList<MatchedCandidate> Candidates);
@@ -423,6 +424,27 @@ public sealed record EndMessage(string Run, string Status, IReadOnlyList<string>
     public override string Type => "end";
 }
 
+/// <summary>What a command does, in words (the tool <c>describe_command</c>): answered with <see cref="DescribedMessage"/>.</summary>
+public sealed record DescribeMessage(string Id, string Command) : PipeMessage
+{
+    public override string Type => "describe";
+}
+
+/// <param name="Found">The command exists.</param>
+/// <param name="Actions">What each of its enabled actions does («Abrir Chrome», «Volumen al 30 %»…), in order.</param>
+/// <param name="Hotkeys">Its hotkeys, as K-Desktop shows them.</param>
+/// <param name="Asks">Whether an assistant has to ask before running it (<c>no</c>, <c>once</c> or <c>always</c>).</param>
+public sealed record DescribedMessage(string Id, bool Found, string Name, IReadOnlyList<string> Actions, IReadOnlyList<string> Hotkeys, string Asks) : PipeMessage
+{
+    public override string Type => "described";
+}
+
+/// <summary>Runs the commands of one of K-Desktop's events, found by its name. Answered with <see cref="EndMessage"/>.</summary>
+public sealed record RunEventMessage(string Assistant, string Run, string Event) : PipeMessage
+{
+    public override string Type => "runEvent";
+}
+
 /// <summary>A built-in media order of K-Desktop (out of a <c>matched</c>); with <paramref name="Run"/>, answered with <see cref="EndMessage"/>.</summary>
 /// <param name="Order">The kind, camelCase (<c>volumeUp</c>, <c>pause</c>…).</param>
 public sealed record MediaMessage(string Order, int? Value = null, string? Run = null) : PipeMessage
@@ -441,7 +463,9 @@ public sealed record BenchMessage(string Op, string? Model = null) : PipeMessage
 /// <summary>One order of the bench and what happened.</summary>
 /// <param name="Route"><c>rule</c> or <c>ai</c>.</param>
 /// <param name="Tools">The tools it used (they did not really act).</param>
-public sealed record BenchCaseResult(string Say, string Expected, bool Passed, string Route, IReadOnlyList<string> Tools, string Answer, int Ms);
+/// <param name="Commands">The user's commands it ran (they did not really run), by name.</param>
+public sealed record BenchCaseResult(string Say, string Expected, bool Passed, string Route, IReadOnlyList<string> Tools, string Answer, int Ms,
+    IReadOnlyList<string>? Commands = null);
 
 /// <summary>A model's last result on the bench.</summary>
 public sealed record BenchScore(string Model, int Passed, int Total, int MeanMs, DateTimeOffset At, bool Own);
@@ -450,7 +474,8 @@ public sealed record BenchScore(string Model, int Passed, int Total, int MeanMs,
 /// <param name="State"><c>idle</c>, <c>running</c>, <c>done</c>, <c>cancelled</c> or <c>failed</c>.</param>
 /// <param name="Own">It is the user's bench (<c>Assistant\bench.json</c>), not the built-in one.</param>
 /// <param name="Failures">The orders that did not do what was expected (when it is over).</param>
-public sealed record BenchStateMessage(string State, string? Model, int Done, int Total, int Passed, int MeanMs, bool Own,
+/// <param name="Model">The model it runs or ran with (empty: none yet).</param>
+public sealed record BenchStateMessage(string State, string Model, int Done, int Total, int Passed, int MeanMs, bool Own,
     IReadOnlyList<BenchCaseResult> Failures, IReadOnlyList<BenchScore> History, string? Message = null) : PipeMessage
 {
     public override string Type => "benchState";
@@ -522,6 +547,9 @@ public static class PipeJson
         ["run"] = typeof(RunMessage),
         ["end"] = typeof(EndMessage),
         ["media"] = typeof(MediaMessage),
+        ["describe"] = typeof(DescribeMessage),
+        ["described"] = typeof(DescribedMessage),
+        ["runEvent"] = typeof(RunEventMessage),
         ["bench"] = typeof(BenchMessage),
         ["benchState"] = typeof(BenchStateMessage),
     };

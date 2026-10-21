@@ -3,6 +3,7 @@ using System.Text.Json;
 using KDesktop.Assistant.Brain.Models;
 using KDesktop.Assistant.Brain.Talk;
 using KDesktop.Assistant.Tools;
+using KDesktop.Assistant.Tools.Builtin;
 using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Bench;
 using KDesktop.Core.Assistant.Packages;
@@ -12,12 +13,14 @@ namespace KDesktop.Assistant.Brain.Bench;
 
 /// <summary>
 /// Runs the test bench with a model (stage 3.9, plan §5.4): each order goes the way of a real one — the fixed rules
-/// first, then the AI with the tools chosen by meaning — but the tools that do something only pretend (a timer, a
-/// note, opening a page: nothing happens), and those that only read run for real (the time, the notes, a sum), so the
-/// answer can be checked. No history between orders, no memory, nothing in the activity. Gives what each order did,
-/// whether it is what was expected, and how long it took.
+/// first, then the user's K-Desktop commands (<c>match</c>), then the AI with the tools chosen by meaning — but the
+/// tools that do something only pretend (a timer, a note, opening a page, running a command: nothing happens), and
+/// those that only read run for real (the time, the notes, a sum, finding a command), so the answer can be checked. No
+/// history between orders, no memory, nothing in the activity. Gives what each order did, whether it is what was
+/// expected, and how long it took.
 /// </summary>
-public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimeProvider? time = null)
+/// <param name="commands">The user's commands (null: without them, like in phase 3).</param>
+public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimeProvider? time = null, ICommandBridge? commands = null)
 {
     /// <summary>The tool each fixed rule uses.</summary>
     private static readonly Dictionary<QuickRuleKind, string> RuleTools = new()
@@ -48,15 +51,26 @@ public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimePro
     {
         var watch = Stopwatch.StartNew();
         var used = new List<string>();
+        var ran = new List<string>();
         string route, answer;
         var rule = QuickRules.Match(item.Say, [persona.Name]);
-        if (rule is not null && RuleTools.TryGetValue(rule.Kind, out var ruleTool))
+        var matched = rule is null && commands is not null && !TalkService.IsQuestion(item.Say) ? await commands.MatchAsync(item.Say, cancellationToken).ConfigureAwait(false) : null;
+        if (matched is not null) Core.Log.Info("Asistente: banco, comandos: " + CommandTools.Describe(matched));
+        if (matched is not null && matched.Parts.All(p => p.Sure && p.Candidates[0].Score >= CommandTools.Direct) && matched.Unmatched.Count == 0)
+        {
+            // What clearly names commands runs without the AI (here it only pretends).
+            route = "command";
+            ran.AddRange(matched.Parts.Select(p => p.Candidates[0].Name));
+            used.Add("run_command");
+            answer = string.Empty;
+        }
+        else if (rule is not null && RuleTools.TryGetValue(rule.Kind, out var ruleTool))
         {
             route = "rule";
             used.Add(ruleTool);
             answer = string.Empty;
         }
-        else if (rule is not null)
+        else if (rule is not null && rule.Kind is not (QuickRuleKind.First or QuickRuleKind.Second))
         {
             // «Cancela», «repite», «deshaz»: no tool and nothing to say worth checking.
             route = "rule";
@@ -67,28 +81,81 @@ public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimePro
             route = "ai";
             var registry = new ToolRegistry();
             foreach (var tool in tools.All) registry.Add(new BenchTool(tool, used));
+            // The command tools on a bridge that finds for real and runs nothing.
+            if (commands is not null)
+                foreach (var tool in CommandToolsOn(new DryBridge(commands, ran))) registry.Add(new BenchTool(tool, used, real: true));
             var runner = new ToolRunner(registry, () => new HashSet<string>(registry.All.Select(t => t.Name)), (_, _) => Task.FromResult("yes"), _ => { },
                 Path.Combine(Path.GetTempPath(), "K-Desktop", "bench-undo.json"));
             var mind = new TalkMind(runner, chooser, time ?? TimeProvider.System);
-            var said = await mind.AnswerAsync(model, modelName, persona, [], [], item.Say, new ToolContext(null), null, cancellationToken).ConfigureAwait(false);
+            IReadOnlyCollection<string>? leaveOut = matched is not null && !matched.Parts.SelectMany(p => p.Candidates).Any(c => c.Score >= CommandTools.Plausible) ? ["run_command"] : null;
+            var said = await mind.AnswerAsync(model, modelName, persona, [], [], item.Say, new ToolContext(null), null, cancellationToken, leaveOut).ConfigureAwait(false);
             answer = said.Failed ? string.Empty : said.Text;
             if (said.Failed) route = "failed";
         }
-        var passed = route != "failed" && Check(item.Expect, used, answer, route == "rule");
-        return new BenchCaseResult(item.Say, item.Expect.Describe(), passed, route, [.. used.Distinct()], answer, (int)watch.ElapsedMilliseconds);
+        var passed = route != "failed" && Check(item.Expect, used, answer, route is "rule" or "command", ran);
+        return new BenchCaseResult(item.Say, item.Expect.Describe(), passed, route, [.. used.Distinct()], answer, (int)watch.ElapsedMilliseconds,
+            ran.Count > 0 ? [.. ran.Distinct()] : null);
     }
 
-    /// <summary>Whether what it did is what was expected (a rule has no answer to check: its tool says it all).</summary>
-    public static bool Check(BenchExpect expect, IReadOnlyList<string> used, string answer, bool byRule)
+    private static IEnumerable<ITool> CommandToolsOn(ICommandBridge bridge)
     {
+        var registry = new ToolRegistry();
+        CommandTools.AddTo(registry, bridge);
+        return registry.All;
+    }
+
+    /// <summary>Finds and describes the user's commands for real; running one (or an event, or a media order) only says it would.</summary>
+    private sealed class DryBridge(ICommandBridge real, List<string> ran) : ICommandBridge
+    {
+        /// <summary>The names of the commands found, by id (what ran is said by name).</summary>
+        private readonly Dictionary<string, string> _names = new(StringComparer.Ordinal);
+
+        public async Task<MatchedMessage?> MatchAsync(string text, CancellationToken cancellationToken)
+        {
+            var matched = await real.MatchAsync(text, cancellationToken).ConfigureAwait(false);
+            lock (_names)
+                foreach (var candidate in matched?.Parts.SelectMany(p => p.Candidates) ?? [])
+                    if (candidate.Command is { } id) _names[id] = candidate.Name;
+            return matched;
+        }
+
+        public Task<DescribedMessage?> DescribeAsync(string command, CancellationToken cancellationToken) => real.DescribeAsync(command, cancellationToken);
+
+        public Task<EndMessage?> RunAsync(string command, string? assistant, CancellationToken cancellationToken)
+        {
+            lock (_names) return Pretend(_names.GetValueOrDefault(command, command));
+        }
+
+        public Task<EndMessage?> MediaAsync(string order, int? value, CancellationToken cancellationToken) => Pretend(order);
+
+        public Task<EndMessage?> RunEventAsync(string name, string? assistant, CancellationToken cancellationToken) => Pretend(name);
+
+        private Task<EndMessage?> Pretend(string what)
+        {
+            lock (ran) ran.Add(what);
+            return Task.FromResult<EndMessage?>(new EndMessage("bench", "ok", []));
+        }
+    }
+
+    /// <summary>
+    /// Whether what it did is what was expected (a rule or a command has no answer to check: what it did says it all).
+    /// A command expected by name may have run by its id (the bridge got the id): both count.
+    /// </summary>
+    public static bool Check(BenchExpect expect, IReadOnlyList<string> used, string answer, bool byRule, IReadOnlyList<string>? ran = null)
+    {
+        if (expect.Commands is { Count: > 0 } names && !(ran ?? []).Any(r => names.Any(n => string.Equals(n.Trim(), r.Trim(), StringComparison.OrdinalIgnoreCase))))
+            return false;
         if (expect.Tools.Count > 0 && !used.Any(expect.Tools.Contains)) return false;
         if (expect.NoTool && used.Count > 0) return false;
         if (!byRule && expect.AnswerContains.Count > 0 && !expect.AnswerContains.Any(a => answer.Contains(a, StringComparison.OrdinalIgnoreCase))) return false;
         return true;
     }
 
-    /// <summary>A tool for the bench: the same for the model, but it only acts if it just reads; it says it was used.</summary>
-    private sealed class BenchTool(ITool inner, List<string> used) : ITool
+    /// <summary>
+    /// A tool for the bench: the same for the model, but it only acts if it just reads (or is <paramref name="real"/>:
+    /// already harmless, on the dry bridge); it says it was used.
+    /// </summary>
+    private sealed class BenchTool(ITool inner, List<string> used, bool real = false) : ITool
     {
         public string Name => inner.Name;
 
@@ -107,7 +174,7 @@ public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimePro
         public Task<ToolResult> RunAsync(JsonElement arguments, ToolContext context, CancellationToken cancellationToken)
         {
             lock (used) used.Add(Name);
-            return inner.ReadsOnly ? inner.RunAsync(arguments, context, cancellationToken) : Task.FromResult(new ToolResult("Done."));
+            return inner.ReadsOnly || real ? inner.RunAsync(arguments, context, cancellationToken) : Task.FromResult(new ToolResult("Done."));
         }
     }
 }

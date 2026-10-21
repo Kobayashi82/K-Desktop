@@ -131,6 +131,9 @@ Dirección: **A→K** del asistente a K-Desktop; **K→A** de K-Desktop al asist
 | `skip` | A→K | `run`, `index` | No ejecutes este paso (cancelado desde el asistente) |
 | `result` | K→A | `run`, `index`, `status` (`ok`, `failed`, `skipped`), `message` | Resultado del paso |
 | `end` | K→A | `run`, `status` (`ok`, `failed`, `cancelled`, `declined` —el usuario no dio permiso—), `messages` (lista: lo que dijo el comando, sus avisos y errores, en el idioma del usuario) | Fin de la ejecución |
+| `describe` | A→K | `id`, `command` (id) | Qué hace un comando (herramienta `describe_command`), sin ejecutarlo |
+| `described` | K→A | `id`, `found`, `name`, `actions` (lo que hace cada acción activa, en orden: «Abrir programa: Steam»), `hotkeys`, `asks` (`no`, `once`, `always`: si un asistente tiene que preguntar antes) | Resultado |
+| `runEvent` | A→K | `assistant`, `run`, `event` (su nombre; vale el más parecido si se parece claramente) | Ejecuta los comandos de un evento de K-Desktop. Pregunta antes si alguno de sus comandos preguntaría (manda el más arriesgado). Se contesta con `end` |
 | `media` | A→K | `order` (`pause`, `resume`, `next`, `previous`, `volumeUp`, `volumeDown`, `volumeSet`, `mute`, `unmute`, `musicOn`, `musicOff`, `cancel`), `value` (el volumen o el paso, si lo tiene), `run` (opcional) | Orden de música integrada de K-Desktop (salida de `match`). Con `run` se contesta con `end` |
 | `say` | K→A | `assistant`, `text` | Acción «Asistente: decir» (al de la acción o, si no dice cuál, al de Opciones → Asistentes) |
 | `extra` | K→A | `assistant`, `action` (id del extra, p. ej. `lander.manual`) | Acción «Asistente: acción», o un botón de sus ajustes o de su panel. Si el asistente no estaba en el escritorio, K-Desktop lo pone, espera a su `loaded` y entonces lo manda (si tarda más de 20 s, no): puede llegar antes de que el asistente tenga su mundo listo, y entonces debe guardarlo y hacerlo al arrancar |

@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Globalization;
 using KDesktop.Assistant.Host.Pipe;
+using KDesktop.Assistant.Tools.Builtin;
 using KDesktop.Core;
 using KDesktop.Core.Assistant.Pipe;
 
@@ -11,7 +12,7 @@ namespace KDesktop.Assistant.Host.Runtime;
 /// <c>matched</c>) and running one or a built-in media order (<c>run</c> / <c>media</c> → <c>end</c>). Never waits
 /// forever: no answer in time is no answer.
 /// </summary>
-internal sealed class ModuleCommands(KDesktopLink link)
+internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
 {
     /// <summary>Matching is quick (the meaning model may have to load, ~1 s).</summary>
     private static readonly TimeSpan MatchWait = TimeSpan.FromSeconds(5);
@@ -21,6 +22,7 @@ internal sealed class ModuleCommands(KDesktopLink link)
 
     private readonly ConcurrentDictionary<string, TaskCompletionSource<MatchedMessage?>> _matches = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<EndMessage?>> _runs = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<DescribedMessage?>> _descriptions = new(StringComparer.Ordinal);
     private int _next;
 
     public Task<MatchedMessage?> MatchAsync(string text, CancellationToken cancellationToken) =>
@@ -32,6 +34,17 @@ internal sealed class ModuleCommands(KDesktopLink link)
 
     public Task<EndMessage?> MediaAsync(string order, int? value, CancellationToken cancellationToken) =>
         AskAsync(_runs, id => new MediaMessage(order, value, id), RunWait, cancellationToken);
+
+    public Task<DescribedMessage?> DescribeAsync(string command, CancellationToken cancellationToken) =>
+        AskAsync(_descriptions, id => new DescribeMessage(id, command), MatchWait, cancellationToken);
+
+    public Task<EndMessage?> RunEventAsync(string name, string? assistant, CancellationToken cancellationToken) =>
+        AskAsync(_runs, id => new RunEventMessage(assistant ?? string.Empty, id, name), RunWait, cancellationToken);
+
+    public void OnDescribed(DescribedMessage described)
+    {
+        if (_descriptions.TryRemove(described.Id, out var waiting)) waiting.TrySetResult(described);
+    }
 
     public void OnMatched(MatchedMessage matched)
     {

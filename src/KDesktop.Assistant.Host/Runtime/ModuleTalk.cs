@@ -28,7 +28,7 @@ internal sealed class ModuleTalk : ITalkOutput
     private readonly ConcurrentDictionary<string, (string Language, AssistantPersona Persona)> _personas = new(StringComparer.Ordinal);
     private readonly ModuleTools _tools;
 
-    public ModuleTalk(KDesktopLink link, EngineLoop engine, AssistantRuntime runtime, BrainService brain, ModuleTools tools)
+    public ModuleTalk(KDesktopLink link, EngineLoop engine, AssistantRuntime runtime, BrainService brain, ModuleTools tools, ModuleCommands commands)
     {
         _link = link;
         _engine = engine;
@@ -37,7 +37,7 @@ internal sealed class ModuleTalk : ITalkOutput
         Meaning = new ModuleMeaning(link);
         Chooser = new ToolChooser(Meaning);
         Memory = new TalkMemory(tools.Builtin.Memory, tools.Runner, Meaning);
-        Service = new TalkService(who => (brain.Client, brain.ModelFor(who)), tools.Runner, PersonaOf, this, chooser: Chooser, memory: Memory, learn: () => tools.Learn);
+        Service = new TalkService(who => (brain.Client, brain.ModelFor(who)), tools.Runner, PersonaOf, this, chooser: Chooser, memory: Memory, learn: () => tools.Learn, commands: commands);
     }
 
     public TalkService Service { get; }

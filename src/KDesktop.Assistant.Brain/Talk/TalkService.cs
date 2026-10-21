@@ -3,10 +3,12 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using KDesktop.Assistant.Brain.Models;
 using KDesktop.Assistant.Tools;
+using KDesktop.Assistant.Tools.Builtin;
 using KDesktop.Core;
 using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Localization;
+using KDesktop.Core.Voice;
 
 namespace KDesktop.Assistant.Brain.Talk;
 
@@ -24,16 +26,26 @@ public interface ITalkOutput
 }
 
 /// <summary>
-/// The way an order goes (stage 3.4, plan §4): every <c>heard</c> first tries the fixed rules (the time, a timer, a
-/// note, «cancela», «repite», «deshaz»), answered at once with the assistant's phrases; anything else goes to the AI,
-/// with the persona of the assistant it was said to and its short history. One conversation per assistant (and one for
-/// the module without a body); a new order replaces the one still going. Commands (<c>match</c>) come in phase 4.
-/// Thread-safe.
+/// The way an order goes (stage 3.4 and 4.4, plan §4): every <c>heard</c> first tries the fixed rules (the time, a timer,
+/// a note, «cancela», «repite», «deshaz»), answered at once with the assistant's phrases; then the user's K-Desktop
+/// commands (<c>match</c>, like the voice): what clearly names commands runs in the order said, without the AI, and what
+/// is left goes to it; two commands nearly as close are asked about («¿A o B?», answered without the AI: «el primero»
+/// or the name); anything else goes to the AI, with the persona of the assistant it was said to, its short history and
+/// the command tools. One conversation per assistant (and one for the module without a body); a new order replaces the
+/// one still going. Thread-safe.
 /// </summary>
 public sealed class TalkService
 {
     /// <summary>«Deshaz» undoes what was done this long ago at most.</summary>
     public static readonly TimeSpan UndoWithin = TimeSpan.FromMinutes(30);
+
+    /// <summary>«¿A o B?» waits this long for its answer.</summary>
+    public static readonly TimeSpan ChoiceWithin = TimeSpan.FromMinutes(1);
+
+    /// <summary>Two candidates are asked about when both are this close and less than <see cref="Close"/> apart.</summary>
+    public const double Plausible = 0.70;
+
+    public const double Close = 0.08;
 
     private readonly Func<string?, (IChatModel? Client, string? Model)> _brain;
     private readonly ToolRunner _tools;
@@ -43,6 +55,7 @@ public sealed class TalkService
     private readonly Random _random;
     private readonly TalkMind _mind;
     private readonly TalkMemory? _memory;
+    private readonly ICommandBridge? _commands;
     private readonly Func<bool> _learn;
     private readonly ConcurrentDictionary<string, Conversation> _conversations = new(StringComparer.Ordinal);
 
@@ -51,9 +64,12 @@ public sealed class TalkService
     /// <param name="chooser">Which tools reach the AI (null: by the words of the order).</param>
     /// <param name="memory">What is remembered about the user (null: nothing).</param>
     /// <param name="learn">Whether it learns from what is talked about (Options → Memory).</param>
+    /// <param name="commands">The user's K-Desktop commands (null: none, the AI answers everything).</param>
     public TalkService(Func<string?, (IChatModel? Client, string? Model)> brain, ToolRunner tools, Func<string?, AssistantPersona> persona,
-        ITalkOutput output, TimeProvider? time = null, Random? random = null, ToolChooser? chooser = null, TalkMemory? memory = null, Func<bool>? learn = null)
+        ITalkOutput output, TimeProvider? time = null, Random? random = null, ToolChooser? chooser = null, TalkMemory? memory = null, Func<bool>? learn = null,
+        ICommandBridge? commands = null)
     {
+        _commands = commands;
         _brain = brain;
         _tools = tools;
         _persona = persona;
@@ -134,7 +150,12 @@ public sealed class TalkService
     private async Task<TalkAnswer> AnswerAsync(Conversation conversation, AssistantPersona persona, string? who, string said, string turn, bool wasBusy, CancellationToken token)
     {
         var context = new ToolContext(who);
-        switch (QuickRules.Match(said, [persona.Name]))
+        var rule = QuickRules.Match(said, [persona.Name]);
+        // The answer to «¿A o B?»: «el primero», «la otra» or one of the names.
+        var pending = conversation.TakeChoice(_time.GetUtcNow());
+        if (pending is not null && ChoiceOf(pending, rule, said) is { } chosen)
+            return await CommandsAsync(persona, [chosen], context, said, token).ConfigureAwait(false);
+        switch (rule)
         {
             case { Kind: QuickRuleKind.Cancel }:
                 return new TalkAnswer(Phrase(persona, wasBusy ? "cancelled" : "nothingToCancel"), Remember: false);
@@ -162,12 +183,84 @@ public sealed class TalkService
                 return await ToolAsync(persona, "cancel_timer", which, context, said, acknowledge: true, token).ConfigureAwait(false);
         }
 
+        // The user's commands: what clearly names them runs now, in order; two nearly as close are asked about. Not for a
+        // question («¿qué hace el comando modo juego?» names it, and must not run it): the AI, with the command tools.
+        TalkAnswer? ran = null;
+        var forAi = said;
+        IReadOnlyCollection<string>? leaveOut = null;
+        if (_commands is not null && !IsQuestion(said) && await _commands.MatchAsync(said, token).ConfigureAwait(false) is { } matched)
+        {
+            Log.Info("Asistente: comandos: " + CommandTools.Describe(matched));
+            var sure = matched.Parts.Where(p => p.Sure && p.Candidates[0].Score >= CommandTools.Direct).Select(p => p.Candidates[0]).ToList();
+            // A part K-Desktop is sure of but not enough for running it at once is left to the AI too.
+            var unmatched = matched.Unmatched.Concat(matched.Parts.Where(p => p.Sure && p.Candidates[0].Score < CommandTools.Direct).Select(p => p.Text)).ToList();
+            if (sure.Count > 0)
+            {
+                ran = await CommandsAsync(persona, sure, context, said, token).ConfigureAwait(false);
+                if (unmatched.Count == 0) return ran;
+                forAi = string.Join(", ", unmatched);
+            }
+            else if (matched.Parts is [{ Candidates: [var first, var second, ..] }] && first.Score >= Plausible && second.Score >= Plausible
+                     && first.Score - second.Score < Close)
+            {
+                conversation.AskChoice([first, second], _time.GetUtcNow());
+                return new TalkAnswer(Phrase(persona, "which", first.Name, second.Name), Remember: false);
+            }
+            // No command of the user is anything like it: the AI is not tempted to look for one.
+            if (sure.Count == 0 && !matched.Parts.SelectMany(p => p.Candidates).Any(c => c.Score >= CommandTools.Plausible)) leaveOut = ["run_command"];
+        }
+
         var (client, model) = _brain(who);
-        if (client is null || model is null) return new TalkAnswer(Phrase(persona, "noBrain"), Remember: false, Failed: true);
+        if (client is null || model is null) return ran ?? new TalkAnswer(Phrase(persona, "noBrain"), Remember: false, Failed: true);
         _output.State(who, "thinking");
-        var shown = new PartialText(text => _output.Chat(new ChatLineMessage("assistant", text, turn, false, who)), _time);
-        var answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), conversation.History.LastTools(), said, context, shown.Show, token).ConfigureAwait(false);
-        return answer with { Text = answer.Text.Length > 0 ? answer.Text : Phrase(persona, "ok"), FromAi = true };
+        var shown = new PartialText(text => _output.Chat(new ChatLineMessage("assistant", (ran is null ? "" : ran.Text + " ") + text, turn, false, who)), _time);
+        var answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), conversation.History.LastTools(), forAi, context, shown.Show, token, leaveOut).ConfigureAwait(false);
+        answer = answer with { Text = answer.Text.Length > 0 ? answer.Text : Phrase(persona, "ok"), FromAi = true };
+        return ran is null ? answer : answer with { Text = ran.Text + " " + answer.Text, Tools = [.. ran.Tools, .. answer.Tools] };
+    }
+
+    /// <summary>
+    /// Runs commands (or built-in media orders) in order, each through the «run_command» tool (so they are in the
+    /// activity; K-Desktop asks before what is risky), and says how they went: «Hecho. He ejecutado «X».», what was
+    /// declined, or what failed.
+    /// </summary>
+    private async Task<TalkAnswer> CommandsAsync(AssistantPersona persona, IReadOnlyList<MatchedCandidate> commands, ToolContext context, string said, CancellationToken token)
+    {
+        var replies = new List<string>();
+        var failed = false;
+        foreach (var command in commands)
+        {
+            var arguments = new JsonObject { ["command"] = command.Name };
+            if (command.Command is { } id) arguments["id"] = id;
+            if (command.Media is { } media) arguments["media"] = media;
+            if (command.Value is { } value) arguments["value"] = value;
+            var outcome = await _tools.RunAsync("run_command", JsonSerializer.SerializeToElement(arguments), context, said, "kdesktop", token).ConfigureAwait(false);
+            if (outcome.Result is { Failed: false } done) replies.Add(done.Reply ?? command.Name);
+            else
+            {
+                failed = true;
+                replies.Add(outcome.Result?.Reply ?? Phrase(persona, "error"));
+            }
+        }
+        var text = failed ? string.Join(" ", replies) : Phrase(persona, "ok") + " " + string.Join(" ", replies);
+        return new TalkAnswer(text, Failed: failed) { Tools = ["run_command"] };
+    }
+
+    /// <summary>A question, not an order (it may name a command without asking to run it).</summary>
+    public static bool IsQuestion(string said) => said.Contains('?', StringComparison.Ordinal);
+
+    /// <summary>Which of the two asked about the answer names, or null (then it is a new order).</summary>
+    private static MatchedCandidate? ChoiceOf(IReadOnlyList<MatchedCandidate> pending, QuickRule? rule, string said)
+    {
+        if (rule is { Kind: QuickRuleKind.First }) return pending[0];
+        if (rule is { Kind: QuickRuleKind.Second } && pending.Count > 1) return pending[1];
+        var words = TextSimilarity.Words(said);
+        return pending
+            .Select(c => (Candidate: c, Shared: TextSimilarity.Words(c.Name).Count(w => w.Length > 2 && words.Any(s => TextSimilarity.WordSimilarity(w, s) >= 0.85))))
+            .Where(p => p.Shared > 0)
+            .OrderByDescending(p => p.Shared)
+            .Select(p => (MatchedCandidate?)p.Candidate)
+            .FirstOrDefault();
     }
 
     /// <summary>A tool for a rule: what it says it did (after «Recibido.» for an action), or why not.</summary>
@@ -195,6 +288,25 @@ public sealed class TalkService
         public TalkHistory History { get; } = new(time);
 
         public string? LastAnswer { get; set; }
+
+        private (IReadOnlyList<MatchedCandidate> Candidates, DateTimeOffset At)? _choice;
+
+        /// <summary>«¿A o B?» was asked: the next order may answer it.</summary>
+        public void AskChoice(IReadOnlyList<MatchedCandidate> candidates, DateTimeOffset now)
+        {
+            lock (_gate) _choice = (candidates, now);
+        }
+
+        /// <summary>The question waiting for an answer (still fresh), which the next order takes away either way.</summary>
+        public IReadOnlyList<MatchedCandidate>? TakeChoice(DateTimeOffset now)
+        {
+            lock (_gate)
+            {
+                var choice = _choice;
+                _choice = null;
+                return choice is { } c && now - c.At <= ChoiceWithin ? c.Candidates : null;
+            }
+        }
 
         /// <summary>A new order: the one going on is cancelled. Whether there was one.</summary>
         public (CancellationToken Token, bool WasBusy) Begin()

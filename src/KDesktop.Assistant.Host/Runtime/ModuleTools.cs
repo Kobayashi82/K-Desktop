@@ -22,13 +22,15 @@ internal sealed class ModuleTools : IDisposable
     private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _questions = new(StringComparer.Ordinal);
     private volatile IReadOnlySet<string> _trusted = new HashSet<string>(StringComparer.Ordinal);
 
-    public ModuleTools(KDesktopLink link)
+    /// <param name="commands">The user's K-Desktop commands (stage 4.4).</param>
+    public ModuleTools(KDesktopLink link, ICommandBridge commands)
     {
         _link = link;
         var folder = Path.Combine(AppPaths.DataDir, "Assistant");
         Builtin = new BuiltinTools(folder);
         var registry = new ToolRegistry();
         Builtin.AddTo(registry);
+        CommandTools.AddTo(registry, commands);
         Runner = new ToolRunner(registry, () => _trusted, AskAsync, message => link.Send(message), Path.Combine(folder, "undo.json"));
         Builtin.Timers.Rang += OnTimerRang;
         Builtin.Memory.Changed += SendMemory;

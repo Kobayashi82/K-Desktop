@@ -33,6 +33,19 @@ public partial class App
                     supervisor.Send(end);
                 });
                 return true;
+            case DescribeMessage describe:
+                supervisor.Send(AssistantCommands.Describe(Config, describe));
+                return true;
+            case RunEventMessage runEvent:
+                _ = Task.Run(async () =>
+                {
+                    var who = AssistantPackages.Find(runEvent.Assistant)?.Manifest.Name ?? (runEvent.Assistant.Length > 0 ? runEvent.Assistant : "K-Desktop");
+                    var end = await AssistantCommands.RunEventAsync(Engine, runEvent, who,
+                        (rule, risk) => Dispatcher.InvokeAsync(() => AskUserAsync("event-" + runEvent.Run, runEvent.Assistant, Loc.T("assistantCommand.askEvent", rule.Name), false, CommandAskSeconds)).Task.Unwrap())
+                        .ConfigureAwait(false);
+                    supervisor.Send(end);
+                });
+                return true;
             case MediaMessage media:
                 _ = Task.Run(async () =>
                 {

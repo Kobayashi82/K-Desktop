@@ -1,0 +1,15 @@
+{
+  "t": "described",
+  "id": "c-12",
+  "found": true,
+  "name": "Modo juego",
+  "actions": [
+    "Plan de energía: Alto rendimiento",
+    "Desactivar en: activar",
+    "Abrir programa: Steam"
+  ],
+  "hotkeys": [
+    "CTRL + ALT + J"
+  ],
+  "asks": "once"
+}

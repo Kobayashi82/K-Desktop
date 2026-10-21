@@ -16,8 +16,12 @@ public static class AssistantCommands
     /// <summary>Candidates given per part, at most.</summary>
     public const int MaxCandidates = 4;
 
-    /// <summary>The commands an assistant can find and run: the enabled ones, like the voice.</summary>
-    public static IReadOnlyCollection<Command> Available(AppConfig config) => [.. VoiceService.VoiceCommands(config)];
+    /// <summary>
+    /// The commands an assistant can find and run: the enabled ones, like the voice, but not those that ask an assistant
+    /// something («Asistente: preguntar»): it would end up asking itself, again and again.
+    /// </summary>
+    public static IReadOnlyCollection<Command> Available(AppConfig config) =>
+        [.. VoiceService.VoiceCommands(config).Where(c => !c.Actions.Any(a => a is AssistantAskAction { Enabled: true }))];
 
     /// <param name="media">The built-in media orders are on (Options → Multimedia).</param>
     /// <param name="semantic">The meaning layer (null: only the words).</param>
@@ -49,7 +53,7 @@ public static class AssistantCommands
     public static async Task<EndMessage> RunAsync(CommandEngine engine, RunMessage request, string who, Func<Command, ToolRisk, Task<string>> ask)
     {
         if (engine.IsPaused) return new EndMessage(request.Run, "failed", [Loc.T("pause.refused")]);
-        if (engine.Config.FindCommand(request.Command) is not { Enabled: true } command)
+        if (engine.Config.FindCommand(request.Command) is not { Enabled: true } command || !Available(engine.Config).Contains(command))
             return new EndMessage(request.Run, "failed", [Loc.T("assistantCommand.notFound")]);
         var risk = ActionRisk.OfCommand(command, engine.Config.FindCommand, engine.Config.Settings.AssistantTrustedCommands.Contains(command.Id));
         if (risk != ToolRisk.Safe && await ask(command, risk).ConfigureAwait(false) is not ("yes" or "always"))
@@ -69,6 +73,50 @@ public static class AssistantCommands
         }
         return new EndMessage(request.Run, feedback.HasError ? "failed" : "ok", feedback.Messages);
     }
+
+    /// <summary>What a command does: its enabled actions in words, its hotkeys and whether an assistant must ask first.</summary>
+    public static DescribedMessage Describe(AppConfig config, DescribeMessage request)
+    {
+        if (config.FindCommand(request.Command) is not { } command) return new DescribedMessage(request.Id, false, string.Empty, [], [], "no");
+        var risk = ActionRisk.OfCommand(command, config.FindCommand, config.Settings.AssistantTrustedCommands.Contains(command.Id));
+        return new DescribedMessage(request.Id, true, command.Name,
+            [.. command.Actions.Where(a => a.Enabled).Select(a => $"{ActionCatalog.Get(a.Kind).Name}: {a.Summary}")],
+            [.. command.Hotkeys],
+            risk switch { ToolRisk.AskAlways => "always", ToolRisk.AskOnce => "once", _ => "no" });
+    }
+
+    /// <summary>
+    /// Runs the commands of an event found by its name (the closest, if it is clearly that one), asking first like for a
+    /// command when any of them would ask (the riskiest decides). Not found or paused: <c>failed</c> at once.
+    /// </summary>
+    public static async Task<EndMessage> RunEventAsync(CommandEngine engine, RunEventMessage request, string who, Func<EventRule, ToolRisk, Task<string>> ask)
+    {
+        if (engine.IsPaused) return new EndMessage(request.Run, "failed", [Loc.T("pause.refused")]);
+        var config = engine.Config;
+        var rule = config.Events.Where(e => e.Name.Trim().Length > 0)
+            .Select(e => (Rule: e, Score: FuzzyMatch.Score(FuzzyMatch.Tokens(request.Event), new SearchKey(e.Name))))
+            .Where(p => p.Score >= MinEventScore)
+            .OrderByDescending(p => p.Score)
+            .Select(p => p.Rule)
+            .FirstOrDefault();
+        if (rule is null) return new EndMessage(request.Run, "failed", [Loc.T("assistantCommand.noEvent", request.Event)]);
+        var risk = rule.Commands.Select(config.FindCommand).OfType<Command>()
+            .Select(c => ActionRisk.OfCommand(c, config.FindCommand, config.Settings.AssistantTrustedCommands.Contains(c.Id)))
+            .DefaultIfEmpty(ToolRisk.Safe).Max();
+        // An event is never trusted as a whole: it asks at least once a time, unless every command in it is trusted.
+        if (risk != ToolRisk.Safe && await ask(rule, risk).ConfigureAwait(false) is not ("yes" or "always"))
+            return new EndMessage(request.Run, "declined", [Loc.T("assistantCommand.declined", rule.Name)]);
+        var feedback = new ExecutionFeedback();
+        Task run;
+        using (feedback.Begin())
+        using (ExecutionHistory.Describe(who))
+            run = engine.RunEventAsync(rule, end: false, TriggerSource.Assistant);
+        await run.ConfigureAwait(false);
+        return new EndMessage(request.Run, feedback.HasError ? "failed" : "ok", feedback.Messages);
+    }
+
+    /// <summary>How close a name must be to an event's (FuzzyMatch) to take it.</summary>
+    private const int MinEventScore = 300;
 
     /// <summary>A built-in media order by its name (<c>volumeDown</c>…), or null when there is no such order.</summary>
     public static MediaOrder? MediaOrderOf(MediaMessage request) =>

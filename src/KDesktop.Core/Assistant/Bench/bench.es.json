@@ -1,5 +1,5 @@
 {
-  "about": "Banco de pruebas de los asistentes: órdenes y lo que se espera de cada una. «tool»: una herramienta (o una lista: vale cualquiera) que debe usar; «noTool»: que conteste sin herramientas; «answerContains»: algo que debe decir (vale cualquiera de la lista). Las herramientas que hacen algo no lo hacen de verdad durante la prueba.",
+  "about": "Banco de pruebas de los asistentes: órdenes y lo que se espera de cada una. «tool»: una herramienta (o una lista: vale cualquiera) que debe usar; «noTool»: que conteste sin herramientas; «answerContains»: algo que debe decir (vale cualquiera de la lista); «command»: uno de tus comandos de K-Desktop que debe ejecutar, por su nombre (o una lista). Las herramientas que hacen algo no lo hacen de verdad durante la prueba.",
   "cases": [
     { "say": "¿qué hora es?", "expect": { "tool": "get_time" } },
     { "say": "¿qué día es hoy?", "expect": { "tool": "get_time" } },

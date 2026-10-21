@@ -30,6 +30,17 @@
           "score": 0.74
         }
       ]
+    },
+    {
+      "text": "baja el volumen",
+      "sure": true,
+      "candidates": [
+        {
+          "name": "Bajar el volumen",
+          "score": 0.93,
+          "media": "volumeDown"
+        }
+      ]
     }
   ]
 }

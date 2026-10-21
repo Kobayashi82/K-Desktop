@@ -35,12 +35,15 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
 
     /// <param name="recentTools">The tools used in the last exchange.</param>
     /// <param name="onText">The answer so far, cleaned, while it is written (any thread).</param>
+    /// <param name="leaveOut">Tools not to offer for this order (run_command when no command of the user is anything like it).</param>
     public async Task<TalkAnswer> AnswerAsync(IChatModel model, string modelName, AssistantPersona persona, IReadOnlyList<ChatMessage> history,
-        IReadOnlyCollection<string> recentTools, string said, ToolContext context, Action<string>? onText, CancellationToken cancellationToken)
+        IReadOnlyCollection<string> recentTools, string said, ToolContext context, Action<string>? onText, CancellationToken cancellationToken,
+        IReadOnlyCollection<string>? leaveOut = null)
     {
         // The order's meaning once, for the tools and for what comes to mind.
         var order = await MeaningOfAsync(said, cancellationToken).ConfigureAwait(false);
-        var offered = await chooser.ChooseAsync(tools.Registry.All, said, recentTools, order, cancellationToken).ConfigureAwait(false);
+        var available = leaveOut is { Count: > 0 } ? [.. tools.Registry.All.Where(t => !leaveOut.Contains(t.Name))] : tools.Registry.All;
+        var offered = await chooser.ChooseAsync(available, said, recentTools, order, cancellationToken).ConfigureAwait(false);
         var known = memory is null ? [] : await memory.RecallAsync(said, order, cancellationToken).ConfigureAwait(false);
         var definitions = offered.Tools.Select(t => new ToolDefinition(t.Name, t.Description, t.ParametersSchemaJson)).ToList();
         var messages = new List<ChatMessage> { ChatMessage.System(TalkPrompt.Compose(persona, time.GetLocalNow(), known)) };
@@ -81,7 +84,7 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
                         {
                             if (!used.Contains(call.Name)) used.Add(call.Name);
                             replies.Add(worked.Reply);
-                            acted |= worked.Undo is not null;
+                            acted |= worked.Undo is not null || worked.Acted;
                         }
                     }
                     messages.Add(ChatMessage.ToolResult(call.Name, result, call.Id));

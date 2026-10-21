@@ -55,6 +55,9 @@ public sealed record ToolResult(string Text)
     /// <summary>How to undo it, or null when it cannot be undone.</summary>
     public ToolUndo? Undo { get; init; }
 
+    /// <summary>It did something (a command ran) even if it cannot be undone: its reply says exactly what.</summary>
+    public bool Acted { get; init; }
+
     /// <summary>It could not do it (something was missing…): the activity shows it failed.</summary>
     public bool Failed { get; init; }
 
