@@ -35,15 +35,18 @@ public sealed class ToolRunner
     private readonly Func<AskMessage, CancellationToken, Task<string>> _ask;
     private readonly Action<LogMessage> _log;
     private readonly string _undoFile;
+    private readonly string? _approvedFile;
     private List<StoredUndo>? _undos;
+    private HashSet<string>? _approved;
 
     /// <param name="trusted">The tools the user said not to ask about again.</param>
     /// <param name="ask">Asks the user (K-Desktop) and gives the choice: <c>yes</c>, <c>no</c>, <c>always</c> or <c>timeout</c>.</param>
     /// <param name="log">Sends a line of the activity.</param>
     /// <param name="undoFile">Where what can be undone is kept.</param>
     /// <param name="askBefore">The user's <see cref="AskPolicy"/> (null: <see cref="AskPolicy.First"/>).</param>
+    /// <param name="approvedFile">Where the approved <see cref="ITool.Fingerprint"/>s are kept (null: nowhere, they always ask).</param>
     public ToolRunner(ToolRegistry registry, Func<IReadOnlySet<string>> trusted, Func<AskMessage, CancellationToken, Task<string>> ask,
-        Action<LogMessage> log, string undoFile, Func<string>? askBefore = null)
+        Action<LogMessage> log, string undoFile, Func<string>? askBefore = null, string? approvedFile = null)
     {
         _registry = registry;
         _trusted = trusted;
@@ -51,6 +54,7 @@ public sealed class ToolRunner
         _ask = ask;
         _log = log;
         _undoFile = undoFile;
+        _approvedFile = approvedFile;
     }
 
     public ToolRegistry Registry => _registry;
@@ -66,14 +70,23 @@ public sealed class ToolRunner
         try { intent = tool.Intent(arguments); }
         catch (Exception ex) when (ex is JsonException or InvalidOperationException or FormatException) { intent = name; }
 
-        if (MustAsk(tool))
+        string? fingerprint;
+        try { fingerprint = tool.Fingerprint; }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            var choice = await AskAsync(tool, intent, context, cancellationToken).ConfigureAwait(false);
+            Log.Warn($"Asistente: no se ha podido leer lo que ejecutaría {name}: {ex.Message}");
+            return new ToolOutcome(ToolResult.Fail($"Cannot read what {name} would run."), Record(context.Assistant, heard, route, Loc.T("tools.failed", intent), ok: false));
+        }
+        var unseen = fingerprint is not null && !IsApproved(fingerprint);
+        if (unseen || MustAsk(tool))
+        {
+            var choice = await AskAsync(tool, Loc.T(unseen ? "tools.askNew" : "tools.ask", intent), fingerprint is not null, context, cancellationToken).ConfigureAwait(false);
             if (choice is not ("yes" or "always"))
             {
                 var why = Loc.T(choice == "no" ? "tools.denied" : "tools.unanswered", intent);
                 return new ToolOutcome(null, Record(context.Assistant, heard, route, why, ok: false));
             }
+            if (choice == "always" && fingerprint is not null) Approve(fingerprint);
         }
 
         ToolResult result;
@@ -146,9 +159,50 @@ public sealed class ToolRunner
 
     private bool MustAsk(ITool tool) => AskPolicy.Asks(tool.Risk, _askBefore(), _trusted().Contains(tool.Name));
 
-    private async Task<string> AskAsync(ITool tool, string intent, ToolContext context, CancellationToken cancellationToken)
+    private bool IsApproved(string fingerprint)
     {
-        var question = new AskMessage(NewId(), tool.Name, Loc.T("tools.ask", intent), tool.Risk == ToolRisk.AskOnce, (int)AskTime.TotalSeconds, context.Assistant);
+        lock (_gate) return Approved().Contains(fingerprint);
+    }
+
+    private void Approve(string fingerprint)
+    {
+        if (_approvedFile is null) return;
+        string json;
+        lock (_gate)
+        {
+            if (!Approved().Add(fingerprint)) return;
+            json = JsonSerializer.Serialize(Approved().Order(StringComparer.Ordinal), Json);
+        }
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(_approvedFile)!);
+            File.WriteAllText(_approvedFile, json);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Log.Warn($"Asistente: no se ha podido guardar {_approvedFile}: {ex.Message}");
+        }
+    }
+
+    private HashSet<string> Approved()
+    {
+        if (_approved is not null) return _approved;
+        _approved = new HashSet<string>(StringComparer.Ordinal);
+        if (_approvedFile is null || !File.Exists(_approvedFile)) return _approved;
+        try
+        {
+            foreach (var item in JsonSerializer.Deserialize<List<string>>(File.ReadAllText(_approvedFile), Json) ?? []) _approved.Add(item);
+        }
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        {
+            Log.Warn($"Asistente: no se ha podido leer {_approvedFile}: {ex.Message}");
+        }
+        return _approved;
+    }
+
+    private async Task<string> AskAsync(ITool tool, string text, bool approvable, ToolContext context, CancellationToken cancellationToken)
+    {
+        var question = new AskMessage(NewId(), tool.Name, text, tool.Risk == ToolRisk.AskOnce || approvable, (int)AskTime.TotalSeconds, context.Assistant);
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         // A little more than the user's time: K-Desktop says «timeout» itself when it runs out.
         timeout.CancelAfter(AskTime + TimeSpan.FromSeconds(3));

@@ -117,6 +117,24 @@ public static partial class QuickRules
     }
 
     /// <summary>
+    /// Whether <paramref name="text"/> says <paramref name="phrase"/> and nothing else (without the assistant's name, the
+    /// fillers or a polite start; a letter off in a long word): a phrase of a JSON tool («buenas noches»), stage 9.1.
+    /// </summary>
+    public static bool SaysPhrase(string text, string phrase, IEnumerable<string>? names = null)
+    {
+        var w = Words;
+        var nameWords = (names ?? []).Select(TextSimilarity.Words).Where(n => n.Length > 0).ToList();
+        var bare = Trim(Tokenize(text), w, nameWords);
+        var wanted = Trim(Tokenize(phrase), w, []).Select(t => t.Folded).ToArray();
+        if (bare.Count == 0 || wanted.Length == 0) return false;
+        if (bare.Count == wanted.Length && StartsWith(bare, wanted, 0)) return true;
+        foreach (var polite in w.Polite)
+            if (StartsWith(bare, polite, 0) && Trim(bare[polite.Length..], w, nameWords) is { } rest && rest.Count == wanted.Length && StartsWith(rest, wanted, 0))
+                return true;
+        return false;
+    }
+
+    /// <summary>
     /// The web addresses in what was said, in order and without repeats: «youPorn.com y pornhub.com», «github punto com»
     /// (the word for «dot» of <c>assistant.rule.dot</c>, any language). Not files («steam.exe»).
     /// </summary>

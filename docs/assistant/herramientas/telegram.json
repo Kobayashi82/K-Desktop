@@ -1,0 +1,17 @@
+{
+  "$schema": "../esquemas/tool.schema.json",
+  "name": "send_telegram",
+  "type": "http",
+  "description": "Sends a message to the user's phone through their own Telegram bot. Use it when they ask to send something to their phone or to Telegram.",
+  "examples": ["mándame esto al Telegram", "envíame al móvil la lista de la compra", "send me a Telegram saying hi"],
+  "parameters": {
+    "text": { "type": "string", "description": "The message, as it should arrive" }
+  },
+  "request": {
+    "method": "POST",
+    "url": "https://api.telegram.org/bot{{secret:telegram_token}}/sendMessage",
+    "body": { "chat_id": "{{secret:telegram_chat}}", "text": "{{text}}" }
+  },
+  "intent": "mandarte por Telegram: {{text}}",
+  "say": { "ok": "Te lo he mandado al Telegram.", "error": "Telegram no ha aceptado el mensaje." }
+}

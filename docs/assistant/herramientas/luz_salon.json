@@ -1,0 +1,19 @@
+{
+  "$schema": "../esquemas/tool.schema.json",
+  "name": "luz_salon",
+  "type": "http",
+  "description": "Turns the living room light on or off (Home Assistant).",
+  "examples": ["enciende la luz del salón", "apaga el salón", "luz del salón", "turn on the living room light"],
+  "parameters": {
+    "estado": { "type": "string", "enum": ["on", "off"], "description": "on to switch it on, off to switch it off" }
+  },
+  "request": {
+    "method": "POST",
+    "url": "http://homeassistant.local:8123/api/services/light/turn_{{estado}}",
+    "headers": { "Authorization": "Bearer {{secret:ha_token}}" },
+    "body": { "entity_id": "light.salon" }
+  },
+  "intent": "poner la luz del salón en {{estado}}",
+  "say": { "ok": "Luz del salón: {{estado}}.", "error": "La base no responde." },
+  "risk": "safe"
+}

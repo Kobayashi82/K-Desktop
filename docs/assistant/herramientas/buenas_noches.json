@@ -1,0 +1,13 @@
+{
+  "$schema": "../esquemas/tool.schema.json",
+  "name": "buenas_noches",
+  "type": "routine",
+  "description": "The user's bedtime routine: switches the living room light off and then the screens.",
+  "examples": ["buenas noches", "me voy a dormir", "good night"],
+  "steps": [
+    { "tool": "luz_salon", "arguments": { "estado": "off" }, "continueOnError": true },
+    { "wait": 1 },
+    { "command": "Apagar pantalla" }
+  ],
+  "say": { "ok": "Buenas noches.", "error": "Algo no ha salido; mira la actividad." }
+}

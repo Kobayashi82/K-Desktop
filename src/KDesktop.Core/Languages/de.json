@@ -3389,5 +3389,15 @@
   "tool.transform_text.examples": "übersetze das ins Englische|korrigiere die Rechtschreibung dieses Textes|fass es zusammen|mach es förmlicher|mach eine Liste daraus|übersetze, was ich kopiert habe, ins Spanische|kürze diese E-Mail",
   "assistant.prompt.certain": "Was er verlangt, enthält sicher diese Befehle von ihm: führ sie mit run_command an ihrer Stelle im Auftrag aus, ohne zu fragen, auch wenn ein anderer Teil nicht geht: {0}.",
   "assistant.rule.repeatCommand": "wiederhole den [letzten] befehl|wiederhol den [letzten] befehl|den letzten befehl [noch mal] wiederholen|führ den letzten befehl noch mal aus|führ den letzten befehl nochmal aus|den vorherigen befehl wiederholen",
-  "assistant.phrase.nothingToRerun": "Ich habe noch keinen Befehl ausgeführt."
+  "assistant.phrase.nothingToRerun": "Ich habe noch keinen Befehl ausgeführt.",
+  "tools.askNew": "Darf ich {0}? Das ist ein Skript, das du noch nicht freigegeben hast (neu oder geändert).",
+  "tools.json.intent": "„{0}“ verwenden",
+  "tools.json.noSecret": "Mir fehlt das Geheimnis „{0}“. Füge es in den Einstellungen hinzu.",
+  "tools.json.noProgram": "Dafür braucht es {0}, und das ist nicht installiert.",
+  "tools.json.broken": "Fehler im Werkzeug {0}",
+  "tools.json.taken": "Der Name „{0}“ wird schon von einem eingebauten Werkzeug verwendet.",
+  "tools.json.duplicate": "„{0}“ steht schon in {1}.",
+  "tools.json.noParameter": "„{0}“ steht in required, aber nicht in parameters.",
+  "tools.json.selfStep": "Eine Routine kann sich nicht selbst aufrufen.",
+  "tools.json.noScript": "Das Skript {0} gibt es nicht."
 }

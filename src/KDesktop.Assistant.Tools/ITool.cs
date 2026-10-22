@@ -30,6 +30,13 @@ public interface ITool
     /// <summary>It only reads (the time, the notes, a sum): the test bench runs it for real; the others are only pretended.</summary>
     bool ReadsOnly => false;
 
+    /// <summary>
+    /// What exactly would run (a script tool: its file and the script, hashed), or null. A fingerprint the user has not
+    /// approved with «always» is asked about whatever <see cref="AskPolicy"/> says: a script dropped in the folder, or
+    /// changed, never runs unseen (stage 9.1).
+    /// </summary>
+    string? Fingerprint => null;
+
     /// <summary>What it is about to do with these arguments, for people («poner un temporizador de 10 min»): to ask and for the activity.</summary>
     string Intent(JsonElement arguments);
 
@@ -75,16 +82,79 @@ public sealed record ToolUndo(string Tool, string Data);
 /// <param name="Heard">The order being answered, when there is one.</param>
 public sealed record ToolContext(string? Assistant, string? Heard = null);
 
-/// <summary>The tools that exist (built in now; JSON and MCP ones later, stage 9).</summary>
+/// <summary>
+/// The tools that exist, in groups: the built-in ones (<see cref="Builtin"/>), the JSON ones (stage 9.1) and each MCP
+/// server's (9.2), which come and go while the process runs. Readers get a snapshot; thread-safe.
+/// </summary>
 public sealed class ToolRegistry
 {
-    private readonly Dictionary<string, ITool> _tools = new(StringComparer.Ordinal);
+    /// <summary>The group of the tools added with <see cref="Add"/>.</summary>
+    public const string Builtin = "builtin";
 
-    public void Add(ITool tool) => _tools[tool.Name] = tool;
+    private readonly object _gate = new();
+    private readonly List<(string Group, List<ITool> Tools)> _groups = [];
+    private volatile Snapshot _snapshot = new([], new Dictionary<string, (ITool, string)>(StringComparer.Ordinal));
 
-    public ITool? Find(string name) => _tools.GetValueOrDefault(name);
+    /// <summary>A group changed (JSON tools reloaded, an MCP server's tools listed).</summary>
+    public event Action? Changed;
 
-    public IReadOnlyCollection<ITool> All => _tools.Values;
+    public void Add(ITool tool)
+    {
+        lock (_gate)
+        {
+            var tools = GroupList(Builtin);
+            tools.RemoveAll(t => t.Name == tool.Name);
+            tools.Add(tool);
+            Rebuild();
+        }
+    }
+
+    /// <summary>
+    /// Puts <paramref name="tools"/> as the whole of <paramref name="group"/> (an empty list removes it). A name already
+    /// taken by another group is left out: the first one keeps it.
+    /// </summary>
+    public void SetGroup(string group, IEnumerable<ITool> tools)
+    {
+        lock (_gate)
+        {
+            var list = GroupList(group);
+            list.Clear();
+            list.AddRange(tools);
+            if (list.Count == 0) _groups.RemoveAll(g => g.Group == group);
+            Rebuild();
+        }
+        Changed?.Invoke();
+    }
+
+    public ITool? Find(string name) => _snapshot.ByName.TryGetValue(name, out var found) ? found.Tool : null;
+
+    /// <summary>The group of <paramref name="name"/>, or null when there is no such tool.</summary>
+    public string? GroupOf(string name) => _snapshot.ByName.TryGetValue(name, out var found) ? found.Group : null;
+
+    /// <summary>All of them: the built-in ones first, then each group in the order it came.</summary>
+    public IReadOnlyCollection<ITool> All => _snapshot.All;
+
+    private List<ITool> GroupList(string group)
+    {
+        foreach (var (name, tools) in _groups)
+            if (name == group) return tools;
+        var created = new List<ITool>();
+        if (group == Builtin) _groups.Insert(0, (group, created));
+        else _groups.Add((group, created));
+        return created;
+    }
+
+    private void Rebuild()
+    {
+        var byName = new Dictionary<string, (ITool, string)>(StringComparer.Ordinal);
+        var all = new List<ITool>();
+        foreach (var (group, tools) in _groups)
+            foreach (var tool in tools)
+                if (byName.TryAdd(tool.Name, (tool, group))) all.Add(tool);
+        _snapshot = new Snapshot(all, byName);
+    }
+
+    private sealed record Snapshot(IReadOnlyCollection<ITool> All, Dictionary<string, (ITool Tool, string Group)> ByName);
 }
 
 /// <summary>Reading the arguments the model sends (it may send numbers as text or text as numbers).</summary>

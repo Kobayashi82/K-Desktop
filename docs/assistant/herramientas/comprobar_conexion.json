@@ -1,0 +1,13 @@
+{
+  "$schema": "../esquemas/tool.schema.json",
+  "name": "comprobar_conexion",
+  "type": "script",
+  "description": "Pings a host (the router by default) and says how long it takes to answer, in ms.",
+  "examples": ["¿va bien internet?", "haz ping al router", "¿responde google?"],
+  "parameters": {
+    "host": { "type": "string", "default": "192.168.1.1", "description": "A host name or IP address" }
+  },
+  "script": { "file": "comprobar_conexion.ps1", "args": ["{{host}}"] },
+  "readsOnly": true,
+  "intent": "comprobar si {{host}} responde"
+}

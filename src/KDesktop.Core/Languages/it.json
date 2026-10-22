@@ -3389,5 +3389,15 @@
   "tool.transform_text.examples": "traduci questo in inglese|correggi l'ortografia di questo testo|riassumilo|rendilo più formale|fanne un elenco|traduci quello che ho copiato in spagnolo|accorcia questa email",
   "assistant.prompt.certain": "Quello che chiede include di sicuro questi suoi comandi: eseguili con run_command al loro posto nella richiesta, senza chiedere, anche se un'altra parte non si può fare: {0}.",
   "assistant.rule.repeatCommand": "ripeti l'ultimo comando|ripeti il comando [precedente]|esegui di nuovo l'ultimo comando|esegui di nuovo il comando [precedente]|rifai l'ultimo comando",
-  "assistant.phrase.nothingToRerun": "Non ho ancora eseguito nessun comando."
+  "assistant.phrase.nothingToRerun": "Non ho ancora eseguito nessun comando.",
+  "tools.askNew": "Posso {0}? È uno script che non hai ancora approvato (nuovo o modificato).",
+  "tools.json.intent": "usare «{0}»",
+  "tools.json.noSecret": "Mi manca il segreto «{0}». Aggiungilo nelle Impostazioni.",
+  "tools.json.noProgram": "Per questo serve {0}, che non è installato.",
+  "tools.json.broken": "Errore nello strumento {0}",
+  "tools.json.taken": "Il nome «{0}» è già usato da uno strumento incluso.",
+  "tools.json.duplicate": "«{0}» è già in {1}.",
+  "tools.json.noParameter": "«{0}» è in required ma non in parameters.",
+  "tools.json.selfStep": "Una routine non può chiamare sé stessa.",
+  "tools.json.noScript": "Lo script {0} non esiste."
 }

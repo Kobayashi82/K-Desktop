@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using KDesktop.Assistant.Host.Pipe;
 using KDesktop.Assistant.Tools;
 using KDesktop.Assistant.Tools.Builtin;
+using KDesktop.Assistant.Tools.Declarative;
 using KDesktop.Core;
 using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Packages;
@@ -40,7 +41,12 @@ internal sealed class ModuleTools : IDisposable
         var registry = new ToolRegistry();
         Builtin.AddTo(registry, screen, vision, browser);
         CommandTools.AddTo(registry, commands, writer);
-        Runner = new ToolRunner(registry, () => _trusted, AskAsync, message => link.Send(message), Path.Combine(folder, "undo.json"), () => _askBefore);
+        Secrets = new ToolSecrets(Path.Combine(folder, "secrets.json"));
+        Json = new JsonTools(Path.Combine(folder, "Tools"), registry, Secrets, commands);
+        Runner = new ToolRunner(registry, () => _trusted, AskAsync, message => link.Send(message), Path.Combine(folder, "undo.json"), () => _askBefore,
+            Path.Combine(folder, "approved.json"));
+        Json.Runner = Runner;
+        Json.Broken += file => link.Send(new NotifyMessage(Loc.T("tools.json.broken", Path.GetFileName(file.File)), file.Errors[0]));
         Builtin.Memory.Changed += SendMemory;
         Builtin.Notes.Changed += SendNotes;
     }
@@ -50,13 +56,20 @@ internal sealed class ModuleTools : IDisposable
 
     public BuiltinTools Builtin { get; }
 
+    /// <summary>The JSON tools of <c>AssistantTools</c> (stage 9.1).</summary>
+    public JsonTools Json { get; }
+
+    /// <summary>The secrets of the JSON tools and the MCP servers.</summary>
+    public ToolSecrets Secrets { get; }
+
     public ToolRunner Runner { get; }
 
-    /// <summary>Connected: the timers that came due while the process was off ring now; the watches kept start looking.</summary>
+    /// <summary>Connected: the timers that came due while the process was off ring now; the watches kept start looking; the JSON tools are loaded and their folder watched.</summary>
     public void Start()
     {
         Builtin.Timers.Start();
         Builtin.Watches.Start();
+        Json.Start();
     }
 
     /// <summary>The <c>tools</c> section of <c>config</c>: <c>trusted</c>, the tools that no longer ask, and <c>askBefore</c> (<see cref="AskPolicy"/>).</summary>
@@ -154,6 +167,7 @@ internal sealed class ModuleTools : IDisposable
         Builtin.Memory.Changed -= SendMemory;
         Builtin.Notes.Changed -= SendNotes;
         Builtin.Dispose();
+        Json.Dispose();
         _browser.Dispose();
         foreach (var waiting in _questions.Values) waiting.TrySetResult("timeout");
     }

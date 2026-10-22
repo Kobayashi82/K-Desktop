@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 using KDesktop.Assistant.Brain.Models;
 using KDesktop.Assistant.Tools;
 using KDesktop.Assistant.Tools.Builtin;
+using KDesktop.Assistant.Tools.Declarative;
 using KDesktop.Core;
 using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Assistant.Pipe;
@@ -305,6 +306,14 @@ public sealed class TalkService
                 return await ToolAsync(persona, "cancel_timer", which, context, said, acknowledge: true, token).ConfigureAwait(false);
         }
 
+        // A phrase of a JSON tool, as its file writes it («buenas noches»): that tool, without the AI, when the phrase is all
+        // it needs (stage 9.1; the 4B took «buenas noches» for a greeting and ran nothing).
+        if (OwnPhrase(said, persona) is { } own)
+        {
+            Log.Info($"Asistente: «{said}» es una frase de la herramienta {own.Name}");
+            return await ToolAsync(persona, own.Name, new JsonObject(), context, said, acknowledge: !own.ReadsOnly, token).ConfigureAwait(false);
+        }
+
         // The user's commands: what clearly names them runs now, in order; two nearly as close are asked about. Not for a
         // question («¿qué hace el comando modo juego?» names it, and must not run it): the AI, with the command tools.
         TalkAnswer? ran = null;
@@ -592,6 +601,23 @@ public sealed class TalkService
         var listed = string.Join(". ", best.Select(m => m.Text.TrimEnd('.')));
         var more = store.Count - best.Count;
         return new TalkAnswer(more > 0 ? Phrase(persona, "memoryListMore", listed, more) : Phrase(persona, "memoryList", listed));
+    }
+
+    /// <summary>
+    /// The JSON tool <paramref name="said"/> is one of the phrases of (its examples), if it needs no more than that: no
+    /// parameter it must be given, and when it only reads, its own words for the answer (else the AI tells it).
+    /// </summary>
+    private JsonTool? OwnPhrase(string said, AssistantPersona persona)
+    {
+        foreach (var tool in _tools.Registry.All)
+        {
+            if (tool is not JsonTool json) continue;
+            var definition = json.Definition;
+            if (definition.Parameters?.Any(p => definition.RequiredNames.Contains(p.Key) && p.Value.Default is null) == true) continue;
+            if (json.ReadsOnly && string.IsNullOrWhiteSpace(definition.Say?.Ok)) continue;
+            if (json.Examples.Any(e => QuickRules.SaysPhrase(said, e, [persona.Name]))) return json;
+        }
+        return null;
     }
 
     /// <summary>A tool for a rule: what it says it did (after «Recibido.» for an action), or why not.</summary>

@@ -3389,5 +3389,15 @@
   "tool.transform_text.examples": "tradúceme esto al inglés|corrige la ortografía de este texto|resúmelo|ponlo más formal|hazlo una lista|traduce lo que he copiado al francés|haz este correo más corto|reescribe esto más amable|corrige lo que he seleccionado",
   "assistant.prompt.certain": "Lo que pide incluye seguro estos comandos suyos: ejecútalos con run_command en su sitio de la orden, sin preguntar, aunque otra parte no se pueda hacer: {0}.",
   "assistant.rule.repeatCommand": "repite el [último] comando [anterior] [completo]|vuelve a repetir el [último] comando [anterior] [completo]|vuelve a ejecutar el [último] comando [anterior]|ejecuta otra vez el [último] comando [anterior]|ejecuta de nuevo el [último] comando [anterior]|otra vez el último comando|repite la última orden|repite lo último que has ejecutado",
-  "assistant.phrase.nothingToRerun": "Todavía no he ejecutado ningún comando."
+  "assistant.phrase.nothingToRerun": "Todavía no he ejecutado ningún comando.",
+  "tools.askNew": "¿Puedo {0}? Es un script que no has aprobado (nuevo o cambiado).",
+  "tools.json.intent": "usar «{0}»",
+  "tools.json.noSecret": "Me falta el secreto «{0}». Añádelo en Opciones.",
+  "tools.json.noProgram": "Para eso hace falta {0} y no está instalado.",
+  "tools.json.broken": "Error en la herramienta {0}",
+  "tools.json.taken": "El nombre «{0}» ya lo usa una herramienta incluida.",
+  "tools.json.duplicate": "«{0}» ya está en {1}.",
+  "tools.json.noParameter": "«{0}» está en required pero no en parameters.",
+  "tools.json.selfStep": "Una rutina no puede llamarse a sí misma.",
+  "tools.json.noScript": "No existe el script {0}."
 }

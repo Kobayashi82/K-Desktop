@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kdesktop/assistant/tool.schema.json",
+  "title": "Herramienta JSON",
+  "description": "Una herramienta de los asistentes sin compilar nada (§7.2 del plan, etapa 9.1): un archivo por herramienta en <datos>\\Assistant\\Tools. Se recarga al guardar. Guía en docs/assistant/herramientas.md.",
+  "type": "object",
+  "required": ["name", "type", "description"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "name": {
+      "type": "string",
+      "pattern": "^(?!mcp_)[a-z][a-z0-9_]{1,47}$",
+      "description": "Su nombre para el modelo: minúsculas, números y _ (los servidores compatibles con OpenAI no aceptan puntos). mcp_ está reservado"
+    },
+    "type": { "enum": ["http", "kdesktop", "routine", "script"] },
+    "description": { "type": "string", "minLength": 1, "maxLength": 400, "description": "Para el modelo: qué hace y cuándo usarla, en una o dos frases" },
+    "examples": {
+      "type": "array",
+      "maxItems": 30,
+      "items": { "type": "string", "minLength": 1, "maxLength": 120 },
+      "description": "Frases que la piden; con ellas se elige si llega al modelo"
+    },
+    "parameters": {
+      "type": "object",
+      "maxProperties": 12,
+      "propertyNames": { "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,39}$", "not": { "enum": ["result", "status"] } },
+      "additionalProperties": { "$ref": "#/$defs/parameter" }
+    },
+    "required": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Los parámetros que el modelo debe dar; sin esta lista, los que no tienen default"
+    },
+    "risk": { "enum": ["safe", "askOnce", "askAlways"], "description": "safe: sin preguntar; askOnce: la primera vez; askAlways: siempre. Por defecto safe (script: askOnce)" },
+    "readsOnly": { "type": "boolean", "description": "Solo consulta (el tiempo, un estado): el modelo contesta con lo que devuelve" },
+    "intent": { "type": "string", "maxLength": 160, "description": "Lo que va a hacer, para ti (con {{parámetros}}): «encender la luz del salón»" },
+    "say": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ok": { "type": "string", "maxLength": 300 },
+        "error": { "type": "string", "maxLength": 300 }
+      },
+      "description": "Lo que dice el asistente al acabar bien o mal (con {{parámetros}}, {{result}}, {{result.campo}}, {{status}})"
+    },
+    "enabled": { "type": "boolean" },
+    "timeout": { "type": "number", "minimum": 1, "maximum": 300, "description": "Segundos como mucho (por defecto 15; script: 30)" },
+    "request": { "$ref": "#/$defs/request" },
+    "command": { "type": "string", "minLength": 1, "maxLength": 200, "description": "kdesktop: el nombre de uno de tus comandos (admite {{parámetros}})" },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": { "$ref": "#/$defs/step" }
+    },
+    "script": { "$ref": "#/$defs/script" }
+  },
+  "allOf": [
+    { "if": { "properties": { "type": { "const": "http" } } }, "then": { "required": ["request"] } },
+    { "if": { "properties": { "type": { "const": "kdesktop" } } }, "then": { "required": ["command"] } },
+    { "if": { "properties": { "type": { "const": "routine" } } }, "then": { "required": ["steps"] } },
+    { "if": { "properties": { "type": { "const": "script" } } }, "then": { "required": ["script"] } }
+  ],
+  "$defs": {
+    "parameter": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "enum": ["string", "number", "integer", "boolean"] },
+        "description": { "type": "string", "maxLength": 300 },
+        "enum": { "type": "array", "minItems": 1, "items": { "type": ["string", "number", "integer"] } },
+        "default": { "type": ["string", "number", "integer", "boolean"] },
+        "minimum": { "type": "number" },
+        "maximum": { "type": "number" }
+      }
+    },
+    "strings": { "type": "object", "additionalProperties": { "type": "string" } },
+    "request": {
+      "type": "object",
+      "required": ["url"],
+      "additionalProperties": false,
+      "properties": {
+        "method": { "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+        "url": { "type": "string", "pattern": "^https?://", "description": "Admite {{parámetros}} y {{secret:nombre}}" },
+        "headers": { "$ref": "#/$defs/strings" },
+        "query": { "$ref": "#/$defs/strings" },
+        "body": { "description": "JSON; un texto que es solo \"{{parámetro}}\" se sustituye con su tipo (número, sí/no)" },
+        "bodyText": { "type": "string", "description": "Cuerpo como texto, en vez de body" },
+        "contentType": { "type": "string" },
+        "pick": { "type": "string", "description": "La parte de la respuesta JSON que se le da al modelo: estado, attributes.temperature, items.0.name" }
+      },
+      "not": { "required": ["body", "bodyText"] }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tool": { "type": "string", "pattern": "^[a-z][a-z0-9_]{1,63}$", "description": "Otra herramienta (incluida o JSON, no otra rutina)" },
+        "arguments": { "type": "object", "description": "Sus argumentos (admiten {{parámetros}} de la rutina)" },
+        "command": { "type": "string", "minLength": 1, "description": "Uno de tus comandos de K-Desktop" },
+        "wait": { "type": "number", "minimum": 0, "maximum": 30, "description": "Segundos de espera" },
+        "continueOnError": { "type": "boolean" }
+      },
+      "oneOf": [
+        { "required": ["tool"], "not": { "anyOf": [{ "required": ["command"] }, { "required": ["wait"] }] } },
+        { "required": ["command"], "not": { "anyOf": [{ "required": ["tool"] }, { "required": ["wait"] }, { "required": ["arguments"] }] } },
+        { "required": ["wait"], "not": { "anyOf": [{ "required": ["tool"] }, { "required": ["command"] }, { "required": ["arguments"] }] } }
+      ]
+    },
+    "script": {
+      "type": "object",
+      "required": ["file"],
+      "additionalProperties": false,
+      "properties": {
+        "file": { "type": "string", "pattern": "\\.(ps1|bat|cmd|py|js|exe)$", "description": "Ruta del script (relativa a la carpeta Tools o completa): .ps1, .bat, .cmd, .py (con uv si está), .js (node) o .exe" },
+        "args": { "type": "array", "maxItems": 20, "items": { "type": "string" }, "description": "Sus argumentos (admiten {{parámetros}})" },
+        "env": { "$ref": "#/$defs/strings", "description": "Variables de entorno (lo normal para {{secret:…}})" }
+      }
+    }
+  }
+}

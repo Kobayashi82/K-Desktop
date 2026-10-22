@@ -129,6 +129,11 @@ El módulo Asistente está en desarrollo. Apagado, K-Desktop es el de siempre: n
    normales o rápidas: ninguna pasa de medio segundo), «Comandos largos» (con muchas acciones, solo se enseñan las de
    ventanas) y «Enseñar también los comandos que lanzas tú» (atajos, menús, el móvil…: los adorna sin retrasarlos;
    apagado por defecto).
+8. **Herramientas tuyas, sin compilar:** un `.json` en `%APPDATA%\K-Desktop 5\Assistant\Tools\` les da algo nuevo
+   que hacer: una petición a cualquier API (Home Assistant, un bot de Telegram), uno de tus comandos con frases
+   propias, una rutina de varios pasos o un script tuyo (`.ps1`, `.bat`, `.py`, `.js`). Se recargan al guardar; los
+   secretos (tokens, claves) se guardan cifrados y el modelo nunca los ve. Guía y ejemplos en
+   [docs/assistant/herramientas.md](docs/assistant/herramientas.md).
 
 Instalar una versión nueva encima de la que está en el escritorio la cambia en caliente, sin perder sus datos (que
 están en `%APPDATA%\K-Desktop 5\Assistants\Data\<id>` y entran en las copias de seguridad). Cada asistente corre en

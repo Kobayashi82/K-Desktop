@@ -3389,5 +3389,15 @@
   "tool.transform_text.examples": "translate this into English|fix the spelling of this text|summarize it|make it more formal|turn it into a list|translate what I copied into French|make this email shorter|rewrite this more kindly|correct what I selected",
   "assistant.prompt.certain": "What they ask for surely includes these commands of theirs: run them with run_command where they come in the order, without asking, even if another part cannot be done: {0}.",
   "assistant.rule.repeatCommand": "repeat the [last] command [again]|repeat the previous command|run the [last] command again|run the previous command again|do the last command again|run that command again|redo the last command",
-  "assistant.phrase.nothingToRerun": "I haven't run any command yet."
+  "assistant.phrase.nothingToRerun": "I haven't run any command yet.",
+  "tools.askNew": "May I {0}? It's a script you haven't approved yet (new or changed).",
+  "tools.json.intent": "use “{0}”",
+  "tools.json.noSecret": "I'm missing the secret “{0}”. Add it in Settings.",
+  "tools.json.noProgram": "That needs {0}, which isn't installed.",
+  "tools.json.broken": "Error in the tool {0}",
+  "tools.json.taken": "The name “{0}” is already used by a built-in tool.",
+  "tools.json.duplicate": "“{0}” is already in {1}.",
+  "tools.json.noParameter": "“{0}” is in required but not in parameters.",
+  "tools.json.selfStep": "A routine can't call itself.",
+  "tools.json.noScript": "The script {0} doesn't exist."
 }

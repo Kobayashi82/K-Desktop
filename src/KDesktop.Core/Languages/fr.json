@@ -3389,5 +3389,15 @@
   "tool.transform_text.examples": "traduis ça en anglais|corrige l'orthographe de ce texte|résume-le|rends-le plus formel|fais-en une liste|traduis ce que j'ai copié en espagnol|raccourcis cet e-mail",
   "assistant.prompt.certain": "Ce qu'il demande inclut sûrement ces commandes à lui : exécute-les avec run_command à leur place dans la demande, sans demander, même si une autre partie est impossible : {0}.",
   "assistant.rule.repeatCommand": "répète la [dernière] commande [précédente]|relance la [dernière] commande|relance la commande précédente|refais la dernière commande|exécute à nouveau la [dernière] commande",
-  "assistant.phrase.nothingToRerun": "Je n'ai encore lancé aucune commande."
+  "assistant.phrase.nothingToRerun": "Je n'ai encore lancé aucune commande.",
+  "tools.askNew": "Puis-je {0} ? C'est un script que vous n'avez pas encore approuvé (nouveau ou modifié).",
+  "tools.json.intent": "utiliser « {0} »",
+  "tools.json.noSecret": "Il me manque le secret « {0} ». Ajoutez-le dans les Paramètres.",
+  "tools.json.noProgram": "Il faut {0} pour ça, et il n'est pas installé.",
+  "tools.json.broken": "Erreur dans l'outil {0}",
+  "tools.json.taken": "Le nom « {0} » est déjà utilisé par un outil intégré.",
+  "tools.json.duplicate": "« {0} » est déjà dans {1}.",
+  "tools.json.noParameter": "« {0} » est dans required mais pas dans parameters.",
+  "tools.json.selfStep": "Une routine ne peut pas s'appeler elle-même.",
+  "tools.json.noScript": "Le script {0} n'existe pas."
 }

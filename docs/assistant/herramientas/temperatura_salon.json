@@ -1,0 +1,14 @@
+{
+  "$schema": "../esquemas/tool.schema.json",
+  "name": "temperatura_salon",
+  "type": "http",
+  "description": "Reads the temperature of the living room sensor (Home Assistant), in °C.",
+  "examples": ["¿qué temperatura hace en el salón?", "¿hace frío en casa?", "living room temperature"],
+  "request": {
+    "url": "http://homeassistant.local:8123/api/states/sensor.salon_temperatura",
+    "headers": { "Authorization": "Bearer {{secret:ha_token}}" },
+    "pick": "state"
+  },
+  "readsOnly": true,
+  "say": { "error": "No puedo leer el sensor del salón." }
+}

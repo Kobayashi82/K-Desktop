@@ -1,0 +1,9 @@
+{
+  "$schema": "../esquemas/tool.schema.json",
+  "name": "modo_cine",
+  "type": "kdesktop",
+  "description": "Gets the PC ready to watch a film (runs the user's command «Modo cine»).",
+  "examples": ["vamos a ver una peli", "pon el modo cine", "hora de la película"],
+  "command": "Modo cine",
+  "say": { "ok": "Palomitas listas." }
+}
