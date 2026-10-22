@@ -82,10 +82,10 @@ public static class Sounds
     }
 
     /// <summary>Sounds playing now; each has its own output, so they mix instead of cutting each other.</summary>
-    private static readonly ConcurrentDictionary<WasapiOut, byte> Playing = new();
+    private static readonly ConcurrentDictionary<WasapiPlayer, byte> Playing = new();
 
     /// <summary>The sound being previewed (sound pickers): a new preview replaces it.</summary>
-    private static WasapiOut? _preview;
+    private static WasapiPlayer? _preview;
 
     /// <summary>Plays the sound over whatever is already playing (a command's sound and an achievement's both sound).</summary>
     public static void Play(string? sound) => Start(sound, null);
@@ -118,18 +118,19 @@ public static class Sounds
     }
 
     /// <summary>Starts a sound on its own WASAPI output; null when it does not exist or cannot be played that way.</summary>
-    private static WasapiOut? Start(string? sound, Action? ended)
+    private static WasapiPlayer? Start(string? sound, Action? ended)
     {
         if (string.IsNullOrWhiteSpace(sound)) return null;
         WaveStream? reader = null;
-        WasapiOut? output = null;
+        WasapiPlayer? output = null;
         try
         {
             if (FindFile(sound) is { } file) reader = new WaveFileReader(file);
             else if (BuiltIn(sound) is { } wav) reader = new WaveFileReader(new MemoryStream(wav, writable: false));
             if (reader is null) return null;
 
-            output = new WasapiOut(AudioClientShareMode.Shared, useEventSync: true, latency: 60);
+            // Shared, on the default device. (Following the device while it plays needs BuildAsync: not worth it for short sounds.)
+            output = new WasapiPlayerBuilder().WithSharedMode().WithEventSync().WithLatency(60).Build();
             output.Init(reader);
             var o = output;
             var r = reader;

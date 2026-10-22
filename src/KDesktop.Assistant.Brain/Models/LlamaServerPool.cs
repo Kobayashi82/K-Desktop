@@ -350,6 +350,8 @@ public sealed class LlamaServerPool : IChatModel
 
         var process = new Process { StartInfo = info, EnableRaisingEvents = true };
         var output = new ServerOutput(alias);
+        // Which exe and what it is told, first: with two llama-server (Bonsai's and the usual one) the log says whose it is.
+        output.Write("── " + string.Join(' ', info.ArgumentList.Prepend(server).Select(a => a.Contains(' ', StringComparison.Ordinal) ? $"\"{a}\"" : a)));
         process.OutputDataReceived += (_, e) => output.Write(e.Data);
         process.ErrorDataReceived += (_, e) => output.Write(e.Data);
         var watch = Stopwatch.StartNew();
