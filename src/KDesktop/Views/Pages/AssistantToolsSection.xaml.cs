@@ -52,7 +52,11 @@ public partial class AssistantToolsSection : UserControl
         };
         IsVisibleChanged += (_, _) =>
         {
-            if (!IsVisible) return;
+            if (!IsVisible)
+            {
+                _savedSecret = null;
+                return;
+            }
             if (_app.AssistantTools is null) _app.RequestAssistantTools();
             Refresh();
         };
@@ -143,7 +147,7 @@ public partial class AssistantToolsSection : UserControl
     private string Signature()
     {
         var state = State;
-        var parts = new List<string> { Part, ItemId ?? "", Running.ToString(), (_app.Assistant is null).ToString(), _testing ?? "", _changingSecret ?? "", _search, Loc.Instance.Language };
+        var parts = new List<string> { Part, ItemId ?? "", Running.ToString(), (_app.Assistant is null).ToString(), _testing ?? "", _changingSecret ?? "", _savedSecret ?? "", _search, Loc.Instance.Language };
         IEnumerable<ToolInfo> tools = Part switch
         {
             "tools/builtin" => ToolsOf("builtin"),
@@ -155,7 +159,7 @@ public partial class AssistantToolsSection : UserControl
         };
         foreach (var tool in tools) parts.Add($"{tool.Name}|{tool.Enabled}|{tool.Risk}|{_app.AssistantToolsTesting.Contains(tool.Name)}|{(_app.AssistantToolTests.TryGetValue(tool.Name, out var t) ? t.Ms + t.Text.Length : -1)}");
         if (Part is "tools" or "tools/servers" or "tools/server")
-            foreach (var server in state?.Servers ?? []) parts.Add($"{server.Id}|{server.State}|{server.Disabled}|{server.Tools}|{server.Error}|{_app.AssistantToolsTesting.Contains(server.Id)}|{(_app.AssistantToolTests.TryGetValue(server.Id, out var t) ? t.Ms : -1)}");
+            foreach (var server in state?.Servers ?? []) parts.Add($"{server.Id}|{server.State}|{server.Since}|{server.Disabled}|{server.Tools}|{server.Error}|{_app.AssistantToolsTesting.Contains(server.Id)}|{(_app.AssistantToolTests.TryGetValue(server.Id, out var t) ? t.Ms : -1)}");
         if (Part is "tools" or "tools/servers" or "tools/server") parts.Add(string.Join(",", App.ReadMcpServers(out _).Select(s => s.Id + s.Disabled + s.Summary)));
         if (Part is "tools" or "tools/files" or "tools/file") foreach (var file in state?.Files ?? []) parts.Add($"{file.File}|{file.Enabled}|{string.Join(";", file.Errors)}");
         if (Part is "tools") parts.Add(string.Join(",", (state?.Tools ?? []).Select(t => t.Enabled ? "1" : "0")));
@@ -209,6 +213,23 @@ public partial class AssistantToolsSection : UserControl
             missing > 0 ? Loc.T("toolsOptions.tileMissing", missing) : Loc.T("toolsOptions.tileAllKept"), "tools/secrets", missing > 0));
         card.Add(tiles);
         Body.Children.Add(card.Border);
+
+        // What is in use: only the MCP servers are programs that start and stop; the built-in tools and the user's are
+        // always at hand and take nothing.
+        var live = (state?.Servers ?? []).Where(s => s.State is "running" or "starting").OrderBy(s => s.Id, Alphabetical).ToList();
+        var inUse = Card(Loc.T("toolsOptions.inUse"), Loc.T("toolsOptions.inUseIntro"), SymbolRegular.Pulse24);
+        if (live.Count == 0) inUse.Add(Caption(Loc.T(Running ? "toolsOptions.noneInUse" : "toolsOptions.noToolsOff")));
+        else
+            inUse.Add(Rows(live.Select(s =>
+            {
+                var chips = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
+                chips.Children.Add(s.State == "running" ? StatusChip(Loc.T("toolsOptions.serverRunning"), "Kd.Success") : StatusChip(Loc.T("toolsOptions.serverStarting"), "Kd.AccentText"));
+                chips.Children.Add(Chip(Loc.T("toolsOptions.serverTools", s.Tools)));
+                var since = s.Since is { } at ? Loc.T("toolsOptions.runningSince", at.ToLocalTime().ToString("t", Loc.Instance.Culture)) : null;
+                return (UIElement)OpenableRow(SymbolRegular.PlugConnected24, s.Id, since, chips, "tools/servers/" + s.Id,
+                    extra: Small(SymbolRegular.Stop24, Loc.T("toolsOptions.stop"), () => _app.StopMcpServer(s.Id), true, s.Id));
+            })));
+        Body.Children.Add(inUse.Border);
 
         var search = Card(Loc.T("toolsOptions.searchTitle"), Loc.T("toolsOptions.searchIntro"));
         var box = new TextBox
@@ -461,7 +482,8 @@ public partial class AssistantToolsSection : UserControl
     }
 
     /// <summary>A row that opens a page of its own: a click on it, or its chevron (for the keyboard).</summary>
-    private FrameworkElement OpenableRow(SymbolRegular icon, string title, string? about, WrapPanel? chips, string page, bool danger = false, bool dim = false)
+    /// <param name="extra">A button before the chevron (stop a server).</param>
+    private FrameworkElement OpenableRow(SymbolRegular icon, string title, string? about, WrapPanel? chips, string page, bool danger = false, bool dim = false, UIElement? extra = null)
     {
         var body = new StackPanel();
         var name = Title(title);
@@ -477,6 +499,7 @@ public partial class AssistantToolsSection : UserControl
         var open = new Border { Child = body, Background = System.Windows.Media.Brushes.Transparent, Cursor = Cursors.Hand };
         open.MouseLeftButtonUp += (_, _) => Go(page);
         var buttons = Buttons();
+        if (extra is not null) buttons.Children.Add(extra);
         buttons.Children.Add(Small(SymbolRegular.ChevronRight24, Loc.T("toolsOptions.openServer", title), () => Go(page), true));
         return Row(icon, open, buttons, title, danger: danger, dim: dim);
     }
@@ -607,6 +630,9 @@ public partial class AssistantToolsSection : UserControl
     /// <summary>The secret being changed (its box shows).</summary>
     private string? _changingSecret;
 
+    /// <summary>The secret just added or changed from «Añadir un secreto» (a line says so; the boxes are emptied).</summary>
+    private string? _savedSecret;
+
     private void FillSecrets()
     {
         var secrets = _app.ToolSecretList();
@@ -625,7 +651,7 @@ public partial class AssistantToolsSection : UserControl
         var value = new PasswordBox { PlaceholderText = Loc.T("toolsOptions.secretValue"), Margin = new Thickness(8, 0, 0, 0) };
         System.Windows.Automation.AutomationProperties.SetName(value, Loc.T("toolsOptions.secretValue"));
         var save = new Button { Content = Loc.T("toolsOptions.addSecret"), Icon = new SymbolIcon { Symbol = SymbolRegular.Add24 }, Appearance = ControlAppearance.Primary, Margin = new Thickness(8, 0, 0, 0) };
-        save.Click += (_, _) =>
+        save.Click += async (_, _) =>
         {
             var text = name.Text.Trim();
             if (!ToolSecrets.IsName(text) || value.Password.Length == 0)
@@ -633,6 +659,23 @@ public partial class AssistantToolsSection : UserControl
                 _ = Say(Loc.T("toolsOptions.secrets"), Loc.T("toolsOptions.secretBadName"));
                 return;
             }
+            // One that is already kept: its value is changed only if they say so (it was, without a word).
+            if (secrets.FirstOrDefault(s => string.Equals(s.Name, text, StringComparison.OrdinalIgnoreCase)) is { Kept: true } kept)
+            {
+                var box = new Wpf.Ui.Controls.MessageBox
+                {
+                    Title = Loc.T("toolsOptions.secrets"),
+                    Width = 480,
+                    MaxWidth = 480,
+                    Content = Loc.T("toolsOptions.secretExists", kept.Name),
+                    PrimaryButtonText = Loc.T("toolsOptions.secretChange"),
+                    CloseButtonText = Loc.T("common.cancel"),
+                };
+                if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
+                text = kept.Name;
+            }
+            _savedSecret = text;
+            _shown = null;
             _app.SetToolSecret(text, value.Password);
         };
         Grid.SetColumn(value, 1);
@@ -641,6 +684,13 @@ public partial class AssistantToolsSection : UserControl
         grid.Children.Add(value);
         grid.Children.Add(save);
         add.Add(grid);
+        if (_savedSecret is { } saved)
+        {
+            var done = Caption("✓ " + Loc.T("toolsOptions.secretSaved", saved));
+            done.Margin = new Thickness(0, 8, 0, 0);
+            done.SetResourceReference(TextBlock.ForegroundProperty, "Kd.Success");
+            add.Add(done);
+        }
         Body.Children.Add(add.Border);
     }
 
