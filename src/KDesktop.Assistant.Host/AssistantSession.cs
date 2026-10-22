@@ -270,6 +270,9 @@ internal sealed class AssistantSession : IDisposable
             case ConfigMessage { Section: "general", Value: JsonObject general }:
                 ApplyGeneral(general);
                 break;
+            case MenuClosedMessage closed:
+                Runtime.MenuClosed(closed.Assistant);
+                break;
             case ExtraKeysMessage keys:
                 Runtime.SetExtraKeys(keys.Assistant, keys.Keys);
                 break;
@@ -322,6 +325,7 @@ internal sealed class AssistantSession : IDisposable
             return;
         }
         var (choice, extra) = AssistantMenu.Show(request, Link?.Theme == "dark", linked);
+        Engine.Post(() => Runtime.MenuClosed(request.Id));
         switch (choice)
         {
             case MenuChoice.Panel:

@@ -25,6 +25,22 @@ internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, P
 
     private readonly List<HitArea> _areas = [];
     private bool _watchWheel;
+    private bool _suspended;
+
+    /// <summary>
+    /// Its menu is open: the hit windows step aside (hidden, remembering where they go) so that they neither cover the menu
+    /// nor take its clicks; when it closes they come back where the assistant last placed them.
+    /// </summary>
+    public bool Suspended
+    {
+        get => _suspended;
+        set
+        {
+            if (_suspended == value) return;
+            _suspended = value;
+            foreach (var area in _areas.ToList()) area.Suspend(value);
+        }
+    }
 
     /// <summary>Every turn of the wheel reaches it (K-Desktop sends them while some assistant asks).</summary>
     public bool WatchWheel
@@ -45,6 +61,7 @@ internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, P
     {
         var area = new HitArea(this, id);
         _areas.Add(area);
+        if (_suspended) area.Suspend(true);
         return area;
     }
 
@@ -77,6 +94,10 @@ internal sealed unsafe class HitArea : IHitArea
     private readonly NativeWindow _window;
     private HitShape? _shape;
     private bool _hover;
+    /// <summary>Stepped aside while the menu is open (<see cref="HostPointer.Suspended"/>).</summary>
+    private bool _suspended;
+    /// <summary>Where it goes when it comes back (null = hidden).</summary>
+    private HitShape? _parked;
     private bool _pressed;
     private bool _dragging;
     /// <summary>The button was held long enough: the user is talking to it (no click, no drag).</summary>
@@ -103,6 +124,11 @@ internal sealed unsafe class HitArea : IHitArea
 
     public void Place(HitShape shape)
     {
+        if (_suspended)
+        {
+            _parked = shape;
+            return;
+        }
         var bounds = shape.Bounds;
         if (bounds.IsEmpty)
         {
@@ -121,8 +147,27 @@ internal sealed unsafe class HitArea : IHitArea
 
     public void Hide()
     {
+        _parked = null;
         _window.Hide();
         if (_hover) Leave();
+    }
+
+    internal void Suspend(bool on)
+    {
+        if (on)
+        {
+            _parked = _window.IsVisible ? _shape : null;
+            _window.Hide();
+            if (_hover) Leave();
+            _suspended = true;
+            return;
+        }
+        _suspended = false;
+        if (_parked is { } shape)
+        {
+            _parked = null;
+            Place(shape);
+        }
     }
 
     public void KeepOnTop()

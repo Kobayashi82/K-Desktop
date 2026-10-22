@@ -209,6 +209,15 @@ public sealed record ExtraStateMessage(string Assistant, string Extra, string St
     public override string Type => "extraState";
 }
 
+/// <summary>
+/// The menu K-Desktop opened for <c>menu</c> closed (or was not opened): the assistant's hit areas, which step aside while it
+/// is open so that they neither cover it nor take its clicks, come back.
+/// </summary>
+public sealed record MenuClosedMessage(string Assistant) : PipeMessage
+{
+    public override string Type => "menuClosed";
+}
+
 /// <summary>Right-click menu → «Hide»: K-Desktop takes that assistant off the desktop (the others stay).</summary>
 public sealed record HideMessage(string Assistant) : PipeMessage
 {
@@ -807,6 +816,7 @@ public static class PipeJson
         ["extraKeys"] = typeof(ExtraKeysMessage),
         ["extraState"] = typeof(ExtraStateMessage),
         ["menu"] = typeof(MenuMessage),
+        ["menuClosed"] = typeof(MenuClosedMessage),
         ["write"] = typeof(WriteMessage),
         ["keys"] = typeof(KeysMessage),
         ["key"] = typeof(KeyMessage),

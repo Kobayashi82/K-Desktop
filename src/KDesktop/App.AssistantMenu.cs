@@ -99,7 +99,11 @@ public partial class App
     private void OnAssistantMenu(MenuMessage message)
     {
         var id = message.Assistant;
-        if (!IsOnDesktop(id) || AssistantPackages.Find(id) is not { } installed) return;
+        if (!IsOnDesktop(id) || AssistantPackages.Find(id) is not { } installed)
+        {
+            _assistant?.Send(new MenuClosedMessage(id));
+            return;
+        }
         _assistantMenu?.IsOpen = false;
 
         var name = installed.Manifest.Name;
@@ -146,9 +150,14 @@ public partial class App
         }));
 
         var previous = UiNative.GetForegroundWindow();
+        var opened = Environment.TickCount64;
         menu.Closed += (_, _) =>
         {
             if (_assistantMenu == menu) _assistantMenu = null;
+            // Its hit areas stepped aside while the menu was open: they come back.
+            _assistant?.Send(new MenuClosedMessage(id));
+            var open = Environment.TickCount64 - opened;
+            if (open < 1500) Log.Info($"Asistente: menú de «{id}» cerrado a los {open} ms");
             // After the click has been handled: a page that comes forward keeps the foreground, and so does a window of
             // another program the user clicked to close the menu.
             Dispatcher.BeginInvoke(() =>

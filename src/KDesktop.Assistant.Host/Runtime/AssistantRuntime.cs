@@ -115,6 +115,11 @@ internal sealed class AssistantRuntime : IDisposable
                 slot.Due = now + (double.IsFinite(wanted) ? Math.Clamp(wanted, 0, 60) : 1);
             }
             if (!slot.Dropped) interval = Math.Min(interval, Math.Max(0, slot.Due - now));
+            if (slot.MenuUntil > 0)
+            {
+                if (now >= slot.MenuUntil) MenuClosed(slot.Id);
+                else interval = Math.Min(interval, slot.MenuUntil - now);
+            }
         }
         if (now >= _nextOnTop)
         {
@@ -523,7 +528,22 @@ internal sealed class AssistantRuntime : IDisposable
             .Where(e => slot.ExtraStates.GetValueOrDefault(e.Id) != ExtraState.Hidden)
             .Select(e => new MenuExtra(e.Id, e.Name.In(language), slot.ExtraStates.GetValueOrDefault(e.Id) != ExtraState.Disabled))
             .ToList() ?? [];
+        // «Always on top» and moving with the body, its hit windows would end up over the menu, which opens right there,
+        // and a click on them takes the mouse from it (WPF closes it): they step aside while it is open.
+        slot.Pointer.Suspended = true;
+        slot.MenuUntil = _engine.Now + MenuTimeout;
         MenuRequested?.Invoke(new MenuRequest(slot.Id, name, extras, at));
+    }
+
+    /// <summary>The longest a menu keeps the hit areas away, if K-Desktop never says it closed.</summary>
+    private const double MenuTimeout = 60;
+
+    /// <summary>Its menu closed (<c>menuClosed</c>, or the host's own one): its hit areas come back.</summary>
+    public void MenuClosed(string assistant)
+    {
+        if (Find(assistant) is not { } slot || slot.MenuUntil == 0) return;
+        slot.MenuUntil = 0;
+        slot.Pointer.Suspended = false;
     }
 }
 
@@ -575,6 +595,9 @@ internal sealed class AssistantSlot(string id, IAssistant assistant, AssistantMa
 
     /// <summary>When it asked to be ticked next (engine clock).</summary>
     public double Due { get; set; }
+
+    /// <summary>Its menu is open (its hit areas step aside) until K-Desktop says it closed or, at the latest, this time.</summary>
+    public double MenuUntil { get; set; }
 
     /// <summary>It asked for a tick as soon as possible (<see cref="IAssistantHost.RequestTick"/>, any thread).</summary>
     public bool TickRequested { get => Volatile.Read(ref _tickRequested); set => Volatile.Write(ref _tickRequested, value); }
