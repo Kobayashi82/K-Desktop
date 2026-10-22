@@ -29,7 +29,7 @@ public sealed record ToolChoice(IReadOnlyList<ITool> Tools, string How);
 /// Without the meaning model, the words of the order against the words of the examples (rare words weigh more):
 /// worse, but it works. The tools used in the last exchange are always offered («¿y cuánto le queda?»). Thread-safe.
 /// </summary>
-public sealed class ToolChooser(IMeaning? meaning)
+public sealed partial class ToolChooser(IMeaning? meaning)
 {
     /// <summary>At most this many tools reach the model by their meaning (those that must be at hand come on top).</summary>
     public const int Most = 5;
@@ -93,6 +93,23 @@ public sealed class ToolChooser(IMeaning? meaning)
         var chosen = ranked
             .Where((r, i) => i < Least || (i < Most && (how == "words" ? r.Score > 0 : r.Score >= best - Spread)))
             .Select(r => r.Tool).ToList();
+        // An order of several parts: the best of each part too («…mira quién está conectado y envíamelo a Telegram, y dime
+        // qué tengo en el calendario»: the whole order meant the calendar and 42, and send_telegram never came).
+        var parts = Parts(said);
+        if (parts.Count >= 2)
+        {
+            IReadOnlyList<IReadOnlyList<(ITool Tool, double Score)>>? byPart = null;
+            try { byPart = how == "meaning" ? await PartsByMeaningAsync(tools, parts, cancellationToken).ConfigureAwait(false) : null; }
+            catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+            {
+                Log.Warn($"Asistente: sin significado para las partes de la orden: {ex.Message}");
+            }
+            byPart ??= [.. parts.Select(p => Words(tools, p))];
+            foreach (var part in byPart)
+                foreach (var (tool, score) in part.Take(2))
+                    if (!chosen.Contains(tool) && (how == "meaning" ? score >= PartClear && score >= part[0].Score - Spread : score > 0 && tool == part[0].Tool))
+                        chosen.Add(tool);
+        }
         // What must be at hand comes on top of those, never instead of another of its own: one by one into a full list,
         // each pushed the one before out («¿y el mes que viene?» lost list_events, used a moment before, to open_web).
         var pinned = recent.Distinct(StringComparer.Ordinal).Take(MostPinned)
@@ -101,6 +118,38 @@ public sealed class ToolChooser(IMeaning? meaning)
         var scores = ranked.ToDictionary(r => r.Tool, r => r.Score);
         Log.Info($"Asistente: herramientas ({how}): " + string.Join(", ", chosen.Select(t => $"{t.Name} {scores[t].ToString("0.00", CultureInfo.InvariantCulture)}")));
         return new ToolChoice(chosen, how);
+    }
+
+    /// <summary>A part of an order this close to a tool means it (it came from one part, not the whole order).</summary>
+    public const double PartClear = 0.60;
+
+    /// <summary>
+    /// The parts of an order of several («mira quién está conectado y envíamelo a Telegram, y dime…»): split at punctuation
+    /// and at «y», «también», «luego»… (and their like in the other languages); none of fewer than two words. One part: the order.
+    /// </summary>
+    public static IReadOnlyList<string> Parts(string said) =>
+        [.. PartBreak().Split(said).Select(p => LeadingJoin().Replace(p.Trim(), string.Empty))
+            .Where(p => p.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= 2)];
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"^(?:(?:y|e|and|et|und|also|también|tambien|además|ademas|luego|después|despues|then|puis|dann|poi|depois|anche|aussi|auch)\s+)+",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase)]
+    private static partial System.Text.RegularExpressions.Regex LeadingJoin();
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"[.,;:!?¿¡]+|\s(?:y|e|and|et|und|also|también|tambien|además|ademas|luego|después|despues|then|puis|dann|poi|depois|anche|aussi|auch)\s",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase)]
+    private static partial System.Text.RegularExpressions.Regex PartBreak();
+
+    /// <summary>Each part's tools by meaning, closest first; null without the model.</summary>
+    private async Task<IReadOnlyList<IReadOnlyList<(ITool Tool, double Score)>>?> PartsByMeaningAsync(IReadOnlyCollection<ITool> tools, IReadOnlyList<string> parts, CancellationToken cancellationToken)
+    {
+        if (_shelf is null) return null;
+        var vectors = await _shelf.Meaning.EmbedAsync(parts, keep: false, cancellationToken).ConfigureAwait(false);
+        if (vectors is null) return null;
+        var result = new List<IReadOnlyList<(ITool Tool, double Score)>>();
+        foreach (var vector in vectors.Vectors)
+            if (await MeaningAsync(tools, new MeaningVectors(vectors.Model, [vector]), cancellationToken).ConfigureAwait(false) is { } ranked)
+                result.Add(ranked);
+        return result;
     }
 
     // ── by meaning ───────────────────────────────────────────────────────

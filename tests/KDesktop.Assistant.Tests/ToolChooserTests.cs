@@ -122,6 +122,30 @@ public sealed class ToolChooserTests : IDisposable
     }
 
     [Fact]
+    public void AnOrderOfSeveralPartsIsSplit()
+    {
+        Assert.Equal(["mira quién está conectado en el clúster 3", "envíamelo a telegram", "dime qué eventos tengo"],
+            ToolChooser.Parts("Mira quién está conectado en el clúster 3 y envíamelo a Telegram. Y también dime qué eventos tengo")
+                .Select(p => p.ToLowerInvariant()));
+        Assert.Single(ToolChooser.Parts("¿qué tiempo hace en Málaga?"));
+        // A part of one word is not one («hazlo y ya»).
+        Assert.Single(ToolChooser.Parts("pon un temporizador de diez minutos y ya"));
+    }
+
+    [Fact]
+    public async Task EachPartOfAnOrderBringsItsTools()
+    {
+        // 22/10 (5.0.129): «…y envíamelo a Telegram, y dime qué eventos tengo…»: the whole order meant the calendar and 42.
+        foreach (var chooser in new[] { new ToolChooser(new FakeMeaning()), new ToolChooser(null) })
+        {
+            var choice = await chooser.ChooseAsync(_tools, "¿qué hora es? y apunta que tengo que comprar pilas para el mando", [], default);
+            var names = choice.Tools.Select(t => t.Name).ToList();
+            Assert.Contains("get_time", names);
+            Assert.Contains("save_note", names);
+        }
+    }
+
+    [Fact]
     public async Task WhatMustBeAtHandNeverPushesOutAnotherOfItsOwn()
     {
         // 22/10 (5.0.128): «¿y el mes que viene?» after the calendar. The tools used a moment before, the command tools of a
