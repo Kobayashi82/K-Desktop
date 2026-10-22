@@ -71,7 +71,6 @@ public partial class AssistantPage : UserControl
         PutButton.Content = row.PutText;
         HideButton.Visibility = row.IsOnDesktop ? Visibility.Visible : Visibility.Collapsed;
         PutButton.Visibility = row.IsOnDesktop ? Visibility.Collapsed : Visibility.Visible;
-        SettingsButton.Visibility = row.HasSettings ? Visibility.Visible : Visibility.Collapsed;
         OwnPanel.Visibility = OwnPanel.Show(row.Installed) ? Visibility.Visible : Visibility.Collapsed;
         Chat.Show(row.Id, row.Name, row.IsOnDesktop);
         var active = rows.Count(r => r.IsOnDesktop);

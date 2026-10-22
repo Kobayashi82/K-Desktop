@@ -37,8 +37,17 @@ public sealed class AssistantRow
     {
         Id = id;
         IsOnDesktop = app.IsOnDesktop(id);
-        WakeWordId = app.Config.Settings.AssistantWakeWords.GetValueOrDefault(id);
-        ModelName = app.Config.Settings.AssistantModels.GetValueOrDefault(id) ?? string.Empty;
+        // How it is called, in a few words: its word and its key to talk (5.0.113).
+        var word = app.Config.Settings.AssistantWakeWords.GetValueOrDefault(id) is { } wordId
+            ? app.Voice.WakeWords.Words.FirstOrDefault(w => w.Id == wordId)?.Name : null;
+        var key = app.TalkHotkeyOf(id);
+        CallText = (word, key.Length > 0 ? key : null) switch
+        {
+            ({ } w, { } k) => Loc.T("assistantOptions.callBoth", w, k),
+            ({ } w, null) => Loc.T("assistantOptions.callWord", w),
+            (null, { } k) => Loc.T("assistantOptions.callKey", k),
+            _ => Loc.T("assistantOptions.callNone"),
+        };
     }
 
     /// <summary>K-Desktop as an assistant.</summary>
@@ -62,9 +71,6 @@ public sealed class AssistantRow
 
     public bool HasDescription => Description.Length > 0;
 
-    /// <summary>Whether it has settings to show: its settings.json, or only «Personalidad y voz» (K-Desktop).</summary>
-    public bool HasSettings => Installed is not { } installed || AssistantLook.HasSettings(installed);
-
     /// <summary>«Poner en el escritorio» / «Esconder»; K-Desktop, without a figure, is made active or not.</summary>
     public string PutText => Loc.T(IsSystem ? "assistantSystem.activate" : "assistantOptions.putOnDesktop");
 
@@ -83,34 +89,14 @@ public sealed class AssistantRow
 
     public bool IsOffDesktop => !IsOnDesktop;
 
-    /// <summary>Its wake word (id of a recorded one), or null.</summary>
-    public string? WakeWordId { get; }
+    /// <summary>How it is called: «Se le llama «Dot» o con F8», «Sin palabra ni tecla».</summary>
+    public string CallText { get; }
 
-    /// <summary>The wake words to choose from (none first; one of another assistant says whose it is). Filled by the list.</summary>
-    public IReadOnlyList<WakeOption> WakeOptions { get; set; } = [];
+    /// <summary>The line under its name in the list: its version (or that it is K-Desktop's) and how it is called.</summary>
+    public string Line => $"{Byline} · {CallText}";
 
-    public WakeOption? SelectedWake => WakeOptions.FirstOrDefault(o => o.Id == WakeWordId);
-
-    /// <summary>Its own model (stage 3.2), or empty: the general one.</summary>
-    public string ModelName { get; set; } = string.Empty;
-
-    /// <summary>The models to choose from (the general one first). Filled by the list.</summary>
-    public IReadOnlyList<ModelOption> ModelOptions { get; set; } = [];
-
-    public ModelOption? SelectedModel => ModelOptions.FirstOrDefault(o => string.Equals(o.Value, ModelName, StringComparison.OrdinalIgnoreCase));
-
-    /// <summary>Whether there is a brain to choose a model of (not «no AI»).</summary>
-    public bool HasBrain { get; set; }
-
-    /// <summary>The model it suggests when it is not here (offered, never downloaded without asking), or null.</summary>
-    public App.SuggestedModel? SuggestedModel { get; set; }
-
-    public bool HasSuggestedModel => SuggestedModel is not null;
-
-    /// <summary>Its offer: «Suggests X» with the button, or that it is downloading.</summary>
-    public string SuggestedModelText { get; set; } = string.Empty;
-
-    public bool CanDownloadSuggested { get; set; }
+    /// <summary>The name of its button to open its card (screen readers).</summary>
+    public string SettingsName => Loc.T("assistantSettings.title", Name);
 
     /// <summary>The name it suggests to be called by (its manifest's wakeWord, or its name).</summary>
     public string SuggestedWakeWord => Installed?.Manifest.WakeWord is { Length: > 0 } word ? word : Name;

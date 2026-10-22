@@ -52,8 +52,8 @@ public partial class AssistantExtraAction : CommandAction
 /// </summary>
 public partial class AssistantAskAction : CommandAction
 {
-    /// <summary>The assistant's id; empty: the one Options → Assistants says for orders to nobody in particular.</summary>
-    [ObservableProperty] private string _assistant = string.Empty;
+    /// <summary>The assistant's id (K-Desktop when new); empty, from before 5.0.113: none, and it is not run.</summary>
+    [ObservableProperty] private string _assistant = global::KDesktop.Core.Assistant.AssistantTargeting.KDesktop;
 
     /// <summary>The order; empty: the box to write it opens.</summary>
     [ObservableProperty] private string _text = string.Empty;
@@ -86,8 +86,8 @@ public partial class AssistantBrainAction : CommandAction
 /// </summary>
 public partial class AssistantSayAction : CommandAction
 {
-    /// <summary>The assistant's id; empty: the one Options → Assistants says for what is addressed to nobody.</summary>
-    [ObservableProperty] private string _assistant = string.Empty;
+    /// <summary>The assistant's id (K-Desktop when new); empty, from before 5.0.113: none, and it is not run.</summary>
+    [ObservableProperty] private string _assistant = global::KDesktop.Core.Assistant.AssistantTargeting.KDesktop;
 
     [ObservableProperty] private string _text = string.Empty;
 

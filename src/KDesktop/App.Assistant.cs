@@ -296,13 +296,29 @@ public partial class App
     public bool IsOnDesktop(string id) => Config.Settings.AssistantsOnDesktop.Contains(id);
 
     /// <summary>
-    /// The assistant for something not addressed to anyone (Options → Assistants decides), or null with nobody on the
-    /// desktop. Once per order: «at random» picks again on every call.
+    /// The one on the desktop K-Desktop turns to by itself (showing the commands you run, «Probar»): the last one talked to,
+    /// else the first one put there; null with nobody. What the user says or writes always names its assistant.
     /// </summary>
-    public string? PickAssistant()
+    public string? PickAssistant() => AssistantTargeting.Pick(Config.Settings.AssistantLastTalkedTo, Config.Settings.AssistantsOnDesktop);
+
+    /// <summary>The key to talk to an assistant (5.0.113), or empty.</summary>
+    public string TalkHotkeyOf(string id) => Config.Settings.AssistantTalkHotkeys.GetValueOrDefault(id) ?? string.Empty;
+
+    /// <summary>
+    /// Gives an assistant its key to talk (empty: none). Refused, with who has it, when another assistant, a command for
+    /// every program or K-Desktop itself already answers it.
+    /// </summary>
+    public IReadOnlyList<string> SetTalkHotkey(string id, string hotkey)
     {
-        var s = Config.Settings;
-        return AssistantTargeting.Pick(s.AssistantTarget, s.AssistantTargetId, s.AssistantLastTalkedTo, s.AssistantsOnDesktop);
+        var key = Core.Input.Hotkey.Normalize(hotkey);
+        if (key.Length > 0 && Config.HotkeyUsers(key, exceptAssistant: id) is { Count: > 0 } users) return users;
+        var keys = new Dictionary<string, string>(Config.Settings.AssistantTalkHotkeys, StringComparer.Ordinal);
+        if (key.Length == 0) keys.Remove(id);
+        else keys[id] = key;
+        Config.Settings.AssistantTalkHotkeys = keys;
+        Log.Info($"Asistente: tecla para hablar con «{id}»: {(key.Length > 0 ? key : "ninguna")}");
+        AssistantChanged?.Invoke();
+        return [];
     }
 
     /// <summary>The user talked to this assistant (its wake word; later, its talk click and its chat).</summary>
@@ -387,8 +403,7 @@ public partial class App
 
     /// <summary>
     /// The tray's «Assistant» submenu, only while the module is on: each assistant (K-Desktop first), ticked when it is
-    /// active (a click puts it there or hides it), hiding them all, writing to whoever answers (when somebody is active) and
-    /// the way to the panel.
+    /// active (a click puts it there or hides it), hiding them all and the way to the panel.
     /// </summary>
     private void FillAssistantTrayMenu(System.Windows.Controls.MenuItem menu)
     {
@@ -413,12 +428,6 @@ public partial class App
             menu.Items.Add(hideAll);
         }
         if (menu.Items.Count > 0) menu.Items.Add(new System.Windows.Controls.Separator());
-        if (PickAssistant() is { } who)
-        {
-            var write = new System.Windows.Controls.MenuItem { Header = Loc.T("assistantMenu.write", AssistantName(who)) };
-            write.Click += (_, _) => ShowAssistantWriteBox(who, null);
-            menu.Items.Add(write);
-        }
         var panel = new System.Windows.Controls.MenuItem { Header = Loc.T("assistantMenu.panel") };
         panel.Click += (_, _) => ShowMainWindow(w => w.Navigate("assistant"));
         menu.Items.Add(panel);
@@ -531,11 +540,7 @@ public partial class App
         var s = Config.Settings;
         s.AssistantsOnDesktop.Remove(id);
         if (s.AssistantLastTalkedTo == id) s.AssistantLastTalkedTo = null;
-        if (s.AssistantTarget == Core.Model.AssistantTarget.Fixed && s.AssistantTargetId == id)
-        {
-            s.AssistantTarget = Core.Model.AssistantTarget.LastTalkedTo;
-            s.AssistantTargetId = null;
-        }
+        if (s.AssistantTalkHotkeys.ContainsKey(id)) s.AssistantTalkHotkeys = s.AssistantTalkHotkeys.Where(p => p.Key != id).ToDictionary(p => p.Key, p => p.Value);
         if (s.AssistantWakeWords.ContainsKey(id)) s.AssistantWakeWords = AssistantTargeting.Assign(s.AssistantWakeWords, id, null);
         if (_assistant is { IsRunning: true } supervisor && supervisor.IsLoaded(id))
         {

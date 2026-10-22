@@ -70,7 +70,8 @@ public class AssistantExtraActionTests
         var store = new ConfigStore();
         store.Config.Commands.Add(back);
         await new CommandEngine(store, ui).RunAsync(back, TriggerSource.Hotkey);
-        Assert.Equal([("lander", "¿qué tengo apuntado?"), ("", "")], ui.Asked);
+        // A new one goes to K-Desktop (5.0.113: an action always names its assistant).
+        Assert.Equal([("lander", "¿qué tengo apuntado?"), ("kdesktop", "")], ui.Asked);
     }
 
     [Fact]

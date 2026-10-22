@@ -8,9 +8,9 @@ using KDesktop.Core.Voice;
 namespace KDesktop.Views.Pages;
 
 /// <summary>
-/// Options → Assistant → General (stage 1.8): turn the module on and see how it is doing. Who is on the desktop is
-/// chosen in Options → Assistants (several at once since stage 1.11). The word «for the assistant» (stage 5.1) calls
-/// whoever answers what is not addressed to anyone, or the module without a body.
+/// Options → Assistant → General (stage 1.8): turn the module on and see how it is doing, and what goes for all of them.
+/// Who is on the desktop is chosen in Options → Assistants (several at once since stage 1.11); each one is called by its
+/// own word or its own key (5.0.113: there is no word or key «for the assistant»).
 /// </summary>
 public partial class AssistantGeneralSection : UserControl
 {
@@ -34,8 +34,6 @@ public partial class AssistantGeneralSection : UserControl
         StateText.Text = text;
         StateDot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, brush);
         PanelButton.Visibility = _app.Assistant is null ? Visibility.Collapsed : Visibility.Visible;
-        FillAnyWake();
-        ShowTalkKey();
         FillManoeuvres();
     }
 
@@ -101,71 +99,6 @@ public partial class AssistantGeneralSection : UserControl
     private void OnAnimateChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_filling && AnimateBox.SelectedItem is Choice<int> choice) _app.Config.Settings.AssistantAnimateMax = choice.Value;
-    }
-
-    private void ShowTalkKey()
-    {
-        var hotkey = _app.Config.Settings.AssistantTalkHotkey;
-        var none = string.IsNullOrWhiteSpace(hotkey);
-        TalkKeyButton.Content = none ? Loc.T("settings.voiceNoHotkey") : hotkey;
-        TalkKeyClear.Visibility = none ? Visibility.Collapsed : Visibility.Visible;
-    }
-
-    private void OnCaptureTalkKey(object sender, RoutedEventArgs e)
-    {
-        TalkKeyButton.Content = Loc.T("commands.pressHotkey");
-        HotkeyCapture.Start(
-            preview => TalkKeyButton.Content = preview + "…",
-            hotkey =>
-            {
-                if (hotkey is not null) _app.Config.Settings.AssistantTalkHotkey = Core.Input.Hotkey.Normalize(hotkey);
-                ShowTalkKey();
-            },
-            Window.GetWindow(this));
-    }
-
-    private void OnClearTalkKey(object sender, RoutedEventArgs e)
-    {
-        _app.Config.Settings.AssistantTalkHotkey = string.Empty;
-        ShowTalkKey();
-    }
-
-    /// <summary>The recorded words; one of an assistant says whose it is (choosing it here takes it from that one).</summary>
-    private void FillAnyWake()
-    {
-        _filling = true;
-        List<WakeOption> options = [new(null, Loc.T("assistantOptions.wakeNone"))];
-        foreach (var word in _app.Voice.WakeWords.Words)
-        {
-            var owner = _app.WakeOwnerOf(word.Id);
-            options.Add(new(word.Id, owner switch
-            {
-                null or AssistantTargeting.AnyAssistant => word.Name,
-                Core.Voice.WakeOwners.Commands => Loc.T("assistantOptions.wakeOfKDesktop", word.Name),
-                _ => Loc.T("assistantOptions.wakeOf", word.Name, App.AssistantName(owner)),
-            }));
-        }
-        AnyWakeBox.ItemsSource = options;
-        AnyWakeBox.SelectedItem = options.FirstOrDefault(o => o.Id == _app.AnyAssistantWakeWord) ?? options[0];
-        _filling = false;
-    }
-
-    private void OnAnyWakeChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (_filling || AnyWakeBox.SelectedItem is not WakeOption option || option.Id == _app.AnyAssistantWakeWord) return;
-        // After this event: the box is filled again when it changes.
-        Dispatcher.BeginInvoke(() => _app.SetAssistantWakeWord(AssistantTargeting.AnyAssistant, option.Id));
-    }
-
-    private void OnRecordAnyWake(object sender, RoutedEventArgs e)
-    {
-        if (!VoiceModels.AllInstalled || _app.Voice.Models.IsDownloading)
-        {
-            _app.Ui.ShowOsd(Loc.T("wake.needModels"), OsdKind.Info);
-            return;
-        }
-        if (Dialogs.WakeWordDialog.Record(Window.GetWindow(this), suggestedName: Loc.T("assistantOptions.anyWakeName")) is { } word)
-            _app.SetAssistantWakeWord(AssistantTargeting.AnyAssistant, word.Id);
     }
 
     private void OnOpenPanel(object sender, RoutedEventArgs e) =>

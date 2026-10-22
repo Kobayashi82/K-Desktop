@@ -4,8 +4,8 @@ namespace KDesktop.Core.Voice;
 
 /// <summary>
 /// Whose each recorded wake word is (5.0.109): the recorded words are a pool and each one has one owner —K-Desktop (its
-/// commands), an assistant, any assistant (<see cref="AssistantTargeting.AnyAssistant"/>) or nobody. A word nobody has,
-/// or an assistant's while it is not on the desktop, is not listened to.
+/// commands), an assistant (K-Desktop too, <see cref="AssistantTargeting.KDesktop"/>) or nobody. A word nobody has, or an
+/// assistant's while it is not on the desktop, is not listened to.
 /// </summary>
 public static class WakeOwners
 {
@@ -15,7 +15,7 @@ public static class WakeOwners
     /// </summary>
     public const string Commands = "@commands";
 
-    /// <summary>Its owner: <see cref="Commands"/>, an assistant's id, <see cref="AssistantTargeting.AnyAssistant"/> or null.</summary>
+    /// <summary>Its owner: <see cref="Commands"/>, an assistant's id or null.</summary>
     public static string? Of(string wordId, IReadOnlyDictionary<string, string> assistantWords, IReadOnlyCollection<string>? kdesktopWords)
     {
         foreach (var (assistant, word) in assistantWords)
@@ -33,7 +33,6 @@ public static class WakeOwners
         {
             null => true,
             Commands => false,
-            AssistantTargeting.AnyAssistant => !moduleOn,
             var assistant => !moduleOn || !onDesktop.Contains(assistant),
         })];
 

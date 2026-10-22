@@ -90,18 +90,24 @@ public class HotkeyIndexTests
     }
 
     [Fact]
-    public void TheTalkKeyOfTheAssistantsOnlyWorksWithTheModuleOn()
+    public void EachAssistantHasItsKeyToTalkWhileItIsOnTheDesktop()
     {
-        var settings = new AppSettings { VoiceHotkey = "Scroll", AssistantTalkHotkey = "Pause" };
+        var settings = new AppSettings { VoiceHotkey = "Scroll", AssistantTalkHotkeys = new() { ["lander"] = "Pause", ["dot"] = "F8" } };
+        settings.AssistantsOnDesktop.Add("lander");
         var talk = Hotkey.Normalize("Pause");
-        Assert.Null(new HotkeyIndex([], settings).VoiceKey(talk, () => "notepad"));
+        Assert.False(new HotkeyIndex([], settings).IsTalkKey(talk, () => "notepad", out _));
 
         settings.AssistantEnabled = true;
         var index = new HotkeyIndex([], settings);
-        Assert.True(index.VoiceKey(talk, () => "notepad"));
-        Assert.False(index.VoiceKey(Hotkey.Normalize("Scroll"), () => "notepad"));
-        Assert.Null(index.VoiceKey(Hotkey.Normalize("F9"), () => "notepad"));
-        Assert.Null(new HotkeyIndex([], settings, paused: true).VoiceKey(talk, () => "notepad"));
+        Assert.True(index.IsTalkKey(talk, () => "notepad", out var who));
+        Assert.Equal("lander", who);
+        // K-Desktop's voice key: its commands.
+        Assert.True(index.IsTalkKey(Hotkey.Normalize("Scroll"), () => "notepad", out who));
+        Assert.Null(who);
+        // Dot is hidden: its key is nobody's now.
+        Assert.False(index.IsTalkKey(Hotkey.Normalize("F8"), () => "notepad", out _));
+        Assert.False(index.IsTalkKey(Hotkey.Normalize("F9"), () => "notepad", out _));
+        Assert.False(new HotkeyIndex([], settings, paused: true).IsTalkKey(talk, () => "notepad", out _));
         Assert.Contains("Pause", settings.OwnHotkeys);
     }
 }

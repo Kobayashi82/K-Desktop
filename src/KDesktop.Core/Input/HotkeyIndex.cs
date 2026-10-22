@@ -27,8 +27,11 @@ public sealed class HotkeyIndex
     /// <summary>Hold to talk (Settings › Voice); empty when unset or paused.</summary>
     public string VoiceHotkey { get; }
 
-    /// <summary>Hold to talk to the assistants (Options › Assistant › General); empty when unset, paused or with the module off.</summary>
-    public string AssistantTalkHotkey { get; }
+    /// <summary>
+    /// Hold to talk to one assistant (5.0.113): hotkey → its id, only those on the desktop; empty when paused or with the
+    /// module off.
+    /// </summary>
+    private readonly Dictionary<string, string> _talkKeys;
 
     /// <summary>Opens the launcher (Settings › Lanzador); empty when unset or paused.</summary>
     public string LauncherHotkey { get; }
@@ -66,8 +69,10 @@ public sealed class HotkeyIndex
         ShowWindowHotkey = Hotkey.Normalize(settings.ShowWindowHotkey);
         ExitHotkey = Hotkey.Normalize(settings.ExitHotkey);
         VoiceHotkey = paused || string.IsNullOrWhiteSpace(settings.VoiceHotkey) ? string.Empty : Hotkey.Normalize(settings.VoiceHotkey);
-        AssistantTalkHotkey = paused || !settings.AssistantEnabled || string.IsNullOrWhiteSpace(settings.AssistantTalkHotkey)
-            ? string.Empty : Hotkey.Normalize(settings.AssistantTalkHotkey);
+        _talkKeys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (!paused && settings.AssistantEnabled)
+            foreach (var (assistant, key) in settings.AssistantTalkHotkeys)
+                if (settings.AssistantsOnDesktop.Contains(assistant) && Hotkey.Normalize(key) is { Length: > 0 } normal) _talkKeys.TryAdd(normal, assistant);
         DisabledInHotkey = paused || string.IsNullOrWhiteSpace(settings.DisabledInHotkey) ? string.Empty : Hotkey.Normalize(settings.DisabledInHotkey);
         PauseHotkey = string.IsNullOrWhiteSpace(settings.PauseHotkey) ? string.Empty : Hotkey.Normalize(settings.PauseHotkey);
         LauncherHotkey = paused || string.IsNullOrWhiteSpace(settings.LauncherHotkey) ? string.Empty : Hotkey.Normalize(settings.LauncherHotkey);
@@ -98,15 +103,19 @@ public sealed class HotkeyIndex
         VoiceHotkey.Length > 0 && hotkey.Equals(VoiceHotkey, StringComparison.OrdinalIgnoreCase) && (_voiceAnywhere || !DisabledHere(process));
 
     /// <summary>
-    /// Whether a hotkey listens (like <see cref="IsVoiceHotkey"/>): false for K-Desktop's voice key, true for the
-    /// assistants' talk key, null for neither.
+    /// Whether a hotkey listens (like <see cref="IsVoiceHotkey"/>): K-Desktop's voice key (<paramref name="assistant"/>
+    /// null: its commands) or the key to talk to an assistant on the desktop (its id).
     /// </summary>
-    public bool? VoiceKey(string hotkey, Func<string> process)
+    public bool IsTalkKey(string hotkey, Func<string> process, out string? assistant)
     {
-        if (IsVoiceHotkey(hotkey, process)) return false;
-        if (AssistantTalkHotkey.Length > 0 && hotkey.Equals(AssistantTalkHotkey, StringComparison.OrdinalIgnoreCase) && (_voiceAnywhere || !DisabledHere(process)))
+        assistant = null;
+        if (IsVoiceHotkey(hotkey, process)) return true;
+        if (_talkKeys.TryGetValue(hotkey, out var who) && (_voiceAnywhere || !DisabledHere(process)))
+        {
+            assistant = who;
             return true;
-        return null;
+        }
+        return false;
     }
 
     private bool DisabledHere(Func<string> process) => _disabledIn.Count > 0 && _disabledIn.Contains(process());

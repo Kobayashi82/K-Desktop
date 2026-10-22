@@ -142,41 +142,41 @@ public partial class App
         AssistantChatChanged?.Invoke(id);
     }
 
-    /// <summary>«Asistente: preguntar»: the order to an assistant (empty: the default one); without text, the box to write it.</summary>
+    /// <summary>«Asistente: preguntar»: the order to its assistant; without text, the box to write it. Not while it is hidden.</summary>
     private void AskAssistantFromCommand(string id, string text)
     {
-        if (_assistant is null)
-        {
-            Ui.ShowOsd(Loc.T("assistantExtra.moduleOff"), Core.Engine.OsdKind.Warning);
-            return;
-        }
-        var who = id.Length > 0 ? id : PickAssistant();
-        if (who is not null && !IsAssistant(who))
-        {
-            Ui.ShowOsd(Loc.T("assistantExtra.notInstalled", who), Core.Engine.OsdKind.Warning);
-            return;
-        }
-        if (who is null) Ui.ShowOsd(Loc.T("assistantChat.nobody"), Core.Engine.OsdKind.Warning);
-        else if (text.Trim().Length == 0) ShowAssistantWriteBox(who, null);
-        else SendToAssistant(who, text, "command");
+        if (!CanCommandAssistant(id)) return;
+        if (text.Trim().Length == 0) ShowAssistantWriteBox(id, null);
+        else SendToAssistant(id, text, "command");
     }
 
     /// <summary>
-    /// «Asistente: decir»: the assistant (empty: the default one) says it, in its bubble and its chat; K-Desktop, or one
-    /// that is not on the desktop, with the OSD (the chat line that comes back shows it); with nobody active, only the OSD.
+    /// Whether an action of a command may go to its assistant (5.0.113): the module on, an assistant named that exists and
+    /// is on the desktop. Otherwise it is not run, and the OSD says why.
+    /// </summary>
+    private bool CanCommandAssistant(string id)
+    {
+        var why = _assistant is null ? Loc.T("assistantExtra.moduleOff")
+            : id.Length == 0 ? Loc.T("assistantAction.noAssistant")
+            : !IsAssistant(id) ? Loc.T("assistantExtra.notInstalled", id)
+            : !IsOnDesktop(id) ? Loc.T(AssistantTargeting.IsSystem(id) ? "assistantState.systemInactive" : "assistantState.notOnDesktop", AssistantName(id))
+            : null;
+        if (why is null) return true;
+        Log.Info($"Asistente: acción para «{id}» que no se ejecuta: {why}");
+        Ui.ShowOsd(why, Core.Engine.OsdKind.Warning);
+        return false;
+    }
+
+    /// <summary>
+    /// «Asistente: decir»: its assistant says it, in its bubble and its chat (K-Desktop with the OSD: the chat line that
+    /// comes back shows it). Not while it is hidden.
     /// </summary>
     private void SayFromCommand(string id, string text)
     {
         text = text.Trim();
-        if (text.Length == 0) return;
-        if (_assistant is null)
-        {
-            Ui.ShowOsd(Loc.T("assistantExtra.moduleOff"), Core.Engine.OsdKind.Warning);
-            return;
-        }
-        var who = id.Length > 0 ? id : PickAssistant();
-        if (who is not null) _chatSources[who] = "command";
-        if (who is null || !_assistant.IsRunning || !_assistant.Send(new SayMessage(text, ProcessIdOf(who))))
+        if (text.Length == 0 || !CanCommandAssistant(id)) return;
+        _chatSources[id] = "command";
+        if (!_assistant!.IsRunning || !_assistant.Send(new SayMessage(text, ProcessIdOf(id))))
             Ui.ShowOsd(text, Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(Math.Clamp(2 + text.Length * 0.06, 4, 15)));
     }
 

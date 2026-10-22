@@ -224,7 +224,6 @@ public partial class SettingsPage : UserControl
             new(WakeOwners.Commands, Loc.T("settings.wakeOwnerKDesktop")),
             new(Core.Assistant.AssistantTargeting.KDesktop, Loc.T("settings.wakeOwnerKDesktopAssistant")),
             .. Core.Assistant.Packages.AssistantPackages.Installed().Select(a => new WakeOwnerOption(a.Id, a.Manifest.Name)),
-            new(Core.Assistant.AssistantTargeting.AnyAssistant, Loc.T("settings.wakeOwnerAny")),
             new(null, Loc.T("settings.wakeOwnerNone")),
         ];
         WakeList.ItemsSource = _app.Voice.WakeWords.Words.Select(w =>

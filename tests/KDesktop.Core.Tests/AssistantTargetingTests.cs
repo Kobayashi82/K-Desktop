@@ -3,37 +3,19 @@ using KDesktop.Core.Model;
 
 namespace KDesktop.Core.Tests;
 
-/// <summary>Stage 1.11: several assistants on the desktop, who takes what is not addressed to anyone, and their wake words.</summary>
+/// <summary>Stage 1.11: several assistants on the desktop and their wake words; 5.0.113: each one called by its own word or key.</summary>
 public class AssistantTargetingTests
 {
     private static readonly string[] Both = ["dot", "lander"];
 
     [Fact]
-    public void TheLastOneTalkedToTakesIt()
+    public void KDesktopTurnsToTheLastOneTalkedTo()
     {
-        Assert.Equal("lander", AssistantTargeting.Pick(AssistantTarget.LastTalkedTo, null, "lander", Both));
+        Assert.Equal("lander", AssistantTargeting.Pick("lander", Both));
         // Nobody talked to yet, or that one left the desktop: the first one put there.
-        Assert.Equal("dot", AssistantTargeting.Pick(AssistantTarget.LastTalkedTo, null, null, Both));
-        Assert.Equal("dot", AssistantTargeting.Pick(AssistantTarget.LastTalkedTo, null, "blob", Both));
-        Assert.Null(AssistantTargeting.Pick(AssistantTarget.LastTalkedTo, null, "dot", []));
-    }
-
-    [Fact]
-    public void AFixedOneTakesItWhileItIsOnTheDesktop()
-    {
-        Assert.Equal("lander", AssistantTargeting.Pick(AssistantTarget.Fixed, "lander", "dot", Both));
-        // Not on the desktop: as «the last one talked to».
-        Assert.Equal("dot", AssistantTargeting.Pick(AssistantTarget.Fixed, "blob", "dot", Both));
-        Assert.Equal("dot", AssistantTargeting.Pick(AssistantTarget.Fixed, null, null, Both));
-    }
-
-    [Fact]
-    public void AtRandomPicksAnyOfThemOnEveryOrder()
-    {
-        var random = new Random(82);
-        var picked = Enumerable.Range(0, 40).Select(_ => AssistantTargeting.Pick(AssistantTarget.Random, null, null, Both, random)).OfType<string>().ToHashSet();
-        Assert.Equal(Both.ToHashSet(), picked);
-        Assert.Equal("dot", AssistantTargeting.Pick(AssistantTarget.Random, null, null, ["dot"], random));
+        Assert.Equal("dot", AssistantTargeting.Pick(null, Both));
+        Assert.Equal("dot", AssistantTargeting.Pick("blob", Both));
+        Assert.Null(AssistantTargeting.Pick("dot", []));
     }
 
     [Fact]
@@ -59,7 +41,6 @@ public class AssistantTargetingTests
         Assert.True(config.Upgrade());
         Assert.Equal(["dot"], config.Settings.AssistantsOnDesktop);
         Assert.Null(config.Settings.AssistantActive);
-        Assert.Equal(AssistantTarget.LastTalkedTo, config.Settings.AssistantTarget);
 
         // Saved again: the old setting is gone and the list stays.
         var saved = Json.Serialize(config);
@@ -69,31 +50,50 @@ public class AssistantTargetingTests
         Assert.Equal(["dot"], again.Settings.AssistantsOnDesktop);
     }
 
+    /// <summary>5.0.113: the word «for the assistant» is nobody's, and the one key to talk goes to the last one talked to.</summary>
     [Fact]
-    public void TheWordForTheAssistantIsOneMore()
+    public void WhatWasForAnyAssistantGoes()
     {
-        var words = AssistantTargeting.Assign(new Dictionary<string, string>(), "dot", "w1");
-        words = AssistantTargeting.Assign(words, AssistantTargeting.AnyAssistant, "w2");
-        Assert.Equal(AssistantTargeting.AnyAssistant, AssistantTargeting.ForWakeWord(words, "w2"));
-        Assert.Equal("dot", AssistantTargeting.ForWakeWord(words, "w1"));
+        var config = Json.Deserialize<AppConfig>("""
+            { "schemaVersion": 3, "settings": { "assistantEnabled": true, "assistantTarget": "fixed", "assistantTargetId": "dot",
+              "assistantWakeWords": { "lander": "w1", "*": "w2" }, "assistantTalkHotkey": "Pause", "assistantLastTalkedTo": "lander" } }
+            """)!;
+        Assert.True(config.Upgrade());
+        Assert.Equal(new Dictionary<string, string> { ["lander"] = "w1" }, config.Settings.AssistantWakeWords);
+        Assert.Equal(new Dictionary<string, string> { ["lander"] = "Pause" }, config.Settings.AssistantTalkHotkeys);
+        var saved = Json.Serialize(config);
+        Assert.DoesNotContain("assistantTalkHotkey\"", saved);
+        Assert.DoesNotContain("assistantTarget", saved);
+        Assert.False(Json.Deserialize<AppConfig>(saved)!.Upgrade());
 
-        // Taking Dot's word for the general one leaves Dot without one.
-        words = AssistantTargeting.Assign(words, AssistantTargeting.AnyAssistant, "w1");
-        Assert.Equal(AssistantTargeting.AnyAssistant, AssistantTargeting.ForWakeWord(words, "w1"));
-        Assert.False(words.ContainsKey("dot"));
-        Assert.Null(AssistantTargeting.ForWakeWord(words, "w2"));
+        // Nobody talked to yet: K-Desktop's.
+        var empty = Json.Deserialize<AppConfig>("""{ "schemaVersion": 3, "settings": { "assistantTalkHotkey": "F8" } }""")!;
+        Assert.True(empty.Upgrade());
+        Assert.Equal("F8", empty.Settings.AssistantTalkHotkeys[AssistantTargeting.KDesktop]);
+    }
+
+    /// <summary>5.0.113: a key to talk is of one at most, and not one a command or K-Desktop already answers.</summary>
+    [Fact]
+    public void KeysToTalkSayWhoHasThem()
+    {
+        var config = new AppConfig();
+        config.Settings.AssistantEnabled = true;
+        config.Settings.AssistantTalkHotkeys = new() { ["lander"] = "Pause" };
+        config.Commands.Add(new Command { Name = "Mío", Hotkeys = ["F8"] });
+        Assert.Equal(["lander"], config.HotkeyUsers("Pause"));
+        Assert.Empty(config.HotkeyUsers("Pause", exceptAssistant: "lander"));
+        Assert.Equal(["Mío"], config.HotkeyUsers("F8", exceptAssistant: "lander"));
+        Assert.Contains("Pause", config.Settings.OwnHotkeys);
     }
 
     [Fact]
-    public void WakeWordsOfTheAssistantsAreSaved()
+    public void WakeWordsAndKeysOfTheAssistantsAreSaved()
     {
         var config = new AppConfig();
         config.Settings.AssistantWakeWords = AssistantTargeting.Assign(config.Settings.AssistantWakeWords, "dot", "w1");
-        config.Settings.AssistantTarget = AssistantTarget.Fixed;
-        config.Settings.AssistantTargetId = "dot";
+        config.Settings.AssistantTalkHotkeys = new() { ["dot"] = "F9" };
         var back = Json.Deserialize<AppConfig>(Json.Serialize(config))!;
         Assert.Equal("w1", back.Settings.AssistantWakeWords["dot"]);
-        Assert.Equal(AssistantTarget.Fixed, back.Settings.AssistantTarget);
-        Assert.Equal("dot", back.Settings.AssistantTargetId);
+        Assert.Equal("F9", back.Settings.AssistantTalkHotkeys["dot"]);
     }
 }

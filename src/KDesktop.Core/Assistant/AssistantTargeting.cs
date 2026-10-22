@@ -1,20 +1,12 @@
-using KDesktop.Core.Model;
-
 namespace KDesktop.Core.Assistant;
 
 /// <summary>
-/// Who takes what is not addressed to anyone (a command with gestures run by a hotkey or a QuickMenu, a notice, the
-/// generic wake word, the panel's chat without choosing): the choice of Options → Assistants. A wake word of its own
-/// always goes to its assistant; this is only for the rest.
+/// Who the assistants are to K-Desktop: K-Desktop itself is one of them, and each one is called by its own word or its own
+/// key (5.0.113: there is no word, key or choice «for the assistant»). <see cref="Pick"/> is only for what K-Desktop decides
+/// on its own (showing the commands you run, «Probar»).
 /// </summary>
 public static class AssistantTargeting
 {
-    /// <summary>
-    /// The key of <c>assistantWakeWords</c> for the word «for the assistant» (stage 5.1): not of anyone in particular, it
-    /// goes to the one <see cref="Pick"/> gives, or to the module without a body when nobody is on the desktop.
-    /// </summary>
-    public const string AnyAssistant = "*";
-
     /// <summary>
     /// K-Desktop itself as an assistant (5.0.112): of the system, without a package, a figure or gestures. «On the desktop»
     /// is active: it answers with a notice and its voice, and runs commands without gestures. In the assistant process it is
@@ -25,26 +17,14 @@ public static class AssistantTargeting
     public static bool IsSystem(string? id) => id == KDesktop;
 
     /// <summary>
-    /// The assistant for one order, or null with nobody on the desktop (then there is no assistant: nobody answers). Call
-    /// it once per order: «at random» picks again on every call.
+    /// The one on the desktop K-Desktop turns to by itself: the last one talked to, else the first one put there; null
+    /// with nobody on the desktop.
     /// </summary>
     /// <param name="onDesktop">The assistants on the desktop, in the order they were put there.</param>
-    public static string? Pick(AssistantTarget target, string? fixedId, string? lastTalkedTo, IReadOnlyList<string> onDesktop, Random? random = null)
-    {
-        if (onDesktop.Count == 0) return null;
-        switch (target)
-        {
-            case AssistantTarget.Random:
-                return onDesktop[(random ?? Random.Shared).Next(onDesktop.Count)];
-            case AssistantTarget.Fixed when fixedId is not null && onDesktop.Contains(fixedId):
-                return fixedId;
-            default:
-                // The last one talked to; until then (or if it left the desktop), the first one put there.
-                return lastTalkedTo is not null && onDesktop.Contains(lastTalkedTo) ? lastTalkedTo : onDesktop[0];
-        }
-    }
+    public static string? Pick(string? lastTalkedTo, IReadOnlyList<string> onDesktop) =>
+        onDesktop.Count == 0 ? null : lastTalkedTo is not null && onDesktop.Contains(lastTalkedTo) ? lastTalkedTo : onDesktop[0];
 
-    /// <summary>The assistant a wake word calls (null: none of them; it is K-Desktop's).</summary>
+    /// <summary>The assistant a wake word calls (null: none of them).</summary>
     public static string? ForWakeWord(IReadOnlyDictionary<string, string> wakeWords, string wakeWordId) =>
         wakeWords.FirstOrDefault(p => p.Value == wakeWordId).Key;
 

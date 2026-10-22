@@ -4,9 +4,9 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:l="clr-namespace:KDesktop.Localization"
              xmlns:a="clr-namespace:KDesktop.Views.Assistant">
-    <!-- Options → Assistant → Assistants: the installed ones, adding, putting on the desktop (several at once), hiding,
-         removing and the wake word of each; who takes what is not addressed to anyone; and the settings of each one,
-         in place of the list -->
+    <!-- Options → Assistant → Assistants: K-Desktop and the installed ones in compact rows (putting on the desktop, several
+         at once, hiding, removing), adding; a row opens its card in place of the list (5.0.113: its word, key and model are
+         in the card's «General») -->
     <Grid>
     <StackPanel x:Name="ListCard">
     <Border Style="{StaticResource Card}">
@@ -21,28 +21,29 @@
                            Content="{l:Tr assistantOptions.add}" Click="OnAdd" />
             </Grid>
 
+            <!-- One compact row each: a click opens its card (word, key, model, its settings, personality and voice) -->
             <ItemsControl x:Name="AssistantList" Margin="0,10,0,0" Focusable="False">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border x:Name="Row" Margin="0,0,0,8" Padding="14,12" CornerRadius="8" BorderThickness="1"
-                                Background="{DynamicResource Kd.Subtle}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+                        <Border x:Name="Row" Margin="0,0,0,6" Padding="12,9" CornerRadius="8" BorderThickness="1" Cursor="Hand"
+                                Background="{DynamicResource Kd.Subtle}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                                MouseLeftButtonUp="OnRowClick">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-                                <Border Width="48" Height="48" CornerRadius="12" Background="{DynamicResource Kd.ChipBackground}" VerticalAlignment="Top">
+                                <Border Width="38" Height="38" CornerRadius="10" Background="{DynamicResource Kd.ChipBackground}" VerticalAlignment="Center">
                                     <Grid>
-                                        <ui:SymbolIcon Symbol="Bot24" FontSize="26" Foreground="{DynamicResource Kd.AccentText}"
+                                        <ui:SymbolIcon Symbol="Bot24" FontSize="20" Foreground="{DynamicResource Kd.AccentText}"
                                                        Visibility="{Binding NoIcon, Converter={StaticResource BoolToVis}}" />
-                                        <Image Source="{Binding Icon}" Margin="5" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+                                        <Image Source="{Binding Icon}" Margin="4" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
                                     </Grid>
                                 </Border>
-                                <StackPanel Grid.Column="1" Margin="14,0,16,0" VerticalAlignment="Center">
+                                <StackPanel Grid.Column="1" Margin="12,0,12,0" VerticalAlignment="Center">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                        <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
                                                    Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                         <Border Margin="10,0,0,0" CornerRadius="9" Padding="8,1" VerticalAlignment="Center"
                                                 Background="{DynamicResource Kd.AccentSoft}"
@@ -50,45 +51,9 @@
                                             <TextBlock FontSize="11" Foreground="{DynamicResource Kd.AccentText}" Text="{Binding OnDesktopText}" />
                                         </Border>
                                     </StackPanel>
-                                    <TextBlock Style="{StaticResource Caption}" Margin="0,1,0,0" Text="{Binding Byline}" TextTrimming="CharacterEllipsis" />
-                                    <TextBlock Margin="0,6,0,0" FontSize="13" Text="{Binding Description}" TextWrapping="Wrap" MaxHeight="38"
-                                               TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                               Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}" />
-                                </StackPanel>
-                                <!-- Its wake word (the word chooses who you talk to) and the model it thinks with, under the text -->
-                                <WrapPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="14,8,0,0">
-                                <StackPanel Orientation="Horizontal" Margin="0,0,24,4">
-                                    <ui:SymbolIcon Symbol="Mic24" FontSize="15" Margin="0,0,6,0" VerticalAlignment="Center"
-                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                                    <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,8,0"
-                                               Text="{l:Tr assistantOptions.wakeWord}" />
-                                    <ComboBox MinWidth="190" MaxWidth="260" VerticalAlignment="Center" ItemsSource="{Binding WakeOptions}"
-                                              SelectedItem="{Binding SelectedWake, Mode=OneTime}" DisplayMemberPath="Name"
-                                              SelectionChanged="OnWakeChanged" AutomationProperties.Name="{l:Tr assistantOptions.wakeWord}" />
-                                    <ui:Button Margin="6,0,0,0" VerticalAlignment="Center" Icon="{ui:SymbolIcon Record24}" Click="OnRecordWake"
-                                               ToolTip="{l:Tr assistantOptions.wakeRecord}" AutomationProperties.Name="{l:Tr assistantOptions.wakeRecord}" />
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4" Visibility="{Binding HasBrain, Converter={StaticResource BoolToVis}}">
-                                    <ui:SymbolIcon Symbol="BrainCircuit24" FontSize="15" Margin="0,0,6,0" VerticalAlignment="Center"
-                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                                    <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,8,0"
-                                               Text="{l:Tr assistantOptions.model}" />
-                                    <ComboBox MinWidth="190" MaxWidth="400" VerticalAlignment="Center" ItemsSource="{Binding ModelOptions}"
-                                              SelectedItem="{Binding SelectedModel, Mode=OneTime}" DisplayMemberPath="Name"
-                                              SelectionChanged="OnModelChanged" AutomationProperties.Name="{l:Tr assistantOptions.model}" />
-                                </StackPanel>
-                                </WrapPanel>
-                                <!-- The model it suggests, when Ollama does not have it: offered, never downloaded without asking -->
-                                <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="14,4,0,0" Orientation="Horizontal"
-                                            Visibility="{Binding HasSuggestedModel, Converter={StaticResource BoolToVis}}">
-                                    <ui:SymbolIcon Symbol="Sparkle24" FontSize="15" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
-                                    <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,8,0" Text="{Binding SuggestedModelText}" />
-                                    <ui:Button VerticalAlignment="Center" Padding="10,3" Icon="{ui:SymbolIcon ArrowDownload24}" Content="{l:Tr assistantOptions.modelDownload}"
-                                               Click="OnDownloadModel" Visibility="{Binding CanDownloadSuggested, Converter={StaticResource BoolToVis}}" />
+                                    <TextBlock Style="{StaticResource Caption}" Margin="0,1,0,0" Text="{Binding Line}" TextTrimming="CharacterEllipsis" />
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <ui:Button Margin="0,0,8,0" Content="{l:Tr assistantOptions.settings}" Icon="{ui:SymbolIcon Options24}"
-                                               Click="OnSettings" Visibility="{Binding HasSettings, Converter={StaticResource BoolToVis}}" />
                                     <ui:Button Content="{Binding PutText}" Icon="{ui:SymbolIcon Play24}" Click="OnActivate"
                                                Visibility="{Binding IsOffDesktop, Converter={StaticResource BoolToVis}}" />
                                     <ui:Button Content="{Binding HideText}" Icon="{ui:SymbolIcon EyeOff24}" Click="OnHide"
@@ -96,6 +61,8 @@
                                     <ui:Button Margin="8,0,0,0" Icon="{ui:SymbolIcon Delete24}" Click="OnRemove"
                                                Visibility="{Binding CanRemove, Converter={StaticResource BoolToVis}}"
                                                ToolTip="{l:Tr assistantOptions.remove}" AutomationProperties.Name="{l:Tr assistantOptions.remove}" />
+                                    <ui:Button Margin="8,0,0,0" Appearance="Transparent" Icon="{ui:SymbolIcon ChevronRight24}" Click="OnSettings"
+                                               ToolTip="{l:Tr assistantOptions.settings}" AutomationProperties.Name="{Binding SettingsName}" />
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -103,6 +70,9 @@
                             <DataTrigger Binding="{Binding IsOnDesktop}" Value="True">
                                 <Setter TargetName="Row" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
                             </DataTrigger>
+                            <Trigger SourceName="Row" Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Row" Property="Background" Value="{DynamicResource Kd.SubtleHover}" />
+                            </Trigger>
                         </DataTemplate.Triggers>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -123,18 +93,6 @@
         </StackPanel>
     </Border>
 
-    <!-- Who takes what is not addressed to anyone -->
-    <Border x:Name="TargetCard" Style="{StaticResource Card}" Visibility="Collapsed">
-        <Grid Style="{StaticResource SettingRow}">
-            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="260" /></Grid.ColumnDefinitions>
-            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                <TextBlock Text="{l:Tr assistantOptions.target}" />
-                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr assistantOptions.targetHint}" />
-            </StackPanel>
-            <ComboBox x:Name="TargetBox" Grid.Column="1" VerticalAlignment="Center" DisplayMemberPath="Name"
-                      SelectionChanged="OnTargetChanged" AutomationProperties.Name="{l:Tr assistantOptions.target}" />
-        </Grid>
-    </Border>
     </StackPanel>
 
     <a:AssistantSettingsView x:Name="SettingsView" Visibility="Collapsed" />

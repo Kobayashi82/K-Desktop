@@ -226,7 +226,7 @@ public partial class App : Application
         Router.CancelRequested += Voice.Cancel;
         Router.VoiceRequested += (held, toAssistant) =>
         {
-            if (toAssistant) Dispatcher.BeginInvoke(() => TalkToAssistant(held));
+            if (toAssistant is not null) Dispatcher.BeginInvoke(() => TalkToAssistant(held, toAssistant));
             else _ = Voice.ListenAsync(held);
         };
         Router.DisabledInToggleRequested += window =>

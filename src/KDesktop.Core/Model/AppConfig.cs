@@ -92,6 +92,24 @@ public sealed class AppConfig
             Settings.AssistantPersonal = personal;
             changed = true;
         }
+        // Until 5.0.112 there was a word and a key to talk to «the assistant»; since 5.0.113 each one has its own.
+        if (Settings.AssistantWakeWords.ContainsKey("*"))
+        {
+            Log.Info("La palabra «para el asistente» se queda sin dueño (cada asistente tiene la suya)");
+            Settings.AssistantWakeWords = Settings.AssistantWakeWords.Where(p => p.Key != "*").ToDictionary(p => p.Key, p => p.Value);
+            changed = true;
+        }
+        if (Settings.AssistantTalkHotkey is { } talk)
+        {
+            if (talk.Trim().Length > 0)
+            {
+                var to = Settings.AssistantLastTalkedTo ?? Assistant.AssistantTargeting.KDesktop;
+                Settings.AssistantTalkHotkeys = new Dictionary<string, string>(Settings.AssistantTalkHotkeys) { [to] = Input.Hotkey.Normalize(talk) };
+                Log.Info($"La tecla para hablar con el asistente pasa a ser la de «{to}»");
+            }
+            Settings.AssistantTalkHotkey = null;
+            changed = true;
+        }
         changed |= MigrateBrain();
         changed |= MigrateStartupAndExit();
         if (SchemaVersion < CurrentSchema)
@@ -228,17 +246,22 @@ public sealed class AppConfig
 
     /// <summary>
     /// Who else answers <paramref name="hotkey"/> for every program: the names of the enabled commands with it that are
-    /// not limited to some programs (but <paramref name="except"/>), and «K-Desktop» when it is one of its own hotkeys.
+    /// not limited to some programs (but <paramref name="except"/>), «K-Desktop» when it is one of its own hotkeys, and the
+    /// assistant whose key to talk it is (but <paramref name="exceptAssistant"/>).
     /// </summary>
-    public IReadOnlyList<string> HotkeyUsers(string hotkey, Command? except = null)
+    public IReadOnlyList<string> HotkeyUsers(string hotkey, Command? except = null, string? exceptAssistant = null)
     {
         var key = Input.Hotkey.Normalize(hotkey);
         if (key.Length == 0) return [];
+        bool Same(string h) => Input.Hotkey.Comparer.Equals(Input.Hotkey.Normalize(h), key);
         var users = Commands
-            .Where(c => !ReferenceEquals(c, except) && c.Enabled && c.Processes.Count == 0 && c.Hotkeys.Any(h => Input.Hotkey.Comparer.Equals(Input.Hotkey.Normalize(h), key)))
+            .Where(c => !ReferenceEquals(c, except) && c.Enabled && c.Processes.Count == 0 && c.Hotkeys.Any(Same))
             .Select(c => c.Name)
             .ToList();
-        if (Settings.OwnHotkeys.Any(h => Input.Hotkey.Comparer.Equals(Input.Hotkey.Normalize(h), key))) users.Add("K-Desktop");
+        if (Settings.BuiltInHotkeys.Any(Same)) users.Add("K-Desktop");
+        foreach (var (assistant, talk) in Settings.AssistantTalkHotkeys)
+            if (assistant != exceptAssistant && Same(talk))
+                users.Add(Assistant.AssistantTargeting.IsSystem(assistant) ? "K-Desktop" : Assistant.Packages.AssistantPackages.Find(assistant)?.Manifest.Name ?? assistant);
         return users;
     }
 
@@ -263,22 +286,6 @@ public sealed class AppConfig
 
 public enum OsdPosition { BottomCenter, TopCenter, Center, BottomRight, TopRight }
 public enum AppTheme { System, Dark, Light }
-
-/// <summary>
-/// Which assistant takes what is not addressed to anyone (a command with gestures run by a hotkey, a notice, the generic
-/// wake word, the panel's chat without choosing).
-/// </summary>
-public enum AssistantTarget
-{
-    /// <summary>The last one the user talked to (until then, the first one put on the desktop).</summary>
-    LastTalkedTo,
-
-    /// <summary>One at random, chosen once per order.</summary>
-    Random,
-
-    /// <summary><see cref="AppSettings.AssistantTargetId"/> (when it is not on the desktop, as <see cref="LastTalkedTo"/>).</summary>
-    Fixed,
-}
 
 /// <summary>What K-Desktop does about new versions.</summary>
 public enum UpdateMode { Off, Notify, Auto }
@@ -337,10 +344,13 @@ public partial class AppSettings : ObservableObject
     /// <summary>Open the main window when K-Desktop is started by hand (never when Windows starts it).</summary>
     [ObservableProperty] private bool _showWindowOnStart = true;
     [ObservableProperty] private bool _showTrayIcon = true;
-    /// <summary>K-Desktop's own hotkeys (show the window, exit, voice, «Desactivar en», pause, launcher, talk to the assistant); unset ones are empty.</summary>
+    /// <summary>K-Desktop's own hotkeys (show the window, exit, voice, «Desactivar en», pause, launcher, the assistants' keys to talk); unset ones are empty.</summary>
     [JsonIgnore]
-    public IEnumerable<string> OwnHotkeys => [ShowWindowHotkey, ExitHotkey, VoiceHotkey, DisabledInHotkey, PauseHotkey, LauncherHotkey,
-        AssistantEnabled ? AssistantTalkHotkey : string.Empty];
+    public IEnumerable<string> OwnHotkeys => [.. BuiltInHotkeys, .. AssistantEnabled ? AssistantTalkHotkeys.Values : Enumerable.Empty<string>()];
+
+    /// <summary>K-Desktop's own hotkeys but the assistants' keys to talk.</summary>
+    [JsonIgnore]
+    public IEnumerable<string> BuiltInHotkeys => [ShowWindowHotkey, ExitHotkey, VoiceHotkey, DisabledInHotkey, PauseHotkey, LauncherHotkey];
 
     [ObservableProperty] private string _showWindowHotkey = "CTRL + ALT + Home";
     [ObservableProperty] private string _exitHotkey = "CTRL + ALT + End";
@@ -502,18 +512,15 @@ public partial class AppSettings : ObservableObject
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     private string? _assistantActive;
 
-    /// <summary>Who takes what is not addressed to anyone.</summary>
-    [ObservableProperty] private AssistantTarget _assistantTarget;
-
-    /// <summary>The assistant of <see cref="AssistantTarget.Fixed"/>.</summary>
-    [ObservableProperty] private string? _assistantTargetId;
-
-    /// <summary>The last assistant the user talked to (its wake word, its menu…), for <see cref="AssistantTarget.LastTalkedTo"/>.</summary>
+    /// <summary>
+    /// The last assistant the user talked to (its wake word, its key, its menu…): the one K-Desktop turns to by itself
+    /// (<see cref="Assistant.AssistantTargeting.Pick"/>).
+    /// </summary>
     [ObservableProperty] private string? _assistantLastTalkedTo;
 
     /// <summary>
-    /// The wake word of each assistant: assistant id → id of a recorded wake word (VoiceWakeWords). A word belongs to
-    /// one assistant at most; words of none are K-Desktop's. Replaced whole on every change (so it is saved).
+    /// The wake word of each assistant (K-Desktop too): assistant id → id of a recorded wake word. A word belongs to one
+    /// owner at most (<see cref="Voice.WakeOwners"/>). Replaced whole on every change (so it is saved).
     /// </summary>
     [ObservableProperty] private Dictionary<string, string> _assistantWakeWords = [];
 
@@ -524,11 +531,16 @@ public partial class AppSettings : ObservableObject
     /// </summary>
     [ObservableProperty] private List<string>? _kDesktopWakeWords;
 
+    /// <summary>Until 5.0.112, the one key to talk to «the assistant»: only read, to give it to the last one talked to.</summary>
+    [ObservableProperty]
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    private string? _assistantTalkHotkey;
+
     /// <summary>
-    /// Hold to talk to the assistants (Options → Assistant → General, stage 5.2): what is said goes to the one of
-    /// <see cref="AssistantTarget"/>, or to the module without a body. Empty: none.
+    /// Hold to talk to one assistant (5.0.113, its card in Options → Assistants): assistant id → hotkey. Only while it is
+    /// on the desktop; a key is of one assistant at most. Replaced whole on every change.
     /// </summary>
-    [ObservableProperty] private string _assistantTalkHotkey = string.Empty;
+    [ObservableProperty] private Dictionary<string, string> _assistantTalkHotkeys = [];
 
     /// <summary>
     /// How the assistants carry out orders (stage 6.7): <c>showy</c>, <c>normal</c> or <c>fast</c> (no manoeuvre over half a

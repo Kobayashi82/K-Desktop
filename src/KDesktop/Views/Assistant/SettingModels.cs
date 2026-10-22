@@ -60,6 +60,9 @@ public sealed class SettingsPageModel(string title, SymbolRegular? symbol, IRead
     /// <summary>K-Desktop's own page, «Personalidad y voz» (5.0.105), not one of its settings.json.</summary>
     public bool IsPersonal { get; init; }
 
+    /// <summary>K-Desktop's own page «General» (5.0.113: its word, its key to talk, the model it thinks with).</summary>
+    public bool IsGeneral { get; init; }
+
     public override string ToString() => Title;
 }
 
@@ -409,7 +412,7 @@ public sealed class GallerySetting : SettingModel
 
     public bool IsEmpty => Tiles.Count == 0;
 
-    public string EmptyText => Loc.T("assistantSettings.galleryEmpty", Owner.Assistant.Manifest.Name);
+    public string EmptyText => Loc.T("assistantSettings.galleryEmpty", Owner.Name);
 
     /// <summary>New data from the assistant: the tiles of a gallery with «source» are made again.</summary>
     public void PanelChanged()
@@ -423,7 +426,7 @@ public sealed class GallerySetting : SettingModel
         var lang = Loc.Instance.Language;
         Tiles.Clear();
         foreach (var e in entries)
-            Tiles.Add(new GalleryTile(e.Id, e.Name.In(lang), AssistantLook.Image(Owner.Assistant, e.Image, 160), e.Locked, e.LockText?.In(lang) ?? string.Empty)
+            Tiles.Add(new GalleryTile(e.Id, e.Name.In(lang), AssistantLook.Image(Owner.Assistant!, e.Image, 160), e.Locked, e.LockText?.In(lang) ?? string.Empty)
             {
                 IsSelected = e.Id == _selected,
             });
@@ -481,7 +484,7 @@ public sealed class HotkeySetting : SettingModel
     private string? _capturing;
 
     public HotkeySetting(AssistantSettingsModel owner, SettingItem item) : base(owner, item) =>
-        Extra = item.Extra is { } id && owner.Assistant.Manifest.Extras.FirstOrDefault(e => e.Id == id) is { } extra
+        Extra = item.Extra is { } id && owner.Assistant!.Manifest.Extras.FirstOrDefault(e => e.Id == id) is { } extra
             ? new InstalledExtra(owner.Assistant, extra)
             : null;
 
@@ -575,9 +578,10 @@ public sealed class KeysSetting(AssistantSettingsModel owner, SettingItem item) 
 }
 
 /// <summary>
-/// The settings of one installed assistant while they are shown: its pages, the values (defaults under what the user
-/// changed) and saving. Changes are saved and sent to the assistant a moment later, at most a few times a second
-/// while a slider is dragged.
+/// The settings of one assistant while they are shown: K-Desktop's «General» first, then its pages (its settings.json:
+/// the values, defaults under what the user changed, and saving) and K-Desktop's «Personalidad y voz». Changes are saved
+/// and sent to the assistant a moment later, at most a few times a second while a slider is dragged. Without a package
+/// (K-Desktop itself, 5.0.112) only K-Desktop's pages.
 /// </summary>
 public sealed class AssistantSettingsModel : Observable
 {
@@ -592,18 +596,20 @@ public sealed class AssistantSettingsModel : Observable
     private JsonObject _values;
     private SettingsPageModel? _page;
 
-    public AssistantSettingsModel(InstalledAssistant assistant, SettingsLayout layout)
+    public AssistantSettingsModel(InstalledAssistant? assistant, SettingsLayout layout)
     {
         Assistant = assistant;
+        Id = assistant?.Id ?? Core.Assistant.AssistantTargeting.KDesktop;
         _defaults = layout.Defaults();
         _keys = [.. layout.Items.Select(i => i.Key).OfType<string>()];
-        _values = AssistantSettingsValues.Read(assistant.Folder, assistant.Manifest);
+        _values = assistant is null ? [] : AssistantSettingsValues.Read(assistant.Folder, assistant.Manifest);
         // Only the keys this version still has (an older one may have left others).
-        _saved = AssistantSettingsValues.ReadSaved(assistant.Id);
+        _saved = assistant is null ? [] : AssistantSettingsValues.ReadSaved(assistant.Id);
         foreach (var gone in _saved.Select(p => p.Key).Where(k => !_keys.Contains(k)).ToList()) _saved.Remove(gone);
 
         Pages =
         [
+            new SettingsPageModel(Loc.T("assistantGeneral.tab"), SymbolRegular.Settings24, [], page => CurrentPage = (SettingsPageModel)page) { IsGeneral = true },
             .. layout.Pages.Select(p => new SettingsPageModel(
                 AssistantLook.Text(p.Title),
                 AssistantLook.Symbol(p.Icon),
@@ -623,14 +629,19 @@ public sealed class AssistantSettingsModel : Observable
         _save.Tick += (_, _) => Flush();
     }
 
-    public InstalledAssistant Assistant { get; }
+    /// <summary>Its package (only its own settings are made with it); null for K-Desktop.</summary>
+    public InstalledAssistant? Assistant { get; }
+
+    public string Id { get; }
+
+    public string Name => Assistant?.Manifest.Name ?? "K-Desktop";
 
     public IReadOnlyList<SettingsPageModel> Pages { get; }
 
     public bool HasTabs => Pages.Count > 1;
 
-    /// <summary>It has settings of its own (a settings.json), besides «Personalidad y voz».</summary>
-    public bool HasOwnSettings => Pages.Any(p => !p.IsPersonal);
+    /// <summary>It has settings of its own (a settings.json), besides K-Desktop's pages.</summary>
+    public bool HasOwnSettings => Pages.Any(p => p is { IsPersonal: false, IsGeneral: false });
 
     public SettingsPageModel? CurrentPage
     {
@@ -648,7 +659,7 @@ public sealed class AssistantSettingsModel : Observable
     public bool HasChanges => _saved.Count > 0;
 
     /// <summary>What it published for its panel (a gallery with «source» shows it).</summary>
-    public JsonObject? PanelData => _app.AssistantPanelData(Assistant.Id);
+    public JsonObject? PanelData => _app.AssistantPanelData(Id);
 
 
     /// <summary>A control changed: remember it (only if it differs from the default) and save soon.</summary>
@@ -667,7 +678,7 @@ public sealed class AssistantSettingsModel : Observable
     /// <summary>Saves now what is still waiting (when the page closes).</summary>
     public void Flush()
     {
-        if (!_save.IsEnabled) return;
+        if (!_save.IsEnabled || Assistant is null) return;
         _save.Stop();
         _app.SaveAssistantSettings(Assistant, _saved, _values);
     }
@@ -681,7 +692,7 @@ public sealed class AssistantSettingsModel : Observable
         UpdateEnabled();
         Notify(nameof(HasChanges));
         _save.Stop();
-        _app.SaveAssistantSettings(Assistant, _saved, _values);
+        if (Assistant is not null) _app.SaveAssistantSettings(Assistant, _saved, _values);
     }
 
     public void PanelChanged()

@@ -65,16 +65,14 @@ public partial class App
 
     /// <summary>
     /// Who an order called with a wake word is for (any thread): an assistant's own word, that assistant (only listened to
-    /// while it is on the desktop: <see cref="UpdateSleepingWakeWords"/>; K-Desktop's too, 5.0.112); the word «for the
-    /// assistant», the one of «Cuando no le hablas a nadie en concreto» (with nobody active, the order gets a notice that
-    /// there is no assistant). Null: it is K-Desktop's commands.
+    /// while it is on the desktop: <see cref="UpdateSleepingWakeWords"/>; K-Desktop's too, 5.0.112). Null: it is K-Desktop's
+    /// commands.
     /// </summary>
     private VoiceAddressee? VoiceAddresseeOf(string wakeWordId)
     {
         var s = Config.Settings;
-        if (!s.AssistantEnabled || AssistantTargeting.ForWakeWord(s.AssistantWakeWords, wakeWordId) is not { } owner) return null;
-        var who = owner == AssistantTargeting.AnyAssistant ? Dispatcher.Invoke(PickAssistant) : owner;
-        if (who is not null && !IsAssistant(who))
+        if (!s.AssistantEnabled || AssistantTargeting.ForWakeWord(s.AssistantWakeWords, wakeWordId) is not { } who) return null;
+        if (!IsAssistant(who))
         {
             Log.Warn($"Asistente: la palabra de «{who}» llama a un asistente que ya no está instalado");
             return null;
@@ -82,14 +80,9 @@ public partial class App
         return AddresseeFor(who);
     }
 
-    /// <summary>
-    /// An assistant as the one an order is for: it gets the text and shows that it listens. Null (nobody active): what is
-    /// said only gets the notice that there is no assistant, and nothing gets ready for it (no model is loaded).
-    /// </summary>
-    private VoiceAddressee AddresseeFor(string? who) =>
-        new(who is null ? Loc.T("assistantOptions.anyWakeName") : AssistantName(who),
-            (text, source) => Dispatcher.Invoke(() => SendToAssistant(who, text, source)),
-            who is null ? null : active => SendListening(who, active));
+    /// <summary>An assistant as the one an order is for: it gets the text and shows that it listens.</summary>
+    private VoiceAddressee AddresseeFor(string who) =>
+        new(AssistantName(who), (text, source) => Dispatcher.Invoke(() => SendToAssistant(who, text, source)), active => SendListening(who, active));
 
     /// <summary><c>listening</c> (stage 5.2): the character shows that it is being listened to.</summary>
     private void SendListening(string who, bool active)
@@ -110,17 +103,12 @@ public partial class App
     });
 
     /// <summary>
-    /// The assistants' talk key (UI thread): while it is held, what is said goes to the one of «Cuando no le hablas a nadie
-    /// en concreto»; with nobody active, a notice that there is no assistant.
+    /// An assistant's key to talk (5.0.113, UI thread): while it is held, what is said goes to it. Only while it is on the
+    /// desktop (the hotkey index has only those).
     /// </summary>
-    private void TalkToAssistant(Func<bool> held)
+    private void TalkToAssistant(Func<bool> held, string who)
     {
-        if (_assistant is null) return;
-        if (PickAssistant() is not { } who)
-        {
-            Ui.ShowOsd(Loc.T("assistantChat.nobody"), Core.Engine.OsdKind.Warning);
-            return;
-        }
+        if (_assistant is null || !IsOnDesktop(who)) return;
         AssistantTalkedTo(who);
         _ = Voice.ListenAsync(held, AddresseeFor(who));
     }
@@ -209,9 +197,6 @@ public partial class App
         _ = Voice.ListenAsync(() => _talkHeld, AddresseeFor(talk.Assistant));
     }
 
-    /// <summary>The word «for the assistant» (Options → Assistant → General), or null.</summary>
-    public string? AnyAssistantWakeWord => Config.Settings.AssistantWakeWords.GetValueOrDefault(AssistantTargeting.AnyAssistant);
-
     /// <summary>
     /// After installing an assistant (its card): it is called by the word it suggests. One already recorded with that name
     /// and free is given to it; otherwise the user records it now.
@@ -236,8 +221,8 @@ public partial class App
     }
 
     /// <summary>
-    /// Whether that assistant is called by voice already: its own word, or one with its name that is already in use (as
-    /// the word for any assistant, «Lander» on the user's PC). Another one would be the same word twice.
+    /// Whether that assistant is called by voice already: its own word, or one with its name that is already in use (by
+    /// another owner). Another one would be the same word twice.
     /// </summary>
     public bool HasWakeWord(string id, string name)
     {

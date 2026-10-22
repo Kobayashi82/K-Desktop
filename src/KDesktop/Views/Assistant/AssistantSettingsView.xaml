@@ -376,8 +376,12 @@
                         <TextBlock x:Name="LiveText" Style="{StaticResource Caption}" VerticalAlignment="Center" />
                     </StackPanel>
                 </StackPanel>
-                <ui:Button x:Name="ResetButton" Grid.Column="2" VerticalAlignment="Center" Icon="{ui:SymbolIcon ArrowReset24}" IsEnabled="{Binding HasChanges}"
-                           Content="{l:Tr assistantSettings.reset}" Click="OnReset" />
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <ui:Button x:Name="ResetButton" Margin="0,0,8,0" VerticalAlignment="Center" Icon="{ui:SymbolIcon ArrowReset24}" IsEnabled="{Binding HasChanges}"
+                               Content="{l:Tr assistantSettings.reset}" Click="OnReset" />
+                    <ui:Button x:Name="PutButton" VerticalAlignment="Center" Appearance="Primary" Icon="{ui:SymbolIcon Play24}" Click="OnPut" />
+                    <ui:Button x:Name="HideButton" VerticalAlignment="Center" Icon="{ui:SymbolIcon EyeOff24}" Click="OnHide" />
+                </StackPanel>
             </Grid>
         </Border>
 
@@ -400,6 +404,9 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
+
+        <!-- How it is called and what it thinks with (5.0.113) -->
+        <a:AssistantGeneralView x:Name="GeneralView" Visibility="Collapsed" />
 
         <!-- What it has of its own: personality, language, voice (5.0.105) -->
         <a:AssistantPersonalView x:Name="PersonalView" Visibility="Collapsed" />

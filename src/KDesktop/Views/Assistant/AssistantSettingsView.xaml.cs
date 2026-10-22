@@ -15,14 +15,12 @@ namespace KDesktop.Views.Assistant;
 /// <summary>
 /// The settings of one installed assistant (stage 1.9, §11.8), drawn from its settings.json with K-Desktop's own
 /// controls: no code of the assistant is loaded here. Changes are saved and reach the assistant at once while it is
-/// on the desktop. K-Desktop as an assistant (5.0.112) only has «Personalidad y voz».
+/// on the desktop. Every assistant (K-Desktop too, 5.0.112) has K-Desktop's «General» first and «Personalidad y voz» last.
 /// </summary>
 public partial class AssistantSettingsView : UserControl
 {
     private readonly App _app = App.Current;
     private AssistantSettingsModel? _model;
-    private InstalledAssistant? _shown;
-    private bool _system;
 
     public AssistantSettingsView()
     {
@@ -46,48 +44,33 @@ public partial class AssistantSettingsView : UserControl
     public event Action? Closed;
 
     /// <summary>The id of the assistant shown, if any.</summary>
-    public string? AssistantId => _system ? Core.Assistant.AssistantTargeting.KDesktop : _shown?.Id;
+    public string? AssistantId => _model?.Id;
 
-    /// <summary>K-Desktop's settings: what it has of its own, nothing else.</summary>
-    public void ShowSystem()
+    /// <summary>K-Desktop's settings: its «General» and «Personalidad y voz».</summary>
+    public void ShowSystem() => ShowModel(new AssistantSettingsModel(null, new SettingsLayout([])));
+
+    /// <summary>Shows an installed assistant's settings (its «General» first).</summary>
+    public void Show(InstalledAssistant assistant) =>
+        // Without a settings.json it still has K-Desktop's pages.
+        ShowModel(new AssistantSettingsModel(assistant, SettingsLayout.Load(assistant) ?? new SettingsLayout([])));
+
+    private void ShowModel(AssistantSettingsModel model)
     {
         _model?.Flush();
+        PersonalView.Flush();
         if (_model is not null) _model.PropertyChanged -= OnModelChanged;
-        _model = null;
-        _shown = null;
-        _system = true;
-        DataContext = null;
-        PersonalView.ShowSystem();
-        TitleText.Text = Loc.T("assistantSettings.title", "K-Desktop");
-        HeroIcon.Source = AssistantLook.SystemIcon;
-        HeroFallback.Visibility = Visibility.Collapsed;
-        PageTabs.Visibility = Visibility.Collapsed;
-        PersonalView.Visibility = Visibility.Visible;
-        SectionsList.Visibility = Visibility.Collapsed;
-        ResetButton.Visibility = Visibility.Collapsed;
-        NonePanel.Visibility = Visibility.Collapsed;
-        UpdateLive();
-    }
-
-    /// <summary>Shows an installed assistant's settings (its first page).</summary>
-    public void Show(InstalledAssistant assistant)
-    {
-        _model?.Flush();
-        if (_model is not null) _model.PropertyChanged -= OnModelChanged;
-        _system = false;
-        _shown = assistant;
-        // Without a settings.json it still has «Personalidad y voz».
-        var layout = SettingsLayout.Load(assistant) ?? new SettingsLayout([]);
-        _model = new AssistantSettingsModel(assistant, layout);
+        _model = model;
         _model.PropertyChanged += OnModelChanged;
         DataContext = _model;
-        PersonalView.Show(assistant);
+        GeneralView.Show(model.Assistant);
+        if (model.Assistant is { } assistant) PersonalView.Show(assistant);
+        else PersonalView.ShowSystem();
 
-        TitleText.Text = Loc.T("assistantSettings.title", assistant.Manifest.Name);
-        var icon = AssistantLook.Icon(assistant);
+        TitleText.Text = Loc.T("assistantSettings.title", model.Name);
+        var icon = AssistantLook.IconOf(model.Id);
         HeroIcon.Source = icon;
         HeroFallback.Visibility = icon is null ? Visibility.Visible : Visibility.Collapsed;
-        NoneText.Text = Loc.T("assistantSettings.none", assistant.Manifest.Name);
+        NoneText.Text = Loc.T("assistantSettings.none", model.Name);
         PageTabs.Visibility = _model.HasTabs ? Visibility.Visible : Visibility.Collapsed;
         ShowPage();
         UpdateLive();
@@ -109,37 +92,58 @@ public partial class AssistantSettingsView : UserControl
         if (e.PropertyName == nameof(AssistantSettingsModel.CurrentPage)) ShowPage();
     }
 
-    /// <summary>Its settings.json's page, or «Personalidad y voz» (whose changes «Restablecer» of the top does not undo).</summary>
+    /// <summary>
+    /// «General», a page of its settings.json or «Personalidad y voz» («Restablecer» of the top only undoes those of its
+    /// settings.json).
+    /// </summary>
     private void ShowPage()
     {
         if (_model is null) return;
+        var general = _model.CurrentPage is { IsGeneral: true };
         var personal = _model.CurrentPage is { IsPersonal: true };
+        GeneralView.Visibility = general ? Visibility.Visible : Visibility.Collapsed;
         PersonalView.Visibility = personal ? Visibility.Visible : Visibility.Collapsed;
-        SectionsList.Visibility = personal ? Visibility.Collapsed : Visibility.Visible;
-        ResetButton.Visibility = _model.HasOwnSettings && !personal ? Visibility.Visible : Visibility.Collapsed;
+        SectionsList.Visibility = general || personal ? Visibility.Collapsed : Visibility.Visible;
+        ResetButton.Visibility = _model.HasOwnSettings && !general && !personal ? Visibility.Visible : Visibility.Collapsed;
         NonePanel.Visibility = Visibility.Collapsed;
     }
 
     /// <summary>The assistants changed: a new version of the one shown is shown again (its settings may be others).</summary>
     public void Refresh(InstalledAssistant installed)
     {
-        if (_shown is null || _shown.Id != installed.Id || _shown.Folder != installed.Folder) Show(installed);
+        if (_model?.Assistant is not { } shown || shown.Id != installed.Id || shown.Folder != installed.Folder) Show(installed);
         else UpdateLive();
     }
 
-    /// <summary>Whether the changes reach the assistant now, or when it is put on the desktop.</summary>
+    /// <summary>Whether the changes reach the assistant now, or when it is put on the desktop; and putting it there or hiding it.</summary>
     private void UpdateLive()
     {
         if (AssistantId is not { } id) return;
         var name = App.AssistantName(id);
+        var system = Core.Assistant.AssistantTargeting.IsSystem(id);
         var live = IsLive(id);
-        LiveText.Text = _system && !live ? Loc.T("assistantState.systemInactive", name) : Loc.T(live ? "assistantSettings.live" : "assistantSettings.notLive", name);
+        LiveText.Text = system && !live ? Loc.T("assistantState.systemInactive", name) : Loc.T(live ? "assistantSettings.live" : "assistantSettings.notLive", name);
         LiveDot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, live ? "Kd.Success" : "TextFillColorTertiaryBrush");
+        var onDesktop = _app.IsOnDesktop(id);
+        PutButton.Content = Loc.T(system ? "assistantSystem.activate" : "assistantOptions.putOnDesktop");
+        HideButton.Content = Loc.T(system ? "assistantSystem.deactivate" : "assistantOptions.hide");
+        PutButton.Visibility = onDesktop ? Visibility.Collapsed : Visibility.Visible;
+        HideButton.Visibility = onDesktop ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void OnPut(object sender, RoutedEventArgs e)
+    {
+        if (AssistantId is { } id) _app.ShowAssistant(id);
+    }
+
+    private void OnHide(object sender, RoutedEventArgs e)
+    {
+        if (AssistantId is { } id) _app.HideAssistant(id);
     }
 
     private void OnPanelChanged(string id)
     {
-        if (_model?.Assistant.Id == id) _model.PanelChanged();
+        if (_model?.Id == id) _model.PanelChanged();
     }
 
     private void OnBack(object sender, RoutedEventArgs e)
@@ -155,13 +159,13 @@ public partial class AssistantSettingsView : UserControl
         var box = new Wpf.Ui.Controls.MessageBox
         {
             Title = Loc.T("assistantSettings.reset"),
-            Content = Loc.T("assistantSettings.resetQuestion", model.Assistant.Manifest.Name),
+            Content = Loc.T("assistantSettings.resetQuestion", model.Name),
             PrimaryButtonText = Loc.T("assistantSettings.reset"),
             CloseButtonText = Loc.T("common.cancel"),
         };
         if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         model.Reset();
-        _app.Ui.ShowOsd(Loc.T("assistantSettings.resetDone", model.Assistant.Manifest.Name), OsdKind.Success);
+        _app.Ui.ShowOsd(Loc.T("assistantSettings.resetDone", model.Name), OsdKind.Success);
     }
 
     // ── controls that need more than a binding ──────────────────────────
@@ -172,12 +176,12 @@ public partial class AssistantSettingsView : UserControl
         var item = button.Item;
         if (item.Extra is { } extra)
         {
-            _app.RunAssistantExtra(model.Assistant.Id, extra);
+            _app.RunAssistantExtra(model.Id, extra);
             return;
         }
         if (!item.ResetData) return;
 
-        var name = model.Assistant.Manifest.Name;
+        var name = model.Name;
         var box = new Wpf.Ui.Controls.MessageBox
         {
             Title = button.Label,
@@ -189,7 +193,7 @@ public partial class AssistantSettingsView : UserControl
         element.IsEnabled = false;
         try
         {
-            await _app.ResetAssistantDataAsync(model.Assistant.Id);
+            await _app.ResetAssistantDataAsync(model.Id);
             _app.Ui.ShowOsd(Loc.T("assistantSettings.resetDataDone", name), OsdKind.Success);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)

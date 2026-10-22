@@ -1,5 +1,6 @@
 using System.Text.Json.Nodes;
 using KDesktop.Core;
+using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Assistant.Voice;
@@ -116,14 +117,18 @@ public partial class App
     public void AskAssistantVoice(string op) => _assistant?.Send(new VoiceMessage(op));
 
     /// <summary>
-    /// «Probar»: <paramref name="who"/> says it (null: the one who answers what is not addressed to anyone, or K-Desktop
-    /// with nobody active), in <paramref name="mood"/> (null: plain).
+    /// «Probar»: <paramref name="who"/> says it (null: the last one talked to, or K-Desktop with nobody active), in
+    /// <paramref name="mood"/> (null: plain). K-Desktop, or one that is not on the desktop, has no bubble: the OSD shows it.
     /// </summary>
     public void TestAssistantVoice(string text, string? mood = null, string? who = null)
     {
         if (_assistant is not { IsRunning: true } supervisor || text.Trim().Length == 0) return;
-        Voice.OwnVoices.Said("test", text.Trim(), DateTime.Now);
-        supervisor.Send(new VoiceMessage("test", text.Trim(), ProcessIdOf(who is { Length: > 0 } ? who : PickAssistant()), mood));
+        text = text.Trim();
+        var id = who is { Length: > 0 } ? who : PickAssistant() ?? AssistantTargeting.KDesktop;
+        Voice.OwnVoices.Said("test", text, DateTime.Now);
+        supervisor.Send(new VoiceMessage("test", text, ProcessIdOf(id), mood));
+        if (AssistantTargeting.IsSystem(id) || !IsOnDesktop(id))
+            Ui.ShowOsd($"{AssistantName(id)}: {text}", Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(Math.Clamp(2 + text.Length * 0.06, 4, 15)));
     }
 
     /// <summary>The test sentence in the language it is said in (it may not be K-Desktop's).</summary>

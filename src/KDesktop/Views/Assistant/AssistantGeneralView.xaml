@@ -1,0 +1,66 @@
+<UserControl x:Class="KDesktop.Views.Assistant.AssistantGeneralView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:l="clr-namespace:KDesktop.Localization">
+    <!-- Options → Assistants → one assistant → «General» (5.0.113): how it is called (its word, its key to talk) and the
+         model it thinks with. K-Desktop's own page, for every assistant and for K-Desktop. -->
+    <StackPanel>
+        <!-- How you call it -->
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource CardTitle}" Margin="0,0,0,2" Text="{l:Tr assistantGeneral.callTitle}" />
+                <TextBlock x:Name="CallIntro" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+
+                <Grid Style="{StaticResource SettingRow}" Margin="0,12,0,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr assistantOptions.wakeWord}" />
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantGeneral.wakeHint}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <ComboBox x:Name="WakeBox" MinWidth="220" MaxWidth="300" VerticalAlignment="Center" DisplayMemberPath="Name"
+                                  SelectionChanged="OnWakeChanged" AutomationProperties.Name="{l:Tr assistantOptions.wakeWord}" />
+                        <ui:Button Margin="6,0,0,0" VerticalAlignment="Center" Icon="{ui:SymbolIcon Record24}" Click="OnRecordWake"
+                                   ToolTip="{l:Tr assistantOptions.wakeRecord}" AutomationProperties.Name="{l:Tr assistantOptions.wakeRecord}" />
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr assistantGeneral.talkKey}" />
+                        <TextBlock x:Name="TalkHint" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <ui:Button x:Name="TalkKeyButton" MinWidth="220" Click="OnCaptureTalkKey" AutomationProperties.Name="{l:Tr assistantGeneral.talkKey}" />
+                        <ui:Button x:Name="TalkKeyClear" Margin="6,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
+                                   AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearTalkKey" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- The model it thinks with -->
+        <Border x:Name="BrainCard" Style="{StaticResource Card}">
+            <StackPanel>
+                <Grid Style="{StaticResource SettingRow}" Margin="0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr assistantOptions.model}" />
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantGeneral.modelHint}" />
+                    </StackPanel>
+                    <ComboBox x:Name="ModelBox" Grid.Column="1" MinWidth="260" MaxWidth="420" VerticalAlignment="Center" DisplayMemberPath="Name"
+                              SelectionChanged="OnModelChanged" AutomationProperties.Name="{l:Tr assistantOptions.model}" />
+                </Grid>
+                <!-- The model it suggests, when it is not here: offered, never downloaded without asking -->
+                <StackPanel x:Name="SuggestedRow" Margin="0,12,0,0" Orientation="Horizontal" Visibility="Collapsed">
+                    <ui:SymbolIcon Symbol="Sparkle24" FontSize="15" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
+                    <TextBlock x:Name="SuggestedText" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,8,0" TextWrapping="Wrap" />
+                    <ui:Button x:Name="DownloadButton" VerticalAlignment="Center" Padding="10,3" Icon="{ui:SymbolIcon ArrowDownload24}"
+                               Content="{l:Tr assistantOptions.modelDownload}" Click="OnDownloadModel" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>
