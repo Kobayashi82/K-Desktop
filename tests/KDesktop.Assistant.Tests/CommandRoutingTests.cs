@@ -388,6 +388,10 @@ public sealed class CommandRoutingTests : IDisposable
     [InlineData("pasa la ventana al otro monitor", "act:otherMonitor::lander")]
     [InlineData("silencia Spotify", "act:mute:Spotify:lander")]
     [InlineData("quit Chrome", "act:quit:Chrome:lander")]
+    [InlineData("mata Fall Guys", "act:kill:Fall Guys:lander")]
+    [InlineData("cierra a la fuerza Photoshop", "act:kill:Photoshop:lander")]
+    [InlineData("cierra lo que se ha colgado", "act:kill::lander")]
+    [InlineData("kill the program that is not responding", "act:kill::lander")]
     public async Task WhatIsDoneToAProgramNeedsNoAi(string said, string done)
     {
         using var builtin = new BuiltinTools(_folder);

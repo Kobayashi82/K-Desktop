@@ -154,6 +154,8 @@ public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimePro
 
         public Task<EndMessage?> RunEventAsync(string name, string? assistant, CancellationToken cancellationToken) => Pretend(name);
 
+        public Task<EndMessage?> ActAsync(string op, string app, int? value, string? assistant, CancellationToken cancellationToken) => Pretend($"{op} {app}".Trim());
+
         private Task<EndMessage?> Pretend(string what)
         {
             lock (ran) ran.Add(what);

@@ -3065,7 +3065,7 @@
   "tool.control_app.intent": "Fazer algo com um programa",
   "tool.control_app.examples": "minimiza o Steam|fecha esta janela|sai do Chrome|silencia o Spotify|coloca a janela na esquerda|abaixa o volume do Chrome|mostra o Discord|passa a janela para o outro monitor|maximiza o bloco de notas",
   "assistant.rule.act.closeWindow": "fecha {app}|feche {app}|fecha a janela do {app}|fecha a janela da {app}|fecha esta janela|fecha a janela|fecha isso",
-  "assistant.rule.act.quit": "sai do {app}|sair do {app}|fecha o {app} de vez|fecha {app} completamente|encerra {app}|mata o {app}",
+  "assistant.rule.act.quit": "sai do {app}|sair do {app}|fecha o {app} de vez|fecha {app} completamente|encerra {app}",
   "assistant.rule.act.minimize": "minimiza {app}|minimize {app}|minimiza a janela|minimiza isso|esconde {app}",
   "assistant.rule.act.maximize": "maximiza {app}|maximize {app}|maximiza a janela|maximiza isso|coloca {app} em tela cheia",
   "assistant.rule.act.restore": "restaura {app}|restaura a janela|restaura isso",
@@ -3329,5 +3329,14 @@
   "tool.look_up_web.intent": "pesquisar na internet: {0}",
   "tool.look_up_web.done": "Pesquisou na internet: {0}",
   "tool.look_up_web.failed": "Não encontrou nada na internet: {0}",
-  "tool.look_up_web.examples": "quando é o próximo eclipse|que horas abre o mercado hoje|quanto custa uma RTX 5080|quem ganhou o jogo ontem|o que aconteceu hoje nas notícias|pesquisa na internet a população do Japão"
+  "tool.look_up_web.examples": "quando é o próximo eclipse|que horas abre o mercado hoje|quanto custa uma RTX 5080|quem ganhou o jogo ontem|o que aconteceu hoje nas notícias|pesquisa na internet a população do Japão",
+  "act.kill": "Forçar o encerramento de {0}",
+  "act.kill.reply": "Encerrei {0}.",
+  "act.hung": "o programa que não responde",
+  "assistant.rule.act.kill": "mata o {app}|mata {app}|mata o processo do {app}|força o fechamento do {app}|fecha à força o {app}|fecha o que travou|mata o programa que não responde",
+  "tool.end_process.examples": "fecha o que travou|mata o processo do Fall Guys|o Chrome não responde, fecha à força|encerra o programa travado|força o fechamento deste jogo",
+  "tool.pc_status.intent": "ver como está o PC",
+  "tool.pc_status.done": "Estado do PC",
+  "tool.pc_status.examples": "quanto espaço em disco me resta|o que está consumindo tanto|por que o computador está lento|qual a temperatura da placa de vídeo|quanta RAM estou usando|quanta bateria resta|quanta memória de vídeo está livre|qual programa usa mais processador|como está o PC",
+  "assistant.act.hungWords": "travou travado travada congelado congelada responde"
 }

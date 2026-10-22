@@ -116,6 +116,7 @@ public sealed partial class CommandEngine
                 break;
 
             case AppControlMode.Close:
+                if (a.Force && a.AskFirst && await WindowTools.CloseAsync(name, false, ctx.Token).ConfigureAwait(false)) break;
                 await WindowTools.CloseAsync(name, a.Force, ctx.Token).ConfigureAwait(false);
                 break;
 

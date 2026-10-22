@@ -45,6 +45,7 @@ public sealed class BuiltinTools : IDisposable
         var reader = new WebReader(browser: browser);
         registry.Add(new ReadWebTool(screen, reader));
         registry.Add(new LookUpWebTool(reader));
+        registry.Add(new PcStatusTool());
     }
 
     public void Dispose() => Timers.Dispose();

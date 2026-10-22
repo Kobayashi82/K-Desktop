@@ -3065,7 +3065,7 @@
   "tool.control_app.intent": "Do something to a program",
   "tool.control_app.examples": "minimize Steam|close this window|quit Chrome|mute Spotify|put the window on the left|turn down Chrome|bring Discord to the front|move the window to the other monitor|maximize Notepad",
   "assistant.rule.act.closeWindow": "close {app}|close the {app} window|close this window|close the window|close this",
-  "assistant.rule.act.quit": "quit {app}|exit {app}|close {app} completely|kill {app}|shut down {app}",
+  "assistant.rule.act.quit": "quit {app}|exit {app}|close {app} completely|shut down {app}",
   "assistant.rule.act.minimize": "minimize {app}|minimise {app}|minimize this|minimize the window|hide {app}",
   "assistant.rule.act.maximize": "maximize {app}|maximise {app}|maximize this|maximize the window|make {app} full screen",
   "assistant.rule.act.restore": "restore {app}|restore this|restore the window",
@@ -3329,5 +3329,14 @@
   "tool.look_up_web.intent": "look up on the internet: {0}",
   "tool.look_up_web.done": "Looked up on the internet: {0}",
   "tool.look_up_web.failed": "Found nothing on the internet: {0}",
-  "tool.look_up_web.examples": "when is the next eclipse|what time does the supermarket open today|how much is an RTX 5080|who won the game yesterday|what's in the news today|when does the new season of the show come out|look up the population of Japan"
+  "tool.look_up_web.examples": "when is the next eclipse|what time does the supermarket open today|how much is an RTX 5080|who won the game yesterday|what's in the news today|when does the new season of the show come out|look up the population of Japan",
+  "act.kill": "Force {0} to end",
+  "act.kill.reply": "I've ended {0}.",
+  "act.hung": "the program that isn't responding",
+  "assistant.rule.act.kill": "kill {app}|kill the {app} process|end the {app} process|force quit {app}|force close {app}|kill whatever is frozen|close whatever has hung|kill the program that is not responding",
+  "tool.end_process.examples": "close whatever has frozen|kill the Fall Guys process|Chrome is not responding, force it closed|end the program that hung|force quit this game",
+  "tool.pc_status.intent": "check how the PC is doing",
+  "tool.pc_status.done": "PC status",
+  "tool.pc_status.examples": "how much disk space is left|what is using so much|why is the computer slow|how hot is the graphics card|how much RAM am I using|how much battery is left|how much video memory is free|which program uses the most CPU|how is the PC doing|how fast am I downloading",
+  "assistant.act.hungWords": "frozen froze hung hangs hanging stuck responding unresponsive"
 }

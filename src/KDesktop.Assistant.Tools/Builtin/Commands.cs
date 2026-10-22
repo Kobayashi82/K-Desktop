@@ -57,6 +57,7 @@ public static class CommandTools
         registry.Add(new DescribeCommandTool(bridge));
         registry.Add(new RunEventTool(bridge));
         registry.Add(new ControlAppTool(bridge));
+        registry.Add(new EndProcessTool(bridge));
     }
 
     /// <summary>The one candidate an order clearly means (a sure part, its exact name, or one well ahead), or null.</summary>

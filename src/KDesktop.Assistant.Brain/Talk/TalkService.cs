@@ -491,8 +491,8 @@ public sealed class TalkService
         var failed = false;
         foreach (var rule in rules)
         {
-            var (tool, arguments) = rule.Kind == QuickRuleKind.OpenApp
-                ? ("open_app", new JsonObject { ["name"] = rule.Text })
+            var (tool, arguments) = rule.Kind == QuickRuleKind.OpenApp ? ("open_app", new JsonObject { ["name"] = rule.Text })
+                : rule.Op == "kill" ? ("end_process", new JsonObject { ["app"] = rule.Text ?? string.Empty })
                 : ("control_app", new JsonObject { ["action"] = rule.Op, ["app"] = rule.Text ?? string.Empty });
             var outcome = await _tools.RunAsync(tool, JsonSerializer.SerializeToElement(arguments), context, said, "rule", token).ConfigureAwait(false);
             steps.AddRange(Step(tool, arguments, outcome.Result?.Text ?? "Not done: " + outcome.Entry.Did));

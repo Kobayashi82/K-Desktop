@@ -159,6 +159,12 @@ public partial class AppControlAction : CommandAction
     /// <summary>Maximum time to wait, in seconds (0 = forever).</summary>
     [ObservableProperty] private int _timeoutSeconds;
 
+    /// <summary>
+    /// Close with <see cref="Force"/>: ask it to close first and kill only what is left after a moment (an assistant's
+    /// «end_process»). Not saved: only commands made for the occasion use it.
+    /// </summary>
+    [JsonIgnore] public bool AskFirst { get; set; }
+
     public override ActionKind Kind => ActionKind.AppControl;
     public override string Summary
     {

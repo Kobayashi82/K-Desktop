@@ -3065,7 +3065,7 @@
   "tool.control_app.intent": "Etwas mit einem Programm machen",
   "tool.control_app.examples": "minimiere Steam|schließe dieses Fenster|beende Chrome|schalte Spotify stumm|setz das Fenster nach links|mach Chrome leiser|hol Discord nach vorne|schieb das Fenster auf den anderen Monitor|maximiere den Editor",
   "assistant.rule.act.closeWindow": "schließe {app}|schließ {app}|schließe das Fenster von {app}|schließe dieses Fenster|schließe das Fenster|mach {app} zu",
-  "assistant.rule.act.quit": "beende {app}|schließe {app} ganz|kill {app}",
+  "assistant.rule.act.quit": "beende {app}|schließe {app} ganz",
   "assistant.rule.act.minimize": "minimiere {app}|minimiere das Fenster|minimiere das|versteck {app}",
   "assistant.rule.act.maximize": "maximiere {app}|maximiere das Fenster|maximiere das|mach {app} groß",
   "assistant.rule.act.restore": "stelle {app} wieder her|stell das Fenster wieder her",
@@ -3329,5 +3329,14 @@
   "tool.look_up_web.intent": "im Internet nachsehen: {0}",
   "tool.look_up_web.done": "Im Internet nachgesehen: {0}",
   "tool.look_up_web.failed": "Nichts im Internet gefunden: {0}",
-  "tool.look_up_web.examples": "wann ist die nächste Sonnenfinsternis|wann macht der Supermarkt heute auf|was kostet eine RTX 5080|wer hat gestern das Spiel gewonnen|was gibt es heute in den Nachrichten|schau im Internet nach, wie viele Einwohner Japan hat"
+  "tool.look_up_web.examples": "wann ist die nächste Sonnenfinsternis|wann macht der Supermarkt heute auf|was kostet eine RTX 5080|wer hat gestern das Spiel gewonnen|was gibt es heute in den Nachrichten|schau im Internet nach, wie viele Einwohner Japan hat",
+  "act.kill": "{0} zwangsweise beenden",
+  "act.kill.reply": "Ich habe {0} beendet.",
+  "act.hung": "das Programm, das nicht reagiert",
+  "assistant.rule.act.kill": "kill {app}|töte {app}|beende den Prozess {app}|beende {app} zwangsweise|erzwinge das Beenden von {app}|beende was hängt|beende das Programm das nicht reagiert",
+  "tool.end_process.examples": "beende was hängt|beende den Prozess von Fall Guys|Chrome reagiert nicht, beende es zwangsweise|beende das Programm, das hängt|erzwinge das Beenden dieses Spiels",
+  "tool.pc_status.intent": "nachsehen, wie es dem PC geht",
+  "tool.pc_status.done": "PC-Zustand",
+  "tool.pc_status.examples": "wie viel Speicherplatz ist noch frei|was verbraucht so viel|warum ist der Computer langsam|wie heiß ist die Grafikkarte|wie viel RAM benutze ich|wie viel Akku ist noch übrig|wie viel Videospeicher ist frei|welches Programm braucht am meisten CPU|wie geht es dem PC",
+  "assistant.act.hungWords": "hängt hängen eingefroren reagiert abgestürzt"
 }

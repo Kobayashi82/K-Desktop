@@ -18,8 +18,18 @@ public static class AssistantActs
     public static readonly IReadOnlyList<string> Ops =
     [
         "closeWindow", "quit", "minimize", "maximize", "restore", "front", "left", "right", "center", "otherMonitor",
-        "mute", "unmute", "volumeUp", "volumeDown", "volume",
+        "mute", "unmute", "volumeUp", "volumeDown", "volume", "kill",
     ];
+
+    /// <summary>
+    /// Never ended by an assistant: Windows itself (ending one of these logs the user off or stops the PC) and K-Desktop.
+    /// </summary>
+    private static readonly HashSet<string> Vital = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "explorer", "csrss", "wininit", "winlogon", "services", "lsass", "lsaiso", "smss", "svchost", "dwm", "fontdrvhost",
+        "sihost", "ctfmon", "audiodg", "spoolsv", "searchhost", "startmenuexperiencehost", "shellexperiencehost",
+        "runtimebroker", "taskhostw", "conhost", "dllhost", "system", "registry", "memcompression", "msmpeng",
+    };
 
     /// <summary>Volume up or down, in %.</summary>
     public const int VolumeStep = 10;
@@ -30,10 +40,13 @@ public static class AssistantActs
     /// <param name="windows">The open windows, the one in front first (<see cref="AppFinder.OpenWindows"/>).</param>
     /// <param name="process">A running process by the user's words (<see cref="AppFinder.FindProcess"/>).</param>
     /// <param name="foreground">The window in front (for an order without a program: «minimiza esto»).</param>
-    public static Plan Build(ActMessage act, IReadOnlyList<OpenWindow> windows, Func<string, string?> process, ForegroundWindow foreground)
+    /// <param name="hung">Whether a window does not respond (for «kill» without a program); null: Windows says.</param>
+    public static Plan Build(ActMessage act, IReadOnlyList<OpenWindow> windows, Func<string, string?> process, ForegroundWindow foreground,
+        Func<IntPtr, bool>? hung = null)
     {
         var op = act.Op;
         if (!Ops.Contains(op)) throw new ArgumentException($"«{op}» no es algo que un asistente pueda hacer a un programa", nameof(act));
+        if (op == "kill") return Kill(act, windows, process, foreground, hung ?? Native.Win32.IsHungAppWindow);
         var current = !AppFinder.NamesSomething(act.App);
         var window = current ? windows.FirstOrDefault(w => w.Hwnd == foreground.Handle || w.Hwnd == foreground.RootHandle) : AppFinder.FindWindow(act.App, windows);
         var isVolume = op is "mute" or "unmute" or "volumeUp" or "volumeDown" or "volume";
@@ -87,6 +100,33 @@ public static class AssistantActs
         command.Actions.Add(action);
         return new Plan(command, name, null);
     }
+
+    /// <summary>
+    /// «mata Fall Guys», «cierra lo que se ha colgado»: the program named (its window or its process), or else the one
+    /// that does not respond, or else the one in front; asked to close and, if still there after a moment, killed.
+    /// </summary>
+    private static Plan Kill(ActMessage act, IReadOnlyList<OpenWindow> windows, Func<string, string?> process, ForegroundWindow foreground, Func<IntPtr, bool> hung)
+    {
+        var current = !AppFinder.NamesSomething(act.App) || SaysHung(act.App);
+        var window = current
+            ? windows.FirstOrDefault(w => hung(w.Hwnd)) ?? windows.FirstOrDefault(w => w.Hwnd == foreground.Handle || w.Hwnd == foreground.RootHandle)
+            : AppFinder.FindWindow(act.App, windows);
+        var processName = current ? window?.Process ?? foreground.ProcessName : process(act.App) ?? window?.Process;
+        var name = window is { } w && w.Process == processName ? w.DisplayName : processName ?? (current ? Loc.T("act.hung") : act.App.Trim());
+        if (processName is not { Length: > 0 }) return new Plan(null, name, current ? "notAllowed" : "noProcess");
+        if (IsOwn(processName) || Vital.Contains(processName)) return new Plan(null, name, "notAllowed");
+        var command = new Command { Name = Loc.T("act.kill", name) };
+        command.Actions.Add(new AppControlAction { Mode = AppControlMode.Close, ProcessName = processName, Force = true, AskFirst = true });
+        return new Plan(command, name, null);
+    }
+
+    /// <summary>«lo que se ha colgado», «the frozen one»: no program named, the one that hangs (words of every language).</summary>
+    private static bool SaysHung(string said) => Core.Voice.TextSimilarity.Words(said).Any(HungWords.Value.Contains);
+
+    private static readonly Lazy<HashSet<string>> HungWords = new(() =>
+    [
+        .. Loc.Available().SelectMany(l => Core.Voice.TextSimilarity.Words(Loc.Strings(l.Code, "assistant.act.hungWords").GetValueOrDefault("assistant.act.hungWords") ?? string.Empty)),
+    ]);
 
     /// <summary>
     /// Finds the program and does it (<see cref="AssistantCommands.RunCommandAsync"/>: asking first like a command, in the

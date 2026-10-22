@@ -164,7 +164,8 @@ public static class AppFinder
         return result;
     }
 
-    private static string? DescriptionOf(uint pid)
+    /// <summary>The program's own name for itself («Google Chrome»), from its file; cached by path.</summary>
+    public static string? DescriptionOf(uint pid)
     {
         if (Win32.GetProcessPath(pid) is not { } path) return null;
         return Descriptions.GetOrAdd(path, p =>

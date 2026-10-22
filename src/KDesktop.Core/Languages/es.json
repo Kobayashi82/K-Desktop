@@ -3065,7 +3065,7 @@
   "tool.control_app.intent": "Hacer algo a un programa",
   "tool.control_app.examples": "minimiza Steam|cierra esta ventana|sal de Chrome del todo|silencia Spotify|pon la ventana a la izquierda|baja el volumen de Chrome|trae Discord delante|pasa la ventana al otro monitor|maximiza el bloc de notas",
   "assistant.rule.act.closeWindow": "cierra {app}|cierra la ventana de {app}|cierra esta ventana|cierra la ventana|cierra esto",
-  "assistant.rule.act.quit": "sal de {app}|salte de {app}|cierra {app} del todo|cierra del todo {app}|mata {app}|termina {app}|cierra el programa {app}|cierra todo {app}",
+  "assistant.rule.act.quit": "sal de {app}|salte de {app}|cierra {app} del todo|cierra del todo {app}|termina {app}|cierra el programa {app}|cierra todo {app}",
   "assistant.rule.act.minimize": "minimiza {app}|minimiza la ventana de {app}|minimiza esto|minimiza esta ventana|minimiza la ventana|esconde {app}|oculta {app}",
   "assistant.rule.act.maximize": "maximiza {app}|maximiza esto|maximiza la ventana|maximiza esta ventana|pon {app} en grande|pon {app} a pantalla completa",
   "assistant.rule.act.restore": "restaura {app}|restaura esto|restaura la ventana",
@@ -3329,5 +3329,14 @@
   "tool.look_up_web.intent": "buscar en internet: {0}",
   "tool.look_up_web.done": "Buscó en internet: {0}",
   "tool.look_up_web.failed": "No encontró nada en internet: {0}",
-  "tool.look_up_web.examples": "cuándo es el próximo eclipse|a qué hora abre hoy el Mercadona|cuánto cuesta una RTX 5080|quién ganó ayer el partido del Madrid|qué ha pasado hoy en las noticias|cuándo sale la nueva temporada de la serie|qué tiempo hará el fin de semana en Valencia|mira en internet cuál es la población de Japón"
+  "tool.look_up_web.examples": "cuándo es el próximo eclipse|a qué hora abre hoy el Mercadona|cuánto cuesta una RTX 5080|quién ganó ayer el partido del Madrid|qué ha pasado hoy en las noticias|cuándo sale la nueva temporada de la serie|qué tiempo hará el fin de semana en Valencia|mira en internet cuál es la población de Japón",
+  "act.kill": "Terminar {0} a la fuerza",
+  "act.kill.reply": "He terminado {0}.",
+  "act.hung": "el programa que no responde",
+  "assistant.rule.act.kill": "mata {app}|mata el proceso de {app}|termina el proceso de {app}|fuerza el cierre de {app}|cierra a la fuerza {app}|cierra {app} a la fuerza|mata lo que se ha colgado|cierra lo que se ha colgado|cierra el programa que no responde|mata el programa que no responde",
+  "tool.end_process.examples": "cierra lo que se ha colgado|mata el proceso de Fall Guys|Chrome no responde, ciérralo a la fuerza|termina el programa que está bloqueado|fuerza el cierre de este juego",
+  "tool.pc_status.intent": "mirar cómo va el PC",
+  "tool.pc_status.done": "Estado del PC",
+  "tool.pc_status.examples": "cuánto disco me queda|qué está consumiendo tanto|por qué va lento el ordenador|a qué temperatura va la gráfica|cuánta memoria RAM estoy usando|cuánta batería queda|cuánta memoria de vídeo está libre|qué programa usa más procesador|cómo va el PC|a qué velocidad estoy descargando",
+  "assistant.act.hungWords": "colgado colgada colgó cuelga bloqueado bloqueada congelado congelada responde trabado trabada"
 }

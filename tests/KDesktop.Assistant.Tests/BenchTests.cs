@@ -50,6 +50,7 @@ public sealed class BenchTests : IDisposable
         using var builtin = new BuiltinTools(_folder);
         var registry = new ToolRegistry();
         builtin.AddTo(registry);
+        CommandTools.AddTo(registry, new EndBridge());
         var cases = BenchFile.Parse(BenchFile.BuiltIn(language));
         Assert.True(cases.Count >= 30);
         Assert.All(cases.SelectMany(c => c.Expect.Tools), tool => Assert.NotNull(registry.Find(tool)));

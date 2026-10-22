@@ -3329,5 +3329,14 @@
   "tool.look_up_web.intent": "cercare su internet: {0}",
   "tool.look_up_web.done": "Ha cercato su internet: {0}",
   "tool.look_up_web.failed": "Non ha trovato niente su internet: {0}",
-  "tool.look_up_web.examples": "quando c'è la prossima eclissi|a che ora apre oggi il supermercato|quanto costa una RTX 5080|chi ha vinto ieri la partita|cosa è successo oggi nelle notizie|cerca su internet la popolazione del Giappone"
+  "tool.look_up_web.examples": "quando c'è la prossima eclissi|a che ora apre oggi il supermercato|quanto costa una RTX 5080|chi ha vinto ieri la partita|cosa è successo oggi nelle notizie|cerca su internet la popolazione del Giappone",
+  "act.kill": "Terminare {0} forzatamente",
+  "act.kill.reply": "Ho terminato {0}.",
+  "act.hung": "il programma che non risponde",
+  "assistant.rule.act.kill": "uccidi {app}|termina il processo {app}|forza la chiusura di {app}|chiudi a forza {app}|chiudi quello che si è bloccato|uccidi il programma che non risponde",
+  "tool.end_process.examples": "chiudi quello che si è bloccato|uccidi il processo di Fall Guys|Chrome non risponde, chiudilo a forza|termina il programma bloccato|forza la chiusura di questo gioco",
+  "tool.pc_status.intent": "vedere come va il PC",
+  "tool.pc_status.done": "Stato del PC",
+  "tool.pc_status.examples": "quanto spazio su disco mi resta|cosa sta consumando così tanto|perché il computer è lento|che temperatura ha la scheda video|quanta RAM sto usando|quanta batteria resta|quanta memoria video è libera|quale programma usa più processore|come va il PC",
+  "assistant.act.hungWords": "bloccato bloccata congelato congelata risponde impallato"
 }

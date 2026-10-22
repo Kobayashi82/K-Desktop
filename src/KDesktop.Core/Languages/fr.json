@@ -3065,7 +3065,7 @@
   "tool.control_app.intent": "Agir sur un programme",
   "tool.control_app.examples": "réduis Steam|ferme cette fenêtre|quitte Chrome|coupe le son de Spotify|mets la fenêtre à gauche|baisse le son de Chrome|affiche Discord|mets la fenêtre sur l'autre écran|agrandis le bloc-notes",
   "assistant.rule.act.closeWindow": "ferme {app}|ferme la fenêtre de {app}|ferme cette fenêtre|ferme la fenêtre|ferme ça",
-  "assistant.rule.act.quit": "quitte {app}|ferme complètement {app}|tue {app}|arrête {app}",
+  "assistant.rule.act.quit": "quitte {app}|ferme complètement {app}|arrête {app}",
   "assistant.rule.act.minimize": "réduis {app}|minimise {app}|réduis ça|réduis la fenêtre|cache {app}",
   "assistant.rule.act.maximize": "agrandis {app}|maximise {app}|agrandis ça|agrandis la fenêtre|mets {app} en plein écran",
   "assistant.rule.act.restore": "restaure {app}|restaure la fenêtre|restaure ça",
@@ -3329,5 +3329,14 @@
   "tool.look_up_web.intent": "chercher sur internet : {0}",
   "tool.look_up_web.done": "A cherché sur internet : {0}",
   "tool.look_up_web.failed": "N'a rien trouvé sur internet : {0}",
-  "tool.look_up_web.examples": "quand a lieu la prochaine éclipse|à quelle heure ouvre le supermarché aujourd'hui|combien coûte une RTX 5080|qui a gagné le match hier|quelles sont les nouvelles du jour|cherche sur internet la population du Japon"
+  "tool.look_up_web.examples": "quand a lieu la prochaine éclipse|à quelle heure ouvre le supermarché aujourd'hui|combien coûte une RTX 5080|qui a gagné le match hier|quelles sont les nouvelles du jour|cherche sur internet la population du Japon",
+  "act.kill": "Forcer la fermeture de {0}",
+  "act.kill.reply": "J'ai fermé {0} de force.",
+  "act.hung": "le programme qui ne répond pas",
+  "assistant.rule.act.kill": "tue {app}|tue le processus {app}|force la fermeture de {app}|ferme de force {app}|ferme ce qui est planté|tue le programme qui ne répond pas",
+  "tool.end_process.examples": "ferme ce qui est planté|tue le processus de Fall Guys|Chrome ne répond pas, ferme-le de force|termine le programme bloqué|force la fermeture de ce jeu",
+  "tool.pc_status.intent": "voir comment va le PC",
+  "tool.pc_status.done": "État du PC",
+  "tool.pc_status.examples": "combien d'espace disque me reste-t-il|qu'est-ce qui consomme autant|pourquoi l'ordinateur est lent|quelle est la température de la carte graphique|combien de RAM j'utilise|combien de batterie reste-t-il|combien de mémoire vidéo est libre|quel programme utilise le plus le processeur|comment va le PC",
+  "assistant.act.hungWords": "planté plantée bloqué bloquée figé figée gelé répond"
 }

@@ -52,6 +52,7 @@ public static class ActionRisk
         PowerAction or RunScriptAction or SendInputAction or PlayMacroAction or HttpRequestAction => ToolRisk.AskAlways,
 
         // Closing may lose unsaved work; killing even more.
+        AppControlAction { Mode: AppControlMode.Close, Force: true } => ToolRisk.AskAlways,
         AppControlAction { Mode: AppControlMode.Close } or WindowAction { Operation: WindowOperation.Close } => ToolRisk.AskOnce,
 
         // Switching off the screen or a radio (Wi-Fi) can leave the user without the PC or the network.

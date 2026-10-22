@@ -95,6 +95,37 @@ public class AssistantActsTests
     public void OnlyItsOperations() => Assert.Throws<ArgumentException>(() => Build("runScript", "Steam"));
 
     [Fact]
+    public void EndingAProgramAsksItFirstThenKillsIt()
+    {
+        var plan = Build("kill", "Discord", process: s => s.Contains("discord", StringComparison.OrdinalIgnoreCase) ? "discord" : null);
+        var kill = Assert.IsType<AppControlAction>(Assert.Single(plan.Command!.Actions));
+        Assert.Equal((AppControlMode.Close, "discord", true, true), (kill.Mode, kill.ProcessName, kill.Force, kill.AskFirst));
+        Assert.Equal(ToolRisk.AskAlways, ActionRisk.Of(kill));
+        // Named by a window's title.
+        Assert.Equal("chrome", Assert.IsType<AppControlAction>(Build("kill", "YouTube").Command!.Actions[0]).ProcessName);
+        Assert.Equal("noProcess", Build("kill", "Blender").Reason);
+    }
+
+    [Fact]
+    public void WithoutAProgramTheOneThatHangsIsEnded()
+    {
+        var front = new ForegroundWindow(Chrome.Hwnd, Chrome.Pid, Chrome.Process);
+        var hung = AssistantActs.Build(new ActMessage("", "a", "kill", ""), Windows, _ => null, front, hwnd => hwnd == Steam.Hwnd);
+        Assert.Equal("steamwebhelper", Assert.IsType<AppControlAction>(hung.Command!.Actions[0]).ProcessName);
+        Assert.Equal("Steam", hung.Name);
+        var none = AssistantActs.Build(new ActMessage("", "a", "kill", "lo que se ha colgado"), Windows, _ => null, front, _ => false);
+        Assert.Equal("chrome", Assert.IsType<AppControlAction>(none.Command!.Actions[0]).ProcessName);
+    }
+
+    [Theory]
+    [InlineData("explorer")]
+    [InlineData("csrss")]
+    [InlineData("svchost")]
+    [InlineData("dwm")]
+    public void WindowsItselfIsNeverEnded(string process) =>
+        Assert.Equal("notAllowed", Build("kill", process, process: _ => process).Reason);
+
+    [Fact]
     public void ClosingAsksLikeClosingAProgram()
     {
         Assert.Equal(ToolRisk.AskOnce, ActionRisk.Of(new WindowAction { Operation = WindowOperation.Close }));
