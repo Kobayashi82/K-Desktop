@@ -3736,5 +3736,6 @@
   "voiceFx.echo.mix": "Mischung",
   "voiceFx.glitch": "Störung",
   "voiceFx.glitch.hint": "Aussetzer und Wiederholungen, wie kaputt",
-  "voiceFx.glitch.chance": "Wahrscheinlichkeit"
+  "voiceFx.glitch.chance": "Wahrscheinlichkeit",
+  "assistant.prompt.onlyThis": "Tu nur, was dieser Auftrag verlangt: Wiederhole nicht, was du bei den vorigen getan hast, und tu nichts anderes stattdessen. Wenn du kein Werkzeug dafür siehst, such mit find_tools danach, bevor du sagst, dass du es nicht kannst."
 }

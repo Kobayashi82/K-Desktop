@@ -28,17 +28,62 @@ public sealed class CommandRoutingTests : IDisposable
     }
 
     /// <param name="model">«fake-27B»: a big model (<see cref="TalkService.IsCapable"/>).</param>
-    private TalkService Make(BuiltinTools builtin, bool memory = false, string model = "fake:4b")
+    private TalkService Make(BuiltinTools builtin, bool memory = false, string model = "fake:4b", IEnumerable<ITool>? aimp = null)
     {
         var registry = new ToolRegistry();
         builtin.AddTo(registry);
         CommandTools.AddTo(registry, _bridge);
+        if (aimp is not null) registry.SetGroup("mcp:aimp", aimp);
         var runner = new ToolRunner(registry, () => new HashSet<string>(), (_, _) => Task.FromResult("yes"), m => { lock (_log) _log.Add(m); }, Path.Combine(_folder, "undo.json"));
         return new TalkService(_ => (_model, model), runner, _ => AssistantPersona.Module(), _output = new Output(_chat, _listens), commands: _bridge,
             memory: memory ? new TalkMemory(builtin.Memory, runner, null) : null, learn: () => false);
     }
 
     private const string Big = "fake-27B";
+
+    [Fact]
+    public async Task ToolsNotAtHandCanBeLookedFor()
+    {
+        // 5.0.140: «ponme una de Dover» had none of AIMP's tools for its playlists at hand; it said it had no access to that
+        // library and changed songs instead. Now it looks for them and calls what it found.
+        using var builtin = new BuiltinTools(_folder);
+        var ran = new List<string>();
+        string[] names = ["player_status", "player_next", "focus_play", "playlists_list", "playlist_tracks", "playlist_play", "track_play", "volume_set", "shuffle_toggle"];
+        var talk = Make(builtin, model: Big, aimp: names.Select(n => new NamedTool("mcp_aimp_" + n, ran)));
+        _model.Answers.Enqueue("""call:find_tools:{"server":"aimp"}""");
+        _model.Answers.Enqueue("""call:mcp_aimp_playlists_list:{}""");
+        _model.Answers.Enqueue("Pongo Dover.");
+        await talk.HandleAsync(new HeardMessage("ponme una de Dober", "panel", "lander"));
+
+        Assert.Equal(3, _model.Requests.Count);
+        Assert.Contains(_model.Requests[0].Tools, t => t.Name == "find_tools");
+        // The whole server at hand after looking (and told so); finding is no call of its own.
+        Assert.Contains(_model.Requests[1].Messages, m => m.Content.StartsWith("Now at hand", StringComparison.Ordinal));
+        Assert.All(names, n => Assert.Contains(_model.Requests[1].Tools, t => t.Name == "mcp_aimp_" + n));
+        Assert.Equal(["mcp_aimp_playlists_list"], ran);
+        Assert.Contains("aimp", _model.Requests[0].Tools.First(t => t.Name == "find_tools").Description, StringComparison.Ordinal);
+    }
+
+    private sealed class NamedTool(string name, List<string> ran) : ITool
+    {
+        public string Name => name;
+
+        public string Description => "AIMP: " + name;
+
+        public string ParametersSchemaJson => """{"type":"object","properties":{}}""";
+
+        public IReadOnlyList<string> Examples => [];
+
+        public Core.Assistant.ToolRisk Risk => Core.Assistant.ToolRisk.Safe;
+
+        public string Intent(System.Text.Json.JsonElement arguments) => name;
+
+        public Task<ToolResult> RunAsync(System.Text.Json.JsonElement arguments, ToolContext context, CancellationToken cancellationToken)
+        {
+            ran.Add(name);
+            return Task.FromResult<ToolResult>("[]");
+        }
+    }
 
     // What went wrong with Bonsai 2 27B on the user's PC (21/10/2026, 5.0.101).
 

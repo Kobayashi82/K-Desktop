@@ -3736,5 +3736,6 @@
   "voiceFx.echo.mix": "Mix",
   "voiceFx.glitch": "Glitch",
   "voiceFx.glitch.hint": "Tagli e ripetizioni, come guasto",
-  "voiceFx.glitch.chance": "Probabilità"
+  "voiceFx.glitch.chance": "Probabilità",
+  "assistant.prompt.onlyThis": "Fai solo ciò che chiede questo ordine: non ripetere quello che hai fatto per i precedenti né fare altro al suo posto. Se non vedi uno strumento per ciò che chiede, cercalo con find_tools prima di dire che non puoi."
 }

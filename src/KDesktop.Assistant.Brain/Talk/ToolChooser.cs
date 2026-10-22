@@ -123,6 +123,30 @@ public sealed partial class ToolChooser(IMeaning? meaning)
         return new ToolChoice(chosen, how);
     }
 
+    /// <summary>
+    /// The tools closest to what the model looks for (<c>find_tools</c>, 5.0.140): by meaning, else by words; at most
+    /// <paramref name="most"/>, best first.
+    /// </summary>
+    public async Task<IReadOnlyList<ITool>> SearchAsync(IReadOnlyCollection<ITool> tools, string query, int most, CancellationToken cancellationToken)
+    {
+        if (tools.Count == 0 || query.Trim().Length == 0) return [];
+        IReadOnlyList<(ITool Tool, double Score)>? ranked = null;
+        if (_shelf is not null)
+        {
+            try
+            {
+                var vectors = await _shelf.Meaning.EmbedAsync([query], keep: false, cancellationToken).ConfigureAwait(false);
+                ranked = await MeaningAsync(tools, vectors, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+            {
+                Log.Warn($"Asistente: sin significado para buscar herramientas: {ex.Message}");
+            }
+        }
+        ranked ??= [.. Words(tools, query).Where(r => r.Score > 0)];
+        return [.. ranked.Take(most).Select(r => r.Tool)];
+    }
+
     /// <summary>A part of an order this close to a tool means it (it came from one part, not the whole order).</summary>
     public const double PartClear = 0.60;
 

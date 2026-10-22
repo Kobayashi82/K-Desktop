@@ -3736,5 +3736,6 @@
   "voiceFx.echo.mix": "Mix",
   "voiceFx.glitch": "Glitch",
   "voiceFx.glitch.hint": "Cuts and repeats, as if broken",
-  "voiceFx.glitch.chance": "Chance"
+  "voiceFx.glitch.chance": "Chance",
+  "assistant.prompt.onlyThis": "Do only what this order asks: do not repeat what you did for the earlier ones, nor do something else instead. If you do not see a tool for what is asked, look for one with find_tools before saying you cannot."
 }

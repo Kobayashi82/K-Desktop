@@ -97,6 +97,11 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         var remembered = known.Select(m => m.Text).ToList();
         var offered = await chooser.ChooseAsync(available, said, [.. always.Distinct()], order, cancellationToken).ConfigureAwait(false);
         var definitions = offered.Tools.Select(t => new ToolDefinition(t.Name, t.Description, t.ParametersSchemaJson)).ToList();
+        var atHand = offered.Tools.ToList();
+        // Most of its tools are not at hand (230 with sixteen MCP servers): it can look for more (5.0.140; with none of AIMP's
+        // for listing playlists it said it had no access to that library, and changed songs instead).
+        if (available.Count > atHand.Count) definitions.Add(FindToolsDefinition(available, atHand.Count));
+        var searches = 0;
         var messages = new List<ChatMessage> { ChatMessage.System(TalkPrompt.Compose(persona, time.GetLocalNow(), known, commands, certain)) };
         messages.AddRange(history);
         // The language it speaks in, next to the order: a small model answers in the language it is spoken to otherwise
@@ -153,7 +158,7 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
                     // It was asked to send something and answers without having sent it, with a tool for it at hand: once,
                     // it is told so.
                     if (!reminded && offer && ActionClaims.Missing(said, used) is [var missing, ..]
-                        && offered.Tools.Any(t => ActionClaims.IsOfKind(t.Name, missing)))
+                        && atHand.Any(t => ActionClaims.IsOfKind(t.Name, missing)))
                     {
                         reminded = true;
                         Log.Info($"Asistente: la IA contesta sin hacer lo que le pedían ({missing}): otra vuelta");
@@ -176,6 +181,15 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
                 foreach (var call in asked)
                 {
                     string result;
+                    // Looking for more tools is no tool call: it does nothing, and does not use up the order's calls.
+                    if (call.Name == FindToolsTool)
+                    {
+                        result = ++searches > MaxSearches
+                            ? "Enough searching: use the tools you have, or say plainly what you cannot do."
+                            : await FindToolsAsync(call.Arguments, available, atHand, definitions, cancellationToken).ConfigureAwait(false);
+                        messages.Add(ChatMessage.ToolResult(call.Name, result, call.Id));
+                        continue;
+                    }
                     var same = call.Name + " " + call.Arguments.GetRawText();
                     if (++calls > maxCalls) result = "Not done: too many tools for one order. Answer now.";
                     else if (failed.TryGetValue(same, out var before))
@@ -246,6 +260,65 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
             clean = founded;
         }
         return new TalkAnswer(clean) { Tools = used, Steps = steps };
+    }
+
+    private const string FindToolsTool = "find_tools";
+
+    /// <summary>Searches for tools in one order, at most.</summary>
+    public const int MaxSearches = 3;
+
+    /// <summary>How many tools one search brings (a whole server: up to <see cref="ServerShown"/>).</summary>
+    public const int Found = 6;
+
+    public const int ServerShown = 30;
+
+    /// <summary>The tool to look for more tools: what it is for, and the servers there are.</summary>
+    private ToolDefinition FindToolsDefinition(IReadOnlyCollection<ITool> available, int atHand)
+    {
+        var servers = available.Select(t => tools.Registry.GroupOf(t.Name)).OfType<string>()
+            .Where(g => g.StartsWith("mcp:", StringComparison.Ordinal)).Select(g => g[4..]).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToList();
+        var description = $"Only {atHand} of your {available.Count} tools are at hand now. When none of them does what is asked, look here for more "
+            + "before saying you cannot: by what the tool must do (query) or by the name of the MCP server it belongs to (server)"
+            + (servers.Count > 0 ? $" — servers: {string.Join(", ", servers)}" : string.Empty)
+            + ". The tools found can be called right after. Looking does nothing by itself.";
+        const string schema = """{"type":"object","properties":{"query":{"type":"string","description":"What the tool must do, in a few words"},"server":{"type":"string","description":"An MCP server's name: all of its tools"}}}""";
+        return new ToolDefinition(FindToolsTool, description, schema);
+    }
+
+    /// <summary>
+    /// <c>find_tools</c>: the tools that fit (by meaning, from those not at hand yet; or a whole server), put at hand for the
+    /// next round, and said to the model with what each does.
+    /// </summary>
+    private async Task<string> FindToolsAsync(System.Text.Json.JsonElement arguments, IReadOnlyCollection<ITool> available, List<ITool> atHand, List<ToolDefinition> definitions, CancellationToken cancellationToken)
+    {
+        var query = arguments.GetString("query")?.Trim() ?? string.Empty;
+        var server = arguments.GetString("server")?.Trim() ?? string.Empty;
+        var pool = available.Where(t => !atHand.Contains(t)).ToList();
+        List<ITool> found;
+        if (server.Length > 0)
+        {
+            var group = "mcp:" + server;
+            var ofServer = available.Where(t => string.Equals(tools.Registry.GroupOf(t.Name), group, StringComparison.OrdinalIgnoreCase)).ToList();
+            found = query.Length > 0 && ofServer.Count > ServerShown
+                ? [.. await chooser.SearchAsync(ofServer, query, ServerShown, cancellationToken).ConfigureAwait(false)]
+                : [.. ofServer.Take(ServerShown)];
+        }
+        else found = [.. await chooser.SearchAsync(pool, query, Found, cancellationToken).ConfigureAwait(false)];
+        foreach (var tool in found.Where(t => !atHand.Contains(t)))
+        {
+            atHand.Add(tool);
+            definitions.Add(new ToolDefinition(tool.Name, tool.Description, tool.ParametersSchemaJson));
+        }
+        Log.Info($"Asistente: la IA busca herramientas ({(server.Length > 0 ? "servidor " + server + " " : string.Empty)}«{query}») → {(found.Count > 0 ? string.Join(", ", found.Select(t => t.Name)) : "nada")}");
+        if (found.Count == 0)
+            return server.Length > 0 ? $"There is no MCP server called «{server}». Look by what the tool must do (query)." : "No tool fits that. Say plainly what you cannot do.";
+        return "Now at hand, call them directly:\n" + string.Join('\n', found.Select(t => $"- {t.Name}: {OneLine(t.Description, 160)}"));
+    }
+
+    private static string OneLine(string text, int most)
+    {
+        var line = string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        return line.Length > most ? line[..most] + "…" : line;
     }
 
     /// <summary>A small MCP server's tools all go together: one used a moment before brings the rest.</summary>
