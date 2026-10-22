@@ -3564,7 +3564,7 @@
   "toolsOptions.searchIntro": "Entre todas: incluídas, as suas e as de cada servidor.",
   "toolsOptions.searchMore": "E mais {0}: escreva algo mais específico.",
   "toolsOptions.builtinIntro": "As ferramentas que vêm com o K-Desktop, por tema.",
-  "toolsOptions.subject.commands": "Seus comandos do K-Desktop",
+  "toolsOptions.subject.commands": "Comandos",
   "toolsOptions.subject.time": "Hora, avisos e contas",
   "toolsOptions.subject.notes": "Notas e memória",
   "toolsOptions.subject.files": "Arquivos",

@@ -3564,7 +3564,7 @@
   "toolsOptions.searchIntro": "Among all of them: built-in, yours and each server's.",
   "toolsOptions.searchMore": "And {0} more: type something more specific.",
   "toolsOptions.builtinIntro": "The tools K-Desktop comes with, by subject.",
-  "toolsOptions.subject.commands": "Your K-Desktop commands",
+  "toolsOptions.subject.commands": "Commands",
   "toolsOptions.subject.time": "Time, reminders and maths",
   "toolsOptions.subject.notes": "Notes and memory",
   "toolsOptions.subject.files": "Files",
