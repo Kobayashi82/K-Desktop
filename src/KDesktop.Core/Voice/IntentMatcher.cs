@@ -364,6 +364,42 @@ public static class IntentMatcher
 
         // «acestep» for "ACE Step", «drivee» for "Drive E".
         var joined = TextSimilarity.Ratio(string.Concat(spoken), string.Concat(name));
-        return Math.Max(score, joined >= 0.8 ? joined : 0);
+        score = Math.Max(score, joined >= 0.8 ? joined : 0);
+
+        // A name said as it sounds: «abre Kamovis» for "K-Movies" (a lone letter read out, English read the Spanish way).
+        if (SoundScore(spoken, name) is { Similarity: >= SoundsAlike } sound)
+        {
+            var rest = 0.0;
+            for (var i = 0; i < spoken.Length; i++)
+                if (i < sound.From || i >= sound.From + sound.Length) rest += vocabulary.DoIt.Contains(spoken[i]) ? 0.05 : 0.2;
+            score = Math.Max(score, 0.95 * sound.Similarity - Math.Min(0.4, rest));
+        }
+        return score;
+    }
+
+    /// <summary>How alike the sound of a name and of some words said together must be to count.</summary>
+    public const double SoundsAlike = 0.8;
+
+    /// <summary>Words said together, at most, for the sound of one name.</summary>
+    private const int SoundWindow = 3;
+
+    /// <summary>
+    /// How much a few words said in a row sound like the whole name (<see cref="PhoneticKey"/>; a lone letter of the name by
+    /// its spoken name, «K» = «ka»): the best run of words and how alike, 0–1. Names that sound like less than five letters
+    /// do not count (short ones sound alike too easily).
+    /// </summary>
+    public static (double Similarity, int From, int Length) SoundScore(string[] spoken, string[] name)
+    {
+        var key = PhoneticKey.Of(string.Join(' ', name));
+        if (key.Length < 5 || spoken.Length == 0) return (0, 0, 0);
+        var best = (Similarity: 0.0, From: 0, Length: 0);
+        for (var from = 0; from < spoken.Length; from++)
+            for (var length = 1; length <= SoundWindow && from + length <= spoken.Length; length++)
+            {
+                var said = PhoneticKey.Of(string.Join(' ', spoken, from, length));
+                var similarity = PhoneticKey.Similarity(key, said);
+                if (similarity > best.Similarity) best = (similarity, from, length);
+            }
+        return best;
     }
 }

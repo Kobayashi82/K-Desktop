@@ -24,6 +24,7 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
     private readonly ConcurrentDictionary<string, TaskCompletionSource<EndMessage?>> _runs = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<DescribedMessage?>> _descriptions = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<TextDoneMessage?>> _texts = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<PhraseDoneMessage?>> _phrases = new(StringComparer.Ordinal);
     private int _next;
 
     public Task<MatchedMessage?> MatchAsync(string text, CancellationToken cancellationToken) =>
@@ -78,6 +79,15 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
     public void OnDescribed(DescribedMessage described)
     {
         if (_descriptions.TryRemove(described.Id, out var waiting)) waiting.TrySetResult(described);
+    }
+
+    /// <summary>A voice phrase taught to a command (add_voice_phrase), or taken out when undone.</summary>
+    public Task<PhraseDoneMessage?> PhraseAsync(string command, string phrase, bool remove, CancellationToken cancellationToken) =>
+        AskAsync(_phrases, id => new PhraseMessage(id, command, phrase, remove), MatchWait, cancellationToken);
+
+    public void OnPhraseDone(PhraseDoneMessage done)
+    {
+        if (_phrases.TryRemove(done.Id, out var waiting)) waiting.TrySetResult(done);
     }
 
     public void OnMatched(MatchedMessage matched)

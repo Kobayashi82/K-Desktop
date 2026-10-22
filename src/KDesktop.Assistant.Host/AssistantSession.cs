@@ -183,6 +183,9 @@ internal sealed class AssistantSession : IDisposable
                     case DescribedMessage described when Commands is { } commands:
                         commands.OnDescribed(described);
                         return;
+                    case PhraseDoneMessage phraseDone when Commands is { } commands:
+                        commands.OnPhraseDone(phraseDone);
+                        return;
                     case HeardMessage heard when Talk is { } talk:
                         talk.OnHeard(heard);
                         return;

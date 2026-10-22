@@ -43,6 +43,34 @@ public static partial class ActionClaims
         return (string.Join(" ", kept.Select(s => s.Trim()).Concat(honest)).Trim(), unfounded);
     }
 
+    /// <summary>Whether a tool (by its name) is of that kind of action (a reminder, notify_when, is not sending anything).</summary>
+    public static bool IsOfKind(string tool, string kind) =>
+        Kinds.FirstOrDefault(k => k.Kind == kind).Tools is { } words && words.Any(w => tool.Contains(w, StringComparison.OrdinalIgnoreCase))
+        && !(kind == "send" && IsOfKind(tool, "schedule"));
+
+    /// <summary>
+    /// The kinds of action the order asks for that no tool of that kind did (<paramref name="worked"/>): «…y luego me
+    /// envías la página» answered «Sí, es una página de chistes» with nothing sent. The asking phrases are
+    /// <c>assistant.requests.&lt;kind&gt;</c> (this language and English, folded); only the kinds that have them.
+    /// </summary>
+    public static IReadOnlyList<string> Missing(string order, IReadOnlyCollection<string> worked)
+    {
+        var folded = " " + string.Join(' ', KDesktop.Core.Voice.TextSimilarity.Words(order)) + " ";
+        return [.. Kinds.Where(k => Requests(k.Kind).Any(p => folded.Contains(" " + p + " ", StringComparison.Ordinal))
+                                    && !worked.Any(t => IsOfKind(t, k.Kind)))
+                        .Select(k => k.Kind)];
+    }
+
+    private static string[] Requests(string kind)
+    {
+        var key = "assistant.requests." + kind;
+        var own = Loc.T(key);
+        var english = Loc.Strings(Loc.Fallback, key).GetValueOrDefault(key);
+        return [.. new[] { own == key ? null : own, english }.OfType<string>()
+            .SelectMany(p => p.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            .Select(p => string.Join(' ', KDesktop.Core.Voice.TextSimilarity.Words(p))).Where(p => p.Length > 0).Distinct()];
+    }
+
     private static bool Claims(string sentence, string kind)
     {
         var phrases = Phrases(kind);

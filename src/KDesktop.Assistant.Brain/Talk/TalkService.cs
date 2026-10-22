@@ -133,6 +133,9 @@ public sealed class TalkService
             var persona = _persona(who);
             var answer = await AnswerAsync(conversation, persona, who, said, turn, wasBusy, token).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
+            if (await LearnPhraseAsync(conversation, who, said, answer, token).ConfigureAwait(false) is { } learned)
+                answer = answer with { Text = (answer.Text + " " + learned).Trim() };
+            conversation.Missed = Acted(answer) ? null : (said, _time.GetUtcNow());
             _output.Chat(new ChatLineMessage("assistant", answer.Text, turn, true, who));
             if (answer.Remember) conversation.History.Add(said, answer.Text, answer.Tools, answer.Steps);
             Learn(who, said, answer, token);
@@ -171,6 +174,68 @@ public sealed class TalkService
         var (client, model) = _brain(who);
         if (client is null || model is null) return;
         _ = Task.Run(() => _memory.LearnAsync(client, model, said, answer.Text, new ToolContext(who), token), CancellationToken.None);
+    }
+
+    /// <summary>An order that did nothing is taken back by its correction this long after, at most.</summary>
+    public static readonly TimeSpan CorrectionWithin = TimeSpan.FromMinutes(3);
+
+    /// <summary>Words of a short order that did nothing which may become a voice phrase, at most.</summary>
+    public const int TaughtWords = 3;
+
+    /// <summary>Whether an answer did something (not only looked things up), well.</summary>
+    private bool Acted(TalkAnswer answer) =>
+        !answer.Failed && answer.Tools.Any(t => _tools.Registry.FindAny(t) is not { ReadsOnly: true });
+
+    /// <summary>
+    /// «Abre Kamovis» did nothing, and the next order, a correction («es un programa, se llama K-Movies»,
+    /// <c>assistant.words.correction</c>), ran a command it names: what was not understood becomes a voice phrase of that
+    /// command (add_voice_phrase, so it is in the activity and «deshaz» takes it out), and it says so. Speech recognition
+    /// writes an English name its own way: next time it runs at once. Null: nothing learned.
+    /// </summary>
+    private async Task<string?> LearnPhraseAsync(Conversation conversation, string? who, string said, TalkAnswer answer, CancellationToken token)
+    {
+        if (conversation.Missed is not { } missed || _time.GetUtcNow() - missed.At > CorrectionWithin || _commands is null) return null;
+        if (!Acted(answer) || LastCommandOf(answer.Steps) is not { } command || !CommandTools.NamesClosely(said, command) || !IsCorrection(said)) return null;
+        var phrase = PhraseOf(missed.Said, _persona(who).Name);
+        if (phrase is null || CommandTools.NamesClosely(phrase, command)) return null;
+        var arguments = new JsonObject { ["command"] = command, ["phrase"] = phrase };
+        var outcome = await _tools.RunAsync("add_voice_phrase", JsonSerializer.SerializeToElement(arguments), new ToolContext(who, said), said, "learned", token).ConfigureAwait(false);
+        if (outcome.Result is not { Failed: false, Undo: not null } done) return null;
+        Log.Info($"Asistente: aprendido «{phrase}» para «{command}» (de «{missed.Said}»)");
+        return Loc.T("assistant.phrase.learnedPhrase", phrase, command);
+    }
+
+    /// <summary>
+    /// What a short order named, without its verb, fillers and the assistant's name («Abre Kamovis.» → «Kamovis»); null
+    /// when nothing is left or it is too long to be a name.
+    /// </summary>
+    internal static string? PhraseOf(string said, string? name)
+    {
+        var vocabulary = VoiceVocabulary.Current;
+        var names = TextSimilarity.Words(name ?? string.Empty).ToHashSet(StringComparer.Ordinal);
+        var kept = said.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)
+            .Select(w => w.Trim('.', ',', '!', '?', '¡', '¿', '«', '»', '"', ':', ';'))
+            .Where(w => TextSimilarity.Words(w) is { Length: > 0 } folded
+                        && !folded.All(f => vocabulary.Filler.Contains(f) || vocabulary.Actions.Contains(f) || names.Contains(f)))
+            .ToList();
+        return kept.Count is > 0 and <= TaughtWords ? string.Join(' ', kept) : null;
+    }
+
+    private static readonly Lazy<string[]> CorrectionWords = new(() =>
+    [
+        .. Loc.Available()
+            .Select(l => Loc.Strings(l.Code, "assistant.words.correction").GetValueOrDefault("assistant.words.correction") ?? string.Empty)
+            .SelectMany(v => v.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            .Select(p => " " + string.Join(' ', TextSimilarity.Words(p)) + " ")
+            .Where(p => p.Trim().Length > 0)
+            .Distinct(StringComparer.Ordinal),
+    ]);
+
+    /// <summary>Whether the order corrects the one before («se llama…», «me refiero a…», «I mean…»), in any language.</summary>
+    internal static bool IsCorrection(string said)
+    {
+        var folded = " " + string.Join(' ', TextSimilarity.Words(said)) + " ";
+        return CorrectionWords.Value.Any(p => folded.Contains(p, StringComparison.Ordinal));
     }
 
     /// <summary>
@@ -292,7 +357,8 @@ public sealed class TalkService
                 return await ToolAsync(persona, "save_note", new JsonObject { ["note"] = note }, context, said, acknowledge: true, token).ConfigureAwait(false);
             case { Kind: QuickRuleKind.OpenWeb, Text: { } addresses }:
                 return await SitesAsync(persona, QuickRules.Sites(addresses), context, said, token).ConfigureAwait(false);
-            case { Kind: QuickRuleKind.Remember, Text: { Length: > 0 } fact } when _memory is not null:
+            // «Recuerda que cuando diga «Kamugi» abras K-Movies» is a phrase for a command (add_voice_phrase): the AI.
+            case { Kind: QuickRuleKind.Remember, Text: { Length: > 0 } fact } when _memory is not null && !TalkMind.TeachesPhrase(said):
                 return await RememberAsync(persona, who, fact, context, said, token).ConfigureAwait(false);
             case { Kind: QuickRuleKind.Recall } when _memory is not null:
                 return Recall(persona);
@@ -697,6 +763,9 @@ public sealed class TalkService
 
         /// <summary>The last of the user's commands it ran well (by name), for «repite el comando anterior».</summary>
         public string? LastCommand { get; set; }
+
+        /// <summary>The last order, when it did nothing (its correction may teach a voice phrase).</summary>
+        public (string Said, DateTimeOffset At)? Missed { get; set; }
 
         /// <summary>An order is going on.</summary>
         public bool Busy

@@ -439,6 +439,118 @@ public sealed class CommandRoutingTests : IDisposable
         Assert.Equal(["run:trackir:lander"], _bridge.Done);
     }
 
+    // 22/10 (5.0.132), from the user's conversation after 5.0.131.
+
+    [Fact]
+    public async Task AVerbOfTheNameMayGoUnsaid()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin, model: Big);
+        // «Con música, simplemente» (Parakeet's «pon»): the AI asked for «Poner música» and it was held back as «only
+        // sounding alike».
+        const string said = "Nada, ábreme VS Code. Ah no, ya está abierto, ignora lo que he dicho. Con música, simplemente.";
+        _bridge.Matches[said] = new MatchedMessage("x", 0.5, [], [new MatchedPart(said, false, [new MatchedCandidate("code", "VS Code", 0.71)])]);
+        _bridge.Sure("Poner música", (null, "Poner música", "play"));
+        _model.Answers.Enqueue("call:run_command:Poner música");
+        _model.Answers.Enqueue("Pongo música.");
+        await talk.HandleAsync(new HeardMessage(said, "voice", "lander"));
+        Assert.Equal(["media:play"], _bridge.Done);
+        Assert.True(CommandTools.NamesClosely("con música", "Poner música"));
+        Assert.False(CommandTools.NamesClosely("puede ser la pestaña de track series", "TrackIR 5"));
+        Assert.True(CommandTools.NamesClosely("abre kamovis", "K-Movies"));
+    }
+
+    [Fact]
+    public async Task ACorrectionTeachesWhatWasNotUnderstood()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        // «Abre Kamugi» found nothing; «es un programa, se llama K-Movies» ran it: «Kamugi» is K-Movies from now on.
+        _model.Answers.Enqueue("No encuentro ningún programa llamado Kamugi.");
+        await talk.HandleAsync(new HeardMessage("Abre Kamugi.", "voice", "lander"));
+        const string correction = "Es un programa que se llama K-Movies";
+        _bridge.Sure(correction, ("movies", "K-Movies", null));
+        _bridge.Sure("K-Movies", ("movies", "K-Movies", null));
+        await talk.HandleAsync(new HeardMessage(correction, "voice", "lander"));
+        Assert.Equal(["run:movies:lander", "phrase:movies:Kamugi"], _bridge.Done);
+        Assert.Contains(Core.Localization.Loc.T("assistant.phrase.learnedPhrase", "Kamugi", "K-Movies"), LastAnswer, StringComparison.Ordinal);
+        Assert.Contains(_log, l => l.Entry is { Route: "learned", Ok: true, Undo: not null });
+
+        // Without a correction («abre Steam» after something else), nothing is taught.
+        _model.Answers.Enqueue("No sé qué es eso.");
+        await talk.HandleAsync(new HeardMessage("abre la puerta", "voice", "lander"));
+        _bridge.Sure("abre Steam", ("steam", "Steam", null));
+        await talk.HandleAsync(new HeardMessage("abre Steam", "voice", "lander"));
+        Assert.DoesNotContain(_bridge.Done, d => d.StartsWith("phrase:steam", StringComparison.Ordinal));
+        Assert.Equal("Kamugi", TalkService.PhraseOf("Lander, abre Kamugi.", "Lander"));
+        Assert.Null(TalkService.PhraseOf("abre la", null));
+        Assert.True(TalkService.IsCorrection("no, me refiero a K-Movies"));
+    }
+
+    [Fact]
+    public async Task WhenISaySomethingIsAPhraseForTheCommand()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin, memory: true, model: Big);
+        _bridge.Sure("K-Movies", ("movies", "K-Movies", null));
+        _model.Answers.Enqueue("""call:add_voice_phrase:{"command":"K-Movies","phrase":"Kamugi"}""");
+        _model.Answers.Enqueue("Hecho.");
+        // «Recuerda que…» is a rule of the memory: not when it teaches a phrase.
+        await talk.HandleAsync(new HeardMessage("recuerda que cuando diga Kamugi abras K-Movies", "voice", "lander"));
+        Assert.Contains(_model.Requests[0].Tools, t => t.Name == "add_voice_phrase");
+        Assert.Equal(["phrase:movies:Kamugi"], _bridge.Done);
+        Assert.Empty(builtin.Memory.All);
+    }
+
+    [Fact]
+    public async Task AnAddressTheAiMadeUpIsNotOpened()
+    {
+        var opened = new List<Uri>();
+        var tool = new OpenWebTool(u => { opened.Add(u); return true; });
+        var args = System.Text.Json.JsonSerializer.SerializeToElement(new { url = "jokes.one" });
+        var made = await tool.RunAsync(args, new ToolContext("lander", Sources: "ábreme una página de chistes"), default);
+        Assert.True(made.Failed);
+        Assert.Contains("look_up_web", made.Text, StringComparison.Ordinal);
+        // Said, said apart, slightly otherwise, or given by a tool; and a rule (no sources) does not check.
+        Assert.False((await tool.RunAsync(System.Text.Json.JsonSerializer.SerializeToElement(new { url = "youtube.com" }), new ToolContext("lander", Sources: "abre youtube"), default)).Failed);
+        Assert.False((await tool.RunAsync(System.Text.Json.JsonSerializer.SerializeToElement(new { url = "eltiempo.es" }), new ToolContext("lander", Sources: "abre el tiempo"), default)).Failed);
+        Assert.False((await tool.RunAsync(System.Text.Json.JsonSerializer.SerializeToElement(new { url = "trackseries.tv" }), new ToolContext("lander", Sources: "abre tracksseries punto tv"), default)).Failed);
+        Assert.False((await tool.RunAsync(args, new ToolContext("lander"), default)).Failed);
+        Assert.Equal(4, opened.Count);
+    }
+
+    [Fact]
+    public void OpeningAWebIsARuleOnlyWhenThatIsAllTheOrderSays()
+    {
+        Assert.Equal(QuickRuleKind.OpenWeb, QuickRules.Match("abre youtube.com y la web de github.com")?.Kind);
+        Assert.Equal(QuickRuleKind.OpenWeb, QuickRules.Match("puedes abrir trackseries.tv")?.Kind);
+        Assert.NotEqual(QuickRuleKind.OpenWeb, QuickRules.Match("puedes abrir trackseries.tv y hacer una foto de esa página y decirme que me falta por ver.")?.Kind);
+        // «Entonces, ¿qué hay en la memoria?» went to the AI, which looked at the RAM.
+        Assert.Equal(QuickRuleKind.Recall, QuickRules.Match("Entonces, ¿qué hay en la memoria?")?.Kind);
+        Assert.Equal(QuickRuleKind.Recall, QuickRules.Match("muchas gracias. ¿Qué sabes de mí?")?.Kind);
+    }
+
+    [Fact]
+    public void WhatWasAskedToBeSentAndWasNotIsNoticed()
+    {
+        Assert.Equal(["send"], ActionClaims.Missing("míratela bien y luego me envías la página", ["read_web"]));
+        Assert.Empty(ActionClaims.Missing("míratela bien y luego me envías la página", ["read_web", "send_telegram"]));
+        Assert.Empty(ActionClaims.Missing("¿qué tiempo hace?", []));
+        // A reminder is no sending.
+        Assert.False(ActionClaims.IsOfKind("notify_when", "send"));
+        Assert.True(ActionClaims.IsOfKind("mcp_email_email_send", "send"));
+    }
+
+    [Fact]
+    public void ATaughtPhraseIsFoundAsItSounds()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        builtin.Memory.Remember("Cuando diga «Kamugi», quiere abrir K-Movies", "fact", 0.9, "said");
+        Assert.Single(builtin.Memory.Triggered("abre kamuji"));
+        Assert.Single(builtin.Memory.Triggered("abre Kamugi"));
+        Assert.Empty(builtin.Memory.Triggered("abre la cámara"));
+    }
+
     [Theory]
     [InlineData("¿qué series me faltan en esa ventana de track series?", true)]
     [InlineData("entra en la pestaña de track series", true)]
@@ -609,6 +721,12 @@ public sealed class CommandRoutingTests : IDisposable
         public Task<EndMessage?> RunEventAsync(string name, string? assistant, CancellationToken cancellationToken) =>
             Task.FromResult<EndMessage?>(new EndMessage("r", Status, []));
 
+        public Task<PhraseDoneMessage?> PhraseAsync(string command, string phrase, bool remove, CancellationToken cancellationToken)
+        {
+            Done.Add($"{(remove ? "unphrase" : "phrase")}:{command}:{phrase}");
+            return Task.FromResult<PhraseDoneMessage?>(new PhraseDoneMessage("p", true, Matches.Values.SelectMany(m => m.Parts).SelectMany(p => p.Candidates).FirstOrDefault(c => c.Command == command)?.Name ?? command));
+        }
+
         /// <summary>The reason an act does not happen (null: it does), and the name K-Desktop finds.</summary>
         public string? ActReason { get; set; }
 
@@ -635,9 +753,11 @@ public sealed class CommandRoutingTests : IDisposable
             Requests.Add(request);
             var answer = Answers.TryDequeue(out var next) ? next : throw new InvalidOperationException("Nadie esperaba otra petición al modelo");
             await Task.Delay(Delay, cancellationToken);
-            // «call:run_command:Abrir Papelera»: the model calls a tool with that one argument.
+            // «call:run_command:Abrir Papelera»: the model calls a tool with that one argument («call:open_web:{"url":…}»: those).
             if (answer.StartsWith("call:", StringComparison.Ordinal) && answer.Split(':', 3) is [_, var tool, var argument])
-                yield return new ChatChunk("", [new ToolCall(tool, System.Text.Json.JsonSerializer.SerializeToElement(new { command = argument }), "call_1")]);
+                yield return new ChatChunk("", [new ToolCall(tool, argument.StartsWith('{')
+                    ? System.Text.Json.JsonDocument.Parse(argument).RootElement.Clone()
+                    : System.Text.Json.JsonSerializer.SerializeToElement(new { command = argument }), "call_1")]);
             else yield return new ChatChunk(answer);
             yield return new ChatChunk("", Done: true);
         }

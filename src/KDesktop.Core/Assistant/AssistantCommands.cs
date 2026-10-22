@@ -152,6 +152,30 @@ public static class AssistantCommands
     }
 
     /// <summary>
+    /// A voice phrase added to a command or taken out of it (<see cref="PhraseMessage"/>), on the thread that owns the
+    /// config (its collections are shown). Never one another command already has (it would be called twice).
+    /// </summary>
+    public static PhraseDoneMessage Phrase(AppConfig config, PhraseMessage request)
+    {
+        if (config.FindCommand(request.Command) is not { } command) return new PhraseDoneMessage(request.Id, false, string.Empty, "noCommand");
+        var phrase = string.Join(' ', request.Phrase.Split(' ', StringSplitOptions.RemoveEmptyEntries)).Trim(' ', '.', ',', '!', '?', '¡', '¿', '«', '»', '"');
+        var folded = string.Join(' ', TextSimilarity.Words(phrase));
+        if (folded.Length == 0) return new PhraseDoneMessage(request.Id, false, command.Name, "empty");
+        bool Same(string other) => string.Join(' ', TextSimilarity.Words(other)) == folded;
+        if (request.Remove)
+        {
+            var removed = command.VoicePhrases.Where(Same).ToList();
+            foreach (var p in removed) command.VoicePhrases.Remove(p);
+            return new PhraseDoneMessage(request.Id, removed.Count > 0, command.Name, removed.Count > 0 ? null : "noPhrase");
+        }
+        if (Same(command.Name) || command.VoicePhrases.Any(Same)) return new PhraseDoneMessage(request.Id, false, command.Name, "exists");
+        if (config.Commands.FirstOrDefault(c => c != command && (Same(c.Name) || c.VoicePhrases.Any(Same))) is { } other)
+            return new PhraseDoneMessage(request.Id, false, command.Name, "taken", other.Name);
+        command.VoicePhrases.Add(phrase);
+        return new PhraseDoneMessage(request.Id, true, command.Name);
+    }
+
+    /// <summary>
     /// Runs the commands of an event found by its name (the closest, if it is clearly that one), asking first like for a
     /// command when any of them would ask (the riskiest decides). Not found or paused: <c>failed</c> at once.
     /// </summary>

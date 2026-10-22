@@ -194,7 +194,13 @@ public sealed class WindowsSearchIndex : IFileIndex
     private static string? PathOf(string url) =>
         url.StartsWith("file:", StringComparison.OrdinalIgnoreCase) ? url[5..].Replace('/', '\\') : null;
 
-    private static DateTime Date(object value) => value is DateTime date ? (date.Kind == DateTimeKind.Utc ? date.ToLocalTime() : date) : DateTime.MinValue;
+    /// <summary>
+    /// The index keeps its dates in UTC and gives them without saying so (<c>Unspecified</c>): read as local, everything it
+    /// found was two hours older than what the walk found, and «lo último de Descargas» mixed the two.
+    /// </summary>
+    internal static DateTime Date(object value) => value is DateTime date
+        ? (date.Kind == DateTimeKind.Local ? date : DateTime.SpecifyKind(date, DateTimeKind.Utc).ToLocalTime())
+        : DateTime.MinValue;
 }
 
 /// <summary>
@@ -228,7 +234,11 @@ public sealed class FileSearch(IFileIndex? index = null, Func<IReadOnlyList<stri
     private readonly ConcurrentDictionary<string, (DateTimeOffset At, IReadOnlyList<FoundFile> Files)> _last = new(StringComparer.Ordinal);
 
     /// <summary>The best matches, best first (newest first when asked or when there are no words).</summary>
-    public async Task<IReadOnlyList<FoundFile>> FindAsync(FileQuery query, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<FoundFile>> FindAsync(FileQuery query, CancellationToken cancellationToken) =>
+        (await SearchAsync(query, cancellationToken).ConfigureAwait(false)).Files;
+
+    /// <summary>The best <see cref="Shown"/> matches and how many there were in all (at least those).</summary>
+    public async Task<(IReadOnlyList<FoundFile> Files, int Total)> SearchAsync(FileQuery query, CancellationToken cancellationToken)
     {
         var watch = Stopwatch.StartNew();
         var scope = UserFolders.Find(query.Folder);
@@ -249,19 +259,78 @@ public sealed class FileSearch(IFileIndex? index = null, Func<IReadOnlyList<stri
         var all = (await fromIndex.ConfigureAwait(false)).Where(f => !Hidden(f.Path)).Concat(await fromWalk.ConfigureAwait(false));
         var words = query.Words;
         var cutoff = query.Days is { } days ? _time.GetLocalNow().DateTime - TimeSpan.FromDays(days) : DateTime.MinValue;
-        var best = all
-            .Where(f => f.When >= cutoff && KindFits(f, query))
+        var ranked = all
+            // Found by both: what the walk read from the disk now (the index may be behind), and whether the index found
+            // it by its content.
             .GroupBy(f => f.Path, StringComparer.OrdinalIgnoreCase)
-            .Select(g => g.OrderByDescending(f => f.InContent).First())
+            .Select(g => g.Last() with { InContent = g.Any(f => f.InContent) })
+            .Where(f => f.When >= cutoff && KindFits(f, query))
             .Select(f => (File: f, Score: Score(f, words)))
             .Where(p => words.Count == 0 || p.Score >= 0.5 || p.File.InContent)
             .OrderByDescending(p => query.Newest || words.Count == 0 ? 0 : Math.Round(p.Score, 1))
             .ThenByDescending(p => p.File.When)
             .Select(p => p.File)
-            .Take(Shown)
             .ToList();
-        Log.Info($"Asistente: archivos «{query.Text}» {query.Kind} {query.Folder} {query.Days} → {best.Count} en {watch.ElapsedMilliseconds} ms");
-        return best;
+        var best = ranked.Take(Shown).ToList();
+        Log.Info($"Asistente: archivos «{query.Text}» {query.Kind} {query.Folder} {query.Days} → {best.Count} de {ranked.Count} en {watch.ElapsedMilliseconds} ms");
+        return (best, ranked.Count);
+    }
+
+    /// <summary>What a folder holds at its top level, at most.</summary>
+    public const int Listed = 15;
+
+    /// <summary>Entries of a folder inside a listed one that are counted, at most (a big one is «more than…»).</summary>
+    private const int CountedInside = 2000;
+
+    /// <summary>
+    /// «¿Qué tengo en Descargas?»: what is directly in <paramref name="folder"/> (not inside its folders), newest first, at
+    /// most <see cref="Listed"/>; how many folders and files it has in all; and, for each folder listed, what is in it
+    /// («8 videos, 1 folder»).
+    /// </summary>
+    public static (IReadOnlyList<FoundFile> Entries, int Folders, int Files, IReadOnlyDictionary<string, string> Inside) List(string folder)
+    {
+        var options = new EnumerationOptions { IgnoreInaccessible = true, AttributesToSkip = FileAttributes.Hidden | FileAttributes.System, ReturnSpecialDirectories = false };
+        var entries = new List<FoundFile>();
+        try
+        {
+            foreach (var entry in new DirectoryInfo(folder).EnumerateFileSystemInfos("*", options))
+            {
+                if (IsNoise(entry.Name)) continue;
+                entries.Add(new FoundFile(entry.FullName, entry.LastWriteTime, entry.CreationTime, entry is FileInfo info ? info.Length : 0, entry is DirectoryInfo));
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            Log.Warn($"Asistente: no se ha podido mirar {folder}: {ex.Message}");
+        }
+        var shown = entries.OrderByDescending(e => e.When).Take(Listed).ToList();
+        var inside = shown.Where(e => e.IsFolder).ToDictionary(e => e.Path, e => Contents(e.Path, options), StringComparer.OrdinalIgnoreCase);
+        return (shown, entries.Count(e => e.IsFolder), entries.Count(e => !e.IsFolder), inside);
+    }
+
+    /// <summary>What is in a folder, for the model: «8 video, 1 text, 1 folder» (empty: «empty»).</summary>
+    private static string Contents(string folder, EnumerationOptions options)
+    {
+        var kinds = new Dictionary<string, int>(StringComparer.Ordinal);
+        var seen = 0;
+        try
+        {
+            foreach (var entry in new DirectoryInfo(folder).EnumerateFileSystemInfos("*", options))
+            {
+                if (IsNoise(entry.Name)) continue;
+                if (++seen > CountedInside) break;
+                var kind = entry is DirectoryInfo ? FileKinds.Folder
+                    : FileKinds.All.Where(k => k.Key is not ("pdf" or "word" or "text" or FileKinds.Folder)).FirstOrDefault(k => k.Value.Contains(entry.Extension)).Key ?? "other";
+                kinds[kind] = kinds.GetValueOrDefault(kind) + 1;
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            return "cannot be read";
+        }
+        if (kinds.Count == 0) return "empty";
+        var text = string.Join(", ", kinds.OrderByDescending(k => k.Value).Select(k => $"{k.Value} {k.Key}"));
+        return seen > CountedInside ? "more than " + CountedInside + ": " + text : text;
     }
 
     /// <summary>Keeps <paramref name="files"/> as <paramref name="assistant"/>'s last list.</summary>
@@ -395,11 +464,11 @@ public sealed class FileSearch(IFileIndex? index = null, Func<IReadOnlyList<stri
     public static string Describe(IReadOnlyList<FoundFile> files)
     {
         var lines = files.Select((f, i) =>
-            $"{i + 1}. {f.Name}{(f.IsFolder ? " (folder)" : string.Empty)} — in {f.Folder} — {(f.When == DateTime.MinValue ? "?" : f.When.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture))}{(f.IsFolder ? string.Empty : " — " + Size(f.Size))}");
+            $"{i + 1}. {f.Name}{(f.IsFolder ? " (folder)" : string.Empty)} — in {f.Folder} — {(f.When == DateTime.MinValue ? "?" : f.When.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture))}{(f.IsFolder ? string.Empty : " — " + SizeOf(f.Size))}");
         return string.Join('\n', lines);
     }
 
-    private static string Size(long bytes) => bytes switch
+    public static string SizeOf(long bytes) => bytes switch
     {
         < 1024 => $"{bytes} B",
         < 1024 * 1024 => $"{bytes / 1024.0:0} KB".Replace(',', '.'),
@@ -447,21 +516,44 @@ public sealed class FindFilesTool(FileSearch search) : ITool
         var query = FileQuery.Of(arguments);
         if (query.Folder is { Length: > 0 } folder && UserFolders.Find(folder) is null)
             return ToolResult.Fail($"There is no folder \"{folder}\": use one of {string.Join(", ", UserFolders.Names)} or a full path.");
-        var files = await search.FindAsync(query, cancellationToken).ConfigureAwait(false);
+        // «¿Qué tengo en Descargas?»: what is in it, not everything inside its folders newest first (it said «tienes 8
+        // cosas»: six folders of a series and the episodes inside two of them, cut at eight).
+        if (query is { Folder: { Length: > 0 } listed, Words.Count: 0, Kind: null, Days: null } && UserFolders.Find(listed) is { } path)
+            return Listing(path, context);
+        var (files, total) = await search.SearchAsync(query, cancellationToken).ConfigureAwait(false);
         // Small models name a folder the user did not say («la carpeta de K-Desktop» → desktop): then anywhere, saying so.
         var elsewhere = string.Empty;
         if (files.Count == 0 && query.Folder is { Length: > 0 } given && (query.Words.Count > 0 || query.Kind is not null))
         {
-            files = await search.FindAsync(query with { Folder = null }, cancellationToken).ConfigureAwait(false);
+            (files, total) = await search.SearchAsync(query with { Folder = null }, cancellationToken).ConfigureAwait(false);
             if (files.Count > 0) elsewhere = $"Nothing in {given}; elsewhere: ";
         }
         search.Remember(context.Assistant, files);
         var done = Loc.T("tool.find_files.done", What(query), files.Count);
         if (files.Count == 0)
-            return new ToolResult(query.Folder is { Length: > 0 } where && query.Words.Count == 0 && query.Kind is null
-                ? $"Nothing in {where}: it is empty. Say so; do not look for or open anything elsewhere instead."
-                : "Nothing found. Say so (you may suggest other words or another folder).") { Done = done, Reply = Loc.T("tool.find_files.none") };
-        return new ToolResult($"{elsewhere}Found {files.Count}{(query.Newest || query.Words.Count == 0 ? ", newest first" : ", best first")}:\n{FileSearch.Describe(files)}\nTell the user briefly what you found (names, not full paths). To open one, call open_file with its number.")
+            return new ToolResult("Nothing found. Say so (you may suggest other words or another folder).") { Done = done, Reply = Loc.T("tool.find_files.none") };
+        var count = total > files.Count ? $"{total} found, these are the first {files.Count}" : $"Found {files.Count}";
+        return new ToolResult($"{elsewhere}{count}{(query.Newest || query.Words.Count == 0 ? ", newest first" : ", best first")}:\n{FileSearch.Describe(files)}\nTell the user briefly what you found (names, not full paths){(total > files.Count ? $"; there are {total} in all, not {files.Count}" : string.Empty)}. To open one, call open_file with its number.")
+        {
+            Done = done,
+        };
+    }
+
+    /// <summary>What is directly in a folder, with its totals and what each folder in it holds.</summary>
+    private ToolResult Listing(string path, ToolContext context)
+    {
+        var (entries, folders, files, inside) = FileSearch.List(path);
+        search.Remember(context.Assistant, entries);
+        var name = Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar)) is { Length: > 0 } n ? n : path;
+        var done = Loc.T("tool.find_files.listed", name, folders + files);
+        Log.Info($"Asistente: carpeta {path} → {folders} carpeta(s) y {files} archivo(s)");
+        if (entries.Count == 0)
+            return new ToolResult($"{path} is empty. Say so; do not look for or open anything elsewhere instead.") { Done = done, Reply = Loc.T("tool.find_files.empty", name) };
+        var lines = entries.Select((e, i) => e.IsFolder
+            ? $"{i + 1}. {e.Name} (folder: {inside.GetValueOrDefault(e.Path, "?")}) — {e.When.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)}"
+            : $"{i + 1}. {e.Name} — {e.When.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)} — {FileSearch.SizeOf(e.Size)}");
+        var more = folders + files > entries.Count ? $" These are the newest {entries.Count}." : string.Empty;
+        return new ToolResult($"Directly in {path} (not counting what is inside its folders) there are {folders} folder(s) and {files} file(s), newest first.{more}\n{string.Join('\n', lines)}\nTell the user how many there are and what they are, briefly (group alike ones: «six seasons of a series»); names, not full paths. To open one, call open_file with its number.")
         {
             Done = done,
         };

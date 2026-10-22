@@ -627,6 +627,25 @@ public sealed record DescribedMessage(string Id, bool Found, string Name, IReadO
     public override string Type => "described";
 }
 
+/// <summary>
+/// «Cuando diga «Kamovis», abre K-Movies» (5.0.132): another way of calling a command by voice, added to its voice phrases
+/// (or taken out, <paramref name="Remove"/>), so K-Desktop's voice and the assistants understand it from now on. Answered
+/// with <see cref="PhraseDoneMessage"/>.
+/// </summary>
+/// <param name="Command">The command's id.</param>
+public sealed record PhraseMessage(string Id, string Command, string Phrase, bool Remove = false) : PipeMessage
+{
+    public override string Type => "phrase";
+}
+
+/// <param name="Name">The command's name.</param>
+/// <param name="Reason">When not done: <c>noCommand</c>, <c>empty</c>, <c>exists</c> (it already had it) or <c>taken</c>
+/// (another command has it: <paramref name="Other"/>).</param>
+public sealed record PhraseDoneMessage(string Id, bool Ok, string Name, string? Reason = null, string? Other = null) : PipeMessage
+{
+    public override string Type => "phraseDone";
+}
+
 /// <summary>Runs the commands of one of K-Desktop's events, found by its name. Answered with <see cref="EndMessage"/>.</summary>
 public sealed record RunEventMessage(string Assistant, string Run, string Event) : PipeMessage
 {
@@ -820,6 +839,8 @@ public static class PipeJson
         ["media"] = typeof(MediaMessage),
         ["describe"] = typeof(DescribeMessage),
         ["described"] = typeof(DescribedMessage),
+        ["phrase"] = typeof(PhraseMessage),
+        ["phraseDone"] = typeof(PhraseDoneMessage),
         ["runEvent"] = typeof(RunEventMessage),
         ["act"] = typeof(ActMessage),
         ["text"] = typeof(TextMessage),

@@ -107,7 +107,9 @@ public static partial class QuickRules
                 if (!Fits(said, 0, pattern.Pieces, 0, w, gaps)) continue;
                 var gap = gaps.Text is { } t ? Original(text, t.From, t.To) : null;
                 // «Abre …» is a web only when it names addresses («abre youtube.com»); «abre Steam» is not this rule.
-                if (pattern.Kind == QuickRuleKind.OpenWeb && Sites(gap ?? string.Empty).Count == 0) continue;
+                // And nothing else: «abre trackseries.tv y hazle una foto y dime qué me falta» opened it, said «Ya está» and
+                // dropped the rest.
+                if (pattern.Kind == QuickRuleKind.OpenWeb && (Sites(gap ?? string.Empty).Count == 0 || !OnlySites(gap!))) continue;
                 // A program is named in a few words: «No has abierto equipo. Tenías que mover la ventana… a la derecha» is
                 // not «mueve {app} a la derecha».
                 if (pattern.Kind is QuickRuleKind.Act or QuickRuleKind.OpenApp && gaps.Text is { } g && said.IndexOf(g.To) - said.IndexOf(g.From) + 1 > MaxAppWords) continue;
@@ -145,6 +147,21 @@ public static partial class QuickRules
             .Where(s => !NotSites.Contains(s[(s.LastIndexOf('.') + 1)..].Split('/')[0]))
             .Distinct(StringComparer.OrdinalIgnoreCase)];
     }
+
+    /// <summary>
+    /// Whether <paramref name="text"/> is only web addresses, with fillers and «y» between them («youtube.com y la web de
+    /// github.com»): anything else is more of the order, for the AI.
+    /// </summary>
+    public static bool OnlySites(string text)
+    {
+        foreach (var dot in Dots.Value) text = text.Replace(dot, ".", StringComparison.OrdinalIgnoreCase);
+        var rest = Address().Replace(text, " ");
+        var filler = VoiceVocabulary.Current.Filler;
+        return TextSimilarity.Words(rest).All(w => filler.Contains(w) || SiteWords.Contains(w));
+    }
+
+    /// <summary>Words for «a website», in the languages of K-Desktop.</summary>
+    private static readonly HashSet<string> SiteWords = new(StringComparer.Ordinal) { "web", "pagina", "paginas", "site", "sitio", "seite", "sito", "website", "webseite", "page" };
 
     private static readonly Lazy<string[]> Dots = new(() =>
     [

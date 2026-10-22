@@ -61,6 +61,15 @@ public partial class App
             case DescribeMessage describe:
                 supervisor.Send(AssistantCommands.Describe(Config, describe));
                 return true;
+            case PhraseMessage phrase:
+                // The voice phrases are shown in the command editor: changed on its thread (the config saves itself).
+                _ = Dispatcher.InvokeAsync(() =>
+                {
+                    var done = AssistantCommands.Phrase(Config, phrase);
+                    Log.Info($"Asistente: frase de voz «{phrase.Phrase}» {(phrase.Remove ? "quitada de" : "para")} «{done.Name}»: {(done.Ok ? "hecho" : done.Reason)}");
+                    supervisor.Send(done);
+                });
+                return true;
             case RunEventMessage runEvent:
                 _ = Task.Run(async () =>
                 {

@@ -89,7 +89,9 @@ public sealed class TalkMemory(MemoryStore store, ToolRunner tools, IMeaning? me
             };
             var reply = new StringBuilder();
             await foreach (var chunk in model.StreamAsync(request, cancellationToken).ConfigureAwait(false)) reply.Append(chunk.Content);
-            foreach (var candidate in Parse(reply.ToString()).Take(LearnedPerExchange))
+            // Only what the user said: «Le gusta la serie RAAMMA» came from what it read on the screen (and read wrong),
+            // «Tiene una madre que le pide cosas» from a thank-you.
+            foreach (var candidate in Parse(reply.ToString()).Where(c => Grounded(c.Text, said)).Take(LearnedPerExchange))
             {
                 var arguments = new JsonObject
                 {

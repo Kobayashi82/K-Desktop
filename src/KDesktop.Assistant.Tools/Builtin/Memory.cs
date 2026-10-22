@@ -153,13 +153,24 @@ public sealed partial class MemoryStore(string file, TimeProvider? time = null)
             return [.. Items().Where(m => Quoted().Matches(m.Text).Any(q => Contains(words, TextSimilarity.Words(q.Groups[1].Value))))];
         }
 
+        // Word by word as written, nearly (a slip in a long word) or as it sounds: speech recognition writes a name its own
+        // way each time («Kamugi», «Kamuji»).
         static bool Contains(string[] words, string[] phrase)
         {
             if (phrase.Length == 0 || phrase.Length > words.Length) return false;
             for (var i = 0; i + phrase.Length <= words.Length; i++)
-                if (phrase.AsSpan().SequenceEqual(words.AsSpan(i, phrase.Length))) return true;
+            {
+                var all = true;
+                for (var k = 0; k < phrase.Length && all; k++) all = Alike(words[i + k], phrase[k]);
+                if (all) return true;
+            }
             return false;
         }
+
+        static bool Alike(string said, string written) =>
+            said == written
+            || written.Length >= 5 && TextSimilarity.WordSimilarity(said, written) >= 0.85
+            || written.Length >= 5 && said.Length >= 4 && PhoneticKey.Similarity(PhoneticKey.Encode(said), PhoneticKey.Encode(written)) >= 0.8;
     }
 
     [System.Text.RegularExpressions.GeneratedRegex("[«\"“„]([^«»\"“”„]{2,60})[»\"”“]")]

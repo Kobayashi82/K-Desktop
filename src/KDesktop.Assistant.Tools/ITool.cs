@@ -82,7 +82,11 @@ public sealed record ToolUndo(string Tool, string Data);
 /// <param name="Heard">The order being answered, when there is one.</param>
 /// <param name="Decided">The command it asks for is already known and need not sound like the order: a phrase the user taught
 /// («la vuelta» → a command of another name), «repite el comando anterior».</param>
-public sealed record ToolContext(string? Assistant, string? Heard = null, bool Decided = false);
+/// <param name="Sources">For a call of the AI: everything an address or a name may honestly come from (the order, the
+/// conversation, what came to mind, what the tools said); null: not the AI's (a rule, the routing), nothing is checked.</param>
+/// <param name="Remembered">What came to mind for the order («cuando diga «Kamugi», abre K-Movies»): a command one of these
+/// names may run although the order only sounds like it.</param>
+public sealed record ToolContext(string? Assistant, string? Heard = null, bool Decided = false, string? Sources = null, IReadOnlyList<string>? Remembered = null);
 
 /// <summary>
 /// The tools that exist, in groups: the built-in ones (<see cref="Builtin"/>), the JSON ones (stage 9.1) and each MCP

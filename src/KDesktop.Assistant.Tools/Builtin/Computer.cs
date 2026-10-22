@@ -6,6 +6,7 @@ using KDesktop.Core.Assistant;
 using KDesktop.Core.Engine;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Platform;
+using KDesktop.Core.Voice;
 
 namespace KDesktop.Assistant.Tools.Builtin;
 
@@ -60,6 +61,12 @@ public sealed class OpenWebTool(Func<Uri, bool>? open = null) : ITool
     public Task<ToolResult> RunAsync(JsonElement arguments, ToolContext context, CancellationToken cancellationToken)
     {
         if (Browser.Address(arguments.GetString("url")) is not { } uri) return Task.FromResult(ToolResult.Fail("That is not a web address."));
+        // The AI's address must come from somewhere: «ábreme una página de chistes» opened a made-up «jokes.one».
+        if (context.Sources is { } sources && !Mentioned(uri, sources))
+        {
+            Log.Info($"Asistente: open_web con una dirección inventada ({uri.Host})");
+            return Task.FromResult(ToolResult.Fail($"Not done: you made up \"{uri.Host}\" (the user did not say it and no result gave it). Never guess addresses: to find a real page use look_up_web, or open a search with search_web."));
+        }
         var site = SiteOf(uri);
         var now = DateTime.UtcNow;
         if (_opened.TryGetValue(site, out var last) && now - last < Again)
@@ -67,6 +74,22 @@ public sealed class OpenWebTool(Func<Uri, bool>? open = null) : ITool
         if (!(open ?? Browser.Open)(uri)) return Task.FromResult(ToolResult.Fail("The browser did not open."));
         _opened[site] = now;
         return Task.FromResult(new ToolResult($"Opened {uri.Host}.") { Done = Loc.T("tool.open_web.done", uri.Host) });
+    }
+
+    /// <summary>
+    /// Whether the site's name is in <paramref name="sources"/> as it sounds (written together or apart: «el tiempo» for
+    /// eltiempo.es; «tracksseries» for trackseries.tv; «youtube» for youtube.com).
+    /// </summary>
+    public static bool Mentioned(Uri uri, string sources)
+    {
+        var labels = uri.Host.Split('.');
+        var name = labels.Length >= 2 ? labels[^2] : uri.Host;
+        var key = PhoneticKey.Encode(string.Concat(TextSimilarity.Words(name)));
+        if (key.Length == 0) return true;
+        // Word by word, then together: «abre el tiempo» as one word would read «abreel…» the English way.
+        var text = string.Concat(TextSimilarity.Words(sources).Select(PhoneticKey.Encode));
+        return text.Contains(key, StringComparison.Ordinal)
+               || sources.Contains(uri.Host, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>The site without its language or «www» and its ending («es.wikipedia.org» and «wikipedia.com» are «wikipedia»), with its path.</summary>

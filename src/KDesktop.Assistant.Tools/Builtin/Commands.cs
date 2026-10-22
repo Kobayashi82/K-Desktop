@@ -39,6 +39,13 @@ public interface ICommandBridge
     /// </summary>
     Task<TextDoneMessage?> TextAsync(string op, string? assistant, string source, string text, string mode, long hwnd, CancellationToken cancellationToken) =>
         Task.FromResult<TextDoneMessage?>(null);
+
+    /// <summary>
+    /// A voice phrase added to one of the user's commands (by its id), or taken out with <paramref name="remove"/>; see
+    /// <see cref="PhraseMessage"/>. Without K-Desktop: null.
+    /// </summary>
+    Task<PhraseDoneMessage?> PhraseAsync(string command, string phrase, bool remove, CancellationToken cancellationToken) =>
+        Task.FromResult<PhraseDoneMessage?>(null);
 }
 
 /// <summary>The command tools (stage 4.4), with the bridge to K-Desktop.</summary>
@@ -64,6 +71,7 @@ public static class CommandTools
         registry.Add(new RunCommandTool(bridge));
         registry.Add(new FindCommandTool(bridge));
         registry.Add(new DescribeCommandTool(bridge));
+        registry.Add(new AddVoicePhraseTool(bridge));
         registry.Add(new RunEventTool(bridge));
         registry.Add(new ControlAppTool(bridge));
         registry.Add(new EndProcessTool(bridge));
@@ -100,12 +108,28 @@ public static class CommandTools
     /// Whether <paramref name="heard"/> says each word of <paramref name="name"/> of three letters or more as it is written,
     /// or one letter off in a word of five or more (what speech recognition gets wrong); stricter than <see cref="Names"/>.
     /// </summary>
+    /// <remarks>
+    /// A verb of the name may go unsaid when the rest is said («con música» names «Poner música»: Parakeet heard «con» for
+    /// «pon»), and a name said as it sounds counts («Kamovis» for «K-Movies»).
+    /// </remarks>
     public static bool NamesClosely(string heard, string name)
     {
         var said = TextSimilarity.Words(heard);
-        var named = TextSimilarity.Words(name).Where(w => w.Length >= 3).ToArray();
-        return named.Length > 0 && named.All(w => said.Any(s => s == w || (w.Length >= 5 && Math.Abs(s.Length - w.Length) <= 1 && TextSimilarity.Levenshtein(s, w) <= 1)));
+        var words = TextSimilarity.Words(name);
+        var all = words.Where(w => w.Length >= 3).ToArray();
+        var named = all.Where(w => !IsVerb(w)).ToArray();
+        if (named.Length == 0) named = all;
+        if (named.Length > 0 && named.All(w => said.Any(s => s == w || (w.Length >= 5 && Math.Abs(s.Length - w.Length) <= 1 && TextSimilarity.Levenshtein(s, w) <= 1))))
+            return true;
+        return IntentMatcher.SoundScore(said, words).Similarity >= SoundsClosely;
     }
+
+    /// <summary>How alike the sound of the name and of the words said must be for <see cref="NamesClosely"/>.</summary>
+    public const double SoundsClosely = 0.85;
+
+    /// <summary>A verb of doing (in any language): «poner», «abrir», «ejecutar»… («pon» is «poner»).</summary>
+    private static bool IsVerb(string word) =>
+        VoiceVocabulary.Current.Actions.Any(a => a == word || a.Length >= 3 && TextSimilarity.WordSimilarity(a, word) >= 0.85);
 
     /// <summary>How alike a word said must be to a word of a command's name (the same stem, a transcription slip).</summary>
     public const double NameWord = 0.75;
@@ -186,7 +210,7 @@ public sealed class RunCommandTool(ICommandBridge bridge) : ITool
         // The model chose it by name: it must be what the user asked for, not one that sounds like their words («la pestaña
         // de track series» ran «TrackIR 5» and «Anterior»). The routing (id, media), taught phrases and «repite el comando anterior» already know.
         if (arguments.GetString("id") is not { Length: > 0 } && arguments.GetString("media") is not { Length: > 0 }
-            && context is { Heard: { Length: > 0 } heard, Decided: false } && !await AskedForAsync(heard, chosen, cancellationToken).ConfigureAwait(false))
+            && context is { Heard: { Length: > 0 } heard, Decided: false } && !await AskedForAsync(heard, chosen, context.Remembered, cancellationToken).ConfigureAwait(false))
             return ToolResult.Fail($"Not done: what the user said («{heard}») is not about their command \"{chosen.Name}\"; it only sounds alike. Do not run commands that just sound like their words: do what they ask with another tool, or say plainly you could not.");
         var end = chosen.Media is { } media
             ? await bridge.MediaAsync(media, chosen.Value, cancellationToken).ConfigureAwait(false)
@@ -200,11 +224,13 @@ public sealed class RunCommandTool(ICommandBridge bridge) : ITool
     /// <summary>
     /// Whether <paramref name="heard"/> asks for <paramref name="command"/>: it names it closely (each word of three letters
     /// or more, said as written or one letter off in a long word: «trackir» is not «track») or K-Desktop matches the order
-    /// with it from <see cref="Asked"/>.
+    /// with it from <see cref="Asked"/>, or something that came to mind for the order names it («cuando diga «Kamugi», abre
+    /// K-Movies» for «abre Kamovis»).
     /// </summary>
-    private async Task<bool> AskedForAsync(string heard, MatchedCandidate command, CancellationToken cancellationToken)
+    private async Task<bool> AskedForAsync(string heard, MatchedCandidate command, IReadOnlyList<string>? remembered, CancellationToken cancellationToken)
     {
         if (CommandTools.NamesClosely(heard, command.Name)) return true;
+        if (remembered?.Any(m => CommandTools.NamesClosely(m, command.Name)) == true) return true;
         var matched = await bridge.MatchAsync(heard, cancellationToken).ConfigureAwait(false);
         return matched is not null && matched.Parts.SelectMany(p => p.Candidates)
             .Any(c => c.Score >= Asked && (c.Command is { } id ? id == command.Command : string.Equals(c.Name, command.Name, StringComparison.OrdinalIgnoreCase)));
@@ -261,6 +287,10 @@ public sealed class DescribeCommandTool(ICommandBridge bridge) : ITool
         if (asked.Length == 0) return ToolResult.Fail("Which command?");
         if (await bridge.MatchAsync(asked, cancellationToken).ConfigureAwait(false) is not { } matched) return ToolResult.Fail("K-Desktop did not answer.");
         var chosen = CommandTools.Pick(matched, asked) ?? matched.Parts.SelectMany(p => p.Candidates).FirstOrDefault(c => c.Command is not null && c.Score >= CommandTools.Clear);
+        // «Poner música», «Pausar»: one of K-Desktop's own music orders, not a command of the user (find_command lists them
+        // too, and then this said «there is no command like that»).
+        if (chosen is { Command: null, Media: { } media })
+            return new ToolResult($"\"{chosen.Name}\" is one of K-Desktop's built-in music orders ({media}), not a command the user made: it works on whatever is playing, like the media keys. Run it with run_command and that name.");
         if (chosen?.Command is not { } id) return ToolResult.Fail("There is no command like that.");
         if (await bridge.DescribeAsync(id, cancellationToken).ConfigureAwait(false) is not { Found: true } described) return ToolResult.Fail("There is no command like that.");
         var text = new StringBuilder($"Command \"{described.Name}\". It does, in order: {string.Join("; ", described.Actions)}.");
@@ -296,5 +326,65 @@ public sealed class RunEventTool(ICommandBridge bridge) : ITool
         if (name.Length == 0) return ToolResult.Fail("Which event?");
         var end = await bridge.RunEventAsync(name, context.Assistant, cancellationToken).ConfigureAwait(false);
         return CommandTools.Outcome(end, name, Name);
+    }
+}
+
+/// <summary>
+/// «Cuando diga «Kamugi», abre K-Movies» (5.0.132): another way of calling one of the user's commands, kept in the
+/// command's voice phrases (K-Desktop → Commands → its voice phrases), so it runs from then on without the AI, by voice
+/// or written, for K-Desktop's voice too. A name in English said the Spanish way comes out differently each time
+/// («Kamovis», «Kamugi»): what speech recognition wrote is what is taught. Undoing it takes the phrase out.
+/// </summary>
+public sealed class AddVoicePhraseTool(ICommandBridge bridge) : ITool
+{
+    public string Name => "add_voice_phrase";
+
+    public string Description => "Teaches another way the user calls one of their K-Desktop commands (a word as they say it or as it was heard: «kamugi» for K-Movies), so saying it runs that command from now on. Use it, not remember, when they say «when I say X, open/do Y» and Y is one of their commands.";
+
+    public string ParametersSchemaJson =>
+        """{"type":"object","properties":{"command":{"type":"string","description":"The exact name of the user's command"},"phrase":{"type":"string","description":"What they will say for it, as they wrote or said it, without the verb (kamugi, la peli)"}},"required":["command","phrase"]}""";
+
+    public IReadOnlyList<string> Examples => ToolText.Examples(Name);
+
+    public ToolRisk Risk => ToolRisk.Safe;
+
+    public string Intent(JsonElement arguments) =>
+        Loc.T("tool.add_voice_phrase.intent", ToolText.Clean(arguments.GetString("phrase")), ToolText.Clean(arguments.GetString("command")));
+
+    public async Task<ToolResult> RunAsync(JsonElement arguments, ToolContext context, CancellationToken cancellationToken)
+    {
+        var asked = arguments.GetString("command")?.Trim() ?? string.Empty;
+        var phrase = arguments.GetString("phrase")?.Trim() ?? string.Empty;
+        if (asked.Length == 0 || phrase.Length == 0) return ToolResult.Fail("Say the command and the phrase.");
+        MatchedCandidate? chosen;
+        if (arguments.GetString("id") is { Length: > 0 } id) chosen = new MatchedCandidate(id, asked, 1);
+        else if (await bridge.MatchAsync(asked, cancellationToken).ConfigureAwait(false) is not { } matched) return ToolResult.Fail("K-Desktop did not answer.");
+        else if ((chosen = CommandTools.Pick(matched, asked)) is null || chosen.Command is null || !CommandTools.Names(asked, chosen.Name))
+        {
+            var candidates = matched.Parts.SelectMany(p => p.Candidates).Where(c => c.Command is not null && c.Score >= CommandTools.Plausible).Take(4).ToList();
+            return ToolResult.Fail(candidates.Count == 0
+                ? $"The user has no command called \"{asked}\" (only their own commands can be taught phrases; for anything else use remember)."
+                : $"Which command? Candidates: {CommandTools.List(candidates)}. Call again with the exact name.");
+        }
+        var done = await bridge.PhraseAsync(chosen.Command!, phrase, remove: false, cancellationToken).ConfigureAwait(false);
+        return done switch
+        {
+            null => ToolResult.Fail("K-Desktop did not answer."),
+            { Ok: true } => new ToolResult($"Done: saying \"{phrase}\" now runs \"{done.Name}\".")
+            {
+                Done = Loc.T("tool.add_voice_phrase.done", phrase, done.Name),
+                Reply = Loc.T("tool.add_voice_phrase.reply", phrase, done.Name),
+                Undo = new ToolUndo(Name, chosen.Command! + "\n" + phrase),
+            },
+            { Reason: "exists" } => new ToolResult($"\"{done.Name}\" is already called that way: nothing to add.") { Reply = Loc.T("tool.add_voice_phrase.exists", phrase, done.Name) },
+            { Reason: "taken" } => ToolResult.Fail($"Not done: \"{phrase}\" already runs another command, \"{done.Other}\". Tell the user."),
+            _ => ToolResult.Fail("Not done: K-Desktop could not add it."),
+        };
+    }
+
+    public async Task<bool> UndoAsync(ToolUndo undo, CancellationToken cancellationToken)
+    {
+        var parts = undo.Data.Split('\n', 2);
+        return parts.Length == 2 && await bridge.PhraseAsync(parts[0], parts[1], remove: true, cancellationToken).ConfigureAwait(false) is { Ok: true };
     }
 }

@@ -170,6 +170,33 @@ public sealed class FileTests : IDisposable
         Assert.Contains("downloads", result.Text, StringComparison.Ordinal);
     }
 
+    // 22/10 (5.0.132): «¿qué tengo en Descargas?» answered «tienes 8 cosas: 2 carpetas de las temporadas 1 y 5 y 6
+    // episodios de la temporada 3»: six folders, and the index's dates (UTC) read as local, two hours older.
+
+    [Fact]
+    public void TheIndexDatesAreUtc()
+    {
+        var utc = new DateTime(2026, 10, 22, 13, 13, 7, DateTimeKind.Unspecified);
+        Assert.Equal(DateTime.SpecifyKind(utc, DateTimeKind.Utc).ToLocalTime(), WindowsSearchIndex.Date(utc));
+        Assert.Equal(DateTimeKind.Local, WindowsSearchIndex.Date(utc).Kind);
+    }
+
+    [Fact]
+    public async Task WhatIsInAFolderIsItsTopLevelWithItsTotals()
+    {
+        var result = await new FindFilesTool(Search()).RunAsync(Args(new { folder = _root, sort = "newest" }), new ToolContext(null), default);
+        Assert.False(result.Failed);
+        // At the top: a, Fotos boda and node_modules, and four files (not what is inside the folders).
+        Assert.Contains("3 folder(s) and 4 file(s)", result.Text, StringComparison.Ordinal);
+        Assert.Contains("Fotos boda (folder: 1 image)", result.Text, StringComparison.Ordinal);
+        Assert.DoesNotContain("IMG_0001", result.Text, StringComparison.Ordinal);
+
+        // A search that finds more than it shows says how many there are.
+        for (var i = 0; i < 12; i++) Make($"nota {i}.txt", days: 0);
+        var many = await new FindFilesTool(Search()).RunAsync(Args(new { text = "nota" }), new ToolContext(null), default);
+        Assert.Contains("12 found, these are the first 8", many.Text, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void TheUsualFoldersExist()
     {

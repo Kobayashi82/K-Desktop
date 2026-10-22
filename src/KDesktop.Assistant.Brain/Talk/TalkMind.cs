@@ -83,6 +83,9 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         if (AboutTheScreen(said)) always.AddRange(ScreenTools);
         // «Cuando diga «la vuelta», abre…» came to mind: what it asks for must be at hand.
         if (known.Any(m => QuickRules.Sites(m.Text).Count > 0)) always.Add(OpenWebTool);
+        // «Cuando diga «Kamugi», abre K-Movies»: a phrase for one of their commands, not a memory that only works said exactly.
+        if (TeachesPhrase(said) && tools.Registry.Find(VoicePhraseTool) is not null) always.Add(VoicePhraseTool);
+        var remembered = known.Select(m => m.Text).ToList();
         var offered = await chooser.ChooseAsync(available, said, [.. always.Distinct()], order, cancellationToken).ConfigureAwait(false);
         var definitions = offered.Tools.Select(t => new ToolDefinition(t.Name, t.Description, t.ParametersSchemaJson)).ToList();
         var messages = new List<ChatMessage> { ChatMessage.System(TalkPrompt.Compose(persona, time.GetLocalNow(), known, commands, certain)) };
@@ -100,6 +103,7 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         var used = new List<string>();
         var answer = string.Empty;
         var nudged = false;
+        var reminded = false;
         // The calls that failed in this order: the same one again is not run (it asked control_app for Steam three times).
         var failed = new Dictionary<string, string>(StringComparer.Ordinal);
         var worked = new HashSet<string>(StringComparer.Ordinal);
@@ -137,6 +141,17 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
                         messages.Add(ChatMessage.User(Loc.T("assistant.prompt.notRun", named)));
                         continue;
                     }
+                    // It was asked to send something and answers without having sent it, with a tool for it at hand: once,
+                    // it is told so.
+                    if (!reminded && offer && ActionClaims.Missing(said, used) is [var missing, ..]
+                        && offered.Tools.Any(t => ActionClaims.IsOfKind(t.Name, missing)))
+                    {
+                        reminded = true;
+                        Log.Info($"Asistente: la IA contesta sin hacer lo que le pedían ({missing}): otra vuelta");
+                        messages.Add(ChatMessage.Assistant(text));
+                        messages.Add(ChatMessage.User(Loc.T("assistant.prompt.missing." + missing)));
+                        continue;
+                    }
                     answer = text;
                     break;
                 }
@@ -167,7 +182,10 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
                     }
                     else
                     {
-                        var outcome = await tools.RunAsync(call.Name, call.Arguments, context, said, "ai", cancellationToken).ConfigureAwait(false);
+                        // Where an address or a name may honestly come from: what was said and what the tools said (never the
+                        // instructions, which have examples), and what came to mind.
+                        var sources = string.Join('\n', messages.Skip(1).Select(m => m.Content).Concat(remembered));
+                        var outcome = await tools.RunAsync(call.Name, call.Arguments, context with { Sources = sources, Remembered = remembered }, said, "ai", cancellationToken).ConfigureAwait(false);
                         result = outcome.Result is { } done ? done.Text : "Not done: " + outcome.Entry.Did;
                         Log.Info($"Asistente: la IA llama a {call.Name} {Short(call.Arguments.GetRawText())} → {Short(result)}");
                         if (outcome.Result is not { Failed: false }) failed[same] = outcome.Entry.Did;
@@ -224,6 +242,22 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     private const string RunCommandTool = "run_command";
 
     private const string OpenWebTool = "open_web";
+
+    private const string VoicePhraseTool = "add_voice_phrase";
+
+    /// <summary>
+    /// Whether the order teaches a way of saying something («cuando diga X…», <c>assistant.words.whenISay</c>, this language
+    /// and English).
+    /// </summary>
+    public static bool TeachesPhrase(string said)
+    {
+        var folded = " " + string.Join(' ', TextSimilarity.Words(said)) + " ";
+        return new[] { Loc.T("assistant.words.whenISay"), Loc.Strings(Loc.Fallback, "assistant.words.").GetValueOrDefault("assistant.words.whenISay") }
+            .OfType<string>().Where(p => !p.StartsWith("assistant.", StringComparison.Ordinal))
+            .SelectMany(p => p.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            .Select(p => " " + string.Join(' ', TextSimilarity.Words(p)) + " ")
+            .Any(p => p.Trim().Length > 0 && folded.Contains(p, StringComparison.Ordinal));
+    }
 
     private static readonly string[] MemoryTools = ["remember", "forget"];
 

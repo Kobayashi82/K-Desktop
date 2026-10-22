@@ -3,6 +3,7 @@ using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Engine;
 using KDesktop.Core.Model;
 using KDesktop.Core.Storage;
+using KDesktop.Core.Voice;
 
 namespace KDesktop.Core.Tests;
 
@@ -245,5 +246,56 @@ public class AssistantCommandsTests
         Assert.False(AssistantCommands.Contradicts("cierra Steam", close));
         // A command that does something else (power, volume…) is never held back by the verbs.
         Assert.False(AssistantCommands.Contradicts("apaga el ordenador", new Command { Name = "Apagar", Actions = { new PowerAction() } }));
+    }
+
+    [Theory]
+    // 22/10 (5.0.132): Parakeet writes «K-Movies» said the Spanish way as «Kamovis», «camuvis»…
+    [InlineData("abre Kamovis")]
+    [InlineData("Kamovis")]
+    [InlineData("abre camuvis")]
+    public void ANameSaidAsItSoundsIsThatCommand(string said)
+    {
+        var movies = Make("K-Movies");
+        var commands = new[] { movies, Make("ComfyUI"), Make("Ollama"), Make("Kokoro"), Make("Cancelar descarga") };
+        var result = IntentMatcher.Match(said, commands);
+        Assert.Equal(movies, result.Candidates[0].Command);
+        Assert.True(result.Candidates[0].Score >= 0.75, $"{result.Candidates[0].Score}");
+    }
+
+    [Fact]
+    public void ANameSaidAsItSoundsRunsAndSomethingElseDoesNot()
+    {
+        var movies = Make("K-Movies");
+        var commands = new[] { movies, Make("ComfyUI"), Make("Ollama"), Make("Kokoro") };
+        Assert.Equal(movies, IntentMatcher.Match("abre Kamovis", commands).Winner?.Command);
+        Assert.Null(IntentMatcher.Match("abre la ventana", commands).Winner);
+        Assert.Null(IntentMatcher.Match("cámara", commands).Winner);
+    }
+
+    [Fact]
+    public void AVoicePhraseIsAddedOnceAndNeverOneAnotherCommandHas()
+    {
+        var config = new AppConfig();
+        var movies = Make("K-Movies");
+        var steam = Make("Steam");
+        steam.VoicePhrases.Add("la tienda");
+        config.Commands.Add(movies);
+        config.Commands.Add(steam);
+
+        var done = AssistantCommands.Phrase(config, new PhraseMessage("p-1", movies.Id, "Kamugi."));
+        Assert.True(done.Ok);
+        Assert.Equal("K-Movies", done.Name);
+        Assert.Equal(["Kamugi"], movies.VoicePhrases);
+        // Said again, or in other letters: it already has it.
+        Assert.Equal("exists", AssistantCommands.Phrase(config, new PhraseMessage("p-2", movies.Id, "kamugi")).Reason);
+        Assert.Equal("exists", AssistantCommands.Phrase(config, new PhraseMessage("p-3", movies.Id, "K movies")).Reason);
+        var taken = AssistantCommands.Phrase(config, new PhraseMessage("p-4", movies.Id, "La tienda"));
+        Assert.Equal(("taken", "Steam"), (taken.Reason, taken.Other));
+        Assert.Equal("noCommand", AssistantCommands.Phrase(config, new PhraseMessage("p-5", "nope", "algo")).Reason);
+        // And it is found by it.
+        Assert.Equal(movies, IntentMatcher.Match("abre kamugi", config.Commands).Winner?.Command);
+
+        Assert.True(AssistantCommands.Phrase(config, new PhraseMessage("p-6", movies.Id, "KAMUGI", Remove: true)).Ok);
+        Assert.Empty(movies.VoicePhrases);
     }
 }

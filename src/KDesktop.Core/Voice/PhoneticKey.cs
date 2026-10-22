@@ -5,7 +5,8 @@ namespace KDesktop.Core.Voice;
 /// <summary>
 /// Spanish "sounds like" key, to compare how a word was transcribed: «KDesktop», «Ka desktop», «Cadesktop» and
 /// «ca de esktop» end up close. Lower case, no accents or spaces; c/k/qu → k, z/ce/ci → s, v/w → b, silent h out,
-/// ll → y, ge/gi → j, x → ks, ph → f, repeated letters → one. A lone letter («K desktop») becomes its spoken name.
+/// ll → y, ge/gi → j, x → ks, ph → f, repeated letters → one, and a few English spellings (ies, oo, ee). A lone letter
+/// («K desktop») becomes its spoken name.
 /// </summary>
 public static class PhoneticKey
 {
@@ -22,12 +23,21 @@ public static class PhoneticKey
     {
         var joined = new StringBuilder();
         foreach (var word in TextSimilarity.Words(text))
-            joined.Append(word.Length == 1 && LetterNames.TryGetValue(word[0], out var name) ? name : word);
-        return Encode(joined.ToString());
+            joined.Append(word.Length == 1 && LetterNames.TryGetValue(word[0], out var name) ? name : English(word));
+        return Sounds(joined.ToString());
     }
 
     /// <summary>Key of text already folded (lower case, no accents, letters and digits only).</summary>
-    public static string Encode(string s)
+    public static string Encode(string s) => Sounds(English(s));
+
+    /// <summary>
+    /// English spellings in names, as a Spanish speaker says them: «movies» → movis («K-Movies» heard «Kamovis»),
+    /// «google» → gugle, «steam» → stim. Word by word (in «abre el», «ee» is no English).
+    /// </summary>
+    private static string English(string word) =>
+        word.Replace("ies", "is", StringComparison.Ordinal).Replace("oo", "u", StringComparison.Ordinal).Replace("ee", "i", StringComparison.Ordinal);
+
+    private static string Sounds(string s)
     {
         var o = new StringBuilder(s.Length);
         for (var i = 0; i < s.Length; i++)
