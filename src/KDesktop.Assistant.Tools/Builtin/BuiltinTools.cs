@@ -12,7 +12,14 @@ public sealed class BuiltinTools : IDisposable
         Memory = new MemoryStore(Path.Combine(folder, "memory.json"), time);
         Files = new FileSearch(time: time);
         Watches = new WatchStore(Path.Combine(folder, "watches.json"), probe ?? new SystemProbe(), time);
+        Rates = new EcbRates(Path.Combine(folder, "rates.json"));
     }
+
+    /// <summary>The ECB's exchange rates, kept between sessions (convert).</summary>
+    public EcbRates Rates { get; }
+
+    /// <summary>Where the user is, as written in Options (Assistant module → General), for the weather; empty: Windows' location.</summary>
+    public string HomePlace { get; set; } = string.Empty;
 
     public TimerStore Timers { get; }
 
@@ -55,11 +62,14 @@ public sealed class BuiltinTools : IDisposable
         registry.Add(new ControlMediaTool());
         registry.Add(new NotifyWhenTool(Watches));
         registry.Add(new StopWatchingTool(Watches));
+        registry.Add(new WeatherTool(() => HomePlace));
+        registry.Add(new ConvertTool(Rates));
     }
 
     public void Dispose()
     {
         Timers.Dispose();
         Watches.Dispose();
+        Rates.Dispose();
     }
 }

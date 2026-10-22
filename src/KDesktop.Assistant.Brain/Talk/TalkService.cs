@@ -383,6 +383,8 @@ public sealed class TalkService
                 return new TalkAnswer(Phrase(persona, "brainLoaded"), Remember: false);
             case { Kind: QuickRuleKind.WhatsPlaying }:
                 return await ToolAsync(persona, "whats_playing", new JsonObject(), context, said, acknowledge: false, token).ConfigureAwait(false);
+            case { Kind: QuickRuleKind.Weather or QuickRuleKind.WeatherTomorrow or QuickRuleKind.WeatherWeek } weather:
+                return await ToolAsync(persona, "weather", WeatherArguments(weather), context, said, acknowledge: false, token).ConfigureAwait(false);
             case { Kind: QuickRuleKind.Dictate }:
                 return new TalkAnswer(Phrase(persona, "dictating"), Remember: false) { Dictates = true };
             case { Kind: QuickRuleKind.CancelTimer } cancelTimer:
@@ -740,6 +742,17 @@ public sealed class TalkService
         if (result.Failed) return new TalkAnswer(result.Reply ?? Phrase(persona, "error"), Remember: true, Failed: true) { Steps = steps };
         var reply = result.Reply ?? Phrase(persona, "ok");
         return new TalkAnswer(acknowledge && result.Reply is not null ? Phrase(persona, "ok") + " " + reply : reply) { Tools = [tool], Steps = steps };
+    }
+
+    /// <summary>«¿Qué tiempo hará mañana en Bilbao?» → when and, if said, the place.</summary>
+    internal static JsonObject WeatherArguments(QuickRule rule)
+    {
+        var arguments = new JsonObject
+        {
+            ["when"] = rule.Kind switch { QuickRuleKind.WeatherTomorrow => "tomorrow", QuickRuleKind.WeatherWeek => "week", _ => "now" },
+        };
+        if (rule.Text?.Trim().TrimEnd('?', '.', '!', '¿', '¡') is { Length: > 0 } place) arguments["place"] = place;
+        return arguments;
     }
 
     /// <summary>The last command an answer ran well, by the name it was asked with; null: none.</summary>

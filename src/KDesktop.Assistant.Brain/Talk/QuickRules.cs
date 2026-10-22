@@ -11,7 +11,7 @@ namespace KDesktop.Assistant.Brain.Talk;
 /// («recuerda que…», «¿qué sabes de mí?», «olvida que…»): a small model took them for notes.
 /// </summary>
 /// <summary><see cref="Act"/> and <see cref="OpenApp"/> (stage 8.1) only count after the user's own commands.</summary>
-public enum QuickRuleKind { Time, Timer, Note, CancelTimer, Cancel, Repeat, Undo, First, Second, OpenWeb, Remember, Recall, Forget, Act, OpenApp, FreeBrain, LoadBrain, RepeatCommand, Dictate, WhatsPlaying }
+public enum QuickRuleKind { Time, Timer, Note, CancelTimer, Cancel, Repeat, Undo, First, Second, OpenWeb, Remember, Recall, Forget, Act, OpenApp, FreeBrain, LoadBrain, RepeatCommand, Dictate, WhatsPlaying, Weather, WeatherTomorrow, WeatherWeek }
 
 /// <summary>An order a fixed rule understood, with what filled its gaps.</summary>
 /// <param name="Seconds">For a timer: how long.</param>
@@ -112,7 +112,9 @@ public static partial class QuickRules
                 if (pattern.Kind == QuickRuleKind.OpenWeb && (Sites(gap ?? string.Empty).Count == 0 || !OnlySites(gap!))) continue;
                 // A program is named in a few words: «No has abierto equipo. Tenías que mover la ventana… a la derecha» is
                 // not «mueve {app} a la derecha».
-                if (pattern.Kind is QuickRuleKind.Act or QuickRuleKind.OpenApp && gaps.Text is { } g && said.IndexOf(g.To) - said.IndexOf(g.From) + 1 > MaxAppWords) continue;
+                // A place too: «¿qué tiempo hace en Bilbao y pon un temporizador…?» is not the weather of all that.
+                if (pattern.Kind is QuickRuleKind.Act or QuickRuleKind.OpenApp or QuickRuleKind.Weather or QuickRuleKind.WeatherTomorrow or QuickRuleKind.WeatherWeek
+                    && gaps.Text is { } g && said.IndexOf(g.To) - said.IndexOf(g.From) + 1 > MaxAppWords) continue;
                 best = (pattern, new QuickRule(pattern.Kind, gaps.Seconds, gap, pattern.Op));
             }
         return best?.Rule;

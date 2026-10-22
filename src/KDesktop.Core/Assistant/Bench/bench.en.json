@@ -50,6 +50,10 @@
     { "say": "tell me when the graphics card calms down", "expect": { "tool": "notify_when" } },
     { "say": "translate this into Spanish", "expect": { "tool": "transform_text" } },
     { "say": "fix the spelling of what I selected", "expect": { "tool": "transform_text" } },
-    { "say": "make this text more formal", "expect": { "tool": "transform_text" } }
+    { "say": "make this text more formal", "expect": { "tool": "transform_text" } },
+    { "say": "what is the weather in Bilbao?", "expect": { "tool": "weather", "answerContains": ["Bilbao"] } },
+    { "say": "will I need an umbrella tomorrow?", "expect": { "tool": "weather" } },
+    { "say": "how many miles is 42 kilometers?", "expect": { "tool": "convert", "answerContains": ["26"] } },
+    { "say": "how much are 20 pounds in euros?", "expect": { "tool": "convert" } }
   ]
 }

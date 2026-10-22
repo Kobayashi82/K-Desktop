@@ -99,6 +99,7 @@ internal sealed class ModuleTools : IDisposable
         _trusted = trusted;
         _askBefore = tools?["askBefore"] is JsonValue ask && ask.TryGetValue<string>(out var policy) ? policy : AskPolicy.Risky;
         Learn = tools?["learn"] is not JsonValue learn || !learn.TryGetValue<bool>(out var on) || on;
+        Builtin.HomePlace = tools?["place"] is JsonValue home && home.TryGetValue<string>(out var place) ? place : string.Empty;
         var preferences = new Dictionary<string, ToolPreference>(StringComparer.Ordinal);
         if (tools?["settings"] is JsonObject settings)
             foreach (var (name, value) in settings)

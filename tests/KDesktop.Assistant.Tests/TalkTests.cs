@@ -81,7 +81,7 @@ public sealed class TalkTests : IDisposable
     }
 
     [Theory]
-    [InlineData("¿Qué tiempo hará mañana?")]
+    [InlineData("¿Quién ganó el Mundial de 2010?")]
     [InlineData("cuéntame un chiste")]
     [InlineData("pon una canción alegre")]
     [InlineData("¿para qué sirve esto?")]

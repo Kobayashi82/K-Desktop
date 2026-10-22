@@ -333,6 +333,7 @@ public partial class AssistantToolsSection : UserControl
         ["look_at_screen"] = "screen", ["transform_text"] = "screen",
         ["open_app"] = "pc", ["control_app"] = "pc", ["end_process"] = "pc", ["pc_status"] = "pc",
         ["whats_playing"] = "media", ["control_media"] = "media",
+        ["weather"] = "weather", ["convert"] = "weather",
     };
 
     private static string SubjectOf(string tool) => SubjectOfTool.GetValueOrDefault(tool, "other");
@@ -347,6 +348,7 @@ public partial class AssistantToolsSection : UserControl
         "screen" => SymbolRegular.Eye24,
         "pc" => SymbolRegular.Desktop24,
         "media" => SymbolRegular.MusicNote224,
+        "weather" => SymbolRegular.WeatherPartlyCloudyDay24,
         _ => SymbolRegular.Toolbox24,
     };
 

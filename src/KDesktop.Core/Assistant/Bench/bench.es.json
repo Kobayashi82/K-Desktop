@@ -50,6 +50,10 @@
     { "say": "avísame cuando la gráfica deje de trabajar tanto", "expect": { "tool": "notify_when" } },
     { "say": "tradúceme esto al inglés", "expect": { "tool": "transform_text" } },
     { "say": "corrige la ortografía de lo que he seleccionado", "expect": { "tool": "transform_text" } },
-    { "say": "ponme este texto más formal", "expect": { "tool": "transform_text" } }
+    { "say": "ponme este texto más formal", "expect": { "tool": "transform_text" } },
+    { "say": "¿qué tiempo hace en Bilbao?", "expect": { "tool": "weather", "answerContains": ["Bilbao"] } },
+    { "say": "¿me hará falta paraguas mañana?", "expect": { "tool": "weather" } },
+    { "say": "¿cuántas millas son 42 kilómetros?", "expect": { "tool": "convert", "answerContains": ["26"] } },
+    { "say": "¿cuánto son 20 libras en euros?", "expect": { "tool": "convert" } }
   ]
 }

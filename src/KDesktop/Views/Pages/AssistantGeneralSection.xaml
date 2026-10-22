@@ -56,6 +56,17 @@
                           SelectionChanged="OnLanguageChanged" AutomationProperties.Name="{l:Tr assistantOptions.language}" />
             </Grid>
 
+            <!-- Where the user is, for the weather -->
+            <Grid Style="{StaticResource SettingRow}" IsEnabled="{Binding AssistantEnabled}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="{l:Tr assistantOptions.homePlace}" />
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantOptions.homePlaceHint}" />
+                </StackPanel>
+                <ui:TextBox Grid.Column="1" MinWidth="230" VerticalAlignment="Center" Text="{Binding AssistantHomePlace, UpdateSourceTrigger=LostFocus}"
+                            PlaceholderText="{l:Tr assistantOptions.homePlacePlaceholder}" AutomationProperties.Name="{l:Tr assistantOptions.homePlace}" />
+            </Grid>
+
             <!-- Whether it asks before doing something -->
             <Grid Style="{StaticResource SettingRow}" IsEnabled="{Binding AssistantEnabled}">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>

@@ -610,8 +610,8 @@ public sealed class CommandRoutingTests : IDisposable
         var talk = Make(builtin);
         // 22/10: «tarda en responder un poco y no dice nada».
         _model.Delay = TalkService.ThinkingAfter + TimeSpan.FromMilliseconds(600);
-        _model.Answers.Enqueue("Hoy hace sol.");
-        await talk.HandleAsync(new HeardMessage("¿qué tiempo hace?", "voice", "lander"));
+        _model.Answers.Enqueue("Velázquez.");
+        await talk.HandleAsync(new HeardMessage("¿quién pintó Las Meninas?", "voice", "lander"));
         var said = Assert.Single(_output!.Prefaces);
         Assert.Contains(said, Core.Localization.Loc.T("assistant.phrase.thinking").Split('|'));
         // Its words are not in the conversation.

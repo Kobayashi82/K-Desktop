@@ -686,6 +686,9 @@ public partial class AppSettings : ObservableObject
     /// </summary>
     [ObservableProperty] private string _assistantLanguage = string.Empty;
 
+    /// <summary>Where the user is («Málaga»), for the weather when no place is said; empty: Windows' location, if allowed.</summary>
+    [ObservableProperty] private string _assistantHomePlace = string.Empty;
+
     /// <summary>The tools that no longer ask before doing something («yes, and don't ask again»). Replaced whole on every change.</summary>
     [ObservableProperty] private List<string> _assistantTrustedTools = [];
 
