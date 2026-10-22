@@ -131,6 +131,14 @@ public partial class App
         _ = Voice.ListenForAsync(AddresseeFor(id), TimeSpan.FromSeconds(seconds));
     }
 
+    /// <summary><c>dictate</c> (stage 10.5, UI thread): «escribe lo que te diga»: what is said now is written where the cursor is.</summary>
+    private void OnAssistantDictate(DictateMessage dictate)
+    {
+        if (_assistant is null || Config.Settings.Paused) return;
+        Log.Info($"Asistente: «{FromProcess(dictate.Assistant)}» pide dictado");
+        _ = Voice.DictateAsync(held: null);
+    }
+
     /// <summary>Whether the last order to this assistant (as the process names it: none is K-Desktop) was said aloud: its questions may be answered aloud.</summary>
     private bool TalkedByVoice(string? assistant) =>
         VoiceModels.Ready && _chatSources.GetValueOrDefault(FromProcess(assistant)) == "voice";

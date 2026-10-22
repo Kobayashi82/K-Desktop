@@ -416,6 +416,15 @@ public sealed class TalkTests : IDisposable
     [InlineData("load the model", QuickRuleKind.LoadBrain)]
     public void TheBrainRulesUnderstand(string said, QuickRuleKind kind) => Assert.Equal(kind, QuickRules.Match(said, ["Lander"])?.Kind);
 
+    [Theory]
+    [InlineData("Lander, escribe lo que te diga")]
+    [InlineData("escribe lo que digo")]
+    [InlineData("quiero dictarte algo")]
+    [InlineData("modo dictado")]
+    [InlineData("type what I say")]
+    [InlineData("je veux dicter")]
+    public void ADictationIsAskedForWithoutTheAi(string said) => Assert.Equal(QuickRuleKind.Dictate, QuickRules.Match(said, ["Lander"])?.Kind);
+
     public void Dispose()
     {
         try { Directory.Delete(_folder, recursive: true); } catch (IOException) { } catch (UnauthorizedAccessException) { }

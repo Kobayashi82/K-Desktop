@@ -40,6 +40,9 @@ public interface IUiServices
     /// <summary>«Asistente: cerebro»: the assistants' model out of the graphics card, or into it.</summary>
     void AssistantBrain(Model.AssistantBrainOp op) { }
 
+    /// <summary>«Dictar»: starts writing what is said where the cursor is, or stops it.</summary>
+    void Dictate(Model.SwitchMode mode) { }
+
     /// <summary>Runs <paramref name="action"/> on the UI thread (needed to modify bound collections).</summary>
     void RunOnUi(Action action);
 
@@ -70,4 +73,9 @@ public interface IVoiceOsd : IDisposable
 
     /// <summary>Last message: shown for the usual OSD time, then hidden.</summary>
     void Finish(string text, OsdKind kind);
+
+    /// <summary>Replaces the text keeping the meter (dictation: the last words written).</summary>
+    void SetVoiceText(string text)
+    {
+    }
 }

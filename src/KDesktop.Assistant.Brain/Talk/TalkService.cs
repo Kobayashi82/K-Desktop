@@ -30,6 +30,11 @@ public interface ITalkOutput
     {
     }
 
+    /// <summary>«Escribe lo que te diga»: K-Desktop writes what is said next where the cursor is (<c>dictate</c>, stage 10.5).</summary>
+    void Dictate(string? assistant)
+    {
+    }
+
     /// <summary>The answer of that turn so far, while it is written (at most 8 times a second): its voice may start (stage 5.4).</summary>
     void SpeakAhead(string? assistant, string turn, string textSoFar)
     {
@@ -146,6 +151,8 @@ public sealed class TalkService
             // Said aloud and answered with a question: the answer may come aloud too, without the wake word (stage 5.3).
             if (heard.Source == "voice" && !token.IsCancellationRequested && (answer.AsksBack || EndsAsking(answer.Text)))
                 _output.Listen(who, FollowUpSeconds);
+            // Its voice is over: what is said now is not taken for the text.
+            if (answer.Dictates && !token.IsCancellationRequested) _output.Dictate(who);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
@@ -374,6 +381,8 @@ public sealed class TalkService
                 _output.State(who, "thinking");
                 await _loadBrain().ConfigureAwait(false);
                 return new TalkAnswer(Phrase(persona, "brainLoaded"), Remember: false);
+            case { Kind: QuickRuleKind.Dictate }:
+                return new TalkAnswer(Phrase(persona, "dictating"), Remember: false) { Dictates = true };
             case { Kind: QuickRuleKind.CancelTimer } cancelTimer:
                 var which = new JsonObject();
                 if (cancelTimer.Text is { Length: > 0 } words) which["reason"] = words;

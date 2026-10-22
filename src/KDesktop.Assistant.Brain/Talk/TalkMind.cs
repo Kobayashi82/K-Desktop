@@ -20,6 +20,9 @@ public sealed record TalkAnswer(string Text, bool Remember = true, bool Failed =
     /// <summary>It asks the user something back («¿A o B?»): the answer is listened for (stage 5.3).</summary>
     public bool AsksBack { get; init; }
 
+    /// <summary>«Escribe lo que te diga»: once said, K-Desktop starts a dictation (stage 10.5).</summary>
+    public bool Dictates { get; init; }
+
     /// <summary>The tool calls and their results between the order and this answer, for the history.</summary>
     public IReadOnlyList<ChatMessage> Steps { get; init; } = [];
 

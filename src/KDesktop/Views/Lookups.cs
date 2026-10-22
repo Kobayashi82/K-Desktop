@@ -53,6 +53,7 @@ public static class Lookups
     public static IReadOnlyList<Option<ThemeChoice>> ThemeChoices { get; } = Enum<ThemeChoice>("enum.themeChoice");
     public static IReadOnlyList<Option<RadioDevice>> RadioDevices { get; } = Enum<RadioDevice>("enum.radio");
     public static IReadOnlyList<Option<SwitchMode>> SwitchModes { get; } = Enum<SwitchMode>("enum.switchMode");
+    public static IReadOnlyList<Option<SwitchMode>> DictateModes { get; } = Enum<SwitchMode>("enum.dictateMode");
     public static IReadOnlyList<Option<ConditionKind>> ConditionKinds { get; } = Enum<ConditionKind>("enum.condition");
     public static IReadOnlyList<Option<ConditionElse>> ConditionElses { get; } = Enum<ConditionElse>("enum.conditionElse");
     public static IReadOnlyList<Option<LoadResource>> LoadResources { get; } = Enum<LoadResource>("enum.loadResource");

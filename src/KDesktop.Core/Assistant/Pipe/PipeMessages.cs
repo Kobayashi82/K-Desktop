@@ -343,6 +343,15 @@ public sealed record ListenMessage(int Seconds, IReadOnlyList<string>? Expect = 
     public override string Type => "listen";
 }
 
+/// <summary>
+/// «Escribe lo que te diga» (stage 10.5): the assistant said it is listening; K-Desktop starts a dictation (what is said is
+/// written where the cursor is, like Options → Voice → «Tecla para dictar»), not an order for the assistant.
+/// </summary>
+public sealed record DictateMessage(string? Assistant = null) : PipeMessage
+{
+    public override string Type => "dictate";
+}
+
 /// <summary>A long click on the character starts recording the user, and letting go stops it (stage 5.2).</summary>
 public sealed record TalkMessage(string Assistant, bool Active) : PipeMessage
 {
@@ -814,6 +823,7 @@ public static class PipeJson
         ["listening"] = typeof(ListeningMessage),
         ["talk"] = typeof(TalkMessage),
         ["listen"] = typeof(ListenMessage),
+        ["dictate"] = typeof(DictateMessage),
         ["cancel"] = typeof(CancelMessage),
         ["chat"] = typeof(ChatLineMessage),
         ["embed"] = typeof(EmbedMessage),

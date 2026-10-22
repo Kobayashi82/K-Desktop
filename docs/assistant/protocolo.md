@@ -45,7 +45,7 @@ en `assistant`:
 
 - **K→A:** a quién va (`load`, `unload`, `config` de `assistantSettings`, `extra`, `listening`, `heard`, `cancel`, `say`,
   `observed`, `key`, `undo`). Los pasos de un `run` (`step`, `result`, `end`) van al asistente que lo pidió.
-- **A→K:** quién lo dice (`loaded`, `status`, `listen`, `talk`, `run`, `keys`, `log`, `chat`, `panel`, `notify`, `open`,
+- **A→K:** quién lo dice (`loaded`, `status`, `listen`, `dictate`, `talk`, `run`, `keys`, `log`, `chat`, `panel`, `notify`, `open`,
   `hide`). El host lo pone él: un asistente nunca habla en nombre de otro.
 - **Del proceso entero**, sin `assistant`: conexión, `pause`, `config` de las secciones del módulo, `status` sin
   `assistant` (modelo, memoria), `match`, `media`, `window`/`windowDone`, `embed`/`embedded` y la rueda del ratón
@@ -116,6 +116,7 @@ Dirección: **A→K** del asistente a K-Desktop; **K→A** de K-Desktop al asist
 | `heard` | K→A | `assistant` (sin él: K-Desktop), `text`, `source` (`voice`, `panel`, `bubble`, `phone`, `command`) | Una orden para ese asistente (el de la palabra, el elegido en el panel o, si no va dirigido a nadie, el de Opciones → Asistentes). Primero las **reglas fijas** (hora, temporizador, nota, «cancela», «repite», «deshaz»), que contestan sin IA; lo demás va a la IA con la personalidad de ese asistente y sus últimas 3 intervenciones. Una orden nueva sustituye a la que siga en curso. Se contesta con `chat` y `status`; en pausa se ignora |
 | `cancel` | K→A | `assistant`, `source` (`voice`, `escape`, `panel`) | «Lander, para» o Escape: cancela lo que esté haciendo (la respuesta que piensa o dice; `skip` en los pasos que queden). Escape va al que esté haciendo algo. Sin respuesta (decirle «cancela» sí contesta) |
 | `listen` | A→K | `assistant`, `seconds` (máx. 10), `expect` (lista opcional de respuestas previstas, solo orientativa) | Escucha sin palabra de activación: espera hasta `seconds` a que el usuario empiece a hablar y, si no dice nada, se cierra sin aviso; lo dicho llega como `heard` (`voice`). El host la pide tras contestar con una pregunta («¿A o B?», o una respuesta de la IA que acaba en «?») a una orden dicha en voz alta. La ventanita de permiso (`ask` y los comandos que preguntan) escucha ella sola si la última orden de ese asistente fue por voz: «sí», «no» y «sí, y no vuelvas a preguntar» la contestan sin llegar al asistente |
+| `dictate` | A→K | `assistant` | «Escribe lo que te diga» (etapa 10.5): el host lo manda cuando el asistente **ha acabado de hablar**. K-Desktop empieza un dictado (lo dicho se escribe donde está el cursor, a trozos en cada pausa, sin IA ni `heard`) que acaba tras unos segundos de silencio, con Escape o con «deja de dictar» |
 | `talk` | A→K | `assistant`, `active` | Clic mantenido sobre el personaje (el host lo detecta: 450 ms pulsado sin arrastrar; entonces no hay `Click` ni arrastre): empieza / termina de grabar (y pasa a ser «el último con el que hablaste») |
 
 ### Comandos de K-Desktop

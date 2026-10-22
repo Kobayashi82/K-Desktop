@@ -33,6 +33,9 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     /// <summary>Runs «Asistente: cerebro» on the UI thread.</summary>
     public Action<Core.Model.AssistantBrainOp>? AssistantBrainer { get; set; }
 
+    /// <summary>Runs «Dictar» (any thread).</summary>
+    public Action<Core.Model.SwitchMode>? Dictator { get; set; }
+
     private OsdWindow Osd
     {
         get
@@ -85,6 +88,11 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
             if (Current) Generation = owner.Osd.ShowMessage(text, OsdKind.Info, null);
         });
 
+        public void SetVoiceText(string text) => owner.UiDispatcher.BeginInvoke(() =>
+        {
+            if (Current) Generation = owner.Osd.ShowVoice(text);
+        });
+
         public void Finish(string text, OsdKind kind)
         {
             if (Interlocked.Exchange(ref _finished, 1) != 0) return;
@@ -111,6 +119,8 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     public void AssistantSay(string assistant, string text) => dispatcher.BeginInvoke(() => AssistantSayer?.Invoke(assistant, text));
 
     public void AssistantBrain(Core.Model.AssistantBrainOp op) => dispatcher.BeginInvoke(() => AssistantBrainer?.Invoke(op));
+
+    public void Dictate(Core.Model.SwitchMode mode) => Dictator?.Invoke(mode);
 
     public void RunOnUi(Action action)
     {

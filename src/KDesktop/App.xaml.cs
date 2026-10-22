@@ -128,7 +128,7 @@ public partial class App : Application
         });
         Favicons.Prefetch(Config.Commands.SelectMany(c => c.Actions));
 
-        Ui = new UiServices(Dispatcher, () => Config.Settings, () => ShowMainWindow(), () => _ = ExitAsync()) { AssistantExtra = RunExtraFromCommand, AssistantAsk = AskAssistantFromCommand, AssistantSayer = SayFromCommand, AssistantBrainer = BrainFromCommand };
+        Ui = new UiServices(Dispatcher, () => Config.Settings, () => ShowMainWindow(), () => _ = ExitAsync()) { AssistantExtra = RunExtraFromCommand, AssistantAsk = AskAssistantFromCommand, AssistantSayer = SayFromCommand, AssistantBrainer = BrainFromCommand, Dictator = mode => _ = Voice.DictateAsync(mode) };
         Engine = new CommandEngine(Store, Ui, new ExecutionHistory(ExecutionHistory.DefaultFile));
         Events = new Core.Engine.Events.EventService(Engine, Ui, () => Config);
         Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice),
@@ -226,7 +226,8 @@ public partial class App : Application
         Router.CancelRequested += Voice.Cancel;
         Router.VoiceRequested += (held, toAssistant) =>
         {
-            if (toAssistant is not null) Dispatcher.BeginInvoke(() => TalkToAssistant(held, toAssistant));
+            if (toAssistant == HotkeyIndex.Dictation) _ = Voice.DictateAsync(held);
+            else if (toAssistant is not null) Dispatcher.BeginInvoke(() => TalkToAssistant(held, toAssistant));
             else _ = Voice.ListenAsync(held);
         };
         Router.DisabledInToggleRequested += window =>

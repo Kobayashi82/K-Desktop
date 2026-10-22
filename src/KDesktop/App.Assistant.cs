@@ -228,6 +228,9 @@ public partial class App
             case ListenMessage listen:
                 OnAssistantListen(listen);
                 break;
+            case DictateMessage dictate:
+                OnAssistantDictate(dictate);
+                break;
             case ChatLineMessage line:
                 OnAssistantChat(line);
                 break;

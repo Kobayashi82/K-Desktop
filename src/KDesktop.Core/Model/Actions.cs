@@ -14,7 +14,7 @@ public enum ActionKind
     OpenQuickMenu, CommandControl, Wait,
     PlayMacro, AudioOutput, KBoard, Launcher, HttpRequest,
     Window, Clipboard, WakeOnLan, Display, PowerPlan, WindowsTheme, Radio, Condition,
-    Screenshot, AudioRecord, Magnifier,
+    Screenshot, AudioRecord, Magnifier, Dictate,
     AssistantExtra, AssistantAsk, AssistantSay, AssistantBrain,
 }
 
@@ -68,6 +68,7 @@ public enum ScriptShell { Cmd, PowerShell }
 [JsonDerivedType(typeof(ScreenshotAction), "screenshot")]
 [JsonDerivedType(typeof(AudioRecordAction), "audioRecord")]
 [JsonDerivedType(typeof(MagnifierAction), "magnifier")]
+[JsonDerivedType(typeof(DictateAction), "dictate")]
 [JsonDerivedType(typeof(AssistantExtraAction), "assistantExtra")]
 [JsonDerivedType(typeof(AssistantAskAction), "assistantAsk")]
 [JsonDerivedType(typeof(AssistantSayAction), "assistantSay")]

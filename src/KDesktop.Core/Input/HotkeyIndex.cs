@@ -33,6 +33,9 @@ public sealed class HotkeyIndex
     /// </summary>
     private readonly Dictionary<string, string> _talkKeys;
 
+    /// <summary>Who <see cref="IsTalkKey"/> gives for the dictation key (stage 10.5): what is said is written, not an order.</summary>
+    public const string Dictation = "@dictation";
+
     /// <summary>Opens the launcher (Settings › Lanzador); empty when unset or paused.</summary>
     public string LauncherHotkey { get; }
 
@@ -70,6 +73,7 @@ public sealed class HotkeyIndex
         ExitHotkey = Hotkey.Normalize(settings.ExitHotkey);
         VoiceHotkey = paused || string.IsNullOrWhiteSpace(settings.VoiceHotkey) ? string.Empty : Hotkey.Normalize(settings.VoiceHotkey);
         _talkKeys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (!paused && Hotkey.Normalize(settings.DictationHotkey) is { Length: > 0 } dictation) _talkKeys[dictation] = Dictation;
         if (!paused && settings.AssistantEnabled)
             foreach (var (assistant, key) in settings.AssistantTalkHotkeys)
                 if (settings.AssistantsOnDesktop.Contains(assistant) && Hotkey.Normalize(key) is { Length: > 0 } normal) _talkKeys.TryAdd(normal, assistant);

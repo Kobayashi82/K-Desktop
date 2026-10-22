@@ -42,6 +42,7 @@ public sealed partial class CommandEngine
         ScreenshotAction a => ScreenshotAsync(a, ctx),
         AudioRecordAction a => Run(() => AudioRecord(a)),
         MagnifierAction a => Run(() => Magnify(a)),
+        DictateAction a => Run(() => _ui.Dictate(a.Mode)),
         AssistantExtraAction a => Run(() => _ui.RunAssistantExtra(a.Assistant, a.Extra)),
         AssistantAskAction a => Run(() => _ui.AskAssistant(a.Assistant, a.Text)),
         AssistantSayAction a => Run(() => _ui.AssistantSay(a.Assistant, a.Text)),

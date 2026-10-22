@@ -646,6 +646,19 @@
                                           Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
                         </StackPanel>
                     </Grid>
+                    <!-- Stage 10.5: hold (or tap) and what is said is written where the cursor is -->
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.dictationHotkey}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.dictationHotkeyHint}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <ui:Button x:Name="DictationHotkeyButton" MinWidth="200" Click="OnCaptureDictationHotkey" />
+                            <ui:Button x:Name="DictationHotkeyClear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
+                                       AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearDictationHotkey" />
+                        </StackPanel>
+                    </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">

@@ -299,6 +299,7 @@ public partial class SettingsPage : UserControl
     private void UpdateOptionalHotkeys()
     {
         ShowOptionalHotkey(VoiceHotkeyButton, VoiceHotkeyClear, _app.Config.Settings.VoiceHotkey);
+        ShowOptionalHotkey(DictationHotkeyButton, DictationHotkeyClear, _app.Config.Settings.DictationHotkey);
         ShowOptionalHotkey(DisabledInHotkeyButton, DisabledInHotkeyClear, _app.Config.Settings.DisabledInHotkey);
         ShowOptionalHotkey(LauncherHotkeyButton, LauncherHotkeyClear, _app.Config.Settings.LauncherHotkey);
         ShowOptionalHotkey(PauseHotkeyButton, PauseHotkeyClear, _app.Config.Settings.PauseHotkey);
@@ -331,6 +332,15 @@ public partial class SettingsPage : UserControl
     private void OnClearVoiceHotkey(object sender, RoutedEventArgs e)
     {
         _app.Config.Settings.VoiceHotkey = string.Empty;
+        UpdateOptionalHotkeys();
+    }
+
+    private void OnCaptureDictationHotkey(object sender, RoutedEventArgs e) =>
+        CaptureOptionalHotkey(DictationHotkeyButton, hk => _app.Config.Settings.DictationHotkey = hk);
+
+    private void OnClearDictationHotkey(object sender, RoutedEventArgs e)
+    {
+        _app.Config.Settings.DictationHotkey = string.Empty;
         UpdateOptionalHotkeys();
     }
 

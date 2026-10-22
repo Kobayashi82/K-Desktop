@@ -425,6 +425,20 @@ public partial class AudioRecordAction : CommandAction
         : $"{Loc.T($"enum.recordMode.{Mode}")}  ·  {Loc.T($"enum.audioSource.{Source}")}";
 }
 
+// ── Dictar ────────────────────────────────────────────────────────────────
+
+/// <summary>
+/// «Dictar» (stage 10.5): what is said is written where the cursor is, a piece at every pause, until a few seconds of
+/// silence, Escape, «deja de dictar» or the same action again (Toggle). Without the AI: Parakeet only.
+/// </summary>
+public partial class DictateAction : CommandAction
+{
+    [ObservableProperty] private SwitchMode _mode = SwitchMode.Toggle;
+
+    public override ActionKind Kind => ActionKind.Dictate;
+    public override string Summary => Loc.T($"enum.dictateMode.{Mode}");
+}
+
 // ── Lupa ──────────────────────────────────────────────────────────────────
 
 /// <summary>«Lupa»: a lens around the mouse, or the whole main monitor enlarged.</summary>

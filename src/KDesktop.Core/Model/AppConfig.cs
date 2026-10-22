@@ -350,7 +350,7 @@ public partial class AppSettings : ObservableObject
 
     /// <summary>K-Desktop's own hotkeys but the assistants' keys to talk.</summary>
     [JsonIgnore]
-    public IEnumerable<string> BuiltInHotkeys => [ShowWindowHotkey, ExitHotkey, VoiceHotkey, DisabledInHotkey, PauseHotkey, LauncherHotkey];
+    public IEnumerable<string> BuiltInHotkeys => [ShowWindowHotkey, ExitHotkey, VoiceHotkey, DictationHotkey, DisabledInHotkey, PauseHotkey, LauncherHotkey];
 
     [ObservableProperty] private string _showWindowHotkey = "CTRL + ALT + Home";
     [ObservableProperty] private string _exitHotkey = "CTRL + ALT + End";
@@ -461,6 +461,9 @@ public partial class AppSettings : ObservableObject
     // Voice
     /// <summary>Hold to talk (or tap and talk). Empty: no hotkey.</summary>
     [ObservableProperty] private string _voiceHotkey = string.Empty;
+
+    /// <summary>Hold to dictate (or tap, dictate, and it ends after a silence): stage 10.5. Empty: no hotkey.</summary>
+    [ObservableProperty] private string _dictationHotkey = string.Empty;
 
     /// <summary>Microphone for voice orders (endpoint id); null: the Windows default one.</summary>
     [ObservableProperty] private string? _voiceMicId;

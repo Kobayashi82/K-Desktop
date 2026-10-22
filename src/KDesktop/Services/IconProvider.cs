@@ -95,6 +95,7 @@ public static partial class IconProvider
         AudioRecordAction { Mode: RecordMode.SaveReplay } => Kd("History24", "red"),
         AudioRecordAction => Kd("MicPulse24", "red"),
         MagnifierAction => Kd("ZoomIn24", "indigo"),
+        DictateAction => Kd("MicSparkle24", "teal"),
         AssistantExtraAction x => ForExtra(x.Assistant, x.Extra),
         _ => null,
     };

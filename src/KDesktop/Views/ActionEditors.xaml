@@ -1122,6 +1122,17 @@
         </StackPanel>
     </DataTemplate>
 
+    <!-- ── Dictar ──────────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:DictateAction}">
+        <StackPanel>
+            <StackPanel Style="{StaticResource EdRow}">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+                <ComboBox ItemsSource="{x:Static v:Lookups.DictateModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
+            </StackPanel>
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.dictateHint}" />
+        </StackPanel>
+    </DataTemplate>
+
     <!-- ── Asistente: acción ───────────────────────────────────────────── -->
     <DataTemplate DataType="{x:Type m:AssistantExtraAction}">
         <StackPanel>

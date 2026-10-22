@@ -93,6 +93,7 @@ public static class ActionGestures
         ActionKind.Clipboard => Say("clipboard"),
         ActionKind.PlaySound => Say("sound"),
         ActionKind.AudioRecord => Say("microphone"),
+        ActionKind.Dictate => Say("microphone"),
         ActionKind.ShowMessage => Say("message"),
         ActionKind.HiddenFiles => Say("folder"),
         ActionKind.ToggleDisabledIn => Say("pause"),

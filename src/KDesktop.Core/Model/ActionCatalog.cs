@@ -31,6 +31,7 @@ public static class ActionCatalog
         new(ActionKind.Clipboard, "input", "ClipboardTextEdit24", () => new ClipboardAction()),
         new(ActionKind.PlayMacro, "input", "Record24", () => new PlayMacroAction()),
         new(ActionKind.KBoard, "input", "KeyboardLayoutFloat24", () => new KBoardAction()),
+        new(ActionKind.Dictate, "input", "MicSparkle24", () => new DictateAction()),
 
         new(ActionKind.Volume, "sound", "Speaker224", () => new VolumeAction()),
         new(ActionKind.AudioOutput, "sound", "HeadphonesSoundWave24", () => new AudioOutputAction()),

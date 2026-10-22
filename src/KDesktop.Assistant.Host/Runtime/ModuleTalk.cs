@@ -283,6 +283,8 @@ internal sealed class ModuleTalk : ITalkOutput
 
     public void Listen(string? assistant, int seconds) => _link.Send(new ListenMessage(seconds, Assistant: assistant));
 
+    public void Dictate(string? assistant) => _link.Send(new DictateMessage(assistant));
+
     /// <summary>How long a bubble stays at least: enough to read it (while its voice speaks, longer).</summary>
     public static TimeSpan ReadingTime(string text) => TimeSpan.FromSeconds(Math.Clamp(1.5 + text.Length * 0.065, 2.5, 15));
 }
