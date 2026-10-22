@@ -271,7 +271,7 @@ public sealed class TalkService
             case { Kind: QuickRuleKind.RepeatCommand }:
                 // «vuelve a repetir el comando anterior»: the last one it ran, not the command called «Anterior».
                 if (conversation.LastCommand is not { } again) return new TalkAnswer(Phrase(persona, "nothingToRerun"), Remember: false);
-                return await ToolAsync(persona, "run_command", new JsonObject { ["command"] = again }, context, said, acknowledge: true, token).ConfigureAwait(false);
+                return await ToolAsync(persona, "run_command", new JsonObject { ["command"] = again }, context with { Decided = true }, said, acknowledge: true, token).ConfigureAwait(false);
             case { Kind: QuickRuleKind.Repeat }:
                 return new TalkAnswer(conversation.LastAnswer ?? Phrase(persona, "nothingToRepeat"), Remember: false);
             case { Kind: QuickRuleKind.Undo }:
@@ -335,6 +335,7 @@ public sealed class TalkService
         // A phrase the user taught it («cuando diga «la vuelta»…»): the AI, with that memory, before any command that sounds
         // like it («la vuelta» ran «Anterior» at 0.87 and the memory never counted).
         var taught = _memory?.Store.Triggered(said) ?? [];
+        if (taught.Count > 0) context = context with { Decided = true };
         if (taught.Count > 0) Log.Info($"Asistente: «{said}» dice una frase de la memoria: a la IA ({taught[0].Text})");
         // A big model (Bonsai 27 B) is trusted with what a small one was kept from: it sees more of the user's commands,
         // always has the command tools, and long sentences that only name a command in passing are its to understand.

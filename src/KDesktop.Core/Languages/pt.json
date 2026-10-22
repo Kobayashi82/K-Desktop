@@ -2967,7 +2967,7 @@
   "assistantOptions.adorn": "Mostrar também os comandos que você executa",
   "assistantOptions.adornHint": "Quando você usa um atalho, um QuickMenu, o celular… o assistente acompanha com um gesto, sem atrasar nada.",
 
-  "assistant.prompt.commands": "Comandos dele que podem ser o que ele pede (se for, rode com run_command e o nome exato): {0}.",
+  "assistant.prompt.commands": "Comandos dele com nomes parecidos com o que diz (talvez nenhum seja o que pede; execute um com run_command e o nome exato só se pedir exatamente isso): {0}.",
   "assistant.prompt.notRun": "(Você não executou \"{0}\". Se é isso que ele pede, execute agora com run_command e esse nome; se não, responda sem dizer que fez ou que vai fazer.)",
   "assistant.phrase.notDone": "“{0}” eu não fiz.",
   "assistant.reply.closers": "mais alguma|algo mais|outra coisa|mais algum|em que mais|alguma outra",
@@ -3529,5 +3529,19 @@
   "settings.nav.toolSecrets": "Segredos",
   "settings.nav.toolSecrets.hint": "Tokens e senhas",
   "mcpImport.overlap.web": "Os assistentes já leem sites e pesquisam na internet.",
-  "assistant.phrase.thinking": "Um momento.|Deixa eu ver.|Vou olhar.|Só um segundo."
+  "assistant.phrase.thinking": "Um momento.|Deixa eu ver.|Vou olhar.|Só um segundo.",
+  "assistant.claims.send": "enviei|te enviei|já enviei|mandei|te mandei|já mandei",
+  "assistant.claims.save": "salvei|já salvei|anotei|criei|adicionei",
+  "assistant.claims.delete": "apaguei|excluí|removi|esvaziei",
+  "assistant.claims.open": "abri|já abri|iniciei",
+  "assistant.claims.close": "fechei|já fechei|desliguei|minimizei",
+  "assistant.claims.schedule": "coloquei um timer|programei|te aviso quando|vou te lembrar|adicionei ao calendário",
+  "assistant.claims.denial": "não|nunca",
+  "assistant.phrase.claim.send": "Não enviei: eu não tinha como.",
+  "assistant.phrase.claim.save": "Não salvei.",
+  "assistant.phrase.claim.delete": "Não apaguei.",
+  "assistant.phrase.claim.open": "Não abri.",
+  "assistant.phrase.claim.close": "Não fechei.",
+  "assistant.phrase.claim.schedule": "Não programei.",
+  "assistant.words.onScreen": "esta janela|essa janela|a janela|esta página|essa página|a página|esta aba|essa aba|a aba|a tela|na tela|o que você vê|o que eu vejo|captura"
 }

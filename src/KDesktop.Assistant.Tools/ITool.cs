@@ -80,7 +80,9 @@ public sealed record ToolUndo(string Tool, string Data);
 /// <summary>Who a tool works for and what the host lends it.</summary>
 /// <param name="Assistant">The assistant it works for; null: the module without a body.</param>
 /// <param name="Heard">The order being answered, when there is one.</param>
-public sealed record ToolContext(string? Assistant, string? Heard = null);
+/// <param name="Decided">The command it asks for is already known and need not sound like the order: a phrase the user taught
+/// («la vuelta» → a command of another name), «repite el comando anterior».</param>
+public sealed record ToolContext(string? Assistant, string? Heard = null, bool Decided = false);
 
 /// <summary>
 /// The tools that exist, in groups: the built-in ones (<see cref="Builtin"/>), the JSON ones (stage 9.1) and each MCP

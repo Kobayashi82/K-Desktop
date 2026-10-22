@@ -2967,7 +2967,7 @@
   "assistantOptions.adorn": "Montrer aussi les commandes que vous lancez",
   "assistantOptions.adornHint": "Quand vous utilisez un raccourci, un QuickMenu, le téléphone… l’assistant l’accompagne d’un geste, sans rien retarder.",
 
-  "assistant.prompt.commands": "Ses commandes qui pourraient être ce qu'il demande (si c'est le cas, exécute-la avec run_command et son nom exact) : {0}.",
+  "assistant.prompt.commands": "Ses commandes aux noms proches de ce qu'il dit (aucune n'est peut-être ce qu'il demande ; n'en exécute une avec run_command et son nom exact que s'il demande exactement cela) : {0}.",
   "assistant.prompt.notRun": "(Tu n'as pas exécuté « {0} ». Si c'est ce qu'il demande, exécute-le maintenant avec run_command et ce nom ; sinon, réponds sans dire que tu l'as fait ni que tu vas le faire.)",
   "assistant.phrase.notDone": "Je n'ai pas fait « {0} ».",
   "assistant.reply.closers": "autre chose|d'autre|autre question|encore besoin|quelque chose de plus",
@@ -3529,5 +3529,19 @@
   "settings.nav.toolSecrets": "Secrets",
   "settings.nav.toolSecrets.hint": "Jetons et mots de passe",
   "mcpImport.overlap.web": "Les assistants lisent déjà les sites et cherchent sur internet.",
-  "assistant.phrase.thinking": "Un instant.|Voyons voir.|Je regarde.|Une seconde."
+  "assistant.phrase.thinking": "Un instant.|Voyons voir.|Je regarde.|Une seconde.",
+  "assistant.claims.send": "j'ai envoyé|je t'ai envoyé|je vous ai envoyé|je l'ai envoyé|j'ai transmis",
+  "assistant.claims.save": "j'ai enregistré|j'ai sauvegardé|j'ai noté|j'ai créé|j'ai ajouté",
+  "assistant.claims.delete": "j'ai supprimé|j'ai effacé|j'ai retiré|j'ai vidé",
+  "assistant.claims.open": "j'ai ouvert|je l'ai ouvert|j'ai lancé",
+  "assistant.claims.close": "j'ai fermé|je l'ai fermé|j'ai éteint|j'ai réduit",
+  "assistant.claims.schedule": "j'ai mis un minuteur|j'ai programmé|je te préviendrai|je vous préviendrai|j'ai ajouté au calendrier",
+  "assistant.claims.denial": "ne|n'|pas|jamais",
+  "assistant.phrase.claim.send": "Je ne l'ai pas envoyé : je n'avais pas de moyen de le faire.",
+  "assistant.phrase.claim.save": "Je ne l'ai pas enregistré.",
+  "assistant.phrase.claim.delete": "Je ne l'ai pas supprimé.",
+  "assistant.phrase.claim.open": "Je ne l'ai pas ouvert.",
+  "assistant.phrase.claim.close": "Je ne l'ai pas fermé.",
+  "assistant.phrase.claim.schedule": "Je ne l'ai pas programmé.",
+  "assistant.words.onScreen": "cette fenêtre|la fenêtre|cette page|la page|cet onglet|l'onglet|l'écran|à l'écran|ce que tu vois|ce que je vois|capture"
 }

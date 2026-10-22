@@ -78,8 +78,8 @@ public sealed class CommandRoutingTests : IDisposable
         _model.Answers.Enqueue("call:run_command:Anterior");
         _model.Answers.Enqueue("Hecho.");
         await talk.HandleAsync(new HeardMessage("haz lo de siempre", "panel", "lander"));
-        // Not by its words; by its exact name, once.
-        Assert.Equal(["run:prev:lander"], _bridge.Done);
+        // Not by its words, nor by its exact name: «haz lo de siempre» is not about «Anterior» (5.0.131).
+        Assert.Empty(_bridge.Done);
         Assert.Contains(_model.Requests[1].Messages, m => m.Role == ChatRole.Tool && m.Content.Contains("\"Anterior\"", StringComparison.Ordinal));
         Assert.True(CommandTools.Names("vacía la papelera", "Vaciar Papelera"));
         Assert.False(CommandTools.Names("la vuelta", "Anterior"));
@@ -122,12 +122,12 @@ public sealed class CommandRoutingTests : IDisposable
     {
         using var builtin = new BuiltinTools(_folder);
         var talk = Make(builtin);
-        _bridge.Matches["vacía la papelera y luego la otra cosa"] = new MatchedMessage("x", 0.5, ["luego la otra cosa"],
+        _bridge.Matches["vacía la papelera y luego toca abrir papelera"] = new MatchedMessage("x", 0.5, ["luego toca abrir papelera"],
             [new MatchedPart("vacía la papelera", true, [new MatchedCandidate("bin", "Vaciar papelera", 0.97)])]);
         _bridge.Sure("Abrir Papelera", ("open", "Abrir Papelera", null));
         _model.Answers.Enqueue("call:run_command:Abrir Papelera");
         _model.Answers.Enqueue("Recibido.");
-        await talk.HandleAsync(new HeardMessage("vacía la papelera y luego la otra cosa", "panel"));
+        await talk.HandleAsync(new HeardMessage("vacía la papelera y luego toca abrir papelera", "panel"));
         Assert.Equal(["run:bin:", "run:open:"], _bridge.Done);
         var oks = Core.Localization.Loc.T("assistant.phrase.ok").Split('|');
         Assert.Equal(1, oks.Sum(ok => LastAnswer.Split(ok).Length - 1));
@@ -414,6 +414,37 @@ public sealed class CommandRoutingTests : IDisposable
         Assert.Empty(_bridge.Done);
         Assert.Equal(2, _model.Requests.Count);
     }
+
+    [Fact]
+    public async Task ACommandThatOnlySoundsLikeTheOrderIsNotRun()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin, model: Big);
+        // 22/10 (5.0.130): «puede ser la pestaña de track series que has abierto» ran «TrackIR 5» and «Anterior».
+        const string said = "puede ser la pestaña de track series que has abierto";
+        _bridge.Matches[said] = new MatchedMessage("x", 0.4, [],
+            [new MatchedPart(said, false, [new MatchedCandidate("anterior", "Anterior", 0.65), new MatchedCandidate("trackir", "TrackIR 5", 0.60)])]);
+        _bridge.Sure("TrackIR 5", ("trackir", "TrackIR 5", null));
+        _model.Answers.Enqueue("call:run_command:TrackIR 5");
+        _model.Answers.Enqueue("No he encontrado esa pestaña.");
+        await talk.HandleAsync(new HeardMessage(said, "voice", "lander"));
+        Assert.Empty(_bridge.Done);
+        Assert.Contains("only sounds alike", _model.Requests[1].Messages[^1].Content, StringComparison.Ordinal);
+
+        // Said by its name, it runs.
+        _bridge.Sure("abre trackir", ("trackir", "TrackIR 5", null));
+        _model.Answers.Enqueue("call:run_command:TrackIR 5");
+        _model.Answers.Enqueue("Hecho.");
+        await talk.HandleAsync(new HeardMessage("abre trackir y luego me cuentas", "voice", "lander"));
+        Assert.Equal(["run:trackir:lander"], _bridge.Done);
+    }
+
+    [Theory]
+    [InlineData("¿qué series me faltan en esa ventana de track series?", true)]
+    [InlineData("entra en la pestaña de track series", true)]
+    [InlineData("dime lo que ves", true)]
+    [InlineData("¿qué series me faltan por ver?", false)]
+    public void WhatIsOnTheScreenIsNoticed(string said, bool about) => Assert.Equal(about, TalkMind.AboutTheScreen(said));
 
     [Fact]
     public async Task ThinkingAWhileSaysAWordFirstAndAQuickAnswerDoesNot()

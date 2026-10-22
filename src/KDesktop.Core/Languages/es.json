@@ -2967,7 +2967,7 @@
   "assistantOptions.adorn": "Enseñar también los comandos que lanzas tú",
   "assistantOptions.adornHint": "Cuando usas un atajo, un QuickMenu, el móvil… el asistente lo acompaña con un gesto, sin retrasar nada.",
 
-  "assistant.prompt.commands": "Comandos suyos que podrían ser lo que pide (si lo es, ejecútalo con run_command y su nombre exacto): {0}.",
+  "assistant.prompt.commands": "Comandos suyos con nombres parecidos a lo que dice (puede que ninguno sea lo que pide; ejecuta uno con run_command y su nombre exacto solo si pide exactamente eso): {0}.",
   "assistant.prompt.notRun": "(No has ejecutado «{0}». Si es lo que te pide, ejecútalo ahora con run_command y ese nombre; si no, contesta sin decir que lo has hecho ni que lo vas a hacer.)",
   "assistant.phrase.notDone": "Lo de «{0}» no lo he hecho.",
   "assistant.reply.closers": "algo más|alguna otra cosa|algún otro|alguna otra|en qué más|otra cosa|algo adicional",
@@ -3529,5 +3529,19 @@
   "settings.nav.toolSecrets": "Secretos",
   "settings.nav.toolSecrets.hint": "Tokens y contraseñas",
   "mcpImport.overlap.web": "Los asistentes ya leen webs y buscan en internet.",
-  "assistant.phrase.thinking": "Un momento.|Déjame ver.|Ahora lo miro.|Dame un segundo."
+  "assistant.phrase.thinking": "Un momento.|Déjame ver.|Ahora lo miro.|Dame un segundo.",
+  "assistant.claims.send": "he enviado|te he enviado|te lo he enviado|te la he enviado|lo he enviado|he mandado|te he mandado|te lo he mandado|te la he mandado|lo he mandado|ya está enviado|enviado a tu|mandado a tu",
+  "assistant.claims.save": "he guardado|lo he guardado|la he guardado|he apuntado|lo he apuntado|te lo he apuntado|he anotado|lo he anotado|he creado|he añadido|lo he añadido",
+  "assistant.claims.delete": "he borrado|lo he borrado|la he borrado|he eliminado|lo he eliminado|he quitado|lo he quitado|he vaciado",
+  "assistant.claims.open": "he abierto|lo he abierto|la he abierto|te he abierto|te lo he abierto",
+  "assistant.claims.close": "he cerrado|lo he cerrado|la he cerrado|he apagado|lo he apagado|he minimizado",
+  "assistant.claims.schedule": "he puesto un temporizador|he programado|te avisaré|te aviso cuando|he puesto una alarma|he creado un evento|he añadido al calendario",
+  "assistant.claims.denial": "no|nunca|todavía no|aún no|tampoco|ni",
+  "assistant.phrase.claim.send": "No lo he enviado: no tenía cómo hacerlo.",
+  "assistant.phrase.claim.save": "No lo he guardado.",
+  "assistant.phrase.claim.delete": "No lo he borrado.",
+  "assistant.phrase.claim.open": "No lo he abierto.",
+  "assistant.phrase.claim.close": "No lo he cerrado.",
+  "assistant.phrase.claim.schedule": "No lo he programado.",
+  "assistant.words.onScreen": "esta ventana|esa ventana|la ventana|esta página|esa página|la página|esta pestaña|esa pestaña|la pestaña|esta web|esa web|la pantalla|en pantalla|lo que ves|lo que veo|lo que hay delante|captura|lo que tengo abierto"
 }

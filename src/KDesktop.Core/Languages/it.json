@@ -2967,7 +2967,7 @@
   "assistantOptions.adorn": "Mostrare anche i comandi che avvii tu",
   "assistantOptions.adornHint": "Quando usi una scorciatoia, un QuickMenu, il telefono… l’assistente lo accompagna con un gesto, senza ritardare nulla.",
 
-  "assistant.prompt.commands": "Suoi comandi che potrebbero essere quello che chiede (se sì, eseguilo con run_command e il suo nome esatto): {0}.",
+  "assistant.prompt.commands": "Suoi comandi con nomi simili a ciò che dice (forse nessuno è ciò che chiede; eseguine uno con run_command e il suo nome esatto solo se chiede esattamente quello): {0}.",
   "assistant.prompt.notRun": "(Non hai eseguito «{0}». Se è ciò che chiede, eseguilo ora con run_command e quel nome; altrimenti rispondi senza dire che l'hai fatto o che lo farai.)",
   "assistant.phrase.notDone": "«{0}» non l'ho fatto.",
   "assistant.reply.closers": "qualcos'altro|qualcosa d'altro|altro in cui|altro con cui|qualche altra|qualche altro|altro che posso",
@@ -3529,5 +3529,19 @@
   "settings.nav.toolSecrets": "Segreti",
   "settings.nav.toolSecrets.hint": "Token e password",
   "mcpImport.overlap.web": "Gli assistenti leggono già i siti e cercano su internet.",
-  "assistant.phrase.thinking": "Un momento.|Vediamo.|Ora controllo.|Un secondo."
+  "assistant.phrase.thinking": "Un momento.|Vediamo.|Ora controllo.|Un secondo.",
+  "assistant.claims.send": "ho inviato|ti ho inviato|te l'ho inviato|ho mandato|ti ho mandato|te l'ho mandato",
+  "assistant.claims.save": "ho salvato|l'ho salvato|ho annotato|ho segnato|ho creato|ho aggiunto",
+  "assistant.claims.delete": "ho cancellato|ho eliminato|ho rimosso|ho svuotato",
+  "assistant.claims.open": "ho aperto|l'ho aperto|ho avviato",
+  "assistant.claims.close": "ho chiuso|l'ho chiuso|ho spento|ho ridotto",
+  "assistant.claims.schedule": "ho impostato un timer|ho programmato|ti avviserò|ti ricorderò|ho aggiunto al calendario",
+  "assistant.claims.denial": "non|mai",
+  "assistant.phrase.claim.send": "Non l'ho inviato: non avevo modo di farlo.",
+  "assistant.phrase.claim.save": "Non l'ho salvato.",
+  "assistant.phrase.claim.delete": "Non l'ho cancellato.",
+  "assistant.phrase.claim.open": "Non l'ho aperto.",
+  "assistant.phrase.claim.close": "Non l'ho chiuso.",
+  "assistant.phrase.claim.schedule": "Non l'ho programmato.",
+  "assistant.words.onScreen": "questa finestra|quella finestra|la finestra|questa pagina|quella pagina|la pagina|questa scheda|la scheda|lo schermo|sullo schermo|quello che vedi|quello che vedo|screenshot"
 }

@@ -2967,7 +2967,7 @@
   "assistantOptions.adorn": "Auch die Befehle zeigen, die du startest",
   "assistantOptions.adornHint": "Wenn du ein Tastenkürzel, ein QuickMenu, das Handy… benutzt, begleitet es der Assistent mit einer Geste, ohne etwas zu verzögern.",
 
-  "assistant.prompt.commands": "Seine Befehle, die das Gewünschte sein könnten (wenn ja, führ ihn mit run_command und seinem genauen Namen aus): {0}.",
+  "assistant.prompt.commands": "Seine Befehle mit Namen ähnlich wie das Gesagte (vielleicht ist keiner gemeint; führe einen mit run_command und seinem genauen Namen nur aus, wenn genau das verlangt wird): {0}.",
   "assistant.prompt.notRun": "(Du hast „{0}“ nicht ausgeführt. Wenn der Nutzer das möchte, führe es jetzt mit run_command und diesem Namen aus; sonst antworte, ohne zu sagen, dass du es getan hast oder tun wirst.)",
   "assistant.phrase.notDone": "„{0}“ habe ich nicht gemacht.",
   "assistant.reply.closers": "sonst noch|noch etwas|etwas anderes|noch helfen|weiter helfen|sonst etwas",
@@ -3529,5 +3529,19 @@
   "settings.nav.toolSecrets": "Geheimnisse",
   "settings.nav.toolSecrets.hint": "Tokens und Passwörter",
   "mcpImport.overlap.web": "Die Assistenten lesen schon Webseiten und suchen im Internet.",
-  "assistant.phrase.thinking": "Einen Moment.|Mal sehen.|Ich schaue nach.|Eine Sekunde."
+  "assistant.phrase.thinking": "Einen Moment.|Mal sehen.|Ich schaue nach.|Eine Sekunde.",
+  "assistant.claims.send": "ich habe gesendet|ich habe geschickt|habe ich dir geschickt|habe ich dir gesendet|ich habe es dir geschickt|ich habe weitergeleitet",
+  "assistant.claims.save": "ich habe gespeichert|ich habe notiert|ich habe erstellt|ich habe hinzugefügt|habe ich gespeichert|habe ich notiert",
+  "assistant.claims.delete": "ich habe gelöscht|ich habe entfernt|ich habe geleert|habe ich gelöscht",
+  "assistant.claims.open": "ich habe geöffnet|habe ich geöffnet|ich habe gestartet",
+  "assistant.claims.close": "ich habe geschlossen|habe ich geschlossen|ich habe ausgeschaltet|ich habe minimiert",
+  "assistant.claims.schedule": "ich habe einen timer gestellt|ich habe geplant|ich sage dir bescheid, wenn|ich erinnere dich|ich habe es in den kalender eingetragen",
+  "assistant.claims.denial": "nicht|nie|kein|keine",
+  "assistant.phrase.claim.send": "Ich habe es nicht gesendet: Ich hatte keine Möglichkeit dazu.",
+  "assistant.phrase.claim.save": "Ich habe es nicht gespeichert.",
+  "assistant.phrase.claim.delete": "Ich habe es nicht gelöscht.",
+  "assistant.phrase.claim.open": "Ich habe es nicht geöffnet.",
+  "assistant.phrase.claim.close": "Ich habe es nicht geschlossen.",
+  "assistant.phrase.claim.schedule": "Ich habe es nicht eingeplant.",
+  "assistant.words.onScreen": "dieses fenster|das fenster|diese seite|die seite|dieser tab|der tab|den tab|der bildschirm|den bildschirm|auf dem bildschirm|was du siehst|was ich sehe|screenshot"
 }

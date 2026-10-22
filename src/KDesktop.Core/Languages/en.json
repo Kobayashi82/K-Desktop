@@ -2967,7 +2967,7 @@
   "assistantOptions.adorn": "Also show the commands you launch",
   "assistantOptions.adornHint": "When you use a hotkey, a QuickMenu, your phone… the assistant adds a gesture, without delaying anything.",
 
-  "assistant.prompt.commands": "Commands of theirs that may be what they ask for (if so, run it with run_command and its exact name): {0}.",
+  "assistant.prompt.commands": "Commands of theirs with names like what they said (none may be what they want; run one with run_command and its exact name only if they ask for exactly that): {0}.",
   "assistant.prompt.notRun": "(You have not run \"{0}\". If that is what they ask for, run it now with run_command and that name; if not, answer without saying you did it or will do it.)",
   "assistant.phrase.notDone": "I didn't do “{0}”.",
   "assistant.reply.closers": "anything else|something else|any other|what else|anything more",
@@ -3529,5 +3529,19 @@
   "settings.nav.toolSecrets": "Secrets",
   "settings.nav.toolSecrets.hint": "Tokens and passwords",
   "mcpImport.overlap.web": "The assistants already read websites and search the internet.",
-  "assistant.phrase.thinking": "One moment.|Let me see.|Let me check.|Give me a second."
+  "assistant.phrase.thinking": "One moment.|Let me see.|Let me check.|Give me a second.",
+  "assistant.claims.send": "i've sent|i have sent|i sent|sent it to you|i've messaged|i messaged|i've forwarded|i forwarded",
+  "assistant.claims.save": "i've saved|i saved|i've noted|i noted|i've written down|i've created|i created|i've added|i added",
+  "assistant.claims.delete": "i've deleted|i deleted|i've removed|i removed|i've emptied|i emptied",
+  "assistant.claims.open": "i've opened|i opened|i've launched|i launched|i've started|i started",
+  "assistant.claims.close": "i've closed|i closed|i've shut down|i shut down|i've minimized|i minimized",
+  "assistant.claims.schedule": "i've set a timer|i set a timer|i've scheduled|i scheduled|i'll let you know when|i'll remind you|i've set an alarm|i've added it to your calendar",
+  "assistant.claims.denial": "not|never|haven't|didn't|can't|couldn't|n't",
+  "assistant.phrase.claim.send": "I didn't send it: I had no way to.",
+  "assistant.phrase.claim.save": "I didn't save it.",
+  "assistant.phrase.claim.delete": "I didn't delete it.",
+  "assistant.phrase.claim.open": "I didn't open it.",
+  "assistant.phrase.claim.close": "I didn't close it.",
+  "assistant.phrase.claim.schedule": "I didn't schedule it.",
+  "assistant.words.onScreen": "this window|that window|the window|this page|that page|the page|this tab|that tab|the tab|the screen|on screen|what you see|what i see|screenshot|what i have open"
 }

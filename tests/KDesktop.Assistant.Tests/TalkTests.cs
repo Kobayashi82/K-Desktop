@@ -161,7 +161,7 @@ public sealed class TalkTests : IDisposable
     {
         var (talk, tools) = Make();
         using var _ = tools;
-        _model.Answers.Enqueue(_ => Text("Vale, te aviso cuando termine."));
+        _model.Answers.Enqueue(_ => Text("Vale, lo vigilo."));
         await talk.HandleAsync(Heard("avísame cuando termine la descarga"));
         // The watch happened: the next order sees it was told, not only that it was set.
         await talk.SayAsync("lander", "Ha terminado la descarga: juego.zip.");
@@ -169,7 +169,7 @@ public sealed class TalkTests : IDisposable
         await talk.HandleAsync(Heard("avísame cuando termine la descarga"));
 
         var messages = _model.Requests[^1].Messages;
-        Assert.Equal("Vale, te aviso cuando termine.\n\nHa terminado la descarga: juego.zip.", messages[^2].Content);
+        Assert.Equal("Vale, lo vigilo.\n\nHa terminado la descarga: juego.zip.", messages[^2].Content);
     }
 
     [Fact]

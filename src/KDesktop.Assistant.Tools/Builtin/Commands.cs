@@ -96,6 +96,17 @@ public static class CommandTools
         return named.All(w => said.Any(s => TextSimilarity.WordSimilarity(w, s) >= NameWord));
     }
 
+    /// <summary>
+    /// Whether <paramref name="heard"/> says each word of <paramref name="name"/> of three letters or more as it is written,
+    /// or one letter off in a word of five or more (what speech recognition gets wrong); stricter than <see cref="Names"/>.
+    /// </summary>
+    public static bool NamesClosely(string heard, string name)
+    {
+        var said = TextSimilarity.Words(heard);
+        var named = TextSimilarity.Words(name).Where(w => w.Length >= 3).ToArray();
+        return named.Length > 0 && named.All(w => said.Any(s => s == w || (w.Length >= 5 && Math.Abs(s.Length - w.Length) <= 1 && TextSimilarity.Levenshtein(s, w) <= 1)));
+    }
+
     /// <summary>How alike a word said must be to a word of a command's name (the same stem, a transcription slip).</summary>
     public const double NameWord = 0.75;
 
@@ -172,10 +183,31 @@ public sealed class RunCommandTool(ICommandBridge bridge) : ITool
         // vuelta» opens a web): it decides, with the name in front of it.
         else if (!CommandTools.Names(asked, chosen.Name))
             return ToolResult.Fail($"No command is called \"{asked}\"; the closest is \"{chosen.Name}\", which may be something else. If that is what they mean, call again with that exact name; if not, it is not one of their commands: use another tool (what you remember about them may say what they mean).");
+        // The model chose it by name: it must be what the user asked for, not one that sounds like their words («la pestaña
+        // de track series» ran «TrackIR 5» and «Anterior»). The routing (id, media), taught phrases and «repite el comando anterior» already know.
+        if (arguments.GetString("id") is not { Length: > 0 } && arguments.GetString("media") is not { Length: > 0 }
+            && context is { Heard: { Length: > 0 } heard, Decided: false } && !await AskedForAsync(heard, chosen, cancellationToken).ConfigureAwait(false))
+            return ToolResult.Fail($"Not done: what the user said («{heard}») is not about their command \"{chosen.Name}\"; it only sounds alike. Do not run commands that just sound like their words: do what they ask with another tool, or say plainly you could not.");
         var end = chosen.Media is { } media
             ? await bridge.MediaAsync(media, chosen.Value, cancellationToken).ConfigureAwait(false)
             : await bridge.RunAsync(chosen.Command!, context.Assistant, cancellationToken).ConfigureAwait(false);
         return CommandTools.Outcome(end, chosen.Name, Name);
+    }
+
+    /// <summary>How sure K-Desktop must be that the order means a command the model chose by name.</summary>
+    public const double Asked = 0.70;
+
+    /// <summary>
+    /// Whether <paramref name="heard"/> asks for <paramref name="command"/>: it names it closely (each word of three letters
+    /// or more, said as written or one letter off in a long word: «trackir» is not «track») or K-Desktop matches the order
+    /// with it from <see cref="Asked"/>.
+    /// </summary>
+    private async Task<bool> AskedForAsync(string heard, MatchedCandidate command, CancellationToken cancellationToken)
+    {
+        if (CommandTools.NamesClosely(heard, command.Name)) return true;
+        var matched = await bridge.MatchAsync(heard, cancellationToken).ConfigureAwait(false);
+        return matched is not null && matched.Parts.SelectMany(p => p.Candidates)
+            .Any(c => c.Score >= Asked && (c.Command is { } id ? id == command.Command : string.Equals(c.Name, command.Name, StringComparison.OrdinalIgnoreCase)));
     }
 }
 

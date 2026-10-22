@@ -4,6 +4,7 @@ using KDesktop.Assistant.Tools;
 using KDesktop.Core;
 using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Localization;
+using KDesktop.Core.Voice;
 
 namespace KDesktop.Assistant.Brain.Talk;
 
@@ -77,6 +78,9 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         if (commands is { Count: > 0 }) always.Add(RunCommandTool);
         if (capable) always.AddRange(CommandToolNames.Where(t => !hidden.Contains(t) && tools.Registry.Find(t) is not null));
         if (aboutMemory) always.AddRange(MemoryTools);
+        // «Esa ventana», «la pestaña», «lo que ves»: what is on the screen must be at hand (with series in the order,
+        // Letterboxd's tools won and it never looked at the TrackSeries tab).
+        if (AboutTheScreen(said)) always.AddRange(ScreenTools);
         // «Cuando diga «la vuelta», abre…» came to mind: what it asks for must be at hand.
         if (known.Any(m => QuickRules.Sites(m.Text).Count > 0)) always.Add(OpenWebTool);
         var offered = await chooser.ChooseAsync(available, said, [.. always.Distinct()], order, cancellationToken).ConfigureAwait(false);
@@ -207,6 +211,13 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
             Log.Warn($"Asistente: la IA dice que ha ejecutado algo sin hacerlo: «{clean}»");
             clean = persona.Phrase("notFound");
         }
+        // «Te he enviado a Telegram…» having only opened the app: what it claims and did not do goes, the rest stays.
+        var (founded, unfounded) = ActionClaims.Check(clean, used);
+        if (unfounded.Count > 0)
+        {
+            Log.Warn($"Asistente: la IA dice que ha hecho algo que no hizo ({string.Join(", ", unfounded)}; usó {(used.Count > 0 ? string.Join(", ", used) : "nada")}): «{clean}»");
+            clean = founded;
+        }
         return new TalkAnswer(clean) { Tools = used, Steps = steps };
     }
 
@@ -221,6 +232,18 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     private static string Short(string text) => text.Length > 160 ? text[..160] + "…" : text;
 
     private static readonly string[] NoteTools = ["save_note", "find_notes"];
+
+    private static readonly string[] ScreenTools = ["look_at_screen", "read_web"];
+
+    /// <summary>Whether the order points at what is on the screen (<c>assistant.words.onScreen</c>, this language and English).</summary>
+    public static bool AboutTheScreen(string said)
+    {
+        var folded = " " + string.Join(' ', TextSimilarity.Words(said)) + " ";
+        return new[] { Loc.T("assistant.words.onScreen"), Loc.Strings(Loc.Fallback, "assistant.words.").GetValueOrDefault("assistant.words.onScreen") }
+            .OfType<string>().SelectMany(p => p.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            .Select(p => " " + string.Join(' ', TextSimilarity.Words(p)) + " ")
+            .Any(p => p.Trim().Length > 0 && folded.Contains(p, StringComparison.Ordinal));
+    }
 
     /// <summary>The first of <paramref name="commands"/> the text names, or null.</summary>
     public static string? NamedCommand(string text, IReadOnlyList<string> commands) =>
