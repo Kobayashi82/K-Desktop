@@ -51,7 +51,16 @@ internal sealed class ModuleTalk : ITalkOutput
         Memory = new TalkMemory(tools.Builtin.Memory, tools.Runner, Meaning);
         Service = new TalkService(who => (brain.Client, brain.ModelFor(who)), tools.Runner, PersonaOf, this, chooser: Chooser, memory: Memory, learn: () => tools.Learn, commands: commands,
             recheck: brain.RecheckAsync, freeBrain: brain.UnloadAsync, loadBrain: () => brain.LoadAsync());
-        tools.Builtin.Watches.Fired += (item, detail) => _ = AnnounceAsync(item, detail);
+        tools.Builtin.Watches.Fired += (item, detail) => _ = AnnounceAsync(item.Assistant, "watch", item.Kind, "tool.notify_when.title",
+            () => Tools.Builtin.WatchStore.Happened(item, detail));
+        tools.Builtin.Timers.Rang += timer => _ = AnnounceAsync(timer.Assistant, "timer", null, "tool.set_timer.title", () => TimerText(timer));
+    }
+
+    /// <summary>What a timer that rang says (in the language in use).</summary>
+    private static string TimerText(Tools.Builtin.TimerItem timer)
+    {
+        var clock = timer.Due.ToLocalTime().ToString("t", Loc.Instance.Culture);
+        return timer.Text.Length > 0 ? Loc.T("tool.set_timer.rangFor", clock, timer.Text) : Loc.T("tool.set_timer.rang", clock);
     }
 
     public TalkService Service { get; }
@@ -115,30 +124,33 @@ internal sealed class ModuleTalk : ITalkOutput
         else if (_listening.TryRemove(key, out _) && !Service.IsAnswering(listening.Assistant)) State(listening.Assistant, "idle");
     }
 
-    /// <summary>The longest a told watch waits for the assistant to finish what it is answering.</summary>
+    /// <summary>The longest a told watch or a timer waits for the assistant to finish what it is answering.</summary>
     private static readonly TimeSpan AnnounceWait = TimeSpan.FromSeconds(45);
 
     /// <summary>
-    /// Something watched happened (avisame_cuando): the one who set it says it, in its language, when it is not answering
-    /// something else (it would cut the answer). In pause, or after too long, K-Desktop shows it instead.
+    /// Something watched happened (avisame_cuando) or a timer rang: the one who set it says it, in its language, when it
+    /// is not answering something else (it would cut the answer). In pause, or after too long, K-Desktop shows it instead.
     /// </summary>
-    private async Task AnnounceAsync(Tools.Builtin.WatchItem item, string? detail)
+    /// <param name="activity">The line of the activity (<c>watch</c>, <c>timer</c>).</param>
+    /// <param name="kind">What was watched, for the log.</param>
+    /// <param name="titleKey">The title of the notice when it is shown (no assistant).</param>
+    private async Task AnnounceAsync(string? assistant, string activity, string? kind, string titleKey, Func<string> say)
     {
         try
         {
-            using var _ = Loc.Instance.Use(_personal.LanguageOf(item.Assistant));
-            var text = Tools.Builtin.WatchStore.Happened(item, detail);
-            Log.Info($"Asistente: aviso cumplido ({item.Kind}): {text}");
-            _tools.Runner.Record(item.Assistant, string.Empty, "watch", text, ok: true);
+            using var _ = Loc.Instance.Use(_personal.LanguageOf(assistant));
+            var text = say();
+            Log.Info(kind is null ? $"Asistente: {activity}: {text}" : $"Asistente: aviso cumplido ({kind}): {text}");
+            _tools.Runner.Record(assistant, string.Empty, activity, text, ok: true);
             var waited = System.Diagnostics.Stopwatch.StartNew();
-            while (Service.IsAnswering(item.Assistant) && waited.Elapsed < AnnounceWait) await Task.Delay(500).ConfigureAwait(false);
-            if (Paused || Service.IsAnswering(item.Assistant))
+            while (Service.IsAnswering(assistant) && waited.Elapsed < AnnounceWait) await Task.Delay(500).ConfigureAwait(false);
+            if (Paused || Service.IsAnswering(assistant))
             {
-                var title = item.Assistant is { } id && AssistantPackages.Find(id) is { } installed ? installed.Manifest.Name : Loc.T("tool.notify_when.title");
-                _link.Send(new NotifyMessage(title, text, item.Assistant));
+                var title = assistant is { } id && AssistantPackages.Find(id) is { } installed ? installed.Manifest.Name : Loc.T(titleKey);
+                _link.Send(new NotifyMessage(title, text, assistant));
                 return;
             }
-            await Service.SayAsync(item.Assistant, text).ConfigureAwait(false);
+            await Service.SayAsync(assistant, text).ConfigureAwait(false);
         }
         catch (Exception ex)
         {

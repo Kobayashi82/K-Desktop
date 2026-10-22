@@ -14,7 +14,7 @@ namespace KDesktop.Assistant.Host.Runtime;
 /// <summary>
 /// The tools of the process (stage 3.3), for all the assistants and the module without a body: the registry with the
 /// built-in ones, the runner (permissions, activity, undo), the questions K-Desktop asks for it (<c>ask</c> →
-/// <c>answer</c>), the tools the user trusts (<c>config</c> <c>tools</c>) and the timers ringing (<c>notify</c>). Also
+/// <c>answer</c>), the tools the user trusts (<c>config</c> <c>tools</c>); <see cref="ModuleTalk"/> says the timers that ring. Also
 /// what is remembered about the user (stage 3.7): Options → Memory asks (<c>memory</c>) and sees it (<c>memoryState</c>);
 /// the notes, the same with Options → Notes (<c>notes</c>, <c>notesState</c>).
 /// </summary>
@@ -41,7 +41,6 @@ internal sealed class ModuleTools : IDisposable
         Builtin.AddTo(registry, screen, vision, browser);
         CommandTools.AddTo(registry, commands, writer);
         Runner = new ToolRunner(registry, () => _trusted, AskAsync, message => link.Send(message), Path.Combine(folder, "undo.json"), () => _askBefore);
-        Builtin.Timers.Rang += OnTimerRang;
         Builtin.Memory.Changed += SendMemory;
         Builtin.Notes.Changed += SendNotes;
     }
@@ -150,20 +149,8 @@ internal sealed class ModuleTools : IDisposable
         }
     }
 
-    /// <summary>A timer rang: K-Desktop tells the user (and the activity says so).</summary>
-    private void OnTimerRang(TimerItem timer)
-    {
-        var clock = timer.Due.ToLocalTime().ToString("t", Loc.Instance.Culture);
-        var text = timer.Text.Length > 0 ? Loc.T("tool.set_timer.rangFor", clock, timer.Text) : Loc.T("tool.set_timer.rang", clock);
-        Log.Info($"Asistente: temporizador de las {clock}");
-        var title = timer.Assistant is { } id && AssistantPackages.Find(id) is { } installed ? installed.Manifest.Name : Loc.T("tool.set_timer.title");
-        _link.Send(new NotifyMessage(title, text, timer.Assistant));
-        Runner.Record(timer.Assistant, string.Empty, "timer", text, ok: true);
-    }
-
     public void Dispose()
     {
-        Builtin.Timers.Rang -= OnTimerRang;
         Builtin.Memory.Changed -= SendMemory;
         Builtin.Notes.Changed -= SendNotes;
         Builtin.Dispose();
