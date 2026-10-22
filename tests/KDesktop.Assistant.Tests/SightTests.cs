@@ -62,6 +62,15 @@ public sealed class SightTests
     }
 
     [Fact]
+    public void WhatTheModelSaysOverAndOverIsCutToOnce()
+    {
+        var said = "La ruta es `cd \"C:\\Programas" + string.Concat(Enumerable.Repeat("\\Utilidades\\backups", 30)) + "`";
+        var cut = KDesktop.Assistant.Brain.ModelVision.WithoutRepeats(said);
+        Assert.True(cut.Length < 60, cut);
+        Assert.Equal("Hola, hola. Todo bien.", KDesktop.Assistant.Brain.ModelVision.WithoutRepeats("Hola, hola. Todo bien."));
+    }
+
+    [Fact]
     public async Task AModelThatDoesNotSeeSaysSoWithoutCapturing()
     {
         var screen = new FakeScreen();
