@@ -180,6 +180,29 @@ public sealed class McpTests : IDisposable
         Assert.True(McpServers.NameFor("servidor-con-un-nombre-largo", new string('x', 80)).Length <= 64);
     }
 
+    [Theory]
+    // What READMEs say to copy (5.0.137, «Pegar»): Claude Desktop, VS Code, VS Code's settings, the servers alone, and
+    // without the outer braces (with a comma at the end, as they come out of a longer file).
+    [InlineData("""{ "mcpServers": { "weather": { "command": "npx", "args": ["-y", "weather-mcp"] } } }""")]
+    [InlineData("""{ "servers": { "weather": { "type": "stdio", "command": "npx" } } }""")]
+    [InlineData("""{ "mcp": { "servers": { "weather": { "command": "npx" } } } }""")]
+    [InlineData("""{ "weather": { "command": "npx" } }""")]
+    [InlineData("""  "weather": { "command": "npx", "args": ["-y", "weather-mcp"] },  """)]
+    [InlineData("""
+        // weather
+        "weather": {
+          "url": "https://example.com/mcp"
+        }
+        """)]
+    public void WhatAReadmeSaysToCopyCanBePasted(string pasted) =>
+        Assert.Equal(["weather"], McpConfig.Import(pasted, []).Select(f => f.Entry.Id));
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("npx -y weather-mcp")]
+    [InlineData("""{ "name": "weather", "version": "1.0" }""")]
+    public void WhatHasNoServersGivesNone(string pasted) => Assert.Empty(McpConfig.Import(pasted, []));
+
     [Fact]
     public void ImportingMcposFileTakesTheSecretsOutAndSaysWhatIsAlreadyDone()
     {

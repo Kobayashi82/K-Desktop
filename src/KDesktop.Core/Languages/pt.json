@@ -3437,7 +3437,7 @@
   "toolsOptions.serverSwitch": "Servidor {0} ligado",
   "toolsOptions.importTitle": "Importar servidores MCP",
   "toolsOptions.importFilter": "Configuração MCP (*.json)",
-  "toolsOptions.importNone": "Esse arquivo não tem servidores MCP (procura-se “mcpServers”).",
+  "toolsOptions.importNone": "Esse arquivo não tem servidores MCP.",
   "toolsOptions.removeTitle": "Remover servidor",
   "toolsOptions.removeQuestion": "Remover “{0}” e seus segredos? As ferramentas dele vão sumir.",
   "toolsOptions.filter": "Buscar ferramenta",
@@ -3640,5 +3640,8 @@
   "toolsOptions.backToFiles": "Voltar às suas ferramentas",
   "toolsOptions.subjectGone": "Não há mais ferramentas deste tema.",
   "toolsOptions.backToBuiltin": "Voltar às incluídas",
-  "assistant.prompt.speak": "O que as ferramentas devolvem pode trazer desenhos, tabelas ou lacunas pensados para uma tela. Você fala: diga com palavras (por exemplo, as letras que já estão e em que posição, quantas faltam e as vidas que restam) e nunca copie símbolos nem desenhos, mesmo que a ferramenta peça para mostrar assim."
+  "assistant.prompt.speak": "O que as ferramentas devolvem pode trazer desenhos, tabelas ou lacunas pensados para uma tela. Você fala: diga com palavras (por exemplo, as letras que já estão e em que posição, quantas faltam e as vidas que restam) e nunca copie símbolos nem desenhos, mesmo que a ferramenta peça para mostrar assim.",
+  "toolsOptions.paste": "Colar",
+  "toolsOptions.clipboard": "texto copiado",
+  "toolsOptions.pasteNone": "O texto copiado não tem servidores MCP. Copie o bloco JSON das instruções do servidor (o que tem «command» ou «url») e clique em «Colar»."
 }

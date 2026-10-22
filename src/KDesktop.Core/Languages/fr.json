@@ -3437,7 +3437,7 @@
   "toolsOptions.serverSwitch": "Serveur {0} activé",
   "toolsOptions.importTitle": "Importer des serveurs MCP",
   "toolsOptions.importFilter": "Configuration MCP (*.json)",
-  "toolsOptions.importNone": "Ce fichier ne contient aucun serveur MCP (on cherche « mcpServers »).",
+  "toolsOptions.importNone": "Ce fichier ne contient aucun serveur MCP.",
   "toolsOptions.removeTitle": "Retirer le serveur",
   "toolsOptions.removeQuestion": "Retirer « {0} » et ses secrets ? Ses outils disparaîtront.",
   "toolsOptions.filter": "Chercher un outil",
@@ -3640,5 +3640,8 @@
   "toolsOptions.backToFiles": "Retour à vos outils",
   "toolsOptions.subjectGone": "Il n'y a plus d'outils sur ce thème.",
   "toolsOptions.backToBuiltin": "Retour aux outils inclus",
-  "assistant.prompt.speak": "Ce que renvoient les outils peut contenir des dessins, des tableaux ou des blancs prévus pour un écran. Toi, tu parles : dis-le avec des mots (par exemple, les lettres déjà trouvées et leur place, combien il en manque et les vies restantes) et ne recopie jamais de symboles ni de dessins, même si l'outil demande de l'afficher tel quel."
+  "assistant.prompt.speak": "Ce que renvoient les outils peut contenir des dessins, des tableaux ou des blancs prévus pour un écran. Toi, tu parles : dis-le avec des mots (par exemple, les lettres déjà trouvées et leur place, combien il en manque et les vies restantes) et ne recopie jamais de symboles ni de dessins, même si l'outil demande de l'afficher tel quel.",
+  "toolsOptions.paste": "Coller",
+  "toolsOptions.clipboard": "ce que vous avez copié",
+  "toolsOptions.pasteNone": "Ce que vous avez copié ne contient aucun serveur MCP. Copiez le bloc JSON des instructions du serveur (celui avec «command» ou «url») et appuyez sur «Coller»."
 }

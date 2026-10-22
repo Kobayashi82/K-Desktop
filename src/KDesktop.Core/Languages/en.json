@@ -3437,7 +3437,7 @@
   "toolsOptions.serverSwitch": "Server {0} on",
   "toolsOptions.importTitle": "Import MCP servers",
   "toolsOptions.importFilter": "MCP settings (*.json)",
-  "toolsOptions.importNone": "That file has no MCP servers (it looks for “mcpServers”).",
+  "toolsOptions.importNone": "That file has no MCP servers.",
   "toolsOptions.removeTitle": "Remove server",
   "toolsOptions.removeQuestion": "Remove “{0}” and its secrets? Its tools will be gone.",
   "toolsOptions.filter": "Find a tool",
@@ -3640,5 +3640,8 @@
   "toolsOptions.backToFiles": "Back to your tools",
   "toolsOptions.subjectGone": "There are no tools on this subject any more.",
   "toolsOptions.backToBuiltin": "Back to the built-in ones",
-  "assistant.prompt.speak": "What tools return may include drawings, tables or blanks meant for a screen. You speak: put it into words (for example, which letters are already in place and where, how many are missing and the lives left) and never copy symbols or drawings, even if the tool asks for it to be shown as is."
+  "assistant.prompt.speak": "What tools return may include drawings, tables or blanks meant for a screen. You speak: put it into words (for example, which letters are already in place and where, how many are missing and the lives left) and never copy symbols or drawings, even if the tool asks for it to be shown as is.",
+  "toolsOptions.paste": "Paste",
+  "toolsOptions.clipboard": "what you copied",
+  "toolsOptions.pasteNone": "What you copied has no MCP servers. Copy the JSON block from the server's instructions (the one with «command» or «url») and press «Paste»."
 }

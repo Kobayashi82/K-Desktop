@@ -3437,7 +3437,7 @@
   "toolsOptions.serverSwitch": "Server {0} attivo",
   "toolsOptions.importTitle": "Importa server MCP",
   "toolsOptions.importFilter": "Configurazione MCP (*.json)",
-  "toolsOptions.importNone": "Quel file non ha server MCP (si cerca «mcpServers»).",
+  "toolsOptions.importNone": "Quel file non contiene server MCP.",
   "toolsOptions.removeTitle": "Rimuovi server",
   "toolsOptions.removeQuestion": "Rimuovere «{0}» e i suoi segreti? I suoi strumenti spariranno.",
   "toolsOptions.filter": "Cerca strumento",
@@ -3640,5 +3640,8 @@
   "toolsOptions.backToFiles": "Torna ai tuoi strumenti",
   "toolsOptions.subjectGone": "Non ci sono più strumenti su questo tema.",
   "toolsOptions.backToBuiltin": "Torna a quelli inclusi",
-  "assistant.prompt.speak": "Ciò che restituiscono gli strumenti può contenere disegni, tabelle o spazi vuoti pensati per uno schermo. Tu parli: raccontalo a parole (per esempio, le lettere già trovate e in che posizione, quante ne mancano e le vite rimaste) e non copiare mai simboli o disegni, anche se lo strumento chiede di mostrarlo così com'è."
+  "assistant.prompt.speak": "Ciò che restituiscono gli strumenti può contenere disegni, tabelle o spazi vuoti pensati per uno schermo. Tu parli: raccontalo a parole (per esempio, le lettere già trovate e in che posizione, quante ne mancano e le vite rimaste) e non copiare mai simboli o disegni, anche se lo strumento chiede di mostrarlo così com'è.",
+  "toolsOptions.paste": "Incolla",
+  "toolsOptions.clipboard": "ciò che hai copiato",
+  "toolsOptions.pasteNone": "Ciò che hai copiato non contiene server MCP. Copia il blocco JSON dalle istruzioni del server (quello con «command» o «url») e premi «Incolla»."
 }

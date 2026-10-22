@@ -431,6 +431,7 @@ public partial class AssistantToolsSection : UserControl
         var buttons = new WrapPanel { Margin = new Thickness(0, 0, 0, 6) };
         buttons.Children.Add(Wide(SymbolRegular.Add24, Loc.T("toolsOptions.addServer"), _ => EditServer(null), primary: true));
         buttons.Children.Add(Wide(SymbolRegular.ArrowImport24, Loc.T("toolsOptions.import"), _ => Import()));
+        buttons.Children.Add(Wide(SymbolRegular.ClipboardPaste24, Loc.T("toolsOptions.paste"), _ => Paste()));
         card.Add(buttons);
         if (errors.Count > 0) card.Add(Note(Loc.T("toolsOptions.mcpBroken", errors[0]), danger: true));
         if (servers.Count == 0) card.Add(Caption(Loc.T("toolsOptions.noServers")));
@@ -536,27 +537,43 @@ public partial class AssistantToolsSection : UserControl
         Body.Children.Add(list.Border);
     }
 
+    /// <summary>The servers of another program's file (it opens where it looked last, Documents the first time).</summary>
     private void Import()
     {
-        var mcpo = @"E:\ProjectAI\Open WebUI\MCP";
+        var settings = _app.Config.Settings;
         var dialog = new OpenFileDialog
         {
             Title = Loc.T("toolsOptions.importTitle"),
             Filter = Loc.T("toolsOptions.importFilter") + "|*.json",
-            InitialDirectory = Directory.Exists(mcpo) ? mcpo : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            InitialDirectory = Directory.Exists(settings.AssistantMcpImportFolder) ? settings.AssistantMcpImportFolder : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
         };
         if (dialog.ShowDialog(Window.GetWindow(this)) != true) return;
+        settings.AssistantMcpImportFolder = Path.GetDirectoryName(dialog.FileName);
         string json;
         try { json = File.ReadAllText(dialog.FileName); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { _ = Say(Loc.T("toolsOptions.importTitle"), ex.Message); return; }
+        ImportFrom(json, Path.GetFileName(dialog.FileName), "toolsOptions.importNone");
+    }
+
+    /// <summary>What was copied from a README or another program's settings (5.0.137).</summary>
+    private void Paste()
+    {
+        string json;
+        try { json = Clipboard.ContainsText() ? Clipboard.GetText() : string.Empty; }
+        catch (System.Runtime.InteropServices.ExternalException) { json = string.Empty; }
+        ImportFrom(json, Loc.T("toolsOptions.clipboard"), "toolsOptions.pasteNone");
+    }
+
+    private void ImportFrom(string json, string source, string noneKey)
+    {
         var existing = App.ReadMcpServers(out _).Select(s => s.Id).ToList();
         var found = McpConfig.Import(json, existing);
         if (found.Count == 0)
         {
-            _ = Say(Loc.T("toolsOptions.importTitle"), Loc.T("toolsOptions.importNone"));
+            _ = Say(Loc.T("toolsOptions.importTitle"), Loc.T(noneKey));
             return;
         }
-        var window = new McpImportWindow(found, Path.GetFileName(dialog.FileName)) { Owner = Window.GetWindow(this) };
+        var window = new McpImportWindow(found, source) { Owner = Window.GetWindow(this) };
         if (window.ShowDialog() == true && window.Chosen.Count > 0) _app.ImportMcpServers(window.Chosen);
     }
 

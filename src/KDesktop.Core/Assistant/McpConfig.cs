@@ -137,11 +137,7 @@ public static partial class McpConfig
     /// <param name="existing">The ids already in <c>mcp.json</c>.</param>
     public static IReadOnlyList<McpImportCandidate> Import(string json, IReadOnlyCollection<string> existing)
     {
-        JsonNode? root;
-        try { root = JsonNode.Parse(json, documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true }); }
-        catch (JsonException) { return []; }
-        if ((root?["mcpServers"] ?? root?["servers"]) is not JsonObject servers) return [];
-
+        if (ServersIn(json) is not { } servers) return [];
         var result = new List<McpImportCandidate>();
         foreach (var (name, value) in servers)
         {
@@ -160,6 +156,26 @@ public static partial class McpConfig
             result.Add(new McpImportCandidate(entry, secrets, OverlapOf(entry), existing.Contains(name, StringComparer.OrdinalIgnoreCase)));
         }
         return result;
+    }
+
+    /// <summary>
+    /// The servers in a file or in what a README says to copy (5.0.137, pasted): <c>mcpServers</c> (Claude Desktop, mcpo,
+    /// Cursor), <c>servers</c> (VS Code), <c>mcp.servers</c> (VS Code's settings), the servers alone
+    /// (<c>{ "x": { "command": … } }</c>) or without the outer braces (<c>"x": { … }</c>, as most READMEs show it).
+    /// </summary>
+    private static JsonObject? ServersIn(string json)
+    {
+        var options = new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true };
+        JsonNode? root = null;
+        foreach (var text in new[] { json, "{" + json.Trim().TrimEnd(',') + "}" })
+        {
+            try { root = JsonNode.Parse(text, documentOptions: options); }
+            catch (JsonException) { continue; }
+            if (root is JsonObject) break;
+        }
+        if (root is not JsonObject top) return null;
+        if ((top["mcpServers"] ?? top["servers"] ?? top["mcp"]?["servers"]) is JsonObject servers) return servers;
+        return top.Count > 0 && top.All(p => p.Value is JsonObject s && (s.ContainsKey("command") || s.ContainsKey("url"))) ? top : null;
     }
 
     private static void TakeSecrets(JsonObject? values, string server, Dictionary<string, string> secrets, bool header)
