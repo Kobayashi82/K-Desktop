@@ -35,6 +35,9 @@
     { "say": "cuéntame un chiste corto", "expect": { "noTool": true } },
     { "say": "gracias, majo", "expect": { "noTool": true } },
     { "say": "¿cuál es la capital de Australia?", "expect": { "noTool": true, "answerContains": ["Canberra"] } },
-    { "say": "¿cuántos minutos tiene un día?", "expect": { "answerContains": ["1440", "1.440"] } }
+    { "say": "¿cuántos minutos tiene un día?", "expect": { "answerContains": ["1440", "1.440"] } },
+    { "say": "búscame el pdf de la factura de la luz", "expect": { "tool": "find_files" } },
+    { "say": "¿dónde guardé las fotos de la boda?", "expect": { "tool": "find_files" } },
+    { "say": "abre lo último que descargué", "expect": { "tool": ["open_file", "find_files"] } }
   ]
 }

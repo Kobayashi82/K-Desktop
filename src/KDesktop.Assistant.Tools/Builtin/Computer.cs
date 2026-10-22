@@ -42,7 +42,7 @@ public sealed class OpenWebTool(Func<Uri, bool>? open = null) : ITool
 {
     public string Name => "open_web";
 
-    public string Description => "Opens a web address in the user's browser.";
+    public string Description => "Opens in the browser a website the user names (youtube, github.com). Never guess an address: a document, manual or photo of the PC is open_file.";
 
     public string ParametersSchemaJson => ToolText.OneString("url", "The address, e.g. github.com");
 

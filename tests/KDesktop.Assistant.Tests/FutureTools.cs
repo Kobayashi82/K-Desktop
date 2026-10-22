@@ -26,8 +26,6 @@ internal static class FutureTools
             "qué pone aquí|lee lo que hay en pantalla|copia el texto de esta imagen|qué dice este mensaje de error|what does it say here|copy the text from this image|read what is on the screen"),
         new FakeTool("now_playing", "Tells which song or video is playing on the PC.",
             "qué canción es esta|qué está sonando|cómo se llama esta canción|de quién es esta canción|what song is this|what is playing right now|who sings this song"),
-        new FakeTool("find_files", "Finds files on the PC by name, type or date, to open them.",
-            "búscame el pdf de la factura de la luz|lo último que descargué|dónde guardé las fotos de la boda|abre el excel de los gastos|find the electricity bill pdf|the last thing I downloaded|where did I save the wedding photos"),
         new FakeTool("weather", "Gives the weather forecast for a place and a day.",
             "va a llover mañana|qué tiempo hace|qué temperatura habrá el sábado en Madrid|necesito paraguas hoy|is it going to rain tomorrow|what's the weather like|how cold will it be on Saturday"),
         new FakeTool("convert", "Converts amounts between units or currencies.",
