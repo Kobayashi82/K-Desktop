@@ -381,6 +381,8 @@ public sealed class TalkService
                 _output.State(who, "thinking");
                 await _loadBrain().ConfigureAwait(false);
                 return new TalkAnswer(Phrase(persona, "brainLoaded"), Remember: false);
+            case { Kind: QuickRuleKind.WhatsPlaying }:
+                return await ToolAsync(persona, "whats_playing", new JsonObject(), context, said, acknowledge: false, token).ConfigureAwait(false);
             case { Kind: QuickRuleKind.Dictate }:
                 return new TalkAnswer(Phrase(persona, "dictating"), Remember: false) { Dictates = true };
             case { Kind: QuickRuleKind.CancelTimer } cancelTimer:

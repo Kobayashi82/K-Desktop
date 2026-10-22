@@ -1,13 +1,19 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <!--
+      Windows 10 TFM: WinRT APIs (stage 10.2: what is playing, with the media controls of Windows). It still runs from
+      Windows 10 1809. The assistant SDK and the assistants stay on net10.0-windows (their csproj say so): an assistant
+      never needs the WinRT projection.
+    -->
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <Version>5.0.142</Version>
+    <Version>5.0.143</Version>
     <!-- The Android app has a version of its own: raise it only when android\ changes (see tools\android\build-apk.ps1). -->
     <AndroidVersion>1.0.1</AndroidVersion>
     <Authors>Kobayashi82</Authors>

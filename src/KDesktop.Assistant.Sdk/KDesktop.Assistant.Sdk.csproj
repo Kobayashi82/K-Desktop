@@ -6,6 +6,9 @@
     host with SDK 1.y. Assistants draw with WPF's DrawingContext; the host plays that on the GPU.
   -->
   <PropertyGroup>
+    <!-- Not the Windows 10 TFM of K-Desktop (Directory.Build.props): assistants compile against this. -->
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
     <UseWPF>true</UseWPF>
     <RootNamespace>KDesktop.Assistant.Sdk</RootNamespace>
     <AssemblyName>KDesktop.Assistant.Sdk</AssemblyName>

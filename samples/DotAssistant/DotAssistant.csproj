@@ -5,6 +5,9 @@
     has an extra, one settings page and a panel with a card and a button. `dotnet build` makes bin\…\dot-1.1.0.kai.
   -->
   <PropertyGroup>
+    <!-- Not the Windows 10 TFM of K-Desktop (Directory.Build.props): assistants compile against this. -->
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
     <UseWPF>true</UseWPF>
     <RootNamespace>DotAssistant</RootNamespace>
     <AssemblyName>DotAssistant</AssemblyName>

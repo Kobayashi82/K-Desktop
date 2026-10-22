@@ -24,6 +24,15 @@
     <ProjectReference Include="..\KDesktop.Assistant.Host\KDesktop.Assistant.Host.csproj" />
   </ItemGroup>
 
+  <!--
+    The WinRT projection (Windows 10 TFM) is 25 MB of types of which K-Desktop uses a handful: precompiled it added
+    40 MB more to the portable. Left out of ReadyToRun (it works because the publish is not one composite image), the few
+    types used are compiled when first needed.
+  -->
+  <ItemGroup>
+    <PublishReadyToRunExclude Include="Microsoft.Windows.SDK.NET.dll" />
+  </ItemGroup>
+
   <ItemGroup>
     <Page Remove="App.xaml" />
     <Page Include="App.xaml" />

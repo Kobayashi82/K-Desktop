@@ -332,6 +332,7 @@ public partial class AssistantToolsSection : UserControl
         ["open_web"] = "web", ["search_web"] = "web", ["look_up_web"] = "web", ["read_web"] = "web",
         ["look_at_screen"] = "screen", ["transform_text"] = "screen",
         ["open_app"] = "pc", ["control_app"] = "pc", ["end_process"] = "pc", ["pc_status"] = "pc",
+        ["whats_playing"] = "media", ["control_media"] = "media",
     };
 
     private static string SubjectOf(string tool) => SubjectOfTool.GetValueOrDefault(tool, "other");
@@ -345,6 +346,7 @@ public partial class AssistantToolsSection : UserControl
         "web" => SymbolRegular.Globe24,
         "screen" => SymbolRegular.Eye24,
         "pc" => SymbolRegular.Desktop24,
+        "media" => SymbolRegular.MusicNote224,
         _ => SymbolRegular.Toolbox24,
     };
 

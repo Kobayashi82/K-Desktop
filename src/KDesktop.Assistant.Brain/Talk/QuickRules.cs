@@ -11,7 +11,7 @@ namespace KDesktop.Assistant.Brain.Talk;
 /// («recuerda que…», «¿qué sabes de mí?», «olvida que…»): a small model took them for notes.
 /// </summary>
 /// <summary><see cref="Act"/> and <see cref="OpenApp"/> (stage 8.1) only count after the user's own commands.</summary>
-public enum QuickRuleKind { Time, Timer, Note, CancelTimer, Cancel, Repeat, Undo, First, Second, OpenWeb, Remember, Recall, Forget, Act, OpenApp, FreeBrain, LoadBrain, RepeatCommand, Dictate }
+public enum QuickRuleKind { Time, Timer, Note, CancelTimer, Cancel, Repeat, Undo, First, Second, OpenWeb, Remember, Recall, Forget, Act, OpenApp, FreeBrain, LoadBrain, RepeatCommand, Dictate, WhatsPlaying }
 
 /// <summary>An order a fixed rule understood, with what filled its gaps.</summary>
 /// <param name="Seconds">For a timer: how long.</param>
