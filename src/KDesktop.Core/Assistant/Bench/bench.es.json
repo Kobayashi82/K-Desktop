@@ -22,7 +22,7 @@
     { "say": "¿cuántos días tiene el año 2028?", "expect": { "answerContains": ["366"] } },
     { "say": "si me gasto 37 euros de 120, ¿cuánto me queda?", "expect": { "answerContains": ["83"] } },
     { "say": "¿cuánto son 3 elevado a 5?", "expect": { "answerContains": ["243"] } },
-    { "say": "abre youtube", "expect": { "tool": "open_web" } },
+    { "say": "abre youtube", "expect": { "tool": ["open_web", "run_command"] } },
     { "say": "entra en la web de la Wikipedia", "expect": { "tool": ["open_web", "search_web"] } },
     { "say": "busca recetas de lentejas", "expect": { "tool": "search_web" } },
     { "say": "mira en internet cuándo es el próximo eclipse", "expect": { "tool": ["look_up_web", "search_web"] } },

@@ -25,7 +25,7 @@ public sealed class TransformTextTool(ICommandBridge bridge, IWriter? writer) : 
 {
     public string Name => "transform_text";
 
-    public string Description => "Works on the text the user has selected (or else copied): translate, correct (spelling and grammar), summarize, formal, casual, list (bullet points), shorter, longer, or other (say how in details). The result replaces the selection, or is left copied; a summary is said to the user. Use it for \"this\", \"the text\", \"what I selected / copied\".";
+    public string Description => "Works on the text the user has selected (or else copied): translate, correct (spelling and grammar), summarize, formal, casual, list (bullet points), shorter, longer, or other (say how in details). The result replaces the selection, or is left copied; a summary is said to the user. Use it for \"this\", \"the text\", \"what I selected / copied\". Not for a text the user says in the order itself: do that yourself.";
 
     public static readonly IReadOnlyList<string> Actions = ["translate", "correct", "summarize", "formal", "casual", "list", "shorter", "longer", "other"];
 
@@ -51,6 +51,26 @@ public sealed class TransformTextTool(ICommandBridge bridge, IWriter? writer) : 
             _ => "other",
         };
 
+    /// <summary>
+    /// The text the order itself brings, after a colon or between quotes («tradúceme al inglés: me duele la cabeza»), or
+    /// null. The model is answering it: what is selected or copied has nothing to do with it.
+    /// </summary>
+    public static string? InOrder(string? heard)
+    {
+        if (string.IsNullOrWhiteSpace(heard)) return null;
+        string? text = null;
+        var colon = heard.IndexOf(':', StringComparison.Ordinal);
+        if (colon >= 0) text = heard[(colon + 1)..];
+        else
+        {
+            var open = heard.IndexOfAny(['«', '"', '“']);
+            var close = open < 0 ? -1 : heard.IndexOfAny(['»', '"', '”'], open + 1);
+            if (close > open) text = heard[(open + 1)..close];
+        }
+        text = text?.Trim().Trim('«', '»', '"', '“', '”', ' ');
+        return text is { Length: > 0 } && text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= 2 ? text : null;
+    }
+
     /// <summary>What to ask the model, in English.</summary>
     public static string Instruction(string action, string? language, string? details)
     {
@@ -75,6 +95,9 @@ public sealed class TransformTextTool(ICommandBridge bridge, IWriter? writer) : 
         var action = ActionOf(arguments);
         var instruction = Instruction(action, arguments.GetString("language"), arguments.GetString("details"));
         if (instruction.Length == 0) return ToolResult.Fail("Say what to do with the text (details).");
+        // «tradúceme al inglés: me duele la cabeza» would have translated whatever was selected or copied.
+        if (InOrder(context.Heard) is { } inOrder)
+            return ToolResult.Fail($"The text is in the order itself (\"{inOrder}\"), not selected or copied: do it yourself and answer with the result, without tools.");
         if (writer is null || !writer.CanWrite(context.Assistant)) return ToolResult.Fail("There is no model to write with.");
         var intent = Intent(arguments);
 

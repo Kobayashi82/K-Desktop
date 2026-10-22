@@ -11,7 +11,7 @@ namespace KDesktop.Assistant.Brain.Talk;
 /// («recuerda que…», «¿qué sabes de mí?», «olvida que…»): a small model took them for notes.
 /// </summary>
 /// <summary><see cref="Act"/> and <see cref="OpenApp"/> (stage 8.1) only count after the user's own commands.</summary>
-public enum QuickRuleKind { Time, Timer, Note, CancelTimer, Cancel, Repeat, Undo, First, Second, OpenWeb, Remember, Recall, Forget, Act, OpenApp, FreeBrain, LoadBrain }
+public enum QuickRuleKind { Time, Timer, Note, CancelTimer, Cancel, Repeat, Undo, First, Second, OpenWeb, Remember, Recall, Forget, Act, OpenApp, FreeBrain, LoadBrain, RepeatCommand }
 
 /// <summary>An order a fixed rule understood, with what filled its gaps.</summary>
 /// <param name="Seconds">For a timer: how long.</param>
@@ -26,7 +26,7 @@ public sealed record QuickRule(QuickRuleKind Kind, double? Seconds = null, strin
 /// («¿puedes…?»). Anything else goes to the AI. The language files have:
 /// <list type="bullet">
 /// <item><c>assistant.rule.&lt;kind&gt;</c> (<c>time</c>, <c>timer</c>, <c>note</c>, <c>cancelTimer</c>, <c>cancel</c>,
-/// <c>repeat</c>, <c>undo</c>, <c>openWeb</c> —only when its gap names web addresses—, <c>remember</c>, <c>recall</c>,
+/// <c>repeat</c>, <c>repeatCommand</c> (the last command it ran, again), <c>undo</c>, <c>openWeb</c> —only when its gap names web addresses—, <c>remember</c>, <c>recall</c>,
 /// <c>forget</c>, <c>openApp</c>, <c>freeBrain</c> and <c>loadBrain</c> (the model out of the graphics card or into it), and <c>act.&lt;op&gt;</c> for each operation on a program —«minimiza {app}»—): ways of saying it, separated by «|», with gaps <c>{dur}</c> (a duration: «diez
 /// minutos», «una hora y media») and <c>{text}</c> (some words, kept as said), and <c>[optional words]</c>;</item>
 /// <item><c>assistant.rule.fillers</c>, <c>assistant.rule.polite</c>: what is taken off around it and at its start («|»);</item>

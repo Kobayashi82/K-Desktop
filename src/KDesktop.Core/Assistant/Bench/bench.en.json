@@ -22,7 +22,7 @@
     { "say": "how many days are there in 2028?", "expect": { "answerContains": ["366"] } },
     { "say": "if I spend 37 dollars out of 120, how much is left?", "expect": { "answerContains": ["83"] } },
     { "say": "what is 3 to the power of 5?", "expect": { "answerContains": ["243"] } },
-    { "say": "open youtube", "expect": { "tool": "open_web" } },
+    { "say": "open youtube", "expect": { "tool": ["open_web", "run_command"] } },
     { "say": "go to the Wikipedia website", "expect": { "tool": ["open_web", "search_web"] } },
     { "say": "search for lentil recipes", "expect": { "tool": "search_web" } },
     { "say": "look up online when the next eclipse is", "expect": { "tool": ["look_up_web", "search_web"] } },

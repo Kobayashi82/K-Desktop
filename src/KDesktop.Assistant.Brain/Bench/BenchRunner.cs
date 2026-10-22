@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Text.Json;
 using KDesktop.Assistant.Brain.Models;
 using KDesktop.Assistant.Brain.Talk;
@@ -8,6 +9,7 @@ using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Bench;
 using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Assistant.Pipe;
+using KDesktop.Core.Voice;
 
 namespace KDesktop.Assistant.Brain.Bench;
 
@@ -108,8 +110,12 @@ public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimePro
             var mind = new TalkMind(runner, chooser, time ?? TimeProvider.System);
             var close = matched is null ? null : TalkService.CloseCommands(matched, [], capable);
             IReadOnlyCollection<string>? leaveOut = matched is not null && !capable && close is { Count: 0 } ? ["run_command"] : null;
-            var said = await mind.AnswerAsync(model, modelName, persona, [], [], item.Say, new ToolContext(null), null, cancellationToken, leaveOut, close, capable)
-                .ConfigureAwait(false);
+            // A big model is told which of them the order surely asks for.
+            IReadOnlyList<string>? certain = capable && matched is not null
+                ? [.. matched.Parts.Where(p => p.Sure && p.Candidates[0].Score >= CommandTools.Direct && TalkService.IsShort(p.Text)).Select(p => p.Candidates[0].Name)]
+                : null;
+            var said = await mind.AnswerAsync(model, modelName, persona, [], [], item.Say, new ToolContext(null, item.Say), null, cancellationToken, leaveOut, close, capable,
+                certain).ConfigureAwait(false);
             answer = said.Failed ? string.Empty : said.Text;
             if (said.Failed) route = "failed";
         }
@@ -173,8 +179,23 @@ public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimePro
             return false;
         if (expect.Tools.Count > 0 && !used.Any(expect.Tools.Contains)) return false;
         if (expect.NoTool && used.Count > 0) return false;
-        if (!byRule && expect.AnswerContains.Count > 0 && !expect.AnswerContains.Any(a => answer.Contains(a, StringComparison.OrdinalIgnoreCase))) return false;
+        if (!byRule && expect.AnswerContains.Count > 0 && !expect.AnswerContains.Any(a => answer.Contains(a, StringComparison.OrdinalIgnoreCase) || SaysNumber(answer, a)))
+            return false;
         return true;
+    }
+
+    /// <summary>«ciento noventa y cinco minutos» says «195»: an answer for a voice may say its numbers in words.</summary>
+    private static bool SaysNumber(string answer, string expected)
+    {
+        if (!int.TryParse(expected, NumberStyles.None, CultureInfo.InvariantCulture, out var number)) return false;
+        var words = TextSimilarity.Words(answer);
+        for (var i = 0; i < words.Length; i++)
+            if (SpokenNumbers.TryRead(words, i, out var value, out var end))
+            {
+                if (value == number) return true;
+                i = end - 1;
+            }
+        return false;
     }
 
     /// <summary>

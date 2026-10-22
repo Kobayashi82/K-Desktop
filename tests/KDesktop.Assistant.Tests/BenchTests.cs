@@ -65,6 +65,9 @@ public sealed class BenchTests : IDisposable
         Assert.False(BenchRunner.Check(expect, [], "Son 43,2.", byRule: false));
         // A rule has no answer to check.
         Assert.True(BenchRunner.Check(new BenchExpect(["get_time"], false, ["17"]), ["get_time"], "", byRule: true));
+        // A voice says its numbers in words.
+        Assert.True(BenchRunner.Check(new BenchExpect([], false, ["195"]), [], "Hay ciento noventa y cinco minutos.", byRule: false));
+        Assert.False(BenchRunner.Check(new BenchExpect([], false, ["195"]), [], "Hay doscientos veinticinco minutos.", byRule: false));
         Assert.False(BenchRunner.Check(new BenchExpect([], true, []), ["search_web"], "", byRule: false));
     }
 

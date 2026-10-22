@@ -15,18 +15,21 @@ namespace KDesktop.Assistant.Brain.Talk;
 public static class TalkPrompt
 {
     /// <param name="commands">The user's commands K-Desktop found close to the order (none: no line about them).</param>
+    /// <param name="certain">Those of them the order surely asks for (to run, not to offer).</param>
     public static string Compose(AssistantPersona persona, DateTimeOffset now, IReadOnlyList<Core.Assistant.Pipe.MemoryEntry>? known = null,
-        IReadOnlyList<string>? commands = null)
+        IReadOnlyList<string>? commands = null, IReadOnlyList<string>? certain = null)
     {
         var culture = Loc.Instance.Culture;
         var text = new StringBuilder();
         text.AppendLine(Loc.T("assistant.prompt.who", persona.Name));
         text.AppendLine(persona.Prompt);
+        // The tools before the style: «contesta con una o dos frases» first, a 9 B answered in words and called nothing.
+        text.AppendLine(Loc.T("assistant.prompt.tools"));
         text.AppendLine(Loc.T("assistant.prompt.style"));
         text.AppendLine(Loc.T("assistant.prompt.language"));
-        text.AppendLine(Loc.T("assistant.prompt.tools"));
         text.AppendLine(Loc.T("assistant.prompt.act"));
         if (commands is { Count: > 0 }) text.AppendLine(Loc.T("assistant.prompt.commands", string.Join(", ", commands.Select(c => $"«{c}»"))));
+        if (certain is { Count: > 0 }) text.AppendLine(Loc.T("assistant.prompt.certain", string.Join(", ", certain.Select(c => $"«{c}»"))));
         text.Append(Loc.T("assistant.prompt.now", now.ToString("D", culture) + ", " + now.ToString("t", culture)));
         if (known is { Count: > 0 })
         {

@@ -8,8 +8,27 @@ namespace KDesktop.Assistant.Tests;
 /// <summary>Stage 8 (<c>transformar_texto</c>): the text taken, rewritten by the model, and put back where it belongs.</summary>
 public class TransformTextTests
 {
-    private static Task<ToolResult> Transform(TextBridge bridge, Writer writer, string json) =>
-        new TransformTextTool(bridge, writer).RunAsync(ToolArguments.Parse(json), new ToolContext("lander"), default);
+    private static Task<ToolResult> Transform(TextBridge bridge, Writer writer, string json, string? heard = null) =>
+        new TransformTextTool(bridge, writer).RunAsync(ToolArguments.Parse(json), new ToolContext("lander", heard), default);
+
+    [Theory]
+    [InlineData("tradúceme al inglés: me duele la cabeza", "me duele la cabeza")]
+    [InlineData("corrige «haber si vienes»", "haber si vienes")]
+    [InlineData("traduce \"good morning everyone\" al español", "good morning everyone")]
+    [InlineData("tradúceme esto al inglés", null)]
+    [InlineData("corrige lo que he seleccionado: ya", null)]
+    public void TheTextInTheOrderIsFound(string heard, string? text) => Assert.Equal(text, TransformTextTool.InOrder(heard));
+
+    [Fact]
+    public async Task ATextInTheOrderIsNotTakenFromTheClipboard()
+    {
+        // It would have translated whatever was selected or copied.
+        var bridge = new TextBridge(new TextDoneMessage("r", true, "otra cosa", "clipboard"));
+        var result = await Transform(bridge, new Writer("x"), """{"action":"translate","language":"English"}""", "tradúceme al inglés: me duele la cabeza");
+        Assert.True(result.Failed);
+        Assert.Contains("me duele la cabeza", result.Text, StringComparison.Ordinal);
+        Assert.Empty(bridge.Asked);
+    }
 
     [Fact]
     public async Task TheSelectionIsReplaced()

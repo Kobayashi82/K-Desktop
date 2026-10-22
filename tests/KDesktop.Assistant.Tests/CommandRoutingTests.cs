@@ -163,6 +163,26 @@ public sealed class CommandRoutingTests : IDisposable
         Assert.Equal(["run:prev:lander"], _bridge.Done);
     }
 
+    [Fact]
+    public async Task ThePreviousCommandIsTheLastOneItRanNotOneCalledSo()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        const string Again = "vuelva a repetir el comando anterior completo";
+        _bridge.Matches[Again] = new MatchedMessage("x", 0.9, [], [new MatchedPart(Again, true, [new MatchedCandidate("prev", "Anterior", 0.87)])]);
+        await talk.HandleAsync(new HeardMessage(Again, "panel", "lander"));
+        Assert.Equal("Todavía no he ejecutado ningún comando.", LastAnswer);
+        Assert.Empty(_bridge.Done);
+
+        _bridge.Sure("vacía la papelera", ("bin", "Vaciar papelera", null));
+        _bridge.Sure("Vaciar papelera", ("bin", "Vaciar papelera", null));
+        await talk.HandleAsync(new HeardMessage("vacía la papelera", "panel", "lander"));
+        await talk.HandleAsync(new HeardMessage(Again, "panel", "lander"));
+        Assert.Equal(["run:bin:lander", "run:bin:lander"], _bridge.Done);
+        Assert.Contains("Vaciar papelera", LastAnswer, StringComparison.Ordinal);
+        Assert.Empty(_model.Requests);
+    }
+
     private string LastAnswer => _chat.Last(c => c is { Role: "assistant", Final: true }).Text;
 
     [Fact]

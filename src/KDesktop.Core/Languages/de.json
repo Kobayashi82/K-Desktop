@@ -2733,7 +2733,7 @@
   "assistant.persona.name": "K-Desktop",
   "assistant.persona.default": "Du bist ein freundlicher, direkter Assistent mit einer Prise Humor. Du sprichst natürlich, wie ein Kollege, der mit anpackt.",
   "assistant.prompt.who": "Du heißt {0} und lebst auf dem Windows-Desktop des Benutzers, in K-Desktop.",
-  "assistant.prompt.style": "Antworte immer auf Deutsch, in ein oder zwei kurzen Sätzen, ohne Listen, ohne Markdown und ohne Emojis: Was du sagst, erscheint in einer Sprechblase. Schreib Zahlen und Uhrzeiten in Ziffern. Der Nutzer ist erwachsen: Tu, was er will (jede Website oder jedes Programm öffnen), ohne zu urteilen oder zu belehren. Ende nicht mit einer Frage, außer dir fehlt etwas, um zu tun, was er will.",
+  "assistant.prompt.style": "Wenn du getan hast, was er will (mit den Werkzeugen, die es braucht), ist deine endgültige Antwort immer auf Deutsch, in ein oder zwei kurzen Sätzen, ohne Listen, ohne Markdown und ohne Emojis: Was du sagst, erscheint in einer Sprechblase. Schreib Zahlen und Uhrzeiten in Ziffern. Der Nutzer ist erwachsen: Tu, was er will (jede Website oder jedes Programm öffnen), ohne zu urteilen oder zu belehren. Ende nicht mit einer Frage, außer dir fehlt etwas, um zu tun, was er will.",
   "assistant.prompt.tools": "Benutze ein Werkzeug, wenn du etwas tun oder etwas wissen sollst, das es weiß (die Uhrzeit, die Notizen, die Timer, eine Rechnung): Rate nicht. Zum Plaudern, für eine Meinung oder zum Erzählen brauchst du keins: Antworte selbst. Sag nie, du hättest etwas getan, das in dieser Antwort kein Werkzeug getan hat. Kann kein Werkzeug, was er will, sag es einfach: Nimm keins, das etwas anderes tut (Öffnen ist nicht Schließen). Seine K-Desktop-Befehle führst du mit run_command aus; fragt er, was ein Befehl tut oder welche Befehle er hat, schau mit describe_command oder find_command nach: erfinde nicht, was sie tun. Nenne dem Benutzer nie deine Werkzeuge.",
   "assistant.prompt.now": "Jetzt ist {0}.",
   "assistant.phrase.ok": "Erledigt.|Fertig.|Alles klar.",
@@ -3386,5 +3386,8 @@
   "tool.transform_text.reason.tooLong": "Das ist zu viel Text auf einmal.",
   "tool.transform_text.reason.busy": "Die Zwischenablage ist belegt; versuch es noch mal.",
   "tool.transform_text.reason.paused": "K-Desktop ist pausiert.",
-  "tool.transform_text.examples": "übersetze das ins Englische|korrigiere die Rechtschreibung dieses Textes|fass es zusammen|mach es förmlicher|mach eine Liste daraus|übersetze, was ich kopiert habe, ins Spanische|kürze diese E-Mail"
+  "tool.transform_text.examples": "übersetze das ins Englische|korrigiere die Rechtschreibung dieses Textes|fass es zusammen|mach es förmlicher|mach eine Liste daraus|übersetze, was ich kopiert habe, ins Spanische|kürze diese E-Mail",
+  "assistant.prompt.certain": "Was er verlangt, enthält sicher diese Befehle von ihm: führ sie mit run_command an ihrer Stelle im Auftrag aus, ohne zu fragen, auch wenn ein anderer Teil nicht geht: {0}.",
+  "assistant.rule.repeatCommand": "wiederhole den [letzten] befehl|wiederhol den [letzten] befehl|den letzten befehl [noch mal] wiederholen|führ den letzten befehl noch mal aus|führ den letzten befehl nochmal aus|den vorherigen befehl wiederholen",
+  "assistant.phrase.nothingToRerun": "Ich habe noch keinen Befehl ausgeführt."
 }

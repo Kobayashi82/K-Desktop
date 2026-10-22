@@ -10,7 +10,7 @@ public sealed class CalculateTool : ITool
 {
     public string Name => "calculate";
 
-    public string Description => "Evaluates an arithmetic expression exactly. Use it for any calculation instead of doing it yourself (dates and clock times: date_math).";
+    public string Description => "Evaluates an arithmetic expression exactly. Use it for any calculation instead of doing it yourself (dates and clock times: date_math). A quarter of an hour is 15 minutes, half an hour 30.";
 
     public string ParametersSchemaJson => ToolText.OneString("expression", "The expression, with + - * / ^, % for percent, mod for the remainder of a division, and parentheses, e.g. 18%*240 for 18 percent of 240, 22 mod 7 for the remainder");
 

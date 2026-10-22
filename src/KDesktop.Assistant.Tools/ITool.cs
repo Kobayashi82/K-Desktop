@@ -72,7 +72,8 @@ public sealed record ToolUndo(string Tool, string Data);
 
 /// <summary>Who a tool works for and what the host lends it.</summary>
 /// <param name="Assistant">The assistant it works for; null: the module without a body.</param>
-public sealed record ToolContext(string? Assistant);
+/// <param name="Heard">The order being answered, when there is one.</param>
+public sealed record ToolContext(string? Assistant, string? Heard = null);
 
 /// <summary>The tools that exist (built in now; JSON and MCP ones later, stage 9).</summary>
 public sealed class ToolRegistry

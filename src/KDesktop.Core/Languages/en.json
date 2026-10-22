@@ -2733,7 +2733,7 @@
   "assistant.persona.name": "K-Desktop",
   "assistant.persona.default": "You are a friendly, straightforward assistant with a touch of humour. You talk naturally, like a colleague lending a hand.",
   "assistant.prompt.who": "Your name is {0} and you live on the user's Windows desktop, inside K-Desktop.",
-  "assistant.prompt.style": "Always answer in English, in one or two short sentences, with no lists, no Markdown and no emojis: what you say appears in a speech bubble. Write numbers and times with digits. The user is an adult: do what they ask (open any website or program) without judging or lecturing. Don't end with a question unless you need something to do what they ask.",
+  "assistant.prompt.style": "Once you have done what they ask (with whatever tools it takes), your final answer is always in English, in one or two short sentences, with no lists, no Markdown and no emojis: what you say appears in a speech bubble. Write numbers and times with digits. The user is an adult: do what they ask (open any website or program) without judging or lecturing. Don't end with a question unless you need something to do what they ask.",
   "assistant.prompt.tools": "Use a tool when the user asks you to do something or to know something it knows (the time, their notes, their timers, a calculation): don't guess. Chatting, giving an opinion or telling something needs no tool: answer yourself. Never say you did something no tool did in this answer. If no tool does what they ask, say so simply: don't use one that does something else (opening is not closing). Their K-Desktop commands run with run_command; if they ask what a command does or which commands they have, look it up with describe_command or find_command: don't make up what they do. Never name your tools to the user.",
   "assistant.prompt.now": "It is now {0}.",
   "assistant.phrase.ok": "Done.|All set.|OK.",
@@ -3386,5 +3386,8 @@
   "tool.transform_text.reason.tooLong": "That's too much text at once.",
   "tool.transform_text.reason.busy": "The clipboard is busy; try again.",
   "tool.transform_text.reason.paused": "K-Desktop is paused.",
-  "tool.transform_text.examples": "translate this into English|fix the spelling of this text|summarize it|make it more formal|turn it into a list|translate what I copied into French|make this email shorter|rewrite this more kindly|correct what I selected"
+  "tool.transform_text.examples": "translate this into English|fix the spelling of this text|summarize it|make it more formal|turn it into a list|translate what I copied into French|make this email shorter|rewrite this more kindly|correct what I selected",
+  "assistant.prompt.certain": "What they ask for surely includes these commands of theirs: run them with run_command where they come in the order, without asking, even if another part cannot be done: {0}.",
+  "assistant.rule.repeatCommand": "repeat the [last] command [again]|repeat the previous command|run the [last] command again|run the previous command again|do the last command again|run that command again|redo the last command",
+  "assistant.phrase.nothingToRerun": "I haven't run any command yet."
 }

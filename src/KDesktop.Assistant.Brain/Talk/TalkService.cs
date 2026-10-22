@@ -128,6 +128,7 @@ public sealed class TalkService
             if (answer.Remember) conversation.History.Add(said, answer.Text, answer.Tools, answer.Steps);
             Learn(who, said, answer, token);
             if (answer.Text.Length > 0) conversation.LastAnswer = answer.Text;
+            if (LastCommandOf(answer.Steps) is { } command) conversation.LastCommand = command;
             _output.State(who, "speaking");
             await _output.SpeakTurnAsync(who, turn, answer.Text, token).ConfigureAwait(false);
             // Said aloud and answered with a question: the answer may come aloud too, without the wake word (stage 5.3).
@@ -248,7 +249,7 @@ public sealed class TalkService
 
     private async Task<TalkAnswer> AnswerAsync(Conversation conversation, AssistantPersona persona, string? who, string said, string turn, bool wasBusy, CancellationToken token)
     {
-        var context = new ToolContext(who);
+        var context = new ToolContext(who, said);
         var rule = QuickRules.Match(said, [persona.Name]);
         // The answer to «¿A o B?»: «el primero», «la otra» or one of the names.
         var pending = conversation.TakeChoice(_time.GetUtcNow());
@@ -258,6 +259,10 @@ public sealed class TalkService
         {
             case { Kind: QuickRuleKind.Cancel }:
                 return new TalkAnswer(Phrase(persona, wasBusy ? "cancelled" : "nothingToCancel"), Remember: false);
+            case { Kind: QuickRuleKind.RepeatCommand }:
+                // «vuelve a repetir el comando anterior»: the last one it ran, not the command called «Anterior».
+                if (conversation.LastCommand is not { } again) return new TalkAnswer(Phrase(persona, "nothingToRerun"), Remember: false);
+                return await ToolAsync(persona, "run_command", new JsonObject { ["command"] = again }, context, said, acknowledge: true, token).ConfigureAwait(false);
             case { Kind: QuickRuleKind.Repeat }:
                 return new TalkAnswer(conversation.LastAnswer ?? Phrase(persona, "nothingToRepeat"), Remember: false);
             case { Kind: QuickRuleKind.Undo }:
@@ -306,6 +311,8 @@ public sealed class TalkService
         var forAi = said;
         IReadOnlyCollection<string>? leaveOut = null;
         IReadOnlyList<string>? close = null;
+        // Commands surely asked for that a big model was left to run, with the rest of the order.
+        IReadOnlyList<string>? certain = null;
         // What is left of the order for the rules about programs and the AI: all of it, or what no command took.
         IReadOnlyList<string> leftover = [said];
         // A phrase the user taught it («cuando diga «la vuelta»…»): the AI, with that memory, before any command that sounds
@@ -332,7 +339,12 @@ public sealed class TalkService
                 .DistinctBy(c => (c.Command ?? c.Name, c.Media, c.Value)).ToList();
             // A big model: all of the order at once, or all of it for the AI. Run in pieces, «…la papelera, esa ventana
             // muévela a la derecha y la otra de equipo al otro monitor» opened «Equipo» and left the rest without it.
-            if (capable && (matched.Unmatched.Count > 0 || !matched.Parts.All(Direct))) sure = [];
+            if (capable && (matched.Unmatched.Count > 0 || !matched.Parts.All(Direct)))
+            {
+                // It is still told they are sure: Bonsai, lost in «guarda una copia de todo», offered to «apagar la pantalla».
+                certain = [.. sure.Select(c => c.Name)];
+                sure = [];
+            }
             // Not sure of any part, but the whole order is that near one command and well ahead of the rest («Va ser la
             // papelera», Parakeet's «vacía la papelera», 0.82): it is that one. K-Desktop still asks before what is risky.
             if (sure.Count == 0 && matched.Parts is [{ Sure: false, Candidates: [var only, ..] } whole] && only.Score >= CommandTools.Direct
@@ -399,7 +411,7 @@ public sealed class TalkService
             _output.SpeakAhead(who, turn, sofar);
         }, _time);
         var answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), conversation.History.LastTools(), forAi, context, shown.Show, token,
-            leaveOut, close, capable).ConfigureAwait(false);
+            leaveOut, close, capable, certain).ConfigureAwait(false);
         answer = answer with { Text = answer.Text.Length > 0 ? answer.Text : Phrase(persona, "ok"), FromAi = true };
         // One «Recibido.», at the start («Recibido. He ejecutado «Equipo». Afirmativo. He pasado…» had two).
         return ran is null ? answer : Join(ran, answer with { Text = answer.WithoutAck, Ack = null }) with { FromAi = true, Failed = answer.Failed };
@@ -593,6 +605,20 @@ public sealed class TalkService
         return new TalkAnswer(acknowledge && result.Reply is not null ? Phrase(persona, "ok") + " " + reply : reply) { Tools = [tool], Steps = steps };
     }
 
+    /// <summary>The last command an answer ran well, by the name it was asked with; null: none.</summary>
+    internal static string? LastCommandOf(IReadOnlyList<ChatMessage> steps)
+    {
+        string? last = null;
+        for (var i = 0; i < steps.Count; i++)
+            foreach (var call in steps[i].ToolCalls ?? [])
+                if (call.Name == "run_command" && call.Arguments.ValueKind == JsonValueKind.Object && call.Arguments.TryGetProperty("command", out var name)
+                    && name.ValueKind == JsonValueKind.String && name.GetString() is { Length: > 0 } command
+                    && steps.Skip(i + 1).FirstOrDefault(m => m.Role == ChatRole.Tool && m.ToolCallId == call.Id) is { } result
+                    && result.Content.StartsWith("Done", StringComparison.Ordinal))
+                    last = command;
+        return last;
+    }
+
     private string Phrase(AssistantPersona persona, string key, params object?[] args) => persona.Phrase(key, _random, args);
 
     private static string LowerFirst(string text) => text.Length > 1 && char.IsUpper(text[0]) && !char.IsUpper(text[1])
@@ -608,6 +634,9 @@ public sealed class TalkService
         public TalkHistory History { get; } = new(time);
 
         public string? LastAnswer { get; set; }
+
+        /// <summary>The last of the user's commands it ran well (by name), for «repite el comando anterior».</summary>
+        public string? LastCommand { get; set; }
 
         /// <summary>An order is going on.</summary>
         public bool Busy

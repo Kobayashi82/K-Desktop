@@ -61,7 +61,7 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     /// <param name="capable">A big model: more rounds and calls, and the command tools always at hand.</param>
     public async Task<TalkAnswer> AnswerAsync(IChatModel model, string modelName, AssistantPersona persona, IReadOnlyList<ChatMessage> history,
         IReadOnlyCollection<string> recentTools, string said, ToolContext context, Action<string>? onText, CancellationToken cancellationToken,
-        IReadOnlyCollection<string>? leaveOut = null, IReadOnlyList<string>? commands = null, bool capable = false)
+        IReadOnlyCollection<string>? leaveOut = null, IReadOnlyList<string>? commands = null, bool capable = false, IReadOnlyList<string>? certain = null)
     {
         var maxRounds = capable ? CapableToolRounds : MaxToolRounds;
         var maxCalls = capable ? CapableToolCalls : MaxToolCalls;
@@ -81,7 +81,7 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         if (known.Any(m => QuickRules.Sites(m.Text).Count > 0)) always.Add(OpenWebTool);
         var offered = await chooser.ChooseAsync(available, said, [.. always.Distinct()], order, cancellationToken).ConfigureAwait(false);
         var definitions = offered.Tools.Select(t => new ToolDefinition(t.Name, t.Description, t.ParametersSchemaJson)).ToList();
-        var messages = new List<ChatMessage> { ChatMessage.System(TalkPrompt.Compose(persona, time.GetLocalNow(), known, commands)) };
+        var messages = new List<ChatMessage> { ChatMessage.System(TalkPrompt.Compose(persona, time.GetLocalNow(), known, commands, certain)) };
         messages.AddRange(history);
         // The language it speaks in, next to the order: a small model answers in the language it is spoken to otherwise
         // (Options → Assistant → General → the language they speak in). Only for this order, not kept in the history.
