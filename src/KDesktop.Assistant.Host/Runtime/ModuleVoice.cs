@@ -27,6 +27,8 @@ internal sealed class ModuleVoice : IDisposable
     private readonly Dictionary<string, Speaker> _speakers = new(StringComparer.Ordinal);
     /// <summary>The moods of the tests of Options (turn → moods), instead of the ones of the moment.</summary>
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, IReadOnlyList<string>> _testMoods = new(StringComparer.Ordinal);
+    /// <summary>The profile being edited of a test (turn → profile), instead of the speaker's.</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, VoiceProfile> _testProfiles = new(StringComparer.Ordinal);
     private volatile VoiceSettings _settings = new();
     private volatile string? _profile;
     private double _volume = 1;
@@ -66,7 +68,7 @@ internal sealed class ModuleVoice : IDisposable
         var package = assistant.Length > 0 ? ProfileOf?.Invoke(assistant) : null;
         var profile = own?.Profile == Core.Assistant.AssistantPersonal.OwnProfile
             ? package ?? VoiceProfile.Default
-            : VoiceProfile.Find(own?.Profile is { Length: > 0 } chosen ? chosen : null) ?? VoiceProfile.Find(_profile) ?? package ?? VoiceProfile.Default;
+            : VoiceProfiles.Find(own?.Profile is { Length: > 0 } chosen ? chosen : null) ?? VoiceProfiles.Find(_profile) ?? package ?? VoiceProfile.Default;
         return settings with { Profile = profile, Moods = moods };
     }
 
@@ -117,16 +119,20 @@ internal sealed class ModuleVoice : IDisposable
     /// with <paramref name="mood"/> (none: plain, not even «far») instead of the moods of the moment, and even with something
     /// full screen. A new test or <see cref="StopTest"/> stops the one before.
     /// </summary>
-    public void Test(string text, string? mood, Func<string, string, CancellationToken, Task> say)
+    /// <param name="profile">A profile being edited (Options → Voice → Perfiles de voz, stage 9.4): the test sounds with it
+    /// instead of the one of whoever says it.</param>
+    public void Test(string text, string? mood, Func<string, string, CancellationToken, Task> say, VoiceProfile? profile = null)
     {
         var turn = "test-" + Guid.NewGuid().ToString("N")[..8];
         _testMoods[turn] = mood is { Length: > 0 } ? [mood] : [];
+        if (profile is not null) _testProfiles[turn] = profile;
         var stop = new CancellationTokenSource();
         Interlocked.Exchange(ref _test, stop)?.Cancel();
         Log.Info($"Asistente: prueba de voz{(mood is { Length: > 0 } ? $" ({mood})" : "")}: «{text}»");
         _ = say(turn, text, stop.Token).ContinueWith(_ =>
         {
             _testMoods.TryRemove(turn, out var _);
+            _testProfiles.TryRemove(turn, out var _);
             Interlocked.CompareExchange(ref _test, null, stop);
             stop.Dispose();
         }, TaskScheduler.Default);
@@ -323,6 +329,7 @@ internal sealed class ModuleVoice : IDisposable
                     var watch = System.Diagnostics.Stopwatch.StartNew();
                     SpeechLine? line = null;
                     var settings = _owner.SettingsFor(_assistant, await MoodsAsync().ConfigureAwait(false));
+                    if (_owner._testProfiles.TryGetValue(Turn.TrimEnd('+'), out var edited)) settings = settings with { Profile = edited };
                     await foreach (var chunk in _owner.Speech.StreamAsync(sentence, language, settings, token).ConfigureAwait(false))
                     {
                         if (line is null)

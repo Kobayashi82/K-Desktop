@@ -131,6 +131,18 @@ public partial class App
             Ui.ShowOsd($"{AssistantName(id)}: {text}", Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(Math.Clamp(2 + text.Length * 0.06, 4, 15)));
     }
 
+    /// <summary>
+    /// The editor of voice profiles (stage 9.4): <paramref name="text"/> said with <paramref name="profile"/> as it is now (not
+    /// kept yet), in <paramref name="mood"/>, by the voice alone (no bubble, no OSD: it sounds again with every change).
+    /// </summary>
+    public bool TestVoiceProfile(string text, VoiceProfile profile, string? mood = null)
+    {
+        if (_assistant is not { IsRunning: true } supervisor || text.Trim().Length == 0) return false;
+        text = text.Trim();
+        Voice.OwnVoices.Said("test", text, DateTime.Now);
+        return supervisor.Send(new VoiceMessage("test", text, null, mood, profile.ToJson()));
+    }
+
     /// <summary>The test sentence in the language it is said in (it may not be K-Desktop's).</summary>
     public static string TestSentence(string language, string name)
     {

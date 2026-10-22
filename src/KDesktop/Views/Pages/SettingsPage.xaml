@@ -1073,6 +1073,7 @@
             <local:AssistantListSection x:Name="AssistantsSection" Tag="assistants" />
             <local:AssistantBrainSection Tag="brain" />
             <local:AssistantVoiceSection Tag="speech" />
+            <local:VoiceProfilesSection Tag="speech/profiles" />
             <local:AssistantMemorySection Tag="memory" />
             <local:AssistantNotesSection Tag="notes" />
             <local:AssistantToolsSection Tag="tools" Part="tools" />

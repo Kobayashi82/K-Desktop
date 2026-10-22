@@ -225,6 +225,56 @@ public class VoiceTests
     }
 
     [Fact]
+    public void ProfilesAtRandomAlwaysFitTheSchemaAndBuild()
+    {
+        // Stage 9.4: «Aleatorio» and «Nuevo al azar» never make what the schema refuses or the effects cannot play.
+        for (var seed = 0; seed < 200; seed++)
+        {
+            var chain = VoiceEffectCatalog.Random(new Random(seed));
+            Assert.InRange(chain.Count, 2, 4);
+            var profile = VoiceProfile.Default with { Id = "x", Name = "Prueba", Chain = chain };
+            Assert.Empty(VoiceProfiles.Check(profile));
+            Assert.False(Voice.Effects.VoiceChain.Build(profile, [], 24000, null, seed).IsEmpty);
+        }
+        // Every effect as the editor adds it, too.
+        foreach (var fx in VoiceEffectCatalog.Names)
+            Assert.Empty(VoiceProfiles.Check(VoiceProfile.Default with { Id = "x", Chain = [VoiceEffectCatalog.New(fx)] }));
+    }
+
+    [Fact]
+    public void TheUsersProfilesAreKeptFoundExportedAndImported()
+    {
+        var folder = VoiceProfiles.Folder;
+        if (Directory.Exists(folder)) Directory.Delete(folder, true);
+        // A new one gets its id from its name; never one of K-Desktop's.
+        var id = VoiceProfiles.Save(VoiceProfile.Default with { Id = string.Empty, Name = "Mi Róbot", Chain = [VoiceEffectCatalog.New("ring")] });
+        Assert.Equal("mi-robot", id);
+        Assert.Equal("natural-2", VoiceProfiles.Save(VoiceProfile.Default with { Name = "Natural" }));
+        var found = VoiceProfiles.Find(id);
+        Assert.NotNull(found);
+        Assert.Equal("Mi Róbot", found!.Name);
+        Assert.Equal("ring", found.Chain[0]!["fx"]!.GetValue<string>());
+        Assert.Contains(VoiceProfiles.All, p => p.Id == id);
+
+        // Changed on disk: read again.
+        VoiceProfiles.Save(found with { Name = "Otro nombre" });
+        Assert.Equal("Otro nombre", VoiceProfiles.Find(id)!.Name);
+
+        // Exported and imported: a copy with a new id.
+        var copy = VoiceProfiles.Import(VoiceProfiles.Export(VoiceProfiles.Find(id)!), out var errors);
+        Assert.Empty(errors);
+        Assert.Equal("otro-nombre", copy);
+        Assert.Null(VoiceProfiles.Import("""{ "name": "Mal", "engine": { "type": "kokoro" }, "chain": [ { "fx": "pitch" } ] }""", out errors));
+        Assert.NotEmpty(errors);
+
+        VoiceProfiles.Delete(id);
+        Assert.Null(VoiceProfiles.Find(id));
+        VoiceProfiles.Delete("natural");
+        Assert.NotNull(VoiceProfiles.Find("natural"));
+        Directory.Delete(folder, true);
+    }
+
+    [Fact]
     public void FasterIsShorter()
     {
         var input = Enumerable.Range(0, 24000).Select(i => (float)Math.Sin(i * 0.05) * 0.3f).ToArray();

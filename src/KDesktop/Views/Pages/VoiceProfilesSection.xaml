@@ -1,0 +1,6 @@
+<UserControl x:Class="KDesktop.Views.Pages.VoiceProfilesSection"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Options → Assistant → Voice → Perfiles de voz (stage 9.4): made in code -->
+    <StackPanel x:Name="Body" />
+</UserControl>

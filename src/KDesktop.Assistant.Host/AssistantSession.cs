@@ -10,6 +10,7 @@ using KDesktop.Assistant.Sdk;
 using KDesktop.Core;
 using KDesktop.Core.Assistant.Brain;
 using KDesktop.Core.Assistant.Pipe;
+using KDesktop.Core.Assistant.Voice;
 
 namespace KDesktop.Assistant.Host;
 
@@ -133,9 +134,12 @@ internal sealed class AssistantSession : IDisposable
                         // Said by whoever K-Desktop chose, with its bubble; with nobody, only the voice (who is there: engine thread).
                         Engine.Post(() =>
                         {
+                            VoiceProfile? edited = null;
+                            try { edited = test.Profile is { } json ? VoiceProfile.Parse(json, json["id"]?.GetValue<string>() ?? "editor") : null; }
+                            catch (JsonException ex) { Log.Warn($"Asistente: perfil de voz para probar no válido: {ex.Message}"); }
                             if (test.Assistant is { } who && Runtime.IsLoaded(who) && Talk is { } speaker)
-                                voice.Test(text, test.Mood, (turn, said, stop) => speaker.SpeakTurnAsync(who, turn, said, stop));
-                            else voice.Test(text, test.Mood, (turn, said, stop) => voice.SayAsync(string.Empty, turn, said, stop));
+                                voice.Test(text, test.Mood, (turn, said, stop) => speaker.SpeakTurnAsync(who, turn, said, stop), edited);
+                            else voice.Test(text, test.Mood, (turn, said, stop) => voice.SayAsync(string.Empty, turn, said, stop), edited);
                         });
                         return;
                     case VoiceMessage { Op: "stop" } when Voice is { } voice:

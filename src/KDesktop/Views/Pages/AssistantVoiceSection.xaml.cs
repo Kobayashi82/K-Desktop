@@ -63,7 +63,7 @@ public partial class AssistantVoiceSection : UserControl
         EngineBox.ItemsSource = engines;
         EngineBox.SelectedItem = engines.FirstOrDefault(e => e.Value == s.AssistantVoiceEngine) ?? engines[0];
 
-        List<Option> profiles = [new(string.Empty, Loc.T("assistantVoice.profileOwn")), .. VoiceProfile.BuiltIn.Select(p => new Option(p.Id, Loc.T("assistantVoice.profile." + p.Id)))];
+        List<Option> profiles = [new(string.Empty, Loc.T("assistantVoice.profileOwn")), .. VoiceProfiles.All.Select(p => new Option(p.Id, VoiceProfiles.NameOf(p)))];
         ProfileBox.ItemsSource = profiles;
         ProfileBox.SelectedItem = profiles.FirstOrDefault(p => p.Value == s.AssistantVoiceProfile) ?? profiles[0];
 

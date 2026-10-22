@@ -196,7 +196,7 @@ public partial class AssistantPersonalView : UserControl
         [
             new(string.Empty, AsOthers(general)),
             .. _system ? [] : new[] { new Option(AssistantPersonal.OwnProfile, Loc.T("assistantPersonal.profilePackage")) },
-            .. VoiceProfile.BuiltIn.Select(p => new Option(p.Id, ProfileName(p.Id))),
+            .. VoiceProfiles.All.Select(p => new Option(p.Id, VoiceProfiles.NameOf(p))),
         ];
         ProfileBox.ItemsSource = profiles;
         ProfileBox.SelectedItem = profiles.FirstOrDefault(p => p.Value == own.Profile) ?? profiles[0];
@@ -289,7 +289,7 @@ public partial class AssistantPersonalView : UserControl
         _ => Loc.T("assistantVoice.engineAuto"),
     };
 
-    private static string ProfileName(string id) => Loc.T("assistantVoice.profile." + id);
+    private static string ProfileName(string id) => VoiceProfiles.NameOf(id);
 
     /// <summary>A list changed: its voice is what the lists say now.</summary>
     private void OnVoiceChanged(object sender, SelectionChangedEventArgs e)

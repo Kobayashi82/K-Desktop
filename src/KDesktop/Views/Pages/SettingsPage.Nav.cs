@@ -73,6 +73,7 @@ public partial class SettingsPage
     private NavItem? _current;
     private NavItem? _assistantsItem;
     private NavItem? _toolsItem;
+    private NavItem? _speechItem;
 
     /// <summary>
     /// The pages inside «Herramientas» (stage 9.3; 5.0.133): the built-in tools, the user's JSON ones, the MCP servers —with
@@ -126,11 +127,12 @@ public partial class SettingsPage
                 foreach (var section in group.Sections)
                 {
                     var item = new NavItem(NavKind.Section, section.Key) { Style = (Style)FindResource("NavItem") };
-                    item.Header = SectionHeader(item, section.Icon, section.Text, folds: section.Key is "assistants" or "tools");
+                    item.Header = SectionHeader(item, section.Icon, section.Text, folds: section.Key is "assistants" or "tools" or "speech");
                     SpeakAs(item, section.Text);
                     groupItem.Items.Add(item);
                     if (section.Key == "assistants") _assistantsItem = item;
                     if (section.Key == "tools") _toolsItem = item;
+                    if (section.Key == "speech") _speechItem = item;
                 }
                 groupItem.Expanded += OnNavExpanded;
                 groupItem.Collapsed += OnNavExpanded;
@@ -141,8 +143,11 @@ public partial class SettingsPage
             _assistantsItem.Collapsed += OnNavExpanded;
             FillAssistants();
             FillTools();
+            FillSpeech();
             _toolsItem!.Expanded += OnNavExpanded;
             _toolsItem.Collapsed += OnNavExpanded;
+            _speechItem!.Expanded += OnNavExpanded;
+            _speechItem.Collapsed += OnNavExpanded;
             foreach (var folder in _toolFolders.Values)
             {
                 folder.Expanded += OnNavExpanded;
@@ -155,10 +160,12 @@ public partial class SettingsPage
             foreach (var group in _groups) group.IsExpanded = open?.Contains(group.Key) == true;
             _assistantsItem.IsExpanded = open?.Contains("assistants") == true;
             _toolsItem.IsExpanded = open?.Contains("tools") == true;
+            _speechItem.IsExpanded = open?.Contains("speech") == true;
             foreach (var (key, folder) in _toolFolders) folder.IsExpanded = open?.Contains(key) == true;
             foreach (var group in _groups) UpdateChevron(group, animate: false);
             UpdateChevron(_assistantsItem, animate: false);
             UpdateChevron(_toolsItem, animate: false);
+            UpdateChevron(_speechItem, animate: false);
             foreach (var folder in _toolFolders.Values) UpdateChevron(folder, animate: false);
             Select(start);
         }
@@ -348,6 +355,19 @@ public partial class SettingsPage
         FillToolFolders();
     }
 
+    /// <summary>The page inside «Voz» (stage 9.4): the voice profiles and their editor.</summary>
+    private void FillSpeech()
+    {
+        var item = new NavItem(NavKind.Sub, "speech/profiles")
+        {
+            Style = (Style)FindResource("NavItem"),
+            SearchText = Fold(Loc.T("settings.nav.voiceProfiles") + " " + Loc.T("settings.nav.voiceProfiles.hint") + " " + Loc.T("voiceProfiles.intro")),
+        };
+        item.Header = SubHeader("SlideMicrophone24", Loc.T("settings.nav.voiceProfiles"));
+        AutomationProperties.SetName(item, Loc.T("settings.nav.voiceProfiles"));
+        _speechItem!.Items.Add(item);
+    }
+
     private void FillToolFolders()
     {
         FillSubjects();
@@ -481,6 +501,7 @@ public partial class SettingsPage
         }
         _assistantsItem!.Chevron!.Visibility = _assistantsItem.Items.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         _toolsItem!.Chevron!.Visibility = Visibility.Visible;
+        _speechItem!.Chevron!.Visibility = Visibility.Visible;
     }
 
     // ── choosing ─────────────────────────────────────────────────────────
@@ -630,6 +651,7 @@ public partial class SettingsPage
         var open = _groups.Where(g => g.IsExpanded).Select(g => g.Key).ToList();
         if (_assistantsItem!.IsExpanded) open.Add("assistants");
         if (_toolsItem!.IsExpanded) open.Add("tools");
+        if (_speechItem!.IsExpanded) open.Add("speech");
         open.AddRange(_toolFolders.Where(f => f.Value.IsExpanded).Select(f => f.Key));
         _app.Config.Settings.SettingsNavOpen = open;
     }
@@ -768,6 +790,7 @@ public partial class SettingsPage
             _openBeforeSearch = [.. _groups.Where(g => g.IsExpanded).Select(g => g.Key)];
             if (_assistantsItem!.IsExpanded) _openBeforeSearch.Add("assistants");
             if (_toolsItem!.IsExpanded) _openBeforeSearch.Add("tools");
+            if (_speechItem!.IsExpanded) _openBeforeSearch.Add("speech");
             _openBeforeSearch.UnionWith(_toolFolders.Where(f => f.Value.IsExpanded).Select(f => f.Key));
             _searching = true;
         }
@@ -821,6 +844,7 @@ public partial class SettingsPage
         }
         _assistantsItem!.IsExpanded = _openBeforeSearch?.Contains("assistants") == true;
         _toolsItem!.IsExpanded = _openBeforeSearch?.Contains("tools") == true;
+        _speechItem!.IsExpanded = _openBeforeSearch?.Contains("speech") == true;
         foreach (var (key, folder) in _toolFolders) folder.IsExpanded = _openBeforeSearch?.Contains(key) == true;
         ApplyAvailability();
         if (_current is { } current) Reveal(current);
