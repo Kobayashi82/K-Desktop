@@ -14,9 +14,10 @@ function Color($hex) { [System.Windows.Media.ColorConverter]::ConvertFromString(
 
 # Draws the icon on a 256-unit canvas. $full: square background to the edges (maskable / apple-touch), $small: bolder
 # strokes and less margin for 16-24 px.
-function Draw-Icon([System.Windows.Media.DrawingContext]$dc, [bool]$full, [bool]$small, [double]$glyphScale = 1.0) {
-  $m = if ($full) { 0 } elseif ($small) { 4 } else { 12 }
-  $r = if ($full) { 0 } elseif ($small) { 52 } else { 58 }
+function Draw-Icon([System.Windows.Media.DrawingContext]$dc, [bool]$full, [bool]$small, [double]$glyphScale = 1.0, [bool]$round = $false) {
+  $m = if ($full) { 0 } elseif ($round) { 6 } elseif ($small) { 4 } else { 12 }
+  # Round (Telegram, avatars): a circle, its corner radius half its side.
+  $r = if ($full) { 0 } elseif ($round) { 128 - $m } elseif ($small) { 52 } else { 58 }
   $rect = New-Object System.Windows.Rect($m, $m, (256 - 2 * $m), (256 - 2 * $m))
 
   $bg = New-Object System.Windows.Media.LinearGradientBrush
@@ -54,12 +55,12 @@ function Draw-Icon([System.Windows.Media.DrawingContext]$dc, [bool]$full, [bool]
   $dc.Pop()
 }
 
-function Render([int]$size, [bool]$full = $false, [double]$glyphScale = 1.0) {
+function Render([int]$size, [bool]$full = $false, [double]$glyphScale = 1.0, [bool]$round = $false) {
   $small = $size -le 24 -and -not $full
   $visual = New-Object System.Windows.Media.DrawingVisual
   $dc = $visual.RenderOpen()
   $dc.PushTransform((New-Object System.Windows.Media.ScaleTransform(($size / 256.0), ($size / 256.0))))
-  Draw-Icon $dc $full $small $glyphScale
+  Draw-Icon $dc $full $small $glyphScale $round
   $dc.Pop(); $dc.Close()
   [System.Windows.Media.RenderOptions]::SetEdgeMode($visual, "Unspecified")
   $bmp = New-Object System.Windows.Media.Imaging.RenderTargetBitmap($size, $size, 96, 96, [System.Windows.Media.PixelFormats]::Pbgra32)
@@ -122,4 +123,9 @@ Save-Png (Render 180 $true 0.9) (Join-Path $web "apple-touch-icon.png")
 foreach ($s in 48, 72, 96, 144, 192, 512) { Save-Png (Render $s) (Join-Path $out "icon-$s.png") }
 # Android adaptive icon layers (108 dp canvas, content inside the central 72 dp)
 foreach ($s in 108, 162, 216, 324, 432) { Save-Png (Render $s $true 0.62) (Join-Path $out "adaptive-$s.png") }
+# Round ones (avatars: Telegram, Discord, GitHub…): a circle on transparent corners, and for a profile picture that the
+# site crops to a circle itself, the square to the edges with the K a little smaller (it must stay inside the circle).
+$round = Join-Path $out "round"
+foreach ($s in 32, 48, 64, 96, 128, 192, 256, 512, 1024) { Save-Png (Render $s $false 1.0 $true) (Join-Path $round "round-$s.png") }
+foreach ($s in 512, 640, 1024) { Save-Png (Render $s $true 0.85) (Join-Path $round "avatar-$s.png") }
 "done"

@@ -1,0 +1,20 @@
+{
+  "$schema": "../esquemas/tool.schema.json",
+  "name": "send_telegram_file",
+  "type": "script",
+  "description": "Sends a file of the PC (a PDF, a photo, a document…) to the user's phone through their own Telegram bot. Find it first with find_files and give its full path (its folder and its name). For a text message use send_telegram; never open the Telegram app or website for this.",
+  "examples": ["mándame al Telegram el PDF de la factura", "envíame al móvil la última foto que descargué", "pásame por Telegram el documento de la reunión", "send the invoice PDF to my Telegram"],
+  "parameters": {
+    "path": { "type": "string", "description": "The full path of the file, e.g. D:\\Downloads\\factura.pdf" },
+    "caption": { "type": "string", "default": "", "description": "A short text to go with it (optional)" }
+  },
+  "script": {
+    "file": "telegram_file.ps1",
+    "args": ["{{path}}", "{{caption}}"],
+    "env": { "TELEGRAM_TOKEN": "{{secret:telegram_token}}", "TELEGRAM_CHAT": "{{secret:telegram_chat}}" }
+  },
+  "timeout": 120,
+  "risk": "askOnce",
+  "intent": "mandarte por Telegram el archivo {{path}}",
+  "say": { "ok": "Te he mandado el archivo al Telegram.", "error": "No he podido mandar el archivo al Telegram." }
+}

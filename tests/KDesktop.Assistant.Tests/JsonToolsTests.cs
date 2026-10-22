@@ -135,8 +135,8 @@ public sealed class JsonToolsTests : IDisposable
             File.Copy(file, Path.Combine(ToolsFolder, Path.GetFileName(file)));
         var (_, json, registry) = Make();
         Assert.All(json.Files, f => Assert.True(f.Errors.Count == 0, Path.GetFileName(f.File) + ": " + string.Join("; ", f.Errors)));
-        Assert.Equal(6, json.Files.Count);
-        foreach (var name in new[] { "luz_salon", "temperatura_salon", "send_telegram", "modo_cine", "buenas_noches", "comprobar_conexion" })
+        Assert.Equal(7, json.Files.Count);
+        foreach (var name in new[] { "luz_salon", "temperatura_salon", "send_telegram", "send_telegram_file", "modo_cine", "buenas_noches", "comprobar_conexion" })
             Assert.Equal(JsonTools.Group, registry.GroupOf(name));
         Assert.Equal(ToolRegistry.Builtin, registry.GroupOf("calculate"));
     }
