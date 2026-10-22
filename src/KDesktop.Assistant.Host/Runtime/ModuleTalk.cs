@@ -51,6 +51,7 @@ internal sealed class ModuleTalk : ITalkOutput
         Memory = new TalkMemory(tools.Builtin.Memory, tools.Runner, Meaning);
         Service = new TalkService(who => (brain.Client, brain.ModelFor(who)), tools.Runner, PersonaOf, this, chooser: Chooser, memory: Memory, learn: () => tools.Learn, commands: commands,
             recheck: brain.RecheckAsync, freeBrain: brain.UnloadAsync, loadBrain: () => brain.LoadAsync());
+        tools.Builtin.Watches.Fired += (item, detail) => _ = AnnounceAsync(item, detail);
     }
 
     public TalkService Service { get; }
@@ -112,6 +113,37 @@ internal sealed class ModuleTalk : ITalkOutput
             State(listening.Assistant, "listening");
         }
         else if (_listening.TryRemove(key, out _) && !Service.IsAnswering(listening.Assistant)) State(listening.Assistant, "idle");
+    }
+
+    /// <summary>The longest a told watch waits for the assistant to finish what it is answering.</summary>
+    private static readonly TimeSpan AnnounceWait = TimeSpan.FromSeconds(45);
+
+    /// <summary>
+    /// Something watched happened (avisame_cuando): the one who set it says it, in its language, when it is not answering
+    /// something else (it would cut the answer). In pause, or after too long, K-Desktop shows it instead.
+    /// </summary>
+    private async Task AnnounceAsync(Tools.Builtin.WatchItem item, string? detail)
+    {
+        try
+        {
+            using var _ = Loc.Instance.Use(_personal.LanguageOf(item.Assistant));
+            var text = Tools.Builtin.WatchStore.Happened(item, detail);
+            Log.Info($"Asistente: aviso cumplido ({item.Kind}): {text}");
+            _tools.Runner.Record(item.Assistant, string.Empty, "watch", text, ok: true);
+            var waited = System.Diagnostics.Stopwatch.StartNew();
+            while (Service.IsAnswering(item.Assistant) && waited.Elapsed < AnnounceWait) await Task.Delay(500).ConfigureAwait(false);
+            if (Paused || Service.IsAnswering(item.Assistant))
+            {
+                var title = item.Assistant is { } id && AssistantPackages.Find(id) is { } installed ? installed.Manifest.Name : Loc.T("tool.notify_when.title");
+                _link.Send(new NotifyMessage(title, text, item.Assistant));
+                return;
+            }
+            await Service.SayAsync(item.Assistant, text).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Log.Warn($"Asistente: no se ha podido dar el aviso: {ex.Message}");
+        }
     }
 
     /// <summary>«Asistente: decir»: it says it (not in pause, like the orders).</summary>

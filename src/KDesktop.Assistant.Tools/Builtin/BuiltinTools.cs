@@ -4,12 +4,14 @@ namespace KDesktop.Assistant.Tools.Builtin;
 public sealed class BuiltinTools : IDisposable
 {
     /// <param name="folder">Where the module keeps its data (<c>&lt;data&gt;\Assistant</c>).</param>
-    public BuiltinTools(string folder, TimeProvider? time = null)
+    /// <param name="probe">What the watches look at; null: the real PC.</param>
+    public BuiltinTools(string folder, TimeProvider? time = null, IWatchProbe? probe = null)
     {
         Timers = new TimerStore(Path.Combine(folder, "timers.json"), time);
         Notes = new NoteStore(Path.Combine(folder, "notes.json"));
         Memory = new MemoryStore(Path.Combine(folder, "memory.json"), time);
         Files = new FileSearch(time: time);
+        Watches = new WatchStore(Path.Combine(folder, "watches.json"), probe ?? new SystemProbe(), time);
     }
 
     public TimerStore Timers { get; }
@@ -21,6 +23,9 @@ public sealed class BuiltinTools : IDisposable
 
     /// <summary>Finding files, with each assistant's last list (stage 8.2).</summary>
     public FileSearch Files { get; }
+
+    /// <summary>What to tell the user about when it happens (avisame_cuando).</summary>
+    public WatchStore Watches { get; }
 
     /// <param name="screen">The host's eyes on the desktop (stage 8.3); null: none (tests, the bench).</param>
     /// <param name="vision">The model looking at pictures; null: it cannot.</param>
@@ -46,7 +51,13 @@ public sealed class BuiltinTools : IDisposable
         registry.Add(new ReadWebTool(screen, reader));
         registry.Add(new LookUpWebTool(reader));
         registry.Add(new PcStatusTool());
+        registry.Add(new NotifyWhenTool(Watches));
+        registry.Add(new StopWatchingTool(Watches));
     }
 
-    public void Dispose() => Timers.Dispose();
+    public void Dispose()
+    {
+        Timers.Dispose();
+        Watches.Dispose();
+    }
 }

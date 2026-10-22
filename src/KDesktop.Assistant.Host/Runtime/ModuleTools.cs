@@ -52,8 +52,12 @@ internal sealed class ModuleTools : IDisposable
 
     public ToolRunner Runner { get; }
 
-    /// <summary>Connected: the timers that came due while the process was off ring now.</summary>
-    public void Start() => Builtin.Timers.Start();
+    /// <summary>Connected: the timers that came due while the process was off ring now; the watches kept start looking.</summary>
+    public void Start()
+    {
+        Builtin.Timers.Start();
+        Builtin.Watches.Start();
+    }
 
     /// <summary>The <c>tools</c> section of <c>config</c>: <c>trusted</c>, the tools that no longer ask, and <c>askBefore</c> (<see cref="AskPolicy"/>).</summary>
     public void Configure(JsonObject? tools)

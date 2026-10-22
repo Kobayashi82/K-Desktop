@@ -14,8 +14,6 @@ internal static class FutureTools
     [
         new FakeTool("transform_text", "Translates, corrects, summarises or rewrites the selected or copied text.",
             "tradúceme esto al inglés|corrige la ortografía de este texto|resúmelo|ponlo más formal|hazlo una lista|translate this into English|fix the spelling of this text|summarise it|make it more formal"),
-        new FakeTool("notify_when", "Tells the user when something happens on the PC: a download ends, a program closes, the CPU goes down, a window appears.",
-            "avísame cuando termine la descarga|dime cuando se cierre Blender|avísame cuando baje la CPU|avísame cuando aparezca una ventana de Teams|tell me when the download finishes|let me know when Blender closes|tell me when the CPU goes down"),
         new FakeTool("windows", "Lists, brings, moves to another monitor, maximises, minimises or closes windows.",
             "trae el Spotify|pon el Word en el otro monitor|maximiza el navegador|minimiza todas las ventanas|cierra la ventana del explorador|qué ventanas tengo abiertas|bring Spotify to the front|move Word to the other monitor|minimise all the windows"),
         new FakeTool("now_playing", "Tells which song or video is playing on the PC.",
