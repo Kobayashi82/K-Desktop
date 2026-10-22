@@ -1077,7 +1077,9 @@
             <local:AssistantNotesSection Tag="notes" />
             <local:AssistantToolsSection Tag="tools" Part="tools" />
             <local:AssistantToolsSection Tag="tools/builtin" Part="tools/builtin" />
+            <local:AssistantToolsSection x:Name="SubjectSection" Tag="tools/subject" Part="tools/subject" />
             <local:AssistantToolsSection Tag="tools/files" Part="tools/files" />
+            <local:AssistantToolsSection x:Name="FileSection" Tag="tools/file" Part="tools/file" />
             <local:AssistantToolsSection Tag="tools/servers" Part="tools/servers" />
             <local:AssistantToolsSection x:Name="ServerSection" Tag="tools/server" Part="tools/server" />
             <local:AssistantToolsSection Tag="tools/secrets" Part="tools/secrets" />

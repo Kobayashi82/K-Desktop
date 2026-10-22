@@ -3634,5 +3634,10 @@
   "tool.open_app.title": "Aprire un programma",
   "tool.control_app.title": "Gestire finestre e programmi",
   "tool.end_process.title": "Chiudere forzatamente",
-  "tool.pc_status.title": "Stato del PC"
+  "tool.pc_status.title": "Stato del PC",
+  "toolsOptions.fileBroken": "Con errori",
+  "toolsOptions.fileGone": "Questo file non c'è più.",
+  "toolsOptions.backToFiles": "Torna ai tuoi strumenti",
+  "toolsOptions.subjectGone": "Non ci sono più strumenti su questo tema.",
+  "toolsOptions.backToBuiltin": "Torna a quelli inclusi"
 }

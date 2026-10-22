@@ -3634,5 +3634,10 @@
   "tool.open_app.title": "Ein Programm öffnen",
   "tool.control_app.title": "Fenster und Programme steuern",
   "tool.end_process.title": "Zwangsweise schließen",
-  "tool.pc_status.title": "PC-Status"
+  "tool.pc_status.title": "PC-Status",
+  "toolsOptions.fileBroken": "Mit Fehlern",
+  "toolsOptions.fileGone": "Diese Datei gibt es nicht mehr.",
+  "toolsOptions.backToFiles": "Zurück zu deinen Werkzeugen",
+  "toolsOptions.subjectGone": "Zu diesem Thema gibt es keine Werkzeuge mehr.",
+  "toolsOptions.backToBuiltin": "Zurück zu den enthaltenen"
 }

@@ -3634,5 +3634,10 @@
   "tool.open_app.title": "Open a program",
   "tool.control_app.title": "Handle windows and programs",
   "tool.end_process.title": "Force close",
-  "tool.pc_status.title": "PC status"
+  "tool.pc_status.title": "PC status",
+  "toolsOptions.fileBroken": "Has errors",
+  "toolsOptions.fileGone": "This file is no longer there.",
+  "toolsOptions.backToFiles": "Back to your tools",
+  "toolsOptions.subjectGone": "There are no tools on this subject any more.",
+  "toolsOptions.backToBuiltin": "Back to the built-in ones"
 }

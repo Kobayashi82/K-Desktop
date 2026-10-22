@@ -86,9 +86,20 @@ public partial class SettingsPage
         new("tools/secrets", "Key24", "settings.nav.toolSecrets"),
     ];
 
-    private NavItem? _serversItem;
+    /// <summary>
+    /// The pages of «Herramientas» that fold, with one row per thing inside (the subjects, the user's files, the MCP
+    /// servers; 5.0.134), and the page that shows one of them.
+    /// </summary>
+    private sealed record ToolFolder(string Key, string Part);
 
-    private const string ServerPrefix = "tools/servers/";
+    private static readonly ToolFolder[] ToolFolders =
+    [
+        new("tools/builtin", "tools/subject"),
+        new("tools/files", "tools/file"),
+        new("tools/servers", "tools/server"),
+    ];
+
+    private readonly Dictionary<string, NavItem> _toolFolders = new(StringComparer.Ordinal);
     private bool _building;
     private bool _byMouse;
     private bool _searching;
@@ -132,8 +143,11 @@ public partial class SettingsPage
             FillTools();
             _toolsItem!.Expanded += OnNavExpanded;
             _toolsItem.Collapsed += OnNavExpanded;
-            _serversItem!.Expanded += OnNavExpanded;
-            _serversItem.Collapsed += OnNavExpanded;
+            foreach (var folder in _toolFolders.Values)
+            {
+                folder.Expanded += OnNavExpanded;
+                folder.Collapsed += OnNavExpanded;
+            }
             ApplyAvailability();
 
             // As it was left: the groups open (none the first time) and the section shown, even inside a folded group.
@@ -141,11 +155,11 @@ public partial class SettingsPage
             foreach (var group in _groups) group.IsExpanded = open?.Contains(group.Key) == true;
             _assistantsItem.IsExpanded = open?.Contains("assistants") == true;
             _toolsItem.IsExpanded = open?.Contains("tools") == true;
-            _serversItem.IsExpanded = open?.Contains("tools/servers") == true;
+            foreach (var (key, folder) in _toolFolders) folder.IsExpanded = open?.Contains(key) == true;
             foreach (var group in _groups) UpdateChevron(group, animate: false);
             UpdateChevron(_assistantsItem, animate: false);
             UpdateChevron(_toolsItem, animate: false);
-            UpdateChevron(_serversItem, animate: false);
+            foreach (var folder in _toolFolders.Values) UpdateChevron(folder, animate: false);
             Select(start);
         }
         finally
@@ -325,42 +339,99 @@ public partial class SettingsPage
                 Style = (Style)FindResource("NavItem"),
                 SearchText = Fold(Loc.T(part.Text) + " " + Loc.T(part.Text + ".hint")),
             };
-            item.Header = SubHeader(part.Icon, Loc.T(part.Text), part.Key == "tools/servers" ? item : null);
+            var folds = ToolFolders.Any(f => f.Key == part.Key);
+            item.Header = SubHeader(part.Icon, Loc.T(part.Text), folds ? item : null);
             AutomationProperties.SetName(item, Loc.T(part.Text));
             _toolsItem!.Items.Add(item);
-            if (part.Key == "tools/servers") _serversItem = item;
+            if (folds) _toolFolders[part.Key] = item;
         }
+        FillToolFolders();
+    }
+
+    private void FillToolFolders()
+    {
+        FillSubjects();
+        FillToolFiles();
         FillServers();
+    }
+
+    /// <summary>A row inside one of those pages: its key, its name and what else finds it.</summary>
+    private sealed record InnerRow(string Id, string Name, string Search);
+
+    /// <summary>Puts those rows inside the page (only when they change); returns its rows, to give them their look.</summary>
+    private List<NavItem> FillInner(NavItem folder, IReadOnlyList<InnerRow> rows)
+    {
+        var prefix = folder.Key + "/";
+        var keys = rows.Select(r => prefix + r.Id).ToList();
+        var current = _current?.Key;
+        if (!folder.Children.Select(c => c.Key).SequenceEqual(keys))
+        {
+            folder.Items.Clear();
+            foreach (var key in keys)
+            {
+                var item = new NavItem(NavKind.Sub, key) { Style = (Style)FindResource("NavItem") };
+                folder.Items.Add(item);
+                if (item.Key == current) MarkCurrent(item);
+            }
+            if (_current is { } gone && gone.Key.StartsWith(prefix, StringComparison.Ordinal) && !keys.Contains(gone.Key)) MarkCurrent(folder);
+        }
+        var items = folder.Children.ToList();
+        for (var i = 0; i < items.Count; i++)
+        {
+            items[i].SearchText = Fold(rows[i].Name + " " + rows[i].Search);
+            AutomationProperties.SetName(items[i], rows[i].Name);
+        }
+        if (folder.Chevron is { } chevron) chevron.Visibility = folder.Items.Count > 0 ? Visibility.Visible : Visibility.Hidden;
+        return items;
+    }
+
+    /// <summary>The subjects inside «Incluidas», in alphabetical order (all of them until the process says which it has).</summary>
+    private void FillSubjects()
+    {
+        var folder = _toolFolders["tools/builtin"];
+        var tools = _app.AssistantTools?.Tools;
+        if (tools is null && folder.Items.Count > 0) return;
+        var subjects = tools is null ? AssistantToolsSection.AllSubjects
+            : AssistantToolsSection.SubjectsIn(tools.Where(t => t.Group == "builtin").Select(t => t.Name));
+        var rows = subjects.Select(s => new InnerRow(s, Loc.T("toolsOptions.subject." + s), Loc.T("settings.nav.toolBuiltin"))).ToList();
+        var items = FillInner(folder, rows);
+        for (var i = 0; i < items.Count; i++) items[i].Header = InnerHeader(AssistantToolsSection.SubjectIcon(rows[i].Id), "Kd.AccentText", rows[i].Name, off: false);
+    }
+
+    /// <summary>The user's files inside «Tus herramientas», by their tool's name (the files in the folder until the process says).</summary>
+    private void FillToolFiles()
+    {
+        var folder = _toolFolders["tools/files"];
+        var state = _app.AssistantTools;
+        if (state is null && folder.Items.Count > 0) return;
+        var tools = (state?.Tools ?? []).Where(t => t.Group == "json").ToList();
+        var files = state?.Files ?? (System.IO.Directory.Exists(App.ToolsFolder)
+            ? System.IO.Directory.GetFiles(App.ToolsFolder, "*.json").Select(f => new Core.Assistant.Pipe.ToolFileInfo(f, true, [], [])).ToList()
+            : []);
+        var shown = files.Select(f => (File: f, Name: AssistantToolsSection.FileTitle(f, tools)))
+            .OrderBy(f => f.Name, AssistantToolsSection.Alphabetical).ToList();
+        var items = FillInner(folder, shown.Select(f => new InnerRow(System.IO.Path.GetFileName(f.File.File), f.Name,
+            System.IO.Path.GetFileName(f.File.File) + " " + Loc.T("settings.nav.toolFiles"))).ToList());
+        for (var i = 0; i < items.Count; i++)
+        {
+            var (file, name) = shown[i];
+            var tool = tools.FirstOrDefault(t => string.Equals(t.Source, file.File, StringComparison.OrdinalIgnoreCase));
+            var broken = file.Errors.Count > 0;
+            items[i].Header = InnerHeader(broken ? SymbolRegular.ErrorCircle24 : AssistantToolsSection.TypeIcon(file.Type), broken ? "Kd.Danger" : "Kd.AccentText",
+                name, off: !broken && (!file.Enabled || tool is { Enabled: false }));
+        }
     }
 
     /// <summary>One row per MCP server inside «Servidores MCP», with a dot of how it is (in use, stopped, failing, off).</summary>
     private void FillServers()
     {
-        var servers = App.ReadMcpServers(out _);
+        var servers = App.ReadMcpServers(out _).OrderBy(s => s.Id, AssistantToolsSection.Alphabetical).ToList();
         var states = (_app.AssistantTools?.Servers ?? []).ToDictionary(s => s.Id, StringComparer.OrdinalIgnoreCase);
-        var keys = servers.Select(s => ServerPrefix + s.Id).ToList();
-        var current = _current?.Key;
-        if (!_serversItem!.Children.Select(c => c.Key).SequenceEqual(keys))
+        var items = FillInner(_toolFolders["tools/servers"], servers.Select(s => new InnerRow(s.Id, s.Id, "mcp " + Loc.T("settings.nav.toolServers"))).ToList());
+        for (var i = 0; i < items.Count; i++)
         {
-            _serversItem.Items.Clear();
-            foreach (var server in servers)
-            {
-                var item = new NavItem(NavKind.Sub, ServerPrefix + server.Id)
-                {
-                    Style = (Style)FindResource("NavItem"),
-                    SearchText = Fold(server.Id + " mcp " + Loc.T("settings.nav.toolServers")),
-                };
-                AutomationProperties.SetName(item, server.Id);
-                _serversItem.Items.Add(item);
-                if (item.Key == current) MarkCurrent(item);
-            }
-            if (_current is { } gone && gone.Key.StartsWith(ServerPrefix, StringComparison.Ordinal) && !keys.Contains(gone.Key)) MarkCurrent(_serversItem);
-        }
-        foreach (var item in _serversItem.Children)
-        {
-            var id = item.Key[ServerPrefix.Length..];
-            var server = servers.First(s => s.Id == id);
-            var state = states.GetValueOrDefault(id);
+            var server = servers[i];
+            var state = states.GetValueOrDefault(server.Id);
             var brush = server.Disabled ? "TextFillColorDisabledBrush" : state?.State switch
             {
                 "running" => "Kd.Success",
@@ -368,25 +439,34 @@ public partial class SettingsPage
                 "starting" => "Kd.AccentText",
                 _ => "TextFillColorTertiaryBrush",
             };
-            item.Header = ServerHeader(server.Id, brush, server.Disabled);
+            items[i].Header = InnerHeader(null, brush, server.Id, server.Disabled);
         }
-        if (_serversItem.Chevron is { } chevron) chevron.Visibility = _serversItem.Items.Count > 0 ? Visibility.Visible : Visibility.Hidden;
     }
 
-    /// <summary>A server inside «Servidores MCP»: a dot of its state and its name, one level further in.</summary>
-    private static FrameworkElement ServerHeader(string name, string brush, bool off)
+    /// <summary>A row one level further in: a symbol (or, without one, a dot of its state) and its name.</summary>
+    private static FrameworkElement InnerHeader(SymbolRegular? symbol, string brush, string name, bool off)
     {
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(76, 0, 0, 0) };
-        var dot = new System.Windows.Shapes.Ellipse { Width = 8, Height = 8, Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center };
-        dot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, brush);
-        row.Children.Add(dot);
+        var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(symbol is null ? 76 : 74, 0, 0, 0) };
+        if (symbol is { } glyph)
+        {
+            var icon = new SymbolIcon { Symbol = glyph, FontSize = 14, Width = 16, Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center };
+            icon.SetResourceReference(ForegroundProperty, brush);
+            if (off) icon.Opacity = 0.5;
+            row.Children.Add(icon);
+        }
+        else
+        {
+            var dot = new System.Windows.Shapes.Ellipse { Width = 8, Height = 8, Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center };
+            dot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, brush);
+            row.Children.Add(dot);
+        }
         var text = new TextBlock { Text = name, FontSize = 13, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
         text.SetResourceReference(TextBlock.ForegroundProperty, off ? "TextFillColorTertiaryBrush" : "TextFillColorPrimaryBrush");
         row.Children.Add(text);
         return row;
     }
 
-    private void OnToolsChanged() => Dispatcher.BeginInvoke(FillServers);
+    private void OnToolsChanged() => Dispatcher.BeginInvoke(FillToolFolders);
 
     /// <summary>With the module off, its group only has «General» (where it is turned on); counts and chevrons follow.</summary>
     private void ApplyAvailability()
@@ -458,11 +538,17 @@ public partial class SettingsPage
         var same = _current == item;
         MarkCurrent(item);
         if (same && item.Kind == NavKind.Section && item.Key != "assistants") return;
-        // One MCP server («Herramientas → Servidores MCP → ft42»): the server's page, showing that one.
-        if (item.Key.StartsWith(ServerPrefix, StringComparison.Ordinal))
+        // One subject, file or MCP server («Herramientas → Servidores MCP → ft42»): its page, showing that one.
+        if (ToolFolders.FirstOrDefault(f => item.Key.StartsWith(f.Key + "/", StringComparison.Ordinal)) is { } folder)
         {
-            ServerSection.ShowServer(item.Key[ServerPrefix.Length..]);
-            ShowCard("tools/server", animate: !same);
+            var section = folder.Part switch
+            {
+                "tools/subject" => SubjectSection,
+                "tools/file" => FileSection,
+                _ => ServerSection,
+            };
+            section.ShowItem(item.Key[(folder.Key.Length + 1)..]);
+            ShowCard(folder.Part, animate: !same);
             return;
         }
         // A page of its own inside a section («Herramientas → Secretos»).
@@ -544,7 +630,7 @@ public partial class SettingsPage
         var open = _groups.Where(g => g.IsExpanded).Select(g => g.Key).ToList();
         if (_assistantsItem!.IsExpanded) open.Add("assistants");
         if (_toolsItem!.IsExpanded) open.Add("tools");
-        if (_serversItem!.IsExpanded) open.Add("tools/servers");
+        open.AddRange(_toolFolders.Where(f => f.Value.IsExpanded).Select(f => f.Key));
         _app.Config.Settings.SettingsNavOpen = open;
     }
 
@@ -682,7 +768,7 @@ public partial class SettingsPage
             _openBeforeSearch = [.. _groups.Where(g => g.IsExpanded).Select(g => g.Key)];
             if (_assistantsItem!.IsExpanded) _openBeforeSearch.Add("assistants");
             if (_toolsItem!.IsExpanded) _openBeforeSearch.Add("tools");
-            if (_serversItem!.IsExpanded) _openBeforeSearch.Add("tools/servers");
+            _openBeforeSearch.UnionWith(_toolFolders.Where(f => f.Value.IsExpanded).Select(f => f.Key));
             _searching = true;
         }
         var index = SearchIndex();
@@ -735,7 +821,7 @@ public partial class SettingsPage
         }
         _assistantsItem!.IsExpanded = _openBeforeSearch?.Contains("assistants") == true;
         _toolsItem!.IsExpanded = _openBeforeSearch?.Contains("tools") == true;
-        _serversItem!.IsExpanded = _openBeforeSearch?.Contains("tools/servers") == true;
+        foreach (var (key, folder) in _toolFolders) folder.IsExpanded = _openBeforeSearch?.Contains(key) == true;
         ApplyAvailability();
         if (_current is { } current) Reveal(current);
     }

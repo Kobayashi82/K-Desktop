@@ -60,6 +60,9 @@ public partial class App
         return true;
     }
 
+    /// <summary>Its test was closed: its result is not shown again.</summary>
+    public void ForgetToolTest(string name) => _toolTests.Remove(name);
+
     public bool StopMcpServer(string id) => SendTools(new ToolsMessage("stop", id));
 
     private bool SendTools(ToolsMessage message) => _assistant is { IsRunning: true } supervisor && supervisor.Send(message);

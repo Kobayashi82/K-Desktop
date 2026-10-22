@@ -22,7 +22,7 @@ namespace KDesktop.Views.Pages;
 /// Options → Assistant → Tools (stage 9.3; by pages since 5.0.133). Each instance is one page (<see cref="Part"/>): the
 /// summary with a search over every tool (<c>tools</c>), the built-in ones by subject (<c>tools/builtin</c>), the user's
 /// JSON ones with their files (<c>tools/files</c>), the MCP servers (<c>tools/servers</c>), one server with its tools
-/// (<c>tools/server</c>, <see cref="ShowServer"/>) and the secrets (<c>tools/secrets</c>). Only the page that shows is
+/// (<c>tools/server</c>, <see cref="ShowItem"/>) and the secrets (<c>tools/secrets</c>). Only the page that shows is
 /// made, and only when what it shows changed (it was all of them, 230 rows each time, and every click took a second).
 /// The rows are made in code (an ItemsControl hides its buttons from UI Automation).
 /// </summary>
@@ -58,19 +58,25 @@ public partial class AssistantToolsSection : UserControl
         };
     }
 
-    /// <summary>Which page it is: <c>tools</c>, <c>tools/builtin</c>, <c>tools/files</c>, <c>tools/servers</c>, <c>tools/server</c> or <c>tools/secrets</c>.</summary>
+    /// <summary>
+    /// Which page it is: <c>tools</c>, <c>tools/builtin</c>, <c>tools/subject</c>, <c>tools/files</c>, <c>tools/file</c>,
+    /// <c>tools/servers</c>, <c>tools/server</c> or <c>tools/secrets</c>.
+    /// </summary>
     public string Part { get; set; } = "tools";
 
-    /// <summary>The server <c>tools/server</c> shows.</summary>
-    public string? ServerId { get; private set; }
+    /// <summary>What <c>tools/subject</c>, <c>tools/file</c> or <c>tools/server</c> shows: a subject, a file name, a server.</summary>
+    public string? ItemId { get; private set; }
 
-    /// <summary>Shows that MCP server and its tools (<c>tools/server</c>).</summary>
-    public void ShowServer(string id)
+    /// <summary>Shows that subject, file or MCP server (5.0.134: the built-in tools and the user's are one page each too).</summary>
+    public void ShowItem(string id)
     {
-        ServerId = id;
+        ItemId = id;
         _shown = null;
         Refresh();
     }
+
+    /// <summary>In alphabetical order, in the user's language.</summary>
+    internal static StringComparer Alphabetical => StringComparer.Create(Loc.Instance.Culture, ignoreCase: true);
 
     private ScrollViewer? _scroll;
 
@@ -117,7 +123,9 @@ public partial class AssistantToolsSection : UserControl
         switch (Part)
         {
             case "tools/builtin": FillBuiltin(); break;
+            case "tools/subject": FillSubject(); break;
             case "tools/files": FillFiles(); break;
+            case "tools/file": FillFile(); break;
             case "tools/servers": FillServers(); break;
             case "tools/server": FillServer(); break;
             case "tools/secrets": FillSecrets(); break;
@@ -135,12 +143,13 @@ public partial class AssistantToolsSection : UserControl
     private string Signature()
     {
         var state = State;
-        var parts = new List<string> { Part, ServerId ?? "", Running.ToString(), (_app.Assistant is null).ToString(), _testing ?? "", _changingSecret ?? "", _search };
+        var parts = new List<string> { Part, ItemId ?? "", Running.ToString(), (_app.Assistant is null).ToString(), _testing ?? "", _changingSecret ?? "", _search, Loc.Instance.Language };
         IEnumerable<ToolInfo> tools = Part switch
         {
             "tools/builtin" => ToolsOf("builtin"),
-            "tools/files" => ToolsOf("json"),
-            "tools/server" => ToolsOf("mcp:" + ServerId),
+            "tools/subject" => ToolsOf("builtin").Where(t => SubjectOf(t.Name) == ItemId),
+            "tools/files" or "tools/file" => ToolsOf("json"),
+            "tools/server" => ToolsOf("mcp:" + ItemId),
             "tools" => _search.Length > 0 ? state?.Tools ?? [] : [],
             _ => [],
         };
@@ -148,7 +157,7 @@ public partial class AssistantToolsSection : UserControl
         if (Part is "tools" or "tools/servers" or "tools/server")
             foreach (var server in state?.Servers ?? []) parts.Add($"{server.Id}|{server.State}|{server.Disabled}|{server.Tools}|{server.Error}|{_app.AssistantToolsTesting.Contains(server.Id)}|{(_app.AssistantToolTests.TryGetValue(server.Id, out var t) ? t.Ms : -1)}");
         if (Part is "tools" or "tools/servers" or "tools/server") parts.Add(string.Join(",", App.ReadMcpServers(out _).Select(s => s.Id + s.Disabled + s.Summary)));
-        if (Part is "tools" or "tools/files") foreach (var file in state?.Files ?? []) parts.Add($"{file.File}|{file.Enabled}|{string.Join(";", file.Errors)}");
+        if (Part is "tools" or "tools/files" or "tools/file") foreach (var file in state?.Files ?? []) parts.Add($"{file.File}|{file.Enabled}|{string.Join(";", file.Errors)}");
         if (Part is "tools") parts.Add(string.Join(",", (state?.Tools ?? []).Select(t => t.Enabled ? "1" : "0")));
         if (Part is "tools" or "tools/secrets") parts.Add(string.Join(",", _app.ToolSecretList().Select(s => s.Name + s.Kept + string.Join("+", s.UsedBy))));
         return string.Join("\n", parts);
@@ -219,7 +228,7 @@ public partial class AssistantToolsSection : UserControl
         search.Add(box);
         if (_search.Length > 0)
         {
-            var found = tools.Where(t => Matches(t, _search)).ToList();
+            var found = tools.Where(t => Matches(t, _search)).OrderBy(TitleOf, Alphabetical).ToList();
             if (found.Count == 0) search.Add(Caption(Loc.T(state is null ? (Running ? "memoryOptions.loading" : "toolsOptions.noToolsOff") : "toolsOptions.noTools")));
             else
             {
@@ -239,22 +248,59 @@ public partial class AssistantToolsSection : UserControl
 
     // ── built-in ─────────────────────────────────────────────────────────
 
+    /// <summary>The subjects, each a row that opens its own page (5.0.134: it was one long page with all of them).</summary>
     private void FillBuiltin()
     {
         var tools = ToolsOf("builtin").ToList();
-        var intro = Card(Loc.T("settings.nav.toolBuiltin"), Loc.T("toolsOptions.builtinIntro"));
-        if (tools.Count == 0) intro.Add(Caption(Loc.T(Running ? "memoryOptions.loading" : "toolsOptions.noToolsOff")));
-        Body.Children.Add(intro.Border);
-        foreach (var subject in tools.GroupBy(t => SubjectOf(t.Name)).OrderBy(g => Array.IndexOf(Subjects, g.Key)))
-        {
-            var card = Card(Loc.T("toolsOptions.subject." + subject.Key), null, SubjectIcon(subject.Key));
-            card.Add(Rows(subject.Select(t => ToolRow(t))));
-            Body.Children.Add(card.Border);
-        }
+        var card = Card(Loc.T("settings.nav.toolBuiltin"), Loc.T("toolsOptions.builtinIntro"));
+        if (tools.Count == 0) card.Add(Caption(Loc.T(Running ? "memoryOptions.loading" : "toolsOptions.noToolsOff")));
+        else
+            card.Add(Rows(SubjectsIn(tools.Select(t => t.Name)).Select(subject =>
+            {
+                var these = tools.Where(t => SubjectOf(t.Name) == subject).OrderBy(TitleOf, Alphabetical).ToList();
+                var chips = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
+                chips.Children.Add(Chip(Loc.T("toolsOptions.serverTools", these.Count)));
+                if (these.Count(t => !t.Enabled) is var off and > 0) chips.Children.Add(StatusChip(Loc.T("toolsOptions.groupOff", off), "TextFillColorTertiaryBrush"));
+                var name = Loc.T("toolsOptions.subject." + subject);
+                return OpenableRow(SubjectIcon(subject), name, string.Join(", ", these.Select(TitleOf)), chips, "tools/builtin/" + subject);
+            })));
+        Body.Children.Add(card.Border);
     }
 
-    /// <summary>The subjects of the built-in tools, in the order they show.</summary>
-    private static readonly string[] Subjects = ["commands", "time", "notes", "files", "web", "screen", "pc", "other"];
+    /// <summary>One subject of the built-in tools, in alphabetical order.</summary>
+    private void FillSubject()
+    {
+        var subject = ItemId ?? "other";
+        var tools = ToolsOf("builtin").Where(t => SubjectOf(t.Name) == subject).OrderBy(TitleOf, Alphabetical).ToList();
+        var card = Card(Loc.T("toolsOptions.subject." + subject), null, SubjectIcon(subject));
+        if (tools.Count == 0)
+        {
+            card.Add(Caption(Loc.T(State is null ? (Running ? "memoryOptions.loading" : "toolsOptions.noToolsOff") : "toolsOptions.subjectGone")));
+            if (State is not null) card.Add(Wide(SymbolRegular.ArrowLeft24, Loc.T("toolsOptions.backToBuiltin"), _ => Go("tools/builtin")));
+        }
+        else
+        {
+            if (tools.Count > 1) card.Add(Bulk(tools));
+            card.Add(Rows(tools.Select(t => ToolRow(t))));
+        }
+        Body.Children.Add(card.Border);
+    }
+
+    /// <summary>«Encender todas» and «Apagar todas».</summary>
+    private WrapPanel Bulk(List<ToolInfo> tools)
+    {
+        var bulk = new WrapPanel { Margin = new Thickness(0, 0, 0, 4) };
+        bulk.Children.Add(Wide(SymbolRegular.CheckmarkCircle24, Loc.T("toolsOptions.allOnButton"), _ => { foreach (var t in tools) _app.SetToolEnabled(t.Name, true); }, enabled: tools.Any(t => !t.Enabled)));
+        bulk.Children.Add(Wide(SymbolRegular.DismissCircle24, Loc.T("toolsOptions.allOffButton"), _ => { foreach (var t in tools) _app.SetToolEnabled(t.Name, false); }, enabled: tools.Any(t => t.Enabled)));
+        return bulk;
+    }
+
+    /// <summary>The subjects those tools are in, in alphabetical order (the user's language), «Otras» last.</summary>
+    internal static IEnumerable<string> SubjectsIn(IEnumerable<string> tools) =>
+        tools.Select(SubjectOf).Distinct().OrderBy(s => s == "other").ThenBy(s => Loc.T("toolsOptions.subject." + s), Alphabetical);
+
+    /// <summary>Every subject (before the process said which tools it has).</summary>
+    internal static IEnumerable<string> AllSubjects => SubjectsIn(SubjectOfTool.Keys);
 
     private static readonly Dictionary<string, string> SubjectOfTool = new(StringComparer.Ordinal)
     {
@@ -269,7 +315,7 @@ public partial class AssistantToolsSection : UserControl
 
     private static string SubjectOf(string tool) => SubjectOfTool.GetValueOrDefault(tool, "other");
 
-    private static SymbolRegular SubjectIcon(string subject) => subject switch
+    internal static SymbolRegular SubjectIcon(string subject) => subject switch
     {
         "commands" => SymbolRegular.Flash24,
         "time" => SymbolRegular.Clock24,
@@ -294,16 +340,50 @@ public partial class AssistantToolsSection : UserControl
         buttons.Children.Add(Wide(SymbolRegular.BookOpen24, Loc.T("toolsOptions.guide"), _ => ProcessLauncher.Launch(new LaunchSpec(GuideUrl), asAdmin: false)));
         card.Add(buttons);
         if (files.Count == 0) card.Add(Caption(Loc.T(State is null && Running ? "memoryOptions.loading" : "toolsOptions.noFiles")));
-        var rows = new List<UIElement>();
-        foreach (var file in files)
+        // One row per file that opens its own page (5.0.134), in alphabetical order.
+        var rows = files.OrderBy(f => FileTitle(f, tools), Alphabetical).Select(file =>
         {
-            if (file.Errors.Count == 0 && tools.FirstOrDefault(t => string.Equals(t.Source, file.File, StringComparison.OrdinalIgnoreCase)) is { } tool)
-                rows.Add(ToolRow(tool, file: file));
-            else rows.Add(BrokenFileRow(file));
-        }
+            var tool = ToolOfFile(file, tools);
+            var chips = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
+            chips.Children.Add(Chip(Path.GetFileName(file.File) + (file.Type is { } type ? " · " + Loc.T("toolsOptions.type." + type) : string.Empty)));
+            if (file.Errors.Count > 0) chips.Children.Add(StatusChip(Loc.T("toolsOptions.fileBroken"), "Kd.Danger"));
+            else if (!file.Enabled) chips.Children.Add(StatusChip(Loc.T("toolsOptions.fileOff"), "TextFillColorTertiaryBrush"));
+            else if (tool is { Enabled: false }) chips.Children.Add(StatusChip(Loc.T("toolsOptions.toolOff"), "TextFillColorTertiaryBrush"));
+            var about = tool?.Example is { Length: > 0 } example ? Loc.T("toolsOptions.example", example) : tool is null ? null : OneLine(tool.Description);
+            return (UIElement)OpenableRow(file.Errors.Count > 0 ? SymbolRegular.ErrorCircle24 : TypeIcon(file.Type), FileTitle(file, tools), about, chips,
+                "tools/files/" + Path.GetFileName(file.File), danger: file.Errors.Count > 0, dim: file.Errors.Count == 0 && (!file.Enabled || tool is { Enabled: false }));
+        }).ToList();
         if (rows.Count > 0) card.Add(Rows(rows));
         Body.Children.Add(card.Border);
     }
+
+    /// <summary>One of the user's files: its tool, or what is wrong with it.</summary>
+    private void FillFile()
+    {
+        var tools = ToolsOf("json").ToList();
+        var file = (State?.Files ?? []).FirstOrDefault(f => string.Equals(Path.GetFileName(f.File), ItemId, StringComparison.OrdinalIgnoreCase));
+        if (file is null)
+        {
+            var gone = Card(ItemId ?? string.Empty, Loc.T(State is null ? (Running ? "memoryOptions.loading" : "toolsOptions.noToolsOff") : "toolsOptions.fileGone"));
+            if (State is not null) gone.Add(Wide(SymbolRegular.ArrowLeft24, Loc.T("toolsOptions.backToFiles"), _ => Go("tools/files")));
+            Body.Children.Add(gone.Border);
+            return;
+        }
+        var card = Card(FileTitle(file, tools), null, file.Errors.Count > 0 ? SymbolRegular.ErrorCircle24 : TypeIcon(file.Type));
+        var buttons = new WrapPanel { Margin = new Thickness(0, 0, 0, 6) };
+        buttons.Children.Add(Wide(SymbolRegular.Edit24, Loc.T("toolsOptions.editFile"), _ => App.OpenToolFile(file.File)));
+        buttons.Children.Add(Wide(SymbolRegular.FolderOpen24, Loc.T("toolsOptions.openFolder"), _ => App.OpenToolsFolder()));
+        card.Add(buttons);
+        card.Add(Rows([ToolOfFile(file, tools) is { } tool && file.Errors.Count == 0 ? ToolRow(tool, file: file) : BrokenFileRow(file)]));
+        Body.Children.Add(card.Border);
+    }
+
+    private static ToolInfo? ToolOfFile(ToolFileInfo file, IEnumerable<ToolInfo> tools) =>
+        tools.FirstOrDefault(t => string.Equals(t.Source, file.File, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>A file's name for people: its tool's, else the name it gives, else the file's.</summary>
+    internal static string FileTitle(ToolFileInfo file, IEnumerable<ToolInfo> tools) =>
+        ToolOfFile(file, tools) is { } tool ? TitleOf(tool) : ToolTestForm.Humanize(file.Name ?? Path.GetFileNameWithoutExtension(file.File));
 
     private FrameworkElement BrokenFileRow(ToolFileInfo file)
     {
@@ -333,7 +413,7 @@ public partial class AssistantToolsSection : UserControl
         menu.IsOpen = true;
     }
 
-    private static SymbolRegular TypeIcon(string? type) => type switch
+    internal static SymbolRegular TypeIcon(string? type) => type switch
     {
         "http" => SymbolRegular.Globe24,
         "kdesktop" => SymbolRegular.Flash24,
@@ -355,7 +435,7 @@ public partial class AssistantToolsSection : UserControl
         if (errors.Count > 0) card.Add(Note(Loc.T("toolsOptions.mcpBroken", errors[0]), danger: true));
         if (servers.Count == 0) card.Add(Caption(Loc.T("toolsOptions.noServers")));
         var states = (State?.Servers ?? []).ToDictionary(s => s.Id, StringComparer.OrdinalIgnoreCase);
-        if (servers.Count > 0) card.Add(Rows(servers.Select(s => ServerListRow(s, states.GetValueOrDefault(s.Id)))));
+        if (servers.Count > 0) card.Add(Rows(servers.OrderBy(s => s.Id, Alphabetical).Select(s => ServerListRow(s, states.GetValueOrDefault(s.Id)))));
         Body.Children.Add(card.Border);
     }
 
@@ -379,6 +459,27 @@ public partial class AssistantToolsSection : UserControl
         return Row(SymbolRegular.PlugConnected24, open, buttons, server.Id, dim: server.Disabled);
     }
 
+    /// <summary>A row that opens a page of its own: a click on it, or its chevron (for the keyboard).</summary>
+    private FrameworkElement OpenableRow(SymbolRegular icon, string title, string? about, WrapPanel? chips, string page, bool danger = false, bool dim = false)
+    {
+        var body = new StackPanel();
+        var name = Title(title);
+        name.FontWeight = FontWeights.SemiBold;
+        body.Children.Add(name);
+        if (about is { Length: > 0 })
+        {
+            var caption = Caption(Shorten(about, 220));
+            caption.Margin = new Thickness(0, 2, 0, 0);
+            body.Children.Add(caption);
+        }
+        if (chips is { Children.Count: > 0 }) body.Children.Add(chips);
+        var open = new Border { Child = body, Background = System.Windows.Media.Brushes.Transparent, Cursor = Cursors.Hand };
+        open.MouseLeftButtonUp += (_, _) => Go(page);
+        var buttons = Buttons();
+        buttons.Children.Add(Small(SymbolRegular.ChevronRight24, Loc.T("toolsOptions.openServer", title), () => Go(page), true));
+        return Row(icon, open, buttons, title, danger: danger, dim: dim);
+    }
+
     private (string Text, string Brush) StatusOf(McpServerEntry server, McpServerInfo? state)
     {
         var testing = _app.AssistantToolsTesting.Contains(server.Id);
@@ -392,10 +493,10 @@ public partial class AssistantToolsSection : UserControl
     /// <summary>One server: what it is, how it is, its buttons, and its tools.</summary>
     private void FillServer()
     {
-        var server = App.ReadMcpServers(out _).FirstOrDefault(s => string.Equals(s.Id, ServerId, StringComparison.OrdinalIgnoreCase));
+        var server = App.ReadMcpServers(out _).FirstOrDefault(s => string.Equals(s.Id, ItemId, StringComparison.OrdinalIgnoreCase));
         if (server is null)
         {
-            var gone = Card(ServerId ?? string.Empty, Loc.T("toolsOptions.serverGone"));
+            var gone = Card(ItemId ?? string.Empty, Loc.T("toolsOptions.serverGone"));
             gone.Add(Wide(SymbolRegular.ArrowLeft24, Loc.T("toolsOptions.backToServers"), _ => Go("tools/servers")));
             Body.Children.Add(gone.Border);
             return;
@@ -428,15 +529,9 @@ public partial class AssistantToolsSection : UserControl
         if (_app.AssistantToolTests.TryGetValue(server.Id, out var test) && !testing) head.Add(Result(test));
         Body.Children.Add(head.Border);
 
-        var tools = ToolsOf("mcp:" + server.Id).ToList();
+        var tools = ToolsOf("mcp:" + server.Id).OrderBy(TitleOf, Alphabetical).ToList();
         var list = Card(Loc.T("toolsOptions.serverToolsTitle", tools.Count), Loc.T(tools.Count == 0 ? "toolsOptions.serverNoTools" : "toolsOptions.serverToolsIntro"));
-        if (tools.Count > 1)
-        {
-            var bulk = new WrapPanel { Margin = new Thickness(0, 0, 0, 4) };
-            bulk.Children.Add(Wide(SymbolRegular.CheckmarkCircle24, Loc.T("toolsOptions.allOnButton"), _ => { foreach (var t in tools) _app.SetToolEnabled(t.Name, true); }, enabled: tools.Any(t => !t.Enabled)));
-            bulk.Children.Add(Wide(SymbolRegular.DismissCircle24, Loc.T("toolsOptions.allOffButton"), _ => { foreach (var t in tools) _app.SetToolEnabled(t.Name, false); }, enabled: tools.Any(t => t.Enabled)));
-            list.Add(bulk);
-        }
+        if (tools.Count > 1) list.Add(Bulk(tools));
         if (tools.Count > 0) list.Add(Rows(tools.Select(t => ToolRow(t))));
         Body.Children.Add(list.Border);
     }
@@ -500,7 +595,7 @@ public partial class AssistantToolsSection : UserControl
         var secrets = _app.ToolSecretList();
         var card = Card(Loc.T("toolsOptions.secrets"), Loc.T("toolsOptions.secretsIntro"));
         if (secrets.Count == 0) card.Add(Caption(Loc.T("toolsOptions.noSecrets")));
-        else card.Add(Rows(secrets.Select(s => SecretRow(s.Name, s.Kept, s.UsedBy))));
+        else card.Add(Rows(secrets.OrderBy(s => s.Name, Alphabetical).Select(s => SecretRow(s.Name, s.Kept, s.UsedBy))));
         Body.Children.Add(card.Border);
 
         var add = Card(Loc.T("toolsOptions.addSecretTitle"), Loc.T("toolsOptions.addSecretIntro"), SymbolRegular.Add24);

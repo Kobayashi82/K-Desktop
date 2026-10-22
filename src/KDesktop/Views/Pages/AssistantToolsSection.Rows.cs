@@ -80,16 +80,16 @@ public partial class AssistantToolsSection
         AutomationProperties.SetName(test, Loc.T("toolsOptions.test") + " " + tool.Name);
         test.Click += (_, _) =>
         {
+            // Closed, its result goes with it (it stayed under the row).
+            if (_testing == tool.Name) _app.ForgetToolTest(tool.Name);
             _testing = _testing == tool.Name ? null : tool.Name;
             Refresh();
         };
         buttons.Children.Add(test);
         buttons.Children.Add(Toggle(tool.Enabled, Loc.T("toolsOptions.toolSwitch", tool.Name), on => _app.SetToolEnabled(tool.Name, on)));
 
-        UIElement? below = null;
-        if (_testing == tool.Name && tool.Enabled) below = TestPanel(tool, testing);
-        else if (testing) below = Caption(Loc.T("toolsOptions.testing"));
-        else if (_app.AssistantToolTests.TryGetValue(tool.Name, out var last)) below = Result(last);
+        // The result is only seen with the test open.
+        var below = _testing == tool.Name && tool.Enabled ? TestPanel(tool, testing) : null;
         var icon = tool.Group == "builtin" ? SubjectIcon(SubjectOf(tool.Name))
             : tool.Group == "json" ? TypeIcon(file?.Type)
             : SymbolRegular.PlugConnected24;
