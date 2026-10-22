@@ -80,9 +80,13 @@ public partial class App
         return AddresseeFor(who);
     }
 
-    /// <summary>An assistant as the one an order is for: it gets the text and shows that it listens.</summary>
+    /// <summary>
+    /// An assistant as the one an order is for: it gets the text and shows that it listens; the other programs stay turned
+    /// down while it answers.
+    /// </summary>
     private VoiceAddressee AddresseeFor(string who) =>
-        new(AssistantName(who), (text, source) => Dispatcher.Invoke(() => SendToAssistant(who, text, source)), active => SendListening(who, active));
+        new(AssistantName(who), (text, source) => Dispatcher.Invoke(() => SendToAssistant(who, text, source)), active => SendListening(who, active),
+            () => Dispatcher.Invoke(() => _assistant is { IsRunning: true } && IsAssistantThinking(who)));
 
     /// <summary><c>listening</c> (stage 5.2): the character shows that it is being listened to.</summary>
     private void SendListening(string who, bool active)

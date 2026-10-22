@@ -441,7 +441,7 @@
   "settings.voiceEcho": "Ignorieren, was der PC abspielt",
   "settings.voiceEchoHint": "Entfernt Musik, Filme und jeden anderen PC-Ton aus dem Mikrofon (Echounterdrückung), damit du verstanden wirst, auch wenn etwas läuft",
   "settings.voiceDuck": "Lautstärke beim Sprechen senken",
-  "settings.voiceDuckHint": "Wenn das Aktivierungswort erkannt oder die Sprachtaste gedrückt wird, werden die anderen Programme leiser, bis der Befehl vorbei ist",
+  "settings.voiceDuckHint": "Wenn das Aktivierungswort erkannt oder die Sprachtaste gedrückt wird, werden die anderen Programme leiser, bis der Befehl vorbei ist; bei einem Assistenten, bis er fertig geantwortet hat",
   "settings.voiceListenSound": "Ton beim Zuhören",
   "settings.voiceListenSoundHint": "Ertönt, wenn das Aktivierungswort erkannt oder die Sprachtaste gedrückt wird",
   "settings.voiceDuckLevel": "Lautstärke, auf die sie gesenkt werden",

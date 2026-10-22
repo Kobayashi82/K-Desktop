@@ -13,7 +13,8 @@ namespace KDesktop.Core.Voice;
 /// <param name="Name">Who, for the OSD («Lander»).</param>
 /// <param name="Send">Hands it the order (the text and where it came from: <c>voice</c> or <c>phone</c>); false when nobody could take it (it says why).</param>
 /// <param name="Listening">It is being listened to / no longer (the character shows it); null: nothing to show.</param>
-public sealed record VoiceAddressee(string Name, Func<string, string, bool> Send, Action<bool>? Listening = null);
+/// <param name="Answering">Whether it is thinking or answering now (any thread): the other programs stay turned down until it is done.</param>
+public sealed record VoiceAddressee(string Name, Func<string, string, bool> Send, Action<bool>? Listening = null, Func<bool>? Answering = null);
 
 /// <summary>
 /// Voice orders: listen (while a key is held, or until the speaker goes quiet) → transcribe with Parakeet → pick the
@@ -195,7 +196,7 @@ public sealed partial class VoiceService : IDisposable
             PlayFake(VoiceDiagnostics.ReadWav(said), OnSamples, fake.Token);
         }
         else _mic.Samples += OnSamples;
-        using var duck = Duck(settings);
+        using var duck = new DuckScope(Duck(settings));
         try
         {
             _mic.EchoCancel = settings.VoiceEchoCancel;
@@ -268,14 +269,16 @@ public sealed partial class VoiceService : IDisposable
         }
         finally
         {
-            duck?.Dispose(); // the order is said: the others sound again (before it runs: «pausa» pauses them anyway)
+            // The order is said: the others sound again (before it runs: «pausa» pauses them anyway); an assistant keeps
+            // them down while it answers.
+            if (to is null) duck.Dispose();
         }
         if (abort.IsCancellationRequested)
         {
             End(Loc.T("voice.cancelled"));
             return;
         }
-        if (to is not null) await HandleTextForAsync(text, osd, to).ConfigureAwait(false);
+        if (to is not null) await HandleTextForAsync(text, osd, to, duck).ConfigureAwait(false);
         else await HandleTextAsync(text, osd).ConfigureAwait(false);
     }
 
@@ -283,7 +286,7 @@ public sealed partial class VoiceService : IDisposable
     /// What was said to an assistant (its key, a long click on it). Begun with a wake word, that word decides: another
     /// assistant's sends it there, K-Desktop's runs commands.
     /// </summary>
-    private async Task HandleTextForAsync(string text, IVoiceOsd osd, VoiceAddressee to)
+    private async Task HandleTextForAsync(string text, IVoiceOsd osd, VoiceAddressee to, DuckScope duck)
     {
         if (text.Length == 0)
         {
@@ -301,13 +304,14 @@ public sealed partial class VoiceService : IDisposable
             if (AddresseeOf?.Invoke(wake.Word.Id) is not { } other)
             {
                 Log.Info($"Voz: «{wake.Word.Name}» al principio de lo dicho a «{to.Name}»: es de K-Desktop");
+                duck.Dispose();
                 await RunTextAsync(text, osd).ConfigureAwait(false);
                 return;
             }
             to.Listening?.Invoke(false);
             to = other;
         }
-        SendTo(to, text, "voice", osd);
+        SendTo(to, text, "voice", osd, duck);
     }
 
     /// <summary>
@@ -334,7 +338,7 @@ public sealed partial class VoiceService : IDisposable
             }
             if (AddresseeOf?.Invoke(wake.Word.Id) is { } addressee)
             {
-                SendTo(addressee, text, source, osd);
+                SendTo(addressee, text, source, osd, null);
                 return;
             }
         }
@@ -343,11 +347,15 @@ public sealed partial class VoiceService : IDisposable
     }
 
     /// <summary>An order for an assistant: it gets the text, and the OSD says who heard what.</summary>
-    private static void SendTo(VoiceAddressee addressee, string text, string source, IVoiceOsd osd)
+    private void SendTo(VoiceAddressee addressee, string text, string source, IVoiceOsd osd, DuckScope? duck)
     {
         Log.Info($"Voz → asistente «{addressee.Name}»: «{text}»");
         addressee.Listening?.Invoke(false);
-        if (addressee.Send(text, source)) osd.Finish(Loc.T("voice.toAssistant", addressee.Name, text), OsdKind.Info);
+        if (addressee.Send(text, source))
+        {
+            osd.Finish(Loc.T("voice.toAssistant", addressee.Name, text), OsdKind.Info);
+            if (addressee.Answering is { } answering && duck?.Take() is { } ducker) HoldWhileAnswering(ducker, answering, addressee.Name);
+        }
         else osd.Dispose();
     }
 
@@ -486,7 +494,7 @@ public sealed partial class VoiceService : IDisposable
             PreloadModels(settings);
 
             // Turned down at once, so the order that follows is heard over the music; back up if the word isn't confirmed.
-            using var duck = Duck(settings);
+            using var duck = new DuckScope(Duck(settings));
 
             // With Parakeet still to load (a second or two) the verification would hold «Escuchando…» back: shown at
             // once instead, since the capture is already recording; hidden without a word if the word isn't confirmed.
@@ -605,7 +613,7 @@ public sealed partial class VoiceService : IDisposable
             osd.SetText(Loc.T("voice.thinking"));
             if (found is null || segments.Count > checkedSegments && !IsOrder(found.Value))
                 found = await OrderPlansAsync(after, segments, checkedSegments).ConfigureAwait(false);
-            duck?.Dispose();
+            if (addressee is null) duck.Dispose();
             if (!found.Value.Confirmed)
             {
                 osd.Finish(Loc.T("voice.nothingHeard"), OsdKind.Info);
@@ -628,7 +636,7 @@ public sealed partial class VoiceService : IDisposable
             {
                 if (found.Value.Said is { } said)
                 {
-                    SendTo(addressee, said, "voice", osd);
+                    SendTo(addressee, said, "voice", osd, duck);
                     addressee = null; // it has the order: it says it is no longer listening itself
                 }
                 else osd.Finish(Loc.T("voice.wakeOnly", word.Name), OsdKind.Info);
@@ -753,9 +761,59 @@ public sealed partial class VoiceService : IDisposable
         catch (Exception ex) { Log.Warn($"No se pudo reproducir el sonido de escucha: {ex.Message}"); }
     }
 
-    /// <summary>The other programs turned down while an order is said (Settings › Voz), or null.</summary>
-    private static AudioDucker? Duck(AppSettings settings) =>
-        settings.VoiceDuck && settings.VoiceDuckLevel < 100 ? AudioDucker.Duck(settings.VoiceDuckLevel / 100.0) : null;
+    /// <summary>
+    /// The other programs turned down while an order is said (Settings › Voz), or null. Still down while an assistant
+    /// answers the last one, this order takes that over (its follow-up question, a new order): no up and down again.
+    /// </summary>
+    private AudioDucker? Duck(AppSettings settings) =>
+        Interlocked.Exchange(ref _held, null)
+        ?? (settings.VoiceDuck && settings.VoiceDuckLevel < 100 ? AudioDucker.Duck(settings.VoiceDuckLevel / 100.0) : null);
+
+    /// <summary>Turned down for the last order and kept so while an assistant answers it.</summary>
+    private AudioDucker? _held;
+
+    /// <summary>How long an assistant has to start answering, how long it may answer, and the moment kept after it ends.</summary>
+    private static readonly TimeSpan AnswerStart = TimeSpan.FromSeconds(4), AnswerLimit = TimeSpan.FromSeconds(60), AnswerGrace = TimeSpan.FromSeconds(1.2);
+
+    /// <summary>
+    /// The order went to an assistant: the others stay down while it thinks and talks, as a smart speaker does, and come
+    /// back a moment after (in which a follow-up question may take them over: <see cref="Duck"/>).
+    /// </summary>
+    private void HoldWhileAnswering(AudioDucker ducker, Func<bool> answering, string who)
+    {
+        Interlocked.Exchange(ref _held, ducker)?.Dispose();
+        _ = Task.Run(async () =>
+        {
+            var watch = Stopwatch.StartNew();
+            var started = false;
+            TimeSpan? quietSince = null;
+            while (Volatile.Read(ref _held) == ducker && watch.Elapsed < AnswerLimit)
+            {
+                bool now;
+                try { now = answering(); }
+                catch { break; } // closing
+                if (now)
+                {
+                    started = true;
+                    quietSince = null;
+                }
+                else if (!started && watch.Elapsed > AnswerStart) break;
+                else if (started && (quietSince ??= watch.Elapsed) is var since && watch.Elapsed - since > AnswerGrace) break;
+                await Task.Delay(100).ConfigureAwait(false);
+            }
+            if (Interlocked.CompareExchange(ref _held, null, ducker) != ducker) return; // taken over by the next order
+            Log.Info($"Voz: «{who}» ha terminado de contestar ({watch.Elapsed.TotalSeconds:0.0} s): vuelve el volumen");
+            ducker.Dispose();
+        });
+    }
+
+    /// <summary>The volume turned down for one order: put back when it ends, unless an assistant takes it to answer.</summary>
+    private sealed class DuckScope(AudioDucker? ducker) : IDisposable
+    {
+        private AudioDucker? _ducker = ducker;
+        public AudioDucker? Take() => Interlocked.Exchange(ref _ducker, null);
+        public void Dispose() => Take()?.Dispose();
+    }
 
     /// <summary>The last stretch of speech in <paramref name="audio"/> (the wake word), a little silence around it.</summary>
     private static float[] LastUtterance(float[] audio)
@@ -791,6 +849,7 @@ public sealed partial class VoiceService : IDisposable
 
     public void Dispose()
     {
+        Interlocked.Exchange(ref _held, null)?.Dispose();
         Models.Dispose();
         _mic.Dispose();
         SpeechToText.Dispose();

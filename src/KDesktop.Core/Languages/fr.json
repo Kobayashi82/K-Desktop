@@ -441,7 +441,7 @@
   "settings.voiceEcho": "Ignorer ce que joue le PC",
   "settings.voiceEchoHint": "Retire du micro la musique, les films et tout autre son du PC (annulation d'écho), pour vous comprendre même quand quelque chose joue",
   "settings.voiceDuck": "Baisser le volume pendant que vous parlez",
-  "settings.voiceDuckHint": "Quand il entend le mot d'activation ou que la touche vocale est pressée, il baisse les autres programmes jusqu'à la fin de l'ordre",
+  "settings.voiceDuckHint": "Quand il entend le mot d'activation ou que la touche vocale est pressée, il baisse les autres programmes jusqu'à la fin de l'ordre ; pour un assistant, jusqu'à la fin de sa réponse",
   "settings.voiceListenSound": "Son à l'écoute",
   "settings.voiceListenSoundHint": "Retentit quand il entend le mot d'activation ou que la touche vocale est pressée",
   "settings.voiceDuckLevel": "Volume auquel ils sont baissés",

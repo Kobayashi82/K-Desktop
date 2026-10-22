@@ -6,7 +6,8 @@ namespace KDesktop.Core.Platform;
 /// <summary>
 /// Turns down what the other programs are playing while a voice order is being said (each program's own volume, as
 /// the volume mixer does), and puts it back afterwards; like a smart speaker does when it hears its name. A program
-/// whose volume the user changed meanwhile is left as the user set it.
+/// whose volume the user changed meanwhile is left as the user set it. Every output device (music may be on the
+/// headphones and a film on the TV); never K-Desktop itself nor the assistants' process, whose voice answers meanwhile.
 /// </summary>
 public sealed class AudioDucker : IDisposable
 {
@@ -14,7 +15,7 @@ public sealed class AudioDucker : IDisposable
 
     private readonly List<Ducked> _ducked = [];
     private readonly MMDeviceEnumerator? _enumerator;
-    private readonly MMDevice? _device;
+    private readonly List<MMDevice> _devices = [];
     private int _restored;
 
     private AudioDucker(float level)
@@ -22,22 +23,38 @@ public sealed class AudioDucker : IDisposable
         try
         {
             _enumerator = new MMDeviceEnumerator();
-            _device = _enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
-            var manager = _device.AudioSessionManager;
-            manager.RefreshSessions();
-            var sessions = manager.Sessions;
-            var own = (uint)Environment.ProcessId;
-            for (var i = 0; i < sessions.Count; i++)
+            var names = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var device in _enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
             {
-                var session = sessions[i];
-                if (session.State != AudioSessionState.AudioSessionStateActive || session.GetProcessID == own || session.IsSystemSoundsSession) continue;
-                var volume = session.SimpleAudioVolume;
-                var original = volume.Volume;
-                var lowered = original * level;
-                volume.Volume = lowered;
-                _ducked.Add(new Ducked(session, original, lowered));
+                _devices.Add(device);
+                try
+                {
+                    var manager = device.AudioSessionManager;
+                    manager.RefreshSessions();
+                    var sessions = manager.Sessions;
+                    for (var i = 0; i < sessions.Count; i++)
+                    {
+                        var session = sessions[i];
+                        if (session.State != AudioSessionState.AudioSessionStateActive || session.IsSystemSoundsSession
+                            || ProgramOf(session.GetProcessID) is not { } name || IsOurs(name))
+                        {
+                            session.Dispose();
+                            continue;
+                        }
+                        var volume = session.SimpleAudioVolume;
+                        var original = volume.Volume;
+                        var lowered = original * level;
+                        volume.Volume = lowered;
+                        _ducked.Add(new Ducked(session, original, lowered));
+                        names.Add(name);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warn($"No se pudo bajar el volumen en «{device.FriendlyName}»: {ex.Message}");
+                }
             }
-            if (_ducked.Count > 0) Log.Info($"Volumen de {_ducked.Count} programa(s) bajado al {level:P0} mientras se habla");
+            if (_ducked.Count > 0) Log.Info($"Volumen bajado al {level:P0} mientras se habla: {string.Join(", ", names)}");
         }
         catch (Exception ex)
         {
@@ -92,7 +109,28 @@ public sealed class AudioDucker : IDisposable
     private void Release()
     {
         foreach (var d in _ducked) d.Session.Dispose();
-        _device?.Dispose();
+        foreach (var device in _devices) device.Dispose();
         _enumerator?.Dispose();
+    }
+
+    private static readonly string OwnName = Path.GetFileNameWithoutExtension(Environment.ProcessPath ?? "KDesktop");
+
+    /// <summary>K-Desktop, the assistants' process (the same exe) or a test instance.</summary>
+    private static bool IsOurs(string name) =>
+        name.Equals(OwnName, StringComparison.OrdinalIgnoreCase) || name.Equals("KDesktop", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>The program behind a session, or null when it is gone.</summary>
+    private static string? ProgramOf(uint pid)
+    {
+        if (pid == 0) return null;
+        try
+        {
+            using var process = System.Diagnostics.Process.GetProcessById((int)pid);
+            return process.ProcessName;
+        }
+        catch
+        {
+            return null;
+        }
     }
 }
