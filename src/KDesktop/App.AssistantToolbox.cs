@@ -170,6 +170,9 @@ public partial class App
         return count;
     }
 
+    /// <summary>Raised (UI thread) when K-Desktop wrote <c>mcp.json</c>: the tree of Options lists one row per server.</summary>
+    public static event Action? McpServersChanged;
+
     private static void WriteMcp(IEnumerable<McpServerEntry> servers)
     {
         try { McpConfig.Write(McpFile, servers); }
@@ -177,6 +180,7 @@ public partial class App
         {
             Log.Warn($"Asistente: no se ha podido guardar {McpFile}: {ex.Message}");
         }
+        McpServersChanged?.Invoke();
     }
 
     // ── secrets ──────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 {
   "t": "toolsState",
   "tools": [
-    { "name": "get_time", "group": "builtin", "description": "Tells the current time and date.", "risk": "safe", "defaultRisk": "safe", "readsOnly": true, "enabled": true },
+    { "name": "get_time", "group": "builtin", "description": "Tells the current time and date.", "risk": "safe", "defaultRisk": "safe", "readsOnly": true, "enabled": true, "example": "¿qué hora es?", "schema": "{\"type\":\"object\",\"properties\":{}}" },
     { "name": "luz_salon", "group": "json", "description": "Turns the living room light on or off.", "risk": "safe", "defaultRisk": "safe", "readsOnly": false, "enabled": true, "source": "C:\\Users\\yo\\AppData\\Roaming\\K-Desktop 5\\Assistant\\Tools\\luz_salon.json" },
     { "name": "mcp_telegram_ask_user", "group": "mcp:telegram", "description": "Ask the user a question via Telegram and wait for their response", "risk": "askOnce", "defaultRisk": "askOnce", "readsOnly": false, "enabled": false, "source": "telegram" }
   ],

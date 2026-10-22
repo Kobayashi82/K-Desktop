@@ -1,7 +1,7 @@
 using System.IO;
 using System.Windows;
-using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Pipe;
@@ -19,81 +19,142 @@ using TextBox = Wpf.Ui.Controls.TextBox;
 namespace KDesktop.Views.Pages;
 
 /// <summary>
-/// Options → Assistant → Tools (stage 9.3): the MCP servers (state, test, stop, edit, switch off, remove, import, add),
-/// every tool by group (built in, the user's JSON ones, each server's) with its switch, how it asks and a test with its
-/// last result, the JSON tools' files with what is wrong with them, and the secrets (kept encrypted; their values never
-/// shown). The rows are made in code (an ItemsControl hides its buttons from UI Automation).
+/// Options → Assistant → Tools (stage 9.3; by pages since 5.0.133). Each instance is one page (<see cref="Part"/>): the
+/// summary with a search over every tool (<c>tools</c>), the built-in ones by subject (<c>tools/builtin</c>), the user's
+/// JSON ones with their files (<c>tools/files</c>), the MCP servers (<c>tools/servers</c>), one server with its tools
+/// (<c>tools/server</c>, <see cref="ShowServer"/>) and the secrets (<c>tools/secrets</c>). Only the page that shows is
+/// made, and only when what it shows changed (it was all of them, 230 rows each time, and every click took a second).
+/// The rows are made in code (an ItemsControl hides its buttons from UI Automation).
 /// </summary>
 public partial class AssistantToolsSection : UserControl
 {
     private const string GuideUrl = "https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/herramientas.md";
 
     private readonly App _app = App.Current;
-    /// <summary>The tool groups shown open (the built-in ones start folded).</summary>
-    private readonly HashSet<string> _open = new(StringComparer.Ordinal);
-    private readonly HashSet<string> _closed = new(StringComparer.Ordinal) { "builtin" };
-    /// <summary>The tool whose test box is open, and what was written in each.</summary>
-    private string? _testing;
-    private readonly Dictionary<string, string> _arguments = new(StringComparer.Ordinal);
-    /// <summary>The secret being changed (its box shows).</summary>
-    private string? _changingSecret;
-    /// <summary>A box just opened: it takes the focus once.</summary>
-    private bool _focusBox;
+    /// <summary>What the page showed last time it was made (it is not made again for the same).</summary>
+    private string? _shown;
 
     public AssistantToolsSection()
     {
         InitializeComponent();
         Loaded += (_, _) =>
         {
-            _app.AssistantToolsChanged += Fill;
+            FitWidth();
+            _app.AssistantToolsChanged += Refresh;
             _app.AssistantChanged += OnAssistantChanged;
+            App.McpServersChanged += Refresh;
         };
         Unloaded += (_, _) =>
         {
-            _app.AssistantToolsChanged -= Fill;
+            _app.AssistantToolsChanged -= Refresh;
             _app.AssistantChanged -= OnAssistantChanged;
+            App.McpServersChanged -= Refresh;
         };
         IsVisibleChanged += (_, _) =>
         {
             if (!IsVisible) return;
-            _app.RequestAssistantTools();
-            Fill();
+            if (_app.AssistantTools is null) _app.RequestAssistantTools();
+            Refresh();
         };
+    }
+
+    /// <summary>Which page it is: <c>tools</c>, <c>tools/builtin</c>, <c>tools/files</c>, <c>tools/servers</c>, <c>tools/server</c> or <c>tools/secrets</c>.</summary>
+    public string Part { get; set; } = "tools";
+
+    /// <summary>The server <c>tools/server</c> shows.</summary>
+    public string? ServerId { get; private set; }
+
+    /// <summary>Shows that MCP server and its tools (<c>tools/server</c>).</summary>
+    public void ShowServer(string id)
+    {
+        ServerId = id;
+        _shown = null;
+        Refresh();
+    }
+
+    private ScrollViewer? _scroll;
+
+    /// <summary>
+    /// As wide as the page lets it (the sections are as wide as their content, up to their most): its pages have short
+    /// texts and each one came out of another width.
+    /// </summary>
+    private void FitWidth()
+    {
+        if (_scroll is not null) return;
+        DependencyObject? at = this;
+        while (at is not null and not ScrollViewer) at = System.Windows.Media.VisualTreeHelper.GetParent(at);
+        if (at is not ScrollViewer scroll || Parent is not FrameworkElement holder) return;
+        _scroll = scroll;
+        void Fit() => Width = Math.Max(0, Math.Min(double.IsInfinity(holder.MaxWidth) ? double.MaxValue : holder.MaxWidth, scroll.ViewportWidth));
+        scroll.SizeChanged += (_, _) => Fit();
+        scroll.ScrollChanged += (_, e) => { if (e.ViewportWidthChange != 0) Fit(); };
+        Fit();
     }
 
     private void OnAssistantChanged()
     {
         if (!IsVisible) return;
         if (_app.AssistantTools is null) _app.RequestAssistantTools();
-        Fill();
+        Refresh();
     }
 
     private bool Running => _app.Assistant is { IsRunning: true };
 
-    /// <summary>Which page it is: <c>tools</c> (every tool), <c>tools/servers</c>, <c>tools/files</c> or <c>tools/secrets</c>.</summary>
-    public string Part { get; set; } = "tools";
+    private ToolsStateMessage? State => _app.AssistantTools;
 
-    private void Fill()
+    /// <summary>Makes the page again, if it shows and what it shows changed.</summary>
+    private void Refresh()
     {
-        // Something being written keeps its focus when the rows are made again.
+        if (!IsVisible) return;
+        var signature = Signature();
+        if (signature == _shown) return;
+        _shown = signature;
         var focused = Keyboard.FocusedElement is FrameworkElement { Tag: string tag } ? tag : null;
         OffBox.Visibility = Running ? Visibility.Collapsed : Visibility.Visible;
         OffText.Text = Loc.T(_app.Assistant is null ? "toolsOptions.moduleOff" : "toolsOptions.notRunning");
         GoGeneral.Visibility = _app.Assistant is null ? Visibility.Visible : Visibility.Collapsed;
-        ServersCard.Visibility = Part == "tools/servers" ? Visibility.Visible : Visibility.Collapsed;
-        ToolsCard.Visibility = Part == "tools" ? Visibility.Visible : Visibility.Collapsed;
-        FilesCard.Visibility = Part == "tools/files" ? Visibility.Visible : Visibility.Collapsed;
-        SecretsCard.Visibility = Part == "tools/secrets" ? Visibility.Visible : Visibility.Collapsed;
+        Body.Children.Clear();
         switch (Part)
         {
-            case "tools/servers": FillServers(); break;
+            case "tools/builtin": FillBuiltin(); break;
             case "tools/files": FillFiles(); break;
+            case "tools/servers": FillServers(); break;
+            case "tools/server": FillServer(); break;
             case "tools/secrets": FillSecrets(); break;
-            default: FillTools(); break;
+            default: FillSummary(); break;
         }
         if (focused is not null && FindTagged(this, focused) is { } again)
-            Dispatcher.BeginInvoke(() => again.Focus(), System.Windows.Threading.DispatcherPriority.Input);
+            Dispatcher.BeginInvoke(() =>
+            {
+                again.Focus();
+                if (again is System.Windows.Controls.TextBox box) box.CaretIndex = box.Text.Length;
+            }, System.Windows.Threading.DispatcherPriority.Input);
     }
+
+    /// <summary>Everything the page shows, in a few words: the same, and nothing is made again (focus and caret stay).</summary>
+    private string Signature()
+    {
+        var state = State;
+        var parts = new List<string> { Part, ServerId ?? "", Running.ToString(), (_app.Assistant is null).ToString(), _testing ?? "", _changingSecret ?? "", _search };
+        IEnumerable<ToolInfo> tools = Part switch
+        {
+            "tools/builtin" => ToolsOf("builtin"),
+            "tools/files" => ToolsOf("json"),
+            "tools/server" => ToolsOf("mcp:" + ServerId),
+            "tools" => _search.Length > 0 ? state?.Tools ?? [] : [],
+            _ => [],
+        };
+        foreach (var tool in tools) parts.Add($"{tool.Name}|{tool.Enabled}|{tool.Risk}|{_app.AssistantToolsTesting.Contains(tool.Name)}|{(_app.AssistantToolTests.TryGetValue(tool.Name, out var t) ? t.Ms + t.Text.Length : -1)}");
+        if (Part is "tools" or "tools/servers" or "tools/server")
+            foreach (var server in state?.Servers ?? []) parts.Add($"{server.Id}|{server.State}|{server.Disabled}|{server.Tools}|{server.Error}|{_app.AssistantToolsTesting.Contains(server.Id)}|{(_app.AssistantToolTests.TryGetValue(server.Id, out var t) ? t.Ms : -1)}");
+        if (Part is "tools" or "tools/servers" or "tools/server") parts.Add(string.Join(",", App.ReadMcpServers(out _).Select(s => s.Id + s.Disabled + s.Summary)));
+        if (Part is "tools" or "tools/files") foreach (var file in state?.Files ?? []) parts.Add($"{file.File}|{file.Enabled}|{string.Join(";", file.Errors)}");
+        if (Part is "tools") parts.Add(string.Join(",", (state?.Tools ?? []).Select(t => t.Enabled ? "1" : "0")));
+        if (Part is "tools" or "tools/secrets") parts.Add(string.Join(",", _app.ToolSecretList().Select(s => s.Name + s.Kept + string.Join("+", s.UsedBy))));
+        return string.Join("\n", parts);
+    }
+
+    private IEnumerable<ToolInfo> ToolsOf(string group) => (State?.Tools ?? []).Where(t => t.Group == group);
 
     private static FrameworkElement? FindTagged(DependencyObject parent, string tag)
     {
@@ -106,49 +167,281 @@ public partial class AssistantToolsSection : UserControl
         return null;
     }
 
+    private void Go(string page) => (Window.GetWindow(this) as MainWindow)?.Navigate("settings/" + page);
+
+    // ── summary ──────────────────────────────────────────────────────────
+
+    private string _search = string.Empty;
+
+    /// <summary>Most rows the search shows.</summary>
+    private const int SearchShown = 40;
+
+    private void FillSummary()
+    {
+        var state = State;
+        var tools = state?.Tools ?? [];
+        var builtin = tools.Where(t => t.Group == "builtin").ToList();
+        var own = tools.Where(t => t.Group == "json").ToList();
+        var mcp = tools.Where(t => t.Group.StartsWith("mcp:", StringComparison.Ordinal)).ToList();
+        var servers = App.ReadMcpServers(out _);
+        var running = (state?.Servers ?? []).Count(s => s.State == "running");
+        var broken = (state?.Files ?? []).Count(f => f.Errors.Count > 0);
+        var secrets = _app.ToolSecretList();
+        var missing = secrets.Count(s => !s.Kept && s.UsedBy.Count > 0);
+
+        var card = Card(Loc.T("toolsOptions.summary"), Loc.T("toolsOptions.summaryIntro"));
+        var tiles = new UniformGrid { Columns = 2, Margin = new Thickness(-4, 4, -4, 0) };
+        tiles.Children.Add(Tile(SymbolRegular.Toolbox24, Loc.T("settings.nav.toolBuiltin"), builtin.Count, Off(builtin), "tools/builtin"));
+        tiles.Children.Add(Tile(SymbolRegular.DocumentData24, Loc.T("settings.nav.toolFiles"), own.Count,
+            broken > 0 ? Loc.T("toolsOptions.tileBroken", broken) : Off(own), "tools/files", broken > 0));
+        tiles.Children.Add(Tile(SymbolRegular.PlugConnected24, Loc.T("settings.nav.toolServers"), servers.Count,
+            Loc.T("toolsOptions.tileServers", running, mcp.Count), "tools/servers"));
+        tiles.Children.Add(Tile(SymbolRegular.Key24, Loc.T("settings.nav.toolSecrets"), secrets.Count,
+            missing > 0 ? Loc.T("toolsOptions.tileMissing", missing) : Loc.T("toolsOptions.tileAllKept"), "tools/secrets", missing > 0));
+        card.Add(tiles);
+        Body.Children.Add(card.Border);
+
+        var search = Card(Loc.T("toolsOptions.searchTitle"), Loc.T("toolsOptions.searchIntro"));
+        var box = new TextBox
+        {
+            Text = _search,
+            PlaceholderText = Loc.T("toolsOptions.filter"),
+            Icon = new SymbolIcon { Symbol = SymbolRegular.Search24 },
+            Tag = "search",
+            Margin = new Thickness(0, 0, 0, 4),
+        };
+        System.Windows.Automation.AutomationProperties.SetName(box, Loc.T("toolsOptions.filter"));
+        box.TextChanged += (_, _) =>
+        {
+            _search = box.Text.Trim();
+            Refresh();
+        };
+        search.Add(box);
+        if (_search.Length > 0)
+        {
+            var found = tools.Where(t => Matches(t, _search)).ToList();
+            if (found.Count == 0) search.Add(Caption(Loc.T(state is null ? (Running ? "memoryOptions.loading" : "toolsOptions.noToolsOff") : "toolsOptions.noTools")));
+            else
+            {
+                search.Add(Rows(found.Take(SearchShown).Select(t => ToolRow(t, showWhere: true))));
+                if (found.Count > SearchShown) search.Add(Caption(Loc.T("toolsOptions.searchMore", found.Count - SearchShown)));
+            }
+        }
+        Body.Children.Add(search.Border);
+    }
+
+    private static string? Off(IReadOnlyCollection<ToolInfo> tools) =>
+        tools.Count(t => !t.Enabled) is var off and > 0 ? Loc.T("toolsOptions.groupOff", off) : Loc.T("toolsOptions.allOn");
+
+    private static bool Matches(ToolInfo tool, string search) =>
+        tool.Name.Contains(search, StringComparison.OrdinalIgnoreCase) || TitleOf(tool).Contains(search, StringComparison.OrdinalIgnoreCase)
+        || tool.Description.Contains(search, StringComparison.OrdinalIgnoreCase) || (tool.Example?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false);
+
+    // ── built-in ─────────────────────────────────────────────────────────
+
+    private void FillBuiltin()
+    {
+        var tools = ToolsOf("builtin").ToList();
+        var intro = Card(Loc.T("settings.nav.toolBuiltin"), Loc.T("toolsOptions.builtinIntro"));
+        if (tools.Count == 0) intro.Add(Caption(Loc.T(Running ? "memoryOptions.loading" : "toolsOptions.noToolsOff")));
+        Body.Children.Add(intro.Border);
+        foreach (var subject in tools.GroupBy(t => SubjectOf(t.Name)).OrderBy(g => Array.IndexOf(Subjects, g.Key)))
+        {
+            var card = Card(Loc.T("toolsOptions.subject." + subject.Key), null, SubjectIcon(subject.Key));
+            card.Add(Rows(subject.Select(t => ToolRow(t))));
+            Body.Children.Add(card.Border);
+        }
+    }
+
+    /// <summary>The subjects of the built-in tools, in the order they show.</summary>
+    private static readonly string[] Subjects = ["commands", "time", "notes", "files", "web", "screen", "pc", "other"];
+
+    private static readonly Dictionary<string, string> SubjectOfTool = new(StringComparer.Ordinal)
+    {
+        ["run_command"] = "commands", ["find_command"] = "commands", ["describe_command"] = "commands", ["add_voice_phrase"] = "commands", ["run_event"] = "commands",
+        ["get_time"] = "time", ["set_timer"] = "time", ["cancel_timer"] = "time", ["notify_when"] = "time", ["stop_watching"] = "time", ["date_math"] = "time", ["calculate"] = "time",
+        ["save_note"] = "notes", ["find_notes"] = "notes", ["remember"] = "notes", ["forget"] = "notes",
+        ["find_files"] = "files", ["open_file"] = "files",
+        ["open_web"] = "web", ["search_web"] = "web", ["look_up_web"] = "web", ["read_web"] = "web",
+        ["look_at_screen"] = "screen", ["transform_text"] = "screen",
+        ["open_app"] = "pc", ["control_app"] = "pc", ["end_process"] = "pc", ["pc_status"] = "pc",
+    };
+
+    private static string SubjectOf(string tool) => SubjectOfTool.GetValueOrDefault(tool, "other");
+
+    private static SymbolRegular SubjectIcon(string subject) => subject switch
+    {
+        "commands" => SymbolRegular.Flash24,
+        "time" => SymbolRegular.Clock24,
+        "notes" => SymbolRegular.Note24,
+        "files" => SymbolRegular.Folder24,
+        "web" => SymbolRegular.Globe24,
+        "screen" => SymbolRegular.Eye24,
+        "pc" => SymbolRegular.Desktop24,
+        _ => SymbolRegular.Toolbox24,
+    };
+
+    // ── the user's JSON tools ────────────────────────────────────────────
+
+    private void FillFiles()
+    {
+        var files = State?.Files ?? [];
+        var tools = ToolsOf("json").ToList();
+        var card = Card(Loc.T("toolsOptions.files"), Loc.T("toolsOptions.filesIntro"));
+        var buttons = new WrapPanel { Margin = new Thickness(0, 0, 0, 6) };
+        buttons.Children.Add(Wide(SymbolRegular.Add24, Loc.T("toolsOptions.newTool"), NewTool, primary: true));
+        buttons.Children.Add(Wide(SymbolRegular.FolderOpen24, Loc.T("toolsOptions.openFolder"), _ => App.OpenToolsFolder()));
+        buttons.Children.Add(Wide(SymbolRegular.BookOpen24, Loc.T("toolsOptions.guide"), _ => ProcessLauncher.Launch(new LaunchSpec(GuideUrl), asAdmin: false)));
+        card.Add(buttons);
+        if (files.Count == 0) card.Add(Caption(Loc.T(State is null && Running ? "memoryOptions.loading" : "toolsOptions.noFiles")));
+        var rows = new List<UIElement>();
+        foreach (var file in files)
+        {
+            if (file.Errors.Count == 0 && tools.FirstOrDefault(t => string.Equals(t.Source, file.File, StringComparison.OrdinalIgnoreCase)) is { } tool)
+                rows.Add(ToolRow(tool, file: file));
+            else rows.Add(BrokenFileRow(file));
+        }
+        if (rows.Count > 0) card.Add(Rows(rows));
+        Body.Children.Add(card.Border);
+    }
+
+    private FrameworkElement BrokenFileRow(ToolFileInfo file)
+    {
+        var body = new StackPanel();
+        body.Children.Add(Title(file.Name ?? Path.GetFileName(file.File)));
+        body.Children.Add(Caption(Path.GetFileName(file.File) + (file.Errors.Count == 0 ? " · " + Loc.T("toolsOptions.fileOff") : string.Empty)));
+        foreach (var error in file.Errors.Take(3))
+        {
+            var line = Caption(error);
+            line.SetResourceReference(TextBlock.ForegroundProperty, "Kd.Danger");
+            body.Children.Add(line);
+        }
+        var buttons = Buttons();
+        buttons.Children.Add(Small(SymbolRegular.Edit24, Loc.T("toolsOptions.editFile"), () => App.OpenToolFile(file.File), true, Path.GetFileName(file.File)));
+        return Row(file.Errors.Count > 0 ? SymbolRegular.ErrorCircle24 : SymbolRegular.DocumentData24, body, buttons, file.File, danger: file.Errors.Count > 0);
+    }
+
+    private void NewTool(FrameworkElement from)
+    {
+        var menu = new ContextMenu { PlacementTarget = from, Placement = PlacementMode.Bottom };
+        foreach (var type in new[] { "http", "kdesktop", "routine", "script" })
+        {
+            var item = new MenuItem { Header = Loc.T("toolsOptions.type." + type), Icon = new SymbolIcon { Symbol = TypeIcon(type) } };
+            item.Click += (_, _) => App.NewToolFromTemplate(type);
+            menu.Items.Add(item);
+        }
+        menu.IsOpen = true;
+    }
+
+    private static SymbolRegular TypeIcon(string? type) => type switch
+    {
+        "http" => SymbolRegular.Globe24,
+        "kdesktop" => SymbolRegular.Flash24,
+        "routine" => SymbolRegular.TextBulletListLtr24,
+        "script" => SymbolRegular.Code24,
+        _ => SymbolRegular.DocumentData24,
+    };
+
     // ── MCP servers ──────────────────────────────────────────────────────
 
     private void FillServers()
     {
         var servers = App.ReadMcpServers(out var errors);
-        McpErrorBox.Visibility = errors.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        McpErrorText.Text = errors.Count > 0 ? Loc.T("toolsOptions.mcpBroken", errors[0]) : string.Empty;
-        NoServers.Visibility = servers.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        ServerRows.Children.Clear();
-        var states = (_app.AssistantTools?.Servers ?? []).ToDictionary(s => s.Id, StringComparer.OrdinalIgnoreCase);
-        foreach (var server in servers) ServerRows.Children.Add(ServerRow(server, states.GetValueOrDefault(server.Id)));
+        var card = Card(Loc.T("toolsOptions.servers"), Loc.T("toolsOptions.serversIntro"));
+        var buttons = new WrapPanel { Margin = new Thickness(0, 0, 0, 6) };
+        buttons.Children.Add(Wide(SymbolRegular.Add24, Loc.T("toolsOptions.addServer"), _ => EditServer(null), primary: true));
+        buttons.Children.Add(Wide(SymbolRegular.ArrowImport24, Loc.T("toolsOptions.import"), _ => Import()));
+        card.Add(buttons);
+        if (errors.Count > 0) card.Add(Note(Loc.T("toolsOptions.mcpBroken", errors[0]), danger: true));
+        if (servers.Count == 0) card.Add(Caption(Loc.T("toolsOptions.noServers")));
+        var states = (State?.Servers ?? []).ToDictionary(s => s.Id, StringComparer.OrdinalIgnoreCase);
+        if (servers.Count > 0) card.Add(Rows(servers.Select(s => ServerListRow(s, states.GetValueOrDefault(s.Id)))));
+        Body.Children.Add(card.Border);
     }
 
-    private Border ServerRow(McpServerEntry server, McpServerInfo? state)
+    /// <summary>A server in the list: its name, what it is and how it is; a click opens its page.</summary>
+    private FrameworkElement ServerListRow(McpServerEntry server, McpServerInfo? state)
     {
-        var testing = _app.AssistantToolsTesting.Contains(server.Id);
-        var running = state?.State == "running";
-        var (status, color) = server.Disabled ? (Loc.T("toolsOptions.serverOff"), "TextFillColorSecondaryBrush")
-            : testing || state?.State == "starting" ? (Loc.T("toolsOptions.serverStarting"), "Kd.AccentText")
-            : state?.State == "failed" ? (Loc.T("toolsOptions.serverFailed", state.Error ?? string.Empty), "Kd.Danger")
-            : running ? (Loc.T("toolsOptions.serverRunning"), "Kd.Success")
-            : (Loc.T("toolsOptions.serverStopped"), "TextFillColorSecondaryBrush");
-        var tools = state?.Tools ?? 0;
-
+        var (status, brush) = StatusOf(server, state);
         var body = new StackPanel();
         body.Children.Add(Title(server.Id));
-        body.Children.Add(Caption(server.Summary));
-        var line = Caption(status + (state is not null && !server.Disabled ? " · " + Loc.T("toolsOptions.serverTools", tools) : string.Empty));
-        line.SetResourceReference(TextBlock.ForegroundProperty, color);
-        body.Children.Add(line);
-        if (_app.AssistantToolTests.TryGetValue(server.Id, out var test) && !testing) body.Children.Add(Result(test));
-
+        body.Children.Add(Caption(Shorten(server.Summary, 90)));
+        var chips = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
+        chips.Children.Add(StatusChip(status, brush));
+        if (state is not null && !server.Disabled) chips.Children.Add(Chip(Loc.T("toolsOptions.serverTools", state.Tools)));
+        body.Children.Add(chips);
+        // The name and its state open the server's page (the keyboard has the chevron button).
+        var open = new Border { Child = body, Background = System.Windows.Media.Brushes.Transparent, Cursor = Cursors.Hand };
+        open.MouseLeftButtonUp += (_, _) => Go("tools/servers/" + server.Id);
         var buttons = Buttons();
-        if (running) buttons.Children.Add(Small(SymbolRegular.Stop24, Loc.T("toolsOptions.stop"), () => _app.StopMcpServer(server.Id), Running, server.Id));
-        else buttons.Children.Add(Small(SymbolRegular.Play24, Loc.T("toolsOptions.test"), () => _app.StartMcpServer(server.Id), Running && !server.Disabled && !testing, server.Id));
-        buttons.Children.Add(Small(SymbolRegular.Edit24, Loc.T("toolsOptions.edit"), () => EditServer(server), true, server.Id));
-        buttons.Children.Add(Small(SymbolRegular.Delete24, Loc.T("toolsOptions.remove"), () => RemoveServer(server.Id), true, server.Id));
-        var toggle = Toggle(!server.Disabled, Loc.T("toolsOptions.serverSwitch", server.Id), on => App.SetMcpServerDisabled(server.Id, !on));
-        buttons.Children.Insert(0, toggle);
-        return Row(SymbolRegular.PlugConnected24, body, buttons, server.Id);
+        buttons.Children.Add(Toggle(!server.Disabled, Loc.T("toolsOptions.serverSwitch", server.Id), on => App.SetMcpServerDisabled(server.Id, !on)));
+        buttons.Children.Add(Small(SymbolRegular.ChevronRight24, Loc.T("toolsOptions.openServer", server.Id), () => Go("tools/servers/" + server.Id), true));
+        return Row(SymbolRegular.PlugConnected24, open, buttons, server.Id, dim: server.Disabled);
     }
 
-    private void OnImport(object sender, RoutedEventArgs e)
+    private (string Text, string Brush) StatusOf(McpServerEntry server, McpServerInfo? state)
+    {
+        var testing = _app.AssistantToolsTesting.Contains(server.Id);
+        return server.Disabled ? (Loc.T("toolsOptions.serverOff"), "TextFillColorTertiaryBrush")
+            : testing || state?.State == "starting" ? (Loc.T("toolsOptions.serverStarting"), "Kd.AccentText")
+            : state?.State == "failed" ? (Loc.T("toolsOptions.serverFailedShort"), "Kd.Danger")
+            : state?.State == "running" ? (Loc.T("toolsOptions.serverRunning"), "Kd.Success")
+            : (Loc.T("toolsOptions.serverStopped"), "TextFillColorSecondaryBrush");
+    }
+
+    /// <summary>One server: what it is, how it is, its buttons, and its tools.</summary>
+    private void FillServer()
+    {
+        var server = App.ReadMcpServers(out _).FirstOrDefault(s => string.Equals(s.Id, ServerId, StringComparison.OrdinalIgnoreCase));
+        if (server is null)
+        {
+            var gone = Card(ServerId ?? string.Empty, Loc.T("toolsOptions.serverGone"));
+            gone.Add(Wide(SymbolRegular.ArrowLeft24, Loc.T("toolsOptions.backToServers"), _ => Go("tools/servers")));
+            Body.Children.Add(gone.Border);
+            return;
+        }
+        var state = (State?.Servers ?? []).FirstOrDefault(s => string.Equals(s.Id, server.Id, StringComparison.OrdinalIgnoreCase));
+        var (status, brush) = StatusOf(server, state);
+        var running = state?.State == "running";
+        var testing = _app.AssistantToolsTesting.Contains(server.Id);
+
+        var head = Card(server.Id, null, SymbolRegular.PlugConnected24);
+        var line = new TextBlock { Text = server.Summary, FontFamily = new System.Windows.Media.FontFamily("Consolas"), FontSize = 12, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, -6, 0, 8) };
+        line.SetResourceReference(TextBlock.ForegroundProperty, "Kd.TextDim");
+        head.Add(line);
+        var chips = new WrapPanel { Margin = new Thickness(0, 0, 0, 8) };
+        chips.Children.Add(StatusChip(status, brush));
+        chips.Children.Add(Chip(Loc.T("toolsOptions.transport." + server.Transport)));
+        if (state is not null) chips.Children.Add(Chip(Loc.T("toolsOptions.serverTools", state.Tools)));
+        foreach (var secret in server.SecretNames) chips.Children.Add(Chip("🔑 " + secret));
+        head.Add(chips);
+        if (state?.State == "failed" && !string.IsNullOrEmpty(state.Error)) head.Add(Note(Loc.T("toolsOptions.serverFailed", state.Error), danger: true));
+        if (server.Disabled) head.Add(Note(Loc.T("toolsOptions.serverOffNote")));
+        var actions = new WrapPanel();
+        actions.Children.Add(Labeled(Toggle(!server.Disabled, Loc.T("toolsOptions.serverSwitch", server.Id), on => App.SetMcpServerDisabled(server.Id, !on)), Loc.T("toolsOptions.on")));
+        if (running) actions.Children.Add(Wide(SymbolRegular.Stop24, Loc.T("toolsOptions.stop"), _ => _app.StopMcpServer(server.Id), enabled: Running));
+        else actions.Children.Add(Wide(SymbolRegular.Play24, Loc.T(testing ? "toolsOptions.serverStarting" : "toolsOptions.testServer"), _ => _app.StartMcpServer(server.Id), primary: true,
+            enabled: Running && !server.Disabled && !testing));
+        actions.Children.Add(Wide(SymbolRegular.Edit24, Loc.T("toolsOptions.edit"), _ => EditServer(server)));
+        actions.Children.Add(Wide(SymbolRegular.Delete24, Loc.T("toolsOptions.remove"), _ => RemoveServer(server.Id)));
+        head.Add(actions);
+        if (_app.AssistantToolTests.TryGetValue(server.Id, out var test) && !testing) head.Add(Result(test));
+        Body.Children.Add(head.Border);
+
+        var tools = ToolsOf("mcp:" + server.Id).ToList();
+        var list = Card(Loc.T("toolsOptions.serverToolsTitle", tools.Count), Loc.T(tools.Count == 0 ? "toolsOptions.serverNoTools" : "toolsOptions.serverToolsIntro"));
+        if (tools.Count > 1)
+        {
+            var bulk = new WrapPanel { Margin = new Thickness(0, 0, 0, 4) };
+            bulk.Children.Add(Wide(SymbolRegular.CheckmarkCircle24, Loc.T("toolsOptions.allOnButton"), _ => { foreach (var t in tools) _app.SetToolEnabled(t.Name, true); }, enabled: tools.Any(t => !t.Enabled)));
+            bulk.Children.Add(Wide(SymbolRegular.DismissCircle24, Loc.T("toolsOptions.allOffButton"), _ => { foreach (var t in tools) _app.SetToolEnabled(t.Name, false); }, enabled: tools.Any(t => t.Enabled)));
+            list.Add(bulk);
+        }
+        if (tools.Count > 0) list.Add(Rows(tools.Select(t => ToolRow(t))));
+        Body.Children.Add(list.Border);
+    }
+
+    private void Import()
     {
         var mcpo = @"E:\ProjectAI\Open WebUI\MCP";
         var dialog = new OpenFileDialog
@@ -169,14 +462,8 @@ public partial class AssistantToolsSection : UserControl
             return;
         }
         var window = new McpImportWindow(found, Path.GetFileName(dialog.FileName)) { Owner = Window.GetWindow(this) };
-        if (window.ShowDialog() == true && window.Chosen.Count > 0)
-        {
-            _app.ImportMcpServers(window.Chosen);
-            Fill();
-        }
+        if (window.ShowDialog() == true && window.Chosen.Count > 0) _app.ImportMcpServers(window.Chosen);
     }
-
-    private void OnAddServer(object sender, RoutedEventArgs e) => EditServer(null);
 
     private void EditServer(McpServerEntry? server)
     {
@@ -184,7 +471,7 @@ public partial class AssistantToolsSection : UserControl
         var window = new McpServerWindow(server, existing, _app.ToolSecrets) { Owner = Window.GetWindow(this) };
         if (window.ShowDialog() != true || window.Result is not { } result) return;
         _app.SaveMcpServer(result, server?.Id, window.Secrets);
-        Fill();
+        if (server is not null && !string.Equals(server.Id, result.Id, StringComparison.OrdinalIgnoreCase)) Go("tools/servers/" + result.Id);
     }
 
     private async void RemoveServer(string id)
@@ -200,316 +487,95 @@ public partial class AssistantToolsSection : UserControl
         };
         if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         _app.RemoveMcpServer(id);
-        Fill();
+        if (Part == "tools/server") Go("tools/servers");
     }
-
-    // ── tools ────────────────────────────────────────────────────────────
-
-    private void OnFilter(object sender, TextChangedEventArgs e) => FillTools();
-
-    private void FillTools()
-    {
-        ToolGroups.Children.Clear();
-        var state = _app.AssistantTools;
-        var filter = FilterBox.Text.Trim();
-        var tools = (state?.Tools ?? []).Where(t => filter.Length == 0
-            || t.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)
-            || t.Description.Contains(filter, StringComparison.OrdinalIgnoreCase)
-            || (t.Example?.Contains(filter, StringComparison.OrdinalIgnoreCase) ?? false)).ToList();
-        NoTools.Visibility = tools.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        NoTools.Text = Loc.T(state is null ? (Running ? "memoryOptions.loading" : "toolsOptions.noToolsOff") : "toolsOptions.noTools");
-        // The user's first (their JSON ones, then each server's), the built-in ones last.
-        var groups = tools.GroupBy(t => t.Group).OrderBy(g => g.Key == "json" ? 0 : g.Key == "builtin" ? 2 : 1).ToList();
-        foreach (var group in groups) ToolGroups.Children.Add(Group(group.Key, [.. group], filter.Length > 0));
-    }
-
-    private UIElement Group(string group, IReadOnlyList<ToolInfo> tools, bool filtering)
-    {
-        var title = group switch
-        {
-            "builtin" => Loc.T("toolsOptions.groupBuiltin"),
-            "json" => Loc.T("toolsOptions.groupJson"),
-            _ => Loc.T("toolsOptions.groupMcp", group["mcp:".Length..]),
-        };
-        var off = tools.Count(t => !t.Enabled);
-        var expander = new Expander
-        {
-            Header = $"{title} · {tools.Count}" + (off > 0 ? " · " + Loc.T("toolsOptions.groupOff", off) : string.Empty),
-            IsExpanded = filtering || (!_closed.Contains(group) || _open.Contains(group)),
-            Margin = new Thickness(0, 0, 0, 8),
-        };
-        AutomationProperties.SetName(expander, title);
-        expander.Expanded += (_, _) => { if (!filtering) { _open.Add(group); _closed.Remove(group); } };
-        expander.Collapsed += (_, _) => { if (!filtering) { _closed.Add(group); _open.Remove(group); } };
-        var rows = new StackPanel { Margin = new Thickness(4, 4, 0, 0) };
-        foreach (var tool in tools) rows.Children.Add(ToolRow(tool));
-        expander.Content = rows;
-        return expander;
-    }
-
-    private Border ToolRow(ToolInfo tool)
-    {
-        var body = new StackPanel();
-        var title = Title(tool.Name);
-        if (!tool.Enabled) title.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorTertiaryBrush");
-        body.Children.Add(title);
-        body.Children.Add(Caption(tool.Example is { Length: > 0 } example ? "«" + example + "»" : Shorten(OneLine(tool.Description), 160)));
-        var testing = _app.AssistantToolsTesting.Contains(tool.Name);
-        if (_testing == tool.Name) body.Children.Add(TestBox(tool));
-        if (testing) body.Children.Add(Caption(Loc.T("toolsOptions.testing")));
-        else if (_app.AssistantToolTests.TryGetValue(tool.Name, out var test)) body.Children.Add(Result(test));
-
-        var buttons = Buttons();
-        buttons.Children.Add(Toggle(tool.Enabled, Loc.T("toolsOptions.toolSwitch", tool.Name), on => _app.SetToolEnabled(tool.Name, on)));
-        buttons.Children.Add(RiskBox(tool));
-        buttons.Children.Add(Small(SymbolRegular.Play24, Loc.T("toolsOptions.test"), () =>
-        {
-            _testing = _testing == tool.Name ? null : tool.Name;
-            _focusBox = _testing is not null;
-            Fill();
-        }, Running && tool.Enabled, tool.Name));
-        var icon = tool.Group == "builtin" ? SymbolRegular.Wrench24 : tool.Group == "json" ? SymbolRegular.DocumentData24 : SymbolRegular.PlugConnected24;
-        return Row(icon, body, buttons, tool.Name);
-    }
-
-    private ComboBox RiskBox(ToolInfo tool)
-    {
-        var box = new ComboBox { Width = 230, Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
-        AutomationProperties.SetName(box, Loc.T("toolsOptions.risk", tool.Name));
-        foreach (var risk in new[] { "safe", "askOnce", "askAlways" })
-        {
-            var text = Loc.T("toolsOptions.risk." + risk) + (risk == tool.DefaultRisk ? " " + Loc.T("toolsOptions.riskDefault") : string.Empty);
-            var item = new ComboBoxItem { Content = text, Tag = risk };
-            box.Items.Add(item);
-            if (risk == tool.Risk) box.SelectedItem = item;
-        }
-        box.SelectionChanged += (_, _) =>
-        {
-            if (box.SelectedItem is not ComboBoxItem { Tag: string risk } || risk == tool.Risk) return;
-            _app.SetToolRisk(tool.Name, risk == tool.DefaultRisk ? null : risk);
-        };
-        return box;
-    }
-
-    private StackPanel TestBox(ToolInfo tool)
-    {
-        var grid = new Grid { Margin = new Thickness(0, 6, 0, 2) };
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        var box = new TextBox
-        {
-            Text = _arguments.GetValueOrDefault(tool.Name, "{}"),
-            PlaceholderText = "{ \"…\": \"…\" }",
-            ClearButtonEnabled = false,
-            FontFamily = new System.Windows.Media.FontFamily("Consolas"),
-            Tag = "test:" + tool.Name,
-        };
-        AutomationProperties.SetName(box, Loc.T("toolsOptions.arguments"));
-        box.TextChanged += (_, _) => _arguments[tool.Name] = box.Text;
-        void Run() => _app.TestAssistantTool(tool.Name, box.Text);
-        box.PreviewKeyDown += (_, e) =>
-        {
-            if (e.Key != Key.Enter) return;
-            e.Handled = true;
-            Run();
-        };
-        grid.Children.Add(box);
-        var run = new Button { Content = Loc.T("toolsOptions.run"), Icon = new SymbolIcon { Symbol = SymbolRegular.Play24 }, Margin = new Thickness(8, 0, 0, 0), Appearance = ControlAppearance.Primary };
-        run.Click += (_, _) => Run();
-        AutomationProperties.SetName(run, Loc.T("toolsOptions.run") + " " + tool.Name);
-        Grid.SetColumn(run, 1);
-        grid.Children.Add(run);
-        var stack = new StackPanel();
-        stack.Children.Add(grid);
-        stack.Children.Add(Caption(Loc.T("toolsOptions.argumentsHint")));
-        if (_focusBox)
-        {
-            _focusBox = false;
-            Dispatcher.BeginInvoke(() => box.Focus(), System.Windows.Threading.DispatcherPriority.Input);
-        }
-        return stack;
-    }
-
-    private TextBlock Result(ToolTestMessage test)
-    {
-        var text = Caption((test.Ok ? "✓ " : "✗ ") + Shorten(test.Text.ReplaceLineEndings(" · "), 400) + $"  ({test.Ms} ms)");
-        text.SetResourceReference(TextBlock.ForegroundProperty, test.Ok ? "Kd.Success" : "Kd.Danger");
-        text.TextWrapping = TextWrapping.Wrap;
-        return text;
-    }
-
-    // ── JSON tool files ──────────────────────────────────────────────────
-
-    private void FillFiles()
-    {
-        var files = _app.AssistantTools?.Files ?? [];
-        NoFiles.Visibility = files.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        FileRows.Children.Clear();
-        foreach (var file in files)
-        {
-            var body = new StackPanel();
-            body.Children.Add(Title(file.Name ?? Path.GetFileName(file.File)));
-            body.Children.Add(Caption(Path.GetFileName(file.File) + (file.Type is { } type ? " · " + Loc.T("toolsOptions.type." + type) : string.Empty)
-                + (file.Enabled || file.Errors.Count > 0 ? string.Empty : " · " + Loc.T("toolsOptions.fileOff"))));
-            foreach (var error in file.Errors.Take(3))
-            {
-                var line = Caption(error);
-                line.SetResourceReference(TextBlock.ForegroundProperty, "Kd.Danger");
-                body.Children.Add(line);
-            }
-            var buttons = Buttons();
-            buttons.Children.Add(Small(SymbolRegular.Edit24, Loc.T("toolsOptions.editFile"), () => App.OpenToolFile(file.File), true, Path.GetFileName(file.File)));
-            FileRows.Children.Add(Row(file.Errors.Count > 0 ? SymbolRegular.ErrorCircle24 : SymbolRegular.DocumentData24, body, buttons, file.File));
-        }
-    }
-
-    private void OnOpenFolder(object sender, RoutedEventArgs e) => App.OpenToolsFolder();
-
-    private void OnNewTool(object sender, RoutedEventArgs e)
-    {
-        var menu = new ContextMenu { PlacementTarget = NewToolButton, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom };
-        foreach (var type in new[] { "http", "kdesktop", "routine", "script" })
-        {
-            var item = new MenuItem { Header = Loc.T("toolsOptions.type." + type) };
-            item.Click += (_, _) => App.NewToolFromTemplate(type);
-            menu.Items.Add(item);
-        }
-        menu.IsOpen = true;
-    }
-
-    private void OnGuide(object sender, RoutedEventArgs e) => ProcessLauncher.Launch(new LaunchSpec(GuideUrl), asAdmin: false);
 
     // ── secrets ──────────────────────────────────────────────────────────
+
+    /// <summary>The secret being changed (its box shows).</summary>
+    private string? _changingSecret;
 
     private void FillSecrets()
     {
         var secrets = _app.ToolSecretList();
-        NoSecrets.Visibility = secrets.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        SecretRows.Children.Clear();
-        foreach (var (name, kept, usedBy) in secrets)
-        {
-            var body = new StackPanel();
-            body.Children.Add(Title(name));
-            var line = Caption((kept ? Loc.T("toolsOptions.secretKept") : Loc.T("toolsOptions.secretMissing"))
-                + (usedBy.Count > 0 ? " · " + Loc.T("toolsOptions.secretUsedBy", string.Join(", ", usedBy)) : " · " + Loc.T("toolsOptions.secretUnused")));
-            if (!kept) line.SetResourceReference(TextBlock.ForegroundProperty, "Kd.Danger");
-            body.Children.Add(line);
-            var buttons = Buttons();
-            if (_changingSecret == name)
-            {
-                var box = new PasswordBox { Width = 240, PlaceholderText = Loc.T("toolsOptions.secretValue"), Tag = "secret:" + name };
-                AutomationProperties.SetName(box, Loc.T("toolsOptions.secretValue"));
-                void Save()
-                {
-                    if (box.Password.Length > 0) _app.SetToolSecret(name, box.Password);
-                    _changingSecret = null;
-                    Fill();
-                }
-                box.PreviewKeyDown += (_, e) =>
-                {
-                    if (e.Key == Key.Enter) Save();
-                    else if (e.Key == Key.Escape) { _changingSecret = null; Fill(); }
-                    else return;
-                    e.Handled = true;
-                };
-                buttons.Children.Add(box);
-                buttons.Children.Add(Small(SymbolRegular.Checkmark24, Loc.T("memoryOptions.save"), Save, true));
-                buttons.Children.Add(Small(SymbolRegular.Dismiss24, Loc.T("common.cancel"), () => { _changingSecret = null; Fill(); }, true));
-                if (_focusBox)
-                {
-                    _focusBox = false;
-                    Dispatcher.BeginInvoke(() => box.Focus(), System.Windows.Threading.DispatcherPriority.Input);
-                }
-            }
-            else
-            {
-                var change = new Button { Content = Loc.T(kept ? "toolsOptions.secretChange" : "toolsOptions.secretSet"), Margin = new Thickness(4, 0, 0, 0) };
-                AutomationProperties.SetName(change, Loc.T(kept ? "toolsOptions.secretChange" : "toolsOptions.secretSet") + " " + name);
-                change.Click += (_, _) => { _changingSecret = name; _focusBox = true; Fill(); };
-                buttons.Children.Add(change);
-                if (kept) buttons.Children.Add(Small(SymbolRegular.Delete24, Loc.T("toolsOptions.secretDelete"), () => { _app.SetToolSecret(name, null); Fill(); }, true, name));
-            }
-            SecretRows.Children.Add(Row(SymbolRegular.Key24, body, buttons, name));
-        }
-    }
+        var card = Card(Loc.T("toolsOptions.secrets"), Loc.T("toolsOptions.secretsIntro"));
+        if (secrets.Count == 0) card.Add(Caption(Loc.T("toolsOptions.noSecrets")));
+        else card.Add(Rows(secrets.Select(s => SecretRow(s.Name, s.Kept, s.UsedBy))));
+        Body.Children.Add(card.Border);
 
-    private void OnAddSecret(object sender, RoutedEventArgs e)
-    {
-        var name = NewSecretName.Text.Trim();
-        if (!ToolSecrets.IsName(name) || NewSecretValue.Password.Length == 0)
-        {
-            _ = Say(Loc.T("toolsOptions.secrets"), Loc.T("toolsOptions.secretBadName"));
-            return;
-        }
-        _app.SetToolSecret(name, NewSecretValue.Password);
-        NewSecretName.Text = string.Empty;
-        NewSecretValue.Password = string.Empty;
-        Fill();
-    }
-
-    // ── pieces ───────────────────────────────────────────────────────────
-
-    private static Border Row(SymbolRegular symbol, UIElement body, UIElement buttons, string name)
-    {
+        var add = Card(Loc.T("toolsOptions.addSecretTitle"), Loc.T("toolsOptions.addSecretIntro"), SymbolRegular.Add24);
         var grid = new Grid();
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(220) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        var icon = new SymbolIcon { Symbol = symbol, FontSize = 18, Margin = new Thickness(0, 1, 12, 0), VerticalAlignment = VerticalAlignment.Top };
-        icon.SetResourceReference(ForegroundProperty, "Kd.AccentText");
-        grid.Children.Add(icon);
-        Grid.SetColumn((FrameworkElement)body, 1);
-        grid.Children.Add(body);
-        Grid.SetColumn((FrameworkElement)buttons, 2);
-        grid.Children.Add(buttons);
-        var row = new Border { Child = grid, Padding = new Thickness(0, 8, 0, 8), BorderThickness = new Thickness(0, 0, 0, 1) };
-        row.SetResourceReference(Border.BorderBrushProperty, "Kd.Subtle");
-        AutomationProperties.SetName(row, name);
-        return row;
-    }
-
-    private static StackPanel Buttons() =>
-        new() { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(12, 0, 0, 0) };
-
-    private static TextBlock Title(string text)
-    {
-        var block = new TextBlock { Text = text, FontSize = 14, TextWrapping = TextWrapping.Wrap };
-        block.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorPrimaryBrush");
-        return block;
-    }
-
-    private TextBlock Caption(string text) => new() { Style = (Style)FindResource("Caption"), Text = text, TextWrapping = TextWrapping.Wrap };
-
-    private static ToggleSwitch Toggle(bool on, string name, Action<bool> changed)
-    {
-        var toggle = new ToggleSwitch { IsChecked = on, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 4, 0) };
-        AutomationProperties.SetName(toggle, name);
-        toggle.Checked += (_, _) => changed(true);
-        toggle.Unchecked += (_, _) => changed(false);
-        return toggle;
-    }
-
-    /// <param name="target">What it acts on, for its accessible name («Probar jokes»).</param>
-    private static Button Small(SymbolRegular symbol, string name, Action click, bool enabled, string? target = null)
-    {
-        var button = new Button
+        var name = new TextBox { PlaceholderText = Loc.T("toolsOptions.secretName"), ClearButtonEnabled = false, Tag = "newSecretName", FontFamily = new System.Windows.Media.FontFamily("Consolas") };
+        System.Windows.Automation.AutomationProperties.SetName(name, Loc.T("toolsOptions.secretName"));
+        var value = new PasswordBox { PlaceholderText = Loc.T("toolsOptions.secretValue"), Margin = new Thickness(8, 0, 0, 0) };
+        System.Windows.Automation.AutomationProperties.SetName(value, Loc.T("toolsOptions.secretValue"));
+        var save = new Button { Content = Loc.T("toolsOptions.addSecret"), Icon = new SymbolIcon { Symbol = SymbolRegular.Add24 }, Appearance = ControlAppearance.Primary, Margin = new Thickness(8, 0, 0, 0) };
+        save.Click += (_, _) =>
         {
-            Icon = new SymbolIcon { Symbol = symbol },
-            Appearance = ControlAppearance.Transparent,
-            Padding = new Thickness(8, 6, 8, 6),
-            Margin = new Thickness(4, 0, 0, 0),
-            ToolTip = name,
-            IsEnabled = enabled,
+            var text = name.Text.Trim();
+            if (!ToolSecrets.IsName(text) || value.Password.Length == 0)
+            {
+                _ = Say(Loc.T("toolsOptions.secrets"), Loc.T("toolsOptions.secretBadName"));
+                return;
+            }
+            _app.SetToolSecret(text, value.Password);
         };
-        AutomationProperties.SetName(button, target is null ? name : name + " " + target);
-        button.Click += (_, _) => click();
-        return button;
+        Grid.SetColumn(value, 1);
+        Grid.SetColumn(save, 2);
+        grid.Children.Add(name);
+        grid.Children.Add(value);
+        grid.Children.Add(save);
+        add.Add(grid);
+        Body.Children.Add(add.Border);
     }
 
-    /// <summary>On one line, without runs of spaces (descriptions of servers come with their line breaks).</summary>
-    private static string OneLine(string text) => string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
-
-    private static string Shorten(string text, int most) => text.Length <= most ? text : text[..most].TrimEnd() + "…";
+    private FrameworkElement SecretRow(string name, bool kept, IReadOnlyList<string> usedBy)
+    {
+        var body = new StackPanel();
+        var title = Title(name);
+        title.FontFamily = new System.Windows.Media.FontFamily("Consolas");
+        body.Children.Add(title);
+        var chips = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
+        chips.Children.Add(StatusChip(Loc.T(kept ? "toolsOptions.secretKept" : "toolsOptions.secretMissing"), kept ? "Kd.Success" : "Kd.Danger"));
+        chips.Children.Add(Chip(usedBy.Count > 0 ? Loc.T("toolsOptions.secretUsedBy", string.Join(", ", usedBy)) : Loc.T("toolsOptions.secretUnused")));
+        body.Children.Add(chips);
+        var buttons = Buttons();
+        if (_changingSecret == name)
+        {
+            var box = new PasswordBox { Width = 240, PlaceholderText = Loc.T("toolsOptions.secretValue"), Tag = "secret:" + name };
+            System.Windows.Automation.AutomationProperties.SetName(box, Loc.T("toolsOptions.secretValue"));
+            void Save()
+            {
+                _changingSecret = null;
+                if (box.Password.Length > 0) _app.SetToolSecret(name, box.Password);
+                else Refresh();
+            }
+            box.PreviewKeyDown += (_, e) =>
+            {
+                if (e.Key == Key.Enter) Save();
+                else if (e.Key == Key.Escape) { _changingSecret = null; Refresh(); }
+                else return;
+                e.Handled = true;
+            };
+            buttons.Children.Add(box);
+            buttons.Children.Add(Small(SymbolRegular.Checkmark24, Loc.T("memoryOptions.save"), Save, true, name));
+            buttons.Children.Add(Small(SymbolRegular.Dismiss24, Loc.T("common.cancel"), () => { _changingSecret = null; Refresh(); }, true, name));
+            Dispatcher.BeginInvoke(() => box.Focus(), System.Windows.Threading.DispatcherPriority.Input);
+        }
+        else
+        {
+            var change = new Button { Content = Loc.T(kept ? "toolsOptions.secretChange" : "toolsOptions.secretSet"), Margin = new Thickness(4, 0, 0, 0),
+                Appearance = kept ? ControlAppearance.Secondary : ControlAppearance.Primary };
+            System.Windows.Automation.AutomationProperties.SetName(change, Loc.T(kept ? "toolsOptions.secretChange" : "toolsOptions.secretSet") + " " + name);
+            change.Click += (_, _) => { _changingSecret = name; Refresh(); };
+            buttons.Children.Add(change);
+            if (kept) buttons.Children.Add(Small(SymbolRegular.Delete24, Loc.T("toolsOptions.secretDelete"), () => _app.SetToolSecret(name, null), true, name));
+        }
+        return Row(SymbolRegular.Key24, body, buttons, name, danger: !kept && usedBy.Count > 0);
+    }
 
     private static Task Say(string title, string text) => new Wpf.Ui.Controls.MessageBox
     {
@@ -520,6 +586,5 @@ public partial class AssistantToolsSection : UserControl
         CloseButtonText = Loc.T("common.close"),
     }.ShowDialogAsync();
 
-    private void OnGoGeneral(object sender, RoutedEventArgs e) =>
-        (Window.GetWindow(this) as MainWindow)?.Navigate("settings/assistant");
+    private void OnGoGeneral(object sender, RoutedEventArgs e) => Go("assistant");
 }

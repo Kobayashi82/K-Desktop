@@ -435,8 +435,9 @@ public sealed record NotesStateMessage(IReadOnlyList<NoteEntry> Items) : PipeMes
 /// <param name="DefaultRisk">How it asks by itself.</param>
 /// <param name="Source">Its file (json) or its server (mcp).</param>
 /// <param name="Example">A phrase that asks for it, in the user's language, if it has one.</param>
+/// <param name="Schema">The JSON schema of its parameters (Options → Tools makes the form of «Probar» from it).</param>
 public sealed record ToolInfo(string Name, string Group, string Description, string Risk, string DefaultRisk, bool ReadsOnly, bool Enabled, string? Source = null,
-    string? Example = null);
+    string? Example = null, string? Schema = null);
 
 /// <summary>A JSON tool's file: what it is, and what is wrong with it (<paramref name="Name"/> and <paramref name="Type"/>: null when unreadable).</summary>
 public sealed record ToolFileInfo(string File, bool Enabled, IReadOnlyList<string> Errors, IReadOnlyList<string> Secrets, string? Name = null, string? Type = null);

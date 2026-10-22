@@ -74,13 +74,21 @@ public partial class SettingsPage
     private NavItem? _assistantsItem;
     private NavItem? _toolsItem;
 
-    /// <summary>The pages inside «Herramientas» (stage 9.3): its servers, the user's JSON tools and the secrets.</summary>
+    /// <summary>
+    /// The pages inside «Herramientas» (stage 9.3; 5.0.133): the built-in tools, the user's JSON ones, the MCP servers —with
+    /// one row per server inside— and the secrets. «Herramientas» itself is the summary.
+    /// </summary>
     private static readonly SectionDef[] ToolParts =
     [
-        new("tools/servers", "PlugConnected24", "settings.nav.toolServers"),
+        new("tools/builtin", "Toolbox24", "settings.nav.toolBuiltin"),
         new("tools/files", "DocumentData24", "settings.nav.toolFiles"),
+        new("tools/servers", "PlugConnected24", "settings.nav.toolServers"),
         new("tools/secrets", "Key24", "settings.nav.toolSecrets"),
     ];
+
+    private NavItem? _serversItem;
+
+    private const string ServerPrefix = "tools/servers/";
     private bool _building;
     private bool _byMouse;
     private bool _searching;
@@ -124,6 +132,8 @@ public partial class SettingsPage
             FillTools();
             _toolsItem!.Expanded += OnNavExpanded;
             _toolsItem.Collapsed += OnNavExpanded;
+            _serversItem!.Expanded += OnNavExpanded;
+            _serversItem.Collapsed += OnNavExpanded;
             ApplyAvailability();
 
             // As it was left: the groups open (none the first time) and the section shown, even inside a folded group.
@@ -131,9 +141,11 @@ public partial class SettingsPage
             foreach (var group in _groups) group.IsExpanded = open?.Contains(group.Key) == true;
             _assistantsItem.IsExpanded = open?.Contains("assistants") == true;
             _toolsItem.IsExpanded = open?.Contains("tools") == true;
+            _serversItem.IsExpanded = open?.Contains("tools/servers") == true;
             foreach (var group in _groups) UpdateChevron(group, animate: false);
             UpdateChevron(_assistantsItem, animate: false);
             UpdateChevron(_toolsItem, animate: false);
+            UpdateChevron(_serversItem, animate: false);
             Select(start);
         }
         finally
@@ -147,8 +159,18 @@ public partial class SettingsPage
         {
             if (e.PropertyName == nameof(Core.Model.AppSettings.AssistantEnabled)) Dispatcher.BeginInvoke(ApplyAvailability);
         };
-        Loaded += (_, _) => _app.AssistantChanged += OnAssistantsChanged;
-        Unloaded += (_, _) => _app.AssistantChanged -= OnAssistantsChanged;
+        Loaded += (_, _) =>
+        {
+            _app.AssistantChanged += OnAssistantsChanged;
+            _app.AssistantToolsChanged += OnToolsChanged;
+            App.McpServersChanged += OnToolsChanged;
+        };
+        Unloaded += (_, _) =>
+        {
+            _app.AssistantChanged -= OnAssistantsChanged;
+            _app.AssistantToolsChanged -= OnToolsChanged;
+            App.McpServersChanged -= OnToolsChanged;
+        };
     }
 
     private void OnAssistantsChanged() => Dispatcher.BeginInvoke(() =>
@@ -231,17 +253,28 @@ public partial class SettingsPage
         return grid;
     }
 
-    /// <summary>A page inside a section, with a symbol (not an assistant's picture).</summary>
-    private static FrameworkElement SubHeader(string icon, string text)
+    /// <summary>A page inside a section, with a symbol (not an assistant's picture); with <paramref name="folds"/>, its chevron.</summary>
+    private static FrameworkElement SubHeader(string icon, string text, NavItem? folds = null)
     {
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(46, 0, 0, 0) };
+        var grid = new Grid { Margin = new Thickness(46, 0, 0, 0) };
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         var symbol = new SymbolIcon { Symbol = Enum.Parse<SymbolRegular>(icon), FontSize = 16, Width = 20, Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center };
         symbol.SetResourceReference(ForegroundProperty, "Kd.AccentText");
-        row.Children.Add(symbol);
+        grid.Children.Add(symbol);
         var name = new TextBlock { Text = text, FontSize = 13, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
         name.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorPrimaryBrush");
-        row.Children.Add(name);
-        return row;
+        Grid.SetColumn(name, 1);
+        grid.Children.Add(name);
+        if (folds is not null)
+        {
+            var target = new Border { Background = Brushes.Transparent, Padding = new Thickness(6), Margin = new Thickness(4, -4, -4, -4), CornerRadius = new CornerRadius(6), Child = Chevron(11, "TextFillColorSecondaryBrush"), VerticalAlignment = VerticalAlignment.Center };
+            Grid.SetColumn(target, 2);
+            grid.Children.Add(target);
+            folds.Chevron = target;
+        }
+        return grid;
     }
 
     private static FrameworkElement SubHeader(ImageSource? icon, string text)
@@ -290,13 +323,70 @@ public partial class SettingsPage
             var item = new NavItem(NavKind.Sub, part.Key)
             {
                 Style = (Style)FindResource("NavItem"),
-                Header = SubHeader(part.Icon, Loc.T(part.Text)),
                 SearchText = Fold(Loc.T(part.Text) + " " + Loc.T(part.Text + ".hint")),
             };
+            item.Header = SubHeader(part.Icon, Loc.T(part.Text), part.Key == "tools/servers" ? item : null);
             AutomationProperties.SetName(item, Loc.T(part.Text));
             _toolsItem!.Items.Add(item);
+            if (part.Key == "tools/servers") _serversItem = item;
         }
+        FillServers();
     }
+
+    /// <summary>One row per MCP server inside «Servidores MCP», with a dot of how it is (in use, stopped, failing, off).</summary>
+    private void FillServers()
+    {
+        var servers = App.ReadMcpServers(out _);
+        var states = (_app.AssistantTools?.Servers ?? []).ToDictionary(s => s.Id, StringComparer.OrdinalIgnoreCase);
+        var keys = servers.Select(s => ServerPrefix + s.Id).ToList();
+        var current = _current?.Key;
+        if (!_serversItem!.Children.Select(c => c.Key).SequenceEqual(keys))
+        {
+            _serversItem.Items.Clear();
+            foreach (var server in servers)
+            {
+                var item = new NavItem(NavKind.Sub, ServerPrefix + server.Id)
+                {
+                    Style = (Style)FindResource("NavItem"),
+                    SearchText = Fold(server.Id + " mcp " + Loc.T("settings.nav.toolServers")),
+                };
+                AutomationProperties.SetName(item, server.Id);
+                _serversItem.Items.Add(item);
+                if (item.Key == current) MarkCurrent(item);
+            }
+            if (_current is { } gone && gone.Key.StartsWith(ServerPrefix, StringComparison.Ordinal) && !keys.Contains(gone.Key)) MarkCurrent(_serversItem);
+        }
+        foreach (var item in _serversItem.Children)
+        {
+            var id = item.Key[ServerPrefix.Length..];
+            var server = servers.First(s => s.Id == id);
+            var state = states.GetValueOrDefault(id);
+            var brush = server.Disabled ? "TextFillColorDisabledBrush" : state?.State switch
+            {
+                "running" => "Kd.Success",
+                "failed" => "Kd.Danger",
+                "starting" => "Kd.AccentText",
+                _ => "TextFillColorTertiaryBrush",
+            };
+            item.Header = ServerHeader(server.Id, brush, server.Disabled);
+        }
+        if (_serversItem.Chevron is { } chevron) chevron.Visibility = _serversItem.Items.Count > 0 ? Visibility.Visible : Visibility.Hidden;
+    }
+
+    /// <summary>A server inside «Servidores MCP»: a dot of its state and its name, one level further in.</summary>
+    private static FrameworkElement ServerHeader(string name, string brush, bool off)
+    {
+        var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(76, 0, 0, 0) };
+        var dot = new System.Windows.Shapes.Ellipse { Width = 8, Height = 8, Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center };
+        dot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, brush);
+        row.Children.Add(dot);
+        var text = new TextBlock { Text = name, FontSize = 13, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+        text.SetResourceReference(TextBlock.ForegroundProperty, off ? "TextFillColorTertiaryBrush" : "TextFillColorPrimaryBrush");
+        row.Children.Add(text);
+        return row;
+    }
+
+    private void OnToolsChanged() => Dispatcher.BeginInvoke(FillServers);
 
     /// <summary>With the module off, its group only has «General» (where it is turned on); counts and chevrons follow.</summary>
     private void ApplyAvailability()
@@ -315,8 +405,10 @@ public partial class SettingsPage
 
     // ── choosing ─────────────────────────────────────────────────────────
 
-    private NavItem? Find(string key) =>
-        _groups.SelectMany(g => g.Children).SelectMany(s => s.Children.Prepend(s)).FirstOrDefault(i => i.Key == key);
+    private NavItem? Find(string key) => _groups.SelectMany(Everything).FirstOrDefault(i => i.Key == key);
+
+    /// <summary>The rows inside a row, at every level (a server inside «Servidores MCP» inside «Herramientas»).</summary>
+    private static IEnumerable<NavItem> Everything(NavItem item) => item.Children.SelectMany(c => Everything(c).Prepend(c));
 
     /// <summary>Neither it nor what holds it is hidden (the module's sections are, with the module off).</summary>
     private static bool IsShown(NavItem item)
@@ -366,6 +458,13 @@ public partial class SettingsPage
         var same = _current == item;
         MarkCurrent(item);
         if (same && item.Kind == NavKind.Section && item.Key != "assistants") return;
+        // One MCP server («Herramientas → Servidores MCP → ft42»): the server's page, showing that one.
+        if (item.Key.StartsWith(ServerPrefix, StringComparison.Ordinal))
+        {
+            ServerSection.ShowServer(item.Key[ServerPrefix.Length..]);
+            ShowCard("tools/server", animate: !same);
+            return;
+        }
         // A page of its own inside a section («Herramientas → Secretos»).
         if (item.Kind == NavKind.Sub && !item.Key.StartsWith("assistants/", StringComparison.Ordinal))
         {
@@ -432,7 +531,7 @@ public partial class SettingsPage
     {
         group.IsExpanded = !group.IsExpanded;
         // Unfolded: its first section, unless the one shown is already in it.
-        if (group.IsExpanded && !_searching && _current?.Owner is var owner && owner != group && owner?.Owner != group
+        if (group.IsExpanded && !_searching && !Everything(group).Contains(_current)
             && group.Children.FirstOrDefault(s => s.Visibility == Visibility.Visible) is { } first)
             Select(first);
     }
@@ -445,6 +544,7 @@ public partial class SettingsPage
         var open = _groups.Where(g => g.IsExpanded).Select(g => g.Key).ToList();
         if (_assistantsItem!.IsExpanded) open.Add("assistants");
         if (_toolsItem!.IsExpanded) open.Add("tools");
+        if (_serversItem!.IsExpanded) open.Add("tools/servers");
         _app.Config.Settings.SettingsNavOpen = open;
     }
 
@@ -582,6 +682,7 @@ public partial class SettingsPage
             _openBeforeSearch = [.. _groups.Where(g => g.IsExpanded).Select(g => g.Key)];
             if (_assistantsItem!.IsExpanded) _openBeforeSearch.Add("assistants");
             if (_toolsItem!.IsExpanded) _openBeforeSearch.Add("tools");
+            if (_serversItem!.IsExpanded) _openBeforeSearch.Add("tools/servers");
             _searching = true;
         }
         var index = SearchIndex();
@@ -596,8 +697,17 @@ public partial class SettingsPage
                 var subsHit = false;
                 foreach (var sub in section.Children)
                 {
-                    var hit = available && words.All(sub.SearchText.Contains);
+                    // A server inside «Servidores MCP».
+                    var innerHit = false;
+                    foreach (var inner in sub.Children)
+                    {
+                        var found = available && words.All(inner.SearchText.Contains);
+                        inner.Visibility = found ? Visibility.Visible : Visibility.Collapsed;
+                        innerHit |= found;
+                    }
+                    var hit = available && (words.All(sub.SearchText.Contains) || innerHit);
                     sub.Visibility = hit ? Visibility.Visible : Visibility.Collapsed;
+                    if (sub.Items.Count > 0) sub.IsExpanded = innerHit;
                     subsHit |= hit;
                 }
                 var sectionHit = available && (words.All(index.GetValueOrDefault(section.Key, string.Empty).Contains) || subsHit);
@@ -620,11 +730,12 @@ public partial class SettingsPage
         foreach (var group in _groups)
         {
             group.Visibility = Visibility.Visible;
-            foreach (var item in group.Children.SelectMany(s => s.Children.Prepend(s))) item.Visibility = Visibility.Visible;
+            foreach (var item in Everything(group)) item.Visibility = Visibility.Visible;
             group.IsExpanded = _openBeforeSearch?.Contains(group.Key) == true;
         }
         _assistantsItem!.IsExpanded = _openBeforeSearch?.Contains("assistants") == true;
         _toolsItem!.IsExpanded = _openBeforeSearch?.Contains("tools") == true;
+        _serversItem!.IsExpanded = _openBeforeSearch?.Contains("tools/servers") == true;
         ApplyAvailability();
         if (_current is { } current) Reveal(current);
     }
