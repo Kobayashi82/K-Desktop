@@ -258,6 +258,8 @@ internal sealed class ModuleTalk : ITalkOutput
 
     public void SpeakAhead(string? assistant, string turn, string textSoFar) => Voice.Ahead(assistant, turn, textSoFar);
 
+    public void Preface(string? assistant, string turn, string phrase) => Voice.Preface(assistant, turn, phrase);
+
     /// <summary>
     /// The bubble with the text (for as long as it takes to read it) and its voice (what was not said ahead). Over when its
     /// voice is (the bubble stays on its own until it has been read: an answer that asks listens for the reply right away,

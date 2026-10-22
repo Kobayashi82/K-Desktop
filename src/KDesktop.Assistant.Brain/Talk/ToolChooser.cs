@@ -31,11 +31,14 @@ public sealed record ToolChoice(IReadOnlyList<ITool> Tools, string How);
 /// </summary>
 public sealed class ToolChooser(IMeaning? meaning)
 {
-    /// <summary>At most this many tools reach the model.</summary>
+    /// <summary>At most this many tools reach the model by their meaning (those that must be at hand come on top).</summary>
     public const int Most = 5;
 
     /// <summary>At least this many (when there are), however far: the meaning of a short order can be misleading.</summary>
     public const int Least = 3;
+
+    /// <summary>At most this many more tools that must be at hand (used a moment before, the command tools…).</summary>
+    public const int MostPinned = 5;
 
     /// <summary>Beyond <see cref="Least"/>, only tools this close to the best one.</summary>
     public const double Spread = 0.08;
@@ -90,12 +93,11 @@ public sealed class ToolChooser(IMeaning? meaning)
         var chosen = ranked
             .Where((r, i) => i < Least || (i < Most && (how == "words" ? r.Score > 0 : r.Score >= best - Spread)))
             .Select(r => r.Tool).ToList();
-        foreach (var name in recent)
-        {
-            if (chosen.Any(t => t.Name == name) || tools.FirstOrDefault(t => t.Name == name) is not { } again) continue;
-            if (chosen.Count >= Most) chosen.RemoveAt(chosen.Count - 1);
-            chosen.Add(again);
-        }
+        // What must be at hand comes on top of those, never instead of another of its own: one by one into a full list,
+        // each pushed the one before out («¿y el mes que viene?» lost list_events, used a moment before, to open_web).
+        var pinned = recent.Distinct(StringComparer.Ordinal).Take(MostPinned)
+            .Select(name => tools.FirstOrDefault(t => t.Name == name)).OfType<ITool>().Where(t => !chosen.Contains(t)).ToList();
+        chosen.AddRange(pinned);
         var scores = ranked.ToDictionary(r => r.Tool, r => r.Score);
         Log.Info($"Asistente: herramientas ({how}): " + string.Join(", ", chosen.Select(t => $"{t.Name} {scores[t].ToString("0.00", CultureInfo.InvariantCulture)}")));
         return new ToolChoice(chosen, how);

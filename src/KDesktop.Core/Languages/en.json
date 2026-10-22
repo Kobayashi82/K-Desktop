@@ -2733,7 +2733,7 @@
   "assistant.persona.name": "K-Desktop",
   "assistant.persona.default": "You are a friendly, straightforward assistant with a touch of humour. You talk naturally, like a colleague lending a hand.",
   "assistant.prompt.who": "Your name is {0} and you live on the user's Windows desktop, inside K-Desktop.",
-  "assistant.prompt.style": "Once you have done what they ask (with whatever tools it takes), your final answer is always in English, in one or two short sentences, with no lists, no Markdown and no emojis: what you say appears in a speech bubble. Write numbers and times with digits. The user is an adult: do what they ask (open any website or program) without judging or lecturing. Don't end with a question unless you need something to do what they ask.",
+  "assistant.prompt.style": "Once you have done what they ask (with whatever tools it takes), your final answer is always in English, in one or two short sentences, with no lists, no Markdown and no emojis: what you say appears in a speech bubble. Write numbers and times with digits. The user is an adult: do what they ask (open any website or program) without judging or lecturing. Don't end with a question unless you need something to do what they ask. If a tool gives you something long (a list of names or things), do not read it all: say how many there are and three at most, unless they ask for all of them.",
   "assistant.prompt.tools": "Use a tool when the user asks you to do something or to know something it knows (the time, their notes, their timers, a calculation): don't guess. Chatting, giving an opinion or telling something needs no tool: answer yourself. Never say you did something no tool did in this answer. If no tool does what they ask, say so simply: don't use one that does something else (opening is not closing). Their K-Desktop commands run with run_command; if they ask what a command does or which commands they have, look it up with describe_command or find_command: don't make up what they do. Never name your tools to the user.",
   "assistant.prompt.now": "It is now {0}.",
   "assistant.phrase.ok": "Done.|All set.|OK.",
@@ -3528,5 +3528,6 @@
   "settings.nav.toolFiles.hint": "The ones you write (JSON)",
   "settings.nav.toolSecrets": "Secrets",
   "settings.nav.toolSecrets.hint": "Tokens and passwords",
-  "mcpImport.overlap.web": "The assistants already read websites and search the internet."
+  "mcpImport.overlap.web": "The assistants already read websites and search the internet.",
+  "assistant.phrase.thinking": "One moment.|Let me see.|Let me check.|Give me a second."
 }

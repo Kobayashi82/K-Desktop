@@ -192,6 +192,17 @@ internal sealed class ModuleVoice : IDisposable
     }
 
     /// <summary>
+    /// A few words before a turn's answer («Un momento.»): queued on that turn's speaker without going through what the
+    /// answer's text says, so it does not count as part of it.
+    /// </summary>
+    public void Preface(string? assistant, string turn, string phrase)
+    {
+        if (!SpeaksNow(turn)) return;
+        Log.Info($"Asistente: «{(assistant is { Length: > 0 } ? assistant : "K-Desktop")}» piensa: «{phrase}»");
+        For(assistant ?? string.Empty, turn).Queue(phrase);
+    }
+
+    /// <summary>
     /// The final answer: what was not said yet is said (all of it again if it is not what was being said). Completes when
     /// it has been said, or stopped (<paramref name="cancellationToken"/>, another turn).
     /// </summary>

@@ -35,6 +35,14 @@ public interface ITalkOutput
     {
     }
 
+    /// <summary>
+    /// A few words said before the answer of that turn, apart from its text («Un momento.»): thinking takes a while and the
+    /// user must know it heard. Not part of the answer (nor of the chat).
+    /// </summary>
+    void Preface(string? assistant, string turn, string phrase)
+    {
+    }
+
     /// <summary>Says the final answer of a turn (what was said ahead is not said again); over when its voice is (or its bubble, without one).</summary>
     Task SpeakTurnAsync(string? assistant, string turn, string text, CancellationToken cancellationToken) => SpeakAsync(assistant, text, cancellationToken);
 }
@@ -413,17 +421,42 @@ public sealed class TalkService
         if ((client is null || model is null) && _recheck is not null && await _recheck().ConfigureAwait(false)) (client, model) = _brain(who);
         if (client is null || model is null) return NotDone(persona, ran, forAi, Phrase(persona, "noBrain"));
         _output.State(who, "thinking");
+        // Nothing said yet a moment later (the model loading, a server starting, a long first read): a word, so the user
+        // knows it heard. Not when a command already answered.
+        var spoken = 0;
+        using var quiet = CancellationTokenSource.CreateLinkedTokenSource(token);
+        if (ran is null) _ = SayThinkingAsync(persona, who, turn, () => Volatile.Read(ref spoken) != 0, quiet.Token);
         var shown = new PartialText(text =>
         {
+            Interlocked.Exchange(ref spoken, 1);
             var sofar = (ran is null ? "" : ran.Text + " ") + text;
             _output.Chat(new ChatLineMessage("assistant", sofar, turn, false, who));
             _output.SpeakAhead(who, turn, sofar);
         }, _time);
-        var answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), conversation.History.LastTools(), forAi, context, shown.Show, token,
-            leaveOut, close, capable, certain).ConfigureAwait(false);
+        TalkAnswer answer;
+        try
+        {
+            answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), conversation.History.LastTools(), forAi, context, shown.Show, token,
+                leaveOut, close, capable, certain).ConfigureAwait(false);
+        }
+        finally
+        {
+            await quiet.CancelAsync().ConfigureAwait(false);
+        }
         answer = answer with { Text = answer.Text.Length > 0 ? answer.Text : Phrase(persona, "ok"), FromAi = true };
         // One «Recibido.», at the start («Recibido. He ejecutado «Equipo». Afirmativo. He pasado…» had two).
         return ran is null ? answer : Join(ran, answer with { Text = answer.WithoutAck, Ack = null }) with { FromAi = true, Failed = answer.Failed };
+    }
+
+    /// <summary>How long it may think in silence before saying it is on it.</summary>
+    public static readonly TimeSpan ThinkingAfter = TimeSpan.FromSeconds(1.5);
+
+    private async Task SayThinkingAsync(AssistantPersona persona, string? who, string turn, Func<bool> spoke, CancellationToken cancellationToken)
+    {
+        try { await Task.Delay(ThinkingAfter, _time, cancellationToken).ConfigureAwait(false); }
+        catch (OperationCanceledException) { return; }
+        if (spoke() || Phrase(persona, "thinking") is not { Length: > 0 } phrase) return;
+        _output.Preface(who, turn, phrase);
     }
 
     /// <summary>Two answers of one order, one after the other.</summary>

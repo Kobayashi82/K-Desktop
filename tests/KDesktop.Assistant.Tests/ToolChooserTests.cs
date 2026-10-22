@@ -115,10 +115,24 @@ public sealed class ToolChooserTests : IDisposable
         var choice = await chooser.ChooseAsync(_tools, "¿y cuánto le queda?", ["set_timer", "wikipedia"], default);
         Assert.Contains("set_timer", choice.Tools.Select(t => t.Name));
         Assert.Contains("wikipedia", choice.Tools.Select(t => t.Name));
-        Assert.InRange(choice.Tools.Count, ToolChooser.Least, ToolChooser.Most);
+        Assert.InRange(choice.Tools.Count, ToolChooser.Least, ToolChooser.Most + 2);
         // One that no longer exists is ignored.
         choice = await chooser.ChooseAsync(_tools, "hola", ["gone_tool"], default);
         Assert.DoesNotContain(choice.Tools, t => t.Name == "gone_tool");
+    }
+
+    [Fact]
+    public async Task WhatMustBeAtHandNeverPushesOutAnotherOfItsOwn()
+    {
+        // 22/10 (5.0.128): «¿y el mes que viene?» after the calendar. The tools used a moment before, the command tools of a
+        // big model and open_web went in one by one into a full list, each pushing the last one out: list_events was lost.
+        var chooser = new ToolChooser(new FakeMeaning());
+        string[] pinned = ["save_note", "find_notes", "calculate", "open_web", "set_timer"];
+        var choice = await chooser.ChooseAsync(_tools, "¿y el mes que viene?", pinned, default);
+        var names = choice.Tools.Select(t => t.Name).ToList();
+        Assert.All(pinned, p => Assert.Contains(p, names));
+        Assert.True(names.Count >= ToolChooser.Least);
+        Assert.Equal(names.Count, names.Distinct().Count());
     }
 
     [Fact]

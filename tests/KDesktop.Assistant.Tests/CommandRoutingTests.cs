@@ -20,6 +20,7 @@ public sealed class CommandRoutingTests : IDisposable
     private readonly List<LogMessage> _log = [];
     private readonly List<ChatLineMessage> _chat = [];
     private readonly List<(string?, int)> _listens = [];
+    private Output? _output;
 
     public void Dispose()
     {
@@ -33,7 +34,7 @@ public sealed class CommandRoutingTests : IDisposable
         builtin.AddTo(registry);
         CommandTools.AddTo(registry, _bridge);
         var runner = new ToolRunner(registry, () => new HashSet<string>(), (_, _) => Task.FromResult("yes"), m => { lock (_log) _log.Add(m); }, Path.Combine(_folder, "undo.json"));
-        return new TalkService(_ => (_model, model), runner, _ => AssistantPersona.Module(), new Output(_chat, _listens), commands: _bridge,
+        return new TalkService(_ => (_model, model), runner, _ => AssistantPersona.Module(), _output = new Output(_chat, _listens), commands: _bridge,
             memory: memory ? new TalkMemory(builtin.Memory, runner, null) : null, learn: () => false);
     }
 
@@ -414,6 +415,27 @@ public sealed class CommandRoutingTests : IDisposable
         Assert.Equal(2, _model.Requests.Count);
     }
 
+    [Fact]
+    public async Task ThinkingAWhileSaysAWordFirstAndAQuickAnswerDoesNot()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        // 22/10: «tarda en responder un poco y no dice nada».
+        _model.Delay = TalkService.ThinkingAfter + TimeSpan.FromMilliseconds(600);
+        _model.Answers.Enqueue("Hoy hace sol.");
+        await talk.HandleAsync(new HeardMessage("¿qué tiempo hace?", "voice", "lander"));
+        var said = Assert.Single(_output!.Prefaces);
+        Assert.Contains(said, Core.Localization.Loc.T("assistant.phrase.thinking").Split('|'));
+        // Its words are not in the conversation.
+        Assert.DoesNotContain(_chat, c => c.Text.Contains(said, StringComparison.Ordinal));
+
+        _model.Delay = TimeSpan.Zero;
+        _model.Answers.Enqueue("Las cinco.");
+        await talk.HandleAsync(new HeardMessage("¿y ahora qué tal?", "voice", "lander"));
+        await Task.Delay(TalkService.ThinkingAfter + TimeSpan.FromMilliseconds(300));
+        Assert.Single(_output.Prefaces);
+    }
+
     // Stage 8.1: what is done to a program, by the rules and after the user's own commands.
 
     [Theory]
@@ -513,6 +535,13 @@ public sealed class CommandRoutingTests : IDisposable
         {
             lock (listens) listens.Add((assistant, seconds));
         }
+
+        public List<string> Prefaces { get; } = [];
+
+        public void Preface(string? assistant, string turn, string phrase)
+        {
+            lock (Prefaces) Prefaces.Add(phrase);
+        }
     }
 
     /// <summary>K-Desktop for the tests: scripted matches, and every run written down.</summary>
@@ -567,11 +596,14 @@ public sealed class CommandRoutingTests : IDisposable
 
         public List<ChatRequest> Requests { get; } = [];
 
+        /// <summary>How long it takes to start answering (a model loading).</summary>
+        public TimeSpan Delay { get; set; }
+
         public async IAsyncEnumerable<ChatChunk> StreamAsync(ChatRequest request, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             Requests.Add(request);
             var answer = Answers.TryDequeue(out var next) ? next : throw new InvalidOperationException("Nadie esperaba otra petición al modelo");
-            await Task.Yield();
+            await Task.Delay(Delay, cancellationToken);
             // «call:run_command:Abrir Papelera»: the model calls a tool with that one argument.
             if (answer.StartsWith("call:", StringComparison.Ordinal) && answer.Split(':', 3) is [_, var tool, var argument])
                 yield return new ChatChunk("", [new ToolCall(tool, System.Text.Json.JsonSerializer.SerializeToElement(new { command = argument }), "call_1")]);

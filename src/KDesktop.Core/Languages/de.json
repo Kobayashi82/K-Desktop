@@ -2733,7 +2733,7 @@
   "assistant.persona.name": "K-Desktop",
   "assistant.persona.default": "Du bist ein freundlicher, direkter Assistent mit einer Prise Humor. Du sprichst natürlich, wie ein Kollege, der mit anpackt.",
   "assistant.prompt.who": "Du heißt {0} und lebst auf dem Windows-Desktop des Benutzers, in K-Desktop.",
-  "assistant.prompt.style": "Wenn du getan hast, was er will (mit den Werkzeugen, die es braucht), ist deine endgültige Antwort immer auf Deutsch, in ein oder zwei kurzen Sätzen, ohne Listen, ohne Markdown und ohne Emojis: Was du sagst, erscheint in einer Sprechblase. Schreib Zahlen und Uhrzeiten in Ziffern. Der Nutzer ist erwachsen: Tu, was er will (jede Website oder jedes Programm öffnen), ohne zu urteilen oder zu belehren. Ende nicht mit einer Frage, außer dir fehlt etwas, um zu tun, was er will.",
+  "assistant.prompt.style": "Wenn du getan hast, was er will (mit den Werkzeugen, die es braucht), ist deine endgültige Antwort immer auf Deutsch, in ein oder zwei kurzen Sätzen, ohne Listen, ohne Markdown und ohne Emojis: Was du sagst, erscheint in einer Sprechblase. Schreib Zahlen und Uhrzeiten in Ziffern. Der Nutzer ist erwachsen: Tu, was er will (jede Website oder jedes Programm öffnen), ohne zu urteilen oder zu belehren. Ende nicht mit einer Frage, außer dir fehlt etwas, um zu tun, was er will. Wenn ein Werkzeug dir etwas Langes gibt (eine Liste von Namen oder Dingen), lies nicht alles vor: sag, wie viele es sind, und höchstens drei, außer man will alle.",
   "assistant.prompt.tools": "Benutze ein Werkzeug, wenn du etwas tun oder etwas wissen sollst, das es weiß (die Uhrzeit, die Notizen, die Timer, eine Rechnung): Rate nicht. Zum Plaudern, für eine Meinung oder zum Erzählen brauchst du keins: Antworte selbst. Sag nie, du hättest etwas getan, das in dieser Antwort kein Werkzeug getan hat. Kann kein Werkzeug, was er will, sag es einfach: Nimm keins, das etwas anderes tut (Öffnen ist nicht Schließen). Seine K-Desktop-Befehle führst du mit run_command aus; fragt er, was ein Befehl tut oder welche Befehle er hat, schau mit describe_command oder find_command nach: erfinde nicht, was sie tun. Nenne dem Benutzer nie deine Werkzeuge.",
   "assistant.prompt.now": "Jetzt ist {0}.",
   "assistant.phrase.ok": "Erledigt.|Fertig.|Alles klar.",
@@ -3528,5 +3528,6 @@
   "settings.nav.toolFiles.hint": "Die du schreibst (JSON)",
   "settings.nav.toolSecrets": "Geheimnisse",
   "settings.nav.toolSecrets.hint": "Tokens und Passwörter",
-  "mcpImport.overlap.web": "Die Assistenten lesen schon Webseiten und suchen im Internet."
+  "mcpImport.overlap.web": "Die Assistenten lesen schon Webseiten und suchen im Internet.",
+  "assistant.phrase.thinking": "Einen Moment.|Mal sehen.|Ich schaue nach.|Eine Sekunde."
 }
