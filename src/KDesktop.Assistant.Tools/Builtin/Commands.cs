@@ -31,6 +31,14 @@ public interface ICommandBridge
     /// user's words (<paramref name="app"/>; empty: the window in front). Without K-Desktop (a test, the bench): null.
     /// </summary>
     Task<EndMessage?> ActAsync(string op, string app, int? value, string? assistant, CancellationToken cancellationToken) => Task.FromResult<EndMessage?>(null);
+
+    /// <summary>
+    /// A text taken from the window in front or put back in it (transform_text): <paramref name="op"/> <c>grab</c> (with
+    /// <paramref name="source"/>) or <c>put</c> (<paramref name="text"/>, <paramref name="mode"/>, <paramref name="hwnd"/>);
+    /// see <see cref="TextMessage"/>. Without K-Desktop: null.
+    /// </summary>
+    Task<TextDoneMessage?> TextAsync(string op, string? assistant, string source, string text, string mode, long hwnd, CancellationToken cancellationToken) =>
+        Task.FromResult<TextDoneMessage?>(null);
 }
 
 /// <summary>The command tools (stage 4.4), with the bridge to K-Desktop.</summary>
@@ -50,7 +58,8 @@ public static class CommandTools
     /// <summary>Below this, no command of the user is anything like the order (and the AI is not offered run_command).</summary>
     public const double Plausible = Clear;
 
-    public static void AddTo(ToolRegistry registry, ICommandBridge bridge)
+    /// <param name="writer">The model rewriting texts (transform_text); null: the tool says there is none.</param>
+    public static void AddTo(ToolRegistry registry, ICommandBridge bridge, IWriter? writer = null)
     {
         registry.Add(new RunCommandTool(bridge));
         registry.Add(new FindCommandTool(bridge));
@@ -58,6 +67,7 @@ public static class CommandTools
         registry.Add(new RunEventTool(bridge));
         registry.Add(new ControlAppTool(bridge));
         registry.Add(new EndProcessTool(bridge));
+        registry.Add(new TransformTextTool(bridge, writer));
     }
 
     /// <summary>The one candidate an order clearly means (a sure part, its exact name, or one well ahead), or null.</summary>

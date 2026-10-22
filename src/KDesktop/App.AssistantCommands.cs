@@ -40,6 +40,15 @@ public partial class App
                 RunForAssistant(supervisor, act.Assistant, act.Run, act.Choreography,
                     (who, choreography) => AssistantActs.ActAsync(Engine, act, who, (command, risk) => AskCommandAsync(act.Run, act.Assistant, command, risk, remember: false), choreography));
                 return true;
+            case TextMessage text:
+                // Ctrl+C / Ctrl+V and the clipboard (transform_text): one at a time, off the pipe's thread.
+                lock (_windowGate)
+                    _windowChain = _windowChain.ContinueWith(async _ =>
+                    {
+                        if (Engine.IsPaused) supervisor.Send(new TextDoneMessage(text.Run, false, Reason: "paused"));
+                        else supervisor.Send(await AssistantText.HandleAsync(text, new SystemTextDesk()).ConfigureAwait(false));
+                    }, TaskScheduler.Default).Unwrap();
+                return true;
             case WindowMessage window:
                 // One after another, off the pipe's thread (a window that hangs only holds these back).
                 lock (_windowGate)

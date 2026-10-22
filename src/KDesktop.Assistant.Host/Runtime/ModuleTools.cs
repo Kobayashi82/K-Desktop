@@ -30,7 +30,8 @@ internal sealed class ModuleTools : IDisposable
     /// <param name="screen">Pictures of the desktop and the page in the browser (stage 8.3).</param>
     /// <param name="vision">The model looking at them.</param>
     /// <param name="browser">The assistants' own browser (stage 8.4), closed with the tools.</param>
-    public ModuleTools(KDesktopLink link, ICommandBridge commands, IScreen screen, IVision vision, ModuleBrowser browser)
+    /// <param name="writer">The model rewriting texts (transform_text).</param>
+    public ModuleTools(KDesktopLink link, ICommandBridge commands, IScreen screen, IVision vision, IWriter writer, ModuleBrowser browser)
     {
         _browser = browser;
         _link = link;
@@ -38,7 +39,7 @@ internal sealed class ModuleTools : IDisposable
         Builtin = new BuiltinTools(folder);
         var registry = new ToolRegistry();
         Builtin.AddTo(registry, screen, vision, browser);
-        CommandTools.AddTo(registry, commands);
+        CommandTools.AddTo(registry, commands, writer);
         Runner = new ToolRunner(registry, () => _trusted, AskAsync, message => link.Send(message), Path.Combine(folder, "undo.json"), () => _askBefore);
         Builtin.Timers.Rang += OnTimerRang;
         Builtin.Memory.Changed += SendMemory;

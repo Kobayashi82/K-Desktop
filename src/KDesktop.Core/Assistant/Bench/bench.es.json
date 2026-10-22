@@ -47,6 +47,9 @@
     { "say": "el juego se ha quedado colgado, ciérralo a la fuerza", "expect": { "tool": ["end_process", "control_app"] } },
     { "say": "avísame cuando termine la descarga", "expect": { "tool": "notify_when" } },
     { "say": "dime cuando se cierre el Blender", "expect": { "tool": "notify_when" } },
-    { "say": "avísame cuando la gráfica deje de trabajar tanto", "expect": { "tool": "notify_when" } }
+    { "say": "avísame cuando la gráfica deje de trabajar tanto", "expect": { "tool": "notify_when" } },
+    { "say": "tradúceme esto al inglés", "expect": { "tool": "transform_text" } },
+    { "say": "corrige la ortografía de lo que he seleccionado", "expect": { "tool": "transform_text" } },
+    { "say": "ponme este texto más formal", "expect": { "tool": "transform_text" } }
   ]
 }

@@ -23,6 +23,7 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
     private readonly ConcurrentDictionary<string, TaskCompletionSource<MatchedMessage?>> _matches = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<EndMessage?>> _runs = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<DescribedMessage?>> _descriptions = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<TextDoneMessage?>> _texts = new(StringComparer.Ordinal);
     private int _next;
 
     public Task<MatchedMessage?> MatchAsync(string text, CancellationToken cancellationToken) =>
@@ -64,6 +65,15 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
 
     public Task<EndMessage?> RunEventAsync(string name, string? assistant, CancellationToken cancellationToken) =>
         AskAsync(_runs, id => new RunEventMessage(assistant ?? string.Empty, id, name), RunWait, cancellationToken);
+
+    /// <summary>Taking or putting a text (transform_text): Ctrl+C or Ctrl+V and the clipboard, quick.</summary>
+    public Task<TextDoneMessage?> TextAsync(string op, string? assistant, string source, string text, string mode, long hwnd, CancellationToken cancellationToken) =>
+        AskAsync(_texts, id => new TextMessage(assistant ?? string.Empty, id, op, source, text, mode, hwnd), MatchWait, cancellationToken);
+
+    public void OnTextDone(TextDoneMessage done)
+    {
+        if (_texts.TryRemove(done.Run, out var waiting)) waiting.TrySetResult(done);
+    }
 
     public void OnDescribed(DescribedMessage described)
     {

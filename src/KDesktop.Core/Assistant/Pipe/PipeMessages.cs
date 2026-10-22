@@ -598,6 +598,34 @@ public sealed record ActMessage(string Assistant, string Run, string Op, string 
     public override string Type => "act";
 }
 
+/// <summary>
+/// A text to work on (stage 8, <c>transformar_texto</c>), A→K: <c>grab</c> takes the selection of the window in front
+/// (Ctrl+C, the clipboard put back as it was) or, without one, what is copied; <c>put</c> pastes the result in that window
+/// (the clipboard put back after) or leaves it copied. K-Desktop does it (it can write to elevated windows). Answered with
+/// <see cref="TextDoneMessage"/>.
+/// </summary>
+/// <param name="Op"><c>grab</c> or <c>put</c>.</param>
+/// <param name="Source">grab: <c>auto</c> (the selection, else what is copied), <c>selection</c> or <c>clipboard</c>.</param>
+/// <param name="Text">put: the text.</param>
+/// <param name="Mode">put: <c>paste</c> or <c>copy</c>.</param>
+/// <param name="Hwnd">put: the window the text came from (it is only pasted there).</param>
+public sealed record TextMessage(string Assistant, string Run, string Op, string Source = "auto", string Text = "", string Mode = "paste", long Hwnd = 0) : PipeMessage
+{
+    public override string Type => "text";
+}
+
+/// <summary>How a <see cref="TextMessage"/> went.</summary>
+/// <param name="Text">grab: the text taken.</param>
+/// <param name="From">grab: <c>selection</c> or <c>clipboard</c>; put: <c>pasted</c> or <c>copied</c>.</param>
+/// <param name="Hwnd">grab: the window it was taken from (0: none, or K-Desktop's own).</param>
+/// <param name="Window">grab: that window's title.</param>
+/// <param name="Reason">Not done: <c>empty</c> (nothing selected nor copied), <c>noSelection</c>, <c>tooLong</c>, <c>busy</c> (the
+/// clipboard could not be opened); put done as <c>copied</c> with <c>moved</c>: another window was in front.</param>
+public sealed record TextDoneMessage(string Run, bool Ok, string Text = "", string From = "", long Hwnd = 0, string Window = "", string? Reason = null) : PipeMessage
+{
+    public override string Type => "textDone";
+}
+
 /// <summary>A built-in media order of K-Desktop (out of a <c>matched</c>); with <paramref name="Run"/>, answered with <see cref="EndMessage"/>.</summary>
 /// <param name="Order">The kind, camelCase (<c>volumeUp</c>, <c>pause</c>…).</param>
 public sealed record MediaMessage(string Order, int? Value = null, string? Run = null) : PipeMessage
@@ -742,6 +770,8 @@ public static class PipeJson
         ["described"] = typeof(DescribedMessage),
         ["runEvent"] = typeof(RunEventMessage),
         ["act"] = typeof(ActMessage),
+        ["text"] = typeof(TextMessage),
+        ["textDone"] = typeof(TextDoneMessage),
         ["voice"] = typeof(VoiceMessage),
         ["voiceState"] = typeof(VoiceStateMessage),
         ["bench"] = typeof(BenchMessage),

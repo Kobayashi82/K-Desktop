@@ -35,7 +35,7 @@ internal sealed class AssistantSession : IDisposable
         // The brain answers Options → Assistant → Brain: only with K-Desktop there.
         if (Link is not null) Brain = new BrainService(World.VideoMemory.Gigabytes);
         if (Link is not null) Commands = new ModuleCommands(Link) { Choreography = new ModuleChoreography(Link, Engine, Runtime), HasBody = Runtime.HasBody };
-        if (Link is not null) Tools = new ModuleTools(Link, Commands!, new ModuleSight(Runtime.WindowServices), new ModelVision(Brain!),
+        if (Link is not null) Tools = new ModuleTools(Link, Commands!, new ModuleSight(Runtime.WindowServices), new ModelVision(Brain!), new ModelWriter(Brain!),
             new ModuleBrowser(Path.Combine(AppPaths.DataDir, "Assistant", "Browser")));
         Runtime.LanguageOf = Personal.LanguageOf;
         if (Link is not null) Voice = new ModuleVoice(Engine, Runtime, Personal);
@@ -170,6 +170,9 @@ internal sealed class AssistantSession : IDisposable
                         return;
                     case StepResultMessage result when Commands?.Choreography is { } choreography:
                         choreography.OnResult(result);
+                        return;
+                    case TextDoneMessage done when Commands is { } commands:
+                        commands.OnTextDone(done);
                         return;
                     case EndMessage end when Commands is { } commands:
                         commands.OnEnd(end);
