@@ -163,6 +163,58 @@ public sealed class WatchTests : IDisposable
     }
 
     [Fact]
+    public async Task OtherTrafficForAMomentDoesNotStartTheQuietAgain()
+    {
+        // A fast download (40 MB/s): quiet is under a tenth of it, and a moment of a call or a remote desktop does not count.
+        _probe.ReceivedBytes.Enqueue(0);
+        _probe.ReceivedBytes.Enqueue(80_000_000);
+        await NotifyAsync("""{"when":"download"}""");
+        var item = Assert.Single(_store.Pending);
+        Assert.True(WatchStore.QuietFor(item) > 2_000_000);
+        long received = 100_000_000;
+        void Step(int seconds, long bytes)
+        {
+            _time.Advance(TimeSpan.FromSeconds(seconds));
+            _probe.ReceivedBytes.Enqueue(received += bytes);
+            _store.Check();
+        }
+        _probe.ReceivedBytes.Enqueue(received);
+        _store.Check();
+        Step(2, 40_000);
+        Step(8, 1_500_000);  // 190 KB/s for a moment
+        Step(8, 300_000);
+        Assert.Empty(_told);
+        Step(4, 100_000);
+        Assert.Equal(["La descarga ha terminado."], _told);
+    }
+
+    [Fact]
+    public async Task ADownloadThatComesBackIsNotOver()
+    {
+        _probe.ReceivedBytes.Enqueue(0);
+        _probe.ReceivedBytes.Enqueue(2_000_000);
+        await NotifyAsync("""{"when":"download"}""");
+        long received = 3_000_000;
+        void Step(int seconds, long bytes)
+        {
+            _time.Advance(TimeSpan.FromSeconds(seconds));
+            _probe.ReceivedBytes.Enqueue(received += bytes);
+            _store.Check();
+        }
+        _probe.ReceivedBytes.Enqueue(received);
+        _store.Check();
+        Step(2, 10_000);
+        Step(10, 50_000);
+        Step(4, 20_000_000);  // Steam unpacked and downloads again
+        Step(6, 10_000);
+        Assert.Empty(_told);
+        Step(12, 20_000);
+        Assert.Empty(_told);
+        Step(4, 10_000);
+        Assert.Equal(["La descarga ha terminado."], _told);
+    }
+
+    [Fact]
     public async Task NoDownloadIsNoWatch()
     {
         _probe.ReceivedBytes.Enqueue(0);

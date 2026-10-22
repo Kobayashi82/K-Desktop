@@ -178,6 +178,7 @@ public sealed class TalkService
             var turn = Guid.NewGuid().ToString("N")[..12];
             _output.Chat(new ChatLineMessage("assistant", text, turn, true, who));
             conversation.LastAnswer = text;
+            conversation.History.Said(text);
             _output.State(who, "speaking");
             await _output.SpeakTurnAsync(who, turn, text, token).ConfigureAwait(false);
         }

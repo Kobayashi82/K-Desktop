@@ -67,6 +67,22 @@ public sealed class TalkHistory(TimeProvider time)
         }
     }
 
+    /// <summary>
+    /// It said something on its own after its last answer (a watch that happened, a timer, «Asistente: decir»): it goes
+    /// after that answer, so «avísame cuando termine la descarga» again is not taken as already done. Nothing to add it
+    /// to: nothing.
+    /// </summary>
+    public void Said(string text)
+    {
+        lock (_gate)
+        {
+            Expire();
+            if (_exchanges.Count == 0) return;
+            var last = _exchanges[^1];
+            _exchanges[^1] = last with { Answer = last.Answer + "\n\n" + text };
+        }
+    }
+
     /// <summary>As messages for the model, oldest first.</summary>
     public IReadOnlyList<ChatMessage> Messages()
     {

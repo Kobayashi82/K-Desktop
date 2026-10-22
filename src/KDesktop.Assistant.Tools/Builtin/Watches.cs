@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Net.NetworkInformation;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using KDesktop.Core;
@@ -47,6 +46,9 @@ public sealed record WatchItem(string Id, string Kind, string What, string? Assi
 
     /// <summary>Download: no partial files, so the network going quiet (Steam, a launcher).</summary>
     public bool Network { get; init; }
+
+    /// <summary>Download by the network: bytes per second when it was set (the quiet is measured against it).</summary>
+    public long? Rate { get; init; }
 }
 
 /// <summary>What the watches look at, so tests can pretend.</summary>
@@ -104,18 +106,7 @@ public sealed class SystemProbe : IWatchProbe, IDisposable
         lock (_gate) return (resource == LoadResource.Gpu ? _gpu : _cpu).Read(resource);
     }
 
-    public long Received()
-    {
-        long total = 0;
-        try
-        {
-            foreach (var adapter in NetworkInterface.GetAllNetworkInterfaces())
-                if (adapter.OperationalStatus == OperationalStatus.Up && adapter.NetworkInterfaceType != NetworkInterfaceType.Loopback)
-                    total += adapter.GetIPStatistics().BytesReceived;
-        }
-        catch (NetworkInformationException) { /* no figures */ }
-        return total;
-    }
+    public long Received() => NetworkInfo.Traffic().Down;
 
     public IReadOnlyList<string> Partials(string folder)
     {
@@ -179,7 +170,10 @@ public sealed class WatchStore : IDisposable
     /// <summary>The processor or the graphics card below the % this long (not one quiet moment).</summary>
     public static readonly TimeSpan Sustain = TimeSpan.FromSeconds(15);
 
-    /// <summary>A download by the network is over when it receives less than <see cref="QuietRate"/> this long.</summary>
+    /// <summary>
+    /// A download by the network is over when, this long, it receives on average less than <see cref="QuietRate"/> or a
+    /// tenth of what it was downloading at (the rest of the PC keeps using the network: a call, a remote desktop).
+    /// </summary>
     public static readonly TimeSpan NetworkQuiet = TimeSpan.FromSeconds(20);
 
     /// <summary>A folder that has not changed this long has stopped changing.</summary>
@@ -204,6 +198,9 @@ public sealed class WatchStore : IDisposable
         public string? Stamp;
         public long? Received;
         public DateTimeOffset At;
+
+        /// <summary>What had been received when it went quiet (<see cref="Since"/>).</summary>
+        public long SinceReceived;
     }
 
     public WatchStore(string file, IWatchProbe probe, TimeProvider? time = null)
@@ -315,7 +312,7 @@ public sealed class WatchStore : IDisposable
                         WatchKinds.Appears => Appeared(item, windows ??= Probe.Windows()),
                         WatchKinds.CpuBelow => Below(item, progress, cpu ??= Probe.Load(LoadResource.Cpu), now),
                         WatchKinds.GpuBelow => Below(item, progress, gpu ??= Probe.Load(LoadResource.Gpu), now),
-                        WatchKinds.Download when item.Network => Quiet(progress, received ??= Probe.Received(), now),
+                        WatchKinds.Download when item.Network => Quiet(progress, received ??= Probe.Received(), now, QuietFor(item)),
                         WatchKinds.Download => Downloaded(item),
                         WatchKinds.FolderQuiet => Settled(item, progress, now),
                         _ => (false, null),
@@ -371,20 +368,32 @@ public sealed class WatchStore : IDisposable
         return now - progress.Since >= Sustain ? (true, load.ToString(CultureInfo.InvariantCulture)) : (false, null);
     }
 
-    private static (bool, string?) Quiet(Progress progress, long received, DateTimeOffset now)
+    /// <summary>Bytes per second under which the network counts as quiet for that download.</summary>
+    public static long QuietFor(WatchItem item) => Math.Max(QuietRate, (item.Rate ?? 0) / 10);
+
+    /// <summary>
+    /// Quiet when it received less than <paramref name="quiet"/> since the last reading and, on average, since it went
+    /// quiet: a moment of more traffic from something else does not start it all over again; a download that comes back does.
+    /// </summary>
+    private static (bool, string?) Quiet(Progress progress, long received, DateTimeOffset now, long quiet)
     {
         var (before, at) = (progress.Received, progress.At);
         progress.Received = received;
         progress.At = now;
         if (before is not { } last || now <= at) return (false, null);
-        var rate = (received - last) / (now - at).TotalSeconds;
-        if (rate >= QuietRate)
+        if (progress.Since is not { } since)
+        {
+            if ((received - last) / (now - at).TotalSeconds >= quiet) return (false, null);
+            progress.Since = at;
+            progress.SinceReceived = last;
+            return (false, null);
+        }
+        if ((received - progress.SinceReceived) / (now - since).TotalSeconds >= quiet)
         {
             progress.Since = null;
             return (false, null);
         }
-        progress.Since ??= at;
-        return (now - progress.Since >= NetworkQuiet, null);
+        return (now - since >= NetworkQuiet, null);
     }
 
     private (bool, string?) Downloaded(WatchItem item)
@@ -481,6 +490,9 @@ public sealed class WatchStore : IDisposable
 /// </summary>
 public sealed class NotifyWhenTool(WatchStore watches) : ITool
 {
+    /// <summary>How long the network is measured to see whether something is downloading.</summary>
+    private static readonly TimeSpan MeasureFor = TimeSpan.FromSeconds(2);
+
     public string Name => "notify_when";
 
     public string Description => "Tells the user later, when something happens on the PC: closes (a program or window closes), appears (a window of a program appears), cpu_below or gpu_below (the processor or graphics card goes below a %), download (the download in progress finishes: browser or Steam), folder_quiet (a folder stops changing: a copy or export ends). For a time or a delay use set_timer.";
@@ -569,15 +581,16 @@ public sealed class NotifyWhenTool(WatchStore watches) : ITool
                 }
                 var before = probe.Received();
                 var measuring = System.Diagnostics.Stopwatch.StartNew();
-                await Task.Delay(TimeSpan.FromSeconds(1.2), cancellationToken).ConfigureAwait(false);
+                // Two seconds: Windows updates the figures by jumps, and over one second a 42 MB/s download looked like 200.
+                await Task.Delay(MeasureFor, cancellationToken).ConfigureAwait(false);
                 var rate = (probe.Received() - before) / Math.Max(0.1, measuring.Elapsed.TotalSeconds);
                 if (rate < WatchStore.DownloadRate)
                 {
                     var none = Loc.T("watch.noDownload");
                     return ToolResult.Fail("No download is going on (nothing being downloaded in the browser, and the network is quiet). Say so.") with { Reply = none };
                 }
-                item = item with { Network = true, What = string.Empty };
-                note = $"(Downloading at {rate / (1024 * 1024):0.#} MB/s.)";
+                item = item with { Network = true, What = string.Empty, Rate = (long)rate };
+                note = string.Create(CultureInfo.InvariantCulture, $"(Downloading at {rate / (1024 * 1024):0.#} MB/s.)");
                 break;
             }
             case WatchKinds.FolderQuiet:

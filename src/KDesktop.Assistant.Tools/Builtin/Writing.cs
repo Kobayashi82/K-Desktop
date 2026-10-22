@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using KDesktop.Core.Assistant;
 using KDesktop.Core.Localization;
@@ -57,7 +58,8 @@ public sealed class TransformTextTool(ICommandBridge bridge, IWriter? writer) : 
         {
             "translate" => $"Translate it into {(string.IsNullOrWhiteSpace(language) ? "English" : language.Trim())}.",
             "correct" => "Correct its spelling, grammar and punctuation; change nothing else.",
-            "summarize" => "Summarize it in a few short sentences.",
+            // It is said to the user: in their language, whatever the text is in (a Spanish text came back in English).
+            "summarize" => $"Summarize it in {new CultureInfo(Loc.Instance.Language).EnglishName}, in a few short sentences.",
             "formal" => "Rewrite it in a more formal, polite tone.",
             "casual" => "Rewrite it in a more casual, friendly tone.",
             "list" => "Turn it into a list of short bullet points.",

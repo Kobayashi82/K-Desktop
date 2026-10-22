@@ -1,4 +1,3 @@
-using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using KDesktop.Core.Model;
 using Microsoft.Win32;
@@ -32,12 +31,12 @@ public sealed record PcStatus(
     {
         using var load = new SystemLoad();
         var before = ProcessUsage.Read();
-        var bytesBefore = NetworkBytes();
+        var bytesBefore = NetworkInfo.Traffic();
         var cpuStart = GetSystemTimes(out var idle0, out var kernel0, out var user0);
         load.Read(LoadResource.Gpu); // the first GPU reading only starts the counters (it waits 250 ms)
         await Task.Delay(window ?? Window, cancellationToken).ConfigureAwait(false);
         var after = ProcessUsage.Read();
-        var bytesAfter = NetworkBytes();
+        var bytesAfter = NetworkInfo.Traffic();
         var cpu = cpuStart && GetSystemTimes(out var idle1, out var kernel1, out var user1)
             ? Percent(idle1 - idle0, kernel1 - kernel0 + user1 - user0) : load.Read(LoadResource.Cpu);
         var gpuLoad = load.Read(LoadResource.Gpu);
@@ -135,23 +134,6 @@ public sealed record PcStatus(
         return result;
     }
 
-    /// <summary>Bytes received and sent by the adapters that are up (no loopback), since they started.</summary>
-    private static (long Down, long Up) NetworkBytes()
-    {
-        long down = 0, up = 0;
-        try
-        {
-            foreach (var adapter in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                if (adapter.OperationalStatus != OperationalStatus.Up || adapter.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
-                var statistics = adapter.GetIPStatistics();
-                down += statistics.BytesReceived;
-                up += statistics.BytesSent;
-            }
-        }
-        catch (NetworkInformationException) { /* no figures */ }
-        return (down, up);
-    }
 
     /// <summary>NVIDIA's management library (nvml.dll comes with the driver): what the graphics card is doing.</summary>
     private static class Nvml

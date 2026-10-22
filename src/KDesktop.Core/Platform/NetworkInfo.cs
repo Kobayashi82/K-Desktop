@@ -28,6 +28,29 @@ public static class NetworkInfo
     }
 
     /// <summary>
+    /// Bytes received and sent, since they started, by the adapters that are up and have an address (no loopback).
+    /// .NET also lists the filters stacked on an adapter (WFP, QoS, VirtualBox…) as interfaces that are up, each with
+    /// the same figures: counting them made a 42 MB/s download look like 210.
+    /// </summary>
+    public static (long Down, long Up) Traffic()
+    {
+        long down = 0, up = 0;
+        try
+        {
+            foreach (var adapter in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (adapter.OperationalStatus != OperationalStatus.Up || adapter.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
+                if (adapter.GetIPProperties().UnicastAddresses.Count == 0) continue;
+                var statistics = adapter.GetIPStatistics();
+                down += statistics.BytesReceived;
+                up += statistics.BytesSent;
+            }
+        }
+        catch (NetworkInformationException) { /* no figures */ }
+        return (down, up);
+    }
+
+    /// <summary>
     /// Names of the networks this PC is connected to, as Windows calls them (the Wi-Fi SSID, «Red 2» for a cable…),
     /// from the Network List Manager. Empty when there is none (or it can't be asked).
     /// </summary>

@@ -140,6 +140,8 @@ internal sealed class ModuleTalk : ITalkOutput
         {
             using var _ = Loc.Instance.Use(_personal.LanguageOf(assistant));
             var text = say();
+            // «programa de prueba se ha cerrado.»: the name the user said goes first.
+            if (text.Length > 0) text = char.ToUpper(text[0], Loc.Instance.Culture) + text[1..];
             Log.Info(kind is null ? $"Asistente: {activity}: {text}" : $"Asistente: aviso cumplido ({kind}): {text}");
             _tools.Runner.Record(assistant, string.Empty, activity, text, ok: true);
             var waited = System.Diagnostics.Stopwatch.StartNew();

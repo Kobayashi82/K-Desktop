@@ -38,9 +38,12 @@ public class TransformTextTests
     public async Task ASummaryIsSaid()
     {
         var bridge = new TextBridge(new TextDoneMessage("r", true, "un texto muy largo", "selection", 100), new TextDoneMessage("r", true, From: "copied"));
-        var result = await Transform(bridge, new Writer("Es un texto largo."), """{"action":"summarize"}""");
+        var writer = new Writer("Es un texto largo.");
+        var result = await Transform(bridge, writer, """{"action":"summarize"}""");
         Assert.Equal("put:copy:100:Es un texto largo.", bridge.Asked[^1]);
         Assert.Equal("Es un texto largo.", result.Reply);
+        // Said to the user: in their language, whatever the text is in.
+        Assert.StartsWith("Summarize it in Spanish", writer.Instruction, StringComparison.Ordinal);
     }
 
     [Theory]
