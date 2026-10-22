@@ -46,6 +46,27 @@ la que está en el escritorio) y conserva `Assistants\Data\<id>\` y los ajustes;
 el proceso del asistente lo suelta. Las copias de seguridad de K-Desktop guardan esos datos y la lista de
 asistentes instalados, no los paquetes.
 
+## Publicar versiones nuevas
+
+Si el manifiesto dice dónde está siempre el último paquete, K-Desktop busca versiones nuevas a la vez que las suyas
+(al arrancar, cada 6 horas y con «Comprobar» en Opciones → Actualizaciones) y las **ofrece**: un aviso, una barra en
+la ventana, la fila del asistente en Opciones → Asistentes y Opciones → Actualizaciones, con «Actualizar…» (lo
+descarga y abre su ficha) y «Omitir esta versión». Nunca actualiza un asistente sin preguntar, aunque K-Desktop
+esté en modo automático.
+
+```json
+"updates": "https://github.com/yo/mis-asistentes/releases/latest/download/miasistente.kai",
+"changes": { "es": "Salta más alto y habla más rápido.", "en": "Jumps higher and talks faster." }
+```
+
+- `updates` es una dirección fija que siempre da el último `.kai` (en GitHub, la de `releases/latest/download/…`).
+  https; `http://localhost` y `http://127.0.0.1` valen para probar con un servidor propio.
+- Para comprobarlo, K-Desktop **solo lee el `assistant.json`** del paquete publicado con peticiones por rangos
+  (unos KB); un servidor que no los admita manda el paquete entero cada vez.
+- Se ofrece si la versión es mayor y el id es el mismo. Si pide un SDK más nuevo que el de esa K-Desktop, se dice que
+  hace falta actualizar K-Desktop antes.
+- `changes` (opcional, en uno o varios idiomas) es lo que trae esa versión: sale en el aviso y en la ficha.
+
 ## El ejemplo
 
 `samples/DotAssistant` (Dot) es el asistente mínimo completo: un punto que se teletransporta, se puede arrastrar,

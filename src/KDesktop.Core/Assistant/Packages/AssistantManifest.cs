@@ -32,6 +32,10 @@ public sealed partial record AssistantManifest
     public required ManifestTraits Traits { get; init; }
     public IReadOnlyList<ManifestExtra> Extras { get; init; } = [];
     public string? Updates { get; init; }
+
+    /// <summary>What this version brings (shown when it is offered as an update and on its card).</summary>
+    public LocalizedText? Changes { get; init; }
+
     public IReadOnlyList<string> ImportFrom { get; init; } = [];
 
     /// <summary>The assembly (relative to the package, «lib/X.dll») and the type that implements IAssistant.</summary>

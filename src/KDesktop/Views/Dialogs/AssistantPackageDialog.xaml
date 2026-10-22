@@ -62,6 +62,12 @@
 
             <TextBlock x:Name="DescriptionText" Margin="0,16,0,0" TextWrapping="Wrap" />
 
+            <!-- What a new version brings (its manifest's «changes»), when updating -->
+            <StackPanel x:Name="ChangesPanel" Margin="0,16,0,0" Visibility="Collapsed">
+                <TextBlock x:Name="ChangesTitle" FontWeight="SemiBold" Margin="0,0,0,4" />
+                <TextBlock x:Name="ChangesText" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+
             <TextBlock Margin="0,16,0,6" FontWeight="SemiBold" Text="{l:Tr assistantCard.gestures}" />
             <ItemsControl x:Name="GestureList">
                 <ItemsControl.ItemsPanel>

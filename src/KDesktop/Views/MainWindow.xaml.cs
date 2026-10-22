@@ -419,6 +419,34 @@ public partial class MainWindow : FluentWindow
             }, install);
         }
 
+        // New versions of assistants (stage 9.5): one is opened with its card; several, in Options → Updates.
+        if (app.PendingAssistantUpdates is { Count: > 0 } assistants)
+        {
+            var one = assistants.Count == 1 ? assistants[0] : null;
+            var see = new Wpf.Ui.Controls.Button
+            {
+                Content = Loc.T(one is null ? "assistantUpdates.see" : "assistantUpdates.update"),
+                Icon = new SymbolIcon(SymbolRegular.ArrowDownload24),
+                Appearance = ControlAppearance.Primary,
+                IsEnabled = one is null || !app.IsDownloadingAssistantUpdate(one.Id),
+            };
+            see.Click += (_, _) =>
+            {
+                if (one is not null) _ = app.OpenAssistantUpdateAsync(one.Id);
+                else Navigate("settings/updates");
+            };
+            AddBanner(new InfoBar
+            {
+                Title = one is not null ? Loc.T("assistantUpdates.bannerOne", one.Name, one.Latest!) : Loc.T("assistantUpdates.bannerMany", assistants.Count),
+                Message = one is not null
+                    ? one.Changes?.In(Loc.Instance.Language) is { Length: > 0 } changes ? changes : Loc.T("assistantUpdates.bannerMessage")
+                    : string.Join(", ", assistants.Select(a => $"{a.Name} {a.Latest}")),
+                Severity = InfoBarSeverity.Informational,
+                IsOpen = true,
+                IsClosable = true,
+            }, see);
+        }
+
         if (app.ImportReport is { } report)
         {
             Banners.Children.Add(new InfoBar

@@ -11,12 +11,23 @@ public static partial class AssistantPackages
     public static string DownloadFolder => Path.Combine(Path.GetTempPath(), "K-Desktop", "Assistants");
 
     /// <summary>
-    /// Downloads a package from the <c>updates</c> address of its manifest (only https) to a temporary file, for its
-    /// card: nothing is installed or loaded here. Throws <see cref="PackageException"/> with what went wrong.
+    /// Whether <paramref name="url"/> can be the <c>updates</c> address of a package: https, or http to this PC only
+    /// (an author trying out their updates with a local server).
+    /// </summary>
+    public static bool IsPublishAddress(string? url, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out Uri? uri)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out uri)) return false;
+        return uri.Scheme == Uri.UriSchemeHttps || (uri.Scheme == Uri.UriSchemeHttp && uri.IsLoopback);
+    }
+
+    /// <summary>
+    /// Downloads a package from the <c>updates</c> address of its manifest (see <see cref="IsPublishAddress"/>) to a
+    /// temporary file, for its card: nothing is installed or loaded here. Throws <see cref="PackageException"/> with what
+    /// went wrong.
     /// </summary>
     public static async Task<string> DownloadAsync(string url, string name, CancellationToken ct = default)
     {
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
+        if (!IsPublishAddress(url, out var uri))
             throw Fail(PackageProblem.NotAPackage, "assistantPkg.badUrl", name, url);
         Directory.CreateDirectory(DownloadFolder);
         var file = Path.Combine(DownloadFolder, $"{Guid.NewGuid():N}{Extension}");

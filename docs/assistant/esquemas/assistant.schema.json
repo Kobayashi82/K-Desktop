@@ -93,10 +93,14 @@
       }
     },
     "updates": {
-      "description": "URL del último paquete (.kai) para comprobar actualizaciones.",
+      "description": "URL del último paquete (.kai) para comprobar actualizaciones (https; http solo a localhost o 127.0.0.1, para probar).",
       "type": "string",
       "format": "uri",
-      "pattern": "^https://"
+      "pattern": "^(https://|http://(localhost|127\\.0\\.0\\.1)[:/])"
+    },
+    "changes": {
+      "description": "Qué trae esta versión: K-Desktop lo enseña al ofrecerla como actualización y en su ficha.",
+      "$ref": "common.schema.json#/$defs/text"
     },
     "importFrom": {
       "description": "Datos de una versión independiente que K-Desktop puede ofrecer importar (rutas con variables de entorno).",

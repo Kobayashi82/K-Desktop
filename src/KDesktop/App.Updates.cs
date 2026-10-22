@@ -50,12 +50,17 @@ public partial class App
         _autoInstallRetry.Tick += (_, _) => TryAutoInstall();
     }
 
-    /// <summary>Checks the manifest; in "Auto" mode also downloads the new version and installs it when idle.</summary>
+    /// <summary>
+    /// Checks the manifest; in "Auto" mode also downloads the new version and installs it when idle. The assistants'
+    /// new versions are checked at the same time, and only offered.
+    /// </summary>
     public async Task CheckForUpdatesAsync(bool manual)
     {
         var s = Config.Settings;
         if (!manual && s.UpdateMode == UpdateMode.Off) return;
+        var assistants = CheckAssistantUpdatesAsync(manual);
         var info = await Updates.CheckAsync(AppSettings.ManifestUrl(s.UpdateUrl));
+        await assistants;
         if (info is null) return;
 
         if (s.UpdateMode == UpdateMode.Auto && UpdateService.CanInstall && !manual)

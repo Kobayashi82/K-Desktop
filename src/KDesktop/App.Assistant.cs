@@ -97,6 +97,9 @@ public partial class App
             supervisor.Start();
             UpdateAssistantInput();
             AssistantChanged?.Invoke();
+            // Switched on after K-Desktop already checked its own updates: the assistants' now, not in 6 hours.
+            if (Updates.LastCheck is not null && AssistantUpdatesChecked is null) _ = CheckAssistantUpdatesAsync(manual: false);
+            else RaiseAssistantUpdates();
         }
         else if (!s.AssistantEnabled && _assistant is { } running)
         {
@@ -118,6 +121,7 @@ public partial class App
             ResetAssistantInput();
             _ = running.DisposeAsync().AsTask();
             AssistantChanged?.Invoke();
+            RaiseAssistantUpdates();
         }
         else if (_assistant is { } current && _assistantLook != (AssistantLanguage, ThemeService.IsDark))
         {
@@ -504,6 +508,7 @@ public partial class App
         }
         else if (activate) ShowAssistant(installed.Id);
         AssistantChanged?.Invoke();
+        FollowInstalledAssistants();
         return installed;
     }
 
@@ -558,6 +563,7 @@ public partial class App
         await Task.Run(() => AssistantPackages.Uninstall(id, keepData));
         RefreshExtraNames();
         AssistantChanged?.Invoke();
+        FollowInstalledAssistants();
     }
 
     /// <summary>Closes the assistant process with its goodbye (on exit).</summary>

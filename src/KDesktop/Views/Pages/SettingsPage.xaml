@@ -1065,6 +1065,12 @@
                             <ui:TextBox Text="{Binding UpdateUrl, UpdateSourceTrigger=LostFocus}" PlaceholderText="{x:Static m:AppSettings.DefaultUpdateUrl}" />
                         </DockPanel>
                     </Grid>
+                    <!-- The installed assistants: their new versions are only offered (stage 9.5); rows made in code -->
+                    <StackPanel x:Name="AssistantUpdatesBlock" Margin="0,18,0,0" Visibility="Collapsed">
+                        <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr assistantUpdates.title}" />
+                        <TextBlock x:Name="AssistantUpdatesHint" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,8" />
+                        <StackPanel x:Name="AssistantUpdatesRows" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
 

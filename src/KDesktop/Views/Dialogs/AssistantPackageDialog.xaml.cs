@@ -113,6 +113,12 @@ public partial class AssistantPackageDialog : FluentWindow
 
         DescriptionText.Text = manifest.Description?.In(Loc.Instance.Language) ?? string.Empty;
         if (DescriptionText.Text.Length == 0) DescriptionText.Visibility = Visibility.Collapsed;
+        if (package.Action == PackageAction.Update && manifest.Changes?.In(Loc.Instance.Language) is { Length: > 0 } changes)
+        {
+            ChangesTitle.Text = Loc.T("assistantCard.changes", manifest.Version);
+            ChangesText.Text = changes;
+            ChangesPanel.Visibility = Visibility.Visible;
+        }
         GestureList.ItemsSource = package.Gestures.Select(g => Loc.T("assistant.gesture." + g)).ToList();
         DetailsText.Text = Loc.T("assistantCard.details", FormatSize(package.Size), package.Files)
                            + (manifest.License is { Length: > 0 } license ? " · " + Loc.T("assistantCard.license", license) : "");

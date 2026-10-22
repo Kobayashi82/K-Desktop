@@ -695,6 +695,12 @@ public partial class AppSettings : ObservableObject
     /// <summary>Where Options → Tools → «Importar…» looked last (null: Documents).</summary>
     [ObservableProperty] private string? _assistantMcpImportFolder;
 
+    /// <summary>
+    /// New versions of assistants the user chose not to be told about again (id → that version; stage 9.5). A later
+    /// version is offered again. Replaced whole on every change.
+    /// </summary>
+    [ObservableProperty] private Dictionary<string, string> _assistantSkippedUpdates = [];
+
     /// <summary>The groups of Options left open (and «assistants» when its assistants are shown); null: never folded yet.</summary>
     [ObservableProperty] private List<string>? _settingsNavOpen;
 

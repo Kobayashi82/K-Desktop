@@ -31,10 +31,15 @@ public partial class AssistantListSection : UserControl
         Loaded += (_, _) =>
         {
             _app.AssistantChanged += Refresh;
+            _app.AssistantUpdatesChanged += Refresh;
             _listShown = null;
             Refresh();
         };
-        Unloaded += (_, _) => _app.AssistantChanged -= Refresh;
+        Unloaded += (_, _) =>
+        {
+            _app.AssistantChanged -= Refresh;
+            _app.AssistantUpdatesChanged -= Refresh;
+        };
     }
 
     private void Refresh()

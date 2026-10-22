@@ -43,6 +43,11 @@ public partial class SettingsPage : UserControl
         void OnDevices() => Dispatcher.BeginInvoke(LoadDevices);
         void OnVoiceModels() => Dispatcher.BeginInvoke(UpdateVoiceModels);
         void OnUpdates() => Dispatcher.BeginInvoke(UpdateUpdates);
+        void OnAssistantUpdates()
+        {
+            UpdateUpdates();
+            UpdateAssistantUpdates();
+        }
         LoadVoice();
         LoadMedia();
         LoadLauncher();
@@ -52,8 +57,10 @@ public partial class SettingsPage : UserControl
             LoadDevices();
             UpdateVoiceModels();
             UpdateUpdates();
+            UpdateAssistantUpdates();
             FillAndroid();
             _app.Updates.Changed += OnUpdates;
+            _app.AssistantUpdatesChanged += OnAssistantUpdates;
             _app.Web.StateChanged += OnWebState;
             _app.Web.Devices.Changed += OnDevices;
             _app.Voice.Models.Changed += OnVoiceModels;
@@ -61,6 +68,7 @@ public partial class SettingsPage : UserControl
         Unloaded += (_, _) =>
         {
             _app.Updates.Changed -= OnUpdates;
+            _app.AssistantUpdatesChanged -= OnAssistantUpdates;
             _app.Web.StateChanged -= OnWebState;
             _app.Web.Devices.Changed -= OnDevices;
             _app.Voice.Models.Changed -= OnVoiceModels;
@@ -499,7 +507,7 @@ public partial class SettingsPage : UserControl
             UpdateState.Available or UpdateState.Downloading or UpdateState.Ready when u.Available is { } a => Loc.T("updates.available", a.Version.ToString(3)),
             _ => u.LastCheck is null ? string.Empty : LastCheck().TrimStart(' ', '·'),
         };
-        UpdateCheckButton.IsEnabled = u.State is not (UpdateState.Checking or UpdateState.Downloading);
+        UpdateCheckButton.IsEnabled = u.State is not (UpdateState.Checking or UpdateState.Downloading) && !_app.CheckingAssistantUpdates;
 
         var info = u.Available;
         UpdatePanel.Visibility = info is not null && u.State is UpdateState.Available or UpdateState.Downloading or UpdateState.Ready
