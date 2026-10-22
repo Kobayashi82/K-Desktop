@@ -3888,5 +3888,13 @@
   "brainOptions.thinkLittle": "Pouco",
   "brainOptions.thinkNormal": "Normal",
   "brainOptions.thinkMuch": "Muito",
-  "assistant.prompt.checkAgain": "(O usuário diz que a sua resposta anterior está errada. Confira com calma: se estava errada, dê a certa; se estava certa, diga isso com gentileza e o porquê em uma frase. Responda curto.)"
+  "assistant.prompt.checkAgain": "(O usuário diz que a sua resposta anterior está errada. Confira com calma: se estava errada, dê a certa; se estava certa, diga isso com gentileza e o porquê em uma frase. Responda curto.)",
+  "assistantPkg.badSignature": "«{0}» foi alterado depois de assinado: pode não ser o que o autor publicou. Não será instalado.",
+  "assistantCard.verified": "Verificado · {0}",
+  "assistantCard.signedBy": "Assinado por «{0}»",
+  "assistantCard.unsigned": "Sem assinatura",
+  "assistantCard.warningVerified": "Assinado por {0}, que o K-Desktop conhece, e ninguém o alterou desde então.",
+  "assistantCard.warningUnknown": "Assinado por «{0}», mas o K-Desktop não conhece a chave: não dá para saber quem é. Este assistente contém código; instale apenas se você confia no autor.",
+  "assistantCard.signerChanged": "Atenção: a versão que você tem era assinada por {0} e esta não tem a assinatura dele. Pode não vir do mesmo autor.",
+  "assistantOptions.verified": "verificado"
 }

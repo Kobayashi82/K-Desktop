@@ -48,10 +48,19 @@
                 <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center">
                     <TextBlock x:Name="NameText" FontSize="22" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                     <TextBlock x:Name="ByText" Margin="0,2,0,0" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" />
-                    <Border x:Name="ActionBadge" Margin="0,6,0,0" HorizontalAlignment="Left" CornerRadius="9" Padding="9,2"
-                            Background="{DynamicResource Kd.AccentSoft}">
-                        <TextBlock x:Name="ActionText" FontSize="12" Foreground="{DynamicResource Kd.AccentText}" />
-                    </Border>
+                    <WrapPanel Margin="0,6,0,0">
+                        <Border x:Name="ActionBadge" Margin="0,0,6,0" HorizontalAlignment="Left" CornerRadius="9" Padding="9,2"
+                                Background="{DynamicResource Kd.AccentSoft}">
+                            <TextBlock x:Name="ActionText" FontSize="12" Foreground="{DynamicResource Kd.AccentText}" />
+                        </Border>
+                        <!-- Stage 12: who signed it -->
+                        <Border x:Name="SignatureBadge" CornerRadius="9" Padding="7,2,9,2" Background="{DynamicResource Kd.ChipBackground}">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon x:Name="SignatureIcon" Symbol="ShieldCheckmark24" FontSize="13" Margin="0,0,4,0" VerticalAlignment="Center" />
+                                <TextBlock x:Name="SignatureText" FontSize="12" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                    </WrapPanel>
                 </StackPanel>
             </Grid>
 
@@ -84,17 +93,19 @@
 
             <TextBlock x:Name="DetailsText" Margin="0,6,0,0" Style="{StaticResource Caption}" TextWrapping="Wrap" />
 
-            <Border Margin="0,16,0,0" CornerRadius="8" Padding="12,10" Background="{DynamicResource Kd.Subtle}"
+            <Border x:Name="WarningBox" Margin="0,16,0,0" CornerRadius="8" Padding="12,10" Background="{DynamicResource Kd.Subtle}"
                     BorderBrush="{DynamicResource Kd.Warning}" BorderThickness="1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <ui:SymbolIcon Symbol="Warning24" FontSize="18" Foreground="{DynamicResource Kd.Warning}" VerticalAlignment="Top" />
-                    <TextBlock Grid.Column="1" Margin="10,0,0,0" TextWrapping="Wrap" Text="{l:Tr assistantCard.warning}" />
+                    <ui:SymbolIcon x:Name="WarningIcon" Symbol="Warning24" FontSize="18" Foreground="{DynamicResource Kd.Warning}" VerticalAlignment="Top" />
+                    <TextBlock x:Name="WarningText" Grid.Column="1" Margin="10,0,0,0" TextWrapping="Wrap" Text="{l:Tr assistantCard.warning}" />
                 </Grid>
             </Border>
+            <!-- The installed version was signed and this one is not by the same key -->
+            <TextBlock x:Name="SignerChangedText" Margin="0,10,0,0" TextWrapping="Wrap" Foreground="{DynamicResource Kd.Danger}" Visibility="Collapsed" />
 
             <TextBlock x:Name="KeepDataText" Margin="0,10,0,0" Style="{StaticResource Caption}" TextWrapping="Wrap"
                        Text="{l:Tr assistantCard.keepsData}" Visibility="Collapsed" />

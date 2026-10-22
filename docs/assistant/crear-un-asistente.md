@@ -67,6 +67,33 @@ esté en modo automático.
   hace falta actualizar K-Desktop antes.
 - `changes` (opcional, en uno o varios idiomas) es lo que trae esa versión: sale en el aviso y en la ficha.
 
+## Firmar el paquete
+
+Un paquete firmado lleva `signature.json` con el SHA-256 de **todos** sus archivos, quién lo publica, su clave pública
+(ECDSA P-256) y la firma. Sin pagar a nadie: la clave es tuya. K-Desktop lo comprueba al abrir la ficha:
+
+| Lo que encuentra | Lo que enseña |
+|---|---|
+| Firma buena con una clave de su lista (`trusted-publishers.json`) | **Verificado · nombre**, también en Opciones → Asistentes |
+| Firma buena con otra clave | «Firmado por «nombre»», y el aviso de siempre: ese nombre es solo lo que dice el paquete |
+| Sin firma | «Sin firma» y el aviso de siempre |
+| Firma que no casa (un archivo cambiado, añadido o quitado después de firmar) | **No lo instala** |
+
+Si la versión instalada estaba firmada y la nueva no lleva la firma de la misma clave, la ficha lo avisa en rojo.
+
+Con `tools/KaiSign` (en el repositorio de K-Desktop):
+
+```powershell
+dotnet run --project toolsKaiSign -- keygen "Tu nombre"   # una vez: la clave queda en tu usuario de Windows (DPAPI)
+dotnet run --project toolsKaiSign -- sign miasistente.kai  # después de compilar, antes de publicar
+dotnet run --project toolsKaiSign -- verify miasistente.kai
+dotnet run --project toolsKaiSign -- export copia.pem "contraseña"   # copia de la clave, para guardarla aparte
+```
+
+Firma **lo último**: cualquier cambio al paquete después rompe la firma. Para que tus paquetes salgan como
+verificados, tu clave pública (`kaisign public`) tiene que estar en la lista de K-Desktop.
+
+
 ## El ejemplo
 
 `samples/DotAssistant` (Dot) es el asistente mínimo completo: un punto que se teletransporta, se puede arrastrar,

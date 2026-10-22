@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Signs assistant packages (.kai) with the publisher's own key (stage 12). Never part of K-Desktop: only for whoever
+       publishes assistants. See tools\KaiSign\README.md. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>kaisign</AssemblyName>
+    <RootNamespace>KaiSign</RootNamespace>
+    <BuildPortable>false</BuildPortable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\KDesktop.Core\KDesktop.Core.csproj" />
+  </ItemGroup>
+</Project>

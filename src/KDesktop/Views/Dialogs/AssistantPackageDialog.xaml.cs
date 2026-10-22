@@ -82,7 +82,40 @@ public partial class AssistantPackageDialog : FluentWindow
         CancelButton.Content = Loc.T("common.close");
     }
 
-    private void ShowCard(PackageInfo package)
+    /// <summary>Who signed it (stage 12): «verificado», someone K-Desktop does not know, or nobody; and whether that changed.</summary>
+    private void ShowSignature(PackageInfo package)
+    {
+        var signature = package.Signature;
+        switch (signature.State)
+        {
+            case SignatureState.Verified:
+                SignatureText.Text = Loc.T("assistantCard.verified", signature.Publisher);
+                SignatureIcon.SetResourceReference(Wpf.Ui.Controls.SymbolIcon.ForegroundProperty, "Kd.Success");
+                SignatureText.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "Kd.Success");
+                WarningText.Text = Loc.T("assistantCard.warningVerified", signature.Publisher);
+                WarningIcon.Symbol = Wpf.Ui.Controls.SymbolRegular.ShieldCheckmark24;
+                WarningIcon.SetResourceReference(Wpf.Ui.Controls.SymbolIcon.ForegroundProperty, "Kd.Success");
+                WarningBox.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "Kd.Success");
+                break;
+            case SignatureState.Unknown:
+                SignatureText.Text = Loc.T("assistantCard.signedBy", signature.Publisher);
+                SignatureIcon.Symbol = Wpf.Ui.Controls.SymbolRegular.Shield24;
+                WarningText.Text = Loc.T("assistantCard.warningUnknown", signature.Publisher);
+                break;
+            default:
+                SignatureText.Text = Loc.T("assistantCard.unsigned");
+                SignatureIcon.Symbol = Wpf.Ui.Controls.SymbolRegular.ShieldDismiss24;
+                break;
+        }
+        if (package.SignerChanged && package.Installed is { } installed)
+        {
+            var before = PackageSignature.OfInstalled(installed.Folder);
+            SignerChangedText.Text = Loc.T("assistantCard.signerChanged", before.Publisher ?? "?");
+            SignerChangedText.Visibility = Visibility.Visible;
+        }
+    }
+
+        private void ShowCard(PackageInfo package)
     {
         var manifest = package.Manifest;
         NameText.Text = manifest.Name;
@@ -99,6 +132,8 @@ public partial class AssistantPackageDialog : FluentWindow
             ActionBadge.SetResourceReference(System.Windows.Controls.Border.BackgroundProperty, "Kd.DangerSoft");
             ActionText.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "Kd.Danger");
         }
+
+        ShowSignature(package);
 
         if (Bitmap(package.Icon) is { } icon)
         {

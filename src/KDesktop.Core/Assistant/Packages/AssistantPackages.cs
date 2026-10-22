@@ -19,6 +19,8 @@ public enum PackageProblem
     BadImage,
     /// <summary>The file changed between its card and the install.</summary>
     Changed,
+    /// <summary>Its signature does not match its files (stage 12): changed after it was signed.</summary>
+    BadSignature,
     InstallFailed,
 }
 
@@ -62,6 +64,15 @@ public sealed class PackageInfo
     public byte[]? Icon { get; init; }
 
     public byte[]? Preview { get; init; }
+
+    /// <summary>Who signed it (stage 12): «verificado» with a key K-Desktop trusts.</summary>
+    public SignatureInfo Signature { get; init; } = SignatureInfo.None;
+
+    /// <summary>
+    /// The version installed was signed and this one is not by the same key (unsigned, or by another one): an update
+    /// that may not come from whoever made the assistant.
+    /// </summary>
+    public bool SignerChanged { get; init; }
 
     /// <summary>Size once installed, in bytes.</summary>
     public required long Size { get; init; }
@@ -136,7 +147,11 @@ public static partial class AssistantPackages
             if (manifest.Voice is { } voice) CheckFile(entries, "voice", voice, required: true);
             if (manifest.Persona is { } persona) CheckPersona(entries, persona);
 
+            var signature = PackageSignature.Check(entries);
+            if (signature.State == SignatureState.Broken) throw Fail(PackageProblem.BadSignature, "assistantPkg.badSignature", manifest.Name);
+
             var installed = Find(manifest.Id);
+            var before = installed is null ? SignatureInfo.None : PackageSignature.OfInstalled(installed.Folder);
             return new PackageInfo
             {
                 File = Path.GetFullPath(file),
@@ -150,6 +165,8 @@ public static partial class AssistantPackages
                 Installed = installed,
                 Icon = icon,
                 Preview = preview,
+                Signature = signature,
+                SignerChanged = before.IsSigned && before.Fingerprint != signature.Fingerprint,
                 Size = size,
                 Files = entries.Count,
                 Hash = hash,

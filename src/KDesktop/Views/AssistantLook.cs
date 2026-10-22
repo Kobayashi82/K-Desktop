@@ -31,6 +31,8 @@ public sealed class AssistantRow
     {
         Installed = installed;
         Icon = AssistantLook.Icon(installed);
+        // Signed by a key K-Desktop trusts (stage 12): it says so after its version.
+        if (PackageSignature.OfInstalled(installed.Folder).State == SignatureState.Verified) VerifiedText = Loc.T("assistantOptions.verified");
         if (app.AssistantUpdateFor(installed.Id) is { Result: AssistantUpdateResult.Available } update && !app.IsSkipped(update))
             UpdateText = Loc.T("assistantUpdates.rowNew", update.Latest!);
     }
@@ -94,6 +96,9 @@ public sealed class AssistantRow
     /// <summary>How it is called: «Se le llama «Dot» o con F8», «Sin palabra ni tecla».</summary>
     public string CallText { get; }
 
+    /// <summary>«verificado» when its package was signed by a key K-Desktop trusts (stage 12), else null.</summary>
+    public string? VerifiedText { get; }
+
     /// <summary>«nueva versión 0.11.0» when there is one to offer (stage 9.5), else null.</summary>
     public string? UpdateText { get; }
 
@@ -101,7 +106,7 @@ public sealed class AssistantRow
     /// The line under its name in the list: its version (or that it is K-Desktop's), a new version if there is one, and
     /// how it is called.
     /// </summary>
-    public string Line => UpdateText is { } update ? $"{Byline} · {update} · {CallText}" : $"{Byline} · {CallText}";
+    public string Line => string.Join(" · ", new[] { Byline, VerifiedText, UpdateText, CallText }.OfType<string>());
 
     /// <summary>The name of its button to open its card (screen readers).</summary>
     public string SettingsName => Loc.T("assistantSettings.title", Name);

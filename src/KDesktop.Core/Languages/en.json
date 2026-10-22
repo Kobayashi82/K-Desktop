@@ -3888,5 +3888,13 @@
   "brainOptions.thinkLittle": "A little",
   "brainOptions.thinkNormal": "Normal",
   "brainOptions.thinkMuch": "A lot",
-  "assistant.prompt.checkAgain": "(The user says your earlier answer is wrong. Check it calmly: if it was wrong, give the right one; if it was right, say so kindly, with why in one sentence. Answer briefly.)"
+  "assistant.prompt.checkAgain": "(The user says your earlier answer is wrong. Check it calmly: if it was wrong, give the right one; if it was right, say so kindly, with why in one sentence. Answer briefly.)",
+  "assistantPkg.badSignature": "«{0}» was changed after it was signed: it may not be what its author published. It is not installed.",
+  "assistantCard.verified": "Verified · {0}",
+  "assistantCard.signedBy": "Signed by «{0}»",
+  "assistantCard.unsigned": "Not signed",
+  "assistantCard.warningVerified": "Signed by {0}, whom K-Desktop knows, and nobody has changed it since.",
+  "assistantCard.warningUnknown": "Signed by «{0}», but K-Desktop does not know its key: there is no telling who it is. This assistant contains code; install it only if you trust its author.",
+  "assistantCard.signerChanged": "Careful: the version you have was signed by {0} and this one does not carry that signature. It may not come from the same author.",
+  "assistantOptions.verified": "verified"
 }
