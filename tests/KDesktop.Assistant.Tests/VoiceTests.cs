@@ -322,4 +322,53 @@ public class VoiceTests
         Assert.True(KokoroModels.IsFemale("ef_dora"));
         Assert.False(KokoroModels.IsFemale("em_santa"));
     }
+
+    /// <summary>Stage 12: Piper voices the user already has in a folder count as downloaded; nothing there is touched.</summary>
+    [Fact]
+    public void PiperVoicesInTheUsersFoldersAreUsedAsTheyAre()
+    {
+        var folder = Path.Combine(Path.GetTempPath(), "kdesktop-tests", "piper-" + Guid.NewGuid().ToString("N")[..6], "voces");
+        var deeper = Path.Combine(folder, "es");
+        Directory.CreateDirectory(deeper);
+        // One not in the catalog, with two speakers, one level down; and one of the catalog.
+        File.WriteAllBytes(Path.Combine(deeper, "es_AR-prueba-high.onnx"), new byte[1234]);
+        File.WriteAllText(Path.Combine(deeper, "es_AR-prueba-high.onnx.json"),
+            """{"audio":{"sample_rate":44100,"quality":"high"},"espeak":{"voice":"es-419"},"language":{"code":"es_AR","family":"es","region":"AR"},"speaker_id_map":{"ana":0,"luis":1}}""");
+        File.WriteAllBytes(Path.Combine(folder, "es_ES-davefx-medium.onnx"), new byte[10]);
+        File.WriteAllText(Path.Combine(folder, "es_ES-davefx-medium.onnx.json"), """{"audio":{"sample_rate":22050},"language":{"code":"es_ES"}}""");
+        // Not a voice: no .onnx.json.
+        File.WriteAllBytes(Path.Combine(folder, "otra-cosa.onnx"), new byte[5]);
+        try
+        {
+            PiperModels.UseFolders([folder]);
+            var own = Assert.Single(PiperModels.Voices("es"), v => v.Key == "es_AR-prueba-high");
+            Assert.Equal(("es", "AR", "high", 44100, "es-419"), (own.Language, own.Region, own.Quality, own.SampleRate, own.Espeak));
+            Assert.Equal(["ana", "luis"], own.Speakers);
+            Assert.Equal(44100, PiperModels.Find("es_AR-prueba-high#luis")!.SampleRate);
+            Assert.True(PiperModels.IsDownloaded("es_AR-prueba-high"));
+            Assert.True(PiperModels.IsInFolders("es_AR-prueba-high"));
+            Assert.Equal(Path.Combine(deeper, "es_AR-prueba-high.onnx"), PiperModels.ModelFile("es_AR-prueba-high"));
+            Assert.Equal(2, PiperModels.CountIn(folder));
+            Assert.DoesNotContain(PiperModels.Voices("en"), v => v.Key == "es_AR-prueba-high");
+
+            // The catalog's, read from the folder: nothing to download but (maybe) espeak-ng, and the folder is read.
+            Assert.True(PiperModels.IsDownloaded("es_ES-davefx-medium"));
+            Assert.Equal(Path.Combine(folder, "es_ES-davefx-medium.onnx"), PiperModels.ModelFile("es_ES-davefx-medium"));
+            Assert.DoesNotContain(PiperModels.Files("es_ES-davefx-medium"), f => f.Path.EndsWith(".onnx", StringComparison.Ordinal) || f.Path.EndsWith(".onnx.json", StringComparison.Ordinal));
+            Assert.Single(PiperModels.Voices("es"), v => v.Key == "es_ES-davefx-medium");
+
+            // Not K-Desktop's to delete.
+            Assert.DoesNotContain("es_AR-prueba-high", PiperModels.AllInstalled);
+            Assert.DoesNotContain("es_ES-davefx-medium", PiperModels.AllInstalled);
+            PiperModels.Delete();
+            Assert.True(File.Exists(Path.Combine(deeper, "es_AR-prueba-high.onnx")));
+        }
+        finally
+        {
+            PiperModels.UseFolders([]);
+            Directory.Delete(Path.GetDirectoryName(folder)!, true);
+        }
+        Assert.Null(PiperModels.Find("es_AR-prueba-high"));
+        Assert.Equal(PiperModels.Files("es_ES-davefx-medium")[0].Path, PiperModels.ModelFile("es_ES-davefx-medium"));
+    }
 }

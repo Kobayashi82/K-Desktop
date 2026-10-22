@@ -94,6 +94,7 @@ public partial class App
             ["profile"] = s.AssistantVoiceProfile,
             ["kokoroVoice"] = KokoroVoice,
             ["piperVoice"] = PiperVoice,
+            ["piperFolders"] = new JsonArray([.. s.AssistantPiperFolders.Select(f => (JsonNode?)f)]),
             ["windowsVoice"] = s.AssistantVoiceWindows,
             ["speed"] = Math.Clamp(s.AssistantVoiceSpeed, 0.5, 2),
             ["volume"] = Math.Clamp(s.AssistantVoiceVolume, 0, 100) / 100.0,

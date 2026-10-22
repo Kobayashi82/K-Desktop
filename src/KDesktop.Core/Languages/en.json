@@ -3898,5 +3898,11 @@
   "assistantCard.signerChanged": "Careful: the version you have was signed by {0} and this one does not carry that signature. It may not come from the same author.",
   "assistantOptions.verified": "verified",
   "brainOptions.freeForGames": "Free the graphics card for games",
-  "brainOptions.freeForGamesHint": "With a game on the whole screen, the model leaves the graphics card. A film does not count. It loads again when you talk to it."
+  "brainOptions.freeForGamesHint": "With a game on the whole screen, the model leaves the graphics card. A film does not count. It loads again when you talk to it.",
+  "assistantVoice.piperFolders": "Folders with your voices",
+  "assistantVoice.piperFoldersHint": "Piper voices you already have (.onnx with its .onnx.json): no need to download them, and K-Desktop never deletes anything there.",
+  "assistantVoice.piperAddFolder": "Add folder…",
+  "assistantVoice.piperFolderVoices": "{0} voices",
+  "assistantVoice.voiceOwn": "{0} · yours",
+  "assistantVoice.piperNeedsEspeak": "{0}: the voice is there; espeak-ng is missing ({1} MB)."
 }

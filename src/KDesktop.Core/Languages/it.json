@@ -3898,5 +3898,11 @@
   "assistantCard.signerChanged": "Attenzione: la versione che hai era firmata da {0} e questa non ha la sua firma. Potrebbe non venire dallo stesso autore.",
   "assistantOptions.verified": "verificato",
   "brainOptions.freeForGames": "Liberare la scheda video per i giochi",
-  "brainOptions.freeForGamesHint": "Con un gioco a schermo intero, il modello esce dalla scheda video. Un film non conta. Si ricarica quando gli parli."
+  "brainOptions.freeForGamesHint": "Con un gioco a schermo intero, il modello esce dalla scheda video. Un film non conta. Si ricarica quando gli parli.",
+  "assistantVoice.piperFolders": "Cartelle con le tue voci",
+  "assistantVoice.piperFoldersHint": "Le voci Piper che hai già (.onnx con il suo .onnx.json): non serve scaricarle e K-Desktop lì non cancella mai nulla.",
+  "assistantVoice.piperAddFolder": "Aggiungi cartella…",
+  "assistantVoice.piperFolderVoices": "{0} voci",
+  "assistantVoice.voiceOwn": "{0} · tua",
+  "assistantVoice.piperNeedsEspeak": "{0}: la voce c'è; manca espeak-ng ({1} MB)."
 }

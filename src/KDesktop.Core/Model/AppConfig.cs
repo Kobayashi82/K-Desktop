@@ -665,6 +665,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>How much it may think then, in tokens of reasoning.</summary>
     [ObservableProperty] private int _assistantBrainThinkTokens = Assistant.Brain.BrainConfig.DefaultThinkTokens;
 
+    /// <summary>Folders of the user's own with Piper voices (stage 12): they count as downloaded. Replaced whole.</summary>
+    [ObservableProperty] private List<string> _assistantPiperFolders = [];
+
     /// <summary>A game on the whole screen takes the brain's models out of the graphics card (stage 12).</summary>
     [ObservableProperty] private bool _assistantBrainFreeForGames = true;
 

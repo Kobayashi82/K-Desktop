@@ -152,6 +152,8 @@ public partial class AssistantVoiceSection : UserControl
     /// <summary>Piper: what is on disk and what is missing, its voices of the language and, for one of several, who speaks.</summary>
     private void RefreshPiper(string language)
     {
+        PiperModels.UseFolders(_app.Config.Settings.AssistantPiperFolders);
+        FillPiperFolders();
         var download = _app.PiperDownload;
         var spec = _app.PiperVoice;
         var missing = _app.PiperMissing ? PiperModels.Missing(spec) : 0;
@@ -159,6 +161,8 @@ public partial class AssistantVoiceSection : UserControl
         var unused = PiperModels.AllInstalled.Except(_app.PiperVoicesInUse()).Count();
         PiperText.Text = download.IsDownloading ? Loc.T("assistantVoice.downloading", Mb(download.Done), Mb(download.Total))
             : missing == 0 ? Loc.T("assistantVoice.piperReady", PiperTitle(spec), Mb(size))
+            // The voice is there (one of the user's): only espeak-ng is missing.
+            : PiperModels.IsDownloaded(PiperModels.KeyOf(spec)) ? Loc.T("assistantVoice.piperNeedsEspeak", PiperTitle(spec), Mb(missing))
             : Loc.T("assistantVoice.piperMissing", PiperTitle(spec), Mb(missing));
         PiperDownloadButton.Content = Loc.T("assistantVoice.download", Mb(missing));
         PiperDownloadButton.Visibility = !download.IsDownloading && missing > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -180,12 +184,70 @@ public partial class AssistantVoiceSection : UserControl
         PiperSpeakerBox.SelectedItem = who.FirstOrDefault(o => o.Value == PiperModels.SpeakerOf(spec)) ?? who.FirstOrDefault();
     }
 
-    /// <summary>«Davefx (España, calidad media)», and «sin descargar» when it is not on disk.</summary>
+    /// <summary>
+    /// «Davefx (España, calidad media)», «sin descargar» when it is not on disk and «tuya» when it is in one of the user's
+    /// folders (a country or a quality K-Desktop has no name for is said as it comes).
+    /// </summary>
     internal static string PiperOption(PiperVoice voice)
     {
-        var title = Loc.T("assistantVoice.piperTitle", voice.Name, Loc.T("assistantVoice.region." + voice.Region), Loc.T("assistantVoice.quality." + voice.Quality),
-            Mb(voice.Size));
+        static string Named(string key, string code) => Loc.T(key) is var text && text != key ? text : code;
+        var title = Loc.T("assistantVoice.piperTitle", voice.Name, Named("assistantVoice.region." + voice.Region, voice.Region),
+            Named("assistantVoice.quality." + voice.Quality, voice.Quality), Mb(voice.Size));
+        if (PiperModels.IsInFolders(voice.Key)) return Loc.T("assistantVoice.voiceOwn", title);
         return PiperModels.IsDownloaded(voice.Key) ? title : Loc.T("assistantVoice.voiceMissing", title);
+    }
+
+    /// <summary>The folders with the user's own voices: each with how many it has, and «Quitar».</summary>
+    private void FillPiperFolders()
+    {
+        PiperFolderRows.Children.Clear();
+        foreach (var folder in _app.Config.Settings.AssistantPiperFolders)
+        {
+            var count = PiperModels.CountIn(folder);
+            var row = new Grid { Margin = new Thickness(0, 2, 0, 2) };
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            text.Children.Add(new TextBlock { Text = folder, TextTrimming = TextTrimming.CharacterEllipsis, ToolTip = folder });
+            var caption = new TextBlock
+            {
+                Text = System.IO.Directory.Exists(folder) ? Loc.T("assistantVoice.piperFolderVoices", count) : Loc.T("brainModels.folderMissing"),
+                Style = (Style)FindResource("Caption"),
+            };
+            text.Children.Add(caption);
+            row.Children.Add(text);
+            var remove = new Wpf.Ui.Controls.Button
+            {
+                Icon = new Wpf.Ui.Controls.SymbolIcon { Symbol = Wpf.Ui.Controls.SymbolRegular.Delete24 },
+                Appearance = Wpf.Ui.Controls.ControlAppearance.Transparent,
+                ToolTip = Loc.T("brainModels.remove"),
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            System.Windows.Automation.AutomationProperties.SetName(remove, Loc.T("brainModels.remove") + " " + folder);
+            var gone = folder;
+            remove.Click += (_, _) => SetPiperFolders([.. _app.Config.Settings.AssistantPiperFolders.Where(f => !f.Equals(gone, StringComparison.OrdinalIgnoreCase))]);
+            Grid.SetColumn(remove, 1);
+            row.Children.Add(remove);
+            PiperFolderRows.Children.Add(row);
+        }
+        PiperFolderRows.Visibility = PiperFolderRows.Children.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void OnPiperAddFolder(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.OpenFolderDialog { Title = Loc.T("assistantVoice.piperAddFolder") };
+        if (dialog.ShowDialog(Window.GetWindow(this)) != true) return;
+        var folders = _app.Config.Settings.AssistantPiperFolders;
+        if (folders.Contains(dialog.FolderName, StringComparer.OrdinalIgnoreCase)) return;
+        SetPiperFolders([.. folders, dialog.FolderName]);
+    }
+
+    /// <summary>New folders: they are looked at again, by K-Desktop and by the assistant process (in the voice settings).</summary>
+    private void SetPiperFolders(List<string> folders)
+    {
+        _app.Config.Settings.AssistantPiperFolders = folders;
+        PiperModels.UseFolders(folders);
+        Refresh();
     }
 
     /// <summary>«Sharvard (mujer)» for a voice and one of its speakers; «Davefx» for a voice of one.</summary>
