@@ -32,8 +32,13 @@ public sealed class SightTests
             Use = use;
             var pixels = use.HasFlag(ScreenUse.Read) ? new BgraImage(640, 480, new byte[640 * 480 * 4]) : null;
             byte[] jpeg = use.HasFlag(ScreenUse.See) ? [0xFF, 0xD8, 0xFF] : [];
-            return Task.FromResult<ScreenPicture?>(new ScreenPicture(jpeg, "the window «Error» of setup", 640, 480, "Error", pixels));
+            return Task.FromResult<ScreenPicture?>(new ScreenPicture(jpeg, "the window «Error» of setup", 640, 480, "Error", pixels, new ScreenRect(100, 50, 640, 480)));
         }
+
+        /// <summary>Who looked at what, after each capture.</summary>
+        public List<(string? Assistant, int Captures, ScreenRect? Area)> Looks { get; } = [];
+
+        public void Looked(string? assistant, ScreenPicture picture) => Looks.Add((assistant, Captures, picture.Area));
 
         public Task<string?> BrowserAddressAsync(CancellationToken cancellationToken) => Task.FromResult(address);
     }
@@ -94,6 +99,9 @@ public sealed class SightTests
         Assert.Null(vision.Asked);
         Assert.Equal(1, reader.Reads);
         Assert.True(screen.Use.HasFlag(ScreenUse.Read));
+
+        // Its figure scans what it read, once the picture is taken.
+        Assert.Equal(("lander", 1, new ScreenRect(100, 50, 640, 480)), Assert.Single(screen.Looks));
 
         // The model says so itself.
         await tool.RunAsync(Args(new { question = "the error", read_text = true }), new ToolContext("lander"), default);

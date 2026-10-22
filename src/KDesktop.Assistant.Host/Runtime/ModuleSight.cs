@@ -30,6 +30,14 @@ internal sealed class ModuleSight(IWindowServices windows) : IScreen
     private readonly WindowScanner _scanner = new(new HashSet<nint>());
     private readonly Lock _gate = new();
 
+    /// <summary>An assistant looked at that part of the screen (any thread): its figure scans it (stage 10.1).</summary>
+    public Action<string, ScreenRect>? Looking { get; set; }
+
+    public void Looked(string? assistant, ScreenPicture picture)
+    {
+        if (!string.IsNullOrEmpty(assistant) && picture.Area is { Width: > 0, Height: > 0 } area) Looking?.Invoke(assistant, area);
+    }
+
     public Task<ScreenPicture?> CaptureAsync(bool wholeScreen, ScreenUse use, CancellationToken cancellationToken) =>
         OnSta(() => (wholeScreen ? null : WindowPicture(use)) ?? MonitorPicture(use), cancellationToken);
 
@@ -69,7 +77,7 @@ internal sealed class ModuleSight(IWindowServices windows) : IScreen
         var size = use.HasFlag(ScreenUse.Read) ? int.MaxValue : MaxSide;
         if (UserWindow() is not { } window || windows.Thumbnail(window.Handle, size) is not BitmapSource picture) return null;
         var pixels = use.HasFlag(ScreenUse.Read) ? Inside(Pixels(picture), (nint)window.Handle) : null;
-        return Picture(picture, use, $"the window «{window.Title}» of {window.AppId}", window.Title, pixels);
+        return Picture(picture, use, $"the window «{window.Title}» of {window.AppId}", window.Title, pixels) with { Area = WindowLayout.VisibleBounds((nint)window.Handle) };
     }
 
     /// <summary>
@@ -93,7 +101,7 @@ internal sealed class ModuleSight(IWindowServices windows) : IScreen
         if (area.Width < 1 || area.Height < 1) return null;
         var image = ScreenCapture.Capture(area);
         var picture = BitmapSource.Create(image.Width, image.Height, 96, 96, PixelFormats.Bgra32, null, image.Pixels, image.Stride);
-        return Picture(picture, use, area.Left == 0 && area.Top == 0 ? "the main monitor" : "a monitor", null, image);
+        return Picture(picture, use, area.Left == 0 && area.Top == 0 ? "the main monitor" : "a monitor", null, image) with { Area = area };
     }
 
     /// <summary>The JPEG for the model (at most <see cref="MaxSide"/>) and the pixels to read, as <paramref name="use"/> asks.</summary>

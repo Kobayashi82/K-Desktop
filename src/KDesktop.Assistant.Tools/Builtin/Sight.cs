@@ -14,9 +14,9 @@ public enum ScreenUse { See = 1, Read = 2 }
 /// <summary>
 /// A picture of the screen: what it shows for the model («the window «X» of code»), the picture as JPEG (empty when it
 /// was not asked to <see cref="ScreenUse.See"/>), the pixels at full size (when asked to <see cref="ScreenUse.Read"/>)
-/// and, for people, the window's title (null: a monitor).
+/// and, for people, the window's title (null: a monitor). <paramref name="Area"/>: where it is on the screen, in pixels.
 /// </summary>
-public sealed record ScreenPicture(byte[] Jpeg, string What, int Width, int Height, string? Window = null, BgraImage? Pixels = null);
+public sealed record ScreenPicture(byte[] Jpeg, string What, int Width, int Height, string? Window = null, BgraImage? Pixels = null, ScreenRect? Area = null);
 
 /// <summary>What the host lends the tools to see the desktop (stage 8.3): pictures of it and the page open in the browser.</summary>
 public interface IScreen
@@ -26,6 +26,12 @@ public interface IScreen
 
     /// <summary>The address of the page open in the browser in front (Chrome, Edge, Firefox…), or null.</summary>
     Task<string?> BrowserAddressAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// <paramref name="assistant"/> has just looked at <paramref name="picture"/> (stage 10.1): its figure may scan it,
+    /// after the capture (so it is not in it) and without being waited for.
+    /// </summary>
+    void Looked(string? assistant, ScreenPicture picture) { }
 }
 
 /// <summary>The model looking at a picture (stage 8.3): the assistant's own model when it sees.</summary>
@@ -98,6 +104,7 @@ public sealed class LookAtScreenTool(IScreen? screen, IVision? vision, IScreenRe
         if (await screen.CaptureAsync(whole, use, cancellationToken).ConfigureAwait(false) is not { } picture)
             return ToolResult.Fail("The screen could not be captured.");
         var where = picture.Window is { Length: > 0 } title ? ToolText.Clean(title) : Loc.T("tool.look_at_screen.monitor");
+        screen.Looked(context.Assistant, picture);
 
         if (read && reader is not null && picture.Pixels is { } pixels)
         {

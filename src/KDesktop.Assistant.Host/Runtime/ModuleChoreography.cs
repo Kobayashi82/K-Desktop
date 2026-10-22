@@ -88,6 +88,45 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
         Log.Info($"Asistente: {whose}paso {result.Index} del run {result.Run}: {result.Status}{(result.Message is { } m ? $" ({m})" : "")}");
     }
 
+    /// <summary>How long scanning what an assistant reads may take (it flies there first, at the speed of its last step).</summary>
+    private static readonly TimeSpan ScanBudget = TimeSpan.FromSeconds(4);
+
+    /// <summary>The speed of manoeuvres the last step asked for (Options → Assistant module → General).</summary>
+    private volatile string? _lastSpeed;
+
+    /// <summary>
+    /// An assistant read the screen (look_at_screen, any thread): its figure scans that area (stage 10.1). Only decoration:
+    /// the picture is already taken, nothing waits for it, and never over a step of an order.
+    /// </summary>
+    public void Scan(string assistant, KDesktop.Core.Platform.ScreenRect area)
+    {
+        if (!runtime.HasBody(assistant)) return;
+        engine.Post(() => _ = ScanAsync(assistant, new PixelRect(area.Left, area.Top, area.Left + area.Width, area.Top + area.Height)));
+    }
+
+    private async Task ScanAsync(string assistant, PixelRect area)
+    {
+        if (_playing.ContainsKey(assistant)) return;
+        var speed = StepGestures.SpeedOf(_lastSpeed);
+        var budget = speed == ManoeuvreSpeed.Fast ? FastBudget : ScanBudget;
+        var step = new StepMessage("", 0, 1, 0, "lookAtScreen", "", "", (int)budget.TotalMilliseconds, null, _lastSpeed ?? "normal");
+        using var limit = new CancellationTokenSource(budget);
+        var context = new StepGestureContext(engine, engine.Now + budget.TotalSeconds, step, () => { }, Task.FromResult(true), null, speed);
+        if (runtime.TryPerform(assistant, new Gesture.Scan(area), context, limit.Token) is not { } running) return;
+        try
+        {
+            await running.WaitAsync(budget + Grace).ConfigureAwait(true);
+        }
+        catch (Exception ex) when (ex is TimeoutException or OperationCanceledException)
+        {
+            // Only decoration: whatever it was doing is left there.
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"Asistente: «{assistant}» ha fallado al escanear lo que lee", ex);
+        }
+    }
+
     private void StopPlaying(string assistant)
     {
         if (!_playing.Remove(assistant, out var playing)) return;
@@ -100,6 +139,7 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
     {
         StopPlaying(assistant);
         var speed = StepGestures.SpeedOf(step.Speed);
+        _lastSpeed = step.Speed;
         var budget = TimeSpan.FromMilliseconds(Math.Max(300, step.TimeoutMs - AnswerMargin.TotalMilliseconds));
         if (speed == ManoeuvreSpeed.Fast && budget > FastBudget) budget = FastBudget;
         using var limit = new CancellationTokenSource(budget);
