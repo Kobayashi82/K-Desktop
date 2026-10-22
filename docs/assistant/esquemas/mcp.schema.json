@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kdesktop/assistant/mcp.schema.json",
+  "title": "Servidores MCP",
+  "description": "<datos>\\Assistant\\mcp.json (§7.3 del plan, etapa 9.2): el formato mcpServers de los demás clientes MCP (Claude Desktop, mcpo…), más disabled, timeout e idleMinutes. Los valores admiten {{secret:nombre}}.",
+  "type": "object",
+  "required": ["mcpServers"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "mcpServers": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[A-Za-z0-9_.-]{1,40}$" },
+      "additionalProperties": { "$ref": "#/$defs/server" }
+    }
+  },
+  "$defs": {
+    "strings": { "type": "object", "additionalProperties": { "type": "string" } },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "command": { "type": "string", "minLength": 1, "description": "El programa: node, npx, uvx, uv, python, un .exe…" },
+        "args": { "type": "array", "items": { "type": "string" } },
+        "env": { "$ref": "#/$defs/strings", "description": "Variables de entorno; los secretos como {{secret:nombre}}" },
+        "cwd": { "type": "string", "description": "Carpeta en la que arranca" },
+        "url": { "type": "string", "pattern": "^https?://", "description": "Un servidor por HTTP en vez de un programa" },
+        "headers": { "$ref": "#/$defs/strings" },
+        "type": { "enum": ["stdio", "http", "streamable_http", "streamable-http", "sse"], "description": "sse: el transporte antiguo; sin él, se averigua" },
+        "disabled": { "type": "boolean" },
+        "timeout": { "type": "number", "minimum": 5, "maximum": 600, "description": "Segundos como mucho por llamada (60)" },
+        "idleMinutes": { "type": "number", "minimum": 0.5, "maximum": 240, "description": "Se para tras este rato sin usarse (5)" }
+      },
+      "oneOf": [
+        { "required": ["command"], "not": { "required": ["url"] } },
+        { "required": ["url"], "not": { "required": ["command"] } }
+      ]
+    }
+  }
+}

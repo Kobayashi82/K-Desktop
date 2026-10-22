@@ -3399,5 +3399,20 @@
   "tools.json.duplicate": "“{0}” is already in {1}.",
   "tools.json.noParameter": "“{0}” is in required but not in parameters.",
   "tools.json.selfStep": "A routine can't call itself.",
-  "tools.json.noScript": "The script {0} doesn't exist."
+  "tools.json.noScript": "The script {0} doesn't exist.",
+  "tools.off": "The tool {0} is switched off in Settings.",
+  "tools.testHeard": "(test from Settings)",
+  "tools.mcp.intent": "use “{0}” from {1}",
+  "tools.mcp.slow": "The server {0} didn't answer within {1} s.",
+  "tools.mcp.noProgram": "It needs {0}, which isn't installed.",
+  "tools.mcp.noStart": "It didn't start within {0} s.",
+  "tools.mcp.unknown": "There's no server “{0}” switched on.",
+  "tools.mcp.started": "It works: {0} tool(s).",
+  "mcpImport.overlap.kdesktop": "It was for K-Desktop 4: the assistants already use your commands.",
+  "mcpImport.overlap.files": "The assistants already find and open files.",
+  "mcpImport.overlap.screen": "The assistants already look at the screen and handle windows and webs.",
+  "mcpImport.overlap.clipboard": "The assistants already work with the clipboard.",
+  "mcpImport.overlap.memory": "The assistants already have their own memory.",
+  "mcpImport.overlap.time": "The assistants already know the time and do date maths.",
+  "tools.mcp.lost": "Lost the connection with the server {0}: {1}"
 }

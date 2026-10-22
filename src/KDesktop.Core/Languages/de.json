@@ -3399,5 +3399,20 @@
   "tools.json.duplicate": "„{0}“ steht schon in {1}.",
   "tools.json.noParameter": "„{0}“ steht in required, aber nicht in parameters.",
   "tools.json.selfStep": "Eine Routine kann sich nicht selbst aufrufen.",
-  "tools.json.noScript": "Das Skript {0} gibt es nicht."
+  "tools.json.noScript": "Das Skript {0} gibt es nicht.",
+  "tools.off": "Das Werkzeug {0} ist in den Einstellungen ausgeschaltet.",
+  "tools.testHeard": "(Test aus den Einstellungen)",
+  "tools.mcp.intent": "„{0}“ von {1} verwenden",
+  "tools.mcp.slow": "Der Server {0} hat in {1} s nicht geantwortet.",
+  "tools.mcp.noProgram": "Es braucht {0}, und das ist nicht installiert.",
+  "tools.mcp.noStart": "Er ist in {0} s nicht gestartet.",
+  "tools.mcp.unknown": "Es gibt keinen eingeschalteten Server „{0}“.",
+  "tools.mcp.started": "Er funktioniert: {0} Werkzeug(e).",
+  "mcpImport.overlap.kdesktop": "Er war für K-Desktop 4: Die Assistenten nutzen deine Befehle schon.",
+  "mcpImport.overlap.files": "Die Assistenten suchen und öffnen schon Dateien.",
+  "mcpImport.overlap.screen": "Die Assistenten sehen schon den Bildschirm und steuern Fenster und Webseiten.",
+  "mcpImport.overlap.clipboard": "Die Assistenten arbeiten schon mit der Zwischenablage.",
+  "mcpImport.overlap.memory": "Die Assistenten haben schon ihr Gedächtnis.",
+  "mcpImport.overlap.time": "Die Assistenten kennen schon die Uhrzeit und rechnen mit Daten.",
+  "tools.mcp.lost": "Die Verbindung zum Server {0} ist abgebrochen: {1}"
 }

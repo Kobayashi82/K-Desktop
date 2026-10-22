@@ -1,0 +1,17 @@
+{
+  "t": "toolsState",
+  "tools": [
+    { "name": "get_time", "group": "builtin", "description": "Tells the current time and date.", "risk": "safe", "defaultRisk": "safe", "readsOnly": true, "enabled": true },
+    { "name": "luz_salon", "group": "json", "description": "Turns the living room light on or off.", "risk": "safe", "defaultRisk": "safe", "readsOnly": false, "enabled": true, "source": "C:\\Users\\yo\\AppData\\Roaming\\K-Desktop 5\\Assistant\\Tools\\luz_salon.json" },
+    { "name": "mcp_telegram_ask_user", "group": "mcp:telegram", "description": "Ask the user a question via Telegram and wait for their response", "risk": "askOnce", "defaultRisk": "askOnce", "readsOnly": false, "enabled": false, "source": "telegram" }
+  ],
+  "files": [
+    { "file": "C:\\Users\\yo\\AppData\\Roaming\\K-Desktop 5\\Assistant\\Tools\\luz_salon.json", "name": "luz_salon", "type": "http", "enabled": true, "errors": [], "secrets": ["ha_token"] },
+    { "file": "C:\\Users\\yo\\AppData\\Roaming\\K-Desktop 5\\Assistant\\Tools\\mal.json", "enabled": false, "errors": ["/: Required properties [\"type\"] are not present"], "secrets": [] }
+  ],
+  "servers": [
+    { "id": "telegram", "transport": "stdio", "summary": "node E:\\MCP\\mcp-communicator-telegram\\build\\index.js", "disabled": false, "state": "stopped", "tools": 4, "secrets": ["telegram.TELEGRAM_TOKEN", "telegram.CHAT_ID"], "since": "2026-10-22T15:02:11+02:00" },
+    { "id": "jokes", "transport": "http", "summary": "https://jokes.nico.dev/mcp", "disabled": false, "state": "failed", "tools": 0, "secrets": [], "error": "Response status code does not indicate success: 404 (Not Found)." }
+  ],
+  "mcpErrors": []
+}

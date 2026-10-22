@@ -41,9 +41,14 @@ public static class PackageSchemas
         {
             var results = Schemas.Value[schema].Evaluate(doc.RootElement, new EvaluationOptions { OutputFormat = OutputFormat.List });
             if (results.IsValid) return [];
-            return [.. (results.Details ?? []).Where(d => d.Errors is { Count: > 0 })
+            List<string> errors = [.. (results.Details ?? []).Where(d => d.Errors is { Count: > 0 })
                 .SelectMany(d => d.Errors!.Select(e => $"{(d.InstanceLocation.ToString() is { Length: > 0 } at ? at : "/")}: {e.Value}"))
                 .Distinct()];
+            // Invalid without a message (a «oneOf» none of whose choices fit): where it fails, at least.
+            if (errors.Count == 0)
+                errors = [.. (results.Details ?? []).Where(d => !d.IsValid).Select(d => d.InstanceLocation.ToString()).Where(at => at.Length > 0)
+                    .Distinct().Select(at => $"{at}: no es válido").DefaultIfEmpty("/: no es válido")];
+            return errors;
         }
     }
 }

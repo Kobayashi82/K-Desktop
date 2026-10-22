@@ -3399,5 +3399,20 @@
   "tools.json.duplicate": "«{0}» è già in {1}.",
   "tools.json.noParameter": "«{0}» è in required ma non in parameters.",
   "tools.json.selfStep": "Una routine non può chiamare sé stessa.",
-  "tools.json.noScript": "Lo script {0} non esiste."
+  "tools.json.noScript": "Lo script {0} non esiste.",
+  "tools.off": "Lo strumento {0} è disattivato nelle Impostazioni.",
+  "tools.testHeard": "(prova dalle Impostazioni)",
+  "tools.mcp.intent": "usare «{0}» di {1}",
+  "tools.mcp.slow": "Il server {0} non ha risposto entro {1} s.",
+  "tools.mcp.noProgram": "Serve {0}, che non è installato.",
+  "tools.mcp.noStart": "Non si è avviato entro {0} s.",
+  "tools.mcp.unknown": "Non c'è nessun server «{0}» attivo.",
+  "tools.mcp.started": "Funziona: {0} strumento/i.",
+  "mcpImport.overlap.kdesktop": "Era per K-Desktop 4: gli assistenti usano già i tuoi comandi.",
+  "mcpImport.overlap.files": "Gli assistenti cercano e aprono già i file.",
+  "mcpImport.overlap.screen": "Gli assistenti guardano già lo schermo e gestiscono finestre e siti.",
+  "mcpImport.overlap.clipboard": "Gli assistenti usano già gli appunti.",
+  "mcpImport.overlap.memory": "Gli assistenti hanno già la loro memoria.",
+  "mcpImport.overlap.time": "Gli assistenti sanno già l'ora e fanno calcoli con le date.",
+  "tools.mcp.lost": "Persa la connessione con il server {0}: {1}"
 }

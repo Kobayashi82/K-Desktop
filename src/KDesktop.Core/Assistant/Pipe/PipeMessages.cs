@@ -427,6 +427,53 @@ public sealed record NotesStateMessage(IReadOnlyList<NoteEntry> Items) : PipeMes
     public override string Type => "notesState";
 }
 
+// ── Tools: JSON, MCP and Options → Tools (stage 9) ───────────────────────
+
+/// <summary>A tool as Options → Tools shows it.</summary>
+/// <param name="Group"><c>builtin</c>, <c>json</c> or <c>mcp:&lt;servidor&gt;</c>.</param>
+/// <param name="Risk">How it asks now (<c>safe</c>, <c>askOnce</c>, <c>askAlways</c>): its own, or the user's choice.</param>
+/// <param name="DefaultRisk">How it asks by itself.</param>
+/// <param name="Source">Its file (json) or its server (mcp).</param>
+public sealed record ToolInfo(string Name, string Group, string Description, string Risk, string DefaultRisk, bool ReadsOnly, bool Enabled, string? Source = null);
+
+/// <summary>A JSON tool's file: what it is, and what is wrong with it (<paramref name="Name"/> and <paramref name="Type"/>: null when unreadable).</summary>
+public sealed record ToolFileInfo(string File, bool Enabled, IReadOnlyList<string> Errors, IReadOnlyList<string> Secrets, string? Name = null, string? Type = null);
+
+/// <summary>An MCP server and how it is.</summary>
+/// <param name="Transport"><c>stdio</c>, <c>http</c> or <c>sse</c>.</param>
+/// <param name="Summary">The program and its first arguments, or its address.</param>
+/// <param name="State"><c>stopped</c>, <c>starting</c>, <c>running</c> or <c>failed</c>.</param>
+/// <param name="Tools">How many tools it has (that it said last time).</param>
+/// <param name="Secrets">The secrets it names.</param>
+/// <param name="Error">Why it failed, in the user's language.</param>
+public sealed record McpServerInfo(string Id, string Transport, string Summary, bool Disabled, string State, int Tools, IReadOnlyList<string> Secrets,
+    string? Error = null, DateTimeOffset? Since = null);
+
+/// <summary>
+/// All the tools, the JSON files and the MCP servers (Options → Tools): after every <c>tools</c> and whenever something of
+/// it changes. <paramref name="McpErrors"/>: what is wrong with <c>mcp.json</c>.
+/// </summary>
+public sealed record ToolsStateMessage(IReadOnlyList<ToolInfo> Tools, IReadOnlyList<ToolFileInfo> Files, IReadOnlyList<McpServerInfo> Servers,
+    IReadOnlyList<string> McpErrors) : PipeMessage
+{
+    public override string Type => "toolsState";
+}
+
+/// <summary>
+/// Options → Tools: <c>list</c>; <c>test</c> a tool (<paramref name="Name"/>, <paramref name="Arguments"/> as JSON), answered
+/// with <c>toolTest</c>; <c>start</c> (try) or <c>stop</c> an MCP server (<paramref name="Name"/>); <c>reload</c> the files.
+/// </summary>
+public sealed record ToolsMessage(string Op, string? Name = null, string? Arguments = null) : PipeMessage
+{
+    public override string Type => "tools";
+}
+
+/// <summary>How a <c>tools</c> <c>test</c> or <c>start</c> went: <paramref name="Text"/> is what it gave back or why not.</summary>
+public sealed record ToolTestMessage(string Name, bool Ok, string Text, int Ms) : PipeMessage
+{
+    public override string Type => "toolTest";
+}
+
 // ── K-Desktop's commands (phase 4) ───────────────────────────────────────
 
 /// <summary>«Asistente: decir»: the assistant says this (bubble and chat), without the AI. Null assistant: the module without a body.</summary>
@@ -752,6 +799,9 @@ public static class PipeJson
         ["memoryState"] = typeof(MemoryStateMessage),
         ["notes"] = typeof(NotesMessage),
         ["notesState"] = typeof(NotesStateMessage),
+        ["tools"] = typeof(ToolsMessage),
+        ["toolsState"] = typeof(ToolsStateMessage),
+        ["toolTest"] = typeof(ToolTestMessage),
         ["say"] = typeof(SayMessage),
         ["match"] = typeof(MatchMessage),
         ["matched"] = typeof(MatchedMessage),

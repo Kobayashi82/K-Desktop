@@ -2,7 +2,8 @@
 
   <!--
     The assistants' tools (stage 3.3): what a tool is, the registry, the permissions, the activity with undo, and the
-    built-in tools (ported from Kobii). They run in the assistant process, as the normal user, never in K-Desktop.
+    built-in tools (ported from Kobii), the JSON tools and the MCP servers' tools. They run in the assistant process,
+    as the normal user, never in K-Desktop.
   -->
   <PropertyGroup>
     <RootNamespace>KDesktop.Assistant.Tools</RootNamespace>
@@ -13,6 +14,8 @@
   <ItemGroup>
     <!-- The Windows Search index (find_files, stage 8.2). -->
     <PackageReference Include="System.Data.OleDb" Version="10.0.0" />
+    <!-- MCP servers (stage 9.2): the official C# SDK, client only (Apache-2.0). -->
+    <PackageReference Include="ModelContextProtocol.Core" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>

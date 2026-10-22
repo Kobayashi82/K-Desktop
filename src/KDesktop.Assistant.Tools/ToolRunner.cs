@@ -64,7 +64,8 @@ public sealed class ToolRunner
     public async Task<ToolOutcome> RunAsync(string name, JsonElement arguments, ToolContext context, string heard, string route, CancellationToken cancellationToken)
     {
         if (_registry.Find(name) is not { } tool)
-            return new ToolOutcome(null, Record(context.Assistant, heard, route, Loc.T("tools.unknown", name), ok: false));
+            return new ToolOutcome(null, Record(context.Assistant, heard, route,
+                Loc.T(_registry.FindAny(name) is null ? "tools.unknown" : "tools.off", name), ok: false));
 
         string intent;
         try { intent = tool.Intent(arguments); }
@@ -157,7 +158,7 @@ public sealed class ToolRunner
         return entry;
     }
 
-    private bool MustAsk(ITool tool) => AskPolicy.Asks(tool.Risk, _askBefore(), _trusted().Contains(tool.Name));
+    private bool MustAsk(ITool tool) => AskPolicy.Asks(_registry.RiskOf(tool), _askBefore(), _trusted().Contains(tool.Name));
 
     private bool IsApproved(string fingerprint)
     {
@@ -202,7 +203,7 @@ public sealed class ToolRunner
 
     private async Task<string> AskAsync(ITool tool, string text, bool approvable, ToolContext context, CancellationToken cancellationToken)
     {
-        var question = new AskMessage(NewId(), tool.Name, text, tool.Risk == ToolRisk.AskOnce || approvable, (int)AskTime.TotalSeconds, context.Assistant);
+        var question = new AskMessage(NewId(), tool.Name, text, _registry.RiskOf(tool) == ToolRisk.AskOnce || approvable, (int)AskTime.TotalSeconds, context.Assistant);
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         // A little more than the user's time: K-Desktop says «timeout» itself when it runs out.
         timeout.CancelAfter(AskTime + TimeSpan.FromSeconds(3));

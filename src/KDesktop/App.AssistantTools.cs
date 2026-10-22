@@ -51,6 +51,8 @@ public partial class App
         ["trusted"] = new JsonArray([.. Config.Settings.AssistantTrustedTools.Select(t => (JsonNode)t)]),
         ["learn"] = Config.Settings.AssistantMemoryLearn,
         ["askBefore"] = Config.Settings.AssistantAskBefore,
+        ["settings"] = new JsonObject(Config.Settings.AssistantToolSettings.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p =>
+            KeyValuePair.Create(p.Key, (JsonNode?)new JsonObject { ["enabled"] = p.Value.Enabled, ["risk"] = p.Value.Risk }))),
     };
 
     /// <summary>After a settings change: the tools section, if it changed (UI thread).</summary>

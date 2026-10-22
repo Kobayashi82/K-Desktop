@@ -1,0 +1,7 @@
+{
+  "t": "toolTest",
+  "name": "luz_salon",
+  "ok": true,
+  "text": "Done. Answer: [{\"entity_id\":\"light.salon\",\"state\":\"on\"}]\nLuz del salón: on.",
+  "ms": 184
+}

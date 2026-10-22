@@ -1,0 +1,6 @@
+{
+  "t": "tools",
+  "op": "test",
+  "name": "luz_salon",
+  "arguments": "{\"estado\":\"on\"}"
+}

@@ -686,6 +686,12 @@ public partial class AppSettings : ObservableObject
     /// <summary>The tools that no longer ask before doing something («yes, and don't ask again»). Replaced whole on every change.</summary>
     [ObservableProperty] private List<string> _assistantTrustedTools = [];
 
+    /// <summary>
+    /// Each tool's own choices in Options → Tools (stage 9.3): switched off, or asking otherwise than it says. Replaced
+    /// whole on every change.
+    /// </summary>
+    [ObservableProperty] private Dictionary<string, global::KDesktop.Core.Assistant.ToolPreference> _assistantToolSettings = [];
+
     /// <summary>The groups of Options left open (and «assistants» when its assistants are shown); null: never folded yet.</summary>
     [ObservableProperty] private List<string>? _settingsNavOpen;
 

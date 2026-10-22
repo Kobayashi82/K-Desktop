@@ -3399,5 +3399,20 @@
   "tools.json.duplicate": "«{0}» ya está en {1}.",
   "tools.json.noParameter": "«{0}» está en required pero no en parameters.",
   "tools.json.selfStep": "Una rutina no puede llamarse a sí misma.",
-  "tools.json.noScript": "No existe el script {0}."
+  "tools.json.noScript": "No existe el script {0}.",
+  "tools.off": "La herramienta {0} está apagada en Opciones.",
+  "tools.testHeard": "(prueba desde Opciones)",
+  "tools.mcp.intent": "usar «{0}» de {1}",
+  "tools.mcp.slow": "El servidor {0} no ha contestado en {1} s.",
+  "tools.mcp.noProgram": "Hace falta {0} y no está instalado.",
+  "tools.mcp.noStart": "No ha arrancado en {0} s.",
+  "tools.mcp.unknown": "No hay ningún servidor «{0}» encendido.",
+  "tools.mcp.started": "Funciona: {0} herramienta(s).",
+  "mcpImport.overlap.kdesktop": "Era para K-Desktop 4: los asistentes ya usan tus comandos.",
+  "mcpImport.overlap.files": "Los asistentes ya buscan y abren archivos.",
+  "mcpImport.overlap.screen": "Los asistentes ya miran la pantalla y manejan ventanas y webs.",
+  "mcpImport.overlap.clipboard": "Los asistentes ya trabajan con el portapapeles.",
+  "mcpImport.overlap.memory": "Los asistentes ya tienen su memoria.",
+  "mcpImport.overlap.time": "Los asistentes ya saben la hora y hacen cuentas con fechas.",
+  "tools.mcp.lost": "Se ha perdido la conexión con el servidor {0}: {1}"
 }

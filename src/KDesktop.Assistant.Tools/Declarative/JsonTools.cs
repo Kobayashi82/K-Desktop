@@ -10,7 +10,8 @@ namespace KDesktop.Assistant.Tools.Declarative;
 /// <summary>How a tool file is.</summary>
 /// <param name="Name">Its tool's name, when it could be read.</param>
 /// <param name="Errors">What is wrong with it (empty: it works, or is switched off).</param>
-public sealed record JsonToolFile(string File, string? Name, string? Type, bool Enabled, IReadOnlyList<string> Errors);
+/// <param name="Secrets">The secrets it names.</param>
+public sealed record JsonToolFile(string File, string? Name, string? Type, bool Enabled, IReadOnlyList<string> Errors, IReadOnlyList<string>? Secrets = null);
 
 /// <summary>
 /// The JSON tools (stage 9.1): every <c>*.json</c> of <c>&lt;data&gt;\Assistant\Tools</c> is a tool, checked against
@@ -145,7 +146,7 @@ public sealed class JsonTools : IDisposable
         }
 
         var errors = PackageSchemas.Validate("tool", text);
-        if (errors.Count > 0) return new JsonToolFile(path, null, null, false, errors);
+        if (errors.Count > 0) return new JsonToolFile(path, null, null, false, errors, [.. McpConfig.SecretsIn(text).Distinct(StringComparer.OrdinalIgnoreCase)]);
         JsonToolDefinition definition;
         try { definition = JsonSerializer.Deserialize<JsonToolDefinition>(text, JsonToolDefinition.Options)!; }
         catch (JsonException ex) { return new JsonToolFile(path, null, null, false, [ex.Message]); }
@@ -161,7 +162,7 @@ public sealed class JsonTools : IDisposable
         var tool = problems.Count == 0 ? JsonTool.Create(definition, path, Environment) : null;
         if (tool is ScriptJsonTool script && !File.Exists(script.ScriptPath)) problems.Add(Loc.T("tools.json.noScript", script.ScriptPath));
         if (problems.Count == 0 && definition.Enabled) tools.Add(tool!);
-        return new JsonToolFile(path, name, definition.Type, definition.Enabled, problems);
+        return new JsonToolFile(path, name, definition.Type, definition.Enabled, problems, [.. McpConfig.SecretsIn(text).Distinct(StringComparer.OrdinalIgnoreCase)]);
     }
 
     /// <summary>The file's text even while an editor holds it open (a few tries: it may be mid-save).</summary>

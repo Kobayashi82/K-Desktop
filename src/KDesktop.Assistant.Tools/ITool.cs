@@ -84,7 +84,9 @@ public sealed record ToolContext(string? Assistant, string? Heard = null);
 
 /// <summary>
 /// The tools that exist, in groups: the built-in ones (<see cref="Builtin"/>), the JSON ones (stage 9.1) and each MCP
-/// server's (9.2), which come and go while the process runs. Readers get a snapshot; thread-safe.
+/// server's (9.2), which come and go while the process runs. What the user switched off in Options → Tools is not
+/// found nor listed (<see cref="Everything"/> and <see cref="FindAny"/> still see it), and their choice of risk wins over
+/// the tool's (<see cref="RiskOf"/>). Readers get a snapshot; thread-safe.
 /// </summary>
 public sealed class ToolRegistry
 {
@@ -93,7 +95,8 @@ public sealed class ToolRegistry
 
     private readonly object _gate = new();
     private readonly List<(string Group, List<ITool> Tools)> _groups = [];
-    private volatile Snapshot _snapshot = new([], new Dictionary<string, (ITool, string)>(StringComparer.Ordinal));
+    private volatile Snapshot _snapshot = new([], [], new Dictionary<string, (ITool, string)>(StringComparer.Ordinal));
+    private IReadOnlyDictionary<string, ToolPreference> _preferences = new Dictionary<string, ToolPreference>();
 
     /// <summary>A group changed (JSON tools reloaded, an MCP server's tools listed).</summary>
     public event Action? Changed;
@@ -126,13 +129,46 @@ public sealed class ToolRegistry
         Changed?.Invoke();
     }
 
-    public ITool? Find(string name) => _snapshot.ByName.TryGetValue(name, out var found) ? found.Tool : null;
+    /// <summary>The tool called <paramref name="name"/>, unless there is none or the user switched it off.</summary>
+    public ITool? Find(string name) => FindAny(name) is { } tool && IsEnabled(tool.Name) ? tool : null;
+
+    /// <summary>The tool called <paramref name="name"/>, also when switched off (Options).</summary>
+    public ITool? FindAny(string name) => _snapshot.ByName.TryGetValue(name, out var found) ? found.Tool : null;
+
+    /// <summary>The user's choices for each tool (Options → Tools): switched off, or another risk.</summary>
+    public void SetPreferences(IReadOnlyDictionary<string, ToolPreference> preferences)
+    {
+        lock (_gate)
+        {
+            _preferences = preferences;
+            Rebuild();
+        }
+        Changed?.Invoke();
+    }
+
+    public bool IsEnabled(string name) => !_preferences.TryGetValue(name, out var preference) || preference.Enabled;
+
+    /// <summary>How <paramref name="tool"/> asks: the user's choice, or its own.</summary>
+    public ToolRisk RiskOf(ITool tool) =>
+        _preferences.TryGetValue(tool.Name, out var preference) && ToolPreference.Parse(preference.Risk) is { } risk ? risk : tool.Risk;
 
     /// <summary>The group of <paramref name="name"/>, or null when there is no such tool.</summary>
     public string? GroupOf(string name) => _snapshot.ByName.TryGetValue(name, out var found) ? found.Group : null;
 
-    /// <summary>All of them: the built-in ones first, then each group in the order it came.</summary>
+    /// <summary>The groups there are now.</summary>
+    public IReadOnlyList<string> Groups
+    {
+        get
+        {
+            lock (_gate) return [.. _groups.Select(g => g.Group)];
+        }
+    }
+
+    /// <summary>All of them that are switched on: the built-in ones first, then each group in the order it came.</summary>
     public IReadOnlyCollection<ITool> All => _snapshot.All;
+
+    /// <summary>All of them, also those switched off.</summary>
+    public IReadOnlyCollection<ITool> Everything => _snapshot.Everything;
 
     private List<ITool> GroupList(string group)
     {
@@ -151,10 +187,10 @@ public sealed class ToolRegistry
         foreach (var (group, tools) in _groups)
             foreach (var tool in tools)
                 if (byName.TryAdd(tool.Name, (tool, group))) all.Add(tool);
-        _snapshot = new Snapshot(all, byName);
+        _snapshot = new Snapshot([.. all.Where(t => IsEnabled(t.Name))], all, byName);
     }
 
-    private sealed record Snapshot(IReadOnlyCollection<ITool> All, Dictionary<string, (ITool Tool, string Group)> ByName);
+    private sealed record Snapshot(IReadOnlyCollection<ITool> All, IReadOnlyCollection<ITool> Everything, Dictionary<string, (ITool Tool, string Group)> ByName);
 }
 
 /// <summary>Reading the arguments the model sends (it may send numbers as text or text as numbers).</summary>

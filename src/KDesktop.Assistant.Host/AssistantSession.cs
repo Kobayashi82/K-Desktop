@@ -156,6 +156,9 @@ internal sealed class AssistantSession : IDisposable
                     case NotesMessage notes when Tools is { } tools:
                         tools.OnNotes(notes);
                         return;
+                    case ToolsMessage request when Tools is { } tools:
+                        _ = tools.OnToolsAsync(request);
+                        return;
                     case BenchMessage bench when Bench is { } module:
                         module.OnBench(bench);
                         return;
