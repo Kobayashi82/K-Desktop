@@ -402,6 +402,36 @@ public partial class ScreenshotAction : CommandAction
     }
 }
 
+// ── Copiar texto de la pantalla ──────────────────────────────────────────
+
+/// <summary>
+/// «Copiar texto de la pantalla» (stage 10.1): the text of a region chosen with the mouse, the active window or a
+/// monitor, read with the OCR of Windows (no AI) and copied, like PowerToys' Text Extractor.
+/// </summary>
+public partial class ScreenTextAction : CommandAction
+{
+    [ObservableProperty] private CaptureArea _area = CaptureArea.Region;
+
+    /// <summary>The language of the text («es-ES»); empty = the one of K-Desktop if its OCR is installed, else Windows'.</summary>
+    [ObservableProperty] private string _language = string.Empty;
+
+    /// <summary>All the lines joined in one (to paste in a search box, a cell…).</summary>
+    [ObservableProperty] private bool _singleLine;
+    [ObservableProperty] private bool _showOsd = true;
+
+    public override ActionKind Kind => ActionKind.ScreenText;
+    public override string Summary
+    {
+        get
+        {
+            var parts = new List<string> { Loc.T($"enum.captureArea.{Area}") };
+            if (Language.Length > 0) parts.Add(Language);
+            if (SingleLine) parts.Add(Loc.T("summary.screenText.singleLine"));
+            return string.Join("  ·  ", parts);
+        }
+    }
+}
+
 // ── Grabar audio ──────────────────────────────────────────────────────────
 
 /// <summary>What «Grabar audio» records: what the PC plays, the microphone, or both mixed.</summary>

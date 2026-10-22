@@ -31,26 +31,7 @@ public sealed partial class CommandEngine
 
     private async Task ScreenshotAsync(ScreenshotAction a, ExecutionContext ctx)
     {
-        // From the QuickMenu or the launcher: let them go away first.
-        if (ctx.FromPopup) await Task.Delay(250, ctx.Token).ConfigureAwait(false);
-
-        var desktop = ScreenCapture.VirtualScreen;
-        var area = a.Area switch
-        {
-            CaptureArea.Monitor => ScreenCapture.MonitorAtCursor(),
-            CaptureArea.ActiveWindow when ctx.Foreground.RootHandle != IntPtr.Zero && ctx.Foreground.ProcessId != (uint)Environment.ProcessId
-                => Intersect(WindowLayout.VisibleBounds(ctx.Foreground.RootHandle), desktop),
-            CaptureArea.ActiveWindow => ScreenCapture.MonitorAtCursor(),
-            _ => desktop,
-        };
-        var image = await Task.Run(() => ScreenCapture.Capture(area), ctx.Token).ConfigureAwait(false);
-
-        if (a.Area == CaptureArea.Region)
-        {
-            if (await _ui.SelectRegionAsync(image, area).ConfigureAwait(false) is not { } region || region.Width < 2 || region.Height < 2)
-                return; // cancelled
-            image = image.Crop(region.Left - area.Left, region.Top - area.Top, region.Width, region.Height);
-        }
+        if (await CaptureAsync(a.Area, ctx).ConfigureAwait(false) is not { } image) return; // cancelled
 
         var copied = a.Copy && _ui.SetClipboardImage(image);
         string? path = null;
@@ -68,6 +49,65 @@ public sealed partial class CommandEngine
             ? Loc.T(copied ? "osd.captureSavedCopied" : "osd.captureSaved", Path.GetFileName(path), size)
             : copied ? Loc.T("osd.captureCopied", size) : null;
         if (text is not null) _ui.ShowOsd(text, OsdKind.Success);
+    }
+
+    /// <summary>
+    /// What the screen shows in <paramref name="what"/>; a region is chosen with the mouse (null: cancelled).
+    /// <paramref name="inside"/>: of the active window, only what is inside (to read it, without its title or buttons).
+    /// </summary>
+    private async Task<BgraImage?> CaptureAsync(CaptureArea what, ExecutionContext ctx, bool inside = false)
+    {
+        // From the QuickMenu or the launcher: let them go away first.
+        if (ctx.FromPopup) await Task.Delay(250, ctx.Token).ConfigureAwait(false);
+
+        var desktop = ScreenCapture.VirtualScreen;
+        var area = what switch
+        {
+            CaptureArea.Monitor => ScreenCapture.MonitorAtCursor(),
+            CaptureArea.ActiveWindow when ctx.Foreground.RootHandle != IntPtr.Zero && ctx.Foreground.ProcessId != (uint)Environment.ProcessId
+                => Intersect(inside ? WindowLayout.ClientBounds(ctx.Foreground.RootHandle) : WindowLayout.VisibleBounds(ctx.Foreground.RootHandle), desktop),
+            CaptureArea.ActiveWindow => ScreenCapture.MonitorAtCursor(),
+            _ => desktop,
+        };
+        var image = await Task.Run(() => ScreenCapture.Capture(area), ctx.Token).ConfigureAwait(false);
+        if (what != CaptureArea.Region) return image;
+        if (await _ui.SelectRegionAsync(image, area).ConfigureAwait(false) is not { } region || region.Width < 2 || region.Height < 2)
+            return null;
+        return image.Crop(region.Left - area.Left, region.Top - area.Top, region.Width, region.Height);
+    }
+
+    // ── Copiar texto de la pantalla ──────────────────────────────────────
+
+    private async Task ScreenTextAsync(ScreenTextAction a, ExecutionContext ctx)
+    {
+        if (!ScreenText.Available)
+        {
+            Log.Warn("Texto de la pantalla: Windows no tiene ningún idioma con reconocimiento de texto (OCR)");
+            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.screenTextNoOcr"), OsdKind.Warning);
+            return;
+        }
+        if (await CaptureAsync(a.Area, ctx, inside: true).ConfigureAwait(false) is not { } image) return; // cancelled
+
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        var language = a.Language.Length > 0 ? a.Language : Loc.Instance.Language;
+        if (await ScreenText.ReadAsync(image, language, a.SingleLine, ctx.Token).ConfigureAwait(false) is not { } read) return;
+        Log.Info($"Texto de la pantalla: {image.Width}×{image.Height}, {read.Lines} líneas, {read.Text.Length} letras ({read.Language}) en {watch.ElapsedMilliseconds} ms");
+        if (read.Text.Length == 0)
+        {
+            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.screenTextNone"), OsdKind.Warning);
+            return;
+        }
+        var copied = _ui.SetClipboardText(read.Text);
+        if (!a.ShowOsd) return;
+        _ui.ShowOsd(copied ? Loc.T(read.Lines == 1 ? "osd.screenTextCopiedOne" : "osd.screenTextCopied", read.Lines, Preview(read.Text)) : Loc.T("osd.screenTextNotCopied"),
+            copied ? OsdKind.Success : OsdKind.Warning);
+    }
+
+    /// <summary>The beginning of what was read, on one line, for the OSD.</summary>
+    private static string Preview(string text)
+    {
+        var flat = string.Join(" ", text.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+        return flat.Length <= 90 ? flat : flat[..90].TrimEnd() + "…";
     }
 
     private static ScreenRect Intersect(ScreenRect a, ScreenRect b)

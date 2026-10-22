@@ -59,6 +59,10 @@ public static class Lookups
     public static IReadOnlyList<Option<LoadResource>> LoadResources { get; } = Enum<LoadResource>("enum.loadResource");
     public static IReadOnlyList<Option<LoadComparison>> LoadComparisons { get; } = Enum<LoadComparison>("enum.loadComparison");
     public static IReadOnlyList<Option<CaptureArea>> CaptureAreas { get; } = Enum<CaptureArea>("enum.captureArea");
+
+    /// <summary>«Automático» and the languages with OCR installed in Windows (read when the editor opens: they can be added meanwhile).</summary>
+    public static IReadOnlyList<Option<string>> OcrLanguages =>
+        [new Option<string>(string.Empty, "editor.screenTextAuto"), .. ScreenText.Languages.Select(l => new Option<string>(l.Tag, $"{l.Name} ({l.Tag})"))];
     public static IReadOnlyList<Option<RecordMode>> RecordModes { get; } = Enum<RecordMode>("enum.recordMode");
     public static IReadOnlyList<Option<AudioSource>> AudioSources { get; } = Enum<AudioSource>("enum.audioSource");
     public static IReadOnlyList<Option<ZoomMode>> ZoomModes { get; } = Enum<ZoomMode>("enum.zoomMode");

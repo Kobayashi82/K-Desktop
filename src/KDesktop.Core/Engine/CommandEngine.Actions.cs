@@ -40,6 +40,7 @@ public sealed partial class CommandEngine
         WindowsThemeAction a => Run(() => WindowsTheme(a)),
         RadioAction a => Run(() => Radio(a)),
         ScreenshotAction a => ScreenshotAsync(a, ctx),
+        ScreenTextAction a => ScreenTextAsync(a, ctx),
         AudioRecordAction a => Run(() => AudioRecord(a)),
         MagnifierAction a => Run(() => Magnify(a)),
         DictateAction a => Run(() => _ui.Dictate(a.Mode)),

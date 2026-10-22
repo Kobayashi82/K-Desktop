@@ -39,6 +39,7 @@ public static class ActionCatalog
         new(ActionKind.AudioRecord, "sound", "MicPulse24", () => new AudioRecordAction()),
 
         new(ActionKind.Screenshot, "screen", "Screenshot24", () => new ScreenshotAction()),
+        new(ActionKind.ScreenText, "screen", "ScanText24", () => new ScreenTextAction()),
         new(ActionKind.Magnifier, "screen", "ZoomIn24", () => new MagnifierAction()),
         new(ActionKind.Display, "screen", "Desktop24", () => new DisplayAction()),
         new(ActionKind.WindowsTheme, "screen", "DarkTheme24", () => new WindowsThemeAction()),

@@ -1058,6 +1058,32 @@
         </StackPanel>
     </DataTemplate>
 
+    <!-- ── Copiar texto de la pantalla ──────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:ScreenTextAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.captureArea}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.CaptureAreas}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Area}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.screenTextLanguage}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.OcrLanguages}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Language}" />
+                </StackPanel>
+            </Grid>
+            <WrapPanel>
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.screenTextSingleLine}" IsChecked="{Binding SingleLine}" />
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            </WrapPanel>
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.screenTextHint}" />
+        </StackPanel>
+    </DataTemplate>
+
     <!-- ── Grabar audio ────────────────────────────────────────────────── -->
     <DataTemplate DataType="{x:Type m:AudioRecordAction}">
         <StackPanel>

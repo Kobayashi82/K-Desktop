@@ -124,6 +124,17 @@ public static class WindowLayout
         return ToRect(rect);
     }
 
+    /// <summary>
+    /// The inside of a window, without the title bar and the borders Windows draws (programs that draw their own, like
+    /// Chrome or VS Code, are all inside); the visible bounds when it cannot be asked.
+    /// </summary>
+    public static ScreenRect ClientBounds(IntPtr hwnd)
+    {
+        var corner = default(POINT);
+        if (!GetClientRect(hwnd, out var client) || client.Right < 1 || client.Bottom < 1 || !ClientToScreen(hwnd, ref corner)) return VisibleBounds(hwnd);
+        return new ScreenRect(corner.X, corner.Y, client.Right, client.Bottom);
+    }
+
     /// <summary>Puts the visible part of the window exactly on <paramref name="target"/> (restoring it if maximised).</summary>
     public static void MoveTo(IntPtr hwnd, ScreenRect target)
     {
@@ -269,6 +280,15 @@ public static class WindowLayout
 
     [DllImport("user32.dll")]
     private static extern bool GetWindowRect(IntPtr hwnd, out RECT rect);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct POINT { public int X, Y; }
+
+    [DllImport("user32.dll")]
+    private static extern bool GetClientRect(IntPtr hwnd, out RECT rect);
+
+    [DllImport("user32.dll")]
+    private static extern bool ClientToScreen(IntPtr hwnd, ref POINT point);
 
     [DllImport("user32.dll")]
     private static extern bool IsZoomed(IntPtr hwnd);

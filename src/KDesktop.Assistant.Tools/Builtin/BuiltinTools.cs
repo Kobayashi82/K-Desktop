@@ -46,7 +46,7 @@ public sealed class BuiltinTools : IDisposable
         registry.Add(new OpenAppTool());
         registry.Add(new FindFilesTool(Files));
         registry.Add(new OpenFileTool(Files));
-        registry.Add(new LookAtScreenTool(screen, vision));
+        registry.Add(new LookAtScreenTool(screen, vision, screen is null ? null : new WindowsScreenReader()));
         var reader = new WebReader(browser: browser);
         registry.Add(new ReadWebTool(screen, reader));
         registry.Add(new LookUpWebTool(reader));

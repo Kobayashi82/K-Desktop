@@ -109,6 +109,7 @@ public partial class App
             _assistantStates.Clear();
             ClearAssistantExtras();
             _pendingExtras.Clear();
+            _pendingOrders.Clear();
             ForgetAssistantBrain();
             ForgetAssistantMemory();
             ForgetAssistantNotes();
@@ -173,6 +174,7 @@ public partial class App
             ClearAssistantExtras();
             ResetAssistantInput();
             foreach (var id in Config.Settings.AssistantsOnDesktop.ToList()) LoadAssistant(supervisor, id, "startup");
+            SendPendingOrders(AssistantTargeting.KDesktop);
         });
     }
 
@@ -402,6 +404,7 @@ public partial class App
         }
         if (loaded.Ok) SendAssistantExtraKeys();
         SendPendingExtra(loaded);
+        SendPendingOrders(loaded.Assistant, loaded.Ok);
         AssistantChanged?.Invoke();
     }
 

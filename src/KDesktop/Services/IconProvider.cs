@@ -92,6 +92,7 @@ public static partial class IconProvider
         RadioAction => Kd("Wifi124", "teal"),
         ConditionAction => Kd("BranchFork24", "orange"),
         ScreenshotAction => Kd("Screenshot24", "sky"),
+        ScreenTextAction => Kd("ScanText24", "sky"),
         AudioRecordAction { Mode: RecordMode.SaveReplay } => Kd("History24", "red"),
         AudioRecordAction => Kd("MicPulse24", "red"),
         MagnifierAction => Kd("ZoomIn24", "indigo"),

@@ -117,6 +117,17 @@ public partial class App
             Ui.ShowOsd(Loc.T("assistantChat.nobody"), Core.Engine.OsdKind.Warning);
             return false;
         }
+        // The process starting (K-Desktop just started, the module just switched on, it fell and comes back) or the
+        // assistant still coming out: the order waits for it instead of being lost («Asistente: preguntar» at startup).
+        if (_assistant.State is AssistantProcessState.Starting or AssistantProcessState.Restarting
+            || (_assistant.IsRunning && AssistantConnectedAt is { } connected && DateTime.Now - connected < PendingOrderTime
+                && !AssistantTargeting.IsSystem(id) && IsOnDesktop(id) && !IsAssistantLoaded(id)))
+        {
+            _pendingOrders.RemoveAll(o => DateTime.UtcNow - o.At > PendingOrderTime);
+            _pendingOrders.Add(new PendingOrder(id, text, source, DateTime.UtcNow));
+            Log.Info($"Asistente: orden por {source} para «{id}» en espera de que esté listo");
+            return true;
+        }
         if (!_assistant.IsRunning || !_assistant.Send(new HeardMessage(text, source, ProcessIdOf(id))))
         {
             Ui.ShowOsd(Loc.T("assistantChat.notRunning"), Core.Engine.OsdKind.Warning);
@@ -126,6 +137,33 @@ public partial class App
         _chatSources[id] = source;
         Log.Info($"Asistente: orden por {source} para «{id}»");
         return true;
+    }
+
+    /// <summary>How long an order waits for its assistant (the process starts in ~1 s; an assistant comes out in a few).</summary>
+    private static readonly TimeSpan PendingOrderTime = TimeSpan.FromSeconds(30);
+
+    private sealed record PendingOrder(string Id, string Text, string Source, DateTime At);
+
+    private readonly List<PendingOrder> _pendingOrders = [];
+
+    /// <summary>
+    /// The orders that waited for <paramref name="id"/> go now, in order: K-Desktop's when the process connects, an
+    /// assistant's when it says it is loaded (<paramref name="ok"/> false: it did not come, they are dropped).
+    /// </summary>
+    private void SendPendingOrders(string id, bool ok = true)
+    {
+        var waiting = _pendingOrders.Where(o => o.Id == id).ToList();
+        if (waiting.Count == 0) return;
+        _pendingOrders.RemoveAll(o => o.Id == id);
+        foreach (var order in waiting)
+        {
+            if (!ok || DateTime.UtcNow - order.At > PendingOrderTime)
+            {
+                Log.Info($"Asistente: la orden por {order.Source} para «{id}» no se manda ({(ok ? "llegó tarde" : "no ha salido")})");
+                continue;
+            }
+            SendToAssistant(id, order.Text, order.Source);
+        }
     }
 
     /// <summary>Stops what an assistant is answering (the chat's stop button).</summary>

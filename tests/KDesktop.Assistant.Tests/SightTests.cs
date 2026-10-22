@@ -5,6 +5,7 @@ using System.Text.Json;
 using KDesktop.Assistant.Brain.Models;
 using KDesktop.Assistant.Tools;
 using KDesktop.Assistant.Tools.Builtin;
+using KDesktop.Core.Platform;
 
 namespace KDesktop.Assistant.Tests;
 
@@ -22,14 +23,32 @@ public sealed class SightTests
 
         public bool Whole { get; private set; }
 
-        public Task<ScreenPicture?> CaptureAsync(bool wholeScreen, CancellationToken cancellationToken)
+        public ScreenUse Use { get; private set; }
+
+        public Task<ScreenPicture?> CaptureAsync(bool wholeScreen, ScreenUse use, CancellationToken cancellationToken)
         {
             Captures++;
             Whole = wholeScreen;
-            return Task.FromResult<ScreenPicture?>(new ScreenPicture([0xFF, 0xD8, 0xFF], "the window «Error» of setup", 640, 480, "Error"));
+            Use = use;
+            var pixels = use.HasFlag(ScreenUse.Read) ? new BgraImage(640, 480, new byte[640 * 480 * 4]) : null;
+            byte[] jpeg = use.HasFlag(ScreenUse.See) ? [0xFF, 0xD8, 0xFF] : [];
+            return Task.FromResult<ScreenPicture?>(new ScreenPicture(jpeg, "the window «Error» of setup", 640, 480, "Error", pixels));
         }
 
         public Task<string?> BrowserAddressAsync(CancellationToken cancellationToken) => Task.FromResult(address);
+    }
+
+    private sealed class FakeReader(string text) : IScreenReader
+    {
+        public int Reads { get; private set; }
+
+        public bool CanRead => true;
+
+        public Task<ReadText?> ReadAsync(BgraImage image, CancellationToken cancellationToken)
+        {
+            Reads++;
+            return Task.FromResult<ReadText?>(new ReadText(text, text.Split('\n').Length, "es-ES"));
+        }
     }
 
     private sealed class FakeVision(bool sees, string answer = "") : IVision
@@ -59,6 +78,117 @@ public sealed class SightTests
 
         await new LookAtScreenTool(screen, vision).RunAsync(Args(new { whole_screen = true }), new ToolContext("lander"), default);
         Assert.True(screen.Whole);
+    }
+
+    [Fact]
+    public async Task TextIsReadByTheOcrAndPicturesAreLeftToTheModel()
+    {
+        var screen = new FakeScreen();
+        var vision = new FakeVision(true, "A red logo with a rocket.");
+        var reader = new FakeReader("No se encuentra MSVCP140.dll\nVuelve a instalar el programa");
+        var tool = new LookAtScreenTool(screen, vision, reader);
+
+        // «¿Qué pone en el error?»: the OCR, not the model.
+        var read = await tool.RunAsync(Args(new { question = "qué pone en el error" }), new ToolContext("lander", "¿qué pone en el error?"), default);
+        Assert.Contains("MSVCP140.dll", read.Text, StringComparison.Ordinal);
+        Assert.Null(vision.Asked);
+        Assert.Equal(1, reader.Reads);
+        Assert.True(screen.Use.HasFlag(ScreenUse.Read));
+
+        // The model says so itself.
+        await tool.RunAsync(Args(new { question = "the error", read_text = true }), new ToolContext("lander"), default);
+        Assert.Null(vision.Asked);
+        Assert.Equal(2, reader.Reads);
+
+        // «¿De qué color es el logo?»: the model looks at it.
+        var seen = await tool.RunAsync(Args(new { question = "what colour is the logo" }), new ToolContext("lander", "¿de qué color es el logo?"), default);
+        Assert.Contains("rocket", seen.Text, StringComparison.Ordinal);
+        Assert.Equal(2, reader.Reads);
+        Assert.False(screen.Use.HasFlag(ScreenUse.Read));
+    }
+
+    [Fact]
+    public async Task WithoutVisionTheOcrStillReads()
+    {
+        var screen = new FakeScreen();
+        var result = await new LookAtScreenTool(screen, new FakeVision(false), new FakeReader("Total: 1.234,56 €"))
+            .RunAsync(Args(new { question = "what is this" }), new ToolContext(null), default);
+        Assert.False(result.Failed);
+        Assert.Contains("1.234,56", result.Text, StringComparison.Ordinal);
+        Assert.False(screen.Use.HasFlag(ScreenUse.See));
+
+        var nothing = await new LookAtScreenTool(screen, new FakeVision(false), new FakeReader(""))
+            .RunAsync(Args(new { }), new ToolContext(null), default);
+        Assert.Contains("No text", nothing.Text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task WhenTheOcrFindsNoTextTheModelLooks()
+    {
+        var vision = new FakeVision(true, "Only a photo of a beach.");
+        var result = await new LookAtScreenTool(new FakeScreen(), vision, new FakeReader(""))
+            .RunAsync(Args(new { question = "read it", read_text = true }), new ToolContext("lander"), default);
+        Assert.Contains("beach", result.Text, StringComparison.Ordinal);
+        Assert.NotNull(vision.Asked);
+    }
+
+    [Theory]
+    [InlineData("¿Qué pone aquí?", true)]
+    [InlineData("léeme el mensaje de error", true)]
+    [InlineData("copia el texto de esta ventana", true)]
+    [InlineData("what does this say", true)]
+    [InlineData("¿qué ves en mi pantalla?", false)]
+    [InlineData("¿de qué color es el botón?", false)]
+    public void WhatAsksForTheText(string said, bool text)
+    {
+        Assert.Equal(text, LookAtScreenTool.WantsText(said, null));
+    }
+
+    [Fact]
+    public async Task WindowsReadsTheTextOfAPicture()
+    {
+        if (!Core.Platform.ScreenText.Available) return; // no OCR language in this Windows
+        BgraImage? image = null;
+        var thread = new Thread(() => image = Rendered("Error 0x80070005: Acceso denegado", "El año pasado gastamos 1.234,56 €"));
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
+        var read = await Core.Platform.ScreenText.ReadAsync(image!, "es");
+        Assert.NotNull(read);
+        Assert.Contains("0x80070005", read.Text, StringComparison.Ordinal);
+        Assert.Contains("El año pasado", read.Text, StringComparison.Ordinal);
+        Assert.Contains("1.234,56", read.Text, StringComparison.Ordinal);
+        Assert.Equal(2, read.Lines);
+        Assert.Equal("", (await Core.Platform.ScreenText.ReadAsync(new BgraImage(300, 100, Enumerable.Repeat((byte)255, 300 * 100 * 4).ToArray())))?.Text);
+    }
+
+    [Theory]
+    [InlineData("EI año pasado", "El año pasado")]
+    [InlineData("versión 5.O.143", "versión 5.0.143")]
+    [InlineData("1l0 euros", "110 euros")]
+    [InlineData("OK, I agree", "OK, I agree")]
+    [InlineData("EI", "EI")]
+    public void ScreenFontsMistakesAreTidied(string seen, string meant) => Assert.Equal(meant, Core.Platform.ScreenText.Tidy(seen));
+
+    /// <summary>Lines of text as a screen draws them (Segoe UI, 12 px, on white), at 96 dpi; on an STA thread.</summary>
+    private static BgraImage Rendered(params string[] lines)
+    {
+        const int width = 700, line = 18;
+        var visual = new System.Windows.Media.DrawingVisual();
+        using (var dc = visual.RenderOpen())
+        {
+            dc.DrawRectangle(System.Windows.Media.Brushes.White, null, new System.Windows.Rect(0, 0, width, line * lines.Length + 20));
+            var face = new System.Windows.Media.Typeface("Segoe UI");
+            for (var i = 0; i < lines.Length; i++)
+                dc.DrawText(new System.Windows.Media.FormattedText(lines[i], System.Globalization.CultureInfo.InvariantCulture, System.Windows.FlowDirection.LeftToRight,
+                    face, 12, System.Windows.Media.Brushes.Black, 1), new System.Windows.Point(10, 10 + i * line));
+        }
+        var height = line * lines.Length + 20;
+        var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap(width, height, 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
+        bitmap.Render(visual);
+        var pixels = new byte[width * height * 4];
+        bitmap.CopyPixels(pixels, width * 4, 0);
+        return new BgraImage(width, height, pixels);
     }
 
     [Fact]
