@@ -53,6 +53,15 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     /// <summary>Longest answer, in tokens (one or two sentences, with room for a tool call).</summary>
     public const int MaxTokens = 220;
 
+    /// <summary>
+    /// Longest round with tools at hand: a call may carry a long text («envíame la lista completa por Telegram»: the 46
+    /// logins were cut at 220, the call arrived empty and nothing was sent).
+    /// </summary>
+    public const int ToolRoundTokens = 2048;
+
+    /// <summary>About <see cref="MaxTokens"/> in letters: where an answer with no call stops in such a round.</summary>
+    private const int SpokenChars = 1000;
+
     /// <param name="recentTools">The tools used in the last exchange.</param>
     /// <param name="onText">The answer so far, cleaned, while it is written (any thread).</param>
     /// <param name="leaveOut">Tools not to offer for this order (run_command when no command of the user is anything like it).</param>
@@ -74,7 +83,7 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         var hidden = new HashSet<string>(leaveOut ?? [], StringComparer.Ordinal);
         if (aboutMemory) hidden.UnionWith(NoteTools);
         var available = hidden.Count > 0 ? [.. tools.Registry.All.Where(t => !hidden.Contains(t.Name))] : tools.Registry.All;
-        var always = new List<string>(recentTools.Where(t => !hidden.Contains(t)));
+        var always = new List<string>(WithTheirServer(recentTools).Where(t => !hidden.Contains(t)));
         if (commands is { Count: > 0 }) always.Add(RunCommandTool);
         if (capable) always.AddRange(CommandToolNames.Where(t => !hidden.Contains(t) && tools.Registry.Find(t) is not null));
         if (aboutMemory) always.AddRange(MemoryTools);
@@ -122,7 +131,7 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
                     answerNow = ChatMessage.User(Loc.T("assistant.prompt.answerNow"));
                     messages.Add(answerNow);
                 }
-                var request = new ChatRequest(modelName, messages, offer ? definitions : []) { Temperature = capable ? 0.3 : 0.5, MaxTokens = MaxTokens };
+                var request = new ChatRequest(modelName, messages, offer ? definitions : []) { Temperature = capable ? 0.3 : 0.5, MaxTokens = offer ? ToolRoundTokens : MaxTokens };
                 // With commands of theirs at hand, nothing is said while it writes: the text may be one to take back. Nor
                 // once it acted with tools that have their own words: those replace its text (its «Recibido.» was said
                 // ahead, and then «Recibido, Houston. He ejecutado…» again from the start).
@@ -239,6 +248,25 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         return new TalkAnswer(clean) { Tools = used, Steps = steps };
     }
 
+    /// <summary>A small MCP server's tools all go together: one used a moment before brings the rest.</summary>
+    public const int SmallServer = 8;
+
+    /// <summary>
+    /// The tools used a moment before and, for one of a small MCP server, the others of that server, right after it: a
+    /// game started with nueva_partida goes on with probar_letra («La.» is nothing like it).
+    /// </summary>
+    private IEnumerable<string> WithTheirServer(IReadOnlyCollection<string> recent)
+    {
+        var all = tools.Registry.All;
+        foreach (var name in recent)
+        {
+            yield return name;
+            if (tools.Registry.GroupOf(name) is not { } group || !group.StartsWith("mcp:", StringComparison.Ordinal)) continue;
+            var siblings = all.Where(t => t.Name != name && tools.Registry.GroupOf(t.Name) == group).Select(t => t.Name).ToList();
+            if (siblings.Count < SmallServer) foreach (var sibling in siblings) yield return sibling;
+        }
+    }
+
     private const string RunCommandTool = "run_command";
 
     private const string OpenWebTool = "open_web";
@@ -313,6 +341,8 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
             if (chunk.ToolCalls is { Count: > 0 } asked) calls.AddRange(asked);
             if (chunk.Content.Length == 0) continue;
             text.Append(chunk.Content);
+            // An answer to say, not a call (a call may come written as text, «<function=…>»): as long as it always was.
+            if (request.MaxTokens > MaxTokens && calls.Count == 0 && text.Length > SpokenChars && !text.ToString().Contains('<', StringComparison.Ordinal)) break;
             // Text next to a tool call is not the answer yet.
             if (onText is null || calls.Count > 0) continue;
             var clean = ReplyText.Clean(text.ToString());

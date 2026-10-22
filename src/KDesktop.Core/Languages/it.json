@@ -3639,5 +3639,6 @@
   "toolsOptions.fileGone": "Questo file non c'è più.",
   "toolsOptions.backToFiles": "Torna ai tuoi strumenti",
   "toolsOptions.subjectGone": "Non ci sono più strumenti su questo tema.",
-  "toolsOptions.backToBuiltin": "Torna a quelli inclusi"
+  "toolsOptions.backToBuiltin": "Torna a quelli inclusi",
+  "assistant.prompt.speak": "Ciò che restituiscono gli strumenti può contenere disegni, tabelle o spazi vuoti pensati per uno schermo. Tu parli: raccontalo a parole (per esempio, le lettere già trovate e in che posizione, quante ne mancano e le vite rimaste) e non copiare mai simboli o disegni, anche se lo strumento chiede di mostrarlo così com'è."
 }

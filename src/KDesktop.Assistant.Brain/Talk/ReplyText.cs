@@ -19,6 +19,12 @@ public static partial class ReplyText
         var text = Thinking().Replace(raw, " ");
         var open = text.IndexOf("<think>", StringComparison.OrdinalIgnoreCase);
         if (open >= 0) text = text[..open];
+        // Drawings and tables for a screen (the hangman's gallows, «Palabra: _ _ _ _»): a voice read «+---+ | | | ===».
+        // A code block goes (one still open hides the rest), and so do lines that are mostly symbols.
+        text = Fenced().Replace(text, "\n");
+        var fence = text.IndexOf("```", StringComparison.Ordinal);
+        if (fence >= 0) text = text[..fence];
+        if (text.Contains('\n', StringComparison.Ordinal)) text = string.Join('\n', text.Split('\n').Where(l => !IsDrawing(l)));
         text = Tag().Replace(text, " ");
 
         text = Bullet().Replace(text, " ");
@@ -96,6 +102,17 @@ public static partial class ReplyText
     /// <summary>«snake_case» keeps its «_».</summary>
     private static bool IsInsideWord(string text, int i) =>
         text[i] == '_' && i > 0 && i < text.Length - 1 && char.IsLetterOrDigit(text[i - 1]) && char.IsLetterOrDigit(text[i + 1]);
+
+    /// <summary>A line with no letter or digit («|», «+---+»), or of three or more marks less than half of them letters or digits («_ _ _ a _»).</summary>
+    private static bool IsDrawing(string line)
+    {
+        var marks = line.Count(c => !char.IsWhiteSpace(c));
+        var letters = line.Count(char.IsLetterOrDigit);
+        return marks > 0 && (letters == 0 || marks >= 3 && letters * 2 < marks);
+    }
+
+    [GeneratedRegex(@"```.*?```", RegexOptions.Singleline)]
+    private static partial Regex Fenced();
 
     [GeneratedRegex(@"<think>.*?</think>", RegexOptions.Singleline | RegexOptions.IgnoreCase)]
     private static partial Regex Thinking();

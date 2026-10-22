@@ -3639,5 +3639,6 @@
   "toolsOptions.fileGone": "Diese Datei gibt es nicht mehr.",
   "toolsOptions.backToFiles": "Zurück zu deinen Werkzeugen",
   "toolsOptions.subjectGone": "Zu diesem Thema gibt es keine Werkzeuge mehr.",
-  "toolsOptions.backToBuiltin": "Zurück zu den enthaltenen"
+  "toolsOptions.backToBuiltin": "Zurück zu den enthaltenen",
+  "assistant.prompt.speak": "Was Werkzeuge zurückgeben, kann Zeichnungen, Tabellen oder Lücken für einen Bildschirm enthalten. Du sprichst: Sag es in Worten (zum Beispiel, welche Buchstaben schon stehen und wo, wie viele fehlen und wie viele Leben bleiben) und kopiere nie Symbole oder Zeichnungen, auch wenn das Werkzeug verlangt, es unverändert zu zeigen."
 }

@@ -271,6 +271,17 @@ public sealed class TalkTests : IDisposable
     public void AfterDoingSomethingItDoesNotEndAsking(string said, string expected) => Assert.Equal(expected, ReplyText.DropQuestions(said));
 
     [Fact]
+    public void ToolsUsedEarlierInTheConversationStayAtHand()
+    {
+        // «Juguemos al ahorcado» → «¿Qué letra?» (no tool) → «La.»: the game's tool still comes.
+        var history = new TalkHistory(TimeProvider.System);
+        history.Add("juguemos al ahorcado", "Partida nueva.", ["mcp_ahorcado_nueva_partida"]);
+        history.Add("¿qué letra?", "La que quieras.");
+        history.Add("la hora", "Las seis.", ["get_time"]);
+        Assert.Equal(["get_time", "mcp_ahorcado_nueva_partida"], history.LastTools());
+    }
+
+    [Fact]
     public void RepliesAreCleanedForABubble()
     {
         Assert.Equal("Hola, soy Dot.", ReplyText.Clean("<think>mmm</think>**Hola**, soy `Dot`. 😀"));
@@ -278,6 +289,10 @@ public sealed class TalkTests : IDisposable
         Assert.Equal("Abre la web", ReplyText.Clean("Abre [la web](https://x.y)"));
         Assert.Equal("Lo dejo", ReplyText.Clean("Lo dejo<think>sin cerrar"));
         Assert.Equal("set_timer y 20 °C", ReplyText.Clean("set_timer y 20 °C"));
+        // The hangman's drawing is not read out (5.0.136).
+        Assert.Equal("Partida nueva. Letras: 9 Vidas: 6 de 6",
+            ReplyText.Clean("Partida nueva.\n```\n  +---+\n      |\n     ===\n```\nPalabra:  _ _ _ _ _ _ _ _ _\nLetras:   9\nVidas:    6 de 6"));
+        Assert.Equal("Partida nueva.", ReplyText.Clean("Partida nueva.\n  +---+\n      |\n     ==="));
         Assert.Equal("Dicho", ReplyText.Clean("«Dicho»"));
         Assert.Equal("Tienes pilas, piloto.", ReplyText.Clean("<bocadillo>Tienes pilas, piloto.</bocadillo>"));
         Assert.Equal("1 < 2 y 3 > 2", ReplyText.Clean("1 < 2 y 3 > 2"));

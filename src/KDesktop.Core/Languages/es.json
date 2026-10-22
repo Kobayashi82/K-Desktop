@@ -3639,5 +3639,6 @@
   "toolsOptions.fileGone": "Este archivo ya no está.",
   "toolsOptions.backToFiles": "Volver a tus herramientas",
   "toolsOptions.subjectGone": "Ya no hay herramientas de este tema.",
-  "toolsOptions.backToBuiltin": "Volver a las incluidas"
+  "toolsOptions.backToBuiltin": "Volver a las incluidas",
+  "assistant.prompt.speak": "Lo que devuelven las herramientas puede traer dibujos, tablas o huecos pensados para una pantalla. Tú hablas: cuéntalo con palabras (por ejemplo, las letras que ya están y en qué sitio, cuántas faltan y las vidas que quedan) y nunca copies símbolos ni dibujos, aunque la herramienta pida mostrarlo tal cual."
 }

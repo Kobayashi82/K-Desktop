@@ -37,8 +37,11 @@ public sealed partial class ToolChooser(IMeaning? meaning)
     /// <summary>At least this many (when there are), however far: the meaning of a short order can be misleading.</summary>
     public const int Least = 3;
 
-    /// <summary>At most this many more tools that must be at hand (used a moment before, the command tools…).</summary>
-    public const int MostPinned = 5;
+    /// <summary>
+    /// At most this many more tools that must be at hand (used a moment before, with the rest of their small MCP server;
+    /// the command tools…).
+    /// </summary>
+    public const int MostPinned = 10;
 
     /// <summary>Beyond <see cref="Least"/>, only tools this close to the best one.</summary>
     public const double Spread = 0.08;

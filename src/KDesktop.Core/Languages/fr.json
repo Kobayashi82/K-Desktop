@@ -3639,5 +3639,6 @@
   "toolsOptions.fileGone": "Ce fichier n'existe plus.",
   "toolsOptions.backToFiles": "Retour à vos outils",
   "toolsOptions.subjectGone": "Il n'y a plus d'outils sur ce thème.",
-  "toolsOptions.backToBuiltin": "Retour aux outils inclus"
+  "toolsOptions.backToBuiltin": "Retour aux outils inclus",
+  "assistant.prompt.speak": "Ce que renvoient les outils peut contenir des dessins, des tableaux ou des blancs prévus pour un écran. Toi, tu parles : dis-le avec des mots (par exemple, les lettres déjà trouvées et leur place, combien il en manque et les vies restantes) et ne recopie jamais de symboles ni de dessins, même si l'outil demande de l'afficher tel quel."
 }

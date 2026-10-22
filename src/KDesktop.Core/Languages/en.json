@@ -3639,5 +3639,6 @@
   "toolsOptions.fileGone": "This file is no longer there.",
   "toolsOptions.backToFiles": "Back to your tools",
   "toolsOptions.subjectGone": "There are no tools on this subject any more.",
-  "toolsOptions.backToBuiltin": "Back to the built-in ones"
+  "toolsOptions.backToBuiltin": "Back to the built-in ones",
+  "assistant.prompt.speak": "What tools return may include drawings, tables or blanks meant for a screen. You speak: put it into words (for example, which letters are already in place and where, how many are missing and the lives left) and never copy symbols or drawings, even if the tool asks for it to be shown as is."
 }

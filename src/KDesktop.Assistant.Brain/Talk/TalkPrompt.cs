@@ -26,6 +26,8 @@ public static class TalkPrompt
         // The tools before the style: «contesta con una o dos frases» first, a 9 B answered in words and called nothing.
         text.AppendLine(Loc.T("assistant.prompt.tools"));
         text.AppendLine(Loc.T("assistant.prompt.style"));
+        // A tool made for a screen asks for its drawing «tal cual» (the hangman): it was copied and read out as symbols.
+        text.AppendLine(Loc.T("assistant.prompt.speak"));
         text.AppendLine(Loc.T("assistant.prompt.language"));
         text.AppendLine(Loc.T("assistant.prompt.act"));
         if (commands is { Count: > 0 }) text.AppendLine(Loc.T("assistant.prompt.commands", string.Join(", ", commands.Select(c => $"«{c}»"))));
@@ -96,13 +98,17 @@ public sealed class TalkHistory(TimeProvider time)
         }
     }
 
-    /// <summary>The tools used in the last exchange (none when it was forgotten).</summary>
+    /// <summary>
+    /// The tools used in the exchanges it keeps, the last one's first (none when it was forgotten): a game goes on over
+    /// several orders, and «La.» right after «¿qué letra?» lost the hangman's tools (only the last exchange's came, and
+    /// that one had used none).
+    /// </summary>
     public IReadOnlyList<string> LastTools()
     {
         lock (_gate)
         {
             Expire();
-            return _exchanges.Count > 0 ? _exchanges[^1].Tools : [];
+            return [.. Enumerable.Reverse(_exchanges).SelectMany(e => e.Tools).Distinct(StringComparer.Ordinal)];
         }
     }
 
