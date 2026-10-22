@@ -38,6 +38,8 @@
     { "say": "how many minutes are there in a day?", "expect": { "answerContains": ["1440", "1,440"] } },
     { "say": "find the electricity bill pdf", "expect": { "tool": "find_files" } },
     { "say": "where did I save the wedding photos?", "expect": { "tool": "find_files" } },
-    { "say": "open the last thing I downloaded", "expect": { "tool": ["open_file", "find_files"] } }
+    { "say": "open the last thing I downloaded", "expect": { "tool": ["open_file", "find_files"] } },
+    { "say": "what error is this window showing me?", "expect": { "tool": "look_at_screen" } },
+    { "say": "summarise the page I have open", "expect": { "tool": "read_web" } }
   ]
 }

@@ -8,11 +8,16 @@ public enum ChatRole { System, User, Assistant, Tool }
 public sealed record ToolCall(string Name, JsonElement Arguments, string? Id = null);
 
 /// <summary>One message of the conversation.</summary>
-public sealed record ChatMessage(ChatRole Role, string Content, IReadOnlyList<ToolCall>? ToolCalls = null, string? ToolName = null, string? ToolCallId = null)
+/// <param name="Images">Pictures that go with it (JPEG or PNG), for a model that sees (stage 8.3); null: none.</param>
+public sealed record ChatMessage(ChatRole Role, string Content, IReadOnlyList<ToolCall>? ToolCalls = null, string? ToolName = null, string? ToolCallId = null,
+    IReadOnlyList<byte[]>? Images = null)
 {
     public static ChatMessage System(string content) => new(ChatRole.System, content);
 
     public static ChatMessage User(string content) => new(ChatRole.User, content);
+
+    /// <summary>The user's words with a picture (a screenshot).</summary>
+    public static ChatMessage UserWithImage(string content, byte[] image) => new(ChatRole.User, content, Images: [image]);
 
     public static ChatMessage Assistant(string content, IReadOnlyList<ToolCall>? toolCalls = null) => new(ChatRole.Assistant, content, toolCalls);
 

@@ -3315,5 +3315,15 @@
   "tool.files.kind.music": "musique",
   "tool.files.kind.archive": "archives",
   "tool.files.kind.program": "programmes",
-  "tool.files.kind.folder": "dossiers"
+  "tool.files.kind.folder": "dossiers",
+  "tool.look_at_screen.intent": "regarder l'écran",
+  "tool.look_at_screen.done": "A regardé l'écran : {0}",
+  "tool.look_at_screen.blind": "Le modèle avec lequel je pense ne voit pas les images : choisis-en un avec la vision dans Paramètres → Cerveau.",
+  "tool.look_at_screen.examples": "qu'est-ce qui est écrit ici|quelle est cette erreur|lis ce qu'il y a à l'écran|qu'est-ce que tu vois sur mon écran|que dit ce message|lis-moi le texte de cette image",
+  "tool.read_web.intent": "lire {0}",
+  "tool.read_web.intentOpen": "lire la page ouverte",
+  "tool.read_web.done": "A lu « {0} »",
+  "tool.read_web.failed": "N'a pas pu lire {0}",
+  "tool.read_web.examples": "résume-moi cette page|de quoi parle cet article|lis-moi ce site|que dit la page que j'ai ouverte|résume l'actualité que je lis",
+  "tool.look_at_screen.monitor": "l'écran"
 }

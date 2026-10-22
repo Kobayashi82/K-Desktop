@@ -26,13 +26,15 @@ internal sealed class ModuleTools : IDisposable
     private volatile string _askBefore = AskPolicy.Risky;
 
     /// <param name="commands">The user's K-Desktop commands (stage 4.4).</param>
-    public ModuleTools(KDesktopLink link, ICommandBridge commands)
+    /// <param name="screen">Pictures of the desktop and the page in the browser (stage 8.3).</param>
+    /// <param name="vision">The model looking at them.</param>
+    public ModuleTools(KDesktopLink link, ICommandBridge commands, IScreen screen, IVision vision)
     {
         _link = link;
         var folder = Path.Combine(AppPaths.DataDir, "Assistant");
         Builtin = new BuiltinTools(folder);
         var registry = new ToolRegistry();
-        Builtin.AddTo(registry);
+        Builtin.AddTo(registry, screen, vision);
         CommandTools.AddTo(registry, commands);
         Runner = new ToolRunner(registry, () => _trusted, AskAsync, message => link.Send(message), Path.Combine(folder, "undo.json"), () => _askBefore);
         Builtin.Timers.Rang += OnTimerRang;

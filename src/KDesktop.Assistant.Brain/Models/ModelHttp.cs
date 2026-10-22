@@ -27,6 +27,10 @@ internal static class ModelHttp
         _ => "user",
     };
 
+    /// <summary>The media type of a picture by its first bytes (PNG or, otherwise, JPEG).</summary>
+    public static string ImageType(byte[] image) =>
+        image is [0x89, 0x50, 0x4E, 0x47, ..] ? "image/png" : "image/jpeg";
+
     /// <summary>The <c>error</c> of a JSON body (a text, or an object with <c>message</c>), or the body itself.</summary>
     public static string? ReadError(string body)
     {

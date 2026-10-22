@@ -3315,5 +3315,15 @@
   "tool.files.kind.music": "music",
   "tool.files.kind.archive": "archives",
   "tool.files.kind.program": "programs",
-  "tool.files.kind.folder": "folders"
+  "tool.files.kind.folder": "folders",
+  "tool.look_at_screen.intent": "look at the screen",
+  "tool.look_at_screen.done": "Looked at the screen: {0}",
+  "tool.look_at_screen.blind": "The model I think with can't see pictures: choose one with vision in Settings → Brain.",
+  "tool.look_at_screen.examples": "what does it say here|what is this error|read what is on the screen|what do you see on my screen|what does this message say|what is this window about|read me the text in this picture",
+  "tool.read_web.intent": "read {0}",
+  "tool.read_web.intentOpen": "read the open page",
+  "tool.read_web.done": "Read «{0}»",
+  "tool.read_web.failed": "Could not read {0}",
+  "tool.read_web.examples": "summarise this page|what is this article about|read this website to me|what does the page I have open say|sum up the news I'm reading|read this page and tell me what matters",
+  "tool.look_at_screen.monitor": "the monitor"
 }

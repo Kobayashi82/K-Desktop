@@ -3315,5 +3315,15 @@
   "tool.files.kind.music": "Musik",
   "tool.files.kind.archive": "Archive",
   "tool.files.kind.program": "Programme",
-  "tool.files.kind.folder": "Ordner"
+  "tool.files.kind.folder": "Ordner",
+  "tool.look_at_screen.intent": "auf den Bildschirm schauen",
+  "tool.look_at_screen.done": "Auf den Bildschirm geschaut: {0}",
+  "tool.look_at_screen.blind": "Das Modell, mit dem ich denke, sieht keine Bilder: Wähle in Einstellungen → Gehirn eines mit Bildverständnis.",
+  "tool.look_at_screen.examples": "was steht hier|was ist das für ein Fehler|lies, was auf dem Bildschirm steht|was siehst du auf meinem Bildschirm|was sagt diese Meldung|lies mir den Text in diesem Bild vor",
+  "tool.read_web.intent": "{0} lesen",
+  "tool.read_web.intentOpen": "die geöffnete Seite lesen",
+  "tool.read_web.done": "„{0}“ gelesen",
+  "tool.read_web.failed": "Konnte {0} nicht lesen",
+  "tool.read_web.examples": "fass mir diese Seite zusammen|worum geht es in diesem Artikel|lies mir diese Webseite vor|was steht auf der Seite, die ich offen habe|fass die Nachricht zusammen, die ich lese",
+  "tool.look_at_screen.monitor": "der Monitor"
 }

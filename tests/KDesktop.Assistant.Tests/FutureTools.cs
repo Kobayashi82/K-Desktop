@@ -22,8 +22,6 @@ internal static class FutureTools
             "cuánto disco me queda|qué está consumiendo tanto|cómo va la memoria|a qué temperatura está la gráfica|cuánta batería queda|how much disk space is left|what is using so much CPU|how much battery is left"),
         new FakeTool("kill_process", "Ends a program that does not respond: first politely, then by force.",
             "cierra lo que se ha colgado|mata el proceso de Chrome|fuerza el cierre de Photoshop|el juego se ha quedado congelado, ciérralo|kill the frozen program|force Photoshop to close"),
-        new FakeTool("read_screen", "Reads the text on part of the screen (OCR), to say it or copy it.",
-            "qué pone aquí|lee lo que hay en pantalla|copia el texto de esta imagen|qué dice este mensaje de error|what does it say here|copy the text from this image|read what is on the screen"),
         new FakeTool("now_playing", "Tells which song or video is playing on the PC.",
             "qué canción es esta|qué está sonando|cómo se llama esta canción|de quién es esta canción|what song is this|what is playing right now|who sings this song"),
         new FakeTool("weather", "Gives the weather forecast for a place and a day.",

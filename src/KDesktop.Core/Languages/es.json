@@ -3315,5 +3315,15 @@
   "tool.files.kind.music": "música",
   "tool.files.kind.archive": "archivos comprimidos",
   "tool.files.kind.program": "programas",
-  "tool.files.kind.folder": "carpetas"
+  "tool.files.kind.folder": "carpetas",
+  "tool.look_at_screen.intent": "mirar la pantalla",
+  "tool.look_at_screen.done": "Miró la pantalla: {0}",
+  "tool.look_at_screen.blind": "El modelo con el que pienso no ve imágenes: elige uno con visión en Opciones → Cerebro.",
+  "tool.look_at_screen.examples": "qué pone aquí|qué error me sale|lee lo que hay en pantalla|qué ves en mi pantalla|qué dice este mensaje|de qué va esta ventana|léeme el texto de esta imagen|qué es esto que tengo delante",
+  "tool.read_web.intent": "leer {0}",
+  "tool.read_web.intentOpen": "leer la página abierta",
+  "tool.read_web.done": "Leyó «{0}»",
+  "tool.read_web.failed": "No pudo leer {0}",
+  "tool.read_web.examples": "resúmeme esta página|de qué va este artículo|léeme esta web|qué dice la página que tengo abierta|resume la noticia que estoy leyendo|qué pone en la web de la AEMET|lee esta página y dime lo importante",
+  "tool.look_at_screen.monitor": "el monitor"
 }

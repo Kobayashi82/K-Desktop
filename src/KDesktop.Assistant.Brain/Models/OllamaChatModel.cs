@@ -125,6 +125,12 @@ public sealed class OllamaChatModel : IChatModel
                 json.WriteStartObject();
                 json.WriteString("role", ModelHttp.Role(message.Role));
                 json.WriteString("content", message.Content);
+                if (message.Images is { Count: > 0 } images)
+                {
+                    json.WriteStartArray("images");
+                    foreach (var image in images) json.WriteBase64StringValue(image);
+                    json.WriteEndArray();
+                }
                 if (message.ToolName is not null) json.WriteString("tool_name", message.ToolName);
                 if (message.ToolCalls is { Count: > 0 } calls)
                 {

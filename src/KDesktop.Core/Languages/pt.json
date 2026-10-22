@@ -3315,5 +3315,15 @@
   "tool.files.kind.music": "música",
   "tool.files.kind.archive": "arquivos compactados",
   "tool.files.kind.program": "programas",
-  "tool.files.kind.folder": "pastas"
+  "tool.files.kind.folder": "pastas",
+  "tool.look_at_screen.intent": "olhar a tela",
+  "tool.look_at_screen.done": "Olhou a tela: {0}",
+  "tool.look_at_screen.blind": "O modelo com que eu penso não vê imagens: escolha um com visão em Configurações → Cérebro.",
+  "tool.look_at_screen.examples": "o que está escrito aqui|que erro é esse|lê o que tem na tela|o que você vê na minha tela|o que diz essa mensagem|lê para mim o texto dessa imagem",
+  "tool.read_web.intent": "ler {0}",
+  "tool.read_web.intentOpen": "ler a página aberta",
+  "tool.read_web.done": "Leu «{0}»",
+  "tool.read_web.failed": "Não conseguiu ler {0}",
+  "tool.read_web.examples": "resume essa página para mim|do que fala esse artigo|lê esse site para mim|o que diz a página que eu tenho aberta|resume a notícia que estou lendo",
+  "tool.look_at_screen.monitor": "o monitor"
 }

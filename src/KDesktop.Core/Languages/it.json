@@ -3315,5 +3315,15 @@
   "tool.files.kind.music": "musica",
   "tool.files.kind.archive": "archivi compressi",
   "tool.files.kind.program": "programmi",
-  "tool.files.kind.folder": "cartelle"
+  "tool.files.kind.folder": "cartelle",
+  "tool.look_at_screen.intent": "guardare lo schermo",
+  "tool.look_at_screen.done": "Ha guardato lo schermo: {0}",
+  "tool.look_at_screen.blind": "Il modello con cui penso non vede le immagini: scegline uno con la visione in Impostazioni → Cervello.",
+  "tool.look_at_screen.examples": "cosa c'è scritto qui|che errore è questo|leggi quello che c'è sullo schermo|cosa vedi sul mio schermo|cosa dice questo messaggio|leggimi il testo di questa immagine",
+  "tool.read_web.intent": "leggere {0}",
+  "tool.read_web.intentOpen": "leggere la pagina aperta",
+  "tool.read_web.done": "Ha letto «{0}»",
+  "tool.read_web.failed": "Non ha potuto leggere {0}",
+  "tool.read_web.examples": "riassumimi questa pagina|di cosa parla questo articolo|leggimi questo sito|cosa dice la pagina che ho aperto|riassumi la notizia che sto leggendo",
+  "tool.look_at_screen.monitor": "il monitor"
 }

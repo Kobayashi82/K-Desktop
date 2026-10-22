@@ -255,7 +255,26 @@ public sealed class OpenAICompatibleChatModel : IChatModel
             {
                 json.WriteStartObject();
                 json.WriteString("role", ModelHttp.Role(message.Role));
-                json.WriteString("content", message.Content);
+                if (message.Images is { Count: > 0 } images)
+                {
+                    // With pictures the content is a list of parts: the text, then each picture as a data address.
+                    json.WriteStartArray("content");
+                    json.WriteStartObject();
+                    json.WriteString("type", "text");
+                    json.WriteString("text", message.Content);
+                    json.WriteEndObject();
+                    foreach (var image in images)
+                    {
+                        json.WriteStartObject();
+                        json.WriteString("type", "image_url");
+                        json.WriteStartObject("image_url");
+                        json.WriteString("url", $"data:{ModelHttp.ImageType(image)};base64,{Convert.ToBase64String(image)}");
+                        json.WriteEndObject();
+                        json.WriteEndObject();
+                    }
+                    json.WriteEndArray();
+                }
+                else json.WriteString("content", message.Content);
                 if (message.Role == ChatRole.Tool) json.WriteString("tool_call_id", message.ToolCallId ?? message.ToolName ?? "call");
                 if (message.ToolCalls is { Count: > 0 } calls)
                 {
