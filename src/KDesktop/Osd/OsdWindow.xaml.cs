@@ -140,9 +140,16 @@ public partial class OsdWindow : Window
         Scale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(scale, duration) { EasingFunction = ease });
     }
 
-    /// <summary>Places the window on the monitor that has the mouse cursor.</summary>
+    /// <summary>Places the window on the monitor that has the mouse cursor, and the pill inside it at the side of the position.</summary>
     private void Reposition()
     {
+        Root.HorizontalAlignment = Position is OsdPosition.TopRight or OsdPosition.BottomRight ? HorizontalAlignment.Right : HorizontalAlignment.Center;
+        Root.VerticalAlignment = Position switch
+        {
+            OsdPosition.TopCenter or OsdPosition.TopRight => VerticalAlignment.Top,
+            OsdPosition.Center => VerticalAlignment.Center,
+            _ => VerticalAlignment.Bottom,
+        };
         if (!IsLoaded && !IsVisible) return;
         var hwnd = UiNative.Handle(this);
         var cursor = UiNative.CursorPosition();

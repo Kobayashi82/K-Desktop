@@ -71,10 +71,16 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TreeView">
-                        <ScrollViewer Focusable="False" CanContentScroll="False" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
-                                      Padding="0,0,8,0">
+                        <ScrollViewer x:Name="Scroller" Focusable="False" CanContentScroll="False" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
+                                      Padding="0,0,4,0">
                             <ItemsPresenter />
                         </ScrollViewer>
+                        <ControlTemplate.Triggers>
+                            <!-- The scroll bar floats over the content: the rows make room for it instead of going under it -->
+                            <Trigger SourceName="Scroller" Property="ComputedVerticalScrollBarVisibility" Value="Visible">
+                                <Setter TargetName="Scroller" Property="Padding" Value="0,0,18,0" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -177,17 +183,17 @@
 
     <Grid Margin="24,12,0,0" PreviewKeyDown="OnPageKeyDown">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="280" />
+            <ColumnDefinition Width="292" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <!-- ── Sections: groups that fold, their sections and the assistants inside «Asistentes» (SettingsPage.Nav.cs) ── -->
         <DockPanel Grid.Column="0" Margin="0,0,16,16">
             <TextBlock DockPanel.Dock="Top" Style="{StaticResource PageTitle}" Text="{l:Tr nav.settings}" Margin="0,0,0,12" />
-            <ui:TextBox x:Name="SearchBox" DockPanel.Dock="Top" Margin="0,0,8,10" Icon="{ui:SymbolIcon Search24}" ClearButtonEnabled="True"
+            <ui:TextBox x:Name="SearchBox" DockPanel.Dock="Top" Margin="0,0,4,10" Icon="{ui:SymbolIcon Search24}" ClearButtonEnabled="True"
                         PlaceholderText="{l:Tr settings.nav.search}" AutomationProperties.Name="{l:Tr settings.nav.search}"
                         TextChanged="OnSearchChanged" PreviewKeyDown="OnSearchKeyDown" />
-            <TextBlock x:Name="NoResults" DockPanel.Dock="Top" Margin="4,4,8,0" TextWrapping="Wrap" Visibility="Collapsed"
+            <TextBlock x:Name="NoResults" DockPanel.Dock="Top" Margin="4,4,4,0" TextWrapping="Wrap" Visibility="Collapsed"
                        Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="{l:Tr settings.nav.noResults}" />
             <TreeView x:Name="NavTree" Style="{StaticResource NavTree}" AutomationProperties.Name="{l:Tr nav.settings}"
                       PreviewMouseLeftButtonDown="OnNavMouseDown" PreviewKeyDown="OnNavKeyDown" />
@@ -1065,7 +1071,6 @@
             <!-- Assistant -->
             <local:AssistantGeneralSection Tag="assistant" />
             <local:AssistantListSection x:Name="AssistantsSection" Tag="assistants" />
-            <assistant:AssistantPersonalView Tag="bodiless" Bodiless="True" />
             <local:AssistantBrainSection Tag="brain" />
             <local:AssistantVoiceSection Tag="speech" />
             <local:AssistantMemorySection Tag="memory" />

@@ -11,10 +11,11 @@ using Microsoft.Win32;
 namespace KDesktop.Views.Pages;
 
 /// <summary>
-/// Options → Assistant → Assistants (stage 1.8): the installed assistants with their icon, version and author;
-/// «Add assistant» opens a package's card, and each one can be put on the desktop (several at once, stage 1.11),
-/// hidden or removed (asking whether to keep its data), and given its own wake word. Below, who takes what is not
-/// addressed to anyone. «Settings» shows its own settings (stage 1.9) in place of the list.
+/// Options → Assistant → Assistants (stage 1.8): K-Desktop (5.0.112, of the system: made active or not, never removed) and
+/// the installed assistants with their icon, version and author; «Add assistant» opens a package's card, and each one
+/// can be put on the desktop (several at once, stage 1.11), hidden or removed (asking whether to keep its data), and
+/// given its own wake word. Below, who takes what is not addressed to anyone. «Settings» shows its own settings (stage
+/// 1.9) in place of the list.
 /// </summary>
 public partial class AssistantListSection : UserControl
 {
@@ -51,7 +52,7 @@ public partial class AssistantListSection : UserControl
     private void Refresh()
     {
         // The assistant whose settings are open was removed or updated.
-        if (SettingsView.AssistantId is { } open && SettingsView.IsVisible)
+        if (SettingsView.AssistantId is { } open && SettingsView.IsVisible && !Core.Assistant.AssistantTargeting.IsSystem(open))
         {
             if (AssistantPackages.Find(open) is { } installed) SettingsView.Refresh(installed);
             else ShowList();
@@ -67,7 +68,7 @@ public partial class AssistantListSection : UserControl
                 // A word of another assistant says whose it is: choosing it here takes it from that one.
                 var owner = _app.WakeOwnerOf(word.Id);
                 options.Add(new(word.Id, owner is null || owner == row.Id ? word.Name
-                    : owner == WakeOwners.KDesktop ? Loc.T("assistantOptions.wakeOfKDesktop", word.Name)
+                    : owner == WakeOwners.Commands ? Loc.T("assistantOptions.wakeOfKDesktop", word.Name)
                     : owner == Core.Assistant.AssistantTargeting.AnyAssistant ? Loc.T("assistantOptions.wakeOfAny", word.Name)
                     : Loc.T("assistantOptions.wakeOf", word.Name, App.AssistantName(owner))));
             }
@@ -77,8 +78,9 @@ public partial class AssistantListSection : UserControl
         LookUpSuggestions(rows);
         _brainShown = BrainShown();
         AssistantList.ItemsSource = rows;
-        EmptyPanel.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        ModuleOffText.Visibility = rows.Count > 0 && !_app.Config.Settings.AssistantEnabled ? Visibility.Visible : Visibility.Collapsed;
+        // Nothing installed: K-Desktop is there, and a word on where the others come from.
+        EmptyPanel.Visibility = rows.All(r => r.IsSystem) ? Visibility.Visible : Visibility.Collapsed;
+        ModuleOffText.Visibility = !_app.Config.Settings.AssistantEnabled ? Visibility.Visible : Visibility.Collapsed;
 
         var s = _app.Config.Settings;
         List<TargetOption> targets =
@@ -110,11 +112,13 @@ public partial class AssistantListSection : UserControl
     /// <summary>Looks up what each assistant suggests again when the models of the brain changed; the list is made again with it.</summary>
     private async void LookUpSuggestions(IReadOnlyList<AssistantRow> rows)
     {
-        var key = string.Join(',', _app.AssistantBrain?.Models?.Select(m => m.Name) ?? []) + "|" + string.Join(',', rows.Select(r => r.Id + r.Installed.Manifest.Version));
+        // K-Desktop suggests nothing: it has no package.
+        var packages = rows.Where(r => r.Installed is not null).Select(r => r.Installed!).ToList();
+        var key = string.Join(',', _app.AssistantBrain?.Models?.Select(m => m.Name) ?? []) + "|" + string.Join(',', packages.Select(p => p.Id + p.Manifest.Version));
         if (_app.AssistantBrain is null || key == _suggestionsFor) return;
         _suggestionsFor = key;
         var found = new Dictionary<string, App.SuggestedModel?>(StringComparer.Ordinal);
-        foreach (var row in rows) found[row.Id] = await _app.MissingSuggestedModelAsync(row.Installed.Manifest);
+        foreach (var package in packages) found[package.Id] = await _app.MissingSuggestedModelAsync(package.Manifest);
         if (key != _suggestionsFor) return;
         _suggestions.Clear();
         foreach (var (id, model) in found) _suggestions[id] = model;
@@ -166,15 +170,16 @@ public partial class AssistantListSection : UserControl
     /// <summary>The list (null) or an assistant's settings (its id) is shown now: the tree of Options follows.</summary>
     public event Action<string?>? Shown;
 
-    /// <summary>Shows an installed assistant's settings in place of the list (<c>--page settings/assistants/&lt;id&gt;</c>).</summary>
+    /// <summary>Shows an assistant's settings in place of the list (<c>--page settings/assistants/&lt;id&gt;</c>); K-Desktop's are its «Personalidad y voz».</summary>
     public void ShowSettings(string id)
     {
-        if (AssistantPackages.Find(id) is not { } installed)
+        if (Core.Assistant.AssistantTargeting.IsSystem(id)) SettingsView.ShowSystem();
+        else if (AssistantPackages.Find(id) is { } installed) SettingsView.Show(installed);
+        else
         {
             ShowList();
             return;
         }
-        SettingsView.Show(installed);
         ListCard.Visibility = Visibility.Collapsed;
         SettingsView.Visibility = Visibility.Visible;
         Shown?.Invoke(id);

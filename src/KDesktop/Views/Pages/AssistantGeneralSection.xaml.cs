@@ -141,7 +141,7 @@ public partial class AssistantGeneralSection : UserControl
             options.Add(new(word.Id, owner switch
             {
                 null or AssistantTargeting.AnyAssistant => word.Name,
-                Core.Voice.WakeOwners.KDesktop => Loc.T("assistantOptions.wakeOfKDesktop", word.Name),
+                Core.Voice.WakeOwners.Commands => Loc.T("assistantOptions.wakeOfKDesktop", word.Name),
                 _ => Loc.T("assistantOptions.wakeOf", word.Name, App.AssistantName(owner)),
             }));
         }

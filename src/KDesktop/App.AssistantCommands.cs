@@ -55,7 +55,7 @@ public partial class App
             case RunEventMessage runEvent:
                 _ = Task.Run(async () =>
                 {
-                    var who = AssistantPackages.Find(runEvent.Assistant)?.Manifest.Name ?? (runEvent.Assistant.Length > 0 ? runEvent.Assistant : "K-Desktop");
+                    var who = AssistantName(runEvent.Assistant);
                     var end = await AssistantCommands.RunEventAsync(Engine, runEvent, who,
                         (rule, risk) => Dispatcher.InvokeAsync(() => AskUserAsync("event-" + runEvent.Run, runEvent.Assistant, Loc.T("assistantCommand.askEvent", rule.Name), false, CommandAskSeconds)).Task.Unwrap())
                         .ConfigureAwait(false);
@@ -82,7 +82,7 @@ public partial class App
         Func<string, AssistantChoreography?, Task<EndMessage>> run) =>
         _ = Task.Run(async () =>
         {
-            var who = AssistantPackages.Find(assistant)?.Manifest.Name ?? (assistant.Length > 0 ? assistant : "K-Desktop");
+            var who = AssistantName(assistant);
             var settings = Config.Settings;
             using var choreography = choreographed
                 ? new AssistantChoreography(runId, m => supervisor.Send(m)) { Speed = settings.AssistantManoeuvres, AnimateMax = Math.Max(0, settings.AssistantAnimateMax) }

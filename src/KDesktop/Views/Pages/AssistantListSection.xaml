@@ -21,16 +21,6 @@
                            Content="{l:Tr assistantOptions.add}" Click="OnAdd" />
             </Grid>
 
-            <!-- Nothing installed -->
-            <StackPanel x:Name="EmptyPanel" Margin="0,28,0,20" HorizontalAlignment="Center" Visibility="Collapsed">
-                <Border Width="64" Height="64" CornerRadius="16" Background="{DynamicResource Kd.AccentSoft}" HorizontalAlignment="Center">
-                    <ui:SymbolIcon Symbol="Bot24" FontSize="32" Foreground="{DynamicResource Kd.AccentText}" />
-                </Border>
-                <TextBlock Margin="0,14,0,4" HorizontalAlignment="Center" FontSize="15" FontWeight="SemiBold"
-                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{l:Tr assistantOptions.empty}" />
-                <TextBlock Style="{StaticResource Caption}" MaxWidth="420" TextAlignment="Center" Text="{l:Tr assistantOptions.emptyHint}" />
-            </StackPanel>
-
             <ItemsControl x:Name="AssistantList" Margin="0,10,0,0" Focusable="False">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -57,7 +47,7 @@
                                         <Border Margin="10,0,0,0" CornerRadius="9" Padding="8,1" VerticalAlignment="Center"
                                                 Background="{DynamicResource Kd.AccentSoft}"
                                                 Visibility="{Binding IsOnDesktop, Converter={StaticResource BoolToVis}}">
-                                            <TextBlock FontSize="11" Foreground="{DynamicResource Kd.AccentText}" Text="{l:Tr assistantOptions.onDesktop}" />
+                                            <TextBlock FontSize="11" Foreground="{DynamicResource Kd.AccentText}" Text="{Binding OnDesktopText}" />
                                         </Border>
                                     </StackPanel>
                                     <TextBlock Style="{StaticResource Caption}" Margin="0,1,0,0" Text="{Binding Byline}" TextTrimming="CharacterEllipsis" />
@@ -99,11 +89,12 @@
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                     <ui:Button Margin="0,0,8,0" Content="{l:Tr assistantOptions.settings}" Icon="{ui:SymbolIcon Options24}"
                                                Click="OnSettings" Visibility="{Binding HasSettings, Converter={StaticResource BoolToVis}}" />
-                                    <ui:Button Content="{l:Tr assistantOptions.putOnDesktop}" Icon="{ui:SymbolIcon Play24}" Click="OnActivate"
+                                    <ui:Button Content="{Binding PutText}" Icon="{ui:SymbolIcon Play24}" Click="OnActivate"
                                                Visibility="{Binding IsOffDesktop, Converter={StaticResource BoolToVis}}" />
-                                    <ui:Button Content="{l:Tr assistantOptions.hide}" Icon="{ui:SymbolIcon EyeOff24}" Click="OnHide"
+                                    <ui:Button Content="{Binding HideText}" Icon="{ui:SymbolIcon EyeOff24}" Click="OnHide"
                                                Visibility="{Binding IsOnDesktop, Converter={StaticResource BoolToVis}}" />
                                     <ui:Button Margin="8,0,0,0" Icon="{ui:SymbolIcon Delete24}" Click="OnRemove"
+                                               Visibility="{Binding CanRemove, Converter={StaticResource BoolToVis}}"
                                                ToolTip="{l:Tr assistantOptions.remove}" AutomationProperties.Name="{l:Tr assistantOptions.remove}" />
                                 </StackPanel>
                             </Grid>
@@ -116,6 +107,16 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+
+            <!-- Nothing installed besides K-Desktop -->
+            <StackPanel x:Name="EmptyPanel" Margin="0,14,0,12" HorizontalAlignment="Center" Visibility="Collapsed">
+                <Border Width="56" Height="56" CornerRadius="14" Background="{DynamicResource Kd.AccentSoft}" HorizontalAlignment="Center">
+                    <ui:SymbolIcon Symbol="Bot24" FontSize="28" Foreground="{DynamicResource Kd.AccentText}" />
+                </Border>
+                <TextBlock Margin="0,12,0,4" HorizontalAlignment="Center" FontSize="15" FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{l:Tr assistantOptions.empty}" />
+                <TextBlock Style="{StaticResource Caption}" MaxWidth="420" TextAlignment="Center" TextWrapping="Wrap" Text="{l:Tr assistantOptions.emptyHint}" />
+            </StackPanel>
 
             <TextBlock x:Name="ModuleOffText" Style="{StaticResource Caption}" Margin="0,2,0,0" Visibility="Collapsed"
                        Text="{l:Tr assistantCard.moduleOff}" />

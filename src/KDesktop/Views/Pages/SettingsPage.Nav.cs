@@ -58,7 +58,6 @@ public partial class SettingsPage
         [
             new("assistant", "Bot24", "settings.nav.assistant"),
             new("assistants", "PeopleCommunity24", "settings.nav.assistants"),
-            new("bodiless", "Chat24", "settings.nav.bodiless"),
             new("brain", "BrainCircuit24", "settings.nav.brain"),
             new("speech", "PersonVoice24", "settings.nav.assistantVoice"),
             new("memory", "BookInformation24", "settings.nav.memory"),
@@ -216,37 +215,38 @@ public partial class SettingsPage
         return grid;
     }
 
-    private static FrameworkElement SubHeader(InstalledAssistant installed)
+    private static FrameworkElement SubHeader(ImageSource? icon, string text)
     {
         var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(46, 0, 0, 0) };
         row.Children.Add(new Image
         {
-            Source = AssistantLook.Icon(installed), Width = 20, Height = 20, Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center,
+            Source = icon, Width = 20, Height = 20, Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center,
         });
-        var name = new TextBlock { Text = installed.Manifest.Name, FontSize = 13, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+        var name = new TextBlock { Text = text, FontSize = 13, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
         name.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorPrimaryBrush");
         row.Children.Add(name);
         RenderOptions.SetBitmapScalingMode(row.Children[0], BitmapScalingMode.HighQuality);
         return row;
     }
 
-    /// <summary>The installed assistants inside «Asistentes» (each opens its own settings).</summary>
+    /// <summary>The assistants inside «Asistentes», K-Desktop first (each opens its own settings).</summary>
     private void FillAssistants()
     {
-        var installed = AssistantPackages.Installed();
-        var keys = installed.Select(a => "assistants/" + a.Id).ToList();
+        var assistants = AssistantPackages.Installed().Select(a => (Id: a.Id, Name: a.Manifest.Name, Icon: AssistantLook.Icon(a)))
+            .Prepend((Id: Core.Assistant.AssistantTargeting.KDesktop, Name: "K-Desktop", Icon: AssistantLook.SystemIcon)).ToList();
+        var keys = assistants.Select(a => "assistants/" + a.Id).ToList();
         if (_assistantsItem!.Children.Select(c => c.Key).SequenceEqual(keys)) return;
         var current = _current?.Key;
         _assistantsItem.Items.Clear();
-        foreach (var assistant in installed)
+        foreach (var assistant in assistants)
         {
             var item = new NavItem(NavKind.Sub, "assistants/" + assistant.Id)
             {
                 Style = (Style)FindResource("NavItem"),
-                Header = SubHeader(assistant),
-                SearchText = Fold(assistant.Manifest.Name + " " + assistant.Id),
+                Header = SubHeader(assistant.Icon, assistant.Name),
+                SearchText = Fold(assistant.Name + " " + assistant.Id),
             };
-            AutomationProperties.SetName(item, assistant.Manifest.Name);
+            AutomationProperties.SetName(item, assistant.Name);
             _assistantsItem.Items.Add(item);
             if (item.Key == current) MarkCurrent(item);
         }

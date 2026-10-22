@@ -143,9 +143,10 @@ public static class Lookups
             AssistantLook.Text(e.Extra.Description), Services.IconProvider.ForExtra(e.Assistant.Id, e.Extra.Id)))];
 
 
-    /// <summary>«Whoever Options says» and the installed assistants.</summary>
+    /// <summary>«Whoever Options says», K-Desktop and the installed assistants.</summary>
     public static IReadOnlyList<AssistantChoice> AssistantList =>
         [new(string.Empty, Loc.T("editor.assistantAskDefault"), null),
+         new(Core.Assistant.AssistantTargeting.KDesktop, "K-Desktop", AssistantLook.SystemIcon),
          .. Core.Assistant.Packages.AssistantPackages.Installed().Select(a => new AssistantChoice(a.Id, a.Manifest.Name, AssistantLook.Icon(a)))];
 
     public static IReadOnlyList<int> MenuSizes { get; } = [0, 1, 2, 3, 4, 5];

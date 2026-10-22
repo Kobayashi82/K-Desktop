@@ -33,14 +33,14 @@ public partial class App
         Voice.WakeWords.Asleep = WakeOwners.Asleep(words, s.AssistantWakeWords, s.KDesktopWakeWords, s.AssistantEnabled, s.AssistantsOnDesktop);
     }
 
-    /// <summary>Whose a recorded word is: <see cref="WakeOwners.KDesktop"/>, an assistant's id, «*» (any assistant) or null (nobody).</summary>
+    /// <summary>Whose a recorded word is: <see cref="WakeOwners.Commands"/>, an assistant's id, «*» (any assistant) or null (nobody).</summary>
     public string? WakeOwnerOf(string wordId) => WakeOwners.Of(wordId, Config.Settings.AssistantWakeWords, Config.Settings.KDesktopWakeWords);
 
     /// <summary>Gives a recorded word to K-Desktop, an assistant, any assistant («*») or nobody (null); it stops being anyone else's.</summary>
     public void SetWakeOwner(string wordId, string? owner)
     {
         var s = Config.Settings;
-        if (owner == WakeOwners.KDesktop || owner is null)
+        if (owner == WakeOwners.Commands || owner is null)
         {
             if (s.AssistantWakeWords.ContainsValue(wordId))
                 s.AssistantWakeWords = s.AssistantWakeWords.Where(p => p.Value != wordId).ToDictionary(p => p.Key, p => p.Value);
@@ -65,15 +65,16 @@ public partial class App
 
     /// <summary>
     /// Who an order called with a wake word is for (any thread): an assistant's own word, that assistant (only listened to
-    /// while it is on the desktop: <see cref="UpdateSleepingWakeWords"/>); the word «for the assistant», the one of «Cuando
-    /// no le hablas a nadie en concreto», or the module without a body with nobody on the desktop. Null: it is K-Desktop's.
+    /// while it is on the desktop: <see cref="UpdateSleepingWakeWords"/>; K-Desktop's too, 5.0.112); the word «for the
+    /// assistant», the one of «Cuando no le hablas a nadie en concreto» (with nobody active, the order gets a notice that
+    /// there is no assistant). Null: it is K-Desktop's commands.
     /// </summary>
     private VoiceAddressee? VoiceAddresseeOf(string wakeWordId)
     {
         var s = Config.Settings;
         if (!s.AssistantEnabled || AssistantTargeting.ForWakeWord(s.AssistantWakeWords, wakeWordId) is not { } owner) return null;
         var who = owner == AssistantTargeting.AnyAssistant ? Dispatcher.Invoke(PickAssistant) : owner;
-        if (who is not null && AssistantPackages.Find(who) is null)
+        if (who is not null && !IsAssistant(who))
         {
             Log.Warn($"Asistente: la palabra de «{who}» llama a un asistente que ya no está instalado");
             return null;
@@ -81,17 +82,20 @@ public partial class App
         return AddresseeFor(who);
     }
 
-    /// <summary>An assistant (null: the module without a body) as the one an order is for: it gets the text and shows that it listens.</summary>
+    /// <summary>
+    /// An assistant as the one an order is for: it gets the text and shows that it listens. Null (nobody active): what is
+    /// said only gets the notice that there is no assistant, and nothing gets ready for it (no model is loaded).
+    /// </summary>
     private VoiceAddressee AddresseeFor(string? who) =>
-        new(who is null ? "K-Desktop" : AssistantName(who),
+        new(who is null ? Loc.T("assistantOptions.anyWakeName") : AssistantName(who),
             (text, source) => Dispatcher.Invoke(() => SendToAssistant(who, text, source)),
-            active => SendListening(who, active));
+            who is null ? null : active => SendListening(who, active));
 
     /// <summary><c>listening</c> (stage 5.2): the character shows that it is being listened to.</summary>
-    private void SendListening(string? who, bool active)
+    private void SendListening(string who, bool active)
     {
         if (_assistant is not { IsRunning: true } supervisor) return;
-        supervisor.Send(new ListeningMessage(active, who));
+        supervisor.Send(new ListeningMessage(active, ProcessIdOf(who)));
         if (active) WarmAssistantCommands();
     }
 
@@ -107,13 +111,17 @@ public partial class App
 
     /// <summary>
     /// The assistants' talk key (UI thread): while it is held, what is said goes to the one of «Cuando no le hablas a nadie
-    /// en concreto» (with nobody on the desktop, the module without a body).
+    /// en concreto»; with nobody active, a notice that there is no assistant.
     /// </summary>
     private void TalkToAssistant(Func<bool> held)
     {
         if (_assistant is null) return;
-        var who = PickAssistant();
-        if (who is not null) AssistantTalkedTo(who);
+        if (PickAssistant() is not { } who)
+        {
+            Ui.ShowOsd(Loc.T("assistantChat.nobody"), Core.Engine.OsdKind.Warning);
+            return;
+        }
+        AssistantTalkedTo(who);
         _ = Voice.ListenAsync(held, AddresseeFor(who));
     }
 
@@ -124,15 +132,16 @@ public partial class App
     private void OnAssistantListen(ListenMessage listen)
     {
         if (_assistant is null || Config.Settings.Paused || !VoiceModels.Ready) return;
-        if (listen.Assistant is { } id && AssistantPackages.Find(id) is null) return;
+        var id = FromProcess(listen.Assistant);
+        if (!IsAssistant(id)) return;
         var seconds = Math.Clamp(listen.Seconds, 1, ListenMessage.MaxSeconds);
-        Log.Info($"Asistente: «{listen.Assistant ?? "(sin cuerpo)"}» espera respuesta: se escucha {seconds} s sin palabra");
-        _ = Voice.ListenForAsync(AddresseeFor(listen.Assistant), TimeSpan.FromSeconds(seconds));
+        Log.Info($"Asistente: «{id}» espera respuesta: se escucha {seconds} s sin palabra");
+        _ = Voice.ListenForAsync(AddresseeFor(id), TimeSpan.FromSeconds(seconds));
     }
 
-    /// <summary>Whether the last order to this assistant (null: without a body) was said aloud: its questions may be answered aloud.</summary>
+    /// <summary>Whether the last order to this assistant (as the process names it: none is K-Desktop) was said aloud: its questions may be answered aloud.</summary>
     private bool TalkedByVoice(string? assistant) =>
-        VoiceModels.Ready && _chatSources.GetValueOrDefault(assistant ?? string.Empty) == "voice";
+        VoiceModels.Ready && _chatSources.GetValueOrDefault(FromProcess(assistant)) == "voice";
 
     /// <summary>
     /// The little window asks for permission and the order came by voice (stage 5.3): K-Desktop listens meanwhile, without

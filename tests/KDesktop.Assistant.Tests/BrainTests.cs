@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using KDesktop.Assistant.Brain;
 using KDesktop.Assistant.Brain.Models;
+using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Brain;
 using KDesktop.Core.Assistant.Pipe;
 
@@ -166,7 +167,7 @@ public class BrainTests
 
     private static BrainConfig WithOllama => new(Remotes: [Ollama]);
 
-    /// <summary>Stage 3.2: the Lander thinks with its own model and the module without a body with the general one.</summary>
+    /// <summary>Stage 3.2: the Lander thinks with its own model; K-Desktop (no assistant in the process) with its own under its id, or the general one.</summary>
     [Fact]
     public async Task EachAssistantThinksWithItsOwnModelOrTheGeneralOne()
     {
@@ -178,6 +179,8 @@ public class BrainTests
         Assert.Equal("r1/qwen3.5-4b:latest", brain.ModelFor("dot"));
         Assert.Equal("r1/gemma4-e4b:latest", brain.ModelFor("blob"));
         Assert.Equal("r1/qwen3.5-4b:latest", brain.ModelFor(null));
+        brain.Configure(WithOllama with { Models = new Dictionary<string, string>(own) { [AssistantTargeting.KDesktop] = "r1/gemma4-e4b" } });
+        Assert.Equal("r1/gemma4-e4b:latest", brain.ModelFor(null));
 
         // Changing only an assistant's model takes effect without looking at the server again.
         brain.Configure(WithOllama with { Models = new Dictionary<string, string>() });

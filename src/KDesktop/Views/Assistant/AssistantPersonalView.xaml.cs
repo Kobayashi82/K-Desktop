@@ -13,8 +13,8 @@ namespace KDesktop.Views.Assistant;
 /// <summary>
 /// What one assistant has of its own (5.0.105): its personality (its package's, shown and editable, with «Restablecer»),
 /// the language it speaks in and its voice. Every choice has «Como los demás», the general one of Options → Assistant
-/// module. Saved at once; the process gets it in the <c>personal</c> section. With <see cref="Bodiless"/> (5.0.111) it
-/// is K-Desktop's own, for when it answers without an assistant on the desktop (Options → Assistant module → K-Desktop).
+/// module. Saved at once; the process gets it in the <c>personal</c> section. With <see cref="ShowSystem"/> it is K-Desktop's
+/// own, the assistant of the system (5.0.112; Options → Assistants → K-Desktop).
 /// </summary>
 public partial class AssistantPersonalView : UserControl
 {
@@ -28,7 +28,7 @@ public partial class AssistantPersonalView : UserControl
     private readonly App _app = App.Current;
     private readonly DispatcherTimer _promptSave = new() { Interval = TimeSpan.FromMilliseconds(700) };
     private InstalledAssistant? _assistant;
-    private bool _bodiless;
+    private bool _system;
     private string _packagePrompt = string.Empty;
     private bool _filling;
 
@@ -55,42 +55,37 @@ public partial class AssistantPersonalView : UserControl
     {
         SavePrompt();
         _assistant = assistant;
-        _bodiless = false;
+        _system = false;
         Refresh();
     }
 
-    /// <summary>K-Desktop's own, for when it answers without an assistant (set in XAML).</summary>
-    public bool Bodiless
+    /// <summary>Shows what K-Desktop, the assistant of the system, has of its own.</summary>
+    public void ShowSystem()
     {
-        get => _bodiless;
-        set
-        {
-            if (!value) return;
-            SavePrompt();
-            _assistant = null;
-            _bodiless = true;
-            Refresh();
-        }
+        SavePrompt();
+        _assistant = null;
+        _system = true;
+        Refresh();
     }
 
     private void Refresh()
     {
-        BodilessCard.Visibility = _bodiless ? Visibility.Visible : Visibility.Collapsed;
-        LanguageHint.Text = Loc.T(_bodiless ? "assistantPersonal.languageHintBodiless" : "assistantPersonal.languageHint");
+        SystemCard.Visibility = _system ? Visibility.Visible : Visibility.Collapsed;
+        LanguageHint.Text = Loc.T(_system ? "assistantPersonal.languageHintSystem" : "assistantPersonal.languageHint");
         RefreshPersonality(force: true);
         RefreshLanguage();
         RefreshVoice();
     }
 
     /// <summary>Whether it shows someone (an assistant, or K-Desktop).</summary>
-    private bool Shown => _assistant is not null || _bodiless;
+    private bool Shown => _assistant is not null || _system;
 
     private string WhoName => _assistant?.Manifest.Name ?? "K-Desktop";
 
     /// <summary>Saves the personality being written, if it is still waiting.</summary>
     public void Flush() => SavePrompt();
 
-    private string Id => _bodiless ? App.BodilessId : _assistant!.Id;
+    private string Id => _system ? AssistantTargeting.KDesktop : _assistant!.Id;
 
     private AssistantPersonal Own => _app.AssistantPersonalOf(Id);
 
@@ -125,7 +120,7 @@ public partial class AssistantPersonalView : UserControl
             _filling = false;
         }
         PersonalityState.Text = own is not null ? Loc.T("assistantPersonal.personalityOwn")
-            : Loc.T(_bodiless ? "assistantPersonal.personalityModule" : "assistantPersonal.personalityPackage", LanguageName(language));
+            : Loc.T(_system ? "assistantPersonal.personalityModule" : "assistantPersonal.personalityPackage", LanguageName(language));
         PersonalityReset.IsEnabled = own is not null;
     }
 
@@ -196,11 +191,11 @@ public partial class AssistantPersonalView : UserControl
 
         // Without a profile for all of them, each assistant uses its package's; K-Desktop has none: «Natural».
         var general = s.AssistantVoiceProfile is { Length: > 0 } fixedProfile ? ProfileName(fixedProfile)
-            : _bodiless ? ProfileName(VoiceProfile.Default.Id) : Loc.T("assistantVoice.profileOwn");
+            : _system ? ProfileName(VoiceProfile.Default.Id) : Loc.T("assistantVoice.profileOwn");
         List<Option> profiles =
         [
             new(string.Empty, AsOthers(general)),
-            .. _bodiless ? [] : new[] { new Option(AssistantPersonal.OwnProfile, Loc.T("assistantPersonal.profilePackage")) },
+            .. _system ? [] : new[] { new Option(AssistantPersonal.OwnProfile, Loc.T("assistantPersonal.profilePackage")) },
             .. VoiceProfile.BuiltIn.Select(p => new Option(p.Id, ProfileName(p.Id))),
         ];
         ProfileBox.ItemsSource = profiles;
@@ -277,9 +272,10 @@ public partial class AssistantPersonalView : UserControl
         SpeedValue.Text = SpeedSlider.Value.ToString("0.00", Loc.Instance.Culture) + "×";
 
         VoiceReset.IsEnabled = own.HasOwnVoice;
-        var canTest = _app.Assistant is { IsRunning: true } && (_bodiless || _app.IsAssistantLoaded(Id));
+        // K-Desktop has nothing to load: its voice is heard while the module runs.
+        var canTest = _app.Assistant is { IsRunning: true } && (_system || _app.IsAssistantLoaded(Id));
         TestButton.IsEnabled = StopButton.IsEnabled = canTest;
-        TestHint.Text = canTest ? string.Empty : Loc.T(_bodiless ? "assistantPersonal.testHintBodiless" : "assistantPersonal.testHint", WhoName);
+        TestHint.Text = canTest ? string.Empty : Loc.T(_system ? "assistantPersonal.testHintSystem" : "assistantPersonal.testHint", WhoName);
         _filling = false;
     }
 

@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Voice;
 using KDesktop.Core.Localization;
 
@@ -125,12 +126,12 @@ public partial class AssistantVoiceSection : UserControl
         WindowsVoiceBox.SelectedItem = windows.FirstOrDefault(w => w.Value == s.AssistantVoiceWindows) ?? windows[0];
         WindowsHint.Text = _app.AssistantVoice is { WindowsVoices.Count: 0 } ? Loc.T("assistantVoice.windowsNone", languageName) : Loc.T("assistantVoice.windowsVoiceHint");
 
-        // «Probar»: who says it (the assistants on the desktop, or only the voice) and in which mood.
+        // «Probar»: who says it (the assistants on the desktop, and K-Desktop always: it has nothing to load) and in which mood.
         var running = _app.Assistant is { IsRunning: true };
         TestButton.IsEnabled = StopButton.IsEnabled = running;
-        var picked = _app.PickAssistant();
-        List<Option> who = [.. _app.AssistantsOnDesktop.Select(id => new Option(id, App.AssistantName(id))), new(string.Empty, Loc.T("assistantVoice.testVoiceOnly"))];
-        var chosen = (WhoBox.SelectedItem as Option)?.Value ?? picked ?? string.Empty;
+        var picked = _app.PickAssistant() ?? AssistantTargeting.KDesktop;
+        List<Option> who = [.. _app.AssistantsOnDesktop.Append(AssistantTargeting.KDesktop).Distinct().Select(id => new Option(id, App.AssistantName(id)))];
+        var chosen = (WhoBox.SelectedItem as Option)?.Value ?? picked;
         WhoBox.ItemsSource = who;
         WhoBox.SelectedItem = who.FirstOrDefault(o => o.Value == chosen) ?? who[0];
         if (MoodBox.ItemsSource is null)
@@ -141,7 +142,7 @@ public partial class AssistantVoiceSection : UserControl
         }
         // Empty or still the sentence it had (another language, another assistant): the one for now.
         if (TestBox.Text.Length == 0 || TestBox.Text == _testDefault)
-            TestBox.Text = _testDefault = App.TestSentence(_app.LanguageOfAssistant(picked), picked is { } name ? App.AssistantName(name) : "K-Desktop");
+            TestBox.Text = _testDefault = App.TestSentence(_app.LanguageOfAssistant(picked), App.AssistantName(picked));
         _filling = false;
     }
 

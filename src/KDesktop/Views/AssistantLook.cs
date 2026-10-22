@@ -21,34 +21,61 @@ public sealed record ModelOption(string Value, string Name)
     public override string ToString() => Name;
 }
 
-/// <summary>An installed assistant as the pages show it: icon, name, version, description and whether it is on the desktop.</summary>
+/// <summary>
+/// An assistant as the pages show it: icon, name, version, description and whether it is on the desktop. K-Desktop
+/// (5.0.112) is one too, without a package (<see cref="Installed"/> null): of the system, it is not removed.
+/// </summary>
 public sealed class AssistantRow
 {
-    public AssistantRow(InstalledAssistant installed, App app)
+    public AssistantRow(InstalledAssistant installed, App app) : this(installed.Id, app)
     {
         Installed = installed;
-        IsOnDesktop = app.IsOnDesktop(installed.Id);
         Icon = AssistantLook.Icon(installed);
-        WakeWordId = app.Config.Settings.AssistantWakeWords.GetValueOrDefault(installed.Id);
-        ModelName = app.Config.Settings.AssistantModels.GetValueOrDefault(installed.Id) ?? string.Empty;
     }
 
-    public InstalledAssistant Installed { get; }
+    private AssistantRow(string id, App app)
+    {
+        Id = id;
+        IsOnDesktop = app.IsOnDesktop(id);
+        WakeWordId = app.Config.Settings.AssistantWakeWords.GetValueOrDefault(id);
+        ModelName = app.Config.Settings.AssistantModels.GetValueOrDefault(id) ?? string.Empty;
+    }
 
-    public string Id => Installed.Id;
+    /// <summary>K-Desktop as an assistant.</summary>
+    public static AssistantRow System(App app) => new(AssistantTargeting.KDesktop, app) { Icon = AssistantLook.SystemIcon };
 
-    public string Name => Installed.Manifest.Name;
+    /// <summary>Its package; null for K-Desktop.</summary>
+    public InstalledAssistant? Installed { get; }
 
-    public string Byline => Loc.T("assistantCard.by", Installed.Version, Installed.Manifest.Author);
+    public string Id { get; }
 
-    public string Description => Installed.Manifest.Description?.In(Loc.Instance.Language) ?? string.Empty;
+    public bool IsSystem => Installed is null;
+
+    /// <summary>Only the assistants of a package are removed.</summary>
+    public bool CanRemove => !IsSystem;
+
+    public string Name => Installed?.Manifest.Name ?? "K-Desktop";
+
+    public string Byline => Installed is { } installed ? Loc.T("assistantCard.by", installed.Version, installed.Manifest.Author) : Loc.T("assistantSystem.byline");
+
+    public string Description => Installed is { } installed ? installed.Manifest.Description?.In(Loc.Instance.Language) ?? string.Empty : Loc.T("assistantSystem.description");
 
     public bool HasDescription => Description.Length > 0;
 
-    /// <summary>Whether it brings settings of its own (settings.json).</summary>
-    public bool HasSettings => AssistantLook.HasSettings(Installed);
+    /// <summary>Whether it has settings to show: its settings.json, or only «Personalidad y voz» (K-Desktop).</summary>
+    public bool HasSettings => Installed is not { } installed || AssistantLook.HasSettings(installed);
 
-    public ImageSource? Icon { get; }
+    /// <summary>«Poner en el escritorio» / «Esconder»; K-Desktop, without a figure, is made active or not.</summary>
+    public string PutText => Loc.T(IsSystem ? "assistantSystem.activate" : "assistantOptions.putOnDesktop");
+
+    public string HideText => Loc.T(IsSystem ? "assistantSystem.deactivate" : "assistantOptions.hide");
+
+    public string OnDesktopText => Loc.T(IsSystem ? "assistantSystem.active" : "assistantOptions.onDesktop");
+
+    /// <summary>Where it is, in two words (Panel → Assistant's list).</summary>
+    public string StateText => IsOnDesktop ? OnDesktopText : Loc.T(IsSystem ? "assistantSystem.inactive" : "assistantPanel.hidden");
+
+    public ImageSource? Icon { get; private init; }
 
     public bool NoIcon => Icon is null;
 
@@ -86,7 +113,7 @@ public sealed class AssistantRow
     public bool CanDownloadSuggested { get; set; }
 
     /// <summary>The name it suggests to be called by (its manifest's wakeWord, or its name).</summary>
-    public string SuggestedWakeWord => Installed.Manifest.WakeWord is { Length: > 0 } word ? word : Name;
+    public string SuggestedWakeWord => Installed?.Manifest.WakeWord is { Length: > 0 } word ? word : Name;
 
     public override string ToString() => Name;
 }
@@ -107,6 +134,13 @@ public static class AssistantLook
 
     public static ImageSource? Icon(InstalledAssistant installed) =>
         installed.Manifest.Icon is { } icon ? Image(installed, icon, 128) : null;
+
+    /// <summary>K-Desktop's own icon, as an assistant.</summary>
+    public static ImageSource? SystemIcon => IconProvider.Asset("KDesktop");
+
+    /// <summary>The icon of an assistant by its id (K-Desktop's for the system one), or null.</summary>
+    public static ImageSource? IconOf(string? id) =>
+        id is null or "" || AssistantTargeting.IsSystem(id) ? SystemIcon : AssistantPackages.Find(id) is { } installed ? Icon(installed) : null;
 
     /// <summary>
     /// An image of a package (a path inside it: a gallery, an achievement…), read into memory, or null when the path is
@@ -156,11 +190,11 @@ public static class AssistantLook
         if (ProcessSummary(app) is { } process) return process;
         var supervisor = app.Assistant!;
         var onDesktop = app.AssistantsOnDesktop;
-        if (onDesktop.Count == 0) return (Loc.T("assistantState.noBody"), "Kd.Success");
-        if (onDesktop.FirstOrDefault(id => !supervisor.IsLoaded(id)) is { } loading)
+        if (onDesktop.Count == 0) return (Loc.T("assistantState.noBody"), "Kd.Warning");
+        if (onDesktop.FirstOrDefault(id => !AssistantTargeting.IsSystem(id) && !supervisor.IsLoaded(id)) is { } loading)
             return (Loc.T("assistantState.loading", App.AssistantName(loading)), "Kd.Warning");
         return onDesktop.Count == 1
-            ? (Loc.T("assistantState.onDesktop", App.AssistantName(onDesktop[0])), "Kd.Success")
+            ? (OnDesktopText(onDesktop[0]), "Kd.Success")
             : (Loc.T("assistantState.onDesktopMany", string.Join(", ", onDesktop.Select(App.AssistantName))), "Kd.Success");
     }
 
@@ -169,11 +203,16 @@ public static class AssistantLook
     {
         if (ProcessSummary(app) is { } process) return process;
         var name = App.AssistantName(id);
-        if (!app.IsOnDesktop(id)) return (Loc.T("assistantState.notOnDesktop", name), "TextFillColorTertiaryBrush");
-        return app.Assistant!.IsLoaded(id)
-            ? (Loc.T("assistantState.onDesktop", name), "Kd.Success")
+        var system = AssistantTargeting.IsSystem(id);
+        if (!app.IsOnDesktop(id)) return (Loc.T(system ? "assistantState.systemInactive" : "assistantState.notOnDesktop", name), "TextFillColorTertiaryBrush");
+        return system || app.Assistant!.IsLoaded(id)
+            ? (OnDesktopText(id), "Kd.Success")
             : (Loc.T("assistantState.loading", name), "Kd.Warning");
     }
+
+    /// <summary>«X está en el escritorio»; K-Desktop, without a figure, «está activo».</summary>
+    private static string OnDesktopText(string id) =>
+        Loc.T(AssistantTargeting.IsSystem(id) ? "assistantState.systemActive" : "assistantState.onDesktop", App.AssistantName(id));
 
     /// <summary>The module off, or its process not running: that says it all.</summary>
     private static (string Text, string Brush)? ProcessSummary(App app)
@@ -188,7 +227,7 @@ public static class AssistantLook
         };
     }
 
-    /// <summary>The installed assistants as rows, those on the desktop marked.</summary>
+    /// <summary>The assistants as rows, K-Desktop first and then the installed ones, those on the desktop marked.</summary>
     public static List<AssistantRow> Rows(App app) =>
-        [.. AssistantPackages.Installed().Select(a => new AssistantRow(a, app)).OrderBy(r => r.Name, StringComparer.CurrentCultureIgnoreCase)];
+        [AssistantRow.System(app), .. AssistantPackages.Installed().Select(a => new AssistantRow(a, app)).OrderBy(r => r.Name, StringComparer.CurrentCultureIgnoreCase)];
 }

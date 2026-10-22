@@ -116,14 +116,14 @@ public partial class App
     public void AskAssistantVoice(string op) => _assistant?.Send(new VoiceMessage(op));
 
     /// <summary>
-    /// «Probar»: <paramref name="who"/> says it (null: the one who answers what is not addressed to anyone; empty: only the
-    /// voice), in <paramref name="mood"/> (null: plain).
+    /// «Probar»: <paramref name="who"/> says it (null: the one who answers what is not addressed to anyone, or K-Desktop
+    /// with nobody active), in <paramref name="mood"/> (null: plain).
     /// </summary>
     public void TestAssistantVoice(string text, string? mood = null, string? who = null)
     {
         if (_assistant is not { IsRunning: true } supervisor || text.Trim().Length == 0) return;
         Voice.OwnVoices.Said("test", text.Trim(), DateTime.Now);
-        supervisor.Send(new VoiceMessage("test", text.Trim(), who is null ? PickAssistant() : who.Length > 0 ? who : null, mood));
+        supervisor.Send(new VoiceMessage("test", text.Trim(), ProcessIdOf(who is { Length: > 0 } ? who : PickAssistant()), mood));
     }
 
     /// <summary>The test sentence in the language it is said in (it may not be K-Desktop's).</summary>

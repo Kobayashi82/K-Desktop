@@ -44,6 +44,14 @@ public partial class App
             _ = Task.Run(() => PackageAssociation.Apply(on, typeName));
         }
 
+        // K-Desktop is an assistant too (5.0.112): active the first time the module is on (also for those who had it on).
+        if (s.AssistantEnabled && !s.AssistantKDesktopAdded)
+        {
+            s.AssistantKDesktopAdded = true;
+            if (!s.AssistantsOnDesktop.Contains(AssistantTargeting.KDesktop)) s.AssistantsOnDesktop.Add(AssistantTargeting.KDesktop);
+            Log.Info("Asistente: K-Desktop, activo por primera vez");
+        }
+
         if (s.AssistantEnabled && _assistant is null)
         {
             var supervisor = new AssistantSupervisor(AssistantWelcome);
@@ -267,8 +275,18 @@ public partial class App
 
     private void SetAssistantError(string text) => AssistantError = (text, DateTime.Now);
 
-    /// <summary>The name of an installed assistant (its id if it is not installed).</summary>
-    public static string AssistantName(string id) => AssistantPackages.Find(id)?.Manifest.Name ?? id;
+    /// <summary>The name of an assistant (K-Desktop for the one of the system; its id if it is not installed).</summary>
+    public static string AssistantName(string? id) =>
+        id is null or "" || AssistantTargeting.IsSystem(id) ? "K-Desktop" : AssistantPackages.Find(id)?.Manifest.Name ?? id;
+
+    /// <summary>An assistant that exists: K-Desktop, or an installed one.</summary>
+    public static bool IsAssistant(string id) => AssistantTargeting.IsSystem(id) || AssistantPackages.Find(id) is not null;
+
+    /// <summary>The id the assistant process knows it by: K-Desktop is the one without an id (5.0.112).</summary>
+    internal static string? ProcessIdOf(string? id) => AssistantTargeting.IsSystem(id) ? null : id;
+
+    /// <summary>The assistant of a message of the process: without one (null or empty), K-Desktop.</summary>
+    internal static string FromProcess(string? id) => id is { Length: > 0 } ? id : AssistantTargeting.KDesktop;
 
     // ── who is on the desktop ────────────────────────────────────────────
 
@@ -311,9 +329,13 @@ public partial class App
         AssistantChanged?.Invoke();
     }
 
-    /// <summary>Sends <c>load</c> with an installed assistant (UI thread). One no longer installed leaves the desktop.</summary>
+    /// <summary>
+    /// Sends <c>load</c> with an installed assistant (UI thread). One no longer installed leaves the desktop; K-Desktop is
+    /// never loaded (it is the process's own, without a package).
+    /// </summary>
     private void LoadAssistant(AssistantSupervisor supervisor, string id, string entrance)
     {
+        if (AssistantTargeting.IsSystem(id)) return;
         if (AssistantPackages.Find(id) is not { } installed)
         {
             Log.Warn($"Asistente: «{id}» está en el escritorio pero no instalado");
@@ -364,9 +386,9 @@ public partial class App
     }
 
     /// <summary>
-    /// The tray's «Assistant» submenu, only while the module is on: each installed assistant, ticked when it is on the
-    /// desktop (a click puts it there or hides it), hiding them all, writing to whoever answers (also without assistants:
-    /// the module without a body) and the way to the panel.
+    /// The tray's «Assistant» submenu, only while the module is on: each assistant (K-Desktop first), ticked when it is
+    /// active (a click puts it there or hides it), hiding them all, writing to whoever answers (when somebody is active) and
+    /// the way to the panel.
     /// </summary>
     private void FillAssistantTrayMenu(System.Windows.Controls.MenuItem menu)
     {
@@ -391,10 +413,12 @@ public partial class App
             menu.Items.Add(hideAll);
         }
         if (menu.Items.Count > 0) menu.Items.Add(new System.Windows.Controls.Separator());
-        var who = PickAssistant();
-        var write = new System.Windows.Controls.MenuItem { Header = Loc.T("assistantMenu.write", who is null ? "K-Desktop" : AssistantName(who)) };
-        write.Click += (_, _) => ShowAssistantWriteBox(who, null);
-        menu.Items.Add(write);
+        if (PickAssistant() is { } who)
+        {
+            var write = new System.Windows.Controls.MenuItem { Header = Loc.T("assistantMenu.write", AssistantName(who)) };
+            write.Click += (_, _) => ShowAssistantWriteBox(who, null);
+            menu.Items.Add(write);
+        }
         var panel = new System.Windows.Controls.MenuItem { Header = Loc.T("assistantMenu.panel") };
         panel.Click += (_, _) => ShowMainWindow(w => w.Navigate("assistant"));
         menu.Items.Add(panel);
@@ -466,10 +490,10 @@ public partial class App
         return installed;
     }
 
-    /// <summary>Puts an installed assistant on the desktop, next to those already there.</summary>
+    /// <summary>Puts an assistant on the desktop (K-Desktop: makes it active), next to those already there.</summary>
     public void ShowAssistant(string id)
     {
-        if (IsOnDesktop(id) || AssistantPackages.Find(id) is null) return;
+        if (IsOnDesktop(id) || !IsAssistant(id)) return;
         Config.Settings.AssistantsOnDesktop.Add(id);
         Log.Info($"Asistente: «{id}» al escritorio");
         if (_assistant is { IsRunning: true } supervisor) LoadAssistant(supervisor, id, "startup");
@@ -485,12 +509,14 @@ public partial class App
     /// <summary>Its word is about to be recorded (its card): no tip about it.</summary>
     public void SkipWakeTip(string id) => _wakeTipShown.Add(id);
 
-    /// <summary>Takes an assistant off the desktop (the others stay; with none, the module works without a body).</summary>
+    /// <summary>Takes an assistant off the desktop (the others stay; with none, there is no assistant).</summary>
     public void HideAssistant(string id)
     {
         if (!Config.Settings.AssistantsOnDesktop.Remove(id)) return;
         Log.Info($"Asistente: «{id}» se esconde");
-        if (_assistant is { IsRunning: true } supervisor) UnloadAssistant(supervisor, id, "hiding");
+        // K-Desktop has nothing loaded: it only stops what it was saying.
+        if (AssistantTargeting.IsSystem(id)) StopAssistant(id);
+        else if (_assistant is { IsRunning: true } supervisor) UnloadAssistant(supervisor, id, "hiding");
         AssistantChanged?.Invoke();
     }
 

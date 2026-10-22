@@ -83,6 +83,15 @@ public sealed class AppConfig
             Settings.AssistantVoiceEngine = "kokoro";
             changed = true;
         }
+        // In 5.0.111 what K-Desktop had of its own (answering without an assistant) went under the empty key; since 5.0.112
+        // K-Desktop is an assistant with its id.
+        if (Settings.AssistantPersonal.TryGetValue(string.Empty, out var bodiless))
+        {
+            var personal = Settings.AssistantPersonal.Where(p => p.Key.Length > 0).ToDictionary(p => p.Key, p => p.Value);
+            personal.TryAdd(Assistant.AssistantTargeting.KDesktop, bodiless);
+            Settings.AssistantPersonal = personal;
+            changed = true;
+        }
         changed |= MigrateBrain();
         changed |= MigrateStartupAndExit();
         if (SchemaVersion < CurrentSchema)
@@ -691,7 +700,16 @@ public partial class AppSettings : ObservableObject
     /// <summary>Processes where K-Desktop hotkeys are ignored ("Desactivar en").</summary>
     public ObservableCollection<string> DisabledIn { get; set { field = value ?? []; field.CollectionChanged += (_, _) => Touch(); } } = [];
 
-    /// <summary>The installed assistants on the desktop, in the order they were put there (empty: the module works without a body).</summary>
+    /// <summary>
+    /// K-Desktop (<see cref="Assistant.AssistantTargeting.KDesktop"/>, 5.0.112) was made active the first time the module was
+    /// on; from then on it is active or not as the user leaves it.
+    /// </summary>
+    [ObservableProperty] private bool _assistantKDesktopAdded;
+
+    /// <summary>
+    /// The assistants on the desktop (active), in the order they were put there; K-Desktop among them is the one without a
+    /// figure. Empty: there is no assistant.
+    /// </summary>
     public ObservableCollection<string> AssistantsOnDesktop { get; set { field = value ?? []; field.CollectionChanged += (_, _) => Touch(); } } = [];
 
     public ObservableCollection<string> BlockSideButtonsIn { get; set { field = value ?? []; field.CollectionChanged += (_, _) => Touch(); } } =

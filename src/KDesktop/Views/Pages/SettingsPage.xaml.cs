@@ -84,6 +84,8 @@ public partial class SettingsPage : UserControl
             return;
         }
         if (SearchBox.Text.Length > 0) SearchBox.Text = string.Empty;
+        // Until 5.0.111 K-Desktop's own was a section of its own; since 5.0.112 it is an assistant.
+        if (key == "bodiless") key = "assistants/" + Core.Assistant.AssistantTargeting.KDesktop;
         if (Find(key) is not { } item)
         {
             // An assistant that is not installed: the list.
@@ -219,7 +221,8 @@ public partial class SettingsPage : UserControl
         _fillingWake = true;
         List<WakeOwnerOption> owners =
         [
-            new(WakeOwners.KDesktop, Loc.T("settings.wakeOwnerKDesktop")),
+            new(WakeOwners.Commands, Loc.T("settings.wakeOwnerKDesktop")),
+            new(Core.Assistant.AssistantTargeting.KDesktop, Loc.T("settings.wakeOwnerKDesktopAssistant")),
             .. Core.Assistant.Packages.AssistantPackages.Installed().Select(a => new WakeOwnerOption(a.Id, a.Manifest.Name)),
             new(Core.Assistant.AssistantTargeting.AnyAssistant, Loc.T("settings.wakeOwnerAny")),
             new(null, Loc.T("settings.wakeOwnerNone")),
@@ -240,7 +243,7 @@ public partial class SettingsPage : UserControl
     private void OnAddWakeWord(object sender, RoutedEventArgs e)
     {
         if (Dialogs.WakeWordDialog.Record(Window.GetWindow(this)) is not { } word) return;
-        _app.SetWakeOwner(word.Id, WakeOwners.KDesktop);
+        _app.SetWakeOwner(word.Id, WakeOwners.Commands);
         UpdateWakeWords();
     }
 

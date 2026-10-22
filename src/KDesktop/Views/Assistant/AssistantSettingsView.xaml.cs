@@ -15,13 +15,14 @@ namespace KDesktop.Views.Assistant;
 /// <summary>
 /// The settings of one installed assistant (stage 1.9, §11.8), drawn from its settings.json with K-Desktop's own
 /// controls: no code of the assistant is loaded here. Changes are saved and reach the assistant at once while it is
-/// on the desktop.
+/// on the desktop. K-Desktop as an assistant (5.0.112) only has «Personalidad y voz».
 /// </summary>
 public partial class AssistantSettingsView : UserControl
 {
     private readonly App _app = App.Current;
     private AssistantSettingsModel? _model;
     private InstalledAssistant? _shown;
+    private bool _system;
 
     public AssistantSettingsView()
     {
@@ -45,13 +46,35 @@ public partial class AssistantSettingsView : UserControl
     public event Action? Closed;
 
     /// <summary>The id of the assistant shown, if any.</summary>
-    public string? AssistantId => _shown?.Id;
+    public string? AssistantId => _system ? Core.Assistant.AssistantTargeting.KDesktop : _shown?.Id;
+
+    /// <summary>K-Desktop's settings: what it has of its own, nothing else.</summary>
+    public void ShowSystem()
+    {
+        _model?.Flush();
+        if (_model is not null) _model.PropertyChanged -= OnModelChanged;
+        _model = null;
+        _shown = null;
+        _system = true;
+        DataContext = null;
+        PersonalView.ShowSystem();
+        TitleText.Text = Loc.T("assistantSettings.title", "K-Desktop");
+        HeroIcon.Source = AssistantLook.SystemIcon;
+        HeroFallback.Visibility = Visibility.Collapsed;
+        PageTabs.Visibility = Visibility.Collapsed;
+        PersonalView.Visibility = Visibility.Visible;
+        SectionsList.Visibility = Visibility.Collapsed;
+        ResetButton.Visibility = Visibility.Collapsed;
+        NonePanel.Visibility = Visibility.Collapsed;
+        UpdateLive();
+    }
 
     /// <summary>Shows an installed assistant's settings (its first page).</summary>
     public void Show(InstalledAssistant assistant)
     {
         _model?.Flush();
         if (_model is not null) _model.PropertyChanged -= OnModelChanged;
+        _system = false;
         _shown = assistant;
         // Without a settings.json it still has «Personalidad y voz».
         var layout = SettingsLayout.Load(assistant) ?? new SettingsLayout([]);
@@ -75,6 +98,11 @@ public partial class AssistantSettingsView : UserControl
     {
         if (_model?.Pages.FirstOrDefault(p => p.IsPersonal) is { } personal) _model.CurrentPage = personal;
     }
+
+    /// <summary>The changes reach it now (it is on the desktop, or K-Desktop is active with the module running).</summary>
+    private bool IsLive(string id) => Core.Assistant.AssistantTargeting.IsSystem(id)
+        ? _app.Assistant is { IsRunning: true } && _app.IsOnDesktop(id)
+        : _app.IsAssistantLoaded(id);
 
     private void OnModelChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
@@ -102,10 +130,10 @@ public partial class AssistantSettingsView : UserControl
     /// <summary>Whether the changes reach the assistant now, or when it is put on the desktop.</summary>
     private void UpdateLive()
     {
-        if (_model is null) return;
-        var name = _model.Assistant.Manifest.Name;
-        var live = _app.IsAssistantLoaded(_model.Assistant.Id);
-        LiveText.Text = Loc.T(live ? "assistantSettings.live" : "assistantSettings.notLive", name);
+        if (AssistantId is not { } id) return;
+        var name = App.AssistantName(id);
+        var live = IsLive(id);
+        LiveText.Text = _system && !live ? Loc.T("assistantState.systemInactive", name) : Loc.T(live ? "assistantSettings.live" : "assistantSettings.notLive", name);
         LiveDot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, live ? "Kd.Success" : "TextFillColorTertiaryBrush");
     }
 

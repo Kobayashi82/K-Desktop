@@ -12,10 +12,10 @@ using KDesktop.Core.Platform;
 namespace KDesktop.Views.Pages;
 
 /// <summary>
-/// Panel → Assistant (stage 1.8, §13.2): who is on the desktop and how the assistant process is doing (its state,
-/// memory, processor and the last error), with a restart and its log, and the assistant's own cards (its panel.json,
-/// stage 1.9). With several on the desktop (stage 1.11), pills on top choose whose card and panel are shown
-/// (<c>--page assistant/&lt;id&gt;</c>). The conversation and the activity log come later.
+/// Panel → Assistant (stage 1.8, §13.2): the assistants in a column, as the lists of the other pages (5.0.112: K-Desktop
+/// first, those on the desktop marked), and the one chosen (<c>--page assistant/&lt;id&gt;</c>): its card with putting it
+/// there or hiding it, the conversation with it, its own cards (its panel.json, stage 1.9), how the assistant process is
+/// doing (its state, memory, processor and the last error), with a restart and its log, and the activity.
 /// </summary>
 public partial class AssistantPage : UserControl
 {
@@ -25,8 +25,11 @@ public partial class AssistantPage : UserControl
     private readonly App _app = App.Current;
     private readonly DispatcherTimer _usage = new() { Interval = TimeSpan.FromSeconds(2) };
     private (int Pid, TimeSpan Cpu, DateTime At)? _lastCpu;
-    /// <summary>The assistant whose card is shown (one on the desktop; null: nobody there).</summary>
+    /// <summary>The assistant whose card is shown (the one chosen in the list).</summary>
     private string? _shown;
+    /// <summary>What the list shows (ids, names and where each one is): it is made again only when that changes.</summary>
+    private string? _listShown;
+    private bool _filling;
 
     public AssistantPage()
     {
@@ -52,25 +55,28 @@ public partial class AssistantPage : UserControl
         OnPanel.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
         if (!on) return;
 
-        // Who is on the desktop, and whose card is shown
-        var onDesktop = _app.AssistantsOnDesktop.Where(i => AssistantPackages.Find(i) is not null).ToList();
-        if (_shown is null || !onDesktop.Contains(_shown)) _shown = onDesktop.FirstOrDefault();
-        FillPickers(onDesktop);
-        var active = _shown is null ? null : AssistantPackages.Find(_shown);
-        HeroName.Text = active?.Manifest.Name ?? Loc.T("assistantPanel.nobody");
-        HeroByline.Text = active is null ? Loc.T("assistantPanel.nobodyHint") : Loc.T("assistantCard.by", active.Version, active.Manifest.Author);
-        var icon = active is null ? null : AssistantLook.Icon(active);
-        HeroIcon.Source = icon;
-        HeroFallback.Visibility = icon is null ? Visibility.Visible : Visibility.Collapsed;
-        var (state, brush) = active is null ? AssistantLook.Summary(_app) : AssistantLook.Summary(_app, active.Id);
+        // The list, and whose card is shown: the one chosen, else the first one on the desktop, else K-Desktop.
+        var rows = AssistantLook.Rows(_app);
+        if (_shown is null || rows.All(r => r.Id != _shown)) _shown = (rows.FirstOrDefault(r => r.IsOnDesktop) ?? rows[0]).Id;
+        FillList(rows);
+        var row = rows.First(r => r.Id == _shown);
+        HeroName.Text = row.Name;
+        HeroByline.Text = row.Byline;
+        HeroIcon.Source = row.Icon;
+        HeroFallback.Visibility = row.NoIcon ? Visibility.Visible : Visibility.Collapsed;
+        var (state, brush) = AssistantLook.Summary(_app, row.Id);
         HeroState.Text = state;
         HeroDot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, brush);
-        HideButton.Visibility = active is null ? Visibility.Collapsed : Visibility.Visible;
-        SettingsButton.Visibility = active is not null && AssistantLook.HasSettings(active) ? Visibility.Visible : Visibility.Collapsed;
-        OwnPanel.Visibility = OwnPanel.Show(active) ? Visibility.Visible : Visibility.Collapsed;
-        Chat.Show(active?.Id, active?.Manifest.Name ?? "K-Desktop");
-        // With somebody there, the way to put another one next to it.
-        ChooseButton.Content = Loc.T(active is null ? "assistantPanel.choose" : "assistantPanel.addAnother");
+        HideButton.Content = row.HideText;
+        PutButton.Content = row.PutText;
+        HideButton.Visibility = row.IsOnDesktop ? Visibility.Visible : Visibility.Collapsed;
+        PutButton.Visibility = row.IsOnDesktop ? Visibility.Collapsed : Visibility.Visible;
+        SettingsButton.Visibility = row.HasSettings ? Visibility.Visible : Visibility.Collapsed;
+        OwnPanel.Visibility = OwnPanel.Show(row.Installed) ? Visibility.Visible : Visibility.Collapsed;
+        Chat.Show(row.Id, row.Name, row.IsOnDesktop);
+        var active = rows.Count(r => r.IsOnDesktop);
+        CountText.Text = active.ToString(Loc.Instance.Culture);
+        CountChip.Visibility = active > 0 ? Visibility.Visible : Visibility.Collapsed;
 
         // The process and what the assistant says of itself (its own status, or the process's)
         var status = (_shown is null ? null : _app.AssistantStateOf(_shown)) ?? _app.AssistantStatus;
@@ -94,35 +100,23 @@ public partial class AssistantPage : UserControl
         if (IsLoaded) Refresh();
     }
 
-    /// <summary>One pill per assistant on the desktop, only when there is more than one.</summary>
-    private void FillPickers(List<string> onDesktop)
+    /// <summary>The assistants in the list, with the one shown chosen; made again only when something in it changed.</summary>
+    private void FillList(List<AssistantRow> rows)
     {
-        Pickers.Children.Clear();
-        Pickers.Visibility = onDesktop.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
-        if (onDesktop.Count < 2) return;
-        foreach (var id in onDesktop)
-        {
-            var name = App.AssistantName(id);
-            var content = new StackPanel { Orientation = Orientation.Horizontal };
-            if (AssistantPackages.Find(id) is { } installed && AssistantLook.Icon(installed) is { } icon)
-                content.Children.Add(new Image { Source = icon, Width = 16, Height = 16, Margin = new Thickness(-4, 0, 7, 0), VerticalAlignment = VerticalAlignment.Center });
-            content.Children.Add(new TextBlock { Text = name, FontSize = 13, VerticalAlignment = VerticalAlignment.Center });
-            var pill = new RadioButton
-            {
-                Style = (Style)FindResource("Pill"),
-                GroupName = "AssistantShown",
-                IsChecked = id == _shown,
-                Content = content,
-            };
-            System.Windows.Automation.AutomationProperties.SetName(pill, name);
-            pill.Checked += (_, _) =>
-            {
-                if (_shown == id) return;
-                _shown = id;
-                Dispatcher.BeginInvoke(Refresh);
-            };
-            Pickers.Children.Add(pill);
-        }
+        var key = string.Join("|", rows.Select(r => $"{r.Id}:{r.Name}:{r.StateText}")) + ">" + _shown;
+        if (key == _listShown) return;
+        _listShown = key;
+        _filling = true;
+        AssistantList.ItemsSource = rows;
+        AssistantList.SelectedItem = rows.FirstOrDefault(r => r.Id == _shown);
+        _filling = false;
+    }
+
+    private void OnAssistantSelected(object sender, SelectionChangedEventArgs e)
+    {
+        if (_filling || AssistantList.SelectedItem is not AssistantRow row || row.Id == _shown) return;
+        _shown = row.Id;
+        Dispatcher.BeginInvoke(Refresh);
     }
 
     private void OnTechExpanded(object sender, RoutedEventArgs e) => UpdateUsage();
@@ -182,6 +176,11 @@ public partial class AssistantPage : UserControl
     private void OnHide(object sender, RoutedEventArgs e)
     {
         if (_shown is { } id) _app.HideAssistant(id);
+    }
+
+    private void OnPut(object sender, RoutedEventArgs e)
+    {
+        if (_shown is { } id) _app.ShowAssistant(id);
     }
 
     private void OnAssistantSettings(object sender, RoutedEventArgs e)

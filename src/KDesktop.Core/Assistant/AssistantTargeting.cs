@@ -16,8 +16,17 @@ public static class AssistantTargeting
     public const string AnyAssistant = "*";
 
     /// <summary>
-    /// The assistant for one order, or null with nobody on the desktop. Call it once per order: «at random» picks
-    /// again on every call.
+    /// K-Desktop itself as an assistant (5.0.112): of the system, without a package, a figure or gestures. «On the desktop»
+    /// is active: it answers with a notice and its voice, and runs commands without gestures. In the assistant process it is
+    /// the one without an id (null), never a loaded package; its own model and what it has of its own go under this key.
+    /// </summary>
+    public const string KDesktop = "kdesktop";
+
+    public static bool IsSystem(string? id) => id == KDesktop;
+
+    /// <summary>
+    /// The assistant for one order, or null with nobody on the desktop (then there is no assistant: nobody answers). Call
+    /// it once per order: «at random» picks again on every call.
     /// </summary>
     /// <param name="onDesktop">The assistants on the desktop, in the order they were put there.</param>
     public static string? Pick(AssistantTarget target, string? fixedId, string? lastTalkedTo, IReadOnlyList<string> onDesktop, Random? random = null)

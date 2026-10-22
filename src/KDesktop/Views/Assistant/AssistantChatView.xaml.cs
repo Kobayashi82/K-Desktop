@@ -8,16 +8,17 @@ using TextBlock = System.Windows.Controls.TextBlock;
 namespace KDesktop.Views.Assistant;
 
 /// <summary>
-/// Panel → Assistant → the conversation (stage 3.6): every line with the assistant shown (null: the module without a
-/// body), whatever way it was said (voice, this box, the box over the character, a command), the answer growing while it
+/// Panel → Assistant → the conversation (stage 3.6): every line with the assistant shown (K-Desktop too, 5.0.112; one
+/// that is not on the desktop only shows what was said), whatever way it was said (voice, this box, the box over the character, a command), the answer growing while it
 /// is written, «…» while it thinks, and a box to write to it with a stop button while it works. The rows are made in
 /// code (an ItemsControl hides its content from UI Automation).
 /// </summary>
 public partial class AssistantChatView : UserControl
 {
     private readonly App _app = App.Current;
-    private string? _id;
+    private string _id = Core.Assistant.AssistantTargeting.KDesktop;
     private string? _name;
+    private bool _active;
     private bool _thinking;
 
     public AssistantChatView()
@@ -36,21 +37,24 @@ public partial class AssistantChatView : UserControl
         };
     }
 
-    /// <summary>The conversation with this assistant (null: the module without a body).</summary>
-    public void Show(string? id, string name)
+    /// <summary>The conversation with this assistant; it is written to only while it is <paramref name="active"/> (on the desktop).</summary>
+    public void Show(string id, string name, bool active)
     {
-        if (_id == id && _name == name) return;
+        if (_id == id && _name == name && _active == active) return;
         _id = id;
         _name = name;
+        _active = active;
         Input.PlaceholderText = Loc.T("assistantWrite.placeholder", name);
         AutomationProperties.SetName(Input, Input.PlaceholderText);
-        HintText.Text = id is null ? Loc.T("assistantChat.hintNobody") : Loc.T("assistantChat.hint", name);
+        HintText.Text = !active ? Loc.T(Core.Assistant.AssistantTargeting.IsSystem(id) ? "assistantChat.hintSystemInactive" : "assistantChat.hintInactive", name)
+            : Core.Assistant.AssistantTargeting.IsSystem(id) ? Loc.T("assistantChat.hintSystem")
+            : Loc.T("assistantChat.hint", name);
         Fill();
     }
 
     private void OnChatChanged(string key)
     {
-        if (key == (_id ?? string.Empty)) Fill();
+        if (key == _id) Fill();
     }
 
     private void OnStateChanged()
@@ -73,7 +77,7 @@ public partial class AssistantChatView : UserControl
         var running = _app.Assistant is { IsRunning: true };
         StopButton.Visibility = _thinking ? Visibility.Visible : Visibility.Collapsed;
         SendButton.Visibility = _thinking ? Visibility.Collapsed : Visibility.Visible;
-        Input.IsEnabled = running;
+        Input.IsEnabled = running && _active;
         if (atEnd) Dispatcher.BeginInvoke(Scroller.ScrollToEnd, System.Windows.Threading.DispatcherPriority.Background);
     }
 

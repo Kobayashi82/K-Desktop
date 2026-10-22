@@ -14,7 +14,7 @@ public class WakeOwnersTests
         List<string> kdesktop = ["w-kd"];
         Assert.Equal("lander", WakeOwners.Of("w-lander", Assistants, kdesktop));
         Assert.Equal(AssistantTargeting.AnyAssistant, WakeOwners.Of("w-any", Assistants, kdesktop));
-        Assert.Equal(WakeOwners.KDesktop, WakeOwners.Of("w-kd", Assistants, kdesktop));
+        Assert.Equal(WakeOwners.Commands, WakeOwners.Of("w-kd", Assistants, kdesktop));
         Assert.Null(WakeOwners.Of("w-loose", Assistants, kdesktop));
     }
 

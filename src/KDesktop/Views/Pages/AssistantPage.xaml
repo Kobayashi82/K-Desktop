@@ -17,14 +17,60 @@
         </Style>
     </UserControl.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24,12,24,24">
-        <StackPanel MaxWidth="980" HorizontalAlignment="Left" MinWidth="560">
-            <DockPanel Margin="0,0,0,14">
-                <ui:Button DockPanel.Dock="Right" VerticalAlignment="Center" Content="{l:Tr assistantPanel.options}"
-                           Icon="{ui:SymbolIcon Settings24}" Click="OnOptions" />
-                <TextBlock Style="{StaticResource PageTitle}" Text="{l:Tr nav.assistant}" />
-            </DockPanel>
+    <Grid Margin="24,12,0,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
+        <!-- ── The assistants, as the lists of the other pages: K-Desktop first, the active ones marked ── -->
+        <DockPanel Grid.Column="0" Margin="0,0,16,16">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,14">
+                <TextBlock Style="{StaticResource PageTitle}" Text="{l:Tr nav.assistant}" />
+                <Border x:Name="CountChip" Margin="10,6,0,0" Padding="8,1" CornerRadius="10" VerticalAlignment="Center" Background="{DynamicResource Kd.AccentSoft}"
+                        ToolTip="{l:Tr assistantPanel.activeCount}">
+                    <TextBlock x:Name="CountText" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Kd.AccentText}" />
+                </Border>
+            </StackPanel>
+            <StackPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
+                <ui:Button x:Name="ChooseButton" HorizontalAlignment="Stretch" Content="{l:Tr assistantPanel.choose}"
+                           Icon="{ui:SymbolIcon PeopleCommunity24}" Click="OnChoose" />
+                <ui:Button Margin="0,8,0,0" HorizontalAlignment="Stretch" Content="{l:Tr assistantPanel.options}"
+                           Icon="{ui:SymbolIcon Settings24}" Click="OnOptions" />
+            </StackPanel>
+            <ListBox x:Name="AssistantList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource RowItem}"
+                     SelectionChanged="OnAssistantSelected" AutomationProperties.Name="{l:Tr assistantPanel.whom}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Border Width="34" Height="34" Margin="0,0,12,0" CornerRadius="9" Background="{DynamicResource Kd.ChipBackground}">
+                                <Grid>
+                                    <ui:SymbolIcon Symbol="Bot24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}"
+                                                   Visibility="{Binding NoIcon, Converter={StaticResource BoolToVis}}" />
+                                    <Image Source="{Binding Icon}" Margin="4" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+                                </Grid>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                <TextBlock Margin="0,1,0,0" Text="{Binding StateText}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                            <Ellipse Grid.Column="2" Width="8" Height="8" Margin="6,0,10,0" VerticalAlignment="Center" Fill="{DynamicResource Kd.Success}"
+                                     Visibility="{Binding IsOnDesktop, Converter={StaticResource BoolToVis}}" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </DockPanel>
+
+    <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="0,0,24,24">
+        <StackPanel MinWidth="520">
             <!-- The module is off -->
             <Border x:Name="OffPanel" Style="{StaticResource Card}" Visibility="Collapsed">
                 <StackPanel Margin="0,20" HorizontalAlignment="Center">
@@ -40,10 +86,7 @@
             </Border>
 
             <StackPanel x:Name="OnPanel">
-                <!-- Several on the desktop: whose card and panel are shown -->
-                <WrapPanel x:Name="Pickers" Margin="0,0,0,6" Visibility="Collapsed" AutomationProperties.Name="{l:Tr assistantPanel.whom}" />
-
-                <!-- Who is on the desktop -->
+                <!-- The one chosen in the list -->
                 <Border Style="{StaticResource Card}">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -70,10 +113,8 @@
                         <StackPanel Grid.Column="2" VerticalAlignment="Center">
                             <ui:Button x:Name="SettingsButton" Margin="0,0,0,8" HorizontalAlignment="Stretch" Content="{l:Tr assistantPanel.settings}"
                                        Icon="{ui:SymbolIcon Options24}" Click="OnAssistantSettings" />
-                            <ui:Button x:Name="HideButton" HorizontalAlignment="Stretch" Content="{l:Tr assistantOptions.hide}"
-                                       Icon="{ui:SymbolIcon EyeOff24}" Click="OnHide" />
-                            <ui:Button x:Name="ChooseButton" Margin="0,8,0,0" HorizontalAlignment="Stretch" Content="{l:Tr assistantPanel.choose}"
-                                       Icon="{ui:SymbolIcon PeopleCommunity24}" Click="OnChoose" />
+                            <ui:Button x:Name="HideButton" HorizontalAlignment="Stretch" Icon="{ui:SymbolIcon EyeOff24}" Click="OnHide" />
+                            <ui:Button x:Name="PutButton" HorizontalAlignment="Stretch" Appearance="Primary" Icon="{ui:SymbolIcon Play24}" Click="OnPut" />
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -154,4 +195,5 @@
             </StackPanel>
         </StackPanel>
     </ScrollViewer>
+    </Grid>
 </UserControl>

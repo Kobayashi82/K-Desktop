@@ -11,10 +11,13 @@
         Topmost="True"
         Focusable="False"
         IsHitTestVisible="False"
-        SizeToContent="WidthAndHeight"
+        Width="776"
+        Height="300"
         UseLayoutRounding="True">
-    <!-- Margin leaves room for the shadow -->
-    <Grid x:Name="Root" Margin="28" Opacity="0" RenderTransformOrigin="0.5,0.5">
+    <!-- The window never changes size (5.0.112): a window that follows its content is resized from its left edge and only
+         then centred again, and the pill was seen jumping. The pill sits inside it, aligned as the position says
+         (OsdWindow.Reposition), and grows from there in the same frame. Margin leaves room for the shadow. -->
+    <Grid x:Name="Root" Margin="28" Opacity="0" RenderTransformOrigin="0.5,0.5" HorizontalAlignment="Center" VerticalAlignment="Bottom">
         <Grid.RenderTransform>
             <TransformGroup>
                 <ScaleTransform x:Name="Scale" ScaleX="0.96" ScaleY="0.96" />
@@ -31,10 +34,17 @@
             <Border.Effect>
                 <DropShadowEffect BlurRadius="26" ShadowDepth="6" Direction="270" Opacity="0.32" Color="Black" />
             </Border.Effect>
-            <StackPanel Orientation="Horizontal">
-                <Ellipse x:Name="Dot" Width="9" Height="9" Margin="0,0,12,0" VerticalAlignment="Center" Fill="{DynamicResource Kd.Accent}" />
+            <!-- The text wraps (six lines at most, «…» after that); the dot, the meter and the countdown stay by its first line -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Ellipse x:Name="Dot" Width="9" Height="9" Margin="0,6.5,12,0" VerticalAlignment="Top" Fill="{DynamicResource Kd.Accent}" />
                 <!-- Voice: microphone level as five bars (only while listening) -->
-                <StackPanel x:Name="Meter" Orientation="Horizontal" Height="18" Margin="0,0,12,0" VerticalAlignment="Center" Visibility="Collapsed">
+                <StackPanel x:Name="Meter" Grid.Column="1" Orientation="Horizontal" Height="18" Margin="0,1,12,0" VerticalAlignment="Top" Visibility="Collapsed">
                     <StackPanel.Resources>
                         <Style TargetType="Rectangle">
                             <Setter Property="Width" Value="3" />
@@ -53,21 +63,27 @@
                     <Rectangle><Rectangle.RenderTransform><ScaleTransform ScaleY="0.2" /></Rectangle.RenderTransform></Rectangle>
                 </StackPanel>
                 <TextBlock x:Name="MessageText"
+                           Grid.Column="2"
                            VerticalAlignment="Center"
                            FontFamily="Segoe UI Variable Display, Segoe UI"
                            FontSize="15"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource Kd.OsdText}"
+                           TextWrapping="Wrap"
+                           LineStackingStrategy="BlockLineHeight"
+                           LineHeight="20"
+                           MaxHeight="120"
                            TextTrimming="CharacterEllipsis" />
                 <TextBlock x:Name="CountdownText"
+                           Grid.Column="3"
                            Margin="12,0,0,0"
-                           VerticalAlignment="Center"
+                           VerticalAlignment="Top"
                            FontFamily="Segoe UI Variable Display, Segoe UI"
                            FontSize="15"
                            FontWeight="Bold"
                            Foreground="{DynamicResource Kd.AccentText}"
                            Visibility="Collapsed" />
-            </StackPanel>
+            </Grid>
         </Border>
     </Grid>
 </Window>

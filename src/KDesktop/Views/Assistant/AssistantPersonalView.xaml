@@ -4,12 +4,12 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:l="clr-namespace:KDesktop.Localization">
     <!-- Options → Assistants → one assistant → «Personalidad y voz» (5.0.105): what it has of its own; the rest, the general.
-         With Bodiless (5.0.111), Options → Assistant module → K-Desktop: the same for K-Desktop answering without an assistant. -->
+         K-Desktop's own (5.0.112) starts with a word on how it answers without a figure. -->
     <StackPanel>
-        <Border x:Name="BodilessCard" Style="{StaticResource Card}" Visibility="Collapsed">
+        <Border x:Name="SystemCard" Style="{StaticResource Card}" Visibility="Collapsed">
             <StackPanel>
-                <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr assistantBodiless.title}" />
-                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantBodiless.intro}" />
+                <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr assistantSystem.title}" />
+                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantSystem.intro}" />
             </StackPanel>
         </Border>
 

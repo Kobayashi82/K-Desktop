@@ -9,15 +9,18 @@ namespace KDesktop.Core.Voice;
 /// </summary>
 public static class WakeOwners
 {
-    /// <summary>The owner «K-Desktop» (its commands).</summary>
-    public const string KDesktop = "kdesktop";
+    /// <summary>
+    /// The owner «K-Desktop's commands» (not an id: <see cref="AssistantTargeting.KDesktop"/> is K-Desktop the assistant,
+    /// 5.0.112, which has a word of its own like any other).
+    /// </summary>
+    public const string Commands = "@commands";
 
-    /// <summary>Its owner: <see cref="KDesktop"/>, an assistant's id, <see cref="AssistantTargeting.AnyAssistant"/> or null.</summary>
+    /// <summary>Its owner: <see cref="Commands"/>, an assistant's id, <see cref="AssistantTargeting.AnyAssistant"/> or null.</summary>
     public static string? Of(string wordId, IReadOnlyDictionary<string, string> assistantWords, IReadOnlyCollection<string>? kdesktopWords)
     {
         foreach (var (assistant, word) in assistantWords)
             if (word == wordId) return assistant;
-        return kdesktopWords?.Contains(wordId) == true ? KDesktop : null;
+        return kdesktopWords?.Contains(wordId) == true ? Commands : null;
     }
 
     /// <summary>
@@ -29,7 +32,7 @@ public static class WakeOwners
         [.. words.Where(id => Of(id, assistantWords, kdesktopWords) switch
         {
             null => true,
-            KDesktop => false,
+            Commands => false,
             AssistantTargeting.AnyAssistant => !moduleOn,
             var assistant => !moduleOn || !onDesktop.Contains(assistant),
         })];

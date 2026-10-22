@@ -72,4 +72,17 @@ public class AssistantPersonalTests
         var read = Json.Deserialize<AppConfig>(Json.Serialize(config))!;
         Assert.Equal(personal["lander"], read.Settings.AssistantPersonal["lander"]);
     }
+
+    /// <summary>5.0.112: what K-Desktop had of its own under the empty key (5.0.111) moves to its id as an assistant.</summary>
+    [Fact]
+    public void KDesktopsOwnMovesToItsId()
+    {
+        var config = new AppConfig();
+        var own = new AssistantPersonal { Language = "en", Prompt = "Be brief." };
+        config.Settings.AssistantPersonal = new() { [""] = own, ["lander"] = new AssistantPersonal { Language = "fr" } };
+        Assert.True(config.Upgrade());
+        Assert.False(config.Settings.AssistantPersonal.ContainsKey(""));
+        Assert.Equal(own, config.Settings.AssistantPersonal[AssistantTargeting.KDesktop]);
+        Assert.Equal("fr", config.Settings.AssistantPersonal["lander"].Language);
+    }
 }

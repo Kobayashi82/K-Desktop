@@ -184,6 +184,8 @@ public class PackageManagerTests
         Assert.Equal(PackageProblem.Invalid, Rejected(MakePackage("dot-x6", manifest: m => m["traits"]!["travel"] = "swim")));
         Assert.Equal(PackageProblem.Sdk, Rejected(MakePackage("dot-x7", manifest: m => m["sdk"] = "2.0")));
         Assert.Equal(PackageProblem.ReservedId, Rejected(MakePackage("data")));
+        // K-Desktop is an assistant of the system (5.0.112): no package can take its id.
+        Assert.Equal(PackageProblem.ReservedId, Rejected(MakePackage("kdesktop")));
         Assert.Equal(PackageProblem.BadImage, Rejected(MakePackage("dot-x8", skip: n => n == "icon.png",
             extra: z => AddText(z, "icon.png", "no soy una imagen"))));
         Assert.Equal(PackageProblem.Invalid, Rejected(MakePackage("dot-x9", skip: n => n == "settings.json",

@@ -11,7 +11,7 @@ using KDesktop.Views.Assistant;
 namespace KDesktop;
 
 /// <summary>One line of Panel → Assistant → Activity.</summary>
-/// <param name="Assistant">Who did it (null: the module without a body).</param>
+/// <param name="Assistant">Who did it (null: K-Desktop).</param>
 public sealed class ActivityItem(ActivityEntry entry, string? assistant)
 {
     public ActivityEntry Entry { get; } = entry;
@@ -78,12 +78,11 @@ public partial class App
     /// </summary>
     private async Task<string> AskUserAsync(string key, string? assistant, string text, bool canTrust, int seconds)
     {
-        var installed = assistant is { Length: > 0 } id ? AssistantPackages.Find(id) : null;
-        var window = new AskWindow(installed?.Manifest.Name ?? "K-Desktop", installed is null ? null : AssistantLook.Icon(installed),
-            text, canTrust, TimeSpan.FromSeconds(Math.Clamp(seconds, 3, 30)));
+        var who = FromProcess(assistant);
+        var window = new AskWindow(AssistantName(who), AssistantLook.IconOf(who), text, canTrust, TimeSpan.FromSeconds(Math.Clamp(seconds, 3, 30)));
         _questions[key] = window;
         window.Show();
-        if (TalkedByVoice(assistant)) ListenForAnswer(window, installed?.Manifest.Name ?? "K-Desktop", canTrust, TimeSpan.FromSeconds(Math.Clamp(seconds, 3, 30)));
+        if (TalkedByVoice(assistant)) ListenForAnswer(window, AssistantName(who), canTrust, TimeSpan.FromSeconds(Math.Clamp(seconds, 3, 30)));
         var choice = await window.Answer;
         _questions.Remove(key);
         Log.Info($"Asistente: «{text}» → {choice}");
@@ -157,5 +156,5 @@ public partial class App
     private sealed record SavedActivity(ActivityEntry Entry, string? Assistant, bool Undone);
 
     /// <summary>The name of who did a line: the assistant, or K-Desktop without a body.</summary>
-    public static string ActivityWho(ActivityItem item) => item.Assistant is { } id ? AssistantName(id) : Loc.T("assistantActivity.noBody");
+    public static string ActivityWho(ActivityItem item) => AssistantName(item.Assistant);
 }

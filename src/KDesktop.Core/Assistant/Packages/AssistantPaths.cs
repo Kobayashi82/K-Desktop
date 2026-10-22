@@ -10,8 +10,11 @@ namespace KDesktop.Core.Assistant.Packages;
 /// </summary>
 public static class AssistantPaths
 {
-    /// <summary>Folder names under <see cref="Root"/> that are not assistants.</summary>
-    public static IReadOnlySet<string> Reserved { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "data", "settings", "dev" };
+    /// <summary>
+    /// Folder names under <see cref="Root"/> that are not assistants, and the id of K-Desktop itself (5.0.112: an assistant
+    /// of the system, no package can be it).
+    /// </summary>
+    public static IReadOnlySet<string> Reserved { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "data", "settings", "dev", AssistantTargeting.KDesktop };
 
     public static string Root => Path.Combine(AppPaths.DataDir, "Assistants");
 

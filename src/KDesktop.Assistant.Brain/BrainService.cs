@@ -1,5 +1,6 @@
 using KDesktop.Assistant.Brain.Models;
 using KDesktop.Core;
+using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Brain;
 using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Localization;
@@ -59,15 +60,15 @@ public sealed class BrainService : IDisposable
     }
 
     /// <summary>
-    /// The model an assistant talks with (stage 3.2): its own when there is such a model; otherwise the general one (also
-    /// with no assistant: the module without a body). Null when neither is there.
+    /// The model an assistant talks with (stage 3.2): its own when there is such a model; otherwise the general one. No
+    /// assistant is K-Desktop (5.0.112), whose own model goes under its id. Null when neither is there.
     /// </summary>
     public string? ModelFor(string? assistant)
     {
         lock (_gate)
         {
             if (_config.IsOff) return null;
-            if (assistant is not null && _config.AssistantModels.TryGetValue(assistant, out var own)
+            if (_config.AssistantModels.TryGetValue(assistant ?? AssistantTargeting.KDesktop, out var own)
                 && ModelRefs.Find(_state.Models?.Select(m => m.Name) ?? [], own) is { } found)
                 return found;
             return _state.State == "ready" ? _state.Model : null;
