@@ -3896,5 +3896,7 @@
   "assistantCard.warningVerified": "Signé par {0}, que K-Desktop connaît, et personne ne l'a modifié depuis.",
   "assistantCard.warningUnknown": "Signé par « {0} », mais K-Desktop ne connaît pas sa clé : impossible de savoir qui c'est. Cet assistant contient du code ; installe-le seulement si tu fais confiance à son auteur.",
   "assistantCard.signerChanged": "Attention : la version que tu as était signée par {0} et celle-ci ne porte pas sa signature. Elle ne vient peut-être pas du même auteur.",
-  "assistantOptions.verified": "vérifié"
+  "assistantOptions.verified": "vérifié",
+  "brainOptions.freeForGames": "Libérer la carte graphique pour les jeux",
+  "brainOptions.freeForGamesHint": "Avec un jeu en plein écran, le modèle quitte la carte graphique. Un film ne compte pas. Il se recharge quand tu lui parles."
 }

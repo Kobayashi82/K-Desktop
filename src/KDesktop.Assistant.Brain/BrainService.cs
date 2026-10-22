@@ -75,6 +75,31 @@ public sealed class BrainService : IDisposable
         }
     }
 
+    /// <summary>A game on the whole screen takes the models of this PC out of the graphics card (Options → Brain).</summary>
+    public bool FreeForGames
+    {
+        get { lock (_gate) return _config.FreeForGames && !_config.IsOff; }
+    }
+
+    /// <summary>A model of this PC is in the graphics card, or on its way.</summary>
+    public bool HasLocalLoaded
+    {
+        get
+        {
+            lock (_gate) return _hub?.Local.Loading is not null || _state.Loaded?.Any(ModelRefs.IsLocal) == true;
+        }
+    }
+
+    /// <summary>Takes the models of this PC out of the graphics card (not those of other servers): a game needs it.</summary>
+    public async Task FreeLocalAsync(string why)
+    {
+        BrainHub? hub;
+        lock (_gate) hub = _hub;
+        if (hub is null) return;
+        hub.Local.StopAll(why);
+        await CheckAsync().ConfigureAwait(false);
+    }
+
     /// <summary>
     /// How an assistant thinks harder (stage 12): the model of «Para pensar más» if the servers have it, otherwise its usual
     /// one with its reasoning on; null when it never does (or there is no AI now).

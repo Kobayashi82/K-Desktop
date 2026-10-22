@@ -135,6 +135,7 @@ public sealed class TalkService
         var who = heard.Assistant;
         var conversation = Of(who);
         var (token, wasBusy) = conversation.Begin();
+        Active();
         var turn = Guid.NewGuid().ToString("N")[..12];
         _output.Chat(new ChatLineMessage("user", said, turn, true, who));
         try
@@ -170,6 +171,7 @@ public sealed class TalkService
         }
         finally
         {
+            Active();
             if (conversation.End(token)) _output.State(who, "idle");
         }
     }
@@ -285,6 +287,16 @@ public sealed class TalkService
     {
         if (_conversations.TryGetValue(assistant ?? string.Empty, out var conversation)) conversation.Cancel();
     }
+
+    /// <summary>Whether any assistant is answering an order now.</summary>
+    public bool IsAnyAnswering => _conversations.Values.Any(c => c.Busy);
+
+    private long _lastActive;
+
+    /// <summary>When an order or a «decir» last started or ended (the brain may have been busy until then).</summary>
+    public DateTimeOffset LastActive => new(Interlocked.Read(ref _lastActive), TimeSpan.Zero);
+
+    private void Active() => Interlocked.Exchange(ref _lastActive, _time.GetUtcNow().UtcTicks);
 
     /// <summary>Whether that assistant is answering an order now (thinking or saying it).</summary>
     public bool IsAnswering(string? assistant) =>

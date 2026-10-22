@@ -84,6 +84,7 @@ public sealed record BrainRemote(string Id, RemoteKind Kind, string Endpoint = "
 /// <paramref name="ThinkModel"/> (stage 12): the model that thinks harder when an order needs it («piénsalo bien», or the
 /// usual model asks with <c>think_harder</c>); empty: the same model with its reasoning on; <see cref="ModelRefs.None"/>:
 /// never. <paramref name="ThinkTokens"/>: how much it may think (tokens of reasoning, before its answer).
+/// <paramref name="FreeForGames"/>: a game on the whole screen takes the models of this PC out of the graphics card.
 /// </summary>
 public sealed record BrainConfig(
     string Model = "",
@@ -96,7 +97,8 @@ public sealed record BrainConfig(
     bool Vision = true,
     IReadOnlyList<BrainRemote>? Remotes = null,
     string ThinkModel = "",
-    int ThinkTokens = BrainConfig.DefaultThinkTokens)
+    int ThinkTokens = BrainConfig.DefaultThinkTokens,
+    bool FreeForGames = true)
 {
     /// <summary>Minutes a model stays loaded without use, by default.</summary>
     public const int DefaultKeepMinutes = 30;
@@ -154,6 +156,7 @@ public sealed record BrainConfig(
         ["remotes"] = new JsonArray([.. RemoteList.Select(r => (JsonNode?)r.ToJson())]),
         ["thinkModel"] = ThinkModel,
         ["thinkTokens"] = ThinkTokens,
+        ["freeForGames"] = FreeForGames,
     };
 
     public static BrainConfig FromJson(JsonObject? json)
@@ -173,7 +176,8 @@ public sealed record BrainConfig(
             Flag(json["oneAtATime"], true), Flag(json["vision"], true),
             json["remotes"] is JsonArray remotes ? [.. remotes.Select(BrainRemote.FromJson).OfType<BrainRemote>()] : [],
             Text(json["thinkModel"]),
-            json["thinkTokens"] is JsonValue t && t.TryGetValue<int>(out var tokens) ? Math.Max(LeastThinkTokens, tokens) : DefaultThinkTokens);
+            json["thinkTokens"] is JsonValue t && t.TryGetValue<int>(out var tokens) ? Math.Max(LeastThinkTokens, tokens) : DefaultThinkTokens,
+            Flag(json["freeForGames"], true));
     }
 
     internal static string Text(JsonNode? node) => node is JsonValue v && v.TryGetValue<string>(out var s) ? s : string.Empty;

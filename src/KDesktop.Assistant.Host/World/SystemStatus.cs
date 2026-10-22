@@ -112,6 +112,16 @@ internal sealed class SystemStatus
         FullscreenMonitors.UnionWith(CoveredMonitors(Layers(ownWindows), monitors));
     }
 
+    /// <summary>
+    /// Right now, from any thread (stage 12, freeing the graphics card for a game): whether something covers a whole
+    /// monitor, and whether it is an exclusive game. Without the assistants' own windows, which never cover anything.
+    /// </summary>
+    public static (bool Fullscreen, bool Exclusive) Now()
+    {
+        if (SHQueryUserNotificationState(out var state) == 0 && state == QUNS_RUNNING_D3D_FULL_SCREEN) return (true, true);
+        return (CoveredMonitors(Layers(new HashSet<nint>()), Monitors.Read()).Count > 0, false);
+    }
+
     /// <summary>The windows as full-screen detection sees them, topmost first (read lazily: it stops when it can).</summary>
     private static IEnumerable<ScreenLayer> Layers(ISet<nint> ownWindows)
     {

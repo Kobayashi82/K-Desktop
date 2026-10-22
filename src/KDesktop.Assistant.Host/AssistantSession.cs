@@ -45,7 +45,11 @@ internal sealed class AssistantSession : IDisposable
         if (Link is not null) Voice = new ModuleVoice(Engine, Runtime, Personal);
         if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!, Commands!, Voice!, Personal);
         if (Link is not null) Bench = new ModuleBench(Link, Brain!, Tools!, Talk!.Chooser, Commands!);
+        if (Link is not null) Games = new ModuleGames(Brain!, Talk!.Service);
     }
+
+    /// <summary>A game on the whole screen frees the graphics card (stage 12; null without K-Desktop).</summary>
+    public ModuleGames? Games { get; }
 
     /// <summary>The user's K-Desktop commands (null without K-Desktop).</summary>
     public ModuleCommands? Commands { get; }

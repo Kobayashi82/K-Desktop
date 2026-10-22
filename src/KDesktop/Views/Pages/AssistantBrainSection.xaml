@@ -96,6 +96,16 @@
                     <ComboBox x:Name="KeepBox" Grid.Column="1" VerticalAlignment="Center" SelectionChanged="OnKeepChanged"
                               AutomationProperties.Name="{l:Tr brainOptions.keep}" />
                 </Grid>
+
+                <!-- Stage 12: a game on the whole screen takes the models out of the graphics card -->
+                <Grid Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr brainOptions.freeForGames}" />
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr brainOptions.freeForGamesHint}" />
+                    </StackPanel>
+                    <ui:ToggleSwitch x:Name="GamesSwitch" Grid.Column="1" Checked="OnGames" Unchecked="OnGames" AutomationProperties.Name="{l:Tr brainOptions.freeForGames}" />
+                </Grid>
             </StackPanel>
         </StackPanel>
     </Border>

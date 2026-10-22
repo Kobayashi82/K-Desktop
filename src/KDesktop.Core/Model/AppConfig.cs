@@ -665,6 +665,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>How much it may think then, in tokens of reasoning.</summary>
     [ObservableProperty] private int _assistantBrainThinkTokens = Assistant.Brain.BrainConfig.DefaultThinkTokens;
 
+    /// <summary>A game on the whole screen takes the brain's models out of the graphics card (stage 12).</summary>
+    [ObservableProperty] private bool _assistantBrainFreeForGames = true;
+
     /// <summary>Other servers with models (Ollama, llama-swap, OpenAI compatible), their keys protected with DPAPI. Replaced whole.</summary>
     [ObservableProperty] private List<Assistant.Brain.BrainRemote> _assistantBrainRemotes = [];
 

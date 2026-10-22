@@ -3896,5 +3896,7 @@
   "assistantCard.warningVerified": "Signed by {0}, whom K-Desktop knows, and nobody has changed it since.",
   "assistantCard.warningUnknown": "Signed by «{0}», but K-Desktop does not know its key: there is no telling who it is. This assistant contains code; install it only if you trust its author.",
   "assistantCard.signerChanged": "Careful: the version you have was signed by {0} and this one does not carry that signature. It may not come from the same author.",
-  "assistantOptions.verified": "verified"
+  "assistantOptions.verified": "verified",
+  "brainOptions.freeForGames": "Free the graphics card for games",
+  "brainOptions.freeForGamesHint": "With a game on the whole screen, the model leaves the graphics card. A film does not count. It loads again when you talk to it."
 }

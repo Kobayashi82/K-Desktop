@@ -121,6 +121,7 @@ public partial class AssistantBrainSection : UserControl
 
             OneAtATimeSwitch.IsChecked = s.AssistantBrainOneAtATime;
             VisionSwitch.IsChecked = s.AssistantBrainVision;
+            GamesSwitch.IsChecked = s.AssistantBrainFreeForGames;
             KeepBox.SelectedItem = KeepBox.Items.OfType<KeepOption>().FirstOrDefault(k => k.Minutes == s.AssistantBrainKeepMinutes)
                 ?? KeepBox.Items.OfType<KeepOption>().First(k => k.Minutes == BrainConfig.DefaultKeepMinutes);
 
@@ -643,6 +644,11 @@ public partial class AssistantBrainSection : UserControl
     private void OnVision(object sender, RoutedEventArgs e)
     {
         if (!_filling) _app.Config.Settings.AssistantBrainVision = VisionSwitch.IsChecked == true;
+    }
+
+    private void OnGames(object sender, RoutedEventArgs e)
+    {
+        if (!_filling) _app.Config.Settings.AssistantBrainFreeForGames = GamesSwitch.IsChecked == true;
     }
 
     private void OnKeepChanged(object sender, SelectionChangedEventArgs e)

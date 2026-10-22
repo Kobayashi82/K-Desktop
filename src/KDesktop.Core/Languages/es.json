@@ -3896,5 +3896,7 @@
   "assistantCard.warningVerified": "Lo firma {0}, que K-Desktop conoce, y nadie lo ha cambiado desde entonces.",
   "assistantCard.warningUnknown": "Lo firma «{0}», pero K-Desktop no conoce su clave: no se sabe quién es. Este asistente contiene código; instálalo solo si confías en su autor.",
   "assistantCard.signerChanged": "Ojo: la versión que tienes la firmaba {0} y esta no lleva su firma. Puede que no venga del mismo autor.",
-  "assistantOptions.verified": "verificado"
+  "assistantOptions.verified": "verificado",
+  "brainOptions.freeForGames": "Liberar la gráfica al jugar",
+  "brainOptions.freeForGamesHint": "Con un juego a pantalla completa, el modelo sale de la gráfica. Una película no cuenta. Vuelve a cargarse cuando le hablas."
 }
