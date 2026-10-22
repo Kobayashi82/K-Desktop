@@ -59,6 +59,7 @@ public partial class SettingsPage
             new("assistant", "Bot24", "settings.nav.assistant"),
             new("assistants", "PeopleCommunity24", "settings.nav.assistants"),
             new("brain", "BrainCircuit24", "settings.nav.brain"),
+            new("tools", "Wrench24", "settings.nav.tools"),
             new("speech", "PersonVoice24", "settings.nav.assistantVoice"),
             new("memory", "BookInformation24", "settings.nav.memory"),
             new("notes", "Note24", "settings.nav.notes"),
@@ -71,6 +72,15 @@ public partial class SettingsPage
     private readonly List<NavItem> _groups = [];
     private NavItem? _current;
     private NavItem? _assistantsItem;
+    private NavItem? _toolsItem;
+
+    /// <summary>The pages inside «Herramientas» (stage 9.3): its servers, the user's JSON tools and the secrets.</summary>
+    private static readonly SectionDef[] ToolParts =
+    [
+        new("tools/servers", "PlugConnected24", "settings.nav.toolServers"),
+        new("tools/files", "DocumentData24", "settings.nav.toolFiles"),
+        new("tools/secrets", "Key24", "settings.nav.toolSecrets"),
+    ];
     private bool _building;
     private bool _byMouse;
     private bool _searching;
@@ -97,10 +107,11 @@ public partial class SettingsPage
                 foreach (var section in group.Sections)
                 {
                     var item = new NavItem(NavKind.Section, section.Key) { Style = (Style)FindResource("NavItem") };
-                    item.Header = SectionHeader(item, section.Icon, section.Text, folds: section.Key == "assistants");
+                    item.Header = SectionHeader(item, section.Icon, section.Text, folds: section.Key is "assistants" or "tools");
                     SpeakAs(item, section.Text);
                     groupItem.Items.Add(item);
                     if (section.Key == "assistants") _assistantsItem = item;
+                    if (section.Key == "tools") _toolsItem = item;
                 }
                 groupItem.Expanded += OnNavExpanded;
                 groupItem.Collapsed += OnNavExpanded;
@@ -110,14 +121,19 @@ public partial class SettingsPage
             _assistantsItem!.Expanded += OnNavExpanded;
             _assistantsItem.Collapsed += OnNavExpanded;
             FillAssistants();
+            FillTools();
+            _toolsItem!.Expanded += OnNavExpanded;
+            _toolsItem.Collapsed += OnNavExpanded;
             ApplyAvailability();
 
             // As it was left: the groups open (none the first time) and the section shown, even inside a folded group.
             var start = Find(LastSection ?? _app.Config.Settings.SettingsSection ?? "appearance") is { } last && IsShown(last) ? last : Find("appearance")!;
             foreach (var group in _groups) group.IsExpanded = open?.Contains(group.Key) == true;
             _assistantsItem.IsExpanded = open?.Contains("assistants") == true;
+            _toolsItem.IsExpanded = open?.Contains("tools") == true;
             foreach (var group in _groups) UpdateChevron(group, animate: false);
             UpdateChevron(_assistantsItem, animate: false);
+            UpdateChevron(_toolsItem, animate: false);
             Select(start);
         }
         finally
@@ -215,6 +231,19 @@ public partial class SettingsPage
         return grid;
     }
 
+    /// <summary>A page inside a section, with a symbol (not an assistant's picture).</summary>
+    private static FrameworkElement SubHeader(string icon, string text)
+    {
+        var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(46, 0, 0, 0) };
+        var symbol = new SymbolIcon { Symbol = Enum.Parse<SymbolRegular>(icon), FontSize = 16, Width = 20, Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center };
+        symbol.SetResourceReference(ForegroundProperty, "Kd.AccentText");
+        row.Children.Add(symbol);
+        var name = new TextBlock { Text = text, FontSize = 13, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+        name.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorPrimaryBrush");
+        row.Children.Add(name);
+        return row;
+    }
+
     private static FrameworkElement SubHeader(ImageSource? icon, string text)
     {
         var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(46, 0, 0, 0) };
@@ -250,7 +279,23 @@ public partial class SettingsPage
             _assistantsItem.Items.Add(item);
             if (item.Key == current) MarkCurrent(item);
         }
-        if (_current is { Kind: NavKind.Sub } gone && !keys.Contains(gone.Key)) MarkCurrent(_assistantsItem);
+        if (_current is { Kind: NavKind.Sub } gone && gone.Key.StartsWith("assistants/", StringComparison.Ordinal) && !keys.Contains(gone.Key)) MarkCurrent(_assistantsItem);
+    }
+
+    /// <summary>The pages inside «Herramientas».</summary>
+    private void FillTools()
+    {
+        foreach (var part in ToolParts)
+        {
+            var item = new NavItem(NavKind.Sub, part.Key)
+            {
+                Style = (Style)FindResource("NavItem"),
+                Header = SubHeader(part.Icon, Loc.T(part.Text)),
+                SearchText = Fold(Loc.T(part.Text) + " " + Loc.T(part.Text + ".hint")),
+            };
+            AutomationProperties.SetName(item, Loc.T(part.Text));
+            _toolsItem!.Items.Add(item);
+        }
     }
 
     /// <summary>With the module off, its group only has «General» (where it is turned on); counts and chevrons follow.</summary>
@@ -265,6 +310,7 @@ public partial class SettingsPage
             ((TextBlock)((Border)group.CountChip!).Child).Text = group.Children.Count(s => s.Visibility == Visibility.Visible).ToString(CultureInfo.CurrentCulture);
         }
         _assistantsItem!.Chevron!.Visibility = _assistantsItem.Items.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        _toolsItem!.Chevron!.Visibility = Visibility.Visible;
     }
 
     // ── choosing ─────────────────────────────────────────────────────────
@@ -320,6 +366,12 @@ public partial class SettingsPage
         var same = _current == item;
         MarkCurrent(item);
         if (same && item.Kind == NavKind.Section && item.Key != "assistants") return;
+        // A page of its own inside a section («Herramientas → Secretos»).
+        if (item.Kind == NavKind.Sub && !item.Key.StartsWith("assistants/", StringComparison.Ordinal))
+        {
+            ShowCard(item.Key, animate: !same);
+            return;
+        }
         ShowCard(item.Kind == NavKind.Sub ? "assistants" : item.Key, animate: !same);
         if (item.Kind == NavKind.Sub) AssistantsSection.ShowSettings(item.Key["assistants/".Length..]);
         else if (item.Key == "assistants") AssistantsSection.ShowList();
@@ -392,6 +444,7 @@ public partial class SettingsPage
         if (_building || _searching) return;
         var open = _groups.Where(g => g.IsExpanded).Select(g => g.Key).ToList();
         if (_assistantsItem!.IsExpanded) open.Add("assistants");
+        if (_toolsItem!.IsExpanded) open.Add("tools");
         _app.Config.Settings.SettingsNavOpen = open;
     }
 
@@ -528,6 +581,7 @@ public partial class SettingsPage
         {
             _openBeforeSearch = [.. _groups.Where(g => g.IsExpanded).Select(g => g.Key)];
             if (_assistantsItem!.IsExpanded) _openBeforeSearch.Add("assistants");
+            if (_toolsItem!.IsExpanded) _openBeforeSearch.Add("tools");
             _searching = true;
         }
         var index = SearchIndex();
@@ -570,6 +624,7 @@ public partial class SettingsPage
             group.IsExpanded = _openBeforeSearch?.Contains(group.Key) == true;
         }
         _assistantsItem!.IsExpanded = _openBeforeSearch?.Contains("assistants") == true;
+        _toolsItem!.IsExpanded = _openBeforeSearch?.Contains("tools") == true;
         ApplyAvailability();
         if (_current is { } current) Reveal(current);
     }

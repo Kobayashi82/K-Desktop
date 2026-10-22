@@ -184,7 +184,7 @@ public static partial class McpConfig
 
     /// <summary>
     /// What a server would do that the assistants already do (files, the screen, the clipboard, memory, the time, the
-    /// browser, the mouse and keyboard), as a key of the texts, or null.
+    /// browser, reading webs, the mouse and keyboard), as a key of the texts, or null.
     /// </summary>
     public static string? OverlapOf(McpServerEntry entry)
     {
@@ -199,6 +199,7 @@ public static partial class McpConfig
         (["kdesktop_mcp", "kdesktop-mcp"], "mcpImport.overlap.kdesktop"),
         (["server-filesystem", "desktop-commander"], "mcpImport.overlap.files"),
         (["windows-mcp", "computer-control-mcp", "chrome-devtools-mcp"], "mcpImport.overlap.screen"),
+        (["fetcher-mcp", "mcp-server-fetch"], "mcpImport.overlap.web"),
         (["clipboard"], "mcpImport.overlap.clipboard"),
         (["server-memory"], "mcpImport.overlap.memory"),
         (["mcp-server-time"], "mcpImport.overlap.time"),

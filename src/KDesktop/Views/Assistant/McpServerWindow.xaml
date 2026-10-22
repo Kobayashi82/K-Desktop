@@ -1,0 +1,82 @@
+<ui:FluentWindow x:Class="KDesktop.Views.Assistant.McpServerWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:l="clr-namespace:KDesktop.Localization"
+                 Title="K-Desktop"
+                 Width="640" SizeToContent="Height" MaxHeight="820"
+                 WindowStartupLocation="CenterOwner"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica"
+                 ResizeMode="NoResize"
+                 ShowInTaskbar="False">
+    <!-- Options → Tools → a server's «Editar» or «Añadir servidor» (stage 9.3): a program or an address, its variables or
+         headers (a secret one is kept encrypted and never shown again), and its times. -->
+    <Grid Margin="24,0,24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <ui:TitleBar x:Name="Bar" ShowMinimize="False" ShowMaximize="False" Margin="-24,0,-24,4" />
+
+        <ScrollViewer Grid.Row="1" MaxHeight="640" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="0,0,18,0">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr mcpServer.name}" />
+                <ui:TextBox x:Name="IdBox" PlaceholderText="telegram" ClearButtonEnabled="False" AutomationProperties.Name="{l:Tr mcpServer.name}" />
+
+                <StackPanel Orientation="Horizontal" Margin="0,12,0,4">
+                    <RadioButton x:Name="ProgramRadio" GroupName="Kind" Content="{l:Tr mcpServer.program}" Checked="OnKind" />
+                    <RadioButton x:Name="UrlRadio" GroupName="Kind" Margin="16,0,0,0" Content="{l:Tr mcpServer.address}" Checked="OnKind" />
+                </StackPanel>
+
+                <StackPanel x:Name="ProgramPanel">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr mcpServer.command}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <ui:TextBox x:Name="CommandBox" PlaceholderText="node · npx · uvx · C:\…\python.exe" ClearButtonEnabled="False"
+                                    AutomationProperties.Name="{l:Tr mcpServer.command}" />
+                        <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" Content="{l:Tr mcpServer.browse}" Click="OnBrowse" />
+                    </Grid>
+                    <TextBlock Style="{StaticResource FieldLabel}" Margin="0,10,0,4" Text="{l:Tr mcpServer.args}" />
+                    <ui:TextBox x:Name="ArgsBox" AcceptsReturn="True" TextWrapping="NoWrap" MinHeight="70" ClearButtonEnabled="False"
+                                FontFamily="Consolas" PlaceholderText="-y&#x0a;@modelcontextprotocol/server-everything" AutomationProperties.Name="{l:Tr mcpServer.args}" />
+                    <TextBlock Style="{StaticResource FieldLabel}" Margin="0,10,0,4" Text="{l:Tr mcpServer.cwd}" />
+                    <ui:TextBox x:Name="CwdBox" ClearButtonEnabled="False" AutomationProperties.Name="{l:Tr mcpServer.cwd}" />
+                </StackPanel>
+
+                <StackPanel x:Name="UrlPanel" Visibility="Collapsed">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr mcpServer.url}" />
+                    <ui:TextBox x:Name="UrlBox" PlaceholderText="https://…/mcp" ClearButtonEnabled="False" AutomationProperties.Name="{l:Tr mcpServer.url}" />
+                    <CheckBox x:Name="SseCheck" Margin="0,8,0,0" Content="{l:Tr mcpServer.sse}" />
+                </StackPanel>
+
+                <TextBlock x:Name="ValuesTitle" Style="{StaticResource FieldLabel}" Margin="0,14,0,0" />
+                <TextBlock x:Name="ValuesHint" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,6" />
+                <StackPanel x:Name="ValueRows" />
+                <ui:Button Margin="0,6,0,0" Icon="{ui:SymbolIcon Add24}" Content="{l:Tr mcpServer.addValue}" Click="OnAddValue" />
+
+                <Grid Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="16" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr mcpServer.timeout}" />
+                        <ui:NumberBox x:Name="TimeoutBox" Minimum="5" Maximum="600" Value="60" SmallChange="5" MaxDecimalPlaces="0"
+                                      AutomationProperties.Name="{l:Tr mcpServer.timeout}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr mcpServer.idle}" />
+                        <ui:NumberBox x:Name="IdleBox" Minimum="1" Maximum="240" Value="5" SmallChange="1" MaxDecimalPlaces="0"
+                                      AutomationProperties.Name="{l:Tr mcpServer.idle}" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+        <TextBlock x:Name="ErrorText" Grid.Row="2" Margin="0,10,0,0" TextWrapping="Wrap" Foreground="{DynamicResource Kd.Danger}" Visibility="Collapsed" />
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Save24}" Content="{l:Tr mcpServer.save}" Click="OnSave" />
+            <ui:Button Margin="8,0,0,0" Content="{l:Tr common.cancel}" IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</ui:FluentWindow>

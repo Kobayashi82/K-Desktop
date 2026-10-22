@@ -132,7 +132,9 @@ El módulo Asistente está en desarrollo. Apagado, K-Desktop es el de siempre: n
 8. **Herramientas tuyas, sin compilar:** un `.json` en `%APPDATA%\K-Desktop 5\Assistant\Tools\` les da algo nuevo
    que hacer: una petición a cualquier API (Home Assistant, un bot de Telegram), uno de tus comandos con frases
    propias, una rutina de varios pasos o un script tuyo (`.ps1`, `.bat`, `.py`, `.js`). Se recargan al guardar; los
-   secretos (tokens, claves) se guardan cifrados y el modelo nunca los ve. Guía y ejemplos en
+   secretos (tokens, claves) se guardan cifrados y el modelo nunca los ve. También **servidores MCP** (los de Claude
+   Desktop o mcpo: se importan con sus secretos). Todo en **Opciones → Módulo Asistente → Herramientas**: cada
+   herramienta con su interruptor, cuándo pregunta y «Probar». Guía y ejemplos en
    [docs/assistant/herramientas.md](docs/assistant/herramientas.md).
 
 Instalar una versión nueva encima de la que está en el escritorio la cambia en caliente, sin perder sus datos (que

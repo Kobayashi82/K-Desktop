@@ -1,0 +1,32 @@
+<ui:FluentWindow x:Class="KDesktop.Views.Assistant.McpImportWindow"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:l="clr-namespace:KDesktop.Localization"
+                 Title="K-Desktop"
+                 Width="620" SizeToContent="Height" MaxHeight="760"
+                 WindowStartupLocation="CenterOwner"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica"
+                 ResizeMode="NoResize"
+                 ShowInTaskbar="False">
+    <!-- Options → Tools → «Importar» (stage 9.3): the servers of another program's file (mcpo, Claude Desktop…), each with
+         a box; those the assistants already do come unticked, and why. Their secrets are kept encrypted. -->
+    <Grid Margin="24,0,24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <ui:TitleBar Title="{l:Tr mcpImport.title}" ShowMinimize="False" ShowMaximize="False" Margin="-24,0,-24,4" />
+        <TextBlock x:Name="IntroText" Grid.Row="1" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,10" />
+        <ScrollViewer Grid.Row="2" MaxHeight="480" VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="Rows" />
+        </ScrollViewer>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <ui:Button x:Name="ImportButton" Appearance="Primary" Icon="{ui:SymbolIcon ArrowImport24}" Click="OnImport" />
+            <ui:Button Margin="8,0,0,0" Content="{l:Tr common.cancel}" IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</ui:FluentWindow>

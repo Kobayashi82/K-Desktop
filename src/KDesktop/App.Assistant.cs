@@ -66,6 +66,7 @@ public partial class App
                     ForgetAssistantBrain();
                     ForgetAssistantMemory();
                     ForgetAssistantNotes();
+                    ForgetAssistantTools();
                     ForgetAssistantBench();
                     ForgetAssistantVoice();
                     AbandonAssistantQuestions();
@@ -108,6 +109,7 @@ public partial class App
             ForgetAssistantBrain();
             ForgetAssistantMemory();
             ForgetAssistantNotes();
+            ForgetAssistantTools();
             ForgetAssistantBench();
             ForgetAssistantVoice();
             AbandonAssistantQuestions();
@@ -230,6 +232,12 @@ public partial class App
                 break;
             case NotesStateMessage notes:
                 OnAssistantNotes(notes);
+                break;
+            case ToolsStateMessage tools:
+                OnAssistantTools(tools);
+                break;
+            case ToolTestMessage test:
+                OnAssistantToolTest(test);
                 break;
             case BenchStateMessage bench:
                 OnAssistantBench(bench);

@@ -10,6 +10,9 @@ script tuyo.
   avisará de los errores mientras escribes. Si un archivo tiene errores, K-Desktop te lo dice en un aviso al guardarlo y
   esa herramienta no se carga (las demás sí).
 - **Ejemplos:** en [`herramientas/`](herramientas/) hay uno de cada tipo.
+- **En Opciones → Módulo Asistente → Herramientas** están todas (las incluidas, las tuyas y las de cada servidor MCP),
+  con su interruptor, cuándo preguntan y «Probar». Dentro: **Servidores MCP**, **Tus herramientas** (los archivos, sus
+  errores y «Nueva» desde una plantilla) y **Secretos**.
 
 ## Lo común
 
@@ -135,3 +138,29 @@ respuesta; un código de salida distinto de 0 es un fallo.
 **Un script siempre pregunta antes de su primera ejecución, aunque tengas «Preguntar antes» en «Nunca».** Con «Sí, y no
 vuelvas a preguntar» queda aprobado; si cambias el script o su archivo `.json`, vuelve a preguntar. Así, un script que
 aparezca en la carpeta sin que lo sepas nunca se ejecuta sin que lo veas.
+
+## Servidores MCP
+
+Un servidor MCP es un programa (o una dirección) que da varias herramientas de golpe: los mismos que usan Claude Desktop,
+Open WebUI con mcpo, etc. Están en `%APPDATA%\K-Desktop 5\Assistant\mcp.json`, con el formato `mcpServers` de siempre
+([esquema](esquemas/mcp.schema.json)), y se manejan desde **Opciones → Herramientas → Servidores MCP**:
+
+- **Importar…** lee el archivo de otro programa (el `config.json` de mcpo, el de Claude Desktop) y te deja elegir.
+  Las variables que parecen secretas (`*_TOKEN`, `*_KEY`, `*_SECRET`, `*PASSWORD*`, `CHAT_ID`…) pasan a tus secretos
+  cifrados como `{{secret:<servidor>.<VARIABLE>}}`. Los que ya hacen los asistentes (archivos, pantalla, portapapeles,
+  memoria, hora, leer webs) salen desmarcados con el motivo.
+- **Añadir servidor** / **Editar**: un programa (`node`, `npx`, `uvx`, un `.exe`…, sus argumentos y su carpeta) o una
+  dirección HTTP; sus variables o cabeceras, cada una normal o secreta; cuánto puede tardar una llamada (60 s) y tras
+  cuánto tiempo sin usarse se para (5 min).
+
+Cómo funcionan:
+
+- Los arranca el proceso de los asistentes, **como tu usuario normal** (nunca como administrador), solo cuando hace falta
+  una de sus herramientas, y se paran solos tras el rato sin usarse. Si los asistentes se cierran, se cierran con ellos.
+- Lo que el programa escribe en stderr va a `Logs\mcp-<servidor>.log`.
+- Sus herramientas se llaman `mcp_<servidor>_<herramienta>` y se recuerdan entre arranques (`mcp-cache.json`): elegir
+  cuáles llegan al modelo en cada orden nunca arranca un servidor. Uno nuevo o cambiado se arranca una vez, en segundo
+  plano, para conocerlas.
+- Por defecto preguntan la primera vez (🟡), salvo las que el servidor dice que solo leen; con «Preguntar antes» en
+  «Nunca», no preguntan. Cada una se puede apagar o cambiar en Opciones.
+- Si falta lo que necesita (Node.js para `npx`, uv para `uvx`, Python), lo dice al probarlo.

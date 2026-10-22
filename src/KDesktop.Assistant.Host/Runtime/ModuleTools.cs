@@ -157,7 +157,7 @@ internal sealed class ModuleTools : IDisposable
             var group = registry.GroupOf(t.Name) ?? ToolRegistry.Builtin;
             var source = t switch { JsonTool json => json.File, McpTool mcp => mcp.Server, _ => null };
             return new ToolInfo(t.Name, group, t.Description, ToolPreference.Name(registry.RiskOf(t)), ToolPreference.Name(t.Risk), t.ReadsOnly,
-                registry.IsEnabled(t.Name), source);
+                registry.IsEnabled(t.Name), source, t.Examples.Count > 0 ? t.Examples[0] : null);
         }).ToList();
         var files = Json.Files.Select(f => new ToolFileInfo(f.File, f.Enabled, f.Errors, f.Secrets ?? [], f.Name, f.Type)).ToList();
         var servers = Mcp.Servers.Select(s => new McpServerInfo(s.Id, s.Entry.Transport, s.Entry.Summary, s.Entry.Disabled,
