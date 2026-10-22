@@ -49,7 +49,7 @@ internal sealed class ModuleTalk : ITalkOutput
         Meaning = new ModuleMeaning(link);
         Chooser = new ToolChooser(Meaning);
         Memory = new TalkMemory(tools.Builtin.Memory, tools.Runner, Meaning);
-        Service = new TalkService(who => (brain.Client, brain.ModelFor(who)), tools.Runner, PersonaOf, this, chooser: Chooser, memory: Memory, learn: () => tools.Learn, commands: commands,
+        Service = new TalkService(who => (brain.Client, brain.ModelFor(who)), tools.Runner, PersonaOf, this, chooser: Chooser, memory: Memory, learn: () => tools.Learn, commands: commands, thinker: brain.ThinkerFor,
             recheck: brain.RecheckAsync, freeBrain: brain.UnloadAsync, loadBrain: () => brain.LoadAsync());
         tools.Builtin.Watches.Fired += (item, detail) => _ = AnnounceAsync(item.Assistant, "watch", item.Kind, "tool.notify_when.title",
             () => Tools.Builtin.WatchStore.Happened(item, detail));

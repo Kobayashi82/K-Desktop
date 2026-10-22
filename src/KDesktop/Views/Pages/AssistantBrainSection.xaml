@@ -48,6 +48,27 @@
                     </StackPanel>
                 </Grid>
 
+                <!-- Stage 12: the model that thinks harder, and how long it may -->
+                <Grid Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr brainOptions.think}" />
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr brainOptions.thinkHint}" />
+                    </StackPanel>
+                    <ComboBox x:Name="ThinkBox" Grid.Column="1" Width="320" VerticalAlignment="Center" SelectionChanged="OnThinkChanged"
+                              AutomationProperties.Name="{l:Tr brainOptions.think}" />
+                </Grid>
+
+                <Grid x:Name="ThinkTokensRow" Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="300" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr brainOptions.thinkTokens}" />
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr brainOptions.thinkTokensHint}" />
+                    </StackPanel>
+                    <ComboBox x:Name="ThinkTokensBox" Grid.Column="1" VerticalAlignment="Center" SelectionChanged="OnThinkTokensChanged"
+                              AutomationProperties.Name="{l:Tr brainOptions.thinkTokens}" />
+                </Grid>
+
                 <Grid Style="{StaticResource SettingRow}">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">

@@ -3872,5 +3872,21 @@
   "tool.convert.examples": "how many miles is 10 kilometers|convert 350 fahrenheit to celsius|how much is 50 dollars in euros|how many grams are 3 ounces|convert 2 cups to milliliters|what's the dollar exchange rate|how many megabytes in 3 gigabytes",
   "assistant.rule.weather": "what's the weather|what is the weather|what's the weather like|what is the weather like|what's the weather today|what's the weather like today|how's the weather|how is the weather|what's the weather in {text}|what is the weather in {text}|what's the weather like in {text}|weather|the weather|weather in {text}|is it going to rain today|will it rain today|is it raining in {text}|what's the temperature|what's the temperature in {text}|how cold is it|how hot is it",
   "assistant.rule.weatherTomorrow": "what's the weather tomorrow|what's the weather like tomorrow|what will the weather be tomorrow|what will the weather be like tomorrow|what's the weather tomorrow in {text}|what's the weather in {text} tomorrow|will it rain tomorrow|is it going to rain tomorrow|will it rain tomorrow in {text}|weather tomorrow|tomorrow's weather|the weather for tomorrow|weather tomorrow in {text}|weather in {text} tomorrow",
-  "assistant.rule.weatherWeek": "what's the weather this week|what will the weather be this week|what's the weather like this week|weather this week|the weather for the next few days|what's the weather this weekend|weather this week in {text}|weather in {text} this week|what's the weather this week in {text}"
+  "assistant.rule.weatherWeek": "what's the weather this week|what will the weather be this week|what's the weather like this week|weather this week|the weather for the next few days|what's the weather this weekend|weather this week in {text}|weather in {text} this week|what's the weather this week in {text}",
+  "assistant.rule.thinkHard": "think it over|think it through|think it over {text}|think it through {text}|{text} think it over|{text} think it through|think carefully|think carefully [about] {text}|{text} think carefully|think harder|think again|think about it carefully|reason it out|reason it through|take your time|take your time [and] {text}|{text} take your time",
+  "assistant.phrase.thinkingHard": "Let me think about it.|Let me think this through.|Give me a moment to think.|Let me think it over.",
+  "assistant.phrase.thinkWhat": "What should I think about?",
+  "assistant.prompt.thinkHard": "(Take your time: think it through step by step and check the result before answering. Then answer briefly, with the result only: the steps stay in your thinking.)",
+  "assistant.prompt.thinkAgain": "(That did not work. Think it over calmly, step by step, and try another way; if it really cannot be done, say so plainly.)",
+  "assistant.words.wrong": "that's wrong|that is wrong|you're wrong|you are wrong|wrong answer|that's not right|that is not right|that's incorrect|incorrect|you made a mistake|you got it wrong|that's not what i asked|that's not it",
+  "brainOptions.think": "To think harder",
+  "brainOptions.thinkHint": "When you say «think it over», when the model sees it is not enough, or when it gets it wrong. It takes longer.",
+  "brainOptions.thinkSame": "The same one, thinking before it answers",
+  "brainOptions.thinkNone": "Never",
+  "brainOptions.thinkTokens": "How long it may think",
+  "brainOptions.thinkTokensHint": "More helps with hard things, but takes longer.",
+  "brainOptions.thinkLittle": "A little",
+  "brainOptions.thinkNormal": "Normal",
+  "brainOptions.thinkMuch": "A lot",
+  "assistant.prompt.checkAgain": "(The user says your earlier answer is wrong. Check it calmly: if it was wrong, give the right one; if it was right, say so kindly, with why in one sentence. Answer briefly.)"
 }

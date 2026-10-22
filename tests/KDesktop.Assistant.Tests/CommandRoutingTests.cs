@@ -28,7 +28,7 @@ public sealed class CommandRoutingTests : IDisposable
     }
 
     /// <param name="model">«fake-27B»: a big model (<see cref="TalkService.IsCapable"/>).</param>
-    private TalkService Make(BuiltinTools builtin, bool memory = false, string model = "fake:4b", IEnumerable<ITool>? aimp = null)
+    private TalkService Make(BuiltinTools builtin, bool memory = false, string model = "fake:4b", IEnumerable<ITool>? aimp = null, Thinker? thinker = null)
     {
         var registry = new ToolRegistry();
         builtin.AddTo(registry);
@@ -36,10 +36,124 @@ public sealed class CommandRoutingTests : IDisposable
         if (aimp is not null) registry.SetGroup("mcp:aimp", aimp);
         var runner = new ToolRunner(registry, () => new HashSet<string>(), (_, _) => Task.FromResult("yes"), m => { lock (_log) _log.Add(m); }, Path.Combine(_folder, "undo.json"));
         return new TalkService(_ => (_model, model), runner, _ => AssistantPersona.Module(), _output = new Output(_chat, _listens), commands: _bridge,
-            memory: memory ? new TalkMemory(builtin.Memory, runner, null) : null, learn: () => false);
+            memory: memory ? new TalkMemory(builtin.Memory, runner, null) : null, learn: () => false, thinker: thinker is null ? null : _ => thinker);
     }
 
     private const string Big = "fake-27B";
+
+    // Stage 12: thinking harder.
+
+    private static readonly Thinker Thinking = new("thinker-27B", 1024);
+
+    [Fact]
+    public async Task TheModelMayAskToThinkHarder()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin, model: Big, thinker: Thinking);
+        _model.Answers.Enqueue("""call:think_harder:{"reason":"a sum of several steps"}""");
+        _model.Answers.Enqueue("Son 391.");
+        await talk.HandleAsync(new HeardMessage("si tengo 17 cajas de 23 manzanas, ¿cuántas manzanas son?", "panel", "lander"));
+
+        Assert.Equal(2, _model.Requests.Count);
+        Assert.Contains(_model.Requests[0].Tools, t => t.Name == "think_harder");
+        Assert.Equal(0, _model.Requests[0].ThinkTokens);
+        // From then on it thinks first, with the thinker's model, and is not offered the tool again.
+        Assert.Equal(1024, _model.Requests[1].ThinkTokens);
+        Assert.Equal("thinker-27B", _model.Requests[1].Model);
+        Assert.DoesNotContain(_model.Requests[1].Tools, t => t.Name == "think_harder");
+        Assert.Equal("Son 391.", _chat.Last().Text);
+        // It said it was thinking it over, once.
+        Assert.Single(_output!.Prefaces);
+    }
+
+    [Fact]
+    public async Task ThinkItOverThinksFromTheStart()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin, model: Big, thinker: Thinking);
+        _model.Answers.Enqueue("Son 391.");
+        await talk.HandleAsync(new HeardMessage("Piénsalo bien: ¿cuánto es 17 por 23?", "panel", "lander"));
+        var request = Assert.Single(_model.Requests);
+        Assert.Equal(1024, request.ThinkTokens);
+        Assert.StartsWith("cuánto es 17 por 23", request.Messages[^1].Content, StringComparison.Ordinal);
+        Assert.DoesNotContain(request.Tools, t => t.Name == "think_harder");
+
+        // Alone, it thinks over the order before.
+        _model.Answers.Enqueue("Son 391, lo he comprobado.");
+        await talk.HandleAsync(new HeardMessage("Piénsalo bien.", "panel", "lander"));
+        Assert.Equal(2, _model.Requests.Count);
+        Assert.Equal(1024, _model.Requests[1].ThinkTokens);
+        Assert.StartsWith("cuánto es 17 por 23", _model.Requests[1].Messages[^1].Content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ThinkItOverWithNothingBeforeAsksWhat()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin, model: Big, thinker: Thinking);
+        await talk.HandleAsync(new HeardMessage("tómate tu tiempo", "voice", "lander"));
+        Assert.Empty(_model.Requests);
+        Assert.Contains(_listens, l => l.Item1 == "lander");
+    }
+
+    [Fact]
+    public async Task AnAnswerCalledWrongIsThoughtOver()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin, model: Big, thinker: Thinking);
+        _model.Answers.Enqueue("Tiene cuatro lunes.");
+        await talk.HandleAsync(new HeardMessage("¿cuántos lunes tiene octubre de 2026?", "panel", "lander"));
+        _model.Answers.Enqueue("Tienes razón, son cinco.");
+        await talk.HandleAsync(new HeardMessage("no, eso está mal", "panel", "lander"));
+        Assert.Equal(1024, _model.Requests[1].ThinkTokens);
+        // «No está mal» is praise: no thinking.
+        _model.Answers.Enqueue("Gracias.");
+        await talk.HandleAsync(new HeardMessage("pues no está mal", "panel", "lander"));
+        Assert.Equal(0, _model.Requests[2].ThinkTokens);
+    }
+
+    [Fact]
+    public async Task NothingToSayIsThoughtOverOnce()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin, model: Big, thinker: Thinking);
+        _model.Answers.Enqueue("");
+        _model.Answers.Enqueue("Ya lo tengo: el martes.");
+        await talk.HandleAsync(new HeardMessage("¿qué día cae la próxima luna llena?", "panel", "lander"));
+        Assert.Equal(2, _model.Requests.Count);
+        Assert.Equal(0, _model.Requests[0].ThinkTokens);
+        Assert.Equal(1024, _model.Requests[1].ThinkTokens);
+        Assert.Equal("Ya lo tengo: el martes.", _chat.Last().Text);
+    }
+
+    [Theory]
+    [InlineData("Tengo 17 cajas con 23 manzanas y se pudren 12, ¿cuántas quedan?", true)]
+    [InlineData("Tres amigos pagan una cena de 87 euros y uno paga 12 más, ¿cuánto paga cada uno?", true)]
+    [InlineData("¿Cuánto es 15 por 4?", false)]
+    [InlineData("Tengo 17 cajas con 23 manzanas y se pudren 12", false)]
+    [InlineData("¿Qué tiempo hará una semana de estas?", false)]
+    public void ASumOfSeveralStepsIsTold(string said, bool expected) => Assert.Equal(expected, TalkService.IsWordProblem(said));
+
+    [Fact]
+    public async Task ASmallModelThinksFirstAboutASumOfSeveralSteps()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin, thinker: new Thinker("fake:4b", 1024));
+        _model.Answers.Enqueue("264 manzanas.");
+        await talk.HandleAsync(new HeardMessage("Tengo 17 cajas con 23 manzanas, regalo un tercio de las cajas y se pudren 12. ¿Cuántas me quedan?", "panel", "lander"));
+        Assert.Equal(1024, Assert.Single(_model.Requests).ThinkTokens);
+    }
+
+    [Fact]
+    public async Task WithoutAThinkerNothingChanges()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin, model: Big);
+        _model.Answers.Enqueue("");
+        await talk.HandleAsync(new HeardMessage("¿qué día cae la próxima luna llena?", "panel", "lander"));
+        var request = Assert.Single(_model.Requests);
+        Assert.DoesNotContain(request.Tools, t => t.Name == "think_harder");
+    }
 
     [Fact]
     public async Task ToolsNotAtHandCanBeLookedFor()

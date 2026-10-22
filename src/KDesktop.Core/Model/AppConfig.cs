@@ -656,6 +656,15 @@ public partial class AppSettings : ObservableObject
     /// <summary>A vision projector (mmproj) next to a model is loaded with it.</summary>
     [ObservableProperty] private bool _assistantBrainVision = true;
 
+    /// <summary>
+    /// The model that thinks harder when an order needs it (stage 12): empty, the same one with its reasoning on;
+    /// <c>none</c>, never; otherwise a model as <see cref="Assistant.Brain.ModelRefs"/> names it.
+    /// </summary>
+    [ObservableProperty] private string _assistantBrainThinkModel = string.Empty;
+
+    /// <summary>How much it may think then, in tokens of reasoning.</summary>
+    [ObservableProperty] private int _assistantBrainThinkTokens = Assistant.Brain.BrainConfig.DefaultThinkTokens;
+
     /// <summary>Other servers with models (Ollama, llama-swap, OpenAI compatible), their keys protected with DPAPI. Replaced whole.</summary>
     [ObservableProperty] private List<Assistant.Brain.BrainRemote> _assistantBrainRemotes = [];
 

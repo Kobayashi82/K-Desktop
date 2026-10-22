@@ -75,6 +75,20 @@ public sealed class BrainService : IDisposable
         }
     }
 
+    /// <summary>
+    /// How an assistant thinks harder (stage 12): the model of «Para pensar más» if the servers have it, otherwise its usual
+    /// one with its reasoning on; null when it never does (or there is no AI now).
+    /// </summary>
+    public Talk.Thinker? ThinkerFor(string? assistant)
+    {
+        lock (_gate)
+        {
+            if (_config.IsOff || _config.ThinkOff || ModelFor(assistant) is not { } usual) return null;
+            var model = _config.ThinkModel.Length > 0 && ModelRefs.Find(_state.Models?.Select(m => m.Name) ?? [], _config.ThinkModel) is { } found ? found : usual;
+            return new Talk.Thinker(model, Math.Max(BrainConfig.LeastThinkTokens, _config.ThinkTokens));
+        }
+    }
+
     /// <summary>Options changed (or the process got its welcome): new sources if they changed, and a look at them.</summary>
     public void Configure(BrainConfig config)
     {
@@ -85,7 +99,7 @@ public sealed class BrainService : IDisposable
             var sameSources = _hub is not null && config.SourcesKey == _config.SourcesKey
                 // A chosen .gguf outside the folders is listed too.
                 && ChosenFiles(config).SequenceEqual(ChosenFiles(_config), StringComparer.OrdinalIgnoreCase);
-            var sameModel = sameSources && config.Model == _config.Model;
+            var sameModel = sameSources && config.Model == _config.Model && config.ThinkModel == _config.ThinkModel;
             _config = config;
             // Only the assistants' own models changed: nothing to look at again.
             if (sameModel) return;
@@ -93,7 +107,7 @@ public sealed class BrainService : IDisposable
             {
                 old = _hub;
                 _pool.Configure(config.ServerList, config.FolderList, config.ModelArgList, config.KeepMinutes > 0 ? TimeSpan.FromMinutes(config.KeepMinutes) : null,
-                    config.OneAtATime, config.Vision, config.AssistantModels.Values.Append(config.Model));
+                    config.OneAtATime, config.Vision, config.AssistantModels.Values.Append(config.Model).Append(config.ThinkModel));
                 _hub = new BrainHub(config, _pool, _http);
                 _generation++;
             }
@@ -106,7 +120,7 @@ public sealed class BrainService : IDisposable
     }
 
     private static IEnumerable<string> ChosenFiles(BrainConfig config) =>
-        config.AssistantModels.Values.Append(config.Model).Where(ModelRefs.IsLocal).Order(StringComparer.OrdinalIgnoreCase);
+        config.AssistantModels.Values.Append(config.Model).Append(config.ThinkModel).Where(ModelRefs.IsLocal).Order(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>A server that is not there yet is looked at again this often…</summary>
     private static readonly TimeSpan AwayEvery = TimeSpan.FromSeconds(10);

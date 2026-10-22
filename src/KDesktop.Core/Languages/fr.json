@@ -3872,5 +3872,21 @@
   "tool.convert.examples": "combien de miles font 10 kilomètres|convertis 350 fahrenheit en celsius|combien font 50 dollars en euros|combien de grammes font 3 onces|à combien est le dollar",
   "assistant.rule.weather": "quel temps fait-il|quel temps fait-il aujourd'hui|quel temps fait-il à {text}|quel temps fait-il aujourd'hui à {text}|la météo|météo|la météo à {text}|météo à {text}|il pleut à {text}|quelle température fait-il|quelle température fait-il à {text}|va-t-il pleuvoir aujourd'hui",
   "assistant.rule.weatherTomorrow": "quel temps fera-t-il demain|quel temps fera-t-il demain à {text}|quel temps fera-t-il à {text} demain|la météo de demain|météo demain|la météo de demain à {text}|météo demain à {text}|va-t-il pleuvoir demain|il va pleuvoir demain",
-  "assistant.rule.weatherWeek": "quel temps fera-t-il cette semaine|quel temps fera-t-il ce week-end|la météo de la semaine|météo de la semaine|la météo des prochains jours|la météo de la semaine à {text}"
+  "assistant.rule.weatherWeek": "quel temps fera-t-il cette semaine|quel temps fera-t-il ce week-end|la météo de la semaine|météo de la semaine|la météo des prochains jours|la météo de la semaine à {text}",
+  "assistant.rule.thinkHard": "réfléchis bien|réfléchis bien {text}|{text} réfléchis bien|réfléchis-y bien|réfléchis encore|réfléchis mieux|réfléchis-y|raisonne bien|raisonne {text}|prends ton temps|prends ton temps [et] {text}|{text} prends ton temps|prends le temps qu'il faut",
+  "assistant.phrase.thinkingHard": "Laisse-moi réfléchir.|Je vais y réfléchir un instant.|Laisse-moi bien y réfléchir.",
+  "assistant.phrase.thinkWhat": "À quoi veux-tu que je réfléchisse ?",
+  "assistant.prompt.thinkHard": "(Prends ton temps : réfléchis étape par étape et vérifie le résultat avant de répondre. Puis réponds brièvement, avec le résultat seulement : les étapes restent dans ta réflexion.)",
+  "assistant.prompt.thinkAgain": "(Ça n'a pas marché. Réfléchis calmement, étape par étape, et essaie autrement ; si c'est vraiment impossible, dis-le simplement.)",
+  "assistant.words.wrong": "c'est faux|c'est pas ça|ce n'est pas ça|tu te trompes|tu t'es trompé|tu t'es trompée|c'est incorrect|incorrect|c'est une erreur|mauvaise réponse|ce n'est pas ce que je t'ai demandé",
+  "brainOptions.think": "Pour réfléchir davantage",
+  "brainOptions.thinkHint": "Quand tu dis « réfléchis bien », quand le modèle voit que ça ne suffit pas ou quand il se trompe. C'est plus long.",
+  "brainOptions.thinkSame": "Le même, en réfléchissant avant de répondre",
+  "brainOptions.thinkNone": "Jamais",
+  "brainOptions.thinkTokens": "Combien de temps il peut réfléchir",
+  "brainOptions.thinkTokensHint": "Plus aide pour les choses difficiles, mais c'est plus long.",
+  "brainOptions.thinkLittle": "Un peu",
+  "brainOptions.thinkNormal": "Normal",
+  "brainOptions.thinkMuch": "Beaucoup",
+  "assistant.prompt.checkAgain": "(L'utilisateur dit que ta réponse précédente est fausse. Vérifie-la calmement : si elle était fausse, donne la bonne ; si elle était juste, dis-le gentiment, avec pourquoi en une phrase. Réponds brièvement.)"
 }

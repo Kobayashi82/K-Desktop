@@ -81,6 +81,9 @@ public sealed record BrainRemote(string Id, RemoteKind Kind, string Endpoint = "
 /// <paramref name="OneAtATime"/>, loading one model unloads the others; without it they stay while they fit in the
 /// graphics card. <paramref name="Vision"/>: a <c>mmproj</c> next to the model is loaded with it.
 /// <paramref name="ModelArgs"/>: each model's own llama-server options (its path → «-c 32768»), after the usual ones.
+/// <paramref name="ThinkModel"/> (stage 12): the model that thinks harder when an order needs it («piénsalo bien», or the
+/// usual model asks with <c>think_harder</c>); empty: the same model with its reasoning on; <see cref="ModelRefs.None"/>:
+/// never. <paramref name="ThinkTokens"/>: how much it may think (tokens of reasoning, before its answer).
 /// </summary>
 public sealed record BrainConfig(
     string Model = "",
@@ -91,10 +94,21 @@ public sealed record BrainConfig(
     int KeepMinutes = BrainConfig.DefaultKeepMinutes,
     bool OneAtATime = true,
     bool Vision = true,
-    IReadOnlyList<BrainRemote>? Remotes = null)
+    IReadOnlyList<BrainRemote>? Remotes = null,
+    string ThinkModel = "",
+    int ThinkTokens = BrainConfig.DefaultThinkTokens)
 {
     /// <summary>Minutes a model stays loaded without use, by default.</summary>
     public const int DefaultKeepMinutes = 30;
+
+    /// <summary>Tokens of reasoning when it thinks harder, by default (Bonsai, at ~50 a second: up to some 20 s).</summary>
+    public const int DefaultThinkTokens = 1024;
+
+    /// <summary>The fewest tokens of reasoning that are worth it.</summary>
+    public const int LeastThinkTokens = 128;
+
+    /// <summary>The user chose never to think harder.</summary>
+    public bool ThinkOff => ThinkModel == ModelRefs.None;
 
     /// <summary>Each assistant's own model (never null).</summary>
     public IReadOnlyDictionary<string, string> AssistantModels => Models ?? new Dictionary<string, string>();
@@ -138,6 +152,8 @@ public sealed record BrainConfig(
         ["oneAtATime"] = OneAtATime,
         ["vision"] = Vision,
         ["remotes"] = new JsonArray([.. RemoteList.Select(r => (JsonNode?)r.ToJson())]),
+        ["thinkModel"] = ThinkModel,
+        ["thinkTokens"] = ThinkTokens,
     };
 
     public static BrainConfig FromJson(JsonObject? json)
@@ -155,7 +171,9 @@ public sealed record BrainConfig(
         var keep = json["keepMinutes"] is JsonValue k && k.TryGetValue<int>(out var minutes) ? Math.Max(0, minutes) : DefaultKeepMinutes;
         return new BrainConfig(Text(json["model"]), models, Texts(json["servers"]), Texts(json["folders"]), args, keep,
             Flag(json["oneAtATime"], true), Flag(json["vision"], true),
-            json["remotes"] is JsonArray remotes ? [.. remotes.Select(BrainRemote.FromJson).OfType<BrainRemote>()] : []);
+            json["remotes"] is JsonArray remotes ? [.. remotes.Select(BrainRemote.FromJson).OfType<BrainRemote>()] : [],
+            Text(json["thinkModel"]),
+            json["thinkTokens"] is JsonValue t && t.TryGetValue<int>(out var tokens) ? Math.Max(LeastThinkTokens, tokens) : DefaultThinkTokens);
     }
 
     internal static string Text(JsonNode? node) => node is JsonValue v && v.TryGetValue<string>(out var s) ? s : string.Empty;

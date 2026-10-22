@@ -38,7 +38,7 @@ public partial class App
         return new BrainConfig(s.AssistantBrainModel, s.AssistantModels, s.AssistantBrainServers,
             [AssistantModelsFolder, .. s.AssistantBrainFolders.Where(f => !string.Equals(f, AssistantModelsFolder, StringComparison.OrdinalIgnoreCase))],
             s.AssistantBrainModelArgs, s.AssistantBrainKeepMinutes, s.AssistantBrainOneAtATime, s.AssistantBrainVision,
-            [.. s.AssistantBrainRemotes.Select(r => r with { ApiKey = Unprotect(r.ApiKey) })]).ToJson();
+            [.. s.AssistantBrainRemotes.Select(r => r with { ApiKey = Unprotect(r.ApiKey) })], s.AssistantBrainThinkModel, s.AssistantBrainThinkTokens).ToJson();
     }
 
     private static string Unprotect(string stored) => stored.Length > 0 ? Secrets.Unprotect(stored) ?? string.Empty : string.Empty;

@@ -35,9 +35,10 @@ public sealed record ChatRequest(string Model, IReadOnlyList<ChatMessage> Messag
     public int MaxTokens { get; init; } = 300;
 
     /// <summary>
-    /// Tokens it may think before answering (0: none, the usual; nothing asks for it yet: measured with Bonsai in 5.0.105,
-    /// it did not answer dates and sums better). Only servers that take a budget per request (llama-server's
-    /// <c>thinking_budget_tokens</c>) think; on the others it changes nothing.
+    /// Tokens it may think before answering (0: none, the usual). Only when it thinks harder (stage 12: «piénsalo bien»,
+    /// <c>think_harder</c>); measured with Bonsai in 5.0.105, always thinking did not answer dates and sums better, only
+    /// slower. llama-server takes the budget per request (<c>thinking_budget_tokens</c>); Ollama only turns it on; on the
+    /// others it changes nothing.
     /// </summary>
     public int ThinkTokens { get; init; }
 }

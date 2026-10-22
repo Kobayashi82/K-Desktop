@@ -2,6 +2,7 @@ using System.Text;
 using KDesktop.Assistant.Brain.Models;
 using KDesktop.Assistant.Tools;
 using KDesktop.Core;
+using KDesktop.Core.Assistant.Brain;
 using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Voice;
@@ -34,11 +35,19 @@ public sealed record TalkAnswer(string Text, bool Remember = true, bool Failed =
 }
 
 /// <summary>
+/// How it thinks harder (stage 12): the model (the usual one with its reasoning on, or the one of Options → Brain → «Para
+/// pensar más») and how many tokens it may think before answering.
+/// </summary>
+public sealed record Thinker(string Model, int Tokens);
+
+/// <summary>
 /// Talking with the model (plan §5.2): the instructions with the persona, the short history and the order; the model may
 /// call tools (through the <see cref="ToolRunner"/>, which asks permission and writes the activity), at most
 /// <see cref="MaxToolRounds"/> rounds and <see cref="MaxToolCalls"/> calls; then it must answer. Only the tools that fit
-/// the order are offered (<see cref="ToolChooser"/>). No thinking (5.0.105: thinking first did not make Bonsai better at
-/// dates and sums, only slower; <c>date_math</c> did), short answers, cleaned for a bubble and a voice.
+/// the order are offered (<see cref="ToolChooser"/>). No thinking as a rule (5.0.105: thinking first did not make Bonsai
+/// better at dates and sums, only slower; <c>date_math</c> did), short answers, cleaned for a bubble and a voice. It
+/// thinks harder (stage 12) when asked to («piénsalo bien»), when the model itself asks with <c>think_harder</c> (a sum of
+/// several steps, a plan, a comparison…), and once more when it gets stuck or says nothing.
 /// </summary>
 public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider time, TalkMemory? memory = null)
 {
@@ -72,12 +81,30 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     /// run_command is offered whatever the order's meaning says (with «abre Steam y Epic Games» it was not, and the model
     /// said it had opened them).</param>
     /// <param name="capable">A big model: more rounds and calls, and the command tools always at hand.</param>
+    /// <param name="thinker">How it may think harder (null: it never does).</param>
+    /// <param name="thinkFirst">It thinks harder from the start («piénsalo bien», or the answer before was wrong).</param>
+    /// <param name="onThinkHard">It starts thinking harder (any thread): the assistant says it is thinking it over.</param>
+    /// <param name="doubted">The user said the answer before was wrong: it checks it, and keeps it if it was right.</param>
     public async Task<TalkAnswer> AnswerAsync(IChatModel model, string modelName, AssistantPersona persona, IReadOnlyList<ChatMessage> history,
         IReadOnlyCollection<string> recentTools, string said, ToolContext context, Action<string>? onText, CancellationToken cancellationToken,
-        IReadOnlyCollection<string>? leaveOut = null, IReadOnlyList<string>? commands = null, bool capable = false, IReadOnlyList<string>? certain = null)
+        IReadOnlyCollection<string>? leaveOut = null, IReadOnlyList<string>? commands = null, bool capable = false, IReadOnlyList<string>? certain = null,
+        Thinker? thinker = null, bool thinkFirst = false, Action? onThinkHard = null, bool doubted = false)
     {
         var maxRounds = capable ? CapableToolRounds : MaxToolRounds;
         var maxCalls = capable ? CapableToolCalls : MaxToolCalls;
+        var thinking = thinkFirst && thinker is not null;
+        // Thinking harder again would only spend the same time once more: once per order.
+        var retried = false;
+        // Its rounds thinking, and since when: the whole budget goes to the first one (with tools it planned and then
+        // thought 1024 tokens again in every round, 22 s each: 44 s for one order), and none after ThinkFor.
+        var thoughtRounds = 0;
+        var thinkingSince = 0L;
+        int ThinkBudget()
+        {
+            if (!thinking) return 0;
+            if (Environment.TickCount64 - thinkingSince > ThinkFor.TotalMilliseconds) return 0;
+            return thoughtRounds++ == 0 ? thinker!.Tokens : Math.Max(BrainConfig.LeastThinkTokens, thinker!.Tokens / 4);
+        }
         // The order's meaning once, for the tools and for what comes to mind.
         var order = await MeaningOfAsync(said, cancellationToken).ConfigureAwait(false);
         var known = memory is null ? [] : await memory.RecallAsync(said, order, cancellationToken).ConfigureAwait(false);
@@ -104,12 +131,21 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         // Most of its tools are not at hand (230 with sixteen MCP servers): it can look for more (5.0.140; with none of AIMP's
         // for listing playlists it said it had no access to that library, and changed songs instead).
         if (available.Count > atHand.Count) definitions.Add(FindToolsDefinition(available, atHand.Count));
+        // It may ask to think harder when the order needs more than a quick answer.
+        if (thinker is not null && !thinking) definitions.Add(ThinkHarderDefinition);
         var searches = 0;
         var messages = new List<ChatMessage> { ChatMessage.System(TalkPrompt.Compose(persona, time.GetLocalNow(), known, commands, certain)) };
         messages.AddRange(history);
         // The language it speaks in, next to the order: a small model answers in the language it is spoken to otherwise
         // (Options → Assistant → General → the language they speak in). Only for this order, not kept in the history.
-        messages.Add(ChatMessage.User(said + "\n\n" + Loc.T("assistant.prompt.answerIn")));
+        messages.Add(ChatMessage.User(said + "\n\n" + Loc.T("assistant.prompt.answerIn")
+            + (thinking ? "\n\n" + Loc.T(doubted ? "assistant.prompt.checkAgain" : "assistant.prompt.thinkHard") : "")));
+        if (thinking)
+        {
+            thinkingSince = Environment.TickCount64;
+            Log.Info($"Asistente: la IA piensa más desde el principio ({BrainProviders.ModelLabel(thinker!.Model)}, {thinker.Tokens} tokens)");
+            onThinkHard?.Invoke();
+        }
         var first = messages.Count;
 
         var calls = 0;
@@ -128,105 +164,157 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         // eight times), it answers now.
         var stuck = false;
         ChatMessage? answerNow = null;
+        // Thinking harder from now on: more rounds and calls if it needs them, and no asking for it again.
+        void StartThinking(int round)
+        {
+            thinking = true;
+            thinkingSince = Environment.TickCount64;
+            definitions.RemoveAll(d => d.Name == ThinkHarderTool);
+            maxRounds = Math.Max(maxRounds, round + ThinkRounds);
+            maxCalls = Math.Max(maxCalls, calls + ThinkCalls);
+            onThinkHard?.Invoke();
+        }
+
         try
         {
-            for (var round = 0; round <= maxRounds; round++)
+            var round = 0;
+            while (true)
             {
-                var offer = round < maxRounds && calls < maxCalls && !stuck;
-                // Without tools it is told so: otherwise it writes one more call as text (and its answer was «Falló «chiste»»).
-                if (!offer && round > 0 && answerNow is null)
+                for (; round <= maxRounds; round++)
                 {
-                    answerNow = ChatMessage.User(Loc.T("assistant.prompt.answerNow"));
-                    messages.Add(answerNow);
-                }
-                var request = new ChatRequest(modelName, messages, offer ? definitions : []) { Temperature = capable ? 0.3 : 0.5, MaxTokens = offer ? ToolRoundTokens : MaxTokens };
-                // With commands of theirs at hand, nothing is said while it writes: the text may be one to take back. Nor
-                // once it acted with tools that have their own words: those replace its text (its «Recibido.» was said
-                // ahead, and then «Recibido, Houston. He ejecutado…» again from the start).
-                var silent = (commands is { Count: > 0 } && !acted) || (acted && replies.All(r => r is not null));
-                var (text, asked) = await RoundAsync(model, request, silent ? null : onText, cancellationToken).ConfigureAwait(false);
-                if (asked.Count == 0)
-                {
-                    // It names one of their commands without having run it («Let me try the "Abrir Papelera" command»):
-                    // once, it is told so, and runs it or answers without it. Not when it already called something in this
-                    // order: «Telegram no lo ha aceptado» after send_telegram failed is no command to run (it opened Telegram).
-                    if (!nudged && calls == 0 && offer && commands is { Count: > 0 } && NamedCommand(text, commands) is { } named)
+                    var offer = round < maxRounds && calls < maxCalls && !stuck;
+                    // Without tools it is told so: otherwise it writes one more call as text (and its answer was «Falló «chiste»»).
+                    if (!offer && round > 0 && answerNow is null)
                     {
-                        nudged = true;
-                        Log.Info($"Asistente: la IA nombra «{named}» sin ejecutarlo: otra vuelta");
-                        messages.Add(ChatMessage.Assistant(text));
-                        messages.Add(ChatMessage.User(Loc.T("assistant.prompt.notRun", named)));
-                        continue;
+                        answerNow = ChatMessage.User(Loc.T("assistant.prompt.answerNow"));
+                        messages.Add(answerNow);
                     }
-                    // It was asked to send something and answers without having sent it, with a tool for it at hand: once,
-                    // it is told so.
-                    if (!reminded && offer && ActionClaims.Missing(said, used) is [var missing, ..]
-                        && atHand.Any(t => ActionClaims.IsOfKind(t.Name, missing)))
+                    var request = new ChatRequest(thinking ? thinker!.Model : modelName, [.. messages], offer ? [.. definitions] : [])
                     {
-                        reminded = true;
-                        Log.Info($"Asistente: la IA contesta sin hacer lo que le pedían ({missing}): otra vuelta");
-                        messages.Add(ChatMessage.Assistant(text));
-                        messages.Add(ChatMessage.User(Loc.T("assistant.prompt.missing." + missing)));
-                        continue;
-                    }
-                    answer = text;
-                    break;
-                }
-                // A call where none was offered (written as text): not run; it answers with what it has.
-                if (!offer)
-                {
-                    Log.Warn($"Asistente: la IA pide {string.Join(", ", asked.Select(c => c.Name))} sin herramientas a mano: no se hace");
-                    answer = text;
-                    break;
-                }
-
-                messages.Add(ChatMessage.Assistant(text, asked));
-                foreach (var call in asked)
-                {
-                    string result;
-                    // Looking for more tools is no tool call: it does nothing, and does not use up the order's calls.
-                    if (call.Name == FindToolsTool)
+                        Temperature = thinking ? ThinkTemperature : capable ? 0.3 : 0.5,
+                        MaxTokens = offer ? ToolRoundTokens : thinking ? ThinkAnswerTokens : MaxTokens,
+                        ThinkTokens = ThinkBudget(),
+                    };
+                    // With commands of theirs at hand, nothing is said while it writes: the text may be one to take back. Nor
+                    // once it acted with tools that have their own words: those replace its text (its «Recibido.» was said
+                    // ahead, and then «Recibido, Houston. He ejecutado…» again from the start).
+                    var silent = (commands is { Count: > 0 } && !acted) || (acted && replies.All(r => r is not null));
+                    var (text, asked) = await RoundAsync(model, request, silent ? null : onText, cancellationToken).ConfigureAwait(false);
+                    if (asked.Count == 0)
                     {
-                        result = ++searches > MaxSearches
-                            ? "Enough searching: use the tools you have, or say plainly what you cannot do."
-                            : await FindToolsAsync(call.Arguments, available, atHand, definitions, cancellationToken).ConfigureAwait(false);
-                        messages.Add(ChatMessage.ToolResult(call.Name, result, call.Id));
-                        continue;
-                    }
-                    var same = call.Name + " " + call.Arguments.GetRawText();
-                    if (++calls > maxCalls) result = "Not done: too many tools for one order. Answer now.";
-                    else if (failed.TryGetValue(same, out var before))
-                    {
-                        result = "Not done: you already tried exactly this in this order and it failed (" + before + "). Say plainly what could not be done.";
-                        stuck = true;
-                    }
-                    // Done already: once is what was asked (it ran «Anterior» twice more in one order).
-                    else if (worked.Contains(same))
-                    {
-                        result = "Not done again: you already did exactly this in this order and it worked. Do not repeat it.";
-                        stuck = true;
-                    }
-                    else
-                    {
-                        // Where an address or a name may honestly come from: what was said and what the tools said (never the
-                        // instructions, which have examples), and what came to mind.
-                        var sources = string.Join('\n', messages.Skip(1).Select(m => m.Content).Concat(remembered));
-                        var outcome = await tools.RunAsync(call.Name, call.Arguments, context with { Sources = sources, Remembered = remembered }, said, "ai", cancellationToken).ConfigureAwait(false);
-                        result = outcome.Result is { } done ? done.Text : "Not done: " + outcome.Entry.Did;
-                        Log.Info($"Asistente: la IA llama a {call.Name} {Short(call.Arguments.GetRawText())} → {Short(result)}");
-                        if (outcome.Result is not { Failed: false }) failed[same] = outcome.Entry.Did;
-                        // A failure's words for the user, if it has them (not the activity's «Falló «chiste»»).
-                        toolReply = outcome.Result is { Failed: false } ok ? ok.Reply ?? ok.Done ?? toolReply : outcome.Result?.Reply ?? toolReply;
-                        if (outcome.Result is { Failed: false } good)
+                        // It names one of their commands without having run it («Let me try the "Abrir Papelera" command»):
+                        // once, it is told so, and runs it or answers without it. Not when it already called something in this
+                        // order: «Telegram no lo ha aceptado» after send_telegram failed is no command to run (it opened Telegram).
+                        if (!nudged && calls == 0 && offer && commands is { Count: > 0 } && NamedCommand(text, commands) is { } named)
                         {
-                            if (!used.Contains(call.Name)) used.Add(call.Name);
-                            replies.Add(good.Reply);
-                            acted |= good.Undo is not null || good.Acted;
-                            worked.Add(same);
+                            nudged = true;
+                            Log.Info($"Asistente: la IA nombra «{named}» sin ejecutarlo: otra vuelta");
+                            messages.Add(ChatMessage.Assistant(text));
+                            messages.Add(ChatMessage.User(Loc.T("assistant.prompt.notRun", named)));
+                            continue;
                         }
+                        // It was asked to send something and answers without having sent it, with a tool for it at hand: once,
+                        // it is told so.
+                        if (!reminded && offer && ActionClaims.Missing(said, used) is [var missing, ..]
+                            && atHand.Any(t => ActionClaims.IsOfKind(t.Name, missing)))
+                        {
+                            reminded = true;
+                            Log.Info($"Asistente: la IA contesta sin hacer lo que le pedían ({missing}): otra vuelta");
+                            messages.Add(ChatMessage.Assistant(text));
+                            messages.Add(ChatMessage.User(Loc.T("assistant.prompt.missing." + missing)));
+                            continue;
+                        }
+                        answer = text;
+                        break;
                     }
-                    messages.Add(ChatMessage.ToolResult(call.Name, result, call.Id));
+                    // A call where none was offered (written as text): not run; it answers with what it has.
+                    if (!offer)
+                    {
+                        Log.Warn($"Asistente: la IA pide {string.Join(", ", asked.Select(c => c.Name))} sin herramientas a mano: no se hace");
+                        answer = text;
+                        break;
+                    }
+
+                    messages.Add(ChatMessage.Assistant(text, asked));
+                    foreach (var call in asked)
+                    {
+                        string result;
+                        // Looking for more tools is no tool call: it does nothing, and does not use up the order's calls.
+                        if (call.Name == FindToolsTool)
+                        {
+                            result = ++searches > MaxSearches
+                                ? "Enough searching: use the tools you have, or say plainly what you cannot do."
+                                : await FindToolsAsync(call.Arguments, available, atHand, definitions, cancellationToken).ConfigureAwait(false);
+                            messages.Add(ChatMessage.ToolResult(call.Name, result, call.Id));
+                            continue;
+                        }
+                        // Nor is thinking harder: from the next round it thinks before answering (stage 12).
+                        if (call.Name == ThinkHarderTool)
+                        {
+                            if (thinker is null || thinking) result = "You are already thinking it through. Answer now, or call the tools you need.";
+                            else
+                            {
+                                Log.Info($"Asistente: la IA pide pensar más («{Short(call.Arguments.GetString("reason") ?? string.Empty)}») → {BrainProviders.ModelLabel(thinker.Model)}, {thinker.Tokens} tokens");
+                                StartThinking(round);
+                                result = "Now take your time: work it out step by step, check it, and then answer (calling tools if they are needed).";
+                            }
+                            messages.Add(ChatMessage.ToolResult(call.Name, result, call.Id));
+                            continue;
+                        }
+                        var same = call.Name + " " + call.Arguments.GetRawText();
+                        if (++calls > maxCalls) result = "Not done: too many tools for one order. Answer now.";
+                        else if (failed.TryGetValue(same, out var before))
+                        {
+                            result = "Not done: you already tried exactly this in this order and it failed (" + before + "). Say plainly what could not be done.";
+                            stuck = true;
+                        }
+                        // Done already: once is what was asked (it ran «Anterior» twice more in one order).
+                        else if (worked.Contains(same))
+                        {
+                            result = "Not done again: you already did exactly this in this order and it worked. Do not repeat it.";
+                            stuck = true;
+                        }
+                        else
+                        {
+                            // Where an address or a name may honestly come from: what was said and what the tools said (never the
+                            // instructions, which have examples), and what came to mind.
+                            var sources = string.Join('\n', messages.Skip(1).Select(m => m.Content).Concat(remembered));
+                            var outcome = await tools.RunAsync(call.Name, call.Arguments, context with { Sources = sources, Remembered = remembered }, said, "ai", cancellationToken).ConfigureAwait(false);
+                            result = outcome.Result is { } done ? done.Text : "Not done: " + outcome.Entry.Did;
+                            Log.Info($"Asistente: la IA llama a {call.Name} {Short(call.Arguments.GetRawText())} → {Short(result)}");
+                            if (outcome.Result is not { Failed: false }) failed[same] = outcome.Entry.Did;
+                            // A failure's words for the user, if it has them (not the activity's «Falló «chiste»»).
+                            toolReply = outcome.Result is { Failed: false } ok ? ok.Reply ?? ok.Done ?? toolReply : outcome.Result?.Reply ?? toolReply;
+                            if (outcome.Result is { Failed: false } good)
+                            {
+                                if (!used.Contains(call.Name)) used.Add(call.Name);
+                                replies.Add(good.Reply);
+                                acted |= good.Undo is not null || good.Acted;
+                                worked.Add(same);
+                            }
+                        }
+                        messages.Add(ChatMessage.ToolResult(call.Name, result, call.Id));
+                    }
                 }
+                // Going round in circles with what failed, or nothing at all to say: once, it thinks it over (stage 12).
+                if (!thinking && !retried && thinker is not null && !acted && worked.Count == 0
+                    && (stuck || (ReplyText.Clean(answer).Length == 0 && toolReply is null)))
+                {
+                    retried = true;
+                    Log.Info($"Asistente: la IA {(stuck ? "se atasca" : "no dice nada")}: lo piensa mejor ({BrainProviders.ModelLabel(thinker.Model)}, {thinker.Tokens} tokens)");
+                    if (answerNow is not null)
+                    {
+                        messages.Remove(answerNow);
+                        answerNow = null;
+                    }
+                    if (answer.Trim().Length > 0) messages.Add(ChatMessage.Assistant(answer));
+                    messages.Add(ChatMessage.User(Loc.T("assistant.prompt.thinkAgain")));
+                    stuck = false;
+                    answer = string.Empty;
+                    StartThinking(++round);
+                    continue;
+                }
+                break;
             }
         }
         catch (ChatModelException ex)
@@ -264,6 +352,31 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         }
         return new TalkAnswer(clean) { Tools = used, Steps = steps };
     }
+
+    private const string ThinkHarderTool = "think_harder";
+
+    /// <summary>Rounds and calls it gets on top when it starts thinking harder.</summary>
+    public const int ThinkRounds = 3;
+
+    public const int ThinkCalls = 4;
+
+    /// <summary>Thinking, its answer may be longer (a plan, a comparison), and it writes as the reasoning models are tuned to.</summary>
+    public const int ThinkAnswerTokens = 400;
+
+    /// <summary>Thinking longer than this in one order, it answers with what it has (each round of 1024 tokens is some 20 s with Bonsai).</summary>
+    public static readonly TimeSpan ThinkFor = TimeSpan.FromSeconds(45);
+
+    private const double ThinkTemperature = 0.6;
+
+    /// <summary>
+    /// The tool to think harder (stage 12): not one of the registry, like <c>find_tools</c>; it costs no call and does
+    /// nothing by itself, only makes the next rounds think first.
+    /// </summary>
+    private static readonly ToolDefinition ThinkHarderDefinition = new(ThinkHarderTool,
+        "Think harder before answering: call it when a quick answer is not enough — a sum or count of several steps, a plan, "
+        + "comparing options, a long or careful text, code, a riddle — or when you are not sure. Then you get time to work it "
+        + "out step by step. Not for simple questions or orders.",
+        """{"type":"object","properties":{"reason":{"type":"string","description":"Why it needs more thought, in a few words"}}}""");
 
     private const string FindToolsTool = "find_tools";
 

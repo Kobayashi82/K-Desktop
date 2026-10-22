@@ -44,6 +44,14 @@ public partial class AssistantBrainSection : UserControl
         public override string ToString() => Name;
     }
 
+    /// <summary>Tokens of reasoning it may spend thinking harder (stage 12): a little, normal, a lot.</summary>
+    private static readonly int[] ThinkChoices = [512, BrainConfig.DefaultThinkTokens, 2048];
+
+    private sealed record ThinkOption(int Tokens, string Name)
+    {
+        public override string ToString() => Name;
+    }
+
     private readonly App _app = App.Current;
     private readonly DispatcherTimer _poll = new() { Interval = TimeSpan.FromSeconds(8) };
     private bool _filling;
@@ -62,6 +70,8 @@ public partial class AssistantBrainSection : UserControl
             60 => Loc.T("brainOptions.keepHour"),
             _ => Loc.T("brainOptions.keepMinutes", m),
         })).ToList();
+        ThinkTokensBox.ItemsSource = ThinkChoices.Select(t => new ThinkOption(t, Loc.T(t < BrainConfig.DefaultThinkTokens ? "brainOptions.thinkLittle"
+            : t > BrainConfig.DefaultThinkTokens ? "brainOptions.thinkMuch" : "brainOptions.thinkNormal"))).ToList();
         NewKindBox.ItemsSource = new[] { RemoteKind.Ollama, RemoteKind.OpenAI }.Select(k => new KindOption(k, KindName(k))).ToList();
         NewKindBox.SelectedIndex = 0;
         _poll.Tick += (_, _) => _app.AskAssistantBrain("check");
@@ -115,6 +125,9 @@ public partial class AssistantBrainSection : UserControl
                 ?? KeepBox.Items.OfType<KeepOption>().First(k => k.Minutes == BrainConfig.DefaultKeepMinutes);
 
             FillModelBox(s.AssistantBrainModel, brain);
+            FillThinkBox(s.AssistantBrainThinkModel, brain);
+            ThinkTokensBox.SelectedItem = ThinkTokensBox.Items.OfType<ThinkOption>().MinBy(t => Math.Abs(t.Tokens - s.AssistantBrainThinkTokens));
+            ThinkTokensRow.Visibility = s.AssistantBrainThinkModel == ModelRefs.None ? Visibility.Collapsed : Visibility.Visible;
             FillState(brain);
             FillModels(brain);
             FillDownload();
@@ -166,6 +179,27 @@ public partial class AssistantBrainSection : UserControl
         if (ModelBox.IsDropDownOpen) return;
         ModelBox.ItemsSource = options;
         ModelBox.SelectedItem = selected;
+    }
+
+    /// <summary>«Para pensar más»: the same model thinking first, any model of the servers, or never.</summary>
+    private void FillThinkBox(string chosen, BrainStateMessage? brain)
+    {
+        var options = new List<ModelOption> { new(string.Empty, Loc.T("brainOptions.thinkSame")) };
+        foreach (var model in brain?.Models ?? [])
+            options.Add(new ModelOption(model.Name, $"{_app.BrainModelName(model.Name)} · {Describe(model)}".TrimEnd(' ', '·')));
+        options.Add(new ModelOption(ModelRefs.None, Loc.T("brainOptions.thinkNone")));
+        var selected = chosen.Length == 0 ? options[0]
+            : chosen == ModelRefs.None ? options[^1]
+            : ModelRefs.Find(options.Skip(1).Select(o => o.Value).Where(v => v != ModelRefs.None), chosen) is { } found ? options.First(o => o.Value == found)
+            : null;
+        if (selected is null)
+        {
+            selected = new ModelOption(chosen, Loc.T("brainOptions.modelNotThere", _app.BrainModelName(chosen)));
+            options.Insert(1, selected);
+        }
+        if (ThinkBox.IsDropDownOpen) return;
+        ThinkBox.ItemsSource = options;
+        ThinkBox.SelectedItem = selected;
     }
 
     private static bool InMemory(BrainStateMessage? brain, string model) => brain?.Loaded?.Any(l => ModelRefs.Same(l, model)) == true;
@@ -582,6 +616,19 @@ public partial class AssistantBrainSection : UserControl
     {
         if (_filling || ModelBox.SelectedItem is not ModelOption option || option.Value == _app.Config.Settings.AssistantBrainModel) return;
         _app.Config.Settings.AssistantBrainModel = option.Value;
+    }
+
+    private void OnThinkChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_filling || ThinkBox.SelectedItem is not ModelOption option || option.Value == _app.Config.Settings.AssistantBrainThinkModel) return;
+        _app.Config.Settings.AssistantBrainThinkModel = option.Value;
+        ThinkTokensRow.Visibility = option.Value == ModelRefs.None ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void OnThinkTokensChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_filling || ThinkTokensBox.SelectedItem is not ThinkOption option) return;
+        _app.Config.Settings.AssistantBrainThinkTokens = option.Tokens;
     }
 
     private void OnCheck(object sender, RoutedEventArgs e) => _app.AskAssistantBrain("rescan");

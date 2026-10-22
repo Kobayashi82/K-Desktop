@@ -76,8 +76,9 @@ public class TalkProcessTests
             using (var request = JsonDocument.Parse(ollama.LastRequest))
             {
                 Assert.StartsWith("cuéntame algo\n", request.RootElement.GetProperty("messages").EnumerateArray().Last().GetProperty("content").GetString(), StringComparison.Ordinal);
-                // Those chosen (3 to 5) and find_tools, to look for the rest.
-                Assert.InRange(request.RootElement.GetProperty("tools").GetArrayLength(), 4, 6);
+                // Those chosen (3 to 5), find_tools to look for the rest and think_harder (stage 12).
+                Assert.InRange(request.RootElement.GetProperty("tools").GetArrayLength(), 5, 7);
+                Assert.Contains(request.RootElement.GetProperty("tools").EnumerateArray(), t => t.GetProperty("function").GetProperty("name").GetString() == "think_harder");
             }
             Assert.Contains(received.OfType<EmbedMessage>(), e => e.Keep is null && e.Texts.SequenceEqual(["cuéntame algo"]));
             // The second order came while Dot was still saying the first, which it replaced: one «idle» at the end.

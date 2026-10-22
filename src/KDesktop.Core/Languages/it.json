@@ -3872,5 +3872,21 @@
   "tool.convert.examples": "quante miglia sono 10 chilometri|converti 350 fahrenheit in celsius|quanto sono 50 dollari in euro|quanti grammi sono 3 once|a quanto sta il dollaro",
   "assistant.rule.weather": "che tempo fa|che tempo fa oggi|che tempo fa a {text}|che tempo fa oggi a {text}|il meteo|meteo|il meteo a {text}|meteo a {text}|piove a {text}|quanti gradi ci sono|quanti gradi ci sono a {text}|pioverà oggi",
   "assistant.rule.weatherTomorrow": "che tempo farà domani|che tempo fa domani|che tempo farà domani a {text}|che tempo farà a {text} domani|il meteo di domani|meteo domani|meteo domani a {text}|pioverà domani|pioverà domani a {text}",
-  "assistant.rule.weatherWeek": "che tempo farà questa settimana|che tempo farà nel fine settimana|il meteo della settimana|meteo della settimana|il meteo dei prossimi giorni|meteo della settimana a {text}"
+  "assistant.rule.weatherWeek": "che tempo farà questa settimana|che tempo farà nel fine settimana|il meteo della settimana|meteo della settimana|il meteo dei prossimi giorni|meteo della settimana a {text}",
+  "assistant.rule.thinkHard": "pensaci bene|pensaci bene {text}|{text} pensaci bene|ripensaci|pensaci meglio|pensaci con calma|ragionaci|ragionaci {text}|{text} ragionaci|ragiona {text}|prenditi il tuo tempo|prenditi tempo|prenditi il tuo tempo [e] {text}|{text} prenditi il tuo tempo",
+  "assistant.phrase.thinkingHard": "Fammi pensare.|Fammi pensarci un attimo.|Ci penso con calma.",
+  "assistant.phrase.thinkWhat": "A cosa vuoi che pensi?",
+  "assistant.prompt.thinkHard": "(Prenditi il tuo tempo: ragiona passo per passo e controlla il risultato prima di rispondere. Poi rispondi in breve, solo con il risultato: i passaggi restano nel tuo ragionamento.)",
+  "assistant.prompt.thinkAgain": "(Così non è andata. Pensaci con calma, passo per passo, e prova in un altro modo; se davvero non si può, dillo semplicemente.)",
+  "assistant.words.wrong": "è sbagliato|sbagliato|ti sbagli|hai sbagliato|ti sei sbagliato|ti sei sbagliata|non è corretto|è scorretto|non è così|non è vero|risposta sbagliata|non è quello che ti ho chiesto",
+  "brainOptions.think": "Per pensarci di più",
+  "brainOptions.thinkHint": "Quando dici «pensaci bene», quando il modello vede che non basta o quando sbaglia. Ci vuole di più.",
+  "brainOptions.thinkSame": "Lo stesso, pensando prima di rispondere",
+  "brainOptions.thinkNone": "Mai",
+  "brainOptions.thinkTokens": "Quanto può pensare",
+  "brainOptions.thinkTokensHint": "Di più aiuta con le cose difficili, ma ci vuole più tempo.",
+  "brainOptions.thinkLittle": "Poco",
+  "brainOptions.thinkNormal": "Normale",
+  "brainOptions.thinkMuch": "Molto",
+  "assistant.prompt.checkAgain": "(L'utente dice che la tua risposta di prima è sbagliata. Controllala con calma: se era sbagliata, dai quella giusta; se era giusta, dillo con gentilezza, con il perché in una frase. Rispondi in breve.)"
 }

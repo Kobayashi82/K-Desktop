@@ -93,6 +93,7 @@ public sealed class TalkService
     private readonly Func<Task<bool>>? _recheck;
     private readonly Func<Task<bool>>? _freeBrain;
     private readonly Func<Task>? _loadBrain;
+    private readonly Func<string?, Thinker?>? _thinker;
     private readonly ConcurrentDictionary<string, Conversation> _conversations = new(StringComparer.Ordinal);
 
     /// <param name="brain">The model client and model name for an assistant (null: no AI now).</param>
@@ -104,10 +105,13 @@ public sealed class TalkService
     /// <param name="recheck">Looks at the brain again when an order needs it and it is not ready; whether it is now.</param>
     /// <param name="freeBrain">«Descarga el cerebro»: the model leaves the graphics card; whether it was in it.</param>
     /// <param name="loadBrain">«Carga el cerebro»: the model loads now.</param>
+    /// <param name="thinker">How an assistant thinks harder (stage 12; null: it never does), on the same client.</param>
     public TalkService(Func<string?, (IChatModel? Client, string? Model)> brain, ToolRunner tools, Func<string?, AssistantPersona> persona,
         ITalkOutput output, TimeProvider? time = null, Random? random = null, ToolChooser? chooser = null, TalkMemory? memory = null, Func<bool>? learn = null,
-        ICommandBridge? commands = null, Func<Task<bool>>? recheck = null, Func<Task<bool>>? freeBrain = null, Func<Task>? loadBrain = null)
+        ICommandBridge? commands = null, Func<Task<bool>>? recheck = null, Func<Task<bool>>? freeBrain = null, Func<Task>? loadBrain = null,
+        Func<string?, Thinker?>? thinker = null)
     {
+        _thinker = thinker;
         _commands = commands;
         _recheck = recheck;
         _freeBrain = freeBrain;
@@ -145,6 +149,8 @@ public sealed class TalkService
             if (answer.Remember) conversation.History.Add(said, answer.Text, answer.Tools, answer.Steps);
             Learn(who, said, answer, token);
             if (answer.Text.Length > 0) conversation.LastAnswer = answer.Text;
+            // Only an answer of the AI may be called wrong and thought over («piénsalo bien» alone still has its order).
+            conversation.LastAiAt = answer.FromAi ? _time.GetUtcNow() : null;
             if (LastCommandOf(answer.Steps) is { } command) conversation.LastCommand = command;
             _output.State(who, "speaking");
             await _output.SpeakTurnAsync(who, turn, answer.Text, token).ConfigureAwait(false);
@@ -387,6 +393,11 @@ public sealed class TalkService
                 return await ToolAsync(persona, "weather", WeatherArguments(weather), context, said, acknowledge: false, token).ConfigureAwait(false);
             case { Kind: QuickRuleKind.Dictate }:
                 return new TalkAnswer(Phrase(persona, "dictating"), Remember: false) { Dictates = true };
+            case { Kind: QuickRuleKind.ThinkHard } think:
+                // «Piénsalo bien: …» thinks that over; alone, the order before (its wrong answer is in the history).
+                var order = think.Text is { Length: > 0 } asked ? asked : conversation.LastOrder;
+                if (order is null) return new TalkAnswer(Phrase(persona, "thinkWhat"), Remember: false) { AsksBack = true };
+                return await AiAsync(conversation, persona, who, order, turn, context with { Heard = order }, token, thinkFirst: true).ConfigureAwait(false);
             case { Kind: QuickRuleKind.CancelTimer } cancelTimer:
                 var which = new JsonObject();
                 if (cancelTimer.Text is { Length: > 0 } words) which["reason"] = words;
@@ -399,6 +410,14 @@ public sealed class TalkService
         {
             Log.Info($"Asistente: «{said}» es una frase de la herramienta {own.Name}");
             return await ToolAsync(persona, own.Name, new JsonObject(), context, said, acknowledge: !own.ReadsOnly, token).ConfigureAwait(false);
+        }
+
+        // «No, eso está mal», «te has equivocado» right after an answer of the AI: it thinks it over, with what it said before
+        // and the correction (stage 12). Not the user's commands: the correction is for the AI.
+        if (IsWrongAbout(conversation, said))
+        {
+            Log.Info($"Asistente: «{said}» corrige la respuesta de antes: lo piensa mejor");
+            return await AiAsync(conversation, persona, who, said, turn, context, token, thinkFirst: true, doubted: true).ConfigureAwait(false);
         }
 
         // The user's commands: what clearly names them runs now, in order; two nearly as close are asked about. Not for a
@@ -496,16 +515,39 @@ public sealed class TalkService
             }
         }
 
+        // A small model never asks to think harder and gets sums of several steps wrong («17 cajas de 23 manzanas, regalo un
+        // tercio…»): for it, thinking first is cheap (some 2 s with the 4B). A big one asks when it needs to (stage 12).
+        var wordProblem = !capable && ran is null && IsWordProblem(forAi);
+        if (wordProblem) Log.Info($"Asistente: «{forAi}» parece una cuenta de varios pasos: lo piensa (modelo pequeño)");
+        return await AiAsync(conversation, persona, who, forAi, turn, context, token, ran, leaveOut, close, capable, certain, thinkFirst: wordProblem).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// The AI answers <paramref name="forAi"/> (what the rules and the commands left of the order), after what
+    /// <paramref name="ran"/> already did. <paramref name="thinkFirst"/>: it thinks harder from the start (stage 12).
+    /// </summary>
+    private async Task<TalkAnswer> AiAsync(Conversation conversation, AssistantPersona persona, string? who, string forAi, string turn, ToolContext context,
+        CancellationToken token, TalkAnswer? ran = null, IReadOnlyCollection<string>? leaveOut = null, IReadOnlyList<string>? close = null,
+        bool? capable = null, IReadOnlyList<string>? certain = null, bool thinkFirst = false, bool doubted = false)
+    {
         var (client, model) = _brain(who);
         // Not ready: the server may have opened since it was last looked at (Ollama, after K-Desktop at start-up).
         if ((client is null || model is null) && _recheck is not null && await _recheck().ConfigureAwait(false)) (client, model) = _brain(who);
         if (client is null || model is null) return NotDone(persona, ran, forAi, Phrase(persona, "noBrain"));
+        conversation.LastOrder = forAi;
         _output.State(who, "thinking");
         // Nothing said yet a moment later (the model loading, a server starting, a long first read): a word, so the user
         // knows it heard. Not when a command already answered.
         var spoken = 0;
         using var quiet = CancellationTokenSource.CreateLinkedTokenSource(token);
         if (ran is null) _ = SayThinkingAsync(persona, who, turn, () => Volatile.Read(ref spoken) != 0, quiet.Token);
+        // Thinking harder takes a while: it says so («déjame pensarlo…»), once, instead of the usual word.
+        var hard = 0;
+        void ThinkingHard()
+        {
+            Interlocked.Exchange(ref spoken, 1);
+            if (Interlocked.Exchange(ref hard, 1) == 0 && Phrase(persona, "thinkingHard") is { Length: > 0 } phrase) _output.Preface(who, turn, phrase);
+        }
         var shown = new PartialText(text =>
         {
             Interlocked.Exchange(ref spoken, 1);
@@ -517,7 +559,7 @@ public sealed class TalkService
         try
         {
             answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), conversation.History.LastTools(), forAi, context, shown.Show, token,
-                leaveOut, close, capable, certain).ConfigureAwait(false);
+                leaveOut, close, capable ?? IsCapable(model), certain, _thinker?.Invoke(who), thinkFirst, ThinkingHard, doubted).ConfigureAwait(false);
         }
         finally
         {
@@ -526,6 +568,67 @@ public sealed class TalkService
         answer = answer with { Text = answer.Text.Length > 0 ? answer.Text : Phrase(persona, "ok"), FromAi = true };
         // One «Recibido.», at the start («Recibido. He ejecutado «Equipo». Afirmativo. He pasado…» had two).
         return ran is null ? answer : Join(ran, answer with { Text = answer.WithoutAck, Ack = null }) with { FromAi = true, Failed = answer.Failed };
+    }
+
+    /// <summary>
+    /// Whether the order says the answer before was wrong («no, eso está mal», «te has equivocado»,
+    /// <c>assistant.words.wrong</c> in any language) and that answer was the AI's, a moment ago.
+    /// </summary>
+    private bool IsWrongAbout(Conversation conversation, string said) =>
+        conversation.LastOrder is not null && conversation.LastAiAt is { } at && _time.GetUtcNow() - at <= CorrectionWithin && IsWrong(said);
+
+    private static readonly Lazy<string[]> WrongWords = new(() =>
+    [
+        .. Loc.Available()
+            .Select(l => Loc.Strings(l.Code, "assistant.words.wrong").GetValueOrDefault("assistant.words.wrong") ?? string.Empty)
+            .SelectMany(v => v.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            .Select(p => " " + string.Join(' ', TextSimilarity.Words(p)) + " ")
+            .Where(p => p.Trim().Length > 0)
+            .Distinct(StringComparer.Ordinal),
+    ]);
+
+    /// <summary>
+    /// Whether the order says something was wrong («está mal», «te equivocas», «that's wrong»), in any language; not when a
+    /// «no» goes right before («no está mal» is praise).
+    /// </summary>
+    internal static bool IsWrong(string said)
+    {
+        var folded = " " + string.Join(' ', TextSimilarity.Words(said)) + " ";
+        foreach (var phrase in WrongWords.Value)
+        {
+            var at = folded.IndexOf(phrase, StringComparison.Ordinal);
+            if (at < 0) continue;
+            var before = folded[..at].TrimEnd();
+            var last = before[(before.LastIndexOf(' ') + 1)..];
+            if (last is not ("no" or "not" or "nicht" or "pas" or "non" or "nao")) return true;
+        }
+        return false;
+    }
+
+    /// <summary>A question with this many numbers at least is taken for a sum of several steps.</summary>
+    public const int StepNumbers = 3;
+
+    /// <summary>
+    /// Whether the order is a question with <see cref="StepNumbers"/> numbers or more, in figures or in words (a word
+    /// problem). «Un», «una» do not count: «una cena», «un tercio».
+    /// </summary>
+    internal static bool IsWordProblem(string said)
+    {
+        if (!IsQuestion(said)) return false;
+        var words = TextSimilarity.Words(said);
+        var count = 0;
+        for (var i = 0; i < words.Length;)
+        {
+            if (words[i].Any(char.IsDigit)) count++;
+            else if (SpokenNumbers.TryRead(words, i, out var value, out var end) && end > i)
+            {
+                if (value != 1) count++;
+                i = end;
+                continue;
+            }
+            i++;
+        }
+        return count >= StepNumbers;
     }
 
     /// <summary>How long it may think in silence before saying it is on it.</summary>
@@ -790,6 +893,12 @@ public sealed class TalkService
 
         /// <summary>The last order, when it did nothing (its correction may teach a voice phrase).</summary>
         public (string Said, DateTimeOffset At)? Missed { get; set; }
+
+        /// <summary>The last order that went to the AI (what «piénsalo bien» alone thinks over).</summary>
+        public string? LastOrder { get; set; }
+
+        /// <summary>When the AI last answered (null: the last answer was not the AI's).</summary>
+        public DateTimeOffset? LastAiAt { get; set; }
 
         /// <summary>An order is going on.</summary>
         public bool Busy

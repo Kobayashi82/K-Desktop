@@ -3872,5 +3872,21 @@
   "tool.convert.examples": "quantas milhas são 10 quilômetros|converta 350 fahrenheit para celsius|quanto são 50 dólares em euros|quantos gramas são 3 onças|quanto está o dólar",
   "assistant.rule.weather": "como está o tempo|como está o tempo hoje|como está o tempo em {text}|qual a previsão do tempo|previsão do tempo|previsão do tempo em {text}|está chovendo em {text}|qual a temperatura|qual a temperatura em {text}|vai chover hoje",
   "assistant.rule.weatherTomorrow": "como vai estar o tempo amanhã|como estará o tempo amanhã|previsão do tempo para amanhã|previsão para amanhã|previsão do tempo para amanhã em {text}|vai chover amanhã|vai chover amanhã em {text}|o tempo amanhã em {text}",
-  "assistant.rule.weatherWeek": "previsão do tempo para a semana|previsão da semana|como vai estar o tempo esta semana|previsão para os próximos dias|previsão do tempo para o fim de semana|previsão da semana em {text}"
+  "assistant.rule.weatherWeek": "previsão do tempo para a semana|previsão da semana|como vai estar o tempo esta semana|previsão para os próximos dias|previsão do tempo para o fim de semana|previsão da semana em {text}",
+  "assistant.rule.thinkHard": "pense bem|pense bem {text}|{text} pense bem|pensa bem|pensa bem {text}|{text} pensa bem|pense melhor|pense de novo|pense com calma|raciocine|raciocine {text}|{text} raciocine|não tenha pressa|não tenha pressa [e] {text}|{text} não tenha pressa|leve o tempo que precisar",
+  "assistant.phrase.thinkingHard": "Deixa eu pensar.|Deixa eu pensar com calma.|Me dá um momento para pensar.",
+  "assistant.phrase.thinkWhat": "Em que você quer que eu pense?",
+  "assistant.prompt.thinkHard": "(Não tenha pressa: pense passo a passo e confira o resultado antes de responder. Depois responda curto, só com o resultado: os passos ficam no seu raciocínio.)",
+  "assistant.prompt.thinkAgain": "(Assim não deu certo. Pense com calma, passo a passo, e tente de outro jeito; se realmente não der, diga isso de forma simples.)",
+  "assistant.words.wrong": "está errado|tá errado|errado|você errou|você se enganou|se enganou|não é isso|não está certo|não tá certo|não é verdade|isso está errado|resposta errada|está incorreto|incorreto|não foi isso que eu pedi",
+  "brainOptions.think": "Para pensar melhor",
+  "brainOptions.thinkHint": "Quando você diz «pense bem», quando o modelo vê que não dá conta ou quando erra. Demora mais.",
+  "brainOptions.thinkSame": "O mesmo, pensando antes de responder",
+  "brainOptions.thinkNone": "Nunca",
+  "brainOptions.thinkTokens": "Quanto pode pensar",
+  "brainOptions.thinkTokensHint": "Mais ajuda nas coisas difíceis, mas demora mais.",
+  "brainOptions.thinkLittle": "Pouco",
+  "brainOptions.thinkNormal": "Normal",
+  "brainOptions.thinkMuch": "Muito",
+  "assistant.prompt.checkAgain": "(O usuário diz que a sua resposta anterior está errada. Confira com calma: se estava errada, dê a certa; se estava certa, diga isso com gentileza e o porquê em uma frase. Responda curto.)"
 }

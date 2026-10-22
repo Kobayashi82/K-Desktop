@@ -112,11 +112,13 @@ public sealed class OllamaChatModel : IChatModel
             json.WriteStartObject();
             json.WriteString("model", request.Model);
             json.WriteBoolean("stream", true);
-            if (includeThink) json.WriteBoolean("think", false);
+            // Thinking harder (stage 12): Ollama has no budget, only on or off; the answer gets the tokens to think on top.
+            var think = includeThink && request.ThinkTokens > 0;
+            if (includeThink) json.WriteBoolean("think", think);
             json.WriteString("keep_alive", keepAlive);
             json.WriteStartObject("options");
             json.WriteNumber("temperature", request.Temperature);
-            json.WriteNumber("num_predict", request.MaxTokens);
+            json.WriteNumber("num_predict", request.MaxTokens + (think ? request.ThinkTokens : 0));
             json.WriteEndObject();
 
             json.WriteStartArray("messages");

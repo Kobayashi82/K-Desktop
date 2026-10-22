@@ -3872,5 +3872,21 @@
   "tool.convert.examples": "wie viele Meilen sind 10 Kilometer|rechne 350 Fahrenheit in Celsius um|wie viel sind 50 Dollar in Euro|wie viele Gramm sind 3 Unzen|wie steht der Dollar",
   "assistant.rule.weather": "wie ist das wetter|wie ist das wetter heute|wie ist das wetter in {text}|wie ist das wetter heute in {text}|wetter|das wetter|wetter in {text}|regnet es in {text}|wie warm ist es|wie kalt ist es|wie warm ist es in {text}|wird es heute regnen",
   "assistant.rule.weatherTomorrow": "wie wird das wetter morgen|wie ist das wetter morgen|wie wird das wetter morgen in {text}|wetter morgen|das wetter morgen|wetter morgen in {text}|regnet es morgen|wird es morgen regnen",
-  "assistant.rule.weatherWeek": "wie wird das wetter diese woche|wie wird das wetter am wochenende|wetter diese woche|das wetter der woche|wetter für die nächsten tage|wetter diese woche in {text}"
+  "assistant.rule.weatherWeek": "wie wird das wetter diese woche|wie wird das wetter am wochenende|wetter diese woche|das wetter der woche|wetter für die nächsten tage|wetter diese woche in {text}",
+  "assistant.rule.thinkHard": "denk gut nach|denk genau nach|denk gut nach {text}|{text} denk gut nach|denk genau darüber nach|denk nochmal nach|denk noch mal nach|überleg gut|überleg es dir gut|überleg genau {text}|lass dir zeit|lass dir zeit [und] {text}|{text} lass dir zeit",
+  "assistant.phrase.thinkingHard": "Lass mich nachdenken.|Moment, darüber muss ich nachdenken.|Lass mich das gut überlegen.",
+  "assistant.phrase.thinkWhat": "Worüber soll ich nachdenken?",
+  "assistant.prompt.thinkHard": "(Lass dir Zeit: Denk Schritt für Schritt nach und prüfe das Ergebnis, bevor du antwortest. Antworte dann kurz, nur mit dem Ergebnis: Die Schritte bleiben in deinem Nachdenken.)",
+  "assistant.prompt.thinkAgain": "(So hat es nicht geklappt. Denk in Ruhe Schritt für Schritt nach und versuch es anders; geht es wirklich nicht, sag es einfach.)",
+  "assistant.words.wrong": "das ist falsch|falsch|du irrst dich|du hast dich geirrt|das stimmt nicht|stimmt nicht|das ist nicht richtig|du liegst falsch|falsche antwort|das habe ich nicht gefragt",
+  "brainOptions.think": "Zum genaueren Nachdenken",
+  "brainOptions.thinkHint": "Wenn du «denk gut nach» sagst, wenn das Modell merkt, dass es nicht reicht, oder wenn es sich irrt. Dauert länger.",
+  "brainOptions.thinkSame": "Dasselbe, mit Nachdenken vor der Antwort",
+  "brainOptions.thinkNone": "Nie",
+  "brainOptions.thinkTokens": "Wie lange es nachdenken darf",
+  "brainOptions.thinkTokensHint": "Mehr hilft bei Schwierigem, dauert aber länger.",
+  "brainOptions.thinkLittle": "Kurz",
+  "brainOptions.thinkNormal": "Normal",
+  "brainOptions.thinkMuch": "Lange",
+  "assistant.prompt.checkAgain": "(Der Nutzer sagt, deine vorige Antwort sei falsch. Prüf sie in Ruhe: War sie falsch, gib die richtige; war sie richtig, sag es freundlich und in einem Satz, warum. Antworte kurz.)"
 }
