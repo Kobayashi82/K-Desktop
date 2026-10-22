@@ -75,8 +75,6 @@ public class HostBubbleTests
             Hidden = false;
         }
 
-        public bool PresentGpu(PixelRect area, Action<GpuTarget> draw) => false;
-
         public void Hide() => Hidden = true;
 
         public void Dispose() { }

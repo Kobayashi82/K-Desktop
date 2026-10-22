@@ -84,14 +84,13 @@ internal sealed class Overlay : IDisposable
 
 /// <summary>
 /// The canvas of one surface: a small swap chain that DirectComposition moves by changing its visual's offset, and
-/// that is drawn with Direct3D and Direct2D (from Kobii).
+/// that is drawn with Direct2D (the replayed WPF drawing).
 /// </summary>
 internal sealed class StageLayer : IDisposable
 {
     private readonly GpuDevice _gpu;
     private readonly IDCompositionVisual _parent;
     private readonly IDXGISwapChain1 _swapChain;
-    private ID3D11RenderTargetView? _renderTarget;
     private ID2D1Bitmap1? _bitmap;
     private bool _attached;
 
@@ -138,22 +137,18 @@ internal sealed class StageLayer : IDisposable
             Resize(Round(width, step), Round(height, step));
     }
 
-    /// <summary>Render targets of the current buffer (made on first use).</summary>
-    public (ID3D11RenderTargetView Target, ID2D1Bitmap1 Bitmap) Targets()
+    /// <summary>Direct2D target of the current buffer (made on first use).</summary>
+    public ID2D1Bitmap1 Target()
     {
-        if (_renderTarget is null || _bitmap is null)
+        if (_bitmap is null)
         {
-            using var texture = _swapChain.GetBuffer<ID3D11Texture2D>(0);
-            _renderTarget = _gpu.Device.CreateRenderTargetView(texture);
             using var surface = _swapChain.GetBuffer<IDXGISurface>(0);
             _bitmap = _gpu.D2D.CreateBitmapFromDxgiSurface(surface, new BitmapProperties1(
                 new Vortice.DCommon.PixelFormat(Format.B8G8R8A8_UNorm, Vortice.DCommon.AlphaMode.Premultiplied), 96, 96,
                 BitmapOptions.Target | BitmapOptions.CannotDraw));
         }
-        return (_renderTarget, _bitmap);
+        return _bitmap;
     }
-
-    public void Clear() => _gpu.Context.ClearRenderTargetView(Targets().Target, new Color4(0, 0, 0, 0));
 
     /// <summary>Presents without waiting for the vertical sync: the compositor takes the latest frame.</summary>
     public void Present() => _swapChain.Present(0, PresentFlags.None).CheckError();
@@ -199,8 +194,6 @@ internal sealed class StageLayer : IDisposable
         if (_gpu.D2D.Target is not null) _gpu.D2D.Target = null;
         _bitmap?.Dispose();
         _bitmap = null;
-        _renderTarget?.Dispose();
-        _renderTarget = null;
         _gpu.Context.ClearState();
         _gpu.Context.Flush();
     }
