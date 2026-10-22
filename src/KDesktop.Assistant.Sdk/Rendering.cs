@@ -48,10 +48,16 @@ public interface ISurface : IDisposable
     void Present(PixelRect area, Action<DrawingContext> draw);
 
     /// <summary>
-    /// Draws a frame straight on the GPU (shaders, effects). Not available on the CPU fallback (returns false;
-    /// use <see cref="Present(PixelRect, Action{DrawingContext})"/> then).
+    /// Draws a frame straight on the GPU (shaders, effects). Also on the software fallback (WARP: Direct3D 11 on the
+    /// processor, much slower). False only when the surface was disposed.
     /// </summary>
     bool PresentGpu(PixelRect area, Action<GpuTarget> draw);
+
+    /// <summary>
+    /// The last frame presented with <see cref="PresentGpu"/> is gone (the GPU was lost and made again, or it is back
+    /// after a full-screen game): present again even if nothing changed. False again after the next Present. (SDK 1.5.)
+    /// </summary>
+    bool NeedsFrame => false;
 
     void Hide();
 }
@@ -62,7 +68,12 @@ public interface ISurface : IDisposable
 /// packages never depend on the host's version of any binding. The target is cleared to transparent before the
 /// call and holds premultiplied BGRA.
 /// </summary>
+/// <param name="D2D1DeviceContext">Direct2D on the same device. It has no target: set <paramref name="D2D1TargetBitmap"/> to draw
+/// over what the shaders drew, and set it back to null before returning.</param>
 /// <param name="Origin">Screen position of the top-left pixel of the target.</param>
+/// <param name="D2D1TargetBitmap">The same target as an ID2D1Bitmap1 for Direct2D (SDK 1.5).</param>
+/// <param name="Generation">Changes whenever the devices are made again (the GPU was lost, or freed for a full-screen game):
+/// release whatever was made on the old ones (shaders, buffers, brushes) and make it again (SDK 1.5).</param>
 public readonly record struct GpuTarget(
     nint D3D11Device,
     nint D3D11DeviceContext,
@@ -70,4 +81,6 @@ public readonly record struct GpuTarget(
     nint D2D1DeviceContext,
     int Width,
     int Height,
-    Point Origin);
+    Point Origin,
+    nint D2D1TargetBitmap = 0,
+    int Generation = 0);

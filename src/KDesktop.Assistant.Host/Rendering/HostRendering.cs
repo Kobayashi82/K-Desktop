@@ -38,6 +38,9 @@ internal sealed class HostRendering : IRendering, IDisposable
 
     public FramePacer Pacer { get; } = new();
 
+    /// <summary>Goes up every time the devices are made again (<see cref="GpuTarget.Generation"/>).</summary>
+    public int Generation { get; private set; } = 1;
+
     public bool HardwareAccelerated => !Gpu.IsSoftware;
 
     /// <summary>The GPU was freed for a full-screen game or presentation: nothing is drawn until <see cref="Resume"/>.</summary>
@@ -129,6 +132,7 @@ internal sealed class HostRendering : IRendering, IDisposable
 
     private void Build(bool preferSoftware)
     {
+        Generation++;
         Gpu = GpuDevice.Create(preferSoftware);
         Overlay = new Overlay(Gpu);
         Replayer = new DrawingReplayer(Gpu.D2DFactory);
@@ -141,9 +145,12 @@ internal sealed class HostSurface(HostRendering rendering, SurfaceLayer layer) :
     private StageLayer? _stage;
     private PixelRect _area;
     private DrawingGroup? _last;
+    private bool _gpuFrame;
     private bool _disposed;
 
     internal bool IsDisposed => _disposed;
+
+    public bool NeedsFrame { get; private set; }
 
     public bool IsVisible => _stage is { IsAttached: true };
 
@@ -159,6 +166,8 @@ internal sealed class HostSurface(HostRendering rendering, SurfaceLayer layer) :
         using (var dc = drawing.Open()) draw(dc);
         drawing.Freeze();
         _last = drawing;
+        _gpuFrame = false;
+        NeedsFrame = false;
         if (rendering.Suspended)
         {
             _area = area; // shown when the GPU comes back
@@ -170,22 +179,31 @@ internal sealed class HostSurface(HostRendering rendering, SurfaceLayer layer) :
     public bool PresentGpu(PixelRect area, Action<GpuTarget> draw)
     {
         if (_disposed) return false;
-        if (rendering.Suspended) return true;
-        if (rendering.Gpu.IsSoftware) return false;
+        if (rendering.Suspended)
+        {
+            // Drawn when the GPU comes back (NeedsFrame).
+            _area = area;
+            _gpuFrame = true;
+            return true;
+        }
         if (area.IsEmpty)
         {
             Hide();
             return true;
         }
-        _last = null; // nothing to replay if the GPU is lost: the assistant draws again when it ticks
+        // Nothing to replay if the GPU is lost: NeedsFrame asks the assistant to draw again.
+        _last = null;
+        _gpuFrame = true;
+        NeedsFrame = false;
         try
         {
             var stage = Stage(area);
             stage.Clear();
-            var (target, _) = stage.Targets();
+            var (target, bitmap) = stage.Targets();
             var gpu = rendering.Gpu;
             draw(new GpuTarget(gpu.Device.NativePointer, gpu.Context.NativePointer, target.NativePointer, gpu.D2D.NativePointer,
-                area.Width, area.Height, new System.Windows.Point(area.Left, area.Top)));
+                area.Width, area.Height, new System.Windows.Point(area.Left, area.Top), bitmap.NativePointer, rendering.Generation));
+            if (gpu.D2D.Target is not null) gpu.D2D.Target = null;
             Show(stage, area);
         }
         catch (SharpGenException ex) { rendering.DeviceLost(ex); }
@@ -223,7 +241,8 @@ internal sealed class HostSurface(HostRendering rendering, SurfaceLayer layer) :
 
     internal void Restore()
     {
-        if (_last is not null && !_area.IsEmpty) Draw(_area, _last);
+        if (_gpuFrame) NeedsFrame = !_area.IsEmpty;
+        else if (_last is not null && !_area.IsEmpty) Draw(_area, _last);
     }
 
     private void Draw(PixelRect area, DrawingGroup drawing)

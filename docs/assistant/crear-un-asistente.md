@@ -118,6 +118,12 @@ tarjeta y un botón en el panel, y guarda sus datos en su carpeta.
   ritmo. `Length` para recoger o soltar cable, `Gravity`, `Damping`, `Iterations`; `IsTaut`, `Overstretch` y `Pull` (hacia
   el principio, lo que sobra de largo: lo que sigue una ventana remolcada). Se dibuja con `Draw(dc, pen)` (curva suave) y
   `Bounds(margen)` dice el tamaño de la superficie.
+- **Dibujar con shaders** (`ISurface.PresentGpu`, SDK 1.5): te da los punteros de Direct3D 11 y Direct2D del host y el
+  destino como `RenderTargetView` y como bitmap de Direct2D (`D2D1TargetBitmap`), ya limpio. Envuelve los punteros con tu
+  propio Vortice (añadiendo una referencia), suelta lo que hiciste sobre ellos cuando cambie `Generation` (el host rehízo la
+  GPU) y vuelve a presentar cuando `NeedsFrame` lo pida (tras perder la GPU o al volver de un juego a pantalla completa).
+  Funciona también con WARP. **Ojo con el coste:** un shader grande puede tener ocupado al controlador de la GPU (con el de
+  Kobii, un 4–12 % de un núcleo todo el rato, frente al 1 % dibujando lo mismo con WPF). Lo normal es `Present` con WPF.
 - **Papelera:** `SystemEvent.RecycleBinEmptied` trae dónde está su icono en el escritorio (o null si no está o los
   iconos están ocultos).
 
