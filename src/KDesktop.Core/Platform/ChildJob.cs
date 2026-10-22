@@ -1,14 +1,13 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using KDesktop.Core;
 
-namespace KDesktop.Assistant.Brain.Models;
+namespace KDesktop.Core.Platform;
 
 /// <summary>
 /// A job object that kills the processes in it when the assistant process ends, however it ends (closed, crashed,
-/// killed): a llama-server must never stay behind holding the graphics card.
+/// killed): a llama-server must never stay behind holding the graphics card, nor an MCP server.
 /// </summary>
-internal static partial class ChildJob
+public static partial class ChildJob
 {
     private const int JobObjectExtendedLimitInformation = 9;
     private const uint KillOnJobClose = 0x2000;
@@ -16,11 +15,12 @@ internal static partial class ChildJob
     private static readonly Lazy<IntPtr> Job = new(Create);
 
     /// <summary>Puts the process in the job (if it cannot, it is logged: it is still stopped normally).</summary>
-    public static void Add(Process process)
+    /// <param name="what">What it is, for the log.</param>
+    public static void Add(Process process, string what)
     {
         var job = Job.Value;
         if (job == IntPtr.Zero || !AssignProcessToJobObject(job, process.Handle))
-            Log.Warn($"Asistente: llama-server fuera del job ({Marshal.GetLastPInvokeError()}): si el proceso del asistente se cae, puede quedarse abierto");
+            Log.Warn($"Asistente: {what} fuera del job ({Marshal.GetLastPInvokeError()}): si el proceso del asistente se cae, puede quedarse abierto");
     }
 
     private static IntPtr Create()

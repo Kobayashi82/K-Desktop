@@ -123,8 +123,9 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
                 if (asked.Count == 0)
                 {
                     // It names one of their commands without having run it («Let me try the "Abrir Papelera" command»):
-                    // once, it is told so, and runs it or answers without it.
-                    if (!nudged && !acted && offer && commands is { Count: > 0 } && NamedCommand(text, commands) is { } named)
+                    // once, it is told so, and runs it or answers without it. Not when it already called something in this
+                    // order: «Telegram no lo ha aceptado» after send_telegram failed is no command to run (it opened Telegram).
+                    if (!nudged && calls == 0 && offer && commands is { Count: > 0 } && NamedCommand(text, commands) is { } named)
                     {
                         nudged = true;
                         Log.Info($"Asistente: la IA nombra «{named}» sin ejecutarlo: otra vuelta");

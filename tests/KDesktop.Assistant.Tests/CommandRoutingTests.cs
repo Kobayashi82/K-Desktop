@@ -397,6 +397,23 @@ public sealed class CommandRoutingTests : IDisposable
         Assert.DoesNotContain(_chat, c => c.Text.Contains("Voy a intentarlo", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public async Task NamingACommandAfterCallingSomethingElseIsNoReasonToRunIt()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        // What happened (22/10, 5.0.125): send_telegram failed (the bot was blocked), Bonsai said «Telegram» and was made to
+        // run the command «Telegram», which opened the app.
+        _bridge.Matches["mándame al telegram que compre pan"] = new MatchedMessage("x", 0.4, [],
+            [new MatchedPart("mándame al telegram que compre pan", false, [new MatchedCandidate("tg", "Telegram", 0.76)])]);
+        _model.Answers.Enqueue("call:find_command:mandar telegram");
+        _model.Answers.Enqueue("No he podido mandarlo: Telegram no lo ha aceptado.");
+
+        await talk.HandleAsync(new HeardMessage("mándame al telegram que compre pan", "panel", "lander"));
+        Assert.Empty(_bridge.Done);
+        Assert.Equal(2, _model.Requests.Count);
+    }
+
     // Stage 8.1: what is done to a program, by the rules and after the user's own commands.
 
     [Theory]

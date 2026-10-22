@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using KDesktop.Core;
 using KDesktop.Core.Assistant.Brain;
 using KDesktop.Core.Localization;
+using KDesktop.Core.Platform;
 
 namespace KDesktop.Assistant.Brain.Models;
 
@@ -361,7 +362,7 @@ public sealed class LlamaServerPool : IChatModel
             process.Dispose();
             throw new ChatModelException(ChatModelFailure.ServerError, Loc.T("brain.error.serverStart", ex.Message), ex);
         }
-        ChildJob.Add(process);
+        ChildJob.Add(process, "llama-server");
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
         var vision = Vision && model.Projector is not null;
