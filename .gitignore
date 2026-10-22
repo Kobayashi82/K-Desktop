@@ -7,6 +7,9 @@ artifacts/
 ## Android signing key (docs/COMPILAR.md): never in the repository
 keys/
 
+## Signing key of the assistant packages (tools/KaiSign): never in the repository
+firma/
+
 ## IDE
 .vs/
 .vscode/
