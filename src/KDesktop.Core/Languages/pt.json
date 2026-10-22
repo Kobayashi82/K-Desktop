@@ -2771,7 +2771,7 @@
   "tool.find_notes.examples": "o que eu tinha anotado|quais notas eu tenho|o que eu tinha que comprar|lê a lista de compras para mim|o que anotei sobre o encanador|o que eu tinha que fazer hoje|procura nas minhas notas a do seguro",
   "tool.calculate.examples": "quanto é vinte e três vezes quarenta e sete|calcula quinze por cento de duzentos|quanto é 1200 dividido por 12|raiz quadrada de 144|se eu gastar 35 de 120 quanto sobra|quanto dá 3 elevado a 5|soma 45 mais 78 mais 12",
   "tool.open_web.examples": "abre o youtube|entra no gmail|vai para a página da wikipédia|abre o site do banco|me leva para amazon ponto com|abre o github",
-  "tool.search_web.examples": "procura receitas de lentilha|pesquisa na internet como tirar mancha de vinho|procura voos para Roma|vê no google quem ganhou o jogo|procura o horário da farmácia|pesquisa informações sobre vulcões",
+  "tool.search_web.examples": "procura receitas de lentilhas|abre uma pesquisa de como tirar uma mancha de vinho|procura voos para Roma no navegador|mostra no google fotos de vulcões",
   "tool.open_app.examples": "abre a calculadora|abre o bloco de notas|inicia o spotify|abre o word|abre o photoshop|abre o explorador de arquivos para mim|abre o visual studio code",
 
   "action.AssistantAsk.name": "Assistente: perguntar",
@@ -3325,5 +3325,9 @@
   "tool.read_web.done": "Leu «{0}»",
   "tool.read_web.failed": "Não conseguiu ler {0}",
   "tool.read_web.examples": "resume essa página para mim|do que fala esse artigo|lê esse site para mim|o que diz a página que eu tenho aberta|resume a notícia que estou lendo",
-  "tool.look_at_screen.monitor": "o monitor"
+  "tool.look_at_screen.monitor": "o monitor",
+  "tool.look_up_web.intent": "pesquisar na internet: {0}",
+  "tool.look_up_web.done": "Pesquisou na internet: {0}",
+  "tool.look_up_web.failed": "Não encontrou nada na internet: {0}",
+  "tool.look_up_web.examples": "quando é o próximo eclipse|que horas abre o mercado hoje|quanto custa uma RTX 5080|quem ganhou o jogo ontem|o que aconteceu hoje nas notícias|pesquisa na internet a população do Japão"
 }

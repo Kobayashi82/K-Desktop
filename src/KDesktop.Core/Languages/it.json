@@ -2771,7 +2771,7 @@
   "tool.find_notes.examples": "cosa avevo segnato|che note ho|cosa dovevo comprare|leggimi la lista della spesa|cosa ho annotato sull'idraulico|cosa dovevo fare oggi|cerca nelle mie note quella dell'assicurazione",
   "tool.calculate.examples": "quanto fa ventitré per quarantasette|calcola il quindici per cento di duecento|quanto fa 1200 diviso 12|radice quadrata di 144|se spendo 35 euro su 120 quanto mi resta|quanto fa 3 alla quinta|somma 45 più 78 più 12",
   "tool.open_web.examples": "apri youtube|vai su gmail|vai sulla pagina di wikipedia|apri il sito della banca|portami su amazon punto it|apri github",
-  "tool.search_web.examples": "cerca ricette di lenticchie|cerca su internet come togliere una macchia di vino|trovami dei voli per Roma|guarda su google chi ha vinto la partita|cerca l'orario della farmacia|cerca informazioni sui vulcani",
+  "tool.search_web.examples": "cerca ricette di lenticchie|apri una ricerca su come togliere una macchia di vino|trovami voli per Roma nel browser|mostrami su google foto di vulcani",
   "tool.open_app.examples": "apri la calcolatrice|apri il blocco note|avvia spotify|apri word|lancia photoshop|aprimi esplora file|apri visual studio code",
 
   "action.AssistantAsk.name": "Assistente: chiedi",
@@ -3325,5 +3325,9 @@
   "tool.read_web.done": "Ha letto «{0}»",
   "tool.read_web.failed": "Non ha potuto leggere {0}",
   "tool.read_web.examples": "riassumimi questa pagina|di cosa parla questo articolo|leggimi questo sito|cosa dice la pagina che ho aperto|riassumi la notizia che sto leggendo",
-  "tool.look_at_screen.monitor": "il monitor"
+  "tool.look_at_screen.monitor": "il monitor",
+  "tool.look_up_web.intent": "cercare su internet: {0}",
+  "tool.look_up_web.done": "Ha cercato su internet: {0}",
+  "tool.look_up_web.failed": "Non ha trovato niente su internet: {0}",
+  "tool.look_up_web.examples": "quando c'è la prossima eclissi|a che ora apre oggi il supermercato|quanto costa una RTX 5080|chi ha vinto ieri la partita|cosa è successo oggi nelle notizie|cerca su internet la popolazione del Giappone"
 }

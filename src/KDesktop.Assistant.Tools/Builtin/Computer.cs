@@ -82,7 +82,7 @@ public sealed class SearchWebTool(Func<Uri, bool>? open = null) : ITool
 {
     public string Name => "search_web";
 
-    public string Description => "Searches the internet in the user's browser.";
+    public string Description => "Opens a search in the user's browser, for them to look at. To answer a question yourself with facts from the internet, use look_up_web.";
 
     public string ParametersSchemaJson => ToolText.OneString("query", "What to search for");
 

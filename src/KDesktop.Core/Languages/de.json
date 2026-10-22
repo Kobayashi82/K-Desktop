@@ -2771,7 +2771,7 @@
   "tool.find_notes.examples": "was hatte ich notiert|welche Notizen habe ich|was sollte ich kaufen|lies mir die Einkaufsliste vor|was habe ich zum Klempner notiert|was musste ich heute erledigen|such in meinen Notizen nach der Versicherung",
   "tool.calculate.examples": "was ist dreiundzwanzig mal siebenundvierzig|rechne fünfzehn Prozent von zweihundert aus|was ist 1200 geteilt durch 12|Wurzel aus 144|wenn ich 35 von 120 Euro ausgebe, wie viel bleibt übrig|was ist 3 hoch 5|addiere 45 plus 78 plus 12",
   "tool.open_web.examples": "öffne youtube|geh auf gmail|geh auf die Wikipedia-Seite|öffne die Webseite der Bank|bring mich zu amazon punkt de|öffne github",
-  "tool.search_web.examples": "such nach Linsenrezepten|such im Internet, wie man einen Weinfleck entfernt|such mir Flüge nach Rom|schau bei Google, wer das Spiel gewonnen hat|such die Öffnungszeiten der Apotheke|such Informationen über Vulkane",
+  "tool.search_web.examples": "such nach Linsenrezepten|öffne eine Suche, wie man einen Weinfleck entfernt|such mir Flüge nach Rom im Browser|zeig mir auf Google Fotos von Vulkanen",
   "tool.open_app.examples": "öffne den Rechner|öffne den Editor|starte spotify|öffne Word|starte Photoshop|öffne mir den Datei-Explorer|öffne Visual Studio Code",
 
   "action.AssistantAsk.name": "Assistent: fragen",
@@ -3325,5 +3325,9 @@
   "tool.read_web.done": "„{0}“ gelesen",
   "tool.read_web.failed": "Konnte {0} nicht lesen",
   "tool.read_web.examples": "fass mir diese Seite zusammen|worum geht es in diesem Artikel|lies mir diese Webseite vor|was steht auf der Seite, die ich offen habe|fass die Nachricht zusammen, die ich lese",
-  "tool.look_at_screen.monitor": "der Monitor"
+  "tool.look_at_screen.monitor": "der Monitor",
+  "tool.look_up_web.intent": "im Internet nachsehen: {0}",
+  "tool.look_up_web.done": "Im Internet nachgesehen: {0}",
+  "tool.look_up_web.failed": "Nichts im Internet gefunden: {0}",
+  "tool.look_up_web.examples": "wann ist die nächste Sonnenfinsternis|wann macht der Supermarkt heute auf|was kostet eine RTX 5080|wer hat gestern das Spiel gewonnen|was gibt es heute in den Nachrichten|schau im Internet nach, wie viele Einwohner Japan hat"
 }

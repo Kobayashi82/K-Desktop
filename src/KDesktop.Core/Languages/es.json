@@ -2771,7 +2771,7 @@
   "tool.find_notes.examples": "qué tenía apuntado|qué notas tengo|qué tenía que comprar|léeme la lista de la compra|qué apunté sobre el fontanero|qué tenía que hacer hoy|busca en mis notas lo del seguro",
   "tool.calculate.examples": "cuánto es veintitrés por cuarenta y siete|calcula el quince por ciento de doscientos|cuánto es 1200 entre 12|raíz cuadrada de 144|si gasto 35 euros de 120 cuánto me queda|cuánto da 3 elevado a 5|suma 45 más 78 más 12",
   "tool.open_web.examples": "abre youtube|entra en gmail|ve a la página de wikipedia|abre la web del banco|llévame a amazon punto es|abre github",
-  "tool.search_web.examples": "busca recetas de lentejas|busca en internet cómo quitar una mancha de vino|búscame vuelos a Roma|mira en google quién ganó el partido|busca el horario de la farmacia|busca información sobre los volcanes",
+  "tool.search_web.examples": "busca recetas de lentejas|ábreme una búsqueda de cómo quitar una mancha de vino|búscame vuelos a Roma en el navegador|enséñame en google fotos de volcanes|busca en google tiendas de bicis",
   "tool.open_app.examples": "abre la calculadora|abre el bloc de notas|lanza spotify|abre el word|arranca el photoshop|ábreme el explorador de archivos|abre visual studio code",
 
   "action.AssistantAsk.name": "Asistente: preguntar",
@@ -3325,5 +3325,9 @@
   "tool.read_web.done": "Leyó «{0}»",
   "tool.read_web.failed": "No pudo leer {0}",
   "tool.read_web.examples": "resúmeme esta página|de qué va este artículo|léeme esta web|qué dice la página que tengo abierta|resume la noticia que estoy leyendo|qué pone en la web de la AEMET|lee esta página y dime lo importante",
-  "tool.look_at_screen.monitor": "el monitor"
+  "tool.look_at_screen.monitor": "el monitor",
+  "tool.look_up_web.intent": "buscar en internet: {0}",
+  "tool.look_up_web.done": "Buscó en internet: {0}",
+  "tool.look_up_web.failed": "No encontró nada en internet: {0}",
+  "tool.look_up_web.examples": "cuándo es el próximo eclipse|a qué hora abre hoy el Mercadona|cuánto cuesta una RTX 5080|quién ganó ayer el partido del Madrid|qué ha pasado hoy en las noticias|cuándo sale la nueva temporada de la serie|qué tiempo hará el fin de semana en Valencia|mira en internet cuál es la población de Japón"
 }

@@ -24,17 +24,20 @@ internal sealed class ModuleTools : IDisposable
     private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _questions = new(StringComparer.Ordinal);
     private volatile IReadOnlySet<string> _trusted = new HashSet<string>(StringComparer.Ordinal);
     private volatile string _askBefore = AskPolicy.Risky;
+    private readonly ModuleBrowser _browser;
 
     /// <param name="commands">The user's K-Desktop commands (stage 4.4).</param>
     /// <param name="screen">Pictures of the desktop and the page in the browser (stage 8.3).</param>
     /// <param name="vision">The model looking at them.</param>
-    public ModuleTools(KDesktopLink link, ICommandBridge commands, IScreen screen, IVision vision)
+    /// <param name="browser">The assistants' own browser (stage 8.4), closed with the tools.</param>
+    public ModuleTools(KDesktopLink link, ICommandBridge commands, IScreen screen, IVision vision, ModuleBrowser browser)
     {
+        _browser = browser;
         _link = link;
         var folder = Path.Combine(AppPaths.DataDir, "Assistant");
         Builtin = new BuiltinTools(folder);
         var registry = new ToolRegistry();
-        Builtin.AddTo(registry, screen, vision);
+        Builtin.AddTo(registry, screen, vision, browser);
         CommandTools.AddTo(registry, commands);
         Runner = new ToolRunner(registry, () => _trusted, AskAsync, message => link.Send(message), Path.Combine(folder, "undo.json"), () => _askBefore);
         Builtin.Timers.Rang += OnTimerRang;
@@ -159,6 +162,7 @@ internal sealed class ModuleTools : IDisposable
         Builtin.Memory.Changed -= SendMemory;
         Builtin.Notes.Changed -= SendNotes;
         Builtin.Dispose();
+        _browser.Dispose();
         foreach (var waiting in _questions.Values) waiting.TrySetResult("timeout");
     }
 }

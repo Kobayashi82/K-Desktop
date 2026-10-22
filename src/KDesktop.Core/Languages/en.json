@@ -2771,7 +2771,7 @@
   "tool.find_notes.examples": "what did I write down|what notes do I have|what did I have to buy|read me the shopping list|what did I note about the plumber|what did I have to do today|look in my notes for the insurance",
   "tool.calculate.examples": "what is twenty-three times forty-seven|work out fifteen percent of two hundred|what is 1200 divided by 12|square root of 144|if I spend 35 out of 120 how much is left|what is 3 to the power of 5|add 45 plus 78 plus 12",
   "tool.open_web.examples": "open youtube|go to gmail|go to the wikipedia page|open the bank's website|take me to amazon dot com|open github",
-  "tool.search_web.examples": "search for lentil recipes|look up how to remove a wine stain|find me flights to Rome|google who won the match|search for the pharmacy's opening hours|look up information about volcanoes",
+  "tool.search_web.examples": "search for lentil recipes|open a search for how to remove a wine stain|find me flights to Rome in the browser|show me photos of volcanoes on google|google bike shops",
   "tool.open_app.examples": "open the calculator|open notepad|launch spotify|open word|start photoshop|open file explorer for me|open visual studio code",
 
   "action.AssistantAsk.name": "Assistant: ask",
@@ -3325,5 +3325,9 @@
   "tool.read_web.done": "Read «{0}»",
   "tool.read_web.failed": "Could not read {0}",
   "tool.read_web.examples": "summarise this page|what is this article about|read this website to me|what does the page I have open say|sum up the news I'm reading|read this page and tell me what matters",
-  "tool.look_at_screen.monitor": "the monitor"
+  "tool.look_at_screen.monitor": "the monitor",
+  "tool.look_up_web.intent": "look up on the internet: {0}",
+  "tool.look_up_web.done": "Looked up on the internet: {0}",
+  "tool.look_up_web.failed": "Found nothing on the internet: {0}",
+  "tool.look_up_web.examples": "when is the next eclipse|what time does the supermarket open today|how much is an RTX 5080|who won the game yesterday|what's in the news today|when does the new season of the show come out|look up the population of Japan"
 }

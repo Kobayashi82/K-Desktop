@@ -2771,7 +2771,7 @@
   "tool.find_notes.examples": "qu'est-ce que j'avais noté|quelles notes j'ai|qu'est-ce que je devais acheter|lis-moi la liste de courses|qu'est-ce que j'ai noté sur le plombier|qu'est-ce que je devais faire aujourd'hui|cherche dans mes notes ce qui concerne l'assurance",
   "tool.calculate.examples": "combien font vingt-trois fois quarante-sept|calcule quinze pour cent de deux cents|combien font 1200 divisé par 12|racine carrée de 144|si je dépense 35 euros sur 120 combien il me reste|combien fait 3 puissance 5|additionne 45 plus 78 plus 12",
   "tool.open_web.examples": "ouvre youtube|va sur gmail|va sur la page de wikipédia|ouvre le site de la banque|emmène-moi sur amazon point fr|ouvre github",
-  "tool.search_web.examples": "cherche des recettes de lentilles|cherche sur internet comment enlever une tache de vin|trouve-moi des vols pour Rome|regarde sur google qui a gagné le match|cherche les horaires de la pharmacie|cherche des informations sur les volcans",
+  "tool.search_web.examples": "cherche des recettes de lentilles|ouvre une recherche sur comment enlever une tache de vin|trouve-moi des vols pour Rome dans le navigateur|montre-moi des photos de volcans sur google",
   "tool.open_app.examples": "ouvre la calculatrice|ouvre le bloc-notes|lance spotify|ouvre word|démarre photoshop|ouvre-moi l'explorateur de fichiers|ouvre visual studio code",
 
   "action.AssistantAsk.name": "Assistant : demander",
@@ -3325,5 +3325,9 @@
   "tool.read_web.done": "A lu « {0} »",
   "tool.read_web.failed": "N'a pas pu lire {0}",
   "tool.read_web.examples": "résume-moi cette page|de quoi parle cet article|lis-moi ce site|que dit la page que j'ai ouverte|résume l'actualité que je lis",
-  "tool.look_at_screen.monitor": "l'écran"
+  "tool.look_at_screen.monitor": "l'écran",
+  "tool.look_up_web.intent": "chercher sur internet : {0}",
+  "tool.look_up_web.done": "A cherché sur internet : {0}",
+  "tool.look_up_web.failed": "N'a rien trouvé sur internet : {0}",
+  "tool.look_up_web.examples": "quand a lieu la prochaine éclipse|à quelle heure ouvre le supermarché aujourd'hui|combien coûte une RTX 5080|qui a gagné le match hier|quelles sont les nouvelles du jour|cherche sur internet la population du Japon"
 }

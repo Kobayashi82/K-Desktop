@@ -25,7 +25,7 @@
     { "say": "open youtube", "expect": { "tool": "open_web" } },
     { "say": "go to the Wikipedia website", "expect": { "tool": ["open_web", "search_web"] } },
     { "say": "search for lentil recipes", "expect": { "tool": "search_web" } },
-    { "say": "look up online when the next eclipse is", "expect": { "tool": "search_web" } },
+    { "say": "look up online when the next eclipse is", "expect": { "tool": ["look_up_web", "search_web"] } },
     { "say": "google the opening hours of the supermarket", "expect": { "tool": "search_web" } },
     { "say": "open the calculator", "expect": { "tool": "open_app" } },
     { "say": "open notepad for me", "expect": { "tool": "open_app" } },

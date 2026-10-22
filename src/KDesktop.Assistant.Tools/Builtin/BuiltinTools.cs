@@ -24,7 +24,8 @@ public sealed class BuiltinTools : IDisposable
 
     /// <param name="screen">The host's eyes on the desktop (stage 8.3); null: none (tests, the bench).</param>
     /// <param name="vision">The model looking at pictures; null: it cannot.</param>
-    public void AddTo(ToolRegistry registry, IScreen? screen = null, IVision? vision = null)
+    /// <param name="browser">The assistants' own browser (stage 8.4); null: pages are only read over HTTP.</param>
+    public void AddTo(ToolRegistry registry, IScreen? screen = null, IVision? vision = null, IWebBrowser? browser = null)
     {
         registry.Add(new TimeTool(Timers));
         registry.Add(new SetTimerTool(Timers));
@@ -41,7 +42,9 @@ public sealed class BuiltinTools : IDisposable
         registry.Add(new FindFilesTool(Files));
         registry.Add(new OpenFileTool(Files));
         registry.Add(new LookAtScreenTool(screen, vision));
-        registry.Add(new ReadWebTool(screen));
+        var reader = new WebReader(browser: browser);
+        registry.Add(new ReadWebTool(screen, reader));
+        registry.Add(new LookUpWebTool(reader));
     }
 
     public void Dispose() => Timers.Dispose();

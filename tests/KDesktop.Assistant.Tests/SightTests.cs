@@ -124,19 +124,19 @@ public sealed class SightTests
     public async Task TheGivenPageOrTheOneOpenInTheBrowser()
     {
         var web = new FakeWeb("<html><title>Tiempo</title><body><main><p>Mañana lloverá en Madrid por la tarde, con 14 grados de máxima y viento del oeste.</p></main></body></html>");
-        var given = await new ReadWebTool(new FakeScreen(), web).RunAsync(Args(new { url = "aemet.es/madrid" }), new ToolContext(null), default);
+        var given = await new ReadWebTool(new FakeScreen(), new WebReader(web)).RunAsync(Args(new { url = "aemet.es/madrid" }), new ToolContext(null), default);
         Assert.Equal("https://aemet.es/madrid", web.Asked?.ToString());
         Assert.Contains("lloverá en Madrid", given.Text, StringComparison.Ordinal);
         Assert.Contains("Tiempo", given.Done, StringComparison.Ordinal);
 
-        var open = await new ReadWebTool(new FakeScreen("www.elpais.com/noticia"), web).RunAsync(Args(new { }), new ToolContext(null), default);
+        var open = await new ReadWebTool(new FakeScreen("www.elpais.com/noticia"), new WebReader(web)).RunAsync(Args(new { }), new ToolContext(null), default);
         Assert.False(open.Failed);
         Assert.Equal("https://www.elpais.com/noticia", web.Asked?.ToString());
 
-        var none = await new ReadWebTool(new FakeScreen(null), web).RunAsync(Args(new { }), new ToolContext(null), default);
+        var none = await new ReadWebTool(new FakeScreen(null), new WebReader(web)).RunAsync(Args(new { }), new ToolContext(null), default);
         Assert.True(none.Failed);
 
-        var pdf = await new ReadWebTool(null, new FakeWeb("%PDF", "application/pdf")).RunAsync(Args(new { url = "x.com/a.pdf" }), new ToolContext(null), default);
+        var pdf = await new ReadWebTool(null, new WebReader(new FakeWeb("%PDF", "application/pdf"))).RunAsync(Args(new { url = "x.com/a.pdf" }), new ToolContext(null), default);
         Assert.True(pdf.Failed);
     }
 
