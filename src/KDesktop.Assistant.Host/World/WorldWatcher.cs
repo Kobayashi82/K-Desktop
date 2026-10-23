@@ -238,7 +238,13 @@ internal sealed class WorldWatcher : IDisposable
         var current = new Dictionary<long, WindowInfo>(list.Count);
         foreach (var w in list) current[w.Handle] = w;
         _windows = current;
-        _world.Publish(new WorldSnapshot(_monitors, list, Monitors.Taskbars(_monitors), now));
+
+        // Only a picture that changed is news: rescanning every frame (an assistant standing on a window) would wake the
+        // assistants every frame for nothing.
+        var taskbars = Monitors.Taskbars(_monitors);
+        var shown = _world.Current;
+        if (!shown.Windows.SequenceEqual(list) || !shown.Monitors.SequenceEqual(_monitors) || !shown.Taskbars.SequenceEqual(taskbars))
+            _world.Publish(new WorldSnapshot(_monitors, list, taskbars, now));
         if (!_started)
         {
             foreach (var handle in current.Keys) _seen.Add(handle);

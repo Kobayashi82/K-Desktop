@@ -34,3 +34,6 @@ Fases-Asistentes-KDesktop.md
 
 ## Assistants: their own repository (K-Desktop-Assistants), cloned here
 assistants/
+
+## Copies of the user's logs to review (private, local only)
+registros/
