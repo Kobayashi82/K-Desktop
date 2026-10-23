@@ -75,7 +75,7 @@ public class ShowcaseTests
             await Until(() => !lists.IsEmpty);
             lists.TryDequeue(out var list);
             Assert.Equal(ModuleShowcase.Standard.Select(s => s.Id), list!.Items.Where(i => !i.Own).Select(i => i.Id));
-            Assert.Equal(["walk", "sleep", "surprised"], list.Items.Where(i => i.Own).Select(i => i.Id));
+            Assert.Equal(["walk", "sleep", "surprised", "click", "catch"], list.Items.Where(i => i.Own).Select(i => i.Id));
             Assert.Equal("moving", list.Items.Single(i => i.Own && i.Id == "walk").Group);
             Assert.All(list.Items.Where(i => i.Own), i => Assert.Null(i.Names));
 
@@ -92,7 +92,8 @@ public class ShowcaseTests
             Assert.Equal(ShowcaseDoneMessage.Done, await Play("gesture.announce"));
             // What it does not know how to do (Pip has no way of pointing), or does not have.
             Assert.Equal(ShowcaseDoneMessage.NotPerformed, await Play("gesture.pointAt"));
-            Assert.Equal(ShowcaseDoneMessage.Unknown, await Play("click", own: true));
+            Assert.Equal(ShowcaseDoneMessage.Done, await Play("click", own: true));
+            Assert.Equal(ShowcaseDoneMessage.Unknown, await Play("dance", own: true));
             Assert.Equal(ShowcaseDoneMessage.Unknown, await Play("state.nothing"));
 
             // Another one stops the one before.

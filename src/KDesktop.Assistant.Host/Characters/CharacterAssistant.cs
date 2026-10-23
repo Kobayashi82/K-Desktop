@@ -44,6 +44,9 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
     private AssistantState _state;
     private bool _talking;
     private bool _gone;
+    /// <summary>When it started fading out (closing K-Desktop, stage 15.3); NaN while it does not.</summary>
+    private double _fadingSince = double.NaN;
+    private const double ShutdownFade = 0.3;
     /// <summary>Its entrance, played on the first tick (until then its clock does not run: started at once, it would be over).</summary>
     private CharacterAnimation? _entrance;
     /// <summary>Where its body was last drawn (what the others avoid, stage 13.14); null off screen.</summary>
@@ -107,6 +110,14 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
         var exit = why is ExitKind.Dismissed or ExitKind.Uninstalling ? Pick("exit", why == ExitKind.Dismissed ? "dismissed" : "uninstalling") : null;
         if (exit is null)
         {
+            // Closing K-Desktop (or switching the module off): no goodbye, but not a blink either: it fades out quickly.
+            if (why == ExitKind.Shutdown && _body is not null)
+            {
+                _fadingSince = Now;
+                _host.RequestTick();
+                try { await Task.Delay(TimeSpan.FromSeconds(ShutdownFade), ct); }
+                catch (OperationCanceledException) { }
+            }
             _gone = true;
             _surface.Hide();
             return;
@@ -158,7 +169,7 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
 
         var animation = _animation;
         var frames = animation.FrameCount;
-        if (moving || _dragging || _carried is not null) return _host.Rendering.FrameInterval;
+        if (moving || _dragging || _carried is not null || !double.IsNaN(_fadingSince)) return _host.Rendering.FrameInterval;
         // The next frame of what plays (a still picture: only the next wander, or a look at whether the user went away).
         var nextFrame = frames > 1 ? 1 / animation.Fps : double.PositiveInfinity;
         var nextOnce = _once is { } once ? Math.Max(0.01, once.Until - Now) : double.PositiveInfinity;
@@ -470,8 +481,10 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
         var carried = Carried(rect);
         var drawn = carried is { } c ? Rect.Union(rect, c.Rect) : rect;
         var area = new PixelRect((int)Math.Floor(drawn.Left) - 1, (int)Math.Floor(drawn.Top) - 1, (int)Math.Ceiling(drawn.Right) + 1, (int)Math.Ceiling(drawn.Bottom) + 1);
+        var opacity = double.IsNaN(_fadingSince) ? 1 : Math.Clamp(1 - (Now - _fadingSince) / ShutdownFade, 0, 1);
         _surface.Present(area, dc =>
         {
+            if (opacity < 1) dc.PushOpacity(opacity);
             if (mirror) dc.PushTransform(new ScaleTransform(-1, 1, _at.X, 0));
             dc.DrawImage(frame, rect);
             if (mirror) dc.Pop();
@@ -481,6 +494,7 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
                 dc.DrawImage(held.Image, held.Rect);
                 dc.Pop();
             }
+            if (opacity < 1) dc.Pop();
         });
         _body = new PixelRect((int)rect.Left, (int)rect.Top, (int)rect.Right, (int)rect.Bottom);
         _hit.Place(new HitShape.Rectangle(_body.Value));

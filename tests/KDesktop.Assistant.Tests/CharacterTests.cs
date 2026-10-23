@@ -51,9 +51,12 @@ public class CharacterTests
         Assert.True(pip.For("walk").Strip);
         Assert.False(pip.For("happy").Loop);
         Assert.True(pip.For("talk").Loop);
-        // Pip has no click or catch: the fallbacks.
-        Assert.Same(pip.For("happy"), pip.For("click"));
-        Assert.Same(pip.VariantsFor("happy"), pip.VariantsFor("catch"));
+        Assert.Equal("sounds/pop.wav", pip.For("click").Sound);
+
+        // Without click or catch: the fallbacks.
+        var happy = CharacterFile.Parse("""{ "animations": { "idle": { "frames": ["a.png"] }, "happy": { "frames": ["b.png"] } } }""");
+        Assert.Same(happy.For("happy"), happy.For("click"));
+        Assert.Same(happy.VariantsFor("happy"), happy.VariantsFor("catch"));
 
         var tiny = CharacterFile.Parse("""{ "animations": { "idle": { "frames": ["a.png"] } } }""");
         Assert.Same(tiny.For("idle"), tiny.For("think"));
@@ -67,14 +70,15 @@ public class CharacterTests
     public void AnimationsCanHaveVariants()
     {
         var pip = CharacterFile.Parse(File.ReadAllText(Path.Combine(PipFolder, "character.json")));
-        Assert.Equal(2, pip.VariantsFor("idle").Count);
-        Assert.Equal((6.0, 0.0), (pip.VariantsFor("idle")[0].Weight, pip.VariantsFor("idle")[0].Cooldown));
+        Assert.Equal(4, pip.VariantsFor("idle").Count);
+        Assert.Equal((8.0, 0.0), (pip.VariantsFor("idle")[0].Weight, pip.VariantsFor("idle")[0].Cooldown));
         Assert.Equal(20, pip.VariantsFor("idle")[1].Cooldown);
         Assert.Same(pip.VariantsFor("idle")[0], pip.For("idle"));
         Assert.Contains("frames/wiggle0.png", pip.Files);
         // An entrance and an exit for each reason; none for a reason it does not have.
-        Assert.Equal("frames/wake0.png", Assert.Single(pip.VariantsFor("enter", "startup")).Frames[0]);
-        Assert.Equal("frames/drop0.png", Assert.Single(pip.VariantsFor("enter", "summoned")).Frames[0]);
+        Assert.Equal(["frames/wake0.png", "frames/rise0.png"], pip.VariantsFor("enter", "startup").Select(v => v.Frames[0]));
+        Assert.Equal(["frames/drop0.png", "frames/pop0.png"], pip.VariantsFor("enter", "summoned").Select(v => v.Frames[0]));
+        Assert.Equal(2, pip.VariantsFor("exit", "dismissed").Count);
         Assert.Equal("frames/sink0.png", Assert.Single(pip.VariantsFor("exit", "uninstalling")).Frames[0]);
         var anyReason = CharacterFile.Parse("""{ "animations": { "idle": { "frames": ["a.png"] }, "enter": [ { "frames": ["b.png"] } ] } }""");
         Assert.Single(anyReason.VariantsFor("enter", "summoned"));

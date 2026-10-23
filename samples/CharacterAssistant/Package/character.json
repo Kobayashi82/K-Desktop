@@ -5,28 +5,52 @@
   "walkSpeed": 60,
   "animations": {
     "idle": [
-      { "frames": ["frames/idle0.png", "frames/idle1.png", "frames/idle0.png", "frames/idle1.png", "frames/idle0.png", "frames/idle3.png"], "fps": 2.5, "weight": 6 },
-      { "frames": ["frames/look0.png", "frames/look1.png", "frames/look2.png", "frames/look3.png", "frames/idle0.png"], "fps": 2.5, "cooldown": 20 }
+      { "frames": ["frames/idle0.png", "frames/idle1.png", "frames/idle0.png", "frames/idle1.png", "frames/idle0.png", "frames/idle3.png"], "fps": 2.5, "weight": 8 },
+      { "frames": ["frames/look0.png", "frames/look1.png", "frames/look2.png", "frames/look3.png", "frames/idle0.png"], "fps": 2.5, "cooldown": 20 },
+      { "frames": ["frames/yawn0.png", "frames/yawn1.png", "frames/yawn2.png", "frames/yawn3.png", "frames/idle0.png"], "fps": 2.5, "weight": 0.6, "cooldown": 60 },
+      { "frames": ["frames/hum0.png", "frames/hum1.png", "frames/hum2.png", "frames/hum3.png", "frames/hum0.png", "frames/hum1.png"], "fps": 3, "weight": 0.8, "cooldown": 40 }
     ],
     "walk": { "strip": "frames/walk.png", "frames": 6, "fps": 10 },
     "talk": { "frames": ["frames/talk0.png", "frames/talk1.png", "frames/talk2.png", "frames/talk3.png"], "fps": 8 },
     "listen": { "frames": ["frames/listen0.png", "frames/listen1.png"], "fps": 3 },
-    "think": { "frames": ["frames/think0.png", "frames/think1.png"], "fps": 2 },
-    "happy": [
-      { "frames": ["frames/happy0.png", "frames/happy1.png", "frames/happy2.png", "frames/happy3.png", "frames/happy0.png"], "fps": 8, "weight": 2 },
-      { "frames": ["frames/wiggle0.png", "frames/wiggle1.png", "frames/wiggle2.png", "frames/wiggle1.png", "frames/wiggle3.png"], "fps": 9 }
+    "think": [
+      { "frames": ["frames/think0.png", "frames/think1.png"], "fps": 2, "weight": 2 },
+      { "frames": ["frames/ponder0.png", "frames/ponder1.png", "frames/ponder2.png", "frames/ponder3.png"], "fps": 2 }
     ],
-    "sad": { "frames": ["frames/sad0.png", "frames/sad1.png", "frames/sad0.png", "frames/sad1.png"], "fps": 3 },
-    "surprised": { "frames": ["frames/surprised0.png", "frames/surprised1.png", "frames/surprised0.png"], "fps": 6 },
+    "happy": [
+      { "frames": ["frames/happy0.png", "frames/happy1.png", "frames/happy2.png", "frames/happy3.png", "frames/happy0.png"], "fps": 8, "weight": 2, "sound": "sounds/boing.wav" },
+      { "frames": ["frames/wiggle0.png", "frames/wiggle1.png", "frames/wiggle2.png", "frames/wiggle1.png", "frames/wiggle3.png"], "fps": 9 },
+      { "frames": ["frames/shine0.png", "frames/shine1.png", "frames/shine2.png", "frames/shine3.png", "frames/shine0.png"], "fps": 8, "cooldown": 30, "sound": "sounds/boing.wav" }
+    ],
+    "sad": [
+      { "frames": ["frames/sad0.png", "frames/sad1.png", "frames/sad0.png", "frames/sad1.png"], "fps": 3, "weight": 2 },
+      { "frames": ["frames/droop0.png", "frames/droop1.png", "frames/droop2.png", "frames/droop3.png", "frames/droop3.png", "frames/sad0.png"], "fps": 4 }
+    ],
+    "surprised": [
+      { "frames": ["frames/surprised0.png", "frames/surprised1.png", "frames/surprised0.png"], "fps": 6 },
+      { "frames": ["frames/jolt0.png", "frames/jolt1.png", "frames/jolt2.png", "frames/jolt2.png"], "fps": 7 }
+    ],
+    "click": [
+      { "frames": ["frames/squish0.png", "frames/squish1.png", "frames/squish2.png", "frames/squish3.png"], "fps": 9, "sound": "sounds/pop.wav" },
+      { "frames": ["frames/giggle0.png", "frames/giggle1.png", "frames/giggle2.png", "frames/giggle1.png", "frames/giggle0.png", "frames/giggle3.png"], "fps": 10, "sound": "sounds/pop.wav" }
+    ],
+    "announce": [
+      { "frames": ["frames/hey0.png", "frames/hey1.png", "frames/hey2.png", "frames/hey3.png", "frames/hey3.png"], "fps": 6, "sound": "sounds/ding.wav" },
+      { "frames": ["frames/call0.png", "frames/call1.png", "frames/call2.png", "frames/call3.png", "frames/call0.png"], "fps": 5, "sound": "sounds/ding.wav" }
+    ],
+    "catch": { "frames": ["frames/gulp0.png", "frames/gulp1.png", "frames/gulp2.png", "frames/gulp3.png", "frames/gulp3.png"], "fps": 5, "sound": "sounds/gulp.wav" },
     "drag": { "frames": ["frames/drag0.png", "frames/drag1.png"], "fps": 5 },
     "fall": { "frames": ["frames/fall0.png", "frames/fall1.png"], "fps": 8 },
     "sleep": { "frames": ["frames/sleep0.png", "frames/sleep1.png"], "fps": 1 },
     "enter": [
       { "frames": ["frames/wake0.png", "frames/wake0.png", "frames/wake1.png", "frames/wake2.png", "frames/wake3.png"], "fps": 4, "when": ["startup"] },
-      { "frames": ["frames/drop0.png", "frames/drop1.png", "frames/drop2.png", "frames/drop3.png"], "fps": 8, "when": ["summoned"] }
+      { "frames": ["frames/rise0.png", "frames/rise1.png", "frames/rise2.png", "frames/rise3.png"], "fps": 5, "when": ["startup"] },
+      { "frames": ["frames/drop0.png", "frames/drop1.png", "frames/drop2.png", "frames/drop3.png"], "fps": 8, "when": ["summoned"], "sound": "sounds/whoosh.wav" },
+      { "frames": ["frames/pop0.png", "frames/pop1.png", "frames/pop2.png", "frames/pop3.png"], "fps": 6, "when": ["summoned"], "sound": "sounds/pop.wav" }
     ],
     "exit": [
       { "frames": ["frames/bye0.png", "frames/bye1.png", "frames/bye0.png", "frames/bye1.png", "frames/bye2.png"], "fps": 5, "when": ["dismissed"] },
+      { "frames": ["frames/away0.png", "frames/away1.png", "frames/away2.png", "frames/away3.png"], "fps": 7, "when": ["dismissed"], "sound": "sounds/whoosh.wav" },
       { "frames": ["frames/sink0.png", "frames/sink1.png", "frames/sink2.png", "frames/sink3.png"], "fps": 4, "when": ["uninstalling"] }
     ]
   }
