@@ -15,9 +15,12 @@ namespace KDesktop;
 public partial class App
 {
     /// <summary>A download going on (or how the last one ended).</summary>
-    public sealed record ModelDownload(string Name, long Done, long Total, bool Running, string? Error, string ModelPath, string? ForAssistant);
+    public sealed record ModelDownload(string Name, long Done, long Total, bool Running, string? Error, string ModelPath, string? ForAssistant, bool ForThinking = false);
 
     private ModelDownloader? _modelDownloader;
+
+    /// <summary>Downloads asked for while another one was going on (the card of a package can offer two), in order.</summary>
+    private readonly Queue<(HfModel Model, HfModel? Projector, string? ForAssistant, bool ForThinking)> _modelQueue = new();
 
     /// <summary>The download going on or the last one (null: none in this run).</summary>
     public ModelDownload? AssistantModelDownload { get; private set; }
@@ -27,9 +30,10 @@ public partial class App
 
     /// <summary>
     /// Downloads a model (and its projector). <paramref name="forAssistant"/>: it was suggested by that assistant, which
-    /// thinks with it once it is here. False when another download is going on.
+    /// thinks with it once it is here (with <paramref name="forThinking"/>, thinks harder with it: stage 13.10). False when
+    /// another download is going on.
     /// </summary>
-    public bool StartModelDownload(HfModel model, HfModel? projector, string? forAssistant = null)
+    public bool StartModelDownload(HfModel model, HfModel? projector, string? forAssistant = null, bool forThinking = false)
     {
         if (_modelDownloader is { IsDownloading: true }) return false;
         var (files, path) = HuggingFace.FilesOf(model, projector, AssistantModelsFolder);
@@ -37,14 +41,27 @@ public partial class App
         _modelDownloader?.Dispose();
         _modelDownloader = downloader;
         var total = files.Sum(f => f.Size);
-        AssistantModelDownload = new ModelDownload(model.Name, 0, total, true, null, path, forAssistant);
+        AssistantModelDownload = new ModelDownload(model.Name, 0, total, true, null, path, forAssistant, forThinking);
         downloader.Changed += () => Dispatcher.BeginInvoke(() => OnModelDownload(downloader));
         Log.Info($"Asistente: descargando {model.Repo}/{model.File}{(projector is null ? "" : " con " + projector.File)} ({total / 1e9:0.0} GB) en {AssistantModelsFolder}");
         downloader.Start();
         return true;
     }
 
-    public void CancelModelDownload() => _modelDownloader?.Cancel();
+    /// <summary>Like <see cref="StartModelDownload"/>, but after the one going on if there is one.</summary>
+    public void QueueModelDownload(HfModel model, HfModel? projector, string? forAssistant = null, bool forThinking = false)
+    {
+        if (StartModelDownload(model, projector, forAssistant, forThinking)) return;
+        _modelQueue.Enqueue((model, projector, forAssistant, forThinking));
+        Log.Info($"Asistente: {model.Name} se descargará después");
+    }
+
+    /// <summary>Stops the download going on and forgets the ones waiting.</summary>
+    public void CancelModelDownload()
+    {
+        _modelQueue.Clear();
+        _modelDownloader?.Cancel();
+    }
 
     private void OnModelDownload(ModelDownloader downloader)
     {
@@ -56,12 +73,18 @@ public partial class App
             if (downloader.Error is null && File.Exists(now.ModelPath))
             {
                 Ui.ShowOsd(Loc.T("brainModels.downloaded", now.Name));
-                if (now.ForAssistant is { } assistant) SetAssistantModel(assistant, now.ModelPath);
+                if (now.ForAssistant is { } assistant && now.ForThinking) SetAssistantThinkModel(assistant, now.ModelPath);
+                else if (now.ForAssistant is { } suggestedBy) SetAssistantModel(suggestedBy, now.ModelPath);
                 AskAssistantBrain("rescan");
             }
             else if (downloader.Error is { } error)
             {
                 Ui.ShowOsd(Loc.T("brainModels.downloadFailed", now.Name, error), Core.Engine.OsdKind.Warning);
+            }
+            if (_modelQueue.TryDequeue(out var next))
+            {
+                AssistantModelDownloadChanged?.Invoke();
+                StartModelDownload(next.Model, next.Projector, next.ForAssistant, next.ForThinking);
             }
         }
         AssistantModelDownloadChanged?.Invoke();
@@ -109,6 +132,9 @@ public partial class App
             if (ModelRefs.Same(s.AssistantBrainModel, path)) s.AssistantBrainModel = string.Empty;
             if (s.AssistantModels.Values.Any(m => ModelRefs.Same(m, path)))
                 s.AssistantModels = s.AssistantModels.Where(p => !ModelRefs.Same(p.Value, path)).ToDictionary(p => p.Key, p => p.Value);
+            if (ModelRefs.Same(s.AssistantBrainThinkModel, path)) s.AssistantBrainThinkModel = string.Empty;
+            if (s.AssistantThinkModels.Values.Any(m => ModelRefs.Same(m, path)))
+                s.AssistantThinkModels = s.AssistantThinkModels.Where(p => !ModelRefs.Same(p.Value, path)).ToDictionary(p => p.Key, p => p.Value);
             SetBrainModelArgs(path, string.Empty);
         }
         AskAssistantBrain("rescan");
@@ -174,6 +200,8 @@ public partial class App
         s.AssistantBrainDownloads = string.Equals(target, Path.Combine(AppPaths.ModelsDir, "llm"), StringComparison.OrdinalIgnoreCase) ? string.Empty : target;
         s.AssistantBrainModel = Moved(s.AssistantBrainModel);
         s.AssistantModels = s.AssistantModels.ToDictionary(p => p.Key, p => Moved(p.Value));
+        s.AssistantBrainThinkModel = Moved(s.AssistantBrainThinkModel);
+        s.AssistantThinkModels = s.AssistantThinkModels.ToDictionary(p => p.Key, p => Moved(p.Value));
         if (s.AssistantBrainModelArgs.Keys.Any(m => IsInsideFolder(m, from)))
             s.AssistantBrainModelArgs = s.AssistantBrainModelArgs.ToDictionary(p => Moved(p.Key), p => p.Value, StringComparer.OrdinalIgnoreCase);
         Ui.ShowOsd(Loc.T("brainModels.moved", target));

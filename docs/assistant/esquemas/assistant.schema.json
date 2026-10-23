@@ -47,7 +47,14 @@
             { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/hfModel" } }
           ]
         },
-        "min": { "type": "string", "pattern": "^\\d+(\\.\\d+)?[bB]$" }
+        "min": { "type": "string", "pattern": "^\\d+(\\.\\d+)?[bB]$" },
+        "think": {
+          "description": "Modelo sugerido para pensar más («piénsalo bien», o cuando él mismo lo pide): igual que «suggested». K-Desktop lo ofrece aparte, desmarcado; si no hay ninguno, piensa más con su modelo de siempre.",
+          "oneOf": [
+            { "$ref": "#/$defs/hfModel" },
+            { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/hfModel" } }
+          ]
+        }
       }
     },
     "voice": { "description": "Su perfil de voz por defecto.", "$ref": "common.schema.json#/$defs/packagePath" },
@@ -111,6 +118,21 @@
     "changes": {
       "description": "Qué trae esta versión: K-Desktop lo enseña al ofrecerla como actualización y en su ficha.",
       "$ref": "common.schema.json#/$defs/text"
+    },
+    "showcase": {
+      "description": "Clips cortos de su escaparate (etapa 13.10) para el catálogo: K-Desktop los enseña sin cargar su código. «item» es el id de lo que enseña: uno de los de K-Desktop (enter.summoned, state.thinking, react.success, gesture.announce…) o uno propio de IAssistant.Showcase, que necesita «name».",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["item", "clip"],
+        "additionalProperties": false,
+        "properties": {
+          "item": { "type": "string", "minLength": 1, "maxLength": 64 },
+          "clip": { "description": "WebP animado, GIF o PNG del paquete (8 MB como mucho).", "$ref": "common.schema.json#/$defs/packagePath" },
+          "name": { "description": "Su nombre, solo para los propios.", "$ref": "common.schema.json#/$defs/text" },
+          "group": { "enum": ["idle", "moving", "playing", "feelings", "tricks", "other"] }
+        }
+      }
     },
     "importFrom": {
       "description": "Datos de una versión independiente que K-Desktop puede ofrecer importar (rutas con variables de entorno).",

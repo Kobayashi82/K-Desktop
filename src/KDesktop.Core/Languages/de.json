@@ -4070,5 +4070,11 @@
   "showcase.own.click": "Beim Anklicken",
   "showcase.own.catch": "Etwas fangen",
   "assistantTry.own": "Seine Animationen",
-  "assistantTry.host": "Worum K-Desktop es bittet"
+  "assistantTry.host": "Worum K-Desktop es bittet",
+  "assistantCard.thinkOffer": "Auch {0} ({1} GB) herunterladen, das Modell, das es zum gründlicheren Nachdenken vorschlägt",
+  "assistantCard.thinkHint": "Nur wenn es gründlich nachdenken muss. Ohne es denkt es mit seinem üblichen Modell länger nach.",
+  "assistantGeneral.thinkHint": "Die KI, die es nutzt, wenn es gründlich nachdenken muss.",
+  "assistantGeneral.thinkGeneralSame": "Wie alle (sein Modell, mit Nachdenken vorher)",
+  "assistantGeneral.thinkSuggested": "Es schlägt vor, mit {0} ({1} GB) gründlicher nachzudenken, das du nicht hast.",
+  "assistantGeneral.thinkDownload": "Modell zum gründlicheren Nachdenken herunterladen"
 }

@@ -35,17 +35,7 @@ internal sealed class ModuleShowcase(KDesktopLink link, AssistantRuntime runtime
     private static readonly TimeSpan Away = TimeSpan.FromSeconds(0.6);
 
     /// <summary>The host's own items, in the order K-Desktop shows them: (id, group).</summary>
-    internal static IReadOnlyList<(string Id, string Group)> Standard { get; } =
-    [
-        ("enter.startup", "entrances"), ("enter.summoned", "entrances"),
-        ("exit.dismissed", "exits"), ("exit.uninstalling", "exits"),
-        ("state.listening", "states"), ("state.thinking", "states"), ("state.thinkingHard", "states"),
-        ("state.loadingBrain", "states"), ("state.busy", "states"), ("state.awaitingConfirmation", "states"),
-        ("state.speaking", "states"), ("state.noBrain", "states"), ("state.sleeping", "states"),
-        ("react.success", "reactions"), ("react.celebration", "reactions"), ("react.warning", "reactions"), ("react.failure", "reactions"),
-        ("gesture.announce", "gestures"), ("gesture.communicate", "gestures"), ("gesture.mark", "gestures"),
-        ("gesture.pointAt", "gestures"), ("gesture.goTo", "gestures"), ("gesture.scan", "gestures"), ("gesture.typing", "gestures"),
-    ];
+    internal static IReadOnlyList<(string Id, string Group)> Standard => Core.Assistant.ShowcaseItems.Standard;
 
     /// <summary>What each assistant is showing now.</summary>
     private readonly Dictionary<string, CancellationTokenSource> _playing = new(StringComparer.Ordinal);

@@ -129,6 +129,23 @@
                     <ui:Button x:Name="DownloadButton" VerticalAlignment="Center" Padding="10,3" Icon="{ui:SymbolIcon ArrowDownload24}"
                                Content="{l:Tr assistantOptions.modelDownload}" Click="OnDownloadModel" />
                 </StackPanel>
+                <!-- The model it thinks harder with (stage 13.10): not when thinking harder is off for everyone -->
+                <Grid x:Name="ThinkRow" Style="{StaticResource SettingRow}" Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr brainOptions.think}" />
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantGeneral.thinkHint}" />
+                    </StackPanel>
+                    <ComboBox x:Name="ThinkBox" Grid.Column="1" MinWidth="260" MaxWidth="420" VerticalAlignment="Center" DisplayMemberPath="Name"
+                              SelectionChanged="OnThinkChanged" AutomationProperties.Name="{l:Tr brainOptions.think}" />
+                </Grid>
+                <StackPanel x:Name="ThinkSuggestedRow" Margin="0,12,0,0" Orientation="Horizontal" Visibility="Collapsed">
+                    <ui:SymbolIcon Symbol="Sparkle24" FontSize="15" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
+                    <TextBlock x:Name="ThinkSuggestedText" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,8,0" TextWrapping="Wrap" />
+                    <ui:Button x:Name="ThinkDownloadButton" VerticalAlignment="Center" Padding="10,3" Icon="{ui:SymbolIcon ArrowDownload24}"
+                               Content="{l:Tr assistantOptions.modelDownload}" Click="OnDownloadThinkModel"
+                               AutomationProperties.Name="{l:Tr assistantGeneral.thinkDownload}" />
+                </StackPanel>
             </StackPanel>
         </Border>
     </StackPanel>

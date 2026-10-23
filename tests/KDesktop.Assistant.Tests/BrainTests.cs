@@ -187,6 +187,30 @@ public class BrainTests
         Assert.Equal("r1/qwen3.5-4b:latest", brain.ModelFor("lander"));
     }
 
+    /// <summary>
+    /// Stage 13.10: an assistant thinks harder with its own model when the servers have it; else with the one of «Para
+    /// pensar más», else with its usual one; never when thinking harder is off.
+    /// </summary>
+    [Fact]
+    public async Task EachAssistantThinksHarderWithItsOwnModelOrTheGeneralOne()
+    {
+        var ollama = new FakeOllama { Models = ["qwen3.5-4b:latest|4.7B", "gemma4-e4b:latest|7.5B", "qwen3.5-9b:latest|9B"] };
+        using var brain = new BrainService(() => 12, ollama);
+        var think = new Dictionary<string, string> { ["lander"] = "r1/qwen3.5-9b", ["dot"] = "r1/not-there:1b" };
+        var config = WithOllama with { Model = "r1/qwen3.5-4b", ThinkModels = think };
+        Assert.Equal("r1/qwen3.5-9b", BrainConfig.FromJson(config.ToJson()).AssistantThinkModels["lander"]);
+        await ConfigureAsync(brain, config);
+        Assert.Equal("r1/qwen3.5-9b:latest", brain.ThinkerFor("lander")?.Model);
+        Assert.Equal("r1/qwen3.5-4b:latest", brain.ThinkerFor("dot")?.Model);
+        Assert.Equal("r1/qwen3.5-4b:latest", brain.ThinkerFor(null)?.Model);
+
+        brain.Configure(config with { ThinkModel = "r1/gemma4-e4b" });
+        Assert.Equal("r1/qwen3.5-9b:latest", brain.ThinkerFor("lander")?.Model);
+        Assert.Equal("r1/gemma4-e4b:latest", brain.ThinkerFor("dot")?.Model);
+        brain.Configure(config with { ThinkModel = ModelRefs.None });
+        Assert.Null(brain.ThinkerFor("lander"));
+    }
+
     [Fact]
     public async Task ItIsReadyWithTheModelItPicks()
     {

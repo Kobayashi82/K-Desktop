@@ -4070,5 +4070,11 @@
   "showcase.own.click": "Quand on clique dessus",
   "showcase.own.catch": "Attraper quelque chose",
   "assistantTry.own": "Ses animations",
-  "assistantTry.host": "Ce que K-Desktop lui demande"
+  "assistantTry.host": "Ce que K-Desktop lui demande",
+  "assistantCard.thinkOffer": "Télécharger aussi {0} ({1} Go), le modèle qu'il suggère pour réfléchir davantage",
+  "assistantCard.thinkHint": "Seulement quand il doit bien réfléchir. Sans lui, il réfléchit davantage avec son modèle habituel.",
+  "assistantGeneral.thinkHint": "L'IA qu'il utilise quand il doit bien réfléchir.",
+  "assistantGeneral.thinkGeneralSame": "Comme tous (son modèle, en réfléchissant d'abord)",
+  "assistantGeneral.thinkSuggested": "Il suggère de réfléchir davantage avec {0} ({1} Go), que vous n'avez pas.",
+  "assistantGeneral.thinkDownload": "Télécharger le modèle pour réfléchir davantage"
 }

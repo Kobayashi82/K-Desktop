@@ -11,7 +11,8 @@ namespace KDesktop.Views.Assistant;
 /// <summary>
 /// Options → Assistants → one assistant → «General» (5.0.113): its wake word (a word has one owner: choosing one of another
 /// takes it), its key to talk (refused while another assistant, a command or K-Desktop answers it) and the model it
-/// thinks with (stage 3.2), with the one its package suggests when it is not here. Until 5.0.112 this was in each row of
+/// thinks with (stage 3.2) and the one it thinks harder with (stage 13.10), each with the one its package suggests when
+/// it is not here. Until 5.0.112 this was in each row of
 /// the list. For K-Desktop as well. And, for an assistant with a body, the settings every assistant has the same way
 /// (stage 13.13) that its manifest takes.
 /// </summary>
@@ -28,6 +29,9 @@ public partial class AssistantGeneralView : UserControl
     /// <summary>The model its package suggests when it is not here (looked up in Hugging Face once per state of the brain).</summary>
     private App.SuggestedModel? _suggestion;
     private string? _suggestionFor;
+
+    /// <summary>The model its package suggests to think harder with, when it is not here (stage 13.10).</summary>
+    private App.SuggestedModel? _thinkSuggestion;
 
     public AssistantGeneralView()
     {
@@ -54,6 +58,7 @@ public partial class AssistantGeneralView : UserControl
         _id = installed?.Id ?? AssistantTargeting.KDesktop;
         _refused = null;
         _suggestion = null;
+        _thinkSuggestion = null;
         _suggestionFor = null;
         _shown = null;
         Refresh();
@@ -70,7 +75,8 @@ public partial class AssistantGeneralView : UserControl
         var brain = _app.AssistantBrain;
         return string.Join('|', _id, string.Join(',', _app.Voice.WakeWords.Words.Select(w => $"{w.Id}:{w.Name}:{_app.WakeOwnerOf(w.Id)}")),
             s.AssistantWakeWords.GetValueOrDefault(_id), _app.TalkHotkeyOf(_id), s.AssistantModels.GetValueOrDefault(_id), _app.AssistantBrainOff,
-            brain?.State, brain?.Model, string.Join(',', brain?.Models?.Select(m => m.Name) ?? []), _app.AssistantModelDownload is { Running: true }, _suggestion?.Model.Name);
+            brain?.State, brain?.Model, string.Join(',', brain?.Models?.Select(m => m.Name) ?? []), _app.AssistantModelDownload is { Running: true } download ? download.Name : null,
+            _suggestion?.Model.Name, s.AssistantThinkModels.GetValueOrDefault(_id), s.AssistantBrainThinkModel, _thinkSuggestion?.Model.Name);
     }
 
     private void Refresh()
@@ -251,6 +257,50 @@ public partial class AssistantGeneralView : UserControl
         SuggestedText.Text = _suggestion is not { } suggested ? string.Empty
             : downloading is not null && downloading.Name == suggested.Model.Name ? Loc.T("assistantOptions.modelDownloading", suggested.Model.Name)
             : Loc.T("assistantOptions.modelSuggested", suggested.Model.Name, (suggested.Size / 1e9).ToString("0.0", Loc.Instance.Culture));
+        FillThink(brain, downloading);
+    }
+
+    /// <summary>
+    /// The model it thinks harder with: as everyone (Options → Brain → «Para pensar más») or one of the brain; hidden while
+    /// thinking harder is off for everyone.
+    /// </summary>
+    private void FillThink(Core.Assistant.Pipe.BrainStateMessage? brain, App.ModelDownload? downloading)
+    {
+        var general = _app.Config.Settings.AssistantBrainThinkModel;
+        var off = general == Core.Assistant.Brain.ModelRefs.None;
+        ThinkRow.Visibility = off ? Visibility.Collapsed : Visibility.Visible;
+        var own = _app.Config.Settings.AssistantThinkModels.GetValueOrDefault(_id) ?? string.Empty;
+        List<ModelOption> options =
+        [
+            new(string.Empty, general.Length == 0 ? Loc.T("assistantGeneral.thinkGeneralSame") : Loc.T("assistantOptions.modelGeneralIs", _app.BrainModelName(general))),
+            .. (brain?.Models ?? []).Select(m => new ModelOption(m.Name, _app.BrainModelName(m.Name))),
+        ];
+        if (own.Length > 0 && Core.Assistant.Brain.ModelRefs.Find(options.Skip(1).Select(o => o.Value), own) is { } same) own = same;
+        else if (own.Length > 0)
+            options.Add(new ModelOption(own, brain is null ? _app.BrainModelName(own) : Loc.T("assistantOptions.modelMissing", _app.BrainModelName(own))));
+        ThinkBox.ItemsSource = options;
+        ThinkBox.SelectedItem = options.FirstOrDefault(o => string.Equals(o.Value, own, StringComparison.OrdinalIgnoreCase)) ?? options[0];
+
+        var suggested = off ? null : _thinkSuggestion;
+        ThinkSuggestedRow.Visibility = suggested is null ? Visibility.Collapsed : Visibility.Visible;
+        ThinkDownloadButton.Visibility = suggested is not null && downloading is null ? Visibility.Visible : Visibility.Collapsed;
+        ThinkSuggestedText.Text = suggested is null ? string.Empty
+            : downloading is not null && downloading.Name == suggested.Model.Name ? Loc.T("assistantOptions.modelDownloading", suggested.Model.Name)
+            : Loc.T("assistantGeneral.thinkSuggested", suggested.Model.Name, (suggested.Size / 1e9).ToString("0.0", Loc.Instance.Culture));
+    }
+
+    private void OnThinkChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_filling || ThinkBox.SelectedItem is not ModelOption option) return;
+        if (string.Equals(option.Value, _app.Config.Settings.AssistantThinkModels.GetValueOrDefault(_id) ?? string.Empty, StringComparison.OrdinalIgnoreCase)) return;
+        var id = _id;
+        Dispatcher.BeginInvoke(() => _app.SetAssistantThinkModel(id, option.Value));
+    }
+
+    /// <summary>The model it suggests to think harder with: downloaded only because the user asked here; it thinks harder with it once here.</summary>
+    private void OnDownloadThinkModel(object sender, RoutedEventArgs e)
+    {
+        if (_thinkSuggestion is { } model && _app.StartModelDownload(model.Model, model.Projector, _id, forThinking: true)) Refresh();
     }
 
     private void OnModelChanged(object sender, SelectionChangedEventArgs e)
@@ -265,12 +315,15 @@ public partial class AssistantGeneralView : UserControl
     private async void LookUpSuggestion()
     {
         if (_installed is not { } installed || _app.AssistantBrain is null) return;
-        var key = string.Join(',', _app.AssistantBrain.Models?.Select(m => m.Name) ?? []) + "|" + installed.Id + installed.Manifest.Version;
+        var key = string.Join(',', _app.AssistantBrain.Models?.Select(m => m.Name) ?? []) + "|" + installed.Id + installed.Manifest.Version
+                  + "|" + (_app.Config.Settings.AssistantBrainThinkModel == Core.Assistant.Brain.ModelRefs.None);
         if (key == _suggestionFor) return;
         _suggestionFor = key;
         var found = await _app.MissingSuggestedModelAsync(installed.Manifest);
+        var think = await _app.MissingSuggestedModelAsync(installed.Manifest, thinking: true);
         if (key != _suggestionFor || _installed != installed) return;
         _suggestion = found;
+        _thinkSuggestion = think;
         Refresh();
     }
 

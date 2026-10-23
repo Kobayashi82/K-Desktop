@@ -84,6 +84,7 @@ public sealed record BrainRemote(string Id, RemoteKind Kind, string Endpoint = "
 /// <paramref name="ThinkModel"/> (stage 12): the model that thinks harder when an order needs it («piénsalo bien», or the
 /// usual model asks with <c>think_harder</c>); empty: the same model with its reasoning on; <see cref="ModelRefs.None"/>:
 /// never. <paramref name="ThinkTokens"/>: how much it may think (tokens of reasoning, before its answer).
+/// <paramref name="ThinkModels"/> (stage 13.10): each assistant's own model to think harder with (absent: the general one).
 /// <paramref name="FreeForGames"/>: a game on the whole screen takes the models of this PC out of the graphics card.
 /// </summary>
 public sealed record BrainConfig(
@@ -98,7 +99,8 @@ public sealed record BrainConfig(
     IReadOnlyList<BrainRemote>? Remotes = null,
     string ThinkModel = "",
     int ThinkTokens = BrainConfig.DefaultThinkTokens,
-    bool FreeForGames = true)
+    bool FreeForGames = true,
+    IReadOnlyDictionary<string, string>? ThinkModels = null)
 {
     /// <summary>Minutes a model stays loaded without use, by default.</summary>
     public const int DefaultKeepMinutes = 30;
@@ -114,6 +116,9 @@ public sealed record BrainConfig(
 
     /// <summary>Each assistant's own model (never null).</summary>
     public IReadOnlyDictionary<string, string> AssistantModels => Models ?? new Dictionary<string, string>();
+
+    /// <summary>Each assistant's own model to think harder with (never null).</summary>
+    public IReadOnlyDictionary<string, string> AssistantThinkModels => ThinkModels ?? new Dictionary<string, string>();
 
     public IReadOnlyList<string> ServerList => Servers ?? [];
 
@@ -157,27 +162,32 @@ public sealed record BrainConfig(
         ["thinkModel"] = ThinkModel,
         ["thinkTokens"] = ThinkTokens,
         ["freeForGames"] = FreeForGames,
+        ["thinkModels"] = new JsonObject(AssistantThinkModels.Select(p => KeyValuePair.Create(p.Key, (JsonNode?)p.Value))),
     };
 
     public static BrainConfig FromJson(JsonObject? json)
     {
         if (json is null) return Default;
-        var models = new Dictionary<string, string>(StringComparer.Ordinal);
-        if (json["models"] is JsonObject own)
-            foreach (var (id, model) in own)
-                if (Text(model) is { Length: > 0 } name) models[id] = name;
+        static Dictionary<string, string> PerAssistant(JsonNode? node)
+        {
+            var models = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (node is JsonObject own)
+                foreach (var (id, model) in own)
+                    if (Text(model) is { Length: > 0 } name) models[id] = name;
+            return models;
+        }
         var args = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         if (json["modelArgs"] is JsonObject perModel)
             foreach (var (path, line) in perModel)
                 if (Text(line) is { Length: > 0 } text) args[path] = text;
         static List<string> Texts(JsonNode? node) => node is JsonArray list ? [.. list.Select(Text).Where(t => t.Length > 0)] : [];
         var keep = json["keepMinutes"] is JsonValue k && k.TryGetValue<int>(out var minutes) ? Math.Max(0, minutes) : DefaultKeepMinutes;
-        return new BrainConfig(Text(json["model"]), models, Texts(json["servers"]), Texts(json["folders"]), args, keep,
+        return new BrainConfig(Text(json["model"]), PerAssistant(json["models"]), Texts(json["servers"]), Texts(json["folders"]), args, keep,
             Flag(json["oneAtATime"], true), Flag(json["vision"], true),
             json["remotes"] is JsonArray remotes ? [.. remotes.Select(BrainRemote.FromJson).OfType<BrainRemote>()] : [],
             Text(json["thinkModel"]),
             json["thinkTokens"] is JsonValue t && t.TryGetValue<int>(out var tokens) ? Math.Max(LeastThinkTokens, tokens) : DefaultThinkTokens,
-            Flag(json["freeForGames"], true));
+            Flag(json["freeForGames"], true), PerAssistant(json["thinkModels"]));
     }
 
     internal static string Text(JsonNode? node) => node is JsonValue v && v.TryGetValue<string>(out var s) ? s : string.Empty;

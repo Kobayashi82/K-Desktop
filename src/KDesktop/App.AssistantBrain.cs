@@ -38,7 +38,8 @@ public partial class App
         return new BrainConfig(s.AssistantBrainModel, s.AssistantModels, s.AssistantBrainServers,
             [AssistantModelsFolder, .. s.AssistantBrainFolders.Where(f => !string.Equals(f, AssistantModelsFolder, StringComparison.OrdinalIgnoreCase))],
             s.AssistantBrainModelArgs, s.AssistantBrainKeepMinutes, s.AssistantBrainOneAtATime, s.AssistantBrainVision,
-            [.. s.AssistantBrainRemotes.Select(r => r with { ApiKey = Unprotect(r.ApiKey) })], s.AssistantBrainThinkModel, s.AssistantBrainThinkTokens, s.AssistantBrainFreeForGames).ToJson();
+            [.. s.AssistantBrainRemotes.Select(r => r with { ApiKey = Unprotect(r.ApiKey) })], s.AssistantBrainThinkModel, s.AssistantBrainThinkTokens, s.AssistantBrainFreeForGames,
+            s.AssistantThinkModels).ToJson();
     }
 
     private static string Unprotect(string stored) => stored.Length > 0 ? Secrets.Unprotect(stored) ?? string.Empty : string.Empty;
@@ -54,6 +55,17 @@ public partial class App
         else models[assistant] = model.Trim();
         Config.Settings.AssistantModels = models;
         Log.Info($"Asistente: modelo de «{assistant}»: {(string.IsNullOrWhiteSpace(model) ? "el general" : BrainProviders.ModelLabel(model))}");
+        AssistantChanged?.Invoke();
+    }
+
+    /// <summary>An assistant's own model to think harder with (stage 13.10); null or empty: the general one.</summary>
+    public void SetAssistantThinkModel(string assistant, string? model)
+    {
+        var models = new Dictionary<string, string>(Config.Settings.AssistantThinkModels, StringComparer.Ordinal);
+        if (string.IsNullOrWhiteSpace(model)) models.Remove(assistant);
+        else models[assistant] = model.Trim();
+        Config.Settings.AssistantThinkModels = models;
+        Log.Info($"Asistente: «{assistant}» piensa más con {(string.IsNullOrWhiteSpace(model) ? "el general" : BrainProviders.ModelLabel(model))}");
         AssistantChanged?.Invoke();
     }
 
@@ -125,6 +137,8 @@ public partial class App
         bool From(string model) => ModelRefs.SplitRemote(model)?.Remote == id;
         if (From(s.AssistantBrainModel)) s.AssistantBrainModel = string.Empty;
         if (s.AssistantModels.Values.Any(From)) s.AssistantModels = s.AssistantModels.Where(p => !From(p.Value)).ToDictionary(p => p.Key, p => p.Value);
+        if (From(s.AssistantBrainThinkModel)) s.AssistantBrainThinkModel = string.Empty;
+        if (s.AssistantThinkModels.Values.Any(From)) s.AssistantThinkModels = s.AssistantThinkModels.Where(p => !From(p.Value)).ToDictionary(p => p.Key, p => p.Value);
         Log.Info($"Asistente: servidor de modelos {id} quitado");
     }
 
@@ -200,11 +214,14 @@ public partial class App
     /// <summary>
     /// The model an assistant suggests that is not on this PC yet (to offer it, never to download it without asking): the
     /// first of its suggestions that fits in the graphics card (the last one if none does). Null when it suggests none, one
-    /// of them is already here, nothing is known of the brain yet, or Hugging Face does not answer.
+    /// of them is already here, nothing is known of the brain yet, or Hugging Face does not answer. With
+    /// <paramref name="thinking"/>, the one it suggests to think harder with (stage 13.10; null as well when thinking harder
+    /// is off, or when it is the same file as its usual suggestion).
     /// </summary>
-    public async Task<SuggestedModel?> MissingSuggestedModelAsync(AssistantManifest manifest)
+    public async Task<SuggestedModel?> MissingSuggestedModelAsync(AssistantManifest manifest, bool thinking = false)
     {
-        var wanted = manifest.Model?.Models ?? [];
+        if (thinking && Config.Settings.AssistantBrainThinkModel == ModelRefs.None) return null;
+        var wanted = (thinking ? manifest.Model?.ThinkModels : manifest.Model?.Models) ?? [];
         if (wanted.Count == 0 || AssistantBrainOff || AssistantBrain is not { Models: { } have } brain) return null;
         var files = have.Where(m => ModelRefs.IsLocal(m.Name)).Select(m => Path.GetFileName(m.Name)).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var room = brain.VideoMemoryGb is { } gb ? (gb - 2.5) * 1e9 : double.MaxValue;
@@ -220,6 +237,9 @@ public partial class App
             }
             if (HuggingFace.Pick(models, reference) is not { } model) continue;
             if (files.Contains(Path.GetFileName(model.File))) return null;
+            // The same file as its usual suggestion: thinking harder with it is what happens anyway.
+            if (thinking && await MissingSuggestedModelAsync(manifest).ConfigureAwait(true) is { } usual
+                && string.Equals(Path.GetFileName(usual.Model.File), Path.GetFileName(model.File), StringComparison.OrdinalIgnoreCase)) return null;
             var suggestion = new SuggestedModel(model, Config.Settings.AssistantBrainVision ? HuggingFace.ProjectorFor(models, model) : null);
             if (suggestion.Size <= room) return suggestion;
             last = suggestion;

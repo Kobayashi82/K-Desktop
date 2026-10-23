@@ -39,6 +39,12 @@ public sealed partial record AssistantManifest
     public IReadOnlyList<string> ImportFrom { get; init; } = [];
 
     /// <summary>
+    /// Short recorded clips of what it shows in its showcase (stage 13.10), for the catalog (phase 16): K-Desktop can show
+    /// them without loading its code, and only downloads the one that is opened.
+    /// </summary>
+    public IReadOnlyList<ManifestClip> Showcase { get; init; } = [];
+
+    /// <summary>
     /// The settings every assistant has the same way that it takes (stage 13.13: <c>size</c>, <c>volume</c>,
     /// <c>liveliness</c>, <c>dragging</c>); K-Desktop shows those in the «General» tab of its card.
     /// </summary>
@@ -127,6 +133,13 @@ public sealed partial record AssistantManifest
         if (!VersionPattern().IsMatch(Version)) throw new ManifestException($"La versión «{Version}» no es válida (x.y.z)");
         if (SdkMajor < 0) throw new ManifestException($"La versión del SDK «{Sdk}» no es válida");
         if (!EntryPattern().IsMatch(Entry)) throw new ManifestException($"La entrada «{Entry}» no es válida (lib/Archivo.dll!Espacio.Tipo, o character.json)");
+        var items = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var clip in Showcase)
+        {
+            if (!items.Add(clip.Item)) throw new ManifestException($"El escaparate tiene dos clips de «{clip.Item}»");
+            // K-Desktop names the host's items; its own ones are not known without loading its code.
+            if (!ShowcaseItems.IsStandard(clip.Item) && clip.Name is null) throw new ManifestException($"El clip de «{clip.Item}» necesita un nombre (name)");
+        }
     }
 
     [GeneratedRegex("^[a-z0-9][a-z0-9.-]{0,63}$")]
@@ -142,15 +155,36 @@ public sealed partial record AssistantManifest
 /// <summary>
 /// The AI model an assistant suggests (5.0.107): one or several models of Hugging Face («owner/repo/file.gguf», or
 /// «owner/repo:Q4_K_M»), best first. K-Desktop offers the first one that fits in the graphics card, never downloading it
-/// without asking.
+/// without asking. <paramref name="Think"/> (stage 13.10): the same for the model it thinks harder with («Para pensar
+/// más»), offered apart and unticked.
 /// </summary>
 public sealed record ModelHint(
     [property: JsonConverter(typeof(OneOrManyConverter))] IReadOnlyList<string>? Suggested = null,
-    string? Min = null)
+    string? Min = null,
+    [property: JsonConverter(typeof(OneOrManyConverter))] IReadOnlyList<string>? Think = null)
 {
     /// <summary>The suggestions that can be read as models of Hugging Face, best first.</summary>
     [JsonIgnore]
-    public IReadOnlyList<Brain.HfRef> Models => [.. (Suggested ?? []).Select(Brain.HuggingFace.Parse).OfType<Brain.HfRef>()];
+    public IReadOnlyList<Brain.HfRef> Models => Read(Suggested);
+
+    /// <summary>The models it suggests to think harder with, best first.</summary>
+    [JsonIgnore]
+    public IReadOnlyList<Brain.HfRef> ThinkModels => Read(Think);
+
+    private static Brain.HfRef[] Read(IReadOnlyList<string>? list) => [.. (list ?? []).Select(Brain.HuggingFace.Parse).OfType<Brain.HfRef>()];
+}
+
+/// <summary>
+/// A clip of its showcase (stage 13.10): <see cref="Item"/> is the id of what it shows (one of the host's,
+/// <see cref="ShowcaseItems.Standard"/>, or one of its own); <see cref="Clip"/> the file in the package (animated WebP, GIF
+/// or PNG). Its own ones carry their <see cref="Name"/> and <see cref="Group"/> (<see cref="ShowcaseItems.OwnGroups"/>).
+/// </summary>
+public sealed record ManifestClip
+{
+    public required string Item { get; init; }
+    public required string Clip { get; init; }
+    public LocalizedText? Name { get; init; }
+    public string? Group { get; init; }
 }
 
 /// <summary>A text or a list of texts, read as a list.</summary>

@@ -363,6 +363,19 @@ hasta 30 s) y para enseguida si el token salta; `false` si no conoces el id o ah
 defecto (nada propio). Los asistentes sin código enseñan como propias las animaciones de su `character.json` que nada más
 enseña (`walk`, `sleep`, `surprised`, `click`, `catch`).
 
+**Clips para el catálogo** (etapa 13.10, SDK 1.19: pon `"sdk": "1.19"`): en el manifiesto, `"showcase"` lista clips cortos de lo que enseña (WebP
+animado, GIF o PNG del paquete, 8 MB como mucho cada uno), para que el catálogo los enseñe sin cargar tu código ni bajar el
+paquete entero. `item` es el id de lo que enseña: uno de los de K-Desktop (`enter.summoned`, `state.thinking`,
+`react.celebration`, `gesture.announce`…) o uno propio, que entonces lleva `name` (por idioma) y `group`. K-Desktop
+comprueba al instalar que cada clip está y es una imagen, y que no hay dos del mismo `item`.
+
+```json
+"showcase": [
+  { "item": "enter.summoned", "clip": "showcase/enter.webp" },
+  { "item": "dance", "clip": "showcase/dance.webp", "name": { "es": "Bailar", "en": "Dance" }, "group": "tricks" }
+]
+```
+
 ```csharp
 public IReadOnlyList<ShowcaseItem> Showcase { get; } =
     [new("dance", new Dictionary<string, string> { ["es"] = "Bailar", ["en"] = "Dance" }, ShowcaseGroup.Tricks)];
@@ -409,6 +422,10 @@ K-Desktop los dibuja con sus propios controles, sin cargar código del asistente
   («usuario/repo/archivo.gguf» o «usuario/repo:Q4_K_M»), el mejor primero. K-Desktop ofrece (desmarcado) el primero que cabe
   en la gráfica del usuario, con su proyector de visión si lo hay, y solo si no tiene ya ese archivo; al descargarlo, ese
   asistente piensa con él. Por ejemplo, el Lander: `["unsloth/Qwen3.5-9B-GGUF:Q4_K_M", "unsloth/Qwen3.5-4B-GGUF:Q4_K_M"]`.
+  Con `"think"` (SDK 1.19: pon `"sdk": "1.19"`; igual: uno o varios, el mejor primero) sugiere el modelo con el que **piensa más** («piénsalo bien», o
+  cuando él mismo ve que no llega): K-Desktop lo ofrece aparte, también desmarcado, y al descargarlo es el suyo para pensar
+  más (pestaña «General» de su ficha). Si es el mismo archivo que `suggested`, no se ofrece dos veces; sin él, piensa más con
+  su modelo de siempre.
 
 ## Reglas
 

@@ -203,6 +203,56 @@ public class PackageManagerTests
         Assert.DoesNotContain(AssistantPackages.Installed(), a => a.Id.StartsWith("dot-x", StringComparison.Ordinal));
     }
 
+    /// <summary>Stage 13.10: the model it suggests to think harder with, and the clips of its showcase (checked, never loaded).</summary>
+    [Fact]
+    public void ThinkModelsAndShowcaseClipsAreRead()
+    {
+        static void Bytes(ZipArchive zip, string name, byte[] bytes)
+        {
+            using var stream = zip.CreateEntry(name).Open();
+            stream.Write(bytes);
+        }
+        byte[] webp = [.. "RIFF"u8, 30, 0, 0, 0, .. "WEBPVP8X"u8, 10, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        void Clips(ZipArchive zip)
+        {
+            Bytes(zip, "showcase/enter.webp", webp);
+            Bytes(zip, "showcase/hop.gif", [.. "GIF89a"u8, 1, 0, 1, 0, 0, 0, 0]);
+        }
+        void Manifest(JsonObject m)
+        {
+            m["model"] = new JsonObject { ["suggested"] = "unsloth/Qwen3.5-4B-GGUF:Q4_K_M", ["think"] = new JsonArray("unsloth/Qwen3.5-9B-GGUF:Q4_K_M") };
+            m["showcase"] = new JsonArray(
+                new JsonObject { ["item"] = "enter.summoned", ["clip"] = "showcase/enter.webp" },
+                new JsonObject { ["item"] = "dot.hop", ["clip"] = "showcase/hop.gif", ["name"] = new JsonObject { ["es"] = "Saltar", ["en"] = "Hop" }, ["group"] = "tricks" });
+        }
+
+        var info = AssistantPackages.Inspect(MakePackage("dot-clips", manifest: Manifest, extra: Clips));
+        Assert.Equal("unsloth/Qwen3.5-4B-GGUF", Assert.Single(info.Manifest.Model!.Models).Repo);
+        Assert.Equal("unsloth/Qwen3.5-9B-GGUF", info.Manifest.Model.ThinkModels[0].Repo);
+        Assert.Equal(["enter.summoned", "dot.hop"], info.Manifest.Showcase.Select(c => c.Item));
+        Assert.Equal("Hop", info.Manifest.Showcase[1].Name!.In("en"));
+
+        // A clip that is not there or is not a picture, the same item twice, and one of its own without a name.
+        Assert.Equal(PackageProblem.Missing, Rejected(MakePackage("dot-c1", manifest: Manifest)));
+        Assert.Equal(PackageProblem.BadImage, Rejected(MakePackage("dot-c2", manifest: Manifest,
+            extra: z => { AddText(z, "showcase/enter.webp", "no soy un clip"); Bytes(z, "showcase/hop.gif", [.. "GIF89a"u8]); })));
+        Assert.Equal(PackageProblem.Invalid, Rejected(MakePackage("dot-c3", extra: Clips, manifest: m =>
+        {
+            Manifest(m);
+            m["showcase"]!.AsArray().Add(new JsonObject { ["item"] = "enter.summoned", ["clip"] = "showcase/hop.gif" });
+        })));
+        Assert.Equal(PackageProblem.Invalid, Rejected(MakePackage("dot-c4", extra: Clips, manifest: m =>
+        {
+            Manifest(m);
+            m["showcase"]![1]!.AsObject().Remove("name");
+        })));
+        Assert.Equal(PackageProblem.Invalid, Rejected(MakePackage("dot-c5", extra: Clips, manifest: m =>
+        {
+            Manifest(m);
+            m["showcase"]![1]!["group"] = "dancing";
+        })));
+    }
+
     [Theory]
     [InlineData("1.0.0", "1.0.0", 0)]
     [InlineData("1.0.1", "1.0.0", 1)]

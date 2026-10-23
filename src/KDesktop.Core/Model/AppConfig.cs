@@ -690,6 +690,12 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private Dictionary<string, string> _assistantModels = [];
 
     /// <summary>
+    /// The model each assistant thinks harder with, when it has its own (stage 13.10): assistant id → model (absent: the one
+    /// of «Para pensar más»). Replaced whole on every change.
+    /// </summary>
+    [ObservableProperty] private Dictionary<string, string> _assistantThinkModels = [];
+
+    /// <summary>
     /// What each assistant has of its own (personality, language, voice; 5.0.105): assistant id → it (absent or empty: all
     /// the general). Replaced whole on every change (so it is saved).
     /// </summary>

@@ -144,6 +144,7 @@ public static partial class AssistantPackages
             var preview = Image(entries, manifest.Preview);
             foreach (var extra in manifest.Extras)
                 if (extra.Icon is { } extraIcon && !extraIcon.StartsWith("kd:", StringComparison.Ordinal)) Image(entries, extraIcon);
+            foreach (var clip in manifest.Showcase) Clip(entries, clip.Clip);
 
             // settings.json and panel.json are optional unless the manifest names them.
             CheckFile(entries, "settings", manifest.SettingsFile, required: manifest.Settings is not null);
@@ -454,6 +455,24 @@ public static partial class AssistantPackages
         ReadOnlySpan<byte> jpeg = [0xFF, 0xD8, 0xFF];
         if (!bytes.AsSpan().StartsWith(png) && !bytes.AsSpan().StartsWith(jpeg)) throw Fail(PackageProblem.BadImage, "assistantPkg.badImage", path);
         return bytes;
+    }
+
+    /// <summary>A clip of the showcase: an animated WebP, a GIF or a PNG (APNG), no bigger than an image.</summary>
+    private static void Clip(Dictionary<string, ZipArchiveEntry> entries, string path)
+    {
+        if (!entries.TryGetValue(path, out var entry)) throw Fail(PackageProblem.Missing, "assistantPkg.missing", path);
+        if (entry.Length > MaxImage) throw Fail(PackageProblem.TooBig, "assistantPkg.tooBig", path);
+        var head = new byte[12];
+        using (var stream = entry.Open()) stream.ReadAtLeast(head, head.Length, throwOnEndOfStream: false);
+        if (!IsClip(head)) throw Fail(PackageProblem.BadImage, "assistantPkg.badImage", path);
+    }
+
+    /// <summary>Whether the first bytes are those of a WebP, a GIF or a PNG.</summary>
+    internal static bool IsClip(ReadOnlySpan<byte> head)
+    {
+        ReadOnlySpan<byte> png = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+        if (head.StartsWith(png) || head.StartsWith("GIF8"u8)) return true;
+        return head.Length >= 12 && head.StartsWith("RIFF"u8) && head[8..12].SequenceEqual("WEBP"u8);
     }
 
     private static byte[] HashFile(string file)

@@ -4070,5 +4070,11 @@
   "showcase.own.click": "When clicked",
   "showcase.own.catch": "Catch something",
   "assistantTry.own": "Its own animations",
-  "assistantTry.host": "What K-Desktop asks of it"
+  "assistantTry.host": "What K-Desktop asks of it",
+  "assistantCard.thinkOffer": "Also download {0} ({1} GB), the model it suggests for thinking harder",
+  "assistantCard.thinkHint": "Only when it has to think something through. Without it, it thinks harder with its usual model.",
+  "assistantGeneral.thinkHint": "The AI it uses when it has to think something through.",
+  "assistantGeneral.thinkGeneralSame": "Like everyone (its model, thinking first)",
+  "assistantGeneral.thinkSuggested": "It suggests thinking harder with {0} ({1} GB), which you don't have.",
+  "assistantGeneral.thinkDownload": "Download the model for thinking harder"
 }

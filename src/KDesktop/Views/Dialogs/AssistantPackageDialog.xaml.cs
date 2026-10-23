@@ -20,6 +20,9 @@ public partial class AssistantPackageDialog : FluentWindow
     /// <summary>The model it suggests that Ollama does not have, or null.</summary>
     private App.SuggestedModel? _suggestedModel;
 
+    /// <summary>The model it suggests to think harder with that is not here, or null (stage 13.10).</summary>
+    private App.SuggestedModel? _thinkModel;
+
     /// <summary>A command the card offers to create: an extra with the hotkey it suggests.</summary>
     private sealed class HotkeyOffer(ManifestExtra extra, string hotkey, string text, string? conflict)
     {
@@ -174,6 +177,7 @@ public partial class AssistantPackageDialog : FluentWindow
         ShowHotkeyOffers(manifest);
         ShowWakeOffer(manifest, updating: package.Installed is not null);
         ModelPanel.Visibility = Visibility.Collapsed;
+        ThinkPanel.Visibility = Visibility.Collapsed;
         _ = OfferModelAsync(manifest);
 
         InstallButton.Content = Loc.T(package.Action switch
@@ -212,18 +216,29 @@ public partial class AssistantPackageDialog : FluentWindow
     /// it, or (with the voice models) the user records it after installing. Ticked: it is how it is meant to be talked to.
     /// Not when updating (that was decided when it was installed).
     /// </summary>
-    /// <summary>The model it suggests, when it is not here: offered with a box left unticked (Hugging Face is asked first).</summary>
+    /// <summary>
+    /// The models it suggests, when they are not here: the one it thinks with and the one it thinks harder with, each one
+    /// offered with a box left unticked (Hugging Face is asked first).
+    /// </summary>
     private async Task OfferModelAsync(AssistantManifest manifest)
     {
         _suggestedModel = await _app.MissingSuggestedModelAsync(manifest);
-        if (_suggestedModel is not { } model) return;
-        ModelCheck.Content = new System.Windows.Controls.TextBlock
+        if (_suggestedModel is { } model)
         {
-            Text = Loc.T("assistantCard.modelOffer", model.Model.Name, (model.Size / 1e9).ToString("0.0", Loc.Instance.Culture)),
-            TextWrapping = TextWrapping.Wrap,
-        };
-        ModelPanel.Visibility = Visibility.Visible;
+            ModelCheck.Content = Wrapped(Loc.T("assistantCard.modelOffer", model.Model.Name, Gb(model)));
+            ModelPanel.Visibility = Visibility.Visible;
+        }
+        _thinkModel = await _app.MissingSuggestedModelAsync(manifest, thinking: true);
+        if (_thinkModel is { } think)
+        {
+            ThinkCheck.Content = Wrapped(Loc.T("assistantCard.thinkOffer", think.Model.Name, Gb(think)));
+            ThinkPanel.Visibility = Visibility.Visible;
+        }
     }
+
+    private static System.Windows.Controls.TextBlock Wrapped(string text) => new() { Text = text, TextWrapping = TextWrapping.Wrap };
+
+    private static string Gb(App.SuggestedModel model) => (model.Size / 1e9).ToString("0.0", Loc.Instance.Culture);
 
     private void ShowWakeOffer(AssistantManifest manifest, bool updating)
     {
@@ -248,7 +263,8 @@ public partial class AssistantPackageDialog : FluentWindow
                 .Select(o => installed.Manifest.Extras.FirstOrDefault(x => x.Id == o.Extra.Id))
                 .OfType<ManifestExtra>()
                 .Select(x => new InstalledExtra(installed, x)));
-            if (_suggestedModel is { } model && ModelCheck.IsChecked == true) _app.StartModelDownload(model.Model, model.Projector, installed.Id);
+            if (_suggestedModel is { } model && ModelCheck.IsChecked == true) _app.QueueModelDownload(model.Model, model.Projector, installed.Id);
+            if (_thinkModel is { } think && ThinkCheck.IsChecked == true) _app.QueueModelDownload(think.Model, think.Projector, installed.Id, forThinking: true);
             var owner = Owner;
             Close();
             if (recordWake) _app.OfferAssistantWakeWord(installed.Id, owner);
