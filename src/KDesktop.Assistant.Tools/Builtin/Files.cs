@@ -488,7 +488,7 @@ public sealed class FindFilesTool(FileSearch search) : ITool
 
     internal static string Schema(bool withNumber) =>
         "{\"type\":\"object\",\"properties\":{"
-        + (withNumber ? "\"number\":{\"type\":\"integer\",\"description\":\"The number of a file in the last find_files list\"}," : string.Empty)
+        + (withNumber ? "\"number\":{\"type\":\"integer\",\"description\":\"The number of a file in the last find_files list\"}," + GivenFiles.PathSchema + "," : string.Empty)
         + "\"text\":{\"type\":\"string\",\"description\":\"A few key words of its name or content, without articles (e.g. factura luz)\"},"
         + $"\"kind\":{{\"type\":\"string\",\"enum\":[{string.Join(",", FileKinds.All.Keys.Select(k => $"\"{k}\""))}]}},"
         + $"\"folder\":{{\"type\":\"string\",\"description\":\"Only when the user says where: one of {string.Join(", ", UserFolders.Names)}, or a full path; empty: anywhere\"}},"
@@ -568,7 +568,7 @@ public sealed class OpenFileTool(FileSearch search, Func<FoundFile, bool, bool>?
 {
     public string Name => "open_file";
 
-    public string Description => "Opens a file or folder of the PC (a document, manual, photo, video…) with its program, or shows it in its folder: a number from the last find_files list, or search words (it opens the best match). It never runs programs or scripts. Not for programs from the Start menu (open_app) nor web pages.";
+    public string Description => "Opens a file or folder of the PC (a document, manual, photo, video…) with its program, or shows it in its folder: its full path (a file the user gave you), a number from the last find_files list, or search words (it opens the best match). It never runs programs or scripts. Not for programs from the Start menu (open_app) nor web pages.";
 
     public string ParametersSchemaJson { get; } = FindFilesTool.Schema(withNumber: true);
 
@@ -577,13 +577,25 @@ public sealed class OpenFileTool(FileSearch search, Func<FoundFile, bool, bool>?
     public ToolRisk Risk => ToolRisk.Safe;
 
     public string Intent(JsonElement arguments) =>
-        arguments.GetNumber("number") is { } number ? Loc.T("tool.open_file.intentNumber", (int)number)
+        arguments.GetString("path") is { Length: > 0 } path ? Loc.T("tool.open_file.intent", GivenFiles.NameOf(path))
+        : arguments.GetNumber("number") is { } number ? Loc.T("tool.open_file.intentNumber", (int)number)
         : Loc.T("tool.open_file.intent", FindFilesTool.What(FileQuery.Of(arguments)));
 
     public async Task<ToolResult> RunAsync(JsonElement arguments, ToolContext context, CancellationToken cancellationToken)
     {
         FoundFile? file;
-        if (arguments.GetNumber("number") is { } number)
+        var query0 = FileQuery.Of(arguments);
+        // A file the user gave it (stage 14.1): its path, or «ábrelo» with nothing else said.
+        if (arguments.GetString("path") is { Length: > 0 } || context.Files.Count > 0 && arguments.GetNumber("number") is null
+            && query0.Words.Count == 0 && query0.Kind is not { Length: > 0 } && query0.Folder is not { Length: > 0 } && query0.Days is null)
+        {
+            if (GivenFiles.Resolve(arguments, context) is not { } given || !GivenFiles.Exists(given))
+                return ToolResult.Fail("That file is not there: give the full path of an existing file.");
+            var folder = Directory.Exists(given);
+            file = new FoundFile(given, folder ? Directory.GetLastWriteTime(given) : File.GetLastWriteTime(given), DateTime.MinValue,
+                folder ? 0 : new FileInfo(given).Length, folder);
+        }
+        else if (arguments.GetNumber("number") is { } number)
         {
             file = search.Numbered(context.Assistant, (int)Math.Round(number));
             if (file is null) return ToolResult.Fail("There is no such number in a recent list: search with find_files first, or give search words.");

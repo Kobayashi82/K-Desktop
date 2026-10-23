@@ -412,8 +412,13 @@ public sealed record AnswerMessage(string Id, string Choice) : PipeMessage
 /// of the panel), <c>bubble</c> (the box of the character), <c>phone</c> or <c>command</c> («Asistente: preguntar»).
 /// </summary>
 /// <param name="Assistant">Who it is for; null: the module without a body.</param>
-public sealed record HeardMessage(string Text, string Source, string? Assistant = null) : PipeMessage
+/// <param name="Files">Files the user gives it with the order (stage 14.1: dropped on it): they stay as its context a few minutes.</param>
+/// <param name="Act">With <paramref name="Files"/>, done without the AI: <c>open</c> (the first one) or <c>folder</c> (shown in its folder).</param>
+public sealed record HeardMessage(string Text, string Source, string? Assistant = null, IReadOnlyList<string>? Files = null, string? Act = null) : PipeMessage
 {
+    public const string ActOpen = "open";
+    public const string ActFolder = "folder";
+
     public override string Type => "heard";
 }
 

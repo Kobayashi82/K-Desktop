@@ -34,6 +34,12 @@ public interface ITool
     /// </summary>
     string? Fingerprint => null;
 
+    /// <summary>
+    /// It asks before every run, whatever the user's <see cref="AskPolicy"/> or their choice in Options → Tools says
+    /// (deleting or moving a file, stage 14.1).
+    /// </summary>
+    bool AlwaysAsks => false;
+
     /// <summary>What it is about to do with these arguments, for people («poner un temporizador de 10 min»): to ask and for the activity.</summary>
     string Intent(JsonElement arguments);
 
@@ -92,6 +98,12 @@ public sealed record ToolContext(string? Assistant, string? Heard = null, bool D
     /// nor throws. Null outside the runner (tests, the bench).
     /// </summary>
     public Action<ToolGesture>? Show { get; init; }
+
+    /// <summary>
+    /// The files the user gave the assistant (stage 14.1: dropped on it) while they are still fresh: what «it», «this file»
+    /// means, and the path a tool takes when the model gives none.
+    /// </summary>
+    public IReadOnlyList<string> Files { get; init; } = [];
 }
 
 /// <summary>

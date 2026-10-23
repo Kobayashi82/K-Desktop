@@ -16,6 +16,8 @@
     <PackageReference Include="System.Data.OleDb" Version="10.0.0" />
     <!-- MCP servers (stage 9.2): the official C# SDK, client only (Apache-2.0). -->
     <PackageReference Include="ModelContextProtocol.Core" Version="2.2.0" />
+    <!-- The text of a PDF the user gives an assistant (stage 14.1; Apache-2.0). -->
+    <PackageReference Include="PdfPig" Version="0.1.16" />
   </ItemGroup>
 
   <ItemGroup>

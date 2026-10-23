@@ -231,7 +231,7 @@ public sealed class ToolRunner
     /// Whether to ask first. Another program (<paramref name="shared"/>): whatever does more than read asks, whatever the
     /// user's policy, until «yes, and don't ask again»; what always asks, always.
     /// </summary>
-    private bool MustAsk(ITool tool, bool shared) => shared
+    private bool MustAsk(ITool tool, bool shared) => tool.AlwaysAsks || shared
         ? _registry.RiskOf(tool) == ToolRisk.AskAlways || (!tool.ReadsOnly && !_trusted().Contains(tool.Name))
         : AskPolicy.Asks(_registry.RiskOf(tool), _askBefore(), _trusted().Contains(tool.Name));
 

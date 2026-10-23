@@ -45,6 +45,11 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
+## PdfPig (texto de los PDF)
+
+El proceso de los asistentes lee el texto de los PDF que se les dan con [PdfPig](https://github.com/UglyToad/PdfPig)
+(paquete NuGet `PdfPig`, licencia Apache 2.0).
+
 ## Modelos que se descargan aparte
 
 No van dentro del ejecutable: se descargan desde Opciones › Voz a la carpeta `Models` de los datos.

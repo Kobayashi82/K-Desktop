@@ -55,6 +55,7 @@ internal sealed class ModuleTalk : ITalkOutput
         Voice = voice;
         Voice.ProfileOf = ProfileOf;
         Meaning = new ModuleMeaning(link);
+        tools.Meaning.Inner = Meaning;
         Chooser = new ToolChooser(Meaning);
         Memory = new TalkMemory(tools.Builtin.Memory, tools.Runner, Meaning);
         Service = new TalkService(who => (brain.Client, brain.ModelFor(who)), tools.Runner, PersonaOf, this, chooser: Chooser, memory: Memory, learn: () => tools.Learn, commands: commands, thinker: brain.ThinkerFor,

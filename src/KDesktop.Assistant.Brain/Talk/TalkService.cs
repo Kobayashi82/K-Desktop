@@ -138,6 +138,8 @@ public sealed class TalkService
         var who = heard.Assistant;
         var conversation = Of(who);
         var (token, wasBusy) = conversation.Begin();
+        var fresh = heard.Files is { Count: > 0 };
+        if (fresh) conversation.Give(heard.Files!, _time.GetUtcNow());
         Active();
         var turn = Guid.NewGuid().ToString("N")[..12];
         // The conversation is kept only in K-Desktop's memory: the log has each line, to look at it afterwards.
@@ -146,7 +148,7 @@ public sealed class TalkService
         try
         {
             var persona = _persona(who);
-            var answer = await AnswerAsync(conversation, persona, who, said, turn, wasBusy, token).ConfigureAwait(false);
+            var answer = await AnswerAsync(conversation, persona, who, said, turn, wasBusy, token, fresh, heard.Act).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
             if (await LearnPhraseAsync(conversation, who, said, answer, token).ConfigureAwait(false) is { } learned)
                 answer = answer with { Text = (answer.Text + " " + learned).Trim() };
@@ -394,10 +396,13 @@ public sealed class TalkService
     /// order that the rule of freeing the brain understands are done by it (the model leaves once the answer is over: the
     /// rest may still need it), and the rest is answered as usual.
     /// </summary>
-    private async Task<TalkAnswer> AnswerAsync(Conversation conversation, AssistantPersona persona, string? who, string said, string turn, bool wasBusy, CancellationToken token)
+    /// <param name="fresh">The order brought files (stage 14.1): it is about them, straight to the AI.</param>
+    /// <param name="act">What to do with them without the AI (<see cref="HeardMessage.Act"/>).</param>
+    private async Task<TalkAnswer> AnswerAsync(Conversation conversation, AssistantPersona persona, string? who, string said, string turn, bool wasBusy, CancellationToken token,
+        bool fresh = false, string? act = null)
     {
-        if (_freeBrain is null || QuickRules.Match(said, [persona.Name]) is not null)
-            return await AnswerCoreAsync(conversation, persona, who, said, turn, wasBusy, token).ConfigureAwait(false);
+        if (fresh || _freeBrain is null || QuickRules.Match(said, [persona.Name]) is not null)
+            return await AnswerCoreAsync(conversation, persona, who, said, turn, wasBusy, token, fresh, act).ConfigureAwait(false);
         var parts = ToolChooser.Parts(said);
         var brain = parts.Where(p => QuickRules.Match(p, [persona.Name]) is { Kind: QuickRuleKind.FreeBrain }).ToList();
         if (parts.Count < 2 || brain.Count == 0) return await AnswerCoreAsync(conversation, persona, who, said, turn, wasBusy, token).ConfigureAwait(false);
@@ -410,9 +415,20 @@ public sealed class TalkService
         return Join(answer, new TalkAnswer(Loc.T("tool.free_brain.reply")) { Tools = ["free_brain"] });
     }
 
-    private async Task<TalkAnswer> AnswerCoreAsync(Conversation conversation, AssistantPersona persona, string? who, string said, string turn, bool wasBusy, CancellationToken token)
+    private async Task<TalkAnswer> AnswerCoreAsync(Conversation conversation, AssistantPersona persona, string? who, string said, string turn, bool wasBusy, CancellationToken token,
+        bool fresh = false, string? act = null)
     {
-        var context = new ToolContext(who, said);
+        var context = new ToolContext(who, said) { Files = conversation.GivenFiles(_time.GetUtcNow()) };
+        // Files given with the order (stage 14.1): opening one needs no AI; the rest is about them, for the AI (a user's command
+        // or a rule must not take «resume este archivo»).
+        if (fresh && context.Files.Count > 0)
+        {
+            if (act is HeardMessage.ActOpen or HeardMessage.ActFolder)
+                return await ToolAsync(persona, "open_file", new JsonObject { ["path"] = context.Files[0], ["in_folder"] = act == HeardMessage.ActFolder },
+                    context, said, acknowledge: true, token).ConfigureAwait(false);
+            Log.Info($"Asistente: «{said}» trae {context.Files.Count} archivo(s): a la IA");
+            return await AiAsync(conversation, persona, who, said, turn, context, token).ConfigureAwait(false);
+        }
         var rule = QuickRules.Match(said, [persona.Name]);
         // The answer to «¿A o B?»: «el primero», «la otra» or one of the names.
         var pending = conversation.TakeChoice(_time.GetUtcNow());
@@ -936,6 +952,9 @@ public sealed class TalkService
         : text;
 
     /// <summary>One assistant's conversation: its history, its last answer and the order going on now.</summary>
+    /// <summary>How long files given to an assistant stay as its context after it was last talked to about them.</summary>
+    internal static readonly TimeSpan GivenFor = TimeSpan.FromMinutes(5);
+
     private sealed class Conversation(TimeProvider time) : IDisposable
     {
         private readonly object _gate = new();
@@ -950,6 +969,31 @@ public sealed class TalkService
 
         /// <summary>The last order, when it did nothing (its correction may teach a voice phrase).</summary>
         public (string Said, DateTimeOffset At)? Missed { get; set; }
+
+        private (IReadOnlyList<string> Files, DateTimeOffset At)? _given;
+
+        /// <summary>The files the user gave it last (stage 14.1); again with each order about them.</summary>
+        public void Give(IReadOnlyList<string> files, DateTimeOffset now)
+        {
+            lock (_gate) _given = ([.. files], now);
+        }
+
+        /// <summary>The files given in the last <see cref="GivenFor"/> (none after: «mándalo» then is about something else).</summary>
+        public IReadOnlyList<string> GivenFiles(DateTimeOffset now)
+        {
+            lock (_gate)
+            {
+                if (_given is not { } given) return [];
+                if (now - given.At > GivenFor)
+                {
+                    _given = null;
+                    return [];
+                }
+                // Talked about, they stay a while longer.
+                _given = (given.Files, now);
+                return given.Files;
+            }
+        }
 
         /// <summary>The last order that went to the AI (what «piénsalo bien» alone thinks over).</summary>
         public string? LastOrder { get; set; }

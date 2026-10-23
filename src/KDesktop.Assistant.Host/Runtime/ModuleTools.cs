@@ -34,6 +34,9 @@ internal sealed class ModuleTools : IDisposable
     private readonly Timer _stateTimer;
     private ToolRegistry Registry => Runner.Registry;
 
+    /// <summary>The meaning of texts for the tools: the conversation's, set when it is made.</summary>
+    public ToolsMeaning Meaning { get; } = new();
+
     /// <param name="commands">The user's K-Desktop commands (stage 4.4).</param>
     /// <param name="screen">Pictures of the desktop and the page in the browser (stage 8.3).</param>
     /// <param name="vision">The model looking at them.</param>
@@ -46,7 +49,7 @@ internal sealed class ModuleTools : IDisposable
         var folder = Path.Combine(AppPaths.DataDir, "Assistant");
         Builtin = new BuiltinTools(folder);
         var registry = new ToolRegistry();
-        Builtin.AddTo(registry, screen, vision, browser);
+        Builtin.AddTo(registry, screen, vision, browser, Meaning);
         CommandTools.AddTo(registry, commands, writer);
         Secrets = new ToolSecrets(Path.Combine(folder, "secrets.json"));
         Json = new JsonTools(Path.Combine(folder, "Tools"), registry, Secrets, commands);

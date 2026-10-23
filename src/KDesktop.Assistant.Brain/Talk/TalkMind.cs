@@ -120,6 +120,8 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         // «Esa ventana», «la pestaña», «lo que ves»: what is on the screen must be at hand (with series in the order,
         // Letterboxd's tools won and it never looked at the TrackSeries tab).
         if (AboutTheScreen(said)) always.AddRange(ScreenTools);
+        // Files the user gave it (stage 14.1): reading, opening, moving and deleting them at hand.
+        if (context.Files.Count > 0) always.AddRange(GivenFileTools.Where(t => !hidden.Contains(t) && tools.Registry.Find(t) is not null));
         // «Cuando diga «la vuelta», abre…» came to mind: what it asks for must be at hand.
         if (known.Any(m => QuickRules.Sites(m.Text).Count > 0)) always.Add(OpenWebTool);
         // «Cuando diga «Kamugi», abre K-Movies»: a phrase for one of their commands, not a memory that only works said exactly.
@@ -139,7 +141,7 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         messages.AddRange(history);
         // The language it speaks in, next to the order: a small model answers in the language it is spoken to otherwise
         // (Options → Assistant → General → the language they speak in). Only for this order, not kept in the history.
-        messages.Add(ChatMessage.User(said + "\n\n" + Loc.T("assistant.prompt.answerIn")
+        messages.Add(ChatMessage.User(said + GivenFilesLine(context) + "\n\n" + Loc.T("assistant.prompt.answerIn")
             + (thinking ? "\n\n" + Loc.T(doubted ? "assistant.prompt.checkAgain" : "assistant.prompt.thinkHard") : "")));
         if (thinking)
         {
@@ -500,6 +502,13 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     private static readonly string[] NoteTools = ["save_note", "find_notes"];
 
     private static readonly string[] ScreenTools = ["look_at_screen", "read_web"];
+
+    /// <summary>What it does with the files the user gives it (stage 14.1).</summary>
+    private static readonly string[] GivenFileTools = ["read_file", "open_file", "move_file", "delete_file"];
+
+    /// <summary>Next to the order, the files the user gave it, with their full paths for the tools (none: nothing).</summary>
+    private static string GivenFilesLine(ToolContext context) => context.Files.Count == 0 ? string.Empty
+        : "\n\n" + Loc.T("assistant.prompt.givenFiles", string.Join("; ", context.Files));
 
     /// <summary>Whether the order points at what is on the screen (<c>assistant.words.onScreen</c>, this language and English).</summary>
     public static bool AboutTheScreen(string said)

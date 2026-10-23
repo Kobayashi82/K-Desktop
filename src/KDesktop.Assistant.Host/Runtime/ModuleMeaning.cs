@@ -63,3 +63,15 @@ internal sealed class ModuleMeaning(KDesktopLink link) : IMeaning
         return true;
     }
 }
+
+/// <summary>
+/// The meaning for the tools (read_file with a long document, stage 14.3): the same as the conversation's, once it exists
+/// (the tools are made before it).
+/// </summary>
+internal sealed class ToolsMeaning : KDesktop.Assistant.Tools.Builtin.ITextMeaning
+{
+    public IMeaning? Inner { get; set; }
+
+    public async Task<IReadOnlyList<float[]>?> EmbedAsync(IReadOnlyList<string> texts, CancellationToken cancellationToken) =>
+        Inner is { } inner && await inner.EmbedAsync(texts, false, cancellationToken).ConfigureAwait(false) is { } vectors ? vectors.Vectors : null;
+}

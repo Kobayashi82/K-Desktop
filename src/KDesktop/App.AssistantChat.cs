@@ -4,6 +4,7 @@ using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Localization;
+using KDesktop.Core.Voice;
 using KDesktop.Native;
 using KDesktop.Views;
 using KDesktop.Views.Assistant;
@@ -103,7 +104,8 @@ public partial class App
     /// Sends an order to an assistant (null: nobody is active), as if said to it: <paramref name="source"/> <c>panel</c>,
     /// <c>bubble</c>, <c>command</c>, <c>voice</c>… False (and an OSD) when nobody can answer now.
     /// </summary>
-    public bool SendToAssistant(string? id, string text, string source)
+    /// <param name="files">Files given with it (stage 14.1: dropped on the assistant); <paramref name="act"/>: what to do with them without the AI.</param>
+    public bool SendToAssistant(string? id, string text, string source, IReadOnlyList<string>? files = null, string? act = null)
     {
         text = text.Trim();
         if (text.Length == 0) return false;
@@ -125,11 +127,11 @@ public partial class App
                 && !AssistantTargeting.IsSystem(id) && IsOnDesktop(id) && !IsAssistantLoaded(id)))
         {
             _pendingOrders.RemoveAll(o => DateTime.UtcNow - o.At > PendingOrderTime);
-            _pendingOrders.Add(new PendingOrder(id, text, source, DateTime.UtcNow));
+            _pendingOrders.Add(new PendingOrder(id, text, source, DateTime.UtcNow, files, act));
             Log.Info($"Asistente: orden por {source} para «{id}» en espera de que esté listo");
             return true;
         }
-        if (!_assistant.IsRunning || !_assistant.Send(new HeardMessage(text, source, ProcessIdOf(id))))
+        if (!_assistant.IsRunning || !_assistant.Send(new HeardMessage(text, source, ProcessIdOf(id), files is { Count: > 0 } ? files : null, act)))
         {
             Ui.ShowOsd(Loc.T("assistantChat.notRunning"), Core.Engine.OsdKind.Warning);
             return false;
@@ -143,7 +145,7 @@ public partial class App
     /// <summary>How long an order waits for its assistant (the process starts in ~1 s; an assistant comes out in a few).</summary>
     private static readonly TimeSpan PendingOrderTime = TimeSpan.FromSeconds(30);
 
-    private sealed record PendingOrder(string Id, string Text, string Source, DateTime At);
+    private sealed record PendingOrder(string Id, string Text, string Source, DateTime At, IReadOnlyList<string>? Files = null, string? Act = null);
 
     private readonly List<PendingOrder> _pendingOrders = [];
 
@@ -163,7 +165,7 @@ public partial class App
                 Log.Info($"Asistente: la orden por {order.Source} para «{id}» no se manda ({(ok ? "llegó tarde" : "no ha salido")})");
                 continue;
             }
-            SendToAssistant(id, order.Text, order.Source);
+            SendToAssistant(id, order.Text, order.Source, order.Files, order.Act);
         }
     }
 
@@ -243,13 +245,53 @@ public partial class App
         ShowAssistantWriteBox(write.Assistant, new UiNative.POINT { X = write.X, Y = write.Y });
     }
 
+    private AssistantDropWindow? _dropWindow;
+
+    /// <summary>How long the microphone waits for what to do with dropped files.</summary>
+    private static readonly TimeSpan DropListen = TimeSpan.FromSeconds(8);
+
     /// <summary>
-    /// <c>dropped</c>: files dropped on an assistant (stage 13.8). It has caught them already; asking what to do with them
-    /// comes with stage 14.1.
+    /// <c>dropped</c>: files dropped on an assistant (stage 13.8). It has caught them; K-Desktop asks what to do with them
+    /// (stage 14.1): buttons by the kind of file, the box to write it and, with the voice models, the microphone a few
+    /// seconds. The choice goes to it as an order with the files.
     /// </summary>
     private void OnAssistantDropped(DroppedMessage dropped)
     {
-        if (!IsOnDesktop(dropped.Assistant)) return;
-        Log.Info($"Asistente: «{dropped.Assistant}» ha recibido {dropped.Files.Count} archivo(s)");
+        if (!IsOnDesktop(dropped.Assistant) || dropped.Files.Count == 0) return;
+        Log.Info($"Asistente: «{dropped.Assistant}» ha recibido {dropped.Files.Count} archivo(s): {string.Join(", ", dropped.Files.Select(System.IO.Path.GetFileName))}");
+        var id = dropped.Assistant;
+        var files = dropped.Files;
+        _dropWindow?.Leave();
+        var canSend = AssistantTools?.Tools.Any(t => t.Enabled && SendsThings(t.Name)) == true;
+        var window = new AssistantDropWindow(AssistantName(id), AssistantLook.IconOf(id), files, new UiNative.POINT { X = dropped.X, Y = dropped.Y }, canSend,
+            (text, act) => SendToAssistant(id, text, "bubble", files, act));
+        window.Closed += (_, _) =>
+        {
+            if (_dropWindow == window) _dropWindow = null;
+        };
+        _dropWindow = window;
+        window.Show();
+        ListenForDrop(window, id);
+    }
+
+    /// <summary>A tool that sends things somewhere (Telegram, mail…): «Enviar» is offered for dropped files.</summary>
+    private static bool SendsThings(string tool) => SendWords.Any(w => tool.Contains(w, StringComparison.OrdinalIgnoreCase));
+
+    private static readonly string[] SendWords = ["send", "telegram", "mail", "whatsapp", "share", "upload"];
+
+    /// <summary>While «¿Qué hago con…?» is open, what is said (without the wake word) is the answer.</summary>
+    private async void ListenForDrop(AssistantDropWindow window, string id)
+    {
+        if (!VoiceModels.Ready) return;
+        window.ShowListening();
+        var to = new VoiceAddressee(AssistantName(id), (text, _) =>
+        {
+            Log.Info($"Asistente: «{text}» para los archivos de «{id}» (por voz)");
+            _chatSources[id] = "voice";
+            Dispatcher.Invoke(() => window.Choose(text));
+            return true;
+        });
+        try { await Voice.ListenForAsync(to, DropListen, window.Over.Token); }
+        catch (ObjectDisposedException) { }
     }
 }
