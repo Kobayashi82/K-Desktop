@@ -162,6 +162,19 @@
         <div class="devices" id="deviceList"></div>
       </section>
 
+      <!-- The assistants: the same conversations as Panel → Assistant on the PC; write or talk to one -->
+      <section class="view chat-view" data-view="assistant">
+        <nav class="chips assistant-chips" id="assistantChips"></nav>
+        <div class="chat" id="chatList" aria-live="polite"></div>
+        <p class="empty" id="chatEmpty" hidden></p>
+        <form class="chat-bar" id="chatForm" autocomplete="off">
+          <button type="button" class="icon-btn chat-mic" id="chatMic" data-icon="mic" data-i18n-title="pwa.chat.talk" hidden></button>
+          <textarea id="chatInput" rows="1" maxlength="2000" enterkeyhint="send"></textarea>
+          <button type="submit" class="icon-btn chat-send" id="chatSend" data-icon="send" data-i18n-title="pwa.chat.send"></button>
+          <button type="button" class="icon-btn chat-stop" id="chatStop" data-icon="stop" data-i18n-title="pwa.chat.stop" hidden></button>
+        </form>
+      </section>
+
       <section class="view" data-view="settings">
         <div class="device-hero card">
           <span class="device-avatar" data-icon="phone"></span>
@@ -261,6 +274,7 @@
       <button data-tab="menus"><span data-icon="menus"></span><b data-i18n="pwa.tab.menus"></b></button>
       <button data-tab="pad"><span data-icon="touchpad"></span><b data-i18n="pwa.tab.pad"></b></button>
       <button data-tab="audio"><span data-icon="speaker"></span><b data-i18n="pwa.tab.audio"></b></button>
+      <button data-tab="assistant" hidden><span data-icon="chat"></span><b data-i18n="pwa.tab.assistant"></b></button>
       <button data-tab="settings"><span data-icon="settings"></span><b data-i18n="pwa.tab.settings"></b></button>
     </nav>
   </div>

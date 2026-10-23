@@ -202,10 +202,14 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 .tabbar button {
   position: relative; z-index: 1;
   display: flex; flex-direction: column; align-items: center; gap: 3px;
-  min-width: min(72px, calc((100vw - 40px) / 5)); padding: 8px 6px 7px; border-radius: 20px;
+  min-width: min(72px, calc((100vw - 40px) / var(--tabs, 5))); padding: 8px 6px 7px; border-radius: 20px;
   color: var(--text-2); transition: color .3s var(--ease), transform .25s var(--spring);
 }
 .tabbar button:active { transform: scale(.9); }
+/* Six tabs (the assistant's): a little tighter so the bar keeps its margins on a narrow phone. */
+.tabbar.six { gap: 0; padding: 5px; }
+.tabbar.six button { padding: 8px 3px 7px; }
+.tabbar.six button b { font-size: 10.5px; letter-spacing: 0; max-width: calc((100vw - 44px) / 6); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tabbar button b { font-size: 11px; font-weight: 650; letter-spacing: .01em; }
 .tabbar button.active { color: var(--accent-text); }
 .tabbar button.active svg { animation: tab-pop .45s var(--spring); }
@@ -769,6 +773,51 @@ input.switch:checked::before { transform: translateX(20px); }
   color: var(--text-3);
 }
 .voice-cancel svg { width: 16px; height: 16px; }
+
+/* ── assistant chat ───────────────────────────────────────────── */
+
+/* Like the pad: the conversation fills the screen between the title and the tab bar, the box to write stays at the bottom. */
+.shell:has(.chat-view.active) { height: 100dvh; min-height: 0; }
+.shell:has(.chat-view.active) .views { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.chat-view.active { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+body.chat-typing .views { padding-bottom: 10px; }
+body.chat-typing .tabbar { transform: translate(-50%, 160%); opacity: 0; pointer-events: none; }
+body.chat-typing .big-title { display: none; }
+
+.chat-view .empty { flex: 1; display: grid; place-items: center; margin: 0 24px 12px; line-height: 1.45; }
+.assistant-chips { margin-bottom: 8px; }
+.assistant-chips .chip { display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; }
+.assistant-chips .chip img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; background: var(--line); }
+.assistant-chips .chip i { width: 7px; height: 7px; border-radius: 50%; background: transparent; transition: background .3s; }
+.assistant-chips .chip.busy i { background: var(--accent); animation: pulse 1s ease-in-out infinite; }
+.assistant-chips .chip.active.busy i { background: var(--on-accent); }
+
+.chat { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 6px 2px 12px;
+  scrollbar-width: none; overscroll-behavior: contain; }
+.chat::-webkit-scrollbar { display: none; }
+.chat .day { align-self: center; font-size: 12px; color: var(--text-3); margin: 6px 0 2px; }
+.bubble { max-width: min(82%, 560px); padding: 10px 14px; border-radius: 20px; line-height: 1.38; font-size: 15.5px;
+  white-space: pre-wrap; word-break: break-word; animation: bubble-in .35s var(--spring); }
+.bubble.user { align-self: flex-end; background: var(--gold); color: var(--on-accent); border-bottom-right-radius: 7px; }
+.bubble.assistant { align-self: flex-start; background: var(--tile); border: 1px solid var(--line); border-bottom-left-radius: 7px;
+  box-shadow: var(--shadow); }
+.bubble.writing::after { content: ""; display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%;
+  background: var(--accent); vertical-align: middle; animation: pulse .9s ease-in-out infinite; }
+.bubble.writing:empty::after { margin-left: 0; }
+.bubble small { display: block; margin-top: 3px; font-size: 11px; opacity: .6; text-align: right; }
+@keyframes bubble-in { from { opacity: 0; transform: translateY(8px) scale(.96); } }
+
+.chat-bar { display: flex; align-items: flex-end; gap: 6px; padding: 6px; border-radius: 24px;
+  background: var(--glass-strong); border: 1px solid var(--line); box-shadow: var(--shadow-lift);
+  -webkit-backdrop-filter: saturate(1.8) blur(22px); backdrop-filter: saturate(1.8) blur(22px); }
+.chat-bar:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft), var(--shadow-lift); }
+.chat-bar textarea { flex: 1; min-width: 0; max-height: 120px; resize: none; border: 0; outline: 0; background: none;
+  padding: 9px 4px 9px 10px; font: inherit; font-size: 16px; line-height: 1.35; color: inherit; }
+.chat-bar .icon-btn { border-radius: 50%; }
+.chat-send, .chat-stop { background: var(--gold); color: var(--on-accent); box-shadow: 0 4px 14px var(--accent-glow); }
+.chat-send:disabled { background: var(--line); color: var(--text-3); box-shadow: none; }
+.chat-stop { background: var(--danger); color: #fff; box-shadow: none; }
+.chat-mic.on { background: var(--accent-soft); color: var(--accent-text); }
 
 /* ── toasts ───────────────────────────────────────────────────── */
 

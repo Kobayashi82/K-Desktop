@@ -3907,5 +3907,14 @@
   "assistantVoice.piperNeedsEspeak": "{0}: Die Stimme ist da; es fehlt espeak-ng ({1} MB).",
   "settings.webLocalPairing": "Auch auf diesem PC koppeln",
   "settings.webLocalPairingHint": "So kann kein Programm auf diesem PC deine Befehle ohne Erlaubnis über das Web ausführen. „Im Browser öffnen“ koppelt ihn von selbst.",
-  "settings.webThisPc": "Browser dieses PCs"
+  "settings.webThisPc": "Browser dieses PCs",
+  "pwa.tab.assistant": "Assistent",
+  "pwa.chat.placeholder": "An {0} schreiben…",
+  "pwa.chat.talk": "Sprechen",
+  "pwa.chat.send": "Senden",
+  "pwa.chat.stop": "Stoppen",
+  "pwa.chat.nobody": "Kein Assistent ist aktiv. Hole einen am PC auf den Desktop (Einstellungen → Assistenten).",
+  "pwa.chat.empty": "Bitte {0} um etwas: Es erledigt es am PC und antwortet hier.",
+  "pwa.chat.today": "Heute",
+  "pwa.chat.notActive": "Dieser Assistent ist nicht mehr aktiv"
 }

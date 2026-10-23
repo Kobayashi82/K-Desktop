@@ -57,6 +57,7 @@ public sealed partial class WebServer
             await IconAsync(request.Path["/api/icon/".Length..], response).ConfigureAwait(false);
             return;
         }
+        if (await AssistantsAsync(request, context).ConfigureAwait(false)) return;
 
         switch (request.Method, request.Path)
         {
@@ -74,6 +75,7 @@ public sealed partial class WebServer
                     local = trusted,
                     input = InputAllowed,
                     voice = _host.VoiceReady,
+                    assistants = AssistantsOn,
                     addresses = Addresses(),
                     android = AndroidApp.Current is { } apk ? new { apk.Version, apk.Code } : null,
                     cookie,
@@ -173,7 +175,8 @@ public sealed partial class WebServer
 
     /// <summary>
     /// A voice order said into the phone: the body is the recording as 16-bit little-endian PCM, 16 kHz, mono.
-    /// The PC transcribes it and runs it like its own orders, and answers with what it heard and did.
+    /// The PC transcribes it and runs it like its own orders, and answers with what it heard and did. With
+    /// <c>?assistant=id</c> it goes to that assistant.
     /// </summary>
     private async Task VoiceAsync(HttpListenerContext context)
     {
@@ -191,7 +194,7 @@ public sealed partial class WebServer
         var samples = new float[length / 2];
         for (var i = 0; i < samples.Length; i++) samples[i] = BitConverter.ToInt16(bytes, i * 2) / 32768f;
 
-        var result = await _host.VoiceAsync(samples).ConfigureAwait(false);
+        var result = await VoiceFor(context.Request.QueryString["assistant"], samples).ConfigureAwait(false);
         var status = result.Kind switch { OsdKind.Success => "ok", OsdKind.Warning => "warning", _ => "info" };
         await WriteJsonAsync(context.Response, new { status, text = result.Text, message = result.Message }).ConfigureAwait(false);
     }

@@ -280,7 +280,7 @@ public partial class App : Application
 
         // Remote control
         Udp = new UdpServer(Engine, Ui);
-        Web = new WebServer(new WebHost(Dispatcher, Engine, Achievements, Voice));
+        Web = new WebServer(new WebHost(Dispatcher, Engine, Achievements, Voice) { Assistants = new WebAssistants(this) });
         Web.Devices.Paired += _ => Achievements.Unlock("pair");
         Web.PointerMoved += () => Achievements.Unlock("touchpad");
         Web.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());

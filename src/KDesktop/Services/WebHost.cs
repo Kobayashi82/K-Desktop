@@ -51,6 +51,20 @@ public sealed class WebHost(Dispatcher dispatcher, CommandEngine engine, Achieve
 
     public Task<Core.Voice.RemoteVoiceResult> VoiceAsync(float[] samples) => voice.RunRemoteAsync(samples);
 
+    public IWebAssistants? Assistants { get; set; }
+
+    /// <summary>Any image as a PNG for the web app (UI thread), or null when it cannot be drawn.</summary>
+    internal static WebIcon? Png(ImageSource? source)
+    {
+        if (source is null) return null;
+        try { return Render(source); }
+        catch (Exception ex)
+        {
+            Core.Log.Warn("Web: no se pudo convertir una imagen a PNG: " + ex.Message);
+            return null;
+        }
+    }
+
     private static WebIcon Render(ImageSource source)
     {
         // Fit inside the square keeping the proportions.

@@ -2,7 +2,8 @@
 // Every URL is relative, so the app works at the root of a domain or under a path behind the proxy.
 import { searchKey, tokens, score } from './fuzzy.js';
 import { setupPad, padActive, padTexts } from './pad.js';
-import { setupVoice, voiceAvailable } from './voice.js';
+import { setupVoice, voiceAvailable, startVoiceFor } from './voice.js';
+import { setupChat, chatEnabled, chatVoice, chatActive, chatResync, onAssistants, onChatLine, chatAsked, chatTexts } from './chat.js';
 
 const $ = id => document.getElementById(id);
 
@@ -71,6 +72,9 @@ const ICONS = {
   link: '<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>',
   server: '<rect x="3.5" y="4" width="17" height="7" rx="2"/><rect x="3.5" y="13" width="17" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/>',
   unlink: '<path d="M9.5 14.5l5-5M10 6.5l1.5-1.5a4 4 0 0 1 5.66 5.66L15.5 12M14 17.5L12.5 19a4 4 0 0 1-5.66-5.66L8.5 12"/><path d="M3.5 3.5l3 3M20.5 20.5l-3-3"/>',
+  chat: '<path d="M20.5 11.5a8 7.5 0 0 1-11.6 6.7L4 19.5l1.4-4A7.3 7.3 0 0 1 4.5 11.5a8 7.5 0 0 1 16 0z"/><path d="M8.5 11.5h.01M12.5 11.5h.01M16.5 11.5h.01"/>',
+  send: '<path d="M12 19V5M6 11l6-6 6 6"/>',
+  stop: '<rect x="7" y="7" width="10" height="10" rx="2"/>',
 };
 
 const svg = name => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] ?? ''}</svg>`;
@@ -117,6 +121,7 @@ function applyTexts() {
   }
   fillLanguages();
   padTexts();
+  chatTexts();
   setTitles();
 }
 
@@ -205,7 +210,17 @@ function movePill(pill, target) {
 
 // ── tabs ───────────────────────────────────────────────────────────
 
-const TABS = ['all', 'menus', 'pad', 'audio', 'settings'];
+const TABS = ['all', 'menus', 'pad', 'audio', 'assistant', 'settings'];
+
+/** The assistant tab only while the module is on. */
+function showAssistantTab(on) {
+  const button = $('tabbar').querySelector('[data-tab="assistant"]');
+  button.hidden = !on;
+  $('tabbar').style.setProperty('--tabs', on ? 6 : 5);
+  $('tabbar').classList.toggle('six', on);
+  if (!on && state.tab === 'assistant') setTab('all');
+  else requestAnimationFrame(() => movePill($('tabPill'), $('tabbar').querySelector('button.active')));
+}
 
 function setTitles() {
   const title = t('pwa.tab.' + state.tab);
@@ -230,6 +245,7 @@ function setTab(tab) {
   if (tab === 'audio') startAudio();
   else stopAudio();
   padActive(tab === 'pad', state.session?.input !== false);
+  chatActive(tab === 'assistant');
 }
 
 /** The big title scrolls away; then the bar turns to glass. */
@@ -933,6 +949,8 @@ function fillSession(s = state.session) {
   $('padSettings').hidden = s.input === false;
   $('keysPad').hidden = s.input === false;
   voiceAvailable(!!s.voice);
+  chatVoice(!!s.voice);
+  chatEnabled(!!s.assistants);
   if (state.tab === 'pad') padActive(true, s.input !== false);
   fillAddresses(s);
   offerAppUpdate(s);
@@ -1061,9 +1079,14 @@ function startEvents() {
     setOnline(true);
     // The stream came back: maybe K-Desktop restarted, perhaps as a newer version.
     loadSession();
+    chatResync();
   });
   events.addEventListener('catalog', () => loadCatalog());
   events.addEventListener('session', () => loadSession());
+  events.addEventListener('assistants', () => onAssistants());
+  events.addEventListener('chat', e => {
+    try { onChatLine(JSON.parse(e.data)); } catch { /* not for us */ }
+  });
   events.addEventListener('error', () => {
     // A refused stream (unpaired, too many) is not retried by the browser.
     if (events?.readyState === EventSource.CLOSED) events = null;
@@ -1300,6 +1323,16 @@ function wire() {
   for (const e of document.querySelectorAll('[data-icon]')) e.innerHTML = svg(e.dataset.icon);
   setupPad({ t, store, svg, toast, online: setOnline, onUnpaired: () => showPair() });
   setupVoice({ t, toast, post: postBinary, updateApp });
+  setupChat({
+    t, toast, api, store,
+    lang: () => state.texts?.lang ?? navigator.language,
+    showTab: showAssistantTab,
+    openTab: () => setTab('assistant'),
+    talk: id => {
+      chatAsked(id);
+      startVoiceFor(id);
+    },
+  });
 
   for (const b of $('tabbar').querySelectorAll('button'))
     b.addEventListener('click', () => {

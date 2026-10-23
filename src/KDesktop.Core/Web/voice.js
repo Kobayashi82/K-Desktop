@@ -21,7 +21,7 @@ const nativeApp = () => window.KDesktopApp?.startVoice ? window.KDesktopApp : nu
 
 export function setupVoice(deps) {
   ctx = deps;
-  $('voiceButton').addEventListener('click', () => (v.state === 'idle' ? start() : stop()));
+  $('voiceButton').addEventListener('click', () => (v.state === 'idle' ? start(null) : stop()));
   $('voiceOrb').addEventListener('click', () => { if (v.state === 'listening') stop(); });
   $('voiceCancel').addEventListener('click', () => cancel());
   document.addEventListener('visibilitychange', () => { if (document.visibilityState !== 'visible') cancel(true); });
@@ -48,8 +48,15 @@ export function voiceAvailable(on) {
   if (!on) cancel(true);
 }
 
-async function start() {
+/** An order for an assistant (its conversation's microphone): it goes to it, not to the commands. */
+export function startVoiceFor(assistant) {
+  if (v.state === 'idle') start(assistant);
+  else stop();
+}
+
+async function start(target) {
   navigator.vibrate?.(10);
+  v.target = target;
   const app = nativeApp();
   if (!app && !navigator.mediaDevices?.getUserMedia) {
     // An older Android app, or a browser over plain http.
@@ -153,9 +160,12 @@ function cancel(quiet) {
 
 async function send(buffer) {
   try {
-    const r = await ctx.post('voice', buffer);
+    const r = await ctx.post(v.target ? 'voice?assistant=' + encodeURIComponent(v.target) : 'voice', buffer);
+    const toAssistant = !!v.target;
     close();
     const kind = { ok: 'ok', warning: 'warning', error: 'error' }[r.status] ?? 'info';
+    // Said to an assistant, its conversation shows what it heard and the answer: only a failure needs saying.
+    if (toAssistant && r.text && kind === 'info') return;
     if (kind === 'warning') navigator.vibrate?.([20, 40, 20]);
     // The PC's own message already quotes what it heard («abre las notas» → Abrir notas).
     ctx.toast(kind, r.message || ctx.t('pwa.voice.nothing'), '', kind === 'ok' ? 3000 : 4500);
@@ -172,6 +182,7 @@ function open() {
   $('voiceText').textContent = ctx.t('pwa.voice.listening');
   $('voiceRing').style.setProperty('--level', '0');
   $('voiceButton').classList.add('on');
+  $('chatMic').classList.toggle('on', !!v.target);
 }
 
 function close() {
@@ -180,6 +191,8 @@ function close() {
   v.state = 'idle';
   v.chunks = [];
   $('voiceButton').classList.remove('on');
+  $('chatMic').classList.remove('on');
+  v.target = null;
   const sheet = $('voiceSheet');
   if (sheet.hidden) return;
   sheet.classList.add('out');

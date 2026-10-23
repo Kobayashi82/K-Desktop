@@ -85,7 +85,7 @@ internal sealed class WebCatalog(IWebHost host)
     /// <summary>The light-background icon, only when it is not the same picture.</summary>
     private string? KeepLight(WebIcon? normal, WebIcon? light) => light is null || light.Hash == normal?.Hash ? null : Keep(light);
 
-    private string? Keep(WebIcon? icon)
+    internal string? Keep(WebIcon? icon)
     {
         if (icon is null) return null;
         if (_icons.Count > MaxIcons) _icons.Clear();

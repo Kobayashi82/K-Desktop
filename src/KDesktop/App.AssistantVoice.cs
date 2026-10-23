@@ -84,7 +84,7 @@ public partial class App
     /// An assistant as the one an order is for: it gets the text and shows that it listens; the other programs stay turned
     /// down while it answers.
     /// </summary>
-    private VoiceAddressee AddresseeFor(string who) =>
+    internal VoiceAddressee AddresseeFor(string who) =>
         new(AssistantName(who), (text, source) => Dispatcher.Invoke(() => SendToAssistant(who, text, source)), active => SendListening(who, active),
             () => Dispatcher.Invoke(() => _assistant is { IsRunning: true } && IsAssistantThinking(who)));
 

@@ -89,7 +89,8 @@ public partial class App
     private void ShowUnseenAnswer(string id, string text)
     {
         if (text.Length == 0 || (IsOnDesktop(id) && !AssistantTargeting.IsSystem(id))) return;
-        if (_chatSources.GetValueOrDefault(id) == "panel") return;
+        // In the panel's chat it is already seen; asked from the phone, the phone shows it.
+        if (_chatSources.GetValueOrDefault(id) is "panel" or "phone") return;
         var seconds = Math.Clamp(2 + text.Length * 0.06, 4, 15);
         Ui.ShowOsd($"{AssistantName(id)}: {text}", Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(seconds));
     }

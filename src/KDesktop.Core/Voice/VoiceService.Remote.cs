@@ -14,9 +14,10 @@ public sealed partial class VoiceService
     /// <summary>
     /// A voice order recorded on the phone (web app or Android app): 16 kHz mono samples. Same path as the PC's own
     /// orders from the transcription on (wake word at the start stripped, commands and media orders); the PC shows
-    /// its usual voice OSD and the phone gets the final message.
+    /// its usual voice OSD and the phone gets the final message. With <paramref name="to"/> (said in an assistant's
+    /// conversation on the phone) the order goes to that assistant, without its own word at the start.
     /// </summary>
-    public async Task<RemoteVoiceResult> RunRemoteAsync(float[] samples)
+    public async Task<RemoteVoiceResult> RunRemoteAsync(float[] samples, VoiceAddressee? to = null)
     {
         if (!VoiceModels.Ready) return new("", Loc.T("voice.noModels"), OsdKind.Warning);
         if (Interlocked.CompareExchange(ref _active, 1, 0) != 0) return new("", Loc.T("voice.remoteBusy"), OsdKind.Warning);
@@ -51,8 +52,10 @@ public sealed partial class VoiceService
                 osd.Finish(Loc.T("voice.sttError"), OsdKind.Warning);
                 return osd.Result("");
             }
-            Log.Info($"Voz (móvil): «{text}»");
-            await HandleTextAsync(text, osd, "phone").ConfigureAwait(false);
+            Log.Info($"Voz (móvil{(to is null ? "" : " → " + to.Name)}): «{text}»");
+            if (to is null) await HandleTextAsync(text, osd, "phone").ConfigureAwait(false);
+            else if (WithoutOwnWord(text, to) is { Length: > 0 } order) SendTo(to, order, "phone", osd, null);
+            else osd.Finish(Loc.T("voice.notUnderstood"), OsdKind.Warning);
             return osd.Result(text);
         }
         catch (Exception ex)
@@ -66,6 +69,10 @@ public sealed partial class VoiceService
             StateChanged?.Invoke();
         }
     }
+
+    /// <summary>«Lander, ¿qué hora es?» said to the Lander: its word at the start is not part of the order.</summary>
+    private string WithoutOwnWord(string text, VoiceAddressee to) =>
+        WakeWordVerifier.FindAny(text, WakeWords.Active) is { Start: <= 1 } wake && AddresseeOf?.Invoke(wake.Word.Id)?.Name == to.Name ? wake.Rest : text;
 
     /// <summary>The PC's voice OSD, keeping its last message to answer the phone with it.</summary>
     private sealed class RecordingOsd(IVoiceOsd inner) : IVoiceOsd
