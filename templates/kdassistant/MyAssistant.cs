@@ -92,7 +92,7 @@ public sealed class MyAssistant : IAssistant
         return flashing ? _host.Rendering.FrameInterval : 30;
     }
 
-    public bool CanPerform(Gesture gesture) => gesture.Kind is GestureKind.Communicate or GestureKind.React;
+    public bool CanPerform(Gesture gesture) => gesture.Kind is GestureKind.Communicate or GestureKind.React or GestureKind.Announce;
 
     public async Task<GestureOutcome> PerformAsync(Gesture gesture, IGestureContext ctx, CancellationToken ct)
     {
@@ -103,6 +103,15 @@ public sealed class MyAssistant : IAssistant
             var big = context.FirstToday || context.Streak >= 3 || react.Reaction == Reaction.Celebration;
             var seconds = big ? 1.2 : 0.5;
             Flash(react.Reaction == Reaction.Failure ? Colors.IndianRed : _reactions.Pick(), seconds);
+            try { await Task.Delay(TimeSpan.FromSeconds(seconds), ct); } catch (OperationCanceledException) { }
+            return GestureOutcome.Committed;
+        }
+        if (gesture is Gesture.Announce announce)
+        {
+            // It is about to say something on its own (a timer, a notice): catch the user's eye first, then the host speaks.
+            // Here, two flashes; longer when the user has been away a while. Be quick: the host waits at most ctx.TimeLeft.
+            var seconds = Math.Min(announce.UserAway > 60 ? 1.6 : 0.8, ctx.TimeLeft.TotalSeconds);
+            Flash(Colors.Gold, seconds);
             try { await Task.Delay(TimeSpan.FromSeconds(seconds), ct); } catch (OperationCanceledException) { }
             return GestureOutcome.Committed;
         }

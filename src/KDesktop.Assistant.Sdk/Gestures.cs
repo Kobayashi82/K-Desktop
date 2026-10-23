@@ -9,6 +9,9 @@ namespace KDesktop.Assistant.Sdk;
 public enum GestureKind
 {
     PointAt, GoTo, PressButton, MoveWindow, ActivateWindow, WaitForWindow, Mark, Scan, Typing, Communicate, React,
+
+    /// <summary>SDK 1.14: see <see cref="Gesture.Announce"/>.</summary>
+    Announce,
 }
 
 /// <summary>
@@ -79,6 +82,35 @@ public abstract record Gesture
         /// <summary>Filled by the host (SDK 1.12); <see cref="ReactionContext.Unknown"/> when it cannot tell.</summary>
         public ReactionContext Context { get; init; } = ReactionContext.Unknown;
     }
+
+    /// <summary>
+    /// SDK 1.14: it is about to say something on its own (a timer that rang, «avísame cuando» that happened, «Asistente:
+    /// decir»), so it catches the user's eye first: it comes closer to the cursor, waves, blinks… The host waits for it
+    /// (at most <see cref="IGestureContext.TimeLeft"/>, about 2 s; half a second in «Fast») and then speaks with
+    /// <see cref="Communicate"/>: end as soon as it is done. Nothing to Commit.
+    /// </summary>
+    /// <param name="Reason">Why it is going to speak.</param>
+    /// <param name="Cursor">Where the cursor was when it was asked (screen pixels), or null when it could not be read.</param>
+    /// <param name="UserAway">Seconds without keyboard or mouse: the longer, the bigger it may be (the user may be away).</param>
+    public sealed record Announce(AnnounceReason Reason, Point? Cursor, double UserAway) : Gesture
+    {
+        public override GestureKind Kind => GestureKind.Announce;
+    }
+}
+
+/// <summary>Why an assistant is about to speak on its own (SDK 1.14, <see cref="Gesture.Announce"/>).</summary>
+public enum AnnounceReason
+{
+    Other,
+
+    /// <summary>A timer it set rang (with a text, it is a reminder).</summary>
+    Timer,
+
+    /// <summary>Something it was told to watch happened («avísame cuando se cierre…»).</summary>
+    Watch,
+
+    /// <summary>One of the user's commands or events asked it to say something («Asistente: decir»).</summary>
+    Message,
 }
 
 public enum Reaction { Success, Warning, Failure, Celebration }

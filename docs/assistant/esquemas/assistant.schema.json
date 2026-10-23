@@ -71,7 +71,7 @@
           "type": "array",
           "uniqueItems": true,
           "items": {
-            "enum": ["pointAt", "goTo", "pressButton", "moveWindow", "activateWindow", "waitForWindow", "mark", "scan", "typing", "communicate", "react"]
+            "enum": ["pointAt", "goTo", "pressButton", "moveWindow", "activateWindow", "waitForWindow", "mark", "scan", "typing", "communicate", "react", "announce"]
           }
         }
       }

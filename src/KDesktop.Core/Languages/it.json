@@ -4010,5 +4010,6 @@
   "assistant.activity.screen": "Guarda lo schermo",
   "assistant.activity.writing": "Riscrive un testo",
   "assistant.activity.calculating": "Fa i calcoli",
-  "assistant.activity.system": "Guarda il PC"
+  "assistant.activity.system": "Guarda il PC",
+  "assistant.gesture.announce": "Attirare la tua attenzione"
 }

@@ -101,8 +101,78 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
     /// <summary>How long a tool's mark stays (a beacon by the clock for a timer).</summary>
     private static readonly TimeSpan MarkFor = TimeSpan.FromSeconds(3);
 
-    /// <summary>The speed of manoeuvres the last step asked for (Options → Assistant module → General).</summary>
+    /// <summary>
+    /// The speed of manoeuvres (Options → Assistant module → General): K-Desktop sends it in <c>config</c> <c>general</c>, and
+    /// each step brings it too.
+    /// </summary>
     private volatile string? _lastSpeed;
+
+    /// <summary>The user's speed of manoeuvres (<c>showy</c>, <c>normal</c>, <c>fast</c>), from <c>config</c> <c>general</c>.</summary>
+    public string? Speed
+    {
+        get => _lastSpeed;
+        set => _lastSpeed = value;
+    }
+
+    /// <summary>How long catching the user's eye may take before speaking (stage 13.6), in «Showy» and in «Normal».</summary>
+    private static readonly TimeSpan AnnounceShowy = TimeSpan.FromSeconds(3);
+
+    private static readonly TimeSpan AnnounceNormal = TimeSpan.FromSeconds(2);
+
+    /// <summary>
+    /// It is about to say something on its own (stage 13.6: a timer, «avísame cuando», «Asistente: decir»): first it catches
+    /// the user's eye (<see cref="Gesture.Announce"/>). Finished when the gesture is, or at most its time (2 s, 3 in «Showy»,
+    /// half a second in «Fast»); at once when it has no body, does not know the gesture or is showing a step of an order.
+    /// </summary>
+    public Task AnnounceAsync(string assistant, AnnounceReason reason)
+    {
+        if (!runtime.HasBody(assistant)) return Task.CompletedTask;
+        var done = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        engine.Post(async () =>
+        {
+            try { await CatchEyeAsync(assistant, reason).ConfigureAwait(true); }
+            finally { done.TrySetResult(); }
+        });
+        return done.Task;
+    }
+
+    private async Task CatchEyeAsync(string assistant, AnnounceReason reason)
+    {
+        if (_playing.ContainsKey(assistant)) return;
+        StopDecorating(assistant);
+        var speed = StepGestures.SpeedOf(_lastSpeed);
+        var budget = speed switch
+        {
+            ManoeuvreSpeed.Fast => FastBudget,
+            ManoeuvreSpeed.Showy => AnnounceShowy,
+            _ => AnnounceNormal,
+        };
+        var system = runtime.World.System;
+        var gesture = new Gesture.Announce(reason, system.Cursor, system.UserIdleSeconds);
+        var step = new StepMessage("", 0, 1, 0, "announce", reason.ToString(), "", (int)budget.TotalMilliseconds, null, _lastSpeed ?? "normal");
+        using var limit = new CancellationTokenSource(budget);
+        // A step of an order that comes meanwhile takes its place, like a tool's gesture.
+        _decorating[assistant] = limit;
+        var context = new StepGestureContext(engine, engine.Now + budget.TotalSeconds, step, () => { }, Task.FromResult(true), null, speed);
+        try
+        {
+            if (runtime.TryPerform(assistant, gesture, context, limit.Token) is not { } running) return;
+            Log.Info($"Asistente: «{assistant}» llama la atención ({reason}) antes de hablar");
+            await running.WaitAsync(budget + Grace).ConfigureAwait(true);
+        }
+        catch (Exception ex) when (ex is TimeoutException or OperationCanceledException)
+        {
+            // Its time is up: it speaks anyway.
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"Asistente: «{assistant}» ha fallado al llamar la atención", ex);
+        }
+        finally
+        {
+            if (_decorating.TryGetValue(assistant, out var current) && current == limit) _decorating.Remove(assistant);
+        }
+    }
 
     /// <summary>The gesture of a tool each assistant is showing (engine thread): a newer one, or a step of an order, ends it.</summary>
     private readonly Dictionary<string, CancellationTokenSource> _decorating = new(StringComparer.Ordinal);

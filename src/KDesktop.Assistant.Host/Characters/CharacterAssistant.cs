@@ -494,7 +494,8 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
 
     // ── what it is asked ─────────────────────────────────────────────────
 
-    public bool CanPerform(Gesture gesture) => gesture.Kind is GestureKind.Communicate or GestureKind.React;
+    public bool CanPerform(Gesture gesture) => gesture.Kind is GestureKind.Communicate or GestureKind.React ||
+        gesture.Kind == GestureKind.Announce && !_gone && !_dragging;
 
     public async Task<GestureOutcome> PerformAsync(Gesture gesture, IGestureContext ctx, CancellationToken ct)
     {
@@ -517,8 +518,48 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
                 PlayOnce(name);
                 try { await Task.Delay(TimeSpan.FromSeconds(Math.Max(0.2, (_once?.Until ?? Now) - Now)), ct); } catch (OperationCanceledException) { }
                 return GestureOutcome.Committed;
+            case Gesture.Announce announce:
+                await AnnounceAsync(announce, ctx, ct);
+                return GestureOutcome.Committed;
             default:
                 return GestureOutcome.NotPerformed;
+        }
+    }
+
+    /// <summary>
+    /// Before saying something on its own (stage 13.6): it walks along where it stands towards the cursor, as far as its time
+    /// lets it and stopping beside it, turns to it and plays «announce» (or «happy»). Asleep, it wakes up for it.
+    /// </summary>
+    private async Task AnnounceAsync(Gesture.Announce announce, IGestureContext ctx, CancellationToken ct)
+    {
+        var animation = character.For("announce");
+        var length = Math.Clamp(animation.FrameCount / animation.Fps, 0.2, ReactLongest);
+        var world = _host.World.Current;
+        try
+        {
+            if (announce.Cursor is { } cursor && _ground is { } ground && !_falling && character.WalkSpeed > 0 &&
+                world.MonitorAt(cursor) is { } monitor && monitor == world.MonitorAt(new Point(_at.X, _at.Y - 1)))
+            {
+                var reach = character.WalkSpeed * Dpi * Scale * Math.Max(0, ctx.TimeLeft.TotalSeconds - length - 0.2);
+                var target = cursor.X > _at.X ? cursor.X - WidthPx : cursor.X + WidthPx;
+                target = Math.Clamp(target, _at.X - reach, _at.X + reach);
+                var half = Math.Min((ground.Right - ground.Left) / 2, WidthPx / 2);
+                target = Math.Clamp(target, ground.Left + half, ground.Right - half);
+                if (Taken(target, ground.Y)) target = FreeOn(ground, target) ?? _at.X;
+                if (Math.Abs(target - _at.X) > 4 * Dpi)
+                {
+                    _walkTo = target;
+                    _host.RequestTick();
+                    while (_walkTo is not null && !_falling) await Task.Delay(30, ct);
+                }
+                _right = cursor.X > _at.X;
+            }
+            PlayOnce("announce");
+            await Task.Delay(TimeSpan.FromSeconds(length), ct);
+        }
+        catch (OperationCanceledException)
+        {
+            // Its time is up: it speaks from where it got to.
         }
     }
 

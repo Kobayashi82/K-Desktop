@@ -75,6 +75,9 @@ internal sealed class ModuleTalk : ITalkOutput
 
     public TalkService Service { get; }
 
+    /// <summary>Its gestures: before saying something on its own it catches the user's eye (stage 13.6). Null in tests.</summary>
+    public ModuleChoreography? Choreography { get; set; }
+
     /// <summary>What each one shows it is doing (stage 13.4).</summary>
     public ModuleStates States { get; }
 
@@ -172,7 +175,11 @@ internal sealed class ModuleTalk : ITalkOutput
                 _link.Send(new NotifyMessage(title, text, assistant));
                 return;
             }
-            if (assistant is not null) _reactions.React(assistant, Reaction.Success, ReactionSource.Notice, activity);
+            if (assistant is not null)
+            {
+                await CatchEyeAsync(assistant, activity == "timer" ? AnnounceReason.Timer : AnnounceReason.Watch).ConfigureAwait(false);
+                _reactions.React(assistant, Reaction.Success, ReactionSource.Notice, activity);
+            }
             await Service.SayAsync(assistant, text).ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -181,12 +188,29 @@ internal sealed class ModuleTalk : ITalkOutput
         }
     }
 
-    /// <summary>«Asistente: decir»: it says it (not in pause, like the orders).</summary>
+    /// <summary>«Asistente: decir»: it catches the user's eye and says it (not in pause, like the orders).</summary>
     public void OnSay(SayMessage say)
     {
         if (Paused) return;
-        using (Loc.Instance.Use(_personal.LanguageOf(say.Assistant))) _ = Service.SayAsync(say.Assistant, say.Text);
+        using (Loc.Instance.Use(_personal.LanguageOf(say.Assistant))) _ = SayOnItsOwnAsync(say);
     }
+
+    private async Task SayOnItsOwnAsync(SayMessage say)
+    {
+        try
+        {
+            if (say.Assistant is { } id && !Service.IsAnswering(id)) await CatchEyeAsync(id, AnnounceReason.Message).ConfigureAwait(false);
+            await Service.SayAsync(say.Assistant, say.Text).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Log.Warn($"Asistente: no se ha podido decir «{say.Text}»: {ex.Message}");
+        }
+    }
+
+    /// <summary>Before saying something on its own, the gesture that catches the user's eye (stage 13.6); never too long.</summary>
+    private Task CatchEyeAsync(string assistant, AnnounceReason reason) =>
+        Choreography?.AnnounceAsync(assistant, reason) ?? Task.CompletedTask;
 
     /// <summary>An assistant came onto the desktop from <paramref name="folder"/> (a new version may bring another persona).</summary>
     public void Loaded(string id, string folder)

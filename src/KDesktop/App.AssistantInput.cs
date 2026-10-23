@@ -31,6 +31,8 @@ public partial class App
         {
             ["sound"] = s.AssistantSound,
             ["volume"] = Math.Clamp(s.AssistantVolume, 0, 100) / 100.0,
+            // How long gestures take, also those that do not come with a step (a tool's, catching the eye: stage 13.6).
+            ["manoeuvres"] = s.AssistantManoeuvres,
         };
     }
 

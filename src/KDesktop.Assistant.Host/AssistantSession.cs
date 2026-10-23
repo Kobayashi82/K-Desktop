@@ -38,6 +38,7 @@ internal sealed class AssistantSession : IDisposable
         // How things went, shown with a reaction that knows where it comes from (stage 13.3).
         var reactions = Link is null ? null : new ModuleReactions(Engine, Runtime, new ReactionLog(Path.Combine(AppPaths.DataDir, "Assistant", "reactions.json")));
         var choreography = Link is null ? null : new ModuleChoreography(Link, Engine, Runtime) { Reactions = reactions };
+        Choreography = choreography;
         if (Link is not null) Commands = new ModuleCommands(Link) { Choreography = choreography, HasBody = Runtime.HasBody };
         var sight = new ModuleSight(Runtime.WindowServices);
         if (Link is not null) Tools = new ModuleTools(Link, Commands!, sight, new ModelVision(Brain!), new ModelWriter(Brain!),
@@ -50,7 +51,7 @@ internal sealed class AssistantSession : IDisposable
         }
         Runtime.LanguageOf = Personal.LanguageOf;
         if (Link is not null) Voice = new ModuleVoice(Engine, Runtime, Personal);
-        if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!, Commands!, Voice!, Personal, reactions!);
+        if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!, Commands!, Voice!, Personal, reactions!) { Choreography = choreography };
         if (Link is not null) Bench = new ModuleBench(Link, Brain!, Tools!, Talk!.Chooser, Commands!);
         if (Link is not null) Games = new ModuleGames(Brain!, Talk!.Service);
     }
@@ -69,6 +70,9 @@ internal sealed class AssistantSession : IDisposable
 
     /// <summary>Their voice (null without K-Desktop).</summary>
     public ModuleVoice? Voice { get; }
+
+    /// <summary>Their gestures for orders, tools and notices (null without K-Desktop).</summary>
+    public ModuleChoreography? Choreography { get; }
 
     /// <summary>Talking with the assistants: orders, answers and the chat (null without K-Desktop).</summary>
     public ModuleTalk? Talk { get; }
@@ -307,6 +311,7 @@ internal sealed class AssistantSession : IDisposable
         var sound = general["sound"] is JsonValue on && on.TryGetValue<bool>(out var b) ? b : true;
         var volume = general["volume"] is JsonValue v && v.TryGetValue<double>(out var d) ? d : 1;
         Runtime.Audio.Apply(sound, volume);
+        if (Choreography is not null && general["manoeuvres"] is JsonValue m && m.TryGetValue<string>(out var speed)) Choreography.Speed = speed;
     }
 
     /// <summary>Runs a load or an unload after the ones before it (engine thread).</summary>

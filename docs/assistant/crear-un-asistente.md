@@ -41,10 +41,11 @@ MiPersonaje\
 - `height`: alto con la escala al 100 %; cada fotograma se dibuja así de alto. Los pies son el borde de abajo de la imagen.
 - `faces`: hacia dónde miran los dibujos; al andar hacia el otro lado se dan la vuelta solos.
 - Animaciones: `idle` (obligatoria), `walk`, `talk`, `listen`, `think`, `happy`, `sad`, `surprised`, `click`, `drag`,
-  `fall`, `sleep`, `enter`, `exit`. La que falte usa otra (`think` → `listen` → `idle`, `click` → `happy` → `idle`,
-  `drag` → `fall` → `idle`…). Cada una con `frames` (lista de imágenes) o `strip` + `frames` (una tira de N fotogramas
-  del mismo ancho), `fps`, `loop` (por defecto se repiten todas salvo `happy`, `sad`, `surprised`, `click`, `enter` y
-  `exit`) y `sound` (un WAV que suena al empezar).
+  `fall`, `sleep`, `enter`, `exit`, `announce`. La que falte usa otra (`think` → `listen` → `idle`, `click` → `happy` →
+  `idle`, `announce` → `happy`, `drag` → `fall` → `idle`…). Cada una con `frames` (lista de imágenes) o `strip` + `frames` (una tira de N fotogramas
+  del mismo ancho), `fps`, `loop` (por defecto se repiten todas salvo `happy`, `sad`, `surprised`, `click`, `enter`,
+  `exit` y `announce`) y `sound` (un WAV que suena al empezar). Antes de decir algo por su cuenta (un temporizador, un
+  aviso) se acerca andando al ratón por donde está y hace `announce`.
 - Para el paquete: comprime la carpeta (el `assistant.json` en la raíz) con `tools\character\pack.ps1 <carpeta>`, que
   deja `<id>-<versión>.kai` con las rutas como las quiere K-Desktop, y ábrelo con K-Desktop.
 - La ficha de instalación dice que no lleva código. Nada del paquete se ejecuta: K-Desktop solo lee sus imágenes y
@@ -271,6 +272,13 @@ Cuando cambian, llega `OnSettingsChanged` con `host.Common` ya al día. Un asist
   `Scan` de lo que se leyó. Las herramientas JSON pueden pedir uno con `"gesture"`. Son solo adorno, como los de arriba:
   la herramienta sigue sin esperarte, `Commit` no hace nada, un paso de una orden les quita el sitio y uno nuevo sustituye
   al anterior. Lo que no sepas hacer (`CanPerform` falso) no se enseña.
+- **Llamar la atención** (`Gesture.Announce`, SDK 1.14): antes de decir algo por su cuenta (un temporizador que suena,
+  un «avísame cuando» que se cumple, «Asistente: decir») el host te pide que llames la atención del usuario: acércate al
+  ratón, saluda, parpadea… `Reason` dice por qué (`Timer`, `Watch`, `Message`), `Cursor` dónde estaba el ratón (o null) y
+  `UserAway` cuántos segundos lleva sin tocar el teclado ni el ratón (cuanto más, más grande puede ser: quizá no está
+  mirando). El host espera a que acabes, como mucho `ctx.TimeLeft` (2 s, 3 en `Showy` y medio en `Fast`), y luego habla
+  con `Communicate`: termina en cuanto hayas llamado la atención. No hay nada que confirmar (`Commit` no hace nada). Si
+  ya está hablando, si un paso de una orden ocupa tu sitio o si no lo sabes hacer (`CanPerform` falso), habla sin más.
 - **Cuerda** (`Rope`, SDK 1.4): una cuerda de Verlet en píxeles de pantalla para ganchos, cables y correas. El
   principio lo sujetas tú (`Start` en cada tick); el final cuelga (`ReleaseEnd`, con la velocidad a la que lo sueltas) o
   va sujeto (`PinEnd`: clavado en una ventana, en un proyectil). Solo resiste estirarse (se comba y se afloja), nunca pasa

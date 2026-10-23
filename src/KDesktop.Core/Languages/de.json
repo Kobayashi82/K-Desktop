@@ -4010,5 +4010,6 @@
   "assistant.activity.screen": "Schaut auf den Bildschirm",
   "assistant.activity.writing": "Schreibt einen Text um",
   "assistant.activity.calculating": "Rechnet",
-  "assistant.activity.system": "Schaut sich den PC an"
+  "assistant.activity.system": "Schaut sich den PC an",
+  "assistant.gesture.announce": "Auf sich aufmerksam machen"
 }

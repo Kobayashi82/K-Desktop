@@ -4010,5 +4010,6 @@
   "assistant.activity.screen": "Olhando a tela",
   "assistant.activity.writing": "Reescrevendo um texto",
   "assistant.activity.calculating": "Fazendo as contas",
-  "assistant.activity.system": "Olhando o PC"
+  "assistant.activity.system": "Olhando o PC",
+  "assistant.gesture.announce": "Chamar sua atenção"
 }

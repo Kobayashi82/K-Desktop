@@ -2,7 +2,7 @@
   "$schema": "../../../docs/assistant/esquemas/assistant.schema.json",
   "id": "pip",
   "name": "Pip",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": "Kobayashi82",
   "description": {
     "es": "Ejemplo de asistente sin código: una gota que pasea por la barra de tareas y por tus ventanas. Solo imágenes y JSON.",
@@ -23,14 +23,14 @@
     "travelSpeed": 70,
     "canMoveWindows": false,
     "canReachMaximized": false,
-    "gestures": ["communicate", "react"]
+    "gestures": ["communicate", "react", "announce"]
   },
   "changes": {
-    "es": "Su tamaño, lo que pasea y cogerlo con el ratón están ahora en la pestaña «General» de su ficha, como en todos los asistentes.",
-    "en": "Its size, how much it strolls and picking it up with the mouse are now in the «General» tab of its card, as for every assistant.",
-    "fr": "Sa taille, ses promenades et l’attraper avec la souris sont maintenant dans l’onglet « Général » de sa fiche, comme pour tous les assistants.",
-    "de": "Größe, wie viel es herumläuft und das Greifen mit der Maus stehen jetzt im Reiter „Allgemein“ seiner Karte, wie bei allen Assistenten.",
-    "it": "Dimensione, quanto passeggia e prenderlo con il mouse sono ora nella scheda «Generale» della sua scheda, come per tutti gli assistenti.",
-    "pt": "O tamanho, o quanto passeia e pegar com o mouse agora ficam na aba «Geral» da ficha dele, como em todos os assistentes."
+    "es": "Antes de decir algo por su cuenta (un temporizador, un aviso) se acerca andando al ratón y te saluda.",
+    "en": "Before saying something on its own (a timer, a notice) it walks up to the mouse and waves at you.",
+    "fr": "Avant de dire quelque chose de lui-même (un minuteur, un avis), il s’approche de la souris en marchant et vous salue.",
+    "de": "Bevor es von sich aus etwas sagt (ein Timer, ein Hinweis), läuft es zur Maus und winkt dir.",
+    "it": "Prima di dire qualcosa di sua iniziativa (un timer, un avviso) si avvicina camminando al mouse e ti saluta.",
+    "pt": "Antes de dizer algo por conta própria (um timer, um aviso), ele se aproxima andando do mouse e acena para você."
   }
 }
