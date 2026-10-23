@@ -52,5 +52,8 @@ internal static partial class Native
     public static partial bool CloseHandle(nint handle);
 
     [LibraryImport("kernel32.dll")]
+    public static partial uint WaitForSingleObject(nint handle, uint milliseconds);
+
+    [LibraryImport("kernel32.dll")]
     public static partial uint GetCurrentThreadId();
 }

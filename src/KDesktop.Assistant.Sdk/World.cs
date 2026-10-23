@@ -18,6 +18,17 @@ public sealed record CaptionButtons(PixelRect Minimize, PixelRect Maximize, Pixe
 
 public enum CaptionButton { Minimize, Maximize, Restore, Close }
 
+/// <summary>The beat of the music playing (SDK 1.7, <see cref="IWorld.Music"/>).</summary>
+/// <param name="Playing">Something with a clear beat is sounding (speech or noise do not count).</param>
+/// <param name="Bpm">Beats per minute (0 while not known yet).</param>
+/// <param name="Beat">Beats counted at <paramref name="At"/> (it grows by one per beat; the fraction is the phase).</param>
+/// <param name="At">Engine clock (<see cref="TickInfo.Now"/>) of that count.</param>
+public readonly record struct MusicBeat(bool Playing, double Bpm, double Beat, double At)
+{
+    /// <summary>The beat count at <paramref name="now"/> (engine clock), following the tempo since the last reading.</summary>
+    public double BeatAt(double now) => Bpm > 0 ? Beat + (now - At) * Bpm / 60 : Beat;
+}
+
 /// <summary>
 /// A visible top-level window as the window manager sees it.
 /// </summary>

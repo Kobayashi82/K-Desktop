@@ -95,6 +95,16 @@ public interface IWorld
     /// rescans at most once per frame until <paramref name="seconds"/> pass.
     /// </summary>
     void WatchClosely(double seconds);
+
+    /// <summary>
+    /// Listens to the rhythm of what the speakers play (SDK 1.7), to dance on the beat: <see cref="Music"/> is only
+    /// measured while some assistant listens. It reads the output's peak meter (the bar of Windows' volume mixer: nothing
+    /// is recorded), a hundred times a second while something sounds and a few times while it is quiet.
+    /// </summary>
+    void ListenToMusic(bool listen);
+
+    /// <summary>The music playing now (SDK 1.7; not playing unless this assistant listens: <see cref="ListenToMusic"/>).</summary>
+    MusicBeat Music { get; }
 }
 
 /// <summary>Sound. The host mixes everything and applies the user's volume for assistants.</summary>

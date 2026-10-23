@@ -413,6 +413,7 @@ internal sealed class AssistantRuntime : IDisposable
     {
         foreach (var slot in _slots.ToList()) Drop(slot);
         Watcher.Dispose();
+        World.Dispose();
         Rendering?.Dispose();
         Audio.Dispose();
     }
@@ -660,7 +661,21 @@ internal sealed class WorldView(HostWorld world) : IWorld
 
     public void WatchClosely(double seconds) => world.WatchClosely(seconds);
 
+    private bool _listening;
+
+    public MusicBeat Music => _listening ? world.Music : default;
+
+    public void ListenToMusic(bool listen)
+    {
+        _listening = listen;
+        world.Listen(this, listen);
+    }
+
     internal void Raise(WorldSnapshot snapshot) => Changed?.Invoke(snapshot);
 
-    internal void Forget() => Changed = null;
+    internal void Forget()
+    {
+        Changed = null;
+        if (_listening) ListenToMusic(false);
+    }
 }

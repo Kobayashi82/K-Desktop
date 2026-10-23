@@ -217,6 +217,12 @@ tarjeta y un botón en el panel, y guarda sus datos en su carpeta.
   los punteros de Direct3D del host); se quitó porque nadie lo necesita y salía caro: con el shader de Kobii el controlador
   de la GPU gastaba un 4–12 % de un núcleo todo el rato, frente a un 1 % dibujando lo mismo en vectorial. El último
   fotograma se queda en pantalla aunque se pierda la GPU o vuelva de un juego a pantalla completa (el host lo repite).
+- **Música** (SDK 1.7): con `World.ListenToMusic(true)`, `World.Music` dice si suena música con ritmo (`Playing`; una voz o
+  ruido no cuentan), a cuántos pulsos por minuto (`Bpm`) y el pulso (`BeatAt(tick.Now)`: crece uno por pulso y la fracción
+  es la fase, 0 = el golpe), para bailar a compás. El host lee el medidor de cada programa que suena (las barras del
+  mezclador de volumen de Windows: nada se graba), sin los sonidos ni las voces de los asistentes; cien veces por segundo
+  mientras suena algo y cuatro en silencio, y solo mientras algún asistente escucha: deja de escuchar
+  (`ListenToMusic(false)`) cuando no se te ve. Tarda unos 3 s en reconocer el ritmo.
 - **Papelera:** `SystemEvent.RecycleBinEmptied` trae dónde está su icono en el escritorio (o null si no está o los
   iconos están ocultos).
 
