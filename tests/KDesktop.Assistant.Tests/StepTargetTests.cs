@@ -43,8 +43,20 @@ public class StepTargetTests
                 Assert.InRange(actual.Height, expected.H - slack, expected.H + slack);
             }
 
-            // «Colocar» to the pixel, and what the step says of the window before.
+            // What acts on the window in front (fix it on top, type, capture it) is about that window.
             var before = WindowLayout.VisibleBounds(hwnd);
+            foreach (CommandAction inFront in new CommandAction[]
+            {
+                new TopMostAction(), new SendInputAction { Mode = SendInputMode.Text, Value = "x" },
+                new ScreenshotAction { Area = CaptureArea.ActiveWindow }, new ScreenTextAction { Area = CaptureArea.ActiveWindow },
+            })
+            {
+                var target = StepTargets.Of(inFront, front)!;
+                Assert.Equal(handle, target.Hwnd);
+                Assert.Equal(new StepRect(before.Left, before.Top, before.Width, before.Height), target.Rect);
+            }
+
+            // «Colocar» to the pixel, and what the step says of the window before.
             var (snap, now) = await Apply(new WindowAction { Operation = WindowOperation.Snap, Snap = WindowSnap.LeftHalf, ShowOsd = false });
             Assert.Equal(handle, snap.Hwnd);
             Assert.Equal("normal", snap.State);
@@ -102,6 +114,9 @@ public class StepTargetTests
     {
         Assert.Null(StepTargets.Of(new WaitAction(), ForegroundWindow.None));
         Assert.Null(StepTargets.Of(new WindowAction { Operation = WindowOperation.Snap }, ForegroundWindow.None));
+        Assert.Null(StepTargets.Of(new TopMostAction(), ForegroundWindow.None));
+        Assert.Null(StepTargets.Of(new SendInputAction { Mode = SendInputMode.MouseMoveTo, Value = "1,1" }, ForegroundWindow.Capture()));
+        Assert.Null(StepTargets.Of(new ScreenshotAction { Area = CaptureArea.Monitor }, ForegroundWindow.Capture()));
         var app = StepTargets.Of(new RunAppAction { Path = @"C:\Programas\Notepad++\notepad++.exe" }, ForegroundWindow.None)!;
         Assert.Equal((0L, "notepad++"), (app.Hwnd, app.Process));
     }

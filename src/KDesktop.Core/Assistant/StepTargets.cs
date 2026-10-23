@@ -25,6 +25,8 @@ public static class StepTargets
                     Describe(WindowLayout.Find(WindowTarget.Process, a.ProcessName, IntPtr.Zero), null),
                 RunAppAction r when Path.GetExtension(r.Path).Equals(".exe", StringComparison.OrdinalIgnoreCase) =>
                     new StepTarget(0, ProcessNames.Normalize(Path.GetFileName(r.Path)), string.Empty, "normal", false),
+                TopMostAction or SendInputAction { Mode: SendInputMode.Keys or SendInputMode.Text }
+                    or ScreenshotAction { Area: CaptureArea.ActiveWindow } or ScreenTextAction { Area: CaptureArea.ActiveWindow } => InFront(foreground),
                 _ => null,
             };
         }
@@ -58,6 +60,17 @@ public static class StepTargets
             _ => minimized ? null : WindowLayout.VisibleBounds(hwnd),
         };
         return Describe(hwnd, result, maximized, minimized);
+    }
+
+    /// <summary>
+    /// The window in front when the command started: the one the engine fixes on top, types into or captures (never
+    /// K-Desktop's own, nor the desktop).
+    /// </summary>
+    private static StepTarget? InFront(ForegroundWindow foreground)
+    {
+        var hwnd = foreground.RootHandle;
+        if (hwnd == IntPtr.Zero || !Win32.IsWindow(hwnd) || hwnd == Win32.GetShellWindow() || foreground.ProcessId == (uint)Environment.ProcessId) return null;
+        return Describe(hwnd, Win32.IsIconic(hwnd) ? null : WindowLayout.VisibleBounds(hwnd));
     }
 
     /// <summary>A window as a step's target (null for none).</summary>
