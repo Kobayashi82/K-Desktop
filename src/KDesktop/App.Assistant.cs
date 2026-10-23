@@ -20,6 +20,9 @@ public partial class App
     private static readonly TimeSpan ExitTime = TimeSpan.FromSeconds(3.5);
 
     private AssistantSupervisor? _assistant;
+
+    /// <summary>Whether this run of the module already had a process: a new one (restarted, back from a fall) reloads the assistants.</summary>
+    private bool _assistantConnectedBefore;
     private (string? Language, bool Dark) _assistantLook;
     private bool? _assistantAssociated;
 
@@ -94,6 +97,7 @@ public partial class App
                 Dispatcher.BeginInvoke(() => OnAssistantMessage(message));
             };
             _assistant = supervisor;
+            _assistantConnectedBefore = false;
             _assistantLook = (AssistantLanguage, ThemeService.IsDark);
             Log.Info("Asistente: módulo activado");
             supervisor.Start();
@@ -163,7 +167,8 @@ public partial class App
 
     /// <summary>
     /// A new assistant process said hello (pool thread): what was left to delete goes now that nothing holds it, and
-    /// the assistants on the desktop come onto it, in the order they were put there.
+    /// the assistants on the desktop come onto it, in the order they were put there: with their entrance the first time
+    /// (K-Desktop started, the module switched on), reappearing where they were after that (stage 13.1).
     /// </summary>
     private void OnAssistantConnected(AssistantSupervisor supervisor)
     {
@@ -175,7 +180,9 @@ public partial class App
             _assistantStates.Clear();
             ClearAssistantExtras();
             ResetAssistantInput();
-            foreach (var id in Config.Settings.AssistantsOnDesktop.ToList()) LoadAssistant(supervisor, id, "startup");
+            var entrance = _assistantConnectedBefore ? LoadMessage.Reloaded : LoadMessage.Startup;
+            _assistantConnectedBefore = true;
+            foreach (var id in Config.Settings.AssistantsOnDesktop.ToList()) LoadAssistant(supervisor, id, entrance);
             SendPendingOrders(AssistantTargeting.KDesktop);
         });
     }
@@ -512,7 +519,7 @@ public partial class App
         RefreshExtraNames();
         if (IsOnDesktop(installed.Id))
         {
-            if (_assistant is { IsRunning: true } supervisor) LoadAssistant(supervisor, installed.Id, "switched");
+            if (_assistant is { IsRunning: true } supervisor) LoadAssistant(supervisor, installed.Id, LoadMessage.Reloaded);
         }
         else if (activate) ShowAssistant(installed.Id);
         AssistantChanged?.Invoke();
@@ -527,7 +534,7 @@ public partial class App
         if (IsOnDesktop(id) || !IsAssistant(id)) return;
         Config.Settings.AssistantsOnDesktop.Add(id);
         Log.Info($"Asistente: «{id}» al escritorio");
-        if (_assistant is { IsRunning: true } supervisor) LoadAssistant(supervisor, id, "startup");
+        if (_assistant is { IsRunning: true } supervisor) LoadAssistant(supervisor, id, LoadMessage.Summoned);
         AssistantChanged?.Invoke();
         // Without a word to call it it is only talked to by writing: said once per run.
         if (_assistant is not null && !HasWakeWord(id, AssistantName(id)) && Core.Voice.VoiceModels.AllInstalled && _wakeTipShown.Add(id))
@@ -547,7 +554,7 @@ public partial class App
         Log.Info($"Asistente: «{id}» se esconde");
         // K-Desktop has nothing loaded: it only stops what it was saying.
         if (AssistantTargeting.IsSystem(id)) StopAssistant(id);
-        else if (_assistant is { IsRunning: true } supervisor) UnloadAssistant(supervisor, id, "hiding");
+        else if (_assistant is { IsRunning: true } supervisor) UnloadAssistant(supervisor, id, UnloadMessage.Dismissed);
         AssistantChanged?.Invoke();
     }
 
@@ -566,7 +573,7 @@ public partial class App
         if (s.AssistantWakeWords.ContainsKey(id)) s.AssistantWakeWords = AssistantTargeting.Assign(s.AssistantWakeWords, id, null);
         if (_assistant is { IsRunning: true } supervisor && supervisor.IsLoaded(id))
         {
-            UnloadAssistant(supervisor, id, "uninstalling");
+            UnloadAssistant(supervisor, id, UnloadMessage.Uninstalling);
             await Task.Delay(ExitTime);
         }
         await Task.Run(() => AssistantPackages.Uninstall(id, keepData));

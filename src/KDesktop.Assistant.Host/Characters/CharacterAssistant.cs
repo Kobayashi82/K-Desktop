@@ -20,6 +20,7 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
     private const double Gravity = 2600;
     private const double SleepAfter = 180;
     private const double ReactLongest = 2.5;
+    private const string SpotFile = "spot.json";
 
     private readonly Random _random = new();
     private readonly Dictionary<string, ImageSource[]> _frames = new(StringComparer.Ordinal);
@@ -70,17 +71,20 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
 
     public void Enter(EntranceKind how)
     {
-        var spot = RandomSpot() ?? new Point(400, 400);
+        // Back from a reload (a new version, another language…): where it was, without its entrance.
+        var back = how == EntranceKind.Reloaded ? SavedSpot() : null;
+        var spot = back ?? RandomSpot() ?? new Point(400, 400);
         _at = spot;
         _ground = GroundAt(_at.X, _at.Y);
         _nextWander = Now + 3 + _random.NextDouble() * 5;
-        if (character.Animations.ContainsKey("enter")) PlayOnce("enter");
+        if (how != EntranceKind.Reloaded && character.Animations.ContainsKey("enter")) PlayOnce("enter");
         _host.RequestTick();
     }
 
     public async Task ExitAsync(ExitKind why, CancellationToken ct)
     {
-        if (!character.Animations.ContainsKey("exit") || why == ExitKind.Shutdown)
+        if (why == ExitKind.Reloading) SaveSpot();
+        if (!character.Animations.ContainsKey("exit") || why is ExitKind.Shutdown or ExitKind.Reloading)
         {
             _gone = true;
             _surface.Hide();
@@ -273,6 +277,29 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
     }
 
     /// <summary>A free place: the taskbar of a monitor that is not full screen, or the top of a window.</summary>
+    /// <summary>Where it stood when it left to come back at once (its data folder), if that is still ground.</summary>
+    private Point? SavedSpot()
+    {
+        try
+        {
+            var file = Path.Combine(_host.DataDirectory, SpotFile);
+            if (!File.Exists(file)) return null;
+            var saved = JsonSerializer.Deserialize<double[]>(File.ReadAllText(file));
+            return saved is [var x, var y] && GroundAt(x, y) is not null ? new Point(x, y) : null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException) { return null; }
+    }
+
+    private void SaveSpot()
+    {
+        try
+        {
+            Directory.CreateDirectory(_host.DataDirectory);
+            File.WriteAllText(Path.Combine(_host.DataDirectory, SpotFile), JsonSerializer.Serialize(new[] { _at.X, _at.Y }));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { /* it comes back somewhere else */ }
+    }
+
     private Point? RandomSpot()
     {
         var world = _host.World.Current;

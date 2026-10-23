@@ -26,10 +26,13 @@ public interface IAssistant : IDisposable
     /// <summary>Called once, right after loading, before anything else.</summary>
     void Attach(IAssistantHost host);
 
-    /// <summary>Appear (fly in, fade in, pop out of a hole…).</summary>
+    /// <summary>Appear (fly in, fade in, pop out of a hole…), according to why it comes (<see cref="EntranceKind"/>).</summary>
     void Enter(EntranceKind how);
 
-    /// <summary>Leave. The host waits for it (with a time limit) before unloading or switching assistant.</summary>
+    /// <summary>
+    /// Leave, according to why (<see cref="ExitKind"/>). The host waits for it (3 s at most; the token fires then) before
+    /// unloading it.
+    /// </summary>
     Task ExitAsync(ExitKind why, CancellationToken ct);
 
     /// <summary>
@@ -75,22 +78,43 @@ public interface IAssistant : IDisposable
 /// <param name="Elapsed">Seconds since the previous tick, capped at 0.25 (after a pause nothing jumps).</param>
 public readonly record struct TickInfo(double Now, double Elapsed);
 
+/// <summary>Why an assistant comes onto the desktop (<see cref="IAssistant.Enter"/>).</summary>
+/// <remarks>The values keep the numbers of SDK 1.8 and earlier with the closest meaning (packages already built).</remarks>
 public enum EntranceKind
 {
-    /// <summary>The module was just enabled or K-Desktop started.</summary>
+    /// <summary>K-Desktop started, or the user switched the assistant module on: its full entrance.</summary>
     Startup,
 
-    /// <summary>It replaces another assistant.</summary>
-    Switched,
-
-    /// <summary>Back after «Hide for a while» or a full-screen app.</summary>
-    Restored,
-
-    /// <summary>Reloaded by <c>--assistant-dev</c> after a rebuild.</summary>
+    /// <summary>
+    /// It was already there a moment ago and comes back at once: a new version, another language, its data started
+    /// afresh, its process restarted or recovering from a fall, a rebuild with <c>--assistant-dev</c>. Reappear where
+    /// it was, with no show (what it saved on <see cref="ExitKind.Reloading"/>, in its data folder).
+    /// </summary>
     Reloaded,
+
+    /// <summary>The user put it on the desktop (Options, the tray, the panel): an entrance that says «here I am».</summary>
+    Summoned,
 }
 
-public enum ExitKind { Shutdown, Switching, Hiding, Uninstalling, Reloading }
+/// <summary>Why an assistant leaves the desktop (<see cref="IAssistant.ExitAsync"/>).</summary>
+/// <remarks>The values keep the numbers of SDK 1.8 and earlier with the closest meaning (packages already built).</remarks>
+public enum ExitKind
+{
+    /// <summary>K-Desktop is closing, or the user switched the assistant module off: be quick.</summary>
+    Shutdown,
+
+    /// <summary>
+    /// It comes back at once (<see cref="EntranceKind.Reloaded"/>): no show; save in its data folder what it needs to
+    /// reappear where it was (the new one may run in a new process).
+    /// </summary>
+    Reloading,
+
+    /// <summary>The user took it off the desktop (Options, the tray, its menu): its goodbye.</summary>
+    Dismissed,
+
+    /// <summary>It is being removed: the last goodbye (its data folder may be deleted right after).</summary>
+    Uninstalling,
+}
 
 /// <summary>States the module tells the assistant about; each assistant shows them its own way.</summary>
 public enum AssistantState

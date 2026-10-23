@@ -12,8 +12,8 @@ namespace KDesktop.Core.Assistant.Pipe;
 /// <summary>Name and version of the pipe (protocolo.md, «Transporte»).</summary>
 public static class AssistantPipe
 {
-    /// <summary>Version of the protocol this build speaks (2: several assistants at once, each message says whose; 3: K-Desktop draws the right-click menu, extras can be hidden and know their hotkeys).</summary>
-    public const int Protocol = 3;
+    /// <summary>Version of the protocol this build speaks (2: several assistants at once, each message says whose; 3: K-Desktop draws the right-click menu, extras can be hidden and know their hotkeys; 4: why an assistant comes and leaves, stage 13.1).</summary>
+    public const int Protocol = 4;
 
     /// <summary>
     /// <c>KDesktop.Assistant.&lt;session&gt;.&lt;folder&gt;</c>: the Windows session and the first 8 hex characters of

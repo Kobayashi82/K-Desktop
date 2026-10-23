@@ -54,6 +54,9 @@ public sealed record PongMessage : PipeMessage
 public sealed record ByeMessage(string Reason) : PipeMessage
 {
     public override string Type => "bye";
+
+    /// <summary>A new process comes right after (language, theme, Panel → «Restart»): the assistants leave as reloading.</summary>
+    public const string Restart = "restart";
 }
 
 public sealed record ErrorMessage(string Code, string Message, string? Id = null) : PipeMessage
@@ -75,17 +78,38 @@ public sealed record PauseMessage(bool Paused) : PipeMessage
 }
 
 /// <summary>Puts an assistant on the desktop, next to those already there; one that is there already (another version) is replaced.</summary>
-/// <param name="Entrance"><c>startup</c> or <c>switched</c>.</param>
+/// <param name="Entrance">Why it comes (stage 13.1): <see cref="Startup"/>, <see cref="Summoned"/> or <see cref="Reloaded"/>.</param>
 public sealed record LoadMessage(string Assistant, string Version, string Path, string Data, string Entrance) : PipeMessage
 {
     public override string Type => "load";
+
+    /// <summary>K-Desktop started or the module was switched on.</summary>
+    public const string Startup = "startup";
+
+    /// <summary>The user put it on the desktop.</summary>
+    public const string Summoned = "summoned";
+
+    /// <summary>
+    /// It was there a moment ago and comes back with no show: a new version, another language, its data started afresh,
+    /// the process restarted or recovering from a fall.
+    /// </summary>
+    public const string Reloaded = "reloaded";
 }
 
 /// <summary>Takes one assistant off the desktop (with its exit); the others stay.</summary>
-/// <param name="Reason"><c>disabled</c>, <c>uninstalling</c>, <c>hiding</c> or <c>reloading</c> (it comes back at once).</param>
+/// <param name="Reason">Why it leaves (stage 13.1): <see cref="Dismissed"/>, <see cref="Uninstalling"/> or <see cref="Reloading"/>.</param>
 public sealed record UnloadMessage(string Assistant, string Reason) : PipeMessage
 {
     public override string Type => "unload";
+
+    /// <summary>The user took it off the desktop.</summary>
+    public const string Dismissed = "dismissed";
+
+    /// <summary>It is being removed.</summary>
+    public const string Uninstalling = "uninstalling";
+
+    /// <summary>It comes back at once with a <c>load</c> <see cref="LoadMessage.Reloaded"/>.</summary>
+    public const string Reloading = "reloading";
 }
 
 public sealed record LoadedMessage(string Assistant, bool Ok, string? Error = null) : PipeMessage

@@ -9,8 +9,9 @@ namespace KDesktop.Assistant.Tests;
 
 /// <summary>
 /// Stage 1.11 with the real KDesktop.exe in assistant mode: Dot and a second assistant (a copy of Dot with another id)
-/// on the desktop at once, each with its own panel; one leaves and comes back while the other stays, and closing makes
-/// both leave. Two dots show somewhere above the taskbar for a few seconds; the data folder is a temporary one.
+/// on the desktop at once, each with its own panel; one leaves and comes back while the other stays, the other is
+/// reloaded, and closing makes both leave, each time with its reason (stage 13.1). Two dots show somewhere above the
+/// taskbar for a few seconds; the data folder is a temporary one.
 /// </summary>
 public class SeveralAssistantsTests
 {
@@ -51,8 +52,8 @@ public class SeveralAssistantsTests
         try
         {
             await hello.Task.WaitAsync(TimeSpan.FromSeconds(20));
-            Assert.True(server.Send(Load("dot", dot, data)));
-            Assert.True(server.Send(Load("blob", blob, data)));
+            Assert.True(server.Send(Load("dot", dot, data, LoadMessage.Startup)));
+            Assert.True(server.Send(Load("blob", blob, data, LoadMessage.Startup)));
             await Until(() => loaded.Count >= 2);
             Assert.All(loaded, l => Assert.True(l.Ok, l.Error));
             Assert.Equal(["blob", "dot"], loaded.Select(l => l.Assistant).Order());
@@ -63,10 +64,15 @@ public class SeveralAssistantsTests
             Assert.True(server.Send(new ConfigMessage("assistantSettings", new JsonObject { ["size"] = 40, ["color"] = "orange", ["wander"] = true }, "blob")));
             Assert.True(server.Send(new ExtraMessage("blob", "dot.jump")));
 
-            // Dot leaves and comes back; Blob stays all the time.
-            Assert.True(server.Send(new UnloadMessage("dot", "hiding")));
-            Assert.True(server.Send(Load("dot", dot, data)));
+            // Dot is dismissed and summoned back; Blob stays all the time.
+            Assert.True(server.Send(new UnloadMessage("dot", UnloadMessage.Dismissed)));
+            Assert.True(server.Send(Load("dot", dot, data, LoadMessage.Summoned)));
             await Until(() => loaded.Count >= 3);
+            Assert.True(loaded.Last().Ok);
+
+            // Blob again over itself (a new version, another language): the old one leaves reloading, the new one is reloaded.
+            Assert.True(server.Send(Load("blob", blob, data, LoadMessage.Reloaded)));
+            await Until(() => loaded.Count >= 4);
             Assert.True(loaded.Last().Ok);
 
             Assert.True(server.Send(new ByeMessage("exit")));
@@ -81,18 +87,42 @@ public class SeveralAssistantsTests
         }
 
         var log = await File.ReadAllTextAsync(Path.Combine(data, "Logs", "assistant.log"));
-        Assert.Contains("«blob» cargado (2 en el escritorio)", log);
-        Assert.Contains("«dot» descargado (Hiding)", log);
-        // Dot came back next to Blob, which never left until the end.
-        Assert.True(log.LastIndexOf("«dot» cargado (2 en el escritorio)", StringComparison.Ordinal) > log.IndexOf("«dot» descargado (Hiding)", StringComparison.Ordinal));
-        Assert.DoesNotContain("«blob» descargado (Hiding)", log);
+        Assert.Contains("«blob» cargado (2 en el escritorio, Startup)", log);
+        Assert.Contains("«dot» descargado (Dismissed)", log);
+        // Dot came back next to Blob, which never left (but to reload) until the end.
+        Assert.True(log.IndexOf("«dot» cargado (2 en el escritorio, Summoned)", StringComparison.Ordinal) > log.IndexOf("«dot» descargado (Dismissed)", StringComparison.Ordinal));
+        Assert.DoesNotContain("«blob» descargado (Dismissed)", log);
+        Assert.True(log.IndexOf("«blob» cargado (2 en el escritorio, Reloaded)", StringComparison.Ordinal) > log.IndexOf("«blob» descargado (Reloading)", StringComparison.Ordinal));
         Assert.Contains("«blob» descargado (Shutdown)", log);
         Assert.Contains("«dot» descargado (Shutdown)", log);
         Assert.DoesNotContain("ha fallado", log);
     }
 
-    private static LoadMessage Load(string id, string folder, string data) =>
-        new(id, "1.1.0", folder, Path.Combine(data, "Assistants", "Data", id), "startup");
+    private static LoadMessage Load(string id, string folder, string data, string entrance) =>
+        new(id, "1.1.0", folder, Path.Combine(data, "Assistants", "Data", id), entrance);
+
+    /// <summary>The words of the pipe and the SDK's reasons (stage 13.1).</summary>
+    [Fact]
+    public void ReasonsComeAndGoAsTheSdkSays()
+    {
+        Assert.Equal(Sdk.EntranceKind.Startup, Host.AssistantSession.EntranceOf(LoadMessage.Startup));
+        Assert.Equal(Sdk.EntranceKind.Summoned, Host.AssistantSession.EntranceOf(LoadMessage.Summoned));
+        Assert.Equal(Sdk.EntranceKind.Reloaded, Host.AssistantSession.EntranceOf(LoadMessage.Reloaded));
+        Assert.Equal(Sdk.ExitKind.Dismissed, Host.AssistantSession.ExitOf(UnloadMessage.Dismissed));
+        Assert.Equal(Sdk.ExitKind.Uninstalling, Host.AssistantSession.ExitOf(UnloadMessage.Uninstalling));
+        Assert.Equal(Sdk.ExitKind.Reloading, Host.AssistantSession.ExitOf(UnloadMessage.Reloading));
+        // K-Desktop closing or the module off: «bye»; a new process at once (language, theme, «Restart»): as reloading.
+        Assert.Equal(Sdk.ExitKind.Shutdown, Host.AssistantSession.ExitOnClose("bye: exit"));
+        Assert.Equal(Sdk.ExitKind.Shutdown, Host.AssistantSession.ExitOnClose("bye: disable"));
+        Assert.Equal(Sdk.ExitKind.Shutdown, Host.AssistantSession.ExitOnClose("sin K-Desktop"));
+        Assert.Equal(Sdk.ExitKind.Reloading, Host.AssistantSession.ExitOnClose("bye: " + ByeMessage.Restart));
+        // Packages built with SDK 1.8 or earlier keep the closest meaning (switched → reloaded, hiding → dismissed).
+        Assert.Equal(1, (int)Sdk.EntranceKind.Reloaded);
+        Assert.Equal(2, (int)Sdk.EntranceKind.Summoned);
+        Assert.Equal(1, (int)Sdk.ExitKind.Reloading);
+        Assert.Equal(2, (int)Sdk.ExitKind.Dismissed);
+        Assert.Equal(3, (int)Sdk.ExitKind.Uninstalling);
+    }
 
     /// <summary>A copy of a package folder, with its manifest changed if asked.</summary>
     private static string Copy(string from, string to, Action<JsonObject>? change = null)

@@ -168,11 +168,11 @@ internal sealed class AssistantRuntime : IDisposable
         return package.Manifest.Id;
     }
 
-    /// <summary>Loads an assistant next to the others (one with its id leaves first, with its exit).</summary>
+    /// <summary>Loads an assistant next to the others (one with its id leaves first, as reloading).</summary>
     public async Task LoadAsync(IAssistant assistant, string id, string package, string data, JsonElement settings, EntranceKind entrance,
         AssistantManifest? manifest = null, AssemblyLoadContext? context = null)
     {
-        if (Find(id) is not null) await UnloadAsync(id, ExitKind.Switching).ConfigureAwait(true);
+        if (Find(id) is not null) await UnloadAsync(id, ExitKind.Reloading).ConfigureAwait(true);
         if (!Watcher.IsStarted) Watcher.Start(_engine.Now, _engine.Post);
         var slot = new AssistantSlot(id, assistant, manifest, context, Rendering, World) { LastTick = _engine.Now };
         slot.Pointer = new HostPointer(e => Guard(slot, a => a.OnPointer(e), "OnPointer"), (area, at) => OnMenu(slot, at), UpdateWheel, _ => OnWrite(slot),
@@ -188,7 +188,7 @@ internal sealed class AssistantRuntime : IDisposable
             Drop(slot);
             throw new InvalidOperationException($"«{id}» ha fallado al entrar en el escritorio (detalles en assistant.log)");
         }
-        Log.Info($"Asistente: «{id}» cargado ({_slots.Count} en el escritorio)");
+        Log.Info($"Asistente: «{id}» cargado ({_slots.Count} en el escritorio, {entrance})");
         RequestTick(slot);
     }
 

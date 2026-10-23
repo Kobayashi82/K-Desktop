@@ -16,8 +16,8 @@
     <!-- CA1720: names that are type names (Pointer); assistants are C#. -->
     <NoWarn>$(NoWarn);CS1591;CS1573;CA1720</NoWarn>
     <!-- SDK version (major = compatibility): goes into assistant.json as "sdk". -->
-    <SdkContractVersion>1.8</SdkContractVersion>
-    <AssemblyVersion>1.8.0.0</AssemblyVersion>
+    <SdkContractVersion>1.9</SdkContractVersion>
+    <AssemblyVersion>1.9.0.0</AssemblyVersion>
   </PropertyGroup>
 
 </Project>

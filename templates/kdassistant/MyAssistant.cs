@@ -18,7 +18,7 @@ public sealed class MyAssistant : IAssistant
     private Point _at;
     private Color _color = Colors.MediumPurple;
     private double _flash = double.NaN;
-    private double _now;
+    private bool _flashPending;
     private bool _dirty = true;
 
     public Point? BubbleAnchor => new Point(_at.X, _at.Y - 20);
@@ -36,13 +36,25 @@ public sealed class MyAssistant : IAssistant
         var work = _host.World.Current.PrimaryMonitor?.WorkArea ?? new PixelRect(0, 0, 800, 600);
         _at = new Point(work.Right - 200, work.Bottom - 24);
         _dirty = true;
+        // Startup and Summoned deserve an entrance (here, a flash); Reloaded comes back quietly, where it was.
+        if (how != EntranceKind.Reloaded) Flash();
     }
 
-    public Task ExitAsync(ExitKind why, CancellationToken ct) => Task.CompletedTask;
+    public async Task ExitAsync(ExitKind why, CancellationToken ct)
+    {
+        // Shutdown and Reloading: leave at once. Dismissed and Uninstalling: a goodbye (the host waits up to 3 s).
+        if (why is ExitKind.Shutdown or ExitKind.Reloading) return;
+        Flash();
+        try { await Task.Delay(500, ct); } catch (OperationCanceledException) { }
+    }
 
     public double Tick(TickInfo tick)
     {
-        _now = tick.Now;
+        if (_flashPending)
+        {
+            _flashPending = false;
+            _flash = tick.Now;
+        }
         var flashing = !double.IsNaN(_flash) && tick.Now - _flash < 0.5;
         if (_dirty || flashing || !double.IsNaN(_flash))
         {
@@ -104,7 +116,7 @@ public sealed class MyAssistant : IAssistant
 
     private void Flash()
     {
-        _flash = _now;
+        _flashPending = true;
         _host.RequestTick();
     }
 }

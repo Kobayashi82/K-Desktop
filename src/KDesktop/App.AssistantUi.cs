@@ -76,7 +76,7 @@ public partial class App
         var reload = IsAssistantLoaded(id);
         if (reload)
         {
-            UnloadAssistant(_assistant!, id, "reloading");
+            UnloadAssistant(_assistant!, id, UnloadMessage.Reloading);
             await Task.Delay(ExitTime);
         }
         try
@@ -92,7 +92,7 @@ public partial class App
         {
             ForgetAssistantPanel(id);
             if (reload && IsOnDesktop(id) && _assistant is { IsRunning: true } supervisor)
-                LoadAssistant(supervisor, id, "startup");
+                LoadAssistant(supervisor, id, LoadMessage.Startup); // its data is gone: a fresh start
             AssistantChanged?.Invoke();
         }
     }

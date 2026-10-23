@@ -260,13 +260,7 @@ internal sealed class AssistantSession : IDisposable
                 Then(() => LoadAsync(load));
                 break;
             case UnloadMessage unload:
-                Then(() => Runtime.UnloadAsync(unload.Assistant, unload.Reason switch
-                {
-                    "hiding" => ExitKind.Hiding,
-                    "uninstalling" => ExitKind.Uninstalling,
-                    "reloading" => ExitKind.Reloading,
-                    _ => ExitKind.Shutdown,
-                }));
+                Then(() => Runtime.UnloadAsync(unload.Assistant, ExitOf(unload.Reason)));
                 break;
             case ConfigMessage { Section: "assistantSettings", Assistant: { } id, Value: { } value }:
                 Runtime.ApplySettings(id, JsonSerializer.SerializeToElement(value));
@@ -352,8 +346,7 @@ internal sealed class AssistantSession : IDisposable
     {
         try
         {
-            var entrance = load.Entrance == "switched" ? EntranceKind.Switched : EntranceKind.Startup;
-            var id = await Runtime.LoadPackageAsync(load.Path, load.Data, entrance);
+            var id = await Runtime.LoadPackageAsync(load.Path, load.Data, EntranceOf(load.Entrance));
             Talk?.Loaded(id, load.Path);
             Link?.Send(new LoadedMessage(id, true));
         }
@@ -364,19 +357,42 @@ internal sealed class AssistantSession : IDisposable
         }
     }
 
+    /// <summary>Why an assistant comes, from a <c>load</c> (stage 13.1).</summary>
+    internal static EntranceKind EntranceOf(string entrance) => entrance switch
+    {
+        LoadMessage.Summoned => EntranceKind.Summoned,
+        LoadMessage.Reloaded => EntranceKind.Reloaded,
+        _ => EntranceKind.Startup,
+    };
+
+    /// <summary>Why an assistant leaves, from an <c>unload</c> (stage 13.1).</summary>
+    internal static ExitKind ExitOf(string reason) => reason switch
+    {
+        UnloadMessage.Dismissed => ExitKind.Dismissed,
+        UnloadMessage.Uninstalling => ExitKind.Uninstalling,
+        UnloadMessage.Reloading => ExitKind.Reloading,
+        _ => ExitKind.Shutdown,
+    };
+
+    /// <summary>Why the assistants leave when the process closes: as reloading if K-Desktop starts another one at once.</summary>
+    internal static ExitKind ExitOnClose(string reason) =>
+        reason == KDesktopLink.ByePrefix + ByeMessage.Restart ? ExitKind.Reloading : ExitKind.Shutdown;
+
     /// <summary>
     /// Closes the process: the assistants leave (their exits at once, up to 3 s), the engine stops and the UI thread
-    /// ends. Any thread but the engine's; only the first call counts.
+    /// ends. Any thread but the engine's; only the first call counts. K-Desktop's «bye» to start another process at once
+    /// (language, theme, «Restart») lets them leave as reloading: they come back with no show.
     /// </summary>
     public void Shutdown(string reason, int exitCode = 0)
     {
         if (Interlocked.Exchange(ref _shuttingDown, 1) != 0) return;
         Log.Info($"Asistente: cerrando ({reason})");
         ExitCode = exitCode;
+        var why = ExitOnClose(reason);
         var left = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         Engine.Post(async () =>
         {
-            try { await Runtime.UnloadAllAsync(ExitKind.Shutdown); }
+            try { await Runtime.UnloadAllAsync(why); }
             finally { left.TrySetResult(); }
         });
         left.Task.Wait(TimeSpan.FromSeconds(3.5));

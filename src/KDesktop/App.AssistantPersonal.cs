@@ -132,7 +132,7 @@ public partial class App
             if (_assistantLanguagesSent.TryGetValue(id, out var before) && before != language)
             {
                 Log.Info($"Asistente: «{id}» habla ahora en {language}: se vuelve a cargar");
-                LoadAssistant(supervisor, id, "switched");
+                LoadAssistant(supervisor, id, LoadMessage.Reloaded);
             }
         }
     }

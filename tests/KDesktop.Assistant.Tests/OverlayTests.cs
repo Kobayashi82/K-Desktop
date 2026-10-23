@@ -11,6 +11,7 @@ namespace KDesktop.Assistant.Tests;
 /// below, the focus never moves, a click (sent as a message to its own hit window) is received, and closing leaves
 /// nothing behind. A small circle shows at (400, 400) for a few seconds.
 /// </summary>
+[Collection(OnTheDesktop.Name)]
 public partial class OverlayTests
 {
     private const int X = 400, Y = 400;

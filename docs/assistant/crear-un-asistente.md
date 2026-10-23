@@ -169,6 +169,25 @@ reacciona a la papelera, a los avisos, a la hora en punto y al scroll fuerte, su
 código), tiene un extra (`dot.jump`), ajustes con un botón para ese extra y otro para «Poner a cero los saltos», una
 tarjeta y un botón en el panel, y guarda sus datos en su carpeta.
 
+## Entrar y salir
+
+`Enter(how)` y `ExitAsync(why, ct)` dicen **por qué** llega o se va (SDK 1.9):
+
+| `EntranceKind` | Cuándo | Qué hacer |
+|---|---|---|
+| `Startup` | Arranca K-Desktop o se enciende el módulo | Su entrada |
+| `Summoned` | El usuario lo pone en el escritorio | Una entrada que diga «aquí estoy» |
+| `Reloaded` | Estaba hace un momento y vuelve: versión nueva, otro idioma, proceso reiniciado o recuperado de una caída, recompilado con `--assistant-dev` | Reaparecer donde estaba, sin espectáculo |
+
+| `ExitKind` | Cuándo | Qué hacer |
+|---|---|---|
+| `Shutdown` | Se cierra K-Desktop o se apaga el módulo | Irse ya |
+| `Dismissed` | El usuario lo esconde (Opciones, la bandeja, su menú) | Su despedida |
+| `Uninstalling` | Se desinstala (su carpeta de datos puede borrarse justo después) | La última despedida |
+| `Reloading` | Vuelve enseguida con `Reloaded` | Irse ya y guardar en `DataDirectory` dónde estaba: el nuevo puede ser otro proceso |
+
+El host espera la salida 3 s como mucho (el token salta entonces).
+
 ## Lo que da el host
 
 - **Bocadillo:** cuando el asistente dice algo (`Communicate`), el host dibuja el bocadillo con el texto, apuntando a

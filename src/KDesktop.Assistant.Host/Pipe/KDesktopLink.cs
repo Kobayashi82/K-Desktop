@@ -126,13 +126,16 @@ internal sealed class KDesktopLink : IAsyncDisposable
         Connected?.Invoke(welcome);
     }
 
+    /// <summary>What <see cref="Ended"/> says before the reason of K-Desktop's «bye».</summary>
+    internal const string ByePrefix = "bye: ";
+
     private void OnReceived(PipeMessage message)
     {
         switch (message)
         {
             case ByeMessage bye:
                 Log.Info($"Asistente: K-Desktop pide cerrar ({bye.Reason})");
-                Ended?.Invoke("bye: " + bye.Reason);
+                Ended?.Invoke(ByePrefix + bye.Reason);
                 return;
             case PauseMessage pause:
                 Paused = pause.Paused;

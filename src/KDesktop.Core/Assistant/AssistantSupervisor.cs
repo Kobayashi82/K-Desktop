@@ -151,7 +151,7 @@ public sealed class AssistantSupervisor : IAsyncDisposable
     public void Restart()
     {
         lock (_gate) _expectedExit = true;
-        if (!_server.Send(new ByeMessage("restart"))) Kill();
+        if (!_server.Send(new ByeMessage(ByeMessage.Restart))) Kill();
     }
 
     public async ValueTask DisposeAsync()
