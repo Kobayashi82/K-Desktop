@@ -1,0 +1,16 @@
+{
+  "t": "showcaseList",
+  "assistant": "lander",
+  "items": [
+    { "id": "enter.summoned", "group": "entrances", "own": false },
+    { "id": "react.success", "group": "reactions", "own": false },
+    { "id": "gesture.announce", "group": "gestures", "own": false },
+    { "id": "walk", "group": "moving", "own": true },
+    {
+      "id": "lander.loop",
+      "group": "tricks",
+      "own": true,
+      "names": { "es": "Rizar el rizo", "en": "Loop the loop" }
+    }
+  ]
+}

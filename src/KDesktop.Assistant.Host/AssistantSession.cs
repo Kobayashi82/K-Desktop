@@ -54,7 +54,11 @@ internal sealed class AssistantSession : IDisposable
         if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!, Commands!, Voice!, Personal, reactions!) { Choreography = choreography };
         if (Link is not null) Bench = new ModuleBench(Link, Brain!, Tools!, Talk!.Chooser, Commands!);
         if (Link is not null) Games = new ModuleGames(Brain!, Talk!.Service);
+        if (Link is not null) Showcase = new ModuleShowcase(Link, Runtime, choreography, ReplayAsync);
     }
+
+    /// <summary>The showcase: what each assistant can show, and «do this one» (stage 13.9; null without K-Desktop).</summary>
+    public ModuleShowcase? Showcase { get; }
 
     /// <summary>A game on the whole screen frees the graphics card (stage 12; null without K-Desktop).</summary>
     public ModuleGames? Games { get; }
@@ -302,6 +306,9 @@ internal sealed class AssistantSession : IDisposable
             case FastScrollMessage scroll:
                 Runtime.OnFastScroll(scroll);
                 break;
+            case ShowcaseMessage showcase when Showcase is { } module:
+                module.OnShowcase(showcase);
+                break;
         }
     }
 
@@ -364,6 +371,7 @@ internal sealed class AssistantSession : IDisposable
         try
         {
             var id = await Runtime.LoadPackageAsync(load.Path, load.Data, EntranceOf(load.Entrance));
+            _packages[id] = (load.Path, load.Data);
             Talk?.Loaded(id, load.Path);
             Link?.Send(new LoadedMessage(id, true));
         }
@@ -372,6 +380,39 @@ internal sealed class AssistantSession : IDisposable
             Log.Error($"Asistente: no se ha podido cargar «{load.Assistant}»", ex);
             Link?.Send(new LoadedMessage(load.Assistant, false, ex.Message));
         }
+    }
+
+    /// <summary>Where each assistant on the desktop was loaded from (engine thread), to load it again for the showcase.</summary>
+    private readonly Dictionary<string, (string Path, string Data)> _packages = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// An entrance or an exit of the showcase (stage 13.9): it leaves as <paramref name="why"/> says and, <paramref name="away"/>
+    /// later, comes back from its package as <paramref name="how"/> says, after the loads and unloads before it. False when it
+    /// was not loaded by K-Desktop (development, probe) or did not come back (K-Desktop is told, as with any load that fails).
+    /// </summary>
+    private Task<bool> ReplayAsync(string id, ExitKind why, EntranceKind how, TimeSpan away)
+    {
+        if (!_packages.TryGetValue(id, out var package) || !Runtime.IsLoaded(id)) return Task.FromResult(false);
+        var done = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        Then(async () =>
+        {
+            try
+            {
+                await Runtime.UnloadAsync(id, why).ConfigureAwait(true);
+                await Task.Delay(away).ConfigureAwait(true);
+                await Runtime.LoadPackageAsync(package.Path, package.Data, how).ConfigureAwait(true);
+                Talk?.Loaded(id, package.Path);
+                done.TrySetResult(true);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Asistente: «{id}» no ha vuelto tras enseñar su {(how == EntranceKind.Reloaded ? why : how)}", ex);
+                _packages.Remove(id);
+                Link?.Send(new LoadedMessage(id, false, ex.Message));
+                done.TrySetResult(false);
+            }
+        });
+        return done.Task;
     }
 
     /// <summary>Why an assistant comes, from a <c>load</c> (stage 13.1).</summary>

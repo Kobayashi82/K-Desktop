@@ -242,6 +242,53 @@ public sealed record DroppedMessage(string Assistant, IReadOnlyList<string> File
 }
 
 /// <summary>
+/// The showcase of an assistant on the desktop (stage 13.9). <paramref name="Op"/>: <c>list</c> (answered with
+/// <see cref="ShowcaseListMessage"/>), <c>play</c> one <paramref name="Item"/> (<paramref name="Own"/>: one of its own, not
+/// one of the host's; answered with <see cref="ShowcaseDoneMessage"/> when it ends) or <c>stop</c> what it is playing.
+/// </summary>
+public sealed record ShowcaseMessage(string Assistant, string Op, string Item = "", bool Own = false) : PipeMessage
+{
+    public override string Type => "showcase";
+
+    public const string List = "list";
+    public const string Play = "play";
+    public const string Stop = "stop";
+}
+
+/// <summary>
+/// One thing an assistant can show. The host's own ones (<paramref name="Own"/> false) have fixed ids that K-Desktop names
+/// itself (<c>enter.summoned</c>, <c>state.thinking</c>, <c>react.success</c>, <c>gesture.announce</c>…); the assistant's
+/// own ones bring their <paramref name="Names"/> by language (none: K-Desktop's own name for that id, or the id).
+/// </summary>
+/// <param name="Group">
+/// <c>entrances</c>, <c>exits</c>, <c>states</c>, <c>reactions</c>, <c>gestures</c>, and for its own ones <c>idle</c>,
+/// <c>moving</c>, <c>playing</c>, <c>feelings</c>, <c>tricks</c> or <c>other</c>.
+/// </param>
+public sealed record ShowcaseEntry(string Id, string Group, bool Own = false, IReadOnlyDictionary<string, string>? Names = null);
+
+/// <summary>What an assistant can show (answer to <c>showcase</c> <c>list</c>): the host's ones first, then its own.</summary>
+public sealed record ShowcaseListMessage(string Assistant, IReadOnlyList<ShowcaseEntry> Items) : PipeMessage
+{
+    public override string Type => "showcaseList";
+}
+
+/// <summary>
+/// An item of the showcase ended. <paramref name="Result"/>: <c>done</c>, <c>notPerformed</c> (it does not know how, or
+/// cannot now), <c>stopped</c> (stopped, or another one came), <c>unknown</c> (no such item, or the assistant is not on the
+/// desktop) or <c>failed</c>.
+/// </summary>
+public sealed record ShowcaseDoneMessage(string Assistant, string Item, bool Own, string Result) : PipeMessage
+{
+    public override string Type => "showcaseDone";
+
+    public const string Done = "done";
+    public const string NotPerformed = "notPerformed";
+    public const string Stopped = "stopped";
+    public const string Unknown = "unknown";
+    public const string Failed = "failed";
+}
+
+/// <summary>
 /// An assistant shows, greys out or hides one of its extras in its menu and its panel buttons (all are shown after each
 /// <c>load</c>). <paramref name="State"/>: <c>shown</c>, <c>disabled</c> or <c>hidden</c>.
 /// </summary>
@@ -868,6 +915,9 @@ public static class PipeJson
         ["menuClosed"] = typeof(MenuClosedMessage),
         ["write"] = typeof(WriteMessage),
         ["dropped"] = typeof(DroppedMessage),
+        ["showcase"] = typeof(ShowcaseMessage),
+        ["showcaseList"] = typeof(ShowcaseListMessage),
+        ["showcaseDone"] = typeof(ShowcaseDoneMessage),
         ["keys"] = typeof(KeysMessage),
         ["key"] = typeof(KeyMessage),
         ["watchWheel"] = typeof(WatchWheelMessage),

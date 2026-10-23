@@ -174,6 +174,36 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
         }
     }
 
+    /// <summary>
+    /// A gesture of the showcase (stage 13.9, engine thread), within <paramref name="budget"/>: like a tool's, a step of an
+    /// order takes its place. Its outcome, or null when it cannot do it now or does not know it.
+    /// </summary>
+    public async Task<GestureOutcome?> ShowcaseAsync(string assistant, Gesture gesture, TimeSpan budget, CancellationToken stop)
+    {
+        if (_playing.ContainsKey(assistant)) return null;
+        StopDecorating(assistant);
+        var speed = StepGestures.SpeedOf(_lastSpeed);
+        var step = new StepMessage("", 0, 1, 0, "showcase", gesture.Kind.ToString(), "", (int)budget.TotalMilliseconds, null, _lastSpeed ?? "normal");
+        using var limit = CancellationTokenSource.CreateLinkedTokenSource(stop);
+        limit.CancelAfter(budget);
+        _decorating[assistant] = limit;
+        var context = new StepGestureContext(engine, engine.Now + budget.TotalSeconds, step, () => { }, Task.FromResult(true), null, speed);
+        try
+        {
+            if (runtime.TryPerform(assistant, gesture, context, limit.Token) is not { } running) return null;
+            return await running.WaitAsync(budget + Grace, stop).ConfigureAwait(true);
+        }
+        catch (TimeoutException)
+        {
+            // It took all its time: shown anyway.
+            return GestureOutcome.Committed;
+        }
+        finally
+        {
+            if (_decorating.TryGetValue(assistant, out var current) && current == limit) _decorating.Remove(assistant);
+        }
+    }
+
     /// <summary>The gesture of a tool each assistant is showing (engine thread): a newer one, or a step of an order, ends it.</summary>
     private readonly Dictionary<string, CancellationTokenSource> _decorating = new(StringComparer.Ordinal);
 

@@ -63,7 +63,7 @@ public class ManifestTests
     }
 
     [Fact]
-    public void ThisHostGivesSdk117() => Assert.Equal(new Version(1, 17), AssistantPackages.SdkVersion);
+    public void ThisHostGivesSdk118() => Assert.Equal(new Version(1, 18), AssistantPackages.SdkVersion);
 
     [Fact]
     public void SettingDefaultsComeFromTheSettingsFile()

@@ -60,6 +60,9 @@ public sealed class SettingsPageModel(string title, SymbolRegular? symbol, IRead
     /// <summary>K-Desktop's own page, «Personalidad y voz» (5.0.105), not one of its settings.json.</summary>
     public bool IsPersonal { get; init; }
 
+    /// <summary>K-Desktop's own page «Probar» (stage 13.9): its showcase.</summary>
+    public bool IsTry { get; init; }
+
     /// <summary>K-Desktop's own page «General» (5.0.113: its word, its key to talk, the model it thinks with).</summary>
     public bool IsGeneral { get; init; }
 
@@ -619,6 +622,8 @@ public sealed class AssistantSettingsModel : Observable
                 page => CurrentPage = (SettingsPageModel)page)),
             // What it has of its own (K-Desktop's page, after its own ones).
             new SettingsPageModel(Loc.T("assistantPersonal.tab"), SymbolRegular.PersonVoice24, [], page => CurrentPage = (SettingsPageModel)page) { IsPersonal = true },
+            // What it can show, to watch it now (stage 13.9; not K-Desktop, which has no figure).
+            .. (assistant is null ? Array.Empty<SettingsPageModel>() : [new SettingsPageModel(Loc.T("assistantTry.tab"), SymbolRegular.Play24, [], page => CurrentPage = (SettingsPageModel)page) { IsTry = true }]),
         ];
         _all.AddRange(Pages.SelectMany(p => p.Sections).SelectMany(s => s.Items));
         foreach (var item in _all) item.Load(_values);
@@ -641,7 +646,7 @@ public sealed class AssistantSettingsModel : Observable
     public bool HasTabs => Pages.Count > 1;
 
     /// <summary>It has settings of its own (a settings.json), besides K-Desktop's pages.</summary>
-    public bool HasOwnSettings => Pages.Any(p => p is { IsPersonal: false, IsGeneral: false });
+    public bool HasOwnSettings => Pages.Any(p => p is { IsPersonal: false, IsGeneral: false, IsTry: false });
 
     public SettingsPageModel? CurrentPage
     {

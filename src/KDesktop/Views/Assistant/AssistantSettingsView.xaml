@@ -411,6 +411,9 @@
         <!-- What it has of its own: personality, language, voice (5.0.105) -->
         <a:AssistantPersonalView x:Name="PersonalView" Visibility="Collapsed" />
 
+        <!-- What it can show, now on the desktop (stage 13.9) -->
+        <a:AssistantTryView x:Name="TryView" Visibility="Collapsed" />
+
         <ItemsControl x:Name="SectionsList" ItemsSource="{Binding CurrentPage.Sections}" Focusable="False">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>

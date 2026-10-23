@@ -84,6 +84,12 @@ public partial class AssistantListSection : UserControl
         if (SettingsView.Visibility == Visibility.Visible) SettingsView.ShowPersonal();
     }
 
+    /// <summary>The assistant shown goes to its «Probar» (stage 13.9).</summary>
+    public void ShowTry()
+    {
+        if (SettingsView.Visibility == Visibility.Visible) SettingsView.ShowTry();
+    }
+
     public void ShowList()
     {
         SettingsView.Visibility = Visibility.Collapsed;

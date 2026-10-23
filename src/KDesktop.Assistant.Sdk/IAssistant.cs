@@ -101,6 +101,19 @@ public interface IAssistant : IDisposable
     /// </summary>
     PixelRect? BodyBounds => null;
 
+    /// <summary>
+    /// Its own animations for the showcase (SDK 1.18), read when K-Desktop asks for the list (the «Try» tab of its card).
+    /// Empty by default: the host's own items (entrances, exits, states, reactions, gestures) are always there.
+    /// </summary>
+    IReadOnlyList<ShowcaseItem> Showcase => [];
+
+    /// <summary>
+    /// Plays one of its <see cref="Showcase"/> items now, whatever it was doing (SDK 1.18). Completes when it has finished
+    /// (K-Desktop waits for it to say so, up to 30 s); the token fires when the user stops it or asks for another: stop
+    /// quickly. False when it does not know the id or cannot now (it is hidden, it is in the middle of an order).
+    /// </summary>
+    Task<bool> PlayShowcaseAsync(string id, CancellationToken ct) => Task.FromResult(false);
+
     void OnPointer(PointerEvent e);
 
     void OnSystemEvent(SystemEvent e);

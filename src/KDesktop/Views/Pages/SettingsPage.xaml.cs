@@ -81,7 +81,8 @@ public partial class SettingsPage : UserControl
 
     /// <summary>
     /// Opens a section by its key ("web", "remote"…), e.g. from the status icons. «assistants/&lt;id&gt;» opens that
-    /// assistant's own settings, and «assistants/&lt;id&gt;/personal» its «Personalidad y voz».
+    /// assistant's own settings, «assistants/&lt;id&gt;/personal» its «Personalidad y voz» and «assistants/&lt;id&gt;/try» its
+    /// «Probar».
     /// </summary>
     public void ShowSection(string key)
     {
@@ -89,6 +90,12 @@ public partial class SettingsPage : UserControl
         {
             ShowSection(key[..^"/personal".Length]);
             AssistantsSection.ShowPersonal();
+            return;
+        }
+        if (key.StartsWith("assistants/", StringComparison.Ordinal) && key.EndsWith("/try", StringComparison.Ordinal))
+        {
+            ShowSection(key[..^"/try".Length]);
+            AssistantsSection.ShowTry();
             return;
         }
         if (SearchBox.Text.Length > 0) SearchBox.Text = string.Empty;

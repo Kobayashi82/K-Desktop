@@ -605,6 +605,50 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
         }
     }
 
+    // ── the showcase (stage 13.9) ────────────────────────────────────────
+
+    /// <summary>
+    /// Its animations that nothing of the host's shows (talking, listening, reacting… come with the host's items): only the
+    /// ones its character.json has. Without names: K-Desktop names them.
+    /// </summary>
+    private static readonly (string Name, ShowcaseGroup Group)[] OwnAnimations =
+        [("walk", ShowcaseGroup.Moving), ("sleep", ShowcaseGroup.Idle), ("surprised", ShowcaseGroup.Feelings), ("click", ShowcaseGroup.Playing), ("catch", ShowcaseGroup.Playing)];
+
+    private static readonly IReadOnlyDictionary<string, string> NoNames = new Dictionary<string, string>();
+
+    public IReadOnlyList<ShowcaseItem> Showcase =>
+        [.. OwnAnimations.Where(a => character.Animations.ContainsKey(a.Name)).Select(a => new ShowcaseItem(a.Name, NoNames, a.Group))];
+
+    public async Task<bool> PlayShowcaseAsync(string id, CancellationToken ct)
+    {
+        if (_gone || _dragging || _falling || !Showcase.Any(i => i.Id == id)) return false;
+        if (id == "walk")
+        {
+            // A few steps along where it stands, to the side with more room.
+            if (_ground is not { } ground || character.WalkSpeed <= 0) return false;
+            var half = Math.Min((ground.Right - ground.Left) / 2, WidthPx / 2);
+            var way = ground.Right - _at.X > _at.X - ground.Left ? 1 : -1;
+            var target = Math.Clamp(_at.X + way * 3 * WidthPx, ground.Left + half, ground.Right - half);
+            if (Taken(target, ground.Y)) target = FreeOn(ground, target) ?? _at.X;
+            _walkTo = target;
+            _host.RequestTick();
+            try
+            {
+                using var limit = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                limit.CancelAfter(TimeSpan.FromSeconds(6));
+                while (_walkTo is not null && !_falling) await Task.Delay(30, limit.Token);
+            }
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+            {
+                _walkTo = null;
+            }
+            return true;
+        }
+        PlayOnce(id);
+        await Task.Delay(TimeSpan.FromSeconds(Math.Max(0.2, (_once?.Until ?? Now) - Now)), ct);
+        return true;
+    }
+
     public void SetState(AssistantState state, StateDetail detail) => SetState(state);
 
     public void SetState(AssistantState state)

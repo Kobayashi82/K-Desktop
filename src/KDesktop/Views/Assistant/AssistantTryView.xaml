@@ -1,0 +1,6 @@
+<UserControl x:Class="KDesktop.Views.Assistant.AssistantTryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Options → Assistants → one assistant → «Probar» (stage 13.9): its showcase, made in code -->
+    <StackPanel x:Name="Body" />
+</UserControl>

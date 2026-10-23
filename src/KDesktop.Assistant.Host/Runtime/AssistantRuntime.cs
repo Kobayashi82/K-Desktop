@@ -624,6 +624,25 @@ internal sealed class AssistantRuntime : IDisposable
         return Guard(slot, a => running = a.PerformAsync(gesture, context, token), "PerformAsync " + gesture.Kind) ? running : null;
     }
 
+    /// <summary>Its own animations for the showcase (SDK 1.18; none if it is not there or fails). Engine thread.</summary>
+    public IReadOnlyList<ShowcaseItem> ShowcaseOf(string id)
+    {
+        IReadOnlyList<ShowcaseItem> items = [];
+        if (Find(id) is { } slot) Guard(slot, a => items = a.Showcase ?? [], "Showcase");
+        return items;
+    }
+
+    /// <summary>Plays one of its own showcase items: its task, or null when it is not there or failed to start it. Engine thread.</summary>
+    public Task<bool>? PlayShowcase(string id, string item, CancellationToken token)
+    {
+        if (Find(id) is not { } slot) return null;
+        Task<bool>? running = null;
+        return Guard(slot, a => running = a.PlayShowcaseAsync(item, token), "PlayShowcaseAsync " + item) ? running : null;
+    }
+
+    /// <summary>Where its body is now (what it said after its last tick), or null. Engine thread.</summary>
+    public PixelRect? BodyOf(string id) => Find(id)?.Body;
+
     private AssistantSlot? Find(string id) => _slots.FirstOrDefault(s => s.Id == id);
 
     /// <summary>Something for every assistant on the desktop (one that fails and is dropped meanwhile is skipped).</summary>

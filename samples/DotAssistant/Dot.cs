@@ -337,6 +337,18 @@ public sealed class Dot : IAssistant
         return Task.CompletedTask;
     }
 
+    /// <summary>Its own animation for the showcase (SDK 1.18): the same hop as its extra.</summary>
+    public IReadOnlyList<ShowcaseItem> Showcase { get; } =
+        [new("dot.hop", new Dictionary<string, string> { ["es"] = "Saltar a otro sitio", ["en"] = "Hop somewhere else" }, ShowcaseGroup.Moving)];
+
+    public async Task<bool> PlayShowcaseAsync(string id, CancellationToken ct)
+    {
+        if (id != "dot.hop" || _dragging || RandomSpot() is not { } spot) return false;
+        Jump(spot);
+        await Task.Delay(TimeSpan.FromSeconds(JumpOut + JumpIn), ct);
+        return true;
+    }
+
     public void OnSettingsChanged(JsonElement settings)
     {
         ReadSettings(settings);

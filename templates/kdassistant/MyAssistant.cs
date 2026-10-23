@@ -126,6 +126,22 @@ public sealed class MyAssistant : IAssistant
         return GestureOutcome.NotPerformed;
     }
 
+    // Its own animations, for the showcase (the «Try» tab of its card in K-Desktop, and the catalog). Entrances, exits,
+    // states, reactions and gestures are always there: the host launches those itself.
+    public IReadOnlyList<ShowcaseItem> Showcase { get; } =
+        [new("rainbow", new Dictionary<string, string> { ["en"] = "Rainbow", ["es"] = "Arcoíris" }, ShowcaseGroup.Tricks)];
+
+    public async Task<bool> PlayShowcaseAsync(string id, CancellationToken ct)
+    {
+        if (id != "rainbow") return false;
+        foreach (var color in new[] { Colors.Red, Colors.Orange, Colors.Gold, Colors.LimeGreen, Colors.DeepSkyBlue, Colors.MediumPurple })
+        {
+            Flash(color, 0.25);
+            await Task.Delay(250, ct);
+        }
+        return true;
+    }
+
     // What the module is doing (listening, thinking, speaking…) and with what: detail.Activity says it is searching the
     // internet, reading a page, looking at the screen…, and detail.Text says so in its language («Buscando en internet»).
     public void SetState(AssistantState state, StateDetail detail)

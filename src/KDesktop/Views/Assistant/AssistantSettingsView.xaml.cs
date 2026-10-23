@@ -63,6 +63,7 @@ public partial class AssistantSettingsView : UserControl
         _model.PropertyChanged += OnModelChanged;
         DataContext = _model;
         GeneralView.Show(model.Assistant);
+        if (model.Assistant is { } shown) TryView.Show(shown.Id);
         if (model.Assistant is { } assistant) PersonalView.Show(assistant);
         else PersonalView.ShowSystem();
 
@@ -80,6 +81,12 @@ public partial class AssistantSettingsView : UserControl
     public void ShowPersonal()
     {
         if (_model?.Pages.FirstOrDefault(p => p.IsPersonal) is { } personal) _model.CurrentPage = personal;
+    }
+
+    /// <summary>Opens «Probar» (<c>--page settings/assistants/&lt;id&gt;/try</c>, stage 13.9).</summary>
+    public void ShowTry()
+    {
+        if (_model?.Pages.FirstOrDefault(p => p.IsTry) is { } trying) _model.CurrentPage = trying;
     }
 
     /// <summary>The changes reach it now (it is on the desktop, or K-Desktop is active with the module running).</summary>
@@ -101,10 +108,12 @@ public partial class AssistantSettingsView : UserControl
         if (_model is null) return;
         var general = _model.CurrentPage is { IsGeneral: true };
         var personal = _model.CurrentPage is { IsPersonal: true };
+        var trying = _model.CurrentPage is { IsTry: true };
         GeneralView.Visibility = general ? Visibility.Visible : Visibility.Collapsed;
         PersonalView.Visibility = personal ? Visibility.Visible : Visibility.Collapsed;
-        SectionsList.Visibility = general || personal ? Visibility.Collapsed : Visibility.Visible;
-        ResetButton.Visibility = _model.HasOwnSettings && !general && !personal ? Visibility.Visible : Visibility.Collapsed;
+        TryView.Visibility = trying ? Visibility.Visible : Visibility.Collapsed;
+        SectionsList.Visibility = general || personal || trying ? Visibility.Collapsed : Visibility.Visible;
+        ResetButton.Visibility = _model.HasOwnSettings && !general && !personal && !trying ? Visibility.Visible : Visibility.Collapsed;
         NonePanel.Visibility = Visibility.Collapsed;
     }
 

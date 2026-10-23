@@ -347,6 +347,36 @@ Cuando cambian, llega `OnSettingsChanged` con `host.Common` ya al día. Un asist
 - **Papelera:** `SystemEvent.RecycleBinEmptied` trae dónde está su icono en el escritorio (o null si no está o los
   iconos están ocultos).
 
+## Escaparate
+
+En la ficha de cada asistente instalado, la pestaña **«Probar»** tiene un botón por cada cosa que sabe enseñar, y al
+pulsarlo la hace en ese momento en el escritorio (una a la vez: otra, o «Parar», corta la anterior). Lo de siempre lo
+lanza el host sin que hagas nada: entradas y salidas por motivo (sale y vuelve a cargarse; al enseñar una salida vuelve
+con `Reloaded`, sin espectáculo), los estados unos segundos (hablando, con un nivel de voz de mentira), las cuatro
+reacciones y los gestos que no necesitan ventana (`Announce`, `Communicate`, `Mark` en el reloj, `PointAt` a la bandeja,
+`GoTo` al ratón, `Scan` en el centro de su monitor, `Typing`). Lo que no sepas hacer sale como «no sabe hacerlo».
+
+**Tus animaciones propias** (SDK 1.18) van primero: un baile, un truco, cómo juega con la pelota… Dilas en `Showcase`
+(id, nombre por idioma y grupo: `Idle`, `Moving`, `Playing`, `Feelings`, `Tricks` u `Other`) y hazlas en
+`PlayShowcaseAsync`: empieza al momento, sea lo que sea lo que estabas haciendo, acaba cuando haya acabado (K-Desktop espera
+hasta 30 s) y para enseguida si el token salta; `false` si no conoces el id o ahora no puedes. Las dos tienen cuerpo por
+defecto (nada propio). Los asistentes sin código enseñan como propias las animaciones de su `character.json` que nada más
+enseña (`walk`, `sleep`, `surprised`, `click`, `catch`).
+
+```csharp
+public IReadOnlyList<ShowcaseItem> Showcase { get; } =
+    [new("dance", new Dictionary<string, string> { ["es"] = "Bailar", ["en"] = "Dance" }, ShowcaseGroup.Tricks)];
+
+public async Task<bool> PlayShowcaseAsync(string id, CancellationToken ct)
+{
+    if (id != "dance") return false;
+    StartDance();
+    try { await Task.Delay(2500, ct); }
+    finally { StopDance(); }
+    return true;
+}
+```
+
 ## Ajustes y panel
 
 K-Desktop los dibuja con sus propios controles, sin cargar código del asistente (§11.8 del plan):
