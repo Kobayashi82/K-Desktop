@@ -392,12 +392,13 @@ public partial class SettingsPage : UserControl
 
     // ── web ──────────────────────────────────────────────────────────────
 
-    private sealed record DeviceRow(string Id, string Name, string Detail);
+    private sealed record DeviceRow(string Id, string Name, string Detail, Wpf.Ui.Controls.SymbolRegular Icon);
 
     private void LoadDevices()
     {
         var rows = _app.Web.Devices.List()
-            .Select(d => new DeviceRow(d.Id, d.Name, Loc.T("settings.webDeviceDetail", d.LastSeen.ToString("g", Loc.Instance.Culture), d.LastIp ?? "?")))
+            .Select(d => new DeviceRow(d.Id, d.Name, Loc.T("settings.webDeviceDetail", d.LastSeen.ToString("g", Loc.Instance.Culture), d.LastIp ?? "?"),
+                d.ThisPc ? Wpf.Ui.Controls.SymbolRegular.Desktop24 : Wpf.Ui.Controls.SymbolRegular.Phone24))
             .ToList();
         DevicesList.ItemsSource = rows;
         NoDevicesText.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -446,8 +447,11 @@ public partial class SettingsPage : UserControl
 
     private void OnOpenWeb(object sender, RoutedEventArgs e)
     {
+        // With pairing on this PC too, it opens already paired (a one-time code that only works from here).
         var s = _app.Config.Settings;
-        ProcessLauncher.Launch(new LaunchSpec($"http://localhost:{s.WebPort}/"), asAdmin: false);
+        var url = $"http://localhost:{s.WebPort}/";
+        if (s.WebLocalPairing) url += "#link=" + _app.Web.Devices.NewOpenCode(Loc.T("settings.webThisPc"));
+        ProcessLauncher.Launch(new LaunchSpec(url), asAdmin: false);
     }
 
     // ── Android app ──────────────────────────────────────────────────────

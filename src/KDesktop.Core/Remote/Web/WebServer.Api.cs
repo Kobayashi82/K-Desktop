@@ -44,7 +44,8 @@ public sealed partial class WebServer
                 return;
         }
 
-        var device = request.IsLocal ? WebDevices.Local : Devices.Authenticate(TokenOf(context.Request), request.ClientIp.ToString());
+        var trusted = Trusted(request);
+        var device = trusted ? WebDevices.Local : Devices.Authenticate(TokenOf(context.Request), request.ClientIp.ToString());
         if (device is null)
         {
             await WriteJsonAsync(response, new { error = "unpaired" }, 401).ConfigureAwait(false);
@@ -62,15 +63,15 @@ public sealed partial class WebServer
             case ("GET", "/api/session"):
                 // Signed in by the header alone (the app moved to another address with its token): the cookie too,
                 // which images and the event stream need.
-                var cookie = !request.IsLocal && TokenOf(context.Request) is { } token && context.Request.Cookies[CookieName]?.Value != token;
+                var cookie = !trusted && TokenOf(context.Request) is { } token && context.Request.Cookies[CookieName]?.Value != token;
                 if (cookie) SetTokenCookie(response, request, TokenOf(context.Request));
                 await WriteJsonAsync(response, new
                 {
                     app = AppPaths.VersionName,
                     version = AppPaths.FullVersion,
                     machine = Environment.MachineName,
-                    device = new { device.Id, Name = request.IsLocal ? Loc.T("pwa.thisPc") : device.Name },
-                    local = request.IsLocal,
+                    device = new { device.Id, Name = trusted ? Loc.T("pwa.thisPc") : device.Name },
+                    local = trusted,
                     input = InputAllowed,
                     voice = _host.VoiceReady,
                     addresses = Addresses(),
@@ -80,7 +81,7 @@ public sealed partial class WebServer
                 break;
             case ("POST", "/api/link"):
                 // Pair this same device at another address (see WebDevices.NewLinkCode).
-                if (request.IsLocal) await WriteJsonAsync(response, new { error = "local" }, 400).ConfigureAwait(false);
+                if (trusted) await WriteJsonAsync(response, new { error = "local" }, 400).ConfigureAwait(false);
                 else await WriteJsonAsync(response, new { code = Devices.NewLinkCode(device) }).ConfigureAwait(false);
                 break;
             case ("GET", "/api/events"):
@@ -108,7 +109,7 @@ public sealed partial class WebServer
                 await AudioChangeAsync(context).ConfigureAwait(false);
                 break;
             case ("POST", "/api/logout"):
-                if (!request.IsLocal) Devices.Revoke(device.Id);
+                if (!trusted) Devices.Revoke(device.Id);
                 SetTokenCookie(response, request, null);
                 await WriteJsonAsync(response, new { ok = true }).ConfigureAwait(false);
                 break;
@@ -122,7 +123,7 @@ public sealed partial class WebServer
     {
         var body = await ReadJsonAsync(context.Request).ConfigureAwait(false);
         var ip = request.ClientIp.ToString();
-        if (Devices.Pair(Str(body, "code"), Str(body, "name"), ip) is not var (device, token))
+        if (Devices.Pair(Str(body, "code"), Str(body, "name"), ip, request.IsLocal) is not var (device, token))
         {
             // A little patience for whoever is guessing.
             await Task.Delay(800).ConfigureAwait(false);
@@ -237,6 +238,12 @@ public sealed partial class WebServer
             strings = Loc.Strings(code, "pwa."),
         };
     }
+
+    /// <summary>
+    /// A browser on this same PC that needs no pairing: only when the setting allows it (by default a local program
+    /// has to pair like a phone).
+    /// </summary>
+    private bool Trusted(WebRequest request) => request.IsLocal && !_host.Engine.Config.Settings.WebLocalPairing;
 
     /// <summary>The token travels in an HttpOnly cookie (so images load too) or, as a fallback, as a Bearer header.</summary>
     private static string? TokenOf(HttpListenerRequest raw)

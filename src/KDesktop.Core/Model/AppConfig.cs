@@ -458,6 +458,12 @@ public partial class AppSettings : ObservableObject
     /// <summary>The web app may move the mouse and type (its touchpad and keyboard).</summary>
     [ObservableProperty] private bool _webInput = true;
 
+    /// <summary>
+    /// A browser on this same PC must be paired too: otherwise any program of the PC could run commands through the
+    /// API. «Abrir en el navegador» pairs it by itself.
+    /// </summary>
+    [ObservableProperty] private bool _webLocalPairing = true;
+
     // Voice
     /// <summary>Hold to talk (or tap and talk). Empty: no hotkey.</summary>
     [ObservableProperty] private string _voiceHotkey = string.Empty;

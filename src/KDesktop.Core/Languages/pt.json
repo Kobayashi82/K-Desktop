@@ -3904,5 +3904,8 @@
   "assistantVoice.piperAddFolder": "Adicionar pasta…",
   "assistantVoice.piperFolderVoices": "{0} vozes",
   "assistantVoice.voiceOwn": "{0} · sua",
-  "assistantVoice.piperNeedsEspeak": "{0}: a voz já está aí; falta o espeak-ng ({1} MB)."
+  "assistantVoice.piperNeedsEspeak": "{0}: a voz já está aí; falta o espeak-ng ({1} MB).",
+  "settings.webLocalPairing": "Parear também neste PC",
+  "settings.webLocalPairingHint": "Assim nenhum programa deste PC pode executar seus comandos pela web sem permissão. «Abrir no navegador» pareia sozinho.",
+  "settings.webThisPc": "Navegador deste PC"
 }

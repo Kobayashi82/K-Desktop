@@ -3904,5 +3904,8 @@
   "assistantVoice.piperAddFolder": "Aggiungi cartella…",
   "assistantVoice.piperFolderVoices": "{0} voci",
   "assistantVoice.voiceOwn": "{0} · tua",
-  "assistantVoice.piperNeedsEspeak": "{0}: la voce c'è; manca espeak-ng ({1} MB)."
+  "assistantVoice.piperNeedsEspeak": "{0}: la voce c'è; manca espeak-ng ({1} MB).",
+  "settings.webLocalPairing": "Associa anche su questo PC",
+  "settings.webLocalPairingHint": "Così nessun programma di questo PC può eseguire i tuoi comandi dal web senza permesso. «Apri nel browser» lo associa da solo.",
+  "settings.webThisPc": "Browser di questo PC"
 }

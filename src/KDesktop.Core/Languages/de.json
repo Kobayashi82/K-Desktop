@@ -3904,5 +3904,8 @@
   "assistantVoice.piperAddFolder": "Ordner hinzufügen…",
   "assistantVoice.piperFolderVoices": "{0} Stimmen",
   "assistantVoice.voiceOwn": "{0} · deine",
-  "assistantVoice.piperNeedsEspeak": "{0}: Die Stimme ist da; es fehlt espeak-ng ({1} MB)."
+  "assistantVoice.piperNeedsEspeak": "{0}: Die Stimme ist da; es fehlt espeak-ng ({1} MB).",
+  "settings.webLocalPairing": "Auch auf diesem PC koppeln",
+  "settings.webLocalPairingHint": "So kann kein Programm auf diesem PC deine Befehle ohne Erlaubnis über das Web ausführen. „Im Browser öffnen“ koppelt ihn von selbst.",
+  "settings.webThisPc": "Browser dieses PCs"
 }

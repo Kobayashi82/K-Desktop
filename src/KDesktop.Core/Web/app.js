@@ -1030,6 +1030,19 @@ async function linkHere(code) {
   }
 }
 
+/** Whether this browser still gets in (its token or cookie is good), without showing the pairing screen. */
+async function stillPaired() {
+  const headers = { 'X-KD': '1' };
+  const token = store.get('token');
+  if (token) headers.Authorization = 'Bearer ' + token;
+  try {
+    const r = await fetch('api/session', { headers, cache: 'no-store', credentials: 'same-origin' });
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
+
 /** The token, also in the Android app: it moves between the PC's addresses with it. */
 function keepToken(token) {
   store.set('token', token);
@@ -1424,7 +1437,8 @@ async function start() {
     showPair(code, true);
     return;
   }
-  if (link) {
+  // Opened from K-Desktop on this PC with a link code too: a browser that is already paired does not need it.
+  if (link && !(await stillPaired())) {
     await linkHere(link);
     return;
   }

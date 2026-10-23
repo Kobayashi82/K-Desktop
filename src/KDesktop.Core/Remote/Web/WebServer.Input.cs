@@ -118,7 +118,7 @@ public sealed partial class WebServer
         }
 
         var ip = request.ClientIp.ToString();
-        var device = request.IsLocal ? WebDevices.Local : Devices.Authenticate(TokenOf(context.Request), ip);
+        var device = Trusted(request) ? WebDevices.Local : Devices.Authenticate(TokenOf(context.Request), ip);
 
         HttpListenerWebSocketContext ws;
         try { ws = await context.AcceptWebSocketAsync(null, TimeSpan.FromSeconds(20)).ConfigureAwait(false); }

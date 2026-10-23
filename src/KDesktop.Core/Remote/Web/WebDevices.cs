@@ -16,6 +16,9 @@ public sealed class WebDevice
     /// proxy's domain are different sites to it). See <see cref="WebDevices.NewLinkCode"/>.
     /// </summary>
     public List<string> LinkedTokenHashes { get; set; } = [];
+    /// <summary>The browsers of this same PC, paired by «Abrir en el navegador» (see <see cref="WebDevices.NewOpenCode"/>).</summary>
+    public bool ThisPc { get; set; }
+
     public DateTime Created { get; set; } = DateTime.Now;
     public DateTime LastSeen { get; set; } = DateTime.Now;
     public string? LastIp { get; set; }
@@ -55,7 +58,7 @@ public sealed class WebDevices
     /// <summary>Raised (on any thread) when the current pairing code is used.</summary>
     public event Action<WebDevice>? Paired;
 
-    /// <summary>The browser of this same PC: needs no pairing (see <see cref="WebRequest.IsLocal"/>).</summary>
+    /// <summary>The browser of this same PC when it needs no pairing (see <see cref="WebRequest.IsLocal"/>).</summary>
     public static WebDevice Local { get; } = new() { Id = "local" };
 
     public WebDevices() => Load();
@@ -93,15 +96,33 @@ public sealed class WebDevices
         return code;
     }
 
+    /// <summary>
+    /// A one-time code for K-Desktop to open the app in this PC's browser already paired (<c>localhost#link=CODE</c>):
+    /// it only works from this PC, and every browser of the PC is the same device, <paramref name="name"/>.
+    /// </summary>
+    public string NewOpenCode(string name)
+    {
+        var code = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(16));
+        lock (_lock)
+        {
+            foreach (var old in _linkCodes.Where(c => c.Value.Expires < DateTime.Now).Select(c => c.Key).ToList()) _linkCodes.Remove(old);
+            _linkCodes[code] = (ThisPcPrefix + name, DateTime.Now + CodeLifetime);
+        }
+        return code;
+    }
+
+    /// <summary>Marks a link code made by <see cref="NewOpenCode"/> (the rest of the value is the device's name).</summary>
+    private const string ThisPcPrefix = "\u0001";
+
     public void CancelCode()
     {
         lock (_lock) _code = null;
     }
 
     /// <summary>Exchanges a pairing code for a device token; null when the code is wrong or expired.</summary>
-    public (WebDevice Device, string Token)? Pair(string? code, string? name, string? ip)
+    public (WebDevice Device, string Token)? Pair(string? code, string? name, string? ip, bool local = false)
     {
-        if (Link(code, ip) is { } linked) return linked;
+        if (Link(code, ip, local) is { } linked) return linked;
         var typed = new string((code ?? string.Empty).ToUpperInvariant().Where(char.IsLetterOrDigit).ToArray());
         WebDevice device;
         string token;
@@ -136,23 +157,36 @@ public sealed class WebDevices
     }
 
     /// <summary>A link code (see <see cref="NewLinkCode"/>): a new token for the device it belongs to.</summary>
-    private (WebDevice Device, string Token)? Link(string? code, string? ip)
+    private (WebDevice Device, string Token)? Link(string? code, string? ip, bool local)
     {
         if (string.IsNullOrEmpty(code) || code.Length > 40) return null;
         WebDevice? device;
         var token = Base64Url(RandomNumberGenerator.GetBytes(32));
+        bool thisPc;
         lock (_lock)
         {
-            if (!_linkCodes.Remove(code, out var link) || DateTime.Now > link.Expires) return null;
-            device = _devices.FirstOrDefault(d => d.Id == link.DeviceId);
-            if (device is null) return null;
-            device.LinkedTokenHashes.Add(Hash(token));
-            if (device.LinkedTokenHashes.Count > MaxLinkedTokens) device.LinkedTokenHashes.RemoveAt(0);
+            if (!_linkCodes.TryGetValue(code, out var link) || DateTime.Now > link.Expires) return null;
+            thisPc = link.DeviceId.StartsWith(ThisPcPrefix, StringComparison.Ordinal);
+            // Opening from K-Desktop pairs only a browser of this PC: the code is useless anywhere else.
+            if (thisPc && !local) return null;
+            _linkCodes.Remove(code);
+            device = thisPc ? _devices.FirstOrDefault(d => d.ThisPc) : _devices.FirstOrDefault(d => d.Id == link.DeviceId);
+            if (device is null && thisPc)
+            {
+                device = new WebDevice { Name = CleanName(link.DeviceId[ThisPcPrefix.Length..]), TokenHash = Hash(token), ThisPc = true };
+                _devices.Add(device);
+            }
+            else if (device is null) return null;
+            else
+            {
+                device.LinkedTokenHashes.Add(Hash(token));
+                if (device.LinkedTokenHashes.Count > MaxLinkedTokens) device.LinkedTokenHashes.RemoveAt(0);
+            }
             device.LastSeen = DateTime.Now;
             device.LastIp = ip ?? device.LastIp;
             SaveLocked();
         }
-        Log.Info($"Web: «{device.Name}» emparejado también en otra dirección ({ip})");
+        Log.Info(thisPc ? $"Web: emparejado un navegador de este PC («{device.Name}»)" : $"Web: «{device.Name}» emparejado también en otra dirección ({ip})");
         Changed?.Invoke();
         return (device, token);
     }
