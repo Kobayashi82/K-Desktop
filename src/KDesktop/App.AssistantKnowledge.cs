@@ -32,20 +32,20 @@ public partial class App
     public bool RebuildAssistantKnowledge() => SendKnowledge(new KnowledgeMessage("rebuild"));
 
     /// <summary>
-    /// Adds a folder of documents; null when it was added, else why not (<see cref="KnowledgeFolders.Problem"/>). A folder
-    /// above some already chosen takes their place.
+    /// Adds a folder of documents or a single file; null when it was added, else why not (<see cref="KnowledgeFolders.Problem"/>).
+    /// A folder above some already chosen (folders or files) takes their place.
     /// </summary>
     public string? AddKnowledgeFolder(string folder)
     {
         var chosen = Config.Settings.AssistantKnowledgeFolders;
-        if (KnowledgeFolders.Problem(folder, chosen) is { } problem) return problem;
+        if (KnowledgeFolders.Problem(folder, chosen, Config.Settings.AssistantKnowledgeOcr) is { } problem) return problem;
         var full = System.IO.Path.GetFullPath(folder).TrimEnd('\\');
         Config.Settings.AssistantKnowledgeFolders = [.. chosen.Where(c => !KnowledgeFolders.Contains(full, c)), full];
-        Log.Info($"Asistente: carpeta nueva para lo que sabe: {full}");
+        Log.Info($"Asistente: añadido a lo que sabe: {full}");
         return null;
     }
 
-    /// <summary>Takes a folder out (what was read from it is forgotten).</summary>
+    /// <summary>Takes a folder or a file out (what was read from it is forgotten).</summary>
     public void RemoveKnowledgeFolder(string folder)
     {
         Config.Settings.AssistantKnowledgeFolders = [.. Config.Settings.AssistantKnowledgeFolders.Where(c => !string.Equals(c, folder, StringComparison.OrdinalIgnoreCase))];

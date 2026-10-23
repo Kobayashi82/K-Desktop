@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using KDesktop.Assistant.Tools.Builtin;
 using KDesktop.Core;
+using KDesktop.Core.Assistant;
 using KDesktop.Core.Platform;
 using Windows.Data.Pdf;
 using Windows.Graphics.Imaging;
@@ -20,25 +21,6 @@ public sealed record KnowledgeText(FileContent Content, bool Ocr);
 /// </summary>
 public static class KnowledgeReader
 {
-    /// <summary>Texts and documents: read whole.</summary>
-    private static readonly HashSet<string> Documents = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".txt", ".text", ".md", ".markdown", ".mdx", ".rst", ".org", ".adoc", ".tex", ".srt", ".vtt", ".eml",
-        ".pdf", ".docx", ".docm", ".dotx", ".pptx", ".pptm", ".html", ".htm", ".xhtml",
-    };
-
-    /// <summary>Code and data: also read, unless they are big (a dump of data is not a document).</summary>
-    private static readonly HashSet<string> Code = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".cs", ".vb", ".fs", ".py", ".js", ".mjs", ".ts", ".tsx", ".jsx", ".java", ".kt", ".c", ".h", ".cpp", ".hpp", ".cc",
-        ".go", ".rs", ".rb", ".php", ".swift", ".sql", ".sh", ".ps1", ".psm1", ".bat", ".cmd", ".lua", ".r", ".scala", ".dart",
-        ".css", ".scss", ".xaml", ".xml", ".json", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".csv", ".tsv",
-    };
-
-    /// <summary>Pictures, read only with the OCR (a photo without text is kept as «nothing to read»).</summary>
-    private static readonly HashSet<string> Pictures = new(StringComparer.OrdinalIgnoreCase)
-        { ".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp", ".gif" };
-
     /// <summary>The biggest code or data file read: bigger ones are data, not something to ask about.</summary>
     public const long MaxCodeBytes = 2L << 20;
 
@@ -51,17 +33,22 @@ public static class KnowledgeReader
     /// <summary>Scanned pages read in one PDF at most (a scanned book takes long; the first ones say what it is).</summary>
     public const int MostScannedPages = 200;
 
-    /// <summary>Whether <paramref name="file"/> is something to learn from (by its kind and size; pictures only with the OCR).</summary>
-    public static bool Takes(FileInfo file, bool ocr)
+    /// <summary>
+    /// Whether <paramref name="file"/> is something to learn from (by its kind and size; pictures only with the OCR; the lists
+    /// are <see cref="KnowledgeFolders"/>'s). One the user <paramref name="chose"/> by itself is read whatever its size (up to
+    /// what can be read): in a folder, big data files, minified code and tiny pictures (icons) are left out.
+    /// </summary>
+    public static bool Takes(FileInfo file, bool ocr, bool chose = false)
     {
         var extension = file.Extension;
-        if (file.Name.StartsWith('~') || file.Name.StartsWith('.')) return false;
-        if (Documents.Contains(extension)) return file.Length <= FileText.MaxBytes;
-        if (Code.Contains(extension)) return file.Length <= MaxCodeBytes && !file.Name.Contains(".min.", StringComparison.OrdinalIgnoreCase);
-        return ocr && Pictures.Contains(extension) && file.Length is > 8 * 1024 and <= MaxPictureBytes;
+        if (!chose && (file.Name.StartsWith('~') || file.Name.StartsWith('.'))) return false;
+        if (KnowledgeFolders.Documents.Contains(extension)) return file.Length <= FileText.MaxBytes;
+        if (KnowledgeFolders.Code.Contains(extension))
+            return chose ? file.Length <= FileText.MaxBytes : file.Length <= MaxCodeBytes && !file.Name.Contains(".min.", StringComparison.OrdinalIgnoreCase);
+        return ocr && KnowledgeFolders.Pictures.Contains(extension) && file.Length <= MaxPictureBytes && (chose || file.Length > 8 * 1024);
     }
 
-    public static bool IsPicture(string path) => Pictures.Contains(Path.GetExtension(path));
+    public static bool IsPicture(string path) => KnowledgeFolders.Pictures.Contains(Path.GetExtension(path));
 
     /// <summary>
     /// Its text: empty when it has none, null when it could not be read. <paramref name="ocr"/> null: pictures and scanned

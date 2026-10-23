@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
+using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Platform;
@@ -124,7 +125,9 @@ public partial class AssistantKnowledgeSection : UserControl
         Progress.Value = state.Files > 0 ? state.Done / (double)state.Files : 0;
     }
 
-    private static string Megabytes(long bytes) => string.Create(Loc.Instance.Culture, $"{bytes / 1048576.0:0.#} MB");
+    private static string Megabytes(long bytes) => bytes < 1048576
+        ? string.Create(Loc.Instance.Culture, $"{Math.Max(1, bytes / 1024)} KB")
+        : string.Create(Loc.Instance.Culture, $"{bytes / 1048576.0:0.#} MB");
 
     private Border FolderRow(string folder, KnowledgeFolderInfo? info, bool running)
     {
@@ -132,7 +135,10 @@ public partial class AssistantKnowledgeSection : UserControl
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        var icon = new SymbolIcon { Symbol = info is { Online: false } ? SymbolRegular.FolderProhibited24 : SymbolRegular.Folder24, FontSize = 20, Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
+        // A file chosen by itself (also one that is not there now: it has an extension and is not a folder).
+        var single = File.Exists(folder) || !Directory.Exists(folder) && Path.HasExtension(folder);
+        var symbol = info is { Online: false } ? SymbolRegular.FolderProhibited24 : single ? SymbolRegular.Document24 : SymbolRegular.Folder24;
+        var icon = new SymbolIcon { Symbol = symbol, FontSize = 20, Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
         icon.SetResourceReference(ForegroundProperty, "Kd.AccentText");
         grid.Children.Add(icon);
 
@@ -142,6 +148,12 @@ public partial class AssistantKnowledgeSection : UserControl
         var parts = new List<string>();
         if (info is null) parts.Add(Loc.T(running ? "knowledgeOptions.folder.looking" : "knowledgeOptions.folder.later"));
         else if (!info.Online) parts.Add(Loc.T("knowledgeOptions.folder.offline"));
+        else if (single)
+            parts.Add(info.Files == 0 ? Loc.T("knowledgeOptions.file.gone")
+                : info.Done < info.Files ? Loc.T("knowledgeOptions.file.waiting")
+                : info.Failed > 0 ? Loc.T("knowledgeOptions.file.failed")
+                : info.Pieces == 0 ? Loc.T("knowledgeOptions.file.empty")
+                : Loc.T("knowledgeOptions.file.ready", info.Pieces.ToString("N0", culture)));
         else
         {
             parts.Add(info.Done < info.Files
@@ -159,8 +171,10 @@ public partial class AssistantKnowledgeSection : UserControl
 
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) };
         Grid.SetColumn(buttons, 2);
-        buttons.Children.Add(Small(SymbolRegular.DocumentBulletList24, Loc.T("knowledgeOptions.files"), folder, () => AskFiles(folder), running && info is not null));
-        buttons.Children.Add(Small(SymbolRegular.FolderOpen24, Loc.T("knowledgeOptions.open"), folder, () => Open(folder), Directory.Exists(folder)));
+        if (!single) buttons.Children.Add(Small(SymbolRegular.DocumentBulletList24, Loc.T("knowledgeOptions.files"), folder, () => AskFiles(folder), running && info is not null));
+        buttons.Children.Add(single
+            ? Small(SymbolRegular.FolderOpen24, Loc.T("knowledgeOptions.openFile"), folder, () => Open(folder, select: true), File.Exists(folder))
+            : Small(SymbolRegular.FolderOpen24, Loc.T("knowledgeOptions.open"), folder, () => Open(folder), Directory.Exists(folder)));
         buttons.Children.Add(Small(SymbolRegular.Delete24, Loc.T("knowledgeOptions.remove"), folder, () => _app.RemoveKnowledgeFolder(folder), true));
         grid.Children.Add(buttons);
 
@@ -186,13 +200,36 @@ public partial class AssistantKnowledgeSection : UserControl
         return button;
     }
 
-    private static void Open(string folder) => ProcessLauncher.Launch(new LaunchSpec("explorer.exe", $"\"{folder}\""), asAdmin: false);
+    /// <summary>The folder in the Explorer; a file, in its folder with it selected.</summary>
+    private static void Open(string path, bool select = false) =>
+        ProcessLauncher.Launch(new LaunchSpec("explorer.exe", select ? $"/select,\"{path}\"" : $"\"{path}\""), asAdmin: false);
 
     private void OnAdd(object sender, RoutedEventArgs e)
     {
         var dialog = new Microsoft.Win32.OpenFolderDialog { Title = Loc.T("knowledgeOptions.addTitle"), Multiselect = true };
         if (dialog.ShowDialog(Window.GetWindow(this)) != true) return;
-        var problems = dialog.FolderNames.Select(f => (Folder: f, Problem: _app.AddKnowledgeFolder(f))).Where(p => p.Problem is not null).ToList();
+        Added(dialog.FolderNames);
+    }
+
+    /// <summary>Single files: documents, code and (with the OCR) pictures.</summary>
+    private void OnAddFiles(object sender, RoutedEventArgs e)
+    {
+        var ocr = _app.Config.Settings.AssistantKnowledgeOcr;
+        var kinds = KnowledgeFolders.Documents.Concat(KnowledgeFolders.Code).Concat(ocr ? KnowledgeFolders.Pictures : []).Select(x => "*" + x);
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = Loc.T("knowledgeOptions.addFilesTitle"),
+            Multiselect = true,
+            Filter = $"{Loc.T("knowledgeOptions.filesFilter")}|{string.Join(';', kinds)}",
+        };
+        if (dialog.ShowDialog(Window.GetWindow(this)) != true) return;
+        Added(dialog.FileNames);
+    }
+
+    /// <summary>Adds what was chosen and says why some could not be.</summary>
+    private void Added(IEnumerable<string> chosen)
+    {
+        var problems = chosen.Select(f => (Folder: f, Problem: _app.AddKnowledgeFolder(f))).Where(p => p.Problem is not null).ToList();
         ProblemText.Visibility = problems.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         ProblemText.Text = string.Join("\n", problems.Select(p => $"{p.Folder}: {Loc.T("knowledgeOptions.problem." + p.Problem)}"));
         Fill();

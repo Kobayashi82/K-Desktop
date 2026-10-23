@@ -113,7 +113,13 @@ public sealed class KnowledgeTests : IDisposable
         {
             Directory.Delete(mine, true);
         }
-        Assert.Equal([_root], KnowledgeFolders.Clean([Docs, _root, _root + "\\"]));
+        Assert.Equal([_root], KnowledgeFolders.Clean([Docs, _root, _root + "\\", Path.Combine(Docs, "a.txt")]));
+        // Files: one that can be read, inside a chosen folder, and one that cannot.
+        var program = Path.Combine(AppContext.BaseDirectory, "KDesktop.Assistant.Tests.dll");
+        Assert.Equal("kind", KnowledgeFolders.Problem(program, []));
+        Assert.True(KnowledgeFolders.Readable("factura.PDF", false));
+        Assert.False(KnowledgeFolders.Readable("foto.jpg", false));
+        Assert.True(KnowledgeFolders.Readable("foto.jpg", true));
     }
 
     [Fact]
@@ -190,6 +196,25 @@ public sealed class KnowledgeTests : IDisposable
         again.Configure([], false);
         await Until(() => Directory.GetFiles(Store, "*.kdk").Length == 0, "olvidar al quitar la carpeta");
         Assert.Equal("off", again.State().Phase);
+    }
+
+    [Fact]
+    public async Task AFileChosenByItselfIsReadAndWatchedAlone()
+    {
+        var contract = Write("contrato.txt", "El alquiler sube un 3 % cada enero.");
+        Write("otro.txt", "Este no se ha elegido: la piscina abre en junio.");
+        using var knowledge = Make();
+        knowledge.Configure([contract], false);
+        knowledge.Start();
+        await ReadyAsync(knowledge, 1);
+        Assert.NotEmpty((await knowledge.SearchAsync("alquiler enero", 6, null, CancellationToken.None)).Hits);
+        Assert.Empty((await knowledge.SearchAsync("piscina junio", 6, null, CancellationToken.None)).Hits);
+
+        File.WriteAllText(contract, "El alquiler sube un 5 % cada febrero.");
+        await Until(() => knowledge.SearchAsync("alquiler febrero", 6, null, CancellationToken.None).Result.Hits.Count > 0, "el archivo cambiado");
+        File.Delete(contract);
+        await Until(() => knowledge.State().Files == 0, "el archivo borrado");
+        Assert.Empty(Directory.GetFiles(Store, "*.kdk"));
     }
 
     [Fact]

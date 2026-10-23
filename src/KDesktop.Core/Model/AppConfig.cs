@@ -684,8 +684,8 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private bool _assistantMemoryLearn = true;
 
     /// <summary>
-    /// The folders of the user's documents the assistants know (stage 19, Options → Assistant → «Lo que sabe»): read once,
-    /// watched, searched with search_knowledge. Never a whole disk. Replaced whole.
+    /// The folders of the user's documents (and single files) the assistants know (stage 19, Options → Assistant → «Lo que
+    /// sabe»): read once, watched, searched with search_knowledge. Never a whole disk. Replaced whole.
     /// </summary>
     [ObservableProperty] private List<string> _assistantKnowledgeFolders = [];
 

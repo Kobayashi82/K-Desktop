@@ -12,7 +12,7 @@ namespace KDesktop.Assistant.Tools.Knowledge;
 public sealed record KnowledgeFound(IReadOnlyList<KnowledgeHit> Hits, bool Mixed, int Milliseconds);
 
 /// <summary>
-/// What the assistants know (stage 19): the folders of documents the user chose, read once and kept up to date. On disk,
+/// What the assistants know (stage 19): the folders of documents (and single files) the user chose, read once and kept up to date. On disk,
 /// a file per document (<see cref="KnowledgeStore"/>); in memory, their words and vectors (<see cref="KnowledgeIndex"/>).
 /// When it starts it loads what was read, looks at the folders and reads only what is new or changed (by size and date);
 /// while it runs it watches them. One file at a time, resting as long as it works (half a core's worth at most), and it waits
@@ -92,7 +92,7 @@ public sealed class KnowledgeBase : IDisposable
     /// <summary>Raised when what <see cref="State"/> says changes (at most twice a second, on the pool).</summary>
     public event Action? Changed;
 
-    /// <summary>The folders chosen (and that count: none inside another).</summary>
+    /// <summary>The folders and single files chosen (and that count: none inside another).</summary>
     public IReadOnlyList<string> Folders => _folders;
 
     public bool HasFolders => _folders.Count > 0;
@@ -367,9 +367,16 @@ public sealed class KnowledgeBase : IDisposable
         var offline = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var folder in folders)
         {
+            // A file chosen by itself: it, if it can be read; gone from a folder that is there, it is forgotten.
+            if (new FileInfo(folder) is { Exists: true } file)
+            {
+                if (KnowledgeReader.Takes(file, pictures, chose: true)) seen[file.FullName] = new FileSignature(file.Length, file.LastWriteTimeUtc.Ticks);
+                continue;
+            }
             if (!Directory.Exists(folder))
             {
-                offline.Add(folder);
+                // A disk that is not plugged in keeps what was read from it.
+                if (!Directory.Exists(Path.GetDirectoryName(folder))) offline.Add(folder);
                 continue;
             }
             Walk(folder, pictures, seen, stop);
@@ -564,12 +571,15 @@ public sealed class KnowledgeBase : IDisposable
         }
         foreach (var folder in folders)
         {
-            if (_watchers.ContainsKey(folder) || !Directory.Exists(folder)) continue;
+            if (_watchers.ContainsKey(folder)) continue;
+            // A file chosen by itself: its folder, only that name.
+            var single = !Directory.Exists(folder);
+            if (single && !Directory.Exists(Path.GetDirectoryName(folder))) continue;
             try
             {
-                var watcher = new FileSystemWatcher(folder)
+                var watcher = new FileSystemWatcher(single ? Path.GetDirectoryName(folder)! : folder, single ? Path.GetFileName(folder) : "*")
                 {
-                    IncludeSubdirectories = true,
+                    IncludeSubdirectories = !single,
                     NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.LastWrite | NotifyFilters.Size,
                     InternalBufferSize = 64 * 1024,
                 };
@@ -633,7 +643,7 @@ public sealed class KnowledgeBase : IDisposable
                     lock (_gate) pictures = _readPictures;
                     lock (_gate)
                     {
-                        if (KnowledgeReader.Takes(file, pictures) && !InSkippedFolder(file.FullName)) any |= Seen(file.FullName, new FileSignature(file.Length, file.LastWriteTimeUtc.Ticks));
+                        if (KnowledgeReader.Takes(file, pictures, IsChosen(file.FullName)) && !InSkippedFolder(file.FullName)) any |= Seen(file.FullName, new FileSignature(file.Length, file.LastWriteTimeUtc.Ticks));
                         else any |= Gone(file.FullName);
                     }
                 }
@@ -656,9 +666,13 @@ public sealed class KnowledgeBase : IDisposable
     {
         var folder = _folders.FirstOrDefault(f => KnowledgeFolders.Contains(f, path));
         if (folder is null) return true;
+        if (string.Equals(folder, path, StringComparison.OrdinalIgnoreCase)) return false;
         var parts = Path.GetRelativePath(folder, Path.GetDirectoryName(path)!).Split('\\', StringSplitOptions.RemoveEmptyEntries);
         return parts.Any(p => p != "." && FileSearch.IsProgramsFolder(p));
     }
+
+    /// <summary>A file the user chose by itself (not by its folder).</summary>
+    private bool IsChosen(string path) => _folders.Contains(path, StringComparer.OrdinalIgnoreCase);
 
     private bool Seen(string path, FileSignature signature)
     {

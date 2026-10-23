@@ -136,8 +136,8 @@ El módulo Asistente está en desarrollo. Apagado, K-Desktop es el de siempre: n
    Desktop o mcpo: se importan con sus secretos). Todo en **Opciones → Módulo Asistente → Herramientas**: cada
    herramienta con su interruptor, cuándo pregunta y «Probar». Guía y ejemplos en
    [docs/assistant/herramientas.md](docs/assistant/herramientas.md).
-9. **Lo que sabe:** en **Opciones → Módulo Asistente → Lo que sabe** eliges carpetas con tus documentos (apuntes,
-   manuales, contratos, facturas…; nunca un disco entero). Se leen una vez en el PC —texto, Markdown, código, Word,
+9. **Lo que sabe:** en **Opciones → Módulo Asistente → Lo que sabe** eliges carpetas o archivos sueltos con tus
+   documentos (apuntes, manuales, contratos, facturas…; nunca un disco entero). Se leen una vez en el PC —texto, Markdown, código, Word,
    PowerPoint, páginas web, PDF y, con el OCR de Windows, imágenes y PDF escaneados—, se vigilan y solo se vuelve a leer
    lo que cambia; la lectura se para con un juego a pantalla completa. Los asistentes buscan ahí por palabras y por
    significado («¿qué dice mi contrato sobre la fianza?») y dicen de qué documento y página sale. Se puede preguntar

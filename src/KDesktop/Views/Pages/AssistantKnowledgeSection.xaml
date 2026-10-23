@@ -15,8 +15,10 @@
                         <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr knowledgeOptions.title}" />
                         <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr knowledgeOptions.intro}" />
                     </StackPanel>
-                    <ui:Button Grid.Column="1" VerticalAlignment="Center" Appearance="Primary" Icon="{ui:SymbolIcon FolderAdd24}"
-                               Content="{l:Tr knowledgeOptions.add}" Click="OnAdd" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon FolderAdd24}" Content="{l:Tr knowledgeOptions.add}" Click="OnAdd" />
+                        <ui:Button Margin="8,0,0,0" Icon="{ui:SymbolIcon DocumentAdd24}" Content="{l:Tr knowledgeOptions.addFiles}" Click="OnAddFiles" />
+                    </StackPanel>
                 </Grid>
 
                 <!-- The module is off, or its process is not running -->
