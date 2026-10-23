@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Media.Imaging;
 using KDesktop.Assistant.Host.Rendering;
 using KDesktop.Assistant.Sdk;
 using static KDesktop.Assistant.Host.Interop.Native;
@@ -122,6 +123,18 @@ internal sealed unsafe class HitArea : IHitArea
 
     public PointerCursor Cursor { get; set; } = PointerCursor.Hand;
 
+    /// <summary>The assistant's own cursor (<see cref="SetCursorImage"/>), or 0.</summary>
+    private nint _customCursor;
+
+    public void SetCursorImage(BitmapSource? image, Point hotspot = default)
+    {
+        var previous = _customCursor;
+        _customCursor = image is null ? 0 : CursorImages.Create(image, hotspot);
+        // Over the area right now: the new one shows at once (not at the next mouse move).
+        if (_hover) SetCursor(_customCursor != 0 ? _customCursor : LoadCursor(0, IDC_HAND));
+        if (previous != 0) DestroyIcon(previous);
+    }
+
     public void Place(HitShape shape)
     {
         if (_suspended)
@@ -179,6 +192,8 @@ internal sealed unsafe class HitArea : IHitArea
     {
         _window.Dispose();
         _owner.Forget(this);
+        if (_customCursor != 0) DestroyIcon(_customCursor);
+        _customCursor = 0;
     }
 
     /// <summary>Same shape and size, moved: the region (relative to the window) does not change.</summary>
@@ -292,6 +307,10 @@ internal sealed unsafe class HitArea : IHitArea
             case WM_MBUTTONUP:
                 _owner.Write(Id);
                 return 0;
+
+            case WM_SETCURSOR when _customCursor != 0:
+                SetCursor(_customCursor);
+                return 1;
 
             case WM_SETCURSOR:
                 SetCursor(LoadCursor(0, Cursor switch

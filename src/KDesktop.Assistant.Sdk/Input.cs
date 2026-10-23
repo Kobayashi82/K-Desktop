@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 
 namespace KDesktop.Assistant.Sdk;
 
@@ -10,6 +11,9 @@ namespace KDesktop.Assistant.Sdk;
 /// </summary>
 public interface IPointer
 {
+    /// <summary>A new hit area, hidden until it is placed.</summary>
+    /// <param name="id">Its name, which comes in <see cref="PointerEvent.Area"/>: give each area its own (a toy, a
+    /// button), or their events cannot be told apart.</param>
     IHitArea CreateHitArea(string id = "body");
 
     /// <summary>
@@ -31,6 +35,13 @@ public interface IHitArea : IDisposable
 
     /// <summary>Cursor shown over the area.</summary>
     PointerCursor Cursor { get; set; }
+
+    /// <summary>
+    /// A cursor of its own over the area (SDK 1.8): a brush, a feather… drawn by the assistant, in screen pixels (draw it
+    /// at the DPI of the monitor; Windows' own cursors measure 32 pixels at 100 %). <paramref name="hotspot"/> is the
+    /// pixel of the picture that points. Null goes back to <see cref="Cursor"/>.
+    /// </summary>
+    void SetCursorImage(BitmapSource? image, Point hotspot = default);
 }
 
 public enum PointerCursor { Arrow, Hand, Grab, Grabbing }

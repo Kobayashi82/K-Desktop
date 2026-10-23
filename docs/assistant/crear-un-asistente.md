@@ -186,6 +186,11 @@ tarjeta y un botón en el panel, y guarda sus datos en su carpeta.
   paquete), `Play` con ganancia y panorama, y `Loop` con ganancia, tono y panorama en vivo (para un motor). El host lo
   mezcla todo bajo el volumen de Opciones → Asistente → General; el dispositivo solo se abre mientras suena algo. Con el
   sonido apagado, `Enabled` es falso y todo suena a silencio.
+- **Zonas de clic** (`Pointer.CreateHitArea(id)`): cada una con su `id`, que llega en `PointerEvent.Area` (con varias —el
+  cuerpo y unos juguetes, por ejemplo— dales nombres distintos, o no sabrás de cuál viene cada clic). Sobre la zona sale el
+  cursor que digas (`Cursor`: flecha, mano, agarrar) o, desde el SDK 1.8, uno dibujado por ti: `SetCursorImage(imagen,
+  punta)` con un `BitmapSource` a los píxeles del monitor (los cursores de Windows miden 32 a 100 %; Kobii pone un
+  cepillo al cepillarle); `null` vuelve al de siempre.
 - **Teclado** (`IKeyboard`): `IsDown` siempre; `Capture` hace que K-Desktop se trague esas teclas (pulsadas sin Ctrl, Alt
   ni Win, así los atajos siguen) mientras se juega, y sus cambios llegan a `KeyChanged`. `Release` al terminar (también
   se sueltan solas si el asistente sale, el proceso se cae o K-Desktop se pausa).

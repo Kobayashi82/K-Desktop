@@ -75,6 +75,22 @@ internal static unsafe partial class Native
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool BitBlt(nint dest, int x, int y, int width, int height, nint source, int sourceX, int sourceY, uint rop);
 
+    [StructLayout(LayoutKind.Sequential)]
+    public struct ICONINFO
+    {
+        public int fIcon;
+        public uint xHotspot;
+        public uint yHotspot;
+        public nint hbmMask;
+        public nint hbmColor;
+    }
+
+    [LibraryImport("gdi32.dll")]
+    public static partial nint CreateBitmap(int width, int height, uint planes, uint bitsPerPixel, void* bits);
+
+    [LibraryImport("user32.dll")]
+    public static partial nint CreateIconIndirect(ICONINFO* info);
+
     [LibraryImport("shell32.dll", EntryPoint = "SHGetFileInfoW", StringMarshalling = StringMarshalling.Utf16)]
     public static partial nint SHGetFileInfo(string path, uint attributes, SHFILEINFOW* info, uint size, uint flags);
 
