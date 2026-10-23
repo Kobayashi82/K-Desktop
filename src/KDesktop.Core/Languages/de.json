@@ -3971,5 +3971,6 @@
   "assistantCatalog.badUrl": "Es muss eine https://-Adresse sein",
   "assistantCatalog.already": "Dieser Katalog ist schon da",
   "assistantCatalog.trust": "In einem Katalog zu stehen macht es nicht vertrauenswürdig: Die Karte sagt, ob das Paket verifiziert ist und was es darf.",
-  "assistantCatalog.badList": "das ist kein Katalog ({0})"
+  "assistantCatalog.badList": "das ist kein Katalog ({0})",
+  "assistantCard.noCode": "Dieser Assistent enthält keinen Code: nur Bilder und wofür jedes da ist. K-Desktop bewegt ihn."
 }

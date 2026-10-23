@@ -3971,5 +3971,6 @@
   "assistantCatalog.badUrl": "Il faut une adresse https://",
   "assistantCatalog.already": "Ce catalogue est déjà là",
   "assistantCatalog.trust": "Être dans un catalogue ne le rend pas fiable : la fiche indique si le paquet est vérifié et ce qu'il peut faire.",
-  "assistantCatalog.badList": "ce n'est pas un catalogue ({0})"
+  "assistantCatalog.badList": "ce n'est pas un catalogue ({0})",
+  "assistantCard.noCode": "Cet assistant ne contient pas de code : seulement des images et leur rôle. C'est K-Desktop qui le fait bouger."
 }

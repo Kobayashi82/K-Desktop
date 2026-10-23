@@ -1,0 +1,26 @@
+{
+  "$schema": "../../../docs/assistant/esquemas/settings.schema.json",
+  "pages": [
+    {
+      "title": { "es": "Pip", "en": "Pip", "fr": "Pip", "de": "Pip", "it": "Pip", "pt": "Pip" },
+      "sections": [
+        {
+          "items": [
+            {
+              "type": "slider",
+              "key": "scale",
+              "label": { "es": "Tamaño", "en": "Size", "fr": "Taille", "de": "Größe", "it": "Dimensione", "pt": "Tamanho" },
+              "min": 0.5, "max": 2, "step": 0.1, "default": 1, "format": "{0}×"
+            },
+            {
+              "type": "toggle",
+              "key": "wander",
+              "label": { "es": "Pasear solo de vez en cuando", "en": "Stroll on its own now and then", "fr": "Se promener tout seul de temps en temps", "de": "Ab und zu von selbst spazieren", "it": "Passeggiare da solo ogni tanto", "pt": "Passear sozinho de vez em quando" },
+              "default": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

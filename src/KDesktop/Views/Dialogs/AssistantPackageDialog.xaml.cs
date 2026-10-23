@@ -134,6 +134,14 @@ public partial class AssistantPackageDialog : FluentWindow
         }
 
         ShowSignature(package);
+        if (manifest.IsCharacter && package.Signature.State != SignatureState.Verified)
+        {
+            // Pictures and JSON only (phase 12): nothing of it runs.
+            WarningText.Text = Loc.T("assistantCard.noCode");
+            WarningIcon.Symbol = Wpf.Ui.Controls.SymbolRegular.Image24;
+            WarningIcon.SetResourceReference(Wpf.Ui.Controls.SymbolIcon.ForegroundProperty, "Kd.AccentText");
+            WarningBox.SetResourceReference(System.Windows.Controls.Border.BorderBrushProperty, "CardStrokeColorDefaultBrush");
+        }
 
         if (Bitmap(package.Icon) is { } icon)
         {

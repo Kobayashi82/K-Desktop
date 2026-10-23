@@ -40,7 +40,7 @@ internal sealed record LoadedPackage(
     string Folder,
     string DataFolder,
     JsonElement Settings,
-    AssemblyLoadContext Context);
+    AssemblyLoadContext? Context);
 
 /// <summary>Loads and unloads assistant packages (installed, or a build folder in development).</summary>
 internal static class PackageLoader
@@ -55,6 +55,8 @@ internal static class PackageLoader
         var host = typeof(IAssistant).Assembly.GetName().Version ?? new Version(1, 0);
         if (!manifest.RunsOn(host))
             throw new InvalidOperationException($"«{manifest.Id}» necesita el SDK {manifest.Sdk}; este K-Desktop tiene el {host.Major}.{host.Minor}");
+
+        if (manifest.IsCharacter) return LoadCharacter(folder, dataFolder, manifest);
 
         var (dll, typeName) = manifest.EntryParts;
         var entry = Path.GetFullPath(Path.Combine(folder, dll.Replace('/', Path.DirectorySeparatorChar)));
@@ -81,6 +83,20 @@ internal static class PackageLoader
             context.Unload();
             throw;
         }
+    }
+
+    /// <summary>An assistant without code (phase 12): its character.json, moved by the host; nothing of the package is loaded as code.</summary>
+    private static LoadedPackage LoadCharacter(string folder, string? dataFolder, AssistantManifest manifest)
+    {
+        var file = Path.GetFullPath(Path.Combine(folder, manifest.Entry));
+        if (!file.StartsWith(Path.GetFullPath(folder), StringComparison.OrdinalIgnoreCase) || !File.Exists(file))
+            throw new FileNotFoundException($"No está {manifest.Entry} en el paquete");
+        var character = CharacterFile.Parse(File.ReadAllText(file));
+        var data = dataFolder ?? AssistantPaths.Data(manifest.Id);
+        Directory.CreateDirectory(data);
+        var settings = JsonSerializer.SerializeToElement(AssistantSettingsValues.Read(folder, manifest));
+        Log.Info($"Asistente: personaje «{manifest.Id}» {manifest.Version} (sin código) cargado desde {folder}");
+        return new LoadedPackage(new Characters.CharacterAssistant(character), manifest, folder, data, settings, null);
     }
 
     /// <summary>

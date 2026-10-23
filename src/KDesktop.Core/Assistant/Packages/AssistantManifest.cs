@@ -42,6 +42,13 @@ public sealed partial record AssistantManifest
     [JsonIgnore]
     public (string Assembly, string Type) EntryParts => Entry.Split('!', 2) is [var dll, var type] ? (dll, type) : (Entry, string.Empty);
 
+    /// <summary>
+    /// An assistant without code (phase 12): the entry is its <see cref="CharacterFile"/> («character.json»), and the host
+    /// moves it. No code of the package is ever loaded.
+    /// </summary>
+    [JsonIgnore]
+    public bool IsCharacter => Entry.EndsWith(".json", StringComparison.OrdinalIgnoreCase);
+
     /// <summary>The version as a comparable value (pre-release tags are ignored for the order).</summary>
     [JsonIgnore]
     public Version ParsedVersion => System.Version.TryParse(Version.Split('-', 2)[0], out var v) ? v : new Version(0, 0, 0);
@@ -98,7 +105,7 @@ public sealed partial record AssistantManifest
         if (!IdPattern().IsMatch(Id)) throw new ManifestException($"El id «{Id}» no es válido (minúsculas, números, puntos y guiones)");
         if (!VersionPattern().IsMatch(Version)) throw new ManifestException($"La versión «{Version}» no es válida (x.y.z)");
         if (SdkMajor < 0) throw new ManifestException($"La versión del SDK «{Sdk}» no es válida");
-        if (!EntryPattern().IsMatch(Entry)) throw new ManifestException($"La entrada «{Entry}» no es válida (lib/Archivo.dll!Espacio.Tipo)");
+        if (!EntryPattern().IsMatch(Entry)) throw new ManifestException($"La entrada «{Entry}» no es válida (lib/Archivo.dll!Espacio.Tipo, o character.json)");
     }
 
     [GeneratedRegex("^[a-z0-9][a-z0-9.-]{0,63}$")]
@@ -107,7 +114,7 @@ public sealed partial record AssistantManifest
     [GeneratedRegex(@"^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$")]
     private static partial Regex VersionPattern();
 
-    [GeneratedRegex(@"^lib/[A-Za-z0-9_.-]+\.dll![A-Za-z_][A-Za-z0-9_.]*$")]
+    [GeneratedRegex(@"^(lib/[A-Za-z0-9_.-]+\.dll![A-Za-z_][A-Za-z0-9_.]*|[A-Za-z0-9_-]+\.json)$")]
     private static partial Regex EntryPattern();
 }
 

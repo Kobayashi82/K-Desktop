@@ -24,9 +24,9 @@
       "pattern": "^\\d+\\.\\d+$"
     },
     "entry": {
-      "description": "Ensamblado y tipo que implementa IAssistant: «lib/Archivo.dll!Espacio.De.Nombres.Tipo».",
+      "description": "Ensamblado y tipo que implementa IAssistant: «lib/Archivo.dll!Espacio.De.Nombres.Tipo». O, para un asistente sin código, su character.json (character.schema.json): el host lo mueve con sus imágenes.",
       "type": "string",
-      "pattern": "^lib/[A-Za-z0-9_.-]+\\.dll![A-Za-z_][A-Za-z0-9_.]*$"
+      "pattern": "^(lib/[A-Za-z0-9_.-]+\\.dll![A-Za-z_][A-Za-z0-9_.]*|[A-Za-z0-9_-]+\\.json)$"
     },
     "icon": { "$ref": "common.schema.json#/$defs/packagePath" },
     "preview": { "$ref": "common.schema.json#/$defs/packagePath" },

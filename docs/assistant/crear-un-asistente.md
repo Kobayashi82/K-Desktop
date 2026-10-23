@@ -4,6 +4,52 @@ Un asistente es un paquete `.kai`: un `.zip` con su manifiesto (`assistant.json`
 su código en `lib/`. Se escribe en C# contra el SDK (`src/KDesktop.Assistant.Sdk`), que K-Desktop pone siempre: el
 paquete nunca lo lleva. Mientras el SDK no esté en NuGet se usa por referencia a una copia de este repositorio.
 
+¿Solo quieres un personaje que pasee por el escritorio, sin programar? Mira **«Sin código»**, justo abajo.
+
+## Sin código
+
+Un asistente puede ser solo imágenes y JSON: en vez de un ensamblado, su `entry` es un `character.json`
+([esquema](esquemas/character.schema.json)) y K-Desktop lo mueve. Está sobre la barra de tareas o encima de las
+ventanas, pasea de vez en cuando (y a veces se cae por el borde de una ventana), sigue a la ventana en la que está, se
+deja arrastrar y soltar, se duerme cuando no estás, y pone una animación para cada cosa: escucharte, pensar, hablar con
+su bocadillo, alegrarse o entristecerse por lo que pasa, un clic. Habla, piensa y usa las herramientas como cualquier
+otro asistente (su voz y su personalidad, en «Personalidad y voz»). El ejemplo es **Pip** (`samples/CharacterAssistant`;
+sus dibujos los hace `tools/character/make-pip.ps1`).
+
+```
+MiPersonaje\
+  assistant.json      "entry": "character.json", "traits": { "travel": "walk", … }
+  character.json
+  icon.png
+  frames\idle0.png …  (PNG con transparencia, todos con el mismo alto)
+  settings.json       (opcional: "scale" y "wander" los entiende el host)
+```
+
+```json
+{
+  "height": 80,
+  "faces": "right",
+  "walkSpeed": 60,
+  "animations": {
+    "idle": { "frames": ["frames/idle0.png", "frames/idle1.png"], "fps": 2 },
+    "walk": { "strip": "frames/walk.png", "frames": 6, "fps": 10 },
+    "talk": { "frames": ["frames/talk0.png", "frames/talk1.png"], "fps": 8, "sound": "sounds/hola.wav" }
+  }
+}
+```
+
+- `height`: alto con la escala al 100 %; cada fotograma se dibuja así de alto. Los pies son el borde de abajo de la imagen.
+- `faces`: hacia dónde miran los dibujos; al andar hacia el otro lado se dan la vuelta solos.
+- Animaciones: `idle` (obligatoria), `walk`, `talk`, `listen`, `think`, `happy`, `sad`, `surprised`, `click`, `drag`,
+  `fall`, `sleep`, `enter`, `exit`. La que falte usa otra (`think` → `listen` → `idle`, `click` → `happy` → `idle`,
+  `drag` → `fall` → `idle`…). Cada una con `frames` (lista de imágenes) o `strip` + `frames` (una tira de N fotogramas
+  del mismo ancho), `fps`, `loop` (por defecto se repiten todas salvo `happy`, `sad`, `surprised`, `click`, `enter` y
+  `exit`) y `sound` (un WAV que suena al empezar).
+- Para el paquete: comprime la carpeta (el `assistant.json` en la raíz) con `tools\character\pack.ps1 <carpeta>`, que
+  deja `<id>-<versión>.kai` con las rutas como las quiere K-Desktop, y ábrelo con K-Desktop.
+- La ficha de instalación dice que no lleva código. Nada del paquete se ejecuta: K-Desktop solo lee sus imágenes y
+  sonidos.
+
 ## Empezar
 
 ```powershell

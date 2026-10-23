@@ -1,0 +1,29 @@
+{
+  "$schema": "../../../docs/assistant/esquemas/assistant.schema.json",
+  "id": "pip",
+  "name": "Pip",
+  "version": "1.0.0",
+  "author": "Kobayashi82",
+  "description": {
+    "es": "Ejemplo de asistente sin código: una gota que pasea por la barra de tareas y por tus ventanas. Solo imágenes y JSON.",
+    "en": "Example assistant without code: a drop that strolls along the taskbar and your windows. Only images and JSON.",
+    "fr": "Exemple d’assistant sans code : une goutte qui se promène sur la barre des tâches et vos fenêtres. Seulement des images et du JSON.",
+    "de": "Beispielassistent ohne Code: ein Tropfen, der über die Taskleiste und deine Fenster spaziert. Nur Bilder und JSON.",
+    "it": "Esempio di assistente senza codice: una goccia che passeggia sulla barra delle applicazioni e sulle tue finestre. Solo immagini e JSON.",
+    "pt": "Exemplo de assistente sem código: uma gota que passeia pela barra de tarefas e pelas suas janelas. Só imagens e JSON."
+  },
+  "homepage": "https://github.com/Kobayashi82/K-Desktop",
+  "license": "MIT",
+  "sdk": "1.0",
+  "entry": "character.json",
+  "icon": "icon.png",
+  "wakeWord": "Pip",
+  "settings": "settings.json",
+  "traits": {
+    "travel": "walk",
+    "travelSpeed": 70,
+    "canMoveWindows": false,
+    "canReachMaximized": false,
+    "gestures": ["communicate", "react"]
+  }
+}

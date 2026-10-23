@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kdesktop/assistant/character.schema.json",
+  "title": "Personaje de un asistente sin código",
+  "description": "La entrada (entry) de un asistente sin código (fase 12): sus imágenes y unos pocos números. El host lo pone sobre la barra de tareas o encima de las ventanas, lo pasea, se deja arrastrar y soltar (cae) y pone una animación para cada cosa que hace. Solo «idle» es obligatoria: lo que falte usa otra.",
+  "type": "object",
+  "required": ["animations"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "height": { "type": "number", "minimum": 24, "maximum": 512, "default": 96, "description": "Alto con la escala al 100 % (DIP). Cada fotograma se dibuja así de alto, con sus proporciones." },
+    "faces": { "enum": ["right", "left"], "default": "right", "description": "Hacia dónde miran los dibujos: al andar hacia el otro lado se dan la vuelta." },
+    "walkSpeed": { "type": "number", "minimum": 0, "maximum": 600, "default": 70, "description": "DIP por segundo. 0 = nunca anda." },
+    "animations": {
+      "type": "object",
+      "required": ["idle"],
+      "additionalProperties": false,
+      "properties": {
+        "idle": { "$ref": "#/$defs/animation", "description": "Quieto (obligatoria)." },
+        "walk": { "$ref": "#/$defs/animation", "description": "Andando (si falta: idle)." },
+        "talk": { "$ref": "#/$defs/animation", "description": "Mientras habla (idle)." },
+        "listen": { "$ref": "#/$defs/animation", "description": "Mientras te escucha (idle)." },
+        "think": { "$ref": "#/$defs/animation", "description": "Mientras piensa (listen)." },
+        "happy": { "$ref": "#/$defs/animation", "description": "Algo salió bien o celebra; una vez (idle)." },
+        "sad": { "$ref": "#/$defs/animation", "description": "Algo salió mal; una vez (idle)." },
+        "surprised": { "$ref": "#/$defs/animation", "description": "Un aviso o algo inesperado; una vez (idle)." },
+        "click": { "$ref": "#/$defs/animation", "description": "Al hacerle clic; una vez (happy)." },
+        "drag": { "$ref": "#/$defs/animation", "description": "Mientras lo arrastras (fall)." },
+        "fall": { "$ref": "#/$defs/animation", "description": "Cayendo (idle)." },
+        "sleep": { "$ref": "#/$defs/animation", "description": "Dormido, cuando no estás (idle)." },
+        "enter": { "$ref": "#/$defs/animation", "description": "Al aparecer; una vez (idle)." },
+        "exit": { "$ref": "#/$defs/animation", "description": "Al irse; una vez (idle)." }
+      }
+    }
+  },
+  "$defs": {
+    "path": { "type": "string", "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9_./ -]+$" },
+    "animation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "frames": {
+          "description": "Los fotogramas (PNG o JPEG del paquete) en orden; con «strip», cuántos tiene la tira.",
+          "oneOf": [
+            { "type": "array", "minItems": 1, "maxItems": 120, "items": { "$ref": "#/$defs/path" } },
+            { "type": "integer", "minimum": 1, "maximum": 120 }
+          ]
+        },
+        "strip": { "$ref": "#/$defs/path", "description": "Una sola imagen con los fotogramas uno al lado del otro, todos del mismo ancho." },
+        "fps": { "type": "number", "minimum": 0.5, "maximum": 60, "default": 8 },
+        "loop": { "type": "boolean", "description": "Si se repite (por defecto sí, salvo happy, sad, surprised, click, enter y exit)." },
+        "sound": { "$ref": "#/$defs/path", "description": "Un WAV del paquete que suena al empezar." }
+      },
+      "oneOf": [
+        { "required": ["strip", "frames"], "properties": { "frames": { "type": "integer" } } },
+        { "required": ["frames"], "not": { "required": ["strip"] }, "properties": { "frames": { "type": "array" } } }
+      ]
+    }
+  }
+}

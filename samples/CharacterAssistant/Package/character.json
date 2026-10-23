@@ -1,0 +1,19 @@
+{
+  "$schema": "../../../docs/assistant/esquemas/character.schema.json",
+  "height": 80,
+  "faces": "right",
+  "walkSpeed": 60,
+  "animations": {
+    "idle": { "frames": ["frames/idle0.png", "frames/idle1.png", "frames/idle0.png", "frames/idle1.png", "frames/idle0.png", "frames/idle3.png"], "fps": 2.5 },
+    "walk": { "strip": "frames/walk.png", "frames": 6, "fps": 10 },
+    "talk": { "frames": ["frames/talk0.png", "frames/talk1.png", "frames/talk2.png", "frames/talk3.png"], "fps": 8 },
+    "listen": { "frames": ["frames/listen0.png", "frames/listen1.png"], "fps": 3 },
+    "think": { "frames": ["frames/think0.png", "frames/think1.png"], "fps": 2 },
+    "happy": { "frames": ["frames/happy0.png", "frames/happy1.png", "frames/happy2.png", "frames/happy3.png", "frames/happy0.png"], "fps": 8 },
+    "sad": { "frames": ["frames/sad0.png", "frames/sad1.png", "frames/sad0.png", "frames/sad1.png"], "fps": 3 },
+    "surprised": { "frames": ["frames/surprised0.png", "frames/surprised1.png", "frames/surprised0.png"], "fps": 6 },
+    "drag": { "frames": ["frames/drag0.png", "frames/drag1.png"], "fps": 5 },
+    "fall": { "frames": ["frames/fall0.png", "frames/fall1.png"], "fps": 8 },
+    "sleep": { "frames": ["frames/sleep0.png", "frames/sleep1.png"], "fps": 1 }
+  }
+}

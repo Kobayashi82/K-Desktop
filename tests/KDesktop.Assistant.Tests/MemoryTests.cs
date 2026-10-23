@@ -150,9 +150,14 @@ public sealed class MemoryTests : IDisposable
         Assert.Contains("Es alérgico al marisco", model.Requests[0].Messages[0].Content, StringComparison.Ordinal);
         // And it learned something new, in the background, through the tool (in the activity, undoable).
         // Up to 5 s: with every test running at once it took more than 2 s now and then.
-        for (var i = 0; i < 250 && builtin.Memory.All.Count < 2; i++) await Task.Delay(20);
+        // The line of the activity is written right after the memory: wait for both.
+        bool Logged()
+        {
+            lock (log) return log.Any(l => l.Entry is { Route: "memory", Ok: true, Undo: not null });
+        }
+        for (var i = 0; i < 250 && (builtin.Memory.All.Count < 2 || !Logged()); i++) await Task.Delay(20);
         Assert.Contains(builtin.Memory.All, m => m is { Text: "Esta noche cena en un restaurante", Source: "learned" });
-        Assert.Contains(log, l => l.Entry is { Route: "memory", Ok: true, Undo: not null });
+        Assert.True(Logged());
         Assert.Empty(model.Requests[1].Tools);
     }
 

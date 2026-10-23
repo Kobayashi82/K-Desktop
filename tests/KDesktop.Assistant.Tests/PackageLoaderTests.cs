@@ -35,7 +35,7 @@ public class PackageLoaderTests
             GC.WaitForPendingFinalizers();
         }
         var entry = package.Assistant.GetType().Assembly;
-        Assert.Same(entry, package.Context.LoadFromAssemblyPath(entry.Location));
+        Assert.Same(entry, package.Context!.LoadFromAssemblyPath(entry.Location));
         PackageLoader.Unload(Drop(ref package), "dot");
     }
 

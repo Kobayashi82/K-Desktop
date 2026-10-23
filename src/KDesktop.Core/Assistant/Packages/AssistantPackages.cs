@@ -133,8 +133,12 @@ public static partial class AssistantPackages
             if (AssistantPaths.Reserved.Contains(manifest.Id)) throw Fail(PackageProblem.ReservedId, "assistantPkg.reservedId", manifest.Id);
             if (manifest.SdkMajor != SdkMajor) throw Fail(PackageProblem.Sdk, "assistantPkg.sdk", manifest.Name, manifest.Sdk, SdkMajor);
             if (!manifest.RunsOn(SdkVersion)) throw Fail(PackageProblem.Sdk, "assistantPkg.sdkNewer", manifest.Name, manifest.Sdk, SdkVersion.ToString(2));
-            var dll = manifest.EntryParts.Assembly;
-            if (!entries.ContainsKey(dll)) throw Fail(PackageProblem.Missing, "assistantPkg.missing", dll);
+            if (manifest.IsCharacter) CheckCharacter(entries, manifest.Entry);
+            else
+            {
+                var dll = manifest.EntryParts.Assembly;
+                if (!entries.ContainsKey(dll)) throw Fail(PackageProblem.Missing, "assistantPkg.missing", dll);
+            }
 
             var icon = Image(entries, manifest.Icon);
             var preview = Image(entries, manifest.Preview);
@@ -407,6 +411,24 @@ public static partial class AssistantPackages
     {
         if (ReadText(entries, path) is { } json) CheckSchema(schema, path, json);
         else if (required) throw Fail(PackageProblem.Missing, "assistantPkg.missing", path);
+    }
+
+    /// <summary>An assistant without code: its character.json, and every frame and sound it names.</summary>
+    private static void CheckCharacter(Dictionary<string, ZipArchiveEntry> entries, string path)
+    {
+        var json = ReadText(entries, path) ?? throw Fail(PackageProblem.Missing, "assistantPkg.missing", path);
+        CheckSchema("character", path, json);
+        CharacterFile character;
+        try { character = CharacterFile.Parse(json); }
+        catch (ManifestException ex) { throw Fail(PackageProblem.Invalid, "assistantPkg.invalid", path, ex.Message); }
+        foreach (var file in character.Files)
+        {
+            if (file.EndsWith(".wav", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!entries.ContainsKey(file)) throw Fail(PackageProblem.Missing, "assistantPkg.missing", file);
+            }
+            else Image(entries, file);
+        }
     }
 
     /// <summary>The persona: one file, or one per language when the path has «{lang}» (at least one must be there).</summary>
