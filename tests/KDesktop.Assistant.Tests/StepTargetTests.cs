@@ -79,6 +79,21 @@ public class StepTargetTests
             var minimized = StepTargets.Of(new WindowAction { Operation = WindowOperation.Restore }, front)!;
             Assert.Equal("minimized", minimized.State);
             Assert.Null(minimized.Rect);
+
+            // Centring a minimised window: back at its size, not the little box it is in the taskbar.
+            var (fromMin, back) = await Apply(new WindowAction { Operation = WindowOperation.Center, ShowOsd = false });
+            Assert.Equal("normal", State());
+            Assert.True(back.Width > 300 && back.Height > 200, $"{back.Width}×{back.Height}");
+            Same(fromMin.Result!, back, slack: 3);
+
+            // Minimised from maximised: one restore brings it back maximised; centring leaves it normal.
+            await Apply(new WindowAction { Operation = WindowOperation.Maximize, ShowOsd = false });
+            await Apply(new WindowAction { Operation = WindowOperation.Minimize, ShowOsd = false });
+            (fromMin, back) = await Apply(new WindowAction { Operation = WindowOperation.Center, ShowOsd = false });
+            Assert.Equal("normal", State());
+            Same(fromMin.Result!, back, slack: 3);
+
+            string State() => StepTargets.Of(new WindowAction { Operation = WindowOperation.Restore }, front)!.State;
         });
     }
 

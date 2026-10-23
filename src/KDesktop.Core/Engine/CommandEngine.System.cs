@@ -83,7 +83,7 @@ public sealed partial class CommandEngine
                 WindowLayout.MoveTo(hwnd, WindowLayout.SnapRect(area, a.Snap, a.X, a.Y, a.Width, a.Height));
                 break;
             case WindowOperation.Center:
-                if (WindowLayout.IsMaximized(hwnd)) WindowLayout.Show(hwnd, Win32.SW_RESTORE);
+                WindowLayout.ShowNormal(hwnd); // minimised, it would measure its little box in the taskbar
                 WindowLayout.MoveTo(hwnd, WindowLayout.Centered(WindowLayout.VisibleBounds(hwnd), WindowLayout.WorkAreaOf(hwnd)));
                 break;
             case WindowOperation.MoveToMonitor:

@@ -135,10 +135,19 @@ public static class WindowLayout
         return new ScreenRect(corner.X, corner.Y, client.Right, client.Bottom);
     }
 
-    /// <summary>Puts the visible part of the window exactly on <paramref name="target"/> (restoring it if maximised).</summary>
+    /// <summary>
+    /// Leaves the window neither minimised nor maximised. A window minimised from maximised comes back maximised with one
+    /// restore, so it may take two.
+    /// </summary>
+    public static void ShowNormal(IntPtr hwnd)
+    {
+        for (var i = 0; i < 2 && (Win32.IsIconic(hwnd) || IsZoomed(hwnd)); i++) Win32.ShowWindow(hwnd, Win32.SW_RESTORE);
+    }
+
+    /// <summary>Puts the visible part of the window exactly on <paramref name="target"/> (restoring it if minimised or maximised).</summary>
     public static void MoveTo(IntPtr hwnd, ScreenRect target)
     {
-        if (IsZoomed(hwnd) || Win32.IsIconic(hwnd)) Win32.ShowWindow(hwnd, Win32.SW_RESTORE);
+        ShowNormal(hwnd);
         GetWindowRect(hwnd, out var outer);
         var visible = VisibleBounds(hwnd);
         // The invisible borders around the visible frame.
@@ -170,12 +179,15 @@ public static class WindowLayout
         return target == index ? null : (from, areas[target]);
     }
 
-    /// <summary>Moves the window to another monitor keeping its place and size in proportion (maximised stays maximised).</summary>
+    /// <summary>
+    /// Moves the window to another monitor keeping its place and size in proportion (maximised stays maximised; minimised
+    /// comes back where it goes).
+    /// </summary>
     public static bool MoveToMonitor(IntPtr hwnd, MonitorChoice choice, int number)
     {
         if (MonitorTarget(hwnd, choice, number) is not var (from, to)) return false;
         var maximized = IsZoomed(hwnd);
-        if (maximized) Win32.ShowWindow(hwnd, Win32.SW_RESTORE);
+        ShowNormal(hwnd); // a minimised window measures the little box it is in the taskbar
         MoveTo(hwnd, MapRect(VisibleBounds(hwnd), from, to));
         if (maximized) Win32.ShowWindow(hwnd, Win32.SW_SHOWMAXIMIZED);
         return true;
