@@ -192,7 +192,7 @@ pantalla completa, solo el bocadillo—; también en la bienvenida). Sin cuerpo 
 
 ### Lo que sabe (fase 19)
 
-Opciones → Módulo Asistente → «Lo que sabe»: carpetas de documentos del usuario o archivos sueltos (nunca un disco entero; desde la 5.0.187  puede llevar archivos, y su  es el de ese archivo) que el proceso del
+Opciones → Módulo Asistente → «Lo que sabe»: carpetas de documentos del usuario o archivos sueltos (nunca un disco entero; desde la 5.0.187 `folders` puede llevar archivos, y su `KnowledgeFolderInfo` es el de ese archivo) que el proceso del
 asistente lee una vez, trocea, pasa a vectores (`embed` con `use: document`) y guarda en `Assistant\Knowledge\` (un archivo
 por documento; fuera de la copia de seguridad: se rehace). Al arrancar compara fecha y tamaño de cada archivo y solo lee lo
 cambiado; mientras está abierto, vigila las carpetas. Para con un juego a pantalla completa, con K-Desktop en pausa y mientras
