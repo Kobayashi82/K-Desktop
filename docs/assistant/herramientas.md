@@ -164,3 +164,35 @@ Cómo funcionan:
 - Por defecto preguntan la primera vez (🟡), salvo las que el servidor dice que solo leen; con «Preguntar antes» en
   «Nunca», no preguntan. Cada una se puede apagar o cambiar en Opciones.
 - Si falta lo que necesita (Node.js para `npx`, uv para `uvx`, Python), lo dice al probarlo.
+
+## Compartir con otros programas
+
+Al revés que lo anterior: **Opciones → Herramientas → Compartir** hace de los asistentes un servidor MCP para Claude
+Desktop, VS Code, Open WebUI (con mcpo) o cualquier programa con MCP. Se enciende ahí («Compartir las herramientas») y
+«Copiar la configuración» deja en el portapapeles lo que hay que pegar en el programa:
+
+```json
+{
+  "mcpServers": {
+    "k-desktop": {
+      "command": "D:\…\KDesktop.exe",
+      "args": ["--mcp"],
+      "env": { "KDESKTOP_MCP_KEY": "…" }
+    }
+  }
+}
+```
+
+Cómo funciona:
+
+- El programa arranca `KDesktop.exe --mcp`, que solo hace de puente: pasa lo que llega por stdin a una tubería del
+  proceso de los asistentes (de tu usuario, sin administrador) y lo que vuelve a stdout. No abre otro K-Desktop ni pide
+  permisos. K-Desktop tiene que estar abierto con el módulo Asistente encendido.
+- La tubería pide la clave antes de nada; «Cambiar la clave» deja fuera a los programas que tenían la anterior. Al
+  proceso solo le llega el SHA-256 de la clave.
+- **Qué pueden usar:** «Solo lo que consulta» (la hora, cuentas, fechas, el tiempo, convertir, buscar archivos o en
+  internet, leer webs, el estado del PC, qué suena, buscar y explicar tus comandos) o «Todo, preguntándote antes». Con
+  «Todo», lo que cambia algo **pregunta siempre en este PC** con la ventanita de siempre (««Claude» quiere poner un
+  temporizador de 5 min. ¿Lo hago?»), aunque en Opciones tengas puesto que los asistentes no pregunten, hasta que digas
+  «Sí, y no vuelvas a preguntar». Las herramientas apagadas y las de tus propios servidores MCP no se comparten.
+- Cada llamada sale en la actividad del panel con el nombre del programa, y Opciones enseña quién está conectado.

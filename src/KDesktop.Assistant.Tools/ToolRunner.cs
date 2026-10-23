@@ -2,6 +2,7 @@ using System.Text.Json;
 using KDesktop.Core;
 using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Pipe;
+using KDesktop.Core.Assistant.Sharing;
 using KDesktop.Core.Localization;
 
 namespace KDesktop.Assistant.Tools;
@@ -79,9 +80,11 @@ public sealed class ToolRunner
             return new ToolOutcome(ToolResult.Fail($"Cannot read what {name} would run."), Record(context.Assistant, heard, route, Loc.T("tools.failed", intent), ok: false));
         }
         var unseen = fingerprint is not null && !IsApproved(fingerprint);
-        if (unseen || MustAsk(tool))
+        var shared = route == McpShare.Route;
+        if (unseen || MustAsk(tool, shared))
         {
-            var choice = await AskAsync(tool, Loc.T(unseen ? "tools.askNew" : "tools.ask", intent), fingerprint is not null, context, cancellationToken).ConfigureAwait(false);
+            var text = shared ? Loc.T("tools.askShared", context.Caller ?? "?", intent) : Loc.T(unseen ? "tools.askNew" : "tools.ask", intent);
+            var choice = await AskAsync(tool, text, fingerprint is not null || (shared && _registry.RiskOf(tool) != ToolRisk.AskAlways), context, cancellationToken).ConfigureAwait(false);
             if (choice is not ("yes" or "always"))
             {
                 var why = Loc.T(choice == "no" ? "tools.denied" : "tools.unanswered", intent);
@@ -158,7 +161,13 @@ public sealed class ToolRunner
         return entry;
     }
 
-    private bool MustAsk(ITool tool) => AskPolicy.Asks(_registry.RiskOf(tool), _askBefore(), _trusted().Contains(tool.Name));
+    /// <summary>
+    /// Whether to ask first. Another program (<paramref name="shared"/>): whatever does more than read asks, whatever the
+    /// user's policy, until «yes, and don't ask again»; what always asks, always.
+    /// </summary>
+    private bool MustAsk(ITool tool, bool shared) => shared
+        ? _registry.RiskOf(tool) == ToolRisk.AskAlways || (!tool.ReadsOnly && !_trusted().Contains(tool.Name))
+        : AskPolicy.Asks(_registry.RiskOf(tool), _askBefore(), _trusted().Contains(tool.Name));
 
     private bool IsApproved(string fingerprint)
     {

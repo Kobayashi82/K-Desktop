@@ -48,6 +48,10 @@ public static class Program
         if (args.Any(a => a.Equals("--assistant", StringComparison.OrdinalIgnoreCase) || a.Equals("--assistant-dev", StringComparison.OrdinalIgnoreCase)))
             return RunAssistant(args);
 
+        // Another program using the assistants' tools (an MCP server over stdio): only a bridge to the assistant process,
+        // never elevated nor a second instance.
+        if (args.Any(a => a.Equals("--mcp", StringComparison.OrdinalIgnoreCase))) return McpBridge();
+
         // Voice diagnostics: transcribe / match and exit, without touching the running instance.
         var voiceTest = Array.FindIndex(args, a => a.Equals("--voice-test", StringComparison.OrdinalIgnoreCase));
         if (voiceTest >= 0) return VoiceTest(args.Skip(voiceTest + 1).Where(a => a != "--no-open").ToArray(), open: !args.Contains("--no-open"));
@@ -104,6 +108,17 @@ public static class Program
     /// <summary>Kept apart so the assistant's assembly is only loaded in that mode.</summary>
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static int RunAssistant(string[] args) => AssistantProcess.Run(args);
+
+    /// <summary><c>--mcp</c>: stdin and stdout of the program that started us, to the assistant's tools (see <see cref="Core.Assistant.Sharing.McpShare"/>).</summary>
+    private static int McpBridge()
+    {
+        Core.Localization.Loc.Instance.Load(null);
+        using var input = Console.OpenStandardInput();
+        using var output = Console.OpenStandardOutput();
+        using var errors = new System.IO.StreamWriter(Console.OpenStandardError()) { AutoFlush = true };
+        return Core.Assistant.Sharing.McpShare.BridgeAsync(input, output, Environment.GetEnvironmentVariable(Core.Assistant.Sharing.McpShare.KeyVariable),
+            errors, CancellationToken.None).GetAwaiter().GetResult();
+    }
 
     private static int VoiceTest(string[] inputs, bool open)
     {

@@ -86,7 +86,9 @@ public sealed record ToolUndo(string Tool, string Data);
 /// conversation, what came to mind, what the tools said); null: not the AI's (a rule, the routing), nothing is checked.</param>
 /// <param name="Remembered">What came to mind for the order («cuando diga «Kamugi», abre K-Movies»): a command one of these
 /// names may run although the order only sounds like it.</param>
-public sealed record ToolContext(string? Assistant, string? Heard = null, bool Decided = false, string? Sources = null, IReadOnlyList<string>? Remembered = null);
+/// <param name="Caller">Another program using the tools (the assistant as an MCP server): its name, for the question on the PC.</param>
+public sealed record ToolContext(string? Assistant, string? Heard = null, bool Decided = false, string? Sources = null, IReadOnlyList<string>? Remembered = null,
+    string? Caller = null);
 
 /// <summary>
 /// The tools that exist, in groups: the built-in ones (<see cref="Builtin"/>), the JSON ones (stage 9.1) and each MCP

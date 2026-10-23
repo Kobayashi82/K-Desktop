@@ -470,12 +470,16 @@ public sealed record ToolFileInfo(string File, bool Enabled, IReadOnlyList<strin
 public sealed record McpServerInfo(string Id, string Transport, string Summary, bool Disabled, string State, int Tools, IReadOnlyList<string> Secrets,
     string? Error = null, DateTimeOffset? Since = null);
 
+/// <summary>A program using the shared tools now (phase 12): its name, since when, and how many calls it made.</summary>
+public sealed record SharedClientInfo(string Name, DateTimeOffset Since, int Calls);
+
 /// <summary>
 /// All the tools, the JSON files and the MCP servers (Options → Tools): after every <c>tools</c> and whenever something of
-/// it changes. <paramref name="McpErrors"/>: what is wrong with <c>mcp.json</c>.
+/// it changes. <paramref name="McpErrors"/>: what is wrong with <c>mcp.json</c>. <paramref name="Shared"/>: the programs
+/// using the tools (the assistant as an MCP server), and <paramref name="SharedTools"/> how many they see.
 /// </summary>
 public sealed record ToolsStateMessage(IReadOnlyList<ToolInfo> Tools, IReadOnlyList<ToolFileInfo> Files, IReadOnlyList<McpServerInfo> Servers,
-    IReadOnlyList<string> McpErrors) : PipeMessage
+    IReadOnlyList<string> McpErrors, IReadOnlyList<SharedClientInfo>? Shared = null, int SharedTools = 0) : PipeMessage
 {
     public override string Type => "toolsState";
 }

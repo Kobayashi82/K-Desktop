@@ -133,6 +133,7 @@ public partial class AssistantToolsSection : UserControl
             case "tools/servers": FillServers(); break;
             case "tools/server": FillServer(); break;
             case "tools/secrets": FillSecrets(); break;
+            case "tools/share": FillShare(); break;
             default: FillSummary(); break;
         }
         if (focused is not null && FindTagged(this, focused) is { } again)
@@ -163,6 +164,7 @@ public partial class AssistantToolsSection : UserControl
         if (Part is "tools" or "tools/servers" or "tools/server") parts.Add(string.Join(",", App.ReadMcpServers(out _).Select(s => s.Id + s.Disabled + s.Summary)));
         if (Part is "tools" or "tools/files" or "tools/file") foreach (var file in state?.Files ?? []) parts.Add($"{file.File}|{file.Enabled}|{string.Join(";", file.Errors)}");
         if (Part is "tools") parts.Add(string.Join(",", (state?.Tools ?? []).Select(t => t.Enabled ? "1" : "0")));
+        if (Part is "tools/share") parts.Add(ShareSignature());
         if (Part is "tools" or "tools/secrets") parts.Add(string.Join(",", _app.ToolSecretList().Select(s => s.Name + s.Kept + string.Join("+", s.UsedBy))));
         return string.Join("\n", parts);
     }

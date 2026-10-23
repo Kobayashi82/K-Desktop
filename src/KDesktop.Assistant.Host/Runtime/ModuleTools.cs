@@ -55,8 +55,10 @@ internal sealed class ModuleTools : IDisposable
         Json.Runner = Runner;
         Json.Broken += file => link.Send(new NotifyMessage(Loc.T("tools.json.broken", Path.GetFileName(file.File)), file.Errors[0]));
         Mcp = new McpServers(Path.Combine(folder, "mcp.json"), Path.Combine(folder, "mcp-cache.json"), AppPaths.LogDir, registry, Secrets);
+        Share = new ModuleShare(Runner);
         // Options → Tools sees every change, a moment later and once for many.
         _stateTimer = new Timer(_ => SendToolsState());
+        Share.Tools.Changed += StateChanged;
         registry.Changed += StateChanged;
         Mcp.Changed += StateChanged;
         Json.Loaded += StateChanged;
@@ -79,6 +81,9 @@ internal sealed class ModuleTools : IDisposable
 
     /// <summary>The MCP servers of <c>Assistant\mcp.json</c> (stage 9.2).</summary>
     public McpServers Mcp { get; }
+
+    /// <summary>The tools for other programs (phase 12).</summary>
+    public ModuleShare Share { get; }
 
     /// <summary>Connected: the timers that came due while the process was off ring now; the watches kept start looking; the JSON tools are loaded and their folder watched.</summary>
     public void Start()
@@ -107,6 +112,7 @@ internal sealed class ModuleTools : IDisposable
                     preferences[name] = new ToolPreference(choice["enabled"] is not JsonValue e || !e.TryGetValue<bool>(out var enabled) || enabled,
                         choice["risk"] is JsonValue r && r.TryGetValue<string>(out var risk) ? risk : null);
         Registry.SetPreferences(preferences);
+        Share.Configure(tools?["share"] as JsonObject);
     }
 
     /// <summary>Options → Tools: the list, testing a tool, starting or stopping a server, loading the files again.</summary>
@@ -163,7 +169,8 @@ internal sealed class ModuleTools : IDisposable
         var files = Json.Files.Select(f => new ToolFileInfo(f.File, f.Enabled, f.Errors, f.Secrets ?? [], f.Name, f.Type)).ToList();
         var servers = Mcp.Servers.Select(s => new McpServerInfo(s.Id, s.Entry.Transport, s.Entry.Summary, s.Entry.Disabled,
             s.State.ToString().ToLowerInvariant(), Mcp.ToolsOf(s.Id).Count, s.Entry.SecretNames, s.Error, s.Since)).ToList();
-        _link.Send(new ToolsStateMessage(tools, files, servers, Mcp.Errors));
+        var shared = Share.Tools.Clients.Select(c => new SharedClientInfo(c.Name, c.Since, c.Calls)).ToList();
+        _link.Send(new ToolsStateMessage(tools, files, servers, Mcp.Errors, shared, Share.On ? Share.Tools.Shared.Count : 0));
     }
 
     public void OnAnswer(AnswerMessage answer)
@@ -251,6 +258,7 @@ internal sealed class ModuleTools : IDisposable
         Builtin.Dispose();
         Json.Dispose();
         Mcp.Dispose();
+        Share.Dispose();
         _stateTimer.Dispose();
         _browser.Dispose();
         foreach (var waiting in _questions.Values) waiting.TrySetResult("timeout");

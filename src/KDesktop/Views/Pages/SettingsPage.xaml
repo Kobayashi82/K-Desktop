@@ -1111,6 +1111,7 @@
             <local:AssistantToolsSection Tag="tools/servers" Part="tools/servers" />
             <local:AssistantToolsSection x:Name="ServerSection" Tag="tools/server" Part="tools/server" />
             <local:AssistantToolsSection Tag="tools/secrets" Part="tools/secrets" />
+            <local:AssistantToolsSection Tag="tools/share" Part="tools/share" />
         </StackPanel>
     </ScrollViewer>
     </Grid>

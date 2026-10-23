@@ -723,6 +723,18 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private string? _assistantMcpImportFolder;
 
     /// <summary>
+    /// The assistants' tools for other programs, as an MCP server (phase 12, <c>KDesktop.exe --mcp</c>). Off by default:
+    /// the user turns it on and gives the program the key.
+    /// </summary>
+    [ObservableProperty] private bool _assistantShareTools;
+
+    /// <summary>What they may use: <c>read</c> (only what reads) or <c>all</c> (the rest asks on the PC first).</summary>
+    [ObservableProperty] private string _assistantShareScope = Assistant.Sharing.McpShare.ScopeRead;
+
+    /// <summary>The key the programs give (DPAPI, see <see cref="Platform.Secrets"/>); made the first time sharing is turned on.</summary>
+    [ObservableProperty] private string? _assistantShareKey;
+
+    /// <summary>
     /// New versions of assistants the user chose not to be told about again (id → that version; stage 9.5). A later
     /// version is offered again. Replaced whole on every change.
     /// </summary>

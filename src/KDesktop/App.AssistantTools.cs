@@ -54,7 +54,31 @@ public partial class App
         ["place"] = Config.Settings.AssistantHomePlace,
         ["settings"] = new JsonObject(Config.Settings.AssistantToolSettings.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p =>
             KeyValuePair.Create(p.Key, (JsonNode?)new JsonObject { ["enabled"] = p.Value.Enabled, ["risk"] = p.Value.Risk }))),
+        // The process only gets the hash of the key.
+        ["share"] = new JsonObject
+        {
+            ["enabled"] = Config.Settings.AssistantShareTools,
+            ["scope"] = Config.Settings.AssistantShareScope,
+            ["key"] = AssistantShareKey is { } key ? Core.Assistant.Sharing.McpShare.HashOf(key) : string.Empty,
+        },
     };
+
+    /// <summary>The key programs give to use the shared tools (null until sharing is turned on once).</summary>
+    public string? AssistantShareKey => Config.Settings.AssistantShareKey is { } stored ? Core.Platform.Secrets.Unprotect(stored) : null;
+
+    /// <summary>A new key (also the first one): the programs that had the old one stop getting in.</summary>
+    public string NewAssistantShareKey()
+    {
+        var key = Core.Assistant.Sharing.McpShare.NewKey();
+        Config.Settings.AssistantShareKey = Core.Platform.Secrets.Protect(key);
+        Log.Info("Asistente: clave nueva para las herramientas compartidas");
+        return key;
+    }
+
+    /// <summary>What to paste into the program's MCP settings.</summary>
+    public string AssistantShareConfig() =>
+        Core.Assistant.Sharing.McpShare.ClientConfig(AppPaths.ExecutablePath, AssistantShareKey ?? NewAssistantShareKey(),
+            AppPaths.InstanceSuffix.Length == 0 ? null : AppPaths.DataDir);
 
     /// <summary>After a settings change: the tools section, if it changed (UI thread).</summary>
     private void SendAssistantToolsConfig()

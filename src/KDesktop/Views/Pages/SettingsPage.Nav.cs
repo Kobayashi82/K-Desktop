@@ -85,6 +85,7 @@ public partial class SettingsPage
         new("tools/files", "DocumentData24", "settings.nav.toolFiles"),
         new("tools/servers", "PlugConnected24", "settings.nav.toolServers"),
         new("tools/secrets", "Key24", "settings.nav.toolSecrets"),
+        new("tools/share", "Share24", "settings.nav.toolShare"),
     ];
 
     /// <summary>

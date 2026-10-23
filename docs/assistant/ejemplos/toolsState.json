@@ -13,5 +13,9 @@
     { "id": "telegram", "transport": "stdio", "summary": "node E:\\MCP\\mcp-communicator-telegram\\build\\index.js", "disabled": false, "state": "stopped", "tools": 4, "secrets": ["telegram.TELEGRAM_TOKEN", "telegram.CHAT_ID"], "since": "2026-10-22T15:02:11+02:00" },
     { "id": "jokes", "transport": "http", "summary": "https://jokes.nico.dev/mcp", "disabled": false, "state": "failed", "tools": 0, "secrets": [], "error": "Response status code does not indicate success: 404 (Not Found)." }
   ],
-  "mcpErrors": []
+  "mcpErrors": [],
+  "shared": [
+    { "name": "Claude", "since": "2026-10-23T02:31:30+02:00", "calls": 3 }
+  ],
+  "sharedTools": 13
 }
