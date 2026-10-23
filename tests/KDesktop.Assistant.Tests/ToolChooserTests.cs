@@ -160,6 +160,18 @@ public sealed class ToolChooserTests : IDisposable
     }
 
     [Fact]
+    public async Task LookingForToolsBringsOnlyWhatIsNearTheBest()
+    {
+        // 23/10: find_tools for «ollama» or «download model» brought six tools that had nothing to do with it every time;
+        // each search lengthened the prompt and lost its cache. What fits comes alone; nothing near, nothing at all.
+        var chooser = new ToolChooser(new FakeMeaning());
+        var found = await chooser.SearchAsync(_tools, "pon un temporizador de diez minutos", 6, default);
+        Assert.Equal("set_timer", found[0].Name);
+        Assert.True(found.Count < 6);
+        Assert.Empty(await chooser.SearchAsync(_tools, "zorglub quarktron", 6, default));
+    }
+
+    [Fact]
     public void TheExamplesComeInTheUsersLanguageAndInEnglish()
     {
         var timer = _tools.First(t => t.Name == "set_timer");

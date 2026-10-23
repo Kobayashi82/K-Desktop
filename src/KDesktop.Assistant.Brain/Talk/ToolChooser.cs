@@ -143,9 +143,20 @@ public sealed partial class ToolChooser(IMeaning? meaning)
                 Log.Warn($"Asistente: sin significado para buscar herramientas: {ex.Message}");
             }
         }
+        if (ranked is [var best, ..])
+        {
+            // Only what is near the best and near enough at all: with nothing that fits («ollama», «download model»), six
+            // tools at 0.57–0.66 came every time, each search made the prompt 1000–1500 tokens longer and lost its cache
+            // (4–6 s with Bonsai), and none of them was any use.
+            var floor = Math.Max(SearchFloor, best.Score - Spread);
+            ranked = [.. ranked.Where(r => r.Score >= floor)];
+        }
         ranked ??= [.. Words(tools, query).Where(r => r.Score > 0)];
         return [.. ranked.Take(most).Select(r => r.Tool)];
     }
+
+    /// <summary>A tool found by meaning is this close to what the model looks for at least (<see cref="SearchAsync"/>).</summary>
+    public const double SearchFloor = 0.65;
 
     /// <summary>A part of an order this close to a tool means it (it came from one part, not the whole order).</summary>
     public const double PartClear = 0.60;
