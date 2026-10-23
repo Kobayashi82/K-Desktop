@@ -42,6 +42,8 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
     private AssistantState _state;
     private bool _talking;
     private bool _gone;
+    /// <summary>Where its body was last drawn (what the others avoid, stage 13.14); null off screen.</summary>
+    private PixelRect? _body;
 
     /// <summary>One animation that plays once over the rest (a reaction, a click, coming in, leaving) and until when.</summary>
     private (string Name, double Start, double Until)? _once;
@@ -58,6 +60,8 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
     private sealed record Ground(double Y, double Left, double Right, long Window);
 
     public Point? BubbleAnchor => new Point(_at.X, _at.Y - HeightPx);
+
+    public PixelRect? BodyBounds => _gone ? null : _body;
 
     private double Dpi => _host.World.Current.MonitorAt(new Point(_at.X, _at.Y - 1))?.DpiScale ?? _host.World.Current.PrimaryMonitor?.DpiScale ?? 1;
 
@@ -80,6 +84,8 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
         _ground = GroundAt(_at.X, _at.Y);
         _nextWander = Later(3, 5);
         if (how != EntranceKind.Reloaded && character.Animations.ContainsKey("enter")) PlayOnce("enter");
+        // Back where it was, someone else may stay there now.
+        Settle();
         _host.RequestTick();
     }
 
@@ -114,6 +120,7 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
             {
                 _surface.Hide();
                 _hit.Hide();
+                _body = null;
                 return 1;
             }
         }
@@ -158,6 +165,7 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
                 _falling = false;
                 _velocity = default;
                 _nextWander = Later(2, 4);
+                Settle();
             }
             return true;
         }
@@ -171,6 +179,7 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
                 _at.X = target;
                 _walkTo = null;
                 _nextWander = Later(4, 10);
+                Settle();
             }
             else _at.X += Math.Sign(left) * step;
             // Off the end of where it stands: it falls.
@@ -183,14 +192,62 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
     private void Wander()
     {
         _nextWander = Later(5, 10);
-        if (character.WalkSpeed <= 0 || _ground is not { } ground || _random.NextDouble() < 0.35) return;
+        if (character.WalkSpeed <= 0 || _ground is not { } ground) return;
+        // Standing where another one stays (both arrived at once): out of the way first.
+        if (Taken(_at.X, _at.Y))
+        {
+            Settle();
+            return;
+        }
+        if (_random.NextDouble() < 0.35) return;
         var width = ground.Right - ground.Left;
         var margin = Math.Min(width / 2, HeightPx * 0.4);
         // On a window, now and then it walks off the end.
         if (ground.Window != 0 && _random.NextDouble() < 0.2)
             _walkTo = _random.NextDouble() < 0.5 ? ground.Left - HeightPx : ground.Right + HeightPx;
         else
-            _walkTo = ground.Left + margin + _random.NextDouble() * Math.Max(1, width - 2 * margin);
+        {
+            var target = ground.Left + margin + _random.NextDouble() * Math.Max(1, width - 2 * margin);
+            _walkTo = Taken(target, ground.Y) ? FreeOn(ground, target) : target;
+        }
+        _host.RequestTick();
+    }
+
+    // ── room for everybody (stage 13.14) ─────────────────────────────────
+
+    /// <summary>How wide its body is (the last frame drawn, or about its height before the first one).</summary>
+    private double WidthPx => _body is { } body ? body.Width : HeightPx * 0.8;
+
+    /// <summary>Where another assistant stays over where its body would be, standing at <paramref name="x"/> on <paramref name="y"/>.</summary>
+    private bool Taken(double x, double y)
+    {
+        var half = WidthPx / 2;
+        var body = new PixelRect((int)(x - half), (int)(y - HeightPx), (int)(x + half), (int)y);
+        return _host.World.TakenBy(body.Inflate((int)Math.Ceiling(4 * Dpi))) is not null;
+    }
+
+    /// <summary>The nearest place to <paramref name="x"/> on that ground where nobody else stays, or null.</summary>
+    private double? FreeOn(Ground ground, double x)
+    {
+        var margin = Math.Min((ground.Right - ground.Left) / 2, WidthPx / 2);
+        var left = ground.Left + margin;
+        var right = ground.Right - margin;
+        var step = Math.Max(4, WidthPx / 4);
+        for (var d = 0.0; d <= right - left; d += step)
+        {
+            if (x + d <= right && x + d >= left && !Taken(x + d, ground.Y)) return x + d;
+            if (x - d >= left && x - d <= right && !Taken(x - d, ground.Y)) return x - d;
+        }
+        return null;
+    }
+
+    /// <summary>It stopped where another assistant stays: it walks aside to the nearest free place (passing by is fine).</summary>
+    private void Settle()
+    {
+        if (_ground is not { } ground || character.WalkSpeed <= 0 || !Taken(_at.X, _at.Y)) return;
+        if (FreeOn(ground, _at.X) is not { } free) return;
+        _host.Log.Info($"se aparta: hay otro asistente donde se ha parado ({_at.X:0} → {free:0})");
+        _walkTo = free;
         _host.RequestTick();
     }
 
@@ -278,7 +335,6 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
         return true;
     }
 
-    /// <summary>A free place: the taskbar of a monitor that is not full screen, or the top of a window.</summary>
     /// <summary>Where it stood when it left to come back at once (its data folder), if that is still ground.</summary>
     private Point? SavedSpot()
     {
@@ -302,15 +358,23 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { /* it comes back somewhere else */ }
     }
 
+    /// <summary>A place on the taskbar of a monitor that is not full screen, where no other assistant stays if it can be.</summary>
     private Point? RandomSpot()
     {
         var world = _host.World.Current;
         var monitors = world.Monitors.Where(m => !_host.World.System.FullscreenMonitors.Contains(m.Index)).ToList();
         if (monitors.Count == 0) return null;
-        var monitor = monitors.FirstOrDefault(m => m.IsPrimary) ?? monitors[0];
-        if (_random.NextDouble() < 0.3) monitor = monitors[_random.Next(monitors.Count)];
-        var work = monitor.WorkArea;
-        return new Point(work.Left + 80 + _random.NextDouble() * Math.Max(1, work.Width - 160), work.Bottom);
+        Point? spot = null;
+        // A few tries for a place where no other assistant stays.
+        for (var i = 0; i < 8; i++)
+        {
+            var monitor = monitors.FirstOrDefault(m => m.IsPrimary) ?? monitors[0];
+            if (_random.NextDouble() < 0.3) monitor = monitors[_random.Next(monitors.Count)];
+            var work = monitor.WorkArea;
+            spot = new Point(work.Left + 80 + _random.NextDouble() * Math.Max(1, work.Width - 160), work.Bottom);
+            if (!Taken(spot.Value.X, spot.Value.Y)) break;
+        }
+        return spot;
     }
 
     private int MonitorIndex(Point? at = null) => _host.World.Current.MonitorAt(at ?? new Point(_at.X, _at.Y - 1))?.Index ?? -1;
@@ -366,7 +430,8 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
             dc.DrawImage(frame, rect);
             if (mirror) dc.Pop();
         });
-        _hit.Place(new HitShape.Rectangle(new PixelRect((int)rect.Left, (int)rect.Top, (int)rect.Right, (int)rect.Bottom)));
+        _body = new PixelRect((int)rect.Left, (int)rect.Top, (int)rect.Right, (int)rect.Bottom);
+        _hit.Place(new HitShape.Rectangle(_body.Value));
     }
 
     /// <summary>The frames of an animation, read from the package once (a strip is cut into its frames).</summary>

@@ -63,6 +63,13 @@ public interface IAssistant : IDisposable
     /// </summary>
     System.Windows.Point? BubbleAnchor { get; }
 
+    /// <summary>
+    /// Where its body is now, in screen pixels (SDK 1.10): what the other assistants avoid stopping on
+    /// (<see cref="IWorld.Others"/>). Just the body, not its particles, bubbles or effects. Null while it is not on screen.
+    /// Read after every tick. Without it the host takes the bounds of its «body» hit area.
+    /// </summary>
+    PixelRect? BodyBounds => null;
+
     void OnPointer(PointerEvent e);
 
     void OnSystemEvent(SystemEvent e);

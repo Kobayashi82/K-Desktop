@@ -69,6 +69,9 @@ internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, P
         return area;
     }
 
+    /// <summary>Where its body hit area is now (also while it steps aside for the menu), or null.</summary>
+    public PixelRect? BodyBounds => _areas.FirstOrDefault(a => a.Id == BodyArea)?.Placed;
+
     internal void Forget(HitArea area) => _areas.Remove(area);
 
     internal void Deliver(PointerEvent e) => deliver(e);
@@ -123,6 +126,9 @@ internal sealed unsafe class HitArea : IHitArea
     public string Id { get; }
 
     public nint Handle => _window.Handle;
+
+    /// <summary>Its bounds where the assistant placed it (also while stepped aside), or null if hidden.</summary>
+    public PixelRect? Placed => _suspended ? _parked?.Bounds : _window.IsVisible ? _shape?.Bounds : null;
 
     public PointerCursor Cursor { get; set; } = PointerCursor.Hand;
 

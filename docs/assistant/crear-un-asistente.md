@@ -255,6 +255,13 @@ Cuando cambian, llega `OnSettingsChanged` con `host.Common` ya al día. Un asist
   ritmo. `Length` para recoger o soltar cable, `Gravity`, `Damping`, `Iterations`; `IsTaut`, `Overstretch` y `Pull` (hacia
   el principio, lo que sobra de largo: lo que sigue una ventana remolcada). Se dibuja con `Draw(dc, pen)` (curva suave) y
   `Bounds(margen)` dice el tamaño de la superficie.
+- **Sitio para todos** (SDK 1.11): con varios asistentes en el escritorio, ninguno se queda encima de otro. Di dónde está tu
+  cuerpo con `BodyBounds` (solo el cuerpo: sin partículas, bocadillos ni efectos; null si no se te ve). Si no lo das, el
+  host usa los límites de tu zona de clic `body`, que puede no estar siempre puesta. `World.Others` dice dónde está el
+  cuerpo de cada uno de los demás (`Id`, `Body`) y si va de camino a otro sitio (`Moving`: se ha movido en el último
+  medio segundo). Antes de posarte, pararte o pasear hasta un sitio, mira `World.TakenBy(rectángulo)`: da el que se ha
+  quedado ahí, o null si está libre (uno de paso no cuenta salvo con `moving: true`). Pasar por delante vale; quedarse
+  encima, no: elige otro sitio, o apártate si al llegar resulta que ya había otro. El asistente sin código lo hace solo.
 - **Variedad** (`Variety<T>`, SDK 1.10): para no hacer siempre lo mismo (entradas, reacciones, animaciones de reposo,
   frases). Cada variante con su peso (`Add(x, weight: 2)` sale el doble que una de 1; 0 = nunca) y su enfriamiento en
   segundos (`cooldown: 120`: no vuelve a salir en dos minutos). `Pick()` elige al azar por peso, nunca la misma dos veces

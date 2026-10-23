@@ -96,8 +96,8 @@ public class MusicTests
     public void OnlyWhoListensHearsAndTheMeterRunsWhileSomeoneDoes()
     {
         using var world = new HostWorld(() => 1);
-        var dancer = new WorldView(world);
-        var other = new WorldView(world);
+        var dancer = new WorldView(world, "dancer");
+        var other = new WorldView(world, "other");
         Assert.False(dancer.Music.Playing);
 
         dancer.ListenToMusic(true);

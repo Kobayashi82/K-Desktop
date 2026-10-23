@@ -116,6 +116,7 @@ internal sealed class AssistantRuntime : IDisposable
                 if (!Guard(slot, a => wanted = a.Tick(new TickInfo(now, elapsed)), "Tick")) wanted = 1;
                 slot.LastTick = now;
                 slot.Due = now + (double.IsFinite(wanted) ? Math.Clamp(wanted, 0, 60) : 1);
+                ReadBody(slot, now);
             }
             if (!slot.Dropped) interval = Math.Min(interval, Math.Max(0, slot.Due - now));
             if (slot.MenuUntil > 0)
@@ -133,8 +134,53 @@ internal sealed class AssistantRuntime : IDisposable
         }
         foreach (var slot in _slots)
             if (slot.Bubble is { } bubble) interval = Math.Min(interval, UpdateBubble(slot, bubble, now));
+        interval = Math.Min(interval, PublishBodies(now));
         Rendering.Commit();
         return interval;
+    }
+
+    /// <summary>How long a body counts as moving after its last move (s).</summary>
+    private const double MovingFor = 0.5;
+
+    /// <summary>
+    /// How far its body's centre must go to count as a move (px): breathing, bobbing or an arm that waves are not walking
+    /// away.
+    /// </summary>
+    private const double MoveThreshold = 6;
+
+    /// <summary>Where its body is after a tick (its own word for it, or its body hit area).</summary>
+    private void ReadBody(AssistantSlot slot, double now)
+    {
+        PixelRect? body = null;
+        if (!Guard(slot, a => body = a.BodyBounds, "BodyBounds")) return;
+        body ??= slot.Pointer.BodyBounds;
+        if (body is { IsEmpty: true }) body = null;
+        if (body is { } b && (slot.Body is null || (b.Center - slot.MovedFrom).Length > MoveThreshold))
+        {
+            // Appearing counts as arriving: still on its way for a moment.
+            slot.MovedFrom = b.Center;
+            slot.MovedAt = now;
+        }
+        slot.Body = body;
+    }
+
+    /// <summary>
+    /// Every body on the desktop, for <see cref="IWorld.Others"/> (stage 13.14); returns when a «moving» runs out, so that
+    /// it is up to date even if nobody ticks.
+    /// </summary>
+    private double PublishBodies(double now)
+    {
+        var bodies = new List<OtherAssistant>(_slots.Count);
+        var wake = 60.0;
+        foreach (var slot in _slots)
+        {
+            if (slot.Dropped || slot.Body is not { } body) continue;
+            var left = slot.MovedAt + MovingFor - now;
+            if (left > 0) wake = Math.Min(wake, left);
+            bodies.Add(new OtherAssistant(slot.Id, body, left > 0));
+        }
+        World.Publish(bodies);
+        return wake;
     }
 
     /// <summary>A bubble follows its character; one that faded out goes.</summary>
@@ -609,7 +655,15 @@ internal sealed class AssistantSlot(string id, IAssistant assistant, AssistantMa
 
     public SurfaceScope Surfaces { get; } = new(rendering);
 
-    public WorldView World { get; } = new(world);
+    public WorldView World { get; } = new(world, id);
+
+    /// <summary>Where its body is (stage 13.14), as last read after a tick; null off screen.</summary>
+    public PixelRect? Body { get; set; }
+
+    /// <summary>Where its body was when it last counted as moving, and when (engine clock).</summary>
+    public Point MovedFrom { get; set; }
+
+    public double MovedAt { get; set; } = double.NegativeInfinity;
 
     public HostPointer Pointer { get; set; } = null!;
 
@@ -711,9 +765,22 @@ internal sealed class SurfaceScope(HostRendering rendering) : IRendering
 /// <see cref="IWorld"/> for one assistant: the shared picture of the desktop, with subscribers of its own (forgotten
 /// when it is unloaded; an exception in one is that assistant's failure).
 /// </summary>
-internal sealed class WorldView(HostWorld world) : IWorld
+internal sealed class WorldView(HostWorld world, string id) : IWorld
 {
     public WorldSnapshot Current => world.Current;
+
+    public IReadOnlyList<OtherAssistant> Others
+    {
+        get
+        {
+            var all = world.Others;
+            if (!ReferenceEquals(all, _othersOf)) (_othersOf, _others) = (all, [.. all.Where(o => o.Id != id)]);
+            return _others;
+        }
+    }
+
+    private IReadOnlyList<OtherAssistant>? _othersOf;
+    private IReadOnlyList<OtherAssistant> _others = [];
 
     public SystemState System => world.System;
 

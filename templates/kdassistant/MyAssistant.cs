@@ -29,6 +29,15 @@ public sealed class MyAssistant : IAssistant
 
     public Point? BubbleAnchor => new Point(_at.X, _at.Y - 20 * _host.Common.Size);
 
+    // Where its body is: the other assistants avoid stopping on it (and it avoids theirs: World.Others).
+    public PixelRect? BodyBounds => BodyAt(_at);
+
+    private PixelRect BodyAt(Point at)
+    {
+        var body = (int)(18 * _host.Common.Size);
+        return new PixelRect((int)at.X - body, (int)at.Y - body, (int)at.X + body, (int)at.Y + body);
+    }
+
     public void Attach(IAssistantHost host)
     {
         _host = host;
@@ -41,6 +50,8 @@ public sealed class MyAssistant : IAssistant
         // Sit above the taskbar of the main monitor.
         var work = _host.World.Current.PrimaryMonitor?.WorkArea ?? new PixelRect(0, 0, 800, 600);
         _at = new Point(work.Right - 200, work.Bottom - 24);
+        // Another assistant already stays there: a little further left, never on top of it.
+        for (var i = 0; i < 20 && _host.World.TakenBy(BodyAt(_at).Inflate(4)) is not null; i++) _at.X -= 40 * _host.Common.Size;
         _dirty = true;
         // Startup and Summoned deserve an entrance (here, a flash); Reloaded comes back quietly, where it was.
         if (how != EntranceKind.Reloaded) Flash();
@@ -74,8 +85,7 @@ public sealed class MyAssistant : IAssistant
             var brush = new SolidColorBrush(flashing ? _flashColor : _color);
             brush.Freeze();
             _surface.Present(area, dc => dc.DrawEllipse(brush, null, _at, radius, radius));
-            var body = (int)(18 * size);
-            _hit.Place(new HitShape.Ellipse(new PixelRect((int)_at.X - body, (int)_at.Y - body, (int)_at.X + body, (int)_at.Y + body)));
+            _hit.Place(new HitShape.Ellipse(BodyAt(_at)));
         }
         // Animating: every frame. At rest: a long sleep (anything that matters calls RequestTick).
         return flashing ? _host.Rendering.FrameInterval : 30;

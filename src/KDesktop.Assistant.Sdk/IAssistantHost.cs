@@ -131,6 +131,34 @@ public interface IWorld
 
     /// <summary>The music playing now (SDK 1.7; not playing unless this assistant listens: <see cref="ListenToMusic"/>).</summary>
     MusicBeat Music { get; }
+
+    /// <summary>
+    /// The other assistants on the desktop and where their bodies are (SDK 1.10), so that it does not land, stop or stroll
+    /// on top of one of them: passing in front is fine, staying there is not. <see cref="WorldExtensions.TakenBy"/> says
+    /// whether a place is taken. Up to date after every tick of theirs.
+    /// </summary>
+    IReadOnlyList<OtherAssistant> Others { get; }
+}
+
+/// <summary>Another assistant on the desktop (<see cref="IWorld.Others"/>, SDK 1.10).</summary>
+/// <param name="Id">Its id («lander»…).</param>
+/// <param name="Body">Where its body is, in screen pixels (<see cref="IAssistant.BodyBounds"/>).</param>
+/// <param name="Moving">It is on its way somewhere (it moved in the last half second): it will not stay there.</param>
+public sealed record OtherAssistant(string Id, PixelRect Body, bool Moving);
+
+public static class WorldExtensions
+{
+    /// <summary>
+    /// The other assistant staying over <paramref name="area"/> (where this one would be), or null if the place is free.
+    /// One on its way somewhere does not count unless <paramref name="moving"/>.
+    /// </summary>
+    public static OtherAssistant? TakenBy(this IWorld world, PixelRect area, bool moving = false)
+    {
+        ArgumentNullException.ThrowIfNull(world);
+        foreach (var other in world.Others)
+            if ((moving || !other.Moving) && other.Body.Intersects(area)) return other;
+        return null;
+    }
 }
 
 /// <summary>Sound. The host mixes everything and applies the user's volume for assistants.</summary>

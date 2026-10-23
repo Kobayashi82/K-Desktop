@@ -48,5 +48,14 @@ internal sealed class HostWorld(Func<double> clock) : IWorld, IDisposable
 
     internal void Publish(SystemState state) => System = state;
 
+    /// <summary>Every assistant's body (each one sees the others' through its <see cref="WorldView"/>).</summary>
+    public IReadOnlyList<OtherAssistant> Others { get; private set; } = [];
+
+    /// <summary>The bodies after a tick (the same list stays if nothing changed).</summary>
+    internal void Publish(IReadOnlyList<OtherAssistant> bodies)
+    {
+        if (!bodies.SequenceEqual(Others)) Others = bodies;
+    }
+
     public void Dispose() => _music.Dispose();
 }
