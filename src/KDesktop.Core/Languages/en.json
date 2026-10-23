@@ -3987,5 +3987,6 @@
   "assistantCommon.liveliness": "How lively it is",
   "assistantCommon.livelinessHint": "At 0 % it moves on its own as little as it can.",
   "assistantCommon.dragging": "Pick it up with the mouse",
-  "assistantCommon.draggingHint": "Drag it to move it somewhere else."
+  "assistantCommon.draggingHint": "Drag it to move it somewhere else.",
+  "assistant.words.praise": "thanks|thank you|thank you very much|thanks a lot|well done|good job|great job|nice job|nicely done|you're great|you are great|you're the best|you are the best|perfect|excellent|awesome|amazing|love it|good boy|good girl"
 }

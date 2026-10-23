@@ -68,10 +68,56 @@ public abstract record Gesture
     /// <param name="Icon">Optional icon id from the module (volume, power, clock, web…).</param>
     public sealed record Communicate(string Text, string? Icon) : Gesture { public override GestureKind Kind => GestureKind.Communicate; }
 
-    public sealed record React(Reaction Reaction) : Gesture { public override GestureKind Kind => GestureKind.React; }
+    /// <summary>
+    /// A short reaction to how something went. <see cref="Context"/> (SDK 1.12) says where it comes from, how many in a
+    /// row and whether it is the first of the day, so the same reaction need not look the same every time.
+    /// </summary>
+    public sealed record React(Reaction Reaction) : Gesture
+    {
+        public override GestureKind Kind => GestureKind.React;
+
+        /// <summary>Filled by the host (SDK 1.12); <see cref="ReactionContext.Unknown"/> when it cannot tell.</summary>
+        public ReactionContext Context { get; init; } = ReactionContext.Unknown;
+    }
 }
 
 public enum Reaction { Success, Warning, Failure, Celebration }
+
+/// <summary>Where a reaction comes from (SDK 1.12).</summary>
+public enum ReactionSource
+{
+    Unknown,
+
+    /// <summary>One of the user's K-Desktop commands, or an action of K-Desktop (a window, a program, the volume).</summary>
+    Order,
+
+    /// <summary>A tool it used (a timer, a note, the web, a tool of an MCP server…).</summary>
+    Tool,
+
+    /// <summary>Something it says on its own: a timer that rang, «avísame cuando» that happened.</summary>
+    Notice,
+
+    /// <summary>What the user said about it: thanks or praise (Celebration), «that's wrong» (Failure).</summary>
+    User,
+}
+
+/// <summary>
+/// The context of a <see cref="Gesture.React"/> (SDK 1.12), filled by the host.
+/// </summary>
+/// <param name="Source">Where it comes from.</param>
+/// <param name="Streak">
+/// How many reactions of this same kind in a row, this one included (1 = the first; the third failure in a row is 3). Starts
+/// again after another kind, or after half an hour without reactions.
+/// </param>
+/// <param name="FirstToday">It is its first reaction of the day (local date): a good moment for something bigger.</param>
+/// <param name="What">
+/// What it was, when known: the tool (<c>set_timer</c>, <c>run_command</c>…), the notice (<c>timer</c>, <c>watch</c>), the
+/// action of a step (<c>window</c>…) or what the user said (<c>praise</c>, <c>wrong</c>).
+/// </param>
+public sealed record ReactionContext(ReactionSource Source, int Streak = 1, bool FirstToday = false, string? What = null)
+{
+    public static ReactionContext Unknown { get; } = new(ReactionSource.Unknown);
+}
 
 /// <summary>A place on the desktop a gesture refers to.</summary>
 public abstract record Place

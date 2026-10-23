@@ -24,6 +24,7 @@ public sealed class MyAssistant : IAssistant
         .Add(Colors.Gold)
         .Add(Colors.HotPink, weight: 0.5, cooldown: 60);
     private double _flash = double.NaN;
+    private double _flashLength = 0.5;
     private bool _flashPending;
     private bool _dirty = true;
 
@@ -72,7 +73,7 @@ public sealed class MyAssistant : IAssistant
             _flashPending = false;
             _flash = tick.Now;
         }
-        var flashing = !double.IsNaN(_flash) && tick.Now - _flash < 0.5;
+        var flashing = !double.IsNaN(_flash) && tick.Now - _flash < _flashLength;
         if (_dirty || flashing || !double.IsNaN(_flash))
         {
             if (!flashing) _flash = double.NaN;
@@ -95,10 +96,14 @@ public sealed class MyAssistant : IAssistant
 
     public async Task<GestureOutcome> PerformAsync(Gesture gesture, IGestureContext ctx, CancellationToken ct)
     {
-        if (gesture is Gesture.React)
+        if (gesture is Gesture.React react)
         {
-            Flash(_reactions.Pick());
-            try { await Task.Delay(500, ct); } catch (OperationCanceledException) { }
+            // Its context: the first of the day, a celebration or the third in a row of the same kind deserves more.
+            var context = react.Context;
+            var big = context.FirstToday || context.Streak >= 3 || react.Reaction == Reaction.Celebration;
+            var seconds = big ? 1.2 : 0.5;
+            Flash(react.Reaction == Reaction.Failure ? Colors.IndianRed : _reactions.Pick(), seconds);
+            try { await Task.Delay(TimeSpan.FromSeconds(seconds), ct); } catch (OperationCanceledException) { }
             return GestureOutcome.Committed;
         }
         if (gesture is Gesture.Communicate)
@@ -139,9 +144,10 @@ public sealed class MyAssistant : IAssistant
         _surface.Dispose();
     }
 
-    private void Flash(Color? color = null)
+    private void Flash(Color? color = null, double seconds = 0.5)
     {
         _flashColor = color ?? Colors.White;
+        _flashLength = seconds;
         _flashPending = true;
         _host.RequestTick();
     }

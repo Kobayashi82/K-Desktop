@@ -3987,5 +3987,6 @@
   "assistantCommon.liveliness": "Lebhaftigkeit",
   "assistantCommon.livelinessHint": "Bei 0 % bewegt es sich so wenig wie möglich von selbst.",
   "assistantCommon.dragging": "Mit der Maus greifen",
-  "assistantCommon.draggingHint": "Zieh es, um es woanders hinzusetzen."
+  "assistantCommon.draggingHint": "Zieh es, um es woanders hinzusetzen.",
+  "assistant.words.praise": "danke|danke schön|dankeschön|vielen dank|gut gemacht|gute arbeit|sehr gut|toll|klasse|du bist toll|du bist der beste|du bist die beste|perfekt|ausgezeichnet|großartig|ich liebe es"
 }

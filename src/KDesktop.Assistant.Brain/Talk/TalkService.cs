@@ -646,35 +646,7 @@ public sealed class TalkService
     /// <c>assistant.words.wrong</c> in any language) and that answer was the AI's, a moment ago.
     /// </summary>
     private bool IsWrongAbout(Conversation conversation, string said) =>
-        conversation.LastOrder is not null && conversation.LastAiAt is { } at && _time.GetUtcNow() - at <= CorrectionWithin && IsWrong(said);
-
-    private static readonly Lazy<string[]> WrongWords = new(() =>
-    [
-        .. Loc.Available()
-            .Select(l => Loc.Strings(l.Code, "assistant.words.wrong").GetValueOrDefault("assistant.words.wrong") ?? string.Empty)
-            .SelectMany(v => v.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-            .Select(p => " " + string.Join(' ', TextSimilarity.Words(p)) + " ")
-            .Where(p => p.Trim().Length > 0)
-            .Distinct(StringComparer.Ordinal),
-    ]);
-
-    /// <summary>
-    /// Whether the order says something was wrong («está mal», «te equivocas», «that's wrong»), in any language; not when a
-    /// «no» goes right before («no está mal» is praise).
-    /// </summary>
-    internal static bool IsWrong(string said)
-    {
-        var folded = " " + string.Join(' ', TextSimilarity.Words(said)) + " ";
-        foreach (var phrase in WrongWords.Value)
-        {
-            var at = folded.IndexOf(phrase, StringComparison.Ordinal);
-            if (at < 0) continue;
-            var before = folded[..at].TrimEnd();
-            var last = before[(before.LastIndexOf(' ') + 1)..];
-            if (last is not ("no" or "not" or "nicht" or "pas" or "non" or "nao")) return true;
-        }
-        return false;
-    }
+        conversation.LastOrder is not null && conversation.LastAiAt is { } at && _time.GetUtcNow() - at <= CorrectionWithin && UserSignals.IsWrong(said);
 
     /// <summary>A question with this many numbers at least is taken for a sum of several steps.</summary>
     public const int StepNumbers = 3;

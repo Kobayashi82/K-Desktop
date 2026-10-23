@@ -35,7 +35,9 @@ internal sealed class AssistantSession : IDisposable
         Runtime = new AssistantRuntime(Engine, Link);
         // The brain answers Options → Assistant → Brain: only with K-Desktop there.
         if (Link is not null) Brain = new BrainService(World.VideoMemory.Gigabytes);
-        var choreography = Link is null ? null : new ModuleChoreography(Link, Engine, Runtime);
+        // How things went, shown with a reaction that knows where it comes from (stage 13.3).
+        var reactions = Link is null ? null : new ModuleReactions(Engine, Runtime, new ReactionLog(Path.Combine(AppPaths.DataDir, "Assistant", "reactions.json")));
+        var choreography = Link is null ? null : new ModuleChoreography(Link, Engine, Runtime) { Reactions = reactions };
         if (Link is not null) Commands = new ModuleCommands(Link) { Choreography = choreography, HasBody = Runtime.HasBody };
         // Reading the screen, the figure scans what was read.
         var sight = new ModuleSight(Runtime.WindowServices) { Looking = choreography is null ? null : choreography.Scan };
@@ -43,7 +45,7 @@ internal sealed class AssistantSession : IDisposable
             new ModuleBrowser(Path.Combine(AppPaths.DataDir, "Assistant", "Browser")));
         Runtime.LanguageOf = Personal.LanguageOf;
         if (Link is not null) Voice = new ModuleVoice(Engine, Runtime, Personal);
-        if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!, Commands!, Voice!, Personal);
+        if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!, Commands!, Voice!, Personal, reactions!);
         if (Link is not null) Bench = new ModuleBench(Link, Brain!, Tools!, Talk!.Chooser, Commands!);
         if (Link is not null) Games = new ModuleGames(Brain!, Talk!.Service);
     }

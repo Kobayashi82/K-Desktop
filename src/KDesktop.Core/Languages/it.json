@@ -3987,5 +3987,6 @@
   "assistantCommon.liveliness": "Vivacità",
   "assistantCommon.livelinessHint": "Allo 0 % si muove il meno possibile da solo.",
   "assistantCommon.dragging": "Prenderlo con il mouse",
-  "assistantCommon.draggingHint": "Trascinalo per spostarlo."
+  "assistantCommon.draggingHint": "Trascinalo per spostarlo.",
+  "assistant.words.praise": "grazie|grazie mille|ti ringrazio|ben fatto|bel lavoro|ottimo lavoro|molto bene|bravo|brava|sei grande|sei il migliore|sei la migliore|perfetto|eccellente|fantastico|mi piace tantissimo"
 }

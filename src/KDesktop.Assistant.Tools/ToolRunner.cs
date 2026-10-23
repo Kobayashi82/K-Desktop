@@ -14,6 +14,9 @@ public sealed record ToolOutcome(ToolResult? Result, ActivityEntry Entry)
     public bool Ran => Result is not null;
 }
 
+/// <summary>A tool that was run (<see cref="ToolRunner.Ran"/>): who for, which, how it got there and whether it failed.</summary>
+public sealed record ToolRan(string? Assistant, string Tool, bool ReadsOnly, string Route, bool Failed);
+
 /// <summary>
 /// Runs the tools (stage 3.3, plan §8): asks when its risk says so (🟡 the first time, unless trusted; 🔴 every time; no
 /// answer in 10 s is a no), writes each call in the activity, and keeps what can be undone (also across restarts) until
@@ -59,6 +62,12 @@ public sealed class ToolRunner
     }
 
     public ToolRegistry Registry => _registry;
+
+    /// <summary>
+    /// A tool ran (not when it was not allowed or does not exist), on the thread that ran it: the character reacts to how
+    /// the order went (stage 13.3).
+    /// </summary>
+    public event Action<ToolRan>? Ran;
 
     /// <summary>Runs <paramref name="name"/> for <paramref name="heard"/> (what was asked), asking first when it must.</summary>
     /// <param name="route">How it got here: <c>rule</c>, <c>ai</c>…</param>
@@ -107,6 +116,8 @@ public sealed class ToolRunner
         string? undoId = null;
         var did = result.Done ?? Capitalize(intent);
         if (result.Undo is { } undo && !result.Failed) undoId = Keep(undo, did, context.Assistant);
+        try { Ran?.Invoke(new ToolRan(context.Assistant, name, tool.ReadsOnly, route, result.Failed)); }
+        catch (Exception ex) { Log.Warn($"Asistente: no se ha podido avisar de {name}: {ex.Message}"); }
         return new ToolOutcome(result, Record(context.Assistant, heard, route, did, !result.Failed, undoId));
     }
 

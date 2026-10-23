@@ -3987,5 +3987,6 @@
   "assistantCommon.liveliness": "Agitação",
   "assistantCommon.livelinessHint": "Em 0 % se mexe o mínimo possível sozinho.",
   "assistantCommon.dragging": "Pegar com o mouse",
-  "assistantCommon.draggingHint": "Arraste para mudar de lugar."
+  "assistantCommon.draggingHint": "Arraste para mudar de lugar.",
+  "assistant.words.praise": "obrigado|obrigada|muito obrigado|muito obrigada|valeu|bom trabalho|muito bem|mandou bem|você é demais|você é o melhor|você é a melhor|perfeito|excelente|incrível|adorei"
 }

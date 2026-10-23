@@ -27,6 +27,9 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
     /// <summary>How long a step is said in the bubble while it happens (Communicate, or a gesture it cannot do).</summary>
     private static readonly TimeSpan SayFor = TimeSpan.FromSeconds(1.6);
 
+    /// <summary>Its reactions (a warning when the module had to do a step), with their context (stage 13.3).</summary>
+    public ModuleReactions? Reactions { get; set; }
+
     /// <summary>
     /// In «Fast» no manoeuvre takes over half a second (stage 6.7): past this the action happens anyway and the gesture is
     /// left behind.
@@ -194,7 +197,7 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
                         break;
                     case GestureOutcome.NotPerformed when part.Commits:
                         Go();
-                        await ReactAsync(assistant, Reaction.Warning);
+                        if (Reactions is { } reactions) await reactions.ReactAsync(assistant, Reaction.Warning, ReactionSource.Order, step.Kind);
                         break;
                 }
             }
@@ -277,15 +280,6 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
     /// <summary>The step in its bubble, with its Communicate gesture, for a moment.</summary>
     private Task SayAsync(string assistant, StepMessage step, CancellationToken token) =>
         runtime.CommunicateAsync(assistant, step.Summary, SayFor, token);
-
-    /// <summary>A short reaction (a warning when the module had to do it), never long.</summary>
-    private async Task ReactAsync(string assistant, Reaction reaction)
-    {
-        using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(1.5));
-        var context = new StepGestureContext(engine, engine.Now + 1.5, new StepMessage("", 0, 0, 0, "", "", "", 1500), () => { }, Task.FromResult(true), null);
-        if (runtime.TryPerform(assistant, new Gesture.React(reaction), context, limit.Token) is { } running)
-            await OutcomeAsync(assistant, GestureKind.React, running, TimeSpan.FromSeconds(1.5));
-    }
 
     /// <summary>
     /// What a part that only leads to the action does at its Commit: a maximized window is restored before it is moved

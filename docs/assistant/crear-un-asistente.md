@@ -255,6 +255,17 @@ Cuando cambian, llega `OnSettingsChanged` con `host.Common` ya al día. Un asist
   ritmo. `Length` para recoger o soltar cable, `Gravity`, `Damping`, `Iterations`; `IsTaut`, `Overstretch` y `Pull` (hacia
   el principio, lo que sobra de largo: lo que sigue una ventana remolcada). Se dibuja con `Draw(dc, pen)` (curva suave) y
   `Bounds(margen)` dice el tamaño de la superficie.
+- **Contexto de las reacciones** (SDK 1.12): `Gesture.React` trae `Context` (`ReactionContext`), que rellena el host:
+  `Source` = de dónde viene (`Order`, un comando tuyo o una acción de K-Desktop; `Tool`, una herramienta como el
+  temporizador, una nota o la web; `Notice`, algo que dice por su cuenta, como un temporizador que suena; `User`, lo que
+  el usuario dice de él: «gracias», «bien hecho» → `Celebration`, «está mal» → `Failure`), `Streak` = cuántas seguidas
+  del mismo tipo (1 la primera; vuelve a 1 con otro tipo o tras media hora sin reacciones), `FirstToday` = la primera
+  del día, y `What` = qué fue cuando se sabe (`set_timer`, `run_command`, `timer`, `praise`…). El host reacciona una vez
+  por orden, cuando la respuesta está lista: algo hecho y nada fallido → `Success`; hecho pero algo falló → `Warning`;
+  nada hecho y algo falló → `Failure` (un fallo que la IA arregla en la misma orden no cuenta); solo consultar (la hora,
+  el tiempo) no reacciona. Úsalo con `Variety` para no reaccionar siempre igual: algo más grande la primera del día o
+  en una racha larga, más desanimado al tercer fallo seguido. Cuando el host no sabe de dónde viene, llega
+  `ReactionContext.Unknown`. Los asistentes compilados con un SDK anterior siguen funcionando igual.
 - **Sitio para todos** (SDK 1.11): con varios asistentes en el escritorio, ninguno se queda encima de otro. Di dónde está tu
   cuerpo con `BodyBounds` (solo el cuerpo: sin partículas, bocadillos ni efectos; null si no se te ve). Si no lo das, el
   host usa los límites de tu zona de clic `body`, que puede no estar siempre puesta. `World.Others` dice dónde está el

@@ -30,15 +30,19 @@ internal sealed class ModuleTalk : ITalkOutput
 
     private readonly ModuleTools _tools;
     private readonly ModulePersonal _personal;
+    private readonly ModuleReactions _reactions;
 
     public ModuleTalk(KDesktopLink link, EngineLoop engine, AssistantRuntime runtime, BrainService brain, ModuleTools tools, ModuleCommands commands, ModuleVoice voice,
-        ModulePersonal personal)
+        ModulePersonal personal, ModuleReactions reactions)
     {
         _link = link;
         _engine = engine;
         _runtime = runtime;
         _tools = tools;
         _personal = personal;
+        _reactions = reactions;
+        // What its tools do in an order is what it reacts to when the answer is ready (stage 13.3).
+        tools.Runner.Ran += reactions.Add;
         // Its personality or its language changed: its persona is read again for the next order.
         personal.Changed += ids =>
         {
@@ -91,6 +95,7 @@ internal sealed class ModuleTalk : ITalkOutput
             Log.Info("Asistente: orden ignorada (K-Desktop en pausa)");
             return;
         }
+        _reactions.Begin(heard.Assistant, heard.Text);
         // In its own language (its answer, its phrases, what it did), whatever the others speak in.
         using (Loc.Instance.Use(_personal.LanguageOf(heard.Assistant))) _ = Service.HandleAsync(heard);
     }
@@ -154,6 +159,7 @@ internal sealed class ModuleTalk : ITalkOutput
                 _link.Send(new NotifyMessage(title, text, assistant));
                 return;
             }
+            if (assistant is not null) _reactions.React(assistant, Reaction.Success, ReactionSource.Notice, activity);
             await Service.SayAsync(assistant, text).ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -244,6 +250,8 @@ internal sealed class ModuleTalk : ITalkOutput
     {
         _link.Send(new StatusMessage(state, Assistant: assistant));
         if (state == "thinking") Voice.Warm(assistant);
+        // The answer is ready (or the order is over): how it went.
+        if (state is "speaking" or "idle") _reactions.End(assistant);
         if (assistant is null) return;
         var shown = state switch
         {

@@ -3987,5 +3987,6 @@
   "assistantCommon.liveliness": "Vivacité",
   "assistantCommon.livelinessHint": "À 0 % il bouge le moins possible de lui-même.",
   "assistantCommon.dragging": "L’attraper avec la souris",
-  "assistantCommon.draggingHint": "Faites-le glisser pour le déplacer."
+  "assistantCommon.draggingHint": "Faites-le glisser pour le déplacer.",
+  "assistant.words.praise": "merci|merci beaucoup|merci bien|bien joué|bon travail|beau travail|très bien|génial|tu es génial|tu es géniale|tu es le meilleur|tu es la meilleure|parfait|excellent|j'adore"
 }
