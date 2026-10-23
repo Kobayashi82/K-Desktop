@@ -71,6 +71,7 @@ public sealed class OpenWebTool(Func<Uri, bool>? open = null) : ITool
         var now = DateTime.UtcNow;
         if (_opened.TryGetValue(site, out var last) && now - last < Again)
             return Task.FromResult(new ToolResult($"{uri.Host} was already opened a moment ago; it is open.") { Done = Loc.T("tool.open_web.done", uri.Host) });
+        context.Show?.Invoke(ToolGesture.WaitForWindow());
         if (!(open ?? Browser.Open)(uri)) return Task.FromResult(ToolResult.Fail("The browser did not open."));
         _opened[site] = now;
         return Task.FromResult(new ToolResult($"Opened {uri.Host}.") { Done = Loc.T("tool.open_web.done", uri.Host) });
@@ -120,6 +121,7 @@ public sealed class SearchWebTool(Func<Uri, bool>? open = null) : ITool
         var query = arguments.GetString("query")?.Trim();
         if (string.IsNullOrEmpty(query)) return Task.FromResult(ToolResult.Fail("There is nothing to search for."));
         var uri = new Uri("https://www.google.com/search?q=" + Uri.EscapeDataString(query));
+        context.Show?.Invoke(ToolGesture.WaitForWindow());
         return Task.FromResult((open ?? Browser.Open)(uri)
             ? new ToolResult("The search is open in the browser.") { Done = Loc.T("tool.search_web.done", ToolText.Clean(query)) }
             : ToolResult.Fail("The browser did not open."));
@@ -146,6 +148,7 @@ public sealed class OpenAppTool(Func<Task<IReadOnlyList<InstalledApp>>>? apps = 
         var name = arguments.GetString("name")?.Trim();
         if (string.IsNullOrEmpty(name)) return ToolResult.Fail("Say which program.");
         if (await FindAsync(name).ConfigureAwait(false) is not { } app) return ToolResult.Fail($"There is no program called «{name}».");
+        context.Show?.Invoke(ToolGesture.WaitForWindow());
         return (launch ?? InstalledApps.Launch)(app)
             ? new ToolResult($"Opened {app.Name}.") { Done = Loc.T("tool.open_app.done", app.Name) }
             : ToolResult.Fail($"{app.Name} did not open.");

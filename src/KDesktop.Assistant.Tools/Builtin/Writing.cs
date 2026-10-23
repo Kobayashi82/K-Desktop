@@ -119,6 +119,8 @@ public sealed class TransformTextTool(ICommandBridge bridge, IWriter? writer) : 
             _ => taken.From == "selection" ? "paste" : "copy",
         };
         if (deliver == "paste" && taken.Hwnd == 0) deliver = "copy";
+        // Its figure types into the window the text goes back to.
+        if (deliver == "paste") context.Show?.Invoke(ToolGesture.Typing(taken.Hwnd));
         var put = await bridge.TextAsync("put", context.Assistant, string.Empty, result, deliver == "paste" ? "paste" : "copy", taken.Hwnd, cancellationToken).ConfigureAwait(false);
         if (put is not { Ok: true })
         {

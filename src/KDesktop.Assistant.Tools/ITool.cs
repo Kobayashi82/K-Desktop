@@ -5,7 +5,7 @@ namespace KDesktop.Assistant.Tools;
 
 /// <summary>
 /// Something the assistant can do (plan §7.1): its name and description for the model, its parameters as a JSON schema,
-/// how risky it is, the gesture it asks of the assistant, what it is about to do in words for people, doing it and,
+/// how risky it is, what it is about to do in words for people, doing it and,
 /// when it can, undoing it.
 /// </summary>
 public interface ITool
@@ -23,9 +23,6 @@ public interface ITool
     IReadOnlyList<string> Examples { get; }
 
     ToolRisk Risk { get; }
-
-    /// <summary>The gesture it asks of the assistant (a <c>GestureKind</c> name, «communicate»…), or null.</summary>
-    string? Gesture => null;
 
     /// <summary>It only reads (the time, the notes, a sum): the test bench runs it for real; the others are only pretended.</summary>
     bool ReadsOnly => false;
@@ -88,7 +85,14 @@ public sealed record ToolUndo(string Tool, string Data);
 /// names may run although the order only sounds like it.</param>
 /// <param name="Caller">Another program using the tools (the assistant as an MCP server): its name, for the question on the PC.</param>
 public sealed record ToolContext(string? Assistant, string? Heard = null, bool Decided = false, string? Sources = null, IReadOnlyList<string>? Remembered = null,
-    string? Caller = null);
+    string? Caller = null)
+{
+    /// <summary>
+    /// Asks its character for a gesture while the tool works (stage 13.5): set by the <see cref="ToolRunner"/>; it never waits
+    /// nor throws. Null outside the runner (tests, the bench).
+    /// </summary>
+    public Action<ToolGesture>? Show { get; init; }
+}
 
 /// <summary>
 /// The tools that exist, in groups: the built-in ones (<see cref="Builtin"/>), the JSON ones (stage 9.1) and each MCP

@@ -605,6 +605,7 @@ public sealed class OpenFileTool(FileSearch search, Func<FoundFile, bool, bool>?
             return ToolResult.Fail($"{file.Name} is not there any more.");
         var runs = !file.IsFolder && FileKinds.Runs.Contains(Path.GetExtension(file.Path));
         var inFolder = runs || string.Equals(arguments.GetString("in_folder"), "true", StringComparison.OrdinalIgnoreCase);
+        context.Show?.Invoke(ToolGesture.WaitForWindow(inFolder ? "explorer" : null));
         if (!(open ?? FileSearch.Open)(file, inFolder)) return ToolResult.Fail($"{file.Name} did not open.");
         var said = runs ? $"Shown {file.Name} in its folder: it is a program or script and you never run those. Say so."
             : inFolder ? $"Shown {file.Name} selected in its folder ({file.Folder})."

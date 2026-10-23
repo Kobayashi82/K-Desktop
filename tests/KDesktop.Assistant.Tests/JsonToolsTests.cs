@@ -187,6 +187,28 @@ public sealed class JsonToolsTests : IDisposable
     }
 
     [Fact]
+    public async Task AFileSaysWhatItsCharacterShows()
+    {
+        Write("eco.json", $$$"""
+            { "name": "eco", "type": "http", "description": "Echo.", "readsOnly": true, "gesture": "tray",
+              "request": { "url": "{{{_address}}}echo" } }
+            """);
+        Write("baile.json", $$$"""
+            { "name": "baile", "type": "http", "description": "Dance.", "gesture": "dance", "request": { "url": "{{{_address}}}echo" } }
+            """);
+        var (runner, json, _) = Make();
+        var shown = new List<ToolShown>();
+        runner.Showing += shown.Add;
+
+        await runner.RunAsync("eco", Args("{}"), Lander, "eco", "ai", default);
+        Assert.Equal(new ToolShown("lander", "eco", ToolGesture.GoTo(ToolSpot.Tray)), Assert.Single(shown));
+        // A gesture that does not exist is a mistake in the file.
+        Assert.NotEmpty(json.Files.Single(f => Path.GetFileName(f.File) == "baile.json").Errors);
+        Assert.Equal(["waitForWindow", "tray", "clock", "typing"], ToolGesture.Names);
+        Assert.All(ToolGesture.Names, n => Assert.NotNull(ToolGesture.Named(n)));
+    }
+
+    [Fact]
     public async Task AMissingSecretIsSaidAndNothingIsSent()
     {
         Write("luz_salon.json", Light);

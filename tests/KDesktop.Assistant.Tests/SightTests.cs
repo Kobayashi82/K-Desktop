@@ -35,11 +35,6 @@ public sealed class SightTests
             return Task.FromResult<ScreenPicture?>(new ScreenPicture(jpeg, "the window «Error» of setup", 640, 480, "Error", pixels, new ScreenRect(100, 50, 640, 480)));
         }
 
-        /// <summary>Who looked at what, after each capture.</summary>
-        public List<(string? Assistant, int Captures, ScreenRect? Area)> Looks { get; } = [];
-
-        public void Looked(string? assistant, ScreenPicture picture) => Looks.Add((assistant, Captures, picture.Area));
-
         public Task<string?> BrowserAddressAsync(CancellationToken cancellationToken) => Task.FromResult(address);
     }
 
@@ -94,14 +89,16 @@ public sealed class SightTests
         var tool = new LookAtScreenTool(screen, vision, reader);
 
         // «¿Qué pone en el error?»: the OCR, not the model.
-        var read = await tool.RunAsync(Args(new { question = "qué pone en el error" }), new ToolContext("lander", "¿qué pone en el error?"), default);
+        var shown = new List<(int Captures, int Reads, ToolGesture Gesture)>();
+        var context = new ToolContext("lander", "¿qué pone en el error?") { Show = g => shown.Add((screen.Captures, reader.Reads, g)) };
+        var read = await tool.RunAsync(Args(new { question = "qué pone en el error" }), context, default);
         Assert.Contains("MSVCP140.dll", read.Text, StringComparison.Ordinal);
         Assert.Null(vision.Asked);
         Assert.Equal(1, reader.Reads);
         Assert.True(screen.Use.HasFlag(ScreenUse.Read));
 
-        // Its figure scans what it read, once the picture is taken.
-        Assert.Equal(("lander", 1, new ScreenRect(100, 50, 640, 480)), Assert.Single(screen.Looks));
+        // Its figure scans what it read once the picture is taken (so it is not in it), before reading it.
+        Assert.Equal((1, 0, ToolGesture.Scan(new ScreenRect(100, 50, 640, 480))), Assert.Single(shown));
 
         // The model says so itself.
         await tool.RunAsync(Args(new { question = "the error", read_text = true }), new ToolContext("lander"), default);

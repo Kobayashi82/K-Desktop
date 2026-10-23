@@ -29,6 +29,7 @@ script tuyo.
   "say": { "ok": "Luz del salón: {{estado}}.", "error": "La base no responde." },
   "risk": "safe",                            // safe · askOnce · askAlways
   "readsOnly": false,
+  "gesture": "waitForWindow",                // opcional: waitForWindow · tray · clock · typing
   "timeout": 15,
   "enabled": true
 }
@@ -45,6 +46,10 @@ script tuyo.
 - **`say`**: lo que dice el asistente al acabar. Sin él, lo dice el modelo con sus palabras.
 - **`readsOnly`**: solo consulta algo (una temperatura, un estado). El modelo contesta con lo que devuelve, y el banco de
   pruebas la ejecuta de verdad.
+- **`gesture`** (opcional): lo que hace el personaje mientras la herramienta trabaja. `waitForWindow` = espera la
+  ventana de lo que abre; `tray` = va a la bandeja (música, volumen…); `clock` = deja una marca junto al reloj; `typing` =
+  teclea en la ventana de delante. Es solo adorno: la herramienta no espera al gesto. En las de tipo `kdesktop` no hace
+  falta, porque tu comando ya se ve con sus propios gestos.
 - **`risk`**: `safe` no pregunta; `askOnce` pregunta la primera vez (hasta «Sí, y no vuelvas a preguntar»);
   `askAlways` pregunta siempre. Con «Preguntar antes de hacer algo» en «Nunca», ninguna pregunta… salvo los scripts nuevos
   (ver abajo).

@@ -263,6 +263,14 @@ Cuando cambian, llega `OnSettingsChanged` con `host.Common` ya al día. Un asist
   eligió el usuario (`Showy`, `Normal`, `Fast`): en `Fast` haz el `Commit` antes de medio segundo (pasado ese tiempo,
   K-Desktop lo hace igual). Con «Enseñar también los comandos que lanzas tú» encendido, los comandos lanzados por otras
   vías también te llegan como gestos, siempre en `Fast`: son solo adorno, nada los espera y su `Commit` no hace nada.
+- **Gestos de las herramientas** (5.0.174): lo que hacen las herramientas de la IA también te llega como gestos, con
+  `ctx.Step` 0: un temporizador → `Mark` junto al reloj (`Place.Clock`) con la hora a la que suena; quitarlo →
+  `PointAt(Place.Clock)`; abrir una web, una búsqueda, un programa o un archivo → `WaitForWindow` (llega justo antes de
+  abrirlo; `ctx.Appeared` da la ventana nueva o null); qué suena o controlar la música → `GoTo(Place.Tray)`; «avísame
+  cuando se cierre…» → `Mark` en esa ventana; reescribir un texto y pegarlo → `Typing` en esa ventana; leer la pantalla →
+  `Scan` de lo que se leyó. Las herramientas JSON pueden pedir uno con `"gesture"`. Son solo adorno, como los de arriba:
+  la herramienta sigue sin esperarte, `Commit` no hace nada, un paso de una orden les quita el sitio y uno nuevo sustituye
+  al anterior. Lo que no sepas hacer (`CanPerform` falso) no se enseña.
 - **Cuerda** (`Rope`, SDK 1.4): una cuerda de Verlet en píxeles de pantalla para ganchos, cables y correas. El
   principio lo sujetas tú (`Start` en cada tick); el final cuelga (`ReleaseEnd`, con la velocidad a la que lo sueltas) o
   va sujeto (`PinEnd`: clavado en una ventana, en un proyectil). Solo resiste estirarse (se comba y se afloja), nunca pasa

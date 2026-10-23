@@ -39,10 +39,15 @@ internal sealed class AssistantSession : IDisposable
         var reactions = Link is null ? null : new ModuleReactions(Engine, Runtime, new ReactionLog(Path.Combine(AppPaths.DataDir, "Assistant", "reactions.json")));
         var choreography = Link is null ? null : new ModuleChoreography(Link, Engine, Runtime) { Reactions = reactions };
         if (Link is not null) Commands = new ModuleCommands(Link) { Choreography = choreography, HasBody = Runtime.HasBody };
-        // Reading the screen, the figure scans what was read.
-        var sight = new ModuleSight(Runtime.WindowServices) { Looking = choreography is null ? null : choreography.Scan };
+        var sight = new ModuleSight(Runtime.WindowServices);
         if (Link is not null) Tools = new ModuleTools(Link, Commands!, sight, new ModelVision(Brain!), new ModelWriter(Brain!),
             new ModuleBrowser(Path.Combine(AppPaths.DataDir, "Assistant", "Browser")));
+        // What its tools do is seen too (stage 13.5): a beacon by the clock, waiting for what opens, scanning what it reads…
+        if (choreography is not null)
+        {
+            choreography.Front = sight.UserWindow;
+            Tools!.Runner.Showing += choreography.Show;
+        }
         Runtime.LanguageOf = Personal.LanguageOf;
         if (Link is not null) Voice = new ModuleVoice(Engine, Runtime, Personal);
         if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!, Commands!, Voice!, Personal, reactions!);

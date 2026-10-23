@@ -44,6 +44,10 @@
       },
       "description": "Lo que dice el asistente al acabar bien o mal (con {{parámetros}}, {{result}}, {{result.campo}}, {{status}})"
     },
+    "gesture": {
+      "enum": ["waitForWindow", "tray", "clock", "typing"],
+      "description": "Lo que hace el personaje mientras trabaja (etapa 13.5): waitForWindow = espera la ventana de lo que abre; tray = va a la bandeja; clock = deja una marca en el reloj; typing = teclea en la ventana de delante. En las de tipo kdesktop no hace falta: tu comando ya se ve"
+    },
     "enabled": { "type": "boolean" },
     "timeout": { "type": "number", "minimum": 1, "maximum": 300, "description": "Segundos como mucho (por defecto 15; script: 30)" },
     "request": { "$ref": "#/$defs/request" },

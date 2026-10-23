@@ -89,6 +89,18 @@ public sealed class ToolRunner
     /// </summary>
     public event Action<ToolUse>? Using;
 
+    /// <summary>
+    /// A tool asks its character for a gesture (stage 13.5, <see cref="ToolContext.Show"/>), on the thread that runs it:
+    /// whoever listens must not hold it up.
+    /// </summary>
+    public event Action<ToolShown>? Showing;
+
+    private void Show(ToolContext context, ITool tool, ToolGesture gesture)
+    {
+        try { Showing?.Invoke(new ToolShown(context.Assistant, tool.Name, gesture)); }
+        catch (Exception ex) { Log.Warn($"Asistente: no se ha podido enseñar el gesto de {tool.Name}: {ex.Message}"); }
+    }
+
     private void Use(ToolContext context, ITool tool, ToolPhase phase)
     {
         try { Using?.Invoke(new ToolUse(context.Assistant, tool.Name, ToolActivities.Of(tool), phase)); }
@@ -144,10 +156,11 @@ public sealed class ToolRunner
         }
 
         Use(context, tool, ToolPhase.Running);
+        var running = context with { Show = gesture => Show(context, tool, gesture) };
         ToolResult result;
         try
         {
-            result = await tool.RunAsync(arguments, context, cancellationToken).ConfigureAwait(false);
+            result = await tool.RunAsync(arguments, running, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

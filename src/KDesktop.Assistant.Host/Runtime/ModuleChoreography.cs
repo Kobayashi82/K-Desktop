@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using KDesktop.Assistant.Host.Engine;
 using KDesktop.Assistant.Host.Pipe;
 using KDesktop.Assistant.Sdk;
+using KDesktop.Assistant.Tools;
 using KDesktop.Core;
 using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Pipe;
@@ -91,33 +92,57 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
         Log.Info($"Asistente: {whose}paso {result.Index} del run {result.Run}: {result.Status}{(result.Message is { } m ? $" ({m})" : "")}");
     }
 
-    /// <summary>How long scanning what an assistant reads may take (it flies there first, at the speed of its last step).</summary>
-    private static readonly TimeSpan ScanBudget = TimeSpan.FromSeconds(4);
+    /// <summary>How long the gesture of a tool may take (it flies or walks there first, at the speed of the last step).</summary>
+    private static readonly TimeSpan ToolBudget = TimeSpan.FromSeconds(4);
+
+    /// <summary>Waiting for the window of what a tool opened: a browser or a program can take a while to show it.</summary>
+    private static readonly TimeSpan OpenBudget = TimeSpan.FromSeconds(6);
+
+    /// <summary>How long a tool's mark stays (a beacon by the clock for a timer).</summary>
+    private static readonly TimeSpan MarkFor = TimeSpan.FromSeconds(3);
 
     /// <summary>The speed of manoeuvres the last step asked for (Options → Assistant module → General).</summary>
     private volatile string? _lastSpeed;
 
+    /// <summary>The gesture of a tool each assistant is showing (engine thread): a newer one, or a step of an order, ends it.</summary>
+    private readonly Dictionary<string, CancellationTokenSource> _decorating = new(StringComparer.Ordinal);
+
+    /// <summary>The user's window in front (never K-Desktop's), for a gesture on it; null when there is none.</summary>
+    public Func<WindowInfo?>? Front { get; set; }
+
     /// <summary>
-    /// An assistant read the screen (look_at_screen, any thread): its figure scans that area (stage 10.1). Only decoration:
-    /// the picture is already taken, nothing waits for it, and never over a step of an order.
+    /// A tool asked its character for a gesture (stage 13.5, any thread; look_at_screen's scan was the first, 10.1): a beacon
+    /// by the clock, waiting for the window of what it opens, the tray… Only decoration: the tool goes on without waiting, and
+    /// it is never shown over a step of an order. An assistant without a body, or that does not know it, does nothing.
     /// </summary>
-    public void Scan(string assistant, KDesktop.Core.Platform.ScreenRect area)
+    public void Show(ToolShown shown)
     {
-        if (!runtime.HasBody(assistant)) return;
-        engine.Post(() => _ = ScanAsync(assistant, new PixelRect(area.Left, area.Top, area.Left + area.Width, area.Top + area.Height)));
+        if (shown.Assistant is not { Length: > 0 } assistant || !runtime.HasBody(assistant)) return;
+        // What was there before it opens anything: by the time the engine gets to it, its window may be up already.
+        var before = shown.Gesture.Kind == GestureKind.WaitForWindow ? runtime.World.Current.Windows.Select(w => w.Handle).ToHashSet() : null;
+        engine.Post(() => _ = ShowAsync(assistant, shown, before));
     }
 
-    private async Task ScanAsync(string assistant, PixelRect area)
+    private async Task ShowAsync(string assistant, ToolShown shown, HashSet<long>? before)
     {
         if (_playing.ContainsKey(assistant)) return;
+        if (ToolGestureOf(shown.Gesture) is not { } gesture)
+        {
+            Log.Info($"Asistente: el gesto {shown.Gesture.Kind} de {shown.Tool} no tiene dónde hacerse");
+            return;
+        }
+        StopDecorating(assistant);
         var speed = StepGestures.SpeedOf(_lastSpeed);
-        var budget = speed == ManoeuvreSpeed.Fast ? FastBudget : ScanBudget;
-        var step = new StepMessage("", 0, 1, 0, "lookAtScreen", "", "", (int)budget.TotalMilliseconds, null, _lastSpeed ?? "normal");
+        var budget = speed == ManoeuvreSpeed.Fast ? FastBudget : gesture is Gesture.WaitForWindow ? OpenBudget : ToolBudget;
+        var step = new StepMessage("", 0, 1, 0, shown.Tool, "", "", (int)budget.TotalMilliseconds, null, _lastSpeed ?? "normal");
         using var limit = new CancellationTokenSource(budget);
-        var context = new StepGestureContext(engine, engine.Now + budget.TotalSeconds, step, () => { }, Task.FromResult(true), null, speed);
-        if (runtime.TryPerform(assistant, new Gesture.Scan(area), context, limit.Token) is not { } running) return;
+        _decorating[assistant] = limit;
+        var appeared = gesture is Gesture.WaitForWindow wait ? AppearedAsync(wait.Process, limit.Token, before) : null;
+        var context = new StepGestureContext(engine, engine.Now + budget.TotalSeconds, step, () => { }, Task.FromResult(true), appeared, speed);
         try
         {
+            if (runtime.TryPerform(assistant, gesture, context, limit.Token) is not { } running) return;
+            Log.Info($"Asistente: «{assistant}» enseña {gesture.Kind} por {shown.Tool}");
             await running.WaitAsync(budget + Grace).ConfigureAwait(true);
         }
         catch (Exception ex) when (ex is TimeoutException or OperationCanceledException)
@@ -126,8 +151,50 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
         }
         catch (Exception ex)
         {
-            Log.Error($"Asistente: «{assistant}» ha fallado al escanear lo que lee", ex);
+            Log.Error($"Asistente: «{assistant}» ha fallado en el gesto {gesture.Kind} de {shown.Tool}", ex);
         }
+        finally
+        {
+            if (_decorating.TryGetValue(assistant, out var current) && current == limit) _decorating.Remove(assistant);
+        }
+    }
+
+    /// <summary>The SDK gesture for what a tool asked, or null when its place is not there (the window is gone…).</summary>
+    private Gesture? ToolGestureOf(ToolGesture asked)
+    {
+        var window = asked.Where switch
+        {
+            ToolSpot.Window when asked.Window != 0 => runtime.World.Current.Window(asked.Window),
+            ToolSpot.Front => Front?.Invoke(),
+            _ => null,
+        };
+        Place? place = asked.Where switch
+        {
+            ToolSpot.Clock => new Place.Clock(),
+            ToolSpot.Tray => new Place.Tray(),
+            ToolSpot.Window or ToolSpot.Front => window is null ? null : new Place.OfWindow(window),
+            ToolSpot.Area when asked.Area is { Width: > 0, Height: > 0 } a => new Place.Area(Pixel(a)),
+            _ => null,
+        };
+        return asked.Kind switch
+        {
+            GestureKind.Mark when place is not null => new Gesture.Mark(place, MarkFor, asked.Text),
+            GestureKind.PointAt when place is not null => new Gesture.PointAt(place),
+            GestureKind.GoTo when place is not null => new Gesture.GoTo(place),
+            GestureKind.WaitForWindow => new Gesture.WaitForWindow(asked.Process, null),
+            GestureKind.Scan when asked.Area is { Width: > 0, Height: > 0 } area => new Gesture.Scan(Pixel(area)),
+            GestureKind.Typing when window is not null => new Gesture.Typing(window),
+            _ => null,
+        };
+    }
+
+    private static PixelRect Pixel(KDesktop.Core.Platform.ScreenRect area) => new(area.Left, area.Top, area.Left + area.Width, area.Top + area.Height);
+
+    private void StopDecorating(string assistant)
+    {
+        if (!_decorating.Remove(assistant, out var decorating)) return;
+        try { decorating.Cancel(); }
+        catch (ObjectDisposedException) { }
     }
 
     private void StopPlaying(string assistant)
@@ -141,6 +208,8 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
     private async Task PlayAsync(string assistant, StepMessage step, TaskCompletionSource<bool> result)
     {
         StopPlaying(assistant);
+        // A step of an order goes before the decoration of a tool.
+        StopDecorating(assistant);
         var speed = StepGestures.SpeedOf(step.Speed);
         _lastSpeed = step.Speed;
         var budget = TimeSpan.FromMilliseconds(Math.Max(300, step.TimeoutMs - AnswerMargin.TotalMilliseconds));
@@ -291,10 +360,13 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
             runtime.WindowServices.TryCommand(window.Handle, WindowCommand.Restore);
     }
 
-    /// <summary>For WaitForWindow: the first new window of that program, or null when none shows up in the step's time.</summary>
-    private async Task<WindowInfo?> AppearedAsync(string? process, CancellationToken token)
+    /// <summary>
+    /// For WaitForWindow: the first new window of that program (any, without one), or null when none shows up in the step's
+    /// time. <paramref name="before"/>: the windows there were before it opened (null: now).
+    /// </summary>
+    private async Task<WindowInfo?> AppearedAsync(string? process, CancellationToken token, HashSet<long>? before = null)
     {
-        var before = runtime.World.Current.Windows.Select(w => w.Handle).ToHashSet();
+        before ??= runtime.World.Current.Windows.Select(w => w.Handle).ToHashSet();
         try
         {
             while (true)

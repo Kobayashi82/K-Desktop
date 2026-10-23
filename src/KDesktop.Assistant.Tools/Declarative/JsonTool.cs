@@ -105,6 +105,8 @@ public abstract class JsonTool : ITool
         var template = new JsonTemplate(values, Environment.Secrets, withSecrets: true);
         using var limit = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         limit.CancelAfter(Definition.TimeLimit);
+        // Its gesture, before it starts (a window it opens would already be there after). One of the user's commands shows its own.
+        if (this is not CommandJsonTool && ToolGesture.Named(Definition.Gesture) is { } gesture) context.Show?.Invoke(gesture);
         try
         {
             var ran = await RunCoreAsync(template, context, limit.Token).ConfigureAwait(false);

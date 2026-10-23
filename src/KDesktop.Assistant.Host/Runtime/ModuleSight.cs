@@ -30,14 +30,6 @@ internal sealed class ModuleSight(IWindowServices windows) : IScreen
     private readonly WindowScanner _scanner = new(new HashSet<nint>());
     private readonly Lock _gate = new();
 
-    /// <summary>An assistant looked at that part of the screen (any thread): its figure scans it (stage 10.1).</summary>
-    public Action<string, ScreenRect>? Looking { get; set; }
-
-    public void Looked(string? assistant, ScreenPicture picture)
-    {
-        if (!string.IsNullOrEmpty(assistant) && picture.Area is { Width: > 0, Height: > 0 } area) Looking?.Invoke(assistant, area);
-    }
-
     public Task<ScreenPicture?> CaptureAsync(bool wholeScreen, ScreenUse use, CancellationToken cancellationToken) =>
         OnSta(() => (wholeScreen ? null : WindowPicture(use)) ?? MonitorPicture(use), cancellationToken);
 
@@ -54,8 +46,11 @@ internal sealed class ModuleSight(IWindowServices windows) : IScreen
         }
     }
 
-    /// <summary>The user's window in front: the foreground one unless it is K-Desktop's; then the first below that is not always on top.</summary>
-    private WindowInfo? UserWindow()
+    /// <summary>
+    /// The user's window in front: the foreground one unless it is K-Desktop's; then the first below that is not always on top.
+    /// Any thread (also for the gesture of a tool on it, stage 13.5).
+    /// </summary>
+    public WindowInfo? UserWindow()
     {
         lock (_gate)
         {

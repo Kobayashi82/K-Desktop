@@ -29,6 +29,9 @@ public sealed class JsonToolDefinition
 
     public JsonSay? Say { get; set; }
 
+    /// <summary>What its character shows while it works (stage 13.5): one of <see cref="ToolGesture.Names"/>, or null.</summary>
+    public string? Gesture { get; set; }
+
     public bool Enabled { get; set; } = true;
 
     public double? Timeout { get; set; }

@@ -30,6 +30,7 @@ public sealed class WhatsPlayingTool(Func<CancellationToken, Task<IReadOnlyList<
     public async Task<ToolResult> RunAsync(JsonElement arguments, ToolContext context, CancellationToken cancellationToken)
     {
         var now = await (list ?? MediaSessions.ListAsync)(cancellationToken).ConfigureAwait(false);
+        if (now.Count > 0) context.Show?.Invoke(ToolGesture.GoTo(ToolSpot.Tray));
         return new ToolResult(Describe(now)) { Done = Loc.T("tool.whats_playing.done"), Reply = Say(now) };
     }
 
@@ -111,6 +112,7 @@ public sealed class ControlMediaTool(Func<MediaOp, string?, CancellationToken, T
         }
         var apps = string.Join(", ", done.Select(m => m.App).Distinct());
         var key = op.ToString().ToLowerInvariant();
+        context.Show?.Invoke(ToolGesture.GoTo(ToolSpot.Tray));
         return new ToolResult($"Done: {key} in {apps}.") { Acted = true, Reply = Loc.T("tool.control_media.done." + key, apps), Done = Loc.T("tool.control_media.done." + key, apps) };
     }
 }

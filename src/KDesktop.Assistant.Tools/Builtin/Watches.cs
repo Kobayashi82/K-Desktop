@@ -504,8 +504,6 @@ public sealed class NotifyWhenTool(WatchStore watches) : ITool
 
     public ToolRisk Risk => ToolRisk.Safe;
 
-    public string? Gesture => "communicate";
-
     public string Intent(JsonElement arguments) =>
         Loc.T("tool.notify_when.intent", Kind(arguments) is { } kind ? WatchStore.Told(Draft(kind, arguments)) : Loc.T("tool.notify_when.something"));
 
@@ -534,6 +532,7 @@ public sealed class NotifyWhenTool(WatchStore watches) : ITool
         var item = Draft(kind, arguments, context.Assistant, watches.Time.GetLocalNow());
         var probe = watches.Probe;
         string? note = null;
+        long watched = 0;
         switch (kind)
         {
             case WatchKinds.Closes:
@@ -547,6 +546,7 @@ public sealed class NotifyWhenTool(WatchStore watches) : ITool
                 item = process is not null && (window is null || window.Process == process)
                     ? item with { Process = process }
                     : item with { Window = (long)window!.Hwnd };
+                watched = window is null ? 0 : (long)window.Hwnd;
                 break;
             }
             case WatchKinds.Appears:
@@ -603,6 +603,8 @@ public sealed class NotifyWhenTool(WatchStore watches) : ITool
             }
         }
         if (watches.Add(item) is { } error) return ToolResult.Fail(error);
+        // A beacon on the window it keeps an eye on.
+        if (watched != 0) context.Show?.Invoke(ToolGesture.Mark(ToolSpot.Window, window: watched));
         var told = WatchStore.Told(item);
         return new ToolResult($"Watching: the user will be told {kind switch
         {

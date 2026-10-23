@@ -237,8 +237,6 @@ public sealed class SetTimerTool(TimerStore timers) : ITool
 
     public ToolRisk Risk => ToolRisk.Safe;
 
-    public string? Gesture => "communicate";
-
     public string Intent(JsonElement arguments)
     {
         var intent = arguments.GetNumber("minutes") is > 0 and var minutes
@@ -265,6 +263,8 @@ public sealed class SetTimerTool(TimerStore timers) : ITool
         var (item, error) = timers.Add(due, reason, context.Assistant);
         if (item is null) return Task.FromResult(ToolResult.Fail(error ?? "It cannot be set."));
         var clock = ToolText.Clock(item.Due);
+        // A beacon by the clock with the time it rings.
+        context.Show?.Invoke(ToolGesture.Mark(ToolSpot.Clock, item.Due.ToLocalTime().ToString("t", Loc.Instance.Culture)));
         return Task.FromResult(new ToolResult($"Timer set for {item.Due.ToLocalTime():HH:mm} ({ToolText.Left(item.Due - now)} from now){(reason.Length > 0 ? ": " + reason : "")}.")
         {
             Done = reason.Length > 0 ? Loc.T("tool.set_timer.doneFor", clock, reason) : Loc.T("tool.set_timer.done", clock),
@@ -302,6 +302,7 @@ public sealed class CancelTimerTool(TimerStore timers) : ITool
         if (timers.RemoveMatching(arguments.GetString("reason")) is not { } removed)
             return Task.FromResult(ToolResult.Fail("There is no such timer pending.") with { Reply = Loc.T("tool.cancel_timer.none") });
         var clock = ToolText.Clock(removed.Due);
+        context.Show?.Invoke(ToolGesture.PointAt(ToolSpot.Clock));
         return Task.FromResult(new ToolResult($"Removed the timer of {removed.Due.ToLocalTime():HH:mm}{(removed.Text.Length > 0 ? ": " + removed.Text : "")}.")
         {
             Done = removed.Text.Length > 0 ? Loc.T("tool.cancel_timer.doneFor", clock, removed.Text) : Loc.T("tool.cancel_timer.done", clock),
