@@ -51,6 +51,8 @@ internal sealed class ModuleTalk : ITalkOutput
         Memory = new TalkMemory(tools.Builtin.Memory, tools.Runner, Meaning);
         Service = new TalkService(who => (brain.Client, brain.ModelFor(who)), tools.Runner, PersonaOf, this, chooser: Chooser, memory: Memory, learn: () => tools.Learn, commands: commands, thinker: brain.ThinkerFor,
             recheck: brain.RecheckAsync, freeBrain: brain.UnloadAsync, loadBrain: () => brain.LoadAsync());
+        // The AI frees its own brain once its answer is over («descarga el modelo, que voy a jugar»).
+        tools.Runner.Registry.Add(new Tools.Builtin.FreeBrainTool(Service.FreeBrainAfter));
         tools.Builtin.Watches.Fired += (item, detail) => _ = AnnounceAsync(item.Assistant, "watch", item.Kind, "tool.notify_when.title",
             () => Tools.Builtin.WatchStore.Happened(item, detail));
         tools.Builtin.Timers.Rang += timer => _ = AnnounceAsync(timer.Assistant, "timer", null, "tool.set_timer.title", () => TimerText(timer));

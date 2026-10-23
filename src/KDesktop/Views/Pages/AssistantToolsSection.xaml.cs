@@ -333,7 +333,7 @@ public partial class AssistantToolsSection : UserControl
         ["find_files"] = "files", ["open_file"] = "files",
         ["open_web"] = "web", ["search_web"] = "web", ["look_up_web"] = "web", ["read_web"] = "web",
         ["look_at_screen"] = "screen", ["transform_text"] = "screen",
-        ["open_app"] = "pc", ["control_app"] = "pc", ["end_process"] = "pc", ["pc_status"] = "pc",
+        ["open_app"] = "pc", ["control_app"] = "pc", ["end_process"] = "pc", ["pc_status"] = "pc", ["free_brain"] = "pc",
         ["whats_playing"] = "media", ["control_media"] = "media",
         ["weather"] = "weather", ["convert"] = "weather",
     };

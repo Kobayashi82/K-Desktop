@@ -134,6 +134,7 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         // It may ask to think harder when the order needs more than a quick answer.
         if (thinker is not null && !thinking) definitions.Add(ThinkHarderDefinition);
         var searches = 0;
+        var commandSearches = 0;
         var messages = new List<ChatMessage> { ChatMessage.System(TalkPrompt.Compose(persona, time.GetLocalNow(), known, commands, certain)) };
         messages.AddRange(history);
         // The language it speaks in, next to the order: a small model answers in the language it is spoken to otherwise
@@ -259,6 +260,15 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
                                 result = "Now take your time: work it out step by step, check it, and then answer (calling tools if they are needed).";
                             }
                             messages.Add(ChatMessage.ToolResult(call.Name, result, call.Id));
+                            continue;
+                        }
+                        // Looking for commands over and over with other words («cerebro», «limpiar», «descargar»… four times for
+                        // «libera el cerebro»): their commands do not do it.
+                        if (call.Name == FindCommandTool && ++commandSearches > MaxCommandSearches)
+                        {
+                            Log.Info($"Asistente: la IA busca comandos otra vez ({Short(call.Arguments.GetRawText())}): no se hace");
+                            messages.Add(ChatMessage.ToolResult(call.Name, "Not done: you already looked for commands " + MaxCommandSearches + " times in this order. "
+                                + "None of their commands does this: use another of your tools (find_tools if none at hand fits) or say plainly that it cannot be done.", call.Id));
                             continue;
                         }
                         var same = call.Name + " " + call.Arguments.GetRawText();
@@ -457,6 +467,11 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     }
 
     private const string RunCommandTool = "run_command";
+
+    private const string FindCommandTool = "find_command";
+
+    /// <summary>Searches for the user's commands in one order, at most.</summary>
+    public const int MaxCommandSearches = 2;
 
     private const string OpenWebTool = "open_web";
 

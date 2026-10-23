@@ -137,6 +137,8 @@ public sealed class TalkService
         var (token, wasBusy) = conversation.Begin();
         Active();
         var turn = Guid.NewGuid().ToString("N")[..12];
+        // The conversation is kept only in K-Desktop's memory: the log has each line, to look at it afterwards.
+        Log.Info($"Asistente: a «{who ?? "K-Desktop"}» por {heard.Source}: «{said}»");
         _output.Chat(new ChatLineMessage("user", said, turn, true, who));
         try
         {
@@ -146,6 +148,7 @@ public sealed class TalkService
             if (await LearnPhraseAsync(conversation, who, said, answer, token).ConfigureAwait(false) is { } learned)
                 answer = answer with { Text = (answer.Text + " " + learned).Trim() };
             conversation.Missed = Acted(answer) ? null : (said, _time.GetUtcNow());
+            Log.Info($"Asistente: «{who ?? "K-Desktop"}» contesta: «{answer.Text}»");
             _output.Chat(new ChatLineMessage("assistant", answer.Text, turn, true, who));
             if (answer.Remember) conversation.History.Add(said, answer.Text, answer.Tools, answer.Steps);
             Learn(who, said, answer, token);
@@ -173,7 +176,42 @@ public sealed class TalkService
         {
             Active();
             if (conversation.End(token)) _output.State(who, "idle");
+            FreeBrainIfAsked();
         }
+    }
+
+    /// <summary>The brain is freed once nothing is being answered (free_brain asked for it in the middle of an answer).</summary>
+    private int _freeAfter;
+
+    /// <summary>
+    /// free_brain (or a part of an order): the model leaves the graphics card as soon as no assistant is answering — at once
+    /// when none is (the shared tools). False: there is no brain to free.
+    /// </summary>
+    public bool FreeBrainAfter(string? assistant)
+    {
+        if (_freeBrain is null) return false;
+        Interlocked.Exchange(ref _freeAfter, 1);
+        Log.Info($"Asistente: «{assistant ?? "K-Desktop"}» libera el cerebro en cuanto acabe de contestar");
+        FreeBrainIfAsked();
+        return true;
+    }
+
+    private void FreeBrainIfAsked()
+    {
+        if (IsAnyAnswering || Interlocked.Exchange(ref _freeAfter, 0) == 0) return;
+        _ = Task.Run(async () =>
+        {
+            try { await FreeBrainNowAsync().ConfigureAwait(false); }
+            catch (Exception ex) { Log.Warn($"Asistente: no se ha podido liberar el cerebro: {ex.Message}"); }
+        });
+    }
+
+    /// <summary>The model leaves the graphics card now; whether it was in it.</summary>
+    private async Task<bool> FreeBrainNowAsync()
+    {
+        // Talking to it loaded it again (stage 5.7): the next time it is talked to, it may load again.
+        _prepared.Clear();
+        return await _freeBrain!().ConfigureAwait(false);
     }
 
     /// <summary>
@@ -266,6 +304,7 @@ public sealed class TalkService
         try
         {
             var turn = Guid.NewGuid().ToString("N")[..12];
+            Log.Info($"Asistente: «{who ?? "K-Desktop"}» dice: «{text}»");
             _output.Chat(new ChatLineMessage("assistant", text, turn, true, who));
             conversation.LastAnswer = text;
             conversation.History.Said(text);
@@ -279,6 +318,7 @@ public sealed class TalkService
         finally
         {
             if (conversation.End(token)) _output.State(who, "idle");
+            FreeBrainIfAsked();
         }
     }
 
@@ -346,7 +386,28 @@ public sealed class TalkService
 
     private Conversation Of(string? assistant) => _conversations.GetOrAdd(assistant ?? string.Empty, _ => new Conversation(_time));
 
+    /// <summary>
+    /// «Cierra la música y descarga el modelo», «Me refiero a liberar el cerebro. Descargar el cerebro»: the parts of an
+    /// order that the rule of freeing the brain understands are done by it (the model leaves once the answer is over: the
+    /// rest may still need it), and the rest is answered as usual.
+    /// </summary>
     private async Task<TalkAnswer> AnswerAsync(Conversation conversation, AssistantPersona persona, string? who, string said, string turn, bool wasBusy, CancellationToken token)
+    {
+        if (_freeBrain is null || QuickRules.Match(said, [persona.Name]) is not null)
+            return await AnswerCoreAsync(conversation, persona, who, said, turn, wasBusy, token).ConfigureAwait(false);
+        var parts = ToolChooser.Parts(said);
+        var brain = parts.Where(p => QuickRules.Match(p, [persona.Name]) is { Kind: QuickRuleKind.FreeBrain }).ToList();
+        if (parts.Count < 2 || brain.Count == 0) return await AnswerCoreAsync(conversation, persona, who, said, turn, wasBusy, token).ConfigureAwait(false);
+        var rest = parts.Except(brain).ToList();
+        Log.Info($"Asistente: «{said}» pide liberar el cerebro{(rest.Count > 0 ? " y más: " + string.Join(", ", rest) : string.Empty)}");
+        if (rest.Count == 0)
+            return new TalkAnswer(Phrase(persona, await FreeBrainNowAsync().ConfigureAwait(false) ? "brainFreed" : "brainNotLoaded"), Remember: false);
+        var answer = await AnswerCoreAsync(conversation, persona, who, string.Join(", ", rest), turn, wasBusy, token).ConfigureAwait(false);
+        FreeBrainAfter(who);
+        return Join(answer, new TalkAnswer(Loc.T("tool.free_brain.reply")) { Tools = ["free_brain"] });
+    }
+
+    private async Task<TalkAnswer> AnswerCoreAsync(Conversation conversation, AssistantPersona persona, string? who, string said, string turn, bool wasBusy, CancellationToken token)
     {
         var context = new ToolContext(who, said);
         var rule = QuickRules.Match(said, [persona.Name]);
@@ -390,9 +451,7 @@ public sealed class TalkService
             case { Kind: QuickRuleKind.Forget, Text: { Length: > 0 } forget } when _memory is not null:
                 return await ToolAsync(persona, "forget", new JsonObject { ["fact"] = forget }, context, said, acknowledge: true, token).ConfigureAwait(false);
             case { Kind: QuickRuleKind.FreeBrain } when _freeBrain is not null:
-                // Talking to it loaded it again (stage 5.7): the next time it is talked to, it may load again.
-                _prepared.Clear();
-                return new TalkAnswer(Phrase(persona, await _freeBrain().ConfigureAwait(false) ? "brainFreed" : "brainNotLoaded"), Remember: false);
+                return new TalkAnswer(Phrase(persona, await FreeBrainNowAsync().ConfigureAwait(false) ? "brainFreed" : "brainNotLoaded"), Remember: false);
             case { Kind: QuickRuleKind.LoadBrain } when _loadBrain is not null:
                 var (_, loading) = _brain(who);
                 if (loading is null) return new TalkAnswer(Phrase(persona, "noBrain"), Remember: false, Failed: true);

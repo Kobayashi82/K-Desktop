@@ -414,7 +414,91 @@ public sealed class TalkTests : IDisposable
     [InlineData("libere a placa de vídeo", QuickRuleKind.FreeBrain)]
     [InlineData("carga el cerebro", QuickRuleKind.LoadBrain)]
     [InlineData("load the model", QuickRuleKind.LoadBrain)]
+    // What the user said to the Lander on 23/10 and no rule understood.
+    [InlineData("Libera el cerebro", QuickRuleKind.FreeBrain)]
+    [InlineData("Descargar el cerebro", QuickRuleKind.FreeBrain)]
+    [InlineData("Me refiero a liberar el cerebro", QuickRuleKind.FreeBrain)]
+    [InlineData("Coño, que descargues el modelo", QuickRuleKind.FreeBrain)]
+    [InlineData("Sí, descarga el modelo", QuickRuleKind.FreeBrain)]
+    [InlineData("Te he pedido descargar el modelo también", QuickRuleKind.FreeBrain)]
+    [InlineData("quiero que liberes la gráfica", QuickRuleKind.FreeBrain)]
+    [InlineData("free up the GPU", QuickRuleKind.FreeBrain)]
+    [InlineData("gib das Gehirn frei", QuickRuleKind.FreeBrain)]
+    [InlineData("libère le cerveau", QuickRuleKind.FreeBrain)]
+    [InlineData("que cargues el modelo", QuickRuleKind.LoadBrain)]
     public void TheBrainRulesUnderstand(string said, QuickRuleKind kind) => Assert.Equal(kind, QuickRules.Match(said, ["Lander"])?.Kind);
+
+    [Theory]
+    // What leads into an order is not a way of saying it alone, nor turns a «no» into a rule.
+    [InlineData("sí")]
+    [InlineData("no descargues el modelo")]
+    public void WhatLeadsIntoAnOrderIsNoOrder(string said) => Assert.Null(QuickRules.Match(said, ["Lander"]));
+
+    /// <summary>
+    /// «Cierra la música y descarga el modelo»: the rest is answered (here by the AI, which needs the model) and the brain
+    /// goes once the answer is over, never in the middle.
+    /// </summary>
+    [Fact]
+    public async Task TheBrainInAPartOfAnOrderGoesWhenTheAnswerIsOver()
+    {
+        var builtin = new BuiltinTools(_folder);
+        using var _ = builtin;
+        var registry = new ToolRegistry();
+        builtin.AddTo(registry);
+        var runner = new ToolRunner(registry, () => new HashSet<string>(), (_, _) => Task.FromResult("yes"), _ => { }, Path.Combine(_folder, "undo.json"));
+        var freed = 0;
+        var freedWhileAsking = false;
+        var talk = new TalkService(_ => (_model, "fake:4b"), runner, _ => Lander, new Output(this),
+            freeBrain: () => { freed++; return Task.FromResult(true); });
+        _model.Answers.Enqueue(_ =>
+        {
+            freedWhileAsking |= freed > 0;
+            return Text("Ahí va uno.");
+        });
+        await talk.HandleAsync(Heard("cuéntame un chiste y descarga el modelo"));
+        Assert.False(freedWhileAsking);
+        var asked = Assert.Single(_model.Requests).Messages[^1].Content;
+        Assert.DoesNotContain("modelo", asked, StringComparison.Ordinal);
+        Assert.Contains("gráfica", LastAnswer, StringComparison.Ordinal);
+        await WaitUntil(() => freed == 1);
+
+        // Two ways of saying only that: at once.
+        await talk.HandleAsync(Heard("Me refiero a liberar el cerebro. Descargar el cerebro"));
+        Assert.Equal(2, freed);
+        Assert.Single(_model.Requests);
+    }
+
+    /// <summary>The AI frees its brain with free_brain: once its answer is over, not while it still writes it.</summary>
+    [Fact]
+    public async Task TheAiFreesItsBrainWhenItHasAnswered()
+    {
+        var builtin = new BuiltinTools(_folder);
+        using var _ = builtin;
+        var registry = new ToolRegistry();
+        builtin.AddTo(registry);
+        var runner = new ToolRunner(registry, () => new HashSet<string>(), (_, _) => Task.FromResult("yes"), _ => { }, Path.Combine(_folder, "undo.json"));
+        var freed = 0;
+        var freedWhileAsking = false;
+        var talk = new TalkService(_ => (_model, "fake:4b"), runner, _ => Lander, new Output(this),
+            freeBrain: () => { freed++; return Task.FromResult(true); });
+        registry.Add(new FreeBrainTool(talk.FreeBrainAfter));
+        _model.Answers.Enqueue(_ => Call("free_brain", "{}"));
+        _model.Answers.Enqueue(_ =>
+        {
+            freedWhileAsking |= freed > 0;
+            return Text("Hecho.");
+        });
+        await talk.HandleAsync(Heard("deja la tarjeta de vídeo libre, que voy a echar una partida"));
+        Assert.False(freedWhileAsking);
+        Assert.Contains("gráfica", LastAnswer, StringComparison.Ordinal);
+        await WaitUntil(() => freed == 1);
+    }
+
+    private static async Task WaitUntil(Func<bool> condition)
+    {
+        for (var i = 0; i < 100 && !condition(); i++) await Task.Delay(20);
+        Assert.True(condition());
+    }
 
     [Theory]
     [InlineData("Lander, escribe lo que te diga")]

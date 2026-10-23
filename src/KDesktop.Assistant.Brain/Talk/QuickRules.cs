@@ -31,6 +31,8 @@ public sealed record QuickRule(QuickRuleKind Kind, double? Seconds = null, strin
 /// <c>thinkHard</c> («piénsalo bien», with the order in its gap or alone for the one before), and <c>act.&lt;op&gt;</c> for each operation on a program —«minimiza {app}»—): ways of saying it, separated by «|», with gaps <c>{dur}</c> (a duration: «diez
 /// minutos», «una hora y media») and <c>{text}</c> (some words, kept as said), and <c>[optional words]</c>;</item>
 /// <item><c>assistant.rule.fillers</c>, <c>assistant.rule.polite</c>: what is taken off around it and at its start («|»);</item>
+/// <item><c>assistant.rule.leads</c>: what may lead into an order and is tried without, at its start only («sí», «que», «me
+/// refiero a»; not fillers: a lone «sí» is still an answer);</item>
 /// <item><c>assistant.rule.units</c>: <c>word=seconds</c> separated by spaces («minutos=60»);</item>
 /// <item><c>assistant.rule.durations</c>: whole durations, <c>phrase=seconds</c> separated by «|» («media hora=1800»);</item>
 /// <item><c>assistant.rule.half</c>: «y media» after a unit (half of it more).</item>
@@ -55,6 +57,7 @@ public static partial class QuickRules
         public readonly List<Pattern> Patterns = [];
         public readonly List<string[]> Fillers = [];
         public readonly List<string[]> Polite = [];
+        public readonly List<string[]> Leads = [];
         public readonly List<string[]> Half = [];
         public readonly Dictionary<string, double> Units = new(StringComparer.Ordinal);
         public readonly List<(string[] Words, double Seconds)> Durations = [];
@@ -94,10 +97,13 @@ public static partial class QuickRules
         var bare = Trim(tokens, w, nameWords);
         if (bare.Count == 0) return null;
 
-        // As said, and without its polite start («puedes poner un temporizador…»).
+        // As said, without what leads into it («sí, descarga el modelo», «coño, que descargues el modelo»), and without its
+        // polite start («puedes poner un temporizador…»).
         var tries = new List<List<Token>> { bare };
-        foreach (var polite in w.Polite)
-            if (StartsWith(bare, polite, 0)) tries.Add(Trim(bare[polite.Length..], w, nameWords));
+        if (WithoutLeads(bare, w, nameWords) is { Count: > 0 } led && led.Count < bare.Count) tries.Add(led);
+        foreach (var start in tries.ToList())
+            foreach (var polite in w.Polite)
+                if (StartsWith(start, polite, 0)) tries.Add(Trim(start[polite.Length..], w, nameWords));
 
         (Pattern Pattern, QuickRule Rule)? best = null;
         foreach (var said in tries.Where(t => t.Count > 0))
@@ -301,6 +307,25 @@ public static partial class QuickRules
         return list;
     }
 
+    /// <summary>Without the words that lead into an order at its start, as many as there are («sí, que…»).</summary>
+    private static List<Token> WithoutLeads(List<Token> tokens, Vocabulary w, List<string[]> names)
+    {
+        var list = tokens;
+        var changed = true;
+        while (changed)
+        {
+            changed = false;
+            foreach (var lead in w.Leads)
+                if (lead.Length < list.Count && StartsWith(list, lead, 0))
+                {
+                    list = Trim(list[lead.Length..], w, names);
+                    changed = true;
+                    break;
+                }
+        }
+        return list;
+    }
+
     /// <summary>The words of the text, folded like <see cref="TextSimilarity.Words"/>, with where each one is.</summary>
     private static List<Token> Tokenize(string text)
     {
@@ -338,6 +363,7 @@ public static partial class QuickRules
                 {
                     case "fillers": v.Fillers.AddRange(List(value)); break;
                     case "polite": v.Polite.AddRange(List(value)); break;
+                    case "leads": v.Leads.AddRange(List(value)); break;
                     case "half": v.Half.AddRange(List(value)); break;
                     case "units":
                         foreach (var (words, seconds) in Pairs(value.Split(' ', StringSplitOptions.RemoveEmptyEntries)))
@@ -358,7 +384,7 @@ public static partial class QuickRules
                 }
             }
         // Longest first: «un cuarto de hora» before «cuarto de hora», «por favor» before «favor».
-        foreach (var list in new[] { v.Fillers, v.Polite, v.Half }) list.Sort((a, b) => b.Length - a.Length);
+        foreach (var list in new[] { v.Fillers, v.Polite, v.Leads, v.Half }) list.Sort((a, b) => b.Length - a.Length);
         v.Durations.Sort((a, b) => b.Words.Length - a.Words.Length);
         return v;
     }
