@@ -52,6 +52,8 @@ public class ManifestTests
     [InlineData("1.1", 1, 1, true)]
     [InlineData("1", 1, 0, true)]
     [InlineData("1.2", 1, 1, false)]
+    [InlineData("1.9", 1, 10, true)]
+    [InlineData("1.10", 1, 9, false)]
     [InlineData("2.0", 1, 9, false)]
     [InlineData("1.1", 2, 0, false)]
     public void APackageRunsOnTheSameMajorAndAnEqualOrNewerMinor(string sdk, int major, int minor, bool runs)
@@ -61,7 +63,7 @@ public class ManifestTests
     }
 
     [Fact]
-    public void ThisHostGivesSdk19() => Assert.Equal(new Version(1, 9), AssistantPackages.SdkVersion);
+    public void ThisHostGivesSdk110() => Assert.Equal(new Version(1, 10), AssistantPackages.SdkVersion);
 
     [Fact]
     public void SettingDefaultsComeFromTheSettingsFile()

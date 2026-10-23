@@ -255,6 +255,13 @@ Cuando cambian, llega `OnSettingsChanged` con `host.Common` ya al día. Un asist
   ritmo. `Length` para recoger o soltar cable, `Gravity`, `Damping`, `Iterations`; `IsTaut`, `Overstretch` y `Pull` (hacia
   el principio, lo que sobra de largo: lo que sigue una ventana remolcada). Se dibuja con `Draw(dc, pen)` (curva suave) y
   `Bounds(margen)` dice el tamaño de la superficie.
+- **Variedad** (`Variety<T>`, SDK 1.10): para no hacer siempre lo mismo (entradas, reacciones, animaciones de reposo,
+  frases). Cada variante con su peso (`Add(x, weight: 2)` sale el doble que una de 1; 0 = nunca) y su enfriamiento en
+  segundos (`cooldown: 120`: no vuelve a salir en dos minutos). `Pick()` elige al azar por peso, nunca la misma dos veces
+  seguidas mientras haya otra (`NoRepeat`), y si todas descansan da la que antes esté lista: siempre sale algo.
+  `TryPick` no elige nada si todas descansan. `Pick(x => …)` elige solo entre las que encajan ahora (en la barra de
+  tareas, encima de una ventana…). `Use(x)` la marca como hecha aunque no saliera de ahí, `CooldownLeft`, `Reset`. Con
+  `new Variety<T>(seed: 1)` la secuencia es siempre la misma (pruebas); `clock` cambia el reloj de los enfriamientos.
 - **Un solo sistema de dibujo** (SDK 1.6): `Present` con la API de WPF. El SDK 1.5 tenía también `PresentGpu` (shaders con
   los punteros de Direct3D del host); se quitó porque nadie lo necesita y salía caro: con el shader de Kobii el controlador
   de la GPU gastaba un 4–12 % de un núcleo todo el rato, frente a un 1 % dibujando lo mismo en vectorial. El último

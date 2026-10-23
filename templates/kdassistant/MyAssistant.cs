@@ -17,6 +17,12 @@ public sealed class MyAssistant : IAssistant
     private IHitArea _hit = null!;
     private Point _at;
     private Color _color = Colors.MediumPurple;
+    private Color _flashColor = Colors.White;
+    // A few ways to react, so it does not do the same every time: by weight, never twice in a row, the rare one rests.
+    private readonly Variety<Color> _reactions = new Variety<Color>()
+        .Add(Colors.White, weight: 2)
+        .Add(Colors.Gold)
+        .Add(Colors.HotPink, weight: 0.5, cooldown: 60);
     private double _flash = double.NaN;
     private bool _flashPending;
     private bool _dirty = true;
@@ -65,7 +71,7 @@ public sealed class MyAssistant : IAssistant
             var radius = (flashing ? 22 : 18) * size;
             var edge = (int)Math.Ceiling(24 * size);
             var area = new PixelRect((int)_at.X - edge, (int)_at.Y - edge, (int)_at.X + edge, (int)_at.Y + edge);
-            var brush = new SolidColorBrush(flashing ? Colors.White : _color);
+            var brush = new SolidColorBrush(flashing ? _flashColor : _color);
             brush.Freeze();
             _surface.Present(area, dc => dc.DrawEllipse(brush, null, _at, radius, radius));
             var body = (int)(18 * size);
@@ -81,7 +87,7 @@ public sealed class MyAssistant : IAssistant
     {
         if (gesture is Gesture.React)
         {
-            Flash();
+            Flash(_reactions.Pick());
             try { await Task.Delay(500, ct); } catch (OperationCanceledException) { }
             return GestureOutcome.Committed;
         }
@@ -123,8 +129,9 @@ public sealed class MyAssistant : IAssistant
         _surface.Dispose();
     }
 
-    private void Flash()
+    private void Flash(Color? color = null)
     {
+        _flashColor = color ?? Colors.White;
         _flashPending = true;
         _host.RequestTick();
     }
