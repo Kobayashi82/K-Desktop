@@ -59,7 +59,7 @@ public partial class FileDropTests
         {
             var data = new System.Windows.DataObject();
             data.SetFileDropList(new StringCollection { @"C:\a.txt" });
-            var target = new FileDropTarget(0, (kind, files, at) =>
+            var target = new FileDropTarget(0, (kind, files, at, _) =>
             {
                 events.Add(new PointerEvent(kind, "body", at) { Files = files });
                 if (kind == PointerEventKind.FilesDropped) dropped.Add(files);
@@ -117,9 +117,9 @@ public partial class FileDropTests
                 using var area = pointer.CreateHitArea("toy");
                 area.Place(new HitShape.Rectangle(new PixelRect(cursor.X - 20, cursor.Y - 20, cursor.X + 20, cursor.Y + 20)));
                 placed = true;
-                var data = new System.Windows.DataObject();
-                data.SetFileDropList(new StringCollection { @"C:\Users\Ana\factura.pdf" });
-                result = DoDragDrop((ComDataObject)data, new DropAtOnce(), DROPEFFECT_COPY | DROPEFFECT_LINK, out var effect);
+                // With a picture, as the Explorer drags: it is hidden over the area and reaches the assistant.
+                var data = ShellData([@"C:\Users\Ana\factura.pdf"]);
+                result = DoDragDrop(data, new DropAtOnce(), DROPEFFECT_COPY | DROPEFFECT_LINK, out var effect);
             }
             finally
             {
@@ -130,6 +130,7 @@ public partial class FileDropTests
         Assert.Equal(DRAGDROP_S_DROP, result);
         Assert.Equal([PointerEventKind.FilesOver, PointerEventKind.FilesDropped], events.Select(e => e.Kind));
         Assert.All(events, e => Assert.Equal("toy", e.Area));
+        Assert.All(events, e => Assert.Equal(PictureWidth, e.Preview?.PixelWidth));
         var (droppedOn, files) = Assert.Single(dropped);
         Assert.Equal("toy", droppedOn);
         Assert.Equal([@"C:\Users\Ana\factura.pdf"], files);

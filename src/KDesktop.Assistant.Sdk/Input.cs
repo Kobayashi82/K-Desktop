@@ -98,6 +98,16 @@ public sealed record PointerEvent(PointerEventKind Kind, string Area, Point Posi
     /// (SDK 1.16).
     /// </summary>
     public IReadOnlyList<string> Files { get; init; } = [];
+
+    /// <summary>
+    /// What the dragged files look like (SDK 1.17): the picture Windows draws under the cursor (a thumbnail, or the icons),
+    /// opaque, frozen, in screen pixels; null if the program they come from gave none. With the three <c>Files*</c> kinds.
+    /// While the files are over the assistant, K-Desktop hides Windows' picture (it covered the assistant) and shows only
+    /// a small label by the cursor («Give it to Lander»): this is the moment to show it your own way, smaller, in its
+    /// hands, pulled by a beam… and to take it in on <see cref="PointerEventKind.FilesDropped"/>. Showing nothing is
+    /// fine too.
+    /// </summary>
+    public BitmapSource? Preview { get; init; }
 }
 
 /// <summary>

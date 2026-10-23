@@ -24,6 +24,7 @@ internal static unsafe partial class Native
 
     public const int SW_HIDE = 0;
     public const int SW_SHOWNOACTIVATE = 4;
+    public const int SW_SHOWNA = 8;
     public static readonly nint HWND_TOPMOST = -1;
     public const uint SWP_NOSIZE = 0x0001;
     public const uint SWP_NOMOVE = 0x0002;

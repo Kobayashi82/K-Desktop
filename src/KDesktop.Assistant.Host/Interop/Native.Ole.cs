@@ -58,6 +58,9 @@ internal static partial class Native
     [LibraryImport("kernel32.dll")]
     public static partial nint GlobalFree(nint memory);
 
+    [LibraryImport("kernel32.dll")]
+    public static partial nuint GlobalSize(nint memory);
+
     [StructLayout(LayoutKind.Sequential)]
     public struct POINTL
     {
@@ -83,7 +86,10 @@ internal static partial class Native
         int Drop([In, MarshalAs(UnmanagedType.Interface)] IDataObject data, int keys, POINTL at, ref int effect);
     }
 
-    /// <summary>The shell's drag image over our window (without it the picture of the files vanishes over the assistant).</summary>
+    /// <summary>
+    /// The shell's drag image over our window: told where the drag goes. Its <see cref="Show"/> does nothing with today's
+    /// layered pictures; <c>FileDropTarget</c> hides the picture's window itself.
+    /// </summary>
     [ComImport]
     [Guid("4657278B-411B-11D2-839A-00C04FD918D0")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]

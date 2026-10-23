@@ -157,6 +157,7 @@ public sealed class MyAssistant : IAssistant
                 Flash();
                 break;
             // Files dragged from the Explorer over it, and dropped (SDK 1.16): it catches them (K-Desktop does the rest).
+            // e.Preview (SDK 1.17) is their picture: Windows hides its own over the assistant, so it may draw it its way.
             case PointerEventKind.FilesOver:
                 Flash(Colors.LightSkyBlue, 0.3);
                 break;

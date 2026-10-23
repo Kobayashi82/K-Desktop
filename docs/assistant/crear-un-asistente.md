@@ -45,7 +45,8 @@ MiPersonaje\
   `idle`, `announce` y `catch` → `happy`, `drag` → `fall` → `idle`…). Cada una con `frames` (lista de imágenes) o `strip` + `frames` (una tira de N fotogramas
   del mismo ancho), `fps`, `loop` (por defecto se repiten todas salvo `happy`, `sad`, `surprised`, `click`, `enter`,
   `exit`, `announce` y `catch`) y `sound` (un WAV que suena al empezar). Antes de decir algo por su cuenta (un temporizador, un
-  aviso) se acerca andando al ratón por donde está y hace `announce`; si le sueltas archivos encima, `catch`.
+  aviso) se acerca andando al ratón por donde está y hace `announce`; con archivos encima lleva su imagen sobre la cabeza y,
+  si los sueltas, se la mete dentro y hace `catch`.
 - Para el paquete: comprime la carpeta (el `assistant.json` en la raíz) con `tools\character\pack.ps1 <carpeta>`, que
   deja `<id>-<versión>.kai` con las rutas como las quiere K-Desktop, y ábrelo con K-Desktop.
 - La ficha de instalación dice que no lleva código. Nada del paquete se ejecuta: K-Desktop solo lee sus imágenes y
@@ -257,9 +258,15 @@ Cuando cambian, llega `OnSettingsChanged` con `host.Common` ya al día. Un asist
   los asistentes va como usuario normal; K-Desktop, como administrador, no podría recibirlos). Llegan a `OnPointer` como
   `FilesOver` (están encima: el momento de estirar los brazos), `FilesAway` (se fueron sin soltarlos, o el usuario pulsó
   Escape) y `FilesDropped` (los soltó: el momento de cogerlos), con las rutas completas en `PointerEvent.Files` y la zona en
-  `Area`. Bajo el dibujo que se arrastra sale «Dárselo a <tu nombre>». Solo es la animación: qué hacer con ellos lo
-  decide K-Desktop. Nunca se toman como «mover»: el archivo sigue donde estaba.
-  Un asistente compilado con un SDK anterior no ve estos eventos.
+  `Area`. Solo es la animación: qué hacer con ellos lo decide K-Desktop. Nunca se toman como «mover»: el archivo sigue
+  donde estaba. Un asistente compilado con un SDK anterior no ve estos eventos.
+  **La imagen de lo que se arrastra** (SDK 1.17): mientras los archivos están encima de tu asistente, K-Desktop esconde la
+  imagen que dibuja Windows bajo el cursor (la miniatura o los iconos, que lo tapaban) y deja solo una etiqueta pequeña junto
+  al cursor, «Dárselo a <tu nombre>»; si se van sin soltarlos, vuelve. Esa imagen te llega en `PointerEvent.Preview`
+  (`BitmapSource` opaco y congelado, en píxeles de pantalla; null si el programa de origen no dio ninguna) con los tres
+  eventos, para enseñarla a tu manera: más pequeña, en sus manos, colgando de un rayo… y metértela dentro al soltarla. No
+  enseñarla también vale. Lander la sujeta con el rayo tractor bajo la nave y la sube al soltarla, Kobii la levanta sobre
+  las manos y los asistentes sin código la llevan sobre la cabeza.
 - **Teclado** (`IKeyboard`): `IsDown` siempre; `Capture` hace que K-Desktop se trague esas teclas (pulsadas sin Ctrl, Alt
   ni Win, así los atajos siguen) mientras se juega, y sus cambios llegan a `KeyChanged`. `Release` al terminar (también
   se sueltan solas si el asistente sale, el proceso se cae o K-Desktop se pausa).

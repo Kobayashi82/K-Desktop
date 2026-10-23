@@ -15,9 +15,13 @@ namespace KDesktop.Assistant.Host.Input;
 /// <param name="write">A middle click: the box to write to it (stage 3.6).</param>
 /// <param name="talk">The left button held still on it: talking to it starts, and letting go ends it (stage 5.2).</param>
 /// <param name="dropped">Files dropped on one of its areas (stage 13.8): K-Desktop takes it from there.</param>
+/// <param name="dropLabel">The cursor while files are dragged over one of its areas, and null when they go (SDK 1.17).</param>
 internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, Point> menu, Action wheelChanged, Action<string>? write = null,
-    Action<string, bool>? talk = null, Action<string, IReadOnlyList<string>, Point>? dropped = null) : IPointer, IDisposable
+    Action<string, bool>? talk = null, Action<string, IReadOnlyList<string>, Point>? dropped = null, Action<Point?>? dropLabel = null)
+    : IPointer, IDisposable
 {
+    internal void DropLabel(Point? at) => dropLabel?.Invoke(at);
+
     /// <summary>How long the button must stay pressed, without dragging, to talk.</summary>
     public const int TalkHoldMs = 450;
 
@@ -128,14 +132,14 @@ internal sealed unsafe class HitArea : IHitArea
             MessageHandler = OnMessage,
         };
         SetLayeredWindowAttributes(_window.Handle, 0, 1, LWA_ALPHA);
-        _drop = new FileDropTarget(_window.Handle, OnFiles, () => _owner.Name);
+        _drop = new FileDropTarget(_window.Handle, OnFiles, () => _owner.Name, _owner.DropLabel);
         _drop.Register();
     }
 
-    /// <summary>Files dragged over the area, taken away or dropped on it (stage 13.8).</summary>
-    private void OnFiles(PointerEventKind kind, IReadOnlyList<string> files, Point at)
+    /// <summary>Files dragged over the area, taken away or dropped on it (stage 13.8), with their picture (1.17).</summary>
+    private void OnFiles(PointerEventKind kind, IReadOnlyList<string> files, Point at, BitmapSource? preview)
     {
-        _owner.Deliver(new PointerEvent(kind, Id, at) { Files = files });
+        _owner.Deliver(new PointerEvent(kind, Id, at) { Files = files, Preview = preview });
         if (kind == PointerEventKind.FilesDropped) _owner.Dropped(Id, files, at);
     }
 

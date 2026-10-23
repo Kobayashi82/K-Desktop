@@ -45,6 +45,10 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
     /// <summary>Where its body was last drawn (what the others avoid, stage 13.14); null off screen.</summary>
     private PixelRect? _body;
 
+    /// <summary>The picture of the files dragged over it, since when, and when they were dropped (it shrinks into it).</summary>
+    private (ImageSource Image, double Since, double? Caught)? _carried;
+    private const double CatchSeconds = 0.35;
+
     /// <summary>One animation that plays once over the rest (a reaction, a click, coming in, leaving) and until when.</summary>
     private (string Name, double Start, double Until)? _once;
     private string _playing = "idle";
@@ -139,7 +143,7 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
 
         var animation = character.For(_playing);
         var frames = animation.FrameCount;
-        if (moving || _dragging) return _host.Rendering.FrameInterval;
+        if (moving || _dragging || _carried is not null) return _host.Rendering.FrameInterval;
         // The next frame of what plays (a still picture: only the next wander, or a look at whether the user went away).
         var nextFrame = frames > 1 ? 1 / animation.Fps : double.PositiveInfinity;
         var nextOnce = _once is { } once ? Math.Max(0.01, once.Until - Now) : double.PositiveInfinity;
@@ -423,15 +427,53 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
         var w = frame.Height > 0 ? h * frame.Width / frame.Height : h;
         var rect = new Rect(_at.X - w / 2, _at.Y - h, w, h);
         var mirror = _right == character.FacesLeft;
-        var area = new PixelRect((int)Math.Floor(rect.Left) - 1, (int)Math.Floor(rect.Top) - 1, (int)Math.Ceiling(rect.Right) + 1, (int)Math.Ceiling(rect.Bottom) + 1);
+        var carried = Carried(rect);
+        var drawn = carried is { } c ? Rect.Union(rect, c.Rect) : rect;
+        var area = new PixelRect((int)Math.Floor(drawn.Left) - 1, (int)Math.Floor(drawn.Top) - 1, (int)Math.Ceiling(drawn.Right) + 1, (int)Math.Ceiling(drawn.Bottom) + 1);
         _surface.Present(area, dc =>
         {
             if (mirror) dc.PushTransform(new ScaleTransform(-1, 1, _at.X, 0));
             dc.DrawImage(frame, rect);
             if (mirror) dc.Pop();
+            if (carried is { } held)
+            {
+                dc.PushOpacity(held.Opacity);
+                dc.DrawImage(held.Image, held.Rect);
+                dc.Pop();
+            }
         });
         _body = new PixelRect((int)rect.Left, (int)rect.Top, (int)rect.Right, (int)rect.Bottom);
         _hit.Place(new HitShape.Rectangle(_body.Value));
+    }
+
+    /// <summary>
+    /// Where the picture of the files goes: over its head, as wide as it is tall at most and bobbing; once dropped it
+    /// shrinks into its middle. Null when there is none (or it has gone in).
+    /// </summary>
+    private (ImageSource Image, Rect Rect, double Opacity)? Carried(Rect body)
+    {
+        if (_carried is not { } carried) return null;
+        var shrink = 1.0;
+        if (carried.Caught is { } caught)
+        {
+            var t = (Now - caught) / CatchSeconds;
+            if (t >= 1)
+            {
+                _carried = null;
+                return null;
+            }
+            shrink = 1 - t * t;
+        }
+        var image = carried.Image;
+        var side = body.Height * 0.8;
+        var fit = Math.Min(side / Math.Max(1, image.Width), side / Math.Max(1, image.Height));
+        var w = image.Width * fit * shrink;
+        var h = image.Height * fit * shrink;
+        var bob = carried.Caught is null ? Math.Sin((Now - carried.Since) * 4) * 3 * Dpi : 0;
+        // Over the head, and into the middle of the body as it shrinks.
+        var aboveY = body.Top - side / 2 - 4 * Dpi + bob;
+        var y = aboveY + (body.Top + body.Height / 2 - aboveY) * (1 - shrink);
+        return (image, new Rect(body.Left + body.Width / 2 - w / 2, y - h / 2, w, h), 0.5 + 0.5 * shrink);
     }
 
     /// <summary>The frames of an animation, read from the package once (a strip is cut into its frames).</summary>
@@ -584,8 +626,19 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
             case PointerEventKind.DoubleClick:
                 PlayOnce("happy");
                 break;
+            case PointerEventKind.FilesOver:
+                // Their picture over its head while they are over it (Windows' own is hidden there, SDK 1.17).
+                _carried = e.Preview is { } preview ? (preview, Now, null) : null;
+                _host.RequestTick();
+                break;
+            case PointerEventKind.FilesAway:
+                _carried = null;
+                _host.RequestTick();
+                break;
             case PointerEventKind.FilesDropped:
-                // Files dropped on it (stage 13.8): it catches them; K-Desktop asks what to do with them.
+                // Files dropped on it (stage 13.8): it catches them (the picture shrinks into it); K-Desktop asks what to do
+                // with them.
+                if ((_carried?.Image ?? e.Preview) is { } caught) _carried = (caught, _carried?.Since ?? Now, Now);
                 PlayOnce("catch");
                 break;
             case PointerEventKind.DragStart:

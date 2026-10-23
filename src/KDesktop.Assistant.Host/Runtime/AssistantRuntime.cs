@@ -234,7 +234,7 @@ internal sealed class AssistantRuntime : IDisposable
                 if (!slot.LetsThrough(e)) return;
                 Guard(slot, a => a.OnPointer(e), "OnPointer");
             }, (area, at) => OnMenu(slot, at), UpdateWheel, _ => OnWrite(slot), (_, active) => OnTalk(slot, active),
-            (_, files, at) => OnDropped(slot, files, at))
+            (_, files, at) => OnDropped(slot, files, at), at => OnDropLabel(slot, at))
         {
             Name = manifest?.Name ?? id,
         };
@@ -604,6 +604,7 @@ internal sealed class AssistantRuntime : IDisposable
     public void Dispose()
     {
         foreach (var slot in _slots.ToList()) Drop(slot);
+        _dropLabel?.Dispose();
         Watcher.Dispose();
         World.Dispose();
         Rendering?.Dispose();
@@ -715,6 +716,23 @@ internal sealed class AssistantRuntime : IDisposable
         _link?.Send(new DroppedMessage(slot.Id, files, (int)Math.Round(at.X), (int)Math.Round(at.Y)));
     }
 
+    /// <summary>The label by the cursor while files are dragged over an assistant (SDK 1.17; shared, one drag at a time).</summary>
+    private DropLabel? _dropLabel;
+
+    /// <summary>Files dragged over an assistant: «Give it to X» follows the cursor (Windows' own picture is hidden there).</summary>
+    private void OnDropLabel(AssistantSlot slot, Point? at)
+    {
+        if (at is not { } point || slot.Dropped)
+        {
+            _dropLabel?.Hide();
+            return;
+        }
+        if (Rendering is null) return;
+        _dropLabel ??= new DropLabel(Rendering.CreateSurface(SurfaceLayer.Front));
+        var monitor = World.Current.MonitorAt(point) ?? World.Current.PrimaryMonitor;
+        _dropLabel.Show(Loc.T("assistant.drop.give", slot.Pointer.Name), point, _link?.Theme == "dark", monitor);
+    }
+
     /// <summary>A long click on an assistant (stage 5.2): K-Desktop records the user while the button is held, for it.</summary>
     private void OnTalk(AssistantSlot slot, bool active)
     {
@@ -805,7 +823,8 @@ internal sealed class AssistantSlot(string id, IAssistant assistant, AssistantMa
 
     /// <summary>
     /// Whether a pointer event reaches it: not the drags of its body while the user does not let it be picked up, nor the
-    /// files dragged over it if it was built before SDK 1.16 (it does not know those kinds; K-Desktop still gets the files).
+    /// files dragged over it if it was built before SDK 1.16 (it does not know those kinds; K-Desktop still gets the files and the
+    /// label by the cursor still says it takes them).
     /// </summary>
     public bool LetsThrough(PointerEvent e) =>
         _drags.LetsThrough(e, Common.Dragging) && (e.Kind < PointerEventKind.FilesOver || KnowsFiles);

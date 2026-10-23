@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Windows;
+using System.Windows.Media.Imaging;
 using KDesktop.Assistant.Sdk;
 using KDesktop.Core;
 using KDesktop.Core.Localization;
@@ -13,16 +14,22 @@ namespace KDesktop.Assistant.Host.Input;
 /// Files dragged onto a hit area (stage 13.8). The hit windows live in the assistant process, which runs as the normal user
 /// (medium integrity), so the Explorer can drop on them (it cannot on K-Desktop, which is elevated). Only files are taken
 /// (text or links are not), always as a copy or a link: never as a move, which would let the source delete them.
+/// While files are over it the shell's picture of them is hidden (it covered the assistant): the assistant gets it with
+/// the events (SDK 1.17) to show it its own way, and the host draws the label («Give it to Lander») by the cursor.
 /// </summary>
-/// <param name="raise">Over, away or dropped, with the files and the cursor in screen pixels.</param>
+/// <param name="raise">Over, away or dropped, with the files, the cursor in screen pixels and the dragged picture.</param>
 /// <param name="name">The assistant's name, for the label under the dragged picture («Give it to Lander»).</param>
+/// <param name="label">Where the cursor is while files are over the area (for the host's label), and null when they go.</param>
 [ComVisible(true)]
-internal sealed class FileDropTarget(nint window, Action<PointerEventKind, IReadOnlyList<string>, Point> raise, Func<string> name)
-    : IDropTarget
+internal sealed class FileDropTarget(nint window, Action<PointerEventKind, IReadOnlyList<string>, Point, BitmapSource?> raise,
+    Func<string> name, Action<Point?>? label = null) : IDropTarget
 {
     private static uint _descriptionFormat;
     private IReadOnlyList<string> _files = [];
     private IDataObject? _data;
+    private BitmapSource? _preview;
+    /// <summary>The shell's windows with the picture, hidden while the files are over the area.</summary>
+    private readonly List<nint> _pictures = [];
     private IDropTargetHelper? _helper;
     private bool _registered;
 
@@ -40,6 +47,7 @@ internal sealed class FileDropTarget(nint window, Action<PointerEventKind, IRead
         if (!_registered) return;
         _registered = false;
         RevokeDragDrop(window);
+        ShowPictures();
         Forget();
     }
 
@@ -51,8 +59,12 @@ internal sealed class FileDropTarget(nint window, Action<PointerEventKind, IRead
         var shown = effect;
         Helper(h => { var p = Point(at); h.DragEnter(window, data, ref p, shown); });
         if (_files.Count == 0) return 0;
+        // Still in the data object in case the picture cannot be hidden (then the shell shows it).
         Describe(data, shown == DROPEFFECT_LINK ? DROPIMAGE_LINK : DROPIMAGE_COPY, Loc.T("assistant.drop.give", name()));
-        raise(PointerEventKind.FilesOver, _files, new Point(at.X, at.Y));
+        _preview = DragPreview.Of(data);
+        HidePictures();
+        label?.Invoke(new Point(at.X, at.Y));
+        raise(PointerEventKind.FilesOver, _files, new Point(at.X, at.Y), _preview);
         return 0;
     }
 
@@ -61,29 +73,62 @@ internal sealed class FileDropTarget(nint window, Action<PointerEventKind, IRead
         effect = _files.Count == 0 ? DROPEFFECT_NONE : EffectFor(effect);
         var shown = effect;
         Helper(h => { var p = Point(at); h.DragOver(ref p, shown); });
+        if (_files.Count == 0) return 0;
+        HidePictures();
+        label?.Invoke(new Point(at.X, at.Y));
         return 0;
     }
 
     public int DragLeave()
     {
+        // The picture comes back for the other windows.
+        ShowPictures();
         Helper(h => h.DragLeave());
         // Other windows show their own label again.
         if (_data is { } data) Describe(data, DROPIMAGE_INVALID, "");
         var files = _files;
+        var preview = _preview;
         Forget();
-        if (files.Count > 0) raise(PointerEventKind.FilesAway, files, Cursor());
+        if (files.Count == 0) return 0;
+        label?.Invoke(null);
+        raise(PointerEventKind.FilesAway, files, Cursor(), preview);
         return 0;
     }
 
     public int Drop(IDataObject data, int keys, POINTL at, ref int effect)
     {
         var files = _files.Count > 0 ? _files : FilesOf(data);
+        var preview = _preview ?? (files.Count > 0 ? DragPreview.Of(data) : null);
         effect = files.Count == 0 ? DROPEFFECT_NONE : EffectFor(effect);
         var dropped = effect;
         Helper(h => { var p = Point(at); h.Drop(data, ref p, dropped); });
         Forget();
-        if (files.Count > 0) raise(PointerEventKind.FilesDropped, files, new Point(at.X, at.Y));
+        if (files.Count == 0) return 0;
+        label?.Invoke(null);
+        raise(PointerEventKind.FilesDropped, files, new Point(at.X, at.Y), preview);
         return 0;
+    }
+
+    /// <summary>
+    /// Hides the shell's picture of the files (a «SysDragImage» window of the program they come from): it covered the
+    /// assistant, which shows it its own way. IDropTargetHelper.Show does nothing with today's layered pictures. Again on
+    /// every move, in case the shell shows it again.
+    /// </summary>
+    private void HidePictures()
+    {
+        for (nint picture = 0; (picture = FindWindowEx(0, picture, "SysDragImage", null)) != 0;)
+        {
+            if (!IsWindowVisible(picture)) continue;
+            ShowWindow(picture, SW_HIDE);
+            if (!_pictures.Contains(picture)) _pictures.Add(picture);
+        }
+    }
+
+    /// <summary>Gives the picture back when the files leave the area without being dropped.</summary>
+    private void ShowPictures()
+    {
+        foreach (var picture in _pictures) ShowWindow(picture, SW_SHOWNA);
+        _pictures.Clear();
     }
 
     /// <summary>A copy if the source allows it, if not a link; never a move (the source would delete the files).</summary>
@@ -135,6 +180,8 @@ internal sealed class FileDropTarget(nint window, Action<PointerEventKind, IRead
     {
         _files = [];
         _data = null;
+        _preview = null;
+        _pictures.Clear();
     }
 
     /// <summary>The shell's drag image (created the first time; if it cannot be, the drag goes on without it).</summary>
