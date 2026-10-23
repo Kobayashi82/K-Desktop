@@ -16,26 +16,33 @@
       "required": ["idle"],
       "additionalProperties": false,
       "properties": {
-        "idle": { "$ref": "#/$defs/animation", "description": "Quieto (obligatoria)." },
-        "walk": { "$ref": "#/$defs/animation", "description": "Andando (si falta: idle)." },
-        "talk": { "$ref": "#/$defs/animation", "description": "Mientras habla (idle)." },
-        "listen": { "$ref": "#/$defs/animation", "description": "Mientras te escucha (idle)." },
-        "think": { "$ref": "#/$defs/animation", "description": "Mientras piensa (listen)." },
-        "happy": { "$ref": "#/$defs/animation", "description": "Algo salió bien o celebra; una vez (idle)." },
-        "sad": { "$ref": "#/$defs/animation", "description": "Algo salió mal; una vez (idle)." },
-        "surprised": { "$ref": "#/$defs/animation", "description": "Un aviso o algo inesperado; una vez (idle)." },
-        "announce": { "$ref": "#/$defs/animation", "description": "Llama tu atención antes de decir algo por su cuenta (un temporizador, un aviso), tras acercarse andando al ratón; una vez (happy)." },
-        "catch": { "$ref": "#/$defs/animation", "description": "Coge los archivos que le sueltas encima; una vez (happy)." },
-        "click": { "$ref": "#/$defs/animation", "description": "Al hacerle clic; una vez (happy)." },
-        "drag": { "$ref": "#/$defs/animation", "description": "Mientras lo arrastras (fall)." },
-        "fall": { "$ref": "#/$defs/animation", "description": "Cayendo (idle)." },
-        "sleep": { "$ref": "#/$defs/animation", "description": "Dormido, cuando no estás (idle)." },
-        "enter": { "$ref": "#/$defs/animation", "description": "Al aparecer; una vez (idle)." },
-        "exit": { "$ref": "#/$defs/animation", "description": "Al irse; una vez (idle)." }
+        "idle": { "$ref": "#/$defs/variants", "description": "Quieto (obligatoria)." },
+        "walk": { "$ref": "#/$defs/variants", "description": "Andando (si falta: idle)." },
+        "talk": { "$ref": "#/$defs/variants", "description": "Mientras habla (idle)." },
+        "listen": { "$ref": "#/$defs/variants", "description": "Mientras te escucha (idle)." },
+        "think": { "$ref": "#/$defs/variants", "description": "Mientras piensa (listen)." },
+        "happy": { "$ref": "#/$defs/variants", "description": "Algo salió bien o celebra; una vez (idle)." },
+        "sad": { "$ref": "#/$defs/variants", "description": "Algo salió mal; una vez (idle)." },
+        "surprised": { "$ref": "#/$defs/variants", "description": "Un aviso o algo inesperado; una vez (idle)." },
+        "announce": { "$ref": "#/$defs/variants", "description": "Llama tu atención antes de decir algo por su cuenta (un temporizador, un aviso), tras acercarse andando al ratón; una vez (happy)." },
+        "catch": { "$ref": "#/$defs/variants", "description": "Coge los archivos que le sueltas encima; una vez (happy)." },
+        "click": { "$ref": "#/$defs/variants", "description": "Al hacerle clic; una vez (happy)." },
+        "drag": { "$ref": "#/$defs/variants", "description": "Mientras lo arrastras (fall)." },
+        "fall": { "$ref": "#/$defs/variants", "description": "Cayendo (idle)." },
+        "sleep": { "$ref": "#/$defs/variants", "description": "Dormido, cuando no estás (idle)." },
+        "enter": { "$ref": "#/$defs/variants", "description": "Al aparecer; una vez. Con variantes, cada una puede decir para qué motivo es («when»: startup, al arrancar K-Desktop o encender el módulo; summoned, al ponerlo). Al volver a cargarse (una versión nueva, otro idioma) no hay entrada." },
+        "exit": { "$ref": "#/$defs/variants", "description": "Al irse; una vez. Con variantes, cada una puede decir para qué motivo es («when»: dismissed, al esconderlo; uninstalling, al quitarlo). Al cerrar K-Desktop o volver a cargarse no hay salida." }
       }
     }
   },
   "$defs": {
+    "variants": {
+      "description": "Una animación, o una lista de variantes: cada vez que toca, el host elige una por su peso («weight»), sin repetir la última y respetando su descanso («cooldown»).",
+      "oneOf": [
+        { "$ref": "#/$defs/animation" },
+        { "type": "array", "minItems": 1, "maxItems": 16, "items": { "$ref": "#/$defs/animation" } }
+      ]
+    },
     "path": { "type": "string", "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9_./ -]+$" },
     "animation": {
       "type": "object",
@@ -51,7 +58,16 @@
         "strip": { "$ref": "#/$defs/path", "description": "Una sola imagen con los fotogramas uno al lado del otro, todos del mismo ancho." },
         "fps": { "type": "number", "minimum": 0.5, "maximum": 60, "default": 8 },
         "loop": { "type": "boolean", "description": "Si se repite (por defecto sí, salvo happy, sad, surprised, click, enter, exit, announce y catch)." },
-        "sound": { "$ref": "#/$defs/path", "description": "Un WAV del paquete que suena al empezar." }
+        "sound": { "$ref": "#/$defs/path", "description": "Un WAV del paquete que suena al empezar." },
+        "weight": { "type": "number", "exclusiveMinimum": 0, "maximum": 100, "default": 1, "description": "Entre las variantes, cuánto sale esta (el doble de peso, el doble de veces)." },
+        "cooldown": { "type": "number", "minimum": 0, "maximum": 86400, "default": 0, "description": "Segundos que descansa después de salir (si otra puede salir)." },
+        "when": {
+          "description": "Solo en enter y exit: los motivos para los que es. Sin él, para todos.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["startup", "summoned", "dismissed", "uninstalling"] }
+        }
       },
       "oneOf": [
         { "required": ["strip", "frames"], "properties": { "frames": { "type": "integer" } } },

@@ -51,6 +51,8 @@ function Draw-Pip($g, [double]$dy = 0, [double]$squash = 0, [string]$eyes = 'ope
             'sad'    { $g.FillEllipse($dark, $x - 6, $ey - 4, 12, 14); $g.DrawLine($pen, $x - 9 * $side, $ey - 12, $x + 7 * $side, $ey - 8) }
             'wide'   { $g.FillEllipse($white, $x - 11, $ey - 12, 22, 24); $g.FillEllipse($dark, $x - 6, $ey - 6, 12, 12) }
             'up'     { $g.FillEllipse($dark, $x - 6, $ey - 12, 12, 14); $g.FillEllipse($white, $x - 3, $ey - 10, 4, 4) }
+            'left'   { $g.FillEllipse($dark, $x - 11, $ey - 8, 14, 17); $g.FillEllipse($white, $x - 8, $ey - 5, 5, 5) }
+            'right'  { $g.FillEllipse($dark, $x - 3, $ey - 8, 14, 17); $g.FillEllipse($white, $x + 1, $ey - 5, 5, 5) }
             default  { $g.FillEllipse($dark, $x - 7, $ey - 8, 14, 17); $g.FillEllipse($white, $x - 3, $ey - 5, 5, 5) }
         }
     }
@@ -103,6 +105,24 @@ for ($i = 0; $i -lt 2; $i++) {
     $f[1].DrawString('z', $font, (New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(220, 60, 90, 140))), (112 + $i * 8), (28 - $i * 10))
     Save-Frame $f "sleep$i"
 }
+# Variantes (etapa 13.11)
+# idle: mira a un lado y al otro (4)
+$look = 'left', 'left', 'right', 'right'
+for ($i = 0; $i -lt 4; $i++) { $f = New-Frame; Draw-Pip $f[1] -eyes $look[$i] -tilt $(if ($i -lt 2) { -3 } else { 3 }); Save-Frame $f "look$i" }
+# happy: se menea (4)
+$wiggle = -12, 12, -12, 0
+for ($i = 0; $i -lt 4; $i++) { $f = New-Frame; Draw-Pip $f[1] -dy -4 -eyes 'happy' -mouth 'smile' -tilt $wiggle[$i] -feet ($wiggle[$i] / 2); Save-Frame $f "wiggle$i" }
+# enter al arrancar: se despierta y se estira (4)
+$wake = @(@(6, 0.12, 'closed', 'none'), @(2, 0.04, 'closed', 'small'), @(-8, -0.1, 'wide', 'o'), @(0, 0, 'open', 'smile'))
+for ($i = 0; $i -lt 4; $i++) { $f = New-Frame; Draw-Pip $f[1] -dy $wake[$i][0] -squash $wake[$i][1] -eyes $wake[$i][2] -mouth $wake[$i][3]; Save-Frame $f "wake$i" }
+# enter al ponerlo: cae del cielo y aterriza (4)
+$drop = @(@(-120, -0.12, 'wide', 'o'), @(-50, -0.1, 'wide', 'o'), @(4, 0.2, 'happy', 'smile'), @(0, 0, 'open', 'smile'))
+for ($i = 0; $i -lt 4; $i++) { $f = New-Frame; Draw-Pip $f[1] -dy $drop[$i][0] -squash $drop[$i][1] -eyes $drop[$i][2] -mouth $drop[$i][3] -NoFeet:($i -lt 2); Save-Frame $f "drop$i" }
+# exit al esconderlo: se despide (4)
+for ($i = 0; $i -lt 4; $i++) { $f = New-Frame; Draw-Pip $f[1] -eyes 'happy' -mouth 'smile' -tilt ((($i % 2) * 2 - 1) * 9); Save-Frame $f "bye$i" }
+# exit al quitarlo: triste, se hunde (4)
+for ($i = 0; $i -lt 4; $i++) { $f = New-Frame; Draw-Pip $f[1] -dy (6 + $i * 14) -squash (0.08 + $i * 0.1) -eyes 'sad' -mouth 'frown' -NoFeet:($i -ge 2); Save-Frame $f "sink$i" }
+
 # icono 128x128: el primer fotograma
 $icon = New-Object System.Drawing.Bitmap 128, 128
 $ig = [System.Drawing.Graphics]::FromImage($icon); $ig.SmoothingMode = 'AntiAlias'; $ig.InterpolationMode = 'HighQualityBicubic'

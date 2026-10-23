@@ -2,7 +2,7 @@
   "$schema": "../../../docs/assistant/esquemas/assistant.schema.json",
   "id": "pip",
   "name": "Pip",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "author": "Kobayashi82",
   "description": {
     "es": "Ejemplo de asistente sin código: una gota que pasea por la barra de tareas y por tus ventanas. Solo imágenes y JSON.",
@@ -14,7 +14,7 @@
   },
   "homepage": "https://github.com/Kobayashi82/K-Desktop",
   "license": "MIT",
-  "sdk": "1.0",
+  "sdk": "1.20",
   "entry": "character.json",
   "icon": "icon.png",
   "wakeWord": "Pip",
@@ -26,11 +26,11 @@
     "gestures": ["communicate", "react", "announce"]
   },
   "changes": {
-    "es": "Antes de decir algo por su cuenta (un temporizador, un aviso) se acerca andando al ratón y te saluda.",
-    "en": "Before saying something on its own (a timer, a notice) it walks up to the mouse and waves at you.",
-    "fr": "Avant de dire quelque chose de lui-même (un minuteur, un avis), il s’approche de la souris en marchant et vous salue.",
-    "de": "Bevor es von sich aus etwas sagt (ein Timer, ein Hinweis), läuft es zur Maus und winkt dir.",
-    "it": "Prima di dire qualcosa di sua iniziativa (un timer, un avviso) si avvicina camminando al mouse e ti saluta.",
-    "pt": "Antes de dizer algo por conta própria (um timer, um aviso), ele se aproxima andando do mouse e acena para você."
+    "es": "Entra de otra manera según el momento: al arrancar K-Desktop se despierta y se estira, y al ponerlo cae del cielo. Al esconderlo se despide y al quitarlo se hunde, triste. En reposo a veces mira a los lados, y cuando se alegra unas veces salta y otras se menea.",
+    "en": "It comes in differently depending on the moment: when K-Desktop starts it wakes up and stretches, and when you put it on the desktop it drops from the sky. When you hide it, it waves goodbye, and when you remove it, it sinks, sad. While idle it sometimes looks around, and when it is happy it either jumps or wiggles.",
+    "fr": "Il entre différemment selon le moment : au démarrage de K-Desktop, il se réveille et s’étire, et quand vous le placez, il tombe du ciel. Quand vous le cachez, il dit au revoir, et quand vous le supprimez, il s’enfonce, triste. Au repos, il regarde parfois autour de lui, et quand il est content, il saute ou se dandine.",
+    "de": "Es kommt je nach Moment anders herein: Beim Start von K-Desktop wacht es auf und streckt sich, und wenn du es auf den Desktop setzt, fällt es vom Himmel. Wenn du es versteckst, winkt es zum Abschied, und wenn du es entfernst, versinkt es traurig. Im Ruhezustand schaut es sich manchmal um, und wenn es sich freut, springt es oder wackelt.",
+    "it": "Entra in modo diverso a seconda del momento: all’avvio di K-Desktop si sveglia e si stiracchia, e quando lo metti sul desktop cade dal cielo. Quando lo nascondi saluta, e quando lo rimuovi sprofonda, triste. A riposo a volte si guarda intorno, e quando è contento a volte salta e a volte si dimena.",
+    "pt": "Ele entra de um jeito diferente conforme o momento: quando o K-Desktop inicia, ele acorda e se espreguiça, e quando você o coloca na área de trabalho, cai do céu. Quando você o esconde, ele se despede, e quando você o remove, afunda, triste. Parado, às vezes olha para os lados, e quando fica contente às vezes pula e às vezes se balança."
   }
 }

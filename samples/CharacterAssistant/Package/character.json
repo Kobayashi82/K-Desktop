@@ -4,16 +4,30 @@
   "faces": "right",
   "walkSpeed": 60,
   "animations": {
-    "idle": { "frames": ["frames/idle0.png", "frames/idle1.png", "frames/idle0.png", "frames/idle1.png", "frames/idle0.png", "frames/idle3.png"], "fps": 2.5 },
+    "idle": [
+      { "frames": ["frames/idle0.png", "frames/idle1.png", "frames/idle0.png", "frames/idle1.png", "frames/idle0.png", "frames/idle3.png"], "fps": 2.5, "weight": 6 },
+      { "frames": ["frames/look0.png", "frames/look1.png", "frames/look2.png", "frames/look3.png", "frames/idle0.png"], "fps": 2.5, "cooldown": 20 }
+    ],
     "walk": { "strip": "frames/walk.png", "frames": 6, "fps": 10 },
     "talk": { "frames": ["frames/talk0.png", "frames/talk1.png", "frames/talk2.png", "frames/talk3.png"], "fps": 8 },
     "listen": { "frames": ["frames/listen0.png", "frames/listen1.png"], "fps": 3 },
     "think": { "frames": ["frames/think0.png", "frames/think1.png"], "fps": 2 },
-    "happy": { "frames": ["frames/happy0.png", "frames/happy1.png", "frames/happy2.png", "frames/happy3.png", "frames/happy0.png"], "fps": 8 },
+    "happy": [
+      { "frames": ["frames/happy0.png", "frames/happy1.png", "frames/happy2.png", "frames/happy3.png", "frames/happy0.png"], "fps": 8, "weight": 2 },
+      { "frames": ["frames/wiggle0.png", "frames/wiggle1.png", "frames/wiggle2.png", "frames/wiggle1.png", "frames/wiggle3.png"], "fps": 9 }
+    ],
     "sad": { "frames": ["frames/sad0.png", "frames/sad1.png", "frames/sad0.png", "frames/sad1.png"], "fps": 3 },
     "surprised": { "frames": ["frames/surprised0.png", "frames/surprised1.png", "frames/surprised0.png"], "fps": 6 },
     "drag": { "frames": ["frames/drag0.png", "frames/drag1.png"], "fps": 5 },
     "fall": { "frames": ["frames/fall0.png", "frames/fall1.png"], "fps": 8 },
-    "sleep": { "frames": ["frames/sleep0.png", "frames/sleep1.png"], "fps": 1 }
+    "sleep": { "frames": ["frames/sleep0.png", "frames/sleep1.png"], "fps": 1 },
+    "enter": [
+      { "frames": ["frames/wake0.png", "frames/wake0.png", "frames/wake1.png", "frames/wake2.png", "frames/wake3.png"], "fps": 4, "when": ["startup"] },
+      { "frames": ["frames/drop0.png", "frames/drop1.png", "frames/drop2.png", "frames/drop3.png"], "fps": 8, "when": ["summoned"] }
+    ],
+    "exit": [
+      { "frames": ["frames/bye0.png", "frames/bye1.png", "frames/bye0.png", "frames/bye1.png", "frames/bye2.png"], "fps": 5, "when": ["dismissed"] },
+      { "frames": ["frames/sink0.png", "frames/sink1.png", "frames/sink2.png", "frames/sink3.png"], "fps": 4, "when": ["uninstalling"] }
+    ]
   }
 }

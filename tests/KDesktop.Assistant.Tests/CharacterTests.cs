@@ -51,15 +51,43 @@ public class CharacterTests
         Assert.True(pip.For("walk").Strip);
         Assert.False(pip.For("happy").Loop);
         Assert.True(pip.For("talk").Loop);
-        // Pip has no click, enter or exit: the fallbacks.
+        // Pip has no click or catch: the fallbacks.
         Assert.Same(pip.For("happy"), pip.For("click"));
-        Assert.Same(pip.For("idle"), pip.For("enter"));
+        Assert.Same(pip.VariantsFor("happy"), pip.VariantsFor("catch"));
 
         var tiny = CharacterFile.Parse("""{ "animations": { "idle": { "frames": ["a.png"] } } }""");
         Assert.Same(tiny.For("idle"), tiny.For("think"));
         Assert.Same(tiny.For("idle"), tiny.For("drag"));
         Assert.Throws<ManifestException>(() => CharacterFile.Parse("""{ "animations": { "walk": { "frames": ["a.png"] } } }"""));
         Assert.Throws<ManifestException>(() => CharacterFile.Parse("""{ "animations": { "idle": { "frames": ["../fuera.png"] } } }"""));
+    }
+
+    /// <summary>Stage 13.11: an animation can be a list of variants, with a weight, a rest and (entrance and exit) a reason.</summary>
+    [Fact]
+    public void AnimationsCanHaveVariants()
+    {
+        var pip = CharacterFile.Parse(File.ReadAllText(Path.Combine(PipFolder, "character.json")));
+        Assert.Equal(2, pip.VariantsFor("idle").Count);
+        Assert.Equal((6.0, 0.0), (pip.VariantsFor("idle")[0].Weight, pip.VariantsFor("idle")[0].Cooldown));
+        Assert.Equal(20, pip.VariantsFor("idle")[1].Cooldown);
+        Assert.Same(pip.VariantsFor("idle")[0], pip.For("idle"));
+        Assert.Contains("frames/wiggle0.png", pip.Files);
+        // An entrance and an exit for each reason; none for a reason it does not have.
+        Assert.Equal("frames/wake0.png", Assert.Single(pip.VariantsFor("enter", "startup")).Frames[0]);
+        Assert.Equal("frames/drop0.png", Assert.Single(pip.VariantsFor("enter", "summoned")).Frames[0]);
+        Assert.Equal("frames/sink0.png", Assert.Single(pip.VariantsFor("exit", "uninstalling")).Frames[0]);
+        var anyReason = CharacterFile.Parse("""{ "animations": { "idle": { "frames": ["a.png"] }, "enter": [ { "frames": ["b.png"] } ] } }""");
+        Assert.Single(anyReason.VariantsFor("enter", "summoned"));
+        Assert.Empty(anyReason.VariantsFor("exit", "dismissed"));
+
+        // «when» only on enter and exit, and only their own reasons; at most 16 variants.
+        Assert.Throws<ManifestException>(() => CharacterFile.Parse("""{ "animations": { "idle": [ { "frames": ["a.png"], "when": ["startup"] } ] } }"""));
+        Assert.Throws<ManifestException>(() => CharacterFile.Parse("""{ "animations": { "idle": { "frames": ["a.png"] }, "enter": [ { "frames": ["b.png"], "when": ["dismissed"] } ] } }"""));
+        Assert.Throws<ManifestException>(() => CharacterFile.Parse("""{ "animations": { "idle": [] } }"""));
+        var many = string.Join(",", Enumerable.Repeat("""{ "frames": ["a.png"] }""", 17));
+        Assert.Throws<ManifestException>(() => CharacterFile.Parse($$"""{ "animations": { "idle": [ {{many}} ] } }"""));
+        Assert.NotEmpty(Contracts.Validate("character", """{ "animations": { "idle": [ { "frames": ["a.png"], "weight": 0 } ] } }"""));
+        Assert.Empty(Contracts.Validate("character", """{ "animations": { "idle": [ { "frames": ["a.png"], "weight": 2, "cooldown": 5 } ], "exit": [ { "frames": ["b.png"], "when": ["dismissed", "uninstalling"] } ] } }"""));
     }
 
     [Fact]

@@ -13,7 +13,9 @@ namespace KDesktop.Assistant.Host.Characters;
 /// <see cref="CharacterFile"/>. It stands on the taskbar or on the top of a window, walks about now and then (and may
 /// walk off a window and fall), follows the window it stands on, can be dragged and dropped, sleeps when the user is away,
 /// and plays an animation for each thing: listening, thinking, talking (Communicate), reacting (React), a click. Nothing of
-/// the package runs: only its pictures and sounds are read.
+/// the package runs: only its pictures and sounds are read. An animation with variants (stage 13.11) gets one picked each
+/// time it starts (and, one that repeats, on each round) with a <see cref="Variety{T}"/>; an entrance or an exit, one for
+/// its reason.
 /// </summary>
 internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
 {
@@ -42,6 +44,8 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
     private AssistantState _state;
     private bool _talking;
     private bool _gone;
+    /// <summary>Its entrance, played on the first tick (until then its clock does not run: started at once, it would be over).</summary>
+    private CharacterAnimation? _entrance;
     /// <summary>Where its body was last drawn (what the others avoid, stage 13.14); null off screen.</summary>
     private PixelRect? _body;
 
@@ -49,10 +53,14 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
     private (ImageSource Image, double Since, double? Caught)? _carried;
     private const double CatchSeconds = 0.35;
 
-    /// <summary>One animation that plays once over the rest (a reaction, a click, coming in, leaving) and until when.</summary>
-    private (string Name, double Start, double Until)? _once;
+    /// <summary>One animation that plays once over the rest (a reaction, a click, coming in, leaving), its variant and until when.</summary>
+    private (string Name, CharacterAnimation Animation, double Start, double Until)? _once;
     private string _playing = "idle";
+    private CharacterAnimation _animation = character.For("idle");
     private double _playingSince;
+
+    /// <summary>How each list of variants is picked from (by the list: an animation that falls back shares the other's).</summary>
+    private readonly Dictionary<IReadOnlyList<CharacterAnimation>, Variety<CharacterAnimation>> _varieties = new(ReferenceEqualityComparer.Instance);
     /// <summary>Its size as the user wants it (the common settings, stage 13.13).</summary>
     private double Scale => _host.Common.Size;
 
@@ -87,7 +95,7 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
         _at = spot;
         _ground = GroundAt(_at.X, _at.Y);
         _nextWander = Later(3, 5);
-        if (how != EntranceKind.Reloaded && character.Animations.ContainsKey("enter")) PlayOnce("enter");
+        if (how != EntranceKind.Reloaded) _entrance = Pick("enter", how == EntranceKind.Startup ? "startup" : "summoned");
         // Back where it was, someone else may stay there now.
         Settle();
         _host.RequestTick();
@@ -96,16 +104,16 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
     public async Task ExitAsync(ExitKind why, CancellationToken ct)
     {
         if (why == ExitKind.Reloading) SaveSpot();
-        if (!character.Animations.ContainsKey("exit") || why is ExitKind.Shutdown or ExitKind.Reloading)
+        var exit = why is ExitKind.Dismissed or ExitKind.Uninstalling ? Pick("exit", why == ExitKind.Dismissed ? "dismissed" : "uninstalling") : null;
+        if (exit is null)
         {
             _gone = true;
             _surface.Hide();
             return;
         }
-        PlayOnce("exit");
+        PlayOnce("exit", exit);
         _host.RequestTick();
-        var animation = character.For("exit");
-        try { await Task.Delay(TimeSpan.FromSeconds(Math.Min(ReactLongest, animation.FrameCount / animation.Fps)), ct); }
+        try { await Task.Delay(TimeSpan.FromSeconds(Math.Min(ReactLongest, exit.Seconds)), ct); }
         catch (OperationCanceledException) { }
         _gone = true;
         _surface.Hide();
@@ -115,6 +123,11 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
     {
         Now = tick.Now;
         var dt = Math.Min(tick.Elapsed, 0.05);
+        if (_entrance is { } entrance)
+        {
+            _entrance = null;
+            PlayOnce("enter", entrance);
+        }
         if (_gone) return 1;
         if (_host.World.System.FullscreenMonitors.Contains(MonitorIndex()))
         {
@@ -136,12 +149,14 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
         if (name != _playing)
         {
             _playing = name;
-            _playingSince = Now;
-            PlaySound(name);
+            Start(_once is { } over && over.Name == name ? over.Animation : Pick(name));
         }
+        else if (_once is null && _animation.Loop && Now - _playingSince >= _animation.Seconds && character.VariantsFor(name).Count > 1)
+            // One that repeats, with variants: another one (or the same) on each round.
+            Start(Pick(name));
         Draw();
 
-        var animation = character.For(_playing);
+        var animation = _animation;
         var frames = animation.FrameCount;
         if (moving || _dragging || _carried is not null) return _host.Rendering.FrameInterval;
         // The next frame of what plays (a still picture: only the next wander, or a look at whether the user went away).
@@ -405,19 +420,44 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
         return "idle";
     }
 
-    /// <summary>Plays <paramref name="name"/> once over the rest.</summary>
-    private void PlayOnce(string name)
+    /// <summary>Plays <paramref name="name"/> once over the rest (<paramref name="animation"/>: that variant; null: one is picked).</summary>
+    private void PlayOnce(string name, CharacterAnimation? animation = null)
     {
-        var animation = character.For(name);
-        var length = animation.Loop ? Math.Min(ReactLongest, Math.Max(1, animation.FrameCount / animation.Fps)) : animation.FrameCount / animation.Fps;
-        _once = (name, Now, Now + Math.Clamp(length, 0.2, ReactLongest));
+        animation ??= Pick(name);
+        var length = animation.Loop ? Math.Min(ReactLongest, Math.Max(1, animation.Seconds)) : animation.Seconds;
+        _once = (name, animation, Now, Now + Math.Clamp(length, 0.2, ReactLongest));
         _playing = string.Empty;
         _host.RequestTick();
     }
 
+    private void Start(CharacterAnimation animation)
+    {
+        _animation = animation;
+        _playingSince = Now;
+        PlaySound(animation);
+    }
+
+    /// <summary>
+    /// A variant of <paramref name="name"/> (its own or the one it falls back to): by weight and cooldown, never the same
+    /// one twice in a row for those that play once (one that repeats may go on with the same).
+    /// </summary>
+    private CharacterAnimation Pick(string name) => VarietyOf(character.VariantsFor(name)).Pick();
+
+    /// <summary>A variant of an entrance or an exit for that reason; null when it has none for it (then there is none).</summary>
+    private CharacterAnimation? Pick(string name, string reason) =>
+        character.VariantsFor(name, reason).Count == 0 ? null : VarietyOf(character.VariantsFor(name)).Pick(v => v.IsFor(reason));
+
+    private Variety<CharacterAnimation> VarietyOf(IReadOnlyList<CharacterAnimation> variants)
+    {
+        if (_varieties.TryGetValue(variants, out var variety)) return variety;
+        variety = new Variety<CharacterAnimation>(clock: () => Now) { NoRepeat = !variants[0].Loop };
+        foreach (var variant in variants) variety.Add(variant, variant.Weight, variant.Cooldown);
+        return _varieties[variants] = variety;
+    }
+
     private void Draw()
     {
-        var animation = character.For(_playing);
+        var animation = _animation;
         var frames = FramesOf(_playing, animation);
         if (frames.Length == 0) return;
         var index = (int)Math.Floor((Now - _playingSince) * animation.Fps);
@@ -516,9 +556,9 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
         return image;
     }
 
-    private void PlaySound(string name)
+    private void PlaySound(CharacterAnimation animation)
     {
-        if (character.For(name).Sound is not { } path || !_host.Audio.Enabled) return;
+        if (animation.Sound is not { } path || !_host.Audio.Enabled) return;
         if (!_sounds.TryGetValue(path, out var sound))
         {
             try { sound = _host.Audio.LoadWav(path); }
@@ -574,8 +614,8 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
     /// </summary>
     private async Task AnnounceAsync(Gesture.Announce announce, IGestureContext ctx, CancellationToken ct)
     {
-        var animation = character.For("announce");
-        var length = Math.Clamp(animation.FrameCount / animation.Fps, 0.2, ReactLongest);
+        var animation = Pick("announce");
+        var length = Math.Clamp(animation.Seconds, 0.2, ReactLongest);
         var world = _host.World.Current;
         try
         {
@@ -596,7 +636,7 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
                 }
                 _right = cursor.X > _at.X;
             }
-            PlayOnce("announce");
+            PlayOnce("announce", animation);
             await Task.Delay(TimeSpan.FromSeconds(length), ct);
         }
         catch (OperationCanceledException)

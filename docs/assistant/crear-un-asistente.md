@@ -22,7 +22,7 @@ MiPersonaje\
   character.json
   icon.png
   frames\idle0.png …  (PNG con transparencia, todos con el mismo alto)
-  settings.json       (opcional: "scale" y "wander" los entiende el host)
+  settings.json       (opcional: el tamaño, el volumen y lo movido que es ya los pone K-Desktop en su ficha)
 ```
 
 ```json
@@ -47,6 +47,23 @@ MiPersonaje\
   `exit`, `announce` y `catch`) y `sound` (un WAV que suena al empezar). Antes de decir algo por su cuenta (un temporizador, un
   aviso) se acerca andando al ratón por donde está y hace `announce`; con archivos encima lleva su imagen sobre la cabeza y,
   si los sueltas, se la mete dentro y hace `catch`.
+- **Variantes** (SDK 1.20: pon `"sdk": "1.20"`): en vez de una animación, una lista. Cada vez que toca, K-Desktop elige
+  una por su `weight` (el doble de peso, el doble de veces; 1 por defecto), respetando su `cooldown` (segundos que descansa
+  tras salir) y sin repetir la última en las que se hacen una vez; las que se repiten (`idle`, `walk`, `talk`…) eligen otra
+  al acabar cada vuelta. En `enter` y `exit`, `when` dice para qué motivo es cada una: `startup` (arranca K-Desktop o se
+  enciende el módulo) y `summoned` (lo pones en el escritorio); `dismissed` (lo escondes) y `uninstalling` (lo quitas). Sin
+  ninguna para ese motivo, no hay entrada o salida; al volver a cargarse (una versión nueva, otro idioma) nunca la hay.
+
+  ```json
+  "idle": [
+    { "frames": ["frames/idle0.png", "frames/idle1.png"], "fps": 2, "weight": 6 },
+    { "frames": ["frames/look0.png", "frames/look1.png"], "fps": 2, "cooldown": 20 }
+  ],
+  "enter": [
+    { "frames": ["frames/wake0.png", "frames/wake1.png"], "fps": 4, "when": ["startup"] },
+    { "frames": ["frames/drop0.png", "frames/drop1.png"], "fps": 8, "when": ["summoned"] }
+  ]
+  ```
 - Para el paquete: comprime la carpeta (el `assistant.json` en la raíz) con `tools\character\pack.ps1 <carpeta>`, que
   deja `<id>-<versión>.kai` con las rutas como las quiere K-Desktop, y ábrelo con K-Desktop.
 - La ficha de instalación dice que no lleva código. Nada del paquete se ejecuta: K-Desktop solo lee sus imágenes y
