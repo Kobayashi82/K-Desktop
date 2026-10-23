@@ -43,7 +43,23 @@ public sealed class Dot : IAssistant
     /// </summary>
     private static readonly string? TestGestures = Environment.GetEnvironmentVariable("DOT_GESTURES");
 
+    /// <summary>
+    /// Only for K-Desktop's tests (DOT_SPEECH, with <c>"speech": "own"</c> in a copy of its manifest): Dot «shows» what it
+    /// says itself (it only writes it to the log) — own, or unfinished (it cannot show the whole answer). Unset: the host's
+    /// bubble.
+    /// </summary>
+    private static readonly string? TestSpeech = Environment.GetEnvironmentVariable("DOT_SPEECH");
+
     public Point? BubbleAnchor => new Point(_at.X, _at.Y - Radius);
+
+    public bool ShowSpeech(SpeechText speech)
+    {
+        if (TestSpeech is null || (TestSpeech == "unfinished" && speech.Finished)) return false;
+        _host.Log.Info($"Dot muestra ({(speech.Finished ? "terminado" : "escribiendo")}): «{speech.Text}»");
+        return true;
+    }
+
+    public void HideSpeech() => _host.Log.Info("Dot esconde lo que dice");
 
     /// <summary>The host clock, from the last tick.</summary>
     private double Now { get; set; }

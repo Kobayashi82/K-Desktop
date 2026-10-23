@@ -100,13 +100,17 @@ public partial class AssistantGeneralView : UserControl
         VolumeRow.Visibility = Takes(AssistantCommon.VolumeKey) ? Visibility.Visible : Visibility.Collapsed;
         LivelinessRow.Visibility = Takes(AssistantCommon.LivelinessKey) ? Visibility.Visible : Visibility.Collapsed;
         DraggingRow.Visibility = Takes(AssistantCommon.DraggingKey) ? Visibility.Visible : Visibility.Collapsed;
-        CommonCard.Visibility = AssistantCommon.Keys.Any(Takes) ? Visibility.Visible : Visibility.Collapsed;
+        // One that draws what it says itself (stage 13.7) can be told to use K-Desktop's bubble instead.
+        var ownSpeech = manifest?.OwnSpeech == true;
+        BubbleRow.Visibility = ownSpeech ? Visibility.Visible : Visibility.Collapsed;
+        CommonCard.Visibility = ownSpeech || AssistantCommon.Keys.Any(Takes) ? Visibility.Visible : Visibility.Collapsed;
 
         var common = _app.AssistantCommonOf(_id);
         SizeSlider.Value = Math.Round(common.Size * 100);
         VolumeSlider.Value = Math.Round(common.Volume * 100);
         LivelinessSlider.Value = Math.Round(common.Liveliness * 100);
         DraggingSwitch.IsChecked = common.Dragging;
+        BubbleSwitch.IsChecked = common.KDesktopBubble;
         ShowCommonValues();
     }
 
@@ -133,6 +137,7 @@ public partial class AssistantGeneralView : UserControl
             Volume = VolumeSlider.Value / 100,
             Liveliness = LivelinessSlider.Value / 100,
             Dragging = DraggingSwitch.IsChecked == true,
+            KDesktopBubble = BubbleSwitch.IsChecked == true,
         });
     }
 

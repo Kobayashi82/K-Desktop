@@ -3988,6 +3988,8 @@
   "assistantCommon.livelinessHint": "À 0 % il bouge le moins possible de lui-même.",
   "assistantCommon.dragging": "L’attraper avec la souris",
   "assistantCommon.draggingHint": "Faites-le glisser pour le déplacer.",
+  "assistantCommon.kdesktopBubble": "Toujours utiliser la bulle de K-Desktop",
+  "assistantCommon.kdesktopBubbleHint": "Il affiche ce qu'il dit à sa façon. Activez-le si vous préférez la bulle habituelle.",
   "assistant.words.praise": "merci|merci beaucoup|merci bien|bien joué|bon travail|beau travail|très bien|génial|tu es génial|tu es géniale|tu es le meilleur|tu es la meilleure|parfait|excellent|j'adore",
   "assistantPanel.state.thinkingHard": "Réfléchit à fond",
   "assistantPanel.state.loadingBrain": "Charge son cerveau",

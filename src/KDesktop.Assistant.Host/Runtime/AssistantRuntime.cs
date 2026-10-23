@@ -132,8 +132,13 @@ internal sealed class AssistantRuntime : IDisposable
             Rendering.KeepOnTop();
             foreach (var slot in _slots) slot.Pointer.KeepOnTop();
         }
-        foreach (var slot in _slots)
+        foreach (var slot in _slots.ToList())
+        {
             if (slot.Bubble is { } bubble) interval = Math.Min(interval, UpdateBubble(slot, bubble, now));
+            if (!slot.SpeechShown) continue;
+            if (now >= slot.SpeechDropAt) HideOwnSpeech(slot);
+            else interval = Math.Min(interval, slot.SpeechDropAt - now);
+        }
         interval = Math.Min(interval, PublishBodies(now));
         Rendering.Commit();
         return interval;
@@ -279,6 +284,8 @@ internal sealed class AssistantRuntime : IDisposable
             if (now == slot.Common) continue;
             slot.SetCommon(now);
             Log.Info($"Asistente: ajustes comunes de «{slot.Id}»: {Describe(now)}");
+            // K-Desktop's bubble from now on: what it was showing itself goes (the next answer comes in the bubble).
+            if (!slot.OwnSpeech) HideOwnSpeech(slot);
             Guard(slot, a => a.OnSettingsChanged(slot.Host.Settings), "OnSettingsChanged");
         }
     }
@@ -294,11 +301,12 @@ internal sealed class AssistantRuntime : IDisposable
             Volume = manifest.Takes(AssistantCommon.VolumeKey) ? set.Volume : usual.Volume,
             Liveliness = manifest.Takes(AssistantCommon.LivelinessKey) ? set.Liveliness : usual.Liveliness,
             Dragging = manifest.Takes(AssistantCommon.DraggingKey) ? set.Dragging : usual.Dragging,
+            KDesktopBubble = manifest.OwnSpeech && set.KDesktopBubble,
         };
     }
 
     private static string Describe(AssistantCommon c) => string.Create(System.Globalization.CultureInfo.InvariantCulture,
-        $"tamaño {c.Size:P0}, volumen {c.Volume:P0}, movido {c.Liveliness:P0}, {(c.Dragging ? "se puede coger" : "sin cogerlo")}");
+        $"tamaño {c.Size:P0}, volumen {c.Volume:P0}, movido {c.Liveliness:P0}, {(c.Dragging ? "se puede coger" : "sin cogerlo")}{(c.KDesktopBubble ? ", bocadillo de K-Desktop" : "")}");
 
     /// <summary>The settings of an assistant on the desktop changed in K-Desktop's Options.</summary>
     public void ApplySettings(string id, JsonElement settings)
@@ -378,28 +386,117 @@ internal sealed class AssistantRuntime : IDisposable
     public async Task CommunicateAsync(string id, string text, TimeSpan duration, CancellationToken cancellationToken, Task? speaking = null)
     {
         if (Find(id) is not { } slot) return;
-        // The bubble is the host's (it says it whatever the gesture): over the character, for as long as it takes to read.
+        var turn = ++slot.SpeechTurn;
+        slot.AheadTurn = null;
+        slot.SpeechDropAt = double.PositiveInfinity;
+        // What it says, over the character for as long as it takes to read, whatever the gesture: its own text if it draws
+        // it and can now (stage 13.7), K-Desktop's bubble otherwise.
         slot.Bubble?.Dispose();
-        var bubble = slot.Bubble = new HostBubble(Rendering.CreateSurface(SurfaceLayer.Front), text, _link?.Theme == "dark", _engine.Now, duration.TotalSeconds);
+        slot.Bubble = null;
+        if (!(slot.OwnSpeech && ShowOwnSpeech(slot, new SpeechText(text, true, _engine.Now + duration.TotalSeconds))))
+        {
+            HideOwnSpeech(slot);
+            ShowBubble(slot, text, duration.TotalSeconds);
+        }
         _engine.RequestTick();
         using var limit = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, slot.Extras.Token);
         limit.CancelAfter(duration);
         try
         {
             await GestureAsync(slot, new Gesture.Communicate(text, null), duration, limit.Token).ConfigureAwait(true);
-            // Its voice (stage 5.4) may take longer than reading: the bubble stays until it has said it (a minute at most).
+            // Its voice (stage 5.4) may take longer than reading: the text stays until it has said it (a minute at most).
             var until = _engine.Now + 60;
-            while (speaking is { IsCompleted: false } && !cancellationToken.IsCancellationRequested && !slot.Extras.IsCancellationRequested && _engine.Now < until)
+            while (speaking is { IsCompleted: false } && !cancellationToken.IsCancellationRequested && !slot.Extras.IsCancellationRequested && _engine.Now < until
+                && slot.SpeechTurn == turn)
             {
-                bubble.KeepUntil(_engine.Now + 0.6);
+                KeepSaying(slot, text);
                 await Task.WhenAny(speaking, Task.Delay(250, CancellationToken.None)).ConfigureAwait(true);
             }
         }
         finally
         {
-            bubble.Close(_engine.Now);
+            // Unless something newer is being said already.
+            if (slot.SpeechTurn == turn)
+            {
+                slot.Bubble?.Close(_engine.Now);
+                HideOwnSpeech(slot);
+            }
             _engine.RequestTick();
         }
+    }
+
+    private void ShowBubble(AssistantSlot slot, string text, double seconds) =>
+        slot.Bubble = new HostBubble(Rendering.CreateSurface(SurfaceLayer.Front), text, _link?.Theme == "dark", _engine.Now, seconds);
+
+    /// <summary>
+    /// Its voice is still saying it: the text stays a little longer. Its own is told so about once a second; if it cannot
+    /// any more, K-Desktop's bubble takes over.
+    /// </summary>
+    private void KeepSaying(AssistantSlot slot, string text)
+    {
+        var now = _engine.Now;
+        if (slot.Bubble is { } bubble)
+        {
+            bubble.KeepUntil(now + 0.6);
+            return;
+        }
+        if (!slot.SpeechShown || slot.SpeechUntil - now > 1) return;
+        if (slot.OwnSpeech && ShowOwnSpeech(slot, new SpeechText(text, true, now + 2))) return;
+        HideOwnSpeech(slot);
+        ShowBubble(slot, text, 0.6);
+        _engine.RequestTick();
+    }
+
+    /// <summary>Asks it to show what it says itself; false: it cannot (or failed), and nothing of its own stays shown.</summary>
+    private bool ShowOwnSpeech(AssistantSlot slot, SpeechText speech)
+    {
+        var shown = false;
+        if (!Guard(slot, a => shown = a.ShowSpeech(speech), "ShowSpeech")) shown = false;
+        if (!shown)
+        {
+            if (slot.SpeechShown) Log.Info($"Asistente: «{slot.Id}» no puede enseñar lo que dice: bocadillo de K-Desktop");
+            HideOwnSpeech(slot);
+            return false;
+        }
+        if (!slot.SpeechShown) Log.Info($"Asistente: «{slot.Id}» enseña lo que dice con su propio texto");
+        slot.SpeechShown = true;
+        slot.SpeechUntil = speech.Until;
+        return true;
+    }
+
+    private void HideOwnSpeech(AssistantSlot slot)
+    {
+        if (!slot.SpeechShown) return;
+        slot.SpeechShown = false;
+        slot.SpeechDropAt = double.PositiveInfinity;
+        Guard(slot, a => a.HideSpeech(), "HideSpeech");
+    }
+
+    /// <summary>How long an answer shown while it is written stays if its end never comes (s).</summary>
+    private const double AheadFor = 20;
+
+    /// <summary>
+    /// The answer of <paramref name="turn"/> so far, while it is written (stage 13.7): one that draws its own text shows it
+    /// as it grows. K-Desktop's bubble waits for the whole answer, as always. Engine thread.
+    /// </summary>
+    public void SpeechAhead(string id, string turn, string text)
+    {
+        if (Find(id) is not { } slot || !slot.OwnSpeech || text.Length == 0) return;
+        if (slot.AheadTurn != turn)
+        {
+            // A new answer: what was being said before (and its end) is no longer this one.
+            if (slot.Bubble is not null) return;
+            slot.SpeechTurn++;
+            slot.AheadTurn = turn;
+        }
+        if (ShowOwnSpeech(slot, new SpeechText(text, false, _engine.Now + AheadFor))) slot.SpeechDropAt = _engine.Now + AheadFor;
+        _engine.RequestTick();
+    }
+
+    /// <summary>The order was cancelled: an answer shown while written, which will not be finished, goes. Engine thread.</summary>
+    public void StopSpeech(string id)
+    {
+        if (Find(id) is { } slot && slot.AheadTurn is not null) HideOwnSpeech(slot);
     }
 
     /// <summary>How loud its voice is now (0…1, about 30 times a second while it speaks): lights or a mouth follow it.</summary>
@@ -696,6 +793,30 @@ internal sealed class AssistantSlot(string id, IAssistant assistant, AssistantMa
 
     /// <summary>The module's bubble over it while it says something (stage 3.6), or null.</summary>
     public HostBubble? Bubble { get; set; }
+
+    /// <summary>
+    /// It draws what it says itself (stage 13.7): its manifest says <c>"speech": "own"</c> and the user did not choose
+    /// K-Desktop's bubble for it.
+    /// </summary>
+    public bool OwnSpeech => Manifest?.OwnSpeech == true && !Common.KDesktopBubble;
+
+    /// <summary>It is showing what it says itself now (<see cref="IAssistant.ShowSpeech"/> said yes).</summary>
+    public bool SpeechShown { get; set; }
+
+    /// <summary>When it was told to hide it (engine clock, its <see cref="SpeechText.Until"/>).</summary>
+    public double SpeechUntil { get; set; }
+
+    /// <summary>
+    /// When an answer shown while it is written goes on its own if its end never comes (a cancelled order); infinite
+    /// while the host says it (<see cref="AssistantRuntime.CommunicateAsync"/> hides it).
+    /// </summary>
+    public double SpeechDropAt { get; set; } = double.PositiveInfinity;
+
+    /// <summary>Counts what it starts to say: an older answer that ends does not hide a newer one.</summary>
+    public int SpeechTurn { get; set; }
+
+    /// <summary>The turn of the answer it shows while written (<see cref="AssistantRuntime.SpeechAhead"/>).</summary>
+    public string? AheadTurn { get; set; }
 
     /// <summary>Its extras that are not simply shown (<see cref="IAssistantHost.SetExtraState"/>).</summary>
     public Dictionary<string, ExtraState> ExtraStates { get; } = new(StringComparer.Ordinal);

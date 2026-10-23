@@ -47,6 +47,18 @@ public sealed partial record AssistantManifest
     /// <summary>Whether it takes one of the common settings (<see cref="AssistantCommon.Keys"/>): one without code takes them all.</summary>
     public bool Takes(string common) => IsCharacter ? AssistantCommon.Keys.Contains(common) : Common.Contains(common);
 
+    /// <summary>
+    /// Who draws what it says (stage 13.7): <c>host</c> (or nothing), K-Desktop's bubble; <c>own</c>, the assistant itself
+    /// with <c>IAssistant.ShowSpeech</c> (the host's bubble when it cannot, or when the user asks for it).
+    /// </summary>
+    public string? Speech { get; init; }
+
+    public const string OwnSpeechValue = "own";
+
+    /// <summary>It draws what it says itself (<see cref="Speech"/> <c>own</c>; never one without code).</summary>
+    [JsonIgnore]
+    public bool OwnSpeech => !IsCharacter && string.Equals(Speech, OwnSpeechValue, StringComparison.Ordinal);
+
     /// <summary>The assembly (relative to the package, «lib/X.dll») and the type that implements IAssistant.</summary>
     [JsonIgnore]
     public (string Assembly, string Type) EntryParts => Entry.Split('!', 2) is [var dll, var type] ? (dll, type) : (Entry, string.Empty);

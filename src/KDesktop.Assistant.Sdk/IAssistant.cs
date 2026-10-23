@@ -76,6 +76,25 @@ public interface IAssistant : IDisposable
     System.Windows.Point? BubbleAnchor { get; }
 
     /// <summary>
+    /// Shows what it says its own way (SDK 1.15), for an assistant whose manifest says <c>"speech": "own"</c>: a balloon
+    /// of its own, a sign it holds up, words in its cloud… The host calls it each time the answer grows while it is being
+    /// written (<see cref="SpeechText.Finished"/> false), with all of it when it is ready, and again with a later
+    /// <see cref="SpeechText.Until"/> while its voice is still saying it. Each call replaces the text of the one before.
+    /// The host still keeps the timing, the voice and the chat: show it until <see cref="HideSpeech"/>. Return false when
+    /// it cannot now (hidden, in the middle of a manoeuvre, it does not fit): the host shows its own bubble instead, for
+    /// the rest of that answer. Not called while the user chose K-Desktop's bubble for it.
+    /// </summary>
+    bool ShowSpeech(SpeechText speech) => false;
+
+    /// <summary>
+    /// Hides what <see cref="ShowSpeech"/> showed: it has been said and read, the answer was cancelled, or the host's bubble
+    /// takes over (SDK 1.15).
+    /// </summary>
+    void HideSpeech()
+    {
+    }
+
+    /// <summary>
     /// Where its body is now, in screen pixels (SDK 1.10): what the other assistants avoid stopping on
     /// (<see cref="IWorld.Others"/>). Just the body, not its particles, bubbles or effects. Null while it is not on screen.
     /// Read after every tick. Without it the host takes the bounds of its «body» hit area.
@@ -99,6 +118,18 @@ public interface IAssistant : IDisposable
 /// <param name="Now">Seconds on the host's monotonic clock.</param>
 /// <param name="Elapsed">Seconds since the previous tick, capped at 0.25 (after a pause nothing jumps).</param>
 public readonly record struct TickInfo(double Now, double Elapsed);
+
+/// <summary>What it says, for <see cref="IAssistant.ShowSpeech"/> (SDK 1.15).</summary>
+/// <param name="Text">
+/// The answer so far, as plain text (no Markdown), in its language. A long answer comes whole: cut it to what fits (the
+/// whole of it is in the chat).
+/// </param>
+/// <param name="Finished">The answer is complete; false while more is being written.</param>
+/// <param name="Until">
+/// When the host expects to hide it, on its clock (<see cref="TickInfo.Now"/>): enough to read it, pushed back while its
+/// voice speaks. Useful to start fading; hide it when <see cref="IAssistant.HideSpeech"/> comes.
+/// </param>
+public sealed record SpeechText(string Text, bool Finished, double Until);
 
 /// <summary>Why an assistant comes onto the desktop (<see cref="IAssistant.Enter"/>).</summary>
 /// <remarks>The values keep the numbers of SDK 1.8 and earlier with the closest meaning (packages already built).</remarks>

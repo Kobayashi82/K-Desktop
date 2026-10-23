@@ -82,6 +82,10 @@
       "uniqueItems": true,
       "items": { "enum": ["size", "volume", "liveliness", "dragging"] }
     },
+    "speech": {
+      "description": "Quién dibuja lo que dice (etapa 13.7): «host» (por defecto), el bocadillo de K-Desktop; «own», él mismo con IAssistant.ShowSpeech (si no puede, o si el usuario lo pide en su ficha, sale el de K-Desktop). Uno sin código usa siempre el de K-Desktop.",
+      "enum": ["host", "own"]
+    },
     "extras": {
       "description": "Acciones propias, que aparecen como «Asistente: acción» en los comandos de K-Desktop.",
       "type": "array",

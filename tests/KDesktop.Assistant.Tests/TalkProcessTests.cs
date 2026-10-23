@@ -191,7 +191,7 @@ public class TalkProcessTests
     }
 
     /// <summary>Ollama on a free local port: one model with tools; every chat answers <paramref name="answer"/> in two pieces.</summary>
-    private sealed class FakeOllama : IDisposable
+    internal sealed class FakeOllama : IDisposable
     {
         private readonly HttpListener _listener = new();
         private readonly string _answer;
@@ -211,6 +211,9 @@ public class TalkProcessTests
         }
 
         public string Address { get; }
+
+        /// <summary>A pause between the two pieces of an answer (none: both at once).</summary>
+        public TimeSpan Pause { get; init; }
 
         /// <summary>Chats with messages (loading or unloading the model does not count).</summary>
         public int Chats => Volatile.Read(ref _chats);
@@ -261,14 +264,23 @@ public class TalkProcessTests
                     LastRequest = body;
                     _requests.Enqueue(body);
                     var half = _answer.Length / 2;
-                    text = Line(_answer[..half]) + "\n" + Line(_answer[half..]) + "\n" + """{"message":{"role":"assistant","content":""},"done":true}""" + "\n";
+                    if (Pause > TimeSpan.Zero)
+                    {
+                        // The first half, a while to write the rest (the answer grows), and the rest.
+                        response.ContentType = "application/json";
+                        response.SendChunked = true;
+                        await response.OutputStream.WriteAsync(Encoding.UTF8.GetBytes(Line(_answer[..half]) + "\n"));
+                        await response.OutputStream.FlushAsync();
+                        await Task.Delay(Pause);
+                    }
+                    text = (Pause > TimeSpan.Zero ? "" : Line(_answer[..half]) + "\n") + Line(_answer[half..]) + "\n" + """{"message":{"role":"assistant","content":""},"done":true}""" + "\n";
                     break;
                 default:
                     response.StatusCode = 404;
                     return;
             }
             var bytes = Encoding.UTF8.GetBytes(text);
-            response.ContentType = "application/json";
+            if (!response.SendChunked) response.ContentType = "application/json";
             await response.OutputStream.WriteAsync(bytes);
         }
 

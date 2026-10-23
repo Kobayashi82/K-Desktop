@@ -28,6 +28,8 @@ public sealed class MyAssistant : IAssistant
     private bool _flashPending;
     private bool _dirty = true;
 
+    // Where K-Desktop's speech bubble points. To draw what it says its own way instead, put "speech": "own" in
+    // assistant.json and implement ShowSpeech and HideSpeech (returning false from ShowSpeech brings the bubble back).
     public Point? BubbleAnchor => new Point(_at.X, _at.Y - 20 * _host.Common.Size);
 
     // Where its body is: the other assistants avoid stopping on it (and it avoids theirs: World.Others).

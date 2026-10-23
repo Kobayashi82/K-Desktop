@@ -3988,6 +3988,8 @@
   "assistantCommon.livelinessHint": "Allo 0 % si muove il meno possibile da solo.",
   "assistantCommon.dragging": "Prenderlo con il mouse",
   "assistantCommon.draggingHint": "Trascinalo per spostarlo.",
+  "assistantCommon.kdesktopBubble": "Usa sempre il fumetto di K-Desktop",
+  "assistantCommon.kdesktopBubbleHint": "Mostra ciò che dice a modo suo. Attivalo se preferisci il solito fumetto.",
   "assistant.words.praise": "grazie|grazie mille|ti ringrazio|ben fatto|bel lavoro|ottimo lavoro|molto bene|bravo|brava|sei grande|sei il migliore|sei la migliore|perfetto|eccellente|fantastico|mi piace tantissimo",
   "assistantPanel.state.thinkingHard": "Ci pensa bene",
   "assistantPanel.state.loadingBrain": "Carica il cervello",

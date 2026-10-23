@@ -97,6 +97,16 @@
                     <ui:ToggleSwitch x:Name="DraggingSwitch" Grid.Column="1" VerticalAlignment="Center" Checked="OnCommonChanged" Unchecked="OnCommonChanged"
                                      AutomationProperties.Name="{l:Tr assistantCommon.dragging}" />
                 </Grid>
+
+                <Grid x:Name="BubbleRow" Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr assistantCommon.kdesktopBubble}" />
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantCommon.kdesktopBubbleHint}" />
+                    </StackPanel>
+                    <ui:ToggleSwitch x:Name="BubbleSwitch" Grid.Column="1" VerticalAlignment="Center" Checked="OnCommonChanged" Unchecked="OnCommonChanged"
+                                     AutomationProperties.Name="{l:Tr assistantCommon.kdesktopBubble}" />
+                </Grid>
             </StackPanel>
         </Border>
 

@@ -215,6 +215,15 @@ Cuando cambian, llega `OnSettingsChanged` con `host.Common` ya al día. Un asist
   sobre el personaje abre la caja para escribirle (y su menú del clic derecho, *Escribir*): el clic y el doble clic
   izquierdos son tuyos. Mantener pulsado el botón izquierdo sin moverlo (450 ms) es hablarle: recibes `Down` y `Up`,
   pero no `Click` ni arrastre.
+- **Texto propio** (SDK 1.15): con `"speech": "own"` en el manifiesto lo que dice lo dibujas tú (un bocadillo a tu manera,
+  un cartel, las palabras dentro de tu nube…). El host llama a `ShowSpeech(SpeechText)` cada vez que la respuesta crece
+  mientras se escribe (`Finished` falso), con toda ella cuando está lista (`Finished` verdadero) y otra vez con un `Until`
+  más tarde mientras tu voz sigue diciéndola; cada llamada sustituye el texto de la anterior. Enséñalo hasta que llegue
+  `HideSpeech`: el host sigue llevando los tiempos, la voz y el chat. `Text` es texto sin formato y llega entero aunque sea
+  largo: córtalo a lo que te quepa (entero está en el chat). Si ahora no puedes (estás escondido, en mitad de una maniobra,
+  no cabe), devuelve `false`: el host saca su bocadillo para el resto de esa respuesta. En la pestaña «General» de tu
+  ficha el usuario puede elegir «Usar siempre el bocadillo de K-Desktop» y entonces no te llega nada. Un asistente sin
+  código usa siempre el bocadillo del host.
 
 - **Estado** (`SetState`): K-Desktop te dice si te está escuchando (`Listening`: su palabra, la tecla para hablar o el
   clic mantenido), si piensas (`Thinking`), si hablas (`Speaking`) o si vuelves a reposo (`Idle`). Enséñalo a tu

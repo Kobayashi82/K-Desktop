@@ -3988,6 +3988,8 @@
   "assistantCommon.livelinessHint": "Bei 0 % bewegt es sich so wenig wie möglich von selbst.",
   "assistantCommon.dragging": "Mit der Maus greifen",
   "assistantCommon.draggingHint": "Zieh es, um es woanders hinzusetzen.",
+  "assistantCommon.kdesktopBubble": "Immer die Sprechblase von K-Desktop verwenden",
+  "assistantCommon.kdesktopBubbleHint": "Es zeigt auf seine Art, was es sagt. Schalte das ein, wenn du die übliche Sprechblase lieber magst.",
   "assistant.words.praise": "danke|danke schön|dankeschön|vielen dank|gut gemacht|gute arbeit|sehr gut|toll|klasse|du bist toll|du bist der beste|du bist die beste|perfekt|ausgezeichnet|großartig|ich liebe es",
   "assistantPanel.state.thinkingHard": "Denkt gründlich nach",
   "assistantPanel.state.loadingBrain": "Lädt sein Gehirn",

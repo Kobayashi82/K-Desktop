@@ -24,6 +24,13 @@ public sealed record AssistantCommon
     /// <summary>Whether it can be picked up with the mouse (the host keeps the drags of its body from it when not).</summary>
     public bool Dragging { get; init; } = true;
 
+    /// <summary>
+    /// What it says always in K-Desktop's bubble, although it draws its own (stage 13.7: only for one whose manifest says
+    /// <c>"speech": "own"</c>).
+    /// </summary>
+    [JsonPropertyName("kdesktopBubble")]
+    public bool KDesktopBubble { get; init; }
+
     public const double MinSize = 0.5;
     public const double MaxSize = 2;
     public const double MaxLiveliness = 2;

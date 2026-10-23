@@ -3988,6 +3988,8 @@
   "assistantCommon.livelinessHint": "Al 0 % se mueve lo menos posible por su cuenta.",
   "assistantCommon.dragging": "Cogerlo con el ratón",
   "assistantCommon.draggingHint": "Arrástralo para cambiarlo de sitio.",
+  "assistantCommon.kdesktopBubble": "Usar siempre el bocadillo de K-Desktop",
+  "assistantCommon.kdesktopBubbleHint": "Enseña lo que dice a su manera. Actívalo si prefieres el bocadillo de siempre.",
   "assistant.words.praise": "gracias|muchas gracias|mil gracias|te lo agradezco|bien hecho|buen trabajo|muy bien|genial|eres genial|eres el mejor|eres la mejor|eres un crack|qué crack|perfecto|excelente|estupendo|fantástico|me encanta|buen chico|buena chica",
   "assistantPanel.state.thinkingHard": "Pensándolo bien",
   "assistantPanel.state.loadingBrain": "Cargando el cerebro",

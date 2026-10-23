@@ -114,6 +114,7 @@ internal sealed class ModuleTalk : ITalkOutput
     {
         Service.Cancel(cancel.Assistant);
         Voice.Stop(cancel.Assistant);
+        if (cancel.Assistant is { } id) _engine.Post(() => _runtime.StopSpeech(id));
     }
 
     /// <summary>Who K-Desktop is listening to now (its word, its key, a long click on it).</summary>
@@ -295,7 +296,12 @@ internal sealed class ModuleTalk : ITalkOutput
     public Task SpeakAsync(string? assistant, string text, CancellationToken cancellationToken) =>
         SpeakTurnAsync(assistant, Guid.NewGuid().ToString("N")[..12], text, cancellationToken);
 
-    public void SpeakAhead(string? assistant, string turn, string textSoFar) => Voice.Ahead(assistant, turn, textSoFar);
+    public void SpeakAhead(string? assistant, string turn, string textSoFar)
+    {
+        Voice.Ahead(assistant, turn, textSoFar);
+        // One that draws its own text shows the answer as it grows (stage 13.7).
+        if (assistant is not null) _engine.Post(() => _runtime.SpeechAhead(assistant, turn, textSoFar));
+    }
 
     public void Preface(string? assistant, string turn, string phrase) => Voice.Preface(assistant, turn, phrase);
 

@@ -52,4 +52,23 @@ public class AssistantCommonTests
         var character = Manifest("character.json", string.Empty);
         Assert.All(AssistantCommon.Keys, key => Assert.True(character.Takes(key)));
     }
+
+    /// <summary>Stage 13.7: one that draws what it says itself, and the user who prefers K-Desktop's bubble for it.</summary>
+    [Fact]
+    public void OwnSpeechIsForOneWithCodeThatSaysSoAndTheBubbleChoiceTravels()
+    {
+        static AssistantManifest Manifest(string entry, string speech) => AssistantManifest.Parse($$"""
+            { "id": "x", "name": "X", "version": "1.0.0", "author": "a", "sdk": "1.15", "entry": "{{entry}}", {{speech}}
+              "traits": { "travel": "walk", "gestures": [] } }
+            """);
+
+        Assert.True(Manifest("lib/X.dll!X.X", "\"speech\": \"own\",").OwnSpeech);
+        Assert.False(Manifest("lib/X.dll!X.X", "\"speech\": \"host\",").OwnSpeech);
+        Assert.False(Manifest("lib/X.dll!X.X", string.Empty).OwnSpeech);
+        Assert.False(Manifest("character.json", "\"speech\": \"own\",").OwnSpeech);
+
+        var json = AssistantCommon.ToJson(new Dictionary<string, AssistantCommon> { ["kumo"] = new() { KDesktopBubble = true } });
+        Assert.Equal("""{"kumo":{"size":1,"volume":1,"liveliness":1,"dragging":true,"kdesktopBubble":true}}""", json.ToJsonString());
+        Assert.True(AssistantCommon.FromJson(json)["kumo"].KDesktopBubble);
+    }
 }

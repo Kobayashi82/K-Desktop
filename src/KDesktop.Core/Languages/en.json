@@ -3988,6 +3988,8 @@
   "assistantCommon.livelinessHint": "At 0 % it moves on its own as little as it can.",
   "assistantCommon.dragging": "Pick it up with the mouse",
   "assistantCommon.draggingHint": "Drag it to move it somewhere else.",
+  "assistantCommon.kdesktopBubble": "Always use K-Desktop's speech bubble",
+  "assistantCommon.kdesktopBubbleHint": "It shows what it says its own way. Turn this on if you prefer the usual bubble.",
   "assistant.words.praise": "thanks|thank you|thank you very much|thanks a lot|well done|good job|great job|nice job|nicely done|you're great|you are great|you're the best|you are the best|perfect|excellent|awesome|amazing|love it|good boy|good girl",
   "assistantPanel.state.thinkingHard": "Thinking it over",
   "assistantPanel.state.loadingBrain": "Loading its brain",

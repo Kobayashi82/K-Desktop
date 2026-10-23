@@ -3988,6 +3988,8 @@
   "assistantCommon.livelinessHint": "Em 0 % se mexe o mínimo possível sozinho.",
   "assistantCommon.dragging": "Pegar com o mouse",
   "assistantCommon.draggingHint": "Arraste para mudar de lugar.",
+  "assistantCommon.kdesktopBubble": "Usar sempre o balão de fala do K-Desktop",
+  "assistantCommon.kdesktopBubbleHint": "Ele mostra o que diz do seu jeito. Ative se você preferir o balão de sempre.",
   "assistant.words.praise": "obrigado|obrigada|muito obrigado|muito obrigada|valeu|bom trabalho|muito bem|mandou bem|você é demais|você é o melhor|você é a melhor|perfeito|excelente|incrível|adorei",
   "assistantPanel.state.thinkingHard": "Pensando com calma",
   "assistantPanel.state.loadingBrain": "Carregando o cérebro",
