@@ -89,6 +89,16 @@ public static class AssistantUpdates
     /// </summary>
     public static async Task<(AssistantManifest Manifest, long Fetched)> ReadManifestAsync(string url, HttpClient http, CancellationToken ct)
     {
+        var (manifest, _, fetched) = await ReadPackageAsync(url, http, withIcon: false, ct).ConfigureAwait(false);
+        return (manifest, fetched);
+    }
+
+    /// <summary>
+    /// The assistant.json of the package published at <paramref name=url/> and, with <paramref name=withIcon/>, the
+    /// bytes of its icon (null without one, or when it is not safe or too big), and how many bytes that took.
+    /// </summary>
+    public static async Task<(AssistantManifest Manifest, byte[]? Icon, long Fetched)> ReadPackageAsync(string url, HttpClient http, bool withIcon, CancellationToken ct)
+    {
         if (!AssistantPackages.IsPublishAddress(url, out var uri)) throw new ArgumentException(Loc.T("assistantUpdates.badUrl"));
         Stream package;
         var ranges = await HttpRangeStream.OpenAsync(http, uri, ct).ConfigureAwait(false);
@@ -96,8 +106,8 @@ public static class AssistantUpdates
         else package = await WholeAsync(http, uri, ct).ConfigureAwait(false);
         using (package)
         {
-            var manifest = await Task.Run(() => ReadFrom(package), ct).ConfigureAwait(false);
-            return (manifest, ranges?.Fetched ?? package.Length);
+            var (manifest, icon) = await Task.Run(() => ReadFrom(package, withIcon), ct).ConfigureAwait(false);
+            return (manifest, icon, ranges?.Fetched ?? package.Length);
         }
     }
 
@@ -123,14 +133,22 @@ public static class AssistantUpdates
         return memory;
     }
 
-    private static AssistantManifest ReadFrom(Stream package)
+    private const long MaxIcon = 512 * 1024;
+
+    private static (AssistantManifest Manifest, byte[]? Icon) ReadFrom(Stream package, bool withIcon)
     {
         using var zip = new ZipArchive(package, ZipArchiveMode.Read, leaveOpen: true);
-        var entry = zip.Entries.FirstOrDefault(e => e.FullName.Replace('\\', '/').Equals(AssistantManifest.FileName, StringComparison.OrdinalIgnoreCase))
-                    ?? throw new InvalidDataException(Loc.T("assistantUpdates.notPackage"));
+        ZipArchiveEntry? Find(string path) =>
+            zip.Entries.FirstOrDefault(e => e.FullName.Replace('\\', '/').Equals(path, StringComparison.OrdinalIgnoreCase));
+        var entry = Find(AssistantManifest.FileName) ?? throw new InvalidDataException(Loc.T("assistantUpdates.notPackage"));
         if (entry.Length > MaxManifest) throw new InvalidDataException(Loc.T("assistantUpdates.notPackage"));
-        using var reader = new StreamReader(entry.Open());
-        return AssistantManifest.Parse(reader.ReadToEnd());
+        AssistantManifest manifest;
+        using (var reader = new StreamReader(entry.Open())) manifest = AssistantManifest.Parse(reader.ReadToEnd());
+        if (!withIcon || manifest.Icon is not { } path || !AssistantPackages.IsSafePath(path) || Find(path) is not { Length: > 0 and <= MaxIcon } icon)
+            return (manifest, null);
+        using var memory = new MemoryStream();
+        using (var stream = icon.Open()) stream.CopyTo(memory);
+        return (manifest, memory.ToArray());
     }
 
     private static string Describe(Exception ex) => ex switch

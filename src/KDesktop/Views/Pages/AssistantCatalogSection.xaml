@@ -1,0 +1,7 @@
+<UserControl x:Class="KDesktop.Views.Pages.AssistantCatalogSection"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Options → Assistant → Catalog (phase 12): what the catalogs publish, to install or update it with its card, and which
+         catalogs are read. The cards are made in code. -->
+    <StackPanel x:Name="Body" />
+</UserControl>

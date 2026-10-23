@@ -517,6 +517,7 @@ public partial class App
         else if (activate) ShowAssistant(installed.Id);
         AssistantChanged?.Invoke();
         FollowInstalledAssistants();
+        FollowCatalog();
         return installed;
     }
 
@@ -572,6 +573,7 @@ public partial class App
         RefreshExtraNames();
         AssistantChanged?.Invoke();
         FollowInstalledAssistants();
+        FollowCatalog();
     }
 
     /// <summary>Closes the assistant process with its goodbye (on exit).</summary>

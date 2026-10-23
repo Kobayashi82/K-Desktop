@@ -67,6 +67,28 @@ esté en modo automático.
   hace falta actualizar K-Desktop antes.
 - `changes` (opcional, en uno o varios idiomas) es lo que trae esa versión: sale en el aviso y en la ficha.
 
+## Ponerlo en un catálogo
+
+Opciones → Catálogo enseña los asistentes de los catálogos que se leen (el de K-Desktop y los que añada cada uno) con
+«Instalar…» y «Actualizar…» (lo descarga y abre su ficha, como siempre). Un catálogo es un JSON publicado en una
+dirección fija ([esquema](esquemas/catalog.schema.json)) que solo dice dónde está cada paquete:
+
+```json
+{
+  "catalog": 1,
+  "assistants": [
+    { "id": "miasistente", "package": "https://github.com/yo/mis-asistentes/releases/latest/download/miasistente.kai" }
+  ]
+}
+```
+
+- `package` es la misma dirección que `updates`: la que siempre da el último `.kai`.
+- De cada paquete K-Desktop solo lee el `assistant.json` y el icono, por rangos: el nombre, la descripción, la versión,
+  el autor y si funciona con esa K-Desktop salen del propio paquete. Si el `id` no coincide con el del paquete, no se
+  ofrece.
+- Estar en un catálogo no hace a un paquete de fiar: la ficha dice si está **verificado** (ver «Firmar el paquete») y lo
+  que puede hacer antes de instalarlo.
+
 ## Firmar el paquete
 
 Un paquete firmado lleva `signature.json` con el SHA-256 de **todos** sus archivos, quién lo publica, su clave pública

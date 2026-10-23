@@ -735,6 +735,11 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private string? _assistantShareKey;
 
     /// <summary>
+    /// The catalogs of assistants Options → Catalog reads (phase 12), K-Desktop's own first. Replaced whole on every change.
+    /// </summary>
+    [ObservableProperty] private List<string> _assistantCatalogs = [Assistant.Packages.AssistantCatalog.Official];
+
+    /// <summary>
     /// New versions of assistants the user chose not to be told about again (id → that version; stage 9.5). A later
     /// version is offered again. Replaced whole on every change.
     /// </summary>
