@@ -132,7 +132,7 @@ internal sealed unsafe class HitArea : IHitArea
             MessageHandler = OnMessage,
         };
         SetLayeredWindowAttributes(_window.Handle, 0, 1, LWA_ALPHA);
-        _drop = new FileDropTarget(_window.Handle, OnFiles, () => _owner.Name, _owner.DropLabel);
+        _drop = new FileDropTarget(_window.Handle, OnFiles, _owner.DropLabel);
         _drop.Register();
     }
 

@@ -11,10 +11,6 @@ internal static partial class Native
     public const int DROPEFFECT_COPY = 1;
     public const int DROPEFFECT_LINK = 4;
 
-    /// <summary>The kinds of icon of a <c>DROPDESCRIPTION</c>: the default one, a copy, a link, and «what you say».</summary>
-    public const int DROPIMAGE_INVALID = -1;
-    public const int DROPIMAGE_COPY = 1;
-    public const int DROPIMAGE_LINK = 4;
     public const uint GMEM_MOVEABLE = 0x0002;
 
     public static readonly Guid CLSID_DragDropHelper = new("4657278A-411B-11D2-839A-00C04FD918D0");

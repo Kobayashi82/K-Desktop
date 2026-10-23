@@ -63,7 +63,7 @@ public partial class FileDropTests
             {
                 events.Add(new PointerEvent(kind, "body", at) { Files = files });
                 if (kind == PointerEventKind.FilesDropped) dropped.Add(files);
-            }, () => "Dot");
+            });
             var at = new POINTL { X = 10, Y = 20 };
 
             var effect = DROPEFFECT_COPY | DROPEFFECT_MOVE;

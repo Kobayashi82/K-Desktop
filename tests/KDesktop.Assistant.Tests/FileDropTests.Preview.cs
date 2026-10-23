@@ -56,7 +56,7 @@ public partial class FileDropTests
             {
                 var data = ShellData([@"C:\Users\Ana\foto.jpg"]);
                 var target = new FileDropTarget(0, (kind, files, at, preview) => events.Add(new PointerEvent(kind, "body", at) { Files = files, Preview = preview }),
-                    () => "Dot", labels.Add);
+                    labels.Add);
                 var effect = DROPEFFECT_COPY;
                 target.DragEnter(data, 0, new POINTL { X = 10, Y = 20 }, ref effect);
                 target.DragOver(0, new POINTL { X = 12, Y = 22 }, ref effect);
@@ -77,9 +77,10 @@ public partial class FileDropTests
     }
 
     /// <summary>
-    /// A real drag that stays a moment over a hit area under the cursor: the shell's window with the picture
-    /// («SysDragImage») is hidden while it is there (the moments the files are over it: moving the mouse away gives the
-    /// picture back, as it should). With text (not taken) it stays, so the check sees it at all.
+    /// A real drag that stays a moment over a hit area under the cursor, with mouse moves (posted to the drag: the real mouse
+    /// does not move): the shell's window with the picture («SysDragImage») is never seen while the files are over it, not
+    /// even for a moment (looked at all the time from another thread: telling the shell's helper about each move showed it
+    /// again and it flickered). With text (not taken) it stays, so the check sees it at all.
     /// </summary>
     [Theory]
     [InlineData(true)]
@@ -88,6 +89,7 @@ public partial class FileDropTests
     {
         var shown = new List<bool>();
         var over = false;
+        var entered = 0;
         var placed = false;
         OnSta(() =>
         {
@@ -96,20 +98,47 @@ public partial class FileDropTests
             {
                 if (!GetCursorPos(out var cursor)) return;
                 var events = new List<PointerEvent>();
-                using var pointer = new HostPointer(events.Add, (_, _) => { }, () => { }) { Name = "Dot" };
+                var isOver = false;
+                using var pointer = new HostPointer(e =>
+                {
+                    events.Add(e);
+                    // Right when it happens (the drag calls the target on this thread).
+                    Volatile.Write(ref isOver, e.Kind == PointerEventKind.FilesOver);
+                    over |= isOver;
+                    if (isOver) entered++;
+                }, (_, _) => { }, () => { }) { Name = "Dot" };
                 using var area = pointer.CreateHitArea("body");
                 area.Place(new HitShape.Rectangle(new PixelRect(cursor.X - 20, cursor.Y - 20, cursor.X + 20, cursor.Y + 20)));
                 placed = true;
                 var data = ShellData(files ? [@"C:\Users\Ana\foto.jpg"] : []);
                 if (!files) SetText(data, "hola");
+                var watching = true;
+                var watcher = new Thread(() =>
+                {
+                    while (Volatile.Read(ref watching))
+                    {
+                        if (!files || Volatile.Read(ref isOver))
+                        {
+                            var seen = false;
+                            for (nint w = 0; !seen && (w = FindWindowEx(0, w, "SysDragImage", null)) != 0;) seen = IsWindowVisible(w);
+                            lock (shown) shown.Add(seen);
+                        }
+                        Thread.Sleep(0);
+                    }
+                }) { IsBackground = true };
+                watcher.Start();
                 var source = new WatchPicture(() =>
                 {
-                    var isOver = events.Count > 0 && events[^1].Kind == PointerEventKind.FilesOver;
-                    over |= isOver;
-                    if (files && !isOver) return;
-                    shown.Add(FindWindowEx(0, 0, "SysDragImage", null) is var w && w != 0 && IsWindowVisible(w));
+                    // Where the cursor is, so the drag stays over the area.
+                    if (GetCapture() is var capture and not 0 && GetCursorPos(out var on))
+                    {
+                        var at = ((long)on.Y << 32) | (uint)on.X;
+                        if (ScreenToClient(capture, ref at)) PostMessage(capture, WM_MOUSEMOVE, 0, (nint)(((at >> 32) << 16) | (at & 0xFFFF)));
+                    }
                 });
                 DoDragDrop(data, source, DROPEFFECT_COPY, out _);
+                Volatile.Write(ref watching, false);
+                watcher.Join();
             }
             finally
             {
@@ -120,7 +149,9 @@ public partial class FileDropTests
         if (files)
         {
             Assert.True(over, "No llegó FilesOver");
-            Assert.All(shown, Assert.False);
+            Assert.Equal(1, entered); // it stayed over the area all the time
+            Assert.NotEmpty(shown);
+            Assert.DoesNotContain(true, shown);
         }
         else Assert.Contains(true, shown);
     }
@@ -135,7 +166,7 @@ public partial class FileDropTests
         {
             look();
             Thread.Sleep(10);
-            return ++_turns >= 40 ? DRAGDROP_S_DROP : 0;
+            return ++_turns >= 80 ? DRAGDROP_S_DROP : 0;
         }
 
         public int GiveFeedback(int effect) => DRAGDROP_S_USEDEFAULTCURSORS;
@@ -158,6 +189,10 @@ public partial class FileDropTests
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool IsWindowVisible(nint hwnd);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool ScreenToClient(nint hwnd, ref long point); // a POINT: x, then y
 
     /// <summary>
     /// A shell data object with these files (CF_HDROP) and a drag picture set by the shell's own helper (red on top, blue
