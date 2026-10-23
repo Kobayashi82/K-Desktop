@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kdesktop/assistant/common.schema.json",
-  "title": "Tipos comunes de los paquetes de asistente",
+  "title": "Common types of assistant packages",
   "$defs": {
     "text": {
-      "description": "Texto para la interfaz: una cadena (en el idioma del asistente) o un objeto idioma → texto. K-Desktop usa su idioma si está y, si no, el primero.",
+      "description": "Text for the interface: a string (in the assistant's language) or an object language → text. K-Desktop uses its language if it is there, otherwise English or the first one.",
       "oneOf": [
         { "type": "string", "minLength": 1 },
         {
@@ -16,27 +16,27 @@
       ]
     },
     "key": {
-      "description": "Clave de un ajuste o de un dato (camelCase; con puntos para anidar: «pilot.level»).",
+      "description": "Key of a setting or of a piece of data (camelCase; with dots to nest: «pilot.level»).",
       "type": "string",
       "pattern": "^[a-z][A-Za-z0-9]*(\\.[a-z][A-Za-z0-9]*)*$"
     },
     "id": {
-      "description": "Identificador en minúsculas: letras, números, puntos y guiones.",
+      "description": "Lowercase identifier: letters, numbers, dots and hyphens.",
       "type": "string",
       "pattern": "^[a-z0-9][a-z0-9.-]{0,63}$"
     },
     "packagePath": {
-      "description": "Ruta relativa dentro del paquete, con barras normales y sin «..».",
+      "description": "Relative path inside the package, with forward slashes and without «..».",
       "type": "string",
       "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9_./{}-]+$"
     },
     "icon": {
-      "description": "Imagen del paquete (ruta relativa) o símbolo de K-Desktop («kd:Nombre»).",
+      "description": "Picture of the package (relative path) or a K-Desktop symbol («kd:Name»).",
       "type": "string",
       "minLength": 1
     },
     "hotkey": {
-      "description": "Atajo en el formato de K-Desktop: «CTRL + ALT + L».",
+      "description": "Shortcut in K-Desktop's format: «CTRL + ALT + L».",
       "type": "string",
       "pattern": "^((CTRL|ALT|SHIFT|WIN) \\+ )*[A-Z0-9][A-Z0-9]*$"
     }

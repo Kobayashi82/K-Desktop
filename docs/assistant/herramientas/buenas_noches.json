@@ -1,5 +1,5 @@
 {
-  "$schema": "../esquemas/tool.schema.json",
+  "$schema": "../schemas/tool.schema.json",
   "name": "buenas_noches",
   "type": "routine",
   "description": "The user's bedtime routine: switches the living room light off and then the screens.",

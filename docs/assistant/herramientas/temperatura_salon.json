@@ -1,5 +1,5 @@
 {
-  "$schema": "../esquemas/tool.schema.json",
+  "$schema": "../schemas/tool.schema.json",
   "name": "temperatura_salon",
   "type": "http",
   "description": "Reads the temperature of the living room sensor (Home Assistant), in °C.",

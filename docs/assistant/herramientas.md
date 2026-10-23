@@ -6,7 +6,7 @@ script tuyo.
 
 - **Dónde:** `%APPDATA%\K-Desktop 5\Assistant\Tools\`, un archivo `.json` por herramienta. Al guardar, añadir o
   quitar un archivo (o un script) se recargan todas en un momento, sin reiniciar nada.
-- **Esquema:** [`esquemas/tool.schema.json`](esquemas/tool.schema.json). Pon `"$schema"` apuntando a él y tu editor te
+- **Esquema:** [`schemas/tool.schema.json`](schemas/tool.schema.json). Pon `"$schema"` apuntando a él y tu editor te
   avisará de los errores mientras escribes. Si un archivo tiene errores, K-Desktop te lo dice en un aviso al guardarlo y
   esa herramienta no se carga (las demás sí).
 - **Ejemplos:** en [`herramientas/`](herramientas/) hay uno de cada tipo.
@@ -148,7 +148,7 @@ aparezca en la carpeta sin que lo sepas nunca se ejecuta sin que lo veas.
 
 Un servidor MCP es un programa (o una dirección) que da varias herramientas de golpe: los mismos que usan Claude Desktop,
 Open WebUI con mcpo, etc. Están en `%APPDATA%\K-Desktop 5\Assistant\mcp.json`, con el formato `mcpServers` de siempre
-([esquema](esquemas/mcp.schema.json)), y se manejan desde **Opciones → Herramientas → Servidores MCP**:
+([esquema](schemas/mcp.schema.json)), y se manejan desde **Opciones → Herramientas → Servidores MCP**:
 
 - **Importar…** lee el archivo de otro programa (el `config.json` de mcpo, el de Claude Desktop) y te deja elegir.
   Las variables que parecen secretas (`*_TOKEN`, `*_KEY`, `*_SECRET`, `*PASSWORD*`, `CHAT_ID`…) pasan a tus secretos

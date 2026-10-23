@@ -11,7 +11,7 @@ public class DeclarativeUiTests
 {
     private static string Root => Path.GetFullPath(Path.Combine(Contracts.DocsDir, "..", ".."));
 
-    private static string Dot(string file) => File.ReadAllText(Path.Combine(Root, "samples/DotAssistant/Package", file));
+    private static string Dot(string file) => File.ReadAllText(Path.Combine(Root, "tests/DotAssistant/Package", file));
 
     private static string Lander(string file) => File.ReadAllText(Path.Combine(Contracts.LanderPackage, file));
 

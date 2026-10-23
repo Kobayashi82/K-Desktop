@@ -41,7 +41,7 @@ public sealed record CatalogResult(IReadOnlyList<CatalogItem> Items, IReadOnlyDi
 /// <summary>
 /// Catalogs of assistants (phase 12): a JSON file at an address (https, or http to this PC for testing) listing packages
 /// by where they are published: <c>{"catalog": 1, "assistants": [{"id": "lander", "package": "https://…/lander.kai"}]}</c>
-/// (<c>docs/assistant/esquemas/catalog.schema.json</c>). Of each package only its assistant.json and its icon are read,
+/// (<c>docs/assistant/schemas/catalog.schema.json</c>). Of each package only its assistant.json and its icon are read,
 /// with HTTP ranges (like the updates): the name, description, version and what it needs come from the package itself,
 /// never from the list. Installing one is the usual card, after downloading it.
 /// </summary>

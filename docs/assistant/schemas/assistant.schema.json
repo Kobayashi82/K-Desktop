@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kdesktop/assistant/assistant.schema.json",
-  "title": "Manifiesto de un asistente (assistant.json)",
+  "title": "Manifest of an assistant (assistant.json)",
   "type": "object",
   "required": ["id", "name", "version", "author", "sdk", "entry", "traits"],
   "additionalProperties": false,
@@ -10,7 +10,7 @@
     "id": { "$ref": "common.schema.json#/$defs/id" },
     "name": { "type": "string", "minLength": 1, "maxLength": 40 },
     "version": {
-      "description": "Versión semántica. Instalar uno con el mismo id y versión mayor lo actualiza.",
+      "description": "Semantic version. Installing one with the same id and a higher version updates it.",
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$"
     },
@@ -19,25 +19,25 @@
     "homepage": { "type": "string", "format": "uri" },
     "license": { "type": "string" },
     "sdk": {
-      "description": "Versión del SDK contra la que se compiló («1.0»). Mismo número mayor que el de K-Desktop = compatible.",
+      "description": "Version of the SDK it was built against («1.20»). Same major number as K-Desktop's and a minor one no higher = compatible.",
       "type": "string",
       "pattern": "^\\d+\\.\\d+$"
     },
     "entry": {
-      "description": "Ensamblado y tipo que implementa IAssistant: «lib/Archivo.dll!Espacio.De.Nombres.Tipo». O, para un asistente sin código, su character.json (character.schema.json): el host lo mueve con sus imágenes.",
+      "description": "Assembly and type that implements IAssistant: «lib/File.dll!Name.Space.Type». Or, for an assistant without code, its character.json (character.schema.json): the host moves it with its pictures.",
       "type": "string",
       "pattern": "^(lib/[A-Za-z0-9_.-]+\\.dll![A-Za-z_][A-Za-z0-9_.]*|[A-Za-z0-9_-]+\\.json)$"
     },
     "icon": { "$ref": "common.schema.json#/$defs/packagePath" },
     "preview": { "$ref": "common.schema.json#/$defs/packagePath" },
     "wakeWord": {
-      "description": "Nombre sugerido para llamarlo. Al instalarlo, K-Desktop propone grabarlo con tu voz.",
+      "description": "Suggested name to call it by. On install, K-Desktop offers to record it with the user's voice.",
       "type": "string",
       "minLength": 2,
       "maxLength": 30
     },
     "model": {
-      "description": "Modelo de IA sugerido: uno o varios de Hugging Face («usuario/repo/archivo.gguf» o «usuario/repo:Q4_K_M»), el mejor primero. K-Desktop ofrece el primero que cabe en la gráfica; nunca lo descarga sin preguntar.",
+      "description": "Suggested AI model: one or several of Hugging Face («owner/repo/file.gguf» or «owner/repo:Q4_K_M»), the best first. K-Desktop offers the first one that fits in the graphics card; it never downloads it without asking.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -49,7 +49,7 @@
         },
         "min": { "type": "string", "pattern": "^\\d+(\\.\\d+)?[bB]$" },
         "think": {
-          "description": "Modelo sugerido para pensar más («piénsalo bien», o cuando él mismo lo pide): igual que «suggested». K-Desktop lo ofrece aparte, desmarcado; si no hay ninguno, piensa más con su modelo de siempre.",
+          "description": "Suggested model to think harder with («think it over», or when it asks for it itself): like «suggested». K-Desktop offers it apart, unticked; without one, it thinks harder with its usual model.",
           "oneOf": [
             { "$ref": "#/$defs/hfModel" },
             { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/hfModel" } }
@@ -57,13 +57,13 @@
         }
       }
     },
-    "voice": { "description": "Su perfil de voz por defecto.", "$ref": "common.schema.json#/$defs/packagePath" },
+    "voice": { "description": "Its default voice profile.", "$ref": "common.schema.json#/$defs/packagePath" },
     "persona": {
-      "description": "Personalidad y frases. Puede llevar «{lang}» (persona/{lang}.json); si no está tu idioma se usa el primero que haya.",
+      "description": "Personality and lines. It can carry «{lang}» (persona/{lang}.json); if the user's language is not there, English or the first one there is.",
       "$ref": "common.schema.json#/$defs/packagePath"
     },
-    "settings": { "description": "Esquema de sus ajustes (por defecto settings.json).", "$ref": "common.schema.json#/$defs/packagePath" },
-    "panel": { "description": "Esquema de su panel (por defecto panel.json).", "$ref": "common.schema.json#/$defs/packagePath" },
+    "settings": { "description": "Its settings (settings.json by default).", "$ref": "common.schema.json#/$defs/packagePath" },
+    "panel": { "description": "Its panel (panel.json by default).", "$ref": "common.schema.json#/$defs/packagePath" },
     "traits": {
       "type": "object",
       "required": ["travel", "gestures"],
@@ -74,7 +74,7 @@
         "canMoveWindows": { "type": "boolean", "default": false },
         "canReachMaximized": { "type": "boolean", "default": false },
         "gestures": {
-          "description": "Gestos que sabe hacer (communicate y react se dan siempre por sabidos).",
+          "description": "Gestures it can perform (communicate and react are always taken as known).",
           "type": "array",
           "uniqueItems": true,
           "items": {
@@ -84,17 +84,17 @@
       }
     },
     "common": {
-      "description": "Ajustes comunes que admite (etapa 13.13): K-Desktop los enseña en la pestaña «General» de su ficha y los pasa en IAssistantHost.Common (el volumen lo aplica el host). Uno sin código los admite todos.",
+      "description": "Common settings it takes: K-Desktop shows them in the «General» tab of its card and passes them in IAssistantHost.Common (the volume is applied by the host). One without code takes them all.",
       "type": "array",
       "uniqueItems": true,
       "items": { "enum": ["size", "volume", "liveliness", "dragging"] }
     },
     "speech": {
-      "description": "Quién dibuja lo que dice (etapa 13.7): «host» (por defecto), el bocadillo de K-Desktop; «own», él mismo con IAssistant.ShowSpeech (si no puede, o si el usuario lo pide en su ficha, sale el de K-Desktop). Uno sin código usa siempre el de K-Desktop.",
+      "description": "Who draws what it says: «host» (the default), K-Desktop's bubble; «own», the assistant itself with IAssistant.ShowSpeech (when it cannot, or when the user asks for it on its card, K-Desktop's bubble shows). One without code always uses K-Desktop's.",
       "enum": ["host", "own"]
     },
     "extras": {
-      "description": "Acciones propias, que aparecen como «Asistente: acción» en los comandos de K-Desktop.",
+      "description": "Its own actions, which show as «Assistant: action» in K-Desktop's commands, in its right-click menu and in its panel.",
       "type": "array",
       "items": {
         "type": "object",
@@ -105,22 +105,22 @@
           "name": { "$ref": "common.schema.json#/$defs/text" },
           "description": { "$ref": "common.schema.json#/$defs/text" },
           "icon": { "$ref": "common.schema.json#/$defs/icon" },
-          "hotkey": { "description": "Atajo que K-Desktop ofrece crear al instalarlo.", "$ref": "common.schema.json#/$defs/hotkey" }
+          "hotkey": { "description": "Shortcut K-Desktop offers to create on install.", "$ref": "common.schema.json#/$defs/hotkey" }
         }
       }
     },
     "updates": {
-      "description": "URL del último paquete (.kai) para comprobar actualizaciones (https; http solo a localhost o 127.0.0.1, para probar).",
+      "description": "URL of the latest package (.kai) to check for updates (https; http only to localhost or 127.0.0.1, for testing).",
       "type": "string",
       "format": "uri",
       "pattern": "^(https://|http://(localhost|127\\.0\\.0\\.1)[:/])"
     },
     "changes": {
-      "description": "Qué trae esta versión: K-Desktop lo enseña al ofrecerla como actualización y en su ficha.",
+      "description": "What this version brings: K-Desktop shows it when offering it as an update and on its card.",
       "$ref": "common.schema.json#/$defs/text"
     },
     "showcase": {
-      "description": "Clips cortos de su escaparate (etapa 13.10) para el catálogo: K-Desktop los enseña sin cargar su código. «item» es el id de lo que enseña: uno de los de K-Desktop (enter.summoned, state.thinking, react.success, gesture.announce…) o uno propio de IAssistant.Showcase, que necesita «name».",
+      "description": "Short clips of its showcase, for the catalog: K-Desktop shows them without loading its code. «item» is the id of what it shows: one of K-Desktop's (enter.summoned, state.thinking, react.success, gesture.announce…) or one of its own from IAssistant.Showcase, which needs «name».",
       "type": "array",
       "items": {
         "type": "object",
@@ -128,21 +128,21 @@
         "additionalProperties": false,
         "properties": {
           "item": { "type": "string", "minLength": 1, "maxLength": 64 },
-          "clip": { "description": "WebP animado, GIF o PNG del paquete (8 MB como mucho).", "$ref": "common.schema.json#/$defs/packagePath" },
-          "name": { "description": "Su nombre, solo para los propios.", "$ref": "common.schema.json#/$defs/text" },
+          "clip": { "description": "An animated WebP, a GIF or a PNG of the package (8 MB at most).", "$ref": "common.schema.json#/$defs/packagePath" },
+          "name": { "description": "Its name, only for its own ones.", "$ref": "common.schema.json#/$defs/text" },
           "group": { "enum": ["idle", "moving", "playing", "feelings", "tricks", "other"] }
         }
       }
     },
     "importFrom": {
-      "description": "Datos de una versión independiente que K-Desktop puede ofrecer importar (rutas con variables de entorno).",
+      "description": "Data of a standalone version K-Desktop can offer to import (paths with environment variables).",
       "type": "array",
       "items": { "type": "string", "minLength": 1 }
     }
   },
   "$defs": {
     "hfModel": {
-      "description": "Un modelo de Hugging Face: «usuario/repo/archivo.gguf» o «usuario/repo:CUANTIZACIÓN».",
+      "description": "A model of Hugging Face: «owner/repo/file.gguf» or «owner/repo:QUANTIZATION».",
       "type": "string",
       "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(:[A-Za-z0-9_.-]+|/.+\\.gguf)?$"
     }

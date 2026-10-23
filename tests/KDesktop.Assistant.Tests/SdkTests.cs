@@ -58,7 +58,7 @@ public class SdkTests
     [Fact]
     public void ManifestGestureNamesMatchTheSdk()
     {
-        var schema = JsonDocument.Parse(File.ReadAllText(Path.Combine(Contracts.DocsDir, "esquemas", "assistant.schema.json")));
+        var schema = JsonDocument.Parse(File.ReadAllText(Path.Combine(Contracts.DocsDir, "schemas", "assistant.schema.json")));
         var names = schema.RootElement.GetProperty("properties").GetProperty("traits").GetProperty("properties")
             .GetProperty("gestures").GetProperty("items").GetProperty("enum").EnumerateArray().Select(e => e.GetString()!).ToList();
         var kinds = Enum.GetNames<GestureKind>().Select(n => char.ToLowerInvariant(n[0]) + n[1..]).ToList();

@@ -20,7 +20,7 @@ internal static class Contracts
     private static Dictionary<string, JsonSchema> LoadSchemas()
     {
         var options = new BuildOptions { SchemaRegistry = new SchemaRegistry() };
-        var dir = Path.Combine(DocsDir, "esquemas");
+        var dir = Path.Combine(DocsDir, "schemas");
         var result = new Dictionary<string, JsonSchema>(StringComparer.OrdinalIgnoreCase);
 
         // common first: the others refer to it.

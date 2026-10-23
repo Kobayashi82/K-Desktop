@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kdesktop/assistant/character.schema.json",
+  "title": "Character of an assistant without code",
+  "description": "The entry of an assistant without code: its pictures and a few numbers. The host puts it on the taskbar or on top of the windows, walks it about, lets it be dragged and dropped (it falls) and plays an animation for each thing it does. Only «idle» is required: whatever is missing uses another one.",
+  "type": "object",
+  "required": ["animations"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "height": { "type": "number", "minimum": 24, "maximum": 512, "default": 96, "description": "Height at 100 % scale (DIP). Every frame is drawn this tall, keeping its proportions." },
+    "faces": { "enum": ["right", "left"], "default": "right", "description": "The way the pictures look: walking the other way, they are mirrored." },
+    "walkSpeed": { "type": "number", "minimum": 0, "maximum": 600, "default": 70, "description": "DIP per second. 0 = it never walks." },
+    "animations": {
+      "type": "object",
+      "required": ["idle"],
+      "additionalProperties": false,
+      "properties": {
+        "idle": { "$ref": "#/$defs/variants", "description": "Standing still (required)." },
+        "walk": { "$ref": "#/$defs/variants", "description": "Walking (if missing: idle)." },
+        "talk": { "$ref": "#/$defs/variants", "description": "While it talks (idle)." },
+        "listen": { "$ref": "#/$defs/variants", "description": "While it listens to you (idle)." },
+        "think": { "$ref": "#/$defs/variants", "description": "While it thinks (listen)." },
+        "happy": { "$ref": "#/$defs/variants", "description": "Something went well, or it celebrates; once (idle)." },
+        "sad": { "$ref": "#/$defs/variants", "description": "Something went wrong; once (idle)." },
+        "surprised": { "$ref": "#/$defs/variants", "description": "A notice or something unexpected; once (idle)." },
+        "announce": { "$ref": "#/$defs/variants", "description": "Catches your eye before saying something on its own (a timer, a notice), after walking up to the mouse; once (happy)." },
+        "catch": { "$ref": "#/$defs/variants", "description": "Catches the files dropped on it; once (happy)." },
+        "click": { "$ref": "#/$defs/variants", "description": "When clicked; once (happy)." },
+        "drag": { "$ref": "#/$defs/variants", "description": "While being dragged (fall)." },
+        "fall": { "$ref": "#/$defs/variants", "description": "Falling (idle)." },
+        "sleep": { "$ref": "#/$defs/variants", "description": "Asleep, when you are away (idle)." },
+        "enter": { "$ref": "#/$defs/variants", "description": "Coming in; once. With variants, each one can say which reason it is for («when»: startup, when K-Desktop starts or the module is switched on; summoned, when it is put on the desktop). Coming back after a reload (a new version, another language) has no entrance." },
+        "exit": { "$ref": "#/$defs/variants", "description": "Leaving; once. With variants, each one can say which reason it is for («when»: dismissed, when it is hidden; uninstalling, when it is removed). Closing K-Desktop or reloading has no exit." }
+      }
+    }
+  },
+  "$defs": {
+    "variants": {
+      "description": "One animation, or a list of variants: each time it plays, the host picks one by its weight («weight»), not repeating the last one and respecting its rest («cooldown»).",
+      "oneOf": [
+        { "$ref": "#/$defs/animation" },
+        { "type": "array", "minItems": 1, "maxItems": 16, "items": { "$ref": "#/$defs/animation" } }
+      ]
+    },
+    "path": { "type": "string", "pattern": "^(?!/)(?!.*\\.\\.)[A-Za-z0-9_./ -]+$" },
+    "animation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "frames": {
+          "description": "The frames (PNG or JPEG of the package) in order; with «strip», how many the strip has.",
+          "oneOf": [
+            { "type": "array", "minItems": 1, "maxItems": 120, "items": { "$ref": "#/$defs/path" } },
+            { "type": "integer", "minimum": 1, "maximum": 120 }
+          ]
+        },
+        "strip": { "$ref": "#/$defs/path", "description": "One picture with the frames side by side, all the same width." },
+        "fps": { "type": "number", "minimum": 0.5, "maximum": 60, "default": 8 },
+        "loop": { "type": "boolean", "description": "Whether it repeats (yes by default, except happy, sad, surprised, click, enter, exit, announce and catch)." },
+        "sound": { "$ref": "#/$defs/path", "description": "A WAV of the package played when it starts." },
+        "weight": { "type": "number", "exclusiveMinimum": 0, "maximum": 100, "default": 1, "description": "Among the variants, how often this one comes up (twice the weight, twice as often)." },
+        "cooldown": { "type": "number", "minimum": 0, "maximum": 86400, "default": 0, "description": "Seconds it rests after coming up (while another one can)." },
+        "when": {
+          "description": "Only in enter and exit: the reasons it is for. Without it, all of them.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["startup", "summoned", "dismissed", "uninstalling"] }
+        }
+      },
+      "oneOf": [
+        { "required": ["strip", "frames"], "properties": { "frames": { "type": "integer" } } },
+        { "required": ["frames"], "not": { "required": ["strip"] }, "properties": { "frames": { "type": "array" } } }
+      ]
+    }
+  }
+}

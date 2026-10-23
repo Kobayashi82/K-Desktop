@@ -18,6 +18,11 @@
     <!-- SDK version (major = compatibility): goes into assistant.json as "sdk". -->
     <SdkContractVersion>1.20</SdkContractVersion>
     <AssemblyVersion>1.20.0.0</AssemblyVersion>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
 </Project>

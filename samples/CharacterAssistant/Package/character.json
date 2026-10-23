@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../docs/assistant/esquemas/character.schema.json",
+  "$schema": "../../../docs/assistant/schemas/character.schema.json",
   "height": 80,
   "faces": "right",
   "walkSpeed": 60,

@@ -9,9 +9,9 @@ public class ManifestTests
 
     public static TheoryData<string, string> PackageFiles => new()
     {
-        { "assistant", "samples/DotAssistant/Package/assistant.json" },
-        { "settings", "samples/DotAssistant/Package/settings.json" },
-        { "panel", "samples/DotAssistant/Package/panel.json" },
+        { "assistant", "tests/DotAssistant/Package/assistant.json" },
+        { "settings", "tests/DotAssistant/Package/settings.json" },
+        { "panel", "tests/DotAssistant/Package/panel.json" },
         { "assistant", "templates/kdassistant/Package/assistant.json" },
     };
 
@@ -68,7 +68,7 @@ public class ManifestTests
     [Fact]
     public void SettingDefaultsComeFromTheSettingsFile()
     {
-        var defaults = AssistantSettingsValues.Defaults(File.ReadAllText(Path.Combine(Root, "samples/DotAssistant/Package/settings.json")));
+        var defaults = AssistantSettingsValues.Defaults(File.ReadAllText(Path.Combine(Root, "tests/DotAssistant/Package/settings.json")));
         Assert.Equal(28, defaults["size"]!.GetValue<int>());
         Assert.Equal("blue", defaults["color"]!.GetValue<string>());
         Assert.True(defaults["wander"]!.GetValue<bool>());

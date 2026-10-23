@@ -36,7 +36,7 @@ public sealed record CharacterAnimation(IReadOnlyList<string> Frames, bool Strip
 /// (<see cref="Names"/>). Only <c>idle</c> is required: whatever is missing uses another (<see cref="Fallbacks"/>).
 /// Since stage 13.11 each animation can be a list of variants (<see cref="Variants"/>): the host picks one each time it
 /// plays it, by weight and without repeating, and an entrance or an exit by its reason.
-/// Schema: <c>docs/assistant/esquemas/character.schema.json</c>.
+/// Schema: <c>docs/assistant/schemas/character.schema.json</c>.
 /// </summary>
 public sealed class CharacterFile
 {

@@ -1,16 +1,16 @@
 {
-  "$schema": "../../../docs/assistant/esquemas/assistant.schema.json",
+  "$schema": "../../../docs/assistant/schemas/assistant.schema.json",
   "id": "dot",
   "name": "Dot",
   "version": "1.2.0",
   "author": "Kobayashi82",
   "description": {
-    "es": "El asistente mínimo de ejemplo: un punto que se teletransporta.",
-    "en": "The minimal example assistant: a dot that teleports.",
-    "fr": "L’assistant minimal d’exemple : un point qui se téléporte.",
-    "de": "Der minimale Beispielassistent: ein Punkt, der sich teleportiert.",
-    "it": "L’assistente minimo di esempio: un punto che si teletrasporta.",
-    "pt": "O assistente mínimo de exemplo: um ponto que se teletransporta."
+    "es": "El asistente de las pruebas de K-Desktop: un punto que se teletransporta.",
+    "en": "K-Desktop's test assistant: a dot that teleports.",
+    "fr": "L’assistant des tests de K-Desktop : un point qui se téléporte.",
+    "de": "Der Testassistent von K-Desktop: ein Punkt, der sich teleportiert.",
+    "it": "L’assistente dei test di K-Desktop: un punto che si teletrasporta.",
+    "pt": "O assistente dos testes do K-Desktop: um ponto que se teletransporta."
   },
   "homepage": "https://github.com/Kobayashi82/K-Desktop",
   "license": "MIT",

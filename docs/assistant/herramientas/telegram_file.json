@@ -1,5 +1,5 @@
 {
-  "$schema": "../esquemas/tool.schema.json",
+  "$schema": "../schemas/tool.schema.json",
   "name": "send_telegram_file",
   "type": "script",
   "description": "Sends a file of the PC (a PDF, a photo, a document…) to the user's phone through their own Telegram bot. Find it first with find_files and give its full path (its folder and its name). For a text message use send_telegram; never open the Telegram app or website for this.",

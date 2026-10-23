@@ -140,7 +140,7 @@ El módulo Asistente está en desarrollo. Apagado, K-Desktop es el de siempre: n
 Instalar una versión nueva encima de la que está en el escritorio la cambia en caliente, sin perder sus datos (que
 están en `%APPDATA%\K-Desktop 5\Assistants\Data\<id>` y entran en las copias de seguridad). Cada asistente corre en
 otro proceso, sin permisos de administrador; su registro está en `Logs\assistant.log`. Para crear uno:
-[docs/assistant/crear-un-asistente.md](docs/assistant/crear-un-asistente.md).
+[docs/assistant/creating-an-assistant.md](docs/assistant/creating-an-assistant.md).
 
 ## Línea de comandos
 
@@ -179,12 +179,13 @@ src/KDesktop.Assistant.Host el proceso de los asistentes (KDesktop.exe --assista
 src/KDesktop.Assistant.Brain  la IA de los asistentes: proveedores, enrutado de las órdenes, memoria, banco de pruebas
 src/KDesktop.Assistant.Tools  sus herramientas (temporizadores, notas, cálculo, tus comandos…) y los permisos
 src/KDesktop.Assistant.Voice  su voz: Kokoro y Piper en el procesador (Kokoro en español con reglas propias), voces de Windows y pitidos
-samples/DotAssistant        asistente mínimo de ejemplo
-templates/kdassistant       plantilla de `dotnet new` para empezar uno
+samples/CharacterAssistant  Pip, asistente de ejemplo sin código (imágenes y JSON)
+templates/kdassistant       plantilla de `dotnet new` para empezar uno (el ejemplo con código)
 android/                    app de Android (WebView de la app web del PC, con micrófono nativo)
 tests/KDesktop.Core.Tests   pruebas del núcleo
 tests/KDesktop.Assistant.Tests  pruebas del módulo Asistente (con el proceso real)
-docs/assistant/             protocolo, esquemas de los paquetes y guía para crear un asistente
+tests/DotAssistant          Dot, el asistente de las pruebas
+docs/assistant/             protocolo, esquemas de los paquetes (schemas/) y guía para crear un asistente (en inglés)
 tools/                      icono, APK y paquete de actualización
 ```
 

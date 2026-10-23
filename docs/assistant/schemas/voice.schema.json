@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kdesktop/assistant/voice.schema.json",
-  "title": "Perfil de voz",
-  "description": "Motor de síntesis y cadena de efectos (§10 del plan). Lo traen los asistentes (voice/<id>.json) y se exporta e importa desde Opciones → Asistente → Voz.",
+  "title": "Voice profile",
+  "description": "Speech engine and chain of effects. Assistants carry one (voice/<id>.json), and the user exports and imports them in Settings → Assistant → Voice.",
   "type": "object",
   "required": ["name", "engine"],
   "additionalProperties": false,
@@ -14,15 +14,15 @@
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
-        "type": { "enum": ["kokoro", "piper", "windows", "beeps", "pocket"], "description": "pocket: la voz hasta 5.0.93, ahora es kokoro" },
-        "voice": { "type": "string", "description": "Una voz de Kokoro (o una mezcla) o una de Piper (es_ES-davefx-medium, o clave#hablante); vacía o default: la elegida en Opciones" },
+        "type": { "enum": ["kokoro", "piper", "windows", "beeps", "pocket"], "description": "pocket: the voice until 5.0.93, now kokoro" },
+        "voice": { "type": "string", "description": "A voice of Kokoro (or a mix) or of Piper (es_ES-davefx-medium, or key#speaker); empty or default: the one chosen in Settings" },
         "speed": { "type": "number", "minimum": 0.5, "maximum": 2 },
         "volume": { "type": "number", "minimum": 0, "maximum": 1 }
       }
     },
     "chain": { "$ref": "#/$defs/chain" },
     "moods": {
-      "description": "Efectos que se añaden en ciertas situaciones: error, far (desde otro monitor), happy, crash…",
+      "description": "Effects added in some situations: error, far (from another monitor), happy, crash…",
       "type": "object",
       "propertyNames": { "pattern": "^[a-z][A-Za-z0-9]*$" },
       "additionalProperties": { "$ref": "#/$defs/chain" }

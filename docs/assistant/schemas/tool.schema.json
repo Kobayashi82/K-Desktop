@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kdesktop/assistant/tool.schema.json",
-  "title": "Herramienta JSON",
-  "description": "Una herramienta de los asistentes sin compilar nada (§7.2 del plan, etapa 9.1): un archivo por herramienta en <datos>\\Assistant\\Tools. Se recarga al guardar. Guía en docs/assistant/herramientas.md.",
+  "title": "JSON tool",
+  "description": "A tool for the assistants without building anything: one file per tool in <data>\\Assistant\\Tools. It is reloaded on save. Guide in docs/assistant/herramientas.md.",
   "type": "object",
   "required": ["name", "type", "description"],
   "additionalProperties": false,
@@ -11,15 +11,15 @@
     "name": {
       "type": "string",
       "pattern": "^(?!mcp_)[a-z][a-z0-9_]{1,47}$",
-      "description": "Su nombre para el modelo: minúsculas, números y _ (los servidores compatibles con OpenAI no aceptan puntos). mcp_ está reservado"
+      "description": "Its name for the model: lowercase letters, numbers and _ (OpenAI-compatible servers do not take dots). mcp_ is reserved"
     },
     "type": { "enum": ["http", "kdesktop", "routine", "script"] },
-    "description": { "type": "string", "minLength": 1, "maxLength": 400, "description": "Para el modelo: qué hace y cuándo usarla, en una o dos frases" },
+    "description": { "type": "string", "minLength": 1, "maxLength": 400, "description": "For the model: what it does and when to use it, in one or two sentences" },
     "examples": {
       "type": "array",
       "maxItems": 30,
       "items": { "type": "string", "minLength": 1, "maxLength": 120 },
-      "description": "Frases que la piden; con ellas se elige si llega al modelo"
+      "description": "Sentences that ask for it; they decide whether it reaches the model"
     },
     "parameters": {
       "type": "object",
@@ -30,11 +30,11 @@
     "required": {
       "type": "array",
       "items": { "type": "string" },
-      "description": "Los parámetros que el modelo debe dar; sin esta lista, los que no tienen default"
+      "description": "The parameters the model must give; without this list, those without a default"
     },
-    "risk": { "enum": ["safe", "askOnce", "askAlways"], "description": "safe: sin preguntar; askOnce: la primera vez; askAlways: siempre. Por defecto safe (script: askOnce)" },
-    "readsOnly": { "type": "boolean", "description": "Solo consulta (el tiempo, un estado): el modelo contesta con lo que devuelve" },
-    "intent": { "type": "string", "maxLength": 160, "description": "Lo que va a hacer, para ti (con {{parámetros}}): «encender la luz del salón»" },
+    "risk": { "enum": ["safe", "askOnce", "askAlways"], "description": "safe: without asking; askOnce: the first time; askAlways: always. safe by default (script: askOnce)" },
+    "readsOnly": { "type": "boolean", "description": "It only looks something up (the weather, a state): the model answers with what it returns" },
+    "intent": { "type": "string", "maxLength": 160, "description": "What it is going to do, for the user (with {{parameters}}): «turn on the living room light»" },
     "say": {
       "type": "object",
       "additionalProperties": false,
@@ -42,16 +42,16 @@
         "ok": { "type": "string", "maxLength": 300 },
         "error": { "type": "string", "maxLength": 300 }
       },
-      "description": "Lo que dice el asistente al acabar bien o mal (con {{parámetros}}, {{result}}, {{result.campo}}, {{status}})"
+      "description": "What the assistant says when it ends well or badly (with {{parameters}}, {{result}}, {{result.field}}, {{status}})"
     },
     "gesture": {
       "enum": ["waitForWindow", "tray", "clock", "typing"],
-      "description": "Lo que hace el personaje mientras trabaja (etapa 13.5): waitForWindow = espera la ventana de lo que abre; tray = va a la bandeja; clock = deja una marca en el reloj; typing = teclea en la ventana de delante. En las de tipo kdesktop no hace falta: tu comando ya se ve"
+      "description": "What the character does while it works: waitForWindow = waits for the window of what it opens; tray = goes to the tray; clock = leaves a mark on the clock; typing = types in the window in front. Not needed in kdesktop ones: the command is already seen"
     },
     "enabled": { "type": "boolean" },
-    "timeout": { "type": "number", "minimum": 1, "maximum": 300, "description": "Segundos como mucho (por defecto 15; script: 30)" },
+    "timeout": { "type": "number", "minimum": 1, "maximum": 300, "description": "Seconds at most (15 by default; script: 30)" },
     "request": { "$ref": "#/$defs/request" },
-    "command": { "type": "string", "minLength": 1, "maxLength": 200, "description": "kdesktop: el nombre de uno de tus comandos (admite {{parámetros}})" },
+    "command": { "type": "string", "minLength": 1, "maxLength": 200, "description": "kdesktop: the name of one of the user's commands (accepts {{parameters}})" },
     "steps": {
       "type": "array",
       "minItems": 1,
@@ -87,13 +87,13 @@
       "additionalProperties": false,
       "properties": {
         "method": { "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
-        "url": { "type": "string", "pattern": "^https?://", "description": "Admite {{parámetros}} y {{secret:nombre}}" },
+        "url": { "type": "string", "pattern": "^https?://", "description": "Accepts {{parameters}} and {{secret:name}}" },
         "headers": { "$ref": "#/$defs/strings" },
         "query": { "$ref": "#/$defs/strings" },
-        "body": { "description": "JSON; un texto que es solo \"{{parámetro}}\" se sustituye con su tipo (número, sí/no)" },
-        "bodyText": { "type": "string", "description": "Cuerpo como texto, en vez de body" },
+        "body": { "description": "JSON; a string that is only \"{{parameter}}\" is replaced keeping its type (number, true/false)" },
+        "bodyText": { "type": "string", "description": "The body as text, instead of body" },
         "contentType": { "type": "string" },
-        "pick": { "type": "string", "description": "La parte de la respuesta JSON que se le da al modelo: estado, attributes.temperature, items.0.name" }
+        "pick": { "type": "string", "description": "The part of the JSON answer given to the model: state, attributes.temperature, items.0.name" }
       },
       "not": { "required": ["body", "bodyText"] }
     },
@@ -101,10 +101,10 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "tool": { "type": "string", "pattern": "^[a-z][a-z0-9_]{1,63}$", "description": "Otra herramienta (incluida o JSON, no otra rutina)" },
-        "arguments": { "type": "object", "description": "Sus argumentos (admiten {{parámetros}} de la rutina)" },
-        "command": { "type": "string", "minLength": 1, "description": "Uno de tus comandos de K-Desktop" },
-        "wait": { "type": "number", "minimum": 0, "maximum": 30, "description": "Segundos de espera" },
+        "tool": { "type": "string", "pattern": "^[a-z][a-z0-9_]{1,63}$", "description": "Another tool (built in or JSON, not another routine)" },
+        "arguments": { "type": "object", "description": "Its arguments (they accept the routine's {{parameters}})" },
+        "command": { "type": "string", "minLength": 1, "description": "One of the user's K-Desktop commands" },
+        "wait": { "type": "number", "minimum": 0, "maximum": 30, "description": "Seconds to wait" },
         "continueOnError": { "type": "boolean" }
       },
       "oneOf": [
@@ -118,9 +118,9 @@
       "required": ["file"],
       "additionalProperties": false,
       "properties": {
-        "file": { "type": "string", "pattern": "\\.(ps1|bat|cmd|py|js|exe)$", "description": "Ruta del script (relativa a la carpeta Tools o completa): .ps1, .bat, .cmd, .py (con uv si está), .js (node) o .exe" },
-        "args": { "type": "array", "maxItems": 20, "items": { "type": "string" }, "description": "Sus argumentos (admiten {{parámetros}})" },
-        "env": { "$ref": "#/$defs/strings", "description": "Variables de entorno (lo normal para {{secret:…}})" }
+        "file": { "type": "string", "pattern": "\\.(ps1|bat|cmd|py|js|exe)$", "description": "Path of the script (relative to the Tools folder, or full): .ps1, .bat, .cmd, .py (with uv if it is there), .js (node) or .exe" },
+        "args": { "type": "array", "maxItems": 20, "items": { "type": "string" }, "description": "Its arguments (they accept {{parameters}})" },
+        "env": { "$ref": "#/$defs/strings", "description": "Environment variables (the usual place for {{secret:…}})" }
       }
     }
   }

@@ -1,5 +1,5 @@
 {
-  "$schema": "../../esquemas/assistant.schema.json",
+  "$schema": "../../schemas/assistant.schema.json",
   "id": "lander",
   "name": "Lander",
   "version": "1.0.0",

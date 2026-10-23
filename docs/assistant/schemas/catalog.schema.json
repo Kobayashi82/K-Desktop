@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kdesktop/assistant/catalog.schema.json",
+  "title": "Catalog of assistants",
+  "description": "A published (https) list of assistants, by where their package is. K-Desktop reads it in Settings → Catalog; of each package it only reads its assistant.json and its icon, with range requests: the name, description, version and what it needs come from the package, not from here.",
+  "type": "object",
+  "required": ["catalog", "assistants"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "catalog": { "const": 1, "description": "Version of the format." },
+    "assistants": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "required": ["id", "package"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,31}$", "description": "The id of its assistant.json (if it does not match, it is not offered)." },
+          "package": {
+            "type": "string",
+            "pattern": "^(https://|http://(localhost|127\\.0\\.0\\.1)(:[0-9]+)?/)",
+            "description": "Where its latest .kai always is (on GitHub, releases/latest/download/…). http only to this PC, for testing."
+          }
+        }
+      }
+    }
+  }
+}

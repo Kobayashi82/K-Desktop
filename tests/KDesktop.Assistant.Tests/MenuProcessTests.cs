@@ -20,8 +20,8 @@ public partial class MenuProcessTests
         .GetCustomAttributes<AssemblyMetadataAttribute>().Single(a => a.Key == "KDesktopExe").Value!);
 
     private static string DotPackage =>
-        DevLoader.FindPackage(Path.Combine(Contracts.DocsDir, "..", "..", "samples", "DotAssistant"))
-        ?? throw new InvalidOperationException("Compila samples/DotAssistant primero");
+        DevLoader.FindPackage(Path.Combine(Contracts.DocsDir, "..", "..", "tests", "DotAssistant"))
+        ?? throw new InvalidOperationException("Compila tests/DotAssistant primero");
 
     [Fact]
     public async Task ItsHitAreaStepsAsideWhileTheMenuIsOpen()

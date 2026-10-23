@@ -1,15 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kdesktop/assistant/persona.schema.json",
-  "title": "Personalidad de un asistente (persona/<idioma>.json)",
-  "description": "Instrucciones para la IA y frases fijas (las que dice sin IA). Si falta una clave de frases, se usa la del módulo (assistant.phrase.<clave> de los idiomas de K-Desktop). Las que usa el módulo: ok (antes de lo que hizo: «Recibido. Te aviso a las 17:42.»), cancelled, nothingToCancel, nothingToRepeat, nothingToUndo, undone («{0}»: lo que deshizo), undoFailed, error, notFound y noBrain. El archivo de un idioma que no esté se sustituye por el inglés o por cualquiera que haya.",
+  "title": "Personality of an assistant (persona/<language>.json)",
+  "description": "Instructions for the AI and fixed lines (those it says without the AI). A missing line uses the module's (assistant.phrase.<key> of K-Desktop's languages). Those the module uses: ok (before what it did: «Roger. I'll tell you at 17:42.»), cancelled, nothingToCancel, nothingToRepeat, nothingToUndo, undone («{0}»: what it undid), undoFailed, error, notFound and noBrain. A language without a file uses English or any there is.",
   "type": "object",
   "required": ["prompt"],
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string" },
     "prompt": {
-      "description": "Cómo es y cómo habla. Corto: va en cada petición a la IA.",
+      "description": "What it is like and how it talks. Keep it short: it goes in every request to the AI.",
       "type": "string",
       "minLength": 10,
       "maxLength": 1200
@@ -25,7 +25,7 @@
         "greeting": { "$ref": "#/$defs/list" },
         "goodbye": { "$ref": "#/$defs/list" },
         "busy": { "$ref": "#/$defs/list" },
-        "which": { "description": "Ante dos candidatos: «{0}» y «{1}».", "$ref": "#/$defs/list" },
+        "which": { "description": "Between two candidates: «{0}» and «{1}».", "$ref": "#/$defs/list" },
         "cancelled": { "$ref": "#/$defs/list" }
       },
       "additionalProperties": { "$ref": "#/$defs/list" }

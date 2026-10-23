@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 namespace KDesktop.Core.Assistant.Packages;
 
 /// <summary>
-/// assistant.json, the manifest of an assistant package (docs/assistant/esquemas/assistant.schema.json). K-Desktop
+/// assistant.json, the manifest of an assistant package (docs/assistant/schemas/assistant.schema.json). K-Desktop
 /// reads it (and only it: it never loads an assistant's code); the assistant process reads it to load the entry.
 /// </summary>
 public sealed partial record AssistantManifest

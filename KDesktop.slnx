@@ -10,10 +10,8 @@
     <Project Path="src/KDesktop.Core/KDesktop.Core.csproj" />
     <Project Path="src/KDesktop/KDesktop.csproj" />
   </Folder>
-  <Folder Name="/samples/">
-    <Project Path="samples/DotAssistant/DotAssistant.csproj" />
-  </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/DotAssistant/DotAssistant.csproj" />
     <Project Path="tests/KDesktop.Assistant.Tests/KDesktop.Assistant.Tests.csproj">
       <Platform Project="x64" />
     </Project>

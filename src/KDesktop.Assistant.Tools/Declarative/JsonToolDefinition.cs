@@ -5,7 +5,7 @@ using KDesktop.Core.Assistant;
 
 namespace KDesktop.Assistant.Tools.Declarative;
 
-/// <summary>A JSON tool as written in its file (docs/assistant/esquemas/tool.schema.json, guide in herramientas.md).</summary>
+/// <summary>A JSON tool as written in its file (docs/assistant/schemas/tool.schema.json, guide in herramientas.md).</summary>
 public sealed class JsonToolDefinition
 {
     public string Name { get; set; } = string.Empty;

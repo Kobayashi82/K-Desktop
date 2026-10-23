@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Dot, the minimal example assistant (§11.10 of the plan): a dot that teleports, knows Communicate and React, and
-    has an extra, one settings page and a panel with a card and a button. `dotnet build` makes bin\…\dot-1.1.0.kai.
+    Dot, the assistant of the tests (stage 13.12: it was the example until then; the examples are now the template and
+    Pip): a dot that teleports, knows Communicate and React, and has an extra, one settings page and a panel with a card
+    and a button. DOT_GESTURES and DOT_SPEECH change what it does in the tests. `dotnet build` makes bin\…\dot-x.y.z.kai.
   -->
   <PropertyGroup>
     <!-- Not the Windows 10 TFM of K-Desktop (Directory.Build.props): assistants compile against this. -->

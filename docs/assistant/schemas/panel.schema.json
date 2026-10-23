@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kdesktop/assistant/panel.schema.json",
-  "title": "Panel de un asistente (panel.json)",
-  "description": "Pestaña propia del asistente en Panel → Asistente. Los datos («bind») los publica el asistente con PublishPanel; los botones lanzan sus extras.",
+  "title": "Panel of an assistant (panel.json)",
+  "description": "The assistant's own part of Panel → Assistant. The data («bind») is published by the assistant with PublishPanel; the buttons run its extras.",
   "type": "object",
   "required": ["cards"],
   "additionalProperties": false,
@@ -43,7 +43,7 @@
               "type": true,
               "label": { "$ref": "#/$defs/text" },
               "bind": { "$ref": "#/$defs/bind" },
-              "max": { "description": "Número fijo o clave publicada.", "oneOf": [{ "type": "number" }, { "$ref": "#/$defs/bind" }] },
+              "max": { "description": "A fixed number or a published key.", "oneOf": [{ "type": "number" }, { "$ref": "#/$defs/bind" }] },
               "format": { "type": "string" }
             }
           }
@@ -56,7 +56,7 @@
             "properties": {
               "type": true,
               "label": { "$ref": "#/$defs/text" },
-              "bind": { "description": "Lista de textos.", "$ref": "#/$defs/bind" },
+              "bind": { "description": "List of texts.", "$ref": "#/$defs/bind" },
               "empty": { "$ref": "#/$defs/text" }
             }
           }
@@ -69,7 +69,7 @@
             "properties": {
               "type": true,
               "label": { "$ref": "#/$defs/text" },
-              "bind": { "description": "Lista de { id, name, description, unlocked, progress (0…1), icon }.", "$ref": "#/$defs/bind" }
+              "bind": { "description": "List of { id, name, description, unlocked, progress (0…1), icon }.", "$ref": "#/$defs/bind" }
             }
           }
         },

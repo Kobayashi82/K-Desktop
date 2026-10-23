@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 namespace KDesktop.Core.Assistant.Packages;
 
 /// <summary>
-/// settings.json of a package (docs/assistant/esquemas/settings.schema.json) as K-Desktop draws it: pages, sections and
+/// settings.json of a package (docs/assistant/schemas/settings.schema.json) as K-Desktop draws it: pages, sections and
 /// items. Only read here; the package was checked against the schema when it was installed.
 /// </summary>
 public sealed record SettingsLayout(IReadOnlyList<SettingsPage> Pages)
