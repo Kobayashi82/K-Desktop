@@ -143,6 +143,7 @@ public partial class App
             SendAssistantToolsConfig();
             SendAssistantVoiceConfig();
             SendAssistantPersonalConfig();
+            SendAssistantCommonConfig();
         }
     }
 
@@ -162,7 +163,7 @@ public partial class App
         var voice = AssistantVoiceConfig();
         _assistantVoiceSent = voice.ToJsonString();
         return new(AssistantLanguage, ThemeService.IsDark ? "dark" : "light", Config.Settings.Paused,
-            new() { ["general"] = AssistantGeneral(), ["brain"] = brain, ["tools"] = tools, ["voice"] = voice, ["personal"] = AssistantPersonalWelcome() });
+            new() { ["general"] = AssistantGeneral(), ["brain"] = brain, ["tools"] = tools, ["voice"] = voice, ["personal"] = AssistantPersonalWelcome(), ["common"] = AssistantCommonWelcome() });
     }
 
     /// <summary>

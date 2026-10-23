@@ -10,6 +10,7 @@ using KDesktop.Assistant.Host.Rendering;
 using KDesktop.Assistant.Host.World;
 using KDesktop.Assistant.Sdk;
 using KDesktop.Core;
+using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Localization;
@@ -34,6 +35,8 @@ internal sealed class AssistantRuntime : IDisposable
     private readonly List<AssistantSlot> _slots = [];
     /// <summary>The hotkeys of each assistant's extras, as K-Desktop last sent them (by id: they may come before its load).</summary>
     private readonly Dictionary<string, IReadOnlyDictionary<string, string>> _extraKeys = new(StringComparer.Ordinal);
+    /// <summary>The common settings of each assistant (stage 13.13), as K-Desktop last sent them (by id: they come before its load).</summary>
+    private Dictionary<string, AssistantCommon> _common = new(StringComparer.Ordinal);
     private double _nextOnTop;
 
     /// <summary>The language each assistant speaks in (its own, or the process's): what its <c>host.Language</c> says.</summary>
@@ -175,10 +178,14 @@ internal sealed class AssistantRuntime : IDisposable
         if (Find(id) is not null) await UnloadAsync(id, ExitKind.Reloading).ConfigureAwait(true);
         if (!Watcher.IsStarted) Watcher.Start(_engine.Now, _engine.Post);
         var slot = new AssistantSlot(id, assistant, manifest, context, Rendering, World) { LastTick = _engine.Now };
-        slot.Pointer = new HostPointer(e => Guard(slot, a => a.OnPointer(e), "OnPointer"), (area, at) => OnMenu(slot, at), UpdateWheel, _ => OnWrite(slot),
-            (_, active) => OnTalk(slot, active));
+        slot.Pointer = new HostPointer(e =>
+            {
+                if (!slot.LetsThrough(e)) return;
+                Guard(slot, a => a.OnPointer(e), "OnPointer");
+            }, (area, at) => OnMenu(slot, at), UpdateWheel, _ => OnWrite(slot), (_, active) => OnTalk(slot, active));
         slot.Keyboard = new HostKeyboard(keys => _link?.Send(new KeysMessage(id, [.. keys.Select(k => k.ToString())])));
         slot.Audio = new AssistantAudio(Audio, package);
+        slot.SetCommon(CommonOf(id, manifest));
         slot.Host = new AssistantHost(this, slot, package, data, settings);
         _slots.Add(slot);
         BodiesChanged();
@@ -211,6 +218,41 @@ internal sealed class AssistantRuntime : IDisposable
 
     /// <summary>All of them leave at once (each with its time limit).</summary>
     public Task UnloadAllAsync(ExitKind why) => Task.WhenAll(_slots.Select(s => s.Id).ToList().Select(id => UnloadAsync(id, why)).ToList());
+
+    /// <summary>
+    /// The common settings of every assistant (the <c>common</c> section of <c>config</c>, stage 13.13): those on the desktop
+    /// whose values change get them at once (their volume, and <see cref="IAssistant.OnSettingsChanged"/>).
+    /// </summary>
+    public void ApplyCommon(JsonObject? section)
+    {
+        if (section is null) return;
+        _common = AssistantCommon.FromJson(section);
+        foreach (var slot in _slots.ToList())
+        {
+            var now = CommonOf(slot.Id, slot.Manifest);
+            if (now == slot.Common) continue;
+            slot.SetCommon(now);
+            Log.Info($"Asistente: ajustes comunes de «{slot.Id}»: {Describe(now)}");
+            Guard(slot, a => a.OnSettingsChanged(slot.Host.Settings), "OnSettingsChanged");
+        }
+    }
+
+    /// <summary>What an assistant gets of the common settings: those its manifest takes; the others as usual.</summary>
+    private AssistantCommon CommonOf(string id, AssistantManifest? manifest)
+    {
+        if (manifest is null || _common.GetValueOrDefault(id) is not { } set) return AssistantCommon.Default;
+        var usual = AssistantCommon.Default;
+        return new AssistantCommon
+        {
+            Size = manifest.Takes(AssistantCommon.SizeKey) ? set.Size : usual.Size,
+            Volume = manifest.Takes(AssistantCommon.VolumeKey) ? set.Volume : usual.Volume,
+            Liveliness = manifest.Takes(AssistantCommon.LivelinessKey) ? set.Liveliness : usual.Liveliness,
+            Dragging = manifest.Takes(AssistantCommon.DraggingKey) ? set.Dragging : usual.Dragging,
+        };
+    }
+
+    private static string Describe(AssistantCommon c) => string.Create(System.Globalization.CultureInfo.InvariantCulture,
+        $"tamaño {c.Size:P0}, volumen {c.Volume:P0}, movido {c.Liveliness:P0}, {(c.Dragging ? "se puede coger" : "sin cogerlo")}");
 
     /// <summary>The settings of an assistant on the desktop changed in K-Desktop's Options.</summary>
     public void ApplySettings(string id, JsonElement settings)
@@ -576,6 +618,24 @@ internal sealed class AssistantSlot(string id, IAssistant assistant, AssistantMa
     public AssistantAudio Audio { get; set; } = null!;
 
     public CancellationTokenSource Extras { get; } = new();
+
+    /// <summary>Its common settings (stage 13.13), as K-Desktop keeps them.</summary>
+    public AssistantCommon Common { get; private set; } = AssistantCommon.Default;
+
+    /// <summary>The same, as the SDK gives them (<see cref="IAssistantHost.Common"/>).</summary>
+    public CommonSettings CommonSettings { get; private set; } = CommonSettings.Default;
+
+    private readonly DragGate _drags = new();
+
+    public void SetCommon(AssistantCommon common)
+    {
+        Common = common;
+        CommonSettings = new CommonSettings(common.Size, common.Liveliness, common.Dragging);
+        Audio.Volume = common.Volume;
+    }
+
+    /// <summary>Whether a pointer event reaches it: not the drags of its body while the user does not let it be picked up.</summary>
+    public bool LetsThrough(PointerEvent e) => _drags.LetsThrough(e, Common.Dragging);
 
     /// <summary>The module's bubble over it while it says something (stage 3.6), or null.</summary>
     public HostBubble? Bubble { get; set; }

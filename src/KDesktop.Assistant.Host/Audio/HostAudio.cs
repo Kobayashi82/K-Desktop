@@ -53,13 +53,30 @@ internal sealed class HostAudio : IDisposable
 
 /// <summary>
 /// <see cref="IAudio"/> for one assistant: its loops are remembered so they stop when it is unloaded (even if it did
-/// not dispose them). Muted, everything loads and plays as silence.
+/// not dispose them), and its own volume (stage 13.13) goes over everything it plays. Muted, everything loads and plays
+/// as silence.
 /// </summary>
 internal sealed class AssistantAudio(HostAudio audio, string packageDirectory) : IAudio
 {
     private readonly List<AssistantLoop> _loops = [];
+    private double _volume = 1;
 
     public bool Enabled => audio.Enabled;
+
+    /// <summary>Its own volume (0…1, the «General» tab of its card), with the same curve as the one of all the assistants.</summary>
+    public double Volume
+    {
+        get => _volume;
+        set
+        {
+            _volume = Math.Clamp(value, 0, 1);
+            Factor = _volume * _volume;
+            foreach (var loop in _loops) loop.Apply();
+        }
+    }
+
+    /// <summary>What its gains are multiplied by.</summary>
+    private double Factor { get; set; } = 1;
 
     public ISound Load(float[] samples, int sampleRate, int channels = 1)
     {
@@ -70,12 +87,15 @@ internal sealed class AssistantAudio(HostAudio audio, string packageDirectory) :
 
     public ISound LoadWav(string path) => WavFile.Read(Path.Combine(packageDirectory, path));
 
-    public void Play(ISound sound, double gain = 1, double pan = 0) => audio.Play(Own(sound), gain, pan);
+    public void Play(ISound sound, double gain = 1, double pan = 0)
+    {
+        if (Factor > 0) audio.Play(Own(sound), gain * Factor, pan);
+    }
 
     public ILoop Loop(ISound sound)
     {
         _loops.RemoveAll(l => l.Disposed);
-        var loop = new AssistantLoop(audio, audio.Loop(Own(sound)));
+        var loop = new AssistantLoop(this, audio, audio.Loop(Own(sound)));
         _loops.Add(loop);
         return loop;
     }
@@ -90,19 +110,31 @@ internal sealed class AssistantAudio(HostAudio audio, string packageDirectory) :
     private static HostSound Own(ISound sound) =>
         sound as HostSound ?? throw new ArgumentException("El sonido no es de este host (usa Load o LoadWav)", nameof(sound));
 
-    private sealed class AssistantLoop(HostAudio audio, HostLoop loop) : ILoop
+    private sealed class AssistantLoop(AssistantAudio owner, HostAudio audio, HostLoop loop) : ILoop
     {
+        /// <summary>The gain it asked for (the loop sounds at it times its assistant's volume).</summary>
+        private double _gain = loop.Gain;
+
         public bool Disposed { get; private set; }
 
         public double Gain
         {
-            get => loop.Gain;
+            get => _gain;
             set
             {
-                var rising = value > 0 && loop.Gain <= 0;
-                loop.Gain = value;
-                if (rising) audio.Wake();
+                _gain = value;
+                Apply();
             }
+        }
+
+        /// <summary>Its gain, with its assistant's volume.</summary>
+        public void Apply()
+        {
+            if (Disposed) return;
+            var gain = _gain * owner.Factor;
+            var rising = gain > 0 && loop.Gain <= 0;
+            loop.Gain = gain;
+            if (rising) audio.Wake();
         }
 
         public double Pitch { get => loop.Pitch; set => loop.Pitch = value; }

@@ -41,6 +41,65 @@
             </StackPanel>
         </Border>
 
+        <!-- On the desktop: the settings every assistant has the same way (stage 13.13), those its manifest takes -->
+        <Border x:Name="CommonCard" Style="{StaticResource Card}" Visibility="Collapsed">
+            <StackPanel>
+                <TextBlock Style="{StaticResource CardTitle}" Margin="0,0,0,4" Text="{l:Tr assistantCommon.title}" />
+
+                <Grid x:Name="SizeRow" Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr assistantCommon.size}" />
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantCommon.sizeHint}" />
+                    </StackPanel>
+                    <Grid Grid.Column="1" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <Slider x:Name="SizeSlider" Minimum="50" Maximum="200" TickFrequency="5" IsSnapToTickEnabled="True" SmallChange="5" LargeChange="25"
+                                VerticalAlignment="Center" ValueChanged="OnCommonSlid" AutomationProperties.Name="{l:Tr assistantCommon.size}" />
+                        <TextBlock x:Name="SizeText" Grid.Column="1" MinWidth="48" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" />
+                    </Grid>
+                </Grid>
+
+                <Grid x:Name="VolumeRow" Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr assistantCommon.volume}" />
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantCommon.volumeHint}" />
+                    </StackPanel>
+                    <Grid Grid.Column="1" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <Slider x:Name="VolumeSlider" Minimum="0" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True" SmallChange="5" LargeChange="25"
+                                VerticalAlignment="Center" ValueChanged="OnCommonSlid" AutomationProperties.Name="{l:Tr assistantCommon.volume}" />
+                        <TextBlock x:Name="VolumeText" Grid.Column="1" MinWidth="48" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" />
+                    </Grid>
+                </Grid>
+
+                <Grid x:Name="LivelinessRow" Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr assistantCommon.liveliness}" />
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantCommon.livelinessHint}" />
+                    </StackPanel>
+                    <Grid Grid.Column="1" VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <Slider x:Name="LivelinessSlider" Minimum="0" Maximum="200" TickFrequency="10" IsSnapToTickEnabled="True" SmallChange="10" LargeChange="50"
+                                VerticalAlignment="Center" ValueChanged="OnCommonSlid" AutomationProperties.Name="{l:Tr assistantCommon.liveliness}" />
+                        <TextBlock x:Name="LivelinessText" Grid.Column="1" MinWidth="48" Margin="12,0,0,0" TextAlignment="Right" VerticalAlignment="Center" />
+                    </Grid>
+                </Grid>
+
+                <Grid x:Name="DraggingRow" Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr assistantCommon.dragging}" />
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantCommon.draggingHint}" />
+                    </StackPanel>
+                    <ui:ToggleSwitch x:Name="DraggingSwitch" Grid.Column="1" VerticalAlignment="Center" Checked="OnCommonChanged" Unchecked="OnCommonChanged"
+                                     AutomationProperties.Name="{l:Tr assistantCommon.dragging}" />
+                </Grid>
+            </StackPanel>
+        </Border>
+
         <!-- The model it thinks with -->
         <Border x:Name="BrainCard" Style="{StaticResource Card}">
             <StackPanel>

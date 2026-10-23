@@ -70,7 +70,10 @@ public interface IAssistant : IDisposable
     /// <summary>One of the extras of its manifest («lander.manual»…), launched from a command, the panel or the menu.</summary>
     Task OnExtraAsync(string extraId, CancellationToken ct);
 
-    /// <summary>The user changed its settings in K-Desktop's Options (values keyed as in its settings.json).</summary>
+    /// <summary>
+    /// The user changed its settings in K-Desktop's Options (values keyed as in its settings.json), or one of the common
+    /// ones (<see cref="IAssistantHost.Common"/>, already up to date).
+    /// </summary>
     void OnSettingsChanged(JsonElement settings);
 }
 

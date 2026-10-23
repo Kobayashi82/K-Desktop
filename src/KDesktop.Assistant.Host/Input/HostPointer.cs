@@ -58,7 +58,10 @@ internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, P
     /// <summary>Handles of the hit windows (left out of the world).</summary>
     public IEnumerable<nint> Handles => _areas.Select(a => a.Handle);
 
-    public IHitArea CreateHitArea(string id = "body")
+    /// <summary>The id of the hit area made without one: the body (the one «picking it up» is about, stage 13.13).</summary>
+    public const string BodyArea = "body";
+
+    public IHitArea CreateHitArea(string id = BodyArea)
     {
         var area = new HitArea(this, id);
         _areas.Add(area);

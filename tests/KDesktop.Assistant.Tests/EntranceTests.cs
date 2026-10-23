@@ -42,7 +42,7 @@ public class EntranceTests
         {
             await hello.Task.WaitAsync(TimeSpan.FromSeconds(20));
             Assert.True(server.Send(Load(pipData, LoadMessage.Startup)));
-            await Until(() => loaded.Count >= 1);
+            await Until(() => !loaded.IsEmpty);
             Assert.False(File.Exists(spot));
 
             // Reloaded over itself: the old one saves where it stood, the new one comes back there…

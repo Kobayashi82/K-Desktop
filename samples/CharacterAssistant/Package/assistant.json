@@ -2,7 +2,7 @@
   "$schema": "../../../docs/assistant/esquemas/assistant.schema.json",
   "id": "pip",
   "name": "Pip",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "Kobayashi82",
   "description": {
     "es": "Ejemplo de asistente sin código: una gota que pasea por la barra de tareas y por tus ventanas. Solo imágenes y JSON.",
@@ -18,12 +18,19 @@
   "entry": "character.json",
   "icon": "icon.png",
   "wakeWord": "Pip",
-  "settings": "settings.json",
   "traits": {
     "travel": "walk",
     "travelSpeed": 70,
     "canMoveWindows": false,
     "canReachMaximized": false,
     "gestures": ["communicate", "react"]
+  },
+  "changes": {
+    "es": "Su tamaño, lo que pasea y cogerlo con el ratón están ahora en la pestaña «General» de su ficha, como en todos los asistentes.",
+    "en": "Its size, how much it strolls and picking it up with the mouse are now in the «General» tab of its card, as for every assistant.",
+    "fr": "Sa taille, ses promenades et l’attraper avec la souris sont maintenant dans l’onglet « Général » de sa fiche, comme pour tous les assistants.",
+    "de": "Größe, wie viel es herumläuft und das Greifen mit der Maus stehen jetzt im Reiter „Allgemein“ seiner Karte, wie bei allen Assistenten.",
+    "it": "Dimensione, quanto passeggia e prenderlo con il mouse sono ora nella scheda «Generale» della sua scheda, come per tutti gli assistenti.",
+    "pt": "O tamanho, o quanto passeia e pegar com o mouse agora ficam na aba «Geral» da ficha dele, como em todos os assistentes."
   }
 }

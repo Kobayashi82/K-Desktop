@@ -188,6 +188,24 @@ tarjeta y un botón en el panel, y guarda sus datos en su carpeta.
 
 El host espera la salida 3 s como mucho (el token salta entonces).
 
+## Ajustes comunes
+
+Lo que todos los asistentes tienen igual no va en su `settings.json`: K-Desktop lo enseña en la pestaña «General» de su
+ficha, con las mismas unidades para todos (SDK 1.9). En el manifiesto se dice cuáles admite:
+
+```json
+"common": ["size", "volume", "liveliness", "dragging"]
+```
+
+| Nombre | Qué es | Quién lo hace |
+|---|---|---|
+| `size` | Tamaño, del 50 % al 200 % | El asistente: `host.Common.Size` (1 = el tamaño para el que está dibujado), por el escalado del monitor como siempre |
+| `volume` | Volumen de sus sonidos, del 0 % al 100 % | El host, sobre todo lo que suena por `IAudio` (su voz va aparte) |
+| `liveliness` | Lo movido que es, del 0 % (lo menos posible) al 200 % | El asistente: `host.Common.Liveliness` (1 = lo normal) para lo que hace por su cuenta |
+| `dragging` | Cogerlo con el ratón | El host no le pasa los arrastres de su zona `body` si está apagado; `host.Common.Dragging` para lo demás (otras zonas, como un juguete, se pueden arrastrar igual) |
+
+Cuando cambian, llega `OnSettingsChanged` con `host.Common` ya al día. Un asistente sin código los admite todos.
+
 ## Lo que da el host
 
 - **Bocadillo:** cuando el asistente dice algo (`Communicate`), el host dibuja el bocadillo con el texto, apuntando a

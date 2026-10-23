@@ -38,6 +38,15 @@ public sealed partial record AssistantManifest
 
     public IReadOnlyList<string> ImportFrom { get; init; } = [];
 
+    /// <summary>
+    /// The settings every assistant has the same way that it takes (stage 13.13: <c>size</c>, <c>volume</c>,
+    /// <c>liveliness</c>, <c>dragging</c>); K-Desktop shows those in the «General» tab of its card.
+    /// </summary>
+    public IReadOnlyList<string> Common { get; init; } = [];
+
+    /// <summary>Whether it takes one of the common settings (<see cref="AssistantCommon.Keys"/>): one without code takes them all.</summary>
+    public bool Takes(string common) => IsCharacter ? AssistantCommon.Keys.Contains(common) : Common.Contains(common);
+
     /// <summary>The assembly (relative to the package, «lib/X.dll») and the type that implements IAssistant.</summary>
     [JsonIgnore]
     public (string Assembly, string Type) EntryParts => Entry.Split('!', 2) is [var dll, var type] ? (dll, type) : (Entry, string.Empty);

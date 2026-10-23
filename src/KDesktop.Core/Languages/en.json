@@ -3978,5 +3978,14 @@
   "assistantCatalog.already": "That catalog is already there",
   "assistantCatalog.trust": "Being in a catalog doesn't make it trustworthy: the card says whether the package is verified and what it can do.",
   "assistantCatalog.badList": "it's not a catalog ({0})",
-  "assistantCard.noCode": "This assistant has no code: only pictures and what each one is for. K-Desktop moves it."
+  "assistantCard.noCode": "This assistant has no code: only pictures and what each one is for. K-Desktop moves it.",
+  "assistantCommon.title": "On the desktop",
+  "assistantCommon.size": "Size",
+  "assistantCommon.sizeHint": "It also follows each monitor's scaling.",
+  "assistantCommon.volume": "Volume of its sounds",
+  "assistantCommon.volumeHint": "Its voice is separate, in Voice.",
+  "assistantCommon.liveliness": "How lively it is",
+  "assistantCommon.livelinessHint": "At 0 % it moves on its own as little as it can.",
+  "assistantCommon.dragging": "Pick it up with the mouse",
+  "assistantCommon.draggingHint": "Drag it to move it somewhere else."
 }

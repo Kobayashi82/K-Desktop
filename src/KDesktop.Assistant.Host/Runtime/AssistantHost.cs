@@ -36,6 +36,8 @@ internal sealed class AssistantHost(AssistantRuntime runtime, AssistantSlot slot
 
     public JsonElement Settings { get; internal set; } = settings;
 
+    public CommonSettings Common => slot.CommonSettings;
+
     public string DataDirectory { get; } = dataDirectory;
 
     public string PackageDirectory { get; } = packageDirectory;

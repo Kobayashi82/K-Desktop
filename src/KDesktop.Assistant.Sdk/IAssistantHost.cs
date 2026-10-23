@@ -31,6 +31,13 @@ public interface IAssistantHost
     JsonElement Settings { get; }
 
     /// <summary>
+    /// The settings every assistant has the same way (SDK 1.9), set by the user in the «General» tab of its card: those
+    /// its manifest names in <c>common</c>; the rest stay as usual. When they change, <see cref="IAssistant.OnSettingsChanged"/>
+    /// is called. The volume of its sounds is not here: the host applies it.
+    /// </summary>
+    CommonSettings Common { get; }
+
+    /// <summary>
     /// Its own data folder (progress, statistics…): kept when it is updated or switched, included in K-Desktop's
     /// backups, and asked about when it is uninstalled.
     /// </summary>
@@ -78,6 +85,25 @@ public interface IAssistantHost
     void Post(Action action);
 
     IAssistantLog Log { get; }
+}
+
+/// <summary>The settings every assistant has the same way (<see cref="IAssistantHost.Common"/>, SDK 1.9).</summary>
+/// <param name="Size">
+/// How big the user wants it, as a factor of the size it was drawn for: 0.5 … 2 (1 = as designed). Multiply your sizes by
+/// it (and by the monitor's scaling, as always).
+/// </param>
+/// <param name="Liveliness">
+/// How much it moves about on its own: 0 = only when it is asked something, 1 = as usual, up to 2 = very lively. Scale how
+/// often it wanders, plays, explores…
+/// </param>
+/// <param name="Dragging">
+/// Whether the user lets it be picked up with the mouse. When not, the host keeps the drags of its <c>body</c> hit area
+/// from it (other hit areas, a toy for instance, can still be dragged).
+/// </param>
+public sealed record CommonSettings(double Size = 1, double Liveliness = 1, bool Dragging = true)
+{
+    /// <summary>As usual.</summary>
+    public static CommonSettings Default { get; } = new();
 }
 
 /// <summary>The desktop as the host sees it.</summary>

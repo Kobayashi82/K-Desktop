@@ -3978,5 +3978,14 @@
   "assistantCatalog.already": "Ese catálogo ya está",
   "assistantCatalog.trust": "Lo que está en un catálogo no es de fiar por estar ahí: la ficha dice si el paquete está verificado y qué puede hacer.",
   "assistantCatalog.badList": "no es un catálogo ({0})",
-  "assistantCard.noCode": "Este asistente no lleva código: solo imágenes y lo que hace cada una. Lo mueve K-Desktop."
+  "assistantCard.noCode": "Este asistente no lleva código: solo imágenes y lo que hace cada una. Lo mueve K-Desktop.",
+  "assistantCommon.title": "En el escritorio",
+  "assistantCommon.size": "Tamaño",
+  "assistantCommon.sizeHint": "Además sigue el escalado de cada monitor.",
+  "assistantCommon.volume": "Volumen de sus sonidos",
+  "assistantCommon.volumeHint": "Su voz va aparte, en Voz.",
+  "assistantCommon.liveliness": "Lo movido que es",
+  "assistantCommon.livelinessHint": "Al 0 % se mueve lo menos posible por su cuenta.",
+  "assistantCommon.dragging": "Cogerlo con el ratón",
+  "assistantCommon.draggingHint": "Arrástralo para cambiarlo de sitio."
 }

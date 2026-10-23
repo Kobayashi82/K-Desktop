@@ -21,7 +21,7 @@ public sealed class MyAssistant : IAssistant
     private bool _flashPending;
     private bool _dirty = true;
 
-    public Point? BubbleAnchor => new Point(_at.X, _at.Y - 20);
+    public Point? BubbleAnchor => new Point(_at.X, _at.Y - 20 * _host.Common.Size);
 
     public void Attach(IAssistantHost host)
     {
@@ -60,12 +60,16 @@ public sealed class MyAssistant : IAssistant
         {
             if (!flashing) _flash = double.NaN;
             _dirty = false;
-            var radius = flashing ? 22 : 18;
-            var area = new PixelRect((int)_at.X - 24, (int)_at.Y - 24, (int)_at.X + 24, (int)_at.Y + 24);
+            // The size the user chose in the «General» tab of its card (1 = as designed; "common" in assistant.json).
+            var size = _host.Common.Size;
+            var radius = (flashing ? 22 : 18) * size;
+            var edge = (int)Math.Ceiling(24 * size);
+            var area = new PixelRect((int)_at.X - edge, (int)_at.Y - edge, (int)_at.X + edge, (int)_at.Y + edge);
             var brush = new SolidColorBrush(flashing ? Colors.White : _color);
             brush.Freeze();
             _surface.Present(area, dc => dc.DrawEllipse(brush, null, _at, radius, radius));
-            _hit.Place(new HitShape.Ellipse(new PixelRect((int)_at.X - 18, (int)_at.Y - 18, (int)_at.X + 18, (int)_at.Y + 18)));
+            var body = (int)(18 * size);
+            _hit.Place(new HitShape.Ellipse(new PixelRect((int)_at.X - body, (int)_at.Y - body, (int)_at.X + body, (int)_at.Y + body)));
         }
         // Animating: every frame. At rest: a long sleep (anything that matters calls RequestTick).
         return flashing ? _host.Rendering.FrameInterval : 30;
@@ -106,7 +110,12 @@ public sealed class MyAssistant : IAssistant
 
     public Task OnExtraAsync(string extraId, CancellationToken ct) => Task.CompletedTask;
 
-    public void OnSettingsChanged(JsonElement settings) { }
+    public void OnSettingsChanged(JsonElement settings)
+    {
+        // Its settings.json changed, or the common settings (its size): draw again.
+        _dirty = true;
+        _host.RequestTick();
+    }
 
     public void Dispose()
     {

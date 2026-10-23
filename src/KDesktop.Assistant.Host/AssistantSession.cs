@@ -109,6 +109,8 @@ internal sealed class AssistantSession : IDisposable
                 Brain?.Configure(BrainConfig.FromJson(welcome.Config?["brain"] as JsonObject));
                 Tools?.Configure(welcome.Config?["tools"] as JsonObject);
                 Personal.Configure(welcome.Config?["personal"] as JsonObject);
+                var common = welcome.Config?["common"] as JsonObject;
+                Engine.Post(() => Runtime.ApplyCommon(common));
                 Voice?.Configure(welcome.Config?["voice"] as JsonObject);
                 Tools?.Start();
                 if (Talk is { } ready) _ = ready.WarmAsync();
@@ -267,6 +269,9 @@ internal sealed class AssistantSession : IDisposable
                 break;
             case ConfigMessage { Section: "general", Value: JsonObject general }:
                 ApplyGeneral(general);
+                break;
+            case ConfigMessage { Section: "common", Value: JsonObject common }:
+                Runtime.ApplyCommon(common);
                 break;
             case MenuClosedMessage closed:
                 Runtime.MenuClosed(closed.Assistant);

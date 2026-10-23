@@ -12,7 +12,8 @@ namespace KDesktop.Views.Assistant;
 /// Options → Assistants → one assistant → «General» (5.0.113): its wake word (a word has one owner: choosing one of another
 /// takes it), its key to talk (refused while another assistant, a command or K-Desktop answers it) and the model it
 /// thinks with (stage 3.2), with the one its package suggests when it is not here. Until 5.0.112 this was in each row of
-/// the list. For K-Desktop as well.
+/// the list. For K-Desktop as well. And, for an assistant with a body, the settings every assistant has the same way
+/// (stage 13.13) that its manifest takes.
 /// </summary>
 public partial class AssistantGeneralView : UserControl
 {
@@ -84,7 +85,55 @@ public partial class AssistantGeneralView : UserControl
         FillWake();
         ShowTalkKey();
         FillModels();
+        FillCommon();
         _filling = false;
+    }
+
+    // ── on the desktop ───────────────────────────────────────────────────
+
+    /// <summary>The common settings its manifest takes (K-Desktop, without a body, has none).</summary>
+    private void FillCommon()
+    {
+        var manifest = _installed?.Manifest;
+        bool Takes(string key) => manifest?.Takes(key) == true;
+        SizeRow.Visibility = Takes(AssistantCommon.SizeKey) ? Visibility.Visible : Visibility.Collapsed;
+        VolumeRow.Visibility = Takes(AssistantCommon.VolumeKey) ? Visibility.Visible : Visibility.Collapsed;
+        LivelinessRow.Visibility = Takes(AssistantCommon.LivelinessKey) ? Visibility.Visible : Visibility.Collapsed;
+        DraggingRow.Visibility = Takes(AssistantCommon.DraggingKey) ? Visibility.Visible : Visibility.Collapsed;
+        CommonCard.Visibility = AssistantCommon.Keys.Any(Takes) ? Visibility.Visible : Visibility.Collapsed;
+
+        var common = _app.AssistantCommonOf(_id);
+        SizeSlider.Value = Math.Round(common.Size * 100);
+        VolumeSlider.Value = Math.Round(common.Volume * 100);
+        LivelinessSlider.Value = Math.Round(common.Liveliness * 100);
+        DraggingSwitch.IsChecked = common.Dragging;
+        ShowCommonValues();
+    }
+
+    private void ShowCommonValues()
+    {
+        var culture = Loc.Instance.Culture;
+        SizeText.Text = (SizeSlider.Value / 100).ToString("P0", culture);
+        VolumeText.Text = (VolumeSlider.Value / 100).ToString("P0", culture);
+        LivelinessText.Text = (LivelinessSlider.Value / 100).ToString("P0", culture);
+    }
+
+    private void OnCommonSlid(object sender, RoutedPropertyChangedEventArgs<double> e) => SaveCommon();
+
+    private void OnCommonChanged(object sender, RoutedEventArgs e) => SaveCommon();
+
+    private void SaveCommon()
+    {
+        if (!IsLoaded) return;
+        ShowCommonValues();
+        if (_filling) return;
+        _app.SetAssistantCommon(_id, new AssistantCommon
+        {
+            Size = SizeSlider.Value / 100,
+            Volume = VolumeSlider.Value / 100,
+            Liveliness = LivelinessSlider.Value / 100,
+            Dragging = DraggingSwitch.IsChecked == true,
+        });
     }
 
     // ── its word ─────────────────────────────────────────────────────────

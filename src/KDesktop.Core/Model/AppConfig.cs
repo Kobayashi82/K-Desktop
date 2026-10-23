@@ -696,6 +696,12 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private Dictionary<string, Assistant.AssistantPersonal> _assistantPersonal = [];
 
     /// <summary>
+    /// The settings every assistant has the same way (size, volume of its sounds, liveliness, dragging; stage 13.13):
+    /// assistant id → them (absent: as usual). Replaced whole on every change (so it is saved).
+    /// </summary>
+    [ObservableProperty] private Dictionary<string, Assistant.AssistantCommon> _assistantCommon = [];
+
+    /// <summary>
     /// Before doing something, an assistant asks: <c>never</c>, <c>risky</c> (only power, scripts…; the default) or
     /// <c>first</c> (also the first time, until «yes, and don't ask again»). <see cref="Assistant.AskPolicy"/>.
     /// </summary>

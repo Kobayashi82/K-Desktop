@@ -76,6 +76,12 @@
         }
       }
     },
+    "common": {
+      "description": "Ajustes comunes que admite (etapa 13.13): K-Desktop los enseña en la pestaña «General» de su ficha y los pasa en IAssistantHost.Common (el volumen lo aplica el host). Uno sin código los admite todos.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["size", "volume", "liveliness", "dragging"] }
+    },
     "extras": {
       "description": "Acciones propias, que aparecen como «Asistente: acción» en los comandos de K-Desktop.",
       "type": "array",

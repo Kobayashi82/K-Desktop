@@ -4,10 +4,11 @@
   "version": "1.0.0",
   "author": "AUTHOR_NAME",
   "description": "A new assistant for K-Desktop.",
-  "sdk": "1.0",
+  "sdk": "1.9",
   "entry": "lib/MyAssistant.dll!MyAssistant.MyAssistant",
   "icon": "icon.png",
   "wakeWord": "MyAssistant",
+  "common": ["size"],
   "traits": {
     "travel": "teleport",
     "canMoveWindows": false,

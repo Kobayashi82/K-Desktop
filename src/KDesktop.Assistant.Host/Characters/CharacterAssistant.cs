@@ -47,8 +47,11 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
     private (string Name, double Start, double Until)? _once;
     private string _playing = "idle";
     private double _playingSince;
-    private double _scale = 1;
-    private bool _wander = true;
+    /// <summary>Its size as the user wants it (the common settings, stage 13.13).</summary>
+    private double Scale => _host.Common.Size;
+
+    /// <summary>Walks about on its own (how often: <see cref="Later"/>).</summary>
+    private bool Wanders => _host.Common.Liveliness > 0;
     private double Now { get; set; }
 
     /// <summary>Where it stands: a stretch of the taskbar or of a window's top (and that window).</summary>
@@ -58,14 +61,13 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
 
     private double Dpi => _host.World.Current.MonitorAt(new Point(_at.X, _at.Y - 1))?.DpiScale ?? _host.World.Current.PrimaryMonitor?.DpiScale ?? 1;
 
-    private double HeightPx => character.Height * Dpi * _scale;
+    private double HeightPx => character.Height * Dpi * Scale;
 
     public void Attach(IAssistantHost host)
     {
         _host = host;
         _surface = host.Rendering.CreateSurface();
         _hit = host.Pointer.CreateHitArea();
-        ReadSettings(host.Settings);
         host.World.Changed += OnWorldChanged;
     }
 
@@ -76,7 +78,7 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
         var spot = back ?? RandomSpot() ?? new Point(400, 400);
         _at = spot;
         _ground = GroundAt(_at.X, _at.Y);
-        _nextWander = Now + 3 + _random.NextDouble() * 5;
+        _nextWander = Later(3, 5);
         if (how != EntranceKind.Reloaded && character.Animations.ContainsKey("enter")) PlayOnce("enter");
         _host.RequestTick();
     }
@@ -117,7 +119,7 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
         }
 
         var moving = Step(dt);
-        if (!moving && _wander && !_dragging && _once is null && _state == AssistantState.Idle && !_talking && Now >= _nextWander && !Asleep) Wander();
+        if (!moving && Wanders && !_dragging && _once is null && _state == AssistantState.Idle && !_talking && Now >= _nextWander && !Asleep) Wander();
 
         var name = Animation();
         if (name != _playing)
@@ -134,7 +136,7 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
         // The next frame of what plays (a still picture: only the next wander, or a look at whether the user went away).
         var nextFrame = frames > 1 ? 1 / animation.Fps : double.PositiveInfinity;
         var nextOnce = _once is { } once ? Math.Max(0.01, once.Until - Now) : double.PositiveInfinity;
-        var nextWander = _wander && character.WalkSpeed > 0 ? Math.Max(0.05, _nextWander - Now) : 5;
+        var nextWander = Wanders && character.WalkSpeed > 0 ? Math.Max(0.05, _nextWander - Now) : 5;
         return Math.Max(0.016, Math.Min(Math.Min(nextFrame, nextOnce), Math.Min(nextWander, 5)));
     }
 
@@ -155,20 +157,20 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
                 _ground = ground;
                 _falling = false;
                 _velocity = default;
-                _nextWander = Now + 2 + _random.NextDouble() * 4;
+                _nextWander = Later(2, 4);
             }
             return true;
         }
         if (_walkTo is { } target && character.WalkSpeed > 0)
         {
-            var step = character.WalkSpeed * Dpi * _scale * dt;
+            var step = character.WalkSpeed * Dpi * Scale * dt;
             var left = target - _at.X;
             _right = left > 0;
             if (Math.Abs(left) <= step)
             {
                 _at.X = target;
                 _walkTo = null;
-                _nextWander = Now + 4 + _random.NextDouble() * 10;
+                _nextWander = Later(4, 10);
             }
             else _at.X += Math.Sign(left) * step;
             // Off the end of where it stands: it falls.
@@ -180,7 +182,7 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
 
     private void Wander()
     {
-        _nextWander = Now + 5 + _random.NextDouble() * 10;
+        _nextWander = Later(5, 10);
         if (character.WalkSpeed <= 0 || _ground is not { } ground || _random.NextDouble() < 0.35) return;
         var width = ground.Right - ground.Left;
         var margin = Math.Min(width / 2, HeightPx * 0.4);
@@ -517,19 +519,11 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
 
     public Task OnExtraAsync(string extraId, CancellationToken ct) => Task.CompletedTask;
 
-    public void OnSettingsChanged(JsonElement settings)
-    {
-        ReadSettings(settings);
-        _host.RequestTick();
-    }
+    /// <summary>Its size, liveliness and dragging are the common settings (<see cref="IAssistantHost.Common"/>): read as it goes.</summary>
+    public void OnSettingsChanged(JsonElement settings) => _host.RequestTick();
 
-    /// <summary>The settings any of them may have in its settings.json: <c>scale</c> (0.5–2) and <c>wander</c>.</summary>
-    private void ReadSettings(JsonElement settings)
-    {
-        if (settings.ValueKind != JsonValueKind.Object) return;
-        if (settings.TryGetProperty("scale", out var scale) && scale.TryGetDouble(out var s)) _scale = Math.Clamp(s, 0.5, 2);
-        if (settings.TryGetProperty("wander", out var wander) && wander.ValueKind is JsonValueKind.True or JsonValueKind.False) _wander = wander.GetBoolean();
-    }
+    /// <summary>When it may walk about again: sooner the livelier the user wants it (1 = as usual).</summary>
+    private double Later(double least, double spread) => Now + (least + _random.NextDouble() * spread) / Math.Max(0.1, _host.Common.Liveliness);
 
     public void Dispose()
     {
