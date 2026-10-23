@@ -1,4 +1,5 @@
 using System.Text.Json;
+using KDesktop.Assistant.Sdk;
 using KDesktop.Core;
 using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Pipe;
@@ -16,6 +17,19 @@ public sealed record ToolOutcome(ToolResult? Result, ActivityEntry Entry)
 
 /// <summary>A tool that was run (<see cref="ToolRunner.Ran"/>): who for, which, how it got there and whether it failed.</summary>
 public sealed record ToolRan(string? Assistant, string Tool, bool ReadsOnly, string Route, bool Failed);
+
+/// <summary>Where a tool call is (<see cref="ToolRunner.Using"/>, stage 13.4).</summary>
+public enum ToolPhase
+{
+    /// <summary>Waiting for the user to allow it.</summary>
+    Asking,
+    Running,
+    /// <summary>Over (run, refused or unanswered).</summary>
+    Over,
+}
+
+/// <summary>A tool call that asks, starts or is over: what the assistant is busy with meanwhile.</summary>
+public sealed record ToolUse(string? Assistant, string Tool, AssistantActivity Activity, ToolPhase Phase);
 
 /// <summary>
 /// Runs the tools (stage 3.3, plan §8): asks when its risk says so (🟡 the first time, unless trusted; 🔴 every time; no
@@ -69,6 +83,18 @@ public sealed class ToolRunner
     /// </summary>
     public event Action<ToolRan>? Ran;
 
+    /// <summary>
+    /// A tool call asks the user, starts or is over (stage 13.4), on the thread that runs it: the character shows what it is
+    /// busy with. Every call that asks or starts ends with <see cref="ToolPhase.Over"/>.
+    /// </summary>
+    public event Action<ToolUse>? Using;
+
+    private void Use(ToolContext context, ITool tool, ToolPhase phase)
+    {
+        try { Using?.Invoke(new ToolUse(context.Assistant, tool.Name, ToolActivities.Of(tool), phase)); }
+        catch (Exception ex) { Log.Warn($"Asistente: no se ha podido avisar de {tool.Name}: {ex.Message}"); }
+    }
+
     /// <summary>Runs <paramref name="name"/> for <paramref name="heard"/> (what was asked), asking first when it must.</summary>
     /// <param name="route">How it got here: <c>rule</c>, <c>ai</c>…</param>
     public async Task<ToolOutcome> RunAsync(string name, JsonElement arguments, ToolContext context, string heard, string route, CancellationToken cancellationToken)
@@ -90,8 +116,23 @@ public sealed class ToolRunner
         }
         var unseen = fingerprint is not null && !IsApproved(fingerprint);
         var shared = route == McpShare.Route;
+        try
+        {
+            return await RunCoreAsync(tool, intent, fingerprint, unseen, shared, arguments, context, heard, route, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            Use(context, tool, ToolPhase.Over);
+        }
+    }
+
+    private async Task<ToolOutcome> RunCoreAsync(ITool tool, string intent, string? fingerprint, bool unseen, bool shared, JsonElement arguments, ToolContext context,
+        string heard, string route, CancellationToken cancellationToken)
+    {
+        var name = tool.Name;
         if (unseen || MustAsk(tool, shared))
         {
+            Use(context, tool, ToolPhase.Asking);
             var text = shared ? Loc.T("tools.askShared", context.Caller ?? "?", intent) : Loc.T(unseen ? "tools.askNew" : "tools.ask", intent);
             var choice = await AskAsync(tool, text, fingerprint is not null || (shared && _registry.RiskOf(tool) != ToolRisk.AskAlways), context, cancellationToken).ConfigureAwait(false);
             if (choice is not ("yes" or "always"))
@@ -102,6 +143,7 @@ public sealed class ToolRunner
             if (choice == "always" && fingerprint is not null) Approve(fingerprint);
         }
 
+        Use(context, tool, ToolPhase.Running);
         ToolResult result;
         try
         {

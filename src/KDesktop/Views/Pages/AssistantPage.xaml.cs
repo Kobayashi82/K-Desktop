@@ -6,6 +6,7 @@ using System.Windows.Threading;
 using KDesktop.Core;
 using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Packages;
+using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Platform;
 
@@ -20,7 +21,7 @@ namespace KDesktop.Views.Pages;
 public partial class AssistantPage : UserControl
 {
     /// <summary>The states of the <c>status</c> message (protocolo.md).</summary>
-    private static readonly HashSet<string> States = ["idle", "listening", "thinking", "speaking", "awaitingConfirmation", "busy", "sleeping"];
+    private static readonly HashSet<string> States = ["idle", "listening", "thinking", "thinkingHard", "loadingBrain", "noBrain", "speaking", "awaitingConfirmation", "busy", "sleeping"];
 
     private readonly App _app = App.Current;
     private readonly DispatcherTimer _usage = new() { Interval = TimeSpan.FromSeconds(2) };
@@ -79,7 +80,7 @@ public partial class AssistantPage : UserControl
 
         // The process and what the assistant says of itself (its own status, or the process's)
         var status = (_shown is null ? null : _app.AssistantStateOf(_shown)) ?? _app.AssistantStatus;
-        ActivityText.Text = status is null ? "—" : States.Contains(status.State) ? Loc.T("assistantPanel.state." + status.State) : status.State;
+        ActivityText.Text = status is null ? "—" : StateText(status);
         var hasModel = status?.Model is { Length: > 0 };
         ModelLabel.Visibility = ModelText.Visibility = hasModel ? Visibility.Visible : Visibility.Collapsed;
         if (hasModel)
@@ -90,6 +91,28 @@ public partial class AssistantPage : UserControl
         ErrorPanel.Visibility = _app.AssistantError is null ? Visibility.Collapsed : Visibility.Visible;
         if (_app.AssistantError is { } error) ErrorText.Text = $"{error.Text} ({error.At.ToString("g", Loc.Instance.Culture)})";
         UpdateUsage();
+    }
+
+    /// <summary>Its state in words, and what it is busy with («Ocupado · Buscando en internet», stage 13.4).</summary>
+    private static string StateText(StatusMessage status)
+    {
+        var state = States.Contains(status.State) ? Loc.T("assistantPanel.state." + status.State) : status.State;
+        var key = "assistant.activity." + status.Activity;
+        string? activity = status.Activity switch
+        {
+            null or "" or "none" => null,
+            "other" when status.Tool is { Length: > 0 } tool => Loc.T("assistant.activity.otherTool", ToolTitle(tool)),
+            _ when Loc.T(key) != key => Loc.T(key),
+            _ => null,
+        };
+        return activity is null ? state : $"{state} · {activity}";
+    }
+
+    private static string ToolTitle(string tool)
+    {
+        var key = "tool." + tool + ".title";
+        var title = Loc.T(key);
+        return title == key ? tool : title;
     }
 
     /// <summary>Shows this assistant's card and panel (<c>--page assistant/&lt;id&gt;</c>, its menu → Panel).</summary>

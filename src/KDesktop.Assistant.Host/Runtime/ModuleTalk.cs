@@ -43,6 +43,10 @@ internal sealed class ModuleTalk : ITalkOutput
         _reactions = reactions;
         // What its tools do in an order is what it reacts to when the answer is ready (stage 13.3).
         tools.Runner.Ran += reactions.Add;
+        // What it is doing, with what (stage 13.4): its tools while they ask or run, its model while it loads.
+        States = new ModuleStates(link, engine, runtime, personal.LanguageOf);
+        tools.Runner.Using += States.Tool;
+        brain.LoadingChanged += States.BrainLoading;
         // Its personality or its language changed: its persona is read again for the next order.
         personal.Changed += ids =>
         {
@@ -70,6 +74,9 @@ internal sealed class ModuleTalk : ITalkOutput
     }
 
     public TalkService Service { get; }
+
+    /// <summary>What each one shows it is doing (stage 13.4).</summary>
+    public ModuleStates States { get; }
 
     /// <summary>What they answer, said aloud (stage 5.4).</summary>
     public ModuleVoice Voice { get; }
@@ -115,6 +122,12 @@ internal sealed class ModuleTalk : ITalkOutput
     /// </summary>
     public void OnListening(ListeningMessage listening)
     {
+        // K-Desktop writes what is said for it: it listens, with nothing to get ready (its voice is already over).
+        if (listening.For == ListeningMessage.Dictation)
+        {
+            States.Dictation(listening.Assistant, listening.Active);
+            return;
+        }
         var key = listening.Assistant ?? string.Empty;
         // You are talking to it: its voice steps back meanwhile, and its model and its voice get ready (stage 5.7).
         Voice.Listening(key, listening.Active);
@@ -188,6 +201,7 @@ internal sealed class ModuleTalk : ITalkOutput
     {
         Service.Forget(id);
         Voice.Stop(id);
+        States.Forget(id);
     }
 
     private readonly ConcurrentDictionary<string, VoiceProfile?> _profiles = new(StringComparer.Ordinal);
@@ -248,19 +262,10 @@ internal sealed class ModuleTalk : ITalkOutput
 
     public void State(string? assistant, string state)
     {
-        _link.Send(new StatusMessage(state, Assistant: assistant));
         if (state == "thinking") Voice.Warm(assistant);
         // The answer is ready (or the order is over): how it went.
         if (state is "speaking" or "idle") _reactions.End(assistant);
-        if (assistant is null) return;
-        var shown = state switch
-        {
-            "listening" => AssistantState.Listening,
-            "thinking" => AssistantState.Thinking,
-            "speaking" => AssistantState.Speaking,
-            _ => AssistantState.Idle,
-        };
-        _engine.Post(() => _runtime.SetState(assistant, shown));
+        States.Talk(assistant, state);
     }
 
     public Task SpeakAsync(string? assistant, string text, CancellationToken cancellationToken) =>

@@ -19,7 +19,10 @@ public interface ITalkOutput
     /// <summary>A line of the conversation for K-Desktop (<c>chat</c>).</summary>
     void Chat(ChatLineMessage line);
 
-    /// <summary>What it is doing now: <c>thinking</c>, <c>speaking</c> or <c>idle</c> (its <c>status</c>, and the character shows it).</summary>
+    /// <summary>
+    /// What it is doing now: <c>thinking</c>, <c>thinkingHard</c>, <c>noBrain</c> (right before it says it has none),
+    /// <c>speaking</c> or <c>idle</c> (its <c>status</c>, and the character shows it).
+    /// </summary>
     void State(string? assistant, string state);
 
     /// <summary>The character says it (Communicate) for as long as it takes to read; done at once without a body.</summary>
@@ -454,7 +457,11 @@ public sealed class TalkService
                 return new TalkAnswer(Phrase(persona, await FreeBrainNowAsync().ConfigureAwait(false) ? "brainFreed" : "brainNotLoaded"), Remember: false);
             case { Kind: QuickRuleKind.LoadBrain } when _loadBrain is not null:
                 var (_, loading) = _brain(who);
-                if (loading is null) return new TalkAnswer(Phrase(persona, "noBrain"), Remember: false, Failed: true);
+                if (loading is null)
+                {
+                    _output.State(who, "noBrain");
+                    return new TalkAnswer(Phrase(persona, "noBrain"), Remember: false, Failed: true);
+                }
                 _output.State(who, "thinking");
                 await _loadBrain().ConfigureAwait(false);
                 return new TalkAnswer(Phrase(persona, "brainLoaded"), Remember: false);
@@ -604,7 +611,12 @@ public sealed class TalkService
         var (client, model) = _brain(who);
         // Not ready: the server may have opened since it was last looked at (Ollama, after K-Desktop at start-up).
         if ((client is null || model is null) && _recheck is not null && await _recheck().ConfigureAwait(false)) (client, model) = _brain(who);
-        if (client is null || model is null) return NotDone(persona, ran, forAi, Phrase(persona, "noBrain"));
+        if (client is null || model is null)
+        {
+            // The character shows it has nothing to think with, right before it says so.
+            _output.State(who, "noBrain");
+            return NotDone(persona, ran, forAi, Phrase(persona, "noBrain"));
+        }
         conversation.LastOrder = forAi;
         _output.State(who, "thinking");
         // Nothing said yet a moment later (the model loading, a server starting, a long first read): a word, so the user
@@ -617,7 +629,9 @@ public sealed class TalkService
         void ThinkingHard()
         {
             Interlocked.Exchange(ref spoken, 1);
-            if (Interlocked.Exchange(ref hard, 1) == 0 && Phrase(persona, "thinkingHard") is { Length: > 0 } phrase) _output.Preface(who, turn, phrase);
+            if (Interlocked.Exchange(ref hard, 1) != 0) return;
+            _output.State(who, "thinkingHard");
+            if (Phrase(persona, "thinkingHard") is { Length: > 0 } phrase) _output.Preface(who, turn, phrase);
         }
         var shown = new PartialText(text =>
         {

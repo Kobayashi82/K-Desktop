@@ -362,10 +362,13 @@ internal sealed class AssistantRuntime : IDisposable
 
     public void Notify(string assistant, string title, string text) => _link?.Send(new NotifyMessage(title, text, assistant));
 
-    /// <summary>What the module is doing for an assistant (thinking, speaking…), for the character to show it.</summary>
-    public void SetState(string id, AssistantState state)
+    /// <summary>
+    /// What the module is doing for an assistant (thinking, speaking…) and with what (stage 13.4), for the character to
+    /// show it. One built before SDK 1.13 gets the closest state it knows (its interface does that).
+    /// </summary>
+    public void SetState(string id, AssistantState state, StateDetail? detail = null)
     {
-        if (Find(id) is { } slot) Guard(slot, a => a.SetState(state), "SetState");
+        if (Find(id) is { } slot) Guard(slot, a => a.SetState(state, detail ?? StateDetail.None), "SetState");
     }
 
     /// <summary>

@@ -172,7 +172,13 @@ public sealed record FastScrollMessage(double Strength, int X, int Y) : PipeMess
 
 // ── from the assistant to K-Desktop's panel ─────────────────────────────
 
+/// <param name="State">
+/// <c>idle</c>, <c>listening</c>, <c>thinking</c>, <c>thinkingHard</c>, <c>loadingBrain</c>, <c>noBrain</c>, <c>speaking</c>,
+/// <c>awaitingConfirmation</c>, <c>busy</c>, <c>sleeping</c>.
+/// </param>
 /// <param name="Assistant">Whose state; null: the process's (the model, the memory).</param>
+/// <param name="Activity">What it is busy with (stage 13.4): <c>searchingWeb</c>, <c>screen</c>… (<c>AssistantActivity</c> in camelCase); null: nothing in particular.</param>
+/// <param name="Tool">The tool running, when there is one.</param>
 public sealed record StatusMessage(
     string State,
     string? Model = null,
@@ -180,7 +186,9 @@ public sealed record StatusMessage(
     bool? Busy = null,
     int? MemoryMb = null,
     string? LastError = null,
-    string? Assistant = null) : PipeMessage
+    string? Assistant = null,
+    string? Activity = null,
+    string? Tool = null) : PipeMessage
 {
     public override string Type => "status";
 }
@@ -358,9 +366,13 @@ public sealed record HeardMessage(string Text, string Source, string? Assistant 
 /// longer is (stage 5.2): the character shows it. It comes before the <c>heard</c> with what was said.
 /// </summary>
 /// <param name="Assistant">Who is listened to; null: the module without a body.</param>
-public sealed record ListeningMessage(bool Active, string? Assistant = null) : PipeMessage
+/// <param name="For">What for (stage 13.4): null for an order; <c>dictation</c> while K-Desktop writes what is said (asked with <c>dictate</c>).</param>
+public sealed record ListeningMessage(bool Active, string? Assistant = null, string? For = null) : PipeMessage
 {
     public override string Type => "listening";
+
+    /// <summary><see cref="For"/> of a dictation.</summary>
+    public const string Dictation = "dictation";
 }
 
 /// <summary>

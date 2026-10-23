@@ -97,7 +97,7 @@ public partial class App
 
     /// <summary>Whether an assistant is working on an answer now (K-Desktop's state is the process's own).</summary>
     public bool IsAssistantThinking(string? id) =>
-        id is not null && (AssistantTargeting.IsSystem(id) ? AssistantStatus : AssistantStateOf(id)) is { State: "thinking" or "speaking" or "busy" };
+        id is not null && (AssistantTargeting.IsSystem(id) ? AssistantStatus : AssistantStateOf(id)) is { State: "thinking" or "thinkingHard" or "loadingBrain" or "noBrain" or "speaking" or "busy" or "awaitingConfirmation" };
 
     /// <summary>
     /// Sends an order to an assistant (null: nobody is active), as if said to it: <paramref name="source"/> <c>panel</c>,

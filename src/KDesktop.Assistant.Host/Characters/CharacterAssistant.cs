@@ -395,7 +395,7 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
         if (_falling) return "fall";
         if (_talking || _state == AssistantState.Speaking) return "talk";
         if (_state == AssistantState.Listening) return "listen";
-        if (_state is AssistantState.Thinking or AssistantState.Busy or AssistantState.AwaitingConfirmation) return "think";
+        if (AssistantStates.IsWorking(_state) || _state == AssistantState.NoBrain) return "think";
         if (_walkTo is not null) return "walk";
         if (Asleep) return "sleep";
         return "idle";
@@ -521,6 +521,8 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
                 return GestureOutcome.NotPerformed;
         }
     }
+
+    public void SetState(AssistantState state, StateDetail detail) => SetState(state);
 
     public void SetState(AssistantState state)
     {

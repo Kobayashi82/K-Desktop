@@ -42,6 +42,15 @@ public sealed class BrainService : IDisposable
     /// <summary>Raised (any thread) with the new state after every change.</summary>
     public event Action<BrainStateMessage>? Changed;
 
+    /// <summary>
+    /// A model of this PC started or finished loading (any thread, at once: before <see cref="Changed"/>, which looks at
+    /// every source first). True while one is loading.
+    /// </summary>
+    public event Action<bool>? LoadingChanged;
+
+    /// <summary>Whether a model of this PC is being loaded now.</summary>
+    public bool IsLoading => _pool.Loading is not null;
+
     public BrainStateMessage State
     {
         get { lock (_gate) return _state; }
@@ -212,7 +221,12 @@ public sealed class BrainService : IDisposable
     };
 
     /// <summary>A llama-server started loading, loaded or stopped: the state says so.</summary>
-    private void OnServerChanged() => _ = CheckAsync();
+    private void OnServerChanged()
+    {
+        try { LoadingChanged?.Invoke(IsLoading); }
+        catch (Exception ex) { Log.Warn($"Asistente: no se ha podido avisar de la carga del modelo: {ex.Message}"); }
+        _ = CheckAsync();
+    }
 
     private Task RescanAsync()
     {

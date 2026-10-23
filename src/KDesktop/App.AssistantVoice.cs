@@ -132,11 +132,24 @@ public partial class App
     }
 
     /// <summary><c>dictate</c> (stage 10.5, UI thread): «escribe lo que te diga»: what is said now is written where the cursor is.</summary>
-    private void OnAssistantDictate(DictateMessage dictate)
+    private async void OnAssistantDictate(DictateMessage dictate)
     {
-        if (_assistant is null || Config.Settings.Paused) return;
+        if (_assistant is not { } supervisor || Config.Settings.Paused) return;
         Log.Info($"Asistente: «{FromProcess(dictate.Assistant)}» pide dictado");
-        _ = Voice.DictateAsync(held: null);
+        try
+        {
+            var dictation = Voice.DictateAsync(held: null);
+            // Another one was going on (this one ends it) or a voice order: nothing to show.
+            if (dictation.IsCompleted) return;
+            // Its character listens while K-Desktop writes (stage 13.4).
+            supervisor.Send(new ListeningMessage(true, dictate.Assistant, ListeningMessage.Dictation));
+            try { await dictation; }
+            finally { supervisor.Send(new ListeningMessage(false, dictate.Assistant, ListeningMessage.Dictation)); }
+        }
+        catch (Exception ex)
+        {
+            Log.Warn($"Asistente: el dictado ha fallado: {ex.Message}");
+        }
     }
 
     /// <summary>Whether the last order to this assistant (as the process names it: none is K-Desktop) was said aloud: its questions may be answered aloud.</summary>

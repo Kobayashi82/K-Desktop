@@ -53,7 +53,19 @@ public interface IAssistant : IDisposable
     Task<GestureOutcome> PerformAsync(Gesture gesture, IGestureContext ctx, CancellationToken ct);
 
     /// <summary>What the module is doing (listening, thinking, speaking…), for the character to show it.</summary>
+    /// <remarks>
+    /// Only the states of SDK 1.12 and earlier come here (<see cref="AssistantStates.Basic"/>) unless the assistant
+    /// implements <see cref="SetState(AssistantState, StateDetail)"/>, which the host calls instead.
+    /// </remarks>
     void SetState(AssistantState state);
+
+    /// <summary>
+    /// What the module is doing, with what it is doing it with (SDK 1.13): <see cref="StateDetail.Activity"/> says it is
+    /// searching the internet, reading a page, looking at the screen… The host always calls this one; by default it
+    /// passes the closest state of SDK 1.12 to <see cref="SetState(AssistantState)"/>, so an assistant built before keeps
+    /// seeing only the states it knows.
+    /// </summary>
+    void SetState(AssistantState state, StateDetail detail) => SetState(AssistantStates.Basic(state));
 
     /// <summary>Loudness of its voice while speaking (0…1, about 30 times per second): lights or a mouth that follow it.</summary>
     void OnVoiceLevel(double level);
@@ -127,19 +139,29 @@ public enum ExitKind
 }
 
 /// <summary>States the module tells the assistant about; each assistant shows them its own way.</summary>
+/// <remarks>The ones after <see cref="Sleeping"/> are from SDK 1.13 (see <see cref="AssistantStates.Basic"/>).</remarks>
 public enum AssistantState
 {
     Idle,
-    /// <summary>Its wake word was heard: it is listening.</summary>
+    /// <summary>Its wake word was heard, or its talk key or a long click: it is listening (also while dictating).</summary>
     Listening,
     /// <summary>The AI is working on an answer.</summary>
     Thinking,
     Speaking,
-    /// <summary>A yes/no question is waiting for the user.</summary>
+    /// <summary>A yes/no question is waiting for the user (the little window that asks for permission).</summary>
     AwaitingConfirmation,
-    /// <summary>Carrying out an order.</summary>
+    /// <summary>Carrying out an order: one of its tools or a command is running (<see cref="StateDetail.Activity"/> says which).</summary>
     Busy,
     Sleeping,
+    /// <summary>The AI thinks it over, slowly (it asked to, or the user said «piénsalo bien»): it may take half a minute.</summary>
+    ThinkingHard,
+    /// <summary>Its model is being loaded into memory before it can think (from a few seconds to a minute).</summary>
+    LoadingBrain,
+    /// <summary>
+    /// The order needed the AI and there is none (no model, or its server does not answer). It comes right before
+    /// <see cref="Speaking"/>, which says so: a shrug while it says it.
+    /// </summary>
+    NoBrain,
 }
 
 /// <summary>How one of its extras shows in its menu and its panel (<see cref="IAssistantHost.SetExtraState"/>).</summary>

@@ -219,6 +219,21 @@ Cuando cambian, llega `OnSettingsChanged` con `host.Common` ya al día. Un asist
   clic mantenido), si piensas (`Thinking`), si hablas (`Speaking`) o si vuelves a reposo (`Idle`). Enséñalo a tu
   manera (el Lander enciende la luz de su antena; Dot se rodea de un anillo blanco al escuchar y late al pensar).
 
+- **Estados con detalle** (SDK 1.13): implementa `SetState(AssistantState state, StateDetail detail)` y el host te llama a
+  ese en vez de al de siempre. Llegan además:
+  - `ThinkingHard`: lo piensa despacio (lo pidió la IA o el usuario dijo «piénsalo bien»); puede tardar medio minuto.
+  - `LoadingBrain`: su modelo se está cargando en memoria antes de poder pensar (de unos segundos a un minuto).
+  - `NoBrain`: la orden necesitaba la IA y no hay; llega justo antes de `Speaking`, que lo dice (un encogerse de hombros).
+  - `Busy` con `detail.Activity` mientras corre una herramienta o un comando (`SearchingWeb`, `ReadingWeb`, `Files`,
+    `Notes`, `Memory`, `Weather`, `Music`, `Timer`, `Screen`, `Command`…; las de un servidor MCP o tuyas, `Other` con
+    `detail.Tool`), y `AwaitingConfirmation` mientras una pide permiso.
+  - `Listening` con `Dictation` mientras K-Desktop escribe lo que dice el usuario («escribe lo que te diga»).
+
+  `detail.Text` lo dice en su idioma («Buscando en internet»), por si lo escribes tú. Puede haber actividades nuevas en
+  versiones siguientes: las que no conozcas, trátalas como `Other`. Un asistente que solo tiene el `SetState` de antes
+  sigue igual: recibe el estado más cercano que conoce (`AssistantStates.Basic`: los tres nuevos son `Thinking`). La
+  plantilla cambia de color con cada uno.
+
 - **Sonido** (`IAudio`): `Load` (muestras en coma flotante, mono o estéreo, a cualquier frecuencia) o `LoadWav` (del
   paquete), `Play` con ganancia y panorama, y `Loop` con ganancia, tono y panorama en vivo (para un motor). El host lo
   mezcla todo bajo el volumen de Opciones → Asistente → General; el dispositivo solo se abre mientras suena algo. Con el

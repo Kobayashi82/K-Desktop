@@ -115,7 +115,26 @@ public sealed class MyAssistant : IAssistant
         return GestureOutcome.NotPerformed;
     }
 
-    public void SetState(AssistantState state) { }
+    // What the module is doing (listening, thinking, speaking…) and with what: detail.Activity says it is searching the
+    // internet, reading a page, looking at the screen…, and detail.Text says so in its language («Buscando en internet»).
+    public void SetState(AssistantState state, StateDetail detail)
+    {
+        _color = state switch
+        {
+            AssistantState.Listening => Colors.MediumSeaGreen,
+            AssistantState.Thinking or AssistantState.Busy or AssistantState.AwaitingConfirmation => Colors.SteelBlue,
+            AssistantState.ThinkingHard => Colors.DarkSlateBlue,
+            AssistantState.LoadingBrain => Colors.SlateGray,
+            _ => Colors.MediumPurple,
+        };
+        // No brain: a shrug (here, a red flash) right before it says so.
+        if (state == AssistantState.NoBrain) Flash(Colors.IndianRed);
+        _dirty = true;
+        _host.RequestTick();
+    }
+
+    // The states of SDK 1.12 and earlier only; the host calls the one above.
+    public void SetState(AssistantState state) => SetState(state, StateDetail.None);
 
     public void OnVoiceLevel(double level) { }
 
