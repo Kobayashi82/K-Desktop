@@ -54,6 +54,8 @@
     { "say": "what is the weather in Bilbao?", "expect": { "tool": "weather", "answerContains": ["Bilbao"] } },
     { "say": "will I need an umbrella tomorrow?", "expect": { "tool": "weather" } },
     { "say": "how many miles is 42 kilometers?", "expect": { "tool": "convert", "answerContains": ["26"] } },
-    { "say": "how much are 20 pounds in euros?", "expect": { "tool": "convert" } }
+    { "say": "how much are 20 pounds in euros?", "expect": { "tool": "convert" } },
+    { "say": "what does my rental contract say about the deposit?", "expect": { "tool": "search_knowledge" } },
+    { "say": "according to my notes, what is photosynthesis?", "expect": { "tool": "search_knowledge" } }
   ]
 }

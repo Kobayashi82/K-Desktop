@@ -52,6 +52,11 @@ public partial class App
         ["learn"] = Config.Settings.AssistantMemoryLearn,
         ["askBefore"] = Config.Settings.AssistantAskBefore,
         ["place"] = Config.Settings.AssistantHomePlace,
+        ["knowledge"] = new JsonObject
+        {
+            ["folders"] = new JsonArray([.. Config.Settings.AssistantKnowledgeFolders.Select(f => (JsonNode)f)]),
+            ["ocr"] = Config.Settings.AssistantKnowledgeOcr,
+        },
         ["settings"] = new JsonObject(Config.Settings.AssistantToolSettings.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p =>
             KeyValuePair.Create(p.Key, (JsonNode?)new JsonObject { ["enabled"] = p.Value.Enabled, ["risk"] = p.Value.Risk }))),
         // The process only gets the hash of the key.

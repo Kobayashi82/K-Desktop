@@ -22,7 +22,17 @@ internal sealed class ModuleMeaning(KDesktopLink link) : IMeaning
     private readonly ConcurrentDictionary<string, (TaskCompletionSource<MeaningVectors?> Answer, int Count)> _waiting = new(StringComparer.Ordinal);
     private int _next;
 
-    public async Task<MeaningVectors?> EmbedAsync(IReadOnlyList<string> texts, bool keep, CancellationToken cancellationToken)
+    /// <summary>For pieces of documents (stage 19): a few of them take K-Desktop some seconds, more while it answers the voice.</summary>
+    private static readonly TimeSpan DocumentWait = TimeSpan.FromSeconds(60);
+
+    public Task<MeaningVectors?> EmbedAsync(IReadOnlyList<string> texts, bool keep, CancellationToken cancellationToken) =>
+        EmbedAsync(texts, keep, null, null, keep ? KeptWait : OrderWait, cancellationToken);
+
+    /// <summary>Vectors to find documents with (stage 19): <c>query</c> or <c>document</c>, of <paramref name="size"/> numbers.</summary>
+    public Task<MeaningVectors?> EmbedForSearchAsync(IReadOnlyList<string> texts, bool document, int size, CancellationToken cancellationToken) =>
+        EmbedAsync(texts, false, document ? EmbedMessage.Document : EmbedMessage.Query, size, document ? DocumentWait : OrderWait, cancellationToken);
+
+    private async Task<MeaningVectors?> EmbedAsync(IReadOnlyList<string> texts, bool keep, string? use, int? size, TimeSpan wait, CancellationToken cancellationToken)
     {
         if (texts.Count == 0) return null;
         var id = "e-" + Interlocked.Increment(ref _next).ToString(System.Globalization.CultureInfo.InvariantCulture);
@@ -30,8 +40,8 @@ internal sealed class ModuleMeaning(KDesktopLink link) : IMeaning
         _waiting[id] = (answer, texts.Count);
         try
         {
-            if (!link.Send(new EmbedMessage(id, texts, keep ? true : null))) return null;
-            using var timeout = new CancellationTokenSource(keep ? KeptWait : OrderWait);
+            if (!link.Send(new EmbedMessage(id, texts, keep ? true : null, use, size))) return null;
+            using var timeout = new CancellationTokenSource(wait);
             using (timeout.Token.Register(() => answer.TrySetResult(null)))
             using (cancellationToken.Register(() => answer.TrySetCanceled(cancellationToken)))
             {
@@ -65,13 +75,15 @@ internal sealed class ModuleMeaning(KDesktopLink link) : IMeaning
 }
 
 /// <summary>
-/// The meaning for the tools (read_file with a long document, stage 14.3): the same as the conversation's, once it exists
-/// (the tools are made before it).
+/// The meaning for the tools (read_file with a long document, stage 14.3; the user's documents, stage 19): the same as the
+/// conversation's, once it exists (the tools are made before it).
 /// </summary>
 internal sealed class ToolsMeaning : KDesktop.Assistant.Tools.Builtin.ITextMeaning
 {
-    public IMeaning? Inner { get; set; }
+    public ModuleMeaning? Inner { get; set; }
 
-    public async Task<IReadOnlyList<float[]>?> EmbedAsync(IReadOnlyList<string> texts, CancellationToken cancellationToken) =>
-        Inner is { } inner && await inner.EmbedAsync(texts, false, cancellationToken).ConfigureAwait(false) is { } vectors ? vectors.Vectors : null;
+    public async Task<KDesktop.Assistant.Tools.Builtin.TextVectors?> EmbedAsync(IReadOnlyList<string> texts, KDesktop.Core.Voice.EmbedUse use, CancellationToken cancellationToken) =>
+        Inner is { } inner && await inner.EmbedForSearchAsync(texts, use == KDesktop.Core.Voice.EmbedUse.Document, KDesktop.Assistant.Tools.Builtin.LongText.Dimensions, cancellationToken).ConfigureAwait(false) is { } vectors
+            ? new KDesktop.Assistant.Tools.Builtin.TextVectors(vectors.Model, vectors.Vectors)
+            : null;
 }

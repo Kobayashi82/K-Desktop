@@ -26,6 +26,7 @@ public static class ToolActivities
         ["read_file"] = AssistantActivity.Files,
         ["delete_file"] = AssistantActivity.Files,
         ["move_file"] = AssistantActivity.Files,
+        ["search_knowledge"] = AssistantActivity.Files,
         ["save_note"] = AssistantActivity.Notes,
         ["find_notes"] = AssistantActivity.Notes,
         ["remember"] = AssistantActivity.Memory,

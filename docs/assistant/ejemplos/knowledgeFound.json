@@ -1,0 +1,14 @@
+{
+  "t": "knowledgeFound",
+  "text": "¿cuánto pagué de luz en octubre?",
+  "hits": [
+    {
+      "path": "D:\\Documentos\\Facturas\\2026\\luz-octubre.pdf",
+      "page": 1,
+      "text": "Total a pagar: 64,32 €. Periodo de facturación: 01/10/2026 - 31/10/2026.",
+      "score": 0.82
+    }
+  ],
+  "how": "mixed",
+  "milliseconds": 34
+}

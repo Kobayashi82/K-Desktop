@@ -330,7 +330,7 @@ public partial class AssistantToolsSection : UserControl
         ["run_command"] = "commands", ["find_command"] = "commands", ["describe_command"] = "commands", ["add_voice_phrase"] = "commands", ["run_event"] = "commands",
         ["get_time"] = "time", ["set_timer"] = "time", ["cancel_timer"] = "time", ["notify_when"] = "time", ["stop_watching"] = "time", ["date_math"] = "time", ["calculate"] = "time",
         ["save_note"] = "notes", ["find_notes"] = "notes", ["remember"] = "notes", ["forget"] = "notes",
-        ["find_files"] = "files", ["open_file"] = "files", ["read_file"] = "files", ["delete_file"] = "files", ["move_file"] = "files",
+        ["find_files"] = "files", ["open_file"] = "files", ["read_file"] = "files", ["delete_file"] = "files", ["move_file"] = "files", ["search_knowledge"] = "files",
         ["open_web"] = "web", ["search_web"] = "web", ["look_up_web"] = "web", ["read_web"] = "web",
         ["look_at_screen"] = "screen", ["transform_text"] = "screen",
         ["open_app"] = "pc", ["control_app"] = "pc", ["end_process"] = "pc", ["pc_status"] = "pc", ["free_brain"] = "pc",

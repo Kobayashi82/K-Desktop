@@ -54,6 +54,8 @@
     { "say": "¿qué tiempo hace en Bilbao?", "expect": { "tool": "weather", "answerContains": ["Bilbao"] } },
     { "say": "¿me hará falta paraguas mañana?", "expect": { "tool": "weather" } },
     { "say": "¿cuántas millas son 42 kilómetros?", "expect": { "tool": "convert", "answerContains": ["26"] } },
-    { "say": "¿cuánto son 20 libras en euros?", "expect": { "tool": "convert" } }
+    { "say": "¿cuánto son 20 libras en euros?", "expect": { "tool": "convert" } },
+    { "say": "¿qué dice mi contrato de alquiler sobre la fianza?", "expect": { "tool": "search_knowledge" } },
+    { "say": "según mis apuntes, ¿qué es la fotosíntesis?", "expect": { "tool": "search_knowledge" } }
   ]
 }

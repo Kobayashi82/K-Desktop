@@ -1,0 +1,21 @@
+{
+  "t": "knowledgeFiles",
+  "folder": "D:\\Documentos\\Facturas",
+  "files": [
+    {
+      "path": "D:\\Documentos\\Facturas\\2026\\luz-octubre.pdf",
+      "state": "ready",
+      "pieces": 3,
+      "pages": 2,
+      "ocr": true
+    },
+    {
+      "path": "D:\\Documentos\\Facturas\\2026\\agua.pdf",
+      "state": "waiting",
+      "pieces": 0,
+      "pages": 0,
+      "ocr": false
+    }
+  ],
+  "total": 1300
+}

@@ -1104,6 +1104,7 @@
             <local:VoiceProfilesSection Tag="speech/profiles" />
             <local:AssistantMemorySection Tag="memory" />
             <local:AssistantNotesSection Tag="notes" />
+            <local:AssistantKnowledgeSection Tag="knowledge" />
             <local:AssistantToolsSection Tag="tools" Part="tools" />
             <local:AssistantToolsSection Tag="tools/builtin" Part="tools/builtin" />
             <local:AssistantToolsSection x:Name="SubjectSection" Tag="tools/subject" Part="tools/subject" />

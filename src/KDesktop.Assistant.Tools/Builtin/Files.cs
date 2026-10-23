@@ -404,7 +404,7 @@ public sealed class FileSearch(IFileIndex? index = null, Func<IReadOnlyList<stri
         name.StartsWith('.') || name.StartsWith('~') || name.Equals("desktop.ini", StringComparison.OrdinalIgnoreCase) || name.Equals("thumbs.db", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Where programs keep their own things: never walked into, and nothing from there out of the index.</summary>
-    private static bool IsProgramsFolder(string name) => name.StartsWith('.') || Skipped.Contains(name);
+    internal static bool IsProgramsFolder(string name) => name.StartsWith('.') || Skipped.Contains(name);
 
     /// <summary>Through the folders, shallow first, within the budget; what fits the kind, the date and (if any) the words.</summary>
     private static List<FoundFile> Walk(IReadOnlyList<string> roots, FileQuery query, CancellationToken cancellationToken)

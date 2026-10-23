@@ -5,6 +5,19 @@ using Microsoft.ML.Tokenizers;
 
 namespace KDesktop.Core.Voice;
 
+/// <summary>What the vectors are for: each use has EmbeddingGemma's own prompt and length.</summary>
+public enum EmbedUse
+{
+    /// <summary>Short texts compared with each other (orders, command names, tool examples): <see cref="TextEmbedder.Prompt"/>, 64 tokens.</summary>
+    Similarity,
+
+    /// <summary>A question to find documents with (stage 19): 128 tokens.</summary>
+    Query,
+
+    /// <summary>A piece of a document to be found (stage 19): 512 tokens.</summary>
+    Document,
+}
+
 /// <summary>
 /// Text → meaning, with EmbeddingGemma 300M: a 768-number vector per text, and texts that mean the same point the same
 /// way («limpia la papelera» and "Vaciar Papelera", in any language). Its own SentencePiece tokenizer
@@ -20,12 +33,21 @@ public sealed class TextEmbedder : IDisposable
     /// </summary>
     public const string Prompt = "task: sentence similarity | query: ";
 
+    /// <summary>EmbeddingGemma's prompts for finding documents: the question, and the piece to be found.</summary>
+    public const string QueryPrompt = "task: search result | query: ";
+
+    public const string DocumentPrompt = "title: none | text: ";
+
     public const int Size = 768;
 
     /// <summary>Texts per run (they are padded to the longest one).</summary>
     private const int Batch = 16;
 
-    private const int MaxTokens = 64;
+    /// <summary>
+    /// Pieces of documents per run: each run holds the model, and an order of the voice waits for it, so they go a few
+    /// at a time.
+    /// </summary>
+    private const int DocumentBatch = 4;
 
     private readonly object _gate = new();
     private readonly Timer _unloadTimer;
@@ -50,26 +72,32 @@ public sealed class TextEmbedder : IDisposable
     }
 
     /// <summary>The token ids of a text as the model sees it (the prompt included), for the diagnostics.</summary>
-    public IReadOnlyList<int> Tokens(string text)
+    public IReadOnlyList<int> Tokens(string text, EmbedUse use = EmbedUse.Similarity)
     {
         lock (_gate)
         {
             EnsureLoaded();
-            return Encode(text);
+            return Encode(text, use);
         }
     }
 
-    /// <summary>One unit-length vector per text (<see cref="Prompt"/> is added here).</summary>
-    public float[][] Embed(IReadOnlyList<string> texts)
+    /// <summary>
+    /// One unit-length vector per text (the prompt of <paramref name="use"/> is added here). A <paramref name="size"/>
+    /// under <see cref="Size"/> keeps only the first numbers (EmbeddingGemma is trained for it: Matryoshka), made
+    /// unit-length again. The model is held one run at a time, so other texts can go in between.
+    /// </summary>
+    public float[][] Embed(IReadOnlyList<string> texts, EmbedUse use = EmbedUse.Similarity, int size = Size)
     {
         var result = new float[texts.Count][];
         if (texts.Count == 0) return result;
-        lock (_gate)
+        size = Math.Clamp(size, 32, Size);
+        var batch = use == EmbedUse.Document ? DocumentBatch : Batch;
+        for (var start = 0; start < texts.Count; start += batch)
         {
-            var session = EnsureLoaded();
-            for (var start = 0; start < texts.Count; start += Batch)
+            lock (_gate)
             {
-                var ids = texts.Skip(start).Take(Batch).Select(Encode).ToList();
+                var session = EnsureLoaded();
+                var ids = texts.Skip(start).Take(batch).Select(t => Encode(t, use)).ToList();
                 var length = ids.Max(i => i.Count);
                 var inputIds = new long[ids.Count * length];
                 var mask = new long[ids.Count * length];
@@ -87,9 +115,9 @@ public sealed class TextEmbedder : IDisposable
                     ],
                     ["sentence_embedding"]);
                 var vectors = outputs[0].AsEnumerable<float>().ToArray();
-                for (var b = 0; b < ids.Count; b++) result[start + b] = Normalize(vectors.AsSpan(b * Size, Size));
+                for (var b = 0; b < ids.Count; b++) result[start + b] = Normalize(vectors.AsSpan(b * Size, size));
+                _unloadTimer.Change(IdleUnload, Timeout.InfiniteTimeSpan);
             }
-            _unloadTimer.Change(IdleUnload, Timeout.InfiniteTimeSpan);
         }
         return result;
     }
@@ -102,9 +130,15 @@ public sealed class TextEmbedder : IDisposable
         return sum;
     }
 
-    private List<int> Encode(string text)
+    private List<int> Encode(string text, EmbedUse use)
     {
-        var ids = _tokenizer!.EncodeToIds(Prompt + text.Trim(), MaxTokens - 1, out _, out _).ToList();
+        var (prompt, tokens) = use switch
+        {
+            EmbedUse.Query => (QueryPrompt, 128),
+            EmbedUse.Document => (DocumentPrompt, 512),
+            _ => (Prompt, 64),
+        };
+        var ids = _tokenizer!.EncodeToIds(prompt + text.Trim(), tokens - 1, out _, out _).ToList();
         if (ids.Count == 0 || ids[^1] != _tokenizer.EndOfSentenceId) ids.Add(_tokenizer.EndOfSentenceId);
         return ids;
     }

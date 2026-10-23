@@ -1,0 +1,20 @@
+{
+  "t": "knowledgeState",
+  "phase": "indexing",
+  "files": 1300,
+  "done": 412,
+  "pieces": 2871,
+  "folders": [
+    {
+      "path": "D:\\Documentos\\Facturas",
+      "online": true,
+      "files": 1300,
+      "done": 412,
+      "pieces": 2871,
+      "failed": 3
+    }
+  ],
+  "current": "D:\\Documentos\\Facturas\\2026\\luz-octubre.pdf",
+  "wordsOnly": false,
+  "bytes": 5242880
+}

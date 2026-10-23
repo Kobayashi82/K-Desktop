@@ -153,7 +153,7 @@ Dirección: **A→K** del asistente a K-Desktop; **K→A** de K-Desktop al asist
 |---|---|---|---|
 | `window` | A→K | `id`, `hwnd`, `op` (`move`, `minimize`, `maximize`, `restore`, `activate`), `rect` (para `move`: su parte visible) | Lo que el proceso del asistente no puede hacer él: una ventana de un proceso de administrador, o traer una ventana delante (Windows solo deja a K-Desktop). Solo ventanas de nivel superior de otros programas; nunca las de K-Desktop ni el escritorio. Los `move` de un arrastre llegan como mucho cada 33 ms (el último gana); K-Desktop los aplica en orden. El SDK lo hace solo en `TryMove` y `TryCommand` (SDK 1.3) |
 | `windowDone` | K→A | `id`, `ok` (falso si no está permitido o no se pudo) | Resultado |
-| `embed` | A→K | `id`, `texts` (lista, máx. 64), `keep` (opcional) | Vectores de significado con el EmbeddingGemma que K-Desktop ya carga para la voz (una sola copia del modelo en memoria). Con `keep: true` (las frases de ejemplo de las herramientas, que se piden una y otra vez) K-Desktop guarda sus vectores en disco (`Modelsembeddinggemmaassistant.bin`); las órdenes nunca se guardan. El proceso espera 5 s por una orden y 30 s por las frases; sin respuesta, elige las herramientas por palabras |
+| `embed` | A→K | `id`, `texts` (lista, máx. 64), `keep` (opcional), `use` (opcional: `query` o `document`), `size` (opcional) | Vectores de significado con el EmbeddingGemma que K-Desktop ya carga para la voz (una sola copia del modelo en memoria). Con `keep: true` (las frases de ejemplo de las herramientas, que se piden una y otra vez) K-Desktop guarda sus vectores en disco (`Models\embeddinggemma\assistant.bin`); las órdenes nunca se guardan. El proceso espera 5 s por una orden y 30 s por las frases; sin respuesta, elige las herramientas por palabras. Desde la 5.0.186 (fase 19), `use` pide los vectores para buscar documentos: `query` (una pregunta, 128 tokens) o `document` (un trozo de un documento, 512 tokens), cada uno con el prompt de EmbeddingGemma para eso; `size` deja solo los primeros números (Matryoshka: 768, 512, 256 o 128; los documentos usan 256). K-Desktop calcula los trozos de cuatro en cuatro, así una orden de voz no espera a un documento entero |
 | `embedded` | K→A | `id`, `vectors` (lista de listas de números), `model` | Resultado (vectores normalizados, en el orden de `texts`). `model` dice qué modelo los hizo: vectores de modelos distintos no se comparan. Si K-Desktop no tiene el modelo: `error` con `code: "noModel"` y el `id` de la petición |
 | `keys` | A→K | `assistant`, `capture` (lista de teclas, nombres de `Key` de WPF: `Up`, `A`, `Escape`…; vacía = soltar) | Que K-Desktop se trague esas teclas cuando se pulsan sin Ctrl, Alt ni Win (así los atajos siguen funcionando) y se las reenvíe a ese asistente (juego del Lander). Los modificadores no se capturan. En pausa, o si el asistente sale o el proceso se cae, K-Desktop las suelta solo |
 | `key` | K→A | `assistant`, `key`, `down` | Una tecla capturada bajó o subió (la repetición automática no se manda) |
@@ -189,6 +189,22 @@ pantalla completa, solo el bocadillo—; también en la bienvenida). Sin cuerpo 
 |---|---|---|---|
 | `voice` | K→A | `op` (`state`, `test`, `stop`, `unload`), `text` (para `test`), `assistant` (para `test`: quién lo dice; sin él, K-Desktop, con su voz propia), `mood` (para `test`: `happy`, `error` o el que use el asistente; sin él, sin ánimo) | Preguntar cómo está la voz, decir una frase de prueba (con el bocadillo del asistente si está en el escritorio; suena aunque haya algo a pantalla completa), pararla o soltar Kokoro, Piper y espeak-ng de la memoria (antes de borrar sus archivos) |
 | `voiceState` | A→K | `engine` (el que habla de verdad: `kokoro`, `piper`, `windows`, `beeps`, `off`), `windowsVoices` (las de Windows para el idioma), `kokoroLoaded`, `windowsVoicesOf` (las de Windows de cada idioma, para un asistente que habla en el suyo), `piperLoaded` (la clave de la voz de Piper en memoria, o nada) | Tras cada `voice` `state` y cada cambio de la sección `voice` |
+
+### Lo que sabe (fase 19)
+
+Opciones → Módulo Asistente → «Lo que sabe»: carpetas de documentos del usuario (nunca un disco entero) que el proceso del
+asistente lee una vez, trocea, pasa a vectores (`embed` con `use: document`) y guarda en `Assistant\Knowledge\` (un archivo
+por documento; fuera de la copia de seguridad: se rehace). Al arrancar compara fecha y tamaño de cada archivo y solo lee lo
+cambiado; mientras está abierto, vigila las carpetas. Para con un juego a pantalla completa, con K-Desktop en pausa y mientras
+un asistente contesta. Las carpetas y si se leen imágenes con el OCR van en `config` `tools` → `knowledge` (`folders`, `ocr`).
+Los asistentes buscan con la herramienta `search_knowledge`.
+
+| `t` | Dir. | Campos | Qué es |
+|---|---|---|---|
+| `knowledge` | K→A | `op` (`state`, `files`, `search`, `rebuild`, `clear`), `folder` (para `files`), `text` (para `search`) | Preguntar cómo va, los archivos de una carpeta, probar una búsqueda, leerlo todo otra vez u olvidar lo leído |
+| `knowledgeState` | A→K | `phase` (`loading`, `scanning`, `indexing`, `paused`, `ready`, `off`), `files`, `done`, `pieces`, `folders` (`path`, `online`, `files`, `done`, `pieces`, `failed`), `current`, `paused` (`game`, `kdesktop`, `busy`), `wordsOnly` (sin EmbeddingGemma), `bytes` | Cómo va: cuando cambia (dos veces por segundo como mucho) y tras cada `knowledge` |
+| `knowledgeFiles` | A→K | `folder`, `files` (`path`, `state` —`ready`, `empty`, `failed`, `waiting`—, `pieces`, `pages`, `ocr`), `total` | Los archivos de una carpeta (los 1000 primeros) |
+| `knowledgeFound` | A→K | `text`, `hits` (`path`, `page`, `text`, `score`), `how` (`mixed` o `words`), `milliseconds` | Lo que encontró una búsqueda de prueba |
 
 ### Lo propio de cada asistente
 

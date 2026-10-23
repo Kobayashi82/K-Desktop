@@ -4,5 +4,7 @@
   "texts": [
     "¿cuánto disco me queda?",
     "avísame en diez minutos"
-  ]
+  ],
+  "use": "query",
+  "size": 256
 }

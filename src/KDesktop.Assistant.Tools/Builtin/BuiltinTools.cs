@@ -1,3 +1,5 @@
+using KDesktop.Assistant.Tools.Knowledge;
+
 namespace KDesktop.Assistant.Tools.Builtin;
 
 /// <summary>The tools that come with the module (plan §6.2, from Kobii), and the stores they keep.</summary>
@@ -5,8 +7,11 @@ public sealed class BuiltinTools : IDisposable
 {
     /// <param name="folder">Where the module keeps its data (<c>&lt;data&gt;\Assistant</c>).</param>
     /// <param name="probe">What the watches look at; null: the real PC.</param>
-    public BuiltinTools(string folder, TimeProvider? time = null, IWatchProbe? probe = null)
+    /// <param name="meaning">EmbeddingGemma for the user's documents (stage 19); null: found by their words.</param>
+    /// <param name="ocr">The OCR of Windows for their pictures and scanned pages; null: none.</param>
+    public BuiltinTools(string folder, TimeProvider? time = null, IWatchProbe? probe = null, ITextMeaning? meaning = null, IScreenReader? ocr = null)
     {
+        Knowledge = new KnowledgeBase(Path.Combine(folder, "Knowledge"), meaning, ocr);
         Timers = new TimerStore(Path.Combine(folder, "timers.json"), time);
         Notes = new NoteStore(Path.Combine(folder, "notes.json"));
         Memory = new MemoryStore(Path.Combine(folder, "memory.json"), time);
@@ -20,6 +25,9 @@ public sealed class BuiltinTools : IDisposable
 
     /// <summary>Where the user is, as written in Options (Assistant module → General), for the weather; empty: Windows' location.</summary>
     public string HomePlace { get; set; } = string.Empty;
+
+    /// <summary>What the assistants know: the user's folders of documents (stage 19).</summary>
+    public KnowledgeBase Knowledge { get; }
 
     public TimerStore Timers { get; }
 
@@ -67,6 +75,7 @@ public sealed class BuiltinTools : IDisposable
         registry.Add(new StopWatchingTool(Watches));
         registry.Add(new WeatherTool(() => HomePlace));
         registry.Add(new ConvertTool(Rates));
+        registry.Add(new SearchKnowledgeTool(Knowledge));
     }
 
     public void Dispose()
@@ -74,5 +83,6 @@ public sealed class BuiltinTools : IDisposable
         Timers.Dispose();
         Watches.Dispose();
         Rates.Dispose();
+        Knowledge.Dispose();
     }
 }

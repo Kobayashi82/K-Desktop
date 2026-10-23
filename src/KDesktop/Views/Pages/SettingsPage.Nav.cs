@@ -64,6 +64,7 @@ public partial class SettingsPage
             new("speech", "PersonVoice24", "settings.nav.assistantVoice"),
             new("memory", "BookInformation24", "settings.nav.memory"),
             new("notes", "Note24", "settings.nav.notes"),
+            new("knowledge", "Library24", "settings.nav.knowledge"),
         ]),
     ];
 

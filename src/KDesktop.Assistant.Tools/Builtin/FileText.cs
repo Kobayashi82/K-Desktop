@@ -91,18 +91,35 @@ public static class FileText
         }
     }
 
-    private static FileContent Pdf(string path)
+    private static FileContent Pdf(string path) => Join(PdfPages(path));
+
+    /// <summary>The text of each page of a PDF, in order (empty for a scanned one); up to <see cref="MaxChars"/> in all.</summary>
+    internal static List<string> PdfPages(string path)
     {
         using var document = PdfDocument.Open(path);
-        var text = new StringBuilder();
-        var starts = new List<int>();
+        var pages = new List<string>();
+        var total = 0;
         foreach (var page in document.GetPages())
         {
-            starts.Add(text.Length);
-            text.Append(ContentOrderTextExtractor.GetText(page).Trim()).Append("\n\n");
-            if (text.Length > MaxChars) break;
+            var text = ContentOrderTextExtractor.GetText(page).Trim();
+            pages.Add(text);
+            total += text.Length + 2;
+            if (total > MaxChars) break;
         }
-        return new FileContent(Cap(text.ToString()), starts);
+        return pages;
+    }
+
+    /// <summary>Pages one after another, a blank line between them, and where each one starts.</summary>
+    internal static FileContent Join(IReadOnlyList<string> pages)
+    {
+        var text = new StringBuilder();
+        var starts = new List<int>();
+        foreach (var page in pages)
+        {
+            starts.Add(text.Length);
+            text.Append(page).Append("\n\n");
+        }
+        return new FileContent(Cap(text.ToString()), starts.Count > 0 ? starts : [0]);
     }
 
     /// <summary>A part of an Office file: its paragraphs (<paramref name="paragraph"/>) with the text of their runs.</summary>

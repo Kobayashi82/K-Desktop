@@ -1,0 +1,104 @@
+<UserControl x:Class="KDesktop.Views.Pages.AssistantKnowledgeSection"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:l="clr-namespace:KDesktop.Localization">
+    <!-- Options → Assistant → «Lo que sabe» (stage 19.4): the folders of documents the assistants know, how far they are read,
+         what was read of each one, a search to try; read it all again or forget it (DataContext: the settings). The assistant
+         process reads them and keeps the index; this asks and shows. -->
+    <StackPanel>
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr knowledgeOptions.title}" />
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr knowledgeOptions.intro}" />
+                    </StackPanel>
+                    <ui:Button Grid.Column="1" VerticalAlignment="Center" Appearance="Primary" Icon="{ui:SymbolIcon FolderAdd24}"
+                               Content="{l:Tr knowledgeOptions.add}" Click="OnAdd" />
+                </Grid>
+
+                <!-- The module is off, or its process is not running -->
+                <Border x:Name="OffBox" Style="{StaticResource InfoBox}" Margin="0,0,0,10" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <TextBlock x:Name="OffText" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        <ui:Button x:Name="GoGeneral" Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainOptions.goGeneral}" Click="OnGoGeneral" />
+                    </Grid>
+                </Border>
+
+                <!-- How it goes -->
+                <StackPanel x:Name="StateBox" Margin="0,4,0,6">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <ui:SymbolIcon x:Name="StateIcon" Symbol="BookOpen24" FontSize="20" Margin="0,0,10,0" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource Kd.AccentText}" />
+                        <StackPanel Grid.Column="1">
+                            <TextBlock x:Name="StateText" FontWeight="SemiBold" FontSize="14" TextWrapping="Wrap"
+                                       Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock x:Name="DetailText" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                        </StackPanel>
+                    </Grid>
+                    <ProgressBar x:Name="Progress" Height="4" Margin="0,10,0,0" Maximum="1" />
+                </StackPanel>
+                <Border x:Name="WordsOnlyBox" Style="{StaticResource InfoBox}" Margin="0,4,0,6" Visibility="Collapsed">
+                    <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{l:Tr knowledgeOptions.wordsOnly}" />
+                </Border>
+                <TextBlock x:Name="ProblemText" Margin="0,6,0,0" TextWrapping="Wrap" Visibility="Collapsed" Foreground="{DynamicResource Kd.Danger}" />
+
+                <TextBlock x:Name="EmptyText" Style="{StaticResource Caption}" Margin="0,8,0,4" Text="{l:Tr knowledgeOptions.empty}" />
+                <Border x:Name="FolderPanel" Style="{StaticResource ListPanel}" Visibility="Collapsed">
+                    <StackPanel x:Name="FolderRows" />
+                </Border>
+
+                <Grid Style="{StaticResource SettingRow}" Margin="0,12,0,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr knowledgeOptions.ocr}" />
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr knowledgeOptions.ocrHint}" />
+                    </StackPanel>
+                    <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AssistantKnowledgeOcr}" AutomationProperties.Name="{l:Tr knowledgeOptions.ocr}" />
+                </Grid>
+
+                <StackPanel x:Name="Actions" Orientation="Horizontal" Margin="0,14,0,0">
+                    <ui:Button x:Name="RebuildButton" Icon="{ui:SymbolIcon ArrowSync24}" Content="{l:Tr knowledgeOptions.rebuild}" Click="OnRebuild" />
+                    <ui:Button x:Name="ForgetButton" Margin="8,0,0,0" Icon="{ui:SymbolIcon Delete24}" Content="{l:Tr knowledgeOptions.forget}" Click="OnForget" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- The files of a folder («Ver archivos») -->
+        <Border x:Name="FilesCard" Style="{StaticResource Card}" Visibility="Collapsed">
+            <StackPanel>
+                <Grid Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock x:Name="FilesTitle" Style="{StaticResource CardTitle}" Margin="0,0,0,2" TextTrimming="CharacterEllipsis" />
+                        <TextBlock x:Name="FilesCaption" Style="{StaticResource Caption}" />
+                    </StackPanel>
+                    <ui:Button Grid.Column="1" VerticalAlignment="Top" Icon="{ui:SymbolIcon Dismiss24}" Content="{l:Tr knowledgeOptions.close}" Click="OnCloseFiles" />
+                </Grid>
+                <Border Style="{StaticResource ListPanel}">
+                    <StackPanel x:Name="FileRows" />
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <!-- A search to try: what an assistant would get -->
+        <Border x:Name="TryCard" Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource CardTitle}" Margin="0,0,0,2" Text="{l:Tr knowledgeOptions.tryTitle}" />
+                <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,10" Text="{l:Tr knowledgeOptions.tryHint}" />
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <ui:TextBox x:Name="SearchBox" MaxLength="300" PlaceholderText="{l:Tr knowledgeOptions.tryPlaceholder}" ClearButtonEnabled="False"
+                                AutomationProperties.Name="{l:Tr knowledgeOptions.tryTitle}" PreviewKeyDown="OnSearchKey" />
+                    <ui:Button x:Name="SearchButton" Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon Search24}" Content="{l:Tr knowledgeOptions.search}" Click="OnSearch" />
+                </Grid>
+                <TextBlock x:Name="FoundCaption" Style="{StaticResource Caption}" Margin="0,10,0,0" Visibility="Collapsed" />
+                <StackPanel x:Name="FoundRows" />
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>

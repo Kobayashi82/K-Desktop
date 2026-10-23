@@ -30,9 +30,21 @@ public sealed class AssistantMeaning(TextEmbedder embedder)
         if (request.Texts.Count > EmbedMessage.MaxTexts)
             return new ErrorMessage("badRequest", $"Como mucho {EmbedMessage.MaxTexts} textos por «embed»", request.Id);
         if (!TextEmbedder.Available) return new ErrorMessage("noModel", "EmbeddingGemma no está descargado", request.Id);
+        var use = request.Use switch
+        {
+            EmbedMessage.Query => EmbedUse.Query,
+            EmbedMessage.Document => EmbedUse.Document,
+            null => EmbedUse.Similarity,
+            _ => (EmbedUse?)null,
+        };
+        if (use is null) return new ErrorMessage("badRequest", $"«use» desconocido: {request.Use}", request.Id);
+        var size = request.Size ?? TextEmbedder.Size;
         try
         {
-            return new EmbeddedMessage(request.Id, request.Keep == true ? Kept(request.Texts) : embedder.Embed(request.Texts), ModelName);
+            var vectors = request.Keep == true && use == EmbedUse.Similarity && size == TextEmbedder.Size
+                ? Kept(request.Texts)
+                : embedder.Embed(request.Texts, use.Value, size);
+            return new EmbeddedMessage(request.Id, vectors, ModelName);
         }
         catch (Exception ex)
         {

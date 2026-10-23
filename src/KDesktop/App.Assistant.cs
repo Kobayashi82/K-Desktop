@@ -71,6 +71,7 @@ public partial class App
                     ForgetAssistantBrain();
                     ForgetAssistantMemory();
                     ForgetAssistantNotes();
+                    ForgetAssistantKnowledge();
                     ForgetAssistantTools();
                     ForgetAssistantBench();
                     ForgetAssistantVoice();
@@ -119,6 +120,7 @@ public partial class App
             ForgetAssistantBrain();
             ForgetAssistantMemory();
             ForgetAssistantNotes();
+            ForgetAssistantKnowledge();
             ForgetAssistantTools();
             ForgetAssistantBench();
             ForgetAssistantVoice();
@@ -260,6 +262,15 @@ public partial class App
                 break;
             case NotesStateMessage notes:
                 OnAssistantNotes(notes);
+                break;
+            case KnowledgeStateMessage knowledge:
+                OnAssistantKnowledge(knowledge);
+                break;
+            case KnowledgeFilesMessage files:
+                AssistantKnowledgeFiles?.Invoke(files);
+                break;
+            case KnowledgeFoundMessage found:
+                AssistantKnowledgeFound?.Invoke(found);
                 break;
             case ToolsStateMessage tools:
                 OnAssistantTools(tools);

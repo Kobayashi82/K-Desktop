@@ -684,6 +684,15 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private bool _assistantMemoryLearn = true;
 
     /// <summary>
+    /// The folders of the user's documents the assistants know (stage 19, Options → Assistant → «Lo que sabe»): read once,
+    /// watched, searched with search_knowledge. Never a whole disk. Replaced whole.
+    /// </summary>
+    [ObservableProperty] private List<string> _assistantKnowledgeFolders = [];
+
+    /// <summary>Pictures and scanned PDF of those folders are read with the OCR of Windows (stage 19.2).</summary>
+    [ObservableProperty] private bool _assistantKnowledgeOcr = true;
+
+    /// <summary>
     /// The model of each assistant that has its own: assistant id → model (absent: the general one, also when the server
     /// does not have it). Replaced whole on every change (so it is saved).
     /// </summary>

@@ -54,6 +54,8 @@ internal sealed class AssistantSession : IDisposable
         if (Link is not null) Talk = new ModuleTalk(Link, Engine, Runtime, Brain!, Tools!, Commands!, Voice!, Personal, reactions!) { Choreography = choreography };
         if (Link is not null) Bench = new ModuleBench(Link, Brain!, Tools!, Talk!.Chooser, Commands!);
         if (Link is not null) Games = new ModuleGames(Brain!, Talk!.Service);
+        // Reading the user's documents waits for games, pauses and answers (stage 19).
+        if (Link is not null) Tools!.Builtin.Knowledge.WaitReason = new KnowledgePace(Talk!).WaitReason;
         if (Link is not null) Showcase = new ModuleShowcase(Link, Runtime, choreography, ReplayAsync);
     }
 
@@ -183,6 +185,9 @@ internal sealed class AssistantSession : IDisposable
                         return;
                     case NotesMessage notes when Tools is { } tools:
                         tools.OnNotes(notes);
+                        return;
+                    case KnowledgeMessage knowledge when Tools is { } tools:
+                        _ = tools.OnKnowledgeAsync(knowledge);
                         return;
                     case ToolsMessage request when Tools is { } tools:
                         _ = tools.OnToolsAsync(request);

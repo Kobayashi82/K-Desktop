@@ -5,11 +5,18 @@ using KDesktop.Core.Voice;
 
 namespace KDesktop.Assistant.Tools.Builtin;
 
-/// <summary>The meaning of texts as vectors (EmbeddingGemma in K-Desktop): one unit vector per text, or null without a model.</summary>
+/// <summary>
+/// The meaning of texts as vectors (EmbeddingGemma in K-Desktop) for finding pieces of documents: questions
+/// (<see cref="EmbedUse.Query"/>) and pieces (<see cref="EmbedUse.Document"/>), of <see cref="LongText.Dimensions"/>
+/// numbers. Null without a model or an answer in time.
+/// </summary>
 public interface ITextMeaning
 {
-    Task<IReadOnlyList<float[]>?> EmbedAsync(IReadOnlyList<string> texts, CancellationToken cancellationToken);
+    Task<TextVectors?> EmbedAsync(IReadOnlyList<string> texts, EmbedUse use, CancellationToken cancellationToken);
 }
+
+/// <summary>One unit vector per text, in order, and which model made them (vectors of different models do not compare).</summary>
+public sealed record TextVectors(string Model, IReadOnlyList<float[]> Vectors);
 
 /// <summary>A piece of a long text: where it starts, its page and its words.</summary>
 public sealed record TextChunk(int Index, int Start, int Page, string Text);
@@ -24,8 +31,14 @@ public static class LongText
 {
     public const int ChunkChars = 1200;
 
-    /// <summary>How many pieces the words pick before the meaning sorts them (all of them would take too long to embed).</summary>
-    private const int MeaningShortlist = 40;
+    /// <summary>The numbers of each vector of a piece or a question (EmbeddingGemma's first 256: Matryoshka).</summary>
+    public const int Dimensions = 256;
+
+    /// <summary>
+    /// How many pieces the words pick before the meaning sorts them: each whole piece takes EmbeddingGemma some 0,35 s
+    /// (all of them would take too long while the user waits).
+    /// </summary>
+    private const int MeaningShortlist = 24;
 
     /// <summary>The pieces of <paramref name="content"/>, in order.</summary>
     public static IReadOnlyList<TextChunk> Chunks(FileContent content)
@@ -98,23 +111,26 @@ public static class LongText
         var fits = Math.Max(1, budget / ChunkChars);
         if (chunks.Count <= fits) return chunks;
         var words = WordScores(chunks, question);
-        var shortlist = Enumerable.Range(0, chunks.Count).OrderByDescending(i => words[i]).Take(MeaningShortlist).ToList();
+        // The pieces with the question's words; when few have them, pieces spread across it fill the list (the meaning may find what the words do not).
+        var shortlist = Enumerable.Range(0, chunks.Count).Where(i => words[i] > 0).OrderByDescending(i => words[i]).Take(MeaningShortlist).ToList();
+        foreach (var piece in Spread(chunks, (MeaningShortlist - shortlist.Count) * ChunkChars))
+            if (shortlist.Count < MeaningShortlist && !shortlist.Contains(piece.Index)) shortlist.Add(piece.Index);
         var score = new double[chunks.Count];
         var top = Math.Max(1e-9, words.Max());
         foreach (var i in shortlist) score[i] = words[i] / top;
         if (meaning is not null)
         {
             var missing = shortlist.Where(i => !Vectors.ContainsKey((key, i))).ToList();
-            var asked = new List<string> { question };
-            asked.AddRange(missing.Select(i => chunks[i].Text));
-            var vectors = await meaning.EmbedAsync(asked, cancellationToken).ConfigureAwait(false);
-            if (vectors is { Count: > 0 } && vectors.Count == asked.Count)
+            var asked = await meaning.EmbedAsync([question], EmbedUse.Query, cancellationToken).ConfigureAwait(false);
+            var pieces = missing.Count == 0 || asked is null ? null
+                : await meaning.EmbedAsync([.. missing.Select(i => chunks[i].Text)], EmbedUse.Document, cancellationToken).ConfigureAwait(false);
+            if (asked is { Vectors.Count: 1 } && (missing.Count == 0 || pieces?.Vectors.Count == missing.Count))
             {
                 if (Vectors.Count > 4000) Vectors.Clear();
-                for (var j = 0; j < missing.Count; j++) Vectors[(key, missing[j])] = vectors[j + 1];
+                for (var j = 0; j < missing.Count; j++) Vectors[(key, missing[j])] = pieces!.Vectors[j];
                 // Words and meaning together: the meaning counts a bit more (a question in other words).
                 foreach (var i in shortlist)
-                    if (Vectors.TryGetValue((key, i), out var vector)) score[i] = 0.4 * score[i] + 0.6 * Math.Max(0, Dot(vectors[0], vector));
+                    if (Vectors.TryGetValue((key, i), out var vector)) score[i] = 0.4 * score[i] + 0.6 * Math.Max(0, Dot(asked.Vectors[0], vector));
             }
             else Log.Info("Asistente: sin significados para el documento: solo por palabras");
         }
@@ -124,8 +140,8 @@ public static class LongText
     /// <summary>How much each piece has of the question's words, the rare ones counting more.</summary>
     private static double[] WordScores(IReadOnlyList<TextChunk> chunks, string question)
     {
-        var wanted = TextSimilarity.Words(question).Where(w => w.Length > 2 || w.Any(char.IsDigit)).Distinct().ToList();
-        var pieces = chunks.Select(c => TextSimilarity.Words(c.Text).ToHashSet(StringComparer.Ordinal)).ToList();
+        var wanted = Terms(question).Distinct().ToList();
+        var pieces = chunks.Select(c => Terms(c.Text).ToHashSet(StringComparer.Ordinal)).ToList();
         var scores = new double[chunks.Count];
         foreach (var word in wanted)
         {
@@ -137,7 +153,10 @@ public static class LongText
         return scores;
     }
 
-    private static double Dot(float[] a, float[] b)
+    /// <summary>The words of a text that can find it: lower case and without accents, of 3 letters or more, or with a figure («2026», «a4»).</summary>
+    public static IEnumerable<string> Terms(string text) => TextSimilarity.Words(text).Where(w => w.Length > 2 || w.Any(char.IsDigit));
+
+    internal static double Dot(float[] a, float[] b)
     {
         var sum = 0.0;
         for (var i = 0; i < Math.Min(a.Length, b.Length); i++) sum += a[i] * b[i];

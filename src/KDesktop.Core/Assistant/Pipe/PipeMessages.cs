@@ -497,9 +497,18 @@ public sealed record ChatLineMessage(string Role, string Text, string Turn, bool
 /// </summary>
 /// <param name="Texts">At most <see cref="MaxTexts"/>.</param>
 /// <param name="Keep">Texts asked for again and again (the example phrases of the tools): K-Desktop keeps their vectors on disk.</param>
-public sealed record EmbedMessage(string Id, IReadOnlyList<string> Texts, bool? Keep = null) : PipeMessage
+/// <param name="Use">
+/// What for (stage 19): <c>query</c> (a question to find documents with) or <c>document</c> (a piece of one); absent:
+/// short texts compared with each other. Each has its own prompt and length; <c>keep</c> only goes with the last.
+/// </param>
+/// <param name="Size">Only the first numbers of each vector (EmbeddingGemma allows 768, 512, 256 or 128); absent: all.</param>
+public sealed record EmbedMessage(string Id, IReadOnlyList<string> Texts, bool? Keep = null, string? Use = null, int? Size = null) : PipeMessage
 {
     public const int MaxTexts = 64;
+
+    public const string Query = "query";
+
+    public const string Document = "document";
 
     public override string Type => "embed";
 }
@@ -545,6 +554,62 @@ public sealed record NotesMessage(string Op, string? Id = null, string? Text = n
 public sealed record NotesStateMessage(IReadOnlyList<NoteEntry> Items) : PipeMessage
 {
     public override string Type => "notesState";
+}
+
+// ── what the assistants know: the user's documents (stage 19) ───────────
+
+/// <summary>
+/// Options → Assistant → «Lo que sabe»: <c>state</c>, <c>files</c> (those of <paramref name="Folder"/>, answered with
+/// <c>knowledgeFiles</c>), <c>search</c> (<paramref name="Text"/>, answered with <c>knowledgeFound</c>), <c>rebuild</c>
+/// (read everything again) or <c>clear</c> (forget everything read). The folders come in <c>config</c> <c>tools</c>
+/// <c>knowledge</c>.
+/// </summary>
+public sealed record KnowledgeMessage(string Op, string? Folder = null, string? Text = null) : PipeMessage
+{
+    public override string Type => "knowledge";
+}
+
+/// <summary>A folder of the user's documents as the index has it.</summary>
+/// <param name="Online">It is there (a disk that is not plugged in keeps what was read from it).</param>
+/// <param name="Files">Files in it that can be read.</param>
+/// <param name="Done">Of those, read and up to date.</param>
+/// <param name="Pieces">Pieces of text found in them.</param>
+/// <param name="Failed">Files that could not be read (broken, protected, without text).</param>
+public sealed record KnowledgeFolderInfo(string Path, bool Online, int Files, int Done, int Pieces, int Failed);
+
+/// <summary>How the index is: whenever it changes, at most twice a second, and after a <c>knowledge</c> <c>state</c>.</summary>
+/// <param name="Phase"><c>loading</c> (what was read before), <c>scanning</c> (looking at the folders), <c>indexing</c>, <c>paused</c>, <c>ready</c> or <c>off</c> (no folders).</param>
+/// <param name="Current">The file being read now.</param>
+/// <param name="Paused">Why it waits: <c>game</c>, <c>kdesktop</c> (K-Desktop is paused) or <c>busy</c> (an assistant is answering).</param>
+/// <param name="WordsOnly">EmbeddingGemma is not there: found only by its words until it is.</param>
+/// <param name="Bytes">What the index takes on disk.</param>
+public sealed record KnowledgeStateMessage(string Phase, int Files, int Done, int Pieces, IReadOnlyList<KnowledgeFolderInfo> Folders,
+    string? Current = null, string? Paused = null, bool WordsOnly = false, long Bytes = 0) : PipeMessage
+{
+    public override string Type => "knowledgeState";
+}
+
+/// <summary>A file of a folder of documents.</summary>
+/// <param name="State"><c>ready</c>, <c>empty</c> (no text in it), <c>failed</c> (could not be read) or <c>waiting</c>.</param>
+/// <param name="Ocr">Some of its text was read from pictures (a scan, a photo).</param>
+public sealed record KnowledgeFileInfo(string Path, string State, int Pieces, int Pages, bool Ocr = false);
+
+/// <summary>The files of a folder (<c>knowledge</c> <c>files</c>), the first <see cref="Most"/>.</summary>
+public sealed record KnowledgeFilesMessage(string Folder, IReadOnlyList<KnowledgeFileInfo> Files, int Total) : PipeMessage
+{
+    public const int Most = 1000;
+
+    public override string Type => "knowledgeFiles";
+}
+
+/// <summary>A piece of a document that answers a search.</summary>
+public sealed record KnowledgeHitInfo(string Path, int Page, string Text, double Score);
+
+/// <summary>What a search of Options → «Lo que sabe» found (<c>knowledge</c> <c>search</c>).</summary>
+/// <param name="How"><c>mixed</c> (words and meaning) or <c>words</c>.</param>
+public sealed record KnowledgeFoundMessage(string Text, IReadOnlyList<KnowledgeHitInfo> Hits, string How, int Milliseconds) : PipeMessage
+{
+    public override string Type => "knowledgeFound";
 }
 
 // ── Tools: JSON, MCP and Options → Tools (stage 9) ───────────────────────
@@ -953,6 +1018,10 @@ public static class PipeJson
         ["memoryState"] = typeof(MemoryStateMessage),
         ["notes"] = typeof(NotesMessage),
         ["notesState"] = typeof(NotesStateMessage),
+        ["knowledge"] = typeof(KnowledgeMessage),
+        ["knowledgeState"] = typeof(KnowledgeStateMessage),
+        ["knowledgeFiles"] = typeof(KnowledgeFilesMessage),
+        ["knowledgeFound"] = typeof(KnowledgeFoundMessage),
         ["tools"] = typeof(ToolsMessage),
         ["toolsState"] = typeof(ToolsStateMessage),
         ["toolTest"] = typeof(ToolTestMessage),

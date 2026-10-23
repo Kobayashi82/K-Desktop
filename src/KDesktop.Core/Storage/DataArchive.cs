@@ -15,6 +15,9 @@ public static class DataArchive
     /// <summary>Folders of the data dir that go into the archive.</summary>
     private static readonly string[] Folders = ["Icons", "Sounds", "Languages", "Voice", "Assistants/Data", "Assistants/Settings", "Assistant"];
 
+    /// <summary>What is in those folders but not worth keeping: it is made again by itself (the assistants' browser, the index of the documents).</summary>
+    private static readonly string[] Remade = ["Assistant/Browser/", "Assistant/Knowledge/"];
+
     private static readonly string[] Files = ["config.json", "stats.json"];
 
     /// <summary>The assistants installed when the archive was made (only a list).</summary>
@@ -40,7 +43,10 @@ public static class DataArchive
                 var dir = Path.Combine(AppPaths.DataDir, folder);
                 if (!Directory.Exists(dir)) continue;
                 foreach (var file in Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories))
-                    zip.CreateEntryFromFile(file, folder + "/" + Path.GetRelativePath(dir, file).Replace('\\', '/'), CompressionLevel.Optimal);
+                {
+                    var name = folder + "/" + Path.GetRelativePath(dir, file).Replace('\\', '/');
+                    if (!Remade.Any(r => name.StartsWith(r, StringComparison.OrdinalIgnoreCase))) zip.CreateEntryFromFile(file, name, CompressionLevel.Optimal);
+                }
             }
             var assistants = AssistantPackages.Installed()
                 .Select(a => new ArchivedAssistant(a.Id, a.Manifest.Name, a.Version, a.Manifest.Updates)).ToList();

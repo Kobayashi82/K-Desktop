@@ -186,8 +186,8 @@ public sealed class GivenFilesTests : IDisposable
     /// <summary>Vectors of one number: what the test says each text means.</summary>
     private sealed class FakeMeaning(Func<string, float> meaning) : ITextMeaning
     {
-        public Task<IReadOnlyList<float[]>?> EmbedAsync(IReadOnlyList<string> texts, CancellationToken cancellationToken) =>
-            Task.FromResult<IReadOnlyList<float[]>?>([.. texts.Select(t => new[] { meaning(t), 1 - meaning(t) })]);
+        public Task<TextVectors?> EmbedAsync(IReadOnlyList<string> texts, KDesktop.Core.Voice.EmbedUse use, CancellationToken cancellationToken) =>
+            Task.FromResult<TextVectors?>(new TextVectors("fake", [.. texts.Select(t => new[] { meaning(t), 1 - meaning(t) })]));
     }
 
     private sealed class Silent : ITalkOutput

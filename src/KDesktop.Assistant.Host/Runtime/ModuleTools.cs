@@ -47,7 +47,7 @@ internal sealed class ModuleTools : IDisposable
         _browser = browser;
         _link = link;
         var folder = Path.Combine(AppPaths.DataDir, "Assistant");
-        Builtin = new BuiltinTools(folder);
+        Builtin = new BuiltinTools(folder, meaning: Meaning, ocr: new WindowsScreenReader());
         var registry = new ToolRegistry();
         Builtin.AddTo(registry, screen, vision, browser, Meaning);
         CommandTools.AddTo(registry, commands, writer);
@@ -67,6 +67,7 @@ internal sealed class ModuleTools : IDisposable
         Json.Loaded += StateChanged;
         Builtin.Memory.Changed += SendMemory;
         Builtin.Notes.Changed += SendNotes;
+        Builtin.Knowledge.Changed += SendKnowledge;
     }
 
     /// <summary>The assistants learn from what is talked about (<c>config</c> <c>tools</c> <c>learn</c>).</summary>
@@ -95,6 +96,7 @@ internal sealed class ModuleTools : IDisposable
         Builtin.Watches.Start();
         Json.Start();
         Mcp.Start();
+        Builtin.Knowledge.Start();
     }
 
     /// <summary>The <c>tools</c> section of <c>config</c>: <c>trusted</c>, the tools that no longer ask, and <c>askBefore</c> (<see cref="AskPolicy"/>).</summary>
@@ -116,6 +118,10 @@ internal sealed class ModuleTools : IDisposable
                         choice["risk"] is JsonValue r && r.TryGetValue<string>(out var risk) ? risk : null);
         Registry.SetPreferences(preferences);
         Share.Configure(tools?["share"] as JsonObject);
+        var knowledge = tools?["knowledge"] as JsonObject;
+        Builtin.Knowledge.Configure(
+            knowledge?["folders"] is JsonArray folders ? folders.OfType<JsonValue>().Select(f => f.TryGetValue<string>(out var folder) ? folder : null).OfType<string>() : [],
+            knowledge?["ocr"] is not JsonValue ocr || !ocr.TryGetValue<bool>(out var read) || read);
     }
 
     /// <summary>Options → Tools: the list, testing a tool, starting or stopping a server, loading the files again.</summary>
@@ -235,6 +241,32 @@ internal sealed class ModuleTools : IDisposable
         }
     }
 
+    /// <summary>Options → «Lo que sabe» (stage 19.4): how it goes, the files of a folder, a search to try, read it all again, forget it.</summary>
+    public async Task OnKnowledgeAsync(KnowledgeMessage request)
+    {
+        var knowledge = Builtin.Knowledge;
+        switch (request.Op)
+        {
+            case "files" when request.Folder is { } folder:
+                _link.Send(knowledge.FilesIn(folder));
+                return;
+            case "search" when request.Text is { Length: > 0 } text:
+                var found = await knowledge.SearchAsync(text, 8, null, CancellationToken.None).ConfigureAwait(false);
+                _link.Send(new KnowledgeFoundMessage(text, [.. found.Hits.Select(h => new KnowledgeHitInfo(h.Path, h.Page, h.Text, Math.Round(h.Score, 3)))],
+                    found.Mixed ? "mixed" : "words", found.Milliseconds));
+                return;
+            case "rebuild":
+                knowledge.Rebuild();
+                break;
+            case "clear":
+                knowledge.Clear();
+                break;
+        }
+        SendKnowledge();
+    }
+
+    private void SendKnowledge() => _link.Send(Builtin.Knowledge.State());
+
     private void SendNotes() =>
         _link.Send(new NotesStateMessage([.. Builtin.Notes.All.OrderByDescending(n => n.At).Select(n => new NoteEntry(n.Id, n.Text, n.At))]));
 
@@ -258,6 +290,7 @@ internal sealed class ModuleTools : IDisposable
     {
         Builtin.Memory.Changed -= SendMemory;
         Builtin.Notes.Changed -= SendNotes;
+        Builtin.Knowledge.Changed -= SendKnowledge;
         Builtin.Dispose();
         Json.Dispose();
         Mcp.Dispose();
