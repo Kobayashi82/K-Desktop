@@ -516,6 +516,15 @@ internal sealed class AssistantRuntime : IDisposable
     public IReadOnlyList<string> VoiceMoods(string id) =>
         Find(id)?.VoiceMood is { } mood ? [mood] : [];
 
+    /// <summary>Where its bubble points (screen pixels; null: it is not here or does not say). Engine thread.</summary>
+    public Point? AnchorOf(string id)
+    {
+        if (Find(id) is not { } slot) return null;
+        Point? anchor = null;
+        Guard(slot, a => anchor = a.BubbleAnchor, "BubbleAnchor");
+        return anchor;
+    }
+
     /// <summary>
     /// Where its voice sounds, by where it is across all the monitors (−1 left … 1 right, never all to one side). Engine
     /// thread.

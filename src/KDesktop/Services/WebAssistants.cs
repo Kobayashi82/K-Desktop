@@ -56,7 +56,7 @@ internal sealed class WebAssistants : IWebAssistants
             : _app.Voice.RunRemoteAsync(samples, to);
     }
 
-    private static WebChatLine LineOf(ChatItem item) => new(item.Role, item.Turn, item.Text, item.Final, item.At);
+    private static WebChatLine LineOf(ChatItem item) => new(item.Role, item.Turn, item.Text, item.Final, item.At, item.Written);
 
     private WebIcon? IconOf(string id)
     {

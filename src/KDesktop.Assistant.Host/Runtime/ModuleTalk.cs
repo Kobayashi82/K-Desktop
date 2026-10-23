@@ -201,6 +201,12 @@ internal sealed class ModuleTalk : ITalkOutput
     {
         try
         {
+            // «Léemela» of the reading sheet (stage 14.2): only its voice.
+            if (say.Aloud)
+            {
+                await Service.ReadAloudAsync(say.Assistant, say.Text).ConfigureAwait(false);
+                return;
+            }
             if (say.Assistant is { } id && !Service.IsAnswering(id)) await CatchEyeAsync(id, AnnounceReason.Message).ConfigureAwait(false);
             await Service.SayAsync(say.Assistant, say.Text).ConfigureAwait(false);
         }
@@ -284,7 +290,24 @@ internal sealed class ModuleTalk : ITalkOutput
         }
     }
 
-    public void Chat(ChatLineMessage line) => _link.Send(line);
+    /// <summary>
+    /// A line for K-Desktop's chat. An assistant's go through the engine, in order: a long answer (stage 14.2) takes where the
+    /// assistant is, for the reading sheet next to it.
+    /// </summary>
+    public void Chat(ChatLineMessage line)
+    {
+        if (line.Assistant is not { } id)
+        {
+            _link.Send(line);
+            return;
+        }
+        _engine.Post(() =>
+        {
+            if (line.Written is not null && _runtime.AnchorOf(id) is { } at)
+                line = line with { X = (int)Math.Round(at.X), Y = (int)Math.Round(at.Y) };
+            _link.Send(line);
+        });
+    }
 
     public void State(string? assistant, string state)
     {
@@ -326,6 +349,9 @@ internal sealed class ModuleTalk : ITalkOutput
         });
         return speaking.IsCompleted ? said.Task : Task.WhenAny(speaking, said.Task);
     }
+
+    public Task ReadAloudAsync(string? assistant, string turn, string text, CancellationToken cancellationToken) =>
+        Voice.SayAsync(assistant, turn, text, cancellationToken);
 
     public void Listen(string? assistant, int seconds) => _link.Send(new ListenMessage(seconds, Assistant: assistant));
 

@@ -7,7 +7,8 @@ namespace KDesktop.Core.Remote.Web;
 public sealed record WebAssistantInfo(string Id, string Name, bool Busy, WebIcon? Icon);
 
 /// <summary>A line of a conversation (<c>user</c> or <c>assistant</c>); not <paramref name="Final"/> while it is being written.</summary>
-public sealed record WebChatLine(string Role, string Turn, string Text, bool Final, DateTime At);
+/// <param name="Written">A long answer's whole text in Markdown (stage 14.2; null: none): <paramref name="Text"/> is its summary.</param>
+public sealed record WebChatLine(string Role, string Turn, string Text, bool Final, DateTime At, string? Written = null);
 
 /// <summary>
 /// The assistants as the web app sees them (phase 12): the same conversations as Panel → Assistant, and orders written or

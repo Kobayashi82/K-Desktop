@@ -562,6 +562,7 @@ public partial class App
     {
         if (!Config.Settings.AssistantsOnDesktop.Remove(id)) return;
         Log.Info($"Asistente: «{id}» se esconde");
+        CloseReadingSheets(id);
         // K-Desktop has nothing loaded: it only stops what it was saying.
         if (AssistantTargeting.IsSystem(id)) StopAssistant(id);
         else if (_assistant is { IsRunning: true } supervisor) UnloadAssistant(supervisor, id, UnloadMessage.Dismissed);

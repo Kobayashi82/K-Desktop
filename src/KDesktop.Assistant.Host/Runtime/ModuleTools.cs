@@ -217,7 +217,7 @@ internal sealed class ModuleTools : IDisposable
         switch (request.Op)
         {
             case "add" when request.Text is { Length: > 0 } text:
-                notes.Add(text, DateTimeOffset.Now);
+                notes.Add(text, DateTimeOffset.Now, NoteStore.MaxKept);
                 break;
             case "edit" when request is { Id: { } id, Text: { } text }:
                 notes.Edit(id, text);

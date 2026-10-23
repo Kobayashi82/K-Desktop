@@ -30,6 +30,12 @@ public sealed record TalkAnswer(string Text, bool Remember = true, bool Failed =
     /// <summary>The «Recibido.» its text starts with (null: none): after something already done and said, it goes.</summary>
     public string? Ack { get; init; }
 
+    /// <summary>
+    /// The whole text in Markdown of a long answer (stage 14.2; null: none): <see cref="Text"/> is then only what is said,
+    /// its summary, and K-Desktop shows this on a reading sheet.
+    /// </summary>
+    public string? Written { get; init; }
+
     /// <summary>The text without its <see cref="Ack"/>.</summary>
     public string WithoutAck => Ack is { } ack && Text.StartsWith(ack, StringComparison.Ordinal) ? Text[ack.Length..].TrimStart() : Text;
 }
@@ -71,8 +77,11 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     /// </summary>
     public const int ToolRoundTokens = 2048;
 
-    /// <summary>About <see cref="MaxTokens"/> in letters: where an answer with no call stops in such a round.</summary>
+    /// <summary>About <see cref="MaxTokens"/> in letters: where an answer with no call stops in such a round (it did not fit).</summary>
     private const int SpokenChars = 1000;
+
+    /// <summary>Longest long answer (stage 14.2), in tokens: a summary and a whole text of a few pages.</summary>
+    public const int LongTokens = 2000;
 
     /// <param name="recentTools">The tools used in the last exchange.</param>
     /// <param name="onText">The answer so far, cleaned, while it is written (any thread).</param>
@@ -85,14 +94,20 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     /// <param name="thinkFirst">It thinks harder from the start («piénsalo bien», or the answer before was wrong).</param>
     /// <param name="onThinkHard">It starts thinking harder (any thread): the assistant says it is thinking it over.</param>
     /// <param name="doubted">The user said the answer before was wrong: it checks it, and keeps it if it was right.</param>
+    /// <param name="onLong">The whole text so far of a long answer (stage 14.2), in Markdown, while it is written (any thread);
+    /// <paramref name="onText"/> then has only its summary.</param>
     public async Task<TalkAnswer> AnswerAsync(IChatModel model, string modelName, AssistantPersona persona, IReadOnlyList<ChatMessage> history,
         IReadOnlyCollection<string> recentTools, string said, ToolContext context, Action<string>? onText, CancellationToken cancellationToken,
         IReadOnlyCollection<string>? leaveOut = null, IReadOnlyList<string>? commands = null, bool capable = false, IReadOnlyList<string>? certain = null,
-        Thinker? thinker = null, bool thinkFirst = false, Action? onThinkHard = null, bool doubted = false)
+        Thinker? thinker = null, bool thinkFirst = false, Action? onThinkHard = null, bool doubted = false, Action<string>? onLong = null)
     {
         var maxRounds = capable ? CapableToolRounds : MaxToolRounds;
         var maxCalls = capable ? CapableToolCalls : MaxToolCalls;
         var thinking = thinkFirst && thinker is not null;
+        // A long answer (stage 14.2): asked for, or one that did not fit and is written again in the long form.
+        var writing = LongAnswers.Asked(said);
+        // What only steers this order (the long form asked again): not for the history.
+        var asides = new List<ChatMessage>();
         // Thinking harder again would only spend the same time once more: once per order.
         var retried = false;
         // Its rounds thinking, and since when: the whole budget goes to the first one (with tools it planned and then
@@ -142,7 +157,9 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         // The language it speaks in, next to the order: a small model answers in the language it is spoken to otherwise
         // (Options → Assistant → General → the language they speak in). Only for this order, not kept in the history.
         messages.Add(ChatMessage.User(said + GivenFilesLine(context) + "\n\n" + Loc.T("assistant.prompt.answerIn")
+            + (writing ? "\n\n" + Loc.T("assistant.prompt.long") : "")
             + (thinking ? "\n\n" + Loc.T(doubted ? "assistant.prompt.checkAgain" : "assistant.prompt.thinkHard") : "")));
+        if (writing) Log.Info("Asistente: la orden pide una respuesta larga");
         if (thinking)
         {
             thinkingSince = Environment.TickCount64;
@@ -195,14 +212,26 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
                     var request = new ChatRequest(thinking ? thinker!.Model : modelName, [.. messages], offer ? [.. definitions] : [])
                     {
                         Temperature = thinking ? ThinkTemperature : capable ? 0.3 : 0.5,
-                        MaxTokens = offer ? ToolRoundTokens : thinking ? ThinkAnswerTokens : MaxTokens,
+                        MaxTokens = offer ? ToolRoundTokens : writing ? LongTokens : thinking ? ThinkAnswerTokens : MaxTokens,
                         ThinkTokens = ThinkBudget(),
                     };
                     // With commands of theirs at hand, nothing is said while it writes: the text may be one to take back. Nor
                     // once it acted with tools that have their own words: those replace its text (its «Recibido.» was said
                     // ahead, and then «Recibido, Houston. He ejecutado…» again from the start).
                     var silent = (commands is { Count: > 0 } && !acted) || (acted && replies.All(r => r is not null));
-                    var (text, asked) = await RoundAsync(model, request, silent ? null : onText, cancellationToken).ConfigureAwait(false);
+                    var (text, asked, cut) = await RoundAsync(model, request, silent ? null : onText, writing ? onLong : null, writing, cancellationToken).ConfigureAwait(false);
+                    // It did not fit (220 tokens for a bubble, or a round with tools that went on writing): once, it writes it
+                    // again in the long form, for the reading sheet (stage 14.2).
+                    if (asked.Count == 0 && cut && !writing)
+                    {
+                        writing = true;
+                        Log.Info($"Asistente: la respuesta no cabe ({text.Length} letras): la escribe larga");
+                        asides.Add(ChatMessage.Assistant(text));
+                        asides.Add(ChatMessage.User(Loc.T("assistant.prompt.longer")));
+                        messages.AddRange(asides);
+                        round--;
+                        continue;
+                    }
                     if (asked.Count == 0)
                     {
                         // It names one of their commands without having run it («Let me try the "Abrir Papelera" command»):
@@ -335,7 +364,7 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
             return new TalkAnswer(persona.Phrase("error"), Remember: false, Failed: true);
         }
 
-        var steps = messages.GetRange(first, messages.Count - first).Where(m => !ReferenceEquals(m, answerNow)).ToList();
+        var steps = messages.GetRange(first, messages.Count - first).Where(m => !ReferenceEquals(m, answerNow) && !asides.Contains(m)).ToList();
         // It did something and every tool has its own words for it: those, exact (a small model may well say «in 25
         // minutes» for a timer set for 20). Its own text is for questions and chat.
         if (acted && replies.Count > 0 && replies.All(r => r is not null))
@@ -344,9 +373,31 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
             return new TalkAnswer(ack + " " + string.Join(" ", replies)) { Tools = used, Steps = steps, Ack = ack };
         }
 
+        // A long answer (stage 14.2): its summary is what is said, the rest is written down. Not asked for but too long for a
+        // bubble: all of it written down, and its first sentences said.
+        string? written = null;
+        if (writing)
+        {
+            var (summary, body) = LongAnswers.Split(answer);
+            if (ReplyText.Clean(body).Length >= LongAnswers.LeastChars)
+            {
+                written = body;
+                answer = summary;
+            }
+            // Too little for a sheet: said as it is.
+            else answer = (summary + "\n" + body).Trim();
+        }
+        else if (LongAnswers.TooLong(answer))
+        {
+            written = LongAnswers.Markdown(answer);
+            answer = string.Empty;
+        }
+        if (written is not null) Log.Info($"Asistente: respuesta larga ({written.Length} letras) para la hoja de lectura");
         var clean = ReplyText.Clean(answer);
         // It did or looked something up: nothing is missing, so no question at the end («¿Listo para despegar?»).
         if (used.Count > 0) clean = ReplyText.DropQuestions(clean);
+        // Written down without a summary: its first sentences, and that the rest is written.
+        if (clean.Length == 0 && written is not null) clean = LongAnswers.Lead(written, persona.Phrase("longWritten"));
         // Silent after doing something: what the tool says it did.
         if (clean.Length == 0) clean = toolReply ?? persona.Phrase("notFound");
         // «He ejecutado «Captura de pantalla».» with nothing run (and no such command): copied from an earlier answer.
@@ -362,7 +413,7 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
             Log.Warn($"Asistente: la IA dice que ha hecho algo que no hizo ({string.Join(", ", unfounded)}; usó {(used.Count > 0 ? string.Join(", ", used) : "nada")}): «{clean}»");
             clean = founded;
         }
-        return new TalkAnswer(clean) { Tools = used, Steps = steps };
+        return new TalkAnswer(clean) { Tools = used, Steps = steps, Written = written };
     }
 
     private const string ThinkHarderTool = "think_harder";
@@ -544,27 +595,54 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         }
     }
 
-    private static async Task<(string Text, List<ToolCall> Calls)> RoundAsync(IChatModel model, ChatRequest request, Action<string>? onText, CancellationToken cancellationToken)
+    /// <param name="onText">The answer so far, clean (writing long: its summary).</param>
+    /// <param name="onLong">Writing long: the whole text so far, in Markdown.</param>
+    /// <returns>Its text, its calls, and whether it did not fit: it reached its most tokens, or —not writing long— it went
+    /// on past an answer's length in a round with tools.</returns>
+    private static async Task<(string Text, List<ToolCall> Calls, bool Cut)> RoundAsync(IChatModel model, ChatRequest request, Action<string>? onText,
+        Action<string>? onLong, bool writing, CancellationToken cancellationToken)
     {
         var text = new StringBuilder();
         var calls = new List<ToolCall>();
         var shown = string.Empty;
+        var shownLong = string.Empty;
+        var cut = false;
         await foreach (var chunk in model.StreamAsync(request, cancellationToken).ConfigureAwait(false))
         {
             if (chunk.ToolCalls is { Count: > 0 } asked) calls.AddRange(asked);
+            cut |= chunk.Cut;
             if (chunk.Content.Length == 0) continue;
             text.Append(chunk.Content);
-            // An answer to say, not a call (a call may come written as text, «<function=…>»): as long as it always was.
-            if (request.MaxTokens > MaxTokens && calls.Count == 0 && text.Length > SpokenChars && !text.ToString().Contains('<', StringComparison.Ordinal)) break;
+            // An answer to say, not a call (a call may come written as text, «<function=…>»): as long as it always was. Longer,
+            // it did not fit (stage 14.2).
+            if (!writing && request.MaxTokens > MaxTokens && calls.Count == 0 && text.Length > SpokenChars && !text.ToString().Contains('<', StringComparison.Ordinal))
+            {
+                cut = true;
+                break;
+            }
             // Text next to a tool call is not the answer yet.
-            if (onText is null || calls.Count > 0) continue;
-            var clean = ReplyText.Clean(text.ToString());
-            if (clean != shown)
+            if (calls.Count > 0) continue;
+            var raw = text.ToString();
+            string clean;
+            if (writing)
+            {
+                // The summary while it comes; no separator yet, the first sentences of what there is (it may never come).
+                var (summary, body) = LongAnswers.Split(raw);
+                clean = summary.Length > 0 ? ReplyText.Clean(summary) : LongAnswers.Spoken(ReplyText.Clean(LongAnswers.WithoutLabel(LongAnswers.Markdown(raw))));
+                // The whole text once there is one: after the separator, or clearly without one.
+                if (onLong is not null && body.Length > 0 && (raw.Length > LongAnswers.LongChars || LongAnswers.HasSeparator(raw)) && body != shownLong)
+                {
+                    shownLong = body;
+                    onLong(body);
+                }
+            }
+            else clean = ReplyText.Clean(raw);
+            if (onText is not null && clean != shown)
             {
                 shown = clean;
                 onText(clean);
             }
         }
-        return (text.ToString(), calls);
+        return (text.ToString(), calls, cut);
     }
 }

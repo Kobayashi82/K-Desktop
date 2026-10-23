@@ -88,7 +88,7 @@ public class BrainTests
     {
         var pending = new SortedDictionary<int, OpenAICompatibleChatModel.PendingCall>();
         OpenAICompatibleChatModel.ParseEvent("""{"choices":[{"delta":{"tool_calls":[{"index":0,"id":"c1","function":{"name":"ho","arguments":"{\"a\":"}}]}}]}""", pending);
-        var (content, finished) = OpenAICompatibleChatModel.ParseEvent("""{"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"name":"ra","arguments":"1}"}}]},"finish_reason":"tool_calls"}]}""", pending);
+        var (content, finished, _) = OpenAICompatibleChatModel.ParseEvent("""{"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"name":"ra","arguments":"1}"}}]},"finish_reason":"tool_calls"}]}""", pending);
         Assert.True(finished);
         Assert.Equal("", content);
         Assert.Equal("hora", pending[0].Name);

@@ -151,6 +151,7 @@ public sealed class OpenAICompatibleChatModel : IChatModel
             var content = new StringBuilder();
             // The answer starts like a tool call written as text: held back until the end, to be read as one.
             var holding = false;
+            var cut = false;
             Action<JsonElement>? timings = LogTimings ? LogTiming : null;
             while (true)
             {
@@ -165,12 +166,13 @@ public sealed class OpenAICompatibleChatModel : IChatModel
                 }
                 if (line is null || line.StartsWith("data: [DONE]", StringComparison.Ordinal))
                 {
-                    foreach (var last in End(pending, content, holding)) yield return last;
+                    foreach (var last in End(pending, content, holding, cut)) yield return last;
                     yield break;
                 }
                 if (!line.StartsWith("data:", StringComparison.Ordinal)) continue;
 
-                var (text, finished) = ParseEvent(line[5..].Trim(), pending, timings);
+                var (text, finished, length) = ParseEvent(line[5..].Trim(), pending, timings);
+                cut |= length;
                 if (text.Length > 0)
                 {
                     content.Append(text);
@@ -179,7 +181,7 @@ public sealed class OpenAICompatibleChatModel : IChatModel
                 }
                 if (finished)
                 {
-                    foreach (var last in End(pending, content, holding)) yield return last;
+                    foreach (var last in End(pending, content, holding, cut)) yield return last;
                     yield break;
                 }
             }
@@ -191,7 +193,7 @@ public sealed class OpenAICompatibleChatModel : IChatModel
     /// (<c>&lt;function=find_command&gt; &lt;parameter=query&gt;…</c>, as Bonsai sometimes leaves them), with the text
     /// held back if it was not one after all.
     /// </summary>
-    private static IEnumerable<ChatChunk> End(SortedDictionary<int, PendingCall> pending, StringBuilder content, bool holding)
+    private static IEnumerable<ChatChunk> End(SortedDictionary<int, PendingCall> pending, StringBuilder content, bool holding, bool cut)
     {
         IReadOnlyList<ToolCall>? calls = Complete(pending);
         if (calls is null && TextToolCalls.Parse(content.ToString()) is { Count: > 0 } written)
@@ -200,7 +202,7 @@ public sealed class OpenAICompatibleChatModel : IChatModel
             calls = written;
         }
         else if (holding && content.Length > 0) yield return new ChatChunk(content.ToString());
-        yield return new ChatChunk(string.Empty, calls, Done: true);
+        yield return new ChatChunk(string.Empty, calls, Done: true) { Cut = cut && calls is null };
     }
 
     /// <summary>Writes how long the server took (llama-server's <c>timings</c>): to see what the context costs.</summary>
@@ -318,8 +320,8 @@ public sealed class OpenAICompatibleChatModel : IChatModel
         return buffer.ToArray();
     }
 
-    /// <summary>One server-sent event: the new text and whether the model has finished.</summary>
-    internal static (string Content, bool Finished) ParseEvent(string data, SortedDictionary<int, PendingCall> pending, Action<JsonElement>? timings = null)
+    /// <summary>One server-sent event: the new text, whether the model has finished and whether it stopped at its most tokens.</summary>
+    internal static (string Content, bool Finished, bool Cut) ParseEvent(string data, SortedDictionary<int, PendingCall> pending, Action<JsonElement>? timings = null)
     {
         using var document = JsonDocument.Parse(data);
         var root = document.RootElement;
@@ -333,7 +335,7 @@ public sealed class OpenAICompatibleChatModel : IChatModel
             throw new ChatModelException(ChatModelFailure.ServerError, message ?? Loc.T("brain.error.server"));
         }
         if (!root.TryGetProperty("choices", out var choices) || choices.ValueKind != JsonValueKind.Array || choices.GetArrayLength() == 0)
-            return (string.Empty, false);
+            return (string.Empty, false, false);
 
         var choice = choices[0];
         var content = string.Empty;
@@ -354,7 +356,7 @@ public sealed class OpenAICompatibleChatModel : IChatModel
             }
         }
         var finished = choice.TryGetProperty("finish_reason", out var reason) && reason.ValueKind == JsonValueKind.String;
-        return (content, finished);
+        return (content, finished, finished && reason.GetString() == "length");
     }
 
     private static List<ToolCall>? Complete(SortedDictionary<int, PendingCall> pending)

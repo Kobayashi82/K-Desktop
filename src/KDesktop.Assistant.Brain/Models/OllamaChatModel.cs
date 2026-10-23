@@ -201,7 +201,8 @@ public sealed class OllamaChatModel : IChatModel
             }
         }
         var done = root.TryGetProperty("done", out var d) && d.ValueKind == JsonValueKind.True;
-        return new ChatChunk(content, calls, done);
+        var cut = done && root.TryGetProperty("done_reason", out var why) && why.ValueKind == JsonValueKind.String && why.GetString() == "length";
+        return new ChatChunk(content, calls, done) { Cut = cut };
     }
 
     internal static ModelInfo ParseModel(JsonElement item)

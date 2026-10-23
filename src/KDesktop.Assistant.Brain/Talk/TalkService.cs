@@ -53,6 +53,9 @@ public interface ITalkOutput
 
     /// <summary>Says the final answer of a turn (what was said ahead is not said again); over when its voice is (or its bubble, without one).</summary>
     Task SpeakTurnAsync(string? assistant, string turn, string text, CancellationToken cancellationToken) => SpeakAsync(assistant, text, cancellationToken);
+
+    /// <summary>Reads a long text aloud (stage 14.2, «Léemela»): only the voice, no bubble; over when it has been said.</summary>
+    Task ReadAloudAsync(string? assistant, string turn, string text, CancellationToken cancellationToken) => SpeakTurnAsync(assistant, turn, text, cancellationToken);
 }
 
 /// <summary>
@@ -154,8 +157,8 @@ public sealed class TalkService
                 answer = answer with { Text = (answer.Text + " " + learned).Trim() };
             conversation.Missed = Acted(answer) ? null : (said, _time.GetUtcNow());
             Log.Info($"Asistente: «{who ?? "K-Desktop"}» contesta: «{answer.Text}»");
-            _output.Chat(new ChatLineMessage("assistant", answer.Text, turn, true, who));
-            if (answer.Remember) conversation.History.Add(said, answer.Text, answer.Tools, answer.Steps);
+            _output.Chat(new ChatLineMessage("assistant", answer.Text, turn, true, who, answer.Written));
+            if (answer.Remember) conversation.History.Add(said, LongAnswers.ForHistory(answer.Text, answer.Written), answer.Tools, answer.Steps);
             Learn(who, said, answer, token);
             if (answer.Text.Length > 0) conversation.LastAnswer = answer.Text;
             // Only an answer of the AI may be called wrong and thought over («piénsalo bien» alone still has its order).
@@ -319,6 +322,33 @@ public sealed class TalkService
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
             // Replaced by another order.
+        }
+        finally
+        {
+            if (conversation.End(token)) _output.State(who, "idle");
+            FreeBrainIfAsked();
+        }
+    }
+
+    /// <summary>
+    /// «Léemela» (stage 14.2): a long answer, its Markdown read as sentences, only aloud (no bubble, chat line or history).
+    /// Like an order, another one or «para» stops it.
+    /// </summary>
+    public async Task ReadAloudAsync(string? who, string markdown)
+    {
+        var text = LongAnswers.Readable(markdown);
+        if (text.Length == 0) return;
+        var conversation = Of(who);
+        var (token, _) = conversation.Begin();
+        try
+        {
+            Log.Info($"Asistente: «{who ?? "K-Desktop"}» lee en voz alta {text.Length} letras");
+            _output.State(who, "speaking");
+            await _output.ReadAloudAsync(who, Guid.NewGuid().ToString("N")[..12], text, token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            // Stopped, or replaced by an order.
         }
         finally
         {
@@ -649,18 +679,24 @@ public sealed class TalkService
             _output.State(who, "thinkingHard");
             if (Phrase(persona, "thinkingHard") is { Length: > 0 } phrase) _output.Preface(who, turn, phrase);
         }
-        var shown = new PartialText(text =>
+        // A long answer's whole text so far (stage 14.2), with each line of the chat: K-Desktop's reading sheet grows with it.
+        string? longSoFar = null;
+        var textSoFar = string.Empty;
+        var shown = new PartialText(() =>
         {
             Interlocked.Exchange(ref spoken, 1);
-            var sofar = (ran is null ? "" : ran.Text + " ") + text;
-            _output.Chat(new ChatLineMessage("assistant", sofar, turn, false, who));
-            _output.SpeakAhead(who, turn, sofar);
+            var sofar = (ran is null ? "" : ran.Text + " ") + Volatile.Read(ref textSoFar);
+            _output.Chat(new ChatLineMessage("assistant", sofar, turn, false, who, Volatile.Read(ref longSoFar)));
+            // Ahead, the voice says the first sentences only: the rest may end up written down instead.
+            _output.SpeakAhead(who, turn, (ran is null ? "" : ran.Text + " ") + LongAnswers.Spoken(Volatile.Read(ref textSoFar)));
         }, _time);
         TalkAnswer answer;
         try
         {
-            answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), conversation.History.LastTools(), forAi, context, shown.Show, token,
-                leaveOut, close, capable ?? IsCapable(model), certain, _thinker?.Invoke(who), thinkFirst, ThinkingHard, doubted).ConfigureAwait(false);
+            answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), conversation.History.LastTools(), forAi, context,
+                text => { Volatile.Write(ref textSoFar, text); shown.Show(); }, token,
+                leaveOut, close, capable ?? IsCapable(model), certain, _thinker?.Invoke(who), thinkFirst, ThinkingHard, doubted,
+                text => { Volatile.Write(ref longSoFar, text); shown.Show(); }).ConfigureAwait(false);
         }
         finally
         {
@@ -722,6 +758,7 @@ public sealed class TalkService
         Failed = first.Failed || then.Failed,
         Tools = [.. first.Tools, .. then.Tools.Where(t => !first.Tools.Contains(t))],
         Steps = [.. first.Steps, .. then.Steps],
+        Written = first.Written ?? then.Written,
     };
 
     /// <summary>Commands of the user named to the AI for an order, at most (a big model, more and from further).</summary>
@@ -1069,17 +1106,17 @@ public sealed class TalkService
     }
 
     /// <summary>The answer so far, at most 8 times per second (the last one always comes as the final line).</summary>
-    private sealed class PartialText(Action<string> send, TimeProvider time)
+    private sealed class PartialText(Action send, TimeProvider time)
     {
         private static readonly TimeSpan Every = TimeSpan.FromMilliseconds(125);
         private long _last = long.MinValue;
 
-        public void Show(string text)
+        public void Show()
         {
             var now = time.GetTimestamp();
             if (_last != long.MinValue && time.GetElapsedTime(_last, now) < Every) return;
             _last = now;
-            send(text);
+            send();
         }
     }
 }

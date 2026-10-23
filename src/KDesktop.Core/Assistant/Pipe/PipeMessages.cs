@@ -478,7 +478,12 @@ public sealed record CancelMessage(string Source, string? Assistant = null) : Pi
 /// </summary>
 /// <param name="Role"><c>user</c> or <c>assistant</c>.</param>
 /// <param name="Assistant">Whose conversation (filled in by the host; null: the module without a body).</param>
-public sealed record ChatLineMessage(string Role, string Text, string Turn, bool Final = true, string? Assistant = null) : PipeMessage
+/// <param name="Written">A long answer's whole text in Markdown (stage 14.2; null: none): <paramref name="Text"/> is then its
+/// summary, what is said. K-Desktop shows it on a reading sheet next to the assistant.</param>
+/// <param name="X">With <paramref name="Written"/>, where the assistant is on the screen (its bubble's point, screen pixels;
+/// null: it has no body or it is not known).</param>
+public sealed record ChatLineMessage(string Role, string Text, string Turn, bool Final = true, string? Assistant = null, string? Written = null,
+    int? X = null, int? Y = null) : PipeMessage
 {
     public override string Type => "chat";
 }
@@ -599,7 +604,8 @@ public sealed record ToolTestMessage(string Name, bool Ok, string Text, int Ms) 
 // ── K-Desktop's commands (phase 4) ───────────────────────────────────────
 
 /// <summary>«Asistente: decir»: the assistant says this (bubble and chat), without the AI. Null assistant: the module without a body.</summary>
-public sealed record SayMessage(string Text, string? Assistant = null) : PipeMessage
+/// <param name="Aloud">Only aloud (stage 14.2, «Léemela» of the reading sheet): its voice, no bubble, chat line or history.</param>
+public sealed record SayMessage(string Text, string? Assistant = null, bool Aloud = false) : PipeMessage
 {
     public override string Type => "say";
 }

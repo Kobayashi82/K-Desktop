@@ -1,5 +1,6 @@
 {
   "t": "say",
   "text": "La copia de seguridad ha terminado.",
-  "assistant": "lander"
+  "assistant": "lander",
+  "aloud": false
 }

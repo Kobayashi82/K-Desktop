@@ -4118,5 +4118,20 @@
   "tool.move_file.intent": "spostare {0} in {1}",
   "tool.move_file.done": "Ha spostato {0} in {1}",
   "tool.move_file.reply": "Ho spostato «{0}» in {1}.",
-  "tool.move_file.examples": "spostalo in documenti|metti questo file sul desktop|sposta il pdf in download|mettilo nella cartella immagini|porta questo nei miei documenti"
+  "tool.move_file.examples": "spostalo in documenti|metti questo file sul desktop|sposta il pdf in download|mettilo nella cartella immagini|porta questo nei miei documenti",
+  "assistant.words.long": "spiegamelo bene|spiegami bene|in dettaglio|nel dettaglio|dettagliato|passo dopo passo|passo passo|fammi una lista|fai una lista|dammi una lista|scrivimi una lista|redigi|scrivimi un testo|scrivimi una lettera|scrivimi una mail|scrivimi un'email|fammi un riassunto|riassumi|riassumimi|fammi una guida|fammi un piano|confronta|confronto|pro e contro|vantaggi e svantaggi|raccontami tutto|spiegami come|spiega come|la ricetta di|dammi la ricetta|in profondità|a fondo",
+  "assistant.prompt.long": "(Questa volta puoi scrivere a lungo. Rispondi esattamente così: prima, senza presentarlo, un riassunto di una o due frasi da dire ad alta voce, senza titoli, elenchi né Markdown; poi una riga con solo ---; e poi il testo completo in Markdown, con titoli, elenchi, grassetto o tabelle se aiutano a leggerlo. Non ripetere il riassunto nel testo completo. Tutto in italiano.)",
+  "assistant.prompt.longer": "(La tua risposta non stava in un fumetto. Riscrivila tutta così: prima, senza presentarlo, un riassunto di una o due frasi da dire ad alta voce, senza elenchi né Markdown; poi una riga con solo ---; e poi il testo completo in Markdown. Tutto in italiano.)",
+  "assistant.phrase.longWritten": "Te l'ho messo per iscritto.",
+  "readingSheet.copy": "Copia",
+  "readingSheet.copied": "Copiato",
+  "readingSheet.saveNote": "Salva come nota",
+  "readingSheet.saved": "Salvato nelle tue note",
+  "readingSheet.readAloud": "Leggimela",
+  "readingSheet.stop": "Ferma",
+  "readingSheet.close": "Chiudi",
+  "readingSheet.writing": "Sta scrivendo…",
+  "readingSheet.title": "{0} te l'ha messo per iscritto",
+  "readingSheet.noteFailed": "Non è stato possibile salvare la nota: l'assistente non è in esecuzione.",
+  "assistantChat.openLong": "Leggi tutto"
 }

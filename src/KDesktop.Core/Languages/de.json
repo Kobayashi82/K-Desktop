@@ -4118,5 +4118,20 @@
   "tool.move_file.intent": "{0} nach {1} verschieben",
   "tool.move_file.done": "Hat {0} nach {1} verschoben",
   "tool.move_file.reply": "Ich habe «{0}» nach {1} verschoben.",
-  "tool.move_file.examples": "verschieb es in Dokumente|leg diese Datei auf den Desktop|verschieb das PDF in Downloads|leg es in den Bilder-Ordner|bring das in meine Dokumente"
+  "tool.move_file.examples": "verschieb es in Dokumente|leg diese Datei auf den Desktop|verschieb das PDF in Downloads|leg es in den Bilder-Ordner|bring das in meine Dokumente",
+  "assistant.words.long": "erklär es mir genau|erklär es gut|ausführlich|im detail|detailliert|schritt für schritt|mach mir eine liste|mach eine liste|gib mir eine liste|schreib mir eine liste|verfasse|formuliere|schreib mir einen text|schreib mir einen brief|schreib mir eine mail|schreib mir eine e-mail|fass zusammen|fasse zusammen|zusammenfassung|mach mir eine anleitung|mach mir einen plan|vergleiche|vergleich|vor und nachteile|vorteile und nachteile|erzähl mir alles|erklär mir wie|erkläre wie|das rezept für|gib mir das rezept|gründlich",
+  "assistant.prompt.long": "(Diesmal darfst du ausführlich schreiben. Antworte genau so: zuerst, ohne sie anzukündigen, eine Zusammenfassung in ein oder zwei Sätzen zum Vorlesen, ohne Überschriften, Listen oder Markdown; dann eine Zeile nur mit ---; und danach den ganzen Text in Markdown, mit Überschriften, Listen, Fettdruck oder Tabellen, wenn sie das Lesen erleichtern. Wiederhole die Zusammenfassung nicht im ganzen Text. Alles auf Deutsch.)",
+  "assistant.prompt.longer": "(Deine Antwort passte nicht in eine Sprechblase. Schreib sie noch einmal ganz so: zuerst, ohne sie anzukündigen, eine Zusammenfassung in ein oder zwei Sätzen zum Vorlesen, ohne Listen oder Markdown; dann eine Zeile nur mit ---; und danach den ganzen Text in Markdown. Alles auf Deutsch.)",
+  "assistant.phrase.longWritten": "Ich hab's dir aufgeschrieben.",
+  "readingSheet.copy": "Kopieren",
+  "readingSheet.copied": "Kopiert",
+  "readingSheet.saveNote": "Als Notiz speichern",
+  "readingSheet.saved": "In deinen Notizen gespeichert",
+  "readingSheet.readAloud": "Lies sie mir vor",
+  "readingSheet.stop": "Stopp",
+  "readingSheet.close": "Schließen",
+  "readingSheet.writing": "Schreibt…",
+  "readingSheet.title": "{0} hat es dir aufgeschrieben",
+  "readingSheet.noteFailed": "Die Notiz konnte nicht gespeichert werden: Der Assistent läuft nicht.",
+  "assistantChat.openLong": "Ganz lesen"
 }

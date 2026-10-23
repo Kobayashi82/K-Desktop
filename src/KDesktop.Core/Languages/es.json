@@ -4118,5 +4118,20 @@
   "tool.move_file.intent": "mover {0} a {1}",
   "tool.move_file.done": "Movió {0} a {1}",
   "tool.move_file.reply": "He movido «{0}» a {1}.",
-  "tool.move_file.examples": "muévelo a documentos|pon este archivo en el escritorio|mueve el pdf a descargas|guárdalo en la carpeta de imágenes|lleva esto a mis documentos"
+  "tool.move_file.examples": "muévelo a documentos|pon este archivo en el escritorio|mueve el pdf a descargas|guárdalo en la carpeta de imágenes|lleva esto a mis documentos",
+  "assistant.words.long": "explícamelo bien|explícame bien|explícalo bien|en detalle|con detalle|detalladamente|con todo detalle|paso a paso|hazme una lista|haz una lista|dame una lista|escríbeme una lista|redáctame|redacta|escríbeme un texto|escríbeme una carta|escríbeme un correo|escríbeme un email|hazme un resumen|resúmeme|resúmelo|resume este|resume el|resume la|hazme una guía|hazme un plan|compara|comparación|pros y contras|ventajas y desventajas|cuéntamelo todo|explícame cómo|explica cómo|dame la receta|la receta de|en profundidad|a fondo",
+  "assistant.prompt.long": "(Esta vez puedes escribir largo. Responde exactamente así: primero, sin presentarlo, un resumen de una o dos frases para decir en voz alta, sin títulos, listas ni Markdown; después una línea con solo ---; y después el texto completo en Markdown, con títulos, listas, negritas o tablas si ayudan a leerlo. No repitas el resumen en el texto completo. Todo en español.)",
+  "assistant.prompt.longer": "(Tu respuesta no cabía en un bocadillo. Escríbela otra vez entera así: primero, sin presentarlo, un resumen de una o dos frases para decir en voz alta, sin listas ni Markdown; después una línea con solo ---; y después el texto completo en Markdown. Todo en español.)",
+  "assistant.phrase.longWritten": "Te lo dejo por escrito.",
+  "readingSheet.copy": "Copiar",
+  "readingSheet.copied": "Copiado",
+  "readingSheet.saveNote": "Guardar como nota",
+  "readingSheet.saved": "Guardado en tus notas",
+  "readingSheet.readAloud": "Léemela",
+  "readingSheet.stop": "Parar",
+  "readingSheet.close": "Cerrar",
+  "readingSheet.writing": "Escribiendo…",
+  "readingSheet.title": "{0} te lo deja por escrito",
+  "readingSheet.noteFailed": "No se ha podido guardar la nota: el asistente no está en marcha.",
+  "assistantChat.openLong": "Leer entero"
 }

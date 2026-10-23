@@ -83,11 +83,12 @@ public partial class AssistantNotesSection : UserControl
         Grid.SetColumn(buttons, 2);
         if (_editing == item.Id)
         {
-            var box = new TextBox { Text = item.Text, MaxLength = 500, ClearButtonEnabled = false, TextWrapping = TextWrapping.Wrap };
+            // A long answer kept as a note (stage 14.2) is a whole text: it scrolls, Enter saves, Shift+Enter makes a new line.
+            var box = new TextBox { Text = item.Text, MaxLength = 20000, ClearButtonEnabled = false, TextWrapping = TextWrapping.Wrap, MaxHeight = 320, AcceptsReturn = true, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
             AutomationProperties.SetName(box, Loc.T("memoryOptions.edit"));
             box.PreviewKeyDown += (_, e) =>
             {
-                if (e.Key == Key.Enter) Save(item, box.Text);
+                if (e.Key == Key.Enter && (Keyboard.Modifiers & ModifierKeys.Shift) == 0) Save(item, box.Text);
                 else if (e.Key == Key.Escape) StopEditing();
                 else return;
                 e.Handled = true;
@@ -100,7 +101,7 @@ public partial class AssistantNotesSection : UserControl
         }
         else
         {
-            var text = new TextBlock { Text = item.Text, TextWrapping = TextWrapping.Wrap, FontSize = 14 };
+            var text = new TextBlock { Text = item.Text, TextWrapping = TextWrapping.Wrap, FontSize = 14, MaxHeight = 160, TextTrimming = TextTrimming.CharacterEllipsis };
             text.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorPrimaryBrush");
             body.Children.Add(text);
             body.Children.Add(caption);

@@ -4118,5 +4118,20 @@
   "tool.move_file.intent": "move {0} to {1}",
   "tool.move_file.done": "Moved {0} to {1}",
   "tool.move_file.reply": "I moved «{0}» to {1}.",
-  "tool.move_file.examples": "move it to documents|put this file on the desktop|move the pdf to downloads|keep it in the pictures folder|take this to my documents"
+  "tool.move_file.examples": "move it to documents|put this file on the desktop|move the pdf to downloads|keep it in the pictures folder|take this to my documents",
+  "assistant.words.long": "explain it well|explain it properly|in detail|detailed|step by step|make me a list|make a list|give me a list|write me a list|draft|write me a text|write me a letter|write me an email|write me a mail|give me a summary|summarize|summarise|make me a guide|make me a plan|compare|comparison|pros and cons|advantages and disadvantages|tell me everything|explain how|the recipe for|give me the recipe|in depth|thoroughly",
+  "assistant.prompt.long": "(This time you may write at length. Answer exactly like this: first, without introducing it, a summary of one or two sentences to say aloud, with no headings, lists or Markdown; then a line with only ---; and then the whole text in Markdown, with headings, lists, bold or tables if they help to read it. Do not repeat the summary in the whole text. All of it in English.)",
+  "assistant.prompt.longer": "(Your answer did not fit in a bubble. Write it again in full like this: first, without introducing it, a summary of one or two sentences to say aloud, with no lists or Markdown; then a line with only ---; and then the whole text in Markdown. All of it in English.)",
+  "assistant.phrase.longWritten": "I've written it all down for you.",
+  "readingSheet.copy": "Copy",
+  "readingSheet.copied": "Copied",
+  "readingSheet.saveNote": "Save as a note",
+  "readingSheet.saved": "Saved to your notes",
+  "readingSheet.readAloud": "Read it to me",
+  "readingSheet.stop": "Stop",
+  "readingSheet.close": "Close",
+  "readingSheet.writing": "Writing…",
+  "readingSheet.title": "{0} wrote it down for you",
+  "readingSheet.noteFailed": "The note could not be saved: the assistant is not running.",
+  "assistantChat.openLong": "Read it all"
 }

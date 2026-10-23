@@ -25,6 +25,9 @@ public sealed partial class ChatItem(string role, string turn, DateTime at) : Ob
 
     [ObservableProperty] private string _text = string.Empty;
 
+    /// <summary>A long answer's whole text in Markdown (stage 14.2; null: none): <see cref="Text"/> is its summary.</summary>
+    [ObservableProperty] private string? _written;
+
     /// <summary>False while the answer is still being written.</summary>
     [ObservableProperty] private bool _final;
 
@@ -75,7 +78,9 @@ public partial class App
             if (chat.Count > KeptChat) chat.RemoveRange(0, chat.Count - KeptChat);
         }
         item.Text = line.Text;
+        item.Written = line.Written;
         item.Final = line.Final;
+        if (line.Role == "assistant") OnLongAnswer(who, line);
         // Said aloud by one on the desktop: heard back through the microphone it is not an order (stage 5.7).
         // What K-Desktop or one that is not there says is said aloud too (5.0.111).
         if (line.Role == "assistant") Voice.OwnVoices.Said(who + "/" + line.Turn, line.Text, DateTime.Now);

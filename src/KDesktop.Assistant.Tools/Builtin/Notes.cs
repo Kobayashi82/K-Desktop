@@ -15,6 +15,9 @@ public sealed class NoteStore(string file)
 
     public const int MaxLength = 500;
 
+    /// <summary>A note the user keeps by hand (Options → Notes, a long answer's «Guardar como nota»): a whole text.</summary>
+    public const int MaxKept = 20000;
+
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
     private readonly object _gate = new();
@@ -28,11 +31,11 @@ public sealed class NoteStore(string file)
         get { lock (_gate) return [.. Notes()]; }
     }
 
-    /// <summary>Takes a note; the same text again is not repeated (<c>IsNew</c> false).</summary>
-    public (Note Note, bool IsNew) Add(string text, DateTimeOffset at)
+    /// <summary>Takes a note; the same text again is not repeated (<c>IsNew</c> false). <paramref name="most"/>: its longest.</summary>
+    public (Note Note, bool IsNew) Add(string text, DateTimeOffset at, int most = MaxLength)
     {
         text = text.Trim();
-        if (text.Length > MaxLength) text = text[..MaxLength].TrimEnd() + "…";
+        if (text.Length > most) text = text[..most].TrimEnd() + "…";
         Note note;
         lock (_gate)
         {
@@ -64,7 +67,7 @@ public sealed class NoteStore(string file)
     {
         text = text.Trim();
         if (text.Length == 0) return false;
-        if (text.Length > MaxLength) text = text[..MaxLength].TrimEnd() + "…";
+        if (text.Length > MaxKept) text = text[..MaxKept].TrimEnd() + "…";
         lock (_gate)
         {
             var notes = Notes();

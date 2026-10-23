@@ -4118,5 +4118,20 @@
   "tool.move_file.intent": "mover {0} para {1}",
   "tool.move_file.done": "Moveu {0} para {1}",
   "tool.move_file.reply": "Movi «{0}» para {1}.",
-  "tool.move_file.examples": "mova para documentos|coloque este arquivo na área de trabalho|mova o pdf para downloads|guarde na pasta de imagens|leve isso para meus documentos"
+  "tool.move_file.examples": "mova para documentos|coloque este arquivo na área de trabalho|mova o pdf para downloads|guarde na pasta de imagens|leve isso para meus documentos",
+  "assistant.words.long": "explique bem|me explique bem|explica bem|em detalhe|com detalhes|detalhadamente|passo a passo|faça uma lista|me faça uma lista|me dê uma lista|me escreva uma lista|redija|me escreva um texto|me escreva uma carta|me escreva um e-mail|me escreva um email|faça um resumo|me faça um resumo|resuma|me faça um guia|me faça um plano|compare|comparação|prós e contras|vantagens e desvantagens|me conte tudo|me explique como|explique como|a receita de|me dê a receita|em profundidade|a fundo",
+  "assistant.prompt.long": "(Desta vez você pode escrever bastante. Responda exatamente assim: primeiro, sem apresentá-lo, um resumo de uma ou duas frases para dizer em voz alta, sem títulos, listas nem Markdown; depois uma linha só com ---; e depois o texto completo em Markdown, com títulos, listas, negrito ou tabelas se ajudarem a ler. Não repita o resumo no texto completo. Tudo em português.)",
+  "assistant.prompt.longer": "(Sua resposta não cabia em um balão. Escreva de novo inteira assim: primeiro, sem apresentá-lo, um resumo de uma ou duas frases para dizer em voz alta, sem listas nem Markdown; depois uma linha só com ---; e depois o texto completo em Markdown. Tudo em português.)",
+  "assistant.phrase.longWritten": "Deixei tudo por escrito para você.",
+  "readingSheet.copy": "Copiar",
+  "readingSheet.copied": "Copiado",
+  "readingSheet.saveNote": "Salvar como nota",
+  "readingSheet.saved": "Salvo nas suas notas",
+  "readingSheet.readAloud": "Leia para mim",
+  "readingSheet.stop": "Parar",
+  "readingSheet.close": "Fechar",
+  "readingSheet.writing": "Escrevendo…",
+  "readingSheet.title": "{0} deixou por escrito para você",
+  "readingSheet.noteFailed": "Não foi possível salvar a nota: o assistente não está em execução.",
+  "assistantChat.openLong": "Ler tudo"
 }

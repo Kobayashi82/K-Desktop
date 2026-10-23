@@ -240,6 +240,10 @@ them all.
   (all of it is in the chat). If you cannot now (you are hidden, in the middle of a manoeuvre, it does not fit), return
   `false`: the host shows its bubble for the rest of that answer. In the «General» tab of your card the user can choose
   «Always use K-Desktop's bubble», and then nothing reaches you. An assistant without code always uses the host's bubble.
+- **Long answers**: when the user asks for something long («explain it in detail», «make me a list», «draft…») or the
+  answer does not fit a bubble, the bubble, your own text and the voice get only a summary of one or two sentences; K-Desktop
+  shows the whole text on a reading sheet next to you (the point of your `BubbleAnchor`), where it can be copied, kept as a
+  note or read aloud. Nothing to do on your side.
 - **State** (`SetState`): K-Desktop tells you whether it is listening to you (`Listening`: its word, its key to talk or the
   long click), whether you are thinking (`Thinking`), talking (`Speaking`) or back to rest (`Idle`). Show it your way (the
   Lander lights up its antenna; the template changes colour).

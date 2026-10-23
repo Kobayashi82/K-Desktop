@@ -232,9 +232,76 @@ function render(line) {
 
 const keyOf = l => l.role + '/' + l.turn;
 
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/** Inline Markdown of escaped text: code, bold, italics, struck, links (http and https only). */
+function inline(s) {
+  return esc(s)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/__(.+?)__/g, '<b>$1</b>')
+    .replace(/~~(.+?)~~/g, '<s>$1</s>')
+    .replace(/(^|[^\w*])\*([^*\s][^*]*?)\*(?![\w*])/g, '$1<i>$2</i>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+}
+
+/** A long answer's Markdown as HTML: headings, paragraphs, lists, quotes, code, tables and rules. */
+function markdown(text) {
+  const lines = text.replace(/\r\n/g, '\n').split('\n');
+  const out = [];
+  let para = [], list = null;
+  const endPara = () => { if (para.length) out.push('<p>' + inline(para.join(' ')) + '</p>'); para = []; };
+  const endList = () => { if (list) out.push('</' + list + '>'); list = null; };
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i], t = line.trim();
+    if (t.startsWith('```')) {
+      endPara(); endList();
+      const code = [];
+      while (++i < lines.length && !lines[i].trim().startsWith('```')) code.push(lines[i]);
+      out.push('<pre>' + esc(code.join('\n')) + '</pre>');
+      continue;
+    }
+    if (!t) { endPara(); continue; }
+    let m;
+    if ((m = t.match(/^(#{1,6})\s+(.*)$/))) { endPara(); endList(); const h = Math.min(6, m[1].length + 2); out.push(`<h${h}>${inline(m[2])}</h${h}>`); continue; }
+    if (/^([-*_])(\s*\1){2,}$/.test(t)) { endPara(); endList(); out.push('<hr>'); continue; }
+    if ((m = line.match(/^\s*([-*+•]|\d{1,3}[.)])\s+(.*)$/))) {
+      endPara();
+      const kind = /\d/.test(m[1]) ? 'ol' : 'ul';
+      if (list !== kind) { endList(); list = kind; out.push('<' + kind + '>'); }
+      out.push('<li>' + inline(m[2]) + '</li>');
+      continue;
+    }
+    if (t.startsWith('>')) { endPara(); endList(); out.push('<blockquote>' + inline(t.replace(/^>\s?/, '')) + '</blockquote>'); continue; }
+    if (t.startsWith('|')) {
+      endPara(); endList();
+      const rows = [];
+      for (; i < lines.length && lines[i].trim().startsWith('|'); i++) {
+        const row = lines[i].trim().replace(/^\||\|$/g, '');
+        if (!row.replace(/[|\s:-]/g, '')) continue;
+        rows.push(row.split('|').map(c => c.trim()));
+      }
+      i--;
+      out.push('<table>' + rows.map((r, n) => '<tr>' + r.map(c => (n ? '<td>' : '<th>') + inline(c) + (n ? '</td>' : '</th>')).join('') + '</tr>').join('') + '</table>');
+      continue;
+    }
+    endList();
+    para.push(t);
+  }
+  endPara(); endList();
+  return out.join('');
+}
+
 function fill(b, l) {
   b.className = 'bubble ' + (l.role === 'user' ? 'user' : 'assistant') + (l.final ? '' : ' writing');
   b.textContent = l.text;
+  // A long answer (stage 14.2): its summary, then the whole text.
+  if (l.role !== 'user' && l.written) {
+    b.classList.add('long');
+    const body = document.createElement('div');
+    body.className = 'md';
+    body.innerHTML = markdown(l.written);
+    b.append(body);
+  }
   if (l.final) {
     const time = document.createElement('small');
     time.textContent = new Date(l.at).toLocaleTimeString(ctx.lang(), { hour: '2-digit', minute: '2-digit' });

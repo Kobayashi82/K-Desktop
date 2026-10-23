@@ -44,7 +44,11 @@ public sealed record ChatRequest(string Model, IReadOnlyList<ChatMessage> Messag
 }
 
 /// <summary>A piece of a streamed answer: new text, tool calls, or the end.</summary>
-public sealed record ChatChunk(string Content, IReadOnlyList<ToolCall>? ToolCalls = null, bool Done = false);
+public sealed record ChatChunk(string Content, IReadOnlyList<ToolCall>? ToolCalls = null, bool Done = false)
+{
+    /// <summary>The end came because the answer reached its most tokens, not because the model finished it (stage 14.2).</summary>
+    public bool Cut { get; init; }
+}
 
 /// <summary>A model the server has.</summary>
 /// <param name="Capabilities">What Ollama says it does («completion», «tools», «embedding»…); empty when the server does not say.</param>

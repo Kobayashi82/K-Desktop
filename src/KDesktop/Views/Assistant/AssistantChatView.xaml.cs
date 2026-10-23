@@ -68,7 +68,7 @@ public partial class AssistantChatView : UserControl
         _thinking = _app.IsAssistantThinking(_id);
         var atEnd = Scroller.VerticalOffset >= Scroller.ScrollableHeight - 4;
         Rows.Children.Clear();
-        foreach (var item in chat) Rows.Children.Add(Row(item.IsUser, item.Text, item.Final));
+        foreach (var item in chat) Rows.Children.Add(Row(item.IsUser, item.Text, item.Final, item.Written is { Length: > 0 } ? item : null));
         // Thinking, and nothing of the answer yet.
         if (_thinking && chat.Count > 0 && chat[^1].IsUser) Rows.Children.Add(Row(false, "…", false));
         if (chat.Count == 0)
@@ -81,8 +81,11 @@ public partial class AssistantChatView : UserControl
         if (atEnd) Dispatcher.BeginInvoke(Scroller.ScrollToEnd, System.Windows.Threading.DispatcherPriority.Background);
     }
 
-    /// <summary>One line: the user's on the right in the accent, the assistant's on the left.</summary>
-    private Border Row(bool user, string text, bool final)
+    /// <summary>
+    /// One line: the user's on the right in the accent, the assistant's on the left. A long answer (stage 14.2): its summary,
+    /// then the whole text, and «Leer entero» for its reading sheet.
+    /// </summary>
+    private Border Row(bool user, string text, bool final, ChatItem? written = null)
     {
         var block = new TextBlock
         {
@@ -92,9 +95,43 @@ public partial class AssistantChatView : UserControl
             Foreground = (System.Windows.Media.Brush)FindResource("TextFillColorPrimaryBrush"),
             Opacity = final ? 1 : 0.75,
         };
+        UIElement content = block;
+        if (written is { Written: { } markdown })
+        {
+            var whole = new StackPanel();
+            block.Margin = new Thickness(0, 0, 0, 8);
+            whole.Children.Add(block);
+            var body = MarkdownView.Panel(markdown);
+            body.Opacity = final ? 1 : 0.75;
+            whole.Children.Add(new Border
+            {
+                BorderBrush = (System.Windows.Media.Brush)FindResource("Kd.MenuSeparator"),
+                BorderThickness = new Thickness(0, 1, 0, 0),
+                Padding = new Thickness(0, 8, 0, 0),
+                // The start of it: the whole text is on its reading sheet («Leer entero»).
+                MaxHeight = 280,
+                ClipToBounds = true,
+                Child = body,
+            });
+            if (final)
+            {
+                var open = new Wpf.Ui.Controls.Button
+                {
+                    Content = Loc.T("assistantChat.openLong"),
+                    Icon = new Wpf.Ui.Controls.SymbolIcon { Symbol = Wpf.Ui.Controls.SymbolRegular.DocumentText24 },
+                    Appearance = Wpf.Ui.Controls.ControlAppearance.Secondary,
+                    Padding = new Thickness(10, 4, 10, 4),
+                    Margin = new Thickness(0, 6, 0, 0),
+                };
+                var turn = written.Turn;
+                open.Click += (_, _) => _app.ShowReadingSheet(_id, turn, markdown);
+                whole.Children.Add(open);
+            }
+            content = whole;
+        }
         var row = new Border
         {
-            Child = block,
+            Child = content,
             CornerRadius = user ? new CornerRadius(12, 12, 3, 12) : new CornerRadius(12, 12, 12, 3),
             Padding = new Thickness(12, 8, 12, 8),
             Margin = user ? new Thickness(60, 3, 0, 3) : new Thickness(0, 3, 60, 3),
