@@ -2,6 +2,7 @@ package net.kobayashi82.kdesktop;
 
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.webkit.CookieManager;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -26,6 +27,9 @@ final class Addresses {
 
     /** How long an address may take to answer. */
     private static final int PROBE_TIMEOUT_MS = 2500;
+
+    /** What an address said: nothing, a login page in front of it (Authelia…: K-Desktop is behind), or K-Desktop itself. */
+    private static final int SILENT = 0, LOGIN = 1, ANSWERS = 2;
 
     /** When another address answers first, how much longer the local one may take (it is the fastest to use). */
     private static final long LOCAL_GRACE_MS = 700;
@@ -83,14 +87,15 @@ final class Addresses {
     }
 
     /**
-     * Asks every candidate at once and returns the one to use: a local one if it answers, else the first that did.
-     * Null when none answers. Blocks (call it off the UI thread).
+     * Asks every candidate at once and returns the one to use: a local one if it answers, else the first that did, else
+     * one with a login page in front (the web view shows it and then K-Desktop). Null when none answers. Blocks (call it
+     * off the UI thread).
      */
     String pick(List<String> candidates) {
         int n = candidates.size();
         if (n == 0) return null;
         String machine = prefs.getString(KEY_MACHINE, "");
-        boolean[] ok = new boolean[n];
+        int[] state = new int[n];
         int[] finished = {0};
         Object lock = new Object();
         ExecutorService pool = Executors.newFixedThreadPool(n);
@@ -98,9 +103,9 @@ final class Addresses {
             for (int i = 0; i < n; i++) {
                 final int index = i;
                 pool.execute(() -> {
-                    boolean answered = answers(candidates.get(index), machine);
+                    int answered = ask(candidates.get(index), machine);
                     synchronized (lock) {
-                        ok[index] = answered;
+                        state[index] = answered;
                         finished[0]++;
                         lock.notifyAll();
                     }
@@ -110,17 +115,18 @@ final class Addresses {
             long firstAnswer = -1;
             synchronized (lock) {
                 while (true) {
-                    String any = null;
+                    String any = null, login = null;
                     for (int i = 0; i < n; i++) {
-                        if (!ok[i]) continue;
+                        if (state[i] == LOGIN && login == null) login = candidates.get(i);
+                        if (state[i] != ANSWERS) continue;
                         if (isLocal(candidates.get(i))) return candidates.get(i);
                         if (any == null) any = candidates.get(i);
                     }
                     long now = System.currentTimeMillis();
                     if (any != null && firstAnswer < 0) firstAnswer = now;
-                    if (finished[0] == n) return any;
+                    if (finished[0] == n) return any != null ? any : login;
                     if (any != null && now - firstAnswer >= LOCAL_GRACE_MS) return any;
-                    if (now - start > PROBE_TIMEOUT_MS + 500) return any;
+                    if (now - start > PROBE_TIMEOUT_MS + 500) return any != null ? any : login;
                     lock.wait(50);
                 }
             }
@@ -132,15 +138,23 @@ final class Addresses {
         }
     }
 
-    /** Whether K-Desktop answers at {@code address} (and, when known, it is the same PC). */
-    private static boolean answers(String address, String machine) {
+    /**
+     * Whether K-Desktop answers at {@code address} (and, when known, it is the same PC). With the web view's cookies: once
+     * logged in to a proxy that asks for one (Authelia…), the ping goes through; before, its redirect or 401 says so.
+     */
+    private static int ask(String address, String machine) {
         HttpURLConnection c = null;
         try {
             c = (HttpURLConnection) new URL(address + "api/ping").openConnection();
             c.setConnectTimeout(PROBE_TIMEOUT_MS);
             c.setReadTimeout(PROBE_TIMEOUT_MS);
             c.setUseCaches(false);
-            if (c.getResponseCode() != 200) return false;
+            c.setInstanceFollowRedirects(false);
+            String cookie = CookieManager.getInstance().getCookie(address);
+            if (cookie != null) c.setRequestProperty("Cookie", cookie);
+            int status = c.getResponseCode();
+            if ((status >= 300 && status < 400) || status == 401 || status == 403) return LOGIN;
+            if (status != 200) return SILENT;
             ByteArrayOutputStream body = new ByteArrayOutputStream();
             try (InputStream in = c.getInputStream()) {
                 byte[] buffer = new byte[1024];
@@ -148,9 +162,9 @@ final class Addresses {
                 while ((read = in.read(buffer)) > 0 && body.size() < 8192) body.write(buffer, 0, read);
             }
             JSONObject json = new JSONObject(body.toString("UTF-8"));
-            return machine.isEmpty() || machine.equalsIgnoreCase(json.optString("machine"));
+            return machine.isEmpty() || machine.equalsIgnoreCase(json.optString("machine")) ? ANSWERS : SILENT;
         } catch (Exception e) {
-            return false;
+            return SILENT;
         } finally {
             if (c != null) c.disconnect();
         }

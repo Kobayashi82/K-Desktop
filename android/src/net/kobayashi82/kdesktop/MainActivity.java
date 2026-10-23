@@ -41,8 +41,10 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * K-Desktop for Android: the K-Desktop web app in a window of its own. The first time (or from the app's
@@ -85,6 +87,15 @@ public class MainActivity extends Activity {
     private final Runnable connectingFallback = () -> connectingVisible();
 
     private long pausedAt;
+
+    /**
+     * Sites the PC's address sent the app to while loading (the login page of a proxy in front of it: Authelia…). They
+     * open here, not in the browser: the login has to happen in the app, whose cookies then reach K-Desktop.
+     */
+    private final Set<String> loginHosts = new HashSet<>();
+
+    /** A page of K-Desktop is loading and nothing of it has arrived yet (Android 5-6 cannot tell a redirect apart). */
+    private boolean loading;
 
     /** An update waiting for the user to allow installing apps from K-Desktop (Settings, then back here). */
     private String pendingUpdate;
@@ -228,6 +239,7 @@ public class MainActivity extends Activity {
     /** "Connecting to K-Desktop…" (the set-up page in its waiting mode), while the addresses are asked. */
     private void showConnecting() {
         String server = server();
+        loading = false;
         connectingShown = false;
         afterConnecting = null;
         web.loadUrl(SETUP + "?connecting=1" + (server != null ? "&server=" + Uri.encode(server) : ""));
@@ -291,6 +303,7 @@ public class MainActivity extends Activity {
         attempt++; // a search still running must not take the user away from here
         handler.removeCallbacks(loadTimeout);
         current = null;
+        loading = false;
         String url = SETUP;
         if (server() != null) url += "?server=" + Uri.encode(server());
         if (error != null) url += (url.contains("?") ? "&" : "?") + "error=" + Uri.encode(error);
@@ -330,6 +343,7 @@ public class MainActivity extends Activity {
     /** Loads a page of K-Desktop, with a deadline: a hanging connection shows the setup page with the error. */
     private void load(String url) {
         current = normalize(url);
+        loading = true;
         handler.removeCallbacks(loadTimeout);
         handler.postDelayed(loadTimeout, LOAD_TIMEOUT_MS);
         web.loadUrl(url);
@@ -553,6 +567,7 @@ public class MainActivity extends Activity {
         }
 
         private void loaded() {
+            loading = false;
             handler.removeCallbacks(loadTimeout);
             retried = false;
         }
@@ -581,21 +596,27 @@ public class MainActivity extends Activity {
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-            return openOutside(request.getUrl());
+            return openOutside(request.getUrl(), request.isForMainFrame() && request.isRedirect());
         }
 
         @SuppressWarnings("deprecation")
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             // Android 5-6 only call this one.
-            return openOutside(Uri.parse(url));
+            return openOutside(Uri.parse(url), loading);
         }
 
-        private boolean openOutside(Uri url) {
+        private boolean openOutside(Uri url, boolean redirect) {
             String server = server();
             String scheme = url.getScheme();
             if ("file".equals(scheme)) return false;
             for (String address : addresses.all(server)) if (url.toString().startsWith(address)) return false;
+            // Sent there by the PC's address itself: a login in front of K-Desktop, which comes back here when done.
+            String host = url.getHost();
+            if (host != null && (redirect || loginHosts.contains(host.toLowerCase(Locale.ROOT)))) {
+                loginHosts.add(host.toLowerCase(Locale.ROOT));
+                return false;
+            }
             // Anything else (a command's web page, a help link…) goes to the browser.
             try {
                 startActivity(new Intent(Intent.ACTION_VIEW, url));
