@@ -234,6 +234,9 @@ public partial class App
             case WriteMessage write:
                 OnAssistantWrite(write);
                 break;
+            case DroppedMessage dropped:
+                OnAssistantDropped(dropped);
+                break;
             case TalkMessage talk:
                 OnAssistantTalk(talk);
                 break;

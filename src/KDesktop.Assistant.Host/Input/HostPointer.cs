@@ -14,8 +14,9 @@ namespace KDesktop.Assistant.Host.Input;
 /// </summary>
 /// <param name="write">A middle click: the box to write to it (stage 3.6).</param>
 /// <param name="talk">The left button held still on it: talking to it starts, and letting go ends it (stage 5.2).</param>
+/// <param name="dropped">Files dropped on one of its areas (stage 13.8): K-Desktop takes it from there.</param>
 internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, Point> menu, Action wheelChanged, Action<string>? write = null,
-    Action<string, bool>? talk = null) : IPointer, IDisposable
+    Action<string, bool>? talk = null, Action<string, IReadOnlyList<string>, Point>? dropped = null) : IPointer, IDisposable
 {
     /// <summary>How long the button must stay pressed, without dragging, to talk.</summary>
     public const int TalkHoldMs = 450;
@@ -23,6 +24,11 @@ internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, P
     internal bool CanTalk => talk is not null;
 
     internal void Talk(string area, bool active) => talk?.Invoke(area, active);
+
+    /// <summary>Its name, for the label under files dragged over it («Give it to Lander»).</summary>
+    public string Name { get; set; } = "";
+
+    internal void Dropped(string area, IReadOnlyList<string> files, Point at) => dropped?.Invoke(area, files, at);
 
     private readonly List<HitArea> _areas = [];
     private bool _watchWheel;
@@ -111,6 +117,7 @@ internal sealed unsafe class HitArea : IHitArea
     private bool _talking;
     private POINT _pressPoint;
     private const nuint TalkTimer = 1;
+    private readonly FileDropTarget _drop;
 
     public HitArea(HostPointer owner, string id)
     {
@@ -121,6 +128,15 @@ internal sealed unsafe class HitArea : IHitArea
             MessageHandler = OnMessage,
         };
         SetLayeredWindowAttributes(_window.Handle, 0, 1, LWA_ALPHA);
+        _drop = new FileDropTarget(_window.Handle, OnFiles, () => _owner.Name);
+        _drop.Register();
+    }
+
+    /// <summary>Files dragged over the area, taken away or dropped on it (stage 13.8).</summary>
+    private void OnFiles(PointerEventKind kind, IReadOnlyList<string> files, Point at)
+    {
+        _owner.Deliver(new PointerEvent(kind, Id, at) { Files = files });
+        if (kind == PointerEventKind.FilesDropped) _owner.Dropped(Id, files, at);
     }
 
     public string Id { get; }
@@ -199,6 +215,7 @@ internal sealed unsafe class HitArea : IHitArea
 
     public void Dispose()
     {
+        _drop.Revoke();
         _window.Dispose();
         _owner.Forget(this);
         if (_customCursor != 0) DestroyIcon(_customCursor);

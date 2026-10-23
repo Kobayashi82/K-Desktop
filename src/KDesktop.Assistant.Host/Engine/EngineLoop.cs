@@ -98,6 +98,8 @@ internal sealed class EngineLoop : IDisposable
         SynchronizationContext.SetSynchronizationContext(new EngineContext(this));
         _timer = CreateWaitableTimerEx(0, null, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
         if (_timer == 0) _timer = CreateWaitableTimerEx(0, null, 0, TIMER_ALL_ACCESS);
+        // OLE (not just COM) for files dragged onto the hit windows, which live here (stage 13.8).
+        var ole = OleInitialize(0) >= 0;
         try
         {
             Safe(() => Started?.Invoke(), "al arrancar");
@@ -112,6 +114,7 @@ internal sealed class EngineLoop : IDisposable
             Safe(() => Stopping?.Invoke(), "al parar");
             if (_timer != 0) CloseHandle(_timer);
             _timer = 0;
+            if (ole) OleUninitialize();
         }
     }
 

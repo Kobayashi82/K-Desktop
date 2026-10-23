@@ -41,11 +41,11 @@ MiPersonaje\
 - `height`: alto con la escala al 100 %; cada fotograma se dibuja así de alto. Los pies son el borde de abajo de la imagen.
 - `faces`: hacia dónde miran los dibujos; al andar hacia el otro lado se dan la vuelta solos.
 - Animaciones: `idle` (obligatoria), `walk`, `talk`, `listen`, `think`, `happy`, `sad`, `surprised`, `click`, `drag`,
-  `fall`, `sleep`, `enter`, `exit`, `announce`. La que falte usa otra (`think` → `listen` → `idle`, `click` → `happy` →
-  `idle`, `announce` → `happy`, `drag` → `fall` → `idle`…). Cada una con `frames` (lista de imágenes) o `strip` + `frames` (una tira de N fotogramas
+  `fall`, `sleep`, `enter`, `exit`, `announce`, `catch`. La que falte usa otra (`think` → `listen` → `idle`, `click` → `happy` →
+  `idle`, `announce` y `catch` → `happy`, `drag` → `fall` → `idle`…). Cada una con `frames` (lista de imágenes) o `strip` + `frames` (una tira de N fotogramas
   del mismo ancho), `fps`, `loop` (por defecto se repiten todas salvo `happy`, `sad`, `surprised`, `click`, `enter`,
-  `exit` y `announce`) y `sound` (un WAV que suena al empezar). Antes de decir algo por su cuenta (un temporizador, un
-  aviso) se acerca andando al ratón por donde está y hace `announce`.
+  `exit`, `announce` y `catch`) y `sound` (un WAV que suena al empezar). Antes de decir algo por su cuenta (un temporizador, un
+  aviso) se acerca andando al ratón por donde está y hace `announce`; si le sueltas archivos encima, `catch`.
 - Para el paquete: comprime la carpeta (el `assistant.json` en la raíz) con `tools\character\pack.ps1 <carpeta>`, que
   deja `<id>-<versión>.kai` con las rutas como las quiere K-Desktop, y ábrelo con K-Desktop.
 - La ficha de instalación dice que no lleva código. Nada del paquete se ejecuta: K-Desktop solo lee sus imágenes y
@@ -253,6 +253,13 @@ Cuando cambian, llega `OnSettingsChanged` con `host.Common` ya al día. Un asist
   cursor que digas (`Cursor`: flecha, mano, agarrar) o, desde el SDK 1.8, uno dibujado por ti: `SetCursorImage(imagen,
   punta)` con un `BitmapSource` a los píxeles del monitor (los cursores de Windows miden 32 a 100 %; Kobii pone un
   cepillo al cepillarle); `null` vuelve al de siempre.
+- **Archivos soltados encima** (SDK 1.16): las zonas de clic aceptan archivos arrastrados desde el Explorador (el proceso de
+  los asistentes va como usuario normal; K-Desktop, como administrador, no podría recibirlos). Llegan a `OnPointer` como
+  `FilesOver` (están encima: el momento de estirar los brazos), `FilesAway` (se fueron sin soltarlos, o el usuario pulsó
+  Escape) y `FilesDropped` (los soltó: el momento de cogerlos), con las rutas completas en `PointerEvent.Files` y la zona en
+  `Area`. Bajo el dibujo que se arrastra sale «Dárselo a <tu nombre>». Solo es la animación: qué hacer con ellos lo
+  decide K-Desktop. Nunca se toman como «mover»: el archivo sigue donde estaba.
+  Un asistente compilado con un SDK anterior no ve estos eventos.
 - **Teclado** (`IKeyboard`): `IsDown` siempre; `Capture` hace que K-Desktop se trague esas teclas (pulsadas sin Ctrl, Alt
   ni Win, así los atajos siguen) mientras se juega, y sus cambios llegan a `KeyChanged`. `Release` al terminar (también
   se sueltan solas si el asistente sale, el proceso se cae o K-Desktop se pausa).

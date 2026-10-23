@@ -233,6 +233,15 @@ public sealed record WriteMessage(string Assistant, int X, int Y) : PipeMessage
 }
 
 /// <summary>
+/// Files dropped on an assistant (stage 13.8): the full paths and where they fell, in screen pixels. The assistant has
+/// already shown that it caught them; what to do with them is K-Desktop's (stage 14.1).
+/// </summary>
+public sealed record DroppedMessage(string Assistant, IReadOnlyList<string> Files, int X, int Y) : PipeMessage
+{
+    public override string Type => "dropped";
+}
+
+/// <summary>
 /// An assistant shows, greys out or hides one of its extras in its menu and its panel buttons (all are shown after each
 /// <c>load</c>). <paramref name="State"/>: <c>shown</c>, <c>disabled</c> or <c>hidden</c>.
 /// </summary>
@@ -858,6 +867,7 @@ public static class PipeJson
         ["menu"] = typeof(MenuMessage),
         ["menuClosed"] = typeof(MenuClosedMessage),
         ["write"] = typeof(WriteMessage),
+        ["dropped"] = typeof(DroppedMessage),
         ["keys"] = typeof(KeysMessage),
         ["key"] = typeof(KeyMessage),
         ["watchWheel"] = typeof(WatchWheelMessage),

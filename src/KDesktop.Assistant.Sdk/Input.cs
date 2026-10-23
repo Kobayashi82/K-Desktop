@@ -71,11 +71,34 @@ public enum PointerEventKind
     DoubleClick,
     /// <summary>The button went down and the cursor moved: the assistant is being dragged.</summary>
     DragStart, DragMove, DragEnd,
+
+    /// <summary>
+    /// Files dragged from the Explorer (or any other program) came over the area (SDK 1.16): the moment to reach out for
+    /// them. <see cref="PointerEvent.Files"/> says which. Then comes <see cref="FilesAway"/> or <see cref="FilesDropped"/>.
+    /// </summary>
+    FilesOver,
+
+    /// <summary>The dragged files left the area, or the user gave up (Escape), without dropping them.</summary>
+    FilesAway,
+
+    /// <summary>
+    /// The files were dropped on the area: the moment to catch them. K-Desktop takes it from there (what to do with
+    /// them); the assistant only shows that it got them.
+    /// </summary>
+    FilesDropped,
 }
 
 /// <param name="Area">Id of the hit area (<see cref="IPointer.CreateHitArea"/>).</param>
 /// <param name="Position">Cursor position in screen pixels.</param>
-public sealed record PointerEvent(PointerEventKind Kind, string Area, Point Position);
+public sealed record PointerEvent(PointerEventKind Kind, string Area, Point Position)
+{
+    /// <summary>
+    /// The full paths of the files (and folders) dragged, with <see cref="PointerEventKind.FilesOver"/>,
+    /// <see cref="PointerEventKind.FilesAway"/> and <see cref="PointerEventKind.FilesDropped"/>; empty with the rest
+    /// (SDK 1.16).
+    /// </summary>
+    public IReadOnlyList<string> Files { get; init; } = [];
+}
 
 /// <summary>
 /// The keyboard, for assistants with a manual mode (the Lander's game). Reading the state is always allowed;

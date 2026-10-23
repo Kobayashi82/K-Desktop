@@ -4013,5 +4013,6 @@
   "assistant.activity.writing": "Schreibt einen Text um",
   "assistant.activity.calculating": "Rechnet",
   "assistant.activity.system": "Schaut sich den PC an",
-  "assistant.gesture.announce": "Auf sich aufmerksam machen"
+  "assistant.gesture.announce": "Auf sich aufmerksam machen",
+  "assistant.drop.give": "{0} geben"
 }

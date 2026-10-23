@@ -4013,5 +4013,6 @@
   "assistant.activity.writing": "Riscrive un testo",
   "assistant.activity.calculating": "Fa i calcoli",
   "assistant.activity.system": "Guarda il PC",
-  "assistant.gesture.announce": "Attirare la tua attenzione"
+  "assistant.gesture.announce": "Attirare la tua attenzione",
+  "assistant.drop.give": "Darlo a {0}"
 }

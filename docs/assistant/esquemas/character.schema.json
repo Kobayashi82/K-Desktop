@@ -25,6 +25,7 @@
         "sad": { "$ref": "#/$defs/animation", "description": "Algo salió mal; una vez (idle)." },
         "surprised": { "$ref": "#/$defs/animation", "description": "Un aviso o algo inesperado; una vez (idle)." },
         "announce": { "$ref": "#/$defs/animation", "description": "Llama tu atención antes de decir algo por su cuenta (un temporizador, un aviso), tras acercarse andando al ratón; una vez (happy)." },
+        "catch": { "$ref": "#/$defs/animation", "description": "Coge los archivos que le sueltas encima; una vez (happy)." },
         "click": { "$ref": "#/$defs/animation", "description": "Al hacerle clic; una vez (happy)." },
         "drag": { "$ref": "#/$defs/animation", "description": "Mientras lo arrastras (fall)." },
         "fall": { "$ref": "#/$defs/animation", "description": "Cayendo (idle)." },
@@ -49,7 +50,7 @@
         },
         "strip": { "$ref": "#/$defs/path", "description": "Una sola imagen con los fotogramas uno al lado del otro, todos del mismo ancho." },
         "fps": { "type": "number", "minimum": 0.5, "maximum": 60, "default": 8 },
-        "loop": { "type": "boolean", "description": "Si se repite (por defecto sí, salvo happy, sad, surprised, click, enter, exit y announce)." },
+        "loop": { "type": "boolean", "description": "Si se repite (por defecto sí, salvo happy, sad, surprised, click, enter, exit, announce y catch)." },
         "sound": { "$ref": "#/$defs/path", "description": "Un WAV del paquete que suena al empezar." }
       },
       "oneOf": [

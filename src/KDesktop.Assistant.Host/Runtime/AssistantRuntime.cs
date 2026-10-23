@@ -233,7 +233,11 @@ internal sealed class AssistantRuntime : IDisposable
             {
                 if (!slot.LetsThrough(e)) return;
                 Guard(slot, a => a.OnPointer(e), "OnPointer");
-            }, (area, at) => OnMenu(slot, at), UpdateWheel, _ => OnWrite(slot), (_, active) => OnTalk(slot, active));
+            }, (area, at) => OnMenu(slot, at), UpdateWheel, _ => OnWrite(slot), (_, active) => OnTalk(slot, active),
+            (_, files, at) => OnDropped(slot, files, at))
+        {
+            Name = manifest?.Name ?? id,
+        };
         slot.Keyboard = new HostKeyboard(keys => _link?.Send(new KeysMessage(id, [.. keys.Select(k => k.ToString())])));
         slot.Audio = new AssistantAudio(Audio, package);
         slot.SetCommon(CommonOf(id, manifest));
@@ -700,6 +704,17 @@ internal sealed class AssistantRuntime : IDisposable
         link.Send(new WriteMessage(slot.Id, (int)Math.Round(at.X), (int)Math.Round(at.Y)));
     }
 
+    /// <summary>
+    /// Files dropped on an assistant (stage 13.8): it already got <see cref="PointerEventKind.FilesDropped"/> to catch them;
+    /// K-Desktop decides what to do with them.
+    /// </summary>
+    private void OnDropped(AssistantSlot slot, IReadOnlyList<string> files, Point at)
+    {
+        if (slot.Dropped) return;
+        Log.Info($"Asistente: a «{slot.Id}» le sueltan {files.Count} archivo(s) ({string.Join(", ", files.Take(3).Select(Path.GetFileName))}{(files.Count > 3 ? "…" : "")})");
+        _link?.Send(new DroppedMessage(slot.Id, files, (int)Math.Round(at.X), (int)Math.Round(at.Y)));
+    }
+
     /// <summary>A long click on an assistant (stage 5.2): K-Desktop records the user while the button is held, for it.</summary>
     private void OnTalk(AssistantSlot slot, bool active)
     {
@@ -788,8 +803,15 @@ internal sealed class AssistantSlot(string id, IAssistant assistant, AssistantMa
         Audio.Volume = common.Volume;
     }
 
-    /// <summary>Whether a pointer event reaches it: not the drags of its body while the user does not let it be picked up.</summary>
-    public bool LetsThrough(PointerEvent e) => _drags.LetsThrough(e, Common.Dragging);
+    /// <summary>
+    /// Whether a pointer event reaches it: not the drags of its body while the user does not let it be picked up, nor the
+    /// files dragged over it if it was built before SDK 1.16 (it does not know those kinds; K-Desktop still gets the files).
+    /// </summary>
+    public bool LetsThrough(PointerEvent e) =>
+        _drags.LetsThrough(e, Common.Dragging) && (e.Kind < PointerEventKind.FilesOver || KnowsFiles);
+
+    /// <summary>Files dropped on it come as pointer events (SDK 1.16; the host's own characters and test assistants too).</summary>
+    private bool KnowsFiles => Manifest is not { } manifest || manifest.IsCharacter || manifest.SdkMajor > 1 || manifest.SdkMinor >= 16;
 
     /// <summary>The module's bubble over it while it says something (stage 3.6), or null.</summary>
     public HostBubble? Bubble { get; set; }

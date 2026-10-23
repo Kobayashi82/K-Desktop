@@ -584,6 +584,10 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
             case PointerEventKind.DoubleClick:
                 PlayOnce("happy");
                 break;
+            case PointerEventKind.FilesDropped:
+                // Files dropped on it (stage 13.8): it catches them; K-Desktop asks what to do with them.
+                PlayOnce("catch");
+                break;
             case PointerEventKind.DragStart:
                 _dragging = true;
                 _falling = false;

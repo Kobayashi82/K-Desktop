@@ -4013,5 +4013,6 @@
   "assistant.activity.writing": "Rewriting a text",
   "assistant.activity.calculating": "Working it out",
   "assistant.activity.system": "Looking at the PC",
-  "assistant.gesture.announce": "Catch your eye"
+  "assistant.gesture.announce": "Catch your eye",
+  "assistant.drop.give": "Give it to {0}"
 }

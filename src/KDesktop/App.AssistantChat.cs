@@ -242,4 +242,14 @@ public partial class App
         if (!IsOnDesktop(write.Assistant)) return;
         ShowAssistantWriteBox(write.Assistant, new UiNative.POINT { X = write.X, Y = write.Y });
     }
+
+    /// <summary>
+    /// <c>dropped</c>: files dropped on an assistant (stage 13.8). It has caught them already; asking what to do with them
+    /// comes with stage 14.1.
+    /// </summary>
+    private void OnAssistantDropped(DroppedMessage dropped)
+    {
+        if (!IsOnDesktop(dropped.Assistant)) return;
+        Log.Info($"Asistente: «{dropped.Assistant}» ha recibido {dropped.Files.Count} archivo(s)");
+    }
 }

@@ -76,7 +76,7 @@ public partial class MenuProcessTests
     }
 
     /// <summary>The hit window of that process (there is one: Dot has a single hit area).</summary>
-    private static nint HitWindowOf(int pid)
+    internal static nint HitWindowOf(int pid)
     {
         nint found = 0;
         EnumWindows((hwnd, _) =>
@@ -97,7 +97,7 @@ public partial class MenuProcessTests
         return new string(name, 0, Math.Max(0, length));
     }
 
-    private static async Task Until(Func<bool> condition)
+    internal static async Task Until(Func<bool> condition)
     {
         var limit = DateTime.UtcNow.AddSeconds(15);
         while (!condition())

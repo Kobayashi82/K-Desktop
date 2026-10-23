@@ -27,18 +27,18 @@ public sealed class CharacterFile
 {
     /// <summary>The animations a character can have.</summary>
     public static readonly IReadOnlyList<string> Names =
-        ["idle", "walk", "talk", "listen", "think", "happy", "sad", "surprised", "click", "drag", "fall", "sleep", "enter", "exit", "announce"];
+        ["idle", "walk", "talk", "listen", "think", "happy", "sad", "surprised", "click", "drag", "fall", "sleep", "enter", "exit", "announce", "catch"];
 
     /// <summary>What plays when an animation is missing (and, in the end, <c>idle</c>).</summary>
     public static readonly IReadOnlyDictionary<string, string> Fallbacks = new Dictionary<string, string>
     {
         ["walk"] = "idle", ["talk"] = "idle", ["listen"] = "idle", ["think"] = "listen", ["happy"] = "idle", ["sad"] = "idle",
         ["surprised"] = "idle", ["click"] = "happy", ["drag"] = "fall", ["fall"] = "idle", ["sleep"] = "idle", ["enter"] = "idle", ["exit"] = "idle",
-        ["announce"] = "happy",
+        ["announce"] = "happy", ["catch"] = "happy",
     };
 
     /// <summary>Those that play once and then go back (the others repeat), unless the file says otherwise.</summary>
-    private static readonly HashSet<string> Once = ["happy", "sad", "surprised", "click", "enter", "exit", "announce"];
+    private static readonly HashSet<string> Once = ["happy", "sad", "surprised", "click", "enter", "exit", "announce", "catch"];
 
     /// <summary>Its height at 100 % scale (DIP): every frame is drawn this tall, keeping its proportions.</summary>
     public double Height { get; private init; } = 96;

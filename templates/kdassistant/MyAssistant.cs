@@ -151,7 +151,19 @@ public sealed class MyAssistant : IAssistant
 
     public void OnPointer(PointerEvent e)
     {
-        if (e.Kind == PointerEventKind.Click) Flash();
+        switch (e.Kind)
+        {
+            case PointerEventKind.Click:
+                Flash();
+                break;
+            // Files dragged from the Explorer over it, and dropped (SDK 1.16): it catches them (K-Desktop does the rest).
+            case PointerEventKind.FilesOver:
+                Flash(Colors.LightSkyBlue, 0.3);
+                break;
+            case PointerEventKind.FilesDropped:
+                Flash(Colors.DeepSkyBlue, 0.8);
+                break;
+        }
     }
 
     public void OnSystemEvent(SystemEvent e)
