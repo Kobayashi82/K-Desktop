@@ -1,0 +1,10 @@
+{
+  "$schema": "docs/assistant/schemas/catalog.schema.json",
+  "catalog": 1,
+  "assistants": [
+    { "id": "lander", "package": "https://github.com/Kobayashi82/K-Desktop/releases/download/assistants/lander.kai" },
+    { "id": "kobii", "package": "https://github.com/Kobayashi82/K-Desktop/releases/download/assistants/kobii.kai" },
+    { "id": "kumo", "package": "https://github.com/Kobayashi82/K-Desktop/releases/download/assistants/kumo.kai" },
+    { "id": "pip", "package": "https://github.com/Kobayashi82/K-Desktop/releases/download/assistants/pip.kai" }
+  ]
+}

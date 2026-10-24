@@ -110,6 +110,14 @@ public sealed class AppConfig
             Settings.AssistantTalkHotkey = null;
             changed = true;
         }
+        // Until 5.0.196 the official catalog was going to live in the assistants' repository; it is K-Desktop's now.
+        if (Settings.AssistantCatalogs.Contains(Assistant.Packages.AssistantCatalog.OldOfficial, StringComparer.OrdinalIgnoreCase))
+        {
+            Settings.AssistantCatalogs = Settings.AssistantCatalogs
+                .Select(c => c.Equals(Assistant.Packages.AssistantCatalog.OldOfficial, StringComparison.OrdinalIgnoreCase) ? Assistant.Packages.AssistantCatalog.Official : c)
+                .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            changed = true;
+        }
         changed |= MigrateBrain();
         changed |= MigrateStartupAndExit();
         if (SchemaVersion < CurrentSchema)

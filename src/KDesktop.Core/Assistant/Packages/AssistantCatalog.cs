@@ -47,8 +47,18 @@ public sealed record CatalogResult(IReadOnlyList<CatalogItem> Items, IReadOnlyDi
 /// </summary>
 public static class AssistantCatalog
 {
-    /// <summary>The catalog of K-Desktop's own assistants (the K-Desktop-Assistants repository).</summary>
-    public const string Official = "https://raw.githubusercontent.com/Kobayashi82/K-Desktop-Assistants/main/catalog.json";
+    /// <summary>
+    /// The catalog of K-Desktop's own assistants: catalog.json in K-Desktop's repository. Its packages are in the fixed
+    /// release «assistants» of the same repository, one per assistant with a fixed name (<see cref="ReleaseOf"/>), so the
+    /// list only changes when an assistant is added.
+    /// </summary>
+    public const string Official = "https://raw.githubusercontent.com/Kobayashi82/K-Desktop/main/catalog.json";
+
+    /// <summary>Where the official catalog was going to be until 5.0.196 (moved to <see cref="Official"/> when the settings load).</summary>
+    public const string OldOfficial = "https://raw.githubusercontent.com/Kobayashi82/K-Desktop-Assistants/main/catalog.json";
+
+    /// <summary>Where the newest package of one of K-Desktop's own assistants is published (its «updates» too).</summary>
+    public static string ReleaseOf(string id) => $"https://github.com/Kobayashi82/K-Desktop/releases/download/assistants/{id}.kai";
 
     public static readonly TimeSpan Timeout = TimeSpan.FromSeconds(20);
 

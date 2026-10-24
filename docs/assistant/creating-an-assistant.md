@@ -177,17 +177,25 @@ P-256) and the signature. Nobody has to be paid: the key is yours. K-Desktop che
 
 If the installed version was signed and the new one is not signed by the same key, the card warns in red.
 
-With `tools/KaiSign` (in the K-Desktop repository):
+Make your key once with `tools/KaiSign` (in the K-Desktop repository); from then on **every build signs the `.kai`** by
+itself (the SDK's `.targets` runs `kaisign sign` right after packing it):
 
 ```powershell
 dotnet run --project tools\KaiSign -- keygen "Your name"      # once: the key stays in your Windows user (DPAPI)
-dotnet run --project tools\KaiSign -- sign myassistant.kai     # after building, before publishing
-dotnet run --project tools\KaiSign -- verify myassistant.kai
-dotnet run --project tools\KaiSign -- export copy.pem "password"   # a copy of the key, to keep somewhere else
+dotnet run --project tools\KaiSign -- export copy.pem          # a copy of the key with a password (asked), to keep elsewhere
+dotnet run --project tools\KaiSign -- verify myassistant.kai   # what K-Desktop would say
 ```
 
-Sign **last**: any change to the package afterwards breaks the signature. For your packages to show as verified, your
-public key (`kaisign public`) has to be on K-Desktop's list.
+| Build property | |
+|---|---|
+| (nothing) | Signed if your Windows user has a key; if not, a message says it is unsigned |
+| `-p:AssistantSign=false` | Never signed |
+| `-p:AssistantSign=true` | An error if it cannot be signed (for the builds you publish) |
+| `KaiSignProject` / `KaiSignExe` | Where kaisign is: its `.csproj` (built from the sources) or a built `kaisign.exe` |
+
+A package signed by hand (`kaisign sign myassistant.kai`) works the same. Sign **last**: any change to the package
+afterwards breaks the signature. For your packages to show as verified, your public key (`kaisign public`) has to be on
+K-Desktop's list.
 
 ## Coming in and leaving
 

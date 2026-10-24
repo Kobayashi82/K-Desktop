@@ -79,4 +79,32 @@
     <Message Importance="high" Text="$(MSBuildProjectName) -> $(AssistantPackage)" />
   </Target>
 
+  <!--
+    Signs the .kai with the publisher's own key (kaisign), when this user of Windows has one: K-Desktop then shows who
+    signed it, refuses it if anything in it changes afterwards and warns if an update comes signed by someone else.
+      no key yet                 the package is left unsigned (a message says how to make one: kaisign keygen <name>)
+      AssistantSign=false        never signed
+      AssistantSign=true         an error if it cannot be signed
+    kaisign comes with the SDK (tools\kaisign\ next to build\); KaiSignProject (its .csproj) builds it from the sources
+    instead, and KaiSignExe points to one already built.
+  -->
+  <Target Name="SignKDesktopAssistant" AfterTargets="PackKDesktopAssistant" Condition="'$(DesignTimeBuild)' != 'true' and '$(AssistantSign)' != 'false'">
+    <PropertyGroup>
+      <_KaiSignKey>$([System.Environment]::GetFolderPath(SpecialFolder.LocalApplicationData))\K-Desktop\Signing\key.dpapi</_KaiSignKey>
+    </PropertyGroup>
+    <MSBuild Condition="'$(KaiSignExe)' == '' and '$(KaiSignProject)' != '' and Exists('$(_KaiSignKey)')" Projects="$(KaiSignProject)" Targets="Build" Properties="Configuration=Debug">
+      <Output TaskParameter="TargetOutputs" PropertyName="_KaiSignDll" />
+    </MSBuild>
+    <PropertyGroup>
+      <KaiSignExe Condition="'$(KaiSignExe)' == '' and '$(_KaiSignDll)' != ''">$([System.IO.Path]::ChangeExtension('$(_KaiSignDll)', '.exe'))</KaiSignExe>
+      <KaiSignExe Condition="'$(KaiSignExe)' == ''">$(MSBuildThisFileDirectory)..\tools\kaisign\kaisign.exe</KaiSignExe>
+    </PropertyGroup>
+
+    <Error Condition="'$(AssistantSign)' == 'true' and !Exists('$(_KaiSignKey)')" Text="No hay clave para firmar: créala con «kaisign keygen &lt;tu nombre&gt;»." />
+    <Error Condition="'$(AssistantSign)' == 'true' and !Exists('$(KaiSignExe)')" Text="No se encuentra kaisign ($(KaiSignExe))." />
+    <Message Condition="!Exists('$(_KaiSignKey)')" Importance="high" Text="$(MSBuildProjectName): sin firmar (no hay clave; créala una vez con «kaisign keygen &lt;tu nombre&gt;»)" />
+    <Message Condition="Exists('$(_KaiSignKey)') and !Exists('$(KaiSignExe)')" Importance="high" Text="$(MSBuildProjectName): sin firmar (no se encuentra kaisign en $(KaiSignExe))" />
+    <Exec Condition="Exists('$(_KaiSignKey)') and Exists('$(KaiSignExe)')" Command="&quot;$(KaiSignExe)&quot; sign &quot;$(AssistantPackage)&quot;" StandardOutputImportance="high" />
+  </Target>
+
 </Project>
