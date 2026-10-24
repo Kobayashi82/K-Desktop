@@ -2,14 +2,11 @@
   <img src="src/KDesktop.Core/Web/icons/icon-192.png" width="96" alt="K-Desktop">
 </p>
 
-<h1 align="center">K-Desktop 5.0</h1>
+<h1 align="center">K-Desktop 5</h1>
 
 <p align="center">
-  <a href="README.md">English</a> · <b>Español</b>
-</p>
-
-<p align="center">
-  Atajos de teclado y ratón, QuickMenus, macros, eventos, control por voz y mando a distancia desde el móvil para Windows.
+  <b>Atajos de teclado y ratón, QuickMenus, macros, eventos, control por voz y mando desde el móvil para Windows,<br>
+  con asistentes de escritorio opcionales que funcionan con IA local.</b>
 </p>
 
 <p align="center">
@@ -17,6 +14,11 @@
   <img alt=".NET 10" src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white">
   <img alt="WPF" src="https://img.shields.io/badge/UI-WPF-5C2D91">
   <img alt="Idiomas" src="https://img.shields.io/badge/idiomas-es%20%7C%20en%20%7C%20fr%20%7C%20de%20%7C%20it%20%7C%20pt-F5C542">
+  <img alt="Sin conexión" src="https://img.shields.io/badge/voz%20e%20IA-100%25%20local-2EA043">
+</p>
+
+<p align="center">
+  <a href="README.md">English</a> · <b>Español</b>
 </p>
 
 <p align="center">
@@ -24,11 +26,16 @@
 </p>
 
 K-Desktop convierte cualquier tecla, botón del ratón o combinación en una secuencia de acciones: abrir programas,
-colocar ventanas, cambiar el volumen, hacer capturas, lanzar peticiones a Home Assistant… Todo se puede lanzar
-también desde un menú en el ratón, por voz, desde el móvil, por red o cuando pasa algo en el equipo.
+colocar ventanas, cambiar el volumen, hacer capturas, llamar a Home Assistant, escribir texto, leer el texto de la
+pantalla… Los mismos comandos se lanzan desde un menú en el ratón, una caja de búsqueda, la voz, el móvil, la red o
+solos cuando pasa algo en el equipo.
 
-Es la reescritura completa de K-Desktop 4 (VB.NET / WinForms) en **C# / WPF / .NET 10**, y la primera vez que se
-ejecuta importa los comandos, QuickMenus e iconos de la versión anterior.
+Además, el **módulo Asistente** (opcional) pone en el escritorio personajes a los que se les habla. Piensan con un
+modelo de IA local, usan tus comandos con gestos que se ven y tienen herramientas para archivos, la web, la pantalla,
+la música, temporizadores, notas y tus propios documentos.
+
+K-Desktop 5 es la reescritura completa de K-Desktop 4 (VB.NET / WinForms) en **C# / WPF / .NET 10**. La primera vez
+que se ejecuta importa los comandos, QuickMenus e iconos de la versión anterior.
 
 ## Vídeo
 
@@ -40,126 +47,195 @@ https://github.com/user-attachments/assets/f8e5aefc-33bf-4548-b61d-3f6fdc5642fb
   <a href="docs/videos/K-Desktop-en.srt">Subtítulos en inglés (.srt)</a>
 </p>
 
+## Contenido
+
+- [Funciones](#funciones)
+- [Acciones](#acciones)
+- [Privacidad](#privacidad)
+- [Requisitos](#requisitos)
+- [Instalación](#instalación)
+- [Primeros pasos](#primeros-pasos)
+- [Asistentes](#asistentes)
+- [Línea de comandos](#línea-de-comandos)
+- [Compilar](#compilar)
+- [Estructura del proyecto](#estructura-del-proyecto)
+- [Licencias de terceros](#licencias-de-terceros)
+
 ## Funciones
 
-- **Comandos**: secuencias de acciones que se lanzan con atajos de teclado o ratón (`CTRL + ALT + O`, `Mouse 5`,
+### Automatización
+
+- **Comandos**: secuencias de acciones con atajos de teclado o ratón (`CTRL + ALT + O`, `Mouse 5`,
   `Mouse 4 + Mouse 1`, `CTRL + Wheel Up`…). Un comando puede limitarse a ciertas aplicaciones; si un atajo existe a la
-  vez para todas y para una concreta, en esa aplicación gana el específico.
+  vez para todas y para una concreta, en esa aplicación gana el específico. Las acciones **Si…** añaden condiciones.
 - **QuickMenu**: menú en cascada en la posición del ratón, con fondo acrílico, iconos y navegación con teclado. Clic
   izquierdo ejecuta y cierra, clic derecho ejecuta y lo deja abierto, clic central edita el elemento.
-- **Lanzador**: caja de búsqueda con su propio atajo. Encuentra comandos y programas del menú Inicio con solo unas
+- **Lanzador**: caja de búsqueda con su propio atajo. Encuentra comandos y programas del menú Inicio con unas pocas
   letras, busca en la web y hace cuentas. Los más usados salen primero.
-- **Eventos**: «cuando pase X, ejecuta estos comandos». A una hora o cada N minutos, al abrir o cerrar un programa,
-  con un programa en primer plano, tras un rato sin usar el PC, al bloquear o suspender, al pasar a batería, con un
-  archivo nuevo en una carpeta, al conectar un mando, una unidad USB o un dispositivo de audio, al cambiar de red,
-  según el uso de CPU/GPU/memoria o cuando otro equipo (o Home Assistant) lo llama por su nombre. Con condiciones,
-  tiempo mínimo entre ejecuciones y protección contra bucles.
-- **Voz**: palabra de activación propia (se graba en unos segundos desde Opciones) o tecla para hablar. Reconoce lo
-  que dices con Parakeet (sherpa-onnx) y elige el comando por su nombre o por su significado (EmbeddingGemma), todo
-  en local y sin conexión. Entiende órdenes de música («pon música», «sube el volumen»…) y cancela el eco de lo que
-  está sonando.
-- **Control remoto desde el móvil**: app web instalable (PWA) y app de Android con la lista de comandos y menús,
-  touchpad y teclado, controles de audio, zoom y micrófono para dar órdenes por voz. Se empareja con un código QR y
-  cada dispositivo se puede revocar.
-- **Macros**: graba teclado y ratón con sus tiempos, edita los pasos y reprodúcelas con repeticiones, bucle o a otra
-  velocidad. Tienen un modo para juegos (movimiento relativo en bruto).
+- **Eventos**: «cuando pase X, ejecuta estos comandos». A una hora o cada N minutos, al abrir, cerrar o traer delante
+  un programa, tras un rato sin usar el PC, al bloquear o suspender, con batería, con un archivo nuevo en una carpeta,
+  al conectar un mando, una unidad USB o un dispositivo de audio, al cambiar de red, según el uso de CPU/GPU/memoria o
+  cuando otro equipo (o Home Assistant) lo llama por su nombre. Con condiciones, tiempo mínimo entre ejecuciones y
+  protección contra bucles.
+- **Macros**: graba teclado y ratón con sus tiempos, edita los pasos y reprodúcelas con repeticiones, en bucle o a otra
+  velocidad. El modo para juegos envía movimiento relativo en bruto.
 - **K-Board**: perfiles que reasignan teclas, botones del ratón y la rueda a otras teclas, combinaciones, textos o
-  comandos, en todas las aplicaciones o solo en algunas. Admiten capas con modificadores y se editan sobre un
-  teclado y un ratón dibujados.
-- **Ejecución con o sin administrador**: K-Desktop corre elevado para que sus atajos funcionen también sobre
-  ventanas elevadas, pero cada acción decide si su programa arranca como administrador o como usuario normal.
-- **Asistentes** (en desarrollo): personajes que viven sobre tus ventanas, como el
-  [Lander](https://github.com/Kobayashi82/K-Desktop-Assistants/tree/main/Lander) con su juego. Se instalan como
-  paquetes `.kai` y sus acciones se pueden lanzar desde cualquier comando. Ver [Asistentes](#asistentes).
-- **Registro**: historial de lo que se ha ejecutado, cuándo y desde dónde (atajo, menú, voz, web, evento…).
-- **Logros y estadísticas**: más de 100 logros con notificación animada y estadísticas de uso.
-- **Iconos**: colección propia de iconos vectoriales (cualquier símbolo de Windows 11 en 15 colores), los de las
-  bibliotecas de Windows, cualquier imagen o el favicon de la página web.
+  comandos, en todas las aplicaciones o solo en algunas, con capas por modificadores, editados sobre un teclado y un
+  ratón dibujados.
+- **Con o sin administrador**: K-Desktop corre elevado para que sus atajos funcionen también sobre ventanas elevadas,
+  y cada acción decide si su programa arranca como administrador o como usuario normal.
+
+### Voz
+
+- **Palabras de activación y tecla para hablar**: graba tu propia palabra en unos segundos desde Opciones, o mantén
+  una tecla.
+- **Reconocimiento local**: Parakeet (sherpa-onnx) transcribe y el comando se elige por su nombre o por su significado
+  (EmbeddingGemma). Sin internet.
+- **Órdenes de música** («pon música», «sube el volumen»…) y cancelación del eco de lo que está sonando.
+- **Dictado**: mantén una tecla y habla; el texto se escribe donde está el cursor, con saltos de línea dichos y «borra
+  eso».
+
+### Control remoto
+
+- **Móvil**: app web instalable (PWA) y app de Android con tus comandos y menús, touchpad y teclado, controles de
+  audio, zoom, órdenes por voz y un chat con los asistentes. Cada dispositivo se empareja con un código QR y se puede
+  revocar por separado.
+- **Control por UDP**, compatible con el protocolo de K-Desktop 4 (puerto 2501).
+
+### Día a día
+
+- **Registro** de todo lo que se ha ejecutado, cuándo y desde dónde (atajo, menú, voz, web, evento, asistente…).
+- **Logros y estadísticas**: más de 100 logros con notificación animada.
+- **Iconos**: colección vectorial propia (cualquier símbolo de Windows 11 en 15 colores), las bibliotecas de iconos de
+  Windows, cualquier imagen o el favicon de una web.
 - **Interfaz moderna** con tema claro, oscuro o del sistema, y animaciones.
-- **Seis idiomas** (español, inglés, francés, alemán, italiano y portugués) incluidos en el ejecutable. Para añadir
-  otro o cambiar textos basta con dejar un JSON en `%APPDATA%\K-Desktop 5\Languages`.
-- **Copias de seguridad** diarias de la configuración, copias completas en `.zip` cada N días y exportar/importar.
+- **Seis idiomas** (español, inglés, francés, alemán, italiano y portugués) dentro del ejecutable. Para añadir otro o
+  cambiar textos basta con dejar un JSON en `%APPDATA%\K-Desktop 5\Languages`.
+- **Copias de seguridad**: diarias de la configuración, completas en `.zip` cada N días, exportar e importar.
 - **Actualizaciones automáticas** del programa y de la app de Android.
-- **Control por UDP** compatible con el protocolo de K-Desktop 4 (puerto 2501).
 
 ## Acciones
 
-| Aplicaciones | Entrada y sonido | Ventanas y sistema | K-Desktop |
+| Abrir y ejecutar | Ventanas | Teclado y ratón | Sonido |
 |---|---|---|---|
-| Ejecutar aplicación | Enviar pulsación / texto | Ventana (colocar, mover, minimizar…) | Si… (condiciones) |
-| Abrir carpeta o ubicación especial | Portapapeles | Captura de pantalla | Abrir QuickMenu |
-| Abrir página web | Volumen (sistema, micrófono o una app) | Lupa | Comandos y eventos |
-| Controlar aplicación | Salida de audio | Siempre visible | Esperar |
-| Ejecutar script (CMD / PowerShell) | Reproducir sonido | Pantalla (brillo, proyección, apagar) | |
-| Petición web (GET, POST…) | Grabar audio | Tema de Windows | |
-| Despertar equipo (Wake-on-LAN) | Reproducir macro | Wi-Fi y Bluetooth | |
-| | K-Board | Archivos ocultos | |
-| | | Mostrar mensaje | |
-| | | Plan de energía | |
-| | | Energía (apagar, reiniciar, bloquear…) | |
+| Ejecutar aplicación | Controlar aplicación (activar, cerrar…) | Enviar pulsación / texto | Volumen (sistema, micrófono o una app) |
+| Abrir carpeta o ubicación especial | Ventana (colocar, mover, minimizar…) | Portapapeles | Salida de audio |
+| Abrir página web | Siempre visible | Reproducir macro | Reproducir sonido |
+| Ejecutar script (CMD / PowerShell) | | Perfil de K-Board | Grabar audio |
+| | | Dictar | |
+
+| Pantalla | Red e internet | Sistema | K-Desktop y flujo |
+|---|---|---|---|
+| Captura de pantalla | Petición web (GET, POST…) | Archivos ocultos | Si… (condiciones) |
+| Copiar texto de la pantalla (OCR) | Despertar equipo (Wake-on-LAN) | Plan de energía | Esperar |
+| Lupa | Wi-Fi y Bluetooth | Energía (apagar, reiniciar, bloquear…) | Ejecutar comandos y eventos |
+| Pantalla (brillo, proyección, apagar) | | | Abrir QuickMenu |
+| Tema de Windows | | | Mostrar mensaje |
+
+Con el módulo Asistente encendido hay cuatro más: **preguntar** a un asistente, hacer que **diga** algo, **cargar o
+liberar su cerebro** y lanzar uno de sus **extras** (como el modo manual del Lander).
+
+## Privacidad
+
+El reconocimiento de voz, las palabras de activación, las voces y la IA de los asistentes funcionan **en tu PC**. Lo
+que dices o escribes no se manda a ningún sitio. K-Desktop solo sale a internet para lo que le pides: las peticiones
+web de tus comandos, las herramientas de web, tiempo y divisas de los asistentes, las herramientas y servidores MCP que
+añadas tú, las actualizaciones y las descargas de voces o modelos. El móvil habla con el PC por tu red local y necesita
+emparejarse, incluso desde el propio PC.
+
+## Requisitos
+
+- Windows 10 (1809 o posterior) u 11, de 64 bits.
+- Para la IA de los asistentes (opcional): una gráfica con memoria suficiente para el modelo que elijas (un modelo de
+  4B con visión ocupa unos 5 GB), u otro servidor de IA en tu red.
+- Para el móvil: el PC y el móvil en la misma red. La app de Android necesita Android 5.0 o superior.
 
 ## Instalación
 
 Descarga la última versión desde [Releases](https://github.com/Kobayashi82/K-Desktop/releases/latest):
 
-- **[KDesktop.exe](https://github.com/Kobayashi82/K-Desktop/releases/latest/download/KDesktop.exe)**: el
-  programa, un único ejecutable portátil que no necesita instalar .NET. Requiere Windows 10 u 11 de 64 bits.
+- **[KDesktop.exe](https://github.com/Kobayashi82/K-Desktop/releases/latest/download/KDesktop.exe)**: el programa,
+  un único ejecutable portátil. No hace falta instalar .NET.
 - **[KDesktop.apk](https://github.com/Kobayashi82/K-Desktop/releases/latest/download/KDesktop.apk)**: la app de
-  Android para controlar el PC desde el móvil (Android 5.0 o superior). También se puede descargar desde el propio
-  K-Desktop, que la mantiene actualizada.
+  Android. También se descarga desde el propio K-Desktop, que la mantiene actualizada.
 
-Al abrir K-Desktop por primera vez se registra para arrancar con Windows (se puede desactivar en Opciones). Los datos
-se guardan en `%APPDATA%\K-Desktop 5`.
+La primera vez que se abre, K-Desktop se registra para arrancar con Windows (se puede desactivar en Opciones). Los
+datos se guardan en `%APPDATA%\K-Desktop 5`.
+
+## Primeros pasos
+
+1. **Crea un comando**: *Comandos → Nuevo comando*, añade un atajo y una o más acciones, y pulsa **Ejecutar** para
+   probarlo.
+2. **Ponlo en un menú**: en *QuickMenu* montas el menú que se abre en el ratón, con su propio atajo.
+3. **Háblale**: *Opciones → Voz* descarga los modelos de voz y graba tu palabra de activación. Después di «K-Desktop,
+   *nombre del comando*».
+4. **Usa el móvil**: *Opciones → Aplicación web*, escanea el código QR con el móvil y ahí tienes tus comandos.
+5. **Automatízalo**: *Eventos* ejecuta comandos a una hora, al abrir un programa, cuando dejas el PC…
 
 ## Asistentes
 
-El módulo Asistente está en desarrollo. Apagado, K-Desktop es el de siempre: no carga nada nuevo.
+> [!NOTE]
+> El módulo Asistente está en desarrollo. Mientras está apagado, K-Desktop no carga nada de él y funciona exactamente
+> como siempre.
 
-1. **Opciones → Módulo Asistente → General → «Activar el módulo Asistente»**.
-2. Consigue el paquete del asistente (`lander-<versión>.kai`): se genera al compilar
-   [K-Desktop-Assistants](https://github.com/Kobayashi82/K-Desktop-Assistants) (ver su README).
-3. Ábrelo con un doble clic o desde **Opciones → Módulo Asistente → Asistentes → «Añadir asistente»**. La ficha
-   enseña qué es y qué sabe hacer y, si tiene acciones con atajo (el modo manual del Lander con `CTRL + ALT + L`),
-   ofrece crear sus comandos. Pulsa **Instalar** (con «Ponerlo en el escritorio» marcado sale al momento).
-4. En esa lista, **«Poner en el escritorio»** y **«Esconder»** lo sacan y lo guardan, y **Ajustes** abre sus opciones;
-   **Panel → Asistente** enseña su estado (en el Lander, su nivel, estadísticas y logros). El clic derecho sobre el
-   asistente abre su menú.
-5. **Hablarle:** cada asistente tiene su palabra de activación y su tecla para hablarle (la ficha ofrece grabar su
-   nombre al instalarlo; se cambian en la pestaña **General** de sus ajustes). «Lander, ¿qué hora es?» le llega a él;
-   «K-Desktop, …» sigue ejecutando tus comandos. K-Desktop también es un asistente más, sin personaje, con su propia
-   palabra y tecla. La tecla de voz también vale: «Lander, …» al principio; mantener pulsado el clic sobre el asistente
-   hace lo mismo. Si te pregunta algo («¿A o B?», «¿Puedo…?»), contesta en voz alta sin volver a llamarlo.
-6. **Su voz:** contestan en voz alta, frase a frase mientras la IA escribe. En **Opciones → Módulo Asistente → Voz**
-   se descarga la voz natural (Kokoro, unos 310 MB para todos los idiomas salvo el alemán; funciona en el procesador y
-   sin internet) y se elige su voz (en español, Dora, Alex y Santa) o una mezcla de dos; sin ella hablan con las voces
-   de Windows, o con pitidos. La otra voz natural es **Piper**: un modelo por voz (20–115 MB), con voces en todos los
-   idiomas, también en alemán, y varias calidades; la que eliges se descarga, y las que ya no usas se borran con un
-   botón. En inglés, francés, italiano y portugués Kokoro necesita además espeak-ng (licencia GPL), y Piper lo necesita
-   siempre: no va dentro de K-Desktop, se descarga aparte con la voz (9 MB). Ahí están también la velocidad, el volumen
-   y «Probar».
-7. **Tus comandos, con gestos:** cuando le pides un comando («Lander, minimiza el Chrome»), cada paso se ve: el Lander
-   vuela y dispara al botón, y la ventana se minimiza justo en el impacto. En **General**, «Maniobras» (vistosas,
-   normales o rápidas: ninguna pasa de medio segundo), «Comandos largos» (con muchas acciones, solo se enseñan las de
-   ventanas) y «Enseñar también los comandos que lanzas tú» (atajos, menús, el móvil…: los adorna sin retrasarlos;
-   apagado por defecto).
-8. **Herramientas tuyas, sin compilar:** un `.json` en `%APPDATA%\K-Desktop 5\Assistant\Tools\` les da algo nuevo
-   que hacer: una petición a cualquier API (Home Assistant, un bot de Telegram), uno de tus comandos con frases
-   propias, una rutina de varios pasos o un script tuyo (`.ps1`, `.bat`, `.py`, `.js`). Se recargan al guardar; los
-   secretos (tokens, claves) se guardan cifrados y el modelo nunca los ve. También **servidores MCP** (los de Claude
-   Desktop o mcpo: se importan con sus secretos). Todo en **Opciones → Módulo Asistente → Herramientas**: cada
-   herramienta con su interruptor, cuándo pregunta y «Probar». Guía y ejemplos en
-   [docs/assistant/herramientas.md](docs/assistant/herramientas.md).
-9. **Lo que sabe:** en **Opciones → Módulo Asistente → Lo que sabe** eliges carpetas o archivos sueltos con tus
-   documentos (apuntes, manuales, contratos, facturas…; nunca un disco entero). Se leen una vez en el PC —texto, Markdown, código, Word,
-   PowerPoint, páginas web, PDF y, con el OCR de Windows, imágenes y PDF escaneados—, se vigilan y solo se vuelve a leer
-   lo que cambia; la lectura se para con un juego a pantalla completa. Los asistentes buscan ahí por palabras y por
-   significado («¿qué dice mi contrato sobre la fianza?») y dicen de qué documento y página sale. Se puede preguntar
-   mientras aún lee, y probar una búsqueda en la misma página.
+Un asistente es un personaje que vive sobre tus ventanas. Anda o vuela por ellas, reacciona a lo que pasa en el PC y
+se le habla («Lander, minimiza el Chrome», «Kobii, ¿qué tiempo hará mañana?»). Cuando ejecuta uno de tus comandos,
+cada paso se ve: el Lander vuela hasta el botón de minimizar, dispara y la ventana se minimiza justo en el impacto. Los
+asistentes se instalan como paquetes `.kai`, cada uno corre en su propio proceso sin permisos de administrador y
+K-Desktop nunca carga su código.
 
-Instalar una versión nueva encima de la que está en el escritorio la cambia en caliente, sin perder sus datos (que
-están en `%APPDATA%\K-Desktop 5\Assistants\Data\<id>` y entran en las copias de seguridad). Cada asistente corre en
-otro proceso, sin permisos de administrador; su registro está en `Logs\assistant.log`. Para crear uno:
-[docs/assistant/creating-an-assistant.md](docs/assistant/creating-an-assistant.md).
+| Asistente | Qué es |
+|---|---|
+| **[Lander](https://github.com/Kobayashi82/K-Desktop-Assistants/tree/main/Lander)** | Un pequeño módulo lunar que vuela entre tus ventanas, aterriza en ellas, las remolca con un gancho y tiene su propio juego |
+| **[Kobii](https://github.com/Kobayashi82/K-Desktop-Assistants/tree/main/Kobii)** | Una criaturita que anda, trepa por tus ventanas, juega, come, duerme y se deja acariciar, cepillar o chocar los cinco |
+| **[Pip](samples/CharacterAssistant)** | Un ejemplo sin código: solo imágenes y un JSON |
+| **K-Desktop** | El asistente incluido, sin personaje, para tener respuestas sin nadie en el escritorio |
+
+**Cerebro.** Los asistentes piensan con un modelo local. K-Desktop ejecuta modelos GGUF con `llama-server` por su
+cuenta: los arranca cuando hacen falta, mantiene uno o varios cargados según la memoria de la gráfica, descarga
+modelos de Hugging Face y libera la gráfica al empezar un juego a pantalla completa. También valen Ollama, llama-swap
+y cualquier servidor compatible con OpenAI. Cada asistente puede pensar con un modelo distinto y se le puede pedir que
+«lo piense bien» en las preguntas difíciles.
+
+**Qué saben hacer.** Ejecutar tus comandos y controlar programas y ventanas; buscar, abrir, leer, mover y borrar
+archivos; buscar y leer en internet (con un navegador interno para las páginas que se pintan con scripts); mirar la
+pantalla (visión u OCR de Windows); decir y controlar lo que suena; poner temporizadores, tomar notas y recordar cosas
+de ti; hacer cuentas, fechas y conversiones de unidades y divisas; decir el tiempo; contar cómo está el PC; cerrar un
+programa colgado; avisarte cuando pase algo («avísame cuando acabe la descarga»), y traducir, corregir o resumir el
+texto que tengas seleccionado.
+
+**Tus propias herramientas.** Un `.json` en `%APPDATA%\K-Desktop 5\Assistant\Tools\` añade una herramienta sin
+compilar: una petición a cualquier API (Home Assistant, un bot de Telegram), uno de tus comandos con frases propias, una
+rutina de varios pasos o un script (`.ps1`, `.bat`, `.py`, `.js`). Los **servidores MCP** se añaden o se importan de
+Claude Desktop o mcpo, y K-Desktop también puede compartir sus herramientas como servidor MCP. Los secretos se guardan
+cifrados y el modelo nunca los ve. Cada herramienta tiene su interruptor y su propio ajuste de cuándo pregunta antes.
+
+**Lo que sabe.** Elige carpetas o archivos con tus documentos (apuntes, manuales, contratos, facturas…). Se leen en el
+PC (texto, Markdown, código, Word, PowerPoint, páginas web, PDF y, con OCR, imágenes y PDF escaneados), se mantienen al
+día cuando cambian y se buscan por palabras y por significado. Las respuestas dicen de qué documento y página salen.
+
+**Voz.** Cada asistente tiene su palabra de activación, su tecla para hablarle, su idioma, su personalidad y su voz.
+Las respuestas se dicen frase a frase mientras la IA escribe, con **Kokoro** o **Piper** (voces naturales que
+funcionan en el procesador) o con las voces de Windows, y con efectos de voz (robot, radio, 8 bits…) que se pueden
+editar. Las respuestas largas se resumen en voz alta y se enseñan enteras en una hoja junto al asistente. También se le
+pueden soltar archivos encima y elegir qué hacer con ellos.
+
+### Instalar un asistente
+
+1. *Opciones → Módulo Asistente → General →* **Activar el módulo Asistente**.
+2. Abre un paquete `.kai` con un doble clic, o usa *Asistentes → Añadir asistente* o el *Catálogo*. La ficha del
+   paquete enseña qué es, qué sabe hacer y quién lo firmó, y ofrece grabar su nombre como palabra de activación y crear
+   comandos para sus atajos.
+3. Pulsa **Instalar**. Desde su página en *Opciones → Módulo Asistente → Asistentes* lo pones en el escritorio o lo
+   escondes, cambias su palabra y su tecla, el modelo con el que piensa, su personalidad y su voz, y ves sus
+   animaciones en la pestaña **Probar**.
+
+Una versión nueva instalada encima de la anterior se cambia en caliente y conserva los datos del asistente
+(`%APPDATA%\K-Desktop 5\Assistants\Data\<id>`, que entran en las copias de seguridad).
+
+Para crear tu propio asistente, mira [docs/assistant/creating-an-assistant.md](docs/assistant/creating-an-assistant.md)
+(en inglés) o empieza con la plantilla de `dotnet new` en [`templates/kdassistant`](templates/kdassistant). Las
+herramientas JSON se explican en [docs/assistant/herramientas.md](docs/assistant/herramientas.md).
 
 ## Línea de comandos
 
@@ -169,44 +245,48 @@ KDesktop.exe --run "Nombre"         ejecuta un comando
 KDesktop.exe --event "Nombre"       ejecuta los comandos de un evento
 KDesktop.exe --launcher             abre el lanzador
 KDesktop.exe --show | --exit        muestra la ventana / cierra K-Desktop
-KDesktop.exe --page macros          abre la ventana en una página (commands, quickmenus, events, macros, kboard, achievements, stats, settings, about)
+KDesktop.exe --page macros          abre la ventana en una página (commands, quickmenus, events, macros, kboard, assistant,
+                                    achievements, stats, settings, about)
 KDesktop.exe --data "C:\Carpeta"    usa otra carpeta de datos (instancia independiente)
 KDesktop.exe --no-hooks --no-udp --no-web --no-elevate   diagnóstico
 ```
 
 ## Compilar
 
-Requiere el SDK de .NET 10.
+Requiere el [SDK de .NET 10](https://dotnet.microsoft.com/download).
+
+```powershell
+dotnet build KDesktop.slnx                       # Debug
+dotnet build KDesktop.slnx -c Release            # Release + portable en artifacts\portable\KDesktop.exe
+dotnet test tests\KDesktop.Core.Tests            # pruebas del núcleo
+dotnet test tests\KDesktop.Assistant.Tests       # pruebas del módulo Asistente (arrancan el proceso real)
+```
+
+La compilación en Release genera además el ejecutable portátil: un solo `.exe` ReadyToRun con idiomas, sonidos e
+iconos dentro (para saltárselo: `-p:BuildPortable=false`). Si están el JDK 17 y el SDK de Android, también compila la
+app de Android (`tools\android\build-apk.ps1`). La compilación no da ningún aviso, con los analizadores de .NET en
+`latest-recommended`.
+
+## Estructura del proyecto
 
 ```
-dotnet build KDesktop.slnx                 # Debug
-dotnet build KDesktop.slnx -c Release      # Release + portable en artifacts\portable\KDesktop.exe
-dotnet test tests\KDesktop.Core.Tests      # pruebas
+src/KDesktop.Core             núcleo sin interfaz: modelo, almacenamiento, hooks, motor de acciones, eventos, voz, servidor web y UDP
+src/KDesktop                  aplicación WPF: ventana principal, QuickMenu, lanzador, OSD, bandeja, temas
+src/KDesktop.Assistant.Sdk    SDK de los asistentes (IAssistant y lo que les da el host) y empaquetado en .kai
+src/KDesktop.Assistant.Host   el proceso de los asistentes (KDesktop.exe --assistant): capa de dibujo, mundo, sonido, escenario
+src/KDesktop.Assistant.Brain  la IA de los asistentes: servidores de modelos, enrutado de las órdenes, memoria, banco de pruebas
+src/KDesktop.Assistant.Tools  herramientas incluidas, herramientas JSON, cliente y servidor MCP, documentos, permisos
+src/KDesktop.Assistant.Voice  su voz: Kokoro y Piper en el procesador, voces de Windows, efectos de voz
+samples/CharacterAssistant    Pip, el asistente de ejemplo sin código
+templates/kdassistant         plantilla de dotnet new para un asistente nuevo
+android/                      app de Android (WebView de la app web del PC, con micrófono nativo)
+tests/                        pruebas del núcleo, del módulo Asistente y Dot, el asistente de las pruebas
+docs/assistant/               protocolo, esquemas de los paquetes y guía para crear un asistente
+tools/                        icono, APK, paquete de actualización y firma de paquetes (KaiSign)
 ```
 
-La compilación en Release genera además el ejecutable portátil (un solo `.exe` con idiomas, sonidos e iconos dentro).
-Para saltárselo: `-p:BuildPortable=false`. Si están el JDK 17 y el SDK de Android, también compila la app de Android
-(`tools\android\build-apk.ps1`).
-
-## Estructura
-
-```
-src/KDesktop.Core           núcleo sin interfaz: modelo, almacenamiento, hooks, motor de acciones, eventos, voz, servidor web y UDP
-src/KDesktop                aplicación WPF: ventana principal, QuickMenu, lanzador, OSD, bandeja, temas
-src/KDesktop.Assistant.Sdk  SDK de los asistentes (IAssistant y lo que les da el host) y el empaquetado en .kai
-src/KDesktop.Assistant.Host el proceso de los asistentes (KDesktop.exe --assistant): capa de dibujo, mundo, sonido
-src/KDesktop.Assistant.Brain  la IA de los asistentes: proveedores, enrutado de las órdenes, memoria, banco de pruebas
-src/KDesktop.Assistant.Tools  sus herramientas (temporizadores, notas, cálculo, tus comandos…) y los permisos
-src/KDesktop.Assistant.Voice  su voz: Kokoro y Piper en el procesador (Kokoro en español con reglas propias), voces de Windows y pitidos
-samples/CharacterAssistant  Pip, asistente de ejemplo sin código (imágenes y JSON)
-templates/kdassistant       plantilla de `dotnet new` para empezar uno (el ejemplo con código)
-android/                    app de Android (WebView de la app web del PC, con micrófono nativo)
-tests/KDesktop.Core.Tests   pruebas del núcleo
-tests/KDesktop.Assistant.Tests  pruebas del módulo Asistente (con el proceso real)
-tests/DotAssistant          Dot, el asistente de las pruebas
-docs/assistant/             protocolo, esquemas de los paquetes (schemas/) y guía para crear un asistente (en inglés)
-tools/                      icono, APK y paquete de actualización
-```
+Los asistentes están en su propio repositorio,
+[K-Desktop-Assistants](https://github.com/Kobayashi82/K-Desktop-Assistants).
 
 ## Licencias de terceros
 
