@@ -66,7 +66,11 @@ public partial class AssistantTryView : UserControl
             _app.AssistantStageChanged += OnStageChanged;
             _app.AssistantStagePainted += OnPainted;
             _page = FindPage();
-            if (_page is not null) _page.SizeChanged += OnPageResized;
+            if (_page is not null)
+            {
+                _page.SizeChanged += OnPageResized;
+                _page.ScrollChanged += OnPageScrolled;
+            }
             Fit();
         };
         Unloaded += (_, _) =>
@@ -75,7 +79,11 @@ public partial class AssistantTryView : UserControl
             _app.AssistantShowcaseDone -= OnDone;
             _app.AssistantStageChanged -= OnStageChanged;
             _app.AssistantStagePainted -= OnPainted;
-            if (_page is not null) _page.SizeChanged -= OnPageResized;
+            if (_page is not null)
+            {
+                _page.SizeChanged -= OnPageResized;
+                _page.ScrollChanged -= OnPageScrolled;
+            }
             _page = null;
             _noAnswer.Stop();
             Close();
@@ -90,6 +98,12 @@ public partial class AssistantTryView : UserControl
 
     private void OnPageResized(object sender, SizeChangedEventArgs e) => Fit();
 
+    private void OnPageScrolled(object sender, ScrollChangedEventArgs e)
+    {
+        // Only the page's own (the one of the buttons bubbles up too).
+        if (e.OriginalSource == _page && (e.ViewportWidthChange != 0 || e.ViewportHeightChange != 0)) Fit();
+    }
+
     /// <summary>The scroll of the page it is in (Options).</summary>
     private ScrollViewer? FindPage()
     {
@@ -101,7 +115,7 @@ public partial class AssistantTryView : UserControl
     }
 
     /// <summary>
-    /// As tall as what is left of the page below its top, so the page does not scroll and the stage stays in sight; the buttons
+    /// As wide as the page and as tall as what is left of it below its top, so the page does not scroll and the stage stays in sight; the buttons
     /// scroll on their own. The stage shrinks to leave them room (<see cref="ButtonsRoom"/>); in a very small window, the page
     /// scrolls.
     /// </summary>
@@ -109,12 +123,18 @@ public partial class AssistantTryView : UserControl
     {
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
         {
-            if (!IsVisible || _page?.Content is not Visual content || !content.IsAncestorOf(this))
+            if (!IsVisible || _page?.Content is not FrameworkElement content || !content.IsAncestorOf(this))
             {
                 Height = double.NaN;
+                Width = double.NaN;
                 return;
             }
-            var top = TransformToAncestor(content).Transform(new Point(0, 0)).Y;
+            var at = TransformToAncestor(content).Transform(new Point(0, 0));
+            var top = at.Y;
+
+            // As wide as the page lets it: the sections are as wide as their content (and its texts would not wrap).
+            var most = double.IsInfinity(content.MaxWidth) ? double.MaxValue : content.MaxWidth;
+            Width = Math.Max(0, Math.Min(most, _page.ViewportWidth) - at.X);
             var height = _page.ViewportHeight - top - 28;
             if (_picture is not null)
             {

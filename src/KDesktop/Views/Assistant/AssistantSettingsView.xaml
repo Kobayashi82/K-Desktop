@@ -349,8 +349,8 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <!-- The same width on every page, so switching tabs does not make the cards jump -->
-    <StackPanel MinWidth="720">
+    <!-- As wide as the page (FitWidth): the same width on every tab, so switching them does not make the cards jump -->
+    <StackPanel>
         <!-- Back to the list -->
         <ui:Button Margin="0,0,0,10" Appearance="Transparent" Padding="8,4" Icon="{ui:SymbolIcon ArrowLeft24}"
                    Content="{l:Tr assistantSettings.back}" Click="OnBack" />
@@ -412,7 +412,7 @@
         <a:AssistantPersonalView x:Name="PersonalView" Visibility="Collapsed" />
 
         <!-- What it can show, now on the desktop (stage 13.9) -->
-        <a:AssistantTryView x:Name="TryView" Visibility="Collapsed" />
+        <a:AssistantTryView x:Name="TryView" Visibility="Collapsed" HorizontalAlignment="Left" />
 
         <ItemsControl x:Name="SectionsList" ItemsSource="{Binding CurrentPage.Sections}" Focusable="False">
             <ItemsControl.ItemTemplate>
