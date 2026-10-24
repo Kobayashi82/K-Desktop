@@ -64,8 +64,12 @@ if ($DryRun) {
     return
 }
 if (-not (Get-Command gh -ErrorAction SilentlyContinue)) { throw 'Falta GitHub CLI: winget install GitHub.cli y luego gh auth login' }
+# PowerShell 5.1 stops the script when a program writes to stderr while ErrorActionPreference is Stop.
+$ErrorActionPreference = 'Continue'
 gh release view $tag -R $repo *> $null
-if ($LASTEXITCODE -ne 0) {
+$exists = $LASTEXITCODE -eq 0
+$ErrorActionPreference = 'Stop'
+if (-not $exists) {
     Step "Creando la release «$tag»"
     gh release create $tag -R $repo --title 'Asistentes de K-Desktop' --latest=false `
         --notes 'La última versión de cada asistente de K-Desktop (<id>.kai). K-Desktop los encuentra en su catálogo y avisa cuando hay una nueva.'
