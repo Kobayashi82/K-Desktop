@@ -8,8 +8,8 @@ dotnet run --project tools\KaiSign -- keygen "Kobayashi82"       # crea la clave
 dotnet run --project tools\KaiSign -- sign ruta\al\paquete.kai    # firma (sustituye una firma anterior)
 dotnet run --project tools\KaiSign -- verify ruta\al\paquete.kai  # lo que diría K-Desktop
 dotnet run --project tools\KaiSign -- public                      # la clave pública, para la lista
-dotnet run --project tools\KaiSign -- export copia.pem "contraseña"
-dotnet run --project tools\KaiSign -- import copia.pem "contraseña" "Kobayashi82"
+dotnet run --project tools\KaiSign -- export keys\kdesktop-assistants.pem               # copia con contraseña (te la pide dos veces)
+dotnet run --project tools\KaiSign -- import keys\kdesktop-assistants.pem "Kobayashi82" # la vuelve a poner en este usuario (te la pide)
 ```
 
 - La clave privada está en `%LOCALAPPDATA%\K-Desktop\Signing\key.dpapi`, cifrada con DPAPI: solo la abre tu usuario de

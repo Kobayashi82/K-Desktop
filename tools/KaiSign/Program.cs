@@ -59,24 +59,30 @@ try
             }
             return bad ? 1 : 0;
 
-        case "export" when args.Length >= 3:
+        case "export" when args.Length >= 2:
             using (var key = Load(out var publisher))
             {
-                var pem = key.ExportEncryptedPkcs8PrivateKeyPem(args[2], new PbeParameters(PbeEncryptionAlgorithm.Aes256Cbc, HashAlgorithmName.SHA256, 600_000));
+                // Asked, not written in the command: it would stay in the console's history.
+                var password = args.Length >= 3 ? args[2] : AskPassword(twice: true);
+                if (password.Length < 8) return Fail("La contraseña necesita 8 letras como mínimo.");
+                var pem = key.ExportEncryptedPkcs8PrivateKeyPem(password, new PbeParameters(PbeEncryptionAlgorithm.Aes256Cbc, HashAlgorithmName.SHA256, 600_000));
                 File.WriteAllText(args[1], $"# {publisher}\n{pem}\n");
                 Console.WriteLine($"Copia con contraseña en {args[1]}");
             }
             return 0;
 
-        case "import" when args.Length >= 4:
+        case "import" when args.Length >= 3:
             if (File.Exists(keyFile) && !args.Contains("--force")) return Fail($"Ya hay una clave en {keyFile} (--force para sustituirla).");
             using (var key = ECDsa.Create())
             {
+                // import <archivo> <publicador> asks for the password; import <archivo> <contraseña> <publicador> as before.
+                var rest = args.Skip(2).Where(a => a != "--force").ToList();
+                var (password, who) = rest.Count >= 2 ? (rest[0], rest[1]) : (AskPassword(twice: false), rest[0]);
                 var text = File.ReadAllText(args[1]);
-                key.ImportFromEncryptedPem(text.AsSpan(text.IndexOf("-----BEGIN", StringComparison.Ordinal)), args[2]);
-                Save(key, args[3]);
-                Console.WriteLine($"Clave de «{args[3]}» importada en {keyFile}");
-                PrintTrusted(key, args[3]);
+                key.ImportFromEncryptedPem(text.AsSpan(text.IndexOf("-----BEGIN", StringComparison.Ordinal)), password);
+                Save(key, who);
+                Console.WriteLine($"Clave de «{who}» importada en {keyFile}");
+                PrintTrusted(key, who);
             }
             return 0;
 
@@ -88,8 +94,8 @@ try
                   kaisign public                          la clave pública, como va en trusted-publishers.json
                   kaisign sign <paquete.kai>...           firma (sustituye una firma anterior)
                   kaisign verify <paquete.kai>...         comprueba lo que diría K-Desktop
-                  kaisign export <archivo> <contraseña>   copia de la clave con contraseña, para guardarla aparte
-                  kaisign import <archivo> <contraseña> <publicador> [--force]
+                  kaisign export <archivo>                copia de la clave con contraseña (te la pide), para guardarla aparte
+                  kaisign import <archivo> <publicador> [--force]   la vuelve a poner en este usuario (te pide la contraseña)
                 """);
             return args.Length == 0 || args[0] is "help" or "-h" or "--help" ? 0 : 2;
     }
@@ -122,6 +128,27 @@ static void PrintTrusted(ECDsa key, string publisher)
     Console.WriteLine("Para trusted-publishers.json:");
     Console.WriteLine(new JsonObject { ["name"] = publisher, ["key"] = Convert.ToBase64String(publicKey) }
         .ToJsonString(new System.Text.Json.JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
+}
+
+/// <summary>A password typed without showing it (twice: it must be the same both times).</summary>
+static string AskPassword(bool twice)
+{
+    var first = Read("Contraseña: ");
+    if (twice && Read("Repítela: ") != first) throw new ArgumentException("Las dos contraseñas no son iguales.");
+    return first;
+
+    static string Read(string prompt)
+    {
+        Console.Write(prompt);
+        var text = new StringBuilder();
+        for (var key = Console.ReadKey(intercept: true); key.Key != ConsoleKey.Enter; key = Console.ReadKey(intercept: true))
+        {
+            if (key.Key == ConsoleKey.Backspace) { if (text.Length > 0) text.Length--; }
+            else if (!char.IsControl(key.KeyChar)) text.Append(key.KeyChar);
+        }
+        Console.WriteLine();
+        return text.ToString();
+    }
 }
 
 static int Fail(string message)
