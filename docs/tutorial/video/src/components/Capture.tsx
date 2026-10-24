@@ -17,10 +17,10 @@ export const MediaProvider: React.FC<Media & { children: React.ReactNode }> = ({
 /** The language of the video being rendered. */
 export const useLang = (): string => useContext(MediaContext).lang;
 
-/** A real screenshot (docs/tutorial/captures): the one of the video's language (captures/<lang>/) when there is one. */
+/** A real screenshot (docs/tutorial/captures/<lang>): the one of the video's language, or the English one when there is none. */
 export const useCapture = (name: string): CaptureInfo & { width: number; height: number } => {
   const { lang, captures } = useContext(MediaContext);
-  const info = captures[`${lang}/${name}`] ?? captures[name] ?? { file: `captures/${name}.png` };
+  const info = captures[`${lang}/${name}`] ?? captures[`en/${name}`] ?? { file: `captures/en/${name}.png` };
   return { width: 1920, height: 1080, ...info };
 };
 
@@ -85,7 +85,7 @@ export const CaptureShot: React.FC<{
   );
 };
 
-/** A real screen recording (docs/tutorial/captures/clips), from frame `from` of the clip. */
+/** A real screen recording (docs/tutorial/captures/<lang>/clips), from frame `from` of the clip. */
 export const CaptureClip: React.FC<{ name: string; startFrom?: number; style?: React.CSSProperties; volume?: number }> = ({ name, startFrom = 0, style, volume = 0 }) => {
   const cap = useCapture(name);
   return <OffthreadVideo src={staticFile(cap.file)} startFrom={startFrom} volume={volume} style={{ width: '100%', height: '100%', ...style }} />;

@@ -9,7 +9,7 @@ es editar un archivo y volver a generar.
   eventos, macros, K-Board, voz, control remoto, logros, opciones, asistentes y cierre).
 - **Formato:** 1920 × 1080, 30 fps, H.264, audio AAC masterizado a −15 LUFS. Subtítulos aparte, en `.srt`.
 - **Imagen:** interfaces recreadas y animadas a partir del código de K-Desktop (colores, iconos Fluent, textos de
-  `en.json`), las capturas reales de [`../captures`](../captures) y la app web real del móvil
+  `en.json`), las capturas reales de [`../captures/en`](../captures/en) y la app web real del móvil
   (`src/KDesktop.Core/Web`) renderizada con datos inventados.
 - **Sonido:** la narración, efectos y una música de fondo sintetizados aquí mismo (sin licencias de terceros) y el
   sonido de logro de K-Desktop (`Logro.wav`).
@@ -84,7 +84,7 @@ capítulos (composición `chapter`, propiedad `chapter`) y el vídeo entero (`kd
   `node tools/stills.mjs all --every 150 --scale 0.25` un fotograma cada 5 segundos de todo el vídeo
   (con `python tools/sheet.py hoja.png out/stills/all-*.png` se juntan en una hoja). Las escenas dejan libre la
   franja de abajo, donde el reproductor pone los subtítulos.
-- **Las capturas:** en [`../captures`](../captures), con los nombres que usan las escenas (`commands`,
+- **Las capturas:** en [`../captures/en`](../captures/en) (las de español en `../captures/es`), con los nombres que usan las escenas (`commands`,
   `action-picker`, `quickmenu-closeup`, `settings-web`, `pair-qr`, `history`, `achievements`, `stats`,
   `achievement-toast`, `settings-appearance`, `settings-launcher`, `settings-voice`, `assistant-settings`,
   `assistant-install`, `desktop-assistants`, `brain`, `assistant-voice`, `tools-builtin`, `tools-mcp-server`,
@@ -94,7 +94,7 @@ capítulos (composición `chapter`, propiedad `chapter`) y el vídeo entero (`kd
 
 Está hecha: `script/es.json` (mismos ids de capítulos y beats y mismas marcas `{cue}`, sobre la palabra equivalente),
 narrada con **ElevenLabs** (voz «Cristina», `eleven_v4_turbo`), con las capturas de `../captures/es/` (las que falten se
-toman de `../captures/`) y los rótulos de las escenas traducidos. Se rehace con:
+toman de `../captures/en/`) y los rótulos de las escenas traducidos. Se rehace con:
 
 ```
 python tools/assets.py
