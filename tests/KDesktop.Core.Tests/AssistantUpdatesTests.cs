@@ -55,6 +55,8 @@ public class AssistantUpdatesTests
     {
         public long Sent { get; private set; }
 
+        public int Requests { get; private set; }
+
         protected override HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken) => Answer(request);
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
@@ -62,6 +64,7 @@ public class AssistantUpdatesTests
 
         private HttpResponseMessage Answer(HttpRequestMessage request)
         {
+            Requests++;
             if (file is null || status != HttpStatusCode.OK) return new HttpResponseMessage(file is null ? HttpStatusCode.NotFound : status) { RequestMessage = request };
             if (ranges && request.Headers.Range?.Ranges.SingleOrDefault() is { From: { } from, To: { } to })
             {
@@ -155,6 +158,61 @@ public class AssistantUpdatesTests
     [InlineData("dot.kai", false)]
     public void OnlyHttpsOrThisPcIsAPublishAddress(string url, bool allowed) =>
         Assert.Equal(allowed, AssistantPackages.IsPublishAddress(url, out _));
+
+    /// <summary>A package with 2 MB of code, two clips of 1 MB and a voice: the catalog's detail window opens it (stage 16.3).</summary>
+    private static byte[] PackageWithClips(byte[] clip)
+    {
+        var manifest = JsonNode.Parse(Manifest("dot", "1.1.0"))!.AsObject();
+        manifest["voice"] = "voice/dot.json";
+        manifest["showcase"] = new JsonArray(
+            new JsonObject { ["item"] = "react.success", ["clip"] = "showcase/react.success.webp" },
+            new JsonObject { ["item"] = "react.failure", ["clip"] = "showcase/react.failure.webp" });
+        using var memory = new MemoryStream();
+        using (var zip = new ZipArchive(memory, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            var noise = new byte[2 << 20];
+            new Random(7).NextBytes(noise);
+            using (var lib = zip.CreateEntry("lib/Dot.dll", CompressionLevel.NoCompression).Open()) lib.Write(noise);
+            foreach (var name in new[] { "react.success", "react.failure" })
+                using (var stream = zip.CreateEntry($"showcase/{name}.webp", CompressionLevel.NoCompression).Open()) stream.Write(clip);
+            using (var voice = new StreamWriter(zip.CreateEntry("voice/dot.json").Open()))
+                voice.Write("""{ "name": "Dot", "engine": { "type": "piper" }, "chain": [] }""");
+            using var writer = new StreamWriter(zip.CreateEntry(AssistantManifest.FileName).Open());
+            writer.Write(manifest.ToJsonString());
+        }
+        return memory.ToArray();
+    }
+
+    [Fact]
+    public async Task ThePublishedPackageIsOpenedAndOnlyTheClipAskedForIsDownloaded()
+    {
+        var clip = new byte[1 << 20];
+        new Random(3).NextBytes(clip);
+        var package = PackageWithClips(clip);
+        var server = new FakeServer(package);
+        using var http = new HttpClient(server);
+        using var remote = await RemotePackage.OpenAsync(Url, http, CancellationToken.None);
+
+        Assert.Equal("1.1.0", remote.Manifest.Version);
+        Assert.Equal(2, remote.Manifest.Showcase.Count);
+        Assert.Equal(package.Length, remote.Size);
+        Assert.InRange(server.Sent, 1, 256 * 1024);
+
+        var voice = await remote.ReadVoiceAsync(CancellationToken.None);
+        Assert.Equal(("Dot", "piper"), (voice?.Name, voice?.Engine));
+
+        var before = (server.Sent, server.Requests);
+        var read = await remote.ReadAsync("showcase/react.failure.webp", 8 << 20, CancellationToken.None);
+        Assert.Equal(clip, read);
+        // Only that clip (some of it may have come with the directory, a block on each side at most), in very few requests,
+        // and never the whole package.
+        Assert.InRange(server.Sent - before.Sent, 1, clip.Length + 3 * 64 * 1024);
+        Assert.InRange(server.Requests - before.Requests, 1, 3);
+        Assert.True(server.Sent < package.Length / 2, $"{server.Sent} de {package.Length}");
+        Assert.Null(await remote.ReadAsync("showcase/nothing.webp", 8 << 20, CancellationToken.None));
+        Assert.Null(await remote.ReadAsync("showcase/react.success.webp", 1024, CancellationToken.None));
+        Assert.Null(await remote.ReadAsync("../outside.webp", 8 << 20, CancellationToken.None));
+    }
 
     [Fact]
     public async Task OnlyAssistantsWithAnAddressAreChecked()

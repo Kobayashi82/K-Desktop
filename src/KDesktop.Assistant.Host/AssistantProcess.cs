@@ -20,8 +20,9 @@ public static class AssistantProcess
     /// <summary>Entry point from Program.Main (after <c>--data</c> was applied). Returns the exit code.</summary>
     public static int Run(IReadOnlyList<string> args)
     {
-        Log.UseFile("assistant");
         var options = AssistantOptions.Parse(args);
+        if (options.Showcase is not null) return RunStage(args, options);
+        Log.UseFile("assistant");
         try
         {
             if (options.Exit) return SignalExit() ? 0 : 1;
@@ -54,6 +55,43 @@ public static class AssistantProcess
         catch (Exception ex)
         {
             Log.Error("El proceso del asistente se ha detenido por un error", ex);
+            return 3;
+        }
+        finally
+        {
+            Log.Flush();
+        }
+    }
+
+    /// <summary>
+    /// <c>--assistant-showcase</c>: one assistant on the showcase's stage (phase 16). Several may run at once (no mutex): each
+    /// has its own stage, data folder and pipe. Never as administrator either.
+    /// </summary>
+    private static int RunStage(IReadOnlyList<string> args, AssistantOptions options)
+    {
+        Log.UseFile("stage");
+        try
+        {
+            if (ProcessLauncher.IsElevated && !options.AllowElevated) return RelaunchAsUser(args);
+            if (options.Pipe is null && options.Record is null)
+            {
+                Console.Error.WriteLine("--assistant-showcase necesita --pipe (K-Desktop) o --record (grabar los clips)");
+                return 1;
+            }
+            Log.Info($"── Escenario {AppPaths.FullVersion} (pid {Environment.ProcessId}): {options.Showcase}" +
+                     (options.Record is { } record ? $", grabando en {record}" : ""));
+            // With K-Desktop, its language comes in the welcome; recording, the one asked for or English.
+            Loc.Instance.Load(options.Record is not null ? options.Language ?? "en" : null);
+            using var session = new Stage.StageSession(options, Dispatcher.CurrentDispatcher);
+            session.Start();
+            Dispatcher.Run();
+            Log.Info("Escenario cerrado");
+            return session.ExitCode;
+        }
+        catch (Exception ex)
+        {
+            Log.Error("El escenario se ha detenido por un error", ex);
+            Console.Error.WriteLine(ex.Message);
             return 3;
         }
         finally

@@ -49,14 +49,14 @@ internal static class PackageLoader
     /// Loads the package in <paramref name="folder"/> (assistant.json and lib/). Throws with a message for K-Desktop's
     /// panel when it cannot (bad manifest, another major version of the SDK, the type is not an IAssistant…).
     /// </summary>
-    public static LoadedPackage Load(string folder, string? dataFolder = null)
+    public static LoadedPackage Load(string folder, string? dataFolder = null, bool defaultSettings = false)
     {
         var manifest = AssistantManifest.Load(folder);
         var host = typeof(IAssistant).Assembly.GetName().Version ?? new Version(1, 0);
         if (!manifest.RunsOn(host))
             throw new InvalidOperationException($"«{manifest.Id}» necesita el SDK {manifest.Sdk}; este K-Desktop tiene el {host.Major}.{host.Minor}");
 
-        if (manifest.IsCharacter) return LoadCharacter(folder, dataFolder, manifest);
+        if (manifest.IsCharacter) return LoadCharacter(folder, dataFolder, manifest, defaultSettings);
 
         var (dll, typeName) = manifest.EntryParts;
         var entry = Path.GetFullPath(Path.Combine(folder, dll.Replace('/', Path.DirectorySeparatorChar)));
@@ -74,7 +74,7 @@ internal static class PackageLoader
 
             var data = dataFolder ?? AssistantPaths.Data(manifest.Id);
             Directory.CreateDirectory(data);
-            var settings = JsonSerializer.SerializeToElement(AssistantSettingsValues.Read(folder, manifest));
+            var settings = JsonSerializer.SerializeToElement(AssistantSettingsValues.Read(folder, manifest, defaultSettings));
             Log.Info($"Asistente: paquete «{manifest.Id}» {manifest.Version} cargado desde {folder}");
             return new LoadedPackage(assistant, manifest, folder, data, settings, context);
         }
@@ -86,7 +86,7 @@ internal static class PackageLoader
     }
 
     /// <summary>An assistant without code (phase 12): its character.json, moved by the host; nothing of the package is loaded as code.</summary>
-    private static LoadedPackage LoadCharacter(string folder, string? dataFolder, AssistantManifest manifest)
+    private static LoadedPackage LoadCharacter(string folder, string? dataFolder, AssistantManifest manifest, bool defaultSettings)
     {
         var file = Path.GetFullPath(Path.Combine(folder, manifest.Entry));
         if (!file.StartsWith(Path.GetFullPath(folder), StringComparison.OrdinalIgnoreCase) || !File.Exists(file))
@@ -94,7 +94,7 @@ internal static class PackageLoader
         var character = CharacterFile.Parse(File.ReadAllText(file));
         var data = dataFolder ?? AssistantPaths.Data(manifest.Id);
         Directory.CreateDirectory(data);
-        var settings = JsonSerializer.SerializeToElement(AssistantSettingsValues.Read(folder, manifest));
+        var settings = JsonSerializer.SerializeToElement(AssistantSettingsValues.Read(folder, manifest, defaultSettings));
         Log.Info($"Asistente: personaje «{manifest.Id}» {manifest.Version} (sin código) cargado desde {folder}");
         return new LoadedPackage(new Characters.CharacterAssistant(character), manifest, folder, data, settings, null);
     }

@@ -199,9 +199,12 @@ public static partial class AssistantPackages
             {
                 if (!HashFile(package.File).AsSpan().SequenceEqual(package.Hash))
                     throw Fail(PackageProblem.Changed, "assistantPkg.changed");
+                // The showcase's clips are only for the catalog, which reads them from the package: they are not installed.
+                var clips = manifest.Showcase.Select(c => c.Clip.Replace('\\', '/')).ToHashSet(StringComparer.OrdinalIgnoreCase);
                 using (var zip = ZipFile.OpenRead(package.File))
                     foreach (var (path, entry) in Entries(zip, out _))
                     {
+                        if (clips.Contains(path)) continue;
                         var target = Path.Combine(temp, path.Replace('/', Path.DirectorySeparatorChar));
                         Directory.CreateDirectory(Path.GetDirectoryName(target)!);
                         using var source = entry.Open();

@@ -109,14 +109,7 @@ public partial class AssistantCatalogSection : UserControl
             text.Children.Add(Caption(Loc.T("assistantCatalog.byline", manifest.Version, manifest.Author)));
             if (AssistantLook.Text(manifest.Description) is { Length: > 0 } about) text.Children.Add(Caption(about, margin: new Thickness(0, 3, 0, 0)));
         }
-        var (stateText, brush) = item.State switch
-        {
-            CatalogState.Installed => (Loc.T("assistantCatalog.installed", item.Installed ?? ""), "Kd.Success"),
-            CatalogState.Update => (Loc.T("assistantCatalog.update", item.Installed ?? "", item.Manifest?.Version ?? ""), "Kd.AccentText"),
-            CatalogState.NeedsNewerKDesktop => (Loc.T("assistantCatalog.needsKDesktop"), "Kd.Warning"),
-            CatalogState.Failed => (item.Error ?? Loc.T("assistantCatalog.failed"), "Kd.Danger"),
-            _ => (string.Empty, string.Empty),
-        };
+        var (stateText, brush) = StateLine(item);
         if (stateText.Length > 0)
         {
             var state = new TextBlock { Text = stateText, FontSize = 12, Margin = new Thickness(0, 4, 0, 0), TextWrapping = TextWrapping.Wrap };
@@ -135,19 +128,37 @@ public partial class AssistantCatalogSection : UserControl
                 () => _ = _app.OpenFromCatalogAsync(item), primary: true, enabled: !downloading, target: item.Name),
             _ => null,
         };
+        // What it can do (clips), what it is and what it needs, before installing it: whenever its package could be read.
+        var buttons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        if (item.Manifest is not null)
+        {
+            var details = Wide(SymbolRegular.Eye24, Loc.T("assistantCatalog.details"), () => _app.OpenCatalogDetail(item), target: item.Name);
+            details.Margin = new Thickness(0);
+            buttons.Children.Add(details);
+        }
         if (action is not null)
         {
-            action.VerticalAlignment = VerticalAlignment.Center;
-            action.Margin = new Thickness(0);
-            Grid.SetColumn(action, 2);
-            grid.Children.Add(action);
+            action.Margin = new Thickness(buttons.Children.Count > 0 ? 8 : 0, 0, 0, 0);
+            buttons.Children.Add(action);
         }
+        Grid.SetColumn(buttons, 2);
+        grid.Children.Add(buttons);
 
         var row = new Border { Margin = new Thickness(0, 0, 0, 6), Padding = new Thickness(12, 10, 12, 10), CornerRadius = new CornerRadius(8), BorderThickness = new Thickness(1), Child = grid };
         row.SetResourceReference(Border.BackgroundProperty, "Kd.Subtle");
         row.SetResourceReference(Border.BorderBrushProperty, "CardStrokeColorDefaultBrush");
         return row;
     }
+
+    /// <summary>How it is here (installed, an update, it needs a newer K-Desktop, it failed), and the brush for it; empty when available.</summary>
+    internal static (string Text, string Brush) StateLine(CatalogItem item) => item.State switch
+    {
+        CatalogState.Installed => (Loc.T("assistantCatalog.installed", item.Installed ?? ""), "Kd.Success"),
+        CatalogState.Update => (Loc.T("assistantCatalog.update", item.Installed ?? "", item.Manifest?.Version ?? ""), "Kd.AccentText"),
+        CatalogState.NeedsNewerKDesktop => (Loc.T("assistantCatalog.needsKDesktop"), "Kd.Warning"),
+        CatalogState.Failed => (item.Error ?? Loc.T("assistantCatalog.failed"), "Kd.Danger"),
+        _ => (string.Empty, string.Empty),
+    };
 
     private ImageSource? IconOf(CatalogItem item)
     {

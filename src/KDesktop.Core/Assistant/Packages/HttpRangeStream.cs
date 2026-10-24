@@ -89,19 +89,51 @@ internal sealed class HttpRangeStream : Stream
         return done;
     }
 
+    /// <summary>The most blocks asked for at once (1 MB), when it is being read straight through.</summary>
+    private const int MostAhead = 16;
+
+    /// <summary>The block after the last one fetched, and how many were fetched then (reading on doubles it).</summary>
+    private long _next = -1;
+    private int _ahead = 1;
+
+    /// <summary>The most asked for at once when whoever reads says how much is coming (<see cref="Expect"/>): 8 MB.</summary>
+    private const int MostExpected = 128;
+
+    private long _expected;
+
+    /// <summary>
+    /// The next read that has to download goes on for about <paramref name="bytes"/> (a file of the package: its header and
+    /// its data): it is asked for in one request, without reading past it.
+    /// </summary>
+    public void Expect(long bytes) => _expected = bytes;
+
     private byte[] BlockAt(long index)
     {
         if (_blocks.TryGetValue(index, out var cached)) return cached;
+        // Reading straight through (a clip, a file of the package): more blocks in one request each time; or, when it was
+        // said how much is coming, all of it at once.
+        _ahead = _expected > 0 ? (int)Math.Clamp((_position - index * Block + _expected + Block - 1) / Block, 1, MostExpected)
+            : index == _next ? Math.Min(_ahead * 2, MostAhead) : 1;
+        _expected = 0;
+        var count = 1;
+        while (count < _ahead && !_blocks.ContainsKey(index + count) && (index + count) * Block < Length) count++;
         var from = index * Block;
-        var to = Math.Min(from + Block, Length) - 1;
+        var to = Math.Min(from + (long)count * Block, Length) - 1;
         using var request = Request(_url, from, to);
         using var response = _http.Send(request, HttpCompletionOption.ResponseHeadersRead, _ct);
         response.EnsureSuccessStatusCode();
         if (response.StatusCode != HttpStatusCode.PartialContent) throw new IOException("El servidor dejó de enviar trozos del archivo");
-        var data = new byte[to - from + 1];
-        using (var stream = response.Content.ReadAsStream(_ct)) stream.ReadExactly(data);
-        Fetched += data.Length;
-        return _blocks[index] = data;
+        using (var stream = response.Content.ReadAsStream(_ct))
+            for (var i = 0; i < count; i++)
+            {
+                var start = from + (long)i * Block;
+                var data = new byte[Math.Min(Block, Length - start)];
+                stream.ReadExactly(data);
+                Fetched += data.Length;
+                _blocks[index + i] = data;
+            }
+        _next = index + count;
+        return _blocks[index];
     }
 
     public override void Flush() { }

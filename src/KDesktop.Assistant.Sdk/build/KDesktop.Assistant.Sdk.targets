@@ -10,12 +10,20 @@
       $(OutDir)<id>-<version>.kai   that folder zipped, ready for «Add assistant»
     The id and the version are read from Package\assistant.json. To try it without installing, run K-Desktop in
     assistant development mode with the project folder: it takes the newest bin\…\package and reloads it on rebuilds.
+
+    Optional: with AssistantShowcase=true (dotnet build -p:AssistantShowcase=true) and KDesktopExe set to a K-Desktop that
+    has the showcase's stage (5.0.189 or newer), the built package is put on K-Desktop's stage, off the screen, and a short
+    clip of each thing it shows is recorded into Package\showcase\ (animated WebP) and listed in the "showcase" of
+    Package\assistant.json (only that part of the file is rewritten). It takes a few minutes; the clips stay in the
+    sources, so later builds just pack them. The clips are recorded in English (the bubble's text, the stage's windows);
+    AssistantShowcaseLanguage=es (or fr, de, it, pt) records them in another language.
   -->
 
   <PropertyGroup>
     <!-- Its own AssemblyLoadContext in the host: dependencies resolved through its .deps.json. -->
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <AssistantSource Condition="'$(AssistantSource)' == ''">$(MSBuildProjectDirectory)\Package\</AssistantSource>
+    <AssistantShowcaseLanguage Condition="'$(AssistantShowcaseLanguage)' == ''">en</AssistantShowcaseLanguage>
   </PropertyGroup>
 
   <Target Name="PackKDesktopAssistant" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true'">
@@ -54,6 +62,19 @@
     <RemoveDir Directories="$(AssistantStaging)" />
     <Copy SourceFiles="@(_AssistantContent)" DestinationFiles="@(_AssistantContent->'$(AssistantStaging)%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(_AssistantLib)" DestinationFiles="@(_AssistantLib->'$(AssistantStaging)lib\%(RecursiveDir)%(Filename)%(Extension)')" />
+
+    <!-- The showcase's clips (stage 16.2), only when asked: recorded from the staged package into the sources, then staged too. -->
+    <Error Condition="'$(AssistantShowcase)' == 'true' and ('$(KDesktopExe)' == '' or !Exists('$(KDesktopExe)'))"
+           Text="Para grabar el escaparate, KDesktopExe tiene que apuntar a KDesktop.exe (ahora: '$(KDesktopExe)')." />
+    <Exec Condition="'$(AssistantShowcase)' == 'true'"
+          Command="&quot;$(KDesktopExe)&quot; --assistant-showcase &quot;$(AssistantStaging.TrimEnd('\'))&quot; --record &quot;$(_AssistantSourceFull)showcase&quot; --manifest &quot;$(_AssistantSourceFull)assistant.json&quot; --language $(AssistantShowcaseLanguage)" />
+    <ItemGroup Condition="'$(AssistantShowcase)' == 'true'">
+      <_AssistantShowcase Include="$(AssistantSource)showcase\*.webp" />
+    </ItemGroup>
+    <RemoveDir Condition="'$(AssistantShowcase)' == 'true'" Directories="$(AssistantStaging)showcase" />
+    <Copy Condition="'$(AssistantShowcase)' == 'true'" SourceFiles="@(_AssistantShowcase)"
+          DestinationFiles="@(_AssistantShowcase->'$(AssistantStaging)showcase\%(Filename)%(Extension)')" />
+    <Copy Condition="'$(AssistantShowcase)' == 'true'" SourceFiles="$(AssistantSource)assistant.json" DestinationFolder="$(AssistantStaging)" />
     <ZipDirectory SourceDirectory="$(AssistantStaging)" DestinationFile="$(AssistantPackage)" Overwrite="true" />
     <Message Importance="high" Text="$(MSBuildProjectName) -> $(AssistantPackage)" />
   </Target>

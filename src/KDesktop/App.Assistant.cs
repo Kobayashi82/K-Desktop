@@ -236,12 +236,6 @@ public partial class App
             case WriteMessage write:
                 OnAssistantWrite(write);
                 break;
-            case ShowcaseListMessage showcase:
-                AssistantShowcaseListed?.Invoke(showcase);
-                break;
-            case ShowcaseDoneMessage showcaseDone:
-                AssistantShowcaseDone?.Invoke(showcaseDone);
-                break;
             case DroppedMessage dropped:
                 OnAssistantDropped(dropped);
                 break;

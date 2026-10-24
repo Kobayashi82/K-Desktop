@@ -38,6 +38,7 @@ public partial class App
     {
         var common = AssistantCommonConfig();
         var json = common.ToJsonString();
+        SendStageCommon();
         if (json == _assistantCommonSent || _assistant is not { IsRunning: true } supervisor) return;
         _assistantCommonSent = json;
         supervisor.Send(new ConfigMessage("common", common));

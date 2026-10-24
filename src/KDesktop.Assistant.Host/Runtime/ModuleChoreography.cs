@@ -17,7 +17,7 @@ namespace KDesktop.Assistant.Host.Runtime;
 /// Every step gets exactly one answer, always before K-Desktop stops waiting: an assistant never holds an order back.
 /// An order cancelled while its command runs skips all that is left (<c>skip</c> with <c>all</c>).
 /// </summary>
-internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, AssistantRuntime runtime)
+internal sealed class ModuleChoreography(KDesktopLink? link, EngineLoop engine, AssistantRuntime runtime)
 {
     /// <summary>The step is answered this long before K-Desktop would stop waiting.</summary>
     private static readonly TimeSpan AnswerMargin = TimeSpan.FromMilliseconds(600);
@@ -57,7 +57,7 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
         {
             if (!_runs.TryRemove(run, out _)) return;
             Log.Info($"Asistente: «{assistant}» cancela el run {run}: se salta lo que queda");
-            link.Send(new SkipMessage(run, 0, All: true));
+            link?.Send(new SkipMessage(run, 0, All: true));
             engine.Post(() => StopPlaying(assistant));
         });
     }
@@ -74,7 +74,7 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
         if (!_runs.TryGetValue(step.Run, out var assistant))
         {
             // Not one of ours (any more): let it run.
-            link.Send(new GoMessage(step.Run, step.Index));
+            link?.Send(new GoMessage(step.Run, step.Index));
             return;
         }
         Log.Info($"Asistente: «{assistant}» paso {step.Index} ({step.Kind} {step.Op}, prof. {step.Depth}): «{step.Summary}»" +
@@ -176,9 +176,12 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
 
     /// <summary>
     /// A gesture of the showcase (stage 13.9, engine thread), within <paramref name="budget"/>: like a tool's, a step of an
-    /// order takes its place. Its outcome, or null when it cannot do it now or does not know it.
+    /// order takes its place. Its outcome, or null when it cannot do it now or does not know it. On the stage (phase 16) a
+    /// gesture on one of its windows brings what its Commit does (<paramref name="commit"/>), when that is done
+    /// (<paramref name="committed"/>) and the window that opens (<paramref name="appeared"/>).
     /// </summary>
-    public async Task<GestureOutcome?> ShowcaseAsync(string assistant, Gesture gesture, TimeSpan budget, CancellationToken stop)
+    public async Task<GestureOutcome?> ShowcaseAsync(string assistant, Gesture gesture, TimeSpan budget, CancellationToken stop,
+        Action? commit = null, Task<bool>? committed = null, Task<WindowInfo?>? appeared = null)
     {
         if (_playing.ContainsKey(assistant)) return null;
         StopDecorating(assistant);
@@ -187,7 +190,8 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
         using var limit = CancellationTokenSource.CreateLinkedTokenSource(stop);
         limit.CancelAfter(budget);
         _decorating[assistant] = limit;
-        var context = new StepGestureContext(engine, engine.Now + budget.TotalSeconds, step, () => { }, Task.FromResult(true), null, speed);
+        var context = new StepGestureContext(engine, engine.Now + budget.TotalSeconds, step, commit ?? (() => { }), committed ?? Task.FromResult(true),
+            appeared, speed);
         try
         {
             if (runtime.TryPerform(assistant, gesture, context, limit.Token) is not { } running) return null;
@@ -320,7 +324,7 @@ internal sealed class ModuleChoreography(KDesktopLink link, EngineLoop engine, A
         var answered = 0;
         void Answer(PipeMessage message)
         {
-            if (Interlocked.Exchange(ref answered, 1) == 0) link.Send(message);
+            if (Interlocked.Exchange(ref answered, 1) == 0) link?.Send(message);
         }
         void Go() => Answer(new GoMessage(step.Run, step.Index));
         // The result after the action, or false if it never comes in the step's time.

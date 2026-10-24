@@ -1,20 +1,21 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.IO.MemoryMappedFiles;
 using System.Reflection;
 using KDesktop.Assistant.Host.Runtime;
 using KDesktop.Assistant.Sdk;
+using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Localization;
 
 namespace KDesktop.Assistant.Tests;
 
 /// <summary>
-/// The showcase (stage 13.9, SDK 1.18): what each assistant can show — the host's entrances, exits, states, reactions and
-/// gestures, and its own animations — and «do this one now», with the real KDesktop.exe in assistant mode and Pip (an
-/// assistant without code, whose own ones are the animations of its character.json). Pip shows above the taskbar for a
-/// few seconds.
+/// The showcase (stages 13.9 and 16.1, SDK 1.18): what each assistant can show — the host's entrances, exits, states,
+/// reactions, gestures and what it does to a window, and its own animations — and «do this one now», on its stage: the real
+/// KDesktop.exe with <c>--assistant-showcase</c> and Pip (an assistant without code, whose own ones are the animations of its
+/// character.json). Nothing shows on the screen: the stage is drawn off it and its pictures come through shared memory.
 /// </summary>
-[Collection(OnTheDesktop.Name)]
 public class ShowcaseTests
 {
     private static string Exe { get; } = Path.GetFullPath(typeof(ShowcaseTests).Assembly
@@ -41,34 +42,43 @@ public class ShowcaseTests
     [Fact]
     public async Task ItListsAndPlaysWhatItCanShow()
     {
-        var data = Path.Combine(Path.GetTempPath(), "kdesktop-tests", "showcase-" + Guid.NewGuid().ToString("N")[..8]);
-        var pipData = Path.Combine(data, "Assistants", "Data", "pip");
-        var name = "KDesktop.Assistant.Test." + Guid.NewGuid().ToString("N")[..12];
-
         Process? process = null;
         var loaded = new ConcurrentQueue<LoadedMessage>();
         var lists = new ConcurrentQueue<ShowcaseListMessage>();
         var done = new ConcurrentQueue<ShowcaseDoneMessage>();
-        await using var server = new AssistantPipeServer(name, new ClientPolicy(Exe, pid => pid == process?.Id), () => new WelcomeMessage("es", "dark", false));
-        var hello = new TaskCompletionSource();
-        server.Connected += _ => hello.TrySetResult();
-        server.Received += m =>
+        StageFrameMessage? frame = null;
+        await using var stage = new AssistantStage(PipFolder, () => new WelcomeMessage("es", "dark", false),
+            (exe, arguments) => process = Process.Start(new ProcessStartInfo(exe, arguments + " --allow-elevated") { UseShellExecute = false }),
+            Exe);
+        var ended = new TaskCompletionSource<string>();
+        stage.Ended += reason => ended.TrySetResult(reason);
+        stage.Received += m =>
         {
             switch (m)
             {
                 case LoadedMessage l: loaded.Enqueue(l); break;
                 case ShowcaseListMessage list: lists.Enqueue(list); break;
                 case ShowcaseDoneMessage d: done.Enqueue(d); break;
+                case StageFrameMessage f: frame = f; break;
             }
         };
-        server.Start();
-
-        process = Process.Start(new ProcessStartInfo(Exe, ["--assistant", "--pipe", name, "--data", data, "--allow-elevated"]) { UseShellExecute = false })!;
+        stage.Start();
+        var server = stage;
         try
         {
-            await hello.Task.WaitAsync(TimeSpan.FromSeconds(20));
-            Assert.True(server.Send(new LoadMessage("pip", "1.0.0", PipFolder, pipData, LoadMessage.Startup)));
             await Until(() => !loaded.IsEmpty);
+            Assert.True(loaded.Single().Ok);
+
+            // Its pictures: a desktop with Pip on it, in the shared memory the stage made.
+            await Until(() => frame is not null);
+            Assert.Equal((720, 405), (frame!.Width, frame.Height));
+            using (var map = MemoryMappedFile.OpenExisting(@"Local\" + frame.Map, MemoryMappedFileRights.Read))
+            using (var view = map.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read))
+            {
+                var pixels = new byte[720 * 405 * 4];
+                view.ReadArray((long)frame.Slot * pixels.Length, pixels, 0, pixels.Length);
+                Assert.True(pixels.Chunk(4).Select(p => (p[0], p[1], p[2])).Distinct().Count() > 50, "el escenario está vacío");
+            }
 
             // The host's ones first, then the animations its character.json has (without names: K-Desktop names them).
             Assert.True(server.Send(new ShowcaseMessage("pip", ShowcaseMessage.List)));
@@ -87,6 +97,8 @@ public class ShowcaseTests
                 return done.Skip(before).First(d => d.Item == item).Result;
             }
 
+            // On the stage's ground from the start (loaded with an empty world it fell off the stage and could not walk).
+            Assert.Equal(ShowcaseDoneMessage.Done, await Play("walk", own: true));
             Assert.Equal(ShowcaseDoneMessage.Done, await Play("react.success"));
             Assert.Equal(ShowcaseDoneMessage.Done, await Play("surprised", own: true));
             Assert.Equal(ShowcaseDoneMessage.Done, await Play("gesture.announce"));
@@ -95,6 +107,9 @@ public class ShowcaseTests
             Assert.Equal(ShowcaseDoneMessage.Done, await Play("click", own: true));
             Assert.Equal(ShowcaseDoneMessage.Unknown, await Play("dance", own: true));
             Assert.Equal(ShowcaseDoneMessage.Unknown, await Play("state.nothing"));
+            // On the stage's windows: Pip cannot press a button, so the stage does it while the bubble says it (as in use).
+            Assert.Equal(ShowcaseDoneMessage.NotPerformed, await Play("window.minimize"));
+            Assert.Equal(ShowcaseDoneMessage.NotPerformed, await Play("gesture.typing"));
 
             // Another one stops the one before.
             var count = done.Count;
@@ -110,15 +125,16 @@ public class ShowcaseTests
 
             Assert.True(server.Send(new ByeMessage("exit")));
             using var exited = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            await process.WaitForExitAsync(exited.Token);
+            await process!.WaitForExitAsync(exited.Token);
         }
         finally
         {
-            if (!process.HasExited) process.Kill();
-            process.Dispose();
+            if (process is { HasExited: false }) process.Kill();
+            process?.Dispose();
         }
 
-        var log = await File.ReadAllTextAsync(Path.Combine(data, "Logs", "assistant.log"));
+        var log = await File.ReadAllTextAsync(Path.Combine(KDesktop.Core.AppPaths.LogDir, "stage.log"));
+        Assert.Contains("dibujo fuera de la pantalla", log);
         Assert.Contains("«pip» descargado (Dismissed)", log);
         Assert.Contains("«pip» cargado (1 en el escritorio, Reloaded)", log);
         Assert.Contains("escaparate de «pip»: suyo surprised → done", log);

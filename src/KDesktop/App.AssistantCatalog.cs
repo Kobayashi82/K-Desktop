@@ -89,6 +89,23 @@ public partial class App
         }
     }
 
+    private readonly Dictionary<string, Views.Assistant.CatalogDetailWindow> _catalogDetails = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Its detail window (clips, what it is, what it needs), one per assistant: an open one comes to the front.</summary>
+    public void OpenCatalogDetail(CatalogItem item)
+    {
+        if (_catalogDetails.TryGetValue(item.Id, out var open))
+        {
+            if (open.WindowState == System.Windows.WindowState.Minimized) open.WindowState = System.Windows.WindowState.Normal;
+            open.Activate();
+            return;
+        }
+        var window = new Views.Assistant.CatalogDetailWindow(item, CatalogHttp.Value) { Owner = _main };
+        _catalogDetails[item.Id] = window;
+        window.Closed += (_, _) => _catalogDetails.Remove(item.Id);
+        window.Show();
+    }
+
     /// <summary>Adds a catalog (false, and why, when the address is not valid or is already there).</summary>
     public bool AddAssistantCatalog(string url, out string? why)
     {

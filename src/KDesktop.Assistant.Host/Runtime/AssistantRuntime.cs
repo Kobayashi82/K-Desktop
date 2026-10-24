@@ -7,6 +7,7 @@ using KDesktop.Assistant.Host.Engine;
 using KDesktop.Assistant.Host.Input;
 using KDesktop.Assistant.Host.Pipe;
 using KDesktop.Assistant.Host.Rendering;
+using KDesktop.Assistant.Host.Stage;
 using KDesktop.Assistant.Host.World;
 using KDesktop.Assistant.Sdk;
 using KDesktop.Core;
@@ -42,7 +43,11 @@ internal sealed class AssistantRuntime : IDisposable
     /// <summary>The language each assistant speaks in (its own, or the process's): what its <c>host.Language</c> says.</summary>
     public Func<string, string>? LanguageOf { get; set; }
 
-    public AssistantRuntime(EngineLoop engine, KDesktopLink? link)
+    /// <param name="stage">
+    /// The showcase's stage (phase 16): the assistants live on a desktop of their own, drawn off the screen, instead of the
+    /// user's.
+    /// </param>
+    public AssistantRuntime(EngineLoop engine, KDesktopLink? link, bool stage = false)
     {
         _engine = engine;
         _link = link;
@@ -50,8 +55,29 @@ internal sealed class AssistantRuntime : IDisposable
         World = new HostWorld(() => engine.Now);
         World.Changed += snapshot => Each(slot => Guard(slot, _ => slot.World.Raise(snapshot), "World.Changed"));
         Watcher = new WorldWatcher(World, () => engine.Now, OwnWindows, e => Each(slot => Guard(slot, a => a.OnSystemEvent(e), "OnSystemEvent")), engine.RequestTick);
-        WindowServices = new HostWindowServices(Watcher.Scanner, message => _link?.Send(message) == true);
+        if (stage)
+        {
+            Stage = new StageScene(World, () => engine.Now, link?.Theme == "dark");
+            WindowServices = Stage;
+            StageInput = new StageInput(Stage, () => _slots.AsEnumerable().Reverse().Where(s => !s.Dropped).SelectMany(s => s.Pointer.VirtualAreas));
+        }
+        else WindowServices = new HostWindowServices(Watcher.Scanner, message => _link?.Send(message) == true);
     }
+
+    /// <summary>The showcase's stage (phase 16), or null on the user's desktop.</summary>
+    public StageScene? Stage { get; }
+
+    /// <summary>The user's pointer over the stage's picture (phase 16), or null on the user's desktop.</summary>
+    public StageInput? StageInput { get; }
+
+    /// <summary>A new picture of the stage (engine thread): its pixels stay valid until the next one.</summary>
+    public event Action<StageCompositor, double>? StageFramed;
+
+    /// <summary>Pictures of the stage a second, at most.</summary>
+    public double StageFrameRate { get; set; } = 30;
+
+    private StageCompositor? _compositor;
+    private double _nextStageFrame;
 
     public HostRendering Rendering { get; private set; } = null!;
 
@@ -70,6 +96,9 @@ internal sealed class AssistantRuntime : IDisposable
 
     public bool IsLoaded(string id) => Find(id) is not null;
 
+    /// <summary>Whether its body moved a moment ago (or just appeared), as <see cref="IWorld.Others"/> says it.</summary>
+    public bool IsMoving(string id) => Find(id) is { Body: not null } slot && _engine.Now - slot.MovedAt < MovingFor;
+
     /// <summary>Whether that assistant is on the desktop now, from any thread (a copy kept as they come and go).</summary>
     public bool HasBody(string id) => _bodies.Contains(id);
 
@@ -86,7 +115,8 @@ internal sealed class AssistantRuntime : IDisposable
     /// <summary>On the engine thread, before the first tick.</summary>
     public void Start()
     {
-        Rendering = new HostRendering();
+        Rendering = new HostRendering(offscreen: Stage is not null);
+        if (Stage is not null) _compositor = new StageCompositor(StageScene.Width, StageScene.Height);
         Faulted += id => _link?.Send(new LoadedMessage(id, false, "falla una y otra vez"));
         Watcher.MonitorsChanged += Rendering.UpdateBounds;
     }
@@ -96,6 +126,7 @@ internal sealed class AssistantRuntime : IDisposable
     {
         Rendering.Pacer.Update(now);
         var interval = 60.0;
+        if (Stage is { } stage) interval = Math.Min(interval, stage.Update(now));
         if (Watcher.IsStarted)
         {
             interval = Watcher.Update(now);
@@ -141,7 +172,36 @@ internal sealed class AssistantRuntime : IDisposable
         }
         interval = Math.Min(interval, PublishBodies(now));
         Rendering.Commit();
+        if (Stage is not null) interval = Math.Min(interval, PresentStage(now));
         return interval;
+    }
+
+    /// <summary>
+    /// The stage's picture after a tick in which something changed, at most <see cref="StageFrameRate"/> a second; returns
+    /// when the next one is due if one is waiting.
+    /// </summary>
+    private double PresentStage(double now)
+    {
+        var stage = Stage!;
+        if (!Rendering.Changed && !stage.Changed) return 60;
+        if (now < _nextStageFrame) return _nextStageFrame - now;
+        _nextStageFrame = now + 1 / Math.Max(1, StageFrameRate);
+        Rendering.Changed = false;
+        var backdrop = stage.Backdrop(now);
+        if (_compositor!.Compose(Rendering, stage.Bounds, backdrop, stage.CursorDrawing()))
+        {
+            try { StageFramed?.Invoke(_compositor, now); }
+            catch (Exception ex) { Log.Error("Asistente: error con la imagen del escenario", ex); }
+        }
+        return 60;
+    }
+
+    /// <summary>A picture of the stage on the next tick even if nothing moved (a recording that starts).</summary>
+    public void RedrawStage()
+    {
+        if (Stage is { } stage) stage.Changed = true;
+        _nextStageFrame = 0;
+        _engine.RequestTick();
     }
 
     /// <summary>How long a body counts as moving after its last move (s).</summary>
@@ -214,9 +274,9 @@ internal sealed class AssistantRuntime : IDisposable
     /// Loads an assistant package from its folder next to the others. One with the same id already on the desktop (an
     /// older version) leaves first, once the new code has loaded. Returns its id.
     /// </summary>
-    public async Task<string> LoadPackageAsync(string folder, string? data, EntranceKind entrance)
+    public async Task<string> LoadPackageAsync(string folder, string? data, EntranceKind entrance, bool defaultSettings = false)
     {
-        var package = PackageLoader.Load(folder, data);
+        var package = PackageLoader.Load(folder, data, defaultSettings);
         await LoadAsync(package.Assistant, package.Manifest.Id, package.Folder, package.DataFolder, package.Settings, entrance,
             package.Manifest, package.Context).ConfigureAwait(true);
         return package.Manifest.Id;
@@ -227,7 +287,7 @@ internal sealed class AssistantRuntime : IDisposable
         AssistantManifest? manifest = null, AssemblyLoadContext? context = null)
     {
         if (Find(id) is not null) await UnloadAsync(id, ExitKind.Reloading).ConfigureAwait(true);
-        if (!Watcher.IsStarted) Watcher.Start(_engine.Now, _engine.Post);
+        if (Stage is null && !Watcher.IsStarted) Watcher.Start(_engine.Now, _engine.Post);
         var slot = new AssistantSlot(id, assistant, manifest, context, Rendering, World) { LastTick = _engine.Now };
         slot.Pointer = new HostPointer(e =>
             {
@@ -237,6 +297,7 @@ internal sealed class AssistantRuntime : IDisposable
             (_, files, at) => OnDropped(slot, files, at), at => OnDropLabel(slot, at))
         {
             Name = manifest?.Name ?? id,
+            Virtual = Stage is not null,
         };
         slot.Keyboard = new HostKeyboard(keys => _link?.Send(new KeysMessage(id, [.. keys.Select(k => k.ToString())])));
         slot.Audio = new AssistantAudio(Audio, package);
@@ -614,6 +675,7 @@ internal sealed class AssistantRuntime : IDisposable
     {
         foreach (var slot in _slots.ToList()) Drop(slot);
         _dropLabel?.Dispose();
+        _compositor?.Dispose();
         Watcher.Dispose();
         World.Dispose();
         Rendering?.Dispose();

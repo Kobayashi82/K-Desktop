@@ -2,7 +2,7 @@
   "$schema": "../../../docs/assistant/schemas/assistant.schema.json",
   "id": "pip",
   "name": "Pip",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "author": "Kobayashi82",
   "description": {
     "es": "Ejemplo de asistente sin código: una gota que pasea por la barra de tareas y por tus ventanas. Solo imágenes y JSON.",
@@ -14,7 +14,7 @@
   },
   "homepage": "https://github.com/Kobayashi82/K-Desktop",
   "license": "MIT",
-  "sdk": "1.20",
+  "sdk": "1.21",
   "entry": "character.json",
   "icon": "icon.png",
   "wakeWord": "Pip",
@@ -26,11 +26,154 @@
     "gestures": ["communicate", "react", "announce"]
   },
   "changes": {
-    "es": "Más animaciones y con sonido: al hacerle clic se aplasta o se ríe, antes de avisarte de algo brinca o te llama con una campanilla, y si le sueltas archivos se los traga. Al arrancar unas veces se despierta y otras sale de un charquito; al ponerlo cae del cielo o aparece entre destellos; al esconderlo se despide o se va de un salto. En reposo a veces bosteza o canturrea, pensando mira a los lados, cuando algo sale mal a veces se derrite un poco y cuando se sorprende da un respingo.",
-    "en": "More animations, now with sound: when clicked it squishes or giggles, before telling you something it hops or calls you with a little bell, and if you drop files on it, it gulps them down. At startup it either wakes up or rises out of a puddle; when you put it there it drops from the sky or pops in among sparkles; when you hide it, it waves goodbye or hops away. While idle it sometimes yawns or hums, when thinking it looks around, when something goes wrong it sometimes melts a little and when surprised it jumps.",
-    "fr": "Plus d’animations, avec du son : quand on clique dessus, il s’écrase ou rigole, avant de vous prévenir il bondit ou vous appelle avec une clochette, et si vous lui lâchez des fichiers, il les avale. Au démarrage, il se réveille ou sort d’une petite flaque ; quand vous le placez, il tombe du ciel ou apparaît parmi des étincelles ; quand vous le cachez, il dit au revoir ou s’en va d’un bond. Au repos, il bâille ou fredonne parfois, en réfléchissant il regarde autour de lui, quand ça tourne mal il fond un peu et quand il est surpris il sursaute.",
-    "de": "Mehr Animationen, jetzt mit Ton: Beim Anklicken quetscht es sich zusammen oder kichert, bevor es dir etwas sagt, hüpft es oder ruft dich mit einem Glöckchen, und wenn du Dateien darauf fallen lässt, schluckt es sie. Beim Start wacht es auf oder steigt aus einer kleinen Pfütze; wenn du es holst, fällt es vom Himmel oder erscheint zwischen Funken; wenn du es versteckst, winkt es oder hüpft davon. Im Ruhezustand gähnt oder summt es manchmal, beim Nachdenken schaut es sich um, wenn etwas schiefgeht, schmilzt es ein bisschen, und wenn es überrascht ist, zuckt es zusammen.",
-    "it": "Più animazioni, ora con il suono: quando lo clicchi si schiaccia o ridacchia, prima di avvisarti saltella o ti chiama con un campanellino, e se gli lasci cadere dei file li inghiotte. All’avvio a volte si sveglia e a volte esce da una pozzanghera; quando lo metti tu cade dal cielo o appare tra le scintille; quando lo nascondi saluta o se ne va con un salto. A riposo a volte sbadiglia o canticchia, quando pensa si guarda intorno, quando qualcosa va storto a volte si scioglie un po’ e quando è sorpreso sobbalza.",
-    "pt": "Mais animações, agora com som: quando você clica nele, ele se achata ou dá risadinhas, antes de avisar algo ele pula ou chama você com um sininho, e se você soltar arquivos nele, ele os engole. Ao iniciar, às vezes acorda e às vezes sai de uma pocinha; quando você o coloca, cai do céu ou aparece entre brilhos; quando você o esconde, acena ou vai embora com um pulo. Parado, às vezes boceja ou cantarola, pensando olha para os lados, quando algo dá errado às vezes derrete um pouco e quando se surpreende dá um pulo."
-  }
+    "es": "Ahora enseña en el catálogo lo que sabe hacer: clips de sus entradas, salidas, estados, reacciones y animaciones.",
+    "en": "It now shows what it can do in the catalog: clips of its entrances, exits, states, reactions and animations.",
+    "fr": "Il montre maintenant ce qu’il sait faire dans le catalogue : des clips de ses entrées, sorties, états, réactions et animations.",
+    "de": "Zeigt jetzt im Katalog, was er kann: Clips seiner Auftritte, Abgänge, Zustände, Reaktionen und Animationen.",
+    "it": "Ora mostra nel catalogo cosa sa fare: clip delle sue entrate, uscite, stati, reazioni e animazioni.",
+    "pt": "Agora mostra no catálogo o que sabe fazer: clipes das suas entradas, saídas, estados, reações e animações."
+  },
+  "showcase": [
+    {
+      "item": "enter.startup",
+      "clip": "showcase/enter.startup.webp"
+    },
+    {
+      "item": "enter.summoned",
+      "clip": "showcase/enter.summoned.webp"
+    },
+    {
+      "item": "exit.dismissed",
+      "clip": "showcase/exit.dismissed.webp"
+    },
+    {
+      "item": "exit.uninstalling",
+      "clip": "showcase/exit.uninstalling.webp"
+    },
+    {
+      "item": "state.listening",
+      "clip": "showcase/state.listening.webp"
+    },
+    {
+      "item": "state.thinking",
+      "clip": "showcase/state.thinking.webp"
+    },
+    {
+      "item": "state.thinkingHard",
+      "clip": "showcase/state.thinkingHard.webp"
+    },
+    {
+      "item": "state.loadingBrain",
+      "clip": "showcase/state.loadingBrain.webp"
+    },
+    {
+      "item": "state.busy",
+      "clip": "showcase/state.busy.webp"
+    },
+    {
+      "item": "state.awaitingConfirmation",
+      "clip": "showcase/state.awaitingConfirmation.webp"
+    },
+    {
+      "item": "state.speaking",
+      "clip": "showcase/state.speaking.webp"
+    },
+    {
+      "item": "state.noBrain",
+      "clip": "showcase/state.noBrain.webp"
+    },
+    {
+      "item": "state.sleeping",
+      "clip": "showcase/state.sleeping.webp"
+    },
+    {
+      "item": "react.success",
+      "clip": "showcase/react.success.webp"
+    },
+    {
+      "item": "react.celebration",
+      "clip": "showcase/react.celebration.webp"
+    },
+    {
+      "item": "react.warning",
+      "clip": "showcase/react.warning.webp"
+    },
+    {
+      "item": "react.failure",
+      "clip": "showcase/react.failure.webp"
+    },
+    {
+      "item": "gesture.announce",
+      "clip": "showcase/gesture.announce.webp"
+    },
+    {
+      "item": "gesture.communicate",
+      "clip": "showcase/gesture.communicate.webp"
+    },
+    {
+      "item": "walk",
+      "clip": "showcase/walk.webp",
+      "name": {
+        "de": "Gehen",
+        "en": "Walk",
+        "es": "Andar",
+        "fr": "Marcher",
+        "it": "Camminare",
+        "pt": "Andar"
+      },
+      "group": "moving"
+    },
+    {
+      "item": "sleep",
+      "clip": "showcase/sleep.webp",
+      "name": {
+        "de": "Schlafen",
+        "en": "Sleep",
+        "es": "Dormir",
+        "fr": "Dormir",
+        "it": "Dormire",
+        "pt": "Dormir"
+      },
+      "group": "idle"
+    },
+    {
+      "item": "surprised",
+      "clip": "showcase/surprised.webp",
+      "name": {
+        "de": "Überrascht",
+        "en": "Surprised",
+        "es": "Sorprenderse",
+        "fr": "Surpris",
+        "it": "Sorpreso",
+        "pt": "Surpreso"
+      },
+      "group": "feelings"
+    },
+    {
+      "item": "click",
+      "clip": "showcase/click.webp",
+      "name": {
+        "de": "Beim Anklicken",
+        "en": "When clicked",
+        "es": "Al hacerle clic",
+        "fr": "Quand on clique dessus",
+        "it": "Quando lo clicchi",
+        "pt": "Ao clicar nele"
+      },
+      "group": "playing"
+    },
+    {
+      "item": "catch",
+      "clip": "showcase/catch.webp",
+      "name": {
+        "de": "Etwas fangen",
+        "en": "Catch something",
+        "es": "Coger algo",
+        "fr": "Attraper quelque chose",
+        "it": "Afferrare qualcosa",
+        "pt": "Pegar algo"
+      },
+      "group": "playing"
+    }
+  ]
 }

@@ -19,7 +19,7 @@
     "homepage": { "type": "string", "format": "uri" },
     "license": { "type": "string" },
     "sdk": {
-      "description": "Version of the SDK it was built against («1.20»). Same major number as K-Desktop's and a minor one no higher = compatible.",
+      "description": "Version of the SDK it was built against («1.21»). Same major number as K-Desktop's and a minor one no higher = compatible.",
       "type": "string",
       "pattern": "^\\d+\\.\\d+$"
     },
@@ -120,7 +120,7 @@
       "$ref": "common.schema.json#/$defs/text"
     },
     "showcase": {
-      "description": "Short clips of its showcase, for the catalog: K-Desktop shows them without loading its code. «item» is the id of what it shows: one of K-Desktop's (enter.summoned, state.thinking, react.success, gesture.announce…) or one of its own from IAssistant.Showcase, which needs «name».",
+      "description": "Short clips of its showcase, for the catalog: K-Desktop shows them without loading its code. «item» is the id of what it shows: one of K-Desktop's (enter.summoned, state.thinking, react.success, gesture.announce, window.move — the window ones need sdk 1.21 —…) or one of its own from IAssistant.Showcase, which needs «name». Recorded by the SDK's .targets with AssistantShowcase=true.",
       "type": "array",
       "items": {
         "type": "object",

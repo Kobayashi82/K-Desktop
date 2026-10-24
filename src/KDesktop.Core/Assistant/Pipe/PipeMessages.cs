@@ -289,6 +289,32 @@ public sealed record ShowcaseDoneMessage(string Assistant, string Item, bool Own
 }
 
 /// <summary>
+/// The showcase's stage (phase 16), K-Desktop → its process: the user's pointer over the stage's picture, in pixels of the
+/// stage (<c>cursor</c>, <c>leave</c>, <c>down</c> and <c>up</c> of the left button), or <c>reset</c> (its windows back where
+/// they started).
+/// </summary>
+public sealed record StageMessage(string Op, int X = 0, int Y = 0) : PipeMessage
+{
+    public override string Type => "stage";
+
+    public const string Cursor = "cursor";
+    public const string Leave = "leave";
+    public const string Down = "down";
+    public const string Up = "up";
+    public const string Reset = "reset";
+}
+
+/// <summary>
+/// A new picture of the stage (phase 16), its process → K-Desktop: in the shared memory <paramref name="Map"/> (made by the
+/// stage's process), half number <paramref name="Slot"/> (0 or 1) of two, BGRA top-down, <paramref name="Width"/> ×
+/// <paramref name="Height"/>. Numbered by <paramref name="Seq"/>: an older one that comes late is not shown.
+/// </summary>
+public sealed record StageFrameMessage(string Map, int Slot, int Width, int Height, long Seq) : PipeMessage
+{
+    public override string Type => "stageFrame";
+}
+
+/// <summary>
 /// An assistant shows, greys out or hides one of its extras in its menu and its panel buttons (all are shown after each
 /// <c>load</c>). <paramref name="State"/>: <c>shown</c>, <c>disabled</c> or <c>hidden</c>.
 /// </summary>
@@ -994,6 +1020,8 @@ public static class PipeJson
         ["showcase"] = typeof(ShowcaseMessage),
         ["showcaseList"] = typeof(ShowcaseListMessage),
         ["showcaseDone"] = typeof(ShowcaseDoneMessage),
+        ["stage"] = typeof(StageMessage),
+        ["stageFrame"] = typeof(StageFrameMessage),
         ["keys"] = typeof(KeysMessage),
         ["key"] = typeof(KeyMessage),
         ["watchWheel"] = typeof(WatchWheelMessage),

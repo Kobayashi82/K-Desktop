@@ -45,7 +45,8 @@ public static class Program
 
         // The assistant process: a mode of its own, with nothing of the normal instance (and the other way round).
         // (Plain strings here: naming a type of KDesktop.Assistant.Host in Main would load that assembly every time.)
-        if (args.Any(a => a.Equals("--assistant", StringComparison.OrdinalIgnoreCase) || a.Equals("--assistant-dev", StringComparison.OrdinalIgnoreCase)))
+        if (args.Any(a => a.Equals("--assistant", StringComparison.OrdinalIgnoreCase) || a.Equals("--assistant-dev", StringComparison.OrdinalIgnoreCase) ||
+                          a.Equals("--assistant-showcase", StringComparison.OrdinalIgnoreCase)))
             return RunAssistant(args);
 
         // Another program using the assistants' tools (an MCP server over stdio): only a bridge to the assistant process,

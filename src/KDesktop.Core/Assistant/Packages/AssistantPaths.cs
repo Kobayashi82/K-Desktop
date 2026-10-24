@@ -42,9 +42,10 @@ public static class AssistantSettingsValues
 
     /// <summary>
     /// The settings of an installed (or in-development) package: defaults from its settings file, then the user's
-    /// saved values for the keys that still exist.
+    /// saved values for the keys that still exist (with <paramref name="defaultsOnly"/>, only the defaults: the clips of
+    /// the showcase show it as it comes).
     /// </summary>
-    public static JsonObject Read(string packageFolder, AssistantManifest manifest)
+    public static JsonObject Read(string packageFolder, AssistantManifest manifest, bool defaultsOnly = false)
     {
         var settingsFile = Path.Combine(packageFolder, manifest.SettingsFile);
         JsonObject values;
@@ -54,6 +55,7 @@ public static class AssistantSettingsValues
             Log.Warn($"Asistente «{manifest.Id}»: {manifest.SettingsFile} no es válido ({ex.Message})");
             values = [];
         }
+        if (defaultsOnly) return values;
         foreach (var (key, value) in ReadSaved(manifest.Id))
             if (values.ContainsKey(key)) values[key] = value?.DeepClone();
         return values;

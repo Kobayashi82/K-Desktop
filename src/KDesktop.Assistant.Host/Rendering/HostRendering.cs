@@ -12,27 +12,44 @@ namespace KDesktop.Assistant.Host.Rendering;
 /// the compositor. Everything on the engine thread. If the GPU is lost (driver update, remote session) everything is
 /// made again and every surface replays its last WPF frame; the same when it is given back after a full-screen game
 /// (<see cref="Suspend"/>).
+/// <para>
+/// Off the screen (<see cref="Offscreen"/>, the showcase's stage, phase 16) there is no layer at all: each surface only keeps its
+/// last drawing and where it goes, and the stage composes them into its own picture (<see cref="Shown"/>).
+/// </para>
 /// </summary>
 internal sealed class HostRendering : IRendering, IDisposable
 {
     private readonly List<HostSurface> _surfaces = [];
     private bool _dirty;
     private int _losses;
+    private long _shownCount;
 
-    public HostRendering()
+    public HostRendering(bool offscreen = false)
     {
+        Offscreen = offscreen;
         var watch = System.Diagnostics.Stopwatch.StartNew();
         Gpu = GpuDevice.Create();
         var gpu = watch.ElapsedMilliseconds;
-        Overlay = new Overlay(Gpu);
+        Overlay = offscreen ? null : new Overlay(Gpu);
         Replayer = new DrawingReplayer(Gpu.D2DFactory);
-        Log.Info($"Asistente: capa sobre {Overlay.Bounds} con {Gpu.AdapterName}{(Gpu.IsSoftware ? " (WARP)" : "")} " +
-                 $"({gpu} + {watch.ElapsedMilliseconds - gpu} ms)");
+        Log.Info($"Asistente: {(Overlay is { } overlay ? $"capa sobre {overlay.Bounds}" : "dibujo fuera de la pantalla")} con {Gpu.AdapterName}" +
+                 $"{(Gpu.IsSoftware ? " (WARP)" : "")} ({gpu} + {watch.ElapsedMilliseconds - gpu} ms)");
     }
+
+    /// <summary>Nothing goes on the screen: the stage composes the surfaces itself (phase 16).</summary>
+    public bool Offscreen { get; }
+
+    /// <summary>Something changed since the stage last composed (off the screen).</summary>
+    public bool Changed { get; set; }
+
+    /// <summary>The surfaces shown off the screen, back to front (the order the compositor would stack them in).</summary>
+    public IEnumerable<HostSurface> Shown => _surfaces.Where(s => s.ShownAt > 0).OrderBy(s => s.Layer).ThenBy(s => s.ShownAt);
+
+    internal long NextShown() => ++_shownCount;
 
     public GpuDevice Gpu { get; private set; }
 
-    public Overlay Overlay { get; private set; }
+    public Overlay? Overlay { get; private set; }
 
     public DrawingReplayer Replayer { get; private set; }
 
@@ -46,7 +63,7 @@ internal sealed class HostRendering : IRendering, IDisposable
     public double FrameInterval => Pacer.SmoothInterval;
 
     /// <summary>The overlay's own window (left out of the world and of hit tests).</summary>
-    public nint OverlayHandle => Overlay.Window.Handle;
+    public nint OverlayHandle => Overlay?.Window.Handle ?? 0;
 
     public ISurface CreateSurface(SurfaceLayer layer = SurfaceLayer.Main)
     {
@@ -57,12 +74,16 @@ internal sealed class HostRendering : IRendering, IDisposable
 
     internal void Forget(HostSurface surface) => _surfaces.Remove(surface);
 
-    internal void MarkDirty() => _dirty = true;
+    internal void MarkDirty()
+    {
+        _dirty = true;
+        Changed = true;
+    }
 
     /// <summary>Sends this tick's changes to the compositor in one go (images and positions move together).</summary>
     public void Commit()
     {
-        if (!_dirty || Suspended) return;
+        if (!_dirty || Suspended || Overlay is null) return;
         _dirty = false;
         try { Overlay.Commit(); }
         catch (SharpGenException ex) { DeviceLost(ex); }
@@ -71,7 +92,7 @@ internal sealed class HostRendering : IRendering, IDisposable
     /// <summary>Monitors changed: the layer follows the virtual screen and the surfaces keep their place on screen.</summary>
     public void UpdateBounds()
     {
-        if (Suspended || !Overlay.UpdateBounds()) return;
+        if (Suspended || Overlay is null || !Overlay.UpdateBounds()) return;
         foreach (var surface in _surfaces) surface.Reposition();
         MarkDirty();
     }
@@ -79,13 +100,13 @@ internal sealed class HostRendering : IRendering, IDisposable
     /// <summary>Takes back the top of the «always on top» windows (others may have taken it).</summary>
     public void KeepOnTop()
     {
-        if (!Suspended) Overlay.Window.BringToTop();
+        if (!Suspended) Overlay?.Window.BringToTop();
     }
 
     /// <summary>Frees the GPU and the layer (a DirectX game or a presentation holds the screen).</summary>
     public void Suspend()
     {
-        if (Suspended) return;
+        if (Suspended || Offscreen) return;
         Teardown();
         Suspended = true;
         Log.Info("Asistente: pantalla completa exclusiva; se libera la GPU");
@@ -123,14 +144,14 @@ internal sealed class HostRendering : IRendering, IDisposable
     {
         foreach (var surface in _surfaces) surface.DropStage();
         Replayer.Dispose();
-        Overlay.Dispose();
+        Overlay?.Dispose();
         Gpu.Dispose();
     }
 
     private void Build(bool preferSoftware)
     {
         Gpu = GpuDevice.Create(preferSoftware);
-        Overlay = new Overlay(Gpu);
+        Overlay = Offscreen ? null : new Overlay(Gpu);
         Replayer = new DrawingReplayer(Gpu.D2DFactory);
     }
 }
@@ -145,7 +166,17 @@ internal sealed class HostSurface(HostRendering rendering, SurfaceLayer layer) :
 
     internal bool IsDisposed => _disposed;
 
-    public bool IsVisible => _stage is { IsAttached: true };
+    public bool IsVisible => rendering.Offscreen ? ShownAt > 0 : _stage is { IsAttached: true };
+
+    internal SurfaceLayer Layer => layer;
+
+    /// <summary>Off the screen: when it was last shown (its place in the stack, as with the compositor), 0 while hidden.</summary>
+    internal long ShownAt { get; private set; }
+
+    /// <summary>Where it is and what it shows (its last drawing, in screen pixels).</summary>
+    internal PixelRect Area => _area;
+
+    internal DrawingGroup? Last => _last;
 
     public void Present(PixelRect area, Action<DrawingContext> draw)
     {
@@ -159,6 +190,13 @@ internal sealed class HostSurface(HostRendering rendering, SurfaceLayer layer) :
         using (var dc = drawing.Open()) draw(dc);
         drawing.Freeze();
         _last = drawing;
+        if (rendering.Offscreen)
+        {
+            _area = area;
+            if (ShownAt == 0) ShownAt = rendering.NextShown();
+            rendering.MarkDirty();
+            return;
+        }
         if (rendering.Suspended)
         {
             _area = area; // shown when the GPU comes back
@@ -169,6 +207,13 @@ internal sealed class HostSurface(HostRendering rendering, SurfaceLayer layer) :
 
     public void Hide()
     {
+        if (rendering.Offscreen)
+        {
+            if (ShownAt == 0) return;
+            ShownAt = 0;
+            rendering.MarkDirty();
+            return;
+        }
         if (_stage is not { IsAttached: true } stage) return;
         stage.Detach();
         rendering.MarkDirty();
@@ -178,7 +223,8 @@ internal sealed class HostSurface(HostRendering rendering, SurfaceLayer layer) :
     {
         if (_disposed) return;
         _disposed = true;
-        if (_stage is { IsAttached: true }) rendering.MarkDirty();
+        if (_stage is { IsAttached: true } || ShownAt > 0) rendering.MarkDirty();
+        ShownAt = 0;
         _stage?.Dispose();
         _stage = null;
         _last = null;
@@ -198,6 +244,7 @@ internal sealed class HostSurface(HostRendering rendering, SurfaceLayer layer) :
 
     internal void Restore()
     {
+        if (rendering.Offscreen) return;
         if (_last is not null && !_area.IsEmpty) Draw(_area, _last);
     }
 
@@ -224,7 +271,7 @@ internal sealed class HostSurface(HostRendering rendering, SurfaceLayer layer) :
 
     private StageLayer Stage(PixelRect area)
     {
-        _stage ??= new StageLayer(rendering.Gpu, rendering.Overlay, layer, area.Width, area.Height);
+        _stage ??= new StageLayer(rendering.Gpu, rendering.Overlay!, layer, area.Width, area.Height);
         _stage.Fit(area.Width, area.Height);
         return _stage;
     }
@@ -238,7 +285,7 @@ internal sealed class HostSurface(HostRendering rendering, SurfaceLayer layer) :
 
     private void Place(StageLayer stage, PixelRect area)
     {
-        var origin = rendering.Overlay.Bounds;
+        var origin = rendering.Overlay!.Bounds;
         stage.Place(area.Left - origin.Left, area.Top - origin.Top);
         rendering.MarkDirty();
     }

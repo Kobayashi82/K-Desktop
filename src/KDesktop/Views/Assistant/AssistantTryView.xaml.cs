@@ -1,34 +1,42 @@
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Localization;
 using Wpf.Ui.Controls;
 using Button = Wpf.Ui.Controls.Button;
+using Image = System.Windows.Controls.Image;
 using TextBlock = System.Windows.Controls.TextBlock;
 
 namespace KDesktop.Views.Assistant;
 
 /// <summary>
-/// The «Probar» tab of an installed assistant's card (stage 13.9): a button for each thing it can show — its own
-/// animations first, then the host's entrances, exits, states, reactions and gestures — and it does it now on the desktop.
-/// One at a time (another one, or «Parar», stops it). Only while it is on the desktop. Made in code.
+/// The «Probar» tab of an installed assistant's card (stages 13.9 and 16.1): its stage — another copy of it on a desktop of
+/// its own, with pretend windows, drawn off the screen and shown here live (the mouse reaches it: it can be petted) — and a
+/// button for each thing it can show: its own animations first, then the host's entrances, exits, states, reactions,
+/// gestures and what it does to a window. One at a time (another one, or «Parar», stops it). The stage is open while the
+/// tab is shown. Made in code.
 /// </summary>
 public partial class AssistantTryView : UserControl
 {
     /// <summary>The host's groups, in this order after its own ones.</summary>
-    private static readonly string[] HostGroups = ["entrances", "exits", "states", "reactions", "gestures"];
+    private static readonly string[] HostGroups = ["entrances", "exits", "states", "reactions", "gestures", "windows"];
 
     private readonly App _app = App.Current;
-    private readonly DispatcherTimer _noAnswer = new() { Interval = TimeSpan.FromSeconds(5) };
+    private readonly DispatcherTimer _noAnswer = new() { Interval = TimeSpan.FromSeconds(15) };
     private readonly Dictionary<string, Button> _buttons = new(StringComparer.Ordinal);
     private string? _id;
-    private bool _loaded;
     private IReadOnlyList<ShowcaseEntry>? _items;
     private ShowcaseEntry? _running;
     private TextBlock? _status;
     private Button? _stop;
+    private Image? _picture;
+    private TextBlock? _cover;
+    private bool _pressed;
+    private Point _lastPoint = new(-1, -1);
 
     public AssistantTryView()
     {
@@ -36,59 +44,80 @@ public partial class AssistantTryView : UserControl
         _noAnswer.Tick += (_, _) =>
         {
             _noAnswer.Stop();
-            if (_id is { } id && _items is null) Message(Loc.T("assistantTry.noAnswer", App.AssistantName(id)));
+            if (_id is { } id && _items is null) Message(Loc.T("assistantTry.noAnswer", App.AssistantName(id)), retry: true);
         };
         Loaded += (_, _) =>
         {
             _app.AssistantShowcaseListed += OnListed;
             _app.AssistantShowcaseDone += OnDone;
-            _app.AssistantChanged += OnAssistantChanged;
+            _app.AssistantStageChanged += OnStageChanged;
+            _app.AssistantStagePainted += OnPainted;
         };
         Unloaded += (_, _) =>
         {
             _app.AssistantShowcaseListed -= OnListed;
             _app.AssistantShowcaseDone -= OnDone;
-            _app.AssistantChanged -= OnAssistantChanged;
+            _app.AssistantStageChanged -= OnStageChanged;
+            _app.AssistantStagePainted -= OnPainted;
             _noAnswer.Stop();
+            Close();
         };
         IsVisibleChanged += (_, _) =>
         {
-            if (IsVisible) Refresh();
+            if (IsVisible) Open();
+            else Close();
         };
     }
 
-    /// <summary>The assistant whose showcase it shows (asked again each time the tab is shown).</summary>
+    /// <summary>The assistant whose showcase it shows (its stage opens each time the tab is shown).</summary>
     public void Show(string id)
     {
+        if (_id != id) Close();
         _id = id;
-        _items = null;
-        _running = null;
-        if (IsVisible) Refresh();
+        if (IsVisible) Open();
     }
 
-    /// <summary>Put on the desktop or hidden: what it can show is asked again.</summary>
-    private void OnAssistantChanged()
-    {
-        if (_id is not { } id || !IsVisible) return;
-        var loaded = _app.IsAssistantLoaded(id);
-        if (loaded == _loaded) return;
-        Refresh();
-    }
-
-    private void Refresh()
+    private void Open()
     {
         if (_id is not { } id) return;
-        _loaded = _app.IsAssistantLoaded(id);
+        if (_app.AssistantStageId == id && _items is not null) return;
         _items = null;
         _running = null;
-        if (!_loaded || !_app.AskAssistantShowcase(id))
+        if (!_app.OpenAssistantStage(id))
         {
-            Message(Loc.T("assistantTry.notOnDesktop", App.AssistantName(id)));
+            Message(Loc.T("assistantTry.notInstalled", App.AssistantName(id)), retry: false);
             return;
         }
-        Message(Loc.T("assistantTry.loading"));
+        Stage(Loc.T("assistantTry.preparing"));
         _noAnswer.Stop();
         _noAnswer.Start();
+    }
+
+    private void Close()
+    {
+        if (_id is { } id && _app.AssistantStageId == id) _app.CloseAssistantStage();
+        _items = null;
+    }
+
+    private void OnStageChanged(string id, bool ready)
+    {
+        if (id != _id || !IsVisible) return;
+        if (ready)
+        {
+            if (!_app.AskAssistantShowcase(id)) Message(Loc.T("assistantTry.closed"), retry: true);
+            return;
+        }
+        _noAnswer.Stop();
+        _items = null;
+        _running = null;
+        Message(Loc.T("assistantTry.closed"), retry: true);
+    }
+
+    private void OnPainted()
+    {
+        if (_picture is null || _app.AssistantStageId != _id) return;
+        if (_picture.Source != _app.AssistantStagePicture) _picture.Source = _app.AssistantStagePicture;
+        if (_cover is not null) _cover.Visibility = Visibility.Collapsed;
     }
 
     private void OnListed(ShowcaseListMessage list)
@@ -108,47 +137,131 @@ public partial class AssistantTryView : UserControl
         if (_stop is not null) _stop.IsEnabled = false;
     }
 
-    /// <summary>A card with only a line (not on the desktop, asking, no answer).</summary>
-    private void Message(string text)
+    /// <summary>A card with only a line (not installed, closed, no answer), and a button to open the stage again.</summary>
+    private void Message(string text, bool retry)
     {
         Body.Children.Clear();
         _buttons.Clear();
         _status = null;
         _stop = null;
+        _picture = null;
+        _cover = null;
         var (card, stack) = Card(Loc.T("assistantTry.title"));
         stack.Children.Add(Caption(text));
+        if (retry)
+        {
+            var again = new Button { Content = Loc.T("assistantTry.retry"), Icon = new SymbolIcon { Symbol = SymbolRegular.ArrowClockwise24 }, Margin = new Thickness(0, 10, 0, 0) };
+            again.Click += (_, _) =>
+            {
+                _app.CloseAssistantStage();
+                Open();
+            };
+            stack.Children.Add(again);
+        }
         Body.Children.Add(card);
     }
 
-    private void Build()
+    /// <summary>The stage's card (its picture, what it is doing, «Parar»), with a line over the picture until it comes.</summary>
+    private void Stage(string? waiting)
     {
-        if (_id is not { } id || _items is not { } items) return;
         Body.Children.Clear();
         _buttons.Clear();
-
         var (head, top) = Card(Loc.T("assistantTry.title"));
-        var intro = Caption(Loc.T("assistantTry.intro", App.AssistantName(id)));
+        var intro = Caption(Loc.T("assistantTry.intro", _id is { } id ? App.AssistantName(id) : ""));
         intro.Margin = new Thickness(0, 4, 0, 10);
         top.Children.Add(intro);
-        var line = new DockPanel();
+
+        _picture = new Image
+        {
+            Stretch = Stretch.Uniform,
+            MaxWidth = 720,
+            Source = _app.AssistantStageId == _id ? _app.AssistantStagePicture : null,
+            Cursor = Cursors.Arrow,
+        };
+        RenderOptions.SetBitmapScalingMode(_picture, BitmapScalingMode.HighQuality);
+        AutomationProperties.SetName(_picture, Loc.T("assistantTry.stage"));
+        _picture.MouseMove += (_, e) => Point("cursor", e);
+        _picture.MouseLeave += (_, _) =>
+        {
+            if (_pressed) return;
+            _lastPoint = new Point(-1, -1);
+            _app.PointAtStage(StageMessage.Leave, 0, 0);
+        };
+        _picture.MouseLeftButtonDown += (_, e) =>
+        {
+            _pressed = _picture.CaptureMouse();
+            Point(StageMessage.Down, e);
+        };
+        _picture.MouseLeftButtonUp += (_, e) =>
+        {
+            Point(StageMessage.Up, e);
+            _pressed = false;
+            _picture.ReleaseMouseCapture();
+        };
+        var frame = new Grid { MinHeight = 120, HorizontalAlignment = HorizontalAlignment.Left };
+        var border = new Border
+        {
+            CornerRadius = new CornerRadius(6),
+            ClipToBounds = true,
+            Child = _picture,
+            BorderThickness = new Thickness(1),
+        };
+        border.SetResourceReference(Border.BorderBrushProperty, "ControlStrokeColorDefaultBrush");
+        border.SetResourceReference(Border.BackgroundProperty, "ControlFillColorSecondaryBrush");
+        frame.Children.Add(border);
+        _cover = Caption(waiting ?? "");
+        _cover.HorizontalAlignment = HorizontalAlignment.Center;
+        _cover.VerticalAlignment = VerticalAlignment.Center;
+        _cover.Visibility = waiting is null || _picture.Source is not null ? Visibility.Collapsed : Visibility.Visible;
+        frame.Children.Add(_cover);
+        if (_picture.Source is null) border.MinWidth = 480;
+        top.Children.Add(frame);
+
+        var line = new DockPanel { Margin = new Thickness(0, 10, 0, 0) };
         _stop = new Button
         {
             Content = Loc.T("assistantTry.stop"),
             Icon = new SymbolIcon { Symbol = SymbolRegular.Stop24 },
             IsEnabled = false,
-            Margin = new Thickness(12, 0, 0, 0),
+            Margin = new Thickness(8, 0, 0, 0),
         };
         _stop.Click += (_, _) =>
         {
             if (_id is { } who) _app.StopAssistantShowcase(who);
         };
+        var reset = new Button
+        {
+            Content = Loc.T("assistantTry.reset"),
+            Icon = new SymbolIcon { Symbol = SymbolRegular.WindowArrowUp24 },
+            Margin = new Thickness(12, 0, 0, 0),
+        };
+        reset.Click += (_, _) => _app.ResetAssistantStage();
         DockPanel.SetDock(_stop, Dock.Right);
+        DockPanel.SetDock(reset, Dock.Right);
         line.Children.Add(_stop);
+        line.Children.Add(reset);
         _status = new TextBlock { TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
         line.Children.Add(_status);
         top.Children.Add(line);
         Body.Children.Add(head);
+    }
 
+    /// <summary>The pointer over the picture, in pixels of the stage.</summary>
+    private void Point(string op, MouseEventArgs e)
+    {
+        if (_picture?.Source is not System.Windows.Media.Imaging.BitmapSource source || _picture.ActualWidth < 1) return;
+        var at = e.GetPosition(_picture);
+        var x = Math.Clamp((int)(at.X * source.PixelWidth / _picture.ActualWidth), 0, source.PixelWidth - 1);
+        var y = Math.Clamp((int)(at.Y * source.PixelHeight / _picture.ActualHeight), 0, source.PixelHeight - 1);
+        if (op == "cursor" && _lastPoint == new Point(x, y)) return;
+        _lastPoint = new Point(x, y);
+        _app.PointAtStage(op, x, y);
+    }
+
+    private void Build()
+    {
+        if (_items is not { } items) return;
+        Stage(null);
         // Its own ones first, in the order of their groups as they come; then the host's. A row per group.
         var own = items.Where(i => i.Own).GroupBy(i => i.Group).Select(g => (g.Key, g.ToList())).ToList();
         var host = HostGroups.Select(g => (g, items.Where(i => !i.Own && i.Group == g).ToList())).ToList();
@@ -197,7 +310,7 @@ public partial class AssistantTryView : UserControl
     {
         if (_id is not { } id || !_app.PlayAssistantShowcase(id, entry))
         {
-            Refresh();
+            Message(Loc.T("assistantTry.closed"), retry: true);
             return;
         }
         _running = entry;

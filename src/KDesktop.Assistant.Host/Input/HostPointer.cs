@@ -34,7 +34,16 @@ internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, P
 
     internal void Dropped(string area, IReadOnlyList<string> files, Point at) => dropped?.Invoke(area, files, at);
 
-    private readonly List<HitArea> _areas = [];
+    private readonly List<IHostArea> _areas = [];
+
+    /// <summary>
+    /// The showcase's stage (phase 16): its areas are no windows, only shapes the stage hit-tests against the pointer over its
+    /// picture in K-Desktop (<see cref="Stage.StageInput"/>), so nothing of it ever lies over the user's screen.
+    /// </summary>
+    public bool Virtual { get; init; }
+
+    /// <summary>Its areas without windows (<see cref="Virtual"/>), front first.</summary>
+    internal IEnumerable<VirtualHitArea> VirtualAreas => _areas.OfType<VirtualHitArea>().Reverse();
     private bool _watchWheel;
     private bool _suspended;
 
@@ -66,14 +75,14 @@ internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, P
     }
 
     /// <summary>Handles of the hit windows (left out of the world).</summary>
-    public IEnumerable<nint> Handles => _areas.Select(a => a.Handle);
+    public IEnumerable<nint> Handles => _areas.OfType<HitArea>().Select(a => a.Handle);
 
     /// <summary>The id of the hit area made without one: the body (the one «picking it up» is about, stage 13.13).</summary>
     public const string BodyArea = "body";
 
     public IHitArea CreateHitArea(string id = BodyArea)
     {
-        var area = new HitArea(this, id);
+        IHostArea area = Virtual ? new VirtualHitArea(this, id) : new HitArea(this, id);
         _areas.Add(area);
         if (_suspended) area.Suspend(true);
         return area;
@@ -82,7 +91,7 @@ internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, P
     /// <summary>Where its body hit area is now (also while it steps aside for the menu), or null.</summary>
     public PixelRect? BodyBounds => _areas.FirstOrDefault(a => a.Id == BodyArea)?.Placed;
 
-    internal void Forget(HitArea area) => _areas.Remove(area);
+    internal void Forget(IHostArea area) => _areas.Remove(area);
 
     internal void Deliver(PointerEvent e) => deliver(e);
 
@@ -103,7 +112,75 @@ internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, P
     }
 }
 
-internal sealed unsafe class HitArea : IHitArea
+/// <summary>What the pointer needs of each of its areas, with a window or without one.</summary>
+internal interface IHostArea : IHitArea
+{
+    /// <summary>Its bounds where the assistant placed it (also while stepped aside), or null if hidden.</summary>
+    PixelRect? Placed { get; }
+
+    void Suspend(bool on);
+
+    void KeepOnTop();
+}
+
+/// <summary>
+/// A hit area of the stage (phase 16): only its shape, hit-tested by the stage; its events are made up from the pointer over
+/// the stage's picture in K-Desktop.
+/// </summary>
+internal sealed class VirtualHitArea(HostPointer owner, string id) : IHostArea
+{
+    private HitShape? _shape;
+    private bool _suspended;
+
+    public string Id { get; } = id;
+
+    public PointerCursor Cursor { get; set; } = PointerCursor.Hand;
+
+    public PixelRect? Placed => _shape?.Bounds;
+
+    public void Place(HitShape shape) => _shape = shape.Bounds.IsEmpty ? null : shape;
+
+    public void Hide() => _shape = null;
+
+    public void SetCursorImage(BitmapSource? image, Point hotspot = default) { }
+
+    public void Suspend(bool on) => _suspended = on;
+
+    public void KeepOnTop() { }
+
+    public void Dispose()
+    {
+        _shape = null;
+        owner.Forget(this);
+    }
+
+    /// <summary>Whether the point (screen pixels of the stage) falls on it.</summary>
+    public bool Contains(Point p)
+    {
+        if (_suspended || _shape is not { } shape || !shape.Bounds.Contains(p)) return false;
+        switch (shape)
+        {
+            case HitShape.Ellipse ellipse:
+                var r = ellipse.Rect;
+                double rx = r.Width / 2.0, ry = r.Height / 2.0, dx = (p.X - (r.Left + rx)) / rx, dy = (p.Y - (r.Top + ry)) / ry;
+                return dx * dx + dy * dy <= 1;
+            case HitShape.Polygon polygon when polygon.Points.Count >= 3:
+                var inside = false;
+                var points = polygon.Points;
+                for (int i = 0, j = points.Count - 1; i < points.Count; j = i++)
+                    if ((points[i].Y > p.Y) != (points[j].Y > p.Y) &&
+                        p.X < (points[j].X - points[i].X) * (p.Y - points[i].Y) / (points[j].Y - points[i].Y) + points[i].X)
+                        inside = !inside;
+                return inside;
+            default:
+                return true;
+        }
+    }
+
+    internal void Raise(PointerEventKind kind, Point at) => owner.Deliver(new PointerEvent(kind, Id, at));
+}
+
+internal sealed unsafe class HitArea : IHostArea
 {
     public const string ClassName = "KDesktopAssistantHit";
 
@@ -194,7 +271,7 @@ internal sealed unsafe class HitArea : IHitArea
         if (_hover) Leave();
     }
 
-    internal void Suspend(bool on)
+    public void Suspend(bool on)
     {
         if (on)
         {

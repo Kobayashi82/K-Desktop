@@ -251,6 +251,14 @@ public class PackageManagerTests
             Manifest(m);
             m["showcase"]![1]!["group"] = "dancing";
         })));
+
+        // Stage 16.3: the clips are only for the catalog (it reads them from the package): they are not installed.
+        var installed = AssistantPackages.Install(info);
+        Assert.False(File.Exists(Path.Combine(installed.Folder, "showcase", "enter.webp")));
+        Assert.False(File.Exists(Path.Combine(installed.Folder, "showcase", "hop.gif")));
+        Assert.True(File.Exists(Path.Combine(installed.Folder, "lib", "DotAssistant.dll")));
+        Assert.Equal(2, installed.Manifest.Showcase.Count);
+        AssistantPackages.Uninstall("dot-clips", keepData: false);
     }
 
     [Theory]

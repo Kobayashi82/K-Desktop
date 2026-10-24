@@ -362,12 +362,23 @@ them all.
 
 ## Showcase
 
-On the card of each installed assistant, the **«Try»** tab has a button for each thing it can show, and pressing it plays
-it right then on the desktop (one at a time: another one, or «Stop», cuts the one before). The usual things are launched
-by the host without you doing anything: entrances and exits by reason (it leaves and is loaded again; after showing an
-exit it comes back with `Reloaded`, without a show), the states for a few seconds (talking, with a made-up voice level),
-the four reactions and the gestures that need no window (`Announce`, `Communicate`, `Mark` on the clock, `PointAt` the
-tray, `GoTo` the mouse, `Scan` the middle of its monitor, `Typing`). What you cannot do shows as «it can't do that».
+On the card of each installed assistant, the **«Try»** tab shows it on a **stage**: a small pretend desktop of its own
+(720×405 at 125 %, with a taskbar, a tray, a clock and three pretend windows: Notes, Photos and a Calculator that opens when
+asked), drawn off the screen by a separate copy of your assistant (`KDesktop.exe --assistant-showcase`) and shown live in
+the tab. The user can pet it or pick it up with the mouse over the picture, and there is a button for each thing it can
+show (one at a time: another one, or «Stop», cuts the one before). Your assistant does not know it is on a stage: it gets
+the stage's monitor, taskbar and windows in its `World`, moves and presses them through `IWindowServices` as usual, and
+nothing of it ever lies over the user's screen. It gets a data folder of its own there, empty, and its default settings
+plus what the user changed.
+
+The usual things are launched by the host without you doing anything: entrances and exits by reason (it leaves and is
+loaded again; an entrance counts as over once it came in and its body stopped moving, at most 7 s; after an exit it comes
+back with `Reloaded`, without a show), the states for a few seconds (talking, with a made-up voice level), the four
+reactions, the gestures that need no window (`Announce`, `Communicate`, `Mark` on the clock, `PointAt` the tray, `GoTo` the
+mouse, `Scan` the notes window, `Typing` into it) and what it does to a window, as a step of an order (`PressButton` to
+minimize, maximize and close the notes window, `MoveWindow` it to the other side, `ActivateWindow` the photos, and
+`WaitForWindow` while the calculator opens): your gesture calls `Commit` at the right moment and the window changes then.
+What you cannot do, the stage does anyway and the bubble says it, as in use (it shows as «it can't do that»).
 
 **Your own animations** (SDK 1.18) come first: a dance, a trick, how it plays with the ball… List them in `Showcase` (id,
 name per language and group: `Idle`, `Moving`, `Playing`, `Feelings`, `Tricks` or `Other`) and play them in
@@ -402,6 +413,27 @@ and `group`. On install K-Desktop checks that each clip is there and is a pictur
   { "item": "dance", "clip": "showcase/dance.webp", "name": { "en": "Dance", "es": "Bailar" }, "group": "tricks" }
 ]
 ```
+
+The catalog shows them in each assistant's detail window, where the user picks which one to watch: only the clips opened are
+downloaded (HTTP ranges), never the whole package. On install the clips are left out: nothing but the catalog uses them.
+Clips of what it does to a window (`window.minimize`, `window.maximize`, `window.close`, `window.move`, `window.activate`,
+`window.open`) need `"sdk": "1.21"`.
+
+**Recording them** (SDK 1.21): you do not have to make them by hand. Build with the showcase switched on and the `.targets`
+puts the built package on the stage of a K-Desktop you name, off the screen, has it do each thing it can show, records a
+clip of each one that it does (lossless animated WebP, 25 frames a second, at most 10 s) into `Package\showcase\` and
+rewrites the `"showcase"` of `Package\assistant.json` (only that part of the file) before packing:
+
+```
+dotnet build -c Release -p:AssistantShowcase=true -p:KDesktopExe="C:\Path\To\KDesktop.exe"
+```
+
+It takes a few minutes. The clips are recorded in English (the bubble's text, the stage's windows);
+`-p:AssistantShowcaseLanguage=es` (or `fr`, `de`, `it`, `pt`) records them in another one. They stay in your sources, so
+later builds just pack them; record again when what it shows changes. What it cannot do is not recorded. Without code, run
+the stage yourself on your package folder: `KDesktop.exe --assistant-showcase <folder> --record <folder>\showcase --manifest
+<folder>\assistant.json`. Long lively animations make big clips (a creature that is never still: about 1 MB a second), and
+they all travel in the package: keep your own ones short.
 
 ## Settings and panel
 

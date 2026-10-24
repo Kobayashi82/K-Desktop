@@ -112,7 +112,7 @@ public static class AssistantUpdates
     }
 
     /// <summary>A server without ranges: the package into memory (as big as a package can be).</summary>
-    private static async Task<MemoryStream> WholeAsync(HttpClient http, Uri uri, CancellationToken ct)
+    internal static async Task<MemoryStream> WholeAsync(HttpClient http, Uri uri, CancellationToken ct)
     {
         using var response = await http.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
@@ -138,17 +138,25 @@ public static class AssistantUpdates
     private static (AssistantManifest Manifest, byte[]? Icon) ReadFrom(Stream package, bool withIcon)
     {
         using var zip = new ZipArchive(package, ZipArchiveMode.Read, leaveOpen: true);
-        ZipArchiveEntry? Find(string path) =>
-            zip.Entries.FirstOrDefault(e => e.FullName.Replace('\\', '/').Equals(path, StringComparison.OrdinalIgnoreCase));
-        var entry = Find(AssistantManifest.FileName) ?? throw new InvalidDataException(Loc.T("assistantUpdates.notPackage"));
-        if (entry.Length > MaxManifest) throw new InvalidDataException(Loc.T("assistantUpdates.notPackage"));
-        AssistantManifest manifest;
-        using (var reader = new StreamReader(entry.Open())) manifest = AssistantManifest.Parse(reader.ReadToEnd());
+        var manifest = ManifestIn(zip);
         if (!withIcon || manifest.Icon is not { } path || !AssistantPackages.IsSafePath(path) || Find(path) is not { Length: > 0 and <= MaxIcon } icon)
             return (manifest, null);
         using var memory = new MemoryStream();
         using (var stream = icon.Open()) stream.CopyTo(memory);
         return (manifest, memory.ToArray());
+
+        ZipArchiveEntry? Find(string path) =>
+            zip.Entries.FirstOrDefault(e => e.FullName.Replace('\\', '/').Equals(path, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>The assistant.json of an open package. Throws <see cref="InvalidDataException"/> or <see cref="ManifestException"/>.</summary>
+    internal static AssistantManifest ManifestIn(ZipArchive zip)
+    {
+        var entry = zip.Entries.FirstOrDefault(e => e.FullName.Replace('\\', '/').Equals(AssistantManifest.FileName, StringComparison.OrdinalIgnoreCase))
+                    ?? throw new InvalidDataException(Loc.T("assistantUpdates.notPackage"));
+        if (entry.Length > MaxManifest) throw new InvalidDataException(Loc.T("assistantUpdates.notPackage"));
+        using var reader = new StreamReader(entry.Open());
+        return AssistantManifest.Parse(reader.ReadToEnd());
     }
 
     private static string Describe(Exception ex) => ex switch

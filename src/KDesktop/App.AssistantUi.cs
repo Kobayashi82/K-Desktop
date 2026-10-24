@@ -53,6 +53,7 @@ public partial class App
             Ui.ShowOsd(Loc.T("assistantSettings.saveFailed", assistant.Manifest.Name, ex.Message), Core.Engine.OsdKind.Warning);
         }
         if (IsAssistantLoaded(assistant.Id)) _assistant!.Send(new ConfigMessage("assistantSettings", values.DeepClone(), assistant.Id));
+        SendStageSettings(assistant.Id, (JsonObject)values.DeepClone());
     }
 
     /// <summary>Runs one of an assistant's extras (a button of its settings or its panel). It has to be on the desktop.</summary>
