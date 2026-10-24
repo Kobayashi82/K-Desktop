@@ -99,61 +99,61 @@
                          SelectionChanged="OnNavigate" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBoxItem Tag="commands">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Flash24" FontSize="18" />
+                            <ui:SymbolIcon Symbol="Flash24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
                             <TextBlock Text="{l:Tr nav.commands}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Tag="events">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="ArrowForwardDownLightning24" FontSize="18" />
+                            <ui:SymbolIcon Symbol="ArrowForwardDownLightning24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
                             <TextBlock Text="{l:Tr nav.events}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Tag="quickmenus">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="TextBulletListTree24" FontSize="18" />
+                            <ui:SymbolIcon Symbol="TextBulletListTree24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
                             <TextBlock Text="{l:Tr nav.quickmenu}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Tag="kboard">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="KeyboardLayoutFloat24" FontSize="18" />
+                            <ui:SymbolIcon Symbol="KeyboardLayoutFloat24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
                             <TextBlock Text="{l:Tr nav.kboard}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Tag="macros">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Record24" FontSize="18" />
+                            <ui:SymbolIcon Symbol="Record24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
                             <TextBlock Text="{l:Tr nav.macros}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Tag="history">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="History24" FontSize="18" />
+                            <ui:SymbolIcon Symbol="History24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
                             <TextBlock Text="{l:Tr nav.history}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Tag="achievements">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Trophy24" FontSize="18" />
+                            <ui:SymbolIcon Symbol="Trophy24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
                             <TextBlock Text="{l:Tr nav.achievements}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem x:Name="AssistantNav" Tag="assistant" Visibility="Collapsed">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Bot24" FontSize="18" />
+                            <ui:SymbolIcon Symbol="Bot24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
                             <TextBlock Text="{l:Tr nav.assistant}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Tag="settings">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Settings24" FontSize="18" />
+                            <ui:SymbolIcon Symbol="Settings24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
                             <TextBlock Text="{l:Tr nav.settings}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Tag="about">
                         <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Info24" FontSize="18" />
+                            <ui:SymbolIcon Symbol="Info24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
                             <TextBlock Text="{l:Tr nav.about}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>

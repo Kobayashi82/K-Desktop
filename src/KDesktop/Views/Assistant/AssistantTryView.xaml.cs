@@ -18,12 +18,24 @@ namespace KDesktop.Views.Assistant;
 /// its own, with pretend windows, drawn off the screen and shown here live (the mouse reaches it: it can be petted) — and a
 /// button for each thing it can show: its own animations first, then the host's entrances, exits, states, reactions,
 /// gestures and what it does to a window. One at a time (another one, or «Parar», stops it). The stage is open while the
-/// tab is shown. Made in code.
+/// tab is shown. Made in code. The stage stays in sight: the view is as tall as what is left of the page below its top, and the
+/// buttons scroll on their own under the stage (<see cref="Fit"/>).
 /// </summary>
 public partial class AssistantTryView : UserControl
 {
     /// <summary>The host's groups, in this order after its own ones.</summary>
     private static readonly string[] HostGroups = ["entrances", "exits", "states", "reactions", "gestures", "windows"];
+
+    /// <summary>Height of the stage (pixels of its picture, as big as it is shown).</summary>
+    private const double StageHeight = 405;
+
+    /// <summary>The stage is never smaller than this (smaller, it is hard to see what it does).</summary>
+    private const double MinPicture = 300;
+
+    /// <summary>Room the stage leaves to the buttons below it if it can (about three rows), and the least they get.</summary>
+    private const double ButtonsRoom = 150;
+
+    private const double MinButtons = 120;
 
     private readonly App _app = App.Current;
     private readonly DispatcherTimer _noAnswer = new() { Interval = TimeSpan.FromSeconds(15) };
@@ -37,6 +49,7 @@ public partial class AssistantTryView : UserControl
     private TextBlock? _cover;
     private bool _pressed;
     private Point _lastPoint = new(-1, -1);
+    private ScrollViewer? _page;
 
     public AssistantTryView()
     {
@@ -52,6 +65,9 @@ public partial class AssistantTryView : UserControl
             _app.AssistantShowcaseDone += OnDone;
             _app.AssistantStageChanged += OnStageChanged;
             _app.AssistantStagePainted += OnPainted;
+            _page = FindPage();
+            if (_page is not null) _page.SizeChanged += OnPageResized;
+            Fit();
         };
         Unloaded += (_, _) =>
         {
@@ -59,6 +75,8 @@ public partial class AssistantTryView : UserControl
             _app.AssistantShowcaseDone -= OnDone;
             _app.AssistantStageChanged -= OnStageChanged;
             _app.AssistantStagePainted -= OnPainted;
+            if (_page is not null) _page.SizeChanged -= OnPageResized;
+            _page = null;
             _noAnswer.Stop();
             Close();
         };
@@ -66,7 +84,47 @@ public partial class AssistantTryView : UserControl
         {
             if (IsVisible) Open();
             else Close();
+            Fit();
         };
+    }
+
+    private void OnPageResized(object sender, SizeChangedEventArgs e) => Fit();
+
+    /// <summary>The scroll of the page it is in (Options).</summary>
+    private ScrollViewer? FindPage()
+    {
+        for (var parent = VisualTreeHelper.GetParent(this); parent is not null; parent = VisualTreeHelper.GetParent(parent))
+        {
+            if (parent is ScrollViewer scroll) return scroll;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// As tall as what is left of the page below its top, so the page does not scroll and the stage stays in sight; the buttons
+    /// scroll on their own. The stage shrinks to leave them room (<see cref="ButtonsRoom"/>); in a very small window, the page
+    /// scrolls.
+    /// </summary>
+    private void Fit()
+    {
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
+        {
+            if (!IsVisible || _page?.Content is not Visual content || !content.IsAncestorOf(this))
+            {
+                Height = double.NaN;
+                return;
+            }
+            var top = TransformToAncestor(content).Transform(new Point(0, 0)).Y;
+            var height = _page.ViewportHeight - top - 28;
+            if (_picture is not null)
+            {
+                // What the stage card takes besides its picture, and the picture as big as it can be leaving room for the buttons.
+                var chrome = Body.ActualHeight - _picture.ActualHeight;
+                _picture.MaxHeight = Math.Clamp(height - chrome - ButtonsRoom, MinPicture, StageHeight);
+                Body.UpdateLayout();
+            }
+            Height = Math.Max(height, Body.ActualHeight + MinButtons);
+        });
     }
 
     /// <summary>The assistant whose showcase it shows (its stage opens each time the tab is shown).</summary>
@@ -116,7 +174,11 @@ public partial class AssistantTryView : UserControl
     private void OnPainted()
     {
         if (_picture is null || _app.AssistantStageId != _id) return;
-        if (_picture.Source != _app.AssistantStagePicture) _picture.Source = _app.AssistantStagePicture;
+        if (_picture.Source != _app.AssistantStagePicture)
+        {
+            _picture.Source = _app.AssistantStagePicture;
+            Fit();
+        }
         if (_cover is not null) _cover.Visibility = Visibility.Collapsed;
     }
 
@@ -141,6 +203,7 @@ public partial class AssistantTryView : UserControl
     private void Message(string text, bool retry)
     {
         Body.Children.Clear();
+        List.Children.Clear();
         _buttons.Clear();
         _status = null;
         _stop = null;
@@ -165,10 +228,15 @@ public partial class AssistantTryView : UserControl
     private void Stage(string? waiting)
     {
         Body.Children.Clear();
+        List.Children.Clear();
         _buttons.Clear();
-        var (head, top) = Card(Loc.T("assistantTry.title"));
+        // Title, what it is doing and the buttons in one line: the room is for the picture.
+        var top = new StackPanel();
+        var head = new Border { Style = (Style)FindResource("Card"), Child = top };
+        var line = new DockPanel();
+        top.Children.Add(line);
         var intro = Caption(Loc.T("assistantTry.intro", _id is { } id ? App.AssistantName(id) : ""));
-        intro.Margin = new Thickness(0, 4, 0, 10);
+        intro.Margin = new Thickness(0, 2, 0, 10);
         top.Children.Add(intro);
 
         _picture = new Image
@@ -217,7 +285,6 @@ public partial class AssistantTryView : UserControl
         if (_picture.Source is null) border.MinWidth = 480;
         top.Children.Add(frame);
 
-        var line = new DockPanel { Margin = new Thickness(0, 10, 0, 0) };
         _stop = new Button
         {
             Content = Loc.T("assistantTry.stop"),
@@ -240,10 +307,14 @@ public partial class AssistantTryView : UserControl
         DockPanel.SetDock(reset, Dock.Right);
         line.Children.Add(_stop);
         line.Children.Add(reset);
-        _status = new TextBlock { TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center };
+        var title = new TextBlock { Style = (Style)FindResource("CardTitle"), Text = Loc.T("assistantTry.title"), Margin = new Thickness(0, 0, 16, 0), VerticalAlignment = VerticalAlignment.Center };
+        DockPanel.SetDock(title, Dock.Left);
+        line.Children.Add(title);
+        _status = new TextBlock { TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center };
+        _status.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
         line.Children.Add(_status);
-        top.Children.Add(line);
         Body.Children.Add(head);
+        Fit();
     }
 
     /// <summary>The pointer over the picture, in pixels of the stage.</summary>
@@ -267,6 +338,7 @@ public partial class AssistantTryView : UserControl
         var host = HostGroups.Select(g => (g, items.Where(i => !i.Own && i.Group == g).ToList())).ToList();
         Groups(Loc.T("assistantTry.own"), own);
         Groups(Loc.T("assistantTry.host"), host);
+        ListScroll.ScrollToTop();
     }
 
     private void Groups(string title, IReadOnlyList<(string Group, List<ShowcaseEntry> Entries)> groups)
@@ -288,7 +360,7 @@ public partial class AssistantTryView : UserControl
             row.Children.Add(wrap);
             stack.Children.Add(row);
         }
-        Body.Children.Add(card);
+        List.Children.Add(card);
     }
 
     private Button ButtonFor(ShowcaseEntry entry)
