@@ -1,6 +1,6 @@
 import React from 'react';
 import { AbsoluteFill, Img, staticFile, useCurrentFrame } from 'remotion';
-import { CaptureShot } from '../../components/Capture';
+import { CaptureShot, useLang } from '../../components/Capture';
 import { AppWindow, Taskbar, Wallpaper } from '../../components/Desktop';
 import { Fluent, KdIcon } from '../../components/Icon';
 import { Mono } from '../../components/Keys';
@@ -10,6 +10,7 @@ import { ease, glide, inOut, keys, OUT, pop, SMOOTH } from '../../lib/anim';
 import { BeatTimes } from '../../lib/timeline';
 import { C, MONO, SANS } from '../../theme';
 import { Bubble } from './Inside';
+import { t } from '../../lib/i18n';
 
 /** Rows of tools-builtin.png (top, height), by category. */
 const ROWS: Record<string, [number, number]> = {
@@ -44,7 +45,7 @@ export const RiskPart: React.FC<{ b: BeatTimes }> = ({ b }) => {
       <div style={{ position: 'absolute', left: 960, top: 470, transform: `translate(-50%, -50%) scale(${pop(f, b.cue('risky') - 8)})`, width: 980, padding: 40, borderRadius: 30, background: 'rgba(32,32,38,0.98)', border: `1.5px solid ${C.line2}`, boxShadow: '0 40px 100px rgba(0,0,0,0.6)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 22, marginBottom: 30 }}>
           <Img src={staticFile('brand/kobii/mint.png')} style={{ width: 96, height: 96 }} />
-          <div style={{ fontFamily: SANS, fontSize: 40, fontWeight: 800, color: C.text }}>May I delete <span style={{ color: C.accentText }}>old-report.pdf</span>?</div>
+          <div style={{ fontFamily: SANS, fontSize: 40, fontWeight: 800, color: C.text }}>{t('May I delete')}{' '}<span style={{ color: C.accentText }}>{t('old-report.pdf')}</span>?</div>
         </div>
         <div style={{ display: 'flex', gap: 18 }}>
           {['Yes', 'Yes, and don’t ask again', 'No'].map((t, i) => (
@@ -53,7 +54,7 @@ export const RiskPart: React.FC<{ b: BeatTimes }> = ({ b }) => {
         </div>
       </div>
       <div style={{ position: 'absolute', left: 960, top: 820, transform: 'translateX(-50%)' }}>
-        <Osd icon="arrow_undo_24_filled" color="orange" text="Undone: delete old-report.pdf" show={undo} />
+        <Osd icon="arrow_undo_24_filled" color="orange" text={t('Undone: delete old-report.pdf')} show={undo} />
       </div>
       <Sfx at={b.cue('risky') - 8} name="pop" volume={0.25} />
       <Sfx at={b.cue('yes') - 4} name="click" volume={0.25} />
@@ -107,7 +108,7 @@ export const GesturesPart: React.FC<{ b: BeatTimes }> = ({ b }) => {
         </svg>
       )}
       <Img src={staticFile('brand/lander/classic.png')} style={{ position: 'absolute', left: lx - 80, top: ly - 80 + Math.sin(f / 6) * 4, width: 160, height: 160, transform: `rotate(${(lx - keys(f - 2, [[flies - 4, 260], [flies + 26, 1150]])) * 0.02}deg)` }} />
-      <Bubble user text="Lander, minimize Chrome" show={inOut(f, b.cue('ask') - 6, flies + 20, 8)} x={1300} y={820} size={40} />
+      <Bubble user text={t('Lander, minimize Chrome')} show={inOut(f, b.cue('ask') - 6, flies + 20, 8)} x={1300} y={820} size={40} />
       <Sfx at={b.cue('ask') - 6} name="pop" volume={0.25} />
       <Sfx at={flies} name="whoosh" volume={0.3} />
       <Sfx at={fires} name="blip" volume={0.35} />
@@ -127,10 +128,19 @@ const TOOL_JSON = `{
   "risk": "safe"
 }`;
 
+const TOOL_JSON_ES = `{
+  "name": "living_room_light",
+  "type": "http",
+  "description": "Enciende o apaga la luz del salón.",
+  "examples": ["enciende la luz del salón"],
+  "parameters": { "state": { "enum": ["on", "off"] } },
+  "risk": "safe"
+}`;
+
 /** Their own tools, as JSON files; secrets; MCP servers. */
 export const OwnToolsPart: React.FC<{ b: BeatTimes }> = ({ b }) => {
   const f = useCurrentFrame();
-  const typed = TOOL_JSON.slice(0, Math.max(0, Math.floor((f - b.cue('json') + 10) * 9)));
+  const typed = (useLang() === 'es' ? TOOL_JSON_ES : TOOL_JSON).slice(0, Math.max(0, Math.floor((f - b.cue('json') + 10) * 9)));
   const types = [
     { cue: 'api', icon: 'arrow_swap_24_filled', color: 'teal', t: 'http' },
     { cue: 'command', icon: 'flash_24_filled', color: 'gold', t: 'kdesktop' },
@@ -143,7 +153,7 @@ export const OwnToolsPart: React.FC<{ b: BeatTimes }> = ({ b }) => {
       <AbsoluteFill style={{ opacity: 1 - toMcp }}>
         <div style={{ position: 'absolute', left: 140, top: 220, width: 980, height: 520, borderRadius: 18, background: '#0c0c10', border: `1px solid ${C.line2}`, boxShadow: '0 40px 90px rgba(0,0,0,0.6)', overflow: 'hidden', transform: `translateY(${(1 - glide(f, b.from - 10, 24)) * 60}px)` }}>
           <div style={{ height: 46, display: 'flex', alignItems: 'center', gap: 10, padding: '0 18px', background: '#1a1a20' }}>
-            <Fluent name="document_24_filled" size={20} color={C.dim} /><Mono size={18} color={C.dim}>Assistant\Tools\living_room_light.json</Mono>
+            <Fluent name="document_24_filled" size={20} color={C.dim} /><Mono size={18} color={C.dim}>{t('Assistant\\Tools\\living_room_light.json')}</Mono>
           </div>
           <pre style={{ margin: 0, padding: '18px 24px', fontFamily: MONO, fontSize: 24, lineHeight: 1.5, color: C.text, whiteSpace: 'pre-wrap' }}>{typed}</pre>
         </div>
@@ -160,8 +170,8 @@ export const OwnToolsPart: React.FC<{ b: BeatTimes }> = ({ b }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 24px', borderRadius: 20, background: 'rgba(108,203,95,0.12)', border: `1.5px solid ${C.success}`, opacity: pop(f, b.cue('secrets') - 6) }}>
             <Fluent name="lock_closed_24_filled" size={40} color={C.success} />
             <div>
-              <Mono size={24} color={C.text}>token: ••••••••••••</Mono>
-              <div style={{ fontFamily: SANS, fontSize: 20, color: C.dim }}>Encrypted · the model never sees it</div>
+              <Mono size={24} color={C.text}>{t('token: ••••••••••••')}</Mono>
+              <div style={{ fontFamily: SANS, fontSize: 20, color: C.dim }}>{t('Encrypted · the model never sees it')}</div>
             </div>
           </div>
         </div>
@@ -169,10 +179,10 @@ export const OwnToolsPart: React.FC<{ b: BeatTimes }> = ({ b }) => {
       <AbsoluteFill style={{ opacity: toMcp }}>
         <CaptureShot name="tools-mcp-server"
           shots={[{ at: b.cue('mcp') - 10, x: 1000, y: 420, s: 1.3 }, { at: b.cue('mcp') + 10, dur: 90, x: 1000, y: 440, s: 1.4 }]}
-          focus={[{ from: b.cue('mcp'), to: b.to + 40, rect: [556, 90, 970, 130], label: 'An MCP server and its tools' }]} />
+          focus={[{ from: b.cue('mcp'), to: b.to + 40, rect: [556, 90, 970, 130], label: t('An MCP server and its tools') }]} />
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 110, display: 'flex', justifyContent: 'center', opacity: pop(f, b.cue('claude') - 6) }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 28px', borderRadius: 30, background: 'rgba(30,30,36,0.97)', border: `1.5px solid ${C.line2}`, fontFamily: SANS, fontSize: 28, fontWeight: 800, color: C.text }}>
-            <Fluent name="arrow_import_24_regular" size={32} color={C.accentText} /> Import from Claude Desktop
+            <Fluent name="arrow_import_24_regular" size={32} color={C.accentText} /> {t('Import from Claude Desktop')}
           </div>
         </div>
       </AbsoluteFill>

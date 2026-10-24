@@ -7,6 +7,7 @@ import { Sfx } from '../../components/Sfx';
 import { ease, OUT, pop, rand, SMOOTH } from '../../lib/anim';
 import { BeatTimes } from '../../lib/timeline';
 import { C, SANS } from '../../theme';
+import { t as tr } from '../../lib/i18n';
 
 const Token: React.FC<{ text: string; tone?: 'normal' | 'filler' | 'verb' | 'gold'; show?: number; note?: string }> = ({ text, tone = 'normal', show = 1, note }) => (
   <div style={{ position: 'relative', opacity: show }}>
@@ -28,30 +29,30 @@ export const WordsPart: React.FC<{ match: BeatTimes; words: BeatTimes }> = ({ ma
   const merged = f > words.cue('youtube') + 6;
   const scanning = f > words.cue('name') - 6;
   const commands = [
-    { name: 'YouTube', icon: 'video_clip_24_filled', color: 'red', score: merged ? 0.97 : 0.58 },
-    { name: 'Music', icon: 'music_note_2_24_filled', color: 'pink', score: 0.12 },
-    { name: 'Browser', icon: 'globe_24_filled', color: 'blue', score: 0.21 },
-    { name: 'Downloads', icon: 'arrow_download_24_filled', color: 'teal', score: 0.08 },
+    { name: tr('YouTube'), icon: 'video_clip_24_filled', color: 'red', score: merged ? 0.97 : 0.58 },
+    { name: tr('Music'), icon: 'music_note_2_24_filled', color: 'pink', score: 0.12 },
+    { name: tr('Browser'), icon: 'globe_24_filled', color: 'blue', score: 0.21 },
+    { name: tr('Downloads'), icon: 'arrow_download_24_filled', color: 'teal', score: 0.08 },
   ];
   const scoreK = ease(f, words.cue('name'), words.cue('name') + 30);
   return (
     <AbsoluteFill>
-      <Kinetic text="Which command did you mean?" at={match.from} x={960} y={170} size={64} color={C.dim} weight={700} />
+      <Kinetic text={tr('Which command did you mean?')} at={match.from} x={960} y={170} size={64} color={C.dim} weight={700} />
       <div style={{ position: 'absolute', left: 0, right: 0, top: 330, display: 'flex', justifyContent: 'center', gap: 22, alignItems: 'center' }}>
         <div style={{ fontFamily: SANS, fontSize: 40, color: C.faint, marginRight: 10, opacity: ease(f, match.cue('finding') - 10, match.cue('finding')) }}>
           <Fluent name="mic_24_filled" size={50} color={C.teal} />
         </div>
-        {[['please', 'filler'], ['open', 'verb'], ['the', 'filler']].map(([t, tone], i) => (
+        {[[tr('please'), 'filler'], [tr('open'), 'verb'], [tr('the'), 'filler']].map(([t, tone], i) => (
           <Token key={t} text={t} tone={filler ? (tone as 'filler' | 'verb') : 'normal'} show={pop(f, match.cue('finding') - 6 + i * 4)}
-            note={t === 'open' && f > words.cue('endings') - 4 && f < words.cue('youtube') ? 'open · opens · opening' : undefined} />
+            note={t === tr('open') && f > words.cue('endings') - 4 && f < words.cue('youtube') ? tr('open · opens · opening') : undefined} />
         ))}
         {merged ? (
-          <Token text="YouTube" tone="gold" show={pop(f, words.cue('youtube') + 6)} note="sounds like · joined" />
+          <Token text={tr('YouTube')} tone="gold" show={pop(f, words.cue('youtube') + 6)} note={tr('sounds like · joined')} />
         ) : (
-          ['you', 'tube'].map((t, i) => (
+          [tr('you'), tr('tube')].map((t, i) => (
             <div key={t} style={{ transform: `translateX(${(i ? -1 : 1) * 30 * ease(f, words.cue('youtube') - 10, words.cue('youtube') + 6, SMOOTH)}px)` }}>
               <Token text={t} show={pop(f, match.cue('finding') + 6 + i * 4)}
-                note={i === 0 && f > words.cue('slips') - 4 ? (f > words.cue('sound') - 4 ? '≈ youtube?' : 'a slip?') : undefined} />
+                note={i === 0 && f > words.cue('slips') - 4 ? (f > words.cue('sound') - 4 ? tr('≈ youtube?') : tr('a slip?')) : undefined} />
             </div>
           ))
         )}
@@ -85,17 +86,17 @@ export const WordsPart: React.FC<{ match: BeatTimes; words: BeatTimes }> = ({ ma
 
 type Pt = { label: string; x: number; y: number; kind: 'cmd' | 'none' | 'power' };
 const POINTS: Pt[] = [
-  { label: 'Empty Recycle Bin', x: 470, y: 640, kind: 'cmd' },
-  { label: 'Downloads', x: 640, y: 420, kind: 'cmd' },
-  { label: 'Screenshot', x: 930, y: 290, kind: 'cmd' },
-  { label: 'Open browser', x: 1230, y: 340, kind: 'cmd' },
-  { label: 'Music', x: 1420, y: 520, kind: 'cmd' },
-  { label: 'Work mode', x: 820, y: 560, kind: 'cmd' },
-  { label: 'Shut down the computer', x: 1060, y: 770, kind: 'power' },
-  { label: 'turn on the lights', x: 1610, y: 820, kind: 'none' },
-  { label: 'set an alarm', x: 1700, y: 720, kind: 'none' },
-  { label: 'turn off the radio', x: 1500, y: 960, kind: 'none' },
-  { label: "what's the weather", x: 1730, y: 960, kind: 'none' },
+  { label: tr('Empty Recycle Bin'), x: 470, y: 640, kind: 'cmd' },
+  { label: tr('Downloads'), x: 640, y: 420, kind: 'cmd' },
+  { label: tr('Screenshot'), x: 930, y: 290, kind: 'cmd' },
+  { label: tr('Open browser'), x: 1230, y: 340, kind: 'cmd' },
+  { label: tr('Music'), x: 1420, y: 520, kind: 'cmd' },
+  { label: tr('Work mode'), x: 820, y: 560, kind: 'cmd' },
+  { label: tr('Shut down the computer'), x: 1060, y: 770, kind: 'power' },
+  { label: tr('turn on the lights'), x: 1610, y: 820, kind: 'none' },
+  { label: tr('set an alarm'), x: 1700, y: 720, kind: 'none' },
+  { label: tr('turn off the radio'), x: 1500, y: 960, kind: 'none' },
+  { label: tr('what\'s the weather'), x: 1730, y: 960, kind: 'none' },
 ];
 
 /** Second layer: the meaning, as points in a space. */
@@ -131,14 +132,14 @@ export const SpacePart: React.FC<{ meaning: BeatTimes; meaning2: BeatTimes; notm
       <div style={{ position: 'absolute', left: 180, top: 190, display: 'flex', alignItems: 'center', gap: 14, opacity: ease(f, meaning.cue('gemma') - 6, meaning.cue('gemma') + 6) }}>
         <KdIcon icon="brain_circuit_24_filled" color="teal" size={56} />
         <div>
-          <div style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.text }}>EmbeddingGemma</div>
-          <div style={{ fontFamily: SANS, fontSize: 19, color: C.dim }}>Google · 300M · int8 · on your PC</div>
+          <div style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.text }}>{tr('EmbeddingGemma')}</div>
+          <div style={{ fontFamily: SANS, fontSize: 19, color: C.dim }}>{tr('Google · 300M · int8 · on your PC')}</div>
         </div>
       </div>
       {POINTS.map((p, i) => {
         const k = pop(f, space - 4 + i * 3, { damping: 12 });
         const isNone = p.kind === 'none';
-        const lit = (p.label === 'Empty Recycle Bin' && f > emptyAt - 4 && f < tvAt) || (isNone && f > notmine.cue('everyday') - 4);
+        const lit = (p.label === tr('Empty Recycle Bin') && f > emptyAt - 4 && f < tvAt) || (isNone && f > notmine.cue('everyday') - 4);
         const colour = isNone ? '#8a8f99' : p.kind === 'power' ? C.danger : C.accentText;
         return (
           <div key={p.label} style={{ position: 'absolute', left: p.x, top: p.y, transform: `translate(-50%, -50%) scale(${k})`, opacity: k, display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -149,11 +150,11 @@ export const SpacePart: React.FC<{ meaning: BeatTimes; meaning2: BeatTimes; notm
       })}
       {/* «Not mine» cloud */}
       <div style={{ position: 'absolute', left: 1450, top: 670, width: 420, height: 340, borderRadius: 170, border: '2px dashed rgba(160,165,175,0.5)', opacity: ease(f, notmine.cue('everyday') - 6, notmine.cue('everyday') + 6) }}>
-        <div style={{ position: 'absolute', left: 0, right: 0, top: -40, textAlign: 'center', fontFamily: SANS, fontSize: 22, fontWeight: 700, color: '#aab' }}>Not K-Desktop's</div>
+        <div style={{ position: 'absolute', left: 0, right: 0, top: -40, textAlign: 'center', fontFamily: SANS, fontSize: 22, fontWeight: 700, color: '#aab' }}>{tr('Not K-Desktop\'s')}</div>
       </div>
       {/* The sentence and its vector */}
       <div style={{ position: 'absolute', left: sentenceX, top: sentenceY, transform: `translate(-50%, -50%) scale(${1 - 0.35 * fly})`, opacity: pop(f, meaning.cue('vectors') - 30) * (1 - ease(f, tvAt - 10, tvAt)), display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-        <div style={{ padding: '18px 30px', borderRadius: 22, background: 'white', fontFamily: SANS, fontSize: 40, fontWeight: 800, color: '#141418', whiteSpace: 'nowrap' }}>“clean out the trash”</div>
+        <div style={{ padding: '18px 30px', borderRadius: 22, background: 'white', fontFamily: SANS, fontSize: 40, fontWeight: 800, color: '#141418', whiteSpace: 'nowrap' }}>{tr('“clean out the trash”')}</div>
         <div style={{ opacity: ease(f, vectors, vectors + 12) * (1 - fly), display: 'flex', gap: 8 }}>
           {Array.from({ length: 9 }, (_, i) => <Mono key={i} size={22} color={C.teal}>{i === 8 ? '… 768' : (rand(i + 4) * 2 - 1).toFixed(2)}</Mono>)}
         </div>
@@ -162,16 +163,16 @@ export const SpacePart: React.FC<{ meaning: BeatTimes; meaning2: BeatTimes; notm
       {/* «Turn off the TV» */}
       <div style={{ position: 'absolute', left: tv.x, top: tv.y, transform: `translate(-50%, -50%) scale(${tvShow})`, opacity: tvShow, display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{ width: 26, height: 26, borderRadius: 13, background: 'white', boxShadow: '0 0 20px white' }} />
-        <span style={{ fontFamily: SANS, fontSize: 28, fontWeight: 800, color: 'white', whiteSpace: 'nowrap' }}>“turn off the TV”</span>
+        <span style={{ fontFamily: SANS, fontSize: 28, fontWeight: 800, color: 'white', whiteSpace: 'nowrap' }}>{tr('“turn off the TV”')}</span>
       </div>
       {line(tv, shut, ease(f, notmine.cue('shutdown') - 4, notmine.cue('shutdown') + 12), C.danger, '0.79', true)}
-      {line(tv, radio, ease(f, notmine.cue('everyday'), notmine.cue('everyday') + 16), '#c9ccd3', '0.88 — closer')}
+      {line(tv, radio, ease(f, notmine.cue('everyday'), notmine.cue('everyday') + 16), '#c9ccd3', tr('0.88 — closer'))}
       <div style={{ position: 'absolute', left: shut.x, top: shut.y, width: 200, height: 200, marginLeft: -100, marginTop: -100, borderRadius: 100, border: `4px solid ${C.danger}`, opacity: ring * 0.9, transform: `scale(${0.4 + 0.6 * ring})` }} />
-      <div style={{ position: 'absolute', left: shut.x - 230, top: shut.y + 70, fontFamily: SANS, fontSize: 24, fontWeight: 800, color: C.danger, opacity: ring }}>Power commands need 0.90+</div>
+      <div style={{ position: 'absolute', left: shut.x - 230, top: shut.y + 70, fontFamily: SANS, fontSize: 24, fontWeight: 800, color: C.danger, opacity: ring }}>{tr('Power commands need 0.90+')}</div>
       <div style={{
         position: 'absolute', left: 960, top: 470, transform: `translate(-50%, -50%) rotate(-8deg) scale(${nothing})`, opacity: nothing * (1 - ease(f, notmine.cue('powers') - 10, notmine.cue('powers'))),
         padding: '18px 40px', borderRadius: 20, border: `6px solid ${C.text}`, fontFamily: SANS, fontSize: 64, fontWeight: 900, color: C.text, letterSpacing: 2, background: 'rgba(11,11,14,0.6)',
-      }}>NOTHING HAPPENS</div>
+      }}>{tr('NOTHING HAPPENS')}</div>
       {POINTS.map((p, i) => <Sfx key={p.label} at={space - 4 + i * 3} name="blip" volume={0.08} />)}
       <Sfx at={cleanAt} name="whoosh-short" volume={0.25} />
       <Sfx at={emptyAt - 4} name="chime" volume={0.22} />

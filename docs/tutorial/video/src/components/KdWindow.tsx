@@ -2,18 +2,19 @@ import React from 'react';
 import { Img, staticFile } from 'remotion';
 import { C, SANS } from '../theme';
 import { Fluent } from './Icon';
+import { t } from '../lib/i18n';
 
 export const NAV = [
-  { id: 'commands', label: 'Commands', icon: 'flash_24_regular' },
-  { id: 'events', label: 'Events', icon: 'arrow_forward_down_lightning_24_regular' },
-  { id: 'quickmenu', label: 'QuickMenu', icon: 'text_bullet_list_tree_24_regular' },
-  { id: 'kboard', label: 'K-Board', icon: 'keyboard_layout_float_24_regular' },
-  { id: 'macros', label: 'Macros', icon: 'record_24_regular' },
-  { id: 'history', label: 'History', icon: 'history_24_regular' },
-  { id: 'achievements', label: 'Achievements', icon: 'trophy_24_regular' },
-  { id: 'assistant', label: 'Assistant', icon: 'bot_24_regular' },
-  { id: 'settings', label: 'Settings', icon: 'settings_24_regular' },
-  { id: 'about', label: 'About', icon: 'info_24_regular' },
+  { id: 'commands', label: t('Commands'), icon: 'flash_24_regular' },
+  { id: 'events', label: t('Events'), icon: 'arrow_forward_down_lightning_24_regular' },
+  { id: 'quickmenu', label: t('QuickMenu'), icon: 'text_bullet_list_tree_24_regular' },
+  { id: 'kboard', label: t('K-Board'), icon: 'keyboard_layout_float_24_regular' },
+  { id: 'macros', label: t('Macros'), icon: 'record_24_regular' },
+  { id: 'history', label: t('History'), icon: 'history_24_regular' },
+  { id: 'achievements', label: t('Achievements'), icon: 'trophy_24_regular' },
+  { id: 'assistant', label: t('Assistant'), icon: 'bot_24_regular' },
+  { id: 'settings', label: t('Settings'), icon: 'settings_24_regular' },
+  { id: 'about', label: t('About'), icon: 'info_24_regular' },
 ];
 
 /** Window frame of Windows 11 (title, minimise, maximise, close) around any content. */
@@ -37,12 +38,12 @@ export const WinFrame: React.FC<{ title?: string; icon?: React.ReactNode; width:
 
 /** K-Desktop's main window: title bar, the side menu on `page`, and the page itself. */
 export const KdWindow: React.FC<{ page: string; width?: number; height?: number; children?: React.ReactNode; style?: React.CSSProperties; assistant?: boolean }> = ({ page, width = 1560, height = 940, children, style, assistant = true }) => (
-  <WinFrame width={width} height={height} title="K-Desktop 5.0" style={style} bg="#1c1c1f"
+  <WinFrame width={width} height={height} title={t('K-Desktop 5.0')} style={style} bg="#1c1c1f"
     icon={<Img src={staticFile('brand/icon-64.png')} style={{ width: 18, height: 18 }} />}>
     <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 250, background: '#1c1c1f', padding: '6px 14px', boxSizing: 'border-box' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 8px 26px' }}>
         <Img src={staticFile('brand/icon-192.png')} style={{ width: 40, height: 40 }} />
-        <span style={{ fontFamily: SANS, fontWeight: 700, fontSize: 21, color: C.text }}>K-Desktop</span>
+        <span style={{ fontFamily: SANS, fontWeight: 700, fontSize: 21, color: C.text }}>{t('K-Desktop')}</span>
         <span style={{ fontFamily: SANS, fontWeight: 700, fontSize: 14, color: C.accentText, marginTop: 4 }}>5.0</span>
       </div>
       {NAV.filter(n => assistant || n.id !== 'assistant').map(n => {

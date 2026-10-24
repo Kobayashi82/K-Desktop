@@ -8,23 +8,24 @@ import { Sfx } from '../components/Sfx';
 import { ease, glide, inOut, OUT, pop } from '../lib/anim';
 import { useBeats } from '../lib/timeline';
 import { C, SANS } from '../theme';
+import { t } from '../lib/i18n';
 
 const TRIGGERS = [
-  { cue: 'hotkey', icon: 'keyboard_24_filled', color: 'gold', title: 'Hotkey', sub: 'Ctrl + Alt + W' },
-  { cue: 'mouse', icon: 'cursor_click_24_filled', color: 'indigo', title: 'Mouse button', sub: 'Mouse 5' },
-  { cue: 'quickmenu', icon: 'text_bullet_list_tree_24_filled', color: 'purple', title: 'QuickMenu', sub: 'At the pointer' },
-  { cue: 'launcher', icon: 'search_24_filled', color: 'yellow', title: 'Launcher', sub: 'Type a few letters' },
-  { cue: 'voice', icon: 'mic_24_filled', color: 'teal', title: 'Voice', sub: '“Work mode”' },
-  { cue: 'phone', icon: 'phone_24_filled', color: 'sky', title: 'Phone', sub: 'Web app' },
-  { cue: 'network', icon: 'plug_connected_24_filled', color: 'pink', title: 'Network', sub: 'UDP · command line' },
-  { cue: 'event', icon: 'arrow_forward_down_lightning_24_filled', color: 'orange', title: 'Event', sub: 'When something happens' },
-  { cue: 'assistant', icon: 'bot_24_filled', color: 'purple', title: 'Assistant', sub: '“Lander, work mode”' },
+  { cue: 'hotkey', icon: 'keyboard_24_filled', color: 'gold', title: t('Hotkey'), sub: t('Ctrl + Alt + W') },
+  { cue: 'mouse', icon: 'cursor_click_24_filled', color: 'indigo', title: t('Mouse button'), sub: t('Mouse 5') },
+  { cue: 'quickmenu', icon: 'text_bullet_list_tree_24_filled', color: 'purple', title: t('QuickMenu'), sub: t('At the pointer') },
+  { cue: 'launcher', icon: 'search_24_filled', color: 'yellow', title: t('Launcher'), sub: t('Type a few letters') },
+  { cue: 'voice', icon: 'mic_24_filled', color: 'teal', title: t('Voice'), sub: t('“Work mode”') },
+  { cue: 'phone', icon: 'phone_24_filled', color: 'sky', title: t('Phone'), sub: t('Web app') },
+  { cue: 'network', icon: 'plug_connected_24_filled', color: 'pink', title: t('Network'), sub: t('UDP · command line') },
+  { cue: 'event', icon: 'arrow_forward_down_lightning_24_filled', color: 'orange', title: t('Event'), sub: t('When something happens') },
+  { cue: 'assistant', icon: 'bot_24_filled', color: 'purple', title: t('Assistant'), sub: t('“Lander, work mode”') },
 ];
 
 const HELPERS = [
-  { cue: 'macros', icon: 'record_24_filled', color: 'red', title: 'Macros', sub: 'Replay what you do' },
-  { cue: 'kboard', icon: 'keyboard_layout_float_24_filled', color: 'indigo', title: 'K-Board', sub: 'Remap keys & buttons' },
-  { cue: 'history', icon: 'history_24_filled', color: 'gray', title: 'History', sub: 'Every run, remembered' },
+  { cue: 'macros', icon: 'record_24_filled', color: 'red', title: t('Macros'), sub: t('Replay what you do') },
+  { cue: 'kboard', icon: 'keyboard_layout_float_24_filled', color: 'indigo', title: t('K-Board'), sub: t('Remap keys & buttons') },
+  { cue: 'history', icon: 'history_24_filled', color: 'gray', title: t('History'), sub: t('Every run, remembered') },
 ];
 
 export const Overview: React.FC = () => {
@@ -64,17 +65,17 @@ export const Overview: React.FC = () => {
   ];
   const frameDraw = ease(f, local.from, local.from + 40, OUT);
   const badges = [
-    { cue: 'portable', icon: 'window_apps_24_filled', text: 'KDesktop.exe · portable' },
-    { cue: 'windows', icon: 'desktop_24_filled', text: 'Windows 10 · 11' },
-    { cue: 'languages', icon: 'translate_24_filled', text: 'ES · EN · FR · DE · IT · PT' },
-    { cue: 'local', icon: 'cloud_off_24_filled', text: 'Runs locally' },
-    { cue: 'data', icon: 'folder_24_filled', text: '%APPDATA%\\K-Desktop 5' },
+    { cue: 'portable', icon: 'window_apps_24_filled', text: t('KDesktop.exe · portable') },
+    { cue: 'windows', icon: 'desktop_24_filled', text: t('Windows 10 · 11') },
+    { cue: 'languages', icon: 'translate_24_filled', text: t('ES · EN · FR · DE · IT · PT') },
+    { cue: 'local', icon: 'cloud_off_24_filled', text: t('Runs locally') },
+    { cue: 'data', icon: 'folder_24_filled', text: t('%APPDATA%\\K-Desktop 5') },
   ];
 
   return (
     <AbsoluteFill>
       <Camera shots={shots}>
-        <Kinetic text="One simple idea:" at={idea.from + 2} x={960} y={175} size={60} out={idea.cue('command') + 30} color={C.dim} weight={700} />
+        <Kinetic text={t('One simple idea:')} at={idea.from + 2} x={960} y={175} size={60} out={idea.cue('command') + 30} color={C.dim} weight={700} />
 
         {/* Triggers and their wires */}
         {TRIGGERS.map((t, i) => {
@@ -116,7 +117,7 @@ export const Overview: React.FC = () => {
         )}
         <div style={{ position: 'absolute', left: 960, top: -60, transform: 'translate(-50%, -50%)', display: 'flex', alignItems: 'center', gap: 18, padding: '10px 30px', borderRadius: 40, background: '#121216', border: `2px solid rgba(242,193,74,0.5)`, opacity: frameDraw }}>
           <Img src={staticFile('brand/icon-192.png')} style={{ width: 54, height: 54 }} />
-          <span style={{ fontFamily: SANS, fontWeight: 800, fontSize: 42, color: C.text }}>Your PC</span>
+          <span style={{ fontFamily: SANS, fontWeight: 800, fontSize: 42, color: C.text }}>{t('Your PC')}</span>
         </div>
         <div style={{ position: 'absolute', left: -150, right: -150, top: 1150, transform: 'translateY(-50%)', display: 'flex', justifyContent: 'center', gap: 26 }}>
           {badges.map(b => {

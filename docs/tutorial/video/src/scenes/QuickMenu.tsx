@@ -16,6 +16,7 @@ import { Callout } from '../components/Ui';
 import { ease, glide, inOut, pop, rand, SMOOTH } from '../lib/anim';
 import { BeatTimes, useBeats, useChapter } from '../lib/timeline';
 import { C, SANS } from '../theme';
+import { t } from '../lib/i18n';
 
 const SCALE = 1.6;
 const ROW = 34 * SCALE; // row height + margins in QuickMenuPanel
@@ -34,7 +35,7 @@ const Intro: React.FC<{ b: BeatTimes }> = ({ b }) => {
   const gather = ease(f, b.cue('qm') - 10, b.cue('qm') + 20, SMOOTH);
   return (
     <AbsoluteFill>
-      <Kinetic text="One key per command…" at={b.from} x={960} y={200} size={64} color={C.dim} out={b.cue('qm') - 12} weight={700} />
+      <Kinetic text={t('One key per command…')} at={b.from} x={960} y={200} size={64} color={C.dim} out={b.cue('qm') - 12} weight={700} />
       {Array.from({ length: 16 }, (_, i) => {
         const it = icons[i % icons.length];
         const sx = 200 + rand(i + 1) * 1520;
@@ -124,10 +125,10 @@ const OnDesktop: React.FC<{ open: BeatTimes; clicks: BeatTimes }> = ({ open, cli
         <div style={{ position: 'absolute', left: subX, top: subY, transform: `scale(${0.7 + 0.3 * sub})`, transformOrigin: '0 0', opacity: sub * menuShow }}>
           <QuickMenuPanel items={VOLUME_MENU} scale={SCALE} appear={sub} hot={subHot} flash={subFlash} width={210} />
         </div>
-        <Callout show={inOut(f, open.cue('icons') - 2, open.cue('separators') + 6, 6)} x={MENU.x - 30} y={rowY(MAIN_MENU, 2, MENU.y)} align="right">Icons</Callout>
-        <Callout show={inOut(f, open.cue('titles') - 2, open.cue('submenus') + 8, 6)} x={MENU.x - 30} y={rowY(MAIN_MENU, 0, MENU.y)} align="right">Titles</Callout>
-        <Callout show={inOut(f, open.cue('separators') - 2, subAt + 20, 6)} x={MENU.x - 30} y={rowY(MAIN_MENU, 5, MENU.y) - ROW / 2 + 6} align="right">Separators</Callout>
-        <Callout show={inOut(f, subAt + 4, left - 10, 6)} x={subX + 210 * SCALE + 30} y={subY + 40}>Submenus</Callout>
+        <Callout show={inOut(f, open.cue('icons') - 2, open.cue('separators') + 6, 6)} x={MENU.x - 30} y={rowY(MAIN_MENU, 2, MENU.y)} align="right">{t('Icons')}</Callout>
+        <Callout show={inOut(f, open.cue('titles') - 2, open.cue('submenus') + 8, 6)} x={MENU.x - 30} y={rowY(MAIN_MENU, 0, MENU.y)} align="right">{t('Titles')}</Callout>
+        <Callout show={inOut(f, open.cue('separators') - 2, subAt + 20, 6)} x={MENU.x - 30} y={rowY(MAIN_MENU, 5, MENU.y) - ROW / 2 + 6} align="right">{t('Separators')}</Callout>
+        <Callout show={inOut(f, subAt + 4, left - 10, 6)} x={subX + 210 * SCALE + 30} y={subY + 40}>{t('Submenus')}</Callout>
         <div style={{ position: 'absolute', left: 990, top: 820 }}>
           <Osd icon="speaker_2_24_filled" color="teal" text={`Volume: ${volume} %`} bar={volume} show={inOut(f, right, middle - 10, 6)} />
         </div>
@@ -139,10 +140,10 @@ const OnDesktop: React.FC<{ open: BeatTimes; clicks: BeatTimes }> = ({ open, cli
         <MouseShape scale={0.6} side={which === 'side' ? inOut(f, open.cue('mouse5'), open.cue('mouse5') + 10, 3) : 0} glow={which === 'side' ? inOut(f, open.cue('mouse5') - 4, bloom + 10, 4) : 0}
           left={which === 'left' ? 1 : 0} right={which === 'right' ? 1 : 0} wheel={which === 'middle' ? 1 : 0} />
         <div style={{ fontFamily: SANS, fontSize: 26, fontWeight: 700, color: C.accentText, textAlign: 'center', width: 260 }}>
-          {{ side: 'Mouse 5', left: 'Left click', right: 'Right click', middle: 'Middle click' }[which]}
+          {{ side: t('Mouse 5'), left: t('Left click'), right: t('Right click'), middle: t('Middle click') }[which]}
         </div>
         <div style={{ fontFamily: SANS, fontSize: 20, color: C.dim, textAlign: 'center', width: 260 }}>
-          {{ side: 'opens it', left: 'runs and closes', right: 'runs, stays open', middle: 'edits the item' }[which]}
+          {t({ side: 'opens it', left: 'runs and closes', right: 'runs, stays open', middle: 'edits the item' }[which])}
         </div>
       </div>
 
@@ -151,13 +152,13 @@ const OnDesktop: React.FC<{ open: BeatTimes; clicks: BeatTimes }> = ({ open, cli
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <KdIcon icon="music_note_2_24_filled" color="pink" size={60} />
           <div>
-            <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 700, letterSpacing: 2, color: C.accentText }}>EDITING</div>
-            <div style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.text }}>Music</div>
+            <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 700, letterSpacing: 2, color: C.accentText }}>{t('EDITING')}</div>
+            <div style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.text }}>{t('Music')}</div>
           </div>
         </div>
         <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <Mono size={18} color={C.dim}>Run application · AIMP.exe</Mono>
-          <Mono size={18} color={C.dim}>Audio output · Speakers</Mono>
+          <Mono size={18} color={C.dim}>{t('Run application · AIMP.exe')}</Mono>
+          <Mono size={18} color={C.dim}>{t('Audio output · Speakers')}</Mono>
         </div>
       </div>
 
@@ -225,26 +226,26 @@ const Editor: React.FC<{ editor: BeatTimes; quick: BeatTimes }> = ({ editor, qui
       <div style={{ position: 'absolute', left: 120, top: 150, width: 1680, height: 790, borderRadius: 26, background: 'rgba(28,28,33,0.96)', border: `1px solid ${C.line2}`, boxShadow: '0 30px 80px rgba(0,0,0,0.5)', transform: `translateY(${(1 - glide(f, editor.from - 10, 26)) * 60}px)` }}>
         <div style={{ position: 'absolute', left: 40, top: 26, display: 'flex', alignItems: 'center', gap: 16 }}>
           <Fluent name="text_bullet_list_tree_24_filled" size={32} color={C.accentText} />
-          <span style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.text }}>QuickMenu editor</span>
-          <span style={{ fontFamily: SANS, fontSize: 18, color: C.dim }}>Main</span>
+          <span style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.text }}>{t('QuickMenu editor')}</span>
+          <span style={{ fontFamily: SANS, fontSize: 18, color: C.dim }}>{t('Main')}</span>
           {['arrow_undo_24_filled', 'arrow_redo_24_filled'].map((ic, i) => (
             <div key={ic} style={{ marginLeft: i ? 0 : 30, width: 44, height: 44, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: inOut(f, editor.cue('undo') + i * 8, editor.cue('undo') + i * 8 + 14, 4) > 0.3 ? C.accentSoft : 'rgba(255,255,255,0.06)' }}>
               <Fluent name={ic} size={22} color={C.text} />
             </div>
           ))}
           <div style={{ marginLeft: 30, display: 'flex', alignItems: 'center', gap: 10, fontFamily: SANS, fontSize: 18, color: C.dim }}>
-            Size
-            {['Compact', 'Normal', 'Medium', 'Large', 'Very large', 'Huge'].map((s, i) => (
+            {t('Size')}
+            {[t('Compact'), t('Normal'), t('Medium'), t('Large'), t('Very large'), t('Huge')].map((s, i) => (
               <span key={s} style={{ padding: '5px 10px', borderRadius: 8, fontSize: 15, background: Math.round(sizeK * 5) === i ? C.accentText : 'rgba(255,255,255,0.06)', color: Math.round(sizeK * 5) === i ? '#1a1306' : C.dim, fontWeight: 600 }}>{s}</span>
             ))}
           </div>
         </div>
         <div style={{ position: 'absolute', right: 40, top: 100, width: 420, bottom: 30, borderRadius: 18, background: 'rgba(255,255,255,0.04)', padding: 20, boxSizing: 'border-box' }}>
-          <div style={{ fontFamily: SANS, fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 14 }}>Add to the menu</div>
+          <div style={{ fontFamily: SANS, fontSize: 20, fontWeight: 700, color: C.text, marginBottom: 14 }}>{t('Add to the menu')}</div>
           {PALETTE_ITEMS.map((p, i) => (
             <div key={p.label} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '10px 12px', borderRadius: 12, marginBottom: 8, background: i === 0 && dragK > 0 && !dropped ? 'rgba(242,193,74,0.12)' : 'rgba(255,255,255,0.05)', opacity: i === 0 && dragK > 0 && !dropped ? 0.4 : 1 }}>
               <KdIcon icon={p.icon} color={p.color} size={40} />
-              <span style={{ fontFamily: SANS, fontSize: 20, color: C.text }}>{p.label}</span>
+              <span style={{ fontFamily: SANS, fontSize: 20, color: C.text }}>{t(p.label)}</span>
             </div>
           ))}
         </div>
@@ -263,11 +264,11 @@ const Editor: React.FC<{ editor: BeatTimes; quick: BeatTimes }> = ({ editor, qui
       )}
       {dragK > 0 && !dropped && (
         <div style={{ position: 'absolute', left: gx, top: gy, transform: 'translate(-20px, -20px) rotate(-3deg)', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderRadius: 12, background: 'rgba(40,40,48,0.98)', border: `1.5px solid ${C.accentText}`, boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
-          <KdIcon icon="xbox_controller_24_filled" color="indigo" size={40} /><span style={{ fontFamily: SANS, fontSize: 20, color: C.text }}>Steam</span>
+          <KdIcon icon="xbox_controller_24_filled" color="indigo" size={40} /><span style={{ fontFamily: SANS, fontSize: 20, color: C.text }}>{t('Steam')}</span>
         </div>
       )}
       {/* Rename */}
-      <Callout show={inOut(f, editor.cue('rename') - 4, editor.cue('nest') + 10, 6)} x={menuX + 420} y={rowY(MAIN_MENU, 1, menuY)}>F2 renames · change icon</Callout>
+      <Callout show={inOut(f, editor.cue('rename') - 4, editor.cue('nest') + 10, 6)} x={menuX + 420} y={rowY(MAIN_MENU, 1, menuY)}>{t('F2 renames · change icon')}</Callout>
       {/* Quick command */}
       <div style={{
         position: 'absolute', left: 1000, top: 330, width: 760, padding: 28, borderRadius: 24, background: 'rgba(36,36,42,0.99)', border: `1.5px solid rgba(242,193,74,0.6)`, boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
@@ -275,14 +276,14 @@ const Editor: React.FC<{ editor: BeatTimes; quick: BeatTimes }> = ({ editor, qui
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
           <Fluent name="flash_24_filled" size={30} color={C.accentText} />
-          <span style={{ fontFamily: SANS, fontSize: 28, fontWeight: 800, color: C.text }}>Quick command</span>
+          <span style={{ fontFamily: SANS, fontSize: 28, fontWeight: 800, color: C.text }}>{t('Quick command')}</span>
         </div>
-        <div style={{ fontFamily: SANS, fontSize: 17, color: C.dim, marginBottom: 8 }}>Program, folder or URL</div>
+        <div style={{ fontFamily: SANS, fontSize: 17, color: C.dim, marginBottom: 8 }}>{t('Program, folder or URL')}</div>
         <div style={{ height: 56, borderRadius: 12, background: '#1a1a1f', border: `1.5px solid ${C.accentText}`, display: 'flex', alignItems: 'center', padding: '0 18px' }}>
           <Mono size={22}>{field}</Mono><span style={{ width: 2, height: 26, background: C.accentText, marginLeft: 2 }} />
         </div>
         <div style={{ display: 'flex', gap: 12, marginTop: 18 }}>
-          {[['program', 'cube_24_filled', 'orange', 'Program'], ['folder', 'folder_24_filled', 'yellow', 'Folder'], ['web', 'globe_24_filled', 'dark', 'Web']].map(([c, ic, col, t]) => (
+          {[['program', 'cube_24_filled', 'orange', t('Program')], ['folder', 'folder_24_filled', 'yellow', t('Folder')], ['web', 'globe_24_filled', 'dark', t('Web')]].map(([c, ic, col, t]) => (
             <span key={c} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px', borderRadius: 12, background: f > quick.cue(c) - 2 ? C.accentSoft : 'rgba(255,255,255,0.05)', fontFamily: SANS, fontSize: 18, color: C.text }}>
               <KdIcon icon={ic} color={col} size={28} />{t}
             </span>

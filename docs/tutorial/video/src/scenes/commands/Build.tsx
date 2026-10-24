@@ -15,6 +15,7 @@ import { Sfx } from '../../components/Sfx';
 import { ease, glide, inOut, OUT, pop, SMOOTH, tween } from '../../lib/anim';
 import { BeatTimes } from '../../lib/timeline';
 import { C, SANS } from '../../theme';
+import { t } from '../../lib/i18n';
 
 const WIN = { x: 180, y: 70 };
 // Stage points of the page (content starts at WIN + sidebar 250, title bar 46).
@@ -44,7 +45,7 @@ export const BuildPart: React.FC<{ page: BeatTimes; hotkey: BeatTimes; hotkey2: 
   const f = useCurrentFrame();
   const newAt = page.cue('new');
   const nameAt = page.cue('name');
-  const name = 'Work mode'.slice(0, Math.max(0, Math.floor((f - nameAt + 4) / 2.2)));
+  const name = t('Work mode').slice(0, Math.max(0, Math.floor((f - nameAt + 4) / 2.2)));
   const keyCues = [hotkey.cue('ctrl'), hotkey.cue('alt'), hotkey.cue('w')];
   const captureOn = f > hotkey.from + 8 && f < keyCues[2] + 6;
   const chip1 = ease(f, keyCues[2] + 4, keyCues[2] + 14);
@@ -92,9 +93,9 @@ export const BuildPart: React.FC<{ page: BeatTimes; hotkey: BeatTimes; hotkey2: 
         <div style={{ position: 'absolute', left: WIN.x, top: WIN.y, transform: `translateY(${(1 - glide(f, 0, 30)) * 80}px)` }}>
           <KdWindow page="commands">
             <CommandsPage list={COMMAND_LIST.slice(0, 9)} newPress={pressNew}
-              fresh={{ name: f > nameAt ? name || 'New command' : 'New command', sub: f > rowCues[0] ? 'notepad.exe' : '', hotkey: chip1 > 0 ? 'CTRL + ALT + W' : undefined, icon: 'flash_24_filled', color: 'gold', show: glide(f, newAt, 14) }}
+              fresh={{ name: f > nameAt ? name || t('New command') : t('New command'), sub: f > rowCues[0] ? 'notepad.exe' : '', hotkey: chip1 > 0 ? t('CTRL + ALT + W') : undefined, icon: 'flash_24_filled', color: 'gold', show: glide(f, newAt, 14) }}
               editor={f > newAt ? {
-                name: f > nameAt - 4 ? name : 'New command', caret: f > nameAt - 4 && f < nameAt + 40,
+                name: f > nameAt - 4 ? name : t('New command'), caret: f > nameAt - 4 && f < nameAt + 40,
                 hotkeys, capturing: captureOn, actions: WORK_MODE, shown, hot, addAction: Math.max(...rowCues.map(c => inOut(f, c - 8, c, 3))),
               } : undefined} />
           </KdWindow>
@@ -123,7 +124,7 @@ export const BuildPart: React.FC<{ page: BeatTimes; hotkey: BeatTimes; hotkey2: 
                 {i === 1 && <MouseShape scale={0.8} glow={lit} left={inOut(f, v.cue + 10, v.cue + 30, 4)} side={lit} />}
                 {i === 2 && (
                   <>
-                    <Keycap label="Ctrl" height={86} width={120} size={28} down={lit} />
+                    <Keycap label={t('Ctrl')} height={86} width={120} size={28} down={lit} />
                     <MouseShape scale={0.62} wheel={Math.max(0, f - v.cue) / 8} />
                   </>
                 )}
@@ -175,7 +176,7 @@ export const RunPart: React.FC<{ run: BeatTimes }> = ({ run }) => {
         </div>
         <Taskbar apps={[{ icon: 'folder_24_filled', color: 'yellow', active: explorer > 0.5 }, { icon: 'globe_24_filled', color: 'blue' }, { icon: 'document_text_24_filled', color: 'sky', active: notepad > 0.5 }, { icon: 'music_note_2_24_filled', color: 'pink' }]} />
         <div style={{ position: 'absolute', left: 960, top: 880, transform: 'translateX(-50%)' }}>
-          <Osd icon="speaker_2_24_filled" color="teal" text="Volume: 20 %" bar={20} show={osd} />
+          <Osd icon="speaker_2_24_filled" color="teal" text={t('Volume: 20 %')} bar={20} show={osd} />
         </div>
       </Camera>
 
@@ -183,8 +184,8 @@ export const RunPart: React.FC<{ run: BeatTimes }> = ({ run }) => {
       <div style={{ position: 'absolute', right: 70, top: 120, width: 400, padding: 22, borderRadius: 22, background: 'rgba(24,24,30,0.9)', border: `1px solid ${C.line2}`, opacity: inOut(f, t0 - 6, run.to + 60, 10), boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
           <KdIcon icon="flash_24_filled" color="gold" size={40} />
-          <div style={{ fontFamily: SANS, fontSize: 24, fontWeight: 700, color: C.text }}>Work mode</div>
-          <div style={{ marginLeft: 'auto', fontFamily: SANS, fontSize: 15, color: C.accentText, fontWeight: 600 }}>Ctrl + Alt + W</div>
+          <div style={{ fontFamily: SANS, fontSize: 24, fontWeight: 700, color: C.text }}>{t('Work mode')}</div>
+          <div style={{ marginLeft: 'auto', fontFamily: SANS, fontSize: 15, color: C.accentText, fontWeight: 600 }}>{t('Ctrl + Alt + W')}</div>
         </div>
         {WORK_MODE.map((a, i) => {
           const done = f > steps[i] + (i === 1 ? 20 : 4);

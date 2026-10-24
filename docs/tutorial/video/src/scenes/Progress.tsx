@@ -7,6 +7,7 @@ import { Sfx } from '../components/Sfx';
 import { ease, inOut, OUT, pop } from '../lib/anim';
 import { BeatTimes, useBeats, useChapter } from '../lib/timeline';
 import { C, SANS } from '../theme';
+import { t } from '../lib/i18n';
 
 const HistoryPart: React.FC<{ b: BeatTimes }> = ({ b }) => (
   <CaptureShot name="history"
@@ -18,11 +19,11 @@ const HistoryPart: React.FC<{ b: BeatTimes }> = ({ b }) => (
       { at: b.cue('wrong') - 10, dur: 40, x: 1000, y: 700, s: 1.3 },
     ]}
     focus={[
-      { from: b.cue('five') - 6, to: b.cue('where') - 4, rect: [261, 118, 630, 22], label: 'The last 500 runs' },
-      { from: b.cue('where') - 4, to: b.cue('long') - 4, rect: [338, 222, 330, 830], label: 'Where it came from', at: 'right' },
-      { from: b.cue('long') - 4, to: b.cue('wrong') - 4, rect: [1828, 205, 64, 846], label: 'How long it took', at: 'left' },
+      { from: b.cue('five') - 6, to: b.cue('where') - 4, rect: [261, 118, 630, 22], label: t('The last 500 runs') },
+      { from: b.cue('where') - 4, to: b.cue('long') - 4, rect: [338, 222, 330, 830], label: t('Where it came from'), at: 'right' },
+      { from: b.cue('long') - 4, to: b.cue('wrong') - 4, rect: [1828, 205, 64, 846], label: t('How long it took'), at: 'left' },
       { from: b.cue('wrong') - 4, to: b.to + 30, rect: [262, 262, 1630, 46] },
-      { from: b.cue('wrong') - 4, to: b.to + 30, rect: [262, 716, 1630, 42], label: 'What went wrong' },
+      { from: b.cue('wrong') - 4, to: b.to + 30, rect: [262, 716, 1630, 42], label: t('What went wrong') },
     ]}
   />
 );
@@ -59,16 +60,16 @@ const AchievementsPart: React.FC<{ b: BeatTimes }> = ({ b }) => {
           { at: b.cue('secret') - 10, dur: 40, x: 1000, y: 560, s: 1.0 },
         ]}
         focus={[
-          { from: b.cue('hundred') - 6, to: toastAt - 4, rect: [263, 147, 1630, 106], label: '166 achievements' },
-          { from: b.cue('pianist') - 6, to: b.cue('secret') - 4, rect: [1077, 473, 260, 103], label: 'Pianist', at: 'top' },
+          { from: b.cue('hundred') - 6, to: toastAt - 4, rect: [263, 147, 1630, 106], label: t('166 achievements') },
+          { from: b.cue('pianist') - 6, to: b.cue('secret') - 4, rect: [1077, 473, 260, 103], label: t('Pianist'), at: 'top' },
         ]}
       />
       {/* The notification, big */}
       <div style={{ position: 'absolute', left: 960, top: 540, transform: `translate(-50%, -50%) translateX(${(1 - ease(f, toastAt - 6, toastAt + 10, OUT)) * 600}px) scale(2.6)`, opacity: toastShow }}>
         <Img src={staticFile(toast.file)} style={{ width: toast.width, height: toast.height, borderRadius: 12, boxShadow: '0 20px 50px rgba(0,0,0,0.7), 0 0 60px rgba(242,193,74,0.35)' }} />
       </div>
-      <AchCard title="Night owl" text="Run a command between 3 and 5 in the morning" show={inOut(f, b.cue('owl') - 6, b.cue('pianist') - 6, 10)} x={680} y={420} />
-      <AchCard title="Secret achievement" text="Keep using K-Desktop to discover it" secret show={pop(f, b.cue('secret') - 4)} x={680} y={420} />
+      <AchCard title={t('Night owl')} text={t('Run a command between 3 and 5 in the morning')} show={inOut(f, b.cue('owl') - 6, b.cue('pianist') - 6, 10)} x={680} y={420} />
+      <AchCard title={t('Secret achievement')} text={t('Keep using K-Desktop to discover it')} secret show={pop(f, b.cue('secret') - 4)} x={680} y={420} />
       <Sfx at={toastAt - 4} name="achievement" volume={0.6} />
       <Sfx at={b.cue('owl') - 6} name="pop" volume={0.25} />
       <Sfx at={b.cue('secret') - 4} name="pop-low" volume={0.25} />
@@ -85,10 +86,10 @@ const StatsPart: React.FC<{ b: BeatTimes }> = ({ b }) => (
       { at: b.cue('sources') - 10, dur: 30, x: 1500, y: 450, s: 1.45 },
     ]}
     focus={[
-      { from: b.cue('run') - 6, to: b.cue('menus') - 2, rect: [263, 147, 812, 93], label: 'Commands and actions run' },
-      { from: b.cue('menus') - 4, to: b.cue('voice') - 4, rect: [1086, 147, 398, 93], label: 'QuickMenus opened' },
-      { from: b.cue('voice') - 4, to: b.cue('sources') - 4, rect: [1077, 993, 790, 48], label: 'Voice orders · understood by meaning', at: 'top' },
-      { from: b.cue('sources') - 4, to: b.to + 40, rect: [1247, 256, 646, 360], label: 'Where they come from', at: 'bottom' },
+      { from: b.cue('run') - 6, to: b.cue('menus') - 2, rect: [263, 147, 812, 93], label: t('Commands and actions run') },
+      { from: b.cue('menus') - 4, to: b.cue('voice') - 4, rect: [1086, 147, 398, 93], label: t('QuickMenus opened') },
+      { from: b.cue('voice') - 4, to: b.cue('sources') - 4, rect: [1077, 993, 790, 48], label: t('Voice orders · understood by meaning'), at: 'top' },
+      { from: b.cue('sources') - 4, to: b.to + 40, rect: [1247, 256, 646, 360], label: t('Where they come from'), at: 'bottom' },
     ]}
   />
 );

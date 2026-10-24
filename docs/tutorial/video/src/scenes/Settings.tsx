@@ -9,6 +9,7 @@ import { Toggle } from '../components/Ui';
 import { ease, glide, inOut, OUT, pop } from '../lib/anim';
 import { BeatTimes, useBeats, useChapter } from '../lib/timeline';
 import { C, SANS } from '../theme';
+import { t } from '../lib/i18n';
 
 /** A settings section drawn like K-Desktop's (for the ones without a screenshot), in the screenshot's pixels. */
 const Panel: React.FC<{ title: string; show: number; children: React.ReactNode }> = ({ title, show, children }) => (
@@ -65,27 +66,27 @@ const Main: React.FC<{ intro: BeatTimes; appearance: BeatTimes; general: BeatTim
           { at: disable.from - 6, dur: 30, x: 860, y: 360, s: 1.35 },
         ]}
         focus={[
-          { from: intro.cue('settings') - 4, to: intro.cue('search') - 4, rect: r('groups'), label: 'Grouped by topic', at: 'right' },
-          { from: intro.cue('search') - 4, to: appearance.from - 4, rect: r('search'), label: 'Ctrl + F', at: 'right' },
+          { from: intro.cue('settings') - 4, to: intro.cue('search') - 4, rect: r('groups'), label: t('Grouped by topic'), at: 'right' },
+          { from: intro.cue('search') - 4, to: appearance.from - 4, rect: r('search'), label: t('Ctrl + F'), at: 'right' },
           { from: appearance.cue('theme') - 4, to: appearance.cue('languages') - 4, rect: [571, 136, 860, 44], label: theme, at: 'bottom' },
-          { from: appearance.cue('languages') - 4, to: appearance.cue('own') - 4, rect: [571, 294, 860, 42], label: 'ES · EN · FR · DE · IT · PT', at: 'bottom' },
-          { from: appearance.cue('own') - 4, to: general.from - 4, rect: [573, 406, 856, 118], label: 'nl.json, ja.json…', at: 'bottom' },
+          { from: appearance.cue('languages') - 4, to: appearance.cue('own') - 4, rect: [571, 294, 860, 42], label: t('ES · EN · FR · DE · IT · PT'), at: 'bottom' },
+          { from: appearance.cue('own') - 4, to: general.from - 4, rect: [573, 406, 856, 118], label: t('nl.json, ja.json…'), at: 'bottom' },
           { from: general.from - 4, to: disable.from - 4, rect: r('general') },
           { from: disable.from - 4, to: disable.to + 30, rect: r('disable') },
         ]}>
         <div style={{ position: 'absolute', left: 292, top: 131, fontFamily: SANS, fontSize: 14, color: C.text, background: '#2d2d32', width: 230, opacity: searchTyped ? 1 : 0 }}>{searchTyped}</div>
-        <Panel title="General" show={generalShow}>
-          <Row label="Start with Windows" hint="Uses a scheduled task: starts with administrator rights without a prompt." lit={lit(general.cue('windows'), general.cue('hotkeys'))}><Toggle on={1} scale={0.9} /></Row>
-          <Row label="Show the window on start" hint="Off: K-Desktop starts in the background (tray)."><Toggle on={0} scale={0.9} /></Row>
-          <Row label="Tray icon" hint="Always shown while the window is open."><Toggle on={1} scale={0.9} /></Row>
-          <Row label="Hotkey to open K-Desktop" lit={lit(general.cue('hotkeys'), general.cue('sounds'))}><Chip>CTRL + ALT + Home</Chip></Row>
-          <Row label="Hotkey to exit K-Desktop" lit={lit(general.cue('hotkeys'), general.cue('sounds'))}><Chip>CTRL + ALT + End</Chip></Row>
-          <Row label="Pause hotkey" hint="Pauses K-Desktop or resumes it. It works while paused too." lit={lit(general.cue('hotkeys'), general.cue('sounds'))}><Chip>CTRL + ALT + Pause</Chip></Row>
-          <Row label="Startup sound" lit={lit(general.cue('sounds'), general.cue('osd'))}><Chip>Chimes ▾</Chip></Row>
-          <Row label="On-screen messages" hint="Position and duration of the notices" lit={lit(general.cue('osd'), general.to + 10)}><Chip>Bottom center · 2 s</Chip></Row>
+        <Panel title={t('General')} show={generalShow}>
+          <Row label={t('Start with Windows')} hint={t('Uses a scheduled task: starts with administrator rights without a prompt.')} lit={lit(general.cue('windows'), general.cue('hotkeys'))}><Toggle on={1} scale={0.9} /></Row>
+          <Row label={t('Show the window on start')} hint={t('Off: K-Desktop starts in the background (tray).')}><Toggle on={0} scale={0.9} /></Row>
+          <Row label={t('Tray icon')} hint={t('Always shown while the window is open.')}><Toggle on={1} scale={0.9} /></Row>
+          <Row label={t('Hotkey to open K-Desktop')} lit={lit(general.cue('hotkeys'), general.cue('sounds'))}><Chip>{t('CTRL + ALT + Home')}</Chip></Row>
+          <Row label={t('Hotkey to exit K-Desktop')} lit={lit(general.cue('hotkeys'), general.cue('sounds'))}><Chip>{t('CTRL + ALT + End')}</Chip></Row>
+          <Row label={t('Pause hotkey')} hint={t('Pauses K-Desktop or resumes it. It works while paused too.')} lit={lit(general.cue('hotkeys'), general.cue('sounds'))}><Chip>{t('CTRL + ALT + Pause')}</Chip></Row>
+          <Row label={t('Startup sound')} lit={lit(general.cue('sounds'), general.cue('osd'))}><Chip>{t('Chimes ▾')}</Chip></Row>
+          <Row label={t('On-screen messages')} hint={t('Position and duration of the notices')} lit={lit(general.cue('osd'), general.to + 10)}><Chip>{t('Bottom center · 2 s')}</Chip></Row>
         </Panel>
-        <Panel title="Disable K-Desktop in" show={disableShow}>
-          <div style={{ fontFamily: SANS, fontSize: 12, color: C.dim, marginBottom: 12 }}>In these applications (games, for example) hotkeys do nothing, except commands set to always work.</div>
+        <Panel title={t('Disable K-Desktop in')} show={disableShow}>
+          <div style={{ fontFamily: SANS, fontSize: 12, color: C.dim, marginBottom: 12 }}>{t('In these applications (games, for example) hotkeys do nothing, except commands set to always work.')}</div>
           {['eldenring.exe', 'cs2.exe', 'RocketLeague.exe'].map((g, i) => (
             <div key={g} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', marginBottom: 6, borderRadius: 6, background: 'rgba(255,255,255,0.05)', opacity: ease(f, disable.cue('games') - 6 + i * 5, disable.cue('games') + 4 + i * 5) }}>
               <Fluent name="xbox_controller_24_filled" size={18} color={C.accentText} />
@@ -93,15 +94,15 @@ const Main: React.FC<{ intro: BeatTimes; appearance: BeatTimes; general: BeatTim
               <span style={{ marginLeft: 'auto' }}><Fluent name="dismiss_24_regular" size={14} color={C.dim} /></span>
             </div>
           ))}
-          <div style={{ marginTop: 10 }}><Button icon="add_24_regular">Add</Button></div>
+          <div style={{ marginTop: 10 }}><Button icon="add_24_regular">{t('Add')}</Button></div>
           <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 8, background: 'rgba(242,193,74,0.12)', outline: '1.5px solid rgba(242,193,74,0.6)', opacity: ease(f, disable.cue('always') - 6, disable.cue('always') + 6) }}>
             <KdIcon icon="mic_off_24_filled" color="red" size={26} />
-            <span style={{ fontFamily: SANS, fontSize: 14, color: C.text }}>“Mute microphone” · <b style={{ color: C.accentText }}>Always run</b>: it still works in games</span>
+            <span style={{ fontFamily: SANS, fontSize: 14, color: C.text }}>{t('“Mute microphone” ·')}{' '}<b style={{ color: C.accentText }}>{t('Always run')}</b>{t(': it still works in games')}</span>
           </div>
         </Panel>
       </CaptureShot>
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 120, display: 'flex', justifyContent: 'center', gap: 16, opacity: inOut(f, intro.cue('search') - 6, intro.cue('search') + 30, 6) }}>
-        <Keycap label="Ctrl" height={92} width={150} size={30} down={inOut(f, intro.cue('search'), intro.cue('search') + 12, 3)} />
+        <Keycap label={t('Ctrl')} height={92} width={150} size={30} down={inOut(f, intro.cue('search'), intro.cue('search') + 12, 3)} />
         <Keycap label="F" height={92} size={30} down={inOut(f, intro.cue('search') + 2, intro.cue('search') + 12, 3)} />
       </div>
       <Sfx at={intro.cue('search')} name="key" volume={0.4} />
@@ -115,18 +116,18 @@ const Main: React.FC<{ intro: BeatTimes; appearance: BeatTimes; general: BeatTim
 const Sections: React.FC<{ b: BeatTimes }> = ({ b }) => {
   const f = useCurrentFrame();
   const parts: Array<{ from: number; name: string; shot: { x: number; y: number; s: number }; label: string }> = [
-    { from: b.cue('launcher'), name: 'settings-launcher', shot: { x: 900, y: 330, s: 1.45 }, label: 'Launcher' },
-    { from: b.cue('voice'), name: 'settings-voice', shot: { x: 1000, y: 420, s: 1.3 }, label: 'Voice' },
-    { from: b.cue('web'), name: 'settings-web', shot: { x: 900, y: 330, s: 1.45 }, label: 'Web app' },
+    { from: b.cue('launcher'), name: 'settings-launcher', shot: { x: 900, y: 330, s: 1.45 }, label: t('Launcher') },
+    { from: b.cue('voice'), name: 'settings-voice', shot: { x: 1000, y: 420, s: 1.3 }, label: t('Voice') },
+    { from: b.cue('web'), name: 'settings-web', shot: { x: 900, y: 330, s: 1.45 }, label: t('Web app') },
   ];
   const cur = parts.reduce((c, p, i) => (f >= p.from - 8 ? i : c), 0);
   const chips = [
-    { cue: 'launcher', icon: 'search_24_filled', color: 'yellow', text: 'Launcher' },
-    { cue: 'voice', icon: 'mic_24_filled', color: 'teal', text: 'Voice' },
-    { cue: 'multimedia', icon: 'music_note_2_24_filled', color: 'pink', text: 'Multimedia' },
-    { cue: 'captures', icon: 'screenshot_24_filled', color: 'green', text: 'Captures & magnifier' },
-    { cue: 'web', icon: 'phone_24_filled', color: 'sky', text: 'Web app' },
-    { cue: 'remote', icon: 'plug_connected_24_filled', color: 'pink', text: 'Remote control' },
+    { cue: 'launcher', icon: 'search_24_filled', color: 'yellow', text: t('Launcher') },
+    { cue: 'voice', icon: 'mic_24_filled', color: 'teal', text: t('Voice') },
+    { cue: 'multimedia', icon: 'music_note_2_24_filled', color: 'pink', text: t('Multimedia') },
+    { cue: 'captures', icon: 'screenshot_24_filled', color: 'green', text: t('Captures & magnifier') },
+    { cue: 'web', icon: 'phone_24_filled', color: 'sky', text: t('Web app') },
+    { cue: 'remote', icon: 'plug_connected_24_filled', color: 'pink', text: t('Remote control') },
   ];
   return (
     <AbsoluteFill>
@@ -164,19 +165,19 @@ const Data: React.FC<{ b: BeatTimes }> = ({ b }) => {
   return (
     <CaptureShot name="settings-appearance"
       shots={[{ at: b.from - 8, x: 1000, y: 330, s: 1.3 }, { at: b.from + 10, dur: 120, x: 1000, y: 360, s: 1.42 }]}>
-      <Panel title="Data" show={glide(f, b.from - 8, 20)}>
-        <Row label="Automatic backups" hint="The same full backup as «Export». Safer on another disk, OneDrive or a NAS." lit={lit(b.cue('daily'), b.cue('export'))}>
-          <Button icon="arrow_sync_24_regular">Back up now</Button>
+      <Panel title={t('Data')} show={glide(f, b.from - 8, 20)}>
+        <Row label={t('Automatic backups')} hint={t('The same full backup as «Export». Safer on another disk, OneDrive or a NAS.')} lit={lit(b.cue('daily'), b.cue('export'))}>
+          <Button icon="arrow_sync_24_regular">{t('Back up now')}</Button>
         </Row>
         <div style={{ display: 'flex', gap: 18, margin: '4px 0 14px', fontFamily: SANS, fontSize: 13, color: C.dim }}>
-          <span>Every (days) <Chip>3</Chip></span><span>Keep the last <Chip>10</Chip></span><span>Folder <Chip>D:\OneDrive\Backups</Chip></span>
+          <span>{t('Every (days)')}{' '}<Chip>3</Chip></span><span>{t('Keep the last')}{' '}<Chip>10</Chip></span><span>{t('Folder')}{' '}<Chip>{t('D:\\OneDrive\\Backups')}</Chip></span>
         </div>
-        <div style={{ fontFamily: SANS, fontSize: 13, color: C.success, marginBottom: 14, opacity: ease(f, b.cue('zip') - 4, b.cue('zip') + 6) }}>✓ Last backup: today, 09:00 · K-Desktop-2026-10-24.zip</div>
-        <Row label="Export · Import" hint="Settings, commands, QuickMenus, macros, K-Board, achievements, wake words, icons, sounds and languages." lit={lit(b.cue('export'), b.cue('import'))}>
-          <Button>Export</Button><Button>Import</Button>
+        <div style={{ fontFamily: SANS, fontSize: 13, color: C.success, marginBottom: 14, opacity: ease(f, b.cue('zip') - 4, b.cue('zip') + 6) }}>{t('✓ Last backup: today, 09:00 · K-Desktop-2026-10-24.zip')}</div>
+        <Row label={t('Export · Import')} hint={t('Settings, commands, QuickMenus, macros, K-Board, achievements, wake words, icons, sounds and languages.')} lit={lit(b.cue('export'), b.cue('import'))}>
+          <Button>{t('Export')}</Button><Button>{t('Import')}</Button>
         </Row>
-        <Row label="Re-import from K-Desktop 4" hint="Your old commands, QuickMenus and icons." lit={lit(b.cue('import'), b.cue('updates'))}><Button icon="arrow_import_24_regular">Re-import</Button></Row>
-        <Row label="Updates" hint="K-Desktop 5.0.188 · you have the latest version" lit={lit(b.cue('updates'), b.to + 30)}><Button gold icon="arrow_download_24_regular">Check now</Button></Row>
+        <Row label={t('Re-import from K-Desktop 4')} hint={t('Your old commands, QuickMenus and icons.')} lit={lit(b.cue('import'), b.cue('updates'))}><Button icon="arrow_import_24_regular">{t('Re-import')}</Button></Row>
+        <Row label={t('Updates')} hint={t('K-Desktop 5.0.188 · you have the latest version')} lit={lit(b.cue('updates'), b.to + 30)}><Button gold icon="arrow_download_24_regular">{t('Check now')}</Button></Row>
       </Panel>
     </CaptureShot>
   );

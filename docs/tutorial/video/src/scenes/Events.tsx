@@ -10,25 +10,26 @@ import { Sfx } from '../components/Sfx';
 import { ease, glide, inOut, OUT, pop } from '../lib/anim';
 import { BeatTimes, useBeats, useChapter } from '../lib/timeline';
 import { C, SANS } from '../theme';
+import { t } from '../lib/i18n';
 
 /** The 16 kinds (EventCatalog.cs), in its order, with the cue that names each. */
 const KINDS: Array<{ name: string; icon: string; color: string; beat: 'kinds' | 'kinds2'; cue: string }> = [
-  { name: 'When K-Desktop starts', icon: 'play_24_filled', color: 'green', beat: 'kinds', cue: 'start' },
-  { name: 'When K-Desktop exits', icon: 'power_24_filled', color: 'red', beat: 'kinds', cue: 'start' },
-  { name: 'At a time', icon: 'clock_24_filled', color: 'blue', beat: 'kinds', cue: 'time' },
-  { name: 'Every so often', icon: 'arrow_repeat_all_24_filled', color: 'sky', beat: 'kinds', cue: 'interval' },
-  { name: 'When a program opens', icon: 'window_apps_24_filled', color: 'indigo', beat: 'kinds', cue: 'program' },
-  { name: 'Program in front', icon: 'window_arrow_up_24_filled', color: 'purple', beat: 'kinds', cue: 'front' },
-  { name: 'PC not in use', icon: 'weather_moon_24_filled', color: 'dark', beat: 'kinds', cue: 'idle' },
-  { name: 'Lock, sleep…', icon: 'lock_closed_24_filled', color: 'orange', beat: 'kinds', cue: 'lock' },
-  { name: 'Battery or mains', icon: 'battery_charge_24_filled', color: 'lime', beat: 'kinds', cue: 'battery' },
-  { name: 'Device connected', icon: 'xbox_controller_24_filled', color: 'green', beat: 'kinds2', cue: 'controller' },
-  { name: 'Audio device', icon: 'headphones_sound_wave_24_filled', color: 'teal', beat: 'kinds2', cue: 'headphones' },
-  { name: 'Drive connected', icon: 'usb_stick_24_filled', color: 'gray', beat: 'kinds2', cue: 'usb' },
-  { name: 'Network', icon: 'wifi_1_24_filled', color: 'teal', beat: 'kinds2', cue: 'network' },
-  { name: 'New file in a folder', icon: 'document_add_24_filled', color: 'yellow', beat: 'kinds2', cue: 'file' },
-  { name: 'PC usage', icon: 'data_usage_24_filled', color: 'orange', beat: 'kinds2', cue: 'cpu' },
-  { name: 'Call from outside', icon: 'plug_connected_24_filled', color: 'pink', beat: 'kinds2', cue: 'remote' },
+  { name: t('When K-Desktop starts'), icon: 'play_24_filled', color: 'green', beat: 'kinds', cue: 'start' },
+  { name: t('When K-Desktop exits'), icon: 'power_24_filled', color: 'red', beat: 'kinds', cue: 'start' },
+  { name: t('At a time'), icon: 'clock_24_filled', color: 'blue', beat: 'kinds', cue: 'time' },
+  { name: t('Every so often'), icon: 'arrow_repeat_all_24_filled', color: 'sky', beat: 'kinds', cue: 'interval' },
+  { name: t('When a program opens'), icon: 'window_apps_24_filled', color: 'indigo', beat: 'kinds', cue: 'program' },
+  { name: t('Program in front'), icon: 'window_arrow_up_24_filled', color: 'purple', beat: 'kinds', cue: 'front' },
+  { name: t('PC not in use'), icon: 'weather_moon_24_filled', color: 'dark', beat: 'kinds', cue: 'idle' },
+  { name: t('Lock, sleep…'), icon: 'lock_closed_24_filled', color: 'orange', beat: 'kinds', cue: 'lock' },
+  { name: t('Battery or mains'), icon: 'battery_charge_24_filled', color: 'lime', beat: 'kinds', cue: 'battery' },
+  { name: t('Device connected'), icon: 'xbox_controller_24_filled', color: 'green', beat: 'kinds2', cue: 'controller' },
+  { name: t('Audio device'), icon: 'headphones_sound_wave_24_filled', color: 'teal', beat: 'kinds2', cue: 'headphones' },
+  { name: t('Drive connected'), icon: 'usb_stick_24_filled', color: 'gray', beat: 'kinds2', cue: 'usb' },
+  { name: t('Network'), icon: 'wifi_1_24_filled', color: 'teal', beat: 'kinds2', cue: 'network' },
+  { name: t('New file in a folder'), icon: 'document_add_24_filled', color: 'yellow', beat: 'kinds2', cue: 'file' },
+  { name: t('PC usage'), icon: 'data_usage_24_filled', color: 'orange', beat: 'kinds2', cue: 'cpu' },
+  { name: t('Call from outside'), icon: 'plug_connected_24_filled', color: 'pink', beat: 'kinds2', cue: 'remote' },
 ];
 
 const Rule: React.FC<{ intro: BeatTimes }> = ({ intro }) => {
@@ -38,15 +39,15 @@ const Rule: React.FC<{ intro: BeatTimes }> = ({ intro }) => {
   const k = pop(f, at - 4, { damping: 13 });
   return (
     <AbsoluteFill>
-      <Kinetic text="Your PC triggers them for you" at={intro.cue('events') - 4} x={960} y={300} size={60} color={C.dim} weight={700} />
+      <Kinetic text={t('Your PC triggers them for you')} at={intro.cue('events') - 4} x={960} y={300} size={60} color={C.dim} weight={700} />
       <div style={{ position: 'absolute', left: 960, top: 600, transform: `translate(-50%, -50%) scale(${0.8 + 0.2 * k})`, opacity: k, display: 'flex', alignItems: 'center', gap: 28 }}>
-        <span style={{ fontFamily: SANS, fontSize: 64, fontWeight: 800, color: C.accentText }}>WHEN</span>
+        <span style={{ fontFamily: SANS, fontSize: 64, fontWeight: 800, color: C.accentText }}>{t('WHEN')}</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '18px 28px', borderRadius: 24, background: 'rgba(34,34,40,0.96)', border: `1.5px solid ${C.line2}`, minWidth: 520 }}>
           <KdIcon icon={KINDS[slot].icon} color={KINDS[slot].color} size={66} />
           <span style={{ fontFamily: SANS, fontSize: 34, fontWeight: 700, color: C.text, whiteSpace: 'nowrap' }}>{KINDS[slot].name}</span>
         </div>
         <Fluent name="arrow_right_24_filled" size={60} color={C.accentText} />
-        <span style={{ fontFamily: SANS, fontSize: 64, fontWeight: 800, color: C.accentText }}>RUN</span>
+        <span style={{ fontFamily: SANS, fontSize: 64, fontWeight: 800, color: C.accentText }}>{t('RUN')}</span>
         <KdIcon icon="flash_24_filled" color="gold" size={86} glow={0.5} />
       </div>
       <Sfx at={at - 4} name="pop" volume={0.3} />
@@ -65,7 +66,7 @@ const Ring: React.FC<{ kinds: BeatTimes; kinds2: BeatTimes }> = ({ kinds, kinds2
     <AbsoluteFill>
       <div style={{ position: 'absolute', left: 960, top: 480, transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
         <div style={{ fontFamily: SANS, fontSize: 140, fontWeight: 800, color: C.accentText, lineHeight: 1 }}>{counter}</div>
-        <div style={{ fontFamily: SANS, fontSize: 30, fontWeight: 700, color: C.dim, letterSpacing: 4 }}>TRIGGERS</div>
+        <div style={{ fontFamily: SANS, fontSize: 30, fontWeight: 700, color: C.dim, letterSpacing: 4 }}>{t('TRIGGERS')}</div>
         <div style={{ marginTop: 26, height: 44, fontFamily: SANS, fontSize: 32, fontWeight: 700, color: C.text, whiteSpace: 'nowrap' }}>{current >= 0 ? KINDS[current].name : ''}</div>
       </div>
       {KINDS.map((k, i) => {
@@ -98,9 +99,9 @@ const Example: React.FC<{ example: BeatTimes; ends: BeatTimes; safety: BeatTimes
   const fire2 = inOut(f, backAt - 6, backAt + 30, 6);
   const toSafety = glide(f, safety.from - 8, 26);
   const chips = [
-    { cue: 'conditions', icon: 'filter_24_filled', color: 'orange', title: 'Conditions', sub: 'Only if it is after 18:00' },
-    { cue: 'cooldown', icon: 'timer_off_24_filled', color: 'purple', title: 'Minimum time between runs', sub: 'At most once every 5 min' },
-    { cue: 'loops', icon: 'arrow_sync_24_filled', color: 'red', title: 'Loop protection', sub: 'It can never keep setting itself off' },
+    { cue: 'conditions', icon: 'filter_24_filled', color: 'orange', title: t('Conditions'), sub: t('Only if it is after 18:00') },
+    { cue: 'cooldown', icon: 'timer_off_24_filled', color: 'purple', title: t('Minimum time between runs'), sub: t('At most once every 5 min') },
+    { cue: 'loops', icon: 'arrow_sync_24_filled', color: 'red', title: t('Loop protection'), sub: t('It can never keep setting itself off') },
   ];
   return (
     <AbsoluteFill>
@@ -113,7 +114,7 @@ const Example: React.FC<{ example: BeatTimes; ends: BeatTimes; safety: BeatTimes
           </div>
           <Taskbar apps={[{ icon: 'folder_24_filled', color: 'yellow' }, { icon: 'xbox_controller_24_filled', color: 'indigo', active: steam > 0.5 }]} />
           <div style={{ position: 'absolute', left: 960, top: 860, transform: 'translateX(-50%) scale(1.8)', transformOrigin: 'top center' }}>
-            <Osd icon={f < backAt - 6 ? 'headphones_sound_wave_24_filled' : 'speaker_2_24_filled'} color="purple" text={`Audio output: ${f < backAt - 6 ? 'Headphones' : 'Speakers'}`} show={Math.max(fire1, fire2)} />
+            <Osd icon={f < backAt - 6 ? 'headphones_sound_wave_24_filled' : 'speaker_2_24_filled'} color="purple" text={`${t('Audio output')}: ${t(f < backAt - 6 ? 'Headphones' : 'Speakers')}`} show={Math.max(fire1, fire2)} />
           </div>
         </div>
       </div>
@@ -125,27 +126,27 @@ const Example: React.FC<{ example: BeatTimes; ends: BeatTimes; safety: BeatTimes
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 22 }}>
           <KdIcon icon="window_apps_24_filled" color="indigo" size={58} />
           <div>
-            <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 700, letterSpacing: 2, color: C.accentText }}>EVENT</div>
-            <div style={{ fontFamily: SANS, fontSize: 32, fontWeight: 800, color: C.text }}>Gaming audio</div>
+            <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 700, letterSpacing: 2, color: C.accentText }}>{t('EVENT')}</div>
+            <div style={{ fontFamily: SANS, fontSize: 32, fontWeight: 800, color: C.text }}>{t('Gaming audio')}</div>
           </div>
         </div>
-        <div style={{ fontFamily: SANS, fontSize: 18, fontWeight: 700, color: C.dim, marginBottom: 10 }}>WHEN</div>
+        <div style={{ fontFamily: SANS, fontSize: 18, fontWeight: 700, color: C.dim, marginBottom: 10 }}>{t('WHEN')}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', borderRadius: 14, background: 'rgba(255,255,255,0.05)', marginBottom: 20 }}>
-          <span style={{ fontFamily: SANS, fontSize: 22, fontWeight: 600, color: C.text }}>When a program opens</span>
-          <span style={{ marginLeft: 'auto' }}><Mono size={20} color={C.accentText}>steam.exe</Mono></span>
+          <span style={{ fontFamily: SANS, fontSize: 22, fontWeight: 600, color: C.text }}>{t('When a program opens')}</span>
+          <span style={{ marginLeft: 'auto' }}><Mono size={20} color={C.accentText}>{t('steam.exe')}</Mono></span>
         </div>
-        <div style={{ fontFamily: SANS, fontSize: 18, fontWeight: 700, color: C.dim, marginBottom: 10 }}>RUN</div>
+        <div style={{ fontFamily: SANS, fontSize: 18, fontWeight: 700, color: C.dim, marginBottom: 10 }}>{t('RUN')}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 18px', borderRadius: 14, background: fire1 > 0.1 ? 'rgba(242,193,74,0.14)' : 'rgba(255,255,255,0.05)', border: `1px solid ${fire1 > 0.1 ? 'rgba(242,193,74,0.6)' : 'transparent'}`, marginBottom: 20 }}>
           <KdIcon icon="headphones_sound_wave_24_filled" color="purple" size={44} />
-          <span style={{ fontFamily: SANS, fontSize: 22, fontWeight: 600, color: C.text }}>Headphones</span>
-          <span style={{ marginLeft: 'auto', fontFamily: SANS, fontSize: 17, color: C.dim }}>Audio output</span>
+          <span style={{ fontFamily: SANS, fontSize: 22, fontWeight: 600, color: C.text }}>{t('Headphones')}</span>
+          <span style={{ marginLeft: 'auto', fontFamily: SANS, fontSize: 17, color: C.dim }}>{t('Audio output')}</span>
         </div>
         <div style={{ height: 150 * endsShow, overflow: 'hidden', opacity: endsShow }}>
-          <div style={{ fontFamily: SANS, fontSize: 18, fontWeight: 700, color: C.accentText, marginBottom: 10 }}>WHEN IT ENDS</div>
+          <div style={{ fontFamily: SANS, fontSize: 18, fontWeight: 700, color: C.accentText, marginBottom: 10 }}>{t('WHEN IT ENDS')}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 18px', borderRadius: 14, background: fire2 > 0.1 ? 'rgba(242,193,74,0.14)' : 'rgba(255,255,255,0.05)', border: `1px solid ${fire2 > 0.1 ? 'rgba(242,193,74,0.6)' : 'transparent'}` }}>
             <KdIcon icon="speaker_2_24_filled" color="blue" size={44} />
-            <span style={{ fontFamily: SANS, fontSize: 22, fontWeight: 600, color: C.text }}>Speakers</span>
-            <span style={{ marginLeft: 'auto', fontFamily: SANS, fontSize: 17, color: C.dim }}>Audio output</span>
+            <span style={{ fontFamily: SANS, fontSize: 22, fontWeight: 600, color: C.text }}>{t('Speakers')}</span>
+            <span style={{ marginLeft: 'auto', fontFamily: SANS, fontSize: 17, color: C.dim }}>{t('Audio output')}</span>
           </div>
         </div>
       </div>

@@ -9,6 +9,7 @@ import { Sfx } from '../components/Sfx';
 import { ease, inOut, pop } from '../lib/anim';
 import { useBeats } from '../lib/timeline';
 import { C, SANS } from '../theme';
+import { t } from '../lib/i18n';
 
 type Result = { title: string; sub: string; badge: string; icon: string; color: string; match?: number[]; uses?: number };
 
@@ -24,7 +25,7 @@ const LauncherBox: React.FC<{ query: string; results: Result[]; selected?: numbe
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 3px)', gap: 3, opacity: 0.4 }}>{Array.from({ length: 6 }, (_, i) => <div key={i} style={{ width: 3 * scale / 1.5, height: 3 * scale / 1.5, borderRadius: 2, background: 'white' }} />)}</div>
         <Fluent name="search_24_regular" size={20 * scale} color={C.dim} />
         <div style={{ flex: 1, fontFamily: SANS, fontSize: 18 * scale, color: query ? C.text : C.faint, display: 'flex', alignItems: 'center' }}>
-          {query || 'Search commands and programs…'}
+          {query || t('Search commands and programs…')}
           {caret && query && <span style={{ width: 2, height: 22 * scale, marginLeft: 2, background: C.accentText, opacity: f % 24 < 14 ? 1 : 0 }} />}
         </div>
         <Img src={staticFile('brand/icon-64.png')} style={{ width: 22 * scale, height: 22 * scale, opacity: 0.85 }} />
@@ -49,10 +50,10 @@ const LauncherBox: React.FC<{ query: string; results: Result[]; selected?: numbe
 };
 
 const MOST_USED: Result[] = [
-  { title: 'Work mode', sub: 'notepad.exe +4', badge: 'Command', icon: 'flash_24_filled', color: 'gold' },
-  { title: 'Spotify', sub: 'Store app', badge: 'Program', icon: 'music_note_2_24_filled', color: 'green' },
-  { title: 'Downloads', sub: 'Open folder', badge: 'Command', icon: 'arrow_download_24_filled', color: 'teal' },
-  { title: 'Visual Studio Code', sub: 'Start menu', badge: 'Program', icon: 'code_24_filled', color: 'blue' },
+  { title: t('Work mode'), sub: t('notepad.exe +4'), badge: t('Command'), icon: 'flash_24_filled', color: 'gold' },
+  { title: t('Spotify'), sub: t('Store app'), badge: t('Program'), icon: 'music_note_2_24_filled', color: 'green' },
+  { title: t('Downloads'), sub: t('Open folder'), badge: t('Command'), icon: 'arrow_download_24_filled', color: 'teal' },
+  { title: t('Visual Studio Code'), sub: t('Start menu'), badge: t('Program'), icon: 'code_24_filled', color: 'blue' },
 ];
 
 export const Launcher: React.FC = () => {
@@ -73,19 +74,19 @@ export const Launcher: React.FC = () => {
   if (f >= typedAt && f < calc.cue('sum') - 4) {
     query = letters.slice(0, n);
     results = n < 4 ? [
-      { title: 'ComfyUI', sub: 'Start menu', badge: 'Program', icon: 'image_sparkle_24_filled', color: 'purple', match: [0] },
-      { title: 'Command Prompt', sub: 'Start menu', badge: 'Program', icon: 'window_console_20_filled', color: 'dark', match: [0, 2] },
-      { title: 'Camera folder', sub: 'Open folder', badge: 'Command', icon: 'camera_24_filled', color: 'sky', match: [0] },
+      { title: t('ComfyUI'), sub: t('Start menu'), badge: t('Program'), icon: 'image_sparkle_24_filled', color: 'purple', match: [0] },
+      { title: t('Command Prompt'), sub: t('Start menu'), badge: t('Program'), icon: 'window_console_20_filled', color: 'dark', match: [0, 2] },
+      { title: t('Camera folder'), sub: t('Open folder'), badge: t('Command'), icon: 'camera_24_filled', color: 'sky', match: [0] },
     ] : [
-      { title: 'ComfyUI', sub: 'Start menu', badge: 'Program', icon: 'image_sparkle_24_filled', color: 'purple', match: [0, 2, 3, 4] },
-      { title: 'ComfyUI outputs', sub: 'Open folder', badge: 'Command', icon: 'folder_24_filled', color: 'yellow', match: [0, 2, 3, 4] },
+      { title: t('ComfyUI'), sub: t('Start menu'), badge: t('Program'), icon: 'image_sparkle_24_filled', color: 'purple', match: [0, 2, 3, 4] },
+      { title: t('ComfyUI outputs'), sub: t('Open folder'), badge: t('Command'), icon: 'folder_24_filled', color: 'yellow', match: [0, 2, 3, 4] },
     ];
   } else if (f >= calc.cue('sum') - 4 && f < calc.cue('nothing') - 4) {
     query = '12*3.5'.slice(0, Math.max(0, Math.floor((f - calc.cue('sum') + 4) / 3)));
-    results = query.length >= 6 ? [{ title: '42', sub: '12*3.5', badge: 'Enter copies', icon: 'calculator_24_filled', color: 'gray' }] : [];
+    results = query.length >= 6 ? [{ title: '42', sub: '12*3.5', badge: t('Enter copies'), icon: 'calculator_24_filled', color: 'gray' }] : [];
   } else if (f >= calc.cue('nothing') - 4 && f < rank.from - 4) {
-    query = 'weather in madrid'.slice(0, Math.max(0, Math.floor((f - calc.cue('nothing') + 4) / 1.5)));
-    results = query.length > 14 ? [{ title: `Search the web for “${query}”`, sub: 'Default search engine', badge: 'Web', icon: 'globe_24_filled', color: 'sky' }] : [];
+    query = t('weather in madrid').slice(0, Math.max(0, Math.floor((f - calc.cue('nothing') + 4) / 1.5)));
+    results = query.length > 14 ? [{ title: `${t('Search the web for')} “${query}”`, sub: t('Default search engine'), badge: t('Web'), icon: 'globe_24_filled', color: 'sky' }] : [];
   } else if (f >= rank.from - 4) {
     const order = f > rank.cue('most') + 10 ? [0, 2, 1, 3] : [0, 1, 2, 3];
     results = order.map((i, k) => ({ ...MOST_USED[i], uses: [92, 40, 66, 22][i] * ease(f, rank.from, rank.from + 30) + (k === 0 ? 0 : 0) }));
@@ -93,9 +94,9 @@ export const Launcher: React.FC = () => {
   if (f >= typedAt && f < calc.cue('sum') - 4) selected = 0;
 
   const sources = [
-    { cue: 'commands', icon: 'flash_24_filled', color: 'gold', text: 'Your commands' },
-    { cue: 'start', icon: 'apps_24_filled', color: 'blue', text: 'Start menu programs' },
-    { cue: 'store', icon: 'store_microsoft_24_filled', color: 'sky', text: 'Store apps' },
+    { cue: 'commands', icon: 'flash_24_filled', color: 'gold', text: t('Your commands') },
+    { cue: 'start', icon: 'apps_24_filled', color: 'blue', text: t('Start menu programs') },
+    { cue: 'store', icon: 'store_microsoft_24_filled', color: 'sky', text: t('Store apps') },
   ];
   const copied = inOut(f, calc.cue('enter') + 6, calc.cue('nothing') - 6, 8);
   const hotkeyDown = inOut(f, intro.cue('hotkey') - 2, intro.cue('hotkey') + 10, 3);
@@ -112,8 +113,8 @@ export const Launcher: React.FC = () => {
       </div>
       {/* Its own hotkey */}
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 140, display: 'flex', justifyContent: 'center', gap: 18, opacity: inOut(f, intro.cue('hotkey') - 12, fuzzy.from, 8) }}>
-        <Keycap label="Ctrl" height={100} width={160} size={34} down={hotkeyDown} />
-        <Keycap label="Space" height={100} width={300} size={34} down={hotkeyDown} />
+        <Keycap label={t('Ctrl')} height={100} width={160} size={34} down={hotkeyDown} />
+        <Keycap label={t('Space')} height={100} width={300} size={34} down={hotkeyDown} />
       </div>
       {/* Where it searches */}
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 130, display: 'flex', justifyContent: 'center', gap: 22 }}>
@@ -128,10 +129,10 @@ export const Launcher: React.FC = () => {
         })}
       </div>
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 140, display: 'flex', justifyContent: 'center' }}>
-        <Osd icon="clipboard_text_edit_24_filled" color="brown" text="Copied: 42" show={copied} />
+        <Osd icon="clipboard_text_edit_24_filled" color="brown" text={t('Copied: 42')} show={copied} />
       </div>
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 140, display: 'flex', justifyContent: 'center', gap: 16, opacity: inOut(f, calc.cue('enter') - 8, calc.cue('enter') + 8, 3) }}>
-        <Keycap label="Enter" height={90} width={190} size={30} down={inOut(f, calc.cue('enter') - 2, calc.cue('enter') + 6, 2)} />
+        <Keycap label={t('Enter')} height={90} width={190} size={30} down={inOut(f, calc.cue('enter') - 2, calc.cue('enter') + 6, 2)} />
       </div>
       <Sfx at={intro.cue('hotkey') - 2} name="key" volume={0.5} />
       <Sfx at={intro.cue('launcher') - 4} name="pop" volume={0.3} />

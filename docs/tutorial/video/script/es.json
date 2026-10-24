@@ -1,0 +1,597 @@
+{
+  "lang": "es",
+  "tts": {
+    "engine": "elevenlabs",
+    "voice": "nH81SxhcPaX89XdDlp2m",
+    "model": "eleven_v4_turbo",
+    "language": "es",
+    "speed": 1.0
+  },
+  "subtitles": {
+    "width": 42,
+    "keep": [
+      "Home Assistant",
+      "Wake on LAN",
+      "Hugging Face",
+      "llama server",
+      "compatible con OpenAI",
+      "pantalla completa",
+      "ocho bits",
+      "nueva línea",
+      "borra eso",
+      "Control F",
+      "se abre Steam",
+      "se cierra Steam",
+      "Apaga la tele",
+      "Apaga el ordenador",
+      "modelos de openWakeWord",
+      "reconocimiento de voz",
+      "Llamada desde fuera",
+      "Al terminar"
+    ]
+  },
+  "chapters": [
+    {
+      "id": "intro",
+      "title": "K-Desktop",
+      "label": "Intro",
+      "beats": [
+        {
+          "id": "hook1",
+          "text": "Cada día repites los mismos pequeños gestos en tu PC."
+        },
+        {
+          "id": "hook2",
+          "text": "Abrir los mismos programas. Colocar las mismas ventanas. Buscar el volumen. Pasar una y otra vez por los mismos menús."
+        },
+        {
+          "id": "hook3",
+          "text": "¿Y si una {key}sola tecla pudiera hacerlo todo? ¿O un {mouse}gesto del ratón? ¿O simplemente... {voice}tu voz?",
+          "pause": 0.5
+        },
+        {
+          "id": "title",
+          "text": "Esto es K-Desktop.",
+          "pause": 0.9
+        },
+        {
+          "id": "promise",
+          "text": "En este vídeo veremos todo lo que puede hacer y cómo funciona por dentro. {commands}Comandos, {quickmenus}QuickMenus, {events}eventos, {macros}macros y {kboard}K-Board. El {voice}control por voz, tu {phone}móvil como mando a distancia y los nuevos {assistants}asistentes que viven sobre tus ventanas."
+        }
+      ]
+    },
+    {
+      "id": "overview",
+      "title": "La idea general",
+      "label": "Idea general",
+      "beats": [
+        {
+          "id": "idea",
+          "text": "K-Desktop gira en torno a una idea muy sencilla: {command}el comando."
+        },
+        {
+          "id": "command",
+          "text": "Un comando es una {named}lista de acciones con nombre. {open}Abrir un programa, {wait}esperar un segundo, {snap}llevar su ventana a la izquierda, {volume}poner el volumen al veinte por ciento. {steps}Paso a paso, en orden."
+        },
+        {
+          "id": "triggers",
+          "text": "Y un comando se puede lanzar casi desde cualquier sitio. Un {hotkey}atajo de teclado o un {mouse}botón del ratón. Un {quickmenu}QuickMenu o el {launcher}lanzador. Tu {voice}voz, tu {phone}móvil o la {network}red. {event}Algo que pasa en tu PC. O incluso un {assistant}asistente."
+        },
+        {
+          "id": "helpers",
+          "text": "Alrededor de los comandos viven algunos compañeros. {macros}Macros que repiten lo que haces. Perfiles de {kboard}K-Board que cambian tus teclas. Y un {history}registro que recuerda cada ejecución."
+        },
+        {
+          "id": "local",
+          "text": "Es un {portable}único programa portable para {windows}Windows 10 y 11, en {languages}seis idiomas. {local}Todo funciona en tu PC, y tus {data}datos se quedan en tu propia carpeta."
+        }
+      ]
+    },
+    {
+      "id": "commands",
+      "title": "Comandos y acciones",
+      "label": "Comandos",
+      "beats": [
+        {
+          "id": "page",
+          "text": "Vamos a crear uno. En la página Comandos, pulsa {new}Nuevo comando y ponle un nombre: {name}Modo trabajo."
+        },
+        {
+          "id": "hotkey",
+          "text": "Después, un atajo. Pulsa cualquier combinación: {ctrl}Control, {alt}Alt, {w}W."
+        },
+        {
+          "id": "hotkey2",
+          "text": "Un atajo también puede ser un {mouse}botón del ratón, como el Ratón 5. Una {chord}combinación de dos botones, como Ratón 4 más clic izquierdo. O la {wheel}rueda con una tecla, como Control más rueda arriba."
+        },
+        {
+          "id": "actions",
+          "text": "Ahora, las acciones. {run}Ejecutar aplicación: el Bloc de notas. {wait}Esperar un segundo. {window}Ventana: mitad izquierda. {volume}Volumen: veinte por ciento. {folder}Abrir carpeta: Documentos."
+        },
+        {
+          "id": "run",
+          "text": "Pulsa {ctrl}Control, {alt}Alt, {w}W... y {all}todo ocurre, en orden, en una fracción de segundo.",
+          "pause": 0.6
+        },
+        {
+          "id": "catalog",
+          "text": "Hay {more}más de treinta acciones, agrupadas en {nine}nueve familias."
+        },
+        {
+          "id": "cat-apps",
+          "heading": true,
+          "text": "Abrir y ejecutar: {programs}programas, {folders}carpetas, {special}ubicaciones especiales de Windows, {web}páginas web en el navegador que elijas y {scripts}scripts de CMD o PowerShell."
+        },
+        {
+          "id": "cat-windows",
+          "heading": true,
+          "text": "Ventanas: {max}maximizar, colocar en {halves}mitades, {quarters}cuartos o {thirds}tercios, {center}centrar, pasar a {monitor}otro monitor, hacer {transparent}transparente o dejar {top}siempre visible."
+        },
+        {
+          "id": "cat-input",
+          "heading": true,
+          "text": "Teclado y ratón: {keys}enviar teclas o texto, {clipboard}transformar el portapapeles, {macro}reproducir una macro, {kboard}cambiar de perfil de K-Board o {dictate}dictar."
+        },
+        {
+          "id": "cat-sound",
+          "heading": true,
+          "text": "Sonido: el {volume}volumen de los altavoces, del micrófono o de una sola aplicación. {output}Cambiar la salida de audio, {play}reproducir sonidos y {record}grabar audio, incluso los últimos segundos."
+        },
+        {
+          "id": "cat-screen",
+          "heading": true,
+          "text": "Pantalla: {shot}capturas, {ocr}copiar el texto que se ve en pantalla, una {magnifier}lupa, el {brightness}brillo y la proyección, y el {theme}tema claro u oscuro de Windows."
+        },
+        {
+          "id": "cat-network",
+          "heading": true,
+          "text": "Red: {http}peticiones web para Home Assistant o cualquier API, {wol}despertar otro equipo con Wake on LAN, y el {radio}Wi-Fi o el Bluetooth."
+        },
+        {
+          "id": "cat-system",
+          "heading": true,
+          "text": "Sistema: {hidden}archivos ocultos, el {plan}plan de energía, y {power}apagar, reiniciar o suspender, con una {countdown}cuenta atrás que puedes cancelar."
+        },
+        {
+          "id": "cat-flow",
+          "heading": true,
+          "text": "Y flujo: {message}mostrar un mensaje, {wait}esperar, {menu}abrir un QuickMenu, {commands}ejecutar o activar otros comandos. La {ninth}novena familia es la de los asistentes. Ya llegaremos."
+        },
+        {
+          "id": "if",
+          "text": "Una acción de flujo merece un vistazo más de cerca: {if}Si. Primero comprueba algo. ¿Hay un {program}programa abierto? ¿Qué {time}hora es? ¿Está conectado un {device}dispositivo? ¿Cuánto trabaja la {cpu}CPU? Si la respuesta es {no}no, {stop}detiene el comando o {skip}se salta las acciones siguientes. Así, un mismo comando puede seguir {paths}caminos distintos."
+        },
+        {
+          "id": "options",
+          "text": "Cada comando tiene además sus propias opciones. Puedes limitarlo a {apps}ciertas aplicaciones: si el mismo atajo existe para {every}todas y para {one}una en concreto, dentro de esa aplicación {wins}gana el específico. {block}Bloquear la tecla para que la aplicación no la vea. Añadir un {sound}sonido, {notes}notas y más {phrases}frases para llamarlo por voz."
+        },
+        {
+          "id": "admin",
+          "text": "K-Desktop funciona como {admin}administrador, así que sus atajos funcionan incluso sobre {elevated}ventanas elevadas. Pero {each}cada acción decide si su programa se abre como {asadmin}administrador o como tu {user}usuario normal."
+        },
+        {
+          "id": "icons",
+          "text": "Y cada comando recibe un icono {auto}automáticamente. O lo eliges tú: {symbols}cualquier símbolo de Windows en {colors}quince colores, {winicons}iconos de Windows, tus propias {images}imágenes o el {favicon}logotipo de una web."
+        }
+      ]
+    },
+    {
+      "id": "quickmenu",
+      "title": "QuickMenu",
+      "label": "QuickMenu",
+      "beats": [
+        {
+          "id": "intro",
+          "text": "A veces, una tecla por comando no basta. Para eso están los {qm}QuickMenus."
+        },
+        {
+          "id": "open",
+          "text": "Pulsa un atajo, por ejemplo el {mouse5}Ratón 5, y aparece un menú {blooms}justo donde tienes el puntero. Translúcido, con {icons}iconos, {titles}títulos, {separators}separadores y {submenus}submenús."
+        },
+        {
+          "id": "clicks",
+          "text": "El {left}clic izquierdo ejecuta un comando y cierra el menú. El {right}clic derecho lo ejecuta y deja el menú abierto, perfecto para {nudging}ir ajustando el volumen. El {middle}clic central abre directamente ese elemento para editarlo. Y todo el menú funciona también con el {keyboard}teclado."
+        },
+        {
+          "id": "editor",
+          "text": "Los menús se montan en el {editor}editor. {drag}Arrastra comandos desde la paleta al menú: {above}encima, {below}debajo o {inside}dentro de un elemento. {rename}Cambia nombres e iconos, {nest}anida submenús, {undo}deshaz y rehaz, y elige un {size}tamaño, de compacto a enorme."
+        },
+        {
+          "id": "quick",
+          "text": "¿Te falta algo? Un {quick}comando rápido convierte un {program}programa, una {folder}carpeta o una {web}dirección web en un elemento del menú, en un solo paso."
+        }
+      ]
+    },
+    {
+      "id": "launcher",
+      "title": "Lanzador",
+      "label": "Lanzador",
+      "beats": [
+        {
+          "id": "intro",
+          "text": "Para todo lo demás, está el {launcher}lanzador: un cuadro de búsqueda con su propio {hotkey}atajo."
+        },
+        {
+          "id": "fuzzy",
+          "text": "Escribe unas letras, aunque estén sueltas. {c}C, M, F, Y encuentra {comfy}ComfyUI. Busca entre tus {commands}comandos y todos los programas del {start}menú Inicio, {store}aplicaciones de la Store incluidas."
+        },
+        {
+          "id": "calc",
+          "text": "Escribe una {sum}cuenta y se convierte en calculadora: {enter}Intro copia el resultado. Y cuando {nothing}no encuentra nada, te ofrece {web}buscar en internet."
+        },
+        {
+          "id": "rank",
+          "text": "Aprende lo que más {most}usas y lo pone primero, antes incluso de que {type}escribas."
+        }
+      ]
+    },
+    {
+      "id": "events",
+      "title": "Eventos",
+      "label": "Eventos",
+      "beats": [
+        {
+          "id": "intro",
+          "text": "Hasta ahora, eres tú quien lanza los comandos. Con los {events}eventos, los lanza tu PC por ti. {when}Cuando pase esto, ejecuta estos comandos."
+        },
+        {
+          "id": "kinds",
+          "text": "Hay {sixteen}dieciséis tipos de disparadores. Cuando K-Desktop {start}arranca o se cierra. {time}A una hora, o cada pocos {interval}minutos. Cuando se abre un {program}programa, o se pone {front}delante. Tras un rato {idle}sin usar el PC. Cuando lo {lock}bloqueas, o se suspende. Cuando un portátil pasa a {battery}batería."
+        },
+        {
+          "id": "kinds2",
+          "text": "Cuando se conecta un {controller}mando, un {usb}pendrive, unos {headphones}auriculares o cualquier otro dispositivo. Cuando te conectas a una {network}red. Cuando aparece un {file}archivo nuevo en una carpeta. Cuando la {cpu}CPU, la gráfica o la memoria pasan de un límite. O cuando {remote}otro equipo, un script o Home Assistant lo llaman por su nombre."
+        },
+        {
+          "id": "example",
+          "text": "Por ejemplo: {when}cuando se abre Steam, {switch}cambiar la salida de audio a los auriculares."
+        },
+        {
+          "id": "ends",
+          "text": "Muchos disparadores tienen además una parte {ends}Al terminar. {closes}Cuando se cierra Steam, {back}vuelta a los altavoces. {nosecond}Sin necesidad de un segundo evento."
+        },
+        {
+          "id": "safety",
+          "text": "Los eventos pueden tener {conditions}condiciones, un {cooldown}tiempo mínimo entre ejecuciones y {loops}protección contra bucles, para que un evento nunca se dispare a sí mismo sin parar."
+        }
+      ]
+    },
+    {
+      "id": "macros",
+      "title": "Macros",
+      "label": "Macros",
+      "beats": [
+        {
+          "id": "intro",
+          "text": "Hay tareas que no se pueden describir como acciones. Simplemente hay que hacerlas. {again}Una y otra vez. Para eso están las {macros}macros."
+        },
+        {
+          "id": "record",
+          "text": "Pulsa {record}Grabar y haz la tarea. K-Desktop recoge cada {key}tecla, {click}clic, {scroll}movimiento de rueda y {move}desplazamiento del ratón, con su {timing}tiempo exacto. {stop}Mayúsculas más Escape termina."
+        },
+        {
+          "id": "edit",
+          "text": "Cada paso se puede {edited}editar, {dragged}arrastrar, {inserted}insertar o {deleted}borrar. Y {simplify}Simplificar la limpia en un clic: {merge}juntar pulsaciones, {drop}quitar los movimientos del ratón, {halve}acortar las pausas a la mitad o {cap}limitarlas a un segundo."
+        },
+        {
+          "id": "play",
+          "text": "Puedes reproducirla desde cualquier comando: {once}una vez, {several}varias veces, en {loop}bucle o a otra {speed}velocidad."
+        },
+        {
+          "id": "game",
+          "text": "Y para juegos, está el {game}modo juego. El ratón se graba como movimiento {raw}relativo y en bruto: el que leen los juegos, incluso cuando {lock}bloquean el puntero."
+        }
+      ]
+    },
+    {
+      "id": "kboard",
+      "title": "K-Board",
+      "label": "K-Board",
+      "beats": [
+        {
+          "id": "intro",
+          "text": "{kboard}K-Board cambia lo que hacen de verdad tus teclas y los botones del ratón."
+        },
+        {
+          "id": "surface",
+          "text": "Un perfil se edita sobre un {drawn}teclado y un ratón dibujados. {click}Haz clic en una tecla, {choose}elige en qué se convierte, y se {lights}ilumina con su nuevo trabajo."
+        },
+        {
+          "id": "targets",
+          "text": "Una tecla puede convertirse en {key}otra tecla, una {combo}combinación, un {text}texto, uno de tus {command}comandos, o en {nothing}nada en absoluto."
+        },
+        {
+          "id": "examples",
+          "text": "{caps}Bloq Mayús como Control. La {win}tecla de Windows desactivada mientras juegas. Los {side}botones laterales como copiar y pegar."
+        },
+        {
+          "id": "layers",
+          "text": "Con {modifiers}modificadores tienes capas: {ctrlj}Control más J puede hacer algo totalmente distinto de la {j}J."
+        },
+        {
+          "id": "scope",
+          "text": "Un perfil puede funcionar {everywhere}en todas partes, o solo en {apps}ciertas aplicaciones. Y lo enciendes y lo apagas desde un {command}comando, o desde el {tray}icono de la bandeja."
+        }
+      ]
+    },
+    {
+      "id": "voice",
+      "title": "Control por voz",
+      "label": "Voz",
+      "beats": [
+        {
+          "id": "intro",
+          "text": "Ahora, la {voice}voz. K-Desktop entiende órdenes habladas, todo {local}en tu PC, sin {internet}internet."
+        },
+        {
+          "id": "two",
+          "text": "Hay dos formas de hablarle. {hold}Mantén pulsado el atajo de voz mientras hablas. O {tap}púlsalo una vez y habla sin más: {stops}para solo cuando te callas."
+        },
+        {
+          "id": "wake",
+          "text": "O usa una {wake}palabra de activación. {kd}K-Desktop, abre el navegador. {nokey}Sin tocar ninguna tecla.",
+          "pause": 0.5
+        },
+        {
+          "id": "own",
+          "text": "La palabra de activación es tuya, y la grabas en menos de un minuto. {silence}Tres segundos de silencio, para medir el ruido de fondo. {word}La palabra, varias veces. Y {speech}diez segundos hablando con normalidad, para que una conversación cualquiera nunca la dispare. Puede ser incluso una {madeup}palabra inventada."
+        },
+        {
+          "id": "echo",
+          "text": "¿Y qué pasa con cada sonido? Primero, la {echo}cancelación de eco quita lo que esté sonando en tu PC, para que la música o una película no tapen tu voz."
+        },
+        {
+          "id": "detector",
+          "text": "Cada {eighty}ochenta milisegundos, los {oww}modelos de openWakeWord convierten el audio en una {fingerprint}huella compacta. Tu {personal}detector personal la compara con tus propias grabaciones, de {two}dos formas distintas. Y las {agree}dos tienen que estar de acuerdo."
+        },
+        {
+          "id": "verify",
+          "text": "Cuando salta, entra una {second}segunda comprobación. {parakeet}Parakeet transcribe los últimos segundos y {confirms}confirma que de verdad suena como tu palabra."
+        },
+        {
+          "id": "vad",
+          "text": "{silero}Silero, un detector de actividad de voz, nota cuándo {stop}dejas de hablar."
+        },
+        {
+          "id": "stt",
+          "text": "Y {parakeet}Parakeet, el modelo multilingüe de reconocimiento de voz de NVIDIA, convierte tu orden en {text}texto, ahí mismo, en tu PC."
+        },
+        {
+          "id": "match",
+          "text": "Entonces llega la parte inteligente: {finding}encontrar el comando que querías decir."
+        },
+        {
+          "id": "words",
+          "text": "La primera capa lee las {words}palabras. Busca el {name}nombre de un comando en lo que has dicho. Ignora {filler}palabras de relleno como por favor, las distintas {endings}terminaciones, los {slips}pequeños fallos y las palabras que solo {sound}suenan parecido. {youtube}Yu tub se convierte en YouTube."
+        },
+        {
+          "id": "meaning",
+          "text": "Cuando las palabras no bastan, la segunda capa mira el {meaning}significado. {gemma}EmbeddingGemma, un pequeño modelo de Google, convierte las frases en {vectors}vectores: puntos en un {space}espacio donde los significados parecidos quedan cerca."
+        },
+        {
+          "id": "meaning2",
+          "text": "Así, {clean}limpia la basura cae justo al lado de tu comando {empty}Vaciar la papelera. Sin ninguna lista de sinónimos."
+        },
+        {
+          "id": "notmine",
+          "text": "También sabe lo que no es suyo. {tv}Apaga la tele se parece a {shutdown}Apaga el ordenador, pero se parece todavía más a una lista de {everyday}peticiones cotidianas que K-Desktop no atiende. Así que {nothing}no pasa nada. Y todo lo que {powers}apaga el PC hay que decirlo especialmente claro."
+        },
+        {
+          "id": "chain",
+          "text": "También puedes {chain}encadenar órdenes. {open}Abre YouTube {and}y vacía la papelera ejecuta las dos."
+        },
+        {
+          "id": "media",
+          "text": "La música y el volumen funcionan sin ningún comando. {pause}Pausa. {next}Siguiente canción. {quieter}Un poco más bajo. {forty}Volumen al cuarenta por ciento. {play}Pon música."
+        },
+        {
+          "id": "dictate",
+          "text": "Y el {dictation}dictado escribe lo que dices, allí donde esté el cursor. Di {newline}nueva línea, {scratch}borra eso o {stopd}deja de dictar."
+        },
+        {
+          "id": "privacy",
+          "text": "Los modelos se {once}descargan una vez. Ocupan unos {ram}setecientos megas de memoria mientras están cargados, y la {free}liberan tras un rato sin usarse. Mientras hablas, se pueden {duck}bajar los demás sonidos para que te oiga mejor. Y {never}ni tu audio ni tus palabras salen nunca del PC."
+        }
+      ]
+    },
+    {
+      "id": "remote",
+      "title": "Control remoto",
+      "label": "Remoto",
+      "beats": [
+        {
+          "id": "intro",
+          "text": "Tu PC, desde el {couch}sofá. K-Desktop incluye una {webapp}aplicación web para el móvil, o para cualquier navegador."
+        },
+        {
+          "id": "pair",
+          "text": "Empareja un dispositivo {scan}escaneando un código QR. El código sirve {once}una sola vez, y puedes {revoke}quitarle el acceso a cualquier dispositivo cuando quieras."
+        },
+        {
+          "id": "menus",
+          "text": "Tus {qm}QuickMenus y {all}todos tus comandos están ahí, con {search}buscador, y los {most}más usados primero."
+        },
+        {
+          "id": "pad",
+          "text": "Un {touchpad}touchpad y un {keyboard}teclado mueven el ratón del PC y escriben por ti."
+        },
+        {
+          "id": "audio",
+          "text": "La pestaña de audio controla el {volume}volumen, la {music}música y el {output}dispositivo de salida."
+        },
+        {
+          "id": "voicechat",
+          "text": "El {mic}micrófono del móvil sirve para dar órdenes por voz. Y puedes {chat}chatear con tus asistentes."
+        },
+        {
+          "id": "pwa",
+          "text": "Instálala en la {home}pantalla de inicio, como una app. Detrás de un {proxy}proxy inverso con HTTPS, funciona incluso {outside}fuera de casa."
+        },
+        {
+          "id": "android",
+          "text": "También hay una {android}aplicación de Android. La misma interfaz, con {native}micrófono nativo, y la mantiene al día el {pc}propio PC."
+        },
+        {
+          "id": "udp",
+          "text": "Y para las máquinas, está {udp}UDP, compatible con K-Desktop 4. Envía {list}list para recibir los comandos remotos. Un {number}número o un nombre, para ejecutar uno. {sk}S K más unas teclas, para pulsarlas. O {event}event más un nombre, para disparar un evento de Llamada desde fuera. Perfecto para {ha}Home Assistant, scripts u otro PC."
+        },
+        {
+          "id": "cli",
+          "text": "Y desde la {cli}línea de comandos: {run}ejecutar un comando, {menu}abrir un menú, {fire}disparar un evento o {launcher}abrir el lanzador."
+        }
+      ]
+    },
+    {
+      "id": "progress",
+      "title": "Registro, logros y estadísticas",
+      "label": "Progreso",
+      "beats": [
+        {
+          "id": "history",
+          "text": "Todo lo que se ejecuta acaba en el {history}registro. Las últimas {five}quinientas ejecuciones: de {where}dónde vinieron, cuánto {long}tardaron, y si algo {wrong}salió mal."
+        },
+        {
+          "id": "achievements",
+          "text": "A medida que usas K-Desktop, desbloqueas {ach}logros. Más de {hundred}cien, cada uno con su {toast}aviso animado. {owl}Noctámbulo, por ejecutar un comando entre las tres y las cinco de la madrugada. {pianist}Pianista, por una combinación de botones del ratón. Y unos cuantos {secret}secretos."
+        },
+        {
+          "id": "stats",
+          "text": "Y las {stats}estadísticas lo cuentan todo. {run}Comandos y acciones ejecutados, {menus}QuickMenus abiertos, {voice}órdenes por voz, cuántas se entendieron por su {meaning}significado y {sources}de dónde vienen tus comandos."
+        }
+      ]
+    },
+    {
+      "id": "settings",
+      "title": "Opciones",
+      "label": "Opciones",
+      "beats": [
+        {
+          "id": "intro",
+          "text": "Las {settings}opciones están agrupadas por temas, y se pueden {search}buscar con Control F."
+        },
+        {
+          "id": "appearance",
+          "heading": true,
+          "text": "{appearance}Apariencia: {theme}tema claro, oscuro o el de Windows. {languages}Seis idiomas incluidos, y puedes añadir el {own}tuyo con un archivo JSON."
+        },
+        {
+          "id": "general",
+          "heading": true,
+          "text": "{general}General: arrancar con {windows}Windows, como administrador y sin preguntar. {hotkeys}Atajos para mostrar, cerrar o pausar K-Desktop. {sounds}Sonidos y {osd}mensajes en pantalla."
+        },
+        {
+          "id": "disable",
+          "heading": true,
+          "text": "{disable}Desactivar en: una lista de aplicaciones, como tus {games}juegos, donde los atajos no hacen nada, salvo que un comando esté puesto para {always}ejecutarse siempre."
+        },
+        {
+          "id": "sections",
+          "text": "El {launcher}lanzador, la {voice}voz, {multimedia}multimedia, {captures}capturas y lupa, la {web}aplicación web y el {remote}control remoto: cada uno tiene su propia sección."
+        },
+        {
+          "id": "data",
+          "text": "Y tus datos están a salvo. {daily}Copias de seguridad diarias automáticas. {zip}Copias completas en zip cada pocos días. {export}Exportar e importar. Y la {import}importación desde K-Desktop 4 en un clic. {updates}Las actualizaciones se instalan solas."
+        }
+      ]
+    },
+    {
+      "id": "assistants",
+      "title": "Asistentes",
+      "label": "Asistentes",
+      "beats": [
+        {
+          "id": "intro",
+          "text": "Y por último, algo nuevo: los {assistants}asistentes. Pequeños personajes que viven sobre tus {windows}ventanas. Puedes {talk}hablar con ellos, y de verdad {do}hacen cosas."
+        },
+        {
+          "id": "cast",
+          "text": "Te presento al {lander}Lander, un pequeño módulo lunar que vuela por tu escritorio y aterriza en tus barras de título, con un {game}juego propio. A {kobii}Kobii, una criatura blandita que se pasea por tu barra de tareas. Y a {pip}Pip, una gota hecha solo con {json}imágenes y JSON."
+        },
+        {
+          "id": "module",
+          "text": "Los asistentes viven en un {optional}módulo opcional. Mientras está {off}apagado, K-Desktop no carga nada de él."
+        },
+        {
+          "id": "install",
+          "text": "Cada asistente es un {package}paquete. Ábrelo, y su {card}ficha te dice qué es, si su {signature}firma es válida y {what}qué sabe hacer. {installs}Instálalo, y aparece directamente en tu escritorio."
+        },
+        {
+          "id": "arch",
+          "text": "Cada asistente funciona en su {process}propio proceso, sin {admin}permisos de administrador. K-Desktop lo dibuja en una {layer}capa transparente sobre tus ventanas, y tus ventanas se convierten en su {terrain}terreno."
+        },
+        {
+          "id": "talk",
+          "text": "Para hablar con uno, di su {name}nombre: {question}Lander, ¿qué hora es? Cada asistente tiene su {own}propia palabra de activación, mientras {kd}K-Desktop sigue ejecutando tus comandos. También puedes {key}mantener pulsada su tecla, o {click}mantener el clic sobre él. Y cuando te {asks}pregunta algo, solo tienes que contestar."
+        },
+        {
+          "id": "brain",
+          "text": "Su {brain}cerebro es un modelo de lenguaje que funciona {pc}en tu PC, con {llama}llama server y un modelo de {hf}Hugging Face: elige el {biggest}más grande que cabe en tu gráfica. También sirven {ollama}Ollama o cualquier {openai}servidor compatible con OpenAI, y siempre te dice {where}adónde van tus palabras: {thispc}este PC, {network}tu red o {internet}internet."
+        },
+        {
+          "id": "brain2",
+          "text": "El modelo se {loads}carga cuando hablas, se {unloads}descarga si no lo usas y se {games}aparta para los juegos a pantalla completa. Las cosas sencillas, como la {time}hora, un {timer}temporizador, una {note}nota o {cancel}cancelar, se contestan {rules}al instante, sin la IA."
+        },
+        {
+          "id": "voice",
+          "text": "Y contestan {aloud}en voz alta, {sentence}frase a frase, mientras la IA todavía está escribiendo. Con {kokoro}Kokoro, una voz natural que funciona sin conexión en tu procesador. {hearing}Así suena en español: [[kokoro ef_dora]] Hola, soy Kokoro, y te hablo desde tu propio ordenador, sin internet. O {piper}Piper, con voces en todos los idiomas. O las {windows}voces de Windows. O simplemente {beeps}pitidos."
+        },
+        {
+          "id": "voice2",
+          "text": "Cada asistente tiene su propio {style}estilo: el Lander habla por la {radio}radio del control de misión. Puedes {mix}mezclar dos voces, probar el {robot}robot o los ocho bits, y dejarlos {quiet}callados durante una película a pantalla completa. Incluso suenan desde el {side}lado de la pantalla donde están."
+        },
+        {
+          "id": "tools",
+          "text": "¿Qué pueden hacer? {timers}Temporizadores, {notes}notas, {calc}cálculos, el {weather}tiempo. {web}Buscar y leer en internet, {files}encontrar archivos, {apps}abrir aplicaciones, {music}controlar la música, {pc}revisar el PC, {screen}mirar tu pantalla y ejecutar tus {commands}comandos."
+        },
+        {
+          "id": "risk",
+          "text": "Todo lo {risky}arriesgado pregunta antes. Di {yes}sí una vez, o {always}sí, y no vuelvas a preguntar. Y muchas acciones se pueden {undo}deshacer."
+        },
+        {
+          "id": "gestures",
+          "text": "Y lo ves pasar. Pídele: {ask}Lander, minimiza Chrome. {flies}Vuela hasta allí, {fires}dispara al botón y la ventana {impact}se minimiza justo con el impacto. Para mover una ventana, lanza un {hook}gancho a la barra de título y la {tows}remolca hasta su sitio."
+        },
+        {
+          "id": "own-tools",
+          "text": "También puedes darles {json}habilidades nuevas, sin compilar nada: un archivo JSON por herramienta. Llamar a una {api}API web como Home Assistant, ejecutar uno de tus {command}comandos, encadenar una {routine}rutina o ejecutar un {script}script. Los {secrets}secretos van cifrados, y el modelo nunca los ve. Y también se conectan {mcp}servidores MCP, importados directamente desde {claude}Claude Desktop."
+        },
+        {
+          "id": "memory",
+          "text": "Se {remember}acuerdan de lo importante: tu nombre, lo que te gusta, las fechas que importan. Puedes {see}ver y editar todo lo que saben de ti, y guardar {notes}notas."
+        },
+        {
+          "id": "knowledge",
+          "text": "Y pueden {read}leer tus documentos. Elige {folders}carpetas o archivos: notas, manuales, contratos, PDF, incluso {scanned}páginas escaneadas. Todo se lee {once}una vez, en tu PC. Pregunta: {ask}¿qué dice mi contrato sobre la fianza? Y te {answer}contestan, diciéndote de qué {source}documento y página lo han sacado."
+        },
+        {
+          "id": "commands",
+          "text": "Los asistentes también se conectan con los comandos. Cuatro {four}acciones permiten que cualquier comando o evento lance una {action}acción de un asistente, le {ask}pregunte algo, le haga {say}decir algo, o le {free}libere el cerebro antes de jugar."
+        },
+        {
+          "id": "create",
+          "text": "Y si quieres crear el tuyo, hay un {sdk}SDK con una plantilla. O {nocode}sin código: solo imágenes y JSON, como {pip}Pip."
+        }
+      ]
+    },
+    {
+      "id": "outro",
+      "title": "K-Desktop",
+      "label": "Final",
+      "beats": [
+        {
+          "id": "recap",
+          "text": "{commands}Comandos y acciones. {qm}QuickMenus y el lanzador. {events}Eventos, macros y K-Board. Tu {voice}voz, tu {phone}móvil y {assistants}asistentes que echan una mano."
+        },
+        {
+          "id": "cta",
+          "text": "K-Desktop es un {single}único programa portable para Windows. {download}Descárgalo desde GitHub y empieza con {one}un comando. Te sorprenderá hasta {far}dónde llega."
+        },
+        {
+          "id": "end",
+          "text": "Gracias por verlo.",
+          "pause": 2.0
+        }
+      ]
+    }
+  ]
+}

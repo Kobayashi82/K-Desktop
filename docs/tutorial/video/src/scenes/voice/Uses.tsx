@@ -10,6 +10,7 @@ import { Toggle } from '../../components/Ui';
 import { ease, glide, inOut, keys, pop, SMOOTH } from '../../lib/anim';
 import { BeatTimes } from '../../lib/timeline';
 import { C, SANS } from '../../theme';
+import { t } from '../../lib/i18n';
 
 const Bubble: React.FC<{ text: string; show: number; x: number; y: number; small?: boolean }> = ({ text, show, x, y, small }) => (
   <div style={{ position: 'absolute', left: x, top: y, transform: `translate(-50%, -50%) scale(${0.7 + 0.3 * show})`, opacity: show, padding: small ? '12px 22px' : '18px 32px', borderRadius: 30, background: 'white', fontFamily: SANS, fontSize: small ? 30 : 42, fontWeight: 800, color: '#141418', whiteSpace: 'nowrap', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
@@ -25,12 +26,12 @@ const Chain: React.FC<{ b: BeatTimes }> = ({ b }) => {
   return (
     <AbsoluteFill>
       <div style={{ position: 'absolute', left: 960, top: 330, transform: 'translate(-50%, -50%)', display: 'flex', gap: 24 + split * 120, alignItems: 'center', opacity: pop(f, b.cue('open') - 8) }}>
-        <div style={{ padding: '18px 32px', borderRadius: 30, background: 'white', fontFamily: SANS, fontSize: 44, fontWeight: 800, color: '#141418', whiteSpace: 'nowrap' }}>open YouTube</div>
-        <div style={{ fontFamily: SANS, fontSize: 44, fontWeight: 800, color: C.accentText, opacity: 1 - split * 0.6 }}>and</div>
-        <div style={{ padding: '18px 32px', borderRadius: 30, background: 'white', fontFamily: SANS, fontSize: 44, fontWeight: 800, color: '#141418', whiteSpace: 'nowrap' }}>empty the recycle bin</div>
+        <div style={{ padding: '18px 32px', borderRadius: 30, background: 'white', fontFamily: SANS, fontSize: 44, fontWeight: 800, color: '#141418', whiteSpace: 'nowrap' }}>{t('open YouTube')}</div>
+        <div style={{ fontFamily: SANS, fontSize: 44, fontWeight: 800, color: C.accentText, opacity: 1 - split * 0.6 }}>{t('and')}</div>
+        <div style={{ padding: '18px 32px', borderRadius: 30, background: 'white', fontFamily: SANS, fontSize: 44, fontWeight: 800, color: '#141418', whiteSpace: 'nowrap' }}>{t('empty the recycle bin')}</div>
       </div>
       <div style={{ position: 'absolute', left: 0, right: 0, top: 560, display: 'flex', justifyContent: 'center', gap: 60 }}>
-        {[{ name: 'YouTube', icon: 'video_clip_24_filled', color: 'red' }, { name: 'Empty Recycle Bin', icon: 'broom_24_filled', color: 'orange' }].map((c, i) => {
+        {[{ name: t('YouTube'), icon: 'video_clip_24_filled', color: 'red' }, { name: t('Empty Recycle Bin'), icon: 'broom_24_filled', color: 'orange' }].map((c, i) => {
           const k = pop(f, done[i] - 10);
           const ok = f > done[i];
           return (
@@ -52,7 +53,7 @@ const Chain: React.FC<{ b: BeatTimes }> = ({ b }) => {
 const Media: React.FC<{ b: BeatTimes }> = ({ b }) => {
   const f = useCurrentFrame();
   const orders = [
-    { cue: 'pause', text: 'Pause' }, { cue: 'next', text: 'Next song' }, { cue: 'quieter', text: 'A little quieter' }, { cue: 'forty', text: 'Volume to 40 percent' }, { cue: 'play', text: 'Play music' },
+    { cue: 'pause', text: t('Pause') }, { cue: 'next', text: t('Next song') }, { cue: 'quieter', text: t('A little quieter') }, { cue: 'forty', text: t('Volume to 40 percent') }, { cue: 'play', text: t('Play music') },
   ];
   const current = orders.reduce((c, o, i) => (f >= b.cue(o.cue) - 6 ? i : c), -1);
   const paused = current >= 0 && current < 4;
@@ -66,7 +67,7 @@ const Media: React.FC<{ b: BeatTimes }> = ({ b }) => {
           <div style={{ width: 220, height: 220, borderRadius: 20, background: current >= 1 ? 'linear-gradient(135deg,#3EDCC1,#1E62DA)' : 'linear-gradient(135deg,#FF8CC6,#7B3FE4)' }} />
           <div style={{ flex: 1, paddingTop: 20 }}>
             <div style={{ fontFamily: SANS, fontSize: 40, fontWeight: 800, color: C.text }}>{track}</div>
-            <div style={{ fontFamily: SANS, fontSize: 24, color: C.dim, marginTop: 6 }}>Synthwave Radio</div>
+            <div style={{ fontFamily: SANS, fontSize: 24, color: C.dim, marginTop: 6 }}>{t('Synthwave Radio')}</div>
             <div style={{ display: 'flex', gap: 30, marginTop: 34, alignItems: 'center' }}>
               <Fluent name="previous_24_filled" size={44} color={C.text} />
               <div style={{ width: 84, height: 84, borderRadius: 42, background: C.accentText, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -104,7 +105,7 @@ const Dictate: React.FC<{ b: BeatTimes }> = ({ b }) => {
   return (
     <AbsoluteFill>
       <div style={{ position: 'absolute', left: 260, top: 200, transform: `translateY(${(1 - glide(f, b.from - 10, 24)) * 60}px)` }}>
-        <WinFrame width={1400} height={600} title="Email - New message" style={{ position: 'relative' }} bg="#202228">
+        <WinFrame width={1400} height={600} title={t('Email - New message')} style={{ position: 'relative' }} bg="#202228">
           <div style={{ padding: '40px 50px', fontFamily: SANS, fontSize: 40, color: C.text, lineHeight: 1.6 }}>
             <div>{t1}{!nl && <span style={{ display: 'inline-block', width: 3, height: 44, marginLeft: 4, background: C.accentText, verticalAlign: 'middle' }} />}</div>
             {nl && <div style={{ opacity: scratched ? 0.25 : 1, textDecoration: scratched ? 'line-through' : 'none', height: scratched ? 64 * (1 - ease(f, b.cue('scratch') + 10, b.cue('scratch') + 20)) : 'auto', overflow: 'hidden' }}>{t2}</div>}
@@ -117,7 +118,7 @@ const Dictate: React.FC<{ b: BeatTimes }> = ({ b }) => {
         ))}
       </div>
       <div style={{ position: 'absolute', left: 960, top: 900, transform: 'translateX(-50%)' }}>
-        <Osd icon="mic_sparkle_24_filled" color="teal" text="Dictation: 6 words" show={done} />
+        <Osd icon="mic_sparkle_24_filled" color="teal" text={t('Dictation: 6 words')} show={done} />
       </div>
       <Sfx at={b.cue('scratch') + 6} name="whoosh-down" volume={0.2} />
       <Sfx at={b.cue('stopd') + 6} name="blip" volume={0.2} />
@@ -129,10 +130,10 @@ const Dictate: React.FC<{ b: BeatTimes }> = ({ b }) => {
 const Privacy: React.FC<{ b: BeatTimes }> = ({ b }) => {
   const f = useCurrentFrame();
   const models = [
-    { name: 'Parakeet', what: 'speech to text', icon: 'text_t_24_filled', color: 'indigo' },
-    { name: 'Silero', what: 'voice activity', icon: 'pulse_24_filled', color: 'orange' },
-    { name: 'openWakeWord', what: 'wake word features', icon: 'data_histogram_24_filled', color: 'sky' },
-    { name: 'EmbeddingGemma', what: 'meaning', icon: 'brain_circuit_24_filled', color: 'teal' },
+    { name: t('Parakeet'), what: t('speech to text'), icon: 'text_t_24_filled', color: 'indigo' },
+    { name: t('Silero'), what: t('voice activity'), icon: 'pulse_24_filled', color: 'orange' },
+    { name: 'openWakeWord', what: t('wake word features'), icon: 'data_histogram_24_filled', color: 'sky' },
+    { name: t('EmbeddingGemma'), what: 'meaning', icon: 'brain_circuit_24_filled', color: 'teal' },
   ];
   const ram = keys(f, [[b.cue('ram'), 0], [b.cue('ram') + 30, 700], [b.cue('free') + 10, 700], [b.cue('free') + 40, 0]]);
   const duck = keys(f, [[b.cue('duck'), 80], [b.cue('duck') + 20, 25], [b.cue('never') - 10, 25], [b.cue('never'), 80]]);
@@ -140,7 +141,7 @@ const Privacy: React.FC<{ b: BeatTimes }> = ({ b }) => {
   return (
     <AbsoluteFill>
       <div style={{ position: 'absolute', left: 150, top: 200, width: 780, padding: 30, borderRadius: 28, background: 'rgba(30,30,36,0.97)', border: `1px solid ${C.line2}` }}>
-        <div style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.text, marginBottom: 20 }}>Voice models</div>
+        <div style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.text, marginBottom: 20 }}>{t('Voice models')}</div>
         {models.map((m, i) => {
           const k = ease(f, b.cue('once') + i * 6, b.cue('once') + i * 6 + 24);
           return (
@@ -159,14 +160,14 @@ const Privacy: React.FC<{ b: BeatTimes }> = ({ b }) => {
       <div style={{ position: 'absolute', left: 1010, top: 200, width: 760, display: 'flex', flexDirection: 'column', gap: 28 }}>
         <div style={{ padding: 30, borderRadius: 28, background: 'rgba(30,30,36,0.97)', border: `1px solid ${C.line2}`, opacity: ease(f, b.cue('ram') - 10, b.cue('ram')) }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: SANS, fontSize: 26, fontWeight: 700, color: C.text, marginBottom: 16 }}>
-            <span>Memory</span><Mono size={26} color={ram > 10 ? C.accentText : C.success}>{ram > 10 ? `${Math.round(ram)} MB` : 'freed'}</Mono>
+            <span>{t('Memory')}</span><Mono size={26} color={ram > 10 ? C.accentText : C.success}>{ram > 10 ? `${Math.round(ram)} MB` : t('freed')}</Mono>
           </div>
           <div style={{ height: 18, borderRadius: 9, background: 'rgba(255,255,255,0.08)' }}><div style={{ width: `${(ram / 700) * 100}%`, height: '100%', borderRadius: 9, background: C.accentText }} /></div>
-          <div style={{ marginTop: 14, fontFamily: SANS, fontSize: 20, color: C.dim }}>Free the memory: after 10 min unused</div>
+          <div style={{ marginTop: 14, fontFamily: SANS, fontSize: 20, color: C.dim }}>{t('Free the memory: after 10 min unused')}</div>
         </div>
         <div style={{ padding: 30, borderRadius: 28, background: 'rgba(30,30,36,0.97)', border: `1px solid ${C.line2}`, opacity: ease(f, b.cue('duck') - 10, b.cue('duck')) }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
-            <span style={{ flex: 1, fontFamily: SANS, fontSize: 26, fontWeight: 700, color: C.text }}>Turn the volume down while you speak</span>
+            <span style={{ flex: 1, fontFamily: SANS, fontSize: 26, fontWeight: 700, color: C.text }}>{t('Turn the volume down while you speak')}</span>
             <Toggle on={1} scale={1.3} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -177,7 +178,7 @@ const Privacy: React.FC<{ b: BeatTimes }> = ({ b }) => {
       </div>
       <div style={{ position: 'absolute', left: 960, top: 860, transform: `translate(-50%, -50%) scale(${shield})`, opacity: shield, display: 'flex', alignItems: 'center', gap: 22, padding: '22px 40px', borderRadius: 40, background: 'rgba(108,203,95,0.12)', border: `2px solid ${C.success}` }}>
         <Fluent name="shield_checkmark_24_filled" size={56} color={C.success} />
-        <span style={{ fontFamily: SANS, fontSize: 36, fontWeight: 800, color: C.text }}>Neither audio nor text leaves your PC</span>
+        <span style={{ fontFamily: SANS, fontSize: 36, fontWeight: 800, color: C.text }}>{t('Neither audio nor text leaves your PC')}</span>
       </div>
       <Sfx at={b.cue('once')} name="pop-low" volume={0.2} />
       <Sfx at={b.cue('never') - 4} name="chime" volume={0.25} />

@@ -3,6 +3,7 @@ import { AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame } from 'remo
 import { Background, Grain } from './components/Background';
 import { CaptureInfo, MediaProvider } from './components/Capture';
 import { ChapterStage, ChapterTitle, LightSweep, ProgressBar } from './components/Chapter';
+import { setLang } from './lib/i18n';
 import { ChapterProvider, Timeline } from './lib/timeline';
 import { SCENES } from './scenes';
 
@@ -49,6 +50,7 @@ const Music: React.FC<{ timeline: Timeline }> = ({ timeline }) => {
 
 export const Video: React.FC<VideoProps> = ({ lang, timeline, captures = {}, music = true }) => {
   const frame = useCurrentFrame();
+  setLang(lang);
   if (!timeline) return null;
   return (
     <MediaProvider lang={lang} captures={captures}>

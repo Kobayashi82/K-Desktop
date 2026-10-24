@@ -92,17 +92,32 @@ capítulos (composición `chapter`, propiedad `chapter`) y el vídeo entero (`kd
 
 ## Versión en español
 
-1. Copia `script/en.json` a `script/es.json`, traduce los textos y conserva los ids de capítulos y beats y las
-   marcas `{cue}` (pegadas a la palabra equivalente). En `tts`: `"voice": "ef_dora"` (o `em_alex`) y
-   `"kokoroLang": "es"`. Revisa `subtitles.keep` (los nombres en español). Crea `script/pronunciation.es.json`
-   si alguna palabra suena mal.
-2. Capturas en español (opcional): en `../captures/es/` con los mismos nombres; las que falten se toman de
-   `../captures/`.
-3. `python tools/assets.py`, `node tools/webapp.mjs --lang es`, `python tools/tts.py --lang es` y
-   `node render.mjs --lang es`.
+Está hecha: `script/es.json` (mismos ids de capítulos y beats y mismas marcas `{cue}`, sobre la palabra equivalente),
+narrada con **ElevenLabs** (voz «Cristina», `eleven_v4_turbo`), con las capturas de `../captures/es/` (las que falten se
+toman de `../captures/`) y los rótulos de las escenas traducidos. Se rehace con:
 
-Los rótulos que dibujan las escenas (nombres de acciones, botones de las interfaces recreadas…) están en inglés en
-el código de las escenas: para la versión en español hay que traducirlos también.
+```
+python tools/assets.py
+node tools/webapp.mjs --lang es
+python tools/tts.py --lang es       # necesita ELEVENLABS_API_KEY (también la lee de las variables de usuario de Windows)
+node render.mjs --lang es           # → out/K-Desktop-es.mp4 y out/K-Desktop-es.srt
+```
+
+- **ElevenLabs:** en el guion, `tts` con `"engine": "elevenlabs"`, `voice` (id de la voz), `model`, `language` y
+  opcionalmente `speed`, `seed` y `settings` (`voice_settings` de la API). Da el momento exacto de cada letra, así que
+  las marcas `{cue}` caen justo en su palabra. Cada frase dicha se guarda en `.cache/tts/es` y `tts.py` dice cuántos
+  créditos ha gastado (el guion entero, unos 17 000 caracteres, fueron ~3 300 créditos). El plan gratuito no deja usar
+  voces de la biblioteca por la API.
+- **Otra voz en una frase:** `[[kokoro ef_dora]]` al principio de una frase la dice con ese motor y esa voz (en la
+  versión en español, Kokoro se presenta con su voz española: «Así suena en español: [[kokoro ef_dora]] Hola, soy
+  Kokoro…»).
+- **Pronunciación:** `script/pronunciation.es.json` (QuickMenu → QuickMenú). «K-Desktop» se deja como lo dice la voz.
+- **Rótulos de las escenas:** están escritos en inglés dentro de `t('…')` (o `tr('…')` donde la escena ya tiene una
+  variable `t`), y `src/lib/i18n.es.ts` tiene la traducción de cada uno; lo que no está sale en inglés (nombres,
+  código, teclas). `node tools/i18n-check.mjs --lang es` lista los que faltan. El idioma lo toma `src/lib/i18n.ts` de
+  las propiedades del render. En el lanzador, los resultados que resaltan las letras escritas («cmfy») conservan esas
+  letras en su sitio («ComfyUI: resultados»), o se quedan en inglés.
+- Las capturas en español se hacen con `tools/tutorial` y `KD_TUTORIAL_LANG=es` (ver su README).
 
 ## Licencias
 

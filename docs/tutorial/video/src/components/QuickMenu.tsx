@@ -1,4 +1,5 @@
 import React from 'react';
+import { t } from '../lib/i18n';
 import { C, SANS } from '../theme';
 import { KdIcon } from './Icon';
 
@@ -32,7 +33,7 @@ export const QuickMenuPanel: React.FC<{ items: QmItem[]; hot?: number; flash?: n
         if (it.kind === 'title')
           return (
             <div key={i} style={{ height: row, margin: `${scale}px 0`, borderRadius: 5 * scale, background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', padding: `0 ${10 * scale}px`, fontWeight: 600, color: C.accentText, ...common }}>
-              {it.label}
+              {t(it.label)}
             </div>
           );
         const isHot = i === hot;
@@ -42,7 +43,7 @@ export const QuickMenuPanel: React.FC<{ items: QmItem[]; hot?: number; flash?: n
             {isHot && flash > 0 && <div style={{ position: 'absolute', inset: 0, borderRadius: 5 * scale, background: `rgba(224,168,21,${0.35 * flash})` }} />}
             {isHot && <div style={{ position: 'absolute', left: scale, top: (row - 16 * scale) / 2, width: 3 * scale, height: 16 * scale, borderRadius: 2 * scale, background: C.accent }} />}
             <KdIcon icon={it.icon} color={it.color} size={20 * scale} />
-            <span style={{ flex: 1, position: 'relative', whiteSpace: 'nowrap' }}>{it.label}</span>
+            <span style={{ flex: 1, position: 'relative', whiteSpace: 'nowrap' }}>{t(it.label)}</span>
             {it.sub && (
               <svg width={6 * scale} height={10 * scale} viewBox="0 0 6 10" style={{ position: 'relative' }}>
                 <path d="M1 1 L5 5 L1 9" stroke="rgba(255,255,255,0.55)" strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round" />

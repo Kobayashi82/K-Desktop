@@ -11,6 +11,7 @@ import { VoiceBars } from '../components/VoiceBars';
 import { ease, glide, IN, inOut, keys, OUT, pop, SMOOTH, tween } from '../lib/anim';
 import { useBeats } from '../lib/timeline';
 import { C, SANS } from '../theme';
+import { t } from '../lib/i18n';
 
 const TASKBAR = [
   { icon: 'folder_24_filled', color: 'yellow' },
@@ -119,14 +120,14 @@ export const Intro: React.FC = () => {
   const word = ease(f, logoAt + 8, logoAt + 30, OUT);
   const up = glide(f, promise.from - 4, 30);
   const tiles = [
-    { cue: 'commands', label: 'Commands', icon: 'flash_24_filled', color: 'gold' },
-    { cue: 'quickmenus', label: 'QuickMenus', icon: 'text_bullet_list_tree_24_filled', color: 'purple' },
-    { cue: 'events', label: 'Events', icon: 'arrow_forward_down_lightning_24_filled', color: 'orange' },
-    { cue: 'macros', label: 'Macros', icon: 'record_24_filled', color: 'red' },
-    { cue: 'kboard', label: 'K-Board', icon: 'keyboard_layout_float_24_filled', color: 'indigo' },
-    { cue: 'voice', label: 'Voice', icon: 'mic_24_filled', color: 'teal' },
-    { cue: 'phone', label: 'Remote', icon: 'phone_24_filled', color: 'sky' },
-    { cue: 'assistants', label: 'Assistants', icon: 'bot_24_filled', color: 'pink' },
+    { cue: 'commands', label: t('Commands'), icon: 'flash_24_filled', color: 'gold' },
+    { cue: 'quickmenus', label: t('QuickMenus'), icon: 'text_bullet_list_tree_24_filled', color: 'purple' },
+    { cue: 'events', label: t('Events'), icon: 'arrow_forward_down_lightning_24_filled', color: 'orange' },
+    { cue: 'macros', label: t('Macros'), icon: 'record_24_filled', color: 'red' },
+    { cue: 'kboard', label: t('K-Board'), icon: 'keyboard_layout_float_24_filled', color: 'indigo' },
+    { cue: 'voice', label: t('Voice'), icon: 'mic_24_filled', color: 'teal' },
+    { cue: 'phone', label: t('Remote'), icon: 'phone_24_filled', color: 'sky' },
+    { cue: 'assistants', label: t('Assistants'), icon: 'bot_24_filled', color: 'pink' },
   ];
   const orbit = (f - promise.from) / 260;
 
@@ -146,9 +147,9 @@ export const Intro: React.FC = () => {
           ))}
           <Taskbar apps={TASKBAR.map((a, i) => ({ ...a, active: f > opened[[1, 2, 0, 9, 9][i] ?? 9] }))} />
           <VolumeFlyout level={level} style={{ left: 1520, top: 930, opacity: flyout, transform: `translateY(${(1 - flyout) * 20}px)` }} />
-          <ContextMenu items={['View', 'Sort by', 'Refresh', 'New', 'Display settings', 'Personalize']} hot={f > menus + 24 ? 3 : f > menus + 16 ? 1 : -1}
+          <ContextMenu items={[t('View'), t('Sort by'), t('Refresh'), t('New'), t('Display settings'), t('Personalize')]} hot={f > menus + 24 ? 3 : f > menus + 16 ? 1 : -1}
             style={{ left: 1310, top: 340, opacity: ctx, transform: `scale(${0.92 + 0.08 * ctx})`, transformOrigin: 'top left' }} />
-          <ContextMenu items={['Folder', 'Shortcut', 'Text Document', 'Compressed (zip)']} hot={f > menus + 40 ? 1 : -1}
+          <ContextMenu items={[t('Folder'), t('Shortcut'), t('Text Document'), t('Compressed (zip)')]} hot={f > menus + 40 ? 1 : -1}
             style={{ left: 1562, top: 440, opacity: sub, transform: `scale(${0.92 + 0.08 * sub})`, transformOrigin: 'top left' }} />
           <Cursor path={cursorPath} clicks={clicks} show={1 - ease(f, keyAt - 10, keyAt)} />
           {/* Ghost cursors: the same moves, again and again */}
@@ -161,7 +162,7 @@ export const Intro: React.FC = () => {
             position: 'absolute', left: 1420, top: 120, padding: '12px 20px', borderRadius: 14, background: 'rgba(20,20,26,0.85)', border: `1px solid ${C.line2}`,
             fontFamily: SANS, color: C.text, opacity: inOut(f, 10, open - 6, 14), display: 'flex', gap: 14, alignItems: 'baseline',
           }}>
-            <span style={{ fontSize: 18, color: C.dim }}>Clicks today</span>
+            <span style={{ fontSize: 18, color: C.dim }}>{t('Clicks today')}</span>
             <span style={{ fontSize: 34, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{counter.toLocaleString('en-US')}</span>
           </div>
         </Camera>
@@ -220,7 +221,7 @@ export const Intro: React.FC = () => {
             }} />
             <div style={{ position: 'absolute', left: 0, right: 0, top: 640, textAlign: 'center', fontFamily: SANS, fontWeight: 800, fontSize: 120, letterSpacing: -3, color: C.text }}>
               <span style={{ display: 'inline-block', clipPath: `inset(0 ${(1 - word) * 100}% 0 0)` }}>
-                K-Desktop <span style={{ color: C.accentText }}>5</span>
+                {t('K-Desktop')}{' '}<span style={{ color: C.accentText }}>5</span>
               </span>
             </div>
           </>

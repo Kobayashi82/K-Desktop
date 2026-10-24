@@ -8,8 +8,9 @@ import { speechAmp, Wave } from '../../components/Wave';
 import { ease, inOut, pop } from '../../lib/anim';
 import { BeatTimes } from '../../lib/timeline';
 import { C, SANS } from '../../theme';
+import { t } from '../../lib/i18n';
 
-const PROFILES = ['Natural', 'Mission control', 'Classic robot', 'Martian', '8-bit', 'Beeps'];
+const PROFILES = [t('Natural'), t('Mission control'), t('Classic robot'), t('Martian'), t('8-bit'), t('Beeps')];
 
 /** Answering out loud, sentence by sentence; Kokoro, Piper, Windows voices; styles, mixing, panning. */
 export const VoicesPart: React.FC<{ voice: BeatTimes; voice2: BeatTimes }> = ({ voice, voice2 }) => {
@@ -51,16 +52,16 @@ export const VoicesPart: React.FC<{ voice: BeatTimes; voice2: BeatTimes }> = ({ 
         <CaptureShot name="assistant-voice"
           shots={[{ at: voice.cue('kokoro') - 10, x: 1000, y: 400, s: 1.45 }, { at: voice.cue('piper') - 8, dur: 30, x: 1000, y: 560, s: 1.5 }, { at: voice.cue('windows') - 8, dur: 30, x: 1000, y: 700, s: 1.5 }]}
           focus={[
-            { from: voice.cue('kokoro') - 4, to: voice.cue('hearing') - 6, rect: [572, 323, 910, 100], label: 'Kokoro · natural voice · offline' },
-            { from: voice.cue('piper') - 4, to: voice.cue('windows') - 4, rect: [572, 538, 910, 100], label: 'Piper · voices in every language' },
-            { from: voice.cue('windows') - 4, to: voice2.from, rect: [572, 740, 910, 42], label: 'Windows voices · or beeps' },
+            { from: voice.cue('kokoro') - 4, to: voice.cue('hearing') - 6, rect: [572, 323, 910, 100], label: t('Kokoro · natural voice · offline') },
+            { from: voice.cue('piper') - 4, to: voice.cue('windows') - 4, rect: [572, 538, 910, 100], label: t('Piper · voices in every language') },
+            { from: voice.cue('windows') - 4, to: voice2.from, rect: [572, 740, 910, 42], label: t('Windows voices · or beeps') },
           ]} />
       </AbsoluteFill>
       {/* «The same voice you're hearing right now» */}
       <AbsoluteFill style={{ background: `rgba(8,8,12,${0.82 * hearing})`, opacity: hearing }}>
         <div style={{ position: 'absolute', left: 0, right: 0, top: 360, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 30 }}>
           <VoiceBars beat="voice" bars={40} width={900} height={200} color={C.teal} gain={1.4} />
-          <div style={{ fontFamily: SANS, fontSize: 40, fontWeight: 800, color: C.text }}>This narration is Kokoro</div>
+          <div style={{ fontFamily: SANS, fontSize: 40, fontWeight: 800, color: C.text }}>{t('This narration is Kokoro')}</div>
         </div>
       </AbsoluteFill>
       {/* Styles */}
@@ -86,7 +87,7 @@ export const VoicesPart: React.FC<{ voice: BeatTimes; voice2: BeatTimes }> = ({ 
               <Fluent name="play_24_filled" size={80} color="rgba(255,255,255,0.7)" />
             </div>
             <Fluent name="speaker_mute_24_filled" size={80} color={C.accentText} />
-            <span style={{ fontFamily: SANS, fontSize: 32, fontWeight: 800, color: C.text }}>Bubble only</span>
+            <span style={{ fontFamily: SANS, fontSize: 32, fontWeight: 800, color: C.text }}>{t('Bubble only')}</span>
           </div>
           {/* They sound from where they are */}
           <div style={{ position: 'absolute', left: 960, top: 620, transform: 'translate(-50%, -50%)', opacity: sideK, display: 'flex', alignItems: 'center', gap: 60 }}>

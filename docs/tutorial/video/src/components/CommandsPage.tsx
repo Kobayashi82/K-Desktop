@@ -4,19 +4,20 @@ import { ActionRow } from './CommandCard';
 import { Fluent, KdIcon } from './Icon';
 import { HotkeyChip } from './Keys';
 import { Card, Check, GhostButton, GoldButton, Toggle } from './Ui';
+import { t } from '../lib/i18n';
 
 export type ListItem = { name: string; sub: string; hotkey?: string; icon: string; color: string };
 
 export const COMMAND_LIST: ListItem[] = [
-  { name: 'Browser', sub: 'Open web page', hotkey: 'CTRL + ALT + B', icon: 'globe_24_filled', color: 'blue' },
-  { name: 'Downloads', sub: 'Downloads', hotkey: 'CTRL + ALT + D', icon: 'arrow_download_24_filled', color: 'teal' },
-  { name: 'Magnifier', sub: 'Magnifier: on / off', hotkey: 'CTRL + Wheel Up', icon: 'zoom_in_24_filled', color: 'gold' },
-  { name: 'Main menu', sub: 'Open QuickMenu Main', hotkey: 'Mouse 5', icon: 'text_bullet_list_tree_24_filled', color: 'indigo' },
-  { name: 'Music', sub: 'AIMP.exe', hotkey: 'CTRL + ALT + M', icon: 'music_note_2_24_filled', color: 'pink' },
-  { name: 'Notepad', sub: 'notepad.exe', hotkey: 'CTRL + ALT + N', icon: 'document_text_24_filled', color: 'sky' },
-  { name: 'Recycle Bin', sub: 'Recycle Bin', icon: 'delete_24_filled', color: 'gray' },
-  { name: 'Region capture', sub: 'A region · copy · save', hotkey: 'CTRL + SHIFT + S', icon: 'screenshot_24_filled', color: 'green' },
-  { name: 'Sound settings', sub: 'Sound devices', icon: 'sound_source_24_filled', color: 'teal' },
+  { name: t('Browser'), sub: t('Open web page'), hotkey: 'CTRL + ALT + B', icon: 'globe_24_filled', color: 'blue' },
+  { name: t('Downloads'), sub: t('Downloads'), hotkey: 'CTRL + ALT + D', icon: 'arrow_download_24_filled', color: 'teal' },
+  { name: t('Magnifier'), sub: t('Magnifier: on / off'), hotkey: 'CTRL + Wheel Up', icon: 'zoom_in_24_filled', color: 'gold' },
+  { name: t('Main menu'), sub: t('Open QuickMenu Main'), hotkey: 'Mouse 5', icon: 'text_bullet_list_tree_24_filled', color: 'indigo' },
+  { name: t('Music'), sub: t('AIMP.exe'), hotkey: 'CTRL + ALT + M', icon: 'music_note_2_24_filled', color: 'pink' },
+  { name: t('Notepad'), sub: t('notepad.exe'), hotkey: 'CTRL + ALT + N', icon: 'document_text_24_filled', color: 'sky' },
+  { name: t('Recycle Bin'), sub: t('Recycle Bin'), icon: 'delete_24_filled', color: 'gray' },
+  { name: t('Region capture'), sub: t('A region · copy · save'), hotkey: 'CTRL + SHIFT + S', icon: 'screenshot_24_filled', color: 'green' },
+  { name: t('Sound settings'), sub: t('Sound devices'), icon: 'sound_source_24_filled', color: 'teal' },
 ];
 
 export type EditorState = {
@@ -52,17 +53,17 @@ export const CommandsPage: React.FC<{ list: ListItem[]; fresh?: ListItem & { sho
     {/* List */}
     <div style={{ position: 'absolute', left: 24, top: 22, width: 330, bottom: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
-        <span style={{ fontSize: 30, fontWeight: 700 }}>Commands</span>
+        <span style={{ fontSize: 30, fontWeight: 700 }}>{t('Commands')}</span>
         <span style={{ fontSize: 13, fontWeight: 700, color: C.accentText, background: C.accentSoft, padding: '3px 9px', borderRadius: 9 }}>{list.length + (fresh ? 1 : 0)}</span>
       </div>
       <div style={{ height: 42, borderRadius: 8, background: C.card2, display: 'flex', alignItems: 'center', gap: 10, padding: '0 14px', fontSize: 15, color: C.faint, marginBottom: 10 }}>
-        <Fluent name="search_24_regular" size={18} color={C.dim} /> Search by name, hotkey or action…
+        <Fluent name="search_24_regular" size={18} color={C.dim} /> {t('Search by name, hotkey or action…')}
       </div>
       <div style={{ height: 42, borderRadius: 8, background: C.card2, display: 'flex', alignItems: 'center', padding: '0 14px', fontSize: 15, marginBottom: 10, justifyContent: 'space-between' }}>
-        All commands <Fluent name="chevron_down_24_regular" size={16} color={C.dim} />
+        {t('All commands')}{' '}<Fluent name="chevron_down_24_regular" size={16} color={C.dim} />
       </div>
       <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-        <GoldButton icon="add_24_regular" press={newPress} style={{ flex: 1 }}>New command</GoldButton>
+        <GoldButton icon="add_24_regular" press={newPress} style={{ flex: 1 }}>{t('New command')}</GoldButton>
         <GhostButton icon="eye_off_24_regular" />
       </div>
       {fresh && fresh.show > 0 && <ListRow item={fresh} selected show={fresh.show} />}
@@ -73,8 +74,8 @@ export const CommandsPage: React.FC<{ list: ListItem[]; fresh?: ListItem & { sho
       {!editor ? (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, color: C.dim }}>
           <Fluent name="flash_24_regular" size={56} color={C.faint} />
-          <div style={{ fontSize: 22, fontWeight: 600, color: C.text }}>No command selected</div>
-          <div style={{ fontSize: 15 }}>Pick a command from the list or create a new one.</div>
+          <div style={{ fontSize: 22, fontWeight: 600, color: C.text }}>{t('No command selected')}</div>
+          <div style={{ fontSize: 15 }}>{t('Pick a command from the list or create a new one.')}</div>
         </div>
       ) : (
         <div style={{ transform: `translateY(${-scrollY}px)`, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -86,13 +87,13 @@ export const CommandsPage: React.FC<{ list: ListItem[]; fresh?: ListItem & { sho
             <GhostButton icon="eye_24_regular" />
             <GhostButton icon="plug_connected_24_regular" />
             <div style={{ flex: 1 }} />
-            <Toggle on={1} /> <span style={{ fontSize: 15 }}>Enabled</span>
-            <GoldButton icon="play_24_regular">Run</GoldButton>
+            <Toggle on={1} /> <span style={{ fontSize: 15 }}>{t('Enabled')}</span>
+            <GoldButton icon="play_24_regular">{t('Run')}</GoldButton>
             <GhostButton icon="copy_24_regular" />
             <GhostButton icon="delete_24_regular" />
           </Card>
           <Card pad={20}>
-            <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 14 }}>Hotkeys</div>
+            <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 14 }}>{t('Hotkeys')}</div>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
               {editor.hotkeys.map((h, i) => <HotkeyChip key={i} keys={h.keys} fresh={h.fresh} />)}
               <div style={{
@@ -100,19 +101,19 @@ export const CommandsPage: React.FC<{ list: ListItem[]; fresh?: ListItem & { sho
                 background: editor.capturing ? C.accentSoft : C.card2, color: editor.capturing ? C.accentText : C.text, border: `1px solid ${editor.capturing ? C.accentText : C.line}`,
               }}>
                 <Fluent name="add_24_regular" size={16} color={editor.capturing ? C.accentText : C.text} />
-                {editor.capturing ? 'Press a combination… (Esc cancels)' : 'Add hotkey'}
+                {editor.capturing ? t('Press a combination… (Esc cancels)') : t('Add hotkey')}
               </div>
             </div>
-            <div style={{ fontSize: 13, color: C.dim, marginTop: 14 }}>Keys, mouse buttons or combinations of both.</div>
+            <div style={{ fontSize: 13, color: C.dim, marginTop: 14 }}>{t('Keys, mouse buttons or combinations of both.')}</div>
           </Card>
           <Card pad={20}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 14 }}>
-              <span style={{ fontSize: 17, fontWeight: 600 }}>Actions</span>
+              <span style={{ fontSize: 17, fontWeight: 600 }}>{t('Actions')}</span>
               <div style={{ flex: 1 }} />
-              <GoldButton icon="add_24_regular" press={editor.addAction ?? 0}>Add action</GoldButton>
+              <GoldButton icon="add_24_regular" press={editor.addAction ?? 0}>{t('Add action')}</GoldButton>
             </div>
             {editor.actions.length === 0 || editor.shown.every(s => s <= 0) ? (
-              <div style={{ fontSize: 15, color: C.dim, padding: '18px 0' }}>This command does nothing yet. Add its first action.</div>
+              <div style={{ fontSize: 15, color: C.dim, padding: '18px 0' }}>{t('This command does nothing yet. Add its first action.')}</div>
             ) : null}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {editor.actions.map((a, i) => {

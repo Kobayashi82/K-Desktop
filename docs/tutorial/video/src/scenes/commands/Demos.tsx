@@ -8,6 +8,7 @@ import { Toggle } from '../../components/Ui';
 import { ease, inOut, keys, OUT, pop, rand } from '../../lib/anim';
 import { BeatTimes } from '../../lib/timeline';
 import { C, MONO, SANS } from '../../theme';
+import { t as tr } from '../../lib/i18n';
 
 const W = 400;
 const H = 176;
@@ -72,37 +73,37 @@ export const AppsDemo: React.FC<{ b: BeatTimes }> = ({ b }) => {
   const special = ['This PC', 'Recycle Bin', 'Control Panel', 'God Mode', 'Task View', 'Fonts'];
   return (
     <Grid>
-      <Mini at={b.cue('programs')} title="Run application" icon="open_24_filled" color="blue">
+      <Mini at={b.cue('programs')} title={tr('Run application')} icon="open_24_filled" color="blue">
         <Center>
           <div style={{ width: 230, height: 96, borderRadius: 8, background: '#2a2c34', border: `1px solid ${C.line2}`, transform: `scale(${pop(f, b.cue('programs'))})`, padding: 10, boxSizing: 'border-box' }}>
-            <Mono size={14} color={C.dim}>notepad.exe</Mono>
+            <Mono size={14} color={C.dim}>{tr('notepad.exe')}</Mono>
             <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
-              <span style={{ fontFamily: SANS, fontSize: 13, padding: '4px 10px', borderRadius: 6, background: C.accentSoft, color: C.accentText }}>As user</span>
-              <span style={{ fontFamily: SANS, fontSize: 13, padding: '4px 10px', borderRadius: 6, background: 'rgba(255,255,255,0.08)', color: C.dim }}>As admin</span>
+              <span style={{ fontFamily: SANS, fontSize: 13, padding: '4px 10px', borderRadius: 6, background: C.accentSoft, color: C.accentText }}>{tr('As user')}</span>
+              <span style={{ fontFamily: SANS, fontSize: 13, padding: '4px 10px', borderRadius: 6, background: 'rgba(255,255,255,0.08)', color: C.dim }}>{tr('As admin')}</span>
             </div>
           </div>
         </Center>
       </Mini>
-      <Mini at={b.cue('folders')} title="Open folder" icon="folder_open_24_filled" color="yellow">
+      <Mini at={b.cue('folders')} title={tr('Open folder')} icon="folder_open_24_filled" color="yellow">
         <div style={{ position: 'absolute', left: 16, right: 16, top: 6, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {special.map((s, i) => {
             const k = pop(f, b.cue('special') + i * 4);
             return <span key={s} style={{ fontFamily: SANS, fontSize: 15, padding: '6px 12px', borderRadius: 16, background: 'rgba(255,255,255,0.08)', color: C.text, opacity: k, transform: `scale(${k})` }}>{s}</span>;
           })}
-          <span style={{ fontFamily: MONO, fontSize: 14, color: C.dim, marginTop: 4, opacity: 1 - ease(f, b.cue('special') - 4, b.cue('special')) }}>C:\Users\you\Documents</span>
+          <span style={{ fontFamily: MONO, fontSize: 14, color: C.dim, marginTop: 4, opacity: 1 - ease(f, b.cue('special') - 4, b.cue('special')) }}>{tr('C:\\Users\\you\\Documents')}</span>
         </div>
       </Mini>
-      <Mini at={b.cue('web')} title="Open web page" icon="globe_24_filled" color="sky">
+      <Mini at={b.cue('web')} title={tr('Open web page')} icon="globe_24_filled" color="sky">
         <div style={{ position: 'absolute', left: 16, right: 16, top: 6, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {browsers.map((s, i) => (
             <span key={s} style={{ fontFamily: SANS, fontSize: 15, padding: '6px 12px', borderRadius: 16, background: i === pick ? C.accentText : 'rgba(255,255,255,0.08)', color: i === pick ? '#1a1306' : C.text, fontWeight: i === pick ? 700 : 400 }}>{s}</span>
           ))}
-          <span style={{ fontFamily: SANS, fontSize: 14, color: C.dim }}>New window · Incognito</span>
+          <span style={{ fontFamily: SANS, fontSize: 14, color: C.dim }}>{tr('New window · Incognito')}</span>
         </div>
       </Mini>
-      <Mini at={b.cue('scripts')} title="Run script" icon="window_console_20_filled" color="dark">
+      <Mini at={b.cue('scripts')} title={tr('Run script')} icon="window_console_20_filled" color="dark">
         <div style={{ position: 'absolute', left: 16, right: 16, top: 4, bottom: 14, borderRadius: 8, background: '#0c0c10', padding: '10px 12px', boxSizing: 'border-box' }}>
-          <Mono size={13} color="#5AA9FF">PS&gt; </Mono><Typed text="Get-Process | Sort CPU -Desc" at={b.cue('scripts')} size={13} />
+          <Mono size={13} color="#5AA9FF">{tr('PS&gt;')}{' '}</Mono><Typed text={tr('Get-Process | Sort CPU -Desc')} at={b.cue('scripts')} size={13} />
         </div>
       </Mini>
     </Grid>
@@ -121,23 +122,23 @@ export const WindowsDemo: React.FC<{ b: BeatTimes }> = ({ b }) => {
     win = { x: win.x + (l.x - win.x) * k, y: win.y + (l.y - win.y) * k, w: win.w + (l.w - win.w) * k, h: win.h + (l.h - win.h) * k };
   }
   const label = layouts.reduce((s, [cue]) => (f >= b.cue(cue) - 4 ? cue : s), '');
-  const names: Record<string, string> = { max: 'Maximize', halves: 'Left half', quarters: 'Top right quarter', thirds: 'Middle third', center: 'Centre' };
+  const names: Record<string, string> = { max: tr('Maximize'), halves: tr('Left half'), quarters: tr('Top right quarter'), thirds: tr('Middle third'), center: tr('Centre') };
   const across = ease(f, b.cue('monitor'), b.cue('monitor') + 16, OUT);
   return (
     <Grid>
-      <Mini at={b.cue('max')} title="Window" icon="window_new_24_filled" color="sky" span={2} h={300}>
+      <Mini at={b.cue('max')} title={tr('Window')} icon="window_new_24_filled" color="sky" span={2} h={300}>
         <Center style={{ flexDirection: 'column', gap: 10 }}>
           <Monitor w={340} h={190} win={win} />
           <span style={{ fontFamily: SANS, fontSize: 20, fontWeight: 700, color: C.accentText }}>{names[label] ?? ''}</span>
         </Center>
       </Mini>
-      <Mini at={b.cue('monitor')} title="To another monitor" icon="desktop_24_filled" color="blue">
+      <Mini at={b.cue('monitor')} title={tr('To another monitor')} icon="desktop_24_filled" color="blue">
         <Center>
           <Monitor w={140} h={80} win={{ x: 0.2 + across * 1.4, y: 0.2, w: 0.6, h: 0.6 }} />
           <Monitor w={140} h={80} win={{ x: -1.2 + across * 1.4, y: 0.2, w: 0.6, h: 0.6 }} />
         </Center>
       </Mini>
-      <Mini at={b.cue('transparent')} title="Transparent · on top" icon="pin_24_filled" color="orange">
+      <Mini at={b.cue('transparent')} title={tr('Transparent · on top')} icon="pin_24_filled" color="orange">
         <Center>
           <Monitor w={200} h={110} win={{ x: 0.2, y: 0.15, w: 0.6, h: 0.7 }} opacity={1 - 0.6 * inOut(f, b.cue('transparent'), b.cue('top'), 8)} pin={pop(f, b.cue('top'))} />
         </Center>
@@ -152,23 +153,23 @@ export const InputDemo: React.FC<{ b: BeatTimes }> = ({ b }) => {
   const caps = inOut(f, b.cue('kboard'), b.cue('kboard') + 40, 6);
   return (
     <Grid>
-      <Mini at={b.cue('keys')} title="Send keys / text" icon="keyboard_24_filled" color="indigo">
+      <Mini at={b.cue('keys')} title={tr('Send keys / text')} icon="keyboard_24_filled" color="indigo">
         <Center style={{ flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'flex', gap: 10 }}>
-            <Keycap label="Ctrl" height={44} width={70} size={16} down={inOut(f, b.cue('keys'), b.cue('keys') + 10, 3)} />
-            <Keycap label="Shift" height={44} width={70} size={16} down={inOut(f, b.cue('keys') + 2, b.cue('keys') + 10, 3)} />
+            <Keycap label={tr('Ctrl')} height={44} width={70} size={16} down={inOut(f, b.cue('keys'), b.cue('keys') + 10, 3)} />
+            <Keycap label={tr('Shift')} height={44} width={70} size={16} down={inOut(f, b.cue('keys') + 2, b.cue('keys') + 10, 3)} />
             <Keycap label="T" height={44} size={16} down={inOut(f, b.cue('keys') + 4, b.cue('keys') + 10, 3)} />
           </div>
-          <Typed text="Best regards, K." at={b.cue('keys') + 12} size={16} />
+          <Typed text={tr('Best regards, K.')} at={b.cue('keys') + 12} size={16} />
         </Center>
       </Mini>
-      <Mini at={b.cue('clipboard')} title="Clipboard" icon="clipboard_text_edit_24_filled" color="brown">
+      <Mini at={b.cue('clipboard')} title={tr('Clipboard')} icon="clipboard_text_edit_24_filled" color="brown">
         <Center style={{ flexDirection: 'column', gap: 8 }}>
-          <Mono size={22} color={upper ? C.accentText : C.text}>{upper ? 'HELLO WORLD' : 'hello world'}</Mono>
-          <span style={{ fontFamily: SANS, fontSize: 14, color: C.dim }}>Plain · UPPER · lower · clean links · date & time</span>
+          <Mono size={22} color={upper ? C.accentText : C.text}>{upper ? tr('HELLO WORLD') : tr('hello world')}</Mono>
+          <span style={{ fontFamily: SANS, fontSize: 14, color: C.dim }}>{tr('Plain · UPPER · lower · clean links · date & time')}</span>
         </Center>
       </Mini>
-      <Mini at={b.cue('macro')} title="Play macro" icon="record_24_filled" color="red">
+      <Mini at={b.cue('macro')} title={tr('Play macro')} icon="record_24_filled" color="red">
         <Center>
           {Array.from({ length: 9 }, (_, i) => {
             const on = f > b.cue('macro') + i * 4;
@@ -176,17 +177,17 @@ export const InputDemo: React.FC<{ b: BeatTimes }> = ({ b }) => {
           })}
         </Center>
       </Mini>
-      <Mini at={b.cue('kboard')} title="K-Board" icon="keyboard_layout_float_24_filled" color="purple">
+      <Mini at={b.cue('kboard')} title={tr('K-Board')} icon="keyboard_layout_float_24_filled" color="purple">
         <Center>
-          <Keycap label="Caps Lock" height={50} width={120} size={16} lit={caps} />
+          <Keycap label={tr('Caps Lock')} height={50} width={120} size={16} lit={caps} />
           <Fluent name="arrow_right_24_filled" size={28} color={C.accentText} />
-          <Keycap label="Ctrl" height={50} width={90} size={16} />
+          <Keycap label={tr('Ctrl')} height={50} width={90} size={16} />
         </Center>
       </Mini>
-      <Mini at={b.cue('dictate')} title="Dictate" icon="mic_sparkle_24_filled" color="teal" span={2} h={110}>
+      <Mini at={b.cue('dictate')} title={tr('Dictate')} icon="mic_sparkle_24_filled" color="teal" span={2} h={110}>
         <div style={{ position: 'absolute', left: 20, top: 0, display: 'flex', alignItems: 'center', gap: 14 }}>
           <Fluent name="mic_24_filled" size={26} color={C.teal} />
-          <Typed text="Meeting moved to Thursday at ten." at={b.cue('dictate') + 4} speed={1.4} size={17} />
+          <Typed text={tr('Meeting moved to Thursday at ten.')} at={b.cue('dictate') + 4} speed={1.4} size={17} />
         </div>
       </Mini>
     </Grid>
@@ -199,9 +200,9 @@ export const SoundDemo: React.FC<{ b: BeatTimes }> = ({ b }) => {
   const out = f > b.cue('output') + 8;
   return (
     <Grid>
-      <Mini at={b.cue('volume')} title="Volume" icon="speaker_2_24_filled" color="teal" span={2} h={210}>
+      <Mini at={b.cue('volume')} title={tr('Volume')} icon="speaker_2_24_filled" color="teal" span={2} h={210}>
         <div style={{ position: 'absolute', left: 24, right: 24, top: 6, display: 'flex', flexDirection: 'column', gap: 18 }}>
-          {['Speakers', 'Microphone', 'Spotify.exe'].map((n, i) => (
+          {[tr('Speakers'), tr('Microphone'), 'Spotify.exe'].map((n, i) => (
             <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <span style={{ width: 150, fontFamily: SANS, fontSize: 17, color: C.text }}>{n}</span>
               <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.12)', position: 'relative' }}>
@@ -213,9 +214,9 @@ export const SoundDemo: React.FC<{ b: BeatTimes }> = ({ b }) => {
           ))}
         </div>
       </Mini>
-      <Mini at={b.cue('output')} title="Audio output" icon="headphones_sound_wave_24_filled" color="purple">
+      <Mini at={b.cue('output')} title={tr('Audio output')} icon="headphones_sound_wave_24_filled" color="purple">
         <Center>
-          {['Speakers', 'Headphones'].map((n, i) => (
+          {[tr('Speakers'), tr('Headphones')].map((n, i) => (
             <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 12, background: (i === 1) === out ? C.accentSoft : 'rgba(255,255,255,0.06)', border: `1px solid ${(i === 1) === out ? C.accentText : 'transparent'}` }}>
               <Fluent name={i ? 'headphones_24_filled' : 'speaker_2_24_filled'} size={22} color={(i === 1) === out ? C.accentText : C.dim} />
               <span style={{ fontFamily: SANS, fontSize: 16, color: C.text }}>{n}</span>
@@ -223,13 +224,13 @@ export const SoundDemo: React.FC<{ b: BeatTimes }> = ({ b }) => {
           ))}
         </Center>
       </Mini>
-      <Mini at={b.cue('record')} title="Record audio" icon="mic_pulse_24_filled" color="red">
+      <Mini at={b.cue('record')} title={tr('Record audio')} icon="mic_pulse_24_filled" color="red">
         <Center>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 3 }}>
             {Array.from({ length: 40 }, (_, i) => (
               <div key={i} style={{ width: 4, height: 8 + 40 * Math.abs(Math.sin(i * 0.9 + f / 5)) * rand(i), borderRadius: 2, background: i > 26 ? C.danger : 'rgba(255,255,255,0.3)' }} />
             ))}
-            <div style={{ position: 'absolute', right: -6, top: -26, fontFamily: SANS, fontSize: 13, color: C.danger, fontWeight: 700 }}>last 30 s</div>
+            <div style={{ position: 'absolute', right: -6, top: -26, fontFamily: SANS, fontSize: 13, color: C.danger, fontWeight: 700 }}>{tr('last 30 s')}</div>
           </div>
         </Center>
       </Mini>
@@ -245,13 +246,13 @@ export const ScreenDemo: React.FC<{ b: BeatTimes }> = ({ b }) => {
   const dark = f > b.cue('theme') + 10;
   return (
     <Grid>
-      <Mini at={b.cue('shot')} title="Screenshot" icon="screenshot_24_filled" color="green">
+      <Mini at={b.cue('shot')} title={tr('Screenshot')} icon="screenshot_24_filled" color="green">
         <div style={{ position: 'absolute', left: 20, top: 4, width: 360, height: 100, borderRadius: 8, background: 'linear-gradient(120deg,#22304f,#3b2453)', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', left: 60, top: 18, width: 220 * sel, height: 64 * sel, border: '2px dashed white', background: 'rgba(255,255,255,0.08)' }} />
           <div style={{ position: 'absolute', inset: 0, background: `rgba(255,255,255,${flash * 0.8})` }} />
         </div>
       </Mini>
-      <Mini at={b.cue('ocr')} title="Copy text from the screen" icon="scan_text_24_filled" color="lime">
+      <Mini at={b.cue('ocr')} title={tr('Copy text from the screen')} icon="scan_text_24_filled" color="lime">
         <div style={{ position: 'absolute', left: 20, top: 4, width: 360, height: 100 }}>
           {['Invoice 2026-118', 'Total due: 248,00 €', 'IBAN ES12 3456 7890'].map((t, i) => (
             <div key={t} style={{ fontFamily: SANS, fontSize: 17, color: scan * 3 > i + 0.5 ? C.accentText : C.dim, marginBottom: 6 }}>{t}</div>
@@ -259,14 +260,14 @@ export const ScreenDemo: React.FC<{ b: BeatTimes }> = ({ b }) => {
           <div style={{ position: 'absolute', left: 0, right: 0, top: scan * 100, height: 2, background: '#C3EB5C', boxShadow: '0 0 10px #C3EB5C', opacity: scan < 1 ? 1 : 0 }} />
         </div>
       </Mini>
-      <Mini at={b.cue('magnifier')} title="Magnifier" icon="zoom_in_24_filled" color="gold">
+      <Mini at={b.cue('magnifier')} title={tr('Magnifier')} icon="zoom_in_24_filled" color="gold">
         <Center>
           <div style={{ width: 96, height: 96, borderRadius: 48, border: `4px solid ${C.accentText}`, overflow: 'hidden', position: 'relative', background: '#1c2a5a', transform: `translateX(${Math.sin(f / 14) * 60}px)` }}>
             <div style={{ position: 'absolute', inset: -40, backgroundImage: 'radial-gradient(rgba(255,255,255,0.5) 3px, transparent 3.5px)', backgroundSize: '22px 22px' }} />
           </div>
         </Center>
       </Mini>
-      <Mini at={b.cue('brightness')} title="Screen" icon="desktop_24_filled" color="blue">
+      <Mini at={b.cue('brightness')} title={tr('Screen')} icon="desktop_24_filled" color="blue">
         <Center style={{ flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <Fluent name="weather_sunny_24_filled" size={26} color={C.gold1} />
@@ -279,11 +280,11 @@ export const ScreenDemo: React.FC<{ b: BeatTimes }> = ({ b }) => {
           </div>
         </Center>
       </Mini>
-      <Mini at={b.cue('theme')} title="Windows theme" icon="dark_theme_24_filled" color="dark" span={2} h={110}>
+      <Mini at={b.cue('theme')} title={tr('Windows theme')} icon="dark_theme_24_filled" color="dark" span={2} h={110}>
         <div style={{ position: 'absolute', left: 20, right: 20, top: 0, display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ width: 120, height: 44, borderRadius: 8, background: dark ? '#202024' : '#f3f3f3', border: '1px solid rgba(255,255,255,0.2)' }} />
           <Toggle on={dark ? 1 : 0} />
-          <span style={{ fontFamily: SANS, fontSize: 17, color: C.text }}>{dark ? 'Dark' : 'Light'}</span>
+          <span style={{ fontFamily: SANS, fontSize: 17, color: C.text }}>{dark ? tr('Dark') : tr('Light')}</span>
         </div>
       </Mini>
     </Grid>
@@ -298,12 +299,12 @@ export const NetworkDemo: React.FC<{ b: BeatTimes }> = ({ b }) => {
   const awake = f > b.cue('wol') + 24;
   return (
     <Grid>
-      <Mini at={b.cue('http')} title="Web request" icon="arrow_swap_24_filled" color="teal" span={2} h={210}>
+      <Mini at={b.cue('http')} title={tr('Web request')} icon="arrow_swap_24_filled" color="teal" span={2} h={210}>
         <div style={{ position: 'absolute', left: 24, right: 24, top: 10, display: 'flex', alignItems: 'center', gap: 20 }}>
           <div style={{ padding: '10px 14px', borderRadius: 10, background: '#0c0c10', width: 430 }}>
-            <Mono size={15} color="#3EDCC1">POST</Mono> <Mono size={15}>http://homeassistant:8123</Mono><br />
-            <Mono size={15} color={C.dim}>/api/services/light/turn_on</Mono><br />
-            <Mono size={15} color={C.accentText}>{'{ "entity_id": "light.desk" }'}</Mono>
+            <Mono size={15} color="#3EDCC1">{tr('POST')}</Mono> <Mono size={15}>{tr('http://homeassistant:8123')}</Mono><br />
+            <Mono size={15} color={C.dim}>{tr('/api/services/light/turn_on')}</Mono><br />
+            <Mono size={15} color={C.accentText}>{tr('{ "entity_id": "light.desk" }')}</Mono>
           </div>
           <div style={{ flex: 1, height: 3, background: 'rgba(255,255,255,0.15)', position: 'relative' }}>
             <div style={{ position: 'absolute', left: `${packet * 100}%`, top: -6, width: 14, height: 14, borderRadius: 7, background: C.teal, boxShadow: `0 0 14px ${C.teal}`, opacity: packet > 0 && packet < 1 ? 1 : 0 }} />
@@ -313,7 +314,7 @@ export const NetworkDemo: React.FC<{ b: BeatTimes }> = ({ b }) => {
           </div>
         </div>
       </Mini>
-      <Mini at={b.cue('wol')} title="Wake a computer" icon="desktop_pulse_24_filled" color="green">
+      <Mini at={b.cue('wol')} title={tr('Wake a computer')} icon="desktop_pulse_24_filled" color="green">
         <Center>
           <div style={{ width: 120, height: 76, borderRadius: 8, border: '3px solid #3a3a44', background: awake ? 'linear-gradient(135deg,#1c2a5a,#3a1f6a)' : '#08080a', position: 'relative' }}>
             <div style={{ position: 'absolute', right: 6, bottom: 6, width: 8, height: 8, borderRadius: 4, background: awake ? C.success : '#333' }} />
@@ -321,7 +322,7 @@ export const NetworkDemo: React.FC<{ b: BeatTimes }> = ({ b }) => {
           <div style={{ width: 70, height: 70, borderRadius: 35, border: `3px solid ${C.success}`, opacity: 1 - wolPulse, transform: `scale(${0.4 + wolPulse})`, position: 'absolute', left: 140 }} />
         </Center>
       </Mini>
-      <Mini at={b.cue('radio')} title="Wi-Fi and Bluetooth" icon="wifi_1_24_filled" color="sky">
+      <Mini at={b.cue('radio')} title={tr('Wi-Fi and Bluetooth')} icon="wifi_1_24_filled" color="sky">
         <Center style={{ gap: 28 }}>
           {[['wifi_1_24_filled', 0], ['bluetooth_24_filled', 8]].map(([ic, d]) => (
             <div key={ic as string} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -343,19 +344,19 @@ export const SystemDemo: React.FC<{ b: BeatTimes }> = ({ b }) => {
   const secs = Math.max(0, 10 - Math.floor(t / 10));
   return (
     <Grid>
-      <Mini at={b.cue('hidden')} title="Hidden files" icon="eye_off_24_filled" color="gray">
+      <Mini at={b.cue('hidden')} title={tr('Hidden files')} icon="eye_off_24_filled" color="gray">
         <Center style={{ gap: 18 }}>
           {[0, 1, 2, 3].map(i => <Fluent key={i} name={i % 2 ? 'document_24_filled' : 'folder_24_filled'} size={46} color={i % 2 ? '#9fb3c8' : '#F2C14A'} style={{ opacity: i === 1 || i === 3 ? 0.25 + 0.3 * shown : 1, transform: `scale(${i === 1 || i === 3 ? shown : 1})` }} />)}
         </Center>
       </Mini>
-      <Mini at={b.cue('plan')} title="Power plan" icon="battery_10_24_filled" color="lime">
+      <Mini at={b.cue('plan')} title={tr('Power plan')} icon="battery_10_24_filled" color="lime">
         <Center style={{ flexDirection: 'column', gap: 8 }}>
-          {['Balanced', 'High performance'].map((p, i) => (
+          {[tr('Balanced'), tr('High performance')].map((p, i) => (
             <div key={p} style={{ width: 280, padding: '8px 14px', borderRadius: 10, fontFamily: SANS, fontSize: 16, background: i === plan ? C.accentSoft : 'rgba(255,255,255,0.06)', color: i === plan ? C.accentText : C.dim, border: `1px solid ${i === plan ? C.accentText : 'transparent'}` }}>{p}</div>
           ))}
         </Center>
       </Mini>
-      <Mini at={b.cue('power')} title="Power" icon="power_24_filled" color="red" span={2} h={250}>
+      <Mini at={b.cue('power')} title={tr('Power')} icon="power_24_filled" color="red" span={2} h={250}>
         <Center style={{ gap: 40 }}>
           <svg width="150" height="150" viewBox="0 0 150 150">
             <circle cx="75" cy="75" r="62" stroke="rgba(255,255,255,0.1)" strokeWidth="10" fill="none" />
@@ -363,12 +364,12 @@ export const SystemDemo: React.FC<{ b: BeatTimes }> = ({ b }) => {
             <text x="75" y="90" textAnchor="middle" fontFamily={SANS} fontSize="46" fontWeight="800" fill="white">{secs}</text>
           </svg>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ fontFamily: SANS, fontSize: 24, fontWeight: 700, color: C.text }}>Shutting down in {secs} s</div>
+            <div style={{ fontFamily: SANS, fontSize: 24, fontWeight: 700, color: C.text }}>{tr('Shutting down in')}{' '}{secs} s</div>
             <div style={{ display: 'flex', gap: 10 }}>
-              {['Shut down', 'Restart', 'Sleep', 'Lock'].map((p, i) => <span key={p} style={{ fontFamily: SANS, fontSize: 15, padding: '5px 10px', borderRadius: 8, background: i === 0 ? 'rgba(255,107,107,0.2)' : 'rgba(255,255,255,0.06)', color: i === 0 ? C.danger : C.dim }}>{p}</span>)}
+              {[tr('Shut down'), tr('Restart'), tr('Sleep'), tr('Lock')].map((p, i) => <span key={p} style={{ fontFamily: SANS, fontSize: 15, padding: '5px 10px', borderRadius: 8, background: i === 0 ? 'rgba(255,107,107,0.2)' : 'rgba(255,255,255,0.06)', color: i === 0 ? C.danger : C.dim }}>{p}</span>)}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: SANS, fontSize: 16, color: C.dim }}>
-              <Keycap label="Esc" height={38} width={60} size={15} down={inOut(f, b.to - 14, b.to - 4, 3)} /> cancels
+              <Keycap label={tr('Esc')} height={38} width={60} size={15} down={inOut(f, b.to - 14, b.to - 4, 3)} /> {tr('cancels')}
             </div>
           </div>
         </Center>
@@ -383,10 +384,10 @@ export const FlowDemo: React.FC<{ b: BeatTimes }> = ({ b }) => {
   const on = f > b.cue('commands') + 12 ? 0 : 1;
   return (
     <Grid>
-      <Mini at={b.cue('message')} title="Show message" icon="chat_24_filled" color="blue">
-        <Center><Osd icon="flash_24_filled" color="gold" text="Backup finished" sub="2 412 files · 3.1 GB" scale={0.95} show={pop(f, b.cue('message') + 4)} /></Center>
+      <Mini at={b.cue('message')} title={tr('Show message')} icon="chat_24_filled" color="blue">
+        <Center><Osd icon="flash_24_filled" color="gold" text={tr('Backup finished')} sub={tr('2 412 files · 3.1 GB')} scale={0.95} show={pop(f, b.cue('message') + 4)} /></Center>
       </Mini>
-      <Mini at={b.cue('wait')} title="Wait" icon="timer_24_filled" color="purple">
+      <Mini at={b.cue('wait')} title={tr('Wait')} icon="timer_24_filled" color="purple">
         <Center>
           <svg width="90" height="90" viewBox="0 0 90 90">
             <circle cx="45" cy="45" r="36" stroke="rgba(255,255,255,0.1)" strokeWidth="8" fill="none" />
@@ -395,17 +396,17 @@ export const FlowDemo: React.FC<{ b: BeatTimes }> = ({ b }) => {
           <span style={{ fontFamily: SANS, fontSize: 26, fontWeight: 700, color: C.text }}>{(wait * 1.5).toFixed(1)} s</span>
         </Center>
       </Mini>
-      <Mini at={b.cue('menu')} title="Open QuickMenu" icon="text_bullet_list_tree_24_filled" color="indigo" h={230}>
+      <Mini at={b.cue('menu')} title={tr('Open QuickMenu')} icon="text_bullet_list_tree_24_filled" color="indigo" h={230}>
         <div style={{ position: 'absolute', left: 30, top: -4, transform: 'scale(0.9)', transformOrigin: 'top left' }}>
           <QuickMenuPanel items={MAIN_MENU.slice(0, 5)} scale={1} appear={ease(f, b.cue('menu'), b.cue('menu') + 16)} hot={2} width={300} />
         </div>
       </Mini>
-      <Mini at={b.cue('commands')} title="Commands" icon="flash_24_filled" color="gold" h={230}>
+      <Mini at={b.cue('commands')} title={tr('Commands')} icon="flash_24_filled" color="gold" h={230}>
         <div style={{ position: 'absolute', left: 20, right: 20, top: 8, display: 'flex', flexDirection: 'column', gap: 12 }}>
           {[['Run', 'play_24_filled'], ['Enable / disable', 'toggle_left_24_filled']].map(([t, ic], i) => (
             <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.06)' }}>
               <Fluent name={ic} size={22} color={C.accentText} />
-              <span style={{ fontFamily: SANS, fontSize: 17, color: C.text }}>{t} “Night mode”</span>
+              <span style={{ fontFamily: SANS, fontSize: 17, color: C.text }}>{t} {tr('“Night mode”')}</span>
               {i === 1 && <div style={{ marginLeft: 'auto' }}><Toggle on={on} /></div>}
             </div>
           ))}

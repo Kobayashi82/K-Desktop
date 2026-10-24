@@ -62,6 +62,7 @@ export const ChapterTitle: React.FC<{ index: number }> = ({ index }) => {
 
 /** Thin bar at the bottom: one segment per chapter, filling with gold as the video advances. */
 export const ProgressBar: React.FC<{ chapters: { id: string; label: string; from: number; durationInFrames: number }[]; frame: number }> = ({ chapters, frame }) => {
+  if (chapters.length < 3) return null; // only intro and outro (a script still being written): nothing in between
   const total = chapters[chapters.length - 1].from + chapters[chapters.length - 1].durationInFrames;
   const visible = ease(frame, chapters[1].from, chapters[1].from + 30) * (1 - ease(frame, chapters[chapters.length - 1].from, chapters[chapters.length - 1].from + 20));
   return (

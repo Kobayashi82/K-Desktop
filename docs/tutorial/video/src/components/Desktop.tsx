@@ -2,6 +2,7 @@ import React from 'react';
 import { C, SANS } from '../theme';
 import { Fluent, KdIcon } from './Icon';
 import { WinFrame } from './KdWindow';
+import { t } from '../lib/i18n';
 
 /** A dark Windows 11 style wallpaper: soft folded light. */
 export const Wallpaper: React.FC<{ width?: number; height?: number; hue?: number }> = ({ width = 1920, height = 1080, hue = 0 }) => (
@@ -63,12 +64,12 @@ export const Lines: React.FC<{ count: number; width?: number; color?: string; ga
 export type AppKind = 'notepad' | 'explorer' | 'browser' | 'player' | 'steam' | 'chrome';
 
 const APPS: Record<AppKind, { title: string; icon: string; color: string }> = {
-  notepad: { title: 'Untitled - Notepad', icon: 'document_text_24_filled', color: 'sky' },
-  explorer: { title: 'Documents', icon: 'folder_24_filled', color: 'yellow' },
-  browser: { title: 'New tab - Browser', icon: 'globe_24_filled', color: 'blue' },
-  chrome: { title: 'Google Chrome', icon: 'globe_24_filled', color: 'green' },
-  player: { title: 'Music', icon: 'music_note_2_24_filled', color: 'pink' },
-  steam: { title: 'Steam', icon: 'xbox_controller_24_filled', color: 'indigo' },
+  notepad: { title: t('Untitled - Notepad'), icon: 'document_text_24_filled', color: 'sky' },
+  explorer: { title: t('Documents'), icon: 'folder_24_filled', color: 'yellow' },
+  browser: { title: t('New tab - Browser'), icon: 'globe_24_filled', color: 'blue' },
+  chrome: { title: t('Google Chrome'), icon: 'globe_24_filled', color: 'green' },
+  player: { title: t('Music'), icon: 'music_note_2_24_filled', color: 'pink' },
+  steam: { title: t('Steam'), icon: 'xbox_controller_24_filled', color: 'indigo' },
 };
 
 /** A generic application window with recognisable but quiet content. */

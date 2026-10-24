@@ -7,6 +7,7 @@ import { Sfx } from '../../components/Sfx';
 import { ease, glide, inOut, OUT, pop } from '../../lib/anim';
 import { BeatTimes } from '../../lib/timeline';
 import { C, SANS } from '../../theme';
+import { t } from '../../lib/i18n';
 
 export const Bubble: React.FC<{ text: React.ReactNode; show: number; x: number; y: number; user?: boolean; size?: number; width?: number }> = ({ text, show, x, y, user, size = 34, width }) => (
   <div style={{
@@ -33,8 +34,8 @@ export const ArchPart: React.FC<{ b: BeatTimes }> = ({ b }) => {
       {/* Two processes */}
       <div style={{ position: 'absolute', left: 0, right: 0, top: 380, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 60, opacity: procShow }}>
         {[
-          { at: b.from, icon: 'shield_checkmark_24_filled', color: 'gold', title: 'K-Desktop', sub: 'Administrator' },
-          { at: b.cue('process') - 6, icon: 'person_24_filled', color: 'purple', title: 'Assistant process', sub: 'Normal user · no admin rights' },
+          { at: b.from, icon: 'shield_checkmark_24_filled', color: 'gold', title: t('K-Desktop'), sub: t('Administrator') },
+          { at: b.cue('process') - 6, icon: 'person_24_filled', color: 'purple', title: t('Assistant process'), sub: t('Normal user · no admin rights') },
         ].map((p, i) => {
           const k = pop(f, p.at - 4, { damping: 13 });
           return (
@@ -65,8 +66,8 @@ export const ArchPart: React.FC<{ b: BeatTimes }> = ({ b }) => {
           </div>
         </div>
         <div style={{ position: 'absolute', left: 1380, top: 300, display: 'flex', flexDirection: 'column', gap: 120, opacity: ease(f, b.cue('layer'), b.cue('layer') + 20) }}>
-          <div style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.sky }}>Transparent layer · GPU</div>
-          <div style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: terrain > 0.5 ? C.accentText : C.text }}>{terrain > 0.5 ? 'Your windows = terrain' : 'Your windows'}</div>
+          <div style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.sky }}>{t('Transparent layer · GPU')}</div>
+          <div style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: terrain > 0.5 ? C.accentText : C.text }}>{terrain > 0.5 ? t('Your windows = terrain') : t('Your windows')}</div>
         </div>
       </AbsoluteFill>
       <Sfx at={b.cue('process') - 6} name="pop" volume={0.25} />
@@ -89,8 +90,8 @@ export const TalkPart: React.FC<{ b: BeatTimes }> = ({ b }) => {
         {f < ownAt && (
           <>
             <Lander x={1260} y={560} size={300} />
-            <Bubble user text="Lander, what time is it?" show={pop(f, b.cue('question') - 6)} x={1080} y={360} size={40} />
-            <Bubble text="12:52, Saturday. Over." show={pop(f, b.cue('question') + 34)} x={1400} y={700} size={36} />
+            <Bubble user text={t('Lander, what time is it?')} show={pop(f, b.cue('question') - 6)} x={1080} y={360} size={40} />
+            <Bubble text={t('12:52, Saturday. Over.')} show={pop(f, b.cue('question') + 34)} x={1400} y={700} size={36} />
           </>
         )}
       </AbsoluteFill>
@@ -99,8 +100,8 @@ export const TalkPart: React.FC<{ b: BeatTimes }> = ({ b }) => {
         <CaptureShot name="settings-voice"
           shots={[{ at: ownAt - 8, x: 1040, y: 790, s: 1.5 }, { at: ownAt + 10, dur: 60, x: 1040, y: 790, s: 1.62 }]}
           focus={[
-            { from: ownAt - 2, to: b.cue('kd') - 4, rect: [571, 704, 936, 152], label: 'Each assistant, its own word', at: 'top' },
-            { from: b.cue('kd') - 4, to: b.cue('key'), rect: [571, 868, 936, 72], label: 'KDesktop → your commands', at: 'top' },
+            { from: ownAt - 2, to: b.cue('kd') - 4, rect: [571, 704, 936, 152], label: t('Each assistant, its own word'), at: 'top' },
+            { from: b.cue('kd') - 4, to: b.cue('key'), rect: [571, 868, 936, 72], label: t('KDesktop → your commands'), at: 'top' },
           ]} />
       </AbsoluteFill>
       {/* A key, a click, and just answering */}
@@ -108,19 +109,19 @@ export const TalkPart: React.FC<{ b: BeatTimes }> = ({ b }) => {
         <AbsoluteFill style={{ opacity: ease(f, lastPart - 10, lastPart + 6) }}>
           <div style={{ position: 'absolute', left: 300, top: 360, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, opacity: pop(f, b.cue('key') - 6) }}>
             <Keycap label={<Fluent name="mic_24_filled" size={56} color={inOut(f, b.cue('key'), b.cue('click'), 4) > 0.5 ? '#1a1306' : C.text} />} height={150} width={170} down={inOut(f, b.cue('key'), b.cue('click'), 4)} />
-            <span style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.text }}>Hold its key</span>
+            <span style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.text }}>{t('Hold its key')}</span>
           </div>
           <div style={{ position: 'absolute', left: 760, top: 300, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, opacity: pop(f, b.cue('click') - 6) }}>
             <div style={{ position: 'relative', width: 220, height: 220 }}>
               <Img src={staticFile('brand/lander/classic.png')} style={{ width: 220, height: 220 }} />
               <div style={{ position: 'absolute', left: 60, top: 60, width: 100, height: 100, borderRadius: 50, border: `5px solid ${C.accentText}`, opacity: inOut(f, b.cue('click'), b.cue('asks'), 4), transform: `scale(${0.8 + 0.2 * Math.sin(f / 4)})` }} />
             </div>
-            <span style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.text }}>Hold the click on it</span>
+            <span style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.text }}>{t('Hold the click on it')}</span>
           </div>
           <div style={{ position: 'absolute', left: 1180, top: 280, width: 640, opacity: pop(f, b.cue('asks') - 6) }}>
-            <Bubble text="Shall I remind you at 16:45?" show={pop(f, b.cue('asks') - 6)} x={0} y={60} size={30} />
-            <Bubble user text="Yes, please" show={pop(f, b.cue('asks') + 14)} x={620} y={190} size={30} />
-            <div style={{ position: 'absolute', left: 0, top: 270, fontFamily: SANS, fontSize: 24, color: C.accentText, fontWeight: 700, opacity: pop(f, b.cue('asks') + 24) }}>No need to call it again</div>
+            <Bubble text={t('Shall I remind you at 16:45?')} show={pop(f, b.cue('asks') - 6)} x={0} y={60} size={30} />
+            <Bubble user text={t('Yes, please')} show={pop(f, b.cue('asks') + 14)} x={620} y={190} size={30} />
+            <div style={{ position: 'absolute', left: 0, top: 270, fontFamily: SANS, fontSize: 24, color: C.accentText, fontWeight: 700, opacity: pop(f, b.cue('asks') + 24) }}>{t('No need to call it again')}</div>
           </div>
         </AbsoluteFill>
       )}
@@ -137,16 +138,16 @@ export const TalkPart: React.FC<{ b: BeatTimes }> = ({ b }) => {
 export const BrainPart: React.FC<{ brain: BeatTimes; brain2: BeatTimes }> = ({ brain, brain2 }) => {
   const f = useCurrentFrame();
   const places = [
-    { cue: 'thispc', icon: 'desktop_24_filled', color: C.success, title: 'This PC', sub: 'what you say never leaves it' },
-    { cue: 'network', icon: 'home_24_filled', color: C.sky, title: 'Your network', sub: 'it stays at home' },
-    { cue: 'internet', icon: 'globe_24_filled', color: C.warning, title: 'The internet', sub: 'it leaves your network' },
+    { cue: 'thispc', icon: 'desktop_24_filled', color: C.success, title: t('This PC'), sub: t('what you say never leaves it') },
+    { cue: 'network', icon: 'home_24_filled', color: C.sky, title: t('Your network'), sub: t('it stays at home') },
+    { cue: 'internet', icon: 'globe_24_filled', color: C.warning, title: t('The internet'), sub: t('it leaves your network') },
   ];
-  const servers = [{ cue: 'llama', t: 'llama-server' }, { cue: 'ollama', t: 'Ollama' }, { cue: 'openai', t: 'OpenAI compatible' }];
+  const servers = [{ cue: 'llama', t: 'llama-server' }, { cue: 'ollama', t: t('Ollama') }, { cue: 'openai', t: t('OpenAI compatible') }];
   const rules = [
-    { cue: 'time', q: 'What time is it?', a: '12:52' },
-    { cue: 'timer', q: 'A timer for 5 minutes', a: 'Timer set' },
-    { cue: 'note', q: 'Note: buy batteries', a: 'Noted' },
-    { cue: 'cancel', q: 'Cancel', a: 'Cancelled' },
+    { cue: 'time', q: t('What time is it?'), a: '12:52' },
+    { cue: 'timer', q: t('A timer for 5 minutes'), a: t('Timer set') },
+    { cue: 'note', q: t('Note: buy batteries'), a: t('Noted') },
+    { cue: 'cancel', q: t('Cancel'), a: t('Cancelled') },
   ];
   const rulesShow = inOut(f, brain2.cue('time') - 10, brain2.to + 40, 10);
   const placesShow = inOut(f, brain.cue('where') - 8, brain2.from + 4, 10);
@@ -161,11 +162,11 @@ export const BrainPart: React.FC<{ brain: BeatTimes; brain2: BeatTimes }> = ({ b
           { at: brain2.cue('unloads') - 8, dur: 30, x: 1040, y: 520, s: 1.55 },
         ]}
         focus={[
-          { from: brain.cue('pc') - 4, to: brain.cue('llama') - 4, rect: [572, 157, 937, 46], label: 'It loads by itself when you talk' },
-          { from: brain.cue('llama') - 4, to: brain.cue('biggest') - 4, rect: [572, 700, 937, 210], label: 'GGUF models from Hugging Face', at: 'top' },
-          { from: brain.cue('biggest') - 4, to: brain.cue('where') - 8, rect: [572, 218, 937, 44], label: 'Automatic: the biggest that fits your GPU' },
-          { from: brain2.cue('unloads') - 4, to: brain2.cue('games') - 4, rect: [572, 483, 937, 42], label: 'Unloads when idle' },
-          { from: brain2.cue('games') - 4, to: brain2.cue('time') - 10, rect: [572, 533, 937, 42], label: 'Free the graphics card for games' },
+          { from: brain.cue('pc') - 4, to: brain.cue('llama') - 4, rect: [572, 157, 937, 46], label: t('It loads by itself when you talk') },
+          { from: brain.cue('llama') - 4, to: brain.cue('biggest') - 4, rect: [572, 700, 937, 210], label: t('GGUF models from Hugging Face'), at: 'top' },
+          { from: brain.cue('biggest') - 4, to: brain.cue('where') - 8, rect: [572, 218, 937, 44], label: t('Automatic: the biggest that fits your GPU') },
+          { from: brain2.cue('unloads') - 4, to: brain2.cue('games') - 4, rect: [572, 483, 937, 42], label: t('Unloads when idle') },
+          { from: brain2.cue('games') - 4, to: brain2.cue('time') - 10, rect: [572, 533, 937, 42], label: t('Free the graphics card for games') },
         ]} />
       {/* Which servers */}
       <div style={{ position: 'absolute', left: 0, right: 0, top: 150, display: 'flex', justifyContent: 'center', gap: 20, opacity: inOut(f, brain.cue('ollama') - 8, brain.cue('where') - 8, 8) }}>
@@ -201,7 +202,7 @@ export const BrainPart: React.FC<{ brain: BeatTimes; brain2: BeatTimes }> = ({ b
               </div>
             );
           })}
-          <div style={{ marginTop: 20, fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.accentText, opacity: pop(f, brain2.cue('rules') - 6) }}>Instant · no AI needed</div>
+          <div style={{ marginTop: 20, fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.accentText, opacity: pop(f, brain2.cue('rules') - 6) }}>{t('Instant · no AI needed')}</div>
         </div>
       </AbsoluteFill>
       {places.map(p => <Sfx key={p.cue} at={brain.cue(p.cue) - 6} name="pop" volume={0.2} />)}

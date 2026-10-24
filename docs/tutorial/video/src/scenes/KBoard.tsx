@@ -11,6 +11,7 @@ import { Check, Toggle } from '../components/Ui';
 import { ease, glide, inOut, pop } from '../lib/anim';
 import { useBeats } from '../lib/timeline';
 import { C, SANS } from '../theme';
+import { t } from '../lib/i18n';
 
 const U = 66; // key unit
 const ROWS: Array<Array<[string, number]>> = [
@@ -55,10 +56,10 @@ const Keyboard: React.FC<{ remaps: Record<string, Remap>; hot?: string; dots?: s
 );
 
 const OPTIONS = [
-  { cue: 'key', icon: 'keyboard_24_filled', label: 'Key or combination' },
-  { cue: 'text', icon: 'text_t_24_filled', label: 'Text' },
-  { cue: 'command', icon: 'flash_24_filled', label: 'Command' },
-  { cue: 'nothing', icon: 'prohibited_24_filled', label: 'Disabled' },
+  { cue: 'key', icon: 'keyboard_24_filled', label: t('Key or combination') },
+  { cue: 'text', icon: 'text_t_24_filled', label: t('Text') },
+  { cue: 'command', icon: 'flash_24_filled', label: t('Command') },
+  { cue: 'nothing', icon: 'prohibited_24_filled', label: t('Disabled') },
 ];
 
 export const KBoard: React.FC = () => {
@@ -105,7 +106,7 @@ export const KBoard: React.FC = () => {
   ];
   return (
     <AbsoluteFill>
-      <Kinetic text="K-Board" at={intro.from - 4} x={960} y={150} size={96} out={surface.from + 10} />
+      <Kinetic text={t('K-Board')} at={intro.from - 4} x={960} y={150} size={96} out={surface.from + 10} />
       <Camera shots={shots}>
         <div style={{ position: 'absolute', left: 170, top: 330, transform: `translateY(${(1 - kbIn) * 300}px)`, opacity: kbIn }}>
           <Keyboard remaps={remaps} hot={hot} dots={f > layers.cue('modifiers') ? ['J', 'K'] : []} />
@@ -113,12 +114,12 @@ export const KBoard: React.FC = () => {
         <div style={{ position: 'absolute', left: 1440, top: 400, transform: `translateY(${(1 - kbIn) * 300}px)`, opacity: kbIn }}>
           <MouseShape scale={1.15} glow={sideLit ? 1 : 0} />
           <div style={{ position: 'absolute', left: -100, top: 160, display: 'flex', flexDirection: 'column', gap: 50, opacity: ease(f, examples.cue('side'), examples.cue('side') + 10) }}>
-            {['Copy', 'Paste'].map(t => <span key={t} style={{ fontFamily: SANS, fontSize: 24, fontWeight: 800, color: '#1a1306', background: C.gold1, padding: '6px 14px', borderRadius: 10, textAlign: 'center' }}>{t}</span>)}
+            {[t('Copy'), t('Paste')].map(t => <span key={t} style={{ fontFamily: SANS, fontSize: 24, fontWeight: 800, color: '#1a1306', background: C.gold1, padding: '6px 14px', borderRadius: 10, textAlign: 'center' }}>{t}</span>)}
           </div>
         </div>
         {/* What the key does */}
         <div style={{ position: 'absolute', left: 340, top: 780, width: 560, padding: 20, borderRadius: 20, background: 'rgba(40,40,48,0.99)', border: `1.5px solid rgba(242,193,74,0.6)`, boxShadow: '0 20px 60px rgba(0,0,0,0.6)', opacity: popover, transform: `translateY(${(1 - popover) * 20}px)` }}>
-          <div style={{ fontFamily: SANS, fontSize: 20, fontWeight: 700, color: C.dim, marginBottom: 10 }}>Caps Lock sends…</div>
+          <div style={{ fontFamily: SANS, fontSize: 20, fontWeight: 700, color: C.dim, marginBottom: 10 }}>{t('Caps Lock sends…')}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
             {OPTIONS.map((o, i) => (
               <span key={o.cue} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', borderRadius: 12, fontFamily: SANS, fontSize: 19, fontWeight: 700, background: i === optIdx ? C.accentText : 'rgba(255,255,255,0.06)', color: i === optIdx ? '#1a1306' : C.text }}>
@@ -129,7 +130,7 @@ export const KBoard: React.FC = () => {
         </div>
         {/* Layers */}
         <div style={{ position: 'absolute', left: 170, top: 210, display: 'flex', alignItems: 'center', gap: 18, opacity: inOut(f, layers.from - 6, scope.from, 8) }}>
-          <span style={{ fontFamily: SANS, fontSize: 26, fontWeight: 700, color: C.text }}>With modifiers:</span>
+          <span style={{ fontFamily: SANS, fontSize: 26, fontWeight: 700, color: C.text }}>{t('With modifiers:')}</span>
           {['Ctrl', 'Alt', 'Shift', 'Win'].map(m => (
             <span key={m} style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: SANS, fontSize: 24, color: C.text }}>
               <Check on={m === 'Ctrl' && ctrlLayer} scale={1.3} />{m}
@@ -140,26 +141,26 @@ export const KBoard: React.FC = () => {
         {/* Scope: everywhere or some apps; a command or the tray */}
         <div style={{ position: 'absolute', left: 170, top: 1010, display: 'flex', gap: 30, opacity: toScope }}>
           <div style={{ width: 760, padding: 26, borderRadius: 24, background: 'rgba(32,32,38,0.97)', border: `1px solid ${C.line2}` }}>
-            <div style={{ fontFamily: SANS, fontSize: 26, fontWeight: 800, color: C.text, marginBottom: 14 }}>Gaming profile</div>
+            <div style={{ fontFamily: SANS, fontSize: 26, fontWeight: 800, color: C.text, marginBottom: 14 }}>{t('Gaming profile')}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-              <span style={{ fontFamily: SANS, fontSize: 22, color: f < scope.cue('apps') - 4 ? C.accentText : C.dim }}>Everywhere</span>
+              <span style={{ fontFamily: SANS, fontSize: 22, color: f < scope.cue('apps') - 4 ? C.accentText : C.dim }}>{t('Everywhere')}</span>
               <span style={{ fontFamily: SANS, fontSize: 22, color: C.faint }}>·</span>
-              <span style={{ fontFamily: SANS, fontSize: 22, color: f >= scope.cue('apps') - 4 ? C.accentText : C.dim }}>Only in:</span>
+              <span style={{ fontFamily: SANS, fontSize: 22, color: f >= scope.cue('apps') - 4 ? C.accentText : C.dim }}>{t('Only in:')}</span>
               {['eldenring.exe', 'cs2.exe'].map((a, i) => (
                 <span key={a} style={{ opacity: pop(f, scope.cue('apps') + i * 6), padding: '6px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.08)' }}><Mono size={19}>{a}</Mono></span>
               ))}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', borderRadius: 14, background: f > scope.cue('command') - 4 ? 'rgba(242,193,74,0.12)' : 'rgba(255,255,255,0.05)' }}>
               <KdIcon icon="keyboard_layout_float_24_filled" color="purple" size={44} />
-              <span style={{ fontFamily: SANS, fontSize: 22, color: C.text }}>Action «K-Board»: toggle “Gaming”</span>
+              <span style={{ fontFamily: SANS, fontSize: 22, color: C.text }}>{t('Action «K-Board»: toggle “Gaming”')}</span>
             </div>
           </div>
           <div style={{ width: 420, padding: 18, borderRadius: 18, background: 'rgba(40,40,48,0.98)', border: `1.5px solid ${f > scope.cue('tray') - 4 ? 'rgba(242,193,74,0.6)' : C.line2}`, opacity: ease(f, scope.cue('tray') - 6, scope.cue('tray') + 6) }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
               <Img src={staticFile('brand/icon-64.png')} style={{ width: 30, height: 30 }} />
-              <span style={{ fontFamily: SANS, fontSize: 20, fontWeight: 700, color: C.text }}>K-Board</span>
+              <span style={{ fontFamily: SANS, fontSize: 20, fontWeight: 700, color: C.text }}>{t('K-Board')}</span>
             </div>
-            {['Gaming', 'Photo editing', 'Writing'].map((p, i) => (
+            {[t('Gaming'), t('Photo editing'), t('Writing')].map((p, i) => (
               <div key={p} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 10px', fontFamily: SANS, fontSize: 20, color: C.text }}>
                 <Toggle on={i === 0 && f > scope.cue('tray') + 10 ? 1 : 0} />{p}
               </div>

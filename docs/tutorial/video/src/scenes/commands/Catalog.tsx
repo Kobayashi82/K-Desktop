@@ -10,6 +10,7 @@ import { ease, inOut, OUT, pop, rand } from '../../lib/anim';
 import { BeatTimes } from '../../lib/timeline';
 import { C, SANS } from '../../theme';
 import { DEMOS } from './Demos';
+import { t } from '../../lib/i18n';
 
 const COL_W = 400;
 const COL_GAP = 40;
@@ -111,7 +112,7 @@ export const CatalogPart: React.FC<{ catalog: BeatTimes; beats: Record<string, B
       }}>
         <div style={{ position: 'relative', width: picker.width, height: picker.height, borderRadius: 12, overflow: 'hidden', boxShadow: '0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.12)' }}>
           <Img src={staticFile(picker.file)} style={{ width: picker.width, height: picker.height }} />
-          <FocusLayer width={picker.width} height={picker.height} focus={[{ from: catalog.cue('nine') - 8, to: beats.apps.from, rect: [18, 100, 200, 326], label: '9 families', at: 'right' }]} />
+          <FocusLayer width={picker.width} height={picker.height} focus={[{ from: catalog.cue('nine') - 8, to: beats.apps.from, rect: [18, 100, 200, 326], label: t('9 families'), at: 'right' }]} />
         </div>
       </div>
 

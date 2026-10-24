@@ -9,6 +9,7 @@ import { Callout } from '../../components/Ui';
 import { ease, glide, inOut, OUT, pop } from '../../lib/anim';
 import { BeatTimes } from '../../lib/timeline';
 import { C, SANS } from '../../theme';
+import { t } from '../../lib/i18n';
 
 /** Pip, frame by frame (samples/CharacterAssistant): the same pictures K-Desktop animates. */
 export const PipSprite: React.FC<{ anim?: string; frames?: number; fps?: number; size?: number; style?: React.CSSProperties }> = ({ anim = 'idle', frames = 4, fps = 5, size = 160, style }) => {
@@ -37,7 +38,7 @@ export const MeetPart: React.FC<{ intro: BeatTimes; cast: BeatTimes }> = ({ intr
             <CaptureClip name="clips/lander-says-hello" startFrom={0} />
           </Sequence>
         </div>
-        <div style={{ position: 'absolute', left: 0, right: 0, top: 50, textAlign: 'center', fontFamily: SANS, fontSize: 30, fontWeight: 700, color: C.dim, opacity: ease(f, 20, 40) }}>A real recording</div>
+        <div style={{ position: 'absolute', left: 0, right: 0, top: 50, textAlign: 'center', fontFamily: SANS, fontSize: 30, fontWeight: 700, color: C.dim, opacity: ease(f, 20, 40) }}>{t('A real recording')}</div>
       </AbsoluteFill>
 
       {/* Who is who */}
@@ -50,9 +51,9 @@ export const MeetPart: React.FC<{ intro: BeatTimes; cast: BeatTimes }> = ({ intr
             { at: at.kobii - 8, dur: 30, x: 1520, y: 900, s: 2.4 },
             { at: at.pip - 8, dur: 30, x: 800, y: 900, s: 2.4 },
           ]}>
-          <Callout show={inOut(f, at.lander, at.kobii - 4, 8)} x={1255} y={1010} size={22} align="right">Lander</Callout>
-          <Callout show={inOut(f, at.kobii, at.pip - 4, 8)} x={1800} y={950} size={22} align="center">Kobii</Callout>
-          <Callout show={inOut(f, at.pip, cast.to + 20, 8)} x={567} y={955} size={22} align="center">Pip</Callout>
+          <Callout show={inOut(f, at.lander, at.kobii - 4, 8)} x={1255} y={1010} size={22} align="right">{t('Lander')}</Callout>
+          <Callout show={inOut(f, at.kobii, at.pip - 4, 8)} x={1800} y={950} size={22} align="center">{t('Kobii')}</Callout>
+          <Callout show={inOut(f, at.pip, cast.to + 20, 8)} x={567} y={955} size={22} align="center">{t('Pip')}</Callout>
         </CaptureShot>
         {/* The Lander's game: its skins */}
         <div style={{ position: 'absolute', left: 0, right: 0, top: 150, display: 'flex', justifyContent: 'center', gap: 30, opacity: inOut(f, at.game - 6, at.kobii - 4, 8) }}>
@@ -62,7 +63,7 @@ export const MeetPart: React.FC<{ intro: BeatTimes; cast: BeatTimes }> = ({ intr
             </div>
           ))}
         </div>
-        <div style={{ position: 'absolute', left: 0, right: 0, top: 380, textAlign: 'center', fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.text, opacity: inOut(f, at.game, at.kobii - 4, 8) }}>Missions · races · levels · skins</div>
+        <div style={{ position: 'absolute', left: 0, right: 0, top: 380, textAlign: 'center', fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.text, opacity: inOut(f, at.game, at.kobii - 4, 8) }}>{t('Missions · races · levels · skins')}</div>
         {/* Kobii's colours */}
         <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: 150, display: 'flex', justifyContent: 'center', gap: 26, padding: '16px 30px', borderRadius: 30, background: 'rgba(20,20,26,0.92)', border: `1.5px solid ${C.line2}`, opacity: inOut(f, at.kobii + 4, at.pip - 4, 8) }}>
           {kobiis.map((s, i) => <Img key={s} src={staticFile(`brand/kobii/${s}.png`)} style={{ width: 170, height: 170, transform: `translateY(${(1 - pop(f, at.kobii + 4 + i * 4)) * 60 + Math.sin(f / 8 + i) * 6}px)` }} />)}
@@ -73,8 +74,8 @@ export const MeetPart: React.FC<{ intro: BeatTimes; cast: BeatTimes }> = ({ intr
             {['idle', 'talk', 'happy', 'listen'].map(a => <PipSprite key={a} anim={a} frames={a === 'listen' ? 2 : 4} size={130} />)}
           </div>
           <div style={{ padding: '18px 24px', borderRadius: 18, background: '#0c0c10', border: `1px solid ${C.line2}`, opacity: ease(f, at.json - 8, at.json + 4) }}>
-            <Mono size={20} color={C.dim}>character.json</Mono><br />
-            <Mono size={20} color={C.accentText}>{'"talk": { "frames": [ "frames/talk0.png", … ] }'}</Mono>
+            <Mono size={20} color={C.dim}>{t('character.json')}</Mono><br />
+            <Mono size={20} color={C.accentText}>{t('"talk": { "frames": [ "frames/talk0.png", … ] }')}</Mono>
           </div>
         </div>
       </AbsoluteFill>
@@ -105,8 +106,8 @@ export const InstallPart: React.FC<{ module: BeatTimes; install: BeatTimes }> = 
         <CaptureShot name="assistant-settings"
           shots={[{ at: 0, x: 960, y: 400, s: 1.2 }, { at: module.cue('optional') - 10, dur: 30, x: 960, y: 230, s: 1.7 }]}
           focus={[
-            { from: module.cue('optional') - 4, to: module.cue('off') - 2, rect: [571, 164, 776, 38], label: 'Turn on the Assistant module' },
-            { from: module.cue('off') - 2, to: module.to + 30, rect: [571, 126, 776, 22], label: 'Off: nothing of it is loaded' },
+            { from: module.cue('optional') - 4, to: module.cue('off') - 2, rect: [571, 164, 776, 38], label: t('Turn on the Assistant module') },
+            { from: module.cue('off') - 2, to: module.to + 30, rect: [571, 126, 776, 22], label: t('Off: nothing of it is loaded') },
           ]} />
       </AbsoluteFill>
       <AbsoluteFill style={{ opacity: toInstall }}>
@@ -116,7 +117,7 @@ export const InstallPart: React.FC<{ module: BeatTimes; install: BeatTimes }> = 
             <Fluent name="document_24_filled" size={220} color="#3a3a44" />
             <Img src={staticFile('brand/lander/icon.png')} style={{ position: 'absolute', left: 50, top: 60, width: 120, height: 120 }} />
           </div>
-          <Mono size={30} color={C.text}>lander-0.16.1.kai</Mono>
+          <Mono size={30} color={C.text}>{t('lander-0.16.1.kai')}</Mono>
         </div>
         <div style={{ position: 'absolute', left: 960 - (card.width * S) / 2 + 120, top: 48, transform: `scale(${0.9 + 0.1 * pop(f, install.cue('card') - 6)}) translateY(${-drop * 900}px)`, opacity: Math.min(1, pop(f, install.cue('card') - 6) * 2) * (1 - drop) }}>
           <div style={{ position: 'relative', width: card.width * S, height: card.height * S, borderRadius: 14, overflow: 'hidden', boxShadow: '0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.12)' }}>

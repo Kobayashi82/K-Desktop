@@ -1,6 +1,7 @@
 import React from 'react';
 import { C, SANS } from '../theme';
 import { KdIcon } from './Icon';
+import { t } from '../lib/i18n';
 
 export type ActionRow = { icon: string; color: string; name: string; detail: string };
 
@@ -16,7 +17,7 @@ export const CommandCard: React.FC<{
     <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
       <KdIcon icon={icon} color={color} size={72} glow={glow * 0.6} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, opacity: nameShow }}>
-        <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 700, letterSpacing: 2, color: C.accentText, textTransform: 'uppercase' }}>Command</div>
+        <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 700, letterSpacing: 2, color: C.accentText, textTransform: 'uppercase' }}>{t('Command')}</div>
         <div style={{ fontFamily: SANS, fontSize: 34, fontWeight: 800, color: C.text, letterSpacing: -0.5 }}>{name}</div>
       </div>
       {hotkey && <div style={{ marginLeft: 'auto', fontFamily: SANS, fontSize: 16, fontWeight: 600, color: C.accentText, background: C.accentSoft, padding: '6px 12px', borderRadius: 9 }}>{hotkey}</div>}
@@ -50,9 +51,9 @@ export const CommandCard: React.FC<{
 );
 
 export const WORK_MODE: ActionRow[] = [
-  { icon: 'open_24_filled', color: 'blue', name: 'Run application', detail: 'notepad.exe' },
-  { icon: 'timer_24_filled', color: 'purple', name: 'Wait', detail: '1 s' },
-  { icon: 'window_new_24_filled', color: 'sky', name: 'Window', detail: 'Left half' },
-  { icon: 'speaker_2_24_filled', color: 'teal', name: 'Volume', detail: '20 %' },
-  { icon: 'folder_open_24_filled', color: 'yellow', name: 'Open folder', detail: 'Documents' },
+  { icon: 'open_24_filled', color: 'blue', name: t('Run application'), detail: t('notepad.exe') },
+  { icon: 'timer_24_filled', color: 'purple', name: t('Wait'), detail: '1 s' },
+  { icon: 'window_new_24_filled', color: 'sky', name: t('Window'), detail: t('Left half') },
+  { icon: 'speaker_2_24_filled', color: 'teal', name: t('Volume'), detail: '20 %' },
+  { icon: 'folder_open_24_filled', color: 'yellow', name: t('Open folder'), detail: t('Documents') },
 ];

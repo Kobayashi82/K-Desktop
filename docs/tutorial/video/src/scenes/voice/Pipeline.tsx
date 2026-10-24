@@ -9,6 +9,7 @@ import { speechAmp, Wave } from '../../components/Wave';
 import { ease, OUT, pop, rand } from '../../lib/anim';
 import { BeatTimes } from '../../lib/timeline';
 import { C, SANS } from '../../theme';
+import { t } from '../../lib/i18n';
 
 const CW = 640;
 const CH = 600;
@@ -82,21 +83,21 @@ export const PipelinePart: React.FC<{ echo: BeatTimes; detector: BeatTimes; veri
         {[0, 1, 2, 3, 4].map(i => (
           <Wire key={i} from={[cardX(i) + CW, CY + CH / 2]} to={[cardX(i + 1), CY + CH / 2]} draw={ease(f, starts[i + 1] - 20, starts[i + 1])} flow={1} color={C.teal} width={5} seed={i} />
         ))}
-        <Stage i={0} at={starts[0]} icon="headphones_sound_wave_24_filled" color="purple" title="Echo cancellation" tech="Speex MDF filter" lit={lit(0)}>
-          <Label>MICROPHONE: your voice + the music</Label>
+        <Stage i={0} at={starts[0]} icon="headphones_sound_wave_24_filled" color="purple" title={t('Echo cancellation')} tech={t('Speex MDF filter')} lit={lit(0)}>
+          <Label>{t('MICROPHONE: your voice + the music')}</Label>
           <div style={{ position: 'relative', height: 90 }}>
             <div style={{ position: 'absolute', inset: 0, opacity: 1 - 0.85 * echoK }}><Wave width={580} height={90} color="rgba(255,140,198,0.8)" amp={() => 0.5} seed={3} /></div>
             <div style={{ position: 'absolute', inset: 0 }}><Wave width={580} height={90} color={C.teal} amp={speechAmp(0.15, 0.85, 4)} seed={7} /></div>
           </div>
-          <Label>WHAT THE PC IS PLAYING</Label>
+          <Label>{t('WHAT THE PC IS PLAYING')}</Label>
           <Wave width={580} height={70} color="rgba(255,140,198,0.8)" amp={() => 0.5} seed={3} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 18, opacity: echoK }}>
             <Fluent name="arrow_down_24_filled" size={30} color={C.accentText} />
-            <span style={{ fontFamily: SANS, fontSize: 26, fontWeight: 800, color: C.accentText }}>Just your voice</span>
+            <span style={{ fontFamily: SANS, fontSize: 26, fontWeight: 800, color: C.accentText }}>{t('Just your voice')}</span>
           </div>
         </Stage>
-        <Stage i={1} at={starts[1]} icon="data_histogram_24_filled" color="sky" title="openWakeWord" tech="Mel spectrogram · speech embedding" lit={lit(1)}>
-          <Label>ONE FINGERPRINT EVERY 80 MS</Label>
+        <Stage i={1} at={starts[1]} icon="data_histogram_24_filled" color="sky" title="openWakeWord" tech={t('Mel spectrogram · speech embedding')} lit={lit(1)}>
+          <Label>{t('ONE FINGERPRINT EVERY 80 MS')}</Label>
           <div style={{ position: 'relative', display: 'flex', gap: 3, height: 300, alignItems: 'flex-end', overflow: 'hidden' }}>
             {Array.from({ length: 34 }, (_, c) => {
               const n = col - 33 + c;
@@ -111,42 +112,42 @@ export const PipelinePart: React.FC<{ echo: BeatTimes; detector: BeatTimes; veri
             })}
             <div style={{ position: 'absolute', right: 0, top: -4, bottom: -4, width: 16 * 17 + 2, border: `3px solid ${C.accentText}`, borderRadius: 10, opacity: fp, boxShadow: `0 0 20px rgba(242,193,74,0.5)` }} />
           </div>
-          <div style={{ marginTop: 14, fontFamily: SANS, fontSize: 22, color: C.accentText, fontWeight: 700, opacity: fp }}>The last 1.28 s, as 16 × 96 numbers</div>
+          <div style={{ marginTop: 14, fontFamily: SANS, fontSize: 22, color: C.accentText, fontWeight: 700, opacity: fp }}>{t('The last 1.28 s, as 16 × 96 numbers')}</div>
         </Stage>
-        <Stage i={2} at={starts[2]} icon="person_voice_24_filled" color="teal" title="Your detector" tech="Trained on your recordings" lit={lit(2)}>
-          <Meter label="Like your takes (DTW)" value={dtw} need={0.62} />
-          <Meter label="Classifier (your voice vs. normal talk)" value={cls} need={0.62} />
+        <Stage i={2} at={starts[2]} icon="person_voice_24_filled" color="teal" title={t('Your detector')} tech={t('Trained on your recordings')} lit={lit(2)}>
+          <Meter label={t('Like your takes (DTW)')} value={dtw} need={0.62} />
+          <Meter label={t('Classifier (your voice vs. normal talk)')} value={cls} need={0.62} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginTop: 14 }}>
-            <div style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.dim }}>both agree</div>
+            <div style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.dim }}>{t('both agree')}</div>
             <Fluent name="arrow_right_24_filled" size={34} color={C.dim} />
-            <div style={{ padding: '12px 22px', borderRadius: 16, fontFamily: SANS, fontSize: 30, fontWeight: 800, background: fired ? C.accentText : 'rgba(255,255,255,0.06)', color: fired ? '#1a1306' : C.faint, boxShadow: fired ? '0 0 40px rgba(242,193,74,0.6)' : 'none' }}>Wake word!</div>
+            <div style={{ padding: '12px 22px', borderRadius: 16, fontFamily: SANS, fontSize: 30, fontWeight: 800, background: fired ? C.accentText : 'rgba(255,255,255,0.06)', color: fired ? '#1a1306' : C.faint, boxShadow: fired ? '0 0 40px rgba(242,193,74,0.6)' : 'none' }}>{t('Wake word!')}</div>
           </div>
         </Stage>
-        <Stage i={3} at={starts[3]} icon="checkmark_starburst_24_filled" color="green" title="Second check" tech="Parakeet transcribes, compares by sound" lit={lit(3)}>
-          <Label>LAST 2 SECONDS, TRANSCRIBED</Label>
+        <Stage i={3} at={starts[3]} icon="checkmark_starburst_24_filled" color="green" title={t('Second check')} tech={t('Parakeet transcribes, compares by sound')} lit={lit(3)}>
+          <Label>{t('LAST 2 SECONDS, TRANSCRIBED')}</Label>
           <div style={{ height: 70, borderRadius: 14, background: '#15151a', display: 'flex', alignItems: 'center', padding: '0 20px' }}><Mono size={28}>{transcript}</Mono></div>
-          <Label>SOUNDS LIKE YOUR WORD?</Label>
+          <Label>{t('SOUNDS LIKE YOUR WORD?')}</Label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 6, opacity: ease(f, verify.cue('confirms') - 30, verify.cue('confirms') - 16) }}>
-            <Mono size={32} color={C.text}>kadesktop</Mono>
+            <Mono size={32} color={C.text}>{t('kadesktop')}</Mono>
             <span style={{ fontFamily: SANS, fontSize: 34, color: C.faint }}>≈</span>
-            <Mono size={32} color={C.accentText}>kdesktop</Mono>
+            <Mono size={32} color={C.accentText}>{t('kdesktop')}</Mono>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 24, opacity: confirmed ? 1 : 0, transform: `scale(${confirmed ? pop(f, verify.cue('confirms')) : 0})`, transformOrigin: 'left center' }}>
             <Fluent name="checkmark_circle_24_filled" size={44} color={C.success} />
-            <span style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.success }}>0.93 — it's really you</span>
+            <span style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.success }}>{t('0.93 — it\'s really you')}</span>
           </div>
         </Stage>
-        <Stage i={4} at={starts[4]} icon="pulse_24_filled" color="orange" title="Silero VAD" tech="Voice activity detection" lit={lit(4)}>
-          <Label>WHEN YOU SPEAK, WHEN YOU STOP</Label>
+        <Stage i={4} at={starts[4]} icon="pulse_24_filled" color="orange" title={t('Silero VAD')} tech={t('Voice activity detection')} lit={lit(4)}>
+          <Label>{t('WHEN YOU SPEAK, WHEN YOU STOP')}</Label>
           <div style={{ position: 'relative', height: 200 }}>
             <Wave width={580} height={200} color={C.teal} amp={speechAmp(0.05, 0.62, 6)} scroll={false} seed={11} />
             <div style={{ position: 'absolute', left: '5%', width: '57%', top: 0, bottom: 0, background: 'rgba(62,220,193,0.12)', border: `2px solid rgba(62,220,193,0.5)`, borderRadius: 10 }} />
             <div style={{ position: 'absolute', left: '62%', width: `${24 * vadEnd}%`, top: 0, bottom: 0, background: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.06) 0 10px, transparent 10px 20px)' }} />
             <div style={{ position: 'absolute', left: '86%', top: -10, bottom: -10, width: 4, background: C.accentText, opacity: vadEnd }} />
           </div>
-          <div style={{ marginTop: 20, fontFamily: SANS, fontSize: 26, fontWeight: 800, color: C.accentText, opacity: vadEnd }}>Silence: the order is over</div>
+          <div style={{ marginTop: 20, fontFamily: SANS, fontSize: 26, fontWeight: 800, color: C.accentText, opacity: vadEnd }}>{t('Silence: the order is over')}</div>
         </Stage>
-        <Stage i={5} at={starts[5]} icon="text_t_24_filled" color="indigo" title="Speech to text" tech="NVIDIA Parakeet TDT 0.6B · multilingual" lit={lit(5)}>
+        <Stage i={5} at={starts[5]} icon="text_t_24_filled" color="indigo" title={t('Speech to text')} tech={t('NVIDIA Parakeet TDT 0.6B · multilingual')} lit={lit(5)}>
           <Wave width={580} height={120} color={C.teal} amp={speechAmp(0.05, 0.95, 6)} scroll={false} seed={13} />
           <div style={{ display: 'flex', justifyContent: 'center', margin: '14px 0' }}><Fluent name="arrow_down_24_filled" size={40} color={C.accentText} /></div>
           <div style={{ height: 110, borderRadius: 18, background: '#15151a', border: `2px solid ${text ? C.accentText : C.line}`, display: 'flex', alignItems: 'center', padding: '0 26px' }}>

@@ -13,6 +13,7 @@ import { Sfx } from '../components/Sfx';
 import { ease, glide, inOut, keys, OUT, pop } from '../lib/anim';
 import { BeatTimes, useBeats, useChapter } from '../lib/timeline';
 import { C, MONO, SANS } from '../theme';
+import { t } from '../lib/i18n';
 
 const PW = 400; // phone screen width
 
@@ -45,7 +46,7 @@ const PhonePart: React.FC<{ intro: BeatTimes; pair: BeatTimes; menus: BeatTimes;
   const fx = 200 + Math.cos(padT / 14) * 90;
   const fy = 430 + Math.sin(padT / 10) * 120;
   const touch = inOut(f, pad.cue('touchpad'), pad.cue('keyboard') - 4, 6);
-  const typed = 'Hello from the couch'.slice(0, Math.max(0, Math.floor((f - pad.cue('keyboard') - 6) / 2)));
+  const typed = t('Hello from the couch').slice(0, Math.max(0, Math.floor((f - pad.cue('keyboard') - 6) / 2)));
   const volume = keys(f, [[audio.cue('volume'), 42], [audio.cue('volume') + 20, 64]]);
   const osd = Math.max(inOut(f, audio.cue('volume'), audio.cue('music') - 4, 6), inOut(f, audio.cue('music'), audio.cue('output') - 4, 6), inOut(f, audio.cue('output'), voicechat.from - 6, 6));
   const osdText = f < audio.cue('music') ? `Volume: ${Math.round(volume)} %` : f < audio.cue('output') ? 'Play / Pause' : 'Audio output: Headphones';
@@ -62,8 +63,8 @@ const PhonePart: React.FC<{ intro: BeatTimes; pair: BeatTimes; menus: BeatTimes;
                 <Img src={staticFile(web.file)} style={{ width: 1920, height: 1080 }} />
                 {/* The paired phone, then revoked */}
                 <div style={{ position: 'absolute', left: 571, top: 480, width: 750, height: 60 * (1 - revoked), overflow: 'hidden', display: 'flex', alignItems: 'center', gap: 14, padding: '0 14px', borderRadius: 10, background: `rgba(${revoked > 0 ? '255,107,107' : '255,255,255'},0.08)`, opacity: deviceRow, fontFamily: SANS, fontSize: 18, color: C.text }}>
-                  <Fluent name="phone_24_filled" size={22} color={C.accentText} /> Alex’s phone <span style={{ color: C.dim, fontSize: 15 }}>· just now · 192.168.1.42</span>
-                  <span style={{ marginLeft: 'auto', padding: '5px 12px', borderRadius: 8, fontSize: 15, background: f > revoke ? 'rgba(255,107,107,0.3)' : 'rgba(255,255,255,0.1)', color: f > revoke ? C.danger : C.text }}>Revoke</span>
+                  <Fluent name="phone_24_filled" size={22} color={C.accentText} /> {t('Alex’s phone')}{' '}<span style={{ color: C.dim, fontSize: 15 }}>{t('· just now · 192.168.1.42')}</span>
+                  <span style={{ marginLeft: 'auto', padding: '5px 12px', borderRadius: 8, fontSize: 15, background: f > revoke ? 'rgba(255,107,107,0.3)' : 'rgba(255,255,255,0.1)', color: f > revoke ? C.danger : C.text }}>{t('Revoke')}</span>
                 </div>
               </div>
               <div style={{ position: 'absolute', left: 400, top: 30, transform: `scale(${0.62 * (0.85 + 0.15 * qrShow)})`, transformOrigin: 'top left', opacity: qrShow }}>
@@ -81,7 +82,7 @@ const PhonePart: React.FC<{ intro: BeatTimes; pair: BeatTimes; menus: BeatTimes;
               </div>
               <div style={{ position: 'absolute', left: 960, top: 500, transform: `translate(-50%, -50%) scale(${pop(f, micAt + 10) * (1 - ease(f, voicechat.cue('chat') - 6, voicechat.cue('chat')))})`, display: 'flex', alignItems: 'center', gap: 20, padding: '24px 40px', borderRadius: 40, background: 'rgba(30,30,36,0.95)' }}>
                 <Fluent name="mic_24_filled" size={50} color={C.teal} />
-                <span style={{ fontFamily: SANS, fontSize: 44, fontWeight: 800, color: C.text }}>“open Spotify” → Spotify</span>
+                <span style={{ fontFamily: SANS, fontSize: 44, fontWeight: 800, color: C.text }}>{t('“open Spotify” → Spotify')}</span>
               </div>
             </div>
           )}
@@ -100,7 +101,7 @@ const PhonePart: React.FC<{ intro: BeatTimes; pair: BeatTimes; menus: BeatTimes;
               <div style={{ position: 'absolute', left: 70, top: 260, width: 260, height: 260, border: `4px solid ${C.accentText}`, borderRadius: 24 }}>
                 <div style={{ position: 'absolute', left: 10, right: 10, top: 10 + ((f - scanAt) * 6) % 230, height: 3, background: C.accentText, boxShadow: `0 0 12px ${C.accentText}` }} />
               </div>
-              <div style={{ position: 'absolute', left: 0, right: 0, top: 560, textAlign: 'center', fontFamily: SANS, fontSize: 22, color: 'white' }}>MM6F-5FD5</div>
+              <div style={{ position: 'absolute', left: 0, right: 0, top: 560, textAlign: 'center', fontFamily: SANS, fontSize: 22, color: 'white' }}>{t('MM6F-5FD5')}</div>
             </div>
           )}
           <Touch x={fx} y={fy} show={touch} />
@@ -110,7 +111,7 @@ const PhonePart: React.FC<{ intro: BeatTimes; pair: BeatTimes; menus: BeatTimes;
         </Phone>
         {/* The «only once» label */}
         <div style={{ position: 'absolute', left: -260, top: 380, transform: `rotate(-6deg) scale(${pop(f, pair.cue('once') - 4)})`, opacity: inOut(f, pair.cue('once') - 4, revoke - 4, 6), padding: '12px 22px', borderRadius: 14, background: C.accentText, fontFamily: SANS, fontSize: 26, fontWeight: 800, color: '#1a1306' }}>
-          Works only once
+          {t('Works only once')}
         </div>
       </div>
       <Sfx at={intro.cue('webapp') - 8} name="whoosh" volume={0.25} />
@@ -130,10 +131,10 @@ const Anywhere: React.FC<{ pwa: BeatTimes; android: BeatTimes }> = ({ pwa, andro
   const toAndroid = glide(f, android.from - 8, 26);
   const installed = pop(f, homeAt + 10, { damping: 10 });
   const nodes = [
-    { x: 380, title: 'Phone', sub: '4G · anywhere', icon: 'phone_24_filled', color: 'sky' },
-    { x: 820, title: 'Internet', sub: 'https://kdesktop.example.com', icon: 'globe_24_filled', color: 'blue' },
-    { x: 1260, title: 'Reverse proxy', sub: 'Caddy · HTTPS', icon: 'lock_closed_24_filled', color: 'green' },
-    { x: 1640, title: 'ALEX-PC', sub: 'web app · port 2502', icon: 'desktop_24_filled', color: 'gold' },
+    { x: 380, title: t('Phone'), sub: t('4G · anywhere'), icon: 'phone_24_filled', color: 'sky' },
+    { x: 820, title: t('Internet'), sub: 'https://kdesktop.example.com', icon: 'globe_24_filled', color: 'blue' },
+    { x: 1260, title: t('Reverse proxy'), sub: t('Caddy · HTTPS'), icon: 'lock_closed_24_filled', color: 'green' },
+    { x: 1640, title: t('ALEX-PC'), sub: t('web app · port 2502'), icon: 'desktop_24_filled', color: 'gold' },
   ];
   return (
     <AbsoluteFill>
@@ -151,11 +152,11 @@ const Anywhere: React.FC<{ pwa: BeatTimes; android: BeatTimes }> = ({ pwa, andro
                 ))}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, transform: `scale(${installed})` }}>
                   <Img src={staticFile('brand/icon-192.png')} style={{ width: 62, height: 62, borderRadius: 14, boxShadow: '0 0 30px rgba(242,193,74,0.7)' }} />
-                  <span style={{ fontFamily: SANS, fontSize: 13, color: 'white' }}>K-Desktop</span>
+                  <span style={{ fontFamily: SANS, fontSize: 13, color: 'white' }}>{t('K-Desktop')}</span>
                 </div>
               </div>
               <div style={{ position: 'absolute', left: 30, right: 30, bottom: 60, padding: 18, borderRadius: 18, background: 'rgba(30,30,36,0.95)', opacity: inOut(f, homeAt - 10, homeAt + 14, 6), fontFamily: SANS, fontSize: 20, color: 'white', display: 'flex', alignItems: 'center', gap: 12 }}>
-                <Fluent name="add_circle_24_filled" size={28} color={C.accentText} /> Add to Home screen
+                <Fluent name="add_circle_24_filled" size={28} color={C.accentText} /> {t('Add to Home screen')}
               </div>
             </div>
           </Phone>
@@ -187,15 +188,15 @@ const Anywhere: React.FC<{ pwa: BeatTimes; android: BeatTimes }> = ({ pwa, andro
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '20px 28px', borderRadius: 22, background: 'rgba(34,34,40,0.96)', border: `1.5px solid ${C.line2}`, opacity: pop(f, android.cue('android') - 6) }}>
             <KdIcon icon="phone_24_filled" color="green" size={60} />
             <div>
-              <div style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.text }}>K-Desktop for Android</div>
-              <Mono size={20} color={C.dim}>KDesktop.apk · Android 5.0+</Mono>
+              <div style={{ fontFamily: SANS, fontSize: 30, fontWeight: 800, color: C.text }}>{t('K-Desktop for Android')}</div>
+              <Mono size={20} color={C.dim}>{t('KDesktop.apk · Android 5.0+')}</Mono>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '20px 28px', borderRadius: 22, background: 'rgba(242,193,74,0.12)', border: `1.5px solid rgba(242,193,74,0.6)`, opacity: pop(f, android.cue('pc') - 6), transform: `translateX(${(1 - pop(f, android.cue('pc') - 6)) * 60}px)` }}>
             <Fluent name="arrow_sync_24_filled" size={44} color={C.accentText} />
             <div>
-              <div style={{ fontFamily: SANS, fontSize: 26, fontWeight: 800, color: C.text }}>Updated by your PC</div>
-              <div style={{ fontFamily: SANS, fontSize: 19, color: C.dim }}>No store needed</div>
+              <div style={{ fontFamily: SANS, fontSize: 26, fontWeight: 800, color: C.text }}>{t('Updated by your PC')}</div>
+              <div style={{ fontFamily: SANS, fontSize: 19, color: C.dim }}>{t('No store needed')}</div>
             </div>
           </div>
         </div>
@@ -238,30 +239,30 @@ const Machines: React.FC<{ udp: BeatTimes; cli: BeatTimes }> = ({ udp, cli }) =>
   const nc = (s: string) => `echo "${s}" | nc -u -w1 alex-pc $PORT`;
   const lines: Line[] = [
     { at: udp.cue('list') - 6, text: nc('list'), kind: 'cmd' },
-    { at: udp.cue('list') + 30, text: '[3] - list (done)', kind: 'out' },
-    { at: udp.cue('list') + 32, text: '-------[K-DESKTOP 5.0] - [ALEX-PC]-------', kind: 'dim' },
-    { at: udp.cue('list') + 34, text: '[1] - Play/Pause   [2] - Next   [3] - Previous …', kind: 'dim' },
-    { at: udp.cue('list') + 36, text: '[20] - Gaming mode', kind: 'out' },
-    { at: udp.cue('list') + 37, text: '[21] - Living room lights off', kind: 'out' },
-    { at: udp.cue('list') + 38, text: '[22] - Work mode', kind: 'out' },
+    { at: udp.cue('list') + 30, text: t('[3] - list (done)'), kind: 'out' },
+    { at: udp.cue('list') + 32, text: t('-------[K-DESKTOP 5.0] - [ALEX-PC]-------'), kind: 'dim' },
+    { at: udp.cue('list') + 34, text: t('[1] - Play/Pause   [2] - Next   [3] - Previous …'), kind: 'dim' },
+    { at: udp.cue('list') + 36, text: t('[20] - Gaming mode'), kind: 'out' },
+    { at: udp.cue('list') + 37, text: t('[21] - Living room lights off'), kind: 'out' },
+    { at: udp.cue('list') + 38, text: t('[22] - Work mode'), kind: 'out' },
     { at: udp.cue('number') - 6, text: nc('22'), kind: 'cmd' },
-    { at: udp.cue('number') + 30, text: '[22] - Work mode (done)', kind: 'out' },
+    { at: udp.cue('number') + 30, text: t('[22] - Work mode (done)'), kind: 'out' },
     { at: udp.cue('sk') - 6, text: nc('sk ctrl+s'), kind: 'cmd' },
-    { at: udp.cue('sk') + 30, text: 'SendKey [ctrl+s] (done)', kind: 'out' },
+    { at: udp.cue('sk') + 30, text: t('SendKey [ctrl+s] (done)'), kind: 'out' },
     { at: udp.cue('event') - 6, text: nc('event Doorbell'), kind: 'cmd' },
-    { at: udp.cue('event') + 30, text: 'Evento [Doorbell] (done)', kind: 'out' },
+    { at: udp.cue('event') + 30, text: t('Evento [Doorbell] (done)'), kind: 'out' },
   ];
   const cliLines: Line[] = [
-    { at: cli.cue('run') - 4, text: 'KDesktop.exe --run "Work mode"', kind: 'cmd' },
-    { at: cli.cue('menu') - 4, text: 'KDesktop.exe --menu "Main"', kind: 'cmd' },
-    { at: cli.cue('fire') - 4, text: 'KDesktop.exe --event "Backup finished"', kind: 'cmd' },
-    { at: cli.cue('launcher') - 4, text: 'KDesktop.exe --launcher', kind: 'cmd' },
+    { at: cli.cue('run') - 4, text: t('KDesktop.exe --run "Work mode"'), kind: 'cmd' },
+    { at: cli.cue('menu') - 4, text: t('KDesktop.exe --menu "Main"'), kind: 'cmd' },
+    { at: cli.cue('fire') - 4, text: t('KDesktop.exe --event "Backup finished"'), kind: 'cmd' },
+    { at: cli.cue('launcher') - 4, text: t('KDesktop.exe --launcher'), kind: 'cmd' },
   ];
   const toCli = glide(f, cli.from - 8, 24);
   const senders = [
-    { y: 300, title: 'Home Assistant', icon: 'home_24_filled', color: 'sky' },
-    { y: 540, title: 'Scripts', icon: 'code_24_filled', color: 'dark' },
-    { y: 780, title: 'Another PC', icon: 'desktop_24_filled', color: 'blue' },
+    { y: 300, title: t('Home Assistant'), icon: 'home_24_filled', color: 'sky' },
+    { y: 540, title: t('Scripts'), icon: 'code_24_filled', color: 'dark' },
+    { y: 780, title: t('Another PC'), icon: 'desktop_24_filled', color: 'blue' },
   ];
   return (
     <AbsoluteFill>
@@ -275,17 +276,17 @@ const Machines: React.FC<{ udp: BeatTimes; cli: BeatTimes }> = ({ udp, cli }) =>
         <div style={{ position: 'absolute', left: 140, top: 140, display: 'flex', alignItems: 'center', gap: 18, opacity: pop(f, udp.cue('udp') - 6) }}>
           <KdIcon icon="plug_connected_24_filled" color="pink" size={70} />
           <div>
-            <div style={{ fontFamily: SANS, fontSize: 40, fontWeight: 800, color: C.text }}>UDP</div>
-            <div style={{ fontFamily: SANS, fontSize: 22, color: C.dim }}>Compatible with K-Desktop 4</div>
+            <div style={{ fontFamily: SANS, fontSize: 40, fontWeight: 800, color: C.text }}>{t('UDP')}</div>
+            <div style={{ fontFamily: SANS, fontSize: 22, color: C.dim }}>{t('Compatible with K-Desktop 4')}</div>
           </div>
         </div>
         <div style={{ position: 'absolute', left: 780, top: 230, transform: `translateX(${(1 - glide(f, udp.from - 6, 24)) * 200}px)` }}>
-          <Terminal lines={lines} title="bash — alex@nas" width={1040} height={660} />
+          <Terminal lines={lines} title={t('bash — alex@nas')} width={1040} height={660} />
         </div>
       </AbsoluteFill>
       <AbsoluteFill style={{ opacity: toCli, transform: `scale(${0.9 + 0.1 * toCli})` }}>
         <div style={{ position: 'absolute', left: 960, top: 540, transform: 'translate(-50%, -50%)' }}>
-          <Terminal lines={cliLines} title="Windows Terminal" width={1200} height={420} />
+          <Terminal lines={cliLines} title={t('Windows Terminal')} width={1200} height={420} />
         </div>
       </AbsoluteFill>
       {lines.filter(l => l.kind === 'cmd').map(l => <Sfx key={l.at} at={l.at} name="key" volume={0.2} />)}

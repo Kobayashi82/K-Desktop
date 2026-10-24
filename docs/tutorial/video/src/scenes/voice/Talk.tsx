@@ -10,6 +10,7 @@ import { speechAmp, Wave } from '../../components/Wave';
 import { ease, glide, inOut, pop } from '../../lib/anim';
 import { BeatTimes } from '../../lib/timeline';
 import { C, SANS } from '../../theme';
+import { t } from '../../lib/i18n';
 
 const Chip: React.FC<{ icon: string; text: string; show: number }> = ({ icon, text, show }) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '16px 28px', borderRadius: 40, background: 'rgba(34,34,40,0.96)', border: `1.5px solid ${C.line2}`, opacity: Math.min(1, show * 2), transform: `translateY(${(1 - show) * 40}px)` }}>
@@ -41,16 +42,16 @@ export const TalkPart: React.FC<{ intro: BeatTimes; two: BeatTimes; wake: BeatTi
           <VoiceBars beat="intro" bars={30} width={560} height={130} color={C.teal} gain={1.5} />
         </div>
         <div style={{ position: 'absolute', left: 0, right: 0, top: 700, display: 'flex', justifyContent: 'center', gap: 30 }}>
-          <Chip icon="desktop_24_filled" text="On your PC" show={pop(f, intro.cue('local') - 6)} />
-          <Chip icon="cloud_off_24_filled" text="No internet" show={pop(f, intro.cue('internet') - 6)} />
+          <Chip icon="desktop_24_filled" text={t('On your PC')} show={pop(f, intro.cue('local') - 6)} />
+          <Chip icon="cloud_off_24_filled" text={t('No internet')} show={pop(f, intro.cue('internet') - 6)} />
         </div>
       </AbsoluteFill>
 
       {/* Hold, or tap */}
       <AbsoluteFill style={{ opacity: toTwo * (1 - toWake), transform: `scale(${(0.9 + 0.1 * toTwo) * (1 + 0.15 * toWake)})` }}>
         {[
-          { title: 'Hold the key', sub: 'while you speak', t: holdT, at: holdAt, down: inOut(f, holdAt, holdAt + 60, 4), y: 260, amp: speechAmp(0.08, 0.92, 6), end: 'You let go' },
-          { title: 'Tap it once', sub: 'it stops when you go quiet', t: tapT, at: tapAt, down: inOut(f, tapAt, tapAt + 8, 3), y: 590, amp: speechAmp(0.08, 0.7, 5), end: 'Silence: done' },
+          { title: t('Hold the key'), sub: t('while you speak'), t: holdT, at: holdAt, down: inOut(f, holdAt, holdAt + 60, 4), y: 260, amp: speechAmp(0.08, 0.92, 6), end: t('You let go') },
+          { title: t('Tap it once'), sub: t('it stops when you go quiet'), t: tapT, at: tapAt, down: inOut(f, tapAt, tapAt + 8, 3), y: 590, amp: speechAmp(0.08, 0.7, 5), end: t('Silence: done') },
         ].map((r, i) => (
           <div key={i} style={{ position: 'absolute', left: 170, top: r.y, display: 'flex', alignItems: 'center', gap: 50, opacity: ease(f, r.at - 14, r.at) * 0.7 + 0.3 }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: 300 }}>
@@ -85,22 +86,22 @@ export const TalkPart: React.FC<{ intro: BeatTimes; two: BeatTimes; wake: BeatTi
         </div>
         <div style={{ position: 'absolute', left: 160, top: 330, transform: `scale(${pop(f, wake.cue('kd') - 8, { damping: 13 })})`, transformOrigin: 'left center' }}>
           <div style={{ padding: '30px 44px', borderRadius: 40, background: 'white', fontFamily: SANS, fontSize: 60, fontWeight: 800, color: '#141418', boxShadow: '0 30px 70px rgba(0,0,0,0.5)', whiteSpace: 'nowrap' }}>
-            <span style={{ color: '#C98A00' }}>K-Desktop</span>, open the browser
+            <span style={{ color: '#C98A00' }}>{t('K-Desktop')}</span>{t(', open the browser')}
           </div>
           <div style={{ position: 'absolute', left: 60, bottom: -26, width: 50, height: 50, background: 'white', transform: 'rotate(45deg)' }} />
         </div>
         <div style={{ position: 'absolute', left: 170, top: 520, display: 'flex', alignItems: 'center', gap: 16, fontFamily: SANS, fontSize: 26, color: C.accentText, fontWeight: 700, opacity: ease(f, wake.cue('kd') + 4, wake.cue('kd') + 12) }}>
-          <Fluent name="arrow_up_24_filled" size={30} color={C.accentText} /> the wake word
+          <Fluent name="arrow_up_24_filled" size={30} color={C.accentText} /> {t('the wake word')}
         </div>
         <div style={{ position: 'absolute', left: 170, top: 640, transform: 'scale(1.1)', transformOrigin: 'left top' }}>
-          <Osd icon="mic_24_filled" color="teal" text="Listening…" show={listening} />
+          <Osd icon="mic_24_filled" color="teal" text={t('Listening…')} show={listening} />
         </div>
         <div style={{ position: 'absolute', left: 170, top: 800, display: 'flex', alignItems: 'center', gap: 20, opacity: pop(f, wake.cue('nokey') - 6) }}>
           <div style={{ position: 'relative' }}>
             <Keycap label={<Fluent name="mic_24_filled" size={40} color={C.text} />} height={100} width={120} dim />
             <div style={{ position: 'absolute', left: -10, top: 46, width: 140, height: 6, borderRadius: 3, background: C.danger, transform: 'rotate(-30deg)' }} />
           </div>
-          <span style={{ fontFamily: SANS, fontSize: 36, fontWeight: 800, color: C.text }}>No key at all</span>
+          <span style={{ fontFamily: SANS, fontSize: 36, fontWeight: 800, color: C.text }}>{t('No key at all')}</span>
         </div>
       </AbsoluteFill>
       <Sfx at={intro.cue('voice') - 6} name="impact" volume={0.25} />

@@ -1,0 +1,13 @@
+{
+  "_comment": "Lo que dice la voz en lugar de lo que enseñan los subtítulos. Expresiones regulares, en orden, distinguen mayúsculas.",
+  "rules": [
+    [
+      "QuickMenus",
+      "QuickMenús"
+    ],
+    [
+      "QuickMenu",
+      "QuickMenú"
+    ]
+  ]
+}
