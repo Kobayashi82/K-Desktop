@@ -1,0 +1,14 @@
+# Generated: rebuilt by the tools (see README.md)
+node_modules/
+.cache/
+out/
+public/audio/
+public/captures/
+public/webapp/
+public/sfx/
+public/generated/
+src/generated/
+__pycache__/
+
+# The root .gitignore leaves out assistants/ (their own repository); these are the video's scenes.
+!src/scenes/assistants/

@@ -1,0 +1,105 @@
+{
+  "_comment": "What the voice says instead of what the subtitles show. Regular expressions, applied in order, case sensitive.",
+  "rules": [
+    [
+      "K-Desktop",
+      "Kay Desktop"
+    ],
+    [
+      "K-Board",
+      "Kay Board"
+    ],
+    [
+      "QuickMenus",
+      "Quick Menus"
+    ],
+    [
+      "QuickMenu",
+      "Quick Menu"
+    ],
+    [
+      "openWakeWord",
+      "open wake word"
+    ],
+    [
+      "EmbeddingGemma",
+      "Embedding Gemma"
+    ],
+    [
+      "ComfyUI",
+      "Comfy U I"
+    ],
+    [
+      "\\bJSON\\b",
+      "jay-son"
+    ],
+    [
+      "\\bSDK\\b",
+      "S D K"
+    ],
+    [
+      "\\bMCP\\b",
+      "M C P"
+    ],
+    [
+      "\\bAPI\\b",
+      "A P I"
+    ],
+    [
+      "\\bUDP\\b",
+      "U D P"
+    ],
+    [
+      "\\bCPU\\b",
+      "C P U"
+    ],
+    [
+      "\\bUSB\\b",
+      "U S B"
+    ],
+    [
+      "\\bHTTPS\\b",
+      "H T T P S"
+    ],
+    [
+      "\\bQR\\b",
+      "Q R"
+    ],
+    [
+      "\\bPC's\\b",
+      "P C's"
+    ],
+    [
+      "\\bPC\\b",
+      "P C"
+    ],
+    [
+      "\\bAI\\b",
+      "A I"
+    ],
+    [
+      "\\bTV\\b",
+      "T V"
+    ],
+    [
+      "\\bCMD\\b",
+      "C M D"
+    ],
+    [
+      "\\bLAN\\b",
+      "lan"
+    ],
+    [
+      "2501",
+      "twenty five oh one"
+    ],
+    [
+      "Windows 10 and 11",
+      "Windows ten and eleven"
+    ],
+    [
+      "\\.\\.\\.",
+      "…"
+    ]
+  ]
+}
