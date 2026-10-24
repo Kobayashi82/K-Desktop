@@ -6,7 +6,11 @@ import { KBoard } from './KBoard';
 import { Launcher } from './Launcher';
 import { Macros } from './Macros';
 import { Overview } from './Overview';
+import { Progress } from './Progress';
 import { QuickMenuScene } from './QuickMenu';
+import { Remote } from './Remote';
+import { Settings } from './Settings';
+import { Voice } from './Voice';
 
 /** The picture of each chapter of script/<lang>.json, by its id. */
 export const SCENES: Record<string, React.FC> = {
@@ -18,4 +22,8 @@ export const SCENES: Record<string, React.FC> = {
   events: Events,
   macros: Macros,
   kboard: KBoard,
+  voice: Voice,
+  remote: Remote,
+  progress: Progress,
+  settings: Settings,
 };

@@ -1,12 +1,13 @@
 import React from 'react';
 import { AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame } from 'remotion';
 import { Background, Grain } from './components/Background';
+import { CaptureInfo, MediaProvider } from './components/Capture';
 import { ChapterStage, ChapterTitle, LightSweep, ProgressBar } from './components/Chapter';
 import { Subtitles } from './components/Subtitles';
 import { ChapterProvider, Timeline } from './lib/timeline';
 import { SCENES } from './scenes';
 
-export type VideoProps = { lang: string; timeline?: Timeline; subtitles?: boolean; music?: boolean };
+export type VideoProps = { lang: string; timeline?: Timeline; captures?: Record<string, CaptureInfo>; subtitles?: boolean; music?: boolean };
 
 const MUSIC_LOOP = 30 * 60 * 3; // frames in public/sfx/music.wav (3 minutes)
 const MUSIC_FADE = 60;
@@ -47,10 +48,11 @@ const Music: React.FC<{ timeline: Timeline }> = ({ timeline }) => {
   );
 };
 
-export const Video: React.FC<VideoProps> = ({ timeline, subtitles = false, music = true }) => {
+export const Video: React.FC<VideoProps> = ({ lang, timeline, captures = {}, subtitles = false, music = true }) => {
   const frame = useCurrentFrame();
   if (!timeline) return null;
   return (
+    <MediaProvider lang={lang} captures={captures}>
     <AbsoluteFill style={{ background: '#0b0b0e' }}>
       <Background timeline={timeline} />
       {timeline.chapters.map((chapter, index) => {
@@ -76,5 +78,6 @@ export const Video: React.FC<VideoProps> = ({ timeline, subtitles = false, music
       {music && <Music timeline={timeline} />}
       <Grain />
     </AbsoluteFill>
+    </MediaProvider>
   );
 };

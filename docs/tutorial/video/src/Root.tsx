@@ -8,9 +8,15 @@ const loadTimeline = async (lang: string): Promise<Timeline | null> => {
   return response.ok ? response.json() : null; // no narration yet: python tools/tts.py --lang <lang>
 };
 
+/** The real screenshots there are (tools/assets.py lists them). */
+const loadCaptures = async () => {
+  const response = await fetch(staticFile('generated/captures.json'));
+  return response.ok ? response.json() : {};
+};
+
 const whole: CalculateMetadataFunction<VideoProps> = async ({ props }) => {
   const timeline = await loadTimeline(props.lang);
-  return timeline ? { durationInFrames: timeline.durationInFrames, props: { ...props, timeline } } : { durationInFrames: 1 };
+  return timeline ? { durationInFrames: timeline.durationInFrames, props: { ...props, timeline, captures: await loadCaptures() } } : { durationInFrames: 1 };
 };
 
 /** One chapter alone, for previews: the same video, shifted to the chapter's first frame. */
@@ -24,7 +30,7 @@ const ChapterOnly: React.FC<ChapterProps> = props => {
 const chapterMeta: CalculateMetadataFunction<ChapterProps> = async ({ props }) => {
   const timeline = await loadTimeline(props.lang);
   const ch = timeline?.chapters.find(c => c.id === props.chapter);
-  return timeline && ch ? { durationInFrames: ch.durationInFrames, props: { ...props, timeline } } : { durationInFrames: 1 };
+  return timeline && ch ? { durationInFrames: ch.durationInFrames, props: { ...props, timeline, captures: await loadCaptures() } } : { durationInFrames: 1 };
 };
 
 export const Root: React.FC = () => (

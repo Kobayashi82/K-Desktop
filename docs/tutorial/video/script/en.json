@@ -288,76 +288,76 @@
       "beats": [
         {
           "id": "intro",
-          "text": "Now, the voice. K-Desktop understands spoken orders, entirely on your PC, without the internet."
+          "text": "Now, the {voice}voice. K-Desktop understands spoken orders, entirely {local}on your PC, without the {internet}internet."
         },
         {
           "id": "two",
-          "text": "There are two ways to talk. Hold the voice hotkey while you speak. Or tap it once, and just talk: it stops when you go quiet."
+          "text": "There are two ways to talk. {hold}Hold the voice hotkey while you speak. Or {tap}tap it once, and just talk: it {stops}stops when you go quiet."
         },
         {
           "id": "wake",
-          "text": "Or use a wake word. K-Desktop, open the browser. No key at all.",
+          "text": "Or use a {wake}wake word. {kd}K-Desktop, open the browser. {nokey}No key at all.",
           "pause": 0.5
         },
         {
           "id": "own",
-          "text": "The wake word is yours, and you record it in under a minute. Three seconds of silence, to measure the background noise. The word itself, several times. And ten seconds of normal speech, so everyday conversation never sets it off. It can even be a made-up word."
+          "text": "The wake word is yours, and you record it in under a minute. {silence}Three seconds of silence, to measure the background noise. {word}The word itself, several times. And {speech}ten seconds of normal speech, so everyday conversation never sets it off. It can even be a {madeup}made-up word."
         },
         {
           "id": "echo",
-          "text": "So, what happens to every sound? First, echo cancellation removes whatever your PC is playing, so music or a film won't drown out your voice."
+          "text": "So, what happens to every sound? First, {echo}echo cancellation removes whatever your PC is playing, so music or a film won't drown out your voice."
         },
         {
           "id": "detector",
-          "text": "Every eighty milliseconds, the openWakeWord models turn the audio into a compact fingerprint. Your personal detector compares it with your own recordings, in two different ways. And both have to agree."
+          "text": "Every {eighty}eighty milliseconds, the {oww}openWakeWord models turn the audio into a compact {fingerprint}fingerprint. Your {personal}personal detector compares it with your own recordings, in {two}two different ways. And {agree}both have to agree."
         },
         {
           "id": "verify",
-          "text": "When it fires, a second check kicks in. Parakeet transcribes the last few seconds, and confirms that it really sounds like your word."
+          "text": "When it fires, a {second}second check kicks in. {parakeet}Parakeet transcribes the last few seconds, and {confirms}confirms that it really sounds like your word."
         },
         {
           "id": "vad",
-          "text": "Silero, a voice activity detector, notices when you stop talking."
+          "text": "{silero}Silero, a voice activity detector, notices when you {stop}stop talking."
         },
         {
           "id": "stt",
-          "text": "And Parakeet, NVIDIA's multilingual speech recognition model, turns your order into text, right there on your PC."
+          "text": "And {parakeet}Parakeet, NVIDIA's multilingual speech recognition model, turns your order into {text}text, right there on your PC."
         },
         {
           "id": "match",
-          "text": "Then comes the clever part: finding the command you meant."
+          "text": "Then comes the clever part: {finding}finding the command you meant."
         },
         {
           "id": "words",
-          "text": "The first layer reads the words. It looks for a command's name in what you said. It ignores filler words like please, different word endings, small slips, and words that just sound alike. You tube becomes YouTube."
+          "text": "The first layer reads the {words}words. It looks for a command's {name}name in what you said. It ignores {filler}filler words like please, different word {endings}endings, small {slips}slips, and words that just {sound}sound alike. {youtube}You tube becomes YouTube."
         },
         {
           "id": "meaning",
-          "text": "When the words aren't enough, the second layer looks at the meaning. EmbeddingGemma, a small model from Google, turns sentences into vectors: points in a space where similar meanings sit close together."
+          "text": "When the words aren't enough, the second layer looks at the {meaning}meaning. {gemma}EmbeddingGemma, a small model from Google, turns sentences into {vectors}vectors: points in a {space}space where similar meanings sit close together."
         },
         {
           "id": "meaning2",
-          "text": "So, clean out the trash lands right next to your command, Empty Recycle Bin. Without a single list of synonyms."
+          "text": "So, {clean}clean out the trash lands right next to your command, {empty}Empty Recycle Bin. Without a single list of synonyms."
         },
         {
           "id": "notmine",
-          "text": "It also knows what isn't yours. Turn off the TV is close to Shut down the computer, but it's even closer to a list of everyday requests that K-Desktop doesn't handle. So nothing happens. Anything that powers off the PC has to be said especially clearly."
+          "text": "It also knows what isn't yours. {tv}Turn off the TV is close to {shutdown}Shut down the computer, but it's even closer to a list of {everyday}everyday requests that K-Desktop doesn't handle. So {nothing}nothing happens. Anything that {powers}powers off the PC has to be said especially clearly."
         },
         {
           "id": "chain",
-          "text": "You can chain orders, too. Open YouTube and empty the recycle bin, runs both."
+          "text": "You can {chain}chain orders, too. {open}Open YouTube {and}and empty the recycle bin, runs both."
         },
         {
           "id": "media",
-          "text": "Music and volume work without any command at all. Pause. Next song. A little quieter. Volume to forty percent. Play music."
+          "text": "Music and volume work without any command at all. {pause}Pause. {next}Next song. {quieter}A little quieter. {forty}Volume to forty percent. {play}Play music."
         },
         {
           "id": "dictate",
-          "text": "And dictation types what you say, wherever the cursor is. Say new line, scratch that, or stop dictating."
+          "text": "And {dictation}dictation types what you say, wherever the cursor is. Say {newline}new line, {scratch}scratch that, or {stopd}stop dictating."
         },
         {
           "id": "privacy",
-          "text": "The models are downloaded once. They take about seven hundred megabytes of memory while loaded, and free it after a while unused. While you speak, other sounds can be turned down so it hears you better. And neither your audio nor your words ever leave the PC."
+          "text": "The models are {once}downloaded once. They take about {ram}seven hundred megabytes of memory while loaded, and {free}free it after a while unused. While you speak, {duck}other sounds can be turned down so it hears you better. And {never}neither your audio nor your words ever leave the PC."
         }
       ]
     },
@@ -368,43 +368,43 @@
       "beats": [
         {
           "id": "intro",
-          "text": "Your PC, from the couch. K-Desktop includes a web app for your phone, or any browser."
+          "text": "Your PC, from the {couch}couch. K-Desktop includes a {webapp}web app for your phone, or any browser."
         },
         {
           "id": "pair",
-          "text": "Pair a device by scanning a QR code. The code works only once, and any device can be revoked at any time."
+          "text": "Pair a device by {scan}scanning a QR code. The code works {once}only once, and any device can be {revoke}revoked at any time."
         },
         {
           "id": "menus",
-          "text": "Your QuickMenus and all your commands are right there, with search, and your most used ones first."
+          "text": "Your {qm}QuickMenus and {all}all your commands are right there, with {search}search, and your {most}most used ones first."
         },
         {
           "id": "pad",
-          "text": "A touchpad and a keyboard move the PC's mouse, and type for you."
+          "text": "A {touchpad}touchpad and a {keyboard}keyboard move the PC's mouse, and type for you."
         },
         {
           "id": "audio",
-          "text": "The audio tab controls the volume, the music, and the output device."
+          "text": "The audio tab controls the {volume}volume, the {music}music, and the {output}output device."
         },
         {
           "id": "voicechat",
-          "text": "The phone's microphone gives voice orders. And you can chat with your assistants."
+          "text": "The phone's {mic}microphone gives voice orders. And you can {chat}chat with your assistants."
         },
         {
           "id": "pwa",
-          "text": "Install it on the home screen, like an app. Behind a reverse proxy with HTTPS, it even works from outside your home."
+          "text": "Install it on the {home}home screen, like an app. Behind a {proxy}reverse proxy with HTTPS, it even works from {outside}outside your home."
         },
         {
           "id": "android",
-          "text": "There's also an Android app. The same interface, with a native microphone, kept up to date by the PC itself."
+          "text": "There's also an {android}Android app. The same interface, with a {native}native microphone, kept up to date by the {pc}PC itself."
         },
         {
           "id": "udp",
-          "text": "And for machines, there's UDP, compatible with K-Desktop 4, on port 2501. Send list, to get the remote commands. A number or a name, to run one. S K plus keys, to press them. Or event plus a name, to fire a Call from outside event. Perfect for Home Assistant, scripts, or another PC."
+          "text": "And for machines, there's {udp}UDP, compatible with K-Desktop 4, on port 2501. Send {list}list, to get the remote commands. A {number}number or a name, to run one. {sk}S K plus keys, to press them. Or {event}event plus a name, to fire a Call from outside event. Perfect for {ha}Home Assistant, scripts, or another PC."
         },
         {
           "id": "cli",
-          "text": "And from the command line: run a command, open a menu, fire an event, or open the launcher."
+          "text": "And from the {cli}command line: {run}run a command, {menu}open a menu, {fire}fire an event, or {launcher}open the launcher."
         }
       ]
     },
@@ -415,15 +415,15 @@
       "beats": [
         {
           "id": "history",
-          "text": "Everything that runs ends up in the history. The last five hundred runs: where they came from, how long they took, and whether anything went wrong."
+          "text": "Everything that runs ends up in the {history}history. The last {five}five hundred runs: where they {where}came from, how {long}long they took, and whether anything went {wrong}wrong."
         },
         {
           "id": "achievements",
-          "text": "As you use K-Desktop, you unlock achievements. More than a hundred of them, each with an animated notification. Night owl, for running a command between three and five in the morning. Pianist, for a mouse button chord. And a few secret ones."
+          "text": "As you use K-Desktop, you unlock {ach}achievements. More than a {hundred}hundred of them, each with an {toast}animated notification. {owl}Night owl, for running a command between three and five in the morning. {pianist}Pianist, for a mouse button chord. And a few {secret}secret ones."
         },
         {
           "id": "stats",
-          "text": "And the statistics count it all. Commands and actions run, QuickMenus opened, voice orders, how many were understood by their meaning, and where your commands come from."
+          "text": "And the {stats}statistics count it all. {run}Commands and actions run, {menus}QuickMenus opened, {voice}voice orders, how many were understood by their {meaning}meaning, and {sources}where your commands come from."
         }
       ]
     },
@@ -434,27 +434,27 @@
       "beats": [
         {
           "id": "intro",
-          "text": "Settings are grouped by topic, and searchable with Control F."
+          "text": "{settings}Settings are grouped by topic, and {search}searchable with Control F."
         },
         {
           "id": "appearance",
-          "text": "Appearance: light, dark, or follow Windows. Six built-in languages, and you can add your own with a JSON file."
+          "text": "{appearance}Appearance: {theme}light, dark, or follow Windows. {languages}Six built-in languages, and you can add your {own}own with a JSON file."
         },
         {
           "id": "general",
-          "text": "General: start with Windows, with administrator rights and no prompt. Hotkeys to show, exit or pause K-Desktop. Sounds, and on-screen messages."
+          "text": "{general}General: start with {windows}Windows, with administrator rights and no prompt. {hotkeys}Hotkeys to show, exit or pause K-Desktop. {sounds}Sounds, and on-screen {osd}messages."
         },
         {
           "id": "disable",
-          "text": "Disable in: a list of apps, like your games, where hotkeys do nothing, unless a command is set to always run."
+          "text": "{disable}Disable in: a list of apps, like your {games}games, where hotkeys do nothing, unless a command is set to {always}always run."
         },
         {
           "id": "sections",
-          "text": "The launcher, voice, multimedia, captures and magnifier, the web app and remote control: each has its own section."
+          "text": "The {launcher}launcher, {voice}voice, {multimedia}multimedia, {captures}captures and magnifier, the {web}web app and {remote}remote control: each has its own section."
         },
         {
           "id": "data",
-          "text": "And your data is safe. Automatic daily backups. Full zip copies every few days. Export and import. And a one-click import from K-Desktop 4. Updates install themselves."
+          "text": "And your data is safe. {daily}Automatic daily backups. {zip}Full zip copies every few days. {export}Export and import. And a one-click {import}import from K-Desktop 4. {updates}Updates install themselves."
         }
       ]
     },
@@ -465,79 +465,79 @@
       "beats": [
         {
           "id": "intro",
-          "text": "And finally, something new: assistants. Little characters that live on top of your windows. You can talk to them, and they can actually do things."
+          "text": "And finally, something new: {assistants}assistants. Little characters that live on top of your {windows}windows. You can {talk}talk to them, and they can actually {do}do things."
         },
         {
           "id": "cast",
-          "text": "Meet the Lander, a tiny lunar module that flies around and lands on your title bars, with a game of its own. Kobii, a squishy creature that wanders along your taskbar. And Pip, a drop made with nothing but images and JSON."
+          "text": "Meet the {lander}Lander, a tiny lunar module that flies around and lands on your title bars, with a {game}game of its own. {kobii}Kobii, a squishy creature that wanders along your taskbar. And {pip}Pip, a drop made with nothing but {json}images and JSON."
         },
         {
           "id": "module",
-          "text": "Assistants live in an optional module. While it's off, K-Desktop doesn't load any of it."
+          "text": "Assistants live in an {optional}optional module. While it's {off}off, K-Desktop doesn't load any of it."
         },
         {
           "id": "install",
-          "text": "Each assistant is a package. Open one, and its card tells you what it is, whether its signature checks out, and what it can do. Install it, and it drops right onto your desktop."
+          "text": "Each assistant is a {package}package. Open one, and its {card}card tells you what it is, whether its {signature}signature checks out, and {what}what it can do. {installs}Install it, and it drops right onto your desktop."
         },
         {
           "id": "arch",
-          "text": "Assistants run in their own process, without administrator rights, and talk to K-Desktop through a private, locked down pipe. K-Desktop draws them on a transparent layer on your graphics card, and your windows become their terrain."
+          "text": "Assistants run in their {process}own process, without {admin}administrator rights, and talk to K-Desktop through a {pipe}private, locked down pipe. K-Desktop draws them on a {layer}transparent layer on your graphics card, and your windows become their {terrain}terrain."
         },
         {
           "id": "talk",
-          "text": "To talk to one, say its name. Lander, what time is it? Each assistant can have its own wake word, while K-Desktop keeps running your commands. You can also hold its key, or hold the click on the character itself. And when it asks you something back, just answer."
+          "text": "To talk to one, say its {name}name. {question}Lander, what time is it? Each assistant can have its {own}own wake word, while {kd}K-Desktop keeps running your commands. You can also {key}hold its key, or {click}hold the click on the character itself. And when it {asks}asks you something back, just answer."
         },
         {
           "id": "brain",
-          "text": "Their brain is a language model, and it runs on your PC. With llama server and a model downloaded from Hugging Face, it picks the biggest one that fits your graphics card. It also works with Ollama, or any OpenAI compatible server. And it always tells you where your words go: this PC, your network, or the internet."
+          "text": "Their {brain}brain is a language model, and it runs {pc}on your PC. With {llama}llama server and a model downloaded from {hf}Hugging Face, it picks the {biggest}biggest one that fits your graphics card. It also works with {ollama}Ollama, or any {openai}OpenAI compatible server. And it always tells you {where}where your words go: {thispc}this PC, {network}your network, or the {internet}internet."
         },
         {
           "id": "brain2",
-          "text": "The model loads when you talk, unloads when idle, and gets out of the way when a game goes full screen. Simple things, like the time, a timer, a note or cancel, are answered instantly by fixed rules, without the AI."
+          "text": "The model {loads}loads when you talk, {unloads}unloads when idle, and {games}gets out of the way when a game goes full screen. Simple things, like the {time}time, a {timer}timer, a {note}note or {cancel}cancel, are answered instantly by {rules}fixed rules, without the AI."
         },
         {
           "id": "voice",
-          "text": "And they answer out loud, sentence by sentence, while the AI is still writing. With Kokoro, a natural voice that runs offline on your processor. The same voice you're hearing right now. Or Piper, with voices in every language. Or the Windows voices. Or just beeps."
+          "text": "And they {aloud}answer out loud, {sentence}sentence by sentence, while the AI is still writing. With {kokoro}Kokoro, a natural voice that runs offline on your processor. The same voice you're {hearing}hearing right now. Or {piper}Piper, with voices in every language. Or the {windows}Windows voices. Or just {beeps}beeps."
         },
         {
           "id": "voice2",
-          "text": "Each assistant brings its own style. The Lander talks over the mission control radio. You can mix two voices, try robot, martian or eight bit, keep them quiet during a full screen film, and even hear them from the side of the screen where they are."
+          "text": "Each assistant brings its own {style}style. The Lander talks over the {radio}mission control radio. You can {mix}mix two voices, try {robot}robot, martian or eight bit, keep them {quiet}quiet during a full screen film, and even hear them from the {side}side of the screen where they are."
         },
         {
           "id": "tools",
-          "text": "What can they do? A lot. Timers, notes, calculations, the weather. Searching and reading the web. Finding files, opening apps, controlling the music, checking the PC, looking at your screen, and running your own commands."
+          "text": "What can they do? A lot. {timers}Timers, {notes}notes, {calc}calculations, the {weather}weather. {web}Searching and reading the web. {files}Finding files, {apps}opening apps, {music}controlling the music, {pc}checking the PC, {screen}looking at your screen, and running your own {commands}commands."
         },
         {
           "id": "chooser",
-          "text": "To keep a small model sharp, only the three to five tools that fit each order reach it, chosen by their example phrases and by meaning."
+          "text": "To keep a small model sharp, only the {three}three to five tools that fit each order reach it, chosen by their {examples}example phrases and by {meaning}meaning."
         },
         {
           "id": "risk",
-          "text": "Anything risky asks first. Say yes once, or yes and don't ask again. And many actions can be undone."
+          "text": "Anything {risky}risky asks first. Say {yes}yes once, or {always}yes and don't ask again. And many actions can be {undo}undone."
         },
         {
           "id": "gestures",
-          "text": "And you see it happen. Ask: Lander, minimize Chrome. It flies over, fires at the button, and the window minimizes right on impact. To move a window, it shoots a grappling hook at the title bar, and tows it into place."
+          "text": "And you see it happen. Ask: {ask}Lander, minimize Chrome. It {flies}flies over, {fires}fires at the button, and the window {impact}minimizes right on impact. To move a window, it shoots a {hook}grappling hook at the title bar, and {tows}tows it into place."
         },
         {
           "id": "own-tools",
-          "text": "You can also give them new skills without compiling anything: one JSON file per tool. Call any web API, like Home Assistant. Run one of your commands with your own phrases. Chain a routine. Or run your own script. Secrets like tokens are stored encrypted, and the model never sees them. And MCP servers plug their tools in too, imported straight from Claude Desktop."
+          "text": "You can also give them new skills without compiling anything: one {json}JSON file per tool. Call any {api}web API, like Home Assistant. Run one of your {command}commands with your own phrases. Chain a {routine}routine. Or run your own {script}script. {secrets}Secrets like tokens are stored encrypted, and the model {never}never sees them. And {mcp}MCP servers plug their tools in too, imported straight from {claude}Claude Desktop."
         },
         {
           "id": "memory",
-          "text": "They remember what matters: your name, what you like, important dates. You can see and edit everything they know about you, and keep notes."
+          "text": "They {remember}remember what matters: your name, what you like, important dates. You can {see}see and edit everything they know about you, and keep {notes}notes."
         },
         {
           "id": "knowledge",
-          "text": "And they can read your documents. Choose folders or files: notes, manuals, contracts, PDFs, Word, even scanned pages, with the text recognition of Windows. Everything is read once, on your PC, and kept up to date. Ask: what does my contract say about the deposit? And they answer, telling you which document and page it came from."
+          "text": "And they can {read}read your documents. Choose {folders}folders or files: notes, manuals, contracts, PDFs, Word, even {scanned}scanned pages, with the text recognition of Windows. Everything is {once}read once, on your PC, and kept up to date. Ask: {ask}what does my contract say about the deposit? And they {answer}answer, telling you which {source}document and page it came from."
         },
         {
           "id": "commands",
-          "text": "Assistants plug into commands, too. Four actions let any command or event run an assistant's action, ask it something, make it say something, or free its brain before a game."
+          "text": "Assistants plug into commands, too. Four {four}actions let any command or event run an assistant's {action}action, {ask}ask it something, make it {say}say something, or {free}free its brain before a game."
         },
         {
           "id": "create",
-          "text": "And if you want to build your own, there's an SDK with a template. Or no code at all: just images and JSON, like Pip."
+          "text": "And if you want to build your own, there's an {sdk}SDK with a template. Or {nocode}no code at all: just images and JSON, like {pip}Pip."
         }
       ]
     },
@@ -548,11 +548,11 @@
       "beats": [
         {
           "id": "recap",
-          "text": "Commands and actions. QuickMenus and the launcher. Events, macros and K-Board. Your voice, your phone, and assistants that lend a hand."
+          "text": "{commands}Commands and actions. {qm}QuickMenus and the launcher. {events}Events, macros and K-Board. Your {voice}voice, your {phone}phone, and {assistants}assistants that lend a hand."
         },
         {
           "id": "cta",
-          "text": "K-Desktop is a single portable program for Windows. Download it from GitHub, and start with one command. You'll be surprised how far it goes."
+          "text": "K-Desktop is a {single}single portable program for Windows. {download}Download it from GitHub, and start with {one}one command. You'll be surprised how {far}far it goes."
         },
         {
           "id": "end",

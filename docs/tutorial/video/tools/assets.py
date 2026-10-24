@@ -250,20 +250,23 @@ def main() -> None:
         sf.write(sfx / "music.wav", music().astype("float32"), SR)
     shutil.copy(ROOT.parent.parent.parent / "src" / "KDesktop.Core" / "Assets" / "Sounds" / "Logro.wav", sfx / "achievement.wav")
 
+    # The real screenshots (../captures, and ../captures/<lang>/ for other languages), with their sizes.
     captures = ROOT.parent / "captures"
     target = ROOT / "public" / "captures"
     if target.exists():
         shutil.rmtree(target)
-    target.mkdir(parents=True)
     found = {}
-    for f in sorted(captures.glob("*")) if captures.exists() else []:
-        if f.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp", ".mp4", ".webm"):
-            shutil.copy(f, target / f.name)
-            info = {"file": f"captures/{f.name}"}
-            if f.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp"):
-                with Image.open(f) as im:
-                    info.update(width=im.width, height=im.height)
-            found[f.stem] = info
+    for f in sorted(captures.rglob("*")) if captures.exists() else []:
+        if f.suffix.lower() not in (".png", ".jpg", ".jpeg", ".webp", ".mp4", ".webm"):
+            continue
+        rel = f.relative_to(captures)
+        (target / rel.parent).mkdir(parents=True, exist_ok=True)
+        shutil.copy(f, target / rel)
+        info = {"file": f"captures/{rel.as_posix()}"}
+        if f.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp"):
+            with Image.open(f) as im:
+                info.update(width=im.width, height=im.height)
+        found[rel.with_suffix("").as_posix()] = info
     generated = ROOT / "public" / "generated"
     generated.mkdir(parents=True, exist_ok=True)
     (generated / "captures.json").write_text(json.dumps(found, indent=1), encoding="utf-8")
