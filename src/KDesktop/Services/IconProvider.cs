@@ -98,8 +98,18 @@ public static partial class IconProvider
         MagnifierAction => Kd("ZoomIn24", "indigo"),
         DictateAction => Kd("MicSparkle24", "teal"),
         AssistantExtraAction x => ForExtra(x.Assistant, x.Extra),
+        AssistantAskAction x => ForAssistant(x.Assistant) ?? Kd("ChatBubblesQuestion24", "indigo"),
+        AssistantSayAction x => ForAssistant(x.Assistant) ?? Kd("Megaphone24", "indigo"),
+        AssistantBrainAction => Kd("BrainCircuit24", "purple"),
         _ => null,
     };
+
+    /// <summary>
+    /// The icon of the assistant an action talks to (K-Desktop's for the system one), or null when it is not installed.
+    /// Cached with the extras, until <see cref="ForgetAssistantIcons"/>.
+    /// </summary>
+    private static ImageSource? ForAssistant(string assistant) =>
+        Cache.GetOrAdd($"extra:{assistant}", _ => Views.AssistantLook.IconOf(assistant));
 
     /// <summary>
     /// The icon of an assistant's extra: its own («kd:XboxController», with or without a colour, or an image of the
