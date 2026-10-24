@@ -47,7 +47,7 @@ $address = "https://github.com/$repo/releases/download/$tag/$id.kai"
 if ($manifest.updates -ne $address) { throw "«updates» de su assistant.json tiene que ser $address (ahora: $($manifest.updates))" }
 $verify = dotnet run --project $kaisignProject -v q -- verify $kai
 Write-Host $verify
-if ($LASTEXITCODE -ne 0 -or $verify -notmatch 'verificado') { throw 'La firma no sale como «Verificado»' }
+if ($LASTEXITCODE -ne 0 -or $verify -notmatch 'verified') { throw 'La firma no sale como «Verificado»' }
 
 # 3. A copy of each version.
 $archive = Join-Path $root "artifacts\assistants\$id-$version.kai"

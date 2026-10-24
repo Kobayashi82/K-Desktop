@@ -15,8 +15,9 @@ move that window there, say this, react to how it went). Each assistant decides 
 
 > [!NOTE]
 > The SDK is version **1.0**: from here on it only grows without breaking. A package built against SDK 1.x runs on any
-> K-Desktop with SDK 1.y, y ≥ x. Until it is on NuGet, reference a copy of the
-> [K-Desktop repository](https://github.com/Kobayashi82/K-Desktop).
+> K-Desktop with SDK 1.y, y ≥ x. It is on NuGet:
+> [KDesktop.Assistant.Sdk](https://www.nuget.org/packages/KDesktop.Assistant.Sdk), and its template
+> [KDesktop.Assistant.Templates](https://www.nuget.org/packages/KDesktop.Assistant.Templates).
 
 ## Examples
 

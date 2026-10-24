@@ -5,15 +5,19 @@ El SDK lo pone siempre K-Desktop: un paquete nunca lo lleva.
 
 ## Empezar con la plantilla
 
-Hace falta el SDK de .NET 10 y una copia del [repositorio de K-Desktop](https://github.com/Kobayashi82/K-Desktop) (hasta
-que el SDK esté en NuGet).
+Hace falta el SDK de .NET 10. La plantilla y el SDK vienen de NuGet
+([KDesktop.Assistant.Templates](https://www.nuget.org/packages/KDesktop.Assistant.Templates),
+[KDesktop.Assistant.Sdk](https://www.nuget.org/packages/KDesktop.Assistant.Sdk)):
 
 ```powershell
-dotnet new install "<K-Desktop>\templates\kdassistant"
-dotnet new kdassistant -n MiAsistente --sdk "<K-Desktop>\src\KDesktop.Assistant.Sdk" --authorName "Yo"
+dotnet new install KDesktop.Assistant.Templates
+dotnet new kdassistant -n MiAsistente --authorName "Yo"
 cd MiAsistente
 dotnet build          # → bin\Debug\…\miasistente-1.0.0.kai
 ```
+
+Para compilar contra una copia del [repositorio de K-Desktop](https://github.com/Kobayashi82/K-Desktop) (para probar un
+cambio en el SDK), añade `--sdk "<K-Desktop>\src\KDesktop.Assistant.Sdk"`.
 
 | | |
 |---|---|

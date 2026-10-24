@@ -34,10 +34,10 @@
       <_AssistantSourceFull>$([System.IO.Path]::GetFullPath('$(AssistantSource)'))</_AssistantSourceFull>
     </PropertyGroup>
 
-    <Error Condition="!Exists('$(AssistantSource)assistant.json')" Text="Falta $(AssistantSource)assistant.json (el manifiesto del asistente)." />
+    <Error Condition="!Exists('$(AssistantSource)assistant.json')" Text="$(AssistantSource)assistant.json (the assistant's manifest) is missing." />
     <!-- The staging folder is wiped on every build: never let it be the sources (or anything outside the output). -->
     <Error Condition="'$(OutDir)' == '' or '$(AssistantStaging.ToLowerInvariant())' == '$(_AssistantSourceFull.ToLowerInvariant())' or '$(AssistantStaging.ToLowerInvariant().Contains(`\bin\`))' != 'true'"
-           Text="La carpeta del paquete ($(AssistantStaging)) tiene que estar dentro de bin y no ser la de origen." />
+           Text="The package folder ($(AssistantStaging)) has to be inside bin and not be the source folder." />
 
     <PropertyGroup>
       <_AssistantManifest>$([System.IO.File]::ReadAllText('$(AssistantSource)assistant.json'))</_AssistantManifest>
@@ -65,7 +65,7 @@
 
     <!-- The showcase's clips (stage 16.2), only when asked: recorded from the staged package into the sources, then staged too. -->
     <Error Condition="'$(AssistantShowcase)' == 'true' and ('$(KDesktopExe)' == '' or !Exists('$(KDesktopExe)'))"
-           Text="Para grabar el escaparate, KDesktopExe tiene que apuntar a KDesktop.exe (ahora: '$(KDesktopExe)')." />
+           Text="To record the showcase, KDesktopExe has to point to KDesktop.exe (now: '$(KDesktopExe)')." />
     <Exec Condition="'$(AssistantShowcase)' == 'true'"
           Command="&quot;$(KDesktopExe)&quot; --assistant-showcase &quot;$(AssistantStaging.TrimEnd('\'))&quot; --record &quot;$(_AssistantSourceFull)showcase&quot; --manifest &quot;$(_AssistantSourceFull)assistant.json&quot; --language $(AssistantShowcaseLanguage)" />
     <ItemGroup Condition="'$(AssistantShowcase)' == 'true'">
@@ -100,10 +100,10 @@
       <KaiSignExe Condition="'$(KaiSignExe)' == ''">$(MSBuildThisFileDirectory)..\tools\kaisign\kaisign.exe</KaiSignExe>
     </PropertyGroup>
 
-    <Error Condition="'$(AssistantSign)' == 'true' and !Exists('$(_KaiSignKey)')" Text="No hay clave para firmar: créala con «kaisign keygen &lt;tu nombre&gt;»." />
-    <Error Condition="'$(AssistantSign)' == 'true' and !Exists('$(KaiSignExe)')" Text="No se encuentra kaisign ($(KaiSignExe))." />
-    <Message Condition="!Exists('$(_KaiSignKey)')" Importance="high" Text="$(MSBuildProjectName): sin firmar (no hay clave; créala una vez con «kaisign keygen &lt;tu nombre&gt;»)" />
-    <Message Condition="Exists('$(_KaiSignKey)') and !Exists('$(KaiSignExe)')" Importance="high" Text="$(MSBuildProjectName): sin firmar (no se encuentra kaisign en $(KaiSignExe))" />
+    <Error Condition="'$(AssistantSign)' == 'true' and !Exists('$(_KaiSignKey)')" Text="There is no key to sign with: make one with «kaisign keygen &lt;your name&gt;»." />
+    <Error Condition="'$(AssistantSign)' == 'true' and !Exists('$(KaiSignExe)')" Text="kaisign is not found ($(KaiSignExe))." />
+    <Message Condition="!Exists('$(_KaiSignKey)')" Importance="high" Text="$(MSBuildProjectName): not signed (no key yet; make one once with «kaisign keygen &lt;your name&gt;»)" />
+    <Message Condition="Exists('$(_KaiSignKey)') and !Exists('$(KaiSignExe)')" Importance="high" Text="$(MSBuildProjectName): not signed (kaisign is not found at $(KaiSignExe))" />
     <Exec Condition="Exists('$(_KaiSignKey)') and Exists('$(KaiSignExe)')" Command="&quot;$(KaiSignExe)&quot; sign &quot;$(AssistantPackage)&quot;" StandardOutputImportance="high" />
   </Target>
 

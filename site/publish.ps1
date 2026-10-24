@@ -2,7 +2,8 @@
   Publishes the documentation website (site\, DocFX) to GitHub Pages: https://kobayashi82.github.io/K-Desktop
 
   What it does:
-    1. Builds it (dotnet docfx site\docfx.json) and stops if there is any warning.
+    1. Builds it (dotnet docfx site\docfx.json), stops if there is any warning, and puts the template's own texts in
+       Spanish on the pages of es\ (site\localize.js).
     2. Puts site\_site in a temporary repository with a single commit (and .nojekyll, so GitHub serves the folders that
        start with «_» as they are).
     3. Force-pushes it to the branch gh-pages of K-Desktop's repository: the branch only ever has the last version.
@@ -35,6 +36,9 @@ try {
 Write-Host $log.Trim()
 if ($built -ne 0 -or $log -notmatch 'Build succeeded') { throw 'La compilación ha fallado' }
 if ($log -notmatch '\b0 warning') { throw 'La compilación tiene avisos: arréglalos antes de publicar' }
+# The template's own texts (search, «In this article»…) in Spanish on the pages of es/.
+& node (Join-Path $site 'localize.js')
+if ($LASTEXITCODE -ne 0) { throw 'No se han podido traducir los textos de la plantilla' }
 
 # 2. A repository with only the website.
 Step "Preparando la rama $branch"

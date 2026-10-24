@@ -18,11 +18,11 @@ try
     {
         case "keygen" when args.Length >= 2:
             if (File.Exists(keyFile) && !args.Contains("--force"))
-                return Fail($"Ya hay una clave en {keyFile} (--force para sustituirla: lo firmado con ella dejará de reconocerse).");
+                return Fail($"There is already a key in {keyFile} (--force replaces it: what was signed with it will no longer be recognised).");
             using (var key = ECDsa.Create(ECCurve.NamedCurves.nistP256))
             {
                 Save(key, args[1]);
-                Console.WriteLine($"Clave nueva de «{args[1]}» en {keyFile}");
+                Console.WriteLine($"New key of «{args[1]}» in {keyFile}");
                 PrintTrusted(key, args[1]);
             }
             return 0;
@@ -38,8 +38,8 @@ try
                 {
                     PackageSignature.Sign(file, key, publisher);
                     var check = PackageSignature.Check(file, [new TrustedPublisher(publisher, Convert.ToBase64String(key.ExportSubjectPublicKeyInfo()))]);
-                    if (check.State != SignatureState.Verified) return Fail($"{file}: la firma no se comprueba ({check.State})");
-                    Console.WriteLine($"Firmado: {file} ({publisher}, {check.Fingerprint})");
+                    if (check.State != SignatureState.Verified) return Fail($"{file}: the signature does not check ({check.State})");
+                    Console.WriteLine($"Signed: {file} ({publisher}, {check.Fingerprint})");
                 }
             return 0;
 
@@ -51,10 +51,10 @@ try
                 bad |= check.State == SignatureState.Broken;
                 Console.WriteLine($"{file}: {check.State switch
                 {
-                    SignatureState.Verified => $"verificado ({check.Publisher})",
-                    SignatureState.Unknown => $"firmado por «{check.Publisher}», clave desconocida {check.Fingerprint}",
-                    SignatureState.Broken => "FIRMA NO VÁLIDA: el paquete se cambió después de firmarlo",
-                    _ => "sin firma",
+                    SignatureState.Verified => $"verified ({check.Publisher})",
+                    SignatureState.Unknown => $"signed by «{check.Publisher}», unknown key {check.Fingerprint}",
+                    SignatureState.Broken => "INVALID SIGNATURE: the package changed after it was signed",
+                    _ => "not signed",
                 }}");
             }
             return bad ? 1 : 0;
@@ -64,38 +64,38 @@ try
             {
                 // Asked, not written in the command: it would stay in the console's history.
                 var password = args.Length >= 3 ? args[2] : AskPassword(twice: true);
-                if (password.Length < 8) return Fail("La contraseña necesita 8 letras como mínimo.");
+                if (password.Length < 8) return Fail("The password needs 8 characters at least.");
                 var pem = key.ExportEncryptedPkcs8PrivateKeyPem(password, new PbeParameters(PbeEncryptionAlgorithm.Aes256Cbc, HashAlgorithmName.SHA256, 600_000));
                 File.WriteAllText(args[1], $"# {publisher}\n{pem}\n");
-                Console.WriteLine($"Copia con contraseña en {args[1]}");
+                Console.WriteLine($"Copy with a password in {args[1]}");
             }
             return 0;
 
         case "import" when args.Length >= 3:
-            if (File.Exists(keyFile) && !args.Contains("--force")) return Fail($"Ya hay una clave en {keyFile} (--force para sustituirla).");
+            if (File.Exists(keyFile) && !args.Contains("--force")) return Fail($"There is already a key in {keyFile} (--force replaces it).");
             using (var key = ECDsa.Create())
             {
-                // import <archivo> <publicador> asks for the password; import <archivo> <contraseña> <publicador> as before.
+                // import <file> <publisher> asks for the password; import <file> <password> <publisher> as before.
                 var rest = args.Skip(2).Where(a => a != "--force").ToList();
                 var (password, who) = rest.Count >= 2 ? (rest[0], rest[1]) : (AskPassword(twice: false), rest[0]);
                 var text = File.ReadAllText(args[1]);
                 key.ImportFromEncryptedPem(text.AsSpan(text.IndexOf("-----BEGIN", StringComparison.Ordinal)), password);
                 Save(key, who);
-                Console.WriteLine($"Clave de «{who}» importada en {keyFile}");
+                Console.WriteLine($"Key of «{who}» imported into {keyFile}");
                 PrintTrusted(key, who);
             }
             return 0;
 
         default:
             Console.WriteLine("""
-                kaisign: firma paquetes de asistentes (.kai) con tu propia clave.
+                kaisign: signs K-Desktop assistant packages (.kai) with your own key.
 
-                  kaisign keygen <publicador> [--force]   crea la clave (en este usuario de Windows, con DPAPI)
-                  kaisign public                          la clave pública, como va en trusted-publishers.json
-                  kaisign sign <paquete.kai>...           firma (sustituye una firma anterior)
-                  kaisign verify <paquete.kai>...         comprueba lo que diría K-Desktop
-                  kaisign export <archivo>                copia de la clave con contraseña (te la pide), para guardarla aparte
-                  kaisign import <archivo> <publicador> [--force]   la vuelve a poner en este usuario (te pide la contraseña)
+                  kaisign keygen <publisher> [--force]    makes the key (for this Windows user, protected with DPAPI)
+                  kaisign public                          the public key, as it goes in trusted-publishers.json
+                  kaisign sign <package.kai>...           signs (replaces an earlier signature)
+                  kaisign verify <package.kai>...         checks what K-Desktop would say
+                  kaisign export <file>                   a copy of the key with a password (asked), to keep elsewhere
+                  kaisign import <file> <publisher> [--force]   puts it back for this user (asks for the password)
                 """);
             return args.Length == 0 || args[0] is "help" or "-h" or "--help" ? 0 : 2;
     }
@@ -114,7 +114,7 @@ void Save(ECDsa key, string publisher)
 
 ECDsa Load(out string publisher)
 {
-    if (!File.Exists(keyFile)) throw new IOException($"No hay clave: crea una con «kaisign keygen <publicador>» (se busca en {keyFile}).");
+    if (!File.Exists(keyFile)) throw new IOException($"There is no key: make one with «kaisign keygen <publisher>» (looked for in {keyFile}).");
     publisher = File.Exists(nameFile) ? File.ReadAllText(nameFile).Trim() : "?";
     var key = ECDsa.Create();
     key.ImportPkcs8PrivateKey(ProtectedData.Unprotect(File.ReadAllBytes(keyFile), entropy, DataProtectionScope.CurrentUser), out _);
@@ -124,8 +124,8 @@ ECDsa Load(out string publisher)
 static void PrintTrusted(ECDsa key, string publisher)
 {
     var publicKey = key.ExportSubjectPublicKeyInfo();
-    Console.WriteLine($"Huella: {PackageSignature.FingerprintOf(publicKey)}");
-    Console.WriteLine("Para trusted-publishers.json:");
+    Console.WriteLine($"Fingerprint: {PackageSignature.FingerprintOf(publicKey)}");
+    Console.WriteLine("For trusted-publishers.json:");
     Console.WriteLine(new JsonObject { ["name"] = publisher, ["key"] = Convert.ToBase64String(publicKey) }
         .ToJsonString(new System.Text.Json.JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
 }
@@ -133,8 +133,8 @@ static void PrintTrusted(ECDsa key, string publisher)
 /// <summary>A password typed without showing it (twice: it must be the same both times).</summary>
 static string AskPassword(bool twice)
 {
-    var first = Read("Contraseña: ");
-    if (twice && Read("Repítela: ") != first) throw new ArgumentException("Las dos contraseñas no son iguales.");
+    var first = Read("Password: ");
+    if (twice && Read("Again: ") != first) throw new ArgumentException("The two passwords are not the same.");
     return first;
 
     static string Read(string prompt)

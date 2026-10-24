@@ -16,8 +16,9 @@ hace.
 
 > [!NOTE]
 > El SDK va por la versión **1.0**: a partir de aquí solo crece sin romper nada. Un paquete hecho con el SDK 1.x funciona
-> en cualquier K-Desktop con el SDK 1.y, y ≥ x. Hasta que esté en NuGet, se usa una copia del
-> [repositorio de K-Desktop](https://github.com/Kobayashi82/K-Desktop).
+> en cualquier K-Desktop con el SDK 1.y, y ≥ x. Está en NuGet:
+> [KDesktop.Assistant.Sdk](https://www.nuget.org/packages/KDesktop.Assistant.Sdk), y su plantilla,
+> [KDesktop.Assistant.Templates](https://www.nuget.org/packages/KDesktop.Assistant.Templates).
 
 ## Ejemplos
 

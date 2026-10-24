@@ -13,9 +13,16 @@
     "sdk": {
       "type": "parameter",
       "datatype": "string",
-      "defaultValue": "..\\..\\src\\KDesktop.Assistant.Sdk",
+      "defaultValue": "",
       "replaces": "SDK_FOLDER",
-      "description": "Folder of KDesktop.Assistant.Sdk in a clone of K-Desktop (absolute, or relative to the new project)."
+      "description": "Only to build against a clone of K-Desktop: the folder of its KDesktop.Assistant.Sdk (absolute, or relative to the new project). Empty: the SDK from NuGet."
+    },
+    "sdkVersion": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "1.0.0",
+      "replaces": "SDK_VERSION",
+      "description": "Version of the KDesktop.Assistant.Sdk package from NuGet."
     },
     "authorName": {
       "type": "parameter",

@@ -15,13 +15,14 @@ instalación:
 
 Si la versión instalada estaba firmada y la nueva no la firma la misma clave, la ficha avisa en rojo.
 
-Haz tu clave una vez con `tools/KaiSign` (en el repositorio de K-Desktop); desde entonces **cada compilación firma el `.kai`**
-sola, justo después de empaquetarlo:
+Haz tu clave una vez con **kaisign**, que viene dentro del paquete del SDK
+(`%USERPROFILE%\.nuget\packages\kdesktop.assistant.sdk\<versión>\tools\kaisign\kaisign.exe`, o `tools/KaiSign` en el
+repositorio de K-Desktop); desde entonces **cada compilación firma el `.kai`** sola, justo después de empaquetarlo:
 
 ```powershell
-dotnet run --project tools\KaiSign -- keygen "Tu nombre"      # una vez: la clave se queda en tu usuario de Windows (DPAPI)
-dotnet run --project tools\KaiSign -- export copia.pem         # una copia de la clave con contraseña, para guardarla aparte
-dotnet run --project tools\KaiSign -- verify miasistente.kai   # lo que diría K-Desktop
+kaisign keygen "Tu nombre"      # una vez: la clave se queda en tu usuario de Windows (DPAPI)
+kaisign export copia.pem        # una copia de la clave con contraseña, para guardarla aparte
+kaisign verify miasistente.kai  # lo que diría K-Desktop
 ```
 
 | Propiedad de compilación | |

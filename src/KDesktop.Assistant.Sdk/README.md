@@ -28,9 +28,12 @@ seen by the assistant.
 
 - **Guide:** [Making assistants](https://kobayashi82.github.io/K-Desktop/en/sdk/index.html), and the
   [API reference](https://kobayashi82.github.io/K-Desktop/api/KDesktop.Assistant.Sdk.html)
-- **Schemas** of the package files: [docs/assistant/schemas](../../docs/assistant/schemas)
-- **Template:** `dotnet new install templates/kdassistant`, then `dotnet new kdassistant -n MyAssistant`
-- **Without code:** an assistant can be just pictures and a `character.json` (see Pip, `samples/CharacterAssistant`)
+- **Schemas** of the package files: [docs/assistant/schemas](https://github.com/Kobayashi82/K-Desktop/tree/main/docs/assistant/schemas)
+- **Template:** `dotnet new install KDesktop.Assistant.Templates`, then `dotnet new kdassistant -n MyAssistant`
+- **Without code:** an assistant can be just pictures and a `character.json` (see
+  [Pip](https://github.com/Kobayashi82/K-Desktop/tree/main/samples/CharacterAssistant))
 
-`dotnet build` of an assistant project makes its `.kai` (the targets in `build/` pack it); try it without installing with
-`KDesktop.exe --assistant-dev "<project folder>"`.
+`dotnet build` of an assistant project makes its `.kai` (this package's build targets pack it, and sign it with
+`kaisign` when you have a key: make it once with
+`%USERPROFILE%\.nuget\packages\kdesktop.assistant.sdk\<version>\tools\kaisign\kaisign.exe keygen "Your name"`); try it
+without installing with `KDesktop.exe --assistant-dev "<project folder>"`.

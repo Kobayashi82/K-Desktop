@@ -14,13 +14,14 @@ P-256) and the signature. Nobody has to be paid: the key is yours. K-Desktop che
 
 If the installed version was signed and the new one is not signed by the same key, the card warns in red.
 
-Make your key once with `tools/KaiSign` (in the K-Desktop repository); from then on **every build signs the `.kai`** by
-itself, right after packing it:
+Make your key once with **kaisign**, which comes inside the SDK's package
+(`%USERPROFILE%\.nuget\packages\kdesktop.assistant.sdk\<version>\tools\kaisign\kaisign.exe`, or `tools/KaiSign` in the
+K-Desktop repository); from then on **every build signs the `.kai`** by itself, right after packing it:
 
 ```powershell
-dotnet run --project tools\KaiSign -- keygen "Your name"      # once: the key stays in your Windows user (DPAPI)
-dotnet run --project tools\KaiSign -- export copy.pem          # a copy of the key with a password, to keep elsewhere
-dotnet run --project tools\KaiSign -- verify myassistant.kai   # what K-Desktop would say
+kaisign keygen "Your name"      # once: the key stays in your Windows user (DPAPI)
+kaisign export copy.pem         # a copy of the key with a password, to keep elsewhere
+kaisign verify myassistant.kai  # what K-Desktop would say
 ```
 
 | Build property | |

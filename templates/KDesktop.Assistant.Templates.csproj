@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The NuGet package of the dotnet new templates (tools\release\publish-nuget.ps1): only packs kdassistant\, builds
+    nothing. «dotnet new install KDesktop.Assistant.Templates», then «dotnet new kdassistant -n MyAssistant».
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RuntimeIdentifier></RuntimeIdentifier>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <AnalysisLevel>none</AnalysisLevel>
+    <PackageType>Template</PackageType>
+    <PackageId>KDesktop.Assistant.Templates</PackageId>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Title>K-Desktop assistant templates</Title>
+    <Description>dotnet new template for a K-Desktop assistant (kdassistant): the smallest complete assistant with code, which builds into a .kai package.</Description>
+    <Authors>Kobayashi82</Authors>
+    <PackageTags>k-desktop;assistant;template;dotnet-new</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://kobayashi82.github.io/K-Desktop/en/sdk/getting-started.html</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Kobayashi82/K-Desktop</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <ContentTargetFolders>content</ContentTargetFolders>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="kdassistant\**\*" Exclude="kdassistant\**\bin\**;kdassistant\**\obj\**" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="..\tools\icon\out\icon-192.png" Pack="true" PackagePath="icon.png" />
+  </ItemGroup>
+
+</Project>

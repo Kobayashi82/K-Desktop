@@ -8,7 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <RootNamespace>MyAssistant</RootNamespace>
-    <!-- Where the SDK is (a clone of K-Desktop) until it is on NuGet. -->
+    <!-- Empty: the SDK from NuGet. Or the folder of KDesktop.Assistant.Sdk in a clone of K-Desktop, to build against it. -->
     <KDesktopAssistantSdk Condition="'$(KDesktopAssistantSdk)' == ''">SDK_FOLDER</KDesktopAssistantSdk>
   </PropertyGroup>
 
@@ -17,11 +17,14 @@
     <None Remove="Package\**" />
   </ItemGroup>
 
-  <ItemGroup>
-    <!-- The host provides the SDK: compile against it, never ship it. -->
+  <!-- The host provides the SDK: compile against it, never ship it. -->
+  <ItemGroup Condition="'$(KDesktopAssistantSdk)' == ''">
+    <PackageReference Include="KDesktop.Assistant.Sdk" Version="SDK_VERSION" ExcludeAssets="runtime" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(KDesktopAssistantSdk)' != ''">
     <ProjectReference Include="$(KDesktopAssistantSdk)\KDesktop.Assistant.Sdk.csproj" Private="false" ExcludeAssets="runtime" />
   </ItemGroup>
 
-  <Import Project="$(KDesktopAssistantSdk)\build\KDesktop.Assistant.Sdk.targets" />
+  <Import Condition="'$(KDesktopAssistantSdk)' != ''" Project="$(KDesktopAssistantSdk)\build\KDesktop.Assistant.Sdk.targets" />
 
 </Project>

@@ -5,15 +5,19 @@ SDK is always provided by K-Desktop: a package never carries it.
 
 ## Starting from the template
 
-You need the .NET 10 SDK and a clone of the [K-Desktop repository](https://github.com/Kobayashi82/K-Desktop) (until the
-SDK is on NuGet).
+You need the .NET 10 SDK. The template and the SDK come from NuGet
+([KDesktop.Assistant.Templates](https://www.nuget.org/packages/KDesktop.Assistant.Templates),
+[KDesktop.Assistant.Sdk](https://www.nuget.org/packages/KDesktop.Assistant.Sdk)):
 
 ```powershell
-dotnet new install "<K-Desktop>\templates\kdassistant"
-dotnet new kdassistant -n MyAssistant --sdk "<K-Desktop>\src\KDesktop.Assistant.Sdk" --authorName "Me"
+dotnet new install KDesktop.Assistant.Templates
+dotnet new kdassistant -n MyAssistant --authorName "Me"
 cd MyAssistant
 dotnet build          # → bin\Debug\…\myassistant-1.0.0.kai
 ```
+
+To build against a clone of the [K-Desktop repository](https://github.com/Kobayashi82/K-Desktop) instead (to try a change in
+the SDK), add `--sdk "<K-Desktop>\src\KDesktop.Assistant.Sdk"`.
 
 | | |
 |---|---|

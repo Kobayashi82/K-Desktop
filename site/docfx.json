@@ -21,6 +21,9 @@
     "resource": [
       { "files": ["images/**", "CNAME", ".nojekyll"] }
     ],
+    "fileMetadata": {
+      "_lang": { "es/**": "es", "en/**": "en", "index.md": "en", "api/**": "en" }
+    },
     "output": "_site",
     "template": ["default", "modern", "template"],
     "globalMetadata": {

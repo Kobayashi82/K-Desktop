@@ -18,11 +18,32 @@
     <!-- SDK version (major = compatibility): goes into assistant.json as "sdk". -->
     <SdkContractVersion>1.0</SdkContractVersion>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
+  </PropertyGroup>
+
+  <!--
+    The NuGet package (tools\release\publish-nuget.ps1): the assembly, build\KDesktop.Assistant.Sdk.targets (makes the .kai,
+    imported by NuGet by itself) and kaisign in tools\kaisign (KaiSignDir, built by the script). Its version is its own,
+    not K-Desktop's.
+  -->
+  <PropertyGroup>
+    <PackageId>KDesktop.Assistant.Sdk</PackageId>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Title>K-Desktop Assistant SDK</Title>
+    <Description>The SDK for writing assistants for K-Desktop: characters that live on top of your windows, talk with their own voice, think with a local AI and run your K-Desktop commands with visible gestures. Building an assistant project makes its .kai package (signed, when you have a key).</Description>
+    <PackageTags>k-desktop;assistant;desktop;wpf;windows</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://kobayashi82.github.io/K-Desktop/en/sdk/index.html</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Kobayashi82/K-Desktop</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\tools\icon\out\icon-192.png" Pack="true" PackagePath="icon.png" Visible="false" />
+    <None Include="build\KDesktop.Assistant.Sdk.targets" Pack="true" PackagePath="build\" />
+    <None Condition="'$(KaiSignDir)' != ''" Include="$(KaiSignDir)\**\*" Pack="true" PackagePath="tools\kaisign\" Visible="false" />
   </ItemGroup>
 
 </Project>

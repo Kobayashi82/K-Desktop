@@ -1,13 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <!-- Signs assistant packages (.kai) with the publisher's own key (stage 12). Never part of K-Desktop: only for whoever
-       publishes assistants. See tools\KaiSign\README.md. -->
+       publishes assistants. It also travels inside the SDK's NuGet package (tools\kaisign), so it takes from K-Desktop
+       only the signature format (PackageSignature) and the list of trusted publishers, not the whole Core.
+       See tools\KaiSign\README.md. -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <AssemblyName>kaisign</AssemblyName>
     <RootNamespace>KaiSign</RootNamespace>
     <BuildPortable>false</BuildPortable>
+    <!-- Not the Windows 10 TFM of K-Desktop: it needs no WinRT (25 MB less inside the SDK's package). -->
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\KDesktop.Core\KDesktop.Core.csproj" />
+    <Compile Include="..\..\src\KDesktop.Core\Assistant\Packages\PackageSignature.cs" Link="PackageSignature.cs" />
+    <EmbeddedResource Include="..\..\src\KDesktop.Core\Assistant\Packages\trusted-publishers.json" LogicalName="AssistantPackages/trusted-publishers.json" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.0" />
   </ItemGroup>
 </Project>
