@@ -3,19 +3,19 @@ using System.Windows;
 namespace KDesktop.Assistant.Sdk;
 
 /// <summary>
-/// The gesture names, as listed in <see cref="AssistantTraits.Gestures"/> and in assistant.json
+/// The gesture names, as listed in the «gestures» of the «traits» of assistant.json
 /// (camelCase there: "pointAt", "pressButton"…).
 /// </summary>
 public enum GestureKind
 {
     PointAt, GoTo, PressButton, MoveWindow, ActivateWindow, WaitForWindow, Mark, Scan, Typing, Communicate, React,
 
-    /// <summary>SDK 1.14: see <see cref="Gesture.Announce"/>.</summary>
+    /// <summary>see <see cref="Gesture.Announce"/>.</summary>
     Announce,
 }
 
 /// <summary>
-/// What the module wants to achieve; the assistant decides how (§11.2 of the plan). An assistant that only knows
+/// What the module wants to achieve; the assistant decides how. An assistant that only knows
 /// <see cref="Communicate"/> and <see cref="React"/> already works: for the rest the module falls back to
 /// Communicate and performs the action itself.
 /// </summary>
@@ -68,23 +68,29 @@ public abstract record Gesture
     public sealed record Typing(WindowInfo? Window) : Gesture { public override GestureKind Kind => GestureKind.Typing; }
 
     /// <summary>The generic one: stay visible while the host shows <paramref name="Text"/> in the bubble.</summary>
-    /// <param name="Icon">Optional icon id from the module (volume, power, clock, web…).</param>
+    /// <param name="Icon">
+    /// What it is about, when the module knows, for a character that shows a picture with it (null otherwise): <c>assistant</c>,
+    /// <c>battery</c>, <c>clipboard</c>, <c>clock</c>, <c>command</c>, <c>display</c>, <c>folder</c>, <c>keyboard</c>,
+    /// <c>menu</c>, <c>message</c>, <c>microphone</c>, <c>network</c>, <c>pause</c>, <c>power</c>, <c>radio</c>,
+    /// <c>script</c>, <c>search</c>, <c>sound</c>, <c>speaker</c>, <c>theme</c>, <c>volume</c> or <c>web</c>. New ones may
+    /// come later: show the ones it does not know without a picture.
+    /// </param>
     public sealed record Communicate(string Text, string? Icon) : Gesture { public override GestureKind Kind => GestureKind.Communicate; }
 
     /// <summary>
-    /// A short reaction to how something went. <see cref="Context"/> (SDK 1.12) says where it comes from, how many in a
+    /// A short reaction to how something went. <see cref="Context"/> says where it comes from, how many in a
     /// row and whether it is the first of the day, so the same reaction need not look the same every time.
     /// </summary>
     public sealed record React(Reaction Reaction) : Gesture
     {
         public override GestureKind Kind => GestureKind.React;
 
-        /// <summary>Filled by the host (SDK 1.12); <see cref="ReactionContext.Unknown"/> when it cannot tell.</summary>
+        /// <summary>Filled by the host; <see cref="ReactionContext.Unknown"/> when it cannot tell.</summary>
         public ReactionContext Context { get; init; } = ReactionContext.Unknown;
     }
 
     /// <summary>
-    /// SDK 1.14: it is about to say something on its own (a timer that rang, «avísame cuando» that happened, «Asistente:
+    /// it is about to say something on its own (a timer that rang, «avísame cuando» that happened, «Asistente:
     /// decir»), so it catches the user's eye first: it comes closer to the cursor, waves, blinks… The host waits for it
     /// (at most <see cref="IGestureContext.TimeLeft"/>, about 2 s; half a second in «Fast») and then speaks with
     /// <see cref="Communicate"/>: end as soon as it is done. Nothing to Commit.
@@ -98,7 +104,7 @@ public abstract record Gesture
     }
 }
 
-/// <summary>Why an assistant is about to speak on its own (SDK 1.14, <see cref="Gesture.Announce"/>).</summary>
+/// <summary>Why an assistant is about to speak on its own (<see cref="Gesture.Announce"/>).</summary>
 public enum AnnounceReason
 {
     Other,
@@ -115,7 +121,7 @@ public enum AnnounceReason
 
 public enum Reaction { Success, Warning, Failure, Celebration }
 
-/// <summary>Where a reaction comes from (SDK 1.12).</summary>
+/// <summary>Where a reaction comes from.</summary>
 public enum ReactionSource
 {
     Unknown,
@@ -134,7 +140,7 @@ public enum ReactionSource
 }
 
 /// <summary>
-/// The context of a <see cref="Gesture.React"/> (SDK 1.12), filled by the host.
+/// The context of a <see cref="Gesture.React"/>, filled by the host.
 /// </summary>
 /// <param name="Source">Where it comes from.</param>
 /// <param name="Streak">
@@ -159,8 +165,6 @@ public abstract record Place
     public sealed record AtPoint(Point Point) : Place;
 
     public sealed record Area(PixelRect Rect) : Place;
-
-    public sealed record Monitor(int Index) : Place;
 
     /// <summary>The notification area of the taskbar, near the clock (volume, network, power…).</summary>
     public sealed record Tray : Place;
@@ -223,13 +227,13 @@ public interface IWindowServices
 {
     /// <summary>
     /// Moves (and resizes) a window at once, for frame-by-frame dragging (its visible part: no shadows nor invisible
-    /// borders). A window of an administrator's process is out of this process's reach: K-Desktop moves it (SDK 1.3), a
+    /// borders). A window of an administrator's process is out of this process's reach: K-Desktop moves it, a
     /// little behind, at most about 30 times a second. False when it cannot be moved (it is gone, or maximized).
     /// </summary>
     bool TryMove(long handle, PixelRect bounds);
 
     /// <summary>
-    /// Minimizes, maximizes, restores or brings a window to the front (SDK 1.3). Bringing to the front, and anything on a
+    /// Minimizes, maximizes, restores or brings a window to the front. Bringing to the front, and anything on a
     /// window of an administrator's process, goes through K-Desktop (Windows only lets it do that): true means it was
     /// asked. False when the window is gone.
     /// </summary>

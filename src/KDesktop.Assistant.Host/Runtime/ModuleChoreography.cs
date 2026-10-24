@@ -477,7 +477,7 @@ internal sealed class ModuleChoreography(KDesktopLink? link, EngineLoop engine, 
             {
                 await Task.Delay(150, token).ConfigureAwait(true);
                 var found = runtime.World.Current.Windows.FirstOrDefault(w => !before.Contains(w.Handle) &&
-                    (process is null || string.Equals(w.AppId, process, StringComparison.OrdinalIgnoreCase)));
+                    (process is null || string.Equals(w.Process, process, StringComparison.OrdinalIgnoreCase)));
                 if (found is not null) return found;
             }
         }

@@ -1,7 +1,7 @@
 namespace KDesktop.Assistant.Sdk;
 
 /// <summary>
-/// One of its own animations, for the showcase (SDK 1.18): a dance, a trick, the way it plays with a ball… What the host
+/// One of its own animations, for the showcase: a dance, a trick, the way it plays with a ball… What the host
 /// already asks of every assistant (entrances, exits, states, reactions, gestures) is not listed: the host launches those
 /// itself. K-Desktop shows these in the assistant's «Try» tab and in the catalog, and asks for one with
 /// <see cref="IAssistant.PlayShowcaseAsync"/>.

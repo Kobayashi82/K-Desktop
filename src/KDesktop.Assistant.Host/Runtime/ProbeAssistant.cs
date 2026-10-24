@@ -55,7 +55,7 @@ internal sealed class ProbeAssistant(Point center) : IAssistant
 
     public Task<GestureOutcome> PerformAsync(Gesture gesture, IGestureContext ctx, CancellationToken ct) => Task.FromResult(GestureOutcome.NotPerformed);
 
-    public void SetState(AssistantState state) { }
+    public void SetState(AssistantState state, StateDetail detail) { }
 
     public void OnVoiceLevel(double level) { }
 

@@ -4,7 +4,7 @@ using System.Windows.Media;
 namespace KDesktop.Assistant.Sdk;
 
 /// <summary>
-/// A rope (cable, hook line, leash) simulated with Verlet integration (SDK 1.4), in screen pixels like everything else.
+/// A rope (cable, hook line, leash) simulated with Verlet integration, in screen pixels like everything else.
 /// The start is always held (by the assistant); the end hangs free or is held too (stuck in a window, on a projectile).
 /// It only resists stretching, so it sags and goes slack, and it never gets longer than <see cref="MaxLength"/> while
 /// its end is free. It steps itself at a fixed 120 Hz whatever the frame rate, so it behaves the same on any screen.

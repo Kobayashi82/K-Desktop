@@ -37,7 +37,7 @@ internal static partial class TestCharacter
           "author": "K-Desktop tests",
           "description": { "en": "The assistant without code of the tests." },
           "license": "MIT",
-          "sdk": "1.21",
+          "sdk": "1.0",
           "entry": "character.json",
           "traits": { "travel": "walk", "travelSpeed": 70, "canMoveWindows": false, "canReachMaximized": false, "gestures": ["communicate", "react", "announce"] }
         }

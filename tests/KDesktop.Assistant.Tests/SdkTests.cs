@@ -7,7 +7,10 @@ namespace KDesktop.Assistant.Tests;
 /// <summary>Stage 0.2: an assistant can be written against the SDK alone.</summary>
 public class SdkTests
 {
-    /// <summary>The smallest possible assistant: no body, no gestures (the module falls back to Communicate).</summary>
+    /// <summary>
+    /// The smallest possible assistant: only the required members (no body, no gestures: the module falls back to
+    /// Communicate). Everything else has its default.
+    /// </summary>
     private sealed class EmptyAssistant : IAssistant
     {
         public IAssistantHost? Host { get; private set; }
@@ -16,34 +19,28 @@ public class SdkTests
         public void Enter(EntranceKind how) { }
         public Task ExitAsync(ExitKind why, CancellationToken ct) => Task.CompletedTask;
         public double Tick(TickInfo tick) => 1;
-        public bool CanPerform(Gesture gesture) => false;
         public Task<GestureOutcome> PerformAsync(Gesture gesture, IGestureContext ctx, CancellationToken ct) => Task.FromResult(GestureOutcome.NotPerformed);
-        public void SetState(AssistantState state) { }
-        public void OnVoiceLevel(double level) { }
-        public void OnPointer(PointerEvent e) { }
-        public void OnSystemEvent(SystemEvent e) { }
-        public Task OnExtraAsync(string extraId, CancellationToken ct) => Task.CompletedTask;
-        public void OnSettingsChanged(JsonElement settings) { }
+        public void SetState(AssistantState state, StateDetail detail) { }
         public void Dispose() { }
     }
 
     [Fact]
-    public async Task EmptyAssistantDeclinesGestures()
+    public async Task EmptyAssistantDeclinesGesturesAndTheRestHasDefaults()
     {
         IAssistant assistant = new EmptyAssistant();
         var gesture = new Gesture.Communicate("Hola", null);
-        Assert.False(assistant.CanPerform(gesture));
+        Assert.True(assistant.CanPerform(gesture));
         Assert.Equal(GestureOutcome.NotPerformed, await assistant.PerformAsync(gesture, null!, CancellationToken.None));
         Assert.Equal(1, assistant.Tick(new TickInfo(0, 0)));
-    }
-
-    [Fact]
-    public void CommunicateAndReactAreAlwaysKnown()
-    {
-        var traits = new AssistantTraits(TravelMode.Teleport, 1000, false, false, new HashSet<GestureKind>());
-        Assert.True(traits.Knows(GestureKind.Communicate));
-        Assert.True(traits.Knows(GestureKind.React));
-        Assert.False(traits.Knows(GestureKind.MoveWindow));
+        assistant.OnVoiceLevel(0.5);
+        assistant.OnPointer(new PointerEvent(PointerEventKind.Click, "body", default));
+        assistant.OnSystemEvent(new SystemEvent.HourStruck(12));
+        assistant.OnSettingsChanged(JsonDocument.Parse("{}").RootElement);
+        await assistant.OnExtraAsync("x", CancellationToken.None);
+        Assert.False(assistant.ShowSpeech(new SpeechText("Hola", true, 0)));
+        Assert.Null(assistant.BodyBounds);
+        Assert.Empty(assistant.Showcase);
+        Assert.False(await assistant.PlayShowcaseAsync("x", CancellationToken.None));
     }
 
     [Fact]

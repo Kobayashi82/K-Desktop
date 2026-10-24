@@ -64,7 +64,7 @@ internal sealed class ModuleSight(IWindowServices windows) : IScreen
         }
     }
 
-    private static bool Ours(WindowInfo window) => string.Equals(window.AppId, "kdesktop", StringComparison.OrdinalIgnoreCase);
+    private static bool Ours(WindowInfo window) => string.Equals(window.Process, "kdesktop", StringComparison.OrdinalIgnoreCase);
 
     private ScreenPicture? WindowPicture(ScreenUse use)
     {
@@ -72,7 +72,7 @@ internal sealed class ModuleSight(IWindowServices windows) : IScreen
         var size = use.HasFlag(ScreenUse.Read) ? int.MaxValue : MaxSide;
         if (UserWindow() is not { } window || windows.Thumbnail(window.Handle, size) is not BitmapSource picture) return null;
         var pixels = use.HasFlag(ScreenUse.Read) ? Inside(Pixels(picture), (nint)window.Handle) : null;
-        return Picture(picture, use, $"the window «{window.Title}» of {window.AppId}", window.Title, pixels) with { Area = WindowLayout.VisibleBounds((nint)window.Handle) };
+        return Picture(picture, use, $"the window «{window.Title}» of {window.Process}", window.Title, pixels) with { Area = WindowLayout.VisibleBounds((nint)window.Handle) };
     }
 
     /// <summary>
@@ -137,7 +137,7 @@ internal sealed class ModuleSight(IWindowServices windows) : IScreen
     /// </summary>
     private string? BrowserAddress()
     {
-        if (UserWindow() is not { AppId: { } app } window || !Browsers.Contains(app)) return null;
+        if (UserWindow() is not { Process: { } app } window || !Browsers.Contains(app)) return null;
         try
         {
             var root = AutomationElement.FromHandle((nint)window.Handle);

@@ -278,7 +278,7 @@ public sealed class Dot : IAssistant
         _host.RequestTick();
     }
 
-    public void SetState(AssistantState state)
+    public void SetState(AssistantState state, StateDetail detail)
     {
         _state = state;
         _dirty = true;

@@ -160,9 +160,6 @@ public sealed class MyAssistant : IAssistant
         _host.RequestTick();
     }
 
-    // The states of SDK 1.12 and earlier only; the host calls the one above.
-    public void SetState(AssistantState state) => SetState(state, StateDetail.None);
-
     public void OnVoiceLevel(double level) { }
 
     public void OnPointer(PointerEvent e)
@@ -172,8 +169,8 @@ public sealed class MyAssistant : IAssistant
             case PointerEventKind.Click:
                 Flash();
                 break;
-            // Files dragged from the Explorer over it, and dropped (SDK 1.16): it catches them (K-Desktop does the rest).
-            // e.Preview (SDK 1.17) is their picture: Windows hides its own over the assistant, so it may draw it its way.
+            // Files dragged from the Explorer over it, and dropped: it catches them (K-Desktop does the rest).
+            // e.Preview is their picture: Windows hides its own over the assistant, so it may draw it its way.
             case PointerEventKind.FilesOver:
                 Flash(Colors.LightSkyBlue, 0.3);
                 break;

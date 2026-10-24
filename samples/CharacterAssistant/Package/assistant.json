@@ -14,7 +14,7 @@
   },
   "homepage": "https://github.com/Kobayashi82/K-Desktop",
   "license": "MIT",
-  "sdk": "1.21",
+  "sdk": "1.0",
   "entry": "character.json",
   "icon": "icon.png",
   "wakeWord": "Pip",

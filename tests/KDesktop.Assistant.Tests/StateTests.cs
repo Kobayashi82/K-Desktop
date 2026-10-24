@@ -21,17 +21,6 @@ public class StateTests
     private static string TicFolder => TestCharacter.Folder;
 
     [Fact]
-    public void AnAssistantBuiltBeforeSeesOnlyTheStatesItKnows()
-    {
-        IAssistant old = new OldAssistant();
-        old.SetState(AssistantState.ThinkingHard, StateDetail.None);
-        old.SetState(AssistantState.LoadingBrain, new StateDetail(AssistantActivity.None));
-        old.SetState(AssistantState.Busy, new StateDetail(AssistantActivity.SearchingWeb, "look_up_web", "Buscando en internet"));
-        old.SetState(AssistantState.NoBrain, StateDetail.None);
-        Assert.Equal([AssistantState.Thinking, AssistantState.Thinking, AssistantState.Busy, AssistantState.Thinking], ((OldAssistant)old).Seen);
-    }
-
-    [Fact]
     public void WhatWinsIsTheQuestionThenSpeakingThenATool()
     {
         var of = new ModuleStates.Of { Talk = "thinking" };
@@ -174,26 +163,6 @@ public class StateTests
             Assert.True(DateTime.UtcNow < limit, "No ha pasado a tiempo");
             await Task.Delay(100);
         }
-    }
-
-    /// <summary>An assistant of SDK 1.12: only the state without its detail.</summary>
-    private sealed class OldAssistant : IAssistant
-    {
-        public List<AssistantState> Seen { get; } = [];
-        public void SetState(AssistantState state) => Seen.Add(state);
-        public System.Windows.Point? BubbleAnchor => null;
-        public void Attach(IAssistantHost host) { }
-        public void Enter(EntranceKind how) { }
-        public Task ExitAsync(ExitKind why, CancellationToken ct) => Task.CompletedTask;
-        public double Tick(TickInfo tick) => 1;
-        public bool CanPerform(Gesture gesture) => false;
-        public Task<GestureOutcome> PerformAsync(Gesture gesture, IGestureContext ctx, CancellationToken ct) => Task.FromResult(GestureOutcome.NotPerformed);
-        public void OnVoiceLevel(double level) { }
-        public void OnPointer(PointerEvent e) { }
-        public void OnSystemEvent(SystemEvent e) { }
-        public Task OnExtraAsync(string extraId, CancellationToken ct) => Task.CompletedTask;
-        public void OnSettingsChanged(JsonElement settings) { }
-        public void Dispose() { }
     }
 
     private sealed class Named(string name, ToolRisk risk) : ITool

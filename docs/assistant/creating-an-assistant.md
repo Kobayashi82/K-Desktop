@@ -56,7 +56,7 @@ MyCharacter\
   `surprised`, `click`, `enter`, `exit`, `announce` and `catch`) and `sound` (a WAV played when it starts). Before saying
   something on its own (a timer, a notice) it walks along where it stands towards the mouse and plays `announce`; with files
   dragged over it, it carries their picture over its head and, when they are dropped, takes it in and plays `catch`.
-- **Variants** (SDK 1.20: put `"sdk": "1.20"`): instead of one animation, a list. Each time it plays, K-Desktop picks one
+- **Variants**: instead of one animation, a list. Each time it plays, K-Desktop picks one
   by its `weight` (twice the weight, twice as often; 1 by default), respecting its `cooldown` (seconds it rests after
   coming up) and never repeating the last one for those that play once; those that repeat (`idle`, `walk`, `talk`…) pick
   again at the end of each round. In `enter` and `exit`, `when` says which reason each one is for: `startup` (K-Desktop
@@ -199,7 +199,7 @@ K-Desktop's list.
 
 ## Coming in and leaving
 
-`Enter(how)` and `ExitAsync(why, ct)` say **why** it arrives or leaves (SDK 1.9):
+`Enter(how)` and `ExitAsync(why, ct)` say **why** it arrives or leaves:
 
 | `EntranceKind` | When | What to do |
 |---|---|---|
@@ -219,7 +219,7 @@ The host waits for the exit 3 s at most (then the token is cancelled).
 ## Common settings
 
 What every assistant has the same way does not go in its `settings.json`: K-Desktop shows it in the «Basics» tab of its
-card, with the same units for all (SDK 1.9). The manifest says which ones it takes:
+card, with the same units for all. The manifest says which ones it takes:
 
 ```json
 "common": ["size", "volume", "liveliness", "dragging"]
@@ -243,7 +243,7 @@ them all.
   the character opens the box to write to it (and so does *Write* in its right-click menu): left clicks and double clicks
   are yours. Holding the left button down without moving it (450 ms) is talking to it: you get `Down` and `Up`, but no
   `Click` or drag.
-- **Its own text** (SDK 1.15): with `"speech": "own"` in the manifest you draw what it says yourself (a bubble of your
+- **Its own text**: with `"speech": "own"` in the manifest you draw what it says yourself (a bubble of your
   own, a sign, the words inside your cloud…). The host calls `ShowSpeech(SpeechText)` each time the answer grows while it is
   being written (`Finished` false), with all of it when it is ready (`Finished` true) and again with a later `Until` while
   your voice is still saying it; each call replaces the text of the one before. Show it until `HideSpeech` arrives: the host
@@ -258,7 +258,7 @@ them all.
 - **State** (`SetState`): K-Desktop tells you whether it is listening to you (`Listening`: its word, its key to talk or the
   long click), whether you are thinking (`Thinking`), talking (`Speaking`) or back to rest (`Idle`). Show it your way (the
   Lander lights up its antenna; the template changes colour).
-- **States with detail** (SDK 1.13): implement `SetState(AssistantState state, StateDetail detail)` and the host calls that
+- **States with detail**: implement `SetState(AssistantState state, StateDetail detail)` and the host calls that
   one instead of the usual one. These arrive as well:
   - `ThinkingHard`: it is thinking slowly (the AI asked for it or the user said «think it over»); it can take half a minute.
   - `LoadingBrain`: its model is being loaded into memory before it can think (from a few seconds to a minute).
@@ -280,13 +280,13 @@ them all.
   the cursor is the one you say (`Cursor`: arrow, hand, grab) or, since SDK 1.8, one you draw: `SetCursorImage(image,
   hotspot)` with a `BitmapSource` in monitor pixels (Windows cursors are 32 at 100 %; Kobii shows a brush while being
   brushed); `null` goes back to the usual one.
-- **Files dropped on it** (SDK 1.16): click areas take files dragged from Explorer (the assistant process runs as a normal
+- **Files dropped on it**: click areas take files dragged from Explorer (the assistant process runs as a normal
   user; K-Desktop, as administrator, could not receive them). They reach `OnPointer` as `FilesOver` (they are over it: the
   moment to reach out), `FilesAway` (they left without being dropped, or the user pressed Escape) and `FilesDropped` (they
   were dropped: the moment to catch them), with the full paths in `PointerEvent.Files` and the area in `Area`. It is only
   the animation: what to do with them is decided by K-Desktop. They are never taken as «move»: the file stays where it
   was. An assistant built with an older SDK does not see these events.
-  **The picture of what is dragged** (SDK 1.17): while the files are over your assistant, K-Desktop hides the picture
+  **The picture of what is dragged**: while the files are over your assistant, K-Desktop hides the picture
   Windows draws under the cursor (the thumbnail or the icons, which covered it) and leaves only a small label next to the
   cursor, «Give it to <your name>»; if they leave without being dropped, it comes back. That picture reaches you in
   `PointerEvent.Preview` (an opaque, frozen `BitmapSource` in screen pixels; null if the source program gave none) with the
@@ -334,7 +334,7 @@ them all.
   fixed 120 Hz (`Step(tick.Elapsed)`), so it behaves the same at any frame rate. `Length` to reel in or let out,
   `Gravity`, `Damping`, `Iterations`; `IsTaut`, `Overstretch` and `Pull` (towards the start, what is over its length: what
   a towed window follows). Draw it with `Draw(dc, pen)` (a smooth curve); `Bounds(margin)` gives the size of the surface.
-- **Context of the reactions** (SDK 1.12): `Gesture.React` carries `Context` (`ReactionContext`), filled in by the host:
+- **Context of the reactions**: `Gesture.React` carries `Context` (`ReactionContext`), filled in by the host:
   `Source` = where it comes from (`Order`, a command or a K-Desktop action; `Tool`, a tool such as the timer, a note or the
   web; `Notice`, something it says on its own, such as a timer ringing; `User`, what the user says about it: «thanks»,
   «well done» → `Celebration`, «that's wrong» → `Failure`), `Streak` = how many in a row of the same kind (1 the first; back
@@ -345,7 +345,7 @@ them all.
   the weather) does not react. Use it with `Variety` not to react the same way every time: something bigger the first time
   today or on a long streak, more downcast at the third failure in a row. When the host does not know where it comes from,
   `ReactionContext.Unknown` arrives.
-- **Room for everyone** (SDK 1.11): with several assistants on the desktop, none stays on top of another. Say where your
+- **Room for everyone**: with several assistants on the desktop, none stays on top of another. Say where your
   body is with `BodyBounds` (only the body: no particles, bubbles or effects; null when you are not visible). If you do not,
   the host uses the bounds of your `body` click area, which may not always be there. `World.Others` says where the body of
   each of the others is (`Id`, `Body`) and whether it is on its way somewhere (`Moving`: it moved in the last half second).
@@ -360,9 +360,9 @@ them all.
   always comes out. `TryPick` picks nothing if all are resting. `Pick(x => …)` picks only among those that fit now (on the
   taskbar, on top of a window…). `Use(x)` marks one as done although it did not come from there, `CooldownLeft`, `Reset`.
   With `new Variety<T>(seed: 1)` the sequence is always the same (tests); `clock` changes the clock of the cooldowns.
-- **One drawing system** (SDK 1.6): `Present` with WPF's drawing API. The last frame stays on screen even if the GPU is lost
+- **One drawing system**: `Present` with WPF's drawing API. The last frame stays on screen even if the GPU is lost
   or a full-screen game ends (the host repeats it).
-- **Music** (SDK 1.7): with `World.ListenToMusic(true)`, `World.Music` says whether music with a beat is playing (`Playing`;
+- **Music**: with `World.ListenToMusic(true)`, `World.Music` says whether music with a beat is playing (`Playing`;
   a voice or noise does not count), how many beats per minute (`Bpm`) and the beat (`BeatAt(tick.Now)`: it grows by one per
   beat and its fraction is the phase, 0 = the hit), to dance in time. The host reads the meter of each program that plays
   (the bars of Windows' volume mixer: nothing is recorded), without the assistants' sounds and voices; a hundred times a
@@ -391,7 +391,7 @@ minimize, maximize and close the notes window, `MoveWindow` it to the other side
 `WaitForWindow` while the calculator opens): your gesture calls `Commit` at the right moment and the window changes then.
 What you cannot do, the stage does anyway and the bubble says it, as in use (it shows as «it can't do that»).
 
-**Your own animations** (SDK 1.18) come first: a dance, a trick, how it plays with the ball… List them in `Showcase` (id,
+**Your own animations** come first: a dance, a trick, how it plays with the ball… List them in `Showcase` (id,
 name per language and group: `Idle`, `Moving`, `Playing`, `Feelings`, `Tricks` or `Other`) and play them in
 `PlayShowcaseAsync`: start at once, whatever you were doing, finish when it is over (K-Desktop waits up to 30 s) and stop
 right away if the token is cancelled; `false` if you do not know the id or cannot now. Both have a default body (nothing
@@ -412,7 +412,7 @@ public async Task<bool> PlayShowcaseAsync(string id, CancellationToken ct)
 }
 ```
 
-**Clips for the catalog** (SDK 1.19: put `"sdk": "1.19"`): in the manifest, `"showcase"` lists short clips of what it
+**Clips for the catalog**: in the manifest, `"showcase"` lists short clips of what it
 shows (an animated WebP, a GIF or a PNG of the package, 8 MB at most each), so the catalog can show them without loading
 your code or downloading the whole package. `item` is the id of what it shows: one of K-Desktop's (`enter.summoned`,
 `state.thinking`, `react.celebration`, `gesture.announce`…) or one of your own, which then carries `name` (per language)
@@ -430,7 +430,7 @@ downloaded (HTTP ranges), never the whole package. On install the clips are left
 Clips of what it does to a window (`window.minimize`, `window.maximize`, `window.close`, `window.move`, `window.activate`,
 `window.open`) need `"sdk": "1.21"`.
 
-**Recording them** (SDK 1.21): you do not have to make them by hand. Build with the showcase switched on and the `.targets`
+**Recording them**: you do not have to make them by hand. Build with the showcase switched on and the `.targets`
 puts the built package on the stage of a K-Desktop you name, off the screen, has it do each thing it can show, records a
 clip of each one that it does (lossless animated WebP, 25 frames a second, at most 10 s) into `Package\showcase\` and
 rewrites the `"showcase"` of `Package\assistant.json` (only that part of the file) before packing:
@@ -462,7 +462,7 @@ K-Desktop draws them with its own controls, without loading any code of the assi
   pictures from that same data (`[{ id, name, image, locked, lockText }]`).
 - **Extras** (`extras` in the manifest): its own actions, which show in its right-click menu, in its panel and as
   «Assistant: action» in K-Desktop's commands; with `hotkey`, the install card offers to create a command with that
-  shortcut. They arrive in `OnExtraAsync`. **Extras by the moment** (SDK 1.1): `SetExtraState(id, Shown | Disabled |
+  shortcut. They arrive in `OnExtraAsync`. **Extras by the moment**: `SetExtraState(id, Shown | Disabled |
   Hidden)` shows, dims or hides an extra in the menu and the panel's buttons; after each load all go back to `Shown`.
   `ExtraHotkey(id)` gives the shortcut of the K-Desktop command that runs it («CTRL + ALT + L»), to tell the user what to
   press. Commands and voice still reach `OnExtraAsync` while it is hidden: explain there why it cannot be done.

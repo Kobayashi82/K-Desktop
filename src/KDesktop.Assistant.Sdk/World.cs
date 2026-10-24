@@ -18,7 +18,7 @@ public sealed record CaptionButtons(PixelRect Minimize, PixelRect Maximize, Pixe
 
 public enum CaptionButton { Minimize, Maximize, Restore, Close }
 
-/// <summary>The beat of the music playing (SDK 1.7, <see cref="IWorld.Music"/>).</summary>
+/// <summary>The beat of the music playing (<see cref="IWorld.Music"/>).</summary>
 /// <param name="Playing">Something with a clear beat is sounding (speech or noise do not count).</param>
 /// <param name="Bpm">Beats per minute (0 while not known yet).</param>
 /// <param name="Beat">Beats counted at <paramref name="At"/> (it grows by one per beat; the fraction is the phase).</param>
@@ -34,7 +34,7 @@ public readonly record struct MusicBeat(bool Playing, double Bpm, double Beat, d
 /// </summary>
 /// <param name="Handle">Window handle (HWND). Stable while the window lives.</param>
 /// <param name="Bounds">Real bounds (DWM, without shadows or invisible borders).</param>
-/// <param name="AppId">Process name in lower case, without «.exe».</param>
+/// <param name="Process">Name of its process in lower case, without «.exe» («chrome», «explorer»…).</param>
 /// <param name="Elevated">
 /// Belongs to an elevated process: the assistant cannot move it itself (<see cref="IWindowServices.TryMove"/>
 /// returns false); K-Desktop places it when the gesture ends.
@@ -44,7 +44,7 @@ public sealed record WindowInfo(
     long Handle,
     PixelRect Bounds,
     string Title,
-    string? AppId,
+    string? Process,
     bool IsMaximized = false,
     bool Elevated = false,
     CaptionButtons? Buttons = null);

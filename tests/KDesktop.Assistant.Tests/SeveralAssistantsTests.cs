@@ -116,12 +116,6 @@ public class SeveralAssistantsTests
         Assert.Equal(Sdk.ExitKind.Shutdown, Host.AssistantSession.ExitOnClose("bye: disable"));
         Assert.Equal(Sdk.ExitKind.Shutdown, Host.AssistantSession.ExitOnClose("sin K-Desktop"));
         Assert.Equal(Sdk.ExitKind.Reloading, Host.AssistantSession.ExitOnClose("bye: " + ByeMessage.Restart));
-        // Packages built with SDK 1.8 or earlier keep the closest meaning (switched → reloaded, hiding → dismissed).
-        Assert.Equal(1, (int)Sdk.EntranceKind.Reloaded);
-        Assert.Equal(2, (int)Sdk.EntranceKind.Summoned);
-        Assert.Equal(1, (int)Sdk.ExitKind.Reloading);
-        Assert.Equal(2, (int)Sdk.ExitKind.Dismissed);
-        Assert.Equal(3, (int)Sdk.ExitKind.Uninstalling);
     }
 
     /// <summary>A copy of a package folder, with its manifest changed if asked.</summary>

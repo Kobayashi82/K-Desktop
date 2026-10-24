@@ -6,7 +6,7 @@ namespace KDesktop.Assistant.Sdk;
 /// <summary>Everything the host offers an assistant. Use it from the engine thread unless a member says otherwise.</summary>
 public interface IAssistantHost
 {
-    /// <summary>SDK version of the host («1.0»).</summary>
+    /// <summary>SDK version of the host («1.0»): a package built for a newer one does not install.</summary>
     Version SdkVersion { get; }
 
     /// <summary>
@@ -31,7 +31,7 @@ public interface IAssistantHost
     JsonElement Settings { get; }
 
     /// <summary>
-    /// The settings every assistant has the same way (SDK 1.9), set by the user in the «Basics» tab of its card: those
+    /// The settings every assistant has the same way, set by the user in the «Basics» tab of its card: those
     /// its manifest names in <c>common</c>; the rest stay as usual. When they change, <see cref="IAssistant.OnSettingsChanged"/>
     /// is called. The volume of its sounds is not here: the host applies it.
     /// </summary>
@@ -61,18 +61,18 @@ public interface IAssistantHost
     /// Shows, greys out or hides one of its extras in its right-click menu and its panel buttons, by what makes sense
     /// right now («Repeat the race» only after a race). Every extra is <see cref="ExtraState.Shown"/> each time it is
     /// loaded. Commands and voice still reach <see cref="IAssistant.OnExtraAsync"/>: say there why it cannot be done.
-    /// Cheap: only changes are sent. (SDK 1.1.)
+    /// Cheap: only changes are sent.
     /// </summary>
     void SetExtraState(string extraId, ExtraState state);
 
     /// <summary>
     /// The hotkey of the K-Desktop command that runs one of its extras, as K-Desktop shows it («CTRL + ALT + L»), or null
-    /// when no command with a hotkey runs it. Up to date whenever the user changes the commands. (SDK 1.1.)
+    /// when no command with a hotkey runs it. Up to date whenever the user changes the commands.
     /// </summary>
     string? ExtraHotkey(string extraId);
 
     /// <summary>
-    /// The situation its voice speaks in (SDK 1.2): <c>error</c> (it crashed), <c>happy</c> (it celebrates) or any other
+    /// The situation its voice speaks in: <c>error</c> (it crashed), <c>happy</c> (it celebrates) or any other
     /// its voice profile names in its <c>moods</c>; null, as usual. The effects of that mood are added to what it says from
     /// then on. Wherever it is, it sounds as if it were on the monitor in use.
     /// </summary>
@@ -87,7 +87,7 @@ public interface IAssistantHost
     IAssistantLog Log { get; }
 }
 
-/// <summary>The settings every assistant has the same way (<see cref="IAssistantHost.Common"/>, SDK 1.9).</summary>
+/// <summary>The settings every assistant has the same way (<see cref="IAssistantHost.Common"/>).</summary>
 /// <param name="Size">
 /// How big the user wants it, as a factor of the size it was drawn for: 0.5 … 2 (1 = as designed). Multiply your sizes by
 /// it (and by the monitor's scaling, as always).
@@ -123,24 +123,24 @@ public interface IWorld
     void WatchClosely(double seconds);
 
     /// <summary>
-    /// Listens to the rhythm of what the speakers play (SDK 1.7), to dance on the beat: <see cref="Music"/> is only
+    /// Listens to the rhythm of what the speakers play, to dance on the beat: <see cref="Music"/> is only
     /// measured while some assistant listens. It reads the output's peak meter (the bar of Windows' volume mixer: nothing
     /// is recorded), a hundred times a second while something sounds and a few times while it is quiet.
     /// </summary>
     void ListenToMusic(bool listen);
 
-    /// <summary>The music playing now (SDK 1.7; not playing unless this assistant listens: <see cref="ListenToMusic"/>).</summary>
+    /// <summary>The music playing now (not playing unless this assistant listens: <see cref="ListenToMusic"/>).</summary>
     MusicBeat Music { get; }
 
     /// <summary>
-    /// The other assistants on the desktop and where their bodies are (SDK 1.10), so that it does not land, stop or stroll
+    /// The other assistants on the desktop and where their bodies are, so that it does not land, stop or stroll
     /// on top of one of them: passing in front is fine, staying there is not. <see cref="WorldExtensions.TakenBy"/> says
     /// whether a place is taken. Up to date after every tick of theirs.
     /// </summary>
     IReadOnlyList<OtherAssistant> Others { get; }
 }
 
-/// <summary>Another assistant on the desktop (<see cref="IWorld.Others"/>, SDK 1.10).</summary>
+/// <summary>Another assistant on the desktop (<see cref="IWorld.Others"/>).</summary>
 /// <param name="Id">Its id («lander»…).</param>
 /// <param name="Body">Where its body is, in screen pixels (<see cref="IAssistant.BodyBounds"/>).</param>
 /// <param name="Moving">It is on its way somewhere (it moved in the last half second): it will not stay there.</param>

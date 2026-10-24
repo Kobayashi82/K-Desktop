@@ -37,7 +37,7 @@ public interface IHitArea : IDisposable
     PointerCursor Cursor { get; set; }
 
     /// <summary>
-    /// A cursor of its own over the area (SDK 1.8): a brush, a feather… drawn by the assistant, in screen pixels (draw it
+    /// A cursor of its own over the area: a brush, a feather… drawn by the assistant, in screen pixels (draw it
     /// at the DPI of the monitor; Windows' own cursors measure 32 pixels at 100 %). <paramref name="hotspot"/> is the
     /// pixel of the picture that points. Null goes back to <see cref="Cursor"/>.
     /// </summary>
@@ -73,7 +73,7 @@ public enum PointerEventKind
     DragStart, DragMove, DragEnd,
 
     /// <summary>
-    /// Files dragged from the Explorer (or any other program) came over the area (SDK 1.16): the moment to reach out for
+    /// Files dragged from the Explorer (or any other program) came over the area: the moment to reach out for
     /// them. <see cref="PointerEvent.Files"/> says which. Then comes <see cref="FilesAway"/> or <see cref="FilesDropped"/>.
     /// </summary>
     FilesOver,
@@ -95,12 +95,12 @@ public sealed record PointerEvent(PointerEventKind Kind, string Area, Point Posi
     /// <summary>
     /// The full paths of the files (and folders) dragged, with <see cref="PointerEventKind.FilesOver"/>,
     /// <see cref="PointerEventKind.FilesAway"/> and <see cref="PointerEventKind.FilesDropped"/>; empty with the rest
-    /// (SDK 1.16).
+    ///.
     /// </summary>
     public IReadOnlyList<string> Files { get; init; } = [];
 
     /// <summary>
-    /// What the dragged files look like (SDK 1.17): the picture Windows draws under the cursor (a thumbnail, or the icons),
+    /// What the dragged files look like: the picture Windows draws under the cursor (a thumbnail, or the icons),
     /// opaque, frozen, in screen pixels; null if the program they come from gave none. With the three <c>Files*</c> kinds.
     /// While the files are over the assistant, K-Desktop hides Windows' picture (it covered the assistant) and shows only
     /// a small label by the cursor («Give it to Lander»): this is the moment to show it your own way, smaller, in its

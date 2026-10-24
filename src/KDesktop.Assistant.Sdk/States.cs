@@ -1,6 +1,6 @@
 namespace KDesktop.Assistant.Sdk;
 
-/// <summary>What the module is busy with, besides its state (SDK 1.13): what a character may show it doing.</summary>
+/// <summary>What the module is busy with, besides its state: what a character may show it doing.</summary>
 /// <remarks>New ones may come in later versions: show the ones it does not know as <see cref="Other"/>.</remarks>
 public enum AssistantActivity
 {
@@ -45,7 +45,7 @@ public enum AssistantActivity
 }
 
 /// <summary>
-/// The detail of a state (SDK 1.13, <see cref="IAssistant.SetState(AssistantState, StateDetail)"/>).
+/// The detail of a state (<see cref="IAssistant.SetState(AssistantState, StateDetail)"/>).
 /// </summary>
 /// <param name="Activity">What it is busy with.</param>
 /// <param name="Tool">The tool running, when there is one («look_up_web», «mcp_calendar_list_events»…).</param>
@@ -61,17 +61,6 @@ public sealed record StateDetail(AssistantActivity Activity, string? Tool = null
 
 public static class AssistantStates
 {
-    /// <summary>
-    /// The closest state of SDK 1.12 and earlier: <see cref="AssistantState.ThinkingHard"/>,
-    /// <see cref="AssistantState.LoadingBrain"/> and <see cref="AssistantState.NoBrain"/> are
-    /// <see cref="AssistantState.Thinking"/>.
-    /// </summary>
-    public static AssistantState Basic(AssistantState state) => state switch
-    {
-        AssistantState.ThinkingHard or AssistantState.LoadingBrain or AssistantState.NoBrain => AssistantState.Thinking,
-        _ => state,
-    };
-
     /// <summary>Whether the module is at work on an order (thinking in any way, loading its brain, running something, asking).</summary>
     public static bool IsWorking(AssistantState state) => state is AssistantState.Thinking or AssistantState.ThinkingHard
         or AssistantState.LoadingBrain or AssistantState.Busy or AssistantState.AwaitingConfirmation;

@@ -3,7 +3,7 @@ using System.Diagnostics;
 namespace KDesktop.Assistant.Sdk;
 
 /// <summary>
-/// A set of variants to choose from at random (SDK 1.10): several entrances, reactions, idle animations or lines, so
+/// A set of variants to choose from at random: several entrances, reactions, idle animations or lines, so
 /// the assistant does not do the same thing every time. Each variant has a weight (how often it comes up compared with
 /// the others) and a cooldown (seconds it rests after being picked). It never picks the same one twice in a row while
 /// there is another to choose. Give it a seed in tests to always get the same sequence.

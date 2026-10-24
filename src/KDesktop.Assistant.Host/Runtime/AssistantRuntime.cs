@@ -919,16 +919,8 @@ internal sealed class AssistantSlot(string id, IAssistant assistant, AssistantMa
         Audio.Volume = common.Volume;
     }
 
-    /// <summary>
-    /// Whether a pointer event reaches it: not the drags of its body while the user does not let it be picked up, nor the
-    /// files dragged over it if it was built before SDK 1.16 (it does not know those kinds; K-Desktop still gets the files and the
-    /// label by the cursor still says it takes them).
-    /// </summary>
-    public bool LetsThrough(PointerEvent e) =>
-        _drags.LetsThrough(e, Common.Dragging) && (e.Kind < PointerEventKind.FilesOver || KnowsFiles);
-
-    /// <summary>Files dropped on it come as pointer events (SDK 1.16; the host's own characters and test assistants too).</summary>
-    private bool KnowsFiles => Manifest is not { } manifest || manifest.IsCharacter || manifest.SdkMajor > 1 || manifest.SdkMinor >= 16;
+    /// <summary>Whether a pointer event reaches it: not the drags of its body while the user does not let it be picked up.</summary>
+    public bool LetsThrough(PointerEvent e) => _drags.LetsThrough(e, Common.Dragging);
 
     /// <summary>The module's bubble over it while it says something (stage 3.6), or null.</summary>
     public HostBubble? Bubble { get; set; }

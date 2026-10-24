@@ -705,9 +705,7 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
         return true;
     }
 
-    public void SetState(AssistantState state, StateDetail detail) => SetState(state);
-
-    public void SetState(AssistantState state)
+    public void SetState(AssistantState state, StateDetail detail)
     {
         _state = state;
         if (state != AssistantState.Idle) _walkTo = null;
