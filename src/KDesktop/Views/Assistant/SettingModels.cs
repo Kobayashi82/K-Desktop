@@ -612,7 +612,7 @@ public sealed class AssistantSettingsModel : Observable
 
         Pages =
         [
-            new SettingsPageModel(Loc.T("assistantGeneral.tab"), SymbolRegular.Settings24, [], page => CurrentPage = (SettingsPageModel)page) { IsGeneral = true },
+            new SettingsPageModel(Loc.T("assistantGeneral.tab"), SymbolRegular.Home24, [], page => CurrentPage = (SettingsPageModel)page) { IsGeneral = true },
             .. layout.Pages.Select(p => new SettingsPageModel(
                 AssistantLook.Text(p.Title),
                 AssistantLook.Symbol(p.Icon),

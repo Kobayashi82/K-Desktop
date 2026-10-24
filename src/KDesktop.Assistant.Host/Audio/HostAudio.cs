@@ -63,7 +63,7 @@ internal sealed class AssistantAudio(HostAudio audio, string packageDirectory) :
 
     public bool Enabled => audio.Enabled;
 
-    /// <summary>Its own volume (0…1, the «General» tab of its card), with the same curve as the one of all the assistants.</summary>
+    /// <summary>Its own volume (0…1, the «Basics» tab of its card), with the same curve as the one of all the assistants.</summary>
     public double Volume
     {
         get => _volume;

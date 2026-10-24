@@ -31,7 +31,7 @@ public interface IAssistantHost
     JsonElement Settings { get; }
 
     /// <summary>
-    /// The settings every assistant has the same way (SDK 1.9), set by the user in the «General» tab of its card: those
+    /// The settings every assistant has the same way (SDK 1.9), set by the user in the «Basics» tab of its card: those
     /// its manifest names in <c>common</c>; the rest stay as usual. When they change, <see cref="IAssistant.OnSettingsChanged"/>
     /// is called. The volume of its sounds is not here: the host applies it.
     /// </summary>

@@ -3279,7 +3279,7 @@
   "assistantPersonal.testHintSystem": "You can hear it while the Assistant module is running.",
   "settings.wakeOwnerKDesktopAssistant": "K-Desktop (assistant)",
   "assistantPersonal.languageHintSystem": "The one it answers and speaks in.",
-  "assistantGeneral.tab": "General",
+  "assistantGeneral.tab": "Basics",
   "assistantGeneral.callTitle": "How you talk to it",
   "assistantGeneral.callIntro": "Say its word or hold its key and speak: what you say goes to {0}. Only while it is on.",
   "assistantGeneral.wakeHint": "The one you say before the order.",

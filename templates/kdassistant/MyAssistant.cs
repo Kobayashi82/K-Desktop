@@ -80,7 +80,7 @@ public sealed class MyAssistant : IAssistant
         {
             if (!flashing) _flash = double.NaN;
             _dirty = false;
-            // The size the user chose in the «General» tab of its card (1 = as designed; "common" in assistant.json).
+            // The size the user chose in the «Basics» tab of its card (1 = as designed; "common" in assistant.json).
             var size = _host.Common.Size;
             var radius = (flashing ? 22 : 18) * size;
             var edge = (int)Math.Ceiling(24 * size);

@@ -3279,7 +3279,7 @@
   "assistantPersonal.testHintSystem": "Zu hören, solange das Assistenten-Modul läuft.",
   "settings.wakeOwnerKDesktopAssistant": "K-Desktop (Assistent)",
   "assistantPersonal.languageHintSystem": "In der er antwortet und spricht.",
-  "assistantGeneral.tab": "Allgemein",
+  "assistantGeneral.tab": "Grundlegendes",
   "assistantGeneral.callTitle": "So sprichst du mit ihm",
   "assistantGeneral.callIntro": "Sag sein Wort oder halte seine Taste und sprich: Was du sagst, geht an {0}. Nur solange er aktiv ist.",
   "assistantGeneral.wakeHint": "Das du vor dem Befehl sagst.",

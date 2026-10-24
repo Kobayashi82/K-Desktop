@@ -46,7 +46,7 @@ public sealed partial record AssistantManifest
 
     /// <summary>
     /// The settings every assistant has the same way that it takes (stage 13.13: <c>size</c>, <c>volume</c>,
-    /// <c>liveliness</c>, <c>dragging</c>); K-Desktop shows those in the «General» tab of its card.
+    /// <c>liveliness</c>, <c>dragging</c>); K-Desktop shows those in the «Basics» tab of its card.
     /// </summary>
     public IReadOnlyList<string> Common { get; init; } = [];
 

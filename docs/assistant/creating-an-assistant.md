@@ -207,7 +207,7 @@ The host waits for the exit 3 s at most (then the token is cancelled).
 
 ## Common settings
 
-What every assistant has the same way does not go in its `settings.json`: K-Desktop shows it in the «General» tab of its
+What every assistant has the same way does not go in its `settings.json`: K-Desktop shows it in the «Basics» tab of its
 card, with the same units for all (SDK 1.9). The manifest says which ones it takes:
 
 ```json
@@ -238,7 +238,7 @@ them all.
   your voice is still saying it; each call replaces the text of the one before. Show it until `HideSpeech` arrives: the host
   still keeps the timing, the voice and the chat. `Text` is plain text and arrives whole even when long: cut it to what fits
   (all of it is in the chat). If you cannot now (you are hidden, in the middle of a manoeuvre, it does not fit), return
-  `false`: the host shows its bubble for the rest of that answer. In the «General» tab of your card the user can choose
+  `false`: the host shows its bubble for the rest of that answer. In the «Basics» tab of your card the user can choose
   «Always use K-Desktop's bubble», and then nothing reaches you. An assistant without code always uses the host's bubble.
 - **Long answers**: when the user asks for something long («explain it in detail», «make me a list», «draft…») or the
   answer does not fit a bubble, the bubble, your own text and the voice get only a summary of one or two sentences; K-Desktop
@@ -471,7 +471,7 @@ K-Desktop draws them with its own controls, without loading any code of the assi
   downloaded, that assistant thinks with it. For example, the Lander: `["unsloth/Qwen3.5-9B-GGUF:Q4_K_M",
   "unsloth/Qwen3.5-4B-GGUF:Q4_K_M"]`. With `"think"` (SDK 1.19; the same: one or several, the best first) it suggests the
   model it **thinks harder** with («think it over», or when it sees it is not enough): K-Desktop offers it apart, unticked
-  too, and once downloaded it is its own model to think harder with («General» tab of its card). If it is the same file as
+  too, and once downloaded it is its own model to think harder with («Basics» tab of its card). If it is the same file as
   `suggested`, it is not offered twice; without it, it thinks harder with its usual model.
 
 ## Rules

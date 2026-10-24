@@ -7,7 +7,7 @@ namespace KDesktop;
 
 /// <summary>
 /// The settings every assistant has the same way (stage 13.13): size, volume of its sounds, liveliness and dragging, in
-/// the «General» tab of its card. They travel in the <c>common</c> section of <c>config</c>; the process gives each
+/// the «Basics» tab of its card. They travel in the <c>common</c> section of <c>config</c>; the process gives each
 /// assistant those its manifest takes.
 /// </summary>
 public partial class App

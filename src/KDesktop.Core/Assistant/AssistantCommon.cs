@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace KDesktop.Core.Assistant;
 
 /// <summary>
-/// What every assistant has the same way (stage 13.13), set in the «General» tab of its card instead of each one in its
+/// What every assistant has the same way (stage 13.13), set in the «Basics» tab of its card instead of each one in its
 /// own units: its size, the volume of its sounds, how much it moves about on its own and whether it can be picked up with
 /// the mouse. Its manifest says which of them it takes (<see cref="Packages.AssistantManifest.Takes"/>). The same record
 /// travels to the assistant process in the <c>common</c> section of <c>config</c>.

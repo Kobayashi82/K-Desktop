@@ -84,7 +84,7 @@
       }
     },
     "common": {
-      "description": "Common settings it takes: K-Desktop shows them in the «General» tab of its card and passes them in IAssistantHost.Common (the volume is applied by the host). One without code takes them all.",
+      "description": "Common settings it takes: K-Desktop shows them in the «Basics» tab of its card and passes them in IAssistantHost.Common (the volume is applied by the host). One without code takes them all.",
       "type": "array",
       "uniqueItems": true,
       "items": { "enum": ["size", "volume", "liveliness", "dragging"] }

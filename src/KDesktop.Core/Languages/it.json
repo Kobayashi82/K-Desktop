@@ -3279,7 +3279,7 @@
   "assistantPersonal.testHintSystem": "Si sente con il modulo Assistente in funzione.",
   "settings.wakeOwnerKDesktopAssistant": "K-Desktop (assistente)",
   "assistantPersonal.languageHintSystem": "Quella in cui risponde e parla.",
-  "assistantGeneral.tab": "Generale",
+  "assistantGeneral.tab": "Di base",
   "assistantGeneral.callTitle": "Come gli parli",
   "assistantGeneral.callIntro": "Di' la sua parola o tieni premuto il suo tasto e parla: quello che dici va a {0}. Solo mentre è attivo.",
   "assistantGeneral.wakeHint": "Quella che dici prima dell'ordine.",
