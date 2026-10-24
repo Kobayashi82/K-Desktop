@@ -1,0 +1,217 @@
+{
+  "lang": "en",
+  "tts": { "voice": "af_heart", "kokoroLang": "en-us", "speed": 1.0 },
+  "chapters": [
+    {
+      "id": "intro",
+      "title": "K-Desktop",
+      "label": "Intro",
+      "beats": [
+        { "id": "hook1", "text": "Every day, you repeat the same little moves on your PC." },
+        { "id": "hook2", "text": "Opening the same programs. Arranging the same windows. Hunting for the volume. Clicking through the same menus." },
+        { "id": "hook3", "text": "What if a single key could do all of that? Or a flick of the mouse? Or simply... your voice?", "pause": 0.5 },
+        { "id": "title", "text": "This is K-Desktop.", "pause": 0.9 },
+        { "id": "promise", "text": "In this video, we'll walk through everything it can do, and how it works under the hood. Commands, QuickMenus, events, macros and K-Board. Voice control, your phone as a remote, and the new assistants that live on top of your windows." }
+      ]
+    },
+    {
+      "id": "overview",
+      "title": "The big picture",
+      "label": "Overview",
+      "beats": [
+        { "id": "idea", "text": "K-Desktop is built around one simple idea: the command." },
+        { "id": "command", "text": "A command is a named sequence of actions. Open a program, wait a second, snap its window to the left, set the volume to twenty percent. Step by step, in order." },
+        { "id": "triggers", "text": "And a command can be launched from almost anywhere. A hotkey or a mouse button. A QuickMenu, or the launcher. Your voice, your phone, or the network. Something that happens on your PC. Or even an assistant." },
+        { "id": "helpers", "text": "Around commands live a few companions. Macros that replay what you do. K-Board profiles that remap your keys. And a history that remembers every run." },
+        { "id": "local", "text": "It's a single portable program for Windows 10 and 11, in six languages. Everything runs locally, and your data stays in your own folder." }
+      ]
+    },
+    {
+      "id": "commands",
+      "title": "Commands and actions",
+      "label": "Commands",
+      "beats": [
+        { "id": "page", "text": "Let's build one. On the Commands page, click New command, and give it a name: Work mode." },
+        { "id": "hotkey", "text": "Next, a hotkey. Press any combination: Control, Alt, W." },
+        { "id": "hotkey2", "text": "A hotkey can also be a mouse button, like Mouse 5. A chord of two buttons, like Mouse 4 plus left click. Or the wheel with a modifier, like Control plus Wheel Up." },
+        { "id": "actions", "text": "Now, the actions. Run application: Notepad. Wait one second. Window: left half. Volume: twenty percent. Open folder: Documents." },
+        { "id": "run", "text": "Press Control, Alt, W... and it all happens, in order, in a fraction of a second.", "pause": 0.6 },
+        { "id": "catalog", "text": "There are more than thirty actions, grouped into nine families." },
+        { "id": "cat-apps", "text": "Open and run: programs, folders, special Windows locations, web pages in the browser you choose, and CMD or PowerShell scripts." },
+        { "id": "cat-windows", "text": "Windows: maximize, place in halves, quarters or thirds, center, move to another monitor, make transparent, or keep on top." },
+        { "id": "cat-input", "text": "Keyboard and mouse: send keys or text, transform the clipboard, play a macro, switch a K-Board profile, or dictate." },
+        { "id": "cat-sound", "text": "Sound: the volume of the speakers, the microphone or a single app. Switch the audio output, play sounds, and record audio, even the last few seconds." },
+        { "id": "cat-screen", "text": "Screen: screenshots, copying text straight from the screen, a magnifier, brightness and projection, and the light or dark theme of Windows." },
+        { "id": "cat-network", "text": "Network: web requests for Home Assistant or any API, waking another computer with Wake on LAN, and Wi-Fi or Bluetooth." },
+        { "id": "cat-system", "text": "System: hidden files, the power plan, and shutting down, restarting or sleeping, with a countdown you can cancel." },
+        { "id": "cat-flow", "text": "And flow: show a message, wait, open a QuickMenu, run or switch other commands. The ninth family belongs to the assistants. We'll get there." },
+        { "id": "if", "text": "One flow action deserves a closer look: If. It checks something first. Is a program open? What time is it? Is a device connected? How busy is the CPU? When the answer is no, it stops the command, or skips the next actions. So one command can take different paths." },
+        { "id": "options", "text": "Each command has its own options, too. Limit it to certain applications: if the same hotkey exists for every app and for one in particular, inside that app, the specific one wins. Block the key so the app never sees it. Add a sound, notes, and extra phrases to call it by voice." },
+        { "id": "admin", "text": "K-Desktop runs as administrator, so its hotkeys work even over elevated windows. But each action decides whether its program starts as administrator, or as your normal user." },
+        { "id": "icons", "text": "And every command gets an icon automatically. Or you pick one: any Windows symbol in fifteen colors, Windows icons, your own images, or a website's own logo." }
+      ]
+    },
+    {
+      "id": "quickmenu",
+      "title": "QuickMenu",
+      "label": "QuickMenu",
+      "beats": [
+        { "id": "intro", "text": "Sometimes, one key per command isn't enough. That's what QuickMenus are for." },
+        { "id": "open", "text": "Press a hotkey, say Mouse 5, and a menu blooms right where your pointer is. Translucent, with icons, titles, separators and submenus." },
+        { "id": "clicks", "text": "Left click runs a command and closes the menu. Right click runs it and keeps the menu open, perfect for nudging the volume. Middle click jumps straight to editing that item. And the whole menu works from the keyboard, too." },
+        { "id": "editor", "text": "Menus are built in the editor. Drag commands from the palette onto the menu: above, below, or inside an item. Rename, change icons, nest submenus, undo and redo, and choose a size, from compact to huge." },
+        { "id": "quick", "text": "Need something new? A quick command turns a program, a folder or a web address into a menu item, in one step." }
+      ]
+    },
+    {
+      "id": "launcher",
+      "title": "Launcher",
+      "label": "Launcher",
+      "beats": [
+        { "id": "intro", "text": "For everything else, there's the launcher: a search box with its own hotkey." },
+        { "id": "fuzzy", "text": "Type a few letters, even loose ones. C, M, F, Y finds ComfyUI. It searches your commands and every program in the Start menu, Store apps included." },
+        { "id": "calc", "text": "Type a sum, and it's a calculator: Enter copies the result. And when nothing matches, it offers to search the web." },
+        { "id": "rank", "text": "It learns what you use most, and puts it first, before you even type." }
+      ]
+    },
+    {
+      "id": "events",
+      "title": "Events",
+      "label": "Events",
+      "beats": [
+        { "id": "intro", "text": "So far, you trigger the commands. Events let your PC trigger them for you. When this happens, run these commands." },
+        { "id": "kinds", "text": "There are sixteen kinds of triggers. When K-Desktop starts or exits. At a time, or every few minutes. When a program opens, or comes to the front. After a while without using the PC. When you lock it, or it goes to sleep. When a laptop switches to battery." },
+        { "id": "kinds2", "text": "When a controller, a USB drive, headphones or any other device is connected. When you join a network. When a new file appears in a folder. When the CPU, the graphics card or the memory crosses a threshold. Or when another computer, a script or Home Assistant calls it by name." },
+        { "id": "example", "text": "For example: when Steam opens, switch the audio output to the headphones." },
+        { "id": "ends", "text": "Many triggers also have a When it ends side. When Steam closes, back to the speakers. No second event needed." },
+        { "id": "safety", "text": "Events can have conditions, a minimum time between runs, and built-in protection against loops, so an event can never keep setting itself off." }
+      ]
+    },
+    {
+      "id": "macros",
+      "title": "Macros",
+      "label": "Macros",
+      "beats": [
+        { "id": "intro", "text": "Some tasks can't be described as actions. You just have to do them. Again, and again. That's what macros are for." },
+        { "id": "record", "text": "Press Record, and do the task. K-Desktop captures every key, click, scroll and movement, with its exact timing. Shift plus Escape finishes." },
+        { "id": "edit", "text": "Every step can be edited, dragged, inserted or deleted. And Simplify cleans it up in one click: merge presses, drop mouse movements, halve the pauses, or cap them at one second." },
+        { "id": "play", "text": "Play it from any command: once, several times, in a loop, or at a different speed." },
+        { "id": "game", "text": "And for games, there's game mode. The mouse is recorded as raw, relative movement: the kind games read, even when they lock the pointer." }
+      ]
+    },
+    {
+      "id": "kboard",
+      "title": "K-Board",
+      "label": "K-Board",
+      "beats": [
+        { "id": "intro", "text": "K-Board changes what your keys and mouse buttons actually do." },
+        { "id": "surface", "text": "You edit a profile on a drawn keyboard and mouse. Click a key, choose what it becomes, and it lights up with its new job." },
+        { "id": "targets", "text": "A key can become another key, a combination, a piece of text, one of your commands, or nothing at all." },
+        { "id": "examples", "text": "Caps Lock as Control. The Windows key disabled while you play. The side buttons as copy and paste." },
+        { "id": "layers", "text": "With modifiers, you get layers: Control plus J can do something completely different from J." },
+        { "id": "scope", "text": "A profile can work everywhere, or only in certain apps. And you switch it on and off from a command, or from the tray icon." }
+      ]
+    },
+    {
+      "id": "voice",
+      "title": "Voice control",
+      "label": "Voice",
+      "beats": [
+        { "id": "intro", "text": "Now, the voice. K-Desktop understands spoken orders, entirely on your PC, without the internet." },
+        { "id": "two", "text": "There are two ways to talk. Hold the voice hotkey while you speak. Or tap it once, and just talk: it stops when you go quiet." },
+        { "id": "wake", "text": "Or use a wake word. K-Desktop, open the browser. No key at all.", "pause": 0.5 },
+        { "id": "own", "text": "The wake word is yours, and you record it in under a minute. Three seconds of silence, to measure the background noise. The word itself, several times. And ten seconds of normal speech, so everyday conversation never sets it off. It can even be a made-up word." },
+        { "id": "echo", "text": "So, what happens to every sound? First, echo cancellation removes whatever your PC is playing, so music or a film won't drown out your voice." },
+        { "id": "detector", "text": "Every eighty milliseconds, the openWakeWord models turn the audio into a compact fingerprint. Your personal detector compares it with your own recordings, in two different ways. And both have to agree." },
+        { "id": "verify", "text": "When it fires, a second check kicks in. Parakeet transcribes the last few seconds, and confirms that it really sounds like your word." },
+        { "id": "vad", "text": "Silero, a voice activity detector, notices when you stop talking." },
+        { "id": "stt", "text": "And Parakeet, NVIDIA's multilingual speech recognition model, turns your order into text, right there on your PC." },
+        { "id": "match", "text": "Then comes the clever part: finding the command you meant." },
+        { "id": "words", "text": "The first layer reads the words. It looks for a command's name in what you said. It ignores filler words like please, different word endings, small slips, and words that just sound alike. You tube becomes YouTube." },
+        { "id": "meaning", "text": "When the words aren't enough, the second layer looks at the meaning. EmbeddingGemma, a small model from Google, turns sentences into vectors: points in a space where similar meanings sit close together." },
+        { "id": "meaning2", "text": "So, clean out the trash lands right next to your command, Empty Recycle Bin. Without a single list of synonyms." },
+        { "id": "notmine", "text": "It also knows what isn't yours. Turn off the TV is close to Shut down the computer, but it's even closer to a list of everyday requests that K-Desktop doesn't handle. So nothing happens. Anything that powers off the PC has to be said especially clearly." },
+        { "id": "chain", "text": "You can chain orders, too. Open YouTube and empty the recycle bin, runs both." },
+        { "id": "media", "text": "Music and volume work without any command at all. Pause. Next song. A little quieter. Volume to forty percent. Play music." },
+        { "id": "dictate", "text": "And dictation types what you say, wherever the cursor is. Say new line, scratch that, or stop dictating." },
+        { "id": "privacy", "text": "The models are downloaded once. They take about seven hundred megabytes of memory while loaded, and free it after a while unused. While you speak, other sounds can be turned down so it hears you better. And neither your audio nor your words ever leave the PC." }
+      ]
+    },
+    {
+      "id": "remote",
+      "title": "Remote control",
+      "label": "Remote",
+      "beats": [
+        { "id": "intro", "text": "Your PC, from the couch. K-Desktop includes a web app for your phone, or any browser." },
+        { "id": "pair", "text": "Pair a device by scanning a QR code. The code works only once, and any device can be revoked at any time." },
+        { "id": "menus", "text": "Your QuickMenus and all your commands are right there, with search, and your most used ones first." },
+        { "id": "pad", "text": "A touchpad and a keyboard move the PC's mouse, and type for you." },
+        { "id": "audio", "text": "The audio tab controls the volume, the music, and the output device." },
+        { "id": "voicechat", "text": "The phone's microphone gives voice orders. And you can chat with your assistants." },
+        { "id": "pwa", "text": "Install it on the home screen, like an app. Behind a reverse proxy with HTTPS, it even works from outside your home." },
+        { "id": "android", "text": "There's also an Android app. The same interface, with a native microphone, kept up to date by the PC itself." },
+        { "id": "udp", "text": "And for machines, there's UDP, compatible with K-Desktop 4, on port 2501. Send list, to get the remote commands. A number or a name, to run one. S K plus keys, to press them. Or event plus a name, to fire a Call from outside event. Perfect for Home Assistant, scripts, or another PC." },
+        { "id": "cli", "text": "And from the command line: run a command, open a menu, fire an event, or open the launcher." }
+      ]
+    },
+    {
+      "id": "progress",
+      "title": "History, achievements and stats",
+      "label": "Progress",
+      "beats": [
+        { "id": "history", "text": "Everything that runs ends up in the history. The last five hundred runs: where they came from, how long they took, and whether anything went wrong." },
+        { "id": "achievements", "text": "As you use K-Desktop, you unlock achievements. More than a hundred of them, each with an animated notification. Night owl, for running a command between three and five in the morning. Pianist, for a mouse button chord. And a few secret ones." },
+        { "id": "stats", "text": "And the statistics count it all. Commands and actions run, QuickMenus opened, voice orders, how many were understood by their meaning, and where your commands come from." }
+      ]
+    },
+    {
+      "id": "settings",
+      "title": "Settings",
+      "label": "Settings",
+      "beats": [
+        { "id": "intro", "text": "Settings are grouped by topic, and searchable with Control F." },
+        { "id": "appearance", "text": "Appearance: light, dark, or follow Windows. Six built-in languages, and you can add your own with a JSON file." },
+        { "id": "general", "text": "General: start with Windows, with administrator rights and no prompt. Hotkeys to show, exit or pause K-Desktop. Sounds, and on-screen messages." },
+        { "id": "disable", "text": "Disable in: a list of apps, like your games, where hotkeys do nothing, unless a command is set to always run." },
+        { "id": "sections", "text": "The launcher, voice, multimedia, captures and magnifier, the web app and remote control: each has its own section." },
+        { "id": "data", "text": "And your data is safe. Automatic daily backups. Full zip copies every few days. Export and import. And a one-click import from K-Desktop 4. Updates install themselves." }
+      ]
+    },
+    {
+      "id": "assistants",
+      "title": "Assistants",
+      "label": "Assistants",
+      "beats": [
+        { "id": "intro", "text": "And finally, something new: assistants. Little characters that live on top of your windows. You can talk to them, and they can actually do things." },
+        { "id": "cast", "text": "Meet the Lander, a tiny lunar module that flies around and lands on your title bars, with a game of its own. Kobii, a squishy creature that wanders along your taskbar. And Pip, a drop made with nothing but images and JSON." },
+        { "id": "module", "text": "Assistants live in an optional module. While it's off, K-Desktop doesn't load any of it." },
+        { "id": "install", "text": "Each assistant is a package. Open one, and its card tells you what it is, whether its signature checks out, and what it can do. Install it, and it drops right onto your desktop." },
+        { "id": "arch", "text": "Assistants run in their own process, without administrator rights, and talk to K-Desktop through a private, locked down pipe. K-Desktop draws them on a transparent layer on your graphics card, and your windows become their terrain." },
+        { "id": "talk", "text": "To talk to one, say its name. Lander, what time is it? Each assistant can have its own wake word, while K-Desktop keeps running your commands. You can also hold its key, or hold the click on the character itself. And when it asks you something back, just answer." },
+        { "id": "brain", "text": "Their brain is a language model, and it runs on your PC. With llama server and a model downloaded from Hugging Face, it picks the biggest one that fits your graphics card. It also works with Ollama, or any OpenAI compatible server. And it always tells you where your words go: this PC, your network, or the internet." },
+        { "id": "brain2", "text": "The model loads when you talk, unloads when idle, and gets out of the way when a game goes full screen. Simple things, like the time, a timer, a note or cancel, are answered instantly by fixed rules, without the AI." },
+        { "id": "voice", "text": "And they answer out loud, sentence by sentence, while the AI is still writing. With Kokoro, a natural voice that runs offline on your processor. The same voice you're hearing right now. Or Piper, with voices in every language. Or the Windows voices. Or just beeps." },
+        { "id": "voice2", "text": "Each assistant brings its own style. The Lander talks over the mission control radio. You can mix two voices, try robot, martian or eight bit, keep them quiet during a full screen film, and even hear them from the side of the screen where they are." },
+        { "id": "tools", "text": "What can they do? A lot. Timers, notes, calculations, the weather. Searching and reading the web. Finding files, opening apps, controlling the music, checking the PC, looking at your screen, and running your own commands." },
+        { "id": "chooser", "text": "To keep a small model sharp, only the three to five tools that fit each order reach it, chosen by their example phrases and by meaning." },
+        { "id": "risk", "text": "Anything risky asks first. Say yes once, or yes and don't ask again. And many actions can be undone." },
+        { "id": "gestures", "text": "And you see it happen. Ask: Lander, minimize Chrome. It flies over, fires at the button, and the window minimizes right on impact. To move a window, it shoots a grappling hook at the title bar, and tows it into place." },
+        { "id": "own-tools", "text": "You can also give them new skills without compiling anything: one JSON file per tool. Call any web API, like Home Assistant. Run one of your commands with your own phrases. Chain a routine. Or run your own script. Secrets like tokens are stored encrypted, and the model never sees them. And MCP servers plug their tools in too, imported straight from Claude Desktop." },
+        { "id": "memory", "text": "They remember what matters: your name, what you like, important dates. You can see and edit everything they know about you, and keep notes." },
+        { "id": "knowledge", "text": "And they can read your documents. Choose folders or files: notes, manuals, contracts, PDFs, Word, even scanned pages, with the text recognition of Windows. Everything is read once, on your PC, and kept up to date. Ask: what does my contract say about the deposit? And they answer, telling you which document and page it came from." },
+        { "id": "commands", "text": "Assistants plug into commands, too. Four actions let any command or event run an assistant's action, ask it something, make it say something, or free its brain before a game." },
+        { "id": "create", "text": "And if you want to build your own, there's an SDK with a template. Or no code at all: just images and JSON, like Pip." }
+      ]
+    },
+    {
+      "id": "outro",
+      "title": "K-Desktop",
+      "label": "Outro",
+      "beats": [
+        { "id": "recap", "text": "Commands and actions. QuickMenus and the launcher. Events, macros and K-Board. Your voice, your phone, and assistants that lend a hand." },
+        { "id": "cta", "text": "K-Desktop is a single portable program for Windows. Download it from GitHub, and start with one command. You'll be surprised how far it goes." },
+        { "id": "end", "text": "Thanks for watching.", "pause": 2.0 }
+      ]
+    }
+  ]
+}

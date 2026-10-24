@@ -1,0 +1,27 @@
+{
+  "name": "kdesktop-tutorial-video",
+  "private": true,
+  "description": "K-Desktop explainer video, made with code (Remotion) and narrated with Kokoro",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "node render.mjs"
+  },
+  "dependencies": {
+    "@fluentui/svg-icons": "^1.1.344",
+    "@remotion/bundler": "4.0.533",
+    "@remotion/cli": "4.0.533",
+    "@remotion/google-fonts": "4.0.533",
+    "@remotion/media-utils": "4.0.533",
+    "@remotion/paths": "4.0.533",
+    "@remotion/renderer": "4.0.533",
+    "@remotion/shapes": "4.0.533",
+    "@remotion/transitions": "4.0.533",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "remotion": "4.0.533"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.12",
+    "typescript": "5.9.2"
+  }
+}
