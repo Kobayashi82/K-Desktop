@@ -5,8 +5,9 @@ import { createRequire } from 'node:module';
 import { mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { dirname, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { browserExecutable } from './common.mjs';
 
-// Playwright is the one already installed on the machine (its Chromium comes with it).
+// Playwright is the one already installed on the machine; its Chromium, or any headless shell it downloaded before.
 const { chromium } = createRequire(import.meta.url)('playwright');
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -68,7 +69,7 @@ const chat = [
 const json = (route, data) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) });
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.json': 'application/json' };
 
-const browser = await chromium.launch();
+const browser = await chromium.launch(browserExecutable ? { executablePath: browserExecutable } : {});
 // 1) The icons, drawn as PNG.
 const iconPage = await browser.newPage({ deviceScaleFactor: 1 });
 const iconPngs = {};

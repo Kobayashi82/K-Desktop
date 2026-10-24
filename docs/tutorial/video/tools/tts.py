@@ -34,6 +34,7 @@ TAIL = 1.0             # after the last beat of a chapter
 OVERLAP = 0.6          # chapters cross-fade into each other
 DEFAULT_PAUSE = 0.35   # after a beat
 SENTENCE_GAP = 0.26    # between the sentences of a beat
+HEADING_GAP = 0.45     # after the heading of a beat ("heading": true: "Sound: the volume…" says "Sound." first)
 
 CUE = re.compile(r"\{([\w-]+)\}")
 
@@ -198,28 +199,40 @@ def main() -> None:
         beats = []
         for beat in chapter["beats"]:
             parts, segments, cues, offset = [], [], {}, 0.0
-            for marked in sentences(beat["text"]):
+            for n, marked in enumerate(sentences(beat["text"])):
                 text = CUE.sub("", marked)
-                audio = voice.say(spoken(text, rules))
                 if parts:
                     parts.append(np.zeros(int(SENTENCE_GAP * SR), dtype="float32"))
                     offset += SENTENCE_GAP
-                duration = len(audio) / SR
-                segments.append({"text": text, "from": frames(cursor - start + offset), "to": frames(cursor - start + offset + duration)})
-                # {name} before a word: the moment it is said, estimated from where it sits in the sentence.
-                for m in CUE.finditer(marked):
-                    at = len(CUE.sub("", marked[: m.start()]))
-                    cues[m.group(1)] = frames(cursor - start + offset + duration * at / max(1, len(text)))
+                begin = offset
+                # A heading ("Sound:") is said on its own, as a title, and the rest after a pause; one subtitle still.
+                pieces = [marked]
+                if n == 0 and beat.get("heading") and ": " in marked:
+                    head, rest = marked.split(": ", 1)
+                    pieces = [head + ":", rest]
+                for k, piece in enumerate(pieces):
+                    plain = CUE.sub("", piece)
+                    audio = voice.say(spoken(plain[:-1] + "." if plain.endswith(":") else plain, rules))
+                    if k:
+                        parts.append(np.zeros(int(HEADING_GAP * SR), dtype="float32"))
+                        offset += HEADING_GAP
+                    duration = len(audio) / SR
+                    # {name} before a word: the moment it is said, estimated from where it sits in what is said.
+                    for m in CUE.finditer(piece):
+                        at = len(CUE.sub("", piece[: m.start()]))
+                        cues[m.group(1)] = frames(cursor - start + offset + duration * at / max(1, len(plain)))
+                    parts.append(audio)
+                    offset += duration
+                duration = offset - begin
+                segments.append({"text": text, "from": frames(cursor - start + begin), "to": frames(cursor - start + offset)})
                 # Each subtitle stays up for its share of the sentence, by length.
                 lines = subtitle_lines(text, **subtitle_options)
                 weights = [len(x) + 6 for x in lines]
-                at = cursor + offset
+                at = cursor + begin
                 for cue, weight in zip(lines, weights):
                     share = duration * weight / sum(weights)
                     subtitles.append((at, at + share, cue))
                     at += share
-                parts.append(audio)
-                offset += duration
             name = f"{chapter['id']}-{beat['id']}.wav"
             sf.write(audio_dir / name, np.concatenate(parts), SR)
             beats.append({
@@ -245,7 +258,6 @@ def main() -> None:
         t = end - OVERLAP
     last = timeline["chapters"][-1]
     timeline["durationInFrames"] = last["from"] + last["durationInFrames"]
-    timeline["subtitles"] = [{"from": frames(a), "to": frames(b), "text": text} for a, b, text in subtitles]
 
     out = ROOT / "public" / "generated"
     out.mkdir(parents=True, exist_ok=True)

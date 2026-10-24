@@ -4,8 +4,7 @@ import React, { createContext, useContext } from 'react';
 export type Segment = { text: string; from: number; to: number };
 export type Beat = { id: string; text: string; audio: string; from: number; durationInFrames: number; segments: Segment[]; cues?: Record<string, number> };
 export type Chapter = { id: string; title: string; label: string; from: number; durationInFrames: number; beats: Beat[] };
-export type Cue = { from: number; to: number; text: string };
-export type Timeline = { lang: string; fps: number; durationInFrames: number; chapters: Chapter[]; subtitles?: Cue[] };
+export type Timeline = { lang: string; fps: number; durationInFrames: number; chapters: Chapter[] };
 
 const ChapterContext = createContext<Chapter | null>(null);
 

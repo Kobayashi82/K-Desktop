@@ -65,8 +65,8 @@ def normalize(x: np.ndarray, peak: float) -> np.ndarray:
     return x if m == 0 else x / m * peak
 
 
-def reverb(x: np.ndarray, seconds: float = 2.4, mix: float = 0.3) -> np.ndarray:
-    """Convolution with decaying noise: a soft, wide room."""
+def reverb(x: np.ndarray, seconds: float = 2.4, mix: float = 0.3, circular: bool = False) -> np.ndarray:
+    """Convolution with decaying noise: a soft, wide room. Circular: the tail wraps round to the start (for loops)."""
     n = int(seconds * SR)
     ir = rng.standard_normal((n, 2)) * np.exp(-6 * np.linspace(0, 1, n))[:, None]
     ir[:, 0] = lowpass(ir[:, 0], 5000)
@@ -74,7 +74,7 @@ def reverb(x: np.ndarray, seconds: float = 2.4, mix: float = 0.3) -> np.ndarray:
     ir /= np.sqrt((ir ** 2).sum(axis=0))
     if x.ndim == 1:
         x = stereo(x)
-    size = 1 << int(np.ceil(np.log2(len(x) + n)))
+    size = len(x) if circular else 1 << int(np.ceil(np.log2(len(x) + n)))
     wet = np.stack([np.fft.irfft(np.fft.rfft(x[:, c], size) * np.fft.rfft(ir[:, c], size), size)[:len(x)] for c in range(2)], axis=1)
     return x * (1 - mix) + wet * mix * 3
 
@@ -157,23 +157,31 @@ def midi(note: float) -> float:
     return 440.0 * 2 ** ((note - 69) / 12)
 
 
-def music(minutes: float = 3.0, bpm: float = 92.0) -> np.ndarray:
-    """A calm, warm loop: pads, a soft pluck arpeggio, a sub bass and a light pulse. Loops seamlessly."""
+def music(bars: int = 92, bpm: float = 92.0) -> np.ndarray:
+    """A calm, warm loop: pads, a soft pluck arpeggio, a sub bass and a light pulse.
+
+    It loops seamlessly: 92 bars at 92 bpm are exactly 4 minutes (7200 frames, what src/Video.tsx expects), the
+    notes and the reverb that ring past the end come back in at the start, and the pulse plays from the first bar
+    (an intro without it would restart with every copy)."""
     beat = 60 / bpm
     bar = beat * 4
     chords = [  # Fmaj9, Am7, Dm9, Bbmaj7(#11)
         [53, 57, 60, 64, 67], [57, 60, 64, 67, 71], [50, 57, 60, 64, 65], [46, 53, 57, 62, 64],
     ]
     bass = [41, 45, 38, 46]
-    bars = int(round(minutes * 60 / bar / 4)) * 4
-    n = int(bars * bar * SR)
+    n = int(round(bars * bar * SR))
     L = np.zeros(n)
     R = np.zeros(n)
     tt_bar = np.arange(int(bar * SR)) / SR
 
     def add(buf, start, x):
+        """Mixes x in at start; what runs past the end wraps round to the beginning."""
+        start %= n
         end = min(n, start + len(x))
         buf[start:end] += x[: end - start]
+        rest = x[end - start:]
+        if len(rest):
+            buf[: len(rest)] += rest
 
     for b in range(bars):
         chord = chords[b % 4]
@@ -209,23 +217,21 @@ def music(minutes: float = 3.0, bpm: float = 92.0) -> np.ndarray:
             pan = 0.5 + 0.35 * np.sin(k * 1.3 + b)
             add(L, ps, x * gain * (1 - pan) * 2)
             add(R, ps, x * gain * pan * 2)
-        # Soft kick on every beat, airy shaker on the off-beats (only after the first four bars).
-        if b >= 4:
-            for k in range(4):
-                ks = int((b * bar + k * beat) * SR)
-                nk = int(0.3 * SR)
-                tk = np.arange(nk) / SR
-                kick = np.sin(2 * np.pi * np.cumsum(50 * (1 + 2.5 * np.exp(-40 * tk))) / SR) * np.exp(-10 * tk) * 0.07
-                add(L, ks, kick)
-                add(R, ks, kick)
-                hs = int((b * bar + k * beat + beat / 2) * SR)
-                nh = int(0.08 * SR)
-                hat = highpass(rng.standard_normal(nh), 7000) * np.exp(-60 * np.arange(nh) / SR) * 0.018
-                add(L, hs, hat * 0.8)
-                add(R, hs, hat)
+        # Soft kick on every beat, airy shaker on the off-beats.
+        for k in range(4):
+            ks = int((b * bar + k * beat) * SR)
+            nk = int(0.3 * SR)
+            tk = np.arange(nk) / SR
+            kick = np.sin(2 * np.pi * np.cumsum(50 * (1 + 2.5 * np.exp(-40 * tk))) / SR) * np.exp(-10 * tk) * 0.07
+            add(L, ks, kick)
+            add(R, ks, kick)
+            hs = int((b * bar + k * beat + beat / 2) * SR)
+            nh = int(0.08 * SR)
+            hat = highpass(rng.standard_normal(nh), 7000) * np.exp(-60 * np.arange(nh) / SR) * 0.018
+            add(L, hs, hat * 0.8)
+            add(R, hs, hat)
     mix = np.stack([L, R], axis=1)
-    mix = reverb(mix, 3.0, 0.22)
-    # Seamless loop: fold the reverb tail back onto the start.
+    mix = reverb(mix, 3.0, 0.22, circular=True)
     return normalize(mix, 0.5)
 
 

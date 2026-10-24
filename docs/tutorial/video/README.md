@@ -7,8 +7,7 @@ es editar un archivo y volver a generar.
 
 - **Duración:** unos 17 minutos, en 14 capítulos (intro, idea general, comandos y acciones, QuickMenu, lanzador,
   eventos, macros, K-Board, voz, control remoto, logros, opciones, asistentes y cierre).
-- **Formato:** 1920 × 1080, 30 fps, H.264, audio AAC masterizado a −15 LUFS. Subtítulos grabados en la imagen
-  (opcional) y también aparte en `.srt`.
+- **Formato:** 1920 × 1080, 30 fps, H.264, audio AAC masterizado a −15 LUFS. Subtítulos aparte, en `.srt`.
 - **Imagen:** interfaces recreadas y animadas a partir del código de K-Desktop (colores, iconos Fluent, textos de
   `en.json`), las capturas reales de [`../captures`](../captures) y la app web real del móvil
   (`src/KDesktop.Core/Web`) renderizada con datos inventados.
@@ -37,11 +36,13 @@ Lo generado (voz, efectos, capturas copiadas, `out/`) no se sube al repositorio:
 ## Requisitos
 
 - Node 22 y `npm install` en esta carpeta.
-- Python 3.11+ con `pip install -r tools/requirements.txt` (mejor en un entorno virtual). El modelo de Kokoro
+- Python 3.11+ con `pip install -r tools/requirements.txt`, mejor en un entorno virtual en `.venv` (git lo ignora):
+  `uv venv .venv` y `uv pip install --python .venv/Scripts/python.exe -r tools/requirements.txt`. El modelo de Kokoro
   (~350 MB) se descarga solo la primera vez en `~/.cache/kokoro` (o en `KOKORO_DIR`).
 - ffmpeg en el `PATH`.
-- Chromium: el de Playwright si está instalado (`tools/common.mjs` lo busca; también `REMOTION_BROWSER`), si no
-  Remotion descarga el suyo. `tools/webapp.mjs` necesita Playwright.
+- Chromium: el *headless shell* que Playwright haya descargado (`tools/common.mjs` lo busca en Linux, Windows y
+  macOS; también `REMOTION_BROWSER`), si no Remotion descarga el suyo. `tools/webapp.mjs` necesita Playwright
+  (`npm i --no-save playwright`); usa ese mismo Chromium.
 
 ## Generarlo
 
@@ -51,12 +52,13 @@ python tools/assets.py            # efectos, música, grano y capturas
 node tools/webapp.mjs --lang en   # la app web del móvil
 node tools/icons.mjs              # iconos de las escenas
 python tools/tts.py --lang en     # voz, línea de tiempo y out/subtitles.en.srt
-node render.mjs --subtitles       # → out/K-Desktop-en-subtitles.mp4 (sin --subtitles: out/K-Desktop-en.mp4)
+node render.mjs                   # → out/K-Desktop-en.mp4 y out/K-Desktop-en.srt
 ```
 
-Opciones de `render.mjs`: `--crf 20` (calidad; más bajo, más calidad y más peso), `--subtitles` (subtítulos
-grabados en la imagen), `--scale 0.5` (versión ligera para revisar), `--chapter voice` (un capítulo solo).
-El vídeo entero tarda unas 2 horas en un ordenador de 4 núcleos.
+Opciones de `render.mjs`: `--crf 20` (calidad; más bajo, más calidad y más peso), `--scale 0.5` (versión ligera para revisar), `--chapter voice` (un capítulo solo).
+Usa todos los núcleos (`--concurrency n` para menos). El vídeo entero tarda unas 2 horas en un ordenador de 4 núcleos.
+Los subtítulos nunca van grabados en la imagen: el `.srt` va al lado del `.mp4`, con el mismo nombre, y los
+reproductores lo cargan solos.
 
 Para ver y retocar en directo: `npm run studio` abre Remotion Studio en el navegador, con la línea de tiempo, los
 capítulos (composición `chapter`, propiedad `chapter`) y el vídeo entero (`kdesktop-en`).
@@ -64,23 +66,24 @@ capítulos (composición `chapter`, propiedad `chapter`) y el vídeo entero (`kd
 ## Cambiar cosas
 
 - **Lo que se dice:** `script/en.json`. Cada beat es una frase o un párrafo corto; `pause` (segundos) alarga el
-  silencio de después. Al volver a pasar `tools/tts.py` solo se dicen de nuevo las frases que cambiaron, y todo lo
+  silencio de después, y `"heading": true` dice como título aparte lo que va antes de los dos puntos («Sound: the
+  volume…» → «Sound.», pausa, «the volume…»). Al volver a pasar `tools/tts.py` solo se dicen de nuevo las frases que cambiaron, y todo lo
   demás se recoloca solo.
 - **Sincronía:** `{nombre}` delante de una palabra marca el momento en que se dice; las escenas lo usan con
   `B('beat').cue('nombre')`. Si se quita una marca que una escena usa, el render avisa de cuál falta.
 - **Pronunciación:** `script/pronunciation.<lang>.json`, reglas `[expresión regular, cómo decirlo]`.
 - **Subtítulos:** salen solos de lo que se dice: frases de hasta dos líneas, cortadas donde la voz hace pausa.
   En el guion, `subtitles.width` son los caracteres por línea y `subtitles.keep` los nombres que nunca se
-  parten (Home Assistant, Wake on LAN…). Los mismos subtítulos van al `.srt` y a la imagen.
+  parten (Home Assistant, Wake on LAN…). Van al `.srt`.
 - **La voz:** `tts.voice` del guion (por ejemplo `af_heart`, `bf_emma`, `am_michael`; en español `ef_dora`,
   `em_alex`) y `speed`.
-- **La música:** sustituye `public/sfx/music.wav` por tu pista (estéreo, 48 kHz, 3 minutos; se repite con
-  fundidos). Su volumen y cuánto baja cuando habla la voz están en `src/Video.tsx` (`Music`).
+- **La música:** sustituye `public/sfx/music.wav` por tu pista (estéreo, 48 kHz, exactamente 4 minutos y que
+  enlace sin cortes, porque las copias van seguidas sin fundido; `tools/assets.py` no la pisa si ya está). Su volumen y cuánto baja cuando habla la voz están en `src/Video.tsx` (`Music`).
 - **Una escena:** `src/scenes/<capítulo>.tsx`. Para revisar sin renderizar el vídeo:
   `node tools/stills.mjs voice 120 50% 900` deja PNG en `out/stills/`, y
-  `node tools/stills.mjs all --every 150 --scale 0.25 --subtitles` un fotograma cada 5 segundos de todo el vídeo
+  `node tools/stills.mjs all --every 150 --scale 0.25` un fotograma cada 5 segundos de todo el vídeo
   (con `python tools/sheet.py hoja.png out/stills/all-*.png` se juntan en una hoja). Las escenas dejan libre la
-  franja de abajo, donde van los subtítulos.
+  franja de abajo, donde el reproductor pone los subtítulos.
 - **Las capturas:** en [`../captures`](../captures), con los nombres que usan las escenas (`commands`,
   `action-picker`, `quickmenu-closeup`, `settings-web`, `pair-qr`, `history`, `achievements`, `stats`,
   `achievement-toast`, `settings-appearance`, `settings-launcher`, `settings-voice`, `assistant-settings`,
@@ -96,7 +99,7 @@ capítulos (composición `chapter`, propiedad `chapter`) y el vídeo entero (`kd
 2. Capturas en español (opcional): en `../captures/es/` con los mismos nombres; las que falten se toman de
    `../captures/`.
 3. `python tools/assets.py`, `node tools/webapp.mjs --lang es`, `python tools/tts.py --lang es` y
-   `node render.mjs --lang es --subtitles`.
+   `node render.mjs --lang es`.
 
 Los rótulos que dibujan las escenas (nombres de acciones, botones de las interfaces recreadas…) están en inglés en
 el código de las escenas: para la versión en español hay que traducirlos también.

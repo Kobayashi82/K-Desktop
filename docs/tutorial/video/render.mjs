@@ -1,9 +1,11 @@
-// Renders the whole video: node render.mjs [--lang en] [--subtitles] [--scale 1] [--crf 18] [--chapter <id>]
+// Renders the whole video: node render.mjs [--lang en] [--scale 1] [--crf 18] [--chapter <id>] [--concurrency <n>]
+// The subtitles go beside it as a .srt with the same name (players pick it up), never burnt into the picture.
 // Needs the narration (python tools/tts.py --lang <lang>) and the assets (python tools/assets.py, node tools/webapp.mjs).
 import { bundle } from '@remotion/bundler';
 import { renderMedia, selectComposition } from '@remotion/renderer';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, renameSync, unlinkSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, renameSync, unlinkSync } from 'node:fs';
+import { availableParallelism } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { browserExecutable, webpackOverride } from './tools/common.mjs';
@@ -12,20 +14,19 @@ const root = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
 const option = (name, fallback) => (args.includes(`--${name}`) ? args[args.indexOf(`--${name}`) + 1] : fallback);
 const lang = option('lang', 'en');
-const subtitles = args.includes('--subtitles');
 const scale = Number(option('scale', '1'));
 const crf = Number(option('crf', '18'));
 const chapter = option('chapter', null);
-const output = join(root, 'out', `K-Desktop-${lang}${chapter ? `-${chapter}` : ''}${subtitles ? '-subtitles' : ''}${scale !== 1 ? `-${Math.round(1080 * scale)}p` : ''}.mp4`);
+const output = join(root, 'out', `K-Desktop-${lang}${chapter ? `-${chapter}` : ''}${scale !== 1 ? `-${Math.round(1080 * scale)}p` : ''}.mp4`);
 
 const serveUrl = await bundle({ entryPoint: join(root, 'src', 'index.ts'), webpackOverride });
-const inputProps = { lang, subtitles, music: true, ...(chapter ? { chapter } : {}) };
+const inputProps = { lang, music: true, ...(chapter ? { chapter } : {}) };
 const composition = await selectComposition({ serveUrl, id: chapter ? 'chapter' : `kdesktop-${lang}`, inputProps, browserExecutable });
 mkdirSync(join(root, 'out'), { recursive: true });
 let last = -1;
 await renderMedia({
   serveUrl, composition, inputProps, browserExecutable, codec: 'h264', crf, scale, outputLocation: output,
-  audioBitrate: '192k', pixelFormat: 'yuv420p', concurrency: Number(option('concurrency', '4')), timeoutInMilliseconds: 120000,
+  audioBitrate: '192k', pixelFormat: 'yuv420p', concurrency: Number(option('concurrency', String(availableParallelism()))), timeoutInMilliseconds: 120000,
   onProgress: ({ progress }) => {
     const pct = Math.floor(progress * 100);
     if (pct !== last && pct % 2 === 0) console.log(`${pct}%`);
@@ -45,3 +46,10 @@ const second = spawnSync('ffmpeg', ['-hide_banner', '-y', '-i', raw, '-c:v', 'co
 if (second.status !== 0) throw new Error(second.stderr);
 unlinkSync(raw);
 console.log(`${output} (audio ${m.input_i} → -15 LUFS)`);
+
+// The subtitles of the whole video (tools/tts.py), beside it.
+const srt = join(root, 'out', `subtitles.${lang}.srt`);
+if (!chapter && existsSync(srt)) {
+  copyFileSync(srt, output.replace(/\.mp4$/, '.srt'));
+  console.log(output.replace(/\.mp4$/, '.srt'));
+}

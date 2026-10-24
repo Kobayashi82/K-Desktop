@@ -3,14 +3,14 @@ import { AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame } from 'remo
 import { Background, Grain } from './components/Background';
 import { CaptureInfo, MediaProvider } from './components/Capture';
 import { ChapterStage, ChapterTitle, LightSweep, ProgressBar } from './components/Chapter';
-import { Subtitles } from './components/Subtitles';
 import { ChapterProvider, Timeline } from './lib/timeline';
 import { SCENES } from './scenes';
 
-export type VideoProps = { lang: string; timeline?: Timeline; captures?: Record<string, CaptureInfo>; subtitles?: boolean; music?: boolean };
+export type VideoProps = { lang: string; timeline?: Timeline; captures?: Record<string, CaptureInfo>; music?: boolean };
 
-const MUSIC_LOOP = 30 * 60 * 3; // frames in public/sfx/music.wav (3 minutes)
-const MUSIC_FADE = 60;
+// Frames in public/sfx/music.wav (exactly 4 minutes). It loops seamlessly, so the copies go back to back, with no
+// cross-fade: a fade there dipped the music and the beat restarted out of step.
+const MUSIC_LOOP = 30 * 60 * 4;
 
 /** Frames where the narrator speaks (the music steps back there). */
 const speaking = (timeline: Timeline, frame: number): number => {
@@ -27,19 +27,18 @@ const speaking = (timeline: Timeline, frame: number): number => {
 
 const Music: React.FC<{ timeline: Timeline }> = ({ timeline }) => {
   const total = timeline.durationInFrames;
-  const loops = Math.ceil(total / (MUSIC_LOOP - MUSIC_FADE));
+  const loops = Math.ceil(total / MUSIC_LOOP);
   return (
     <>
       {Array.from({ length: loops }, (_, i) => {
-        const from = i * (MUSIC_LOOP - MUSIC_FADE);
+        const from = i * MUSIC_LOOP;
         return (
           <Sequence key={i} from={from} durationInFrames={Math.min(MUSIC_LOOP, total - from)} layout="none">
             <Audio src={staticFile('sfx/music.wav')} volume={f => {
               const global = from + f;
-              const fadeIn = i === 0 ? Math.min(1, f / 45) : Math.min(1, f / MUSIC_FADE);
-              const fadeOut = Math.min(1, (MUSIC_LOOP - f) / MUSIC_FADE, (total - global) / 90);
+              const fade = Math.min(1, global / 45, (total - global) / 90);
               const duck = 1 - 0.55 * speaking(timeline, global);
-              return 0.34 * Math.max(0, Math.min(fadeIn, fadeOut)) * duck;
+              return 0.34 * Math.max(0, fade) * duck;
             }} />
           </Sequence>
         );
@@ -48,7 +47,7 @@ const Music: React.FC<{ timeline: Timeline }> = ({ timeline }) => {
   );
 };
 
-export const Video: React.FC<VideoProps> = ({ lang, timeline, captures = {}, subtitles = false, music = true }) => {
+export const Video: React.FC<VideoProps> = ({ lang, timeline, captures = {}, music = true }) => {
   const frame = useCurrentFrame();
   if (!timeline) return null;
   return (
@@ -74,7 +73,6 @@ export const Video: React.FC<VideoProps> = ({ lang, timeline, captures = {}, sub
       })}
       {timeline.chapters.slice(1).map(ch => <LightSweep key={ch.id} at={ch.from + 9} frame={frame} />)}
       <ProgressBar chapters={timeline.chapters} frame={frame} />
-      {subtitles && <Subtitles timeline={timeline} />}
       {music && <Music timeline={timeline} />}
       <Grain />
     </AbsoluteFill>

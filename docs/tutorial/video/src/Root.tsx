@@ -37,9 +37,9 @@ export const Root: React.FC = () => (
   <>
     {['en', 'es'].map(lang => (
       <Composition key={lang} id={`kdesktop-${lang}`} component={Video} calculateMetadata={whole}
-        width={1920} height={1080} fps={30} durationInFrames={1} defaultProps={{ lang, subtitles: false, music: true }} />
+        width={1920} height={1080} fps={30} durationInFrames={1} defaultProps={{ lang, music: true }} />
     ))}
     <Composition id="chapter" component={ChapterOnly} calculateMetadata={chapterMeta}
-      width={1920} height={1080} fps={30} durationInFrames={1} defaultProps={{ lang: 'en', chapter: 'intro', subtitles: false, music: true }} />
+      width={1920} height={1080} fps={30} durationInFrames={1} defaultProps={{ lang: 'en', chapter: 'intro', music: true }} />
   </>
 );

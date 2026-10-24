@@ -235,7 +235,7 @@ const Terminal: React.FC<{ lines: Line[]; title: string; width?: number; height?
 
 const Machines: React.FC<{ udp: BeatTimes; cli: BeatTimes }> = ({ udp, cli }) => {
   const f = useCurrentFrame();
-  const nc = (s: string) => `echo "${s}" | nc -u -w1 alex-pc 2501`;
+  const nc = (s: string) => `echo "${s}" | nc -u -w1 alex-pc $PORT`;
   const lines: Line[] = [
     { at: udp.cue('list') - 6, text: nc('list'), kind: 'cmd' },
     { at: udp.cue('list') + 30, text: '[3] - list (done)', kind: 'out' },
@@ -275,7 +275,7 @@ const Machines: React.FC<{ udp: BeatTimes; cli: BeatTimes }> = ({ udp, cli }) =>
         <div style={{ position: 'absolute', left: 140, top: 140, display: 'flex', alignItems: 'center', gap: 18, opacity: pop(f, udp.cue('udp') - 6) }}>
           <KdIcon icon="plug_connected_24_filled" color="pink" size={70} />
           <div>
-            <div style={{ fontFamily: SANS, fontSize: 40, fontWeight: 800, color: C.text }}>UDP · port 2501</div>
+            <div style={{ fontFamily: SANS, fontSize: 40, fontWeight: 800, color: C.text }}>UDP</div>
             <div style={{ fontFamily: SANS, fontSize: 22, color: C.dim }}>Compatible with K-Desktop 4</div>
           </div>
         </div>

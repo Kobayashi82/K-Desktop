@@ -115,34 +115,42 @@
         },
         {
           "id": "cat-apps",
+          "heading": true,
           "text": "Open and run: {programs}programs, {folders}folders, {special}special Windows locations, {web}web pages in the browser you choose, and {scripts}CMD or PowerShell scripts."
         },
         {
           "id": "cat-windows",
+          "heading": true,
           "text": "Windows: {max}maximize, place in {halves}halves, {quarters}quarters or {thirds}thirds, {center}center, move to {monitor}another monitor, make {transparent}transparent, or keep {top}on top."
         },
         {
           "id": "cat-input",
+          "heading": true,
           "text": "Keyboard and mouse: {keys}send keys or text, {clipboard}transform the clipboard, {macro}play a macro, {kboard}switch a K-Board profile, or {dictate}dictate."
         },
         {
           "id": "cat-sound",
+          "heading": true,
           "text": "Sound: the {volume}volume of the speakers, the microphone or a single app. {output}Switch the audio output, {play}play sounds, and {record}record audio, even the last few seconds."
         },
         {
           "id": "cat-screen",
+          "heading": true,
           "text": "Screen: {shot}screenshots, {ocr}copying text straight from the screen, a {magnifier}magnifier, {brightness}brightness and projection, and the {theme}light or dark theme of Windows."
         },
         {
           "id": "cat-network",
+          "heading": true,
           "text": "Network: {http}web requests for Home Assistant or any API, {wol}waking another computer with Wake on LAN, and {radio}Wi-Fi or Bluetooth."
         },
         {
           "id": "cat-system",
+          "heading": true,
           "text": "System: {hidden}hidden files, the {plan}power plan, and {power}shutting down, restarting or sleeping, with a {countdown}countdown you can cancel."
         },
         {
           "id": "cat-flow",
+          "heading": true,
           "text": "And flow: {message}show a message, {wait}wait, {menu}open a QuickMenu, {commands}run or switch other commands. The {ninth}ninth family belongs to the assistants. We'll get there."
         },
         {
@@ -421,7 +429,7 @@
         },
         {
           "id": "udp",
-          "text": "And for machines, there's {udp}UDP, compatible with K-Desktop 4, on port 2501. Send {list}list, to get the remote commands. A {number}number or a name, to run one. {sk}S K plus keys, to press them. Or {event}event plus a name, to fire a Call from outside event. Perfect for {ha}Home Assistant, scripts, or another PC."
+          "text": "And for machines, there's {udp}UDP, compatible with K-Desktop 4. Send {list}list, to get the remote commands. A {number}number or a name, to run one. {sk}S K plus keys, to press them. Or {event}event plus a name, to fire a Call from outside event. Perfect for {ha}Home Assistant, scripts, or another PC."
         },
         {
           "id": "cli",
@@ -459,14 +467,17 @@
         },
         {
           "id": "appearance",
+          "heading": true,
           "text": "{appearance}Appearance: {theme}light, dark, or follow Windows. {languages}Six built-in languages, and you can add your {own}own with a JSON file."
         },
         {
           "id": "general",
+          "heading": true,
           "text": "{general}General: start with {windows}Windows, with administrator rights and no prompt. {hotkeys}Hotkeys to show, exit or pause K-Desktop. {sounds}Sounds, and on-screen {osd}messages."
         },
         {
           "id": "disable",
+          "heading": true,
           "text": "{disable}Disable in: a list of apps, like your {games}games, where hotkeys do nothing, unless a command is set to {always}always run."
         },
         {

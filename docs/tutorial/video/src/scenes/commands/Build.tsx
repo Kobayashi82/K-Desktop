@@ -20,7 +20,7 @@ const WIN = { x: 180, y: 70 };
 // Stage points of the page (content starts at WIN + sidebar 250, title bar 46).
 const NEW_BTN = { x: 590, y: 312 };
 const ADD_HOTKEY = { x: 880, y: 326 };
-const ADD_ACTION = { x: 1620, y: 452 };
+const ADD_ACTION = { x: 1620, y: 508 };
 
 /** Big keys pressed one after another (Ctrl, Alt, W), held until `release`. */
 const ComboKeys: React.FC<{ keys: string[]; at: number[]; release: number; show: number }> = ({ keys, at, release, show }) => {
