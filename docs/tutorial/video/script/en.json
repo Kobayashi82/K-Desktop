@@ -481,19 +481,19 @@
         },
         {
           "id": "arch",
-          "text": "Assistants run in their {process}own process, without {admin}administrator rights, and talk to K-Desktop through a {pipe}private, locked down pipe. K-Desktop draws them on a {layer}transparent layer on your graphics card, and your windows become their {terrain}terrain."
+          "text": "Each assistant runs in its {process}own process, without {admin}administrator rights. K-Desktop draws it on a {layer}transparent layer over your windows, and your windows become its {terrain}terrain."
         },
         {
           "id": "talk",
-          "text": "To talk to one, say its {name}name. {question}Lander, what time is it? Each assistant can have its {own}own wake word, while {kd}K-Desktop keeps running your commands. You can also {key}hold its key, or {click}hold the click on the character itself. And when it {asks}asks you something back, just answer."
+          "text": "To talk to one, say its {name}name: {question}Lander, what time is it? Each assistant has its {own}own wake word, while {kd}K-Desktop keeps running your commands. You can also {key}hold its key, or {click}hold the click on it. And when it {asks}asks you something back, just answer."
         },
         {
           "id": "brain",
-          "text": "Their {brain}brain is a language model, and it runs {pc}on your PC. With {llama}llama server and a model downloaded from {hf}Hugging Face, it picks the {biggest}biggest one that fits your graphics card. It also works with {ollama}Ollama, or any {openai}OpenAI compatible server. And it always tells you {where}where your words go: {thispc}this PC, {network}your network, or the {internet}internet."
+          "text": "Their {brain}brain is a language model that runs {pc}on your PC, with {llama}llama server and a model from {hf}Hugging Face: it picks the {biggest}biggest one that fits your graphics card. {ollama}Ollama or any {openai}OpenAI compatible server work too, and it always tells you {where}where your words go: {thispc}this PC, {network}your network, or the {internet}internet."
         },
         {
           "id": "brain2",
-          "text": "The model {loads}loads when you talk, {unloads}unloads when idle, and {games}gets out of the way when a game goes full screen. Simple things, like the {time}time, a {timer}timer, a {note}note or {cancel}cancel, are answered instantly by {rules}fixed rules, without the AI."
+          "text": "The model {loads}loads when you talk, {unloads}unloads when idle, and {games}steps aside for full screen games. Simple things, like the {time}time, a {timer}timer, a {note}note or {cancel}cancel, are answered {rules}instantly, without the AI."
         },
         {
           "id": "voice",
@@ -501,15 +501,11 @@
         },
         {
           "id": "voice2",
-          "text": "Each assistant brings its own {style}style. The Lander talks over the {radio}mission control radio. You can {mix}mix two voices, try {robot}robot, martian or eight bit, keep them {quiet}quiet during a full screen film, and even hear them from the {side}side of the screen where they are."
+          "text": "Each assistant has its own {style}style: the Lander talks over {radio}mission control radio. You can {mix}mix two voices, try {robot}robot or eight bit, and keep them {quiet}quiet during a full screen film. They even sound from the {side}side of the screen where they are."
         },
         {
           "id": "tools",
-          "text": "What can they do? A lot. {timers}Timers, {notes}notes, {calc}calculations, the {weather}weather. {web}Searching and reading the web. {files}Finding files, {apps}opening apps, {music}controlling the music, {pc}checking the PC, {screen}looking at your screen, and running your own {commands}commands."
-        },
-        {
-          "id": "chooser",
-          "text": "To keep a small model sharp, only the {three}three to five tools that fit each order reach it, chosen by their {examples}example phrases and by {meaning}meaning."
+          "text": "What can they do? {timers}Timers, {notes}notes, {calc}calculations, the {weather}weather. {web}Search and read the web, {files}find files, {apps}open apps, {music}control the music, {pc}check the PC, {screen}look at your screen, and run your {commands}commands."
         },
         {
           "id": "risk",
@@ -521,7 +517,7 @@
         },
         {
           "id": "own-tools",
-          "text": "You can also give them new skills without compiling anything: one {json}JSON file per tool. Call any {api}web API, like Home Assistant. Run one of your {command}commands with your own phrases. Chain a {routine}routine. Or run your own {script}script. {secrets}Secrets like tokens are stored encrypted, and the model {never}never sees them. And {mcp}MCP servers plug their tools in too, imported straight from {claude}Claude Desktop."
+          "text": "You can also give them {json}new skills, without compiling: one JSON file per tool. Call a {api}web API like Home Assistant, run one of your {command}commands, chain a {routine}routine, or run a {script}script. {secrets}Secrets stay encrypted, and the model never sees them. And {mcp}MCP servers plug in too, imported straight from {claude}Claude Desktop."
         },
         {
           "id": "memory",
@@ -529,7 +525,7 @@
         },
         {
           "id": "knowledge",
-          "text": "And they can {read}read your documents. Choose {folders}folders or files: notes, manuals, contracts, PDFs, Word, even {scanned}scanned pages, with the text recognition of Windows. Everything is {once}read once, on your PC, and kept up to date. Ask: {ask}what does my contract say about the deposit? And they {answer}answer, telling you which {source}document and page it came from."
+          "text": "And they can {read}read your documents. Choose {folders}folders or files: notes, manuals, contracts, PDFs, even {scanned}scanned pages. Everything is read {once}once, on your PC. Ask: {ask}what does my contract say about the deposit? And they {answer}answer, telling you which {source}document and page it came from."
         },
         {
           "id": "commands",

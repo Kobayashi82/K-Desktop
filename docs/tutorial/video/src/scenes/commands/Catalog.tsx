@@ -2,6 +2,8 @@ import React from 'react';
 import { AbsoluteFill, useCurrentFrame } from 'remotion';
 import { FAMILIES } from '../../components/ActionFamilies';
 import { Camera, Shot } from '../../components/Camera';
+import { FocusLayer, useCapture } from '../../components/Capture';
+import { Img, staticFile } from 'remotion';
 import { KdIcon } from '../../components/Icon';
 import { Sfx } from '../../components/Sfx';
 import { ease, inOut, OUT, pop, rand } from '../../lib/anim';
@@ -49,14 +51,15 @@ export const CatalogPart: React.FC<{ catalog: BeatTimes; beats: Record<string, B
 
   const shots: Shot[] = [
     { at: 0, x: STAGE_W / 2, y: 560, s: 0.3, rx: 10 },
-    { at: catalog.from, dur: 60, x: STAGE_W / 2, y: 540, s: 0.42, rx: 6 },
+    { at: beats.apps.from - 40, dur: 30, x: STAGE_W / 2, y: 540, s: 0.42, rx: 6 },
     ...families.map((fam, i) => ({ at: beats[fam.id].from - 14, dur: 28, x: colX(i) + COL_W / 2 + 437, y: 545, s: 1.12, rx: 0, ry: -3 })),
     { at: ninth - 10, dur: 30, x: (colX(7) + colX(8)) / 2 + COL_W / 2, y: 545, s: 1.05, ry: 0 },
     { at: to - 20, dur: 40, x: (colX(7) + colX(8)) / 2 + COL_W / 2, y: 545, s: 1.18 },
   ];
 
-  const count = Math.round(36 * ease(f, catalog.from, catalog.cue('more') + 20, OUT));
-  const countShow = inOut(f, catalog.from, beats.apps.from - 4, 10);
+  const picker = useCapture('action-picker');
+  const pickerIn = ease(f, catalog.from - 10, catalog.from + 6, OUT);
+  const pickerOut = ease(f, beats.apps.from - 24, beats.apps.from - 6);
   return (
     <AbsoluteFill>
       <Camera shots={shots} width={STAGE_W}>
@@ -70,7 +73,7 @@ export const CatalogPart: React.FC<{ catalog: BeatTimes; beats: Record<string, B
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', marginBottom: 16, borderRadius: 16,
                 background: isCurrent || isNinth ? 'rgba(242,193,74,0.14)' : 'rgba(255,255,255,0.05)', border: `1.5px solid ${isCurrent || isNinth ? 'rgba(242,193,74,0.6)' : C.line}`,
-                opacity: ease(f, catalog.from + i * 3, catalog.from + i * 3 + 14),
+                opacity: ease(f, beats.apps.from - 30 + i * 2, beats.apps.from - 16 + i * 2),
               }}>
                 <KdIcon icon={fam.icon} color={fam.color} size={44} />
                 <span style={{ fontFamily: SANS, fontSize: 24, fontWeight: 800, color: C.text, whiteSpace: 'nowrap' }}>{fam.name}</span>
@@ -78,7 +81,7 @@ export const CatalogPart: React.FC<{ catalog: BeatTimes; beats: Record<string, B
               </div>
               {fam.actions.map((a, j) => {
                 const seed = i * 7 + j;
-                const k = pop(f, catalog.from + 4 + seed * 1.4, { damping: 15, stiffness: 110 });
+                const k = pop(f, beats.apps.from - 30 + seed * 0.5, { damping: 15, stiffness: 110 });
                 const on = (isCurrent && j === lit) || isNinth;
                 return (
                   <div key={a.name} style={{
@@ -101,9 +104,15 @@ export const CatalogPart: React.FC<{ catalog: BeatTimes; beats: Record<string, B
         })}
       </Camera>
 
-      {/* 36 actions · 9 families */}
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 110, textAlign: 'center', fontFamily: SANS, fontWeight: 800, fontSize: 64, color: C.text, opacity: countShow, transform: `translateY(${(1 - countShow) * 30}px)` }}>
-        <span style={{ color: C.accentText }}>{count}</span> actions <span style={{ color: C.faint }}>·</span> <span style={{ color: C.accentText }}>{f > catalog.cue('nine') - 4 ? 9 : '…'}</span> families
+      {/* The real «Add action» dialog, with its nine families */}
+      <div style={{
+        position: 'absolute', left: 960, top: 540, transform: `translate(-50%, -50%) scale(${1.3 * (0.9 + 0.1 * pickerIn) * (1 + 0.15 * pickerOut)})`,
+        opacity: pickerIn * (1 - pickerOut), filter: pickerOut > 0.05 ? `blur(${pickerOut * 12}px)` : undefined,
+      }}>
+        <div style={{ position: 'relative', width: picker.width, height: picker.height, borderRadius: 12, overflow: 'hidden', boxShadow: '0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.12)' }}>
+          <Img src={staticFile(picker.file)} style={{ width: picker.width, height: picker.height }} />
+          <FocusLayer width={picker.width} height={picker.height} focus={[{ from: catalog.cue('nine') - 8, to: beats.apps.from, rect: [18, 100, 200, 326], label: '9 families', at: 'right' }]} />
+        </div>
       </div>
 
       {/* The showcase of the family being told */}

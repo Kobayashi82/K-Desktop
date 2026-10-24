@@ -1,5 +1,6 @@
 import React from 'react';
-import { AbsoluteFill, useCurrentFrame } from 'remotion';
+import { AbsoluteFill, Img, staticFile, useCurrentFrame } from 'remotion';
+import { useCapture } from '../components/Capture';
 import { Camera } from '../components/Camera';
 import { Part } from '../components/Chapter';
 import { Cursor } from '../components/Cursor';
@@ -28,6 +29,7 @@ const rowY = (items: QmItem[], i: number, y: number) => {
 
 const Intro: React.FC<{ b: BeatTimes }> = ({ b }) => {
   const f = useCurrentFrame();
+  const real = useCapture('quickmenu-closeup');
   const icons = MAIN_MENU.filter(i => i.kind === 'item') as Extract<QmItem, { kind: 'item' }>[];
   const gather = ease(f, b.cue('qm') - 10, b.cue('qm') + 20, SMOOTH);
   return (
@@ -44,8 +46,8 @@ const Intro: React.FC<{ b: BeatTimes }> = ({ b }) => {
         const k = pop(f, b.from + i * 2);
         return <div key={i} style={{ position: 'absolute', left: x, top: y, transform: `scale(${k * (1 - 0.5 * gather)})`, opacity: 1 - gather * (i >= 8 ? 1 : 0.2) }}><KdIcon icon={it.icon} color={it.color} size={84} /></div>;
       })}
-      <div style={{ position: 'absolute', left: 960, top: 560, transform: `translate(-50%, -50%) scale(${pop(f, b.cue('qm') + 6, { damping: 13 })})` }}>
-        <QuickMenuPanel items={MAIN_MENU} scale={1.5} appear={ease(f, b.cue('qm') + 6, b.cue('qm') + 30)} />
+      <div style={{ position: 'absolute', left: 960, top: 560, transform: `translate(-50%, -50%) scale(${1.6 * pop(f, b.cue('qm') + 6, { damping: 13 })})` }}>
+        <Img src={staticFile(real.file)} style={{ width: real.width, height: real.height, borderRadius: 14, boxShadow: '0 40px 90px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.12)' }} />
       </div>
       <Sfx at={b.cue('qm') - 6} name="whoosh" volume={0.3} />
       <Sfx at={b.cue('qm') + 8} name="pop" volume={0.3} />
@@ -309,8 +311,8 @@ export const QuickMenuScene: React.FC = () => {
   const quick = B('quick');
   return (
     <AbsoluteFill>
-      <Part from={0} to={open.from - 4} first><Intro b={intro} /></Part>
-      <Part from={open.from - 4} to={editor.from - 6}><OnDesktop open={open} clicks={clicks} /></Part>
+      <Part from={0} to={open.cue('mouse5') - 16} first><Intro b={intro} /></Part>
+      <Part from={open.cue('mouse5') - 16} to={editor.from - 6}><OnDesktop open={open} clicks={clicks} /></Part>
       <Part from={editor.from - 6} to={durationInFrames} last><Editor editor={editor} quick={quick} /></Part>
     </AbsoluteFill>
   );

@@ -1,10 +1,12 @@
 import React from 'react';
+import { Assistants } from './Assistants';
 import { Commands } from './Commands';
 import { Events } from './Events';
 import { Intro } from './Intro';
 import { KBoard } from './KBoard';
 import { Launcher } from './Launcher';
 import { Macros } from './Macros';
+import { Outro } from './Outro';
 import { Overview } from './Overview';
 import { Progress } from './Progress';
 import { QuickMenuScene } from './QuickMenu';
@@ -26,4 +28,6 @@ export const SCENES: Record<string, React.FC> = {
   remote: Remote,
   progress: Progress,
   settings: Settings,
+  assistants: Assistants,
+  outro: Outro,
 };

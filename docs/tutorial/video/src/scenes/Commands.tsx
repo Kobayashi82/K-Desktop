@@ -1,5 +1,6 @@
 import React from 'react';
 import { AbsoluteFill } from 'remotion';
+import { CaptureShot } from '../components/Capture';
 import { Part } from '../components/Chapter';
 import { useBeats, useChapter } from '../lib/timeline';
 import { BuildPart, RunPart } from './commands/Build';
@@ -22,7 +23,14 @@ export const Commands: React.FC = () => {
   };
   return (
     <AbsoluteFill>
-      <Part from={0} to={run.from - 6} first>
+      {/* The real page first; at «New command» the animated one takes over */}
+      <Part from={0} to={B('page').cue('new') - 2} first>
+        <CaptureShot name="commands"
+          shots={[{ at: 0, x: 960, y: 540, s: 1.0, rx: 6 }, { at: 10, dur: 60, x: 960, y: 540, s: 1.04, rx: 0 }, { at: B('page').cue('new') - 40, dur: 34, x: 520, y: 330, s: 1.7 }]}
+          focus={[{ from: B('page').cue('new') - 30, to: B('page').cue('new') + 10, rect: [255, 216, 252, 40] }]}
+          cursor={[{ at: 0, x: 1200, y: 700 }, { at: B('page').cue('new') - 36, x: 390, y: 238, dur: 26 }]} clicks={[{ at: B('page').cue('new') - 6 }]} />
+      </Part>
+      <Part from={B('page').cue('new') - 2} to={run.from - 6}>
         <BuildPart page={B('page')} hotkey={B('hotkey')} hotkey2={B('hotkey2')} actions={B('actions')} to={run.from - 6} />
       </Part>
       <Part from={run.from - 6} to={catalog.from - 6}><RunPart run={run} /></Part>
