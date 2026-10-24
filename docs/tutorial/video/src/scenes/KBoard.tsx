@@ -97,11 +97,11 @@ export const KBoard: React.FC = () => {
   const shots = [
     { at: 0, x: 960, y: 560, s: 0.9, rx: 14 },
     { at: intro.from, dur: 50, x: 960, y: 540, s: 1.0, rx: 6 },
-    { at: clickAt - 10, dur: 30, x: 700, y: 600, s: 1.25, rx: 0 },
-    { at: targets.from - 4, dur: 30, x: 860, y: 520, s: 1.12 },
+    { at: clickAt - 10, dur: 30, x: 700, y: 680, s: 1.25, rx: 0 },
+    { at: targets.from - 4, dur: 30, x: 860, y: 640, s: 1.12 },
     { at: examples.from - 4, dur: 30, x: 960, y: 560, s: 1.02 },
     { at: layers.from - 4, dur: 30, x: 900, y: 560, s: 1.1 },
-    { at: scope.from - 6, dur: 30, x: 960, y: 760, s: 0.86, rx: 8 },
+    { at: scope.from - 6, dur: 30, x: 960, y: 900, s: 0.8, rx: 8 },
   ];
   return (
     <AbsoluteFill>

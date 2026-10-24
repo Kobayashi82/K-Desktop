@@ -63,7 +63,7 @@ const Ring: React.FC<{ kinds: BeatTimes; kinds2: BeatTimes }> = ({ kinds, kinds2
   const counter = Math.round(16 * ease(f, kinds.from, kinds.cue('sixteen') + 16, OUT));
   return (
     <AbsoluteFill>
-      <div style={{ position: 'absolute', left: 960, top: 540, transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+      <div style={{ position: 'absolute', left: 960, top: 480, transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
         <div style={{ fontFamily: SANS, fontSize: 140, fontWeight: 800, color: C.accentText, lineHeight: 1 }}>{counter}</div>
         <div style={{ fontFamily: SANS, fontSize: 30, fontWeight: 700, color: C.dim, letterSpacing: 4 }}>TRIGGERS</div>
         <div style={{ marginTop: 26, height: 44, fontFamily: SANS, fontSize: 32, fontWeight: 700, color: C.text, whiteSpace: 'nowrap' }}>{current >= 0 ? KINDS[current].name : ''}</div>
@@ -71,7 +71,7 @@ const Ring: React.FC<{ kinds: BeatTimes; kinds2: BeatTimes }> = ({ kinds, kinds2
       {KINDS.map((k, i) => {
         const angle = (i / KINDS.length) * Math.PI * 2 - Math.PI / 2 + spin * 0.02;
         const x = 960 + Math.cos(angle) * 640;
-        const y = 540 + Math.sin(angle) * 400;
+        const y = 480 + Math.sin(angle) * 340;
         const s = pop(f, times[i] - 6, { damping: 12, stiffness: 160 });
         const lit = i === current ? 1 : 0;
         return (

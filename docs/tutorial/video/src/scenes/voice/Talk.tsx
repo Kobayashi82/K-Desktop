@@ -36,11 +36,11 @@ export const TalkPart: React.FC<{ intro: BeatTimes; two: BeatTimes; wake: BeatTi
     <AbsoluteFill>
       {/* The microphone */}
       <AbsoluteFill style={{ opacity: 1 - toTwo, transform: `scale(${1 + 0.2 * toTwo})` }}>
-        <div style={{ position: 'absolute', left: 960, top: 420, transform: `translate(-50%, -50%) scale(${micIn})`, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 40 }}>
+        <div style={{ position: 'absolute', left: 960, top: 380, transform: `translate(-50%, -50%) scale(${micIn})`, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 40 }}>
           <KdIcon icon="mic_24_filled" color="teal" size={220} glow={0.7} />
           <VoiceBars beat="intro" bars={30} width={560} height={130} color={C.teal} gain={1.5} />
         </div>
-        <div style={{ position: 'absolute', left: 0, right: 0, top: 820, display: 'flex', justifyContent: 'center', gap: 30 }}>
+        <div style={{ position: 'absolute', left: 0, right: 0, top: 700, display: 'flex', justifyContent: 'center', gap: 30 }}>
           <Chip icon="desktop_24_filled" text="On your PC" show={pop(f, intro.cue('local') - 6)} />
           <Chip icon="cloud_off_24_filled" text="No internet" show={pop(f, intro.cue('internet') - 6)} />
         </div>
@@ -49,8 +49,8 @@ export const TalkPart: React.FC<{ intro: BeatTimes; two: BeatTimes; wake: BeatTi
       {/* Hold, or tap */}
       <AbsoluteFill style={{ opacity: toTwo * (1 - toWake), transform: `scale(${(0.9 + 0.1 * toTwo) * (1 + 0.15 * toWake)})` }}>
         {[
-          { title: 'Hold the key', sub: 'while you speak', t: holdT, at: holdAt, down: inOut(f, holdAt, holdAt + 60, 4), y: 300, amp: speechAmp(0.08, 0.92, 6), end: 'You let go' },
-          { title: 'Tap it once', sub: 'it stops when you go quiet', t: tapT, at: tapAt, down: inOut(f, tapAt, tapAt + 8, 3), y: 640, amp: speechAmp(0.08, 0.7, 5), end: 'Silence: done' },
+          { title: 'Hold the key', sub: 'while you speak', t: holdT, at: holdAt, down: inOut(f, holdAt, holdAt + 60, 4), y: 260, amp: speechAmp(0.08, 0.92, 6), end: 'You let go' },
+          { title: 'Tap it once', sub: 'it stops when you go quiet', t: tapT, at: tapAt, down: inOut(f, tapAt, tapAt + 8, 3), y: 590, amp: speechAmp(0.08, 0.7, 5), end: 'Silence: done' },
         ].map((r, i) => (
           <div key={i} style={{ position: 'absolute', left: 170, top: r.y, display: 'flex', alignItems: 'center', gap: 50, opacity: ease(f, r.at - 14, r.at) * 0.7 + 0.3 }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, width: 300 }}>

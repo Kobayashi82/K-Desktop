@@ -108,18 +108,69 @@ def srt_time(seconds: float) -> str:
     return f"{ms // 3600000:02}:{ms // 60000 % 60:02}:{ms // 1000 % 60:02},{ms % 1000:03}"
 
 
-def subtitle_lines(text: str, width: int = 46) -> list[str]:
-    """Up to two lines per cue; longer sentences become several cues."""
-    words, lines, line = text.split(), [], ""
-    for w in words:
-        if line and len(line) + 1 + len(w) > width:
-            lines.append(line)
-            line = w
-        else:
-            line = f"{line} {w}".strip()
-    if line:
-        lines.append(line)
-    return ["\n".join(lines[i:i + 2]) for i in range(0, len(lines), 2)]
+# Words a subtitle line should not end on: they belong with what follows.
+CLINGY = {"a", "an", "the", "of", "to", "in", "on", "at", "by", "for", "with", "from", "into", "and", "or", "but", "nor",
+          "your", "its", "their", "my", "our", "his", "her", "this", "these", "that", "as", "than", "if", "un", "una",
+          "el", "la", "los", "las", "de", "del", "al", "en", "con", "por", "para", "y", "o", "que", "tu", "tus", "su", "sus"}
+
+
+NUMBERS = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "fifteen", "twenty", "thirty",
+           "eighty", "hundred", "thousand", "dos", "tres", "cuatro", "cinco", "siete", "ocho", "quince", "veinte", "cien",
+           "ochenta", "cientos", "mil"}
+# Words that start a phrase: cutting just before them reads naturally.
+STARTERS = {"and", "but", "with", "to", "in", "on", "for", "from", "that", "which", "where", "while", "when", "if",
+            "unless", "so", "during", "into", "without", "even", "as", "like", "whether", "y", "pero", "con", "para",
+            "que", "donde", "cuando", "si", "sin", "mientras", "aunque", "como"}
+NBSP = "\u00a0"
+
+
+def cut_cost(words: list[str], i: int) -> float:
+    """How bad it is to cut after words[i]: free where the voice pauses, dear inside a phrase."""
+    word = words[i]
+    if word[-1] in ".!?…":
+        return 0
+    if word[-1] in ",;:":
+        return 2
+    return (6 if words[i + 1].lower() in STARTERS else 10) + (14 if word.lower() in CLINGY else 0) + (10 if word.lower() in NUMBERS else 0)
+
+
+def two_lines(words: list[str], width: int) -> tuple[str, float]:
+    """A cue on one line, or on two balanced ones cut at the best place."""
+    text = " ".join(words)
+    if len(text) <= width or len(words) < 2:
+        return text, 0.0
+    best, best_cost = text, float("inf")
+    for i in range(len(words) - 1):
+        top, bottom = " ".join(words[: i + 1]), " ".join(words[i + 1:])
+        cost = cut_cost(words, i) + 0.25 * abs(len(top) - len(bottom)) + 4 * max(0, len(top) - width, len(bottom) - width)
+        if cost < best_cost:
+            best, best_cost = f"{top}\n{bottom}", cost
+    return best, best_cost
+
+
+def subtitle_lines(text: str, width: int = 42, keep: list[str] = ()) -> list[str]:
+    """The sentence as subtitles: the fewest cues of up to two lines, cut where the voice pauses when it can.
+    Phrases in keep (names like Home Assistant) are never cut."""
+    for phrase in keep:
+        text = text.replace(phrase, phrase.replace(" ", NBSP))
+    text = re.sub(r"(\S+) (plus|más) (\S+)", rf"\1{NBSP}\2{NBSP}\3", text)
+    words = text.split(" ")
+    # best[j]: the cheapest way to show words[:j]; each cue costs a little, short ones and bad cuts cost more.
+    best: list[tuple[float, int, str]] = [(0.0, 0, "")] + [(float("inf"), 0, "")] * len(words)
+    for j in range(1, len(words) + 1):
+        for i in range(j - 1, -1, -1):
+            size = len(" ".join(words[i:j]))
+            if size > 2 * width and j - i > 1:
+                break
+            lines, line_cost = two_lines(words[i:j], width)
+            cost = best[i][0] + 8 + 0.6 * max(0, 24 - size) + line_cost + (2.2 * cut_cost(words, j - 1) if j < len(words) else 0)
+            if cost < best[j][0]:
+                best[j] = (cost, i, lines)
+    cues, j = [], len(words)
+    while j > 0:
+        cues.insert(0, best[j][2].replace(NBSP, " "))
+        j = best[j][1]
+    return cues
 
 
 def main() -> None:
@@ -131,6 +182,7 @@ def main() -> None:
     rules_file = ROOT / "script" / f"pronunciation.{args.lang}.json"
     rules = json.loads(rules_file.read_text(encoding="utf-8"))["rules"] if rules_file.exists() else []
     voice = Voice(script["tts"], ROOT / ".cache" / "tts" / args.lang)
+    subtitle_options = script.get("subtitles", {})  # width (characters per line) and keep (phrases never cut)
 
     audio_dir = ROOT / "public" / "audio" / args.lang
     audio_dir.mkdir(parents=True, exist_ok=True)
@@ -158,9 +210,14 @@ def main() -> None:
                 for m in CUE.finditer(marked):
                     at = len(CUE.sub("", marked[: m.start()]))
                     cues[m.group(1)] = frames(cursor - start + offset + duration * at / max(1, len(text)))
-                for i, cue in enumerate(subtitle_lines(text)):
-                    share = duration / len(subtitle_lines(text))
-                    subtitles.append((cursor + offset + i * share, cursor + offset + (i + 1) * share, cue))
+                # Each subtitle stays up for its share of the sentence, by length.
+                lines = subtitle_lines(text, **subtitle_options)
+                weights = [len(x) + 6 for x in lines]
+                at = cursor + offset
+                for cue, weight in zip(lines, weights):
+                    share = duration * weight / sum(weights)
+                    subtitles.append((at, at + share, cue))
+                    at += share
                 parts.append(audio)
                 offset += duration
             name = f"{chapter['id']}-{beat['id']}.wav"
@@ -188,6 +245,7 @@ def main() -> None:
         t = end - OVERLAP
     last = timeline["chapters"][-1]
     timeline["durationInFrames"] = last["from"] + last["durationInFrames"]
+    timeline["subtitles"] = [{"from": frames(a), "to": frames(b), "text": text} for a, b, text in subtitles]
 
     out = ROOT / "public" / "generated"
     out.mkdir(parents=True, exist_ok=True)

@@ -5,6 +5,27 @@
     "kokoroLang": "en-us",
     "speed": 1.0
   },
+  "subtitles": {
+    "width": 42,
+    "keep": [
+      "Home Assistant",
+      "Wake on LAN",
+      "Hugging Face",
+      "llama server",
+      "OpenAI compatible",
+      "full screen",
+      "eight bit",
+      "new line",
+      "scratch that",
+      "Turn off the TV",
+      "Shut down the computer",
+      "Control F",
+      "Steam opens",
+      "Steam closes",
+      "openWakeWord models",
+      "speech recognition"
+    ]
+  },
   "chapters": [
     {
       "id": "intro",

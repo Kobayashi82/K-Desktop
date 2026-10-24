@@ -91,7 +91,7 @@ const PhonePart: React.FC<{ intro: BeatTimes; pair: BeatTimes; menus: BeatTimes;
       </div>
 
       {/* The phone */}
-      <div style={{ position: 'absolute', left: 1330, top: 90, transform: `translateY(${(1 - phoneIn) * 500}px) rotate(${(1 - phoneIn) * 12 + Math.sin(f / 50) * 1.5}deg)`, opacity: Math.min(1, phoneIn * 2) }}>
+      <div style={{ position: 'absolute', left: 1330, top: 90, transform: `translateY(${(1 - phoneIn) * 500}px) rotate(${(1 - phoneIn) * 12 + Math.sin(f / 50) * 1.5}deg) scale(0.88)`, transformOrigin: 'top center', opacity: Math.min(1, phoneIn * 2) }}>
         <Phone width={PW}>
           <PhoneScreens width={PW} screens={screens} />
           {/* Scanning the QR */}
@@ -172,7 +172,7 @@ const Anywhere: React.FC<{ pwa: BeatTimes; android: BeatTimes }> = ({ pwa, andro
       </AbsoluteFill>
       {/* Android */}
       <AbsoluteFill style={{ opacity: toAndroid, transform: `translateX(${(1 - toAndroid) * 300}px)` }}>
-        <div style={{ position: 'absolute', left: 560, top: 110 }}>
+        <div style={{ position: 'absolute', left: 560, top: 90, transform: 'scale(0.86)', transformOrigin: '0 0' }}>
           <Phone width={PW} android>
             <PhoneScreens width={PW} screens={[[0, 'menus'], [android.cue('native') - 4, 'menus']]} />
             <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 40, background: '#0e0e10', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 60 }}>

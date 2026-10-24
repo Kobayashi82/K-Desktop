@@ -26,7 +26,7 @@ const ADD_ACTION = { x: 1620, y: 452 };
 const ComboKeys: React.FC<{ keys: string[]; at: number[]; release: number; show: number }> = ({ keys, at, release, show }) => {
   const f = useCurrentFrame();
   return (
-    <div style={{ position: 'absolute', left: 0, right: 0, bottom: 130, display: 'flex', justifyContent: 'center', gap: 26, opacity: show, transform: `translateY(${(1 - show) * 80}px)` }}>
+    <div style={{ position: 'absolute', left: 0, right: 0, bottom: 230, display: 'flex', justifyContent: 'center', gap: 26, opacity: show, transform: `translateY(${(1 - show) * 80}px)` }}>
       {keys.map((k, i) => {
         const down = Math.min(ease(f, at[i] - 3, at[i] + 2), 1 - ease(f, release, release + 6));
         return (

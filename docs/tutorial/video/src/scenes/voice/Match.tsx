@@ -124,7 +124,8 @@ export const SpacePart: React.FC<{ meaning: BeatTimes; meaning2: BeatTimes; notm
     </>
   );
   return (
-    <AbsoluteFill>
+    // Drawn a little smaller and from the top, so the bottom of the plane stays clear of the subtitles.
+    <AbsoluteFill style={{ transform: 'scale(0.84)', transformOrigin: '960px 120px' }}>
       {/* The plane */}
       <div style={{ position: 'absolute', left: 140, top: 160, width: 1720, height: 870, borderRadius: 40, border: `1px solid ${C.line2}`, background: 'radial-gradient(ellipse at 50% 50%, rgba(62,220,193,0.06), transparent 70%)', opacity: ease(f, space - 20, space), backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)', backgroundSize: '86px 87px' }} />
       <div style={{ position: 'absolute', left: 180, top: 190, display: 'flex', alignItems: 'center', gap: 14, opacity: ease(f, meaning.cue('gemma') - 6, meaning.cue('gemma') + 6) }}>

@@ -60,7 +60,7 @@ export const Overview: React.FC = () => {
     { at: triggers.from - 8, dur: 40, x: 860, y: 530, s: 1.0, ry: 4 },
     { at: triggers.cue('event'), dur: 60, x: 900, y: 560, s: 0.98, ry: 0 },
     { at: helpers.from - 6, dur: 40, x: 1080, y: 540, s: 1.0, ry: -4 },
-    { at: local.from - 6, dur: 46, x: 960, y: 545, s: 0.74, ry: 0, rx: 4 },
+    { at: local.from - 6, dur: 46, x: 960, y: 690, s: 0.64, ry: 0, rx: 4 },
   ];
   const frameDraw = ease(f, local.from, local.from + 40, OUT);
   const badges = [
