@@ -26,12 +26,13 @@ internal sealed unsafe class NativeWindow : IDisposable
     /// <summary>Message handler: a result, or null for the default handling.</summary>
     public Func<uint, nint, nint, nint?>? MessageHandler { get; set; }
 
-    public void Show()
+    /// <param name="raise">False: it keeps its place among the windows (it does not go over a menu opened after it).</param>
+    public void Show(bool raise = true)
     {
         if (IsVisible) return;
         ShowWindow(Handle, SW_SHOWNOACTIVATE);
         IsVisible = true;
-        BringToTop();
+        if (raise) BringToTop();
     }
 
     public void Hide()
@@ -45,8 +46,9 @@ internal sealed unsafe class NativeWindow : IDisposable
     public void BringToTop() =>
         SetWindowPos(Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
 
-    public void Move(int x, int y, int width, int height) =>
-        SetWindowPos(Handle, HWND_TOPMOST, x, y, width, height, SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+    /// <param name="raise">False: it keeps its place among the windows (see <see cref="Show"/>).</param>
+    public void Move(int x, int y, int width, int height, bool raise = true) =>
+        SetWindowPos(Handle, HWND_TOPMOST, x, y, width, height, SWP_NOACTIVATE | SWP_NOOWNERZORDER | (raise ? 0 : SWP_NOZORDER));
 
     public void Dispose()
     {

@@ -8,8 +8,9 @@ namespace KDesktop.Assistant.Tests;
 
 /// <summary>
 /// The right-click menu with the real KDesktop.exe in assistant mode and Dot: a right click (sent as a message to its hit
-/// window) asks K-Desktop for the menu, and its hit window steps aside until <c>menuClosed</c> (it is «always on top» and
-/// would end up over the menu, which a click on it closes). A dot shows above the taskbar for a few seconds.
+/// window) asks K-Desktop for the menu, and until <c>menuClosed</c> its hit window stays where it is but below the menu (it
+/// is «always on top» and would end up over it, and a click on it closes the menu), so a second right click on Dot asks for
+/// the menu again. A dot shows above the taskbar for a few seconds.
 /// </summary>
 [Collection(OnTheDesktop.Name)]
 public partial class MenuProcessTests
@@ -24,7 +25,7 @@ public partial class MenuProcessTests
         ?? throw new InvalidOperationException("Compila tests/DotAssistant primero");
 
     [Fact]
-    public async Task ItsHitAreaStepsAsideWhileTheMenuIsOpen()
+    public async Task ItsHitAreaStaysBelowTheMenuWhileItIsOpen()
     {
         var data = Path.Combine(Path.GetTempPath(), "kdesktop-tests", "menu-" + Guid.NewGuid().ToString("N")[..8]);
         var name = "KDesktop.Assistant.Test." + Guid.NewGuid().ToString("N")[..12];
@@ -56,13 +57,33 @@ public partial class MenuProcessTests
             PostMessage(hit, WM_RBUTTONUP, 0, 0);
             var asked = await menu.Task.WaitAsync(TimeSpan.FromSeconds(10));
             Assert.Equal("dot", asked.Assistant);
-            await Until(() => !IsWindowVisible(hit));
-            // Dot keeps moving its hit area while the menu is open: it stays away all the same.
-            await Task.Delay(600);
-            Assert.False(IsWindowVisible(hit));
 
-            Assert.True(server.Send(new MenuClosedMessage("dot")));
-            await Until(() => IsWindowVisible(hit));
+            // The menu opens after the right click, «always on top» too: a window of ours stands in for it.
+            var standIn = CreateWindowEx(WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, "Static", "menu", WS_POPUP, -4000, -4000, 10, 10, 0, 0, 0, 0);
+            Assert.NotEqual(0, standIn);
+            try
+            {
+                SetWindowPos(standIn, -1, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+                Assert.True(IsAbove(standIn, hit));
+                // Dot keeps moving its hit area while the menu is open: it stays there, and below the menu.
+                await Task.Delay(800);
+                Assert.True(IsWindowVisible(hit));
+                Assert.True(IsAbove(standIn, hit));
+
+                // A second right click on it reaches it: the menu again.
+                menu = new TaskCompletionSource<MenuMessage>();
+                PostMessage(hit, WM_RBUTTONDOWN, 2, 0);
+                PostMessage(hit, WM_RBUTTONUP, 0, 0);
+                Assert.Equal("dot", (await menu.Task.WaitAsync(TimeSpan.FromSeconds(10))).Assistant);
+
+                // Closed: it takes back the top.
+                Assert.True(server.Send(new MenuClosedMessage("dot")));
+                await Until(() => IsAbove(hit, standIn));
+            }
+            finally
+            {
+                DestroyWindow(standIn);
+            }
 
             Assert.True(server.Send(new ByeMessage("exit")));
             using var exited = new CancellationTokenSource(TimeSpan.FromSeconds(10));
@@ -106,6 +127,31 @@ public partial class MenuProcessTests
             await Task.Delay(50);
         }
     }
+
+    /// <summary>Whether <paramref name="upper"/> is over <paramref name="lower"/> in the z-order.</summary>
+    private static bool IsAbove(nint upper, nint lower)
+    {
+        for (var w = GetWindow(lower, GW_HWNDPREV); w != 0; w = GetWindow(w, GW_HWNDPREV))
+            if (w == upper) return true;
+        return false;
+    }
+
+    private const uint GW_HWNDPREV = 3, WS_POPUP = 0x80000000, SWP_NOSIZE = 0x1, SWP_NOMOVE = 0x2, SWP_NOACTIVATE = 0x10, SWP_SHOWWINDOW = 0x40;
+    private const uint WS_EX_TOPMOST = 0x8, WS_EX_TOOLWINDOW = 0x80, WS_EX_NOACTIVATE = 0x08000000;
+
+    [LibraryImport("user32.dll", EntryPoint = "CreateWindowExW", StringMarshalling = StringMarshalling.Utf16)]
+    private static partial nint CreateWindowEx(uint exStyle, string className, string name, uint style, int x, int y, int width, int height, nint parent, nint menu, nint instance, nint param);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool DestroyWindow(nint hwnd);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool SetWindowPos(nint hwnd, nint after, int x, int y, int width, int height, uint flags);
+
+    [LibraryImport("user32.dll")]
+    private static partial nint GetWindow(nint hwnd, uint command);
 
     private delegate bool EnumWindowsProc(nint hwnd, nint lParam);
 

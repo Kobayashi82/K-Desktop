@@ -31,6 +31,9 @@ public partial class App
 
     private ContextMenu? _assistantMenu;
 
+    /// <summary>Whose menu <see cref="_assistantMenu"/> is.</summary>
+    private string? _assistantMenuId;
+
     /// <summary>The invisible window that takes the foreground for the menu before it opens.</summary>
     private Window? _menuAnchor;
 
@@ -187,8 +190,9 @@ public partial class App
         menu.Closed += (_, _) =>
         {
             if (_assistantMenu == menu) _assistantMenu = null;
-            // Its hit areas stepped aside while the menu was open: they come back.
-            _assistant?.Send(new MenuClosedMessage(id));
+            // The hit areas stayed below the menu while it was open: they take back the top, unless a new menu of the same
+            // assistant is open now (a second right click on it).
+            if (_assistantMenu is null || _assistantMenuId != id) _assistant?.Send(new MenuClosedMessage(id));
             var open = Environment.TickCount64 - opened;
             if (open < 1500) Log.Info($"Asistente: menú de «{id}» cerrado a los {open} ms");
             // After the click has been handled: a page that comes forward keeps the foreground, and so does a window of
@@ -203,6 +207,7 @@ public partial class App
             }, System.Windows.Threading.DispatcherPriority.Background);
         };
         _assistantMenu = menu;
+        _assistantMenuId = id;
 
         // Without the foreground the popup does not see the clicks outside it (it would stay open): the assistant's
         // process allowed it (AllowSetForegroundWindow). It is taken *before* opening, with a window of our own: taken by

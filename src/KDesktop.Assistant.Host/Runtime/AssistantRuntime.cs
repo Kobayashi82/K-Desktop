@@ -165,7 +165,8 @@ internal sealed class AssistantRuntime : IDisposable
         {
             // Other «always on top» windows may cover it: take the top back every few seconds, without fighting.
             _nextOnTop = now + 5;
-            Rendering.KeepOnTop();
+            // Not while a menu is open: the assistants would be drawn over it.
+            if (!_slots.Any(s => s.MenuUntil > 0)) Rendering.KeepOnTop();
             foreach (var slot in _slots) slot.Pointer.KeepOnTop();
         }
         foreach (var slot in _slots.ToList())
@@ -846,22 +847,23 @@ internal sealed class AssistantRuntime : IDisposable
             .Where(e => slot.ExtraStates.GetValueOrDefault(e.Id) != ExtraState.Hidden)
             .Select(e => new MenuExtra(e.Id, e.Name.In(language), slot.ExtraStates.GetValueOrDefault(e.Id) != ExtraState.Disabled))
             .ToList() ?? [];
-        // «Always on top» and moving with the body, its hit windows would end up over the menu, which opens right there,
-        // and a click on them takes the mouse from it (WPF closes it): they step aside while it is open.
-        slot.Pointer.Suspended = true;
+        // «Always on top» and moving with the body, the hit windows (of every assistant) would end up over the menu, which
+        // opens right there, and a click on them takes the mouse from it (WPF closes it): while it is open they stay below it.
         slot.MenuUntil = _engine.Now + MenuTimeout;
+        foreach (var each in _slots) each.Pointer.Suspended = true;
         MenuRequested?.Invoke(new MenuRequest(slot.Id, name, extras, at));
     }
 
     /// <summary>The longest a menu keeps the hit areas away, if K-Desktop never says it closed.</summary>
     private const double MenuTimeout = 60;
 
-    /// <summary>Its menu closed (<c>menuClosed</c>, or the host's own one): its hit areas come back.</summary>
+    /// <summary>Its menu closed (<c>menuClosed</c>, or the host's own one): with no menu open, the hit areas take back the top.</summary>
     public void MenuClosed(string assistant)
     {
         if (Find(assistant) is not { } slot || slot.MenuUntil == 0) return;
         slot.MenuUntil = 0;
-        slot.Pointer.Suspended = false;
+        if (_slots.Any(s => s.MenuUntil > 0)) return;
+        foreach (var each in _slots) each.Pointer.Suspended = false;
     }
 }
 
@@ -972,7 +974,7 @@ internal sealed class AssistantSlot(string id, IAssistant assistant, AssistantMa
     /// <summary>When it asked to be ticked next (engine clock).</summary>
     public double Due { get; set; }
 
-    /// <summary>Its menu is open (its hit areas step aside) until K-Desktop says it closed or, at the latest, this time.</summary>
+    /// <summary>Its menu is open (the hit areas stay below it) until K-Desktop says it closed or, at the latest, this time.</summary>
     public double MenuUntil { get; set; }
 
     /// <summary>It asked for a tick as soon as possible (<see cref="IAssistantHost.RequestTick"/>, any thread).</summary>

@@ -48,8 +48,9 @@ internal sealed class HostPointer(Action<PointerEvent> deliver, Action<string, P
     private bool _suspended;
 
     /// <summary>
-    /// Its menu is open: the hit windows step aside (hidden, remembering where they go) so that they neither cover the menu
-    /// nor take its clicks; when it closes they come back where the assistant last placed them.
+    /// A menu is open: the hit windows stay where they are but no longer go over the other «always on top» windows, so they
+    /// do not cover the menu (opened after them) nor take its clicks; a right click on the assistant outside the menu still
+    /// reaches it and opens the menu again there. When it closes they take back the top.
     /// </summary>
     public bool Suspended
     {
@@ -188,10 +189,8 @@ internal sealed unsafe class HitArea : IHostArea
     private readonly NativeWindow _window;
     private HitShape? _shape;
     private bool _hover;
-    /// <summary>Stepped aside while the menu is open (<see cref="HostPointer.Suspended"/>).</summary>
+    /// <summary>A menu is open: it does not go over other windows (<see cref="HostPointer.Suspended"/>).</summary>
     private bool _suspended;
-    /// <summary>Where it goes when it comes back (null = hidden).</summary>
-    private HitShape? _parked;
     private bool _pressed;
     private bool _dragging;
     /// <summary>The button was held long enough: the user is talking to it (no click, no drag).</summary>
@@ -224,8 +223,8 @@ internal sealed unsafe class HitArea : IHostArea
 
     public nint Handle => _window.Handle;
 
-    /// <summary>Its bounds where the assistant placed it (also while stepped aside), or null if hidden.</summary>
-    public PixelRect? Placed => _suspended ? _parked?.Bounds : _window.IsVisible ? _shape?.Bounds : null;
+    /// <summary>Its bounds where the assistant placed it, or null if hidden.</summary>
+    public PixelRect? Placed => _window.IsVisible ? _shape?.Bounds : null;
 
     public PointerCursor Cursor { get; set; } = PointerCursor.Hand;
 
@@ -243,11 +242,6 @@ internal sealed unsafe class HitArea : IHostArea
 
     public void Place(HitShape shape)
     {
-        if (_suspended)
-        {
-            _parked = shape;
-            return;
-        }
         var bounds = shape.Bounds;
         if (bounds.IsEmpty)
         {
@@ -259,39 +253,27 @@ internal sealed unsafe class HitArea : IHostArea
             var sameRegion = _shape is { } old && SameRegion(old, shape);
             _shape = shape;
             if (!sameRegion) SetWindowRgn(_window.Handle, Region(shape), true); // the system keeps the region: no freeing
-            _window.Move(bounds.Left, bounds.Top, bounds.Width, bounds.Height);
+            _window.Move(bounds.Left, bounds.Top, bounds.Width, bounds.Height, raise: !_suspended);
         }
-        _window.Show();
+        _window.Show(raise: !_suspended);
     }
 
     public void Hide()
     {
-        _parked = null;
         _window.Hide();
         if (_hover) Leave();
     }
 
     public void Suspend(bool on)
     {
-        if (on)
-        {
-            _parked = _window.IsVisible ? _shape : null;
-            _window.Hide();
-            if (_hover) Leave();
-            _suspended = true;
-            return;
-        }
-        _suspended = false;
-        if (_parked is { } shape)
-        {
-            _parked = null;
-            Place(shape);
-        }
+        _suspended = on;
+        // Back over the other «always on top» windows once the menu has closed.
+        if (!on && _window.IsVisible) _window.BringToTop();
     }
 
     public void KeepOnTop()
     {
-        if (_window.IsVisible) _window.BringToTop();
+        if (_window.IsVisible && !_suspended) _window.BringToTop();
     }
 
     public void Dispose()
