@@ -4,6 +4,9 @@
   "description": "K-Desktop explainer video, made with code (Remotion) and narrated with Kokoro",
   "scripts": {
     "studio": "remotion studio src/index.ts",
+    "icons": "node tools/icons.mjs",
+    "webapp": "node tools/webapp.mjs",
+    "stills": "node tools/stills.mjs",
     "render": "node render.mjs"
   },
   "dependencies": {
