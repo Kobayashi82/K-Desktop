@@ -68,6 +68,12 @@ public sealed class CharacterFile
     /// <summary>Its height at 100 % scale (DIP): every frame is drawn this tall, keeping its proportions.</summary>
     public double Height { get; private init; } = 96;
 
+    /// <summary>
+    /// Transparent rows under its feet in the pictures (pixels of the pictures): that much of each frame goes below the
+    /// ground so that the feet touch it. 0 = the feet are the bottom edge.
+    /// </summary>
+    public double Ground { get; private init; }
+
     /// <summary>The way its frames look: true when they look left (walking right, they are mirrored, and the other way round).</summary>
     public bool FacesLeft { get; private init; }
 
@@ -130,6 +136,7 @@ public sealed class CharacterFile
         return new CharacterFile
         {
             Height = Number(root["height"]) is { } h ? Math.Clamp(h, 24, 512) : 96,
+            Ground = Number(root["ground"]) is { } g ? Math.Clamp(g, 0, 1024) : 0,
             FacesLeft = Text(root["faces"]) == "left",
             WalkSpeed = Number(root["walkSpeed"]) is { } w ? Math.Clamp(w, 0, 600) : 70,
             Animations = parsed.ToDictionary(p => p.Key, p => p.Value[0], StringComparer.Ordinal),

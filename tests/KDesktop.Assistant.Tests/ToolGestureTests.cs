@@ -51,13 +51,13 @@ public sealed class ToolGestureTests : IDisposable
         var shown = new ConcurrentQueue<ToolShown>();
         runner.Showing += shown.Enqueue;
 
-        var outcome = await runner.RunAsync("waving", Args("{}"), new ToolContext("pip"), "saluda", "ai", default);
+        var outcome = await runner.RunAsync("waving", Args("{}"), new ToolContext("tic"), "saluda", "ai", default);
         Assert.Equal("shown", outcome.Result!.Text);
-        Assert.Equal(new ToolShown("pip", "waving", ToolGesture.GoTo(ToolSpot.Tray)), Assert.Single(shown));
+        Assert.Equal(new ToolShown("tic", "waving", ToolGesture.GoTo(ToolSpot.Tray)), Assert.Single(shown));
 
         // Whoever listens cannot hold the tool up nor break it.
         runner.Showing += _ => throw new InvalidOperationException("roto");
-        Assert.Equal("shown", (await runner.RunAsync("waving", Args("{}"), new ToolContext("pip"), "saluda", "ai", default)).Result!.Text);
+        Assert.Equal("shown", (await runner.RunAsync("waving", Args("{}"), new ToolContext("tic"), "saluda", "ai", default)).Result!.Text);
     }
 
     [Fact]

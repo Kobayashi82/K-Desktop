@@ -15,22 +15,22 @@ public class ReactionTests
     private static string Exe { get; } = Path.GetFullPath(typeof(ReactionTests).Assembly
         .GetCustomAttributes<AssemblyMetadataAttribute>().Single(a => a.Key == "KDesktopExe").Value!);
 
-    private static string PipFolder => Path.GetFullPath(Path.Combine(Contracts.DocsDir, "..", "..", "samples", "CharacterAssistant", "Package"));
+    private static string TicFolder => TestCharacter.Folder;
 
     [Fact]
     public void TheStreakCountsTheSameKindInARow()
     {
         var now = new DateTimeOffset(2026, 10, 23, 18, 0, 0, TimeSpan.Zero);
         var log = new ReactionLog(null, () => now);
-        var first = log.Next("pip", Reaction.Failure, ReactionSource.Tool, "weather");
+        var first = log.Next("tic", Reaction.Failure, ReactionSource.Tool, "weather");
         Assert.Equal(new ReactionContext(ReactionSource.Tool, 1, true, "weather"), first);
         now += TimeSpan.FromMinutes(1);
-        Assert.Equal(2, log.Next("pip", Reaction.Failure, ReactionSource.Order, null).Streak);
-        Assert.Equal(3, log.Next("pip", Reaction.Failure, ReactionSource.Tool, null).Streak);
+        Assert.Equal(2, log.Next("tic", Reaction.Failure, ReactionSource.Order, null).Streak);
+        Assert.Equal(3, log.Next("tic", Reaction.Failure, ReactionSource.Tool, null).Streak);
         // Another kind starts again; so does half an hour without reactions.
-        Assert.Equal(1, log.Next("pip", Reaction.Success, ReactionSource.Tool, null).Streak);
+        Assert.Equal(1, log.Next("tic", Reaction.Success, ReactionSource.Tool, null).Streak);
         now += ReactionLog.StreakGap + TimeSpan.FromSeconds(1);
-        var later = log.Next("pip", Reaction.Success, ReactionSource.Tool, null);
+        var later = log.Next("tic", Reaction.Success, ReactionSource.Tool, null);
         Assert.Equal(1, later.Streak);
         Assert.False(later.FirstToday);
         // Each assistant has its own.
@@ -42,19 +42,19 @@ public class ReactionTests
     {
         var file = Path.Combine(Path.GetTempPath(), "kdesktop-tests", "reactions-" + Guid.NewGuid().ToString("N")[..8] + ".json");
         var now = DateTimeOffset.Now.Date.AddHours(10);
-        Assert.True(new ReactionLog(file, () => now).Next("pip", Reaction.Success, ReactionSource.Order, null).FirstToday);
+        Assert.True(new ReactionLog(file, () => now).Next("tic", Reaction.Success, ReactionSource.Order, null).FirstToday);
         // K-Desktop restarted in the afternoon: not the first one any more, and the streak goes on.
         now = now.AddMinutes(10);
-        var again = new ReactionLog(file, () => now).Next("pip", Reaction.Success, ReactionSource.Order, null);
+        var again = new ReactionLog(file, () => now).Next("tic", Reaction.Success, ReactionSource.Order, null);
         Assert.False(again.FirstToday);
         Assert.Equal(2, again.Streak);
         // The next day it is.
         now = now.AddDays(1);
-        Assert.True(new ReactionLog(file, () => now).Next("pip", Reaction.Success, ReactionSource.Order, null).FirstToday);
+        Assert.True(new ReactionLog(file, () => now).Next("tic", Reaction.Success, ReactionSource.Order, null).FirstToday);
         File.Delete(file);
     }
 
-    private static ToolRan Ran(string tool, bool failed = false, bool reads = false) => new("pip", tool, reads, "ai", failed);
+    private static ToolRan Ran(string tool, bool failed = false, bool reads = false) => new("tic", tool, reads, "ai", failed);
 
     [Fact]
     public void AnOrderIsJudgedByWhatItsToolsDid()
@@ -71,7 +71,7 @@ public class ReactionTests
         // Only reading and nothing failed: nothing to react to.
         Assert.Null(ModuleReactions.Decide("¿qué hora es?", [Ran("get_time", reads: true)]));
         // With no tool, what the user said about it.
-        Assert.Equal((Reaction.Celebration, ReactionSource.User, "praise"), ModuleReactions.Decide("¡Gracias, Pip!", []));
+        Assert.Equal((Reaction.Celebration, ReactionSource.User, "praise"), ModuleReactions.Decide("¡Gracias, Tic!", []));
         Assert.Equal((Reaction.Failure, ReactionSource.User, "wrong"), ModuleReactions.Decide("eso está mal", []));
         Assert.Null(ModuleReactions.Decide("cuéntame un chiste", []));
     }
@@ -90,10 +90,10 @@ public class ReactionTests
         Assert.Equal(praise, UserSignals.IsPraise(said));
 
     [Fact]
-    public async Task PipReactsToThanksAndToItsTimer()
+    public async Task TicReactsToThanksAndToItsTimer()
     {
         var data = Path.Combine(Path.GetTempPath(), "kdesktop-tests", "react-" + Guid.NewGuid().ToString("N")[..8]);
-        var pipData = Path.Combine(data, "Assistants", "Data", "pip");
+        var ticData = Path.Combine(data, "Assistants", "Data", "tic");
         var name = "KDesktop.Assistant.Test." + Guid.NewGuid().ToString("N")[..12];
 
         Process? process = null;
@@ -112,15 +112,15 @@ public class ReactionTests
         try
         {
             await hello.Task.WaitAsync(TimeSpan.FromSeconds(20));
-            Assert.True(server.Send(new LoadMessage("pip", "1.0.0", PipFolder, pipData, LoadMessage.Startup)));
+            Assert.True(server.Send(new LoadMessage("tic", "1.0.0", TicFolder, ticData, LoadMessage.Startup)));
             await loaded.Task.WaitAsync(TimeSpan.FromSeconds(20));
 
-            Assert.True(server.Send(new HeardMessage("¡Gracias!", "panel", "pip")));
-            await Until(() => LogHas(logFile, "«pip» reacciona: Celebration (User praise, racha 1, primera del día)"));
-            Assert.True(server.Send(new HeardMessage("pon un temporizador de 2 segundos", "panel", "pip")));
-            await Until(() => LogHas(logFile, "«pip» reacciona: Success (Tool set_timer, racha 1)"));
+            Assert.True(server.Send(new HeardMessage("¡Gracias!", "panel", "tic")));
+            await Until(() => LogHas(logFile, "«tic» reacciona: Celebration (User praise, racha 1, primera del día)"));
+            Assert.True(server.Send(new HeardMessage("pon un temporizador de 2 segundos", "panel", "tic")));
+            await Until(() => LogHas(logFile, "«tic» reacciona: Success (Tool set_timer, racha 1)"));
             // It rings: the notice, the same kind in a row.
-            await Until(() => LogHas(logFile, "«pip» reacciona: Success (Notice timer, racha 2)"));
+            await Until(() => LogHas(logFile, "«tic» reacciona: Success (Notice timer, racha 2)"));
 
             Assert.True(server.Send(new ByeMessage("exit")));
             using var exited = new CancellationTokenSource(TimeSpan.FromSeconds(10));

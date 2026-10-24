@@ -7,8 +7,8 @@ using KDesktop.Core.Assistant.Pipe;
 namespace KDesktop.Assistant.Tests;
 
 /// <summary>
-/// Stage 13.1 with the real KDesktop.exe in assistant mode: Pip (an assistant without code) reloaded over itself leaves
-/// as reloading, saves where it stood and comes back right there. Pip shows above the taskbar for a few seconds.
+/// Stage 13.1 with the real KDesktop.exe in assistant mode: Tic (an assistant without code) reloaded over itself leaves
+/// as reloading, saves where it stood and comes back right there. Tic shows above the taskbar for a few seconds.
 /// </summary>
 [Collection(OnTheDesktop.Name)]
 public class EntranceTests
@@ -16,14 +16,14 @@ public class EntranceTests
     private static string Exe { get; } = Path.GetFullPath(typeof(EntranceTests).Assembly
         .GetCustomAttributes<AssemblyMetadataAttribute>().Single(a => a.Key == "KDesktopExe").Value!);
 
-    private static string PipFolder => Path.GetFullPath(Path.Combine(Contracts.DocsDir, "..", "..", "samples", "CharacterAssistant", "Package"));
+    private static string TicFolder => TestCharacter.Folder;
 
     [Fact]
     public async Task AReloadedAssistantComesBackWhereItWas()
     {
         var data = Path.Combine(Path.GetTempPath(), "kdesktop-tests", "entrance-" + Guid.NewGuid().ToString("N")[..8]);
-        var pipData = Path.Combine(data, "Assistants", "Data", "pip");
-        var spot = Path.Combine(pipData, "spot.json");
+        var ticData = Path.Combine(data, "Assistants", "Data", "tic");
+        var spot = Path.Combine(ticData, "spot.json");
         var name = "KDesktop.Assistant.Test." + Guid.NewGuid().ToString("N")[..12];
 
         Process? process = null;
@@ -41,17 +41,17 @@ public class EntranceTests
         try
         {
             await hello.Task.WaitAsync(TimeSpan.FromSeconds(20));
-            Assert.True(server.Send(Load(pipData, LoadMessage.Startup)));
+            Assert.True(server.Send(Load(ticData, LoadMessage.Startup)));
             await Until(() => !loaded.IsEmpty);
             Assert.False(File.Exists(spot));
 
             // Reloaded over itself: the old one saves where it stood, the new one comes back there…
-            Assert.True(server.Send(Load(pipData, LoadMessage.Reloaded)));
+            Assert.True(server.Send(Load(ticData, LoadMessage.Reloaded)));
             await Until(() => loaded.Count >= 2);
             Assert.True(File.Exists(spot));
             var first = JsonSerializer.Deserialize<double[]>(File.ReadAllText(spot));
-            // …so reloaded again at once it saves the same spot (Pip waits 3 s at least before wandering).
-            Assert.True(server.Send(Load(pipData, LoadMessage.Reloaded)));
+            // …so reloaded again at once it saves the same spot (Tic waits 3 s at least before wandering).
+            Assert.True(server.Send(Load(ticData, LoadMessage.Reloaded)));
             await Until(() => loaded.Count >= 3);
             Assert.All(loaded, l => Assert.True(l.Ok, l.Error));
             Assert.Equal(first, JsonSerializer.Deserialize<double[]>(File.ReadAllText(spot)));
@@ -67,13 +67,13 @@ public class EntranceTests
         }
 
         var log = await File.ReadAllTextAsync(Path.Combine(data, "Logs", "assistant.log"));
-        Assert.Contains("«pip» cargado (1 en el escritorio, Startup)", log);
-        Assert.Contains("«pip» descargado (Reloading)", log);
-        Assert.Contains("«pip» cargado (1 en el escritorio, Reloaded)", log);
-        Assert.Contains("«pip» descargado (Shutdown)", log);
+        Assert.Contains("«tic» cargado (1 en el escritorio, Startup)", log);
+        Assert.Contains("«tic» descargado (Reloading)", log);
+        Assert.Contains("«tic» cargado (1 en el escritorio, Reloaded)", log);
+        Assert.Contains("«tic» descargado (Shutdown)", log);
     }
 
-    private static LoadMessage Load(string pipData, string entrance) => new("pip", "1.0.0", PipFolder, pipData, entrance);
+    private static LoadMessage Load(string ticData, string entrance) => new("tic", "1.0.0", TicFolder, ticData, entrance);
 
     private static async Task Until(Func<bool> condition)
     {

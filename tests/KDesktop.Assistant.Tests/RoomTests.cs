@@ -15,7 +15,7 @@ public class RoomTests
     private static string Exe { get; } = Path.GetFullPath(typeof(RoomTests).Assembly
         .GetCustomAttributes<AssemblyMetadataAttribute>().Single(a => a.Key == "KDesktopExe").Value!);
 
-    private static string PipFolder => Path.GetFullPath(Path.Combine(Contracts.DocsDir, "..", "..", "samples", "CharacterAssistant", "Package"));
+    private static string TicFolder => TestCharacter.Folder;
 
     [Fact]
     public void APlaceIsTakenOnlyByOneThatStaysThere()
@@ -34,36 +34,36 @@ public class RoomTests
         using var world = new Host.Runtime.HostWorld(() => 1);
         var lander = new Host.Runtime.WorldView(world, "lander");
         Assert.Empty(lander.Others);
-        world.Publish([new OtherAssistant("lander", new PixelRect(0, 0, 50, 50), false), new OtherAssistant("pip", new PixelRect(60, 0, 110, 50), true)]);
-        Assert.Equal("pip", Assert.Single(lander.Others).Id);
+        world.Publish([new OtherAssistant("lander", new PixelRect(0, 0, 50, 50), false), new OtherAssistant("tic", new PixelRect(60, 0, 110, 50), true)]);
+        Assert.Equal("tic", Assert.Single(lander.Others).Id);
         Assert.Same(lander.Others, lander.Others);
         // Nothing changed: the same list stays.
         var before = world.Others;
-        world.Publish([new OtherAssistant("lander", new PixelRect(0, 0, 50, 50), false), new OtherAssistant("pip", new PixelRect(60, 0, 110, 50), true)]);
+        world.Publish([new OtherAssistant("lander", new PixelRect(0, 0, 50, 50), false), new OtherAssistant("tic", new PixelRect(60, 0, 110, 50), true)]);
         Assert.Same(before, world.Others);
     }
 
     /// <summary>
-    /// With the real KDesktop.exe: two Pips (Pip and a copy with another id) come back to the same spot; the one that comes
+    /// With the real KDesktop.exe: two Tics (Tic and a copy with another id) come back to the same spot; the one that comes
     /// second sees the first in <see cref="IWorld.Others"/> and walks aside. They show above the taskbar for a few seconds.
     /// </summary>
     [Fact]
     public async Task TheOneThatComesSecondStepsAside()
     {
         var data = Path.Combine(Path.GetTempPath(), "kdesktop-tests", "room-" + Guid.NewGuid().ToString("N")[..8]);
-        var pip2 = Path.Combine(data, "pip2");
-        foreach (var file in Directory.EnumerateFiles(PipFolder, "*", SearchOption.AllDirectories))
+        var tic2 = Path.Combine(data, "tic2");
+        foreach (var file in Directory.EnumerateFiles(TicFolder, "*", SearchOption.AllDirectories))
         {
-            var target = Path.Combine(pip2, Path.GetRelativePath(PipFolder, file));
+            var target = Path.Combine(tic2, Path.GetRelativePath(TicFolder, file));
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
             File.Copy(file, target);
         }
-        var manifestFile = Path.Combine(pip2, "assistant.json");
+        var manifestFile = Path.Combine(tic2, "assistant.json");
         var manifest = JsonNode.Parse(File.ReadAllText(manifestFile))!.AsObject();
-        manifest["id"] = "pip2";
+        manifest["id"] = "tic2";
         File.WriteAllText(manifestFile, manifest.ToJsonString());
-        var pipData = Path.Combine(data, "Assistants", "Data", "pip");
-        var pip2Data = Path.Combine(data, "Assistants", "Data", "pip2");
+        var ticData = Path.Combine(data, "Assistants", "Data", "tic");
+        var tic2Data = Path.Combine(data, "Assistants", "Data", "tic2");
         var name = "KDesktop.Assistant.Test." + Guid.NewGuid().ToString("N")[..12];
 
         Process? process = null;
@@ -73,8 +73,8 @@ public class RoomTests
         {
             ["common"] = new JsonObject
             {
-                ["pip"] = new JsonObject { ["liveliness"] = 0 },
-                ["pip2"] = new JsonObject { ["liveliness"] = 0 },
+                ["tic"] = new JsonObject { ["liveliness"] = 0 },
+                ["tic2"] = new JsonObject { ["liveliness"] = 0 },
             },
         };
         await using var server = new AssistantPipeServer(name, new ClientPolicy(Exe, pid => pid == process?.Id),
@@ -92,27 +92,27 @@ public class RoomTests
         try
         {
             await hello.Task.WaitAsync(TimeSpan.FromSeconds(20));
-            Assert.True(server.Send(new LoadMessage("pip", "1.1.0", PipFolder, pipData, LoadMessage.Startup)));
+            Assert.True(server.Send(new LoadMessage("tic", "1.1.0", TicFolder, ticData, LoadMessage.Startup)));
             await Until(() => !loaded.IsEmpty);
             // Reloaded: it saves where it stands (and comes back there).
-            Assert.True(server.Send(new LoadMessage("pip", "1.1.0", PipFolder, pipData, LoadMessage.Reloaded)));
+            Assert.True(server.Send(new LoadMessage("tic", "1.1.0", TicFolder, ticData, LoadMessage.Reloaded)));
             await Until(() => loaded.Count >= 2);
-            var spot = JsonSerializer.Deserialize<double[]>(File.ReadAllText(Path.Combine(pipData, "spot.json")))!;
+            var spot = JsonSerializer.Deserialize<double[]>(File.ReadAllText(Path.Combine(ticData, "spot.json")))!;
 
-            // The copy comes back to that very spot, once Pip has been still there for a while.
+            // The copy comes back to that very spot, once Tic has been still there for a while.
             await Task.Delay(1000);
-            Directory.CreateDirectory(pip2Data);
-            File.WriteAllText(Path.Combine(pip2Data, "spot.json"), JsonSerializer.Serialize(spot));
-            Assert.True(server.Send(new LoadMessage("pip2", "1.1.0", pip2, pip2Data, LoadMessage.Reloaded)));
+            Directory.CreateDirectory(tic2Data);
+            File.WriteAllText(Path.Combine(tic2Data, "spot.json"), JsonSerializer.Serialize(spot));
+            Assert.True(server.Send(new LoadMessage("tic2", "1.1.0", tic2, tic2Data, LoadMessage.Reloaded)));
             await Until(() => loaded.Count >= 3);
             Assert.All(loaded, l => Assert.True(l.Ok, l.Error));
             await Until(() => File.Exists(log) && Read(log).Contains("se aparta", StringComparison.Ordinal));
 
-            // Where it ends up: away from Pip by about a body (Pip is 80 DIP high, some 60 wide).
+            // Where it ends up: away from Tic by about a body (Tic is 80 DIP high and as wide).
             await Task.Delay(2500);
-            Assert.True(server.Send(new LoadMessage("pip2", "1.1.0", pip2, pip2Data, LoadMessage.Reloaded)));
+            Assert.True(server.Send(new LoadMessage("tic2", "1.1.0", tic2, tic2Data, LoadMessage.Reloaded)));
             await Until(() => loaded.Count >= 4);
-            var moved = JsonSerializer.Deserialize<double[]>(File.ReadAllText(Path.Combine(pip2Data, "spot.json")))!;
+            var moved = JsonSerializer.Deserialize<double[]>(File.ReadAllText(Path.Combine(tic2Data, "spot.json")))!;
             Assert.Equal(spot[1], moved[1], 1);
             Assert.True(Math.Abs(moved[0] - spot[0]) > 40, $"{spot[0]} → {moved[0]}");
 
@@ -127,9 +127,9 @@ public class RoomTests
         }
 
         Assert.DoesNotContain("ha fallado", Read(log));
-        // Pip was there first: it never had to move.
-        Assert.DoesNotContain("[pip] se aparta", Read(log));
-        Assert.Contains("[pip2] se aparta", Read(log));
+        // Tic was there first: it never had to move.
+        Assert.DoesNotContain("[tic] se aparta", Read(log));
+        Assert.Contains("[tic2] se aparta", Read(log));
     }
 
     private static string Read(string file)

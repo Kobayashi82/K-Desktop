@@ -2,7 +2,7 @@
   "$schema": "../../../docs/assistant/schemas/assistant.schema.json",
   "id": "pip",
   "name": "Pip",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "author": "Kobayashi82",
   "description": {
     "es": "Ejemplo de asistente sin código: una gota que pasea por la barra de tareas y por tus ventanas. Solo imágenes y JSON.",
@@ -26,12 +26,12 @@
     "gestures": ["communicate", "react", "announce"]
   },
   "changes": {
-    "es": "Ahora enseña en el catálogo lo que sabe hacer: clips de sus entradas, salidas, estados, reacciones y animaciones.",
-    "en": "It now shows what it can do in the catalog: clips of its entrances, exits, states, reactions and animations.",
-    "fr": "Il montre maintenant ce qu’il sait faire dans le catalogue : des clips de ses entrées, sorties, états, réactions et animations.",
-    "de": "Zeigt jetzt im Katalog, was er kann: Clips seiner Auftritte, Abgänge, Zustände, Reaktionen und Animationen.",
-    "it": "Ora mostra nel catalogo cosa sa fare: clip delle sue entrate, uscite, stati, reazioni e animazioni.",
-    "pt": "Agora mostra no catálogo o que sabe fazer: clipes das suas entradas, saídas, estados, reações e animações."
+    "es": "Ya no flota: sus pies tocan la barra de tareas y los bordes de las ventanas.",
+    "en": "No longer floats: its feet touch the taskbar and the tops of the windows.",
+    "fr": "Ne flotte plus : ses pieds touchent la barre des tâches et le haut des fenêtres.",
+    "de": "Schwebt nicht mehr: Seine Füße berühren die Taskleiste und die Fensterkanten.",
+    "it": "Non galleggia più: i suoi piedi toccano la barra delle applicazioni e i bordi delle finestre.",
+    "pt": "Não flutua mais: seus pés tocam a barra de tarefas e o topo das janelas."
   },
   "showcase": [
     {

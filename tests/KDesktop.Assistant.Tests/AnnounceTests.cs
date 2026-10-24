@@ -14,7 +14,7 @@ public class AnnounceTests
     private static string Exe { get; } = Path.GetFullPath(typeof(AnnounceTests).Assembly
         .GetCustomAttributes<AssemblyMetadataAttribute>().Single(a => a.Key == "KDesktopExe").Value!);
 
-    private static string PipFolder => Path.GetFullPath(Path.Combine(Contracts.DocsDir, "..", "..", "samples", "CharacterAssistant", "Package"));
+    private static string TicFolder => TestCharacter.Folder;
 
     [Fact]
     public void ANewKindAtTheEndKeepsTheNumbersOfTheOthers()
@@ -34,10 +34,10 @@ public class AnnounceTests
     }
 
     [Fact]
-    public async Task PipCatchesTheEyeBeforeItsTimerAndWhatItIsToldToSay()
+    public async Task TicCatchesTheEyeBeforeItsTimerAndWhatItIsToldToSay()
     {
         var data = Path.Combine(Path.GetTempPath(), "kdesktop-tests", "announce-" + Guid.NewGuid().ToString("N")[..8]);
-        var pipData = Path.Combine(data, "Assistants", "Data", "pip");
+        var ticData = Path.Combine(data, "Assistants", "Data", "tic");
         var name = "KDesktop.Assistant.Test." + Guid.NewGuid().ToString("N")[..12];
 
         Process? process = null;
@@ -64,24 +64,24 @@ public class AnnounceTests
         try
         {
             await hello.Task.WaitAsync(TimeSpan.FromSeconds(20));
-            Assert.True(server.Send(new LoadMessage("pip", "1.0.0", PipFolder, pipData, LoadMessage.Startup)));
+            Assert.True(server.Send(new LoadMessage("tic", "1.0.0", TicFolder, ticData, LoadMessage.Startup)));
             await loaded.Task.WaitAsync(TimeSpan.FromSeconds(20));
 
             // «Asistente: decir»; in «Fast» it takes half a second at most before it speaks.
             var asked = Stopwatch.StartNew();
-            Assert.True(server.Send(new SayMessage("Hora de estirarse.", "pip")));
+            Assert.True(server.Send(new SayMessage("Hora de estirarse.", "tic")));
             await messageSaid.Task.WaitAsync(TimeSpan.FromSeconds(10));
             Assert.True(asked.Elapsed < TimeSpan.FromSeconds(2), $"Ha tardado {asked.Elapsed.TotalSeconds:0.0} s en decirlo");
-            await Until(() => LogHas(logFile, "«pip» llama la atención (Message) antes de hablar"));
+            await Until(() => LogHas(logFile, "«tic» llama la atención (Message) antes de hablar"));
 
             // A timer: when it rings (once the answer before is over), first it catches the eye, then it reacts and says it.
-            Assert.True(server.Send(new HeardMessage("pon un temporizador de 2 segundos", "panel", "pip")));
-            await Until(() => LogHas(logFile, "«pip» reacciona: Success (Tool set_timer"));
-            await Until(() => LogHas(logFile, "«pip» reacciona: Success (Notice timer"));
+            Assert.True(server.Send(new HeardMessage("pon un temporizador de 2 segundos", "panel", "tic")));
+            await Until(() => LogHas(logFile, "«tic» reacciona: Success (Tool set_timer"));
+            await Until(() => LogHas(logFile, "«tic» reacciona: Success (Notice timer"));
             var log = Read(logFile);
-            var eye = log.IndexOf("«pip» llama la atención (Timer) antes de hablar", StringComparison.Ordinal);
+            var eye = log.IndexOf("«tic» llama la atención (Timer) antes de hablar", StringComparison.Ordinal);
             Assert.True(eye >= 0, "No ha llamado la atención antes del temporizador");
-            Assert.True(eye < log.IndexOf("«pip» reacciona: Success (Notice timer", StringComparison.Ordinal));
+            Assert.True(eye < log.IndexOf("«tic» reacciona: Success (Notice timer", StringComparison.Ordinal));
             await timerSaid.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
             Assert.True(server.Send(new ByeMessage("exit")));

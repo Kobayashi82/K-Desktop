@@ -13,7 +13,7 @@ namespace KDesktop.Assistant.Tests;
 /// <summary>
 /// The showcase (stages 13.9 and 16.1, SDK 1.18): what each assistant can show — the host's entrances, exits, states,
 /// reactions, gestures and what it does to a window, and its own animations — and «do this one now», on its stage: the real
-/// KDesktop.exe with <c>--assistant-showcase</c> and Pip (an assistant without code, whose own ones are the animations of its
+/// KDesktop.exe with <c>--assistant-showcase</c> and Tic (an assistant without code, whose own ones are the animations of its
 /// character.json). Nothing shows on the screen: the stage is drawn off it and its pictures come through shared memory.
 /// </summary>
 public class ShowcaseTests
@@ -21,7 +21,7 @@ public class ShowcaseTests
     private static string Exe { get; } = Path.GetFullPath(typeof(ShowcaseTests).Assembly
         .GetCustomAttributes<AssemblyMetadataAttribute>().Single(a => a.Key == "KDesktopExe").Value!);
 
-    private static string PipFolder => Path.GetFullPath(Path.Combine(Contracts.DocsDir, "..", "..", "samples", "CharacterAssistant", "Package"));
+    private static string TicFolder => TestCharacter.Folder;
 
     [Fact]
     public void EveryItemOfTheHostHasANameAndAGroup()
@@ -47,7 +47,7 @@ public class ShowcaseTests
         var lists = new ConcurrentQueue<ShowcaseListMessage>();
         var done = new ConcurrentQueue<ShowcaseDoneMessage>();
         StageFrameMessage? frame = null;
-        await using var stage = new AssistantStage(PipFolder, () => new WelcomeMessage("es", "dark", false),
+        await using var stage = new AssistantStage(TicFolder, () => new WelcomeMessage("es", "dark", false),
             (exe, arguments) => process = Process.Start(new ProcessStartInfo(exe, arguments + " --allow-elevated") { UseShellExecute = false }),
             Exe);
         var ended = new TaskCompletionSource<string>();
@@ -69,7 +69,7 @@ public class ShowcaseTests
             await Until(() => !loaded.IsEmpty);
             Assert.True(loaded.Single().Ok);
 
-            // Its pictures: a desktop with Pip on it, in the shared memory the stage made.
+            // Its pictures: a desktop with Tic on it, in the shared memory the stage made.
             await Until(() => frame is not null);
             Assert.Equal((720, 405), (frame!.Width, frame.Height));
             using (var map = MemoryMappedFile.OpenExisting(@"Local\" + frame.Map, MemoryMappedFileRights.Read))
@@ -81,7 +81,7 @@ public class ShowcaseTests
             }
 
             // The host's ones first, then the animations its character.json has (without names: K-Desktop names them).
-            Assert.True(server.Send(new ShowcaseMessage("pip", ShowcaseMessage.List)));
+            Assert.True(server.Send(new ShowcaseMessage("tic", ShowcaseMessage.List)));
             await Until(() => !lists.IsEmpty);
             lists.TryDequeue(out var list);
             Assert.Equal(ModuleShowcase.Standard.Select(s => s.Id), list!.Items.Where(i => !i.Own).Select(i => i.Id));
@@ -92,7 +92,7 @@ public class ShowcaseTests
             async Task<string> Play(string item, bool own = false)
             {
                 var before = done.Count;
-                Assert.True(server.Send(new ShowcaseMessage("pip", ShowcaseMessage.Play, item, own)));
+                Assert.True(server.Send(new ShowcaseMessage("tic", ShowcaseMessage.Play, item, own)));
                 await Until(() => done.Skip(before).Any(d => d.Item == item));
                 return done.Skip(before).First(d => d.Item == item).Result;
             }
@@ -102,18 +102,18 @@ public class ShowcaseTests
             Assert.Equal(ShowcaseDoneMessage.Done, await Play("react.success"));
             Assert.Equal(ShowcaseDoneMessage.Done, await Play("surprised", own: true));
             Assert.Equal(ShowcaseDoneMessage.Done, await Play("gesture.announce"));
-            // What it does not know how to do (Pip has no way of pointing), or does not have.
+            // What it does not know how to do (Tic has no way of pointing), or does not have.
             Assert.Equal(ShowcaseDoneMessage.NotPerformed, await Play("gesture.pointAt"));
             Assert.Equal(ShowcaseDoneMessage.Done, await Play("click", own: true));
             Assert.Equal(ShowcaseDoneMessage.Unknown, await Play("dance", own: true));
             Assert.Equal(ShowcaseDoneMessage.Unknown, await Play("state.nothing"));
-            // On the stage's windows: Pip cannot press a button, so the stage does it while the bubble says it (as in use).
+            // On the stage's windows: Tic cannot press a button, so the stage does it while the bubble says it (as in use).
             Assert.Equal(ShowcaseDoneMessage.NotPerformed, await Play("window.minimize"));
             Assert.Equal(ShowcaseDoneMessage.NotPerformed, await Play("gesture.typing"));
 
             // Another one stops the one before.
             var count = done.Count;
-            Assert.True(server.Send(new ShowcaseMessage("pip", ShowcaseMessage.Play, "state.thinking")));
+            Assert.True(server.Send(new ShowcaseMessage("tic", ShowcaseMessage.Play, "state.thinking")));
             await Task.Delay(300);
             Assert.Equal(ShowcaseDoneMessage.Done, await Play("react.failure"));
             Assert.Equal(ShowcaseDoneMessage.Stopped, done.Skip(count).First(d => d.Item == "state.thinking").Result);
@@ -135,9 +135,9 @@ public class ShowcaseTests
 
         var log = await File.ReadAllTextAsync(Path.Combine(KDesktop.Core.AppPaths.LogDir, "stage.log"));
         Assert.Contains("dibujo fuera de la pantalla", log);
-        Assert.Contains("«pip» descargado (Dismissed)", log);
-        Assert.Contains("«pip» cargado (1 en el escritorio, Reloaded)", log);
-        Assert.Contains("escaparate de «pip»: suyo surprised → done", log);
+        Assert.Contains("«tic» descargado (Dismissed)", log);
+        Assert.Contains("«tic» cargado (1 en el escritorio, Reloaded)", log);
+        Assert.Contains("escaparate de «tic»: suyo surprised → done", log);
     }
 
     private static async Task Until(Func<bool> condition)

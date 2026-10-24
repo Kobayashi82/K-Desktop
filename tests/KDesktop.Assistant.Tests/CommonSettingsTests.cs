@@ -16,7 +16,7 @@ public class CommonSettingsTests
     private static string Exe { get; } = Path.GetFullPath(typeof(CommonSettingsTests).Assembly
         .GetCustomAttributes<AssemblyMetadataAttribute>().Single(a => a.Key == "KDesktopExe").Value!);
 
-    private static string PipFolder => Path.GetFullPath(Path.Combine(Contracts.DocsDir, "..", "..", "samples", "CharacterAssistant", "Package"));
+    private static string TicFolder => TestCharacter.Folder;
 
     private static PointerEvent Drag(PointerEventKind kind, string area = "body") => new(kind, area, new Point(10, 10));
 
@@ -44,7 +44,7 @@ public class CommonSettingsTests
         Assert.True(gate.LetsThrough(Drag(PointerEventKind.DragEnd), dragging: false));
     }
 
-    /// <summary>With the real KDesktop.exe: the common settings reach Pip on the desktop (and those it was loaded with).</summary>
+    /// <summary>With the real KDesktop.exe: the common settings reach Tic on the desktop (and those it was loaded with).</summary>
     [Fact]
     public async Task TheyReachTheAssistantOnTheDesktop()
     {
@@ -53,12 +53,12 @@ public class CommonSettingsTests
 
         Process? process = null;
         var loaded = new ConcurrentQueue<LoadedMessage>();
-        // Pip comes already smaller; the setting of an assistant that is not there is kept for when it comes.
+        // Tic comes already smaller; the setting of an assistant that is not there is kept for when it comes.
         var welcome = new JsonObject
         {
             ["common"] = new JsonObject
             {
-                ["pip"] = new JsonObject { ["size"] = 0.75 },
+                ["tic"] = new JsonObject { ["size"] = 0.75 },
                 ["lander"] = new JsonObject { ["volume"] = 0.2 },
             },
         };
@@ -77,15 +77,15 @@ public class CommonSettingsTests
         try
         {
             await hello.Task.WaitAsync(TimeSpan.FromSeconds(20));
-            Assert.True(server.Send(new LoadMessage("pip", "1.1.0", PipFolder, Path.Combine(data, "Assistants", "Data", "pip"), LoadMessage.Startup)));
+            Assert.True(server.Send(new LoadMessage("tic", "1.1.0", TicFolder, Path.Combine(data, "Assistants", "Data", "tic"), LoadMessage.Startup)));
             await Until(() => !loaded.IsEmpty);
             Assert.True(loaded.Single().Ok, loaded.Single().Error);
 
             Assert.True(server.Send(new ConfigMessage("common", new JsonObject
             {
-                ["pip"] = new JsonObject { ["size"] = 1.5, ["liveliness"] = 0, ["dragging"] = false },
+                ["tic"] = new JsonObject { ["size"] = 1.5, ["liveliness"] = 0, ["dragging"] = false },
             })));
-            await Until(() => File.Exists(log) && Read(log).Contains("ajustes comunes de «pip»", StringComparison.Ordinal));
+            await Until(() => File.Exists(log) && Read(log).Contains("ajustes comunes de «tic»", StringComparison.Ordinal));
 
             Assert.True(server.Send(new ByeMessage("exit")));
             using var exited = new CancellationTokenSource(TimeSpan.FromSeconds(10));
@@ -97,7 +97,7 @@ public class CommonSettingsTests
             process.Dispose();
         }
 
-        Assert.Contains("ajustes comunes de «pip»: tamaño 150 %, volumen 100 %, movido 0 %, sin cogerlo", Read(log));
+        Assert.Contains("ajustes comunes de «tic»: tamaño 150 %, volumen 100 %, movido 0 %, sin cogerlo", Read(log));
         Assert.DoesNotContain("ha fallado", Read(log));
     }
 

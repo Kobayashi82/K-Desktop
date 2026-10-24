@@ -18,7 +18,7 @@ public class StateTests
     private static string Exe { get; } = Path.GetFullPath(typeof(StateTests).Assembly
         .GetCustomAttributes<AssemblyMetadataAttribute>().Single(a => a.Key == "KDesktopExe").Value!);
 
-    private static string PipFolder => Path.GetFullPath(Path.Combine(Contracts.DocsDir, "..", "..", "samples", "CharacterAssistant", "Package"));
+    private static string TicFolder => TestCharacter.Folder;
 
     [Fact]
     public void AnAssistantBuiltBeforeSeesOnlyTheStatesItKnows()
@@ -39,10 +39,10 @@ public class StateTests
         // The model loads while it thinks.
         Assert.Equal(AssistantState.LoadingBrain, ModuleStates.Compose(of, brainLoading: true).Item1);
         // A tool runs: busy with it.
-        of.Tools.Add(new ToolUse("pip", "look_up_web", AssistantActivity.SearchingWeb, ToolPhase.Running));
+        of.Tools.Add(new ToolUse("tic", "look_up_web", AssistantActivity.SearchingWeb, ToolPhase.Running));
         Assert.Equal((AssistantState.Busy, AssistantActivity.SearchingWeb, "look_up_web"), ModuleStates.Compose(of, brainLoading: true));
         // Another one asks for permission meanwhile: that is what it shows.
-        of.Tools.Add(new ToolUse("pip", "run_command", AssistantActivity.Command, ToolPhase.Asking));
+        of.Tools.Add(new ToolUse("tic", "run_command", AssistantActivity.Command, ToolPhase.Asking));
         Assert.Equal((AssistantState.AwaitingConfirmation, AssistantActivity.Command, "run_command"), ModuleStates.Compose(of, false));
         of.Tools.RemoveAt(1);
         // Speaking goes over a tool still running (an answer that said ahead).
@@ -96,28 +96,28 @@ public class StateTests
         runner.Using += uses.Enqueue;
         var args = JsonDocument.Parse("{}").RootElement;
 
-        await runner.RunAsync("weather", args, new ToolContext("pip"), "¿qué tiempo hace?", "ai", default);
+        await runner.RunAsync("weather", args, new ToolContext("tic"), "¿qué tiempo hace?", "ai", default);
         Assert.Equal([ToolPhase.Running, ToolPhase.Over], uses.Select(u => u.Phase));
-        Assert.All(uses, u => Assert.Equal(("pip", AssistantActivity.Weather), (u.Assistant!, u.Activity)));
+        Assert.All(uses, u => Assert.Equal(("tic", AssistantActivity.Weather), (u.Assistant!, u.Activity)));
 
         uses.Clear();
         answer = "no";
-        await runner.RunAsync("risky", args, new ToolContext("pip"), "haz algo", "ai", default);
+        await runner.RunAsync("risky", args, new ToolContext("tic"), "haz algo", "ai", default);
         Assert.Equal([ToolPhase.Asking, ToolPhase.Over], uses.Select(u => u.Phase));
         Assert.Equal(AssistantActivity.Other, uses.First().Activity);
 
         // One that is not there says nothing.
         uses.Clear();
-        await runner.RunAsync("nothing", args, new ToolContext("pip"), "x", "ai", default);
+        await runner.RunAsync("nothing", args, new ToolContext("tic"), "x", "ai", default);
         Assert.Empty(uses);
         try { Directory.Delete(folder, recursive: true); } catch (IOException) { }
     }
 
     [Fact]
-    public async Task PipShowsItsTimerAndThatItHasNoBrain()
+    public async Task TicShowsItsTimerAndThatItHasNoBrain()
     {
         var data = Path.Combine(Path.GetTempPath(), "kdesktop-tests", "states-" + Guid.NewGuid().ToString("N")[..8]);
-        var pipData = Path.Combine(data, "Assistants", "Data", "pip");
+        var ticData = Path.Combine(data, "Assistants", "Data", "tic");
         var name = "KDesktop.Assistant.Test." + Guid.NewGuid().ToString("N")[..12];
 
         Process? process = null;
@@ -129,7 +129,7 @@ public class StateTests
         server.Received += m =>
         {
             if (m is LoadedMessage) loaded.TrySetResult();
-            if (m is StatusMessage { Assistant: "pip" } status) states.Enqueue(status);
+            if (m is StatusMessage { Assistant: "tic" } status) states.Enqueue(status);
         };
         server.Start();
 
@@ -137,11 +137,11 @@ public class StateTests
         try
         {
             await hello.Task.WaitAsync(TimeSpan.FromSeconds(20));
-            Assert.True(server.Send(new LoadMessage("pip", "1.0.0", PipFolder, pipData, LoadMessage.Startup)));
+            Assert.True(server.Send(new LoadMessage("tic", "1.0.0", TicFolder, ticData, LoadMessage.Startup)));
             await loaded.Task.WaitAsync(TimeSpan.FromSeconds(20));
 
             // A rule with a tool: busy with the timer, then it says so, then at rest.
-            Assert.True(server.Send(new HeardMessage("pon un temporizador de 10 minutos", "panel", "pip")));
+            Assert.True(server.Send(new HeardMessage("pon un temporizador de 10 minutos", "panel", "tic")));
             await Until(() => states.Any(s => s.State == "idle" && states.Any(b => b.State == "busy")));
             Assert.Contains(states, s => s is { State: "busy", Activity: "timer", Tool: "set_timer" });
             var order = states.Select(s => s.State).ToList();
@@ -149,7 +149,7 @@ public class StateTests
 
             // An order for the AI with no brain: it shows it right before saying so.
             states.Clear();
-            Assert.True(server.Send(new HeardMessage("cuéntame un chiste de piratas", "panel", "pip")));
+            Assert.True(server.Send(new HeardMessage("cuéntame un chiste de piratas", "panel", "tic")));
             await Until(() => states.Any(s => s.State == "idle"));
             order = [.. states.Select(s => s.State)];
             Assert.Contains("noBrain", order);

@@ -44,7 +44,10 @@ MyCharacter\
 }
 ```
 
-- `height`: its height at 100 % scale; every frame is drawn this tall. Its feet are the bottom edge of the picture.
+- `height`: its height at 100 % scale; every frame is drawn this tall. Its feet are the bottom edge of the picture,
+  unless `ground` says otherwise.
+- `ground`: transparent rows under its feet in the pictures (pixels of the pictures, default 0). That much of each
+  picture goes below the ground, so the feet touch it (a shadow under the feet can be left there).
 - `faces`: the way the pictures look; walking the other way, they are mirrored.
 - Animations: `idle` (required), `walk`, `talk`, `listen`, `think`, `happy`, `sad`, `surprised`, `click`, `drag`, `fall`,
   `sleep`, `enter`, `exit`, `announce`, `catch`. A missing one uses another (`think` → `listen` → `idle`, `click` → `happy`

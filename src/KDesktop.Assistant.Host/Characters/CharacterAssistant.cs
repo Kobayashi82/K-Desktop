@@ -476,7 +476,9 @@ internal sealed class CharacterAssistant(CharacterFile character) : IAssistant
         var frame = frames[Math.Max(0, index)];
         var h = HeightPx;
         var w = frame.Height > 0 ? h * frame.Width / frame.Height : h;
-        var rect = new Rect(_at.X - w / 2, _at.Y - h, w, h);
+        // The rows under its feet (character.json «ground») go below the ground.
+        var below = character.Ground > 0 && frame is BitmapSource bitmap && bitmap.PixelHeight > 0 ? h * character.Ground / bitmap.PixelHeight : 0;
+        var rect = new Rect(_at.X - w / 2, _at.Y - h + below, w, h);
         var mirror = _right == character.FacesLeft;
         var carried = Carried(rect);
         var drawn = carried is { } c ? Rect.Union(rect, c.Rect) : rect;

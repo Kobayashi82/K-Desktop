@@ -1,6 +1,7 @@
 {
   "$schema": "../../../docs/assistant/schemas/character.schema.json",
   "height": 80,
+  "ground": 14,
   "faces": "right",
   "walkSpeed": 60,
   "animations": {

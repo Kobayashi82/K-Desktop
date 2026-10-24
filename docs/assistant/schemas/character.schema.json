@@ -9,6 +9,7 @@
   "properties": {
     "$schema": { "type": "string" },
     "height": { "type": "number", "minimum": 24, "maximum": 512, "default": 96, "description": "Height at 100 % scale (DIP). Every frame is drawn this tall, keeping its proportions." },
+    "ground": { "type": "number", "minimum": 0, "maximum": 1024, "default": 0, "description": "Transparent rows under its feet in the pictures (pixels of the pictures): that much of the picture goes below the ground, so the feet touch it. 0 = the feet are the bottom edge." },
     "faces": { "enum": ["right", "left"], "default": "right", "description": "The way the pictures look: walking the other way, they are mirrored." },
     "walkSpeed": { "type": "number", "minimum": 0, "maximum": 600, "default": 70, "description": "DIP per second. 0 = it never walks." },
     "animations": {

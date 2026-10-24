@@ -4,35 +4,50 @@ using KDesktop.Core.Assistant.Packages;
 
 namespace KDesktop.Assistant.Tests;
 
-/// <summary>Phase 12: assistants without code (a character.json and its pictures), with Pip, the example.</summary>
+/// <summary>
+/// Phase 12: assistants without code (a character.json and its pictures), with Tic (<see cref="TestCharacter"/>); and Pip,
+/// the SDK's example, stays a valid package.
+/// </summary>
 public class CharacterTests
 {
-    private static string PipFolder => Path.Combine(Contracts.DocsDir, "..", "..", "samples", "CharacterAssistant", "Package");
-
     private static readonly string Work = Path.Combine(Path.GetTempPath(), "kdesktop-tests", "characters-" + Guid.NewGuid().ToString("N")[..6]);
 
-    /// <summary>Pip's folder as a .kai (leaving out what <paramref name="skip"/> says).</summary>
-    private static string Pack(Func<string, bool>? skip = null)
+    /// <summary>A package's folder (Tic's unless another is given) as a .kai, leaving out what <paramref name="skip"/> says.</summary>
+    private static string Pack(Func<string, bool>? skip = null, string? folder = null)
     {
+        folder ??= TestCharacter.Folder;
         Directory.CreateDirectory(Work);
-        var file = Path.Combine(Work, $"pip-{Guid.NewGuid().ToString("N")[..4]}.kai");
+        var file = Path.Combine(Work, $"{Path.GetFileName(folder)}-{Guid.NewGuid().ToString("N")[..4]}.kai");
         using var zip = ZipFile.Open(file, ZipArchiveMode.Create);
-        foreach (var path in Directory.EnumerateFiles(PipFolder, "*", SearchOption.AllDirectories))
+        foreach (var path in Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories))
         {
-            var name = Path.GetRelativePath(PipFolder, path).Replace('\\', '/');
+            var name = Path.GetRelativePath(folder, path).Replace('\\', '/');
             if (skip?.Invoke(name) != true) zip.CreateEntryFromFile(path, name);
         }
         return file;
     }
 
     [Fact]
-    public void PipIsAValidPackage()
+    public void TicIsAValidPackage()
     {
-        Assert.Empty(Contracts.ValidateFile("character", Path.Combine(PipFolder, "character.json")));
-        Assert.Empty(Contracts.ValidateFile("assistant", Path.Combine(PipFolder, "assistant.json")));
+        Assert.Empty(Contracts.ValidateFile("character", Path.Combine(TestCharacter.Folder, "character.json")));
+        Assert.Empty(Contracts.ValidateFile("assistant", Path.Combine(TestCharacter.Folder, "assistant.json")));
         var info = AssistantPackages.Inspect(Pack());
         Assert.True(info.Manifest.IsCharacter);
+        Assert.Equal(TestCharacter.Id, info.Manifest.Id);
+    }
+
+    /// <summary>Pip, the SDK's example (and the catalog's), stays a package K-Desktop takes.</summary>
+    [Fact]
+    public void TheSampleIsAValidPackage()
+    {
+        Assert.Empty(Contracts.ValidateFile("character", Path.Combine(TestCharacter.Sample, "character.json")));
+        Assert.Empty(Contracts.ValidateFile("assistant", Path.Combine(TestCharacter.Sample, "assistant.json")));
+        var info = AssistantPackages.Inspect(Pack(folder: TestCharacter.Sample));
+        Assert.True(info.Manifest.IsCharacter);
         Assert.Equal("pip", info.Manifest.Id);
+        // Its pictures leave room under the feet, and it says so (or it floats over the taskbar).
+        Assert.True(CharacterFile.Parse(File.ReadAllText(Path.Combine(TestCharacter.Sample, "character.json"))).Ground > 0);
     }
 
     [Fact]
@@ -45,13 +60,15 @@ public class CharacterTests
     [Fact]
     public void TheCharacterReadsItsAnimationsAndFallsBack()
     {
-        var pip = CharacterFile.Parse(File.ReadAllText(Path.Combine(PipFolder, "character.json")));
-        Assert.Equal(80, pip.Height);
-        Assert.Equal(6, pip.For("walk").FrameCount);
-        Assert.True(pip.For("walk").Strip);
-        Assert.False(pip.For("happy").Loop);
-        Assert.True(pip.For("talk").Loop);
-        Assert.Equal("sounds/pop.wav", pip.For("click").Sound);
+        var tic = CharacterFile.Parse(File.ReadAllText(Path.Combine(TestCharacter.Folder, "character.json")));
+        Assert.Equal(80, tic.Height);
+        Assert.Equal(4, tic.Ground);
+        Assert.Equal(6, tic.For("walk").FrameCount);
+        Assert.True(tic.For("walk").Strip);
+        Assert.False(tic.For("happy").Loop);
+        Assert.True(tic.For("talk").Loop);
+        Assert.Equal("sounds/pop.wav", tic.For("click").Sound);
+        Assert.Equal(0, CharacterFile.Parse("""{ "animations": { "idle": { "frames": ["a.png"] } } }""").Ground);
 
         // Without click or catch: the fallbacks.
         var happy = CharacterFile.Parse("""{ "animations": { "idle": { "frames": ["a.png"] }, "happy": { "frames": ["b.png"] } } }""");
@@ -69,17 +86,17 @@ public class CharacterTests
     [Fact]
     public void AnimationsCanHaveVariants()
     {
-        var pip = CharacterFile.Parse(File.ReadAllText(Path.Combine(PipFolder, "character.json")));
-        Assert.Equal(4, pip.VariantsFor("idle").Count);
-        Assert.Equal((8.0, 0.0), (pip.VariantsFor("idle")[0].Weight, pip.VariantsFor("idle")[0].Cooldown));
-        Assert.Equal(20, pip.VariantsFor("idle")[1].Cooldown);
-        Assert.Same(pip.VariantsFor("idle")[0], pip.For("idle"));
-        Assert.Contains("frames/wiggle0.png", pip.Files);
+        var tic = CharacterFile.Parse(File.ReadAllText(Path.Combine(TestCharacter.Folder, "character.json")));
+        Assert.Equal(4, tic.VariantsFor("idle").Count);
+        Assert.Equal((8.0, 0.0), (tic.VariantsFor("idle")[0].Weight, tic.VariantsFor("idle")[0].Cooldown));
+        Assert.Equal(20, tic.VariantsFor("idle")[1].Cooldown);
+        Assert.Same(tic.VariantsFor("idle")[0], tic.For("idle"));
+        Assert.Contains("frames/hum0.png", tic.Files);
         // An entrance and an exit for each reason; none for a reason it does not have.
-        Assert.Equal(["frames/wake0.png", "frames/rise0.png"], pip.VariantsFor("enter", "startup").Select(v => v.Frames[0]));
-        Assert.Equal(["frames/drop0.png", "frames/pop0.png"], pip.VariantsFor("enter", "summoned").Select(v => v.Frames[0]));
-        Assert.Equal(2, pip.VariantsFor("exit", "dismissed").Count);
-        Assert.Equal("frames/sink0.png", Assert.Single(pip.VariantsFor("exit", "uninstalling")).Frames[0]);
+        Assert.Equal(["frames/wake0.png", "frames/rise0.png"], tic.VariantsFor("enter", "startup").Select(v => v.Frames[0]));
+        Assert.Equal(["frames/drop0.png", "frames/pop0.png"], tic.VariantsFor("enter", "summoned").Select(v => v.Frames[0]));
+        Assert.Equal(2, tic.VariantsFor("exit", "dismissed").Count);
+        Assert.Equal("frames/sink0.png", Assert.Single(tic.VariantsFor("exit", "uninstalling")).Frames[0]);
         var anyReason = CharacterFile.Parse("""{ "animations": { "idle": { "frames": ["a.png"] }, "enter": [ { "frames": ["b.png"] } ] } }""");
         Assert.Single(anyReason.VariantsFor("enter", "summoned"));
         Assert.Empty(anyReason.VariantsFor("exit", "dismissed"));
@@ -97,7 +114,7 @@ public class CharacterTests
     [Fact]
     public void TheHostLoadsItWithoutCode()
     {
-        var package = PackageLoader.Load(Path.GetFullPath(PipFolder), Path.Combine(Work, "data"));
+        var package = PackageLoader.Load(TestCharacter.Folder, Path.Combine(Work, "data"));
         Assert.Null(package.Context);
         Assert.Equal("CharacterAssistant", package.Assistant.GetType().Name);
         package.Assistant.Dispose();
