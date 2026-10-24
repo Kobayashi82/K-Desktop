@@ -39,12 +39,10 @@ que se ejecuta importa los comandos, QuickMenus e iconos de la versión anterior
 
 ## Vídeo
 
-De momento, en inglés (la versión en español llegará pronto).
-
-https://github.com/user-attachments/assets/f8e5aefc-33bf-4548-b61d-3f6fdc5642fb
+https://github.com/user-attachments/assets/1b2e6c1e-cccf-4956-9942-88c14eba4420
 
 <p align="center">
-  <a href="docs/videos/K-Desktop-en.srt">Subtítulos en inglés (.srt)</a>
+  <a href="docs/videos/K-Desktop-es.srt">Subtítulos (.srt)</a>
 </p>
 
 ## Contenido
