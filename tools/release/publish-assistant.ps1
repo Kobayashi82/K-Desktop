@@ -1,11 +1,11 @@
 ﻿<#
-  Publishes a new version of one of K-Desktop's own assistants (Lander, Kobii and Kumo in assistants\, Pip in
-  samples\CharacterAssistant) to the fixed release «assistants» of K-Desktop's repository, as <id>.kai. That address
+  Publishes a new version of one of K-Desktop's own assistants (Lander, Kobii and Kumo, in assistants\: Pip is only the
+  SDK's example) to the fixed release «assistants» of K-Desktop's repository, as <id>.kai. That address
   never changes: catalog.json (the official catalog) lists it and the assistant's «updates» points to it, so whoever has
   it installed is told about the new version.
 
   What it does:
-    1. Builds it in Release (Pip: packs its folder). The .kai comes out signed (SDK .targets, AssistantSign=true).
+    1. Builds it in Release. The .kai comes out signed (SDK .targets, AssistantSign=true).
     2. Checks that K-Desktop would say «Verificado», and that its «updates» is its address in the release.
     3. Keeps a copy in artifacts\assistants\<id>-<version>.kai.
     4. Uploads it as <id>.kai to the release «assistants» (made the first time), replacing the one before.
@@ -16,7 +16,7 @@
     powershell -ExecutionPolicy Bypass -File tools\release\publish-assistant.ps1 lander [-DryRun]
 #>
 param(
-    [Parameter(Mandatory)] [ValidateSet('lander', 'kobii', 'kumo', 'pip')] [string]$Assistant,
+    [Parameter(Mandatory)] [ValidateSet('lander', 'kobii', 'kumo')] [string]$Assistant,
     [switch]$DryRun
 )
 $ErrorActionPreference = 'Stop'
@@ -27,31 +27,19 @@ $kaisignProject = Join-Path $root 'tools\KaiSign\KaiSign.csproj'
 
 function Step($text) { Write-Host "-- $text" -ForegroundColor Cyan }
 
-# 1. Build (or pack) it.
-if ($Assistant -eq 'pip') {
-    $folder = Join-Path $root 'samples\CharacterAssistant\package'
-    $manifestFile = Join-Path $folder 'assistant.json'
-    Step 'Empaquetando Pip'
-    $out = Join-Path $root 'artifacts\assistants'
-    $kai = (& powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root 'tools\character\pack.ps1') $folder -Out $out | Select-Object -Last 1)
-    dotnet run --project $kaisignProject -v q -- sign $kai
-    if ($LASTEXITCODE -ne 0) { throw 'No se ha podido firmar' }
-} else {
-    $name = (Get-Culture).TextInfo.ToTitleCase($Assistant)
-    $project = Join-Path $root "assistants\$name\src\$name.Assistant"
-    if (-not (Test-Path $project)) { throw "No está $project (¿falta clonar K-Desktop-Assistants en assistants\?)" }
-    $manifestFile = Join-Path $project 'Package\assistant.json'
-    Step "Compilando $name en Release (sale firmado)"
-    dotnet build $project -c Release -nologo -v q -p:AssistantSign=true
-    if ($LASTEXITCODE -ne 0) { throw 'La compilación ha fallado' }
-}
+# 1. Build it.
+$name = (Get-Culture).TextInfo.ToTitleCase($Assistant)
+$project = Join-Path $root "assistants\$name\src\$name.Assistant"
+if (-not (Test-Path $project)) { throw "No está $project (¿falta clonar K-Desktop-Assistants en assistants\?)" }
+$manifestFile = Join-Path $project 'Package\assistant.json'
+Step "Compilando $name en Release (sale firmado)"
+dotnet build $project -c Release -nologo -v q -p:AssistantSign=true
+if ($LASTEXITCODE -ne 0) { throw 'La compilación ha fallado' }
 $manifest = [System.IO.File]::ReadAllText($manifestFile) | ConvertFrom-Json
 $id = $manifest.id
 $version = $manifest.version
-if ($Assistant -ne 'pip') {
-    $kai = Get-ChildItem (Join-Path $project 'bin\Release') -Recurse -Filter "$id-$version.kai" | Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName
-    if (-not $kai) { throw "No se encuentra $id-$version.kai" }
-}
+$kai = Get-ChildItem (Join-Path $project 'bin\Release') -Recurse -Filter "$id-$version.kai" | Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName
+if (-not $kai) { throw "No se encuentra $id-$version.kai" }
 
 # 2. Checks.
 Step "Comprobando $id $version"

@@ -15,7 +15,6 @@
   "homepage": "https://github.com/Kobayashi82/K-Desktop",
   "license": "MIT",
   "sdk": "1.21",
-  "updates": "https://github.com/Kobayashi82/K-Desktop/releases/download/assistants/pip.kai",
   "entry": "character.json",
   "icon": "icon.png",
   "wakeWord": "Pip",

@@ -21,6 +21,11 @@
   <b>English</b> · <a href="README.es.md">Español</a>
 </p>
 
+> [!WARNING]
+> **Work in progress.** K-Desktop 5 is used every day, but it is still under active development: there is no published
+> release yet, things change from one version to the next, and the assistant module (and its SDK) is not frozen yet. If
+> you build it or try it, expect rough edges.
+
 <p align="center">
   <img src="docs/images/k-desktop-en.png" alt="K-Desktop main window with the command list and a command being edited" width="900">
 </p>
@@ -182,6 +187,7 @@ administrator rights, and K-Desktop never loads their code.
 |---|---|
 | **[Lander](https://github.com/Kobayashi82/K-Desktop-Assistants/tree/main/Lander)** | A small lunar module that flies between your windows, lands on them, tows them with a grappling hook, and has its own game |
 | **[Kobii](https://github.com/Kobayashi82/K-Desktop-Assistants/tree/main/Kobii)** | A little creature that walks, climbs your windows, plays, eats, sleeps and lets you pet, brush or high-five it |
+| **[Kumo](https://github.com/Kobayashi82/K-Desktop-Assistants/tree/main/Kumo)** | A soft cloud that floats about, wraps windows to carry them, rains, makes rainbows and dances to your music |
 | **[Pip](samples/CharacterAssistant)** | A no-code example: just images and a JSON file |
 | **K-Desktop** | The built-in assistant without a character, for when you want answers without anyone on the desktop |
 
