@@ -32,14 +32,9 @@ commands, QuickMenus and icons from the previous version.
 
 ## Video
 
-<p align="center">
-  <a href="docs/videos/K-Desktop-en.mp4">
-    <img src="docs/images/video-en.jpg" alt="K-Desktop 5 introduction video" width="800">
-  </a>
-</p>
+https://github.com/user-attachments/assets/f8e5aefc-33bf-4548-b61d-3f6fdc5642fb
 
 <p align="center">
-  <a href="docs/videos/K-Desktop-en.mp4">Watch the video (17 min)</a> ·
   <a href="docs/videos/K-Desktop-en.srt">Subtitles (.srt)</a>
 </p>
 
