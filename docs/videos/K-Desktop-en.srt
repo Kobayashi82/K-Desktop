@@ -1,0 +1,1524 @@
+1
+00:00:00,800 --> 00:00:03,834
+Every day, you repeat the same
+little moves on your PC.
+
+2
+00:00:04,184 --> 00:00:05,664
+Opening the same programs.
+
+3
+00:00:05,924 --> 00:00:07,451
+Arranging the same windows.
+
+4
+00:00:07,711 --> 00:00:08,979
+Hunting for the volume.
+
+5
+00:00:09,239 --> 00:00:10,827
+Clicking through the same menus.
+
+6
+00:00:11,177 --> 00:00:13,134
+What if a single key could do all of that?
+
+7
+00:00:13,394 --> 00:00:14,588
+Or a flick of the mouse?
+
+8
+00:00:14,848 --> 00:00:16,087
+Or simply... your voice?
+
+9
+00:00:16,587 --> 00:00:17,917
+This is K-Desktop.
+
+10
+00:00:18,817 --> 00:00:21,443
+In this video,
+we'll walk through everything it can do,
+
+11
+00:00:21,443 --> 00:00:23,079
+and how it works under the hood.
+
+12
+00:00:23,339 --> 00:00:26,795
+Commands, QuickMenus,
+events, macros and K-Board.
+
+13
+00:00:27,055 --> 00:00:29,275
+Voice control, your phone as a remote,
+
+14
+00:00:29,275 --> 00:00:32,404
+and the new assistants that live
+on top of your windows.
+
+15
+00:00:34,654 --> 00:00:38,350
+K-Desktop is built around one simple idea:
+the command.
+
+16
+00:00:38,700 --> 00:00:41,131
+A command is a named sequence of actions.
+
+17
+00:00:41,391 --> 00:00:44,766
+Open a program, wait a second,
+snap its window to the left,
+
+18
+00:00:44,766 --> 00:00:46,791
+set the volume to twenty percent.
+
+19
+00:00:47,051 --> 00:00:48,377
+Step by step, in order.
+
+20
+00:00:48,727 --> 00:00:51,252
+And a command can be launched
+from almost anywhere.
+
+21
+00:00:51,512 --> 00:00:53,030
+A hotkey or a mouse button.
+
+22
+00:00:53,290 --> 00:00:54,883
+A QuickMenu, or the launcher.
+
+23
+00:00:55,143 --> 00:00:57,186
+Your voice, your phone, or the network.
+
+24
+00:00:57,446 --> 00:00:59,322
+Something that happens on your PC.
+
+25
+00:00:59,582 --> 00:01:00,827
+Or even an assistant.
+
+26
+00:01:01,177 --> 00:01:03,386
+Around commands live a few companions.
+
+27
+00:01:03,646 --> 00:01:05,373
+Macros that replay what you do.
+
+28
+00:01:05,633 --> 00:01:07,878
+K-Board profiles that remap your keys.
+
+29
+00:01:08,138 --> 00:01:10,316
+And a history that remembers every run.
+
+30
+00:01:10,666 --> 00:01:15,252
+It's a single portable program
+for Windows 10 and 11, in six languages.
+
+31
+00:01:15,512 --> 00:01:19,014
+Everything runs locally,
+and your data stays in your own folder.
+
+32
+00:01:21,264 --> 00:01:22,238
+Let's build one.
+
+33
+00:01:22,498 --> 00:01:26,354
+On the Commands page, click New command,
+and give it a name: Work mode.
+
+34
+00:01:26,704 --> 00:01:27,749
+Next, a hotkey.
+
+35
+00:01:28,009 --> 00:01:31,023
+Press any combination: Control, Alt, W.
+
+36
+00:01:31,373 --> 00:01:34,358
+A hotkey can also be a mouse button,
+like Mouse 5.
+
+37
+00:01:34,618 --> 00:01:37,720
+A chord of two buttons,
+like Mouse 4 plus left click.
+
+38
+00:01:37,980 --> 00:01:41,195
+Or the wheel with a modifier,
+like Control plus Wheel Up.
+
+39
+00:01:41,545 --> 00:01:42,583
+Now, the actions.
+
+40
+00:01:42,843 --> 00:01:44,743
+Run application: Notepad.
+
+41
+00:01:45,003 --> 00:01:46,081
+Wait one second.
+
+42
+00:01:46,341 --> 00:01:47,606
+Window: left half.
+
+43
+00:01:47,866 --> 00:01:49,324
+Volume: twenty percent.
+
+44
+00:01:49,584 --> 00:01:51,251
+Open folder: Documents.
+
+45
+00:01:51,601 --> 00:01:53,179
+Press Control, Alt, W...
+
+46
+00:01:53,179 --> 00:01:56,440
+and it all happens, in order,
+in a fraction of a second.
+
+47
+00:01:57,040 --> 00:02:00,342
+There are more than thirty actions,
+grouped into nine families.
+
+48
+00:02:00,692 --> 00:02:05,087
+Open and run: programs, folders,
+special Windows locations,
+
+49
+00:02:05,087 --> 00:02:10,023
+web pages in the browser you choose,
+and CMD or PowerShell scripts.
+
+50
+00:02:10,373 --> 00:02:14,589
+Windows: maximize, place in halves,
+quarters or thirds, center,
+
+51
+00:02:14,589 --> 00:02:18,500
+move to another monitor,
+make transparent, or keep on top.
+
+52
+00:02:18,850 --> 00:02:23,815
+Keyboard and mouse: send keys or text,
+transform the clipboard, play a macro,
+
+53
+00:02:23,815 --> 00:02:26,387
+switch a K-Board profile, or dictate.
+
+54
+00:02:26,737 --> 00:02:30,961
+Sound: the volume of the speakers,
+the microphone or a single app.
+
+55
+00:02:31,221 --> 00:02:36,216
+Switch the audio output, play sounds,
+and record audio, even the last few seconds.
+
+56
+00:02:36,566 --> 00:02:40,440
+Screen: screenshots,
+copying text straight from the screen,
+
+57
+00:02:40,440 --> 00:02:45,506
+a magnifier, brightness and projection,
+and the light or dark theme of Windows.
+
+58
+00:02:45,856 --> 00:02:49,632
+Network: web requests
+for Home Assistant or any API,
+
+59
+00:02:49,632 --> 00:02:54,254
+waking another computer with Wake on LAN,
+and Wi-Fi or Bluetooth.
+
+60
+00:02:54,604 --> 00:02:59,619
+System: hidden files, the power plan,
+and shutting down, restarting or sleeping,
+
+61
+00:02:59,619 --> 00:03:01,834
+with a countdown you can cancel.
+
+62
+00:03:02,184 --> 00:03:07,590
+And flow: show a message, wait, open
+a QuickMenu, run or switch other commands.
+
+63
+00:03:07,850 --> 00:03:10,195
+The ninth family belongs
+to the assistants.
+
+64
+00:03:10,455 --> 00:03:11,211
+We'll get there.
+
+65
+00:03:11,561 --> 00:03:14,235
+One flow action deserves a closer look:
+If.
+
+66
+00:03:14,495 --> 00:03:15,799
+It checks something first.
+
+67
+00:03:16,059 --> 00:03:17,321
+Is a program open?
+
+68
+00:03:17,581 --> 00:03:18,555
+What time is it?
+
+69
+00:03:18,815 --> 00:03:20,112
+Is a device connected?
+
+70
+00:03:20,372 --> 00:03:21,984
+How busy is the CPU?
+
+71
+00:03:22,244 --> 00:03:26,395
+When the answer is no, it stops
+the command, or skips the next actions.
+
+72
+00:03:26,655 --> 00:03:28,823
+So one command can take different paths.
+
+73
+00:03:29,173 --> 00:03:31,277
+Each command has its own options, too.
+
+74
+00:03:31,537 --> 00:03:35,238
+Limit it to certain applications:
+if the same hotkey exists
+
+75
+00:03:35,238 --> 00:03:40,134
+for every app and for one in particular,
+inside that app, the specific one wins.
+
+76
+00:03:40,394 --> 00:03:42,438
+Block the key so the app never sees it.
+
+77
+00:03:42,698 --> 00:03:46,327
+Add a sound, notes,
+and extra phrases to call it by voice.
+
+78
+00:03:46,677 --> 00:03:52,029
+K-Desktop runs as administrator, so
+its hotkeys work even over elevated windows.
+
+79
+00:03:52,289 --> 00:03:56,322
+But each action decides whether
+its program starts as administrator,
+
+80
+00:03:56,322 --> 00:03:57,902
+or as your normal user.
+
+81
+00:03:58,252 --> 00:04:00,914
+And every command gets
+an icon automatically.
+
+82
+00:04:01,174 --> 00:04:05,673
+Or you pick one: any Windows symbol
+in fifteen colors, Windows icons,
+
+83
+00:04:05,673 --> 00:04:08,493
+your own images, or a website's own logo.
+
+84
+00:04:10,743 --> 00:04:13,250
+Sometimes,
+one key per command isn't enough.
+
+85
+00:04:13,510 --> 00:04:15,068
+That's what QuickMenus are for.
+
+86
+00:04:15,418 --> 00:04:19,955
+Press a hotkey, say Mouse 5, and a menu
+blooms right where your pointer is.
+
+87
+00:04:20,215 --> 00:04:23,983
+Translucent, with icons,
+titles, separators and submenus.
+
+88
+00:04:24,333 --> 00:04:27,058
+Left click runs a command
+and closes the menu.
+
+89
+00:04:27,318 --> 00:04:31,865
+Right click runs it and keeps the menu
+open, perfect for nudging the volume.
+
+90
+00:04:32,125 --> 00:04:34,529
+Middle click jumps straight
+to editing that item.
+
+91
+00:04:34,789 --> 00:04:37,018
+And the whole menu works
+from the keyboard, too.
+
+92
+00:04:37,368 --> 00:04:38,984
+Menus are built in the editor.
+
+93
+00:04:39,244 --> 00:04:43,958
+Drag commands from the palette onto
+the menu: above, below, or inside an item.
+
+94
+00:04:44,218 --> 00:04:47,630
+Rename, change icons,
+nest submenus, undo and redo,
+
+95
+00:04:47,630 --> 00:04:50,384
+and choose a size, from compact to huge.
+
+96
+00:04:50,734 --> 00:04:51,797
+Need something new?
+
+97
+00:04:52,057 --> 00:04:54,199
+A quick command turns a program,
+
+98
+00:04:54,199 --> 00:04:57,696
+a folder or a web address
+into a menu item, in one step.
+
+99
+00:04:59,946 --> 00:05:04,013
+For everything else, there's the launcher:
+a search box with its own hotkey.
+
+100
+00:05:04,363 --> 00:05:06,383
+Type a few letters, even loose ones.
+
+101
+00:05:06,643 --> 00:05:09,006
+C, M, F, Y finds ComfyUI.
+
+102
+00:05:09,266 --> 00:05:13,859
+It searches your commands and every program
+in the Start menu, Store apps included.
+
+103
+00:05:14,209 --> 00:05:17,885
+Type a sum, and it's a calculator:
+Enter copies the result.
+
+104
+00:05:18,145 --> 00:05:20,932
+And when nothing matches,
+it offers to search the web.
+
+105
+00:05:21,282 --> 00:05:24,990
+It learns what you use most,
+and puts it first, before you even type.
+
+106
+00:05:27,240 --> 00:05:29,043
+So far, you trigger the commands.
+
+107
+00:05:29,303 --> 00:05:31,309
+Events let your PC trigger them for you.
+
+108
+00:05:31,569 --> 00:05:33,592
+When this happens, run these commands.
+
+109
+00:05:33,942 --> 00:05:35,633
+There are sixteen kinds of triggers.
+
+110
+00:05:35,893 --> 00:05:37,899
+When K-Desktop starts or exits.
+
+111
+00:05:38,159 --> 00:05:39,964
+At a time, or every few minutes.
+
+112
+00:05:40,224 --> 00:05:42,626
+When a program opens,
+or comes to the front.
+
+113
+00:05:42,886 --> 00:05:45,009
+After a while without using the PC.
+
+114
+00:05:45,269 --> 00:05:47,131
+When you lock it, or it goes to sleep.
+
+115
+00:05:47,391 --> 00:05:49,123
+When a laptop switches to battery.
+
+116
+00:05:49,473 --> 00:05:54,420
+When a controller, a USB drive, headphones
+or any other device is connected.
+
+117
+00:05:54,680 --> 00:05:55,870
+When you join a network.
+
+118
+00:05:56,130 --> 00:05:58,039
+When a new file appears in a folder.
+
+119
+00:05:58,299 --> 00:06:02,282
+When the CPU, the graphics card
+or the memory crosses a threshold.
+
+120
+00:06:02,542 --> 00:06:06,504
+Or when another computer, a script
+or Home Assistant calls it by name.
+
+121
+00:06:06,854 --> 00:06:11,157
+For example: when Steam opens,
+switch the audio output to the headphones.
+
+122
+00:06:11,507 --> 00:06:13,923
+Many triggers also have
+a When it ends side.
+
+123
+00:06:14,183 --> 00:06:16,355
+When Steam closes, back to the speakers.
+
+124
+00:06:16,615 --> 00:06:17,960
+No second event needed.
+
+125
+00:06:18,310 --> 00:06:21,647
+Events can have conditions,
+a minimum time between runs,
+
+126
+00:06:21,647 --> 00:06:24,015
+and built-in protection against loops,
+
+127
+00:06:24,015 --> 00:06:26,814
+so an event can never
+keep setting itself off.
+
+128
+00:06:29,064 --> 00:06:31,565
+Some tasks can't be described as actions.
+
+129
+00:06:31,825 --> 00:06:33,078
+You just have to do them.
+
+130
+00:06:33,338 --> 00:06:34,414
+Again, and again.
+
+131
+00:06:34,674 --> 00:06:36,075
+That's what macros are for.
+
+132
+00:06:36,425 --> 00:06:38,174
+Press Record, and do the task.
+
+133
+00:06:38,434 --> 00:06:43,336
+K-Desktop captures every key, click,
+scroll and movement, with its exact timing.
+
+134
+00:06:43,596 --> 00:06:45,227
+Shift plus Escape finishes.
+
+135
+00:06:45,577 --> 00:06:49,100
+Every step can be edited,
+dragged, inserted or deleted.
+
+136
+00:06:49,360 --> 00:06:53,871
+And Simplify cleans it up in one click:
+merge presses, drop mouse movements,
+
+137
+00:06:53,871 --> 00:06:56,622
+halve the pauses,
+or cap them at one second.
+
+138
+00:06:56,972 --> 00:07:01,667
+Play it from any command: once, several
+times, in a loop, or at a different speed.
+
+139
+00:07:02,017 --> 00:07:03,750
+And for games, there's game mode.
+
+140
+00:07:04,010 --> 00:07:05,990
+The mouse is recorded as raw,
+
+141
+00:07:05,990 --> 00:07:10,405
+relative movement: the kind games read,
+even when they lock the pointer.
+
+142
+00:07:12,655 --> 00:07:16,462
+K-Board changes what your keys
+and mouse buttons actually do.
+
+143
+00:07:16,812 --> 00:07:19,515
+You edit a profile
+on a drawn keyboard and mouse.
+
+144
+00:07:19,775 --> 00:07:23,444
+Click a key, choose what it becomes,
+and it lights up with its new job.
+
+145
+00:07:23,794 --> 00:07:27,213
+A key can become another key,
+a combination, a piece of text,
+
+146
+00:07:27,213 --> 00:07:29,560
+one of your commands, or nothing at all.
+
+147
+00:07:29,910 --> 00:07:31,293
+Caps Lock as Control.
+
+148
+00:07:31,553 --> 00:07:33,647
+The Windows key disabled while you play.
+
+149
+00:07:33,907 --> 00:07:35,906
+The side buttons as copy and paste.
+
+150
+00:07:36,256 --> 00:07:38,334
+With modifiers, you get layers:
+
+151
+00:07:38,334 --> 00:07:42,039
+Control plus J can do something
+completely different from J.
+
+152
+00:07:42,389 --> 00:07:45,581
+A profile can work everywhere,
+or only in certain apps.
+
+153
+00:07:45,841 --> 00:07:49,299
+And you switch it on and off
+from a command, or from the tray icon.
+
+154
+00:07:51,549 --> 00:07:52,438
+Now, the voice.
+
+155
+00:07:52,698 --> 00:07:58,002
+K-Desktop understands spoken orders,
+entirely on your PC, without the internet.
+
+156
+00:07:58,352 --> 00:07:59,679
+There are two ways to talk.
+
+157
+00:07:59,939 --> 00:08:01,764
+Hold the voice hotkey while you speak.
+
+158
+00:08:02,024 --> 00:08:05,312
+Or tap it once, and just talk:
+it stops when you go quiet.
+
+159
+00:08:05,662 --> 00:08:06,789
+Or use a wake word.
+
+160
+00:08:07,049 --> 00:08:09,020
+K-Desktop, open the browser.
+
+161
+00:08:09,280 --> 00:08:10,246
+No key at all.
+
+162
+00:08:10,746 --> 00:08:13,863
+The wake word is yours,
+and you record it in under a minute.
+
+163
+00:08:14,123 --> 00:08:17,075
+Three seconds of silence,
+to measure the background noise.
+
+164
+00:08:17,335 --> 00:08:19,105
+The word itself, several times.
+
+165
+00:08:19,365 --> 00:08:23,815
+And ten seconds of normal speech,
+so everyday conversation never sets it off.
+
+166
+00:08:24,075 --> 00:08:25,693
+It can even be a made-up word.
+
+167
+00:08:26,043 --> 00:08:27,842
+So, what happens to every sound?
+
+168
+00:08:28,102 --> 00:08:31,941
+First, echo cancellation removes
+whatever your PC is playing,
+
+169
+00:08:31,941 --> 00:08:34,919
+so music or a film won't
+drown out your voice.
+
+170
+00:08:35,269 --> 00:08:36,950
+Every eighty milliseconds,
+
+171
+00:08:36,950 --> 00:08:40,733
+the openWakeWord models turn the audio
+into a compact fingerprint.
+
+172
+00:08:40,993 --> 00:08:44,034
+Your personal detector compares it
+with your own recordings,
+
+173
+00:08:44,034 --> 00:08:45,324
+in two different ways.
+
+174
+00:08:45,584 --> 00:08:46,854
+And both have to agree.
+
+175
+00:08:47,204 --> 00:08:49,284
+When it fires, a second check kicks in.
+
+176
+00:08:49,544 --> 00:08:51,946
+Parakeet transcribes the last few seconds,
+
+177
+00:08:51,946 --> 00:08:54,748
+and confirms that it really sounds
+like your word.
+
+178
+00:08:55,098 --> 00:08:59,147
+Silero, a voice activity detector,
+notices when you stop talking.
+
+179
+00:08:59,497 --> 00:09:03,259
+And Parakeet, NVIDIA's multilingual
+speech recognition model,
+
+180
+00:09:03,259 --> 00:09:06,459
+turns your order into text,
+right there on your PC.
+
+181
+00:09:06,809 --> 00:09:09,780
+Then comes the clever part:
+finding the command you meant.
+
+182
+00:09:10,130 --> 00:09:11,819
+The first layer reads the words.
+
+183
+00:09:12,079 --> 00:09:14,222
+It looks for a command's name
+in what you said.
+
+184
+00:09:14,482 --> 00:09:18,605
+It ignores filler words like please,
+different word endings, small slips,
+
+185
+00:09:18,605 --> 00:09:20,588
+and words that just sound alike.
+
+186
+00:09:20,848 --> 00:09:22,309
+You tube becomes YouTube.
+
+187
+00:09:22,659 --> 00:09:25,533
+When the words aren't enough,
+the second layer looks at the meaning.
+
+188
+00:09:25,793 --> 00:09:30,259
+EmbeddingGemma, a small model from Google,
+turns sentences into vectors:
+
+189
+00:09:30,259 --> 00:09:34,038
+points in a space where similar
+meanings sit close together.
+
+190
+00:09:34,388 --> 00:09:38,874
+So, clean out the trash lands right next
+to your command, Empty Recycle Bin.
+
+191
+00:09:39,134 --> 00:09:40,803
+Without a single list of synonyms.
+
+192
+00:09:41,153 --> 00:09:42,887
+It also knows what isn't yours.
+
+193
+00:09:43,147 --> 00:09:46,367
+Turn off the TV is close
+to Shut down the computer,
+
+194
+00:09:46,367 --> 00:09:51,336
+but it's even closer to a list of everyday
+requests that K-Desktop doesn't handle.
+
+195
+00:09:51,596 --> 00:09:52,746
+So nothing happens.
+
+196
+00:09:53,006 --> 00:09:57,001
+Anything that powers off the PC has
+to be said especially clearly.
+
+197
+00:09:57,351 --> 00:09:58,740
+You can chain orders, too.
+
+198
+00:09:59,000 --> 00:10:02,161
+Open YouTube and empty the recycle bin,
+runs both.
+
+199
+00:10:02,511 --> 00:10:05,226
+Music and volume work
+without any command at all.
+
+200
+00:10:05,486 --> 00:10:06,067
+Pause.
+
+201
+00:10:06,327 --> 00:10:07,141
+Next song.
+
+202
+00:10:07,401 --> 00:10:08,343
+A little quieter.
+
+203
+00:10:08,603 --> 00:10:10,115
+Volume to forty percent.
+
+204
+00:10:10,375 --> 00:10:11,189
+Play music.
+
+205
+00:10:11,539 --> 00:10:14,693
+And dictation types what you say,
+wherever the cursor is.
+
+206
+00:10:14,953 --> 00:10:17,567
+Say new line, scratch that,
+or stop dictating.
+
+207
+00:10:17,917 --> 00:10:19,558
+The models are downloaded once.
+
+208
+00:10:19,818 --> 00:10:23,313
+They take about seven hundred megabytes
+of memory while loaded,
+
+209
+00:10:23,313 --> 00:10:25,288
+and free it after a while unused.
+
+210
+00:10:25,548 --> 00:10:29,027
+While you speak, other sounds can be
+turned down so it hears you better.
+
+211
+00:10:29,287 --> 00:10:32,580
+And neither your audio
+nor your words ever leave the PC.
+
+212
+00:10:34,830 --> 00:10:36,312
+Your PC, from the couch.
+
+213
+00:10:36,572 --> 00:10:40,168
+K-Desktop includes a web app
+for your phone, or any browser.
+
+214
+00:10:40,518 --> 00:10:42,816
+Pair a device by scanning a QR code.
+
+215
+00:10:43,076 --> 00:10:47,066
+The code works only once,
+and any device can be revoked at any time.
+
+216
+00:10:47,416 --> 00:10:50,898
+Your QuickMenus and all your commands
+are right there, with search,
+
+217
+00:10:50,898 --> 00:10:52,615
+and your most used ones first.
+
+218
+00:10:52,965 --> 00:10:56,499
+A touchpad and a keyboard move
+the PC's mouse, and type for you.
+
+219
+00:10:56,849 --> 00:11:01,130
+The audio tab controls the volume,
+the music, and the output device.
+
+220
+00:11:01,480 --> 00:11:03,730
+The phone's microphone gives voice orders.
+
+221
+00:11:03,990 --> 00:11:05,632
+And you can chat with your assistants.
+
+222
+00:11:05,982 --> 00:11:08,263
+Install it on the home screen,
+like an app.
+
+223
+00:11:08,523 --> 00:11:13,332
+Behind a reverse proxy with HTTPS,
+it even works from outside your home.
+
+224
+00:11:13,682 --> 00:11:15,212
+There's also an Android app.
+
+225
+00:11:15,472 --> 00:11:18,343
+The same interface,
+with a native microphone,
+
+226
+00:11:18,343 --> 00:11:20,539
+kept up to date by the PC itself.
+
+227
+00:11:20,889 --> 00:11:24,910
+And for machines, there's UDP,
+compatible with K-Desktop 4.
+
+228
+00:11:25,170 --> 00:11:27,316
+Send list, to get the remote commands.
+
+229
+00:11:27,576 --> 00:11:29,333
+A number or a name, to run one.
+
+230
+00:11:29,593 --> 00:11:31,417
+S K plus keys, to press them.
+
+231
+00:11:31,677 --> 00:11:35,133
+Or event plus a name,
+to fire a Call from outside event.
+
+232
+00:11:35,393 --> 00:11:38,634
+Perfect for Home Assistant,
+scripts, or another PC.
+
+233
+00:11:38,984 --> 00:11:42,172
+And from the command line:
+run a command, open a menu,
+
+234
+00:11:42,172 --> 00:11:44,404
+fire an event, or open the launcher.
+
+235
+00:11:46,654 --> 00:11:48,928
+Everything that runs ends up
+in the history.
+
+236
+00:11:49,188 --> 00:11:50,763
+The last five hundred runs:
+
+237
+00:11:50,763 --> 00:11:54,580
+where they came from, how long they took,
+and whether anything went wrong.
+
+238
+00:11:54,930 --> 00:11:57,712
+As you use K-Desktop,
+you unlock achievements.
+
+239
+00:11:57,972 --> 00:12:01,546
+More than a hundred of them,
+each with an animated notification.
+
+240
+00:12:01,806 --> 00:12:05,242
+Night owl, for running a command
+between three and five in the morning.
+
+241
+00:12:05,502 --> 00:12:07,413
+Pianist, for a mouse button chord.
+
+242
+00:12:07,673 --> 00:12:08,911
+And a few secret ones.
+
+243
+00:12:09,261 --> 00:12:10,781
+And the statistics count it all.
+
+244
+00:12:11,041 --> 00:12:14,462
+Commands and actions run,
+QuickMenus opened, voice orders,
+
+245
+00:12:14,462 --> 00:12:18,898
+how many were understood by their meaning,
+and where your commands come from.
+
+246
+00:12:21,148 --> 00:12:24,579
+Settings are grouped by topic,
+and searchable with Control F.
+
+247
+00:12:24,929 --> 00:12:28,081
+Appearance: light,
+dark, or follow Windows.
+
+248
+00:12:28,341 --> 00:12:32,203
+Six built-in languages,
+and you can add your own with a JSON file.
+
+249
+00:12:32,553 --> 00:12:36,816
+General: start with Windows,
+with administrator rights and no prompt.
+
+250
+00:12:37,076 --> 00:12:39,943
+Hotkeys to show, exit or pause K-Desktop.
+
+251
+00:12:40,203 --> 00:12:42,014
+Sounds, and on-screen messages.
+
+252
+00:12:42,364 --> 00:12:44,245
+Disable in: a list of apps,
+
+253
+00:12:44,245 --> 00:12:49,203
+like your games, where hotkeys do nothing,
+unless a command is set to always run.
+
+254
+00:12:49,553 --> 00:12:53,096
+The launcher, voice, multimedia,
+captures and magnifier,
+
+255
+00:12:53,096 --> 00:12:56,697
+the web app and remote control:
+each has its own section.
+
+256
+00:12:57,047 --> 00:12:58,275
+And your data is safe.
+
+257
+00:12:58,535 --> 00:12:59,982
+Automatic daily backups.
+
+258
+00:13:00,242 --> 00:13:02,097
+Full zip copies every few days.
+
+259
+00:13:02,357 --> 00:13:03,605
+Export and import.
+
+260
+00:13:03,865 --> 00:13:06,337
+And a one-click import from K-Desktop 4.
+
+261
+00:13:06,597 --> 00:13:08,090
+Updates install themselves.
+
+262
+00:13:10,340 --> 00:13:12,570
+And finally, something new: assistants.
+
+263
+00:13:12,830 --> 00:13:15,432
+Little characters that live
+on top of your windows.
+
+264
+00:13:15,692 --> 00:13:18,451
+You can talk to them,
+and they can actually do things.
+
+265
+00:13:18,801 --> 00:13:22,152
+Meet the Lander,
+a tiny lunar module that flies around
+
+266
+00:13:22,152 --> 00:13:25,447
+and lands on your title bars,
+with a game of its own.
+
+267
+00:13:25,707 --> 00:13:29,074
+Kobii, a squishy creature
+that wanders along your taskbar.
+
+268
+00:13:29,334 --> 00:13:32,747
+And Pip, a drop made
+with nothing but images and JSON.
+
+269
+00:13:33,097 --> 00:13:35,254
+Assistants live in an optional module.
+
+270
+00:13:35,514 --> 00:13:38,014
+While it's off,
+K-Desktop doesn't load any of it.
+
+271
+00:13:38,364 --> 00:13:39,975
+Each assistant is a package.
+
+272
+00:13:40,235 --> 00:13:44,271
+Open one, and its card tells you what
+it is, whether its signature checks out,
+
+273
+00:13:44,271 --> 00:13:45,472
+and what it can do.
+
+274
+00:13:45,732 --> 00:13:48,484
+Install it,
+and it drops right onto your desktop.
+
+275
+00:13:48,834 --> 00:13:52,730
+Each assistant runs in its own process,
+without administrator rights.
+
+276
+00:13:52,990 --> 00:13:56,571
+K-Desktop draws it
+on a transparent layer over your windows,
+
+277
+00:13:56,571 --> 00:13:58,849
+and your windows become its terrain.
+
+278
+00:13:59,199 --> 00:14:02,333
+To talk to one, say its name:
+Lander, what time is it?
+
+279
+00:14:02,593 --> 00:14:07,241
+Each assistant has its own wake word,
+while K-Desktop keeps running your commands.
+
+280
+00:14:07,501 --> 00:14:10,233
+You can also hold its key,
+or hold the click on it.
+
+281
+00:14:10,493 --> 00:14:12,820
+And when it asks you something back,
+just answer.
+
+282
+00:14:13,170 --> 00:14:18,265
+Their brain is a language model that runs
+on your PC, with llama server and a model
+
+283
+00:14:18,265 --> 00:14:22,787
+from Hugging Face: it picks the biggest
+one that fits your graphics card.
+
+284
+00:14:23,047 --> 00:14:27,837
+Ollama or any OpenAI compatible server
+work too, and it always tells you
+
+285
+00:14:27,837 --> 00:14:31,890
+where your words go: this PC,
+your network, or the internet.
+
+286
+00:14:32,240 --> 00:14:35,088
+The model loads when you talk,
+unloads when idle,
+
+287
+00:14:35,088 --> 00:14:37,366
+and steps aside for full screen games.
+
+288
+00:14:37,626 --> 00:14:41,011
+Simple things, like the time,
+a timer, a note or cancel,
+
+289
+00:14:41,011 --> 00:14:43,468
+are answered instantly, without the AI.
+
+290
+00:14:43,818 --> 00:14:46,465
+And they answer out loud,
+sentence by sentence,
+
+291
+00:14:46,465 --> 00:14:48,263
+while the AI is still writing.
+
+292
+00:14:48,523 --> 00:14:52,304
+With Kokoro, a natural voice
+that runs offline on your processor.
+
+293
+00:14:52,564 --> 00:14:54,319
+The same voice you're hearing right now.
+
+294
+00:14:54,579 --> 00:14:57,018
+Or Piper, with voices in every language.
+
+295
+00:14:57,278 --> 00:14:58,468
+Or the Windows voices.
+
+296
+00:14:58,728 --> 00:14:59,691
+Or just beeps.
+
+297
+00:15:00,041 --> 00:15:04,613
+Each assistant has its own style:
+the Lander talks over mission control radio.
+
+298
+00:15:04,873 --> 00:15:07,685
+You can mix two voices,
+try robot or eight bit,
+
+299
+00:15:07,685 --> 00:15:10,445
+and keep them quiet
+during a full screen film.
+
+300
+00:15:10,705 --> 00:15:13,427
+They even sound from the side
+of the screen where they are.
+
+301
+00:15:13,777 --> 00:15:14,673
+What can they do?
+
+302
+00:15:14,933 --> 00:15:17,291
+Timers, notes, calculations, the weather.
+
+303
+00:15:17,551 --> 00:15:21,493
+Search and read the web, find files,
+open apps, control the music,
+
+304
+00:15:21,493 --> 00:15:24,941
+check the PC, look at your screen,
+and run your commands.
+
+305
+00:15:25,291 --> 00:15:26,838
+Anything risky asks first.
+
+306
+00:15:27,098 --> 00:15:29,646
+Say yes once, or yes and don't ask again.
+
+307
+00:15:29,906 --> 00:15:31,546
+And many actions can be undone.
+
+308
+00:15:31,896 --> 00:15:32,942
+And you see it happen.
+
+309
+00:15:33,202 --> 00:15:35,005
+Ask: Lander, minimize Chrome.
+
+310
+00:15:35,265 --> 00:15:39,871
+It flies over, fires at the button,
+and the window minimizes right on impact.
+
+311
+00:15:40,131 --> 00:15:43,471
+To move a window, it shoots
+a grappling hook at the title bar,
+
+312
+00:15:43,471 --> 00:15:44,896
+and tows it into place.
+
+313
+00:15:45,246 --> 00:15:50,045
+You can also give them new skills,
+without compiling: one JSON file per tool.
+
+314
+00:15:50,305 --> 00:15:52,663
+Call a web API like Home Assistant,
+
+315
+00:15:52,663 --> 00:15:56,401
+run one of your commands,
+chain a routine, or run a script.
+
+316
+00:15:56,661 --> 00:15:59,640
+Secrets stay encrypted,
+and the model never sees them.
+
+317
+00:15:59,900 --> 00:16:04,281
+And MCP servers plug in too,
+imported straight from Claude Desktop.
+
+318
+00:16:04,631 --> 00:16:08,581
+They remember what matters: your name,
+what you like, important dates.
+
+319
+00:16:08,841 --> 00:16:12,216
+You can see and edit everything
+they know about you, and keep notes.
+
+320
+00:16:12,566 --> 00:16:14,105
+And they can read your documents.
+
+321
+00:16:14,365 --> 00:16:19,808
+Choose folders or files: notes, manuals,
+contracts, PDFs, even scanned pages.
+
+322
+00:16:20,068 --> 00:16:22,218
+Everything is read once, on your PC.
+
+323
+00:16:22,478 --> 00:16:25,175
+Ask: what does my contract
+say about the deposit?
+
+324
+00:16:25,435 --> 00:16:28,951
+And they answer, telling you
+which document and page it came from.
+
+325
+00:16:29,301 --> 00:16:31,198
+Assistants plug into commands, too.
+
+326
+00:16:31,458 --> 00:16:36,279
+Four actions let any command or event run
+an assistant's action, ask it something,
+
+327
+00:16:36,279 --> 00:16:39,622
+make it say something,
+or free its brain before a game.
+
+328
+00:16:39,972 --> 00:16:43,468
+And if you want to build your own,
+there's an SDK with a template.
+
+329
+00:16:43,728 --> 00:16:47,350
+Or no code at all:
+just images and JSON, like Pip.
+
+330
+00:16:49,600 --> 00:16:50,802
+Commands and actions.
+
+331
+00:16:51,062 --> 00:16:52,512
+QuickMenus and the launcher.
+
+332
+00:16:52,772 --> 00:16:54,668
+Events, macros and K-Board.
+
+333
+00:16:54,928 --> 00:16:57,922
+Your voice, your phone,
+and assistants that lend a hand.
+
+334
+00:16:58,272 --> 00:17:01,640
+K-Desktop is a single
+portable program for Windows.
+
+335
+00:17:01,900 --> 00:17:04,749
+Download it from GitHub,
+and start with one command.
+
+336
+00:17:05,009 --> 00:17:06,898
+You'll be surprised how far it goes.
+
+337
+00:17:07,248 --> 00:17:08,338
+Thanks for watching.

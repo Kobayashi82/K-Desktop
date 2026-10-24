@@ -26,6 +26,19 @@ también desde un menú en el ratón, por voz, desde el móvil, por red o cuando
 Es la reescritura completa de K-Desktop 4 (VB.NET / WinForms) en **C# / WPF / .NET 10**, y la primera vez que se
 ejecuta importa los comandos, QuickMenus e iconos de la versión anterior.
 
+## Vídeo
+
+<p align="center">
+  <a href="docs/videos/K-Desktop-en.mp4">
+    <img src="docs/images/video-en.jpg" alt="Vídeo de presentación de K-Desktop 5 (en inglés)" width="800">
+  </a>
+</p>
+
+<p align="center">
+  <a href="docs/videos/K-Desktop-en.mp4">Ver el vídeo (inglés, 17 min)</a> ·
+  <a href="docs/videos/K-Desktop-en.srt">Subtítulos (.srt)</a>
+</p>
+
 ## Funciones
 
 - **Comandos**: secuencias de acciones que se lanzan con atajos de teclado o ratón (`CTRL + ALT + O`, `Mouse 5`,
