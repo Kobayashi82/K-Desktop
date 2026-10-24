@@ -18,13 +18,13 @@
 </p>
 
 <p align="center">
-  <b>English</b> · <a href="README.es.md">Español</a>
+  <b>English</b> · <a href="README.es.md">Español</a> · <a href="https://kobayashi82.github.io/K-Desktop/en/">Documentation</a>
 </p>
 
 > [!WARNING]
-> **Work in progress.** K-Desktop 5 is used every day, but it is still under active development: there is no published
-> release yet, things change from one version to the next, and the assistant module (and its SDK) is not frozen yet. If
-> you build it or try it, expect rough edges.
+> **Work in progress.** K-Desktop 5 is used every day, but it is still under active development: the releases are
+> previews, things change from one version to the next, and the assistant module is still being finished. If you try
+> it, expect rough edges.
 
 <p align="center">
   <img src="docs/images/k-desktop-en.png" alt="K-Desktop main window with the command list and a command being edited" width="900">
@@ -63,6 +63,7 @@ https://github.com/user-attachments/assets/f8e5aefc-33bf-4548-b61d-3f6fdc5642fb
 - [Building from source](#building-from-source)
 - [Project structure](#project-structure)
 - [Third-party licences](#third-party-licences)
+- [License](#license)
 
 ## Features
 
@@ -288,3 +289,7 @@ The assistants live in their own repository,
 ## Third-party licences
 
 See [docs/THIRD-PARTY-NOTICES.md](docs/THIRD-PARTY-NOTICES.md).
+
+## License
+
+K-Desktop is released under the [MIT License](LICENSE).

@@ -1,0 +1,52 @@
+- name: Introducción
+  href: index.md
+- name: K-Desktop
+  items:
+  - name: Primeros pasos
+    href: k-desktop/getting-started.md
+  - name: Comandos
+    href: k-desktop/commands.md
+  - name: Acciones
+    href: k-desktop/actions.md
+  - name: QuickMenu y lanzador
+    href: k-desktop/quickmenu-launcher.md
+  - name: Eventos
+    href: k-desktop/events.md
+  - name: Macros y K-Board
+    href: k-desktop/macros-kboard.md
+  - name: Voz
+    href: k-desktop/voice.md
+  - name: Móvil y control remoto
+    href: k-desktop/remote.md
+  - name: Opciones, datos y privacidad
+    href: k-desktop/settings.md
+- name: Módulo Asistente
+  items:
+  - name: Asistentes
+    href: assistant/index.md
+  - name: Cerebro (la IA)
+    href: assistant/brain.md
+  - name: Herramientas
+    href: assistant/tools.md
+  - name: Memoria, notas y documentos
+    href: assistant/memory-knowledge.md
+  - name: Voz y conversación
+    href: assistant/voice.md
+- name: Crear asistentes (SDK)
+  items:
+  - name: Introducción
+    href: sdk/index.md
+  - name: Sin código
+    href: sdk/no-code.md
+  - name: Con código
+    href: sdk/getting-started.md
+  - name: Lo que da el host
+    href: sdk/host.md
+  - name: Gestos
+    href: sdk/gestures.md
+  - name: Escaparate
+    href: sdk/showcase.md
+  - name: Firmar y publicar
+    href: sdk/publishing.md
+  - name: Referencia de la API (inglés)
+    href: ../api/KDesktop.Assistant.Sdk.yml

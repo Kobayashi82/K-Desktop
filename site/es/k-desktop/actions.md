@@ -1,0 +1,88 @@
+# Acciones
+
+Todas las acciones que puede ejecutar un comando. Se añaden con *Añadir acción* en el editor del comando y se ejecutan en
+orden.
+
+## Abrir y ejecutar
+
+| Acción | Qué hace |
+|---|---|
+| **Ejecutar aplicación** | Abre un programa, archivo, acceso directo o script, como usuario normal o como administrador. |
+| **Abrir carpeta** | Abre una carpeta o una ubicación especial de Windows. |
+| **Abrir página web** | Abre una dirección en el navegador que elijas. |
+| **Controlar aplicación** | Activa, cierra o espera a una aplicación por el nombre de su proceso. |
+| **Ejecutar script** | Ejecuta un script de CMD o PowerShell escrito ahí mismo. |
+
+## Ventanas
+
+| Acción | Qué hace |
+|---|---|
+| **Ventana** | Maximiza, minimiza, coloca (mitades, cuartos, tercios), centra, pasa a otro monitor o hace transparente una ventana. |
+| **Siempre visible (on/off)** | Deja la ventana activa por encima de las demás, o la suelta. |
+
+## Teclado y ratón
+
+| Acción | Qué hace |
+|---|---|
+| **Enviar pulsación / texto** | Envía una combinación de teclas, escribe un texto o mueve el ratón. |
+| **Portapapeles** | Copia un texto (con fecha, hora…) o cambia el que hay: texto plano, mayúsculas, minúsculas, enlaces limpios… y lo pega. |
+| **Reproducir macro** | Reproduce una macro grabada (teclado y ratón con sus tiempos), una vez o varias. |
+| **K-Board** | Activa, desactiva o alterna un perfil de K-Board (teclas y botones cambiados). |
+| **Dictar** | Escribe lo que dices donde está el cursor, sin IA. Acaba tras unos segundos de silencio, con Esc o diciendo «deja de dictar». |
+
+## Sonido
+
+| Acción | Qué hace |
+|---|---|
+| **Volumen** | Fija, sube, baja o silencia el volumen: de los altavoces, del micrófono, de un programa o del que está delante. |
+| **Salida de audio** | Cambia el dispositivo de sonido predeterminado. Con varios elegidos, cada vez pasa al siguiente. |
+| **Reproducir sonido** | Reproduce un sonido incluido o un archivo .wav. |
+| **Grabar audio** | Graba lo que suena en el PC, el micrófono o las dos cosas, o guarda los últimos segundos (la repetición de *Opciones → Capturas y lupa*). |
+
+## Pantalla
+
+| Acción | Qué hace |
+|---|---|
+| **Captura de pantalla** | Captura una zona que eliges con el ratón, la ventana activa, un monitor o todos; la copia, la guarda y, si quieres, la abre. |
+| **Copiar texto de la pantalla** | Lee el texto de una zona que eliges con el ratón, de la ventana activa o de un monitor, y lo copia. Sin IA: con el reconocimiento de texto de Windows (OCR). |
+| **Lupa** | Una lente que sigue al ratón y amplía lo que tiene alrededor (o toda la pantalla principal). |
+| **Pantalla** | Apaga las pantallas, cambia la proyección (Win + P), el brillo, o la resolución y la frecuencia de un monitor. |
+| **Tema de Windows** | Pasa Windows y las aplicaciones a modo claro u oscuro, o alterna entre los dos. |
+
+## Red e internet
+
+| Acción | Qué hace |
+|---|---|
+| **Petición web** | Envía una petición HTTP (GET, POST…) sin abrir el navegador: Home Assistant, APIs, avisos al móvil… |
+| **Despertar equipo** | Enciende otro PC o un servidor por la red (Wake-on-LAN) y, si quieres, espera a que responda. |
+| **Wi-Fi y Bluetooth** | Enciende, apaga o alterna el Wi-Fi o el Bluetooth. |
+
+## Sistema
+
+| Acción | Qué hace |
+|---|---|
+| **Archivos ocultos (on/off)** | Enseña o esconde los archivos ocultos en el Explorador. |
+| **Plan de energía** | Cambia el plan de energía de Windows (Alto rendimiento, Equilibrado…) o pasa al siguiente. |
+| **Energía** | Apaga, reinicia, suspende, bloquea o cierra la sesión, con una cuenta atrás que se puede cancelar. |
+
+## K-Desktop y flujo
+
+| Acción | Qué hace |
+|---|---|
+| **Si…** | Comprueba algo (un programa abierto, la hora, un dispositivo, la red, el uso del procesador…) y, si no se cumple, para el comando o se salta las acciones siguientes. Ver [condiciones](commands.md#si-condiciones). |
+| **Esperar** | Hace una pausa antes de la acción siguiente. |
+| **Comandos** | Ejecuta, habilita o deshabilita otro comando. |
+| **Abrir QuickMenu** | Enseña un QuickMenu donde está el ratón. |
+| **Mostrar mensaje** | Enseña un mensaje en pantalla durante un rato. |
+| **Desactivar en la app actual (on/off)** | Desactiva o vuelve a activar los atajos de K-Desktop en la aplicación activa (útil en juegos). |
+
+## Asistente
+
+Solo con el [módulo Asistente](../assistant/index.md) encendido.
+
+| Acción | Qué hace |
+|---|---|
+| **Asistente: preguntar** | Le dice algo a un asistente, como si se lo dijeras en voz alta. Sin texto, abre la caja para escribirle. |
+| **Asistente: decir** | El asistente dice algo en su bocadillo, sin la IA. Útil en eventos: «Ha terminado la copia». |
+| **Asistente: cerebro** | Saca el modelo de IA de la gráfica (antes de un juego o un render) o lo carga ya para que la primera respuesta no espere. |
+| **Asistente: acción** | Lanza una acción propia de un asistente, como el modo manual del Lander. |
