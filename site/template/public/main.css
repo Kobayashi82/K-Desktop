@@ -1,0 +1,3 @@
+/* K-Desktop: a slightly bigger logo next to the name, and wider tables. */
+#logo { width: 32px; height: 32px; margin-right: .5rem; }
+article table { width: 100%; }

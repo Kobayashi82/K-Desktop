@@ -1,0 +1,52 @@
+- name: Introduction
+  href: index.md
+- name: K-Desktop
+  items:
+  - name: Getting started
+    href: k-desktop/getting-started.md
+  - name: Commands
+    href: k-desktop/commands.md
+  - name: Actions
+    href: k-desktop/actions.md
+  - name: QuickMenu and launcher
+    href: k-desktop/quickmenu-launcher.md
+  - name: Events
+    href: k-desktop/events.md
+  - name: Macros and K-Board
+    href: k-desktop/macros-kboard.md
+  - name: Voice
+    href: k-desktop/voice.md
+  - name: Phone and remote control
+    href: k-desktop/remote.md
+  - name: Settings, data and privacy
+    href: k-desktop/settings.md
+- name: Assistant module
+  items:
+  - name: Assistants
+    href: assistant/index.md
+  - name: Brain (the AI)
+    href: assistant/brain.md
+  - name: Tools
+    href: assistant/tools.md
+  - name: Memory, notes and documents
+    href: assistant/memory-knowledge.md
+  - name: Voice and conversation
+    href: assistant/voice.md
+- name: Making assistants (SDK)
+  items:
+  - name: Overview
+    href: sdk/index.md
+  - name: Without code
+    href: sdk/no-code.md
+  - name: With code
+    href: sdk/getting-started.md
+  - name: What the host gives
+    href: sdk/host.md
+  - name: Gestures
+    href: sdk/gestures.md
+  - name: Showcase
+    href: sdk/showcase.md
+  - name: Signing and publishing
+    href: sdk/publishing.md
+  - name: API reference
+    href: ../api/KDesktop.Assistant.Sdk.yml

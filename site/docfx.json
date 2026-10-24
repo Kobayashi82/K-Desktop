@@ -1,0 +1,40 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "../src/KDesktop.Assistant.Sdk",
+          "files": ["KDesktop.Assistant.Sdk.csproj"]
+        }
+      ],
+      "dest": "api",
+      "namespaceLayout": "flattened",
+      "memberLayout": "samePage",
+      "enumSortOrder": "declaringOrder"
+    }
+  ],
+  "build": {
+    "content": [
+      { "files": ["**/*.{md,yml}"], "exclude": ["_site/**", "obj/**", "README.md"] }
+    ],
+    "resource": [
+      { "files": ["images/**", "CNAME", ".nojekyll"] }
+    ],
+    "output": "_site",
+    "template": ["default", "modern", "template"],
+    "globalMetadata": {
+      "_appName": "K-Desktop",
+      "_appTitle": "K-Desktop",
+      "_appLogoPath": "images/logo.png",
+      "_appFaviconPath": "images/favicon.png",
+      "_appFooter": "K-Desktop · <a href=\"https://github.com/Kobayashi82/K-Desktop\">GitHub</a>",
+      "_enableSearch": true,
+      "_disableContribution": true,
+      "pdf": false
+    },
+    "sitemap": {
+      "baseUrl": "https://kobayashi82.github.io/K-Desktop"
+    }
+  }
+}
