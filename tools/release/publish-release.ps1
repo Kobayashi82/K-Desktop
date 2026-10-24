@@ -23,7 +23,7 @@ function Step($text) { Write-Host "-- $text" -ForegroundColor Cyan }
 
 # 1. What there is to publish.
 $manifestFile = Join-Path $update 'kdesktop.json'
-if (-not (Test-Path $manifestFile)) { throw "No está $manifestFile: publica antes el portable" }
+if (-not (Test-Path $manifestFile)) { throw "No está ${manifestFile}: publica antes el portable" }
 $manifest = [System.IO.File]::ReadAllText($manifestFile) | ConvertFrom-Json
 $version = $manifest.version
 $tag = "v$version"
