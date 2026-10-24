@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/k-desktop.png" alt="K-Desktop main window with the command list and a command being edited" width="900">
+  <img src="docs/images/k-desktop-en.png" alt="K-Desktop main window with the command list and a command being edited" width="900">
 </p>
 
 K-Desktop turns any key, mouse button or combination into a sequence of actions: open programs, arrange windows,

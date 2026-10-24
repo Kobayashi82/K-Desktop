@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/k-desktop.png" alt="Ventana principal de K-Desktop con la lista de comandos y el editor de un comando" width="900">
+  <img src="docs/images/k-desktop-es.png" alt="Ventana principal de K-Desktop con la lista de comandos y el editor de un comando" width="900">
 </p>
 
 K-Desktop convierte cualquier tecla, botón del ratón o combinación en una secuencia de acciones: abrir programas,
