@@ -238,9 +238,9 @@ pueden soltar archivos encima y elegir qué hacer con ellos.
 Una versión nueva instalada encima de la anterior se cambia en caliente y conserva los datos del asistente
 (`%APPDATA%\K-Desktop 5\Assistants\Data\<id>`, que entran en las copias de seguridad).
 
-Para crear tu propio asistente, mira [docs/assistant/creating-an-assistant.md](docs/assistant/creating-an-assistant.md)
-(en inglés) o empieza con la plantilla de `dotnet new` en [`templates/kdassistant`](templates/kdassistant). Las
-herramientas JSON se explican en [docs/assistant/herramientas.md](docs/assistant/herramientas.md).
+Para crear tu propio asistente, mira [Crear asistentes](https://kobayashi82.github.io/K-Desktop/es/sdk/index.html)
+o empieza con la plantilla de `dotnet new` en [`templates/kdassistant`](templates/kdassistant). Las herramientas
+JSON se explican en [Herramientas](https://kobayashi82.github.io/K-Desktop/es/assistant/tools.html).
 
 ## Línea de comandos
 
@@ -286,8 +286,11 @@ samples/CharacterAssistant    Pip, el asistente de ejemplo sin código
 templates/kdassistant         plantilla de dotnet new para un asistente nuevo
 android/                      app de Android (WebView de la app web del PC, con micrófono nativo)
 tests/                        pruebas del núcleo, del módulo Asistente y Dot, el asistente de las pruebas
-docs/assistant/               protocolo, esquemas de los paquetes y guía para crear un asistente
-tools/                        icono, APK, paquete de actualización y firma de paquetes (KaiSign)
+site/                         la web de la documentación (DocFX), publicada en GitHub Pages con site/publish.ps1
+docs/assistant/               esquemas de los paquetes, protocolo de la tubería y sus ejemplos, notas internas
+docs/tutorial/                el vídeo explicativo (Remotion) y sus capturas
+tools/                        scripts de publicación, KaiSign, icono, APK, imágenes de Pip, capturas del tutorial
+catalog.json                  el catálogo oficial de asistentes que lee K-Desktop
 ```
 
 Los asistentes están en su propio repositorio,

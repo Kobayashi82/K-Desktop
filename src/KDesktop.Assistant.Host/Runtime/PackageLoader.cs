@@ -112,7 +112,7 @@ internal static class PackageLoader
             GC.WaitForPendingFinalizers();
         }
         // WPF keeps some types in static tables: an assistant that registers its own may stay loaded. Not fatal;
-        // switching restarts the process if it piles up (pruebas-de-concepto.md, c).
+        // switching restarts the process if it piles up.
         if (reference.IsAlive) Log.Warn($"Asistente: el código de «{id}» no se ha podido descargar del todo");
     }
 

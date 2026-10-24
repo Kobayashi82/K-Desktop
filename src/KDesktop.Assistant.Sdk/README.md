@@ -26,7 +26,8 @@ monitors, taskbar, the other assistants, music, system events), sound, keyboard 
 gestures of the AI and the commands it is asked to perform. The AI, the tools, the voice and K-Desktop itself are never
 seen by the assistant.
 
-- **Guide:** [docs/assistant/creating-an-assistant.md](../../docs/assistant/creating-an-assistant.md)
+- **Guide:** [Making assistants](https://kobayashi82.github.io/K-Desktop/en/sdk/index.html), and the
+  [API reference](https://kobayashi82.github.io/K-Desktop/api/KDesktop.Assistant.Sdk.html)
 - **Schemas** of the package files: [docs/assistant/schemas](../../docs/assistant/schemas)
 - **Template:** `dotnet new install templates/kdassistant`, then `dotnet new kdassistant -n MyAssistant`
 - **Without code:** an assistant can be just pictures and a `character.json` (see Pip, `samples/CharacterAssistant`)

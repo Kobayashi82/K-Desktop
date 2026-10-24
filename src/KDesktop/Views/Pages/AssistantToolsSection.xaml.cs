@@ -28,7 +28,10 @@ namespace KDesktop.Views.Pages;
 /// </summary>
 public partial class AssistantToolsSection : UserControl
 {
-    private const string GuideUrl = "https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/herramientas.md";
+    /// <summary>The page about tools of the documentation website, in Spanish or else in English.</summary>
+    private static string GuideUrl => Loc.Instance.Language == "es"
+        ? "https://kobayashi82.github.io/K-Desktop/es/assistant/tools.html#tus-herramientas-json"
+        : "https://kobayashi82.github.io/K-Desktop/en/assistant/tools.html#your-own-tools-json";
 
     private readonly App _app = App.Current;
     /// <summary>What the page showed last time it was made (it is not made again for the same).</summary>

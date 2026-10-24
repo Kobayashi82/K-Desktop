@@ -4,11 +4,8 @@ obj/
 publish/
 artifacts/
 
-## Android signing key (docs/COMPILAR.md): never in the repository
+## Signing keys (the Android one and a copy of the assistants' one, keys/info.txt): never in the repository
 keys/
-
-## Signing key of the assistant packages (tools/KaiSign): never in the repository
-firma/
 
 ## IDE
 .vs/
@@ -29,8 +26,6 @@ docs/VOZ.md
 docs/COMPILAR.md
 ARREGLAR.md
 CLAUDE.md
-Plan-Asistentes-KDesktop.md
-Fases-Asistentes-KDesktop.md
 
 ## Assistants: their own repository (K-Desktop-Assistants), cloned here
 assistants/

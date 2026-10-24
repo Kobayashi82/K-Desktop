@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kdesktop/assistant/tool.schema.json",
   "title": "JSON tool",
-  "description": "A tool for the assistants without building anything: one file per tool in <data>\\Assistant\\Tools. It is reloaded on save. Guide in docs/assistant/herramientas.md.",
+  "description": "A tool for the assistants without building anything: one file per tool in <data>\\Assistant\\Tools. It is reloaded on save. Guide: https://kobayashi82.github.io/K-Desktop/en/assistant/tools.html",
   "type": "object",
   "required": ["name", "type", "description"],
   "additionalProperties": false,

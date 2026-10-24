@@ -250,7 +250,7 @@ public partial class App
     }
 }
 
-/// <summary>The starting point of a new JSON tool of each type (guide in docs/assistant/herramientas.md).</summary>
+/// <summary>The starting point of a new JSON tool of each type (guide: site/en/assistant/tools.md).</summary>
 internal static class ToolTemplates
 {
     private const string Schema = "https://raw.githubusercontent.com/Kobayashi82/K-Desktop/main/docs/assistant/schemas/tool.schema.json";

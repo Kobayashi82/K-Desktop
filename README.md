@@ -232,9 +232,9 @@ do with them.
 A new version installed over the old one is swapped in live, keeping the assistant's data
 (`%APPDATA%\K-Desktop 5\Assistants\Data\<id>`, included in backups).
 
-To create your own assistant, see [docs/assistant/creating-an-assistant.md](docs/assistant/creating-an-assistant.md)
+To create your own assistant, see [Making assistants](https://kobayashi82.github.io/K-Desktop/en/sdk/index.html)
 or start from the `dotnet new` template in [`templates/kdassistant`](templates/kdassistant). JSON tools are described
-in [docs/assistant/herramientas.md](docs/assistant/herramientas.md) (in Spanish).
+in [Tools](https://kobayashi82.github.io/K-Desktop/en/assistant/tools.html).
 
 ## Command line
 
@@ -279,8 +279,11 @@ samples/CharacterAssistant    Pip, the no-code sample assistant
 templates/kdassistant         dotnet new template for a new assistant
 android/                      Android app (WebView of the PC's web app, with a native microphone)
 tests/                        core tests, Assistant module tests and Dot, the test assistant
-docs/assistant/               protocol, package schemas and the guide to creating an assistant
-tools/                        icon, APK, update package and package signing (KaiSign)
+site/                         documentation website (DocFX), published to GitHub Pages with site/publish.ps1
+docs/assistant/               package schemas, pipe protocol and its examples, internal notes (in Spanish)
+docs/tutorial/                the tutorial video (Remotion) and its screenshots
+tools/                        release scripts, KaiSign, icon, APK, Pip's pictures, tutorial captures
+catalog.json                  the official assistant catalog read by K-Desktop
 ```
 
 The assistants live in their own repository,
