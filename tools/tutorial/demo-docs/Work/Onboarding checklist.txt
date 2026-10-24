@@ -1,0 +1,6 @@
+New team member checklist
+[ ] Laptop and accounts (IT ticket at least 5 days before)
+[ ] Add to the team channel and the Thursday demo
+[ ] Read the design system guide
+[ ] Pair with Priya on day 2 and with Tom on day 3
+[ ] First small task merged in week 1

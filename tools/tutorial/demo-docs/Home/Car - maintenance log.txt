@@ -1,0 +1,9 @@
+Car: Toyota Corolla Hybrid 2021, plate 4821 LKM
+
+2025-03-14  48,200 km  Oil and filter change, tyre rotation. 189 EUR.
+2025-11-02  56,900 km  Annual service, cabin filter, wiper blades. 264 EUR.
+2026-06-20  63,400 km  New front tyres (Michelin Primacy 4, 205/55 R16). 238 EUR.
+
+Next service: around 66,000 km or November 2026, whichever comes first.
+ITV (MOT) inspection due: 12 March 2027.
+Tyre pressure: 2.3 bar front, 2.2 bar rear.
