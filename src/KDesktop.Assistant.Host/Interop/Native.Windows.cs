@@ -175,4 +175,8 @@ internal static unsafe partial class Native
     /// <summary>When the desktop composed its last frame and at what rate (to tick in step with the screen).</summary>
     [LibraryImport("dcomp.dll")]
     public static partial int DCompositionGetFrameStatistics(out DCOMPOSITION_FRAME_STATISTICS statistics);
+
+    /// <summary>A composition device that draws its surfaces with this Direct2D device (Vortice's wrapper only asks for the old interface).</summary>
+    [LibraryImport("dcomp.dll")]
+    public static partial int DCompositionCreateDevice2(nint renderingDevice, in Guid iid, out nint device);
 }

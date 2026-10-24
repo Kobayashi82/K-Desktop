@@ -117,6 +117,7 @@ internal sealed class DrawingReplayer : IDisposable
 
             case GeometryDrawing geometry:
                 Primitives++;
+                RenderStats.Primitive();
                 DrawGeometry(geometry.Geometry, geometry.Brush, geometry.Pen, world);
                 break;
 
@@ -184,6 +185,7 @@ internal sealed class DrawingReplayer : IDisposable
             LayerOptions = LayerOptions1.None,
         };
         _context.PushLayer(ref parameters, null);
+        RenderStats.Layer();
     }
 
     private void DrawGeometry(Geometry? geometry, System.Windows.Media.Brush? fill, System.Windows.Media.Pen? pen, Matrix3x2 world)
@@ -300,12 +302,12 @@ internal sealed class DrawingReplayer : IDisposable
                     _context.Transform = local * world;
                 }
 
-                if (fill is not null && GetBrush(fill, entry.Bounds) is { } brush)
+                if (fill is not null && GetBrush(fill, entry) is { } brush)
                 {
                     _context.FillGeometry(entry.Geometry, brush);
                 }
 
-                if (stroke is not null && GetBrush(stroke.Brush, entry.Bounds) is { } outline)
+                if (stroke is not null && GetBrush(stroke.Brush, entry) is { } outline)
                 {
                     _context.DrawGeometry(entry.Geometry, outline, thickness, GetStroke(stroke));
                 }
@@ -333,7 +335,7 @@ internal sealed class DrawingReplayer : IDisposable
         }
 
         _context.Transform = entry.Transform is { } local ? local * world : world;
-        if (GetBrush(drawing.ForegroundBrush, entry.Bounds) is { } brush)
+        if (GetBrush(drawing.ForegroundBrush, entry) is { } brush)
         {
             _context.FillGeometry(entry.Geometry, brush);
         }
@@ -393,6 +395,10 @@ internal sealed class DrawingReplayer : IDisposable
     }
 
     // ── brushes ──────────────────────────────────────────────────────────
+
+    /// <summary>The brush for a cached geometry: its bounds are only worked out for a relative gradient (they cost).</summary>
+    private ID2D1Brush? GetBrush(System.Windows.Media.Brush brush, CacheEntry entry) =>
+        GetBrush(brush, brush is GradientBrush { MappingMode: BrushMappingMode.RelativeToBoundingBox } ? entry.Bounds : Rect.Empty);
 
     /// <summary>
     /// The equivalent Direct2D brush, fitted to <paramref name="bounds"/> for a relative gradient.
@@ -623,20 +629,14 @@ internal sealed class DrawingReplayer : IDisposable
     private CacheEntry BuildGeometryEntry(Geometry geometry)
     {
         var path = geometry as PathGeometry ?? PathGeometry.CreateFromGeometry(geometry);
-        var entry = new CacheEntry { Bounds = path.Bounds, Transform = LocalTransform(path) };
+        // The bounds are only worked out if a relative gradient asks for them (they are a third of the conversion).
+        var entry = new CacheEntry { Source = path, Transform = LocalTransform(path) };
         if (path.Figures.Count == 0)
         {
             return entry;
         }
 
-        // Bounds without its own transform (applied when drawing).
-        if (entry.Transform is not null)
-        {
-            var untransformed = path.Clone();
-            untransformed.Transform = null;
-            entry.Bounds = untransformed.Bounds;
-        }
-
+        RenderStats.Geometry();
         var d2d = _factory.CreatePathGeometry();
         using (var sink = d2d.Open())
         {
@@ -668,24 +668,35 @@ internal sealed class DrawingReplayer : IDisposable
                 break;
 
             case PolyLineSegment poly:
-                foreach (var point in poly.Points)
+            {
+                // All at once: each call crosses into Direct2D, and a contour has a hundred points or more.
+                var points = poly.Points;
+                var lines = new Vector2[points.Count];
+                for (var i = 0; i < lines.Length; i++)
                 {
-                    sink.AddLine(ToVector(point));
+                    lines[i] = ToVector(points[i]);
                 }
 
+                sink.AddLines(lines);
                 break;
+            }
 
             case WpfBezier bezier:
                 sink.AddBezier(new D2DBezier { Point1 = ToVector(bezier.Point1), Point2 = ToVector(bezier.Point2), Point3 = ToVector(bezier.Point3) });
                 break;
 
             case PolyBezierSegment poly:
-                for (var i = 0; i + 2 < poly.Points.Count; i += 3)
+            {
+                var points = poly.Points;
+                var curves = new D2DBezier[points.Count / 3];
+                for (int i = 0, p = 0; i < curves.Length; i++, p += 3)
                 {
-                    sink.AddBezier(new D2DBezier { Point1 = ToVector(poly.Points[i]), Point2 = ToVector(poly.Points[i + 1]), Point3 = ToVector(poly.Points[i + 2]) });
+                    curves[i] = new D2DBezier { Point1 = ToVector(points[p]), Point2 = ToVector(points[p + 1]), Point3 = ToVector(points[p + 2]) };
                 }
 
+                sink.AddBeziers(curves);
                 break;
+            }
 
             case WpfQuadratic quadratic:
                 sink.AddQuadraticBezier(new D2DQuadratic { Point1 = ToVector(quadratic.Point1), Point2 = ToVector(quadratic.Point2) });
@@ -772,7 +783,32 @@ internal sealed class DrawingReplayer : IDisposable
 
         public ID2D1Geometry? Geometry => Resource as ID2D1Geometry;
 
-        public Rect Bounds { get; set; }
+        private Rect? _bounds;
+
+        /// <summary>The WPF path it was made from (for <see cref="Bounds"/>).</summary>
+        public PathGeometry? Source { get; init; }
+
+        /// <summary>Its bounds without its own transform (applied when drawing), worked out the first time they are asked for.</summary>
+        public Rect Bounds
+        {
+            get
+            {
+                if (_bounds is { } bounds)
+                {
+                    return bounds;
+                }
+
+                var path = Source;
+                if (path?.Transform is { } transform && !transform.Value.IsIdentity)
+                {
+                    path = path.Clone();
+                    path.Transform = null;
+                }
+
+                _bounds = path?.Bounds ?? Rect.Empty;
+                return _bounds.Value;
+            }
+        }
 
         public Matrix3x2? Transform { get; set; }
 

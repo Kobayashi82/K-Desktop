@@ -1,6 +1,7 @@
+using System.Runtime.InteropServices;
 using KDesktop.Assistant.Sdk;
+using SharpGen.Runtime;
 using Vortice.Direct2D1;
-using Vortice.Direct3D11;
 using Vortice.DirectComposition;
 using Vortice.DXGI;
 using Vortice.Mathematics;
@@ -11,7 +12,7 @@ namespace KDesktop.Assistant.Host.Rendering;
 /// <summary>
 /// The transparent layer over every monitor where DirectComposition places the assistant's surfaces (as in Kobii).
 /// It has no bitmap of its own (<c>WS_EX_NOREDIRECTIONBITMAP</c>) and always lets the mouse through
-/// (<c>WS_EX_TRANSPARENT</c>): its content is small swap chains the compositor moves without copying anything on
+/// (<c>WS_EX_TRANSPARENT</c>): its content is small composition surfaces the compositor moves without copying anything on
 /// the CPU. Clicks are picked up by separate windows (<see cref="HitWindow"/>).
 /// </summary>
 internal sealed class Overlay : IDisposable
@@ -19,7 +20,7 @@ internal sealed class Overlay : IDisposable
     public const string ClassName = "KDesktopAssistantOverlay";
 
     private readonly IDCompositionTarget _target;
-    private readonly IDCompositionVisual[] _layers;
+    private readonly IDCompositionVisual2[] _layers;
 
     public Overlay(GpuDevice gpu)
     {
@@ -29,7 +30,9 @@ internal sealed class Overlay : IDisposable
             Bounds.Left, Bounds.Top, Bounds.Width, Bounds.Height);
         SetLayeredWindowAttributes(Window.Handle, 0, 255, LWA_ALPHA);
 
-        Composition = DComp.DCompositionCreateDevice<IDCompositionDevice>(gpu.DxgiDevice);
+        // With the Direct2D device: its surfaces are drawn with a Direct2D context straight away.
+        Marshal.ThrowExceptionForHR(DCompositionCreateDevice2(gpu.D2DDevice.NativePointer, typeof(IDCompositionDesktopDevice).GUID, out var device));
+        Composition = new IDCompositionDesktopDevice(device);
         Composition.CreateTargetForHwnd(Window.Handle, true, out _target).CheckError();
         Root = Composition.CreateVisual();
         // One group per SurfaceLayer, back to front.
@@ -47,9 +50,9 @@ internal sealed class Overlay : IDisposable
 
     public NativeWindow Window { get; }
 
-    public IDCompositionDevice Composition { get; }
+    public IDCompositionDesktopDevice Composition { get; }
 
-    public IDCompositionVisual Root { get; }
+    public IDCompositionVisual2 Root { get; }
 
     /// <summary>The virtual screen (every monitor) in physical pixels.</summary>
     public PixelRect Bounds { get; private set; }
@@ -66,7 +69,7 @@ internal sealed class Overlay : IDisposable
         return true;
     }
 
-    public void Commit() => Composition.Commit();
+    public void Commit() => Composition.Commit().CheckError();
 
     public void Dispose()
     {
@@ -83,41 +86,34 @@ internal sealed class Overlay : IDisposable
 }
 
 /// <summary>
-/// The canvas of one surface: a small swap chain that DirectComposition moves by changing its visual's offset, and
-/// that is drawn with Direct2D (the replayed WPF drawing).
+/// The canvas of one surface: a composition surface on its own visual, drawn with Direct2D (the replayed WPF drawing).
 /// </summary>
+/// <remarks>
+/// Not a swap chain: what is presented to a swap chain shows at once, while moving its visual waits for the commit, so a
+/// frame drawn for the new place could show for a moment in the old one (a flash nearby, when the area jumps). A
+/// composition surface shows its new content in the same commit as its new place. It costs the same.
+/// </remarks>
 internal sealed class StageLayer : IDisposable
 {
-    private readonly GpuDevice _gpu;
+    private readonly Overlay _overlay;
     private readonly IDCompositionVisual _parent;
-    private readonly IDXGISwapChain1 _swapChain;
-    private ID2D1Bitmap1? _bitmap;
+    private IDCompositionSurface _surface;
     private bool _attached;
+    private int _x;
+    private int _y;
 
-    public StageLayer(GpuDevice gpu, Overlay overlay, SurfaceLayer layer, int width, int height)
+    public StageLayer(Overlay overlay, SurfaceLayer layer, int width, int height)
     {
-        _gpu = gpu;
+        _overlay = overlay;
         _parent = overlay.Layer(layer);
         Width = Math.Max(1, width);
         Height = Math.Max(1, height);
-        var description = new SwapChainDescription1
-        {
-            Width = (uint)Width,
-            Height = (uint)Height,
-            Format = Format.B8G8R8A8_UNorm,
-            SampleDescription = new SampleDescription(1, 0),
-            BufferUsage = Usage.RenderTargetOutput,
-            BufferCount = 2,
-            Scaling = Scaling.Stretch,
-            SwapEffect = SwapEffect.FlipSequential,
-            AlphaMode = Vortice.DXGI.AlphaMode.Premultiplied,
-        };
-        _swapChain = gpu.Factory.CreateSwapChainForComposition(gpu.Device, description);
+        _surface = CreateSurface(Width, Height);
         Visual = overlay.Composition.CreateVisual();
-        Visual.SetContent(_swapChain).CheckError();
+        Visual.SetContent(_surface).CheckError();
     }
 
-    public IDCompositionVisual Visual { get; }
+    public IDCompositionVisual2 Visual { get; }
 
     public int Width { get; private set; }
 
@@ -127,8 +123,8 @@ internal sealed class StageLayer : IDisposable
 
     /// <summary>
     /// Makes sure it measures at least <paramref name="width"/> × <paramref name="height"/>, in steps of
-    /// <paramref name="step"/> pixels, and only shrinks when much is left over: resizing costs, so it does not
-    /// happen every frame while something grows a little (moving to a monitor with another scaling).
+    /// <paramref name="step"/> pixels, and only shrinks when much is left over: a new surface costs, so it is not made
+    /// every frame while something grows a little (moving to a monitor with another scaling).
     /// </summary>
     public void Fit(int width, int height, int step = 32)
     {
@@ -137,30 +133,28 @@ internal sealed class StageLayer : IDisposable
             Resize(Round(width, step), Round(height, step));
     }
 
-    /// <summary>Direct2D target of the current buffer (made on first use).</summary>
-    public ID2D1Bitmap1 Target()
-    {
-        if (_bitmap is null)
-        {
-            using var surface = _swapChain.GetBuffer<IDXGISurface>(0);
-            _bitmap = _gpu.D2D.CreateBitmapFromDxgiSurface(surface, new BitmapProperties1(
-                new Vortice.DCommon.PixelFormat(Format.B8G8R8A8_UNorm, Vortice.DCommon.AlphaMode.Premultiplied), 96, 96,
-                BitmapOptions.Target | BitmapOptions.CannotDraw));
-        }
-        return _bitmap;
-    }
+    /// <summary>
+    /// Starts drawing the whole surface: the Direct2D context to draw with (release it after <see cref="EndDraw"/>) and
+    /// where the surface starts in it (the compositor keeps several surfaces in one texture).
+    /// </summary>
+    public ID2D1DeviceContext BeginDraw(out Int2 offset) => _surface.BeginDraw<ID2D1DeviceContext>(null, out offset);
 
-    /// <summary>Presents without waiting for the vertical sync: the compositor takes the latest frame.</summary>
-    public void Present() => _swapChain.Present(0, PresentFlags.None).CheckError();
+    /// <summary>The new content shows with the next commit.</summary>
+    public void EndDraw() => _surface.EndDraw().CheckError();
 
-    /// <summary>Places the canvas (relative to the overlay) and shows it.</summary>
-    public void Place(int x, int y)
+    /// <summary>
+    /// Places the canvas (relative to the overlay) and shows it. False when it was already there.
+    /// </summary>
+    public bool Place(int x, int y)
     {
+        if (_attached && x == _x && y == _y) return false;
         Visual.SetOffsetX(x);
         Visual.SetOffsetY(y);
-        if (_attached) return;
+        (_x, _y) = (x, y);
+        if (_attached) return true;
         _parent.AddVisual(Visual, true, null).CheckError();
         _attached = true;
+        return true;
     }
 
     public void Detach()
@@ -173,28 +167,23 @@ internal sealed class StageLayer : IDisposable
     public void Dispose()
     {
         Detach();
-        ReleaseTargets();
         Visual.Dispose();
-        _swapChain.Dispose();
+        _surface.Dispose();
     }
+
+    private IDCompositionSurface CreateSurface(int width, int height) =>
+        _overlay.Composition.CreateSurface((uint)width, (uint)height, Format.B8G8R8A8_UNorm, Vortice.DXGI.AlphaMode.Premultiplied);
 
     private void Resize(int width, int height)
     {
         width = Math.Max(1, width);
         height = Math.Max(1, height);
         if (width == Width && height == Height) return;
-        ReleaseTargets();
-        _swapChain.ResizeBuffers(2, (uint)width, (uint)height, Format.B8G8R8A8_UNorm, SwapChainFlags.None).CheckError();
+        var surface = CreateSurface(width, height);
+        Visual.SetContent(surface).CheckError();
+        _surface.Dispose();
+        _surface = surface;
         Width = width;
         Height = height;
-    }
-
-    private void ReleaseTargets()
-    {
-        if (_gpu.D2D.Target is not null) _gpu.D2D.Target = null;
-        _bitmap?.Dispose();
-        _bitmap = null;
-        _gpu.Context.ClearState();
-        _gpu.Context.Flush();
     }
 }

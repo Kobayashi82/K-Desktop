@@ -124,12 +124,15 @@ internal sealed class AssistantRuntime : IDisposable
     /// <summary>One engine tick: ticks the assistants that are due and returns the seconds it may sleep.</summary>
     public double Tick(double now)
     {
+        var tickStart = RenderStats.Now();
         Rendering.Pacer.Update(now);
         var interval = 60.0;
         if (Stage is { } stage) interval = Math.Min(interval, stage.Update(now));
         if (Watcher.IsStarted)
         {
+            var world = RenderStats.Now();
             interval = Watcher.Update(now);
+            RenderStats.Add(RenderStats.Part.World, world);
             // A DirectX game or a presentation holds the screen: give the GPU back to it.
             if (Watcher.ExclusiveFullscreen) Rendering.Suspend();
             else Rendering.Resume();
@@ -144,7 +147,9 @@ internal sealed class AssistantRuntime : IDisposable
                 slot.TickRequested = false;
                 var elapsed = Math.Clamp(now - slot.LastTick, 0, 0.25);
                 var wanted = 1.0;
+                var assistant = RenderStats.Now();
                 if (!Guard(slot, a => wanted = a.Tick(new TickInfo(now, elapsed)), "Tick")) wanted = 1;
+                RenderStats.Add(RenderStats.Part.Assistants, assistant);
                 slot.LastTick = now;
                 slot.Due = now + (double.IsFinite(wanted) ? Math.Clamp(wanted, 0, 60) : 1);
                 ReadBody(slot, now);
@@ -173,6 +178,7 @@ internal sealed class AssistantRuntime : IDisposable
         interval = Math.Min(interval, PublishBodies(now));
         Rendering.Commit();
         if (Stage is not null) interval = Math.Min(interval, PresentStage(now));
+        RenderStats.Tick(tickStart);
         return interval;
     }
 

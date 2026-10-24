@@ -85,8 +85,10 @@ internal sealed class HostRendering : IRendering, IDisposable
     {
         if (!_dirty || Suspended || Overlay is null) return;
         _dirty = false;
+        var commit = RenderStats.Now();
         try { Overlay.Commit(); }
         catch (SharpGenException ex) { DeviceLost(ex); }
+        RenderStats.Add(RenderStats.Part.Commit, commit);
     }
 
     /// <summary>Monitors changed: the layer follows the virtual screen and the surfaces keep their place on screen.</summary>
@@ -186,9 +188,11 @@ internal sealed class HostSurface(HostRendering rendering, SurfaceLayer layer) :
             Hide();
             return;
         }
+        var record = RenderStats.Now();
         var drawing = new DrawingGroup();
         using (var dc = drawing.Open()) draw(dc);
         drawing.Freeze();
+        RenderStats.Add(RenderStats.Part.Record, record);
         _last = drawing;
         if (rendering.Offscreen)
         {
@@ -253,40 +257,49 @@ internal sealed class HostSurface(HostRendering rendering, SurfaceLayer layer) :
         try
         {
             var stage = Stage(area);
-            var bitmap = stage.Target();
-            var d2d = rendering.Gpu.D2D;
-            d2d.Target = bitmap;
-            d2d.BeginDraw();
-            d2d.Clear(new Color4(0, 0, 0, 0));
-            d2d.PushAxisAlignedClip(new Vortice.RawRectF(0, 0, area.Width, area.Height), Vortice.Direct2D1.AntialiasMode.Aliased);
-            rendering.Replayer.Replay(d2d, drawing, Matrix3x2.CreateTranslation(-area.Left, -area.Top));
-            d2d.PopAxisAlignedClip();
-            var result = d2d.EndDraw();
-            d2d.Target = null;
-            if (result.Failure) throw new SharpGenException(result);
-            Show(stage, area);
+            var d2d = stage.BeginDraw(out var offset);
+            try
+            {
+                d2d.TextAntialiasMode = Vortice.Direct2D1.TextAntialiasMode.Grayscale;
+                // The whole surface clean (it may have room left from a bigger frame), then the drawing inside its area.
+                d2d.PushAxisAlignedClip(new Vortice.RawRectF(offset.X, offset.Y, offset.X + stage.Width, offset.Y + stage.Height), Vortice.Direct2D1.AntialiasMode.Aliased);
+                d2d.Clear(new Color4(0, 0, 0, 0));
+                d2d.PopAxisAlignedClip();
+                d2d.PushAxisAlignedClip(new Vortice.RawRectF(offset.X, offset.Y, offset.X + area.Width, offset.Y + area.Height), Vortice.Direct2D1.AntialiasMode.Aliased);
+                var replay = RenderStats.Now();
+                rendering.Replayer.Replay(d2d, drawing, Matrix3x2.CreateTranslation(offset.X - area.Left, offset.Y - area.Top));
+                RenderStats.Add(RenderStats.Part.Replay, replay);
+                d2d.PopAxisAlignedClip();
+                var end = RenderStats.Now();
+                stage.EndDraw();
+                RenderStats.Add(RenderStats.Part.EndDraw, end);
+            }
+            finally
+            {
+                d2d.Dispose();
+            }
+
+            var place = RenderStats.Now();
+            _area = area;
+            Place(stage, area);
+            // The new content (and its new place, if it moved) show together in this tick's commit.
+            rendering.MarkDirty();
+            RenderStats.Add(RenderStats.Part.Present, place);
+            RenderStats.Frame();
         }
         catch (SharpGenException ex) { rendering.DeviceLost(ex); }
     }
 
     private StageLayer Stage(PixelRect area)
     {
-        _stage ??= new StageLayer(rendering.Gpu, rendering.Overlay!, layer, area.Width, area.Height);
+        _stage ??= new StageLayer(rendering.Overlay!, layer, area.Width, area.Height);
         _stage.Fit(area.Width, area.Height);
         return _stage;
-    }
-
-    private void Show(StageLayer stage, PixelRect area)
-    {
-        stage.Present();
-        _area = area;
-        Place(stage, area);
     }
 
     private void Place(StageLayer stage, PixelRect area)
     {
         var origin = rendering.Overlay!.Bounds;
-        stage.Place(area.Left - origin.Left, area.Top - origin.Top);
-        rendering.MarkDirty();
+        if (stage.Place(area.Left - origin.Left, area.Top - origin.Top)) rendering.MarkDirty();
     }
 }

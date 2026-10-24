@@ -9,7 +9,7 @@ namespace KDesktop.Assistant.Host.Rendering;
 
 /// <summary>
 /// The shared graphics devices (from Kobii): Direct3D 11 (for assistants that draw with shaders), Direct2D on the
-/// same device, and the DXGI factory for the swap chains. Without a Direct3D 11 GPU (virtual machines, remote
+/// same device (DirectComposition draws its surfaces with it), and the DXGI factory. Without a Direct3D 11 GPU (virtual machines, remote
 /// desktop) it uses WARP, Windows' software rasterizer.
 /// </summary>
 /// <remarks>Used from one thread only (the engine's).</remarks>

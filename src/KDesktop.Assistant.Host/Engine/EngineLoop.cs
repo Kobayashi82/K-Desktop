@@ -123,6 +123,7 @@ internal sealed class EngineLoop : IDisposable
         _nextTick = _lastTick = Now;
         while (_running)
         {
+            var busy = Rendering.RenderStats.Now();
             PumpMessages();
             RunOrders();
             if (!_running) break;
@@ -148,6 +149,7 @@ internal sealed class EngineLoop : IDisposable
                 _nextTick = next > now ? next : now + interval;
             }
 
+            Rendering.RenderStats.Wake(busy);
             Wait(Math.Max(_nextTick - Now, 0.0005));
         }
     }
