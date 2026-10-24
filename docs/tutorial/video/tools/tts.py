@@ -35,6 +35,8 @@ OVERLAP = 0.6          # chapters cross-fade into each other
 DEFAULT_PAUSE = 0.35   # after a beat
 SENTENCE_GAP = 0.26    # between the sentences of a beat
 
+CUE = re.compile(r"\{([\w-]+)\}")
+
 MODEL_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/"
 MODEL_FILES = ["kokoro-v1.0.onnx", "voices-v1.0.bin"]
 
@@ -54,7 +56,7 @@ def sentences(text: str) -> list[str]:
     """A beat split into sentences ("|" forces a split; an ellipsis does not end a sentence)."""
     parts = []
     for chunk in text.split("|"):
-        parts += re.split(r"(?<=[.!?])(?<!\.\.\.)\s+(?=[A-Z0-9\"'])", chunk.strip())
+        parts += re.split(r"(?<=[.!?])(?<!\.\.\.)\s+(?=[{A-Z0-9\"'])", chunk.strip())
     return [p.strip() for p in parts if p.strip()]
 
 
@@ -136,35 +138,41 @@ def main() -> None:
         old.unlink()
 
     timeline = {"lang": args.lang, "fps": FPS, "chapters": []}
-    cues = []
+    subtitles = []
     t = 0.0
     for index, chapter in enumerate(script["chapters"]):
         start = t
         cursor = start + (LEAD_IN_FIRST if index == 0 else LEAD_IN)
         beats = []
         for beat in chapter["beats"]:
-            parts, segments, offset = [], [], 0.0
-            for text in sentences(beat["text"]):
+            parts, segments, cues, offset = [], [], {}, 0.0
+            for marked in sentences(beat["text"]):
+                text = CUE.sub("", marked)
                 audio = voice.say(spoken(text, rules))
                 if parts:
                     parts.append(np.zeros(int(SENTENCE_GAP * SR), dtype="float32"))
                     offset += SENTENCE_GAP
                 duration = len(audio) / SR
                 segments.append({"text": text, "from": frames(cursor - start + offset), "to": frames(cursor - start + offset + duration)})
+                # {name} before a word: the moment it is said, estimated from where it sits in the sentence.
+                for m in CUE.finditer(marked):
+                    at = len(CUE.sub("", marked[: m.start()]))
+                    cues[m.group(1)] = frames(cursor - start + offset + duration * at / max(1, len(text)))
                 for i, cue in enumerate(subtitle_lines(text)):
                     share = duration / len(subtitle_lines(text))
-                    cues.append((cursor + offset + i * share, cursor + offset + (i + 1) * share, cue))
+                    subtitles.append((cursor + offset + i * share, cursor + offset + (i + 1) * share, cue))
                 parts.append(audio)
                 offset += duration
             name = f"{chapter['id']}-{beat['id']}.wav"
             sf.write(audio_dir / name, np.concatenate(parts), SR)
             beats.append({
                 "id": beat["id"],
-                "text": beat["text"],
+                "text": CUE.sub("", beat["text"]),
                 "audio": f"audio/{args.lang}/{name}",
                 "from": frames(cursor - start),
                 "durationInFrames": frames(offset),
                 "segments": segments,
+                "cues": cues,
             })
             cursor += offset + beat.get("pause", DEFAULT_PAUSE)
         end = cursor + TAIL
@@ -187,7 +195,7 @@ def main() -> None:
 
     subs = ROOT / "out"
     subs.mkdir(exist_ok=True)
-    srt = "\n".join(f"{i}\n{srt_time(a)} --> {srt_time(b)}\n{text}\n" for i, (a, b, text) in enumerate(cues, 1))
+    srt = "\n".join(f"{i}\n{srt_time(a)} --> {srt_time(b)}\n{text}\n" for i, (a, b, text) in enumerate(subtitles, 1))
     (subs / f"subtitles.{args.lang}.srt").write_text(srt, encoding="utf-8")
     print(f"Total: {timeline['durationInFrames'] / FPS / 60:.2f} min", file=sys.stderr)
 

@@ -10,7 +10,7 @@ export type Shot = { at: number; dur?: number; x?: number; y?: number; s?: numbe
 
 type Pose = { x: number; y: number; s: number; r: number; rx: number; ry: number };
 
-export const pose = (frame: number, shots: Shot[]): Pose => {
+export const pose = (frame: number, shots: Shot[], bounds?: { width: number; height: number }): Pose => {
   let p: Pose = { x: 960, y: 540, s: 1, r: 0, rx: 0, ry: 0 };
   let first = true;
   for (const shot of shots) {
@@ -28,13 +28,20 @@ export const pose = (frame: number, shots: Shot[]): Pose => {
     const s = Math.exp(Math.log(p.s) + (Math.log(next.s) - Math.log(p.s)) * k);
     p = { x: p.x + (next.x - p.x) * k, y: p.y + (next.y - p.y) * k, s, r: p.r + (next.r - p.r) * k, rx: p.rx + (next.rx - p.rx) * k, ry: p.ry + (next.ry - p.ry) * k };
   }
+  if (bounds && p.s >= 1.03) {
+    // Keep the view inside the stage: never show what lies beyond its edges.
+    const hw = 972 / p.s; // a little more: the float moves a few pixels
+    const hh = 552 / p.s;
+    p.x = Math.min(Math.max(p.x, hw), bounds.width - hw);
+    p.y = Math.min(Math.max(p.y, hh), bounds.height - hh);
+  }
   return p;
 };
 
 /** The stage (1920 × 1080 by default) seen through the camera, with a slight handheld float. */
-export const Camera: React.FC<{ shots: Shot[]; float?: number; children: React.ReactNode; width?: number; height?: number }> = ({ shots, float = 1, children, width = 1920, height = 1080 }) => {
+export const Camera: React.FC<{ shots: Shot[]; float?: number; children: React.ReactNode; width?: number; height?: number; clamp?: boolean }> = ({ shots, float = 1, children, width = 1920, height = 1080, clamp = false }) => {
   const frame = useCurrentFrame();
-  const p = pose(frame, shots);
+  const p = pose(frame, shots, clamp ? { width, height } : undefined);
   const d = drift(frame, 3, float);
   return (
     <AbsoluteFill style={{ perspective: 2200, overflow: 'hidden' }}>

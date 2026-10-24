@@ -1,8 +1,24 @@
-import { loadFont as loadInter } from '@remotion/google-fonts/Inter';
-import { loadFont as loadMono } from '@remotion/google-fonts/JetBrainsMono';
+import { continueRender, delayRender, staticFile } from 'remotion';
 
-export const { fontFamily: SANS } = loadInter('normal', { weights: ['400', '500', '600', '700', '800'], subsets: ['latin', 'latin-ext'] });
-export const { fontFamily: MONO } = loadMono('normal', { weights: ['400', '600'], subsets: ['latin', 'latin-ext'] });
+// The fonts travel with the project (public/fonts, SIL OFL): renders never depend on a font service.
+const LATIN = 'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD';
+const LATIN_EXT = 'U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF';
+const FACES: Array<[string, string, string, string]> = [
+  ['KD Inter', 'fonts/inter-latin.woff2', '400 800', LATIN],
+  ['KD Inter', 'fonts/inter-latin-ext.woff2', '400 800', LATIN_EXT],
+  ['KD Mono', 'fonts/jetbrains-mono-latin.woff2', '400 600', LATIN],
+];
+if (typeof document !== 'undefined') {
+  const handle = delayRender('Loading fonts');
+  Promise.all(FACES.map(([family, file, weight, unicodeRange]) => {
+    const face = new FontFace(family, `url(${staticFile(file)}) format('woff2')`, { weight, unicodeRange });
+    document.fonts.add(face);
+    return face.load();
+  })).then(() => continueRender(handle), () => continueRender(handle));
+}
+
+export const SANS = "'KD Inter', 'Segoe UI', sans-serif";
+export const MONO = "'KD Mono', Consolas, monospace";
 
 /** K-Desktop's dark theme (src/KDesktop/Themes/KDark.xaml) and the web app's ambient gold. */
 export const C = {
@@ -15,6 +31,7 @@ export const C = {
   row: '#303036',
   line: 'rgba(255,255,255,0.08)',
   line2: 'rgba(255,255,255,0.14)',
+  chip: 'rgba(255,255,255,0.1)',
   text: '#f4f4f6',
   dim: 'rgba(255,255,255,0.62)',
   faint: 'rgba(255,255,255,0.38)',
