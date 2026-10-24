@@ -13,9 +13,9 @@ public sealed record UpdateInfo(Version Version, Uri Download, string? Sha256, l
 
 /// <summary>
 /// Checks a JSON manifest for a newer version, downloads and verifies it, and swaps the running exe for it.
-/// The manifest (e.g. https://kobayashi82.net/kdesktop.json):
+/// The manifest (by default the latest GitHub release's: …/releases/latest/download/kdesktop.json):
 /// <code>
-/// { "version": "5.0.1", "date": "2026-10-20", "url": "KDesktop-5.0.1.exe", "sha256": "…", "size": 177000000,
+/// { "version": "5.0.1", "date": "2026-10-20", "url": "KDesktop.exe", "sha256": "…", "size": 177000000,
 ///   "notes": { "es": "…", "en": "…" } }
 /// </code>
 /// "url" may be relative to the manifest; "notes" may also be a plain string. tools\release\make-update.ps1 writes it.

@@ -1,9 +1,10 @@
 ﻿<#
   Prepares an update for K-Desktop's auto-updater from the portable build:
-    artifacts\update\KDesktop-<version>.exe
-    artifacts\update\KDesktop-<version>.apk   the Android app (it also travels inside the exe: phones update from the PC)
-    artifacts\update\kdesktop.json          { version, date, url, sha256, size, notes, android }
-  Upload the folder's files to where the "Update address" points (default https://kobayashi82.net/kdesktop/).
+    artifacts\update\KDesktop.exe
+    artifacts\update\KDesktop.apk    the Android app (it also travels inside the exe: phones update from the PC)
+    artifacts\update\kdesktop.json   { version, date, url, sha256, size, notes, android }
+  They are the files of the GitHub release (tools\release\publish-release.ps1): the default "Update address" is
+  https://github.com/Kobayashi82/K-Desktop/releases/latest/download, so the manifest is kdesktop.json there.
   Publishing the portable runs it by itself (target MakeUpdate in KDesktop.csproj).
 
   Usage:
@@ -28,7 +29,7 @@ if (-not (Test-Path $Exe)) { throw "No existe ${Exe} (publica antes el portable)
 
 $info = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($Exe)
 $version = "{0}.{1}.{2}" -f $info.FileMajorPart, $info.FileMinorPart, $info.FileBuildPart
-$name = "KDesktop-$version.exe"
+$name = "KDesktop.exe"
 New-Item -ItemType Directory -Force $OutDir | Out-Null
 
 # The notes of this same version when none are given (the build runs this script without them).
@@ -36,8 +37,8 @@ $manifestPath = Join-Path $OutDir "kdesktop.json"
 $previous = $null
 if (Test-Path $manifestPath) { try { $previous = [System.IO.File]::ReadAllText($manifestPath) | ConvertFrom-Json } catch { } }
 
-# Only this version's files stay.
-Get-ChildItem $OutDir -Filter "KDesktop-*" | Where-Object { $_.Name -notlike "KDesktop-$version.*" } | Remove-Item -Force
+# Until 5.0.197 the files carried the version in their names.
+Get-ChildItem $OutDir -Filter "KDesktop-*" | Remove-Item -Force
 Copy-Item $Exe (Join-Path $OutDir $name) -Force
 
 $sha = (Get-FileHash (Join-Path $OutDir $name) -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -57,7 +58,7 @@ $manifest = [ordered]@{
 
 if ((Test-Path $Apk) -and (Test-Path "$Apk.json")) {
   $apkInfo = [System.IO.File]::ReadAllText("$Apk.json") | ConvertFrom-Json
-  $apkName = "KDesktop-$($apkInfo.version).apk"
+  $apkName = "KDesktop.apk"
   Copy-Item $Apk (Join-Path $OutDir $apkName) -Force
   $manifest.android = [ordered]@{
     version = $apkInfo.version

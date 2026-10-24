@@ -65,7 +65,8 @@ public sealed class AppConfig
             changed = true;
         }
         // Until 5.0.34 the update address was the whole manifest; now it is the server and «kdesktop.json» is added.
-        if (Settings.UpdateUrl == "https://kobayashi82.net/kdesktop/latest.json")
+        // Until 5.0.197 the updates were on kobayashi82.net; now they are the latest release on GitHub.
+        if (Settings.UpdateUrl is "https://kobayashi82.net/kdesktop/latest.json" or "https://kobayashi82.net" or "https://kobayashi82.net/")
         {
             Settings.UpdateUrl = AppSettings.DefaultUpdateUrl;
             changed = true;
@@ -427,7 +428,8 @@ public partial class AppSettings : ObservableObject
     /// <summary>Where the updates are: the manifest is «kdesktop.json» there (see <see cref="ManifestUrl"/>).</summary>
     [ObservableProperty] private string _updateUrl = DefaultUpdateUrl;
 
-    public const string DefaultUpdateUrl = "https://kobayashi82.net";
+    /// <summary>The latest release of K-Desktop's repository: its files are kdesktop.json, KDesktop.exe and KDesktop.apk.</summary>
+    public const string DefaultUpdateUrl = "https://github.com/Kobayashi82/K-Desktop/releases/latest/download";
 
     /// <summary>The name of the update manifest, added to <see cref="UpdateUrl"/>.</summary>
     public const string ManifestName = "kdesktop.json";
