@@ -1,4 +1,4 @@
-﻿param([int]$ProcessId, [string]$Out, [int]$MaxWidth = 900)
+﻿param([int]$ProcessId, [string]$Out, [int]$MaxWidth = 1200)
 # PrintWindow de la ventana «K-Desktop» MÁS PEQUEÑA visible de ese proceso (una ficha, la de «¿Qué hago con…?»), sin capturar la pantalla.
 Add-Type -AssemblyName System.Drawing
 Add-Type @'

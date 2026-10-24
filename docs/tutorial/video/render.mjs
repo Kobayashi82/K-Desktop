@@ -1,4 +1,4 @@
-// Renders the whole video: node render.mjs [--lang en] [--scale 1] [--crf 18] [--chapter <id>] [--concurrency <n>]
+// Renders the whole video: node render.mjs [--lang en] [--scale 1] [--crf 18] [--chapter <id>] [--concurrency <n>] [--master-only]
 // The subtitles go beside it as a .srt with the same name (players pick it up), never burnt into the picture.
 // Needs the narration (python tools/tts.py --lang <lang>) and the assets (python tools/assets.py, node tools/webapp.mjs).
 import { bundle } from '@remotion/bundler';
@@ -19,25 +19,30 @@ const crf = Number(option('crf', '18'));
 const chapter = option('chapter', null);
 const output = join(root, 'out', `K-Desktop-${lang}${chapter ? `-${chapter}` : ''}${scale !== 1 ? `-${Math.round(1080 * scale)}p` : ''}.mp4`);
 
-const serveUrl = await bundle({ entryPoint: join(root, 'src', 'index.ts'), webpackOverride });
-const inputProps = { lang, music: true, ...(chapter ? { chapter } : {}) };
-const composition = await selectComposition({ serveUrl, id: chapter ? 'chapter' : `kdesktop-${lang}`, inputProps, browserExecutable });
-mkdirSync(join(root, 'out'), { recursive: true });
-let last = -1;
-await renderMedia({
-  serveUrl, composition, inputProps, browserExecutable, codec: 'h264', crf, scale, outputLocation: output,
-  audioBitrate: '192k', pixelFormat: 'yuv420p', concurrency: Number(option('concurrency', String(availableParallelism()))), timeoutInMilliseconds: 120000,
-  onProgress: ({ progress }) => {
-    const pct = Math.floor(progress * 100);
-    if (pct !== last && pct % 2 === 0) console.log(`${pct}%`);
-    last = pct;
-  },
-});
+// --master-only: only the mastering (and the .srt), over a video already rendered with the same options.
+if (!args.includes('--master-only')) {
+  const serveUrl = await bundle({ entryPoint: join(root, 'src', 'index.ts'), webpackOverride });
+  const inputProps = { lang, music: true, ...(chapter ? { chapter } : {}) };
+  const composition = await selectComposition({ serveUrl, id: chapter ? 'chapter' : `kdesktop-${lang}`, inputProps, browserExecutable });
+  mkdirSync(join(root, 'out'), { recursive: true });
+  let last = -1;
+  await renderMedia({
+    serveUrl, composition, inputProps, browserExecutable, codec: 'h264', crf, scale, outputLocation: output,
+    audioBitrate: '192k', pixelFormat: 'yuv420p', concurrency: Number(option('concurrency', String(availableParallelism()))), timeoutInMilliseconds: 120000,
+    onProgress: ({ progress }) => {
+      const pct = Math.floor(progress * 100);
+      if (pct !== last && pct % 2 === 0) console.log(`${pct}%`);
+      last = pct;
+    },
+  });
+}
 
 // Mastering: the whole mix to -15 LUFS (true peak -1.5 dB) with two passes of ffmpeg's loudnorm; the picture is copied.
 const NORM = 'loudnorm=I=-15:TP=-1.5:LRA=11';
 const first = spawnSync('ffmpeg', ['-hide_banner', '-i', output, '-af', `${NORM}:print_format=json`, '-f', 'null', '-'], { encoding: 'utf8' });
-const m = JSON.parse(first.stderr.slice(first.stderr.lastIndexOf('{')));
+// The measurement is the last {…} block (ffmpeg 8 writes more lines after it).
+const from = first.stderr.lastIndexOf('{');
+const m = JSON.parse(first.stderr.slice(from, first.stderr.indexOf('}', from) + 1));
 const raw = output.replace(/\.mp4$/, '.raw.mp4');
 renameSync(output, raw);
 const second = spawnSync('ffmpeg', ['-hide_banner', '-y', '-i', raw, '-c:v', 'copy', '-af',

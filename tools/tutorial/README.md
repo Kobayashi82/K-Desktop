@@ -4,6 +4,21 @@ Scripts para volver a hacer las capturas de `docs/tutorial/captures` (la primera
 portable 5.0.188). Todo se hace con una **instancia de demo** de K-Desktop en inglés y tema oscuro, con datos inventados
 (un usuario «Alex»), sin tocar los datos reales ni el K-Desktop que está abierto.
 
+## En español
+
+`$env:KD_TUTORIAL_LANG = 'es'` en la consola antes de usar cualquier script: la demo sale en español (interfaz, comandos,
+menús, eventos, memoria, notas, documentos de `demo-docs\es` en `Documents\Manuales`, voz Helena para el micrófono simulado
+y «Ordenador» como palabra), con su propia carpeta de trabajo (`%TEMP%\kdesktop-tutorial-es`) y sus capturas en
+`docs\tutorial\captures\es` (el vídeo toma de ahí las de español y de la carpeta inglesa las que falten). Los nombres de
+los pasos cambian: `Instalar`, `Añadir acción`, `Emparejar dispositivo`, `Cerrar`, `--menu 'Menú principal'` (pasar el
+ratón por «Ventanas»), `--run 'Lander: saludar'`. Las webs del escritorio de demo siguen en inglés. La primera tanda en
+español se hizo el 24/10/2026 con el portable 5.0.189 y Lander 0.17.0, Kobii 0.13.0 y Pip 1.5.0.
+
+Al abrir Edge con un perfil nuevo puede salir un aviso de sincronización **con el correo de tu cuenta de Microsoft** y
+la bienvenida de alguna extensión sincronizada: cerrarlos («Entendido» y la pestaña) antes de capturar; los perfiles se
+quedan en la carpeta de trabajo y no vuelve a salir. La casilla del atajo de la ficha de instalación se desmarca con
+`ui.ps1 -Name 'CTRL + ALT + L: Modo manual' -Type CheckBox` (sin `-Type` acierta en otro elemento y crea el comando).
+
 ## Qué hace falta
 
 - El portable publicado en `artifacts\portable\KDesktop.exe` (la demo lo usa tal cual; no hace falta compilar).

@@ -7,7 +7,7 @@ New-Item -ItemType Directory -Force $Work, $Raw, "$Work\fakevoice" | Out-Null
 
 # Documents and MCP servers in neat paths (they show up in Settings).
 New-Item -ItemType Directory -Force $Knowledge, (Split-Path $McpScript) | Out-Null
-Copy-Item "$PSScriptRoot\demo-docs\*" $Knowledge -Recurse -Force
+Copy-Item "$PSScriptRoot\demo-docs\$Lang\*" $Knowledge -Recurse -Force
 Copy-Item "$PSScriptRoot\demo-mcp.js" $McpScript -Force
 
 # Models: hard links (nothing is copied) to the ones whose names are fine for a video.
@@ -26,15 +26,17 @@ foreach ($name in $models.Keys) {
   }
 }
 
-# Simulated microphone: what an order says (session.wav) and six takes of «Computer» for the wake word wizard.
+# Simulated microphone: what an order says (session.wav) and six takes of «Computer» (in Spanish, «Ordenador») for the
+# wake word wizard; Zira in English, Helena in Spanish.
 Add-Type -AssemblyName System.Speech
 $syn = New-Object System.Speech.Synthesis.SpeechSynthesizer
-$syn.SelectVoice('Microsoft Zira Desktop')
+$es = $Lang -eq 'es'
+$syn.SelectVoice($(if ($es) { 'Microsoft Helena Desktop' } else { 'Microsoft Zira Desktop' }))
 $fmt = New-Object System.Speech.AudioFormat.SpeechAudioFormatInfo(16000, [System.Speech.AudioFormat.AudioBitsPerSample]::Sixteen, [System.Speech.AudioFormat.AudioChannel]::Mono)
-$syn.Rate = -2; $syn.SetOutputToWaveFile("$Work\session.wav", $fmt); $syn.Speak('Open the calculator.'); $syn.SetOutputToNull()
+$syn.Rate = -2; $syn.SetOutputToWaveFile("$Work\session.wav", $fmt); $syn.Speak($(if ($es) { 'Abre la calculadora.' } else { 'Open the calculator.' })); $syn.SetOutputToNull()
 $i = 0
-foreach ($rate in -2, 0, -1, 1, -3, 0) { $i++; $syn.Rate = $rate; $syn.SetOutputToWaveFile("$Work\fakevoice\word_$i.wav", $fmt); $syn.Speak('Computer'); $syn.SetOutputToNull() }
+foreach ($rate in -2, 0, -1, 1, -3, 0) { $i++; $syn.Rate = $rate; $syn.SetOutputToWaveFile("$Work\fakevoice\word_$i.wav", $fmt); $syn.Speak($(if ($es) { 'Ordenador' } else { 'Computer' })); $syn.SetOutputToNull() }
 $syn.Dispose()
 
-node "$PSScriptRoot\mkdemo.js" $Data $Knowledge $McpScript $DemoModels
+node "$PSScriptRoot\mkdemo.js" $Data $Knowledge $McpScript $DemoModels $Lang
 "Listo: $Data"

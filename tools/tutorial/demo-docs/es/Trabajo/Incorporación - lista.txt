@@ -1,0 +1,6 @@
+Lista para una persona nueva en el equipo
+[ ] Portátil y cuentas (petición a IT al menos 5 días antes)
+[ ] Añadir al canal del equipo y a la demo de los jueves
+[ ] Leer la guía del sistema de diseño
+[ ] Trabajar con Priya el día 2 y con Tom el día 3
+[ ] Primera tarea pequeña integrada en la primera semana

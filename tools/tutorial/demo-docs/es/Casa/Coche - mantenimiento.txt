@@ -1,0 +1,9 @@
+Coche: Toyota Corolla Hybrid 2021, matrícula 4821 LKM
+
+2025-03-14  48.200 km  Cambio de aceite y filtro, rotación de neumáticos. 189 EUR.
+2025-11-02  56.900 km  Revisión anual, filtro de habitáculo, escobillas. 264 EUR.
+2026-06-20  63.400 km  Neumáticos delanteros nuevos (Michelin Primacy 4, 205/55 R16). 238 EUR.
+
+Próxima revisión: hacia los 66.000 km o en noviembre de 2026, lo que llegue antes.
+ITV: 12 de marzo de 2027.
+Presión de los neumáticos: 2,3 bar delante y 2,2 bar detrás.

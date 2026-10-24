@@ -4,4 +4,4 @@
 . "$PSScriptRoot\_paths.ps1"
 if ($Page) { Send-Demo --page $Page; Start-Sleep -Milliseconds $Wait }
 & "$PSScriptRoot\shot.ps1" -ProcessId (Get-DemoPid) -Out "$Raw\$Out.png"
-if ($Save) { Copy-Item "$Raw\$Out.png" "$Captures\$Out.png" }
+if ($Save) { New-Item -ItemType Directory -Force $Captures | Out-Null; Copy-Item "$Raw\$Out.png" "$Captures\$Out.png" }
