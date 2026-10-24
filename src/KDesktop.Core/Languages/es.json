@@ -4017,8 +4017,6 @@
   "assistant.drop.give": "Dárselo a {0}",
   "assistantTry.tab": "Probar",
   "assistantTry.title": "Lo que sabe hacer",
-  "assistantTry.intro": "Pulsa cualquiera y {0} lo hace en su escenario: un escritorio de prueba con ventanas de mentira, que no toca nada tuyo. También puedes acariciarlo o cogerlo con el ratón.",
-  "assistantTry.loading": "Preguntándole qué sabe hacer…",
   "assistantTry.noAnswer": "{0} no contesta en su escenario.",
   "assistantTry.stop": "Parar",
   "assistantTry.playing": "Haciendo «{0}»…",
@@ -4241,5 +4239,9 @@
   "catalogDetail.size": "Tamaño del paquete",
   "catalogDetail.megabytes": "{0} MB",
   "catalogDetail.license": "Licencia",
-  "catalogDetail.homepage": "Página web"
+  "catalogDetail.homepage": "Página web",
+  "assistantTry.kind": "Tipo",
+  "assistantTry.action": "Qué hace",
+  "assistantTry.play": "Hacerlo",
+  "assistantTry.hint": "Es un escritorio de prueba: no toca nada tuyo. Puedes acariciar a {0} o cogerlo con el ratón."
 }

@@ -31,6 +31,34 @@ public partial class App
 
     private ContextMenu? _assistantMenu;
 
+    /// <summary>The invisible window that takes the foreground for the menu before it opens.</summary>
+    private Window? _menuAnchor;
+
+    /// <summary>Shows (off screen, outside the taskbar and Alt+Tab) the window that takes the foreground for the menu.</summary>
+    private IntPtr MenuAnchor()
+    {
+        if (_menuAnchor is null)
+        {
+            _menuAnchor = new Window
+            {
+                WindowStyle = WindowStyle.None,
+                ResizeMode = ResizeMode.NoResize,
+                ShowInTaskbar = false,
+                AllowsTransparency = true,
+                Background = System.Windows.Media.Brushes.Transparent,
+                Width = 1,
+                Height = 1,
+                Left = -32000,
+                Top = -32000,
+                Title = "K-Desktop menu",
+            };
+            var handle = new WindowInteropHelper(_menuAnchor).EnsureHandle();
+            UiNative.AddExStyle(handle, toolWindow: true, noActivate: false);
+        }
+        _menuAnchor.Show();
+        return new WindowInteropHelper(_menuAnchor).Handle;
+    }
+
     /// <summary>How one extra of an assistant shows right now (its menu and its panel buttons).</summary>
     public ExtraState ExtraStateOf(string assistant, string extra) =>
         _extraStates.TryGetValue(assistant, out var states) ? states.GetValueOrDefault(extra, ExtraState.Shown) : ExtraState.Shown;
@@ -168,13 +196,21 @@ public partial class App
             }, System.Windows.Threading.DispatcherPriority.Background);
         };
         _assistantMenu = menu;
-        menu.IsOpen = true;
 
         // Without the foreground the popup does not see the clicks outside it (it would stay open): the assistant's
-        // process allowed it (AllowSetForegroundWindow), and the menu is ours to take it.
-        if (PresentationSource.FromVisual(menu) is HwndSource source && !UiNative.SetForegroundWindow(source.Handle))
-            Core.Platform.WindowTools.ForceForeground(source.Handle);
+        // process allowed it (AllowSetForegroundWindow). It is taken *before* opening, with a window of our own: taken by
+        // the popup once open, Windows gives that popup the focus, WPF moves the keyboard focus out of the menu and the
+        // menu closes itself (it lasted ~170 ms).
+        var anchor = MenuAnchor();
+        if (!UiNative.SetForegroundWindow(anchor)) Core.Platform.WindowTools.ForceForeground(anchor);
+        menu.IsOpen = true;
         Log.Info($"Asistente: menú de «{id}» ({extras.Count} extras)");
+
+        // The anchor stays shown (invisible, off screen) only while some menu is open.
+        menu.Closed += (_, _) =>
+        {
+            if (_assistantMenu is null) _menuAnchor?.Hide();
+        };
 
         static MenuItem Entry(string header, SymbolRegular symbol, Action click)
         {

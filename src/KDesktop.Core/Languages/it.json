@@ -4017,8 +4017,6 @@
   "assistant.drop.give": "Darlo a {0}",
   "assistantTry.tab": "Prova",
   "assistantTry.title": "Cosa sa fare",
-  "assistantTry.intro": "Premi uno qualsiasi e {0} lo fa sul suo palco: un desktop di prova con finestre finte, che non tocca niente di tuo. Puoi anche accarezzarlo o prenderlo con il mouse.",
-  "assistantTry.loading": "Gli chiediamo cosa sa fare…",
   "assistantTry.noAnswer": "{0} non risponde sul suo palco.",
   "assistantTry.stop": "Ferma",
   "assistantTry.playing": "Sta facendo «{0}»…",
@@ -4241,5 +4239,9 @@
   "catalogDetail.size": "Dimensione del pacchetto",
   "catalogDetail.megabytes": "{0} MB",
   "catalogDetail.license": "Licenza",
-  "catalogDetail.homepage": "Sito web"
+  "catalogDetail.homepage": "Sito web",
+  "assistantTry.kind": "Tipo",
+  "assistantTry.action": "Cosa fa",
+  "assistantTry.play": "Fallo",
+  "assistantTry.hint": "È un desktop di prova: non tocca niente di tuo. Puoi accarezzare {0} o prenderlo con il mouse."
 }

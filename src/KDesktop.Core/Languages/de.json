@@ -4017,8 +4017,6 @@
   "assistant.drop.give": "{0} geben",
   "assistantTry.tab": "Ausprobieren",
   "assistantTry.title": "Was es kann",
-  "assistantTry.intro": "Drücke auf eine davon und {0} macht es auf seiner Bühne: einem Testdesktop mit Fake-Fenstern, der nichts von dir anfasst. Du kannst es auch mit der Maus streicheln oder hochheben.",
-  "assistantTry.loading": "Es wird gefragt, was es kann…",
   "assistantTry.noAnswer": "{0} antwortet auf seiner Bühne nicht.",
   "assistantTry.stop": "Stopp",
   "assistantTry.playing": "Macht „{0}“…",
@@ -4241,5 +4239,9 @@
   "catalogDetail.size": "Paketgröße",
   "catalogDetail.megabytes": "{0} MB",
   "catalogDetail.license": "Lizenz",
-  "catalogDetail.homepage": "Webseite"
+  "catalogDetail.homepage": "Webseite",
+  "assistantTry.kind": "Art",
+  "assistantTry.action": "Was es tut",
+  "assistantTry.play": "Ausführen",
+  "assistantTry.hint": "Das ist ein Test-Desktop: Nichts von dir wird angefasst. Du kannst {0} streicheln oder mit der Maus hochheben."
 }

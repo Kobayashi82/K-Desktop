@@ -98,7 +98,9 @@ internal sealed class StageSession : IDisposable
                 if (general is not null) ApplyGeneral(general);
                 Runtime.ApplyCommon(common);
                 _frames ??= new StageFrames(StageScene.Width, StageScene.Height, m => link.Send(m));
-                Then(() => LoadAsync(EntranceKind.Startup, defaults: false));
+                // Already there (as after a reload), not making its entrance: «Probar» is ready at once, and its entrances
+                // are a choice like the rest.
+                Then(() => LoadAsync(EntranceKind.Reloaded, defaults: false));
                 Runtime.RedrawStage();
             });
         };

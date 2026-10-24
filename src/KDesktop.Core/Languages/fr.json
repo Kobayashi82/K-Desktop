@@ -4017,8 +4017,6 @@
   "assistant.drop.give": "Le donner à {0}",
   "assistantTry.tab": "Essayer",
   "assistantTry.title": "Ce qu’il sait faire",
-  "assistantTry.intro": "Appuyez sur l’un d’eux et {0} le fait sur sa scène : un bureau de test avec de fausses fenêtres, qui ne touche à rien de chez vous. Vous pouvez aussi le caresser ou l’attraper avec la souris.",
-  "assistantTry.loading": "On lui demande ce qu’il sait faire…",
   "assistantTry.noAnswer": "{0} ne répond pas sur sa scène.",
   "assistantTry.stop": "Arrêter",
   "assistantTry.playing": "En train de faire « {0} »…",
@@ -4241,5 +4239,9 @@
   "catalogDetail.size": "Taille du paquet",
   "catalogDetail.megabytes": "{0} Mo",
   "catalogDetail.license": "Licence",
-  "catalogDetail.homepage": "Site web"
+  "catalogDetail.homepage": "Site web",
+  "assistantTry.kind": "Type",
+  "assistantTry.action": "Ce qu'il fait",
+  "assistantTry.play": "Le faire",
+  "assistantTry.hint": "C'est un bureau de test : rien de vôtre n'est touché. Vous pouvez caresser {0} ou l'attraper avec la souris."
 }

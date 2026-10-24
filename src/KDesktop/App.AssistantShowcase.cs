@@ -29,6 +29,17 @@ public partial class App
     private long _stageShown;
     private int _stagePainting;
     private byte[] _stagePixels = [];
+    private bool _stageReady;
+    private System.Windows.Threading.DispatcherTimer? _stageLinger;
+
+    /// <summary>
+    /// How long a stage stays open after its tab is left: coming back (or to another tab and back) finds it as it was, with
+    /// no wait.
+    /// </summary>
+    private static readonly TimeSpan StageLinger = TimeSpan.FromSeconds(90);
+
+    /// <summary>The stage open now has its assistant on it (what it can show may be asked at once).</summary>
+    public bool AssistantStageReady => _stage is { IsConnected: true } && _stageReady;
 
     /// <summary>The stage's picture (UI thread), redrawn in place as new ones come; null without a stage.</summary>
     public WriteableBitmap? AssistantStagePicture { get; private set; }
@@ -51,6 +62,7 @@ public partial class App
     /// <summary>Opens the stage of an installed assistant (the one before closes); false when it is not installed.</summary>
     public bool OpenAssistantStage(string id)
     {
+        _stageLinger?.Stop();
         if (_stageId == id && _stage is not null) return true;
         CloseAssistantStage();
         if (AssistantPackages.Find(id) is not { } installed) return false;
@@ -68,9 +80,27 @@ public partial class App
         return true;
     }
 
+    /// <summary>The tab of that stage was left: it closes after <see cref="StageLinger"/> unless it is opened again.</summary>
+    public void LeaveAssistantStage(string id)
+    {
+        if (_stageId != id || _stage is null) return;
+        if (_stageLinger is null)
+        {
+            _stageLinger = new System.Windows.Threading.DispatcherTimer { Interval = StageLinger };
+            _stageLinger.Tick += (_, _) =>
+            {
+                _stageLinger.Stop();
+                CloseAssistantStage();
+            };
+        }
+        _stageLinger.Stop();
+        _stageLinger.Start();
+    }
+
     /// <summary>Closes the stage open now (if any).</summary>
     public void CloseAssistantStage()
     {
+        _stageLinger?.Stop();
         if (_stage is null) return;
         var id = _stageId!;
         _ = DropStageAsync();
@@ -83,6 +113,7 @@ public partial class App
         _stage = null;
         _stageId = null;
         _stageFrame = null;
+        _stageReady = false;
         _stageView?.Dispose();
         _stageMap?.Dispose();
         _stageView = null;
@@ -112,6 +143,7 @@ public partial class App
             switch (message)
             {
                 case LoadedMessage { Ok: true } loaded:
+                    _stageReady = true;
                     AssistantStageChanged?.Invoke(loaded.Assistant, true);
                     break;
                 case LoadedMessage loaded:

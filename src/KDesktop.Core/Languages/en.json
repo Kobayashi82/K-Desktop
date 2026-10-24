@@ -4017,8 +4017,6 @@
   "assistant.drop.give": "Give it to {0}",
   "assistantTry.tab": "Try",
   "assistantTry.title": "What it can do",
-  "assistantTry.intro": "Press any of them and {0} does it on its stage: a test desktop with pretend windows that touches nothing of yours. You can also pet it or pick it up with the mouse.",
-  "assistantTry.loading": "Asking it what it can do…",
   "assistantTry.noAnswer": "{0} does not answer on its stage.",
   "assistantTry.stop": "Stop",
   "assistantTry.playing": "Doing “{0}”…",
@@ -4241,5 +4239,9 @@
   "catalogDetail.size": "Package size",
   "catalogDetail.megabytes": "{0} MB",
   "catalogDetail.license": "License",
-  "catalogDetail.homepage": "Website"
+  "catalogDetail.homepage": "Website",
+  "assistantTry.kind": "Type",
+  "assistantTry.action": "What it does",
+  "assistantTry.play": "Do it",
+  "assistantTry.hint": "It's a test desktop: nothing of yours is touched. You can pet {0} or pick it up with the mouse."
 }

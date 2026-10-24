@@ -4017,8 +4017,6 @@
   "assistant.drop.give": "Entregar para {0}",
   "assistantTry.tab": "Testar",
   "assistantTry.title": "O que ele sabe fazer",
-  "assistantTry.intro": "Clique em qualquer um e {0} faz no palco dele: uma área de trabalho de teste com janelas de mentira, que não mexe em nada seu. Você também pode fazer carinho ou pegá-lo com o mouse.",
-  "assistantTry.loading": "Perguntando o que ele sabe fazer…",
   "assistantTry.noAnswer": "{0} não responde no palco dele.",
   "assistantTry.stop": "Parar",
   "assistantTry.playing": "Fazendo “{0}”…",
@@ -4241,5 +4239,9 @@
   "catalogDetail.size": "Tamanho do pacote",
   "catalogDetail.megabytes": "{0} MB",
   "catalogDetail.license": "Licença",
-  "catalogDetail.homepage": "Site"
+  "catalogDetail.homepage": "Site",
+  "assistantTry.kind": "Tipo",
+  "assistantTry.action": "O que faz",
+  "assistantTry.play": "Fazer",
+  "assistantTry.hint": "É uma área de trabalho de teste: nada seu é tocado. Você pode acariciar {0} ou pegá-lo com o mouse."
 }

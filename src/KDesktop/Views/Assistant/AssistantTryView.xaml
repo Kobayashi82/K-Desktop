@@ -1,17 +1,7 @@
 <UserControl x:Class="KDesktop.Views.Assistant.AssistantTryView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!-- Options → Assistants → one assistant → «Probar» (stage 13.9): its showcase, made in code. The stage stays in sight; the
-         buttons scroll on their own below it (the view is as tall as what is left of the page: see Fit) -->
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <StackPanel x:Name="Body" />
-        <ScrollViewer x:Name="ListScroll" Grid.Row="1" Focusable="False" CanContentScroll="False"
-                      HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-            <StackPanel x:Name="List" />
-        </ScrollViewer>
-    </Grid>
+    <!-- Options → Assistants → one assistant → «Probar» (stages 13.9 and 16.1): its stage as big as the page lets it, and
+         under it what to show, picked with two lists. Made in code (the view is as tall as what is left of the page: see Fit) -->
+    <Grid x:Name="Root" />
 </UserControl>
