@@ -34,6 +34,9 @@ public partial class App
     /// <summary>The invisible window that takes the foreground for the menu before it opens.</summary>
     private Window? _menuAnchor;
 
+    /// <summary>The window that had the foreground before the menus (it gets it back when the last one closes).</summary>
+    private IntPtr _menuPrevious;
+
     /// <summary>Shows (off screen, outside the taskbar and Alt+Tab) the window that takes the foreground for the menu.</summary>
     private IntPtr MenuAnchor()
     {
@@ -132,6 +135,9 @@ public partial class App
             _assistant?.Send(new MenuClosedMessage(id));
             return;
         }
+        // Opened over another assistant's menu: the window to give the foreground back to is still the one before that one.
+        var previous = _assistantMenu is not null ? _menuPrevious : UiNative.GetForegroundWindow();
+        _menuPrevious = previous;
         _assistantMenu?.IsOpen = false;
 
         var name = installed.Manifest.Name;
@@ -177,7 +183,6 @@ public partial class App
             Ui.ShowOsd(Loc.T("assistant.hidden", name), Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(5));
         }));
 
-        var previous = UiNative.GetForegroundWindow();
         var opened = Environment.TickCount64;
         menu.Closed += (_, _) =>
         {
@@ -190,7 +195,9 @@ public partial class App
             // another program the user clicked to close the menu.
             Dispatcher.BeginInvoke(() =>
             {
-                if (bringsPage || previous == IntPtr.Zero || !UiNative.IsWindow(previous)) return;
+                // Another menu opened meanwhile (a right click on another assistant): it keeps the foreground, or it would
+                // close itself at once.
+                if (_assistantMenu is not null || bringsPage || previous == IntPtr.Zero || !UiNative.IsWindow(previous)) return;
                 UiNative.GetWindowThreadProcessId(UiNative.GetForegroundWindow(), out var pid);
                 if (pid == 0 || pid == Environment.ProcessId) UiNative.SetForegroundWindow(previous);
             }, System.Windows.Threading.DispatcherPriority.Background);
