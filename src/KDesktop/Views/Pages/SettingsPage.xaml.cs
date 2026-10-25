@@ -308,6 +308,8 @@ public partial class SettingsPage : UserControl
 
     private void UpdateOptionalHotkeys()
     {
+        ShowOptionalHotkey(ShowHotkeyButton, ShowHotkeyClear, _app.Config.Settings.ShowWindowHotkey);
+        ShowOptionalHotkey(ExitHotkeyButton, ExitHotkeyClear, _app.Config.Settings.ExitHotkey);
         ShowOptionalHotkey(VoiceHotkeyButton, VoiceHotkeyClear, _app.Config.Settings.VoiceHotkey);
         ShowOptionalHotkey(DictationHotkeyButton, DictationHotkeyClear, _app.Config.Settings.DictationHotkey);
         ShowOptionalHotkey(DisabledInHotkeyButton, DisabledInHotkeyClear, _app.Config.Settings.DisabledInHotkey);
@@ -659,23 +661,21 @@ public partial class SettingsPage : UserControl
     }
 
     private void OnCaptureShowHotkey(object sender, RoutedEventArgs e) =>
-        Capture(ShowHotkeyButton, hk => _app.Config.Settings.ShowWindowHotkey = hk);
+        CaptureOptionalHotkey(ShowHotkeyButton, hk => _app.Config.Settings.ShowWindowHotkey = hk);
+
+    private void OnClearShowHotkey(object sender, RoutedEventArgs e)
+    {
+        _app.Config.Settings.ShowWindowHotkey = string.Empty;
+        UpdateOptionalHotkeys();
+    }
 
     private void OnCaptureExitHotkey(object sender, RoutedEventArgs e) =>
-        Capture(ExitHotkeyButton, hk => _app.Config.Settings.ExitHotkey = hk);
+        CaptureOptionalHotkey(ExitHotkeyButton, hk => _app.Config.Settings.ExitHotkey = hk);
 
-    private void Capture(Wpf.Ui.Controls.Button button, Action<string> set)
+    private void OnClearExitHotkey(object sender, RoutedEventArgs e)
     {
-        var binding = button.GetBindingExpression(ContentProperty)?.ParentBinding;
-        button.Content = Loc.T("commands.pressHotkey");
-        HotkeyCapture.Start(
-            preview => button.Content = preview + "…",
-            hotkey =>
-            {
-                if (hotkey is not null) set(Hotkey.Normalize(hotkey));
-                if (binding is not null) button.SetBinding(ContentProperty, binding);
-            },
-            Window.GetWindow(this));
+        _app.Config.Settings.ExitHotkey = string.Empty;
+        UpdateOptionalHotkeys();
     }
 
     /// <summary>The kinds one after another (they stack): a message, a level, one that went well and a warning.</summary>

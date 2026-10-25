@@ -456,8 +456,6 @@
   "settings.notifyAchievements": "Logros",
   "settings.notifyAchievementsHint": "Una tarjeta animada al conseguir uno.",
   "settings.notifySound": "Con sonido",
-  "settings.notifyCorner": "Esquina",
-  "settings.notifyCornerHint": "Pulsa en qué esquina quieres que salgan.",
   "settings.notifySampleKicker": "Notificación",
   "settings.notifySampleTitle": "Así se ven las notificaciones",
   "settings.notifySampleText": "Aquí saldrán, por ejemplo, los logros que consigas.",

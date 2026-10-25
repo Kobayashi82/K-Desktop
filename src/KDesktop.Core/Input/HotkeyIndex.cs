@@ -15,11 +15,13 @@ public sealed class HotkeyIndex
     private readonly Dictionary<string, Entry[]> _map;
     private readonly HashSet<string> _disabledIn;
     private readonly HashSet<string> _sideButtonsBlockedIn;
-    private readonly bool _voiceAnywhere, _launcherAnywhere;
+    private readonly bool _voiceAnywhere, _launcherAnywhere, _showWindowAnywhere, _exitAnywhere;
 
-    /// <summary>The voice / launcher hotkey is swallowed (the application in front never gets it).</summary>
+    /// <summary>The voice / launcher / open / exit hotkey is swallowed (the application in front never gets it).</summary>
     public bool VoiceBlock { get; }
     public bool LauncherBlock { get; }
+    public bool ShowWindowBlock { get; }
+    public bool ExitBlock { get; }
 
     public string ShowWindowHotkey { get; }
     public string ExitHotkey { get; }
@@ -85,6 +87,10 @@ public sealed class HotkeyIndex
         _launcherAnywhere = settings.LauncherIgnoreDisabledApps;
         VoiceBlock = settings.VoiceBlockKey;
         LauncherBlock = settings.LauncherBlockKey;
+        _showWindowAnywhere = settings.ShowWindowIgnoreDisabledApps;
+        _exitAnywhere = settings.ExitIgnoreDisabledApps;
+        ShowWindowBlock = settings.ShowWindowBlockKey;
+        ExitBlock = settings.ExitBlockKey;
     }
 
     public bool Contains(string hotkey) => _map.ContainsKey(hotkey);
@@ -101,6 +107,14 @@ public sealed class HotkeyIndex
     /// </summary>
     public bool IsLauncherHotkey(string hotkey, Func<string> process) =>
         LauncherHotkey.Length > 0 && hotkey.Equals(LauncherHotkey, StringComparison.OrdinalIgnoreCase) && (_launcherAnywhere || !DisabledHere(process));
+
+    /// <summary>The open-window hotkey, and it may work here (like <see cref="IsLauncherHotkey"/>).</summary>
+    public bool IsShowWindowHotkey(string hotkey, Func<string> process) =>
+        ShowWindowHotkey.Length > 0 && hotkey.Equals(ShowWindowHotkey, StringComparison.OrdinalIgnoreCase) && (_showWindowAnywhere || !DisabledHere(process));
+
+    /// <summary>The exit hotkey, and it may work here (like <see cref="IsLauncherHotkey"/>).</summary>
+    public bool IsExitHotkey(string hotkey, Func<string> process) =>
+        ExitHotkey.Length > 0 && hotkey.Equals(ExitHotkey, StringComparison.OrdinalIgnoreCase) && (_exitAnywhere || !DisabledHere(process));
 
     /// <summary>The voice hotkey, and it may work here (like <see cref="IsLauncherHotkey"/>).</summary>
     public bool IsVoiceHotkey(string hotkey, Func<string> process) =>

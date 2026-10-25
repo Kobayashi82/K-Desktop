@@ -456,8 +456,6 @@
   "settings.notifyAchievements": "Achievements",
   "settings.notifyAchievementsHint": "An animated card when you get one.",
   "settings.notifySound": "With sound",
-  "settings.notifyCorner": "Corner",
-  "settings.notifyCornerHint": "Click the corner where you want them.",
   "settings.notifySampleKicker": "Notification",
   "settings.notifySampleTitle": "This is how notifications look",
   "settings.notifySampleText": "Your achievements, for example, will show here.",

@@ -456,8 +456,6 @@
   "settings.notifyAchievements": "Erfolge",
   "settings.notifyAchievementsHint": "Eine animierte Karte, wenn du einen erreichst.",
   "settings.notifySound": "Mit Ton",
-  "settings.notifyCorner": "Ecke",
-  "settings.notifyCornerHint": "Klicke auf die Ecke, in der sie erscheinen sollen.",
   "settings.notifySampleKicker": "Benachrichtigung",
   "settings.notifySampleTitle": "So sehen Benachrichtigungen aus",
   "settings.notifySampleText": "Hier erscheinen zum Beispiel deine Erfolge.",

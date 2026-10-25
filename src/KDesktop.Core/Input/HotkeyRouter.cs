@@ -163,15 +163,15 @@ public sealed partial class HotkeyRouter : IDisposable
             return capture(hotkey, true) && Block(vk, mods);
 
         var index = _index;
-        if (index.ShowWindowHotkey.Length > 0 && hotkey.Equals(index.ShowWindowHotkey, StringComparison.OrdinalIgnoreCase))
+        if (index.IsShowWindowHotkey(hotkey, FrontProcess))
         {
             if (!repeat) Post(() => BuiltIn?.Invoke(BuiltInHotkey.ShowWindow));
-            return Block(vk, mods);
+            return index.ShowWindowBlock && Block(vk, mods);
         }
-        if (index.ExitHotkey.Length > 0 && hotkey.Equals(index.ExitHotkey, StringComparison.OrdinalIgnoreCase))
+        if (index.IsExitHotkey(hotkey, FrontProcess))
         {
             if (!repeat) Post(() => BuiltIn?.Invoke(BuiltInHotkey.Exit));
-            return Block(vk, mods);
+            return index.ExitBlock && Block(vk, mods);
         }
         if (index.IsPauseHotkey(hotkey))
         {

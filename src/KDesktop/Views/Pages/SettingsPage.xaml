@@ -378,7 +378,15 @@
                             <TextBlock Text="{l:Tr settings.showHotkey}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.showHotkeyHint}" />
                         </StackPanel>
-                        <ui:Button x:Name="ShowHotkeyButton" Grid.Column="1" MinWidth="200" Content="{Binding ShowWindowHotkey}" Click="OnCaptureShowHotkey" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <ui:Button x:Name="ShowHotkeyButton" MinWidth="200" Click="OnCaptureShowHotkey" />
+                            <ui:Button VerticalAlignment="Stretch" x:Name="ShowHotkeyClear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
+                                       AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearShowHotkey" />
+                            <v:IconToggle Margin="8,0,0,0" IsChecked="{Binding ShowWindowBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
+                                          Title="{l:Tr commands.blockKey}" Hint="{l:Tr commands.blockKeyHint}" />
+                            <v:IconToggle IsChecked="{Binding ShowWindowIgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
+                                          Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
+                        </StackPanel>
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
@@ -386,7 +394,15 @@
                             <TextBlock Text="{l:Tr settings.exitHotkey}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.exitHotkeyHint}" />
                         </StackPanel>
-                        <ui:Button x:Name="ExitHotkeyButton" Grid.Column="1" MinWidth="200" Content="{Binding ExitHotkey}" Click="OnCaptureExitHotkey" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <ui:Button x:Name="ExitHotkeyButton" MinWidth="200" Click="OnCaptureExitHotkey" />
+                            <ui:Button VerticalAlignment="Stretch" x:Name="ExitHotkeyClear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
+                                       AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearExitHotkey" />
+                            <v:IconToggle Margin="8,0,0,0" IsChecked="{Binding ExitBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
+                                          Title="{l:Tr commands.blockKey}" Hint="{l:Tr commands.blockKeyHint}" />
+                            <v:IconToggle IsChecked="{Binding ExitIgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
+                                          Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
+                        </StackPanel>
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
@@ -533,15 +549,10 @@
                         <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AchievementSound}" />
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.osdScreen}" />
-                        <ComboBox Grid.Column="1" ItemsSource="{x:Static v:Lookups.ScreenChoices}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding NotifyScreen}" />
-                    </Grid>
-                    <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                            <TextBlock Text="{l:Tr settings.notifyCorner}" />
-                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.notifyCornerHint}" />
+                            <TextBlock Text="{l:Tr settings.osdPosition}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.osdPositionHint}" />
                         </StackPanel>
                         <!-- The screen again: a card in each corner -->
                         <StackPanel Grid.Column="1" Margin="0,4,0,4">
@@ -583,6 +594,11 @@
                             <Border Width="44" Height="8" Background="{DynamicResource Kd.OsdTrack}" />
                             <Border Width="72" Height="4" CornerRadius="2" Background="{DynamicResource Kd.OsdTrack}" />
                         </StackPanel>
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.osdScreen}" />
+                        <ComboBox Grid.Column="1" ItemsSource="{x:Static v:Lookups.ScreenChoices}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding NotifyScreen}" />
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
