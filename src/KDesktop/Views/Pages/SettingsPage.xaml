@@ -238,10 +238,12 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.faviconsHint}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:Button Margin="0,0,12,0" Icon="{ui:SymbolIcon ArrowSync24}" ToolTip="{l:Tr settings.faviconsRefresh}"
+                            <ui:ToggleSwitch VerticalAlignment="Center" IsChecked="{Binding WebFavicons}" />
+                            <!-- Same size and right edge as the language reload button above -->
+                            <ui:Button Margin="12,0,0,0" VerticalAlignment="Center" Height="{Binding ActualHeight, ElementName=LanguageBox}"
+                                       Icon="{ui:SymbolIcon ArrowSync24}" ToolTip="{l:Tr settings.faviconsRefresh}"
                                        AutomationProperties.Name="{l:Tr settings.faviconsRefresh}" Click="OnRefreshFavicons"
                                        IsEnabled="{Binding WebFavicons}" />
-                            <ui:ToggleSwitch IsChecked="{Binding WebFavicons}" />
                         </StackPanel>
                     </Grid>
                 </StackPanel>
