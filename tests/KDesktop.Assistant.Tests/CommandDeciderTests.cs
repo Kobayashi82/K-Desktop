@@ -5,7 +5,7 @@ using KDesktop.Core.Assistant.Pipe;
 
 namespace KDesktop.Assistant.Tests;
 
-/// <summary>5.0.200: the one-token decision among the closest commands (docs/assistant/decision-model-pruebas.md).</summary>
+/// <summary>5.0.200: the one-token decision among the closest commands (measured on the branch decision_nvidia).</summary>
 public class CommandDeciderTests
 {
     private static readonly MatchedCandidate[] Options =

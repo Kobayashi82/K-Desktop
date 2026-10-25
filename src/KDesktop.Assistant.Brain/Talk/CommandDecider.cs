@@ -14,8 +14,8 @@ public sealed record CommandDecision(CommandChoice Choice, MatchedCandidate? Fir
 /// <summary>
 /// The user's commands when the words and the meaning were not clear (5.0.200): the assistant's own model, already
 /// loaded for the AI that would answer next, picks one of the closest by meaning (<see cref="MatchedMessage.Near"/>) with a
-/// single token: «A»… or «Z» for none. Measured on 184 orders with the user's 117 commands (docs/assistant/
-/// decision-model-pruebas.md), with this rule the assistant got right without the AI 123 of them instead of 98 (Bonsai
+/// single token: «A»… or «Z» for none. Measured on 184 orders with the user's 117 commands (the report and
+/// its harness are on the branch decision_nvidia), with this rule the assistant got right without the AI 123 of them instead of 98 (Bonsai
 /// 27B: 122), with the same wrong runs as before and none turning the PC off, in some 0.1 s (Bonsai: 0.3 s) instead of a
 /// whole turn of the AI. «None» leaves the order to the AI as before.
 /// </summary>
