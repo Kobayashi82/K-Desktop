@@ -4,15 +4,21 @@
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:l="clr-namespace:KDesktop.Localization"
              xmlns:local="clr-namespace:KDesktop.Views">
-    <!-- Sound chooser: built-in sounds or a .wav file, with preview. Choosing one in the list plays it. -->
+    <!-- Sound chooser: built-in sounds or a .wav file (Browse), with preview. Choosing one in the list plays it. -->
     <Grid VerticalAlignment="Center">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <ComboBox x:Name="Box" IsEditable="True" VerticalAlignment="Center" SelectionChanged="OnSelectionChanged" local:Placeholder.Text="{l:Tr sound.placeholder}"
-                  DropDownOpened="OnDropDownOpened" DropDownClosed="OnDropDownClosed" />
+        <ComboBox x:Name="Box" VerticalAlignment="Center" SelectionChanged="OnSelectionChanged"
+                  DropDownOpened="OnDropDownOpened" DropDownClosed="OnDropDownClosed">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Text}" TextTrimming="CharacterEllipsis" />
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
         <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon Play24}" ToolTip="{l:Tr editor.preview}" Click="OnPlay" />
         <ui:Button x:Name="BrowseButton" Grid.Column="2" Margin="6,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}" Click="OnBrowse" />
     </Grid>

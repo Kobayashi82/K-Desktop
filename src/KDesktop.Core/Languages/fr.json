@@ -45,8 +45,7 @@
 
   "common.add": "Ajouter",
   "common.processPlaceholder": "Processus (ex. chrome)",
-  "sound.none": "(Aucun)",
-  "sound.placeholder": "Aucun son",
+  "sound.none": "Aucun son",
   "common.remove": "Retirer",
   "common.delete": "Supprimer",
   "common.cancel": "Annuler",

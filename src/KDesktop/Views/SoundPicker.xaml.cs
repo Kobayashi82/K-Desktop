@@ -1,11 +1,9 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
-using System.Windows.Threading;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Platform;
 using Microsoft.Win32;
@@ -13,33 +11,35 @@ using Microsoft.Win32;
 namespace KDesktop.Views;
 
 /// <summary>
-/// Editable list of the sounds (built-in names or a .wav path) with Play and Browse buttons. Picking a sound in the
-/// list (mouse or arrow keys) plays it, so they can be compared quickly.
+/// List of the sounds (built-in names, or a .wav file chosen with Browse) with Play and Browse buttons. Nothing is
+/// typed: a file shows its name, and its whole path in the tooltip. Picking a sound in the list (mouse or arrow keys)
+/// plays it, so they can be compared quickly.
 /// </summary>
 public partial class SoundPicker : UserControl
 {
     public static readonly DependencyProperty SoundProperty = DependencyProperty.Register(
         nameof(Sound), typeof(string), typeof(SoundPicker),
-        new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+        new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, (d, _) =>
+        {
+            if (d is SoundPicker { _showing: false } picker) picker.ShowSound();
+        }));
 
     public static readonly DependencyProperty ShowBrowseProperty = DependencyProperty.Register(
         nameof(ShowBrowse), typeof(bool), typeof(SoundPicker),
         new PropertyMetadata(true, (d, e) => ((SoundPicker)d).BrowseButton.Visibility = (bool)e.NewValue ? Visibility.Visible : Visibility.Collapsed));
 
+    /// <summary>An entry of the list: <see cref="Value"/> is what is saved (null = no sound), its text what is seen.</summary>
+    public sealed record Item(string? Value, string Text)
+    {
+        // What UI Automation (and so screen readers) read for the entry.
+        public override string ToString() => Text;
+    }
+
     public SoundPicker()
     {
         InitializeComponent();
-        // First entry: no sound. Choosing it empties the box (its hint then says there is no sound).
-        Box.ItemsSource = new[] { NoneItem }.Concat(Sounds.Available()).ToList();
-        // Empty text → null (no sound).
-        Box.SetBinding(ComboBox.TextProperty, new Binding(nameof(Sound))
-        {
-            Source = this,
-            Mode = BindingMode.TwoWay,
-            UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
-            TargetNullValue = string.Empty,
-        });
         Box.AddHandler(PreviewMouseMoveEvent, new MouseEventHandler(OnBoxMouseMove), handledEventsToo: true);
+        ShowSound();
     }
 
     /// <summary>Built-in sound name or path of a .wav file; null for none.</summary>
@@ -55,18 +55,36 @@ public partial class SoundPicker : UserControl
         set => SetValue(ShowBrowseProperty, value);
     }
 
-    /// <summary>The "(None)" entry at the top of the list.</summary>
-    private static string NoneItem => Loc.T("sound.none");
+    /// <summary>Selecting the item of <see cref="Sound"/> from code: it is not the user picking (no sound, no saving).</summary>
+    private bool _showing;
+
+    /// <summary>
+    /// The list again with the current sound selected: first «no sound», then a chosen file (its name), then the
+    /// built-in sounds. A name that no longer exists stays as it is, so opening the options doesn't lose it.
+    /// </summary>
+    private void ShowSound()
+    {
+        var sound = string.IsNullOrWhiteSpace(Sound) ? null : Sound;
+        var items = new List<Item> { new(null, Loc.T("sound.none")) };
+        var names = Sounds.Available();
+        if (sound is not null && !names.Contains(sound, StringComparer.OrdinalIgnoreCase))
+            items.Add(new Item(sound, Path.IsPathRooted(sound) ? Path.GetFileName(sound) : sound));
+        items.AddRange(names.Select(n => new Item(n, n)));
+        _showing = true;
+        try
+        {
+            Box.ItemsSource = items;
+            Box.SelectedItem = items.FirstOrDefault(i => string.Equals(i.Value, sound, StringComparison.OrdinalIgnoreCase)) ?? items[0];
+        }
+        finally { _showing = false; }
+        Box.ToolTip = sound is not null && Path.IsPathRooted(sound) ? sound : null;
+    }
 
     /// <summary>Last sound previewed from the open list, so moving over the same item does not restart it.</summary>
     private string? _previewed;
 
-    private void OnDropDownOpened(object? sender, EventArgs e)
-    {
-        // Mouse over the current item: no sound until the mouse moves to another one.
-        _previewed = Box.SelectedItem as string;
-        DeselectText();
-    }
+    // Mouse over the current item: no sound until the mouse moves to another one.
+    private void OnDropDownOpened(object? sender, EventArgs e) => _previewed = (Box.SelectedItem as Item)?.Value;
 
     /// <summary>
     /// With the list open, each sound plays as the mouse goes over it. The open combo captures the mouse, so the
@@ -77,56 +95,29 @@ public partial class SoundPicker : UserControl
         if (!Box.IsDropDownOpen) return;
         var item = e.OriginalSource as DependencyObject;
         while (item is not null and not ComboBoxItem) item = item is Visual or Visual3D ? VisualTreeHelper.GetParent(item) : LogicalTreeHelper.GetParent(item);
-        if (item is ComboBoxItem { Content: string sound }) Preview(sound);
+        if (item is ComboBoxItem { Content: Item { Value: { } sound } }) Preview(sound);
     }
 
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (e.AddedItems is [string picked, ..] && picked == NoneItem)
-        {
-            // After WPF has copied the item into the text: clear both, so the value is null and the hint shows.
-            Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
-            {
-                Box.SelectedIndex = -1;
-                Sound = null;
-                Box.Text = string.Empty;
-            });
-            _previewed = null;
-            return;
-        }
-        // Only what the user picks: the binding also selects the matching item when the editor loads.
-        if (!Box.IsDropDownOpen && !Box.IsKeyboardFocusWithin) return;
+        if (_showing || e.AddedItems is not [Item picked, ..]) return;
+        _showing = true;
+        try { Sound = picked.Value; }
+        finally { _showing = false; }
+        Box.ToolTip = picked.Value is { } path && Path.IsPathRooted(path) ? path : null;
         // Choosing always plays it, even right after hovering over it.
-        if (e.AddedItems is [string sound, ..])
-        {
-            _previewed = sound;
-            Sounds.Preview(sound);
-        }
-        DeselectText();
+        _previewed = picked.Value;
+        if (picked.Value is not null) Sounds.Preview(picked.Value);
     }
 
-    private void Preview(string? sound)
+    private void Preview(string sound)
     {
-        if (string.IsNullOrEmpty(sound) || sound == _previewed || sound == NoneItem) return;
+        if (sound == _previewed) return;
         _previewed = sound;
         Sounds.Preview(sound);
     }
 
-    private void OnDropDownClosed(object? sender, EventArgs e)
-    {
-        _previewed = null;
-        DeselectText();
-    }
-
-    /// <summary>
-    /// The editable combo selects its whole text when an item is chosen or the list closes: leave the caret at the
-    /// end instead (after WPF has done its selecting).
-    /// </summary>
-    private void DeselectText() => Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
-    {
-        if (Box.Template?.FindName("PART_EditableTextBox", Box) is not TextBox text) return;
-        text.Select(text.Text.Length, 0);
-    });
+    private void OnDropDownClosed(object? sender, EventArgs e) => _previewed = null;
 
     private void OnPlay(object sender, RoutedEventArgs e) => Sounds.Preview(Sound);
 

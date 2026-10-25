@@ -1,4 +1,6 @@
 using System.Windows;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Threading;
 
 namespace KDesktop.Views;
@@ -65,5 +67,12 @@ public sealed class HotkeyCapture
         App.Current.Router.SetCapture(null);
         if (_window is not null) _window.Deactivated -= OnDeactivated;
         _completed(hotkey);
+        // The button that started it keeps the focus, and the keys just pressed made it show its focus border.
+        if (Keyboard.FocusedElement is ButtonBase button)
+        {
+            var scope = FocusManager.GetFocusScope(button);
+            Keyboard.ClearFocus();
+            if (scope is not null) FocusManager.SetFocusedElement(scope, null);
+        }
     }
 }

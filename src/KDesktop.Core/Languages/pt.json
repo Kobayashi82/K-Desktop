@@ -45,8 +45,7 @@
 
   "common.add": "Adicionar",
   "common.processPlaceholder": "Processo (ex.: chrome)",
-  "sound.none": "(Nenhum)",
-  "sound.placeholder": "Sem som",
+  "sound.none": "Sem som",
   "common.remove": "Remover",
   "common.delete": "Excluir",
   "common.cancel": "Cancelar",
