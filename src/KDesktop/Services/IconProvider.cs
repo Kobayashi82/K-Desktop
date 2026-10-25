@@ -75,6 +75,16 @@ public static partial class IconProvider
         ToggleDisabledInAction => Kd("Prohibited24", "red"),
         ShowMessageAction => Kd("Chat24", "green"),
         ShowNotificationAction x => (string.IsNullOrWhiteSpace(x.Icon) ? null : FromConfigIcon(x.Icon)) ?? Kd("Alert24", "gold"),
+        FilesAction x => x.Operation switch
+        {
+            FileOperation.Move => Kd("FolderArrowRight24", "teal"),
+            FileOperation.Rename => Kd("Rename24", "indigo"),
+            FileOperation.Delete => Kd("Delete24", "red"),
+            FileOperation.CreateFolder => Kd("FolderAdd24", "yellow"),
+            FileOperation.Zip or FileOperation.Unzip => Kd("FolderZip24", "orange"),
+            FileOperation.Backup => Kd("ArchiveArrowBack24", "green"),
+            _ => Kd("DocumentCopy24", "blue"),
+        },
         PowerAction => Kd("Power24", "red"),
         OpenQuickMenuAction => Kd("TextBulletListTree24", "gold"),
         LauncherAction => Kd("Search24", "gold"),

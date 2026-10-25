@@ -29,11 +29,27 @@ public sealed record OsdLook(string? Icon = null, double? Level = null, OsdTopic
 public sealed record Notification(
     string Title, string Text, string? Icon, NotifyColor Color, string? Sound, TimeSpan? Duration, NotifyCorner? Corner, Action? Clicked);
 
+/// <summary>An OSD message with a bar that the work in progress keeps up to date (any thread).</summary>
+public interface IProgressOsd : IDisposable
+{
+    /// <summary>New text and how far it is (0–1).</summary>
+    void Update(string text, double level);
+}
+
+internal sealed class NoProgressOsd : IProgressOsd
+{
+    public void Update(string text, double level) { }
+    public void Dispose() { }
+}
+
 /// <summary>Services the engine needs from the UI layer. Implementations must be thread-safe.</summary>
 public interface IUiServices
 {
     /// <summary>Shows a notification card; completes when it is gone (or was dropped: full screen and «No mostrarlas»).</summary>
     Task ShowNotificationAsync(Notification notification) => Task.CompletedTask;
+
+    /// <summary>A message that stays with a bar (copying files…), updated with <see cref="IProgressOsd.Update"/> until disposed.</summary>
+    IProgressOsd ShowProgressOsd(string text, string icon) => new NoProgressOsd();
 
     /// <summary>Shows a short on-screen message.</summary>
     void ShowOsd(string text, OsdKind kind = OsdKind.Info, TimeSpan? duration = null, OsdLook? look = null);

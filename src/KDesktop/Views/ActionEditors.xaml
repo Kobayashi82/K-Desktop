@@ -12,6 +12,7 @@
     <v:AudioDeviceSymbolConverter x:Key="AudioSymbol" />
     <v:DisplayModesConverter x:Key="DisplayModes" />
     <v:ActionIconConverter x:Key="ActionIconEd" />
+    <v:LocKeyConverter x:Key="LocKey" />
 
     <Style x:Key="EdRow" TargetType="Grid">
         <Setter Property="Margin" Value="0,0,0,12" />
@@ -562,6 +563,126 @@
                 <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.waitMessage}" IsChecked="{Binding Wait}" />
             </WrapPanel>
         </StackPanel>
+    </DataTemplate>
+
+    <!-- ── Archivos y carpetas ─────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:FilesAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.windowOperation}" />
+            <ComboBox Margin="0,0,0,12" ItemsSource="{x:Static v:Lookups.FileOperations}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Operation}" />
+
+            <!-- What it works on: written by hand (patterns too) or added with the buttons -->
+            <StackPanel x:Name="SourcesPanel">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.filesSources}" />
+                <ItemsControl ItemsSource="{Binding Sources}" Margin="0,0,0,6">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,0,4" Padding="10,4,4,4" CornerRadius="6" Background="{DynamicResource Kd.Subtle}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip="{Binding}" />
+                                    <ui:Button Grid.Column="1" Style="{StaticResource IconButton}" ToolTip="{l:Tr common.remove}" AutomationProperties.Name="{l:Tr common.remove}"
+                                               Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                               Command="{x:Static v:EditorCommands.RemoveFileSource}" CommandParameter="{Binding}">
+                                        <ui:SymbolIcon Symbol="Dismiss24" FontSize="12" />
+                                    </ui:Button>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Grid Style="{StaticResource EdRow}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBox x:Name="SourceBox" PlaceholderText="{l:Tr editor.filesSourceHint}" AutomationProperties.Name="{l:Tr editor.filesSources}" />
+                    <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}"
+                               Tag="{Binding ElementName=SourceBox}" Command="{x:Static v:EditorCommands.AddFileSource}" CommandParameter="{Binding}" />
+                    <ui:Button Grid.Column="2" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon Document24}"
+                               ToolTip="{l:Tr editor.filesAddFiles}" AutomationProperties.Name="{l:Tr editor.filesAddFiles}"
+                               Command="{x:Static v:EditorCommands.AddFileSourceFiles}" CommandParameter="{Binding}" />
+                    <ui:Button Grid.Column="3" Margin="6,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon Folder24}"
+                               ToolTip="{l:Tr editor.filesAddFolder}" AutomationProperties.Name="{l:Tr editor.filesAddFolder}"
+                               Command="{x:Static v:EditorCommands.AddFileSourceFolder}" CommandParameter="{Binding}" />
+                </Grid>
+                <CheckBox Style="{StaticResource EdCheck}" Margin="0,0,24,12" Content="{l:Tr editor.filesSubfolders}" IsChecked="{Binding Subfolders}" />
+            </StackPanel>
+
+            <StackPanel x:Name="DestinationPanel">
+                <TextBlock x:Name="DestinationLabel" Style="{StaticResource FieldLabel}" Text="{l:Tr editor.filesDestination}" />
+                <TextBlock x:Name="CreateLabel" Style="{StaticResource FieldLabel}" Text="{l:Tr editor.filesCreate}" Visibility="Collapsed" />
+                <Grid Style="{StaticResource EdRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <ui:TextBox Text="{Binding Destination, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.filesDestinationHint}"
+                                AutomationProperties.Name="{l:Tr editor.filesDestination}" />
+                    <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}"
+                               Command="{x:Static v:EditorCommands.BrowseFolder}" CommandParameter="{Binding}" />
+                </Grid>
+            </StackPanel>
+
+            <StackPanel x:Name="RenamePanel" Visibility="Collapsed">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.filesNewName}" />
+                <ui:TextBox Margin="0,0,0,12" Text="{Binding NewName, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.filesNewNameHint}"
+                            AutomationProperties.Name="{l:Tr editor.filesNewName}" />
+            </StackPanel>
+
+            <StackPanel x:Name="ExistsPanel">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.filesExists}" />
+                <ComboBox Margin="0,0,0,12" ItemsSource="{x:Static v:Lookups.FileExistsChoices}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Exists}" />
+            </StackPanel>
+
+            <CheckBox x:Name="RecycleCheck" Style="{StaticResource EdCheck}" Margin="0,0,24,12" Visibility="Collapsed" Content="{l:Tr editor.filesRecycle}" IsChecked="{Binding Recycle}" />
+
+            <StackPanel x:Name="BackupPanel" Visibility="Collapsed">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.filesBackupMode}" />
+                <ComboBox Margin="0,0,0,12" ItemsSource="{x:Static v:Lookups.BackupModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding BackupMode}" />
+                <CheckBox x:Name="MirrorCheck" Style="{StaticResource EdCheck}" Margin="0,0,24,12" Content="{l:Tr editor.filesMirrorDelete}" IsChecked="{Binding MirrorDelete}" />
+                <Grid x:Name="DatedPanel" Style="{StaticResource EdRow}" Visibility="Collapsed">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="140" /><ColumnDefinition Width="16" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.filesKeep}" />
+                        <ui:TextBox Text="{Binding Keep, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" AutomationProperties.Name="{l:Tr editor.filesKeep}" />
+                    </StackPanel>
+                    <CheckBox Grid.Column="2" VerticalAlignment="Bottom" Margin="0,0,0,6" Content="{l:Tr editor.filesZip}" IsChecked="{Binding BackupZip}" />
+                </Grid>
+            </StackPanel>
+
+            <WrapPanel>
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.filesWait}" IsChecked="{Binding Wait}" />
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.filesShowOsd}" IsChecked="{Binding ShowOsd}" />
+            </WrapPanel>
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap"
+                       Text="{Binding Operation, Converter={StaticResource LocKey}, ConverterParameter=editor.filesHint}" />
+        </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Operation}" Value="CreateFolder">
+                <Setter TargetName="SourcesPanel" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="ExistsPanel" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="DestinationLabel" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="CreateLabel" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Operation}" Value="Delete">
+                <Setter TargetName="DestinationPanel" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="ExistsPanel" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="RecycleCheck" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Operation}" Value="Rename">
+                <Setter TargetName="DestinationPanel" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="ExistsPanel" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="RenamePanel" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Operation}" Value="Backup">
+                <Setter TargetName="ExistsPanel" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="BackupPanel" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding BackupMode}" Value="Dated">
+                <Setter TargetName="MirrorCheck" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="DatedPanel" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
     </DataTemplate>
 
     <!-- ── Mostrar notificación ────────────────────────────────────────── -->

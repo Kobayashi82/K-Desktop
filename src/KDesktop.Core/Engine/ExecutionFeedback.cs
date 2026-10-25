@@ -85,6 +85,8 @@ internal sealed class FeedbackUiServices(IUiServices inner) : IUiServices
 
     public IVoiceOsd ShowVoiceOsd(string text) => inner.ShowVoiceOsd(text);
 
+    public IProgressOsd ShowProgressOsd(string text, string icon) => inner.ShowProgressOsd(text, icon);
+
     public Task ShowNotificationAsync(Notification notification)
     {
         ExecutionFeedback.Current?.Add(notification.Title);

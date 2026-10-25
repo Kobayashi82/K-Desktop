@@ -257,3 +257,12 @@ public sealed class IndentMarginConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 }
+
+/// <summary>A value → the text of «prefix.Value» (ConverterParameter = prefix): «editor.filesHint.Copy».</summary>
+public sealed class LocKeyConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        Core.Localization.Loc.T($"{parameter}.{value}");
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
+}

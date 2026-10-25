@@ -447,6 +447,43 @@ public sealed partial class CommandsPage : UserControl, IDisposable
         if (e.Parameter is ShowNotificationAction a) a.Icon = null;
     }
 
+    // ── «Archivos y carpetas»: the list of sources ───────────────────────
+
+    private static void AddSource(FilesAction a, string path)
+    {
+        path = path.Trim().Trim('"');
+        if (path.Length > 0 && !a.Sources.Contains(path, StringComparer.OrdinalIgnoreCase)) a.Sources.Add(path);
+    }
+
+    /// <summary>What is written in the box (a path or a pattern, «C:\Música\*.mp3»).</summary>
+    private void OnAddFileSource(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.Parameter is not FilesAction a || (e.OriginalSource as FrameworkElement)?.Tag is not System.Windows.Controls.TextBox box) return;
+        AddSource(a, box.Text);
+        box.Clear();
+    }
+
+    private void OnAddFileSourceFiles(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.Parameter is not FilesAction a) return;
+        var dlg = new OpenFileDialog { Title = Loc.T("editor.filesAddFiles"), Filter = Loc.T("editor.filterAll") + "|*.*", Multiselect = true, DereferenceLinks = false };
+        if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
+        foreach (var file in dlg.FileNames) AddSource(a, file);
+    }
+
+    private void OnAddFileSourceFolder(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.Parameter is not FilesAction a) return;
+        var dlg = new OpenFolderDialog { Title = Loc.T("editor.filesAddFolder"), Multiselect = true };
+        if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
+        foreach (var folder in dlg.FolderNames) AddSource(a, folder);
+    }
+
+    private void OnRemoveFileSource(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.Parameter is string path && (e.OriginalSource as FrameworkElement)?.Tag is FilesAction a) a.Sources.Remove(path);
+    }
+
     // ── hotkeys ──────────────────────────────────────────────────────────
 
     private void OnAddHotkey(object sender, RoutedEventArgs e)
@@ -667,6 +704,7 @@ public sealed partial class CommandsPage : UserControl, IDisposable
             case OpenFolderAction a when PickFolder(a.Path) is { } path: a.Path = path; break;
             case ScreenshotAction s when PickFolder(s.Folder) is { } path: s.Folder = path; break;
             case AudioRecordAction r when PickFolder(r.Folder) is { } path: r.Folder = path; break;
+            case FilesAction f when PickFolder(f.Destination) is { } path: f.Destination = path; break;
         }
     }
 

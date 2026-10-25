@@ -124,6 +124,9 @@ public static class Lookups
     public static IReadOnlyList<Option<NotifyColor>> NotifyColors { get; } = Enum<NotifyColor>("enum.notifyColor");
     public static IReadOnlyList<Option<NotifyPlace>> NotifyPlaces { get; } = Enum<NotifyPlace>("enum.notifyPlace");
     public static IReadOnlyList<Option<NotifyClick>> NotifyClicks { get; } = Enum<NotifyClick>("enum.notifyClick");
+    public static IReadOnlyList<Option<FileOperation>> FileOperations { get; } = Enum<FileOperation>("enum.fileOp");
+    public static IReadOnlyList<Option<FileExists>> FileExistsChoices { get; } = Enum<FileExists>("enum.fileExists");
+    public static IReadOnlyList<Option<BackupMode>> BackupModes { get; } = Enum<BackupMode>("enum.backupMode");
     public static IReadOnlyList<Option<MacroStepKind>> MacroStepKinds { get; } = Enum<MacroStepKind>("enum.stepKind");
     public static IReadOnlyList<Option<KDesktop.Core.Input.MouseButton>> MouseButtons { get; } =
         [.. Enum<KDesktop.Core.Input.MouseButton>("macro.button").Where(o => o.Value != KDesktop.Core.Input.MouseButton.None)];
@@ -208,4 +211,8 @@ public static class EditorCommands
     public static readonly RoutedUICommand FindMac = new("FindMac", nameof(FindMac), typeof(EditorCommands));
     public static readonly RoutedUICommand PickNotificationIcon = new("PickNotificationIcon", nameof(PickNotificationIcon), typeof(EditorCommands));
     public static readonly RoutedUICommand ResetNotificationIcon = new("ResetNotificationIcon", nameof(ResetNotificationIcon), typeof(EditorCommands));
+    public static readonly RoutedUICommand AddFileSource = new("AddFileSource", nameof(AddFileSource), typeof(EditorCommands));
+    public static readonly RoutedUICommand AddFileSourceFiles = new("AddFileSourceFiles", nameof(AddFileSourceFiles), typeof(EditorCommands));
+    public static readonly RoutedUICommand AddFileSourceFolder = new("AddFileSourceFolder", nameof(AddFileSourceFolder), typeof(EditorCommands));
+    public static readonly RoutedUICommand RemoveFileSource = new("RemoveFileSource", nameof(RemoveFileSource), typeof(EditorCommands));
 }

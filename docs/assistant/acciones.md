@@ -34,7 +34,9 @@ aparece un `ActionKind` sin gesto o sin riesgo.
 | Esperar (`Wait`) | | `communicate` ★ (cuenta atrás) | 🟢 |
 | Comandos (`CommandControl`) | Ejecutar | `communicate` ★ (sus pasos llegan con `depth` + 1) | el del comando llamado |
 | | Activar / desactivar | `communicate` ★ | 🟡 |
-| Portapapeles, Wake on LAN, Sonido, Grabar audio, Mensaje, Archivos ocultos, «Desactivar en», K-Board, QuickMenu, Lanzador | | `communicate` ★ (icono de cada una) | 🟢 |
+| Portapapeles, Wake on LAN, Sonido, Grabar audio, Mensaje, Notificación, Archivos ocultos, «Desactivar en», K-Board, QuickMenu, Lanzador | | `communicate` ★ (icono de cada una) | 🟢 |
+| Archivos y carpetas (`Files`) | Copiar, renombrar, crear, comprimir, copia de seguridad | `communicate` ★ (icono `folder`) | 🟢 (sincronizar quitando lo que ya no está: 🟡) |
+| | Mover, borrar | `communicate` ★ (icono `folder`) | 🔴 |
 | Asistente: acción (`AssistantExtra`) | | `communicate` ★ (icono `assistant`); el extra lo hace el asistente que lo declara | 🟢 |
 | Asistente: decir (`AssistantSay`) | | `communicate` ★ (icono `assistant`): el asistente lo dice (`say`) | 🟢 |
 | Asistente: cerebro (`AssistantBrain`) | | `communicate` (icono `assistant`): saca el modelo de la gráfica o lo carga (`brain` `unload` / `load`) | 🟢 |

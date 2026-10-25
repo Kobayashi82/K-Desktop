@@ -25,6 +25,7 @@ public sealed partial class CommandEngine
         ToggleDisabledInAction a => Run(() => ToggleDisabledIn(a, ctx)),
         ShowMessageAction a => ShowMessageAsync(a, ctx),
         ShowNotificationAction a => ShowNotificationAsync(a, ctx),
+        FilesAction a => FilesAsync(a, ctx),
         PowerAction a => PowerAsync(a, ctx),
         OpenQuickMenuAction a => Run(() => _ui.ShowQuickMenu(a.MenuId, ctx.Foreground)),
         CommandControlAction a => CommandControlAsync(a, ctx),
@@ -378,6 +379,84 @@ public sealed partial class CommandEngine
             clicked);
         var shown = _ui.ShowNotificationAsync(notification);
         if (a.Wait) await shown.WaitAsync(ctx.Token).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// «Archivos y carpetas»: the work goes on its own thread with its progress on the OSD (Esc stops it); with «Esperar»
+    /// (the usual), the next action waits until it is done.
+    /// </summary>
+    private async Task FilesAsync(FilesAction a, ExecutionContext ctx)
+    {
+        var job = new FileJob(a.Operation, [.. a.Sources.Select(s => TextVariables.Expand(s))], TextVariables.Expand(a.Destination),
+            a.Subfolders, TextVariables.Expand(a.NewName), a.Exists, a.Recycle, a.BackupMode, a.MirrorDelete, a.BackupZip, a.Keep);
+        var cts = BeginCancellable(ctx.Token);
+        var work = RunFilesAsync(job, a.ShowOsd, cts);
+        if (a.Wait) await work.ConfigureAwait(false);
+    }
+
+    private async Task RunFilesAsync(FileJob job, bool showOsd, CancellationTokenSource cts)
+    {
+        const string icon = "DocumentCopy24";
+        var verb = Loc.T($"enum.fileOp.{job.Operation}");
+        var osd = showOsd ? _ui.ShowProgressOsd(Loc.T("files.working", verb), icon) : null;
+        var progress = osd is null ? null : new FilesProgress(osd, verb);
+        try
+        {
+            var result = await FileJobs.RunAsync(job, progress, cts.Token).ConfigureAwait(false);
+            Log.Info($"Archivos ({job.Operation}): {result.Done} hechos, {result.Skipped} sin cambios, {result.Failed} con error, {result.Bytes} bytes" +
+                (result.Refused is null ? "" : $", rechazado: {result.Refused} {result.RefusedArg}"));
+            // Without the OSD, only what went wrong is said.
+            if (showOsd || result.Refused is not null || result.Failed > 0) ShowFilesResult(result, verb, icon);
+        }
+        catch (OperationCanceledException)
+        {
+            _ui.ShowOsd(Loc.T("files.cancelled", verb), OsdKind.Warning, look: OsdLook.Of(icon));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Log.Error($"Archivos ({job.Operation})", ex);
+            _ui.ShowOsd(Loc.T("files.error", verb, ex.Message), OsdKind.Warning, look: OsdLook.Of(icon));
+        }
+        finally
+        {
+            osd?.Dispose();
+            EndCancellable(cts);
+        }
+    }
+
+    private void ShowFilesResult(FileJobResult result, string verb, string icon)
+    {
+        if (result.Refused is { } refused)
+        {
+            _ui.ShowOsd(Loc.T(refused, result.RefusedArg ?? string.Empty), OsdKind.Warning, TimeSpan.FromSeconds(5), OsdLook.Of(icon));
+            return;
+        }
+        if (result.Done == 0 && result.Failed == 0)
+        {
+            _ui.ShowOsd(Loc.T(result.Skipped > 0 ? "files.upToDate" : "files.nothing", verb), OsdKind.Info, look: OsdLook.Of(icon));
+            return;
+        }
+        var text = Loc.T("files.done", verb, result.Done);
+        if (result.Bytes > 0) text += $" · {FileJobs.Size(result.Bytes, Loc.Instance.Culture)}";
+        if (result.Skipped > 0) text += " · " + Loc.T("files.skipped", result.Skipped);
+        if (result.Failed > 0) text += " · " + Loc.T("files.failed", result.Failed);
+        _ui.ShowOsd(text, result.Failed > 0 ? OsdKind.Warning : OsdKind.Success, look: OsdLook.Of(icon));
+    }
+
+    /// <summary>Passes the progress to the OSD at most ten times a second.</summary>
+    private sealed class FilesProgress(IProgressOsd osd, string verb) : IProgress<FileJobProgress>
+    {
+        private long _last;
+
+        public void Report(FileJobProgress value)
+        {
+            var now = Environment.TickCount64;
+            if (now - Interlocked.Read(ref _last) < 100 && value.Bytes < value.Total) return;
+            Interlocked.Exchange(ref _last, now);
+            var culture = Loc.Instance.Culture;
+            var level = value.Total > 0 ? (double)value.Bytes / value.Total : 0;
+            osd.Update(Loc.T("files.progress", verb, FileJobs.Size(value.Bytes, culture), FileJobs.Size(value.Total, culture)), level);
+        }
     }
 
     private async Task PowerAsync(PowerAction a, ExecutionContext ctx)

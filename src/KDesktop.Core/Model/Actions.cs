@@ -16,7 +16,7 @@ public enum ActionKind
     Window, Clipboard, WakeOnLan, Display, PowerPlan, WindowsTheme, Radio, Condition,
     Screenshot, AudioRecord, Magnifier, Dictate, ScreenText,
     AssistantExtra, AssistantAsk, AssistantSay, AssistantBrain,
-    ShowNotification,
+    ShowNotification, Files,
 }
 
 public enum WindowMode { Normal, Minimized, Maximized, Hidden }
@@ -50,6 +50,7 @@ public enum ScriptShell { Cmd, PowerShell }
 [JsonDerivedType(typeof(ToggleDisabledInAction), "toggleDisabledIn")]
 [JsonDerivedType(typeof(ShowMessageAction), "showMessage")]
 [JsonDerivedType(typeof(ShowNotificationAction), "showNotification")]
+[JsonDerivedType(typeof(FilesAction), "files")]
 [JsonDerivedType(typeof(PowerAction), "power")]
 [JsonDerivedType(typeof(OpenQuickMenuAction), "quickMenu")]
 [JsonDerivedType(typeof(CommandControlAction), "commandControl")]

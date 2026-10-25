@@ -48,6 +48,7 @@ public static class ActionCatalog
         new(ActionKind.WakeOnLan, "network", "DesktopPulse24", () => new WakeOnLanAction()),
         new(ActionKind.Radio, "network", "Wifi124", () => new RadioAction()),
 
+        new(ActionKind.Files, "system", "DocumentCopy24", () => new FilesAction()),
         new(ActionKind.HiddenFiles, "system", "EyeOff24", () => new HiddenFilesAction()),
         new(ActionKind.PowerPlan, "system", "Battery1024", () => new PowerPlanAction()),
         new(ActionKind.Power, "system", "Power24", () => new PowerAction()),
