@@ -42,8 +42,8 @@
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <ComboBox x:Name="ModelBox" Width="320" SelectionChanged="OnModelChanged" AutomationProperties.Name="{l:Tr brainOptions.model}" />
-                        <ui:Button x:Name="LoadButton" Margin="8,0,0,0" Content="{l:Tr brainOptions.loadButton}" Icon="{ui:SymbolIcon ArrowUpload24}" Click="OnLoad" />
-                        <ui:Button Margin="8,0,0,0" Content="{l:Tr brainOptions.browse}" Click="OnBrowseModel"
+                        <ui:Button VerticalAlignment="Stretch" x:Name="LoadButton" Margin="8,0,0,0" Content="{l:Tr brainOptions.loadButton}" Icon="{ui:SymbolIcon ArrowUpload24}" Click="OnLoad" />
+                        <ui:Button VerticalAlignment="Stretch" Margin="8,0,0,0" Content="{l:Tr brainOptions.browse}" Click="OnBrowseModel"
                                    AutomationProperties.Name="{l:Tr brainOptions.browseModelTitle}" />
                     </StackPanel>
                 </Grid>

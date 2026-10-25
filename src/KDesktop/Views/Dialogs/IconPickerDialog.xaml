@@ -220,7 +220,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <ComboBox x:Name="LibraryBox" IsEditable="True" SelectionChanged="OnLibraryChanged" KeyDown="OnLibraryKey" LostFocus="OnLibraryLostFocus" />
-                <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseLibrary" />
+                <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseLibrary" />
                 <TextBlock x:Name="LibraryCount" Grid.Column="2" Margin="14,0,4,0" VerticalAlignment="Center" Style="{StaticResource Caption}" />
             </Grid>
             <Border Style="{StaticResource Card}" Margin="0" Padding="12,10">

@@ -29,7 +29,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <ui:TextBox Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.pathHint}" />
-                <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}"
+                <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}"
                            Command="{x:Static v:EditorCommands.BrowseFile}" CommandParameter="{Binding}" />
             </Grid>
             <Grid Style="{StaticResource EdRow}">
@@ -50,7 +50,7 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <ui:TextBox Text="{Binding WorkingDirectory, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.workingDirHint}" />
-                        <ui:Button Grid.Column="1" Margin="6,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}"
+                        <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="6,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}"
                                    Command="{x:Static v:EditorCommands.BrowseWorkingDirectory}" CommandParameter="{Binding}" />
                     </Grid>
                 </StackPanel>
@@ -89,7 +89,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <ui:TextBox Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.folderHint}" />
-                <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}"
+                <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}"
                            Command="{x:Static v:EditorCommands.BrowseFolder}" CommandParameter="{Binding}" />
             </Grid>
         </StackPanel>
@@ -1051,7 +1051,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <ui:TextBox Text="{Binding Folder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.captureFolderHint}" />
-                <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}"
+                <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}"
                            Command="{x:Static v:EditorCommands.BrowseFolder}" CommandParameter="{Binding}" />
             </Grid>
             <TextBlock x:Name="Hint" Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.captureHint}" />
@@ -1109,7 +1109,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <ui:TextBox Text="{Binding Folder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.recordFolderHint}" />
-                <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}"
+                <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}"
                            Command="{x:Static v:EditorCommands.BrowseFolder}" CommandParameter="{Binding}" />
             </Grid>
             <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />

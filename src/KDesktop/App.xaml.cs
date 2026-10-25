@@ -128,7 +128,7 @@ public partial class App : Application
         });
         Favicons.Prefetch(Config.Commands.SelectMany(c => c.Actions));
 
-        Ui = new UiServices(Dispatcher, () => Config.Settings, () => ShowMainWindow(), () => _ = ExitAsync()) { AssistantExtra = RunExtraFromCommand, AssistantAsk = AskAssistantFromCommand, AssistantSayer = SayFromCommand, AssistantBrainer = BrainFromCommand, Dictator = mode => _ = Voice.DictateAsync(mode) };
+        Ui = new UiServices(Dispatcher, () => Config.Settings, () => ShowMainWindow(), () => _ = ExitAsync(Config.Settings.ExitSound)) { AssistantExtra = RunExtraFromCommand, AssistantAsk = AskAssistantFromCommand, AssistantSayer = SayFromCommand, AssistantBrainer = BrainFromCommand, Dictator = mode => _ = Voice.DictateAsync(mode) };
         Engine = new CommandEngine(Store, Ui, new ExecutionHistory(ExecutionHistory.DefaultFile));
         Events = new Core.Engine.Events.EventService(Engine, Ui, () => Config);
         Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice),
@@ -528,7 +528,7 @@ public partial class App : Application
         var pause = TrayItem(string.Empty, (_, _) => SetPaused(!Config.Settings.Paused));
         menu.Items.Add(pause);
         menu.Items.Add(new Separator());
-        menu.Items.Add(TrayItem(Loc.T("tray.exit"), (_, _) => _ = ExitAsync()));
+        menu.Items.Add(TrayItem(Loc.T("tray.exit"), (_, _) => _ = ExitAsync(Config.Settings.ExitSound)));
         menu.Opened += (_, _) =>
         {
             window.Header = Loc.T(MainWindowShown ? "tray.hide" : "tray.show");
@@ -634,7 +634,7 @@ public partial class App : Application
 
     // ── exit ─────────────────────────────────────────────────────────────
 
-    /// <param name="sound">Played while closing (the exit hotkey's sound); the exit waits until it ends.</param>
+    /// <param name="sound">Played while closing (the exit sound when the user closes it: hotkey, tray or a command); the exit waits until it ends.</param>
     public async Task ExitAsync(string? sound = null)
     {
         if (_exiting) return;

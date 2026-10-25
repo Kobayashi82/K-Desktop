@@ -227,7 +227,7 @@
                         <Grid Grid.Column="1">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                             <ComboBox x:Name="LanguageBox" DisplayMemberPath="Name" SelectedValuePath="Code" SelectedValue="{Binding Language}" />
-                            <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon ArrowSync24}" ToolTip="{l:Tr settings.languagesReload}"
+                            <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon ArrowSync24}" ToolTip="{l:Tr settings.languagesReload}"
                                        AutomationProperties.Name="{l:Tr settings.languagesReload}" Click="OnReloadLanguages" />
                         </Grid>
                     </Grid>
@@ -368,7 +368,7 @@
                         <ui:Button x:Name="ExitHotkeyButton" Grid.Column="1" MinWidth="200" Content="{Binding ExitHotkey}" Click="OnCaptureExitHotkey" />
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="360" /></Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.startupSound}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.startupSoundHint}" />
@@ -376,7 +376,7 @@
                         <v:SoundPicker Grid.Column="1" Sound="{Binding StartupSound}" />
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="360" /></Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.exitSound}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.exitSoundHint}" TextWrapping="Wrap" />
@@ -858,7 +858,7 @@
                                 <Grid Tag="Program" Style="{StaticResource MusicOnPart}" Margin="0,8,0,0">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                                     <ui:TextBox Text="{Binding VoiceMusicOnProgram, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr settings.musicProgramPlaceholder}" />
-                                    <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.chooseFile}"
+                                    <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.chooseFile}"
                                                AutomationProperties.Name="{l:Tr editor.chooseFile}" Click="OnBrowseMusicProgram" />
                                 </Grid>
                             </StackPanel>
@@ -952,13 +952,13 @@
                     <Grid Margin="0,0,0,10">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <ui:TextBox Text="{Binding CaptureFolder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr settings.captureFolderHint}" />
-                        <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseCaptureFolder" />
+                        <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseCaptureFolder" />
                     </Grid>
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.recordFolder}" />
                     <Grid Margin="0,0,0,6">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <ui:TextBox Text="{Binding RecordFolder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr settings.recordFolderHint}" />
-                        <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseRecordFolder" />
+                        <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseRecordFolder" />
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
@@ -1038,7 +1038,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <ui:TextBox Text="{Binding AutoBackupFolder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr settings.autoBackupFolderHint}" />
-                            <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseBackupFolder" />
+                            <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseBackupFolder" />
                         </Grid>
                     </StackPanel>
                     <StackPanel>

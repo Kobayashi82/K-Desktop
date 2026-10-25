@@ -139,7 +139,7 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <ui:TextBox Text="{Binding Folder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="C:\ComfyUI\output" Icon="{ui:SymbolIcon Folder24}" />
-                        <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseFolder" />
+                        <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseFolder" />
                     </Grid>
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.fileFilter}" />
                     <ui:TextBox Width="200" HorizontalAlignment="Left" Margin="0,0,0,10" Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="*.png" />

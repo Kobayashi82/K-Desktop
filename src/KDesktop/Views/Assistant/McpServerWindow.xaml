@@ -37,7 +37,7 @@
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <ui:TextBox x:Name="CommandBox" PlaceholderText="node · npx · uvx · C:\…\python.exe" ClearButtonEnabled="False"
                                     AutomationProperties.Name="{l:Tr mcpServer.command}" />
-                        <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" Content="{l:Tr mcpServer.browse}" Click="OnBrowse" />
+                        <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" Content="{l:Tr mcpServer.browse}" Click="OnBrowse" />
                     </Grid>
                     <TextBlock Style="{StaticResource FieldLabel}" Margin="0,10,0,4" Text="{l:Tr mcpServer.args}" />
                     <ui:TextBox x:Name="ArgsBox" AcceptsReturn="True" TextWrapping="NoWrap" MinHeight="70" ClearButtonEnabled="False"
