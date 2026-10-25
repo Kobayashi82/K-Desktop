@@ -11,7 +11,7 @@ K-Desktop entiende órdenes habladas **en tu PC**: ni el audio ni el texto salen
    comando por su significado). Cargados, ocupan unos 700 MB de RAM; se pueden liberar tras unos minutos sin usarlos
    (Parakeet no, mientras haya una palabra de activación escuchando: así la comprueba al momento).
 2. Elige el **micrófono** (o el predeterminado de Windows).
-3. Graba una **palabra de activación** (*Añadir palabra*) o pon un **atajo para hablar**.
+3. Graba una **palabra de activación** (*Opciones → Palabras de activación → Añadir palabra*) o pon un **atajo para hablar**.
 
 ## Hablarle
 
@@ -27,7 +27,7 @@ Se ejecuta el comando que nombras. Se encuentra **por su nombre** (también cuan
 
 ## Palabras de activación
 
-Grabas tu propia palabra con tu voz, en unos segundos, con un pequeño asistente: un poco de silencio, la palabra varias
+En *Opciones → Palabras de activación* grabas tu propia palabra con tu voz, en unos segundos, con un pequeño asistente: un poco de silencio, la palabra varias
 veces y un poco de habla normal para que aprenda lo que *no* es la palabra.
 
 ![Grabar una palabra de activación](../../images/es/wake-wizard-recording.png)

@@ -39,6 +39,7 @@ public partial class SettingsPage
         new("media", "settings.nav.group.media",
         [
             new("voice", "Mic24", "settings.nav.voice"),
+            new("wake", "MicPulse24", "settings.nav.wake"),
             new("media", "MusicNote224", "settings.nav.media"),
         ]),
         new("connections", "settings.nav.group.connections",

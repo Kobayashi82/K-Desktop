@@ -78,10 +78,11 @@ public sealed class HotkeyIndex
         _sideButtonsBlockedIn = settings.BlockSideButtonsIn.Select(ProcessNames.Normalize).ToHashSet();
         ShowWindowHotkey = Hotkey.Normalize(settings.ShowWindowHotkey);
         ExitHotkey = Hotkey.Normalize(settings.ExitHotkey);
-        VoiceHotkey = paused || string.IsNullOrWhiteSpace(settings.VoiceHotkey) ? string.Empty : Hotkey.Normalize(settings.VoiceHotkey);
+        var listens = !paused && settings.VoiceEnabled;
+        VoiceHotkey = !listens || string.IsNullOrWhiteSpace(settings.VoiceHotkey) ? string.Empty : Hotkey.Normalize(settings.VoiceHotkey);
         _talkKeys = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        if (!paused && Hotkey.Normalize(settings.DictationHotkey) is { Length: > 0 } dictation) _talkKeys[dictation] = Dictation;
-        if (!paused && settings.AssistantEnabled)
+        if (listens && Hotkey.Normalize(settings.DictationHotkey) is { Length: > 0 } dictation) _talkKeys[dictation] = Dictation;
+        if (listens && settings.AssistantEnabled)
             foreach (var (assistant, key) in settings.AssistantTalkHotkeys)
                 if (settings.AssistantsOnDesktop.Contains(assistant) && Hotkey.Normalize(key) is { Length: > 0 } normal) _talkKeys.TryAdd(normal, assistant);
         DisabledInHotkey = paused || string.IsNullOrWhiteSpace(settings.DisabledInHotkey) ? string.Empty : Hotkey.Normalize(settings.DisabledInHotkey);

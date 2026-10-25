@@ -18,7 +18,8 @@ allí.
 
 | Sección | Qué tiene |
 |---|---|
-| **Voz** | Modelos de voz, micrófono, palabras de activación, atajos para hablar y para dictar. Ver [Voz](voice.md) |
+| **Voz** | Encender o apagar la voz (apagada, nada escucha), los modelos, el micrófono, los atajos para hablar y para dictar, y qué pasa al escuchar. Ver [Voz](voice.md) |
+| **Palabras de activación** | La escucha continua y las palabras grabadas con tu voz, de quién es cada una y su sensibilidad |
 | **Multimedia** | Órdenes de voz para la música, los vídeos y el volumen, y cuánto sube o baja cada vez |
 
 ## Conexiones

@@ -19,7 +19,7 @@ public sealed partial class VoiceService
     /// </summary>
     public async Task<RemoteVoiceResult> RunRemoteAsync(float[] samples, VoiceAddressee? to = null)
     {
-        if (!VoiceModels.Ready) return new("", Loc.T("voice.noModels"), OsdKind.Warning);
+        if (NotReadyText is { } notReady) return new("", notReady, OsdKind.Warning);
         if (Interlocked.CompareExchange(ref _active, 1, 0) != 0) return new("", Loc.T("voice.remoteBusy"), OsdKind.Warning);
         try
         {

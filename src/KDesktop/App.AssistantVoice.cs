@@ -123,7 +123,7 @@ public partial class App
     /// </summary>
     private void OnAssistantListen(ListenMessage listen)
     {
-        if (_assistant is null || Config.Settings.Paused || !VoiceModels.Ready) return;
+        if (_assistant is null || Config.Settings.Paused || !Voice.Ready) return;
         var id = FromProcess(listen.Assistant);
         if (!IsAssistant(id)) return;
         var seconds = Math.Clamp(listen.Seconds, 1, ListenMessage.MaxSeconds);
@@ -154,7 +154,7 @@ public partial class App
 
     /// <summary>Whether the last order to this assistant (as the process names it: none is K-Desktop) was said aloud: its questions may be answered aloud.</summary>
     private bool TalkedByVoice(string? assistant) =>
-        VoiceModels.Ready && _chatSources.GetValueOrDefault(FromProcess(assistant)) == "voice";
+        Voice.Ready && _chatSources.GetValueOrDefault(FromProcess(assistant)) == "voice";
 
     /// <summary>
     /// The little window asks for permission and the order came by voice (stage 5.3): K-Desktop listens meanwhile, without

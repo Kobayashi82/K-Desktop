@@ -11,7 +11,7 @@ K-Desktop understands spoken orders **on your PC**: neither the audio nor the te
    Loaded, they take about 700 MB of RAM; they can be freed after some minutes unused (not Parakeet while a wake word is
    being listened for: that way it checks the word at once).
 2. Choose the **microphone** (or the Windows default).
-3. Record a **wake word** (*Add word*) or set a **hotkey to talk**.
+3. Record a **wake word** (*Settings → Wake words → Add word*) or set a **hotkey to talk**.
 
 ## Talking to it
 
@@ -27,7 +27,7 @@ meaning** («put some music on» finds your «Spotify» command). You can teach 
 
 ## Wake words
 
-You record your own word with your voice, in a few seconds, with a small wizard: some silence, the word several times, and
+In *Settings → Wake words* you record your own word with your voice, in a few seconds, with a small wizard: some silence, the word several times, and
 a bit of normal speech so it learns what is *not* the word.
 
 ![Recording a wake word](../../images/en/wake-wizard-recording.png)

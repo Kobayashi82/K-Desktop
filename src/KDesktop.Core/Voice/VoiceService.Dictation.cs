@@ -68,9 +68,9 @@ public sealed partial class VoiceService
         _dictating = true;
         try
         {
-            if (!VoiceModels.Ready)
+            if (NotReadyText is { } notReady)
             {
-                _ui.ShowOsd(Loc.T("voice.noModels"), OsdKind.Warning, TimeSpan.FromSeconds(4), new OsdLook("MicOff24", Topic: OsdTopic.Voice));
+                _ui.ShowOsd(notReady, OsdKind.Warning, TimeSpan.FromSeconds(4), new OsdLook("MicOff24", Topic: OsdTopic.Voice));
                 return;
             }
             _stopRequested = false;

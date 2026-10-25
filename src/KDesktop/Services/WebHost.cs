@@ -47,7 +47,7 @@ public sealed class WebHost(Dispatcher dispatcher, CommandEngine engine, Achieve
 
     public IReadOnlyDictionary<string, long> Runs() => achievements.Snapshot().Data.CommandRuns;
 
-    public bool VoiceReady => Core.Voice.VoiceModels.Ready;
+    public bool VoiceReady => voice.Ready;
 
     public Task<Core.Voice.RemoteVoiceResult> VoiceAsync(float[] samples) => voice.RunRemoteAsync(samples);
 

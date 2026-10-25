@@ -287,7 +287,7 @@ public partial class App
     /// <summary>While «¿Qué hago con…?» is open, what is said (without the wake word) is the answer.</summary>
     private async void ListenForDrop(AssistantDropWindow window, string id)
     {
-        if (!VoiceModels.Ready) return;
+        if (!Voice.Ready) return;
         window.ShowListening();
         var to = new VoiceAddressee(AssistantName(id), (text, _) =>
         {

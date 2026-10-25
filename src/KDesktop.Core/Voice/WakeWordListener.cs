@@ -83,7 +83,7 @@ public sealed class WakeWordListener : IDisposable
             var models = VoiceModels.AllInstalled;
             var words = _voice.WakeWords.Active.ToList();
             if (models && words.Any(w => w.Detector is null)) TrainMissing(words);
-            var wanted = s.VoiceWakeListen && !s.Paused && Volatile.Read(ref _holds) == 0 && models && words.Any(w => w.Detector is not null);
+            var wanted = s.VoiceEnabled && s.VoiceWakeListen && !s.Paused && Volatile.Read(ref _holds) == 0 && models && words.Any(w => w.Detector is not null);
             lock (_gate)
             {
                 // Another microphone chosen, or the echo cancellation switched: start again with it.

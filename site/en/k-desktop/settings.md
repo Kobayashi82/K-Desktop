@@ -18,7 +18,8 @@ there.
 
 | Section | What it has |
 |---|---|
-| **Voice** | Speech models, microphone, wake words, hotkeys to talk and to dictate. See [Voice](voice.md) |
+| **Voice** | Turning voice on or off (off, nothing listens), speech models, microphone, hotkeys to talk and to dictate, and what happens while listening. See [Voice](voice.md) |
+| **Wake words** | Always-on listening and the words recorded with your voice, whose each one is and its sensitivity |
 | **Multimedia** | Voice orders for music, videos and volume, and the volume step |
 
 ## Connections

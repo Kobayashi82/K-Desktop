@@ -35,6 +35,12 @@ public sealed partial class VoiceService : IDisposable
     private volatile bool _stopRequested;
     private int _active;
 
+    /// <summary>The voice is on (Settings › Voice) and its models are there: something may listen.</summary>
+    public bool Ready => _config().Settings.VoiceEnabled && VoiceModels.Ready;
+
+    /// <summary>Why nothing can listen (off or without models), for an OSD; null: it can.</summary>
+    public string? NotReadyText => !_config().Settings.VoiceEnabled ? Loc.T("voice.off") : !VoiceModels.Ready ? Loc.T("voice.noModels") : null;
+
     /// <param name="run">Runs a chosen command (with the voice trigger source).</param>
     /// <param name="runAction">Runs a single action outside any command (the media orders start and close programs).</param>
     public VoiceService(IUiServices ui, Func<AppConfig> config, Func<Command, Task> run, Func<CommandAction, Task> runAction)
@@ -125,9 +131,9 @@ public sealed partial class VoiceService : IDisposable
         var listening = false;
         try
         {
-            if (!VoiceModels.Ready)
+            if (NotReadyText is { } notReady)
             {
-                if (!brief) _ui.ShowOsd(Loc.T("voice.noModels"), OsdKind.Warning, TimeSpan.FromSeconds(4), new OsdLook("MicOff24", Topic: OsdTopic.Voice));
+                if (!brief) _ui.ShowOsd(notReady, OsdKind.Warning, TimeSpan.FromSeconds(4), new OsdLook("MicOff24", Topic: OsdTopic.Voice));
                 return;
             }
             _stopRequested = false;
@@ -488,7 +494,7 @@ public sealed partial class VoiceService : IDisposable
         var wakeAt = DateTime.Now;
         try
         {
-            if (!VoiceModels.Ready) return;
+            if (!Ready) return;
             var settings = _config().Settings;
             PreloadModels(settings);
 

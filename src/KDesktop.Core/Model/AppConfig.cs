@@ -503,6 +503,12 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private bool _webLocalPairing = true;
 
     // Voice
+    /// <summary>
+    /// Off: nothing listens (hotkeys, wake words, the assistants' voice, the phone's orders); the microphone stays
+    /// closed and nothing is loaded.
+    /// </summary>
+    [ObservableProperty] private bool _voiceEnabled = true;
+
     /// <summary>Hold to talk (or tap and talk). Empty: no hotkey.</summary>
     [ObservableProperty] private string _voiceHotkey = string.Empty;
 

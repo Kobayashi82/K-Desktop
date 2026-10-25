@@ -141,11 +141,12 @@ public partial class MainWindow : FluentWindow
             },
             Loc.T("status.clickOptions"));
 
-        // Voice: listening (accent), ready (green) or without its models (grey).
-        var voiceReady = Core.Voice.VoiceModels.Ready;
+        // Voice: listening (accent), ready (green), off or without its models (grey).
+        var voiceReady = app.Voice.Ready;
         SetStatus(VoiceStatus, VoiceIcon, voiceReady ? SymbolRegular.Mic24 : SymbolRegular.MicOff24,
             app.Voice.IsListening ? "Kd.Accent" : voiceReady ? "Kd.Success" : "TextFillColorTertiaryBrush",
             app.Voice.IsListening ? Loc.T("status.voiceListening")
+            : !s.VoiceEnabled ? Loc.T("status.voiceOff")
             : !voiceReady ? Loc.T("status.voiceNoModels")
             : (string.IsNullOrWhiteSpace(s.VoiceHotkey) ? Loc.T("status.voiceNoHotkey") : Loc.T("status.voiceReady", s.VoiceHotkey))
               + (app.WakeListener.IsRunning
