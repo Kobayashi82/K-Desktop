@@ -49,8 +49,8 @@
                     <StackPanel Orientation="Horizontal" Margin="0,2,0,8">
                         <ComboBox Width="240" IsEditable="True" v:Placeholder.Text="{l:Tr common.processPlaceholder}"
                                   DropDownOpened="OnProcessDropDown" DropDownClosed="OnProcessPicked" KeyDown="OnProcessKeyDown" />
-                        <ui:Button Margin="8,0,0,0" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddProcess" />
-                        <ui:Button Margin="8,0,0,0" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickProcess" ToolTip="{l:Tr picker.tooltip}" />
+                        <ui:Button Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddProcess" />
+                        <ui:Button Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickProcess" ToolTip="{l:Tr picker.tooltip}" />
                     </StackPanel>
                 </StackPanel>
             </DataTemplate>

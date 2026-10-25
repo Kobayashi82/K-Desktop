@@ -237,6 +237,7 @@ public partial class AssistantCatalogSection : UserControl
         add.Children.Add(box);
         var button = Wide(SymbolRegular.Add24, Loc.T("assistantCatalog.add"), Add);
         button.Margin = new Thickness(8, 0, 0, 0);
+        button.VerticalAlignment = VerticalAlignment.Stretch; // as tall as the box beside it
         Grid.SetColumn(button, 1);
         add.Children.Add(button);
         card.Children.Add(add);

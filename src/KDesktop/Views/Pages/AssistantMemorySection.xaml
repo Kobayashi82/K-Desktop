@@ -39,7 +39,7 @@
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <ui:TextBox x:Name="AddBox" MaxLength="200" PlaceholderText="{l:Tr memoryOptions.addHint}" ClearButtonEnabled="False"
                             AutomationProperties.Name="{l:Tr memoryOptions.add}" PreviewKeyDown="OnAddKey" />
-                <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon Add24}" Content="{l:Tr memoryOptions.add}" Click="OnAdd" />
+                <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon Add24}" Content="{l:Tr memoryOptions.add}" Click="OnAdd" />
             </Grid>
 
             <TextBlock x:Name="EmptyText" Style="{StaticResource Caption}" Margin="0,6,0,4" Text="{l:Tr memoryOptions.empty}" />

@@ -191,7 +191,7 @@
                 <ui:TextBox x:Name="NewEndpointBox" Grid.Column="1" Margin="8,0,0,0" TextChanged="OnNewEndpointChanged" AutomationProperties.Name="{l:Tr brainRemotes.endpoint}" />
                 <PasswordBox x:Name="NewKeyBox" Grid.Column="2" Margin="8,0,0,0" VerticalContentAlignment="Center" AutomationProperties.Name="{l:Tr brainOptions.apiKey}"
                              ToolTip="{l:Tr brainOptions.apiKeyHint}" />
-                <ui:Button Grid.Column="3" Margin="8,0,0,0" Content="{l:Tr brainRemotes.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddRemote" />
+                <ui:Button Grid.Column="3" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr brainRemotes.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddRemote" />
             </Grid>
             <TextBlock x:Name="NewPlaceText" Style="{StaticResource Caption}" Margin="0,4,0,0" TextWrapping="Wrap" />
         </StackPanel>

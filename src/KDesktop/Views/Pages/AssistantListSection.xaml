@@ -54,14 +54,14 @@
                                     <TextBlock Style="{StaticResource Caption}" Margin="0,1,0,0" Text="{Binding Line}" TextTrimming="CharacterEllipsis" />
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <ui:Button Content="{Binding PutText}" Icon="{ui:SymbolIcon Play24}" Click="OnActivate"
+                                    <ui:Button VerticalAlignment="Stretch" Content="{Binding PutText}" Icon="{ui:SymbolIcon Play24}" Click="OnActivate"
                                                Visibility="{Binding IsOffDesktop, Converter={StaticResource BoolToVis}}" />
-                                    <ui:Button Content="{Binding HideText}" Icon="{ui:SymbolIcon EyeOff24}" Click="OnHide"
+                                    <ui:Button VerticalAlignment="Stretch" Content="{Binding HideText}" Icon="{ui:SymbolIcon EyeOff24}" Click="OnHide"
                                                Visibility="{Binding IsOnDesktop, Converter={StaticResource BoolToVis}}" />
-                                    <ui:Button Margin="8,0,0,0" Icon="{ui:SymbolIcon Delete24}" Click="OnRemove"
+                                    <ui:Button VerticalAlignment="Stretch" Margin="8,0,0,0" Icon="{ui:SymbolIcon Delete24}" Click="OnRemove"
                                                Visibility="{Binding CanRemove, Converter={StaticResource BoolToVis}}"
                                                ToolTip="{l:Tr assistantOptions.remove}" AutomationProperties.Name="{l:Tr assistantOptions.remove}" />
-                                    <ui:Button Margin="8,0,0,0" Appearance="Transparent" Icon="{ui:SymbolIcon ChevronRight24}" Click="OnSettings"
+                                    <ui:Button VerticalAlignment="Stretch" Margin="8,0,0,0" Appearance="Transparent" Icon="{ui:SymbolIcon ChevronRight24}" Click="OnSettings"
                                                ToolTip="{l:Tr assistantOptions.settings}" AutomationProperties.Name="{Binding SettingsName}" />
                                 </StackPanel>
                             </Grid>

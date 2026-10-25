@@ -659,7 +659,7 @@ public partial class AssistantToolsSection : UserControl
         System.Windows.Automation.AutomationProperties.SetName(name, Loc.T("toolsOptions.secretName"));
         var value = new PasswordBox { PlaceholderText = Loc.T("toolsOptions.secretValue"), Margin = new Thickness(8, 0, 0, 0) };
         System.Windows.Automation.AutomationProperties.SetName(value, Loc.T("toolsOptions.secretValue"));
-        var save = new Button { Content = Loc.T("toolsOptions.addSecret"), Icon = new SymbolIcon { Symbol = SymbolRegular.Add24 }, Appearance = ControlAppearance.Primary, Margin = new Thickness(8, 0, 0, 0) };
+        var save = new Button { Content = Loc.T("toolsOptions.addSecret"), Icon = new SymbolIcon { Symbol = SymbolRegular.Add24 }, Appearance = ControlAppearance.Primary, Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Stretch };
         save.Click += async (_, _) =>
         {
             var text = name.Text.Trim();

@@ -582,9 +582,12 @@ public partial class VoiceProfilesSection : UserControl
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(8, 0, 0, 0) };
         var play = Wide(SymbolRegular.Play24, Loc.T("voiceProfiles.test"), _ => Test(), primary: true);
         play.Margin = new Thickness(0);
+        // Both as tall as the box beside them.
+        play.VerticalAlignment = VerticalAlignment.Stretch;
         buttons.Children.Add(play);
         var stop = Wide(SymbolRegular.Stop24, Loc.T("voiceProfiles.stop"), _ => _app.StopAssistantVoiceTest());
         stop.Margin = new Thickness(8, 0, 0, 0);
+        stop.VerticalAlignment = VerticalAlignment.Stretch;
         buttons.Children.Add(stop);
         Grid.SetColumn(buttons, 1);
         row.Children.Add(buttons);
