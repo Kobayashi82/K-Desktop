@@ -9,8 +9,8 @@ allí.
 
 | Sección | Qué tiene |
 |---|---|
-| **Apariencia** | Tema claro, oscuro o el del sistema; idioma (el de Windows, o uno de los seis incluidos); iconos |
-| **General** | Iniciar con Windows, el icono de la bandeja, los atajos para enseñar la ventana y para pausar, el sonido y el mensaje al arrancar |
+| **Apariencia** | Tema claro, oscuro o el del sistema; idioma (el de Windows, o uno de los seis incluidos); iconos de las webs; traducir |
+| **General** | Pausar K-Desktop; iniciar con Windows, el icono de la bandeja y su imagen; los atajos para enseñar la ventana y para salir, los sonidos y el mensaje al arrancar |
 | **OSD** | Dónde salen los mensajes en pantalla de K-Desktop y cuánto duran |
 | **Lanzador** | Su atajo, qué encuentra (programas, comandos ocultos, cuentas, la web) y en qué orden |
 
@@ -52,8 +52,9 @@ El **módulo Asistente** tiene su propio grupo: ver [Asistentes](../assistant/in
 ## Idiomas
 
 Hay seis incluidos: español, inglés, francés, alemán, italiano y portugués. Los idiomas de más son archivos JSON en
-`%APPDATA%\K-Desktop 5\Languages`: **Exportar plantilla** (los textos en inglés), tradúcela, guárdala con el código del
-idioma (`nl.json`) y elígela en *Idioma*. Un `es.json` o `en.json` ahí solo cambia los textos que tenga.
+`%APPDATA%\K-Desktop 5\Languages`. En *Traducir*, **Exportar plantilla** saca los textos del idioma que usas ahora:
+traduce lo de la derecha de cada línea (sin tocar lo que va entre llaves, como `{0}`), guárdalo con el código del idioma
+(`nl.json`) y elígelo en *Idioma*. Un `es.json` o `en.json` ahí con solo algunas líneas cambia solo esos textos.
 
 ## Logros y estadísticas
 

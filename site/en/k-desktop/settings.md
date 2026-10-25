@@ -9,8 +9,8 @@ there.
 
 | Section | What it has |
 |---|---|
-| **Appearance** | Light, dark or system theme; language (Windows', or one of the six built in); icons |
-| **General** | Start with Windows, the tray icon, the hotkeys to show the window and to pause, startup sound and message |
+| **Appearance** | Light, dark or system theme; language (Windows', or one of the six built in); website icons; translating |
+| **General** | Pause K-Desktop; start with Windows, the tray icon and its picture; the hotkeys to show the window and to exit, sounds and startup message |
 | **OSD** | Where K-Desktop's on-screen messages appear and how long they stay |
 | **Launcher** | Its hotkey, what it finds (programs, hidden commands, sums, the web) and its order |
 
@@ -52,8 +52,10 @@ The **assistant module** has its own group: see [Assistants](../assistant/index.
 ## Languages
 
 Six are built in: English, Spanish, French, German, Italian and Portuguese. Extra languages are JSON files in
-`%APPDATA%\K-Desktop 5\Languages`: **Export template** (the English texts), translate it, save it with the language code
-(`nl.json`) and pick it under *Language*. An `es.json` or `en.json` there only changes the texts it contains.
+`%APPDATA%\K-Desktop 5\Languages`. Under *Translate*, **Export template** saves the texts of the language you are using
+now: translate the right-hand side of each line (leave anything in braces, like `{0}`, as it is), save it with the
+language code (`nl.json`) and pick it under *Language*. An `es.json` or `en.json` there with only a few lines changes
+just those texts.
 
 ## Achievements and statistics
 

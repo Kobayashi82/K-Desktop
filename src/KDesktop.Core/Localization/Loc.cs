@@ -12,7 +12,7 @@ public sealed record LanguageInfo(string Code, string Name);
 /// built into the assembly, and %APPDATA%\K-Desktop 5\Languages adds languages or overrides texts key by key (user files win).
 /// Adding a language = adding a file. Missing keys fall back to English, then to the key itself.
 /// </summary>
-public sealed class Loc : INotifyPropertyChanged
+public sealed partial class Loc : INotifyPropertyChanged
 {
     public const string Fallback = "en";
 
@@ -119,14 +119,26 @@ public sealed class Loc : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// The built-in English file as the starting point of a translation, with "_language" set to <paramref name="code"/>
-    /// so the new language does not show up as a second "English".
+    /// The texts of the language in use as the starting point of a translation: laid out like the built-in English file
+    /// (its order and blank lines), English where the language has no text, and "_language" set to <paramref name="code"/>
+    /// so the new language does not show up as a second one of the same name.
     /// </summary>
     public static string Template(string code)
     {
         var json = EmbeddedAssets.ReadText(EmbeddedFolder, Fallback + ".json") ?? "{}";
-        return Regex.Replace(json, "\"_language\"\\s*:\\s*\"[^\"]*\"", $"\"_language\": {JsonSerializer.Serialize(code)}", RegexOptions.None, TimeSpan.FromSeconds(1));
+        var current = Instance._strings;
+        var options = new JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+        return TemplateLine().Replace(json, m => m.Groups[2].Value switch
+        {
+            "_language" => $"{m.Groups[1].Value}{JsonSerializer.Serialize(code, options)}{m.Groups[3].Value}",
+            var key when current.TryGetValue(key, out var text) => $"{m.Groups[1].Value}{JsonSerializer.Serialize(text, options)}{m.Groups[3].Value}",
+            _ => m.Value,
+        });
     }
+
+    /// <summary>One <c>"key": "text",</c> line of a language file (groups: up to the text, the key, the end of the line).</summary>
+    [GeneratedRegex("""^(\s*"([^"\\]+)"\s*:\s*)"(?:[^"\\]|\\.)*"(\s*,?\s*)$""", RegexOptions.Multiline, 1000)]
+    private static partial Regex TemplateLine();
 
     /// <summary>Language to use when the user has not chosen one: Windows' own if there is a file for it, else English.</summary>
     public static string SystemDefault()

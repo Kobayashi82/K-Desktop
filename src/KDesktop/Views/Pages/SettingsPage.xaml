@@ -234,21 +234,6 @@
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                            <TextBlock Text="{l:Tr settings.trayImage}" />
-                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.trayImageHint}" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Width="36" Height="36" Margin="0,0,12,0" CornerRadius="6" Background="{DynamicResource Kd.Subtle}">
-                                <Image x:Name="TrayImagePreview" Width="24" Height="24" RenderOptions.BitmapScalingMode="HighQuality" />
-                            </Border>
-                            <ui:Button Margin="0,0,8,0" Content="{l:Tr settings.trayImageChange}" Icon="{ui:SymbolIcon Image24}" Click="OnChangeTrayImage" />
-                            <ui:Button x:Name="TrayImageReset" Icon="{ui:SymbolIcon ArrowReset24}" ToolTip="{l:Tr settings.trayImageReset}"
-                                       AutomationProperties.Name="{l:Tr settings.trayImageReset}" Click="OnResetTrayImage" />
-                        </StackPanel>
-                    </Grid>
-                    <Grid Style="{StaticResource SettingRow}">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.favicons}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.faviconsHint}" />
                         </StackPanel>
@@ -289,10 +274,10 @@
                 </StackPanel>
             </Border>
 
-            <!-- General -->
+            <!-- General: pause -->
             <Border Style="{StaticResource Card}" Tag="general">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.general}" />
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.pauseTitle}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
@@ -314,6 +299,13 @@
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearPauseHotkey" />
                         </StackPanel>
                     </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- General -->
+            <Border Style="{StaticResource Card}" Tag="general">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.general}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
@@ -338,6 +330,28 @@
                         </StackPanel>
                         <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ShowTrayIcon}" />
                     </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.trayImage}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.trayImageHint}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="36" Height="36" Margin="0,0,12,0" CornerRadius="6" Background="{DynamicResource Kd.Subtle}">
+                                <Image x:Name="TrayImagePreview" Width="24" Height="24" RenderOptions.BitmapScalingMode="HighQuality" />
+                            </Border>
+                            <ui:Button Margin="0,0,8,0" Content="{l:Tr settings.trayImageChange}" Icon="{ui:SymbolIcon Image24}" Click="OnChangeTrayImage" />
+                            <ui:Button x:Name="TrayImageReset" Icon="{ui:SymbolIcon ArrowReset24}" ToolTip="{l:Tr settings.trayImageReset}"
+                                       AutomationProperties.Name="{l:Tr settings.trayImageReset}" Click="OnResetTrayImage" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- General: hotkeys and sounds -->
+            <Border Style="{StaticResource Card}" Tag="general">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.hotkeysSounds}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">

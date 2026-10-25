@@ -28,6 +28,18 @@ public class LanguageTests
         }
     }
 
+    /// <summary>«Exportar plantilla» gives the texts of the language in use (Spanish in the tests) with every key, under the new code.</summary>
+    [Fact]
+    public void TemplateHasTheCurrentLanguage()
+    {
+        var template = JsonSerializer.Deserialize<Dictionary<string, string>>(Localization.Loc.Template("nl"))!;
+        var en = Load("en");
+        var es = Load("es");
+        Assert.Equal(en.Keys.Order(), template.Keys.Order());
+        Assert.Equal("nl", template["_language"]);
+        foreach (var key in en.Keys.Where(k => k != "_language")) Assert.Equal(es[key], template[key]);
+    }
+
     [Fact]
     public void EveryEventKindHasItsTexts()
     {
