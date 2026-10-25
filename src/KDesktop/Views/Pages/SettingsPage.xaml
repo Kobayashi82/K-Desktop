@@ -298,12 +298,12 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.pauseHotkeyHint}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:Button x:Name="PauseHotkeyButton" MinWidth="200" Click="OnCapturePauseHotkey" />
+                            <ui:Button x:Name="PauseHotkeyButton" MinWidth="190" Click="OnCapturePauseHotkey" />
                             <ui:Button VerticalAlignment="Stretch" x:Name="PauseHotkeyClear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearPauseHotkey" />
-                            <v:IconToggle Margin="8,0,0,0" IsChecked="{Binding PauseBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
+                            <v:IconToggle Width="38" Margin="8,0,0,0" IsChecked="{Binding PauseBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
                                           Title="{l:Tr commands.blockKey}" Hint="{l:Tr commands.blockKeyHint}" />
-                            <v:IconToggle IsChecked="{Binding PauseIgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
+                            <v:IconToggle Width="38" IsChecked="{Binding PauseIgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
                                           Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
                         </StackPanel>
                     </Grid>
@@ -383,12 +383,12 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.showHotkeyHint}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:Button x:Name="ShowHotkeyButton" MinWidth="200" Click="OnCaptureShowHotkey" />
+                            <ui:Button x:Name="ShowHotkeyButton" MinWidth="190" Click="OnCaptureShowHotkey" />
                             <ui:Button VerticalAlignment="Stretch" x:Name="ShowHotkeyClear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearShowHotkey" />
-                            <v:IconToggle Margin="8,0,0,0" IsChecked="{Binding ShowWindowBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
+                            <v:IconToggle Width="38" Margin="8,0,0,0" IsChecked="{Binding ShowWindowBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
                                           Title="{l:Tr commands.blockKey}" Hint="{l:Tr commands.blockKeyHint}" />
-                            <v:IconToggle IsChecked="{Binding ShowWindowIgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
+                            <v:IconToggle Width="38" IsChecked="{Binding ShowWindowIgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
                                           Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
                         </StackPanel>
                     </Grid>
@@ -399,12 +399,12 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.exitHotkeyHint}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:Button x:Name="ExitHotkeyButton" MinWidth="200" Click="OnCaptureExitHotkey" />
+                            <ui:Button x:Name="ExitHotkeyButton" MinWidth="190" Click="OnCaptureExitHotkey" />
                             <ui:Button VerticalAlignment="Stretch" x:Name="ExitHotkeyClear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearExitHotkey" />
-                            <v:IconToggle Margin="8,0,0,0" IsChecked="{Binding ExitBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
+                            <v:IconToggle Width="38" Margin="8,0,0,0" IsChecked="{Binding ExitBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
                                           Title="{l:Tr commands.blockKey}" Hint="{l:Tr commands.blockKeyHint}" />
-                            <v:IconToggle IsChecked="{Binding ExitIgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
+                            <v:IconToggle Width="38" IsChecked="{Binding ExitIgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
                                           Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
                         </StackPanel>
                     </Grid>
@@ -635,12 +635,12 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherHotkeyHint}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:Button x:Name="LauncherHotkeyButton" MinWidth="200" Click="OnCaptureLauncherHotkey" />
+                            <ui:Button x:Name="LauncherHotkeyButton" MinWidth="190" Click="OnCaptureLauncherHotkey" />
                             <ui:Button VerticalAlignment="Stretch" x:Name="LauncherHotkeyClear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearLauncherHotkey" />
-                            <v:IconToggle Margin="8,0,0,0" IsChecked="{Binding LauncherBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
+                            <v:IconToggle Width="38" Margin="8,0,0,0" IsChecked="{Binding LauncherBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
                                           Title="{l:Tr commands.blockKey}" Hint="{l:Tr commands.blockKeyHint}" />
-                            <v:IconToggle IsChecked="{Binding LauncherIgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
+                            <v:IconToggle Width="38" IsChecked="{Binding LauncherIgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
                                           Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
                         </StackPanel>
                     </Grid>
@@ -870,12 +870,12 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.voiceHotkeyHint}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:Button x:Name="VoiceHotkeyButton" MinWidth="200" Click="OnCaptureVoiceHotkey" />
+                            <ui:Button x:Name="VoiceHotkeyButton" MinWidth="190" Click="OnCaptureVoiceHotkey" />
                             <ui:Button VerticalAlignment="Stretch" x:Name="VoiceHotkeyClear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearVoiceHotkey" />
-                            <v:IconToggle Margin="8,0,0,0" IsChecked="{Binding VoiceBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
+                            <v:IconToggle Width="38" Margin="8,0,0,0" IsChecked="{Binding VoiceBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
                                           Title="{l:Tr commands.blockKey}" Hint="{l:Tr commands.blockKeyHint}" />
-                            <v:IconToggle IsChecked="{Binding VoiceIgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
+                            <v:IconToggle Width="38" IsChecked="{Binding VoiceIgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
                                           Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
                         </StackPanel>
                     </Grid>
@@ -887,7 +887,7 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.dictationHotkeyHint}" TextWrapping="Wrap" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:Button x:Name="DictationHotkeyButton" MinWidth="200" Click="OnCaptureDictationHotkey" />
+                            <ui:Button x:Name="DictationHotkeyButton" MinWidth="280" Click="OnCaptureDictationHotkey" />
                             <ui:Button VerticalAlignment="Stretch" x:Name="DictationHotkeyClear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearDictationHotkey" />
                         </StackPanel>
