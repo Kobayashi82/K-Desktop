@@ -1,8 +1,8 @@
 # Pruebas: modelos de decisión, Nemotron Bolt y palabra de activación
 
-Rama `decision_nvidia`, 25/10/2026. Experimento: **no cambia K-Desktop**. El arnés está en `tools/decision/` (ver su
-README); el conjunto de pruebas lleva los comandos reales del usuario y queda fuera del repositorio
-(`artifacts/decision/`).
+25/10/2026. Lo que salió de aquí entró en 5.0.200 (sección 8). El arnés de las pruebas (`tools/decision/`, con su
+README) solo está en la rama `decision_nvidia`; el conjunto de pruebas lleva los comandos reales del usuario y queda
+fuera del repositorio (`artifacts/decision/`).
 
 ## 1. Equipo y versiones
 
