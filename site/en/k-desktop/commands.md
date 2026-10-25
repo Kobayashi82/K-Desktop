@@ -12,7 +12,7 @@ A hotkey is any combination of keys, mouse buttons and the wheel: `CTRL + ALT + 
 
 - **For one program only**: limit the command to some programs (by their process name). When the same hotkey exists
   globally and for one program, the specific one wins inside that program and the global one everywhere else.
-- **Disable in**: in *Settings → Per application* you list programs (games, remote desktops…) where K-Desktop's hotkeys do
+- **Disable in**: in *Settings → Disable and block* you list programs (games, remote desktops…) where K-Desktop's hotkeys do
   nothing. The action *Disable in current app* toggles it for the program in front.
 - K-Desktop warns you when a hotkey is already used by another command, by K-Desktop itself or by an assistant.
 
