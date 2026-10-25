@@ -33,7 +33,7 @@
                         <TextBlock x:Name="TalkHint" Style="{StaticResource Caption}" TextWrapping="Wrap" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <ui:Button x:Name="TalkKeyButton" MinWidth="220" Click="OnCaptureTalkKey" AutomationProperties.Name="{l:Tr assistantGeneral.talkKey}" />
+                        <ui:Button x:Name="TalkKeyButton" VerticalAlignment="Stretch" MinWidth="220" Click="OnCaptureTalkKey" AutomationProperties.Name="{l:Tr assistantGeneral.talkKey}" />
                         <ui:Button VerticalAlignment="Stretch" x:Name="TalkKeyClear" Margin="6,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                    AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearTalkKey" />
                     </StackPanel>
