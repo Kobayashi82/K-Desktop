@@ -46,6 +46,7 @@
 
   "common.add": "Add",
   "common.processPlaceholder": "Process (e.g. chrome)",
+  "common.chooseCommand": "Choose a command",
   "sound.none": "No sound",
   "common.remove": "Remove",
   "common.delete": "Delete",

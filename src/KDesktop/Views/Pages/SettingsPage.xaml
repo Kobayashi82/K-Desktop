@@ -8,6 +8,20 @@
              xmlns:assistant="clr-namespace:KDesktop.Views.Assistant"
              xmlns:m="clr-namespace:KDesktop.Core.Model;assembly=KDesktop.Core">
     <UserControl.Resources>
+        <!-- Grey text in a (non-editable) combo while nothing is chosen; its DataContext is the combo -->
+        <Style x:Key="ComboHint" TargetType="TextBlock">
+            <Setter Property="IsHitTestVisible" Value="False" />
+            <Setter Property="Margin" Value="11,0,34,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPlaceholderColorBrush}" />
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding SelectedItem}" Value="{x:Null}">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
         <!-- Removable process chip; Tag of the button = the list it belongs to -->
         <DataTemplate x:Key="ProcessChip">
             <Border Style="{StaticResource Chip}">
@@ -1181,10 +1195,11 @@
                             </StackPanel>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <ComboBox x:Name="MusicOnBox" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding VoiceMusicOn}" />
-                                <Border Tag="Command" Style="{StaticResource MusicOnPart}" Margin="0,8,0,0">
-                                    <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.CommandList}}" DisplayMemberPath="Name" SelectedValuePath="Id"
+                                <Grid Tag="Command" Style="{StaticResource MusicOnPart}" Margin="0,8,0,0">
+                                    <ComboBox x:Name="MusicOnCommandBox" ItemsSource="{Binding Source={x:Static v:Lookups.CommandList}}" DisplayMemberPath="Name" SelectedValuePath="Id"
                                               SelectedValue="{Binding VoiceMusicOnCommand}" IsTextSearchEnabled="True" TextSearch.TextPath="Name" MaxDropDownHeight="420" />
-                                </Border>
+                                    <TextBlock Style="{StaticResource ComboHint}" DataContext="{Binding ElementName=MusicOnCommandBox}" Text="{l:Tr common.chooseCommand}" />
+                                </Grid>
                                 <Grid Tag="Program" Style="{StaticResource MusicOnPart}" Margin="0,8,0,0">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                                     <ui:TextBox Text="{Binding VoiceMusicOnProgram, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr settings.musicProgramPlaceholder}" />
@@ -1201,10 +1216,11 @@
                             </StackPanel>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <ComboBox x:Name="MusicOffBox" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding VoiceMusicOff}" />
-                                <Border Tag="Command" Style="{StaticResource MusicOffPart}" Margin="0,8,0,0">
-                                    <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.CommandList}}" DisplayMemberPath="Name" SelectedValuePath="Id"
+                                <Grid Tag="Command" Style="{StaticResource MusicOffPart}" Margin="0,8,0,0">
+                                    <ComboBox x:Name="MusicOffCommandBox" ItemsSource="{Binding Source={x:Static v:Lookups.CommandList}}" DisplayMemberPath="Name" SelectedValuePath="Id"
                                               SelectedValue="{Binding VoiceMusicOffCommand}" IsTextSearchEnabled="True" TextSearch.TextPath="Name" MaxDropDownHeight="420" />
-                                </Border>
+                                    <TextBlock Style="{StaticResource ComboHint}" DataContext="{Binding ElementName=MusicOffCommandBox}" Text="{l:Tr common.chooseCommand}" />
+                                </Grid>
                                 <Border Tag="Program" Style="{StaticResource MusicOffPart}" Margin="0,8,0,0">
                                     <ComboBox IsEditable="True" Text="{Binding VoiceMusicOffProcess, UpdateSourceTrigger=PropertyChanged}"
                                               v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnMusicProcessDropDown" />
