@@ -14,7 +14,7 @@ allí.
 | **OSD** | Los mensajes en pantalla de K-Desktop: dónde salen (pulsando en un dibujo de la pantalla), en qué monitor, su tamaño, cuánto duran, qué hacen con una película o un juego a pantalla completa y qué grupos salen (acciones, volumen y brillo, voz, avisos). Debajo, las **notificaciones** de los logros: si salen, con sonido, en qué monitor y esquina (también en un dibujo), cuánto duran y si esperan a que acabe lo que está a pantalla completa |
 | **Lanzador** | Su atajo, qué encuentra (programas, comandos ocultos, cuentas, la web) y en qué orden |
 
-## Voz y multimedia
+## Voz y Multimedia
 
 | Sección | Qué tiene |
 |---|---|
