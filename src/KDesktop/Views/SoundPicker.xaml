@@ -5,7 +5,7 @@
              xmlns:l="clr-namespace:KDesktop.Localization"
              xmlns:local="clr-namespace:KDesktop.Views">
     <!-- Sound chooser: built-in sounds or a .wav file, with preview. Choosing one in the list plays it. -->
-    <Grid>
+    <Grid VerticalAlignment="Center">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />

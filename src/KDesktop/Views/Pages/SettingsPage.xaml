@@ -224,7 +224,7 @@
                             <TextBlock Text="{l:Tr settings.language}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.languageHint}" />
                         </StackPanel>
-                        <Grid Grid.Column="1">
+                        <Grid Grid.Column="1" VerticalAlignment="Center">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                             <ComboBox x:Name="LanguageBox" DisplayMemberPath="Name" SelectedValuePath="Code" SelectedValue="{Binding Language}" />
                             <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon ArrowSync24}" ToolTip="{l:Tr settings.languagesReload}"
