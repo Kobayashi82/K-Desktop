@@ -81,7 +81,7 @@ public partial class SoundPicker : UserControl
 
     private void ShowFile(string? sound)
     {
-        FileName.Text = sound is null ? string.Empty : Path.IsPathRooted(sound) ? Path.GetFileName(sound) : sound;
+        FileName.Text = sound is null ? string.Empty : Path.IsPathRooted(sound) ? Path.GetFileNameWithoutExtension(sound) : sound;
         FileName.Visibility = sound is null ? Visibility.Collapsed : Visibility.Visible;
         Box.ToolTip = sound is not null && Path.IsPathRooted(sound) ? sound : null;
     }
