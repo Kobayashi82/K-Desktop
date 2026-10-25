@@ -59,24 +59,30 @@ public partial class SoundPicker : UserControl
     private bool _showing;
 
     /// <summary>
-    /// The list again with the current sound selected: first «no sound», then a chosen file (its name), then the
-    /// built-in sounds. A name that no longer exists stays as it is, so opening the options doesn't lose it.
+    /// The list again with the current sound selected: «no sound» and the built-in sounds. Anything else (a file chosen
+    /// with Browse, or a name that no longer exists, kept so opening the options doesn't lose it) is not in the list:
+    /// nothing is selected and its name shows over the combo, with the whole path in the tooltip.
     /// </summary>
     private void ShowSound()
     {
         var sound = string.IsNullOrWhiteSpace(Sound) ? null : Sound;
         var items = new List<Item> { new(null, Loc.T("sound.none")) };
-        var names = Sounds.Available();
-        if (sound is not null && !names.Contains(sound, StringComparer.OrdinalIgnoreCase))
-            items.Add(new Item(sound, Path.IsPathRooted(sound) ? Path.GetFileName(sound) : sound));
-        items.AddRange(names.Select(n => new Item(n, n)));
+        items.AddRange(Sounds.Available().Select(n => new Item(n, n)));
+        var match = items.FirstOrDefault(i => string.Equals(i.Value, sound, StringComparison.OrdinalIgnoreCase));
         _showing = true;
         try
         {
             Box.ItemsSource = items;
-            Box.SelectedItem = items.FirstOrDefault(i => string.Equals(i.Value, sound, StringComparison.OrdinalIgnoreCase)) ?? items[0];
+            Box.SelectedItem = match;
         }
         finally { _showing = false; }
+        ShowFile(match is null ? sound : null);
+    }
+
+    private void ShowFile(string? sound)
+    {
+        FileName.Text = sound is null ? string.Empty : Path.IsPathRooted(sound) ? Path.GetFileName(sound) : sound;
+        FileName.Visibility = sound is null ? Visibility.Collapsed : Visibility.Visible;
         Box.ToolTip = sound is not null && Path.IsPathRooted(sound) ? sound : null;
     }
 
@@ -104,19 +110,10 @@ public partial class SoundPicker : UserControl
         _showing = true;
         try { Sound = picked.Value; }
         finally { _showing = false; }
-        Box.ToolTip = picked.Value is { } path && Path.IsPathRooted(path) ? path : null;
+        ShowFile(null);
         // Choosing always plays it, even right after hovering over it.
         _previewed = picked.Value;
         if (picked.Value is not null) Sounds.Preview(picked.Value);
-        // A file is in the list only while it is the chosen sound: another one takes it out (with the list open, when it closes).
-        if (!Box.IsDropDownOpen) Dispatcher.BeginInvoke(DropFile);
-    }
-
-    private void DropFile()
-    {
-        var names = Sounds.Available();
-        if (Box.Items.OfType<Item>().Any(i => i.Value is not null && !ReferenceEquals(i, Box.SelectedItem) &&!names.Contains(i.Value, StringComparer.OrdinalIgnoreCase)))
-            ShowSound();
     }
 
     private void Preview(string sound)
@@ -126,11 +123,7 @@ public partial class SoundPicker : UserControl
         Sounds.Preview(sound);
     }
 
-    private void OnDropDownClosed(object? sender, EventArgs e)
-    {
-        _previewed = null;
-        DropFile();
-    }
+    private void OnDropDownClosed(object? sender, EventArgs e) => _previewed = null;
 
     private void OnPlay(object sender, RoutedEventArgs e) => Sounds.Preview(Sound);
 

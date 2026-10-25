@@ -19,6 +19,9 @@
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>
+        <!-- A file chosen with Browse is not in the list: nothing is selected and its name shows here, over the combo -->
+        <TextBlock x:Name="FileName" Margin="11,0,34,0" FontWeight="Normal" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" IsHitTestVisible="False"
+                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" Visibility="Collapsed" />
         <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon Play24}" ToolTip="{l:Tr editor.preview}" Click="OnPlay" />
         <ui:Button x:Name="BrowseButton" Grid.Column="2" Margin="6,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}" Click="OnBrowse" />
     </Grid>
