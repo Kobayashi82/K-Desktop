@@ -74,6 +74,7 @@ public static partial class IconProvider
         HiddenFilesAction => Kd("EyeOff24", "gray"),
         ToggleDisabledInAction => Kd("Prohibited24", "red"),
         ShowMessageAction => Kd("Chat24", "green"),
+        ShowNotificationAction x => (string.IsNullOrWhiteSpace(x.Icon) ? null : FromConfigIcon(x.Icon)) ?? Kd("Alert24", "gold"),
         PowerAction => Kd("Power24", "red"),
         OpenQuickMenuAction => Kd("TextBulletListTree24", "gold"),
         LauncherAction => Kd("Search24", "gold"),

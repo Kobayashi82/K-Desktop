@@ -74,6 +74,7 @@ orden.
 | **Comandos** | Ejecuta, habilita o deshabilita otro comando. |
 | **Abrir QuickMenu** | Enseña un QuickMenu donde está el ratón. |
 | **Mostrar mensaje** | Enseña un mensaje en pantalla durante un rato. |
+| **Mostrar notificación** | Una tarjeta en una esquina con tu título, texto, imagen, color y sonido, el tiempo que digas. Al pulsarla puede abrir algo (un archivo, una carpeta, una web) o ejecutar otro comando, y la siguiente acción puede esperar a que se cierre. Con algo a pantalla completa hace lo que diga *Opciones › OSD › Notificaciones*. |
 | **Desactivar en la app actual (on/off)** | Desactiva o vuelve a activar los atajos de K-Desktop en la aplicación activa (útil en juegos). |
 
 ## Asistente

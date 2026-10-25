@@ -188,6 +188,7 @@ public partial class App : Application
 
         // Achievements and statistics
         Notifier = new AchievementNotifier(() => Config.Settings, key => ShowMainWindow(w => w.Navigate(key)));
+        Ui.Notifier = Notifier.ShowCustom;
         Achievements.Unlocked += def => Dispatcher.BeginInvoke(() => Notifier.Show(def));
         Achievements.Load();
 

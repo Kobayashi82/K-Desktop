@@ -161,6 +161,12 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
 
     public void AssistantSay(string assistant, string text) => dispatcher.BeginInvoke(() => AssistantSayer?.Invoke(assistant, text));
 
+    /// <summary>The notification cards («Mostrar notificación»): set by the app once it has its notifier.</summary>
+    public Func<Notification, Task>? Notifier { get; set; }
+
+    public Task ShowNotificationAsync(Notification notification) =>
+        Notifier is { } notify ? dispatcher.InvokeAsync(() => notify(notification)).Task.Unwrap() : Task.CompletedTask;
+
     public void AssistantBrain(Core.Model.AssistantBrainOp op) => dispatcher.BeginInvoke(() => AssistantBrainer?.Invoke(op));
 
     public void Dictate(Core.Model.SwitchMode mode) => Dictator?.Invoke(mode);

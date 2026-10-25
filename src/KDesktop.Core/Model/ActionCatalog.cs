@@ -53,6 +53,7 @@ public static class ActionCatalog
         new(ActionKind.Power, "system", "Power24", () => new PowerAction()),
 
         new(ActionKind.ShowMessage, "kdesktop", "Chat24", () => new ShowMessageAction()),
+        new(ActionKind.ShowNotification, "kdesktop", "Alert24", () => new ShowNotificationAction()),
         new(ActionKind.Condition, "kdesktop", "BranchFork24", () => new ConditionAction()),
         new(ActionKind.Wait, "kdesktop", "Timer24", () => new WaitAction()),
         new(ActionKind.CommandControl, "kdesktop", "Flash24", () => new CommandControlAction()),

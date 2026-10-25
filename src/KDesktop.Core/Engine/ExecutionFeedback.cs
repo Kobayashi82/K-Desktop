@@ -84,6 +84,12 @@ internal sealed class FeedbackUiServices(IUiServices inner) : IUiServices
     }
 
     public IVoiceOsd ShowVoiceOsd(string text) => inner.ShowVoiceOsd(text);
+
+    public Task ShowNotificationAsync(Notification notification)
+    {
+        ExecutionFeedback.Current?.Add(notification.Title);
+        return inner.ShowNotificationAsync(notification);
+    }
     public void ShowQuickMenu(string menuId, ForegroundWindow previousForeground) => inner.ShowQuickMenu(menuId, previousForeground);
     public void ShowMainWindow() => inner.ShowMainWindow();
     public void RunAssistantExtra(string assistant, string extra) => inner.RunAssistantExtra(assistant, extra);

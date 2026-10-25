@@ -121,6 +121,9 @@ public static class Lookups
     public static IReadOnlyList<Option<OsdFullscreen>> OsdFullscreens { get; } = Enum<OsdFullscreen>("enum.osdFullscreen");
     public static IReadOnlyList<Option<NotifyCorner>> NotifyCorners { get; } = Enum<NotifyCorner>("enum.notifyCorner");
     public static IReadOnlyList<Option<NotifyFullscreen>> NotifyFullscreens { get; } = Enum<NotifyFullscreen>("enum.notifyFullscreen");
+    public static IReadOnlyList<Option<NotifyColor>> NotifyColors { get; } = Enum<NotifyColor>("enum.notifyColor");
+    public static IReadOnlyList<Option<NotifyPlace>> NotifyPlaces { get; } = Enum<NotifyPlace>("enum.notifyPlace");
+    public static IReadOnlyList<Option<NotifyClick>> NotifyClicks { get; } = Enum<NotifyClick>("enum.notifyClick");
     public static IReadOnlyList<Option<MacroStepKind>> MacroStepKinds { get; } = Enum<MacroStepKind>("enum.stepKind");
     public static IReadOnlyList<Option<KDesktop.Core.Input.MouseButton>> MouseButtons { get; } =
         [.. Enum<KDesktop.Core.Input.MouseButton>("macro.button").Where(o => o.Value != KDesktop.Core.Input.MouseButton.None)];
@@ -203,4 +206,6 @@ public static class EditorCommands
     public static readonly RoutedUICommand RemoveHttpHeader = new("RemoveHttpHeader", nameof(RemoveHttpHeader), typeof(EditorCommands));
     public static readonly RoutedUICommand TestHttpRequest = new("TestHttpRequest", nameof(TestHttpRequest), typeof(EditorCommands));
     public static readonly RoutedUICommand FindMac = new("FindMac", nameof(FindMac), typeof(EditorCommands));
+    public static readonly RoutedUICommand PickNotificationIcon = new("PickNotificationIcon", nameof(PickNotificationIcon), typeof(EditorCommands));
+    public static readonly RoutedUICommand ResetNotificationIcon = new("ResetNotificationIcon", nameof(ResetNotificationIcon), typeof(EditorCommands));
 }

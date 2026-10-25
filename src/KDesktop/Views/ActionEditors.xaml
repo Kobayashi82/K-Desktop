@@ -11,6 +11,7 @@
     <v:AudioDeviceStatusConverter x:Key="AudioStatus" />
     <v:AudioDeviceSymbolConverter x:Key="AudioSymbol" />
     <v:DisplayModesConverter x:Key="DisplayModes" />
+    <v:ActionIconConverter x:Key="ActionIconEd" />
 
     <Style x:Key="EdRow" TargetType="Grid">
         <Setter Property="Margin" Value="0,0,0,12" />
@@ -561,6 +562,91 @@
                 <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.waitMessage}" IsChecked="{Binding Wait}" />
             </WrapPanel>
         </StackPanel>
+    </DataTemplate>
+
+    <!-- ── Mostrar notificación ────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:ShowNotificationAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.notifyTitle}" />
+            <ui:TextBox Margin="0,0,0,12" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.notifyTitleHint}"
+                        AutomationProperties.Name="{l:Tr editor.notifyTitle}" />
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.notifyText}" />
+            <ui:TextBox Margin="0,0,0,12" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.notifyTextHint}"
+                        TextWrapping="Wrap" AcceptsReturn="True" MaxHeight="120" AutomationProperties.Name="{l:Tr editor.notifyText}" />
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.notifyIcon}" />
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="36" Height="36" CornerRadius="8" Margin="0,0,8,0" Background="{DynamicResource Kd.AccentSoft}">
+                            <Image Width="24" Height="24" RenderOptions.BitmapScalingMode="HighQuality">
+                                <Image.Source>
+                                    <MultiBinding Converter="{StaticResource ActionIconEd}">
+                                        <Binding />
+                                        <Binding Path="Icon" />
+                                    </MultiBinding>
+                                </Image.Source>
+                            </Image>
+                        </Border>
+                        <ui:Button x:Name="IconChange" Content="{l:Tr commands.changeIcon}" Icon="{ui:SymbolIcon Image24}"
+                                   Command="{x:Static v:EditorCommands.PickNotificationIcon}" CommandParameter="{Binding}" />
+                        <ui:Button Margin="8,0,0,0" Height="{Binding ActualHeight, ElementName=IconChange}" Icon="{ui:SymbolIcon ArrowReset24}"
+                                   ToolTip="{l:Tr editor.notifyIconReset}" AutomationProperties.Name="{l:Tr editor.notifyIconReset}"
+                                   Command="{x:Static v:EditorCommands.ResetNotificationIcon}" CommandParameter="{Binding}" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.notifyColor}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.NotifyColors}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Color}" />
+                </StackPanel>
+            </Grid>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.sound}" />
+            <v:SoundPicker Margin="0,0,0,12" Sound="{Binding Sound}" />
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="140" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.notifySeconds}" />
+                    <ui:TextBox Text="{Binding Seconds, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="{l:Tr editor.notifySeconds}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.notifyPlace}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.NotifyPlaces}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Place}" />
+                </StackPanel>
+            </Grid>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.notifyClick}" />
+            <ComboBox Margin="0,0,0,12" ItemsSource="{x:Static v:Lookups.NotifyClicks}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding OnClick}" />
+            <Grid x:Name="OpenPanel" Style="{StaticResource EdRow}" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:TextBox Text="{Binding Target, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.notifyTargetHint}"
+                            AutomationProperties.Name="{l:Tr editor.notifyTarget}" />
+                <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}"
+                           Command="{x:Static v:EditorCommands.BrowseFile}" CommandParameter="{Binding}" />
+            </Grid>
+            <ComboBox x:Name="CommandBox" Margin="0,0,0,12" Visibility="Collapsed" ItemsSource="{Binding Source={x:Static v:Lookups.CommandList}}"
+                      DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding CommandId}" IsTextSearchEnabled="True"
+                      TextSearch.TextPath="Name" MaxDropDownHeight="420" AutomationProperties.Name="{l:Tr editor.command}" />
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.notifyWait}" IsChecked="{Binding Wait}" />
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.notifyHint}" />
+        </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding OnClick}" Value="Open">
+                <Setter TargetName="OpenPanel" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding OnClick}" Value="RunCommand">
+                <Setter TargetName="CommandBox" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
     </DataTemplate>
 
     <!-- ── Energía ─────────────────────────────────────────────────────── -->

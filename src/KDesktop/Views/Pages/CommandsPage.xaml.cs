@@ -433,6 +433,20 @@ public sealed partial class CommandsPage : UserControl, IDisposable
         if (_selected is not null) _selected.Icon = null;
     }
 
+    /// <summary>«Mostrar notificación»: the picture of the card, with the same picker as the commands.</summary>
+    private void OnPickNotificationIcon(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.Parameter is not ShowNotificationAction a) return;
+        var name = "ntf-" + Guid.NewGuid().ToString("N")[..8];
+        if (Dialogs.IconPicker.Pick(Window.GetWindow(this), a.Icon, name) is not { } icon) return;
+        a.Icon = icon.Length == 0 ? null : icon;
+    }
+
+    private void OnResetNotificationIcon(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.Parameter is ShowNotificationAction a) a.Icon = null;
+    }
+
     // ── hotkeys ──────────────────────────────────────────────────────────
 
     private void OnAddHotkey(object sender, RoutedEventArgs e)
@@ -626,6 +640,12 @@ public sealed partial class CommandsPage : UserControl, IDisposable
 
     private void OnBrowseFile(object sender, ExecutedRoutedEventArgs e)
     {
+        if (e.Parameter is ShowNotificationAction notification)
+        {
+            var open = new OpenFileDialog { Title = Loc.T("editor.chooseFile"), Filter = Loc.T("editor.filterAll") + "|*.*", DereferenceLinks = false };
+            if (open.ShowDialog(Window.GetWindow(this)) == true) notification.Target = open.FileName;
+            return;
+        }
         if (e.Parameter is not RunAppAction a) return;
         var dlg = new OpenFileDialog
         {

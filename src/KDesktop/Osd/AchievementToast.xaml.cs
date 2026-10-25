@@ -74,6 +74,51 @@ public partial class AchievementToast : Window
         return Present(duration);
     }
 
+    /// <summary>«Mostrar notificación»: your title, text, icon and colour.</summary>
+    public Task ShowCustomAsync(Core.Engine.Notification notification, TimeSpan duration)
+    {
+        Kicker.Visibility = Visibility.Collapsed;
+        NameText.Text = notification.Title;
+        DescText.Text = notification.Text;
+        DescText.Visibility = string.IsNullOrWhiteSpace(notification.Text) ? Visibility.Collapsed : Visibility.Visible;
+        BadgeIcon.Symbol = SymbolRegular.Alert24;
+        if (!string.IsNullOrWhiteSpace(notification.Icon) && Services.IconProvider.FromConfigIcon(notification.Icon, adaptToTheme: false) is { } image)
+        {
+            BadgeImage.Source = image;
+            BadgeImage.Visibility = Visibility.Visible;
+            BadgeIcon.Visibility = Visibility.Collapsed;
+        }
+        Paint(notification.Color);
+        return Present(duration);
+    }
+
+    /// <summary>Light, middle and dark tone of the badge, and the colour of the symbol on it.</summary>
+    private static readonly Dictionary<Core.Model.NotifyColor, (uint Light, uint Mid, uint Dark, uint Ink)> Palette = new()
+    {
+        [Core.Model.NotifyColor.Gold] = (0xFFF6D365, 0xFFE0A815, 0xFFB7790B, 0xFF3A2600),
+        [Core.Model.NotifyColor.Blue] = (0xFF9CCBFF, 0xFF3B8BEB, 0xFF1E5BB8, 0xFF061C3A),
+        [Core.Model.NotifyColor.Green] = (0xFFA3E99A, 0xFF3DBB5A, 0xFF23843A, 0xFF0B2E13),
+        [Core.Model.NotifyColor.Red] = (0xFFFFA59A, 0xFFE5534B, 0xFFB3261E, 0xFF3A0806),
+        [Core.Model.NotifyColor.Purple] = (0xFFD9B3FF, 0xFF9B5DE5, 0xFF6A2FB8, 0xFF1F0839),
+    };
+
+    /// <summary>Gives the card a colour of its own (the achievements keep their gold).</summary>
+    private void Paint(Core.Model.NotifyColor color)
+    {
+        if (!Palette.TryGetValue(color, out var p)) return;
+        static Color C(uint argb) => Color.FromArgb((byte)(argb >> 24), (byte)(argb >> 16), (byte)(argb >> 8), (byte)argb);
+        var mid = C(p.Mid);
+        BadgeLight.Color = C(p.Light);
+        BadgeMid.Color = mid;
+        BadgeDark.Color = C(p.Dark);
+        BadgeIcon.Foreground = new SolidColorBrush(C(p.Ink));
+        GlowStop.Color = Color.FromArgb(0x55, mid.R, mid.G, mid.B);
+        GlowEnd.Color = Color.FromArgb(0, mid.R, mid.G, mid.B);
+        var brush = new SolidColorBrush(mid);
+        Burst.Stroke = brush;
+        TimeBar.Fill = brush;
+    }
+
     private Task Present(TimeSpan duration)
     {
         Show();

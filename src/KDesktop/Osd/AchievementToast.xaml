@@ -38,8 +38,8 @@
                     <Border Opacity="0.55">
                         <Border.Background>
                             <RadialGradientBrush Center="0.12,0.5" GradientOrigin="0.12,0.5" RadiusX="0.55" RadiusY="1.3">
-                                <GradientStop Color="#55E0A815" Offset="0" />
-                                <GradientStop Color="#00E0A815" Offset="1" />
+                                <GradientStop x:Name="GlowStop" Color="#55E0A815" Offset="0" />
+                                <GradientStop x:Name="GlowEnd" Color="#00E0A815" Offset="1" />
                             </RadialGradientBrush>
                         </Border.Background>
                     </Border>
@@ -67,15 +67,17 @@
                                 <Ellipse>
                                     <Ellipse.Fill>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                            <GradientStop Color="#FFF6D365" Offset="0" />
-                                            <GradientStop Color="#FFE0A815" Offset="0.55" />
-                                            <GradientStop Color="#FFB7790B" Offset="1" />
+                                            <GradientStop x:Name="BadgeLight" Color="#FFF6D365" Offset="0" />
+                                            <GradientStop x:Name="BadgeMid" Color="#FFE0A815" Offset="0.55" />
+                                            <GradientStop x:Name="BadgeDark" Color="#FFB7790B" Offset="1" />
                                         </LinearGradientBrush>
                                     </Ellipse.Fill>
                                 </Ellipse>
                                 <Ellipse Margin="4" Stroke="#66FFFFFF" StrokeThickness="1" />
                                 <ui:SymbolIcon x:Name="BadgeIcon" Symbol="Trophy24" FontSize="30" Foreground="#FF3A2600"
                                                HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <!-- An icon or picture of its own («Mostrar notificación») instead of the symbol -->
+                                <Image x:Name="BadgeImage" Width="34" Height="34" Visibility="Collapsed" RenderOptions.BitmapScalingMode="HighQuality" />
                             </Grid>
                         </Grid>
 

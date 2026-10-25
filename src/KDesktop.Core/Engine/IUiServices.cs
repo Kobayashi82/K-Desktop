@@ -22,9 +22,19 @@ public sealed record OsdLook(string? Icon = null, double? Level = null, OsdTopic
     public static OsdLook Bar(string icon, double percent) => new(icon, Math.Clamp(percent / 100, 0, 1));
 }
 
+/// <summary>
+/// A notification card («Mostrar notificación»): null <paramref name="Duration"/> and <paramref name="Corner"/> are the
+/// ones of Options; <paramref name="Clicked"/> runs when it is clicked.
+/// </summary>
+public sealed record Notification(
+    string Title, string Text, string? Icon, NotifyColor Color, string? Sound, TimeSpan? Duration, NotifyCorner? Corner, Action? Clicked);
+
 /// <summary>Services the engine needs from the UI layer. Implementations must be thread-safe.</summary>
 public interface IUiServices
 {
+    /// <summary>Shows a notification card; completes when it is gone (or was dropped: full screen and «No mostrarlas»).</summary>
+    Task ShowNotificationAsync(Notification notification) => Task.CompletedTask;
+
     /// <summary>Shows a short on-screen message.</summary>
     void ShowOsd(string text, OsdKind kind = OsdKind.Info, TimeSpan? duration = null, OsdLook? look = null);
 

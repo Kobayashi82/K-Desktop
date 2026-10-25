@@ -73,6 +73,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 | **Commands** | Runs, enables or disables another command. |
 | **Open QuickMenu** | Shows a QuickMenu at the mouse position. |
 | **Show message** | Shows an on-screen message for a while. |
+| **Show notification** | A card in a corner with your title, text, picture, colour and sound, for as long as you say. Clicking it can open something (a file, a folder, a web page) or run another command, and the next action can wait until it closes. With something full screen it does what *Settings › OSD › Notifications* says. |
 | **Disable in current app (on/off)** | Disables or re-enables K-Desktop hotkeys in the active application (useful in games). |
 
 ## Assistant

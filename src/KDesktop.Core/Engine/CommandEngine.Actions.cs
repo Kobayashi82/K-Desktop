@@ -24,6 +24,7 @@ public sealed partial class CommandEngine
         HiddenFilesAction a => Run(() => HiddenFiles(a)),
         ToggleDisabledInAction a => Run(() => ToggleDisabledIn(a, ctx)),
         ShowMessageAction a => ShowMessageAsync(a, ctx),
+        ShowNotificationAction a => ShowNotificationAsync(a, ctx),
         PowerAction a => PowerAsync(a, ctx),
         OpenQuickMenuAction a => Run(() => _ui.ShowQuickMenu(a.MenuId, ctx.Foreground)),
         CommandControlAction a => CommandControlAsync(a, ctx),
@@ -356,6 +357,27 @@ public sealed partial class CommandEngine
         var osd = _ui.ShowPersistentOsd(a.Text, a.Countdown ? DateTime.Now + duration : null, "Chat24");
         var task = Task.Delay(duration, cts.Token).ContinueWith(_ => { osd.Dispose(); EndCancellable(cts); }, TaskScheduler.Default);
         if (a.Wait) await task.ConfigureAwait(false);
+    }
+
+    /// <summary>«Mostrar notificación»: a card in a corner; with «Esperar», the next action waits until it is gone.</summary>
+    private async Task ShowNotificationAsync(ShowNotificationAction a, ExecutionContext ctx)
+    {
+        var target = TextVariables.Expand(a.Target).Trim();
+        Action? clicked = a.OnClick switch
+        {
+            NotifyClick.Open when target.Length > 0 => () => ProcessLauncher.Launch(
+                new LaunchSpec(target.StartsWith("www.", StringComparison.OrdinalIgnoreCase) ? NormalizeUrl(target) : target), asAdmin: false),
+            NotifyClick.RunCommand when Config.FindCommand(a.CommandId) is { } command && !ReferenceEquals(command, ctx.Command) =>
+                () => _ = RunAsync(command, TriggerSource.Command, ctx.Foreground),
+            _ => null,
+        };
+        var notification = new Notification(
+            TextVariables.Expand(a.Title), TextVariables.Expand(a.Text), a.Icon, a.Color, a.Sound,
+            a.Seconds > 0 ? TimeSpan.FromSeconds(a.Seconds) : null,
+            a.Place == NotifyPlace.Settings ? null : Enum.Parse<NotifyCorner>(a.Place.ToString()),
+            clicked);
+        var shown = _ui.ShowNotificationAsync(notification);
+        if (a.Wait) await shown.WaitAsync(ctx.Token).ConfigureAwait(false);
     }
 
     private async Task PowerAsync(PowerAction a, ExecutionContext ctx)

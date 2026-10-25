@@ -16,6 +16,7 @@ public enum ActionKind
     Window, Clipboard, WakeOnLan, Display, PowerPlan, WindowsTheme, Radio, Condition,
     Screenshot, AudioRecord, Magnifier, Dictate, ScreenText,
     AssistantExtra, AssistantAsk, AssistantSay, AssistantBrain,
+    ShowNotification,
 }
 
 public enum WindowMode { Normal, Minimized, Maximized, Hidden }
@@ -48,6 +49,7 @@ public enum ScriptShell { Cmd, PowerShell }
 [JsonDerivedType(typeof(HiddenFilesAction), "hiddenFiles")]
 [JsonDerivedType(typeof(ToggleDisabledInAction), "toggleDisabledIn")]
 [JsonDerivedType(typeof(ShowMessageAction), "showMessage")]
+[JsonDerivedType(typeof(ShowNotificationAction), "showNotification")]
 [JsonDerivedType(typeof(PowerAction), "power")]
 [JsonDerivedType(typeof(OpenQuickMenuAction), "quickMenu")]
 [JsonDerivedType(typeof(CommandControlAction), "commandControl")]
@@ -355,6 +357,49 @@ public partial class ShowMessageAction : CommandAction
 
     public override ActionKind Kind => ActionKind.ShowMessage;
     public override string Summary => $"\"{(string.IsNullOrWhiteSpace(Text) ? "…" : Text)}\"  ·  {Seconds:0.#} s";
+}
+
+/// <summary>The colour of a notification card.</summary>
+public enum NotifyColor { Gold, Blue, Green, Red, Purple }
+
+/// <summary>Where «Mostrar notificación» goes: the corner of Options, or one of its own.</summary>
+public enum NotifyPlace { Settings, BottomRight, TopRight, BottomLeft, TopLeft }
+
+/// <summary>What clicking a notification does.</summary>
+public enum NotifyClick { Nothing, Open, RunCommand }
+
+/// <summary>
+/// «Mostrar notificación»: a card like the achievements', with your title, text, icon, colour and sound, in a corner;
+/// clicking it can open something or run a command. While something is full screen it follows Options (show, wait, hide).
+/// </summary>
+public partial class ShowNotificationAction : CommandAction
+{
+    /// <summary>Default sound: one of the bundled ones (empty: none).</summary>
+    public const string DefaultSound = "Notification 1";
+
+    [ObservableProperty] private string _title = string.Empty;
+    [ObservableProperty] private string _text = string.Empty;
+
+    /// <summary>Icon as in the commands («kd:Symbol:colour», a library icon or an image); null: a bell.</summary>
+    [ObservableProperty] private string? _icon;
+    [ObservableProperty] private NotifyColor _color = NotifyColor.Gold;
+    [ObservableProperty] private string? _sound = DefaultSound;
+
+    /// <summary>Seconds on screen; 0: the ones of Options.</summary>
+    [ObservableProperty] private double _seconds;
+    [ObservableProperty] private NotifyPlace _place = NotifyPlace.Settings;
+    [ObservableProperty] private NotifyClick _onClick = NotifyClick.Nothing;
+
+    /// <summary>What «Open» opens: a file, a folder or a web address.</summary>
+    [ObservableProperty] private string _target = string.Empty;
+    [ObservableProperty] private string _commandId = string.Empty;
+
+    /// <summary>The next action waits until the card is gone.</summary>
+    [ObservableProperty] private bool _wait;
+
+    public override ActionKind Kind => ActionKind.ShowNotification;
+    public override string Summary =>
+        $"\"{(string.IsNullOrWhiteSpace(Title) ? "…" : Title)}\"" + (Seconds > 0 ? $"  ·  {Seconds:0.#} s" : "");
 }
 
 public partial class PowerAction : CommandAction
