@@ -464,6 +464,38 @@
                                 </Setter.Value>
                             </Setter>
                         </Style>
+                        <!-- A tile to click (size, kinds of messages): what it holds is drawn in its colour, gold when chosen -->
+                        <Style x:Key="OsdTile" TargetType="ToggleButton">
+                            <Setter Property="Cursor" Value="Hand" />
+                            <Setter Property="Margin" Value="5,0" />
+                            <Setter Property="Focusable" Value="False" />
+                            <Setter Property="HorizontalContentAlignment" Value="Center" />
+                            <Setter Property="VerticalContentAlignment" Value="Center" />
+                            <Setter Property="Foreground" Value="{DynamicResource Kd.OsdTrack}" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="Frame" CornerRadius="8" BorderThickness="2" Padding="{TemplateBinding Padding}"
+                                                BorderBrush="{DynamicResource Kd.OsdTrack}" Background="{DynamicResource Kd.Subtle}">
+                                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Foreground" Value="{DynamicResource Kd.AccentText}" />
+                                </Trigger>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter Property="Foreground" Value="{DynamicResource Kd.Accent}" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
                     </StackPanel.Resources>
                     <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.osd}" />
                     <Grid Style="{StaticResource SettingRow}">
@@ -503,35 +535,12 @@
                         <!-- Three tiles, each with a message of its size -->
                         <UniformGrid x:Name="OsdSizePicker" Grid.Column="1" Rows="1" Margin="-5,0">
                             <UniformGrid.Resources>
-                                <Style TargetType="RadioButton">
+                                <Style TargetType="RadioButton" BasedOn="{StaticResource OsdTile}">
                                     <Setter Property="GroupName" Value="OsdSize" />
-                                    <Setter Property="Cursor" Value="Hand" />
-                                    <Setter Property="Margin" Value="5,0" />
-                                    <Setter Property="Foreground" Value="{DynamicResource Kd.OsdTrack}" />
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="RadioButton">
-                                                <Border x:Name="Frame" Height="60" CornerRadius="8" BorderThickness="2" Padding="4,8,4,4"
-                                                        BorderBrush="{DynamicResource Kd.OsdTrack}" Background="{DynamicResource Kd.Subtle}">
-                                                    <ContentPresenter />
-                                                </Border>
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsChecked" Value="True">
-                                                        <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
-                                                    </Trigger>
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Style.Triggers>
-                                        <!-- The message is drawn in the button's colour -->
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Foreground" Value="{DynamicResource Kd.AccentText}" />
-                                        </Trigger>
-                                        <Trigger Property="IsChecked" Value="True">
-                                            <Setter Property="Foreground" Value="{DynamicResource Kd.Accent}" />
-                                        </Trigger>
-                                    </Style.Triggers>
+                                    <Setter Property="Height" Value="60" />
+                                    <Setter Property="Padding" Value="4,8,4,4" />
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
                                 </Style>
                                 <Style x:Key="OsdSizeLabel" TargetType="TextBlock">
                                     <Setter Property="Grid.Row" Value="1" />
@@ -585,15 +594,32 @@
                         <ComboBox Grid.Column="1" VerticalAlignment="Center" ItemsSource="{x:Static v:Lookups.OsdFullscreens}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding OsdFullscreen}" />
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
-                        <!-- The label keeps its width; the boxes wrap when the window is narrow -->
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
                         <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.osdShow}" />
-                        <WrapPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
-                            <CheckBox Margin="0,0,16,0" Content="{l:Tr settings.osdShowActions}" IsChecked="{Binding OsdShowActions}" />
-                            <CheckBox Margin="0,0,16,0" Content="{l:Tr settings.osdShowLevels}" IsChecked="{Binding OsdShowLevels}" />
-                            <CheckBox Margin="0,0,16,0" Content="{l:Tr settings.osdShowVoice}" IsChecked="{Binding OsdShowVoice}" />
-                            <CheckBox Content="{l:Tr settings.osdShowWarnings}" IsChecked="{Binding OsdShowWarnings}" />
-                        </WrapPanel>
+                        <!-- A tile per kind of message, on or off; the name is in the tooltip -->
+                        <UniformGrid Grid.Column="1" Rows="1" Margin="-5,0">
+                            <UniformGrid.Resources>
+                                <Style TargetType="ToggleButton" BasedOn="{StaticResource OsdTile}">
+                                    <Setter Property="Height" Value="40" />
+                                </Style>
+                                <Style TargetType="ui:SymbolIcon">
+                                    <Setter Property="FontSize" Value="20" />
+                                    <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}" />
+                                </Style>
+                            </UniformGrid.Resources>
+                            <ToggleButton IsChecked="{Binding OsdShowActions}" ToolTip="{l:Tr settings.osdShowActions}" AutomationProperties.Name="{l:Tr settings.osdShowActions}">
+                                <ui:SymbolIcon Symbol="Flash24" />
+                            </ToggleButton>
+                            <ToggleButton IsChecked="{Binding OsdShowLevels}" ToolTip="{l:Tr settings.osdShowLevels}" AutomationProperties.Name="{l:Tr settings.osdShowLevels}">
+                                <ui:SymbolIcon Symbol="Speaker224" />
+                            </ToggleButton>
+                            <ToggleButton IsChecked="{Binding OsdShowVoice}" ToolTip="{l:Tr settings.osdShowVoice}" AutomationProperties.Name="{l:Tr settings.osdShowVoice}">
+                                <ui:SymbolIcon Symbol="Mic24" />
+                            </ToggleButton>
+                            <ToggleButton IsChecked="{Binding OsdShowWarnings}" ToolTip="{l:Tr settings.osdShowWarnings}" AutomationProperties.Name="{l:Tr settings.osdShowWarnings}">
+                                <ui:SymbolIcon Symbol="Warning24" />
+                            </ToggleButton>
+                        </UniformGrid>
                     </Grid>
                     <ui:Button Margin="0,6,0,0" Content="{l:Tr settings.osdTest}" Icon="{ui:SymbolIcon Chat24}" Click="OnTestOsd" />
                 </StackPanel>
