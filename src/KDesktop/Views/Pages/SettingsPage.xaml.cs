@@ -688,12 +688,20 @@ public partial class SettingsPage : UserControl
             (Loc.T("settings.osdSampleOk"), OsdKind.Success, OsdLook.Of("CheckmarkCircle24")),
             (Loc.T("settings.osdSampleWarning"), OsdKind.Warning, OsdLook.Of("Warning24")),
         };
+        // Pressed again: the test running stops, its messages go, and it starts over.
+        var test = ++_osdTest;
+        _app.Ui.ClearOsdPreview();
+        await Task.Delay(200);
         foreach (var (text, kind, look) in samples)
         {
+            if (test != _osdTest) return;
             _app.Ui.PreviewOsd(text, kind, look);
             await Task.Delay(700);
         }
     }
+
+    /// <summary>Counts the OSD tests: one that sees another number was replaced by a newer one (or a sample) and stops.</summary>
+    private int _osdTest;
 
     private bool _osdSpotsReady;
 
@@ -725,7 +733,15 @@ public partial class SettingsPage : UserControl
     {
         if (!_osdSpotsReady || sender is not RadioButton { Tag: string tag } || !Enum.TryParse<OsdPosition>(tag, out var position)) return;
         _app.Config.Settings.OsdPosition = position;
-        _app.Ui.PreviewOsd(Loc.T("settings.osdHere"), OsdKind.Info, OsdLook.Of("Chat24"));
+        ReplaceOsdPreview(Loc.T("settings.osdHere"));
+    }
+
+    /// <summary>A sample after changing a setting: it replaces the test or the sample still on show.</summary>
+    private void ReplaceOsdPreview(string text)
+    {
+        _osdTest++;
+        _app.Ui.ClearOsdPreview();
+        _app.Ui.PreviewOsd(text, OsdKind.Info, OsdLook.Of("Chat24"));
     }
 
     /// <summary>A size tile: the OSD takes that size and shows a sample.</summary>
@@ -733,7 +749,7 @@ public partial class SettingsPage : UserControl
     {
         if (!_osdSpotsReady || sender is not RadioButton { Tag: string tag } || !Enum.TryParse<OsdSize>(tag, out var size)) return;
         _app.Config.Settings.OsdSize = size;
-        _app.Ui.PreviewOsd(Loc.T("settings.osdSample"), OsdKind.Info, OsdLook.Of("Chat24"));
+        ReplaceOsdPreview(Loc.T("settings.osdSample"));
     }
 
     /// <summary>A sample card, where and for as long as the notifications will come.</summary>

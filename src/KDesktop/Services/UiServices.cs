@@ -78,9 +78,15 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
         });
     }
 
+    /// <summary>Generation of the last sample of Options on the OSD (UI thread only).</summary>
+    private int _previewGeneration = -1;
+
     /// <summary>Options › OSD › «Probar»: shows it whatever the groups and full screen say.</summary>
     public void PreviewOsd(string text, OsdKind kind, OsdLook? look = null) =>
-        dispatcher.BeginInvoke(() => Osd.ShowMessage(text, kind, OsdDuration + TimeSpan.FromSeconds(1.5), look: look));
+        dispatcher.BeginInvoke(() => _previewGeneration = Osd.ShowMessage(text, kind, OsdDuration + TimeSpan.FromSeconds(1.5), look: look));
+
+    /// <summary>Takes the samples of Options off the OSD (with the ones stacked beside them), if one is still the message on show.</summary>
+    public void ClearOsdPreview() => dispatcher.BeginInvoke(() => Osd.HideMessage(_previewGeneration));
 
     // Countdowns and «Mayús + Esc para parar» always show: they say how to stop what is going on.
     public IDisposable ShowPersistentOsd(string text, DateTime? countdownTo = null, string? icon = null)

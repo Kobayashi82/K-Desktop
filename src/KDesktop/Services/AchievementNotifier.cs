@@ -32,8 +32,21 @@ public sealed class AchievementNotifier(Func<AppSettings> settings, Action<strin
         Enqueue(new Card(def, null, null));
     }
 
-    /// <summary>Options › «Probar»: a sample card now, whatever the switches and full screen say.</summary>
-    public void Preview() => Enqueue(new Card(null, null, null));
+    /// <summary>The sample card on show, if it is one.</summary>
+    private AchievementToast? _sampleToast;
+
+    /// <summary>
+    /// Options › «Probar»: a sample card now, whatever the switches and full screen say. Pressed again, the sample on
+    /// show leaves and a new one comes; samples never pile up in the queue.
+    /// </summary>
+    public void Preview()
+    {
+        var others = _queue.Where(c => !c.IsSample).ToList();
+        _queue.Clear();
+        foreach (var card in others) _queue.Enqueue(card);
+        _sampleToast?.Hide(fast: true);
+        Enqueue(new Card(null, null, null));
+    }
 
     /// <summary>«Mostrar notificación»: completes when the card is gone, or was dropped (full screen and «No mostrarlas»).</summary>
     public Task ShowCustom(Notification notification)
@@ -100,7 +113,7 @@ public sealed class AchievementNotifier(Func<AppSettings> settings, Action<strin
             return toast.ShowCustomAsync(custom, duration);
         }
         if (s.AchievementSound) Sounds.Play("Logro");
-        if (card.Achievement is not { } def) return toast.ShowSampleAsync(duration);
+        if (card.Achievement is not { } def) return ShowSampleAsync(toast, duration);
         toast.Clicked += () =>
         {
             // The rest are dropped (whoever waits for one is let go).
@@ -108,6 +121,16 @@ public sealed class AchievementNotifier(Func<AppSettings> settings, Action<strin
             openPage("achievements");
         };
         return toast.ShowAsync(def, duration);
+    }
+
+    private async Task ShowSampleAsync(AchievementToast toast, TimeSpan duration)
+    {
+        _sampleToast = toast;
+        try { await toast.ShowSampleAsync(duration); }
+        finally
+        {
+            if (ReferenceEquals(_sampleToast, toast)) _sampleToast = null;
+        }
     }
 
     /// <summary>Whether something covers the monitor the cards go to, and that should hold them back.</summary>
