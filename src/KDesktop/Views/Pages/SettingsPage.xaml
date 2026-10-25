@@ -1178,12 +1178,12 @@
                     </Grid>
                     <StackPanel IsEnabled="{Binding VoiceMedia}">
                         <Grid Style="{StaticResource SettingRow}">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                             <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                                 <TextBlock Text="{l:Tr settings.mediaStep}" />
                                 <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.mediaStepHint}" />
                             </StackPanel>
-                            <ComboBox x:Name="MediaStepBox" Grid.Column="1" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding VoiceMediaStep}" />
+                            <ComboBox x:Name="MediaStepBox" Grid.Column="1" Width="110" VerticalAlignment="Center" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding VoiceMediaStep}" />
                         </Grid>
 
                         <Border Height="1" Margin="0,6,0,14" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
