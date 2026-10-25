@@ -500,8 +500,72 @@
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
                         <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.osdSize}" />
-                        <ComboBox Grid.Column="1" ItemsSource="{x:Static v:Lookups.OsdSizes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding OsdSize}"
-                                  SelectionChanged="OnOsdLookChanged" />
+                        <!-- Three tiles, each with a message of its size -->
+                        <UniformGrid x:Name="OsdSizePicker" Grid.Column="1" Rows="1" Margin="-5,0">
+                            <UniformGrid.Resources>
+                                <Style TargetType="RadioButton">
+                                    <Setter Property="GroupName" Value="OsdSize" />
+                                    <Setter Property="Cursor" Value="Hand" />
+                                    <Setter Property="Margin" Value="5,0" />
+                                    <Setter Property="Foreground" Value="{DynamicResource Kd.OsdTrack}" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="RadioButton">
+                                                <Border x:Name="Frame" Height="60" CornerRadius="8" BorderThickness="2" Padding="4,8,4,4"
+                                                        BorderBrush="{DynamicResource Kd.OsdTrack}" Background="{DynamicResource Kd.Subtle}">
+                                                    <ContentPresenter />
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <!-- The message is drawn in the button's colour -->
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Foreground" Value="{DynamicResource Kd.AccentText}" />
+                                        </Trigger>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter Property="Foreground" Value="{DynamicResource Kd.Accent}" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                                <Style x:Key="OsdSizeLabel" TargetType="TextBlock">
+                                    <Setter Property="Grid.Row" Value="1" />
+                                    <Setter Property="HorizontalAlignment" Value="Center" />
+                                    <Setter Property="FontSize" Value="11" />
+                                    <Setter Property="FontWeight" Value="Normal" />
+                                    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                                </Style>
+                            </UniformGrid.Resources>
+                            <RadioButton Tag="Small" Checked="OnOsdSize" AutomationProperties.Name="{l:Tr enum.osdSize.Small}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <Border Width="24" Height="7" CornerRadius="3.5" VerticalAlignment="Center"
+                                            Background="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                    <TextBlock Style="{StaticResource OsdSizeLabel}" Text="{l:Tr enum.osdSize.Small}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Tag="Normal" Checked="OnOsdSize" AutomationProperties.Name="{l:Tr enum.osdSize.Normal}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <Border Width="34" Height="10" CornerRadius="5" VerticalAlignment="Center"
+                                            Background="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                    <TextBlock Style="{StaticResource OsdSizeLabel}" Text="{l:Tr enum.osdSize.Normal}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Tag="Large" Checked="OnOsdSize" AutomationProperties.Name="{l:Tr enum.osdSize.Large}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <Border Width="46" Height="13" CornerRadius="6.5" VerticalAlignment="Center"
+                                            Background="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                    <TextBlock Style="{StaticResource OsdSizeLabel}" Text="{l:Tr enum.osdSize.Large}" />
+                                </Grid>
+                            </RadioButton>
+                        </UniformGrid>
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>

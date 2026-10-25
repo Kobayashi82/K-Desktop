@@ -705,6 +705,8 @@ public partial class SettingsPage : UserControl
         foreach (var spot in FindSpots(OsdScreen)) spot.IsChecked = (string)spot.Tag == osd;
         var corner = _app.Config.Settings.NotifyCorner.ToString();
         foreach (var spot in FindSpots(NotifyScreenBox)) spot.IsChecked = (string)spot.Tag == corner;
+        var size = _app.Config.Settings.OsdSize.ToString();
+        foreach (var tile in FindSpots(OsdSizePicker)) tile.IsChecked = (string)tile.Tag == size;
         _osdSpotsReady = true;
     }
 
@@ -726,9 +728,12 @@ public partial class SettingsPage : UserControl
         _app.Ui.PreviewOsd(Loc.T("settings.osdHere"), OsdKind.Info, OsdLook.Of("Chat24"));
     }
 
-    private void OnOsdLookChanged(object sender, SelectionChangedEventArgs e)
+    /// <summary>A size tile: the OSD takes that size and shows a sample.</summary>
+    private void OnOsdSize(object sender, RoutedEventArgs e)
     {
-        if (_osdSpotsReady && IsLoaded) _app.Ui.PreviewOsd(Loc.T("settings.osdSample"), OsdKind.Info, OsdLook.Of("Chat24"));
+        if (!_osdSpotsReady || sender is not RadioButton { Tag: string tag } || !Enum.TryParse<OsdSize>(tag, out var size)) return;
+        _app.Config.Settings.OsdSize = size;
+        _app.Ui.PreviewOsd(Loc.T("settings.osdSample"), OsdKind.Info, OsdLook.Of("Chat24"));
     }
 
     /// <summary>A sample card, where and for as long as the notifications will come.</summary>
