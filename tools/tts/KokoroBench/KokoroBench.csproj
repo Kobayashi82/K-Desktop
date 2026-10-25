@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Experiment (branch decision_nvidia): Kokoro as K-Desktop says things today (own Spanish phonemes, the user's
+       voice), to compare with Ming-3.0-tts. Never part of K-Desktop. See tools\tts\README.md. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <BuildPortable>false</BuildPortable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\KDesktop.Assistant.Voice\KDesktop.Assistant.Voice.csproj" />
+  </ItemGroup>
+</Project>
