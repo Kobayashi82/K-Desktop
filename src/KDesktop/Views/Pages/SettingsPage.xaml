@@ -219,17 +219,17 @@
                         <ComboBox Grid.Column="1" ItemsSource="{x:Static v:Lookups.Themes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Theme}" />
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                            <TextBlock Text="{l:Tr settings.favicons}" />
-                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.faviconsHint}" />
+                            <TextBlock Text="{l:Tr settings.language}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.languageHint}" />
                         </StackPanel>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:Button Margin="0,0,12,0" Icon="{ui:SymbolIcon ArrowSync24}" ToolTip="{l:Tr settings.faviconsRefresh}"
-                                       AutomationProperties.Name="{l:Tr settings.faviconsRefresh}" Click="OnRefreshFavicons"
-                                       IsEnabled="{Binding WebFavicons}" />
-                            <ui:ToggleSwitch IsChecked="{Binding WebFavicons}" />
-                        </StackPanel>
+                        <Grid Grid.Column="1">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <ComboBox x:Name="LanguageBox" DisplayMemberPath="Name" SelectedValuePath="Code" SelectedValue="{Binding Language}" />
+                            <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon ArrowSync24}" ToolTip="{l:Tr settings.languagesReload}"
+                                       AutomationProperties.Name="{l:Tr settings.languagesReload}" Click="OnReloadLanguages" />
+                        </Grid>
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
@@ -247,23 +247,29 @@
                         </StackPanel>
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                            <TextBlock Text="{l:Tr settings.language}" />
-                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.languageHint}" />
+                            <TextBlock Text="{l:Tr settings.favicons}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.faviconsHint}" />
                         </StackPanel>
-                        <Grid Grid.Column="1">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                            <ComboBox x:Name="LanguageBox" DisplayMemberPath="Name" SelectedValuePath="Code" SelectedValue="{Binding Language}" />
-                            <ui:Button Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon ArrowSync24}" ToolTip="{l:Tr settings.languagesReload}"
-                                       AutomationProperties.Name="{l:Tr settings.languagesReload}" Click="OnReloadLanguages" />
-                        </Grid>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <ui:Button Margin="0,0,12,0" Icon="{ui:SymbolIcon ArrowSync24}" ToolTip="{l:Tr settings.faviconsRefresh}"
+                                       AutomationProperties.Name="{l:Tr settings.faviconsRefresh}" Click="OnRefreshFavicons"
+                                       IsEnabled="{Binding WebFavicons}" />
+                            <ui:ToggleSwitch IsChecked="{Binding WebFavicons}" />
+                        </StackPanel>
                     </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Appearance: translating K-Desktop -->
+            <Border Style="{StaticResource Card}" Tag="appearance">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.translate}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                            <TextBlock Text="{l:Tr settings.translate}" />
-                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.translateHint}" />
+                            <TextBlock Text="{l:Tr settings.translateHint}" TextWrapping="Wrap" />
                         </StackPanel>
                         <ui:Button Grid.Column="1" HorizontalAlignment="Stretch" Content="{l:Tr settings.exportTemplate}" Icon="{ui:SymbolIcon Translate24}" Click="OnExportLanguageTemplate" />
                     </Grid>

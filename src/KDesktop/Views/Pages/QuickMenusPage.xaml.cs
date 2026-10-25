@@ -64,7 +64,8 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
         UpdateCount();
         if (!_view.IsEmpty) MenuList.SelectedIndex = 0;
         else ShowEditor();
-        Loaded += (_, _) => Canvas.Focus();
+        // Opened with the mouse, the editor takes the keys (Ctrl+Z, Supr…); walking the side bar with the keyboard keeps the focus there.
+        Loaded += (_, _) => { if (InputManager.Current.MostRecentInputDevice is not KeyboardDevice) Canvas.Focus(); };
     }
 
     public void Dispose()
