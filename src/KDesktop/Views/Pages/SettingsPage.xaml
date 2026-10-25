@@ -1151,7 +1151,7 @@
             </Border>
 
             <!-- Multimedia: built-in voice orders for the music and the volume -->
-            <Border Style="{StaticResource Card}" Tag="media">
+            <Border Style="{StaticResource Card}" Tag="media" IsEnabled="{Binding VoiceEnabled}">
                 <StackPanel>
                     <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.media}" />
                     <Grid Style="{StaticResource SettingRow}">

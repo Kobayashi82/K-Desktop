@@ -35,7 +35,7 @@ veces y un poco de habla normal para que aprenda lo que *no* es la palabra.
 - Cada palabra es de **K-Desktop** (tus comandos), de **un asistente**, o de nadie (no se escucha).
 - **Sensibilidad**: más a la derecha la pilla con más facilidad, pero también puede saltar sin que la digas. **Probar** te
   dice qué tal va.
-- *Fiarse del detector cuando está muy seguro* contesta un poco antes.
+- *Responder más rápido*: si el detector no tiene dudas, contesta sin comprobarlo con Parakeet.
 - No sale nada (ni «Escuchando…», ni el sonido, ni baja la música) hasta que comprueba que de verdad era la palabra.
 - Dicha a mitad de frase («le estaba enseñando a mi hermano el Lander») entiende que hablas *de* él, no *con* él, y no
   hace nada.

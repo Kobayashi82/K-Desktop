@@ -35,7 +35,7 @@ a bit of normal speech so it learns what is *not* the word.
 - Each word belongs to **K-Desktop** (your commands), to **an assistant**, or to nobody (not listened to).
 - **Sensitivity**: further right catches it more easily, but it may also go off without you saying it. **Try** tells you
   how it does.
-- *Trust the detector when it is very sure* answers a little sooner.
+- *Answer faster*: when the detector has no doubt, it answers without checking with Parakeet.
 - Nothing shows (no «Listening…», no sound, no music turned down) until it has checked it really was the word.
 - Said in the middle of a sentence («I was showing my brother the Lander») it takes it you are talking *about* it, not
   *to* it, and does nothing.
