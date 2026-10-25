@@ -75,13 +75,16 @@ public sealed record AssistantPersona(string Name, string Prompt, IReadOnlyDicti
     /// </summary>
     public string Phrase(string key, Random? random = null, params object?[] args)
     {
-        var options = Phrases.TryGetValue(key, out var own) && own.Count > 0 ? own : ModulePhrases(key);
+        var options = PhrasesFor(key);
         if (options.Count == 0) return string.Empty;
         var text = options[(random ?? Random.Shared).Next(options.Count)];
         if (args.Length == 0) return text;
         try { return string.Format(Loc.Instance.Culture, text, args); }
         catch (FormatException) { return text; }
     }
+
+    /// <summary>All its phrases for <paramref name="key"/>: its own or, when it has none, the module's.</summary>
+    public IReadOnlyList<string> PhrasesFor(string key) => Phrases.TryGetValue(key, out var own) && own.Count > 0 ? own : ModulePhrases(key);
 
     private static IReadOnlyList<string> ModulePhrases(string key)
     {

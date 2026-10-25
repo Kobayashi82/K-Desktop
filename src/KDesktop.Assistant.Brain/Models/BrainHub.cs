@@ -144,6 +144,13 @@ public sealed class BrainHub : IChatModel
             yield return chunk;
     }
 
+    public async Task<IReadOnlyDictionary<char, double>?> LettersAsync(string model, IReadOnlyList<ChatMessage> messages, string letters, CancellationToken cancellationToken)
+    {
+        var (client, name) = Route(model);
+        await SwitchingAsync(model, cancellationToken).ConfigureAwait(false);
+        return await client.LettersAsync(name, messages, letters, cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task PreloadAsync(string model, CancellationToken cancellationToken)
     {
         var (client, name) = Route(model);

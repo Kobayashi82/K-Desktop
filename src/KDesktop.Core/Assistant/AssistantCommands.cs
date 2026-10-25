@@ -31,7 +31,9 @@ public static class AssistantCommands
         var parts = plan.Parts.Count > 0
             ? plan.Parts.Select(p => Part(p, sure: true)).ToList()
             : [Part(plan.Whole, sure: false)];
-        return new MatchedMessage(request.Id, Math.Round(plan.Score, 3), plan.Unmatched, parts);
+        // Nothing clear: the closest by meaning too, for the assistant's model to choose among (5.0.200).
+        var near = plan.Parts.Count == 0 && semantic is not null && SemanticMatcher.Available ? Near(request.Text, commands, media, semantic) : null;
+        return new MatchedMessage(request.Id, Math.Round(plan.Score, 3), plan.Unmatched, parts, near);
     }
 
     /// <summary>
@@ -88,7 +90,37 @@ public static class AssistantCommands
 
     private static MatchedCandidate Candidate(IntentCandidate candidate) => candidate.Media is { } media
         ? new MatchedCandidate(null, media.Name, Math.Round(candidate.Score, 3), char.ToLowerInvariant(media.Kind.ToString()[0]) + media.Kind.ToString()[1..], media.Value)
-        : new MatchedCandidate(candidate.Command!.Id, candidate.Command.Name, Math.Round(candidate.Score, 3));
+        : new MatchedCandidate(candidate.Command!.Id, candidate.Command.Name, Math.Round(candidate.Score, 3), Power: SemanticMatcher.IsPower(candidate.Command));
+
+    /// <summary>Commands by meaning given for the one-token decision (5.0.200), at most.</summary>
+    public const int MaxNear = 10;
+
+    /// <summary>
+    /// The commands (and built-in media orders) closest in meaning to the whole order, best first, without those it
+    /// contradicts or says no to: what an assistant's model chooses among when nothing was clear (<c>near</c>).
+    /// </summary>
+    private static List<MatchedCandidate>? Near(string text, IReadOnlyCollection<Command> commands, bool media, SemanticMatcher semantic)
+    {
+        SemanticScores? scores;
+        try
+        {
+            scores = semantic.Score(text, commands, media);
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Error en la capa de significado", ex);
+            return null;
+        }
+        if (scores is null) return null;
+        return
+        [
+            .. scores.Ranked
+                .Select(h => h.Media is { } kind ? new IntentCandidate(null, h.Score, new MediaOrder(kind), h.Anchor, Semantic: true) : new IntentCandidate(h.Command, h.Score, Semantic: true))
+                .Where(c => (c.Command is null || !Contradicts(text, c.Command)) && !IntentMatcher.Refuses(text, c))
+                .Take(MaxNear)
+                .Select(Candidate),
+        ];
+    }
 
     /// <summary>
     /// Runs a command for an assistant and says how it went with what the command said. First, its risk

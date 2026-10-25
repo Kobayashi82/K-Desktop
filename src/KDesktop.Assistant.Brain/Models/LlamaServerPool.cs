@@ -160,6 +160,21 @@ public sealed class LlamaServerPool : IChatModel
         }
     }
 
+    public async Task<IReadOnlyDictionary<char, double>?> LettersAsync(string model, IReadOnlyList<ChatMessage> messages, string letters, CancellationToken cancellationToken)
+    {
+        var running = await EnsureAsync(model, cancellationToken).ConfigureAwait(false);
+        Interlocked.Increment(ref running.Busy);
+        try
+        {
+            return await running.Client.LettersAsync(running.Alias, messages, letters, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            Interlocked.Decrement(ref running.Busy);
+            running.LastUse = DateTime.UtcNow;
+        }
+    }
+
     public async Task PreloadAsync(string model, CancellationToken cancellationToken)
     {
         var running = await EnsureAsync(model, cancellationToken).ConfigureAwait(false);
@@ -346,7 +361,7 @@ public sealed class LlamaServerPool : IChatModel
             RedirectStandardError = true,
             WorkingDirectory = Path.GetDirectoryName(server)!,
         };
-        foreach (var arg in Arguments(model, port, alias)) info.ArgumentList.Add(arg);
+        foreach (var arg in Arguments(model, port, alias, KnowsReasoning(server))) info.ArgumentList.Add(arg);
 
         var process = new Process { StartInfo = info, EnableRaisingEvents = true };
         var output = new ServerOutput(alias);
@@ -390,16 +405,52 @@ public sealed class LlamaServerPool : IChatModel
     /// cache, one conversation, the model's own chat template, without thinking, and —unset— the layers in the graphics
     /// card and the experts of a big MoE out of it, as <c>--fit</c> decides by itself; then that model's own of Options.
     /// </summary>
-    public IReadOnlyList<string> Arguments(LocalModel model, int port, string alias)
+    /// <param name="reasoningOff">
+    /// The server knows <c>--reasoning off</c> (5.0.200): the template's <c>enable_thinking</c> is deprecated in newer
+    /// ones, which might one day ignore it and think always. Each request may still ask to think (measured with Qwen 3.5).
+    /// </param>
+    public IReadOnlyList<string> Arguments(LocalModel model, int port, string alias, bool reasoningOff = false)
     {
         var args = new List<string> { "-m", model.Path };
         if (Vision && model.Projector is not null) args.AddRange(["--mmproj", model.Projector]);
         args.AddRange(["--host", "127.0.0.1", "--port", port.ToString(CultureInfo.InvariantCulture),
             "-fa", "on", "-c", ContextTokens.ToString(CultureInfo.InvariantCulture), "--cache-type-k", "q8_0", "--cache-type-v", "q8_0",
-            "-np", "1", "--jinja", "--alias", alias, "--chat-template-kwargs", "{\"enable_thinking\": false}"]);
+            "-np", "1", "--jinja", "--alias", alias]);
+        args.AddRange(reasoningOff ? ["--reasoning", "off"] : ["--chat-template-kwargs", "{\"enable_thinking\": false}"]);
         lock (_gate) args.AddRange(_modelArgs.GetValueOrDefault(model.Path) ?? []);
         return args;
     }
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> ReasoningFlag = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Whether this llama-server knows <c>--reasoning</c> (its <c>--help</c>, asked once per exe and run of K-Desktop).</summary>
+    internal static bool KnowsReasoning(string server) => ReasoningFlag.GetOrAdd(server, static path =>
+    {
+        try
+        {
+            using var help = Process.Start(new ProcessStartInfo(path, "--help")
+            {
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                WorkingDirectory = Path.GetDirectoryName(path)!,
+            });
+            if (help is null) return false;
+            var stderr = help.StandardError.ReadToEndAsync();
+            var text = help.StandardOutput.ReadToEnd();
+            if (!help.WaitForExit(10_000))
+            {
+                help.Kill();
+                return false;
+            }
+            return (text + stderr.GetAwaiter().GetResult()).Contains("--reasoning ", StringComparison.Ordinal);
+        }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException or IOException)
+        {
+            return false;
+        }
+    });
 
     /// <summary>«llama-server (Bonsai-demo)»: the server with the folder that tells them apart, for the log.</summary>
     public static string ServerName(string server)

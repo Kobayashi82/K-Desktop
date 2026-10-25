@@ -736,6 +736,79 @@ public sealed class CommandRoutingTests : IDisposable
         await talk.HandleAsync(new HeardMessage("¿y ahora qué tal?", "voice", "lander"));
         await Task.Delay(TalkService.ThinkingAfter + TimeSpan.FromMilliseconds(300));
         Assert.Single(_output.Prefaces);
+
+        // 5.0.200: slow again a moment later, it does not say it again (it was tiring); the character shows it thinks.
+        _model.Delay = TalkService.ThinkingAfter + TimeSpan.FromMilliseconds(600);
+        _model.Answers.Enqueue("Goya.");
+        await talk.HandleAsync(new HeardMessage("¿y quién pintó La maja desnuda?", "voice", "lander"));
+        Assert.Single(_output.Prefaces);
+    }
+
+    // 5.0.200: nothing clear, the assistant's model chooses among the closest commands with one letter.
+
+    private static MatchedMessage Unclear(string said, params MatchedCandidate[] near) =>
+        new("x", 0.4, [], [new MatchedPart(said, false, [.. near.Take(3)])], near);
+
+    [Fact]
+    public async Task OneLetterRunsWhatTheModelIsSureOf()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        const string said = "abre el gestor de contraseñas";
+        _bridge.Matches[said] = Unclear(said, new MatchedCandidate("keepass", "KeePassXC", 0.71), new MatchedCandidate("vault", "Vault Open", 0.66), new MatchedCandidate("jd", "JDownloader 2", 0.64));
+        _model.Letters.Enqueue(new() { ['A'] = 0.91, ['B'] = 0.05, ['Z'] = 0.04 });
+        await talk.HandleAsync(new HeardMessage(said, "voice", "lander"));
+        Assert.Equal(["run:keepass:lander"], _bridge.Done);
+        // No turn of the AI.
+        Assert.Empty(_model.Requests);
+    }
+
+    [Fact]
+    public async Task OneLetterAsksBetweenTwoAndLeavesNoneToTheAi()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        const string comfy = "abre comfy";
+        _bridge.Matches[comfy] = Unclear(comfy, new MatchedCandidate("c1", "ComfyUI", 0.75), new MatchedCandidate("c2", "ComfyUI (Updated)", 0.74), new MatchedCandidate("c3", "ComfyUI Input", 0.70));
+        _model.Letters.Enqueue(new() { ['A'] = 0.52, ['B'] = 0.4, ['Z'] = 0.08 });
+        await talk.HandleAsync(new HeardMessage(comfy, "voice", "lander"));
+        Assert.Empty(_bridge.Done);
+        Assert.Contains("ComfyUI (Updated)", _chat.Last().Text, StringComparison.Ordinal);
+
+        const string tired = "qué cansado estoy hoy";
+        _bridge.Matches[tired] = Unclear(tired, new MatchedCandidate("steam", "Steam", 0.6), new MatchedCandidate("k", "K-Movies", 0.58));
+        _model.Letters.Enqueue(new() { ['A'] = 0.1, ['B'] = 0.05, ['Z'] = 0.85 });
+        _model.Answers.Enqueue("Descansa un poco.");
+        await talk.HandleAsync(new HeardMessage(tired, "voice", "lander"));
+        Assert.Empty(_bridge.Done);
+        Assert.Equal("Descansa un poco.", _chat.Last().Text);
+    }
+
+    /// <summary>«apaga la consola»: the model may be sure, the PC is not turned off by it alone.</summary>
+    [Fact]
+    public async Task OneLetterNeverTurnsThePcOff()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        const string said = "apaga la consola";
+        _bridge.Matches[said] = Unclear(said, new MatchedCandidate("off", "Apagar Equipo", 0.87, Power: true), new MatchedCandidate("mute", "Mute", 0.7));
+        _model.Letters.Enqueue(new() { ['A'] = 0.98, ['Z'] = 0.02 });
+        _model.Answers.Enqueue("No puedo apagar la consola.");
+        await talk.HandleAsync(new HeardMessage(said, "voice", "lander"));
+        Assert.Empty(_bridge.Done);
+    }
+
+    /// <summary>A server without probabilities (Ollama), or a long sentence: the AI as before.</summary>
+    [Fact]
+    public async Task WithoutProbabilitiesTheAiGoesOn()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        const string said = "abre el gestor de descargas";
+        _bridge.Matches[said] = Unclear(said, new MatchedCandidate("jd", "JDownloader 2", 0.67));
+        _model.Answers.Enqueue("No sé cuál es.");
+        await talk.HandleAsync(new HeardMessage(said, "voice", "lander"));
+        Assert.Equal("No sé cuál es.", _chat.Last().Text);
     }
 
     // Stage 8.1: what is done to a program, by the rules and after the user's own commands.
@@ -928,6 +1001,12 @@ public sealed class CommandRoutingTests : IDisposable
         public Task PreloadAsync(string model, CancellationToken cancellationToken) => Task.CompletedTask;
 
         public Task UnloadAsync(string model, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        /// <summary>The one-letter answers it gives (none queued: it does not give probabilities, like Ollama).</summary>
+        public Queue<Dictionary<char, double>> Letters { get; } = new();
+
+        public Task<IReadOnlyDictionary<char, double>?> LettersAsync(string model, IReadOnlyList<ChatMessage> messages, string letters, CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyDictionary<char, double>?>(Letters.TryDequeue(out var next) ? next : null);
 
         public void Dispose() { }
     }

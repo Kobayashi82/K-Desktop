@@ -1,3 +1,5 @@
+using KDesktop.Core.Localization;
+
 namespace KDesktop.Core.Voice;
 
 /// <summary>Where a wake word was found in a transcription.</summary>
@@ -56,6 +58,36 @@ public static class WakeWordVerifier
     /// <summary>The best accepted match among <paramref name="words"/>, or null.</summary>
     public static WakeMatch? FindAny(string text, IEnumerable<WakeWord> words) =>
         words.Select(w => Find(text, w)).Where(m => m is { Accepted: true }).MaxBy(m => m!.Score - m.Word.EffectiveThreshold);
+
+    /// <summary>Words before the word, in its sentence, from which it is said in passing (<see cref="SaidInPassing"/>).</summary>
+    public const int PassingWords = 2;
+
+    /// <summary>
+    /// Whether the word is talked about rather than to (5.0.200): in its sentence, <see cref="PassingWords"/> words or more
+    /// come before it that are not a lead-in («oye», «vale», «hey»…, <c>voice.wake.leadIns</c> of every language) nor
+    /// shorter than three letters. «le estaba enseñando a mi hermano el Lander» is; «Eh. Vale, Lander», «pero Lander» are
+    /// not. Mentioned first («Kobii es la criatura…») it cannot tell; that goes on as an order.
+    /// </summary>
+    public static bool SaidInPassing(string text, WakeMatch match)
+    {
+        var tokens = text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+        var from = 0;
+        for (var i = 0; i < Math.Min(match.Start, tokens.Length); i++)
+            if (tokens[i].AsSpan().IndexOfAny(SentenceEnds) >= 0) from = i + 1;
+        var leadIns = LeadIns.Value;
+        var count = 0;
+        for (var i = from; i < Math.Min(match.Start, tokens.Length); i++)
+            count += TextSimilarity.Words(tokens[i]).Count(w => w.Length >= 3 && !leadIns.Contains(w));
+        return count >= PassingWords;
+    }
+
+    private static readonly System.Buffers.SearchValues<char> SentenceEnds = System.Buffers.SearchValues.Create(".?!¿¡;:");
+
+    private static readonly Lazy<HashSet<string>> LeadIns = new(() =>
+        [.. Loc.Available()
+            .SelectMany(l => Loc.Strings(l.Code, "voice.wake.leadIns").Where(p => p.Key == "voice.wake.leadIns").Select(p => p.Value))
+            .SelectMany(v => v.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            .SelectMany(TextSimilarity.Words)]);
 
     /// <summary>A transcription of the word without the punctuation around it («KDesktop.» → «KDesktop»).</summary>
     public static string Clean(string text) => text.Trim().Trim('.', ',', ';', ':', '!', '?', '¡', '¿', '-', ' ');

@@ -113,6 +113,8 @@ public sealed class LlamaServerTests : IDisposable
         // Another model does not get them.
         var other = new LocalModel(@"E:\m\r.gguf", 5, null, 0, @"E:\l\llama-server.exe");
         Assert.Equal("{\"enable_thinking\": false}", pool.Arguments(other, 1234, "r")[^1]);
+        // 5.0.200: a server that knows it is told «--reasoning off» instead.
+        Assert.Equal(["--reasoning", "off"], pool.Arguments(other, 1234, "r", reasoningOff: true).TakeLast(2));
         using var blind = new LlamaServerPool([@"E:\l\llama-server.exe"], [], null, null, oneAtATime: true, vision: false, [], () => 12);
         Assert.DoesNotContain("--mmproj", blind.Arguments(model, 1234, "q"));
         Assert.Equal("llama-server (Bonsai-demo)", LlamaServerPool.ServerName(@"E:\Bonsai-demo\bin\cuda\llama-server.exe"));

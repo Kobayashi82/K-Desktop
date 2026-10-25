@@ -490,26 +490,12 @@ public sealed partial class VoiceService : IDisposable
         {
             if (!VoiceModels.Ready) return;
             var settings = _config().Settings;
-            var cold = !SpeechToText.IsLoaded;
             PreloadModels(settings);
 
-            // Turned down at once, so the order that follows is heard over the music; back up if the word isn't confirmed.
-            using var duck = new DuckScope(Duck(settings));
-
-            // With Parakeet still to load (a second or two) the verification would hold «Escuchando…» back: shown at
-            // once instead, since the capture is already recording; hidden without a word if the word isn't confirmed.
-            using var early = cold ? _ui.ShowVoiceOsd(Loc.T("voice.listening")) : null;
-            if (early is not null) ListenSound(settings);
-            async Task<string> TranscribeWord(float[] clip)
-            {
-                var task = Task.Run(() => SpeechToText.Transcribe(clip));
-                while (early is not null && !task.IsCompleted)
-                {
-                    early.SetLevel(capture.Level);
-                    await Task.WhenAny(task, Task.Delay(40)).ConfigureAwait(false);
-                }
-                return await task.ConfigureAwait(false);
-            }
+            // Nothing shows, sounds or turns the music down until the word is confirmed (5.0.200): most triggers are not
+            // the word (some 85 a day, from videos and films), and Parakeet stays loaded while listening (the check takes
+            // a moment). The capture records meanwhile, so the order that follows is not lost.
+            Task<string> TranscribeWord(float[] clip) => Task.Run(() => SpeechToText.Transcribe(clip));
 
             // Phase 2, on the word itself.
             var sure = score >= word.DetectorThreshold + 0.25;
@@ -549,8 +535,16 @@ public sealed partial class VoiceService : IDisposable
                          $"(necesita {word.EffectiveThreshold:0.00}{(sure ? $" o {word.EffectiveThreshold - 0.15:0.00} con el detector tan seguro" : "")}; detector {score:0.00})");
                 return;
             }
+            // Said in passing («le estaba enseñando a mi hermano el Lander»): it is being talked about, not to.
+            if (accepted && match is not null && WakeWordVerifier.SaidInPassing(wordText, match))
+            {
+                Log.Info($"Palabra de activación «{word.Name}» descartada: en «{wordText}» se habla de él, no se le habla");
+                return;
+            }
             Log.Info($"Palabra de activación «{word.Name}»: detector {score:0.00}, verificación «{wordText}» {verification:0.00}" +
                      (provisional ? " (dudosa: se confirmará con la orden)" : ""));
+            // Turned down now, so the order that follows is heard over the music.
+            using var duck = new DuckScope(Duck(settings));
             WakeHeard?.Invoke(word);
             StateChanged?.Invoke();
             // An assistant's own word (stage 5.1): what follows goes to it as it was said, not to the commands.
@@ -560,8 +554,8 @@ public sealed partial class VoiceService : IDisposable
             // The order: until the speaker goes quiet, or nothing said in a few seconds. The detector fires before the
             // word is over, so what comes first may be only its last syllable: if that says nothing, the order may
             // still come after a pause («KDesktop… apaga el ordenador») and the listening goes on.
-            using var osd = early ?? _ui.ShowVoiceOsd(Loc.T("voice.listening"));
-            if (early is null) ListenSound(settings);
+            using var osd = _ui.ShowVoiceOsd(Loc.T("voice.listening"));
+            ListenSound(settings);
             var commands = addressee is null ? Commands().ToList() : [];
             (List<IntentPlan> Plans, string? Said, bool Confirmed)? found = null;
             bool IsOrder((List<IntentPlan> Plans, string? Said, bool Confirmed) f) =>

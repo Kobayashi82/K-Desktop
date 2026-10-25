@@ -91,4 +91,12 @@ public interface IChatModel : IDisposable
 
     /// <summary>Frees the model's video memory (on request, or with something full screen). Does nothing if the server cannot.</summary>
     Task UnloadAsync(string model, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// A decision in one token (5.0.200): how likely each of <paramref name="letters"/> is as the first token of the
+    /// answer to <paramref name="messages"/>, without thinking, adding up to 1. Null when the server does not say (only
+    /// the OpenAI-compatible ones give these probabilities).
+    /// </summary>
+    Task<IReadOnlyDictionary<char, double>?> LettersAsync(string model, IReadOnlyList<ChatMessage> messages, string letters, CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyDictionary<char, double>?>(null);
 }

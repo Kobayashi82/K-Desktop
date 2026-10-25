@@ -142,7 +142,24 @@ harían siempre sin que nadie lo vea.
    charla y seguir instrucciones, que es donde gana.
 6. **Thinking**: pasar a `--reasoning off` cuando el llama-server lo admita, manteniendo la otra forma para los viejos.
 
-## 8. Lo que no se probó
+## 8. Lo que se hizo (5.0.200)
+
+- **Palabra de activación**: Parakeet fijo en memoria mientras se escucha (`SpeechToText.Pinned`); nada de «Escuchando…»,
+  sonido ni bajar la música hasta confirmar la palabra; `WakeWordVerifier.SaidInPassing` (la palabra con dos palabras o
+  más delante en su frase, sin contar muletillas `voice.wake.leadIns`) descarta lo dicho de pasada.
+- **Comandos del asistente**: `MatchedMessage.Near` (los 10 más cercanos por significado cuando nada es claro),
+  `MatchedCandidate.Power`, `IChatModel.LettersAsync` (solo los servidores compatibles con OpenAI: llama-server propio,
+  llama-swap…; Ollama sigue como antes) y `CommandDecider`: orden de una pieza, ≤10 palabras, el más cercano ≥0,55;
+  ejecuta desde **0,9**, pregunta «¿A o B?» si los dos suman 0,9 y el segundo pasa de 0,25, y si no, la IA. Con 0,7
+  acertaba más (140 de 184 sin IA) pero ejecutaba mal 9 veces (hoy 5); con 0,9: **123 bien (hoy 98), 5 mal, 0 apagados**
+  (Qwen 4B; Bonsai 122 / 5 / 0). Solo corre cuando la orden iba a la IA, así que no carga nada que no se fuera a cargar.
+- **Regla de apagar** también en la ejecución directa del asistente (≥0,80 y por delante): «apaga el monitor» apagaba.
+- **Thinking**: `--reasoning off` al arrancar los llama-server que lo conocen (su `--help`); una petición puede seguir
+  pidiendo pensar (comprobado con Qwen 3.5 4B).
+- **Frase de espera** («Un momento.»): a los 2,5 s (antes 1,5), como mucho una vez cada 3 minutos por asistente, sin
+  repetir las últimas, y 10 frases por idioma en vez de 4.
+
+## 9. Lo que no se probó
 
 - La vuelta entera del asistente con la IA (qué hace la IA con lo que hoy se le pasa): habría que medirlo con
   `BenchRunner` dentro de K-Desktop.

@@ -709,8 +709,10 @@ public sealed record MatchMessage(string Id, string Text) : PipeMessage
 
 /// <param name="Command">The command's id; null for a built-in media order.</param>
 /// <param name="Media">The media order (<c>volumeDown</c>…), with its <paramref name="Value"/> when it has one (a volume).</param>
+/// <param name="Power">It turns off, restarts or logs off the PC (5.0.200): the one-token decision never runs it alone.</param>
 /// (Every parameter has a default: a media order has no <c>command</c>, which is left out of the line and must read back.)
-public sealed record MatchedCandidate(string? Command = null, string Name = "", double Score = 0, string? Media = null, int? Value = null);
+public sealed record MatchedCandidate(string? Command = null, string Name = "", double Score = 0, string? Media = null, int? Value = null,
+                                      [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool Power = false);
 
 /// <param name="Sure">The first candidate is a clear winner (it would run by voice).</param>
 public sealed record MatchedPart(string Text, bool Sure, IReadOnlyList<MatchedCandidate> Candidates);
@@ -720,7 +722,12 @@ public sealed record MatchedPart(string Text, bool Sure, IReadOnlyList<MatchedCa
 /// part, the whole text, not <c>sure</c>, with what came closest.
 /// </summary>
 /// <param name="Unmatched">Pieces of a multiple order that named nothing.</param>
-public sealed record MatchedMessage(string Id, double Score, IReadOnlyList<string> Unmatched, IReadOnlyList<MatchedPart> Parts) : PipeMessage
+/// <param name="Near">
+/// Nothing clear: the closest by meaning to the whole order (at most <c>AssistantCommands.MaxNear</c>, best first), for the
+/// assistant's model to choose among with one token (5.0.200); null otherwise.
+/// </param>
+public sealed record MatchedMessage(string Id, double Score, IReadOnlyList<string> Unmatched, IReadOnlyList<MatchedPart> Parts,
+                                    IReadOnlyList<MatchedCandidate>? Near = null) : PipeMessage
 {
     public override string Type => "matched";
 }

@@ -145,6 +145,8 @@ public sealed class WakeWordListener : IDisposable
         _micId = micId;
         _echoCancel = echoCancel;
         IsRunning = true;
+        // Parakeet stays loaded while listening: the word is checked in a moment, never shown before (5.0.200).
+        _voice.SpeechToText.Pinned = true;
         Log.Info("Escuchando las palabras de activación: " + string.Join(", ", _voice.WakeWords.Active.Where(w => w.Detector is not null).Select(w => $"«{w.Name}» ({w.DetectorThreshold:0.00})")));
     }
 
@@ -204,6 +206,7 @@ public sealed class WakeWordListener : IDisposable
         _queue?.Writer.TryComplete();
         _queue = null;
         IsRunning = false;
+        _voice.SpeechToText.Pinned = false;
         Log.Info("Escucha de las palabras de activación detenida");
     }
 

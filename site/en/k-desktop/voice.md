@@ -8,7 +8,8 @@ K-Desktop understands spoken orders **on your PC**: neither the audio nor the te
 
 1. *Settings → Voice → Voice models → Download*. They are downloaded once: **Parakeet** (speech to text, many languages),
    **Silero** (detects when you speak), the wake-word detector and **EmbeddingGemma** (finds the command by its meaning).
-   Loaded, they take about 700 MB of RAM; they can be freed after some minutes unused.
+   Loaded, they take about 700 MB of RAM; they can be freed after some minutes unused (not Parakeet while a wake word is
+   being listened for: that way it checks the word at once).
 2. Choose the **microphone** (or the Windows default).
 3. Record a **wake word** (*Add word*) or set a **hotkey to talk**.
 
@@ -35,6 +36,9 @@ a bit of normal speech so it learns what is *not* the word.
 - **Sensitivity**: further right catches it more easily, but it may also go off without you saying it. **Try** tells you
   how it does.
 - *Trust the detector when it is very sure* answers a little sooner.
+- Nothing shows (no «Listening…», no sound, no music turned down) until it has checked it really was the word.
+- Said in the middle of a sentence («I was showing my brother the Lander») it takes it you are talking *about* it, not
+  *to* it, and does nothing.
 
 ## While you speak
 

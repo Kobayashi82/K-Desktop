@@ -14,10 +14,28 @@ public sealed class SpeechToText : IDisposable
     private readonly Timer _unloadTimer;
     private OfflineRecognizer? _recognizer;
 
-    public SpeechToText() => _unloadTimer = new Timer(_ => Unload(), null, Timeout.Infinite, Timeout.Infinite);
+    public SpeechToText() => _unloadTimer = new Timer(_ => { if (!_pinned) Unload(); }, null, Timeout.Infinite, Timeout.Infinite);
 
     /// <summary>Time without transcribing after which the model leaves memory.</summary>
     public TimeSpan IdleUnload { get; set; } = TimeSpan.FromMinutes(10);
+
+    private volatile bool _pinned;
+
+    /// <summary>
+    /// Kept in memory whatever <see cref="IdleUnload"/> says (5.0.200: while the wake words are listened for, so a word is
+    /// checked at once and nothing shows before it is). Unpinned, the usual countdown starts again.
+    /// </summary>
+    public bool Pinned
+    {
+        get => _pinned;
+        set
+        {
+            if (_pinned == value) return;
+            _pinned = value;
+            if (value) Preload();
+            else if (IsLoaded) _unloadTimer.Change(IdleUnload, Timeout.InfiniteTimeSpan);
+        }
+    }
 
     public bool IsLoaded => _recognizer is not null;
 

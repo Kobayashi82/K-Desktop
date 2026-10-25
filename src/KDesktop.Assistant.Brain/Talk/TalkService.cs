@@ -587,7 +587,9 @@ public sealed class TalkService
             }
             // Not sure of any part, but the whole order is that near one command and well ahead of the rest («Va ser la
             // papelera», Parakeet's «vacía la papelera», 0.82): it is that one. K-Desktop still asks before what is risky.
+            // What turns off the PC needs the voice's own bar (5.0.200: «apaga el monitor» turned it off at 0.87).
             if (sure.Count == 0 && matched.Parts is [{ Sure: false, Candidates: [var only, ..] } whole] && only.Score >= CommandTools.Direct
+                && (!only.Power || only.Score >= SemanticMatcher.AcceptPower)
                 && (whole.Candidates.Count < 2 || only.Score - whole.Candidates[1].Score >= CommandTools.Ahead) && (!capable || IsShort(said)))
                 return await CommandsAsync(persona, [only], context, said, token).ConfigureAwait(false);
             // A part K-Desktop is not sure of, or not enough for running it at once, is left to the rules and the AI too
@@ -605,6 +607,13 @@ public sealed class TalkService
             {
                 conversation.AskChoice([first, second], _time.GetUtcNow());
                 return new TalkAnswer(Phrase(persona, "which", first.Name, second.Name), Remember: false) { AsksBack = true };
+            }
+            // Nothing clear and on its way to the AI: its model, which loads for it anyway, picks with one letter (5.0.200).
+            else if (await DecideAsync(who, said, matched, token).ConfigureAwait(false) is { } decided)
+            {
+                if (decided.Choice == CommandChoice.Run) return await CommandsAsync(persona, [decided.First!], context, said, token).ConfigureAwait(false);
+                conversation.AskChoice([decided.First!, decided.Second!], _time.GetUtcNow());
+                return new TalkAnswer(Phrase(persona, "which", decided.First!.Name, decided.Second!.Name), Remember: false) { AsksBack = true };
             }
             // The commands that may be it go to the AI by name; none: a small AI is not tempted to look for one (a big one
             // keeps run_command: «ejecuta el comando de abrir Steam» at 0.69 left it unable to).
@@ -647,6 +656,45 @@ public sealed class TalkService
     }
 
     /// <summary>
+    /// One whole order that named nothing clearly: the assistant's model chooses among the closest commands with one token
+    /// (<see cref="CommandDecider"/>). Null for «none», when there is nothing worth asking about, or when the model cannot
+    /// say (no AI, a server without probabilities, an error): then the AI goes on as before.
+    /// </summary>
+    private async Task<CommandDecision?> DecideAsync(string? who, string said, MatchedMessage matched, CancellationToken token)
+    {
+        if (matched.Parts.Count != 1 || matched.Unmatched.Count > 0) return null;
+        var options = CommandDecider.Options(matched, said);
+        if (options.Count == 0) return null;
+        var (client, model) = _brain(who);
+        if (client is null || model is null) return null;
+        _output.State(who, "thinking");
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        IReadOnlyDictionary<char, double>? probabilities;
+        try
+        {
+            probabilities = await client.LettersAsync(model, CommandDecider.Prompt(said, options), CommandDecider.LettersFor(options), token).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (!token.IsCancellationRequested && ex is ChatModelException or HttpRequestException or JsonException or OperationCanceledException)
+        {
+            Log.Warn($"Asistente: no se pudo decidir con una letra («{said}»): {ex.Message}");
+            return null;
+        }
+        if (probabilities is null)
+        {
+            Log.Info("Asistente: el servidor del modelo no da probabilidades: sin decisión de una letra");
+            return null;
+        }
+        var decision = CommandDecider.Decide(probabilities, options);
+        Log.Info($"Asistente: «{said}» con una letra ({watch.ElapsedMilliseconds} ms): " + decision.Choice switch
+        {
+            CommandChoice.Run => $"ejecuta «{decision.First!.Name}» {decision.Probability:0.00}",
+            CommandChoice.Ask => $"pregunta «{decision.First!.Name}» o «{decision.Second!.Name}» {decision.Probability:0.00}",
+            _ => decision.First is { } best ? $"nada claro («{best.Name}» {decision.Probability:0.00}): a la IA" : $"ninguno {decision.Probability:0.00}: a la IA",
+        });
+        return decision.Choice == CommandChoice.None ? null : decision;
+    }
+
+    /// <summary>
     /// The AI answers <paramref name="forAi"/> (what the rules and the commands left of the order), after what
     /// <paramref name="ran"/> already did. <paramref name="thinkFirst"/>: it thinks harder from the start (stage 12).
     /// </summary>
@@ -669,7 +717,7 @@ public sealed class TalkService
         // knows it heard. Not when a command already answered.
         var spoken = 0;
         using var quiet = CancellationTokenSource.CreateLinkedTokenSource(token);
-        if (ran is null) _ = SayThinkingAsync(persona, who, turn, () => Volatile.Read(ref spoken) != 0, quiet.Token);
+        if (ran is null) _ = SayThinkingAsync(conversation, persona, who, turn, () => Volatile.Read(ref spoken) != 0, quiet.Token);
         // Thinking harder takes a while: it says so («déjame pensarlo…»), once, instead of the usual word.
         var hard = 0;
         void ThinkingHard()
@@ -677,7 +725,7 @@ public sealed class TalkService
             Interlocked.Exchange(ref spoken, 1);
             if (Interlocked.Exchange(ref hard, 1) != 0) return;
             _output.State(who, "thinkingHard");
-            if (Phrase(persona, "thinkingHard") is { Length: > 0 } phrase) _output.Preface(who, turn, phrase);
+            if (FreshPhrase(persona, "thinkingHard", conversation) is { Length: > 0 } phrase) _output.Preface(who, turn, phrase);
         }
         // A long answer's whole text so far (stage 14.2), with each line of the chat: K-Desktop's reading sheet grows with it.
         string? longSoFar = null;
@@ -740,15 +788,44 @@ public sealed class TalkService
         return count >= StepNumbers;
     }
 
-    /// <summary>How long it may think in silence before saying it is on it.</summary>
-    public static readonly TimeSpan ThinkingAfter = TimeSpan.FromSeconds(1.5);
+    /// <summary>How long it may think in silence before saying it is on it (1.5 s until 5.0.199: said nearly every time).</summary>
+    public static readonly TimeSpan ThinkingAfter = TimeSpan.FromSeconds(2.5);
 
-    private async Task SayThinkingAsync(AssistantPersona persona, string? who, string turn, Func<bool> spoke, CancellationToken cancellationToken)
+    /// <summary>
+    /// After saying it is on it, it does not say it again for this long (5.0.200: «Un momento.» on every answer was
+    /// tiring): the character still shows it is thinking.
+    /// </summary>
+    public static readonly TimeSpan WaitWordRest = TimeSpan.FromMinutes(3);
+
+    private async Task SayThinkingAsync(Conversation conversation, AssistantPersona persona, string? who, string turn, Func<bool> spoke, CancellationToken cancellationToken)
     {
         try { await Task.Delay(ThinkingAfter, _time, cancellationToken).ConfigureAwait(false); }
         catch (OperationCanceledException) { return; }
-        if (spoke() || Phrase(persona, "thinking") is not { Length: > 0 } phrase) return;
+        if (spoke()) return;
+        var now = _time.GetUtcNow();
+        if (conversation.WaitedAt is { } at && now - at < WaitWordRest) return;
+        if (FreshPhrase(persona, "thinking", conversation) is not { Length: > 0 } phrase) return;
+        conversation.WaitedAt = now;
         _output.Preface(who, turn, phrase);
+    }
+
+    /// <summary>How many of its last words before an answer it does not repeat (fewer when it has fewer).</summary>
+    private const int WaitWordsKept = 3;
+
+    /// <summary>One of the phrases for <paramref name="key"/> that is not one of the last few it said before an answer.</summary>
+    private string FreshPhrase(AssistantPersona persona, string key, Conversation conversation)
+    {
+        var all = persona.PhrasesFor(key);
+        if (all.Count == 0) return string.Empty;
+        lock (conversation.RecentWaits)
+        {
+            var fresh = all.Where(p => !conversation.RecentWaits.Contains(p)).ToList();
+            var pool = fresh.Count > 0 ? fresh : all;
+            var phrase = pool[_random.Next(pool.Count)];
+            conversation.RecentWaits.Enqueue(phrase);
+            while (conversation.RecentWaits.Count > Math.Min(WaitWordsKept, all.Count - 1)) conversation.RecentWaits.Dequeue();
+            return phrase;
+        }
     }
 
     /// <summary>Two answers of one order, one after the other.</summary>
@@ -1000,6 +1077,11 @@ public sealed class TalkService
         public TalkHistory History { get; } = new(time);
 
         public string? LastAnswer { get; set; }
+
+        /// <summary>When it last said it was on it («Un momento.»), and the last few words it said before an answer (5.0.200).</summary>
+        public DateTimeOffset? WaitedAt { get; set; }
+
+        public Queue<string> RecentWaits { get; } = new();
 
         /// <summary>The last of the user's commands it ran well (by name), for «repite el comando anterior».</summary>
         public string? LastCommand { get; set; }

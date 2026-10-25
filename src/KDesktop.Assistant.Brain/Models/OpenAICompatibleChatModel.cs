@@ -205,6 +205,52 @@ public sealed class OpenAICompatibleChatModel : IChatModel
         yield return new ChatChunk(string.Empty, calls, Done: true) { Cut = cut && calls is null };
     }
 
+    /// <summary>
+    /// One token at temperature 0 with its <c>top_logprobs</c>: the probability of each letter among the 20 likeliest
+    /// first tokens («A», « A»…), the rest of the letters 0, normalised. Null without probabilities or without any letter.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<char, double>?> LettersAsync(string model, IReadOnlyList<ChatMessage> messages, string letters, CancellationToken cancellationToken)
+    {
+        var request = new ChatRequest(model, messages, []) { Temperature = 0, MaxTokens = 1 };
+        var body = BuildChatBody(request, !_reasoningFlagsUnsupported, stream: false, topLogprobs: 20);
+        try
+        {
+            using var message = CreateRequest(HttpMethod.Post, new Uri(Endpoint, "chat/completions"));
+            message.Content = new ByteArrayContent(body);
+            message.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            using var response = await _http.SendAsync(message, cancellationToken).ConfigureAwait(false);
+            await EnsureSuccessAsync(response, model, cancellationToken).ConfigureAwait(false);
+            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return ReadLetters(document.RootElement, letters);
+        }
+        catch (Exception ex) when (ModelHttp.Translate(ex, cancellationToken) is { } translated)
+        {
+            throw translated;
+        }
+    }
+
+    internal static Dictionary<char, double>? ReadLetters(JsonElement root, string letters)
+    {
+        if (!root.TryGetProperty("choices", out var choices) || choices.ValueKind != JsonValueKind.Array || choices.GetArrayLength() == 0
+            || !choices[0].TryGetProperty("logprobs", out var logprobs) || logprobs.ValueKind != JsonValueKind.Object
+            || !logprobs.TryGetProperty("content", out var content) || content.ValueKind != JsonValueKind.Array || content.GetArrayLength() == 0
+            || !content[0].TryGetProperty("top_logprobs", out var top) || top.ValueKind != JsonValueKind.Array)
+            return null;
+        var probabilities = letters.ToDictionary(c => c, _ => 0.0);
+        foreach (var item in top.EnumerateArray())
+        {
+            if (!item.TryGetProperty("token", out var token) || token.GetString()?.Trim() is not { Length: 1 } text
+                || !probabilities.ContainsKey(text[0]) || !item.TryGetProperty("logprob", out var logprob) || !logprob.TryGetDouble(out var value))
+                continue;
+            probabilities[text[0]] += Math.Exp(value);
+        }
+        var sum = probabilities.Values.Sum();
+        if (sum <= 0) return null;
+        foreach (var letter in letters) probabilities[letter] /= sum;
+        return probabilities;
+    }
+
     /// <summary>Writes how long the server took (llama-server's <c>timings</c>): to see what the context costs.</summary>
     public bool LogTimings { get; init; }
 
@@ -226,7 +272,9 @@ public sealed class OpenAICompatibleChatModel : IChatModel
     /// reasoning model spends all its tokens thinking and says nothing. With <see cref="ChatRequest.ThinkTokens"/> it
     /// thinks instead, that many tokens at most (llama-server's <c>thinking_budget_tokens</c>), on top of its answer.
     /// </summary>
-    internal static byte[] BuildChatBody(ChatRequest request, bool disableReasoning = true)
+    /// <param name="stream">Streamed (the usual); not, for <see cref="LettersAsync"/>.</param>
+    /// <param name="topLogprobs">Also the likeliest tokens of each position with their probabilities (0: no).</param>
+    internal static byte[] BuildChatBody(ChatRequest request, bool disableReasoning = true, bool stream = true, int topLogprobs = 0)
     {
         var think = disableReasoning && request.ThinkTokens > 0;
         using var buffer = new MemoryStream();
@@ -234,7 +282,12 @@ public sealed class OpenAICompatibleChatModel : IChatModel
         {
             json.WriteStartObject();
             json.WriteString("model", request.Model);
-            json.WriteBoolean("stream", true);
+            json.WriteBoolean("stream", stream);
+            if (topLogprobs > 0)
+            {
+                json.WriteBoolean("logprobs", true);
+                json.WriteNumber("top_logprobs", topLogprobs);
+            }
             json.WriteNumber("temperature", request.Temperature);
             json.WriteNumber("max_tokens", request.MaxTokens + (think ? request.ThinkTokens : 0));
             if (think)
