@@ -183,7 +183,7 @@ public sealed partial class HotkeyRouter : IDisposable
         {
             var to = keyToAssistant;
             if (!repeat) Post(() => VoiceRequested?.Invoke(() => IsKeyHeld(vk), to));
-            return (index.VoiceBlock || to is not null) && Block(vk, mods);
+            return index.BlocksTalk(to) && Block(vk, mods);
         }
 
         if (index.IsLauncherHotkey(hotkey, FrontProcess))
@@ -317,7 +317,7 @@ public sealed partial class HotkeyRouter : IDisposable
             _voiceButton = button;
             _voiceButtonHeld = true;
             var to = buttonToAssistant;
-            var blockButton = index.VoiceBlock || to is not null;
+            var blockButton = index.BlocksTalk(to);
             if (blockButton) _blockedButtons.Add(button);
             Post(() => VoiceRequested?.Invoke(() => _voiceButtonHeld, to));
             return blockButton;
@@ -402,7 +402,7 @@ public sealed partial class HotkeyRouter : IDisposable
             _armed = false;
             var to = wheelToAssistant;
             Post(() => VoiceRequested?.Invoke(static () => false, to));
-            return index.VoiceBlock || to is not null;
+            return index.BlocksTalk(to);
         }
         if (index.IsLauncherHotkey(hotkey, FrontProcess))
         {

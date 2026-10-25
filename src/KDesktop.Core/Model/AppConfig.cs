@@ -413,6 +413,12 @@ public partial class AppSettings : ObservableObject
     /// <summary>The voice hotkey works in the applications of «Desactivar en» too.</summary>
     [ObservableProperty] private bool _voiceIgnoreDisabledApps;
 
+    /// <summary>The application in front doesn't get the key of the dictation hotkey.</summary>
+    [ObservableProperty] private bool _dictationBlockKey = true;
+
+    /// <summary>The dictation hotkey works in the applications of «Desactivar en» too.</summary>
+    [ObservableProperty] private bool _dictationIgnoreDisabledApps;
+
     /// <summary>The launcher also finds the programs of the Start menu.</summary>
     [ObservableProperty] private bool _launcherApps = true;
 

@@ -15,13 +15,14 @@ public sealed class HotkeyIndex
     private readonly Dictionary<string, Entry[]> _map;
     private readonly HashSet<string> _disabledIn;
     private readonly HashSet<string> _sideButtonsBlockedIn;
-    private readonly bool _voiceAnywhere, _launcherAnywhere, _showWindowAnywhere, _exitAnywhere, _pauseAnywhere;
+    private readonly bool _voiceAnywhere, _dictationAnywhere, _launcherAnywhere, _showWindowAnywhere, _exitAnywhere, _pauseAnywhere;
 
     /// <summary>
-    /// The voice / launcher / open / exit / pause / «Desactivar en» hotkey is swallowed (the application in front never
-    /// gets it).
+    /// The voice / dictation / launcher / open / exit / pause / «Desactivar en» hotkey is swallowed (the application in
+    /// front never gets it).
     /// </summary>
     public bool VoiceBlock { get; }
+    public bool DictationBlock { get; }
     public bool LauncherBlock { get; }
     public bool ShowWindowBlock { get; }
     public bool ExitBlock { get; }
@@ -90,8 +91,10 @@ public sealed class HotkeyIndex
         LauncherHotkey = paused || string.IsNullOrWhiteSpace(settings.LauncherHotkey) ? string.Empty : Hotkey.Normalize(settings.LauncherHotkey);
         BlockSideButtons = settings.BlockSideButtons && !paused;
         _voiceAnywhere = settings.VoiceIgnoreDisabledApps;
+        _dictationAnywhere = settings.DictationIgnoreDisabledApps;
         _launcherAnywhere = settings.LauncherIgnoreDisabledApps;
         VoiceBlock = settings.VoiceBlockKey;
+        DictationBlock = settings.DictationBlockKey;
         LauncherBlock = settings.LauncherBlockKey;
         _showWindowAnywhere = settings.ShowWindowIgnoreDisabledApps;
         _exitAnywhere = settings.ExitIgnoreDisabledApps;
@@ -138,13 +141,19 @@ public sealed class HotkeyIndex
     {
         assistant = null;
         if (IsVoiceHotkey(hotkey, process)) return true;
-        if (_talkKeys.TryGetValue(hotkey, out var who) && (_voiceAnywhere || !DisabledHere(process)))
+        if (_talkKeys.TryGetValue(hotkey, out var who) && ((who == Dictation ? _dictationAnywhere : _voiceAnywhere) || !DisabledHere(process)))
         {
             assistant = who;
             return true;
         }
         return false;
     }
+
+    /// <summary>
+    /// Whether a key that <see cref="IsTalkKey"/> took is swallowed: the voice and dictation keys by their own «Bloquear
+    /// tecla», an assistant's always.
+    /// </summary>
+    public bool BlocksTalk(string? assistant) => assistant switch { null => VoiceBlock, Dictation => DictationBlock, _ => true };
 
     private bool DisabledHere(Func<string> process) => _disabledIn.Count > 0 && _disabledIn.Contains(process());
 

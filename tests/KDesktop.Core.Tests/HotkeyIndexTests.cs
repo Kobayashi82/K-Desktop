@@ -110,4 +110,29 @@ public class HotkeyIndexTests
         Assert.False(new HotkeyIndex([], settings, paused: true).IsTalkKey(talk, () => "notepad", out _));
         Assert.Contains("Pause", settings.OwnHotkeys);
     }
+
+    [Fact]
+    public void DictationKeyHasItsOwnBlockAndAlwaysRun()
+    {
+        var settings = new AppSettings { VoiceHotkey = "Scroll", DictationHotkey = "F7", VoiceIgnoreDisabledApps = true };
+        settings.DisabledIn.Add("game");
+        var dictation = Hotkey.Normalize("F7");
+        var index = new HotkeyIndex([], settings);
+        Assert.True(index.IsTalkKey(dictation, () => "notepad", out var who));
+        Assert.Equal(HotkeyIndex.Dictation, who);
+        Assert.True(index.BlocksTalk(who));
+        // «Ejecutar siempre» of the voice key isn't the dictation's.
+        Assert.True(index.IsTalkKey(Hotkey.Normalize("Scroll"), () => "game", out _));
+        Assert.False(index.IsTalkKey(dictation, () => "game", out _));
+
+        settings.DictationIgnoreDisabledApps = true;
+        settings.DictationBlockKey = false;
+        index = new HotkeyIndex([], settings);
+        Assert.True(index.IsTalkKey(dictation, () => "game", out who));
+        Assert.False(index.BlocksTalk(who));
+        Assert.True(index.BlocksTalk("lander"));
+        // Voice off: no key listens.
+        settings.VoiceEnabled = false;
+        Assert.False(new HotkeyIndex([], settings).IsTalkKey(dictation, () => "notepad", out _));
+    }
 }

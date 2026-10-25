@@ -6,7 +6,7 @@ K-Desktop entiende órdenes habladas **en tu PC**: ni el audio ni el texto salen
 
 ## Prepararla
 
-1. *Opciones → Voz → Modelos de voz (Parakeet) → Descargar*. Se descargan una vez: **Parakeet** (de voz a texto, muchos
+1. *Opciones → Voz → Modelos de voz → Descargar*. Se descargan una vez: **Parakeet** (de voz a texto, muchos
    idiomas), **Silero** (detecta cuándo hablas), el detector de la palabra de activación y **EmbeddingGemma** (encuentra el
    comando por su significado). Cargados, ocupan unos 700 MB de RAM; se pueden liberar tras unos minutos sin usarlos
    (Parakeet no, mientras haya una palabra de activación escuchando: así la comprueba al momento).

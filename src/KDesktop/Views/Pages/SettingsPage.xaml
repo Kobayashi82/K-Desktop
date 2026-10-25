@@ -998,9 +998,13 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.dictationHotkeyHint}" TextWrapping="Wrap" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:Button x:Name="DictationHotkeyButton" VerticalAlignment="Stretch" MinHeight="36" MinWidth="280" Click="OnCaptureDictationHotkey" />
+                            <ui:Button x:Name="DictationHotkeyButton" VerticalAlignment="Stretch" MinHeight="36" MinWidth="192" Click="OnCaptureDictationHotkey" />
                             <ui:Button MinHeight="36" VerticalAlignment="Stretch" x:Name="DictationHotkeyClear" Margin="6,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearDictationHotkey" />
+                            <v:IconToggle Width="38" Height="36" Margin="6,0,0,0" IsChecked="{Binding DictationBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
+                                          Title="{l:Tr commands.blockKey}" Hint="{l:Tr commands.blockKeyHint}" />
+                            <v:IconToggle Width="38" Height="36" IsChecked="{Binding DictationIgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
+                                          Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
                         </StackPanel>
                     </Grid>
                     <Border Style="{StaticResource InfoBox}">
