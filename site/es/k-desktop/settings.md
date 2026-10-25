@@ -52,9 +52,9 @@ El **módulo Asistente** tiene su propio grupo: ver [Asistentes](../assistant/in
 ## Idiomas
 
 Hay seis incluidos: español, inglés, francés, alemán, italiano y portugués. Los idiomas de más son archivos JSON en
-`%APPDATA%\K-Desktop 5\Languages`. En *Traducir*, **Exportar plantilla** saca los textos del idioma que usas ahora:
-traduce lo de la derecha de cada línea (sin tocar lo que va entre llaves, como `{0}`), guárdalo con el código del idioma
-(`nl.json`) y elígelo en *Idioma*. Un `es.json` o `en.json` ahí con solo algunas líneas cambia solo esos textos.
+`%APPDATA%\K-Desktop 5\Languages`. En *Traducir*, **Exportar plantilla** saca el idioma actual: traduce los textos,
+guarda el archivo ahí con el código del idioma (`nl.json`) y elígelo en *Idioma*. Un archivo con solo algunos textos
+(`es.json`) cambia solo esos.
 
 ## Logros y estadísticas
 

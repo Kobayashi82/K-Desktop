@@ -52,10 +52,9 @@ The **assistant module** has its own group: see [Assistants](../assistant/index.
 ## Languages
 
 Six are built in: English, Spanish, French, German, Italian and Portuguese. Extra languages are JSON files in
-`%APPDATA%\K-Desktop 5\Languages`. Under *Translate*, **Export template** saves the texts of the language you are using
-now: translate the right-hand side of each line (leave anything in braces, like `{0}`, as it is), save it with the
-language code (`nl.json`) and pick it under *Language*. An `es.json` or `en.json` there with only a few lines changes
-just those texts.
+`%APPDATA%\K-Desktop 5\Languages`. Under *Translate*, **Export template** saves the current language: translate the
+texts, save the file there with the language code (`nl.json`) and pick it under *Language*. A file with only some texts
+(`en.json`) changes only those.
 
 ## Achievements and statistics
 
