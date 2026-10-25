@@ -377,9 +377,9 @@ public partial class SettingsPage : UserControl
         UpdateLauncherUrl();
     }
 
-    /// <summary>The address box is only for «Otro».</summary>
+    /// <summary>The address box and what {0} means are only for «Otro».</summary>
     private void UpdateLauncherUrl() =>
-        LauncherUrlBox.Visibility = _app.Config.Settings.LauncherSearchEngine == "custom" ? Visibility.Visible : Visibility.Collapsed;
+        LauncherUrlBox.Visibility = LauncherUrlHint.Visibility = _app.Config.Settings.LauncherSearchEngine == "custom" ? Visibility.Visible : Visibility.Collapsed;
 
     private void OnCaptureLauncherHotkey(object sender, RoutedEventArgs e) =>
         CaptureOptionalHotkey(LauncherHotkeyButton, hk => _app.Config.Settings.LauncherHotkey = hk);

@@ -734,6 +734,7 @@
                                           Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
                         </StackPanel>
                     </Grid>
+                    <Border Height="1" Margin="0,14,0,6" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
@@ -774,34 +775,21 @@
                         </StackPanel>
                         <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding LauncherWeb}" AutomationProperties.Name="{l:Tr settings.launcherWeb}" />
                     </Grid>
+                    <!-- The address box and what {0} means only show with «Otro…» -->
                     <Grid Style="{StaticResource SettingRow}" IsEnabled="{Binding LauncherWeb}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="280" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                            <TextBlock Text="{l:Tr settings.launcherEngine}" />
-                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherEngineHint}" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="1">
-                            <ComboBox x:Name="LauncherEngineBox" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding LauncherSearchEngine}" />
-                            <ui:TextBox x:Name="LauncherUrlBox" Margin="0,8,0,0" Text="{Binding LauncherSearchUrl, UpdateSourceTrigger=PropertyChanged}"
-                                        PlaceholderText="https://buscador.ejemplo/?q={0}" />
-                        </StackPanel>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr settings.launcherEngine}" />
+                        <ComboBox x:Name="LauncherEngineBox" Grid.Column="1" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding LauncherSearchEngine}" />
+                        <TextBlock x:Name="LauncherUrlHint" Grid.Row="1" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,8,20,0" Text="{l:Tr settings.launcherEngineHint}" />
+                        <ui:TextBox x:Name="LauncherUrlBox" Grid.Row="1" Grid.Column="1" Margin="0,8,0,0" Text="{Binding LauncherSearchUrl, UpdateSourceTrigger=PropertyChanged}"
+                                    PlaceholderText="https://buscador.ejemplo/?q={0}" />
                     </Grid>
-                    <Grid Style="{StaticResource SettingRow}">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                            <TextBlock Text="{l:Tr settings.launcherPlace}" />
-                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherPlaceHint}" />
-                        </StackPanel>
-                        <ui:Button MinHeight="36" Grid.Column="1" VerticalAlignment="Center" Content="{l:Tr settings.launcherResetPlace}" Icon="{ui:SymbolIcon ArrowReset24}" Click="OnResetLauncherPlace" />
-                    </Grid>
-                    <Grid Style="{StaticResource SettingRow}">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                            <TextBlock Text="{l:Tr settings.launcherForget}" />
-                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherForgetHint}" />
-                        </StackPanel>
-                        <ui:Button MinHeight="36" Grid.Column="1" VerticalAlignment="Center" Content="{l:Tr settings.launcherForgetButton}" Icon="{ui:SymbolIcon Delete24}" Click="OnForgetLauncherUsage" />
-                    </Grid>
+                    <Border Height="1" Margin="0,14,0,12" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+                    <StackPanel Orientation="Horizontal">
+                        <ui:Button MinHeight="36" VerticalAlignment="Stretch" Content="{l:Tr settings.launcherResetPlace}" Icon="{ui:SymbolIcon ArrowReset24}" Click="OnResetLauncherPlace" />
+                        <ui:Button MinHeight="36" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr settings.launcherForgetButton}" Icon="{ui:SymbolIcon Delete24}" Click="OnForgetLauncherUsage" />
+                    </StackPanel>
                 </StackPanel>
             </Border>
 
