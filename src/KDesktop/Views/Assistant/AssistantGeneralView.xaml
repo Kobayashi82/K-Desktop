@@ -21,7 +21,7 @@
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <ComboBox x:Name="WakeBox" MinWidth="220" MaxWidth="300" VerticalAlignment="Center" DisplayMemberPath="Name"
                                   SelectionChanged="OnWakeChanged" AutomationProperties.Name="{l:Tr assistantOptions.wakeWord}" />
-                        <ui:Button Margin="6,0,0,0" VerticalAlignment="Center" Icon="{ui:SymbolIcon Record24}" Click="OnRecordWake"
+                        <ui:Button x:Name="RecordWakeButton" Margin="6,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon Record24}" Click="OnRecordWake"
                                    ToolTip="{l:Tr assistantOptions.wakeRecord}" AutomationProperties.Name="{l:Tr assistantOptions.wakeRecord}" />
                     </StackPanel>
                 </Grid>
@@ -33,7 +33,9 @@
                         <TextBlock x:Name="TalkHint" Style="{StaticResource Caption}" TextWrapping="Wrap" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <ui:Button x:Name="TalkKeyButton" VerticalAlignment="Stretch" MinWidth="220" Click="OnCaptureTalkKey" AutomationProperties.Name="{l:Tr assistantGeneral.talkKey}" />
+                        <!-- As tall as the word's combo above, and without a key as wide as it with its record button -->
+                        <ui:Button x:Name="TalkKeyButton" VerticalAlignment="Stretch" MinHeight="{Binding ActualHeight, ElementName=WakeBox}" MinWidth="264"
+                                   Click="OnCaptureTalkKey" AutomationProperties.Name="{l:Tr assistantGeneral.talkKey}" />
                         <ui:Button VerticalAlignment="Stretch" x:Name="TalkKeyClear" Margin="6,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                    AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearTalkKey" />
                     </StackPanel>
