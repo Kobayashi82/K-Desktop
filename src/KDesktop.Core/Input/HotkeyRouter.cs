@@ -173,10 +173,10 @@ public sealed partial class HotkeyRouter : IDisposable
             if (!repeat) Post(() => BuiltIn?.Invoke(BuiltInHotkey.Exit));
             return index.ExitBlock && Block(vk, mods);
         }
-        if (index.IsPauseHotkey(hotkey))
+        if (index.IsPauseHotkey(hotkey, FrontProcess))
         {
             if (!repeat) Post(() => BuiltIn?.Invoke(BuiltInHotkey.Pause));
-            return Block(vk, mods);
+            return index.PauseBlock && Block(vk, mods);
         }
 
         if (index.IsTalkKey(hotkey, FrontProcess, out var keyToAssistant))
@@ -305,8 +305,9 @@ public sealed partial class HotkeyRouter : IDisposable
         }
 
         var index = _index;
-        if (index.IsPauseHotkey(hotkey))
+        if (index.IsPauseHotkey(hotkey, FrontProcess))
         {
+            if (!index.PauseBlock) return false; // the application gets it too; it still fires on release
             _blockedButtons.Add(button); // it fires on release (Dispatch)
             return true;
         }
@@ -389,11 +390,11 @@ public sealed partial class HotkeyRouter : IDisposable
         }
 
         var index = _index;
-        if (index.IsPauseHotkey(hotkey))
+        if (index.IsPauseHotkey(hotkey, FrontProcess))
         {
             _armed = false;
             Post(() => BuiltIn?.Invoke(BuiltInHotkey.Pause));
-            return true;
+            return index.PauseBlock;
         }
         if (index.IsTalkKey(hotkey, FrontProcess, out var wheelToAssistant))
         {
@@ -427,7 +428,7 @@ public sealed partial class HotkeyRouter : IDisposable
     private void Dispatch(string hotkey)
     {
         var index = _index;
-        if (index.IsPauseHotkey(hotkey))
+        if (index.IsPauseHotkey(hotkey, FrontProcess))
         {
             Post(() => BuiltIn?.Invoke(BuiltInHotkey.Pause));
             return;

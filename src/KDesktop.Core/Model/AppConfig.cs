@@ -378,13 +378,15 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private string _showWindowHotkey = "CTRL + ALT + Home";
     [ObservableProperty] private string _exitHotkey = "CTRL + ALT + End";
 
-    /// <summary>The application in front doesn't get the keys of the open / exit hotkeys (empty hotkey = none).</summary>
+    /// <summary>The application in front doesn't get the keys of the open / exit / pause hotkeys (empty hotkey = none).</summary>
     [ObservableProperty] private bool _showWindowBlockKey = true;
     [ObservableProperty] private bool _exitBlockKey = true;
+    [ObservableProperty] private bool _pauseBlockKey = true;
 
-    /// <summary>The open / exit hotkeys work in the applications of «Desactivar en» too.</summary>
+    /// <summary>The open / exit / pause hotkeys work in the applications of «Desactivar en» too.</summary>
     [ObservableProperty] private bool _showWindowIgnoreDisabledApps = true;
     [ObservableProperty] private bool _exitIgnoreDisabledApps = true;
+    [ObservableProperty] private bool _pauseIgnoreDisabledApps = true;
     [ObservableProperty] private string? _startupSound;
     [ObservableProperty] private string? _startupMessage;
 

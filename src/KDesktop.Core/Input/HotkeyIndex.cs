@@ -15,13 +15,14 @@ public sealed class HotkeyIndex
     private readonly Dictionary<string, Entry[]> _map;
     private readonly HashSet<string> _disabledIn;
     private readonly HashSet<string> _sideButtonsBlockedIn;
-    private readonly bool _voiceAnywhere, _launcherAnywhere, _showWindowAnywhere, _exitAnywhere;
+    private readonly bool _voiceAnywhere, _launcherAnywhere, _showWindowAnywhere, _exitAnywhere, _pauseAnywhere;
 
-    /// <summary>The voice / launcher / open / exit hotkey is swallowed (the application in front never gets it).</summary>
+    /// <summary>The voice / launcher / open / exit / pause hotkey is swallowed (the application in front never gets it).</summary>
     public bool VoiceBlock { get; }
     public bool LauncherBlock { get; }
     public bool ShowWindowBlock { get; }
     public bool ExitBlock { get; }
+    public bool PauseBlock { get; }
 
     public string ShowWindowHotkey { get; }
     public string ExitHotkey { get; }
@@ -91,12 +92,15 @@ public sealed class HotkeyIndex
         _exitAnywhere = settings.ExitIgnoreDisabledApps;
         ShowWindowBlock = settings.ShowWindowBlockKey;
         ExitBlock = settings.ExitBlockKey;
+        _pauseAnywhere = settings.PauseIgnoreDisabledApps;
+        PauseBlock = settings.PauseBlockKey;
     }
 
     public bool Contains(string hotkey) => _map.ContainsKey(hotkey);
 
-    public bool IsPauseHotkey(string hotkey) =>
-        PauseHotkey.Length > 0 && hotkey.Equals(PauseHotkey, StringComparison.OrdinalIgnoreCase);
+    /// <summary>The pause hotkey, and it may work here (like <see cref="IsLauncherHotkey"/>).</summary>
+    public bool IsPauseHotkey(string hotkey, Func<string> process) =>
+        PauseHotkey.Length > 0 && hotkey.Equals(PauseHotkey, StringComparison.OrdinalIgnoreCase) && (_pauseAnywhere || !DisabledHere(process));
 
     public bool IsDisabledInHotkey(string hotkey) =>
         DisabledInHotkey.Length > 0 && hotkey.Equals(DisabledInHotkey, StringComparison.OrdinalIgnoreCase);

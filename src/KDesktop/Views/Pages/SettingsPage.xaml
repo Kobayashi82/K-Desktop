@@ -301,6 +301,10 @@
                             <ui:Button x:Name="PauseHotkeyButton" MinWidth="200" Click="OnCapturePauseHotkey" />
                             <ui:Button VerticalAlignment="Stretch" x:Name="PauseHotkeyClear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearPauseHotkey" />
+                            <v:IconToggle Margin="8,0,0,0" IsChecked="{Binding PauseBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
+                                          Title="{l:Tr commands.blockKey}" Hint="{l:Tr commands.blockKeyHint}" />
+                            <v:IconToggle IsChecked="{Binding PauseIgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
+                                          Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
                         </StackPanel>
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
