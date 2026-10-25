@@ -264,7 +264,7 @@
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <ui:Button MinWidth="160" Icon="{ui:SymbolIcon Keyboard24}" Content="{Binding ButtonText}" IsEnabled="{Binding CanRecord}"
                                AutomationProperties.Name="{Binding Label}" Click="OnCaptureHotkey" />
-                    <ui:Button x:Name="Clear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
+                    <ui:Button VerticalAlignment="Stretch" x:Name="Clear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearHotkey" />
                     <ui:Button x:Name="Open" Margin="8,0,0,0" Icon="{ui:SymbolIcon Open24}" ToolTip="{l:Tr assistantSettings.openCommand}"
                                AutomationProperties.Name="{l:Tr assistantSettings.openCommand}" Click="OnOpenHotkeyCommand" />

@@ -70,7 +70,7 @@ public sealed partial class VoiceService
         {
             if (!VoiceModels.Ready)
             {
-                _ui.ShowOsd(Loc.T("voice.noModels"), OsdKind.Warning, TimeSpan.FromSeconds(4));
+                _ui.ShowOsd(Loc.T("voice.noModels"), OsdKind.Warning, TimeSpan.FromSeconds(4), new OsdLook("MicOff24", Topic: OsdTopic.Voice));
                 return;
             }
             _stopRequested = false;

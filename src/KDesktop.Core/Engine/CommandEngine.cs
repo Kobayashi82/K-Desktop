@@ -264,7 +264,7 @@ public sealed partial class CommandEngine
         {
             // «Probar» on «Si…» says whether it is met now.
             var met = await Conditions.IsMetAsync(condition, ctx.Foreground, ctx.Token).ConfigureAwait(false);
-            _ui.ShowOsd(Localization.Loc.T(met ? "osd.ifMet" : "osd.ifNotMet", condition.Describe()), met ? OsdKind.Success : OsdKind.Warning);
+            _ui.ShowOsd(Localization.Loc.T(met ? "osd.ifMet" : "osd.ifNotMet", condition.Describe()), met ? OsdKind.Success : OsdKind.Warning, look: OsdLook.Of("BranchFork24"));
             return;
         }
         await ExecuteActionAsync(action, ctx).ConfigureAwait(false);

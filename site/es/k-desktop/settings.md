@@ -10,8 +10,8 @@ allí.
 | Sección | Qué tiene |
 |---|---|
 | **Apariencia** | Tema claro, oscuro o el del sistema; idioma (el de Windows, o uno de los seis incluidos); iconos de las webs; traducir |
-| **General** | Pausar K-Desktop; iniciar con Windows, el icono de la bandeja y su imagen; los atajos para enseñar la ventana y para salir, los sonidos y el mensaje al arrancar |
-| **OSD** | Dónde salen los mensajes en pantalla de K-Desktop y cuánto duran |
+| **General** | Pausar K-Desktop (con su atajo y sus sonidos); iniciar con Windows, el icono de la bandeja y su imagen; los atajos para enseñar la ventana y para salir, los sonidos y el mensaje al arrancar |
+| **OSD** | Los mensajes en pantalla de K-Desktop: dónde salen (pulsando en un dibujo de la pantalla), en qué monitor, su tamaño, cuánto duran, qué hacen con una película o un juego a pantalla completa y qué grupos salen (acciones, volumen y brillo, voz, avisos). Debajo, las **notificaciones** de los logros: si salen, con sonido, en qué monitor y esquina, y si esperan a que acabe lo que está a pantalla completa |
 | **Lanzador** | Su atajo, qué encuentra (programas, comandos ocultos, cuentas, la web) y en qué orden |
 
 ## Voz y multimedia

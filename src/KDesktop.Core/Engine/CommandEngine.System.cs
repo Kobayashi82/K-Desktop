@@ -28,14 +28,14 @@ public sealed partial class CommandEngine
         {
             if (MicrophoneTools.Change(Change) is not { } mic)
             {
-                if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.noMicrophone"), OsdKind.Warning);
+                if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.noMicrophone"), OsdKind.Warning, look: OsdLook.Of("MicOff24"));
                 return;
             }
             if (!a.ShowOsd) return;
             if (a.Mode is VolumeMode.ToggleMute or VolumeMode.Mute or VolumeMode.Unmute)
-                _ui.ShowOsd(Loc.T(mic.Muted ? "osd.micMuted" : "osd.micOn"), mic.Muted ? OsdKind.Warning : OsdKind.Success);
+                _ui.ShowOsd(Loc.T(mic.Muted ? "osd.micMuted" : "osd.micOn"), mic.Muted ? OsdKind.Warning : OsdKind.Success, look: new OsdLook(mic.Muted ? "MicOff24" : "Mic24", Topic: OsdTopic.Levels));
             else
-                _ui.ShowOsd(Loc.T("osd.micLevel", mic.Level));
+                _ui.ShowOsd(Loc.T("osd.micLevel", mic.Level), look: OsdLook.Bar("Mic24", mic.Level));
             return;
         }
 
@@ -43,11 +43,12 @@ public sealed partial class CommandEngine
         if (process.Length == 0 || (a.Target == VolumeTarget.ForegroundApp && ctx.Foreground.ProcessId == (uint)Environment.ProcessId)) return;
         if (AppVolume.Change(process, Change) is not { } app)
         {
-            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.appNoSound", process), OsdKind.Warning);
+            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.appNoSound", process), OsdKind.Warning, look: OsdLook.Of("SpeakerOff24"));
             return;
         }
         if (!a.ShowOsd) return;
-        _ui.ShowOsd(app.Muted ? Loc.T("osd.appMuted", process) : Loc.T("osd.appLevel", process, app.Level), app.Muted ? OsdKind.Warning : OsdKind.Info);
+        _ui.ShowOsd(app.Muted ? Loc.T("osd.appMuted", process) : Loc.T("osd.appLevel", process, app.Level), app.Muted ? OsdKind.Warning : OsdKind.Info,
+            look: app.Muted ? new OsdLook("SpeakerMute24", Topic: OsdTopic.Levels) : OsdLook.Bar("Speaker224", app.Level));
     }
 
     // ── Ventana ──────────────────────────────────────────────────────────
@@ -99,7 +100,7 @@ public sealed partial class CommandEngine
         }
         // From the QuickMenu or the launcher, the window keeps the focus it had.
         if (a.Target == WindowTarget.Process && a.Operation is not (WindowOperation.Minimize or WindowOperation.Close)) WindowTools.ForceForeground(hwnd);
-        if (a.ShowOsd) _ui.ShowOsd(osd ?? a.Summary);
+        if (a.ShowOsd) _ui.ShowOsd(osd ?? a.Summary, look: OsdLook.Of("WindowNew24"));
         else if (osd is not null && a.Operation == WindowOperation.MoveToMonitor) Log.Info("Ventana: solo hay un monitor");
     }
 
@@ -129,13 +130,13 @@ public sealed partial class CommandEngine
         {
             if (a.CopyFirst && !await CopySelectionAsync(ctx.Token).ConfigureAwait(false))
             {
-                _ui.ShowOsd(Loc.T("osd.clipboardNoSelection"), OsdKind.Warning);
+                _ui.ShowOsd(Loc.T("osd.clipboardNoSelection"), OsdKind.Warning, look: OsdLook.Of("ClipboardTextEdit24"));
                 return;
             }
             var current = TextVariables.ClipboardText();
             if (current.Length == 0)
             {
-                _ui.ShowOsd(Loc.T("osd.clipboardEmpty"), OsdKind.Warning);
+                _ui.ShowOsd(Loc.T("osd.clipboardEmpty"), OsdKind.Warning, look: OsdLook.Of("ClipboardTextEdit24"));
                 return;
             }
             text = ClipboardText.Transform(a.Mode, current) ?? current;
@@ -179,19 +180,19 @@ public sealed partial class CommandEngine
         if (WakeOnLan.ParseMac(a.Mac) is not { } mac)
         {
             Log.Warn($"Despertar equipo: la MAC «{a.Mac}» no es válida");
-            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.wolBadMac"), OsdKind.Warning);
+            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.wolBadMac"), OsdKind.Warning, look: OsdLook.Of("DesktopPulse24"));
             return;
         }
         var sent = await WakeOnLan.SendAsync(mac, a.Address, a.Port, ctx.Token).ConfigureAwait(false);
         Log.Info($"Despertar equipo: paquete mágico para {WakeOnLan.FormatMac(mac)} enviado a {sent} destino(s)");
         if (a.WaitSeconds <= 0 || string.IsNullOrWhiteSpace(a.Host))
         {
-            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.wolSent", name), OsdKind.Success);
+            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.wolSent", name), OsdKind.Success, look: OsdLook.Of("DesktopPulse24"));
             return;
         }
 
         var cts = BeginCancellable(ctx.Token); // Esc stops waiting (and the command)
-        var osd = a.ShowOsd ? _ui.ShowPersistentOsd(Loc.T("osd.wolWaiting", name), DateTime.Now.AddSeconds(a.WaitSeconds)) : null;
+        var osd = a.ShowOsd ? _ui.ShowPersistentOsd(Loc.T("osd.wolWaiting", name), DateTime.Now.AddSeconds(a.WaitSeconds), "DesktopPulse24") : null;
         try
         {
             var awake = await WakeOnLan.WaitForHostAsync(a.Host, TimeSpan.FromSeconds(a.WaitSeconds), cts.Token).ConfigureAwait(false);
@@ -200,10 +201,10 @@ public sealed partial class CommandEngine
             if (!awake)
             {
                 Log.Warn($"Despertar equipo: {name} no respondió en {a.WaitSeconds} s");
-                if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.wolNoAnswer", name, a.WaitSeconds), OsdKind.Warning);
+                if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.wolNoAnswer", name, a.WaitSeconds), OsdKind.Warning, look: OsdLook.Of("DesktopPulse24"));
                 throw new OperationCanceledException(); // the rest of the command needs it awake
             }
-            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.wolAwake", name), OsdKind.Success);
+            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.wolAwake", name), OsdKind.Success, look: OsdLook.Of("DesktopPulse24"));
         }
         finally
         {
@@ -226,7 +227,7 @@ public sealed partial class CommandEngine
 
             case DisplayOperation.Projection:
                 if (await Task.Run(() => DisplayTools.Project(a.Projection)).ConfigureAwait(false) && a.ShowOsd)
-                    _ui.ShowOsd(Loc.T($"enum.projection.{a.Projection}"));
+                    _ui.ShowOsd(Loc.T($"enum.projection.{a.Projection}"), look: OsdLook.Of("Desktop24"));
                 break;
 
             case DisplayOperation.Brightness:
@@ -234,9 +235,9 @@ public sealed partial class CommandEngine
                 if (level is null)
                 {
                     Log.Warn("Brillo: ninguna pantalla deja cambiarlo (los monitores externos necesitan DDC/CI activado en su menú)");
-                    if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.brightnessNone"), OsdKind.Warning);
+                    if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.brightnessNone"), OsdKind.Warning, look: OsdLook.Of("BrightnessHigh24"));
                 }
-                else if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.brightness", level.Value));
+                else if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.brightness", level.Value), look: OsdLook.Bar("BrightnessHigh24", level.Value));
                 break;
 
             case DisplayOperation.Mode:
@@ -244,9 +245,9 @@ public sealed partial class CommandEngine
                 var mode = await Task.Run(() => DisplayTools.SetMode(a.Monitor, a.Width, a.Height, a.Frequency)).ConfigureAwait(false);
                 if (mode is null)
                 {
-                    if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.displayModeFailed", DisplayAction.DescribeMode(a.Width, a.Height, a.Frequency)), OsdKind.Warning);
+                    if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.displayModeFailed", DisplayAction.DescribeMode(a.Width, a.Height, a.Frequency)), OsdKind.Warning, look: OsdLook.Of("Desktop24"));
                 }
-                else if (a.ShowOsd) _ui.ShowOsd(mode.ToString(), OsdKind.Success);
+                else if (a.ShowOsd) _ui.ShowOsd(mode.ToString(), OsdKind.Success, look: OsdLook.Of("Desktop24"));
                 break;
         }
     }
@@ -262,10 +263,10 @@ public sealed partial class CommandEngine
         if (plan is null)
         {
             Log.Warn($"Plan de energía: «{a.PlanName}» ya no existe");
-            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.powerPlanMissing", a.PlanName), OsdKind.Warning);
+            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.powerPlanMissing", a.PlanName), OsdKind.Warning, look: OsdLook.Of("Battery1024"));
             return;
         }
-        if (PowerPlans.SetActive(plan.Id) && a.ShowOsd) _ui.ShowOsd(Loc.T("osd.powerPlan", plan.Name), OsdKind.Success);
+        if (PowerPlans.SetActive(plan.Id) && a.ShowOsd) _ui.ShowOsd(Loc.T("osd.powerPlan", plan.Name), OsdKind.Success, look: OsdLook.Of("Battery1024"));
     }
 
     private void WindowsTheme(WindowsThemeAction a)
@@ -278,7 +279,7 @@ public sealed partial class CommandEngine
             _ => !Platform.WindowsTheme.AppsLight(),
         };
         Platform.WindowsTheme.Set(light, a.Apps, a.System);
-        if (a.ShowOsd) _ui.ShowOsd(Loc.T(light ? "osd.themeLight" : "osd.themeDark"));
+        if (a.ShowOsd) _ui.ShowOsd(Loc.T(light ? "osd.themeLight" : "osd.themeDark"), look: OsdLook.Of(light ? "WeatherSunny24" : "WeatherMoon24"));
     }
 
     private void Radio(RadioAction a)
@@ -292,7 +293,7 @@ public sealed partial class CommandEngine
             on = null;
         }
         if (!a.ShowOsd) return;
-        if (on is { } state) _ui.ShowOsd(Loc.T(state ? "osd.radioOn" : "osd.radioOff", name), state ? OsdKind.Success : OsdKind.Info);
-        else _ui.ShowOsd(Loc.T("osd.radioNone", name), OsdKind.Warning);
+        if (on is { } state) _ui.ShowOsd(Loc.T(state ? "osd.radioOn" : "osd.radioOff", name), state ? OsdKind.Success : OsdKind.Info, look: OsdLook.Of(a.Radio == RadioDevice.Bluetooth ? "Bluetooth24" : "Wifi124"));
+        else _ui.ShowOsd(Loc.T("osd.radioNone", name), OsdKind.Warning, look: OsdLook.Of(a.Radio == RadioDevice.Bluetooth ? "Bluetooth24" : "Wifi124"));
     }
 }

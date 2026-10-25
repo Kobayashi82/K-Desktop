@@ -60,7 +60,7 @@ public sealed partial class CommandEngine
                         : times > 1 ? Loc.T("osd.macroRepeat", macro.Name, i + 1, times)
                         : Loc.T("osd.macro", macro.Name);
                     var previous = osd;
-                    osd = _ui.ShowPersistentOsd(text);
+                    osd = _ui.ShowPersistentOsd(text, icon: "Record24");
                     previous?.Dispose();
                 }
                 await MacroPlayer.PlayAsync(steps, speed, macro.GameMode, cts.Token).ConfigureAwait(false);
@@ -70,7 +70,7 @@ public sealed partial class CommandEngine
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested && !token.IsCancellationRequested)
         {
-            _ui.ShowOsd(Loc.T("osd.macroStopped", macro.Name), OsdKind.Warning);
+            _ui.ShowOsd(Loc.T("osd.macroStopped", macro.Name), OsdKind.Warning, look: OsdLook.Of("Record24"));
             throw;
         }
         finally

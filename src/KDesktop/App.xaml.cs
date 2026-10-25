@@ -428,7 +428,8 @@ public partial class App : Application
         Log.Info(paused ? "K-Desktop en pausa" : "K-Desktop reanudado");
         if (paused) Achievements.Unlock("pause");
         WakeListener.Refresh(); // paused: the microphone closes
-        Ui.ShowOsd(Loc.T(paused ? "pause.osdOn" : "pause.osdOff"));
+        Ui.ShowOsd(Loc.T(paused ? "pause.osdOn" : "pause.osdOff"), look: OsdLook.Of(paused ? "Pause24" : "Play24"));
+        Sounds.Play(paused ? Config.Settings.PauseSound : Config.Settings.ResumeSound);
         if (_tray is not null) _tray.ToolTipText = TrayTooltip();
         _assistant?.Send(new Core.Assistant.Pipe.PauseMessage(paused));
         UpdateAssistantInput();

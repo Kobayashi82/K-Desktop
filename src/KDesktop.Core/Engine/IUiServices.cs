@@ -5,17 +5,34 @@ namespace KDesktop.Core.Engine;
 
 public enum OsdKind { Info, Success, Warning }
 
+/// <summary>What an OSD message is about: Options › OSD lets each group be hidden (warnings are by their kind).</summary>
+public enum OsdTopic { Actions, Levels, Voice }
+
+/// <summary>
+/// How an OSD message looks besides its text: <paramref name="Icon"/> (a Fluent symbol name, «Speaker224»; null: the
+/// one of its kind) and <paramref name="Level"/> (0–1: a bar, for volume and brightness; it makes the topic Levels).
+/// </summary>
+public sealed record OsdLook(string? Icon = null, double? Level = null, OsdTopic Topic = OsdTopic.Actions)
+{
+    public OsdTopic EffectiveTopic => Level is null ? Topic : OsdTopic.Levels;
+
+    public static OsdLook Of(string icon) => new(icon);
+
+    /// <summary>A percentage (0–100) as a bar.</summary>
+    public static OsdLook Bar(string icon, double percent) => new(icon, Math.Clamp(percent / 100, 0, 1));
+}
+
 /// <summary>Services the engine needs from the UI layer. Implementations must be thread-safe.</summary>
 public interface IUiServices
 {
     /// <summary>Shows a short on-screen message.</summary>
-    void ShowOsd(string text, OsdKind kind = OsdKind.Info, TimeSpan? duration = null);
+    void ShowOsd(string text, OsdKind kind = OsdKind.Info, TimeSpan? duration = null, OsdLook? look = null);
 
     /// <summary>
     /// Shows a message that stays until the returned handle is disposed.
     /// <paramref name="countdownTo"/> makes it display the remaining seconds.
     /// </summary>
-    IDisposable ShowPersistentOsd(string text, DateTime? countdownTo = null);
+    IDisposable ShowPersistentOsd(string text, DateTime? countdownTo = null, string? icon = null);
 
     /// <summary>
     /// The voice OSD: shows <paramref name="text"/> («Escuchando…») with a live microphone meter until it is

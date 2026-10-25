@@ -55,6 +55,7 @@ public partial class SettingsPage : UserControl
         LoadLauncher();
         Loaded += (_, _) =>
         {
+            SelectOsdSpot();
             UpdateWebState();
             LoadDevices();
             UpdateVoiceModels();
@@ -677,7 +678,59 @@ public partial class SettingsPage : UserControl
             Window.GetWindow(this));
     }
 
-    private void OnTestOsd(object sender, RoutedEventArgs e) => _app.Ui.ShowOsd(Loc.T("settings.osdSample"), OsdKind.Success);
+    /// <summary>The kinds one after another (they stack): a message, a level, one that went well and a warning.</summary>
+    private async void OnTestOsd(object sender, RoutedEventArgs e)
+    {
+        var samples = new (string Text, OsdKind Kind, OsdLook Look)[]
+        {
+            (Loc.T("settings.osdSample"), OsdKind.Info, OsdLook.Of("Chat24")),
+            (Loc.T("osd.volume", 60), OsdKind.Info, OsdLook.Bar("Speaker224", 60)),
+            (Loc.T("settings.osdSampleOk"), OsdKind.Success, OsdLook.Of("CheckmarkCircle24")),
+            (Loc.T("settings.osdSampleWarning"), OsdKind.Warning, OsdLook.Of("Warning24")),
+        };
+        foreach (var (text, kind, look) in samples)
+        {
+            _app.Ui.PreviewOsd(text, kind, look);
+            await Task.Delay(700);
+        }
+    }
+
+    private bool _osdSpotsReady;
+
+    /// <summary>Marks the spot of the saved position on the little screen (without showing anything).</summary>
+    private void SelectOsdSpot()
+    {
+        var current = _app.Config.Settings.OsdPosition.ToString();
+        foreach (var spot in FindSpots(OsdScreen)) spot.IsChecked = (string)spot.Tag == current;
+        _osdSpotsReady = true;
+    }
+
+    private static IEnumerable<RadioButton> FindSpots(DependencyObject parent)
+    {
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is RadioButton spot) yield return spot;
+            foreach (var inner in FindSpots(child)) yield return inner;
+        }
+    }
+
+    /// <summary>A spot of the little screen: the OSD goes there and shows itself in its new place.</summary>
+    private void OnOsdSpot(object sender, RoutedEventArgs e)
+    {
+        if (!_osdSpotsReady || sender is not RadioButton { Tag: string tag } || !Enum.TryParse<OsdPosition>(tag, out var position)) return;
+        _app.Config.Settings.OsdPosition = position;
+        _app.Ui.PreviewOsd(Loc.T("settings.osdHere"), OsdKind.Info, OsdLook.Of("Chat24"));
+    }
+
+    private void OnOsdLookChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_osdSpotsReady && IsLoaded) _app.Ui.PreviewOsd(Loc.T("settings.osdSample"), OsdKind.Info, OsdLook.Of("Chat24"));
+    }
+
+    /// <summary>A card like the ones of the achievements, where and how they will come.</summary>
+    private void OnTestNotify(object sender, RoutedEventArgs e) =>
+        _app.Notifier.Preview(Core.Achievements.AchievementCatalog.All.First(a => !a.Secret));
 
     // ── process lists ────────────────────────────────────────────────────
 

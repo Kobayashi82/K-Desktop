@@ -124,8 +124,8 @@ public class StepTargetTests
     /// <summary>The engine's messages go nowhere.</summary>
     private sealed class NoUi : KDesktop.Core.Engine.IUiServices
     {
-        public void ShowOsd(string text, OsdKind kind = OsdKind.Info, TimeSpan? duration = null) { }
-        public IDisposable ShowPersistentOsd(string text, DateTime? countdownTo = null) => new Nothing();
+        public void ShowOsd(string text, OsdKind kind = OsdKind.Info, TimeSpan? duration = null, OsdLook? look = null) { }
+        public IDisposable ShowPersistentOsd(string text, DateTime? countdownTo = null, string? icon = null) => new Nothing();
         public IVoiceOsd ShowVoiceOsd(string text) => throw new NotSupportedException();
         public void ShowQuickMenu(string menuId, ForegroundWindow previousForeground) { }
         public void ShowMainWindow() { }

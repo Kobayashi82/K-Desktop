@@ -41,27 +41,62 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
         get
         {
             _osd ??= new OsdWindow();
-            _osd.Position = settings().OsdPosition;
+            var s = settings();
+            _osd.Position = s.OsdPosition;
+            _osd.Screen = s.OsdScreen;
+            _osd.Size = s.OsdSize;
             return _osd;
         }
     }
 
-    public void ShowOsd(string text, OsdKind kind = OsdKind.Info, TimeSpan? duration = null)
+    private TimeSpan OsdDuration => TimeSpan.FromSeconds(Math.Max(0.5, settings().OsdSeconds));
+
+    /// <summary>
+    /// Whether a message of this kind and topic shows now (UI thread): Options › OSD can hide each group, and what to do
+    /// while something covers the OSD's monitor (a film, a game).
+    /// </summary>
+    private bool Allowed(OsdKind kind, OsdTopic topic)
     {
-        if (string.IsNullOrWhiteSpace(text)) return;
-        dispatcher.BeginInvoke(() => Osd.ShowMessage(text, kind, duration ?? TimeSpan.FromSeconds(Math.Max(0.5, settings().OsdSeconds))));
+        var s = settings();
+        var wanted = kind == OsdKind.Warning ? s.OsdShowWarnings : topic switch
+        {
+            OsdTopic.Levels => s.OsdShowLevels,
+            OsdTopic.Voice => s.OsdShowVoice,
+            _ => s.OsdShowActions,
+        };
+        if (!wanted || s.OsdFullscreen == OsdFullscreen.Always) return wanted;
+        if (!Native.UiNative.FullscreenOn(Native.UiNative.MonitorFor(s.OsdScreen).Monitor)) return true;
+        return s.OsdFullscreen == OsdFullscreen.WarningsOnly && kind == OsdKind.Warning;
     }
 
-    public IDisposable ShowPersistentOsd(string text, DateTime? countdownTo = null)
+    public void ShowOsd(string text, OsdKind kind = OsdKind.Info, TimeSpan? duration = null, OsdLook? look = null)
     {
-        var generation = dispatcher.Invoke(() => Osd.ShowMessage(text, OsdKind.Info, null, countdownTo));
+        if (string.IsNullOrWhiteSpace(text)) return;
+        dispatcher.BeginInvoke(() =>
+        {
+            if (Allowed(kind, look?.EffectiveTopic ?? OsdTopic.Actions)) Osd.ShowMessage(text, kind, duration ?? OsdDuration, look: look);
+        });
+    }
+
+    /// <summary>Options › OSD › «Probar»: shows it whatever the groups and full screen say.</summary>
+    public void PreviewOsd(string text, OsdKind kind, OsdLook? look = null) =>
+        dispatcher.BeginInvoke(() => Osd.ShowMessage(text, kind, OsdDuration + TimeSpan.FromSeconds(1.5), look: look));
+
+    // Countdowns and «Mayús + Esc para parar» always show: they say how to stop what is going on.
+    public IDisposable ShowPersistentOsd(string text, DateTime? countdownTo = null, string? icon = null)
+    {
+        var generation = dispatcher.Invoke(() => Osd.ShowMessage(text, OsdKind.Info, null, countdownTo, icon is null ? null : OsdLook.Of(icon)));
         return new Callback(() => dispatcher.BeginInvoke(() => Osd.HideMessage(generation)));
     }
 
     public IVoiceOsd ShowVoiceOsd(string text)
     {
         var osd = new VoiceOsd(this);
-        dispatcher.BeginInvoke(() => osd.Generation = Osd.ShowVoice(text));
+        dispatcher.BeginInvoke(() =>
+        {
+            if (Allowed(OsdKind.Info, OsdTopic.Voice)) osd.Generation = Osd.ShowVoice(text);
+            else osd.Hidden = true;
+        });
         return osd;
     }
 
@@ -75,6 +110,9 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
 
         /// <summary>Generation of its message on the OSD (UI thread only).</summary>
         public int Generation { get; set; } = -1;
+
+        /// <summary>Options › OSD hides the voice messages (or full screen did): not even the result shows (UI thread only).</summary>
+        public bool Hidden { get; set; }
 
         private bool Current => Generation == owner.Osd.Generation;
 
@@ -97,7 +135,12 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
         {
             if (Interlocked.Exchange(ref _finished, 1) != 0) return;
             owner.UiDispatcher.BeginInvoke(() =>
-                owner.Osd.ShowMessage(text, kind, TimeSpan.FromSeconds(Math.Max(2.5, owner.Settings.OsdSeconds))));
+            {
+                // A warning («No te he entendido») still shows if warnings do.
+                if (Hidden && !(kind == OsdKind.Warning && owner.Allowed(kind, OsdTopic.Actions))) return;
+                owner.Osd.ShowMessage(text, kind, TimeSpan.FromSeconds(Math.Max(2.5, owner.Settings.OsdSeconds)),
+                    look: new OsdLook(Topic: OsdTopic.Voice, Icon: kind == OsdKind.Info ? "Mic24" : null));
+            });
         }
 
         public void Dispose()

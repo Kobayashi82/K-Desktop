@@ -71,16 +71,16 @@ public sealed class ExecutionFeedback
 /// <summary>Passes everything to the real UI and copies the messages to the current <see cref="ExecutionFeedback"/>.</summary>
 internal sealed class FeedbackUiServices(IUiServices inner) : IUiServices
 {
-    public void ShowOsd(string text, OsdKind kind = OsdKind.Info, TimeSpan? duration = null)
+    public void ShowOsd(string text, OsdKind kind = OsdKind.Info, TimeSpan? duration = null, OsdLook? look = null)
     {
         ExecutionFeedback.Current?.Add(text, kind);
-        inner.ShowOsd(text, kind, duration);
+        inner.ShowOsd(text, kind, duration, look);
     }
 
-    public IDisposable ShowPersistentOsd(string text, DateTime? countdownTo = null)
+    public IDisposable ShowPersistentOsd(string text, DateTime? countdownTo = null, string? icon = null)
     {
         ExecutionFeedback.Current?.Add(text);
-        return inner.ShowPersistentOsd(text, countdownTo);
+        return inner.ShowPersistentOsd(text, countdownTo, icon);
     }
 
     public IVoiceOsd ShowVoiceOsd(string text) => inner.ShowVoiceOsd(text);

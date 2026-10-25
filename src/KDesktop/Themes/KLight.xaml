@@ -21,6 +21,7 @@
     <SolidColorBrush x:Key="Kd.OsdBorder" Color="#1F000000" />
     <SolidColorBrush x:Key="Kd.OsdText" Color="#FF1A1A1A" />
     <SolidColorBrush x:Key="Kd.OsdTextSecondary" Color="#C2000000" />
+    <SolidColorBrush x:Key="Kd.OsdTrack" Color="#1A000000" />
     <SolidColorBrush x:Key="Kd.ToastBorder" Color="#66E0A815" />
 
     <!-- Achievements -->

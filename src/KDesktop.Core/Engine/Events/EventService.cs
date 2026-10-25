@@ -229,7 +229,7 @@ public sealed class EventService : IDisposable
             case EventGuard.Verdict.Loop:
                 var minutes = (int)EventGuard.Pause.TotalMinutes;
                 Log.Warn($"Evento «{rule.Name}»: más de {EventGuard.MaxPerMinute} veces en un minuto; se detiene {minutes} minutos");
-                _ui.ShowOsd(Loc.T("event.loopStopped", rule.Name, minutes), OsdKind.Warning, TimeSpan.FromSeconds(5));
+                _ui.ShowOsd(Loc.T("event.loopStopped", rule.Name, minutes), OsdKind.Warning, TimeSpan.FromSeconds(5), OsdLook.Of("CalendarClock24"));
                 return;
         }
         if (rule.HasEnd)

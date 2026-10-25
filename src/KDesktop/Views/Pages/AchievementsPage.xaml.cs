@@ -24,8 +24,12 @@ public sealed partial class AchievementsPage : UserControl, IDisposable
     {
         InitializeComponent();
         _snapshot = _app.Achievements.Snapshot();
-        NotifyToggle.IsChecked = _app.Config.Settings.AchievementNotifications;
-        SoundToggle.IsChecked = _app.Config.Settings.AchievementSound;
+        // Options › OSD › Notificaciones changes them too.
+        Loaded += (_, _) =>
+        {
+            NotifyToggle.IsChecked = _app.Config.Settings.AchievementNotifications;
+            SoundToggle.IsChecked = _app.Config.Settings.AchievementSound;
+        };
         _refresh.Tick += (_, _) =>
         {
             _refresh.Stop();

@@ -10,8 +10,8 @@ using Wpf.Ui.Controls;
 namespace KDesktop.Osd;
 
 /// <summary>
-/// "Achievement unlocked" card: slides in at the bottom-right corner, the badge pops with a burst and a shine
-/// sweeps over it. Hovering pauses it, clicking opens the achievements page. Never takes the focus.
+/// "Achievement unlocked" card: slides in at a corner of the screen (Options › OSD › Notificaciones), the badge pops
+/// with a burst and a shine sweeps over it. Hovering pauses it, clicking opens the achievements page. Never takes the focus.
 /// </summary>
 public partial class AchievementToast : Window
 {
@@ -24,6 +24,14 @@ public partial class AchievementToast : Window
 
     /// <summary>Raised when the user clicks the card.</summary>
     public event Action? Clicked;
+
+    public Core.Model.ScreenChoice Screen { get; init; }
+    public Core.Model.NotifyCorner Corner { get; init; }
+
+    private bool OnLeft => Corner is Core.Model.NotifyCorner.BottomLeft or Core.Model.NotifyCorner.TopLeft;
+
+    /// <summary>It slides in from its side of the screen: from the right, or from the left in a left corner.</summary>
+    private double Side => OnLeft ? -1 : 1;
 
     public AchievementToast()
     {
@@ -64,7 +72,7 @@ public partial class AchievementToast : Window
     {
         var slide = new Duration(TimeSpan.FromMilliseconds(420));
         Root.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, new Duration(TimeSpan.FromMilliseconds(260))));
-        RootShift.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(70, 0, slide) { EasingFunction = new BackEase { Amplitude = 0.35, EasingMode = EasingMode.EaseOut } });
+        RootShift.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(70 * Side, 0, slide) { EasingFunction = new BackEase { Amplitude = 0.35, EasingMode = EasingMode.EaseOut } });
         RootScale.BeginAnimation(ScaleTransform.ScaleXProperty, new DoubleAnimation(0.94, 1, slide) { EasingFunction = EaseOut });
         RootScale.BeginAnimation(ScaleTransform.ScaleYProperty, new DoubleAnimation(0.94, 1, slide) { EasingFunction = EaseOut });
 
@@ -118,18 +126,19 @@ public partial class AchievementToast : Window
             Close();
             _closed.TrySetResult();
         };
-        RootShift.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(50, d) { EasingFunction = EaseIn });
+        RootShift.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(50 * Side, d) { EasingFunction = EaseIn });
         Root.BeginAnimation(OpacityProperty, fadeOut);
     }
 
-    /// <summary>Bottom-right corner of the monitor that has the mouse, above the taskbar.</summary>
+    /// <summary>The chosen corner of the chosen monitor, inside the work area (never over the taskbar).</summary>
     private void Reposition()
     {
         var hwnd = UiNative.Handle(this);
-        var work = UiNative.WorkAreaAt(UiNative.CursorPosition());
+        var work = UiNative.MonitorFor(Screen).Work;
         if (!UiNative.GetWindowRect(hwnd, out var r)) return;
         var dpi = UiNative.GetDpiForWindow(hwnd) / 96.0;
         var gap = (int)(4 * dpi);
-        UiNative.MoveWindow(hwnd, work.Right - r.Width - gap, work.Bottom - r.Height - gap);
+        var top = Corner is Core.Model.NotifyCorner.TopLeft or Core.Model.NotifyCorner.TopRight;
+        UiNative.MoveWindow(hwnd, OnLeft ? work.Left + gap : work.Right - r.Width - gap, top ? work.Top + gap : work.Bottom - r.Height - gap);
     }
 }

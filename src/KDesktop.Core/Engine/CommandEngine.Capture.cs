@@ -48,7 +48,7 @@ public sealed partial class CommandEngine
         var text = path is not null && a.Save
             ? Loc.T(copied ? "osd.captureSavedCopied" : "osd.captureSaved", Path.GetFileName(path), size)
             : copied ? Loc.T("osd.captureCopied", size) : null;
-        if (text is not null) _ui.ShowOsd(text, OsdKind.Success);
+        if (text is not null) _ui.ShowOsd(text, OsdKind.Success, look: OsdLook.Of("Screenshot24"));
     }
 
     /// <summary>
@@ -83,7 +83,7 @@ public sealed partial class CommandEngine
         if (!ScreenText.Available)
         {
             Log.Warn("Texto de la pantalla: Windows no tiene ningún idioma con reconocimiento de texto (OCR)");
-            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.screenTextNoOcr"), OsdKind.Warning);
+            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.screenTextNoOcr"), OsdKind.Warning, look: OsdLook.Of("ScanText24"));
             return;
         }
         if (await CaptureAsync(a.Area, ctx, inside: true).ConfigureAwait(false) is not { } image) return; // cancelled
@@ -94,13 +94,13 @@ public sealed partial class CommandEngine
         Log.Info($"Texto de la pantalla: {image.Width}×{image.Height}, {read.Lines} líneas, {read.Text.Length} letras ({read.Language}) en {watch.ElapsedMilliseconds} ms");
         if (read.Text.Length == 0)
         {
-            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.screenTextNone"), OsdKind.Warning);
+            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.screenTextNone"), OsdKind.Warning, look: OsdLook.Of("ScanText24"));
             return;
         }
         var copied = _ui.SetClipboardText(read.Text);
         if (!a.ShowOsd) return;
         _ui.ShowOsd(copied ? Loc.T(read.Lines == 1 ? "osd.screenTextCopiedOne" : "osd.screenTextCopied", read.Lines, Preview(read.Text)) : Loc.T("osd.screenTextNotCopied"),
-            copied ? OsdKind.Success : OsdKind.Warning);
+            copied ? OsdKind.Success : OsdKind.Warning, look: OsdLook.Of("ScanText24"));
     }
 
     /// <summary>The beginning of what was read, on one line, for the OSD.</summary>
@@ -130,14 +130,14 @@ public sealed partial class CommandEngine
             case RecordMode.Start:
                 if (Recording.IsRecording) return;
                 Recording.Start(a.Source, NewFile(folder, Loc.T("record.filePrefix"), ".wav"));
-                if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.recordStarted", Loc.T($"enum.audioSource.{a.Source}")), OsdKind.Warning);
+                if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.recordStarted", Loc.T($"enum.audioSource.{a.Source}")), OsdKind.Warning, look: OsdLook.Of("MicPulse24"));
                 break;
             case RecordMode.Stop:
                 if (Recording.Stop() is not { } done) return;
                 if (a.ShowOsd)
                 {
                     var length = done.Length.ToString(done.Length.TotalHours >= 1 ? @"h\:mm\:ss" : @"m\:ss", CultureInfo.InvariantCulture);
-                    _ui.ShowOsd(Loc.T("osd.recordSaved", Path.GetFileName(done.Path), length), OsdKind.Success);
+                    _ui.ShowOsd(Loc.T("osd.recordSaved", Path.GetFileName(done.Path), length), OsdKind.Success, look: OsdLook.Of("MicPulse24"));
                 }
                 break;
             case RecordMode.SaveReplay:
@@ -145,9 +145,9 @@ public sealed partial class CommandEngine
                 if (!Recording.SaveReplay(NewFile(folder, Loc.T("record.replayPrefix"), ".wav")))
                 {
                     Log.Warn("Repetición de audio: está apagada (Opciones › Capturas)");
-                    if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.replayOff"), OsdKind.Warning);
+                    if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.replayOff"), OsdKind.Warning, look: OsdLook.Of("History24"));
                 }
-                else if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.replaySaved", seconds), OsdKind.Success);
+                else if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.replaySaved", seconds), OsdKind.Success, look: OsdLook.Of("History24"));
                 break;
         }
     }

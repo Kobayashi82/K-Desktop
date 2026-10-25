@@ -208,12 +208,12 @@ public sealed partial class CommandEngine
             if (result.Success)
             {
                 Log.Info($"Petición web: {a.Summary} → {result.Status} ({result.Milliseconds} ms)");
-                if (a.ShowResult == HttpResultDisplay.Always) _ui.ShowOsd(text, OsdKind.Success);
+                if (a.ShowResult == HttpResultDisplay.Always) _ui.ShowOsd(text, OsdKind.Success, look: OsdLook.Of("ArrowSwap24"));
             }
             else
             {
                 Log.Warn(text);
-                if (a.ShowResult != HttpResultDisplay.Never) _ui.ShowOsd(text, OsdKind.Warning);
+                if (a.ShowResult != HttpResultDisplay.Never) _ui.ShowOsd(text, OsdKind.Warning, look: OsdLook.Of("ArrowSwap24"));
             }
         }
         finally { EndCancellable(cts); }
@@ -271,22 +271,22 @@ public sealed partial class CommandEngine
         {
             case VolumeMode.Set:
                 var v = AudioTools.SetVolume(a.Value);
-                if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.volume", v));
+                if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.volume", v), look: OsdLook.Bar("Speaker224", v));
                 break;
             case VolumeMode.Up or VolumeMode.Down when a.Value <= 0:
                 InputSimulator.KeyPress(a.Mode == VolumeMode.Up ? 0xAF : 0xAE); // native volume flyout
                 break;
             case VolumeMode.Up or VolumeMode.Down:
                 var level = AudioTools.StepVolume(a.Mode == VolumeMode.Up ? a.Value : -a.Value);
-                if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.volume", level));
+                if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.volume", level), look: OsdLook.Bar("Speaker224", level));
                 break;
             case VolumeMode.ToggleMute:
                 var muted = AudioTools.ToggleMute();
-                if (a.ShowOsd) _ui.ShowOsd(Loc.T(muted ? "osd.muted" : "osd.unmuted"));
+                if (a.ShowOsd) _ui.ShowOsd(Loc.T(muted ? "osd.muted" : "osd.unmuted"), look: new OsdLook(muted ? "SpeakerMute24" : "Speaker224", Topic: OsdTopic.Levels));
                 break;
             case VolumeMode.Mute or VolumeMode.Unmute:
                 AudioTools.SetMute(a.Mode == VolumeMode.Mute);
-                if (a.ShowOsd) _ui.ShowOsd(Loc.T(a.Mode == VolumeMode.Mute ? "osd.muted" : "osd.unmuted"));
+                if (a.ShowOsd) _ui.ShowOsd(Loc.T(a.Mode == VolumeMode.Mute ? "osd.muted" : "osd.unmuted"), look: new OsdLook(a.Mode == VolumeMode.Mute ? "SpeakerMute24" : "Speaker224", Topic: OsdTopic.Levels));
                 break;
         }
     });
@@ -297,10 +297,10 @@ public sealed partial class CommandEngine
         var device = await Task.Run(() => AudioDevices.Next(rotation, a.Communications)).ConfigureAwait(false);
         if (device is null)
         {
-            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.audioNone"), OsdKind.Warning);
+            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.audioNone"), OsdKind.Warning, look: OsdLook.Of("HeadphonesSoundWave24"));
             return;
         }
-        if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.audioOutput", device.Name), OsdKind.Success);
+        if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.audioOutput", device.Name), OsdKind.Success, look: OsdLook.Of("HeadphonesSoundWave24"));
         if (!string.IsNullOrWhiteSpace(a.Sound))
         {
             // Give Windows a moment to move the audio streams to the new device.
@@ -317,13 +317,13 @@ public sealed partial class CommandEngine
         if (hwnd == IntPtr.Zero || ctx.Foreground.ProcessId == (uint)Environment.ProcessId) return;
         var on = WindowTools.ToggleTopMost(hwnd);
         if (a.ShowOsd)
-            _ui.ShowOsd(Loc.T(on ? "osd.topMostOn" : "osd.topMostOff", Shorten(ctx.Foreground.Title, 48)), on ? OsdKind.Success : OsdKind.Info);
+            _ui.ShowOsd(Loc.T(on ? "osd.topMostOn" : "osd.topMostOff", Shorten(ctx.Foreground.Title, 48)), on ? OsdKind.Success : OsdKind.Info, look: OsdLook.Of(on ? "Pin24" : "PinOff24"));
     }
 
     private void HiddenFiles(HiddenFilesAction a)
     {
         var visible = ShellTools.ToggleHiddenFiles();
-        if (a.ShowOsd) _ui.ShowOsd(Loc.T(visible ? "osd.hiddenShown" : "osd.hiddenHidden"));
+        if (a.ShowOsd) _ui.ShowOsd(Loc.T(visible ? "osd.hiddenShown" : "osd.hiddenHidden"), look: OsdLook.Of(visible ? "Eye24" : "EyeOff24"));
     }
 
     private void ToggleDisabledIn(ToggleDisabledInAction a, ExecutionContext ctx) => ToggleDisabledIn(ctx.Foreground, a.ShowOsd);
@@ -341,7 +341,7 @@ public sealed partial class CommandEngine
             else foreach (var p in list.Where(p => ProcessNames.Normalize(p) == process).ToList()) list.Remove(p);
         });
         if (showOsd)
-            _ui.ShowOsd(Loc.T(disable ? "osd.disabledIn" : "osd.enabledIn", process), disable ? OsdKind.Warning : OsdKind.Success);
+            _ui.ShowOsd(Loc.T(disable ? "osd.disabledIn" : "osd.enabledIn", process), disable ? OsdKind.Warning : OsdKind.Success, look: OsdLook.Of(disable ? "Prohibited24" : "Flash24"));
     }
 
     private async Task ShowMessageAsync(ShowMessageAction a, ExecutionContext ctx)
@@ -349,11 +349,11 @@ public sealed partial class CommandEngine
         var duration = TimeSpan.FromSeconds(Math.Max(0.3, a.Seconds));
         if (!a.Countdown && !a.Wait)
         {
-            _ui.ShowOsd(a.Text, OsdKind.Info, duration);
+            _ui.ShowOsd(a.Text, OsdKind.Info, duration, OsdLook.Of("Chat24"));
             return;
         }
         var cts = BeginCancellable(ctx.Token);
-        var osd = _ui.ShowPersistentOsd(a.Text, a.Countdown ? DateTime.Now + duration : null);
+        var osd = _ui.ShowPersistentOsd(a.Text, a.Countdown ? DateTime.Now + duration : null, "Chat24");
         var task = Task.Delay(duration, cts.Token).ContinueWith(_ => { osd.Dispose(); EndCancellable(cts); }, TaskScheduler.Default);
         if (a.Wait) await task.ConfigureAwait(false);
     }
@@ -364,14 +364,14 @@ public sealed partial class CommandEngine
         if (a.DelaySeconds > 0)
         {
             var cts = BeginCancellable(ctx.Token);
-            var osd = a.ShowOsd ? _ui.ShowPersistentOsd(Loc.T("osd.powerCountdown", name), DateTime.Now.AddSeconds(a.DelaySeconds)) : null;
+            var osd = a.ShowOsd ? _ui.ShowPersistentOsd(Loc.T("osd.powerCountdown", name), DateTime.Now.AddSeconds(a.DelaySeconds), "Power24") : null;
             try
             {
                 await Task.Delay(TimeSpan.FromSeconds(a.DelaySeconds), cts.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
-                _ui.ShowOsd(Loc.T("osd.powerCancelled", name), OsdKind.Warning);
+                _ui.ShowOsd(Loc.T("osd.powerCancelled", name), OsdKind.Warning, look: OsdLook.Of("Power24"));
                 throw;
             }
             finally
@@ -413,7 +413,7 @@ public sealed partial class CommandEngine
             case CommandControlMode.Toggle:
                 var enabled = !target.Enabled;
                 _ui.RunOnUi(() => target.Enabled = enabled);
-                _ui.ShowOsd(Loc.T(enabled ? "osd.commandEnabled" : "osd.commandDisabled", target.Name));
+                _ui.ShowOsd(Loc.T(enabled ? "osd.commandEnabled" : "osd.commandDisabled", target.Name), look: OsdLook.Of("Flash24"));
                 break;
         }
     }
@@ -436,7 +436,7 @@ public sealed partial class CommandEngine
             case CommandControlMode.Toggle:
                 var enabled = !rule.Enabled;
                 _ui.RunOnUi(() => rule.Enabled = enabled);
-                _ui.ShowOsd(Loc.T(enabled ? "osd.eventEnabled" : "osd.eventDisabled", rule.Name));
+                _ui.ShowOsd(Loc.T(enabled ? "osd.eventEnabled" : "osd.eventDisabled", rule.Name), look: OsdLook.Of("CalendarClock24"));
                 break;
         }
     }
@@ -452,7 +452,7 @@ public sealed partial class CommandEngine
         };
         _ui.RunOnUi(() => profile.Active = active);
         if (a.ShowOsd)
-            _ui.ShowOsd(Loc.T(active ? "osd.kboardOn" : "osd.kboardOff", profile.Name), active ? OsdKind.Success : OsdKind.Info);
+            _ui.ShowOsd(Loc.T(active ? "osd.kboardOn" : "osd.kboardOff", profile.Name), active ? OsdKind.Success : OsdKind.Info, look: OsdLook.Of("KeyboardLayoutFloat24"));
     }
 
     private async Task WaitAsync(WaitAction a, ExecutionContext ctx)
@@ -465,7 +465,7 @@ public sealed partial class CommandEngine
             return;
         }
         var cts = BeginCancellable(ctx.Token);
-        var osd = _ui.ShowPersistentOsd(a.Message, a.Countdown ? DateTime.Now + duration : null);
+        var osd = _ui.ShowPersistentOsd(a.Message, a.Countdown ? DateTime.Now + duration : null, "Timer24");
         try
         {
             await Task.Delay(duration, cts.Token).ConfigureAwait(false);

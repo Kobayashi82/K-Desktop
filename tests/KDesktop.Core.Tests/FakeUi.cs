@@ -9,12 +9,12 @@ internal sealed class FakeUi : IUiServices
 {
     public List<(string Text, OsdKind Kind)> Osd { get; } = [];
 
-    public void ShowOsd(string text, OsdKind kind = OsdKind.Info, TimeSpan? duration = null)
+    public void ShowOsd(string text, OsdKind kind = OsdKind.Info, TimeSpan? duration = null, OsdLook? look = null)
     {
         lock (Osd) Osd.Add((text, kind));
     }
 
-    public IDisposable ShowPersistentOsd(string text, DateTime? countdownTo = null)
+    public IDisposable ShowPersistentOsd(string text, DateTime? countdownTo = null, string? icon = null)
     {
         ShowOsd(text);
         return new Nothing();

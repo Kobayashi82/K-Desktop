@@ -293,7 +293,21 @@ public sealed class AppConfig
               QuickMenus.FirstOrDefault(m => m.Name.Equals(idOrName, StringComparison.OrdinalIgnoreCase));
 }
 
-public enum OsdPosition { BottomCenter, TopCenter, Center, BottomRight, TopRight }
+public enum OsdPosition { BottomCenter, TopCenter, Center, BottomRight, TopRight, TopLeft, BottomLeft }
+
+/// <summary>Which monitor the OSD and the notifications show on.</summary>
+public enum ScreenChoice { Mouse, Primary, ActiveWindow }
+
+public enum OsdSize { Small, Normal, Large }
+
+/// <summary>What the OSD does while something covers its monitor (a film, a game).</summary>
+public enum OsdFullscreen { Always, WarningsOnly, Never }
+
+/// <summary>Corner of the monitor where the notifications (achievements) come in.</summary>
+public enum NotifyCorner { BottomRight, TopRight, BottomLeft, TopLeft }
+
+/// <summary>What the notifications do while something covers their monitor: show, wait until it ends, or not show.</summary>
+public enum NotifyFullscreen { Show, Wait, Hide }
 public enum AppTheme { System, Dark, Light }
 
 /// <summary>What K-Desktop does about new versions.</summary>
@@ -366,8 +380,12 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private string? _startupSound;
     [ObservableProperty] private string? _startupMessage;
 
-    /// <summary>Played when K-Desktop is closed with <see cref="ExitHotkey"/>.</summary>
+    /// <summary>Played when the user closes K-Desktop (hotkey, tray, a command).</summary>
     [ObservableProperty] private string? _exitSound;
+
+    /// <summary>Played when K-Desktop is paused, and when it is resumed.</summary>
+    [ObservableProperty] private string? _pauseSound;
+    [ObservableProperty] private string? _resumeSound;
     [ObservableProperty] private bool _showHiddenCommands;
 
     /// <summary>Opens the launcher (Settings › Lanzador); empty = no hotkey.</summary>
@@ -788,6 +806,20 @@ public partial class AppSettings : ObservableObject
     // OSD
     [ObservableProperty] private OsdPosition _osdPosition = OsdPosition.BottomCenter;
     [ObservableProperty] private double _osdSeconds = 1.6;
+    [ObservableProperty] private ScreenChoice _osdScreen = ScreenChoice.Mouse;
+    [ObservableProperty] private OsdSize _osdSize = OsdSize.Normal;
+    [ObservableProperty] private OsdFullscreen _osdFullscreen = OsdFullscreen.Always;
+
+    /// <summary>Which OSD messages show (warnings are their own group, whatever they are about).</summary>
+    [ObservableProperty] private bool _osdShowActions = true;
+    [ObservableProperty] private bool _osdShowLevels = true;
+    [ObservableProperty] private bool _osdShowVoice = true;
+    [ObservableProperty] private bool _osdShowWarnings = true;
+
+    // Notifications (the achievement cards)
+    [ObservableProperty] private ScreenChoice _notifyScreen = ScreenChoice.Mouse;
+    [ObservableProperty] private NotifyCorner _notifyCorner = NotifyCorner.BottomRight;
+    [ObservableProperty] private NotifyFullscreen _notifyFullscreen = NotifyFullscreen.Wait;
 
     // Mouse
     /// <summary>Block the mouse back/forward buttons in <see cref="BlockSideButtonsIn"/>.</summary>

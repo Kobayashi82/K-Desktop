@@ -310,7 +310,7 @@ public sealed partial class LauncherController
             case string result when item.Kind == LauncherItemKind.Calculator:
                 try { Clipboard.SetText(result); } catch (Exception ex) { Log.Warn("No se pudo copiar el resultado: " + ex.Message); }
                 Close(restoreFocus: true);
-                _ui.ShowOsd(Loc.T("launcher.copied", result), OsdKind.Success);
+                _ui.ShowOsd(Loc.T("launcher.copied", result), OsdKind.Success, look: OsdLook.Of("Calculator24"));
                 break;
         }
     }

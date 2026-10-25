@@ -130,6 +130,53 @@ internal static class UiNative
 
     public static POINT CursorPosition() => GetCursorPos(out var p) ? p : default;
 
+    [DllImport("user32.dll")]
+    private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint flags);
+
+    /// <summary>The whole area and the work area (without the taskbar) of the monitor chosen in Options.</summary>
+    public static (RECT Monitor, RECT Work) MonitorFor(Core.Model.ScreenChoice choice)
+    {
+        var mon = choice switch
+        {
+            Core.Model.ScreenChoice.Primary => MonitorFromPoint(default, 1 /* MONITOR_DEFAULTTOPRIMARY */),
+            Core.Model.ScreenChoice.ActiveWindow when GetForegroundWindow() is var fg && fg != IntPtr.Zero => MonitorFromWindow(fg, 2),
+            _ => MonitorFromPoint(CursorPosition(), 2 /* MONITOR_DEFAULTTONEAREST */),
+        };
+        var info = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+        GetMonitorInfo(mon, ref info);
+        return (info.rcMonitor, info.rcWork);
+    }
+
+    [DllImport("shell32.dll")]
+    private static extern int SHQueryUserNotificationState(out int state);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetClassName(IntPtr hwnd, [Out] char[] name, int max);
+
+    private static string ClassName(IntPtr hwnd)
+    {
+        var name = new char[64];
+        var length = GetClassName(hwnd, name, name.Length);
+        return length > 0 ? new string(name, 0, length) : string.Empty;
+    }
+
+    /// <summary>
+    /// Whether something covers <paramref name="monitor"/> whole: an exclusive full-screen game or a presentation
+    /// (anywhere), or the window in front filling that monitor (a film, a borderless game). The desktop and K-Desktop's
+    /// own windows never count.
+    /// </summary>
+    public static bool FullscreenOn(RECT monitor)
+    {
+        if (SHQueryUserNotificationState(out var state) == 0 && state is 3 /* D3D full screen */ or 4 /* presentation */) return true;
+        var fg = GetForegroundWindow();
+        if (fg == IntPtr.Zero) return false;
+        GetWindowThreadProcessId(fg, out var pid);
+        if (pid == Environment.ProcessId) return false;
+        if (ClassName(fg) is "Progman" or "WorkerW" or "Shell_TrayWnd" or "Shell_SecondaryTrayWnd") return false;
+        return GetWindowRect(fg, out var r)
+            && r.Left <= monitor.Left && r.Top <= monitor.Top && r.Right >= monitor.Right && r.Bottom >= monitor.Bottom;
+    }
+
     public static void MoveWindow(IntPtr hwnd, int x, int y) =>
         SetWindowPos(hwnd, IntPtr.Zero, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 

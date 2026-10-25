@@ -127,7 +127,7 @@ public sealed partial class VoiceService : IDisposable
         {
             if (!VoiceModels.Ready)
             {
-                if (!brief) _ui.ShowOsd(Loc.T("voice.noModels"), OsdKind.Warning, TimeSpan.FromSeconds(4));
+                if (!brief) _ui.ShowOsd(Loc.T("voice.noModels"), OsdKind.Warning, TimeSpan.FromSeconds(4), new OsdLook("MicOff24", Topic: OsdTopic.Voice));
                 return;
             }
             _stopRequested = false;
