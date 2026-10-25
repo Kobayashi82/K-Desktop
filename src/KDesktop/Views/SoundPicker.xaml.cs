@@ -108,6 +108,15 @@ public partial class SoundPicker : UserControl
         // Choosing always plays it, even right after hovering over it.
         _previewed = picked.Value;
         if (picked.Value is not null) Sounds.Preview(picked.Value);
+        // A file is in the list only while it is the chosen sound: another one takes it out (with the list open, when it closes).
+        if (!Box.IsDropDownOpen) Dispatcher.BeginInvoke(DropFile);
+    }
+
+    private void DropFile()
+    {
+        var names = Sounds.Available();
+        if (Box.Items.OfType<Item>().Any(i => i.Value is not null && !ReferenceEquals(i, Box.SelectedItem) &&!names.Contains(i.Value, StringComparer.OrdinalIgnoreCase)))
+            ShowSound();
     }
 
     private void Preview(string sound)
@@ -117,7 +126,11 @@ public partial class SoundPicker : UserControl
         Sounds.Preview(sound);
     }
 
-    private void OnDropDownClosed(object? sender, EventArgs e) => _previewed = null;
+    private void OnDropDownClosed(object? sender, EventArgs e)
+    {
+        _previewed = null;
+        DropFile();
+    }
 
     private void OnPlay(object sender, RoutedEventArgs e) => Sounds.Preview(Sound);
 
