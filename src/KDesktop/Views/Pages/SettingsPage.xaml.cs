@@ -31,6 +31,8 @@ public partial class SettingsPage : UserControl
         DataContext = _app.Config.Settings;
 
         LoadLanguages();
+        FillLanguagesInfo();
+        Loc.Instance.Changed += () => Dispatcher.BeginInvoke(FillLanguagesInfo);
         BuildNav();
         StartupToggle.IsChecked = StartupTask.IsRegistered();
         DataPathText.Text = AppPaths.DataDir;
@@ -591,7 +593,7 @@ public partial class SettingsPage : UserControl
         _app.Ui.ShowOsd(Loc.T("settings.faviconsRefreshing"), OsdKind.Info);
     }
 
-    /// <summary>Saves the built-in English texts as the starting point of a new translation.</summary>
+    /// <summary>Saves the texts of the language in use as the starting point of a new translation.</summary>
     private void OnExportLanguageTemplate(object sender, RoutedEventArgs e)
     {
         Directory.CreateDirectory(AppPaths.LanguagesDir);
@@ -616,10 +618,24 @@ public partial class SettingsPage : UserControl
         }
     }
 
-    private void OnOpenLanguages(object sender, RoutedEventArgs e)
+    /// <summary>«Los idiomas son archivos JSON en {0}.», with the folder as a link that opens it.</summary>
+    private void FillLanguagesInfo()
     {
-        Directory.CreateDirectory(AppPaths.LanguagesDir);
-        ProcessLauncher.Launch(new LaunchSpec(AppPaths.LanguagesDir), asAdmin: false);
+        var parts = Loc.T("settings.languagesInfo").Split("{0}", 2);
+        LanguagesInfoText.Inlines.Clear();
+        LanguagesInfoText.Inlines.Add(new System.Windows.Documents.Run(parts[0]));
+        var link = new System.Windows.Documents.Hyperlink(new System.Windows.Documents.Run(@"%APPDATA%\K-Desktop 5\Languages"))
+        {
+            Foreground = (Brush)FindResource("Kd.AccentText"),
+            ToolTip = AppPaths.LanguagesDir,
+        };
+        link.Click += (_, _) =>
+        {
+            Directory.CreateDirectory(AppPaths.LanguagesDir);
+            ProcessLauncher.Launch(new LaunchSpec(AppPaths.LanguagesDir), asAdmin: false);
+        };
+        LanguagesInfoText.Inlines.Add(link);
+        if (parts.Length > 1) LanguagesInfoText.Inlines.Add(new System.Windows.Documents.Run(parts[1]));
     }
 
     private void OnPauseToggle(object sender, RoutedEventArgs e) => _app.SetPaused(PauseToggle.IsChecked == true);

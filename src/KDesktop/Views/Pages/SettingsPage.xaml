@@ -264,10 +264,9 @@
                             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
                             <ui:SymbolIcon Symbol="Info24" FontSize="18" Margin="0,0,12,0" VerticalAlignment="Top" Foreground="{DynamicResource Kd.AccentText}" />
                             <StackPanel Grid.Column="1">
-                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.languagesInfo}" />
+                                <TextBlock x:Name="LanguagesInfoText" Style="{StaticResource Caption}" />
                                 <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="{l:Tr settings.languagesSteps}" />
                                 <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="{l:Tr settings.languagesOverride}" />
-                                <ui:Button Margin="0,10,0,0" Content="{l:Tr settings.openLanguages}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnOpenLanguages" />
                             </StackPanel>
                         </Grid>
                     </Border>
