@@ -13,7 +13,7 @@
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <TextBlock x:Name="OffText" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                <ui:Button x:Name="GoGeneral" Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainOptions.goGeneral}" Click="OnGoGeneral" />
+                <ui:Button MinHeight="36" x:Name="GoGeneral" Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainOptions.goGeneral}" Click="OnGoGeneral" />
             </Grid>
         </Border>
         <StackPanel x:Name="Body" />

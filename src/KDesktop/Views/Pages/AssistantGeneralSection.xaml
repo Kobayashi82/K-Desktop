@@ -117,7 +117,7 @@
                     <Ellipse x:Name="StateDot" Width="10" Height="10" Margin="2,0,12,0" VerticalAlignment="Center" />
                     <TextBlock x:Name="StateText" Grid.Column="1" VerticalAlignment="Center" TextWrapping="Wrap"
                                Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                    <ui:Button x:Name="PanelButton" Grid.Column="2" Margin="12,0,0,0" Content="{l:Tr assistantOptions.openPanel}"
+                    <ui:Button MinHeight="36" x:Name="PanelButton" Grid.Column="2" Margin="12,0,0,0" Content="{l:Tr assistantOptions.openPanel}"
                                Icon="{ui:SymbolIcon Bot24}" Click="OnOpenPanel" />
                 </Grid>
             </Border>

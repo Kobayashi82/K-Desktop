@@ -276,6 +276,7 @@ public partial class AssistantCatalogSection : UserControl
         var button = new Button
         {
             Content = text,
+            MinHeight = 36,
             Icon = new SymbolIcon { Symbol = symbol },
             Appearance = primary ? ControlAppearance.Primary : ControlAppearance.Secondary,
             IsEnabled = enabled,

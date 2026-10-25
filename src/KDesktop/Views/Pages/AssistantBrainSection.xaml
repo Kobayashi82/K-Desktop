@@ -24,7 +24,7 @@
                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{l:Tr brainOptions.moduleOff}" />
-                    <ui:Button Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainOptions.goGeneral}" Click="OnGoGeneral" />
+                    <ui:Button MinHeight="36" Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainOptions.goGeneral}" Click="OnGoGeneral" />
                 </Grid>
             </Border>
 
@@ -42,8 +42,8 @@
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <ComboBox x:Name="ModelBox" Width="320" SelectionChanged="OnModelChanged" AutomationProperties.Name="{l:Tr brainOptions.model}" />
-                        <ui:Button VerticalAlignment="Stretch" x:Name="LoadButton" Margin="8,0,0,0" Content="{l:Tr brainOptions.loadButton}" Icon="{ui:SymbolIcon ArrowUpload24}" Click="OnLoad" />
-                        <ui:Button VerticalAlignment="Stretch" Margin="8,0,0,0" Content="{l:Tr brainOptions.browse}" Click="OnBrowseModel"
+                        <ui:Button MinHeight="36" VerticalAlignment="Stretch" x:Name="LoadButton" Margin="8,0,0,0" Content="{l:Tr brainOptions.loadButton}" Icon="{ui:SymbolIcon ArrowUpload24}" Click="OnLoad" />
+                        <ui:Button MinHeight="36" VerticalAlignment="Stretch" Margin="8,0,0,0" Content="{l:Tr brainOptions.browse}" Click="OnBrowseModel"
                                    AutomationProperties.Name="{l:Tr brainOptions.browseModelTitle}" />
                     </StackPanel>
                 </Grid>
@@ -119,7 +119,7 @@
                     <TextBlock Style="{StaticResource CardTitle}" Margin="0,0,0,2" Text="{l:Tr brainModels.list}" />
                     <TextBlock x:Name="ModelsCaption" Style="{StaticResource Caption}" TextWrapping="Wrap" />
                 </StackPanel>
-                <ui:Button x:Name="AddModelButton" Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center" Appearance="Primary" Content="{l:Tr brainModels.add}"
+                <ui:Button MinHeight="36" x:Name="AddModelButton" Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center" Appearance="Primary" Content="{l:Tr brainModels.add}"
                            Icon="{ui:SymbolIcon ArrowDownload24}" Click="OnAddModel" />
             </Grid>
 
@@ -128,7 +128,7 @@
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <TextBlock x:Name="DownloadText" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                        <ui:Button x:Name="CancelDownloadButton" Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr common.cancel}"
+                        <ui:Button MinHeight="36" x:Name="CancelDownloadButton" Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr common.cancel}"
                                    Icon="{ui:SymbolIcon Dismiss24}" Click="OnCancelDownload" />
                     </Grid>
                     <ProgressBar x:Name="DownloadProgress" Height="4" Margin="0,10,0,0" Maximum="1" />
@@ -151,7 +151,7 @@
                     <TextBlock Text="{l:Tr brainModels.servers}" />
                     <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr brainModels.serversHint}" />
                 </StackPanel>
-                <ui:Button Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainModels.addServer}" Icon="{ui:SymbolIcon Add24}" Click="OnAddServer" />
+                <ui:Button MinHeight="36" Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainModels.addServer}" Icon="{ui:SymbolIcon Add24}" Click="OnAddServer" />
             </Grid>
             <Border Style="{StaticResource ListPanel}" Margin="0,8,0,16">
                 <StackPanel x:Name="ServerRows" />
@@ -163,7 +163,7 @@
                     <TextBlock Text="{l:Tr brainModels.folders}" />
                     <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr brainModels.foldersHint}" />
                 </StackPanel>
-                <ui:Button Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainModels.addFolder}" Icon="{ui:SymbolIcon FolderAdd24}" Click="OnAddFolder" />
+                <ui:Button MinHeight="36" Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainModels.addFolder}" Icon="{ui:SymbolIcon FolderAdd24}" Click="OnAddFolder" />
             </Grid>
             <Border Style="{StaticResource ListPanel}" Margin="0,8,0,0">
                 <StackPanel x:Name="FolderRows" />
@@ -191,7 +191,7 @@
                 <ui:TextBox x:Name="NewEndpointBox" Grid.Column="1" Margin="8,0,0,0" TextChanged="OnNewEndpointChanged" AutomationProperties.Name="{l:Tr brainRemotes.endpoint}" />
                 <PasswordBox x:Name="NewKeyBox" Grid.Column="2" Margin="8,0,0,0" VerticalContentAlignment="Center" AutomationProperties.Name="{l:Tr brainOptions.apiKey}"
                              ToolTip="{l:Tr brainOptions.apiKeyHint}" />
-                <ui:Button Grid.Column="3" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr brainRemotes.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddRemote" />
+                <ui:Button MinHeight="36" Grid.Column="3" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr brainRemotes.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddRemote" />
             </Grid>
             <TextBlock x:Name="NewPlaceText" Style="{StaticResource Caption}" Margin="0,4,0,0" TextWrapping="Wrap" />
         </StackPanel>

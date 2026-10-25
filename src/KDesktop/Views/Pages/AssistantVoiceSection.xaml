@@ -43,9 +43,9 @@
             <TextBlock x:Name="KokoroText" Style="{StaticResource Caption}" TextWrapping="Wrap" />
             <TextBlock x:Name="EspeakText" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,4,0,0" />
             <StackPanel x:Name="DownloadRow" Orientation="Horizontal" Margin="0,8,0,0">
-                <ui:Button x:Name="DownloadButton" Appearance="Primary" Icon="{ui:SymbolIcon ArrowDownload24}" Click="OnDownload" />
-                <ui:Button x:Name="CancelButton" Margin="8,0,0,0" Content="{l:Tr common.cancel}" Click="OnCancelDownload" />
-                <ui:Button x:Name="DeleteButton" Margin="8,0,0,0" Icon="{ui:SymbolIcon Delete24}" Content="{l:Tr assistantVoice.delete}" Click="OnDelete" />
+                <ui:Button MinHeight="36" x:Name="DownloadButton" Appearance="Primary" Icon="{ui:SymbolIcon ArrowDownload24}" Click="OnDownload" />
+                <ui:Button MinHeight="36" x:Name="CancelButton" Margin="8,0,0,0" Content="{l:Tr common.cancel}" Click="OnCancelDownload" />
+                <ui:Button MinHeight="36" x:Name="DeleteButton" Margin="8,0,0,0" Icon="{ui:SymbolIcon Delete24}" Content="{l:Tr assistantVoice.delete}" Click="OnDelete" />
             </StackPanel>
             <ProgressBar x:Name="DownloadBar" Height="4" Margin="0,10,0,0" Maximum="1" />
 
@@ -86,10 +86,10 @@
             <TextBlock x:Name="PiperText" Style="{StaticResource Caption}" TextWrapping="Wrap" />
             <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,4,0,0" Text="{l:Tr assistantVoice.piperNote}" />
             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                <ui:Button x:Name="PiperDownloadButton" Appearance="Primary" Icon="{ui:SymbolIcon ArrowDownload24}" Click="OnPiperDownload" />
-                <ui:Button x:Name="PiperCancelButton" Margin="8,0,0,0" Content="{l:Tr common.cancel}" Click="OnPiperCancel" />
-                <ui:Button x:Name="PiperDeleteButton" Margin="8,0,0,0" Icon="{ui:SymbolIcon Delete24}" Content="{l:Tr assistantVoice.delete}" Click="OnPiperDelete" />
-                <ui:Button x:Name="PiperDeleteOthersButton" Margin="8,0,0,0" Icon="{ui:SymbolIcon Broom24}" Click="OnPiperDeleteOthers" />
+                <ui:Button MinHeight="36" x:Name="PiperDownloadButton" Appearance="Primary" Icon="{ui:SymbolIcon ArrowDownload24}" Click="OnPiperDownload" />
+                <ui:Button MinHeight="36" x:Name="PiperCancelButton" Margin="8,0,0,0" Content="{l:Tr common.cancel}" Click="OnPiperCancel" />
+                <ui:Button MinHeight="36" x:Name="PiperDeleteButton" Margin="8,0,0,0" Icon="{ui:SymbolIcon Delete24}" Content="{l:Tr assistantVoice.delete}" Click="OnPiperDelete" />
+                <ui:Button MinHeight="36" x:Name="PiperDeleteOthersButton" Margin="8,0,0,0" Icon="{ui:SymbolIcon Broom24}" Click="OnPiperDeleteOthers" />
             </StackPanel>
             <ProgressBar x:Name="PiperBar" Height="4" Margin="0,10,0,0" Maximum="1" />
 
@@ -100,7 +100,7 @@
                     <TextBlock Text="{l:Tr assistantVoice.piperFolders}" />
                     <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantVoice.piperFoldersHint}" />
                 </StackPanel>
-                <ui:Button Grid.Column="1" VerticalAlignment="Center" Icon="{ui:SymbolIcon FolderAdd24}" Content="{l:Tr assistantVoice.piperAddFolder}" Click="OnPiperAddFolder" />
+                <ui:Button MinHeight="36" Grid.Column="1" VerticalAlignment="Center" Icon="{ui:SymbolIcon FolderAdd24}" Content="{l:Tr assistantVoice.piperAddFolder}" Click="OnPiperAddFolder" />
             </Grid>
             <StackPanel x:Name="PiperFolderRows" Margin="0,6,0,0" />
 
@@ -161,7 +161,7 @@
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <ui:TextBox x:Name="TestBox" PlaceholderText="{l:Tr assistantVoice.testPlaceholder}" KeyDown="OnTestKey"
                             AutomationProperties.Name="{l:Tr assistantVoice.testPlaceholder}" />
-                <ui:Button x:Name="TestButton" Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon Play24}" Content="{l:Tr assistantVoice.test}" Click="OnTest" />
+                <ui:Button MinHeight="36" x:Name="TestButton" Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon Play24}" Content="{l:Tr assistantVoice.test}" Click="OnTest" />
                 <ui:Button x:Name="StopButton" Grid.Column="2" Margin="8,0,0,0" Padding="10,6" VerticalAlignment="Stretch" Click="OnStopTest"
                            ToolTip="{l:Tr assistantVoice.testStop}" AutomationProperties.Name="{l:Tr assistantVoice.testStop}">
                     <ui:SymbolIcon Symbol="RecordStop24" FontSize="16" />

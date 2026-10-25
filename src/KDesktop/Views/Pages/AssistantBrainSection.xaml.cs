@@ -606,7 +606,7 @@ public partial class AssistantBrainSection : UserControl
     /// <summary>A button with its text (the «Liberar» of what is in memory).</summary>
     private static Button Wide(SymbolRegular symbol, string text, Action click)
     {
-        var button = new Button { Icon = new SymbolIcon { Symbol = symbol }, Content = text };
+        var button = new Button { Icon = new SymbolIcon { Symbol = symbol }, Content = text, MinHeight = 36 };
         button.Click += (_, _) => click();
         return button;
     }

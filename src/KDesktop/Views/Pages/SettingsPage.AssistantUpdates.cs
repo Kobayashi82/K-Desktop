@@ -74,6 +74,7 @@ public partial class SettingsPage
                 Icon = new SymbolIcon { Symbol = SymbolRegular.ArrowDownload24 },
                 Appearance = skipped ? ControlAppearance.Secondary : ControlAppearance.Primary,
                 IsEnabled = !downloading,
+                MinHeight = 36,
             };
             AutomationProperties.SetName(update, Loc.T("assistantUpdates.update") + " " + name);
             update.Click += (_, _) => _ = _app.OpenAssistantUpdateAsync(assistant.Id);

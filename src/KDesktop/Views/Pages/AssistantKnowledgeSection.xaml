@@ -16,8 +16,8 @@
                         <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr knowledgeOptions.intro}" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon FolderAdd24}" Content="{l:Tr knowledgeOptions.add}" Click="OnAdd" />
-                        <ui:Button Margin="8,0,0,0" Icon="{ui:SymbolIcon DocumentAdd24}" Content="{l:Tr knowledgeOptions.addFiles}" Click="OnAddFiles" />
+                        <ui:Button MinHeight="36" Appearance="Primary" Icon="{ui:SymbolIcon FolderAdd24}" Content="{l:Tr knowledgeOptions.add}" Click="OnAdd" />
+                        <ui:Button MinHeight="36" Margin="8,0,0,0" Icon="{ui:SymbolIcon DocumentAdd24}" Content="{l:Tr knowledgeOptions.addFiles}" Click="OnAddFiles" />
                     </StackPanel>
                 </Grid>
 
@@ -26,7 +26,7 @@
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <TextBlock x:Name="OffText" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                        <ui:Button x:Name="GoGeneral" Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainOptions.goGeneral}" Click="OnGoGeneral" />
+                        <ui:Button MinHeight="36" x:Name="GoGeneral" Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainOptions.goGeneral}" Click="OnGoGeneral" />
                     </Grid>
                 </Border>
 
@@ -64,8 +64,8 @@
                 </Grid>
 
                 <StackPanel x:Name="Actions" Orientation="Horizontal" Margin="0,14,0,0">
-                    <ui:Button x:Name="RebuildButton" Icon="{ui:SymbolIcon ArrowSync24}" Content="{l:Tr knowledgeOptions.rebuild}" Click="OnRebuild" />
-                    <ui:Button x:Name="ForgetButton" Margin="8,0,0,0" Icon="{ui:SymbolIcon Delete24}" Content="{l:Tr knowledgeOptions.forget}" Click="OnForget" />
+                    <ui:Button MinHeight="36" x:Name="RebuildButton" Icon="{ui:SymbolIcon ArrowSync24}" Content="{l:Tr knowledgeOptions.rebuild}" Click="OnRebuild" />
+                    <ui:Button MinHeight="36" x:Name="ForgetButton" Margin="8,0,0,0" Icon="{ui:SymbolIcon Delete24}" Content="{l:Tr knowledgeOptions.forget}" Click="OnForget" />
                 </StackPanel>
             </StackPanel>
         </Border>
@@ -79,7 +79,7 @@
                         <TextBlock x:Name="FilesTitle" Style="{StaticResource CardTitle}" Margin="0,0,0,2" TextTrimming="CharacterEllipsis" />
                         <TextBlock x:Name="FilesCaption" Style="{StaticResource Caption}" />
                     </StackPanel>
-                    <ui:Button Grid.Column="1" VerticalAlignment="Top" Icon="{ui:SymbolIcon Dismiss24}" Content="{l:Tr knowledgeOptions.close}" Click="OnCloseFiles" />
+                    <ui:Button MinHeight="36" Grid.Column="1" VerticalAlignment="Top" Icon="{ui:SymbolIcon Dismiss24}" Content="{l:Tr knowledgeOptions.close}" Click="OnCloseFiles" />
                 </Grid>
                 <Border Style="{StaticResource ListPanel}">
                     <StackPanel x:Name="FileRows" />
@@ -96,7 +96,7 @@
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <ui:TextBox x:Name="SearchBox" MaxLength="300" PlaceholderText="{l:Tr knowledgeOptions.tryPlaceholder}" ClearButtonEnabled="False"
                                 AutomationProperties.Name="{l:Tr knowledgeOptions.tryTitle}" PreviewKeyDown="OnSearchKey" />
-                    <ui:Button x:Name="SearchButton" Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon Search24}" Content="{l:Tr knowledgeOptions.search}" Click="OnSearch" />
+                    <ui:Button MinHeight="36" x:Name="SearchButton" Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon Search24}" Content="{l:Tr knowledgeOptions.search}" Click="OnSearch" />
                 </Grid>
                 <TextBlock x:Name="FoundCaption" Style="{StaticResource Caption}" Margin="0,10,0,0" Visibility="Collapsed" />
                 <StackPanel x:Name="FoundRows" />

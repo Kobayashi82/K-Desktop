@@ -516,6 +516,7 @@ public partial class AssistantToolsSection
         var button = new Button
         {
             Content = text,
+            MinHeight = 36,
             Icon = new SymbolIcon { Symbol = symbol },
             Appearance = primary ? ControlAppearance.Primary : ControlAppearance.Secondary,
             Margin = new Thickness(0, 0, 8, 6),

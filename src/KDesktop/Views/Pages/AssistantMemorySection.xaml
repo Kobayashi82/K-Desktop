@@ -13,7 +13,7 @@
                     <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr memoryOptions.title}" />
                     <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr memoryOptions.intro}" />
                 </StackPanel>
-                <ui:Button x:Name="ClearButton" Grid.Column="1" VerticalAlignment="Center" Icon="{ui:SymbolIcon Delete24}"
+                <ui:Button MinHeight="36" x:Name="ClearButton" Grid.Column="1" VerticalAlignment="Center" Icon="{ui:SymbolIcon Delete24}"
                            Content="{l:Tr memoryOptions.clear}" Click="OnClear" />
             </Grid>
 
@@ -22,7 +22,7 @@
                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <TextBlock x:Name="OffText" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                    <ui:Button x:Name="GoGeneral" Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainOptions.goGeneral}" Click="OnGoGeneral" />
+                    <ui:Button MinHeight="36" x:Name="GoGeneral" Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainOptions.goGeneral}" Click="OnGoGeneral" />
                 </Grid>
             </Border>
 
@@ -39,7 +39,7 @@
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <ui:TextBox x:Name="AddBox" MaxLength="200" PlaceholderText="{l:Tr memoryOptions.addHint}" ClearButtonEnabled="False"
                             AutomationProperties.Name="{l:Tr memoryOptions.add}" PreviewKeyDown="OnAddKey" />
-                <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon Add24}" Content="{l:Tr memoryOptions.add}" Click="OnAdd" />
+                <ui:Button MinHeight="36" Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon Add24}" Content="{l:Tr memoryOptions.add}" Click="OnAdd" />
             </Grid>
 
             <TextBlock x:Name="EmptyText" Style="{StaticResource Caption}" Margin="0,6,0,4" Text="{l:Tr memoryOptions.empty}" />

@@ -247,8 +247,8 @@
                     <ComboBox IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}"
                               DropDownOpened="OnAppsDropDown" DropDownClosed="OnAppPicked" KeyDown="OnAppKeyDown"
                               AutomationProperties.Name="{Binding Label}" />
-                    <ui:Button Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddApp" />
-                    <ui:Button Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickApp"
+                    <ui:Button MinHeight="36" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddApp" />
+                    <ui:Button MinHeight="36" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickApp"
                                ToolTip="{l:Tr picker.tooltip}" />
                 </StackPanel>
             </StackPanel>
@@ -264,9 +264,9 @@
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <ui:Button MinWidth="160" MinHeight="36" Icon="{ui:SymbolIcon Keyboard24}" Content="{Binding ButtonText}" IsEnabled="{Binding CanRecord}"
                                AutomationProperties.Name="{Binding Label}" Click="OnCaptureHotkey" />
-                    <ui:Button VerticalAlignment="Stretch" x:Name="Clear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
+                    <ui:Button MinHeight="36" VerticalAlignment="Stretch" x:Name="Clear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearHotkey" />
-                    <ui:Button x:Name="Open" Margin="8,0,0,0" Icon="{ui:SymbolIcon Open24}" ToolTip="{l:Tr assistantSettings.openCommand}"
+                    <ui:Button MinHeight="36" x:Name="Open" Margin="8,0,0,0" Icon="{ui:SymbolIcon Open24}" ToolTip="{l:Tr assistantSettings.openCommand}"
                                AutomationProperties.Name="{l:Tr assistantSettings.openCommand}" Click="OnOpenHotkeyCommand" />
                 </StackPanel>
             </Grid>
@@ -288,7 +288,7 @@
             <Grid Style="{StaticResource SettingRow}">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <ContentPresenter x:Name="Text" Content="{Binding}" ContentTemplate="{StaticResource RowText}" />
-                <ui:Button x:Name="Run" Grid.Column="1" MinWidth="160" VerticalAlignment="Center" Content="{Binding Label}"
+                <ui:Button MinHeight="36" x:Name="Run" Grid.Column="1" MinWidth="160" VerticalAlignment="Center" Content="{Binding Label}"
                            Icon="{Binding Symbol, Converter={StaticResource SymbolIcon}}" Click="OnButton" />
             </Grid>
             <DataTemplate.Triggers>
@@ -377,10 +377,10 @@
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <ui:Button x:Name="ResetButton" Margin="0,0,8,0" VerticalAlignment="Center" Icon="{ui:SymbolIcon ArrowReset24}" IsEnabled="{Binding HasChanges}"
+                    <ui:Button MinHeight="36" x:Name="ResetButton" Margin="0,0,8,0" VerticalAlignment="Center" Icon="{ui:SymbolIcon ArrowReset24}" IsEnabled="{Binding HasChanges}"
                                Content="{l:Tr assistantSettings.reset}" Click="OnReset" />
-                    <ui:Button x:Name="PutButton" VerticalAlignment="Center" Appearance="Primary" Icon="{ui:SymbolIcon Play24}" Click="OnPut" />
-                    <ui:Button x:Name="HideButton" VerticalAlignment="Center" Icon="{ui:SymbolIcon EyeOff24}" Click="OnHide" />
+                    <ui:Button MinHeight="36" x:Name="PutButton" VerticalAlignment="Center" Appearance="Primary" Icon="{ui:SymbolIcon Play24}" Click="OnPut" />
+                    <ui:Button MinHeight="36" x:Name="HideButton" VerticalAlignment="Center" Icon="{ui:SymbolIcon EyeOff24}" Click="OnHide" />
                 </StackPanel>
             </Grid>
         </Border>

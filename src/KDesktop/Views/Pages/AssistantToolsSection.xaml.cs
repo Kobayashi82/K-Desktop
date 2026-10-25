@@ -738,7 +738,7 @@ public partial class AssistantToolsSection : UserControl
         }
         else
         {
-            var change = new Button { Content = Loc.T(kept ? "toolsOptions.secretChange" : "toolsOptions.secretSet"), Margin = new Thickness(4, 0, 0, 0),
+            var change = new Button { Content = Loc.T(kept ? "toolsOptions.secretChange" : "toolsOptions.secretSet"), Margin = new Thickness(4, 0, 0, 0), MinHeight = 36,
                 Appearance = kept ? ControlAppearance.Secondary : ControlAppearance.Primary };
             System.Windows.Automation.AutomationProperties.SetName(change, Loc.T(kept ? "toolsOptions.secretChange" : "toolsOptions.secretSet") + " " + name);
             change.Click += (_, _) => { _changingSecret = name; Refresh(); };
