@@ -697,11 +697,14 @@ public partial class SettingsPage : UserControl
 
     private bool _osdSpotsReady;
 
-    /// <summary>Marks the spot of the saved position on the little screen (without showing anything).</summary>
+    /// <summary>Marks the saved places on the little screens of the OSD and the notifications (without showing anything).</summary>
     private void SelectOsdSpot()
     {
-        var current = _app.Config.Settings.OsdPosition.ToString();
-        foreach (var spot in FindSpots(OsdScreen)) spot.IsChecked = (string)spot.Tag == current;
+        _osdSpotsReady = false;
+        var osd = _app.Config.Settings.OsdPosition.ToString();
+        foreach (var spot in FindSpots(OsdScreen)) spot.IsChecked = (string)spot.Tag == osd;
+        var corner = _app.Config.Settings.NotifyCorner.ToString();
+        foreach (var spot in FindSpots(NotifyScreenBox)) spot.IsChecked = (string)spot.Tag == corner;
         _osdSpotsReady = true;
     }
 
@@ -728,9 +731,16 @@ public partial class SettingsPage : UserControl
         if (_osdSpotsReady && IsLoaded) _app.Ui.PreviewOsd(Loc.T("settings.osdSample"), OsdKind.Info, OsdLook.Of("Chat24"));
     }
 
-    /// <summary>A card like the ones of the achievements, where and how they will come.</summary>
-    private void OnTestNotify(object sender, RoutedEventArgs e) =>
-        _app.Notifier.Preview(Core.Achievements.AchievementCatalog.All.First(a => !a.Secret));
+    /// <summary>A sample card, where and for as long as the notifications will come.</summary>
+    private void OnTestNotify(object sender, RoutedEventArgs e) => _app.Notifier.Preview();
+
+    /// <summary>A corner of the little screen: the notifications go there, and a sample card shows it.</summary>
+    private void OnNotifySpot(object sender, RoutedEventArgs e)
+    {
+        if (!_osdSpotsReady || sender is not RadioButton { Tag: string tag } || !Enum.TryParse<NotifyCorner>(tag, out var corner)) return;
+        _app.Config.Settings.NotifyCorner = corner;
+        _app.Notifier.Preview();
+    }
 
     // ── process lists ────────────────────────────────────────────────────
 

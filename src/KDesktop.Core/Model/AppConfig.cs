@@ -819,6 +819,8 @@ public partial class AppSettings : ObservableObject
     // Notifications (the achievement cards)
     [ObservableProperty] private ScreenChoice _notifyScreen = ScreenChoice.Mouse;
     [ObservableProperty] private NotifyCorner _notifyCorner = NotifyCorner.BottomRight;
+    /// <summary>How long a card stays (less when others are waiting).</summary>
+    [ObservableProperty] private double _notifySeconds = 5.5;
     [ObservableProperty] private NotifyFullscreen _notifyFullscreen = NotifyFullscreen.Wait;
 
     // Mouse

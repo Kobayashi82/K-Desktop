@@ -61,7 +61,21 @@ public partial class AchievementToast : Window
         DescText.Text = def.Description;
         if (Enum.TryParse<SymbolRegular>(def.Symbol, out var symbol)) BadgeIcon.Symbol = symbol;
         if (def.Id == AchievementCatalog.Master) BadgeIcon.Symbol = SymbolRegular.Crown20;
+        return Present(duration);
+    }
 
+    /// <summary>Options › Notificaciones › «Probar»: the same card, saying what it is instead of an achievement.</summary>
+    public Task ShowSampleAsync(TimeSpan duration)
+    {
+        Kicker.Text = Loc.T("settings.notifySampleKicker").ToUpper(Loc.Instance.Culture);
+        NameText.Text = Loc.T("settings.notifySampleTitle");
+        DescText.Text = Loc.T("settings.notifySampleText");
+        BadgeIcon.Symbol = SymbolRegular.Alert24;
+        return Present(duration);
+    }
+
+    private Task Present(TimeSpan duration)
+    {
         Show();
         Reposition();
         PlayIntro(duration);
