@@ -33,8 +33,7 @@ there.
 
 | Section | What it has |
 |---|---|
-| **Disable in** | Programs where K-Desktop's hotkeys do nothing (games, remote desktops) |
-| **Mouse** | What the Back and Forward buttons do |
+| **Per application** | Programs where K-Desktop's hotkeys do nothing (games, remote desktops), with a hotkey to add or remove the one in front, and programs where Mouse 4 and Mouse 5 don't go back or forward |
 | **Captures and magnifier** | Screenshots folder; **audio replay** (keeps the last seconds in memory so *Record audio → Save the replay* saves them when something happens; nothing is written to disk); the magnifier's zoom, shape and size |
 | **Data** | Backups, export, import, re-import from K-Desktop 4, and the log |
 | **Updates** | Version, checking now, and what to do when there is a new one |

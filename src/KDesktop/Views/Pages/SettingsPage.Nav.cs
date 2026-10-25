@@ -34,7 +34,6 @@ public partial class SettingsPage
             new("general", "Settings24", "settings.nav.general"),
             new("osd", "CommentNote24", "settings.nav.osd"),
             new("launcher", "Search24", "settings.nav.launcher"),
-            new("mouse", "CursorClick24", "settings.nav.mouse"),
             new("disabledIn", "Prohibited24", "settings.nav.disabledIn"),
         ]),
         new("media", "settings.nav.group.media",

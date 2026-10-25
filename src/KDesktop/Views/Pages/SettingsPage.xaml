@@ -1214,13 +1214,15 @@
                             <ui:Button x:Name="DisabledInHotkeyButton" VerticalAlignment="Stretch" MinHeight="36" MinWidth="200" Click="OnCaptureDisabledInHotkey" />
                             <ui:Button MinHeight="36" VerticalAlignment="Stretch" x:Name="DisabledInHotkeyClear" Margin="6,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearDisabledInHotkey" />
+                            <v:IconToggle Width="38" Height="36" Margin="6,0,0,0" IsChecked="{Binding DisabledInBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
+                                          Title="{l:Tr commands.blockKey}" Hint="{l:Tr commands.blockKeyHint}" />
                         </StackPanel>
                     </Grid>
                 </StackPanel>
             </Border>
 
-            <!-- Side buttons -->
-            <Border Style="{StaticResource Card}" Tag="mouse">
+            <!-- Side buttons (same section as «Desactivar en»: both are lists of applications) -->
+            <Border Style="{StaticResource Card}" Tag="disabledIn">
                 <StackPanel>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>

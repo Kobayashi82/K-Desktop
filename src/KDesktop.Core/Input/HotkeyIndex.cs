@@ -17,12 +17,16 @@ public sealed class HotkeyIndex
     private readonly HashSet<string> _sideButtonsBlockedIn;
     private readonly bool _voiceAnywhere, _launcherAnywhere, _showWindowAnywhere, _exitAnywhere, _pauseAnywhere;
 
-    /// <summary>The voice / launcher / open / exit / pause hotkey is swallowed (the application in front never gets it).</summary>
+    /// <summary>
+    /// The voice / launcher / open / exit / pause / «Desactivar en» hotkey is swallowed (the application in front never
+    /// gets it).
+    /// </summary>
     public bool VoiceBlock { get; }
     public bool LauncherBlock { get; }
     public bool ShowWindowBlock { get; }
     public bool ExitBlock { get; }
     public bool PauseBlock { get; }
+    public bool DisabledInBlock { get; }
 
     public string ShowWindowHotkey { get; }
     public string ExitHotkey { get; }
@@ -94,6 +98,7 @@ public sealed class HotkeyIndex
         ExitBlock = settings.ExitBlockKey;
         _pauseAnywhere = settings.PauseIgnoreDisabledApps;
         PauseBlock = settings.PauseBlockKey;
+        DisabledInBlock = settings.DisabledInBlockKey;
     }
 
     public bool Contains(string hotkey) => _map.ContainsKey(hotkey);

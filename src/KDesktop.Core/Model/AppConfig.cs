@@ -840,6 +840,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>Adds the app in front to <see cref="DisabledIn"/>, or takes it out (it works there too). Empty: none.</summary>
     [ObservableProperty] private string _disabledInHotkey = string.Empty;
 
+    /// <summary>The application in front doesn't get the keys of <see cref="DisabledInHotkey"/>.</summary>
+    [ObservableProperty] private bool _disabledInBlockKey = true;
+
     /// <summary>Pauses K-Desktop or resumes it (it works while paused, like show-window and exit). Empty: none.</summary>
     [ObservableProperty] private string _pauseHotkey = string.Empty;
 

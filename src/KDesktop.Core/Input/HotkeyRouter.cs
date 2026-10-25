@@ -199,7 +199,7 @@ public sealed partial class HotkeyRouter : IDisposable
                 var window = ForegroundWindow.Capture();
                 Post(() => DisabledInToggleRequested?.Invoke(window));
             }
-            return Block(vk, mods);
+            return index.DisabledInBlock && Block(vk, mods);
         }
 
         if (vk == KeyNames.VK_ESCAPE && mods == Modifiers.None && HasCancellable?.Invoke() == true)
@@ -324,6 +324,7 @@ public sealed partial class HotkeyRouter : IDisposable
         }
         if (index.IsDisabledInHotkey(hotkey))
         {
+            if (!index.DisabledInBlock) return false; // the application gets it too; it still fires on release
             _blockedButtons.Add(button); // it fires on release (Dispatch)
             return true;
         }
@@ -414,7 +415,7 @@ public sealed partial class HotkeyRouter : IDisposable
             _armed = false;
             var window = ForegroundWindow.Capture();
             Post(() => DisabledInToggleRequested?.Invoke(window));
-            return true;
+            return index.DisabledInBlock;
         }
         if (!index.Contains(hotkey)) return false;
         var fg = ForegroundWindow.Capture();

@@ -33,8 +33,7 @@ allí.
 
 | Sección | Qué tiene |
 |---|---|
-| **Desactivar en** | Programas donde los atajos de K-Desktop no hacen nada (juegos, escritorios remotos) |
-| **Ratón** | Qué hacen los botones Atrás y Adelante |
+| **Por aplicación** | Programas donde los atajos de K-Desktop no hacen nada (juegos, escritorios remotos), con un atajo para añadir o quitar el de delante, y programas donde Mouse 4 y Mouse 5 no van atrás ni adelante |
 | **Capturas y lupa** | La carpeta de las capturas; la **repetición de audio** (guarda en memoria los últimos segundos para que *Grabar audio → Guardar la repetición* los guarde cuando pase algo; no se escribe nada en el disco); el zoom, la forma y el tamaño de la lupa |
 | **Datos** | Copias de seguridad, exportar, importar, volver a importar de K-Desktop 4 y el registro |
 | **Actualizaciones** | La versión, buscar ahora y qué hacer cuando hay una nueva |
