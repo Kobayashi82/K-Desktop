@@ -954,7 +954,7 @@
   "settings.nav.launcher.hint": "Ricerca di comandi",
   "settings.launcher": "Launcher",
   "settings.launcherIntro": "Una casella di ricerca: scrivi parte del nome (bastano le iniziali o lettere sparse: «cmfy» → ComfyUI), scegli con ↑ ↓ e Invio lo esegue; Esc o la stessa scorciatoia la chiudono. Si può trascinare altrove dalla maniglia a sinistra e se lo ricorda.",
-  "settings.launcherHotkey": "Scorciatoia",
+  "settings.launcherHotkey": "Scorciatoia per aprire e chiudere",
   "settings.launcherHotkeyHint": "Fai clic e premi la combinazione.",
   "settings.launcherApps": "Programmi del menu Start",
   "settings.launcherAppsHint": "Trova anche i programmi installati, app dello Store incluse.",

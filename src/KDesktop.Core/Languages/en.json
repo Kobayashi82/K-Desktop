@@ -954,7 +954,7 @@
   "settings.nav.launcher.hint": "Command search box",
   "settings.launcher": "Launcher",
   "settings.launcherIntro": "A search box: type part of the name (initials or loose letters work: «cmfy» → ComfyUI), choose with ↑ ↓ and Enter runs it; Esc or the same hotkey closes it. Drag it elsewhere by the grip on the left and it remembers the place.",
-  "settings.launcherHotkey": "Hotkey",
+  "settings.launcherHotkey": "Hotkey to open and close",
   "settings.launcherHotkeyHint": "Click and press the combination.",
   "settings.launcherApps": "Start menu programs",
   "settings.launcherAppsHint": "Also finds the installed programs, Store apps included.",

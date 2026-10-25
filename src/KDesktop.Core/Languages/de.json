@@ -954,7 +954,7 @@
   "settings.nav.launcher.hint": "Befehlssuche",
   "settings.launcher": "Starter",
   "settings.launcherIntro": "Ein Suchfeld: Tippe einen Teil des Namens (Initialen oder einzelne Buchstaben reichen: „cmfy“ → ComfyUI), wähle mit ↑ ↓, Enter führt aus; Esc oder dasselbe Tastenkürzel schließt es. Am Griff links lässt es sich verschieben und merkt sich die Stelle.",
-  "settings.launcherHotkey": "Tastenkürzel",
+  "settings.launcherHotkey": "Tastenkürzel zum Öffnen und Schließen",
   "settings.launcherHotkeyHint": "Klicke und drücke die Kombination.",
   "settings.launcherApps": "Programme des Startmenüs",
   "settings.launcherAppsHint": "Findet auch die installierten Programme, einschließlich Store-Apps.",

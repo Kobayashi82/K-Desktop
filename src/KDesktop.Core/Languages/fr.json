@@ -954,7 +954,7 @@
   "settings.nav.launcher.hint": "Recherche de commandes",
   "settings.launcher": "Lanceur",
   "settings.launcherIntro": "Une zone de recherche : tapez une partie du nom (les initiales ou des lettres isolées suffisent : « cmfy » → ComfyUI), choisissez avec ↑ ↓ et Entrée l’exécute ; Échap ou le même raccourci la ferme. Faites-la glisser ailleurs par la poignée à gauche, elle s’en souvient.",
-  "settings.launcherHotkey": "Raccourci",
+  "settings.launcherHotkey": "Raccourci pour ouvrir et fermer",
   "settings.launcherHotkeyHint": "Cliquez et appuyez sur la combinaison.",
   "settings.launcherApps": "Programmes du menu Démarrer",
   "settings.launcherAppsHint": "Trouve aussi les programmes installés, applis du Store comprises.",

@@ -954,7 +954,7 @@
   "settings.nav.launcher.hint": "Pesquisa de comandos",
   "settings.launcher": "Lançador",
   "settings.launcherIntro": "Uma caixa de pesquisa: escreve parte do nome (bastam as iniciais ou letras soltas: «cmfy» → ComfyUI), escolhe com ↑ ↓ e Enter executa; Esc ou o mesmo atalho fecham-na. Pode ser arrastada para outro sítio pela pega à esquerda e lembra-se dele.",
-  "settings.launcherHotkey": "Atalho",
+  "settings.launcherHotkey": "Atalho para abrir e fechar",
   "settings.launcherHotkeyHint": "Clique e pressione a combinação.",
   "settings.launcherApps": "Programas do menu Iniciar",
   "settings.launcherAppsHint": "Encontra também os programas instalados, incluindo as apps da Store.",

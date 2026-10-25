@@ -721,7 +721,7 @@
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                            <TextBlock Text="{l:Tr settings.launcherHotkey}" />
+                            <TextBlock TextWrapping="Wrap" Text="{l:Tr settings.launcherHotkey}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherHotkeyHint}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
