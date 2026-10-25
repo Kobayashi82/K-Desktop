@@ -342,10 +342,10 @@
                                 <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr commands.hotkeys}" />
                                 <!-- What the hotkeys do besides running the command -->
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,0,0">
-                                    <ui:Button x:Name="AddHotkeyButton" Content="{l:Tr commands.addHotkey}" Icon="{ui:SymbolIcon Add24}" Click="OnAddHotkey" Margin="0,0,8,0" />
-                                    <v:IconToggle IsChecked="{Binding BlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
+                                    <ui:Button x:Name="AddHotkeyButton" MinHeight="36" Content="{l:Tr commands.addHotkey}" Icon="{ui:SymbolIcon Add24}" Click="OnAddHotkey" Margin="0,0,8,0" />
+                                    <v:IconToggle Width="38" Height="36" Margin="0" IsChecked="{Binding BlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
                                                   Title="{l:Tr commands.blockKey}" Hint="{l:Tr commands.blockKeyHint}" />
-                                    <v:IconToggle IsChecked="{Binding IgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
+                                    <v:IconToggle Width="38" Height="36" IsChecked="{Binding IgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
                                                   Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
                                 </StackPanel>
                             </Grid>
