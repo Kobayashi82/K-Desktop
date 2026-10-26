@@ -27,6 +27,10 @@ public sealed class UdpServerTests
             command.Actions.Add(new WaitAction { Seconds = 0 });
             store.Config.Commands.Add(command);
         }
+        store.Config.Events.Add(new EventRule { Name = "Puerta", Trigger = new RemoteCallTrigger() });
+        store.Config.Events.Add(new EventRule { Name = "Otro", Trigger = new RemoteCallTrigger { Name = "timbre" } });
+        store.Config.Events.Add(new EventRule { Name = "Apagado", Enabled = false, Trigger = new RemoteCallTrigger() });
+        store.Config.Events.Add(new EventRule { Name = "Al iniciar", Trigger = new AppStartTrigger() });
         var engine = new CommandEngine(store, new FakeUi());
         engine.Executed += (c, _) => { lock (_ran) _ran.Add(c.Name); };
         var udp = new UdpServer(engine, new FakeUi());
@@ -168,6 +172,16 @@ public sealed class UdpServerTests
         Assert.Contains("1. Álbum", udp.Receive("lista", ThisPc));
         Assert.StartsWith("OK", udp.Receive("mostrar escritorio", ThisPc));
         Assert.Equal(["Mostrar escritorio"], await Ran());
+    }
+
+    [Fact]
+    public void ListsTheCallsEventsWaitFor()
+    {
+        var udp = Server();
+        Assert.Equal("OK\nPuerta\ntimbre", udp.Receive("eventos", ThisPc));
+        using var json = JsonDocument.Parse(udp.Receive("{\"cmd\":\"events\"}", ThisPc)!);
+        Assert.Equal(2, json.RootElement.GetProperty("events").GetArrayLength());
+        Assert.StartsWith("ERROR", Server(new UdpOptions(2501, AllowEvents: false)).Receive("events", ThisPc));
     }
 
     private static long Now() => DateTimeOffset.UtcNow.ToUnixTimeSeconds();

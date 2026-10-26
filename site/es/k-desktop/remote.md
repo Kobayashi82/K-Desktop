@@ -47,6 +47,7 @@ Assistant, un script, otro PC, netcat o una aplicación del móvil.
 |---|---|
 | `list` | Contesta con tus comandos remotos, numerados |
 | Un número o un nombre (o `run <nombre>`) | Ejecuta ese comando remoto (no importan las mayúsculas ni los acentos) |
+| `events` | Contesta con las llamadas que esperan tus eventos de *Llamada desde fuera* |
 | `event <nombre>` | Lanza los eventos con *Llamada desde fuera* y ese nombre |
 | `ask <asistente> <texto>` | Le hace una pregunta o le da una orden a un asistente activo |
 | `assistants` | Contesta con los asistentes activos |
@@ -60,7 +61,7 @@ Assistant, un script, otro PC, netcat o una aplicación del móvil.
 La respuesta empieza por `OK` o `ERROR` y sigue en el idioma de K-Desktop.
 
 Las órdenes también valen en el idioma de K-Desktop (en español: `ayuda`, `lista`, `ejecutar`, `evento`, `preguntar`,
-`asistentes`, `teclas`, `escribir`, `multimedia siguiente`, `volumen subir`, `mostrar`…). Si un comando remoto se llama
+`eventos`, `asistentes`, `teclas`, `escribir`, `multimedia siguiente`, `volumen subir`, `mostrar`…). Si un comando remoto se llama
 exactamente como lo que mandas, gana el comando. En los programas, mejor en inglés: vale siempre, cambies o no el idioma.
 
 Opciones:
@@ -72,7 +73,7 @@ Opciones:
 | **Clave** | Opcional. Desde otro equipo se pone delante de cada orden (`miclave list`) o se firma con ella. Desde este PC no hace falta. *Generar* crea una y la copia |
 | **Teclas y texto** | Permite `keys` y `type` (apagado por defecto) |
 | **Comandos ocultos** | Los comandos remotos ocultos también salen en `list` y se pueden ejecutar |
-| **Eventos** | Permite `event` |
+| **Eventos** | Permite `events` y `event` |
 | **Asistentes** | Permite `ask` (apagado por defecto) |
 
 Lo que no está permitido no recibe respuesta, y una dirección que falla la clave varias veces seguidas se ignora unos

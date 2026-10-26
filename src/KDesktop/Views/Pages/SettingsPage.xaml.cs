@@ -41,6 +41,8 @@ public partial class SettingsPage : UserControl
         UdpKeyBox.Password = _app.UdpKey ?? string.Empty;
         UdpKeyBox.LostFocus += (_, _) => SaveUdpKey(UdpKeyBox.Password);
         UpdateUdpScopeHint();
+        FillUdpHelpDocs();
+        Loc.Instance.Changed += () => Dispatcher.BeginInvoke(FillUdpHelpDocs);
 
         // Pages are kept while the window lives: follow the server only while this one is shown.
         void OnUdpState() => Dispatcher.BeginInvoke(UpdateUdpState);
@@ -478,6 +480,22 @@ public partial class SettingsPage : UserControl
             s.UdpScope == Core.Remote.RemoteScope.Internet && s.UdpKey is null ? "Kd.Warning" : "TextFillColorSecondaryBrush");
         // From the internet the key is not optional.
         UdpKeyHint.Text = Loc.T(s.UdpScope == Core.Remote.RemoteScope.Internet ? "settings.udpKeyHint" : "settings.udpKeyHintOptional");
+    }
+
+    /// <summary>«For more, see Remote control in the documentation», with «Remote control» linking to its UDP part.</summary>
+    private void FillUdpHelpDocs()
+    {
+        var url = Loc.Instance.Language == "es"
+            ? "https://kobayashi82.github.io/K-Desktop/es/k-desktop/remote.html#udp"
+            : "https://kobayashi82.github.io/K-Desktop/en/k-desktop/remote.html#udp";
+        var parts = Loc.T("settings.udpHelpDocs").Split("{0}");
+        var link = new System.Windows.Documents.Hyperlink(new System.Windows.Documents.Run(Loc.T("settings.remote"))) { ToolTip = url };
+        link.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, "Kd.AccentText");
+        link.Click += (_, _) => ProcessLauncher.Launch(new LaunchSpec(url), asAdmin: false);
+        UdpHelpDocs.Inlines.Clear();
+        UdpHelpDocs.Inlines.Add(parts[0]);
+        UdpHelpDocs.Inlines.Add(link);
+        if (parts.Length > 1) UdpHelpDocs.Inlines.Add(parts[1]);
     }
 
     /// <summary>Saves the key (spaces out: the text form separates the key from the order with one); empty removes it.</summary>

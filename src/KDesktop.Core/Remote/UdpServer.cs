@@ -293,7 +293,7 @@ public sealed partial class UdpServer : IDisposable
     /// <summary>An order: what (<c>run</c>, <c>list</c>…), its argument and, for <c>ask</c>, the assistant.</summary>
     internal sealed record Request(string Cmd, string Arg = "", string Assistant = "", long? Time = null, string? Id = null);
 
-    private static readonly string[] Words = ["list", "help", "assistants", "run", "event", "ask", "keys", "type", "media", "volume", "show"];
+    private static readonly string[] Words = ["list", "help", "assistants", "run", "events", "event", "ask", "keys", "type", "media", "volume", "show"];
     private static readonly string[] MediaWords = ["play", "pause", "next", "previous", "stop"];
     private static readonly string[] VolumeWords = ["up", "down", "mute"];
 
@@ -353,6 +353,9 @@ public sealed partial class UdpServer : IDisposable
                 return Reply.Done(Loc.T("udp.done"));
             case "run":
                 return Run(request.Arg);
+            case "events":
+                if (!o.AllowEvents) return Reply.Error("off", Loc.T("udp.off"));
+                return Reply.EventNames(RemoteCalls());
             case "event":
                 if (!o.AllowEvents) return Reply.Error("off", Loc.T("udp.off"));
                 if (request.Arg.Length == 0) return Reply.Error("badRequest", Loc.T("udp.missing", "event"));
@@ -400,6 +403,13 @@ public sealed partial class UdpServer : IDisposable
 
     /// <summary>K-Desktop is disabled in the window in front («Desactivar en»): no keys go to it.</summary>
     private bool DisabledHere() => _engine.Config.Settings.DisabledIn.Contains(ForegroundWindow.Capture().ProcessName);
+
+    /// <summary>The calls the enabled «Llamada desde fuera» events wait for (their own name when they don't set one).</summary>
+    private List<string> RemoteCalls() =>
+        _engine.Config.Events.Where(e => e.Enabled && e.Trigger is RemoteCallTrigger)
+            .Select(e => ((RemoteCallTrigger)e.Trigger).Name.Trim() is { Length: > 0 } call ? call : e.Name.Trim())
+            .Where(n => n.Length > 0).Distinct(StringComparer.CurrentCultureIgnoreCase)
+            .Order(StringComparer.CurrentCultureIgnoreCase).ToList();
 
     /// <summary>Remote commands in a stable order (by name); their number is their place, from 1.</summary>
     private List<Command> RemoteCommands() =>
@@ -453,12 +463,14 @@ public sealed partial class UdpServer : IDisposable
         CultureInfo.InvariantCulture.CompareInfo.Compare(a.Trim(), b.Trim(), CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace) == 0;
 
     /// <summary>What goes back: as text (<c>OK …</c> / <c>ERROR …</c>) or as JSON, the way the order came.</summary>
-    internal sealed record Reply(bool Ok, string Message, string? Code = null, IReadOnlyList<string>? Commands = null, IReadOnlyList<WebAssistantInfo>? Active = null)
+    internal sealed record Reply(bool Ok, string Message, string? Code = null, IReadOnlyList<string>? Commands = null,
+        IReadOnlyList<WebAssistantInfo>? Active = null, IReadOnlyList<string>? Events = null)
     {
         public static Reply Done(string message) => new(true, message);
         public static Reply Error(string code, string message) => new(false, message, code);
         public static Reply List(IReadOnlyList<string> commands) => new(true, string.Empty, Commands: commands);
         public static Reply Assistants(IReadOnlyList<WebAssistantInfo> active) => new(true, string.Empty, Active: active);
+        public static Reply EventNames(IReadOnlyList<string> events) => new(true, string.Empty, Events: events);
 
         public string ToText()
         {
@@ -466,6 +478,8 @@ public sealed partial class UdpServer : IDisposable
             if (Message.Length > 0) sb.Append(' ').Append(Message);
             if (Commands is not null)
                 for (var i = 0; i < Commands.Count; i++) sb.Append(CultureInfo.InvariantCulture, $"\n{i + 1}. {Commands[i]}");
+            if (Events is not null)
+                foreach (var e in Events) sb.Append('\n').Append(e);
             if (Active is not null)
                 foreach (var a in Active) sb.Append(CultureInfo.InvariantCulture, $"\n{a.Name} ({a.Id})");
             return sb.ToString();
@@ -477,6 +491,7 @@ public sealed partial class UdpServer : IDisposable
             if (Code is not null) node["error"] = Code;
             if (Message.Length > 0) node["message"] = Message;
             if (Commands is not null) node["commands"] = new System.Text.Json.Nodes.JsonArray([.. Commands.Select(c => (System.Text.Json.Nodes.JsonNode?)c)]);
+            if (Events is not null) node["events"] = new System.Text.Json.Nodes.JsonArray([.. Events.Select(e => (System.Text.Json.Nodes.JsonNode?)e)]);
             if (Active is not null)
                 node["assistants"] = new System.Text.Json.Nodes.JsonArray([.. Active.Select(a => (System.Text.Json.Nodes.JsonNode?)new System.Text.Json.Nodes.JsonObject { ["id"] = a.Id, ["name"] = a.Name })]);
             return node.ToJsonString();

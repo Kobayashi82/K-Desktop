@@ -888,7 +888,7 @@
                                 <ui:SymbolIcon Symbol="Info24" FontSize="18" Margin="0,0,12,0" VerticalAlignment="Top" Foreground="{DynamicResource Kd.AccentText}" />
                                 <StackPanel Grid.Column="1">
                                     <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.udpHelp}" TextWrapping="Wrap" />
-                                    <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="{l:Tr settings.udpHelpDocs}" TextWrapping="Wrap" />
+                                    <TextBlock x:Name="UdpHelpDocs" Style="{StaticResource Caption}" Margin="0,6,0,0" TextWrapping="Wrap" />
                                 </StackPanel>
                             </Grid>
                         </Border>

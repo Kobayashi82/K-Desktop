@@ -47,6 +47,7 @@ another PC, netcat or a phone app can use it.
 |---|---|
 | `list` | Answers with your remote commands, numbered |
 | A number or a name (or `run <name>`) | Runs that remote command (capitals and accents don't matter) |
+| `events` | Answers with the calls your *Call from outside* events wait for |
 | `event <name>` | Fires the events with *Call from outside* and that name |
 | `ask <assistant> <text>` | Asks an active assistant something or gives it an order |
 | `assistants` | Answers with the active assistants |
@@ -59,7 +60,7 @@ another PC, netcat or a phone app can use it.
 
 The reply starts with `OK` or `ERROR` and goes on in K-Desktop's language.
 
-Orders also work in K-Desktop's language (in Spanish: `ayuda`, `lista`, `ejecutar`, `evento`, `preguntar`, `teclas`,
+Orders also work in K-Desktop's language (in Spanish: `ayuda`, `lista`, `ejecutar`, `eventos`, `evento`, `preguntar`, `teclas`,
 `escribir`…). If a remote command is called exactly like what you send, the command wins. In programs, use English: it
 always works, whatever the language.
 
@@ -72,7 +73,7 @@ Options:
 | **Key** | Optional. From another computer it goes in front of each order (`mykey list`) or orders are signed with it. Not needed from this PC. *Generate* makes one and copies it |
 | **Keys and text** | Allows `keys` and `type` (off by default) |
 | **Hidden commands** | Hidden remote commands also show in `list` and can be run |
-| **Events** | Allows `event` |
+| **Events** | Allows `events` and `event` |
 | **Assistants** | Allows `ask` (off by default) |
 
 What is not allowed gets no reply, and an address that gets the key wrong several times in a row is ignored for a few
