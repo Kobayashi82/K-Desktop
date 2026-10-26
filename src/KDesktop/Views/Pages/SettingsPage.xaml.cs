@@ -476,6 +476,8 @@ public partial class SettingsPage : UserControl
             : Loc.T("settings.udpScopeHint");
         UdpScopeHint.SetResourceReference(ForegroundProperty,
             s.UdpScope == Core.Remote.RemoteScope.Internet && s.UdpKey is null ? "Kd.Warning" : "TextFillColorSecondaryBrush");
+        // From the internet the key is not optional.
+        UdpKeyHint.Text = Loc.T(s.UdpScope == Core.Remote.RemoteScope.Internet ? "settings.udpKeyHint" : "settings.udpKeyHintOptional");
     }
 
     /// <summary>Saves the key (spaces out: the text form separates the key from the order with one); empty removes it.</summary>

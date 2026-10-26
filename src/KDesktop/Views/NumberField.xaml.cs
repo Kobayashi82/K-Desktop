@@ -85,7 +85,12 @@ public partial class NumberField : UserControl
             _ => 0,
         };
         if (step != 0) Step(step);
-        else if (e.Key == Key.Enter) Commit();
+        else if (e.Key == Key.Enter)
+        {
+            // Saved now; not handled, so the window's Enter (InputPolish) takes the focus out of the box.
+            Commit();
+            return;
+        }
         else if (e.Key == Key.Space) { } // would get through PreviewTextInput
         else return;
         e.Handled = true;

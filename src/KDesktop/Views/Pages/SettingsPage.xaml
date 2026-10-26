@@ -840,13 +840,15 @@
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                             <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                                 <TextBlock Text="{l:Tr settings.udpKey}" />
-                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.udpKeyHint}" TextWrapping="Wrap" />
+                                <TextBlock x:Name="UdpKeyHint" Style="{StaticResource Caption}" TextWrapping="Wrap" />
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <ui:PasswordBox x:Name="UdpKeyBox" Width="220" PlaceholderText="{l:Tr settings.udpKeyNone}" AutomationProperties.Name="{l:Tr settings.udpKey}" />
                                 <ui:Button MinHeight="36" Margin="8,0,0,0" Content="{l:Tr settings.udpKeyNew}" Icon="{ui:SymbolIcon KeyReset24}" Click="OnNewUdpKey" />
                             </StackPanel>
                         </Grid>
+                        <!-- What is allowed, apart from who gets in -->
+                        <Border Height="1" Margin="0,14,0,12" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
                         <Grid Style="{StaticResource SettingRow}">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                             <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
@@ -879,7 +881,14 @@
                             </StackPanel>
                             <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding UdpAllowAssistants}" />
                         </Grid>
-                        <TextBlock Margin="0,8,0,0" Style="{StaticResource Caption}" Text="{l:Tr settings.udpHelp}" TextWrapping="Wrap" />
+                        <!-- How to talk to it -->
+                        <Border Style="{StaticResource InfoBox}">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <ui:SymbolIcon Symbol="Info24" FontSize="18" Margin="0,0,12,0" VerticalAlignment="Top" Foreground="{DynamicResource Kd.AccentText}" />
+                                <TextBlock Grid.Column="1" Style="{StaticResource Caption}" Text="{l:Tr settings.udpHelp}" TextWrapping="Wrap" />
+                            </Grid>
+                        </Border>
                     </StackPanel>
                 </StackPanel>
             </Border>
