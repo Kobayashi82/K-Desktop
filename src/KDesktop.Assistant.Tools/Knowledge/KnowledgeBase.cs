@@ -63,6 +63,8 @@ public sealed class KnowledgeBase : IDisposable
     private Task? _worker;
     private string _phase = "off";
     private string? _current;
+    /// <summary>The pieces of the file being read and how many have their meaning (a big file takes minutes: it is seen moving).</summary>
+    private int _currentPieces, _currentDone;
     private string? _paused;
     private string? _model;
     private bool _probed;
@@ -179,8 +181,10 @@ public sealed class KnowledgeBase : IDisposable
                 return new KnowledgeFolderInfo(folder, true, files.Count, done, documents.Sum(d => d.Pieces.Length), documents.Count(d => d.State == KnowledgeState.Failed));
             }).ToList();
             var phase = _folders.Count == 0 ? "off" : _phase == "indexing" && _paused is not null ? "paused" : _phase;
+            var reading = phase is "indexing" or "paused";
             return new KnowledgeStateMessage(phase, folders.Sum(f => f.Files), folders.Sum(f => f.Done), folders.Sum(f => f.Pieces), folders,
-                phase is "indexing" or "paused" ? _current : null, phase == "paused" ? _paused : null, _probed && _model is null, _store.Bytes());
+                reading ? _current : null, phase == "paused" ? _paused : null, _probed && _model is null, _store.Bytes(),
+                reading ? _currentPieces : 0, reading ? _currentDone : 0);
         }
     }
 
@@ -472,8 +476,7 @@ public sealed class KnowledgeBase : IDisposable
                 {
                     if (entry is DirectoryInfo sub)
                     {
-                        if (!FileSearch.IsProgramsFolder(sub.Name) && !sub.Attributes.HasFlag(FileAttributes.ReparsePoint) && !KnowledgeReader.IsSavedPageFolder(sub))
-                            pending.Push(sub.FullName);
+                        if (!sub.Attributes.HasFlag(FileAttributes.ReparsePoint) && !KnowledgeReader.SkipsFolder(sub)) pending.Push(sub.FullName);
                     }
                     else if (entry is FileInfo file && KnowledgeReader.Takes(file, pictures))
                     {
@@ -585,6 +588,12 @@ public sealed class KnowledgeBase : IDisposable
         string? model = null;
         for (var start = 0; start < pieces.Count; start += EmbedBatch)
         {
+            lock (_gate)
+            {
+                _currentPieces = pieces.Count;
+                _currentDone = start;
+            }
+            if (pieces.Count > EmbedBatch) Raise();
             await WaitAsync(stop).ConfigureAwait(false);
             var watch = Stopwatch.StartNew();
             var batch = pieces.Skip(start).Take(EmbedBatch).Select(p => title + "\n" + p.Text).ToList();
@@ -727,7 +736,7 @@ public sealed class KnowledgeBase : IDisposable
         foreach (var part in parts.Where(p => p != "."))
         {
             current = Path.Combine(current, part);
-            if (FileSearch.IsProgramsFolder(part) || KnowledgeReader.IsSavedPageFolder(new DirectoryInfo(current))) return true;
+            if (KnowledgeReader.SkipsFolder(new DirectoryInfo(current))) return true;
         }
         return false;
     }
@@ -760,6 +769,7 @@ public sealed class KnowledgeBase : IDisposable
         lock (_gate)
         {
             changed = _phase != phase || _current != current;
+            if (_current != current) _currentPieces = _currentDone = 0;
             _phase = phase;
             _current = current;
         }

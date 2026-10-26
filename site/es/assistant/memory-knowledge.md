@@ -42,10 +42,12 @@ se vigilan: un archivo nuevo o cambiado se vuelve a leer solo. Nada sale del ord
 - **Qué se lee**: texto y Markdown, PDF, Word (`.docx`), PowerPoint (`.pptx`), páginas web, subtítulos y correos (`.eml`),
   y archivos de código o de datos que no sean muy grandes. Con **Leer imágenes y PDF escaneados**, también imágenes y
   páginas de PDF sin texto, con el reconocimiento de texto de Windows (la primera vez tarda más).
-- **Qué no se puede**: un disco entero, ni carpetas de Windows o de los programas. Las carpetas ocultas se saltan, y también la de estilos y scripts
-  de una página web guardada (`Página_files`); el código minificado queda *Sin texto*.
+- **Qué no se puede**: un disco entero, ni carpetas de Windows o de los programas. Las carpetas ocultas se saltan, y también las de librerías y de
+  compilación de un proyecto (`third_party`, `vendor`, `build`, `dist`…), la de estilos y scripts de una página web
+  guardada (`Página_files`) y las listas de versiones de paquetes (`package-lock.json`…); el código minificado queda *Sin
+  texto*.
 - **Mientras lee**, la página enseña «Leyendo: 412 de 1.300 archivos», cuánto le queda más o menos y el archivo por el que
-  va. Lee sin agobiar al PC y **se pone en pausa** con un juego a pantalla completa, con K-Desktop en pausa y mientras un
+  va (en uno grande, también por qué trozo). Lee sin agobiar al PC y **se pone en pausa** con un juego a pantalla completa, con K-Desktop en pausa y mientras un
   asistente contesta. **Pausar la lectura** la detiene hasta que pulses **Seguir leyendo** (lo ya leído se sigue usando).
 - Cada carpeta o archivo tiene **Abrir la carpeta** y **Quitar**; las carpetas, también **Ver los archivos**: la lista,
   con su propio desplazamiento, con cada archivo y sus trozos, páginas, o por qué no se ha podido leer. Se puede **buscar**

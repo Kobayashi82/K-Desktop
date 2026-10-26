@@ -17,5 +17,14 @@
       "ocr": false
     }
   ],
-  "total": 1300
+  "total": 2,
+  "text": "2026",
+  "filter": "all",
+  "counts": {
+    "all": 1300,
+    "ready": 412,
+    "waiting": 885,
+    "problem": 3,
+    "skipped": 1
+  }
 }

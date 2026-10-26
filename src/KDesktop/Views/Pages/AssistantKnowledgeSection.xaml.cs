@@ -152,10 +152,14 @@ public partial class AssistantKnowledgeSection : UserControl
         };
         DetailText.Text = state.Phase == "paused" && state.Paused is { } why ? Loc.T("knowledgeOptions.paused." + why)
             : userPaused && state.Phase == "indexing" ? Loc.T("knowledgeOptions.paused.user")
-            : state.Current is { } current ? Loc.T("knowledgeOptions.current", Path.GetFileName(current))
+            : state.Current is { } current && state.CurrentPieces > 16
+                ? Loc.T("knowledgeOptions.currentPieces", Path.GetFileName(current), Count(state.CurrentDone), Count(state.CurrentPieces))
+            : state.Current is { } now ? Loc.T("knowledgeOptions.current", Path.GetFileName(now))
             : Loc.T("knowledgeOptions.size", Megabytes(state.Bytes));
         Progress.Visibility = reading && state.Files > 0 ? Visibility.Visible : Visibility.Collapsed;
-        Progress.Value = state.Files > 0 ? state.Done / (double)state.Files : 0;
+        // The file being read counts by its part done (a big one is seen moving).
+        var part = state.CurrentPieces > 0 ? state.CurrentDone / (double)state.CurrentPieces : 0;
+        Progress.Value = state.Files > 0 ? Math.Min(1, (state.Done + part) / state.Files) : 0;
     }
 
     /// <summary>How far it was read, a few times a second while reading (a pause starts it again: it would slow the pace).</summary>

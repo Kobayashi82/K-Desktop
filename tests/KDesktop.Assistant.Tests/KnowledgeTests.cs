@@ -136,6 +136,9 @@ public sealed class KnowledgeTests : IDisposable
         Write("node_modules/paquete/leeme.md", "Esto no se lee: es de un programa.");
         // A web page saved with the browser: the page is read, its folder of styles and scripts is not; minified code has no text.
         Write("pagina_files/estilos.css", "body { color: red; }");
+        // Others' code kept in a project and the lists of package versions: not the user's.
+        Write("proyecto/third_party/lib/lib.c", "int lib(void) { return 0; }");
+        Write("proyecto/package-lock.json", "{ \"lockfileVersion\": 3 }");
         Write("pagina.html", "<html><body><p>El horario de la piscina es de nueve a dos.</p></body></html>");
         Write("app.min-ish.js", string.Concat(Enumerable.Repeat("var a=1;function b(){return a+2}", 200)));
         Write("programa.exe", "MZ");

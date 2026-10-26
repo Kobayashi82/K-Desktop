@@ -196,14 +196,14 @@ Opciones → Módulo Asistente → «Lo que sabe»: carpetas de documentos del u
 asistente lee una vez, trocea, pasa a vectores (`embed` con `use: document`) y guarda en `Assistant\Knowledge\` (un archivo
 por documento; fuera de la copia de seguridad: se rehace). Al arrancar compara fecha y tamaño de cada archivo y solo lee lo
 cambiado; mientras está abierto, vigila las carpetas. Para con un juego a pantalla completa, con K-Desktop en pausa y mientras
-un asistente contesta. Las carpetas y si se leen imágenes con el OCR van en `config` `tools` → `knowledge` (`folders`, `ocr`).
+un asistente contesta. Las carpetas y si se leen imágenes con el OCR van en `config` `tools` → `knowledge` (`folders`, `ocr`, `paused` —el usuario paró la lectura—, `skipped` —archivos quitados—).
 Los asistentes buscan con la herramienta `search_knowledge`.
 
 | `t` | Dir. | Campos | Qué es |
 |---|---|---|---|
-| `knowledge` | K→A | `op` (`state`, `files`, `search`, `rebuild`, `clear`), `folder` (para `files`), `text` (para `search`) | Preguntar cómo va, los archivos de una carpeta, probar una búsqueda, leerlo todo otra vez u olvidar lo leído |
-| `knowledgeState` | A→K | `phase` (`loading`, `scanning`, `indexing`, `paused`, `ready`, `off`), `files`, `done`, `pieces`, `folders` (`path`, `online`, `files`, `done`, `pieces`, `failed`), `current`, `paused` (`game`, `kdesktop`, `busy`), `wordsOnly` (sin EmbeddingGemma), `bytes` | Cómo va: cuando cambia (dos veces por segundo como mucho) y tras cada `knowledge` |
-| `knowledgeFiles` | A→K | `folder`, `files` (`path`, `state` —`ready`, `empty`, `failed`, `waiting`—, `pieces`, `pages`, `ocr`), `total` | Los archivos de una carpeta (los 1000 primeros) |
+| `knowledge` | K→A | `op` (`state`, `files`, `search`, `rebuild`, `clear`), `folder` (para `files`), `text` (para `search`, y las palabras de la ruta en `files`), `filter` (para `files`: `all`, `ready`, `waiting`, `problem`, `skipped`) | Preguntar cómo va, los archivos de una carpeta, probar una búsqueda, leerlo todo otra vez u olvidar lo leído |
+| `knowledgeState` | A→K | `phase` (`loading`, `scanning`, `indexing`, `paused`, `ready`, `off`), `files`, `done`, `pieces`, `folders` (`path`, `online`, `files`, `done`, `pieces`, `failed`), `current`, `paused` (`game`, `kdesktop`, `busy`, `user`), `wordsOnly` (sin EmbeddingGemma), `bytes`, `currentPieces` y `currentDone` (los trozos del archivo que lee y cuántos lleva) | Cómo va: cuando cambia (dos veces por segundo como mucho) y tras cada `knowledge` |
+| `knowledgeFiles` | A→K | `folder`, `files` (`path`, `state` —`ready`, `empty`, `failed`, `waiting`, `skipped`—, `pieces`, `pages`, `ocr`), `total`, `text` y `filter` (lo pedido), `counts` (cuántos hay en cada filtro) | Los archivos de una carpeta que cumplen lo pedido (los 500 primeros) |
 | `knowledgeFound` | A→K | `text`, `hits` (`path`, `page`, `text`, `score`), `how` (`mixed` o `words`), `milliseconds` | Lo que encontró una búsqueda de prueba |
 
 ### Lo propio de cada asistente

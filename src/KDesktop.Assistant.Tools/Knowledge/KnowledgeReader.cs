@@ -44,7 +44,8 @@ public static class KnowledgeReader
         if (!chose && (file.Name.StartsWith('~') || file.Name.StartsWith('.'))) return false;
         if (KnowledgeFolders.Documents.Contains(extension)) return file.Length <= FileText.MaxBytes;
         if (KnowledgeFolders.Code.Contains(extension))
-            return chose ? file.Length <= FileText.MaxBytes : file.Length <= MaxCodeBytes && !file.Name.Contains(".min.", StringComparison.OrdinalIgnoreCase);
+            return chose ? file.Length <= FileText.MaxBytes
+                : file.Length <= MaxCodeBytes && !file.Name.Contains(".min.", StringComparison.OrdinalIgnoreCase) && !LockFiles.Contains(file.Name);
         return ocr && KnowledgeFolders.Pictures.Contains(extension) && file.Length <= MaxPictureBytes && (chose || file.Length > 8 * 1024);
     }
 
@@ -60,6 +61,22 @@ public static class KnowledgeReader
         var lines = 1 + text.AsSpan().Count('\n');
         return text.Length / lines > MinifiedLine;
     }
+
+    /// <summary>Code of others kept in a project (libraries) and what building makes: not the user's to ask about.</summary>
+    private static readonly HashSet<string> LibraryFolders = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "third_party", "thirdparty", "3rdparty", "third-party", "vendor", "vendors", "deps", "_deps", "external", "extern", "dist", "build", "target",
+    };
+
+    /// <summary>The lists of versions package managers write: long and nothing to ask about.</summary>
+    private static readonly HashSet<string> LockFiles = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "composer.lock", "Cargo.lock", "poetry.lock", "Pipfile.lock", "Gemfile.lock", "packages.lock.json",
+    };
+
+    /// <summary>A folder of a chosen one that is never walked into: programs', libraries', builds' or a saved page's.</summary>
+    public static bool SkipsFolder(DirectoryInfo folder) =>
+        FileSearch.IsProgramsFolder(folder.Name) || LibraryFolders.Contains(folder.Name) || IsSavedPageFolder(folder);
 
     /// <summary>
     /// The folder of the pictures, styles and scripts of a web page saved with the browser («Página_files» next to

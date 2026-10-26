@@ -1,5 +1,7 @@
 {
   "t": "knowledge",
   "op": "files",
-  "folder": "D:\\Documentos\\Facturas"
+  "folder": "D:\\Documentos\\Facturas",
+  "text": "2026",
+  "filter": "all"
 }

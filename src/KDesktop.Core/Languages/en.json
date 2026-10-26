@@ -4430,6 +4430,7 @@
   "knowledgeOptions.paused.kdesktop": "K-Desktop is paused.",
   "knowledgeOptions.paused.busy": "Waiting for an assistant to finish answering.",
   "knowledgeOptions.current": "Now: {0}",
+  "knowledgeOptions.currentPieces": "Now: {0} ({1} of {2} pieces)",
   "knowledgeOptions.size": "It takes {0} on this PC.",
   "knowledgeOptions.wordsOnly": "Without the meaning model (EmbeddingGemma) it only finds what you ask with the same words as the document. It is downloaded with the voice models, in Settings → Voice.",
   "knowledgeOptions.folder.looking": "Looking…",

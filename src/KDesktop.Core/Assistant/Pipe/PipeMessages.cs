@@ -612,8 +612,9 @@ public sealed record KnowledgeFolderInfo(string Path, bool Online, int Files, in
 /// <param name="Paused">Why it waits: <c>game</c>, <c>kdesktop</c> (K-Desktop is paused) or <c>busy</c> (an assistant is answering).</param>
 /// <param name="WordsOnly">EmbeddingGemma is not there: found only by its words until it is.</param>
 /// <param name="Bytes">What the index takes on disk.</param>
+/// <param name="CurrentPieces">Pieces of the file being read (0: not known yet); <paramref name="CurrentDone"/>, how many already have their meaning.</param>
 public sealed record KnowledgeStateMessage(string Phase, int Files, int Done, int Pieces, IReadOnlyList<KnowledgeFolderInfo> Folders,
-    string? Current = null, string? Paused = null, bool WordsOnly = false, long Bytes = 0) : PipeMessage
+    string? Current = null, string? Paused = null, bool WordsOnly = false, long Bytes = 0, int CurrentPieces = 0, int CurrentDone = 0) : PipeMessage
 {
     public override string Type => "knowledgeState";
 }
