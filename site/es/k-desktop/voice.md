@@ -58,3 +58,6 @@ reproductor que las atienda: la música, el navegador, una película («pausa la
 
 La acción *Dictar* (y su propio atajo en *Opciones → Voz*) escribe lo que dices donde está el cursor, sin IA. Di «nueva
 línea», «punto y aparte», «borra eso» o «deja de dictar»; también acaba tras unos segundos de silencio o con Esc.
+
+Con *Dictar por voz* encendido (*Opciones → Voz*, debajo del atajo para dictar), también se empieza como una orden de
+voz, sin crear comandos: «vamos a dictar», «empieza a dictar», «escribe lo que te diga».

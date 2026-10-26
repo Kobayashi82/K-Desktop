@@ -24,7 +24,7 @@ public static class VoiceDiagnostics
         using var stt = new SpeechToText();
         using var semantic = new SemanticMatcher();
         report.AppendLine(SemanticMatcher.Available ? "Capa de significado: EmbeddingGemma" : "Capa de significado: sin instalar (solo las palabras)");
-        IntentPlan Plan(string text) => IntentMatcher.Plan(text, commands, config.Settings.VoiceMedia, semantic);
+        IntentPlan Plan(string text) => IntentMatcher.Plan(text, commands, config.Settings.VoiceMedia, semantic, config.Settings.DictationVoice);
         foreach (var input in inputs)
         {
             if (input.EndsWith(".txt", StringComparison.OrdinalIgnoreCase) && File.Exists(input))

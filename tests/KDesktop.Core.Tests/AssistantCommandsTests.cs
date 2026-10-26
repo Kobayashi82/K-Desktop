@@ -118,6 +118,18 @@ public class AssistantCommandsTests
         Assert.Null(AssistantCommands.MediaOrderOf(new MediaMessage("dance")));
     }
 
+    [Theory]
+    [InlineData("vamos a dictar")]
+    [InlineData("empieza a dictar")]
+    [InlineData("escribe lo que te diga")]
+    public void DictationIsAVoiceOrderWithItsOwnSwitch(string said)
+    {
+        var commands = new[] { Make("Vaciar papelera"), Make("Abrir Chrome") };
+        var on = IntentMatcher.Plan(said, commands, media: false, dictation: true);
+        Assert.Equal(MediaOrderKind.Dictate, Assert.Single(on.Parts).Winner?.Media?.Kind);
+        Assert.Empty(IntentMatcher.Plan(said, commands, media: true, dictation: false).Parts);
+    }
+
     [Fact]
     public async Task ItRunsACommandRecordedAsTheAssistants()
     {

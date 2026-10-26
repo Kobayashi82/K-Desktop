@@ -44,6 +44,11 @@ public sealed partial class VoiceService
                     return await MusicOnAsync(settings).ConfigureAwait(false);
                 case MediaOrderKind.MusicOff:
                     return await MusicOffAsync(settings).ConfigureAwait(false);
+                case MediaOrderKind.Dictate:
+                    // Said as a voice order: it starts when that order lets the microphone go.
+                    if (_active != 0) _dictateNext = true;
+                    else _ = DictateAsync(SwitchMode.On);
+                    return (Loc.T("voice.media.done.Dictate"), OsdKind.Success);
                 case MediaOrderKind.Cancel:
                     var cancelled = CancelPending?.Invoke() == true;
                     Log.Info(cancelled ? "Voz: cancelado lo que estaba en marcha" : "Voz: «cancela» sin nada que cancelar");
@@ -57,6 +62,16 @@ public sealed partial class VoiceService
             Log.Error($"Error en la orden multimedia {order.Kind}", ex);
         }
         return (Loc.T("voice.media.error"), OsdKind.Warning);
+    }
+
+    /// <summary>«Vamos a dictar» was said: the dictation starts when the order is over.</summary>
+    private volatile bool _dictateNext;
+
+    private void DictateIfAsked()
+    {
+        if (!_dictateNext) return;
+        _dictateNext = false;
+        _ = DictateAsync(SwitchMode.On);
     }
 
     /// <summary>Cancels the countdowns and waits in progress (as Escape does); false when there was none.</summary>

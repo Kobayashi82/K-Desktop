@@ -83,16 +83,17 @@ public static class IntentMatcher
     /// commas… and each piece matched on its own.
     /// </summary>
     /// <param name="media">Also the built-in media orders (Settings › Multimedia).</param>
+    /// <param name="dictation">Also «vamos a dictar» (Settings › Voz).</param>
     /// <param name="semantic">The meaning layer, or null for the words only.</param>
     /// <remarks>
     /// A whole order that only its meaning matched may be one of its parts («vacía la papelera y ábrela» is close to
     /// "Vaciar Papelera"): its pieces are matched too, and win when two or more of them name something. A piece that is
     /// only a verb and a pronoun («la abres», «ábrela», «open it») is about the thing of the piece before.
     /// </remarks>
-    public static IntentPlan Plan(string text, IEnumerable<Command> commands, bool media = false, SemanticMatcher? semantic = null)
+    public static IntentPlan Plan(string text, IEnumerable<Command> commands, bool media = false, SemanticMatcher? semantic = null, bool dictation = false)
     {
         var list = commands as IReadOnlyCollection<Command> ?? commands.ToList();
-        var whole = Match(text, list, media, semantic);
+        var whole = Match(text, list, media, semantic, dictation);
         if (whole.Winner is { Semantic: false }) return new IntentPlan(whole, [whole], []);
         var pieces = SplitOrders(text);
         if (pieces.Count < 2) return whole.Winner is null ? new IntentPlan(whole, [], []) : new IntentPlan(whole, [whole], []);
@@ -100,11 +101,11 @@ public static class IntentMatcher
         var referred = false;
         for (var i = 0; i < pieces.Count; i++)
         {
-            var result = Match(pieces[i], list, media, semantic);
+            var result = Match(pieces[i], list, media, semantic, dictation);
             // Resolved even when no command takes it: what is left says what it means («minimiza steam», not «minimízalo»).
             if (result.Winner is null && i > 0 && WithThing(pieces[i], results[i - 1].Text) is { } meant)
             {
-                result = Match(meant, list, media, semantic);
+                result = Match(meant, list, media, semantic, dictation);
                 referred = true;
             }
             results.Add(result);
@@ -188,11 +189,11 @@ public static class IntentMatcher
             .ToList();
 
 
-    public static IntentResult Match(string text, IEnumerable<Command> commands, bool media = false, SemanticMatcher? semantic = null)
+    public static IntentResult Match(string text, IEnumerable<Command> commands, bool media = false, SemanticMatcher? semantic = null, bool dictation = false)
     {
         var list = commands as IReadOnlyCollection<Command> ?? commands.ToList();
-        var words = MatchWords(text, list, media);
-        var result = words.Winner is not null || semantic is null || !SemanticMatcher.Available ? words : MatchMeaning(words, list, media, semantic);
+        var words = MatchWords(text, list, media, dictation);
+        var result = words.Winner is not null || semantic is null || !SemanticMatcher.Available ? words : MatchMeaning(words, list, media, dictation, semantic);
         return result.Winner is { } winner && Refuses(text, winner) ? result with { Winner = null } : result;
     }
 
@@ -200,12 +201,12 @@ public static class IntentMatcher
     /// The words named nothing clearly: the closest command in meaning, if close enough and ahead of the next command
     /// and of the «not mine» phrases. When the words already pointed to the same command, a little less is enough.
     /// </summary>
-    private static IntentResult MatchMeaning(IntentResult words, IReadOnlyCollection<Command> commands, bool media, SemanticMatcher semantic)
+    private static IntentResult MatchMeaning(IntentResult words, IReadOnlyCollection<Command> commands, bool media, bool dictation, SemanticMatcher semantic)
     {
         SemanticScores? scores;
         try
         {
-            scores = semantic.Score(words.Text, commands, media);
+            scores = semantic.Score(words.Text, commands, media, dictation);
         }
         catch (Exception ex)
         {
@@ -241,7 +242,7 @@ public static class IntentMatcher
         return new IntentResult(words.Text, accepted ? found[0] : null, candidates, note);
     }
 
-    private static IntentResult MatchWords(string text, IEnumerable<Command> commands, bool media)
+    private static IntentResult MatchWords(string text, IEnumerable<Command> commands, bool media, bool dictation)
     {
         var spoken = Content(TextSimilarity.Words(text));
         if (spoken.Length == 0) return new IntentResult(text, null, []);
@@ -253,8 +254,8 @@ public static class IntentMatcher
             var byPhrase = c.VoicePhraseList.Select(p => Score(spoken, Content(TextSimilarity.Words(p)))).DefaultIfEmpty(0).Max();
             return new IntentCandidate(c, Math.Max(byName, byPhrase), ByName: byName >= byPhrase);
         });
-        // «Cancela» is always there; the rest of the media orders only when they are on.
-        all = all.Concat(MediaOrders.Match(text).Where(m => media || m.Order.Kind == MediaOrderKind.Cancel)
+        // «Cancela» is always there; the rest of the built-in orders only when they are on.
+        all = all.Concat(MediaOrders.Match(text).Where(m => MediaOrders.IsOn(m.Order.Kind, media, dictation))
             .Select(m => new IntentCandidate(null, m.Score, m.Order, m.Phrase)));
         var ranked = all
             .Where(c => c.Score > 0.3)

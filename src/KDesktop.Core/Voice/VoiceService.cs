@@ -157,6 +157,7 @@ public sealed partial class VoiceService : IDisposable
             _abort = null;
             _active = 0;
             StateChanged?.Invoke();
+            DictateIfAsked();
         }
     }
 
@@ -372,7 +373,8 @@ public sealed partial class VoiceService : IDisposable
     private Task<IntentPlan> PlanAsync(string text, IReadOnlyCollection<Command> commands)
     {
         var media = MediaEnabled;
-        return Task.Run(() => IntentMatcher.Plan(text, commands, media, Semantic));
+        var dictation = _config().Settings.DictationVoice;
+        return Task.Run(() => IntentMatcher.Plan(text, commands, media, Semantic, dictation));
     }
 
     /// <summary>How long the models stay in memory without use (0 = «Nunca»: they stay loaded).</summary>
@@ -386,7 +388,7 @@ public sealed partial class VoiceService : IDisposable
         SpeechToText.IdleUnload = idle;
         Semantic.IdleUnload = idle;
         SpeechToText.Preload();
-        Semantic.Preload(Commands().ToList(), settings.VoiceMedia);
+        Semantic.Preload(Commands().ToList(), settings.VoiceMedia, settings.DictationVoice);
     }
 
     /// <summary>The built-in media orders are on (Settings › Multimedia).</summary>
@@ -721,6 +723,7 @@ public sealed partial class VoiceService : IDisposable
             _abort = null;
             _active = 0;
             StateChanged?.Invoke();
+            DictateIfAsked();
         }
     }
 

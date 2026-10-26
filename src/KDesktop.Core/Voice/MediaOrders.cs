@@ -10,6 +10,8 @@ public enum MediaOrderKind
     MusicOn, MusicOff,
     /// <summary>Cancels what is counting down or waiting (like Escape); always on, even without the media orders.</summary>
     Cancel,
+    /// <summary>«Vamos a dictar»: a dictation once the order is over; on with its own switch (Settings › Voz).</summary>
+    Dictate,
 }
 
 /// <summary>How much «sube el volumen» should move it when no number was said.</summary>
@@ -95,6 +97,14 @@ public static class MediaOrders
         foreach (var list in v.Phrases.Values.Append(v.Percent).Append(v.Little).Append(v.Lot)) list.Sort((a, b) => b.Length - a.Length);
         return v;
     }
+
+    /// <summary>Whether an order counts: «cancela» always, «vamos a dictar» with its switch, the rest with Multimedia.</summary>
+    public static bool IsOn(MediaOrderKind kind, bool media, bool dictation) => kind switch
+    {
+        MediaOrderKind.Cancel => true,
+        MediaOrderKind.Dictate => dictation,
+        _ => media,
+    };
 
     private static IEnumerable<string[]> Phrases(string list) =>
         list.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)

@@ -1021,6 +1021,14 @@
                                           Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
                         </StackPanel>
                     </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.dictationVoice}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.dictationVoiceHint}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding DictationVoice}" AutomationProperties.Name="{l:Tr settings.dictationVoice}" />
+                    </Grid>
                     <Border Style="{StaticResource InfoBox}">
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>

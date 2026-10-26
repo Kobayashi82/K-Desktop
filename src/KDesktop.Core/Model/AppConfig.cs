@@ -419,6 +419,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>The dictation hotkey works in the applications of «Desactivar en» too.</summary>
     [ObservableProperty] private bool _dictationIgnoreDisabledApps;
 
+    /// <summary>«Vamos a dictar» (and the like) said as a voice order starts a dictation, without a command.</summary>
+    [ObservableProperty] private bool _dictationVoice = true;
+
     /// <summary>The launcher also finds the programs of the Start menu.</summary>
     [ObservableProperty] private bool _launcherApps = true;
 

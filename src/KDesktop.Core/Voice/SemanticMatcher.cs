@@ -73,14 +73,14 @@ public sealed class SemanticMatcher : IDisposable
     private const double OwnedPhrase = 0.88;
 
     /// <summary>Loads the model and gets the names ready in the background (when the user starts speaking).</summary>
-    public void Preload(IReadOnlyCollection<Command> commands, bool media)
+    public void Preload(IReadOnlyCollection<Command> commands, bool media, bool dictation = false)
     {
         if (!Available) return;
         Task.Run(() =>
         {
             try
             {
-                Vectors(Texts(commands, media));
+                Vectors(Texts(commands, media, dictation));
                 // With every name already in the cache nothing above loaded the model, and the order itself will need it.
                 Embedder.Embed(["?"]);
             }
@@ -90,10 +90,11 @@ public sealed class SemanticMatcher : IDisposable
 
     /// <summary>How close <paramref name="text"/> is to each command (and built-in order); null without the model.</summary>
     /// <param name="media">The media orders are on (Settings › Multimedia); «cancela» always counts.</param>
-    public SemanticScores? Score(string text, IReadOnlyCollection<Command> commands, bool media)
+    /// <param name="dictation">«Vamos a dictar» is on (Settings › Voz).</param>
+    public SemanticScores? Score(string text, IReadOnlyCollection<Command> commands, bool media, bool dictation = false)
     {
         if (!Available || text.Trim().Length == 0) return null;
-        var texts = Texts(commands, media);
+        var texts = Texts(commands, media, dictation);
         var vectors = Vectors(texts);
         var query = Embedder.Embed([text])[0];
         var hits = commands
@@ -147,12 +148,12 @@ public sealed class SemanticMatcher : IDisposable
     /// The command names, the built-in orders' phrases (interface language and English) and the «not mine» phrases of
     /// every installed language.
     /// </summary>
-    private static Anchors Texts(IReadOnlyCollection<Command> commands, bool media)
+    private static Anchors Texts(IReadOnlyCollection<Command> commands, bool media, bool dictation)
     {
         var names = commands.Where(c => Name(c).Length > 0).SelectMany(CommandAnchors).Distinct().ToList();
         var orders = new[] { Loc.Instance.Language, Loc.Fallback }.Distinct()
             .SelectMany(language => MediaOrders.Sentences(language))
-            .Where(p => p.Key == MediaOrderKind.Cancel || media && p.Key != MediaOrderKind.VolumeSet)
+            .Where(p => MediaOrders.IsOn(p.Key, media, dictation) && p.Key != MediaOrderKind.VolumeSet)
             .SelectMany(p => p.Value.Where(phrase => TextSimilarity.Words(phrase).Length >= 2).Select(phrase => (p.Key, phrase)))
             .Distinct()
             .ToList();

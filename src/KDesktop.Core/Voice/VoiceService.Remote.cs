@@ -67,6 +67,7 @@ public sealed partial class VoiceService
         {
             _active = 0;
             StateChanged?.Invoke();
+            DictateIfAsked();
         }
     }
 
