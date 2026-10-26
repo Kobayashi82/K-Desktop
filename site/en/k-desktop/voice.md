@@ -59,5 +59,5 @@ music, the browser, a film («pause the movie»).
 The *Dictate* action (and its own hotkey in *Settings → Voice*) types what you say where the cursor is, without AI. Say
 «new line», «new paragraph», «delete that» or «stop dictating»; it also ends after a few seconds of silence or with Esc.
 
-With *Dictate by voice* on (*Settings → Voice*, under the dictation hotkey), you can also start it as a voice order
-without making a command: «start dictating», «dictation mode», «write what I say».
+With *Start dictation by voice* on (*Settings → Voice*, under the dictation hotkey), you can also start it as a voice
+order: «start dictating», «dictation mode», «write what I say».
