@@ -19,12 +19,15 @@ and [Talking to it](index.md#talking-to-it).
 | **Beeps only** | |
 | **Don't speak (bubble only)** | |
 
+**Speed** and **Voice volume** are on the same page. The voices of each engine (downloading and choosing them) are in
+*Voice → Voices*:
+
 - **Kokoro voice** and **Mix with**: two voices mixed make a new one, halfway between them (*How much of …*).
 - **Piper voice** and its **Variant** (some voices have several people or ways of speaking). **Folders with your voices**:
   Piper voices you already have (`.onnx` with its `.onnx.json`) are used from there without downloading them, and
   K-Desktop never deletes anything there. **Delete the unused ones** frees space.
 - For some languages Kokoro, and Piper always, need **espeak-ng** (GPL licence, 9 MB), downloaded separately with the voice.
-- **Speed** and **Voice volume**.
+- **Windows voice**: which of the ones Windows has.
 
 ## How they sound
 
@@ -35,7 +38,9 @@ for all: *Natural*, *Classic robot*, *Martian*, *Mission control*, *8-bit*, *Bee
 
 ### Voice profiles
 
-*Voice → Voice profiles* makes your own. The built-in ones stay as they are: **Duplicate** one, or **New at random**. A
+*Voice → Voice profiles* is the list: the built-in ones and yours, with **New at random** and **Import…**. Pressing one opens
+its editor on the same page (**← Voice profiles** goes back to the list), with **Duplicate**, **Export** and, if it is
+yours, **Delete**. The built-in ones stay as they are: **Duplicate** one to make yours. A
 profile has a voice (engine), speed and volume, and a chain of **effects** its voice always goes through, in order (drag
 them by the dots to change it):
 

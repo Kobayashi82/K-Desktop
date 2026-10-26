@@ -28,11 +28,20 @@ public partial class AssistantVoiceSection : UserControl
     private readonly App _app = App.Current;
     private bool _filling;
 
+    /// <summary>
+    /// Which page it is (5.0.279): <c>speech</c>, how they speak, or <c>speech/voices</c>, the voices of each engine and their
+    /// downloads.
+    /// </summary>
+    public string Part { get; set; } = "speech";
+
     public AssistantVoiceSection()
     {
         InitializeComponent();
         Loaded += (_, _) =>
         {
+            var voices = Part == "speech/voices";
+            GeneralCard.Visibility = WhenCard.Visibility = voices ? Visibility.Collapsed : Visibility.Visible;
+            KokoroCard.Visibility = PiperCard.Visibility = WindowsCard.Visibility = voices ? Visibility.Visible : Visibility.Collapsed;
             _app.AssistantVoiceChanged += Refresh;
             _app.AssistantChanged += Refresh;
             _app.AskAssistantVoice("state");

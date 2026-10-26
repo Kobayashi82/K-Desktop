@@ -360,17 +360,21 @@ public partial class SettingsPage
         FillToolFolders();
     }
 
-    /// <summary>The page inside «Voz» (stage 9.4): the voice profiles and their editor.</summary>
+    /// <summary>
+    /// The pages inside «Voz»: the voices of each engine and their downloads (5.0.279) and the voice profiles (stage 9.4: the
+    /// list, and the editor of one in the same page).
+    /// </summary>
     private void FillSpeech()
     {
-        var item = new NavItem(NavKind.Sub, "speech/profiles")
+        void Add(string key, string icon, string text, string search)
         {
-            Style = (Style)FindResource("NavItem"),
-            SearchText = Fold(Loc.T("settings.nav.voiceProfiles") + " " + Loc.T("settings.nav.voiceProfiles.hint") + " " + Loc.T("voiceProfiles.intro")),
-        };
-        item.Header = SubHeader("SlideMicrophone24", Loc.T("settings.nav.voiceProfiles"));
-        AutomationProperties.SetName(item, Loc.T("settings.nav.voiceProfiles"));
-        _speechItem!.Items.Add(item);
+            var item = new NavItem(NavKind.Sub, key) { Style = (Style)FindResource("NavItem"), SearchText = Fold(Loc.T(text) + " " + search) };
+            item.Header = SubHeader(icon, Loc.T(text));
+            AutomationProperties.SetName(item, Loc.T(text));
+            _speechItem!.Items.Add(item);
+        }
+        Add("speech/voices", "MicSparkle24", "settings.nav.voices", Loc.T("settings.nav.voices.hint") + " Kokoro Piper Windows " + Loc.T("assistantVoice.piperFolders"));
+        Add("speech/profiles", "SlideMicrophone24", "settings.nav.voiceProfiles", Loc.T("settings.nav.voiceProfiles.hint") + " " + Loc.T("voiceProfiles.intro"));
     }
 
     private void FillToolFolders()

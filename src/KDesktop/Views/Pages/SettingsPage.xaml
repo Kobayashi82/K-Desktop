@@ -2012,7 +2012,8 @@
             <local:AssistantListSection x:Name="AssistantsSection" Tag="assistants" />
             <local:AssistantCatalogSection Tag="catalog" />
             <local:AssistantBrainSection Tag="brain" />
-            <local:AssistantVoiceSection Tag="speech" />
+            <local:AssistantVoiceSection Tag="speech" Part="speech" />
+            <local:AssistantVoiceSection Tag="speech/voices" Part="speech/voices" />
             <local:VoiceProfilesSection Tag="speech/profiles" />
             <local:AssistantMemorySection Tag="memory" />
             <local:AssistantNotesSection Tag="notes" />

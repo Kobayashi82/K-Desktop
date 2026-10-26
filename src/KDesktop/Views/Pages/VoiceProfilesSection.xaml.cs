@@ -19,7 +19,8 @@ using TextBox = Wpf.Ui.Controls.TextBox;
 namespace KDesktop.Views.Pages;
 
 /// <summary>
-/// Options → Assistant → Voice → Perfiles de voz (stage 9.4): K-Desktop's profiles and the user's, and the editor of one —
+/// Options → Assistant → Voice → Perfiles de voz (stage 9.4): K-Desktop's profiles and the user's, and (5.0.279: in the same
+/// page, instead of the list, with a way back to it) the editor of one —
 /// its name, engine, speed and volume, and its chains of effects (always, and in each situation: happy, after a crash,
 /// from another monitor), each effect with its switch and sliders, in an order changed by dragging. K-Desktop's are only
 /// looked at (duplicated to make one's own). What is heard is the profile as it is on screen: «Probar», and again a moment
@@ -34,6 +35,9 @@ public partial class VoiceProfilesSection : UserControl
     /// <summary>The profile chosen (its id) and the copy being edited.</summary>
     private string _selected = VoiceProfile.DefaultId;
     private VoiceProfile _draft = VoiceProfile.Default;
+
+    /// <summary>The editor shows (else the list).</summary>
+    private bool _editing;
 
     /// <summary>The chain shown: <c>chain</c> (always) or a mood (<c>happy</c>, <c>error</c>, <c>far</c>).</summary>
     private string _chain = "chain";
@@ -62,7 +66,8 @@ public partial class VoiceProfilesSection : UserControl
         Loaded += (_, _) => FitWidth();
         IsVisibleChanged += (_, _) =>
         {
-            if (IsVisible) Select(VoiceProfiles.Find(_selected) is not null ? _selected : VoiceProfile.DefaultId);
+            // Coming to the page: the list.
+            if (IsVisible) Select(VoiceProfiles.Find(_selected) is not null ? _selected : VoiceProfile.DefaultId, edit: false);
             else if (_save.IsEnabled)
             {
                 _save.Stop();
@@ -87,9 +92,13 @@ public partial class VoiceProfilesSection : UserControl
 
     private bool IsBuiltIn => VoiceProfiles.IsBuiltIn(_draft.Id);
 
-    /// <summary>Shows that profile in the editor (a copy of it: changing it changes nothing until it is kept).</summary>
-    private void Select(string id)
+    /// <summary>
+    /// Shows that profile in the editor (a copy of it: changing it changes nothing until it is kept); with
+    /// <paramref name="edit"/> false, the list.
+    /// </summary>
+    private void Select(string id, bool edit = true)
     {
+        _editing = edit;
         if (_save.IsEnabled)
         {
             _save.Stop();
@@ -99,14 +108,27 @@ public partial class VoiceProfilesSection : UserControl
         _selected = profile.Id;
         _draft = VoiceProfile.Parse(profile.ToJson(), profile.Id);
         Build();
+        // Another screen (a profile, or the list): from its top. Build alone (a change in the editor) stays where it was.
+        _scroll?.ScrollToTop();
     }
 
     private void Build()
     {
         Body.Children.Clear();
-        Body.Children.Add(ListCard());
+        if (!_editing)
+        {
+            Body.Children.Add(ListCard());
+            return;
+        }
+        var back = Wide(SymbolRegular.ArrowLeft24, Loc.T("settings.nav.voiceProfiles"), _ => Back());
+        back.HorizontalAlignment = HorizontalAlignment.Left;
+        back.Margin = new Thickness(0, 0, 0, 12);
+        Body.Children.Add(back);
         Body.Children.Add(EditorCard());
     }
+
+    /// <summary>Back to the list (what was being changed is kept first).</summary>
+    private void Back() => Select(_selected, edit: false);
 
     // ── the list ─────────────────────────────────────────────────────────
 
@@ -136,20 +158,19 @@ public partial class VoiceProfilesSection : UserControl
     private FrameworkElement ProfileRow(VoiceProfile profile)
     {
         var builtIn = VoiceProfiles.IsBuiltIn(profile.Id);
-        var chosen = profile.Id == _selected;
         var name = VoiceProfiles.NameOf(profile);
         var grid = new Grid { Margin = new Thickness(8, 8, 8, 8) };
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         var glyph = new SymbolIcon { Symbol = builtIn ? SymbolRegular.PersonVoice24 : SymbolRegular.Person24, FontSize = 18 };
-        glyph.SetResourceReference(ForegroundProperty, chosen ? "TextOnAccentFillColorPrimaryBrush" : "Kd.AccentText");
+        glyph.SetResourceReference(ForegroundProperty, "Kd.AccentText");
         var tile = new Border { Width = 34, Height = 34, CornerRadius = new CornerRadius(8), Child = glyph, Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
-        tile.SetResourceReference(Border.BackgroundProperty, chosen ? "Kd.Accent" : "Kd.AccentSoft");
+        tile.SetResourceReference(Border.BackgroundProperty, "Kd.AccentSoft");
         grid.Children.Add(tile);
 
         var body = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-        var title = new TextBlock { Text = name, FontSize = 14, FontWeight = chosen ? FontWeights.SemiBold : FontWeights.Normal, TextTrimming = TextTrimming.CharacterEllipsis };
+        var title = new TextBlock { Text = name, FontSize = 14, TextTrimming = TextTrimming.CharacterEllipsis };
         title.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorPrimaryBrush");
         body.Children.Add(title);
         body.Children.Add(Caption(Summary(profile)));
@@ -166,12 +187,11 @@ public partial class VoiceProfilesSection : UserControl
         buttons.Children.Add(Small(SymbolRegular.Copy24, Loc.T("voiceProfiles.duplicate"), () => Duplicate(profile), name));
         buttons.Children.Add(Small(SymbolRegular.Save24, Loc.T("voiceProfiles.export"), () => Export(profile), name));
         if (!builtIn) buttons.Children.Add(Small(SymbolRegular.Delete24, Loc.T("voiceProfiles.delete"), () => Delete(profile), name));
-        if (!chosen) buttons.Children.Add(Small(SymbolRegular.ChevronRight24, Loc.T("voiceProfiles.edit"), () => Select(profile.Id), name));
+        buttons.Children.Add(Small(SymbolRegular.ChevronRight24, Loc.T("voiceProfiles.edit"), () => Select(profile.Id), name));
         Grid.SetColumn(buttons, 2);
         grid.Children.Add(buttons);
 
         var row = new Border { Child = grid, CornerRadius = new CornerRadius(8), Margin = new Thickness(0, 4, 0, 4) };
-        if (chosen) row.SetResourceReference(Border.BackgroundProperty, "Kd.Subtle");
         AutomationProperties.SetName(row, name);
         return row;
     }
@@ -265,7 +285,7 @@ public partial class VoiceProfilesSection : UserControl
         if (s.AssistantVoiceProfile == profile.Id) s.AssistantVoiceProfile = string.Empty;
         foreach (var (who, personal) in s.AssistantPersonal.Where(p => p.Value.Profile == profile.Id).ToList())
             _app.SetAssistantPersonal(who, personal with { Profile = string.Empty });
-        Select(VoiceProfile.DefaultId);
+        Select(VoiceProfile.DefaultId, edit: false);
     }
 
     // ── the editor ───────────────────────────────────────────────────────
@@ -274,6 +294,12 @@ public partial class VoiceProfilesSection : UserControl
     {
         var name = VoiceProfiles.NameOf(_draft);
         var (card, stack) = Card(name, null, SymbolRegular.SlideMicrophone24);
+        var tools = new WrapPanel { Margin = new Thickness(0, -4, 0, 10) };
+        var profile = _draft;
+        if (!IsBuiltIn) tools.Children.Add(Wide(SymbolRegular.Copy24, Loc.T("voiceProfiles.duplicate"), _ => { Keep(); Duplicate(_draft); }));
+        tools.Children.Add(Wide(SymbolRegular.Save24, Loc.T("voiceProfiles.export"), _ => { Keep(); Export(_draft); }));
+        if (!IsBuiltIn) tools.Children.Add(Wide(SymbolRegular.Delete24, Loc.T("voiceProfiles.delete"), _ => Delete(profile)));
+        stack.Children.Add(tools);
         var editable = new StackPanel { IsEnabled = !IsBuiltIn };
         if (IsBuiltIn)
         {

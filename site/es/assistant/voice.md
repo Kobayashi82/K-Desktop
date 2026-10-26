@@ -19,13 +19,16 @@ Para *hablarles* se usa el reconocimiento de voz de K-Desktop (palabras de activ
 | **Solo pitidos** | |
 | **No hablar (solo el bocadillo)** | |
 
+**Velocidad** y **Volumen de la voz** van en la misma página. Las voces de cada motor (descargarlas y elegirlas) están en
+*Voz → Voces*:
+
 - **Voz de Kokoro** y **Mezclar con**: dos voces mezcladas dan una nueva, a medio camino entre las dos (*Cuánto de …*).
 - **Voz de Piper** y su **Variante** (algunas voces tienen varias personas o formas de hablar). **Carpetas con tus voces**:
   las voces de Piper que ya tienes (`.onnx` con su `.onnx.json`) se usan desde ahí sin descargarlas, y K-Desktop nunca
   borra nada de ahí. **Borrar las que no se usan** libera sitio.
 - Para algunos idiomas Kokoro, y Piper siempre, necesitan **espeak-ng** (licencia GPL, 9 MB), que se descarga aparte con
   la voz.
-- **Velocidad** y **Volumen de la voz**.
+- **Voz de Windows**: cuál de las que tiene Windows.
 
 ## Cómo suenan
 
@@ -36,7 +39,9 @@ Para *hablarles* se usa el reconocimiento de voz de K-Desktop (palabras de activ
 
 ### Perfiles de voz
 
-*Voz → Perfiles de voz* crea los tuyos. Los de serie se quedan como están: **Duplica** uno, o **Nuevo al azar**. Un perfil
+*Voz → Perfiles de voz* es la lista: los de serie y los tuyos, con **Nuevo al azar** e **Importar…**. Al pulsar uno se abre su
+editor en la misma página (**← Perfiles de voz** vuelve a la lista), con **Duplicar**, **Exportar** y, si es tuyo, **Borrar**.
+Los de serie se quedan como están: **Duplica** uno para hacer el tuyo. Un perfil
 tiene una voz (el motor), velocidad y volumen, y una cadena de **efectos** por la que pasa siempre su voz, en orden
 (arrástralos por los puntos para cambiarlo):
 
