@@ -4490,7 +4490,7 @@
   "knowledgeOptions.eta.hours": "about {0} h left",
   "knowledgeOptions.pausedShort": "reading paused",
   "knowledgeOptions.paused.user": "You paused it. What was already read is still used.",
-  "knowledgeOptions.filesSearch": "Search by name or folder (*.pdf works)",
+  "knowledgeOptions.filesSearch": "Search by name or folder",
   "knowledgeOptions.filesSearchHint": "Words: anywhere in the path. With * and ?: «*.pdf», «invoice-??.txt»; with a folder, «2026/*» or «src/**/*.c» (** goes into subfolders). Several separated by spaces: «*.c *.h».",
   "knowledgeOptions.filesFilterBox": "Which files",
   "knowledgeOptions.filesNone": "No files like that.",

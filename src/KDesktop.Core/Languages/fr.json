@@ -4490,7 +4490,7 @@
   "knowledgeOptions.eta.hours": "environ {0} h restantes",
   "knowledgeOptions.pausedShort": "lecture en pause",
   "knowledgeOptions.paused.user": "Vous l’avez mise en pause. Ce qui a déjà été lu reste utilisé.",
-  "knowledgeOptions.filesSearch": "Rechercher par nom ou dossier (*.pdf possible)",
+  "knowledgeOptions.filesSearch": "Rechercher par nom ou dossier",
   "knowledgeOptions.filesSearchHint": "Mots : n’importe où dans le chemin. Avec * et ? : « *.pdf », « facture-??.txt » ; avec un dossier, « 2026/* » ou « src/**/*.c » (** entre dans les sous-dossiers). Plusieurs séparés par des espaces : « *.c *.h ».",
   "knowledgeOptions.filesFilterBox": "Quels fichiers",
   "knowledgeOptions.filesNone": "Aucun fichier de ce type.",

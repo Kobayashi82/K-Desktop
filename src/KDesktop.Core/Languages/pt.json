@@ -4490,7 +4490,7 @@
   "knowledgeOptions.eta.hours": "faltam umas {0} h",
   "knowledgeOptions.pausedShort": "leitura pausada",
   "knowledgeOptions.paused.user": "Você pausou. O que já foi lido continua sendo usado.",
-  "knowledgeOptions.filesSearch": "Buscar por nome ou pasta (aceita *.pdf)",
+  "knowledgeOptions.filesSearch": "Buscar por nome ou pasta",
   "knowledgeOptions.filesSearchHint": "Palavras: em qualquer parte do caminho. Com * e ?: «*.pdf», «fatura-??.txt»; com pasta, «2026/*» ou «src/**/*.c» (** entra nas subpastas). Vários separados por espaços: «*.c *.h».",
   "knowledgeOptions.filesFilterBox": "Quais arquivos",
   "knowledgeOptions.filesNone": "Nenhum arquivo assim.",
