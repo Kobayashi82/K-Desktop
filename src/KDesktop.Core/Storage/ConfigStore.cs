@@ -5,11 +5,11 @@ namespace KDesktop.Core.Storage;
 
 /// <summary>
 /// Owns the in-memory <see cref="AppConfig"/>, watches it for changes and persists it to disk
-/// (debounced, atomic write, rolling backups).
+/// (debounced, atomic write). The backups are the automatic ones (<see cref="AutoBackup"/>); here only a copy before
+/// upgrading an older configuration or replacing an unreadable one.
 /// </summary>
 public sealed class ConfigStore : IDisposable
 {
-    private const int MaxBackups = 15;
     private static readonly TimeSpan SaveDelay = TimeSpan.FromMilliseconds(600);
 
     private readonly object _saveLock = new();
@@ -91,14 +91,9 @@ public sealed class ConfigStore : IDisposable
                 var tmp = AppPaths.ConfigFile + ".tmp";
                 File.WriteAllText(tmp, json);
                 if (File.Exists(AppPaths.ConfigFile))
-                {
-                    RotateBackup();
                     File.Replace(tmp, AppPaths.ConfigFile, null, ignoreMetadataErrors: true);
-                }
                 else
-                {
                     File.Move(tmp, AppPaths.ConfigFile);
-                }
                 _dirty = false;
             }
             catch (Exception ex)
@@ -113,18 +108,6 @@ public sealed class ConfigStore : IDisposable
     {
         _saveTimer.Change(Timeout.Infinite, Timeout.Infinite);
         if (_dirty) SaveNow();
-    }
-
-    /// <summary>Keeps one backup per day, plus the last <see cref="MaxBackups"/> days.</summary>
-    private static void RotateBackup()
-    {
-        var today = Path.Combine(AppPaths.BackupDir, $"config.{DateTime.Now:yyyy-MM-dd}.json");
-        if (File.Exists(today)) return;
-        TryCopy(AppPaths.ConfigFile, today);
-        foreach (var old in Directory.GetFiles(AppPaths.BackupDir, "config.????-??-??.json").OrderDescending().Skip(MaxBackups))
-        {
-            try { File.Delete(old); } catch { /* ignore */ }
-        }
     }
 
     private static void TryCopy(string from, string to)
