@@ -926,6 +926,7 @@
                             </StackPanel>
                             <ComboBox Grid.Column="1" ItemsSource="{x:Static v:Lookups.RemoteScopes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding WebScope}" AutomationProperties.Name="{l:Tr settings.remoteScope}" />
                         </Grid>
+                        <Border Height="1" Margin="0,14,0,12" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
                         <Grid Style="{StaticResource SettingRow}">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                             <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
@@ -948,8 +949,9 @@
                                 <TextBlock Text="{l:Tr settings.webPublicUrl}" />
                                 <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webPublicUrlHint}" TextWrapping="Wrap" />
                             </StackPanel>
-                            <ui:TextBox Grid.Column="1" PlaceholderText="https://kdesktop.example.com" Text="{Binding WebPublicUrl, UpdateSourceTrigger=LostFocus}" />
+                            <ui:TextBox Grid.Column="1" Height="36" VerticalAlignment="Center" VerticalContentAlignment="Center" PlaceholderText="https://kdesktop.example.com" Text="{Binding WebPublicUrl, UpdateSourceTrigger=LostFocus}" />
                         </Grid>
+                        <Border Height="1" Margin="0,14,0,12" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
                         <WrapPanel Margin="0,6,0,0">
                             <ui:Button MinHeight="36" Margin="0,0,8,8" Appearance="Primary" Content="{l:Tr settings.webPair}" Icon="{ui:SymbolIcon QrCode24}" Click="OnPairWeb" />
                             <ui:Button MinHeight="36" Margin="0,0,8,8" Content="{l:Tr settings.webOpen}" Icon="{ui:SymbolIcon Globe24}" Click="OnOpenWeb" />
