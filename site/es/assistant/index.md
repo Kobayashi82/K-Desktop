@@ -23,8 +23,8 @@ su personalidad, su voz y hasta su propio modelo de IA.
 
 ## Encenderlo e instalar uno
 
-1. *Opciones → Módulo Asistente → General →* **Activar el módulo Asistente**.
-2. *Opciones → Módulo Asistente → Catálogo*: cada asistente con sus vídeos, lo que sabe hacer e **Instalar…**. También
+1. *Opciones → Asistente → General →* **Activar el módulo Asistente**.
+2. *Opciones → Asistente → Catálogo*: cada asistente con sus vídeos, lo que sabe hacer e **Instalar…**. También
    puedes abrir un paquete `.kai` con doble clic, o usar *Asistentes → Añadir asistente*.
 3. La **ficha de instalación** enseña qué es, qué sabe hacer y quién lo firma, y ofrece grabar su nombre como palabra de
    activación, crear comandos para sus atajos y descargar el modelo de IA que sugiere.
@@ -51,7 +51,7 @@ Si una actualización la firma otro distinto que la versión que tienes, la fich
 
 ## Su ficha
 
-En *Opciones → Módulo Asistente → Asistentes*, cada asistente tiene su página:
+En *Opciones → Asistente → Asistentes*, cada asistente tiene su página:
 
 ![Los ajustes de un asistente](../../images/es/assistant-settings.png)
 
@@ -97,12 +97,12 @@ le digas tú.
 3. Si no, contesta **la IA**, eligiendo entre sus [herramientas](tools.md) las que vienen a cuento.
 
 Lo arriesgado (cerrar programas, borrar archivos, apagar) pregunta antes con una ventanita, también de palabra («sí» /
-«no» / «sí, y no vuelvas a preguntar»). *Opciones → Módulo Asistente → General → Preguntar antes de hacer algo* lo decide:
+«no» / «sí, y no vuelvas a preguntar»). *Opciones → Asistente → General → Preguntar antes de hacer algo* lo decide:
 nunca, solo lo peligroso, o también la primera vez.
 
 ## Gestos y rapidez
 
-*Opciones → Módulo Asistente → General*:
+*Opciones → Asistente → General*:
 
 - **Maniobras**: *Vistosas*, *Normales* o *Rápidas* (menos de medio segundo).
 - **Comandos largos**: en los comandos con muchas acciones, solo enseña lo que hace con las ventanas; lo demás pasa al

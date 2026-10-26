@@ -1,6 +1,6 @@
 # Memoria, notas y documentos
 
-Los asistentes guardan tres cosas distintas, cada una con su página en *Opciones → Módulo Asistente*:
+Los asistentes guardan tres cosas distintas, cada una con su página en *Opciones → Asistente*:
 
 | | Qué es | Dices |
 |---|---|---|

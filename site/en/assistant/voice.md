@@ -1,9 +1,9 @@
 # Voice and conversation
 
 Besides the bubble, the assistants answer **aloud**, each with its own voice. The natural voices download once and work
-without internet. *Settings → Assistant module → Voice*.
+without internet. *Settings → Assistant → Voice*.
 
-![Settings → Assistant module → Voice](../../images/en/assistant-voice.png)
+![Settings → Assistant → Voice](../../images/en/assistant-voice.png)
 
 To *talk to* them you use K-Desktop's speech recognition (wake words, a key to talk…): see [Voice](../k-desktop/voice.md)
 and [Talking to it](index.md#talking-to-it).
@@ -72,7 +72,7 @@ On each assistant's card, **Personality and voice**:
 
 - **Personality**: what tells the AI who it is and how it talks. Change it as you like (*Reset* brings back the one of its
   package).
-- **Language**: the one it answers and speaks in. By default the one in *Settings → Assistant module → General → Language
+- **Language**: the one it answers and speaks in. By default the one in *Settings → Assistant → General → Language
   they speak to you in* (they answer in it even if you talk to them in another).
 - **Voice**: engine, voice, profile and speed of its own, or «like the others». *Try its voice*.
 

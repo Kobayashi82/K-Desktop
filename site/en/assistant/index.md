@@ -23,8 +23,8 @@ and even its own AI model.
 
 ## Turning it on and installing one
 
-1. *Settings → Assistant module → General →* **Turn on the assistant module**.
-2. *Settings → Assistant module → Catalog*: each assistant with its clips, what it can do and **Install…**. You can also
+1. *Settings → Assistant → General →* **Turn on the assistant module**.
+2. *Settings → Assistant → Catalog*: each assistant with its clips, what it can do and **Install…**. You can also
    open a `.kai` package with a double click, or use *Assistants → Add assistant*.
 3. The **install card** shows what it is, what it can do and who signed it, and offers to record its name as a wake word,
    to create commands for its shortcuts and to download the AI model it suggests.
@@ -51,7 +51,7 @@ If an update is signed by someone else than the version you have, the card warns
 
 ## Its card
 
-In *Settings → Assistant module → Assistants*, each assistant has its page:
+In *Settings → Assistant → Assistants*, each assistant has its page:
 
 ![An assistant's settings](../../images/en/assistant-settings.png)
 
@@ -95,12 +95,12 @@ Its **right-click menu** has *Write to …*, its own actions (extras), its panel
 3. Otherwise **the AI** answers, choosing among its [tools](tools.md) the ones that fit.
 
 Risky things (closing programs, deleting files, shutting down) ask first with a small window, by voice too («yes» / «no» /
-«yes, and don't ask again»). *Settings → Assistant module → General → Ask before doing something* sets it: never, only
+«yes, and don't ask again»). *Settings → Assistant → General → Ask before doing something* sets it: never, only
 risky things, or the first time.
 
 ## Gestures and speed
 
-*Settings → Assistant module → General*:
+*Settings → Assistant → General*:
 
 - **Manoeuvres**: *Showy*, *Normal* or *Fast* (under half a second).
 - **Animate up to N actions** of a command (the rest run without gestures, except window ones).

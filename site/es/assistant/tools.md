@@ -4,7 +4,7 @@ Las herramientas son lo que los asistentes pueden *hacer* cuando les pides algo:
 leer una web, cerrar un programa… En cada orden solo le llegan a la IA las pocas herramientas que vienen a cuento, así
 elige bien aunque haya cientos.
 
-*Opciones → Módulo Asistente → Herramientas* las enseña todas —las incluidas, las tuyas y las de cada servidor MCP— con un
+*Opciones → Asistente → Herramientas* las enseña todas —las incluidas, las tuyas y las de cada servidor MCP— con un
 buscador. Abre cada grupo para apagar las que no quieras, elegir **cuándo pregunta** antes de hacerlo (*Sin preguntar*,
 *La primera vez*, *Siempre*) o **Probarla** con un pequeño formulario.
 
@@ -40,7 +40,7 @@ Algunos detalles:
 - **Consultar internet** busca en la web y lee el primer resultado útil; **Buscar en el navegador** solo abre la búsqueda
   en tu navegador.
 - **El tiempo** usa Open-Meteo y las **monedas**, los tipos del Banco Central Europeo (sin cuenta). Sin ciudad, usa
-  *Opciones → Módulo Asistente → General → Dónde estás*, o la ubicación de Windows si la permites.
+  *Opciones → Asistente → General → Dónde estás*, o la ubicación de Windows si la permites.
 - **Borrar un archivo** lo manda a la papelera; esta y **Mover un archivo** preguntan siempre antes (mover se puede deshacer).
 
 ## Tus herramientas (JSON)

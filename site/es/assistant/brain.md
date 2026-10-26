@@ -1,7 +1,7 @@
 # Cerebro (la IA)
 
 Los asistentes te entienden con un modelo de IA. Va **en tu PC** con `llama-server` (de llama.cpp), o en otro servidor que
-ya tengas, como Ollama, llama-swap o LM Studio. *Opciones → Módulo Asistente → Cerebro*.
+ya tengas, como Ollama, llama-swap o LM Studio. *Opciones → Asistente → Cerebro*.
 
 ![Opciones → Cerebro](../../images/es/brain.png)
 

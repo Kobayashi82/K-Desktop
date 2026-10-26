@@ -3,7 +3,7 @@
 Tools are what the assistants can *do* when you ask them something: set a timer, find a file, read a web page, close a
 program… For each order only the few tools that fit reach the AI, so it chooses well even with hundreds of them.
 
-*Settings → Assistant module → Tools* shows all of them —built-in, yours and each MCP server's— with a search box. Open
+*Settings → Assistant → Tools* shows all of them —built-in, yours and each MCP server's— with a search box. Open
 each group to switch off the ones you don't want, choose **when it asks** before doing it (*Without asking*, *The first
 time*, *Always*) or **Test** it with a small form.
 
@@ -40,7 +40,7 @@ Some details:
 - **Look it up online** searches the web and reads the first useful result; **Search in the browser** only opens the
   search in your browser.
 - **Weather** uses Open-Meteo and **currencies** the European Central Bank's rates (no account needed). Without a city it
-  uses *Settings → Assistant module → General → Where you are*, or Windows' location if you allow it.
+  uses *Settings → Assistant → General → Where you are*, or Windows' location if you allow it.
 - **Delete a file** sends it to the recycle bin; it and **Move a file** always ask first (a move can be undone).
 
 ## Your own tools (JSON)

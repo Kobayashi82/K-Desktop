@@ -1,6 +1,6 @@
 # Memory, notes and documents
 
-The assistants keep three different things, each with its page in *Settings → Assistant module*:
+The assistants keep three different things, each with its page in *Settings → Assistant*:
 
 | | What it is | You say |
 |---|---|---|

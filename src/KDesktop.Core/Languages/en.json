@@ -2741,7 +2741,7 @@
   "assistant.gesture.communicate": "Talk",
   "assistant.gesture.react": "React",
   "nav.assistant": "Assistant",
-  "settings.nav.assistantGroup": "Assistant module",
+  "settings.nav.assistantGroup": "Assistant",
   "settings.nav.assistant": "General",
   "settings.nav.assistant.hint": "Turn it on, see how it goes",
   "settings.nav.assistants": "Assistants",

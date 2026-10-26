@@ -1,9 +1,9 @@
 # Voz y conversación
 
 Además del bocadillo, los asistentes contestan **en voz alta**, cada uno con su voz. Las voces naturales se descargan una
-vez y van sin internet. *Opciones → Módulo Asistente → Voz*.
+vez y van sin internet. *Opciones → Asistente → Voz*.
 
-![Opciones → Módulo Asistente → Voz](../../images/es/assistant-voice.png)
+![Opciones → Asistente → Voz](../../images/es/assistant-voice.png)
 
 Para *hablarles* se usa el reconocimiento de voz de K-Desktop (palabras de activación, una tecla para hablar…): ver
 [Voz](../k-desktop/voice.md) y [Hablarle](index.md#hablarle).
@@ -72,7 +72,7 @@ En la ficha de cada asistente, **Personalidad y voz**:
 
 - **Personalidad**: lo que le dice a la IA quién es y cómo habla. Cámbiala a tu gusto (*Restablecer* vuelve a la de su
   paquete).
-- **Idioma**: en el que contesta y habla. Por defecto, el de *Opciones → Módulo Asistente → General → Idioma en el que te
+- **Idioma**: en el que contesta y habla. Por defecto, el de *Opciones → Asistente → General → Idioma en el que te
   hablan* (te contestan en él aunque les hables en otro).
 - **Voz**: motor, voz, perfil y velocidad propios, o «como los demás». *Probar su voz*.
 

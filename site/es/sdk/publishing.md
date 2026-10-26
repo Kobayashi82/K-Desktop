@@ -58,7 +58,7 @@ abre su ficha) y *Omitir esta versión*. Nunca actualiza un asistente sin pregun
 
 ## Ponerlo en un catálogo
 
-*Opciones → Módulo Asistente → Catálogo* enseña los asistentes de los catálogos que lee (el de K-Desktop y los que añada el
+*Opciones → Asistente → Catálogo* enseña los asistentes de los catálogos que lee (el de K-Desktop y los que añada el
 usuario) con *Instalar…* y *Actualizar…*. Un catálogo es un JSON publicado en una dirección fija
 ([esquema](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/catalog.schema.json)) que solo dice
 dónde está cada paquete:

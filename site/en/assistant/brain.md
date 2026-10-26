@@ -1,7 +1,7 @@
 # Brain (the AI)
 
 The assistants understand you with an AI model. It runs **on your PC** with `llama-server` (from llama.cpp), or on
-another server you already have, such as Ollama, llama-swap or LM Studio. *Settings → Assistant module → Brain*.
+another server you already have, such as Ollama, llama-swap or LM Studio. *Settings → Assistant → Brain*.
 
 ![Settings → Brain](../../images/en/brain.png)
 
