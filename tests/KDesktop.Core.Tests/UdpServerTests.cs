@@ -21,7 +21,7 @@ public sealed class UdpServerTests
     private UdpServer Server(UdpOptions? options = null)
     {
         var store = new ConfigStore();
-        foreach (var (name, remote, hidden) in new[] { ("Beta", true, false), ("Álbum", true, false), ("Secreto", true, true), ("Local", false, false) })
+        foreach (var (name, remote, hidden) in new[] { ("Beta", true, false), ("Álbum", true, false), ("Secreto", true, true), ("Local", false, false), ("Mostrar escritorio", true, false) })
         {
             var command = new Command { Name = name, Remote = remote, Hidden = hidden };
             command.Actions.Add(new WaitAction { Seconds = 0 });
@@ -104,7 +104,7 @@ public sealed class UdpServerTests
         var reply = udp.Receive(Signed("s3cret", new { cmd = "list", t = Now(), id = "a1" }), Outside);
         using var json = JsonDocument.Parse(reply!);
         Assert.True(json.RootElement.GetProperty("ok").GetBoolean());
-        Assert.Equal(2, json.RootElement.GetProperty("commands").GetArrayLength());
+        Assert.Equal(3, json.RootElement.GetProperty("commands").GetArrayLength());
     }
 
     [Fact]
@@ -154,6 +154,20 @@ public sealed class UdpServerTests
         Assert.Equal(new UdpServer.Request("run", "Abrir Chrome"), UdpServer.ParseText("Abrir Chrome"));
         Assert.Equal(new UdpServer.Request("media", "next"), UdpServer.ParseText("MEDIA next"));
         Assert.Null(UdpServer.ParseJson("{\"cmd\":\"format c:\"}"));
+    }
+
+    [Fact]
+    public async Task OrdersAlsoInTheLanguageButCommandNamesWin()
+    {
+        // The tests run in Spanish.
+        Assert.Equal(new UdpServer.Request("list"), UdpServer.ParseText("Lista"));
+        Assert.Equal(new UdpServer.Request("keys", "ctrl+c"), UdpServer.ParseText("teclas ctrl+c"));
+        Assert.Equal(new UdpServer.Request("show"), UdpServer.ParseText("mostrar"));
+
+        var udp = Server();
+        Assert.Contains("1. Álbum", udp.Receive("lista", ThisPc));
+        Assert.StartsWith("OK", udp.Receive("mostrar escritorio", ThisPc));
+        Assert.Equal(["Mostrar escritorio"], await Ran());
     }
 
     private static long Now() => DateTimeOffset.UtcNow.ToUnixTimeSeconds();

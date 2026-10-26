@@ -886,7 +886,10 @@
                             <Grid>
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
                                 <ui:SymbolIcon Symbol="Info24" FontSize="18" Margin="0,0,12,0" VerticalAlignment="Top" Foreground="{DynamicResource Kd.AccentText}" />
-                                <TextBlock Grid.Column="1" Style="{StaticResource Caption}" Text="{l:Tr settings.udpHelp}" TextWrapping="Wrap" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.udpHelp}" TextWrapping="Wrap" />
+                                    <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="{l:Tr settings.udpHelpDocs}" TextWrapping="Wrap" />
+                                </StackPanel>
                             </Grid>
                         </Border>
                     </StackPanel>

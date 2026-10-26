@@ -59,6 +59,10 @@ Assistant, un script, otro PC, netcat o una aplicación del móvil.
 
 La respuesta empieza por `OK` o `ERROR` y sigue en el idioma de K-Desktop.
 
+Las órdenes también valen en el idioma de K-Desktop (en español: `ayuda`, `lista`, `ejecutar`, `evento`, `preguntar`,
+`asistentes`, `teclas`, `escribir`, `multimedia siguiente`, `volumen subir`, `mostrar`…). Si un comando remoto se llama
+exactamente como lo que mandas, gana el comando. En los programas, mejor en inglés: vale siempre, cambies o no el idioma.
+
 Opciones:
 
 | Opción | Qué hace |

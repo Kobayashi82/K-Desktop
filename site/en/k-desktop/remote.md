@@ -59,6 +59,10 @@ another PC, netcat or a phone app can use it.
 
 The reply starts with `OK` or `ERROR` and goes on in K-Desktop's language.
 
+Orders also work in K-Desktop's language (in Spanish: `ayuda`, `lista`, `ejecutar`, `evento`, `preguntar`, `teclas`,
+`escribir`…). If a remote command is called exactly like what you send, the command wins. In programs, use English: it
+always works, whatever the language.
+
 Options:
 
 | Option | What it does |

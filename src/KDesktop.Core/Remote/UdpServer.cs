@@ -30,7 +30,8 @@ public sealed record UdpOptions(
 /// <list type="bullet">
 /// <item>Text, for people and simple senders (netcat, Tasker…): <c>[key ]order</c>, the reply starts with <c>OK</c> or
 /// <c>ERROR</c>. Orders: <c>list</c>, <c>help</c>, <c>assistants</c>, a remote command's name or number, <c>run</c>,
-/// <c>event</c>, <c>ask</c>, <c>keys</c>, <c>type</c>, <c>media</c>, <c>volume</c>, <c>show</c>.</item>
+/// <c>event</c>, <c>ask</c>, <c>keys</c>, <c>type</c>, <c>media</c>, <c>volume</c>, <c>show</c>, also in K-Desktop's
+/// language («lista», «teclas»…); a remote command called exactly like the whole text wins.</item>
 /// <item>JSON, for programs: <c>{"cmd":"run","arg":"…"}</c>, signed as <c>&lt;hex HMAC-SHA256 of the JSON&gt;.&lt;JSON&gt;</c>
 /// with <c>"t"</c> (Unix seconds) and a one-time <c>"id"</c> when there is a key. The reply is JSON.</item>
 /// </list>
@@ -222,7 +223,7 @@ public sealed partial class UdpServer : IDisposable
             message = message.Replace("\r", " ").Replace("\n", " ").Trim();
             if (key is not null && !thisPc)
                 message = local && StartsWithKey(message, key) ? message[key.Length..].Trim() : string.Empty;
-            request = message.Length > 0 ? ParseText(message) : null;
+            request = message.Length == 0 ? null : IsCommandName(message) ? new Request("run", message) : ParseText(message);
         }
 
         if (request is null)
@@ -293,14 +294,25 @@ public sealed partial class UdpServer : IDisposable
     internal sealed record Request(string Cmd, string Arg = "", string Assistant = "", long? Time = null, string? Id = null);
 
     private static readonly string[] Words = ["list", "help", "assistants", "run", "event", "ask", "keys", "type", "media", "volume", "show"];
+    private static readonly string[] MediaWords = ["play", "pause", "next", "previous", "stop"];
+    private static readonly string[] VolumeWords = ["up", "down", "mute"];
 
-    /// <summary>"run Abrir Chrome", "ask Lander qué hora es", "21", "Abrir Chrome"…</summary>
+    /// <summary>
+    /// The English word for <paramref name="word"/>: itself, or its translation in K-Desktop's language (<c>udp.word.*</c>:
+    /// «lista», «teclas»…). Capitals and accents don't matter. Null when it is none of them.
+    /// </summary>
+    private static string? Canonical(string word, string[] words) =>
+        words.FirstOrDefault(w => SameName(word, w) || SameName(word, Loc.T("udp.word." + w)));
+
+    /// <summary>A remote command called exactly that: it wins over the words («Mostrar escritorio» is not «show»).</summary>
+    private bool IsCommandName(string text) => RemoteCommands().Any(c => SameName(c.Name, text));
+
+    /// <summary>"run Abrir Chrome", "ask Lander qué hora es", "lista", "21", "Abrir Chrome"…</summary>
     internal static Request ParseText(string text)
     {
         var space = text.IndexOf(' ');
-        var word = (space < 0 ? text : text[..space]).ToLowerInvariant();
         var rest = space < 0 ? string.Empty : text[(space + 1)..].Trim();
-        if (!Words.Contains(word)) return new Request("run", text);
+        if (Canonical(space < 0 ? text : text[..space], Words) is not { } word) return new Request("run", text);
         if (word != "ask") return new Request(word, rest);
         var gap = rest.IndexOf(' ');
         return gap < 0 ? new Request("ask", string.Empty, rest) : new Request("ask", rest[(gap + 1)..].Trim(), rest[..gap]);
@@ -362,7 +374,9 @@ public sealed partial class UdpServer : IDisposable
                 return Reply.Done(Loc.T("udp.done"));
             case "media":
             case "volume":
-                if (Key(request.Cmd, request.Arg.ToLowerInvariant()) is not { } vk)
+                var arg = request.Arg.Trim().ToLowerInvariant();
+                arg = Canonical(arg, request.Cmd == "media" ? MediaWords : VolumeWords) ?? arg;
+                if (Key(request.Cmd, arg) is not { } vk)
                     return Reply.Error("badRequest", Loc.T("udp.badArg", request.Cmd, request.Arg));
                 if (DisabledHere()) return Reply.Error("disabledHere", Loc.T("udp.disabledHere"));
                 InputSimulator.KeyPress(vk);
