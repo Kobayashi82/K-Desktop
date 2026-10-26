@@ -52,9 +52,28 @@ public partial class AssistantVoiceSection : UserControl
             _app.AssistantVoiceChanged -= Refresh;
             _app.AssistantChanged -= Refresh;
         };
+        IsVisibleChanged += (_, _) => Refresh();
     }
 
+    private bool _refreshQueued;
+
+    /// <summary>
+    /// Fills the page again, once for however many changes came meanwhile and only the page that shows: a download says
+    /// how it goes ten times a second, and making it all each time (both pages, the disk looked at) piled up — the
+    /// «0 de 60 MB» that did not move until the end.
+    /// </summary>
     private void Refresh()
+    {
+        if (_refreshQueued) return;
+        _refreshQueued = true;
+        Dispatcher.BeginInvoke(() =>
+        {
+            _refreshQueued = false;
+            if (IsVisible) Fill();
+        }, System.Windows.Threading.DispatcherPriority.Background);
+    }
+
+    private void Fill()
     {
         _filling = true;
         var s = _app.Config.Settings;
@@ -194,7 +213,7 @@ public partial class AssistantVoiceSection : UserControl
         PiperBar.Visibility = download.IsDownloading ? Visibility.Visible : Visibility.Collapsed;
         PiperBar.Value = download.Total > 0 ? download.Done / (double)download.Total : 0;
 
-        var voices = PiperModels.Voices(language).Select(v => new Option(v.Key, PiperOption(v))).ToList();
+        var voices = PiperModels.Voices(language).Where(v => Shown(v, spec)).Select(v => new Option(v.Key, PiperOption(v))).ToList();
         PiperVoiceBox.ItemsSource = voices;
         PiperVoiceBox.SelectedItem = voices.FirstOrDefault(v => v.Value == PiperModels.KeyOf(spec));
         var speakers = PiperModels.Find(spec)?.Speakers ?? [];
@@ -203,6 +222,12 @@ public partial class AssistantVoiceSection : UserControl
         PiperSpeakerBox.ItemsSource = who;
         PiperSpeakerBox.SelectedItem = who.FirstOrDefault(o => o.Value == PiperModels.SpeakerOf(spec)) ?? who.FirstOrDefault();
     }
+
+    /// <summary>
+    /// The voices offered: not the low quality ones (they sound bad), unless it is the one in use or one of the user's.
+    /// </summary>
+    internal static bool Shown(PiperVoice voice, string? inUse) =>
+        voice.Quality is not ("low" or "x_low") || voice.Key == PiperModels.KeyOf(inUse) || PiperModels.IsInFolders(voice.Key);
 
     /// <summary>
     /// «Davefx (España, calidad media)», «sin descargar» when it is not on disk and «tuya» when it is in one of the user's

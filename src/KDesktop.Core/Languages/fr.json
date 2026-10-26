@@ -3946,6 +3946,8 @@
   "voiceProfiles.engine": "Voix",
   "voiceProfiles.engineHint": "Ne compte que si «Qui parle» dans Voix est sur «Automatique». Si vous en choisissez une autre là, c'est celle-là qu'on entend.",
   "voiceProfiles.useForAllHint": "Tous les assistants parlent avec ce profil (Voix, «Comment ils sonnent»). Si vous le supprimez, chacun revient au sien.",
+  "voiceProfiles.stopForAll": "Ne plus utiliser pour tous",
+  "voiceProfiles.stopForAllHint": "Tous parlent avec ce profil maintenant. Appuyez pour que chaque assistant revienne au sien.",
   "voiceProfiles.speed": "Vitesse",
   "voiceProfiles.volume": "Volume",
   "voiceProfiles.chain.chain": "Toujours",

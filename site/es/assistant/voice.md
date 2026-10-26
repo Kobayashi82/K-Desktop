@@ -17,7 +17,7 @@ ese idioma (*El de K-Desktop*, o uno de los seis).
 |---|---|
 | **Automático** | Kokoro; si no, Piper; si no, las voces de Windows |
 | **Voz natural (Kokoro)** | La más natural. Español, inglés, francés, italiano y portugués (alemán todavía no). Unos 325 MB, más medio megabyte por voz |
-| **Voz natural (Piper)** | Voces en todos los idiomas, de 20 a 115 MB cada una; las de calidad alta suenan mejor |
+| **Voz natural (Piper)** | Voces en todos los idiomas, de 20 a 115 MB cada una; las de calidad alta suenan mejor (las de calidad baja no se ofrecen) |
 | **Voces de Windows** | Sin descargas. Hay más en *Configuración de Windows → Hora e idioma → Voz* |
 | **Solo pitidos** | |
 | **No hablar (solo el bocadillo)** | |
@@ -45,8 +45,8 @@ ese idioma (*El de K-Desktop*, o uno de los seis).
 
 *Voz → Perfiles de voz* es la lista: los de serie y los tuyos, con **Nuevo al azar** e **Importar…**. Al pulsar uno se abre su
 editor en la misma página (**← Perfiles de voz** vuelve a la lista), con **Duplicar**, **Exportar** y, si es tuyo, **Borrar**.
-Los de serie se quedan como están: **Duplica** uno para hacer el tuyo. **Usar para todos** pone ese perfil en
-*Cómo suenan* (si luego lo borras, cada asistente vuelve al suyo). La **Voz** del perfil solo cuenta si *Quién habla* está
+Los de serie se quedan como están: **Duplica** uno para hacer el tuyo. El icono de **Usar para todos** (en la lista y en el editor) pone ese perfil en
+*Cómo suenan* (resaltado mientras lo usan todos; pulsado otra vez, o si lo borras, cada asistente vuelve al suyo). La **Voz** del perfil solo cuenta si *Quién habla* está
 en *Automático*. Un perfil
 tiene una voz (el motor), velocidad y volumen, y una cadena de **efectos** por la que pasa siempre su voz, en orden
 (arrástralos por los puntos para cambiarlo):

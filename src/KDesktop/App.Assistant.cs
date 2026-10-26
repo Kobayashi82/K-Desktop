@@ -187,6 +187,9 @@ public partial class App
             _assistantConnectedBefore = true;
             foreach (var id in Config.Settings.AssistantsOnDesktop.ToList()) LoadAssistant(supervisor, id, entrance);
             SendPendingOrders(AssistantTargeting.KDesktop);
+            // Which voice speaks: it was forgotten when the process went (a new language restarts it); else Options said
+            // «not running» until the voice was chosen again.
+            AskAssistantVoice("state");
         });
     }
 

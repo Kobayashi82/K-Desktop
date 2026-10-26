@@ -240,7 +240,7 @@ public partial class AssistantPersonalView : UserControl
         List<Option> piperVoices =
         [
             new(string.Empty, AsOthers(AssistantVoiceSection.PiperTitle(PiperModels.VoiceOrDefault(language, s.AssistantVoicePiper)))),
-            .. PiperModels.Voices(language).Select(v => new Option(v.Key, AssistantVoiceSection.PiperOption(v))),
+            .. PiperModels.Voices(language).Where(v => AssistantVoiceSection.Shown(v, ownPiper)).Select(v => new Option(v.Key, AssistantVoiceSection.PiperOption(v))),
         ];
         PiperVoiceBox.ItemsSource = piperVoices;
         PiperVoiceBox.SelectedItem = piperVoices.FirstOrDefault(v => v.Value == PiperModels.KeyOf(ownPiper)) ?? piperVoices[0];

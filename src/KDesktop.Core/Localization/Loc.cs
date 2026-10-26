@@ -92,7 +92,26 @@ public sealed partial class Loc : INotifyPropertyChanged
 
     private const string EmbeddedFolder = "Languages";
 
+    /// <summary>The last list and what it was made from (the user's files and their dates): the same, and it is not read again.</summary>
+    private sealed record AvailableList(string Key, IReadOnlyList<LanguageInfo> Languages);
+
+    private static AvailableList? _available;
+
+    /// <summary>
+    /// The languages there are: the built-in ones and the user's files. Asked a lot (the assistants' language on each
+    /// voice setting); it read and parsed every file each time (seconds, with the UI stopped), now only when the user's change.
+    /// </summary>
     public static IReadOnlyList<LanguageInfo> Available()
+    {
+        var users = UserFiles();
+        var key = string.Join('|', users.Select(f => f + ":" + File.GetLastWriteTimeUtc(f).Ticks));
+        if (Volatile.Read(ref _available) is { } known && known.Key == key) return known.Languages;
+        var list = ReadAvailable(users);
+        Volatile.Write(ref _available, new AvailableList(key, list));
+        return list;
+    }
+
+    private static IReadOnlyList<LanguageInfo> ReadAvailable(string[] users)
     {
         var result = new Dictionary<string, LanguageInfo>(StringComparer.OrdinalIgnoreCase);
         void Add(string code, Dictionary<string, string> strings)
@@ -107,7 +126,7 @@ public sealed partial class Loc : INotifyPropertyChanged
             var code = Path.GetFileNameWithoutExtension(file);
             Add(code, ReadEmbedded(code));
         }
-        foreach (var file in UserFiles())
+        foreach (var file in users)
             Add(Path.GetFileNameWithoutExtension(file), ReadFile(file));
         return result.Values.OrderBy(l => l.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
     }

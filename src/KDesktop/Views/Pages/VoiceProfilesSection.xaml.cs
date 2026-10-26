@@ -186,6 +186,7 @@ public partial class VoiceProfilesSection : UserControl
         grid.Children.Add(open);
 
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) };
+        buttons.Children.Add(ForAllButton(profile.Id, name));
         buttons.Children.Add(Small(SymbolRegular.Copy24, Loc.T("voiceProfiles.duplicate"), () => Duplicate(profile), name));
         buttons.Children.Add(Small(SymbolRegular.Save24, Loc.T("voiceProfiles.export"), () => Export(profile), name));
         if (!builtIn) buttons.Children.Add(Small(SymbolRegular.Delete24, Loc.T("voiceProfiles.delete"), () => Delete(profile), name));
@@ -392,6 +393,28 @@ public partial class VoiceProfilesSection : UserControl
         return card;
     }
 
+    /// <summary>
+    /// Options → Voz → «Cómo suenan» with that profile: everyone speaks with it (deleting it puts back «La de cada asistente»).
+    /// An icon like the others beside it: lit while all use it, and then it puts each one's back.
+    /// </summary>
+    private Button ForAllButton(string id, string name)
+    {
+        var forAll = _app.Config.Settings.AssistantVoiceProfile == id;
+        var button = Small(SymbolRegular.PeopleCommunity24, Loc.T(forAll ? "voiceProfiles.stopForAll" : "voiceProfiles.useForAll"), () =>
+        {
+            if (id == _draft.Id) Keep();
+            _app.Config.Settings.AssistantVoiceProfile = forAll ? string.Empty : id;
+            Build();
+        }, name);
+        button.ToolTip = Loc.T(forAll ? "voiceProfiles.stopForAllHint" : "voiceProfiles.useForAllHint");
+        if (forAll)
+        {
+            button.Appearance = ControlAppearance.Primary;
+            button.SetResourceReference(Control.ForegroundProperty, "TextOnAccentFillColorPrimaryBrush");
+        }
+        return button;
+    }
+
     /// <summary>What the voice, speed and volume of the editor take (the name too: one under the other).</summary>
     private const double ControlWidth = 240;
 
@@ -409,20 +432,7 @@ public partial class VoiceProfilesSection : UserControl
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         var name = VoiceProfiles.NameOf(_draft);
         var profile = _draft;
-        // Options → Voz → «Cómo suenan» with it: everyone speaks with it (deleting it puts back «La de cada asistente»).
-        if (_app.Config.Settings.AssistantVoiceProfile == _draft.Id) buttons.Children.Add(Chip(Loc.T("voiceProfiles.inUseAll"), accent: true));
-        else
-        {
-            var use = Wide(SymbolRegular.Checkmark24, Loc.T("voiceProfiles.useForAll"), _ =>
-            {
-                Keep();
-                _app.Config.Settings.AssistantVoiceProfile = _draft.Id;
-                Build();
-            });
-            use.ToolTip = Loc.T("voiceProfiles.useForAllHint");
-            use.Margin = new Thickness(0, 0, 6, 0);
-            buttons.Children.Add(use);
-        }
+        buttons.Children.Add(ForAllButton(_draft.Id, name));
         buttons.Children.Add(Small(SymbolRegular.Copy24, Loc.T("voiceProfiles.duplicate"), () => { Keep(); Duplicate(_draft); }, name));
         buttons.Children.Add(Small(SymbolRegular.Save24, Loc.T("voiceProfiles.export"), () => { Keep(); Export(_draft); }, name));
         if (!IsBuiltIn) buttons.Children.Add(Small(SymbolRegular.Delete24, Loc.T("voiceProfiles.delete"), () => Delete(profile), name));

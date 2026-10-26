@@ -3946,6 +3946,8 @@
   "voiceProfiles.engine": "Voz",
   "voiceProfiles.engineHint": "Solo cuenta si en Voz, «Quién habla» está en «Automático». Si eliges otra allí, suena esa.",
   "voiceProfiles.useForAllHint": "Todos los asistentes hablan con este perfil (Voz, «Cómo suenan»). Si lo borras, cada uno vuelve al suyo.",
+  "voiceProfiles.stopForAll": "Dejar de usar para todos",
+  "voiceProfiles.stopForAllHint": "Ahora todos hablan con este perfil. Púlsalo para que cada asistente vuelva al suyo.",
   "voiceProfiles.speed": "Velocidad",
   "voiceProfiles.volume": "Volumen",
   "voiceProfiles.chain.chain": "Siempre",
