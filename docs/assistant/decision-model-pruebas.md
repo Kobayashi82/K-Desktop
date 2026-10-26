@@ -167,3 +167,17 @@ harían siempre sin que nadie lo vea.
   disparos falsos. Para medirlo, guardar unos días los clips de la fase 1 (con permiso).
 - pplx-decider-flash en Q8 y StartLux en Q4.
 - `conversational_mode` de Bolt.
+
+## 10. Needle 3 (Cactus Compute), descartado sin medir
+
+26/10/2026. Modelo de 121M parámetros (archivo `.cact` de 8–29 MB, motor propio en C++ con `needle.exe --serve` para
+Windows x64; no corre en llama.cpp) hecho solo para llamar a herramientas: devuelve `function_calls` con una gramática
+sacada de los esquemas y una confianza calibrada. Apache 2.0. Se descartó leyendo su propia documentación:
+
+- **La confianza no sirve en español**: su guía dice que vieron llamadas correctas en español con confianza 0,0, y está
+  calibrada solo para el modelo base. Sin confianza fiable no hay umbral para ejecutar sin preguntar.
+- **Con más de 5 herramientas solo ve 5** por turno (las elige su propio embedding); las demás no las puede llamar. Aquí
+  hay 117 comandos más las herramientas de los asistentes, y EmbeddingGemma ya elige mejor.
+- Sus cifras son de su propia prueba de llamadas de móvil, en inglés y con pocas herramientas; no dice qué idiomas
+  entiende para las herramientas (el español solo aparece en Whistle, su modelo de voz).
+- No conversa: no sustituye al cerebro, solo competiría con el `CommandDecider` de una letra, que ya no carga nada nuevo.
