@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Assistant.Sharing;
 using KDesktop.Core.Localization;
 using Wpf.Ui.Controls;
@@ -78,7 +79,10 @@ public partial class AssistantToolsSection
         card.Add(Caption(Loc.T("toolsOptions.shareWhere")));
         if (s.AssistantShareTools && Running && State is { } state)
         {
-            var count = Caption(Loc.T("toolsOptions.shareCount", state.SharedTools));
+            // Where they come from: the built-in ones and the user's, switched on (only those that read, with «Solo lo que
+            // consulta»); never those of the user's MCP servers (the program can use those by itself).
+            bool Counts(ToolInfo t) => t.Enabled && (s.AssistantShareScope != McpShare.ScopeRead || t.ReadsOnly);
+            var count = Caption(Loc.T("toolsOptions.shareCount", state.SharedTools, ToolsOf("builtin").Count(Counts), ToolsOf("json").Count(Counts)));
             count.Margin = new Thickness(0, 10, 0, 0);
             card.Add(count);
         }
