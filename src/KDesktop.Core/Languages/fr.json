@@ -4112,7 +4112,7 @@
   "assistantVoice.voiceOwn": "{0} · la tienne",
   "assistantVoice.piperNeedsEspeak": "{0} : la voix est là ; il manque espeak-ng ({1} Mo).",
   "settings.webLocalPairing": "Associer aussi sur ce PC",
-  "settings.webLocalPairingHint": "Ainsi, aucun programme de ce PC ne peut lancer vos commandes par le web sans autorisation. « Ouvrir dans le navigateur » l'associe tout seul.",
+  "settings.webLocalPairingHint": "« Ouvrir dans le navigateur » l'associe tout seul.",
   "settings.webThisPc": "Navigateur de ce PC",
   "pwa.tab.assistant": "Assistant",
   "pwa.chat.placeholder": "Écrire à {0}…",

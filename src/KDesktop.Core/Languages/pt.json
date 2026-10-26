@@ -4112,7 +4112,7 @@
   "assistantVoice.voiceOwn": "{0} · sua",
   "assistantVoice.piperNeedsEspeak": "{0}: a voz já está aí; falta o espeak-ng ({1} MB).",
   "settings.webLocalPairing": "Parear também neste PC",
-  "settings.webLocalPairingHint": "Assim nenhum programa deste PC pode executar seus comandos pela web sem permissão. «Abrir no navegador» pareia sozinho.",
+  "settings.webLocalPairingHint": "«Abrir no navegador» pareia sozinho.",
   "settings.webThisPc": "Navegador deste PC",
   "pwa.tab.assistant": "Assistente",
   "pwa.chat.placeholder": "Escreva para {0}…",

@@ -424,12 +424,16 @@ public partial class SettingsPage : UserControl
     private void LoadDevices()
     {
         var rows = _app.Web.Devices.List()
-            .Select(d => new DeviceRow(d.Id, d.Name, Loc.T("settings.webDeviceDetail", d.LastSeen.ToString("g", Loc.Instance.Culture), d.LastIp ?? "?"),
+            .Select(d => new DeviceRow(d.Id, d.Name, Loc.T("settings.webDeviceDetail", d.LastSeen.ToString("g", Loc.Instance.Culture), ShownIp(d.LastIp)),
                 d.ThisPc ? Wpf.Ui.Controls.SymbolRegular.Desktop24 : Wpf.Ui.Controls.SymbolRegular.Phone24))
             .ToList();
         DevicesList.ItemsSource = rows;
         NoDevicesText.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
+
+    /// <summary>This PC as "localhost" (the browser may come in through ::1 or 127.0.0.1); any other address as is.</summary>
+    private static string ShownIp(string? ip) =>
+        ip is null ? "?" : System.Net.IPAddress.TryParse(ip, out var address) && System.Net.IPAddress.IsLoopback(address) ? "localhost" : ip;
 
     /// <summary>The address the phone must open: the configured one, the one seen through the proxy, or this PC's.</summary>
     private string PairingBaseUrl()
