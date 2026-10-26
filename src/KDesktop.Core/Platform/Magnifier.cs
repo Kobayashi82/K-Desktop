@@ -1,11 +1,12 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using KDesktop.Core.Model;
 
 namespace KDesktop.Core.Platform;
 
 /// <summary>
-/// «Lupa»: a lens that follows the mouse showing the area around it enlarged (or, in the other mode, the whole main
-/// monitor enlarged around it). Either way the zoom is anchored at the pointer: what is under it stays under it, so a
+/// «Lupa»: a lens that follows the mouse showing the area around it enlarged (or, in the other mode, the whole
+/// monitor it is on enlarged around it). Either way the zoom is anchored at the pointer: what is under it stays under it, so a
 /// click lands on what is seen there. The lens lets clicks through. On a thread of its own (the magnification API and
 /// the lens window belong to the thread that creates them).
 /// </summary>
@@ -16,6 +17,8 @@ public sealed class Magnifier : IDisposable
     private readonly Lock _lock = new();
     private Thread? _thread;
     private volatile bool _stop;
+    private int _frames;
+    private long _startedAt;
     private double _zoom = 2;
     private ZoomMode _mode = ZoomMode.Lens;
     private ZoomLensSize _size = ZoomLensSize.Medium;
@@ -50,6 +53,8 @@ public sealed class Magnifier : IDisposable
                 _stop = false;
                 var mode = _mode;
                 _thread = new Thread(() => Run(mode)) { IsBackground = true, Name = "Lupa" };
+                _frames = 0;
+                _startedAt = Environment.TickCount64;
                 _thread.Start();
                 Log.Info($"Lupa: ×{_zoom:0.##} ({mode})");
             }
@@ -70,7 +75,8 @@ public sealed class Magnifier : IDisposable
         }
         if (thread is null) return;
         thread.Join(TimeSpan.FromSeconds(2));
-        Log.Info("Lupa: apagada");
+        var seconds = (Environment.TickCount64 - _startedAt) / 1000.0;
+        Log.Info($"Lupa: apagada ({(seconds > 0 ? _frames / seconds : 0):0} fotogramas/s)");
         if (notify) Changed?.Invoke();
     }
 
@@ -147,105 +153,200 @@ public sealed class Magnifier : IDisposable
         }
     }
 
+    /// <summary>
+    /// Full screen: on the main monitor Windows' own full-screen zoom; on the others (it can't do them) a lens as big
+    /// as the monitor, anchored at the pointer the same way.
+    /// </summary>
     private void RunFullScreen()
     {
-        var width = GetSystemMetrics(0);
-        var height = GetSystemMetrics(1);
         (int X, int Y) last = (int.MinValue, int.MinValue);
         var lastZoom = 0.0;
-        while (!_stop)
-        {
-            GetCursorPos(out var p);
-            var zoom = _zoom;
-            if ((p.X, p.Y) != last || Math.Abs(zoom - lastZoom) > 0.001)
-            {
-                // The full-screen zoom is only the main monitor's.
-                if (p.X >= 0 && p.Y >= 0 && p.X < width && p.Y < height)
-                {
-                    var (x, y) = Offset(p.X, p.Y, zoom);
-                    MagSetFullscreenTransform((float)zoom, (int)Math.Round(x), (int)Math.Round(y));
-                }
-                else MagSetFullscreenTransform(1f, 0, 0);
-                last = (p.X, p.Y);
-                lastZoom = zoom;
-            }
-            Thread.Sleep(10);
-        }
-    }
-
-    // ── the lens ─────────────────────────────────────────────────────────
-
-    private const int Border = 3;
-    private static readonly WndProc HostProc = (h, m, w, l) => DefWindowProc(h, m, w, l); // kept alive
-    private static bool _classRegistered;
-
-    private void RunLens(bool round)
-    {
-        var (width, height) = LensSize(_size, round);
-        var instance = GetModuleHandle(null);
-        if (!_classRegistered)
-        {
-            var wc = new WNDCLASSEX
-            {
-                cbSize = Marshal.SizeOf<WNDCLASSEX>(),
-                lpfnWndProc = Marshal.GetFunctionPointerForDelegate(HostProc),
-                hInstance = instance,
-                // The border: K-Desktop's gold.
-                hbrBackground = CreateSolidBrush(0x15A8E0),
-                lpszClassName = "KDesktopLens",
-            };
-            if (RegisterClassEx(ref wc) == 0) throw new InvalidOperationException("RegisterClassEx " + Marshal.GetLastWin32Error());
-            _classRegistered = true;
-        }
-
-        // Layered + transparent: the mouse goes through it to what is below.
-        const uint exStyle = WS_EX_TOPMOST | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE;
-        var host = CreateWindowEx(exStyle, "KDesktopLens", "K-Desktop Lupa", WS_POPUP | WS_CLIPCHILDREN, 0, 0, width, height,
-            IntPtr.Zero, IntPtr.Zero, instance, IntPtr.Zero);
-        if (host == IntPtr.Zero) throw new InvalidOperationException("CreateWindowEx " + Marshal.GetLastWin32Error());
+        var transformed = false;
+        var cover = new Lens();
+        var coverOn = default(ScreenRect);
         try
         {
-            SetLayeredWindowAttributes(host, 0, 255, LWA_ALPHA);
-            SetWindowRgn(host, round ? CreateEllipticRgn(0, 0, width + 1, height + 1) : CreateRoundRectRgn(0, 0, width + 1, height + 1, 28, 28), true);
-            var lens = CreateWindowEx(0, "Magnifier", "K-Desktop", WS_CHILD | WS_VISIBLE, Border, Border, width - 2 * Border, height - 2 * Border,
-                host, IntPtr.Zero, instance, IntPtr.Zero);
-            if (lens == IntPtr.Zero) throw new InvalidOperationException("Magnifier " + Marshal.GetLastWin32Error());
-            SetWindowRgn(lens, round
-                ? CreateEllipticRgn(0, 0, width - 2 * Border + 1, height - 2 * Border + 1)
-                : CreateRoundRectRgn(0, 0, width - 2 * Border + 1, height - 2 * Border + 1, 22, 22), true);
-            // The lens must not show itself (a tunnel of lenses).
-            var self = host;
-            MagSetWindowFilterList(lens, 0 /* MW_FILTERMODE_EXCLUDE */, 1, ref self);
-
-            (int X, int Y) last = (int.MinValue, int.MinValue);
-            var shown = false;
             while (!_stop)
             {
-                while (PeekMessage(out var msg, IntPtr.Zero, 0, 0, 1 /* PM_REMOVE */))
-                {
-                    TranslateMessage(ref msg);
-                    DispatchMessage(ref msg);
-                }
+                var started = Stopwatch.GetTimestamp();
+                Pump();
                 GetCursorPos(out var p);
                 var zoom = _zoom;
-                var transform = new MAGTRANSFORM { m00 = (float)zoom, m11 = (float)zoom, m22 = 1 };
-                MagSetWindowTransform(lens, ref transform);
-                var inner = (W: width - 2 * Border, H: height - 2 * Border);
-                var source = LensSource(p.X, p.Y, inner.W, inner.H, zoom);
-                MagSetWindowSource(lens, new RECT { Left = source.Left, Top = source.Top, Right = source.Right, Bottom = source.Bottom });
-                if ((p.X, p.Y) != last || !shown)
+                var monitor = ScreenCapture.MonitorAt(p.X, p.Y);
+                if (monitor.Left == 0 && monitor.Top == 0)
                 {
-                    SetWindowPos(host, HWND_TOPMOST, p.X - width / 2, p.Y - height / 2, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
-                    last = (p.X, p.Y);
-                    shown = true;
+                    if (cover.Visible) cover.Hide();
+                    if ((p.X, p.Y) != last || Math.Abs(zoom - lastZoom) > 0.001 || !transformed)
+                    {
+                        var (x, y) = Offset(p.X, p.Y, zoom);
+                        MagSetFullscreenTransform((float)zoom, (int)Math.Round(x), (int)Math.Round(y));
+                        transformed = true;
+                    }
                 }
-                InvalidateRect(lens, IntPtr.Zero, true);
-                Thread.Sleep(12);
+                else
+                {
+                    if (transformed)
+                    {
+                        MagSetFullscreenTransform(1f, 0, 0);
+                        transformed = false;
+                    }
+                    if (!cover.Created || coverOn != monitor)
+                    {
+                        cover.Destroy();
+                        cover.Create(monitor.Width, monitor.Height, round: false, border: 0);
+                        coverOn = monitor;
+                    }
+                    var (x, y) = Offset(p.X - monitor.Left, p.Y - monitor.Top, zoom);
+                    var source = new ScreenRect(monitor.Left + (int)Math.Round(x), monitor.Top + (int)Math.Round(y),
+                        (int)Math.Round(monitor.Width / zoom), (int)Math.Round(monitor.Height / zoom));
+                    cover.Show(monitor.Left, monitor.Top, source, zoom);
+                }
+                last = (p.X, p.Y);
+                lastZoom = zoom;
+                NextFrame(started);
             }
         }
         finally
         {
-            DestroyWindow(host);
+            cover.Destroy();
+        }
+    }
+
+    private void RunLens(bool round)
+    {
+        var (width, height) = LensSize(_size, round);
+        var lens = new Lens();
+        lens.Create(width, height, round, Lens.Border);
+        try
+        {
+            while (!_stop)
+            {
+                var started = Stopwatch.GetTimestamp();
+                Pump();
+                GetCursorPos(out var p);
+                var source = LensSource(p.X, p.Y, width - 2 * Lens.Border, height - 2 * Lens.Border, _zoom);
+                lens.Show(p.X - width / 2, p.Y - height / 2, source, _zoom);
+                NextFrame(started);
+            }
+        }
+        finally
+        {
+            lens.Destroy();
+        }
+    }
+
+    private static void Pump()
+    {
+        while (PeekMessage(out var msg, IntPtr.Zero, 0, 0, 1 /* PM_REMOVE */))
+        {
+            TranslateMessage(ref msg);
+            DispatchMessage(ref msg);
+        }
+    }
+
+    /// <summary>
+    /// Waits for the screen's next frame, so the lens moves in step with it (a fixed sleep drifts against the refresh
+    /// and stutters). Setting the magnifier's source already waits for one (measured: 10 ms at 99 Hz), so only a turn
+    /// that didn't (the main monitor's full-screen zoom, the pointer still) waits here. Without composition, about
+    /// 100 times a second.
+    /// </summary>
+    private void NextFrame(long turnStarted)
+    {
+        _frames++;
+        if (Stopwatch.GetElapsedTime(turnStarted).TotalMilliseconds > 3) return;
+        if (DwmFlush() != 0) Thread.Sleep(10);
+    }
+
+    // ── the lens window ──────────────────────────────────────────────────
+
+    /// <summary>
+    /// A click-through window with the magnifier control inside: the lens around the mouse (with a gold border), or a
+    /// whole monitor for full screen on the others.
+    /// </summary>
+    private sealed class Lens
+    {
+        public const int Border = 3;
+        private static readonly WndProc HostProc = (h, m, w, l) => DefWindowProc(h, m, w, l); // kept alive
+        private static bool _classRegistered;
+
+        private IntPtr _host, _control;
+        private (int X, int Y) _at = (int.MinValue, int.MinValue);
+        private double _zoom;
+
+        public bool Created => _host != IntPtr.Zero;
+
+        public bool Visible { get; private set; }
+
+        public void Create(int width, int height, bool round, int border)
+        {
+            var instance = GetModuleHandle(null);
+            if (!_classRegistered)
+            {
+                var wc = new WNDCLASSEX
+                {
+                    cbSize = Marshal.SizeOf<WNDCLASSEX>(),
+                    lpfnWndProc = Marshal.GetFunctionPointerForDelegate(HostProc),
+                    hInstance = instance,
+                    // The border: K-Desktop's gold.
+                    hbrBackground = CreateSolidBrush(0x15A8E0),
+                    lpszClassName = "KDesktopLens",
+                };
+                if (RegisterClassEx(ref wc) == 0) throw new InvalidOperationException("RegisterClassEx " + Marshal.GetLastWin32Error());
+                _classRegistered = true;
+            }
+
+            // Layered + transparent: the mouse goes through it to what is below.
+            const uint exStyle = WS_EX_TOPMOST | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE;
+            _host = CreateWindowEx(exStyle, "KDesktopLens", "K-Desktop Lupa", WS_POPUP | WS_CLIPCHILDREN, 0, 0, width, height,
+                IntPtr.Zero, IntPtr.Zero, instance, IntPtr.Zero);
+            if (_host == IntPtr.Zero) throw new InvalidOperationException("CreateWindowEx " + Marshal.GetLastWin32Error());
+            SetLayeredWindowAttributes(_host, 0, 255, LWA_ALPHA);
+            var (w, h) = (width - 2 * border, height - 2 * border);
+            _control = CreateWindowEx(0, "Magnifier", "K-Desktop", WS_CHILD | WS_VISIBLE, border, border, w, h, _host, IntPtr.Zero, instance, IntPtr.Zero);
+            if (_control == IntPtr.Zero) throw new InvalidOperationException("Magnifier " + Marshal.GetLastWin32Error());
+            if (border > 0)
+            {
+                SetWindowRgn(_host, round ? CreateEllipticRgn(0, 0, width + 1, height + 1) : CreateRoundRectRgn(0, 0, width + 1, height + 1, 28, 28), true);
+                SetWindowRgn(_control, round ? CreateEllipticRgn(0, 0, w + 1, h + 1) : CreateRoundRectRgn(0, 0, w + 1, h + 1, 22, 22), true);
+            }
+            // The lens must not show itself (a tunnel of lenses).
+            var self = _host;
+            MagSetWindowFilterList(_control, 0 /* MW_FILTERMODE_EXCLUDE */, 1, ref self);
+            _at = (int.MinValue, int.MinValue);
+            _zoom = 0;
+        }
+
+        /// <summary>Puts the window's corner at <paramref name="x"/>, <paramref name="y"/> showing <paramref name="source"/>.</summary>
+        public void Show(int x, int y, ScreenRect source, double zoom)
+        {
+            if (Math.Abs(zoom - _zoom) > 0.001)
+            {
+                var transform = new MAGTRANSFORM { m00 = (float)zoom, m11 = (float)zoom, m22 = 1 };
+                MagSetWindowTransform(_control, ref transform);
+                _zoom = zoom;
+            }
+            if ((x, y) != _at || !Visible)
+            {
+                SetWindowPos(_host, HWND_TOPMOST, x, y, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+                _at = (x, y);
+                Visible = true;
+            }
+            // Moved first, so both land in the same frame. Setting the source redraws it (and waits for the frame):
+            // invalidating it too made it wait for two more, 33 fps instead of the monitor's.
+            MagSetWindowSource(_control, new RECT { Left = source.Left, Top = source.Top, Right = source.Right, Bottom = source.Bottom });
+        }
+
+        public void Hide()
+        {
+            ShowWindow(_host, 0 /* SW_HIDE */);
+            Visible = false;
+        }
+
+        public void Destroy()
+        {
+            if (_host != IntPtr.Zero) DestroyWindow(_host);
+            _host = _control = IntPtr.Zero;
+            Visible = false;
         }
     }
 
@@ -303,7 +404,6 @@ public sealed class Magnifier : IDisposable
     [DllImport("magnification.dll")] private static extern bool MagSetWindowSource(IntPtr hwnd, RECT rect);
     [DllImport("magnification.dll")] private static extern bool MagSetWindowFilterList(IntPtr hwnd, int mode, int count, ref IntPtr list);
     [DllImport("user32.dll")] private static extern bool GetCursorPos(out POINT point);
-    [DllImport("user32.dll")] private static extern int GetSystemMetrics(int index);
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)] private static extern IntPtr GetModuleHandle(string? name);
     [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)] private static extern ushort RegisterClassEx(ref WNDCLASSEX wc);
     [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
@@ -313,7 +413,8 @@ public sealed class Magnifier : IDisposable
     [DllImport("user32.dll")] private static extern bool SetLayeredWindowAttributes(IntPtr hwnd, uint key, byte alpha, uint flags);
     [DllImport("user32.dll")] private static extern bool SetWindowPos(IntPtr hwnd, IntPtr after, int x, int y, int cx, int cy, uint flags);
     [DllImport("user32.dll")] private static extern int SetWindowRgn(IntPtr hwnd, IntPtr rgn, bool redraw);
-    [DllImport("user32.dll")] private static extern bool InvalidateRect(IntPtr hwnd, IntPtr rect, bool erase);
+    [DllImport("user32.dll")] private static extern bool ShowWindow(IntPtr hwnd, int cmd);
+    [DllImport("dwmapi.dll")] private static extern int DwmFlush();
     [DllImport("user32.dll")] private static extern bool PeekMessage(out MSG msg, IntPtr hwnd, uint min, uint max, uint remove);
     [DllImport("user32.dll")] private static extern bool TranslateMessage(ref MSG msg);
     [DllImport("user32.dll")] private static extern IntPtr DispatchMessage(ref MSG msg);

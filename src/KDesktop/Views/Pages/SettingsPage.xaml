@@ -1440,8 +1440,8 @@
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.zoomLensSize}" />
                             <ComboBox Width="200" ItemsSource="{x:Static v:Lookups.ZoomLensSizes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding ZoomLensSize}" />
                         </StackPanel>
-                        <ui:Button x:Name="ZoomTestButton" MinHeight="36" VerticalAlignment="Bottom" Content="{l:Tr settings.zoomTest}" Icon="{ui:SymbolIcon ZoomIn24}" Click="OnZoomTest" />
                     </WrapPanel>
+                    <ui:Button x:Name="ZoomTestButton" MinHeight="36" Margin="0,12,0,0" HorizontalAlignment="Left" Content="{l:Tr settings.zoomTest}" Icon="{ui:SymbolIcon ZoomIn24}" Click="OnZoomTest" />
                 </StackPanel>
             </Border>
 

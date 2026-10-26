@@ -37,7 +37,13 @@ public static class ScreenCapture
     public static ScreenRect MonitorAtCursor()
     {
         GetCursorPos(out var p);
-        var monitor = MonitorFromPoint(p, 2 /* NEAREST */);
+        return MonitorAt(p.X, p.Y);
+    }
+
+    /// <summary>The whole monitor at (or nearest to) a point.</summary>
+    public static ScreenRect MonitorAt(int x, int y)
+    {
+        var monitor = MonitorFromPoint(new POINT { X = x, Y = y }, 2 /* NEAREST */);
         var info = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
         return GetMonitorInfo(monitor, ref info)
             ? new ScreenRect(info.rcMonitor.Left, info.rcMonitor.Top, info.rcMonitor.Right - info.rcMonitor.Left, info.rcMonitor.Bottom - info.rcMonitor.Top)
