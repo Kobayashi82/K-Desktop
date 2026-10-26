@@ -28,14 +28,14 @@ there.
 |---|---|
 | **Remote control** | The UDP server: port, where from, key and what is allowed. See [Phone and remote control](remote.md) |
 | **Web app** | The web server, pairing and paired devices, touchpad and keyboard |
-| **Android app** | Its version and «Save the APK» |
+| **Mobile app** | Its version and «Save the APK» |
 
 ## System
 
 | Section | What it has |
 |---|---|
 | **Disable and block** | Programs where K-Desktop's hotkeys do nothing (games, remote desktops), with a hotkey to add or remove the one in front, and programs where Mouse 4 and Mouse 5 don't go back or forward |
-| **Captures and magnifier** | Screenshots folder; **audio replay** (keeps the last seconds in memory so *Record audio → Save the replay* saves them when something happens; nothing is written to disk); the magnifier's zoom, shape and size |
+| **Captures and magnifier** | In three panels: **Screenshots** (their folder), **Audio** (the recordings folder and **Save what just played**, which keeps the last seconds in memory so *Record audio → Save what just played* can save them; nothing is written to disk) and **Magnifier** (zoom, shape —rectangular lens, round lens or full screen—, size and «Try it») |
 | **Data** | Backups, export, import, re-import from K-Desktop 4, and the log |
 | **Updates** | Version, checking now, and what to do when there is a new one |
 

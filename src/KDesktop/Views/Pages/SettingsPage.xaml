@@ -1365,16 +1365,23 @@
                 </StackPanel>
             </Border>
 
-            <!-- Captures, recordings and zoom -->
+            <!-- Captures -->
             <Border Style="{StaticResource Card}" Tag="capture">
                 <StackPanel>
                     <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.capture}" />
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.captureFolder}" />
-                    <Grid Margin="0,0,0,10">
+                    <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <ui:TextBox Text="{Binding CaptureFolder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr settings.captureFolderHint}" />
                         <ui:Button MinHeight="36" VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseCaptureFolder" />
                     </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Audio: recordings and the last seconds -->
+            <Border Style="{StaticResource Card}" Tag="capture">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.captureAudio}" />
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.recordFolder}" />
                     <Grid Margin="0,0,0,6">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
@@ -1389,7 +1396,7 @@
                         </StackPanel>
                         <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AudioReplay}" />
                     </Grid>
-                    <WrapPanel IsEnabled="{Binding AudioReplay}" Margin="0,4,0,8">
+                    <WrapPanel IsEnabled="{Binding AudioReplay}" Margin="0,4,0,0">
                         <StackPanel Margin="0,0,12,0">
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.audioReplaySeconds}" />
                             <ui:TextBox Width="120" Text="{Binding AudioReplaySeconds, UpdateSourceTrigger=PropertyChanged}" />
@@ -1399,6 +1406,13 @@
                             <ComboBox Width="260" ItemsSource="{x:Static v:Lookups.AudioSources}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding AudioReplaySource}" />
                         </StackPanel>
                     </WrapPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Magnifier -->
+            <Border Style="{StaticResource Card}" Tag="capture">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.zoom}" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
@@ -1412,10 +1426,21 @@
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.zoomMode}" />
                             <ComboBox Width="280" ItemsSource="{x:Static v:Lookups.ZoomModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding ZoomMode}" />
                         </StackPanel>
-                        <StackPanel>
+                        <StackPanel Margin="0,0,12,0">
+                            <!-- Full screen has no lens -->
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ZoomMode}" Value="{x:Static m:ZoomMode.FullScreen}">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.zoomLensSize}" />
                             <ComboBox Width="200" ItemsSource="{x:Static v:Lookups.ZoomLensSizes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding ZoomLensSize}" />
                         </StackPanel>
+                        <ui:Button x:Name="ZoomTestButton" MinHeight="36" VerticalAlignment="Bottom" Content="{l:Tr settings.zoomTest}" Icon="{ui:SymbolIcon ZoomIn24}" Click="OnZoomTest" />
                     </WrapPanel>
                 </StackPanel>
             </Border>

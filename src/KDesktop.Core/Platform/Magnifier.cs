@@ -98,12 +98,15 @@ public sealed class Magnifier : IDisposable
     public static (double X, double Y) Offset(int cursorX, int cursorY, double zoom) =>
         (cursorX * (1 - 1 / zoom), cursorY * (1 - 1 / zoom));
 
-    /// <summary>The lens's size in physical pixels.</summary>
-    public static (int Width, int Height) LensSize(ZoomLensSize size) => size switch
+    /// <summary>The lens's size in physical pixels (the round one is a circle).</summary>
+    public static (int Width, int Height) LensSize(ZoomLensSize size, bool round = false) => (size, round) switch
     {
-        ZoomLensSize.Small => (480, 300),
-        ZoomLensSize.Large => (1120, 700),
-        _ => (800, 500),
+        (ZoomLensSize.Small, false) => (480, 300),
+        (ZoomLensSize.Large, false) => (1120, 700),
+        (_, false) => (800, 500),
+        (ZoomLensSize.Small, true) => (360, 360),
+        (ZoomLensSize.Large, true) => (800, 800),
+        _ => (560, 560),
     };
 
     /// <summary>
@@ -129,7 +132,7 @@ public sealed class Magnifier : IDisposable
         try
         {
             if (mode == ZoomMode.FullScreen) RunFullScreen();
-            else RunLens();
+            else RunLens(round: mode == ZoomMode.Circle);
         }
         catch (Exception ex)
         {
@@ -176,9 +179,9 @@ public sealed class Magnifier : IDisposable
     private static readonly WndProc HostProc = (h, m, w, l) => DefWindowProc(h, m, w, l); // kept alive
     private static bool _classRegistered;
 
-    private void RunLens()
+    private void RunLens(bool round)
     {
-        var (width, height) = LensSize(_size);
+        var (width, height) = LensSize(_size, round);
         var instance = GetModuleHandle(null);
         if (!_classRegistered)
         {
@@ -203,11 +206,13 @@ public sealed class Magnifier : IDisposable
         try
         {
             SetLayeredWindowAttributes(host, 0, 255, LWA_ALPHA);
-            SetWindowRgn(host, CreateRoundRectRgn(0, 0, width + 1, height + 1, 28, 28), true);
+            SetWindowRgn(host, round ? CreateEllipticRgn(0, 0, width + 1, height + 1) : CreateRoundRectRgn(0, 0, width + 1, height + 1, 28, 28), true);
             var lens = CreateWindowEx(0, "Magnifier", "K-Desktop", WS_CHILD | WS_VISIBLE, Border, Border, width - 2 * Border, height - 2 * Border,
                 host, IntPtr.Zero, instance, IntPtr.Zero);
             if (lens == IntPtr.Zero) throw new InvalidOperationException("Magnifier " + Marshal.GetLastWin32Error());
-            SetWindowRgn(lens, CreateRoundRectRgn(0, 0, width - 2 * Border + 1, height - 2 * Border + 1, 22, 22), true);
+            SetWindowRgn(lens, round
+                ? CreateEllipticRgn(0, 0, width - 2 * Border + 1, height - 2 * Border + 1)
+                : CreateRoundRectRgn(0, 0, width - 2 * Border + 1, height - 2 * Border + 1, 22, 22), true);
             // The lens must not show itself (a tunnel of lenses).
             var self = host;
             MagSetWindowFilterList(lens, 0 /* MW_FILTERMODE_EXCLUDE */, 1, ref self);
@@ -313,5 +318,6 @@ public sealed class Magnifier : IDisposable
     [DllImport("user32.dll")] private static extern bool TranslateMessage(ref MSG msg);
     [DllImport("user32.dll")] private static extern IntPtr DispatchMessage(ref MSG msg);
     [DllImport("gdi32.dll")] private static extern IntPtr CreateRoundRectRgn(int x1, int y1, int x2, int y2, int w, int h);
+    [DllImport("gdi32.dll")] private static extern IntPtr CreateEllipticRgn(int x1, int y1, int x2, int y2);
     [DllImport("gdi32.dll")] private static extern IntPtr CreateSolidBrush(uint color);
 }

@@ -471,8 +471,8 @@ public partial class DictateAction : CommandAction
 
 // ── Lupa ──────────────────────────────────────────────────────────────────
 
-/// <summary>«Lupa»: a lens around the mouse, or the whole main monitor enlarged.</summary>
-public enum ZoomMode { Lens, FullScreen }
+/// <summary>«Lupa»: a lens around the mouse (rectangular or round), or the whole main monitor enlarged.</summary>
+public enum ZoomMode { Lens, FullScreen, Circle }
 
 /// <summary>How big the lens is.</summary>
 public enum ZoomLensSize { Small, Medium, Large }

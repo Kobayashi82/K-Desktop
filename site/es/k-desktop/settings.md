@@ -28,14 +28,14 @@ allí.
 |---|---|
 | **Control remoto** | El servidor UDP: puerto, desde dónde, clave y qué se permite. Ver [Móvil y control remoto](remote.md) |
 | **Aplicación web** | El servidor web, emparejar y los dispositivos emparejados, touchpad y teclado |
-| **Aplicación de Android** | Su versión y «Guardar la APK» |
+| **Aplicación móvil** | Su versión y «Guardar la APK» |
 
 ## Sistema
 
 | Sección | Qué tiene |
 |---|---|
 | **Desactivar y bloquear** | Programas donde los atajos de K-Desktop no hacen nada (juegos, escritorios remotos), con un atajo para añadir o quitar el de delante, y programas donde Mouse 4 y Mouse 5 no van atrás ni adelante |
-| **Capturas y lupa** | La carpeta de las capturas; la **repetición de audio** (guarda en memoria los últimos segundos para que *Grabar audio → Guardar la repetición* los guarde cuando pase algo; no se escribe nada en el disco); el zoom, la forma y el tamaño de la lupa |
+| **Capturas y lupa** | En tres paneles: **Capturas** (su carpeta), **Audio** (la carpeta de las grabaciones y **Guardar lo que acaba de sonar**, que recuerda en memoria los últimos segundos para que *Grabar audio → Guardar lo que acaba de sonar* los guarde; no se escribe nada en el disco) y **Lupa** (aumento, forma —lente rectangular, redonda o pantalla completa—, tamaño y «Probar») |
 | **Datos** | Copias de seguridad, exportar, importar, volver a importar de K-Desktop 4 y el registro |
 | **Actualizaciones** | La versión, buscar ahora y qué hacer cuando hay una nueva |
 

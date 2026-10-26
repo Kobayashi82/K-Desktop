@@ -49,7 +49,11 @@ public partial class SettingsPage : UserControl
         void OnSetting(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName is nameof(AppSettings.UdpScope) or nameof(AppSettings.UdpKey)) UpdateUdpScopeHint();
+            // Trying the magnifier: a new zoom shows at once (shape and size come with the settings being applied).
+            if (e.PropertyName is nameof(AppSettings.ZoomLevel) && _zoomTesting && _app.Engine.Magnifier.IsOn)
+                _app.Engine.Magnifier.On(_app.Config.Settings.ZoomLevel);
         }
+        void OnMagnifier() => Dispatcher.BeginInvoke(UpdateZoomTest);
         void OnWebState() => Dispatcher.BeginInvoke(UpdateWebState);
         void OnDevices() => Dispatcher.BeginInvoke(LoadDevices);
         void OnVoiceModels() => Dispatcher.BeginInvoke(UpdateVoiceModels);
@@ -80,6 +84,8 @@ public partial class SettingsPage : UserControl
             _app.Web.StateChanged += OnWebState;
             _app.Web.Devices.Changed += OnDevices;
             _app.Voice.Models.Changed += OnVoiceModels;
+            _app.Engine.Magnifier.Changed += OnMagnifier;
+            UpdateZoomTest();
         };
         Unloaded += (_, _) =>
         {
@@ -90,6 +96,10 @@ public partial class SettingsPage : UserControl
             _app.Web.StateChanged -= OnWebState;
             _app.Web.Devices.Changed -= OnDevices;
             _app.Voice.Models.Changed -= OnVoiceModels;
+            _app.Engine.Magnifier.Changed -= OnMagnifier;
+            // The try doesn't outlive the page.
+            if (_zoomTesting) _app.Engine.Magnifier.Off();
+            _zoomTesting = false;
         };
     }
 
@@ -907,6 +917,30 @@ public partial class SettingsPage : UserControl
         AutoBackupStatus.Text = last.Path is null
             ? Loc.T("settings.autoBackupNone")
             : Loc.T("settings.autoBackupLast", last.Time.ToString("g", System.Globalization.CultureInfo.CurrentCulture));
+    }
+
+    /// <summary>The magnifier was turned on from «Probar» (and is turned off when leaving the page).</summary>
+    private bool _zoomTesting;
+
+    private void OnZoomTest(object sender, RoutedEventArgs e)
+    {
+        var magnifier = _app.Engine.Magnifier;
+        if (magnifier.IsOn) magnifier.Off();
+        else
+        {
+            var s = _app.Config.Settings;
+            magnifier.Configure(s.ZoomMode, s.ZoomLensSize);
+            magnifier.On(s.ZoomLevel);
+            _zoomTesting = true;
+        }
+    }
+
+    private void UpdateZoomTest()
+    {
+        var on = _app.Engine.Magnifier.IsOn;
+        if (!on) _zoomTesting = false;
+        ZoomTestButton.Content = Loc.T(on ? "settings.zoomTestStop" : "settings.zoomTest");
+        ZoomTestButton.Icon = new Wpf.Ui.Controls.SymbolIcon(on ? Wpf.Ui.Controls.SymbolRegular.ZoomOut24 : Wpf.Ui.Controls.SymbolRegular.ZoomIn24);
     }
 
     private void OnBrowseCaptureFolder(object sender, RoutedEventArgs e)

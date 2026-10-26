@@ -36,7 +36,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 | **Volume** | Sets, raises, lowers or mutes the volume: of the speakers, the microphone, one program or the one in front. |
 | **Audio output** | Changes the default sound device. With several chosen, each run switches to the next one. |
 | **Play sound** | Plays a bundled sound or a .wav file. |
-| **Record audio** | Records what the PC plays, the microphone or both, or saves the last seconds (the replay of *Settings → Captures*). |
+| **Record audio** | Records what the PC plays, the microphone or both, or saves what just played (*Settings → Captures and magnifier*). |
 
 ## Screen
 
@@ -44,7 +44,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 |---|---|
 | **Screenshot** | Captures a region you pick with the mouse, the active window, a monitor or all of them; copies it, saves it and, if you want, opens it. |
 | **Copy text from the screen** | Reads the text of a region you pick with the mouse, the active window or a monitor and copies it. No AI: Windows' text recognition (OCR). |
-| **Magnifier** | A lens that follows the mouse and enlarges what is around it (or the whole main screen). |
+| **Magnifier** | A lens (rectangular or round) that follows the mouse and enlarges what is around it, or the whole main screen. |
 | **Screen** | Turns the screens off, changes the projection (Win + P), the brightness, or a monitor's resolution and refresh rate. |
 | **Windows theme** | Switches Windows and the apps to light or dark mode, or toggles between them. |
 

@@ -34,7 +34,7 @@ Notes:
 
 ## Android app
 
-The Android app is the same web app with a native microphone. *Settings → Android app → Save the APK…*, copy it to the
+The Android app is the same web app with a native microphone. *Settings → Mobile app → Save the APK…*, copy it to the
 phone and open it (Android asks to allow installing apps from that source). It needs no store: when a phone with an older
 version connects, the app offers to update itself from the PC.
 

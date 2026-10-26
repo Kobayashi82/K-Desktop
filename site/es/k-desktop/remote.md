@@ -34,7 +34,7 @@ A tener en cuenta:
 
 ## Aplicación de Android
 
-La aplicación de Android es la misma aplicación web con micrófono propio. *Opciones → Aplicación de Android → Guardar la
+La aplicación de Android es la misma aplicación web con micrófono propio. *Opciones → Aplicación móvil → Guardar la
 APK…*, cópiala al móvil y ábrela (Android pide permitir instalar aplicaciones de ese origen). No necesita tienda: cuando se
 conecta un móvil con una versión más antigua, la aplicación ofrece actualizarse desde el PC.
 

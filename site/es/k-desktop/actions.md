@@ -37,7 +37,7 @@ orden.
 | **Volumen** | Fija, sube, baja o silencia el volumen: de los altavoces, del micrófono, de un programa o del que está delante. |
 | **Salida de audio** | Cambia el dispositivo de sonido predeterminado. Con varios elegidos, cada vez pasa al siguiente. |
 | **Reproducir sonido** | Reproduce un sonido incluido o un archivo .wav. |
-| **Grabar audio** | Graba lo que suena en el PC, el micrófono o las dos cosas, o guarda los últimos segundos (la repetición de *Opciones → Capturas y lupa*). |
+| **Grabar audio** | Graba lo que suena en el PC, el micrófono o las dos cosas, o guarda lo que acaba de sonar (*Opciones → Capturas y lupa*). |
 
 ## Pantalla
 
@@ -45,7 +45,7 @@ orden.
 |---|---|
 | **Captura de pantalla** | Captura una zona que eliges con el ratón, la ventana activa, un monitor o todos; la copia, la guarda y, si quieres, la abre. |
 | **Copiar texto de la pantalla** | Lee el texto de una zona que eliges con el ratón, de la ventana activa o de un monitor, y lo copia. Sin IA: con el reconocimiento de texto de Windows (OCR). |
-| **Lupa** | Una lente que sigue al ratón y amplía lo que tiene alrededor (o toda la pantalla principal). |
+| **Lupa** | Una lente (rectangular o redonda) que sigue al ratón y amplía lo que tiene alrededor, o toda la pantalla principal. |
 | **Pantalla** | Apaga las pantallas, cambia la proyección (Win + P), el brillo, o la resolución y la frecuencia de un monitor. |
 | **Tema de Windows** | Pasa Windows y las aplicaciones a modo claro u oscuro, o alterna entre los dos. |
 
