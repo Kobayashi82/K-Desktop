@@ -1884,8 +1884,9 @@
                 <StackPanel>
                     <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.data}" />
                     <!-- Where the data is, as a link that opens it -->
-                    <TextBlock Margin="0,0,0,6" TextWrapping="Wrap">
-                        <Hyperlink x:Name="DataPathLink" Click="OnOpenData" ToolTip="{l:Tr settings.openDataTip}"><Run x:Name="DataPathText" /></Hyperlink>
+                    <!-- Like the link to the documentation in «Control remoto»: the accent colour, also under the mouse -->
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,6" TextWrapping="Wrap">
+                        <Hyperlink x:Name="DataPathLink" Click="OnOpenData" ToolTip="{l:Tr settings.openDataTip}" Foreground="{DynamicResource Kd.AccentText}"><Run x:Name="DataPathText" /></Hyperlink>
                     </TextBlock>
                     <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" Text="{l:Tr settings.exportHint}" />
                     <WrapPanel>
@@ -1924,8 +1925,13 @@
                     </StackPanel>
                     <ui:Button MinHeight="36" Margin="0,4,0,8" HorizontalAlignment="Left" Content="{l:Tr settings.backupNow}" Icon="{ui:SymbolIcon Save24}" Click="OnBackupNow" />
                     <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.autoBackupHint}" />
-                    <Border Height="1" SnapsToDevicePixels="True" Margin="0,14,0,6" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
-                    <Grid Style="{StaticResource SettingRow}">
+                </StackPanel>
+            </Border>
+
+            <!-- Achievements and statistics, apart: it can't be undone -->
+            <Border Style="{StaticResource Card}" Tag="data">
+                <StackPanel>
+                    <Grid Style="{StaticResource SettingRow}" Margin="0">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr ach.reset}" />
