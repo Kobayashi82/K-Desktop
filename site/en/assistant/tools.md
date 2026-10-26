@@ -48,7 +48,7 @@ Some details:
 A JSON tool gives the assistants something new to do without compiling anything: switch on a Home Assistant light, send
 you a Telegram message, run one of your commands with phrases of its own, chain several steps or launch a script.
 
-- They are in `%APPDATA%\K-Desktop 5\Assistant\Tools\`, one `.json` per tool (*Tools → Tools → Open folder*, or **New**
+- They are in `%APPDATA%\K-Desktop 5\Assistant\Tools\`, one `.json` per tool (*Tools → Custom → Open folder*, or **New**
   from a template). They reload a moment after you save, add or remove one.
 - Schema: [`tool.schema.json`](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/tool.schema.json).
   With `"$schema"` pointing to it your editor shows the mistakes as you type. A file with errors is not loaded and
