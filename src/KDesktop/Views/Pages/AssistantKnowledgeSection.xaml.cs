@@ -350,6 +350,8 @@ public partial class AssistantKnowledgeSection : UserControl
             || (files.Filter ?? "all") != _filesFilter) return;
         var culture = Loc.Instance.Culture;
         FilesTitle.Text = Loc.T("knowledgeOptions.filesTitle", Path.GetFileName(files.Folder.TrimEnd('\\')) is { Length: > 0 } leaf ? leaf : files.Folder);
+        FilesPath.Text = files.Folder;
+        FilesPath.ToolTip = files.Folder;
         FilesCaption.Text = files.Total > files.Files.Count
             ? Loc.T("knowledgeOptions.filesMore", files.Files.Count.ToString("N0", culture), files.Total.ToString("N0", culture))
             : Loc.T("knowledgeOptions.folder.files", files.Total.ToString("N0", culture));

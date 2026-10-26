@@ -9,17 +9,12 @@
     <StackPanel>
         <Border Style="{StaticResource Card}">
             <StackPanel>
-                <Grid Margin="0,0,0,10">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                    <StackPanel Margin="0,0,16,0">
-                        <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr knowledgeOptions.title}" />
-                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr knowledgeOptions.intro}" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <ui:Button MinHeight="36" Appearance="Primary" Icon="{ui:SymbolIcon FolderAdd24}" Content="{l:Tr knowledgeOptions.add}" Click="OnAdd" />
-                        <ui:Button MinHeight="36" Margin="8,0,0,0" Icon="{ui:SymbolIcon DocumentAdd24}" Content="{l:Tr knowledgeOptions.addFiles}" Click="OnAddFiles" />
-                    </StackPanel>
-                </Grid>
+                <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr knowledgeOptions.title}" />
+                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr knowledgeOptions.intro}" />
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,12">
+                    <ui:Button MinHeight="36" Appearance="Primary" Icon="{ui:SymbolIcon FolderAdd24}" Content="{l:Tr knowledgeOptions.add}" Click="OnAdd" />
+                    <ui:Button MinHeight="36" Margin="8,0,0,0" Icon="{ui:SymbolIcon DocumentAdd24}" Content="{l:Tr knowledgeOptions.addFiles}" Click="OnAddFiles" />
+                </StackPanel>
 
                 <!-- The module is off, or its process is not running -->
                 <Border x:Name="OffBox" Style="{StaticResource InfoBox}" Margin="0,0,0,10" Visibility="Collapsed">
@@ -52,8 +47,11 @@
                 <TextBlock x:Name="ProblemText" Margin="0,6,0,0" TextWrapping="Wrap" Visibility="Collapsed" Foreground="{DynamicResource Kd.Danger}" />
 
                 <TextBlock x:Name="EmptyText" Style="{StaticResource Caption}" Margin="0,8,0,4" Text="{l:Tr knowledgeOptions.empty}" />
+                <!-- Many folders: the list scrolls by itself (with room for the bar next to the buttons) -->
                 <Border x:Name="FolderPanel" Style="{StaticResource ListPanel}" Visibility="Collapsed">
-                    <StackPanel x:Name="FolderRows" />
+                    <ScrollViewer MaxHeight="400" VerticalScrollBarVisibility="Auto" PanningMode="VerticalOnly">
+                        <StackPanel x:Name="FolderRows" Margin="0,0,16,0" />
+                    </ScrollViewer>
                 </Border>
 
                 <Grid Style="{StaticResource SettingRow}" Margin="0,12,0,0">
@@ -65,9 +63,12 @@
                     <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AssistantKnowledgeOcr}" AutomationProperties.Name="{l:Tr knowledgeOptions.ocr}" />
                 </Grid>
 
-                <StackPanel x:Name="Actions" Orientation="Horizontal" Margin="0,14,0,0">
-                    <ui:Button MinHeight="36" x:Name="RebuildButton" Icon="{ui:SymbolIcon ArrowSync24}" Content="{l:Tr knowledgeOptions.rebuild}" Click="OnRebuild" />
-                    <ui:Button MinHeight="36" x:Name="ForgetButton" Margin="8,0,0,0" Icon="{ui:SymbolIcon Delete24}" Content="{l:Tr knowledgeOptions.forget}" Click="OnForget" />
+                <StackPanel x:Name="Actions">
+                    <Border Height="1" Margin="0,6,0,14" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+                    <StackPanel Orientation="Horizontal">
+                        <ui:Button MinHeight="36" x:Name="RebuildButton" Icon="{ui:SymbolIcon ArrowSync24}" Content="{l:Tr knowledgeOptions.rebuild}" Click="OnRebuild" />
+                        <ui:Button MinHeight="36" x:Name="ForgetButton" Margin="8,0,0,0" Icon="{ui:SymbolIcon Delete24}" Content="{l:Tr knowledgeOptions.forget}" Click="OnForget" />
+                    </StackPanel>
                 </StackPanel>
             </StackPanel>
         </Border>
@@ -79,6 +80,8 @@
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <StackPanel Margin="0,0,16,0">
                         <TextBlock x:Name="FilesTitle" Style="{StaticResource CardTitle}" Margin="0,0,0,2" TextTrimming="CharacterEllipsis" />
+                        <!-- The whole path: two folders may have the same name -->
+                        <TextBlock x:Name="FilesPath" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" />
                         <TextBlock x:Name="FilesCaption" Style="{StaticResource Caption}" />
                     </StackPanel>
                     <ui:Button MinHeight="36" Grid.Column="1" VerticalAlignment="Top" Icon="{ui:SymbolIcon Dismiss24}" Content="{l:Tr knowledgeOptions.close}" Click="OnCloseFiles" />
@@ -92,7 +95,7 @@
                 </Grid>
                 <Border Style="{StaticResource ListPanel}">
                     <ScrollViewer MaxHeight="440" VerticalScrollBarVisibility="Auto" PanningMode="VerticalOnly">
-                        <StackPanel x:Name="FileRows" Margin="0,0,6,0" />
+                        <StackPanel x:Name="FileRows" Margin="0,0,16,0" />
                     </ScrollViewer>
                 </Border>
             </StackPanel>
