@@ -804,6 +804,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>Folders of the user's own with Piper voices (stage 12): they count as downloaded. Replaced whole.</summary>
     [ObservableProperty] private List<string> _assistantPiperFolders = [];
 
+    /// <summary>Folders of the user's own with Kokoro voices (.pt or .bin, 5.0.282): they count as downloaded. Replaced whole.</summary>
+    [ObservableProperty] private List<string> _assistantKokoroFolders = [];
+
     /// <summary>A game on the whole screen takes the brain's models out of the graphics card (stage 12).</summary>
     [ObservableProperty] private bool _assistantBrainFreeForGames = true;
 

@@ -9,7 +9,9 @@ namespace KDesktop.Core.Assistant.Voice;
 /// voice (<c>Models\kokoro\voices\</c>). Spanish turns text into phonemes with rules of our own; English, French, Italian
 /// and Portuguese need espeak-ng (<see cref="EspeakFiles"/>, downloaded apart). German has no Kokoro voice. K-Desktop
 /// downloads them (Options → Assistant → Voice); the assistant process only reads them. The list of files, sizes and hashes
-/// is <c>kokoro.json</c>, embedded.
+/// is <c>kokoro.json</c>, embedded. Since 5.0.282 the user's own folders count too (<see cref="UseFolders"/>): Kokoro's
+/// <c>.pt</c> (PyTorch's zip, the pack inside) or <c>.bin</c>, named as Kokoro names them (<c>af_ellen</c>: its language
+/// by the first letter); one of the catalog that is there needs no download, and none is listed twice.
 /// </summary>
 public static class KokoroModels
 {
@@ -30,6 +32,116 @@ public static class KokoroModels
 
     public static string VoiceFile(string voice) => Path.Combine(Root, "voices", voice + ".bin");
 
+    /// <summary>The file a voice is read from: the downloaded one, else the user's, else where it would be downloaded.</summary>
+    public static string PackFile(string voice) =>
+        IsComplete(VoiceFile(voice)) ? VoiceFile(voice) : Found.TryGetValue(voice, out var own) ? own : VoiceFile(voice);
+
+    // ── the user's folders ───────────────────────────────────────────────
+
+    private static readonly object FoldersGate = new();
+    private static IReadOnlyList<string> _folders = [];
+    private static Lazy<IReadOnlyDictionary<string, string>> _local = new(() => new Dictionary<string, string>());
+
+    /// <summary>Kokoro's languages by the first letter of a voice's name (a/b: American and British English…).</summary>
+    private static readonly Dictionary<char, string> LanguageOfLetter = new() { ['a'] = "en", ['b'] = "en", ['e'] = "es", ['f'] = "fr", ['i'] = "it", ['p'] = "pt" };
+
+    /// <summary>The folders with the user's voices (Options → Voz → Voces → Kokoro): looked at again when they change.</summary>
+    public static void UseFolders(IEnumerable<string> folders)
+    {
+        var list = folders.Where(f => f.Trim().Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        lock (FoldersGate)
+        {
+            if (list.SequenceEqual(_folders, StringComparer.OrdinalIgnoreCase)) return;
+            _folders = list;
+            _local = new(() => Scan(list));
+        }
+    }
+
+    /// <summary>Looks in the user's folders again (a voice added there).</summary>
+    public static void Rescan()
+    {
+        lock (FoldersGate)
+        {
+            var list = _folders;
+            _local = new(() => Scan(list));
+        }
+    }
+
+    /// <summary>The user's voices: name → file (the first of each name wins).</summary>
+    private static IReadOnlyDictionary<string, string> Found
+    {
+        get
+        {
+            Lazy<IReadOnlyDictionary<string, string>> local;
+            lock (FoldersGate) local = _local;
+            return local.Value;
+        }
+    }
+
+    /// <summary>How many of the user's voices a folder has.</summary>
+    public static int CountIn(string folder)
+    {
+        var root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(folder)) + Path.DirectorySeparatorChar;
+        return Found.Values.Count(f => f.StartsWith(root, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>The voice is read from one of the user's folders (it is not downloaded).</summary>
+    public static bool IsInFolders(string voice) => !IsComplete(VoiceFile(voice)) && Found.ContainsKey(voice);
+
+    /// <summary>The language of a voice by its name («ef_dora» → «es»), or null when it is not Kokoro's way or not one it speaks.</summary>
+    public static string? LanguageOf(string voice) =>
+        voice.Length > 3 && voice[2] == '_' && voice[1] is 'f' or 'm' && LanguageOfLetter.TryGetValue(voice[0], out var language) ? language : null;
+
+    /// <summary>Every <c>.pt</c> or <c>.bin</c> with a voice pack inside, in the folders and the ones in them.</summary>
+    private static Dictionary<string, string> Scan(IReadOnlyList<string> folders)
+    {
+        var found = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var folder in folders)
+        {
+            if (!Directory.Exists(folder)) continue;
+            IEnumerable<string> files;
+            try { files = Directory.EnumerateFiles(folder, "*.*", new EnumerationOptions { RecurseSubdirectories = true, MaxRecursionDepth = 3, IgnoreInaccessible = true }).ToList(); }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { continue; }
+            foreach (var file in files)
+            {
+                var extension = Path.GetExtension(file);
+                if (!extension.Equals(".pt", StringComparison.OrdinalIgnoreCase) && !extension.Equals(".bin", StringComparison.OrdinalIgnoreCase)) continue;
+                var name = Path.GetFileNameWithoutExtension(file);
+                if (LanguageOf(name) is null || found.ContainsKey(name) || !IsPack(file)) continue;
+                found[name] = file;
+            }
+        }
+        if (found.Count > 0) Log.Info($"Kokoro: {found.Count} voz/voces en las carpetas del usuario");
+        return found;
+    }
+
+    /// <summary>A voice pack: a .bin of its size, or a .pt with one inside.</summary>
+    private static bool IsPack(string file)
+    {
+        try { return ReadPack(file).Length == VoiceSize; }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
+        {
+            Log.Warn($"Kokoro: {file} no es una voz: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// The bytes of a voice pack (510 × 256 floats): a .bin as it is; a .pt is PyTorch's zip, whose <c>data/0</c> is the
+    /// same floats (little-endian).
+    /// </summary>
+    public static byte[] ReadPack(string file)
+    {
+        if (!Path.GetExtension(file).Equals(".pt", StringComparison.OrdinalIgnoreCase)) return File.ReadAllBytes(file);
+        using var zip = System.IO.Compression.ZipFile.OpenRead(file);
+        var entry = zip.Entries.FirstOrDefault(e => e.FullName.EndsWith("/data/0", StringComparison.Ordinal) && e.Length == VoiceSize)
+                    ?? throw new InvalidDataException("sin la voz dentro");
+        using var stream = entry.Open();
+        var bytes = new byte[VoiceSize];
+        stream.ReadExactly(bytes);
+        return bytes;
+    }
+
     /// <summary>Kokoro speaks this language («es», «en»…).</summary>
     public static bool Supports(string language) => Data.Value.Languages.ContainsKey(language);
 
@@ -42,11 +154,21 @@ public static class KokoroModels
     /// <summary>The language needs espeak-ng.</summary>
     public static bool NeedsEspeak(string language) => Data.Value.Languages.TryGetValue(language, out var l) && l.Espeak is not null;
 
-    /// <summary>The voices of a language (Kokoro's order: women first).</summary>
-    public static IReadOnlyList<string> Voices(string language) =>
-        Data.Value.Languages.TryGetValue(language, out var l) ? [.. l.Voices.Keys] : [];
+    /// <summary>
+    /// The voices of a language: Kokoro's (its order: women first) and then the user's that are not those (women first, by
+    /// name). Each one once.
+    /// </summary>
+    public static IReadOnlyList<string> Voices(string language)
+    {
+        if (!Data.Value.Languages.TryGetValue(language, out var l)) return [];
+        var own = Found.Keys.Where(v => LanguageOf(v) == language && !l.Voices.ContainsKey(v))
+            .OrderBy(v => IsFemale(v) ? 0 : 1).ThenBy(v => v, StringComparer.Ordinal);
+        return [.. l.Voices.Keys, .. own];
+    }
 
-    public static string DefaultVoice(string language) => Voices(language) is [var first, ..] ? first : string.Empty;
+    /// <summary>Kokoro's first voice of the language (never one of the user's: they come and go).</summary>
+    public static string DefaultVoice(string language) =>
+        Data.Value.Languages.TryGetValue(language, out var l) && l.Voices.Keys.FirstOrDefault() is { } first ? first : string.Empty;
 
     /// <summary>A voice or mix («ef_dora», «ef_dora:0.7,em_alex:0.3») whose voices are all of the language, or its default one.</summary>
     public static string VoiceOrDefault(string language, string? spec)
@@ -98,9 +220,10 @@ public static class KokoroModels
     {
         var catalog = Data.Value;
         var files = new List<ModelFile> { new(catalog.Repository + catalog.Model.Url, ModelFile, catalog.Model.Size, catalog.Model.Sha256) };
+        // The user's voices (also one of the catalog that is in their folders) are not downloaded.
         if (catalog.Languages.TryGetValue(language, out var l))
             foreach (var voice in Names(spec))
-                if (l.Voices.TryGetValue(voice, out var hash))
+                if (l.Voices.TryGetValue(voice, out var hash) && !IsInFolders(voice))
                     files.Add(new ModelFile($"{catalog.Repository}voices/{voice}.bin", VoiceFile(voice), VoiceSize, hash));
         if (NeedsEspeak(language) && !EspeakFiles.Installed) files.Add(EspeakFiles.Download);
         return files;
@@ -111,14 +234,15 @@ public static class KokoroModels
 
     /// <summary>Everything that language and voice need is on disk (espeak-ng unpacked, if it needs it).</summary>
     public static bool Installed(string language, string spec) =>
-        Supports(language) && Names(spec).Count > 0 && Files(language, spec).All(Complete) && (!NeedsEspeak(language) || EspeakFiles.Installed);
+        Supports(language) && Names(spec).Count > 0 && Names(spec).All(v => IsComplete(VoiceFile(v)) || IsInFolders(v))
+        && Files(language, spec).All(Complete) && (!NeedsEspeak(language) || EspeakFiles.Installed);
 
     /// <summary>The model is on disk (without looking at the voices).</summary>
     public static bool ModelInstalled => File.Exists(ModelFile) && new FileInfo(ModelFile).Length == Data.Value.Model.Size;
 
     /// <summary>The voices of a language that are downloaded.</summary>
     public static IReadOnlyList<string> InstalledVoices(string language) =>
-        [.. Voices(language).Where(v => File.Exists(VoiceFile(v)) && new FileInfo(VoiceFile(v)).Length == VoiceSize)];
+        [.. Voices(language).Where(v => IsComplete(VoiceFile(v)) || Found.ContainsKey(v))];
 
     /// <summary>A voice on disk needs espeak-ng (one of a language other than Spanish).</summary>
     public static bool NeedsEspeakOnDisk() =>
@@ -159,6 +283,9 @@ public static class KokoroModels
     }
 
     private static bool Complete(ModelFile file) => File.Exists(file.Path) && new FileInfo(file.Path).Length == file.Size;
+
+    /// <summary>A downloaded voice of its size.</summary>
+    private static bool IsComplete(string path) => File.Exists(path) && new FileInfo(path).Length == VoiceSize;
 
     private static Catalog Read()
     {

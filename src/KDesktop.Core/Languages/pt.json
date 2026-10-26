@@ -4173,6 +4173,7 @@
   "brainOptions.freeForGamesHint": "Com um jogo em tela cheia, o modelo sai da placa de vídeo. Um filme não conta. Ele carrega de novo quando você fala com ele.",
   "assistantVoice.piperFolders": "Pastas com as suas vozes",
   "assistantVoice.piperFoldersHint": "Vozes do Piper que você já tem (.onnx com o seu .onnx.json): não precisa baixar, e o K-Desktop nunca apaga nada lá.",
+  "assistantVoice.kokoroFoldersHint": "Vozes do Kokoro que você já tem (.pt ou .bin, com o nome do Kokoro, como af_bella): não precisa baixá-las e o K-Desktop nunca apaga nada ali.",
   "assistantVoice.piperAddFolder": "Adicionar pasta…",
   "assistantVoice.piperFolderVoices": "{0} vozes",
   "assistantVoice.voiceOwn": "{0} · sua",

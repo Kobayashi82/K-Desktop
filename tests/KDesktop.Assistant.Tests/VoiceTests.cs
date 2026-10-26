@@ -298,6 +298,45 @@ public class VoiceTests
     }
 
     [Fact]
+    public void TheUsersKokoroVoicesAreReadFromTheirFoldersEachOnce()
+    {
+        var folder = Path.Combine(Path.GetTempPath(), "kdesktop-kokoro-" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(Path.Combine(folder, "v1_0"));
+        // A .pt as PyTorch writes it: a zip with the pack in «<name>/data/0».
+        static void Pt(string path, byte value)
+        {
+            using var zip = System.IO.Compression.ZipFile.Open(path, System.IO.Compression.ZipArchiveMode.Create);
+            using (var pickle = zip.CreateEntry("voice/data.pkl").Open()) pickle.Write([0x80, 2]);
+            using var data = zip.CreateEntry("voice/data/0").Open();
+            data.Write(Enumerable.Repeat(value, (int)KokoroModels.VoiceSize).ToArray());
+        }
+        Pt(Path.Combine(folder, "v1_0", "af_ellen.pt"), 1);
+        Pt(Path.Combine(folder, "af_bella.pt"), 2);
+        File.WriteAllBytes(Path.Combine(folder, "notes.pt"), [1, 2, 3]);
+        File.WriteAllBytes(Path.Combine(folder, "zf_xiaobei.bin"), new byte[KokoroModels.VoiceSize]);
+        try
+        {
+            KokoroModels.UseFolders([folder]);
+            var english = KokoroModels.Voices("en");
+            // Hers is listed after Kokoro's; one of the catalog that is also there, once; Chinese (not spoken here) and other files, not at all.
+            Assert.Equal("af_ellen", english[^1]);
+            Assert.Single(english, v => v == "af_bella");
+            Assert.DoesNotContain("zf_xiaobei", english);
+            Assert.True(KokoroModels.IsInFolders("af_ellen"));
+            Assert.True(KokoroModels.Installed("en", "af_ellen") || !KokoroModels.ModelInstalled);
+            Assert.DoesNotContain(KokoroModels.Files("en", "af_ellen"), f => f.Path.Contains("af_ellen", StringComparison.Ordinal));
+            Assert.Equal(KokoroModels.VoiceSize, KokoroModels.ReadPack(KokoroModels.PackFile("af_ellen")).Length);
+            Assert.Equal("en", KokoroModels.LanguageOf("af_ellen"));
+            Assert.Null(KokoroModels.LanguageOf("notes"));
+        }
+        finally
+        {
+            KokoroModels.UseFolders([]);
+            Directory.Delete(folder, true);
+        }
+    }
+
+    [Fact]
     public void TheCatalogHasEveryLanguageKokoroSpeaks()
     {
         foreach (var language in new[] { "es", "en", "fr", "it", "pt" })

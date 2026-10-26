@@ -41,6 +41,7 @@ public partial class App
         var s = Config.Settings;
         // The user's own Piper voices (looked at only when a voice is needed, and again when the folders change).
         Core.Assistant.Voice.PiperModels.UseFolders(s.AssistantPiperFolders);
+        Core.Assistant.Voice.KokoroModels.UseFolders(s.AssistantKokoroFolders);
         if (_assistantAssociated != s.AssistantEnabled)
         {
             _assistantAssociated = s.AssistantEnabled;

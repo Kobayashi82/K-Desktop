@@ -25,6 +25,9 @@ offered are of that language (*K-Desktop's*, or one of the six).
 **Speed** and **Voice volume** are on the same page. The voices of each engine (downloading and choosing them) are in
 *Voice → Voices*:
 
+- Kokoro **Folders with your voices**: voices you already have (`.pt` or `.bin`, with their Kokoro name, like `af_bella`;
+  the language comes from the first letter) are used from there without downloading them, marked as *yours*. One that is
+  also in the list shows only once. K-Desktop never deletes anything there.
 - **Kokoro voice** and **Mix with**: two voices mixed make a new one, halfway between them (*How much of …*).
 - **Piper voice** and its **Variant** (some voices have several people or ways of speaking). **Folders with your voices**:
   Piper voices you already have (`.onnx` with its `.onnx.json`) are used from there without downloading them, and

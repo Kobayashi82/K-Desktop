@@ -109,7 +109,9 @@ public partial class AssistantVoiceSection : UserControl
             _ => Loc.T("assistantVoice.stateOff"),
         };
 
-        // Kokoro: downloaded, downloading or still to download (German has no Kokoro voice).
+        // Kokoro: downloaded, downloading or still to download (German has no Kokoro voice); the user's folders too.
+        KokoroModels.UseFolders(s.AssistantKokoroFolders);
+        FillFolders(KokoroFolderRows, s.AssistantKokoroFolders, KokoroModels.CountIn, SetKokoroFolders);
         var download = _app.KokoroDownload;
         var voice = _app.KokoroVoice;
         var languageName = CultureInfo.GetCultureInfo(language).NativeName;
@@ -136,7 +138,9 @@ public partial class AssistantVoiceSection : UserControl
         var parts = KokoroModels.Parts(voice);
         var first = parts.Count > 0 ? parts[0].Name : KokoroModels.DefaultVoice(language);
         var second = parts.Count > 1 ? parts[1].Name : null;
-        Option Named(string v) => new(v, installed.Contains(v) ? VoiceTitle(v) : Loc.T("assistantVoice.voiceMissing", VoiceTitle(v)));
+        // Each voice once: downloaded, «(tuya)» when it is read from the user's folders, or still to download.
+        Option Named(string v) => new(v, KokoroModels.IsInFolders(v) ? Loc.T("assistantVoice.voiceOwn", VoiceTitle(v))
+            : installed.Contains(v) ? VoiceTitle(v) : Loc.T("assistantVoice.voiceMissing", VoiceTitle(v)));
         var voices = KokoroModels.Voices(language).Select(Named).ToList();
         KokoroVoiceBox.ItemsSource = voices;
         KokoroVoiceBox.SelectedItem = voices.FirstOrDefault(v => v.Value == first);
@@ -190,7 +194,7 @@ public partial class AssistantVoiceSection : UserControl
     private void RefreshPiper(string language)
     {
         PiperModels.UseFolders(_app.Config.Settings.AssistantPiperFolders);
-        FillPiperFolders();
+        FillFolders(PiperFolderRows, _app.Config.Settings.AssistantPiperFolders, PiperModels.CountIn, SetPiperFolders);
         var download = _app.PiperDownload;
         var spec = _app.PiperVoice;
         var missing = _app.PiperMissing ? PiperModels.Missing(spec) : 0;
@@ -244,13 +248,13 @@ public partial class AssistantVoiceSection : UserControl
             : Loc.T("assistantVoice.voiceMissing", Loc.T("assistantVoice.piperTitle", voice.Name, region, quality, Mb(voice.Size)));
     }
 
-    /// <summary>The folders with the user's own voices: each with how many it has, and «Quitar».</summary>
-    private void FillPiperFolders()
+    /// <summary>The folders with the user's own voices (Piper's or Kokoro's): each with how many it has, and «Quitar».</summary>
+    private void FillFolders(StackPanel rows, List<string> folders, Func<string, int> countIn, Action<List<string>> set)
     {
-        PiperFolderRows.Children.Clear();
-        foreach (var folder in _app.Config.Settings.AssistantPiperFolders)
+        rows.Children.Clear();
+        foreach (var folder in folders)
         {
-            var count = PiperModels.CountIn(folder);
+            var count = countIn(folder);
             var row = new Grid { Margin = new Thickness(0, 2, 0, 2) };
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -272,12 +276,29 @@ public partial class AssistantVoiceSection : UserControl
             };
             System.Windows.Automation.AutomationProperties.SetName(remove, Loc.T("brainModels.remove") + " " + folder);
             var gone = folder;
-            remove.Click += (_, _) => SetPiperFolders([.. _app.Config.Settings.AssistantPiperFolders.Where(f => !f.Equals(gone, StringComparison.OrdinalIgnoreCase))]);
+            remove.Click += (_, _) => set([.. folders.Where(f => !f.Equals(gone, StringComparison.OrdinalIgnoreCase))]);
             Grid.SetColumn(remove, 1);
             row.Children.Add(remove);
-            PiperFolderRows.Children.Add(row);
+            rows.Children.Add(row);
         }
-        PiperFolderRows.Visibility = PiperFolderRows.Children.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        rows.Visibility = rows.Children.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void OnKokoroAddFolder(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.OpenFolderDialog { Title = Loc.T("assistantVoice.piperAddFolder") };
+        if (dialog.ShowDialog(Window.GetWindow(this)) != true) return;
+        var folders = _app.Config.Settings.AssistantKokoroFolders;
+        if (folders.Contains(dialog.FolderName, StringComparer.OrdinalIgnoreCase)) return;
+        SetKokoroFolders([.. folders, dialog.FolderName]);
+    }
+
+    /// <summary>New folders: they are looked at again, by K-Desktop and by the assistant process (in the voice settings).</summary>
+    private void SetKokoroFolders(List<string> folders)
+    {
+        _app.Config.Settings.AssistantKokoroFolders = folders;
+        KokoroModels.UseFolders(folders);
+        Refresh();
     }
 
     private void OnPiperAddFolder(object sender, RoutedEventArgs e)

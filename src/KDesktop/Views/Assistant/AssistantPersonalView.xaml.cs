@@ -207,7 +207,8 @@ public partial class AssistantPersonalView : UserControl
         if (supported)
         {
             var installed = KokoroModels.InstalledVoices(language);
-            Option Named(string v) => new(v, installed.Contains(v) ? AssistantVoiceSection.VoiceTitle(v, language)
+            Option Named(string v) => new(v, KokoroModels.IsInFolders(v) ? Loc.T("assistantVoice.voiceOwn", AssistantVoiceSection.VoiceTitle(v, language))
+                : installed.Contains(v) ? AssistantVoiceSection.VoiceTitle(v, language)
                 : Loc.T("assistantVoice.voiceMissing", AssistantVoiceSection.VoiceTitle(v, language)));
             var parts = own.KokoroVoice.Length > 0 ? KokoroModels.Parts(KokoroModels.VoiceOrDefault(language, own.KokoroVoice)) : [];
             var first = parts.Count > 0 ? parts[0].Name : string.Empty;

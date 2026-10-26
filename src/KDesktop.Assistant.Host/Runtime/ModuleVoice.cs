@@ -82,6 +82,7 @@ internal sealed class ModuleVoice : IDisposable
     {
         if (voice is null) return;
         if (voice["piperFolders"] is JsonArray folders) PiperModels.UseFolders(folders.Select(f => f?.GetValue<string>() ?? string.Empty));
+        if (voice["kokoroFolders"] is JsonArray kokoro) KokoroModels.UseFolders(kokoro.Select(f => f?.GetValue<string>() ?? string.Empty));
         var engine = Enum.TryParse<SpeechEngineKind>(voice["engine"]?.GetValue<string>(), true, out var e) ? e : SpeechEngineKind.Auto;
         _settings = new VoiceSettings(engine, voice["kokoroVoice"]?.GetValue<string>(), voice["windowsVoice"]?.GetValue<string>(),
             voice["speed"]?.GetValue<double>() ?? 1, PiperVoice: voice["piperVoice"]?.GetValue<string>());

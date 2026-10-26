@@ -137,7 +137,7 @@ public sealed class KokoroEngine : IDisposable
         _model ??= KokoroModel.Load(KokoroModels.ModelFile);
         if (_voice is not { } loaded || loaded.Spec != voice)
         {
-            _voice = loaded = (voice, KokoroModel.Voice(voice, KokoroModels.VoiceFile));
+            _voice = loaded = (voice, KokoroModel.Voice(voice, KokoroModels.PackFile));
             Log.Info($"Asistente: voz Kokoro «{voice}» lista en {watch.ElapsedMilliseconds} ms");
         }
         return (_model, loaded.Pack);

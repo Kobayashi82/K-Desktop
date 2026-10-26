@@ -85,7 +85,7 @@ public sealed class KokoroModel : IDisposable
         float[]? mixed = null;
         foreach (var (name, weight) in parts)
         {
-            var bytes = File.ReadAllBytes(fileOf(name));
+            var bytes = KokoroModels.ReadPack(fileOf(name));
             var pack = MemoryMarshal.Cast<byte, float>(bytes).ToArray();
             if (pack.Length < MaxPhonemes * StyleSize) throw new InvalidDataException($"Voz «{name}» incompleta");
             mixed ??= new float[pack.Length];

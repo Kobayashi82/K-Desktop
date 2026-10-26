@@ -4173,6 +4173,7 @@
   "brainOptions.freeForGamesHint": "Avec un jeu en plein écran, le modèle quitte la carte graphique. Un film ne compte pas. Il se recharge quand tu lui parles.",
   "assistantVoice.piperFolders": "Dossiers avec tes voix",
   "assistantVoice.piperFoldersHint": "Les voix Piper que tu as déjà (.onnx avec son .onnx.json) : inutile de les télécharger, et K-Desktop n'y supprime jamais rien.",
+  "assistantVoice.kokoroFoldersHint": "Des voix Kokoro que vous avez déjà (.pt ou .bin, avec leur nom Kokoro, comme af_bella) : inutile de les télécharger, et K-Desktop n'y efface jamais rien.",
   "assistantVoice.piperAddFolder": "Ajouter un dossier…",
   "assistantVoice.piperFolderVoices": "{0} voix",
   "assistantVoice.voiceOwn": "{0} · la tienne",

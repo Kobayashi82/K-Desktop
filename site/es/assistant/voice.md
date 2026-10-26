@@ -25,6 +25,9 @@ ese idioma (*El de K-Desktop*, o uno de los seis).
 **Velocidad** y **Volumen de la voz** van en la misma página. Las voces de cada motor (descargarlas y elegirlas) están en
 *Voz → Voces*:
 
+- **Carpetas con tus voces** de Kokoro: voces que ya tienes (`.pt` o `.bin`, con su nombre de Kokoro, como `af_bella`; el
+  idioma sale de la primera letra) se usan desde ahí sin descargarlas, marcadas como *tuya*. Una que también está en la
+  lista sale una sola vez. K-Desktop nunca borra nada ahí.
 - **Voz de Kokoro** y **Mezclar con**: dos voces mezcladas dan una nueva, a medio camino entre las dos (*Cuánto de …*).
 - **Voz de Piper** y su **Variante** (algunas voces tienen varias personas o formas de hablar). **Carpetas con tus voces**:
   las voces de Piper que ya tienes (`.onnx` con su `.onnx.json`) se usan desde ahí sin descargarlas, y K-Desktop nunca
