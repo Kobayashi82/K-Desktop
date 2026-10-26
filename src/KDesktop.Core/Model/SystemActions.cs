@@ -374,6 +374,9 @@ public partial class ConditionAction : CommandAction
 /// <summary>What «Captura de pantalla» takes.</summary>
 public enum CaptureArea { Region, ActiveWindow, Monitor, AllMonitors }
 
+/// <summary>The file of a screenshot (Settings › Capturas): PNG and WebP keep every pixel; JPG is smaller, with a quality.</summary>
+public enum ImageFileFormat { Png, Jpg, WebP }
+
 /// <summary>Takes a picture of the screen: a region chosen with the mouse, the window in front, a monitor or all of them.</summary>
 public partial class ScreenshotAction : CommandAction
 {
@@ -437,6 +440,9 @@ public partial class ScreenTextAction : CommandAction
 /// <summary>What «Grabar audio» records: what the PC plays, the microphone, or both mixed.</summary>
 public enum AudioSource { Output, Microphone, Both }
 
+/// <summary>The file of a recording (Settings › Grabación de audio): WAV as it is, or compressed to MP3 or Opus when it ends.</summary>
+public enum AudioFileFormat { Wav, Mp3, Opus }
+
 /// <summary>Start/stop a recording, or save the last seconds kept by the replay (Settings › Grabación).</summary>
 public enum RecordMode { Toggle, Start, Stop, SaveReplay }
 
@@ -476,6 +482,9 @@ public enum ZoomMode { Lens, FullScreen, Circle }
 
 /// <summary>How big the lens is.</summary>
 public enum ZoomLensSize { Small, Medium, Large }
+
+/// <summary>The lupa's colours: as they are, inverted, or with more contrast (to read better).</summary>
+public enum ZoomColors { Normal, Inverted, HighContrast }
 
 /// <summary>Zooms the screen around the mouse (it follows it), or takes the zoom away.</summary>
 public partial class MagnifierAction : CommandAction

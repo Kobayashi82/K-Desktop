@@ -51,6 +51,8 @@ public partial class SettingsPage
         new("system", "settings.nav.group.system",
         [
             new("capture", "Screenshot24", "settings.nav.capture"),
+            new("recording", "Record24", "settings.nav.recording"),
+            new("zoom", "ZoomIn24", "settings.nav.zoom"),
             new("data", "Database24", "settings.nav.data"),
             new("updates", "ArrowSync24", "settings.nav.updates"),
         ]),
@@ -593,7 +595,7 @@ public partial class SettingsPage
         _current = item;
         LastSection = item.Key;
         // Trying the magnifier stays in its section.
-        if (item.Key != "capture") StopZoomTest();
+        if (item.Key != "zoom") StopZoomTest();
     }
 
     /// <summary>«Ajustes» of a row, or back to the list, inside «Asistentes»: the tree follows.</summary>

@@ -348,12 +348,40 @@ public partial class AppSettings : ObservableObject
     /// <summary>Where they go; empty = the Backups folder of the data dir (another disk, OneDrive or a NAS is safer).</summary>
     [ObservableProperty] private string _autoBackupFolder = string.Empty;
 
-    // Captures and recordings (Settings › Capturas)
-    /// <summary>Where screenshots go; empty = PicturesK-Desktop.</summary>
+    // Screenshots (Settings › Capturas)
+    /// <summary>Where screenshots go; empty = Pictures\K-Desktop.</summary>
     [ObservableProperty] private string _captureFolder = string.Empty;
+    [ObservableProperty] private ImageFileFormat _captureFormat = ImageFileFormat.Png;
 
-    /// <summary>Where audio recordings go; empty = MusicK-Desktop.</summary>
+    /// <summary>JPG quality, 30–100.</summary>
+    [ObservableProperty] private int _captureQuality = 90;
+
+    /// <summary>The file name with {date}, {time}, {app} and {title}; empty = «Captura {date} {time}» in K-Desktop's language.</summary>
+    [ObservableProperty] private string _captureName = string.Empty;
+
+    /// <summary>A camera sound and a white flash over what was taken.</summary>
+    [ObservableProperty] private bool _captureSound;
+    [ObservableProperty] private bool _captureFlash;
+
+    /// <summary>The mouse pointer in the picture.</summary>
+    [ObservableProperty] private bool _captureCursor;
+
+    /// <summary>Every screenshot is copied too, even from actions without «Copiar».</summary>
+    [ObservableProperty] private bool _captureAlwaysCopy;
+
+    /// <summary>Seconds to wait before taking it (to open a menu first), 0–10.</summary>
+    [ObservableProperty] private int _captureDelay;
+
+    // Audio recordings (Settings › Grabación de audio)
+    /// <summary>Where audio recordings go; empty = Music\K-Desktop.</summary>
     [ObservableProperty] private string _recordFolder = string.Empty;
+    [ObservableProperty] private AudioFileFormat _recordFormat = AudioFileFormat.Wav;
+
+    /// <summary>The microphone's volume in recordings and the replay, in % (25–400); what the PC plays stays as it is.</summary>
+    [ObservableProperty] private int _recordMicVolume = 100;
+
+    /// <summary>A long recording goes on in a new file every so many minutes; 0 = one file.</summary>
+    [ObservableProperty] private int _recordSplitMinutes;
 
     /// <summary>Keep the last seconds of audio all the time, to save them with «Grabar audio › Guardar la repetición».</summary>
     [ObservableProperty] private bool _audioReplay;
@@ -364,6 +392,23 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private double _zoomLevel = 2;
     [ObservableProperty] private ZoomMode _zoomMode = ZoomMode.Lens;
     [ObservableProperty] private ZoomLensSize _zoomLensSize = ZoomLensSize.Medium;
+
+    /// <summary>The lens's border, «#RRGGBB», and its thickness in pixels (0 = none).</summary>
+    [ObservableProperty] private string _zoomBorderColor = Platform.Magnifier.DefaultBorderColor;
+    [ObservableProperty] private int _zoomBorder = Platform.Magnifier.DefaultBorder;
+
+    /// <summary>Smooth the enlarged picture instead of showing its pixels as squares.</summary>
+    [ObservableProperty] private bool _zoomSmooth = true;
+    [ObservableProperty] private ZoomColors _zoomColors = ZoomColors.Normal;
+
+    /// <summary>While typing, the lupa goes to the text cursor (and back to the mouse when it moves).</summary>
+    [ObservableProperty] private bool _zoomFollowText;
+
+    /// <summary>Ctrl + mouse wheel changes the zoom while it is on.</summary>
+    [ObservableProperty] private bool _zoomCtrlWheel = true;
+
+    /// <summary>Turns itself off after so many seconds without moving the mouse; 0 = never.</summary>
+    [ObservableProperty] private int _zoomAutoOff;
 
     /// <summary>Icon of the notification-area (tray) icon, as command icons are stored; null or empty: K-Desktop's own.</summary>
     [ObservableProperty] private string? _trayIcon;

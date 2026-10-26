@@ -23,6 +23,7 @@ public sealed class AudioTap : IDisposable
         public required BufferedWaveProvider Buffer { get; init; }
         public required ISampleProvider Converted { get; init; }
         public required float[] Ring { get; init; }
+        public float Gain = 1;
         public byte[] Bytes = [];
         public float[] Chunk = new float[8192];
         public long Next = long.MinValue;   // frame where the next packet goes when it comes on time
@@ -32,10 +33,13 @@ public sealed class AudioTap : IDisposable
     private readonly Lock _lock = new();
     private readonly List<Source> _sources = [];
     private readonly int _frames;
+    private readonly float _micGain;
 
     /// <param name="seconds">How much it keeps.</param>
-    public AudioTap(AudioSource source, int seconds)
+    /// <param name="micGain">The microphone's volume (1 = as it comes); what the PC plays is never changed.</param>
+    public AudioTap(AudioSource source, int seconds, float micGain = 1)
     {
+        _micGain = Math.Clamp(micGain, 0.25f, 4f);
         _frames = Math.Max(2, seconds) * Rate;
         using var enumerator = new MMDeviceEnumerator();
         if (source is AudioSource.Output or AudioSource.Both)
@@ -61,7 +65,7 @@ public sealed class AudioTap : IDisposable
             _ => new FirstTwoChannels(converted),
         };
         if (converted.WaveFormat.SampleRate != Rate) converted = new WdlResamplingSampleProvider(converted, Rate);
-        var source = new Source { Recorder = recorder, Buffer = buffer, Converted = converted, Ring = new float[_frames * Channels] };
+        var source = new Source { Recorder = recorder, Buffer = buffer, Converted = converted, Ring = new float[_frames * Channels], Gain = loopback ? 1 : _micGain };
         recorder.DataAvailable += (data, flags, _, _) => OnData(source, data, flags);
         recorder.StartRecording();
         _sources.Add(source);
@@ -88,6 +92,8 @@ public sealed class AudioTap : IDisposable
             }
             var frames = total / Channels;
             if (frames == 0) return;
+            if (s.Gain != 1)
+                for (var i = 0; i < total; i++) s.Chunk[i] *= s.Gain;
             // Packets that follow on keep their place; after a gap (silence) or drift, it starts over from the clock.
             var start = Now - frames;
             if (s.Next != long.MinValue && Math.Abs(start - s.Next) < Rate / 10) start = s.Next;
@@ -181,9 +187,18 @@ public static class Wav
     }
 }
 
+/// <summary>How recordings are kept (Settings › Grabación de audio).</summary>
+/// <param name="MicVolume">The microphone's volume in %.</param>
+/// <param name="SplitMinutes">A new file every so many minutes; 0 = one.</param>
+public sealed record RecordOptions(AudioFileFormat Format = AudioFileFormat.Wav, int MicVolume = 100, int SplitMinutes = 0)
+{
+    public float MicGain => Math.Clamp(MicVolume, 25, 400) / 100f;
+}
+
 /// <summary>
-/// «Grabar audio»: one recording at a time (to a .wav that grows as it records), and the replay — the last seconds
-/// kept all the time while it is on (Settings › Capturas), saved on demand.
+/// «Grabar audio»: one recording at a time (to a .wav that grows as it records, in parts when it is long), and the
+/// replay — the last seconds kept all the time while it is on (Settings › Grabación de audio), saved on demand. A part
+/// that ends becomes an MP3 or Opus file afterwards, if that is the format.
 /// </summary>
 public sealed class AudioRecording : IDisposable
 {
@@ -195,44 +210,56 @@ public sealed class AudioRecording : IDisposable
     private WaveFileWriter? _writer;
     private Timer? _writeTimer;
     private long _position;
-    private DateTime _started;
+    private DateTime _started, _partStarted;
+    private Func<string>? _nextFile;
+    private RecordOptions _options = new();
+    private bool _closing;
 
     private AudioTap? _replay;
     private int _replaySeconds;
     private AudioSource _replaySource;
+    private float _replayGain = 1;
 
     /// <summary>A recording started or stopped (the tray shows it).</summary>
     public event Action? Changed;
 
     public bool IsRecording => _writer is not null;
 
-    /// <summary>The file being recorded, while <see cref="IsRecording"/>.</summary>
+    /// <summary>The .wav being recorded, while <see cref="IsRecording"/>.</summary>
     public string? CurrentFile { get; private set; }
 
     public bool ReplayOn => _replay is not null;
 
-    public void Start(AudioSource source, string path)
+    /// <summary>
+    /// Starts recording <paramref name="source"/>; <paramref name="nextFile"/> gives the .wav of each part (one unless it
+    /// is split), with the final file's name free too.
+    /// </summary>
+    public void Start(AudioSource source, Func<string> nextFile, RecordOptions options)
     {
+        string path;
         lock (_lock)
         {
             if (_writer is not null) return;
+            var tap = new AudioTap(source, 10, options.MicGain);
+            path = nextFile();
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            var tap = new AudioTap(source, 10);
             _writer = Wav.Create(path);
             _recordTap = tap;
+            _nextFile = nextFile;
+            _options = options;
             _position = AudioTap.Now;
-            _started = DateTime.Now;
+            _started = _partStarted = DateTime.Now;
             CurrentFile = path;
             _writeTimer = new Timer(_ => Flush(final: false), null, 250, 250);
         }
-        Log.Info($"Grabación de audio: empieza ({source}) → {path}");
+        Log.Info($"Grabación de audio: empieza ({source}, {options.Format}) → {path}");
         Changed?.Invoke();
     }
 
-    /// <summary>Stops the recording; returns its file and length (null when nothing was recording).</summary>
+    /// <summary>Stops the recording; returns its (last) file and length (null when nothing was recording).</summary>
     public (string Path, TimeSpan Length)? Stop()
     {
-        string? file;
+        string file;
         TimeSpan length;
         lock (_lock)
         {
@@ -244,13 +271,24 @@ public sealed class AudioRecording : IDisposable
             _writer = null;
             _recordTap?.Dispose();
             _recordTap = null;
-            file = CurrentFile;
+            file = Finish(CurrentFile!);
             CurrentFile = null;
             length = DateTime.Now - _started;
         }
         Log.Info($"Grabación de audio: termina ({length:mm\\:ss}) → {file}");
         Changed?.Invoke();
-        return (file!, length);
+        return (file, length);
+    }
+
+    /// <summary>A part that ended: to the chosen format in the background. Returns the file it will be.</summary>
+    private string Finish(string wav)
+    {
+        var format = _options.Format;
+        if (format == AudioFileFormat.Wav) return wav;
+        // Closing K-Desktop waits for it (a conversion cut halfway would leave a broken file).
+        if (_closing) return AudioEncoders.Convert(wav, format);
+        _ = Task.Run(() => AudioEncoders.Convert(wav, format));
+        return Path.ChangeExtension(wav, AudioEncoders.Extension(format));
     }
 
     private void Flush(bool final)
@@ -262,25 +300,35 @@ public sealed class AudioRecording : IDisposable
             if (to <= _position) return;
             Wav.Write(_writer, _recordTap.Read(_position, to));
             _position = to;
-            if (!final) _writer.Flush();
+            if (final) return;
+            _writer.Flush();
+            if (_options.SplitMinutes <= 0 || DateTime.Now - _partStarted < TimeSpan.FromMinutes(_options.SplitMinutes) || _nextFile is null) return;
+            // The next part goes on from the same instant: nothing is lost between files.
+            _writer.Dispose();
+            Finish(CurrentFile!);
+            CurrentFile = _nextFile();
+            _writer = Wav.Create(CurrentFile);
+            _partStarted = DateTime.Now;
+            Log.Info($"Grabación de audio: sigue en otro archivo → {CurrentFile}");
         }
     }
 
-    /// <summary>Turns the replay on or off, or starts it over with another length or source.</summary>
-    public void ConfigureReplay(bool on, int seconds, AudioSource source)
+    /// <summary>Turns the replay on or off, or starts it over with another length, source or microphone volume.</summary>
+    public void ConfigureReplay(bool on, int seconds, AudioSource source, float micGain = 1)
     {
         seconds = Math.Clamp(seconds, 5, 600);
         lock (_lock)
         {
-            if (on && _replay is not null && seconds == _replaySeconds && source == _replaySource) return;
+            if (on && _replay is not null && seconds == _replaySeconds && source == _replaySource && micGain == _replayGain) return;
             _replay?.Dispose();
             _replay = null;
             if (!on) return;
             try
             {
-                _replay = new AudioTap(source, seconds + 2);
+                _replay = new AudioTap(source, seconds + 2, micGain);
                 _replaySeconds = seconds;
                 _replaySource = source;
+                _replayGain = micGain;
                 Log.Info($"Repetición de audio: guardando siempre los últimos {seconds} s");
             }
             catch (Exception ex)
@@ -290,25 +338,30 @@ public sealed class AudioRecording : IDisposable
         }
     }
 
-    /// <summary>Writes the last seconds of the replay to <paramref name="path"/>; false when the replay is off.</summary>
-    public bool SaveReplay(string path)
+    /// <summary>
+    /// Writes the last seconds of the replay to <paramref name="wav"/>, then to <paramref name="format"/>; returns the
+    /// file it will be, or null when the replay is off.
+    /// </summary>
+    public string? SaveReplay(string wav, AudioFileFormat format)
     {
         float[] audio;
         lock (_lock)
         {
-            if (_replay is null) return false;
+            if (_replay is null) return null;
             var to = AudioTap.Now - Latency;
             audio = _replay.Read(to - (long)_replaySeconds * AudioTap.Rate, to);
         }
-        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        using var writer = Wav.Create(path);
-        Wav.Write(writer, audio);
-        Log.Info($"Repetición de audio guardada: {path}");
-        return true;
+        Directory.CreateDirectory(Path.GetDirectoryName(wav)!);
+        using (var writer = Wav.Create(wav)) Wav.Write(writer, audio);
+        Log.Info($"Repetición de audio guardada: {wav}");
+        if (format == AudioFileFormat.Wav) return wav;
+        _ = Task.Run(() => AudioEncoders.Convert(wav, format));
+        return Path.ChangeExtension(wav, AudioEncoders.Extension(format));
     }
 
     public void Dispose()
     {
+        _closing = true;
         Stop();
         lock (_lock)
         {

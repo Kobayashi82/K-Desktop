@@ -52,7 +52,12 @@ public partial class SettingsPage : UserControl
             // Trying the magnifier: a new zoom shows at once (shape and size come with the settings being applied).
             if (e.PropertyName is nameof(AppSettings.ZoomLevel) && _zoomTesting && _app.Engine.Magnifier.IsOn)
                 _app.Engine.Magnifier.On(_app.Config.Settings.ZoomLevel);
-            if (e.PropertyName is nameof(AppSettings.ZoomMode) or nameof(AppSettings.ZoomLensSize)) SelectZoomTiles();
+            if (e.PropertyName is nameof(AppSettings.ZoomMode) or nameof(AppSettings.ZoomLensSize) or nameof(AppSettings.ZoomBorder)
+                or nameof(AppSettings.ZoomColors) or nameof(AppSettings.CaptureFormat) or nameof(AppSettings.RecordFormat))
+                SelectZoomTiles();
+            if (e.PropertyName is nameof(AppSettings.CaptureName) or nameof(AppSettings.CaptureFormat) or nameof(AppSettings.CaptureDelay)
+                or nameof(AppSettings.RecordSplitMinutes) or nameof(AppSettings.ZoomAutoOff) or nameof(AppSettings.ZoomBorderColor))
+                UpdateCaptureTexts();
         }
         void OnMagnifier() => Dispatcher.BeginInvoke(UpdateZoomTest);
         void OnWebState() => Dispatcher.BeginInvoke(UpdateWebState);
@@ -88,7 +93,9 @@ public partial class SettingsPage : UserControl
             _app.Engine.Magnifier.Changed += OnMagnifier;
             UpdateZoomTest();
             SelectZoomTiles();
+            UpdateCaptureTexts();
         };
+        Loc.Instance.Changed += () => Dispatcher.BeginInvoke(UpdateCaptureTexts);
         Unloaded += (_, _) =>
         {
             _app.Updates.Changed -= OnUpdates;
@@ -930,7 +937,7 @@ public partial class SettingsPage : UserControl
         else
         {
             var s = _app.Config.Settings;
-            magnifier.Configure(s.ZoomMode, s.ZoomLensSize);
+            magnifier.Configure(_app.Engine.MagnifierOptions);
             magnifier.On(s.ZoomLevel);
             _zoomTesting = true;
         }
@@ -955,13 +962,126 @@ public partial class SettingsPage : UserControl
         if (sender is RadioButton { Tag: string tag } && Enum.TryParse<ZoomLensSize>(tag, out var size)) _app.Config.Settings.ZoomLensSize = size;
     }
 
-    /// <summary>Marks the shape and size tiles of the settings.</summary>
+    /// <summary>A border tile: the lens gets that border (0: none).</summary>
+    private void OnZoomBorder(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: string tag } && int.TryParse(tag, System.Globalization.CultureInfo.InvariantCulture, out var border)) _app.Config.Settings.ZoomBorder = border;
+    }
+
+    private void OnZoomColors(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: string tag } && Enum.TryParse<ZoomColors>(tag, out var colors)) _app.Config.Settings.ZoomColors = colors;
+    }
+
+    private void OnCaptureFormat(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: string tag } && Enum.TryParse<ImageFileFormat>(tag, out var format)) _app.Config.Settings.CaptureFormat = format;
+    }
+
+    private void OnRecordFormat(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: string tag } && Enum.TryParse<AudioFileFormat>(tag, out var format)) _app.Config.Settings.RecordFormat = format;
+    }
+
+    /// <summary>The borders of the tiles, in pixels.</summary>
+    private static readonly int[] BorderTiles = [0, 3, 6, 10];
+
+    /// <summary>Marks the tiles of the settings (lupa, captures and recordings).</summary>
     private void SelectZoomTiles()
     {
-        var mode = _app.Config.Settings.ZoomMode.ToString();
-        foreach (var tile in ZoomModePicker.Children.OfType<RadioButton>()) tile.IsChecked = (string)tile.Tag == mode;
-        var size = _app.Config.Settings.ZoomLensSize.ToString();
-        foreach (var tile in ZoomSizePicker.Children.OfType<RadioButton>()) tile.IsChecked = (string)tile.Tag == size;
+        var s = _app.Config.Settings;
+        static void Mark(Panel picker, string value)
+        {
+            foreach (var tile in picker.Children.OfType<RadioButton>()) tile.IsChecked = (string)tile.Tag == value;
+        }
+        Mark(ZoomModePicker, s.ZoomMode.ToString());
+        Mark(ZoomSizePicker, s.ZoomLensSize.ToString());
+        // A border not of a tile (written by hand) marks the nearest one.
+        var border = BorderTiles.MinBy(b => Math.Abs(b - s.ZoomBorder));
+        Mark(ZoomBorderPicker, border.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        Mark(ZoomColorsPicker, s.ZoomColors.ToString());
+        Mark(CaptureFormatPicker, s.CaptureFormat.ToString());
+        Mark(RecordFormatPicker, s.RecordFormat.ToString());
+    }
+
+    // ── captures, recordings and the lupa's border ───────────────────────
+
+    /// <summary>The colours of the border's drop-down: K-Desktop's gold first, then the palette of the assistants' colours.</summary>
+    public static IReadOnlyList<string> BorderColors { get; } = [Magnifier.DefaultBorderColor, .. Assistant.ColorSetting.Presets.Where(c => c != Magnifier.DefaultBorderColor)];
+
+    public static readonly DependencyProperty ZoomBorderBrushProperty =
+        DependencyProperty.Register(nameof(ZoomBorderBrush), typeof(Brush), typeof(SettingsPage), new PropertyMetadata(Brushes.Goldenrod));
+
+    /// <summary>The lens's border colour, for the swatch and the border tiles.</summary>
+    public Brush ZoomBorderBrush
+    {
+        get => (Brush)GetValue(ZoomBorderBrushProperty);
+        set => SetValue(ZoomBorderBrushProperty, value);
+    }
+
+    /// <summary>The texts that depend on the settings: the example name, the seconds and minutes, the border colour.</summary>
+    private void UpdateCaptureTexts()
+    {
+        var s = _app.Config.Settings;
+        var culture = Loc.Instance.Culture;
+        CaptureNameBox.PlaceholderText = CommandEngine.DefaultCaptureName;
+        var example = CommandEngine.CaptureName(s.CaptureName, () => "Google Chrome", () => "YouTube", DateTime.Now) + Core.Imaging.ImageFiles.Extension(s.CaptureFormat);
+        CaptureNameExample.Text = Loc.T("settings.captureNameExample", example);
+        CaptureDelayText.Text = s.CaptureDelay > 0 ? Loc.T("settings.seconds", s.CaptureDelay.ToString(culture)) : Loc.T("settings.captureDelayNone");
+        RecordSplitText.Text = s.RecordSplitMinutes > 0 ? Loc.T("settings.minutes", s.RecordSplitMinutes.ToString(culture)) : Loc.T("settings.recordSplitNone");
+        ZoomAutoOffText.Text = s.ZoomAutoOff > 0 ? Loc.T("settings.seconds", s.ZoomAutoOff.ToString(culture)) : Loc.T("settings.zoomAutoOffNever");
+        var rgb = Magnifier.ColorRef(s.ZoomBorderColor);
+        var brush = new SolidColorBrush(Color.FromRgb((byte)rgb, (byte)(rgb >> 8), (byte)(rgb >> 16)));
+        brush.Freeze();
+        ZoomBorderBrush = brush;
+        if (!ZoomColorBox.IsKeyboardFocusWithin) ZoomColorBox.Text = s.ZoomBorderColor;
+    }
+
+    /// <summary>«+ Fecha», «+ Programa»…: that part of the name goes where the text cursor is (after the usual name if empty).</summary>
+    private void OnCaptureNameToken(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: string token }) return;
+        var box = CaptureNameBox;
+        if (string.IsNullOrEmpty(box.Text))
+        {
+            box.Text = CommandEngine.DefaultCaptureName;
+            box.CaretIndex = box.Text.Length;
+        }
+        var at = box.CaretIndex;
+        var before = at > 0 && box.Text[at - 1] != ' ' ? " " : "";
+        box.Text = box.Text.Insert(at, before + token);
+        box.CaretIndex = at + before.Length + token.Length;
+        box.Focus();
+    }
+
+    /// <summary>The «#RRGGBB» box: a valid colour is saved at once; anything else waits until it is one.</summary>
+    private void OnZoomColorTyped(object sender, TextChangedEventArgs e)
+    {
+        if (!ZoomColorBox.IsKeyboardFocusWithin) return;
+        var text = ZoomColorBox.Text.Trim();
+        if (!text.StartsWith('#')) text = "#" + text;
+        if (text.Length == 7 && int.TryParse(text.AsSpan(1), System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out _))
+            _app.Config.Settings.ZoomBorderColor = text.ToUpperInvariant();
+    }
+
+    private void OnPickZoomColor(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: string hex }) return;
+        _app.Config.Settings.ZoomBorderColor = hex;
+        ZoomColorBox.Text = hex;
+        ZoomColorSwatch.IsChecked = false;
+    }
+
+    private void OnOpenCaptureFolder(object sender, RoutedEventArgs e) =>
+        OpenFolder(CommandEngine.FolderFor(null, _app.Config.Settings.CaptureFolder, Environment.SpecialFolder.MyPictures));
+
+    private void OnOpenRecordFolder(object sender, RoutedEventArgs e) =>
+        OpenFolder(CommandEngine.FolderFor(null, _app.Config.Settings.RecordFolder, Environment.SpecialFolder.MyMusic));
+
+    private static void OpenFolder(string folder)
+    {
+        Directory.CreateDirectory(folder);
+        ProcessLauncher.Launch(new LaunchSpec("explorer.exe", $"\"{folder}\""), asAdmin: false);
     }
 
     private void UpdateZoomTest()

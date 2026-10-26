@@ -237,6 +237,13 @@ public partial class App : Application
             Achievements.Increment(Stat.DisabledInToggled);
         };
         Router.IsPlayingMacro = () => Engine.IsPlayingMacro;
+        // Ctrl + wheel changes the lupa's zoom while it is on (off, the wheel goes to the program as always).
+        Router.CtrlWheel = delta =>
+        {
+            if (!Config.Settings.ZoomCtrlWheel || !Engine.Magnifier.IsOn) return false;
+            Dispatcher.BeginInvoke(() => Engine.Magnifier.Nudge(Math.Sign(delta)));
+            return true;
+        };
         Router.StopMacrosRequested += Engine.StopMacros;
         Router.KBoardUsed += () => Achievements.Increment(Stat.KBoardRemapped);
         RebuildIndex();
@@ -463,8 +470,8 @@ public partial class App : Application
     {
         var s = Config.Settings;
         // Paused, the replay doesn't keep listening either.
-        Engine.Recording.ConfigureReplay(s.AudioReplay && !s.Paused, s.AudioReplaySeconds, s.AudioReplaySource);
-        Engine.Magnifier.Configure(s.ZoomMode, s.ZoomLensSize);
+        Engine.Recording.ConfigureReplay(s.AudioReplay && !s.Paused, s.AudioReplaySeconds, s.AudioReplaySource, Engine.RecordOptions.MicGain);
+        Engine.Magnifier.Configure(Engine.MagnifierOptions);
         if (s.Theme != _appliedTheme)
         {
             _appliedTheme = s.Theme;

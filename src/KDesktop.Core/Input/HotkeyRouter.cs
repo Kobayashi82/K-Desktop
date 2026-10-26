@@ -257,6 +257,8 @@ public sealed partial class HotkeyRouter : IDisposable
     {
         if (e.Injected) return false;
         if (e.Message is MouseMessage.Wheel or MouseMessage.HWheel) WheelObserver?.Invoke(e);
+        if (e.Message == MouseMessage.Wheel && _recorder is null && CtrlWheel is { } ctrlWheel && CurrentModifiers() == Modifiers.Ctrl && ctrlWheel(e.WheelDelta))
+            return true;
         if (KBoardMouse(e)) return true;
         if (_recorder is { } recorder) return recorder.OnMouse(e);
 

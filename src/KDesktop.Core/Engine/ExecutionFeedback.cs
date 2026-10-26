@@ -104,4 +104,5 @@ internal sealed class FeedbackUiServices(IUiServices inner) : IUiServices
     public bool SetClipboardText(string text) => inner.SetClipboardText(text);
     public bool SetClipboardImage(Platform.BgraImage image) => inner.SetClipboardImage(image);
     public Task<Platform.ScreenRect?> SelectRegionAsync(Platform.BgraImage desktop, Platform.ScreenRect bounds) => inner.SelectRegionAsync(desktop, bounds);
+    public void FlashArea(Platform.ScreenRect area) => inner.FlashArea(area);
 }

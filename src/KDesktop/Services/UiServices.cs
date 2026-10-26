@@ -236,6 +236,8 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     public Task<Core.Platform.ScreenRect?> SelectRegionAsync(Core.Platform.BgraImage desktop, Core.Platform.ScreenRect bounds) =>
         dispatcher.Invoke(() => RegionSelector.SelectAsync(desktop, bounds));
 
+    public void FlashArea(Core.Platform.ScreenRect area) => dispatcher.BeginInvoke(() => CaptureFlash.Show(area));
+
     public bool SetClipboardText(string text) => dispatcher.Invoke(() =>
     {
         // Another program may have the clipboard open for a moment.

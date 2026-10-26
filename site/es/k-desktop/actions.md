@@ -37,7 +37,7 @@ orden.
 | **Volumen** | Fija, sube, baja o silencia el volumen: de los altavoces, del micrófono, de un programa o del que está delante. |
 | **Salida de audio** | Cambia el dispositivo de sonido predeterminado. Con varios elegidos, cada vez pasa al siguiente. |
 | **Reproducir sonido** | Reproduce un sonido incluido o un archivo .wav. |
-| **Grabar audio** | Graba lo que suena en el PC, el micrófono o las dos cosas, o guarda lo que acaba de sonar (*Opciones → Capturas y lupa*). |
+| **Grabar audio** | Graba lo que suena en el PC, el micrófono o las dos cosas, o guarda lo que acaba de sonar (*Opciones → Grabación de audio*). |
 
 ## Pantalla
 

@@ -100,9 +100,91 @@ public static class ScreenCapture
         }
     }
 
+    /// <summary>The mouse pointer as it is now (null: hidden), to draw it on a picture taken now or later.</summary>
+    public static PointerShot? CurrentPointer()
+    {
+        var info = new CURSORINFO { cbSize = Marshal.SizeOf<CURSORINFO>() };
+        if (!GetCursorInfo(ref info) || (info.flags & 1 /* SHOWING */) == 0 || info.hCursor == IntPtr.Zero) return null;
+        var copy = CopyIcon(info.hCursor);
+        if (copy == IntPtr.Zero) return null;
+        var (hotX, hotY) = (0, 0);
+        if (GetIconInfo(copy, out var icon))
+        {
+            (hotX, hotY) = (icon.xHotspot, icon.yHotspot);
+            if (icon.hbmMask != IntPtr.Zero) DeleteObject(icon.hbmMask);
+            if (icon.hbmColor != IntPtr.Zero) DeleteObject(icon.hbmColor);
+        }
+        return new PointerShot(copy, info.ptScreenPos.X - hotX, info.ptScreenPos.Y - hotY);
+    }
+
+    /// <summary>A pointer and where its corner was on the screen.</summary>
+    public sealed class PointerShot(IntPtr icon, int left, int top) : IDisposable
+    {
+        private IntPtr _icon = icon;
+
+        /// <summary>Draws it on <paramref name="image"/>, a picture of the screen from <paramref name="area"/>'s corner.</summary>
+        public void DrawOn(BgraImage image, ScreenRect area)
+        {
+            int x = left - area.Left, y = top - area.Top;
+            if (_icon == IntPtr.Zero || x >= image.Width || y >= image.Height || x < -64 || y < -64) return;
+            var screen = GetDC(IntPtr.Zero);
+            var memory = CreateCompatibleDC(screen);
+            var header = new BITMAPINFOHEADER { biSize = Marshal.SizeOf<BITMAPINFOHEADER>(), biWidth = image.Width, biHeight = -image.Height, biPlanes = 1, biBitCount = 32 };
+            var bitmap = CreateDIBSection(memory, ref header, 0, out var bits, IntPtr.Zero, 0);
+            try
+            {
+                if (bitmap == IntPtr.Zero) return;
+                var old = SelectObject(memory, bitmap);
+                Marshal.Copy(image.Pixels, 0, bits, image.Pixels.Length);
+                DrawIconEx(memory, x, y, _icon, 0, 0, 0, IntPtr.Zero, 3 /* DI_NORMAL */);
+                GdiFlush();
+                Marshal.Copy(bits, image.Pixels, 0, image.Pixels.Length);
+                SelectObject(memory, old);
+                for (var i = 3; i < image.Pixels.Length; i += 4) image.Pixels[i] = 255;
+            }
+            finally
+            {
+                if (bitmap != IntPtr.Zero) DeleteObject(bitmap);
+                DeleteDC(memory);
+                ReleaseDC(IntPtr.Zero, screen);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_icon != IntPtr.Zero) DestroyIcon(_icon);
+            _icon = IntPtr.Zero;
+        }
+    }
+
     // ── P/Invoke ─────────────────────────────────────────────────────────
 
     private const uint SRCCOPY = 0x00CC0020, CAPTUREBLT = 0x40000000;
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct CURSORINFO
+    {
+        public int cbSize;
+        public int flags;
+        public IntPtr hCursor;
+        public POINT ptScreenPos;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct ICONINFO
+    {
+        public bool fIcon;
+        public int xHotspot, yHotspot;
+        public IntPtr hbmMask, hbmColor;
+    }
+
+    [DllImport("user32.dll")] private static extern bool GetCursorInfo(ref CURSORINFO info);
+    [DllImport("user32.dll")] private static extern IntPtr CopyIcon(IntPtr icon);
+    [DllImport("user32.dll")] private static extern bool GetIconInfo(IntPtr icon, out ICONINFO info);
+    [DllImport("user32.dll")] private static extern bool DestroyIcon(IntPtr icon);
+    [DllImport("user32.dll")] private static extern bool DrawIconEx(IntPtr hdc, int x, int y, IntPtr icon, int w, int h, int step, IntPtr brush, int flags);
+    [DllImport("gdi32.dll")] private static extern IntPtr CreateDIBSection(IntPtr hdc, ref BITMAPINFOHEADER info, uint usage, out IntPtr bits, IntPtr section, uint offset);
+    [DllImport("gdi32.dll")] private static extern bool GdiFlush();
 
     [StructLayout(LayoutKind.Sequential)]
     private struct POINT { public int X, Y; }

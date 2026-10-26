@@ -103,6 +103,9 @@ public interface IUiServices
     /// monitor) frozen and lets the user drag a rectangle; null when cancelled (Esc, right click).
     /// </summary>
     Task<Platform.ScreenRect?> SelectRegionAsync(Platform.BgraImage desktop, Platform.ScreenRect bounds) => Task.FromResult<Platform.ScreenRect?>(null);
+
+    /// <summary>A quick white flash over <paramref name="area"/> (screen pixels): a screenshot was taken.</summary>
+    void FlashArea(Platform.ScreenRect area) { }
 }
 
 /// <summary>Handle to the voice OSD. Thread-safe.</summary>

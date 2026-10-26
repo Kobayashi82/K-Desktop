@@ -35,7 +35,9 @@ allí.
 | Sección | Qué tiene |
 |---|---|
 | **Desactivar y bloquear** | Programas donde los atajos de K-Desktop no hacen nada (juegos, escritorios remotos), con un atajo para añadir o quitar el de delante, y programas donde Mouse 4 y Mouse 5 no van atrás ni adelante |
-| **Capturas y lupa** | En tres paneles: **Capturas** (su carpeta), **Audio** (la carpeta de las grabaciones y **Guardar lo que acaba de sonar**, que recuerda en memoria los últimos segundos para que *Grabar audio → Guardar lo que acaba de sonar* los guarde; no se escribe nada en el disco) y **Lupa** (aumento, forma —lente rectangular, redonda o pantalla completa—, tamaño y «Probar») |
+| **Capturas** | Carpeta (y **Abrir**), **nombre del archivo** con fecha, hora, programa o título de la ventana, **formato** (PNG, JPG con su calidad o WebP), **esperar antes** de capturar (para abrir un menú), **copiar siempre**, **incluir el puntero del ratón**, **sonido de cámara** y **destello** sobre lo capturado |
+| **Grabación de audio** | Carpeta (y **Abrir**), **formato** (WAV, MP3 u Opus: se convierte al acabar), **volumen del micrófono** (solo en las grabaciones), **partir las grabaciones largas** cada tantos minutos, y **Guardar lo que acaba de sonar**, que recuerda en memoria los últimos segundos para que *Grabar audio → Guardar lo que acaba de sonar* los guarde (no se escribe nada en el disco) |
+| **Lupa** | Aumento, forma (lente rectangular, redonda o pantalla completa), tamaño y «Probar»; **aspecto**: borde (sin borde, fino, medio o grueso) y su color, colores (normales, invertidos o más contraste) y suavizar; **comportamiento**: seguir al texto mientras escribes, **Ctrl + rueda** cambia el aumento mientras está encendida, y apagarla sola tras un rato sin mover el ratón |
 | **Datos** | Copias de seguridad, exportar, importar, volver a importar de K-Desktop 4 y el registro |
 | **Actualizaciones** | La versión, buscar ahora y qué hacer cuando hay una nueva |
 

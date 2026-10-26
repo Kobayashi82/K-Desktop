@@ -36,7 +36,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 | **Volume** | Sets, raises, lowers or mutes the volume: of the speakers, the microphone, one program or the one in front. |
 | **Audio output** | Changes the default sound device. With several chosen, each run switches to the next one. |
 | **Play sound** | Plays a bundled sound or a .wav file. |
-| **Record audio** | Records what the PC plays, the microphone or both, or saves what just played (*Settings → Captures and magnifier*). |
+| **Record audio** | Records what the PC plays, the microphone or both, or saves what just played (*Settings → Audio recording*). |
 
 ## Screen
 

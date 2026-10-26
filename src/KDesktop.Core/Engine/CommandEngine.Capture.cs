@@ -1,4 +1,7 @@
+using System.Diagnostics;
 using System.Globalization;
+using KDesktop.Core.Imaging;
+using KDesktop.Core.Input;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
 using KDesktop.Core.Platform;
@@ -18,29 +21,85 @@ public sealed partial class CommandEngine
     }
 
     /// <summary>«Captura 2026-10-16 23.40.12.png» (with a number if it already exists).</summary>
-    private static string NewFile(string folder, string prefix, string extension)
+    private static string NewFile(string folder, string prefix, string extension, string? finalExtension = null) =>
+        NewFileNamed(folder, $"{prefix} {DateTime.Now.ToString("yyyy-MM-dd HH.mm.ss", CultureInfo.InvariantCulture)}", extension, finalExtension);
+
+    /// <summary>
+    /// <paramref name="name"/> in <paramref name="folder"/>, with a number if it already exists — also when it exists with
+    /// <paramref name="finalExtension"/>, the one it will have (a recording that becomes an MP3).
+    /// </summary>
+    private static string NewFileNamed(string folder, string name, string extension, string? finalExtension = null)
     {
         Directory.CreateDirectory(folder);
-        var name = $"{prefix} {DateTime.Now.ToString("yyyy-MM-dd HH.mm.ss", CultureInfo.InvariantCulture)}";
+        bool Taken(string path) => File.Exists(path) || (finalExtension is not null && File.Exists(Path.ChangeExtension(path, finalExtension)));
         var path = Path.Combine(folder, name + extension);
-        for (var i = 2; File.Exists(path); i++) path = Path.Combine(folder, $"{name} ({i}){extension}");
+        for (var i = 2; Taken(path); i++) path = Path.Combine(folder, $"{name} ({i}){extension}");
         return path;
+    }
+
+    /// <summary>
+    /// The name of a screenshot from the template of Settings › Capturas: {date}, {time}, {app} (the program in front) and
+    /// {title} (its window's title), without what a file name can't have.
+    /// </summary>
+    public static string CaptureName(string? template, ForegroundWindow front, DateTime when) =>
+        CaptureName(template, () => AppName(front), () => front.Title, when);
+
+    /// <summary>The same with the program and title given (asked only if the template has them).</summary>
+    public static string CaptureName(string? template, Func<string> app, Func<string> title, DateTime when)
+    {
+        if (string.IsNullOrWhiteSpace(template)) template = DefaultCaptureName;
+        var name = template
+            .Replace("{date}", when.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase)
+            .Replace("{time}", when.ToString("HH.mm.ss", CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase);
+        if (name.Contains("{app}", StringComparison.OrdinalIgnoreCase)) name = name.Replace("{app}", app(), StringComparison.OrdinalIgnoreCase);
+        if (name.Contains("{title}", StringComparison.OrdinalIgnoreCase)) name = name.Replace("{title}", title(), StringComparison.OrdinalIgnoreCase);
+        var invalid = Path.GetInvalidFileNameChars();
+        var clean = new string(name.Select(c => invalid.Contains(c) ? ' ' : c).ToArray());
+        clean = string.Join(' ', clean.Split(' ', StringSplitOptions.RemoveEmptyEntries)).Trim().TrimEnd('.');
+        if (clean.Length > 120) clean = clean[..120].TrimEnd();
+        return clean.Length > 0 ? clean : CaptureName(DefaultCaptureName, app, title, when);
+    }
+
+    /// <summary>«Captura {date} {time}» in K-Desktop's language.</summary>
+    public static string DefaultCaptureName => Loc.T("capture.filePrefix") + " {date} {time}";
+
+    /// <summary>The program's own name («Google Chrome»), else its process's («Chrome»); nothing without a window in front.</summary>
+    private static string AppName(ForegroundWindow front)
+    {
+        if (front.ProcessId == 0) return string.Empty;
+        try
+        {
+            if (Native.Win32.GetProcessPath(front.ProcessId) is { } path
+                && FileVersionInfo.GetVersionInfo(path).FileDescription is { Length: > 0 } description)
+                return description.Trim();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { /* its own name below */ }
+        var process = front.ProcessName;
+        return process.Length > 0 ? char.ToUpperInvariant(process[0]) + process[1..] : string.Empty;
     }
 
     // ── Captura de pantalla ──────────────────────────────────────────────
 
     private async Task ScreenshotAsync(ScreenshotAction a, ExecutionContext ctx)
     {
-        if (await CaptureAsync(a.Area, ctx).ConfigureAwait(false) is not { } image) return; // cancelled
+        var s = Config.Settings;
+        // Time to open a menu or move the mouse first.
+        if (s.CaptureDelay > 0) await Task.Delay(TimeSpan.FromSeconds(Math.Min(s.CaptureDelay, 10)), ctx.Token).ConfigureAwait(false);
+        if (await CaptureAsync(a.Area, ctx, pointer: s.CaptureCursor) is not { } shot) return; // cancelled
+        var (image, area) = shot;
+        if (s.CaptureSound) Sounds.Play("Camera");
+        if (s.CaptureFlash) _ui.FlashArea(area);
 
-        var copied = a.Copy && _ui.SetClipboardImage(image);
+        var copied = (a.Copy || s.CaptureAlwaysCopy) && _ui.SetClipboardImage(image);
         string? path = null;
         if (a.Save || a.Open)
         {
-            path = NewFile(FolderFor(a.Folder, Config.Settings.CaptureFolder, Environment.SpecialFolder.MyPictures), Loc.T("capture.filePrefix"), ".png");
-            var png = await Task.Run(() => Png.Encode(image), ctx.Token).ConfigureAwait(false);
-            await File.WriteAllBytesAsync(path, png, ctx.Token).ConfigureAwait(false);
-            Log.Info($"Captura: {image.Width}×{image.Height} → {path}");
+            var front = ctx.Foreground.ProcessId == (uint)Environment.ProcessId ? ForegroundWindow.None : ctx.Foreground;
+            path = NewFileNamed(FolderFor(a.Folder, s.CaptureFolder, Environment.SpecialFolder.MyPictures),
+                CaptureName(s.CaptureName, front, DateTime.Now), ImageFiles.ExtensionFor(image, s.CaptureFormat));
+            var bytes = await ImageFiles.EncodeAsync(image, s.CaptureFormat, s.CaptureQuality, ctx.Token).ConfigureAwait(false);
+            await File.WriteAllBytesAsync(path, bytes, ctx.Token).ConfigureAwait(false);
+            Log.Info($"Captura: {image.Width}×{image.Height} → {path} ({bytes.Length / 1024} KB)");
         }
         if (a.Open && path is not null) ProcessLauncher.Launch(new LaunchSpec(path), asAdmin: false);
         if (!a.ShowOsd) return;
@@ -55,7 +114,11 @@ public sealed partial class CommandEngine
     /// What the screen shows in <paramref name="what"/>; a region is chosen with the mouse (null: cancelled).
     /// <paramref name="inside"/>: of the active window, only what is inside (to read it, without its title or buttons).
     /// </summary>
-    private async Task<BgraImage?> CaptureAsync(CaptureArea what, ExecutionContext ctx, bool inside = false)
+    private async Task<BgraImage?> CaptureAsync(CaptureArea what, ExecutionContext ctx, bool inside = false) =>
+        (await CaptureAsync(what, ctx, pointer: false, inside).ConfigureAwait(false))?.Image;
+
+    /// <summary>The same, with the part of the screen it is and, if <paramref name="pointer"/>, the mouse pointer drawn on it.</summary>
+    private async Task<(BgraImage Image, ScreenRect Area)?> CaptureAsync(CaptureArea what, ExecutionContext ctx, bool pointer, bool inside = false)
     {
         // From the QuickMenu or the launcher: let them go away first.
         if (ctx.FromPopup) await Task.Delay(250, ctx.Token).ConfigureAwait(false);
@@ -69,11 +132,18 @@ public sealed partial class CommandEngine
             CaptureArea.ActiveWindow => ScreenCapture.MonitorAtCursor(),
             _ => desktop,
         };
+        // The pointer as it was when the picture was taken (a region's frozen screen is shown without it).
+        using var cursor = pointer ? ScreenCapture.CurrentPointer() : null;
         var image = await Task.Run(() => ScreenCapture.Capture(area), ctx.Token).ConfigureAwait(false);
-        if (what != CaptureArea.Region) return image;
-        if (await _ui.SelectRegionAsync(image, area).ConfigureAwait(false) is not { } region || region.Width < 2 || region.Height < 2)
-            return null;
-        return image.Crop(region.Left - area.Left, region.Top - area.Top, region.Width, region.Height);
+        if (what == CaptureArea.Region)
+        {
+            if (await _ui.SelectRegionAsync(image, area).ConfigureAwait(false) is not { } region || region.Width < 2 || region.Height < 2)
+                return null;
+            image = image.Crop(region.Left - area.Left, region.Top - area.Top, region.Width, region.Height);
+            area = new ScreenRect(region.Left, region.Top, image.Width, image.Height);
+        }
+        cursor?.DrawOn(image, area);
+        return (image, area);
     }
 
     // ── Copiar texto de la pantalla ──────────────────────────────────────
@@ -121,15 +191,20 @@ public sealed partial class CommandEngine
 
     // ── Grabar audio ─────────────────────────────────────────────────────
 
+    /// <summary>How recordings are kept now (Settings › Grabación de audio).</summary>
+    public RecordOptions RecordOptions => new(Config.Settings.RecordFormat, Config.Settings.RecordMicVolume, Config.Settings.RecordSplitMinutes);
+
     private void AudioRecord(AudioRecordAction a)
     {
         var mode = a.Mode == RecordMode.Toggle ? (Recording.IsRecording ? RecordMode.Stop : RecordMode.Start) : a.Mode;
         var folder = FolderFor(a.Folder, Config.Settings.RecordFolder, Environment.SpecialFolder.MyMusic);
+        var options = RecordOptions;
+        var final = AudioEncoders.Extension(options.Format);
         switch (mode)
         {
             case RecordMode.Start:
                 if (Recording.IsRecording) return;
-                Recording.Start(a.Source, NewFile(folder, Loc.T("record.filePrefix"), ".wav"));
+                Recording.Start(a.Source, () => NewFile(folder, Loc.T("record.filePrefix"), ".wav", final), options);
                 if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.recordStarted", Loc.T($"enum.audioSource.{a.Source}")), OsdKind.Warning, look: OsdLook.Of("MicPulse24"));
                 break;
             case RecordMode.Stop:
@@ -142,9 +217,9 @@ public sealed partial class CommandEngine
                 break;
             case RecordMode.SaveReplay:
                 var seconds = Config.Settings.AudioReplaySeconds;
-                if (!Recording.SaveReplay(NewFile(folder, Loc.T("record.replayPrefix"), ".wav")))
+                if (Recording.SaveReplay(NewFile(folder, Loc.T("record.replayPrefix"), ".wav", final), options.Format) is null)
                 {
-                    Log.Warn("Repetición de audio: está apagada (Opciones › Capturas)");
+                    Log.Warn("Repetición de audio: está apagada (Opciones › Grabación de audio)");
                     if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.replayOff"), OsdKind.Warning, look: OsdLook.Of("History24"));
                 }
                 else if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.replaySaved", seconds), OsdKind.Success, look: OsdLook.Of("History24"));
@@ -153,6 +228,16 @@ public sealed partial class CommandEngine
     }
 
     // ── Lupa ─────────────────────────────────────────────────────────────
+
+    /// <summary>How the lupa looks and behaves now (Settings › Lupa).</summary>
+    public MagnifierOptions MagnifierOptions
+    {
+        get
+        {
+            var s = Config.Settings;
+            return new(s.ZoomMode, s.ZoomLensSize, s.ZoomBorder, s.ZoomBorderColor, s.ZoomSmooth, s.ZoomColors, s.ZoomFollowText, s.ZoomAutoOff);
+        }
+    }
 
     private void Magnify(MagnifierAction a)
     {

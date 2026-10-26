@@ -40,6 +40,38 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <!-- A tile of a choice of three or four (formats, shapes, sizes…): a drawing or a word, and its name below -->
+        <Style x:Key="PickTile" TargetType="RadioButton" BasedOn="{StaticResource OsdTile}">
+            <Setter Property="Height" Value="60" />
+            <Setter Property="Padding" Value="4,8,4,4" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        </Style>
+        <Style x:Key="TileLabel" TargetType="TextBlock">
+            <Setter Property="Grid.Row" Value="1" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        </Style>
+        <Style x:Key="TileBig" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+        </Style>
+        <!-- A row of the lupa that only the lens has (full screen has no lens) -->
+        <Style x:Key="LensOnlyRow" TargetType="Grid" BasedOn="{StaticResource SettingRow}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ZoomMode}" Value="{x:Static m:ZoomMode.FullScreen}">
+                    <Setter Property="IsEnabled" Value="False" />
+                    <Setter Property="Opacity" Value="0.45" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
         <!-- Grey text in a (non-editable) combo while nothing is chosen; its DataContext is the combo -->
         <Style x:Key="ComboHint" TargetType="TextBlock">
             <Setter Property="IsHitTestVisible" Value="False" />
@@ -1365,38 +1397,203 @@
                 </StackPanel>
             </Border>
 
-            <!-- Captures -->
+            <!-- Captures (5.0.262: a section of its own) -->
             <Border Style="{StaticResource Card}" Tag="capture">
                 <StackPanel>
                     <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.capture}" />
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.captureFolder}" />
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <ui:TextBox Text="{Binding CaptureFolder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr settings.captureFolderHint}" />
                         <ui:Button MinHeight="36" VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseCaptureFolder" />
+                        <ui:Button MinHeight="36" VerticalAlignment="Stretch" Grid.Column="2" Margin="8,0,0,0" Content="{l:Tr settings.openFolder}" Icon="{ui:SymbolIcon Open24}" Click="OnOpenCaptureFolder"
+                                   AutomationProperties.Name="{l:Tr settings.openCaptureFolder}" />
                     </Grid>
-                </StackPanel>
-            </Border>
-
-            <!-- Audio: recordings and the last seconds -->
-            <Border Style="{StaticResource Card}" Tag="capture">
-                <StackPanel>
-                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.captureAudio}" />
-                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.recordFolder}" />
-                    <Grid Margin="0,0,0,6">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <ui:TextBox Text="{Binding RecordFolder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr settings.recordFolderHint}" />
-                        <ui:Button MinHeight="36" VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseRecordFolder" />
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.captureName}" />
+                    <ui:TextBox x:Name="CaptureNameBox" Text="{Binding CaptureName, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="{l:Tr settings.captureName}" />
+                    <!-- What can go in the name, added where the text cursor is -->
+                    <WrapPanel Margin="0,8,0,0">
+                        <WrapPanel.Resources>
+                            <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                                <Setter Property="Margin" Value="0,0,6,6" />
+                                <Setter Property="Padding" Value="10,4" />
+                            </Style>
+                        </WrapPanel.Resources>
+                        <ui:Button Tag="{}{date}" Content="{l:Tr settings.captureNameAdd.date}" Icon="{ui:SymbolIcon Add16}" Click="OnCaptureNameToken" />
+                        <ui:Button Tag="{}{time}" Content="{l:Tr settings.captureNameAdd.time}" Icon="{ui:SymbolIcon Add16}" Click="OnCaptureNameToken" />
+                        <ui:Button Tag="{}{app}" Content="{l:Tr settings.captureNameAdd.app}" Icon="{ui:SymbolIcon Add16}" Click="OnCaptureNameToken" />
+                        <ui:Button Tag="{}{title}" Content="{l:Tr settings.captureNameAdd.title}" Icon="{ui:SymbolIcon Add16}" Click="OnCaptureNameToken" />
+                    </WrapPanel>
+                    <TextBlock x:Name="CaptureNameExample" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+                    <Grid Style="{StaticResource SettingRow}" Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.captureFormat}" />
+                        <UniformGrid x:Name="CaptureFormatPicker" Grid.Column="1" Rows="1" Margin="-5,0">
+                            <RadioButton Style="{StaticResource PickTile}" Tag="Png" GroupName="CaptureFormat" Checked="OnCaptureFormat" AutomationProperties.Name="PNG">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Style="{StaticResource TileBig}" Text="PNG" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.captureFormat.Png}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Style="{StaticResource PickTile}" Tag="Jpg" GroupName="CaptureFormat" Checked="OnCaptureFormat" AutomationProperties.Name="JPG">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Style="{StaticResource TileBig}" Text="JPG" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.captureFormat.Jpg}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Style="{StaticResource PickTile}" Tag="WebP" GroupName="CaptureFormat" Checked="OnCaptureFormat" AutomationProperties.Name="WebP">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Style="{StaticResource TileBig}" Text="WebP" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.captureFormat.WebP}" />
+                                </Grid>
+                            </RadioButton>
+                        </UniformGrid>
+                    </Grid>
+                    <Grid>
+                        <!-- Only JPG has a quality -->
+                        <Grid.Style>
+                            <Style TargetType="Grid" BasedOn="{StaticResource SettingRow}">
+                                <Setter Property="IsEnabled" Value="False" />
+                                <Setter Property="Opacity" Value="0.45" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CaptureFormat}" Value="{x:Static m:ImageFileFormat.Jpg}">
+                                        <Setter Property="IsEnabled" Value="True" />
+                                        <Setter Property="Opacity" Value="1" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.captureQuality}" />
+                        <Grid Grid.Column="1">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <Slider Margin="0,0,14,0" Minimum="30" Maximum="100" Value="{Binding CaptureQuality}" TickFrequency="5" IsSnapToTickEnabled="True" VerticalAlignment="Center"
+                                    AutomationProperties.Name="{l:Tr settings.captureQuality}" />
+                            <TextBlock Grid.Column="1" MinWidth="56" TextAlignment="Right" Text="{Binding CaptureQuality, StringFormat={}{0} %}" VerticalAlignment="Center" />
+                        </Grid>
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.captureDelay}" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.captureDelayHint}" />
+                        </StackPanel>
+                        <Grid Grid.Column="1">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <Slider Margin="0,0,14,0" Minimum="0" Maximum="10" Value="{Binding CaptureDelay}" TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center"
+                                    AutomationProperties.Name="{l:Tr settings.captureDelay}" />
+                            <TextBlock x:Name="CaptureDelayText" Grid.Column="1" MinWidth="56" TextAlignment="Right" VerticalAlignment="Center" />
+                        </Grid>
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                            <TextBlock Text="{l:Tr settings.audioReplay}" />
+                            <TextBlock Text="{l:Tr settings.captureAlwaysCopy}" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.captureAlwaysCopyHint}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding CaptureAlwaysCopy}" AutomationProperties.Name="{l:Tr settings.captureAlwaysCopy}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr settings.captureCursor}" />
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding CaptureCursor}" AutomationProperties.Name="{l:Tr settings.captureCursor}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr settings.captureSound}" />
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding CaptureSound}" AutomationProperties.Name="{l:Tr settings.captureSound}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr settings.captureFlash}" />
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding CaptureFlash}" AutomationProperties.Name="{l:Tr settings.captureFlash}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Audio recordings (5.0.262: a section of its own) -->
+            <Border Style="{StaticResource Card}" Tag="recording">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.recordings}" />
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.recordFolder}" />
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <ui:TextBox Text="{Binding RecordFolder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr settings.recordFolderHint}" />
+                        <ui:Button MinHeight="36" VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseRecordFolder" />
+                        <ui:Button MinHeight="36" VerticalAlignment="Stretch" Grid.Column="2" Margin="8,0,0,0" Content="{l:Tr settings.openFolder}" Icon="{ui:SymbolIcon Open24}" Click="OnOpenRecordFolder"
+                                   AutomationProperties.Name="{l:Tr settings.openRecordFolder}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.recordFormat}" />
+                        <UniformGrid x:Name="RecordFormatPicker" Grid.Column="1" Rows="1" Margin="-5,0">
+                            <RadioButton Style="{StaticResource PickTile}" Tag="Wav" GroupName="RecordFormat" Checked="OnRecordFormat" AutomationProperties.Name="WAV">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Style="{StaticResource TileBig}" Text="WAV" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.recordFormat.Wav}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Style="{StaticResource PickTile}" Tag="Mp3" GroupName="RecordFormat" Checked="OnRecordFormat" AutomationProperties.Name="MP3">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Style="{StaticResource TileBig}" Text="MP3" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.recordFormat.Mp3}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Style="{StaticResource PickTile}" Tag="Opus" GroupName="RecordFormat" Checked="OnRecordFormat" AutomationProperties.Name="Opus">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Style="{StaticResource TileBig}" Text="Opus" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.recordFormat.Opus}" />
+                                </Grid>
+                            </RadioButton>
+                        </UniformGrid>
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.recordMicVolume}" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.recordMicVolumeHint}" />
+                        </StackPanel>
+                        <Grid Grid.Column="1">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <Slider Margin="0,0,14,0" Minimum="25" Maximum="400" Value="{Binding RecordMicVolume}" TickFrequency="5" IsSnapToTickEnabled="True" VerticalAlignment="Center"
+                                    AutomationProperties.Name="{l:Tr settings.recordMicVolume}" />
+                            <TextBlock Grid.Column="1" MinWidth="56" TextAlignment="Right" Text="{Binding RecordMicVolume, StringFormat={}{0} %}" VerticalAlignment="Center" />
+                        </Grid>
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.recordSplit}" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.recordSplitHint}" />
+                        </StackPanel>
+                        <Grid Grid.Column="1">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <Slider Margin="0,0,14,0" Minimum="0" Maximum="120" Value="{Binding RecordSplitMinutes}" TickFrequency="5" IsSnapToTickEnabled="True" VerticalAlignment="Center"
+                                    AutomationProperties.Name="{l:Tr settings.recordSplit}" />
+                            <TextBlock x:Name="RecordSplitText" Grid.Column="1" MinWidth="56" TextAlignment="Right" VerticalAlignment="Center" />
+                        </Grid>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- The last seconds, kept in memory -->
+            <Border Style="{StaticResource Card}" Tag="recording">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Style="{StaticResource CardTitle}" Margin="0,0,0,2" Text="{l:Tr settings.audioReplay}" />
                             <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.audioReplayHint}" />
                         </StackPanel>
-                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AudioReplay}" />
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AudioReplay}" AutomationProperties.Name="{l:Tr settings.audioReplay}" />
                     </Grid>
-                    <WrapPanel IsEnabled="{Binding AudioReplay}" Margin="0,4,0,0">
+                    <WrapPanel IsEnabled="{Binding AudioReplay}" Margin="0,10,0,0">
                         <StackPanel Margin="0,0,12,0">
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.audioReplaySeconds}" />
                             <ui:TextBox Width="120" Text="{Binding AudioReplaySeconds, UpdateSourceTrigger=PropertyChanged}" />
@@ -1409,28 +1606,12 @@
                 </StackPanel>
             </Border>
 
-            <!-- Magnifier -->
-            <Border Style="{StaticResource Card}" Tag="capture">
+            <!-- Magnifier (5.0.262: a section of its own) -->
+            <Border Style="{StaticResource Card}" Tag="zoom">
                 <StackPanel>
-                    <StackPanel.Resources>
-                        <Style TargetType="RadioButton" BasedOn="{StaticResource OsdTile}">
-                            <Setter Property="Height" Value="60" />
-                            <Setter Property="Padding" Value="4,8,4,4" />
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                            <Setter Property="VerticalContentAlignment" Value="Stretch" />
-                        </Style>
-                        <Style x:Key="ZoomTileLabel" TargetType="TextBlock">
-                            <Setter Property="Grid.Row" Value="1" />
-                            <Setter Property="HorizontalAlignment" Value="Center" />
-                            <Setter Property="FontSize" Value="11" />
-                            <Setter Property="FontWeight" Value="Normal" />
-                            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-                            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-                        </Style>
-                    </StackPanel.Resources>
                     <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.zoom}" />
                     <Grid Style="{StaticResource SettingRow}">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.zoomLevel}" />
                             <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.zoomHint}" />
@@ -1439,31 +1620,31 @@
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                             <Slider Margin="0,0,14,0" Minimum="1.25" Maximum="6" Value="{Binding ZoomLevel}" TickFrequency="0.25" IsSnapToTickEnabled="True" VerticalAlignment="Center"
                                     AutomationProperties.Name="{l:Tr settings.zoomLevel}" />
-                            <TextBlock Grid.Column="1" MinWidth="40" TextAlignment="Right" Text="{Binding ZoomLevel, StringFormat=×{0:0.##}}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" MinWidth="56" TextAlignment="Right" Text="{Binding ZoomLevel, StringFormat=×{0:0.##}}" VerticalAlignment="Center" />
                         </Grid>
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
                         <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.zoomMode}" />
                         <!-- Three tiles, each with a drawing of the shape -->
                         <UniformGrid x:Name="ZoomModePicker" Grid.Column="1" Rows="1" Margin="-5,0">
-                            <RadioButton Tag="Lens" GroupName="ZoomMode" Checked="OnZoomMode" AutomationProperties.Name="{l:Tr enum.zoomMode.Lens}" ToolTip="{l:Tr enum.zoomMode.Lens}">
+                            <RadioButton Style="{StaticResource PickTile}" Tag="Lens" GroupName="ZoomMode" Checked="OnZoomMode" AutomationProperties.Name="{l:Tr enum.zoomMode.Lens}" ToolTip="{l:Tr enum.zoomMode.Lens}">
                                 <Grid>
                                     <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                                     <Border Width="32" Height="20" CornerRadius="5" BorderThickness="2" VerticalAlignment="Center"
                                             BorderBrush="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
-                                    <TextBlock Style="{StaticResource ZoomTileLabel}" Text="{l:Tr settings.zoomShape.Lens}" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.zoomShape.Lens}" />
                                 </Grid>
                             </RadioButton>
-                            <RadioButton Tag="Circle" GroupName="ZoomMode" Checked="OnZoomMode" AutomationProperties.Name="{l:Tr enum.zoomMode.Circle}" ToolTip="{l:Tr enum.zoomMode.Circle}">
+                            <RadioButton Style="{StaticResource PickTile}" Tag="Circle" GroupName="ZoomMode" Checked="OnZoomMode" AutomationProperties.Name="{l:Tr enum.zoomMode.Circle}" ToolTip="{l:Tr enum.zoomMode.Circle}">
                                 <Grid>
                                     <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                                     <Ellipse Width="24" Height="24" StrokeThickness="2" VerticalAlignment="Center"
                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
-                                    <TextBlock Style="{StaticResource ZoomTileLabel}" Text="{l:Tr settings.zoomShape.Circle}" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.zoomShape.Circle}" />
                                 </Grid>
                             </RadioButton>
-                            <RadioButton Tag="FullScreen" GroupName="ZoomMode" Checked="OnZoomMode" AutomationProperties.Name="{l:Tr enum.zoomMode.FullScreen}" ToolTip="{l:Tr enum.zoomMode.FullScreen}">
+                            <RadioButton Style="{StaticResource PickTile}" Tag="FullScreen" GroupName="ZoomMode" Checked="OnZoomMode" AutomationProperties.Name="{l:Tr enum.zoomMode.FullScreen}" ToolTip="{l:Tr enum.zoomMode.FullScreen}">
                                 <Grid>
                                     <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                                     <!-- A monitor: the screen and its stand -->
@@ -1473,54 +1654,228 @@
                                         <Border Width="14" Height="3" Margin="0,2,0,0" CornerRadius="1.5"
                                                 Background="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
                                     </StackPanel>
-                                    <TextBlock Style="{StaticResource ZoomTileLabel}" Text="{l:Tr settings.zoomShape.FullScreen}" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.zoomShape.FullScreen}" />
+                                </Grid>
+                            </RadioButton>
+                        </UniformGrid>
+                    </Grid>
+                    <Grid Style="{StaticResource LensOnlyRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.zoomLensSize}" />
+                        <!-- Three tiles, a bigger lens each -->
+                        <UniformGrid x:Name="ZoomSizePicker" Grid.Column="1" Rows="1" Margin="-5,0">
+                            <RadioButton Style="{StaticResource PickTile}" Tag="Small" GroupName="ZoomSize" Checked="OnZoomSize" AutomationProperties.Name="{l:Tr enum.zoomLensSize.Small}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <Ellipse Width="12" Height="12" StrokeThickness="2" VerticalAlignment="Center"
+                                             Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr enum.zoomLensSize.Small}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Style="{StaticResource PickTile}" Tag="Medium" GroupName="ZoomSize" Checked="OnZoomSize" AutomationProperties.Name="{l:Tr enum.zoomLensSize.Medium}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <Ellipse Width="18" Height="18" StrokeThickness="2" VerticalAlignment="Center"
+                                             Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr enum.zoomLensSize.Medium}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Style="{StaticResource PickTile}" Tag="Large" GroupName="ZoomSize" Checked="OnZoomSize" AutomationProperties.Name="{l:Tr enum.zoomLensSize.Large}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <Ellipse Width="25" Height="25" StrokeThickness="2" VerticalAlignment="Center"
+                                             Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr enum.zoomLensSize.Large}" />
+                                </Grid>
+                            </RadioButton>
+                        </UniformGrid>
+                    </Grid>
+                    <ui:Button x:Name="ZoomTestButton" MinHeight="36" Margin="0,12,0,0" HorizontalAlignment="Left" Content="{l:Tr settings.zoomTest}" Icon="{ui:SymbolIcon ZoomIn24}" Click="OnZoomTest" />
+                </StackPanel>
+            </Border>
+
+            <!-- How the lupa looks -->
+            <Border Style="{StaticResource Card}" Tag="zoom">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.zoomLook}" />
+                    <Grid Style="{StaticResource LensOnlyRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="360" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.zoomBorder}" />
+                        <!-- Four tiles, a thicker frame each -->
+                        <UniformGrid x:Name="ZoomBorderPicker" Grid.Column="1" Rows="1" Margin="-5,0">
+                            <RadioButton Style="{StaticResource PickTile}" Tag="0" GroupName="ZoomBorder" Checked="OnZoomBorder" AutomationProperties.Name="{l:Tr settings.zoomBorder.0}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <Rectangle Width="30" Height="20" RadiusX="5" RadiusY="5" StrokeThickness="1.5" StrokeDashArray="2 2" VerticalAlignment="Center"
+                                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.zoomBorder.0}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Style="{StaticResource PickTile}" Tag="3" GroupName="ZoomBorder" Checked="OnZoomBorder" AutomationProperties.Name="{l:Tr settings.zoomBorder.3}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <Border Width="30" Height="20" CornerRadius="5" BorderThickness="1.5" VerticalAlignment="Center" BorderBrush="{Binding ZoomBorderBrush, RelativeSource={RelativeSource AncestorType=local:SettingsPage}}" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.zoomBorder.3}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Style="{StaticResource PickTile}" Tag="6" GroupName="ZoomBorder" Checked="OnZoomBorder" AutomationProperties.Name="{l:Tr settings.zoomBorder.6}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <Border Width="30" Height="20" CornerRadius="5" BorderThickness="3" VerticalAlignment="Center" BorderBrush="{Binding ZoomBorderBrush, RelativeSource={RelativeSource AncestorType=local:SettingsPage}}" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.zoomBorder.6}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Style="{StaticResource PickTile}" Tag="10" GroupName="ZoomBorder" Checked="OnZoomBorder" AutomationProperties.Name="{l:Tr settings.zoomBorder.10}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <Border Width="30" Height="20" CornerRadius="6" BorderThickness="5" VerticalAlignment="Center" BorderBrush="{Binding ZoomBorderBrush, RelativeSource={RelativeSource AncestorType=local:SettingsPage}}" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.zoomBorder.10}" />
                                 </Grid>
                             </RadioButton>
                         </UniformGrid>
                     </Grid>
                     <Grid>
-                        <!-- Full screen has no lens -->
+                        <!-- No border (or full screen): no colour to choose -->
                         <Grid.Style>
-                            <Style TargetType="Grid" BasedOn="{StaticResource SettingRow}">
+                            <Style TargetType="Grid" BasedOn="{StaticResource LensOnlyRow}">
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding ZoomMode}" Value="{x:Static m:ZoomMode.FullScreen}">
+                                    <DataTrigger Binding="{Binding ZoomBorder}" Value="0">
                                         <Setter Property="IsEnabled" Value="False" />
                                         <Setter Property="Opacity" Value="0.45" />
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Grid.Style>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
-                        <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.zoomLensSize}" />
-                        <!-- Three tiles, a bigger lens each -->
-                        <UniformGrid x:Name="ZoomSizePicker" Grid.Column="1" Rows="1" Margin="-5,0">
-                            <RadioButton Tag="Small" GroupName="ZoomSize" Checked="OnZoomSize" AutomationProperties.Name="{l:Tr enum.zoomLensSize.Small}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.zoomBorderColor}" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <ToggleButton x:Name="ZoomColorSwatch" Width="34" Height="34" Margin="0,0,8,0" Cursor="Hand"
+                                          ToolTip="{l:Tr settings.zoomBorderColor}" AutomationProperties.Name="{l:Tr settings.zoomBorderColor}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="Edge" CornerRadius="8" BorderThickness="1" Padding="3"
+                                                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" Background="{DynamicResource Kd.Subtle}">
+                                            <Border CornerRadius="5" Background="{Binding ZoomBorderBrush, RelativeSource={RelativeSource AncestorType=local:SettingsPage}}" />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Edge" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
+                                            </Trigger>
+                                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                                <Setter TargetName="Edge" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <TextBox Width="100" VerticalAlignment="Center" MaxLength="7" FontFamily="Consolas" x:Name="ZoomColorBox"
+                                     TextChanged="OnZoomColorTyped" AutomationProperties.Name="{l:Tr settings.zoomBorderColor}" />
+                            <Popup IsOpen="{Binding IsChecked, ElementName=ZoomColorSwatch}" PlacementTarget="{Binding ElementName=ZoomColorSwatch}"
+                                   Placement="Bottom" VerticalOffset="6" StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade">
+                                <Border Padding="10" CornerRadius="8" BorderThickness="1" Width="236"
+                                        Background="{DynamicResource Kd.MenuTintOpaque}" BorderBrush="{DynamicResource Kd.MenuBorder}">
+                                    <ItemsControl ItemsSource="{x:Static local:SettingsPage.BorderColors}" Focusable="False">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Width="24" Height="24" Margin="2" Cursor="Hand" Tag="{Binding}" Click="OnPickZoomColor"
+                                                        ToolTip="{Binding}" AutomationProperties.Name="{Binding}">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border x:Name="Dot" CornerRadius="5" Background="{Binding}" BorderThickness="1"
+                                                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" />
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="Dot" Property="BorderBrush" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+                            </Popup>
+                        </StackPanel>
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.zoomColors}" />
+                        <!-- «Aa» as each one shows it -->
+                        <UniformGrid x:Name="ZoomColorsPicker" Grid.Column="1" Rows="1" Margin="-5,0">
+                            <RadioButton Style="{StaticResource PickTile}" Tag="Normal" GroupName="ZoomColors" Checked="OnZoomColors" AutomationProperties.Name="{l:Tr enum.zoomColors.Normal}">
                                 <Grid>
                                     <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-                                    <Ellipse Width="12" Height="12" StrokeThickness="2" VerticalAlignment="Center"
-                                             Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
-                                    <TextBlock Style="{StaticResource ZoomTileLabel}" Text="{l:Tr enum.zoomLensSize.Small}" />
+                                    <TextBlock Style="{StaticResource TileBig}" Text="Aa" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr enum.zoomColors.Normal}" />
                                 </Grid>
                             </RadioButton>
-                            <RadioButton Tag="Medium" GroupName="ZoomSize" Checked="OnZoomSize" AutomationProperties.Name="{l:Tr enum.zoomLensSize.Medium}">
+                            <RadioButton Style="{StaticResource PickTile}" Tag="Inverted" GroupName="ZoomColors" Checked="OnZoomColors" AutomationProperties.Name="{l:Tr enum.zoomColors.Inverted}">
                                 <Grid>
                                     <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-                                    <Ellipse Width="18" Height="18" StrokeThickness="2" VerticalAlignment="Center"
-                                             Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
-                                    <TextBlock Style="{StaticResource ZoomTileLabel}" Text="{l:Tr enum.zoomLensSize.Medium}" />
+                                    <Border CornerRadius="4" Padding="5,0" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            Background="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}">
+                                        <TextBlock Style="{StaticResource TileBig}" Foreground="{DynamicResource ApplicationBackgroundBrush}" Text="Aa" />
+                                    </Border>
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr enum.zoomColors.Inverted}" />
                                 </Grid>
                             </RadioButton>
-                            <RadioButton Tag="Large" GroupName="ZoomSize" Checked="OnZoomSize" AutomationProperties.Name="{l:Tr enum.zoomLensSize.Large}">
+                            <RadioButton Style="{StaticResource PickTile}" Tag="HighContrast" GroupName="ZoomColors" Checked="OnZoomColors" AutomationProperties.Name="{l:Tr enum.zoomColors.HighContrast}">
                                 <Grid>
                                     <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-                                    <Ellipse Width="25" Height="25" StrokeThickness="2" VerticalAlignment="Center"
-                                             Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
-                                    <TextBlock Style="{StaticResource ZoomTileLabel}" Text="{l:Tr enum.zoomLensSize.Large}" />
+                                    <TextBlock Style="{StaticResource TileBig}" FontWeight="Black" Text="Aa" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr enum.zoomColors.HighContrast}" />
                                 </Grid>
                             </RadioButton>
                         </UniformGrid>
                     </Grid>
-                    <ui:Button x:Name="ZoomTestButton" MinHeight="36" Margin="0,12,0,0" HorizontalAlignment="Left" Content="{l:Tr settings.zoomTest}" Icon="{ui:SymbolIcon ZoomIn24}" Click="OnZoomTest" />
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.zoomSmooth}" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.zoomSmoothHint}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ZoomSmooth}" AutomationProperties.Name="{l:Tr settings.zoomSmooth}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- How the lupa behaves -->
+            <Border Style="{StaticResource Card}" Tag="zoom">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.zoomBehaviour}" />
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.zoomFollowText}" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.zoomFollowTextHint}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ZoomFollowText}" AutomationProperties.Name="{l:Tr settings.zoomFollowText}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.zoomCtrlWheel}" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.zoomCtrlWheelHint}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ZoomCtrlWheel}" AutomationProperties.Name="{l:Tr settings.zoomCtrlWheel}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.zoomAutoOff}" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.zoomAutoOffHint}" />
+                        </StackPanel>
+                        <Grid Grid.Column="1">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <Slider Margin="0,0,14,0" Minimum="0" Maximum="60" Value="{Binding ZoomAutoOff}" TickFrequency="5" IsSnapToTickEnabled="True" VerticalAlignment="Center"
+                                    AutomationProperties.Name="{l:Tr settings.zoomAutoOff}" />
+                            <TextBlock x:Name="ZoomAutoOffText" Grid.Column="1" MinWidth="56" TextAlignment="Right" VerticalAlignment="Center" />
+                        </Grid>
+                    </Grid>
                 </StackPanel>
             </Border>
 

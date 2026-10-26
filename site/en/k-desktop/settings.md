@@ -35,7 +35,9 @@ there.
 | Section | What it has |
 |---|---|
 | **Disable and block** | Programs where K-Desktop's hotkeys do nothing (games, remote desktops), with a hotkey to add or remove the one in front, and programs where Mouse 4 and Mouse 5 don't go back or forward |
-| **Captures and magnifier** | In three panels: **Screenshots** (their folder), **Audio** (the recordings folder and **Save what just played**, which keeps the last seconds in memory so *Record audio → Save what just played* can save them; nothing is written to disk) and **Magnifier** (zoom, shape —rectangular lens, round lens or full screen—, size and «Try it») |
+| **Screenshots** | Folder (and **Open**), **file name** with date, time, program or window title, **format** (PNG, JPG with its quality, or WebP), **wait first** (to open a menu), **always copy**, **include the mouse pointer**, **camera sound** and a **flash** over what was taken |
+| **Audio recording** | Folder (and **Open**), **format** (WAV, MP3 or Opus: converted when it ends), **microphone volume** (only in recordings), **split long recordings** every so many minutes, and **Save what just played**, which keeps the last seconds in memory so *Record audio → Save what just played* can save them (nothing is written to disk) |
+| **Magnifier** | Zoom, shape (rectangular lens, round lens or full screen), size and «Try it»; **look**: border (none, thin, medium or thick) and its color, colors (normal, inverted or more contrast) and smoothing; **behavior**: follow the text while you type, **Ctrl + wheel** changes the zoom while it is on, and turn off by itself after a while without moving the mouse |
 | **Data** | Backups, export, import, re-import from K-Desktop 4, and the log |
 | **Updates** | Version, checking now, and what to do when there is a new one |
 

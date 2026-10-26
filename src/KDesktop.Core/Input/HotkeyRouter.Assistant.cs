@@ -26,6 +26,9 @@ public sealed partial class HotkeyRouter
     /// <summary>Every physical turn of the wheel, on the hook thread (it is not swallowed). Keep it cheap.</summary>
     public Action<MouseInput>? WheelObserver { get; set; }
 
+    /// <summary>Ctrl + wheel (Ctrl alone held), on the hook thread; true swallows it (the lupa's zoom). Keep it cheap.</summary>
+    public Func<int, bool>? CtrlWheel { get; set; }
+
     /// <summary>Returns true when the key belongs to the game and was swallowed.</summary>
     private bool GameKey(KeyboardInput e)
     {

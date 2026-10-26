@@ -4,15 +4,38 @@ using KDesktop.Core.Model;
 
 namespace KDesktop.Core.Platform;
 
+/// <summary>How the lupa looks and behaves (Settings › Lupa).</summary>
+/// <param name="Border">The lens's border in pixels (0 = none); <paramref name="BorderColor"/> is «#RRGGBB».</param>
+/// <param name="FollowText">While typing, it goes to the text cursor.</param>
+/// <param name="AutoOffSeconds">It turns itself off after so long without moving; 0 = never.</param>
+public sealed record MagnifierOptions(
+    ZoomMode Mode = ZoomMode.Lens,
+    ZoomLensSize Size = ZoomLensSize.Medium,
+    int Border = Magnifier.DefaultBorder,
+    string BorderColor = Magnifier.DefaultBorderColor,
+    bool Smooth = true,
+    ZoomColors Colors = ZoomColors.Normal,
+    bool FollowText = false,
+    int AutoOffSeconds = 0)
+{
+    /// <summary>Whether <paramref name="other"/> looks different (the lens has to be made again).</summary>
+    public bool LooksOtherThan(MagnifierOptions other) =>
+        (Mode, Size, Border, BorderColor, Smooth, Colors) != (other.Mode, other.Size, other.Border, other.BorderColor, other.Smooth, other.Colors);
+}
+
 /// <summary>
 /// «Lupa»: a lens that follows the mouse showing the area around it enlarged (or, in the other mode, the whole
 /// monitor it is on enlarged around it). Either way the zoom is anchored at the pointer: what is under it stays under it, so a
-/// click lands on what is seen there. The lens lets clicks through. On a thread of its own (the magnification API and
-/// the lens window belong to the thread that creates them).
+/// click lands on what is seen there. The lens lets clicks through. While typing it can follow the text cursor instead.
+/// On a thread of its own (the magnification API and the lens window belong to the thread that creates them).
 /// </summary>
 public sealed class Magnifier : IDisposable
 {
     public const double MinZoom = 1.25, MaxZoom = 8;
+    public const int DefaultBorder = 3, MaxBorder = 12;
+
+    /// <summary>K-Desktop's gold.</summary>
+    public const string DefaultBorderColor = "#E0A815";
 
     private readonly Lock _lock = new();
     private Thread? _thread;
@@ -20,8 +43,7 @@ public sealed class Magnifier : IDisposable
     private int _frames;
     private long _startedAt;
     private double _zoom = 2;
-    private ZoomMode _mode = ZoomMode.Lens;
-    private ZoomLensSize _size = ZoomLensSize.Medium;
+    private volatile MagnifierOptions _options = new();
 
     /// <summary>The zoom was turned on or off, or changed (the web app shows it).</summary>
     public event Action? Changed;
@@ -30,12 +52,11 @@ public sealed class Magnifier : IDisposable
 
     public double Zoom => _zoom;
 
-    /// <summary>How it looks (Settings › Capturas y lupa); applies from the next time it turns on.</summary>
-    public void Configure(ZoomMode mode, ZoomLensSize size)
+    /// <summary>How it looks and behaves (Settings › Lupa); if it is on and looks different, it is made again.</summary>
+    public void Configure(MagnifierOptions options)
     {
-        var restart = IsOn && (mode != _mode || size != _size);
-        _mode = mode;
-        _size = size;
+        var restart = IsOn && options.LooksOtherThan(_options);
+        _options = options;
         if (!restart) return;
         var zoom = _zoom;
         Off(notify: false);
@@ -51,12 +72,14 @@ public sealed class Magnifier : IDisposable
             if (_thread is null)
             {
                 _stop = false;
-                var mode = _mode;
-                _thread = new Thread(() => Run(mode)) { IsBackground = true, Name = "Lupa" };
+                var options = _options;
+                _thread = new Thread(() => Run(options)) { IsBackground = true, Name = "Lupa" };
+                // The text cursor of other programs is asked through accessibility (COM).
+                _thread.SetApartmentState(ApartmentState.STA);
                 _frames = 0;
                 _startedAt = Environment.TickCount64;
                 _thread.Start();
-                Log.Info($"Lupa: ×{_zoom:0.##} ({mode})");
+                Log.Info($"Lupa: ×{_zoom:0.##} ({options.Mode})");
             }
         }
         Changed?.Invoke();
@@ -97,6 +120,16 @@ public sealed class Magnifier : IDisposable
         else On(next);
     }
 
+    /// <summary>Ctrl + wheel: one step more or less zoom while it is on (never turns it on or off).</summary>
+    public void Nudge(int direction)
+    {
+        if (!IsOn) return;
+        var next = Math.Clamp(direction > 0 ? _zoom * 1.25 : _zoom / 1.25, MinZoom, MaxZoom);
+        if (Math.Abs(next - _zoom) < 0.001) return;
+        _zoom = next;
+        Changed?.Invoke();
+    }
+
     /// <summary>
     /// Full screen: where the magnified view starts so that <paramref name="cursorX"/>, <paramref name="cursorY"/>
     /// stays where it is (a point p shows at (p − offset) × zoom).
@@ -126,7 +159,7 @@ public sealed class Magnifier : IDisposable
         return new ScreenRect(cursorX - w / 2, cursorY - h / 2, w, h);
     }
 
-    private void Run(ZoomMode mode)
+    private void Run(MagnifierOptions options)
     {
         if (!MagInitialize())
         {
@@ -135,10 +168,11 @@ public sealed class Magnifier : IDisposable
             Changed?.Invoke();
             return;
         }
+        var idle = false;
         try
         {
-            if (mode == ZoomMode.FullScreen) RunFullScreen();
-            else RunLens(round: mode == ZoomMode.Circle);
+            var focus = new Focus();
+            idle = options.Mode == ZoomMode.FullScreen ? RunFullScreen(options, focus) : RunLens(options, focus);
         }
         catch (Exception ex)
         {
@@ -150,13 +184,25 @@ public sealed class Magnifier : IDisposable
         {
             MagUninitialize();
         }
+        if (!idle) return;
+        // Turned itself off: nobody is waiting for it (unless it was being turned off just then).
+        lock (_lock)
+        {
+            if (_thread != Thread.CurrentThread) return;
+            _thread = null;
+        }
+        Log.Info($"Lupa: apagada sola tras {options.AutoOffSeconds} s sin moverse");
+        Changed?.Invoke();
     }
+
+    /// <summary>Whether it has been still long enough to turn itself off (with the options of now).</summary>
+    private bool Idle(Focus focus) => _options.AutoOffSeconds is > 0 and var seconds && focus.StillFor > seconds * 1000L;
 
     /// <summary>
     /// Full screen: a lens as big as the monitor the pointer is on, anchored at the pointer. (Windows' own full-screen
     /// zoom does only the main monitor and enlarges what the others show along with it.)
     /// </summary>
-    private void RunFullScreen()
+    private bool RunFullScreen(MagnifierOptions options, Focus focus)
     {
         var cover = new Lens();
         var coverOn = default(ScreenRect);
@@ -166,13 +212,14 @@ public sealed class Magnifier : IDisposable
             {
                 var started = Stopwatch.GetTimestamp();
                 Pump();
-                GetCursorPos(out var p);
+                var p = focus.Update(_options.FollowText);
+                if (Idle(focus)) return true;
                 var zoom = _zoom;
                 var monitor = ScreenCapture.MonitorAt(p.X, p.Y);
                 if (!cover.Created || coverOn != monitor)
                 {
                     cover.Destroy();
-                    cover.Create(monitor.Width, monitor.Height, round: false, border: 0);
+                    cover.Create(monitor.Width, monitor.Height, Shape.None, 0, options);
                     coverOn = monitor;
                 }
                 var (x, y) = Offset(p.X - monitor.Left, p.Y - monitor.Top, zoom);
@@ -181,6 +228,7 @@ public sealed class Magnifier : IDisposable
                 cover.Show(monitor.Left, monitor.Top, source, zoom);
                 NextFrame(started);
             }
+            return false;
         }
         finally
         {
@@ -188,26 +236,119 @@ public sealed class Magnifier : IDisposable
         }
     }
 
-    private void RunLens(bool round)
+    private bool RunLens(MagnifierOptions options, Focus focus)
     {
-        var (width, height) = LensSize(_size, round);
+        var round = options.Mode == ZoomMode.Circle;
+        var (width, height) = LensSize(options.Size, round);
+        var border = Math.Clamp(options.Border, 0, MaxBorder);
         var lens = new Lens();
-        lens.Create(width, height, round, Lens.Border);
+        lens.Create(width, height, round ? Shape.Circle : Shape.Rounded, border, options);
         try
         {
             while (!_stop)
             {
                 var started = Stopwatch.GetTimestamp();
                 Pump();
-                GetCursorPos(out var p);
-                var source = LensSource(p.X, p.Y, width - 2 * Lens.Border, height - 2 * Lens.Border, _zoom);
+                var p = focus.Update(_options.FollowText);
+                if (Idle(focus)) return true;
+                var source = LensSource(p.X, p.Y, width - 2 * border, height - 2 * border, _zoom);
                 lens.Show(p.X - width / 2, p.Y - height / 2, source, _zoom);
                 NextFrame(started);
             }
+            return false;
         }
         finally
         {
             lens.Destroy();
+        }
+    }
+
+    // ── where it looks: the mouse, or the text cursor while typing ───────
+
+    /// <summary>
+    /// The point the lupa is anchored at: the mouse, until (with «follow the text») the text cursor moves while the
+    /// mouse is still — then the text cursor, until the mouse moves again. The text cursor is asked only while there is
+    /// input other than moving the mouse, and at most 20 times a second: from Windows for classic programs, through
+    /// accessibility (MSAA) for the rest (browsers, Office…).
+    /// </summary>
+    private sealed class Focus
+    {
+        private POINT _mouse;
+        private POINT? _caret;
+        private uint _lastInput;
+        private long _typedAt = long.MinValue / 2, _caretAskedAt, _movedAt = Environment.TickCount64;
+        private bool _started;
+
+        public POINT Point { get; private set; }
+
+        /// <summary>Milliseconds since the point last moved.</summary>
+        public long StillFor => Environment.TickCount64 - _movedAt;
+
+        public POINT Update(bool followText)
+        {
+            var now = Environment.TickCount64;
+            GetCursorPos(out var mouse);
+            var mouseMoved = mouse.X != _mouse.X || mouse.Y != _mouse.Y;
+            if (!_started || mouseMoved)
+            {
+                _mouse = mouse;
+                Point = mouse;
+                _movedAt = now;
+            }
+            if (followText)
+            {
+                var input = new LASTINPUTINFO { cbSize = (uint)Marshal.SizeOf<LASTINPUTINFO>() };
+                if (GetLastInputInfo(ref input) && input.dwTime != _lastInput)
+                {
+                    // Input that was not the mouse moving: a key (or a click).
+                    if (!mouseMoved) _typedAt = now;
+                    _lastInput = input.dwTime;
+                }
+                if (!_started) _caret = Caret();
+                else if (!mouseMoved && now - _typedAt < 700 && now - _caretAskedAt >= 50)
+                {
+                    _caretAskedAt = now;
+                    if (Caret() is { } caret && (_caret is not { } was || was.X != caret.X || was.Y != caret.Y))
+                    {
+                        _caret = caret;
+                        Point = caret;
+                        _movedAt = now;
+                    }
+                }
+            }
+            _started = true;
+            return Point;
+        }
+
+        /// <summary>Where the text cursor of the window in front is, in screen pixels (its left side, half way down).</summary>
+        private static POINT? Caret()
+        {
+            var front = GetForegroundWindow();
+            if (front == IntPtr.Zero || IsHungAppWindow(front)) return null;
+            var info = new GUITHREADINFO { cbSize = Marshal.SizeOf<GUITHREADINFO>() };
+            if (!GetGUIThreadInfo(GetWindowThreadProcessId(front, out _), ref info)) return null;
+            if (info.hwndCaret != IntPtr.Zero && info.rcCaret.Bottom > info.rcCaret.Top)
+            {
+                var p = new POINT { X = info.rcCaret.Left, Y = (info.rcCaret.Top + info.rcCaret.Bottom) / 2 };
+                return ClientToScreen(info.hwndCaret, ref p) ? p : null;
+            }
+            var target = info.hwndFocus != IntPtr.Zero ? info.hwndFocus : front;
+            object? found = null;
+            try
+            {
+                var iid = IAccessibleId;
+                if (AccessibleObjectFromWindow(target, OBJID_CARET, ref iid, out found) != 0 || found is not IAccessible caret) return null;
+                caret.accLocation(out var left, out var top, out var width, out var height, 0);
+                return width <= 0 && height <= 0 ? null : new POINT { X = left, Y = top + height / 2 };
+            }
+            catch (COMException)
+            {
+                return null;
+            }
+            finally
+            {
+                if (found is not null && Marshal.IsComObject(found)) Marshal.ReleaseComObject(found);
+            }
         }
     }
 
@@ -235,17 +376,18 @@ public sealed class Magnifier : IDisposable
 
     // ── the lens window ──────────────────────────────────────────────────
 
+    private enum Shape { None, Rounded, Circle }
+
     /// <summary>
-    /// A click-through window with the magnifier control inside: the lens around the mouse (with a gold border), or a
-    /// whole monitor for full screen on the others.
+    /// A click-through window with the magnifier control inside: the lens around the mouse (with its border), or a
+    /// whole monitor for full screen.
     /// </summary>
     private sealed class Lens
     {
-        public const int Border = 3;
         private static readonly WndProc HostProc = (h, m, w, l) => DefWindowProc(h, m, w, l); // kept alive
         private static bool _classRegistered;
 
-        private IntPtr _host, _control;
+        private IntPtr _host, _control, _brush;
         private (int X, int Y) _at = (int.MinValue, int.MinValue);
         private double _zoom;
 
@@ -253,7 +395,7 @@ public sealed class Magnifier : IDisposable
 
         public bool Visible { get; private set; }
 
-        public void Create(int width, int height, bool round, int border)
+        public void Create(int width, int height, Shape shape, int border, MagnifierOptions options)
         {
             var instance = GetModuleHandle(null);
             if (!_classRegistered)
@@ -263,8 +405,6 @@ public sealed class Magnifier : IDisposable
                     cbSize = Marshal.SizeOf<WNDCLASSEX>(),
                     lpfnWndProc = Marshal.GetFunctionPointerForDelegate(HostProc),
                     hInstance = instance,
-                    // The border: K-Desktop's gold.
-                    hbrBackground = CreateSolidBrush(0x15A8E0),
                     lpszClassName = "KDesktopLens",
                 };
                 if (RegisterClassEx(ref wc) == 0) throw new InvalidOperationException("RegisterClassEx " + Marshal.GetLastWin32Error());
@@ -277,14 +417,22 @@ public sealed class Magnifier : IDisposable
                 IntPtr.Zero, IntPtr.Zero, instance, IntPtr.Zero);
             if (_host == IntPtr.Zero) throw new InvalidOperationException("CreateWindowEx " + Marshal.GetLastWin32Error());
             SetLayeredWindowAttributes(_host, 0, 255, LWA_ALPHA);
+            // The border is the host's background, seen around the control (one lens at a time: the class's brush is its own).
+            _brush = CreateSolidBrush(ColorRef(options.BorderColor));
+            SetClassLongPtr(_host, GCLP_HBRBACKGROUND, _brush);
             var (w, h) = (width - 2 * border, height - 2 * border);
             _control = CreateWindowEx(0, "Magnifier", "K-Desktop", WS_CHILD | WS_VISIBLE, border, border, w, h, _host, IntPtr.Zero, instance, IntPtr.Zero);
             if (_control == IntPtr.Zero) throw new InvalidOperationException("Magnifier " + Marshal.GetLastWin32Error());
-            if (border > 0)
+            if (shape != Shape.None)
             {
-                SetWindowRgn(_host, round ? CreateEllipticRgn(0, 0, width + 1, height + 1) : CreateRoundRectRgn(0, 0, width + 1, height + 1, 28, 28), true);
-                SetWindowRgn(_control, round ? CreateEllipticRgn(0, 0, w + 1, h + 1) : CreateRoundRectRgn(0, 0, w + 1, h + 1, 22, 22), true);
+                var inner = Math.Max(0, 28 - 2 * border);
+                SetWindowRgn(_host, shape == Shape.Circle ? CreateEllipticRgn(0, 0, width + 1, height + 1) : CreateRoundRectRgn(0, 0, width + 1, height + 1, 28, 28), true);
+                SetWindowRgn(_control, shape == Shape.Circle ? CreateEllipticRgn(0, 0, w + 1, h + 1) : CreateRoundRectRgn(0, 0, w + 1, h + 1, inner, inner), true);
             }
+            // Smoothing: what Windows' own magnifier does (not in its documentation; skipped where it is missing).
+            try { MagSetLensUseBitmapSmoothing(_control, options.Smooth); }
+            catch (EntryPointNotFoundException) { /* older Windows */ }
+            if (ColorEffect(options.Colors) is { } effect) MagSetColorEffect(_control, ref effect);
             // The lens must not show itself (a tunnel of lenses).
             var self = _host;
             MagSetWindowFilterList(_control, 0 /* MW_FILTERMODE_EXCLUDE */, 1, ref self);
@@ -321,9 +469,36 @@ public sealed class Magnifier : IDisposable
         public void Destroy()
         {
             if (_host != IntPtr.Zero) DestroyWindow(_host);
-            _host = _control = IntPtr.Zero;
+            if (_brush != IntPtr.Zero) DeleteObject(_brush);
+            _host = _control = _brush = IntPtr.Zero;
             Visible = false;
         }
+    }
+
+    /// <summary>«#RRGGBB» as Windows wants it (0x00BBGGRR); K-Desktop's gold if it is not a colour.</summary>
+    public static uint ColorRef(string? hex)
+    {
+        var text = hex?.Trim().TrimStart('#') ?? "";
+        if (text.Length != 6 || !uint.TryParse(text, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out var rgb))
+            rgb = 0xE0A815;
+        return ((rgb & 0xFF) << 16) | (rgb & 0xFF00) | ((rgb >> 16) & 0xFF);
+    }
+
+    /// <summary>The colour matrix of <paramref name="colors"/> (rows: what each channel adds; the last one, the offsets).</summary>
+    private static MAGCOLOREFFECT? ColorEffect(ZoomColors colors)
+    {
+        float scale, offset;
+        switch (colors)
+        {
+            case ZoomColors.Inverted: (scale, offset) = (-1, 1); break;
+            case ZoomColors.HighContrast: (scale, offset) = (2, -0.5f); break;
+            default: return null;
+        }
+        var m = new float[25];
+        m[0] = m[6] = m[12] = scale;
+        m[18] = m[24] = 1;
+        m[20] = m[21] = m[22] = offset;
+        return new MAGCOLOREFFECT { transform = m };
     }
 
     public void Dispose() => Off();
@@ -343,6 +518,41 @@ public sealed class Magnifier : IDisposable
 
     [StructLayout(LayoutKind.Sequential)]
     private struct RECT { public int Left, Top, Right, Bottom; }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MAGCOLOREFFECT
+    {
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 25)] public float[] transform;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct LASTINPUTINFO
+    {
+        public uint cbSize;
+        public uint dwTime;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct GUITHREADINFO
+    {
+        public int cbSize;
+        public uint flags;
+        public IntPtr hwndActive, hwndFocus, hwndCapture, hwndMenuOwner, hwndMoveSize, hwndCaret;
+        public RECT rcCaret;
+    }
+
+    /// <summary>MSAA's object, only as far as its location (the methods before it hold their places).</summary>
+    [ComImport, Guid("618736E0-3C3D-11CF-810C-00AA00389B71"), InterfaceType(ComInterfaceType.InterfaceIsDual)]
+    private interface IAccessible
+    {
+        void Slot1(); void Slot2(); void Slot3(); void Slot4(); void Slot5(); void Slot6(); void Slot7(); void Slot8();
+        void Slot9(); void Slot10(); void Slot11(); void Slot12(); void Slot13(); void Slot14(); void Slot15();
+        void accLocation(out int left, out int top, out int width, out int height, [In, MarshalAs(UnmanagedType.Struct)] object child);
+    }
+
+    private static readonly Guid IAccessibleId = new("618736E0-3C3D-11CF-810C-00AA00389B71");
+    private const uint OBJID_CARET = 0xFFFFFFF8;
+    private const int GCLP_HBRBACKGROUND = -10;
 
     [StructLayout(LayoutKind.Sequential)]
     private struct MAGTRANSFORM
@@ -378,6 +588,17 @@ public sealed class Magnifier : IDisposable
     [DllImport("magnification.dll")] private static extern bool MagSetWindowTransform(IntPtr hwnd, ref MAGTRANSFORM transform);
     [DllImport("magnification.dll")] private static extern bool MagSetWindowSource(IntPtr hwnd, RECT rect);
     [DllImport("magnification.dll")] private static extern bool MagSetWindowFilterList(IntPtr hwnd, int mode, int count, ref IntPtr list);
+    [DllImport("magnification.dll")] private static extern bool MagSetColorEffect(IntPtr hwnd, ref MAGCOLOREFFECT effect);
+    [DllImport("magnification.dll")] private static extern bool MagSetLensUseBitmapSmoothing(IntPtr hwnd, bool use);
+    [DllImport("user32.dll")] private static extern bool GetLastInputInfo(ref LASTINPUTINFO info);
+    [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] private static extern bool IsHungAppWindow(IntPtr hwnd);
+    [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint processId);
+    [DllImport("user32.dll")] private static extern bool GetGUIThreadInfo(uint thread, ref GUITHREADINFO info);
+    [DllImport("user32.dll")] private static extern bool ClientToScreen(IntPtr hwnd, ref POINT point);
+    [DllImport("user32.dll", EntryPoint = "SetClassLongPtrW")] private static extern IntPtr SetClassLongPtr(IntPtr hwnd, int index, IntPtr value);
+    [DllImport("oleacc.dll")] private static extern int AccessibleObjectFromWindow(IntPtr hwnd, uint id, ref Guid iid, [MarshalAs(UnmanagedType.Interface)] out object? accessible);
+    [DllImport("gdi32.dll")] private static extern bool DeleteObject(IntPtr obj);
     [DllImport("user32.dll")] private static extern bool GetCursorPos(out POINT point);
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)] private static extern IntPtr GetModuleHandle(string? name);
     [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)] private static extern ushort RegisterClassEx(ref WNDCLASSEX wc);
