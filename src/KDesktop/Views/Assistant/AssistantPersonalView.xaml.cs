@@ -259,7 +259,7 @@ public partial class AssistantPersonalView : UserControl
         List<Option> windows =
         [
             new(string.Empty, AsOthers(s.AssistantVoiceWindows is { Length: > 0 } w && windowsVoices.Contains(w) ? w : Loc.T("assistantVoice.windowsFirst"))),
-            .. windowsVoices.Select(v => new Option(v, v)),
+            .. windowsVoices.Order(StringComparer.CurrentCultureIgnoreCase).Select(v => new Option(v, v)),
         ];
         WindowsVoiceBox.ItemsSource = windows;
         WindowsVoiceBox.SelectedItem = windows.FirstOrDefault(v => v.Value == own.WindowsVoice) ?? windows[0];

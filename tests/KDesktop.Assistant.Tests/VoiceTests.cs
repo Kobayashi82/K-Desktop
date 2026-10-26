@@ -319,7 +319,8 @@ public class VoiceTests
             KokoroModels.UseFolders([folder]);
             var english = KokoroModels.Voices("en");
             // Hers is listed after Kokoro's; one of the catalog that is also there, once; Chinese (not spoken here) and other files, not at all.
-            Assert.Equal("af_ellen", english[^1]);
+            Assert.Equal(english.OrderBy(KokoroModels.DisplayName, StringComparer.OrdinalIgnoreCase).ThenBy(v => v, StringComparer.Ordinal), english);
+            Assert.Contains("af_ellen", english);
             Assert.Single(english, v => v == "af_bella");
             Assert.DoesNotContain("zf_xiaobei", english);
             Assert.True(KokoroModels.IsInFolders("af_ellen"));
@@ -353,7 +354,9 @@ public class VoiceTests
             Assert.Equal(language == "es" ? 2 : 3, files.Count);
         }
         Assert.False(KokoroModels.Supports("de"));
-        Assert.Equal(["ef_dora", "em_alex", "em_santa"], KokoroModels.Voices("es"));
+        Assert.Equal(["em_alex", "ef_dora", "em_santa"], KokoroModels.Voices("es"));
+        // Still the first of Kokoro's list by default, whatever the order shown.
+        Assert.Equal("ef_dora", KokoroModels.DefaultVoice("es"));
         Assert.Equal("en-gb", KokoroModels.EspeakVoice("en", "bm_george"));
         Assert.Equal("en-us", KokoroModels.EspeakVoice("en", "af_heart"));
         Assert.Null(KokoroModels.EspeakVoice("es", "ef_dora"));

@@ -182,7 +182,8 @@ public static class PiperModels
         [
             .. Data.Value.Voices.Values.Select(e => e.Voice).Concat(Found.Values.Select(l => l.Voice).Where(v => !Data.Value.Voices.ContainsKey(v.Key)))
                 .Where(v => v.Language == language)
-                .OrderBy(v => v.Region == home ? 0 : 1).ThenBy(v => v.Region, StringComparer.Ordinal).ThenBy(v => v.Name, StringComparer.Ordinal)
+                // Alphabetical by the name shown; the same voice of several countries, the user's first; then by quality.
+                .OrderBy(v => v.Name, StringComparer.OrdinalIgnoreCase).ThenBy(v => v.Region == home ? 0 : 1).ThenBy(v => v.Region, StringComparer.Ordinal)
                 .ThenBy(v => Array.IndexOf(Qualities, v.Quality)),
         ];
     }

@@ -155,15 +155,14 @@ public static class KokoroModels
     public static bool NeedsEspeak(string language) => Data.Value.Languages.TryGetValue(language, out var l) && l.Espeak is not null;
 
     /// <summary>
-    /// The voices of a language: Kokoro's (its order: women first) and then the user's that are not those (women first, by
-    /// name). Each one once.
+    /// The voices of a language: Kokoro's and the user's that are not those, each one once, in alphabetical order of the name
+    /// shown («Alex», «Bella»…; the same name twice, as in English, by its code).
     /// </summary>
     public static IReadOnlyList<string> Voices(string language)
     {
         if (!Data.Value.Languages.TryGetValue(language, out var l)) return [];
-        var own = Found.Keys.Where(v => LanguageOf(v) == language && !l.Voices.ContainsKey(v))
-            .OrderBy(v => IsFemale(v) ? 0 : 1).ThenBy(v => v, StringComparer.Ordinal);
-        return [.. l.Voices.Keys, .. own];
+        var own = Found.Keys.Where(v => LanguageOf(v) == language && !l.Voices.ContainsKey(v));
+        return [.. l.Voices.Keys.Concat(own).OrderBy(DisplayName, StringComparer.OrdinalIgnoreCase).ThenBy(v => v, StringComparer.Ordinal)];
     }
 
     /// <summary>Kokoro's first voice of the language (never one of the user's: they come and go).</summary>
