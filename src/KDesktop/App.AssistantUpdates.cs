@@ -80,10 +80,8 @@ public partial class App
         if (manual) return;
 
         var fresh = PendingAssistantUpdates.Where(s => _assistantUpdatesNotified.Add($"{s.Id}/{s.Latest}")).ToList();
-        if (fresh.Count == 1)
-            Ui.ShowOsd(Loc.T("assistantUpdates.osdOne", fresh[0].Name, fresh[0].Latest!), Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(5));
-        else if (fresh.Count > 1)
-            Ui.ShowOsd(Loc.T("assistantUpdates.osdMany", fresh.Count), Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(5));
+        if (fresh.Count == 1) NotifyUpdate(Loc.T("assistantUpdates.osdOne", fresh[0].Name, fresh[0].Latest!));
+        else if (fresh.Count > 1) NotifyUpdate(Loc.T("assistantUpdates.osdMany", fresh.Count));
     }
 
     /// <summary>Not told about <paramref name="status"/>'s version again (or told again: <paramref name="skip"/> false).</summary>

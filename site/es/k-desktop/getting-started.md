@@ -17,7 +17,6 @@ ejecutable portable: ponlo donde quieras y ábrelo. No hace falta instalar .NET.
   que abre algo decide si ese programa arranca como administrador o como usuario normal.
 - Tus datos están en `%APPDATA%\K-Desktop 5`: opciones, comandos, menús, macros, registro, copias, registros de
   diagnóstico y los asistentes.
-- ¿Vienes de K-Desktop 4? La primera vez importa tus comandos, QuickMenus e iconos.
 
 ## Tus primeros cinco minutos
 

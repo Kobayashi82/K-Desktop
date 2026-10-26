@@ -19,6 +19,9 @@
       <Platform Project="x64" />
     </Project>
   </Folder>
+  <Folder Name="/importer/">
+    <Project Path="importer/KDesktop.Importer.csproj" />
+  </Folder>
   <Folder Name="/tools/">
     <Project Path="tools/KaiSign/KaiSign.csproj">
       <Platform Project="x64" />

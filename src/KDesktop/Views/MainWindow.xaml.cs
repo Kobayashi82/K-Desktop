@@ -329,7 +329,7 @@ public partial class MainWindow : FluentWindow
         return null;
     }
 
-    /// <summary>Info bars: hotkeys off, paused, K-Desktop 4 still running, import summary.</summary>
+    /// <summary>Info bars: hotkeys off, paused, new versions.</summary>
     public void ShowBanners()
     {
         Banners.Children.Clear();
@@ -365,31 +365,6 @@ public partial class MainWindow : FluentWindow
                 IsOpen = true,
                 IsClosable = false,
             }, resume);
-        }
-
-        var legacy = App.LegacyInstances;
-        if (legacy.Count > 0)
-        {
-            var bar = new InfoBar
-            {
-                Title = Loc.T("banner.legacyTitle"),
-                Message = Loc.T("banner.legacyMessage"),
-                Severity = InfoBarSeverity.Warning,
-                IsOpen = true,
-                IsClosable = true,
-            };
-            var close = new Wpf.Ui.Controls.Button { Content = Loc.T("banner.legacyClose"), Appearance = ControlAppearance.Caution };
-            close.Click += (_, _) =>
-            {
-                foreach (var p in App.LegacyInstances)
-                {
-                    try { p.Kill(); } catch { /* ignore */ }
-                    p.Dispose();
-                }
-                bar.IsOpen = false;
-            };
-            AddBanner(bar, close);
-            foreach (var p in legacy) p.Dispose();
         }
 
         if (app.Updates.Available is { } update && app.Updates.State is Core.Updates.UpdateState.Available
@@ -446,21 +421,6 @@ public partial class MainWindow : FluentWindow
                 IsOpen = true,
                 IsClosable = true,
             }, see);
-        }
-
-        if (app.ImportReport is { } report)
-        {
-            Banners.Children.Add(new InfoBar
-            {
-                Title = Loc.T("banner.importTitle"),
-                Message = Loc.T("banner.importMessage", report.Commands, report.Actions, report.QuickMenus, report.MenuItems, report.Icons) +
-                          (report.Skipped.Count > 0 ? " " + Loc.T("banner.importSkipped", report.Skipped.Count,
-                              string.Join(", ", report.Skipped.Take(4)) + (report.Skipped.Count > 4 ? "…" : "")) : ""),
-                Severity = InfoBarSeverity.Success,
-                IsOpen = true,
-                IsClosable = true,
-                Margin = new Thickness(0, 0, 0, 8),
-            });
         }
     }
 }

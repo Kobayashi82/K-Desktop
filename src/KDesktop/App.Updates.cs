@@ -10,8 +10,11 @@ namespace KDesktop;
 
 public partial class App
 {
-    /// <summary>Checks at startup (after a minute) and every 6 hours.</summary>
-    private readonly DispatcherTimer _updateTimer = new() { Interval = TimeSpan.FromHours(6) };
+    /// <summary>A minute after starting, then every half hour: whether a check is due (Settings › Actualizaciones).</summary>
+    private readonly DispatcherTimer _updateTimer = new() { Interval = TimeSpan.FromMinutes(1) };
+
+    /// <summary>This run already looked (for «Al iniciar»).</summary>
+    private bool _checkedThisRun;
 
     /// <summary>"Auto" mode waits for a quiet moment to restart; retried while K-Desktop is in use.</summary>
     private readonly DispatcherTimer _autoInstallRetry = new() { Interval = TimeSpan.FromMinutes(2) };
@@ -42,10 +45,9 @@ public partial class App
 
         _updateTimer.Tick += (_, _) =>
         {
-            _updateTimer.Interval = TimeSpan.FromHours(6);
-            _ = CheckForUpdatesAsync(manual: false);
+            _updateTimer.Interval = TimeSpan.FromMinutes(30);
+            if (UpdateCheckDue()) _ = CheckForUpdatesAsync(manual: false);
         };
-        _updateTimer.Interval = TimeSpan.FromMinutes(1);
         _updateTimer.Start();
         _autoInstallRetry.Tick += (_, _) => TryAutoInstall();
     }
@@ -58,6 +60,8 @@ public partial class App
     {
         var s = Config.Settings;
         if (!manual && s.UpdateMode == UpdateMode.Off) return;
+        _checkedThisRun = true;
+        s.UpdateLastCheck = DateTime.Now;
         var assistants = CheckAssistantUpdatesAsync(manual);
         var info = await Updates.CheckAsync(AppSettings.ManifestUrl(s.UpdateUrl));
         await assistants;
@@ -71,9 +75,31 @@ public partial class App
         if (!manual && _notifiedVersion != info.Version)
         {
             _notifiedVersion = info.Version;
-            Ui.ShowOsd(Loc.T("updates.osdAvailable", info.Version.ToString(3)), OsdKind.Info, TimeSpan.FromSeconds(5));
+            NotifyUpdate(Loc.T("updates.osdAvailable", info.Version.ToString(3)));
         }
     }
+
+    /// <summary>
+    /// Whether it is time to look again: «Al iniciar» once per run; the others when that long has gone by since the last
+    /// check, this run or an earlier one (so a weekly check doesn't wait a week after every restart, nor runs at each one).
+    /// </summary>
+    private bool UpdateCheckDue()
+    {
+        var s = Config.Settings;
+        if (s.UpdateCheck == UpdateCheck.Startup) return !_checkedThisRun;
+        var every = s.UpdateCheck switch
+        {
+            UpdateCheck.Weekly => TimeSpan.FromDays(7),
+            UpdateCheck.Daily => TimeSpan.FromDays(1),
+            _ => TimeSpan.FromHours(6),
+        };
+        return s.UpdateLastCheck is not { } last || last > DateTime.Now || DateTime.Now - last >= every;
+    }
+
+    /// <summary>A new version, told with a notification card (not over the screen); clicking it opens Options › Actualizaciones.</summary>
+    public void NotifyUpdate(string title) =>
+        _ = Ui.ShowNotificationAsync(new Notification(title, Loc.T("updates.notifyClick"), null, NotifyColor.Gold, null, null, null,
+            () => ShowMainWindow(w => w.Navigate("settings/updates"))));
 
     /// <summary>
     /// Restarting closes everything for a couple of seconds, so "Auto" waits until nobody is using K-Desktop: the

@@ -1883,52 +1883,49 @@
             <Border Style="{StaticResource Card}" Tag="data">
                 <StackPanel>
                     <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.data}" />
-                    <TextBlock x:Name="DataPathText" Style="{StaticResource Caption}" Margin="0,0,0,6" />
+                    <!-- Where the data is, as a link that opens it -->
+                    <TextBlock Margin="0,0,0,6" TextWrapping="Wrap">
+                        <Hyperlink x:Name="DataPathLink" Click="OnOpenData" ToolTip="{l:Tr settings.openDataTip}"><Run x:Name="DataPathText" /></Hyperlink>
+                    </TextBlock>
                     <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" Text="{l:Tr settings.exportHint}" />
                     <WrapPanel>
-                        <ui:Button MinHeight="36" Margin="0,0,8,8" Content="{l:Tr settings.openData}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnOpenData" />
                         <ui:Button MinHeight="36" Margin="0,0,8,8" Content="{l:Tr settings.export}" Icon="{ui:SymbolIcon ArrowUpload24}" Click="OnExport" />
                         <ui:Button MinHeight="36" Margin="0,0,8,8" Content="{l:Tr settings.import}" Icon="{ui:SymbolIcon ArrowDownload24}" Click="OnImport" />
-                        <ui:Button MinHeight="36" Margin="0,0,8,8" Content="{l:Tr settings.reimportLegacy}" Icon="{ui:SymbolIcon History24}" Click="OnReimportLegacy" />
                         <ui:Button MinHeight="36" Margin="0,0,8,8" Content="{l:Tr settings.openLog}" Icon="{ui:SymbolIcon DocumentText24}" Click="OnOpenLog" />
                     </WrapPanel>
-                    <Grid Style="{StaticResource SettingRow}" Margin="0,12,0,0">
+                    <Border Height="1" SnapsToDevicePixels="True" Margin="0,10,0,6" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+                    <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.autoBackup}" />
                             <TextBlock x:Name="AutoBackupStatus" Style="{StaticResource Caption}" TextWrapping="Wrap" />
                         </StackPanel>
-                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AutoBackup}" />
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AutoBackup}" AutomationProperties.Name="{l:Tr settings.autoBackup}" />
                     </Grid>
-                    <StackPanel IsEnabled="{Binding AutoBackup}" Margin="0,4,0,0">
-                        <WrapPanel>
-                            <StackPanel Margin="0,0,12,8">
-                                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.autoBackupDays}" />
-                                <ui:TextBox Width="120" Text="{Binding AutoBackupDays, UpdateSourceTrigger=PropertyChanged}" />
-                            </StackPanel>
-                            <StackPanel Margin="0,0,12,8">
-                                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.autoBackupKeep}" />
-                                <ui:TextBox Width="120" Text="{Binding AutoBackupKeep, UpdateSourceTrigger=PropertyChanged}" />
-                            </StackPanel>
-                        </WrapPanel>
-                        <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.autoBackupFolder}" />
+                    <StackPanel IsEnabled="{Binding AutoBackup}">
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="170" /></Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr settings.autoBackupDays}" />
+                            <v:NumberField Grid.Column="1" Minimum="1" Maximum="365" Value="{Binding AutoBackupDays}" AutomationProperties.Name="{l:Tr settings.autoBackupDays}" />
+                        </Grid>
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="170" /></Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr settings.autoBackupKeep}" />
+                            <v:NumberField Grid.Column="1" Minimum="1" Maximum="100" Value="{Binding AutoBackupKeep}" AutomationProperties.Name="{l:Tr settings.autoBackupKeep}" />
+                        </Grid>
+                        <TextBlock Style="{StaticResource FieldLabel}" Margin="0,8,0,4" Text="{l:Tr settings.autoBackupFolder}" />
                         <Grid Margin="0,0,0,8">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <ui:TextBox Text="{Binding AutoBackupFolder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr settings.autoBackupFolderHint}" />
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <ui:TextBox x:Name="BackupFolderBox" Text="{Binding AutoBackupFolder, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="{l:Tr settings.autoBackupFolder}" />
                             <ui:Button MinHeight="36" VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseBackupFolder" />
+                            <ui:Button MinHeight="36" VerticalAlignment="Stretch" Grid.Column="2" Margin="8,0,0,0" Content="{l:Tr settings.openFolder}" Icon="{ui:SymbolIcon Open24}" Click="OnOpenBackups"
+                                       AutomationProperties.Name="{l:Tr settings.openBackups}" />
                         </Grid>
                     </StackPanel>
-                    <StackPanel>
-                        <WrapPanel>
-                            <ui:Button MinHeight="36" Margin="0,0,8,8" Content="{l:Tr settings.backupNow}" Icon="{ui:SymbolIcon Save24}" Click="OnBackupNow" />
-                            <ui:Button MinHeight="36" Margin="0,0,8,8" Content="{l:Tr settings.openBackups}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnOpenBackups" />
-                        </WrapPanel>
-                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.autoBackupHint}" />
-                    </StackPanel>
-                    <Grid Style="{StaticResource SettingRow}" Margin="0,12,0,0">
+                    <ui:Button MinHeight="36" Margin="0,4,0,8" HorizontalAlignment="Left" Content="{l:Tr settings.backupNow}" Icon="{ui:SymbolIcon Save24}" Click="OnBackupNow" />
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.autoBackupHint}" />
+                    <Border Height="1" SnapsToDevicePixels="True" Margin="0,14,0,6" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+                    <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr ach.reset}" />
@@ -1948,6 +1945,7 @@
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock x:Name="UpdateCurrentText" />
                             <TextBlock x:Name="UpdateStatusText" Style="{StaticResource Caption}" />
+                            <TextBlock x:Name="UpdateLastCheckText" Style="{StaticResource Caption}" />
                         </StackPanel>
                         <ui:Button MinHeight="36" x:Name="UpdateCheckButton" Grid.Column="1" Content="{l:Tr updates.check}" Icon="{ui:SymbolIcon ArrowSync24}" Click="OnCheckUpdates" />
                     </Grid>
@@ -1971,7 +1969,14 @@
                             <TextBlock Text="{l:Tr updates.mode}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr updates.modeHint}" />
                         </StackPanel>
-                        <ComboBox Grid.Column="1" ItemsSource="{x:Static v:Lookups.UpdateModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding UpdateMode}" />
+                        <ComboBox Grid.Column="1" ItemsSource="{x:Static v:Lookups.UpdateModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding UpdateMode}"
+                                  AutomationProperties.Name="{l:Tr updates.mode}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr updates.check.when}" />
+                        <ComboBox Grid.Column="1" ItemsSource="{x:Static v:Lookups.UpdateChecks}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding UpdateCheck}"
+                                  AutomationProperties.Name="{l:Tr updates.check.when}" />
                     </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" MaxWidth="400" /></Grid.ColumnDefinitions>
@@ -1986,8 +1991,10 @@
                         </DockPanel>
                     </Grid>
                     <!-- The installed assistants: their new versions are only offered (stage 9.5); rows made in code -->
-                    <StackPanel x:Name="AssistantUpdatesBlock" Margin="0,18,0,0" Visibility="Collapsed">
+                    <StackPanel x:Name="AssistantUpdatesBlock" Visibility="Collapsed">
+                        <Border Height="1" SnapsToDevicePixels="True" Margin="0,14,0,12" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr assistantUpdates.title}" />
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantUpdates.hint}" />
                         <TextBlock x:Name="AssistantUpdatesHint" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,8" />
                         <StackPanel x:Name="AssistantUpdatesRows" />
                     </StackPanel>

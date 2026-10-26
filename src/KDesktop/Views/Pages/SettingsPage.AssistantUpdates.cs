@@ -24,8 +24,9 @@ public partial class SettingsPage
         if (installed.Count == 0) return;
 
         AssistantUpdatesHint.Text = _app.CheckingAssistantUpdates ? Loc.T("assistantUpdates.checking")
-            : _app.AssistantUpdatesChecked is { } when ? Loc.T("assistantUpdates.hint") + " · " + Loc.T("updates.lastCheck", when.ToString("g", Loc.Instance.Culture))
-            : Loc.T("assistantUpdates.hint");
+            : _app.AssistantUpdatesChecked is { } when ? Loc.T("updates.lastCheck", when.ToString("g", Loc.Instance.Culture))
+            : string.Empty;
+        AssistantUpdatesHint.Visibility = AssistantUpdatesHint.Text.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
 
         var rows = new StackPanel();
         var first = true;

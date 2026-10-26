@@ -36,6 +36,7 @@ public partial class SettingsPage : UserControl
         BuildNav();
         StartupToggle.IsChecked = StartupTask.IsRegistered();
         DataPathText.Text = AppPaths.DataDir;
+        BackupFolderBox.PlaceholderText = AppPaths.BackupDir;
         ShowBackupStatus();
         UpdateTrayImage();
         UdpKeyBox.Password = _app.UdpKey ?? string.Empty;
@@ -631,11 +632,16 @@ public partial class SettingsPage : UserControl
         UpdateStatusText.Text = u.State switch
         {
             UpdateState.Checking => Loc.T("updates.checking"),
-            UpdateState.UpToDate => Loc.T("updates.upToDate") + LastCheck(),
-            UpdateState.Error => Loc.T("updates.error", u.Error ?? "?") + LastCheck(),
+            UpdateState.UpToDate => Loc.T("updates.upToDate"),
+            UpdateState.Error => Loc.T("updates.error", u.Error ?? "?"),
             UpdateState.Available or UpdateState.Downloading or UpdateState.Ready when u.Available is { } a => Loc.T("updates.available", a.Version.ToString(3)),
-            _ => u.LastCheck is null ? string.Empty : LastCheck().TrimStart(' ', '·'),
+            _ => string.Empty,
         };
+        UpdateStatusText.Visibility = UpdateStatusText.Text.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+        // On a line of its own; from the last run too (the check is remembered).
+        var checkedAt = u.State == UpdateState.Checking ? null : u.LastCheck ?? _app.Config.Settings.UpdateLastCheck;
+        UpdateLastCheckText.Text = checkedAt is { } at ? Loc.T("updates.lastCheck", at.ToString("g", Loc.Instance.Culture)) : string.Empty;
+        UpdateLastCheckText.Visibility = checkedAt is null ? Visibility.Collapsed : Visibility.Visible;
         UpdateCheckButton.IsEnabled = u.State is not (UpdateState.Checking or UpdateState.Downloading) && !_app.CheckingAssistantUpdates;
 
         var info = u.Available;
@@ -657,9 +663,6 @@ public partial class SettingsPage : UserControl
             : downloading ? Loc.T("updates.downloading", u.Progress.ToString("P0", Loc.Instance.Culture))
             : Loc.T("updates.install");
     }
-
-    private string LastCheck() =>
-        _app.Updates.LastCheck is { } t ? " · " + Loc.T("updates.lastCheck", t.ToString("g", Loc.Instance.Culture)) : string.Empty;
 
     private void OnCheckUpdates(object sender, RoutedEventArgs e) => _ = _app.CheckForUpdatesAsync(manual: true);
 
@@ -1219,18 +1222,6 @@ public partial class SettingsPage : UserControl
             Log.Error("Error importando la copia", ex);
             _app.Ui.ShowOsd(Loc.T("settings.importError"), OsdKind.Warning);
         }
-    }
-
-    private async void OnReimportLegacy(object sender, RoutedEventArgs e)
-    {
-        if (!LegacyImporter.IsAvailable())
-        {
-            _app.Ui.ShowOsd(Loc.T("settings.noLegacy"), OsdKind.Warning);
-            return;
-        }
-        if (!await Confirm(Loc.T("settings.reimportConfirm"))) return;
-        var report = _app.ReimportLegacy();
-        _app.Ui.ShowOsd(Loc.T("settings.reimported", report.Commands), OsdKind.Success);
     }
 
     private async void OnResetAchievements(object sender, RoutedEventArgs e)

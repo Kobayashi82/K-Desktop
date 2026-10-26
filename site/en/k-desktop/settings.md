@@ -38,8 +38,8 @@ there.
 | **Screenshots** | Folder (and **Open**), **file name** with date, time, program or window title, **format** (PNG, JPG with its quality, or WebP), **wait first** (to open a menu), **always copy**, **include the mouse pointer**, **camera sound** and a **flash** over what was taken |
 | **Audio recording** | Folder (and **Open**), **format** (WAV, MP3 or Opus: converted when it ends), **microphone volume** (only in recordings), **split long recordings** every so many minutes, and **Save what just played**, which keeps the last seconds in memory so *Record audio → Save what just played* can save them (nothing is written to disk) |
 | **Magnifier** | Zoom, shape (rectangular lens, round lens or full screen), size and «Try it»; **look**: border (none, thin, medium or thick) and its color, colors (normal, inverted or more contrast) and smoothing; **behavior**: follow the text while you type, **Ctrl + wheel** changes the zoom while it is on, and turn off by itself after a while without moving the mouse |
-| **Data** | Backups, export, import, re-import from K-Desktop 4, and the log |
-| **Updates** | Version, checking now, and what to do when there is a new one |
+| **Data** | The data folder (a link that opens it), export, import and the log; **automatic backups** (every how many days, how many to keep, folder with **Browse** and **Open**, and **Back up now**) and resetting achievements and statistics |
+| **Updates** | Version, **Check now**, what to do when there is a new one, **when to check** (when K-Desktop starts, every 6 hours, once a day or once a week) and the installed **assistants**, each with **Update…**. A new version is told with a notification; clicking it opens this page |
 
 The **assistant module** has its own group: see [Assistants](../assistant/index.md).
 

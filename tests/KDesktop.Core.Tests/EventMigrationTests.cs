@@ -58,20 +58,6 @@ public class EventMigrationTests
     }
 
     [Fact]
-    public void LegacyImportCreatesTheEvents()
-    {
-        var config = new AppConfig();
-        config.Commands.Add(new Command { Id = "1", Name = "A" });
-        config.Commands.Add(new Command { Id = "2", Name = "B" });
-        config.Commands.Add(new Command { Id = "3", Name = "C" });
-        LegacyImporter.AddStartupEvents(config, new HashSet<string> { "3", "1" }, new HashSet<string>());
-        var rule = Assert.Single(config.Events);
-        Assert.IsType<AppStartTrigger>(rule.Trigger);
-        Assert.Equal(["1", "3"], rule.Commands);
-        Assert.False(config.Upgrade() && config.Events.Count != 1);
-    }
-
-    [Fact]
     public void EventsAreReferences()
     {
         var config = new AppConfig();

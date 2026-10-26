@@ -80,12 +80,6 @@ public partial class App : Application
 
     public AppConfig Config => Store.Config;
 
-    /// <summary>Set when this run imported the K-Desktop 4 data.</summary>
-    public LegacyImporter.Report? ImportReport { get; private set; }
-
-    /// <summary>Running K-Desktop 4 processes (they would duplicate every hotkey).</summary>
-    public static IReadOnlyList<Process> LegacyInstances => FindLegacyInstances();
-
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -331,7 +325,7 @@ public partial class App : Application
 
         var requestsSomething = Program.ValueOf(Arguments, "--menu") is not null || Program.ValueOf(Arguments, "--run") is not null ||
                                 Program.ValueOf(Arguments, "--event") is not null || Arguments.Contains("--launcher", StringComparer.OrdinalIgnoreCase);
-        if ((!StartedByWindows && UpdatedFrom is null && !requestsSomething && s.ShowWindowOnStart) || ImportReport is not null) ShowMainWindow();
+        if ((!StartedByWindows && UpdatedFrom is null && !requestsSomething && s.ShowWindowOnStart)) ShowMainWindow();
         HandleArguments(Arguments);
         Log.Info($"Listo: {Config.Commands.Count} comandos, {Config.QuickMenus.Count} QuickMenus, {Config.Macros.Count} macros");
 
@@ -367,38 +361,15 @@ public partial class App : Application
         if (args.Contains("--exit", StringComparer.OrdinalIgnoreCase)) _ = ExitAsync();
     }
 
-    /// <summary>True when no configuration existed yet (fresh install or first run after a legacy import).</summary>
+    /// <summary>True when no configuration existed yet (a fresh install).</summary>
     private bool _firstRun;
 
     private void LoadConfiguration()
     {
         if (Store.Load()) return;
+        // K-Desktop 4's data is imported by a program of its own (importer\), not here.
         _firstRun = true;
-        if (LegacyImporter.IsAvailable())
-        {
-            try
-            {
-                var (config, report) = LegacyImporter.Import();
-                Store.Replace(config);
-                ImportReport = report;
-                return;
-            }
-            catch (Exception ex)
-            {
-                Log.Error("Error importando K-Desktop 4", ex);
-            }
-        }
         Store.SaveNow();
-    }
-
-    /// <summary>Re-imports K-Desktop 4 data, replacing the current configuration.</summary>
-    public LegacyImporter.Report ReimportLegacy()
-    {
-        Store.SaveNow();
-        var (config, report) = LegacyImporter.Import();
-        config.Settings.Theme = Config.Settings.Theme;
-        ReplaceConfig(config);
-        return report;
     }
 
     /// <summary>Swaps in a whole new configuration (imports) and brings everything in line with it.</summary>
@@ -617,33 +588,6 @@ public partial class App : Application
         _main.Activate();
         WindowTools.ForceForeground(new System.Windows.Interop.WindowInteropHelper(_main).Handle);
         then?.Invoke(_main);
-    }
-
-    // ── K-Desktop 4 detection ────────────────────────────────────────────
-
-    private static List<Process> FindLegacyInstances()
-    {
-        var self = Environment.ProcessId;
-        var ours = AppPaths.ExecutablePath;
-        var result = new List<Process>();
-        foreach (var name in new[] { "KDesktop", "KDesktop4", "KDesktopL" })
-        {
-            foreach (var p in Process.GetProcessesByName(name))
-            {
-                try
-                {
-                    if (p.Id == self) { p.Dispose(); continue; }
-                    // MainModule is denied for an elevated process (a K-Desktop 5 started as administrator): the
-                    // limited query works across elevation levels. Not even that: better no warning than a wrong one.
-                    var path = WindowTools.ProcessPath(p.Id);
-                    if (path is null || path.Equals(ours, StringComparison.OrdinalIgnoreCase)) { p.Dispose(); continue; }
-                    if (FileVersionInfo.GetVersionInfo(path).FileMajorPart >= 5) { p.Dispose(); continue; }
-                    result.Add(p);
-                }
-                catch { p.Dispose(); }
-            }
-        }
-        return result;
     }
 
     // ── exit ─────────────────────────────────────────────────────────────

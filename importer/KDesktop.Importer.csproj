@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Imports the data of K-Desktop 4 into K-Desktop 5, once (it was inside K-Desktop until 5.0.263). A console program of
+    its own: K-Desktop no longer carries what only one person will ever use. publish.ps1 makes a single .exe.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>KDesktop.Importer</RootNamespace>
+    <AssemblyName>KDesktop.Importer</AssemblyName>
+    <AssemblyTitle>Importador de K-Desktop 4</AssemblyTitle>
+    <ApplicationIcon>..\src\KDesktop\Assets\Icons\KDesktop.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\src\KDesktop.Core\KDesktop.Core.csproj" />
+  </ItemGroup>
+
+</Project>

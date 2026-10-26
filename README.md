@@ -39,8 +39,8 @@ On top of that, the optional **Assistant module** puts characters on your deskto
 local AI model, use your commands with visible gestures, and come with tools for files, the web, the screen, music,
 timers, notes and your own documents.
 
-K-Desktop 5 is a full rewrite of K-Desktop 4 (VB.NET / WinForms) in **C# / WPF / .NET 10**. On its first run it
-imports the commands, QuickMenus and icons from the previous version.
+K-Desktop 5 is a full rewrite of K-Desktop 4 (VB.NET / WinForms) in **C# / WPF / .NET 10**. The commands, QuickMenus and
+icons of K-Desktop 4 are brought over once with a small program of their own, in `importer/`.
 
 ## Video
 

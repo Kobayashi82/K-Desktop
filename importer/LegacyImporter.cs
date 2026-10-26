@@ -1,11 +1,16 @@
 using System.Globalization;
+using KDesktop.Core;
 using KDesktop.Core.Input;
+using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
 using Microsoft.Win32;
 
-namespace KDesktop.Core.Storage;
+namespace KDesktop.Importer;
 
-/// <summary>Imports commands, QuickMenus and options from K-Desktop 4 (HKCU\Software\KDesktop4).</summary>
+/// <summary>
+/// Imports commands, QuickMenus and options from K-Desktop 4 (HKCU\Software\KDesktop4). It lived in K-Desktop until
+/// 5.0.263; now it is this program of its own, run once by whoever still has K-Desktop 4.
+/// </summary>
 public static class LegacyImporter
 {
     private const string RegRoot = @"Software\KDesktop4";
@@ -62,7 +67,7 @@ public static class LegacyImporter
         s.StartWithWindows = Bool(o, "IniciarWindows", true);
         s.ShowTrayIcon = Bool(o, "IconoSistema", true);
         s.BlockSideButtons = Bool(o, "DisableXButton", true);
-        s.UdpScope = Bool(o, "UDP", true) ? Remote.RemoteScope.LocalNetwork : Remote.RemoteScope.ThisPc;
+        s.UdpScope = Bool(o, "UDP", true) ? KDesktop.Core.Remote.RemoteScope.LocalNetwork : KDesktop.Core.Remote.RemoteScope.ThisPc;
         if (int.TryParse(Str(o, "UDPPort"), out var port) && port >= 1000) s.UdpPort = port;
         s.StartupMessage = NullIfEmpty(Str(o, "MensajeIniciar_Texto"));
         s.StartupSound = Sound(Str(o, "MensajeIniciar_Sonido"));
@@ -134,7 +139,7 @@ public static class LegacyImporter
                     if (action is null)
                     {
                         report.Skipped.Add($"{name}: {type}");
-                        cmd.Notes = string.IsNullOrEmpty(cmd.Notes) ? Localization.Loc.T("import.unsupported", type) : cmd.Notes + $"; {type}";
+                        cmd.Notes = string.IsNullOrEmpty(cmd.Notes) ? $"Acción no disponible en K-Desktop 5: {type}" : cmd.Notes + $"; {type}";
                         continue;
                     }
                     if (note is not null) cmd.Notes = note;
@@ -156,15 +161,15 @@ public static class LegacyImporter
     }
 
     /// <summary>«EjecutarIniciar» / «EjecutarSalir» of K-Desktop 4 become the «Al iniciar / Al salir de K-Desktop» events.</summary>
-    internal static void AddStartupEvents(AppConfig config, IReadOnlySet<string> startup, IReadOnlySet<string> exit)
+    private static void AddStartupEvents(AppConfig config, IReadOnlySet<string> startup, IReadOnlySet<string> exit)
     {
         var onStart = config.Commands.Where(c => startup.Contains(c.Id)).ToList();
         var onExit = config.Commands.Where(c => exit.Contains(c.Id)).ToList();
-        if (onStart.Count > 0) config.Events.Add(AppConfig.MigratedEvent(Localization.Loc.T("event.migrated.startup"), new AppStartTrigger(), onStart));
-        if (onExit.Count > 0) config.Events.Add(AppConfig.MigratedEvent(Localization.Loc.T("event.migrated.exit"), new AppExitTrigger(), onExit));
+        if (onStart.Count > 0) config.Events.Add(AppConfig.MigratedEvent(Loc.T("event.migrated.startup"), new AppStartTrigger(), onStart));
+        if (onExit.Count > 0) config.Events.Add(AppConfig.MigratedEvent(Loc.T("event.migrated.exit"), new AppExitTrigger(), onExit));
     }
 
-    internal static CommandAction? ConvertAction(string type, string settings, out string? note)
+    private static CommandAction? ConvertAction(string type, string settings, out string? note)
     {
         note = null;
         var s = settings.Split(Sep);
@@ -195,7 +200,7 @@ public static class LegacyImporter
 
             case "abrir carpeta":
             {
-                var special = SpecialFolders.FromLegacy(settings);
+                var special = SpecialFolderOf(settings);
                 return special is not null ? new OpenFolderAction { Special = special } : new OpenFolderAction { Path = settings };
             }
 
@@ -203,7 +208,7 @@ public static class LegacyImporter
                 return new OpenUrlAction
                 {
                     Url = At(0),
-                    Browser = Browsers.FromLegacy(At(1)) ?? string.Empty,
+                    Browser = BrowserOf(At(1)) ?? string.Empty,
                     NewWindow = B(2),
                     Incognito = B(3),
                 };
@@ -234,7 +239,7 @@ public static class LegacyImporter
             case "salida de audio":
             {
                 // Sound|OSD|font|colour|device id|device id…
-                var known = Platform.AudioDevices.Playback();
+                var known = KDesktop.Core.Platform.AudioDevices.Playback();
                 var action = new AudioOutputAction { Sound = Sound(At(0)), ShowOsd = B(1) };
                 foreach (var id in s.Skip(4).Select(x => x.Trim()).Where(x => x.Length > 0).Distinct())
                     action.Devices.Add(new AudioDeviceRef { Id = id, Name = known.FirstOrDefault(d => d.Id == id)?.Name ?? id });
@@ -428,6 +433,49 @@ public static class LegacyImporter
         if (name.Length == 0 || name.Equals("Sin Sonido", StringComparison.OrdinalIgnoreCase)) return null;
         return name == "Harware Insert" ? "Hardware Insert" : name;
     }
+
+    /// <summary>The special folders of «Abrir carpeta», by the Spanish names K-Desktop 4 stored.</summary>
+    private static string? SpecialFolderOf(string legacy) => legacy.Trim().ToLowerInvariant() switch
+    {
+        "equipo" => "ThisPC",
+        "panel de control" => "ControlPanel",
+        "control de volumen" => "VolumeMixer",
+        "ajustes de audio" => "SoundSettings",
+        "papelera de reciclaje" => "RecycleBin",
+        "papelera (vaciar)" => "EmptyRecycleBin",
+        "modo 'god'" => "GodMode",
+        "documentos" => "Documents",
+        "imagenes" => "Pictures",
+        "musicas" => "Music",
+        "escritorio" => "Desktop",
+        "videos" => "Videos",
+        "descargas" => "Downloads",
+        "k-desktop" or "k-temp" => "KDesktopData",
+        "usuario" => "UserProfile",
+        "fuentes" => "Fonts",
+        "menu inicio (usuario)" => "StartMenu",
+        "menu inicio" => "CommonStartMenu",
+        "directivas de grupo" => "GroupPolicy",
+        "programador de tareas" => "TaskScheduler",
+        "registro de windows" => "Registry",
+        "teclado en pantalla" => "OnScreenKeyboard",
+        "conexiones de red" => "NetworkConnections",
+        "task switcher" => "TaskView",
+        "powershell" => "PowerShell",
+        "windows apps" => "WindowsApps",
+        _ => null,
+    };
+
+    private static string? BrowserOf(string name) => name.Trim().ToLowerInvariant() switch
+    {
+        "google chrome" => "chrome",
+        "mozilla firefox" => "firefox",
+        "microsoft edge" => "edge",
+        "brave" => "brave",
+        "opera" => "opera",
+        "vivaldi" => "vivaldi",
+        _ => null,
+    };
 
     private static string Str(RegistryKey k, string name) => k.GetValue(name)?.ToString() ?? string.Empty;
 

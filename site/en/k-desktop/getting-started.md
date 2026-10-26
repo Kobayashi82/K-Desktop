@@ -17,7 +17,6 @@ executable: put it wherever you like and open it. .NET does not need to be insta
   something decides whether that program starts as administrator or as a normal user.
 - Your data lives in `%APPDATA%\K-Desktop 5`: settings, commands, menus, macros, history, backups, logs and the
   assistants.
-- Coming from K-Desktop 4? On its first run it imports your commands, QuickMenus and icons.
 
 ## Your first five minutes
 

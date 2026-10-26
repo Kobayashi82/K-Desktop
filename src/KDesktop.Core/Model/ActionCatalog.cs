@@ -119,38 +119,6 @@ public static class SpecialFolders
     public static Entry? Get(string? key) => key is not null && ByKey.TryGetValue(key, out var e) ? e : null;
 
     public static string DisplayName(string key) => Get(key)?.Name ?? key;
-
-    /// <summary>Maps the Spanish names stored by K-Desktop 4 to the new keys.</summary>
-    public static string? FromLegacy(string legacy) => legacy.Trim().ToLowerInvariant() switch
-    {
-        "equipo" => "ThisPC",
-        "panel de control" => "ControlPanel",
-        "control de volumen" => "VolumeMixer",
-        "ajustes de audio" => "SoundSettings",
-        "papelera de reciclaje" => "RecycleBin",
-        "papelera (vaciar)" => "EmptyRecycleBin",
-        "modo 'god'" => "GodMode",
-        "documentos" => "Documents",
-        "imagenes" => "Pictures",
-        "musicas" => "Music",
-        "escritorio" => "Desktop",
-        "videos" => "Videos",
-        "descargas" => "Downloads",
-        "k-desktop" or "k-temp" => "KDesktopData",
-        "usuario" => "UserProfile",
-        "fuentes" => "Fonts",
-        "menu inicio (usuario)" => "StartMenu",
-        "menu inicio" => "CommonStartMenu",
-        "directivas de grupo" => "GroupPolicy",
-        "programador de tareas" => "TaskScheduler",
-        "registro de windows" => "Registry",
-        "teclado en pantalla" => "OnScreenKeyboard",
-        "conexiones de red" => "NetworkConnections",
-        "task switcher" => "TaskView",
-        "powershell" => "PowerShell",
-        "windows apps" => "WindowsApps",
-        _ => null,
-    };
 }
 
 /// <summary>Known browsers for "Open web page".</summary>
@@ -170,15 +138,4 @@ public static class Browsers
 
     public static Entry? Get(string? id) =>
         string.IsNullOrWhiteSpace(id) ? null : All.FirstOrDefault(b => b.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
-
-    public static string? FromLegacy(string name) => name.Trim().ToLowerInvariant() switch
-    {
-        "google chrome" => "chrome",
-        "mozilla firefox" => "firefox",
-        "microsoft edge" => "edge",
-        "brave" => "brave",
-        "opera" => "opera",
-        "vivaldi" => "vivaldi",
-        _ => null,
-    };
 }

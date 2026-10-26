@@ -322,6 +322,9 @@ public enum AppTheme { System, Dark, Light }
 /// <summary>What K-Desktop does about new versions.</summary>
 public enum UpdateMode { Off, Notify, Auto }
 
+/// <summary>How often new versions are looked for (K-Desktop's and the assistants'); a check that is due also runs at startup.</summary>
+public enum UpdateCheck { Startup, Hours6, Daily, Weekly }
+
 /// <summary>What «pon música» / «quita la música» do: the default (resume / pause), a command, or a player.</summary>
 public enum MusicHandler { Default, Command, Program }
 
@@ -515,6 +518,10 @@ public partial class AppSettings : ObservableObject
     // Updates
     /// <summary>Off: never checks; Notify: checks and tells; Auto: also downloads and installs (restarting when idle).</summary>
     [ObservableProperty] private UpdateMode _updateMode = UpdateMode.Auto;
+    [ObservableProperty] private UpdateCheck _updateCheck = UpdateCheck.Hours6;
+
+    /// <summary>When new versions were last looked for (kept so a weekly check survives restarts).</summary>
+    [ObservableProperty] private DateTime? _updateLastCheck;
 
     /// <summary>Where the updates are: the manifest is «kdesktop.json» there (see <see cref="ManifestUrl"/>).</summary>
     [ObservableProperty] private string _updateUrl = DefaultUpdateUrl;

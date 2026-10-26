@@ -113,6 +113,7 @@ public static class Lookups
     public static IReadOnlyList<string> ConnectedNetworksNow => NetworkInfo.ConnectedNetworks();
     public static IReadOnlyList<Option<AppTheme>> Themes { get; } = Enum<AppTheme>("enum.theme");
     public static IReadOnlyList<Option<UpdateMode>> UpdateModes { get; } = Enum<UpdateMode>("enum.updateMode");
+    public static IReadOnlyList<Option<UpdateCheck>> UpdateChecks { get; } = Enum<UpdateCheck>("enum.updateCheck");
     public static IReadOnlyList<Option<OsdPosition>> OsdPositions { get; } = Enum<OsdPosition>("enum.osdPosition");
     public static IReadOnlyList<Option<ScreenChoice>> ScreenChoices { get; } = Enum<ScreenChoice>("enum.screenChoice");
     public static IReadOnlyList<Option<OsdFullscreen>> OsdFullscreens { get; } = Enum<OsdFullscreen>("enum.osdFullscreen");
