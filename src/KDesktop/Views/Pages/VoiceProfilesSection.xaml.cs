@@ -115,7 +115,7 @@ public partial class VoiceProfilesSection : UserControl
         var (card, stack) = Card(Loc.T("voiceProfiles.title"), Loc.T("voiceProfiles.intro"));
         var buttons = new WrapPanel { Margin = new Thickness(0, 0, 0, 8) };
         buttons.Children.Add(Wide(SymbolRegular.Sparkle24, Loc.T("voiceProfiles.random"), NewRandom, primary: true));
-        buttons.Children.Add(Wide(SymbolRegular.ArrowImport24, Loc.T("voiceProfiles.import"), Import));
+        buttons.Children.Add(Wide(SymbolRegular.ArrowDownload24, Loc.T("voiceProfiles.import"), Import));
         stack.Children.Add(buttons);
 
         var rows = new StackPanel();
