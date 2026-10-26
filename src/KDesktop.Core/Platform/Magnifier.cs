@@ -148,20 +148,16 @@ public sealed class Magnifier : IDisposable
         }
         finally
         {
-            if (mode == ZoomMode.FullScreen) MagSetFullscreenTransform(1f, 0, 0);
             MagUninitialize();
         }
     }
 
     /// <summary>
-    /// Full screen: on the main monitor Windows' own full-screen zoom; on the others (it can't do them) a lens as big
-    /// as the monitor, anchored at the pointer the same way.
+    /// Full screen: a lens as big as the monitor the pointer is on, anchored at the pointer. (Windows' own full-screen
+    /// zoom does only the main monitor and enlarges what the others show along with it.)
     /// </summary>
     private void RunFullScreen()
     {
-        (int X, int Y) last = (int.MinValue, int.MinValue);
-        var lastZoom = 0.0;
-        var transformed = false;
         var cover = new Lens();
         var coverOn = default(ScreenRect);
         try
@@ -173,36 +169,16 @@ public sealed class Magnifier : IDisposable
                 GetCursorPos(out var p);
                 var zoom = _zoom;
                 var monitor = ScreenCapture.MonitorAt(p.X, p.Y);
-                if (monitor.Left == 0 && monitor.Top == 0)
+                if (!cover.Created || coverOn != monitor)
                 {
-                    if (cover.Visible) cover.Hide();
-                    if ((p.X, p.Y) != last || Math.Abs(zoom - lastZoom) > 0.001 || !transformed)
-                    {
-                        var (x, y) = Offset(p.X, p.Y, zoom);
-                        MagSetFullscreenTransform((float)zoom, (int)Math.Round(x), (int)Math.Round(y));
-                        transformed = true;
-                    }
+                    cover.Destroy();
+                    cover.Create(monitor.Width, monitor.Height, round: false, border: 0);
+                    coverOn = monitor;
                 }
-                else
-                {
-                    if (transformed)
-                    {
-                        MagSetFullscreenTransform(1f, 0, 0);
-                        transformed = false;
-                    }
-                    if (!cover.Created || coverOn != monitor)
-                    {
-                        cover.Destroy();
-                        cover.Create(monitor.Width, monitor.Height, round: false, border: 0);
-                        coverOn = monitor;
-                    }
-                    var (x, y) = Offset(p.X - monitor.Left, p.Y - monitor.Top, zoom);
-                    var source = new ScreenRect(monitor.Left + (int)Math.Round(x), monitor.Top + (int)Math.Round(y),
-                        (int)Math.Round(monitor.Width / zoom), (int)Math.Round(monitor.Height / zoom));
-                    cover.Show(monitor.Left, monitor.Top, source, zoom);
-                }
-                last = (p.X, p.Y);
-                lastZoom = zoom;
+                var (x, y) = Offset(p.X - monitor.Left, p.Y - monitor.Top, zoom);
+                var source = new ScreenRect(monitor.Left + (int)Math.Round(x), monitor.Top + (int)Math.Round(y),
+                    (int)Math.Round(monitor.Width / zoom), (int)Math.Round(monitor.Height / zoom));
+                cover.Show(monitor.Left, monitor.Top, source, zoom);
                 NextFrame(started);
             }
         }
@@ -399,7 +375,6 @@ public sealed class Magnifier : IDisposable
 
     [DllImport("magnification.dll")] private static extern bool MagInitialize();
     [DllImport("magnification.dll")] private static extern bool MagUninitialize();
-    [DllImport("magnification.dll")] private static extern bool MagSetFullscreenTransform(float magLevel, int xOffset, int yOffset);
     [DllImport("magnification.dll")] private static extern bool MagSetWindowTransform(IntPtr hwnd, ref MAGTRANSFORM transform);
     [DllImport("magnification.dll")] private static extern bool MagSetWindowSource(IntPtr hwnd, RECT rect);
     [DllImport("magnification.dll")] private static extern bool MagSetWindowFilterList(IntPtr hwnd, int mode, int count, ref IntPtr list);

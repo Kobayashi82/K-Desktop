@@ -52,6 +52,7 @@ public partial class SettingsPage : UserControl
             // Trying the magnifier: a new zoom shows at once (shape and size come with the settings being applied).
             if (e.PropertyName is nameof(AppSettings.ZoomLevel) && _zoomTesting && _app.Engine.Magnifier.IsOn)
                 _app.Engine.Magnifier.On(_app.Config.Settings.ZoomLevel);
+            if (e.PropertyName is nameof(AppSettings.ZoomMode) or nameof(AppSettings.ZoomLensSize)) SelectZoomTiles();
         }
         void OnMagnifier() => Dispatcher.BeginInvoke(UpdateZoomTest);
         void OnWebState() => Dispatcher.BeginInvoke(UpdateWebState);
@@ -86,6 +87,7 @@ public partial class SettingsPage : UserControl
             _app.Voice.Models.Changed += OnVoiceModels;
             _app.Engine.Magnifier.Changed += OnMagnifier;
             UpdateZoomTest();
+            SelectZoomTiles();
         };
         Unloaded += (_, _) =>
         {
@@ -933,6 +935,27 @@ public partial class SettingsPage : UserControl
             magnifier.On(s.ZoomLevel);
             _zoomTesting = true;
         }
+    }
+
+    /// <summary>A shape tile: the magnifier takes that shape.</summary>
+    private void OnZoomMode(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: string tag } && Enum.TryParse<ZoomMode>(tag, out var mode)) _app.Config.Settings.ZoomMode = mode;
+    }
+
+    /// <summary>A size tile: the lens takes that size.</summary>
+    private void OnZoomSize(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: string tag } && Enum.TryParse<ZoomLensSize>(tag, out var size)) _app.Config.Settings.ZoomLensSize = size;
+    }
+
+    /// <summary>Marks the shape and size tiles of the settings.</summary>
+    private void SelectZoomTiles()
+    {
+        var mode = _app.Config.Settings.ZoomMode.ToString();
+        foreach (var tile in ZoomModePicker.Children.OfType<RadioButton>()) tile.IsChecked = (string)tile.Tag == mode;
+        var size = _app.Config.Settings.ZoomLensSize.ToString();
+        foreach (var tile in ZoomSizePicker.Children.OfType<RadioButton>()) tile.IsChecked = (string)tile.Tag == size;
     }
 
     private void UpdateZoomTest()

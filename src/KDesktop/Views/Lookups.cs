@@ -65,12 +65,9 @@ public static class Lookups
         [new Option<string>(string.Empty, "editor.screenTextAuto"), .. ScreenText.Languages.Select(l => new Option<string>(l.Tag, $"{l.Name} ({l.Tag})"))];
     public static IReadOnlyList<Option<RecordMode>> RecordModes { get; } = Enum<RecordMode>("enum.recordMode");
     public static IReadOnlyList<Option<AudioSource>> AudioSources { get; } = Enum<AudioSource>("enum.audioSource");
-    public static IReadOnlyList<Option<ZoomMode>> ZoomModes { get; } =
-        [.. new[] { ZoomMode.Lens, ZoomMode.Circle, ZoomMode.FullScreen }.Select(v => new Option<ZoomMode>(v, $"enum.zoomMode.{v}"))];
-    public static IReadOnlyList<Option<ZoomLensSize>> ZoomLensSizes { get; } = Enum<ZoomLensSize>("enum.zoomLensSize");
 
-    /// <summary>Zoom levels of «Lupa» (Settings).</summary>
-    public static IReadOnlyList<Option<double>> ZoomLevels { get; } =
+    /// <summary>Zoom levels of the action «Lupa».</summary>
+    private static IReadOnlyList<Option<double>> ZoomLevels { get; } =
         [.. new[] { 1.5, 2, 2.5, 3, 4, 5 }.Select(z => new Option<double>(z, string.Create(System.Globalization.CultureInfo.CurrentCulture, $"×{z:0.#}")))];
 
     /// <summary>Zoom levels of the action: the first one is «the one in Settings».</summary>

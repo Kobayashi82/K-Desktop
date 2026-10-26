@@ -8,6 +8,38 @@
              xmlns:assistant="clr-namespace:KDesktop.Views.Assistant"
              xmlns:m="clr-namespace:KDesktop.Core.Model;assembly=KDesktop.Core">
     <UserControl.Resources>
+        <!-- A tile to click (size, kinds of messages): what it holds is drawn in its colour, gold when chosen -->
+        <Style x:Key="OsdTile" TargetType="ToggleButton">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Margin" Value="5,0" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="{DynamicResource Kd.OsdTrack}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Frame" CornerRadius="8" BorderThickness="2" Padding="{TemplateBinding Padding}"
+                                BorderBrush="{DynamicResource Kd.OsdTrack}" Background="{DynamicResource Kd.Subtle}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource Kd.AccentText}" />
+                </Trigger>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource Kd.Accent}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
         <!-- Grey text in a (non-editable) combo while nothing is chosen; its DataContext is the combo -->
         <Style x:Key="ComboHint" TargetType="TextBlock">
             <Setter Property="IsHitTestVisible" Value="False" />
@@ -477,38 +509,6 @@
                                     </ControlTemplate>
                                 </Setter.Value>
                             </Setter>
-                        </Style>
-                        <!-- A tile to click (size, kinds of messages): what it holds is drawn in its colour, gold when chosen -->
-                        <Style x:Key="OsdTile" TargetType="ToggleButton">
-                            <Setter Property="Cursor" Value="Hand" />
-                            <Setter Property="Margin" Value="5,0" />
-                            <Setter Property="Focusable" Value="False" />
-                            <Setter Property="HorizontalContentAlignment" Value="Center" />
-                            <Setter Property="VerticalContentAlignment" Value="Center" />
-                            <Setter Property="Foreground" Value="{DynamicResource Kd.OsdTrack}" />
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="ToggleButton">
-                                        <Border x:Name="Frame" CornerRadius="8" BorderThickness="2" Padding="{TemplateBinding Padding}"
-                                                BorderBrush="{DynamicResource Kd.OsdTrack}" Background="{DynamicResource Kd.Subtle}">
-                                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsChecked" Value="True">
-                                                <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Foreground" Value="{DynamicResource Kd.AccentText}" />
-                                </Trigger>
-                                <Trigger Property="IsChecked" Value="True">
-                                    <Setter Property="Foreground" Value="{DynamicResource Kd.Accent}" />
-                                </Trigger>
-                            </Style.Triggers>
                         </Style>
                     </StackPanel.Resources>
                     <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.osd}" />
@@ -1412,35 +1412,114 @@
             <!-- Magnifier -->
             <Border Style="{StaticResource Card}" Tag="capture">
                 <StackPanel>
+                    <StackPanel.Resources>
+                        <Style TargetType="RadioButton" BasedOn="{StaticResource OsdTile}">
+                            <Setter Property="Height" Value="60" />
+                            <Setter Property="Padding" Value="4,8,4,4" />
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                        </Style>
+                        <Style x:Key="ZoomTileLabel" TargetType="TextBlock">
+                            <Setter Property="Grid.Row" Value="1" />
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                            <Setter Property="FontSize" Value="11" />
+                            <Setter Property="FontWeight" Value="Normal" />
+                            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                        </Style>
+                    </StackPanel.Resources>
                     <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.zoom}" />
                     <Grid Style="{StaticResource SettingRow}">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.zoomLevel}" />
                             <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.zoomHint}" />
                         </StackPanel>
-                        <ComboBox Grid.Column="1" Width="120" ItemsSource="{x:Static v:Lookups.ZoomLevels}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding ZoomLevel}" />
+                        <Grid Grid.Column="1">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <Slider Margin="0,0,14,0" Minimum="1.25" Maximum="6" Value="{Binding ZoomLevel}" TickFrequency="0.25" IsSnapToTickEnabled="True" VerticalAlignment="Center"
+                                    AutomationProperties.Name="{l:Tr settings.zoomLevel}" />
+                            <TextBlock Grid.Column="1" MinWidth="40" TextAlignment="Right" Text="{Binding ZoomLevel, StringFormat=×{0:0.##}}" VerticalAlignment="Center" />
+                        </Grid>
                     </Grid>
-                    <WrapPanel Margin="0,4,0,0">
-                        <StackPanel Margin="0,0,12,0">
-                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.zoomMode}" />
-                            <ComboBox Width="280" ItemsSource="{x:Static v:Lookups.ZoomModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding ZoomMode}" />
-                        </StackPanel>
-                        <StackPanel Margin="0,0,12,0">
-                            <!-- Full screen has no lens -->
-                            <StackPanel.Style>
-                                <Style TargetType="StackPanel">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding ZoomMode}" Value="{x:Static m:ZoomMode.FullScreen}">
-                                            <Setter Property="IsEnabled" Value="False" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </StackPanel.Style>
-                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.zoomLensSize}" />
-                            <ComboBox Width="200" ItemsSource="{x:Static v:Lookups.ZoomLensSizes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding ZoomLensSize}" />
-                        </StackPanel>
-                    </WrapPanel>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.zoomMode}" />
+                        <!-- Three tiles, each with a drawing of the shape -->
+                        <UniformGrid x:Name="ZoomModePicker" Grid.Column="1" Rows="1" Margin="-5,0">
+                            <RadioButton Tag="Lens" GroupName="ZoomMode" Checked="OnZoomMode" AutomationProperties.Name="{l:Tr enum.zoomMode.Lens}" ToolTip="{l:Tr enum.zoomMode.Lens}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <Border Width="32" Height="20" CornerRadius="5" BorderThickness="2" VerticalAlignment="Center"
+                                            BorderBrush="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                    <TextBlock Style="{StaticResource ZoomTileLabel}" Text="{l:Tr settings.zoomShape.Lens}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Tag="Circle" GroupName="ZoomMode" Checked="OnZoomMode" AutomationProperties.Name="{l:Tr enum.zoomMode.Circle}" ToolTip="{l:Tr enum.zoomMode.Circle}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <Ellipse Width="24" Height="24" StrokeThickness="2" VerticalAlignment="Center"
+                                             Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                    <TextBlock Style="{StaticResource ZoomTileLabel}" Text="{l:Tr settings.zoomShape.Circle}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Tag="FullScreen" GroupName="ZoomMode" Checked="OnZoomMode" AutomationProperties.Name="{l:Tr enum.zoomMode.FullScreen}" ToolTip="{l:Tr enum.zoomMode.FullScreen}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <!-- A monitor: the screen and its stand -->
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <Border Width="34" Height="21" CornerRadius="3" BorderThickness="2"
+                                                BorderBrush="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                        <Border Width="14" Height="3" Margin="0,2,0,0" CornerRadius="1.5"
+                                                Background="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource ZoomTileLabel}" Text="{l:Tr settings.zoomShape.FullScreen}" />
+                                </Grid>
+                            </RadioButton>
+                        </UniformGrid>
+                    </Grid>
+                    <Grid>
+                        <!-- Full screen has no lens -->
+                        <Grid.Style>
+                            <Style TargetType="Grid" BasedOn="{StaticResource SettingRow}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ZoomMode}" Value="{x:Static m:ZoomMode.FullScreen}">
+                                        <Setter Property="IsEnabled" Value="False" />
+                                        <Setter Property="Opacity" Value="0.45" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.zoomLensSize}" />
+                        <!-- Three tiles, a bigger lens each -->
+                        <UniformGrid x:Name="ZoomSizePicker" Grid.Column="1" Rows="1" Margin="-5,0">
+                            <RadioButton Tag="Small" GroupName="ZoomSize" Checked="OnZoomSize" AutomationProperties.Name="{l:Tr enum.zoomLensSize.Small}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <Ellipse Width="12" Height="12" StrokeThickness="2" VerticalAlignment="Center"
+                                             Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                    <TextBlock Style="{StaticResource ZoomTileLabel}" Text="{l:Tr enum.zoomLensSize.Small}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Tag="Medium" GroupName="ZoomSize" Checked="OnZoomSize" AutomationProperties.Name="{l:Tr enum.zoomLensSize.Medium}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <Ellipse Width="18" Height="18" StrokeThickness="2" VerticalAlignment="Center"
+                                             Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                    <TextBlock Style="{StaticResource ZoomTileLabel}" Text="{l:Tr enum.zoomLensSize.Medium}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Tag="Large" GroupName="ZoomSize" Checked="OnZoomSize" AutomationProperties.Name="{l:Tr enum.zoomLensSize.Large}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <Ellipse Width="25" Height="25" StrokeThickness="2" VerticalAlignment="Center"
+                                             Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                                    <TextBlock Style="{StaticResource ZoomTileLabel}" Text="{l:Tr enum.zoomLensSize.Large}" />
+                                </Grid>
+                            </RadioButton>
+                        </UniformGrid>
+                    </Grid>
                     <ui:Button x:Name="ZoomTestButton" MinHeight="36" Margin="0,12,0,0" HorizontalAlignment="Left" Content="{l:Tr settings.zoomTest}" Icon="{ui:SymbolIcon ZoomIn24}" Click="OnZoomTest" />
                 </StackPanel>
             </Border>
