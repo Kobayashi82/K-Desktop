@@ -564,7 +564,7 @@ public partial class SettingsPage : UserControl
             return;
         }
         AndroidVersionText.Text = Loc.T("settings.androidVersion", apk.Version);
-        AndroidInfoText.Text = Loc.T("settings.androidInfo", AppPaths.FullVersion, Math.Max(1, apk.Bytes.Length / 1024), apk.Code);
+        AndroidInfoText.Text = Loc.T("settings.androidInfo", AppPaths.FullVersion, Math.Max(1, apk.Bytes.Length / 1024));
         AndroidSaveButton.IsEnabled = true;
     }
 

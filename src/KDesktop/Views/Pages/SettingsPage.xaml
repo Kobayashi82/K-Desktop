@@ -996,10 +996,10 @@
                         <ui:Button MinHeight="36" x:Name="AndroidSaveButton" Grid.Column="2" Appearance="Primary" Content="{l:Tr settings.androidSave}"
                                    Icon="{ui:SymbolIcon Save24}" Click="OnSaveApk" />
                     </Grid>
-                    <TextBlock Style="{StaticResource FieldLabel}" Margin="0,14,0,4" Text="{l:Tr settings.androidUpdatesTitle}" />
-                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.androidUpdates}" />
                     <TextBlock Style="{StaticResource FieldLabel}" Margin="0,14,0,4" Text="{l:Tr settings.androidInstallTitle}" />
                     <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.androidInstall}" />
+                    <TextBlock Style="{StaticResource FieldLabel}" Margin="0,14,0,4" Text="{l:Tr settings.androidUpdatesTitle}" />
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.androidUpdates}" />
                 </StackPanel>
             </Border>
 
