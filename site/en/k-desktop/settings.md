@@ -26,7 +26,7 @@ there.
 
 | Section | What it has |
 |---|---|
-| **Remote control** | The UDP server. See [Phone and remote control](remote.md) |
+| **Remote control** | The UDP server: port, where from, key and what is allowed. See [Phone and remote control](remote.md) |
 | **Web app** | The web server, pairing and paired devices, touchpad and keyboard |
 | **Android app** | Its version and «Save the APK» |
 

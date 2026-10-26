@@ -1,54 +1,56 @@
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using KDesktop.Core.Engine;
 using KDesktop.Core.Input;
+using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
+using KDesktop.Core.Remote.Web;
 
 namespace KDesktop.Core.Remote;
 
-/// <summary>
-/// UDP remote control, wire-compatible with K-Desktop 4 (default port 2501).
-/// Text commands: "lista" / "list" / "0", a number, a remote command name, built-ins ("play", "next", …),
-/// "sk X" / "sendkey X" and "show kdesktop".
-/// </summary>
-public sealed class UdpServer : IDisposable
-{
-    private const int FirstCommandIndex = 20;
+/// <summary>How the UDP server is set up (built from the settings).</summary>
+/// <param name="Key">Shared key (null: none). With one, other devices put it in front of each order or sign with it.</param>
+public sealed record UdpOptions(
+    int Port,
+    RemoteScope Scope = RemoteScope.LocalNetwork,
+    string? Key = null,
+    bool AllowKeys = false,
+    bool AllowHidden = false,
+    bool AllowEvents = true,
+    bool AllowAssistants = false);
 
-    private static readonly (string Name, string[] Aliases, Action<UdpServer> Run)[] BuiltIns =
-    [
-        ("Play/Pause", ["play", "pause", "play/pause"], s => s.Media(0xB3, releaseTaskSwitch: true)),
-        ("Next", ["next"], s => s.Media(0xB0)),
-        ("Previous", ["previous"], s => s.Media(0xB1)),
-        ("Subir Volumen", ["subir volumen"], s => s.Media(0xAF)),
-        ("Bajar Volumen", ["bajar volumen"], s => s.Media(0xAE)),
-        ("Silenciar Volumen", ["silenciar volumen"], s => s.Media(0xAD)),
-        ("Enter", ["enter"], s => s.Media(0x0D, releaseTaskSwitch: true)),
-        ("Close", ["close"], s => { s.EndTaskSwitch(); InputSimulator.SendCombo("ALT + F4"); }),
-        ("Up", ["up"], s => InputSimulator.KeyPress(0x26)),
-        ("Down", ["down"], s => InputSimulator.KeyPress(0x28)),
-        ("Left", ["left"], s => InputSimulator.KeyPress(0x25)),
-        ("Right", ["right"], s => InputSimulator.KeyPress(0x27)),
-        ("Tasks", ["tasks"], s => s.ToggleTaskSwitch()),
-        ("Refresh", ["refresh"], s => InputSimulator.KeyPress(0x74)),
-        ("Fullscreen", ["fullscreen"], s => { s.EndTaskSwitch(); InputSimulator.KeyPress('F'); }),
-        ("Subs-", ["subs-", "sub-"], s => InputSimulator.KeyPress(0xDB)),
-        ("Subs+", ["subs+", "sub+"], s => InputSimulator.KeyPress(0xDD)),
-        ("Sync-", ["sync-"], s => InputSimulator.KeyPress('7')),
-        ("Sync+", ["sync+"], s => InputSimulator.KeyPress('9')),
-    ];
+/// <summary>
+/// UDP remote control (default port 2501). One order per datagram, in two forms (protocol in the documentation, «Control
+/// remoto»):
+/// <list type="bullet">
+/// <item>Text, for people and simple senders (netcat, Tasker…): <c>[key ]order</c>, the reply starts with <c>OK</c> or
+/// <c>ERROR</c>. Orders: <c>list</c>, <c>help</c>, <c>assistants</c>, a remote command's name or number, <c>run</c>,
+/// <c>event</c>, <c>ask</c>, <c>keys</c>, <c>type</c>, <c>media</c>, <c>volume</c>, <c>show</c>.</item>
+/// <item>JSON, for programs: <c>{"cmd":"run","arg":"…"}</c>, signed as <c>&lt;hex HMAC-SHA256 of the JSON&gt;.&lt;JSON&gt;</c>
+/// with <c>"t"</c> (Unix seconds) and a one-time <c>"id"</c> when there is a key. The reply is JSON.</item>
+/// </list>
+/// From this PC the key is never needed; from the internet only signed orders get in. What is not allowed gets no reply
+/// (no answers to strangers, and nothing to bounce off this PC), and an address that fails too often is ignored for a while.
+/// </summary>
+public sealed partial class UdpServer : IDisposable
+{
+    private const int MaxFailures = 5;
+    private static readonly TimeSpan FailureWindow = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan BlockTime = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan ClockSkew = TimeSpan.FromSeconds(60);
 
     private readonly CommandEngine _engine;
     private readonly IUiServices _ui;
+    private readonly Lock _gate = new();
+    private readonly Dictionary<IPAddress, Failures> _failures = [];
+    private readonly Dictionary<string, DateTime> _usedIds = new(StringComparer.Ordinal);
     private UdpClient? _client;
     private CancellationTokenSource? _cts;
-    private bool _taskSwitch;
-
-    public int Port { get; private set; }
-    public bool AllowRemote { get; set; }
-    public bool IsRunning => _client is not null;
 
     public UdpServer(CommandEngine engine, IUiServices ui)
     {
@@ -56,39 +58,94 @@ public sealed class UdpServer : IDisposable
         _ui = ui;
     }
 
-    public void Start(int port, bool allowRemote)
+    public UdpOptions Options { get; private set; } = new(2501);
+    public bool IsRunning => _client is not null;
+
+    /// <summary>The port could not be opened (another program has it).</summary>
+    public bool Failed { get; private set; }
+
+    /// <summary>Started, stopped or failed.</summary>
+    public event Action? StateChanged;
+
+    /// <summary>The active assistants, for <c>ask</c> and <c>assistants</c> (null: the module is not there).</summary>
+    public IWebAssistants? Assistants { get; set; }
+
+    /// <summary>Runs on the UI thread (the assistants live there).</summary>
+    public Func<Func<object?>, object?> OnUi { get; set; } = f => f();
+
+    /// <summary>Internet without a key is not allowed: it stays on the local network until there is one.</summary>
+    private RemoteScope Scope => Options.Scope == RemoteScope.Internet && Options.Key is null ? RemoteScope.LocalNetwork : Options.Scope;
+
+    public void Start(UdpOptions options)
     {
-        if (IsRunning && port == Port)
-        {
-            AllowRemote = allowRemote;
-            return;
-        }
+        var samePort = IsRunning && options.Port == Options.Port;
+        Configure(options);
+        if (samePort) return;
         Stop();
-        Port = port;
-        AllowRemote = allowRemote;
         try
         {
-            var client = new UdpClient();
-            client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            client.Client.Bind(new IPEndPoint(IPAddress.Any, port));
-            _client = client;
+            _client = Open(options.Port);
             _cts = new CancellationTokenSource();
-            _ = Task.Run(() => ListenAsync(client, _cts.Token));
-            Log.Info($"Servidor UDP escuchando en el puerto {port}");
+            _ = Task.Run(() => ListenAsync(_client, _cts.Token));
+            Failed = false;
+            Log.Info($"Servidor UDP escuchando en el puerto {options.Port}");
         }
-        catch (Exception ex)
+        catch (SocketException ex)
         {
-            Log.Error($"No se pudo abrir el puerto UDP {port}", ex);
+            Log.Error($"No se pudo abrir el puerto UDP {options.Port}", ex);
             _client = null;
+            Failed = true;
+        }
+        StateChanged?.Invoke();
+    }
+
+    /// <summary>Takes the options without touching the socket (tests use it alone).</summary>
+    internal void Configure(UdpOptions options) => Options = options with { Key = string.IsNullOrEmpty(options.Key) ? null : options.Key };
+
+    /// <summary>IPv6 and IPv4 on the same socket; IPv4 only where IPv6 is off.</summary>
+    private static UdpClient Open(int port)
+    {
+        if (Socket.OSSupportsIPv6)
+        {
+            var dual = new UdpClient(AddressFamily.InterNetworkV6);
+            try
+            {
+                dual.Client.DualMode = true;
+                dual.Client.Bind(new IPEndPoint(IPAddress.IPv6Any, port));
+                return dual;
+            }
+            catch (SocketException ex) when (ex.SocketErrorCode != SocketError.AddressAlreadyInUse)
+            {
+                dual.Dispose();
+            }
+            catch
+            {
+                dual.Dispose();
+                throw;
+            }
+        }
+        var client = new UdpClient(AddressFamily.InterNetwork);
+        try
+        {
+            client.Client.Bind(new IPEndPoint(IPAddress.Any, port));
+            return client;
+        }
+        catch
+        {
+            client.Dispose();
+            throw;
         }
     }
 
     public void Stop()
     {
+        var was = IsRunning || Failed;
         _cts?.Cancel();
         _client?.Dispose();
         _client = null;
         _cts = null;
+        Failed = false;
+        if (was) StateChanged?.Invoke();
     }
 
     private async Task ListenAsync(UdpClient client, CancellationToken token)
@@ -109,157 +166,307 @@ public sealed class UdpServer : IDisposable
                 continue;
             }
 
-            if (!AllowRemote && !IPAddress.IsLoopback(packet.RemoteEndPoint.Address)) continue;
-            var text = Encoding.UTF8.GetString(packet.Buffer).Replace("\r", "").Replace("\n", "").Trim();
-            if (text.Length == 0) continue;
-
             var remote = packet.RemoteEndPoint;
+            var text = Encoding.UTF8.GetString(packet.Buffer);
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    string? reply;
-                    using (ExecutionHistory.Describe(remote.Address.ToString())) reply = Handle(text);
-                    if (reply is not null) await SendAsync(reply, remote).ConfigureAwait(false);
+                    var reply = Receive(text, remote.Address);
+                    if (reply is not null) await SendAsync(client, reply, remote).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"UDP: error procesando '{text}'", ex);
+                    Log.Error($"UDP: error procesando una orden de {remote.Address}", ex);
                 }
             }, token);
         }
     }
 
-    private async Task SendAsync(string message, IPEndPoint to)
+    private static async Task SendAsync(UdpClient client, string message, IPEndPoint to)
     {
-        if (_client is not { } client) return;
         var data = Encoding.UTF8.GetBytes(message);
         try { await client.SendAsync(data, to).ConfigureAwait(false); }
-        catch (Exception ex) { Log.Warn($"UDP: no se pudo responder a {to}: {ex.Message}"); }
+        catch (Exception ex) when (ex is SocketException or ObjectDisposedException) { Log.Warn($"UDP: no se pudo responder a {to}: {ex.Message}"); }
     }
 
-    /// <summary>Remote commands in a stable order: their index is 20 + position.</summary>
-    private List<Command> RemoteCommands() =>
-        _engine.Config.Commands.Where(c => c.Remote)
-            .OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+    // ── who gets in ──────────────────────────────────────────────────────
 
-    /// <summary>Processes one request and returns the reply text.</summary>
-    internal string? Handle(string text)
+    /// <summary>Checks where a datagram came from and its key or signature, runs it and returns the reply (null: none).</summary>
+    internal string? Receive(string message, IPAddress from)
     {
-        var lower = text.ToLowerInvariant();
+        from = RemoteAddresses.Normalize(from);
+        if (!RemoteAddresses.Allows(Scope, from) || IsBlocked(from)) return null;
+        message = message.Trim().TrimEnd('\0');
+        if (message.Length == 0) return null;
 
-        if (lower == "show kdesktop")
+        var thisPc = IPAddress.IsLoopback(from);
+        var local = RemoteAddresses.IsLocal(from);
+        var key = Options.Key;
+
+        Request? request;
+        bool json;
+        if (SignedMessage().Match(message) is { Success: true } signed)
         {
-            _ui.ShowMainWindow();
+            json = true;
+            request = key is null ? null : Verified(signed.Groups[1].Value, signed.Groups[2].Value, key);
+        }
+        else if (message.StartsWith('{'))
+        {
+            json = true;
+            request = (key is null || thisPc) && local ? ParseJson(message) : null;
+        }
+        else
+        {
+            json = false;
+            message = message.Replace("\r", " ").Replace("\n", " ").Trim();
+            if (key is not null && !thisPc)
+                message = local && StartsWithKey(message, key) ? message[key.Length..].Trim() : string.Empty;
+            request = message.Length > 0 ? ParseText(message) : null;
+        }
+
+        if (request is null)
+        {
+            Fail(from);
             return null;
         }
 
-        if (lower is "list" or "lista" or "comandos" or "commands" or "help" or "ayuda" or "0")
-            return BuildList(text);
+        Reply reply;
+        using (ExecutionHistory.Describe(from.ToString())) reply = Handle(request);
+        return json ? reply.ToJson() : reply.ToText();
+    }
 
-        // By index.
-        var digits = text.Replace(" ", "");
-        if (digits.Length > 0 && digits.All(char.IsDigit) && int.TryParse(digits, out var index))
+    /// <summary>The key in front, then a space; compared in constant time.</summary>
+    private static bool StartsWithKey(string message, string key) =>
+        message.Length > key.Length && message[key.Length] == ' '
+        && CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(message[..key.Length]), Encoding.UTF8.GetBytes(key));
+
+    /// <summary>A signed order: the signature matches, it is recent and its id was not used before.</summary>
+    private Request? Verified(string signature, string payload, string key)
+    {
+        var expected = HMACSHA256.HashData(Encoding.UTF8.GetBytes(key), Encoding.UTF8.GetBytes(payload));
+        if (!CryptographicOperations.FixedTimeEquals(expected, Convert.FromHexString(signature))) return null;
+        if (ParseJson(payload) is not { } request) return null;
+        if (request.Time is not { } t || request.Id is not { Length: > 0 and <= 100 } id) return null;
+        var now = DateTime.UtcNow;
+        if ((DateTimeOffset.FromUnixTimeSeconds(t).UtcDateTime - now).Duration() > ClockSkew) return null;
+        lock (_gate)
         {
-            if (index >= 1 && index < FirstCommandIndex)
+            foreach (var old in _usedIds.Where(p => p.Value < now).Select(p => p.Key).ToList()) _usedIds.Remove(old);
+            if (!_usedIds.TryAdd(id, now + ClockSkew + ClockSkew)) return null;
+        }
+        return request;
+    }
+
+    private bool IsBlocked(IPAddress from)
+    {
+        lock (_gate) return _failures.TryGetValue(from, out var f) && f.BlockedUntil > DateTime.UtcNow;
+    }
+
+    private void Fail(IPAddress from)
+    {
+        var now = DateTime.UtcNow;
+        lock (_gate)
+        {
+            if (!_failures.TryGetValue(from, out var f) || now - f.Since > FailureWindow) f = new Failures(now, 0, DateTime.MinValue);
+            f = f with { Count = f.Count + 1 };
+            if (f.Count >= MaxFailures)
             {
-                var b = BuiltIns[index - 1];
-                b.Run(this);
-                return $"[{index}] - {b.Name} (done)";
+                f = f with { BlockedUntil = now + BlockTime, Count = 0, Since = now };
+                Log.Warn($"UDP: {from} ignorado durante {BlockTime.TotalMinutes:0} min por órdenes sin clave o mal firmadas");
             }
-            var remote = RemoteCommands();
-            var i = index - FirstCommandIndex;
-            if (i < 0 || i >= remote.Count)
-                return $"[{index}] - No existe\r\n\r\nEl comando no existe, escriba 'Lista' \r\npara ver los comandos disponibles";
-            return RunRemote(remote[i], index);
+            _failures[from] = f;
+            if (_failures.Count > 1000)
+                foreach (var old in _failures.Where(p => p.Value.BlockedUntil < now && now - p.Value.Since > FailureWindow).Select(p => p.Key).ToList())
+                    _failures.Remove(old);
         }
+    }
 
-        // Send keys.
-        if (lower.StartsWith("sk ", StringComparison.Ordinal) || lower.StartsWith("sendkey ", StringComparison.Ordinal))
+    private sealed record Failures(DateTime Since, int Count, DateTime BlockedUntil);
+
+    [GeneratedRegex(@"^([0-9a-fA-F]{64})\.(\{.*\})$", RegexOptions.Singleline)]
+    private static partial Regex SignedMessage();
+
+    // ── orders ───────────────────────────────────────────────────────────
+
+    /// <summary>An order: what (<c>run</c>, <c>list</c>…), its argument and, for <c>ask</c>, the assistant.</summary>
+    internal sealed record Request(string Cmd, string Arg = "", string Assistant = "", long? Time = null, string? Id = null);
+
+    private static readonly string[] Words = ["list", "help", "assistants", "run", "event", "ask", "keys", "type", "media", "volume", "show"];
+
+    /// <summary>"run Abrir Chrome", "ask Lander qué hora es", "21", "Abrir Chrome"…</summary>
+    internal static Request ParseText(string text)
+    {
+        var space = text.IndexOf(' ');
+        var word = (space < 0 ? text : text[..space]).ToLowerInvariant();
+        var rest = space < 0 ? string.Empty : text[(space + 1)..].Trim();
+        if (!Words.Contains(word)) return new Request("run", text);
+        if (word != "ask") return new Request(word, rest);
+        var gap = rest.IndexOf(' ');
+        return gap < 0 ? new Request("ask", string.Empty, rest) : new Request("ask", rest[(gap + 1)..].Trim(), rest[..gap]);
+    }
+
+    /// <summary><c>{"cmd":"run","arg":"Abrir Chrome"}</c>; null when it is not a JSON object with a known <c>cmd</c>.</summary>
+    internal static Request? ParseJson(string json)
+    {
+        try
         {
-            var keys = text[(text.IndexOf(' ') + 1)..];
-            EndTaskSwitch();
-            var vk = KeyNames.ToVk(keys);
-            if (vk != 0 || Hotkey.Parse(keys).Mods != Modifiers.None) InputSimulator.SendCombo(keys);
-            else InputSimulator.SendText(keys);
-            return $"SendKey [{keys}] (done)";
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            if (root.ValueKind != JsonValueKind.Object) return null;
+            string Str(string name) => root.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString()!.Trim() : string.Empty;
+            var cmd = Str("cmd").ToLowerInvariant();
+            if (!Words.Contains(cmd)) return null;
+            long? time = root.TryGetProperty("t", out var t) && t.TryGetInt64(out var seconds) ? seconds : null;
+            return new Request(cmd, Str("arg"), Str("assistant"), time, Str("id"));
         }
-
-        // «Llamada remota» event.
-        if (lower.StartsWith("evento ", StringComparison.Ordinal) || lower.StartsWith("event ", StringComparison.Ordinal))
+        catch (JsonException)
         {
-            var name = text[(text.IndexOf(' ') + 1)..].Trim();
-            var fired = _engine.RemoteCall?.Invoke(name, "UDP") ?? 0;
-            return fired > 0 ? $"Evento [{name}] (done)" : $"Evento [{name}]\r\nNingún evento espera esa llamada";
+            return null;
         }
+    }
 
-        // Built-in by name.
-        for (var b = 0; b < BuiltIns.Length; b++)
+    /// <summary>Runs an order that already got in.</summary>
+    internal Reply Handle(Request request)
+    {
+        var o = Options;
+        switch (request.Cmd)
         {
-            if (!BuiltIns[b].Aliases.Contains(lower)) continue;
-            if (!_engine.Config.Settings.DisabledIn.Contains(ForegroundWindow.Capture().ProcessName) || lower == "tasks")
-                BuiltIns[b].Run(this);
-            return $"[{b + 1}] - {BuiltIns[b].Name} (done)";
+            case "list":
+                return Reply.List(RemoteCommands().Select(c => c.Name).ToList());
+            case "help":
+                return Reply.Done(Loc.T("udp.help"));
+            case "show":
+                _ui.ShowMainWindow();
+                return Reply.Done(Loc.T("udp.done"));
+            case "run":
+                return Run(request.Arg);
+            case "event":
+                if (!o.AllowEvents) return Reply.Error("off", Loc.T("udp.off"));
+                if (request.Arg.Length == 0) return Reply.Error("badRequest", Loc.T("udp.missing", "event"));
+                return (_engine.RemoteCall?.Invoke(request.Arg, "UDP") ?? 0) > 0
+                    ? Reply.Done(Loc.T("udp.eventFired", request.Arg))
+                    : Reply.Error("noEvent", Loc.T("udp.noEvent", request.Arg));
+            case "ask":
+                return Ask(request.Assistant, request.Arg);
+            case "assistants":
+                if (Assistants is not { } a || !(bool)OnUi(() => a.Enabled)!) return Reply.Error("assistantsOff", Loc.T("udp.assistantsOff"));
+                return Reply.Assistants((IReadOnlyList<WebAssistantInfo>)OnUi(a.List)!);
+            case "keys":
+            case "type":
+                if (!o.AllowKeys) return Reply.Error("off", Loc.T("udp.off"));
+                if (request.Arg.Length == 0) return Reply.Error("badRequest", Loc.T("udp.missing", request.Cmd));
+                if (DisabledHere()) return Reply.Error("disabledHere", Loc.T("udp.disabledHere"));
+                if (request.Cmd == "type") InputSimulator.SendText(request.Arg);
+                else if (!InputSimulator.SendCombo(request.Arg)) return Reply.Error("badRequest", Loc.T("udp.badKeys", request.Arg));
+                return Reply.Done(Loc.T("udp.done"));
+            case "media":
+            case "volume":
+                if (Key(request.Cmd, request.Arg.ToLowerInvariant()) is not { } vk)
+                    return Reply.Error("badRequest", Loc.T("udp.badArg", request.Cmd, request.Arg));
+                if (DisabledHere()) return Reply.Error("disabledHere", Loc.T("udp.disabledHere"));
+                InputSimulator.KeyPress(vk);
+                return Reply.Done(Loc.T("udp.done"));
+            default:
+                return Reply.Error("badRequest", Loc.T("udp.notFound", request.Cmd));
         }
+    }
 
-        // Remote command by name.
+    private static int? Key(string cmd, string arg) => (cmd, arg) switch
+    {
+        ("media", "play" or "pause" or "playpause") => 0xB3,
+        ("media", "next") => 0xB0,
+        ("media", "previous" or "prev") => 0xB1,
+        ("media", "stop") => 0xB2,
+        ("volume", "up" or "+") => 0xAF,
+        ("volume", "down" or "-") => 0xAE,
+        ("volume", "mute") => 0xAD,
+        _ => null,
+    };
+
+    /// <summary>K-Desktop is disabled in the window in front («Desactivar en»): no keys go to it.</summary>
+    private bool DisabledHere() => _engine.Config.Settings.DisabledIn.Contains(ForegroundWindow.Capture().ProcessName);
+
+    /// <summary>Remote commands in a stable order (by name); their number is their place, from 1.</summary>
+    private List<Command> RemoteCommands() =>
+        _engine.Config.Commands.Where(c => c.Remote && c.Enabled && (Options.AllowHidden || !c.Hidden))
+            .OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+
+    /// <summary>By number or by name (capitals and accents don't matter).</summary>
+    private Reply Run(string target)
+    {
+        if (target.Length == 0) return Reply.Error("badRequest", Loc.T("udp.missing", "run"));
         var list = RemoteCommands();
-        var match = list.FindIndex(c => c.Name.Equals(text, StringComparison.OrdinalIgnoreCase));
-        if (match >= 0) return RunRemote(list[match], FirstCommandIndex + match);
-
-        return $"{text}\r\nEl comando no existe, escriba 'Lista' \r\npara ver los comandos disponibles";
-    }
-
-    private string RunRemote(Command command, int index)
-    {
-        if (!command.Enabled) return $"[{index}] - {command.Name} (deshabilitado)";
-        EndTaskSwitch();
-        _ = _engine.RunAsync(command, TriggerSource.Remote);
-        return $"[{index}] - {command.Name} (done)";
-    }
-
-    private string BuildList(string request)
-    {
-        var sb = new StringBuilder();
-        var remote = RemoteCommands();
-        sb.Append(CultureInfo.InvariantCulture, $"[{remote.Count}] - {request} (done)");
-        sb.Append(CultureInfo.InvariantCulture, $"\r\n\r\n---------------[{AppPaths.VersionName.ToUpperInvariant()}] - [{Environment.MachineName}]---------------\r\n");
-        sb.Append("\r\n[0] - Comandos, Lista, List");
-        for (var i = 0; i < BuiltIns.Length; i++) sb.Append(CultureInfo.InvariantCulture, $"\r\n[{i + 1}] - {BuiltIns[i].Name}");
-        sb.Append("\r\n\r\nSendKey [Letra], SK [Letra]");
-        sb.Append("\r\nEvento [Nombre]");
-        sb.Append("\r\n\r\n---------------[COMANDOS]---------------\r\n");
-        for (var i = 0; i < remote.Count; i++) sb.Append(CultureInfo.InvariantCulture, $"\r\n[{FirstCommandIndex + i}] - {remote[i].Name}");
-        return sb.ToString();
-    }
-
-    // ── built-in helpers ─────────────────────────────────────────────────
-
-    private void Media(int vk, bool releaseTaskSwitch = false)
-    {
-        InputSimulator.KeyPress(vk);
-        if (releaseTaskSwitch) EndTaskSwitch();
-    }
-
-    /// <summary>"Tasks": first press holds ALT and shows the task switcher, the next one releases it.</summary>
-    private void ToggleTaskSwitch()
-    {
-        if (_taskSwitch)
+        Command? command = null;
+        if (int.TryParse(target, NumberStyles.None, CultureInfo.InvariantCulture, out var number))
+            command = number >= 1 && number <= list.Count ? list[number - 1] : null;
+        command ??= list.FirstOrDefault(c => SameName(c.Name, target));
+        if (command is null)
         {
-            EndTaskSwitch();
-            return;
+            // Disabled or hidden ones say so; the rest don't exist (for this server).
+            var other = _engine.Config.Commands.FirstOrDefault(c => c.Remote && SameName(c.Name, target) && (Options.AllowHidden || !c.Hidden));
+            return other is not null ? Reply.Error("disabled", Loc.T("udp.disabled", other.Name)) : Reply.Error("notFound", Loc.T("udp.notFound", target));
         }
-        InputSimulator.ReleaseModifiers();
-        InputSimulator.KeyDown(KeyNames.VK_LMENU);
-        InputSimulator.KeyPress(KeyNames.VK_TAB);
-        _taskSwitch = true;
+        _ = _engine.RunAsync(command, TriggerSource.Remote);
+        return Reply.Done(Loc.T("udp.ran", command.Name));
     }
 
-    private void EndTaskSwitch()
+    private const string Sent = "sent:";
+
+    private Reply Ask(string assistant, string text)
     {
-        if (!_taskSwitch) return;
-        InputSimulator.KeyUp(KeyNames.VK_LMENU);
-        _taskSwitch = false;
+        if (!Options.AllowAssistants) return Reply.Error("off", Loc.T("udp.off"));
+        if (assistant.Length == 0 || text.Length == 0) return Reply.Error("badRequest", Loc.T("udp.missing", "ask"));
+        if (text.Length > 2000) return Reply.Error("badRequest", Loc.T("udp.tooLong"));
+        if (Assistants is not { } assistants) return Reply.Error("assistantsOff", Loc.T("udp.assistantsOff"));
+        var result = (string?)OnUi(() =>
+        {
+            if (!assistants.Enabled) return "assistantsOff";
+            var who = assistants.List().FirstOrDefault(a => SameName(a.Id, assistant) || SameName(a.Name, assistant));
+            if (who is null) return "noAssistant";
+            return assistants.Send(who.Id, text) is { } error ? error : Sent + who.Name;
+        });
+        if (result?.StartsWith(Sent, StringComparison.Ordinal) == true) return Reply.Done(Loc.T("udp.asked", result[Sent.Length..]));
+        return result switch
+        {
+            "assistantsOff" => Reply.Error("assistantsOff", Loc.T("udp.assistantsOff")),
+            "notRunning" => Reply.Error("notRunning", Loc.T("udp.assistantStarting")),
+            _ => Reply.Error("noAssistant", Loc.T("udp.noAssistant", assistant)),
+        };
+    }
+
+    private static bool SameName(string a, string b) =>
+        CultureInfo.InvariantCulture.CompareInfo.Compare(a.Trim(), b.Trim(), CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace) == 0;
+
+    /// <summary>What goes back: as text (<c>OK …</c> / <c>ERROR …</c>) or as JSON, the way the order came.</summary>
+    internal sealed record Reply(bool Ok, string Message, string? Code = null, IReadOnlyList<string>? Commands = null, IReadOnlyList<WebAssistantInfo>? Active = null)
+    {
+        public static Reply Done(string message) => new(true, message);
+        public static Reply Error(string code, string message) => new(false, message, code);
+        public static Reply List(IReadOnlyList<string> commands) => new(true, string.Empty, Commands: commands);
+        public static Reply Assistants(IReadOnlyList<WebAssistantInfo> active) => new(true, string.Empty, Active: active);
+
+        public string ToText()
+        {
+            var sb = new StringBuilder(Ok ? "OK" : "ERROR");
+            if (Message.Length > 0) sb.Append(' ').Append(Message);
+            if (Commands is not null)
+                for (var i = 0; i < Commands.Count; i++) sb.Append(CultureInfo.InvariantCulture, $"\n{i + 1}. {Commands[i]}");
+            if (Active is not null)
+                foreach (var a in Active) sb.Append(CultureInfo.InvariantCulture, $"\n{a.Name} ({a.Id})");
+            return sb.ToString();
+        }
+
+        public string ToJson()
+        {
+            var node = new System.Text.Json.Nodes.JsonObject { ["ok"] = Ok };
+            if (Code is not null) node["error"] = Code;
+            if (Message.Length > 0) node["message"] = Message;
+            if (Commands is not null) node["commands"] = new System.Text.Json.Nodes.JsonArray([.. Commands.Select(c => (System.Text.Json.Nodes.JsonNode?)c)]);
+            if (Active is not null)
+                node["assistants"] = new System.Text.Json.Nodes.JsonArray([.. Active.Select(a => (System.Text.Json.Nodes.JsonNode?)new System.Text.Json.Nodes.JsonObject { ["id"] = a.Id, ["name"] = a.Name })]);
+            return node.ToJsonString();
+        }
     }
 
     public void Dispose() => Stop();

@@ -26,7 +26,7 @@ allí.
 
 | Sección | Qué tiene |
 |---|---|
-| **Control remoto** | El servidor UDP. Ver [Móvil y control remoto](remote.md) |
+| **Control remoto** | El servidor UDP: puerto, desde dónde, clave y qué se permite. Ver [Móvil y control remoto](remote.md) |
 | **Aplicación web** | El servidor web, emparejar y los dispositivos emparejados, touchpad y teclado |
 | **Aplicación de Android** | Su versión y «Guardar la APK» |
 

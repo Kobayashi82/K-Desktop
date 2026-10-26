@@ -8,8 +8,9 @@ namespace KDesktop.Core.Remote.Web;
 /// <summary>
 /// How the web server is set up (built from the settings; a change restarts it). The base path is the one of the
 /// internet address ("/kdesktop" in https://example.com/kdesktop): it only applies to what comes through the proxy.
+/// <paramref name="Scope"/> says where requests are taken from (through the proxy, the device behind it counts).
 /// </summary>
-public sealed record WebServerOptions(int Port, string BasePath);
+public sealed record WebServerOptions(int Port, string BasePath, RemoteScope Scope = RemoteScope.Internet);
 
 public enum WebServerState { Stopped, Running, LocalOnly, Error }
 

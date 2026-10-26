@@ -48,5 +48,5 @@ HTTP:  POST http://<PC>:2502/api/event
        {"name": "puerta"}
 ```
 
-Por UDP necesita *Opciones → Control remoto* encendido (y «Aceptar desde otros dispositivos» si la llamada no sale de este
-PC); por la web, el dispositivo tiene que estar emparejado (ver [Móvil y control remoto](remote.md)).
+Por UDP necesita *Opciones → Control remoto* encendido con *Eventos* permitido (y la clave, si tiene, desde otro
+equipo); por la web, el dispositivo tiene que estar emparejado (ver [Móvil y control remoto](remote.md)).

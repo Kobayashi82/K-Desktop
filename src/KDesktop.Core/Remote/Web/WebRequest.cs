@@ -45,7 +45,7 @@ internal sealed class WebRequest
 
         // Forwarded headers are only believed from this PC or a private address (the proxy: on the local network, or
         // at the other end of a VPN tunnel); from the internet they could only come through it anyway.
-        var trusted = loopback || IsPrivate(remote);
+        var trusted = loopback || RemoteAddresses.IsPrivate(remote);
         var client = remote;
         var scheme = "http";
         string? forwardedHost = null;
@@ -70,6 +70,9 @@ internal sealed class WebRequest
         else if (path.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase)) appPath = path[prefix.Length..];
         else appPath = path; // the proxy already removed it
 
+        // Where it really comes from (through the proxy: the device behind it) against where the server accepts from.
+        if (!RemoteAddresses.Allows(options.Scope, client)) return null;
+
         var host = forwardedHost ?? raw.Headers["Host"];
         return new WebRequest
         {
@@ -90,15 +93,6 @@ internal sealed class WebRequest
         if (string.IsNullOrEmpty(host)) return false;
         var name = host.StartsWith('[') ? host[..(host.IndexOf(']') + 1)] : host.Split(':')[0];
         return name.Equals("localhost", StringComparison.OrdinalIgnoreCase) || name is "127.0.0.1" or "[::1]";
-    }
-
-    /// <summary>Private ranges: 10/8, 172.16/12, 192.168/16, 100.64/10 (CG-NAT, VPNs), IPv6 unique and link local.</summary>
-    private static bool IsPrivate(IPAddress ip)
-    {
-        if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
-            return ip.IsIPv6UniqueLocal || ip.IsIPv6LinkLocal;
-        var b = ip.GetAddressBytes();
-        return b[0] == 10 || (b[0] == 172 && b[1] is >= 16 and <= 31) || (b[0] == 192 && b[1] == 168) || (b[0] == 100 && b[1] is >= 64 and <= 127);
     }
 
     /// <summary>The right-most address: the one the proxy itself added.</summary>

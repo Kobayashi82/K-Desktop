@@ -644,7 +644,7 @@
                     <Grid.ColumnDefinitions><ColumnDefinition Width="140" /><ColumnDefinition Width="16" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
                     <StackPanel>
                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.filesKeep}" />
-                        <ui:TextBox Text="{Binding Keep, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" AutomationProperties.Name="{l:Tr editor.filesKeep}" />
+                        <v:NumberField Value="{Binding Keep}" Maximum="999" AutomationProperties.Name="{l:Tr editor.filesKeep}" />
                     </StackPanel>
                     <CheckBox Grid.Column="2" VerticalAlignment="Bottom" Margin="0,0,0,6" Content="{l:Tr editor.filesZip}" IsChecked="{Binding BackupZip}" />
                 </Grid>

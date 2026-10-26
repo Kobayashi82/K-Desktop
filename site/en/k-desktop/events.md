@@ -45,5 +45,5 @@ HTTP:  POST http://<PC>:2502/api/event
        {"name": "door"}
 ```
 
-Over UDP it needs *Settings → Remote control* on (and «Accept from other devices» if the call does not come from this PC);
-over the web, the device needs to be paired (see [Phone and remote control](remote.md)).
+Over UDP it needs *Settings → Remote control* on with *Events* allowed (and the key, if there is one, from another
+computer); over the web, the device needs to be paired (see [Phone and remote control](remote.md)).

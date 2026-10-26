@@ -83,8 +83,8 @@ public sealed class FileEventTests : IDisposable
         service.Start(afterUpdate: false);
         var udp = new KDesktop.Core.Remote.UdpServer(engine, new FakeUi());
 
-        Assert.Contains("(done)", udp.Handle("evento puerta"));
-        Assert.Contains("Ningún", udp.Handle("evento ventana"));
+        Assert.StartsWith("OK", udp.Receive("event puerta", System.Net.IPAddress.Loopback));
+        Assert.StartsWith("ERROR", udp.Receive("event ventana", System.Net.IPAddress.Loopback));
         for (var i = 0; i < 30 && runs == 0; i++) await Task.Delay(100);
         Assert.Equal(1, runs);
     }

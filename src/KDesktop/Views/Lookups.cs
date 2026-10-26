@@ -120,6 +120,7 @@ public static class Lookups
     public static IReadOnlyList<Option<OsdFullscreen>> OsdFullscreens { get; } = Enum<OsdFullscreen>("enum.osdFullscreen");
     public static IReadOnlyList<Option<NotifyCorner>> NotifyCorners { get; } = Enum<NotifyCorner>("enum.notifyCorner");
     public static IReadOnlyList<Option<NotifyFullscreen>> NotifyFullscreens { get; } = Enum<NotifyFullscreen>("enum.notifyFullscreen");
+    public static IReadOnlyList<Option<Core.Remote.RemoteScope>> RemoteScopes { get; } = Enum<Core.Remote.RemoteScope>("enum.remoteScope");
     public static IReadOnlyList<Option<NotifyColor>> NotifyColors { get; } = Enum<NotifyColor>("enum.notifyColor");
     public static IReadOnlyList<Option<NotifyPlace>> NotifyPlaces { get; } = Enum<NotifyPlace>("enum.notifyPlace");
     public static IReadOnlyList<Option<NotifyClick>> NotifyClicks { get; } = Enum<NotifyClick>("enum.notifyClick");

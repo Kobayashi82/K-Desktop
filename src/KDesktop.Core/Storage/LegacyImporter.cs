@@ -62,7 +62,7 @@ public static class LegacyImporter
         s.StartWithWindows = Bool(o, "IniciarWindows", true);
         s.ShowTrayIcon = Bool(o, "IconoSistema", true);
         s.BlockSideButtons = Bool(o, "DisableXButton", true);
-        s.UdpAllowRemote = Bool(o, "UDP", true);
+        s.UdpScope = Bool(o, "UDP", true) ? Remote.RemoteScope.LocalNetwork : Remote.RemoteScope.ThisPc;
         if (int.TryParse(Str(o, "UDPPort"), out var port) && port >= 1000) s.UdpPort = port;
         s.StartupMessage = NullIfEmpty(Str(o, "MensajeIniciar_Texto"));
         s.StartupSound = Sound(Str(o, "MensajeIniciar_Sonido"));

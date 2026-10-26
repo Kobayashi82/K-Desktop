@@ -38,9 +38,16 @@ public partial class SettingsPage : UserControl
         DataPathText.Text = AppPaths.DataDir;
         ShowBackupStatus();
         UpdateTrayImage();
-        IpInfo.ToolTip = string.Join(Environment.NewLine, NetworkInfo.LocalIPv4());
+        UdpKeyBox.Password = _app.UdpKey ?? string.Empty;
+        UdpKeyBox.LostFocus += (_, _) => SaveUdpKey(UdpKeyBox.Password);
+        UpdateUdpScopeHint();
 
         // Pages are kept while the window lives: follow the server only while this one is shown.
+        void OnUdpState() => Dispatcher.BeginInvoke(UpdateUdpState);
+        void OnSetting(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName is nameof(AppSettings.UdpScope) or nameof(AppSettings.UdpKey)) UpdateUdpScopeHint();
+        }
         void OnWebState() => Dispatcher.BeginInvoke(UpdateWebState);
         void OnDevices() => Dispatcher.BeginInvoke(LoadDevices);
         void OnVoiceModels() => Dispatcher.BeginInvoke(UpdateVoiceModels);
@@ -56,6 +63,7 @@ public partial class SettingsPage : UserControl
         Loaded += (_, _) =>
         {
             SelectOsdSpot();
+            UpdateUdpState();
             UpdateWebState();
             LoadDevices();
             UpdateVoiceModels();
@@ -64,6 +72,9 @@ public partial class SettingsPage : UserControl
             FillAndroid();
             _app.Updates.Changed += OnUpdates;
             _app.AssistantUpdatesChanged += OnAssistantUpdates;
+            _app.Udp.StateChanged += OnUdpState;
+            _app.Config.Settings.PropertyChanged += OnSetting;
+            UpdateUdpScopeHint();
             _app.Web.StateChanged += OnWebState;
             _app.Web.Devices.Changed += OnDevices;
             _app.Voice.Models.Changed += OnVoiceModels;
@@ -72,6 +83,8 @@ public partial class SettingsPage : UserControl
         {
             _app.Updates.Changed -= OnUpdates;
             _app.AssistantUpdatesChanged -= OnAssistantUpdates;
+            _app.Udp.StateChanged -= OnUdpState;
+            _app.Config.Settings.PropertyChanged -= OnSetting;
             _app.Web.StateChanged -= OnWebState;
             _app.Web.Devices.Changed -= OnDevices;
             _app.Voice.Models.Changed -= OnVoiceModels;
@@ -440,6 +453,54 @@ public partial class SettingsPage : UserControl
         if (sender is not FrameworkElement { Tag: string id, DataContext: DeviceRow row }) return;
         if (!await Confirm(Loc.T("settings.webRevokeConfirm", row.Name))) return;
         _app.Web.Devices.Revoke(id);
+    }
+
+    // ── UDP ──────────────────────────────────────────────────────────────
+
+    private void UpdateUdpState()
+    {
+        var running = _app.Udp.IsRunning;
+        UdpStateIcon.Visibility = running ? Visibility.Visible : Visibility.Collapsed;
+        UdpStateInfo.ToolTip = running ? string.Join(Environment.NewLine, NetworkInfo.LocalIPv4()) : null;
+        UdpStateText.Text = running ? Loc.T("settings.udpAddresses")
+            : _app.Udp.Failed ? Loc.T("settings.webError")
+            : !_app.UdpAllowed ? Loc.T("settings.udpDisabledArg")
+            : Loc.T("settings.webStopped");
+    }
+
+    private void UpdateUdpScopeHint()
+    {
+        var s = _app.Config.Settings;
+        UdpScopeHint.Text = s.UdpScope == Core.Remote.RemoteScope.Internet && s.UdpKey is null
+            ? Loc.T("settings.udpInternetNeedsKey")
+            : Loc.T("settings.udpScopeHint");
+        UdpScopeHint.SetResourceReference(ForegroundProperty,
+            s.UdpScope == Core.Remote.RemoteScope.Internet && s.UdpKey is null ? "Kd.Warning" : "TextFillColorSecondaryBrush");
+    }
+
+    /// <summary>Saves the key (spaces out: the text form separates the key from the order with one); empty removes it.</summary>
+    private void SaveUdpKey(string key)
+    {
+        key = string.Concat(key.Where(c => !char.IsWhiteSpace(c)));
+        if (UdpKeyBox.Password != key) UdpKeyBox.Password = key;
+        if (key == (_app.UdpKey ?? string.Empty)) return;
+        _app.Config.Settings.UdpKey = key.Length == 0 ? null : Secrets.Protect(key);
+    }
+
+    private async void OnNewUdpKey(object sender, RoutedEventArgs e)
+    {
+        if (_app.UdpKey is not null && !await Confirm(Loc.T("settings.udpKeyNewConfirm"))) return;
+        var key = Core.Assistant.Sharing.McpShare.NewKey();
+        SaveUdpKey(key);
+        try
+        {
+            Clipboard.SetText(key);
+            _app.Ui.ShowOsd(Loc.T("settings.udpKeyCopied"), OsdKind.Success);
+        }
+        catch (Exception ex) when (ex is System.Runtime.InteropServices.COMException or System.Runtime.InteropServices.ExternalException)
+        {
+            _app.Ui.ShowOsd(ex.Message, OsdKind.Warning);
+        }
     }
 
     private void UpdateWebState()

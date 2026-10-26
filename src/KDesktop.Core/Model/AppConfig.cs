@@ -119,6 +119,15 @@ public sealed class AppConfig
                 .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
             changed = true;
         }
+        // Until 5.0.246 the remote control had «Aceptar desde otros dispositivos» and the web app took any address
+        // (pairing aside): now both say where from. The web keeps taking everything, as before.
+        if (Settings.UdpAllowRemote is { } remote)
+        {
+            Settings.UdpScope = remote ? Remote.RemoteScope.LocalNetwork : Remote.RemoteScope.ThisPc;
+            Settings.WebScope = Remote.RemoteScope.Internet;
+            Settings.UdpAllowRemote = null;
+            changed = true;
+        }
         changed |= MigrateBrain();
         changed |= MigrateStartupAndExit();
         if (SchemaVersion < CurrentSchema)
@@ -489,12 +498,28 @@ public partial class AppSettings : ObservableObject
 
     // Remote (UDP)
     [ObservableProperty] private bool _udpEnabled = true;
-    [ObservableProperty] private bool _udpAllowRemote = true;
     [ObservableProperty] private int _udpPort = 2501;
+    [ObservableProperty] private Remote.RemoteScope _udpScope = Remote.RemoteScope.LocalNetwork;
+
+    /// <summary>The shared key, encrypted with <see cref="Platform.Secrets"/> (null: none).</summary>
+    [ObservableProperty]
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    private string? _udpKey;
+
+    [ObservableProperty] private bool _udpAllowKeys;
+    [ObservableProperty] private bool _udpAllowHidden;
+    [ObservableProperty] private bool _udpAllowEvents = true;
+    [ObservableProperty] private bool _udpAllowAssistants;
+
+    /// <summary>Only read from configurations before 5.0.247: <see cref="AppConfig.Upgrade"/> turns it into <see cref="UdpScope"/>.</summary>
+    [ObservableProperty]
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    private bool? _udpAllowRemote;
 
     // Remote web app (PWA)
     [ObservableProperty] private bool _webEnabled;
     [ObservableProperty] private int _webPort = 2502;
+    [ObservableProperty] private Remote.RemoteScope _webScope = Remote.RemoteScope.LocalNetwork;
 
     /// <summary>
     /// Internet address of the app through the proxy (https://…, maybe with a path such as /kdesktop, which becomes

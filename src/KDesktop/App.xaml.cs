@@ -280,8 +280,9 @@ public partial class App : Application
         SystemEvents.SessionEnding += OnSessionEnding;
 
         // Remote control
-        Udp = new UdpServer(Engine, Ui);
-        Web = new WebServer(new WebHost(Dispatcher, Engine, Achievements, Voice) { Assistants = new WebAssistants(this) });
+        var assistants = new WebAssistants(this);
+        Udp = new UdpServer(Engine, Ui) { Assistants = assistants, OnUi = f => Dispatcher.CheckAccess() ? f() : Dispatcher.Invoke(f) };
+        Web = new WebServer(new WebHost(Dispatcher, Engine, Achievements, Voice) { Assistants = assistants });
         Web.Devices.Paired += _ => Achievements.Unlock("pair");
         Web.PointerMoved += () => Achievements.Unlock("touchpad");
         Web.StateChanged += () => Dispatcher.BeginInvoke(() => _main?.UpdateStatus());
@@ -454,6 +455,9 @@ public partial class App : Application
         UpdateTray();
     }
 
+    /// <summary>The UDP server's key in plain text (null: none).</summary>
+    public string? UdpKey => Config.Settings.UdpKey is { } stored ? Core.Platform.Secrets.Unprotect(stored) : null;
+
     /// <summary>Applies settings that have side effects (theme, tray, UDP).</summary>
     public void ApplySettings()
     {
@@ -488,11 +492,12 @@ public partial class App : Application
         WakeListener?.Refresh(); // the option, the microphone or the pause changed
         _main?.UpdateStatus(); // e.g. the voice hotkey shown in its tooltip
 
-        if (s.UdpEnabled && !UdpDisabled) Udp.Start(s.UdpPort, s.UdpAllowRemote);
+        if (s.UdpEnabled && !UdpDisabled)
+            Udp.Start(new UdpOptions(s.UdpPort, s.UdpScope, UdpKey, s.UdpAllowKeys, s.UdpAllowHidden, s.UdpAllowEvents, s.UdpAllowAssistants));
         else Udp.Stop();
 
         if (s.WebEnabled && !WebDisabled)
-            Web.Start(new WebServerOptions(s.WebPort, WebServer.BasePathOf(s.WebPublicUrl)));
+            Web.Start(new WebServerOptions(s.WebPort, WebServer.BasePathOf(s.WebPublicUrl), s.WebScope));
         else Web.Stop();
         Web.InputAllowed = s.WebInput;
         ApplyAssistant();
