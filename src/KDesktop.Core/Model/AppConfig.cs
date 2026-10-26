@@ -822,6 +822,12 @@ public partial class AppSettings : ObservableObject
     /// <summary>Pictures and scanned PDF of those folders are read with the OCR of Windows (stage 19.2).</summary>
     [ObservableProperty] private bool _assistantKnowledgeOcr = true;
 
+    /// <summary>The user stopped the reading of those folders (what was read is still searched; changes wait).</summary>
+    [ObservableProperty] private bool _assistantKnowledgePaused;
+
+    /// <summary>Files of those folders the user took out of «Lo que sabe» (not read, forgotten). Replaced whole.</summary>
+    [ObservableProperty] private List<string> _assistantKnowledgeSkipped = [];
+
     /// <summary>
     /// The model of each assistant that has its own: assistant id → model (absent: the general one, also when the server
     /// does not have it). Replaced whole on every change (so it is saved).

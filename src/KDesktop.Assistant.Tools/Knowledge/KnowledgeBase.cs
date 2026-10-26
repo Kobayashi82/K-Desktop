@@ -54,8 +54,10 @@ public sealed class KnowledgeBase : IDisposable
     private readonly HashSet<string> _offline = new(StringComparer.OrdinalIgnoreCase);
     private readonly Timer _settleTimer;
     private readonly Timer _changedTimer;
+    private readonly HashSet<string> _skipped = new(StringComparer.OrdinalIgnoreCase);
     private IReadOnlyList<string> _folders = [];
     private bool _readPictures = true;
+    private volatile bool _userPaused;
     private bool _scanAll;
     private long _order;
     private Task? _worker;
@@ -97,22 +99,41 @@ public sealed class KnowledgeBase : IDisposable
 
     public bool HasFolders => _folders.Count > 0;
 
-    /// <summary>The folders and whether pictures and scanned pages are read (<c>config</c> <c>tools</c> <c>knowledge</c>).</summary>
-    public void Configure(IEnumerable<string> folders, bool readPictures)
+    /// <summary>
+    /// The folders, whether pictures and scanned pages are read, the files the user took out and whether the user stopped
+    /// the reading (<c>config</c> <c>tools</c> <c>knowledge</c>).
+    /// </summary>
+    public void Configure(IEnumerable<string> folders, bool readPictures, IEnumerable<string>? skipped = null, bool paused = false)
     {
         var clean = KnowledgeFolders.Clean(folders);
+        var skip = new HashSet<string>((skipped ?? []).Select(Full).OfType<string>(), StringComparer.OrdinalIgnoreCase);
+        if (_userPaused != paused)
+        {
+            _userPaused = paused;
+            Log.Info(paused ? "Asistente: lo que sabe, lectura en pausa" : "Asistente: lo que sabe, sigue leyendo");
+            Raise();
+        }
         lock (_gate)
         {
-            var same = clean.SequenceEqual(_folders, StringComparer.OrdinalIgnoreCase) && readPictures == _readPictures;
+            var same = clean.SequenceEqual(_folders, StringComparer.OrdinalIgnoreCase) && readPictures == _readPictures && skip.SetEquals(_skipped);
             _folders = clean;
             _readPictures = readPictures;
             if (same) return;
+            _skipped.Clear();
+            _skipped.UnionWith(skip);
             _scanAll = true;
         }
         Watch();
-        Log.Info($"Asistente: lo que sabe, {clean.Count} carpeta(s){(readPictures ? " con OCR" : string.Empty)}");
+        Log.Info($"Asistente: lo que sabe, {clean.Count} carpeta(s){(readPictures ? " con OCR" : string.Empty)}{(skip.Count > 0 ? $", {skip.Count} archivo(s) quitados" : string.Empty)}");
         _wake.Release();
         Raise();
+    }
+
+    /// <summary>A path as the folders give it (null: not a path).</summary>
+    private static string? Full(string path)
+    {
+        try { return Path.GetFullPath(path); }
+        catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException) { return null; }
     }
 
     /// <summary>Starts reading (once): what was read before, then the folders.</summary>
@@ -177,27 +198,54 @@ public sealed class KnowledgeBase : IDisposable
         }
     }
 
-    /// <summary>The files of <paramref name="folder"/>, with how each one is (the first <see cref="KnowledgeFilesMessage.Most"/>).</summary>
-    public KnowledgeFilesMessage FilesIn(string folder)
+    /// <summary>
+    /// The files of <paramref name="folder"/> with how each one is: those with <paramref name="text"/> in their path (within
+    /// the folder) and in <paramref name="filter"/> (see <see cref="KnowledgeMessage.Filter"/>), the first
+    /// <see cref="KnowledgeFilesMessage.Most"/>; and how many there are in each filter.
+    /// </summary>
+    public KnowledgeFilesMessage FilesIn(string folder, string? text = null, string? filter = null)
     {
         lock (_gate)
         {
             var paths = _files.Keys.Where(f => KnowledgeFolders.Contains(folder, f))
                 .Concat(_index.All.Select(d => d.Path).Where(p => KnowledgeFolders.Contains(folder, p)))
-                .Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToList();
-            var files = paths.Take(KnowledgeFilesMessage.Most).Select(path =>
+                .Distinct(StringComparer.OrdinalIgnoreCase);
+            var all = paths.Select(path => Info(path))
+                .Concat(_skipped.Where(s => KnowledgeFolders.Contains(folder, s)).Select(s => new KnowledgeFileInfo(s, "skipped", 0, 0)))
+                .ToList();
+            var counts = new Dictionary<string, int>(StringComparer.Ordinal)
             {
-                var document = _index.Find(path);
-                var state = document is null || !UpToDate(path) && _files.ContainsKey(path) ? "waiting" : document.State switch
-                {
-                    KnowledgeState.Empty => "empty",
-                    KnowledgeState.Failed => "failed",
-                    _ => "ready",
-                };
-                return new KnowledgeFileInfo(path, state, document?.Pieces.Length ?? 0, document?.Pages ?? 0, document?.Ocr ?? false);
-            }).ToList();
-            return new KnowledgeFilesMessage(folder, files, paths.Count);
+                ["all"] = all.Count(f => InFilter(f, "all")),
+                ["ready"] = all.Count(f => InFilter(f, "ready")),
+                ["waiting"] = all.Count(f => InFilter(f, "waiting")),
+                ["problem"] = all.Count(f => InFilter(f, "problem")),
+                ["skipped"] = all.Count(f => InFilter(f, "skipped")),
+            };
+            var words = text?.Trim() ?? string.Empty;
+            var chosen = all.Where(f => InFilter(f, filter ?? "all")
+                    && (words.Length == 0 || Path.GetRelativePath(folder, f.Path).Contains(words, StringComparison.CurrentCultureIgnoreCase)))
+                .OrderBy(f => f.Path, StringComparer.OrdinalIgnoreCase).ToList();
+            return new KnowledgeFilesMessage(folder, [.. chosen.Take(KnowledgeFilesMessage.Most)], chosen.Count, text, filter, counts);
         }
+
+        KnowledgeFileInfo Info(string path)
+        {
+            var document = _index.Find(path);
+            var state = document is null || !UpToDate(path) && _files.ContainsKey(path) ? "waiting" : document.State switch
+            {
+                KnowledgeState.Empty => "empty",
+                KnowledgeState.Failed => "failed",
+                _ => "ready",
+            };
+            return new KnowledgeFileInfo(path, state, document?.Pieces.Length ?? 0, document?.Pages ?? 0, document?.Ocr ?? false);
+        }
+
+        static bool InFilter(KnowledgeFileInfo file, string filter) => filter switch
+        {
+            "ready" or "waiting" or "skipped" => file.State == filter,
+            "problem" => file.State is "empty" or "failed",
+            _ => file.State != "skipped",
+        };
     }
 
     /// <summary>Read, and as it is now on disk (and with this model's vectors, once there is one).</summary>
@@ -302,13 +350,14 @@ public sealed class KnowledgeBase : IDisposable
     private async Task<bool> WaitAsync(CancellationToken stop)
     {
         var waited = false;
-        while (WaitReason() is { } why)
+        while ((_userPaused ? "user" : WaitReason()) is { } why)
         {
-            if (!waited) Log.Info($"Asistente: lo que sabe espera ({why})");
+            if (!waited && why != "user") Log.Info($"Asistente: lo que sabe espera ({why})");
             waited = true;
             lock (_gate) _paused = why;
             Raise();
-            await Task.Delay(PauseLook, stop).ConfigureAwait(false);
+            // Stopped by the user: «Continuar» goes on at once (almost).
+            await Task.Delay(why == "user" ? TimeSpan.FromMilliseconds(500) : PauseLook, stop).ConfigureAwait(false);
             lock (_gate)
                 if (_scanAll) return false;
         }
@@ -383,6 +432,11 @@ public sealed class KnowledgeBase : IDisposable
         }
         lock (_gate)
         {
+            // The files taken out are not there (and what was read of them is forgotten below).
+            foreach (var skipped in _skipped) seen.Remove(skipped);
+            // The queue is made again: what was in it from folders taken out does not stay (nor counts).
+            _queue.Clear();
+            _queued.Clear();
             _files.Clear();
             foreach (var (path, signature) in seen) _files[path] = signature;
             _offline.Clear();
@@ -418,7 +472,8 @@ public sealed class KnowledgeBase : IDisposable
                 {
                     if (entry is DirectoryInfo sub)
                     {
-                        if (!FileSearch.IsProgramsFolder(sub.Name) && !sub.Attributes.HasFlag(FileAttributes.ReparsePoint)) pending.Push(sub.FullName);
+                        if (!FileSearch.IsProgramsFolder(sub.Name) && !sub.Attributes.HasFlag(FileAttributes.ReparsePoint) && !KnowledgeReader.IsSavedPageFolder(sub))
+                            pending.Push(sub.FullName);
                     }
                     else if (entry is FileInfo file && KnowledgeReader.Takes(file, pictures))
                     {
@@ -668,7 +723,13 @@ public sealed class KnowledgeBase : IDisposable
         if (folder is null) return true;
         if (string.Equals(folder, path, StringComparison.OrdinalIgnoreCase)) return false;
         var parts = Path.GetRelativePath(folder, Path.GetDirectoryName(path)!).Split('\\', StringSplitOptions.RemoveEmptyEntries);
-        return parts.Any(p => p != "." && FileSearch.IsProgramsFolder(p));
+        var current = folder;
+        foreach (var part in parts.Where(p => p != "."))
+        {
+            current = Path.Combine(current, part);
+            if (FileSearch.IsProgramsFolder(part) || KnowledgeReader.IsSavedPageFolder(new DirectoryInfo(current))) return true;
+        }
+        return false;
     }
 
     /// <summary>A file the user chose by itself (not by its folder).</summary>
@@ -676,7 +737,7 @@ public sealed class KnowledgeBase : IDisposable
 
     private bool Seen(string path, FileSignature signature)
     {
-        if (!_folders.Any(f => KnowledgeFolders.Contains(f, path))) return false;
+        if (!_folders.Any(f => KnowledgeFolders.Contains(f, path)) || _skipped.Contains(path)) return false;
         if (_files.TryGetValue(path, out var known) && known == signature && UpToDate(path)) return false;
         _files[path] = signature;
         Enqueue(path, _index.Find(path) is null ? 0 : 1);

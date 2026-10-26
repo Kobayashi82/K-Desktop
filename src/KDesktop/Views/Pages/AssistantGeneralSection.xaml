@@ -17,6 +17,7 @@
                 </StackPanel>
                 <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AssistantEnabled}" AutomationProperties.Name="{l:Tr assistantOptions.enable}" />
             </Grid>
+            <Border Height="1" Margin="0,6,0,14" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
 
             <Grid Style="{StaticResource SettingRow}" IsEnabled="{Binding AssistantEnabled}">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>

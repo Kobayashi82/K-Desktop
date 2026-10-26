@@ -47,6 +47,7 @@ modelos tiene. Sus modelos salen en la misma lista.
 |---|---|
 | **Modelo** | *Automático*: el más grande que cabe en tu gráfica. O uno concreto, o *Sin IA* |
 | **Para pensar más** | El que usa cuando dices «piénsalo bien», cuando el modelo ve que no le basta o cuando le dices que se ha equivocado. *El mismo, pensando antes de contestar*, otro modelo, o *Nunca* |
+| | Los dos tienen **Examinar…** (un `.gguf` de cualquier carpeta) y **Cargar** cuando el elegido no está en memoria |
 | **Cuánto puede pensar** | Poco, normal, mucho. Más va mejor con lo difícil, pero tarda más |
 | **Descargarlo tras** | Tanto tiempo sin usarlo, sale de la memoria (o *Nunca*: solo si se lo pides). Volver a cargarlo tarda unos segundos |
 | **Un modelo a la vez** | Al cargar uno, se descargan los demás. Apagado, se quedan varios mientras quepan |

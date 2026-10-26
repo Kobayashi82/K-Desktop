@@ -198,6 +198,9 @@ public partial class AssistantBrainSection : UserControl
             selected = new ModelOption(chosen, Loc.T("brainOptions.modelNotThere", _app.BrainModelName(chosen)));
             options.Insert(1, selected);
         }
+        // «Cargar» only for a model of its own that is not in memory (nor on its way): it would load the first time it thinks.
+        ThinkLoadButton.Visibility = brain is { State: "ready", Loading: null, Models: { } models } && chosen.Length > 0 && chosen != ModelRefs.None
+            && ModelRefs.Find(models.Select(m => m.Name), chosen) is { } think && !InMemory(brain, think) ? Visibility.Visible : Visibility.Collapsed;
         if (ThinkBox.IsDropDownOpen) return;
         ThinkBox.ItemsSource = options;
         ThinkBox.SelectedItem = selected;
@@ -636,6 +639,8 @@ public partial class AssistantBrainSection : UserControl
 
     private void OnLoad(object sender, RoutedEventArgs e) => _app.AskAssistantBrain("load");
 
+    private void OnThinkLoad(object sender, RoutedEventArgs e) => _app.AskAssistantBrain("load", _app.Config.Settings.AssistantBrainThinkModel);
+
     private void OnOneAtATime(object sender, RoutedEventArgs e)
     {
         if (!_filling) _app.Config.Settings.AssistantBrainOneAtATime = OneAtATimeSwitch.IsChecked == true;
@@ -675,6 +680,15 @@ public partial class AssistantBrainSection : UserControl
         var s = _app.Config.Settings;
         var near = ModelRefs.IsLocal(s.AssistantBrainModel) ? s.AssistantBrainModel : s.AssistantBrainFolders.FirstOrDefault() ?? _app.AssistantModelsFolder + "\\";
         if (Browse(Loc.T("brainOptions.browseModelTitle"), "*.gguf|*.gguf", near) is { } path) s.AssistantBrainModel = path;
+    }
+
+    /// <summary>The same for «Para pensar más».</summary>
+    private void OnBrowseThinkModel(object sender, RoutedEventArgs e)
+    {
+        var s = _app.Config.Settings;
+        var near = ModelRefs.IsLocal(s.AssistantBrainThinkModel) ? s.AssistantBrainThinkModel
+            : ModelRefs.IsLocal(s.AssistantBrainModel) ? s.AssistantBrainModel : s.AssistantBrainFolders.FirstOrDefault() ?? _app.AssistantModelsFolder + "\\";
+        if (Browse(Loc.T("brainOptions.browseThinkTitle"), "*.gguf|*.gguf", near) is { } path) s.AssistantBrainThinkModel = path;
     }
 
     private void OnAddModel(object sender, RoutedEventArgs e) => new AddModelWindow { Owner = Window.GetWindow(this) }.ShowDialog();

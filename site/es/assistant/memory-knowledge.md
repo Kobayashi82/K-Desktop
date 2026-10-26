@@ -42,11 +42,16 @@ se vigilan: un archivo nuevo o cambiado se vuelve a leer solo. Nada sale del ord
 - **Qué se lee**: texto y Markdown, PDF, Word (`.docx`), PowerPoint (`.pptx`), páginas web, subtítulos y correos (`.eml`),
   y archivos de código o de datos que no sean muy grandes. Con **Leer imágenes y PDF escaneados**, también imágenes y
   páginas de PDF sin texto, con el reconocimiento de texto de Windows (la primera vez tarda más).
-- **Qué no se puede**: un disco entero, ni carpetas de Windows o de los programas. Las carpetas ocultas se saltan.
-- **Mientras lee**, la página enseña «Leyendo: 412 de 1.300 archivos» y el archivo por el que va. Lee sin agobiar al PC y
-  **se pone en pausa** con un juego a pantalla completa, con K-Desktop en pausa y mientras un asistente contesta.
-- Cada carpeta o archivo tiene **Ver lo leído** (cada archivo con sus trozos, páginas, o por qué no se ha podido leer),
-  **Abrir la carpeta** y **Quitar**. Una carpeta de un disco que no está conectado conserva lo que ya leyó.
+- **Qué no se puede**: un disco entero, ni carpetas de Windows o de los programas. Las carpetas ocultas se saltan, y también la de estilos y scripts
+  de una página web guardada (`Página_files`); el código minificado queda *Sin texto*.
+- **Mientras lee**, la página enseña «Leyendo: 412 de 1.300 archivos», cuánto le queda más o menos y el archivo por el que
+  va. Lee sin agobiar al PC y **se pone en pausa** con un juego a pantalla completa, con K-Desktop en pausa y mientras un
+  asistente contesta. **Pausar la lectura** la detiene hasta que pulses **Seguir leyendo** (lo ya leído se sigue usando).
+- Cada carpeta o archivo tiene **Abrir la carpeta** y **Quitar**; las carpetas, también **Ver los archivos**: la lista,
+  con su propio desplazamiento, con cada archivo y sus trozos, páginas, o por qué no se ha podido leer. Se puede **buscar**
+  por nombre o carpeta y **filtrar** (*Leídos*, *Por leer*, *Sin texto o sin poder leer*, *Quitados*). Cada archivo se
+  puede **abrir**, **ver en su carpeta** o **quitar de lo que sabe** (no se lee y se olvida lo leído; *Volver a incluir* lo
+  devuelve). Una carpeta de un disco que no está conectado conserva lo que ya leyó.
 - **Probar una búsqueda**: lo que encontraría un asistente al preguntarle eso, y cuánto ha tardado.
 - **Volver a leerlo todo** y **Olvidarlo todo** (tus archivos nunca se tocan).
 

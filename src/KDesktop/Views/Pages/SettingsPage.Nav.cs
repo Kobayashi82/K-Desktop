@@ -59,9 +59,9 @@ public partial class SettingsPage
         new("assistant", "settings.nav.assistantGroup",
         [
             new("assistant", "Bot24", "settings.nav.assistant"),
-            new("assistants", "PeopleCommunity24", "settings.nav.assistants"),
-            new("catalog", "AppsAddIn24", "settings.nav.catalog"),
             new("brain", "BrainCircuit24", "settings.nav.brain"),
+            new("catalog", "AppsAddIn24", "settings.nav.catalog"),
+            new("assistants", "PeopleCommunity24", "settings.nav.assistants"),
             new("tools", "Wrench24", "settings.nav.tools"),
             new("speech", "PersonVoice24", "settings.nav.assistantVoice"),
             new("memory", "BookInformation24", "settings.nav.memory"),

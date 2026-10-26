@@ -33,7 +33,7 @@
                 <!-- How it goes -->
                 <StackPanel x:Name="StateBox" Margin="0,4,0,6">
                     <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <ui:SymbolIcon x:Name="StateIcon" Symbol="BookOpen24" FontSize="20" Margin="0,0,10,0" VerticalAlignment="Center"
                                        Foreground="{DynamicResource Kd.AccentText}" />
                         <StackPanel Grid.Column="1">
@@ -41,6 +41,8 @@
                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                             <TextBlock x:Name="DetailText" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
                         </StackPanel>
+                        <!-- The user stops the reading or lets it go on -->
+                        <ui:Button x:Name="PauseButton" Grid.Column="2" MinHeight="36" Margin="12,0,0,0" VerticalAlignment="Center" Click="OnPause" />
                     </Grid>
                     <ProgressBar x:Name="Progress" Height="4" Margin="0,10,0,0" Maximum="1" />
                 </StackPanel>
@@ -70,10 +72,10 @@
             </StackPanel>
         </Border>
 
-        <!-- The files of a folder («Ver archivos») -->
+        <!-- The files of a folder («Ver archivos»): a search, a filter, and the list in its own scroll -->
         <Border x:Name="FilesCard" Style="{StaticResource Card}" Visibility="Collapsed">
             <StackPanel>
-                <Grid Margin="0,0,0,6">
+                <Grid Margin="0,0,0,10">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <StackPanel Margin="0,0,16,0">
                         <TextBlock x:Name="FilesTitle" Style="{StaticResource CardTitle}" Margin="0,0,0,2" TextTrimming="CharacterEllipsis" />
@@ -81,8 +83,17 @@
                     </StackPanel>
                     <ui:Button MinHeight="36" Grid.Column="1" VerticalAlignment="Top" Icon="{ui:SymbolIcon Dismiss24}" Content="{l:Tr knowledgeOptions.close}" Click="OnCloseFiles" />
                 </Grid>
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="230" /></Grid.ColumnDefinitions>
+                    <ui:TextBox x:Name="FilesSearch" Icon="{ui:SymbolIcon Search24}" PlaceholderText="{l:Tr knowledgeOptions.filesSearch}"
+                                TextChanged="OnFilesSearchChanged" AutomationProperties.Name="{l:Tr knowledgeOptions.filesSearch}" />
+                    <ComboBox x:Name="FilesFilter" Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" DisplayMemberPath="Name"
+                              SelectionChanged="OnFilesFilterChanged" AutomationProperties.Name="{l:Tr knowledgeOptions.filesFilterBox}" />
+                </Grid>
                 <Border Style="{StaticResource ListPanel}">
-                    <StackPanel x:Name="FileRows" />
+                    <ScrollViewer MaxHeight="440" VerticalScrollBarVisibility="Auto" PanningMode="VerticalOnly">
+                        <StackPanel x:Name="FileRows" Margin="0,0,6,0" />
+                    </ScrollViewer>
                 </Border>
             </StackPanel>
         </Border>
@@ -94,7 +105,7 @@
                 <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,10" Text="{l:Tr knowledgeOptions.tryHint}" />
                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                    <ui:TextBox x:Name="SearchBox" MaxLength="300" PlaceholderText="{l:Tr knowledgeOptions.tryPlaceholder}" ClearButtonEnabled="False"
+                    <ui:TextBox x:Name="SearchBox" MaxLength="300" PlaceholderText="{l:Tr knowledgeOptions.tryPlaceholder}"
                                 AutomationProperties.Name="{l:Tr knowledgeOptions.tryTitle}" PreviewKeyDown="OnSearchKey" />
                     <ui:Button MinHeight="36" x:Name="SearchButton" Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon Search24}" Content="{l:Tr knowledgeOptions.search}" Click="OnSearch" />
                 </Grid>

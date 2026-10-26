@@ -46,6 +46,7 @@ Their models show up in the same list.
 |---|---|
 | **Model** | *Automatic*: the biggest one that fits in your graphics card. Or a specific one, or *No AI* |
 | **To think harder** | Used when you say «think it over», when the model sees it is not enough, or when you tell it it got it wrong. *The same one, thinking before it answers*, another model, or *Never* |
+| | Both have **Browse…** (a `.gguf` from any folder) and **Load** when the chosen one is not in memory |
 | **How long it may think** | A little, normal, a lot. More helps with hard things, but takes longer |
 | **Unload it after** | Unused for this long, it leaves memory (or *Never*: only when you ask). Loading it again takes a few seconds |
 | **One model at a time** | Loading one unloads the others. When off, several stay while they fit |

@@ -34,29 +34,34 @@
                     <StackPanel x:Name="StateRows" />
                 </Border>
 
+                <!-- The model names are long: the combo and its buttons go under the description, the whole width -->
                 <Grid Style="{StaticResource SettingRow}">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Grid.ColumnSpan="3" Margin="0,0,0,8">
                         <TextBlock Text="{l:Tr brainOptions.model}" />
                         <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr brainOptions.modelHint}" />
                     </StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <ComboBox x:Name="ModelBox" Width="320" SelectionChanged="OnModelChanged" AutomationProperties.Name="{l:Tr brainOptions.model}" />
-                        <ui:Button MinHeight="36" VerticalAlignment="Stretch" x:Name="LoadButton" Margin="8,0,0,0" Content="{l:Tr brainOptions.loadButton}" Icon="{ui:SymbolIcon ArrowUpload24}" Click="OnLoad" />
-                        <ui:Button MinHeight="36" VerticalAlignment="Stretch" Margin="8,0,0,0" Content="{l:Tr brainOptions.browse}" Click="OnBrowseModel"
-                                   AutomationProperties.Name="{l:Tr brainOptions.browseModelTitle}" />
-                    </StackPanel>
+                    <ComboBox x:Name="ModelBox" Grid.Row="1" SelectionChanged="OnModelChanged" AutomationProperties.Name="{l:Tr brainOptions.model}" />
+                    <ui:Button MinHeight="36" VerticalAlignment="Stretch" x:Name="LoadButton" Grid.Row="1" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr brainOptions.loadButton}"
+                               Icon="{ui:SymbolIcon ArrowUpload24}" Click="OnLoad" />
+                    <ui:Button MinHeight="36" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="2" Margin="8,0,0,0" Content="{l:Tr brainOptions.browse}" Click="OnBrowseModel"
+                               AutomationProperties.Name="{l:Tr brainOptions.browseModelTitle}" />
                 </Grid>
 
                 <!-- Stage 12: the model that thinks harder, and how long it may -->
                 <Grid Style="{StaticResource SettingRow}">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Grid.ColumnSpan="3" Margin="0,0,0,8">
                         <TextBlock Text="{l:Tr brainOptions.think}" />
                         <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr brainOptions.thinkHint}" />
                     </StackPanel>
-                    <ComboBox x:Name="ThinkBox" Grid.Column="1" Width="320" VerticalAlignment="Center" SelectionChanged="OnThinkChanged"
-                              AutomationProperties.Name="{l:Tr brainOptions.think}" />
+                    <ComboBox x:Name="ThinkBox" Grid.Row="1" SelectionChanged="OnThinkChanged" AutomationProperties.Name="{l:Tr brainOptions.think}" />
+                    <ui:Button MinHeight="36" VerticalAlignment="Stretch" x:Name="ThinkLoadButton" Grid.Row="1" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr brainOptions.loadButton}"
+                               Icon="{ui:SymbolIcon ArrowUpload24}" Click="OnThinkLoad" />
+                    <ui:Button MinHeight="36" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="2" Margin="8,0,0,0" Content="{l:Tr brainOptions.browse}" Click="OnBrowseThinkModel"
+                               AutomationProperties.Name="{l:Tr brainOptions.browseThinkTitle}" />
                 </Grid>
 
                 <Grid x:Name="ThinkTokensRow" Style="{StaticResource SettingRow}">

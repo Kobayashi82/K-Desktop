@@ -42,11 +42,16 @@ and kept an eye on: a new or changed file is read again by itself. Nothing leave
 - **What is read**: text and Markdown, PDF, Word (`.docx`), PowerPoint (`.pptx`), web pages, subtitles and e-mails (`.eml`),
   and code or data files that are not too big. With **Read pictures and scanned PDFs** on, also pictures and PDF pages
   without text, with Windows' text recognition (it takes longer the first time).
-- **What is not allowed**: a whole drive, or folders of Windows or of programs. Hidden folders are skipped.
-- **While it reads** the page shows «Reading: 412 of 1,300 files» and the file it is on. It reads gently and **pauses**
-  while a full-screen game is on, while K-Desktop is paused and while an assistant is answering.
-- Each folder or file has **See what was read** (each file with its pieces, pages, or why it could not be read), **Open the
-  folder** and **Remove**. A folder on a drive that is not connected keeps what was read.
+- **What is not allowed**: a whole drive, or folders of Windows or of programs. Hidden folders are skipped, and so is the folder of
+  styles and scripts of a saved web page (`Page_files`); minified code is left with *No text*.
+- **While it reads** the page shows «Reading: 412 of 1,300 files», roughly how long is left and the file it is on. It reads
+  gently and **pauses** while a full-screen game is on, while K-Desktop is paused and while an assistant is answering.
+  **Pause reading** stops it until you press **Resume reading** (what was already read is still used).
+- Each folder or file has **Open the folder** and **Remove**; folders also have **See the files**: the list, in its own
+  scroll, with each file and its pieces, pages, or why it could not be read. You can **search** by name or folder and
+  **filter** (*Read*, *Not read yet*, *No text or unreadable*, *Taken out*). Each file can be **opened**, **shown in its
+  folder** or **taken out of what it knows** (not read, and what was read is forgotten; *Put back* brings it back). A folder
+  on a drive that is not connected keeps what was read.
 - **Try a search**: what an assistant would find if you asked it this, and how long it took.
 - **Read it all again** and **Forget it all** (your files are never touched).
 

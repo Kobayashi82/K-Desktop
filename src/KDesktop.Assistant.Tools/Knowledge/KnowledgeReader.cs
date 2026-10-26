@@ -50,6 +50,28 @@ public static class KnowledgeReader
 
     public static bool IsPicture(string path) => KnowledgeFolders.Pictures.Contains(Path.GetExtension(path));
 
+    /// <summary>Lines this long on average are not written by a person: minified or generated code.</summary>
+    private const int MinifiedLine = 500;
+
+    /// <summary>Code of some size whose lines are, on average, longer than <see cref="MinifiedLine"/>.</summary>
+    public static bool IsMinified(string text)
+    {
+        if (text.Length < 4 * MinifiedLine) return false;
+        var lines = 1 + text.AsSpan().Count('\n');
+        return text.Length / lines > MinifiedLine;
+    }
+
+    /// <summary>
+    /// The folder of the pictures, styles and scripts of a web page saved with the browser («Página_files» next to
+    /// «Página.html»): the page is read; that, never.
+    /// </summary>
+    public static bool IsSavedPageFolder(DirectoryInfo folder)
+    {
+        if (!folder.Name.EndsWith("_files", StringComparison.OrdinalIgnoreCase) || folder.Parent is not { } parent) return false;
+        var page = folder.Name[..^"_files".Length];
+        return File.Exists(Path.Combine(parent.FullName, page + ".html")) || File.Exists(Path.Combine(parent.FullName, page + ".htm"));
+    }
+
     /// <summary>
     /// Its text: empty when it has none, null when it could not be read. <paramref name="ocr"/> null: pictures and scanned
     /// pages are left without text.
@@ -65,7 +87,16 @@ public static class KnowledgeReader
             return new KnowledgeText(new FileContent(read?.Text ?? string.Empty, [0]), true);
         }
         if (!string.Equals(Path.GetExtension(path), ".pdf", StringComparison.OrdinalIgnoreCase))
-            return await Task.Run(() => FileText.Read(path), cancellationToken).ConfigureAwait(false) is { } content ? new KnowledgeText(content, false) : null;
+        {
+            if (await Task.Run(() => FileText.Read(path), cancellationToken).ConfigureAwait(false) is not { } content) return null;
+            // Minified code (a whole stylesheet on one line) is no text to ask about, and would be hundreds of pieces.
+            if (KnowledgeFolders.Code.Contains(Path.GetExtension(path)) && IsMinified(content.Text))
+            {
+                Log.Info($"Asistente: lo que sabe deja {Path.GetFileName(path)} sin texto: es código minificado");
+                return new KnowledgeText(new FileContent(string.Empty, [0]), false);
+            }
+            return new KnowledgeText(content, false);
+        }
 
         List<string> pages;
         try { pages = await Task.Run(() => FileText.PdfPages(path), cancellationToken).ConfigureAwait(false); }

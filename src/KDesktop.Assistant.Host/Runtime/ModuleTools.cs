@@ -119,9 +119,12 @@ internal sealed class ModuleTools : IDisposable
         Registry.SetPreferences(preferences);
         Share.Configure(tools?["share"] as JsonObject);
         var knowledge = tools?["knowledge"] as JsonObject;
-        Builtin.Knowledge.Configure(
-            knowledge?["folders"] is JsonArray folders ? folders.OfType<JsonValue>().Select(f => f.TryGetValue<string>(out var folder) ? folder : null).OfType<string>() : [],
-            knowledge?["ocr"] is not JsonValue ocr || !ocr.TryGetValue<bool>(out var read) || read);
+        static IEnumerable<string> Paths(JsonNode? node) =>
+            node is JsonArray list ? list.OfType<JsonValue>().Select(f => f.TryGetValue<string>(out var path) ? path : null).OfType<string>() : [];
+        Builtin.Knowledge.Configure(Paths(knowledge?["folders"]),
+            knowledge?["ocr"] is not JsonValue ocr || !ocr.TryGetValue<bool>(out var read) || read,
+            Paths(knowledge?["skipped"]),
+            knowledge?["paused"] is JsonValue pause && pause.TryGetValue<bool>(out var paused) && paused);
     }
 
     /// <summary>Options → Tools: the list, testing a tool, starting or stopping a server, loading the files again.</summary>
@@ -248,7 +251,7 @@ internal sealed class ModuleTools : IDisposable
         switch (request.Op)
         {
             case "files" when request.Folder is { } folder:
-                _link.Send(knowledge.FilesIn(folder));
+                _link.Send(knowledge.FilesIn(folder, request.Text, request.Filter));
                 return;
             case "search" when request.Text is { Length: > 0 } text:
                 var found = await knowledge.SearchAsync(text, 8, null, CancellationToken.None).ConfigureAwait(false);

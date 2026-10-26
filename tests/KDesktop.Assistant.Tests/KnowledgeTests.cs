@@ -134,13 +134,19 @@ public sealed class KnowledgeTests : IDisposable
         Pdf("factura-luz.pdf", "Factura de la luz de septiembre", "Total a pagar: 64,32 euros. Referencia ES-4471.");
         Write("foto.png", "no es una imagen");
         Write("node_modules/paquete/leeme.md", "Esto no se lee: es de un programa.");
+        // A web page saved with the browser: the page is read, its folder of styles and scripts is not; minified code has no text.
+        Write("pagina_files/estilos.css", "body { color: red; }");
+        Write("pagina.html", "<html><body><p>El horario de la piscina es de nueve a dos.</p></body></html>");
+        Write("app.min-ish.js", string.Concat(Enumerable.Repeat("var a=1;function b(){return a+2}", 200)));
         Write("programa.exe", "MZ");
 
         using var knowledge = Make();
         knowledge.Configure([Docs], readPictures: false);
         knowledge.Start();
-        await ReadyAsync(knowledge, 4);
+        await ReadyAsync(knowledge, 6);
         Assert.True(knowledge.State().WordsOnly);
+        Assert.EndsWith("pagina.html", (await knowledge.SearchAsync("horario de la piscina", 6, null, CancellationToken.None)).Hits[0].Path, StringComparison.Ordinal);
+        Assert.Equal("empty", knowledge.FilesIn(Docs, "app.min-ish").Files.Single().State);
 
         var pdf = Assert.Single((await knowledge.SearchAsync("¿cuánto pagué de luz? ES-4471", 6, null, CancellationToken.None)).Hits);
         Assert.EndsWith("factura-luz.pdf", pdf.Path, StringComparison.Ordinal);
@@ -153,9 +159,39 @@ public sealed class KnowledgeTests : IDisposable
         Assert.Empty((await knowledge.SearchAsync("receta de tortilla de patatas", 6, null, CancellationToken.None)).Hits);
         Assert.Empty((await knowledge.SearchAsync("es de un programa", 6, null, CancellationToken.None)).Hits);
 
-        var files = knowledge.FilesIn(Docs);
-        Assert.Equal(4, files.Total);
+        var files = knowledge.FilesIn(Docs, filter: "ready");
+        Assert.Equal(5, files.Total);
         Assert.All(files.Files, f => Assert.Equal("ready", f.State));
+    }
+
+    [Fact]
+    public async Task TheUserPausesTheReadingAndTakesFilesOut()
+    {
+        Write("a.txt", "El código de la alarma es 4512.");
+        var wifi = Write("sub/b.txt", "La contraseña del wifi está en la pegatina del router.");
+        using var knowledge = Make();
+        // Stopped from the start: it looks at the folder but reads nothing.
+        knowledge.Configure([Docs], false, paused: true);
+        knowledge.Start();
+        await Until(() => knowledge.State() is { Phase: "paused", Paused: "user", Files: 2, Done: 0 }, "en pausa por el usuario");
+        Assert.Equal(2, knowledge.FilesIn(Docs, filter: "waiting").Total);
+        knowledge.Configure([Docs], false, paused: false);
+        await ReadyAsync(knowledge, 2);
+
+        // Taken out: forgotten and listed apart; put back: read again.
+        knowledge.Configure([Docs], false, [wifi]);
+        await ReadyAsync(knowledge, 1);
+        Assert.Empty((await knowledge.SearchAsync("contraseña del wifi", 6, null, CancellationToken.None)).Hits);
+        var files = knowledge.FilesIn(Docs);
+        Assert.Equal(1, files.Total);
+        Assert.Equal(1, files.Counts!["skipped"]);
+        Assert.Equal("skipped", Assert.Single(knowledge.FilesIn(Docs, filter: "skipped").Files).State);
+        // Words of the path within the folder.
+        Assert.Empty(knowledge.FilesIn(Docs, "sub").Files);
+        Assert.Single(knowledge.FilesIn(Docs, "SUB", "skipped").Files);
+        knowledge.Configure([Docs], false, []);
+        await ReadyAsync(knowledge, 2);
+        Assert.NotEmpty((await knowledge.SearchAsync("contraseña del wifi", 6, null, CancellationToken.None)).Hits);
     }
 
     [Fact]

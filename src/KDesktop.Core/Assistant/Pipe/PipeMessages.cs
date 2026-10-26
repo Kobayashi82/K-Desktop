@@ -585,12 +585,15 @@ public sealed record NotesStateMessage(IReadOnlyList<NoteEntry> Items) : PipeMes
 // ── what the assistants know: the user's documents (stage 19) ───────────
 
 /// <summary>
-/// Options → Assistant → «Lo que sabe»: <c>state</c>, <c>files</c> (those of <paramref name="Folder"/>, answered with
-/// <c>knowledgeFiles</c>), <c>search</c> (<paramref name="Text"/>, answered with <c>knowledgeFound</c>), <c>rebuild</c>
-/// (read everything again) or <c>clear</c> (forget everything read). The folders come in <c>config</c> <c>tools</c>
+/// Options → Assistant → «Lo que sabe»: <c>state</c>, <c>files</c> (those of <paramref name="Folder"/> with
+/// <paramref name="Text"/> in their path and in the <paramref name="Filter"/>, answered with <c>knowledgeFiles</c>),
+/// <c>search</c> (<paramref name="Text"/>, answered with <c>knowledgeFound</c>), <c>rebuild</c> (read everything again) or
+/// <c>clear</c> (forget everything read). The folders, the files taken out and the pause come in <c>config</c> <c>tools</c>
 /// <c>knowledge</c>.
 /// </summary>
-public sealed record KnowledgeMessage(string Op, string? Folder = null, string? Text = null) : PipeMessage
+/// <param name="Filter">For <c>files</c>: <c>all</c> (the default), <c>ready</c>, <c>waiting</c>, <c>problem</c> (empty or
+/// unreadable) or <c>skipped</c> (taken out).</param>
+public sealed record KnowledgeMessage(string Op, string? Folder = null, string? Text = null, string? Filter = null) : PipeMessage
 {
     public override string Type => "knowledge";
 }
@@ -616,14 +619,20 @@ public sealed record KnowledgeStateMessage(string Phase, int Files, int Done, in
 }
 
 /// <summary>A file of a folder of documents.</summary>
-/// <param name="State"><c>ready</c>, <c>empty</c> (no text in it), <c>failed</c> (could not be read) or <c>waiting</c>.</param>
+/// <param name="State"><c>ready</c>, <c>empty</c> (no text in it), <c>failed</c> (could not be read), <c>waiting</c> or
+/// <c>skipped</c> (taken out by the user).</param>
 /// <param name="Ocr">Some of its text was read from pictures (a scan, a photo).</param>
 public sealed record KnowledgeFileInfo(string Path, string State, int Pieces, int Pages, bool Ocr = false);
 
-/// <summary>The files of a folder (<c>knowledge</c> <c>files</c>), the first <see cref="Most"/>.</summary>
-public sealed record KnowledgeFilesMessage(string Folder, IReadOnlyList<KnowledgeFileInfo> Files, int Total) : PipeMessage
+/// <summary>
+/// The files of a folder (<c>knowledge</c> <c>files</c>) that match <paramref name="Text"/> and <paramref name="Filter"/>
+/// (as asked), the first <see cref="Most"/> of <paramref name="Total"/>; <paramref name="Counts"/>, how many of the folder
+/// there are in each filter.
+/// </summary>
+public sealed record KnowledgeFilesMessage(string Folder, IReadOnlyList<KnowledgeFileInfo> Files, int Total, string? Text = null, string? Filter = null,
+    IReadOnlyDictionary<string, int>? Counts = null) : PipeMessage
 {
-    public const int Most = 1000;
+    public const int Most = 500;
 
     public override string Type => "knowledgeFiles";
 }

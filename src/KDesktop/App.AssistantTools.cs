@@ -56,6 +56,8 @@ public partial class App
         {
             ["folders"] = new JsonArray([.. Config.Settings.AssistantKnowledgeFolders.Select(f => (JsonNode)f)]),
             ["ocr"] = Config.Settings.AssistantKnowledgeOcr,
+            ["paused"] = Config.Settings.AssistantKnowledgePaused,
+            ["skipped"] = new JsonArray([.. Config.Settings.AssistantKnowledgeSkipped.Select(f => (JsonNode)f)]),
         },
         ["settings"] = new JsonObject(Config.Settings.AssistantToolSettings.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p =>
             KeyValuePair.Create(p.Key, (JsonNode?)new JsonObject { ["enabled"] = p.Value.Enabled, ["risk"] = p.Value.Risk }))),

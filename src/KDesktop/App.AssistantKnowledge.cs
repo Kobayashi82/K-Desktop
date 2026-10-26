@@ -25,7 +25,8 @@ public partial class App
 
     public bool RequestAssistantKnowledge() => SendKnowledge(new KnowledgeMessage("state"));
 
-    public bool RequestAssistantKnowledgeFiles(string folder) => SendKnowledge(new KnowledgeMessage("files", folder));
+    public bool RequestAssistantKnowledgeFiles(string folder, string? text = null, string? filter = null) =>
+        SendKnowledge(new KnowledgeMessage("files", folder, text, filter));
 
     public bool SearchAssistantKnowledge(string text) => SendKnowledge(new KnowledgeMessage("search", Text: text));
 
@@ -48,14 +49,29 @@ public partial class App
     /// <summary>Takes a folder or a file out (what was read from it is forgotten).</summary>
     public void RemoveKnowledgeFolder(string folder)
     {
-        Config.Settings.AssistantKnowledgeFolders = [.. Config.Settings.AssistantKnowledgeFolders.Where(c => !string.Equals(c, folder, StringComparison.OrdinalIgnoreCase))];
+        var s = Config.Settings;
+        s.AssistantKnowledgeFolders = [.. s.AssistantKnowledgeFolders.Where(c => !string.Equals(c, folder, StringComparison.OrdinalIgnoreCase))];
+        // The files taken out of it no longer mean anything.
+        if (s.AssistantKnowledgeSkipped.Any(f => KnowledgeFolders.Contains(folder, f)))
+            s.AssistantKnowledgeSkipped = [.. s.AssistantKnowledgeSkipped.Where(f => !KnowledgeFolders.Contains(folder, f))];
         Log.Info($"Asistente: fuera de lo que sabe: {folder}");
+    }
+
+    /// <summary>Takes one file of a folder out (not read, what was read of it forgotten), or puts it back.</summary>
+    public void SkipKnowledgeFile(string path, bool skip)
+    {
+        var s = Config.Settings;
+        var skipped = s.AssistantKnowledgeSkipped;
+        if (skip == skipped.Contains(path, StringComparer.OrdinalIgnoreCase)) return;
+        s.AssistantKnowledgeSkipped = skip ? [.. skipped, path] : [.. skipped.Where(f => !string.Equals(f, path, StringComparison.OrdinalIgnoreCase))];
+        Log.Info(skip ? $"Asistente: archivo quitado de lo que sabe: {path}" : $"Asistente: archivo de vuelta en lo que sabe: {path}");
     }
 
     /// <summary>Forgets everything: no folders, nothing read.</summary>
     public void ForgetAllKnowledge()
     {
         Config.Settings.AssistantKnowledgeFolders = [];
+        Config.Settings.AssistantKnowledgeSkipped = [];
         SendKnowledge(new KnowledgeMessage("clear"));
         Log.Info("Asistente: lo que sabe, olvidado entero");
     }

@@ -25,10 +25,28 @@ public partial class AssistantKnowledgeSection : UserControl
     /// <summary>The folder whose files are shown (null: none).</summary>
     private string? _showing;
     private DateTime _filesAsked;
+    private string? _phaseShown;
+    /// <summary>What the list of files is narrowed to: words of the path and a filter (see <see cref="KnowledgeMessage.Filter"/>).</summary>
+    private string _filesText = string.Empty;
+    private string _filesFilter = "all";
+    private bool _fillingFilter;
+    /// <summary>The list was just opened: it is brought into view when it comes.</summary>
+    private bool _bringFiles;
+    private readonly System.Windows.Threading.DispatcherTimer _searchDelay = new() { Interval = TimeSpan.FromMilliseconds(300) };
+
+    private sealed record FilterOption(string Key, string Name);
+
+    private static readonly string[] Filters = ["all", "ready", "waiting", "problem", "skipped"];
 
     public AssistantKnowledgeSection()
     {
         InitializeComponent();
+        _searchDelay.Tick += (_, _) =>
+        {
+            _searchDelay.Stop();
+            _filesText = FilesSearch.Text.Trim();
+            if (_showing is not null) AskFiles(_showing);
+        };
         Loaded += (_, _) =>
         {
             _app.AssistantKnowledgeChanged += Fill;
@@ -62,7 +80,11 @@ public partial class AssistantKnowledgeSection : UserControl
 
     private void OnSettingChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(Core.Model.AppSettings.AssistantKnowledgeFolders) && IsVisible) Fill();
+        if (!IsVisible) return;
+        if (e.PropertyName is nameof(Core.Model.AppSettings.AssistantKnowledgeFolders) or nameof(Core.Model.AppSettings.AssistantKnowledgePaused)) Fill();
+        // A file taken out or put back: the list again (the process has it at once).
+        else if (e.PropertyName == nameof(Core.Model.AppSettings.AssistantKnowledgeSkipped) && _showing is not null)
+            Dispatcher.BeginInvoke(() => { if (_showing is not null) AskFiles(_showing); }, System.Windows.Threading.DispatcherPriority.Background);
     }
 
     private void Fill()
@@ -84,9 +106,11 @@ public partial class AssistantKnowledgeSection : UserControl
         RebuildButton.IsEnabled = running;
         TryCard.Visibility = folders.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         SearchButton.IsEnabled = running;
+        var phaseChanged = state?.Phase != _phaseShown;
+        _phaseShown = state?.Phase;
         if (_showing is not null && !folders.Contains(_showing, StringComparer.OrdinalIgnoreCase)) CloseFiles();
-        // The files shown follow the reading, every few seconds (a thousand rows each time).
-        else if (_showing is not null && state is { Phase: "indexing" or "scanning" } && DateTime.UtcNow - _filesAsked > TimeSpan.FromSeconds(3))
+        // The files shown follow the reading, every few seconds (some hundred rows each time), and when it ends or stops.
+        else if (_showing is not null && (phaseChanged || state is { Phase: "indexing" or "scanning" } && DateTime.UtcNow - _filesAsked > TimeSpan.FromSeconds(3)))
             AskFiles(_showing);
     }
 
@@ -96,6 +120,10 @@ public partial class AssistantKnowledgeSection : UserControl
         string Count(int n) => n.ToString("N0", culture);
         StateBox.Visibility = folders > 0 && running ? Visibility.Visible : Visibility.Collapsed;
         WordsOnlyBox.Visibility = state is { WordsOnly: true } && folders > 0 ? Visibility.Visible : Visibility.Collapsed;
+        var userPaused = _app.Config.Settings.AssistantKnowledgePaused;
+        PauseButton.Content = Loc.T(userPaused ? "knowledgeOptions.resume" : "knowledgeOptions.pause");
+        PauseButton.Icon = new SymbolIcon { Symbol = userPaused ? SymbolRegular.Play24 : SymbolRegular.Pause24 };
+        PauseButton.Appearance = userPaused ? ControlAppearance.Primary : ControlAppearance.Secondary;
         if (state is null || folders == 0)
         {
             StateText.Text = Loc.T("knowledgeOptions.state.loading");
@@ -112,6 +140,10 @@ public partial class AssistantKnowledgeSection : UserControl
             "loading" => Loc.T("knowledgeOptions.state.loading"),
             _ => Loc.T("knowledgeOptions.state.ready", Count(state.Files), Count(state.Pieces)),
         };
+        if (state.Phase == "indexing" && Eta(state.Done, state.Files) is { } eta) StateText.Text += " · " + eta;
+        else if (state.Phase != "indexing") _pace.Clear();
+        // Stopped with nothing to read now: what changes waits too.
+        if (userPaused && state.Phase == "ready") StateText.Text += " · " + Loc.T("knowledgeOptions.pausedShort");
         StateIcon.Symbol = state.Phase switch
         {
             "paused" => SymbolRegular.PauseCircle24,
@@ -119,10 +151,36 @@ public partial class AssistantKnowledgeSection : UserControl
             _ => SymbolRegular.BookOpen24,
         };
         DetailText.Text = state.Phase == "paused" && state.Paused is { } why ? Loc.T("knowledgeOptions.paused." + why)
+            : userPaused && state.Phase == "indexing" ? Loc.T("knowledgeOptions.paused.user")
             : state.Current is { } current ? Loc.T("knowledgeOptions.current", Path.GetFileName(current))
             : Loc.T("knowledgeOptions.size", Megabytes(state.Bytes));
         Progress.Visibility = reading && state.Files > 0 ? Visibility.Visible : Visibility.Collapsed;
         Progress.Value = state.Files > 0 ? state.Done / (double)state.Files : 0;
+    }
+
+    /// <summary>How far it was read, a few times a second while reading (a pause starts it again: it would slow the pace).</summary>
+    private readonly Queue<(DateTime At, int Done)> _pace = new();
+
+    private static readonly TimeSpan PaceWindow = TimeSpan.FromMinutes(3);
+
+    /// <summary>
+    /// What is left, at the pace of the last minutes («quedan unos 12 min»); null until there is enough to say it (some
+    /// seconds and some files read).
+    /// </summary>
+    private string? Eta(int done, int files)
+    {
+        var now = DateTime.UtcNow;
+        if (_pace.Count > 0 && done < _pace.Last().Done) _pace.Clear();
+        if (_pace.Count == 0 || _pace.Last().Done != done) _pace.Enqueue((now, done));
+        while (_pace.Count > 2 && now - _pace.Peek().At > PaceWindow) _pace.Dequeue();
+        var (firstAt, firstDone) = _pace.Peek();
+        var seconds = (now - firstAt).TotalSeconds;
+        if (seconds < 15 || done - firstDone < 3 || files <= done) return null;
+        var left = TimeSpan.FromSeconds((files - done) * seconds / (done - firstDone));
+        var culture = Loc.Instance.Culture;
+        return left.TotalMinutes < 1 ? Loc.T("knowledgeOptions.eta.lessMinute")
+            : left.TotalMinutes < 90 ? Loc.T("knowledgeOptions.eta.minutes", Math.Ceiling(left.TotalMinutes).ToString("N0", culture))
+            : Loc.T("knowledgeOptions.eta.hours", left.TotalHours.ToString(left.TotalHours < 10 ? "0.#" : "N0", culture));
     }
 
     private static string Megabytes(long bytes) => bytes < 1048576
@@ -171,7 +229,7 @@ public partial class AssistantKnowledgeSection : UserControl
 
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(12, 0, 0, 0) };
         Grid.SetColumn(buttons, 2);
-        if (!single) buttons.Children.Add(Small(SymbolRegular.DocumentBulletList24, Loc.T("knowledgeOptions.files"), folder, () => AskFiles(folder), running && info is not null));
+        if (!single) buttons.Children.Add(Small(SymbolRegular.DocumentBulletList24, Loc.T("knowledgeOptions.files"), folder, () => OpenFiles(folder), running && info is not null));
         buttons.Children.Add(single
             ? Small(SymbolRegular.FolderOpen24, Loc.T("knowledgeOptions.openFile"), folder, () => Open(folder, select: true), File.Exists(folder))
             : Small(SymbolRegular.FolderOpen24, Loc.T("knowledgeOptions.open"), folder, () => Open(folder), Directory.Exists(folder)));
@@ -264,32 +322,88 @@ public partial class AssistantKnowledgeSection : UserControl
 
     // ── the files of a folder ────────────────────────────────────────────
 
+    /// <summary>Opens the list of a folder: from the start (no words, every file).</summary>
+    private void OpenFiles(string folder)
+    {
+        if (!string.Equals(folder, _showing, StringComparison.OrdinalIgnoreCase))
+        {
+            _searchDelay.Stop();
+            _filesText = string.Empty;
+            _filesFilter = "all";
+            FilesSearch.Text = string.Empty;
+        }
+        _bringFiles = true;
+        AskFiles(folder);
+    }
+
     private void AskFiles(string folder)
     {
         _showing = folder;
         _filesAsked = DateTime.UtcNow;
-        _app.RequestAssistantKnowledgeFiles(folder);
+        _app.RequestAssistantKnowledgeFiles(folder, _filesText, _filesFilter);
     }
 
     private void ShowFiles(KnowledgeFilesMessage files)
     {
-        if (!string.Equals(files.Folder, _showing, StringComparison.OrdinalIgnoreCase)) return;
+        // Only the answer to what is asked now (an older one may come after).
+        if (!string.Equals(files.Folder, _showing, StringComparison.OrdinalIgnoreCase) || (files.Text ?? string.Empty) != _filesText
+            || (files.Filter ?? "all") != _filesFilter) return;
         var culture = Loc.Instance.Culture;
         FilesTitle.Text = Loc.T("knowledgeOptions.filesTitle", Path.GetFileName(files.Folder.TrimEnd('\\')) is { Length: > 0 } leaf ? leaf : files.Folder);
         FilesCaption.Text = files.Total > files.Files.Count
             ? Loc.T("knowledgeOptions.filesMore", files.Files.Count.ToString("N0", culture), files.Total.ToString("N0", culture))
             : Loc.T("knowledgeOptions.folder.files", files.Total.ToString("N0", culture));
+        FillFilter(files.Counts);
         FileRows.Children.Clear();
         foreach (var file in files.Files) FileRows.Children.Add(FileRow(files.Folder, file));
+        if (files.Files.Count == 0) FileRows.Children.Add(new TextBlock { Style = (Style)FindResource("Caption"), Margin = new Thickness(0, 6, 0, 6), Text = Loc.T("knowledgeOptions.filesNone") });
         FilesCard.Visibility = Visibility.Visible;
-        FilesCard.BringIntoView();
+        if (_bringFiles) FilesCard.BringIntoView();
+        _bringFiles = false;
     }
+
+    /// <summary>The filters with how many files each one has.</summary>
+    private void FillFilter(IReadOnlyDictionary<string, int>? counts)
+    {
+        if (FilesFilter.IsDropDownOpen) return;
+        var culture = Loc.Instance.Culture;
+        var options = Filters.Select(key => new FilterOption(key, Loc.T("knowledgeOptions.filter." + key)
+            + (counts?.TryGetValue(key, out var n) == true ? $" ({n.ToString("N0", culture)})" : string.Empty))).ToList();
+        _fillingFilter = true;
+        try
+        {
+            FilesFilter.ItemsSource = options;
+            FilesFilter.SelectedItem = options.First(o => o.Key == _filesFilter);
+        }
+        finally
+        {
+            _fillingFilter = false;
+        }
+    }
+
+    private void OnFilesSearchChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_showing is null || FilesSearch.Text.Trim() == _filesText) return;
+        _searchDelay.Stop();
+        _searchDelay.Start();
+    }
+
+    private void OnFilesFilterChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_fillingFilter || FilesFilter.SelectedItem is not FilterOption option || option.Key == _filesFilter || _showing is null) return;
+        _filesFilter = option.Key;
+        AskFiles(_showing);
+    }
+
+    private void OnPause(object sender, RoutedEventArgs e) =>
+        _app.Config.Settings.AssistantKnowledgePaused = !_app.Config.Settings.AssistantKnowledgePaused;
 
     private Border FileRow(string folder, KnowledgeFileInfo file)
     {
         var culture = Loc.Instance.Culture;
         var grid = new Grid();
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         var relative = Path.GetRelativePath(folder, file.Path);
         var name = new TextBlock { Text = relative, TextTrimming = TextTrimming.CharacterEllipsis, ToolTip = file.Path, VerticalAlignment = VerticalAlignment.Center };
@@ -306,7 +420,18 @@ public partial class AssistantKnowledgeSection : UserControl
         if (file.State == "failed") state.SetResourceReference(TextBlock.ForegroundProperty, "Kd.Danger");
         Grid.SetColumn(state, 1);
         grid.Children.Add(state);
-        var row = new Border { Child = grid, Padding = new Thickness(0, 5, 0, 5) };
+
+        var exists = File.Exists(file.Path);
+        var buttons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
+        buttons.Children.Add(Small(SymbolRegular.Open24, Loc.T("knowledgeOptions.openThis"), file.Path,
+            () => ProcessLauncher.Launch(new LaunchSpec(file.Path), asAdmin: false), exists));
+        buttons.Children.Add(Small(SymbolRegular.FolderOpen24, Loc.T("knowledgeOptions.openFile"), file.Path, () => Open(file.Path, select: true), exists));
+        buttons.Children.Add(file.State == "skipped"
+            ? Small(SymbolRegular.ArrowUndo24, Loc.T("knowledgeOptions.putBack"), file.Path, () => _app.SkipKnowledgeFile(file.Path, false), true)
+            : Small(SymbolRegular.Delete24, Loc.T("knowledgeOptions.takeOut"), file.Path, () => _app.SkipKnowledgeFile(file.Path, true), true));
+        Grid.SetColumn(buttons, 2);
+        grid.Children.Add(buttons);
+        var row = new Border { Child = grid, Padding = new Thickness(0, 2, 0, 2) };
         AutomationProperties.SetName(row, relative + ": " + what);
         return row;
     }
