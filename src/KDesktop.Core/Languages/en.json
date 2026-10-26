@@ -4203,7 +4203,7 @@
   "toolsOptions.shareNewKey": "Change the key",
   "toolsOptions.shareNewKeyQuestion": "The programs with the current key will stop getting in until you paste the new configuration into them (it's copied when you change it).",
   "toolsOptions.shareWhere": "Paste it into the program's MCP configuration: claude_desktop_config.json in Claude Desktop, mcp.json in VS Code or the config.json of mcpo (the MCP bridge for Open WebUI).",
-  "toolsOptions.shareCount": "It now shares {0} tools: {1} built-in and {2} of yours. Not those of your MCP servers: the program can use them by itself.",
+  "toolsOptions.shareCount": "Sharing {0} tools now.",
   "toolsOptions.shareUsers": "Who is using them now",
   "toolsOptions.shareNobody": "No program is connected.",
   "toolsOptions.shareOff": "They're not shared.",

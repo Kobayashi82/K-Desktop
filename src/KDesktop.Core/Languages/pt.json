@@ -4203,7 +4203,7 @@
   "toolsOptions.shareNewKey": "Trocar a chave",
   "toolsOptions.shareNewKeyQuestion": "Os programas com a chave atual deixarão de entrar até você colar neles a configuração nova (ela é copiada ao trocar).",
   "toolsOptions.shareWhere": "Cole na configuração MCP do programa: claude_desktop_config.json no Claude Desktop, mcp.json no VS Code ou o config.json do mcpo (a ponte MCP do Open WebUI).",
-  "toolsOptions.shareCount": "Agora compartilha {0} ferramentas: {1} incluídas e {2} suas. Não as dos seus servidores MCP: o programa pode usá-los por conta própria.",
+  "toolsOptions.shareCount": "Agora compartilha {0} ferramentas.",
   "toolsOptions.shareUsers": "Quem as usa agora",
   "toolsOptions.shareNobody": "Nenhum programa está conectado.",
   "toolsOptions.shareOff": "Não são compartilhadas.",
