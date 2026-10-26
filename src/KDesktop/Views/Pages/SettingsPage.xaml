@@ -1000,19 +1000,6 @@
                     <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.androidInstall}" />
                     <TextBlock Style="{StaticResource FieldLabel}" Margin="0,14,0,4" Text="{l:Tr settings.androidUpdatesTitle}" />
                     <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.androidUpdates}" />
-
-                    <!-- iOS: room kept for it -->
-                    <Border Height="1" Margin="0,14,0,12" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
-                    <Grid Style="{StaticResource SettingRow}" Opacity="0.6">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Width="44" Height="44" CornerRadius="12" Margin="0,0,14,0" VerticalAlignment="Center" Background="{DynamicResource Kd.Subtle}">
-                            <ui:SymbolIcon Symbol="Phone24" FontSize="22" />
-                        </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock FontSize="15" FontWeight="SemiBold" Text="{l:Tr settings.ios}" />
-                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.iosSoon}" />
-                        </StackPanel>
-                    </Grid>
                 </StackPanel>
             </Border>
 
