@@ -30,6 +30,17 @@ public class McpShareTests
 
         var plain = JsonNode.Parse(McpShare.ClientConfig(@"D:\K\KDesktop.exe", "abc"))!;
         Assert.Equal(["--mcp"], plain["mcpServers"]!["k-desktop"]!["args"]!.AsArray().Select(a => (string?)a));
+
+        // Without the key (the user said none is needed): nothing to carry.
+        var open = JsonNode.Parse(McpShare.ClientConfig(@"D:\K\KDesktop.exe", null))!;
+        Assert.Null(open["mcpServers"]!["k-desktop"]!["env"]);
+    }
+
+    [Fact]
+    public async Task WithoutAKeyTheHelloIsStillSaid()
+    {
+        using var stream = new MemoryStream(Encoding.ASCII.GetBytes("KDMCP1 \n{}\n"));
+        Assert.Equal(string.Empty, await McpShare.ReadHelloAsync(stream, CancellationToken.None));
     }
 
     [Fact]

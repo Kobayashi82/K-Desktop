@@ -898,6 +898,12 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private string? _assistantShareKey;
 
     /// <summary>
+    /// Whether the programs must give the key. Without it, any program of this user on this PC gets in (the pipe is the
+    /// user's alone, never from another PC or user); what is not only reading still asks on the PC first.
+    /// </summary>
+    [ObservableProperty] private bool _assistantShareNeedsKey = true;
+
+    /// <summary>
     /// The catalogs of assistants Options → Catalog reads (phase 12), K-Desktop's own first. Replaced whole on every change.
     /// </summary>
     [ObservableProperty] private List<string> _assistantCatalogs = [Assistant.Packages.AssistantCatalog.Official];

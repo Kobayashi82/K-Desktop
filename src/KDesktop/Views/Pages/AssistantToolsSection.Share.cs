@@ -18,7 +18,7 @@ public partial class AssistantToolsSection
     {
         var s = _app.Config.Settings;
         var clients = State?.Shared ?? [];
-        return $"{s.AssistantShareTools}|{s.AssistantShareScope}|{s.AssistantShareKey?.Length}|{State?.SharedTools}|"
+        return $"{s.AssistantShareTools}|{s.AssistantShareScope}|{s.AssistantShareKey?.Length}|{s.AssistantShareNeedsKey}|{State?.SharedTools}|"
             + string.Join(",", clients.Select(c => $"{c.Name}{c.Since}{c.Calls}"));
     }
 
@@ -29,12 +29,23 @@ public partial class AssistantToolsSection
 
         var on = Toggle(s.AssistantShareTools, Loc.T("toolsOptions.shareOn"), value =>
         {
-            if (value && _app.AssistantShareKey is null) _app.NewAssistantShareKey();
+            if (value && s.AssistantShareNeedsKey && _app.AssistantShareKey is null) _app.NewAssistantShareKey();
             s.AssistantShareTools = value;
             _shown = null;
             Refresh();
         });
         card.Add(SettingLine(Loc.T("toolsOptions.shareOn"), Loc.T("toolsOptions.shareOnHint"), on));
+
+        // The key is optional: the pipe is this user's alone (never from another PC or user).
+        var needsKey = Toggle(s.AssistantShareNeedsKey, Loc.T("toolsOptions.shareNeedsKey"), value =>
+        {
+            if (value && _app.AssistantShareKey is null) _app.NewAssistantShareKey();
+            s.AssistantShareNeedsKey = value;
+            _shown = null;
+            Refresh();
+        });
+        needsKey.IsEnabled = s.AssistantShareTools;
+        card.Add(SettingLine(Loc.T("toolsOptions.shareNeedsKey"), Loc.T(s.AssistantShareNeedsKey ? "toolsOptions.shareNeedsKeyHint" : "toolsOptions.shareNoKeyHint"), needsKey));
 
         var scope = new ComboBox { MinWidth = 260 };
         foreach (var (value, text) in new[] { (McpShare.ScopeRead, Loc.T("toolsOptions.shareRead")), (McpShare.ScopeAll, Loc.T("toolsOptions.shareAll")) })
@@ -57,7 +68,7 @@ public partial class AssistantToolsSection
 
         var buttons = new WrapPanel { Margin = new Thickness(0, 8, 0, 0) };
         buttons.Children.Add(Wide(SymbolRegular.Copy24, Loc.T("toolsOptions.shareCopy"), _ => CopyShareConfig(), primary: true, enabled: s.AssistantShareTools));
-        buttons.Children.Add(Wide(SymbolRegular.KeyReset24, Loc.T("toolsOptions.shareNewKey"), _ => NewShareKey(), enabled: s.AssistantShareTools));
+        if (s.AssistantShareNeedsKey) buttons.Children.Add(Wide(SymbolRegular.KeyReset24, Loc.T("toolsOptions.shareNewKey"), _ => NewShareKey(), enabled: s.AssistantShareTools));
         card.Add(buttons);
         card.Add(Caption(Loc.T("toolsOptions.shareWhere")));
         if (s.AssistantShareTools && Running && State is { } state) card.Add(Caption(Loc.T("toolsOptions.shareCount", state.SharedTools)));

@@ -17,6 +17,8 @@ internal sealed class ModuleShare : IDisposable
     private readonly object _gate = new();
     private CancellationTokenSource? _running;
     private string _keyHash = string.Empty;
+    /// <summary>Without the key: any program of this user gets in.</summary>
+    private bool _open;
 
     public ModuleShare(ToolRunner runner)
     {
@@ -29,11 +31,12 @@ internal sealed class ModuleShare : IDisposable
     /// <summary>Sharing is on.</summary>
     public bool On { get; private set; }
 
-    /// <summary>The section <c>share</c>: <c>enabled</c>, <c>key</c> (its hash) and <c>scope</c>.</summary>
+    /// <summary>The section <c>share</c>: <c>enabled</c>, <c>key</c> (its hash), <c>open</c> (no key needed) and <c>scope</c>.</summary>
     public void Configure(JsonObject? share)
     {
         var enabled = share?["enabled"] is JsonValue e && e.TryGetValue<bool>(out var on) && on;
         var key = share?["key"] is JsonValue k && k.TryGetValue<string>(out var hash) ? hash : string.Empty;
+        var open = share?["open"] is JsonValue o && o.TryGetValue<bool>(out var free) && free;
         var scope = share?["scope"] is JsonValue s && s.TryGetValue<string>(out var value) && value == McpShare.ScopeAll ? McpShare.ScopeAll : McpShare.ScopeRead;
         var scopeChanged = scope != Tools.Scope;
         Tools.Scope = scope;
@@ -41,14 +44,15 @@ internal sealed class ModuleShare : IDisposable
         {
             var keyChanged = key != _keyHash;
             _keyHash = key;
-            var wanted = enabled && key.Length > 0;
+            _open = open;
+            var wanted = enabled && (open || key.Length > 0);
             if (wanted && (_running is null || keyChanged))
             {
                 Stop();
                 _running = new CancellationTokenSource();
                 var token = _running.Token;
                 _ = Task.Run(() => ListenAsync(token));
-                Log.Info($"Asistente: herramientas compartidas por MCP ({scope})");
+                Log.Info($"Asistente: herramientas compartidas por MCP ({scope}{(open ? ", sin clave" : string.Empty)})");
             }
             else if (!wanted && _running is not null)
             {
@@ -110,8 +114,10 @@ internal sealed class ModuleShare : IDisposable
             {
                 var key = await McpShare.ReadHelloAsync(pipe, token).ConfigureAwait(false);
                 string hash;
-                lock (_gate) hash = _keyHash;
-                if (!McpShare.Matches(key, hash))
+                bool open;
+                lock (_gate) (hash, open) = (_keyHash, _open);
+                // Without the key, the hello line is still said (with any key, or none).
+                if (key is null || !open && !McpShare.Matches(key, hash))
                 {
                     Log.Warn("Asistente: un programa ha querido usar las herramientas con una clave que no vale");
                     return;

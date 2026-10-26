@@ -55,15 +55,18 @@ public partial class AssistantToolsSection
         body.Children.Add(heading);
         // A phrase that asks for it says it best, in the user's language; the description is for the model (in English).
         var about = tool.Example is { Length: > 0 } example ? Loc.T("toolsOptions.example", example) : OneLine(tool.Description);
-        var caption = Caption(Shorten(about, 220));
-        caption.Margin = new Thickness(0, 2, 0, 0);
-        body.Children.Add(caption);
+        // The description is long for some (an MCP server's say how to use them): as wide as the row, and whole in its tooltip.
+        var wide = new StackPanel { Margin = new Thickness(0, 4, 0, 0) };
+        var caption = Caption(Shorten(about, 300));
+        if (about.Length > 300) caption.ToolTip = new System.Windows.Controls.ToolTip { Content = new TextBlock { Text = about, TextWrapping = TextWrapping.Wrap, MaxWidth = 520 } };
+        wide.Children.Add(caption);
         var chips = new WrapPanel { Margin = new Thickness(0, 5, 0, 0) };
         if (showWhere) chips.Children.Add(Chip(Where(tool)));
         if (file is not null) chips.Children.Add(Chip(System.IO.Path.GetFileName(file.File) + (file.Type is { } type ? " · " + Loc.T("toolsOptions.type." + type) : string.Empty)));
         if (tool.ReadsOnly) chips.Children.Add(Chip(Loc.T("toolsOptions.readsOnly")));
         if (!tool.Enabled) chips.Children.Add(StatusChip(Loc.T("toolsOptions.toolOff"), "TextFillColorTertiaryBrush"));
-        if (chips.Children.Count > 0) body.Children.Add(chips);
+        if (chips.Children.Count > 0) wide.Children.Add(chips);
+        body.VerticalAlignment = VerticalAlignment.Center;
 
         var buttons = Buttons();
         buttons.Children.Add(RiskChip(tool));
@@ -93,7 +96,7 @@ public partial class AssistantToolsSection
         var icon = tool.Group == "builtin" ? SubjectIcon(SubjectOf(tool.Name))
             : tool.Group == "json" ? TypeIcon(file?.Type)
             : SymbolRegular.PlugConnected24;
-        return Row(icon, body, buttons, tool.Name, dim: !tool.Enabled, below: below);
+        return Row(icon, body, buttons, tool.Name, dim: !tool.Enabled, below: below, wide: wide);
     }
 
     private static string Where(ToolInfo tool) => tool.Group switch
@@ -395,7 +398,9 @@ public partial class AssistantToolsSection
     /// <param name="danger">Something is wrong with it: its picture in red.</param>
     /// <param name="dim">Switched off: dimmed (its buttons are not).</param>
     /// <param name="below">What goes under it, across (a test, its result).</param>
-    private static Border Row(SymbolRegular symbol, UIElement body, UIElement buttons, string name, bool danger = false, bool dim = false, UIElement? below = null)
+    /// <param name="wide">Under the name and the buttons, as wide as the row (a long description is not squeezed next to the buttons).</param>
+    private static Border Row(SymbolRegular symbol, UIElement body, UIElement buttons, string name, bool danger = false, bool dim = false, UIElement? below = null,
+        FrameworkElement? wide = null)
     {
         var grid = new Grid();
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -403,11 +408,21 @@ public partial class AssistantToolsSection
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         var glyph = new SymbolIcon { Symbol = symbol, FontSize = 18 };
         glyph.SetResourceReference(ForegroundProperty, danger ? "Kd.Danger" : "Kd.AccentText");
         var tile = new Border { Width = 36, Height = 36, CornerRadius = new CornerRadius(8), Child = glyph, Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Top };
         tile.SetResourceReference(Border.BackgroundProperty, danger ? "Kd.DangerSoft" : "Kd.AccentSoft");
+        Grid.SetRowSpan(tile, 2);
         grid.Children.Add(tile);
+        if (wide is not null)
+        {
+            Grid.SetRow(wide, 1);
+            Grid.SetColumn(wide, 1);
+            Grid.SetColumnSpan(wide, 2);
+            grid.Children.Add(wide);
+            if (dim) wide.Opacity = 0.6;
+        }
         Grid.SetColumn((FrameworkElement)body, 1);
         grid.Children.Add(body);
         Grid.SetColumn((FrameworkElement)buttons, 2);
@@ -419,7 +434,7 @@ public partial class AssistantToolsSection
         }
         if (below is not null)
         {
-            Grid.SetRow(below, 1);
+            Grid.SetRow(below, 2);
             Grid.SetColumn(below, 1);
             Grid.SetColumnSpan(below, 2);
             grid.Children.Add(below);

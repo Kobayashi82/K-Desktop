@@ -169,7 +169,9 @@ MCP del programa (`claude_desktop_config.json`, el `mcp.json` de VS Code, el `co
 - **Qué pueden usar**: *Solo lo que consulta* (la hora, cuentas, el tiempo, buscar archivos o en internet, leer la
   pantalla… nada que cambie nada) o *Todo, preguntándote antes*: lo que cambia algo pregunta **en este PC** con la ventanita
   de siempre, aunque hayas puesto que los asistentes no pregunten.
-- Solo entran los programas con la clave; **Cambiar la clave** deja fuera a los que tenían la anterior.
+- Con **Pedir la clave** (de serie) solo entran los programas con la clave; **Cambiar la clave** deja fuera a los que
+  tenían la anterior. Apagado, entra cualquier programa tuyo en este PC (nunca desde otro PC ni de otro usuario) y la
+  configuración copiada no lleva clave.
 - K-Desktop tiene que estar abierto con el módulo Asistente encendido. Cada llamada sale en la actividad con el nombre del
   programa, y la página enseña quién está conectado. Las herramientas que has apagado y las de tus propios servidores MCP no
   se comparten.

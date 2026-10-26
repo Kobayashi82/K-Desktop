@@ -363,11 +363,11 @@ public partial class AssistantToolsSection : UserControl
     {
         var files = State?.Files ?? [];
         var tools = ToolsOf("json").ToList();
-        var card = Card(Loc.T("toolsOptions.files"), Loc.T("toolsOptions.filesIntro"));
+        var card = Card(Loc.T("toolsOptions.files"), null);
+        card.Add(IntroWithGuide());
         var buttons = new WrapPanel { Margin = new Thickness(0, 0, 0, 6) };
         buttons.Children.Add(Wide(SymbolRegular.Add24, Loc.T("toolsOptions.newTool"), NewTool, primary: true));
         buttons.Children.Add(Wide(SymbolRegular.FolderOpen24, Loc.T("toolsOptions.openFolder"), _ => App.OpenToolsFolder()));
-        buttons.Children.Add(Wide(SymbolRegular.BookOpen24, Loc.T("toolsOptions.guide"), _ => ProcessLauncher.Launch(new LaunchSpec(GuideUrl), asAdmin: false)));
         card.Add(buttons);
         if (files.Count == 0) card.Add(Caption(Loc.T(State is null && Running ? "memoryOptions.loading" : "toolsOptions.noFiles")));
         // One row per file that opens its own page (5.0.134), in alphabetical order.
@@ -385,6 +385,21 @@ public partial class AssistantToolsSection : UserControl
         }).ToList();
         if (rows.Count > 0) card.Add(Rows(rows));
         Body.Children.Add(card.Border);
+    }
+
+    /// <summary>What they are, with «Cómo se escriben» linking to the guide (like the link of «Control remoto»).</summary>
+    private TextBlock IntroWithGuide()
+    {
+        var intro = Caption(string.Empty);
+        intro.Margin = new Thickness(0, 0, 0, 10);
+        var parts = Loc.T("toolsOptions.filesIntro").Split("{0}");
+        var link = new System.Windows.Documents.Hyperlink(new System.Windows.Documents.Run(Loc.T("toolsOptions.guideLink"))) { ToolTip = GuideUrl };
+        link.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, "Kd.AccentText");
+        link.Click += (_, _) => ProcessLauncher.Launch(new LaunchSpec(GuideUrl), asAdmin: false);
+        intro.Inlines.Add(parts[0]);
+        intro.Inlines.Add(link);
+        if (parts.Length > 1) intro.Inlines.Add(parts[1]);
+        return intro;
     }
 
     /// <summary>One of the user's files: its tool, or what is wrong with it.</summary>
@@ -460,7 +475,7 @@ public partial class AssistantToolsSection : UserControl
         var card = Card(Loc.T("toolsOptions.servers"), Loc.T("toolsOptions.serversIntro"));
         var buttons = new WrapPanel { Margin = new Thickness(0, 0, 0, 6) };
         buttons.Children.Add(Wide(SymbolRegular.Add24, Loc.T("toolsOptions.addServer"), _ => EditServer(null), primary: true));
-        buttons.Children.Add(Wide(SymbolRegular.ArrowImport24, Loc.T("toolsOptions.import"), _ => Import()));
+        buttons.Children.Add(Wide(SymbolRegular.ArrowDownload24, Loc.T("toolsOptions.import"), _ => Import()));
         buttons.Children.Add(Wide(SymbolRegular.ClipboardPaste24, Loc.T("toolsOptions.paste"), _ => Paste()));
         card.Add(buttons);
         if (errors.Count > 0) card.Add(Note(Loc.T("toolsOptions.mcpBroken", errors[0]), danger: true));
@@ -738,11 +753,14 @@ public partial class AssistantToolsSection : UserControl
         }
         else
         {
-            var change = new Button { Content = Loc.T(kept ? "toolsOptions.secretChange" : "toolsOptions.secretSet"), Margin = new Thickness(4, 0, 0, 0), MinHeight = 36,
-                Appearance = kept ? ControlAppearance.Secondary : ControlAppearance.Primary };
-            System.Windows.Automation.AutomationProperties.SetName(change, Loc.T(kept ? "toolsOptions.secretChange" : "toolsOptions.secretSet") + " " + name);
-            change.Click += (_, _) => { _changingSecret = name; Refresh(); };
-            buttons.Children.Add(change);
+            if (kept) buttons.Children.Add(Small(SymbolRegular.Edit24, Loc.T("toolsOptions.secretChange"), () => { _changingSecret = name; Refresh(); }, true, name));
+            else
+            {
+                var set = new Button { Content = Loc.T("toolsOptions.secretSet"), Margin = new Thickness(4, 0, 0, 0), MinHeight = 36, Appearance = ControlAppearance.Primary };
+                System.Windows.Automation.AutomationProperties.SetName(set, Loc.T("toolsOptions.secretSet") + " " + name);
+                set.Click += (_, _) => { _changingSecret = name; Refresh(); };
+                buttons.Children.Add(set);
+            }
             if (kept) buttons.Children.Add(Small(SymbolRegular.Delete24, Loc.T("toolsOptions.secretDelete"), () => _app.SetToolSecret(name, null), true, name));
         }
         return Row(SymbolRegular.Key24, body, buttons, name, danger: !kept && usedBy.Count > 0);

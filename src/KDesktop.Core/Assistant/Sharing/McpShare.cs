@@ -60,7 +60,8 @@ public static class McpShare
     /// What to paste into the program's MCP settings (the usual <c>mcpServers</c> format): this exe with <c>--mcp</c> and
     /// the key; with another data folder, that folder too.
     /// </summary>
-    public static string ClientConfig(string exePath, string key, string? dataDir = null)
+    /// <param name="key">Null: no key is needed (no <c>env</c>).</param>
+    public static string ClientConfig(string exePath, string? key, string? dataDir = null)
     {
         var args = new JsonArray("--mcp");
         if (dataDir is not null)
@@ -72,8 +73,8 @@ public static class McpShare
         {
             ["command"] = exePath,
             ["args"] = args,
-            ["env"] = new JsonObject { [KeyVariable] = key },
         };
+        if (key is not null) server["env"] = new JsonObject { [KeyVariable] = key };
         var root = new JsonObject { ["mcpServers"] = new JsonObject { ["k-desktop"] = server } };
         return root.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
     }
@@ -137,11 +138,7 @@ public static class McpShare
     /// </summary>
     public static async Task<int> BridgeAsync(Stream input, Stream output, string? key, TextWriter errors, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(key))
-        {
-            await errors.WriteLineAsync("K-Desktop: " + Loc.T("mcpShare.bridge.noKey", KeyVariable)).ConfigureAwait(false);
-            return 1;
-        }
+        // Without a key it still tries: the user may have said none is needed (if not, the assistant hangs up, said below).
         var pipe = new NamedPipeClientStream(".", PipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
         await using (pipe.ConfigureAwait(false))
         {
@@ -163,7 +160,7 @@ public static class McpShare
                     return 1;
                 }
             }
-            await pipe.WriteAsync(Encoding.ASCII.GetBytes($"{Hello} {key.Trim()}\n"), cancellationToken).ConfigureAwait(false);
+            await pipe.WriteAsync(Encoding.ASCII.GetBytes($"{Hello} {key?.Trim()}\n"), cancellationToken).ConfigureAwait(false);
             await pipe.FlushAsync(cancellationToken).ConfigureAwait(false);
 
             using var done = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -174,7 +171,8 @@ public static class McpShare
             // The assistant hung up before saying anything: it did not take the key.
             if (first == down && await down.ConfigureAwait(false) == 0)
             {
-                await errors.WriteLineAsync("K-Desktop: " + Loc.T("mcpShare.bridge.badKey")).ConfigureAwait(false);
+                await errors.WriteLineAsync("K-Desktop: " + (string.IsNullOrWhiteSpace(key) ? Loc.T("mcpShare.bridge.noKey", KeyVariable) : Loc.T("mcpShare.bridge.badKey")))
+                    .ConfigureAwait(false);
                 return 1;
             }
             return 0;

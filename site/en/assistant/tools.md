@@ -166,6 +166,8 @@ settings (`claude_desktop_config.json`, VS Code's `mcp.json`, mcpo's `config.jso
 - **What they can use**: *Only what looks things up* (the time, sums, the weather, finding files or searching the internet,
   reading the screen… nothing that changes anything) or *Everything, asking you first*: what changes something asks **on
   this PC** with the usual window, even if you set the assistants not to ask.
-- Only the programs with the key get in; **Change the key** leaves out those that had the old one.
+- With **Ask for the key** (the default) only the programs with the key get in; **Change the key** leaves out those that
+  had the old one. Off, any program of yours on this PC gets in (never from another PC or user) and the copied
+  configuration carries no key.
 - K-Desktop must be open with the assistant module on. Each call shows in the activity with the program's name, and the
   page shows who is connected. Tools you switched off, and those of your own MCP servers, are not shared.

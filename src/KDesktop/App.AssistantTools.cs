@@ -67,6 +67,7 @@ public partial class App
         {
             ["enabled"] = Config.Settings.AssistantShareTools,
             ["scope"] = Config.Settings.AssistantShareScope,
+            ["open"] = !Config.Settings.AssistantShareNeedsKey,
             ["key"] = AssistantShareKey is { } key ? Core.Assistant.Sharing.McpShare.HashOf(key) : string.Empty,
         },
     };
@@ -85,7 +86,7 @@ public partial class App
 
     /// <summary>What to paste into the program's MCP settings.</summary>
     public string AssistantShareConfig() =>
-        Core.Assistant.Sharing.McpShare.ClientConfig(AppPaths.ExecutablePath, AssistantShareKey ?? NewAssistantShareKey(),
+        Core.Assistant.Sharing.McpShare.ClientConfig(AppPaths.ExecutablePath, Config.Settings.AssistantShareNeedsKey ? AssistantShareKey ?? NewAssistantShareKey() : null,
             AppPaths.InstanceSuffix.Length == 0 ? null : AppPaths.DataDir);
 
     /// <summary>After a settings change: the tools section, if it changed (UI thread).</summary>
