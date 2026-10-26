@@ -145,10 +145,12 @@ public partial class WakeWordDialog : FluentWindow
             _silence = _speech = null;
             _negatives = null;
             _speechDone = false;
+            ReuseText.Text = Loc.T("wake.reuseOff");
         }
         else if (WakeCalibration.Load(_app.Config.Settings.VoiceMicId) is { } saved)
         {
             UseCalibration(saved);
+            ReuseText.Text = Loc.T("wake.reuse", saved.Recorded.ToString("d", Loc.Instance.Culture));
         }
         ShowStep(_step, animate: false);
     }
@@ -196,7 +198,10 @@ public partial class WakeWordDialog : FluentWindow
                 WordText.Text = Loc.T("wake.wordText", WordName, Wanted, Minimum);
                 UpdateTakes();
                 break;
-            case 3: _meter = SpeechLevel; break;
+            case 3:
+                _meter = SpeechLevel;
+                SpeechText.Text = Loc.T("wake.speechText", WordName);
+                break;
             case 4:
                 _meter = TestLevel;
                 TestText.Text = Loc.T("wake.testText", _testOnly ? _existing!.Name : WordName);
@@ -214,7 +219,8 @@ public partial class WakeWordDialog : FluentWindow
     private void UpdateButtons()
     {
         NextButton.Content = _testOnly ? Loc.T("common.close") : _step == 4 ? Loc.T("wake.save") : Loc.T("wake.next");
-        NextButton.IsEnabled = !_busy && _step switch
+        // While the takes are recorded, «Siguiente» stops them once there are enough.
+        NextButton.IsEnabled = (!_busy || (_step == 2 && _takesStop is not null)) && _step switch
         {
             0 => WordName.Length > 0,
             1 => _silence is not null,
@@ -228,12 +234,20 @@ public partial class WakeWordDialog : FluentWindow
 
     private void OnNameChanged(object sender, TextChangedEventArgs e) => UpdateButtons();
 
-    private void OnNext(object sender, RoutedEventArgs e)
+    private async void OnNext(object sender, RoutedEventArgs e)
     {
         if (_testOnly)
         {
             Close();
             return;
+        }
+        if (_busy)
+        {
+            if (_step != 2 || _takesStop is null) return;
+            NextButton.IsEnabled = false;
+            await _takesStop.CancelAsync();
+            if (_takesTask is not null) await _takesTask;
+            if (!IsLoaded || Kept.Count() < Minimum) return;
         }
         if (_step < 4)
         {
@@ -331,13 +345,37 @@ public partial class WakeWordDialog : FluentWindow
 
     private IEnumerable<TakeRow> Kept => _takes.Where(t => t.Take.Issue == TakeIssue.None);
 
-    /// <summary>Records takes one after another until there are enough good ones or one goes wrong.</summary>
-    private async void OnRecordTake(object sender, RoutedEventArgs e) => await Busy(async cancel =>
+    /// <summary>Stops the takes being recorded («Siguiente» once there are enough); null when not recording them.</summary>
+    private CancellationTokenSource? _takesStop;
+    private Task? _takesTask;
+
+    /// <summary>
+    /// Records takes one after another until there are enough good ones. A failed take (clipped, too short…) is shown
+    /// and recorded again by itself; it stops when nothing is heard or after a few failures in a row.
+    /// </summary>
+    private async void OnRecordTake(object sender, RoutedEventArgs e) => await (_takesTask = Busy(async cancel =>
     {
+        using var stop = CancellationTokenSource.CreateLinkedTokenSource(cancel);
+        _takesStop = stop;
+        try
+        {
+            await RecordTakes(stop.Token);
+        }
+        finally
+        {
+            _takesStop = null;
+        }
+    }));
+
+    private async Task RecordTakes(CancellationToken cancel)
+    {
+        const int MaxFailures = 3;
         _takesName = WordName;
+        var failures = 0;
         while (Kept.Count() < Wanted)
         {
             RecordButton.Content = Loc.T("wake.speakNow", Kept.Count() + 1, Wanted, WordName);
+            UpdateButtons();
             var audio = await _recorder.RecordUtteranceAsync(_app.Config.Settings.VoiceMicId, TimeSpan.FromSeconds(4), cancel);
             var take = WakeWordRecorder.Check(audio, _noise, Kept.Select(t => t.Take.Seconds).ToList());
             float[][]? template = null;
@@ -352,10 +390,12 @@ public partial class WakeWordDialog : FluentWindow
             }
             _takes.Add(new TakeRow(take) { Template = template });
             UpdateTakes();
-            if (take.Issue != TakeIssue.None) break;
-            await Task.Delay(500, cancel);
+            failures = take.Issue == TakeIssue.None ? 0 : failures + 1;
+            if (take.Issue == TakeIssue.NoSpeech || failures >= MaxFailures) break;
+            // A failed take stays on screen a bit longer, so what to fix can be read before the next one.
+            await Task.Delay(take.Issue == TakeIssue.None ? 500 : 1500, cancel);
         }
-    });
+    }
 
     /// <summary>
     /// Much further (DTW over openWakeWord embeddings) from the takes already kept than they are from each other.
@@ -389,9 +429,9 @@ public partial class WakeWordDialog : FluentWindow
 
     private void UpdateTakes()
     {
-        // Only the last failed take is kept on screen (it says what to fix); the good ones stay.
-        var failed = _takes.LastOrDefault(t => t.Take.Issue != TakeIssue.None);
-        _takes.RemoveAll(t => t.Take.Issue != TakeIssue.None && !ReferenceEquals(t, failed));
+        // A failed take stays on screen (it says what to fix) only until the next one; the good ones stay.
+        var last = _takes.LastOrDefault();
+        _takes.RemoveAll(t => t.Take.Issue != TakeIssue.None && !ReferenceEquals(t, last));
         TakeList.ItemsSource = null;
         TakeList.ItemsSource = _takes.ToList();
         var kept = Kept.Count();

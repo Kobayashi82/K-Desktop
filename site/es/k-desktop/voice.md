@@ -51,7 +51,8 @@ veces y un poco de habla normal para que aprenda lo que *no* es la palabra.
 ## Música, vídeos y volumen
 
 *Opciones → Multimedia*: órdenes como «reproduce», «pausa», «siguiente», «sube el volumen», «volumen al 30» funcionan sin
-crear ningún comando, en cualquiera de los idiomas instalados.
+crear ningún comando, en cualquiera de los idiomas instalados. Usan las teclas multimedia, así que valen con cualquier
+reproductor que las atienda: la música, el navegador, una película («pausa la película»).
 
 ## Dictado
 

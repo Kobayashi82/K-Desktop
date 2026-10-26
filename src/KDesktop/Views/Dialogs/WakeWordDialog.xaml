@@ -114,7 +114,7 @@
 
             <!-- 3 · Normal speech -->
             <StackPanel x:Name="Step3" Visibility="Collapsed">
-                <TextBlock Style="{StaticResource StepText}" Text="{l:Tr wake.speechText}" />
+                <TextBlock x:Name="SpeechText" Style="{StaticResource StepText}" />
                 <Border Style="{StaticResource InfoBox}" Margin="0,12,0,0">
                     <TextBlock Style="{StaticResource Caption}" FontStyle="Italic" Text="{l:Tr wake.speechSample}" />
                 </Border>

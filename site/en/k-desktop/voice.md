@@ -51,7 +51,8 @@ a bit of normal speech so it learns what is *not* the word.
 ## Music, videos and volume
 
 *Settings → Multimedia*: orders like «play», «pause», «next», «turn the volume up», «volume to 30» work without creating any
-command, in any of the installed languages.
+command, in any of the installed languages. They use the media keys, so they work with any player that listens to them:
+music, the browser, a film («pause the movie»).
 
 ## Dictation
 
