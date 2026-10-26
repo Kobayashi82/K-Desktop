@@ -48,7 +48,7 @@ public partial class AssistantToolsSection
         card.Add(SettingLine(Loc.T("toolsOptions.shareNeedsKey"), Loc.T(s.AssistantShareNeedsKey ? "toolsOptions.shareNeedsKeyHint" : "toolsOptions.shareNoKeyHint"), needsKey));
 
         var scope = new ComboBox { MinWidth = 260 };
-        foreach (var (value, text) in new[] { (McpShare.ScopeRead, Loc.T("toolsOptions.shareRead")), (McpShare.ScopeAll, Loc.T("toolsOptions.shareAll")) })
+        foreach (var (value, text) in new[] { (McpShare.ScopeRead, Loc.T("toolsOptions.shareRead")), (McpShare.ScopeAll, Loc.T("toolsOptions.shareAll")), (McpShare.ScopeFree, Loc.T("toolsOptions.shareFree")) })
         {
             var item = new ComboBoxItem { Content = text, Tag = value };
             scope.Items.Add(item);
@@ -64,14 +64,24 @@ public partial class AssistantToolsSection
             Dispatcher.BeginInvoke(Refresh);
         };
         scope.IsEnabled = s.AssistantShareTools;
-        card.Add(SettingLine(Loc.T("toolsOptions.shareScope"), Loc.T(s.AssistantShareScope == McpShare.ScopeAll ? "toolsOptions.shareAllHint" : "toolsOptions.shareReadHint"), scope));
+        card.Add(SettingLine(Loc.T("toolsOptions.shareScope"), Loc.T(s.AssistantShareScope switch
+        {
+            McpShare.ScopeAll => "toolsOptions.shareAllHint",
+            McpShare.ScopeFree => "toolsOptions.shareFreeHint",
+            _ => "toolsOptions.shareReadHint",
+        }), scope));
 
         var buttons = new WrapPanel { Margin = new Thickness(0, 8, 0, 0) };
         buttons.Children.Add(Wide(SymbolRegular.Copy24, Loc.T("toolsOptions.shareCopy"), _ => CopyShareConfig(), primary: true, enabled: s.AssistantShareTools));
         if (s.AssistantShareNeedsKey) buttons.Children.Add(Wide(SymbolRegular.KeyReset24, Loc.T("toolsOptions.shareNewKey"), _ => NewShareKey(), enabled: s.AssistantShareTools));
         card.Add(buttons);
         card.Add(Caption(Loc.T("toolsOptions.shareWhere")));
-        if (s.AssistantShareTools && Running && State is { } state) card.Add(Caption(Loc.T("toolsOptions.shareCount", state.SharedTools)));
+        if (s.AssistantShareTools && Running && State is { } state)
+        {
+            var count = Caption(Loc.T("toolsOptions.shareCount", state.SharedTools));
+            count.Margin = new Thickness(0, 10, 0, 0);
+            card.Add(count);
+        }
         Body.Children.Add(card.Border);
 
         var users = Card(Loc.T("toolsOptions.shareUsers"), null, SymbolRegular.PeopleCommunity24);

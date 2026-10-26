@@ -37,7 +37,7 @@ internal sealed class ModuleShare : IDisposable
         var enabled = share?["enabled"] is JsonValue e && e.TryGetValue<bool>(out var on) && on;
         var key = share?["key"] is JsonValue k && k.TryGetValue<string>(out var hash) ? hash : string.Empty;
         var open = share?["open"] is JsonValue o && o.TryGetValue<bool>(out var free) && free;
-        var scope = share?["scope"] is JsonValue s && s.TryGetValue<string>(out var value) && value == McpShare.ScopeAll ? McpShare.ScopeAll : McpShare.ScopeRead;
+        var scope = share?["scope"] is JsonValue s && s.TryGetValue<string>(out var value) && value is McpShare.ScopeAll or McpShare.ScopeFree ? value : McpShare.ScopeRead;
         var scopeChanged = scope != Tools.Scope;
         Tools.Scope = scope;
         lock (_gate)

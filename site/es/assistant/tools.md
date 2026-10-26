@@ -167,8 +167,9 @@ MCP del programa (`claude_desktop_config.json`, el `mcp.json` de VS Code, el `co
 ```
 
 - **Qué pueden usar**: *Solo lo que consulta* (la hora, cuentas, el tiempo, buscar archivos o en internet, leer la
-  pantalla… nada que cambie nada) o *Todo, preguntándote antes*: lo que cambia algo pregunta **en este PC** con la ventanita
-  de siempre, aunque hayas puesto que los asistentes no pregunten.
+  pantalla… nada que cambie nada), *Todo, preguntándote antes*: lo que cambia algo pregunta **en este PC** con la ventanita
+  de siempre, aunque hayas puesto que los asistentes no pregunten, o *Todo, sin preguntar*: solo pregunta lo que tengas en
+  *Siempre* (y un script nuevo, la primera vez).
 - Con **Pedir la clave** (de serie) solo entran los programas con la clave; **Cambiar la clave** deja fuera a los que
   tenían la anterior. Apagado, entra cualquier programa tuyo en este PC (nunca desde otro PC ni de otro usuario) y la
   configuración copiada no lleva clave.

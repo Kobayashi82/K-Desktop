@@ -24,7 +24,7 @@ public sealed class SharedTools(ToolRunner runner)
     private readonly ConcurrentDictionary<int, SdkServer> _servers = new();
     private int _next;
 
-    /// <summary><see cref="McpShare.ScopeRead"/> or <see cref="McpShare.ScopeAll"/>.</summary>
+    /// <summary><see cref="McpShare.ScopeRead"/>, <see cref="McpShare.ScopeAll"/> or <see cref="McpShare.ScopeFree"/>.</summary>
     public string Scope { get; set; } = McpShare.ScopeRead;
 
     /// <summary>Who is connected changed, or a call was made.</summary>
@@ -35,7 +35,7 @@ public sealed class SharedTools(ToolRunner runner)
     /// <summary>The tools a program may see now.</summary>
     public IReadOnlyList<ITool> Shared =>
         [.. runner.Registry.All.Where(t => runner.Registry.GroupOf(t.Name) is not { } g || !g.StartsWith(McpServers.GroupPrefix, StringComparison.Ordinal))
-            .Where(t => Scope == McpShare.ScopeAll || t.ReadsOnly)];
+            .Where(t => Scope is McpShare.ScopeAll or McpShare.ScopeFree || t.ReadsOnly)];
 
     /// <summary>The tools changed (or what is shared): the connected programs are told to list them again.</summary>
     public void NotifyChanged()
@@ -102,7 +102,7 @@ public sealed class SharedTools(ToolRunner runner)
             return new CallToolResult { IsError = true, Content = [new TextContentBlock { Text = $"No shared tool called «{tool}»." }] };
 
         var arguments = JsonSerializer.SerializeToElement(call!.Arguments ?? new Dictionary<string, JsonElement>());
-        var outcome = await runner.RunAsync(tool, arguments, new ToolContext(null, Caller: name), name, McpShare.Route, cancellationToken).ConfigureAwait(false);
+        var outcome = await runner.RunAsync(tool, arguments, new ToolContext(null, Caller: name) { SharedFree = Scope == McpShare.ScopeFree }, name, McpShare.Route, cancellationToken).ConfigureAwait(false);
         var text = outcome.Result?.Text ?? outcome.Entry.Did;
         return new CallToolResult
         {

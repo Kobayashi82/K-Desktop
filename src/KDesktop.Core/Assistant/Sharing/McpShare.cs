@@ -29,6 +29,9 @@ public static class McpShare
     public const string ScopeRead = "read";
     public const string ScopeAll = "all";
 
+    /// <summary>Everything, without asking (only what is set to always ask still does).</summary>
+    public const string ScopeFree = "free";
+
     /// <summary>The first line the bridge writes: this, a space, the key.</summary>
     private const string Hello = "KDMCP1";
     private const int MaxHello = 200;

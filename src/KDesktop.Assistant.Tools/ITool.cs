@@ -100,6 +100,12 @@ public sealed record ToolContext(string? Assistant, string? Heard = null, bool D
     public Action<ToolGesture>? Show { get; init; }
 
     /// <summary>
+    /// A program the user let use everything without asking (Options → Compartir): only what is set to «Preguntar siempre»,
+    /// what always asks and a script not seen before ask.
+    /// </summary>
+    public bool SharedFree { get; init; }
+
+    /// <summary>
     /// The files the user gave the assistant (stage 14.1: dropped on it) while they are still fresh: what «it», «this file»
     /// means, and the path a tool takes when the model gives none.
     /// </summary>
