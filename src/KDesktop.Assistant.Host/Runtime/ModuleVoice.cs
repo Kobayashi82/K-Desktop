@@ -29,6 +29,8 @@ internal sealed class ModuleVoice : IDisposable
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, IReadOnlyList<string>> _testMoods = new(StringComparer.Ordinal);
     /// <summary>The profile being edited of a test (turn → profile), instead of the speaker's.</summary>
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, VoiceProfile> _testProfiles = new(StringComparer.Ordinal);
+    /// <summary>The engine a test of Options → Voz → Voces sounds with (turn → engine): the general voices, plain.</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, SpeechEngineKind> _testEngines = new(StringComparer.Ordinal);
     private volatile VoiceSettings _settings = new();
     private volatile string? _profile;
     private double _volume = 1;
@@ -122,11 +124,14 @@ internal sealed class ModuleVoice : IDisposable
     /// </summary>
     /// <param name="profile">A profile being edited (Options → Voice → Perfiles de voz, stage 9.4): the test sounds with it
     /// instead of the one of whoever says it.</param>
-    public void Test(string text, string? mood, Func<string, string, CancellationToken, Task> say, VoiceProfile? profile = null)
+    /// <param name="engine">That engine with the general voices and language, plain (Options → Voz → Voces).</param>
+    public void Test(string text, string? mood, Func<string, string, CancellationToken, Task> say, VoiceProfile? profile = null, string? engine = null)
     {
         var turn = "test-" + Guid.NewGuid().ToString("N")[..8];
         _testMoods[turn] = mood is { Length: > 0 } ? [mood] : [];
         if (profile is not null) _testProfiles[turn] = profile;
+        if (Enum.TryParse<SpeechEngineKind>(engine, true, out var kind) && kind is SpeechEngineKind.Kokoro or SpeechEngineKind.Piper or SpeechEngineKind.Windows)
+            _testEngines[turn] = kind;
         var stop = new CancellationTokenSource();
         Interlocked.Exchange(ref _test, stop)?.Cancel();
         Log.Info($"Asistente: prueba de voz{(mood is { Length: > 0 } ? $" ({mood})" : "")}: «{text}»");
@@ -134,6 +139,7 @@ internal sealed class ModuleVoice : IDisposable
         {
             _testMoods.TryRemove(turn, out var _);
             _testProfiles.TryRemove(turn, out var _);
+            _testEngines.TryRemove(turn, out var _);
             Interlocked.CompareExchange(ref _test, null, stop);
             stop.Dispose();
         }, TaskScheduler.Default);
@@ -331,7 +337,14 @@ internal sealed class ModuleVoice : IDisposable
                     SpeechLine? line = null;
                     var settings = _owner.SettingsFor(_assistant, await MoodsAsync().ConfigureAwait(false));
                     if (_owner._testProfiles.TryGetValue(Turn.TrimEnd('+'), out var edited)) settings = settings with { Profile = edited };
-                    await foreach (var chunk in _owner.Speech.StreamAsync(sentence, language, settings, token).ConfigureAwait(false))
+                    var said = language;
+                    // A test of one engine: the general voices and language, nothing of anyone's own, no effects.
+                    if (_owner._testEngines.TryGetValue(Turn.TrimEnd('+'), out var engine))
+                    {
+                        settings = _owner._settings with { Engine = engine, Profile = VoiceProfile.Default, Moods = [] };
+                        said = Loc.Instance.Language;
+                    }
+                    await foreach (var chunk in _owner.Speech.StreamAsync(sentence, said, settings, token).ConfigureAwait(false))
                     {
                         if (line is null)
                         {

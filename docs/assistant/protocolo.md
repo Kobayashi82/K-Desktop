@@ -187,7 +187,7 @@ pantalla completa, solo el bocadillo—; también en la bienvenida). Sin cuerpo 
 
 | `t` | Dir. | Campos | Qué es |
 |---|---|---|---|
-| `voice` | K→A | `op` (`state`, `test`, `stop`, `unload`), `text` (para `test`), `assistant` (para `test`: quién lo dice; sin él, K-Desktop, con su voz propia), `mood` (para `test`: `happy`, `error` o el que use el asistente; sin él, sin ánimo) | Preguntar cómo está la voz, decir una frase de prueba (con el bocadillo del asistente si está en el escritorio; suena aunque haya algo a pantalla completa), pararla o soltar Kokoro, Piper y espeak-ng de la memoria (antes de borrar sus archivos) |
+| `voice` | K→A | `op` (`state`, `test`, `stop`, `unload`), `text` (para `test`), `assistant` (para `test`: quién lo dice; sin él, K-Desktop, con su voz propia), `mood` (para `test`: `happy`, `error` o el que use el asistente; sin él, sin ánimo), `engine` (para `test`, desde 5.0.280: `kokoro`, `piper` o `windows` con las voces y el idioma generales, sin efectos ni nadie que lo diga: «Probar esta voz» de Voz → Voces) | Preguntar cómo está la voz, decir una frase de prueba (con el bocadillo del asistente si está en el escritorio; suena aunque haya algo a pantalla completa), pararla o soltar Kokoro, Piper y espeak-ng de la memoria (antes de borrar sus archivos) |
 | `voiceState` | A→K | `engine` (el que habla de verdad: `kokoro`, `piper`, `windows`, `beeps`, `off`), `windowsVoices` (las de Windows para el idioma), `kokoroLoaded`, `windowsVoicesOf` (las de Windows de cada idioma, para un asistente que habla en el suyo), `piperLoaded` (la clave de la voz de Piper en memoria, o nada) | Tras cada `voice` `state` y cada cambio de la sección `voice` |
 
 ### Lo que sabe (fase 19)

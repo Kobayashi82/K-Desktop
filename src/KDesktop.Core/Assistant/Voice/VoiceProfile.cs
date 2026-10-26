@@ -49,8 +49,8 @@ public sealed record VoiceProfile(string Id, string Name, string Engine, string?
             return new VoiceProfile(id, json["name"]?.GetValue<string>() ?? id,
                 engine["type"]?.GetValue<string>() is { } type && type != "pocket" ? type : "kokoro",
                 engine["voice"]?.GetValue<string>(),
-                Math.Clamp(engine["speed"]?.GetValue<double>() ?? 1, 0.5, 2),
-                Math.Clamp(engine["volume"]?.GetValue<double>() ?? 1, 0, 1),
+                Math.Clamp(Number(engine["speed"]) ?? 1, 0.5, 2),
+                Math.Clamp(Number(engine["volume"]) ?? 1, 0, 1),
                 json["chain"] is JsonArray chainList ? (JsonArray)chainList.DeepClone() : [],
                 moods);
         }
@@ -59,6 +59,16 @@ public sealed record VoiceProfile(string Id, string Name, string Engine, string?
             throw new JsonException($"Perfil de voz «{id}» no válido: {ex.Message}", ex);
         }
     }
+
+    /// <summary>A number of the JSON, whole or not (one made in code may hold an int: «1» is 1.0).</summary>
+    private static double? Number(JsonNode? node) => node switch
+    {
+        null => null,
+        JsonValue value when value.TryGetValue<double>(out var d) => d,
+        JsonValue value when value.TryGetValue<int>(out var i) => i,
+        JsonValue value when value.TryGetValue<long>(out var l) => l,
+        _ => node.GetValue<double>(),
+    };
 
     /// <summary>Reads a profile from a file (the one a package brings); null if it is missing or broken.</summary>
     public static VoiceProfile? Load(string path, string id)

@@ -133,6 +133,18 @@ public partial class App
     }
 
     /// <summary>
+    /// Options → Voz → Voces (5.0.280): the test sentence said by <paramref name="engine"/> (<c>kokoro</c>, <c>piper</c>,
+    /// <c>windows</c>) with the voice chosen there and the general language, plain, by nobody.
+    /// </summary>
+    public void TestAssistantVoiceEngine(string engine)
+    {
+        if (_assistant is not { IsRunning: true } supervisor) return;
+        var text = TestSentence(AssistantLanguage, AssistantName(AssistantTargeting.KDesktop));
+        Voice.OwnVoices.Said("test", text, DateTime.Now);
+        supervisor.Send(new VoiceMessage("test", text, Engine: engine));
+    }
+
+    /// <summary>
     /// The editor of voice profiles (stage 9.4): <paramref name="text"/> said with <paramref name="profile"/> as it is now (not
     /// kept yet), in <paramref name="mood"/>, by the voice alone (no bubble, no OSD: it sounds again with every change).
     /// </summary>

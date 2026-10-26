@@ -42,7 +42,9 @@ public partial class VoiceProfilesSection : UserControl
     /// <summary>The chain shown: <c>chain</c> (always) or a mood (<c>happy</c>, <c>error</c>, <c>far</c>).</summary>
     private string _chain = "chain";
 
-    private static readonly string[] Chains = ["chain", "happy", "error", "far"];
+    /// <summary>The situations an assistant sets (<c>SetVoiceMood</c>): its crash and its celebration. «far» (another monitor)
+    /// is gone with the automatic distance (the user asked); a profile that has it keeps it, unused.</summary>
+    private static readonly string[] Chains = ["chain", "happy", "error"];
 
     private bool _autoTest = true;
     private string? _testText;
@@ -220,12 +222,11 @@ public partial class VoiceProfilesSection : UserControl
         var json = new JsonObject
         {
             ["name"] = Loc.T("voiceProfiles.randomName", random.Next(100, 1000)),
-            ["engine"] = new JsonObject { ["type"] = "kokoro", ["voice"] = "default", ["speed"] = 1, ["volume"] = 1 },
+            ["engine"] = new JsonObject { ["type"] = "kokoro", ["voice"] = "default", ["speed"] = 1.0, ["volume"] = 1.0 },
             ["chain"] = VoiceEffectCatalog.Random(random),
             ["moods"] = new JsonObject
             {
                 ["error"] = new JsonArray(new JsonObject { ["fx"] = "glitch", ["chance"] = 0.15 }),
-                ["far"] = new JsonArray(new JsonObject { ["fx"] = "radio", ["bandwidth"] = 3000, ["noise"] = 0.04, ["beep"] = true }),
                 ["happy"] = new JsonArray(new JsonObject { ["fx"] = "pitch", ["semitones"] = 1.5 }),
             },
         };
@@ -294,12 +295,9 @@ public partial class VoiceProfilesSection : UserControl
     {
         var name = VoiceProfiles.NameOf(_draft);
         var (card, stack) = Card(name, null, SymbolRegular.SlideMicrophone24);
-        var tools = new WrapPanel { Margin = new Thickness(0, -4, 0, 10) };
-        var profile = _draft;
-        if (!IsBuiltIn) tools.Children.Add(Wide(SymbolRegular.Copy24, Loc.T("voiceProfiles.duplicate"), _ => { Keep(); Duplicate(_draft); }));
-        tools.Children.Add(Wide(SymbolRegular.Save24, Loc.T("voiceProfiles.export"), _ => { Keep(); Export(_draft); }));
-        if (!IsBuiltIn) tools.Children.Add(Wide(SymbolRegular.Delete24, Loc.T("voiceProfiles.delete"), _ => Delete(profile)));
-        stack.Children.Add(tools);
+        var heading = stack.Children[0];
+        stack.Children.RemoveAt(0);
+        stack.Children.Insert(0, EditorHead(heading));
         var editable = new StackPanel { IsEnabled = !IsBuiltIn };
         if (IsBuiltIn)
         {
@@ -326,23 +324,13 @@ public partial class VoiceProfilesSection : UserControl
                 _save.Stop();
                 _save.Start();
             };
-            editable.Children.Add(Setting(Loc.T("voiceProfiles.name"), null, nameBox, 260));
-            if (!_app.Config.Settings.AssistantVoiceProfile.Equals(_draft.Id, StringComparison.Ordinal))
-            {
-                var use = Wide(SymbolRegular.Checkmark24, Loc.T("voiceProfiles.useForAll"), _ =>
-                {
-                    Keep();
-                    _app.Config.Settings.AssistantVoiceProfile = _draft.Id;
-                    Build();
-                });
-                use.HorizontalAlignment = HorizontalAlignment.Left;
-                editable.Children.Add(use);
-            }
+            // As wide as the combo of the voice under it.
+            editable.Children.Add(Setting(Loc.T("voiceProfiles.name"), null, nameBox, ControlWidth));
         }
 
         // Engine, speed and volume.
         var engines = new[] { "kokoro", "piper", "windows", "beeps" };
-        var engineBox = new ComboBox { MinWidth = 230, ItemsSource = engines.Select(EngineName).ToList(), SelectedIndex = Math.Max(0, Array.IndexOf(engines, _draft.Engine)) };
+        var engineBox = new ComboBox { ItemsSource = engines.Select(EngineName).ToList(), SelectedIndex = Math.Max(0, Array.IndexOf(engines, _draft.Engine)) };
         AutomationProperties.SetName(engineBox, Loc.T("voiceProfiles.engine"));
         engineBox.SelectionChanged += (_, _) =>
         {
@@ -350,11 +338,12 @@ public partial class VoiceProfilesSection : UserControl
             _draft = _draft with { Engine = engines[engineBox.SelectedIndex] };
             Changed();
         };
-        editable.Children.Add(Setting(Loc.T("voiceProfiles.engine"), Loc.T("voiceProfiles.engineHint"), engineBox, 230));
+        editable.Children.Add(Setting(Loc.T("voiceProfiles.engine"), Loc.T("voiceProfiles.engineHint"), engineBox, ControlWidth));
+        // Under the combo, as wide as it.
         editable.Children.Add(Setting(Loc.T("voiceProfiles.speed"), null, SliderWithValue(0.5, 2, 0.05, _draft.Speed, v => v.ToString("0.00", Loc.Instance.Culture) + "×",
-            v => { _draft = _draft with { Speed = Math.Round(v, 2) }; Changed(); }, Loc.T("voiceProfiles.speed")), 320));
+            v => { _draft = _draft with { Speed = Math.Round(v, 2) }; Changed(); }, Loc.T("voiceProfiles.speed")), ControlWidth));
         editable.Children.Add(Setting(Loc.T("voiceProfiles.volume"), null, SliderWithValue(0, 1, 0.05, _draft.Volume, Percent,
-            v => { _draft = _draft with { Volume = Math.Round(v, 2) }; Changed(); }, Loc.T("voiceProfiles.volume")), 320));
+            v => { _draft = _draft with { Volume = Math.Round(v, 2) }; Changed(); }, Loc.T("voiceProfiles.volume")), ControlWidth));
 
         // Which chain: always, or in a situation.
         var pills = new WrapPanel { Margin = new Thickness(0, 14, 0, 4) };
@@ -401,6 +390,45 @@ public partial class VoiceProfilesSection : UserControl
 
         stack.Children.Add(TestBox());
         return card;
+    }
+
+    /// <summary>What the voice, speed and volume of the editor take (the name too: one under the other).</summary>
+    private const double ControlWidth = 240;
+
+    /// <summary>
+    /// The name of the profile and, on its right, «Usar para todos» (or that all use it) and its icons, as in the list:
+    /// duplicate, export and, if it is the user's, delete.
+    /// </summary>
+    private Grid EditorHead(UIElement heading)
+    {
+        var grid = new Grid { Margin = new Thickness(0, 0, 0, 12) };
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        if (heading is FrameworkElement head) head.Margin = new Thickness(0);
+        grid.Children.Add(heading);
+        var buttons = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        var name = VoiceProfiles.NameOf(_draft);
+        var profile = _draft;
+        // Options → Voz → «Cómo suenan» with it: everyone speaks with it (deleting it puts back «La de cada asistente»).
+        if (_app.Config.Settings.AssistantVoiceProfile == _draft.Id) buttons.Children.Add(Chip(Loc.T("voiceProfiles.inUseAll"), accent: true));
+        else
+        {
+            var use = Wide(SymbolRegular.Checkmark24, Loc.T("voiceProfiles.useForAll"), _ =>
+            {
+                Keep();
+                _app.Config.Settings.AssistantVoiceProfile = _draft.Id;
+                Build();
+            });
+            use.ToolTip = Loc.T("voiceProfiles.useForAllHint");
+            use.Margin = new Thickness(0, 0, 6, 0);
+            buttons.Children.Add(use);
+        }
+        buttons.Children.Add(Small(SymbolRegular.Copy24, Loc.T("voiceProfiles.duplicate"), () => { Keep(); Duplicate(_draft); }, name));
+        buttons.Children.Add(Small(SymbolRegular.Save24, Loc.T("voiceProfiles.export"), () => { Keep(); Export(_draft); }, name));
+        if (!IsBuiltIn) buttons.Children.Add(Small(SymbolRegular.Delete24, Loc.T("voiceProfiles.delete"), () => Delete(profile), name));
+        Grid.SetColumn(buttons, 1);
+        grid.Children.Add(buttons);
+        return grid;
     }
 
     /// <summary>The chain shown (the profile's, or a mood's; <paramref name="create"/>: an empty one for a mood without it).</summary>
@@ -606,12 +634,12 @@ public partial class VoiceProfilesSection : UserControl
         };
         row.Children.Add(text);
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(8, 0, 0, 0) };
-        var play = Wide(SymbolRegular.Play24, Loc.T("voiceProfiles.test"), _ => Test(), primary: true);
+        var play = Icon(SymbolRegular.Play24, Loc.T("voiceProfiles.test"), Test, primary: true);
         play.Margin = new Thickness(0);
         // Both as tall as the box beside them.
         play.VerticalAlignment = VerticalAlignment.Stretch;
         buttons.Children.Add(play);
-        var stop = Wide(SymbolRegular.Stop24, Loc.T("voiceProfiles.stop"), _ => _app.StopAssistantVoiceTest());
+        var stop = Icon(SymbolRegular.Stop24, Loc.T("voiceProfiles.stop"), _app.StopAssistantVoiceTest);
         stop.Margin = new Thickness(8, 0, 0, 0);
         stop.VerticalAlignment = VerticalAlignment.Stretch;
         buttons.Children.Add(stop);
@@ -700,7 +728,7 @@ public partial class VoiceProfilesSection : UserControl
     {
         var grid = new Grid();
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(78) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 50 });
         var slider = new Slider
         {
             Minimum = min,
@@ -713,7 +741,7 @@ public partial class VoiceProfilesSection : UserControl
             VerticalAlignment = VerticalAlignment.Center,
         };
         AutomationProperties.SetName(slider, name);
-        var shown = new TextBlock { Text = format(slider.Value), VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Right, FontFamily = new FontFamily("Consolas"), FontSize = 12 };
+        var shown = new TextBlock { Text = format(slider.Value), Margin = new Thickness(10, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Right, FontFamily = new FontFamily("Consolas"), FontSize = 12 };
         shown.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
         slider.ValueChanged += (_, e) =>
         {
@@ -779,6 +807,21 @@ public partial class VoiceProfilesSection : UserControl
     }
 
     /// <param name="target">What it acts on, for its accessible name («Borrar Mi robot»).</param>
+    /// <summary>A button with only its icon (its name in the tooltip), as tall as what is beside it.</summary>
+    private static Button Icon(SymbolRegular symbol, string name, Action click, bool primary = false)
+    {
+        var button = new Button
+        {
+            Icon = new SymbolIcon { Symbol = symbol },
+            Appearance = primary ? ControlAppearance.Primary : ControlAppearance.Secondary,
+            Padding = new Thickness(10, 6, 10, 6),
+            ToolTip = name,
+        };
+        AutomationProperties.SetName(button, name);
+        button.Click += (_, _) => click();
+        return button;
+    }
+
     private static Button Small(SymbolRegular symbol, string name, Action click, string target, bool enabled = true)
     {
         var button = new Button

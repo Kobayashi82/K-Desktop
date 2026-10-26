@@ -159,9 +159,9 @@ internal sealed class AssistantSession : IDisposable
                             VoiceProfile? edited = null;
                             try { edited = test.Profile is { } json ? VoiceProfile.Parse(json, json["id"]?.GetValue<string>() ?? "editor") : null; }
                             catch (JsonException ex) { Log.Warn($"Asistente: perfil de voz para probar no válido: {ex.Message}"); }
-                            if (test.Assistant is { } who && Runtime.IsLoaded(who) && Talk is { } speaker)
+                            if (test.Assistant is { } who && Runtime.IsLoaded(who) && Talk is { } speaker && test.Engine is null)
                                 voice.Test(text, test.Mood, (turn, said, stop) => speaker.SpeakTurnAsync(who, turn, said, stop), edited);
-                            else voice.Test(text, test.Mood, (turn, said, stop) => voice.SayAsync(string.Empty, turn, said, stop), edited);
+                            else voice.Test(text, test.Mood, (turn, said, stop) => voice.SayAsync(string.Empty, turn, said, stop), edited, test.Engine);
                         });
                         return;
                     case VoiceMessage { Op: "stop" } when Voice is { } voice:

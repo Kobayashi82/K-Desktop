@@ -69,6 +69,11 @@ public partial class AssistantVoiceSection : UserControl
             new("beeps", Loc.T("assistantVoice.engineBeeps")),
             new("off", Loc.T("assistantVoice.engineOff")),
         ];
+        // The language they speak in (5.0.280: here, it was in General): the voices below are of it.
+        List<Option> languages = [new(string.Empty, Loc.T("assistantOptions.languageSame")), .. Loc.Available().Select(l => new Option(l.Code, l.Name))];
+        LanguageBox.ItemsSource = languages;
+        LanguageBox.SelectedItem = languages.FirstOrDefault(o => o.Value == s.AssistantLanguage) ?? languages[0];
+
         EngineBox.ItemsSource = engines;
         EngineBox.SelectedItem = engines.FirstOrDefault(e => e.Value == s.AssistantVoiceEngine) ?? engines[0];
 
@@ -94,7 +99,7 @@ public partial class AssistantVoiceSection : UserControl
         var size = KokoroModels.InstalledSize();
         KokoroText.Text = !supported ? Loc.T("assistantVoice.kokoroNoLanguage", languageName)
             : download.IsDownloading ? Loc.T("assistantVoice.downloading", Mb(download.Done), Mb(download.Total))
-            : missing == 0 ? Loc.T("assistantVoice.kokoroReady", languageName, Mb(size))
+            : missing == 0 ? Loc.T("assistantVoice.downloadedSize", Mb(size))
             : Loc.T("assistantVoice.kokoroMissing", languageName, Mb(missing));
         EspeakText.Text = supported && KokoroModels.NeedsEspeak(language) ? Loc.T("assistantVoice.espeakNote", languageName) : string.Empty;
         EspeakText.Visibility = EspeakText.Text.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -138,6 +143,10 @@ public partial class AssistantVoiceSection : UserControl
         // «Probar»: who says it (the assistants on the desktop, and K-Desktop always: it has nothing to load) and in which mood.
         var running = _app.Assistant is { IsRunning: true };
         TestButton.IsEnabled = StopButton.IsEnabled = running;
+        // Each voice is heard once it is there (Windows' only when Windows has one for the language).
+        KokoroTestButton.IsEnabled = running && supported && missing == 0 && !download.IsDownloading;
+        PiperTestButton.IsEnabled = running && !_app.PiperMissing && !_app.PiperDownload.IsDownloading;
+        WindowsTestButton.IsEnabled = running && _app.AssistantVoice is { WindowsVoices.Count: > 0 };
         var picked = _app.PickAssistant() ?? AssistantTargeting.KDesktop;
         List<Option> who = [.. _app.AssistantsOnDesktop.Append(AssistantTargeting.KDesktop).Distinct().Select(id => new Option(id, App.AssistantName(id)))];
         var chosen = (WhoBox.SelectedItem as Option)?.Value ?? picked;
@@ -169,10 +178,12 @@ public partial class AssistantVoiceSection : UserControl
         var size = PiperModels.InstalledSize();
         var unused = PiperModels.AllInstalled.Except(_app.PiperVoicesInUse()).Count();
         PiperText.Text = download.IsDownloading ? Loc.T("assistantVoice.downloading", Mb(download.Done), Mb(download.Total))
-            : missing == 0 ? Loc.T("assistantVoice.piperReady", PiperTitle(spec), Mb(size))
+            : missing == 0 ? Loc.T("assistantVoice.downloadedSize", Mb(size))
             // The voice is there (one of the user's): only espeak-ng is missing.
             : PiperModels.IsDownloaded(PiperModels.KeyOf(spec)) ? Loc.T("assistantVoice.piperNeedsEspeak", PiperTitle(spec), Mb(missing))
             : Loc.T("assistantVoice.piperMissing", PiperTitle(spec), Mb(missing));
+        // espeak-ng: only said while it is not here.
+        PiperNote.Visibility = EspeakFiles.Installed ? Visibility.Collapsed : Visibility.Visible;
         PiperDownloadButton.Content = Loc.T("assistantVoice.download", Mb(missing));
         PiperDownloadButton.Visibility = !download.IsDownloading && missing > 0 ? Visibility.Visible : Visibility.Collapsed;
         PiperCancelButton.Visibility = download.IsDownloading ? Visibility.Visible : Visibility.Collapsed;
@@ -200,10 +211,12 @@ public partial class AssistantVoiceSection : UserControl
     internal static string PiperOption(PiperVoice voice)
     {
         static string Named(string key, string code) => Loc.T(key) is var text && text != key ? text : code;
-        var title = Loc.T("assistantVoice.piperTitle", voice.Name, Named("assistantVoice.region." + voice.Region, voice.Region),
-            Named("assistantVoice.quality." + voice.Quality, voice.Quality), Mb(voice.Size));
-        if (PiperModels.IsInFolders(voice.Key)) return Loc.T("assistantVoice.voiceOwn", title);
-        return PiperModels.IsDownloaded(voice.Key) ? title : Loc.T("assistantVoice.voiceMissing", title);
+        var region = Named("assistantVoice.region." + voice.Region, voice.Region);
+        var quality = Named("assistantVoice.quality." + voice.Quality, voice.Quality);
+        // What it takes only matters while it is not downloaded.
+        if (PiperModels.IsInFolders(voice.Key)) return Loc.T("assistantVoice.voiceOwn", Loc.T("assistantVoice.piperTitleShort", voice.Name, region, quality));
+        return PiperModels.IsDownloaded(voice.Key) ? Loc.T("assistantVoice.piperTitleShort", voice.Name, region, quality)
+            : Loc.T("assistantVoice.voiceMissing", Loc.T("assistantVoice.piperTitle", voice.Name, region, quality, Mb(voice.Size)));
     }
 
     /// <summary>The folders with the user's own voices: each with how many it has, and «Quitar».</summary>
@@ -293,6 +306,12 @@ public partial class AssistantVoiceSection : UserControl
     }
 
     private static string Mb(long bytes) => (bytes / 1048576.0).ToString("0", Loc.Instance.Culture);
+
+    private void OnLanguageChanged(object sender, SelectionChangedEventArgs e)
+    {
+        // A new language: the assistant process starts again with it.
+        if (!_filling && LanguageBox.SelectedItem is Option option) _app.Config.Settings.AssistantLanguage = option.Value;
+    }
 
     private void OnEngineChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -390,6 +409,11 @@ public partial class AssistantVoiceSection : UserControl
     }
 
     private void OnTest(object sender, RoutedEventArgs e) => Test();
+
+    private void OnTestEngine(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: string engine }) _app.TestAssistantVoiceEngine(engine);
+    }
 
     private void OnStopTest(object sender, RoutedEventArgs e) => _app.StopAssistantVoiceTest();
 

@@ -12,6 +12,17 @@
             <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr assistantVoice.title}" />
             <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,10" TextWrapping="Wrap" Text="{l:Tr assistantVoice.intro}" />
 
+            <!-- The language they speak in, whatever you speak to them in: the voices offered are of it (5.0.280: from General) -->
+            <Grid Style="{StaticResource SettingRow}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="{l:Tr assistantOptions.language}" />
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantOptions.languageHint}" />
+                </StackPanel>
+                <ComboBox x:Name="LanguageBox" Grid.Column="1" MinWidth="230" VerticalAlignment="Center" DisplayMemberPath="Name"
+                          SelectionChanged="OnLanguageChanged" AutomationProperties.Name="{l:Tr assistantOptions.language}" />
+            </Grid>
+
             <Grid Style="{StaticResource SettingRow}">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
@@ -63,8 +74,7 @@
 
             <!-- Test it: who says it and in which mood (stage 5.6) -->
             <TextBlock Margin="0,16,0,2" FontWeight="SemiBold" Text="{l:Tr assistantVoice.testTitle}" />
-            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantVoice.testHint}" />
-            <Grid Margin="0,8,0,0">
+            <Grid Margin="0,6,0,0">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <ui:TextBox x:Name="TestBox" PlaceholderText="{l:Tr assistantVoice.testPlaceholder}" KeyDown="OnTestKey"
                             AutomationProperties.Name="{l:Tr assistantVoice.testPlaceholder}" />
@@ -76,8 +86,11 @@
             </Grid>
             <Grid Margin="0,8,0,0">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="8" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                <ComboBox x:Name="WhoBox" DisplayMemberPath="Name" AutomationProperties.Name="{l:Tr assistantVoice.testWho}" ToolTip="{l:Tr assistantVoice.testWho}" />
-                <ComboBox x:Name="MoodBox" Grid.Column="2" DisplayMemberPath="Name" AutomationProperties.Name="{l:Tr assistantVoice.testMood}" ToolTip="{l:Tr assistantVoice.testMood}" />
+                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,4" Text="{l:Tr assistantVoice.testWho}" />
+                <TextBlock Grid.Column="2" Style="{StaticResource Caption}" Margin="0,0,0,4" Text="{l:Tr assistantVoice.testMood}" />
+                <ComboBox x:Name="WhoBox" Grid.Row="1" DisplayMemberPath="Name" AutomationProperties.Name="{l:Tr assistantVoice.testWho}" />
+                <ComboBox x:Name="MoodBox" Grid.Row="1" Grid.Column="2" DisplayMemberPath="Name" AutomationProperties.Name="{l:Tr assistantVoice.testMood}" />
             </Grid>
         </StackPanel>
     </Border>
@@ -160,6 +173,14 @@
                     </Grid>
                 </Grid>
             </StackPanel>
+            <!-- Hear it: the test sentence with this voice, plain (5.0.280) -->
+            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                <ui:Button MinHeight="36" x:Name="KokoroTestButton" Tag="kokoro" Icon="{ui:SymbolIcon Play24}" Content="{l:Tr assistantVoice.testVoice}" Click="OnTestEngine" />
+                <ui:Button Margin="8,0,0,0" Padding="10,6" VerticalAlignment="Stretch" Click="OnStopTest" ToolTip="{l:Tr assistantVoice.testStop}"
+                           AutomationProperties.Name="{l:Tr assistantVoice.testStop}">
+                    <ui:SymbolIcon Symbol="RecordStop24" FontSize="16" />
+                </ui:Button>
+            </StackPanel>
         </StackPanel>
     </Border>
 
@@ -168,7 +189,7 @@
         <StackPanel>
             <TextBlock Style="{StaticResource CardTitle}" Text="Piper" />
             <TextBlock x:Name="PiperText" Style="{StaticResource Caption}" TextWrapping="Wrap" />
-            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,4,0,0" Text="{l:Tr assistantVoice.piperNote}" />
+            <TextBlock x:Name="PiperNote" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,4,0,0" Text="{l:Tr assistantVoice.piperNote}" />
             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                 <ui:Button MinHeight="36" x:Name="PiperDownloadButton" Appearance="Primary" Icon="{ui:SymbolIcon ArrowDownload24}" Click="OnPiperDownload" />
                 <ui:Button MinHeight="36" x:Name="PiperCancelButton" Margin="8,0,0,0" Content="{l:Tr common.cancel}" Click="OnPiperCancel" />
@@ -206,6 +227,14 @@
                 <ComboBox x:Name="PiperSpeakerBox" Grid.Column="1" MinWidth="230" VerticalAlignment="Center" DisplayMemberPath="Name"
                           SelectionChanged="OnPiperVoiceChanged" AutomationProperties.Name="{l:Tr assistantVoice.piperSpeaker}" />
             </Grid>
+            <!-- Hear it: the test sentence with this voice, plain (5.0.280) -->
+            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                <ui:Button MinHeight="36" x:Name="PiperTestButton" Tag="piper" Icon="{ui:SymbolIcon Play24}" Content="{l:Tr assistantVoice.testVoice}" Click="OnTestEngine" />
+                <ui:Button Margin="8,0,0,0" Padding="10,6" VerticalAlignment="Stretch" Click="OnStopTest" ToolTip="{l:Tr assistantVoice.testStop}"
+                           AutomationProperties.Name="{l:Tr assistantVoice.testStop}">
+                    <ui:SymbolIcon Symbol="RecordStop24" FontSize="16" />
+                </ui:Button>
+            </StackPanel>
         </StackPanel>
     </Border>
 
@@ -222,6 +251,14 @@
                 <ComboBox x:Name="WindowsVoiceBox" Grid.Column="1" MinWidth="230" VerticalAlignment="Center" DisplayMemberPath="Name"
                           SelectionChanged="OnWindowsVoiceChanged" AutomationProperties.Name="{l:Tr assistantVoice.windowsVoice}" />
             </Grid>
+            <!-- Hear it: the test sentence with this voice, plain (5.0.280) -->
+            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                <ui:Button MinHeight="36" x:Name="WindowsTestButton" Tag="windows" Icon="{ui:SymbolIcon Play24}" Content="{l:Tr assistantVoice.testVoice}" Click="OnTestEngine" />
+                <ui:Button Margin="8,0,0,0" Padding="10,6" VerticalAlignment="Stretch" Click="OnStopTest" ToolTip="{l:Tr assistantVoice.testStop}"
+                           AutomationProperties.Name="{l:Tr assistantVoice.testStop}">
+                    <ui:SymbolIcon Symbol="RecordStop24" FontSize="16" />
+                </ui:Button>
+            </StackPanel>
         </StackPanel>
     </Border>
     </StackPanel>

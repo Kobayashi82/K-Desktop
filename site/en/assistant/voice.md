@@ -10,6 +10,9 @@ and [Talking to it](index.md#talking-to-it).
 
 ## Who speaks
 
+**Language they speak to you in**: they answer in that language even if you talk to them in another one, and the voices
+offered are of that language (*K-Desktop's*, or one of the six).
+
 | Engine | |
 |---|---|
 | **Automatic** | Kokoro; otherwise Piper; otherwise the Windows voices |
@@ -28,6 +31,7 @@ and [Talking to it](index.md#talking-to-it).
   K-Desktop never deletes anything there. **Delete the unused ones** frees space.
 - For some languages Kokoro, and Piper always, need **espeak-ng** (GPL licence, 9 MB), downloaded separately with the voice.
 - **Windows voice**: which of the ones Windows has.
+- **Try this voice**, under each one: the test sentence with that voice, as it is (no effects).
 
 ## How they sound
 
@@ -40,7 +44,9 @@ for all: *Natural*, *Classic robot*, *Martian*, *Mission control*, *8-bit*, *Bee
 
 *Voice → Voice profiles* is the list: the built-in ones and yours, with **New at random** and **Import…**. Pressing one opens
 its editor on the same page (**← Voice profiles** goes back to the list), with **Duplicate**, **Export** and, if it is
-yours, **Delete**. The built-in ones stay as they are: **Duplicate** one to make yours. A
+yours, **Delete**. The built-in ones stay as they are: **Duplicate** one to make yours. **Use for everyone** puts that profile in *How they
+sound* (if you delete it later, each assistant goes back to its own). The profile's **Voice** only counts if *Who speaks*
+is *Automatic*. A
 profile has a voice (engine), speed and volume, and a chain of **effects** its voice always goes through, in order (drag
 them by the dots to change it):
 

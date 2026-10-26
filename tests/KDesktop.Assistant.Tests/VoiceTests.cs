@@ -205,6 +205,20 @@ public class VoiceTests
     }
 
     [Fact]
+    public void AProfileMadeInCodeWithWholeNumbersIsRead()
+    {
+        // «Nuevo al azar» makes it in code: «1» there is an int, not a double (it broke before 5.0.280).
+        var json = new System.Text.Json.Nodes.JsonObject
+        {
+            ["name"] = "Al azar",
+            ["engine"] = new System.Text.Json.Nodes.JsonObject { ["type"] = "kokoro", ["voice"] = "default", ["speed"] = 1, ["volume"] = 1 },
+        };
+        var profile = VoiceProfile.Parse(json, string.Empty);
+        Assert.Equal(1.0, profile.Speed);
+        Assert.Equal(1.0, profile.Volume);
+    }
+
+    [Fact]
     public void TheSixProfilesAndTheirMoodsBuild()
     {
         Assert.Equal(["natural", "robot", "martian", "mission", "eightbit", "beeps"], VoiceProfile.BuiltIn.Select(p => p.Id));

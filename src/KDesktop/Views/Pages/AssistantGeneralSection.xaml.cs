@@ -74,16 +74,7 @@ public partial class AssistantGeneralSection : UserControl
         AnimateBox.ItemsSource = limits;
         AnimateBox.SelectedItem = limits.First(o => o.Value == s.AssistantAnimateMax);
 
-        List<Choice<string>> languages = [new(string.Empty, Loc.T("assistantOptions.languageSame")), .. Loc.Available().Select(l => new Choice<string>(l.Code, l.Name))];
-        LanguageBox.ItemsSource = languages;
-        LanguageBox.SelectedItem = languages.FirstOrDefault(o => o.Value == s.AssistantLanguage) ?? languages[0];
         _filling = false;
-    }
-
-    private void OnLanguageChanged(object sender, SelectionChangedEventArgs e)
-    {
-        // A new language: the assistant process starts again with it.
-        if (!_filling && LanguageBox.SelectedItem is Choice<string> choice) _app.Config.Settings.AssistantLanguage = choice.Value;
     }
 
     private void OnManoeuvresChanged(object sender, SelectionChangedEventArgs e)

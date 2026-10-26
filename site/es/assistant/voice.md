@@ -10,6 +10,9 @@ Para *hablarles* se usa el reconocimiento de voz de K-Desktop (palabras de activ
 
 ## Quién habla
 
+**Idioma en el que te hablan**: te contestan en ese idioma aunque les hables en otro, y las voces que se ofrecen son de
+ese idioma (*El de K-Desktop*, o uno de los seis).
+
 | Motor | |
 |---|---|
 | **Automático** | Kokoro; si no, Piper; si no, las voces de Windows |
@@ -29,6 +32,7 @@ Para *hablarles* se usa el reconocimiento de voz de K-Desktop (palabras de activ
 - Para algunos idiomas Kokoro, y Piper siempre, necesitan **espeak-ng** (licencia GPL, 9 MB), que se descarga aparte con
   la voz.
 - **Voz de Windows**: cuál de las que tiene Windows.
+- **Probar esta voz**, debajo de cada una: la frase de prueba con esa voz, tal cual (sin efectos).
 
 ## Cómo suenan
 
@@ -41,7 +45,9 @@ Para *hablarles* se usa el reconocimiento de voz de K-Desktop (palabras de activ
 
 *Voz → Perfiles de voz* es la lista: los de serie y los tuyos, con **Nuevo al azar** e **Importar…**. Al pulsar uno se abre su
 editor en la misma página (**← Perfiles de voz** vuelve a la lista), con **Duplicar**, **Exportar** y, si es tuyo, **Borrar**.
-Los de serie se quedan como están: **Duplica** uno para hacer el tuyo. Un perfil
+Los de serie se quedan como están: **Duplica** uno para hacer el tuyo. **Usar para todos** pone ese perfil en
+*Cómo suenan* (si luego lo borras, cada asistente vuelve al suyo). La **Voz** del perfil solo cuenta si *Quién habla* está
+en *Automático*. Un perfil
 tiene una voz (el motor), velocidad y volumen, y una cadena de **efectos** por la que pasa siempre su voz, en orden
 (arrástralos por los puntos para cambiarlo):
 
