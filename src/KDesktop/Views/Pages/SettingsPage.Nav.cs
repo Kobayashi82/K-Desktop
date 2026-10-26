@@ -592,6 +592,8 @@ public partial class SettingsPage
         item.IsCurrent = true;
         _current = item;
         LastSection = item.Key;
+        // Trying the magnifier stays in its section.
+        if (item.Key != "capture") StopZoomTest();
     }
 
     /// <summary>«Ajustes» of a row, or back to the list, inside «Asistentes»: the tree follows.</summary>

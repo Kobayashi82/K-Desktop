@@ -100,8 +100,7 @@ public partial class SettingsPage : UserControl
             _app.Voice.Models.Changed -= OnVoiceModels;
             _app.Engine.Magnifier.Changed -= OnMagnifier;
             // The try doesn't outlive the page.
-            if (_zoomTesting) _app.Engine.Magnifier.Off();
-            _zoomTesting = false;
+            StopZoomTest();
         };
     }
 
@@ -935,6 +934,13 @@ public partial class SettingsPage : UserControl
             magnifier.On(s.ZoomLevel);
             _zoomTesting = true;
         }
+    }
+
+    /// <summary>Turns the magnifier off if «Probar» turned it on (leaving the page or its section).</summary>
+    private void StopZoomTest()
+    {
+        if (_zoomTesting) _app.Engine.Magnifier.Off();
+        _zoomTesting = false;
     }
 
     /// <summary>A shape tile: the magnifier takes that shape.</summary>
