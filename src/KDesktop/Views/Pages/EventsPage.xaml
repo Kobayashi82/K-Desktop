@@ -475,7 +475,10 @@
                         <StackPanel>
                             <Grid Margin="0,0,0,6">
                                 <TextBlock Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center" Text="{l:Tr event.run}" />
-                                <ui:Button HorizontalAlignment="Right" Content="{l:Tr event.addCommand}" Icon="{ui:SymbolIcon Add24}" Click="OnAddCommand" />
+                                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                    <ui:Button Content="{l:Tr event.newCommand}" Icon="{ui:SymbolIcon DocumentAdd24}" ToolTip="{l:Tr event.newCommandHint}" Click="OnNewCommand" />
+                                    <ui:Button Margin="8,0,0,0" Content="{l:Tr event.addCommand}" Icon="{ui:SymbolIcon Add24}" Click="OnAddCommand" />
+                                </StackPanel>
                             </Grid>
                             <TextBlock x:Name="NoCommands" Style="{StaticResource Caption}" Margin="0,4,0,6" Text="{l:Tr event.noCommands}" />
                             <ListBox x:Name="CommandsList" ItemsSource="{Binding Commands}" Background="Transparent" BorderThickness="0"
@@ -490,7 +493,10 @@
                         <StackPanel>
                             <Grid Margin="0,0,0,6">
                                 <TextBlock Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center" Text="{l:Tr event.end}" />
-                                <ui:Button HorizontalAlignment="Right" Content="{l:Tr event.addCommand}" Icon="{ui:SymbolIcon Add24}" Click="OnAddEndCommand" />
+                                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                    <ui:Button Content="{l:Tr event.newCommand}" Icon="{ui:SymbolIcon DocumentAdd24}" ToolTip="{l:Tr event.newCommandHint}" Click="OnNewEndCommand" />
+                                    <ui:Button Margin="8,0,0,0" Content="{l:Tr event.addCommand}" Icon="{ui:SymbolIcon Add24}" Click="OnAddEndCommand" />
+                                </StackPanel>
                             </Grid>
                             <TextBlock x:Name="EndHint" Style="{StaticResource Caption}" Margin="0,4,0,6" TextWrapping="Wrap" />
                             <ListBox x:Name="EndCommandsList" ItemsSource="{Binding EndCommands}" Background="Transparent" BorderThickness="0"

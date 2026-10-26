@@ -1769,6 +1769,8 @@
   "event.when": "Wann",
   "event.run": "Ausführen",
   "event.addCommand": "Befehl hinzufügen",
+  "event.newCommand": "Neuer Befehl",
+  "event.newCommandHint": "Erstellt einen ausgeblendeten Befehl für dieses Ereignis und öffnet ihn, damit du die Aktionen hinzufügst.",
   "event.noCommands": "Es führt noch nichts aus: Füge einen oder mehrere Befehle hinzu (sie laufen in dieser Reihenfolge; zum Ändern ziehen).",
   "event.exitNote": "Beim Beenden laufen alle gleichzeitig, höchstens 5 s, damit das Beenden nie hängt.",
   "event.openCommand": "Befehl öffnen",

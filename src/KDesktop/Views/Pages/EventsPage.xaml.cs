@@ -296,6 +296,27 @@ public sealed partial class EventsPage : UserControl, IDisposable
 
     private void OnAddEndCommand(object sender, RoutedEventArgs e) => AddCommands(_selected?.EndCommands);
 
+    private void OnNewCommand(object sender, RoutedEventArgs e) => NewCommand(_selected?.Commands);
+
+    private void OnNewEndCommand(object sender, RoutedEventArgs e) => NewCommand(_selected?.EndCommands);
+
+    /// <summary>
+    /// A command just for this event, named after it and hidden (it doesn't fill the list), added to it and opened to put
+    /// its actions in. It is a normal command: it can be used for anything else later.
+    /// </summary>
+    private void NewCommand(ICollection<string>? list)
+    {
+        if (_selected is not { } rule || list is null) return;
+        var baseName = string.IsNullOrWhiteSpace(rule.Name) ? Loc.T("commands.newName") : rule.Name.Trim();
+        var name = baseName;
+        for (var i = 2; Config.Commands.Any(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase)); i++) name = $"{baseName} {i}";
+        var cmd = new Command { Name = name, Hidden = true };
+        Config.Commands.Add(cmd);
+        list.Add(cmd.Id);
+        _app.Achievements.Increment(Stat.CommandsCreated);
+        (Window.GetWindow(this) as MainWindow)?.OpenCommand(cmd.Id);
+    }
+
     private void AddCommands(ICollection<string>? list)
     {
         if (list is null) return;

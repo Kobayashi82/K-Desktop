@@ -1769,6 +1769,8 @@
   "event.when": "Quand",
   "event.run": "Exécuter",
   "event.addCommand": "Ajouter une commande",
+  "event.newCommand": "Nouvelle commande",
+  "event.newCommandHint": "Crée une commande masquée pour cet événement et l’ouvre pour que vous y ajoutiez les actions.",
   "event.noCommands": "Il ne lance encore rien : ajoutez une ou plusieurs commandes (elles s’exécutent dans cet ordre ; faites glisser pour le changer).",
   "event.exitNote": "À la fermeture, elles s’exécutent toutes en même temps, 5 s maximum, pour que la fermeture ne bloque jamais.",
   "event.openCommand": "Ouvrir la commande",

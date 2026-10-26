@@ -28,6 +28,8 @@ removed…) with its own commands.
 
 ## Options
 
+- **Commands**: *Add command* picks commands you already have; *New command* creates a hidden one named after the event,
+  adds it and opens it so you can put its actions in.
 - **Conditions**: the same as the [If… action](commands.md#if-conditions): the event only runs when they are true.
 - **Don't repeat before**: if it fires again sooner (in seconds), it does nothing.
 - **Loop protection**: an event that fires more than 10 times in a minute stops for 10 minutes, and K-Desktop tells you.

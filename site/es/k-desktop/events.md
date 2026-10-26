@@ -28,6 +28,8 @@ se quita el dispositivo…) con sus propios comandos.
 
 ## Opciones
 
+- **Comandos**: *Añadir comando* elige comandos que ya tienes; *Nuevo comando* crea uno oculto con el nombre del evento,
+  lo añade y lo abre para que le pongas las acciones.
 - **Condiciones** (*Solo si*): las mismas que la [acción Si…](commands.md#si-condiciones): el evento solo se ejecuta si se
   cumplen.
 - **No repetir antes de**: si vuelve a dispararse antes (en segundos), no hace nada.

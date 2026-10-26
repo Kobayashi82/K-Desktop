@@ -1769,6 +1769,8 @@
   "event.when": "Quando",
   "event.run": "Esegui",
   "event.addCommand": "Aggiungi comando",
+  "event.newCommand": "Nuovo comando",
+  "event.newCommandHint": "Crea un comando nascosto per questo evento e lo apre per aggiungere le azioni.",
   "event.noCommands": "Non esegue ancora nulla: aggiungi uno o più comandi (vengono eseguiti in quest’ordine; trascina per cambiarlo).",
   "event.exitNote": "All’uscita vengono eseguiti tutti insieme, al massimo 5 s, così l’uscita non si blocca mai.",
   "event.openCommand": "Apri il comando",
