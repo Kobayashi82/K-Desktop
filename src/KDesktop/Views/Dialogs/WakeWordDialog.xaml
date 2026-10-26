@@ -102,9 +102,9 @@
                                 <ui:SymbolIcon Symbol="{Binding Symbol}" Foreground="{Binding Brush}" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center" />
                                 <TextBlock Grid.Column="1" Text="{Binding Description}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                                <ui:Button Grid.Column="2" Style="{StaticResource IconButton}" Padding="4" ToolTip="{l:Tr common.remove}"
-                                           Click="OnRemoveTake" Visibility="{Binding RemoveVisibility}">
-                                    <ui:SymbolIcon Symbol="Dismiss24" FontSize="12" />
+                                <ui:Button Grid.Column="2" Style="{StaticResource IconButton}" ToolTip="{l:Tr common.remove}"
+                                           AutomationProperties.Name="{l:Tr common.remove}" Click="OnRemoveTake" Visibility="{Binding RemoveVisibility}">
+                                    <ui:SymbolIcon Symbol="Delete24" FontSize="14" Foreground="{DynamicResource Kd.Danger}" />
                                 </ui:Button>
                             </Grid>
                         </DataTemplate>

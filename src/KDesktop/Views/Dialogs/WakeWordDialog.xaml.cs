@@ -44,6 +44,10 @@ public partial class WakeWordDialog : FluentWindow
     /// <summary>The silence and the normal speech of the last time, used instead of measuring them again (5.0.109).</summary>
     private WakeCalibration? _reused;
     private double _noise;
+    /// <summary>The silence and the normal speech measured in this window (kept while «Volver a medir» is unticked).</summary>
+    private float[]? _ownSilence, _ownSpeech;
+    private double _ownNoise;
+    private IReadOnlyList<string>? _ownNegatives;
     private bool _speechDone;
     private WakeWordVerifier.Calibration? _calibration;
 
@@ -141,10 +145,16 @@ public partial class WakeWordDialog : FluentWindow
     {
         if (ReuseAgain.IsChecked == true)
         {
+            // What was already measured this time (before unticking it) still counts.
             _reused = null;
-            _silence = _speech = null;
-            _negatives = null;
+            _silence = _ownSilence;
+            _noise = _ownNoise;
+            _speech = _ownSpeech;
+            _negatives = _ownNegatives;
             _speechDone = false;
+            if (_negatives is not null) Calibrate(_negatives);
+            if (_silence is null) ResetButton(SilenceButton, SilenceResult);
+            if (_speech is null) ResetButton(SpeechButton, SpeechResult);
             ReuseText.Text = Loc.T("wake.reuseOff");
         }
         else if (WakeCalibration.Load(_app.Config.Settings.VoiceMicId) is { } saved)
@@ -153,6 +163,12 @@ public partial class WakeWordDialog : FluentWindow
             ReuseText.Text = Loc.T("wake.reuse", saved.Recorded.ToString("d", Loc.Instance.Culture));
         }
         ShowStep(_step, animate: false);
+    }
+
+    private static void ResetButton(Wpf.Ui.Controls.Button button, System.Windows.Controls.TextBlock result)
+    {
+        button.Content = Loc.T("wake.start");
+        result.Text = string.Empty;
     }
 
     /// <summary>The step after (or before) this one: with the measures of the last time, silence and normal speech are skipped.</summary>
@@ -167,10 +183,17 @@ public partial class WakeWordDialog : FluentWindow
     private void CalibrateWithSaved()
     {
         if (_negatives is null) return;
-        _calibration = WakeWordVerifier.Calibrate(WordName, Kept.Select(t => t.Take.Text).Where(t => t.Length > 0).ToList(), _negatives);
+        Calibrate(_negatives);
+        Log.Info($"Palabra de activación «{WordName}»: umbral {_calibration.Threshold:0.000} con la habla normal guardada ({_reused?.Recorded:d})");
+    }
+
+    /// <summary>The text check calibrated with the takes kept now and what Parakeet understood of the normal speech.</summary>
+    [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(_calibration))]
+    private void Calibrate(IReadOnlyList<string> negatives)
+    {
+        _calibration = WakeWordVerifier.Calibrate(WordName, Kept.Select(t => t.Take.Text).Where(t => t.Length > 0).ToList(), negatives);
         _calibratedTakes = Kept.Count();
         _speechDone = true;
-        Log.Info($"Palabra de activación «{WordName}»: umbral {_calibration.Threshold:0.000} con la habla normal guardada ({_reused?.Recorded:d})");
     }
 
     // ── steps ────────────────────────────────────────────────────────────
@@ -313,7 +336,8 @@ public partial class WakeWordDialog : FluentWindow
         using (Countdown(SilenceTime, SilenceLength))
             _silence = await _recorder.RecordAsync(_app.Config.Settings.VoiceMicId, SilenceLength, cancel);
         SilenceButton.Content = Loc.T("wake.again");
-        _noise = WakeWordRecorder.Rms(_silence);
+        _noise = _ownNoise = WakeWordRecorder.Rms(_silence);
+        _ownSilence = _silence;
         var level = _noise < 0.01 ? "low" : _noise < 0.03 ? "medium" : "high";
         SilenceResult.Text = Loc.T("wake.noise." + level, _noise.ToString("0.000", Loc.Instance.Culture));
         SilenceResult.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, level == "high" ? "Kd.Warning" : "TextFillColorSecondaryBrush");
@@ -355,6 +379,12 @@ public partial class WakeWordDialog : FluentWindow
     /// </summary>
     private async void OnRecordTake(object sender, RoutedEventArgs e) => await (_takesTask = Busy(async cancel =>
     {
+        // All of them already: «Volver a grabarlas» starts again from none.
+        if (Kept.Count() >= Wanted)
+        {
+            ClearTakes();
+            UpdateTakes();
+        }
         using var stop = CancellationTokenSource.CreateLinkedTokenSource(cancel);
         _takesStop = stop;
         try
@@ -476,10 +506,9 @@ public partial class WakeWordDialog : FluentWindow
             .Select(u => _app.Voice.SpeechToText.Transcribe(u)).Where(t => t.Length > 0).ToList(), cancel);
         SpeechButton.Content = Loc.T("wake.again");
 
-        _negatives = negatives;
-        _calibration = WakeWordVerifier.Calibrate(WordName, Kept.Select(t => t.Take.Text).Where(t => t.Length > 0).ToList(), negatives);
-        _calibratedTakes = Kept.Count();
-        _speechDone = true;
+        _negatives = _ownNegatives = negatives;
+        _ownSpeech = speech;
+        Calibrate(negatives);
         SpeechResult.Text = negatives.Count == 0
             ? Loc.T("wake.speechNone", _calibration.Threshold.ToString("0.00", Loc.Instance.Culture))
             : Loc.T("wake.speechDone", _calibration.Negative.ToString("0.00", Loc.Instance.Culture), _calibration.Threshold.ToString("0.00", Loc.Instance.Culture));
