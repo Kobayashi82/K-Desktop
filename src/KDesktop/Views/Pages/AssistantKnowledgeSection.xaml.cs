@@ -96,6 +96,7 @@ public partial class AssistantKnowledgeSection : UserControl
 
         var state = _app.AssistantKnowledge;
         var folders = _app.Config.Settings.AssistantKnowledgeFolders;
+        FillSpeed();
         FillState(state, folders.Count, running);
         FolderRows.Children.Clear();
         foreach (var folder in folders)
@@ -399,6 +400,30 @@ public partial class AssistantKnowledgeSection : UserControl
         if (_fillingFilter || FilesFilter.SelectedItem is not FilterOption option || option.Key == _filesFilter || _showing is null) return;
         _filesFilter = option.Key;
         AskFiles(_showing);
+    }
+
+    private static readonly string[] Speeds = ["gentle", "normal", "fast"];
+
+    private void FillSpeed()
+    {
+        if (SpeedBox.IsDropDownOpen) return;
+        // Made once: Fill runs with every change of the reading.
+        if (SpeedBox.ItemsSource is not List<FilterOption> options)
+            SpeedBox.ItemsSource = options = [.. Speeds.Select(key => new FilterOption(key, Loc.T("knowledgeOptions.speed." + key)))];
+        _fillingFilter = true;
+        try
+        {
+            SpeedBox.SelectedItem = options.FirstOrDefault(o => o.Key == _app.Config.Settings.AssistantKnowledgeSpeed) ?? options[1];
+        }
+        finally
+        {
+            _fillingFilter = false;
+        }
+    }
+
+    private void OnSpeedChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_fillingFilter && SpeedBox.SelectedItem is FilterOption option) _app.Config.Settings.AssistantKnowledgeSpeed = option.Key;
     }
 
     private void OnPause(object sender, RoutedEventArgs e) =>

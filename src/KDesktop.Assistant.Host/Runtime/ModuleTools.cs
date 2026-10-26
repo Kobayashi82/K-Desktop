@@ -121,6 +121,7 @@ internal sealed class ModuleTools : IDisposable
         var knowledge = tools?["knowledge"] as JsonObject;
         static IEnumerable<string> Paths(JsonNode? node) =>
             node is JsonArray list ? list.OfType<JsonValue>().Select(f => f.TryGetValue<string>(out var path) ? path : null).OfType<string>() : [];
+        Builtin.Knowledge.Rest = Tools.Knowledge.KnowledgeBase.RestFor(knowledge?["speed"] is JsonValue speed && speed.TryGetValue<string>(out var pace) ? pace : null);
         Builtin.Knowledge.Configure(Paths(knowledge?["folders"]),
             knowledge?["ocr"] is not JsonValue ocr || !ocr.TryGetValue<bool>(out var read) || read,
             Paths(knowledge?["skipped"]),

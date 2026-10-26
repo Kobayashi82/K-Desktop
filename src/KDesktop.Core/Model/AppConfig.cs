@@ -822,6 +822,12 @@ public partial class AppSettings : ObservableObject
     /// <summary>Pictures and scanned PDF of those folders are read with the OCR of Windows (stage 19.2).</summary>
     [ObservableProperty] private bool _assistantKnowledgeOcr = true;
 
+    /// <summary>
+    /// How fast those folders are read: <c>gentle</c> (rests twice as long as it works), <c>normal</c> (as long: half a
+    /// core at most) or <c>fast</c> (no rest).
+    /// </summary>
+    [ObservableProperty] private string _assistantKnowledgeSpeed = "normal";
+
     /// <summary>The user stopped the reading of those folders (what was read is still searched; changes wait).</summary>
     [ObservableProperty] private bool _assistantKnowledgePaused;
 

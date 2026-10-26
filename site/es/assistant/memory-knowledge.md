@@ -48,7 +48,8 @@ se vigilan: un archivo nuevo o cambiado se vuelve a leer solo. Nada sale del ord
   texto*.
 - **Mientras lee**, la página enseña «Leyendo: 412 de 1.300 archivos», cuánto le queda más o menos y el archivo por el que
   va (en uno grande, también por qué trozo). Lee sin agobiar al PC y **se pone en pausa** con un juego a pantalla completa, con K-Desktop en pausa y mientras un
-  asistente contesta. **Pausar la lectura** la detiene hasta que pulses **Seguir leyendo** (lo ya leído se sigue usando).
+  asistente contesta. **Velocidad de lectura**: *Suave*, *Normal* o *Rápida* (más rápida usa
+  más el PC). **Pausar la lectura** la detiene hasta que pulses **Seguir leyendo** (lo ya leído se sigue usando).
 - Cada carpeta o archivo tiene **Abrir la carpeta** y **Quitar**; las carpetas, también **Ver los archivos**: la lista,
   con su propio desplazamiento, con cada archivo y sus trozos, páginas, o por qué no se ha podido leer. Se puede **buscar**
   por nombre o carpeta y **filtrar** (*Leídos*, *Por leer*, *Sin texto o sin poder leer*, *Quitados*). Cada archivo se

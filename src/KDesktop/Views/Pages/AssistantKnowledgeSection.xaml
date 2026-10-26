@@ -63,6 +63,17 @@
                     <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AssistantKnowledgeOcr}" AutomationProperties.Name="{l:Tr knowledgeOptions.ocr}" />
                 </Grid>
 
+                <!-- How much of the PC the reading may take -->
+                <Grid Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="{l:Tr knowledgeOptions.speed}" />
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr knowledgeOptions.speedHint}" />
+                    </StackPanel>
+                    <ComboBox x:Name="SpeedBox" Grid.Column="1" MinWidth="230" VerticalAlignment="Center" DisplayMemberPath="Name"
+                              SelectionChanged="OnSpeedChanged" AutomationProperties.Name="{l:Tr knowledgeOptions.speed}" />
+                </Grid>
+
                 <StackPanel x:Name="Actions">
                     <Border Height="1" Margin="0,6,0,14" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
                     <StackPanel Orientation="Horizontal">

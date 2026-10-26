@@ -34,6 +34,14 @@ public sealed class KnowledgeBase : IDisposable
     /// <summary>How long it rests for each second it works (the tests do not rest).</summary>
     public double Rest { get; set; } = 1.0;
 
+    /// <summary>The rest of each speed of Options → «Lo que sabe»: <c>gentle</c>, <c>normal</c> (also an unknown one) or <c>fast</c>.</summary>
+    public static double RestFor(string? speed) => speed switch
+    {
+        "gentle" => 2.0,
+        "fast" => 0,
+        _ => 1.0,
+    };
+
     private static readonly TimeSpan Settle = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan IdleLook = TimeSpan.FromMinutes(10);
     private static readonly TimeSpan FullLook = TimeSpan.FromHours(6);

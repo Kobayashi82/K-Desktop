@@ -196,7 +196,7 @@ Opciones → Módulo Asistente → «Lo que sabe»: carpetas de documentos del u
 asistente lee una vez, trocea, pasa a vectores (`embed` con `use: document`) y guarda en `Assistant\Knowledge\` (un archivo
 por documento; fuera de la copia de seguridad: se rehace). Al arrancar compara fecha y tamaño de cada archivo y solo lee lo
 cambiado; mientras está abierto, vigila las carpetas. Para con un juego a pantalla completa, con K-Desktop en pausa y mientras
-un asistente contesta. Las carpetas y si se leen imágenes con el OCR van en `config` `tools` → `knowledge` (`folders`, `ocr`, `paused` —el usuario paró la lectura—, `skipped` —archivos quitados—).
+un asistente contesta. Las carpetas y si se leen imágenes con el OCR van en `config` `tools` → `knowledge` (`folders`, `ocr`, `paused` —el usuario paró la lectura—, `speed` —`gentle`, `normal`, `fast`—, `skipped` —archivos quitados—).
 Los asistentes buscan con la herramienta `search_knowledge`.
 
 | `t` | Dir. | Campos | Qué es |

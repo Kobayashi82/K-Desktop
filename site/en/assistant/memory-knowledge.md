@@ -47,7 +47,7 @@ and kept an eye on: a new or changed file is read again by itself. Nothing leave
   page (`Page_files`) and package version lists (`package-lock.json`…); minified code is left with *No text*.
 - **While it reads** the page shows «Reading: 412 of 1,300 files», roughly how long is left and the file it is on (in a big one, also which piece). It reads
   gently and **pauses** while a full-screen game is on, while K-Desktop is paused and while an assistant is answering.
-  **Pause reading** stops it until you press **Resume reading** (what was already read is still used).
+  **Reading speed**: *Gentle*, *Normal* or *Fast* (faster uses more of the PC). **Pause reading** stops it until you press **Resume reading** (what was already read is still used).
 - Each folder or file has **Open the folder** and **Remove**; folders also have **See the files**: the list, in its own
   scroll, with each file and its pieces, pages, or why it could not be read. You can **search** by name or folder and
   **filter** (*Read*, *Not read yet*, *No text or unreadable*, *Taken out*). Each file can be **opened**, **shown in its
