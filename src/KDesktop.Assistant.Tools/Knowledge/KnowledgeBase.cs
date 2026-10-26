@@ -233,9 +233,8 @@ public sealed class KnowledgeBase : IDisposable
                 ["problem"] = all.Count(f => InFilter(f, "problem")),
                 ["skipped"] = all.Count(f => InFilter(f, "skipped")),
             };
-            var words = text?.Trim() ?? string.Empty;
-            var chosen = all.Where(f => InFilter(f, filter ?? "all")
-                    && (words.Length == 0 || Path.GetRelativePath(folder, f.Path).Contains(words, StringComparison.CurrentCultureIgnoreCase)))
+            var matches = PathMatch(text);
+            var chosen = all.Where(f => InFilter(f, filter ?? "all") && matches(Path.GetRelativePath(folder, f.Path)))
                 .OrderBy(f => f.Path, StringComparer.OrdinalIgnoreCase).ToList();
             return new KnowledgeFilesMessage(folder, [.. chosen.Take(KnowledgeFilesMessage.Most)], chosen.Count, text, filter, counts);
         }
@@ -258,6 +257,45 @@ public sealed class KnowledgeBase : IDisposable
             "problem" => file.State is "empty" or "failed",
             _ => file.State != "skipped",
         };
+    }
+
+    /// <summary>
+    /// What the search of the list of files asks, on a path within its folder: words, anywhere in it; or patterns
+    /// (<c>*</c>, <c>?</c>, several apart by spaces, commas or semicolons, any of them): without a folder they look at the
+    /// name (<c>*.pdf</c>, <c>factura-??.txt</c>), with one at the whole path, where <c>*</c> stays in a folder and <c>**</c>
+    /// goes through them (<c>2026/*</c>, <c>src/**/*.c</c>).
+    /// </summary>
+    internal static Func<string, bool> PathMatch(string? text)
+    {
+        var words = text?.Trim() ?? string.Empty;
+        if (words.Length == 0) return _ => true;
+        if (words.IndexOfAny(['*', '?']) < 0) return path => path.Contains(words, StringComparison.CurrentCultureIgnoreCase);
+        var patterns = words.Split([' ', ',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(p => p.Replace('/', '\\'))
+            .Select(p => (Whole: p.Contains('\\'), Regex: new System.Text.RegularExpressions.Regex(Glob(p), System.Text.RegularExpressions.RegexOptions.IgnoreCase
+                | System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100))))
+            .ToList();
+        return path => patterns.Any(p => p.Regex.IsMatch(p.Whole ? path : Path.GetFileName(path)));
+
+        static string Glob(string pattern)
+        {
+            var regex = new System.Text.StringBuilder("^");
+            for (var i = 0; i < pattern.Length; i++)
+            {
+                var c = pattern[i];
+                if (c == '*' && i + 1 < pattern.Length && pattern[i + 1] == '*')
+                {
+                    // «**\» is any folders, none too.
+                    var slash = i + 2 < pattern.Length && pattern[i + 2] == '\\';
+                    regex.Append(slash ? @"(.*\\)?" : ".*");
+                    i += slash ? 2 : 1;
+                }
+                else if (c == '*') regex.Append(@"[^\\]*");
+                else if (c == '?') regex.Append(@"[^\\]");
+                else regex.Append(System.Text.RegularExpressions.Regex.Escape(c.ToString()));
+            }
+            return regex.Append('$').ToString();
+        }
     }
 
     /// <summary>Read, and as it is now on disk (and with this model's vectors, once there is one).</summary>

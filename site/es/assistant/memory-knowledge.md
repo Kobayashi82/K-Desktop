@@ -52,7 +52,7 @@ se vigilan: un archivo nuevo o cambiado se vuelve a leer solo. Nada sale del ord
   más el PC). **Pausar la lectura** la detiene hasta que pulses **Seguir leyendo** (lo ya leído se sigue usando).
 - Cada carpeta o archivo tiene **Abrir la carpeta** y **Quitar**; las carpetas, también **Ver los archivos**: la lista,
   con su propio desplazamiento, con cada archivo y sus trozos, páginas, o por qué no se ha podido leer. Se puede **buscar**
-  por nombre o carpeta y **filtrar** (*Leídos*, *Por leer*, *Sin texto o sin poder leer*, *Quitados*). Cada archivo se
+  por nombre o carpeta (también con comodines: `*.pdf`, `*.c *.h`, `2026/*`, `src/**/*.c`) y **filtrar** (*Leídos*, *Por leer*, *Sin texto o sin poder leer*, *Quitados*). Cada archivo se
   puede **abrir**, **ver en su carpeta** o **quitar de lo que sabe** (no se lee y se olvida lo leído; *Volver a incluir* lo
   devuelve). Una carpeta de un disco que no está conectado conserva lo que ya leyó.
 - **Probar una búsqueda**: lo que encontraría un asistente al preguntarle eso, y cuánto ha tardado.

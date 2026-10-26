@@ -49,7 +49,7 @@ and kept an eye on: a new or changed file is read again by itself. Nothing leave
   gently and **pauses** while a full-screen game is on, while K-Desktop is paused and while an assistant is answering.
   **Reading speed**: *Gentle*, *Normal* or *Fast* (faster uses more of the PC). **Pause reading** stops it until you press **Resume reading** (what was already read is still used).
 - Each folder or file has **Open the folder** and **Remove**; folders also have **See the files**: the list, in its own
-  scroll, with each file and its pieces, pages, or why it could not be read. You can **search** by name or folder and
+  scroll, with each file and its pieces, pages, or why it could not be read. You can **search** by name or folder (wildcards too: `*.pdf`, `*.c *.h`, `2026/*`, `src/**/*.c`) and
   **filter** (*Read*, *Not read yet*, *No text or unreadable*, *Taken out*). Each file can be **opened**, **shown in its
   folder** or **taken out of what it knows** (not read, and what was read is forgotten; *Put back* brings it back). A folder
   on a drive that is not connected keeps what was read.

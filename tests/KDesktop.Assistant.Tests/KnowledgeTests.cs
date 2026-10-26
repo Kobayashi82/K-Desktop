@@ -167,6 +167,26 @@ public sealed class KnowledgeTests : IDisposable
         Assert.All(files.Files, f => Assert.Equal("ready", f.State));
     }
 
+    [Theory]
+    [InlineData("", @"src\lib\heap.c", true)]
+    [InlineData("heap", @"src\lib\heap.c", true)]
+    [InlineData("LIB\\", @"src\lib\heap.c", true)]
+    [InlineData("*.c", @"src\lib\heap.c", true)]
+    [InlineData("*.C", @"src\lib\heap.c", true)]
+    [InlineData("*.h", @"src\lib\heap.c", false)]
+    [InlineData("*.c *.h", @"src\lib\heap.h", true)]
+    [InlineData("*.pdf;*.docx", @"factura.docx", true)]
+    [InlineData("h??p.c", @"src\lib\heap.c", true)]
+    [InlineData("h?p.c", @"src\lib\heap.c", false)]
+    [InlineData("src/*", @"src\lib\heap.c", false)]
+    [InlineData("src/*/*.c", @"src\lib\heap.c", true)]
+    [InlineData("src/**/*.c", @"src\lib\heap.c", true)]
+    [InlineData("src/**/*.c", @"src\heap.c", true)]
+    [InlineData("**/heap.c", @"heap.c", true)]
+    [InlineData("lib/*", @"src\lib\heap.c", false)]
+    public void TheListOfFilesIsSearchedByWordsOrPatterns(string search, string path, bool found) =>
+        Assert.Equal(found, KnowledgeBase.PathMatch(search)(path));
+
     [Fact]
     public async Task TheUserPausesTheReadingAndTakesFilesOut()
     {

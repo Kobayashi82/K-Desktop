@@ -99,7 +99,7 @@
                 </Grid>
                 <Grid Margin="0,0,0,8">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="230" /></Grid.ColumnDefinitions>
-                    <ui:TextBox x:Name="FilesSearch" Icon="{ui:SymbolIcon Search24}" PlaceholderText="{l:Tr knowledgeOptions.filesSearch}"
+                    <ui:TextBox x:Name="FilesSearch" Icon="{ui:SymbolIcon Search24}" PlaceholderText="{l:Tr knowledgeOptions.filesSearch}" ToolTip="{l:Tr knowledgeOptions.filesSearchHint}"
                                 TextChanged="OnFilesSearchChanged" AutomationProperties.Name="{l:Tr knowledgeOptions.filesSearch}" />
                     <ComboBox x:Name="FilesFilter" Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" DisplayMemberPath="Name"
                               SelectionChanged="OnFilesFilterChanged" AutomationProperties.Name="{l:Tr knowledgeOptions.filesFilterBox}" />
