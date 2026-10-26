@@ -27,6 +27,74 @@ public static class InputPolish
         EventManager.RegisterClassHandler(typeof(ComboBox), UIElement.PreviewMouseLeftButtonDownEvent, new MouseButtonEventHandler(OnComboDown), true);
         EventManager.RegisterClassHandler(typeof(ComboBoxItem), UIElement.PreviewMouseLeftButtonUpEvent, new MouseButtonEventHandler(OnComboItemUp));
         EventManager.RegisterClassHandler(typeof(System.Windows.Controls.TextBox), TextBoxBase.TextChangedEvent, new TextChangedEventHandler(OnTextChanged));
+        EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.SizeChangedEvent, new SizeChangedEventHandler(OnWindowSized));
+    }
+
+    // ── fixed-size windows ───────────────────────────────────────────────
+
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Window, object> Fixed = [];
+    private delegate nint SubclassProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, nuint id, nuint data);
+    // Kept alive: Windows calls it for as long as the windows live.
+    private static readonly SubclassProc FixedProc = FixedHitTest;
+
+    // WPF-UI's windows answer the resize borders themselves (after any HwndSource hook), even with NoResize: the
+    // dialogs could be made smaller than their buttons. A fixed window is subclassed, outside all of that, and its
+    // resize borders become a plain border (on the first layout of each window).
+    private static void OnWindowSized(object sender, SizeChangedEventArgs e)
+    {
+        if (sender is not Window window || Fixed.TryGetValue(window, out _)) return;
+        // WPF-UI's message boxes are sized to their text, but can be resized; their buttons go cancel first.
+        if (window is Wpf.Ui.Controls.MessageBox box)
+        {
+            box.ResizeMode = ResizeMode.NoResize;
+            CancelFirst(box);
+        }
+        if (window.ResizeMode is not (ResizeMode.NoResize or ResizeMode.CanMinimize)) return;
+        if (PresentationSource.FromVisual(window) is not System.Windows.Interop.HwndSource source) return;
+        Fixed.Add(window, new object());
+        SetWindowSubclass(source.Handle, FixedProc, 1, 0);
+    }
+
+    private static nint FixedHitTest(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, nuint id, nuint data)
+    {
+        const int WM_NCHITTEST = 0x84, WM_NCDESTROY = 0x82, HTLEFT = 10, HTBOTTOMRIGHT = 17, HTBORDER = 18;
+        if (msg == WM_NCDESTROY) RemoveWindowSubclass(hwnd, FixedProc, id);
+        var result = DefSubclassProc(hwnd, msg, wParam, lParam);
+        return msg == WM_NCHITTEST && result is >= HTLEFT and <= HTBOTTOMRIGHT ? HTBORDER : result;
+    }
+
+    [System.Runtime.InteropServices.DllImport("comctl32.dll")]
+    private static extern bool SetWindowSubclass(IntPtr hwnd, SubclassProc proc, nuint id, nuint data);
+
+    [System.Runtime.InteropServices.DllImport("comctl32.dll")]
+    private static extern bool RemoveWindowSubclass(IntPtr hwnd, SubclassProc proc, nuint id);
+
+    [System.Runtime.InteropServices.DllImport("comctl32.dll")]
+    private static extern nint DefSubclassProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam);
+
+    /// <summary>The buttons of a message box from right to left: the one that does it on the right, «Cancelar» on the left.</summary>
+    private static void CancelFirst(Wpf.Ui.Controls.MessageBox box)
+    {
+        // The grid that holds the buttons of the answers (the title bar's close button is alone in its own).
+        var grids = new List<Grid>();
+        Collect(box);
+        foreach (var grid in grids.Distinct().Where(g => g.ColumnDefinitions.Count > 1 && grids.Count(x => x == g) > 1))
+        {
+            var last = grid.ColumnDefinitions.Count - 1;
+            foreach (UIElement child in grid.Children) Grid.SetColumn(child, last - Grid.GetColumn(child));
+            var widths = grid.ColumnDefinitions.Select(c => c.Width).Reverse().ToList();
+            for (var i = 0; i <= last; i++) grid.ColumnDefinitions[i].Width = widths[i];
+        }
+
+        void Collect(DependencyObject parent)
+        {
+            for (var i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is Wpf.Ui.Controls.Button && VisualTreeHelper.GetParent(child) is Grid grid) grids.Add(grid);
+                else Collect(child);
+            }
+        }
     }
 
     // ── empty is not an error ────────────────────────────────────────────

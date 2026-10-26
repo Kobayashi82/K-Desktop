@@ -45,9 +45,9 @@
 
         <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
             <ui:Button x:Name="PageButton" Margin="0,0,8,0" Content="{l:Tr addModel.page}" Icon="{ui:SymbolIcon Open24}" Click="OnPage" Visibility="Collapsed" />
+            <ui:Button Margin="0,0,8,0" Content="{l:Tr common.cancel}" Click="OnCancel" IsCancel="True" />
             <ui:Button x:Name="DownloadButton" Appearance="Primary" Content="{l:Tr addModel.download}" Icon="{ui:SymbolIcon ArrowDownload24}"
                        IsEnabled="False" Click="OnDownload" />
-            <ui:Button Margin="8,0,0,0" Content="{l:Tr common.cancel}" Click="OnCancel" IsCancel="True" />
         </StackPanel>
     </Grid>
 </ui:FluentWindow>
