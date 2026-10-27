@@ -97,10 +97,12 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     /// <param name="doubted">The user said the answer before was wrong: it checks it, and keeps it if it was right.</param>
     /// <param name="onLong">The whole text so far of a long answer (stage 14.2), in Markdown, while it is written (any thread);
     /// <paramref name="onText"/> then has only its summary.</param>
+    /// <param name="powerLast">The order turns the PC off among other things: told to leave that for the end.</param>
     public async Task<TalkAnswer> AnswerAsync(IChatModel model, string modelName, AssistantPersona persona, IReadOnlyList<ChatMessage> history,
         IReadOnlyCollection<string> recentTools, string said, ToolContext context, Action<string>? onText, CancellationToken cancellationToken,
         IReadOnlyCollection<string>? leaveOut = null, IReadOnlyList<string>? commands = null, bool capable = false, IReadOnlyList<string>? certain = null,
-        Thinker? thinker = null, bool thinkFirst = false, Action? onThinkHard = null, bool doubted = false, Action<string>? onLong = null, bool later = false)
+        Thinker? thinker = null, bool thinkFirst = false, Action? onThinkHard = null, bool doubted = false, Action<string>? onLong = null, bool later = false,
+        bool powerLast = false)
     {
         // An order programmed earlier, now due (its tools were approved then): done whole, without asking.
         var scheduled = ScheduledOrder.Current is not null;
@@ -158,7 +160,7 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         if (thinker is not null && !thinking) definitions.Add(ThinkHarderDefinition);
         var searches = 0;
         var commandSearches = 0;
-        var messages = new List<ChatMessage> { ChatMessage.System(TalkPrompt.Compose(persona, time.GetLocalNow(), known, commands, certain)) };
+        var messages = new List<ChatMessage> { ChatMessage.System(TalkPrompt.Compose(persona, time.GetLocalNow(), known, commands, certain, powerLast)) };
         messages.AddRange(history);
         // The language it speaks in, next to the order: a small model answers in the language it is spoken to otherwise
         // (Options → Assistant → General → the language they speak in). Only for this order, not kept in the history.

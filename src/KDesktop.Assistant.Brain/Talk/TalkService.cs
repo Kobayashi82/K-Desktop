@@ -485,7 +485,12 @@ public sealed class TalkService
         switch (rule)
         {
             case { Kind: QuickRuleKind.Cancel }:
-                return new TalkAnswer(Phrase(persona, wasBusy ? "cancelled" : "nothingToCancel"), Remember: false);
+                // K-Desktop's countdowns too, like Esc: «Lander, apaga el ordenador… no, cancela» (it answered as the
+                // countdown started, so it is no longer busy with that order).
+                var stopped = _commands is not null
+                    && await _commands.MediaAsync(CommandTools.StopOrder, null, token).ConfigureAwait(false) is { Status: "ok" };
+                if (stopped) Log.Info("Asistente: «cancela» paró lo que K-Desktop tenía en marcha");
+                return new TalkAnswer(Phrase(persona, wasBusy || stopped ? "cancelled" : "nothingToCancel"), Remember: false);
             case { Kind: QuickRuleKind.RepeatCommand }:
                 // «vuelve a repetir el comando anterior»: the last one it ran, not the command called «Anterior».
                 if (conversation.LastCommand is not { } again) return new TalkAnswer(Phrase(persona, "nothingToRerun"), Remember: false);
@@ -570,6 +575,8 @@ public sealed class TalkService
         IReadOnlyList<string>? close = null;
         // Commands surely asked for that a big model was left to run, with the rest of the order.
         IReadOnlyList<string>? certain = null;
+        // The order turns the PC off among other things: that goes last.
+        var powerLast = false;
         // What is left of the order for the rules about programs and the AI: all of it, or what no command took.
         IReadOnlyList<string> leftover = [said];
         // A phrase the user taught it («cuando diga «la vuelta»…»): the AI, with that memory, before any command that sounds
@@ -603,10 +610,11 @@ public sealed class TalkService
                 certain = [.. sure.Select(c => c.Name)];
                 sure = [];
             }
-            // A programmed order that turns the PC off among other things: all of it to the AI, which leaves that for the
-            // end (run in the order said, «apaga el ordenador y mándame…» would never send anything).
-            if (ScheduledOrder.Current is not null && (matched.Unmatched.Count > 0 || matched.Parts.Count > 1)
-                && matched.Parts.Any(p => p.Candidates is [{ Power: true }, ..]))
+            // An order that turns the PC off among other things: that goes last (run in the order said, «apaga el ordenador
+            // y mándame…» would never send anything). All of it sure: run here, the power last (CommandsAsync). Some of it
+            // for the AI (or a programmed order): all of it to the AI, told to leave that for the end.
+            powerLast = (matched.Unmatched.Count > 0 || matched.Parts.Count > 1) && matched.Parts.Any(p => p.Candidates is [{ Power: true }, ..]);
+            if (powerLast && (ScheduledOrder.Current is not null || matched.Unmatched.Count > 0 || !matched.Parts.All(Direct)))
             {
                 certain = [.. certain ?? [], .. sure.Select(c => c.Name)];
                 sure = [];
@@ -678,7 +686,8 @@ public sealed class TalkService
         // tercio…»): for it, thinking first is cheap (some 2 s with the 4B). A big one asks when it needs to (stage 12).
         var wordProblem = !capable && ran is null && IsWordProblem(forAi);
         if (wordProblem) Log.Info($"Asistente: «{forAi}» parece una cuenta de varios pasos: lo piensa (modelo pequeño)");
-        return await AiAsync(conversation, persona, who, forAi, turn, context, token, ran, leaveOut, close, capable, certain, thinkFirst: wordProblem).ConfigureAwait(false);
+        return await AiAsync(conversation, persona, who, forAi, turn, context, token, ran, leaveOut, close, capable, certain, thinkFirst: wordProblem,
+            powerLast: powerLast).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -726,7 +735,7 @@ public sealed class TalkService
     /// </summary>
     private async Task<TalkAnswer> AiAsync(Conversation conversation, AssistantPersona persona, string? who, string forAi, string turn, ToolContext context,
         CancellationToken token, TalkAnswer? ran = null, IReadOnlyCollection<string>? leaveOut = null, IReadOnlyList<string>? close = null,
-        bool? capable = null, IReadOnlyList<string>? certain = null, bool thinkFirst = false, bool doubted = false, bool later = false)
+        bool? capable = null, IReadOnlyList<string>? certain = null, bool thinkFirst = false, bool doubted = false, bool later = false, bool powerLast = false)
     {
         var (client, model) = _brain(who);
         // Not ready: the server may have opened since it was last looked at (Ollama, after K-Desktop at start-up).
@@ -770,7 +779,7 @@ public sealed class TalkService
             answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), conversation.History.LastTools(), forAi, context,
                 text => { Volatile.Write(ref textSoFar, text); shown.Show(); }, token,
                 leaveOut, close, capable ?? IsCapable(model), certain, _thinker?.Invoke(who), thinkFirst, ThinkingHard, doubted,
-                text => { Volatile.Write(ref longSoFar, text); shown.Show(); }, later).ConfigureAwait(false);
+                text => { Volatile.Write(ref longSoFar, text); shown.Show(); }, later, powerLast).ConfigureAwait(false);
         }
         finally
         {
@@ -906,7 +915,8 @@ public sealed class TalkService
         var replies = new List<string>();
         var steps = new List<ChatMessage>();
         var failed = false;
-        foreach (var command in commands)
+        // What turns the PC off, last (it answers as its countdown starts: the rest would be left undone).
+        foreach (var command in commands.Where(c => !c.Power).Concat(commands.Where(c => c.Power)))
         {
             var arguments = new JsonObject { ["command"] = command.Name };
             if (command.Command is { } id) arguments["id"] = id;

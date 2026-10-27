@@ -69,6 +69,12 @@ public static class CommandTools
 
     public const double Ahead = 0.08;
 
+    /// <summary>
+    /// The built-in order that stops K-Desktop's countdowns and waits, like Esc (<c>media</c> <c>cancel</c>): answered «ok»
+    /// when something stopped, «none» when nothing was going on.
+    /// </summary>
+    public const string StopOrder = "cancel";
+
     /// <summary>Below this, no command of the user is anything like the order (and the AI is not offered run_command).</summary>
     public const double Plausible = Clear;
 
@@ -80,6 +86,7 @@ public static class CommandTools
         registry.Add(new DescribeCommandTool(bridge));
         registry.Add(new AddVoicePhraseTool(bridge));
         registry.Add(new RunEventTool(bridge));
+        registry.Add(new StopCountdownTool(bridge));
         registry.Add(new ControlAppTool(bridge));
         registry.Add(new EndProcessTool(bridge));
         registry.Add(new TransformTextTool(bridge, writer));
@@ -167,6 +174,8 @@ public static class CommandTools
                 Reply = Loc.T($"tool.{tool}.reply", name),
                 Acted = true,
             },
+            // «Cancel» with nothing going on: not a failure, K-Desktop's words for it.
+            "none" => new ToolResult($"Nothing to do: {name}.{said}") { Reply = end.Messages.Count > 0 ? end.Messages[0] : null },
             "declined" => new ToolResult($"Not done: the user said no to {name}. Tell them you did not do it.")
             {
                 Done = Loc.T("tool.run_command.declined", name),
@@ -244,6 +253,38 @@ public sealed class RunCommandTool(ICommandBridge bridge) : ITool
         var matched = await bridge.MatchAsync(heard, cancellationToken).ConfigureAwait(false);
         return matched is not null && matched.Parts.SelectMany(p => p.Candidates)
             .Any(c => c.Score >= Asked && (c.Command is { } id ? id == command.Command : string.Equals(c.Name, command.Name, StringComparison.OrdinalIgnoreCase)));
+    }
+}
+
+/// <summary>
+/// «No apagues el ordenador»: stops what K-Desktop is counting down or waiting for (shutting down after a countdown, a
+/// wait, a message with a countdown), like Esc. The assistant answers as soon as a shutdown's countdown starts (5.0.300),
+/// so it can still be stopped by talking.
+/// </summary>
+public sealed class StopCountdownTool(ICommandBridge bridge) : ITool
+{
+    public string Name => "stop_countdown";
+
+    public string Description => "Stops what K-Desktop is counting down or waiting for right now: shutting down, restarting or signing out after a countdown, a wait, a message with a countdown. Like pressing Esc. Use it when the user says not to do it after all.";
+
+    public string ParametersSchemaJson => ToolText.NoParameters;
+
+    public IReadOnlyList<string> Examples => ToolText.Examples(Name);
+
+    public ToolRisk Risk => ToolRisk.Safe;
+
+    public string Intent(JsonElement arguments) => Loc.T("tool.stop_countdown.intent");
+
+    public async Task<ToolResult> RunAsync(JsonElement arguments, ToolContext context, CancellationToken cancellationToken)
+    {
+        if (await bridge.MediaAsync(CommandTools.StopOrder, null, cancellationToken).ConfigureAwait(false) is not { } end) return ToolResult.Fail("K-Desktop did not answer.");
+        if (end.Status != "ok")
+            return ToolResult.Fail("Nothing was counting down or waiting.") with { Reply = Loc.T("tool.stop_countdown.none") };
+        return new ToolResult("Stopped: nothing that was counting down will happen.")
+        {
+            Done = Loc.T("tool.stop_countdown.done"),
+            Reply = Loc.T("tool.stop_countdown.reply"),
+        };
     }
 }
 

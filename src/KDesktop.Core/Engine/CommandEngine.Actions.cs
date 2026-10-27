@@ -471,6 +471,8 @@ public sealed partial class CommandEngine
         {
             var cts = BeginCancellable(ctx.Token);
             var osd = a.ShowOsd ? _ui.ShowPersistentOsd(Loc.T("osd.powerCountdown", name), DateTime.Now.AddSeconds(a.DelaySeconds), "Power24") : null;
+            // An assistant that ran it says so now, during the countdown (after it, the PC is off).
+            ExecutionFeedback.Current?.Release();
             try
             {
                 await Task.Delay(TimeSpan.FromSeconds(a.DelaySeconds), cts.Token).ConfigureAwait(false);
@@ -487,6 +489,7 @@ public sealed partial class CommandEngine
                 EndCancellable(cts);
             }
         }
+        ExecutionFeedback.Current?.Release();
         if (a.Mode is PowerMode.Shutdown or PowerMode.Restart or PowerMode.LogOff)
         {
             await RunExitCommandsAsync().ConfigureAwait(false);

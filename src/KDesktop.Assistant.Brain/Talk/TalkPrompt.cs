@@ -16,8 +16,9 @@ public static class TalkPrompt
 {
     /// <param name="commands">The user's commands K-Desktop found close to the order (none: no line about them).</param>
     /// <param name="certain">Those of them the order surely asks for (to run, not to offer).</param>
+    /// <param name="powerLast">The order turns the PC off among other things: that goes last.</param>
     public static string Compose(AssistantPersona persona, DateTimeOffset now, IReadOnlyList<Core.Assistant.Pipe.MemoryEntry>? known = null,
-        IReadOnlyList<string>? commands = null, IReadOnlyList<string>? certain = null)
+        IReadOnlyList<string>? commands = null, IReadOnlyList<string>? certain = null, bool powerLast = false)
     {
         var culture = Loc.Instance.Culture;
         var text = new StringBuilder();
@@ -34,6 +35,7 @@ public static class TalkPrompt
         text.AppendLine(Loc.T("assistant.prompt.onlyThis"));
         if (commands is { Count: > 0 }) text.AppendLine(Loc.T("assistant.prompt.commands", string.Join(", ", commands.Select(c => $"«{c}»"))));
         if (certain is { Count: > 0 }) text.AppendLine(Loc.T("assistant.prompt.certain", string.Join(", ", certain.Select(c => $"«{c}»"))));
+        if (powerLast) text.AppendLine(Loc.T("assistant.prompt.powerLast"));
         text.Append(Loc.T("assistant.prompt.now", now.ToString("D", culture) + ", " + now.ToString("t", culture)));
         if (known is { Count: > 0 })
         {

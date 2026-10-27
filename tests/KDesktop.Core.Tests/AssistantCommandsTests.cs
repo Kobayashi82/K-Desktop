@@ -153,6 +153,32 @@ public class AssistantCommandsTests
     }
 
     [Fact]
+    public async Task APowerCountdownIsAnsweredAsItStarts()
+    {
+        // «Bloquear» (the mildest of them) in ten minutes: cancelled at the end whatever happens.
+        var store = new ConfigStore();
+        var command = new Command { Name = "Bloquear luego" };
+        command.Actions.Add(new PowerAction { Mode = PowerMode.Lock, DelaySeconds = 600 });
+        store.Config.Commands.Add(command);
+        var engine = new CommandEngine(store, new FakeUi());
+        try
+        {
+            // The assistant gets its answer during the countdown, not when it ends.
+            var end = await AssistantCommands.RunAsync(engine, new RunMessage("lander", "r-1", command.Id), "Lander", Yes)
+                .WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.Equal(("r-1", "ok"), (end.Run, end.Status));
+            Assert.True(engine.HasCancellable);
+        }
+        finally
+        {
+            engine.CancelAll();
+        }
+        // Esc (or «cancela») stops it: nothing is left counting down.
+        for (var i = 0; i < 40 && engine.HasCancellable; i++) await Task.Delay(50);
+        Assert.False(engine.HasCancellable);
+    }
+
+    [Fact]
     public async Task PausedItRunsNothing()
     {
         var store = new ConfigStore();

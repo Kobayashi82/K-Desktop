@@ -87,6 +87,58 @@ public sealed class CommandRoutingTests : IDisposable
         Assert.Null(ScheduledOrder.Current);
     }
 
+    // 5.0.300: turning the PC off goes last; «cancela» stops K-Desktop's countdown.
+
+    [Fact]
+    public async Task TurningThePcOffGoesLastWithoutTheAi()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        const string said = "apaga el ordenador y vacía la papelera";
+        _bridge.Matches[said] = new MatchedMessage("x", 0.95, [],
+        [
+            new MatchedPart("apaga el ordenador", true, [new MatchedCandidate("off", "Apagar", 0.95, Power: true)]),
+            new MatchedPart("vacía la papelera", true, [new MatchedCandidate("bin", "Vaciar papelera", 0.95)]),
+        ]);
+        await talk.HandleAsync(new HeardMessage(said, "panel", "lander"));
+
+        Assert.Equal(["run:bin:lander", "run:off:lander"], _bridge.Done);
+        Assert.Empty(_model.Requests);
+    }
+
+    [Fact]
+    public async Task WithAPartForTheAiTurningOffIsLeftToItForTheEnd()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        const string said = "apaga el ordenador y dime un chiste";
+        _bridge.Matches[said] = new MatchedMessage("x", 0.95, ["dime un chiste"],
+            [new MatchedPart("apaga el ordenador", true, [new MatchedCandidate("off", "Apagar", 0.95, Power: true)])]);
+        _bridge.Sure("Apagar", ("off", "Apagar", null));
+        _model.Answers.Enqueue("call:run_command:Apagar");
+        _model.Answers.Enqueue("Ahí va uno, y apago.");
+        await talk.HandleAsync(new HeardMessage(said, "panel", "lander"));
+
+        // Nothing ran before the AI, which was told to leave it for the end.
+        Assert.Equal(["run:off:lander"], _bridge.Done);
+        Assert.Contains(KDesktop.Core.Localization.Loc.T("assistant.prompt.powerLast"), _model.Requests[0].Messages[0].Content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task CancelStopsWhatKDesktopIsCountingDown()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        await talk.HandleAsync(new HeardMessage("cancela", "panel", "lander"));
+        Assert.Equal(["media:cancel"], _bridge.Done);
+
+        // Nothing was going on: it says so.
+        _bridge.Done.Clear();
+        _bridge.Status = "none";
+        await talk.HandleAsync(new HeardMessage("cancela", "panel", "lander"));
+        Assert.Equal(["media:cancel"], _bridge.Done);
+    }
+
     // Stage 12: thinking harder.
 
     private static readonly Thinker Thinking = new("thinker-27B", 1024);

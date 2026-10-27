@@ -174,6 +174,14 @@ public static class AssistantCommands
                 : engine.RunChoreographedAsync(command, source, choreography, choreography.Cancelled);
         try
         {
+            // A power action lets go (its countdown has started): the assistant answers now, the rest goes on by itself.
+            if (await Task.WhenAny(running, feedback.LetGo).ConfigureAwait(false) != running)
+            {
+                Log.Info($"Asistente: «{command.Name}» sigue solo (energía): se contesta ya");
+                _ = running.ContinueWith(t => Log.Warn($"Asistente: «{command.Name}» no terminó: {t.Exception?.InnerException?.Message}"),
+                    CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
+                return new EndMessage(run, feedback.HasError ? "failed" : "ok", feedback.Messages);
+            }
             await running.ConfigureAwait(false);
         }
         catch (OperationCanceledException)

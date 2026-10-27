@@ -18,7 +18,7 @@ Everything an assistant does shows in *Panel → Assistant → Activity* (its ow
 
 | Subject | Tools | For example |
 |---|---|---|
-| **Commands** | Run your commands · Find your commands · Explain a command · Teach voice phrases · Run an event | «turn on game mode», «what does the backup command do?», «when I say telly run my TV command» |
+| **Commands** | Run your commands · Find your commands · Explain a command · Teach voice phrases · Run an event · Stop a countdown | «turn on game mode», «what does the backup command do?», «when I say telly run my TV command», «don't shut down the computer after all» |
 | **Time, reminders and maths** | Time and date · Timer · Cancel a timer · Program an order · See what is programmed · Remove something programmed · Tell me when something happens · Stop watching · Date maths · Calculator | «remind me in half an hour», «at seven empty the recycle bin», «tell me when the download finishes», «how many days until christmas» |
 | **Notes and memory** | Save a note · Find notes · Remember something about you · Forget a memory | «note that I have to buy milk», «remember that my boss is called Luis» |
 | **Files** | Find files · Open a file · Read a file · Delete a file · Move a file · Search your documents | «find the electricity bill pdf», «open the last thing I downloaded» |

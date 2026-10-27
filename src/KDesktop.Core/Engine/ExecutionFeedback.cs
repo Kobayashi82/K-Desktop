@@ -13,8 +13,18 @@ public sealed class ExecutionFeedback
     private static readonly AsyncLocal<ExecutionFeedback?> Ambient = new();
     private readonly Lock _lock = new();
     private readonly List<string> _messages = [];
+    private readonly TaskCompletionSource _letGo = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     public static ExecutionFeedback? Current => Ambient.Value;
+
+    /// <summary>
+    /// Completes when the run reaches something its caller should not wait for (<see cref="Release"/>): a power action,
+    /// whose countdown ends with the PC off. An assistant answers then, not after it.
+    /// </summary>
+    public Task LetGo => _letGo.Task;
+
+    /// <summary>What is left of the run goes on by itself: the caller may answer now (<see cref="LetGo"/>).</summary>
+    public void Release() => _letGo.TrySetResult();
 
     public bool HasError { get; private set; }
     public bool HasWarning { get; private set; }

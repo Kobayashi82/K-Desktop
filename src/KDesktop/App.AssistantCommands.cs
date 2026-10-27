@@ -92,7 +92,10 @@ public partial class App
                 {
                     var order = AssistantCommands.MediaOrderOf(media);
                     var (text, kind) = order is null ? (Loc.T("assistantCommand.notFound"), Core.Engine.OsdKind.Warning) : await Voice.RunMediaAsync(order).ConfigureAwait(false);
-                    if (media.Run is { } id) supervisor.Send(new EndMessage(id, kind == Core.Engine.OsdKind.Warning ? "failed" : "ok", [text]));
+                    // «Cancel» with nothing counting down or waiting: «none» (the assistant says there was nothing to stop).
+                    var status = kind == Core.Engine.OsdKind.Warning ? "failed"
+                        : order?.Kind == Core.Voice.MediaOrderKind.Cancel && kind == Core.Engine.OsdKind.Info ? "none" : "ok";
+                    if (media.Run is { } id) supervisor.Send(new EndMessage(id, status, [text]));
                 });
                 return true;
         }
