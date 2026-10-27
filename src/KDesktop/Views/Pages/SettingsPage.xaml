@@ -544,6 +544,16 @@
                         </Style>
                     </StackPanel.Resources>
                     <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.osd}" />
+                    <!-- All of them on or off; off, the rest of the card waits -->
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.osdEnabled}" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.osdEnabledHint}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding OsdEnabled}" AutomationProperties.Name="{l:Tr settings.osdEnabled}" />
+                    </Grid>
+                    <StackPanel IsEnabled="{Binding OsdEnabled}">
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
@@ -667,6 +677,7 @@
                             </ToggleButton>
                         </UniformGrid>
                     </Grid>
+                    </StackPanel>
                     <ui:Button MinHeight="36" Margin="0,6,0,0" Content="{l:Tr settings.osdTest}" Icon="{ui:SymbolIcon Chat24}" Click="OnTestOsd" />
                 </StackPanel>
             </Border>

@@ -44,8 +44,8 @@ se quita el dispositivo…) con sus propios comandos.
   avisa.
 - Cada evento se puede apagar, y ejecutar a mano para probarlo (*Probar*, o `KDesktop.exe --event "Nombre"`). El botón del
   rayo crea un comando que lo ejecuta (para darle un atajo o una frase de voz).
-- *Cuándo*, *Solo si* y *Opciones* se pliegan; *Solo si* sale abierto cuando tiene algo. Las horas se ponen con las flechas,
-  la rueda o escribiéndolas.
+- *Cuándo*, *Solo si* y *Opciones* se pliegan; *Solo si* sale abierto cuando tiene algo. Las horas y las fechas se ponen con las flechas,
+  la rueda o escribiéndolas (la fecha también con su calendario).
 
 ## Lanzar un evento desde fuera
 

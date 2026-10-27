@@ -965,6 +965,9 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private OsdFullscreen _osdFullscreen = OsdFullscreen.Always;
 
     /// <summary>Which OSD messages show (warnings are their own group, whatever they are about).</summary>
+    /// <summary>Off: no message on the screen (only countdowns and the progress of what can be stopped, which say how to stop it).</summary>
+    [ObservableProperty] private bool _osdEnabled = true;
+
     [ObservableProperty] private bool _osdShowActions = true;
     [ObservableProperty] private bool _osdShowLevels = true;
     [ObservableProperty] private bool _osdShowVoice = true;

@@ -12,7 +12,7 @@ public static class WindowPicker
         var app = App.Current;
         if (!app.Router.IsRunning)
         {
-            app.Ui.ShowOsd(Loc.T("picker.unavailable"), OsdKind.Warning);
+            app.Ui.ShowNotice(Loc.T("picker.unavailable"), OsdKind.Warning);
             return;
         }
         var osd = app.Ui.ShowPersistentOsd(Loc.T("picker.prompt"));

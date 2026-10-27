@@ -67,6 +67,20 @@ internal static class UiNative
         SetWindowLongPtr(hwnd, GWL_EXSTYLE, new IntPtr(style));
     }
 
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetLayeredWindowAttributes(IntPtr hwnd, uint key, byte alpha, uint flags);
+
+    /// <summary>The whole window see-through: 255 opaque, 0 invisible (a layered window).</summary>
+    public static void SetWindowAlpha(IntPtr hwnd, byte alpha)
+    {
+        const long WS_EX_LAYERED = 0x00080000;
+        const uint LWA_ALPHA = 0x2;
+        var style = GetWindowLongPtr(hwnd, GWL_EXSTYLE).ToInt64();
+        if ((style & WS_EX_LAYERED) == 0) SetWindowLongPtr(hwnd, GWL_EXSTYLE, new IntPtr(style | WS_EX_LAYERED));
+        SetLayeredWindowAttributes(hwnd, 0, alpha, LWA_ALPHA);
+    }
+
     // ── Positioning (physical pixels) ────────────────────────────────────
     [StructLayout(LayoutKind.Sequential)]
     public struct POINT { public int X, Y; }

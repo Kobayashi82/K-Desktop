@@ -61,6 +61,7 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     private bool Allowed(OsdKind kind, OsdTopic topic)
     {
         var s = settings();
+        if (!s.OsdEnabled) return false;
         var wanted = kind == OsdKind.Warning ? s.OsdShowWarnings : topic switch
         {
             OsdTopic.Levels => s.OsdShowLevels,
@@ -70,6 +71,21 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
         if (!wanted || s.OsdFullscreen == OsdFullscreen.Always) return wanted;
         if (!Native.UiNative.FullscreenOn(Native.UiNative.MonitorFor(s.OsdScreen).Monitor)) return true;
         return s.OsdFullscreen == OsdFullscreen.WarningsOnly && kind == OsdKind.Warning;
+    }
+
+    /// <summary>
+    /// The answer to something done in K-Desktop's window (a name already taken, a backup made…): in the window itself
+    /// while it is open; with it closed or minimised, on the OSD.
+    /// </summary>
+    public void ShowNotice(string text, OsdKind kind = OsdKind.Info)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return;
+        dispatcher.BeginInvoke(() =>
+        {
+            if (System.Windows.Application.Current.Windows.OfType<Views.MainWindow>().FirstOrDefault(w => w.IsVisible && w.WindowState != System.Windows.WindowState.Minimized) is { } window)
+                window.Notice(text, kind);
+            else ShowOsd(text, kind);
+        });
     }
 
     public void ShowOsd(string text, OsdKind kind = OsdKind.Info, TimeSpan? duration = null, OsdLook? look = null)

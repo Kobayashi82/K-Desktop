@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 using KDesktop.Core.Localization;
 using Wpf.Ui.Controls;
@@ -52,6 +53,41 @@ public partial class MainWindow : FluentWindow
             App.Current.AssistantChanged -= UpdateStatus;
             foreach (var page in _pages.Values.OfType<IDisposable>()) page.Dispose();
         };
+    }
+
+    private readonly System.Windows.Threading.DispatcherTimer _noticeTimer = new() { Interval = TimeSpan.FromSeconds(4) };
+
+    /// <summary>A short message at the bottom of the window, for a few seconds (UI thread).</summary>
+    public void Notice(string text, Core.Engine.OsdKind kind)
+    {
+        NoticeText.Text = text;
+        (NoticeIcon.Symbol, var brush) = kind switch
+        {
+            Core.Engine.OsdKind.Warning => (SymbolRegular.Warning24, "Kd.Warning"),
+            Core.Engine.OsdKind.Success => (SymbolRegular.CheckmarkCircle24, "Kd.Success"),
+            _ => (SymbolRegular.Info24, "Kd.AccentText"),
+        };
+        NoticeIcon.SetResourceReference(ForegroundProperty, brush);
+        NoticeBox.SetResourceReference(Border.BorderBrushProperty, kind == Core.Engine.OsdKind.Warning ? "Kd.Warning" : "Kd.MenuBorder");
+        NoticeBox.Visibility = Visibility.Visible;
+        NoticeBox.BeginAnimation(OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(160)));
+        NoticeShift.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(12, 0, TimeSpan.FromMilliseconds(220)) { EasingFunction = EaseOut });
+        _noticeTimer.Stop();
+        _noticeTimer.Interval = TimeSpan.FromSeconds(Math.Clamp(2 + text.Length / 25.0, 3, 8));
+        _noticeTimer.Tick -= OnNoticeDone;
+        _noticeTimer.Tick += OnNoticeDone;
+        _noticeTimer.Start();
+    }
+
+    private void OnNoticeDone(object? sender, EventArgs e)
+    {
+        _noticeTimer.Stop();
+        var fade = new DoubleAnimation(0, TimeSpan.FromMilliseconds(220));
+        fade.Completed += (_, _) =>
+        {
+            if (!_noticeTimer.IsEnabled) NoticeBox.Visibility = Visibility.Collapsed;
+        };
+        NoticeBox.BeginAnimation(OpacityProperty, fade);
     }
 
     public void OpenCommand(string commandId)
@@ -195,7 +231,7 @@ public partial class MainWindow : FluentWindow
         var packages = files.Where(f => f.EndsWith(Core.Assistant.Packages.AssistantPackages.Extension, StringComparison.OrdinalIgnoreCase)).ToList();
         if (packages.Count == 0)
         {
-            App.Current.Ui.ShowOsd(Loc.T("assistant.dropOnlyPackages"), Core.Engine.OsdKind.Info);
+            App.Current.Ui.ShowNotice(Loc.T("assistant.dropOnlyPackages"), Core.Engine.OsdKind.Info);
             return;
         }
         foreach (var package in packages) App.Current.OpenAssistantPackage(package);

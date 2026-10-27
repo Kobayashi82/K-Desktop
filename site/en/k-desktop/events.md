@@ -42,8 +42,8 @@ removed…) with its own commands.
 - **Loop protection**: an event that fires more than 10 times in a minute stops for 10 minutes, and K-Desktop tells you.
 - Each event can be switched off, and run by hand to try it (*Test*, or `KDesktop.exe --event "Name"`). The lightning
   button creates a command that runs it (to give it a hotkey or a voice phrase).
-- *When*, *Only if* and *Options* fold; *Only if* opens by itself when it has something. Times are set with the arrows,
-  the wheel or by typing them.
+- *When*, *Only if* and *Options* fold; *Only if* opens by itself when it has something. Times and dates are set with the arrows,
+  the wheel or by typing them (the date also with its calendar).
 
 ## Calling an event from outside
 

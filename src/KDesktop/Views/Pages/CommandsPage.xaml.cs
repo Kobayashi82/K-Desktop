@@ -815,22 +815,22 @@ public sealed partial class CommandsPage : UserControl, IDisposable
         if (e.Parameter is not WakeOnLanAction a) return;
         if (string.IsNullOrWhiteSpace(a.Host))
         {
-            _app.Ui.ShowOsd(Loc.T("osd.wolNeedHost"), OsdKind.Warning);
+            _app.Ui.ShowNotice(Loc.T("osd.wolNeedHost"), OsdKind.Warning);
             return;
         }
         try
         {
             var mac = await WakeOnLan.FindMacAsync(a.Host);
-            if (mac is null) _app.Ui.ShowOsd(Loc.T("osd.wolMacNotFound", a.Host.Trim()), OsdKind.Warning);
+            if (mac is null) _app.Ui.ShowNotice(Loc.T("osd.wolMacNotFound", a.Host.Trim()), OsdKind.Warning);
             else
             {
                 a.Mac = WakeOnLan.FormatMac(mac);
-                _app.Ui.ShowOsd(Loc.T("osd.wolMacFound", a.Mac), OsdKind.Success);
+                _app.Ui.ShowNotice(Loc.T("osd.wolMacFound", a.Mac), OsdKind.Success);
             }
         }
         catch (Exception ex)
         {
-            _app.Ui.ShowOsd(Loc.T("osd.wolMacNotFound", a.Host.Trim()) + " · " + ex.Message, OsdKind.Warning);
+            _app.Ui.ShowNotice(Loc.T("osd.wolMacNotFound", a.Host.Trim()) + " · " + ex.Message, OsdKind.Warning);
         }
     }
 

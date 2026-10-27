@@ -411,11 +411,6 @@ public sealed partial class EventsPage : UserControl, IDisposable
         if (_selected is { } rule) rule.Ask = null;
     }
 
-    private void OnClearDate(object sender, RoutedEventArgs e)
-    {
-        if (_selected?.Trigger is TimeTrigger t) t.Date = string.Empty;
-    }
-
     /// <summary>The inner lists don't scroll: the wheel goes to the editor.</summary>
     private void OnInnerListWheel(object sender, MouseWheelEventArgs e) => InputPolish.ForwardWheel(sender, e, EditorScroll);
 

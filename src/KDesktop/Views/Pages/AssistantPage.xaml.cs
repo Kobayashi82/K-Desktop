@@ -254,6 +254,6 @@ public partial class AssistantPage : UserControl
     {
         var log = Path.Combine(AppPaths.LogDir, "assistant.log");
         if (File.Exists(log)) ProcessLauncher.Launch(new LaunchSpec(log), asAdmin: false);
-        else _app.Ui.ShowOsd(Loc.T("assistantPanel.noLog"), Core.Engine.OsdKind.Info);
+        else _app.Ui.ShowNotice(Loc.T("assistantPanel.noLog"), Core.Engine.OsdKind.Info);
     }
 }

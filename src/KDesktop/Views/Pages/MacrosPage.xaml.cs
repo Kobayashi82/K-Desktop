@@ -244,7 +244,7 @@ public sealed partial class MacrosPage : UserControl, IDisposable
         if (_selected is not { } macro || _busy) return;
         if (!_app.Router.IsRunning)
         {
-            _app.Ui.ShowOsd(Loc.T("macro.noHooks"), OsdKind.Warning);
+            _app.Ui.ShowNotice(Loc.T("macro.noHooks"), OsdKind.Warning);
             return;
         }
 
@@ -510,7 +510,7 @@ public sealed partial class MacrosPage : UserControl, IDisposable
         var result = transform(macro.Steps.Select(s => s.Clone()).ToList());
         macro.ReplaceSteps(result);
         UpdateStepsState();
-        _app.Ui.ShowOsd(Loc.T("macro.simplified", before, result.Count, Macro.FormatDuration(macro.Duration)), OsdKind.Success);
+        _app.Ui.ShowNotice(Loc.T("macro.simplified", before, result.Count, Macro.FormatDuration(macro.Duration)), OsdKind.Success);
     }
 
     // ── undo / redo ──────────────────────────────────────────────────────

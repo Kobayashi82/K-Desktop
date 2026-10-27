@@ -55,6 +55,7 @@ public partial class QuickMenuWindow : Window
         }
         UiNative.AddExStyle(Hwnd, toolWindow: true, noActivate: IsSubmenu);
         UiNative.SetCorners(Hwnd, UiNative.Corner.Round);
+        UiNative.SetWindowAlpha(Hwnd, (byte)Math.Round(255 * (100 - _transparency) / 100.0));
         _backdrop = UiNative.SetBackdrop(Hwnd, UiNative.Backdrop.Acrylic);
         ApplyTheme();
     }
@@ -76,24 +77,14 @@ public partial class QuickMenuWindow : Window
     {
         if (Hwnd == IntPtr.Zero) return;
         UiNative.SetDarkMode(Hwnd, ThemeService.IsDark);
-        if (!_backdrop || TryFindResource("Kd.MenuTintOpaque") is not SolidColorBrush tint)
-        {
-            Surface.SetResourceReference(Border.BackgroundProperty, "Kd.MenuTintOpaque");
-            return;
-        }
-        // The menu's own transparency over the acrylic (without acrylic it is always opaque: the text must be read).
-        var alpha = (byte)Math.Round(255 * (100 - Math.Clamp(_transparency, 0, Core.Model.QuickMenu.MaxTransparency)) / 100.0);
-        var brush = new SolidColorBrush(Color.FromArgb(alpha, tint.Color.R, tint.Color.G, tint.Color.B));
-        brush.Freeze();
-        Surface.Background = brush;
+        Surface.SetResourceReference(Border.BackgroundProperty, _backdrop ? "Kd.MenuTint" : "Kd.MenuTintOpaque");
     }
 
-    /// <summary>How transparent its background is (QuickMenu.Transparency).</summary>
+    /// <summary>How much of what is behind shows through the whole menu, text included (QuickMenu.SeeThrough).</summary>
     public void ApplyTransparency(int percent)
     {
-        if (_transparency == percent) return;
-        _transparency = percent;
-        ApplyTheme();
+        _transparency = Math.Clamp(percent, 0, Core.Model.QuickMenu.MaxTransparency);
+        if (Hwnd != IntPtr.Zero) UiNative.SetWindowAlpha(Hwnd, (byte)Math.Round(255 * (100 - _transparency) / 100.0));
     }
 
     /// <summary>Size preset 0..5 (same scale as K-Desktop 4).</summary>

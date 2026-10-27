@@ -209,7 +209,7 @@ public partial class AssistantSettingsView : UserControl
         };
         if (await box.ShowDialogAsync() != Wpf.Ui.Controls.MessageBoxResult.Primary) return;
         model.Reset();
-        _app.Ui.ShowOsd(Loc.T("assistantSettings.resetDone", model.Name), OsdKind.Success);
+        _app.Ui.ShowNotice(Loc.T("assistantSettings.resetDone", model.Name), OsdKind.Success);
     }
 
     // ── controls that need more than a binding ──────────────────────────
@@ -238,11 +238,11 @@ public partial class AssistantSettingsView : UserControl
         try
         {
             await _app.ResetAssistantDataAsync(model.Id);
-            _app.Ui.ShowOsd(Loc.T("assistantSettings.resetDataDone", name), OsdKind.Success);
+            _app.Ui.ShowNotice(Loc.T("assistantSettings.resetDataDone", name), OsdKind.Success);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            _app.Ui.ShowOsd(Loc.T("assistantSettings.resetDataFailed", name, ex.Message), OsdKind.Warning);
+            _app.Ui.ShowNotice(Loc.T("assistantSettings.resetDataFailed", name, ex.Message), OsdKind.Warning);
         }
         finally
         {

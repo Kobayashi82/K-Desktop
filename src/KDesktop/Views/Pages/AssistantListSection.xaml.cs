@@ -144,11 +144,11 @@ public partial class AssistantListSection : UserControl
         try
         {
             await _app.UninstallAssistantAsync(row.Id, keepData: answer == Wpf.Ui.Controls.MessageBoxResult.Primary);
-            _app.Ui.ShowOsd(Loc.T("assistantOptions.removed", row.Name), OsdKind.Success);
+            _app.Ui.ShowNotice(Loc.T("assistantOptions.removed", row.Name), OsdKind.Success);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            _app.Ui.ShowOsd(Loc.T("assistantOptions.removeFailed", row.Name, ex.Message), OsdKind.Warning);
+            _app.Ui.ShowNotice(Loc.T("assistantOptions.removeFailed", row.Name, ex.Message), OsdKind.Warning);
         }
         finally
         {

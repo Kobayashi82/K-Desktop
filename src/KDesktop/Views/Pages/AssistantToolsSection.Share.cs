@@ -121,11 +121,11 @@ public partial class AssistantToolsSection
         try
         {
             Clipboard.SetText(_app.AssistantShareConfig());
-            _app.Ui.ShowOsd(Loc.T("toolsOptions.shareCopied"), Core.Engine.OsdKind.Success);
+            _app.Ui.ShowNotice(Loc.T("toolsOptions.shareCopied"), Core.Engine.OsdKind.Success);
         }
         catch (Exception ex) when (ex is System.Runtime.InteropServices.COMException or System.Runtime.InteropServices.ExternalException)
         {
-            _app.Ui.ShowOsd(ex.Message, Core.Engine.OsdKind.Warning);
+            _app.Ui.ShowNotice(ex.Message, Core.Engine.OsdKind.Warning);
         }
     }
 

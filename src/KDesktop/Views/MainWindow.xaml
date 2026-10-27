@@ -163,6 +163,7 @@
             <!-- ── Content ─────────────────────────────────────────── -->
             <Border Grid.Column="1" CornerRadius="8,0,0,0" Background="{DynamicResource LayerFillColorDefaultBrush}"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1,1,0,0">
+                <Grid>
                 <DockPanel>
                     <StackPanel x:Name="Banners" DockPanel.Dock="Top" Margin="24,16,24,0" />
                     <ContentControl x:Name="PageHost" Focusable="False">
@@ -171,6 +172,23 @@
                         </ContentControl.RenderTransform>
                     </ContentControl>
                 </DockPanel>
+                <!-- What answers something done in this window (a name already taken, a copy made…): here, not on the OSD -->
+                <Border x:Name="NoticeBox" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="24,0,24,24" Padding="16,10" MaxWidth="640"
+                        CornerRadius="8" BorderThickness="1" Background="{DynamicResource Kd.MenuTintOpaque}" BorderBrush="{DynamicResource Kd.MenuBorder}"
+                        Visibility="Collapsed" IsHitTestVisible="False">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="18" ShadowDepth="4" Direction="270" Opacity="0.3" />
+                    </Border.Effect>
+                    <Border.RenderTransform>
+                        <TranslateTransform x:Name="NoticeShift" />
+                    </Border.RenderTransform>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon x:Name="NoticeIcon" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center" />
+                        <TextBlock x:Name="NoticeText" TextWrapping="Wrap" MaxWidth="580" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                   AutomationProperties.LiveSetting="Polite" />
+                    </StackPanel>
+                </Border>
+                </Grid>
             </Border>
         </Grid>
     </Grid>

@@ -421,13 +421,13 @@ public partial class SettingsPage : UserControl
     private void OnResetLauncherPlace(object sender, RoutedEventArgs e)
     {
         _app.Config.Settings.LauncherPosition = string.Empty;
-        _app.Ui.ShowOsd(Loc.T("settings.launcherPlaceReset"), OsdKind.Success);
+        _app.Ui.ShowNotice(Loc.T("settings.launcherPlaceReset"), OsdKind.Success);
     }
 
     private void OnForgetLauncherUsage(object sender, RoutedEventArgs e)
     {
         _app.Launcher.ClearUsage();
-        _app.Ui.ShowOsd(Loc.T("settings.launcherForgotten"), OsdKind.Success);
+        _app.Ui.ShowNotice(Loc.T("settings.launcherForgotten"), OsdKind.Success);
     }
 
     // ── web ──────────────────────────────────────────────────────────────
@@ -460,11 +460,11 @@ public partial class SettingsPage : UserControl
     {
         if (!_app.Web.IsRunning)
         {
-            _app.Ui.ShowOsd(Loc.T("settings.webNotRunning"), OsdKind.Warning);
+            _app.Ui.ShowNotice(Loc.T("settings.webNotRunning"), OsdKind.Warning);
             return;
         }
         if (Dialogs.WebPairDialog.Show(Window.GetWindow(this), _app.Web.Devices, PairingBaseUrl()) is { } device)
-            _app.Ui.ShowOsd(Loc.T("settings.webPaired", device.Name), OsdKind.Success);
+            _app.Ui.ShowNotice(Loc.T("settings.webPaired", device.Name), OsdKind.Success);
     }
 
     private async void OnRevokeDevice(object sender, RoutedEventArgs e)
@@ -532,11 +532,11 @@ public partial class SettingsPage : UserControl
         try
         {
             Clipboard.SetText(key);
-            _app.Ui.ShowOsd(Loc.T("settings.udpKeyCopied"), OsdKind.Success);
+            _app.Ui.ShowNotice(Loc.T("settings.udpKeyCopied"), OsdKind.Success);
         }
         catch (Exception ex) when (ex is System.Runtime.InteropServices.COMException or System.Runtime.InteropServices.ExternalException)
         {
-            _app.Ui.ShowOsd(ex.Message, OsdKind.Warning);
+            _app.Ui.ShowNotice(ex.Message, OsdKind.Warning);
         }
     }
 
@@ -595,12 +595,12 @@ public partial class SettingsPage : UserControl
         try
         {
             File.WriteAllBytes(dlg.FileName, apk.Bytes);
-            _app.Ui.ShowOsd(Loc.T("settings.androidSaved", Path.GetFileName(dlg.FileName)), OsdKind.Success);
+            _app.Ui.ShowNotice(Loc.T("settings.androidSaved", Path.GetFileName(dlg.FileName)), OsdKind.Success);
         }
         catch (Exception ex)
         {
             Log.Error("No se pudo guardar la APK", ex);
-            _app.Ui.ShowOsd(ex.Message, OsdKind.Warning);
+            _app.Ui.ShowNotice(ex.Message, OsdKind.Warning);
         }
     }
 
@@ -614,7 +614,7 @@ public partial class SettingsPage : UserControl
         _app.ReloadLanguage();
         LoadLanguages();
         LanguageBox.SelectedValue = _app.Config.Settings.Language;
-        _app.Ui.ShowOsd(Loc.T("settings.languagesReloaded"), OsdKind.Success);
+        _app.Ui.ShowNotice(Loc.T("settings.languagesReloaded"), OsdKind.Success);
     }
 
     // ── updates ──────────────────────────────────────────────────────────
@@ -693,7 +693,7 @@ public partial class SettingsPage : UserControl
         Favicons.Clear();
         IconProvider.BumpRevision(); // back to the generic icons until the new ones arrive
         Favicons.Prefetch(_app.Config.Commands.SelectMany(c => c.Actions));
-        _app.Ui.ShowOsd(Loc.T("settings.faviconsRefreshing"), OsdKind.Info);
+        _app.Ui.ShowNotice(Loc.T("settings.faviconsRefreshing"), OsdKind.Info);
     }
 
     /// <summary>Saves the texts of the language in use as the starting point of a new translation.</summary>
@@ -712,12 +712,12 @@ public partial class SettingsPage : UserControl
         {
             File.WriteAllText(dlg.FileName, Loc.Template(Path.GetFileNameWithoutExtension(dlg.FileName)));
             LoadLanguages();
-            _app.Ui.ShowOsd(Loc.T("settings.templateExported"), OsdKind.Success);
+            _app.Ui.ShowNotice(Loc.T("settings.templateExported"), OsdKind.Success);
         }
         catch (Exception ex)
         {
             Log.Error("Error exportando la plantilla de idioma", ex);
-            _app.Ui.ShowOsd(Loc.T("settings.templateError"), OsdKind.Warning);
+            _app.Ui.ShowNotice(Loc.T("settings.templateError"), OsdKind.Warning);
         }
     }
 
@@ -1118,11 +1118,11 @@ public partial class SettingsPage : UserControl
         try
         {
             if (await _app.BackupIfDueAsync(force: true) is { } path)
-                _app.Ui.ShowOsd(Loc.T("settings.backupDone", Path.GetFileName(path)), OsdKind.Success);
+                _app.Ui.ShowNotice(Loc.T("settings.backupDone", Path.GetFileName(path)), OsdKind.Success);
         }
         catch (Exception ex)
         {
-            _app.Ui.ShowOsd(Loc.T("settings.backupError", ex.Message), OsdKind.Warning);
+            _app.Ui.ShowNotice(Loc.T("settings.backupError", ex.Message), OsdKind.Warning);
         }
         ShowBackupStatus();
     }
@@ -1152,13 +1152,13 @@ public partial class SettingsPage : UserControl
         {
             SaveAll();
             DataArchive.Export(dlg.FileName);
-            _app.Ui.ShowOsd(Loc.T("settings.exported"), OsdKind.Success);
+            _app.Ui.ShowNotice(Loc.T("settings.exported"), OsdKind.Success);
             _app.Achievements.Unlock("export");
         }
         catch (Exception ex)
         {
             Log.Error("Error exportando la copia", ex);
-            _app.Ui.ShowOsd(Loc.T("settings.exportError"), OsdKind.Warning);
+            _app.Ui.ShowNotice(Loc.T("settings.exportError"), OsdKind.Warning);
         }
     }
 
@@ -1188,7 +1188,7 @@ public partial class SettingsPage : UserControl
         catch (Exception ex)
         {
             Log.Error("Error leyendo la copia a importar", ex);
-            _app.Ui.ShowOsd(Loc.T("settings.importError"), OsdKind.Warning);
+            _app.Ui.ShowNotice(Loc.T("settings.importError"), OsdKind.Warning);
             return;
         }
         if (!await Confirm(Loc.T(archive is null ? "settings.importConfirmJson" : "settings.importConfirm"))) return;
@@ -1207,14 +1207,14 @@ public partial class SettingsPage : UserControl
             }
             _app.ReplaceConfig(config);
             _app.ShowMainWindow(w => w.Navigate("commands"));
-            _app.Ui.ShowOsd(Loc.T("settings.imported"), OsdKind.Success);
+            _app.Ui.ShowNotice(Loc.T("settings.imported"), OsdKind.Success);
             _app.Achievements.Unlock("import");
             if (archive is not null) await _app.OfferMissingAssistantsAsync(archive.Assistants);
         }
         catch (Exception ex)
         {
             Log.Error("Error importando la copia", ex);
-            _app.Ui.ShowOsd(Loc.T("settings.importError"), OsdKind.Warning);
+            _app.Ui.ShowNotice(Loc.T("settings.importError"), OsdKind.Warning);
         }
     }
 
@@ -1222,7 +1222,7 @@ public partial class SettingsPage : UserControl
     {
         if (!await Confirm(Loc.T("ach.resetConfirm"))) return;
         _app.Achievements.Reset();
-        _app.Ui.ShowOsd(Loc.T("ach.resetDone"), OsdKind.Success);
+        _app.Ui.ShowNotice(Loc.T("ach.resetDone"), OsdKind.Success);
     }
 
     private static async Task<bool> Confirm(string text)

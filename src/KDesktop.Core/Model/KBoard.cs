@@ -49,6 +49,23 @@ public partial class KBoardProfile : ObservableObject
         Loc.T("kboard.summary", Remaps.Count(r => r.Enabled)) + "  ·  " +
         (Processes.Count == 0 ? Loc.T("kboard.everywhere") : string.Join(", ", Processes));
 
+    /// <summary>For the list, on two lines: «3 reasignaciones», then the first application (or «en todas») and +N.</summary>
+    [JsonIgnore] public string RemapsText => Loc.T("kboard.summary", Remaps.Count(r => r.Enabled));
+
+    [JsonIgnore] public string FirstApp => Processes.Count == 0 ? Loc.T("kboard.everywhere") : Processes[0];
+
+    /// <summary>«+2» when there are more applications; empty otherwise.</summary>
+    [JsonIgnore] public string MoreAppsText => Processes.Count > 1 ? "+" + (Processes.Count - 1).ToString(System.Globalization.CultureInfo.InvariantCulture) : string.Empty;
+
+    /// <summary>All of them, one per line (the tooltip of +N).</summary>
+    [JsonIgnore] public string AppsList => string.Join(Environment.NewLine, Processes);
+
+    private void NotifyTexts()
+    {
+        foreach (var name in new[] { nameof(Summary), nameof(RemapsText), nameof(FirstApp), nameof(MoreAppsText), nameof(AppsList) })
+            base.OnPropertyChanged(new PropertyChangedEventArgs(name));
+    }
+
     public KeyRemap? Find(string from) => Remaps.FirstOrDefault(r => Hotkey.Comparer.Equals(r.From, from));
 
     public KBoardProfile Duplicate()
@@ -60,7 +77,7 @@ public partial class KBoardProfile : ObservableObject
 
     public void RefreshTexts()
     {
-        base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(Summary)));
+        NotifyTexts();
         foreach (var r in Remaps) r.RefreshTexts();
     }
 
@@ -86,14 +103,14 @@ public partial class KBoardProfile : ObservableObject
     {
         if (e.OldItems is not null) foreach (var r in e.OldItems.OfType<KeyRemap>()) r.PropertyChanged -= OnRemapChanged;
         if (e.NewItems is not null) foreach (var r in e.NewItems.OfType<KeyRemap>()) r.PropertyChanged += OnRemapChanged;
-        base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(Summary)));
+        NotifyTexts();
         Modified?.Invoke(this, EventArgs.Empty);
     }
 
     private void OnRemapChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(KeyRemap.Description) or nameof(KeyRemap.TargetText)) return;
-        if (e.PropertyName is nameof(KeyRemap.Enabled)) base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(Summary)));
+        if (e.PropertyName is nameof(KeyRemap.Enabled)) NotifyTexts();
         Modified?.Invoke(this, EventArgs.Empty);
     }
 

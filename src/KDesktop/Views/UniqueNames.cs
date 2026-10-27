@@ -26,7 +26,7 @@ internal static class UniqueNames
     {
         if (!Taken(items, self, nameOf, name)) return name;
         var kept = before is { Length: > 0 } && !Taken(items, self, nameOf, before) ? before : unique(name);
-        App.Current.Ui.ShowOsd(Loc.T("common.nameTaken", name.Trim(), kept), OsdKind.Warning);
+        App.Current.Ui.ShowNotice(Loc.T("common.nameTaken", name.Trim(), kept), OsdKind.Warning);
         return kept;
     }
 }

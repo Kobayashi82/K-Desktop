@@ -73,14 +73,7 @@
                                    Text="{l:Tr event.timeInvalid}" Visibility="{Binding Time, Converter={StaticResource InvalidTime}, ConverterParameter=required}" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource FieldLabel}" Margin="0,8,0,4" Text="{l:Tr event.date}" />
-                    <StackPanel Orientation="Horizontal">
-                        <DatePicker Width="180" SelectedDate="{Binding DateValue}" SelectedDateFormat="Short" AutomationProperties.Name="{l:Tr event.date}"
-                                    CalendarStyle="{StaticResource SolidCalendar}" />
-                        <ui:Button Margin="6,0,0,0" Style="{StaticResource IconButton}" ToolTip="{l:Tr event.dateClear}" Click="OnClearDate"
-                                   AutomationProperties.Name="{l:Tr event.dateClear}" Visibility="{Binding HasDate, Converter={StaticResource BoolToCollapsed}}">
-                            <ui:SymbolIcon Symbol="Dismiss24" FontSize="12" />
-                        </ui:Button>
-                    </StackPanel>
+                    <v:DateField Date="{Binding DateValue, Mode=TwoWay}" AutomationProperties.Name="{l:Tr event.date}" />
                     <TextBlock Style="{StaticResource Caption}" Margin="0,4,0,0" TextWrapping="Wrap" Text="{l:Tr event.dateHint}" />
                     <StackPanel x:Name="DaysPanel">
                         <TextBlock Style="{StaticResource FieldLabel}" Margin="0,8,0,4" Text="{l:Tr event.days}" />

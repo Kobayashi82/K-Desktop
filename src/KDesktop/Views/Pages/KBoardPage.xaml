@@ -143,14 +143,25 @@
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                <TextBlock Margin="0,1,0,0" Text="{Binding Summary}" FontSize="12" TextTrimming="CharacterEllipsis"
+                                <TextBlock Margin="0,1,0,0" Text="{Binding RemapsText}" FontSize="12" TextTrimming="CharacterEllipsis"
                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                <!-- Where: the first application, +N when there are more (tooltip: all of them) -->
+                                <v:InlineBadgePanel Margin="0,1,0,0">
+                                    <TextBlock Text="{Binding FirstApp}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Kd.AccentText}" />
+                                    <Border x:Name="MoreApps" Margin="6,0,0,0" Padding="5,0" CornerRadius="6" VerticalAlignment="Center"
+                                            Background="{DynamicResource Kd.AccentSoft}" ToolTip="{Binding AppsList}">
+                                        <TextBlock Text="{Binding MoreAppsText}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Kd.AccentText}" />
+                                    </Border>
+                                </v:InlineBadgePanel>
                             </StackPanel>
                             <ui:ToggleSwitch Grid.Column="2" Margin="6,0,6,0" VerticalAlignment="Center" IsChecked="{Binding Active}" ToolTip="{l:Tr kboard.activeHint}" />
                         </Grid>
                         <DataTemplate.Triggers>
                             <DataTrigger Binding="{Binding Active}" Value="False">
                                 <Setter TargetName="Root" Property="Opacity" Value="0.55" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding MoreAppsText}" Value="">
+                                <Setter TargetName="MoreApps" Property="Visibility" Value="Collapsed" />
                             </DataTrigger>
                         </DataTemplate.Triggers>
                     </DataTemplate>

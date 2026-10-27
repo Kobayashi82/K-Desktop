@@ -248,7 +248,7 @@
                             <!-- How much shows through its background -->
                             <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="2,6,0,0">
                                 <TextBlock Text="{l:Tr qm.transparency}" MinWidth="100" VerticalAlignment="Center" Margin="0,0,12,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                                <Slider x:Name="TransparencySlider" Width="220" Minimum="0" Maximum="80" TickFrequency="10" IsSnapToTickEnabled="True" TickPlacement="BottomRight"
+                                <Slider x:Name="TransparencySlider" Width="220" Minimum="0" Maximum="70" TickFrequency="10" IsSnapToTickEnabled="True" TickPlacement="BottomRight"
                                         VerticalAlignment="Center" ValueChanged="OnTransparencyChanged" AutomationProperties.Name="{l:Tr qm.transparency}" />
                                 <TextBlock x:Name="TransparencyText" MinWidth="80" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
                             </StackPanel>

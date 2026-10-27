@@ -31,7 +31,7 @@
             <ui:TextBox x:Name="SearchBox" PlaceholderText="{l:Tr commands.search}" Icon="{ui:SymbolIcon Search24}"
                         TextChanged="OnSearch" PreviewKeyDown="OnSearchKey" />
             <!-- The hidden ones too, as in Comandos -->
-            <ToggleButton x:Name="ShowHiddenToggle" Grid.Column="1" Margin="8,0,0,0" Padding="9,6" ToolTip="{l:Tr commands.showHidden}"
+            <ToggleButton x:Name="ShowHiddenToggle" Grid.Column="1" Margin="8,0,0,0" Padding="9,6" VerticalAlignment="Stretch" ToolTip="{l:Tr commands.showHidden}"
                           AutomationProperties.Name="{l:Tr commands.showHidden}" Checked="OnShowHidden" Unchecked="OnShowHidden">
                 <ui:SymbolIcon>
                     <!-- Checked, the button turns accent-coloured: the icon goes dark on it to stay visible -->

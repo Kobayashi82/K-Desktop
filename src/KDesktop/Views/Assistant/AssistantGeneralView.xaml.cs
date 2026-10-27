@@ -183,7 +183,7 @@ public partial class AssistantGeneralView : UserControl
     {
         if (!VoiceModels.AllInstalled || _app.Voice.Models.IsDownloading)
         {
-            _app.Ui.ShowOsd(Loc.T("wake.needModels"), OsdKind.Info);
+            _app.Ui.ShowNotice(Loc.T("wake.needModels"), OsdKind.Info);
             return;
         }
         var suggested = _installed?.Manifest.WakeWord is { Length: > 0 } word ? word : WhoName;

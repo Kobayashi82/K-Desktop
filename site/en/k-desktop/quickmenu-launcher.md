@@ -13,7 +13,7 @@ background and keyboard navigation.
   the keyboard: arrows, Enter and Esc.
 - **Close it** with Esc or a click outside (K-Desktop's window too). Its hotkey again closes it if the mouse is over the
   menu; if not, it opens it again where the mouse is.
-- **Size**: from *Compact* to *Huge*, and the background's **Transparency** (0 to 80 %), per menu.
+- **Size**: from *Compact* to *Huge*, and **Transparency** (0 to 70 %: what is behind shows through the menu), per menu.
 
 ### Editing
 
