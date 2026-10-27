@@ -55,9 +55,7 @@ public partial class QuickMenuWindow : Window
         }
         UiNative.AddExStyle(Hwnd, toolWindow: true, noActivate: IsSubmenu);
         UiNative.SetCorners(Hwnd, UiNative.Corner.Round);
-        UiNative.SetWindowAlpha(Hwnd, (byte)Math.Round(255 * (100 - _transparency) / 100.0));
-        _backdrop = UiNative.SetBackdrop(Hwnd, UiNative.Backdrop.Acrylic);
-        ApplyTheme();
+        ApplyBackdrop();
     }
 
     /// <summary>
@@ -80,11 +78,25 @@ public partial class QuickMenuWindow : Window
         Surface.SetResourceReference(Border.BackgroundProperty, _backdrop ? "Kd.MenuTint" : "Kd.MenuTintOpaque");
     }
 
+    /// <summary>
+    /// Acrylic while opaque; see-through, no backdrop (the glass of the extended frame shows what is behind) and the
+    /// whole surface faded. A layered alpha does not work here: WPF takes WS_EX_LAYERED away again.
+    /// </summary>
+    private void ApplyBackdrop()
+    {
+        if (Hwnd == IntPtr.Zero) return;
+        _backdrop = UiNative.SetBackdrop(Hwnd, _transparency == 0 ? UiNative.Backdrop.Acrylic : UiNative.Backdrop.None) &&
+                    _transparency == 0;
+        UiNative.ExtendFrame(Hwnd);
+        Surface.Opacity = (100 - _transparency) / 100.0;
+        ApplyTheme();
+    }
+
     /// <summary>How much of what is behind shows through the whole menu, text included (QuickMenu.SeeThrough).</summary>
     public void ApplyTransparency(int percent)
     {
         _transparency = Math.Clamp(percent, 0, Core.Model.QuickMenu.MaxTransparency);
-        if (Hwnd != IntPtr.Zero) UiNative.SetWindowAlpha(Hwnd, (byte)Math.Round(255 * (100 - _transparency) / 100.0));
+        ApplyBackdrop();
     }
 
     /// <summary>Size preset 0..5 (same scale as K-Desktop 4).</summary>

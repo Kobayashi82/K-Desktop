@@ -2,27 +2,26 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-             xmlns:l="clr-namespace:KDesktop.Localization"
-             xmlns:local="clr-namespace:KDesktop.Views">
-    <!-- Sound chooser: built-in sounds or a .wav file (Browse), with preview. Choosing one in the list plays it. -->
+             xmlns:l="clr-namespace:KDesktop.Localization">
+    <!-- The sound chosen, as a field: a click opens «Elegir sonido» (SoundPickerDialog); the button beside it plays it -->
     <Grid VerticalAlignment="Center">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <ComboBox x:Name="Box" VerticalAlignment="Center" SelectionChanged="OnSelectionChanged"
-                  DropDownOpened="OnDropDownOpened" DropDownClosed="OnDropDownClosed">
-            <ComboBox.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding Text}" TextTrimming="CharacterEllipsis" />
-                </DataTemplate>
-            </ComboBox.ItemTemplate>
-        </ComboBox>
-        <!-- A file chosen with Browse is not in the list: nothing is selected and its name shows here, over the combo -->
-        <TextBlock x:Name="FileName" Margin="11,0,34,0" FontWeight="Normal" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" IsHitTestVisible="False"
-                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" Visibility="Collapsed" />
-        <ui:Button Grid.Column="1" Margin="6,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon Play24}" ToolTip="{l:Tr editor.preview}" Click="OnPlay" />
-        <ui:Button x:Name="BrowseButton" Grid.Column="2" Margin="6,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}" Click="OnBrowse" />
+        <ui:Button x:Name="Field" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="11,5,8,6" Click="OnOpen"
+                   AutomationProperties.HelpText="{l:Tr editor.chooseSound}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:SymbolIcon x:Name="FieldIcon" Symbol="MusicNote224" FontSize="15" Margin="0,0,8,0" Foreground="{DynamicResource Kd.AccentText}" />
+                <TextBlock x:Name="FieldText" Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" FontWeight="Normal" />
+                <ui:SymbolIcon Grid.Column="2" Symbol="ChevronRight24" FontSize="12" Margin="8,0,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            </Grid>
+        </ui:Button>
+        <ui:Button x:Name="PlayButton" Grid.Column="1" Margin="6,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon Play24}" ToolTip="{l:Tr editor.preview}" Click="OnPlay" />
     </Grid>
 </UserControl>

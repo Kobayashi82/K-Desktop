@@ -59,8 +59,9 @@ public static class AudioTools
 }
 
 /// <summary>
-/// Plays a sound by name or any .wav file. Names come from the sounds built into the assembly plus the .wav files in
-/// %APPDATA%\K-Desktop 5\Sounds; a user file with the same name as a built-in sound replaces it.
+/// Plays a sound by name or any audio file (<see cref="SoundLibrary.Extensions"/>). Names come from the sounds built into
+/// the assembly plus the files in %APPDATA%\K-Desktop 5\Sounds; a user file with the same name as a built-in sound
+/// replaces it.
 /// </summary>
 public static class Sounds
 {
@@ -69,17 +70,23 @@ public static class Sounds
     /// <summary>Built-in sounds loaded so far. The arrays are pinned and never freed: PlaySound reads them while it plays.</summary>
     private static readonly ConcurrentDictionary<string, byte[]> Loaded = new(StringComparer.OrdinalIgnoreCase);
 
-    public static IReadOnlyList<string> Available()
+    public static IReadOnlyList<string> BuiltInNames() =>
+        EmbeddedAssets.List(EmbeddedFolder).Select(f => Path.GetFileNameWithoutExtension(f)).Order(StringComparer.CurrentCultureIgnoreCase).ToList();
+
+    /// <summary>The sounds in the user's Sounds folder, by name.</summary>
+    public static IReadOnlyList<string> UserNames()
     {
-        var names = new HashSet<string>(EmbeddedAssets.List(EmbeddedFolder).Select(f => Path.GetFileNameWithoutExtension(f)), StringComparer.OrdinalIgnoreCase);
         try
         {
-            if (Directory.Exists(AppPaths.SoundsDir))
-                names.UnionWith(Directory.GetFiles(AppPaths.SoundsDir, "*.wav").Select(f => Path.GetFileNameWithoutExtension(f)));
+            if (!Directory.Exists(AppPaths.SoundsDir)) return [];
+            return Directory.EnumerateFiles(AppPaths.SoundsDir).Where(SoundLibrary.IsPlayableFile).Select(f => Path.GetFileNameWithoutExtension(f))
+                .Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.CurrentCultureIgnoreCase).ToList();
         }
-        catch { }
-        return names.Order(StringComparer.CurrentCultureIgnoreCase).ToList();
+        catch { return []; }
     }
+
+    /// <summary>The bytes of a built-in sound (a copy, not the pinned array that plays).</summary>
+    public static byte[]? BuiltInBytes(string name) => EmbeddedAssets.ReadBytes(EmbeddedFolder, name + ".wav", pinned: false);
 
     /// <summary>Sounds playing now; each has its own output, so they mix instead of cutting each other.</summary>
     private static readonly ConcurrentDictionary<WasapiPlayer, byte> Playing = new();
@@ -125,7 +132,7 @@ public static class Sounds
         WasapiPlayer? output = null;
         try
         {
-            if (FindFile(sound) is { } file) reader = new WaveFileReader(file);
+            if (FindFile(sound) is { } file) reader = Open(file);
             else if (BuiltIn(sound) is { } wav) reader = new WaveFileReader(new MemoryStream(wav, writable: false));
             if (reader is null) return null;
 
@@ -161,6 +168,14 @@ public static class Sounds
         }
     }
 
+    /// <summary>A .wav as it is; mp3, wma, m4a, flac… through Media Foundation (and a .wav WaveFileReader cannot read too).</summary>
+    internal static WaveStream Open(string file)
+    {
+        if (!Path.GetExtension(file).Equals(".wav", StringComparison.OrdinalIgnoreCase)) return new MediaFoundationReader(file);
+        try { return new WaveFileReader(file); }
+        catch (FormatException) { return new MediaFoundationReader(file); }
+    }
+
     private static void PlayLegacy(string? sound, uint mode)
     {
         if (string.IsNullOrWhiteSpace(sound)) return;
@@ -171,12 +186,12 @@ public static class Sounds
             Win32.PlaySound(Marshal.UnsafeAddrOfPinnedArrayElement(wav, 0), IntPtr.Zero, flags | Win32.SND_MEMORY);
     }
 
-    /// <summary>A .wav path, or a name in the user's Sounds folder.</summary>
+    /// <summary>The path of an audio file, or a name in the user's Sounds folder (in any of the formats that play).</summary>
     private static string? FindFile(string sound)
     {
         if (File.Exists(sound)) return sound;
-        var user = Path.Combine(AppPaths.SoundsDir, sound + ".wav");
-        return File.Exists(user) ? user : null;
+        if (sound.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return null;
+        return SoundLibrary.Extensions.Select(e => Path.Combine(AppPaths.SoundsDir, sound + e)).FirstOrDefault(File.Exists);
     }
 
     private static byte[]? BuiltIn(string name)

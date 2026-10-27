@@ -36,7 +36,7 @@ orden.
 |---|---|
 | **Volumen** | Fija, sube, baja o silencia el volumen: de los altavoces, del micrófono, de un programa o del que está delante. |
 | **Salida de audio** | Cambia el dispositivo de sonido predeterminado. Con varios elegidos, cada vez pasa al siguiente. |
-| **Reproducir sonido** | Reproduce un sonido incluido o un archivo .wav. |
+| **Reproducir sonido** | Reproduce un sonido elegido en un panel por tipos (avisos, alarmas, llamadas, sistema y los tuyos) con los de K-Desktop y los de Windows, que suenan al pulsarlos, u otro archivo (.wav, .mp3, .wma, .m4a, .aac, .flac). Los que pongas en la carpeta de tus sonidos salen en «Tuyos». |
 | **Grabar audio** | Graba lo que suena en el PC, el micrófono o las dos cosas, o guarda lo que acaba de sonar (*Opciones → Grabación de audio*). |
 
 ## Pantalla
@@ -61,7 +61,7 @@ orden.
 
 | Acción | Qué hace |
 |---|---|
-| **Archivos y carpetas** | Copiar, mover, renombrar, borrar (a la papelera o del todo), crear una carpeta, comprimir en ZIP, descomprimir o hacer una **copia de seguridad**: sincronizar (solo lo nuevo o cambiado, y si quieres quitar del destino lo que ya no está) o una copia con fecha cada vez guardando las últimas. El origen es una lista de archivos, carpetas o patrones (`C:\Música\*.mp3`) escritos a mano o añadidos con los botones. El destino puede estar dentro del origen: nunca se copia a sí mismo. Enseña el progreso en el OSD (Esc lo detiene) y la siguiente acción puede esperar a que termine. |
+| **Archivos y carpetas** | Copiar, mover, renombrar, borrar (a la papelera o del todo), crear una carpeta, comprimir en ZIP, descomprimir o hacer una **copia de seguridad**: sincronizar (solo lo nuevo o cambiado, y si quieres quitar del destino lo que ya no está) o una copia con fecha cada vez guardando las últimas. El origen es una lista de archivos, carpetas o patrones (`C:\Música\*.mp3`) escritos a mano o añadidos con los botones. El destino puede estar dentro del origen: nunca se copia a sí mismo. Enseña el progreso en un círculo en el centro de la pantalla, o en el OSD (Esc lo detiene) y la siguiente acción puede esperar a que termine. |
 | **Archivos ocultos (on/off)** | Enseña o esconde los archivos ocultos en el Explorador. |
 | **Plan de energía** | Cambia el plan de energía de Windows (Alto rendimiento, Equilibrado…) o pasa al siguiente. |
 | **Energía** | Apaga, reinicia, suspende, bloquea o cierra la sesión, con una cuenta atrás que se puede cancelar. |
@@ -75,7 +75,7 @@ orden.
 | **Comandos** | Ejecuta, habilita o deshabilita otro comando. |
 | **Abrir QuickMenu** | Enseña un QuickMenu donde está el ratón. |
 | **Mostrar mensaje** | Enseña un mensaje en pantalla durante un rato. |
-| **Mostrar notificación** | Una tarjeta en una esquina con tu título, texto, imagen, color y sonido, el tiempo que digas. Al pulsarla puede abrir algo (un archivo, una carpeta, una web) o ejecutar otro comando, y la siguiente acción puede esperar a que se cierre. Su sonido puede ser *Global* (el de *Opciones › OSD y Notificaciones*). Con algo a pantalla completa hace lo que digan esas opciones. |
+| **Mostrar notificación** | Una tarjeta en una esquina con tu título, texto, imagen, color y sonido, el tiempo que digas. Al pulsarla puede abrir algo (un archivo, una carpeta, una web) o ejecutar otro comando, y la siguiente acción puede esperar a que se cierre. Su sonido puede ser *Global* (el de *Opciones › Mensajes y notificaciones*). Con algo a pantalla completa hace lo que digan esas opciones. |
 | **Desactivar en la app actual (on/off)** | Desactiva o vuelve a activar los atajos de K-Desktop en la aplicación activa (útil en juegos). |
 
 ## Asistente

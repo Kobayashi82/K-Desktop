@@ -41,10 +41,16 @@ internal static class UiNative
     public static bool SetBackdrop(IntPtr hwnd, Backdrop backdrop)
     {
         if (!SupportsBackdrop) return false;
-        var margins = new MARGINS { Left = -1, Right = -1, Top = -1, Bottom = -1 };
-        DwmExtendFrameIntoClientArea(hwnd, ref margins);
+        ExtendFrame(hwnd);
         var v = (int)backdrop;
         return DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, ref v, sizeof(int)) == 0;
+    }
+
+    /// <summary>The DWM frame over the whole client area: where WPF draws nothing, what is behind shows (or the backdrop).</summary>
+    public static void ExtendFrame(IntPtr hwnd)
+    {
+        var margins = new MARGINS { Left = -1, Right = -1, Top = -1, Bottom = -1 };
+        DwmExtendFrameIntoClientArea(hwnd, ref margins);
     }
 
     // ── Window styles ────────────────────────────────────────────────────
@@ -65,20 +71,6 @@ internal static class UiNative
         if (noActivate) style |= WS_EX_NOACTIVATE;
         if (clickThrough) style |= WS_EX_TRANSPARENT;
         SetWindowLongPtr(hwnd, GWL_EXSTYLE, new IntPtr(style));
-    }
-
-    [DllImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool SetLayeredWindowAttributes(IntPtr hwnd, uint key, byte alpha, uint flags);
-
-    /// <summary>The whole window see-through: 255 opaque, 0 invisible (a layered window).</summary>
-    public static void SetWindowAlpha(IntPtr hwnd, byte alpha)
-    {
-        const long WS_EX_LAYERED = 0x00080000;
-        const uint LWA_ALPHA = 0x2;
-        var style = GetWindowLongPtr(hwnd, GWL_EXSTYLE).ToInt64();
-        if ((style & WS_EX_LAYERED) == 0) SetWindowLongPtr(hwnd, GWL_EXSTYLE, new IntPtr(style | WS_EX_LAYERED));
-        SetLayeredWindowAttributes(hwnd, 0, alpha, LWA_ALPHA);
     }
 
     // ── Positioning (physical pixels) ────────────────────────────────────

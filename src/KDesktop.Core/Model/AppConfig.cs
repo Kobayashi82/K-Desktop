@@ -968,6 +968,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>Off: no message on the screen (only countdowns and the progress of what can be stopped, which say how to stop it).</summary>
     [ObservableProperty] private bool _osdEnabled = true;
 
+    /// <summary>Countdowns and progress as a ring a little below the middle of the screen (off: on the OSD, like the rest).</summary>
+    [ObservableProperty] private bool _osdRing = true;
+
     [ObservableProperty] private bool _osdShowActions = true;
     [ObservableProperty] private bool _osdShowLevels = true;
     [ObservableProperty] private bool _osdShowVoice = true;

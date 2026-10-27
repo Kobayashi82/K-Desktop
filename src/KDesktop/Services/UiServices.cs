@@ -12,6 +12,7 @@ namespace KDesktop.Services;
 public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings, Action showMainWindow, Action requestExit) : IUiServices
 {
     private OsdWindow? _osd;
+    private RingWindow? _ring;
 
     // For the nested voice OSD (primary-constructor parameters are not members).
     private Dispatcher UiDispatcher => dispatcher;
@@ -107,19 +108,76 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     /// <summary>Takes the samples of Options off the OSD (with the ones stacked beside them), if one is still the message on show.</summary>
     public void ClearOsdPreview() => dispatcher.BeginInvoke(() => Osd.HideMessage(_previewGeneration));
 
-    // Countdowns and «Mayús + Esc para parar» always show: they say how to stop what is going on.
+    private RingWindow Ring
+    {
+        get
+        {
+            _ring ??= new RingWindow();
+            var s = settings();
+            _ring.Screen = s.OsdScreen;
+            _ring.Size = s.OsdSize;
+            return _ring;
+        }
+    }
+
+    // Countdowns and «Mayús + Esc para parar» always show: they say how to stop what is going on. A countdown goes in the
+    // ring (Options › «Cuentas atrás en un círculo») or on the OSD.
     public IDisposable ShowPersistentOsd(string text, DateTime? countdownTo = null, string? icon = null)
     {
+        if (countdownTo is { } to && settings().OsdRing)
+        {
+            var ring = dispatcher.Invoke(() => Ring.ShowCountdown(text, icon, to));
+            return new Callback(() => dispatcher.BeginInvoke(() => Ring.HideRing(ring)));
+        }
         var generation = dispatcher.Invoke(() => Osd.ShowMessage(text, OsdKind.Info, null, countdownTo, icon is null ? null : OsdLook.Of(icon)));
         return new Callback(() => dispatcher.BeginInvoke(() => Osd.HideMessage(generation)));
     }
 
+    /// <summary>Options › «Probar» of the ring: a countdown of a few seconds.</summary>
+    public void PreviewRing(string text) => dispatcher.BeginInvoke(() =>
+    {
+        var generation = Ring.ShowCountdown(text, null, DateTime.Now.AddSeconds(5));
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5.2) };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            Ring.HideRing(generation);
+        };
+        timer.Start();
+    });
+
     // Like the countdowns, it always shows: it says what is going on and that Esc stops it.
     public IProgressOsd ShowProgressOsd(string text, string icon)
     {
+        if (settings().OsdRing)
+        {
+            var ring = new RingProgress(this);
+            dispatcher.BeginInvoke(() => ring.Generation = Ring.ShowProgress(text, icon, 0));
+            return ring;
+        }
         var osd = new ProgressOsd(this, icon);
         dispatcher.BeginInvoke(() => osd.Generation = Osd.ShowMessage(text, OsdKind.Info, null, look: new OsdLook(icon, 0)));
         return osd;
+    }
+
+    /// <summary>The progress in the ring: it only touches it while it is the one shown.</summary>
+    private sealed class RingProgress(UiServices owner) : IProgressOsd
+    {
+        private int _closed;
+
+        /// <summary>Generation of its progress in the ring (UI thread only).</summary>
+        public int Generation { get; set; } = -1;
+
+        public void Update(string text, double level) => owner.UiDispatcher.BeginInvoke(() =>
+        {
+            if (_closed == 0) owner.Ring.SetProgress(Generation, text, level);
+        });
+
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref _closed, 1) != 0) return;
+            owner.UiDispatcher.BeginInvoke(() => owner.Ring.HideRing(Generation));
+        }
     }
 
     /// <summary>A message with a bar that its work keeps updating; it only touches the OSD while it is the one shown.</summary>

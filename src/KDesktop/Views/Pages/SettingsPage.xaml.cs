@@ -779,6 +779,8 @@ public partial class SettingsPage : UserControl
     }
 
     /// <summary>The kinds one after another (they stack): a message, a level, one that went well and a warning.</summary>
+    private void OnTestRing(object sender, RoutedEventArgs e) => _app.Ui.PreviewRing(Loc.T("settings.osdRingSample"));
+
     private async void OnTestOsd(object sender, RoutedEventArgs e)
     {
         var samples = new (string Text, OsdKind Kind, OsdLook Look)[]

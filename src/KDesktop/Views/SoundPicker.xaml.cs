@@ -1,36 +1,31 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Media3D;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
 using KDesktop.Core.Platform;
-using Microsoft.Win32;
+using KDesktop.Views.Dialogs;
+using Wpf.Ui.Controls;
 
 namespace KDesktop.Views;
 
 /// <summary>
-/// List of the sounds (built-in names, or a .wav file chosen with Browse) with Play and Browse buttons. Nothing is
-/// typed: a file shows its name, and its whole path in the tooltip. Picking a sound in the list (mouse or arrow keys)
-/// plays it, so they can be compared quickly.
+/// The sound chosen (a built-in or user sound by name, a Windows sound or another audio file by its path) shown as a
+/// field: a click opens «Elegir sonido» (<see cref="SoundPickerDialog"/>), where every sound is by kind and plays on a
+/// click; the button beside it plays the chosen one. A file shows its name, and its whole path in the tooltip.
 /// </summary>
 public partial class SoundPicker : UserControl
 {
     public static readonly DependencyProperty SoundProperty = DependencyProperty.Register(
         nameof(Sound), typeof(string), typeof(SoundPicker),
-        new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, (d, _) =>
-        {
-            if (d is SoundPicker { _showing: false } picker) picker.ShowSound();
-        }));
+        new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, (d, _) => ((SoundPicker)d).ShowSound()));
 
+    /// <summary>Whether «Elegir sonido» offers any other file too (on by default).</summary>
     public static readonly DependencyProperty ShowBrowseProperty = DependencyProperty.Register(
-        nameof(ShowBrowse), typeof(bool), typeof(SoundPicker),
-        new PropertyMetadata(true, (d, e) => ((SoundPicker)d).BrowseButton.Visibility = (bool)e.NewValue ? Visibility.Visible : Visibility.Collapsed));
+        nameof(ShowBrowse), typeof(bool), typeof(SoundPicker), new PropertyMetadata(true));
 
     /// <summary>
-    /// With a text: a first entry «Global» (<see cref="ShowNotificationAction.GlobalSound"/>), the sound of Options ›
+    /// With a text: a first choice «Global» (<see cref="ShowNotificationAction.GlobalSound"/>), the sound of Options ›
     /// Notificaciones, whichever it is then.
     /// </summary>
     public static readonly DependencyProperty GlobalTextProperty = DependencyProperty.Register(
@@ -42,25 +37,7 @@ public partial class SoundPicker : UserControl
         set => SetValue(GlobalTextProperty, value);
     }
 
-    /// <summary>What plays for an entry («Global»: the sound of Options).</summary>
-    private static string? Playable(string? sound) =>
-        sound == ShowNotificationAction.GlobalSound ? App.Current.Config.Settings.NotifySound : sound;
-
-    /// <summary>An entry of the list: <see cref="Value"/> is what is saved (null = no sound), its text what is seen.</summary>
-    public sealed record Item(string? Value, string Text)
-    {
-        // What UI Automation (and so screen readers) read for the entry.
-        public override string ToString() => Text;
-    }
-
-    public SoundPicker()
-    {
-        InitializeComponent();
-        Box.AddHandler(PreviewMouseMoveEvent, new MouseEventHandler(OnBoxMouseMove), handledEventsToo: true);
-        ShowSound();
-    }
-
-    /// <summary>Built-in sound name or path of a .wav file; null for none.</summary>
+    /// <summary>Built-in or user sound name, or path of an audio file; null for none.</summary>
     public string? Sound
     {
         get => (string?)GetValue(SoundProperty);
@@ -73,87 +50,35 @@ public partial class SoundPicker : UserControl
         set => SetValue(ShowBrowseProperty, value);
     }
 
-    /// <summary>Selecting the item of <see cref="Sound"/> from code: it is not the user picking (no sound, no saving).</summary>
-    private bool _showing;
+    public SoundPicker()
+    {
+        InitializeComponent();
+        ShowSound();
+    }
 
-    /// <summary>
-    /// The list again with the current sound selected: «no sound» and the built-in sounds. Anything else (a file chosen
-    /// with Browse, or a name that no longer exists, kept so opening the options doesn't lose it) is not in the list:
-    /// nothing is selected and its name shows over the combo, with the whole path in the tooltip.
-    /// </summary>
+    /// <summary>What plays for a choice («Global»: the sound of Options).</summary>
+    private static string? Playable(string? sound) =>
+        sound == ShowNotificationAction.GlobalSound ? App.Current.Config.Settings.NotifySound : sound;
+
     private void ShowSound()
     {
         var sound = string.IsNullOrWhiteSpace(Sound) ? null : Sound;
-        var items = new List<Item>();
-        if (GlobalText is { Length: > 0 } global) items.Add(new Item(ShowNotificationAction.GlobalSound, global));
-        items.Add(new Item(null, Loc.T("sound.none")));
-        items.AddRange(Sounds.Available().Select(n => new Item(n, n)));
-        var match = items.FirstOrDefault(i => string.Equals(i.Value, sound, StringComparison.OrdinalIgnoreCase));
-        _showing = true;
-        try
+        FieldText.Text = sound switch
         {
-            Box.ItemsSource = items;
-            Box.SelectedItem = match;
-        }
-        finally { _showing = false; }
-        ShowFile(match is null ? sound : null);
+            null => Loc.T("sound.none"),
+            ShowNotificationAction.GlobalSound => GlobalText ?? Loc.T("sound.none"),
+            _ => SoundLibrary.NameOf(sound),
+        };
+        FieldIcon.Symbol = sound is null ? SymbolRegular.SpeakerMute24 : sound == ShowNotificationAction.GlobalSound ? SymbolRegular.Globe24 : SymbolRegular.MusicNote224;
+        Field.ToolTip = sound is not null && Path.IsPathRooted(sound) ? sound : null;
+        System.Windows.Automation.AutomationProperties.SetName(Field, FieldText.Text);
+        PlayButton.IsEnabled = Playable(sound) is not null;
     }
 
-    private void ShowFile(string? sound)
+    private void OnOpen(object sender, RoutedEventArgs e)
     {
-        FileName.Text = sound is null ? string.Empty : Path.IsPathRooted(sound) ? Path.GetFileNameWithoutExtension(sound) : sound;
-        FileName.Visibility = sound is null ? Visibility.Collapsed : Visibility.Visible;
-        Box.ToolTip = sound is not null && Path.IsPathRooted(sound) ? sound : null;
+        if (SoundPickerDialog.Pick(Window.GetWindow(this), Sound, GlobalText, ShowBrowse, out var chosen)) Sound = chosen;
     }
-
-    /// <summary>Last sound previewed from the open list, so moving over the same item does not restart it.</summary>
-    private string? _previewed;
-
-    // Mouse over the current item: no sound until the mouse moves to another one.
-    private void OnDropDownOpened(object? sender, EventArgs e) => _previewed = (Box.SelectedItem as Item)?.Value;
-
-    /// <summary>
-    /// With the list open, each sound plays as the mouse goes over it. The open combo captures the mouse, so the
-    /// items get no MouseEnter: follow the moves on the combo (the list's events reach it) and find the item below.
-    /// </summary>
-    private void OnBoxMouseMove(object sender, MouseEventArgs e)
-    {
-        if (!Box.IsDropDownOpen) return;
-        var item = e.OriginalSource as DependencyObject;
-        while (item is not null and not ComboBoxItem) item = item is Visual or Visual3D ? VisualTreeHelper.GetParent(item) : LogicalTreeHelper.GetParent(item);
-        if (item is ComboBoxItem { Content: Item { Value: { } sound } }) Preview(sound);
-    }
-
-    private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (_showing || e.AddedItems is not [Item picked, ..]) return;
-        _showing = true;
-        try { Sound = picked.Value; }
-        finally { _showing = false; }
-        ShowFile(null);
-        // Choosing always plays it, even right after hovering over it.
-        _previewed = picked.Value;
-        if (Playable(picked.Value) is { } playable) Sounds.Preview(playable);
-    }
-
-    private void Preview(string sound)
-    {
-        if (sound == _previewed) return;
-        _previewed = sound;
-        if (Playable(sound) is { } playable) Sounds.Preview(playable);
-    }
-
-    private void OnDropDownClosed(object? sender, EventArgs e) => _previewed = null;
 
     private void OnPlay(object sender, RoutedEventArgs e) => Sounds.Preview(Playable(Sound));
-
-    private void OnBrowse(object sender, RoutedEventArgs e)
-    {
-        var dlg = new OpenFileDialog { Title = Loc.T("editor.chooseSound"), Filter = "WAV|*.wav" };
-        if (Sound is { Length: > 0 } current && Path.IsPathRooted(current) && Path.GetDirectoryName(current) is { } dir && Directory.Exists(dir))
-            dlg.InitialDirectory = dir;
-        if (dlg.ShowDialog(Window.GetWindow(this)) != true) return;
-        Sound = dlg.FileName;
-        Sounds.Preview(Sound);
-    }
 }

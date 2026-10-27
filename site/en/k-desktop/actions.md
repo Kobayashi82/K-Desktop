@@ -35,7 +35,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 |---|---|
 | **Volume** | Sets, raises, lowers or mutes the volume: of the speakers, the microphone, one program or the one in front. |
 | **Audio output** | Changes the default sound device. With several chosen, each run switches to the next one. |
-| **Play sound** | Plays a bundled sound or a .wav file. |
+| **Play sound** | Plays a sound chosen in a panel by kind (alerts, alarms, calls, system and yours) with K-Desktop's and Windows' sounds, which play when clicked, or another file (.wav, .mp3, .wma, .m4a, .aac, .flac). The ones you put in your sounds folder show under «Yours». |
 | **Record audio** | Records what the PC plays, the microphone or both, or saves what just played (*Settings → Audio recording*). |
 
 ## Screen
@@ -60,7 +60,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 
 | Action | What it does |
 |---|---|
-| **Files and folders** | Copy, move, rename, delete (to the recycle bin or for good), create a folder, zip, unzip or make a **backup**: sync (only what is new or changed, optionally removing from the destination what is gone) or a dated copy each time keeping the latest. The source is a list of files, folders or patterns (`C:\Music\*.mp3`) typed in or added with the buttons. The destination may be inside the source: it never copies itself. Progress shows on the OSD (Esc stops it) and the next action can wait until it is done. |
+| **Files and folders** | Copy, move, rename, delete (to the recycle bin or for good), create a folder, zip, unzip or make a **backup**: sync (only what is new or changed, optionally removing from the destination what is gone) or a dated copy each time keeping the latest. The source is a list of files, folders or patterns (`C:\Music\*.mp3`) typed in or added with the buttons. The destination may be inside the source: it never copies itself. Progress shows in a circle in the middle of the screen, or on the OSD (Esc stops it) and the next action can wait until it is done. |
 | **Hidden files (on/off)** | Shows or hides hidden files in Explorer. |
 | **Power plan** | Switches the Windows power plan (High performance, Balanced…) or goes to the next one. |
 | **Power** | Shuts down, restarts, sleeps, locks or signs out, with a cancellable countdown. |
@@ -74,7 +74,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 | **Commands** | Runs, enables or disables another command. |
 | **Open QuickMenu** | Shows a QuickMenu at the mouse position. |
 | **Show message** | Shows an on-screen message for a while. |
-| **Show notification** | A card in a corner with your title, text, picture, colour and sound, for as long as you say. Clicking it can open something (a file, a folder, a web page) or run another command, and the next action can wait until it closes. Its sound can be *Global* (the one of *Settings › OSD and Notifications*). With something full screen it does what those settings say. |
+| **Show notification** | A card in a corner with your title, text, picture, colour and sound, for as long as you say. Clicking it can open something (a file, a folder, a web page) or run another command, and the next action can wait until it closes. Its sound can be *Global* (the one of *Settings › Messages and notifications*). With something full screen it does what those settings say. |
 | **Disable in current app (on/off)** | Disables or re-enables K-Desktop hotkeys in the active application (useful in games). |
 
 ## Assistant

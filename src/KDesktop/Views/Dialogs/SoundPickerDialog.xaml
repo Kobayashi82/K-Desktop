@@ -1,0 +1,157 @@
+<ui:FluentWindow x:Class="KDesktop.Views.Dialogs.SoundPickerDialog"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                 xmlns:l="clr-namespace:KDesktop.Localization"
+                 xmlns:d="clr-namespace:KDesktop.Views.Dialogs"
+                 Title="K-Desktop"
+                 Width="860" Height="620" MinWidth="600" MinHeight="420"
+                 WindowStartupLocation="CenterOwner"
+                 ExtendsContentIntoTitleBar="True"
+                 WindowBackdropType="Mica"
+                 ResizeMode="CanResize"
+                 ShowInTaskbar="False">
+    <ui:FluentWindow.Resources>
+        <!-- A sound: a click plays it and marks it; a double click (or «Elegir») keeps it -->
+        <Style x:Key="SoundCard" TargetType="Button">
+            <Setter Property="Width" Value="196" />
+            <Setter Property="Margin" Value="0,0,8,8" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="B" CornerRadius="8" Padding="10,8" BorderThickness="1"
+                                Background="{DynamicResource Kd.Subtle}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="B" Property="Background" Value="{DynamicResource Kd.SubtleHover}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="B" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
+                            </Trigger>
+                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                <Setter TargetName="B" Property="Background" Value="{DynamicResource Kd.AccentSoft}" />
+                                <Setter TargetName="B" Property="BorderBrush" Value="{DynamicResource Kd.Accent}" />
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate x:Key="CardTemplate" DataType="{x:Type d:SoundChoice}">
+            <Button Style="{StaticResource SoundCard}" Click="OnPick" MouseDoubleClick="OnPickTwice" Tag="{Binding}"
+                    AutomationProperties.Name="{Binding Name}" ToolTip="{Binding Tip}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Width="30" Height="30" CornerRadius="15" Margin="0,0,10,0" VerticalAlignment="Center" Background="{DynamicResource Kd.AccentSoft}">
+                        <ui:SymbolIcon Symbol="{Binding Symbol}" FontSize="15" Foreground="{DynamicResource Kd.AccentText}" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        <TextBlock Text="{Binding Caption}" TextTrimming="CharacterEllipsis">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Caption}" Value="">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
+            </Button>
+        </DataTemplate>
+
+        <ItemsPanelTemplate x:Key="Wrap">
+            <WrapPanel />
+        </ItemsPanelTemplate>
+    </ui:FluentWindow.Resources>
+
+    <Grid Margin="16,0,0,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <ui:TitleBar Grid.Row="0" Title="{l:Tr editor.chooseSound}" ShowMinimize="False" Margin="-16,0,0,0" />
+        <ui:TextBox x:Name="SearchBox" Grid.Row="1" Margin="0,4,16,12" PlaceholderText="{l:Tr sound.search}" Icon="{ui:SymbolIcon Search24}"
+                    TextChanged="OnSearch" PreviewKeyDown="OnSearchKey" />
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="190" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Kinds -->
+            <ListBox x:Name="Kinds" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource RowItem}" Margin="0,0,12,12"
+                     SelectionChanged="OnKind">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type d:SoundGroup}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Symbol="{Binding Symbol}" FontSize="16" Margin="0,0,10,0" Foreground="{DynamicResource Kd.AccentText}" />
+                            <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="2" Text="{Binding Count}" Margin="8,0,2,0" VerticalAlignment="Center" Style="{StaticResource Caption}" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <!-- The sounds, by kind -->
+            <ScrollViewer x:Name="Scroll" Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="0,0,6,12">
+                <StackPanel>
+                    <!-- «Sin sonido» (and «Global» where there is one): always there, out of the search -->
+                    <ItemsControl x:Name="Specials" Focusable="False" Margin="0,0,0,8" ItemTemplate="{StaticResource CardTemplate}" ItemsPanel="{StaticResource Wrap}" />
+                    <ItemsControl x:Name="Groups" Focusable="False">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type d:SoundGroup}">
+                                <StackPanel Margin="0,0,0,8">
+                                    <TextBlock Text="{Binding Name}" Style="{StaticResource SectionTitle}" Margin="2,0,0,8" />
+                                    <ItemsControl ItemsSource="{Binding Shown}" ItemTemplate="{StaticResource CardTemplate}" ItemsPanel="{StaticResource Wrap}" Focusable="False" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock x:Name="NothingFound" Style="{StaticResource Caption}" Margin="2,8,0,0" Text="{l:Tr sound.nothing}" Visibility="Collapsed" />
+                    <!-- «Tuyos» empty: where to put them -->
+                    <TextBlock x:Name="YoursHint" Style="{StaticResource Caption}" Margin="2,8,0,0" Text="{l:Tr sound.yoursHint}" TextWrapping="Wrap" Visibility="Collapsed" />
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- Another file, the folder of your own sounds; keep or leave -->
+        <Border Grid.Row="3" Margin="-16,0,0,0" Padding="16,12" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" Background="{DynamicResource Kd.Subtle}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:Button x:Name="FileButton" Content="{l:Tr sound.file}" Icon="{ui:SymbolIcon DocumentAdd24}" Click="OnFile" />
+                <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr sound.folder}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnFolder"
+                           ToolTip="{l:Tr sound.yoursHint}" />
+                <ui:Button Grid.Column="3" MinWidth="96" Content="{l:Tr common.cancel}" Click="OnCancel" />
+                <ui:Button x:Name="ChooseButton" Grid.Column="4" MinWidth="96" Margin="8,0,0,0" Appearance="Primary" Content="{l:Tr sound.choose}" Click="OnChoose" />
+            </Grid>
+        </Border>
+    </Grid>
+</ui:FluentWindow>
