@@ -88,7 +88,8 @@ public sealed record BrainRemote(string Id, RemoteKind Kind, string Endpoint = "
 /// <paramref name="ThinkReason"/> (5.0.289): whether the model of «Para pensar más» reasons before answering (the same
 /// model always does); <paramref name="ThinkReasons"/>: each assistant's own (false: its own model to think harder with
 /// answers without reasoning; absent: it reasons). <see cref="ModelRefs.Usual"/> as an assistant's model to think harder
-/// with: its usual one, reasoning.
+/// with: its usual one, reasoning. <paramref name="ThinkBudgets"/> (5.0.290): how much each assistant may reason then
+/// (absent: <paramref name="ThinkTokens"/>).
 /// <paramref name="FreeForGames"/>: a game on the whole screen takes the models of this PC out of the graphics card.
 /// </summary>
 public sealed record BrainConfig(
@@ -106,7 +107,8 @@ public sealed record BrainConfig(
     bool FreeForGames = true,
     IReadOnlyDictionary<string, string>? ThinkModels = null,
     bool ThinkReason = true,
-    IReadOnlyDictionary<string, bool>? ThinkReasons = null)
+    IReadOnlyDictionary<string, bool>? ThinkReasons = null,
+    IReadOnlyDictionary<string, int>? ThinkBudgets = null)
 {
     /// <summary>Minutes a model stays loaded without use, by default.</summary>
     public const int DefaultKeepMinutes = 30;
@@ -128,6 +130,9 @@ public sealed record BrainConfig(
 
     /// <summary>Whether each assistant with its own model to think harder with reasons with it (never null).</summary>
     public IReadOnlyDictionary<string, bool> AssistantThinkReasons => ThinkReasons ?? new Dictionary<string, bool>();
+
+    /// <summary>How much each assistant with its own budget may reason when it thinks harder (never null).</summary>
+    public IReadOnlyDictionary<string, int> AssistantThinkBudgets => ThinkBudgets ?? new Dictionary<string, int>();
 
     public IReadOnlyList<string> ServerList => Servers ?? [];
 
@@ -174,6 +179,7 @@ public sealed record BrainConfig(
         ["thinkModels"] = new JsonObject(AssistantThinkModels.Select(p => KeyValuePair.Create(p.Key, (JsonNode?)p.Value))),
         ["thinkReason"] = ThinkReason,
         ["thinkReasons"] = new JsonObject(AssistantThinkReasons.Select(p => KeyValuePair.Create(p.Key, (JsonNode?)p.Value))),
+        ["thinkBudgets"] = new JsonObject(AssistantThinkBudgets.Select(p => KeyValuePair.Create(p.Key, (JsonNode?)p.Value))),
     };
 
     public static BrainConfig FromJson(JsonObject? json)
@@ -195,6 +201,14 @@ public sealed record BrainConfig(
                     if (value is JsonValue v && v.TryGetValue<bool>(out var reason)) reasons[id] = reason;
             return reasons;
         }
+        static Dictionary<string, int> Budgets(JsonNode? node)
+        {
+            var budgets = new Dictionary<string, int>(StringComparer.Ordinal);
+            if (node is JsonObject own)
+                foreach (var (id, value) in own)
+                    if (value is JsonValue v && v.TryGetValue<int>(out var tokens)) budgets[id] = Math.Max(LeastThinkTokens, tokens);
+            return budgets;
+        }
         var args = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         if (json["modelArgs"] is JsonObject perModel)
             foreach (var (path, line) in perModel)
@@ -206,7 +220,7 @@ public sealed record BrainConfig(
             json["remotes"] is JsonArray remotes ? [.. remotes.Select(BrainRemote.FromJson).OfType<BrainRemote>()] : [],
             Text(json["thinkModel"]),
             json["thinkTokens"] is JsonValue t && t.TryGetValue<int>(out var tokens) ? Math.Max(LeastThinkTokens, tokens) : DefaultThinkTokens,
-            Flag(json["freeForGames"], true), PerAssistant(json["thinkModels"]), Flag(json["thinkReason"], true), Reasons(json["thinkReasons"]));
+            Flag(json["freeForGames"], true), PerAssistant(json["thinkModels"]), Flag(json["thinkReason"], true), Reasons(json["thinkReasons"]), Budgets(json["thinkBudgets"]));
     }
 
     internal static string Text(JsonNode? node) => node is JsonValue v && v.TryGetValue<string>(out var s) ? s : string.Empty;

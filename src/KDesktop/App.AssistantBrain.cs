@@ -47,7 +47,7 @@ public partial class App
             [AssistantModelsFolder, .. s.AssistantBrainFolders.Where(f => !string.Equals(f, AssistantModelsFolder, StringComparison.OrdinalIgnoreCase))],
             s.AssistantBrainModelArgs, s.AssistantBrainKeepMinutes, s.AssistantBrainOneAtATime, s.AssistantBrainVision,
             [.. s.AssistantBrainRemotes.Select(r => r with { ApiKey = Unprotect(r.ApiKey) })], s.AssistantBrainThinkModel, s.AssistantBrainThinkTokens, s.AssistantBrainFreeForGames,
-            s.AssistantThinkModels, s.AssistantBrainThinkReason, s.AssistantThinkReasons).ToJson();
+            s.AssistantThinkModels, s.AssistantBrainThinkReason, s.AssistantThinkReasons, s.AssistantThinkTokens).ToJson();
     }
 
     private static string Unprotect(string stored) => stored.Length > 0 ? Secrets.Unprotect(stored) ?? string.Empty : string.Empty;
@@ -63,6 +63,17 @@ public partial class App
         else models[assistant] = model.Trim();
         Config.Settings.AssistantModels = models;
         Log.Info($"Asistente: modelo de «{assistant}»: {(string.IsNullOrWhiteSpace(model) ? "el general" : BrainProviders.ModelLabel(model))}");
+        AssistantChanged?.Invoke();
+    }
+
+    /// <summary>How much an assistant may reason when it thinks harder (5.0.290); null: as «Para pensar más».</summary>
+    public void SetAssistantThinkTokens(string assistant, int? tokens)
+    {
+        var budgets = new Dictionary<string, int>(Config.Settings.AssistantThinkTokens, StringComparer.Ordinal);
+        if (tokens is { } own) budgets[assistant] = Math.Max(BrainConfig.LeastThinkTokens, own);
+        else budgets.Remove(assistant);
+        Config.Settings.AssistantThinkTokens = budgets;
+        Log.Info($"Asistente: «{assistant}» razona al pensar más {(tokens is { } t ? t + " tokens" : "lo general")}");
         AssistantChanged?.Invoke();
     }
 

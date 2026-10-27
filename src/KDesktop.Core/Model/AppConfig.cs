@@ -862,6 +862,12 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private Dictionary<string, bool> _assistantThinkReasons = [];
 
     /// <summary>
+    /// How much each assistant may reason when it thinks harder, when it has its own (5.0.290): assistant id → tokens
+    /// (absent: the one of «Para pensar más»). Replaced whole on every change.
+    /// </summary>
+    [ObservableProperty] private Dictionary<string, int> _assistantThinkTokens = [];
+
+    /// <summary>
     /// What each assistant has of its own (personality, language, voice; 5.0.105): assistant id → it (absent or empty: all
     /// the general). Replaced whole on every change (so it is saved).
     /// </summary>

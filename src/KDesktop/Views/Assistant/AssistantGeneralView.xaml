@@ -144,6 +144,12 @@
                         <!-- 5.0.289: its own model may answer as it is; its usual one always reasons -->
                         <CheckBox x:Name="ThinkReasonCheck" Margin="0,8,0,0" Content="{l:Tr brainOptions.thinkReason}" ToolTip="{l:Tr brainOptions.thinkReasonHint}"
                                   Checked="OnThinkReason" Unchecked="OnThinkReason" />
+                        <!-- 5.0.290: how much it reasons then (global: that of Options → Brain) -->
+                        <StackPanel x:Name="ThinkTokensRow" Margin="0,10,0,0">
+                            <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,4" Text="{l:Tr brainOptions.thinkTokens}" />
+                            <ComboBox x:Name="ThinkTokensBox" MinWidth="260" MaxWidth="420" DisplayMemberPath="Name"
+                                      SelectionChanged="OnThinkTokensChanged" AutomationProperties.Name="{l:Tr brainOptions.thinkTokens}" />
+                        </StackPanel>
                     </StackPanel>
                 </Grid>
                 <StackPanel x:Name="ThinkSuggestedRow" Margin="0,12,0,0" Orientation="Horizontal" Visibility="Collapsed">

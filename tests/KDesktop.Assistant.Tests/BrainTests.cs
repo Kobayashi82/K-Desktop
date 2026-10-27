@@ -241,6 +241,13 @@ public class BrainTests
 
         brain.Configure(config with { ThinkReason = true });
         Assert.Equal(BrainConfig.DefaultThinkTokens, brain.ThinkerFor(null)?.Tokens);
+
+        // 5.0.290: an assistant may reason more or less than the others when it thinks harder.
+        var budgets = config with { ThinkBudgets = new Dictionary<string, int> { ["kobii"] = 2048 } };
+        Assert.Equal(2048, BrainConfig.FromJson(budgets.ToJson()).AssistantThinkBudgets["kobii"]);
+        brain.Configure(budgets);
+        Assert.Equal(2048, brain.ThinkerFor("kobii")?.Tokens);
+        Assert.Equal(0, brain.ThinkerFor("lander")?.Tokens);
     }
 
     [Fact]

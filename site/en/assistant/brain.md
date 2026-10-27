@@ -47,14 +47,14 @@ Their models show up in the same list.
 | **Model** | *Automatic*: the biggest one that fits in your graphics card. Or a specific one, or *No AI* |
 | **To think harder** | Used when you say «think it over», when the model sees it is not enough, or when you tell it it got it wrong. *The same model* (reasoning before it answers), another model, or *Never*. With another model, **Reason before answering** decides whether it reasons first or answers as it is (quicker) |
 | | Both have **Browse…** (a `.gguf` from any folder) and **Load** when the chosen one is not in memory |
-| **How long it may think** | A little, normal, a lot (only when it reasons). More helps with hard things, but takes longer |
+| **How long it reasons when thinking harder** | A little, normal, a lot (only when it reasons). More helps with hard things, but takes longer |
 | **Unload it after** | Unused for this long, it leaves memory (or *Never*: only when you ask). Loading it again takes a few seconds |
 | **One model at a time** | Loading one unloads the others. When off, several stay while they fit |
 | **Vision** | Models that can see images load with their vision part (it takes a little more) |
 | **Free the graphics card for games** | With a game on the whole screen, the model leaves the graphics card. A film does not count. It loads again when you talk to it |
 
-Each assistant can think with **its own model** (*its card → Basics → Thinks with*, and its own one to think harder: *Global*, *Its usual model* or one of the list, with
-its box to reason or not).
+Each assistant can think with **its own model** (*its card → Basics → Thinks with*, and its own one to think harder: *Global*, *The same model* or one of the list, with
+its box to reason or not, and how long it reasons).
 An assistant's package may suggest a model: the install card and its *Basics* tab offer to download it (never ticked by
 default), only if it fits and you do not have it.
 

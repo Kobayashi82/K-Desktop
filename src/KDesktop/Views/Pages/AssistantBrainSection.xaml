@@ -67,7 +67,8 @@
                               ToolTip="{l:Tr brainOptions.thinkReasonHint}" Checked="OnThinkReason" Unchecked="OnThinkReason" />
                 </Grid>
 
-                <Grid x:Name="ThinkTokensRow" Style="{StaticResource SettingRow}">
+                <!-- Part of «Para pensar más» (indented): how much it reasons then -->
+                <Grid x:Name="ThinkTokensRow" Style="{StaticResource SettingRow}" Margin="28,0,0,0">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="300" /></Grid.ColumnDefinitions>
                     <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                         <TextBlock Text="{l:Tr brainOptions.thinkTokens}" />

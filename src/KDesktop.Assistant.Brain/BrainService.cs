@@ -126,7 +126,8 @@ public sealed class BrainService : IDisposable
                 : _config.ThinkModel.Length > 0 && ModelRefs.Find(have, _config.ThinkModel) is { } found ? (found, _config.ThinkReason)
                 : (usual, true);
             if (ModelRefs.Same(model, usual)) reason = true;
-            return new Talk.Thinker(model, reason ? Math.Max(BrainConfig.LeastThinkTokens, _config.ThinkTokens) : 0);
+            var budget = _config.AssistantThinkBudgets.TryGetValue(id, out var ownBudget) ? ownBudget : _config.ThinkTokens;
+            return new Talk.Thinker(model, reason ? Math.Max(BrainConfig.LeastThinkTokens, budget) : 0);
         }
     }
 

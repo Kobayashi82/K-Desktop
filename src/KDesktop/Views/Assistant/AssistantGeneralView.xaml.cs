@@ -77,7 +77,7 @@ public partial class AssistantGeneralView : UserControl
             s.AssistantWakeWords.GetValueOrDefault(_id), _app.TalkHotkeyOf(_id), s.AssistantModels.GetValueOrDefault(_id), _app.AssistantBrainOff,
             brain?.State, brain?.Model, string.Join(',', brain?.Models?.Select(m => m.Name) ?? []), _app.AssistantModelDownload is { Running: true } download ? download.Name : null,
             _suggestion?.Model.Name, s.AssistantThinkModels.GetValueOrDefault(_id), s.AssistantBrainThinkModel, _thinkSuggestion?.Model.Name,
-            s.AssistantBrainThinkReason, s.AssistantThinkReasons.GetValueOrDefault(_id, true));
+            s.AssistantBrainThinkReason, s.AssistantThinkReasons.GetValueOrDefault(_id, true), s.AssistantThinkTokens.GetValueOrDefault(_id), s.AssistantBrainThinkTokens);
     }
 
     private void Refresh()
@@ -287,6 +287,7 @@ public partial class AssistantGeneralView : UserControl
         ThinkReasonCheck.Visibility = own.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         ThinkReasonCheck.IsEnabled = own != Core.Assistant.Brain.ModelRefs.Usual;
         ThinkReasonCheck.IsChecked = own == Core.Assistant.Brain.ModelRefs.Usual || _app.Config.Settings.AssistantThinkReasons.GetValueOrDefault(_id, true);
+        FillThinkTokens(own, general);
 
         var suggested = off ? null : _thinkSuggestion;
         ThinkSuggestedRow.Visibility = suggested is null ? Visibility.Collapsed : Visibility.Visible;
@@ -302,6 +303,48 @@ public partial class AssistantGeneralView : UserControl
         if (string.Equals(option.Value, _app.Config.Settings.AssistantThinkModels.GetValueOrDefault(_id) ?? string.Empty, StringComparison.OrdinalIgnoreCase)) return;
         var id = _id;
         Dispatcher.BeginInvoke(() => _app.SetAssistantThinkModel(id, option.Value));
+    }
+
+    /// <summary>The budgets of «Cuánto puede pensar», as in Options → Brain.</summary>
+    private static readonly int[] ThinkChoices = [512, Core.Assistant.Brain.BrainConfig.DefaultThinkTokens, 2048];
+
+    private static string ThinkChoiceName(int tokens) => Loc.T(tokens < Core.Assistant.Brain.BrainConfig.DefaultThinkTokens ? "brainOptions.thinkLittle"
+        : tokens > Core.Assistant.Brain.BrainConfig.DefaultThinkTokens ? "brainOptions.thinkMuch" : "brainOptions.thinkNormal");
+
+    private sealed record TokensOption(int? Tokens, string Name)
+    {
+        public override string ToString() => Name;
+    }
+
+    /// <summary>
+    /// How much it reasons when it thinks harder (5.0.290): the global one or its own; only while it reasons (the global
+    /// choice reasons with the same model, or with another one when its box is on).
+    /// </summary>
+    private void FillThinkTokens(string own, string general)
+    {
+        var s = _app.Config.Settings;
+        var reasons = own.Length == 0 ? general.Length == 0 || s.AssistantBrainThinkReason
+            : own == Core.Assistant.Brain.ModelRefs.Usual || s.AssistantThinkReasons.GetValueOrDefault(_id, true);
+        ThinkTokensRow.Visibility = reasons ? Visibility.Visible : Visibility.Collapsed;
+        var globalChoice = ThinkChoices.MinBy(t => Math.Abs(t - s.AssistantBrainThinkTokens));
+        List<TokensOption> options =
+        [
+            new(null, Loc.T("assistantOptions.modelGeneralIs", ThinkChoiceName(globalChoice))),
+            .. ThinkChoices.Select(t => new TokensOption(t, ThinkChoiceName(t))),
+        ];
+        ThinkTokensBox.ItemsSource = options;
+        ThinkTokensBox.SelectedItem = s.AssistantThinkTokens.TryGetValue(_id, out var mine)
+            ? options.Skip(1).MinBy(o => Math.Abs(o.Tokens!.Value - mine))
+            : options[0];
+    }
+
+    private void OnThinkTokensChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_filling || ThinkTokensBox.SelectedItem is not TokensOption option) return;
+        int? now = _app.Config.Settings.AssistantThinkTokens.TryGetValue(_id, out var mine) ? mine : null;
+        if (option.Tokens == now) return;
+        var id = _id;
+        Dispatcher.BeginInvoke(() => _app.SetAssistantThinkTokens(id, option.Tokens));
     }
 
     private void OnThinkReason(object sender, RoutedEventArgs e)
