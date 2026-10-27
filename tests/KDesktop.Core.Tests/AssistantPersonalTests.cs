@@ -51,6 +51,7 @@ public class AssistantPersonalTests
         {
             ["lander"] = new() { Language = "en", Prompt = "You are Lander.", KokoroVoice = "am_adam", Profile = AssistantPersonal.OwnProfile, Speed = 1.25 },
             ["dot"] = new() { Engine = "windows" },
+            ["kumo"] = new() { Volume = 0.6 },
         };
         var section = AssistantPersonal.ToJson(personal);
         Assert.Equal("en", section["lander"]!["language"]!.GetValue<string>());
@@ -65,6 +66,10 @@ public class AssistantPersonalTests
         Assert.False(back["dot"].WithoutVoice().HasOwnVoice);
         Assert.True(back["dot"].WithoutVoice().IsEmpty);
         Assert.False(back["lander"].WithoutVoice().IsEmpty);
+        // 5.0.289: its own volume is part of its voice.
+        Assert.Equal(0.6, back["kumo"].Volume);
+        Assert.True(back["kumo"].HasOwnVoice);
+        Assert.True(back["kumo"].WithoutVoice().IsEmpty);
         Assert.Empty(AssistantPersonal.FromJson(new JsonObject { ["bad"] = "nope" }));
 
         var config = new AppConfig();

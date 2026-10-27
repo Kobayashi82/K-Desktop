@@ -24,6 +24,14 @@ public partial class App
     /// <summary>The last state the process sent of its brain (null while it is not running).</summary>
     public BrainStateMessage? AssistantBrain { get; private set; }
 
+    /// <summary>
+    /// The models the brain had the last time it said (5.0.289): an assistant's options list them while the process is
+    /// stopped too, instead of only «Global».
+    /// </summary>
+    public IReadOnlyList<BrainModel> KnownBrainModels => AssistantBrain?.Models ?? _knownBrainModels;
+
+    private IReadOnlyList<BrainModel> _knownBrainModels = [];
+
     /// <summary>Raised (UI thread) when <see cref="AssistantBrain"/> changes.</summary>
     public event Action? AssistantBrainChanged;
 
@@ -39,7 +47,7 @@ public partial class App
             [AssistantModelsFolder, .. s.AssistantBrainFolders.Where(f => !string.Equals(f, AssistantModelsFolder, StringComparison.OrdinalIgnoreCase))],
             s.AssistantBrainModelArgs, s.AssistantBrainKeepMinutes, s.AssistantBrainOneAtATime, s.AssistantBrainVision,
             [.. s.AssistantBrainRemotes.Select(r => r with { ApiKey = Unprotect(r.ApiKey) })], s.AssistantBrainThinkModel, s.AssistantBrainThinkTokens, s.AssistantBrainFreeForGames,
-            s.AssistantThinkModels).ToJson();
+            s.AssistantThinkModels, s.AssistantBrainThinkReason, s.AssistantThinkReasons).ToJson();
     }
 
     private static string Unprotect(string stored) => stored.Length > 0 ? Secrets.Unprotect(stored) ?? string.Empty : string.Empty;
@@ -58,14 +66,22 @@ public partial class App
         AssistantChanged?.Invoke();
     }
 
-    /// <summary>An assistant's own model to think harder with (stage 13.10); null or empty: the general one.</summary>
-    public void SetAssistantThinkModel(string assistant, string? model)
+    /// <summary>
+    /// An assistant's own model to think harder with (stage 13.10); null or empty: the general one; <see cref="ModelRefs.Usual"/>:
+    /// its usual one. <paramref name="reason"/> (5.0.289): whether that model reasons before answering (null: as it was).
+    /// </summary>
+    public void SetAssistantThinkModel(string assistant, string? model, bool? reason = null)
     {
         var models = new Dictionary<string, string>(Config.Settings.AssistantThinkModels, StringComparer.Ordinal);
         if (string.IsNullOrWhiteSpace(model)) models.Remove(assistant);
         else models[assistant] = model.Trim();
+        var reasons = new Dictionary<string, bool>(Config.Settings.AssistantThinkReasons, StringComparer.Ordinal);
+        if (string.IsNullOrWhiteSpace(model) || reason == true) reasons.Remove(assistant);
+        else if (reason == false) reasons[assistant] = false;
+        Config.Settings.AssistantThinkReasons = reasons;
         Config.Settings.AssistantThinkModels = models;
-        Log.Info($"Asistente: «{assistant}» piensa más con {(string.IsNullOrWhiteSpace(model) ? "el general" : BrainProviders.ModelLabel(model))}");
+        var what = string.IsNullOrWhiteSpace(model) ? "el general" : model == ModelRefs.Usual ? "su modelo" : BrainProviders.ModelLabel(model);
+        Log.Info($"Asistente: «{assistant}» piensa más con {what}{(reasons.ContainsKey(assistant) ? ", sin razonar" : "")}");
         AssistantChanged?.Invoke();
     }
 
@@ -282,6 +298,7 @@ public partial class App
     private void OnAssistantBrainState(BrainStateMessage state)
     {
         AssistantBrain = state;
+        if (state.Models is { Count: > 0 } models) _knownBrainModels = models;
         AssistantBrainChanged?.Invoke();
     }
 

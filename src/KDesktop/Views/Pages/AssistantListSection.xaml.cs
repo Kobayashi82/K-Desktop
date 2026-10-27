@@ -78,17 +78,8 @@ public partial class AssistantListSection : UserControl
         Shown?.Invoke(id);
     }
 
-    /// <summary>The assistant shown goes to its «Personalidad y voz».</summary>
-    public void ShowPersonal()
-    {
-        if (SettingsView.Visibility == Visibility.Visible) SettingsView.ShowPersonal();
-    }
-
-    /// <summary>The assistant shown goes to its «Probar» (stage 13.9).</summary>
-    public void ShowTry()
-    {
-        if (SettingsView.Visibility == Visibility.Visible) SettingsView.ShowTry();
-    }
+    /// <summary>The assistant shown goes to one of K-Desktop's pages («personal», «voice», «try»…); false for another name.</summary>
+    public bool ShowPage(string name) => SettingsView.Visibility != Visibility.Visible || SettingsView.ShowPage(name);
 
     public void ShowList()
     {

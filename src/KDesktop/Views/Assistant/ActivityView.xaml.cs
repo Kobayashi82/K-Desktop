@@ -10,7 +10,8 @@ namespace KDesktop.Views.Assistant;
 
 /// <summary>
 /// Panel → Assistant → Activity (stage 3.3, plan §8): what was asked, what was done and whether it worked, newest first, with
-/// «Undo» where the tool can undo it. The rows are made in code (an ItemsControl hides its buttons from UI Automation).
+/// «Undo» where the tool can undo it. Since 5.0.289, only what the assistant shown did, or (a pill) everyone's. The rows
+/// are made in code (an ItemsControl hides its buttons from UI Automation).
 /// </summary>
 public partial class ActivityView : UserControl
 {
@@ -19,6 +20,9 @@ public partial class ActivityView : UserControl
 
     private readonly App _app = App.Current;
     private int _shown = Page;
+    /// <summary>The assistant whose activity it shows (null: not chosen yet, everyone's).</summary>
+    private string? _assistant;
+    private bool _all;
 
     public ActivityView()
     {
@@ -36,13 +40,34 @@ public partial class ActivityView : UserControl
         };
     }
 
+    /// <summary>Shows what <paramref name="assistant"/> did (its own at first; everyone's if that was chosen).</summary>
+    public void Show(string assistant, string name)
+    {
+        if (assistant != _assistant) _shown = Page;
+        _assistant = assistant;
+        MineButton.Content = name;
+        HintText.Text = Loc.T("assistantActivity.hintOf", name);
+        if (IsLoaded) Fill();
+    }
+
+    private void OnWhose(object sender, RoutedEventArgs e)
+    {
+        if (!IsInitialized || AllButton is null) return;
+        _all = AllButton.IsChecked == true;
+        _shown = Page;
+        Fill();
+    }
+
+    private bool Everyone => _all || _assistant is null;
+
     private void Fill()
     {
-        var all = _app.AssistantActivity;
+        var all = Everyone ? _app.AssistantActivity : [.. _app.AssistantActivity.Where(item => App.IsActivityOf(item, _assistant!))];
         var canUndo = _app.Assistant is { IsRunning: true };
         Rows.Children.Clear();
         foreach (var item in all.Take(_shown)) Rows.Children.Add(Row(item, canUndo));
         EmptyText.Visibility = all.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        EmptyText.Text = Everyone ? Loc.T("assistantActivity.empty") : Loc.T("assistantActivity.emptyOf", App.AssistantName(_assistant));
         ClearButton.Visibility = all.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         MoreButton.Visibility = all.Count > _shown ? Visibility.Visible : Visibility.Collapsed;
     }
@@ -66,7 +91,8 @@ public partial class ActivityView : UserControl
         did.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorPrimaryBrush");
         if (item.Undone) did.TextDecorations = TextDecorations.Strikethrough;
         text.Children.Add(did);
-        var line = $"{entry.At.ToLocalTime().ToString("g", Loc.Instance.Culture)} · {App.ActivityWho(item)}";
+        // Who did it, only when everyone's is shown.
+        var line = entry.At.ToLocalTime().ToString("g", Loc.Instance.Culture) + (Everyone ? " · " + App.ActivityWho(item) : string.Empty);
         if (entry.Heard.Length > 0) line += " · «" + entry.Heard + "»";
         line += " · " + Loc.T("assistantActivity.route." + entry.Route);
         text.Children.Add(new TextBlock { Text = line, Style = (Style)FindResource("Caption"), Margin = new Thickness(0, 2, 0, 0) });
@@ -108,6 +134,6 @@ public partial class ActivityView : UserControl
     private void OnClear(object sender, RoutedEventArgs e)
     {
         _shown = Page;
-        _app.ClearAssistantActivity();
+        _app.ClearAssistantActivity(Everyone ? null : _assistant);
     }
 }

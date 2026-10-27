@@ -59,16 +59,22 @@ En *Opciones → Asistente → Asistentes*, cada asistente tiene su página:
 - **Básico**: su palabra de activación, su tecla para hablarle, el modelo con el que piensa (y con el que piensa más), y los
   ajustes que comparten todos los asistentes —**tamaño**, **volumen**, **lo movido que es** (cuánto se mueve por su cuenta) y
   si se puede **coger con el ratón**— además de «Usar siempre el bocadillo de K-Desktop».
-- Sus propias páginas (de su paquete): las opciones del juego del Lander, el color de Kobii…
-- **Personalidad y voz**: otra personalidad, otro idioma y otra voz para este asistente.
+- **Personalidad**: otro idioma y otra personalidad para este asistente.
+- **Voz**: quién habla (Kokoro, Piper, Windows…) con solo los ajustes de ese motor, su perfil, y su velocidad y volumen
+  propios.
 - **Probar**: el asistente en un pequeño escritorio de mentira para él solo, haciendo cada cosa que sabe enseñar (sus
   animaciones, entradas y salidas, estados, reacciones, gestos, lo que le hace a una ventana). Nada de eso toca tu
   escritorio.
 
   ![Probar](../../images/es/lander-try.png)
 
-*Panel → Asistente* enseña el estado de cada asistente, su panel (puntuaciones, logros, botones), su actividad (lo que ha
-hecho, con deshacer) y el chat.
+- Debajo, en otra fila, sus propias páginas (de su paquete): las opciones del juego del Lander, el color de Kobii…
+
+Lo que no se cambia se queda en **Global**: lo de *Opciones → Asistente* para todos.
+
+*Panel → Asistente* enseña cada asistente con lo que está haciendo y su modelo en una línea, y dos pestañas:
+**Conversación** (el chat, su **Actividad** —lo que ha hecho, con deshacer; *Todos* enseña la de todos— y los detalles
+técnicos) y **Panel de …** (puntuaciones, logros, botones), que se ve también cuando no está en el escritorio.
 
 ![El panel del asistente](../../images/es/assistant-panel.png)
 

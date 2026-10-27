@@ -11,9 +11,9 @@ using KDesktop.Views.Pages;
 namespace KDesktop.Views.Assistant;
 
 /// <summary>
-/// What one assistant has of its own (5.0.105): its personality (its package's, shown and editable, with «Restablecer»),
-/// the language it speaks in and its voice. Every choice has «Como los demás», the general one of Options → Assistant
-/// module. Saved at once; the process gets it in the <c>personal</c> section. With <see cref="ShowSystem"/> it is K-Desktop's
+/// What one assistant has of its own (5.0.105): the language it speaks in and its personality (its package's, shown and
+/// editable, with «Restablecer») on «Personalidad», and its voice on «Voz» (two pages since 5.0.289, <see cref="ShowPart"/>).
+/// Every choice has «Global», the one of Options → Assistant module. Saved at once; the process gets it in the <c>personal</c> section. With <see cref="ShowSystem"/> it is K-Desktop's
 /// own, the assistant of the system (5.0.112; Options → Assistants → K-Desktop).
 /// </summary>
 public partial class AssistantPersonalView : UserControl
@@ -68,9 +68,20 @@ public partial class AssistantPersonalView : UserControl
         Refresh();
     }
 
+    /// <summary>Shows its language and personality, or (<paramref name="voice"/>) its voice.</summary>
+    public void ShowPart(bool voice)
+    {
+        _voicePart = voice;
+        SystemCard.Visibility = _system && !voice ? Visibility.Visible : Visibility.Collapsed;
+        LanguageCard.Visibility = PersonalityCard.Visibility = voice ? Visibility.Collapsed : Visibility.Visible;
+        VoiceCard.Visibility = voice ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private bool _voicePart;
+
     private void Refresh()
     {
-        SystemCard.Visibility = _system ? Visibility.Visible : Visibility.Collapsed;
+        ShowPart(_voicePart);
         LanguageHint.Text = Loc.T(_system ? "assistantPersonal.languageHintSystem" : "assistantPersonal.languageHint");
         RefreshPersonality(force: true);
         RefreshLanguage();
@@ -267,6 +278,22 @@ public partial class AssistantPersonalView : UserControl
             : state is { } && windowsVoices.Count == 0 ? Loc.T("assistantVoice.windowsNone", languageName)
             : Loc.T("assistantVoice.windowsVoiceHint");
 
+        // Only the settings of who says it aloud: the one chosen, or the one the general «auto» takes for its language.
+        var engine = own.Engine.Length > 0 ? own.Engine : s.AssistantVoiceEngine;
+        if (engine is not ("kokoro" or "pocket" or "piper" or "windows" or "beeps" or "off"))
+            engine = supported && KokoroModels.ModelInstalled ? "kokoro" : PiperModels.Installed(language, _app.PiperVoiceOf(Id)) ? "piper" : "windows";
+        KokoroRows.Visibility = supported && engine is "kokoro" or "pocket" ? Visibility.Visible : Visibility.Collapsed;
+        PiperRows.Visibility = engine == "piper" ? Visibility.Visible : Visibility.Collapsed;
+        // Kokoro does not speak its language: Windows says it (and its hint says why).
+        WindowsRow.Visibility = engine == "windows" || (!supported && engine is "kokoro" or "pocket") ? Visibility.Visible : Visibility.Collapsed;
+        var silent = engine == "off";
+        ProfileRow.Visibility = SpeedRow.Visibility = VolumeRow.Visibility = silent ? Visibility.Collapsed : Visibility.Visible;
+
+        VolumeSwitch.IsChecked = own.Volume is not null;
+        VolumeSlider.IsEnabled = own.Volume is not null;
+        VolumeSlider.Value = Math.Round((own.Volume ?? s.AssistantVoiceVolume / 100.0) * 100);
+        VolumeValue.Text = $"{VolumeSlider.Value:0} %";
+
         SpeedSwitch.IsChecked = own.Speed is not null;
         SpeedSlider.IsEnabled = own.Speed is not null;
         SpeedSlider.Value = own.Speed ?? s.AssistantVoiceSpeed;
@@ -305,6 +332,7 @@ public partial class AssistantPersonalView : UserControl
     {
         if (_filling || !Shown) return;
         if (ReferenceEquals(sender, MixSlider)) MixValue.Text = $"{MixSlider.Value:0} %";
+        else if (ReferenceEquals(sender, VolumeSlider)) VolumeValue.Text = $"{VolumeSlider.Value:0} %";
         else SpeedValue.Text = SpeedSlider.Value.ToString("0.00", Loc.Instance.Culture) + "×";
         SaveVoice();
     }
@@ -313,6 +341,14 @@ public partial class AssistantPersonalView : UserControl
     {
         if (_filling) return;
         SpeedSlider.IsEnabled = SpeedSwitch.IsChecked == true;
+        SaveVoice();
+        RefreshVoice();
+    }
+
+    private void OnVolumeSwitch(object sender, RoutedEventArgs e)
+    {
+        if (_filling) return;
+        VolumeSlider.IsEnabled = VolumeSwitch.IsChecked == true;
         SaveVoice();
         RefreshVoice();
     }
@@ -336,6 +372,7 @@ public partial class AssistantPersonalView : UserControl
             PiperVoice = piper.Length == 0 ? string.Empty : PiperModels.Spec(piper, speaker),
             WindowsVoice = Value(WindowsVoiceBox),
             Speed = SpeedSwitch.IsChecked == true ? Math.Round(SpeedSlider.Value, 2) : null,
+            Volume = VolumeSwitch.IsChecked == true ? Math.Round(VolumeSlider.Value / 100, 2) : null,
         });
     }
 

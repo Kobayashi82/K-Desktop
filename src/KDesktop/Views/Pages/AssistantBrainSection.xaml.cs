@@ -128,7 +128,7 @@ public partial class AssistantBrainSection : UserControl
             FillModelBox(s.AssistantBrainModel, brain);
             FillThinkBox(s.AssistantBrainThinkModel, brain);
             ThinkTokensBox.SelectedItem = ThinkTokensBox.Items.OfType<ThinkOption>().MinBy(t => Math.Abs(t.Tokens - s.AssistantBrainThinkTokens));
-            ThinkTokensRow.Visibility = s.AssistantBrainThinkModel == ModelRefs.None ? Visibility.Collapsed : Visibility.Visible;
+            ShowThinkReason();
             FillState(brain);
             FillModels(brain);
             FillDownload();
@@ -626,7 +626,34 @@ public partial class AssistantBrainSection : UserControl
     {
         if (_filling || ThinkBox.SelectedItem is not ModelOption option || option.Value == _app.Config.Settings.AssistantBrainThinkModel) return;
         _app.Config.Settings.AssistantBrainThinkModel = option.Value;
-        ThinkTokensRow.Visibility = option.Value == ModelRefs.None ? Visibility.Collapsed : Visibility.Visible;
+        var filling = _filling;
+        _filling = true;
+        ShowThinkReason();
+        _filling = filling;
+    }
+
+    /// <summary>
+    /// «Razonar antes de contestar» (5.0.289): for a model of its own (the same one always reasons); how much it may think
+    /// only while it reasons.
+    /// </summary>
+    private void ShowThinkReason()
+    {
+        var s = _app.Config.Settings;
+        var model = s.AssistantBrainThinkModel;
+        var same = model.Length == 0;
+        ThinkReasonCheck.Visibility = model == ModelRefs.None ? Visibility.Collapsed : Visibility.Visible;
+        ThinkReasonCheck.IsEnabled = !same;
+        ThinkReasonCheck.IsChecked = same || s.AssistantBrainThinkReason;
+        ThinkTokensRow.Visibility = model != ModelRefs.None && ThinkReasonCheck.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void OnThinkReason(object sender, RoutedEventArgs e)
+    {
+        if (_filling || !ThinkReasonCheck.IsEnabled) return;
+        _app.Config.Settings.AssistantBrainThinkReason = ThinkReasonCheck.IsChecked == true;
+        _filling = true;
+        ShowThinkReason();
+        _filling = false;
     }
 
     private void OnThinkTokensChanged(object sender, SelectionChangedEventArgs e)

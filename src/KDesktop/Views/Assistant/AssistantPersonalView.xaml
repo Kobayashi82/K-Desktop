@@ -3,8 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:l="clr-namespace:KDesktop.Localization">
-    <!-- Options → Assistants → one assistant → «Personalidad y voz» (5.0.105): what it has of its own; the rest, the general.
-         K-Desktop's own (5.0.112) starts with a word on how it answers without a figure. -->
+    <!-- Options → Assistants → one assistant → «Personalidad» or «Voz» (5.0.105; two pages since 5.0.289): what it has of its
+         own; the rest, the global one. K-Desktop's own (5.0.112) starts with a word on how it answers without a figure. -->
     <StackPanel>
         <Border x:Name="SystemCard" Style="{StaticResource Card}" Visibility="Collapsed">
             <StackPanel>
@@ -13,8 +13,21 @@
             </StackPanel>
         </Border>
 
+        <!-- The language it speaks in -->
+        <Border x:Name="LanguageCard" Style="{StaticResource Card}">
+            <Grid Style="{StaticResource SettingRow}" Margin="0">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Style="{StaticResource CardTitle}" Margin="0,0,0,2" Text="{l:Tr assistantPersonal.languageTitle}" />
+                    <TextBlock x:Name="LanguageHint" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+                </StackPanel>
+                <ComboBox x:Name="LanguageBox" Grid.Column="1" MinWidth="230" VerticalAlignment="Center" DisplayMemberPath="Name"
+                          SelectionChanged="OnLanguageChanged" AutomationProperties.Name="{l:Tr assistantPersonal.languageTitle}" />
+            </Grid>
+        </Border>
+
         <!-- Its personality: the instructions for the AI -->
-        <Border Style="{StaticResource Card}">
+        <Border x:Name="PersonalityCard" Style="{StaticResource Card}">
             <StackPanel>
                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
@@ -32,21 +45,8 @@
             </StackPanel>
         </Border>
 
-        <!-- The language it speaks in -->
-        <Border Style="{StaticResource Card}">
-            <Grid Style="{StaticResource SettingRow}" Margin="0">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                    <TextBlock Style="{StaticResource CardTitle}" Margin="0,0,0,2" Text="{l:Tr assistantPersonal.languageTitle}" />
-                    <TextBlock x:Name="LanguageHint" Style="{StaticResource Caption}" TextWrapping="Wrap" />
-                </StackPanel>
-                <ComboBox x:Name="LanguageBox" Grid.Column="1" MinWidth="230" VerticalAlignment="Center" DisplayMemberPath="Name"
-                          SelectionChanged="OnLanguageChanged" AutomationProperties.Name="{l:Tr assistantPersonal.languageTitle}" />
-            </Grid>
-        </Border>
-
-        <!-- Its voice -->
-        <Border Style="{StaticResource Card}">
+        <!-- Its voice: only the settings of who says it aloud (5.0.289) -->
+        <Border x:Name="VoiceCard" Style="{StaticResource Card}">
             <StackPanel>
                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
@@ -65,7 +65,7 @@
                               SelectionChanged="OnVoiceChanged" AutomationProperties.Name="{l:Tr assistantVoice.engine}" />
                 </Grid>
 
-                <Grid Style="{StaticResource SettingRow}">
+                <Grid x:Name="ProfileRow" Style="{StaticResource SettingRow}">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr assistantVoice.profile}" />
                     <ComboBox x:Name="ProfileBox" Grid.Column="1" MinWidth="260" VerticalAlignment="Center" DisplayMemberPath="Name"
@@ -101,6 +101,7 @@
                     </Grid>
                 </StackPanel>
 
+                <StackPanel x:Name="PiperRows">
                 <Grid Style="{StaticResource SettingRow}">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
@@ -116,8 +117,9 @@
                     <ComboBox x:Name="PiperSpeakerBox" Grid.Column="1" MinWidth="260" VerticalAlignment="Center" DisplayMemberPath="Name"
                               SelectionChanged="OnVoiceChanged" AutomationProperties.Name="{l:Tr assistantVoice.piperSpeaker}" />
                 </Grid>
+                </StackPanel>
 
-                <Grid Style="{StaticResource SettingRow}">
+                <Grid x:Name="WindowsRow" Style="{StaticResource SettingRow}">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                         <TextBlock Text="{l:Tr assistantVoice.windowsVoice}" />
@@ -127,7 +129,7 @@
                               SelectionChanged="OnVoiceChanged" AutomationProperties.Name="{l:Tr assistantVoice.windowsVoice}" />
                 </Grid>
 
-                <Grid Style="{StaticResource SettingRow}">
+                <Grid x:Name="SpeedRow" Style="{StaticResource SettingRow}">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="260" /></Grid.ColumnDefinitions>
                     <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr assistantPersonal.ownSpeed}" />
                     <ui:ToggleSwitch x:Name="SpeedSwitch" Grid.Column="1" Margin="0,0,16,0" VerticalAlignment="Center" Checked="OnSpeedSwitch" Unchecked="OnSpeedSwitch"
@@ -138,6 +140,21 @@
                                 SmallChange="0.05" LargeChange="0.25" VerticalAlignment="Center" ValueChanged="OnSliderChanged"
                                 AutomationProperties.Name="{l:Tr assistantVoice.speed}" />
                         <TextBlock x:Name="SpeedValue" Grid.Column="1" MinWidth="44" TextAlignment="Right" VerticalAlignment="Center" />
+                    </Grid>
+                </Grid>
+
+                <!-- How loud it speaks, apart from the others (5.0.289) -->
+                <Grid x:Name="VolumeRow" Style="{StaticResource SettingRow}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="260" /></Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr assistantPersonal.ownVolume}" />
+                    <ui:ToggleSwitch x:Name="VolumeSwitch" Grid.Column="1" Margin="0,0,16,0" VerticalAlignment="Center" Checked="OnVolumeSwitch" Unchecked="OnVolumeSwitch"
+                                     AutomationProperties.Name="{l:Tr assistantPersonal.ownVolume}" />
+                    <Grid Grid.Column="2">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <Slider x:Name="VolumeSlider" Margin="0,0,14,0" Minimum="0" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True"
+                                SmallChange="5" LargeChange="10" VerticalAlignment="Center" ValueChanged="OnSliderChanged"
+                                AutomationProperties.Name="{l:Tr assistantVoice.volume}" />
+                        <TextBlock x:Name="VolumeValue" Grid.Column="1" MinWidth="44" TextAlignment="Right" VerticalAlignment="Center" />
                     </Grid>
                 </Grid>
 

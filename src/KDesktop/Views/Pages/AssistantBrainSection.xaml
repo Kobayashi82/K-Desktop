@@ -51,7 +51,7 @@
 
                 <!-- Stage 12: the model that thinks harder, and how long it may -->
                 <Grid Style="{StaticResource SettingRow}">
-                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <StackPanel Grid.ColumnSpan="3" Margin="0,0,0,8">
                         <TextBlock Text="{l:Tr brainOptions.think}" />
@@ -62,6 +62,9 @@
                                Icon="{ui:SymbolIcon ArrowUpload24}" Click="OnThinkLoad" />
                     <ui:Button MinHeight="36" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="2" Margin="8,0,0,0" Content="{l:Tr brainOptions.browse}" Click="OnBrowseThinkModel"
                                AutomationProperties.Name="{l:Tr brainOptions.browseThinkTitle}" />
+                    <!-- 5.0.289: another model may answer as it is; the same one always reasons -->
+                    <CheckBox x:Name="ThinkReasonCheck" Grid.Row="2" Grid.ColumnSpan="3" Margin="0,8,0,0" Content="{l:Tr brainOptions.thinkReason}"
+                              ToolTip="{l:Tr brainOptions.thinkReasonHint}" Checked="OnThinkReason" Unchecked="OnThinkReason" />
                 </Grid>
 
                 <Grid x:Name="ThinkTokensRow" Style="{StaticResource SettingRow}">

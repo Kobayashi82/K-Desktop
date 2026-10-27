@@ -10,8 +10,8 @@ buscador. Abre cada grupo para apagar las que no quieras, elegir **cuándo pregu
 
 ![Opciones → Herramientas](../../images/es/tools.png)
 
-Todo lo que hace un asistente sale en *Panel → Asistente → Actividad*: qué, cómo (regla, comando, IA, memoria…) y si
-funcionó. Lo que se puede deshacer tiene su botón **Deshacer** (o di «deshaz eso»).
+Todo lo que hace un asistente sale en *Panel → Asistente → Actividad* (la suya, o la de todos con *Todos*): qué, cómo
+(regla, comando, IA, memoria…) y si funcionó. Lo que se puede deshacer tiene su botón **Deshacer** (o di «deshaz eso»).
 
 ## Las incluidas
 

@@ -51,5 +51,6 @@ internal sealed class ModulePersonal
         own.WindowsVoice.Length > 0 ? "voz de Windows " + own.WindowsVoice : null,
         own.Profile.Length > 0 ? "perfil " + own.Profile : null,
         own.Speed is { } speed ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $"velocidad {speed:0.00}") : null,
+        own.Volume is { } volume ? string.Create(System.Globalization.CultureInfo.InvariantCulture, $"volumen {volume:0.00}") : null,
     }.OfType<string>());
 }

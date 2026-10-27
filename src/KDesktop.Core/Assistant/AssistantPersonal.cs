@@ -39,6 +39,9 @@ public sealed record AssistantPersonal
     /// <summary>How fast it speaks (0.5 … 2); null: the general speed.</summary>
     public double? Speed { get; init; }
 
+    /// <summary>How loud it speaks (0 … 1, 5.0.289); null: the general volume.</summary>
+    public double? Volume { get; init; }
+
     /// <summary><see cref="Profile"/>: the one its package brings (or «Natural»), whatever is fixed for all.</summary>
     public const string OwnProfile = "own";
 
@@ -48,10 +51,10 @@ public sealed record AssistantPersonal
 
     /// <summary>Something of its voice is its own.</summary>
     [JsonIgnore]
-    public bool HasOwnVoice => Engine.Length > 0 || KokoroVoice.Length > 0 || PiperVoice.Length > 0 || WindowsVoice.Length > 0 || Profile.Length > 0 || Speed is not null;
+    public bool HasOwnVoice => Engine.Length > 0 || KokoroVoice.Length > 0 || PiperVoice.Length > 0 || WindowsVoice.Length > 0 || Profile.Length > 0 || Speed is not null || Volume is not null;
 
     /// <summary>The voice as the general one again (its language and its personality stay).</summary>
-    public AssistantPersonal WithoutVoice() => this with { Engine = string.Empty, KokoroVoice = string.Empty, PiperVoice = string.Empty, WindowsVoice = string.Empty, Profile = string.Empty, Speed = null };
+    public AssistantPersonal WithoutVoice() => this with { Engine = string.Empty, KokoroVoice = string.Empty, PiperVoice = string.Empty, WindowsVoice = string.Empty, Profile = string.Empty, Speed = null, Volume = null };
 
     /// <summary>The <c>personal</c> section: assistant id → what it has of its own.</summary>
     public static JsonObject ToJson(IReadOnlyDictionary<string, AssistantPersonal> all) =>

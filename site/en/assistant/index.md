@@ -59,15 +59,21 @@ In *Settings → Assistant → Assistants*, each assistant has its page:
 - **Basics**: its wake word, its key to talk, the model it thinks with (and the one to think harder), and the settings
   every assistant shares —**size**, **volume**, **liveliness** (how much it moves on its own), and whether it can be
   **picked up** with the mouse— plus «Always use K-Desktop's bubble».
-- Its own pages (from its package): the Lander's game options, Kobii's colour…
-- **Personality and voice**: another personality, language and voice for this assistant.
+- **Personality**: another language and personality for this assistant.
+- **Voice**: who speaks (Kokoro, Piper, Windows…) with only that engine's settings, its profile, and its own speed and
+  volume.
 - **Try**: the assistant on a small pretend desktop of its own, doing each thing it can show (its animations, entrances
   and exits, states, reactions, gestures, what it does to a window). Nothing of it touches your desktop.
 
   ![Try](../../images/en/lander-try.png)
 
-*Panel → Assistant* shows each assistant's state, its panel (scores, achievements, buttons), its activity (what it did, with
-undo) and the chat.
+- Below, in another row, its own pages (from its package): the Lander's game options, Kobii's colour…
+
+What is not changed stays **Global**: what is in *Settings → Assistant* for all of them.
+
+*Panel → Assistant* shows each assistant with what it is doing and its model in one line, and two tabs: **Conversation**
+(the chat, its **Activity** —what it did, with undo; *Everyone* shows everyone's— and the technical details) and **…'s
+panel** (scores, achievements, buttons), which shows also when it is not on the desktop.
 
 ![The assistant panel](../../images/en/assistant-panel.png)
 

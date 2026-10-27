@@ -158,7 +158,7 @@ K-Desktop draws them with its own controls, without loading any code of the assi
   a control while a switch is off. What the user changes is saved (only what differs from the default) and, if it is on the
   desktop, reaches it at once: `OnSettingsChanged` with **all** the values (also in `host.Settings`).
 - **`panel.json`** ([schema](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/panel.schema.json))
-  → *Panel → Assistant*, under its card: `stat` (in a row), `progress`, `list`, `achievements`, `buttons` and `text`. The
+  → *Panel → Assistant*, on its own tab (kept, so it shows while it is not on the desktop): `stat` (in a row), `progress`, `list`, `achievements`, `buttons` and `text`. The
   data arrives with `host.PublishPanel`, which is **merged** with what was published before: publish everything in `Enter`
   and then only what changes. A gallery with `source` takes its pictures from that same data
   (`[{ id, name, image, locked, lockText }]`).
@@ -185,7 +185,7 @@ in K-Desktop's commands; with `hotkey`, the install card offers to create a comm
 - **Its personality**: `persona/{lang}.json`
   ([schema](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/persona.schema.json)), what tells the AI
   who it is and how it talks, and its fixed lines. Without the user's language, English or the first one there is.
-- **What the user changes**: in *Personality and voice* the user can write it another personality (your fixed lines
+- **What the user changes**: in *Personality* and *Voice* the user can write it another personality (your fixed lines
   stay), and give it another language and voice. With another language, `host.Language` is that one and not K-Desktop's:
   read it in `Attach` (when it changes, the host loads the assistant again).
 

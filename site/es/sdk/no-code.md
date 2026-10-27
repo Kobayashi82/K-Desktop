@@ -7,7 +7,7 @@ K-Desktop.
 Se pone en la barra de tareas o encima de las ventanas, pasea de vez en cuando (y a veces se cae por el borde de una
 ventana), sigue a la ventana sobre la que está, se puede coger y soltar, duerme cuando no estás y hace una animación para
 cada cosa: escucharte, pensar, hablar en su bocadillo, alegrarse o apenarse de cómo ha ido, un clic. Habla, piensa y usa
-herramientas como cualquier otro asistente; su voz y su personalidad se ponen en *Personalidad y voz*. Con varios
+herramientas como cualquier otro asistente; su voz y su personalidad se ponen en *Personalidad* y *Voz*. Con varios
 asistentes en el escritorio, nunca se queda encima de otro.
 
 Nada del paquete se ejecuta: K-Desktop solo lee sus imágenes y sonidos, y su ficha de instalación dice que no tiene código.

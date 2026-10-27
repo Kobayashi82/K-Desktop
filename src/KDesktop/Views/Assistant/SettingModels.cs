@@ -57,8 +57,14 @@ public sealed class SettingsPageModel(string title, SymbolRegular? symbol, IRead
     public SymbolRegular Symbol { get; } = symbol ?? SymbolRegular.Settings24;
     public IReadOnlyList<SettingsSectionModel> Sections { get; } = sections;
 
-    /// <summary>K-Desktop's own page, «Personalidad y voz» (5.0.105), not one of its settings.json.</summary>
+    /// <summary>K-Desktop's own page «Personalidad» (5.0.105, its voice apart since 5.0.289), not one of its settings.json.</summary>
     public bool IsPersonal { get; init; }
+
+    /// <summary>K-Desktop's own page «Voz» (5.0.289; until then, with its personality).</summary>
+    public bool IsVoice { get; init; }
+
+    /// <summary>One of K-Desktop's pages (the first row of tabs), not one of its settings.json.</summary>
+    public bool IsKDesktops => IsPersonal || IsVoice || IsTry || IsGeneral;
 
     /// <summary>K-Desktop's own page «Probar» (stage 13.9): its showcase.</summary>
     public bool IsTry { get; init; }
@@ -610,9 +616,18 @@ public sealed class AssistantSettingsModel : Observable
         _saved = assistant is null ? [] : AssistantSettingsValues.ReadSaved(assistant.Id);
         foreach (var gone in _saved.Select(p => p.Key).Where(k => !_keys.Contains(k)).ToList()) _saved.Remove(gone);
 
-        Pages =
+        // K-Desktop's pages, the same for all of them (5.0.289: a row of their own, the voice apart from the personality)…
+        MainPages =
         [
             new SettingsPageModel(Loc.T("assistantGeneral.tab"), SymbolRegular.Home24, [], page => CurrentPage = (SettingsPageModel)page) { IsGeneral = true },
+            new SettingsPageModel(Loc.T("assistantPersonal.tab"), SymbolRegular.Person24, [], page => CurrentPage = (SettingsPageModel)page) { IsPersonal = true },
+            new SettingsPageModel(Loc.T("assistantPersonal.voiceTab"), SymbolRegular.PersonVoice24, [], page => CurrentPage = (SettingsPageModel)page) { IsVoice = true },
+            // What it can show, to watch it now (stage 13.9; not K-Desktop, which has no figure).
+            .. (assistant is null ? Array.Empty<SettingsPageModel>() : [new SettingsPageModel(Loc.T("assistantTry.tab"), SymbolRegular.Play24, [], page => CurrentPage = (SettingsPageModel)page) { IsTry = true }]),
+        ];
+        // …and those of its settings.json, in a second row.
+        OwnPages =
+        [
             .. layout.Pages.Select(p => new SettingsPageModel(
                 AssistantLook.Text(p.Title),
                 AssistantLook.Symbol(p.Icon),
@@ -620,11 +635,8 @@ public sealed class AssistantSettingsModel : Observable
                     s.Title is null ? null : AssistantLook.Text(s.Title),
                     [.. s.Items.Select(i => SettingModel.Create(this, i)).OfType<SettingModel>()]))],
                 page => CurrentPage = (SettingsPageModel)page)),
-            // What it has of its own (K-Desktop's page, after its own ones).
-            new SettingsPageModel(Loc.T("assistantPersonal.tab"), SymbolRegular.PersonVoice24, [], page => CurrentPage = (SettingsPageModel)page) { IsPersonal = true },
-            // What it can show, to watch it now (stage 13.9; not K-Desktop, which has no figure).
-            .. (assistant is null ? Array.Empty<SettingsPageModel>() : [new SettingsPageModel(Loc.T("assistantTry.tab"), SymbolRegular.Play24, [], page => CurrentPage = (SettingsPageModel)page) { IsTry = true }]),
         ];
+        Pages = [.. MainPages, .. OwnPages];
         _all.AddRange(Pages.SelectMany(p => p.Sections).SelectMany(s => s.Items));
         foreach (var item in _all) item.Load(_values);
         UpdateEnabled();
@@ -643,10 +655,16 @@ public sealed class AssistantSettingsModel : Observable
 
     public IReadOnlyList<SettingsPageModel> Pages { get; }
 
+    /// <summary>K-Desktop's pages (the first row of tabs).</summary>
+    public IReadOnlyList<SettingsPageModel> MainPages { get; }
+
+    /// <summary>The pages of its settings.json (the second row, when it has any).</summary>
+    public IReadOnlyList<SettingsPageModel> OwnPages { get; }
+
     public bool HasTabs => Pages.Count > 1;
 
     /// <summary>It has settings of its own (a settings.json), besides K-Desktop's pages.</summary>
-    public bool HasOwnSettings => Pages.Any(p => p is { IsPersonal: false, IsGeneral: false, IsTry: false });
+    public bool HasOwnSettings => OwnPages.Count > 0;
 
     public SettingsPageModel? CurrentPage
     {

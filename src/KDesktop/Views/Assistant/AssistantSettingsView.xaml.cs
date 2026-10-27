@@ -98,21 +98,28 @@ public partial class AssistantSettingsView : UserControl
         HeroIcon.Source = icon;
         HeroFallback.Visibility = icon is null ? Visibility.Visible : Visibility.Collapsed;
         NoneText.Text = Loc.T("assistantSettings.none", model.Name);
-        PageTabs.Visibility = _model.HasTabs ? Visibility.Visible : Visibility.Collapsed;
+        OwnTabs.Visibility = _model.HasOwnSettings ? Visibility.Visible : Visibility.Collapsed;
         ShowPage();
         UpdateLive();
     }
 
-    /// <summary>Opens «Personalidad y voz» (<c>--page settings/assistants/&lt;id&gt;/personal</c>).</summary>
-    public void ShowPersonal()
+    /// <summary>
+    /// Opens one of K-Desktop's pages by its name (<c>--page settings/assistants/&lt;id&gt;/personal</c>, <c>voice</c>,
+    /// <c>try</c> or <c>general</c>); false for another name.
+    /// </summary>
+    public bool ShowPage(string name)
     {
-        if (_model?.Pages.FirstOrDefault(p => p.IsPersonal) is { } personal) _model.CurrentPage = personal;
-    }
-
-    /// <summary>Opens «Probar» (<c>--page settings/assistants/&lt;id&gt;/try</c>, stage 13.9).</summary>
-    public void ShowTry()
-    {
-        if (_model?.Pages.FirstOrDefault(p => p.IsTry) is { } trying) _model.CurrentPage = trying;
+        Func<SettingsPageModel, bool>? which = name switch
+        {
+            "general" => p => p.IsGeneral,
+            "personal" => p => p.IsPersonal,
+            "voice" => p => p.IsVoice,
+            "try" => p => p.IsTry,
+            _ => null,
+        };
+        if (which is null) return false;
+        if (_model?.Pages.FirstOrDefault(which) is { } page) _model.CurrentPage = page;
+        return true;
     }
 
     /// <summary>The changes reach it now (it is on the desktop, or K-Desktop is active with the module running).</summary>
@@ -126,17 +133,19 @@ public partial class AssistantSettingsView : UserControl
     }
 
     /// <summary>
-    /// «General», a page of its settings.json or «Personalidad y voz» («Restablecer» of the top only undoes those of its
+    /// «Básico», «Personalidad», «Voz», «Probar» or a page of its settings.json («Restablecer» of the top only undoes those of its
     /// settings.json).
     /// </summary>
     private void ShowPage()
     {
         if (_model is null) return;
         var general = _model.CurrentPage is { IsGeneral: true };
-        var personal = _model.CurrentPage is { IsPersonal: true };
+        var voice = _model.CurrentPage is { IsVoice: true };
+        var personal = _model.CurrentPage is { IsPersonal: true } || voice;
         var trying = _model.CurrentPage is { IsTry: true };
         GeneralView.Visibility = general ? Visibility.Visible : Visibility.Collapsed;
         PersonalView.Visibility = personal ? Visibility.Visible : Visibility.Collapsed;
+        if (personal) PersonalView.ShowPart(voice);
         TryView.Visibility = trying ? Visibility.Visible : Visibility.Collapsed;
         SectionsList.Visibility = general || personal || trying ? Visibility.Collapsed : Visibility.Visible;
         ResetButton.Visibility = _model.HasOwnSettings && !general && !personal && !trying ? Visibility.Visible : Visibility.Collapsed;

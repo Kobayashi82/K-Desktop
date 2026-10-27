@@ -119,9 +119,14 @@ public sealed class BrainService : IDisposable
         {
             if (_config.IsOff || _config.ThinkOff || ModelFor(assistant) is not { } usual) return null;
             var have = _state.Models?.Select(m => m.Name) ?? [];
-            var model = _config.AssistantThinkModels.TryGetValue(assistant ?? AssistantTargeting.KDesktop, out var own) && ModelRefs.Find(have, own) is { } mine ? mine
-                : _config.ThinkModel.Length > 0 && ModelRefs.Find(have, _config.ThinkModel) is { } found ? found : usual;
-            return new Talk.Thinker(model, Math.Max(BrainConfig.LeastThinkTokens, _config.ThinkTokens));
+            var id = assistant ?? AssistantTargeting.KDesktop;
+            // Its own (its usual one, or another one, reasoning or not), else the general one; the usual model always reasons.
+            var (model, reason) = _config.AssistantThinkModels.TryGetValue(id, out var own) && own == ModelRefs.Usual ? (usual, true)
+                : own is not null && ModelRefs.Find(have, own) is { } mine ? (mine, _config.AssistantThinkReasons.GetValueOrDefault(id, true))
+                : _config.ThinkModel.Length > 0 && ModelRefs.Find(have, _config.ThinkModel) is { } found ? (found, _config.ThinkReason)
+                : (usual, true);
+            if (ModelRefs.Same(model, usual)) reason = true;
+            return new Talk.Thinker(model, reason ? Math.Max(BrainConfig.LeastThinkTokens, _config.ThinkTokens) : 0);
         }
     }
 

@@ -211,6 +211,38 @@ public class BrainTests
         Assert.Null(brain.ThinkerFor("lander"));
     }
 
+    /// <summary>
+    /// 5.0.289: another model may think harder without reasoning (no tokens to think), the global one or an assistant's own;
+    /// the usual model always reasons, also when an assistant chooses it («Su modelo de siempre»).
+    /// </summary>
+    [Fact]
+    public async Task AnotherModelMayThinkHarderWithoutReasoning()
+    {
+        var ollama = new FakeOllama { Models = ["qwen3.5-4b:latest|4.7B", "gemma4-e4b:latest|7.5B", "qwen3.5-9b:latest|9B"] };
+        using var brain = new BrainService(() => 12, ollama);
+        var config = WithOllama with
+        {
+            Model = "r1/qwen3.5-4b",
+            ThinkModel = "r1/gemma4-e4b",
+            ThinkReason = false,
+            ThinkModels = new Dictionary<string, string> { ["lander"] = "r1/qwen3.5-9b", ["kobii"] = ModelRefs.Usual, ["kumo"] = "r1/qwen3.5-4b" },
+            ThinkReasons = new Dictionary<string, bool> { ["lander"] = false, ["kumo"] = false },
+        };
+        var read = BrainConfig.FromJson(config.ToJson());
+        Assert.False(read.ThinkReason);
+        Assert.False(read.AssistantThinkReasons["lander"]);
+        await ConfigureAsync(brain, config);
+
+        Assert.Equal(("r1/gemma4-e4b:latest", 0), (brain.ThinkerFor(null)?.Model, brain.ThinkerFor(null)?.Tokens));
+        Assert.Equal(("r1/qwen3.5-9b:latest", 0), (brain.ThinkerFor("lander")?.Model, brain.ThinkerFor("lander")?.Tokens));
+        Assert.Equal(("r1/qwen3.5-4b:latest", BrainConfig.DefaultThinkTokens), (brain.ThinkerFor("kobii")?.Model, brain.ThinkerFor("kobii")?.Tokens));
+        // Its usual model chosen by name reasons too (without it, it would be the same as usual).
+        Assert.Equal(BrainConfig.DefaultThinkTokens, brain.ThinkerFor("kumo")?.Tokens);
+
+        brain.Configure(config with { ThinkReason = true });
+        Assert.Equal(BrainConfig.DefaultThinkTokens, brain.ThinkerFor(null)?.Tokens);
+    }
+
     [Fact]
     public async Task ItIsReadyWithTheModelItPicks()
     {

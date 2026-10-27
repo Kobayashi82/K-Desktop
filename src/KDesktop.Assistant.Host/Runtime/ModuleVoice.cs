@@ -98,8 +98,9 @@ internal sealed class ModuleVoice : IDisposable
     /// <summary>At night (22:00–8:00), with that option, half as loud.</summary>
     public static double NightFactor(DateTime now) => now.Hour is >= 22 or < 8 ? 0.5 : 1;
 
-    /// <summary>How loud a voice plays now: Options' volume, at night perhaps less.</summary>
-    private double Volume => _volume * (_night ? NightFactor(DateTime.Now) : 1);
+    /// <summary>How loud a voice plays now: Options' volume (or its own, 5.0.289), at night perhaps less.</summary>
+    private double VolumeOf(string assistant) =>
+        (_personal.Of(assistant)?.Volume is { } own ? Math.Clamp(own, 0, 1) : _volume) * (_night ? NightFactor(DateTime.Now) : 1);
 
     /// <summary>How loud its voice stays while you talk to it (K-Desktop listening): enough to know it was still talking.</summary>
     public const double ListeningGain = 0.2;
@@ -116,7 +117,7 @@ internal sealed class ModuleVoice : IDisposable
 
     /// <summary>How loud the voice of <paramref name="assistant"/> plays now.</summary>
     private double GainFor(string assistant) =>
-        Volume * (_listening.ContainsKey(assistant) || _listening.ContainsKey(string.Empty) ? ListeningGain : 1);
+        VolumeOf(assistant) * (_listening.ContainsKey(assistant) || _listening.ContainsKey(string.Empty) ? ListeningGain : 1);
 
     /// <summary>
     /// Options → Voice → «Probar» (stage 5.6): <paramref name="say"/> says <paramref name="text"/> in a turn of its own,

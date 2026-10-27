@@ -46,15 +46,16 @@ modelos tiene. Sus modelos salen en la misma lista.
 | Ajuste | |
 |---|---|
 | **Modelo** | *Automático*: el más grande que cabe en tu gráfica. O uno concreto, o *Sin IA* |
-| **Para pensar más** | El que usa cuando dices «piénsalo bien», cuando el modelo ve que no le basta o cuando le dices que se ha equivocado. *El mismo, pensando antes de contestar*, otro modelo, o *Nunca* |
+| **Para pensar más** | El que usa cuando dices «piénsalo bien», cuando el modelo ve que no le basta o cuando le dices que se ha equivocado. *El mismo modelo* (razonando antes de contestar), otro modelo, o *Nunca*. Con otro modelo, **Razonar antes de contestar** decide si razona primero o contesta tal cual (tarda menos) |
 | | Los dos tienen **Examinar…** (un `.gguf` de cualquier carpeta) y **Cargar** cuando el elegido no está en memoria |
-| **Cuánto puede pensar** | Poco, normal, mucho. Más va mejor con lo difícil, pero tarda más |
+| **Cuánto puede pensar** | Poco, normal, mucho (solo cuando razona). Más va mejor con lo difícil, pero tarda más |
 | **Descargarlo tras** | Tanto tiempo sin usarlo, sale de la memoria (o *Nunca*: solo si se lo pides). Volver a cargarlo tarda unos segundos |
 | **Un modelo a la vez** | Al cargar uno, se descargan los demás. Apagado, se quedan varios mientras quepan |
 | **Visión** | Los modelos que ven imágenes se cargan con su parte de visión (ocupa un poco más) |
 | **Liberar la gráfica al jugar** | Con un juego a pantalla completa, el modelo sale de la gráfica. Una película no cuenta. Se vuelve a cargar al hablarle |
 
-Cada asistente puede pensar con **su propio modelo** (*su ficha → Básico → Piensa con*, y otro propio para pensar más). El
+Cada asistente puede pensar con **su propio modelo** (*su ficha → Básico → Piensa con*, y otro propio para pensar más: *Global*, *Su modelo de siempre* o uno de la lista, con
+su casilla para razonar o no). El
 paquete de un asistente puede sugerir un modelo: la ficha de instalación y su pestaña *Básico* ofrecen descargarlo (nunca
 marcado de entrada), solo si cabe y no lo tienes.
 

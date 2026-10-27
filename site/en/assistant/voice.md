@@ -82,15 +82,15 @@ speak*), and it does not take its own voice for an order.
 
 ## Each assistant its own
 
-On each assistant's card, **Personality and voice**:
+On each assistant's card, **Personality** and **Voice**:
 
-- **Personality**: what tells the AI who it is and how it talks. Change it as you like (*Reset* brings back the one of its
-  package).
 - **Language**: the one it answers and speaks in. By default the one in *Settings → Assistant → General → Language
   they speak to you in* (they answer in it even if you talk to them in another).
-- **Voice**: engine, voice, profile and speed of its own, or «like the others». *Try its voice*.
+- **Personality**: what tells the AI who it is and how it talks. Change it as you like (*Reset* brings back the one of its
+  package).
+- **Voice**: engine, voice (only the chosen engine's), profile, and speed and volume of its own, or «Global». *Try its voice*.
 
-K-Desktop itself (the assistant without a character) has the same page.
+K-Desktop itself (the assistant without a character) has the same pages.
 
 ## The conversation
 

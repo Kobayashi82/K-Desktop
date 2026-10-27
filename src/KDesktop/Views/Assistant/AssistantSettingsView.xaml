@@ -15,6 +15,16 @@
             <WrapPanel />
         </ItemsPanelTemplate>
 
+        <!-- A page as a tab -->
+        <DataTemplate x:Key="PageTab">
+            <RadioButton Style="{StaticResource Pill}" IsChecked="{Binding IsSelected}" AutomationProperties.Name="{Binding Title}">
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon Symbol="{Binding Symbol}" FontSize="16" Margin="0,0,7,0" />
+                    <TextBlock Text="{Binding Title}" FontSize="13" VerticalAlignment="Center" />
+                </StackPanel>
+            </RadioButton>
+        </DataTemplate>
+
         <!-- Label and description of a row -->
         <DataTemplate x:Key="RowText" DataType="{x:Type a:SettingModel}">
             <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
@@ -371,10 +381,12 @@
                 </Border>
                 <StackPanel Grid.Column="1" Margin="14,0,16,0" VerticalAlignment="Center">
                     <TextBlock x:Name="TitleText" Style="{StaticResource CardTitle}" Margin="0,0,0,2" TextTrimming="CharacterEllipsis" />
-                    <StackPanel Orientation="Horizontal">
-                        <Ellipse x:Name="LiveDot" Width="8" Height="8" Margin="0,0,7,0" VerticalAlignment="Center" />
-                        <TextBlock x:Name="LiveText" Style="{StaticResource Caption}" VerticalAlignment="Center" />
-                    </StackPanel>
+                    <!-- A grid, not a horizontal panel: the text wraps instead of going under the buttons -->
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Ellipse x:Name="LiveDot" Width="8" Height="8" Margin="0,5,7,0" VerticalAlignment="Top" />
+                        <TextBlock x:Name="LiveText" Grid.Column="1" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+                    </Grid>
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <ui:Button MinHeight="36" x:Name="ResetButton" Margin="0,0,8,0" VerticalAlignment="Center" Icon="{ui:SymbolIcon ArrowReset24}" IsEnabled="{Binding HasChanges}"
@@ -390,25 +402,16 @@
             <TextBlock x:Name="NoneText" Style="{StaticResource Caption}" FontSize="13" />
         </Border>
 
-        <!-- Pages, as tabs when there are several -->
-        <ItemsControl x:Name="PageTabs" Margin="0,2,0,8" ItemsSource="{Binding Pages}" ItemsPanel="{StaticResource Wrap}" Focusable="False"
-                      Visibility="{Binding HasTabs, Converter={StaticResource BoolToVis}}" AutomationProperties.Name="{l:Tr assistantSettings.pages}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <RadioButton Style="{StaticResource Pill}" IsChecked="{Binding IsSelected}" AutomationProperties.Name="{Binding Title}">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="{Binding Symbol}" FontSize="16" Margin="0,0,7,0" />
-                            <TextBlock Text="{Binding Title}" FontSize="13" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </RadioButton>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <!-- Pages as tabs: K-Desktop's (the same for all of them), and below those of its settings.json (5.0.289) -->
+        <ItemsControl x:Name="PageTabs" Margin="0,2,0,4" ItemsSource="{Binding MainPages}" ItemsPanel="{StaticResource Wrap}" Focusable="False"
+                      ItemTemplate="{StaticResource PageTab}" AutomationProperties.Name="{l:Tr assistantSettings.pages}" />
+        <ItemsControl x:Name="OwnTabs" Margin="0,0,0,8" ItemsSource="{Binding OwnPages}" ItemsPanel="{StaticResource Wrap}" Focusable="False"
+                      ItemTemplate="{StaticResource PageTab}" AutomationProperties.Name="{l:Tr assistantSettings.ownPages}" />
 
         <!-- How it is called and what it thinks with (5.0.113) -->
         <a:AssistantGeneralView x:Name="GeneralView" Visibility="Collapsed" />
 
-        <!-- What it has of its own: personality, language, voice (5.0.105) -->
+        <!-- What it has of its own: its language and personality, or its voice (5.0.105; apart since 5.0.289) -->
         <a:AssistantPersonalView x:Name="PersonalView" Visibility="Collapsed" />
 
         <!-- What it can show, now on the desktop (stage 13.9) -->

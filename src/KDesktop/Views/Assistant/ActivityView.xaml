@@ -3,22 +3,34 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              xmlns:l="clr-namespace:KDesktop.Localization">
-    <!-- Panel → Assistant → Activity (stage 3.3): what the assistants did, how, and «undo» where it can be undone -->
-    <Border Style="{StaticResource Card}">
+    <!-- Panel → Assistant → Activity (stage 3.3): what the assistant shown did (or all of them), how, and «undo» where it
+         can be undone. Folded like the technical details, and with its own scroll when it is long (5.0.289). -->
+    <ui:CardExpander x:Name="Expander" Margin="0,0,0,12" Icon="{ui:SymbolIcon History24}" AutomationProperties.Name="{l:Tr assistantActivity.title}">
+        <ui:CardExpander.Header>
+            <StackPanel>
+                <TextBlock FontWeight="SemiBold" Text="{l:Tr assistantActivity.title}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                <TextBlock x:Name="HintText" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+            </StackPanel>
+        </ui:CardExpander.Header>
         <StackPanel>
             <Grid Margin="0,0,0,6">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
-                    <TextBlock Style="{StaticResource CardTitle}" Margin="0,0,0,2" Text="{l:Tr assistantActivity.title}" />
-                    <TextBlock Style="{StaticResource Caption}" Text="{l:Tr assistantActivity.hint}" />
+                <!-- Its own, or everyone's -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <RadioButton x:Name="MineButton" Style="{StaticResource Pill}" IsChecked="True" Checked="OnWhose" />
+                    <RadioButton x:Name="AllButton" Style="{StaticResource Pill}" Content="{l:Tr assistantActivity.all}" Checked="OnWhose" />
                 </StackPanel>
                 <ui:Button x:Name="ClearButton" Grid.Column="1" VerticalAlignment="Center" Icon="{ui:SymbolIcon Delete24}"
                            Content="{l:Tr assistantActivity.clear}" Click="OnClear" />
             </Grid>
-            <TextBlock x:Name="EmptyText" Style="{StaticResource Caption}" Margin="0,6,0,4" Text="{l:Tr assistantActivity.empty}" />
-            <StackPanel x:Name="Rows" />
-            <ui:Button x:Name="MoreButton" Margin="0,8,0,0" HorizontalAlignment="Center" Appearance="Transparent"
-                       Content="{l:Tr assistantActivity.more}" Click="OnMore" />
+            <TextBlock x:Name="EmptyText" Style="{StaticResource Caption}" Margin="0,6,0,4" />
+            <ScrollViewer MaxHeight="420" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <StackPanel x:Name="Rows" />
+                    <ui:Button x:Name="MoreButton" Margin="0,8,0,0" HorizontalAlignment="Center" Appearance="Transparent"
+                               Content="{l:Tr assistantActivity.more}" Click="OnMore" />
+                </StackPanel>
+            </ScrollViewer>
         </StackPanel>
-    </Border>
+    </ui:CardExpander>
 </UserControl>

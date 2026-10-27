@@ -43,7 +43,7 @@ public sealed record TalkAnswer(string Text, bool Remember = true, bool Failed =
 
 /// <summary>
 /// How it thinks harder (stage 12): the model (the usual one with its reasoning on, or the one of Options → Brain → «Para
-/// pensar más») and how many tokens it may think before answering.
+/// pensar más») and how many tokens it may think before answering (0: another model that answers without reasoning, 5.0.289).
 /// </summary>
 public sealed record Thinker(string Model, int Tokens);
 
@@ -119,7 +119,8 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         var thinkingSince = 0L;
         int ThinkBudget()
         {
-            if (!thinking) return 0;
+            // A model that answers without reasoning (5.0.289) thinks harder only by being another one.
+            if (!thinking || thinker!.Tokens == 0) return 0;
             if (Environment.TickCount64 - thinkingSince > ThinkFor.TotalMilliseconds) return 0;
             return thoughtRounds++ == 0 ? thinker!.Tokens : Math.Max(BrainConfig.LeastThinkTokens, thinker!.Tokens / 4);
         }

@@ -82,15 +82,15 @@ hablas*), y no toma su propia voz por una orden.
 
 ## Cada asistente, lo suyo
 
-En la ficha de cada asistente, **Personalidad y voz**:
+En la ficha de cada asistente, **Personalidad** y **Voz**:
 
-- **Personalidad**: lo que le dice a la IA quién es y cómo habla. Cámbiala a tu gusto (*Restablecer* vuelve a la de su
-  paquete).
 - **Idioma**: en el que contesta y habla. Por defecto, el de *Opciones → Asistente → General → Idioma en el que te
   hablan* (te contestan en él aunque les hables en otro).
-- **Voz**: motor, voz, perfil y velocidad propios, o «como los demás». *Probar su voz*.
+- **Personalidad**: lo que le dice a la IA quién es y cómo habla. Cámbiala a tu gusto (*Restablecer* vuelve a la de su
+  paquete).
+- **Voz**: motor, voz (solo la del motor elegido), perfil, y velocidad y volumen propios, o «Global». *Probar su voz*.
 
-El propio K-Desktop (el asistente sin personaje) tiene la misma página.
+El propio K-Desktop (el asistente sin personaje) tiene las mismas páginas.
 
 ## La conversación
 

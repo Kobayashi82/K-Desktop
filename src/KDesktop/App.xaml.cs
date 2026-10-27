@@ -649,6 +649,7 @@ public partial class App : Application
         _hookRefresh.Stop();
         _backupTimer.Stop();
         StopAssistant();
+        SaveAssistantPanels();
         Events?.Dispose();
         Router.Dispose();
         Udp?.Dispose();

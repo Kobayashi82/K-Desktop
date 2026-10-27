@@ -85,6 +85,10 @@ public sealed record BrainRemote(string Id, RemoteKind Kind, string Endpoint = "
 /// usual model asks with <c>think_harder</c>); empty: the same model with its reasoning on; <see cref="ModelRefs.None"/>:
 /// never. <paramref name="ThinkTokens"/>: how much it may think (tokens of reasoning, before its answer).
 /// <paramref name="ThinkModels"/> (stage 13.10): each assistant's own model to think harder with (absent: the general one).
+/// <paramref name="ThinkReason"/> (5.0.289): whether the model of «Para pensar más» reasons before answering (the same
+/// model always does); <paramref name="ThinkReasons"/>: each assistant's own (false: its own model to think harder with
+/// answers without reasoning; absent: it reasons). <see cref="ModelRefs.Usual"/> as an assistant's model to think harder
+/// with: its usual one, reasoning.
 /// <paramref name="FreeForGames"/>: a game on the whole screen takes the models of this PC out of the graphics card.
 /// </summary>
 public sealed record BrainConfig(
@@ -100,7 +104,9 @@ public sealed record BrainConfig(
     string ThinkModel = "",
     int ThinkTokens = BrainConfig.DefaultThinkTokens,
     bool FreeForGames = true,
-    IReadOnlyDictionary<string, string>? ThinkModels = null)
+    IReadOnlyDictionary<string, string>? ThinkModels = null,
+    bool ThinkReason = true,
+    IReadOnlyDictionary<string, bool>? ThinkReasons = null)
 {
     /// <summary>Minutes a model stays loaded without use, by default.</summary>
     public const int DefaultKeepMinutes = 30;
@@ -119,6 +125,9 @@ public sealed record BrainConfig(
 
     /// <summary>Each assistant's own model to think harder with (never null).</summary>
     public IReadOnlyDictionary<string, string> AssistantThinkModels => ThinkModels ?? new Dictionary<string, string>();
+
+    /// <summary>Whether each assistant with its own model to think harder with reasons with it (never null).</summary>
+    public IReadOnlyDictionary<string, bool> AssistantThinkReasons => ThinkReasons ?? new Dictionary<string, bool>();
 
     public IReadOnlyList<string> ServerList => Servers ?? [];
 
@@ -163,6 +172,8 @@ public sealed record BrainConfig(
         ["thinkTokens"] = ThinkTokens,
         ["freeForGames"] = FreeForGames,
         ["thinkModels"] = new JsonObject(AssistantThinkModels.Select(p => KeyValuePair.Create(p.Key, (JsonNode?)p.Value))),
+        ["thinkReason"] = ThinkReason,
+        ["thinkReasons"] = new JsonObject(AssistantThinkReasons.Select(p => KeyValuePair.Create(p.Key, (JsonNode?)p.Value))),
     };
 
     public static BrainConfig FromJson(JsonObject? json)
@@ -176,6 +187,14 @@ public sealed record BrainConfig(
                     if (Text(model) is { Length: > 0 } name) models[id] = name;
             return models;
         }
+        static Dictionary<string, bool> Reasons(JsonNode? node)
+        {
+            var reasons = new Dictionary<string, bool>(StringComparer.Ordinal);
+            if (node is JsonObject own)
+                foreach (var (id, value) in own)
+                    if (value is JsonValue v && v.TryGetValue<bool>(out var reason)) reasons[id] = reason;
+            return reasons;
+        }
         var args = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         if (json["modelArgs"] is JsonObject perModel)
             foreach (var (path, line) in perModel)
@@ -187,7 +206,7 @@ public sealed record BrainConfig(
             json["remotes"] is JsonArray remotes ? [.. remotes.Select(BrainRemote.FromJson).OfType<BrainRemote>()] : [],
             Text(json["thinkModel"]),
             json["thinkTokens"] is JsonValue t && t.TryGetValue<int>(out var tokens) ? Math.Max(LeastThinkTokens, tokens) : DefaultThinkTokens,
-            Flag(json["freeForGames"], true), PerAssistant(json["thinkModels"]));
+            Flag(json["freeForGames"], true), PerAssistant(json["thinkModels"]), Flag(json["thinkReason"], true), Reasons(json["thinkReasons"]));
     }
 
     internal static string Text(JsonNode? node) => node is JsonValue v && v.TryGetValue<string>(out var s) ? s : string.Empty;
@@ -202,6 +221,9 @@ public sealed record BrainConfig(
 public static class ModelRefs
 {
     public const string None = "none";
+
+    /// <summary>An assistant's model to think harder with (5.0.289): the one it usually thinks with, reasoning.</summary>
+    public const string Usual = "usual";
 
     /// <summary>A <c>.gguf</c> file of this PC.</summary>
     public static bool IsLocal(string model) =>
@@ -244,7 +266,7 @@ public static class ModelRefs
     /// </summary>
     public static string? Find(IEnumerable<string> available, string? wanted)
     {
-        if (string.IsNullOrWhiteSpace(wanted) || wanted == None) return null;
+        if (string.IsNullOrWhiteSpace(wanted) || wanted == None || wanted == Usual) return null;
         var list = available as IReadOnlyCollection<string> ?? [.. available];
         return list.FirstOrDefault(m => Same(m, wanted))
             ?? (IsLocal(wanted) || SplitRemote(wanted) is not null ? null

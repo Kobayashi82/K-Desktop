@@ -15,8 +15,9 @@ namespace KDesktop.Views.Pages;
 /// <summary>
 /// Panel → Assistant (stage 1.8, §13.2): the assistants in a column, as the lists of the other pages (5.0.112: K-Desktop
 /// first, those on the desktop marked), and the one chosen (<c>--page assistant/&lt;id&gt;</c>): its card with putting it
-/// there or hiding it, the conversation with it, its own cards (its panel.json, stage 1.9), how the assistant process is
-/// doing (its state, memory, processor and the last error), with a restart and its log, and the activity.
+/// there or hiding it, what it is doing and its model in one line, and two tabs (5.0.289): the conversation with it, what
+/// it did (or everyone) and the technical details (memory, processor, restart, log); and its own cards (its panel.json,
+/// stage 1.9), kept from the last time it published them.
 /// </summary>
 public partial class AssistantPage : UserControl
 {
@@ -72,21 +73,43 @@ public partial class AssistantPage : UserControl
         PutButton.Content = row.PutText;
         HideButton.Visibility = row.IsOnDesktop ? Visibility.Visible : Visibility.Collapsed;
         PutButton.Visibility = row.IsOnDesktop ? Visibility.Collapsed : Visibility.Visible;
-        OwnPanel.Visibility = OwnPanel.Show(row.Installed) ? Visibility.Visible : Visibility.Collapsed;
+        // Its own panel, on a tab of its own; the conversation is the same tab for all of them.
+        var hasPanel = OwnPanel.Show(row.Installed);
+        Tabs.Visibility = hasPanel ? Visibility.Visible : Visibility.Collapsed;
+        OwnTabText.Text = Loc.T("assistantPanel.ownTab", row.Name);
+        System.Windows.Automation.AutomationProperties.SetName(OwnTab, OwnTabText.Text);
+        if (!hasPanel) TalkTab.IsChecked = true;
+        ShowTab();
         Chat.Show(row.Id, row.Name, row.IsOnDesktop);
+        Activity.Show(row.Id, row.Name);
         var active = rows.Count(r => r.IsOnDesktop);
         CountText.Text = active.ToString(Loc.Instance.Culture);
         CountChip.Visibility = active > 0 ? Visibility.Visible : Visibility.Collapsed;
 
-        // The process and what the assistant says of itself (its own status, or the process's)
-        var status = (_shown is null ? null : _app.AssistantStateOf(_shown)) ?? _app.AssistantStatus;
-        ActivityText.Text = status is null ? "—" : StateText(status);
-        var hasModel = status?.Model is { Length: > 0 };
-        ModelLabel.Visibility = ModelText.Visibility = hasModel ? Visibility.Visible : Visibility.Collapsed;
-        if (hasModel)
+        // What the assistant says of itself (its own status, or the process's), only while it is there: one short line.
+        var status = row.IsOnDesktop ? (_shown is null ? null : _app.AssistantStateOf(_shown)) ?? _app.AssistantStatus : null;
+        NowRow.Visibility = status is null ? Visibility.Collapsed : Visibility.Visible;
+        if (status is not null)
         {
-            var label = Core.Assistant.Brain.BrainProviders.ModelLabel(status!.Model!);
-            ModelText.Text = status.ModelLoaded == true ? Loc.T("assistantPanel.modelLoaded", label) : Loc.T("assistantPanel.modelNotLoaded", label);
+            var now = StateText(status);
+            if (status.Model is { Length: > 0 } model)
+            {
+                var label = Core.Assistant.Brain.BrainProviders.ModelLabel(model);
+                now += " · " + (status.ModelLoaded == true ? Loc.T("assistantPanel.modelLoaded", label) : Loc.T("assistantPanel.modelNotLoaded", label));
+            }
+            NowText.Text = now;
+            NowRow.ToolTip = now;
+            NowIcon.Symbol = status.State switch
+            {
+                "listening" => Wpf.Ui.Controls.SymbolRegular.Mic24,
+                "thinking" or "thinkingHard" or "loadingBrain" => Wpf.Ui.Controls.SymbolRegular.BrainCircuit24,
+                "speaking" => Wpf.Ui.Controls.SymbolRegular.Speaker224,
+                "awaitingConfirmation" => Wpf.Ui.Controls.SymbolRegular.QuestionCircle24,
+                "busy" => Wpf.Ui.Controls.SymbolRegular.ArrowSync24,
+                "sleeping" => Wpf.Ui.Controls.SymbolRegular.WeatherMoon24,
+                "noBrain" => Wpf.Ui.Controls.SymbolRegular.Warning24,
+                _ => Wpf.Ui.Controls.SymbolRegular.CheckmarkCircle24,
+            };
         }
         ErrorPanel.Visibility = _app.AssistantError is null ? Visibility.Collapsed : Visibility.Visible;
         if (_app.AssistantError is { } error) ErrorText.Text = $"{error.Text} ({error.At.ToString("g", Loc.Instance.Culture)})";
@@ -113,6 +136,17 @@ public partial class AssistantPage : UserControl
         var key = "tool." + tool + ".title";
         var title = Loc.T(key);
         return title == key ? tool : title;
+    }
+
+    private void OnTab(object sender, RoutedEventArgs e) => ShowTab();
+
+    /// <summary>The conversation, or its own panel.</summary>
+    private void ShowTab()
+    {
+        if (!IsInitialized || OwnTab is null || TalkPanel is null) return;
+        var own = OwnTab.IsChecked == true && Tabs.Visibility == Visibility.Visible;
+        OwnPanel.Visibility = own ? Visibility.Visible : Visibility.Collapsed;
+        TalkPanel.Visibility = own ? Visibility.Collapsed : Visibility.Visible;
     }
 
     /// <summary>Shows this assistant's card and panel (<c>--page assistant/&lt;id&gt;</c>, its menu → Panel).</summary>

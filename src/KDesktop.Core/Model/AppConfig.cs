@@ -801,6 +801,12 @@ public partial class AppSettings : ObservableObject
     /// <summary>How much it may think then, in tokens of reasoning.</summary>
     [ObservableProperty] private int _assistantBrainThinkTokens = Assistant.Brain.BrainConfig.DefaultThinkTokens;
 
+    /// <summary>
+    /// Whether the model of «Para pensar más» reasons before answering (5.0.289): off, another model answers as it is (a
+    /// bigger one without reasoning). The same model always reasons (otherwise it would be the same as usual).
+    /// </summary>
+    [ObservableProperty] private bool _assistantBrainThinkReason = true;
+
     /// <summary>Folders of the user's own with Piper voices (stage 12): they count as downloaded. Replaced whole.</summary>
     [ObservableProperty] private List<string> _assistantPiperFolders = [];
 
@@ -848,6 +854,12 @@ public partial class AppSettings : ObservableObject
     /// of «Para pensar más»). Replaced whole on every change.
     /// </summary>
     [ObservableProperty] private Dictionary<string, string> _assistantThinkModels = [];
+
+    /// <summary>
+    /// Whether each assistant with its own model to think harder with reasons with it (5.0.289): assistant id → false
+    /// (absent: it does). Replaced whole on every change.
+    /// </summary>
+    [ObservableProperty] private Dictionary<string, bool> _assistantThinkReasons = [];
 
     /// <summary>
     /// What each assistant has of its own (personality, language, voice; 5.0.105): assistant id → it (absent or empty: all

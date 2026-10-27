@@ -110,6 +110,7 @@ public partial class App
                 KokoroVoice = own.KokoroVoice.Length > 0 || language.Length > 0 ? KokoroVoiceOf(id) : string.Empty,
                 PiperVoice = own.PiperVoice.Length > 0 || language.Length > 0 ? PiperVoiceOf(id) : string.Empty,
                 Speed = own.Speed is { } speed ? Math.Clamp(speed, 0.5, 2) : null,
+                Volume = own.Volume is { } volume ? Math.Clamp(volume, 0, 1) : null,
             };
         }
         return AssistantPersonal.ToJson(resolved);

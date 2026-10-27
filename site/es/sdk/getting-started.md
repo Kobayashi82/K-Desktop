@@ -161,7 +161,7 @@ K-Desktop los dibuja con sus propios controles, sin cargar nada del código del 
   por defecto) y, si está en el escritorio, le llega al momento: `OnSettingsChanged` con **todos** los valores (también en
   `host.Settings`).
 - **`panel.json`** ([esquema](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/panel.schema.json))
-  → *Panel → Asistente*, debajo de su tarjeta: `stat` (en fila), `progress`, `list`, `achievements`, `buttons` y `text`. Los
+  → *Panel → Asistente*, en su propia pestaña (se guarda, así que se ve aunque no esté en el escritorio): `stat` (en fila), `progress`, `list`, `achievements`, `buttons` y `text`. Los
   datos llegan con `host.PublishPanel`, que se **fusiona** con lo publicado antes: publica todo en `Enter` y luego solo lo
   que cambie. Una galería con `source` toma sus imágenes de esos mismos datos
   (`[{ id, name, image, locked, lockText }]`).
@@ -188,7 +188,7 @@ a `OnExtraAsync`.
 - **Su personalidad**: `persona/{lang}.json`
   ([esquema](https://github.com/Kobayashi82/K-Desktop/blob/main/docs/assistant/schemas/persona.schema.json)), lo que le dice a
   la IA quién es y cómo habla, y sus frases fijas. Sin el idioma del usuario, el inglés o el primero que haya.
-- **Lo que cambia el usuario**: en *Personalidad y voz* el usuario puede escribirle otra personalidad (tus frases fijas se
+- **Lo que cambia el usuario**: en *Personalidad* y *Voz* el usuario puede escribirle otra personalidad (tus frases fijas se
   quedan) y darle otro idioma y otra voz. Con otro idioma, `host.Language` es ese y no el de K-Desktop: léelo en `Attach`
   (cuando cambia, el host vuelve a cargar el asistente).
 

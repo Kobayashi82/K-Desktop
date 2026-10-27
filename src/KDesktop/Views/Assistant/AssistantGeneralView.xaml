@@ -138,8 +138,13 @@
                         <TextBlock Text="{l:Tr brainOptions.think}" />
                         <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantGeneral.thinkHint}" />
                     </StackPanel>
-                    <ComboBox x:Name="ThinkBox" Grid.Column="1" MinWidth="260" MaxWidth="420" VerticalAlignment="Center" DisplayMemberPath="Name"
-                              SelectionChanged="OnThinkChanged" AutomationProperties.Name="{l:Tr brainOptions.think}" />
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <ComboBox x:Name="ThinkBox" MinWidth="260" MaxWidth="420" DisplayMemberPath="Name"
+                                  SelectionChanged="OnThinkChanged" AutomationProperties.Name="{l:Tr brainOptions.think}" />
+                        <!-- 5.0.289: its own model may answer as it is; its usual one always reasons -->
+                        <CheckBox x:Name="ThinkReasonCheck" Margin="0,8,0,0" Content="{l:Tr brainOptions.thinkReason}" ToolTip="{l:Tr brainOptions.thinkReasonHint}"
+                                  Checked="OnThinkReason" Unchecked="OnThinkReason" />
+                    </StackPanel>
                 </Grid>
                 <StackPanel x:Name="ThinkSuggestedRow" Margin="0,12,0,0" Orientation="Horizontal" Visibility="Collapsed">
                     <ui:SymbolIcon Symbol="Sparkle24" FontSize="15" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />

@@ -9,8 +9,8 @@ time*, *Always*) or **Test** it with a small form.
 
 ![Settings → Tools](../../images/en/tools.png)
 
-Everything an assistant does shows in *Panel → Assistant → Activity*: what, how (rule, command, AI, memory…) and whether it
-worked. What can be undone has an **Undo** button (or say «undo that»).
+Everything an assistant does shows in *Panel → Assistant → Activity* (its own, or everyone's with *Everyone*): what, how
+(rule, command, AI, memory…) and whether it worked. What can be undone has an **Undo** button (or say «undo that»).
 
 ## Built-in tools
 

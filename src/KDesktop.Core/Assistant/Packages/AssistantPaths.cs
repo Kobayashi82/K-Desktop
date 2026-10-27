@@ -23,6 +23,9 @@ public static class AssistantPaths
     public static string Data(string id) => Path.Combine(Root, "Data", id);
 
     public static string SettingsValues(string id) => Path.Combine(Root, "Settings", id + ".json");
+
+    /// <summary>What it last published for its panel (5.0.289), to show it while it is not on the desktop.</summary>
+    public static string PanelCache(string id) => Path.Combine(Root, "Settings", "Panels", id + ".json");
 }
 
 /// <summary>The values of an assistant's settings: the defaults of its settings.json under what the user chose.</summary>

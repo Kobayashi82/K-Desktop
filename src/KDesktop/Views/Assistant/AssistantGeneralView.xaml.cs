@@ -76,7 +76,8 @@ public partial class AssistantGeneralView : UserControl
         return string.Join('|', _id, string.Join(',', _app.Voice.WakeWords.Words.Select(w => $"{w.Id}:{w.Name}:{_app.WakeOwnerOf(w.Id)}")),
             s.AssistantWakeWords.GetValueOrDefault(_id), _app.TalkHotkeyOf(_id), s.AssistantModels.GetValueOrDefault(_id), _app.AssistantBrainOff,
             brain?.State, brain?.Model, string.Join(',', brain?.Models?.Select(m => m.Name) ?? []), _app.AssistantModelDownload is { Running: true } download ? download.Name : null,
-            _suggestion?.Model.Name, s.AssistantThinkModels.GetValueOrDefault(_id), s.AssistantBrainThinkModel, _thinkSuggestion?.Model.Name);
+            _suggestion?.Model.Name, s.AssistantThinkModels.GetValueOrDefault(_id), s.AssistantBrainThinkModel, _thinkSuggestion?.Model.Name,
+            s.AssistantBrainThinkReason, s.AssistantThinkReasons.GetValueOrDefault(_id, true));
     }
 
     private void Refresh()
@@ -243,7 +244,7 @@ public partial class AssistantGeneralView : UserControl
         List<ModelOption> options =
         [
             new(string.Empty, brain is { State: "ready", Model: { } general } ? Loc.T("assistantOptions.modelGeneralIs", _app.BrainModelName(general)) : Loc.T("assistantOptions.modelGeneral")),
-            .. (brain?.Models ?? []).Select(m => new ModelOption(m.Name, _app.BrainModelName(m.Name))),
+            .. _app.KnownBrainModels.Select(m => new ModelOption(m.Name, _app.BrainModelName(m.Name))),
         ];
         if (own.Length > 0 && Core.Assistant.Brain.ModelRefs.Find(options.Skip(1).Select(o => o.Value), own) is { } same) own = same;
         else if (own.Length > 0)
@@ -261,8 +262,8 @@ public partial class AssistantGeneralView : UserControl
     }
 
     /// <summary>
-    /// The model it thinks harder with: as everyone (Options → Brain → «Para pensar más») or one of the brain; hidden while
-    /// thinking harder is off for everyone.
+    /// The model it thinks harder with: the global one (Options → Brain → «Para pensar más»), its usual one or one of the
+    /// brain, reasoning or not (5.0.289); hidden while thinking harder is off for everyone.
     /// </summary>
     private void FillThink(Core.Assistant.Pipe.BrainStateMessage? brain, App.ModelDownload? downloading)
     {
@@ -272,14 +273,20 @@ public partial class AssistantGeneralView : UserControl
         var own = _app.Config.Settings.AssistantThinkModels.GetValueOrDefault(_id) ?? string.Empty;
         List<ModelOption> options =
         [
-            new(string.Empty, general.Length == 0 ? Loc.T("assistantGeneral.thinkGeneralSame") : Loc.T("assistantOptions.modelGeneralIs", _app.BrainModelName(general))),
-            .. (brain?.Models ?? []).Select(m => new ModelOption(m.Name, _app.BrainModelName(m.Name))),
+            new(string.Empty, general.Length == 0 ? Loc.T("assistantGeneral.thinkGlobalSame")
+                : Loc.T(_app.Config.Settings.AssistantBrainThinkReason ? "assistantGeneral.thinkGlobalReasoning" : "assistantOptions.modelGeneralIs", _app.BrainModelName(general))),
+            new(Core.Assistant.Brain.ModelRefs.Usual, Loc.T("assistantGeneral.thinkUsual")),
+            .. _app.KnownBrainModels.Select(m => new ModelOption(m.Name, _app.BrainModelName(m.Name))),
         ];
-        if (own.Length > 0 && Core.Assistant.Brain.ModelRefs.Find(options.Skip(1).Select(o => o.Value), own) is { } same) own = same;
-        else if (own.Length > 0)
+        if (own.Length > 0 && own != Core.Assistant.Brain.ModelRefs.Usual && Core.Assistant.Brain.ModelRefs.Find(options.Skip(2).Select(o => o.Value), own) is { } same) own = same;
+        else if (own.Length > 0 && own != Core.Assistant.Brain.ModelRefs.Usual)
             options.Add(new ModelOption(own, brain is null ? _app.BrainModelName(own) : Loc.T("assistantOptions.modelMissing", _app.BrainModelName(own))));
         ThinkBox.ItemsSource = options;
         ThinkBox.SelectedItem = options.FirstOrDefault(o => string.Equals(o.Value, own, StringComparison.OrdinalIgnoreCase)) ?? options[0];
+        // Reasoning: only for a model of its own (the global one says it in its name; its usual one always reasons).
+        ThinkReasonCheck.Visibility = own.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+        ThinkReasonCheck.IsEnabled = own != Core.Assistant.Brain.ModelRefs.Usual;
+        ThinkReasonCheck.IsChecked = own == Core.Assistant.Brain.ModelRefs.Usual || _app.Config.Settings.AssistantThinkReasons.GetValueOrDefault(_id, true);
 
         var suggested = off ? null : _thinkSuggestion;
         ThinkSuggestedRow.Visibility = suggested is null ? Visibility.Collapsed : Visibility.Visible;
@@ -295,6 +302,12 @@ public partial class AssistantGeneralView : UserControl
         if (string.Equals(option.Value, _app.Config.Settings.AssistantThinkModels.GetValueOrDefault(_id) ?? string.Empty, StringComparison.OrdinalIgnoreCase)) return;
         var id = _id;
         Dispatcher.BeginInvoke(() => _app.SetAssistantThinkModel(id, option.Value));
+    }
+
+    private void OnThinkReason(object sender, RoutedEventArgs e)
+    {
+        if (_filling || !ThinkReasonCheck.IsEnabled || _app.Config.Settings.AssistantThinkModels.GetValueOrDefault(_id) is not { Length: > 0 } own) return;
+        _app.SetAssistantThinkModel(_id, own, ThinkReasonCheck.IsChecked == true);
     }
 
     /// <summary>The model it suggests to think harder with: downloaded only because the user asked here; it thinks harder with it once here.</summary>

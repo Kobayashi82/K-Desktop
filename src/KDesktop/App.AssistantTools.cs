@@ -152,9 +152,11 @@ public partial class App
         AssistantActivityChanged?.Invoke();
     }
 
-    public void ClearAssistantActivity()
+    /// <summary>Forgets the activity: everyone's, or (<paramref name="assistant"/>, 5.0.289) only what that one did.</summary>
+    public void ClearAssistantActivity(string? assistant = null)
     {
-        Activity().Clear();
+        if (assistant is null) Activity().Clear();
+        else Activity().RemoveAll(item => IsActivityOf(item, assistant));
         SaveActivity();
         AssistantActivityChanged?.Invoke();
     }
@@ -193,4 +195,10 @@ public partial class App
 
     /// <summary>The name of who did a line: the assistant, or K-Desktop without a body.</summary>
     public static string ActivityWho(ActivityItem item) => AssistantName(item.Assistant);
+
+    /// <summary>Whether <paramref name="assistant"/> did it (K-Desktop's lines have no id).</summary>
+    public static bool IsActivityOf(ActivityItem item, string assistant) =>
+        Core.Assistant.AssistantTargeting.IsSystem(assistant)
+            ? item.Assistant is null or "" || Core.Assistant.AssistantTargeting.IsSystem(item.Assistant)
+            : item.Assistant == assistant;
 }

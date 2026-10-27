@@ -7,7 +7,7 @@ K-Desktop moves it.
 It stands on the taskbar or on top of the windows, strolls now and then (and sometimes falls off the edge of a window),
 follows the window it stands on, can be dragged and dropped, sleeps when you are away, and plays an animation for each
 thing: listening to you, thinking, talking in its bubble, being glad or sorry about what happened, a click. It talks,
-thinks and uses tools like any other assistant; its voice and personality are set in *Personality and voice*. With
+thinks and uses tools like any other assistant; its voice and personality are set in *Personality* and *Voice*. With
 several assistants on the desktop it never stays on top of another.
 
 Nothing of the package runs: K-Desktop only reads its pictures and sounds, and its install card says it has no code.
