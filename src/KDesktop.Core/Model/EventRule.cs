@@ -27,6 +27,9 @@ public partial class EventRule : ObservableObject
 
     partial void OnOnceChanged(bool value) => base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(Summary)));
 
+    /// <summary>The assistant that programmed it (the tool <c>schedule</c>); null: the user made it.</summary>
+    [ObservableProperty] private string? _createdBy;
+
     /// <summary>«Pedir a un asistente»: an order given to an assistant after the commands; null = none.</summary>
     public EventAsk? Ask
     {
@@ -146,7 +149,19 @@ public partial class EventAsk : ObservableObject
     [ObservableProperty] private string _assistant = global::KDesktop.Core.Assistant.AssistantTargeting.KDesktop;
     [ObservableProperty] private string _text = string.Empty;
 
+    /// <summary>
+    /// Programmed by an assistant (the tool <c>schedule</c>): the tools it may use for it without asking, approved when it
+    /// was asked for. Null: an order like any other («Asistente: preguntar»), which asks as usual.
+    /// </summary>
+    public IReadOnlyList<string>? Tools { get; set; }
+
+    /// <summary>With <see cref="Tools"/>: the ids of the user's commands it may run without asking.</summary>
+    public IReadOnlyList<string>? Commands { get; set; }
+
     [JsonIgnore] public bool IsEmpty => Assistant.Length == 0 || Text.Trim().Length == 0;
+
+    /// <summary>Programmed by an assistant, with what was approved then.</summary>
+    [JsonIgnore] public bool IsScheduled => Tools is not null || Commands is not null;
 }
 
 /// <summary>Days of the week as flags; none = every day.</summary>

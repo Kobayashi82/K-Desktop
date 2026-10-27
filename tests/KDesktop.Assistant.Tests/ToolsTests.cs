@@ -70,6 +70,36 @@ public sealed class ToolsTests : IDisposable
     }
 
     [Fact]
+    public async Task ATimerForTomorrowIsTomorrowsEvenBeforeThatHour()
+    {
+        var (runner, tools) = Make();
+        using var _ = tools;
+        // 17:30 now: «mañana a las 7» is tomorrow's, and «hoy a las 9» has passed.
+        var outcome = await runner.RunAsync("set_timer", Args("""{"time":"07:00","day":"tomorrow"}"""), Lander, "", "ai", default);
+        Assert.False(outcome.Result!.Failed);
+        Assert.Equal(new DateTimeOffset(2026, 10, 22, 7, 0, 0, TimeSpan.FromHours(2)), Assert.Single(tools.Timers.Pending).Due);
+        Assert.True((await runner.RunAsync("set_timer", Args("""{"time":"09:00","day":"today"}"""), Lander, "", "ai", default)).Result!.Failed);
+        Assert.True((await runner.RunAsync("set_timer", Args("""{"time":"09:00","day":"someday"}"""), Lander, "", "ai", default)).Result!.Failed);
+    }
+
+    [Fact]
+    public async Task AProgrammedOrderRunsWhatWasApprovedAndNothingElseThatAsksWithoutAsking()
+    {
+        var (runner, tools) = Make();
+        using var _ = tools;
+        _answer = "yes";
+        using (ScheduledOrder.Enter("k-1", ["risky"]))
+        {
+            Assert.True((await runner.RunAsync("risky", Args("{}"), Lander, "", "ai", default)).Ran);
+            Assert.False((await runner.RunAsync("risky_once", Args("{}"), Lander, "", "ai", default)).Ran);
+            // What is safe still runs.
+            Assert.True((await runner.RunAsync("get_time", Args("{}"), Lander, "", "ai", default)).Ran);
+        }
+        Assert.Empty(_asked);
+        Assert.False(_log.Single(l => l.Entry.Did.Contains("hacer algo arriesgado", StringComparison.Ordinal) && !l.Entry.Ok).Entry.Ok);
+    }
+
+    [Fact]
     public async Task ACancelledTimerComesBackWithUndo()
     {
         var (runner, tools) = Make();

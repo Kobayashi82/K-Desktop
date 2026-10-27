@@ -303,7 +303,8 @@ public sealed partial class CommandEngine
         if (!end && rule.Ask is { IsEmpty: false } ask && !cancellationToken.IsCancellationRequested)
         {
             Log.Info($"Evento «{rule.Name}» → pide a «{ask.Assistant}»: «{ask.Text.Trim()}»");
-            _ui.AskAssistant(ask.Assistant, ask.Text.Trim());
+            if (ask.IsScheduled) _ui.AskAssistantScheduled(ask);
+            else _ui.AskAssistant(ask.Assistant, ask.Text.Trim());
         }
     }
 

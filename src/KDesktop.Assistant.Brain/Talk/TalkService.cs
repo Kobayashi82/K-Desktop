@@ -6,6 +6,7 @@ using KDesktop.Assistant.Tools;
 using KDesktop.Assistant.Tools.Builtin;
 using KDesktop.Assistant.Tools.Declarative;
 using KDesktop.Core;
+using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Localization;
@@ -133,6 +134,9 @@ public sealed class TalkService
         _mind = new TalkMind(tools, chooser ?? new ToolChooser(null), _time, memory);
     }
 
+    /// <summary>The tool that programs an order for later.</summary>
+    private const string ScheduleTool = "schedule";
+
     /// <summary>An order for an assistant. Completes when it has been answered (and said), or replaced by another.</summary>
     public async Task HandleAsync(HeardMessage heard)
     {
@@ -145,6 +149,8 @@ public sealed class TalkService
         if (fresh) conversation.Give(heard.Files!, _time.GetUtcNow());
         Active();
         var turn = Guid.NewGuid().ToString("N")[..12];
+        // An order programmed earlier, now due: what was approved then goes with everything it does.
+        using var scheduled = heard.Source == HeardMessage.SourceScheduled && heard.Scheduled is { } key ? ScheduledOrder.Enter(key, heard.Allowed) : null;
         // The conversation is kept only in K-Desktop's memory: the log has each line, to look at it afterwards.
         Log.Info($"Asistente: a «{who ?? "K-Desktop"}» por {heard.Source}: «{said}»");
         _output.Chat(new ChatLineMessage("user", said, turn, true, who));
@@ -464,6 +470,18 @@ public sealed class TalkService
         var pending = conversation.TakeChoice(_time.GetUtcNow());
         if (pending is not null && ChoiceOf(pending, rule, said) is { } chosen)
             return await CommandsAsync(persona, [chosen], context, said, token).ConfigureAwait(false);
+        // «A las siete vacía la papelera», «mañana a las 9 mira el tiempo y mándamelo»: for later. The user's commands and the
+        // rules about programs would do it now: the AI programs it (schedule), with the commands it names at hand.
+        if (ScheduledOrder.Current is null && rule is null or { Kind: QuickRuleKind.Act or QuickRuleKind.OpenApp or QuickRuleKind.OpenWeb
+                or QuickRuleKind.Weather or QuickRuleKind.WeatherTomorrow or QuickRuleKind.WeatherWeek or QuickRuleKind.WhatsPlaying }
+            && _tools.Registry.Find(ScheduleTool) is not null && QuickRules.IsForLater(said, [persona.Name]))
+        {
+            Log.Info($"Asistente: «{said}» es para más tarde: a la IA, para programarlo");
+            IReadOnlyList<string>? named = null;
+            if (_commands is not null && await _commands.MatchAsync(said, token).ConfigureAwait(false) is { } near)
+                named = CloseCommands(near, [], capable: true);
+            return await AiAsync(conversation, persona, who, said, turn, context, token, close: named, later: true).ConfigureAwait(false);
+        }
         switch (rule)
         {
             case { Kind: QuickRuleKind.Cancel }:
@@ -585,6 +603,14 @@ public sealed class TalkService
                 certain = [.. sure.Select(c => c.Name)];
                 sure = [];
             }
+            // A programmed order that turns the PC off among other things: all of it to the AI, which leaves that for the
+            // end (run in the order said, «apaga el ordenador y mándame…» would never send anything).
+            if (ScheduledOrder.Current is not null && (matched.Unmatched.Count > 0 || matched.Parts.Count > 1)
+                && matched.Parts.Any(p => p.Candidates is [{ Power: true }, ..]))
+            {
+                certain = [.. certain ?? [], .. sure.Select(c => c.Name)];
+                sure = [];
+            }
             // Not sure of any part, but the whole order is that near one command and well ahead of the rest («Va ser la
             // papelera», Parakeet's «vacía la papelera», 0.82): it is that one. K-Desktop still asks before what is risky.
             // What turns off the PC needs the voice's own bar (5.0.200: «apaga el monitor» turned it off at 0.87).
@@ -700,7 +726,7 @@ public sealed class TalkService
     /// </summary>
     private async Task<TalkAnswer> AiAsync(Conversation conversation, AssistantPersona persona, string? who, string forAi, string turn, ToolContext context,
         CancellationToken token, TalkAnswer? ran = null, IReadOnlyCollection<string>? leaveOut = null, IReadOnlyList<string>? close = null,
-        bool? capable = null, IReadOnlyList<string>? certain = null, bool thinkFirst = false, bool doubted = false)
+        bool? capable = null, IReadOnlyList<string>? certain = null, bool thinkFirst = false, bool doubted = false, bool later = false)
     {
         var (client, model) = _brain(who);
         // Not ready: the server may have opened since it was last looked at (Ollama, after K-Desktop at start-up).
@@ -744,7 +770,7 @@ public sealed class TalkService
             answer = await _mind.AnswerAsync(client, model, persona, conversation.History.Messages(), conversation.History.LastTools(), forAi, context,
                 text => { Volatile.Write(ref textSoFar, text); shown.Show(); }, token,
                 leaveOut, close, capable ?? IsCapable(model), certain, _thinker?.Invoke(who), thinkFirst, ThinkingHard, doubted,
-                text => { Volatile.Write(ref longSoFar, text); shown.Show(); }).ConfigureAwait(false);
+                text => { Volatile.Write(ref longSoFar, text); shown.Show(); }, later).ConfigureAwait(false);
         }
         finally
         {

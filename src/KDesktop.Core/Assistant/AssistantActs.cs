@@ -132,14 +132,15 @@ public static class AssistantActs
     /// Finds the program and does it (<see cref="AssistantCommands.RunCommandAsync"/>: asking first like a command, in the
     /// history, with the assistant's steps). Not found: <c>failed</c> with the <see cref="EndMessage.Reason"/>.
     /// </summary>
+    /// <param name="allowed">An order programmed by an assistant: whether what is not safe was approved (see <see cref="ScheduledPermit"/>).</param>
     public static async Task<EndMessage> ActAsync(Engine.CommandEngine engine, ActMessage act, string who, Func<Command, ToolRisk, Task<string>> ask,
-        AssistantChoreography? choreography = null)
+        AssistantChoreography? choreography = null, Func<Command, bool>? allowed = null)
     {
         if (engine.IsPaused) return new EndMessage(act.Run, "failed", [Loc.T("pause.refused")]);
         var plan = Build(act, AppFinder.OpenWindows(), AppFinder.FindProcess, ForegroundWindow.Capture());
         if (plan.Command is null)
             return new EndMessage(act.Run, "failed", [Loc.T("act.reason." + plan.Reason, plan.Name)], plan.Name, plan.Reason);
-        var end = await AssistantCommands.RunCommandAsync(engine, plan.Command, act.Run, who, ask, choreography).ConfigureAwait(false);
+        var end = await AssistantCommands.RunCommandAsync(engine, plan.Command, act.Run, who, ask, choreography, allowed).ConfigureAwait(false);
         return end with { Name = plan.Name };
     }
 

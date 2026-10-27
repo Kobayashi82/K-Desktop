@@ -242,7 +242,10 @@ public sealed class EventService : IDisposable
     {
         // Only when it fires by itself: «Probar», a command or an assistant running it doesn't use it up.
         if (rule.Once && source is TriggerSource.Event or TriggerSource.Startup or TriggerSource.Exit && (end || !rule.HasEnd || rule.EndCommands.Count == 0))
+        {
+            Log.Info($"Evento «{rule.Name}»: era de una sola vez; se borra");
             Remove(rule);
+        }
         if (end || source == TriggerSource.Manual) return;
         var now = DateTime.UtcNow;
         _state.SetFired(rule.Id, now);
@@ -259,7 +262,6 @@ public sealed class EventService : IDisposable
         {
             if (_rules.Remove(rule.Id)) Forget(rule.Id);
         }
-        Log.Info($"Evento «{rule.Name}»: era de una sola vez; se borra");
         _ui.RunOnUi(() => _config().Events.Remove(rule));
     }
 
@@ -273,7 +275,14 @@ public sealed class EventService : IDisposable
         foreach (var rule in wanted)
             if (!_due.ContainsKey(rule.Id)) _due[rule.Id] = FirstDue(rule.Trigger, now);
 
-        if (_initial) CatchUpMissed(now);
+        if (_initial)
+        {
+            CatchUpMissed(now);
+            // Once on a day that went by while K-Desktop was closed (and not to run when missed): it will never come.
+            foreach (var (rule, t) in Rules<TimeTrigger>().ToList())
+                if (rule.Once && !t.RunIfMissed && t.HasDate && _due.GetValueOrDefault(rule.Id) == DateTime.MaxValue && _state.LastFired(rule.Id) is null)
+                    Missed(rule);
+        }
 
         if (wanted.Count == 0)
         {
@@ -330,6 +339,7 @@ public sealed class EventService : IDisposable
     private void OnScheduleTick()
     {
         var fire = new List<EventRule>();
+        var missed = new List<EventRule>();
         lock (_lock)
         {
             if (_disposed || _scheduleTimer is null) return;
@@ -348,7 +358,10 @@ public sealed class EventService : IDisposable
                 var rule = entry.Rule;
                 var late = now - due > LateLimit;
                 if (rule.Trigger is TimeTrigger t && late && !t.RunIfMissed)
+                {
                     Log.Info($"Evento «{rule.Name}»: se pasó la hora ({due.ToLocalTime():HH:mm}) con el PC dormido o el reloj cambiado");
+                    if (rule.Once && t.HasDate) missed.Add(rule);
+                }
                 else
                     fire.Add(rule);
                 _due[id] = rule.Trigger is IntervalTrigger i ? now.AddMinutes(Math.Max(1, i.Minutes)) : FirstDue(rule.Trigger, now);
@@ -356,7 +369,20 @@ public sealed class EventService : IDisposable
             if (NeedsHeartbeat() && now - _lastHeartbeat > Heartbeat) Beat(now);
             ArmSchedule(now);
         }
+        foreach (var rule in missed) Missed(rule);
         foreach (var rule in fire) Fire(rule, false);
+    }
+
+    /// <summary>
+    /// «Solo una vez» on a day whose time went by unseen (K-Desktop closed, the PC asleep): it is not run late (it might
+    /// turn the PC off as it starts), it goes, and one an assistant programmed says so.
+    /// </summary>
+    private void Missed(EventRule rule)
+    {
+        Log.Info($"Evento «{rule.Name}»: era de una sola vez y su hora ya pasó sin poder ejecutarse; se borra");
+        Remove(rule);
+        if (rule.CreatedBy is not null)
+            _ui.ShowOsd(Loc.T("event.missedOnce", rule.Name), OsdKind.Warning, TimeSpan.FromSeconds(10), OsdLook.Of("CalendarClock24"));
     }
 
     // ── «Al abrir un programa» ───────────────────────────────────────────

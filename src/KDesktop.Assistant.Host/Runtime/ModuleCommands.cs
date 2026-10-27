@@ -3,6 +3,7 @@ using System.Globalization;
 using KDesktop.Assistant.Host.Pipe;
 using KDesktop.Assistant.Tools.Builtin;
 using KDesktop.Core;
+using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Pipe;
 
 namespace KDesktop.Assistant.Host.Runtime;
@@ -25,6 +26,7 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
     private readonly ConcurrentDictionary<string, TaskCompletionSource<DescribedMessage?>> _descriptions = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<TextDoneMessage?>> _texts = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<PhraseDoneMessage?>> _phrases = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<ScheduleDoneMessage?>> _schedules = new(StringComparer.Ordinal);
     private int _next;
 
     public Task<MatchedMessage?> MatchAsync(string text, CancellationToken cancellationToken) =>
@@ -38,7 +40,7 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
         return AskAsync(_runs, id =>
         {
             if (gestures) Choreography!.Begin(id, assistant!, cancellationToken);
-            return new RunMessage(assistant ?? string.Empty, id, command, gestures);
+            return new RunMessage(assistant ?? string.Empty, id, command, gestures, ScheduledOrder.Current?.Key);
         }, RunWait, cancellationToken);
     }
 
@@ -48,7 +50,7 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
         return AskAsync(_runs, id =>
         {
             if (gestures) Choreography!.Begin(id, assistant!, cancellationToken);
-            return new ActMessage(assistant ?? string.Empty, id, op, app, value, gestures);
+            return new ActMessage(assistant ?? string.Empty, id, op, app, value, gestures, ScheduledOrder.Current?.Key);
         }, RunWait, cancellationToken);
     }
 
@@ -65,7 +67,16 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
         AskAsync(_descriptions, id => new DescribeMessage(id, command), MatchWait, cancellationToken);
 
     public Task<EndMessage?> RunEventAsync(string name, string? assistant, CancellationToken cancellationToken) =>
-        AskAsync(_runs, id => new RunEventMessage(assistant ?? string.Empty, id, name), RunWait, cancellationToken);
+        AskAsync(_runs, id => new RunEventMessage(assistant ?? string.Empty, id, name, ScheduledOrder.Current?.Key), RunWait, cancellationToken);
+
+    /// <summary>Programs, lists or removes an order for later (schedule, list_scheduled, cancel_scheduled).</summary>
+    public Task<ScheduleDoneMessage?> ScheduleAsync(ScheduleMessage request, CancellationToken cancellationToken) =>
+        AskAsync(_schedules, id => request with { Id = id }, MatchWait, cancellationToken);
+
+    public void OnScheduleDone(ScheduleDoneMessage done)
+    {
+        if (_schedules.TryRemove(done.Id, out var waiting)) waiting.TrySetResult(done);
+    }
 
     /// <summary>Taking or putting a text (transform_text): Ctrl+C or Ctrl+V and the clipboard, quick.</summary>
     public Task<TextDoneMessage?> TextAsync(string op, string? assistant, string source, string text, string mode, long hwnd, CancellationToken cancellationToken) =>

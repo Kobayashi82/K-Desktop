@@ -34,6 +34,9 @@ se quita el dispositivo…) con sus propios comandos.
   tiempo y mándamelo por Telegram*). Si no está en el escritorio, no se hace.
 - **Solo una vez**: el evento se borra después de ejecutarse (si tiene comandos en *Al terminar*, después de esos).
   Con *A una hora* y un *Día*, sirve para «el viernes a las 9, una sola vez».
+- **Programados por un asistente**: lo que le pides para más tarde («a las 7 vacía la papelera», ver
+  [Herramientas](../assistant/tools.md)) sale aquí como un evento más, con quién lo programó y lo que aprobaste al
+  pedírselo. Puedes cambiarlo o borrarlo como cualquier otro.
 - **Condiciones** (*Solo si*): las mismas que la [acción Si…](commands.md#si-condiciones): el evento solo se ejecuta si se
   cumplen.
 - **No repetir antes de**: si vuelve a dispararse antes (en segundos), no hace nada.

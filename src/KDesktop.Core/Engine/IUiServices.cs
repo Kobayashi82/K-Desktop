@@ -77,6 +77,12 @@ public interface IUiServices
     /// <summary>«Asistente: preguntar»: an order for an assistant (empty: the default one); without text, the box to write it.</summary>
     void AskAssistant(string assistant, string text) { }
 
+    /// <summary>
+    /// An event's «Pedir a un asistente» that an assistant programmed: its order with what was approved then (see
+    /// <see cref="Assistant.ScheduledPermit"/>).
+    /// </summary>
+    void AskAssistantScheduled(EventAsk ask) => AskAssistant(ask.Assistant, ask.Text);
+
     /// <summary>«Asistente: decir»: an assistant (empty: the default one) says this, without the AI.</summary>
     void AssistantSay(string assistant, string text) { }
 

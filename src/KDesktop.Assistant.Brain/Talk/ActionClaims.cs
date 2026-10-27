@@ -12,6 +12,8 @@ namespace KDesktop.Assistant.Brain.Talk;
 /// </summary>
 public static partial class ActionClaims
 {
+    private const string ScheduleTool = "schedule";
+
     /// <summary>Each kind of action, and the words of the names of the tools that do it.</summary>
     private static readonly (string Kind, string[] Tools)[] Kinds =
     [
@@ -55,6 +57,8 @@ public static partial class ActionClaims
     /// </summary>
     public static IReadOnlyList<string> Missing(string order, IReadOnlyCollection<string> worked)
     {
+        // Programmed for later (the tool schedule): what it asks for is done then, not now.
+        if (worked.Contains(ScheduleTool)) return [];
         var folded = " " + string.Join(' ', KDesktop.Core.Voice.TextSimilarity.Words(order)) + " ";
         return [.. Kinds.Where(k => Requests(k.Kind).Any(p => folded.Contains(" " + p + " ", StringComparison.Ordinal))
                                     && !worked.Any(t => IsOfKind(t, k.Kind)))

@@ -110,7 +110,8 @@ public partial class App
     /// <c>bubble</c>, <c>command</c>, <c>voice</c>… False (and an OSD) when nobody can answer now.
     /// </summary>
     /// <param name="files">Files given with it (stage 14.1: dropped on the assistant); <paramref name="act"/>: what to do with them without the AI.</param>
-    public bool SendToAssistant(string? id, string text, string source, IReadOnlyList<string>? files = null, string? act = null)
+    /// <param name="permit">An order an assistant programmed (source <c>scheduled</c>): what was approved for it then.</param>
+    public bool SendToAssistant(string? id, string text, string source, IReadOnlyList<string>? files = null, string? act = null, ScheduledPermit? permit = null)
     {
         text = text.Trim();
         if (text.Length == 0) return false;
@@ -132,11 +133,13 @@ public partial class App
                 && !AssistantTargeting.IsSystem(id) && IsOnDesktop(id) && !IsAssistantLoaded(id)))
         {
             _pendingOrders.RemoveAll(o => DateTime.UtcNow - o.At > PendingOrderTime);
-            _pendingOrders.Add(new PendingOrder(id, text, source, DateTime.UtcNow, files, act));
+            _pendingOrders.Add(new PendingOrder(id, text, source, DateTime.UtcNow, files, act, permit));
             Log.Info($"Asistente: orden por {source} para «{id}» en espera de que esté listo");
             return true;
         }
-        if (!_assistant.IsRunning || !_assistant.Send(new HeardMessage(text, source, ProcessIdOf(id), files is { Count: > 0 } ? files : null, act)))
+        var heard = new HeardMessage(text, source, ProcessIdOf(id), files is { Count: > 0 } ? files : null, act,
+            permit?.Key, permit is null ? null : [.. permit.Tools.Order(StringComparer.Ordinal)]);
+        if (!_assistant.IsRunning || !_assistant.Send(heard))
         {
             Ui.ShowOsd(Loc.T("assistantChat.notRunning"), Core.Engine.OsdKind.Warning);
             return false;
@@ -150,7 +153,8 @@ public partial class App
     /// <summary>How long an order waits for its assistant (the process starts in ~1 s; an assistant comes out in a few).</summary>
     private static readonly TimeSpan PendingOrderTime = TimeSpan.FromSeconds(30);
 
-    private sealed record PendingOrder(string Id, string Text, string Source, DateTime At, IReadOnlyList<string>? Files = null, string? Act = null);
+    private sealed record PendingOrder(string Id, string Text, string Source, DateTime At, IReadOnlyList<string>? Files = null, string? Act = null,
+        ScheduledPermit? Permit = null);
 
     private readonly List<PendingOrder> _pendingOrders = [];
 
@@ -170,7 +174,7 @@ public partial class App
                 Log.Info($"Asistente: la orden por {order.Source} para «{id}» no se manda ({(ok ? "llegó tarde" : "no ha salido")})");
                 continue;
             }
-            SendToAssistant(id, order.Text, order.Source, order.Files, order.Act);
+            SendToAssistant(id, order.Text, order.Source, order.Files, order.Act, order.Permit);
         }
     }
 

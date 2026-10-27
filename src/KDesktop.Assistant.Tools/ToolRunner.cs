@@ -142,11 +142,22 @@ public sealed class ToolRunner
         string heard, string route, CancellationToken cancellationToken)
     {
         var name = tool.Name;
-        if (unseen || MustAsk(tool, shared, context.SharedFree))
+        var risk = _registry.RiskOf(tool, arguments);
+        if (!shared && ScheduledOrder.Current is { } scheduled)
+        {
+            // An order programmed earlier, now due: nobody is asked. What was approved then runs, and what only reads or
+            // is safe; whatever else would ask is not done (the answer says so).
+            if (!scheduled.Allowed.Contains(name) && !tool.ReadsOnly && (unseen || tool.AlwaysAsks || risk != ToolRisk.Safe))
+            {
+                Log.Info($"Asistente: {name} no se aprobó al programar la orden: no se ejecuta");
+                return new ToolOutcome(null, Record(context.Assistant, heard, route, Loc.T("tools.notApproved", intent), ok: false));
+            }
+        }
+        else if (unseen || MustAsk(tool, risk, shared, context.SharedFree))
         {
             Use(context, tool, ToolPhase.Asking);
             var text = shared ? Loc.T("tools.askShared", context.Caller ?? "?", intent) : Loc.T(unseen ? "tools.askNew" : "tools.ask", intent);
-            var choice = await AskAsync(tool, text, fingerprint is not null || (shared && _registry.RiskOf(tool) != ToolRisk.AskAlways), context, cancellationToken).ConfigureAwait(false);
+            var choice = await AskAsync(tool, risk, text, fingerprint is not null || (shared && risk != ToolRisk.AskAlways), context, cancellationToken).ConfigureAwait(false);
             if (choice is not ("yes" or "always"))
             {
                 var why = Loc.T(choice == "no" ? "tools.denied" : "tools.unanswered", intent);
@@ -231,11 +242,11 @@ public sealed class ToolRunner
     /// Whether to ask first. Another program (<paramref name="shared"/>): whatever does more than read asks, whatever the
     /// user's policy, until «yes, and don't ask again»; what always asks, always.
     /// </summary>
-    private bool MustAsk(ITool tool, bool shared, bool free) =>
-        shared && free && !tool.AlwaysAsks ? _registry.RiskOf(tool) == ToolRisk.AskAlways
+    private bool MustAsk(ITool tool, ToolRisk risk, bool shared, bool free) =>
+        shared && free && !tool.AlwaysAsks ? risk == ToolRisk.AskAlways
         : tool.AlwaysAsks || shared
-        ? _registry.RiskOf(tool) == ToolRisk.AskAlways || (!tool.ReadsOnly && !_trusted().Contains(tool.Name))
-        : AskPolicy.Asks(_registry.RiskOf(tool), _askBefore(), _trusted().Contains(tool.Name));
+        ? risk == ToolRisk.AskAlways || (!tool.ReadsOnly && !_trusted().Contains(tool.Name))
+        : AskPolicy.Asks(risk, _askBefore(), _trusted().Contains(tool.Name));
 
     private bool IsApproved(string fingerprint)
     {
@@ -278,9 +289,9 @@ public sealed class ToolRunner
         return _approved;
     }
 
-    private async Task<string> AskAsync(ITool tool, string text, bool approvable, ToolContext context, CancellationToken cancellationToken)
+    private async Task<string> AskAsync(ITool tool, ToolRisk risk, string text, bool approvable, ToolContext context, CancellationToken cancellationToken)
     {
-        var question = new AskMessage(NewId(), tool.Name, text, _registry.RiskOf(tool) == ToolRisk.AskOnce || approvable, (int)AskTime.TotalSeconds, context.Assistant);
+        var question = new AskMessage(NewId(), tool.Name, text, risk == ToolRisk.AskOnce || approvable, (int)AskTime.TotalSeconds, context.Assistant);
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         // A little more than the user's time: K-Desktop says «timeout» itself when it runs out.
         timeout.CancelAfter(AskTime + TimeSpan.FromSeconds(3));

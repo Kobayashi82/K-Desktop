@@ -19,7 +19,7 @@ worked. What can be undone has an **Undo** button (or say «undo that»).
 | Subject | Tools | For example |
 |---|---|---|
 | **Commands** | Run your commands · Find your commands · Explain a command · Teach voice phrases · Run an event | «turn on game mode», «what does the backup command do?», «when I say telly run my TV command» |
-| **Time, reminders and maths** | Time and date · Timer · Cancel a timer · Tell me when something happens · Stop watching · Date maths · Calculator | «remind me in half an hour», «tell me when the download finishes», «how many days until christmas» |
+| **Time, reminders and maths** | Time and date · Timer · Cancel a timer · Program an order · See what is programmed · Remove something programmed · Tell me when something happens · Stop watching · Date maths · Calculator | «remind me in half an hour», «at seven empty the recycle bin», «tell me when the download finishes», «how many days until christmas» |
 | **Notes and memory** | Save a note · Find notes · Remember something about you · Forget a memory | «note that I have to buy milk», «remember that my boss is called Luis» |
 | **Files** | Find files · Open a file · Read a file · Delete a file · Move a file · Search your documents | «find the electricity bill pdf», «open the last thing I downloaded» |
 | **Internet** | Open a website · Search in the browser · Look it up online · Read a web page | «how much is an RTX 5080», «summarise this page» |
@@ -33,6 +33,14 @@ Some details:
 - **Tell me when something happens** watches for a program closing or a window appearing, the processor or the graphics
   card calming down, a download finishing or a folder that stops changing. The assistant that set it says it when it
   happens.
+- **Program an order**: «at 19:00 check the weather, send it to me on Telegram and shut down the computer», «tomorrow at
+  9…», «every day at 8…». It is kept as an [event](../k-desktop/events.md) that, at its time, gives the order to the
+  assistant as if you said it then. What it will need is approved **when you ask** (it asks once, for the riskiest part,
+  as *Ask before doing something* says); at that time it asks nothing: it does what was approved and what needs no
+  permission, and nothing else. Shutting down or restarting always goes last, and at the end it says what worked and what
+  didn't. If the PC was off or asleep at that time, it is not done late: it is removed and you are told. «What do you have
+  programmed» and «no need for the seven o'clock thing» show and remove them. A plain reminder for another day («remind me
+  tomorrow at 7…») is a timer.
 - **Look at the screen** reads text with Windows' text recognition (also «copy the text of this window»); to understand
   a picture it needs a model with vision.
 - **Translate and fix texts** works on what you have selected or copied (translate, correct, summarise, more formal,

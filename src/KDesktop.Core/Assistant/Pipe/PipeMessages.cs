@@ -440,8 +440,15 @@ public sealed record AnswerMessage(string Id, string Choice) : PipeMessage
 /// <param name="Assistant">Who it is for; null: the module without a body.</param>
 /// <param name="Files">Files the user gives it with the order (stage 14.1: dropped on it): they stay as its context a few minutes.</param>
 /// <param name="Act">With <paramref name="Files"/>, done without the AI: <c>open</c> (the first one) or <c>folder</c> (shown in its folder).</param>
-public sealed record HeardMessage(string Text, string Source, string? Assistant = null, IReadOnlyList<string>? Files = null, string? Act = null) : PipeMessage
+/// <param name="Scheduled">Source <c>scheduled</c>: an order an assistant programmed (the tool <c>schedule</c>), now due. The key of
+/// what was approved then (<see cref="ScheduledPermit"/>): it goes back with the commands it runs, which do not ask.</param>
+/// <param name="Allowed">With <paramref name="Scheduled"/>: the tools approved then, which do not ask; nothing else that does
+/// more than read may run.</param>
+public sealed record HeardMessage(string Text, string Source, string? Assistant = null, IReadOnlyList<string>? Files = null, string? Act = null,
+    string? Scheduled = null, IReadOnlyList<string>? Allowed = null) : PipeMessage
 {
+    public const string SourceScheduled = "scheduled";
+
     public const string ActOpen = "open";
     public const string ActFolder = "folder";
 
@@ -743,7 +750,8 @@ public sealed record MatchedMessage(string Id, double Score, IReadOnlyList<strin
 }
 
 /// <summary>Runs a command for an assistant (without choreography until phase 6). Answered with <see cref="EndMessage"/>.</summary>
-public sealed record RunMessage(string Assistant, string Run, string Command, bool Choreography = false) : PipeMessage
+/// <param name="Scheduled">For an order programmed by an assistant: its key (<see cref="HeardMessage.Scheduled"/>); nobody is asked.</param>
+public sealed record RunMessage(string Assistant, string Run, string Command, bool Choreography = false, string? Scheduled = null) : PipeMessage
 {
     public override string Type => "run";
 }
@@ -880,8 +888,41 @@ public sealed record PhraseDoneMessage(string Id, bool Ok, string Name, string? 
     public override string Type => "phraseDone";
 }
 
+/// <summary>
+/// The orders an assistant programs (the tools <c>schedule</c>, <c>list_scheduled</c> and <c>cancel_scheduled</c>): they are
+/// K-Desktop events («Solo una vez» unless it repeats) that ask the assistant at their time. Answered with
+/// <see cref="ScheduleDoneMessage"/>.
+/// </summary>
+/// <param name="Op"><c>add</c>, <c>list</c> (that assistant's) or <c>cancel</c>.</param>
+/// <param name="Order">add: what it will be told at that time, as the user said it.</param>
+/// <param name="Time">add: <c>HH:mm</c>.</param>
+/// <param name="Date">add: <c>yyyy-MM-dd</c>; null: the next time it is that hour (with <paramref name="Repeat"/>: from then on).</param>
+/// <param name="Repeat">add: null (once), <c>daily</c>, <c>workdays</c>, <c>weekend</c> or <c>weekly</c> (the day of <paramref name="Date"/>).</param>
+/// <param name="Tools">add: the tools it will need, approved now (the assistants' process checked they exist).</param>
+/// <param name="Commands">add: the user's commands it will need, by name, approved now (K-Desktop finds them).</param>
+/// <param name="Event">cancel: the event's id, or words of its order or name.</param>
+public sealed record ScheduleMessage(string Id, string Op, string? Assistant = null, string? Order = null, string? Time = null, string? Date = null,
+    string? Repeat = null, IReadOnlyList<string>? Tools = null, IReadOnlyList<string>? Commands = null, string? Event = null) : PipeMessage
+{
+    public override string Type => "schedule";
+}
+
+/// <param name="Items">list: the programmed orders; add and cancel: the one added or removed.</param>
+/// <param name="Reason">When not done: <c>time</c> (no valid time), <c>past</c>, <c>empty</c>, <c>notFound</c> or <c>tooMany</c>.</param>
+/// <param name="Unknown">add: the commands it named that the user does not have (they will not be done).</param>
+public sealed record ScheduleDoneMessage(string Id, bool Ok, IReadOnlyList<ScheduledEntry>? Items = null, string? Reason = null,
+    IReadOnlyList<string>? Unknown = null) : PipeMessage
+{
+    public override string Type => "scheduleDone";
+}
+
+/// <summary>A programmed order: its event, when it is due next and what it will ask.</summary>
+/// <param name="When">Local, <c>yyyy-MM-dd HH:mm</c> (the next time it is due), for the model.</param>
+/// <param name="Repeat">Null when it runs once; otherwise as in <see cref="ScheduleMessage.Repeat"/>.</param>
+public sealed record ScheduledEntry(string Id, string Name, string When, string Order, string? Assistant = null, string? Repeat = null);
+
 /// <summary>Runs the commands of one of K-Desktop's events, found by its name. Answered with <see cref="EndMessage"/>.</summary>
-public sealed record RunEventMessage(string Assistant, string Run, string Event) : PipeMessage
+public sealed record RunEventMessage(string Assistant, string Run, string Event, string? Scheduled = null) : PipeMessage
 {
     public override string Type => "runEvent";
 }
@@ -895,7 +936,7 @@ public sealed record RunEventMessage(string Assistant, string Run, string Event)
 /// <param name="Op">What to do: <see cref="AssistantActs.Ops"/>.</param>
 /// <param name="App">The program in the user's words; empty: the window in front.</param>
 /// <param name="Value">For <c>volume</c>: the level, 0 to 100.</param>
-public sealed record ActMessage(string Assistant, string Run, string Op, string App = "", int? Value = null, bool Choreography = false) : PipeMessage
+public sealed record ActMessage(string Assistant, string Run, string Op, string App = "", int? Value = null, bool Choreography = false, string? Scheduled = null) : PipeMessage
 {
     public override string Type => "act";
 }
@@ -1092,6 +1133,8 @@ public static class PipeJson
         ["phrase"] = typeof(PhraseMessage),
         ["phraseDone"] = typeof(PhraseDoneMessage),
         ["runEvent"] = typeof(RunEventMessage),
+        ["schedule"] = typeof(ScheduleMessage),
+        ["scheduleDone"] = typeof(ScheduleDoneMessage),
         ["act"] = typeof(ActMessage),
         ["text"] = typeof(TextMessage),
         ["textDone"] = typeof(TextDoneMessage),

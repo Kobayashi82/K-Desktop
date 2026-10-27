@@ -215,6 +215,9 @@ internal sealed class AssistantSession : IDisposable
                     case PhraseDoneMessage phraseDone when Commands is { } commands:
                         commands.OnPhraseDone(phraseDone);
                         return;
+                    case ScheduleDoneMessage scheduleDone when Commands is { } commands:
+                        commands.OnScheduleDone(scheduleDone);
+                        return;
                     case HeardMessage heard when Talk is { } talk:
                         talk.OnHeard(heard);
                         return;

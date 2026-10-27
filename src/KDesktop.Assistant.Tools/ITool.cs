@@ -24,6 +24,12 @@ public interface ITool
 
     ToolRisk Risk { get; }
 
+    /// <summary>
+    /// Its risk with these arguments, when it depends on them (schedule: as risky as what it approves); the user's choice in
+    /// Options → Tools still wins.
+    /// </summary>
+    ToolRisk RiskFor(JsonElement arguments) => Risk;
+
     /// <summary>It only reads (the time, the notes, a sum): the test bench runs it for real; the others are only pretended.</summary>
     bool ReadsOnly => false;
 
@@ -181,6 +187,10 @@ public sealed class ToolRegistry
     /// <summary>How <paramref name="tool"/> asks: the user's choice, or its own.</summary>
     public ToolRisk RiskOf(ITool tool) =>
         _preferences.TryGetValue(tool.Name, out var preference) && ToolPreference.Parse(preference.Risk) is { } risk ? risk : tool.Risk;
+
+    /// <summary>Its risk for one call (<see cref="ITool.RiskFor"/>), unless the user chose one in Options → Tools.</summary>
+    public ToolRisk RiskOf(ITool tool, JsonElement arguments) =>
+        _preferences.TryGetValue(tool.Name, out var preference) && ToolPreference.Parse(preference.Risk) is { } risk ? risk : tool.RiskFor(arguments);
 
     /// <summary>The group of <paramref name="name"/>, or null when there is no such tool.</summary>
     public string? GroupOf(string name) => _snapshot.ByName.TryGetValue(name, out var found) ? found.Group : null;

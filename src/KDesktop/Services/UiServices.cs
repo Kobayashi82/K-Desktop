@@ -27,6 +27,9 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     /// <summary>Runs «Asistente: preguntar» (assistant id or empty, the order or empty) on the UI thread.</summary>
     public Action<string, string>? AssistantAsk { get; set; }
 
+    /// <summary>Runs an order an assistant programmed, with what was approved, on the UI thread.</summary>
+    public Action<EventAsk>? AssistantAskScheduled { get; set; }
+
     /// <summary>Runs «Asistente: decir» (assistant id or empty, the text) on the UI thread.</summary>
     public Action<string, string>? AssistantSayer { get; set; }
 
@@ -193,6 +196,8 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     public void RunAssistantExtra(string assistant, string extra) => dispatcher.BeginInvoke(() => AssistantExtra?.Invoke(assistant, extra));
 
     public void AskAssistant(string assistant, string text) => dispatcher.BeginInvoke(() => AssistantAsk?.Invoke(assistant, text));
+
+    public void AskAssistantScheduled(EventAsk ask) => dispatcher.BeginInvoke(() => AssistantAskScheduled?.Invoke(ask));
 
     public void AssistantSay(string assistant, string text) => dispatcher.BeginInvoke(() => AssistantSayer?.Invoke(assistant, text));
 

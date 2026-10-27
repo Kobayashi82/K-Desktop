@@ -1,0 +1,15 @@
+{
+  "t": "scheduleDone",
+  "id": "c-21",
+  "ok": true,
+  "items": [
+    {
+      "id": "e5f6a7b8c9d0",
+      "name": "mira el tiempo, mándamelo por Telegram, vacía la papelera y…",
+      "when": "2026-10-30 19:00",
+      "order": "mira el tiempo, mándamelo por Telegram, vacía la papelera y apaga el ordenador",
+      "assistant": "lander"
+    }
+  ],
+  "unknown": ["Apagar"]
+}

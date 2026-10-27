@@ -3,6 +3,7 @@ using KDesktop.Assistant.Brain.Models;
 using KDesktop.Assistant.Brain.Talk;
 using KDesktop.Assistant.Tools;
 using KDesktop.Assistant.Tools.Builtin;
+using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Assistant.Pipe;
 
@@ -40,6 +41,51 @@ public sealed class CommandRoutingTests : IDisposable
     }
 
     private const string Big = "fake-27B";
+
+    // 5.0.288: orders for later.
+
+    [Fact]
+    public async Task AnOrderForLaterIsProgrammedNotRunNow()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        const string said = "a las siete vacía la papelera";
+        _bridge.Sure(said, ("bin", "Vaciar papelera", null));
+        _model.Answers.Enqueue("""call:schedule:{"order":"vacía la papelera","time":"19:00","commands":["Vaciar papelera"]}""");
+        _model.Answers.Enqueue("Hecho, a las siete.");
+        await talk.HandleAsync(new HeardMessage(said, "panel", "lander"));
+
+        Assert.DoesNotContain(_bridge.Done, d => d.StartsWith("run:", StringComparison.Ordinal));
+        Assert.Contains(_model.Requests[0].Tools, t => t.Name == "schedule");
+        Assert.Contains(KDesktop.Core.Localization.Loc.T("assistant.prompt.later"), _model.Requests[0].Messages[^1].Content, StringComparison.Ordinal);
+        var sent = Assert.Single(_bridge.Scheduled);
+        Assert.Equal("vacía la papelera", sent.Order);
+        Assert.Equal(["Vaciar papelera"], sent.Commands);
+    }
+
+    [Fact]
+    public async Task AProgrammedOrderThatTurnsThePcOffGoesWholeToTheAiWithItsKey()
+    {
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        const string said = "apaga el ordenador y vacía la papelera";
+        _bridge.Matches[said] = new MatchedMessage("x", 0.95, [],
+        [
+            new MatchedPart("apaga el ordenador", true, [new MatchedCandidate("off", "Apagar", 0.95, Power: true)]),
+            new MatchedPart("vacía la papelera", true, [new MatchedCandidate("bin", "Vaciar papelera", 0.95)]),
+        ]);
+        _bridge.Sure("Vaciar papelera", ("bin", "Vaciar papelera", null));
+        _bridge.Sure("Apagar", ("off", "Apagar", null));
+        _model.Answers.Enqueue("call:run_command:Vaciar papelera");
+        _model.Answers.Enqueue("call:run_command:Apagar");
+        _model.Answers.Enqueue("Vaciada la papelera y apagando.");
+        await talk.HandleAsync(new HeardMessage(said, HeardMessage.SourceScheduled, "lander", Scheduled: "k-9", Allowed: ["run_command"]));
+
+        // Nothing ran before the AI: it left turning off for the end, and every run carried the order's key.
+        Assert.Equal(["run:bin:lander", "key:k-9", "run:off:lander", "key:k-9"], _bridge.Done);
+        Assert.Contains(KDesktop.Core.Localization.Loc.T("assistant.prompt.scheduled"), _model.Requests[0].Messages[^1].Content, StringComparison.Ordinal);
+        Assert.Null(ScheduledOrder.Current);
+    }
 
     // Stage 12: thinking harder.
 
@@ -938,7 +984,17 @@ public sealed class CommandRoutingTests : IDisposable
         public Task<EndMessage?> RunAsync(string command, string? assistant, CancellationToken cancellationToken)
         {
             Done.Add($"run:{command}:{assistant}");
+            if (ScheduledOrder.Current is { } order) Done.Add("key:" + order.Key);
             return Task.FromResult<EndMessage?>(new EndMessage("r", Status, []));
+        }
+
+        public List<ScheduleMessage> Scheduled { get; } = [];
+
+        public Task<ScheduleDoneMessage?> ScheduleAsync(ScheduleMessage request, CancellationToken cancellationToken)
+        {
+            Scheduled.Add(request);
+            return Task.FromResult<ScheduleDoneMessage?>(new ScheduleDoneMessage("s", true,
+                [new ScheduledEntry("e1", request.Order ?? "", $"{request.Date} {request.Time}", request.Order ?? "", request.Assistant)]));
         }
 
         public Task<EndMessage?> MediaAsync(string order, int? value, CancellationToken cancellationToken)

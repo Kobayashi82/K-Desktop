@@ -46,6 +46,13 @@ public interface ICommandBridge
     /// </summary>
     Task<PhraseDoneMessage?> PhraseAsync(string command, string phrase, bool remove, CancellationToken cancellationToken) =>
         Task.FromResult<PhraseDoneMessage?>(null);
+
+    /// <summary>
+    /// An order programmed for later, the list of them or one removed (<see cref="ScheduleMessage"/>; its id is put by the
+    /// bridge). Without K-Desktop: null.
+    /// </summary>
+    Task<ScheduleDoneMessage?> ScheduleAsync(ScheduleMessage request, CancellationToken cancellationToken) =>
+        Task.FromResult<ScheduleDoneMessage?>(null);
 }
 
 /// <summary>The command tools (stage 4.4), with the bridge to K-Desktop.</summary>
@@ -76,6 +83,9 @@ public static class CommandTools
         registry.Add(new ControlAppTool(bridge));
         registry.Add(new EndProcessTool(bridge));
         registry.Add(new TransformTextTool(bridge, writer));
+        registry.Add(new ScheduleTool(bridge, registry));
+        registry.Add(new ListScheduledTool(bridge));
+        registry.Add(new CancelScheduledTool(bridge));
     }
 
     /// <summary>The one candidate an order clearly means (a sure part, its exact name, or one well ahead), or null.</summary>

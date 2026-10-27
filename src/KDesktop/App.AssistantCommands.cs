@@ -33,12 +33,17 @@ public partial class App
                 return true;
             case RunMessage run:
                 RunForAssistant(supervisor, run.Assistant, run.Run, run.Choreography,
-                    (who, choreography) => AssistantCommands.RunAsync(Engine, run, who, (command, risk) => AskCommandAsync(run.Run, run.Assistant, command, risk, remember: true), choreography));
+                    (who, choreography) => AssistantCommands.RunAsync(Engine, run, who, (command, risk) => AskCommandAsync(run.Run, run.Assistant, command, risk, remember: true), choreography,
+                        CommandPermit(run.Scheduled, act: false)));
                 return true;
             case ActMessage act:
                 // A command made for the occasion (stage 8.1): nothing to trust for next time.
                 RunForAssistant(supervisor, act.Assistant, act.Run, act.Choreography,
-                    (who, choreography) => AssistantActs.ActAsync(Engine, act, who, (command, risk) => AskCommandAsync(act.Run, act.Assistant, command, risk, remember: false), choreography));
+                    (who, choreography) => AssistantActs.ActAsync(Engine, act, who, (command, risk) => AskCommandAsync(act.Run, act.Assistant, command, risk, remember: false), choreography,
+                        CommandPermit(act.Scheduled, act: true)));
+                return true;
+            case ScheduleMessage schedule:
+                OnSchedule(supervisor, schedule);
                 return true;
             case TextMessage text:
                 // Ctrl+C / Ctrl+V and the clipboard (transform_text): one at a time, off the pipe's thread.
@@ -74,9 +79,11 @@ public partial class App
                 _ = Task.Run(async () =>
                 {
                     var who = AssistantName(runEvent.Assistant);
+                    // An order programmed by an assistant: events run only if run_event was approved for it.
+                    bool? allowed = runEvent.Scheduled is null ? null : PermitOf(runEvent.Scheduled)?.Tools.Contains("run_event") == true;
                     var end = await AssistantCommands.RunEventAsync(Engine, runEvent, who,
-                        (rule, risk) => Dispatcher.InvokeAsync(() => AskUserAsync("event-" + runEvent.Run, runEvent.Assistant, Loc.T("assistantCommand.askEvent", rule.Name), false, CommandAskSeconds)).Task.Unwrap())
-                        .ConfigureAwait(false);
+                        (rule, risk) => Dispatcher.InvokeAsync(() => AskUserAsync("event-" + runEvent.Run, runEvent.Assistant, Loc.T("assistantCommand.askEvent", rule.Name), false, CommandAskSeconds)).Task.Unwrap(),
+                        allowed).ConfigureAwait(false);
                     supervisor.Send(end);
                 });
                 return true;

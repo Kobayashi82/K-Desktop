@@ -34,6 +34,9 @@ removed…) with its own commands.
   send it to me on Telegram*). If the assistant is not on the desktop, nothing happens.
 - **Only once**: the event is deleted after it runs (if it has commands in *When it ends*, after those).
   With *At a time* and a *Day*, it is «on Friday at 9, just once».
+- **Programmed by an assistant**: what you ask for later («at 7 empty the recycle bin», see
+  [Tools](../assistant/tools.md)) shows here as one more event, with who programmed it and what you approved when you
+  asked. You can change or delete it like any other.
 - **Conditions**: the same as the [If… action](commands.md#if-conditions): the event only runs when they are true.
 - **Don't repeat before**: if it fires again sooner (in seconds), it does nothing.
 - **Loop protection**: an event that fires more than 10 times in a minute stops for 10 minutes, and K-Desktop tells you.

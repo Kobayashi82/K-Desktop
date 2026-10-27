@@ -2,6 +2,7 @@ using System.Text;
 using KDesktop.Assistant.Brain.Models;
 using KDesktop.Assistant.Tools;
 using KDesktop.Core;
+using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Brain;
 using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Localization;
@@ -99,8 +100,10 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     public async Task<TalkAnswer> AnswerAsync(IChatModel model, string modelName, AssistantPersona persona, IReadOnlyList<ChatMessage> history,
         IReadOnlyCollection<string> recentTools, string said, ToolContext context, Action<string>? onText, CancellationToken cancellationToken,
         IReadOnlyCollection<string>? leaveOut = null, IReadOnlyList<string>? commands = null, bool capable = false, IReadOnlyList<string>? certain = null,
-        Thinker? thinker = null, bool thinkFirst = false, Action? onThinkHard = null, bool doubted = false, Action<string>? onLong = null)
+        Thinker? thinker = null, bool thinkFirst = false, Action? onThinkHard = null, bool doubted = false, Action<string>? onLong = null, bool later = false)
     {
+        // An order programmed earlier, now due (its tools were approved then): done whole, without asking.
+        var scheduled = ScheduledOrder.Current is not null;
         var maxRounds = capable ? CapableToolRounds : MaxToolRounds;
         var maxCalls = capable ? CapableToolCalls : MaxToolCalls;
         var thinking = thinkFirst && thinker is not null;
@@ -141,6 +144,8 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         if (known.Any(m => QuickRules.Sites(m.Text).Count > 0)) always.Add(OpenWebTool);
         // «Cuando diga «Kamugi», abre K-Movies»: a phrase for one of their commands, not a memory that only works said exactly.
         if (TeachesPhrase(said) && tools.Registry.Find(VoicePhraseTool) is not null) always.Add(VoicePhraseTool);
+        // «A las siete…»: programming it, or a plain reminder, must be at hand (and finding the user's commands to name them).
+        if (later) always.AddRange(LaterTools.Where(t => !hidden.Contains(t) && tools.Registry.Find(t) is not null));
         var remembered = known.Select(m => m.Text).ToList();
         var offered = await chooser.ChooseAsync(available, said, [.. always.Distinct()], order, cancellationToken).ConfigureAwait(false);
         var definitions = offered.Tools.Select(t => new ToolDefinition(t.Name, t.Description, t.ParametersSchemaJson)).ToList();
@@ -158,7 +163,9 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
         // (Options → Assistant → General → the language they speak in). Only for this order, not kept in the history.
         messages.Add(ChatMessage.User(said + GivenFilesLine(context) + "\n\n" + Loc.T("assistant.prompt.answerIn")
             + (writing ? "\n\n" + Loc.T("assistant.prompt.long") : "")
-            + (thinking ? "\n\n" + Loc.T(doubted ? "assistant.prompt.checkAgain" : "assistant.prompt.thinkHard") : "")));
+            + (thinking ? "\n\n" + Loc.T(doubted ? "assistant.prompt.checkAgain" : "assistant.prompt.thinkHard") : "")
+            + (later ? "\n\n" + Loc.T("assistant.prompt.later") : "")
+            + (scheduled ? "\n\n" + Loc.T("assistant.prompt.scheduled") : "")));
         if (writing) Log.Info("Asistente: la orden pide una respuesta larga");
         if (thinking)
         {
@@ -547,6 +554,9 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     private static readonly string[] MemoryTools = ["remember", "forget"];
 
     private static readonly string[] CommandToolNames = ["run_command", "find_command"];
+
+    /// <summary>For an order for later: programming it, a plain reminder, and finding the user's commands to name them.</summary>
+    private static readonly string[] LaterTools = ["schedule", "set_timer", "find_command"];
 
     private static string Short(string text) => text.Length > 160 ? text[..160] + "…" : text;
 

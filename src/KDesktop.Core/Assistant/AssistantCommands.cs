@@ -134,23 +134,35 @@ public static class AssistantCommands
     /// <param name="choreography">With <see cref="RunMessage.Choreography"/>: the assistant's turn before each step (stage
     /// 6.3); cancelling it ends the run <c>cancelled</c>.</param>
     public static async Task<EndMessage> RunAsync(CommandEngine engine, RunMessage request, string who, Func<Command, ToolRisk, Task<string>> ask,
-        AssistantChoreography? choreography = null)
+        AssistantChoreography? choreography = null, Func<Command, bool>? allowed = null)
     {
         if (engine.IsPaused) return new EndMessage(request.Run, "failed", [Loc.T("pause.refused")]);
         if (engine.Config.FindCommand(request.Command) is not { Enabled: true } command || !Available(engine.Config).Contains(command))
             return new EndMessage(request.Run, "failed", [Loc.T("assistantCommand.notFound")]);
-        return await RunCommandAsync(engine, command, request.Run, who, ask, choreography).ConfigureAwait(false);
+        return await RunCommandAsync(engine, command, request.Run, who, ask, choreography, allowed).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Runs a command for an assistant (one of the user's, or one made for the occasion: <see cref="AssistantActs"/>):
     /// its risk first, then the run, in the history as coming from <paramref name="who"/>.
     /// </summary>
+    /// <param name="allowed">
+    /// An order programmed by an assistant (<see cref="ScheduledPermit"/>): nobody is asked; what is not safe runs only if
+    /// this says it was approved, whatever the user's policy.
+    /// </param>
     public static async Task<EndMessage> RunCommandAsync(CommandEngine engine, Command command, string run, string who, Func<Command, ToolRisk, Task<string>> ask,
-        AssistantChoreography? choreography = null)
+        AssistantChoreography? choreography = null, Func<Command, bool>? allowed = null)
     {
         var risk = ActionRisk.OfCommand(command, engine.Config.FindCommand, engine.Config.Settings.AssistantTrustedCommands.Contains(command.Id));
-        if (AskPolicy.Asks(risk, engine.Config.Settings.AssistantAskBefore) && await ask(command, risk).ConfigureAwait(false) is not ("yes" or "always"))
+        if (allowed is not null)
+        {
+            if (risk != ToolRisk.Safe && !allowed(command))
+            {
+                Log.Info($"Asistente: «{command.Name}» no se aprobó al programar la orden: no se ejecuta");
+                return new EndMessage(run, "declined", [Loc.T("assistantCommand.notApproved", command.Name)], Reason: "notApproved");
+            }
+        }
+        else if (AskPolicy.Asks(risk, engine.Config.Settings.AssistantAskBefore) && await ask(command, risk).ConfigureAwait(false) is not ("yes" or "always"))
             return new EndMessage(run, "declined", [Loc.T("assistantCommand.declined", command.Name)]);
         var feedback = new ExecutionFeedback();
         Task running;
@@ -211,7 +223,9 @@ public static class AssistantCommands
     /// Runs the commands of an event found by its name (the closest, if it is clearly that one), asking first like for a
     /// command when any of them would ask (the riskiest decides). Not found or paused: <c>failed</c> at once.
     /// </summary>
-    public static async Task<EndMessage> RunEventAsync(CommandEngine engine, RunEventMessage request, string who, Func<EventRule, ToolRisk, Task<string>> ask)
+    /// <param name="allowed">An order programmed by an assistant: whether running events was approved (nobody is asked).</param>
+    public static async Task<EndMessage> RunEventAsync(CommandEngine engine, RunEventMessage request, string who, Func<EventRule, ToolRisk, Task<string>> ask,
+        bool? allowed = null)
     {
         if (engine.IsPaused) return new EndMessage(request.Run, "failed", [Loc.T("pause.refused")]);
         var config = engine.Config;
@@ -225,8 +239,13 @@ public static class AssistantCommands
         var risk = rule.Commands.Select(config.FindCommand).OfType<Command>()
             .Select(c => ActionRisk.OfCommand(c, config.FindCommand, config.Settings.AssistantTrustedCommands.Contains(c.Id)))
             .DefaultIfEmpty(ToolRisk.Safe).Max();
+        if (allowed is { } approved)
+        {
+            if (risk != ToolRisk.Safe && !approved)
+                return new EndMessage(request.Run, "declined", [Loc.T("assistantCommand.notApproved", rule.Name)], Reason: "notApproved");
+        }
         // An event is never trusted as a whole: it asks at least once a time, unless every command in it is trusted.
-        if (AskPolicy.Asks(risk, config.Settings.AssistantAskBefore) && await ask(rule, risk).ConfigureAwait(false) is not ("yes" or "always"))
+        else if (AskPolicy.Asks(risk, config.Settings.AssistantAskBefore) && await ask(rule, risk).ConfigureAwait(false) is not ("yes" or "always"))
             return new EndMessage(request.Run, "declined", [Loc.T("assistantCommand.declined", rule.Name)]);
         var feedback = new ExecutionFeedback();
         Task run;

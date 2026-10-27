@@ -149,6 +149,16 @@ public sealed partial class EventsPage : UserControl, IDisposable
         RemoveAskButton.Visibility = asks ? Visibility.Visible : Visibility.Collapsed;
         NoAsk.Visibility = asks ? Visibility.Collapsed : Visibility.Visible;
         AskEditor.Visibility = asks ? Visibility.Visible : Visibility.Collapsed;
+        // Programmed by an assistant: who, and what it may do then without asking.
+        ScheduledInfo.Visibility = rule.Ask is { IsScheduled: true } ? Visibility.Visible : Visibility.Collapsed;
+        if (rule.Ask is { IsScheduled: true } scheduled)
+        {
+            var approved = (scheduled.Tools ?? []).Where(t => t != "run_command").Select(ToolTitle)
+                .Concat((scheduled.Commands ?? []).Select(id => Config.FindCommand(id)?.Name).OfType<string>().Select(n => $"«{n}»"))
+                .ToList();
+            ScheduledText.Text = Loc.T("event.scheduledBy", App.AssistantName(rule.CreatedBy ?? scheduled.Assistant))
+                + " " + (approved.Count > 0 ? Loc.T("event.scheduledApproved", string.Join(", ", approved)) : Loc.T("event.scheduledNothing"));
+        }
         EndHint.Text = rule.HasEnd ? Loc.T($"event.endHint.{rule.Trigger.Kind}") : string.Empty;
         ConditionsBadge.Visibility = rule.Conditions.IsEmpty ? Visibility.Collapsed : Visibility.Visible;
         RefreshSuspended();
@@ -354,6 +364,14 @@ public sealed partial class EventsPage : UserControl, IDisposable
         rule.Ask = new EventAsk();
         Dispatcher.BeginInvoke(() => AskEditor.Children.OfType<Wpf.Ui.Controls.TextBox>().FirstOrDefault()?.Focus(),
             System.Windows.Threading.DispatcherPriority.Input);
+    }
+
+    /// <summary>A tool's name for people (its title in Options → Tools, when it has one).</summary>
+    private static string ToolTitle(string tool)
+    {
+        var key = "tool." + tool + ".title";
+        var title = Loc.T(key);
+        return title == key ? tool : title;
     }
 
     private void OnRemoveAsk(object sender, RoutedEventArgs e)

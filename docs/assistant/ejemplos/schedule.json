@@ -1,0 +1,11 @@
+{
+  "t": "schedule",
+  "id": "c-21",
+  "op": "add",
+  "assistant": "lander",
+  "order": "mira el tiempo, mándamelo por Telegram, vacía la papelera y apaga el ordenador",
+  "time": "19:00",
+  "date": "2026-10-30",
+  "tools": ["weather", "send_telegram", "run_command"],
+  "commands": ["Vaciar papelera", "Apagar"]
+}

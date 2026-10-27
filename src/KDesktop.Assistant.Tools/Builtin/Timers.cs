@@ -231,6 +231,7 @@ public sealed class SetTimerTool(TimerStore timers) : ITool
     public string ParametersSchemaJson => ToolText.Optional(
         ("minutes", "number", "Minutes from now (for «in 10 minutes»)"),
         ("time", "string", "Time of day HH:MM (for «at five»), when there are no minutes"),
+        ("day", "string", "With time: today, tomorrow, a weekday in English (friday) or YYYY-MM-DD (optional: the next time it is that hour)"),
         ("reason", "string", "What to remind, in the user's words (optional)"));
 
     public IReadOnlyList<string> Examples => ToolText.Examples(Name);
@@ -242,7 +243,9 @@ public sealed class SetTimerTool(TimerStore timers) : ITool
         var intent = arguments.GetNumber("minutes") is > 0 and var minutes
             ? Loc.T("tool.set_timer.intentIn", ToolText.Left(TimeSpan.FromMinutes(minutes)))
             : TimerStore.TryParseTime(arguments.GetString("time"), out var at)
-                ? Loc.T("tool.set_timer.intentAt", at.ToString("t", Loc.Instance.Culture))
+                ? AssistantSchedule.Day(arguments.GetString("day"), DateOnly.FromDateTime(timers.Time.GetLocalNow().DateTime)) is { } day
+                    ? Loc.T("tool.set_timer.intentOn", ScheduleTool.Human(day, at, null))
+                    : Loc.T("tool.set_timer.intentAt", at.ToString("t", Loc.Instance.Culture))
                 : Loc.T("tool.set_timer.intent");
         return ToolText.Clean(arguments.GetString("reason")) is { Length: > 0 } reason ? intent + Loc.T("tool.reason", reason) : intent;
     }
@@ -256,19 +259,40 @@ public sealed class SetTimerTool(TimerStore timers) : ITool
             if (minutes <= 0) return Task.FromResult(ToolResult.Fail("The minutes must be more than zero."));
             due = now.AddMinutes(Math.Min(minutes, TimerStore.MaxAhead.TotalMinutes + 1));
         }
-        else if (TimerStore.TryParseTime(arguments.GetString("time"), out var at)) due = TimerStore.Next(at, now);
+        else if (TimerStore.TryParseTime(arguments.GetString("time"), out var at))
+        {
+            var local = now;
+            var day = arguments.GetString("day");
+            if (day is not { Length: > 0 }) due = TimerStore.Next(at, now);
+            // «Mañana a las 7» said before 7 in the morning is tomorrow's, not today's.
+            else if (AssistantSchedule.Day(day, DateOnly.FromDateTime(local.DateTime)) is { } date)
+            {
+                due = new DateTimeOffset(date.ToDateTime(at), local.Offset);
+                if (due <= local) return Task.FromResult(ToolResult.Fail("That time has already passed."));
+                if (due - local > TimerStore.MaxAhead) return Task.FromResult(ToolResult.Fail($"At most {TimerStore.MaxAhead.TotalDays} days ahead: for later, use schedule."));
+            }
+            else return Task.FromResult(ToolResult.Fail("Say the day as today, tomorrow, a weekday in English (friday) or YYYY-MM-DD."));
+        }
         else return Task.FromResult(ToolResult.Fail("Say in how many minutes or at what time."));
 
         var reason = ToolText.Clean(arguments.GetString("reason"));
         var (item, error) = timers.Add(due, reason, context.Assistant);
         if (item is null) return Task.FromResult(ToolResult.Fail(error ?? "It cannot be set."));
         var clock = ToolText.Clock(item.Due);
+        // Another day: «mañana a las 7:00», «el viernes 30 a las 9:00».
+        var dueLocal = item.Due.ToOffset(now.Offset);
+        var otherDay = dueLocal.Date != now.Date;
+        var human = ScheduleTool.Human(DateOnly.FromDateTime(dueLocal.DateTime), TimeOnly.FromDateTime(dueLocal.DateTime), null);
         // A beacon by the clock with the time it rings.
         context.Show?.Invoke(ToolGesture.Mark(ToolSpot.Clock, item.Due.ToLocalTime().ToString("t", Loc.Instance.Culture)));
-        return Task.FromResult(new ToolResult($"Timer set for {item.Due.ToLocalTime():HH:mm} ({ToolText.Left(item.Due - now)} from now){(reason.Length > 0 ? ": " + reason : "")}.")
+        return Task.FromResult(new ToolResult($"Timer set for {dueLocal:yyyy-MM-dd HH:mm} ({ToolText.Left(item.Due - now)} from now){(reason.Length > 0 ? ": " + reason : "")}.")
         {
-            Done = reason.Length > 0 ? Loc.T("tool.set_timer.doneFor", clock, reason) : Loc.T("tool.set_timer.done", clock),
-            Reply = reason.Length > 0 ? Loc.T("tool.set_timer.replyFor", clock, reason) : Loc.T("tool.set_timer.reply", clock),
+            Done = otherDay
+                ? reason.Length > 0 ? Loc.T("tool.set_timer.doneOnFor", human, reason) : Loc.T("tool.set_timer.doneOn", human)
+                : reason.Length > 0 ? Loc.T("tool.set_timer.doneFor", clock, reason) : Loc.T("tool.set_timer.done", clock),
+            Reply = otherDay
+                ? reason.Length > 0 ? Loc.T("tool.set_timer.replyOnFor", human, reason) : Loc.T("tool.set_timer.replyOn", human)
+                : reason.Length > 0 ? Loc.T("tool.set_timer.replyFor", clock, reason) : Loc.T("tool.set_timer.reply", clock),
             Undo = new ToolUndo(Name, item.Id),
         });
     }

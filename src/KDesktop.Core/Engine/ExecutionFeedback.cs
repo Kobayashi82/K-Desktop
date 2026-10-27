@@ -96,6 +96,7 @@ internal sealed class FeedbackUiServices(IUiServices inner) : IUiServices
     public void ShowMainWindow() => inner.ShowMainWindow();
     public void RunAssistantExtra(string assistant, string extra) => inner.RunAssistantExtra(assistant, extra);
     public void AskAssistant(string assistant, string text) => inner.AskAssistant(assistant, text);
+    public void AskAssistantScheduled(EventAsk ask) => inner.AskAssistantScheduled(ask);
     public void AssistantSay(string assistant, string text) => inner.AssistantSay(assistant, text);
     public void AssistantBrain(Model.AssistantBrainOp op) => inner.AssistantBrain(op);
     public void Dictate(Model.SwitchMode mode) => inner.Dictate(mode);
