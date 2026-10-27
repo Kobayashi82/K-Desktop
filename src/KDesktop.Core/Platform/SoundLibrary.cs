@@ -12,8 +12,8 @@ public enum SoundSource { KDesktop, Windows, Yours }
 public sealed record SoundEntry(string Value, string Name, SoundKind Kind, SoundSource Source);
 
 /// <summary>
-/// Every sound the chooser offers: the built-in ones, the user's Sounds folder and Windows' (C:\Windows\Media and its
-/// theme folders), without the Windows files that are the same as a built-in one.
+/// Every sound the chooser offers: the built-in ones (only K-Desktop's own: none is a copy of a Windows one), the user's
+/// Sounds folder and Windows' (C:\Windows\Media and its theme folders).
 /// </summary>
 public static partial class SoundLibrary
 {
@@ -21,6 +21,26 @@ public static partial class SoundLibrary
     public static readonly string[] Extensions = [".wav", ".mp3", ".wma", ".m4a", ".aac", ".flac"];
 
     public static string WindowsMedia => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Media");
+
+    /// <summary>
+    /// Built-in sounds until 5.0.296 that were Windows' own files with another name (the same bytes): since 5.0.297 they
+    /// are not built in, and those names mean the Windows file (<see cref="Upgrade"/>).
+    /// </summary>
+    public static readonly IReadOnlyDictionary<string, string> FromWindows = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Alarma 1"] = "Alarm02.wav", ["Alarma 2"] = "Alarm03.wav", ["Balloon"] = "Windows Balloon.wav",
+        ["Battery Critical"] = "Windows Battery Critical.wav", ["Battery Low"] = "Windows Battery Low.wav", ["Chimes"] = "chimes.wav",
+        ["Chord"] = "chord.wav", ["Connection"] = "Windows Proximity Connection.wav", ["Default"] = "Windows Default.wav",
+        ["Ding"] = "Windows Ding.wav", ["Error"] = "Windows Error.wav", ["Exclamation"] = "Windows Exclamation.wav",
+        ["LogOff"] = "Windows Logoff Sound.wav", ["LogOn"] = "Windows Logon.wav", ["Notification 1"] = "Windows Proximity Notification.wav",
+        ["Notification 2"] = "notify.wav", ["Notification 3"] = "Windows Notify.wav", ["Print"] = "Windows Print complete.wav",
+        ["Recycle"] = "Windows Recycle.wav", ["Ring 1"] = "Ring02.wav", ["Ring 2"] = "Ring06.wav", ["Ring 3"] = "Windows Ringout.wav",
+        ["Shutdown"] = "Windows Shutdown.wav", ["Stop"] = "Windows Critical Stop.wav", ["Tada"] = "tada.wav", ["Unlock"] = "Windows Unlock.wav",
+    };
+
+    /// <summary>A name of <see cref="FromWindows"/> as the path of its Windows file; anything else as it is.</summary>
+    public static string? Upgrade(string? sound) =>
+        sound is not null && FromWindows.TryGetValue(sound, out var file) ? Path.Combine(WindowsMedia, file) : sound;
 
     public static bool IsPlayableFile(string path) => Extensions.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase);
 
@@ -61,11 +81,16 @@ public static partial class SoundLibrary
         return alert.Any(w => n.Contains(w, StringComparison.Ordinal)) ? SoundKind.Alert : SoundKind.System;
     }
 
-    /// <summary>«Windows Notify Email.wav» → «Notify Email», «Alarm01.wav» → «Alarm 01», with its theme folder if it is in one.</summary>
+    /// <summary>
+    /// «Windows Notify Email.wav» → «Notify Email», «Alarm01.wav» → «Alarm 01», with its theme folder if it is in one. The
+    /// «Windows» stays where taking it away would give the name of another file (ding.wav and Windows Ding.wav differ).
+    /// </summary>
     private static string WindowsName(string path)
     {
         var name = Path.GetFileNameWithoutExtension(path);
-        if (name.StartsWith("Windows ", StringComparison.OrdinalIgnoreCase)) name = name[8..];
+        if (name.StartsWith("Windows ", StringComparison.OrdinalIgnoreCase) &&
+            !File.Exists(Path.Combine(Path.GetDirectoryName(path)!, name[8..] + Path.GetExtension(path))))
+            name = name[8..];
         name = DigitsAfterLetters().Replace(name, " ");
         if (name.Length > 0) name = char.ToUpperInvariant(name[0]) + name[1..];
         var folder = Path.GetFileName(Path.GetDirectoryName(path));
@@ -84,14 +109,10 @@ public static partial class SoundLibrary
             // «dm» holds other takes of the same system sounds: they would only repeat names.
             var folders = new[] { WindowsMedia }.Concat(Directory.GetDirectories(WindowsMedia)
                 .Where(d => !string.Equals(Path.GetFileName(d), "dm", StringComparison.OrdinalIgnoreCase)));
-            var builtIn = Sounds.BuiltInNames().Select(n => Sounds.BuiltInBytes(n)).OfType<byte[]>().ToList();
-            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var folder in folders)
                 foreach (var file in Directory.EnumerateFiles(folder).Where(IsPlayableFile).Order(StringComparer.OrdinalIgnoreCase))
                 {
                     var name = WindowsName(file);
-                    // «ding.wav» and «Windows Ding.wav», «chimes» and the built-in «Chimes»…: once.
-                    if (!names.Add(name) || SameAsAny(file, builtIn)) continue;
                     list.Add(new SoundEntry(file, name, KindOf(name), SoundSource.Windows));
                 }
         }
@@ -100,13 +121,5 @@ public static partial class SoundLibrary
             Log.Warn($"No se pudieron leer los sonidos de Windows: {ex.Message}");
         }
         return list;
-    }
-
-    private static bool SameAsAny(string file, List<byte[]> builtIn)
-    {
-        var length = new FileInfo(file).Length;
-        if (!builtIn.Any(b => b.LongLength == length)) return false;
-        var bytes = File.ReadAllBytes(file);
-        return builtIn.Any(b => b.AsSpan().SequenceEqual(bytes));
     }
 }

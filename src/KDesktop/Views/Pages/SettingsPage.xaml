@@ -553,7 +553,7 @@
                         </StackPanel>
                         <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding OsdEnabled}" AutomationProperties.Name="{l:Tr settings.osdEnabled}" />
                     </Grid>
-                    <!-- Countdowns and progress show either way: as a ring in the middle, or on the OSD -->
+                    <!-- Countdowns show either way: as a ring in the middle, or on the OSD -->
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">

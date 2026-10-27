@@ -60,7 +60,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 
 | Action | What it does |
 |---|---|
-| **Files and folders** | Copy, move, rename, delete (to the recycle bin or for good), create a folder, zip, unzip or make a **backup**: sync (only what is new or changed, optionally removing from the destination what is gone) or a dated copy each time keeping the latest. The source is a list of files, folders or patterns (`C:\Music\*.mp3`) typed in or added with the buttons. The destination may be inside the source: it never copies itself. Progress shows in a circle in the middle of the screen, or on the OSD (Esc stops it) and the next action can wait until it is done. |
+| **Files and folders** | Copy, move, rename, delete (to the recycle bin or for good), create a folder, zip, unzip or make a **backup**: sync (only what is new or changed, optionally removing from the destination what is gone) or a dated copy each time keeping the latest. The source is a list of files, folders or patterns (`C:\Music\*.mp3`) typed in or added with the buttons. The destination may be inside the source: it never copies itself. Progress shows on the OSD (Esc stops it) and the next action can wait until it is done. |
 | **Hidden files (on/off)** | Shows or hides hidden files in Explorer. |
 | **Power plan** | Switches the Windows power plan (High performance, Balanced…) or goes to the next one. |
 | **Power** | Shuts down, restarts, sleeps, locks or signs out, with a cancellable countdown. |

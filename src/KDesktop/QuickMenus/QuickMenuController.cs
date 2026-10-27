@@ -103,7 +103,6 @@ public sealed class QuickMenuController
         root.Level = 0;
         root.ParentEntry = null;
         root.ApplySize(menu.Size);
-        root.ApplyTransparency(menu.SeeThrough);
         root.SetEntries(Build(menu.Items, config));
         _levels.Add(root);
 
@@ -251,7 +250,6 @@ public sealed class QuickMenuController
         sub.Level = parent.Level + 1;
         sub.ParentEntry = entry;
         sub.ApplySize(_menu?.Size ?? 1);
-        sub.ApplyTransparency(_menu?.SeeThrough ?? Core.Model.QuickMenu.DefaultTransparency);
         sub.SetEntries(Build(entry.Children, _config()));
         entry.IsExpanded = true;
         _levels.Add(sub);

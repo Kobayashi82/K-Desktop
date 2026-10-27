@@ -146,38 +146,13 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
         timer.Start();
     });
 
-    // Like the countdowns, it always shows: it says what is going on and that Esc stops it.
+    // Like the countdowns, it always shows: it says what is going on and that Esc stops it. On the OSD, not in the ring:
+    // a long copy would sit in the middle of the screen.
     public IProgressOsd ShowProgressOsd(string text, string icon)
     {
-        if (settings().OsdRing)
-        {
-            var ring = new RingProgress(this);
-            dispatcher.BeginInvoke(() => ring.Generation = Ring.ShowProgress(text, icon, 0));
-            return ring;
-        }
         var osd = new ProgressOsd(this, icon);
         dispatcher.BeginInvoke(() => osd.Generation = Osd.ShowMessage(text, OsdKind.Info, null, look: new OsdLook(icon, 0)));
         return osd;
-    }
-
-    /// <summary>The progress in the ring: it only touches it while it is the one shown.</summary>
-    private sealed class RingProgress(UiServices owner) : IProgressOsd
-    {
-        private int _closed;
-
-        /// <summary>Generation of its progress in the ring (UI thread only).</summary>
-        public int Generation { get; set; } = -1;
-
-        public void Update(string text, double level) => owner.UiDispatcher.BeginInvoke(() =>
-        {
-            if (_closed == 0) owner.Ring.SetProgress(Generation, text, level);
-        });
-
-        public void Dispose()
-        {
-            if (Interlocked.Exchange(ref _closed, 1) != 0) return;
-            owner.UiDispatcher.BeginInvoke(() => owner.Ring.HideRing(Generation));
-        }
     }
 
     /// <summary>A message with a bar that its work keeps updating; it only touches the OSD while it is the one shown.</summary>

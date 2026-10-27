@@ -186,12 +186,16 @@ public static class Sounds
             Win32.PlaySound(Marshal.UnsafeAddrOfPinnedArrayElement(wav, 0), IntPtr.Zero, flags | Win32.SND_MEMORY);
     }
 
-    /// <summary>The path of an audio file, or a name in the user's Sounds folder (in any of the formats that play).</summary>
+    /// <summary>
+    /// The path of an audio file, or a name in the user's Sounds folder (in any of the formats that play), or a name that
+    /// was a built-in copy of a Windows sound (<see cref="SoundLibrary.FromWindows"/>).
+    /// </summary>
     private static string? FindFile(string sound)
     {
         if (File.Exists(sound)) return sound;
         if (sound.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return null;
-        return SoundLibrary.Extensions.Select(e => Path.Combine(AppPaths.SoundsDir, sound + e)).FirstOrDefault(File.Exists);
+        return SoundLibrary.Extensions.Select(e => Path.Combine(AppPaths.SoundsDir, sound + e)).FirstOrDefault(File.Exists)
+               ?? (SoundLibrary.Upgrade(sound) is { } windows && windows != sound && File.Exists(windows) ? windows : null);
     }
 
     private static byte[]? BuiltIn(string name)

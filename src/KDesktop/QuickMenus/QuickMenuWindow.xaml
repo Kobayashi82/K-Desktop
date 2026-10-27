@@ -112,7 +112,7 @@
     </Window.Resources>
 
     <Border x:Name="Surface"
-            Background="{DynamicResource Kd.MenuTint}"
+            Background="{DynamicResource Kd.MenuTintOpaque}"
             BorderBrush="{DynamicResource Kd.MenuBorder}"
             BorderThickness="1"
             CornerRadius="8"

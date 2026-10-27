@@ -13,8 +13,6 @@ namespace KDesktop.QuickMenus;
 public partial class QuickMenuWindow : Window
 {
     private static readonly IEasingFunction EaseOut = new CubicEase { EasingMode = EasingMode.EaseOut };
-    private bool _backdrop;
-    private int _transparency = Core.Model.QuickMenu.DefaultTransparency;
 
     public QuickMenuWindow(bool isSubmenu)
     {
@@ -55,7 +53,8 @@ public partial class QuickMenuWindow : Window
         }
         UiNative.AddExStyle(Hwnd, toolWindow: true, noActivate: IsSubmenu);
         UiNative.SetCorners(Hwnd, UiNative.Corner.Round);
-        ApplyBackdrop();
+        UiNative.SetBackdrop(Hwnd, UiNative.Backdrop.Acrylic);
+        ApplyTheme();
     }
 
     /// <summary>
@@ -70,33 +69,12 @@ public partial class QuickMenuWindow : Window
         return MA_NOACTIVATE;
     }
 
-    /// <summary>Updates DWM dark mode and the tint so it matches the current theme.</summary>
+    /// <summary>Updates DWM dark mode so it matches the current theme (the surface is Kd.MenuTintOpaque, the same as the
+    /// menu drawn in the QuickMenus page: the acrylic only shows at the rounded edge).</summary>
     public void ApplyTheme()
     {
         if (Hwnd == IntPtr.Zero) return;
         UiNative.SetDarkMode(Hwnd, ThemeService.IsDark);
-        Surface.SetResourceReference(Border.BackgroundProperty, _backdrop ? "Kd.MenuTint" : "Kd.MenuTintOpaque");
-    }
-
-    /// <summary>
-    /// Acrylic while opaque; see-through, no backdrop (the glass of the extended frame shows what is behind) and the
-    /// whole surface faded. A layered alpha does not work here: WPF takes WS_EX_LAYERED away again.
-    /// </summary>
-    private void ApplyBackdrop()
-    {
-        if (Hwnd == IntPtr.Zero) return;
-        _backdrop = UiNative.SetBackdrop(Hwnd, _transparency == 0 ? UiNative.Backdrop.Acrylic : UiNative.Backdrop.None) &&
-                    _transparency == 0;
-        UiNative.ExtendFrame(Hwnd);
-        Surface.Opacity = (100 - _transparency) / 100.0;
-        ApplyTheme();
-    }
-
-    /// <summary>How much of what is behind shows through the whole menu, text included (QuickMenu.SeeThrough).</summary>
-    public void ApplyTransparency(int percent)
-    {
-        _transparency = Math.Clamp(percent, 0, Core.Model.QuickMenu.MaxTransparency);
-        ApplyBackdrop();
     }
 
     /// <summary>Size preset 0..5 (same scale as K-Desktop 4).</summary>

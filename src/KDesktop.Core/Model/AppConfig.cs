@@ -58,6 +58,32 @@ public sealed class AppConfig
             Log.Info($"La acción «Lanzador» de «{cmd.Name}» pasa a Opciones › Lanzador");
             if (cmd.Actions.Count == 0 && !IsReferenced(cmd.Id)) Commands.Remove(cmd);
         }
+        // Until 5.0.296 some built-in sounds were Windows' own files renamed («Tada», «Notification 1»…): now they are the
+        // Windows files themselves.
+        string? WindowsSound(string? sound)
+        {
+            var upgraded = Platform.SoundLibrary.Upgrade(sound);
+            if (upgraded != sound) changed = true;
+            return upgraded;
+        }
+        var s = Settings;
+        s.StartupSound = WindowsSound(s.StartupSound);
+        s.ExitSound = WindowsSound(s.ExitSound);
+        s.PauseSound = WindowsSound(s.PauseSound);
+        s.ResumeSound = WindowsSound(s.ResumeSound);
+        s.NotifySound = WindowsSound(s.NotifySound);
+        s.VoiceListenSound = WindowsSound(s.VoiceListenSound);
+        foreach (var cmd in Commands)
+        {
+            cmd.Sound = WindowsSound(cmd.Sound);
+            foreach (var action in cmd.Actions)
+                switch (action)
+                {
+                    case PlaySoundAction play: play.Sound = WindowsSound(play.Sound) ?? string.Empty; break;
+                    case AudioOutputAction output: output.Sound = WindowsSound(output.Sound); break;
+                    case ShowNotificationAction notify: notify.Sound = WindowsSound(notify.Sound); break;
+                }
+        }
         // The built-in listening sound was called «Escuchar» in 5.0.11–5.0.14.
         if (Settings.VoiceListenSound == "Escuchar")
         {
@@ -545,7 +571,7 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private bool _achievementSound = true;
 
     /// <summary>The sound of the notifications (those of «Mostrar notificación» set to «Global», and K-Desktop's own); null: none.</summary>
-    [ObservableProperty] private string? _notifySound = "Notification 1";
+    [ObservableProperty] private string? _notifySound = Path.Combine(Platform.SoundLibrary.WindowsMedia, "Windows Proximity Notification.wav");
 
     // Macros
     /// <summary>Record mouse movements (not only clicks) when recording a macro.</summary>
@@ -968,7 +994,7 @@ public partial class AppSettings : ObservableObject
     /// <summary>Off: no message on the screen (only countdowns and the progress of what can be stopped, which say how to stop it).</summary>
     [ObservableProperty] private bool _osdEnabled = true;
 
-    /// <summary>Countdowns and progress as a ring a little below the middle of the screen (off: on the OSD, like the rest).</summary>
+    /// <summary>Countdowns as a ring a little below the middle of the screen (off: on the OSD, like the rest).</summary>
     [ObservableProperty] private bool _osdRing = true;
 
     [ObservableProperty] private bool _osdShowActions = true;

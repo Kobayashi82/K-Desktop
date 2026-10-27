@@ -15,7 +15,7 @@
         Width="480"
         Height="440"
         UseLayoutRounding="True">
-    <!-- Countdowns and progress: a ring that empties (or fills) with the seconds (or the %) in the middle and the message
+    <!-- Countdowns: a ring that empties with the seconds in the middle and the message
          below. Fixed size like the OSD, so nothing jumps; RingWindow.Reposition puts the ring's centre a little below the
          middle of the screen. Margin leaves room for the shadow. -->
     <StackPanel x:Name="Root" Margin="28" Opacity="0" HorizontalAlignment="Center" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.3">
@@ -33,7 +33,7 @@
                 </Ellipse.Effect>
             </Ellipse>
             <Ellipse Margin="14" Stroke="{DynamicResource Kd.OsdTrack}" StrokeThickness="8" />
-            <!-- What is left (countdown) or done (progress), clockwise from the top -->
+            <!-- The time left, clockwise from the top -->
             <Path x:Name="Arc" Stroke="{DynamicResource Kd.Accent}" StrokeThickness="8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                 <ui:SymbolIcon x:Name="RingIcon" Symbol="Timer24" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,-2"

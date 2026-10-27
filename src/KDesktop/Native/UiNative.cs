@@ -41,16 +41,10 @@ internal static class UiNative
     public static bool SetBackdrop(IntPtr hwnd, Backdrop backdrop)
     {
         if (!SupportsBackdrop) return false;
-        ExtendFrame(hwnd);
-        var v = (int)backdrop;
-        return DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, ref v, sizeof(int)) == 0;
-    }
-
-    /// <summary>The DWM frame over the whole client area: where WPF draws nothing, what is behind shows (or the backdrop).</summary>
-    public static void ExtendFrame(IntPtr hwnd)
-    {
         var margins = new MARGINS { Left = -1, Right = -1, Top = -1, Bottom = -1 };
         DwmExtendFrameIntoClientArea(hwnd, ref margins);
+        var v = (int)backdrop;
+        return DwmSetWindowAttribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, ref v, sizeof(int)) == 0;
     }
 
     // ── Window styles ────────────────────────────────────────────────────

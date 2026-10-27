@@ -25,11 +25,6 @@ public partial class QuickMenu : ObservableObject
     /// <summary>Size preset 0 (compact) … 5 (large), same scale as K-Desktop 4.</summary>
     [ObservableProperty] private int _size = 1;
 
-    /// <summary>How much of what is behind shows through the whole menu, text included, in percent (0 … <see cref="MaxTransparency"/>).</summary>
-    [ObservableProperty] private int _seeThrough = DefaultTransparency;
-
-    public const int DefaultTransparency = 0, MaxTransparency = 70;
-
     public ObservableCollection<QuickMenuItem> Items { get; set { field = value ?? []; Hook(field); } } = [];
 
     public QuickMenu() => Hook(Items);

@@ -236,13 +236,6 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
         if (_menu is not null && size != _menu.Size) _menu.Size = size;
     }
 
-    private void OnTransparencyChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-    {
-        var percent = (int)Math.Round(TransparencySlider.Value);
-        TransparencyText.Text = (percent / 100.0).ToString("P0", Loc.Instance.Culture);
-        if (_menu is not null && percent != _menu.SeeThrough) _menu.SeeThrough = percent;
-    }
-
     private void OnNewMenu(object sender, RoutedEventArgs e)
     {
         var menu = new QuickMenu { Name = UniqueName(Loc.T("qm.newName")) };
@@ -407,9 +400,6 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
     private void Rebuild()
     {
         ApplySize(_menu?.Size ?? 1);
-        var transparency = _menu?.SeeThrough ?? QuickMenu.DefaultTransparency;
-        if ((int)Math.Round(TransparencySlider.Value) != transparency) TransparencySlider.Value = transparency;
-        TransparencyText.Text = (transparency / 100.0).ToString("P0", Loc.Instance.Culture);
         var columns = new List<QmColumn>();
         if (_menu is { } menu)
         {

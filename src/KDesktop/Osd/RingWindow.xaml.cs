@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
 using KDesktop.Native;
 using Wpf.Ui.Controls;
@@ -10,16 +9,17 @@ using Wpf.Ui.Controls;
 namespace KDesktop.Osd;
 
 /// <summary>
-/// Countdowns and the progress of what can be stopped, as a ring a little below the middle of the screen (Options ›
-/// «Cuentas atrás en un círculo»): the seconds left or the % done in the middle, the message below. Click-through and
-/// never focused, like the OSD. One instance shows the last one asked for; <see cref="Generation"/> tells them apart.
+/// Countdowns as a ring a little below the middle of the screen (Options › «Cuentas atrás en un círculo»): the seconds
+/// left in the middle, the message below. Only countdowns: they are short, and something long (a copy) would sit in the
+/// middle of the screen. Click-through and never focused, like the OSD. One instance shows the last one asked for;
+/// <see cref="Generation"/> tells them apart.
 /// </summary>
 public partial class RingWindow : Window
 {
     private static readonly IEasingFunction EaseOut = new CubicEase { EasingMode = EasingMode.EaseOut };
     private static readonly IEasingFunction EaseIn = new CubicEase { EasingMode = EasingMode.EaseIn };
 
-    /// <summary>How much of the ring is drawn (0–1).</summary>
+    /// <summary>How much of the ring is drawn (0–1): the time left.</summary>
     public static readonly DependencyProperty FractionProperty = DependencyProperty.Register(
         nameof(Fraction), typeof(double), typeof(RingWindow), new PropertyMetadata(0.0, (d, _) => ((RingWindow)d).DrawArc()));
 
@@ -43,7 +43,7 @@ public partial class RingWindow : Window
         }
     }
 
-    /// <summary>Incremented every time a new countdown or progress replaces the current one.</summary>
+    /// <summary>Incremented every time a new countdown replaces the current one.</summary>
     public int Generation { get; private set; }
 
     public RingWindow()
@@ -65,26 +65,6 @@ public partial class RingWindow : Window
             CompositionTarget.Rendering += Tick;
         }
         return Generation;
-    }
-
-    public int ShowProgress(string text, string? icon, double level)
-    {
-        Begin(text, icon ?? "ArrowSync24");
-        StopCounting();
-        BeginAnimation(FractionProperty, null);
-        Fraction = 0;
-        SetProgress(Generation, text, level);
-        return Generation;
-    }
-
-    /// <summary>A new step of the progress <paramref name="generation"/> (only while it is the one shown).</summary>
-    public void SetProgress(int generation, string text, double level)
-    {
-        if (generation != Generation) return;
-        level = Math.Clamp(level, 0, 1);
-        SetMessage(text);
-        Number.Text = (level).ToString("P0", Loc.Instance.Culture);
-        BeginAnimation(FractionProperty, new DoubleAnimation(level, new Duration(TimeSpan.FromMilliseconds(220))) { EasingFunction = EaseOut });
     }
 
     public void HideRing(int? generation = null)
