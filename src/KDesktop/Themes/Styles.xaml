@@ -194,10 +194,18 @@
     </Style>
 
     <!-- Move up / down arrows of a row: hidden (keeping their place) where the row can't move that way -->
+    <!-- The calendar of a DatePicker: solid (over the page it was see-through and hard to read) -->
+    <Style x:Key="SolidCalendar" TargetType="Calendar" BasedOn="{StaticResource {x:Type Calendar}}">
+        <Setter Property="Background" Value="{DynamicResource Kd.MenuTintOpaque}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Kd.MenuBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
     <Style x:Key="MoveButton" TargetType="ui:Button" BasedOn="{StaticResource IconButton}">
         <Style.Triggers>
+            <!-- At the top or the bottom it stays where it is, dimmed -->
             <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Visibility" Value="Hidden" />
+                <Setter Property="Opacity" Value="0.3" />
             </Trigger>
         </Style.Triggers>
     </Style>

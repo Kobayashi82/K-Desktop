@@ -94,9 +94,9 @@ public sealed partial class HistoryPage : UserControl, IDisposable
     public HistoryPage()
     {
         InitializeComponent();
-        SourceFilter.ItemsSource = new List<SourceOption>
+        // «Todo» first, the rest in alphabetical order
+        var options = new List<SourceOption>
         {
-            new(Loc.T("history.filter.all"), _ => true),
             new(Loc.T("history.filter.problems"), e => e.Outcome is not RunOutcome.Ok),
             new(Loc.T("history.source.Hotkey"), e => e.Source == TriggerSource.Hotkey),
             new(Loc.T("history.source.QuickMenu"), e => e.Source == TriggerSource.QuickMenu),
@@ -111,6 +111,10 @@ public sealed partial class HistoryPage : UserControl, IDisposable
             new(Loc.T("history.source.Manual"), e => e.Source == TriggerSource.Manual),
             new(Loc.T("history.source.CommandLine"), e => e.Source == TriggerSource.CommandLine),
         };
+        var byName = StringComparer.Create(Loc.Instance.Culture, ignoreCase: true);
+        options.Sort((a, b) => byName.Compare(a.Name, b.Name));
+        options.Insert(0, new(Loc.T("history.filter.all"), _ => true));
+        SourceFilter.ItemsSource = options;
         SourceFilter.SelectedIndex = 0;
 
         foreach (var entry in _app.Engine.History.Entries.Reverse()) _rows.Add(new HistoryRow(entry));

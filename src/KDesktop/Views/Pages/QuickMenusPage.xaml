@@ -221,6 +221,7 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <ui:TextBox x:Name="NameBox" ClearButtonEnabled="False" FontSize="16" FontWeight="SemiBold" PlaceholderText="{l:Tr qm.namePlaceholder}"
                                         Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
@@ -239,10 +240,17 @@
                                        Foreground="{DynamicResource Kd.Danger}" Visibility="Collapsed" />
                             <!-- The size of the menu, as the real menu shows it -->
                             <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="2,10,0,0">
-                                <TextBlock Text="{l:Tr qm.size}" VerticalAlignment="Center" Margin="0,0,12,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                <TextBlock Text="{l:Tr qm.size}" MinWidth="100" VerticalAlignment="Center" Margin="0,0,12,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                 <Slider x:Name="SizeSlider" Width="220" Minimum="0" Maximum="5" TickFrequency="1" IsSnapToTickEnabled="True" TickPlacement="BottomRight"
                                         VerticalAlignment="Center" ValueChanged="OnSizeChanged" />
                                 <TextBlock x:Name="SizeText" MinWidth="80" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
+                            </StackPanel>
+                            <!-- How much shows through its background -->
+                            <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="2,6,0,0">
+                                <TextBlock Text="{l:Tr qm.transparency}" MinWidth="100" VerticalAlignment="Center" Margin="0,0,12,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                <Slider x:Name="TransparencySlider" Width="220" Minimum="0" Maximum="80" TickFrequency="10" IsSnapToTickEnabled="True" TickPlacement="BottomRight"
+                                        VerticalAlignment="Center" ValueChanged="OnTransparencyChanged" AutomationProperties.Name="{l:Tr qm.transparency}" />
+                                <TextBlock x:Name="TransparencyText" MinWidth="80" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
                             </StackPanel>
                         </Grid>
                     </Grid>

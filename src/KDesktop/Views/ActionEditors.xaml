@@ -726,7 +726,7 @@
                 </StackPanel>
             </Grid>
             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.sound}" />
-            <v:SoundPicker Margin="0,0,0,12" Sound="{Binding Sound}" />
+            <v:SoundPicker Margin="0,0,0,12" Sound="{Binding Sound}" GlobalText="{l:Tr editor.notifySoundGlobal}" />
             <Grid Style="{StaticResource EdRow}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="140" />
@@ -1505,13 +1505,13 @@
             </StackPanel>
             <StackPanel x:Name="ScheduleRow" Margin="0,0,0,12" Visibility="Collapsed">
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                    <StackPanel Width="110" Margin="0,0,12,0">
+                    <StackPanel Margin="0,0,16,0">
                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.from}" />
-                        <ui:TextBox Text="{Binding TimeFrom, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="hh:mm" />
+                        <v:TimeField Time="{Binding TimeFrom, Mode=TwoWay}" Optional="True" AutomationProperties.Name="{l:Tr event.from}" />
                     </StackPanel>
-                    <StackPanel Width="110">
+                    <StackPanel>
                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.to}" />
-                        <ui:TextBox Text="{Binding TimeTo, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="hh:mm" />
+                        <v:TimeField Time="{Binding TimeTo, Mode=TwoWay}" Optional="True" AutomationProperties.Name="{l:Tr event.to}" />
                     </StackPanel>
                 </StackPanel>
                 <v:WeekDaysPicker Days="{Binding Days}" />

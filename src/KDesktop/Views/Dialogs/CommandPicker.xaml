@@ -23,8 +23,33 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <ui:TitleBar Grid.Row="0" Title="{l:Tr qm.pickCommand}" ShowMinimize="False" ShowMaximize="False" Margin="-16,0,-16,0" />
-        <ui:TextBox x:Name="SearchBox" Grid.Row="1" Margin="0,4,0,10" PlaceholderText="{l:Tr commands.search}" Icon="{ui:SymbolIcon Search24}"
-                    TextChanged="OnSearch" PreviewKeyDown="OnSearchKey" />
+        <Grid Grid.Row="1" Margin="0,4,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <ui:TextBox x:Name="SearchBox" PlaceholderText="{l:Tr commands.search}" Icon="{ui:SymbolIcon Search24}"
+                        TextChanged="OnSearch" PreviewKeyDown="OnSearchKey" />
+            <!-- The hidden ones too, as in Comandos -->
+            <ToggleButton x:Name="ShowHiddenToggle" Grid.Column="1" Margin="8,0,0,0" Padding="9,6" ToolTip="{l:Tr commands.showHidden}"
+                          AutomationProperties.Name="{l:Tr commands.showHidden}" Checked="OnShowHidden" Unchecked="OnShowHidden">
+                <ui:SymbolIcon>
+                    <!-- Checked, the button turns accent-coloured: the icon goes dark on it to stay visible -->
+                    <ui:SymbolIcon.Style>
+                        <Style TargetType="ui:SymbolIcon">
+                            <Setter Property="Symbol" Value="EyeOff24" />
+                            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=ToggleButton}}" Value="True">
+                                    <Setter Property="Symbol" Value="Eye24" />
+                                    <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:SymbolIcon.Style>
+                </ui:SymbolIcon>
+            </ToggleButton>
+        </Grid>
         <ListBox x:Name="List" Grid.Row="2" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource RowItem}"
                  MouseDoubleClick="OnAccept" KeyDown="OnListKey">
             <ListBox.ItemTemplate>

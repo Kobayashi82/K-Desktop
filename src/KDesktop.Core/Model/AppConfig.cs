@@ -544,12 +544,22 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private bool _achievementNotifications = true;
     [ObservableProperty] private bool _achievementSound = true;
 
+    /// <summary>The sound of the notifications (those of «Mostrar notificación» set to «Global», and K-Desktop's own); null: none.</summary>
+    [ObservableProperty] private string? _notifySound = "Notification 1";
+
     // Macros
     /// <summary>Record mouse movements (not only clicks) when recording a macro.</summary>
     [ObservableProperty] private bool _macroRecordMoves = true;
 
     /// <summary>QuickMenus: «Añadir al menú» folded away, so the menu being edited has the whole width.</summary>
     [ObservableProperty] private bool _quickMenuPaletteHidden;
+
+    /// <summary>Comandos: «Opciones» unfolded (it stays as left, from one command to the next).</summary>
+    [ObservableProperty] private bool _commandsOptionsOpen;
+
+    /// <summary>Eventos: «Cuando» folded away, and «Opciones» unfolded.</summary>
+    [ObservableProperty] private bool _eventsWhenFolded;
+    [ObservableProperty] private bool _eventsOptionsOpen;
 
     // Remote (UDP)
     [ObservableProperty] private bool _udpEnabled = true;

@@ -675,6 +675,15 @@
             <Border Style="{StaticResource Card}" Tag="osd" MinWidth="560">
                 <StackPanel>
                     <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.notify}" />
+                    <!-- The sound every notification shares (an action can choose its own) -->
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.notifySoundAll}" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.notifySoundAllHint}" />
+                        </StackPanel>
+                        <v:SoundPicker Grid.Column="1" Width="300" VerticalAlignment="Center" Sound="{Binding NotifySound}" />
+                    </Grid>
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
@@ -683,7 +692,7 @@
                         </StackPanel>
                         <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AchievementNotifications}" />
                     </Grid>
-                    <!-- Belongs to the achievements' card (the only notification with a sound): indented under it, and only with it on -->
+                    <!-- The achievements' own sound: indented under them, and only with them on -->
                     <Grid Style="{StaticResource SettingRow}" Margin="24,0,0,6" IsEnabled="{Binding AchievementNotifications}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.notifySound}" />

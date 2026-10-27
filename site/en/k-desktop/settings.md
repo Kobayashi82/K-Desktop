@@ -11,7 +11,7 @@ there.
 |---|---|
 | **Appearance** | Light, dark or system theme; language (Windows', or one of the six built in); website icons; translating |
 | **General** | Pause K-Desktop (with its hotkey and sounds); start with Windows, the tray icon and its picture; the hotkeys to show the window and to exit, sounds and startup message |
-| **OSD** | K-Desktop's on-screen messages: where they show (clicking on a drawing of the screen), on which monitor, their size, how long they stay, what they do with a film or a game full screen and which groups show (actions, volume and brightness, voice, warnings). Below, the achievement **notifications**: whether they show, with sound, on which monitor and corner (also on a drawing), how long they stay and whether they wait until the full-screen thing ends |
+| **OSD** | K-Desktop's on-screen messages: where they show (clicking on a drawing of the screen), on which monitor, their size, how long they stay, what they do with a film or a game full screen and which groups show (actions, volume and brightness, voice, warnings). Below, the **notifications**: their **sound** (the one of all of them; *Show notification* can choose another or «Global»), whether the achievement ones show and with their sound, on which monitor and corner (also on a drawing), how long they stay and whether they wait until the full-screen thing ends |
 | **Launcher** | Its hotkey, what it finds (programs, hidden commands, sums, the web) and its order |
 
 ## Voice and multimedia

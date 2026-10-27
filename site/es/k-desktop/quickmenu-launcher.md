@@ -13,7 +13,7 @@ manejo con el teclado.
   elemento. Con el teclado: flechas, Intro y Esc.
 - **Ciérralo** con Esc o con un clic fuera (también en la ventana de K-Desktop). Su atajo otra vez lo cierra si el ratón
   está encima del menú; si no, lo vuelve a abrir donde está el ratón.
-- **Tamaño**: de *Compacto* a *Enorme*, en cada menú.
+- **Tamaño**: de *Compacto* a *Enorme*, y **Transparencia** del fondo (de 0 a 80 %), en cada menú.
 
 ### Editarlo
 

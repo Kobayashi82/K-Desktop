@@ -18,7 +18,8 @@ public partial class CommandPicker : FluentWindow
         InitializeComponent();
         _all = commands.OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
         List.SelectionMode = SelectionMode.Extended;
-        List.ItemsSource = _all;
+        ShowHiddenToggle.IsChecked = App.Current.Config.Settings.ShowHiddenCommands;
+        Refill();
         Loaded += (_, _) => SearchBox.Focus();
     }
 
@@ -28,12 +29,23 @@ public partial class CommandPicker : FluentWindow
         return dlg.ShowDialog() == true ? dlg.Selected : [];
     }
 
-    private void OnSearch(object sender, TextChangedEventArgs e)
+    private void OnSearch(object sender, TextChangedEventArgs e) => Refill();
+
+    /// <summary>The hidden commands too (the same switch as in Comandos).</summary>
+    private void OnShowHidden(object sender, RoutedEventArgs e)
     {
+        if (!IsLoaded) return;
+        App.Current.Config.Settings.ShowHiddenCommands = ShowHiddenToggle.IsChecked == true;
+        Refill();
+    }
+
+    private void Refill()
+    {
+        var shown = ShowHiddenToggle.IsChecked == true ? _all : _all.Where(c => !c.Hidden).ToList();
         // Like the launcher: initials, loose letters, no accents; the best matches first.
         var tokens = KDesktop.Core.Engine.FuzzyMatch.Tokens(SearchBox.Text);
-        List.ItemsSource = tokens.Length == 0 ? _all
-            : _all.Select(c => (Command: c, Score: KDesktop.Core.Engine.FuzzyMatch.Score(tokens, new KDesktop.Core.Engine.SearchKey(c.Name))))
+        List.ItemsSource = tokens.Length == 0 ? shown
+            : shown.Select(c => (Command: c, Score: KDesktop.Core.Engine.FuzzyMatch.Score(tokens, new KDesktop.Core.Engine.SearchKey(c.Name))))
                   .Where(x => x.Score > 0).OrderByDescending(x => x.Score).Select(x => x.Command).ToList();
         if (List.Items.Count > 0) List.SelectedIndex = 0;
     }

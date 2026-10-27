@@ -321,7 +321,7 @@
                                               Title="{l:Tr commands.remoteOption}" Hint="{l:Tr commands.remoteHint}" />
                                 <StackPanel Grid.Column="3" Margin="16,0,0,0" Orientation="Horizontal" VerticalAlignment="Center" v:ResponsiveHeader.IsSide="True">
                                     <ui:ToggleSwitch IsChecked="{Binding Enabled}" OnContent="{l:Tr common.enabled}" OffContent="{l:Tr common.disabled}" Margin="0,0,16,0" />
-                                    <ui:Button Content="{l:Tr commands.run}" Icon="{ui:SymbolIcon Play24}" Appearance="Primary" Click="OnRunCommand" Margin="0,0,8,0" />
+                                    <ui:Button Content="{l:Tr commands.run}" Icon="{ui:SymbolIcon Play24}" Click="OnRunCommand" Margin="0,0,8,0" />
                                     <ui:Button Icon="{ui:SymbolIcon Copy24}" ToolTip="{l:Tr commands.duplicate}" Click="OnDuplicateCommand" Margin="0,0,8,0" />
                                     <ui:Button Icon="{ui:SymbolIcon Delete24}" ToolTip="{l:Tr commands.delete}" Click="OnDeleteCommand" />
                                 </StackPanel>
@@ -342,7 +342,7 @@
                                 <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr commands.hotkeys}" />
                                 <!-- What the hotkeys do besides running the command -->
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,0,0">
-                                    <ui:Button x:Name="AddHotkeyButton" MinHeight="36" Content="{l:Tr commands.addHotkey}" Icon="{ui:SymbolIcon Add24}" Click="OnAddHotkey" Margin="0,0,6,0" />
+                                    <ui:Button x:Name="AddHotkeyButton" MinHeight="36" Content="{l:Tr common.add}" ToolTip="{l:Tr commands.addHotkey}" Icon="{ui:SymbolIcon Add24}" Click="OnAddHotkey" Margin="0,0,6,0" />
                                     <v:IconToggle Width="38" Height="36" Margin="0" IsChecked="{Binding BlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
                                                   Title="{l:Tr commands.blockKey}" Hint="{l:Tr commands.blockKeyHint}" />
                                     <v:IconToggle Width="38" Height="36" IsChecked="{Binding IgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
@@ -482,10 +482,16 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Options -->
-                    <Border Style="{StaticResource Card}">
+                    <!-- Options (folded unless opened by hand; it stays as left from one command to the next) -->
+                    <ui:CardExpander x:Name="OptionsExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Options24}"
+                                     Expanded="OnOptionsFolded" Collapsed="OnOptionsFolded" AutomationProperties.Name="{l:Tr commands.options}">
+                        <ui:CardExpander.Header>
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold" Text="{l:Tr commands.options}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                <TextBlock Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" Text="{l:Tr commands.optionsHint}" />
+                            </StackPanel>
+                        </ui:CardExpander.Header>
                         <StackPanel>
-                            <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr commands.options}" />
                             <!-- Who runs it besides its hotkeys: a row of events and one of QuickMenus, each only when there are some (click to go there) -->
                             <StackPanel x:Name="UsedByPanel" Margin="0,0,0,14" Visibility="Collapsed" />
 
@@ -542,13 +548,19 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            <StackPanel Orientation="Horizontal" Margin="0,2,0,14">
+                            <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                                 <ui:TextBox x:Name="VoicePhraseBox" Width="320" PlaceholderText="{l:Tr commands.voicePhrasePlaceholder}" KeyDown="OnVoicePhraseKeyDown" />
                                 <ui:Button Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddVoicePhrase" />
                             </StackPanel>
+                        </StackPanel>
+                    </ui:CardExpander>
 
-                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr commands.notes}" />
-                            <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
+                    <!-- Notes -->
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr commands.notes}" />
+                            <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60"
+                                     AutomationProperties.Name="{l:Tr commands.notes}" />
                         </StackPanel>
                     </Border>
                 </StackPanel>

@@ -25,6 +25,8 @@ run another command… See the [complete list of actions](actions.md).
 
 - Each action can be switched off without deleting it, and its order changed by dragging.
 - **Run** in the editor tries the command at once.
+- Two commands cannot have the same name (nor two events, QuickMenus, macros or K-Board profiles): if you type one that
+  already exists, the previous name stays.
 - An action that opens something chooses whether it runs **as administrator or as a normal user**.
 
 ## If… (conditions)

@@ -130,7 +130,14 @@ public sealed partial class KBoardPage : UserControl, IDisposable
 
     private string? _nameBeforeEdit;
 
-    private void OnNameFocus(object sender, KeyboardFocusChangedEventArgs e) => _nameBeforeEdit = _selected?.Name;
+    /// <summary>The one whose name is being typed (only its name is checked against the others).</summary>
+    private KBoardProfile? _nameOwner;
+
+    private void OnNameFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        _nameBeforeEdit = _selected?.Name;
+        _nameOwner = _selected;
+    }
 
     private void OnNameLostFocus(object sender, KeyboardFocusChangedEventArgs e) => EnsureName(NameBox.DataContext as KBoardProfile);
 
@@ -147,6 +154,8 @@ public sealed partial class KBoardPage : UserControl, IDisposable
         var empty = string.IsNullOrWhiteSpace(profile.Name);
         if (empty) profile.Name = !string.IsNullOrWhiteSpace(_nameBeforeEdit) ? _nameBeforeEdit : UniqueName(Loc.T("kboard.newName"));
         else if (profile.Name != profile.Name.Trim()) profile.Name = profile.Name.Trim();
+        if (ReferenceEquals(profile, _nameOwner) && !string.IsNullOrWhiteSpace(profile.Name))
+            profile.Name = UniqueNames.Settle(Config.KBoards, profile, x => x.Name, profile.Name, _nameBeforeEdit, UniqueName);
         if (ReferenceEquals(profile, _selected)) NameError.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -243,7 +252,7 @@ public sealed partial class KBoardPage : UserControl, IDisposable
     private void OnCreateCommand(object sender, RoutedEventArgs e)
     {
         if (_selected is not { } profile) return;
-        var cmd = new Command { Name = "K-Board · " + profile.Name };
+        var cmd = new Command { Name = UniqueNames.Free(Config.Commands.Select(c => c.Name), "K-Board · " + profile.Name) };
         cmd.Actions.Add(new KBoardAction { ProfileId = profile.Id, ProfileName = profile.Name });
         Config.Commands.Add(cmd);
         _app.Achievements.Increment(Stat.CommandsCreated);

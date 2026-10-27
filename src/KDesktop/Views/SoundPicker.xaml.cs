@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using KDesktop.Core.Localization;
+using KDesktop.Core.Model;
 using KDesktop.Core.Platform;
 using Microsoft.Win32;
 
@@ -27,6 +28,23 @@ public partial class SoundPicker : UserControl
     public static readonly DependencyProperty ShowBrowseProperty = DependencyProperty.Register(
         nameof(ShowBrowse), typeof(bool), typeof(SoundPicker),
         new PropertyMetadata(true, (d, e) => ((SoundPicker)d).BrowseButton.Visibility = (bool)e.NewValue ? Visibility.Visible : Visibility.Collapsed));
+
+    /// <summary>
+    /// With a text: a first entry «Global» (<see cref="ShowNotificationAction.GlobalSound"/>), the sound of Options ›
+    /// Notificaciones, whichever it is then.
+    /// </summary>
+    public static readonly DependencyProperty GlobalTextProperty = DependencyProperty.Register(
+        nameof(GlobalText), typeof(string), typeof(SoundPicker), new PropertyMetadata(null, (d, _) => ((SoundPicker)d).ShowSound()));
+
+    public string? GlobalText
+    {
+        get => (string?)GetValue(GlobalTextProperty);
+        set => SetValue(GlobalTextProperty, value);
+    }
+
+    /// <summary>What plays for an entry («Global»: the sound of Options).</summary>
+    private static string? Playable(string? sound) =>
+        sound == ShowNotificationAction.GlobalSound ? App.Current.Config.Settings.NotifySound : sound;
 
     /// <summary>An entry of the list: <see cref="Value"/> is what is saved (null = no sound), its text what is seen.</summary>
     public sealed record Item(string? Value, string Text)
@@ -66,7 +84,9 @@ public partial class SoundPicker : UserControl
     private void ShowSound()
     {
         var sound = string.IsNullOrWhiteSpace(Sound) ? null : Sound;
-        var items = new List<Item> { new(null, Loc.T("sound.none")) };
+        var items = new List<Item>();
+        if (GlobalText is { Length: > 0 } global) items.Add(new Item(ShowNotificationAction.GlobalSound, global));
+        items.Add(new Item(null, Loc.T("sound.none")));
         items.AddRange(Sounds.Available().Select(n => new Item(n, n)));
         var match = items.FirstOrDefault(i => string.Equals(i.Value, sound, StringComparison.OrdinalIgnoreCase));
         _showing = true;
@@ -113,19 +133,19 @@ public partial class SoundPicker : UserControl
         ShowFile(null);
         // Choosing always plays it, even right after hovering over it.
         _previewed = picked.Value;
-        if (picked.Value is not null) Sounds.Preview(picked.Value);
+        if (Playable(picked.Value) is { } playable) Sounds.Preview(playable);
     }
 
     private void Preview(string sound)
     {
         if (sound == _previewed) return;
         _previewed = sound;
-        Sounds.Preview(sound);
+        if (Playable(sound) is { } playable) Sounds.Preview(playable);
     }
 
     private void OnDropDownClosed(object? sender, EventArgs e) => _previewed = null;
 
-    private void OnPlay(object sender, RoutedEventArgs e) => Sounds.Preview(Sound);
+    private void OnPlay(object sender, RoutedEventArgs e) => Sounds.Preview(Playable(Sound));
 
     private void OnBrowse(object sender, RoutedEventArgs e)
     {

@@ -42,7 +42,10 @@ se quita el dispositivo…) con sus propios comandos.
 - **No repetir antes de**: si vuelve a dispararse antes (en segundos), no hace nada.
 - **Protección contra bucles**: un evento que se dispara más de 10 veces en un minuto se detiene 10 minutos, y K-Desktop te
   avisa.
-- Cada evento se puede apagar, y ejecutar a mano para probarlo (*Ejecutar*, o `KDesktop.exe --event "Nombre"`).
+- Cada evento se puede apagar, y ejecutar a mano para probarlo (*Probar*, o `KDesktop.exe --event "Nombre"`). El botón del
+  rayo crea un comando que lo ejecuta (para darle un atajo o una frase de voz).
+- *Cuándo*, *Solo si* y *Opciones* se pliegan; *Solo si* sale abierto cuando tiene algo. Las horas se ponen con las flechas,
+  la rueda o escribiéndolas.
 
 ## Lanzar un evento desde fuera
 

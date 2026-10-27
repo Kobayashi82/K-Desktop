@@ -33,6 +33,8 @@ public sealed partial class EventsPage : UserControl, IDisposable
     public EventsPage()
     {
         InitializeComponent();
+        WhenExpander.IsExpanded = !Config.Settings.EventsWhenFolded;
+        OptionsExpander.IsExpanded = Config.Settings.EventsOptionsOpen;
         EventList.ItemsSource = Config.Events;
         EventList.Items.Filter = Filter;
         Config.Events.CollectionChanged += OnEventsChanged;
@@ -140,6 +142,7 @@ public sealed partial class EventsPage : UserControl, IDisposable
         KindBox.SelectedItem = info;
         _settingKind = false;
         KindDescription.Text = info.Description;
+        WhenSummary.Text = info.Name;
         NoCommands.Visibility = rule.Commands.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         ExitNote.Visibility = rule.Trigger is AppExitTrigger ? Visibility.Visible : Visibility.Collapsed;
         // On exit there is no time to ask anyone.
@@ -182,7 +185,14 @@ public sealed partial class EventsPage : UserControl, IDisposable
 
     private string? _nameBeforeEdit;
 
-    private void OnNameFocus(object sender, KeyboardFocusChangedEventArgs e) => _nameBeforeEdit = _selected?.Name;
+    /// <summary>The one whose name is being typed (only its name is checked against the others).</summary>
+    private EventRule? _nameOwner;
+
+    private void OnNameFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        _nameBeforeEdit = _selected?.Name;
+        _nameOwner = _selected;
+    }
 
     private void OnNameLostFocus(object sender, KeyboardFocusChangedEventArgs e) => EnsureName(NameBox.DataContext as EventRule);
 
@@ -198,6 +208,8 @@ public sealed partial class EventsPage : UserControl, IDisposable
         if (string.IsNullOrWhiteSpace(rule.Name))
             rule.Name = !string.IsNullOrWhiteSpace(_nameBeforeEdit) ? _nameBeforeEdit : UniqueName(Loc.T("event.newName"));
         else if (rule.Name != rule.Name.Trim()) rule.Name = rule.Name.Trim();
+        if (ReferenceEquals(rule, _nameOwner) && !string.IsNullOrWhiteSpace(rule.Name))
+            rule.Name = UniqueNames.Settle(Config.Events, rule, x => x.Name, rule.Name, _nameBeforeEdit, UniqueName);
     }
 
     private string UniqueName(string baseName)
@@ -314,6 +326,26 @@ public sealed partial class EventsPage : UserControl, IDisposable
     private void OnAddEndCommand(object sender, RoutedEventArgs e) => AddCommands(_selected?.EndCommands);
 
     private void OnNewCommand(object sender, RoutedEventArgs e) => NewCommand(_selected?.Commands);
+
+    /// <summary>A new command that runs this event's commands (to give it a hotkey, a voice phrase…), opened in Comandos.</summary>
+    private void OnCreateCommand(object sender, RoutedEventArgs e)
+    {
+        if (_selected is not { } rule) return;
+        var cmd = new Command { Name = UniqueNames.Free(Config.Commands.Select(c => c.Name), rule.Name) };
+        cmd.Actions.Add(new CommandControlAction { Target = CommandControlTarget.Event, Mode = CommandControlMode.Run, EventId = rule.Id, EventName = rule.Name });
+        Config.Commands.Add(cmd);
+        _app.Achievements.Increment(Stat.CommandsCreated);
+        _app.Achievements.Increment(Stat.ActionsCreated);
+        (Window.GetWindow(this) as MainWindow)?.OpenCommand(cmd.Id);
+    }
+
+    /// <summary>«Cuando» and «Opciones» stay as they were left, from one event to the next.</summary>
+    private void OnSectionFolded(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded) return;
+        Config.Settings.EventsWhenFolded = WhenExpander.IsExpanded != true;
+        Config.Settings.EventsOptionsOpen = OptionsExpander.IsExpanded == true;
+    }
 
     private void OnNewEndCommand(object sender, RoutedEventArgs e) => NewCommand(_selected?.EndCommands);
 

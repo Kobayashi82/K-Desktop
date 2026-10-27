@@ -91,7 +91,9 @@ public static class Lookups
         [.. System.Enum.GetValues<HttpVerb>().Select(v => new Option<HttpVerb>(v, v.ToString().ToUpperInvariant()))];
     public static IReadOnlyList<Option<HttpResultDisplay>> HttpResultDisplays { get; } = Enum<HttpResultDisplay>("enum.httpResult");
     public static IReadOnlyList<string> ContentTypes { get; } = ["application/json", "application/x-www-form-urlencoded", "text/plain", "application/xml"];
-    public static IReadOnlyList<EventKindInfo> EventKinds => EventCatalog.All;
+    /// <summary>The kinds of event in alphabetical order (in the language shown).</summary>
+    public static IReadOnlyList<EventKindInfo> EventKinds =>
+        [.. EventCatalog.All.OrderBy(k => k.Name, StringComparer.Create(Loc.Instance.Culture, ignoreCase: true))];
     public static IReadOnlyList<Option<CommandControlTarget>> CommandControlTargets { get; } = Enum<CommandControlTarget>("enum.controlTarget");
 
     public static IEnumerable<EventRule> EventList =>

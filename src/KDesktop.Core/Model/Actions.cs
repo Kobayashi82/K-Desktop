@@ -375,8 +375,11 @@ public enum NotifyClick { Nothing, Open, RunCommand }
 /// </summary>
 public partial class ShowNotificationAction : CommandAction
 {
-    /// <summary>Default sound: one of the bundled ones (empty: none).</summary>
-    public const string DefaultSound = "Notification 1";
+    /// <summary>The sound of Options › OSD › Notificaciones (the one all notifications share).</summary>
+    public const string GlobalSound = "@global";
+
+    /// <summary>Default sound: the global one (empty: none).</summary>
+    public const string DefaultSound = GlobalSound;
 
     [ObservableProperty] private string _title = string.Empty;
     [ObservableProperty] private string _text = string.Empty;

@@ -137,7 +137,14 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
 
     private string? _nameBeforeEdit;
 
-    private void OnNameFocus(object sender, KeyboardFocusChangedEventArgs e) => _nameBeforeEdit = _menu?.Name;
+    /// <summary>The one whose name is being typed (only its name is checked against the others).</summary>
+    private QuickMenu? _nameOwner;
+
+    private void OnNameFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        _nameBeforeEdit = _menu?.Name;
+        _nameOwner = _menu;
+    }
 
     private void OnNameLostFocus(object sender, KeyboardFocusChangedEventArgs e) => EnsureName(NameBox.DataContext as QuickMenu);
 
@@ -154,6 +161,8 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
         var empty = string.IsNullOrWhiteSpace(menu.Name);
         if (empty) menu.Name = !string.IsNullOrWhiteSpace(_nameBeforeEdit) ? _nameBeforeEdit : UniqueName(Loc.T("qm.newName"));
         else if (menu.Name != menu.Name.Trim()) menu.Name = menu.Name.Trim();
+        if (ReferenceEquals(menu, _nameOwner) && !string.IsNullOrWhiteSpace(menu.Name))
+            menu.Name = UniqueNames.Settle(Config.QuickMenus, menu, x => x.Name, menu.Name, _nameBeforeEdit, UniqueName);
         if (ReferenceEquals(menu, _menu)) NameError.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -227,6 +236,13 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
         if (_menu is not null && size != _menu.Size) _menu.Size = size;
     }
 
+    private void OnTransparencyChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        var percent = (int)Math.Round(TransparencySlider.Value);
+        TransparencyText.Text = (percent / 100.0).ToString("P0", Loc.Instance.Culture);
+        if (_menu is not null && percent != _menu.Transparency) _menu.Transparency = percent;
+    }
+
     private void OnNewMenu(object sender, RoutedEventArgs e)
     {
         var menu = new QuickMenu { Name = UniqueName(Loc.T("qm.newName")) };
@@ -277,7 +293,7 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
     private void OnCreateCommand(object sender, RoutedEventArgs e)
     {
         if (_menu is not { } menu) return;
-        var cmd = new Command { Name = menu.Name };
+        var cmd = new Command { Name = UniqueNames.Free(Config.Commands.Select(c => c.Name), menu.Name) };
         cmd.Actions.Add(new OpenQuickMenuAction { MenuId = menu.Id, MenuName = menu.Name });
         Config.Commands.Add(cmd);
         _app.Achievements.Increment(Stat.CommandsCreated);
@@ -391,6 +407,9 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
     private void Rebuild()
     {
         ApplySize(_menu?.Size ?? 1);
+        var transparency = _menu?.Transparency ?? QuickMenu.DefaultTransparency;
+        if ((int)Math.Round(TransparencySlider.Value) != transparency) TransparencySlider.Value = transparency;
+        TransparencyText.Text = (transparency / 100.0).ToString("P0", Loc.Instance.Culture);
         var columns = new List<QmColumn>();
         if (_menu is { } menu)
         {

@@ -98,7 +98,7 @@ public partial class App
 
     /// <summary>A new version, told with a notification card (not over the screen); clicking it opens Options › Actualizaciones.</summary>
     public void NotifyUpdate(string title) =>
-        _ = Ui.ShowNotificationAsync(new Notification(title, Loc.T("updates.notifyClick"), null, NotifyColor.Gold, null, null, null,
+        _ = Ui.ShowNotificationAsync(new Notification(title, Loc.T("updates.notifyClick"), null, NotifyColor.Gold, ShowNotificationAction.GlobalSound, null, null,
             () => ShowMainWindow(w => w.Navigate("settings/updates"))));
 
     /// <summary>

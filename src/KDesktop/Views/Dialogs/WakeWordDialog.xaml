@@ -131,7 +131,7 @@
             <!-- 4 · Try it -->
             <StackPanel x:Name="Step4" Visibility="Collapsed">
                 <TextBlock x:Name="TestText" Style="{StaticResource StepText}" />
-                <ui:Button x:Name="TestButton" Margin="0,16,0,0" Appearance="Primary" Icon="{ui:SymbolIcon Mic24}" Content="{l:Tr wake.test}" Click="OnTest" />
+                <ui:Button x:Name="TestButton" Margin="0,16,0,0" Icon="{ui:SymbolIcon Mic24}" Content="{l:Tr wake.test}" Click="OnTest" />
                 <Grid Margin="0,12,0,0" ToolTip="{l:Tr wake.level}">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
                     <ui:SymbolIcon Symbol="Mic24" FontSize="16" Margin="0,0,10,0" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />

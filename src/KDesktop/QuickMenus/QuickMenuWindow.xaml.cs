@@ -14,6 +14,7 @@ public partial class QuickMenuWindow : Window
 {
     private static readonly IEasingFunction EaseOut = new CubicEase { EasingMode = EasingMode.EaseOut };
     private bool _backdrop;
+    private int _transparency = Core.Model.QuickMenu.DefaultTransparency;
 
     public QuickMenuWindow(bool isSubmenu)
     {
@@ -75,7 +76,24 @@ public partial class QuickMenuWindow : Window
     {
         if (Hwnd == IntPtr.Zero) return;
         UiNative.SetDarkMode(Hwnd, ThemeService.IsDark);
-        Surface.SetResourceReference(Border.BackgroundProperty, _backdrop ? "Kd.MenuTint" : "Kd.MenuTintOpaque");
+        if (!_backdrop || TryFindResource("Kd.MenuTintOpaque") is not SolidColorBrush tint)
+        {
+            Surface.SetResourceReference(Border.BackgroundProperty, "Kd.MenuTintOpaque");
+            return;
+        }
+        // The menu's own transparency over the acrylic (without acrylic it is always opaque: the text must be read).
+        var alpha = (byte)Math.Round(255 * (100 - Math.Clamp(_transparency, 0, Core.Model.QuickMenu.MaxTransparency)) / 100.0);
+        var brush = new SolidColorBrush(Color.FromArgb(alpha, tint.Color.R, tint.Color.G, tint.Color.B));
+        brush.Freeze();
+        Surface.Background = brush;
+    }
+
+    /// <summary>How transparent its background is (QuickMenu.Transparency).</summary>
+    public void ApplyTransparency(int percent)
+    {
+        if (_transparency == percent) return;
+        _transparency = percent;
+        ApplyTheme();
     }
 
     /// <summary>Size preset 0..5 (same scale as K-Desktop 4).</summary>

@@ -38,6 +38,7 @@ public sealed partial class CommandsPage : UserControl, IDisposable
         _view.LiveFilteringProperties.Add(nameof(Command.Hidden));
         CommandList.ItemsSource = _view;
         ShowHiddenToggle.IsChecked = Config.Settings.ShowHiddenCommands;
+        OptionsExpander.IsExpanded = Config.Settings.CommandsOptionsOpen;
         _menuFilter ??= string.IsNullOrEmpty(Config.Settings.CommandsMenuFilter) ? FilterNone : Config.Settings.CommandsMenuFilter;
         Config.Commands.CollectionChanged += OnCommandsChanged;
         IconProvider.StaticPropertyChanged += OnIconsChanged;
@@ -66,6 +67,11 @@ public sealed partial class CommandsPage : UserControl, IDisposable
     }
 
     // ── list ─────────────────────────────────────────────────────────────
+
+    private void OnOptionsFolded(object sender, RoutedEventArgs e)
+    {
+        if (IsLoaded) Config.Settings.CommandsOptionsOpen = OptionsExpander.IsExpanded == true;
+    }
 
     // ── QuickMenu filter ─────────────────────────────────────────────────
 
@@ -109,6 +115,14 @@ public sealed partial class CommandsPage : UserControl, IDisposable
         _menuFilter = option.Key;
         Config.Settings.CommandsMenuFilter = option.Key;
         ApplyMenuFilter();
+        // Chosen by hand: the selected command stays listed only while it fits («Prueba» kept showing the one opened
+        // from an event of that name, which is in no menu).
+        if (_selected is { } cmd && !PassesMenuFilter(cmd))
+        {
+            CommandList.SelectedItem = null;
+            _view.Refresh();
+            if (!_view.IsEmpty) CommandList.SelectedIndex = 0;
+        }
     }
 
     private void ApplyMenuFilter()
@@ -233,7 +247,14 @@ public sealed partial class CommandsPage : UserControl, IDisposable
     /// <summary>Name the command had when the name box got the focus: an emptied name goes back to it.</summary>
     private string? _nameBeforeEdit;
 
-    private void OnNameFocus(object sender, KeyboardFocusChangedEventArgs e) => _nameBeforeEdit = _selected?.Name;
+    /// <summary>The one whose name is being typed (only its name is checked against the others).</summary>
+    private Command? _nameOwner;
+
+    private void OnNameFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        _nameBeforeEdit = _selected?.Name;
+        _nameOwner = _selected;
+    }
 
     private void OnNameLostFocus(object sender, KeyboardFocusChangedEventArgs e) => EnsureName(NameBox.DataContext as Command);
 
@@ -249,6 +270,8 @@ public sealed partial class CommandsPage : UserControl, IDisposable
         if (string.IsNullOrWhiteSpace(cmd.Name))
             cmd.Name = !string.IsNullOrWhiteSpace(_nameBeforeEdit) ? _nameBeforeEdit : UniqueName(Loc.T("commands.newName"));
         else if (cmd.Name != cmd.Name.Trim()) cmd.Name = cmd.Name.Trim();
+        if (ReferenceEquals(cmd, _nameOwner) && !string.IsNullOrWhiteSpace(cmd.Name))
+            cmd.Name = UniqueNames.Settle(Config.Commands, cmd, x => x.Name, cmd.Name, _nameBeforeEdit, UniqueName);
         if (ReferenceEquals(cmd, _selected)) NameError.Visibility = Visibility.Collapsed;
     }
 

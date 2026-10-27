@@ -108,12 +108,17 @@ public sealed class AchievementNotifier(Func<AppSettings> settings, Action<strin
 
         if (custom is not null)
         {
-            Sounds.Play(custom.Sound);
+            Sounds.Play(custom.Sound == ShowNotificationAction.GlobalSound ? s.NotifySound : custom.Sound);
             if (custom.Clicked is { } clicked) toast.Clicked += clicked;
             return toast.ShowCustomAsync(custom, duration);
         }
+        if (card.Achievement is not { } def)
+        {
+            // The sample sounds like the notifications.
+            Sounds.Play(s.NotifySound);
+            return ShowSampleAsync(toast, duration);
+        }
         if (s.AchievementSound) Sounds.Play("Logro");
-        if (card.Achievement is not { } def) return ShowSampleAsync(toast, duration);
         toast.Clicked += () =>
         {
             // The rest are dropped (whoever waits for one is let go).

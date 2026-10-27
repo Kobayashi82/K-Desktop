@@ -139,7 +139,14 @@ public sealed partial class MacrosPage : UserControl, IDisposable
 
     private string? _nameBeforeEdit;
 
-    private void OnNameFocus(object sender, KeyboardFocusChangedEventArgs e) => _nameBeforeEdit = _selected?.Name;
+    /// <summary>The one whose name is being typed (only its name is checked against the others).</summary>
+    private Macro? _nameOwner;
+
+    private void OnNameFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        _nameBeforeEdit = _selected?.Name;
+        _nameOwner = _selected;
+    }
 
     private void OnNameLostFocus(object sender, KeyboardFocusChangedEventArgs e) => EnsureName(NameBox.DataContext as Macro);
 
@@ -161,6 +168,8 @@ public sealed partial class MacrosPage : UserControl, IDisposable
         else
         {
             if (macro.Name != macro.Name.Trim()) macro.Name = macro.Name.Trim();
+            if (ReferenceEquals(macro, _nameOwner) && !string.IsNullOrWhiteSpace(macro.Name))
+                macro.Name = UniqueNames.Settle(Config.Macros, macro, x => x.Name, macro.Name, _nameBeforeEdit, UniqueName);
             if (ReferenceEquals(macro, _selected)) NameError.Visibility = Visibility.Collapsed;
         }
     }
@@ -218,7 +227,7 @@ public sealed partial class MacrosPage : UserControl, IDisposable
     private void OnCreateCommand(object sender, RoutedEventArgs e)
     {
         if (_selected is not { } macro) return;
-        var cmd = new Command { Name = macro.Name };
+        var cmd = new Command { Name = UniqueNames.Free(Config.Commands.Select(c => c.Name), macro.Name) };
         cmd.Actions.Add(new PlayMacroAction { MacroId = macro.Id, MacroName = macro.Name });
         Config.Commands.Add(cmd);
         _app.Achievements.Increment(Stat.CommandsCreated);

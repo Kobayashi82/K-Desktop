@@ -68,13 +68,14 @@
                 <StackPanel>
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.time}" />
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                        <ui:TextBox Width="110" Text="{Binding Time, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="09:00" Icon="{ui:SymbolIcon Clock24}" />
+                        <v:TimeField Time="{Binding Time, Mode=TwoWay}" AutomationProperties.Name="{l:Tr event.time}" />
                         <TextBlock Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource Caption}" Foreground="{DynamicResource Kd.Danger}"
                                    Text="{l:Tr event.timeInvalid}" Visibility="{Binding Time, Converter={StaticResource InvalidTime}, ConverterParameter=required}" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource FieldLabel}" Margin="0,8,0,4" Text="{l:Tr event.date}" />
                     <StackPanel Orientation="Horizontal">
-                        <DatePicker Width="180" SelectedDate="{Binding DateValue}" SelectedDateFormat="Short" AutomationProperties.Name="{l:Tr event.date}" />
+                        <DatePicker Width="180" SelectedDate="{Binding DateValue}" SelectedDateFormat="Short" AutomationProperties.Name="{l:Tr event.date}"
+                                    CalendarStyle="{StaticResource SolidCalendar}" />
                         <ui:Button Margin="6,0,0,0" Style="{StaticResource IconButton}" ToolTip="{l:Tr event.dateClear}" Click="OnClearDate"
                                    AutomationProperties.Name="{l:Tr event.dateClear}" Visibility="{Binding HasDate, Converter={StaticResource BoolToCollapsed}}">
                             <ui:SymbolIcon Symbol="Dismiss24" FontSize="12" />
@@ -448,8 +449,10 @@
                                             GotKeyboardFocus="OnNameFocus" LostKeyboardFocus="OnNameLostFocus" KeyDown="OnNameKeyDown" />
                                 <StackPanel Grid.Column="1" Margin="16,0,0,0" Orientation="Horizontal" VerticalAlignment="Center" v:ResponsiveHeader.IsSide="True">
                                     <ui:ToggleSwitch IsChecked="{Binding Enabled}" OnContent="{l:Tr common.enabled}" OffContent="{l:Tr common.disabled}" Margin="0,0,16,0" />
-                                    <ui:Button Content="{l:Tr event.test}" Icon="{ui:SymbolIcon Play24}" Appearance="Primary" Click="OnTestEvent" Margin="0,0,8,0"
+                                    <ui:Button Content="{l:Tr event.test}" Icon="{ui:SymbolIcon Play24}" Click="OnTestEvent" Margin="0,0,8,0"
                                                ToolTip="{l:Tr event.testHint}" />
+                                    <ui:Button Icon="{ui:SymbolIcon FlashAdd20}" ToolTip="{l:Tr event.createCommand}" AutomationProperties.Name="{l:Tr event.createCommand}"
+                                               Click="OnCreateCommand" Margin="0,0,8,0" />
                                     <ui:Button Icon="{ui:SymbolIcon Copy24}" ToolTip="{l:Tr common.duplicate}" Click="OnDuplicateEvent" Margin="0,0,8,0" />
                                     <ui:Button Icon="{ui:SymbolIcon Delete24}" ToolTip="{l:Tr common.delete}" Click="OnDeleteEvent" />
                                 </StackPanel>
@@ -466,12 +469,19 @@
                         </Grid>
                     </Border>
 
-                    <!-- When -->
-                    <Border Style="{StaticResource Card}">
+                    <!-- When (folds; open unless folded by hand) -->
+                    <ui:CardExpander x:Name="WhenExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon CalendarClock24}" IsExpanded="True"
+                                     Expanded="OnSectionFolded" Collapsed="OnSectionFolded" AutomationProperties.Name="{l:Tr event.when}">
+                        <ui:CardExpander.Header>
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold" Text="{l:Tr event.when}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                <TextBlock x:Name="WhenSummary" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </ui:CardExpander.Header>
                         <StackPanel>
-                            <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr event.when}" />
                             <ComboBox x:Name="KindBox" Margin="0,0,0,8" MaxWidth="420" HorizontalAlignment="Left" MinWidth="320"
-                                      ItemsSource="{x:Static v:Lookups.EventKinds}" SelectionChanged="OnKindChanged" MaxDropDownHeight="520">
+                                      ItemsSource="{x:Static v:Lookups.EventKinds}" SelectionChanged="OnKindChanged" MaxDropDownHeight="520"
+                                      v:ComboHover.NoScroll="True">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate DataType="{x:Type m:EventKindInfo}">
                                         <StackPanel Orientation="Horizontal">
@@ -486,7 +496,7 @@
                             <CheckBox Margin="0,12,0,0" Content="{l:Tr event.once}" IsChecked="{Binding Once}" ToolTip="{l:Tr event.onceHint}" />
                             <TextBlock Style="{StaticResource Caption}" Margin="28,0,0,0" TextWrapping="Wrap" Text="{l:Tr event.onceHint}" />
                         </StackPanel>
-                    </Border>
+                    </ui:CardExpander>
 
                     <!-- Run -->
                     <Border Style="{StaticResource Card}">
@@ -563,18 +573,20 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Only if -->
-                    <Border Style="{StaticResource Card}">
-                        <Expander x:Name="ConditionsExpander" Padding="0,8,0,0">
-                            <Expander.Header>
+                    <!-- Only if (open when it has something) -->
+                    <ui:CardExpander x:Name="ConditionsExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Filter24}" AutomationProperties.Name="{l:Tr event.conditions}">
+                        <ui:CardExpander.Header>
+                            <StackPanel>
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Style="{StaticResource SectionTitle}" Margin="0" Text="{l:Tr event.conditions}" />
-                                    <TextBlock x:Name="ConditionsBadge" Margin="10,0,0,0" VerticalAlignment="Center" Style="{StaticResource Caption}"
-                                               Foreground="{DynamicResource Kd.AccentText}" Text="{l:Tr event.conditionsOn}" />
+                                    <TextBlock FontWeight="SemiBold" Text="{l:Tr event.conditions}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                    <Border x:Name="ConditionsBadge" Margin="10,0,0,0" Padding="7,0" CornerRadius="8" VerticalAlignment="Center" Background="{DynamicResource Kd.AccentSoft}">
+                                        <TextBlock FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Kd.AccentText}" Text="{l:Tr event.conditionsOn}" />
+                                    </Border>
                                 </StackPanel>
-                            </Expander.Header>
+                                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr event.conditionsHint}" />
+                            </StackPanel>
+                        </ui:CardExpander.Header>
                             <StackPanel DataContext="{Binding Conditions}">
-                                <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" TextWrapping="Wrap" Text="{l:Tr event.conditionsHint}" />
                                 <Grid Style="{StaticResource EdRow}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="140" />
@@ -584,11 +596,11 @@
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
                                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.from}" />
-                                        <ui:TextBox Text="{Binding TimeFrom, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="hh:mm" />
+                                        <v:TimeField Time="{Binding TimeFrom, Mode=TwoWay}" Optional="True" AutomationProperties.Name="{l:Tr event.from}" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="2">
                                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.to}" />
-                                        <ui:TextBox Text="{Binding TimeTo, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="hh:mm" />
+                                        <v:TimeField Time="{Binding TimeTo, Mode=TwoWay}" Optional="True" AutomationProperties.Name="{l:Tr event.to}" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="3" Margin="16,0,0,0" VerticalAlignment="Bottom">
                                         <TextBlock Style="{StaticResource Caption}" Foreground="{DynamicResource Kd.Danger}" Text="{l:Tr event.timeInvalid}"
@@ -618,18 +630,30 @@
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>
-                        </Expander>
-                    </Border>
+                    </ui:CardExpander>
 
-                    <!-- Options -->
-                    <Border Style="{StaticResource Card}">
+                    <!-- Options (folded unless opened by hand) -->
+                    <ui:CardExpander x:Name="OptionsExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Options24}"
+                                     Expanded="OnSectionFolded" Collapsed="OnSectionFolded" AutomationProperties.Name="{l:Tr event.options}">
+                        <ui:CardExpander.Header>
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold" Text="{l:Tr event.options}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr event.optionsHint}" />
+                            </StackPanel>
+                        </ui:CardExpander.Header>
                         <StackPanel>
-                            <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr event.options}" />
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.cooldown}" />
                             <ui:TextBox Width="120" HorizontalAlignment="Left" Text="{Binding CooldownSeconds, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,14" TextWrapping="Wrap" Text="{l:Tr event.cooldownHint}" />
-                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr commands.notes}" />
-                            <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
+                            <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" TextWrapping="Wrap" Text="{l:Tr event.cooldownHint}" />
+                        </StackPanel>
+                    </ui:CardExpander>
+
+                    <!-- Notes -->
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr commands.notes}" />
+                            <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60"
+                                     AutomationProperties.Name="{l:Tr commands.notes}" />
                         </StackPanel>
                     </Border>
                 </StackPanel>
