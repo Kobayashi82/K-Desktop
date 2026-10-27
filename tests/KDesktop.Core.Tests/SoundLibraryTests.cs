@@ -52,6 +52,7 @@ public class SoundLibraryTests
         var config = new AppConfig();
         config.Settings.NotifySound = "Notification 1";
         config.Settings.StartupSound = "Toc";
+        config.Settings.PauseSound = "Email";
         var cmd = new Command { Name = "Sonar", Sound = "Tada" };
         cmd.Actions.Add(new PlaySoundAction { Sound = "Ring 2" });
         cmd.Actions.Add(new ShowNotificationAction { Sound = ShowNotificationAction.GlobalSound });
@@ -61,6 +62,7 @@ public class SoundLibraryTests
         var media = SoundLibrary.WindowsMedia;
         Assert.Equal(Path.Combine(media, "Windows Proximity Notification.wav"), config.Settings.NotifySound);
         Assert.Equal("Toc", config.Settings.StartupSound);
+        Assert.Equal(Path.Combine(media, "Windows Notify Email.wav"), config.Settings.PauseSound);
         Assert.Equal(Path.Combine(media, "tada.wav"), cmd.Sound);
         Assert.Equal(Path.Combine(media, "Ring06.wav"), ((PlaySoundAction)cmd.Actions[0]).Sound);
         Assert.Equal(ShowNotificationAction.GlobalSound, ((ShowNotificationAction)cmd.Actions[1]).Sound);

@@ -23,8 +23,9 @@ public static partial class SoundLibrary
     public static string WindowsMedia => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Media");
 
     /// <summary>
-    /// Built-in sounds until 5.0.296 that were Windows' own files with another name (the same bytes): since 5.0.297 they
-    /// are not built in, and those names mean the Windows file (<see cref="Upgrade"/>).
+    /// Built-in sounds that were Windows' own: until 5.0.296 its files with another name (the same bytes), until 5.0.297
+    /// the takes of an older Windows. They are not built in any more, and those names mean the Windows file
+    /// (<see cref="Upgrade"/>).
     /// </summary>
     public static readonly IReadOnlyDictionary<string, string> FromWindows = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
@@ -36,6 +37,12 @@ public static partial class SoundLibrary
         ["Notification 2"] = "notify.wav", ["Notification 3"] = "Windows Notify.wav", ["Print"] = "Windows Print complete.wav",
         ["Recycle"] = "Windows Recycle.wav", ["Ring 1"] = "Ring02.wav", ["Ring 2"] = "Ring06.wav", ["Ring 3"] = "Windows Ringout.wav",
         ["Shutdown"] = "Windows Shutdown.wav", ["Stop"] = "Windows Critical Stop.wav", ["Tada"] = "tada.wav", ["Unlock"] = "Windows Unlock.wav",
+        // Until 5.0.297, the takes of an older Windows: now its sounds of the same name.
+        ["Background"] = "Windows Background.wav", ["Calendar"] = "Windows Notify Calendar.wav", ["Email"] = "Windows Notify Email.wav",
+        ["Foreground"] = "Windows Foreground.wav", ["Generic"] = "Windows Notify System Generic.wav",
+        ["Hardware Fail"] = "Windows Hardware Fail.wav", ["Hardware Insert"] = "Windows Hardware Insert.wav",
+        ["Hardware Remove"] = "Windows Hardware Remove.wav", ["Message"] = "Windows Message Nudge.wav",
+        ["Messaging"] = "Windows Notify Messaging.wav",
     };
 
     /// <summary>A name of <see cref="FromWindows"/> as the path of its Windows file; anything else as it is.</summary>
