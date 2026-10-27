@@ -510,8 +510,10 @@ public partial class App : Application
         menu.Items.Add(new Separator());
         var assistant = new MenuItem { Header = Loc.T("nav.assistant") };
         menu.Items.Add(assistant);
-        menu.Items.Add(TrayItem(Loc.T("nav.events"), (_, _) => ShowMainWindow(w => w.Navigate("events"))));
-        menu.Items.Add(TrayItem(Loc.T("nav.kboard"), (_, _) => ShowMainWindow(w => w.Navigate("kboard"))));
+        var events = new MenuItem { Header = Loc.T("nav.events") };
+        menu.Items.Add(events);
+        var kboard = new MenuItem { Header = Loc.T("nav.kboard") };
+        menu.Items.Add(kboard);
         menu.Items.Add(new Separator());
         var pause = TrayItem(string.Empty, (_, _) => SetPaused(!Config.Settings.Paused));
         menu.Items.Add(pause);
@@ -522,6 +524,8 @@ public partial class App : Application
             window.Header = Loc.T(MainWindowShown ? "tray.hide" : "tray.show");
             pause.Header = Loc.T(Config.Settings.Paused ? "pause.resume" : "pause.pause");
             FillAssistantTrayMenu(assistant);
+            FillToggleTrayMenu(events, Config.Events.Select(e => (e.Name, e.Enabled, (Action<bool>)(on => e.Enabled = on))));
+            FillToggleTrayMenu(kboard, Config.KBoards.Select(k => (k.Name, k.Active, (Action<bool>)(on => k.Active = on))));
         };
 
         _tray = new TaskbarIcon
@@ -544,7 +548,20 @@ public partial class App : Application
         }
     }
 
-    private bool MainWindowShown => _main is { IsVisible: true } m && m.WindowState != WindowState.Minimized;
+    /// <summary>Events or K-Board profiles, each one switched on / off with a click; hidden when there are none.</summary>
+    private static void FillToggleTrayMenu(MenuItem menu, IEnumerable<(string Name, bool On, Action<bool> Set)> rows)
+    {
+        menu.Items.Clear();
+        foreach (var (name, on, set) in rows)
+        {
+            var item = new MenuItem { Header = name, IsCheckable = true, IsChecked = on };
+            item.Click += (_, _) => set(item.IsChecked);
+            menu.Items.Add(item);
+        }
+        menu.Visibility = menu.Items.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private bool MainWindowShown =>_main is { IsVisible: true } m && m.WindowState != WindowState.Minimized;
 
     private string? _appliedTrayIcon;
 
