@@ -507,8 +507,11 @@ public partial class App : Application
         menu.Items.Add(window);
         menu.Items.Add(new Separator());
         menu.Items.Add(TrayItem(Loc.T("tray.launcher"), (_, _) => Launcher.Show(ForegroundWindow.Capture())));
+        menu.Items.Add(new Separator());
         var assistant = new MenuItem { Header = Loc.T("nav.assistant") };
         menu.Items.Add(assistant);
+        menu.Items.Add(TrayItem(Loc.T("nav.events"), (_, _) => ShowMainWindow(w => w.Navigate("events"))));
+        menu.Items.Add(TrayItem(Loc.T("nav.kboard"), (_, _) => ShowMainWindow(w => w.Navigate("kboard"))));
         menu.Items.Add(new Separator());
         var pause = TrayItem(string.Empty, (_, _) => SetPaused(!Config.Settings.Paused));
         menu.Items.Add(pause);
