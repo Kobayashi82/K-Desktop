@@ -44,17 +44,61 @@ public static class ThemeService
         IsDark = dark;
 
         var theme = dark ? ApplicationTheme.Dark : ApplicationTheme.Light;
+        // The golds go before the theme too: its dictionary takes the accent there is when it loads, so on a live
+        // switch the buttons kept the other theme's gold until a restart.
+        ApplyAccent(dark, theme);
         // WPF-UI redoes each window's backdrop with a transparent background: the veil waits until it is done.
         _applying = true;
         try { ApplicationThemeManager.Apply(theme, WindowBackdropType.Mica, false); }
         finally { _applying = false; }
-        ApplicationAccentColorManager.Apply(Gold, theme, false, false);
+        ApplyAccent(dark, theme);
+        ApplyAccentButtons(dark);
         SwapOwnDictionary(dark);
         WarmLightTheme(dark);
         ApplyLightOverrides(dark);
         foreach (var window in Application.Current.Windows.OfType<FluentWindow>()) Veil(window);
         Changed?.Invoke();
     }
+
+    /// <summary>The dark theme's golds: the ones WPF-UI makes from <see cref="Gold"/>, worked out once.</summary>
+    private static (Color Primary, Color Secondary, Color Tertiary)? _darkAccent;
+
+    /// <summary>
+    /// Both themes give the three golds outright: WPF-UI's own way (from one colour and the theme) left some of the
+    /// other theme's on the buttons after a live switch.
+    /// </summary>
+    private static void ApplyAccent(bool dark, ApplicationTheme theme)
+    {
+        if (dark)
+        {
+            if (_darkAccent is null)
+            {
+                ApplicationAccentColorManager.Apply(Gold, theme, false, false);
+                _darkAccent = (ApplicationAccentColorManager.PrimaryAccent, ApplicationAccentColorManager.SecondaryAccent,
+                               ApplicationAccentColorManager.TertiaryAccent);
+            }
+            var (primary, secondary, tertiary) = _darkAccent.Value;
+            ApplicationAccentColorManager.Apply(Gold, primary, secondary, tertiary);
+        }
+        else ApplicationAccentColorManager.Apply(Gold, Light.Accent, Light.AccentHover, Light.AccentPressed);
+    }
+
+    /// <summary>
+    /// The gold buttons' fill, given for each theme: WPF-UI picks it from its theme dictionary, and after a live switch
+    /// they kept the other theme's pick (the hover gold, or the pale yellow) until a restart.
+    /// </summary>
+    private static void ApplyAccentButtons(bool dark)
+    {
+        var (normal, hover, pressed) = dark && _darkAccent is var (_, secondary, _)
+            ? (secondary, WithAlpha(secondary, 0xE6), WithAlpha(secondary, 0xCC))
+            : (Light.Accent, Light.AccentHover, Light.AccentPressed);
+        var resources = Application.Current.Resources;
+        resources["AccentButtonBackground"] = Frozen(new SolidColorBrush(normal));
+        resources["AccentButtonBackgroundPointerOver"] = Frozen(new SolidColorBrush(hover));
+        resources["AccentButtonBackgroundPressed"] = Frozen(new SolidColorBrush(pressed));
+    }
+
+    private static Color WithAlpha(Color c, byte alpha) => Color.FromArgb(alpha, c.R, c.G, c.B);
 
     private static readonly System.ComponentModel.DependencyPropertyDescriptor BackgroundOf =
         System.ComponentModel.DependencyPropertyDescriptor.FromProperty(Control.BackgroundProperty, typeof(Window));
@@ -79,13 +123,27 @@ public static class ThemeService
         if (window.Background != window.TryFindResource("Kd.WindowTint")) window.SetResourceReference(Control.BackgroundProperty, "Kd.WindowTint");
     }
 
+    /// <summary>
+    /// The light theme's surfaces: the window (sidebar and title bar), the content layer beside it, the cards on it and
+    /// their edge, how far WPF-UI's neutral greys are warmed (0 = left neutral, 1 = cream), and the golds.
+    /// </summary>
+    private sealed record LightPalette(Color Window, Color Layer, Color Card, Color CardStroke, double Warmth,
+                                       Color Accent, Color AccentHover, Color AccentPressed);
+
+    /// <summary>«Arena» (chosen from three in 5.0.310: neutral, slightly warm and this one).</summary>
+    private static readonly LightPalette Light = new(
+        Rgb(0xE6, 0xDD, 0xCD), Rgb(0xF2, 0xEC, 0xE0), Rgb(0xFF, 0xFD, 0xF8), Color.FromArgb(0x24, 0x3D, 0x2A, 0x0A), 1,
+        Rgb(0xE0, 0xA8, 0x15), Rgb(0xE8, 0xB8, 0x3A), Rgb(0xD0, 0x9A, 0x10));
+
+    private static Color Rgb(byte r, byte g, byte b) => Color.FromRgb(r, g, b);
+
     /// <summary>The keys <see cref="WarmLightTheme"/> put in the application's resources (taken away in the dark theme).</summary>
     private static readonly HashSet<string> Warmed = [];
 
     /// <summary>
-    /// WPF-UI's light theme is neutral white and grey, which looks cold and glaring: its near-white surfaces (cards,
-    /// buttons, boxes, lists, menus) become cream of the same lightness and transparency, and its black hairlines
-    /// (borders, dividers, hovers) a warm brown. Texts stay as they are (see <see cref="LightOverrides"/>).
+    /// WPF-UI's light theme is all white, the background hardly apart from the panels: the light palette sets the
+    /// window, the content layer and the cards (with their edge) apart, and warms WPF-UI's neutral near-white surfaces
+    /// (buttons, boxes, lists, menus) and black hairlines as far as it says. Texts stay as they are (see <see cref="LightOverrides"/>).
     /// </summary>
     private static void WarmLightTheme(bool dark)
     {
@@ -106,8 +164,27 @@ public static class ThemeService
             resources[entry] = warm;
             Warmed.Add(entry);
         }
-        // The cards stand apart from the cream background: solid warm white with a firmer edge.
-        foreach (var (key, color) in Cards)
+        // The palette's own surfaces: the window and the content layer apart, and the cards solid on them.
+        (string Key, Color Color)[] brushes =
+        [
+            ("Kd.WindowTint", Light.Window),
+            // QuickMenus, the launcher and the OSD in the palette's tones too.
+            ("Kd.MenuTint", Color.FromArgb(0xD6, Light.Layer.R, Light.Layer.G, Light.Layer.B)),
+            ("Kd.MenuTintOpaque", Light.Card),
+            ("Kd.OsdBackground", Color.FromArgb(0xF2, Light.Card.R, Light.Card.G, Light.Card.B)),
+        ];
+        foreach (var (key, color) in brushes)
+        {
+            resources[key] = Frozen(new SolidColorBrush(color));
+            Warmed.Add(key);
+        }
+        (string Key, Color Color)[] surfaces =
+        [
+            ("LayerFillColorDefault", Light.Layer),
+            ("CardBackgroundFillColorDefault", Light.Card),
+            ("CardStrokeColorDefault", Light.CardStroke),
+        ];
+        foreach (var (key, color) in surfaces)
         {
             resources[key] = color;
             resources[key + "Brush"] = Frozen(new SolidColorBrush(color));
@@ -116,22 +193,19 @@ public static class ThemeService
         }
         foreach (var key in (string[])["CardBackground", "ExpanderHeaderBackground"])
         {
-            resources[key] = Frozen(new SolidColorBrush(Cards[0].Color));
+            resources[key] = Frozen(new SolidColorBrush(Light.Card));
             Warmed.Add(key);
         }
     }
 
-    private static readonly (string Key, Color Color)[] Cards =
-    [
-        ("CardBackgroundFillColorDefault", Color.FromRgb(0xFE, 0xFA, 0xF3)),
-        ("CardStrokeColorDefault", Color.FromArgb(0x26, 0x4A, 0x32, 0x0A)),
-    ];
-
-    /// <summary>A neutral light grey or white → cream; a neutral black hairline → warm brown; anything else stays.</summary>
+    /// <summary>
+    /// A neutral light grey or white → warmer by the palette's <see cref="LightPalette.Warmth"/>; a neutral black
+    /// hairline → warm brown; anything else (or a palette without warmth) stays.
+    /// </summary>
     private static Color? Warm(Color c)
     {
-        if (c.R != c.G || c.G != c.B || c.A == 0) return null;
-        if (c.R >= 0xE6) return Color.FromArgb(c.A, c.R, (byte)(c.G - 7), (byte)(c.B - 20));
+        if (Light.Warmth <= 0 || c.R != c.G || c.G != c.B || c.A == 0) return null;
+        if (c.R >= 0xE6) return Color.FromArgb(c.A, c.R, (byte)(c.G - 7 * Light.Warmth), (byte)(c.B - 20 * Light.Warmth));
         if (c.R == 0 && c.A <= 0x40) return Color.FromArgb(c.A, 0x4A, 0x32, 0x0A);
         return null;
     }

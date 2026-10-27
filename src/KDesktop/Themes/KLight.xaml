@@ -1,8 +1,9 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- K-Desktop tokens, light variant. Keys must match KDark.xaml. -->
-    <!-- The light theme is cream, not white: the windows get this background instead of the Mica (a wallpaper showing through made it grey) (ThemeService warms WPF-UI's greys too) -->
-    <SolidColorBrush x:Key="Kd.WindowTint" Color="#FFEEE4D1" />
+    <!-- The window's background instead of the Mica (a wallpaper showing through made it grey); ThemeService sets it,
+         the content layer, the cards and the menus from its light palette -->
+    <SolidColorBrush x:Key="Kd.WindowTint" Color="#FFE6DDCD" />
     <Color x:Key="Kd.AccentColor">#B57F00</Color>
     <SolidColorBrush x:Key="Kd.Accent" Color="#C58A00" />
     <SolidColorBrush x:Key="Kd.AccentSoft" Color="#29C58A00" />
