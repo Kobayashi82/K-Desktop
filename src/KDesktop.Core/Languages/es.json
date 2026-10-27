@@ -521,6 +521,8 @@
   "settings.osdRingHint": "En el centro de la pantalla, un poco más abajo. Apagado, salen en el mensaje.",
   "settings.osdRingTest": "Probar el círculo",
   "settings.osdRingSample": "Así se ven las cuentas atrás",
+  "settings.countdownCancelSound": "Sonido al cancelar una cuenta atrás",
+  "settings.countdownCancelSoundHint": "Cuando la paras con Esc antes de que acabe (apagar el equipo, esperar, un mensaje…).",
   "settings.osdPosition": "Posición",
   "settings.osdDuration": "Duración",
   "settings.osdTest": "Probar",

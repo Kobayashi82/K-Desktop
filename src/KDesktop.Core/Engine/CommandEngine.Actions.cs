@@ -356,7 +356,12 @@ public sealed partial class CommandEngine
         }
         var cts = BeginCancellable(ctx.Token);
         var osd = _ui.ShowPersistentOsd(a.Text, a.Countdown ? DateTime.Now + duration : null, "Chat24");
-        var task = Task.Delay(duration, cts.Token).ContinueWith(_ => { osd.Dispose(); EndCancellable(cts); }, TaskScheduler.Default);
+        var task = Task.Delay(duration, cts.Token).ContinueWith(t =>
+        {
+            if (t.IsCanceled && a.Countdown) CountdownCancelled();
+            osd.Dispose();
+            EndCancellable(cts);
+        }, TaskScheduler.Default);
         if (a.Wait) await task.ConfigureAwait(false);
     }
 
@@ -472,6 +477,7 @@ public sealed partial class CommandEngine
             }
             catch (OperationCanceledException)
             {
+                if (osd is not null) CountdownCancelled();
                 _ui.ShowOsd(Loc.T("osd.powerCancelled", name), OsdKind.Warning, look: OsdLook.Of("Power24"));
                 throw;
             }
@@ -570,6 +576,11 @@ public sealed partial class CommandEngine
         try
         {
             await Task.Delay(duration, cts.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (a.Countdown)
+        {
+            CountdownCancelled();
+            throw;
         }
         finally
         {

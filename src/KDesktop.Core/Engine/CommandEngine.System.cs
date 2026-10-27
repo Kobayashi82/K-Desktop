@@ -206,6 +206,12 @@ public sealed partial class CommandEngine
             }
             if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.wolAwake", name), OsdKind.Success, look: OsdLook.Of("DesktopPulse24"));
         }
+        // Stopped while waiting (not «it did not answer», which ends the countdown itself).
+        catch (OperationCanceledException) when (osd is not null && cts.IsCancellationRequested)
+        {
+            CountdownCancelled();
+            throw;
+        }
         finally
         {
             osd?.Dispose();

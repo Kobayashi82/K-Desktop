@@ -997,6 +997,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>Countdowns as a ring a little below the middle of the screen (off: on the OSD, like the rest).</summary>
     [ObservableProperty] private bool _osdRing = true;
 
+    /// <summary>Plays when a countdown on show is stopped before its end (Esc); null: none.</summary>
+    [ObservableProperty] private string? _countdownCancelSound;
+
     [ObservableProperty] private bool _osdShowActions = true;
     [ObservableProperty] private bool _osdShowLevels = true;
     [ObservableProperty] private bool _osdShowVoice = true;

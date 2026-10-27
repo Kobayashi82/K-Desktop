@@ -564,6 +564,15 @@
                                    AutomationProperties.Name="{l:Tr settings.osdRingTest}" IsEnabled="{Binding OsdRing}" Click="OnTestRing" />
                         <ui:ToggleSwitch Grid.Column="2" IsChecked="{Binding OsdRing}" AutomationProperties.Name="{l:Tr settings.osdRing}" />
                     </Grid>
+                    <!-- What sounds when one is stopped before its end -->
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.countdownCancelSound}" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.countdownCancelSoundHint}" />
+                        </StackPanel>
+                        <v:SoundPicker Grid.Column="1" Width="300" VerticalAlignment="Center" Sound="{Binding CountdownCancelSound}" />
+                    </Grid>
                     <StackPanel IsEnabled="{Binding OsdEnabled}">
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>

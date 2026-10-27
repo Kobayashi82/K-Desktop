@@ -521,6 +521,8 @@
   "settings.osdRingHint": "Au centre de l’écran, un peu plus bas. Désactivé, ils s’affichent dans le message.",
   "settings.osdRingTest": "Essayer le cercle",
   "settings.osdRingSample": "Voici à quoi ressemblent les comptes à rebours",
+  "settings.countdownCancelSound": "Son à l’annulation d’un compte à rebours",
+  "settings.countdownCancelSoundHint": "Quand vous l’arrêtez avec Échap avant la fin (éteindre le PC, attendre, un message…).",
   "settings.osdPosition": "Position",
   "settings.osdDuration": "Durée",
   "settings.osdTest": "Essayer",

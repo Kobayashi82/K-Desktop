@@ -521,6 +521,8 @@
   "settings.osdRingHint": "In the middle of the screen, a little lower. Off, they show in the message.",
   "settings.osdRingTest": "Try the circle",
   "settings.osdRingSample": "This is how countdowns look",
+  "settings.countdownCancelSound": "Sound when a countdown is cancelled",
+  "settings.countdownCancelSoundHint": "When you stop it with Esc before it ends (shutting down, waiting, a message…).",
   "settings.osdPosition": "Position",
   "settings.osdDuration": "Duration",
   "settings.osdTest": "Try it",

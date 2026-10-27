@@ -385,4 +385,7 @@ public sealed partial class CommandEngine
         _cancellable.TryRemove(cts, out _);
         cts.Dispose();
     }
+
+    /// <summary>A countdown on show stopped before its end (Esc, or its command stopped): Options › its sound, if any.</summary>
+    private void CountdownCancelled() => Sounds.Play(Config.Settings.CountdownCancelSound);
 }

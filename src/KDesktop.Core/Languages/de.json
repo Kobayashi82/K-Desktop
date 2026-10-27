@@ -521,6 +521,8 @@
   "settings.osdRingHint": "In der Bildschirmmitte, etwas tiefer. Aus erscheinen sie in der Meldung.",
   "settings.osdRingTest": "Kreis testen",
   "settings.osdRingSample": "So sehen Countdowns aus",
+  "settings.countdownCancelSound": "Ton beim Abbrechen eines Countdowns",
+  "settings.countdownCancelSoundHint": "Wenn du ihn vor dem Ende mit Esc stoppst (Herunterfahren, Warten, eine Meldung…).",
   "settings.osdPosition": "Position",
   "settings.osdDuration": "Dauer",
   "settings.osdTest": "Ausprobieren",

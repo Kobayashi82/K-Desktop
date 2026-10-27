@@ -521,6 +521,8 @@
   "settings.osdRingHint": "No centro da tela, um pouco mais abaixo. Desligado, aparecem na mensagem.",
   "settings.osdRingTest": "Testar o círculo",
   "settings.osdRingSample": "É assim que ficam as contagens regressivas",
+  "settings.countdownCancelSound": "Som ao cancelar uma contagem regressiva",
+  "settings.countdownCancelSoundHint": "Quando você a para com Esc antes de terminar (desligar o PC, esperar, uma mensagem…).",
   "settings.osdPosition": "Posição",
   "settings.osdDuration": "Duração",
   "settings.osdTest": "Testar",

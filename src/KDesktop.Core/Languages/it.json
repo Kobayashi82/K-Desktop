@@ -521,6 +521,8 @@
   "settings.osdRingHint": "Al centro dello schermo, un po’ più in basso. Spento, compaiono nel messaggio.",
   "settings.osdRingTest": "Prova il cerchio",
   "settings.osdRingSample": "Ecco come appaiono i conti alla rovescia",
+  "settings.countdownCancelSound": "Suono quando si annulla un conto alla rovescia",
+  "settings.countdownCancelSoundHint": "Quando lo fermi con Esc prima che finisca (spegnere il PC, attendere, un messaggio…).",
   "settings.osdPosition": "Posizione",
   "settings.osdDuration": "Durata",
   "settings.osdTest": "Prova",
