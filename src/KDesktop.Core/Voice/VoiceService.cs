@@ -381,6 +381,29 @@ public sealed partial class VoiceService : IDisposable
     private static TimeSpan UnloadAfter(AppSettings settings) =>
         settings.VoiceUnloadMinutes <= 0 ? Timeout.InfiniteTimeSpan : TimeSpan.FromMinutes(settings.VoiceUnloadMinutes);
 
+    private bool? _appliedEnabled;
+
+    /// <summary>
+    /// The voice options changed (call after the wake words were refreshed, so Parakeet is no longer pinned). The voice
+    /// switched off frees both models at once, whatever «Nunca» says; the meaning model still loads for the assistants
+    /// when they ask, and leaves again after the usual 10 minutes. Switched on, the wake words load Parakeet again.
+    /// </summary>
+    public void ApplySettings(AppSettings settings)
+    {
+        var enabled = settings.VoiceEnabled;
+        SpeechToText.IdleUnload = UnloadAfter(settings);
+        Semantic.IdleUnload = enabled ? UnloadAfter(settings) : TimeSpan.FromMinutes(10);
+        if (_appliedEnabled == enabled) return;
+        var wasEnabled = _appliedEnabled;
+        _appliedEnabled = enabled;
+        if (enabled || wasEnabled is null) return;
+        Task.Run(() =>
+        {
+            SpeechToText.Unload();
+            Semantic.Embedder.Unload();
+        });
+    }
+
     /// <summary>Parakeet and the meaning model load in the background while the user is still speaking.</summary>
     private void PreloadModels(AppSettings settings)
     {

@@ -468,6 +468,7 @@ public partial class App : Application
         UpdateTray();
         ApplyTrayIcon();
         WakeListener?.Refresh(); // the option, the microphone or the pause changed
+        Voice?.ApplySettings(s); // voice off: its models leave memory now
         _main?.UpdateStatus(); // e.g. the voice hotkey shown in its tooltip
 
         if (s.UdpEnabled && !UdpDisabled)
