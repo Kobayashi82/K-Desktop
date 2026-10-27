@@ -363,7 +363,7 @@ public partial class AssistantTryView : UserControl
         controls.ColumnDefinitions[3].MaxWidth = 300;
         _kinds = new ComboBox { IsEnabled = false, Margin = new Thickness(0, 0, 6, 0) };
         AutomationProperties.SetName(_kinds, Loc.T("assistantTry.kind"));
-        _kinds.SelectionChanged += (_, _) => OnKindPicked();
+        _kinds.SelectionChanged += (_, _) => OnKindPicked(play: true);
         _actions = new ComboBox { IsEnabled = false, Margin = new Thickness(0, 0, 4, 0) };
         AutomationProperties.SetName(_actions, Loc.T("assistantTry.action"));
         _actions.SelectionChanged += (_, _) =>
@@ -466,8 +466,11 @@ public partial class AssistantTryView : UserControl
         }
     }
 
-    /// <summary>A type was picked: its things in the second list (the one picked before, if it is there); nothing is done yet.</summary>
-    private void OnKindPicked()
+    /// <summary>
+    /// A type was picked: its things in the second list (the one picked before, if it is there). Picked by the user
+    /// (<paramref name="play"/>), it does the one that list shows, as picking it there does.
+    /// </summary>
+    private void OnKindPicked(bool play = false)
     {
         if (_filling || _actions is null || _kinds?.SelectedItem is not ComboBoxItem { Tag: Kind kind }) return;
         _filling = true;
@@ -486,6 +489,11 @@ public partial class AssistantTryView : UserControl
         if (_play is not null) _play.IsEnabled = _actions.Items.Count > 0;
         _filling = false;
         Remember();
+        if (play && _actions.Items.Count > 0)
+        {
+            _playSoon.Stop();
+            _playSoon.Start();
+        }
     }
 
     private void Remember()

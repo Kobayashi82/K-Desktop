@@ -25,7 +25,10 @@ public partial class App
     private MemoryMappedFile? _stageMap;
     private MemoryMappedViewAccessor? _stageView;
     private string? _stageMapName;
-    private StageFrameMessage? _stageFrame;
+    /// <summary>The newest picture that came, with the stage that sent it (one of a stage that closed is never shown).</summary>
+    private StageFrame? _stageFrame;
+
+    private sealed record StageFrame(AssistantStage Stage, StageFrameMessage Message);
     private long _stageShown;
     private int _stagePainting;
     private byte[] _stagePixels = [];
@@ -113,6 +116,9 @@ public partial class App
         _stage = null;
         _stageId = null;
         _stageFrame = null;
+        // Each stage counts its pictures from 1: with the last one of the stage before, the next one's were all skipped
+        // (another assistant did not show, or only after a minute, when its count passed that one).
+        _stageShown = 0;
         _stageReady = false;
         _stageView?.Dispose();
         _stageMap?.Dispose();
@@ -133,7 +139,10 @@ public partial class App
     {
         if (message is StageFrameMessage frame)
         {
-            Volatile.Write(ref _stageFrame, frame);
+            // Only the stage open now: the one before goes on sending pictures while it closes, and they were shown as the
+            // new one's (another assistant's desktop, without it) and raised the count the new one has to pass.
+            if (!ReferenceEquals(Volatile.Read(ref _stage), stage)) return;
+            Volatile.Write(ref _stageFrame, new StageFrame(stage, frame));
             if (Interlocked.Exchange(ref _stagePainting, 1) == 0) Dispatcher.BeginInvoke(PaintStage, System.Windows.Threading.DispatcherPriority.Render);
             return;
         }
@@ -164,7 +173,8 @@ public partial class App
     private void PaintStage()
     {
         Volatile.Write(ref _stagePainting, 0);
-        if (_stage is null || Volatile.Read(ref _stageFrame) is not { } frame || frame.Seq <= _stageShown) return;
+        if (_stage is null || Volatile.Read(ref _stageFrame) is not { } framed || !ReferenceEquals(framed.Stage, _stage) || framed.Message.Seq <= _stageShown) return;
+        var frame = framed.Message;
         try
         {
             if (_stageMapName != frame.Map)

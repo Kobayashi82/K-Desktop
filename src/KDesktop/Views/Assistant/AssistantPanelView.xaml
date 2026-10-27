@@ -89,7 +89,7 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border x:Name="Tile" Width="276" Margin="0,0,10,10" Padding="12,10" CornerRadius="8" Background="{DynamicResource Kd.Subtle}">
+                                <Border x:Name="Tile" Width="244" Margin="0,0,10,10" Padding="12,10" CornerRadius="8" Background="{DynamicResource Kd.Subtle}">
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
                                         <Grid Width="40" Height="40" VerticalAlignment="Top">

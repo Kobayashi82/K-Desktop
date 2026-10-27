@@ -158,8 +158,8 @@
                     </Grid>
                 </Grid>
 
-                <!-- Hear it -->
-                <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                <!-- Hear it (not when it does not speak) -->
+                <StackPanel x:Name="TestRow" Orientation="Horizontal" Margin="0,14,0,0">
                     <ui:Button MinHeight="36" x:Name="TestButton" Icon="{ui:SymbolIcon Play24}" Content="{l:Tr assistantPersonal.test}" Click="OnTest" />
                     <ui:Button x:Name="StopButton" Margin="8,0,0,0" Padding="10,6" VerticalAlignment="Stretch" Click="OnStopTest"
                                ToolTip="{l:Tr assistantVoice.testStop}" AutomationProperties.Name="{l:Tr assistantVoice.testStop}">

@@ -166,6 +166,7 @@ public partial class AssistantVoiceSection : UserControl
         // «Probar»: who says it (the assistants on the desktop, and K-Desktop always: it has nothing to load) and in which mood.
         var running = _app.Assistant is { IsRunning: true };
         TestButton.IsEnabled = StopButton.IsEnabled = running;
+        TestBlock.Visibility = s.AssistantVoiceEngine == "off" ? Visibility.Collapsed : Visibility.Visible;
         // Each voice is heard once it is there (Windows' only when Windows has one for the language).
         KokoroTestButton.IsEnabled = running && supported && missing == 0 && !download.IsDownloading;
         PiperTestButton.IsEnabled = running && !_app.PiperMissing && !_app.PiperDownload.IsDownloading;
@@ -363,6 +364,7 @@ public partial class AssistantVoiceSection : UserControl
     {
         if (_filling || EngineBox.SelectedItem is not Option option) return;
         _app.Config.Settings.AssistantVoiceEngine = option.Value;
+        TestBlock.Visibility = option.Value == "off" ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void OnProfileChanged(object sender, SelectionChangedEventArgs e)

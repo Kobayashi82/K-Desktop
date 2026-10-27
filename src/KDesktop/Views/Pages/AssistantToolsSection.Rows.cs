@@ -353,7 +353,8 @@ public partial class AssistantToolsSection
         texts.Children.Add(name);
         if (subtitle is { Length: > 0 })
         {
-            var line = new TextBlock { Text = subtitle, FontSize = 12, TextTrimming = TextTrimming.CharacterEllipsis };
+            // To a second line rather than cut («0 en marcha · 214 herram…» in a narrow window).
+            var line = new TextBlock { Text = subtitle, FontSize = 12, TextWrapping = TextWrapping.Wrap };
             line.SetResourceReference(TextBlock.ForegroundProperty, warn ? "Kd.Danger" : "Kd.TextDim");
             texts.Children.Add(line);
         }

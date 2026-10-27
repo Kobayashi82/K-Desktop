@@ -287,7 +287,7 @@ public partial class AssistantPersonalView : UserControl
         // Kokoro does not speak its language: Windows says it (and its hint says why).
         WindowsRow.Visibility = engine == "windows" || (!supported && engine is "kokoro" or "pocket") ? Visibility.Visible : Visibility.Collapsed;
         var silent = engine == "off";
-        ProfileRow.Visibility = SpeedRow.Visibility = VolumeRow.Visibility = silent ? Visibility.Collapsed : Visibility.Visible;
+        ProfileRow.Visibility = SpeedRow.Visibility = VolumeRow.Visibility = TestRow.Visibility = silent ? Visibility.Collapsed : Visibility.Visible;
 
         VolumeSwitch.IsChecked = own.Volume is not null;
         VolumeSlider.IsEnabled = own.Volume is not null;
