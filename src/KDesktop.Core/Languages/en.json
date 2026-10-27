@@ -4703,11 +4703,7 @@
   "welcome.assistantsText": "Optional. Assistants are characters that live on your desktop: you talk or write to them and they do things for you, like your commands, with gestures you can see.",
   "welcome.assistantsOn": "Use assistants",
   "welcome.assistantsOnHint": "Off, K-Desktop loads nothing of them.",
-  "welcome.catalogText": "Install your first assistant from the catalog.",
-  "welcome.catalogOpen": "Open the catalog",
-  "welcome.assistantsBrain": "To chat they need an AI model. It is chosen in Settings → Brain.",
-  "welcome.doneText": "You can start using K-Desktop. The best way to begin is to create your first command: give it a name, add an action and choose a hotkey.",
-  "welcome.firstCommand": "Create my first command",
-  "welcome.openSettings": "Go to Settings",
+  "welcome.assistantsBrain": "They are installed from Settings → Catalog and, to chat, they need an AI model (Settings → Brain).",
+  "welcome.doneText": "You can start using K-Desktop. To begin, create your first command in Commands: give it a name, add an action and choose a hotkey.",
   "welcome.again": "You can see this welcome again in About."
 }

@@ -330,13 +330,18 @@ public partial class App : Application
         Log.Info($"Listo: {Config.Commands.Count} comandos, {Config.QuickMenus.Count} QuickMenus, {Config.Macros.Count} macros");
 
         // After the window: the first notifications ("welcome"…) appear once everything is on screen. A fresh install
-        // opened by hand (not a test copy with --data) shows the welcome over the main window.
+        // opened by hand (not a test copy with --data) shows the welcome over the main window, and the achievements
+        // come when it closes.
         Dispatcher.BeginInvoke(() =>
         {
-            if (_firstRun && AppPaths.InstanceSuffix.Length == 0 && !StartedByWindows) ShowWelcome();
-            Achievements.Increment(Stat.AppStarted);
-            Achievements.CheckTime();
-            Achievements.CheckConfig(Config);
+            void CheckAchievements()
+            {
+                Achievements.Increment(Stat.AppStarted);
+                Achievements.CheckTime();
+                Achievements.CheckConfig(Config);
+            }
+            if (_firstRun && AppPaths.InstanceSuffix.Length == 0 && !StartedByWindows) ShowWelcome(CheckAchievements);
+            else CheckAchievements();
         }, DispatcherPriority.ApplicationIdle);
     }
 
@@ -365,7 +370,8 @@ public partial class App : Application
     }
 
     /// <summary>The welcome (language, theme, the basics, voice, assistants) over the main window.</summary>
-    public void ShowWelcome() => ShowMainWindow(Views.Dialogs.WelcomeWindow.Open);
+    /// <param name="closed">Runs when it closes (the first start's achievements).</param>
+    public void ShowWelcome(Action? closed = null) => ShowMainWindow(w => Views.Dialogs.WelcomeWindow.Open(w, closed));
 
     /// <summary>True when no configuration existed yet (a fresh install).</summary>
     private bool _firstRun;

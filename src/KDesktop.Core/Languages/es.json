@@ -4703,11 +4703,7 @@
   "welcome.assistantsText": "Opcional. Los asistentes son personajes que viven en tu escritorio: les hablas o les escribes y hacen cosas por ti, como tus comandos, con gestos que se ven.",
   "welcome.assistantsOn": "Usar asistentes",
   "welcome.assistantsOnHint": "Desactivados, K-Desktop no carga nada de ellos.",
-  "welcome.catalogText": "Instala tu primer asistente desde el catálogo.",
-  "welcome.catalogOpen": "Ver el catálogo",
-  "welcome.assistantsBrain": "Para conversar necesitan un modelo de IA. Se elige en Opciones → Cerebro.",
-  "welcome.doneText": "Ya puedes usar K-Desktop. Lo mejor para empezar es crear tu primer comando: ponle un nombre, añade una acción y elige un atajo.",
-  "welcome.firstCommand": "Crear mi primer comando",
-  "welcome.openSettings": "Ir a Opciones",
+  "welcome.assistantsBrain": "Se instalan desde Opciones → Catálogo y, para conversar, necesitan un modelo de IA (Opciones → Cerebro).",
+  "welcome.doneText": "Ya puedes usar K-Desktop. Para empezar, crea tu primer comando en Comandos: ponle un nombre, añade una acción y elige un atajo.",
   "welcome.again": "Puedes volver a ver esta bienvenida en Acerca de."
 }

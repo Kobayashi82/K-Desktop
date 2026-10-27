@@ -30,8 +30,6 @@ public partial class WelcomeWindow : FluentWindow
     private readonly StackPanel[] _steps;
     private int _step;
     private bool _filling;
-    /// <summary>What to do in the main window once this one is closed (open the catalog, a new command…).</summary>
-    private Action<MainWindow>? _then;
 
     private WelcomeWindow()
     {
@@ -49,7 +47,6 @@ public partial class WelcomeWindow : FluentWindow
         AssistantToggle.IsChecked = s.AssistantEnabled;
         UpdateHotkeys();
         UpdateVoice();
-        UpdateAssistant();
 
         void OnModels() => Dispatcher.BeginInvoke(UpdateVoice);
         void OnLanguage() => Dispatcher.BeginInvoke(() =>
@@ -66,7 +63,6 @@ public partial class WelcomeWindow : FluentWindow
             _app.Voice.Models.Changed -= OnModels;
             Loc.Instance.Changed -= OnLanguage;
             HotkeyCapture.CancelActive();
-            if (_then is { } then) _app.ShowMainWindow(then);
         };
         PreviewKeyDown += (_, e) =>
         {
@@ -81,15 +77,21 @@ public partial class WelcomeWindow : FluentWindow
         Loaded += (_, _) => PopIn(LogoScale, 0.6);
     }
 
-    /// <summary>Shows the welcome over <paramref name="owner"/> (the main window), unless it is open already.</summary>
-    public static void Open(Window owner)
+    /// <summary>
+    /// Shows the welcome over <paramref name="owner"/> (the main window), unless it is open already;
+    /// <paramref name="closed"/> runs when it closes.
+    /// </summary>
+    public static void Open(Window owner, Action? closed = null)
     {
         if (Application.Current.Windows.OfType<WelcomeWindow>().FirstOrDefault() is { } open)
         {
             open.Activate();
+            if (closed is not null) open.Closed += (_, _) => closed();
             return;
         }
-        new WelcomeWindow { Owner = owner }.Show();
+        var window = new WelcomeWindow { Owner = owner };
+        if (closed is not null) window.Closed += (_, _) => closed();
+        window.Show();
     }
 
     // ── steps ────────────────────────────────────────────────────────────
@@ -151,13 +153,6 @@ public partial class WelcomeWindow : FluentWindow
     }
 
     private void OnSkip(object sender, RoutedEventArgs e) => Close();
-
-    /// <summary>Closes the welcome and then does <paramref name="then"/> in the main window.</summary>
-    private void CloseThen(Action<MainWindow> then)
-    {
-        _then = then;
-        Close();
-    }
 
     // ── 0 · language and theme ───────────────────────────────────────────
 
@@ -296,21 +291,5 @@ public partial class WelcomeWindow : FluentWindow
     {
         _app.Config.Settings.AssistantEnabled = AssistantToggle.IsChecked == true;
         _app.ApplySettings();
-        UpdateAssistant();
     }
-
-    private void UpdateAssistant()
-    {
-        var on = _app.Config.Settings.AssistantEnabled;
-        CatalogBox.IsEnabled = on;
-        CatalogBox.Opacity = on ? 1 : 0.5;
-    }
-
-    private void OnOpenCatalog(object sender, RoutedEventArgs e) => CloseThen(w => w.Navigate("settings/catalog"));
-
-    // ── 5 · ready ────────────────────────────────────────────────────────
-
-    private void OnFirstCommand(object sender, RoutedEventArgs e) => CloseThen(w => w.NewCommand());
-
-    private void OnOpenSettings(object sender, RoutedEventArgs e) => CloseThen(w => w.Navigate("settings"));
 }

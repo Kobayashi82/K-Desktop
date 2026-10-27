@@ -324,10 +324,7 @@ public sealed partial class CommandsPage : UserControl, IDisposable
 
     // ── command buttons ──────────────────────────────────────────────────
 
-    private void OnNewCommand(object sender, RoutedEventArgs e) => NewCommand();
-
-    /// <summary>Adds a new command and selects it with its name ready to type.</summary>
-    public void NewCommand()
+    private void OnNewCommand(object sender, RoutedEventArgs e)
     {
         var cmd = new Command { Name = UniqueName(Loc.T("commands.newName")) };
         _app.Achievements.Increment(Stat.CommandsCreated);

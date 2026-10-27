@@ -259,16 +259,12 @@
                     <ui:ToggleSwitch x:Name="AssistantToggle" Grid.Column="1" VerticalAlignment="Center" Click="OnAssistantToggle"
                                      AutomationProperties.Name="{l:Tr welcome.assistantsOn}" />
                 </Grid>
-                <Border x:Name="CatalogBox" Style="{StaticResource InfoBox}">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <ui:SymbolIcon Symbol="AppsAddIn24" FontSize="20" Margin="0,0,12,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
-                        <TextBlock Grid.Column="1" VerticalAlignment="Center" Style="{StaticResource Caption}" Text="{l:Tr welcome.catalogText}" />
-                        <ui:Button Grid.Column="2" Margin="12,0,0,0" VerticalAlignment="Center" Icon="{ui:SymbolIcon AppsAddIn24}"
-                                   Content="{l:Tr welcome.catalogOpen}" Click="OnOpenCatalog" />
-                    </Grid>
+                <Border Style="{StaticResource InfoBox}">
+                    <DockPanel>
+                        <ui:SymbolIcon Symbol="AppsAddIn24" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Top" Foreground="{DynamicResource Kd.AccentText}" />
+                        <TextBlock Style="{StaticResource Caption}" Text="{l:Tr welcome.assistantsBrain}" />
+                    </DockPanel>
                 </Border>
-                <TextBlock Style="{StaticResource Caption}" Margin="0,8,0,0" Text="{l:Tr welcome.assistantsBrain}" />
             </StackPanel>
 
             <!-- 5 · Ready -->
@@ -280,10 +276,6 @@
                     </ui:SymbolIcon.RenderTransform>
                 </ui:SymbolIcon>
                 <TextBlock Style="{StaticResource StepText}" Text="{l:Tr welcome.doneText}" />
-                <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
-                    <ui:Button Appearance="Primary" Icon="{ui:SymbolIcon Add24}" Content="{l:Tr welcome.firstCommand}" Click="OnFirstCommand" />
-                    <ui:Button Margin="8,0,0,0" Icon="{ui:SymbolIcon Settings24}" Content="{l:Tr welcome.openSettings}" Click="OnOpenSettings" />
-                </StackPanel>
                 <TextBlock Style="{StaticResource Caption}" Margin="0,18,0,0" Text="{l:Tr welcome.again}" />
             </StackPanel>
         </Grid>
