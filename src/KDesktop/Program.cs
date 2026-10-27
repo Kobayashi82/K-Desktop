@@ -11,7 +11,7 @@ namespace KDesktop;
 /// <summary>
 /// Command line:
 /// <list type="bullet">
-/// <item><c>--menu "Name"</c> open a QuickMenu · <c>--run "Name"</c> run a command · <c>--event "Name"</c> run an event's commands · <c>--launcher</c> open the launcher · <c>--show</c> · <c>--exit</c>
+/// <item><c>--menu "Name"</c> open a QuickMenu · <c>--run "Name"</c> run a command · <c>--event "Name"</c> run an event's commands · <c>--launcher</c> open the launcher · <c>--show</c> · <c>--welcome</c> · <c>--exit</c>
 /// (forwarded to the running instance when there is one; <c>--exit</c> does nothing when none is running)</item>
 /// <item><c>--startup</c> started by Windows (no window) · <c>--no-elevate</c> · <c>--no-hooks</c> · <c>--no-udp</c> · <c>--no-web</c></item>
 /// <item><c>--data "folder"</c> use another data folder (an independent instance) · <c>--page name</c> open a page</item>
@@ -25,7 +25,7 @@ public static class Program
     public const string StartupArgument = "--startup";
     private static string MutexName => @"Local\KDesktop5.Instance" + AppPaths.InstanceSuffix;
 
-    private static readonly string[] ForwardedArguments = ["--menu", "--run", "--event", "--launcher", "--show", "--exit", "--page", "--install-assistant"];
+    private static readonly string[] ForwardedArguments = ["--menu", "--run", "--event", "--launcher", "--show", "--welcome", "--exit", "--page", "--install-assistant"];
 
     [STAThread]
     public static int Main(string[] args)

@@ -329,9 +329,11 @@ public partial class App : Application
         HandleArguments(Arguments);
         Log.Info($"Listo: {Config.Commands.Count} comandos, {Config.QuickMenus.Count} QuickMenus, {Config.Macros.Count} macros");
 
-        // After the window: the first notifications ("welcome"…) appear once everything is on screen.
+        // After the window: the first notifications ("welcome"…) appear once everything is on screen. A fresh install
+        // opened by hand (not a test copy with --data) shows the welcome over the main window.
         Dispatcher.BeginInvoke(() =>
         {
+            if (_firstRun && AppPaths.InstanceSuffix.Length == 0 && !StartedByWindows) ShowWelcome();
             Achievements.Increment(Stat.AppStarted);
             Achievements.CheckTime();
             Achievements.CheckConfig(Config);
@@ -356,10 +358,14 @@ public partial class App : Application
         }
         if (args.Contains("--launcher", StringComparer.OrdinalIgnoreCase)) Launcher.Show(ForegroundWindow.Capture());
         if (args.Contains("--show", StringComparer.OrdinalIgnoreCase)) ShowMainWindow();
+        if (args.Contains("--welcome", StringComparer.OrdinalIgnoreCase)) ShowWelcome();
         if (Program.ValueOf(args, "--page") is { } page) ShowMainWindow(w => w.Navigate(page.ToLowerInvariant()));
         if (Program.ValueOf(args, PackageAssociation.Argument) is { } package) OpenAssistantPackage(package);
         if (args.Contains("--exit", StringComparer.OrdinalIgnoreCase)) _ = ExitAsync();
     }
+
+    /// <summary>The welcome (language, theme, the basics, voice, assistants) over the main window.</summary>
+    public void ShowWelcome() => ShowMainWindow(Views.Dialogs.WelcomeWindow.Open);
 
     /// <summary>True when no configuration existed yet (a fresh install).</summary>
     private bool _firstRun;

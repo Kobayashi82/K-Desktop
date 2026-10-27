@@ -28,6 +28,8 @@ public partial class AboutPage : UserControl
         e.Handled = true;
     }
 
+    private void OnShowWelcome(object sender, RoutedEventArgs e) => App.Current.ShowWelcome();
+
     public AboutPage()
     {
         InitializeComponent();

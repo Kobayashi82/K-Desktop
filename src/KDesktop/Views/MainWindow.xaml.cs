@@ -96,6 +96,13 @@ public partial class MainWindow : FluentWindow
         if (_pages.GetValueOrDefault("commands") is Pages.CommandsPage page) page.Select(commandId);
     }
 
+    /// <summary>Panel → Comandos with a new command (the welcome's «Crear mi primer comando»).</summary>
+    public void NewCommand()
+    {
+        Navigate("commands");
+        (_pages.GetValueOrDefault("commands") as Pages.CommandsPage)?.NewCommand();
+    }
+
     public void OpenEvent(string? eventId)
     {
         Navigate("events");

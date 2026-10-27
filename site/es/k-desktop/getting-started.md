@@ -12,6 +12,9 @@
 Descarga **KDesktop.exe** de las [versiones publicadas](https://github.com/Kobayashi82/K-Desktop/releases). Es un solo
 ejecutable portable: ponlo donde quieras y ábrelo. No hace falta instalar .NET.
 
+- La primera vez, una **bienvenida** te guía por lo básico: idioma y tema, arrancar con Windows, la tecla del lanzador,
+  la voz (descarga los modelos de voz) y los asistentes. Cada paso cambia el ajuste al momento, y se puede saltar. Para
+  verla otra vez: *Acerca de → Ver la bienvenida*.
 - La primera vez, K-Desktop se apunta para arrancar con Windows (se quita en *Opciones → General*).
 - Va **como administrador**, para que sus atajos también funcionen sobre programas que van como administrador. Cada acción
   que abre algo decide si ese programa arranca como administrador o como usuario normal.
@@ -54,6 +57,7 @@ KDesktop.exe --run "Nombre"         ejecuta un comando
 KDesktop.exe --event "Nombre"       ejecuta los comandos de un evento
 KDesktop.exe --launcher             abre el lanzador
 KDesktop.exe --show | --exit        enseña la ventana / cierra K-Desktop
+KDesktop.exe --welcome              enseña la bienvenida del primer arranque
 KDesktop.exe --page macros          abre la ventana en una página (commands, quickmenus, events, macros, kboard,
                                     assistant, achievements, stats, settings, about)
 KDesktop.exe --data "C:\Carpeta"    usa otra carpeta de datos (una instancia independiente)
