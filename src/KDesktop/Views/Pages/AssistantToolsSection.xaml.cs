@@ -209,13 +209,13 @@ public partial class AssistantToolsSection : UserControl
 
         var card = Card(Loc.T("toolsOptions.summary"), Loc.T("toolsOptions.summaryIntro"));
         var tiles = new UniformGrid { Columns = 2, Margin = new Thickness(-4, 4, -4, 0) };
-        tiles.Children.Add(Tile(SymbolRegular.Toolbox24, Loc.T("settings.nav.toolBuiltin"), builtin.Count, Off(builtin), "tools/builtin"));
+        tiles.Children.Add(Tile(SymbolRegular.Toolbox24, Loc.T("settings.nav.toolBuiltin"), builtin.Count, Off(builtin), null, "tools/builtin"));
         tiles.Children.Add(Tile(SymbolRegular.DocumentData24, Loc.T("settings.nav.toolFiles"), own.Count,
-            broken > 0 ? Loc.T("toolsOptions.tileBroken", broken) : Off(own), "tools/files", broken > 0));
+            Off(own), broken > 0 ? Loc.T("toolsOptions.tileBroken", broken) : null, "tools/files", broken > 0));
         tiles.Children.Add(Tile(SymbolRegular.PlugConnected24, Loc.T("settings.nav.toolServers"), servers.Count,
-            Loc.T("toolsOptions.tileServers", running, mcp.Count), "tools/servers"));
+            Loc.T("toolsOptions.tileTools", mcp.Count), Loc.T("toolsOptions.tileRunning", running), "tools/servers"));
         tiles.Children.Add(Tile(SymbolRegular.Key24, Loc.T("settings.nav.toolSecrets"), secrets.Count,
-            missing > 0 ? Loc.T("toolsOptions.tileMissing", missing) : Loc.T("toolsOptions.tileAllKept"), "tools/secrets", missing > 0));
+            missing > 0 ? Loc.T("toolsOptions.tileMissing", missing) : Loc.T("toolsOptions.tileAllKept"), null, "tools/secrets", missing > 0));
         card.Add(tiles);
         Body.Children.Add(card.Border);
 

@@ -335,8 +335,12 @@ public partial class AssistantToolsSection
         return new CardBuilder(card, stack);
     }
 
-    /// <summary>A tile of the summary: its picture, its name, how many and a word on them; a click goes to its page.</summary>
-    private Button Tile(SymbolRegular icon, string title, int count, string? subtitle, string page, bool warn = false)
+    /// <summary>
+    /// A tile of the summary: its picture, its name, how many and two short lines on them (5.0.292: always two, the second
+    /// empty when there is nothing else, so all of them look alike and nothing is cut); a click goes to its page.
+    /// <paramref name="warn"/> paints the second line (or the first, when it is the only one) as a problem.
+    /// </summary>
+    private Button Tile(SymbolRegular icon, string title, int count, string? subtitle, string? second, string page, bool warn = false)
     {
         var grid = new Grid();
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -351,11 +355,12 @@ public partial class AssistantToolsSection
         var name = new TextBlock { Text = title, FontSize = 14, FontWeight = FontWeights.SemiBold };
         name.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorPrimaryBrush");
         texts.Children.Add(name);
-        if (subtitle is { Length: > 0 })
+        var warnFirst = warn && second is not { Length: > 0 };
+        foreach (var (text, bad) in new[] { (subtitle, warnFirst), (second, warn && !warnFirst) })
         {
-            // To a second line rather than cut («0 en marcha · 214 herram…» in a narrow window).
-            var line = new TextBlock { Text = subtitle, FontSize = 12, TextWrapping = TextWrapping.Wrap };
-            line.SetResourceReference(TextBlock.ForegroundProperty, warn ? "Kd.Danger" : "Kd.TextDim");
+            // An empty line keeps its height (a space): every tile is as tall.
+            var line = new TextBlock { Text = text is { Length: > 0 } ? text : " ", FontSize = 12, TextTrimming = TextTrimming.CharacterEllipsis };
+            line.SetResourceReference(TextBlock.ForegroundProperty, bad ? "Kd.Danger" : "Kd.TextDim");
             texts.Children.Add(line);
         }
         Grid.SetColumn(texts, 1);
