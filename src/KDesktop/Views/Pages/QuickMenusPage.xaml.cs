@@ -103,11 +103,10 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
         if (ListContextMenu.SelectRow(MenuList, e) is not { DataContext: QuickMenu } row) return;
         ListContextMenu.Open(row,
             ListContextMenu.Entry(Loc.T("qm.test"), SymbolRegular.Play24, () => OnTest(row, new RoutedEventArgs())),
-            ListContextMenu.Entry(Loc.T("qm.createCommand"), SymbolRegular.FlashAdd20, () => OnCreateCommand(row, new RoutedEventArgs())),
-            ListContextMenu.Entry(Loc.T("qm.renameMenu"), SymbolRegular.Rename24, FocusName),
-            ListContextMenu.Entry(Loc.T("qm.duplicateMenu"), SymbolRegular.Copy24, () => OnDuplicateMenu(row, new RoutedEventArgs())),
+            ListContextMenu.Entry(Loc.T("common.duplicate"), SymbolRegular.Copy24, () => OnDuplicateMenu(row, new RoutedEventArgs())),
+            ListContextMenu.Entry(Loc.T("commands.rename"), SymbolRegular.Rename24, FocusName),
             new Separator(),
-            ListContextMenu.Entry(Loc.T("qm.deleteMenu"), SymbolRegular.Delete24, () => OnDeleteMenu(row, new RoutedEventArgs())));
+            ListContextMenu.Entry(Loc.T("common.delete"), SymbolRegular.Delete24, () => OnDeleteMenu(row, new RoutedEventArgs())));
     }
 
     private void FocusName() => Dispatcher.BeginInvoke(() =>

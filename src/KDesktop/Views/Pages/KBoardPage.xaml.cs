@@ -118,12 +118,17 @@ public sealed partial class KBoardPage : UserControl, IDisposable
     {
         if (ListContextMenu.SelectRow(ProfileList, e) is not { DataContext: KBoardProfile profile } row) return;
         ListContextMenu.Open(row,
+            ListContextMenu.Entry(Loc.T("common.duplicate"), SymbolRegular.Copy24, () => OnDuplicate(row, new RoutedEventArgs())),
+            ListContextMenu.Entry(Loc.T("commands.rename"), SymbolRegular.Rename24, () =>
+            {
+                NameBox.Focus();
+                NameBox.SelectAll();
+            }),
+            new Separator(),
             ListContextMenu.Entry(profile.Active ? Loc.T("commands.disable") : Loc.T("commands.enable"),
                 profile.Active ? SymbolRegular.Prohibited24 : SymbolRegular.CheckmarkCircle24, () => profile.Active = !profile.Active),
-            ListContextMenu.Entry(Loc.T("kboard.createCommand"), SymbolRegular.FlashAdd20, () => OnCreateCommand(row, new RoutedEventArgs())),
-            ListContextMenu.Entry(Loc.T("kboard.duplicate"), SymbolRegular.Copy24, () => OnDuplicate(row, new RoutedEventArgs())),
             new Separator(),
-            ListContextMenu.Entry(Loc.T("kboard.delete"), SymbolRegular.Delete24, () => OnDelete(row, new RoutedEventArgs())));
+            ListContextMenu.Entry(Loc.T("common.delete"), SymbolRegular.Delete24, () => OnDelete(row, new RoutedEventArgs())));
     }
 
     // ── name ─────────────────────────────────────────────────────────────

@@ -120,10 +120,15 @@ public sealed partial class MacrosPage : UserControl, IDisposable
     {
         if (ListContextMenu.SelectRow(MacroList, e) is not { DataContext: Macro } row) return;
         ListContextMenu.Open(row,
-            ListContextMenu.Entry(Loc.T("macro.createCommand"), SymbolRegular.FlashAdd20, () => OnCreateCommand(row, new RoutedEventArgs())),
-            ListContextMenu.Entry(Loc.T("macro.duplicate"), SymbolRegular.Copy24, () => OnDuplicate(row, new RoutedEventArgs())),
+            ListContextMenu.Entry(Loc.T("macro.test"), SymbolRegular.Play24, () => OnTest(row, new RoutedEventArgs())),
+            ListContextMenu.Entry(Loc.T("common.duplicate"), SymbolRegular.Copy24, () => OnDuplicate(row, new RoutedEventArgs())),
+            ListContextMenu.Entry(Loc.T("commands.rename"), SymbolRegular.Rename24, () =>
+            {
+                NameBox.Focus();
+                NameBox.SelectAll();
+            }),
             new Separator(),
-            ListContextMenu.Entry(Loc.T("macro.delete"), SymbolRegular.Delete24, () => OnDelete(row, new RoutedEventArgs())));
+            ListContextMenu.Entry(Loc.T("common.delete"), SymbolRegular.Delete24, () => OnDelete(row, new RoutedEventArgs())));
     }
 
     private void UpdateStepsState()

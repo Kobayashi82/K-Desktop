@@ -958,7 +958,6 @@
   "qm.size5": "Huge",
   "qm.dropHere": "Drop here",
   "qm.newMenu": "New QuickMenu",
-  "qm.renameMenu": "Rename QuickMenu",
   "qm.duplicateMenu": "Duplicate QuickMenu",
   "qm.deleteMenu": "Delete QuickMenu",
   "qm.deleteMenuText": "Delete the QuickMenu “{0}” and all its items?",
