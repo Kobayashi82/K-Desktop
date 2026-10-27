@@ -240,10 +240,27 @@ public sealed class EventService : IDisposable
     /// <summary>Remembers when an event fired (shown in the list, and «a una hora» doesn't repeat a time already done).</summary>
     private void OnEventFired(EventRule rule, bool end, TriggerSource source)
     {
+        // Only when it fires by itself: «Probar», a command or an assistant running it doesn't use it up.
+        if (rule.Once && source is TriggerSource.Event or TriggerSource.Startup or TriggerSource.Exit && (end || !rule.HasEnd || rule.EndCommands.Count == 0))
+            Remove(rule);
         if (end || source == TriggerSource.Manual) return;
         var now = DateTime.UtcNow;
         _state.SetFired(rule.Id, now);
         _ui.RunOnUi(() => rule.LastFired = now.ToLocalTime());
+    }
+
+    /// <summary>
+    /// «Solo una vez»: it has run (its «Al terminar» too, if it has those), so it goes. The commands already running
+    /// finish; it no longer fires.
+    /// </summary>
+    private void Remove(EventRule rule)
+    {
+        lock (_lock)
+        {
+            if (_rules.Remove(rule.Id)) Forget(rule.Id);
+        }
+        Log.Info($"Evento «{rule.Name}»: era de una sola vez; se borra");
+        _ui.RunOnUi(() => _config().Events.Remove(rule));
     }
 
     // ── «A una hora» / «Cada N minutos» ───────────────────────────────────
@@ -271,7 +288,8 @@ public sealed class EventService : IDisposable
 
     private static DateTime FirstDue(EventTrigger trigger, DateTime nowUtc) => trigger switch
     {
-        TimeTrigger t when EventTime.Parse(t.Time) is { } time => EventSchedule.Next(time, t.Days, nowUtc),
+        TimeTrigger t when EventTime.Parse(t.Time) is { } time =>
+            t.OnDate is { } date ? EventSchedule.Next(time, date, nowUtc) : EventSchedule.Next(time, t.Days, nowUtc),
         IntervalTrigger i => nowUtc.AddMinutes(Math.Max(1, i.Minutes)),
         _ => DateTime.MaxValue,
     };
@@ -284,7 +302,8 @@ public sealed class EventService : IDisposable
         {
             if (!t.RunIfMissed || EventTime.Parse(t.Time) is not { } time) continue;
             var from = _state.LastFired(rule.Id) is { } fired && fired > seen ? fired : seen;
-            if (EventSchedule.LastBetween(time, t.Days, from, nowUtc) is not { } missed) continue;
+            var last = t.OnDate is { } date ? EventSchedule.LastBetween(time, date, from, nowUtc) : EventSchedule.LastBetween(time, t.Days, from, nowUtc);
+            if (last is not { } missed) continue;
             Log.Info($"Evento «{rule.Name}»: se perdió la hora de las {missed.ToLocalTime():HH:mm} del {missed.ToLocalTime():d}; se ejecuta ahora");
             Fire(rule, false);
         }

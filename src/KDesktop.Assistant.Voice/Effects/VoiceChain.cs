@@ -64,7 +64,7 @@ public sealed class VoiceChain
 
     private static IVoiceEffect? Create(JsonObject fx, int sampleRate, int seed)
     {
-        double Value(string name, double fallback) => fx[name]?.GetValue<double>() ?? fallback;
+        double Value(string name, double fallback) => VoiceProfile.Number(fx[name]) ?? fallback;
         return fx["fx"]?.GetValue<string>() switch
         {
             "pitch" => new PitchShift(Value("semitones", 0), sampleRate),

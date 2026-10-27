@@ -22,6 +22,24 @@ public partial class EventRule : ObservableObject
     /// <summary>«No repetir antes de»: seconds that must pass before it fires again (0 = always).</summary>
     [ObservableProperty] private int _cooldownSeconds;
 
+    /// <summary>«Solo una vez»: it is deleted once it has run (after «Al terminar», if it has those commands).</summary>
+    [ObservableProperty] private bool _once;
+
+    partial void OnOnceChanged(bool value) => base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(Summary)));
+
+    /// <summary>«Pedir a un asistente»: an order given to an assistant after the commands; null = none.</summary>
+    public EventAsk? Ask
+    {
+        get;
+        set
+        {
+            if (field is not null) field.PropertyChanged -= OnPartChanged;
+            field = value;
+            if (field is not null) field.PropertyChanged += OnPartChanged;
+            OnPropertyChanged();
+        }
+    }
+
     public EventTrigger Trigger
     {
         get;
@@ -66,7 +84,7 @@ public partial class EventRule : ObservableObject
     /// <summary>Raised whenever the event or anything inside it changes (autosave, detector rebuild).</summary>
     public event EventHandler? Modified;
 
-    [JsonIgnore] public string Summary => Trigger.Summary;
+    [JsonIgnore] public string Summary => Once ? Loc.T("event.summary.once", Trigger.Summary) : Trigger.Summary;
 
     [JsonIgnore] public bool HasEnd => Trigger.HasEnd;
 
@@ -117,6 +135,18 @@ public partial class EventRule : ObservableObject
     }
 
     public override string ToString() => Name;
+}
+
+/// <summary>
+/// «Pedir a un asistente» of an event: the order goes to the assistant as if it had been said to it (like «Asistente:
+/// preguntar»), after the event's commands.
+/// </summary>
+public partial class EventAsk : ObservableObject
+{
+    [ObservableProperty] private string _assistant = global::KDesktop.Core.Assistant.AssistantTargeting.KDesktop;
+    [ObservableProperty] private string _text = string.Empty;
+
+    [JsonIgnore] public bool IsEmpty => Assistant.Length == 0 || Text.Trim().Length == 0;
 }
 
 /// <summary>Days of the week as flags; none = every day.</summary>
@@ -221,6 +251,13 @@ public static class EventTime
     public static TimeOnly? Parse(string? text) =>
         TimeOnly.TryParseExact(text?.Trim() ?? string.Empty, ["H:mm", "HH:mm", "H:mm:ss", "HH:mm:ss"], System.Globalization.CultureInfo.InvariantCulture,
             System.Globalization.DateTimeStyles.None, out var t) ? t : null;
+
+    /// <summary>«2026-10-31» (how it is saved) → date; empty or invalid → null.</summary>
+    public static DateOnly? ParseDate(string? text) =>
+        DateOnly.TryParseExact(text?.Trim() ?? string.Empty, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.None, out var d) ? d : null;
+
+    public static string FormatDate(DateOnly date) => date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
 }
 
 public enum EventKind
@@ -315,11 +352,32 @@ public sealed class AppExitTrigger : EventTrigger
     public override string Summary => Loc.T("event.summary.appExit");
 }
 
-/// <summary>At a time of day, on some days.</summary>
+/// <summary>At a time of day, on some days (or on one date).</summary>
 public sealed partial class TimeTrigger : EventTrigger
 {
     [ObservableProperty] private string _time = "09:00";
     [ObservableProperty] private WeekDays _days;
+
+    /// <summary>«yyyy-MM-dd»: only that day (the days of the week don't count); empty = it repeats.</summary>
+    [ObservableProperty] private string _date = string.Empty;
+
+    [JsonIgnore] public DateOnly? OnDate => EventTime.ParseDate(Date);
+
+    [JsonIgnore] public bool HasDate => OnDate is not null;
+
+    /// <summary>The date for the editor's picker.</summary>
+    [JsonIgnore]
+    public DateTime? DateValue
+    {
+        get => OnDate?.ToDateTime(TimeOnly.MinValue);
+        set => Date = value is { } d ? EventTime.FormatDate(DateOnly.FromDateTime(d)) : string.Empty;
+    }
+
+    partial void OnDateChanged(string value)
+    {
+        OnPropertyChanged(nameof(HasDate));
+        OnPropertyChanged(nameof(DateValue));
+    }
 
     /// <summary>If K-Desktop wasn't running (or the PC was asleep) at that time, run it as soon as it can.</summary>
     [ObservableProperty] private bool _runIfMissed;
@@ -331,6 +389,7 @@ public sealed partial class TimeTrigger : EventTrigger
         get
         {
             var time = EventTime.Parse(Time)?.ToString("H:mm", System.Globalization.CultureInfo.InvariantCulture) ?? "?";
+            if (OnDate is { } date) return Loc.T("event.summary.timeOn", time, date.ToString("d", Loc.Instance.Culture));
             var days = Days.Describe();
             return days.Length == 0 ? Loc.T("event.summary.timeDaily", time) : Loc.T("event.summary.timeDays", time, days);
         }

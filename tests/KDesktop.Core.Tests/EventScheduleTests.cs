@@ -33,6 +33,28 @@ public class EventScheduleTests
     }
 
     [Fact]
+    public void OnADateOnlyThatDay()
+    {
+        var date = new DateOnly(2026, 10, 30);
+        var next = EventSchedule.Next(new TimeOnly(19, 0), date, Utc(2026, 10, 15, 6, 0), Madrid);
+        Assert.Equal(new DateTime(2026, 10, 30, 19, 0, 0), Local(next));
+        Assert.Equal(DateTime.MaxValue, EventSchedule.Next(new TimeOnly(19, 0), date, next, Madrid));
+        Assert.Equal(next, EventSchedule.LastBetween(new TimeOnly(19, 0), date, next.AddHours(-1), next.AddHours(1), Madrid));
+        Assert.Null(EventSchedule.LastBetween(new TimeOnly(19, 0), date, next, next.AddDays(3), Madrid));
+    }
+
+    [Fact]
+    public void DateIsSavedInvariant()
+    {
+        var trigger = new TimeTrigger { DateValue = new DateTime(2026, 10, 30) };
+        Assert.Equal("2026-10-30", trigger.Date);
+        Assert.True(trigger.HasDate);
+        trigger.DateValue = null;
+        Assert.Equal(string.Empty, trigger.Date);
+        Assert.False(trigger.HasDate);
+    }
+
+    [Fact]
     public void MidnightIsTheNextDay()
     {
         var next = EventSchedule.Next(new TimeOnly(0, 0), WeekDays.None, Utc(2026, 10, 15, 21, 30), Madrid); // 23:30 local

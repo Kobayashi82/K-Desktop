@@ -61,7 +61,7 @@ public sealed record VoiceProfile(string Id, string Name, string Engine, string?
     }
 
     /// <summary>A number of the JSON, whole or not (one made in code may hold an int: «1» is 1.0).</summary>
-    private static double? Number(JsonNode? node) => node switch
+    public static double? Number(JsonNode? node) => node switch
     {
         null => null,
         JsonValue value when value.TryGetValue<double>(out var d) => d,

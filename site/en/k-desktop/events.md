@@ -11,7 +11,7 @@ removed…) with its own commands.
 | Trigger | When |
 |---|---|
 | When K-Desktop starts / exits | What used to be «Run on startup / on exit» in each command |
-| At a time | Every day or on some days of the week, at the time you say |
+| At a time | Every day or on some days of the week, at the time you say; or on one day only, if you give it a *Day* |
 | Every so often | Every N minutes while K-Desktop runs |
 | When a program opens | When it opens; «When it ends», when it closes. *When Steam opens, audio to the headphones* |
 | Program in front | When its window comes to the front, and when it stops being there |
@@ -30,6 +30,10 @@ removed…) with its own commands.
 
 - **Commands**: *Add command* picks commands you already have; *New command* creates a hidden one named after the event,
   adds it and opens it so you can put its actions in.
+- **Ask an assistant**: after the commands, it asks an assistant for something as if you said it (*Check the weather and
+  send it to me on Telegram*). If the assistant is not on the desktop, nothing happens.
+- **Only once**: the event is deleted after it runs (if it has commands in *When it ends*, after those).
+  With *At a time* and a *Day*, it is «on Friday at 9, just once».
 - **Conditions**: the same as the [If… action](commands.md#if-conditions): the event only runs when they are true.
 - **Don't repeat before**: if it fires again sooner (in seconds), it does nothing.
 - **Loop protection**: an event that fires more than 10 times in a minute stops for 10 minutes, and K-Desktop tells you.

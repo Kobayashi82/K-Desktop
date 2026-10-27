@@ -522,7 +522,8 @@ public partial class VoiceProfilesSection : UserControl
                 values.Children.Add(yes);
                 continue;
             }
-            var current = fx[value.Name]?.GetValue<double>() ?? value.Default;
+            // A whole value («bits», «bands») just added holds an int, which GetValue<double> refuses.
+            var current = VoiceProfile.Number(fx[value.Name]) ?? value.Default;
             values.Children.Add(Setting(label, null, SliderWithValue(value.Min, value.Max, value.Step, current, v => Format(value, v),
                 v => { fx[value.Name] = VoiceEffectCatalog.Json(value, v); Changed(); }, label), 360, compact: true));
         }

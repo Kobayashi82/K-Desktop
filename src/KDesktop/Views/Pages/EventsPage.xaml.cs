@@ -120,7 +120,7 @@ public sealed partial class EventsPage : UserControl, IDisposable
 
     private void OnSelectedChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(EventRule.Trigger) or nameof(EventRule.Icon) or nameof(EventRule.HasEnd) or nameof(EventRule.Enabled)) RefreshAll();
+        if (e.PropertyName is nameof(EventRule.Trigger) or nameof(EventRule.Icon) or nameof(EventRule.HasEnd) or nameof(EventRule.Enabled) or nameof(EventRule.Ask)) RefreshAll();
         if (e.PropertyName is nameof(EventRule.Conditions) && _selected is not null)
             _selected.Conditions.PropertyChanged += OnConditionsChanged;
     }
@@ -142,6 +142,13 @@ public sealed partial class EventsPage : UserControl, IDisposable
         KindDescription.Text = info.Description;
         NoCommands.Visibility = rule.Commands.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         ExitNote.Visibility = rule.Trigger is AppExitTrigger ? Visibility.Visible : Visibility.Collapsed;
+        // On exit there is no time to ask anyone.
+        AskCard.Visibility = rule.Trigger is AppExitTrigger && rule.Ask is null ? Visibility.Collapsed : Visibility.Visible;
+        var asks = rule.Ask is not null;
+        AddAskButton.Visibility = asks ? Visibility.Collapsed : Visibility.Visible;
+        RemoveAskButton.Visibility = asks ? Visibility.Visible : Visibility.Collapsed;
+        NoAsk.Visibility = asks ? Visibility.Collapsed : Visibility.Visible;
+        AskEditor.Visibility = asks ? Visibility.Visible : Visibility.Collapsed;
         EndHint.Text = rule.HasEnd ? Loc.T($"event.endHint.{rule.Trigger.Kind}") : string.Empty;
         ConditionsBadge.Visibility = rule.Conditions.IsEmpty ? Visibility.Collapsed : Visibility.Visible;
         RefreshSuspended();
@@ -337,6 +344,26 @@ public sealed partial class EventsPage : UserControl, IDisposable
     private void OnOpenCommand(object sender, ExecutedRoutedEventArgs e)
     {
         if (e.Parameter is string id && Config.FindCommand(id) is not null) (Window.GetWindow(this) as MainWindow)?.OpenCommand(id);
+    }
+
+    // ── «Pedir a un asistente» ───────────────────────────────────────────
+
+    private void OnAddAsk(object sender, RoutedEventArgs e)
+    {
+        if (_selected is not { } rule) return;
+        rule.Ask = new EventAsk();
+        Dispatcher.BeginInvoke(() => AskEditor.Children.OfType<Wpf.Ui.Controls.TextBox>().FirstOrDefault()?.Focus(),
+            System.Windows.Threading.DispatcherPriority.Input);
+    }
+
+    private void OnRemoveAsk(object sender, RoutedEventArgs e)
+    {
+        if (_selected is { } rule) rule.Ask = null;
+    }
+
+    private void OnClearDate(object sender, RoutedEventArgs e)
+    {
+        if (_selected?.Trigger is TimeTrigger t) t.Date = string.Empty;
     }
 
     /// <summary>The inner lists don't scroll: the wheel goes to the editor.</summary>

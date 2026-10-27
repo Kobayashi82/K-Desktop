@@ -11,7 +11,7 @@ se quita el dispositivo…) con sus propios comandos.
 | Disparador | Cuándo |
 |---|---|
 | Al iniciar K-Desktop / Al salir de K-Desktop | Lo que antes era «Ejecutar al iniciar / al salir» en cada comando |
-| A una hora | Todos los días o algunos días de la semana, a la hora que digas |
+| A una hora | Todos los días o algunos días de la semana, a la hora que digas; o un solo día, si le pones *Día* |
 | Cada cierto tiempo | Cada N minutos mientras K-Desktop está abierto |
 | Al abrir un programa | Cuando se abre; «Al terminar», cuando se cierra. *Al abrir Steam, el sonido a los auriculares* |
 | Programa en primer plano | Cuando su ventana pasa a primer plano, y cuando deja de estarlo |
@@ -30,6 +30,10 @@ se quita el dispositivo…) con sus propios comandos.
 
 - **Comandos**: *Añadir comando* elige comandos que ya tienes; *Nuevo comando* crea uno oculto con el nombre del evento,
   lo añade y lo abre para que le pongas las acciones.
+- **Pedir a un asistente**: después de los comandos, le pide algo a un asistente como si se lo dijeras tú (*Mira el
+  tiempo y mándamelo por Telegram*). Si no está en el escritorio, no se hace.
+- **Solo una vez**: el evento se borra después de ejecutarse (si tiene comandos en *Al terminar*, después de esos).
+  Con *A una hora* y un *Día*, sirve para «el viernes a las 9, una sola vez».
 - **Condiciones** (*Solo si*): las mismas que la [acción Si…](commands.md#si-condiciones): el evento solo se ejecuta si se
   cumplen.
 - **No repetir antes de**: si vuelve a dispararse antes (en segundos), no hace nada.

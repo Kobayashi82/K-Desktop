@@ -300,6 +300,11 @@ public sealed partial class CommandEngine
             if (cancellationToken.IsCancellationRequested) break;
             await RunAsync(command, source, foreground, false, depth, choreography, cancellationToken).ConfigureAwait(false);
         }
+        if (!end && rule.Ask is { IsEmpty: false } ask && !cancellationToken.IsCancellationRequested)
+        {
+            Log.Info($"Evento «{rule.Name}» → pide a «{ask.Assistant}»: «{ask.Text.Trim()}»");
+            _ui.AskAssistant(ask.Assistant, ask.Text.Trim());
+        }
     }
 
     private IEnumerable<Command> EventCommands(EventRule rule, bool end)

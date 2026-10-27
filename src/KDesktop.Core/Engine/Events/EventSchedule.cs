@@ -25,6 +25,20 @@ public static class EventSchedule
         return DateTime.MaxValue; // unreachable: some day of the next week always matches
     }
 
+    /// <summary>On one <paramref name="date"/>: that moment if it is after <paramref name="afterUtc"/>, otherwise never.</summary>
+    public static DateTime Next(TimeOnly time, DateOnly date, DateTime afterUtc, TimeZoneInfo? zone = null)
+    {
+        var utc = ToUtc(date.ToDateTime(time), zone ?? TimeZoneInfo.Local);
+        return utc > afterUtc ? utc : DateTime.MaxValue;
+    }
+
+    /// <summary>On one <paramref name="date"/>: that moment if it is in (<paramref name="fromUtc"/>, <paramref name="toUtc"/>].</summary>
+    public static DateTime? LastBetween(TimeOnly time, DateOnly date, DateTime fromUtc, DateTime toUtc, TimeZoneInfo? zone = null)
+    {
+        var utc = ToUtc(date.ToDateTime(time), zone ?? TimeZoneInfo.Local);
+        return utc > fromUtc && utc <= toUtc ? utc : null;
+    }
+
     /// <summary>The last time it should have fired in (<paramref name="fromUtc"/>, <paramref name="toUtc"/>], if any.</summary>
     public static DateTime? LastBetween(TimeOnly time, WeekDays days, DateTime fromUtc, DateTime toUtc, TimeZoneInfo? zone = null)
     {
