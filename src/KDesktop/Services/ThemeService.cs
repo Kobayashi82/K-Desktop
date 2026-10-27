@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using KDesktop.Core.Model;
 using Microsoft.Win32;
@@ -20,6 +21,9 @@ public static class ThemeService
 
     public static void Initialize(AppTheme setting)
     {
+        // Every window gets the light theme's cream veil over its Mica (WPF-UI leaves the background transparent).
+        EventManager.RegisterClassHandler(typeof(FluentWindow), FrameworkElement.SizeChangedEvent,
+            new SizeChangedEventHandler((sender, _) => Veil((Window)sender)));
         SystemEvents.UserPreferenceChanged += (_, e) =>
         {
             if (e.Category is UserPreferenceCategory.General or UserPreferenceCategory.Color && _setting == AppTheme.System)
@@ -40,11 +44,113 @@ public static class ThemeService
         IsDark = dark;
 
         var theme = dark ? ApplicationTheme.Dark : ApplicationTheme.Light;
-        ApplicationThemeManager.Apply(theme, WindowBackdropType.Mica, false);
+        // WPF-UI redoes each window's backdrop with a transparent background: the veil waits until it is done.
+        _applying = true;
+        try { ApplicationThemeManager.Apply(theme, WindowBackdropType.Mica, false); }
+        finally { _applying = false; }
         ApplicationAccentColorManager.Apply(Gold, theme, false, false);
         SwapOwnDictionary(dark);
+        WarmLightTheme(dark);
         ApplyLightOverrides(dark);
+        foreach (var window in Application.Current.Windows.OfType<FluentWindow>()) Veil(window);
         Changed?.Invoke();
+    }
+
+    private static readonly System.ComponentModel.DependencyPropertyDescriptor BackgroundOf =
+        System.ComponentModel.DependencyPropertyDescriptor.FromProperty(Control.BackgroundProperty, typeof(Window));
+
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Window, object> Veiled = [];
+
+    /// <summary>
+    /// The window's background: <c>Kd.WindowTint</c> (cream in the light theme, nothing in the dark one). WPF-UI makes it
+    /// transparent again when it applies the backdrop (after the first layout too), so it is put back every time.
+    /// </summary>
+    private static bool _applying;
+
+    private static void Veil(Window window)
+    {
+        if (_applying) return;
+        if (Veiled.TryAdd(window, true))
+        {
+            EventHandler changed = (_, _) => Veil(window);
+            BackgroundOf.AddValueChanged(window, changed);
+            window.Closed += (_, _) => BackgroundOf.RemoveValueChanged(window, changed);
+        }
+        if (window.Background != window.TryFindResource("Kd.WindowTint")) window.SetResourceReference(Control.BackgroundProperty, "Kd.WindowTint");
+    }
+
+    /// <summary>The keys <see cref="WarmLightTheme"/> put in the application's resources (taken away in the dark theme).</summary>
+    private static readonly HashSet<string> Warmed = [];
+
+    /// <summary>
+    /// WPF-UI's light theme is neutral white and grey, which looks cold and glaring: its near-white surfaces (cards,
+    /// buttons, boxes, lists, menus) become cream of the same lightness and transparency, and its black hairlines
+    /// (borders, dividers, hovers) a warm brown. Texts stay as they are (see <see cref="LightOverrides"/>).
+    /// </summary>
+    private static void WarmLightTheme(bool dark)
+    {
+        var resources = Application.Current.Resources;
+        foreach (var key in Warmed) resources.Remove(key);
+        Warmed.Clear();
+        if (dark || WpfUiTheme(resources) is not { } theme) return;
+        foreach (var entry in theme.Keys.OfType<string>().ToList())
+        {
+            if (entry.StartsWith("Text", StringComparison.Ordinal) || entry.StartsWith("Accent", StringComparison.Ordinal)) continue;
+            object? warm = theme[entry] switch
+            {
+                Color color when Warm(color) is { } c => c,
+                SolidColorBrush brush when Warm(brush.Color) is { } c => Frozen(new SolidColorBrush(c)),
+                _ => null,
+            };
+            if (warm is null) continue;
+            resources[entry] = warm;
+            Warmed.Add(entry);
+        }
+        // The cards stand apart from the cream background: solid warm white with a firmer edge.
+        foreach (var (key, color) in Cards)
+        {
+            resources[key] = color;
+            resources[key + "Brush"] = Frozen(new SolidColorBrush(color));
+            Warmed.Add(key);
+            Warmed.Add(key + "Brush");
+        }
+        foreach (var key in (string[])["CardBackground", "ExpanderHeaderBackground"])
+        {
+            resources[key] = Frozen(new SolidColorBrush(Cards[0].Color));
+            Warmed.Add(key);
+        }
+    }
+
+    private static readonly (string Key, Color Color)[] Cards =
+    [
+        ("CardBackgroundFillColorDefault", Color.FromRgb(0xFE, 0xFA, 0xF3)),
+        ("CardStrokeColorDefault", Color.FromArgb(0x26, 0x4A, 0x32, 0x0A)),
+    ];
+
+    /// <summary>A neutral light grey or white → cream; a neutral black hairline → warm brown; anything else stays.</summary>
+    private static Color? Warm(Color c)
+    {
+        if (c.R != c.G || c.G != c.B || c.A == 0) return null;
+        if (c.R >= 0xE6) return Color.FromArgb(c.A, c.R, (byte)(c.G - 7), (byte)(c.B - 20));
+        if (c.R == 0 && c.A <= 0x40) return Color.FromArgb(c.A, 0x4A, 0x32, 0x0A);
+        return null;
+    }
+
+    private static SolidColorBrush Frozen(SolidColorBrush brush)
+    {
+        brush.Freeze();
+        return brush;
+    }
+
+    /// <summary>WPF-UI's light theme dictionary among the application's merged ones.</summary>
+    private static ResourceDictionary? WpfUiTheme(ResourceDictionary resources)
+    {
+        foreach (var merged in resources.MergedDictionaries)
+        {
+            if (merged.Source?.OriginalString.Contains("theme/light", StringComparison.OrdinalIgnoreCase) == true) return merged;
+            if (WpfUiTheme(merged) is { } inner) return inner;
+        }
+        return null;
     }
 
     /// <summary>

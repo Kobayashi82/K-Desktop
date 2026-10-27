@@ -1,6 +1,8 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- K-Desktop tokens, dark variant. Keys must match KLight.xaml. -->
+    <!-- Over the Mica: nothing in the dark theme (the light one is cream) -->
+    <SolidColorBrush x:Key="Kd.WindowTint" Color="Transparent" />
     <Color x:Key="Kd.AccentColor">#E0A815</Color>
     <SolidColorBrush x:Key="Kd.Accent" Color="#E0A815" />
     <SolidColorBrush x:Key="Kd.AccentSoft" Color="#33E0A815" />
