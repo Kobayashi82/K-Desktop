@@ -400,7 +400,7 @@ public partial class VoiceProfilesSection : UserControl
     private Button ForAllButton(string id, string name)
     {
         var forAll = _app.Config.Settings.AssistantVoiceProfile == id;
-        var button = Small(SymbolRegular.PeopleCommunity24, Loc.T(forAll ? "voiceProfiles.stopForAll" : "voiceProfiles.useForAll"), () =>
+        var button = Small(SymbolRegular.PersonSoundSpatial24,Loc.T(forAll ? "voiceProfiles.stopForAll" : "voiceProfiles.useForAll"), () =>
         {
             if (id == _draft.Id) Keep();
             _app.Config.Settings.AssistantVoiceProfile = forAll ? string.Empty : id;
