@@ -548,6 +548,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>Record mouse movements (not only clicks) when recording a macro.</summary>
     [ObservableProperty] private bool _macroRecordMoves = true;
 
+    /// <summary>QuickMenus: «Añadir al menú» folded away, so the menu being edited has the whole width.</summary>
+    [ObservableProperty] private bool _quickMenuPaletteHidden;
+
     // Remote (UDP)
     [ObservableProperty] private bool _udpEnabled = true;
     [ObservableProperty] private int _udpPort = 2501;

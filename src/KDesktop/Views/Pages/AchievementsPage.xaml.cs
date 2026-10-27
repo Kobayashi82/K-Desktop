@@ -24,12 +24,6 @@ public sealed partial class AchievementsPage : UserControl, IDisposable
     {
         InitializeComponent();
         _snapshot = _app.Achievements.Snapshot();
-        // Options › OSD › Notificaciones changes them too.
-        Loaded += (_, _) =>
-        {
-            NotifyToggle.IsChecked = _app.Config.Settings.AchievementNotifications;
-            SoundToggle.IsChecked = _app.Config.Settings.AchievementSound;
-        };
         _refresh.Tick += (_, _) =>
         {
             _refresh.Stop();
@@ -96,8 +90,7 @@ public sealed partial class AchievementsPage : UserControl, IDisposable
         var last = s.Data.Unlocked.OrderByDescending(u => u.Value).Select(u => (Def: AchievementCatalog.Get(u.Key), Date: u.Value)).FirstOrDefault(u => u.Def is not null);
         LastText.Text = last.Def is { } def ? Loc.T("ach.last", def.Name, last.Date.ToString("g", culture)) : Loc.T("ach.none");
 
-        var days = Math.Max(0, (int)(DateTime.Now - s.Data.FirstUse).TotalDays);
-        SinceText.Text = Loc.T("ach.since", s.Data.FirstUse.ToString("D", culture), days);
+        SinceText.Text = Loc.T("ach.since", s.Data.FirstUse.ToString("D", culture));
     }
 
     private void BuildGroups(bool animate)
@@ -187,9 +180,6 @@ public sealed partial class AchievementsPage : UserControl, IDisposable
         if (IsLoaded) BuildGroups(animate: false);
     }
 
-    private void OnNotifyToggle(object sender, RoutedEventArgs e) => _app.Config.Settings.AchievementNotifications = NotifyToggle.IsChecked == true;
-    private void OnSoundToggle(object sender, RoutedEventArgs e) => _app.Config.Settings.AchievementSound = SoundToggle.IsChecked == true;
-
     // ── statistics ───────────────────────────────────────────────────────
 
     private void BuildStats(bool animate)
@@ -254,9 +244,10 @@ public sealed partial class AchievementsPage : UserControl, IDisposable
             Sources.Children.Add(BarRow(null, Loc.T($"source.{key}"), value, (double)value / maxSource, (double)value / totalSources, animate, i++));
         SourcesEmpty.Visibility = sources.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 
-        // Every counter, as a table
+        // Every counter, as a table: the groups split so that both columns end about level
         CountersLeft.Children.Clear();
         CountersRight.Children.Clear();
+        var left = LeftGroups(Stat.Display.Select(g => g.Keys.Length).ToList());
         var groupIndex = 0;
         foreach (var (group, keys) in Stat.Display)
         {
@@ -288,8 +279,31 @@ public sealed partial class AchievementsPage : UserControl, IDisposable
                 row.Children.Add(value);
                 column.Children.Add(row);
             }
-            (groupIndex++ % 2 == 0 ? CountersLeft : CountersRight).Children.Add(column);
+            (left.Contains(groupIndex++) ? CountersLeft : CountersRight).Children.Add(column);
         }
+    }
+
+    /// <summary>
+    /// Which groups go in the left column (the first always does), so that both columns are as long as each other; each
+    /// keeps the order of <see cref="Stat.Display"/>. A group's title counts as a row and a half.
+    /// </summary>
+    private static HashSet<int> LeftGroups(IReadOnlyList<int> rows)
+    {
+        var heights = rows.Select(r => r + 1.5).ToList();
+        var total = heights.Sum();
+        var best = 1;
+        var bestDifference = double.MaxValue;
+        for (var mask = 1; mask < 1 << heights.Count; mask += 2)
+        {
+            var leftHeight = heights.Where((_, i) => (mask & 1 << i) != 0).Sum();
+            var difference = Math.Abs(total - 2 * leftHeight);
+            if (difference < bestDifference)
+            {
+                bestDifference = difference;
+                best = mask;
+            }
+        }
+        return [.. Enumerable.Range(0, heights.Count).Where(i => (best & 1 << i) != 0)];
     }
 
     /// <summary>Label · horizontal bar (rounded at its end) · value. Hover shows the exact share.</summary>

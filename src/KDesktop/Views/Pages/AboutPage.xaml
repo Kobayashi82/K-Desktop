@@ -33,8 +33,11 @@
         </Style>
     </UserControl.Resources>
 
+    <!-- As wide as the window up to 980, like the sections of Opciones -->
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24,12,24,24">
-        <StackPanel MaxWidth="900" HorizontalAlignment="Left">
+        <Grid>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*" MaxWidth="980" /></Grid.ColumnDefinitions>
+        <StackPanel>
             <Border Style="{StaticResource Card}" Padding="28,24">
                 <StackPanel Orientation="Horizontal">
                     <Image Source="pack://application:,,,/KDesktop;component/Assets/Icons/KDesktop.ico" Width="84" Height="84" RenderOptions.BitmapScalingMode="HighQuality" />
@@ -116,10 +119,17 @@
                     </TextBlock>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                    <ui:SymbolIcon Symbol="Book24" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
+                    <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center">
+                        <Hyperlink x:Name="DocsLink" RequestNavigate="OnOpenLink" Foreground="{DynamicResource Kd.AccentText}"><Run Text="{l:Tr about.docs}" /></Hyperlink>
+                    </TextBlock>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                     <ui:SymbolIcon Symbol="Sparkle24" Filled="True" FontSize="13" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
                     <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Text="{l:Tr about.claude}" />
                 </StackPanel>
             </StackPanel>
         </StackPanel>
+        </Grid>
     </ScrollViewer>
 </UserControl>

@@ -52,6 +52,24 @@ public static class McpShare
     /// <summary>A new key (Settings → «Cambiar la clave»).</summary>
     public static string NewKey() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(24)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
 
+    private static readonly AsyncLocal<string?> Calling = new();
+
+    /// <summary>The program whose call is being answered on this flow (null: not one from outside).</summary>
+    public static string? Caller => Calling.Value;
+
+    /// <summary>Answers a call of <paramref name="client"/> from here on (until disposed): what it runs says so in the history.</summary>
+    public static IDisposable Answering(string client)
+    {
+        var previous = Calling.Value;
+        Calling.Value = client;
+        return new Leave(previous);
+    }
+
+    private sealed class Leave(string? previous) : IDisposable
+    {
+        public void Dispose() => Calling.Value = previous;
+    }
+
     /// <summary>What the assistant process gets: only the hash of the key.</summary>
     public static string HashOf(string key) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(key.Trim())));
 

@@ -127,28 +127,28 @@
                             <TextBlock Text="{l:Tr nav.macros}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
-                    <ListBoxItem Tag="history">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="History24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                            <TextBlock Text="{l:Tr nav.history}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </ListBoxItem>
-                    <ListBoxItem Tag="achievements">
-                        <StackPanel Orientation="Horizontal">
-                            <ui:SymbolIcon Symbol="Trophy24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
-                            <TextBlock Text="{l:Tr nav.achievements}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </ListBoxItem>
                     <ListBoxItem x:Name="AssistantNav" Tag="assistant" Visibility="Collapsed">
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="Bot24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
                             <TextBlock Text="{l:Tr nav.assistant}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
+                    <ListBoxItem Tag="history">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="History24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                            <TextBlock Text="{l:Tr nav.history}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
                     <ListBoxItem Tag="settings">
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="Settings24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
                             <TextBlock Text="{l:Tr nav.settings}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    <ListBoxItem Tag="achievements">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Trophy24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                            <TextBlock Text="{l:Tr nav.achievements}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
                     <ListBoxItem Tag="about">

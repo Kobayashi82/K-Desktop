@@ -11,6 +11,8 @@ background and keyboard navigation.
   from the phone or with `KDesktop.exe --menu "Name"`.
 - **Use it**: left click runs and closes, right click runs and keeps the menu open, middle click edits that item. With
   the keyboard: arrows, Enter and Esc.
+- **Close it** with Esc or a click outside (K-Desktop's window too). Its hotkey again closes it if the mouse is over the
+  menu; if not, it opens it again where the mouse is.
 - **Size**: from *Compact* to *Huge*, per menu.
 
 ### Editing
@@ -24,7 +26,10 @@ commands, submenus and separators, each with its own name and icon if you want.
   refine it later in *Commands*.
 - Double click or F2 renames, Del removes, Alt+↑↓ moves, Ctrl+Z / Ctrl+Y undo and redo, Ctrl+C / X / V / D copy, cut,
   paste and duplicate; right click for more.
-- **Try it** opens the menu as it will look.
+- **Try it** opens the menu as it will look, and the lightning button creates a command that opens it (to give it a
+  hotkey or a voice phrase).
+- The button next to *Add to the menu* hides that panel for more room. The mouse wheel moves the menu sideways; if it is
+  also taller than the space, the wheel moves it up and down, and Ctrl + wheel sideways.
 
 ## Launcher
 

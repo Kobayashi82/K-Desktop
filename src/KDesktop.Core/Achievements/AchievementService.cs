@@ -54,6 +54,8 @@ public sealed class AchievementService : IDisposable
         d.Counters ??= new();
         d.CommandRuns ??= new();
         d.RunsBySource ??= new();
+        // «Al iniciar o salir» are events (5.0.293): counted with them.
+        if (d.RunsBySource.Remove("auto", out var auto)) d.RunsBySource["event"] = d.RunsBySource.GetValueOrDefault("event") + auto;
         d.ActionKinds ??= [];
         d.Unlocked ??= new();
         // Achievements that no longer exist (e.g. «about», removed in 5.0.42)

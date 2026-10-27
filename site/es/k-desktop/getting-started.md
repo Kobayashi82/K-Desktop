@@ -33,7 +33,7 @@ ejecutable portable: ponlo donde quieras y ábrelo. No hace falta instalar .NET.
 ## La ventana
 
 La columna de la izquierda tiene todas las páginas: **Comandos**, **Eventos**, **QuickMenu**, **K-Board**, **Macros**,
-**Registro**, **Logros**, **Asistente** (con el módulo Asistente encendido), **Opciones** y **Acerca de**. Abajo, los
+**Asistente** (con el módulo Asistente encendido), **Registro**, **Opciones**, **Logros** y **Acerca de**. Abajo, los
 iconos de estado (pausa, control remoto, móvil, voz, asistente) se pueden pulsar.
 
 Cerrar la ventana no cierra K-Desktop: se queda en el área de notificación (bandeja). Con el botón derecho en su icono

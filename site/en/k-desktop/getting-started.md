@@ -32,8 +32,8 @@ executable: put it wherever you like and open it. .NET does not need to be insta
 
 ## The window
 
-The column on the left has every page: **Commands**, **Events**, **QuickMenu**, **K-Board**, **Macros**, **History**,
-**Achievements**, **Assistant** (with the assistant module on), **Settings** and **About**. At the bottom, the status icons
+The column on the left has every page: **Commands**, **Events**, **QuickMenu**, **K-Board**, **Macros**, **Assistant**
+(with the assistant module on), **History**, **Settings**, **Achievements** and **About**. At the bottom, the status icons
 (paused, remote control, phone, voice, assistant) can be clicked.
 
 Closing the window does not close K-Desktop: it stays in the notification area (tray). Right-click its icon to open the

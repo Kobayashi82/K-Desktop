@@ -11,6 +11,8 @@ manejo con el teclado.
   desde el móvil o con `KDesktop.exe --menu "Nombre"`.
 - **Úsalo**: el clic izquierdo ejecuta y cierra, el derecho ejecuta y deja el menú abierto, y el central edita ese
   elemento. Con el teclado: flechas, Intro y Esc.
+- **Ciérralo** con Esc o con un clic fuera (también en la ventana de K-Desktop). Su atajo otra vez lo cierra si el ratón
+  está encima del menú; si no, lo vuelve a abrir donde está el ratón.
 - **Tamaño**: de *Compacto* a *Enorme*, en cada menú.
 
 ### Editarlo
@@ -24,7 +26,10 @@ elementos pueden ser comandos, submenús y separadores, cada uno con su nombre y
   luego puedes afinarlo en *Comandos*.
 - Doble clic o F2 cambia el nombre, Supr lo quita, Alt+↑↓ lo mueve, Ctrl+Z / Ctrl+Y deshacen y rehacen, Ctrl+C / X / V / D
   copian, cortan, pegan y duplican; con el botón derecho hay más.
-- **Probar** abre el menú tal como se verá.
+- **Probar** abre el menú tal como se verá, y el botón del rayo crea un comando que lo abre (para darle un atajo o una
+  frase de voz).
+- El botón junto a *Añadir al menú* oculta ese panel para tener más sitio. La rueda del ratón mueve el menú hacia los
+  lados; si también es más alto que el espacio, la rueda lo mueve arriba y abajo, y Ctrl + rueda hacia los lados.
 
 ## Lanzador
 

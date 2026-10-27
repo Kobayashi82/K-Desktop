@@ -83,12 +83,17 @@ public sealed class QuickMenuController
             return;
         }
 
-        // Pressing the hotkey again while the same menu is open closes it.
+        // Its hotkey again: over the open menu, it closes; anywhere else, it opens again where the mouse is. Either way
+        // the window to go back to is still the one it was opened over (the menu itself is in front now).
         if (IsOpen)
         {
-            var same = ReferenceEquals(menu, _menu);
-            CloseAll(restoreFocus: same);
-            if (same) return;
+            if (ReferenceEquals(menu, _menu) && PointerOverMenu())
+            {
+                CloseAll(restoreFocus: true);
+                return;
+            }
+            previous = _previous;
+            CloseAll(restoreFocus: false);
         }
 
         _previous = previous;
@@ -114,6 +119,13 @@ public sealed class QuickMenuController
         Keyboard.Focus(root);
         Log.Info($"QuickMenu «{menu.Name}» abierto (sobre {previous.ProcessName}{(focused ? "" : "; no consiguió el foco")})");
         Opened?.Invoke();
+    }
+
+    /// <summary>Whether the mouse is on one of the open levels.</summary>
+    private bool PointerOverMenu()
+    {
+        var p = UiNative.CursorPosition();
+        return _levels.Any(l => UiNative.GetWindowRect(l.Hwnd, out var r) && p.X >= r.Left && p.X < r.Right && p.Y >= r.Top && p.Y < r.Bottom);
     }
 
     public void CloseAll(bool restoreFocus = true)

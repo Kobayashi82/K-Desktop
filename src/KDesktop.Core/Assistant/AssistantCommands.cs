@@ -139,7 +139,7 @@ public static class AssistantCommands
         if (engine.IsPaused) return new EndMessage(request.Run, "failed", [Loc.T("pause.refused")]);
         if (engine.Config.FindCommand(request.Command) is not { Enabled: true } command || !Available(engine.Config).Contains(command))
             return new EndMessage(request.Run, "failed", [Loc.T("assistantCommand.notFound")]);
-        return await RunCommandAsync(engine, command, request.Run, who, ask, choreography, allowed).ConfigureAwait(false);
+        return await RunCommandAsync(engine, command, request.Run, who, ask, choreography, allowed, SourceOf(request.Shared)).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -150,8 +150,9 @@ public static class AssistantCommands
     /// An order programmed by an assistant (<see cref="ScheduledPermit"/>): nobody is asked; what is not safe runs only if
     /// this says it was approved, whatever the user's policy.
     /// </param>
+    /// <param name="source"><see cref="TriggerSource.Mcp"/> when another program asked through the MCP server.</param>
     public static async Task<EndMessage> RunCommandAsync(CommandEngine engine, Command command, string run, string who, Func<Command, ToolRisk, Task<string>> ask,
-        AssistantChoreography? choreography = null, Func<Command, bool>? allowed = null)
+        AssistantChoreography? choreography = null, Func<Command, bool>? allowed = null, TriggerSource source = TriggerSource.Assistant)
     {
         var risk = ActionRisk.OfCommand(command, engine.Config.FindCommand, engine.Config.Settings.AssistantTrustedCommands.Contains(command.Id));
         if (allowed is not null)
@@ -169,8 +170,8 @@ public static class AssistantCommands
         using (feedback.Begin())
         using (ExecutionHistory.Describe(who))
             running = choreography is null
-                ? engine.RunAsync(command, TriggerSource.Assistant)
-                : engine.RunChoreographedAsync(command, TriggerSource.Assistant, choreography, choreography.Cancelled);
+                ? engine.RunAsync(command, source)
+                : engine.RunChoreographedAsync(command, source, choreography, choreography.Cancelled);
         try
         {
             await running.ConfigureAwait(false);
@@ -251,10 +252,13 @@ public static class AssistantCommands
         Task run;
         using (feedback.Begin())
         using (ExecutionHistory.Describe(who))
-            run = engine.RunEventAsync(rule, end: false, TriggerSource.Assistant);
+            run = engine.RunEventAsync(rule, end: false, SourceOf(request.Shared));
         await run.ConfigureAwait(false);
         return new EndMessage(request.Run, feedback.HasError ? "failed" : "ok", feedback.Messages);
     }
+
+    /// <summary>An assistant's order, or one another program sent through the MCP server.</summary>
+    public static TriggerSource SourceOf(string? shared) => shared is null ? TriggerSource.Assistant : TriggerSource.Mcp;
 
     /// <summary>How close a name must be to an event's (FuzzyMatch) to take it.</summary>
     private const int MinEventScore = 300;

@@ -49,7 +49,7 @@ Every condition can be negated («isn't», «doesn't»…).
 ## History
 
 *History* lists everything that ran: which command, when, from where (hotkey, menu, launcher, voice, phone, network,
-event, assistant…) and whether it went well.
+event, assistant, MCP server, command line…) and whether it went well.
 
 ![History](../../images/en/history.png)
 

@@ -140,7 +140,7 @@ public static class AssistantActs
         var plan = Build(act, AppFinder.OpenWindows(), AppFinder.FindProcess, ForegroundWindow.Capture());
         if (plan.Command is null)
             return new EndMessage(act.Run, "failed", [Loc.T("act.reason." + plan.Reason, plan.Name)], plan.Name, plan.Reason);
-        var end = await AssistantCommands.RunCommandAsync(engine, plan.Command, act.Run, who, ask, choreography, allowed).ConfigureAwait(false);
+        var end = await AssistantCommands.RunCommandAsync(engine, plan.Command, act.Run, who, ask, choreography, allowed, AssistantCommands.SourceOf(act.Shared)).ConfigureAwait(false);
         return end with { Name = plan.Name };
     }
 

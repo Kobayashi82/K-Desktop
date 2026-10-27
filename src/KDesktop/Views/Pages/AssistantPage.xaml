@@ -69,7 +69,10 @@
             </ListBox>
         </DockPanel>
 
+    <!-- As wide as the window up to 980, like the sections of Opciones -->
     <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="0,0,24,24">
+        <Grid>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*" MaxWidth="980" /></Grid.ColumnDefinitions>
         <StackPanel MinWidth="520">
             <!-- The module is off -->
             <Border x:Name="OffPanel" Style="{StaticResource Card}" Visibility="Collapsed">
@@ -198,6 +201,7 @@
                 </StackPanel>
             </StackPanel>
         </StackPanel>
+        </Grid>
     </ScrollViewer>
     </Grid>
 </UserControl>

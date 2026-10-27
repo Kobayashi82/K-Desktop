@@ -22,7 +22,7 @@ public partial class App
         TriggerSource.Web => "web",
         TriggerSource.Remote => "udp",
         TriggerSource.Event => "event",
-        TriggerSource.Manual => "manual",
+        TriggerSource.Manual or TriggerSource.CommandLine => "manual",
         _ => null,
     };
 

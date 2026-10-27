@@ -261,7 +261,7 @@
 
     <Grid Margin="24,12,0,0" PreviewKeyDown="OnPageKeyDown">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="292" />
+            <ColumnDefinition Width="300" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
@@ -683,7 +683,8 @@
                         </StackPanel>
                         <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AchievementNotifications}" />
                     </Grid>
-                    <Grid Style="{StaticResource SettingRow}">
+                    <!-- Belongs to the achievements' card (the only notification with a sound): indented under it, and only with it on -->
+                    <Grid Style="{StaticResource SettingRow}" Margin="24,0,0,6" IsEnabled="{Binding AchievementNotifications}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.notifySound}" />
                         <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding AchievementSound}" />

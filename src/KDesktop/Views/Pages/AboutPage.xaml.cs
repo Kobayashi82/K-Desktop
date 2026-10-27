@@ -34,6 +34,9 @@ public partial class AboutPage : UserControl
         var version = typeof(App).Assembly.GetName().Version;
         VersionText.Text = Loc.T("about.version", version?.ToString(3) ?? "5.0",
             Loc.T(ProcessLauncher.IsElevated ? "about.elevated" : "about.notElevated"));
+        // The documentation website, in Spanish or else in English.
+        DocsLink.NavigateUri = new Uri(Loc.Instance.Language == "es" ? "https://kobayashi82.github.io/K-Desktop/es/" : "https://kobayashi82.github.io/K-Desktop/en/");
+        DocsLink.ToolTip = DocsLink.NavigateUri.AbsoluteUri;
         BuildFilters();
         _index = _random.Next(_tips.Count);
         Loaded += (_, _) =>

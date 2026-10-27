@@ -127,15 +127,16 @@ public static class TriggerSourceNames
         TriggerSource.Hotkey => "hotkey",
         TriggerSource.QuickMenu => "quickMenu",
         TriggerSource.Remote => "remote",
-        TriggerSource.Startup or TriggerSource.Exit => "auto",
         TriggerSource.Command => "command",
         TriggerSource.Launcher => "launcher",
         TriggerSource.Web => "web",
         TriggerSource.Voice => "voice",
-        TriggerSource.Event => "event",
+        TriggerSource.Event or TriggerSource.Startup or TriggerSource.Exit => "event",
         TriggerSource.Assistant => "assistant",
+        TriggerSource.Mcp => "mcp",
+        TriggerSource.CommandLine => "commandLine",
         _ => "manual",
     };
 
-    public static readonly string[] All = ["hotkey", "quickMenu", "launcher", "voice", "assistant", "remote", "web", "event", "manual", "command", "auto"];
+    public static readonly string[] All = ["hotkey", "quickMenu", "launcher", "voice", "assistant", "mcp", "remote", "web", "event", "command", "manual", "commandLine"];
 }

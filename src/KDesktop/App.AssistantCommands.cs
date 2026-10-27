@@ -32,13 +32,13 @@ public partial class App
                 });
                 return true;
             case RunMessage run:
-                RunForAssistant(supervisor, run.Assistant, run.Run, run.Choreography,
+                RunForAssistant(supervisor, run.Assistant, run.Shared, run.Run, run.Choreography,
                     (who, choreography) => AssistantCommands.RunAsync(Engine, run, who, (command, risk) => AskCommandAsync(run.Run, run.Assistant, command, risk, remember: true), choreography,
                         CommandPermit(run.Scheduled, act: false)));
                 return true;
             case ActMessage act:
                 // A command made for the occasion (stage 8.1): nothing to trust for next time.
-                RunForAssistant(supervisor, act.Assistant, act.Run, act.Choreography,
+                RunForAssistant(supervisor, act.Assistant, act.Shared, act.Run, act.Choreography,
                     (who, choreography) => AssistantActs.ActAsync(Engine, act, who, (command, risk) => AskCommandAsync(act.Run, act.Assistant, command, risk, remember: false), choreography,
                         CommandPermit(act.Scheduled, act: true)));
                 return true;
@@ -78,7 +78,7 @@ public partial class App
             case RunEventMessage runEvent:
                 _ = Task.Run(async () =>
                 {
-                    var who = AssistantName(runEvent.Assistant);
+                    var who = runEvent.Shared ?? AssistantName(runEvent.Assistant);
                     // An order programmed by an assistant: events run only if run_event was approved for it.
                     bool? allowed = runEvent.Scheduled is null ? null : PermitOf(runEvent.Scheduled)?.Tools.Contains("run_event") == true;
                     var end = await AssistantCommands.RunEventAsync(Engine, runEvent, who,
@@ -103,11 +103,12 @@ public partial class App
     /// Runs something for an assistant off the pipe's thread and sends its <c>end</c>; with choreography (stage 6.3) the
     /// assistant has its turn before each step, over the pipe.
     /// </summary>
-    private void RunForAssistant(AssistantSupervisor supervisor, string assistant, string runId, bool choreographed,
+    /// <param name="shared">The program that asked through the MCP server (its name goes in the history), or null.</param>
+    private void RunForAssistant(AssistantSupervisor supervisor, string assistant, string? shared, string runId, bool choreographed,
         Func<string, AssistantChoreography?, Task<EndMessage>> run) =>
         _ = Task.Run(async () =>
         {
-            var who = AssistantName(assistant);
+            var who = shared ?? AssistantName(assistant);
             var settings = Config.Settings;
             using var choreography = choreographed
                 ? new AssistantChoreography(runId, m => supervisor.Send(m)) { Speed = settings.AssistantManoeuvres, AnimateMax = Math.Max(0, settings.AssistantAnimateMax) }

@@ -50,7 +50,7 @@ Todas las condiciones se pueden negar («no está», «no responde»…).
 ## Registro
 
 *Registro* enseña todo lo que se ha ejecutado: qué comando, cuándo, desde dónde (atajo, menú, lanzador, voz, móvil, red,
-evento, asistente…) y si fue bien.
+evento, asistente, servidor MCP, línea de comandos…) y si fue bien.
 
 ![Registro](../../images/es/history.png)
 

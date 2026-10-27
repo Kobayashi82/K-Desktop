@@ -246,7 +246,7 @@ public sealed class EventService : IDisposable
             Log.Info($"Evento «{rule.Name}»: era de una sola vez; se borra");
             Remove(rule);
         }
-        if (end || source == TriggerSource.Manual) return;
+        if (end || source is TriggerSource.Manual or TriggerSource.CommandLine) return;
         var now = DateTime.UtcNow;
         _state.SetFired(rule.Id, now);
         _ui.RunOnUi(() => rule.LastFired = now.ToLocalTime());

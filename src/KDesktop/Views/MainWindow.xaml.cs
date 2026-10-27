@@ -40,6 +40,11 @@ public partial class MainWindow : FluentWindow
         App.Current.PausedChanged += OnPausedChanged;
         App.Current.AssistantChanged += UpdateStatus;
         SourceInitialized += (_, _) => FileDrop.Attach(this, OnFilesDropped);
+        // A QuickMenu open over this window (Probar, or its hotkey) closes with a click here, as it does anywhere else.
+        PreviewMouseDown += (_, _) =>
+        {
+            if (App.Current.QuickMenus.IsOpen) App.Current.QuickMenus.CloseAll(restoreFocus: false);
+        };
         Closed += (_, _) =>
         {
             Loc.Instance.Changed -= OnLanguageChanged;

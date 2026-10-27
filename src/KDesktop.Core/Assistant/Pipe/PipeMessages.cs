@@ -751,7 +751,8 @@ public sealed record MatchedMessage(string Id, double Score, IReadOnlyList<strin
 
 /// <summary>Runs a command for an assistant (without choreography until phase 6). Answered with <see cref="EndMessage"/>.</summary>
 /// <param name="Scheduled">For an order programmed by an assistant: its key (<see cref="HeardMessage.Scheduled"/>); nobody is asked.</param>
-public sealed record RunMessage(string Assistant, string Run, string Command, bool Choreography = false, string? Scheduled = null) : PipeMessage
+/// <param name="Shared">Asked by another program through the MCP server (<see cref="Sharing.McpShare"/>): its name, for the history.</param>
+public sealed record RunMessage(string Assistant, string Run, string Command, bool Choreography = false, string? Scheduled = null, string? Shared = null) : PipeMessage
 {
     public override string Type => "run";
 }
@@ -922,7 +923,8 @@ public sealed record ScheduleDoneMessage(string Id, bool Ok, IReadOnlyList<Sched
 public sealed record ScheduledEntry(string Id, string Name, string When, string Order, string? Assistant = null, string? Repeat = null);
 
 /// <summary>Runs the commands of one of K-Desktop's events, found by its name. Answered with <see cref="EndMessage"/>.</summary>
-public sealed record RunEventMessage(string Assistant, string Run, string Event, string? Scheduled = null) : PipeMessage
+/// <param name="Shared">As in <see cref="RunMessage.Shared"/>.</param>
+public sealed record RunEventMessage(string Assistant, string Run, string Event, string? Scheduled = null, string? Shared = null) : PipeMessage
 {
     public override string Type => "runEvent";
 }
@@ -936,7 +938,8 @@ public sealed record RunEventMessage(string Assistant, string Run, string Event,
 /// <param name="Op">What to do: <see cref="AssistantActs.Ops"/>.</param>
 /// <param name="App">The program in the user's words; empty: the window in front.</param>
 /// <param name="Value">For <c>volume</c>: the level, 0 to 100.</param>
-public sealed record ActMessage(string Assistant, string Run, string Op, string App = "", int? Value = null, bool Choreography = false, string? Scheduled = null) : PipeMessage
+/// <param name="Shared">As in <see cref="RunMessage.Shared"/>.</param>
+public sealed record ActMessage(string Assistant, string Run, string Op, string App = "", int? Value = null, bool Choreography = false, string? Scheduled = null, string? Shared = null) : PipeMessage
 {
     public override string Type => "act";
 }

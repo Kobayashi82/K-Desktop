@@ -61,6 +61,7 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
         Config.Commands.CollectionChanged += OnCommandsChanged;
         Config.QuickMenus.CollectionChanged += OnMenusChanged;
         RefreshPalette();
+        ShowPalette(!Config.Settings.QuickMenuPaletteHidden);
         UpdateCount();
         if (!_view.IsEmpty) MenuList.SelectedIndex = 0;
         else ShowEditor();
@@ -102,6 +103,7 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
         if (ListContextMenu.SelectRow(MenuList, e) is not { DataContext: QuickMenu } row) return;
         ListContextMenu.Open(row,
             ListContextMenu.Entry(Loc.T("qm.test"), SymbolRegular.Play24, () => OnTest(row, new RoutedEventArgs())),
+            ListContextMenu.Entry(Loc.T("qm.createCommand"), SymbolRegular.FlashAdd20, () => OnCreateCommand(row, new RoutedEventArgs())),
             ListContextMenu.Entry(Loc.T("qm.renameMenu"), SymbolRegular.Rename24, FocusName),
             ListContextMenu.Entry(Loc.T("qm.duplicateMenu"), SymbolRegular.Copy24, () => OnDuplicateMenu(row, new RoutedEventArgs())),
             new Separator(),
@@ -269,6 +271,34 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
     private void OnTest(object sender, RoutedEventArgs e)
     {
         if (_menu is not null) _app.QuickMenus.Show(_menu.Id, ForegroundWindow.Capture());
+    }
+
+    /// <summary>A new command that opens this menu (to give it a hotkey, a voice phrase…), opened in Comandos.</summary>
+    private void OnCreateCommand(object sender, RoutedEventArgs e)
+    {
+        if (_menu is not { } menu) return;
+        var cmd = new Command { Name = menu.Name };
+        cmd.Actions.Add(new OpenQuickMenuAction { MenuId = menu.Id, MenuName = menu.Name });
+        Config.Commands.Add(cmd);
+        _app.Achievements.Increment(Stat.CommandsCreated);
+        _app.Achievements.Increment(Stat.ActionsCreated);
+        (Window.GetWindow(this) as MainWindow)?.OpenCommand(cmd.Id);
+    }
+
+    // ── «Añadir al menú», folded away or not ─────────────────────────────
+
+    private void OnTogglePalette(object sender, RoutedEventArgs e)
+    {
+        var show = PalettePanel.Visibility != Visibility.Visible;
+        Config.Settings.QuickMenuPaletteHidden = !show;
+        ShowPalette(show);
+    }
+
+    private void ShowPalette(bool show)
+    {
+        PalettePanel.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        ShowPaletteButton.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
+        PaletteColumn.Width = show ? new GridLength(280) : GridLength.Auto;
     }
 
     // ── palette ───────────────────────────────────────────────────────────
@@ -453,6 +483,17 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
         if (openChildren) _path.Add(item.Id);
         _selectedId = item.Id;
         Rebuild();
+    }
+
+    /// <summary>
+    /// The menu grows to the right: the wheel scrolls sideways, unless it is also taller than the space (then the wheel
+    /// goes up and down, and sideways with Ctrl).
+    /// </summary>
+    private void OnCanvasWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (Canvas.ScrollableWidth <= 0 || Canvas.ScrollableHeight > 0 && (Keyboard.Modifiers & ModifierKeys.Control) == 0) return;
+        Canvas.ScrollToHorizontalOffset(Canvas.HorizontalOffset - e.Delta);
+        e.Handled = true;
     }
 
     private void OnCanvasClick(object sender, MouseButtonEventArgs e)
@@ -808,6 +849,7 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
         var menu = new ContextMenu();
         var index = row.Column.List.IndexOf(row.Item);
 
+        menu.Items.Add(AddMenu(Loc.T("qm.addBefore"), row.Column.List, index));
         menu.Items.Add(AddMenu(Loc.T("qm.addAfter"), row.Column.List, index + 1));
         if (!row.IsSeparator) menu.Items.Add(AddMenu(Loc.T("qm.addInside"), row.Item.Children, row.Item.Children.Count, row.Item));
         menu.Items.Add(new Separator());

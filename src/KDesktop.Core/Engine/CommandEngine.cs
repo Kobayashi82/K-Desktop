@@ -6,7 +6,7 @@ using KDesktop.Core.Storage;
 
 namespace KDesktop.Core.Engine;
 
-public enum TriggerSource { Hotkey, QuickMenu, Remote, Startup, Exit, Manual, Command, Launcher, Web, Voice, Event, Assistant }
+public enum TriggerSource { Hotkey, QuickMenu, Remote, Startup, Exit, Manual, Command, Launcher, Web, Voice, Event, Assistant, Mcp, CommandLine }
 
 /// <summary>Information about one execution of a command.</summary>
 public sealed record ExecutionContext(
@@ -119,8 +119,8 @@ public sealed partial class CommandEngine
             Log.Warn($"Demasiados comandos anidados, se detiene en '{command.Name}'");
             return;
         }
-        if (!command.Enabled && source is not TriggerSource.Manual) return;
-        if (depth == 0 && IsPaused && source is not TriggerSource.Manual)
+        if (!command.Enabled && source is not (TriggerSource.Manual or TriggerSource.CommandLine)) return;
+        if (depth == 0 && IsPaused && source is not (TriggerSource.Manual or TriggerSource.CommandLine))
         {
             Log.Info($"En pausa: no se ejecuta '{command.Name}' ({source})");
             return;
@@ -287,7 +287,7 @@ public sealed partial class CommandEngine
             Log.Warn($"Demasiados comandos anidados, se detiene en el evento «{rule.Name}»");
             return;
         }
-        if (IsPaused && source is not TriggerSource.Manual)
+        if (IsPaused && source is not (TriggerSource.Manual or TriggerSource.CommandLine))
         {
             Log.Info($"En pausa: no se ejecuta el evento «{rule.Name}»");
             return;

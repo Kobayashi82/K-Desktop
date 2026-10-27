@@ -8,7 +8,8 @@
         <Style x:Key="Row" TargetType="ListBoxItem">
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-            <Setter Property="Margin" Value="0,0,0,4" />
+            <!-- Room on the right for the scroll bar, which goes over the list -->
+            <Setter Property="Margin" Value="0,0,14,4" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">

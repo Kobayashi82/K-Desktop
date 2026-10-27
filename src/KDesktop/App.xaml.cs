@@ -196,7 +196,7 @@ public partial class App : Application
         Engine.Cancelled += () => Achievements.Unlock("cancel");
         Engine.EventFired += (_, end, source) =>
         {
-            if (source != TriggerSource.Manual) Achievements.Increment(end ? Stat.EventsEnded : Stat.EventsFired);
+            if (source is not (TriggerSource.Manual or TriggerSource.CommandLine)) Achievements.Increment(end ? Stat.EventsEnded : Stat.EventsFired);
         };
 
         // Hotkeys
@@ -346,12 +346,12 @@ public partial class App : Application
         {
             var cmd = Config.FindCommand(name) ??
                       Config.Commands.FirstOrDefault(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-            if (cmd is not null) _ = Engine.RunAsync(cmd, TriggerSource.Manual);
+            if (cmd is not null) _ = Engine.RunAsync(cmd, TriggerSource.CommandLine);
             else Log.Warn($"--run: comando no encontrado '{name}'");
         }
         if (Program.ValueOf(args, "--event") is { } eventName)
         {
-            if (Config.FindEvent(eventName) is { } rule) _ = Events.RunNowAsync(rule, TriggerSource.Manual);
+            if (Config.FindEvent(eventName) is { } rule) _ = Events.RunNowAsync(rule, TriggerSource.CommandLine);
             else Log.Warn($"--event: evento no encontrado '{eventName}'");
         }
         if (args.Contains("--launcher", StringComparer.OrdinalIgnoreCase)) Launcher.Show(ForegroundWindow.Capture());

@@ -102,6 +102,7 @@ public sealed class SharedTools(ToolRunner runner)
             return new CallToolResult { IsError = true, Content = [new TextContentBlock { Text = $"No shared tool called «{tool}»." }] };
 
         var arguments = JsonSerializer.SerializeToElement(call!.Arguments ?? new Dictionary<string, JsonElement>());
+        using var answering = McpShare.Answering(name);
         var outcome = await runner.RunAsync(tool, arguments, new ToolContext(null, Caller: name) { SharedFree = Scope == McpShare.ScopeFree }, name, McpShare.Route, cancellationToken).ConfigureAwait(false);
         var text = outcome.Result?.Text ?? outcome.Entry.Did;
         return new CallToolResult
