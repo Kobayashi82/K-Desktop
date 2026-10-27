@@ -74,7 +74,8 @@
                 </StackPanel>
 
                 <!-- Status (bottom): one icon per service; tooltip with the details, click to its options -->
-                <Border DockPanel.Dock="Bottom" CornerRadius="8" Padding="4" Background="{DynamicResource Kd.Subtle}">
+                <Border DockPanel.Dock="Bottom" CornerRadius="8" Padding="4" Background="{DynamicResource Kd.Subtle}"
+                        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                     <UniformGrid x:Name="StatusGrid" Columns="4">
                         <Button x:Name="PauseStatus" Style="{StaticResource StatusButton}" Click="OnPauseStatus">
                             <ui:SymbolIcon x:Name="PauseIcon" Symbol="Power24" FontSize="18" />

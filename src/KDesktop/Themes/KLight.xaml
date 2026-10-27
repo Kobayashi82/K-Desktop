@@ -11,32 +11,32 @@
     <!-- QuickMenu -->
     <SolidColorBrush x:Key="Kd.MenuTint" Color="#D6F7F0E2" />
     <SolidColorBrush x:Key="Kd.MenuTintOpaque" Color="#FFF9F3E8" />
-    <SolidColorBrush x:Key="Kd.MenuBorder" Color="#1A000000" />
+    <SolidColorBrush x:Key="Kd.MenuBorder" Color="#FFC9BAA0" />
     <SolidColorBrush x:Key="Kd.MenuText" Color="#E6000000" />
     <SolidColorBrush x:Key="Kd.MenuTextSecondary" Color="#AB000000" />
-    <SolidColorBrush x:Key="Kd.MenuHover" Color="#0F000000" />
+    <SolidColorBrush x:Key="Kd.MenuHover" Color="#1C5A4014" />
     <SolidColorBrush x:Key="Kd.MenuPressed" Color="#08000000" />
-    <SolidColorBrush x:Key="Kd.MenuSeparator" Color="#14000000" />
-    <SolidColorBrush x:Key="Kd.MenuTitle" Color="#0A000000" />
+    <SolidColorBrush x:Key="Kd.MenuSeparator" Color="#265A4014" />
+    <SolidColorBrush x:Key="Kd.MenuTitle" Color="#125A4014" />
 
     <!-- OSD -->
     <SolidColorBrush x:Key="Kd.OsdBackground" Color="#F2FBF6EC" />
-    <SolidColorBrush x:Key="Kd.OsdBorder" Color="#1F000000" />
+    <SolidColorBrush x:Key="Kd.OsdBorder" Color="#FFC9BAA0" />
     <SolidColorBrush x:Key="Kd.OsdText" Color="#FF1A1A1A" />
     <SolidColorBrush x:Key="Kd.OsdTextSecondary" Color="#C2000000" />
-    <SolidColorBrush x:Key="Kd.OsdTrack" Color="#1A000000" />
+    <SolidColorBrush x:Key="Kd.OsdTrack" Color="#225A4014" />
     <SolidColorBrush x:Key="Kd.ToastBorder" Color="#66E0A815" />
 
     <!-- Achievements -->
-    <SolidColorBrush x:Key="Kd.Locked" Color="#14000000" />
+    <SolidColorBrush x:Key="Kd.Locked" Color="#1C5A4014" />
     <SolidColorBrush x:Key="Kd.Bar" Color="#C99A10" />
-    <SolidColorBrush x:Key="Kd.BarTrack" Color="#14000000" />
+    <SolidColorBrush x:Key="Kd.BarTrack" Color="#225A4014" />
 
     <!-- Main window extras -->
-    <SolidColorBrush x:Key="Kd.Subtle" Color="#08000000" />
-    <SolidColorBrush x:Key="Kd.SubtleHover" Color="#0F000000" />
-    <SolidColorBrush x:Key="Kd.Selected" Color="#14000000" />
-    <SolidColorBrush x:Key="Kd.ChipBackground" Color="#0F000000" />
+    <SolidColorBrush x:Key="Kd.Subtle" Color="#165A4014" />
+    <SolidColorBrush x:Key="Kd.SubtleHover" Color="#225A4014" />
+    <SolidColorBrush x:Key="Kd.Selected" Color="#2A5A4014" />
+    <SolidColorBrush x:Key="Kd.ChipBackground" Color="#1C5A4014" />
     <SolidColorBrush x:Key="Kd.Danger" Color="#C42B1C" />
     <SolidColorBrush x:Key="Kd.DangerSoft" Color="#22C42B1C" />
     <SolidColorBrush x:Key="Kd.KeyMapped" Color="#59E0A815" />
@@ -44,5 +44,5 @@
     <SolidColorBrush x:Key="Kd.Success" Color="#0F7B0F" />
     <SolidColorBrush x:Key="Kd.Warning" Color="#9D5D00" />
     <!-- Descriptions under a name: a step dimmer than the secondary text so both read apart -->
-    <SolidColorBrush x:Key="Kd.TextDim" Color="#A3000000" />
+    <SolidColorBrush x:Key="Kd.TextDim" Color="#FF5E5140" />
 </ResourceDictionary>

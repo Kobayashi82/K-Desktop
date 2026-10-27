@@ -40,6 +40,7 @@ public partial class MainWindow : FluentWindow
         Loc.Instance.Changed += OnLanguageChanged;
         App.Current.PausedChanged += OnPausedChanged;
         App.Current.AssistantChanged += UpdateStatus;
+        Services.ThemeService.Changed += OnThemeChanged;
         SourceInitialized += (_, _) => FileDrop.Attach(this, OnFilesDropped);
         // A QuickMenu open over this window (Probar, or its hotkey) closes with a click here, as it does anywhere else.
         PreviewMouseDown += (_, _) =>
@@ -51,9 +52,16 @@ public partial class MainWindow : FluentWindow
             Loc.Instance.Changed -= OnLanguageChanged;
             App.Current.PausedChanged -= OnPausedChanged;
             App.Current.AssistantChanged -= UpdateStatus;
+            Services.ThemeService.Changed -= OnThemeChanged;
             foreach (var page in _pages.Values.OfType<IDisposable>()) page.Dispose();
         };
     }
+
+    /// <summary>
+    /// The pages are made again in the new theme: some of their colours are set in code (links, achievements, the
+    /// chat…) and kept the old theme's. After the theme combo's own change is over.
+    /// </summary>
+    private void OnThemeChanged() => Dispatcher.BeginInvoke(RebuildPages, System.Windows.Threading.DispatcherPriority.Background);
 
     private readonly System.Windows.Threading.DispatcherTimer _noticeTimer = new() { Interval = TimeSpan.FromSeconds(4) };
 

@@ -55,8 +55,17 @@ public static class ThemeService
         ApplyAccentButtons(dark);
         SwapOwnDictionary(dark);
         WarmLightTheme(dark);
+        // Taking the light theme's values away also took WPF-UI's gold texts (same keys): written again.
+        if (dark) ApplyAccent(dark, theme);
         ApplyLightOverrides(dark);
-        foreach (var window in Application.Current.Windows.OfType<FluentWindow>()) Veil(window);
+        foreach (var window in Application.Current.Windows.OfType<FluentWindow>())
+        {
+            Veil(window);
+            // A window that started in the light theme (its Mica under the cream) kept Windows' light backdrop after a
+            // switch to dark: the dark mode is told to Windows here too.
+            if (new System.Windows.Interop.WindowInteropHelper(window).Handle is var handle && handle != IntPtr.Zero)
+                Native.UiNative.SetDarkMode(handle, dark);
+        }
         Changed?.Invoke();
     }
 
@@ -125,14 +134,14 @@ public static class ThemeService
 
     /// <summary>
     /// The light theme's surfaces: the window (sidebar and title bar), the content layer beside it, the cards on it and
-    /// their edge, how far WPF-UI's neutral greys are warmed (0 = left neutral, 1 = cream), and the golds.
+    /// their edge, and the golds.
     /// </summary>
-    private sealed record LightPalette(Color Window, Color Layer, Color Card, Color CardStroke, double Warmth,
+    private sealed record LightPalette(Color Window, Color Layer, Color Card, Color CardStroke,
                                        Color Accent, Color AccentHover, Color AccentPressed);
 
     /// <summary>«Arena» (chosen from three in 5.0.310: neutral, slightly warm and this one).</summary>
     private static readonly LightPalette Light = new(
-        Rgb(0xE6, 0xDD, 0xCD), Rgb(0xF2, 0xEC, 0xE0), Rgb(0xFF, 0xFD, 0xF8), Color.FromArgb(0x24, 0x3D, 0x2A, 0x0A), 1,
+        Rgb(0xE6, 0xDD, 0xCD), Rgb(0xF2, 0xEC, 0xE0), Rgb(0xFF, 0xFD, 0xF8), Rgb(0xD6, 0xC9, 0xB2),
         Rgb(0xE0, 0xA8, 0x15), Rgb(0xE8, 0xB8, 0x3A), Rgb(0xD0, 0x9A, 0x10));
 
     private static Color Rgb(byte r, byte g, byte b) => Color.FromRgb(r, g, b);
@@ -141,9 +150,10 @@ public static class ThemeService
     private static readonly HashSet<string> Warmed = [];
 
     /// <summary>
-    /// WPF-UI's light theme is all white, the background hardly apart from the panels: the light palette sets the
-    /// window, the content layer and the cards (with their edge) apart, and warms WPF-UI's neutral near-white surfaces
-    /// (buttons, boxes, lists, menus) and black hairlines as far as it says. Texts stay as they are (see <see cref="LightOverrides"/>).
+    /// WPF-UI's light theme is made for white: its controls are see-through white and its edges, dividers and hovers
+    /// black at 2–15 %, which vanish on cream. Each of them gets a part of its own here instead: controls a solid fill a
+    /// step darker than the panel with a firm edge, hairlines twice as strong and warm, the content of an expander a
+    /// tone apart from its header, notices real colours, links a dark gold. Texts: see <see cref="LightOverrides"/>.
     /// </summary>
     private static void WarmLightTheme(bool dark)
     {
@@ -151,63 +161,105 @@ public static class ThemeService
         foreach (var key in Warmed) resources.Remove(key);
         Warmed.Clear();
         if (dark || WpfUiTheme(resources) is not { } theme) return;
-        foreach (var entry in theme.Keys.OfType<string>().ToList())
-        {
-            if (entry.StartsWith("Text", StringComparison.Ordinal) || entry.StartsWith("Accent", StringComparison.Ordinal)) continue;
-            object? warm = theme[entry] switch
-            {
-                Color color when Warm(color) is { } c => c,
-                SolidColorBrush brush when Warm(brush.Color) is { } c => Frozen(new SolidColorBrush(c)),
-                _ => null,
-            };
-            if (warm is null) continue;
-            resources[entry] = warm;
-            Warmed.Add(entry);
-        }
-        // The palette's own surfaces: the window and the content layer apart, and the cards solid on them.
-        (string Key, Color Color)[] brushes =
-        [
-            ("Kd.WindowTint", Light.Window),
-            // QuickMenus, the launcher and the OSD in the palette's tones too.
-            ("Kd.MenuTint", Color.FromArgb(0xD6, Light.Layer.R, Light.Layer.G, Light.Layer.B)),
-            ("Kd.MenuTintOpaque", Light.Card),
-            ("Kd.OsdBackground", Color.FromArgb(0xF2, Light.Card.R, Light.Card.G, Light.Card.B)),
-        ];
-        foreach (var (key, color) in brushes)
+
+        void Set(string key, Color color)
         {
             resources[key] = Frozen(new SolidColorBrush(color));
             Warmed.Add(key);
         }
-        (string Key, Color Color)[] surfaces =
-        [
-            ("LayerFillColorDefault", Light.Layer),
-            ("CardBackgroundFillColorDefault", Light.Card),
-            ("CardStrokeColorDefault", Light.CardStroke),
-        ];
-        foreach (var (key, color) in surfaces)
+        void SetBoth(string key, Color color)
         {
             resources[key] = color;
-            resources[key + "Brush"] = Frozen(new SolidColorBrush(color));
             Warmed.Add(key);
-            Warmed.Add(key + "Brush");
+            Set(key + "Brush", color);
         }
-        foreach (var key in (string[])["CardBackground", "ExpanderHeaderBackground"])
+
+        // WPF-UI's own values, by what they are for (see Light.xaml of WPF-UI).
+        foreach (var entry in theme.Keys.OfType<string>().ToList())
         {
-            resources[key] = Frozen(new SolidColorBrush(Light.Card));
-            Warmed.Add(key);
+            if (entry.StartsWith("TextFill", StringComparison.Ordinal) || entry.StartsWith("TextOnAccent", StringComparison.Ordinal)
+                || entry.StartsWith("Accent", StringComparison.Ordinal)) continue;
+            switch (theme[entry])
+            {
+                case Color color when ByPart(color) is { } c:
+                    resources[entry] = c;
+                    Warmed.Add(entry);
+                    break;
+                case SolidColorBrush brush when ByPart(brush.Color) is { } c:
+                    Set(entry, c);
+                    break;
+            }
         }
+
+        // The edges of controls are gradients (a darker bottom line): one firm warm line instead.
+        foreach (var key in (string[])["ControlElevationBorderBrush", "TextControlElevationBorderBrush", "CircleElevationBorderBrush"])
+            Set(key, LightControlEdge);
+
+        // The palette's surfaces: the window, the content layer apart from it, the cards solid on it.
+        Set("Kd.WindowTint", Light.Window);
+        Set("Kd.MenuTint", Color.FromArgb(0xE6, Light.Layer.R, Light.Layer.G, Light.Layer.B));
+        Set("Kd.MenuTintOpaque", Light.Card);
+        Set("Kd.OsdBackground", Color.FromArgb(0xF5, Light.Card.R, Light.Card.G, Light.Card.B));
+        SetBoth("LayerFillColorDefault", Light.Layer);
+        SetBoth("CardBackgroundFillColorDefault", Light.Card);
+        SetBoth("CardStrokeColorDefault", Light.CardStroke);
+        Set("CardBackground", Light.Card);
+        Set("ExpanderHeaderBackground", Light.Card);
+
+        // Notices: real colours with an edge (the pale pink of «Los atajos están desactivados» hardly read as red).
+        Set("InfoBarErrorSeverityBackgroundBrush", Rgb(0xF6, 0xD2, 0xCC));
+        Set("InfoBarErrorSeverityBorderBrush", Rgb(0xE0, 0x9C, 0x92));
+        Set("InfoBarWarningSeverityBackgroundBrush", Rgb(0xF8, 0xE3, 0xB0));
+        Set("InfoBarWarningSeverityBorderBrush", Rgb(0xDD, 0xB8, 0x62));
+        Set("InfoBarSuccessSeverityBackgroundBrush", Rgb(0xD6, 0xEB, 0xCF));
+        Set("InfoBarSuccessSeverityBorderBrush", Rgb(0x9C, 0xC7, 0x8F));
+        Set("InfoBarInformationalSeverityBackgroundBrush", LightInset);
+        Set("InfoBarInformationalSeverityBorderBrush", LightControlEdge);
+
+        // Links and gold texts: WPF-UI derives them from the gold, far too light to read on cream.
+        SetBoth("AccentTextFillColorPrimary", Rgb(0x7A, 0x52, 0x00));
+        SetBoth("AccentTextFillColorSecondary", Rgb(0x6A, 0x47, 0x00));
+        SetBoth("AccentTextFillColorTertiary", Rgb(0x8A, 0x5E, 0x00));
+        Set("HyperlinkButtonForeground", Rgb(0x7A, 0x52, 0x00));
+        Set("HyperlinkButtonForegroundPointerOver", Rgb(0x6A, 0x47, 0x00));
+        Set("HyperlinkButtonForegroundPressed", Rgb(0x8A, 0x5E, 0x00));
     }
 
+    /// <summary>A control's fill on a card: a step darker than the card, so a box or a button stands out on it.</summary>
+    private static readonly Color LightControl = Rgb(0xF3, 0xEC, 0xE0);
+    private static readonly Color LightControlHover = Rgb(0xEC, 0xE3, 0xD3);
+    private static readonly Color LightControlPressed = Rgb(0xE6, 0xDC, 0xCA);
+
+    /// <summary>The edge of controls and notices.</summary>
+    private static readonly Color LightControlEdge = Rgb(0xC9, 0xBA, 0xA0);
+
+    /// <summary>A surface sunk into a card (an expander's content, informational notices).</summary>
+    private static readonly Color LightInset = Rgb(0xF5, 0xEF, 0xE4);
+
     /// <summary>
-    /// A neutral light grey or white → warmer by the palette's <see cref="LightPalette.Warmth"/>; a neutral black
-    /// hairline → warm brown; anything else (or a palette without warmth) stays.
+    /// What a value of WPF-UI's light theme becomes, by the part it plays there: see-through white (controls), their
+    /// hover and pressed greys, the solid whites of lists and menus, and black at a low alpha (edges, dividers,
+    /// hovers), which comes out twice as strong in a warm brown. Anything else stays.
     /// </summary>
-    private static Color? Warm(Color c)
+    private static Color? ByPart(Color c)
     {
-        if (Light.Warmth <= 0 || c.R != c.G || c.G != c.B || c.A == 0) return null;
-        if (c.R >= 0xE6) return Color.FromArgb(c.A, c.R, (byte)(c.G - 7 * Light.Warmth), (byte)(c.B - 20 * Light.Warmth));
-        if (c.R == 0 && c.A <= 0x40) return Color.FromArgb(c.A, 0x4A, 0x32, 0x0A);
-        return null;
+        if (c.A == 0) return null;
+        if (c.R == 0 && c.G == 0 && c.B == 0)
+            return c.A <= 0x40 ? Color.FromArgb((byte)Math.Min(0x60, c.A * 2), 0x5A, 0x40, 0x14) : null;
+        if (c.R != c.G || c.G != c.B) return null;
+        return (c.A, c.R) switch
+        {
+            (0xB3, 0xFF) => LightControl,
+            (0x80, 0xF9) => LightControlHover,
+            (0x4D, 0xF9) => Color.FromArgb(0xB3, LightControlPressed.R, LightControlPressed.G, LightControlPressed.B),
+            (0x80, 0xF6) => LightInset,
+            (0x80, 0xFF) => Light.Layer,
+            (0xFF, 0xFF) => Rgb(0xFF, 0xFE, 0xFB),
+            (0xFF, 0xFA) => Light.Window,
+            (0xFF, >= 0xE6) => Color.FromRgb(c.R, (byte)(c.G - 6), (byte)(c.B - 16)),
+            (_, >= 0xE6) => Color.FromArgb(c.A, c.R, (byte)(c.G - 6), (byte)(c.B - 16)),
+            _ => null,
+        };
     }
 
     private static SolidColorBrush Frozen(SolidColorBrush brush)
@@ -229,17 +281,17 @@ public static class ThemeService
 
     /// <summary>
     /// WPF-UI's light text greys are made for its white cards: on K-Desktop's tinted surfaces the secondary and
-    /// tertiary ones (descriptions, hints, summaries) were too faint to read. Same three-step hierarchy, darker. Gold
+    /// tertiary ones (descriptions, hints, summaries) were too faint to read. Same three-step hierarchy, darker and warm. Gold
     /// is a light colour, so text on accent buttons goes dark instead of white. They go in the application's own
     /// resources because WPF-UI writes some of these keys there (a merged dictionary would lose against them).
     /// </summary>
     private static readonly (string Key, Color Color)[] LightOverrides =
     [
         ("TextFillColorPrimary", Color.FromArgb(0xF0, 0, 0, 0)),
-        ("TextFillColorSecondary", Color.FromArgb(0xC2, 0, 0, 0)),
-        ("TextFillColorTertiary", Color.FromArgb(0xA6, 0, 0, 0)),
-        ("TextFillColorDisabled", Color.FromArgb(0x6B, 0, 0, 0)),
-        ("TextPlaceholderColor", Color.FromArgb(0x8F, 0, 0, 0)),
+        ("TextFillColorSecondary", Color.FromRgb(0x47, 0x3C, 0x2E)),
+        ("TextFillColorTertiary", Color.FromRgb(0x5E, 0x51, 0x40)),
+        ("TextFillColorDisabled", Color.FromRgb(0x9A, 0x8C, 0x77)),
+        ("TextPlaceholderColor", Color.FromRgb(0x76, 0x69, 0x57)),
         ("TextOnAccentFillColorPrimary", Color.FromRgb(0x1F, 0x15, 0x00)),
         ("TextOnAccentFillColorSecondary", Color.FromArgb(0xCC, 0x1F, 0x15, 0x00)),
         ("TextOnAccentFillColorSelectedText", Color.FromRgb(0x1F, 0x15, 0x00)),
