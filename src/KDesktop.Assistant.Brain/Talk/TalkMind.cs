@@ -568,7 +568,7 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
     private static readonly string[] ScreenTools = ["look_at_screen", "read_web"];
 
     /// <summary>What it does with the files the user gives it (stage 14.1).</summary>
-    private static readonly string[] GivenFileTools = ["read_file", "open_file", "move_file", "delete_file"];
+    private static readonly string[] GivenFileTools = ["read_file", "open_file", "move_file", "delete_file", "copy_file", "zip_files", "unzip"];
 
     /// <summary>Next to the order, the files the user gave it, with their full paths for the tools (none: nothing).</summary>
     private static string GivenFilesLine(ToolContext context) => context.Files.Count == 0 ? string.Empty

@@ -22,7 +22,7 @@ Todo lo que hace un asistente sale en *Panel → Asistente → Actividad* (la su
 | **Comandos** | Ejecutar tus comandos · Buscar entre tus comandos · Explicar un comando · Revisar un comando o evento · Mirar el registro · Ver tus estadísticas · Enseñar frases de voz · Lanzar un evento · Parar una cuenta atrás | «pon el modo juego», «¿qué hace el comando de las copias?», «¿por qué no saltó el evento de las ocho?», «¿qué falló ayer?», «¿qué comando uso más?», «cuando diga la peli abre el comando de películas», «al final no apagues el ordenador» |
 | **Hora, avisos y cuentas** | Hora y fecha · Temporizador · Quitar un temporizador · Programar una orden · Ver lo pendiente · Quitar algo programado · Avisar cuando pase algo · Dejar de vigilar · Cuentas con fechas · Calculadora | «avísame en media hora», «a las siete vacía la papelera», «avísame cuando termine la descarga», «cuántos días faltan para navidad» |
 | **Notas y memoria** | Apuntar una nota · Buscar en las notas · Cambiar una nota · Borrar una nota · Recordar algo de ti · Olvidar un recuerdo | «apunta que tengo que comprar leche», «recuerda que mi jefe se llama Luis» |
-| **Archivos** | Buscar archivos · Abrir un archivo · Leer un archivo · Borrar un archivo · Mover un archivo · Buscar en tus documentos | «búscame el pdf de la factura de la luz», «abre lo último que descargué» |
+| **Archivos** | Buscar archivos · Abrir un archivo · Leer un archivo · Borrar un archivo · Mover un archivo · Escribir un documento · Copiar un archivo · Crear una carpeta · Comprimir en ZIP · Descomprimir un ZIP · Buscar en tus documentos | «búscame el pdf de la factura de la luz», «abre lo último que descargué» |
 | **Internet** | Abrir una web · Buscar en el navegador · Consultar internet · Leer una página web | «cuánto cuesta una RTX 5080», «resúmeme esta página» |
 | **Pantalla y textos** | Mirar la pantalla · Traducir y corregir textos | «qué error me sale», «tradúceme esto al inglés» |
 | **Programas y PC** | Abrir un programa · Manejar ventanas y programas · Cerrar a la fuerza · Estado del PC · Liberar el cerebro | «minimiza Steam», «Chrome no responde, ciérralo a la fuerza», «por qué va lento el ordenador» |
@@ -50,6 +50,11 @@ Algunos detalles:
 - **El tiempo** usa Open-Meteo y las **monedas**, los tipos del Banco Central Europeo (sin cuenta). Sin ciudad, usa
   *Opciones → Asistente → General → Dónde estás*, o la ubicación de Windows si la permites.
 - **Borrar un archivo** lo manda a la papelera; esta y **Mover un archivo** preguntan siempre antes (mover se puede deshacer).
+- **Escribir un documento** crea un texto (.txt si no dices otro tipo; también .md, .csv, .json, .html…; nunca .bat, .ps1 ni
+  programas) en el escritorio o donde digas. Si ya hay uno con ese nombre no lo toca: pregunta si lo reemplaza, y reemplazar
+  pide siempre permiso en el PC. **Copiar un archivo**, **Crear una carpeta**, **Comprimir en ZIP** y **Descomprimir un ZIP**
+  nunca pisan nada (la copia o el zip se llaman «nombre (2)», y se descomprime siempre en una carpeta nueva). Todo se puede
+  deshacer: lo creado va a la papelera y un documento reemplazado vuelve a como estaba.
 - **Revisar un comando o evento** dice por qué no funciona o no saltó sin ejecutar nada: si está desactivado, si falta el
   programa o la carpeta que abre, si llama a un comando que ya no existe, si su «Solo si» se cumple ahora, sus últimas
   ejecuciones y las veces que no saltó (K-Desktop apunta el motivo: «Solo si» que no se cumplía, en pausa, hora pasada con
