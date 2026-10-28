@@ -64,6 +64,9 @@ public sealed partial class CommandEngine
     /// <summary>«Grabar audio»: the recording in progress and the replay.</summary>
     public AudioRecording Recording { get; } = new();
 
+    /// <summary>«Mantener despierto»: the PC kept from sleeping (5.0.342).</summary>
+    public KeepAwake Awake { get; } = new();
+
     /// <summary>The «Registro»: the last runs, from where and how they went.</summary>
     public ExecutionHistory History { get; }
 

@@ -41,6 +41,8 @@ public sealed partial class CommandEngine
         PowerPlanAction a => Run(() => PowerPlan(a)),
         WindowsThemeAction a => Run(() => WindowsTheme(a)),
         RadioAction a => Run(() => Radio(a)),
+        MediaAction a => MediaAsync(a, ctx),
+        KeepAwakeAction a => Run(() => StayAwake(a)),
         ScreenshotAction a => ScreenshotAsync(a, ctx),
         ScreenTextAction a => ScreenTextAsync(a, ctx),
         AudioRecordAction a => Run(() => AudioRecord(a)),

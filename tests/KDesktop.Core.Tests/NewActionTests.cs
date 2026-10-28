@@ -233,3 +233,56 @@ public class HistoryTests
         Assert.Equal("10", history.Entries[0].Name);
     }
 }
+
+public class MediaAndAwakeTests
+{
+    [Fact]
+    public void MediaAndKeepAwakeSurviveSaving()
+    {
+        var media = Json.Deserialize<CommandAction>(Json.Serialize<CommandAction>(new MediaAction { Control = MediaControl.Next, App = "Spotify", ShowOsd = false }));
+        var m = Assert.IsType<MediaAction>(media);
+        Assert.Equal((MediaControl.Next, "Spotify", false), (m.Control, m.App, m.ShowOsd));
+
+        var awake = Json.Deserialize<CommandAction>(Json.Serialize<CommandAction>(new KeepAwakeAction { Mode = SwitchMode.On, For = AwakeFor.WhileApp, ProcessName = "vlc", Screen = false }));
+        var k = Assert.IsType<KeepAwakeAction>(awake);
+        Assert.Equal((SwitchMode.On, AwakeFor.WhileApp, "vlc", false), (k.Mode, k.For, k.ProcessName, k.Screen));
+    }
+
+    [Fact]
+    public void KeepAwakeStartsExtendsAndStops()
+    {
+        using var awake = new KeepAwake();
+        var changes = 0;
+        awake.Changed += () => changes++;
+        Assert.True(awake.Start(TimeSpan.FromMinutes(5), null, screen: false));
+        Assert.True(awake.IsOn);
+        var until = Assert.NotNull(awake.Until);
+        awake.Extend(TimeSpan.FromMinutes(30));
+        Assert.Equal(until + TimeSpan.FromMinutes(30), awake.Until);
+        Assert.True(awake.Stop());
+        Assert.False(awake.IsOn);
+        Assert.False(awake.Stop());
+        Assert.Equal(3, changes);
+    }
+
+    [Fact]
+    public async Task EndsByItselfWhenTheTimeIsUp()
+    {
+        using var awake = new KeepAwake();
+        var ended = new TaskCompletionSource();
+        awake.Changed += () => { if (!awake.IsOn) ended.TrySetResult(); };
+        Assert.True(awake.Start(TimeSpan.FromSeconds(1), null, screen: false));
+        await ended.Task.WaitAsync(TimeSpan.FromSeconds(20));
+        Assert.False(awake.IsOn);
+    }
+
+    [Fact]
+    public void WhileAProgramEndsWithIt()
+    {
+        using var awake = new KeepAwake();
+        Assert.True(awake.Start(null, "kdesktop-program-that-does-not-exist", screen: false));
+        Assert.Equal("kdesktop-program-that-does-not-exist", awake.WhileApp);
+        Assert.Null(awake.Until);
+        Assert.True(awake.Stop());
+    }
+}

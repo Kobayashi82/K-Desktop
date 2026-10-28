@@ -135,7 +135,8 @@ public sealed class SemanticMatcher : IDisposable
         OpenFolderAction { Special: not null } f => f.Summary,
         VolumeAction or TopMostAction or HiddenFilesAction or AudioOutputAction or AppControlAction => action.Summary,
         WindowAction or DisplayAction or PowerPlanAction or RadioAction => action.Summary,
-        WindowsThemeAction or WakeOnLanAction or ClipboardAction => action.Info.Name + " " + action.Summary,
+        WindowsThemeAction or WakeOnLanAction or ClipboardAction or KeepAwakeAction => action.Info.Name + " " + action.Summary,
+        MediaAction => action.Summary,
         _ => null,
     } is { } text && text.Trim().Length > 0 ? text.Trim() : null;
 

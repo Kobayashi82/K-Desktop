@@ -554,6 +554,66 @@ public partial class DictateAction : CommandAction
     public override string Summary => Loc.T($"enum.dictateMode.{Mode}");
 }
 
+// ── Multimedia ────────────────────────────────────────────────────────────
+
+/// <summary>What «Multimedia» does in the player.</summary>
+public enum MediaControl { Toggle, Play, Pause, Next, Previous, Stop }
+
+/// <summary>
+/// Plays, pauses, skips… with Windows' media controls (5.0.342): in the program that is playing, or in one chosen
+/// («Spotify»). Players that don't tell Windows what they play get the media keys.
+/// </summary>
+public partial class MediaAction : CommandAction
+{
+    [ObservableProperty] private MediaControl _control = MediaControl.Toggle;
+
+    /// <summary>The program, as Windows' media controls name it («Spotify», «Firefox»); empty = the one playing.</summary>
+    [ObservableProperty] private string _app = string.Empty;
+
+    [ObservableProperty] private bool _showOsd = true;
+
+    public override ActionKind Kind => ActionKind.Media;
+    public override string Summary => Loc.T($"enum.mediaControl.{Control}") +
+        (string.IsNullOrWhiteSpace(App) ? "" : "  ·  " + App.Trim());
+}
+
+// ── Mantener despierto ────────────────────────────────────────────────────
+
+/// <summary>How long «Mantener despierto» lasts.</summary>
+public enum AwakeFor { Minutes, WhileApp, UntilOff }
+
+/// <summary>The PC does not go to sleep (nor, if asked, the screen off) for a while, while a program is open, or until turned off.</summary>
+public partial class KeepAwakeAction : CommandAction
+{
+    [ObservableProperty] private SwitchMode _mode = SwitchMode.Toggle;
+    [ObservableProperty] private AwakeFor _for = AwakeFor.Minutes;
+    [ObservableProperty] private int _minutes = 60;
+    [ObservableProperty] private string _processName = string.Empty;
+
+    /// <summary>The screen stays on too.</summary>
+    [ObservableProperty] private bool _screen = true;
+
+    [ObservableProperty] private bool _showOsd = true;
+
+    public override ActionKind Kind => ActionKind.KeepAwake;
+
+    public override string Summary
+    {
+        get
+        {
+            if (Mode == SwitchMode.Off) return Loc.T("summary.awake.off");
+            var how = For switch
+            {
+                AwakeFor.Minutes => Loc.T("summary.awake.minutes", Minutes),
+                AwakeFor.WhileApp => Loc.T("summary.awake.whileApp", string.IsNullOrWhiteSpace(ProcessName) ? "?" : ProcessName.Trim()),
+                _ => Loc.T("summary.awake.untilOff"),
+            };
+            return (Mode == SwitchMode.Toggle ? Loc.T("summary.awake.toggle") : Loc.T("summary.awake.on")) + "  ·  " + how +
+                (Screen ? "  ·  " + Loc.T("summary.awake.screen") : "");
+        }
+    }
+}
+
 // ── Lupa ──────────────────────────────────────────────────────────────────
 
 /// <summary>«Lupa»: a lens around the mouse (rectangular or round), or the whole monitor it is on enlarged.</summary>

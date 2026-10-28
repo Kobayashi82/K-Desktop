@@ -39,6 +39,45 @@ public static class ProcessCombo
         };
     }
 
+    /// <summary>
+    /// <c>v:ProcessCombo.Media="True"</c>: the drop-down lists the programs that have something to play now, as Windows'
+    /// media controls name them («Spotify», «Firefox»); asked when it opens, filled when Windows answers.
+    /// </summary>
+    public static readonly DependencyProperty MediaProperty = DependencyProperty.RegisterAttached(
+        "Media", typeof(bool), typeof(ProcessCombo), new PropertyMetadata(false, OnMediaChanged));
+
+    public static bool GetMedia(DependencyObject d) => (bool)d.GetValue(MediaProperty);
+
+    public static void SetMedia(DependencyObject d, bool value) => d.SetValue(MediaProperty, value);
+
+    private static void OnMediaChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not ComboBox box || e.NewValue is not true) return;
+        box.DropDownOpened += async (_, _) =>
+        {
+            IReadOnlyList<string> names;
+            try
+            {
+                names = await Task.Run(async () => (await Core.Platform.MediaSessions.ListAsync().ConfigureAwait(false))
+                    .Select(m => m.App).Distinct(StringComparer.CurrentCultureIgnoreCase).ToList());
+            }
+            catch (Exception ex)
+            {
+                Core.Log.Warn($"Multimedia: no se pudo leer qué programas suenan ({ex.Message})");
+                names = [];
+            }
+            var text = box.Text;
+            box.ItemsSource = names;
+            box.Text = text;
+            Unselect(box);
+        };
+        box.DropDownClosed += (_, _) =>
+        {
+            if (box.SelectedItem is string picked && picked == box.Text) Release(box);
+            else Unselect(box);
+        };
+    }
+
     /// <summary>An editable combo selects all its text when it opens or something is chosen: the text is left as it is.</summary>
     private static void Unselect(ComboBox box) => box.Dispatcher.BeginInvoke(() =>
     {

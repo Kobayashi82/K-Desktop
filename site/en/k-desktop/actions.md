@@ -37,6 +37,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 | **Audio output** | Changes the default sound device. With several chosen, each run switches to the next one. |
 | **Audio input** | Changes the default microphone. With several chosen, each run switches to the next one. |
 | **Play sound** | Plays a sound chosen in a panel by kind (alerts, alarms, calls, system and yours) with K-Desktop's and Windows' sounds, which play when clicked, or another file (.wav, .mp3, .wma, .m4a, .aac, .flac). The ones you put in your sounds folder show under «Yours». |
+| **Media** | Plays, pauses, skips to the next or previous one, or stops, with Windows' media controls (Spotify, browsers, Media Player…): in what is playing or in a program you choose from the ones that have something now. A player that does not show up gets the media keys. The OSD shows the song that plays. |
 | **Record audio** | Records what the PC plays, the microphone or both, or saves what just played (*Settings → Audio recording*). |
 
 ## Screen
@@ -64,6 +65,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 | **Files and folders** | Copy, move, rename, delete (to the recycle bin or for good), create a folder, zip, unzip or make a **backup**: sync (only what is new or changed, optionally removing from the destination what is gone) or a dated copy each time keeping the latest. The source is a list of files, folders or patterns (`C:\Music\*.mp3`) typed in or added with the buttons. The destination may be inside the source: it never copies itself. Progress shows on the OSD (Esc stops it) and the next action can wait until it is done. |
 | **Hidden files (on/off)** | Shows or hides hidden files in Explorer. |
 | **Power plan** | Switches the Windows power plan (High performance, Balanced…) or goes to the next one. |
+| **Keep awake** | The PC does not sleep (and, if you want, the screen stays on) for some minutes, while a program is open or until you turn it off. While it lasts a cup shows in the tray, with «30 more minutes» and «Let it sleep». Closing K-Desktop lets the PC sleep as usual. |
 | **Power** | Shuts down, restarts, sleeps, locks or signs out, with a cancellable countdown. |
 
 ## Flow

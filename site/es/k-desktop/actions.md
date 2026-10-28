@@ -38,6 +38,7 @@ orden.
 | **Salida de audio** | Cambia el dispositivo de sonido predeterminado. Con varios elegidos, cada vez pasa al siguiente. |
 | **Entrada de audio** | Cambia el micrófono predeterminado. Con varios elegidos, cada vez pasa al siguiente. |
 | **Reproducir sonido** | Reproduce un sonido elegido en un panel por tipos (avisos, alarmas, llamadas, sistema y los tuyos) con los de K-Desktop y los de Windows, que suenan al pulsarlos, u otro archivo (.wav, .mp3, .wma, .m4a, .aac, .flac). Los que pongas en la carpeta de tus sonidos salen en «Tuyos». |
+| **Multimedia** | Reproduce, pausa, pasa a la siguiente o a la anterior, o para, con los controles multimedia de Windows (Spotify, navegadores, Reproductor multimedia…): en lo que está sonando o en un programa que eliges entre los que tienen algo ahora. Si un reproductor no sale, se usan las teclas multimedia. El OSD enseña la canción que suena. |
 | **Grabar audio** | Graba lo que suena en el PC, el micrófono o las dos cosas, o guarda lo que acaba de sonar (*Opciones → Grabación de audio*). |
 
 ## Pantalla
@@ -65,6 +66,7 @@ orden.
 | **Archivos y carpetas** | Copiar, mover, renombrar, borrar (a la papelera o del todo), crear una carpeta, comprimir en ZIP, descomprimir o hacer una **copia de seguridad**: sincronizar (solo lo nuevo o cambiado, y si quieres quitar del destino lo que ya no está) o una copia con fecha cada vez guardando las últimas. El origen es una lista de archivos, carpetas o patrones (`C:\Música\*.mp3`) escritos a mano o añadidos con los botones. El destino puede estar dentro del origen: nunca se copia a sí mismo. Enseña el progreso en el OSD (Esc lo detiene) y la siguiente acción puede esperar a que termine. |
 | **Archivos ocultos (on/off)** | Enseña o esconde los archivos ocultos en el Explorador. |
 | **Plan de energía** | Cambia el plan de energía de Windows (Alto rendimiento, Equilibrado…) o pasa al siguiente. |
+| **Mantener despierto** | El PC no se suspende (y, si quieres, la pantalla no se apaga) durante unos minutos, mientras un programa esté abierto o hasta que lo apagues. Mientras dura sale una taza en la bandeja, con «30 minutos más» y «Dejar que se suspenda». Al cerrar K-Desktop, el PC vuelve a suspenderse como siempre. |
 | **Energía** | Apaga, reinicia, suspende, bloquea o cierra la sesión, con una cuenta atrás que se puede cancelar. |
 
 ## Flujo

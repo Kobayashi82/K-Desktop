@@ -1353,6 +1353,91 @@
         </StackPanel>
     </DataTemplate>
 
+    <!-- ── Multimedia ──────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:MediaAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mediaControl}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.MediaControls}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Control}"
+                              AutomationProperties.Name="{l:Tr editor.mediaControl}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mediaApp}" />
+                    <ComboBox IsEditable="True" Text="{Binding App, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr editor.mediaAppPlaceholder}"
+                              v:ProcessCombo.Media="True" AutomationProperties.Name="{l:Tr editor.mediaApp}" />
+                </StackPanel>
+            </Grid>
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.mediaHint}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <!-- ── Mantener despierto ──────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:KeepAwakeAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.SwitchModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}"
+                              AutomationProperties.Name="{l:Tr editor.mode}" />
+                </StackPanel>
+                <StackPanel x:Name="ForRow" Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.awakeFor}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.AwakeFors}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding For}"
+                              AutomationProperties.Name="{l:Tr editor.awakeFor}" />
+                </StackPanel>
+            </Grid>
+            <StackPanel x:Name="MinutesRow" Margin="0,0,0,12">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.awakeMinutes}" />
+                <ui:TextBox Text="{Binding Minutes, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="10080" Width="120" HorizontalAlignment="Left"
+                            AutomationProperties.Name="{l:Tr editor.awakeMinutes}" />
+            </StackPanel>
+            <StackPanel x:Name="ProcessRow" Margin="0,0,0,12" Visibility="Collapsed">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.process}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ComboBox IsEditable="True" Text="{Binding ProcessName, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr common.processPlaceholder}"
+                              ItemsSource="{Binding Source={x:Static v:Lookups.RunningProcessesNow}}" v:ProcessCombo.Running="True" AutomationProperties.Name="{l:Tr editor.process}" />
+                    <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon Cursor24}" ToolTip="{l:Tr picker.tooltip}"
+                               AutomationProperties.Name="{l:Tr picker.button}" Command="{x:Static v:EditorCommands.PickWindow}" CommandParameter="{Binding}" />
+                </Grid>
+            </StackPanel>
+            <WrapPanel x:Name="Checks">
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.awakeScreen}" IsChecked="{Binding Screen}" />
+                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            </WrapPanel>
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.awakeHint}" />
+        </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding For}" Value="WhileApp">
+                <Setter TargetName="MinutesRow" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="ProcessRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding For}" Value="UntilOff">
+                <Setter TargetName="MinutesRow" Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Mode}" Value="Off">
+                <Setter TargetName="ForRow" Property="Visibility" Value="Hidden" />
+                <Setter TargetName="MinutesRow" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="ProcessRow" Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
     <!-- ── Captura de pantalla ─────────────────────────────────────────── -->
     <DataTemplate DataType="{x:Type m:ScreenshotAction}">
         <StackPanel>

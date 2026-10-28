@@ -37,6 +37,7 @@ public static class ActionCatalog
         new(ActionKind.AudioOutput, "sound", "HeadphonesSoundWave24", () => new AudioOutputAction()),
         new(ActionKind.AudioInput, "sound", "Mic24", () => new AudioInputAction()),
         new(ActionKind.PlaySound, "sound", "MusicNote224", () => new PlaySoundAction()),
+        new(ActionKind.Media, "sound", "PlayCircle24", () => new MediaAction()),
         new(ActionKind.AudioRecord, "sound", "MicPulse24", () => new AudioRecordAction()),
 
         new(ActionKind.Screenshot, "screen", "Screenshot24", () => new ScreenshotAction()),
@@ -52,6 +53,7 @@ public static class ActionCatalog
         new(ActionKind.Files, "system", "DocumentCopy24", () => new FilesAction()),
         new(ActionKind.HiddenFiles, "system", "EyeOff24", () => new HiddenFilesAction()),
         new(ActionKind.PowerPlan, "system", "Battery1024", () => new PowerPlanAction()),
+        new(ActionKind.KeepAwake, "system", "DrinkCoffee24", () => new KeepAwakeAction()),
         new(ActionKind.Power, "system", "Power24", () => new PowerAction()),
 
         new(ActionKind.ShowMessage, "kdesktop", "Chat24", () => new ShowMessageAction()),

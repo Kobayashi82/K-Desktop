@@ -349,4 +349,123 @@ public sealed partial class CommandEngine
         if (on is { } state) _ui.ShowOsd(Loc.T(state ? "osd.radioOn" : "osd.radioOff", name), state ? OsdKind.Success : OsdKind.Info, look: OsdLook.Of(a.Radio == RadioDevice.Bluetooth ? "Bluetooth24" : "Wifi124"));
         else _ui.ShowOsd(Loc.T("osd.radioNone", name), OsdKind.Warning, look: OsdLook.Of(a.Radio == RadioDevice.Bluetooth ? "Bluetooth24" : "Wifi124"));
     }
+
+    // ── Multimedia ───────────────────────────────────────────────────────
+
+    private async Task MediaAsync(MediaAction a, ExecutionContext ctx)
+    {
+        var op = a.Control switch
+        {
+            MediaControl.Play => MediaOp.Play,
+            MediaControl.Pause => MediaOp.Pause,
+            MediaControl.Next => MediaOp.Next,
+            MediaControl.Previous => MediaOp.Previous,
+            MediaControl.Stop => MediaOp.Stop,
+            _ => MediaOp.Toggle,
+        };
+        var app = TextVariables.Expand(a.App).Trim();
+        IReadOnlyList<MediaNow> done;
+        try { done = await MediaSessions.ControlAsync(op, app.Length == 0 ? null : app, ctx.Token).ConfigureAwait(false); }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Log.Warn($"Multimedia: no se han podido usar los controles de Windows ({ex.Message})");
+            done = [];
+        }
+        var icon = MediaIcon(a.Control);
+        if (done.Count == 0)
+        {
+            // A player that does not tell Windows what it plays still answers the media keys (they reach any player).
+            var sent = app.Length == 0 && await Task.Run(() => MediaKeys(a.Control), ctx.Token).ConfigureAwait(false);
+            if (!a.ShowOsd) return;
+            if (sent) _ui.ShowOsd(Loc.T($"enum.mediaControl.{a.Control}"), look: OsdLook.Of(icon));
+            else _ui.ShowOsd(app.Length == 0 ? Loc.T("osd.mediaNone") : Loc.T("osd.mediaNoApp", app), OsdKind.Warning, look: OsdLook.Of("PlayCircle24"));
+            return;
+        }
+        if (!a.ShowOsd) return;
+        if (a.Control is MediaControl.Pause or MediaControl.Stop)
+        {
+            _ui.ShowOsd($"{Loc.T($"enum.mediaControl.{a.Control}")}  ·  {string.Join(", ", done.Select(d => d.App).Distinct())}", look: OsdLook.Of(icon));
+            return;
+        }
+        // What plays now (another song after «siguiente»), a moment later, when the player has said it.
+        var player = done[0];
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(700).ConfigureAwait(false);
+                var now = (await MediaSessions.ListAsync().ConfigureAwait(false)).FirstOrDefault(m => m.AppId == player.AppId) ?? player;
+                var paused = a.Control == MediaControl.Toggle && now.State != MediaState.Playing;
+                var song = string.Join(" — ", new[] { now.Title, now.Artist }.Where(t => !string.IsNullOrEmpty(t)));
+                var text = paused || song.Length == 0
+                    ? $"{Loc.T(paused ? "enum.mediaControl.Pause" : $"enum.mediaControl.{a.Control}")}  ·  {now.App}"
+                    : $"{song}  ·  {now.App}";
+                _ui.ShowOsd(text, look: OsdLook.Of(paused ? "Pause24" : icon));
+            }
+            catch (Exception ex) { Log.Warn($"Multimedia: no se ha podido leer qué suena ({ex.Message})"); }
+        });
+    }
+
+    private static string MediaIcon(MediaControl control) => control switch
+    {
+        MediaControl.Play => "Play24",
+        MediaControl.Pause => "Pause24",
+        MediaControl.Next => "Next24",
+        MediaControl.Previous => "Previous24",
+        MediaControl.Stop => "Stop24",
+        _ => "PlayCircle24",
+    };
+
+    private const int MediaStopKey = 0xB2;
+
+    /// <summary>The media key for <paramref name="control"/>; false when nothing was sent (pause with nothing sounding…).</summary>
+    private static bool MediaKeys(MediaControl control)
+    {
+        switch (control)
+        {
+            case MediaControl.Play: return MediaPlayback.Resume();
+            case MediaControl.Pause: return MediaPlayback.Pause();
+            case MediaControl.Next: MediaPlayback.Next(); return true;
+            case MediaControl.Previous: MediaPlayback.Previous(); return true;
+            case MediaControl.Stop: InputSimulator.KeyPress(MediaStopKey); return true;
+            default: MediaPlayback.PlayPause(); return true;
+        }
+    }
+
+    // ── Mantener despierto ───────────────────────────────────────────────
+
+    private void StayAwake(KeepAwakeAction a)
+    {
+        var on = a.Mode switch
+        {
+            SwitchMode.On => true,
+            SwitchMode.Off => false,
+            _ => !Awake.IsOn,
+        };
+        if (!on)
+        {
+            if (Awake.Stop() && a.ShowOsd) _ui.ShowOsd(Loc.T("osd.awakeOff"), look: OsdLook.Of("WeatherMoon24"));
+            return;
+        }
+        var app = a.For == AwakeFor.WhileApp ? ProcessNames.Normalize(TextVariables.Expand(a.ProcessName)) : null;
+        if (app is not null && (app.Length == 0 || !ProcessSnapshot.IsRunning(app)))
+        {
+            Log.Info($"Mantener despierto: «{app}» no está abierto");
+            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.awakeNoApp", app.Length == 0 ? "?" : app), OsdKind.Warning, look: OsdLook.Of("DrinkCoffee24"));
+            return;
+        }
+        TimeSpan? duration = a.For == AwakeFor.Minutes ? TimeSpan.FromMinutes(Math.Max(1, a.Minutes)) : null;
+        if (!Awake.Start(duration, app, a.Screen))
+        {
+            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.awakeFailed"), OsdKind.Warning, look: OsdLook.Of("DrinkCoffee24"));
+            return;
+        }
+        if (a.ShowOsd) _ui.ShowOsd(DescribeAwake(Awake), OsdKind.Success, look: OsdLook.Of("DrinkCoffee24"));
+    }
+
+    /// <summary>«Despierto hasta las 15:30», «… mientras vlc esté abierto», «… hasta que lo apagues» (OSD and tray).</summary>
+    public static string DescribeAwake(KeepAwake awake) =>
+        awake.Until is { } until ? Loc.T("osd.awakeUntil", until.ToString("t", Loc.Instance.Culture))
+        : awake.WhileApp is { } app ? Loc.T("osd.awakeWhileApp", app)
+        : Loc.T("osd.awakeUntilOff");
 }

@@ -78,6 +78,7 @@ public static class ActionGestures
         ActionKind.AudioOutput or ActionKind.AudioInput => Tray("speaker"),
         ActionKind.Radio => Tray("radio"),
         ActionKind.PowerPlan => Tray("battery"),
+        ActionKind.KeepAwake => Tray("battery"),
         ActionKind.WindowsTheme => Tray("theme"),
         ActionKind.Display => Tray("display"),
 
@@ -92,6 +93,7 @@ public static class ActionGestures
         ActionKind.WakeOnLan => Say("network"),
         ActionKind.Clipboard => Say("clipboard"),
         ActionKind.PlaySound => Say("sound"),
+        ActionKind.Media => Say("sound"),
         ActionKind.AudioRecord => Say("microphone"),
         ActionKind.Dictate => Say("microphone"),
         ActionKind.ShowMessage or ActionKind.ShowNotification => Say("message"),

@@ -135,6 +135,7 @@ public partial class App : Application
         // A word just recorded with an assistant's name is given to it.
         Voice.WakeWords.Changed += () => Dispatcher.BeginInvoke(UpdateSleepingWakeWords);
         Engine.Recording.Changed += () => Dispatcher.BeginInvoke(ApplyTrayIcon);
+        Engine.Awake.Changed += () => Dispatcher.BeginInvoke(UpdateAwakeTray);
         Engine.Magnifier.Changed += () => Ui.ShowOsd(Engine.Magnifier.IsOn
             ? Loc.T("osd.zoomOn", Engine.Magnifier.Zoom.ToString("0.#", System.Globalization.CultureInfo.CurrentCulture))
             : Loc.T("osd.zoomOff"));
@@ -695,6 +696,8 @@ public partial class App : Application
         Engine?.History.Dispose();
         Engine?.Magnifier.Dispose();
         Engine?.Recording.Dispose(); // a recording in progress is closed properly
+        Engine?.Awake.Dispose();
+        _awakeTray?.Dispose();
         _tray?.Dispose();
         _instance?.Dispose();
         Log.Info("K-Desktop cerrado");

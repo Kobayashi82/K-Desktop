@@ -55,6 +55,8 @@ public static class Lookups
     public static IReadOnlyList<Option<RadioDevice>> RadioDevices { get; } = Enum<RadioDevice>("enum.radio");
     public static IReadOnlyList<Option<SwitchMode>> SwitchModes { get; } = Enum<SwitchMode>("enum.switchMode");
     public static IReadOnlyList<Option<SwitchMode>> DictateModes { get; } = Enum<SwitchMode>("enum.dictateMode");
+    public static IReadOnlyList<Option<MediaControl>> MediaControls { get; } = Enum<MediaControl>("enum.mediaControl");
+    public static IReadOnlyList<Option<AwakeFor>> AwakeFors { get; } = Enum<AwakeFor>("enum.awakeFor");
     public static IReadOnlyList<Option<ConditionKind>> ConditionKinds { get; } = Enum<ConditionKind>("enum.condition");
     public static IReadOnlyList<Option<ConditionElse>> ConditionElses { get; } = Enum<ConditionElse>("enum.conditionElse");
     public static IReadOnlyList<Option<VariableTest>> VariableTests { get; } = Enum<VariableTest>("enum.variableTest");
@@ -255,6 +257,7 @@ public sealed class PickWindowCommand : ICommand
             AppControlAction a => name => a.ProcessName = name,
             WindowAction a => name => a.ProcessName = name,
             VolumeAction a => name => a.ProcessName = name,
+            KeepAwakeAction a => name => a.ProcessName = name,
             ConditionAction a => name => a.Text = name,
             _ => null,
         };

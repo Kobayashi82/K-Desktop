@@ -21,7 +21,7 @@ aparece un `ActionKind` sin gesto o sin riesgo.
 | | Cerrar | `pressButton(cerrar)` ★ | 🟡 |
 | | Esperar | `waitForWindow` ★ | 🟢 |
 | Abrir programa, carpeta, web (`RunApp`, `OpenFolder`, `OpenUrl`) | | `waitForWindow` ★ (se posa en la ventana nueva) | 🟢 |
-| Volumen, Salida de audio, Radio, Plan de energía, Tema de Windows, Pantalla | | `goTo(bandeja)` → `communicate` ★ (icono de cada una) | 🟢 (apagar pantalla o radio: 🟡) |
+| Volumen, Salida de audio, Radio, Plan de energía, Mantener despierto, Tema de Windows, Pantalla | | `goTo(bandeja)` → `communicate` ★ (icono de cada una) | 🟢 (apagar pantalla o radio: 🟡) |
 | Siempre visible (`TopMost`) | | `mark` ★ (la «chincheta») | 🟢 |
 | Captura (`Screenshot`) | | `scan` ★ | 🟢 |
 | Lupa (`Magnifier`) | | `pointAt(punto)` ★ | 🟢 |
@@ -34,7 +34,7 @@ aparece un `ActionKind` sin gesto o sin riesgo.
 | Esperar (`Wait`) | | `communicate` ★ (cuenta atrás) | 🟢 |
 | Comandos (`CommandControl`) | Ejecutar | `communicate` ★ (sus pasos llegan con `depth` + 1) | el del comando llamado |
 | | Activar / desactivar | `communicate` ★ | 🟡 |
-| Portapapeles, Wake on LAN, Sonido, Grabar audio, Mensaje, Notificación, Archivos ocultos, «Desactivar en», K-Board, QuickMenu, Lanzador | | `communicate` ★ (icono de cada una) | 🟢 |
+| Portapapeles, Wake on LAN, Sonido, Multimedia, Grabar audio, Mensaje, Notificación, Archivos ocultos, «Desactivar en», K-Board, QuickMenu, Lanzador | | `communicate` ★ (icono de cada una) | 🟢 |
 | Archivos y carpetas (`Files`) | Copiar, renombrar, crear, comprimir, copia de seguridad | `communicate` ★ (icono `folder`) | 🟢 (sincronizar quitando lo que ya no está: 🟡) |
 | | Mover, borrar | `communicate` ★ (icono `folder`) | 🔴 |
 | Asistente: acción (`AssistantExtra`) | | `communicate` ★ (icono `assistant`); el extra lo hace el asistente que lo declara | 🟢 |
