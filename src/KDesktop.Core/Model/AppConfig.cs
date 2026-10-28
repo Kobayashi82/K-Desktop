@@ -580,16 +580,31 @@ public partial class AppSettings : ObservableObject
     /// <summary>QuickMenus: «Añadir al menú» folded away, so the menu being edited has the whole width.</summary>
     [ObservableProperty] private bool _quickMenuPaletteHidden;
 
+    /// <summary>Macros: «Pasos» and «Notas» folded away.</summary>
+    [ObservableProperty] private bool _macroStepsFolded;
+    [ObservableProperty] private bool _macroNotesFolded;
+
+    /// <summary>K-Board: «Reasignaciones» and «Notas» folded away.</summary>
+    [ObservableProperty] private bool _kBoardRemapsFolded;
+    [ObservableProperty] private bool _kBoardNotesFolded;
+
     /// <summary>Comandos: «Opciones» unfolded (it stays as left, from one command to the next).</summary>
     [ObservableProperty] private bool _commandsOptionsOpen;
 
     /// <summary>Comandos: «Atajos» and «Acciones» folded away (their buttons stay at hand on the header).</summary>
     [ObservableProperty] private bool _commandsHotkeysFolded;
     [ObservableProperty] private bool _commandsActionsFolded;
+    [ObservableProperty] private bool _commandsNotesFolded;
 
     /// <summary>Eventos: «Cuando» folded away, and «Opciones» unfolded.</summary>
     [ObservableProperty] private bool _eventsWhenFolded;
     [ObservableProperty] private bool _eventsOptionsOpen;
+
+    /// <summary>Eventos: «Ejecutar», «Pedir a un asistente», «Al terminar» and «Notas» folded away.</summary>
+    [ObservableProperty] private bool _eventsRunFolded;
+    [ObservableProperty] private bool _eventsAskFolded;
+    [ObservableProperty] private bool _eventsEndFolded;
+    [ObservableProperty] private bool _eventsNotesFolded;
 
     // Remote (UDP)
     [ObservableProperty] private bool _udpEnabled = true;

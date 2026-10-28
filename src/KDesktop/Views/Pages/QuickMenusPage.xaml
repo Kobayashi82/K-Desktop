@@ -244,12 +244,23 @@
                                         VerticalAlignment="Center" ValueChanged="OnSizeChanged" />
                                 <TextBlock x:Name="SizeText" MinWidth="80" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
                             </StackPanel>
+                            <!-- How the editor works (mouse and keys), on hover instead of under the menu -->
+                            <Border Grid.Row="2" Grid.ColumnSpan="2" Margin="0,10,0,0" HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent"
+                                    Cursor="Help" ToolTipService.ShowDuration="60000" ToolTipService.InitialShowDelay="200" AutomationProperties.Name="{l:Tr qm.editorHint}">
+                                <Border.ToolTip>
+                                    <StackPanel MaxWidth="380">
+                                        <TextBlock TextWrapping="Wrap" Text="{l:Tr qm.editorHint}" />
+                                        <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Text="{l:Tr qm.editorKeys}" />
+                                    </StackPanel>
+                                </Border.ToolTip>
+                                <ui:SymbolIcon Symbol="Info24" FontSize="20" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </Border>
                         </Grid>
                     </Grid>
                 </Border>
 
                 <!-- ── Body: the menu and what can be added ── -->
-                <Grid Grid.Row="1">
+                <Grid Grid.Row="1" Margin="0,0,0,12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition x:Name="PaletteColumn" Width="280" />
@@ -359,10 +370,6 @@
                     </DockPanel>
                 </Grid>
 
-                <StackPanel Grid.Row="2" Margin="2,10,0,0">
-                    <TextBlock Style="{StaticResource Caption}" Text="{l:Tr qm.editorHint}" />
-                    <TextBlock Style="{StaticResource Caption}" Margin="0,2,0,0" Text="{l:Tr qm.editorKeys}" />
-                </StackPanel>
             </Grid>
         </Grid>
     </Grid>

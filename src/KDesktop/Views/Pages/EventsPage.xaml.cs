@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
@@ -5,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 using KDesktop.Core.Achievements;
+using KDesktop.Core.Engine;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
 using KDesktop.Services;
@@ -21,6 +23,9 @@ public sealed partial class EventsPage : UserControl, IDisposable
     public static readonly RoutedUICommand RemoveProcess = new("RemoveProcess", nameof(RemoveProcess), typeof(EventsPage));
     public static readonly RoutedUICommand RemoveCommand = new("RemoveCommand", nameof(RemoveCommand), typeof(EventsPage));
     public static readonly RoutedUICommand OpenCommand = new("OpenCommand", nameof(OpenCommand), typeof(EventsPage));
+    public static readonly RoutedUICommand RunCommand = new("RunCommand", nameof(RunCommand), typeof(EventsPage));
+    public static readonly RoutedUICommand MoveCommandUp = new("MoveCommandUp", nameof(MoveCommandUp), typeof(EventsPage));
+    public static readonly RoutedUICommand MoveCommandDown = new("MoveCommandDown", nameof(MoveCommandDown), typeof(EventsPage));
 
     private static readonly IEasingFunction EaseOut = new CubicEase { EasingMode = EasingMode.EaseOut };
 
@@ -35,6 +40,10 @@ public sealed partial class EventsPage : UserControl, IDisposable
         InitializeComponent();
         WhenExpander.IsExpanded = !Config.Settings.EventsWhenFolded;
         OptionsExpander.IsExpanded = Config.Settings.EventsOptionsOpen;
+        RunExpander.IsExpanded = !Config.Settings.EventsRunFolded;
+        AskCard.IsExpanded = !Config.Settings.EventsAskFolded;
+        EndCard.IsExpanded = !Config.Settings.EventsEndFolded;
+        NotesExpander.IsExpanded = !Config.Settings.EventsNotesFolded;
         EventList.ItemsSource = Config.Events;
         EventList.Items.Filter = Filter;
         Config.Events.CollectionChanged += OnEventsChanged;
@@ -321,9 +330,17 @@ public sealed partial class EventsPage : UserControl, IDisposable
 
     // ── commands ─────────────────────────────────────────────────────────
 
-    private void OnAddCommand(object sender, RoutedEventArgs e) => AddCommands(_selected?.Commands);
+    private void OnAddCommand(object sender, RoutedEventArgs e)
+    {
+        RunExpander.IsExpanded = true;
+        AddCommands(_selected?.Commands);
+    }
 
-    private void OnAddEndCommand(object sender, RoutedEventArgs e) => AddCommands(_selected?.EndCommands);
+    private void OnAddEndCommand(object sender, RoutedEventArgs e)
+    {
+        EndCard.IsExpanded = true;
+        AddCommands(_selected?.EndCommands);
+    }
 
     private void OnNewCommand(object sender, RoutedEventArgs e) => NewCommand(_selected?.Commands);
 
@@ -339,12 +356,16 @@ public sealed partial class EventsPage : UserControl, IDisposable
         (Window.GetWindow(this) as MainWindow)?.OpenCommand(cmd.Id);
     }
 
-    /// <summary>«Cuando» and «Opciones» stay as they were left, from one event to the next.</summary>
+    /// <summary>«Cuando», «Ejecutar», «Pedir a un asistente», «Al terminar», «Opciones» and «Notas» stay as they were left, from one event to the next.</summary>
     private void OnSectionFolded(object sender, RoutedEventArgs e)
     {
         if (!IsLoaded) return;
         Config.Settings.EventsWhenFolded = WhenExpander.IsExpanded != true;
         Config.Settings.EventsOptionsOpen = OptionsExpander.IsExpanded == true;
+        Config.Settings.EventsRunFolded = RunExpander.IsExpanded != true;
+        Config.Settings.EventsAskFolded = AskCard.IsExpanded != true;
+        Config.Settings.EventsEndFolded = EndCard.IsExpanded != true;
+        Config.Settings.EventsNotesFolded = NotesExpander.IsExpanded != true;
     }
 
     private void OnNewEndCommand(object sender, RoutedEventArgs e) => NewCommand(_selected?.EndCommands);
@@ -373,14 +394,53 @@ public sealed partial class EventsPage : UserControl, IDisposable
             if (!list.Contains(command.Id)) list.Add(command.Id);
     }
 
+    /// <summary>The same row template serves both lists: the one a row is in, and its unticked ones.</summary>
+    private (ObservableCollection<string> Ids, ObservableCollection<string> Disabled)? ListOf(object source)
+    {
+        if (_selected is not { } rule) return null;
+        return source is DependencyObject d && FindParent<ListBox>(d) is { } list && ReferenceEquals(list, EndCommandsList)
+            ? (rule.EndCommands, rule.DisabledEndCommands)
+            : (rule.Commands, rule.DisabledCommands);
+    }
+
     private void OnRemoveCommand(object sender, ExecutedRoutedEventArgs e)
     {
-        if (_selected is null || e.Parameter is not string id) return;
-        // The same row template serves both lists: remove it from the one it is in.
-        if (e.OriginalSource is DependencyObject source && FindParent<ListBox>(source) is { } list && ReferenceEquals(list, EndCommandsList))
-            _selected.EndCommands.Remove(id);
-        else
-            _selected.Commands.Remove(id);
+        if (e.Parameter is not string id || ListOf(e.OriginalSource) is not var (ids, disabled)) return;
+        ids.Remove(id);
+        disabled.Remove(id);
+    }
+
+    /// <summary>
+    /// Unticked, it stays in the list but is skipped when the event fires. Only when it differs from what is kept: the box
+    /// also changes when its binding is worked out again (with the value kept, so nothing to do then).
+    /// </summary>
+    private void OnCommandTicked(object sender, RoutedEventArgs e)
+    {
+        if (sender is not CheckBox { DataContext: string id } box || ListOf(box) is not var (_, disabled)) return;
+        var ticked = box.IsChecked == true;
+        if (ticked == !disabled.Contains(id)) return;
+        if (ticked) disabled.Remove(id);
+        else disabled.Add(id);
+    }
+
+    private void OnRunCommand(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.Parameter is string id && Config.FindCommand(id) is { } command) _ = _app.Engine.RunAsync(command, TriggerSource.Manual);
+    }
+
+    private void OnMoveCommand(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.Parameter is not string id || ListOf(e.OriginalSource) is not var (ids, _)) return;
+        var index = ids.IndexOf(id);
+        var to = index + (e.Command == MoveCommandUp ? -1 : 1);
+        if (index >= 0 && to >= 0 && to < ids.Count) ids.Move(index, to);
+    }
+
+    private void OnCanMoveCommand(object sender, CanExecuteRoutedEventArgs e)
+    {
+        if (e.Parameter is not string id || ListOf(e.OriginalSource) is not var (ids, _)) return;
+        var index = ids.IndexOf(id);
+        e.CanExecute = e.Command == MoveCommandUp ? index > 0 : index >= 0 && index < ids.Count - 1;
     }
 
     private void OnOpenCommand(object sender, ExecutedRoutedEventArgs e)
@@ -394,6 +454,7 @@ public sealed partial class EventsPage : UserControl, IDisposable
     {
         if (_selected is not { } rule) return;
         rule.Ask = new EventAsk();
+        AskCard.IsExpanded = true;
         Dispatcher.BeginInvoke(() => AskEditor.Children.OfType<Wpf.Ui.Controls.TextBox>().FirstOrDefault()?.Focus(),
             System.Windows.Threading.DispatcherPriority.Input);
     }

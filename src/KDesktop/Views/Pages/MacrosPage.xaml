@@ -238,12 +238,31 @@
                     </Grid>
                 </Border>
 
-                <!-- Steps -->
-                <Border Style="{StaticResource Card}" Padding="14,12,4,12">
+                <!-- Steps (they fill the height, with their own scroll), then the notes; both fold -->
+                <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition x:Name="StepsRow" Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <!-- Steps: folds by hand (not a CardExpander: its list has to keep a fixed height to stay virtualized) -->
+                <Border x:Name="StepsCard" Style="{StaticResource Card}" Padding="14,12,4,12">
                     <DockPanel>
-                        <Grid DockPanel.Dock="Top" Margin="4,0,10,8">
-                            <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr macro.steps}" Margin="0" VerticalAlignment="Center" />
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Grid x:Name="StepsHeader" DockPanel.Dock="Top" Margin="4,0,10,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <!-- Like the header of a folding panel: a click on the icon or the title folds it too -->
+                            <Border Grid.ColumnSpan="2" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="OnFoldSteps" />
+                            <ui:SymbolIcon Symbol="TextBulletListLtr24" FontSize="24" Margin="2,0,16,0" VerticalAlignment="Center" IsHitTestVisible="False" />
+                            <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="{l:Tr macro.steps}" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorPrimaryBrush}" IsHitTestVisible="False" />
+                            <ui:Button x:Name="FoldStepsButton" Grid.Column="3" Margin="8,0,0,0" Style="{StaticResource IconButton}" Click="OnFoldSteps"
+                                       ToolTip="{l:Tr macro.steps}" AutomationProperties.Name="{l:Tr macro.steps}">
+                                <ui:SymbolIcon x:Name="FoldStepsIcon" Symbol="ChevronUp24" FontSize="16" />
+                            </ui:Button>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
                                 <ui:Button x:Name="InsertButton" Appearance="Primary" MinHeight="34" Content="{l:Tr macro.insert}" Icon="{ui:SymbolIcon Add24}" Click="OnInsert" Margin="0,0,6,0" />
                                 <ui:Button x:Name="SimplifyButton" MinHeight="34" Content="{l:Tr macro.simplify}" Icon="{ui:SymbolIcon Wand24}" Click="OnSimplify" Margin="0,0,6,0" />
                                 <ui:Button x:Name="UndoButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowUndo24, FontSize=18}" ToolTip="{l:Tr macro.undo}" Click="OnUndo" IsEnabled="False" Margin="0,0,6,0" />
@@ -318,6 +337,17 @@
                         </ListBox>
                     </DockPanel>
                 </Border>
+
+                <!-- Notes (foldable, as in Comandos) -->
+                <ui:CardExpander x:Name="NotesExpander" Grid.Row="1" Margin="0,0,0,12" Icon="{ui:SymbolIcon Note24}"
+                                 Expanded="OnNotesFolded" Collapsed="OnNotesFolded" AutomationProperties.Name="{l:Tr commands.notes}">
+                    <ui:CardExpander.Header>
+                        <TextBlock FontWeight="SemiBold" Text="{l:Tr commands.notes}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                    </ui:CardExpander.Header>
+                    <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60"
+                             MaxHeight="160" VerticalScrollBarVisibility="Auto" AutomationProperties.Name="{l:Tr commands.notes}" />
+                </ui:CardExpander>
+                </Grid>
             </DockPanel>
         </Grid>
     </Grid>

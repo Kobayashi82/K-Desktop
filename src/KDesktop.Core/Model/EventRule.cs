@@ -63,6 +63,10 @@ public partial class EventRule : ObservableObject
     /// <summary>«Al terminar»: command ids run when the trigger ends (only triggers with an end).</summary>
     public ObservableCollection<string> EndCommands { get; set => Rewire(ref field, value); } = [];
 
+    /// <summary>Commands of «Ejecutar» / «Al terminar» left in the list but unticked: skipped when it fires.</summary>
+    public ObservableCollection<string> DisabledCommands { get; set => Rewire(ref field, value); } = [];
+    public ObservableCollection<string> DisabledEndCommands { get; set => Rewire(ref field, value); } = [];
+
     /// <summary>«Solo si»: when it may fire.</summary>
     public EventConditions Conditions
     {
@@ -82,6 +86,8 @@ public partial class EventRule : ObservableObject
         Conditions = new EventConditions();
         Commands.CollectionChanged += OnCollectionChanged;
         EndCommands.CollectionChanged += OnCollectionChanged;
+        DisabledCommands.CollectionChanged += OnCollectionChanged;
+        DisabledEndCommands.CollectionChanged += OnCollectionChanged;
     }
 
     /// <summary>Raised whenever the event or anything inside it changes (autosave, detector rebuild).</summary>

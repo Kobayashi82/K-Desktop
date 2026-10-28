@@ -35,6 +35,8 @@ public sealed partial class MacrosPage : UserControl, IDisposable
     public MacrosPage()
     {
         InitializeComponent();
+        NotesExpander.IsExpanded = !Config.Settings.MacroNotesFolded;
+        ApplyStepsFold();
         _view = new ListCollectionView(Config.Macros) { Filter = Filter, IsLiveSorting = true, IsLiveFiltering = true };
         _view.SortDescriptions.Add(new SortDescription(nameof(Macro.Name), ListSortDirection.Ascending));
         _view.LiveSortingProperties.Add(nameof(Macro.Name));
@@ -131,11 +133,35 @@ public sealed partial class MacrosPage : UserControl, IDisposable
             ListContextMenu.Entry(Loc.T("common.delete"), SymbolRegular.Delete24, () => OnDelete(row, new RoutedEventArgs())));
     }
 
+    // ── folding ──────────────────────────────────────────────────────────
+
+    /// <summary>«Pasos» folded: only its header (with its buttons), and the notes right under it.</summary>
+    private void OnFoldSteps(object sender, RoutedEventArgs e)
+    {
+        Config.Settings.MacroStepsFolded = !Config.Settings.MacroStepsFolded;
+        ApplyStepsFold();
+    }
+
+    private void ApplyStepsFold()
+    {
+        var folded = Config.Settings.MacroStepsFolded;
+        StepsRow.Height = folded ? GridLength.Auto : new GridLength(1, GridUnitType.Star);
+        StepsHeader.Margin = new Thickness(4, 0, 10, folded ? 0 : 8);
+        FoldStepsIcon.Symbol = folded ? SymbolRegular.ChevronDown24 : SymbolRegular.ChevronUp24;
+        UpdateStepsState();
+    }
+
+    private void OnNotesFolded(object sender, RoutedEventArgs e)
+    {
+        if (IsLoaded) Config.Settings.MacroNotesFolded = NotesExpander.IsExpanded != true;
+    }
+
     private void UpdateStepsState()
     {
         var empty = _selected is null || _selected.Steps.Count == 0;
-        NoSteps.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
-        StepList.Visibility = empty ? Visibility.Collapsed : Visibility.Visible;
+        var folded = Config.Settings.MacroStepsFolded;
+        NoSteps.Visibility = empty && !folded ? Visibility.Visible : Visibility.Collapsed;
+        StepList.Visibility = empty || folded ? Visibility.Collapsed : Visibility.Visible;
         DeleteStepsButton.IsEnabled = StepList.SelectedItems.Count > 0;
         UpdateUndoButtons();
     }

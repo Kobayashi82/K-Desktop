@@ -201,12 +201,27 @@ public sealed class EventCommandConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object parameter, CultureInfo culture)
     {
         var command = value is string id ? App.Current.Config.FindCommand(id) : null;
-        return parameter as string == "icon"
-            ? command is null ? IconProvider.Kd("Warning24", "orange") : IconProvider.ForCommand(command)
-            : command?.Name ?? Core.Localization.Loc.T("event.commandGone");
+        return parameter switch
+        {
+            "icon" => command is null ? IconProvider.Kd("Warning24", "orange") : IconProvider.ForCommand(command),
+            "summary" => command?.PrimaryAction?.Summary ?? string.Empty,
+            _ => command?.Name ?? Core.Localization.Loc.T("event.commandGone"),
+        };
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// True when the id (value 0) is not in the list (value 1): an event's command ticked unless it is among the disabled ones.
+/// Value 2 is the list's count, only so that it is worked out again when the list changes.
+/// </summary>
+public sealed class NotInListConverter : IMultiValueConverter
+{
+    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture) =>
+        !(values is [string id, ICollection<string> list, ..] && list.Contains(id));
+
+    public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => throw new NotSupportedException();
 }
 
 /// <summary>When an event last fired: «Hoy 9:00», «Ayer 21:30», «12/10 9:00» or «Nunca».</summary>

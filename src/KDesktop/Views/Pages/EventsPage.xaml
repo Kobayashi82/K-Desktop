@@ -11,6 +11,7 @@
         <ResourceDictionary>
             <v:EventIconConverter x:Key="EventIcon" />
             <v:EventCommandConverter x:Key="EventCommand" />
+            <v:NotInListConverter x:Key="NotInList" />
             <v:LastFiredConverter x:Key="LastFired" />
             <v:InvalidTimeConverter x:Key="InvalidTime" />
             <v:BoolToCollapsedConverter x:Key="BoolToCollapsed" />
@@ -264,45 +265,93 @@
             </DataTemplate>
 
             <!-- A command of «Ejecutar» / «Al terminar» -->
+            <!-- A command of «Ejecutar» / «Al terminar», like an action of a command: ticked or not (unticked, it stays but is
+                 skipped), run it now, go to it, move it and take it out of the list (the X: the command itself stays) -->
             <DataTemplate x:Key="CommandRow">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="22" />
-                        <ColumnDefinition Width="32" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <Border Background="Transparent" Cursor="SizeNS" v:DragReorder.IsHandle="True" ToolTip="{l:Tr macro.dragHint}">
-                        <ui:SymbolIcon Symbol="ReOrderDotsVertical24" FontSize="14" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                    <!-- Drag grip, visible on hover -->
+                    <Border x:Name="Grip" Margin="-12,-10,0,-10" Width="22" HorizontalAlignment="Left" Background="Transparent"
+                            Opacity="0" Cursor="SizeNS" v:DragReorder.IsHandle="True" ToolTip="{l:Tr macro.dragHint}">
+                        <ui:SymbolIcon Symbol="ReOrderDotsVertical24" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
                     </Border>
-                    <Image Grid.Column="1" Width="22" Height="22" HorizontalAlignment="Left" RenderOptions.BitmapScalingMode="HighQuality"
-                           Source="{Binding Converter={StaticResource EventCommand}, ConverterParameter=icon}" />
-                    <TextBlock Grid.Column="2" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                               Text="{Binding Converter={StaticResource EventCommand}, ConverterParameter=name}" />
-                    <ui:Button Grid.Column="3" Style="{StaticResource IconButton}" ToolTip="{l:Tr event.openCommand}"
-                               Command="{x:Static p:EventsPage.OpenCommand}" CommandParameter="{Binding}">
-                        <ui:SymbolIcon Symbol="Open24" FontSize="13" />
-                    </ui:Button>
-                    <ui:Button Grid.Column="4" Style="{StaticResource IconButton}" ToolTip="{l:Tr common.remove}"
-                               Command="{x:Static p:EventsPage.RemoveCommand}" CommandParameter="{Binding}">
-                        <ui:SymbolIcon Symbol="Dismiss24" FontSize="12" />
-                    </ui:Button>
+                    <Border x:Name="IconBox" Width="34" Height="34" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}" Margin="10,0,12,0">
+                        <Image Width="22" Height="22" RenderOptions.BitmapScalingMode="HighQuality"
+                               Source="{Binding Converter={StaticResource EventCommand}, ConverterParameter=icon}" />
+                    </Border>
+                    <StackPanel x:Name="Texts" Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                   Text="{Binding Converter={StaticResource EventCommand}, ConverterParameter=name}" />
+                        <TextBlock x:Name="Summary" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   Text="{Binding Converter={StaticResource EventCommand}, ConverterParameter=summary}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <CheckBox x:Name="Check" ToolTip="{l:Tr common.enabled}" AutomationProperties.Name="{l:Tr common.enabled}" Margin="0,0,4,0" MinWidth="0"
+                                  Checked="OnCommandTicked" Unchecked="OnCommandTicked">
+                            <CheckBox.IsChecked>
+                                <MultiBinding Converter="{StaticResource NotInList}" Mode="OneWay">
+                                    <Binding />
+                                    <Binding Path="Tag" RelativeSource="{RelativeSource AncestorType=ListBox}" />
+                                    <Binding Path="Tag.Count" RelativeSource="{RelativeSource AncestorType=ListBox}" />
+                                </MultiBinding>
+                            </CheckBox.IsChecked>
+                        </CheckBox>
+                        <ui:Button Style="{StaticResource IconButton}" ToolTip="{l:Tr commands.run}" AutomationProperties.Name="{l:Tr commands.run}"
+                                   Command="{x:Static p:EventsPage.RunCommand}" CommandParameter="{Binding}">
+                            <ui:SymbolIcon Symbol="Play24" FontSize="16" />
+                        </ui:Button>
+                        <ui:Button Style="{StaticResource IconButton}" ToolTip="{l:Tr event.openCommand}" AutomationProperties.Name="{l:Tr event.openCommand}"
+                                   Command="{x:Static p:EventsPage.OpenCommand}" CommandParameter="{Binding}">
+                            <ui:SymbolIcon Symbol="Open24" FontSize="16" />
+                        </ui:Button>
+                        <ui:Button Style="{StaticResource MoveButton}" ToolTip="{l:Tr common.moveUp}" AutomationProperties.Name="{l:Tr common.moveUp}"
+                                   Command="{x:Static p:EventsPage.MoveCommandUp}" CommandParameter="{Binding}">
+                            <ui:SymbolIcon Symbol="ArrowUp24" FontSize="16" />
+                        </ui:Button>
+                        <ui:Button Style="{StaticResource MoveButton}" ToolTip="{l:Tr common.moveDown}" AutomationProperties.Name="{l:Tr common.moveDown}"
+                                   Command="{x:Static p:EventsPage.MoveCommandDown}" CommandParameter="{Binding}">
+                            <ui:SymbolIcon Symbol="ArrowDown24" FontSize="16" />
+                        </ui:Button>
+                        <ui:Button Style="{StaticResource IconButton}" ToolTip="{l:Tr common.remove}" AutomationProperties.Name="{l:Tr common.remove}"
+                                   Command="{x:Static p:EventsPage.RemoveCommand}" CommandParameter="{Binding}">
+                            <ui:SymbolIcon Symbol="Dismiss24" FontSize="16" Foreground="{DynamicResource Kd.Danger}" />
+                        </ui:Button>
+                    </StackPanel>
                 </Grid>
+                <DataTemplate.Triggers>
+                    <DataTrigger Binding="{Binding IsChecked, ElementName=Check}" Value="False">
+                        <Setter TargetName="IconBox" Property="Opacity" Value="0.5" />
+                        <Setter TargetName="Texts" Property="Opacity" Value="0.5" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Text, ElementName=Summary}" Value="">
+                        <Setter TargetName="Summary" Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                        <Setter TargetName="Grip" Property="Opacity" Value="0.8" />
+                    </DataTrigger>
+                </DataTemplate.Triggers>
             </DataTemplate>
 
+            <!-- Framed like the action rows of Comandos -->
             <Style x:Key="CommandItem" TargetType="ListBoxItem">
                 <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="Margin" Value="0,0,0,6" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ListBoxItem">
-                            <Border x:Name="B" CornerRadius="5" Padding="6,5" Background="Transparent">
+                            <Border x:Name="Frame" CornerRadius="8" Padding="12,10" BorderThickness="1"
+                                    Background="{DynamicResource Kd.Subtle}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
                                 <ContentPresenter />
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="B" Property="Background" Value="{DynamicResource Kd.SubtleHover}" />
+                                    <Setter TargetName="Frame" Property="Background" Value="{DynamicResource Kd.SubtleHover}" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -316,6 +365,9 @@
         <CommandBinding Command="{x:Static p:EventsPage.RemoveProcess}" Executed="OnRemoveProcess" />
         <CommandBinding Command="{x:Static p:EventsPage.RemoveCommand}" Executed="OnRemoveCommand" />
         <CommandBinding Command="{x:Static p:EventsPage.OpenCommand}" Executed="OnOpenCommand" />
+        <CommandBinding Command="{x:Static p:EventsPage.RunCommand}" Executed="OnRunCommand" />
+        <CommandBinding Command="{x:Static p:EventsPage.MoveCommandUp}" Executed="OnMoveCommand" CanExecute="OnCanMoveCommand" />
+        <CommandBinding Command="{x:Static p:EventsPage.MoveCommandDown}" Executed="OnMoveCommand" CanExecute="OnCanMoveCommand" />
     </UserControl.CommandBindings>
 
     <Grid Margin="24,12,0,0">
@@ -491,36 +543,44 @@
                         </StackPanel>
                     </ui:CardExpander>
 
-                    <!-- Run -->
-                    <Border Style="{StaticResource Card}">
-                        <StackPanel>
-                            <Grid Margin="0,0,0,6">
-                                <TextBlock Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center" Text="{l:Tr event.run}" />
-                                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                                    <ui:Button Appearance="Primary" Content="{l:Tr event.newCommand}" Icon="{ui:SymbolIcon DocumentAdd24}" ToolTip="{l:Tr event.newCommandHint}" Click="OnNewCommand" />
-                                    <ui:Button Appearance="Primary" Margin="8,0,0,0" Content="{l:Tr event.addCommand}" Icon="{ui:SymbolIcon Add24}" Click="OnAddCommand" />
+                    <!-- Run (foldable; its buttons stay on the header) -->
+                    <ui:CardExpander x:Name="RunExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Play24}" HorizontalContentAlignment="Stretch"
+                                     Expanded="OnSectionFolded" Collapsed="OnSectionFolded" AutomationProperties.Name="{l:Tr event.run}">
+                        <ui:CardExpander.Header>
+                            <Grid>
+                                <TextBlock FontWeight="SemiBold" VerticalAlignment="Center" Text="{l:Tr event.run}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" Margin="8,0,8,0">
+                                    <ui:Button Appearance="Primary" MinHeight="36" Content="{l:Tr event.newCommand}" Icon="{ui:SymbolIcon DocumentAdd24}" ToolTip="{l:Tr event.newCommandHint}" Click="OnNewCommand" />
+                                    <ui:Button Appearance="Primary" MinHeight="36" Margin="8,0,0,0" Content="{l:Tr event.addCommand}" Icon="{ui:SymbolIcon Add24}" Click="OnAddCommand" />
                                 </StackPanel>
                             </Grid>
-                            <TextBlock x:Name="NoCommands" Style="{StaticResource Caption}" Margin="0,4,0,6" Text="{l:Tr event.noCommands}" />
-                            <ListBox x:Name="CommandsList" ItemsSource="{Binding Commands}" Background="Transparent" BorderThickness="0"
+                        </ui:CardExpander.Header>
+                        <StackPanel>
+                            <TextBlock x:Name="NoCommands" Style="{StaticResource Caption}" Margin="0,0,0,6" Text="{l:Tr event.noCommands}" />
+                            <ListBox x:Name="CommandsList" ItemsSource="{Binding Commands}" Tag="{Binding DisabledCommands}" Background="Transparent" BorderThickness="0"
                                      ItemContainerStyle="{StaticResource CommandItem}" ItemTemplate="{StaticResource CommandRow}"
                                      v:DragReorder.IsEnabled="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" PreviewMouseWheel="OnInnerListWheel" />
                             <TextBlock x:Name="ExitNote" Style="{StaticResource Caption}" Margin="0,6,0,0" TextWrapping="Wrap" Text="{l:Tr event.exitNote}" />
                         </StackPanel>
-                    </Border>
+                    </ui:CardExpander>
 
-                    <!-- Ask an assistant -->
-                    <Border x:Name="AskCard" Style="{StaticResource Card}">
-                        <StackPanel>
-                            <Grid Margin="0,0,0,6">
-                                <TextBlock Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center" Text="{l:Tr event.ask}" />
-                                <ui:Button x:Name="AddAskButton" Appearance="Primary" HorizontalAlignment="Right" Content="{l:Tr event.askAdd}" Icon="{ui:SymbolIcon ChatAdd24}" Click="OnAddAsk" />
-                                <ui:Button x:Name="RemoveAskButton" HorizontalAlignment="Right" Style="{StaticResource IconButton}" ToolTip="{l:Tr common.remove}"
-                                           AutomationProperties.Name="{l:Tr common.remove}" Click="OnRemoveAsk">
-                                    <ui:SymbolIcon Symbol="Dismiss24" FontSize="12" />
-                                </ui:Button>
+                    <!-- Ask an assistant (foldable like «Ejecutar») -->
+                    <ui:CardExpander x:Name="AskCard" Margin="0,0,0,12" Icon="{ui:SymbolIcon Chat24}" HorizontalContentAlignment="Stretch"
+                                     Expanded="OnSectionFolded" Collapsed="OnSectionFolded" AutomationProperties.Name="{l:Tr event.ask}">
+                        <ui:CardExpander.Header>
+                            <Grid>
+                                <TextBlock FontWeight="SemiBold" VerticalAlignment="Center" Text="{l:Tr event.ask}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" Margin="8,0,8,0">
+                                    <ui:Button x:Name="AddAskButton" Appearance="Primary" MinHeight="36" Content="{l:Tr event.askAdd}" Icon="{ui:SymbolIcon ChatAdd24}" Click="OnAddAsk" />
+                                    <ui:Button x:Name="RemoveAskButton" Style="{StaticResource IconButton}" ToolTip="{l:Tr common.remove}"
+                                               AutomationProperties.Name="{l:Tr common.remove}" Click="OnRemoveAsk">
+                                        <ui:SymbolIcon Symbol="Dismiss24" FontSize="16" Foreground="{DynamicResource Kd.Danger}" />
+                                    </ui:Button>
+                                </StackPanel>
                             </Grid>
-                            <TextBlock x:Name="NoAsk" Style="{StaticResource Caption}" Margin="0,4,0,6" TextWrapping="Wrap" Text="{l:Tr event.askNone}" />
+                        </ui:CardExpander.Header>
+                        <StackPanel>
+                            <TextBlock x:Name="NoAsk" Style="{StaticResource Caption}" Margin="0,0,0,6" TextWrapping="Wrap" Text="{l:Tr event.askNone}" />
                             <Border x:Name="ScheduledInfo" Margin="0,0,0,10" Padding="10,8" CornerRadius="6" Background="{DynamicResource Kd.AccentSoft}">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="CalendarClock24" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Top" Foreground="{DynamicResource Kd.AccentText}" />
@@ -547,24 +607,28 @@
                                 <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr event.askHint}" />
                             </StackPanel>
                         </StackPanel>
-                    </Border>
+                    </ui:CardExpander>
 
-                    <!-- When it ends -->
-                    <Border x:Name="EndCard" Style="{StaticResource Card}" Visibility="{Binding HasEnd, Converter={StaticResource BoolToCollapsed}}">
-                        <StackPanel>
-                            <Grid Margin="0,0,0,6">
-                                <TextBlock Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center" Text="{l:Tr event.end}" />
-                                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                                    <ui:Button Appearance="Primary" Content="{l:Tr event.newCommand}" Icon="{ui:SymbolIcon DocumentAdd24}" ToolTip="{l:Tr event.newCommandHint}" Click="OnNewEndCommand" />
-                                    <ui:Button Appearance="Primary" Margin="8,0,0,0" Content="{l:Tr event.addCommand}" Icon="{ui:SymbolIcon Add24}" Click="OnAddEndCommand" />
+                    <!-- When it ends (foldable like «Ejecutar») -->
+                    <ui:CardExpander x:Name="EndCard" Margin="0,0,0,12" Icon="{ui:SymbolIcon RecordStop24}" HorizontalContentAlignment="Stretch"
+                                     Visibility="{Binding HasEnd, Converter={StaticResource BoolToCollapsed}}"
+                                     Expanded="OnSectionFolded" Collapsed="OnSectionFolded" AutomationProperties.Name="{l:Tr event.end}">
+                        <ui:CardExpander.Header>
+                            <Grid>
+                                <TextBlock FontWeight="SemiBold" VerticalAlignment="Center" Text="{l:Tr event.end}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" Margin="8,0,8,0">
+                                    <ui:Button Appearance="Primary" MinHeight="36" Content="{l:Tr event.newCommand}" Icon="{ui:SymbolIcon DocumentAdd24}" ToolTip="{l:Tr event.newCommandHint}" Click="OnNewEndCommand" />
+                                    <ui:Button Appearance="Primary" MinHeight="36" Margin="8,0,0,0" Content="{l:Tr event.addCommand}" Icon="{ui:SymbolIcon Add24}" Click="OnAddEndCommand" />
                                 </StackPanel>
                             </Grid>
-                            <TextBlock x:Name="EndHint" Style="{StaticResource Caption}" Margin="0,4,0,6" TextWrapping="Wrap" />
-                            <ListBox x:Name="EndCommandsList" ItemsSource="{Binding EndCommands}" Background="Transparent" BorderThickness="0"
+                        </ui:CardExpander.Header>
+                        <StackPanel>
+                            <TextBlock x:Name="EndHint" Style="{StaticResource Caption}" Margin="0,0,0,6" TextWrapping="Wrap" />
+                            <ListBox x:Name="EndCommandsList" ItemsSource="{Binding EndCommands}" Tag="{Binding DisabledEndCommands}" Background="Transparent" BorderThickness="0"
                                      ItemContainerStyle="{StaticResource CommandItem}" ItemTemplate="{StaticResource CommandRow}"
                                      v:DragReorder.IsEnabled="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" PreviewMouseWheel="OnInnerListWheel" />
                         </StackPanel>
-                    </Border>
+                    </ui:CardExpander>
 
                     <!-- Only if (open when it has something) -->
                     <ui:CardExpander x:Name="ConditionsExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Filter24}" AutomationProperties.Name="{l:Tr event.conditions}">
@@ -641,14 +705,15 @@
                         </StackPanel>
                     </ui:CardExpander>
 
-                    <!-- Notes -->
-                    <Border Style="{StaticResource Card}">
-                        <StackPanel>
-                            <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr commands.notes}" />
-                            <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60"
-                                     AutomationProperties.Name="{l:Tr commands.notes}" />
-                        </StackPanel>
-                    </Border>
+                    <!-- Notes (foldable, as in Comandos) -->
+                    <ui:CardExpander x:Name="NotesExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Note24}"
+                                     Expanded="OnSectionFolded" Collapsed="OnSectionFolded" AutomationProperties.Name="{l:Tr commands.notes}">
+                        <ui:CardExpander.Header>
+                            <TextBlock FontWeight="SemiBold" Text="{l:Tr commands.notes}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        </ui:CardExpander.Header>
+                        <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60"
+                                 AutomationProperties.Name="{l:Tr commands.notes}" />
+                    </ui:CardExpander>
                 </StackPanel>
             </ScrollViewer>
         </Grid>

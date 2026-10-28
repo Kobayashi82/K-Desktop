@@ -360,14 +360,18 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Every remap of the profile -->
-                    <Border Style="{StaticResource Card}">
-                        <StackPanel>
-                            <Grid Margin="0,0,0,8">
-                                <TextBlock Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center" Text="{l:Tr kboard.remaps}" />
-                                <ui:Button HorizontalAlignment="Right" Icon="{ui:SymbolIcon Delete24}" Content="{l:Tr kboard.clearAll}" Click="OnClearAll" />
+                    <!-- Every remap of the profile (foldable; «Quitar todas» stays on the header) -->
+                    <ui:CardExpander x:Name="RemapsExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon ArrowSwap24}" HorizontalContentAlignment="Stretch"
+                                     Expanded="OnSectionFolded" Collapsed="OnSectionFolded" AutomationProperties.Name="{l:Tr kboard.remaps}">
+                        <ui:CardExpander.Header>
+                            <Grid>
+                                <TextBlock FontWeight="SemiBold" VerticalAlignment="Center" Text="{l:Tr kboard.remaps}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                <ui:Button HorizontalAlignment="Right" VerticalAlignment="Center" Margin="8,0,8,0" MinHeight="36" Icon="{ui:SymbolIcon Delete24}"
+                                           Content="{l:Tr kboard.clearAll}" Click="OnClearAll" />
                             </Grid>
-                            <TextBlock x:Name="NoRemaps" Style="{StaticResource Caption}" Margin="4,4" Text="{l:Tr kboard.noRemaps}" />
+                        </ui:CardExpander.Header>
+                        <StackPanel>
+                            <TextBlock x:Name="NoRemaps" Style="{StaticResource Caption}" Margin="4,0,4,4" Text="{l:Tr kboard.noRemaps}" />
                             <!-- Picks on release: choosing a remap changes the panel above, and the list would move under a pressed mouse -->
                             <ListBox x:Name="RemapList" ItemsSource="{Binding Remaps}" ItemContainerStyle="{StaticResource RemapRow}" Background="Transparent"
                                      BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="OnRemapSelected"
@@ -399,7 +403,17 @@
                                 </ListBox.ItemTemplate>
                             </ListBox>
                         </StackPanel>
-                    </Border>
+                    </ui:CardExpander>
+
+                    <!-- Notes (foldable, as in Comandos) -->
+                    <ui:CardExpander x:Name="NotesExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Note24}"
+                                     Expanded="OnSectionFolded" Collapsed="OnSectionFolded" AutomationProperties.Name="{l:Tr commands.notes}">
+                        <ui:CardExpander.Header>
+                            <TextBlock FontWeight="SemiBold" Text="{l:Tr commands.notes}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        </ui:CardExpander.Header>
+                        <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60"
+                                 AutomationProperties.Name="{l:Tr commands.notes}" />
+                    </ui:CardExpander>
                 </StackPanel>
             </ScrollViewer>
         </Grid>

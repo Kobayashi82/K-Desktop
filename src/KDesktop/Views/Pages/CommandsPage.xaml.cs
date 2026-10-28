@@ -41,6 +41,7 @@ public sealed partial class CommandsPage : UserControl, IDisposable
         OptionsExpander.IsExpanded = Config.Settings.CommandsOptionsOpen;
         HotkeysExpander.IsExpanded = !Config.Settings.CommandsHotkeysFolded;
         ActionsExpander.IsExpanded = !Config.Settings.CommandsActionsFolded;
+        NotesExpander.IsExpanded = !Config.Settings.CommandsNotesFolded;
         _menuFilter ??= string.IsNullOrEmpty(Config.Settings.CommandsMenuFilter) ? FilterNone : Config.Settings.CommandsMenuFilter;
         Config.Commands.CollectionChanged += OnCommandsChanged;
         IconProvider.StaticPropertyChanged += OnIconsChanged;
@@ -80,6 +81,7 @@ public sealed partial class CommandsPage : UserControl, IDisposable
         if (!IsLoaded) return;
         Config.Settings.CommandsHotkeysFolded = HotkeysExpander.IsExpanded != true;
         Config.Settings.CommandsActionsFolded = ActionsExpander.IsExpanded != true;
+        Config.Settings.CommandsNotesFolded = NotesExpander.IsExpanded != true;
     }
 
     // ── QuickMenu filter ─────────────────────────────────────────────────

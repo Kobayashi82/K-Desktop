@@ -565,14 +565,15 @@
                         </StackPanel>
                     </ui:CardExpander>
 
-                    <!-- Notes -->
-                    <Border Style="{StaticResource Card}">
-                        <StackPanel>
-                            <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr commands.notes}" />
-                            <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60"
-                                     AutomationProperties.Name="{l:Tr commands.notes}" />
-                        </StackPanel>
-                    </Border>
+                    <!-- Notes (foldable) -->
+                    <ui:CardExpander x:Name="NotesExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Note24}"
+                                     Expanded="OnSectionFolded" Collapsed="OnSectionFolded" AutomationProperties.Name="{l:Tr commands.notes}">
+                        <ui:CardExpander.Header>
+                            <TextBlock FontWeight="SemiBold" Text="{l:Tr commands.notes}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        </ui:CardExpander.Header>
+                        <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60"
+                                 AutomationProperties.Name="{l:Tr commands.notes}" />
+                    </ui:CardExpander>
                 </StackPanel>
             </ScrollViewer>
         </Grid>

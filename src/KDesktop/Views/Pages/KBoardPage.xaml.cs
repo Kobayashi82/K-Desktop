@@ -33,6 +33,8 @@ public sealed partial class KBoardPage : UserControl, IDisposable
     public KBoardPage()
     {
         InitializeComponent();
+        RemapsExpander.IsExpanded = !Config.Settings.KBoardRemapsFolded;
+        NotesExpander.IsExpanded = !Config.Settings.KBoardNotesFolded;
         _view = new ListCollectionView(Config.KBoards) { Filter = Filter, IsLiveSorting = true, IsLiveFiltering = true };
         _view.SortDescriptions.Add(new SortDescription(nameof(KBoardProfile.Name), ListSortDirection.Ascending));
         _view.LiveSortingProperties.Add(nameof(KBoardProfile.Name));
@@ -47,6 +49,14 @@ public sealed partial class KBoardPage : UserControl, IDisposable
             if (ProfileList.SelectedItem is null && !_view.IsEmpty) ProfileList.SelectedIndex = 0;
         };
         Unloaded += (_, _) => HotkeyCapture.CancelActive();
+    }
+
+    /// <summary>«Reasignaciones» and «Notas» stay as they were left, from one profile to the next.</summary>
+    private void OnSectionFolded(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded) return;
+        Config.Settings.KBoardRemapsFolded = RemapsExpander.IsExpanded != true;
+        Config.Settings.KBoardNotesFolded = NotesExpander.IsExpanded != true;
     }
 
     public void Dispose()

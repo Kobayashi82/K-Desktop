@@ -9,7 +9,10 @@
         <StackPanel>
             <Grid Margin="0,0,0,8">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
+                <!-- An icon before the title, like the folding panels around it -->
+                <ui:SymbolIcon Symbol="Chat24" FontSize="24" HorizontalAlignment="Left" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                <StackPanel VerticalAlignment="Center" Margin="40,0,16,0">
                     <TextBlock Style="{StaticResource CardTitle}" Margin="0,0,0,2" Text="{l:Tr assistantChat.title}" />
                     <TextBlock x:Name="HintText" Style="{StaticResource Caption}" TextWrapping="Wrap" />
                 </StackPanel>

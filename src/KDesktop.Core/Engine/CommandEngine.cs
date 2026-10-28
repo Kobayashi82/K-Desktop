@@ -310,8 +310,10 @@ public sealed partial class CommandEngine
 
     private IEnumerable<Command> EventCommands(EventRule rule, bool end)
     {
+        var disabled = end ? rule.DisabledEndCommands : rule.DisabledCommands;
         foreach (var id in (end ? rule.EndCommands : rule.Commands).ToArray())
         {
+            if (disabled.Contains(id)) continue;
             if (Config.FindCommand(id) is { } command) yield return command;
             else Log.Warn($"Evento «{rule.Name}»: se salta un comando que ya no existe ({id})");
         }
