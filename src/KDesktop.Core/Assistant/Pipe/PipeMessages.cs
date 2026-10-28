@@ -713,7 +713,8 @@ public sealed record ToolTestMessage(string Name, bool Ok, string Text, int Ms) 
 
 /// <summary>«Asistente: decir»: the assistant says this (bubble and chat), without the AI. Null assistant: the module without a body.</summary>
 /// <param name="Aloud">Only aloud (stage 14.2, «Léemela» of the reading sheet): its voice, no bubble, chat line or history.</param>
-public sealed record SayMessage(string Text, string? Assistant = null, bool Aloud = false) : PipeMessage
+/// <param name="CatchEye">It catches the user's eye first (goes towards the mouse); otherwise it says it where it is.</param>
+public sealed record SayMessage(string Text, string? Assistant = null, bool Aloud = false, bool CatchEye = true) : PipeMessage
 {
     public override string Type => "say";
 }

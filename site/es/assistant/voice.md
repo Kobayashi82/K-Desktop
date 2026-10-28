@@ -116,4 +116,6 @@ abrir.
 
 En un comando o un evento, **Asistente: decir** hace que un asistente diga algo en su bocadillo y en voz alta, sin la IA
 («Ha terminado la copia»). Antes de decir algo por su cuenta —un temporizador, un «avísame cuando»— el asistente primero te
-llama la atención (el Lander vuela hasta el ratón, Kobii se acerca andando).
+llama la atención (el Lander vuela hasta el ratón, Kobii se acerca andando); con esta acción, solo si está marcado **Ir hacia
+el ratón antes de decirlo**. Con **Callar con algo a pantalla completa** en su voz, mientras algo está a pantalla completa en
+cualquier monitor solo sale el bocadillo.

@@ -23,7 +23,7 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     public LauncherController? Launcher { get; set; }
 
     /// <summary>Runs «Asistente: acción» (assistant id, extra id) on the UI thread.</summary>
-    public Action<string, string>? AssistantExtra { get; set; }
+    public Action<string, string, bool>? AssistantExtra { get; set; }
 
     /// <summary>Runs «Asistente: preguntar» (assistant id or empty, the order or empty) on the UI thread.</summary>
     public Action<string, string>? AssistantAsk { get; set; }
@@ -32,7 +32,7 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     public Action<EventAsk>? AssistantAskScheduled { get; set; }
 
     /// <summary>Runs «Asistente: decir» (assistant id or empty, the text) on the UI thread.</summary>
-    public Action<string, string>? AssistantSayer { get; set; }
+    public Action<string, string, bool>? AssistantSayer { get; set; }
 
     /// <summary>Runs «Asistente: cerebro» on the UI thread.</summary>
     public Action<Core.Model.AssistantBrainOp>? AssistantBrainer { get; set; }
@@ -245,13 +245,13 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
 
     public void ShowMainWindow() => dispatcher.BeginInvoke(showMainWindow);
 
-    public void RunAssistantExtra(string assistant, string extra) => dispatcher.BeginInvoke(() => AssistantExtra?.Invoke(assistant, extra));
+    public void RunAssistantExtra(string assistant, string extra, bool bringOut) => dispatcher.BeginInvoke(() => AssistantExtra?.Invoke(assistant, extra, bringOut));
 
     public void AskAssistant(string assistant, string text) => dispatcher.BeginInvoke(() => AssistantAsk?.Invoke(assistant, text));
 
     public void AskAssistantScheduled(EventAsk ask) => dispatcher.BeginInvoke(() => AssistantAskScheduled?.Invoke(ask));
 
-    public void AssistantSay(string assistant, string text) => dispatcher.BeginInvoke(() => AssistantSayer?.Invoke(assistant, text));
+    public void AssistantSay(string assistant, string text, bool catchEye) => dispatcher.BeginInvoke(() => AssistantSayer?.Invoke(assistant, text, catchEye));
 
     /// <summary>The notification cards («Mostrar notificación»): set by the app once it has its notifier.</summary>
     public Func<Notification, Task>? Notifier { get; set; }

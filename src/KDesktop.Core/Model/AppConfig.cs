@@ -284,9 +284,19 @@ public sealed class AppConfig
             remap.CommandName = FindCommand(remap.CommandId)?.Name;
     }
 
-    /// <summary>«Lander: Modo manual» for an installed assistant's extra, or null when it is not installed (or has no such extra).</summary>
-    public static string? ExtraName(string assistant, string extra) =>
-        extra.Length == 0 ? null : Assistant.Packages.AssistantExtras.Find(assistant, extra)?.DisplayName(Localization.Loc.Instance.Language);
+    /// <summary>
+    /// «Lander: Modo manual» for an installed assistant's extra («Lander: Esconder» for hiding it…), or null when it is not
+    /// installed (or has no such extra).
+    /// </summary>
+    public static string? ExtraName(string assistant, string extra)
+    {
+        if (extra is AssistantExtraAction.ShowExtra or AssistantExtraAction.HideExtra)
+        {
+            var name = Assistant.AssistantTargeting.IsSystem(assistant) ? "K-Desktop" : Assistant.Packages.AssistantPackages.Find(assistant)?.Manifest.Name;
+            return name is null ? null : $"{name}: {Localization.Loc.T(extra == AssistantExtraAction.ShowExtra ? "assistantExtra.show" : "assistantExtra.hide")}";
+        }
+        return extra.Length == 0 ? null : Assistant.Packages.AssistantExtras.Find(assistant, extra)?.DisplayName(Localization.Loc.Instance.Language);
+    }
 
     /// <summary>
     /// Who else answers <paramref name="hotkey"/> for every program: the names of the enabled commands with it that are

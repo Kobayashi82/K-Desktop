@@ -662,10 +662,11 @@ public sealed partial class CommandsPage : UserControl, IDisposable
             display.MonitorName = primary.Name;
             if (DisplayTools.CurrentMode(primary.DeviceName) is { } mode) display.ModeKey = mode.Key;
         }
-        if (action is AssistantExtraAction extra && Core.Assistant.Packages.AssistantExtras.All() is [var firstExtra, ..])
+        if (action is AssistantExtraAction extra)
         {
-            extra.Target = firstExtra.Target;
-            extra.ExtraName = firstExtra.DisplayName(Loc.Instance.Language);
+            if (Core.Assistant.Packages.AssistantExtras.All() is [var firstExtra, ..]) extra.Target = firstExtra.Target;
+            else extra.Target = $"{Core.Assistant.AssistantTargeting.KDesktop}/{AssistantExtraAction.ShowExtra}";
+            extra.ExtraName = AppConfig.ExtraName(extra.Assistant, extra.Extra);
         }
         action.PropertyChanged += OnActionReferenceChanged;
         _selected.Actions.Add(action);
@@ -701,7 +702,15 @@ public sealed partial class CommandsPage : UserControl, IDisposable
             case PowerPlanAction p when e.PropertyName == nameof(PowerPlanAction.PlanId):
                 if (PowerPlans.All().FirstOrDefault(plan => plan.Key == p.PlanId) is { } chosen) p.PlanName = chosen.Name;
                 break;
-            case AssistantExtraAction x when e.PropertyName is nameof(AssistantExtraAction.Assistant) or nameof(AssistantExtraAction.Extra):
+            case AssistantExtraAction x when e.PropertyName == nameof(AssistantExtraAction.Assistant):
+                x.ExtraName = AppConfig.ExtraName(x.Assistant, x.Extra);
+                // After the action box has taken the new list (it empties what it does not have).
+                Dispatcher.BeginInvoke(() =>
+                {
+                    if (!x.IsShowOrHide && Core.Assistant.Packages.AssistantExtras.Find(x.Assistant, x.Extra) is null) x.Extra = AssistantExtraAction.ShowExtra;
+                });
+                break;
+            case AssistantExtraAction x when e.PropertyName == nameof(AssistantExtraAction.Extra):
                 x.ExtraName = AppConfig.ExtraName(x.Assistant, x.Extra);
                 break;
             case DisplayAction d when e.PropertyName == nameof(DisplayAction.Monitor):

@@ -74,8 +74,11 @@ public interface IUiServices
 
     void ShowMainWindow();
 
-    /// <summary>«Asistente: acción»: sends an extra to its assistant (bringing it onto the desktop first if needed).</summary>
-    void RunAssistantExtra(string assistant, string extra) { }
+    /// <summary>
+    /// «Asistente: acción»: sends an extra to its assistant (bringing it onto the desktop first if needed and
+    /// <paramref name="bringOut"/>), or puts it on the desktop or hides it.
+    /// </summary>
+    void RunAssistantExtra(string assistant, string extra, bool bringOut) { }
 
     /// <summary>«Asistente: preguntar»: an order for an assistant (empty: the default one); without text, the box to write it.</summary>
     void AskAssistant(string assistant, string text) { }
@@ -86,8 +89,8 @@ public interface IUiServices
     /// </summary>
     void AskAssistantScheduled(EventAsk ask) => AskAssistant(ask.Assistant, ask.Text);
 
-    /// <summary>«Asistente: decir»: an assistant (empty: the default one) says this, without the AI.</summary>
-    void AssistantSay(string assistant, string text) { }
+    /// <summary>«Asistente: decir»: an assistant (empty: the default one) says this, without the AI (catching the eye first or not).</summary>
+    void AssistantSay(string assistant, string text, bool catchEye) { }
 
     /// <summary>«Asistente: cerebro»: the assistants' model out of the graphics card, or into it.</summary>
     void AssistantBrain(Model.AssistantBrainOp op) { }

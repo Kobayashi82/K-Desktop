@@ -190,7 +190,7 @@ internal sealed class ModuleTalk : ITalkOutput
         }
     }
 
-    /// <summary>«Asistente: decir»: it catches the user's eye and says it (not in pause, like the orders).</summary>
+    /// <summary>«Asistente: decir»: it catches the user's eye (if asked) and says it (not in pause, like the orders).</summary>
     public void OnSay(SayMessage say)
     {
         if (Paused) return;
@@ -207,7 +207,7 @@ internal sealed class ModuleTalk : ITalkOutput
                 await Service.ReadAloudAsync(say.Assistant, say.Text).ConfigureAwait(false);
                 return;
             }
-            if (say.Assistant is { } id && !Service.IsAnswering(id)) await CatchEyeAsync(id, AnnounceReason.Message).ConfigureAwait(false);
+            if (say.CatchEye && say.Assistant is { } id && !Service.IsAnswering(id)) await CatchEyeAsync(id, AnnounceReason.Message).ConfigureAwait(false);
             await Service.SayAsync(say.Assistant, say.Text).ConfigureAwait(false);
         }
         catch (Exception ex)

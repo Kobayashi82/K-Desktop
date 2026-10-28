@@ -5,16 +5,29 @@ using KDesktop.Core.Localization;
 namespace KDesktop.Core.Model;
 
 /// <summary>
-/// «Asistente: acción»: one of the extras an assistant declares in its manifest («Lander: modo manual»). K-Desktop only
-/// sends it (message <c>extra</c>); the assistant does it. One that is not on the desktop comes out first.
+/// «Asistente: acción»: one of the extras an assistant declares in its manifest («Lander: modo manual»), or putting it
+/// on the desktop or hiding it. K-Desktop only sends an extra (message <c>extra</c>); the assistant does it. One that is
+/// not on the desktop comes out first, or (without <see cref="BringOut"/>) the action is not done.
 /// </summary>
 public partial class AssistantExtraAction : CommandAction
 {
+    /// <summary>The <see cref="Extra"/> that puts the assistant on the desktop (no manifest's extra starts with «@»).</summary>
+    public const string ShowExtra = "@show";
+
+    /// <summary>The <see cref="Extra"/> that hides it.</summary>
+    public const string HideExtra = "@hide";
+
     /// <summary>The assistant's id («lander»).</summary>
     [ObservableProperty] private string _assistant = string.Empty;
 
-    /// <summary>The extra's id in its manifest («lander.manual»).</summary>
+    /// <summary>The extra's id in its manifest («lander.manual»), or <see cref="ShowExtra"/> / <see cref="HideExtra"/>.</summary>
     [ObservableProperty] private string _extra = string.Empty;
+
+    /// <summary>An extra for an assistant that is not on the desktop: it comes out to do it (otherwise, nothing is done).</summary>
+    [ObservableProperty] private bool _bringOut = true;
+
+    /// <summary>Putting it on the desktop or hiding it (not one of its extras).</summary>
+    [JsonIgnore] public bool IsShowOrHide => Extra is ShowExtra or HideExtra;
 
     /// <summary>Display-only: «Lander: Modo manual» (resolved from the installed manifest), null when it is not installed.</summary>
     [ObservableProperty]
@@ -35,14 +48,25 @@ public partial class AssistantExtraAction : CommandAction
 
     partial void OnAssistantChanged(string value) => OnPropertyChanged(nameof(Target));
 
-    partial void OnExtraChanged(string value) => OnPropertyChanged(nameof(Target));
+    partial void OnExtraChanged(string value)
+    {
+        // A list without it (another assistant chosen) writes null for a moment.
+        if (value is null)
+        {
+            Extra = string.Empty;
+            return;
+        }
+        OnPropertyChanged(nameof(Target));
+        OnPropertyChanged(nameof(IsShowOrHide));
+    }
 
     public override ActionKind Kind => ActionKind.AssistantExtra;
 
     public override string Summary =>
-        ExtraName ?? (Extra.Length == 0 ? Loc.T("summary.noExtra") : Loc.T("summary.extraMissing", Assistant, Extra));
+        ExtraName ?? (Extra.Length == 0 ? Loc.T("summary.noExtra")
+            : Loc.T("summary.extraMissing", Assistant, IsShowOrHide ? Loc.T(Extra == ShowExtra ? "assistantExtra.show" : "assistantExtra.hide") : Extra));
 
-    public override bool IsTransient(string? property) => property is nameof(ExtraName) or nameof(Target) || base.IsTransient(property);
+    public override bool IsTransient(string? property) => property is nameof(ExtraName) or nameof(Target) or nameof(IsShowOrHide) || base.IsTransient(property);
 }
 
 /// <summary>
@@ -90,6 +114,9 @@ public partial class AssistantSayAction : CommandAction
     [ObservableProperty] private string _assistant = global::KDesktop.Core.Assistant.AssistantTargeting.KDesktop;
 
     [ObservableProperty] private string _text = string.Empty;
+
+    /// <summary>Before saying it, it catches the eye (goes towards the mouse); otherwise it says it where it is.</summary>
+    [ObservableProperty] private bool _catchEye;
 
     public override ActionKind Kind => ActionKind.AssistantSay;
 

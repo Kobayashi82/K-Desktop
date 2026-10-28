@@ -76,7 +76,8 @@ nothing, a step of an order takes their place and a new one replaces the one bef
 
 ## Catching the eye
 
-Before saying something on its own (a timer ringing, a «tell me when» coming true, *Assistant: say*) the host asks for
+Before saying something on its own (a timer ringing, a «tell me when» coming true, *Assistant: say* with «Go towards the
+mouse» ticked) the host asks for
 `Announce`: walk up to the mouse, wave, blink… `Reason` says why (`Timer`, `Watch`, `Message`), `Cursor` where the mouse
 was (or null) and `UserAway` how many seconds without keyboard or mouse (the longer, the bigger it may be: maybe they are
 not looking). The host waits for you, `ctx.TimeLeft` at most (about 2 s, 3 in `Showy` and half a second in `Fast`), and

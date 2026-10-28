@@ -2,5 +2,6 @@
   "t": "say",
   "text": "La copia de seguridad ha terminado.",
   "assistant": "lander",
-  "aloud": false
+  "aloud": false,
+  "catchEye": true
 }

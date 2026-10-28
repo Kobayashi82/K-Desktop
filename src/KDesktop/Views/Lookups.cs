@@ -13,8 +13,8 @@ public sealed record Option<T>(T Value, string Key)
     public override string ToString() => Name;
 }
 
-/// <summary>An extra of an installed assistant in the editor of «Asistente: acción».</summary>
-public sealed record ExtraChoice(string Target, string Name, string Description, System.Windows.Media.ImageSource? Icon)
+/// <summary>What «Asistente: acción» can do with one assistant: come out, hide, or one of its extras (by id).</summary>
+public sealed record ExtraChoice(string Id, string Name, string Description, System.Windows.Media.ImageSource? Icon)
 {
     public bool HasDescription => Description.Length > 0;
 
@@ -154,9 +154,15 @@ public static class Lookups
     public static IReadOnlyList<string> RunningProcessesNow => RunningProcesses();
 
     /// <summary>The extras of the installed assistants («Lander: Modo manual»), read when an editor opens.</summary>
-    public static IReadOnlyList<ExtraChoice> AssistantExtraList =>
-        [.. Core.Assistant.Packages.AssistantExtras.All().Select(e => new ExtraChoice(e.Target, e.DisplayName(Loc.Instance.Language),
-            AssistantLook.Text(e.Extra.Description), Services.IconProvider.ForExtra(e.Assistant.Id, e.Extra.Id)))];
+    public static IReadOnlyList<ExtraChoice> AssistantActionsOf(string assistant) =>
+    [
+        new(AssistantExtraAction.ShowExtra, Loc.T("assistantExtra.show"), string.Empty, Services.IconProvider.Kd("Eye24", "green")),
+        new(AssistantExtraAction.HideExtra, Loc.T("assistantExtra.hide"), string.Empty, Services.IconProvider.Kd("EyeOff24", "gray")),
+        .. Core.Assistant.Packages.AssistantPackages.Find(assistant) is { } installed
+            ? installed.Manifest.Extras.Select(e => new ExtraChoice(e.Id, e.Name.In(Loc.Instance.Language), AssistantLook.Text(e.Description),
+                Services.IconProvider.ForExtra(assistant, e.Id)))
+            : [],
+    ];
 
 
     /// <summary>K-Desktop and the installed assistants (an action always names its assistant, 5.0.113).</summary>

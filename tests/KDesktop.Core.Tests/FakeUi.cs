@@ -29,7 +29,7 @@ internal sealed class FakeUi : IUiServices
     /// <summary>The extras «Asistente: acción» asked for (assistant, extra).</summary>
     public List<(string Assistant, string Extra)> Extras { get; } = [];
 
-    public void RunAssistantExtra(string assistant, string extra)
+    public void RunAssistantExtra(string assistant, string extra, bool bringOut)
     {
         lock (Extras) Extras.Add((assistant, extra));
     }
@@ -45,7 +45,7 @@ internal sealed class FakeUi : IUiServices
     /// <summary>What «Asistente: decir» said (assistant, text).</summary>
     public List<(string Assistant, string Text)> Said { get; } = [];
 
-    public void AssistantSay(string assistant, string text)
+    public void AssistantSay(string assistant, string text, bool catchEye)
     {
         lock (Said) Said.Add((assistant, text));
     }

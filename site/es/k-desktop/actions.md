@@ -88,4 +88,4 @@ Solo con el [módulo Asistente](../assistant/index.md) encendido.
 | **Asistente: preguntar** | Le dice algo a un asistente, como si se lo dijeras en voz alta. Sin texto, abre la caja para escribirle. |
 | **Asistente: decir** | El asistente dice algo en su bocadillo, sin la IA. Útil en eventos: «Ha terminado la copia». |
 | **Asistente: cerebro** | Saca el modelo de IA de la gráfica (antes de un juego o un render) o lo carga ya para que la primera respuesta no espere. |
-| **Asistente: acción** | Lanza una acción propia de un asistente, como el modo manual del Lander. |
+| **Asistente: acción** | Pone un asistente en el escritorio, lo esconde o lanza una acción propia suya, como el modo manual del Lander (si no está en el escritorio, sale para hacerla o no se hace nada, a elegir). |

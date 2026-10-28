@@ -109,6 +109,7 @@ public static partial class IconProvider
         AudioRecordAction => Kd("MicPulse24", "red"),
         MagnifierAction => Kd("ZoomIn24", "indigo"),
         DictateAction => Kd("MicSparkle24", "teal"),
+        AssistantExtraAction { IsShowOrHide: true } x => ForAssistant(x.Assistant) ?? Kd("Bot24", "gray"),
         AssistantExtraAction x => ForExtra(x.Assistant, x.Extra),
         AssistantAskAction x => ForAssistant(x.Assistant) ?? Kd("ChatBubblesQuestion24", "indigo"),
         AssistantSayAction x => ForAssistant(x.Assistant) ?? Kd("Megaphone24", "indigo"),

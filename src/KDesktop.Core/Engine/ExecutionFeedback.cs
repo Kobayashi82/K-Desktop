@@ -105,10 +105,10 @@ internal sealed class FeedbackUiServices(IUiServices inner) : IUiServices
     public void ShowQuickMenu(string menuId, ForegroundWindow previousForeground) => inner.ShowQuickMenu(menuId, previousForeground);
     public void BlankMonitors(IReadOnlyCollection<string> devices) => inner.BlankMonitors(devices);
     public void ShowMainWindow() => inner.ShowMainWindow();
-    public void RunAssistantExtra(string assistant, string extra) => inner.RunAssistantExtra(assistant, extra);
+    public void RunAssistantExtra(string assistant, string extra, bool bringOut) => inner.RunAssistantExtra(assistant, extra, bringOut);
     public void AskAssistant(string assistant, string text) => inner.AskAssistant(assistant, text);
     public void AskAssistantScheduled(EventAsk ask) => inner.AskAssistantScheduled(ask);
-    public void AssistantSay(string assistant, string text) => inner.AssistantSay(assistant, text);
+    public void AssistantSay(string assistant, string text, bool catchEye) => inner.AssistantSay(assistant, text, catchEye);
     public void AssistantBrain(Model.AssistantBrainOp op) => inner.AssistantBrain(op);
     public void Dictate(Model.SwitchMode mode) => inner.Dictate(mode);
     public void RunOnUi(Action action) => inner.RunOnUi(action);

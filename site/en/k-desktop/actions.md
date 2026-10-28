@@ -87,4 +87,4 @@ Only with the [assistant module](../assistant/index.md) on.
 | **Assistant: ask** | Says something to an assistant, as if you said it out loud. Without text, it opens the box to write to it. |
 | **Assistant: say** | The assistant says something in its bubble, without the AI. Handy in events: «The backup has finished». |
 | **Assistant: brain** | Takes the AI model out of the graphics card (before a game or a render) or loads it now so the first answer does not wait. |
-| **Assistant: action** | Runs one of an assistant's own actions, like the Lander's manual mode. |
+| **Assistant: action** | Puts an assistant on the desktop, hides it, or runs one of its own actions, like the Lander's manual mode (if it is not on the desktop, it comes out for it or nothing is done, as you choose). |

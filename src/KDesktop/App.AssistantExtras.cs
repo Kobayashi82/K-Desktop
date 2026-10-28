@@ -23,13 +23,25 @@ public partial class App
     /// Runs an extra from a command. One whose assistant is not on the desktop brings it out and is sent once it is
     /// loaded; with the module off, or the assistant or its extra not installed, an OSD says so.
     /// </summary>
-    private void RunExtraFromCommand(string id, string extra)
+    private void RunExtraFromCommand(string id, string extra, bool bringOut)
     {
         if (extra.Length == 0) return;
         if (_assistant is null)
         {
             Ui.ShowOsd(Loc.T("assistantExtra.moduleOff"), Core.Engine.OsdKind.Warning);
             return;
+        }
+        switch (extra)
+        {
+            case AssistantExtraAction.ShowExtra when IsAssistant(id):
+                ShowAssistant(id);
+                return;
+            case AssistantExtraAction.ShowExtra:
+                Ui.ShowOsd(Loc.T("assistantExtra.notInstalled", id), Core.Engine.OsdKind.Warning);
+                return;
+            case AssistantExtraAction.HideExtra:
+                HideAssistant(id);
+                return;
         }
         if (AssistantExtras.Find(id, extra) is null)
         {
@@ -41,6 +53,11 @@ public partial class App
         if (IsAssistantLoaded(id))
         {
             RunAssistantExtra(id, extra);
+            return;
+        }
+        if (!bringOut && !IsOnDesktop(id))
+        {
+            Log.Info($"Asistente: extra «{extra}» de «{id}» sin hacer: no está en el escritorio");
             return;
         }
         // Not there yet (hidden, coming out, or its process starting again): it does it as soon as it is loaded.

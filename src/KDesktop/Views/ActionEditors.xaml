@@ -14,6 +14,7 @@
     <v:LocKeyConverter x:Key="LocKey" />
     <v:SettingsTextConverter x:Key="SettingsText" />
     <v:PickedItemConverter x:Key="PickedItem" />
+    <v:AssistantActionsConverter x:Key="AssistantActions" />
     <!-- The icon of a pick box, gone while nothing is picked -->
     <Style x:Key="PickedIcon" TargetType="Image">
         <Style.Triggers>
@@ -1478,25 +1479,50 @@
     <!-- ── Asistente: acción ───────────────────────────────────────────── -->
     <DataTemplate DataType="{x:Type m:AssistantExtraAction}">
         <StackPanel>
-            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.assistantExtra}" />
-            <ComboBox x:Name="ExtraBox" Margin="0,0,0,8" ItemsSource="{Binding Source={x:Static v:Lookups.AssistantExtraList}}" SelectedValuePath="Target"
-                      SelectedValue="{Binding Target}" IsTextSearchEnabled="True" TextSearch.TextPath="Name" MaxDropDownHeight="420"
-                      AutomationProperties.Name="{l:Tr editor.assistantExtra}">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate DataType="{x:Type v:ExtraChoice}">
-                        <StackPanel Orientation="Horizontal">
-                            <Image Source="{Binding Icon}" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"
-                                   RenderOptions.BitmapScalingMode="HighQuality" />
-                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.assistantAskWho}" />
+                    <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.AssistantList}}" SelectedValuePath="Id"
+                              SelectedValue="{Binding Assistant}" AutomationProperties.Name="{l:Tr editor.assistantAskWho}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate DataType="{x:Type v:AssistantChoice}">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="{Binding Icon}" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"
+                                           RenderOptions.BitmapScalingMode="HighQuality" />
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.assistantExtra}" />
+                    <ComboBox x:Name="ExtraBox" ItemsSource="{Binding Assistant, Converter={StaticResource AssistantActions}}" SelectedValuePath="Id"
+                              SelectedValue="{Binding Extra}" IsTextSearchEnabled="True" TextSearch.TextPath="Name" MaxDropDownHeight="420"
+                              AutomationProperties.Name="{l:Tr editor.assistantExtra}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate DataType="{x:Type v:ExtraChoice}">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="{Binding Icon}" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"
+                                           RenderOptions.BitmapScalingMode="HighQuality" />
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+            </Grid>
             <TextBlock x:Name="Description" Margin="0,0,0,8" TextWrapping="Wrap" Visibility="Collapsed"
                        Text="{Binding SelectedItem.Description, ElementName=ExtraBox}" />
             <TextBlock x:Name="Missing" Margin="0,0,0,8" TextWrapping="Wrap" Visibility="Collapsed" Foreground="{DynamicResource Kd.Warning}"
                        Text="{Binding Summary}" />
-            <TextBlock x:Name="Hint" Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.assistantExtraHint}" />
+            <CheckBox x:Name="BringOutCheck" Style="{StaticResource EdCheck}" Content="{l:Tr editor.assistantBringOut}" IsChecked="{Binding BringOut}"
+                      ToolTip="{l:Tr editor.assistantBringOutHint}" />
         </StackPanel>
         <DataTemplate.Triggers>
             <DataTrigger Binding="{Binding SelectedItem.HasDescription, ElementName=ExtraBox}" Value="True">
@@ -1508,8 +1534,8 @@
             <DataTrigger Binding="{Binding Extra}" Value="">
                 <Setter TargetName="Missing" Property="Visibility" Value="Collapsed" />
             </DataTrigger>
-            <DataTrigger Binding="{Binding HasItems, ElementName=ExtraBox}" Value="False">
-                <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.assistantExtraNone}" />
+            <DataTrigger Binding="{Binding IsShowOrHide}" Value="True">
+                <Setter TargetName="BringOutCheck" Property="Visibility" Value="Collapsed" />
             </DataTrigger>
         </DataTemplate.Triggers>
     </DataTemplate>
@@ -1556,6 +1582,7 @@
             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.assistantSayText}" />
             <ui:TextBox Margin="0,0,0,8" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.assistantSayTextHint}"
                         AutomationProperties.Name="{l:Tr editor.assistantSayText}" MaxLength="500" />
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.assistantSayCatchEye}" IsChecked="{Binding CatchEye}" />
             <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.assistantSayHint}" />
         </StackPanel>
     </DataTemplate>

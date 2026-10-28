@@ -115,4 +115,6 @@ opens it again.
 
 In a command or an event, **Assistant: say** makes an assistant say something in its bubble and aloud, without the AI
 («The backup has finished»). Before saying something on its own —a timer, a «tell me when»— an assistant first catches
-your eye (the Lander flies to the mouse, Kobii walks up to it).
+your eye (the Lander flies to the mouse, Kobii walks up to it); with this action, only if **Go towards the mouse before
+saying it** is ticked. With **Keep quiet with something full screen** in its voice settings, while something is full screen on any monitor
+only the bubble shows.

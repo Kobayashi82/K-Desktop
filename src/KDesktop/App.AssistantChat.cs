@@ -266,14 +266,14 @@ public partial class App
 
     /// <summary>
     /// «Asistente: decir»: its assistant says it, in its bubble and its chat (K-Desktop with the OSD: the chat line that
-    /// comes back shows it). Not while it is hidden.
+    /// comes back shows it), going towards the mouse first if <paramref name="catchEye"/>. Not while it is hidden.
     /// </summary>
-    private void SayFromCommand(string id, string text)
+    private void SayFromCommand(string id, string text, bool catchEye)
     {
         text = text.Trim();
         if (text.Length == 0 || !CanCommandAssistant(id)) return;
         _chatSources[id] = "command";
-        if (!_assistant!.IsRunning || !_assistant.Send(new SayMessage(text, ProcessIdOf(id))))
+        if (!_assistant!.IsRunning || !_assistant.Send(new SayMessage(text, ProcessIdOf(id), CatchEye: catchEye)))
             Ui.ShowOsd(text, Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(Math.Clamp(2 + text.Length * 0.06, 4, 15)));
     }
 

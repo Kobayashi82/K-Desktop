@@ -217,6 +217,14 @@ public sealed class EventCommandConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 }
 
+/// <summary>An assistant's id → what «Asistente: acción» can do with it (come out, hide, its extras).</summary>
+public sealed class AssistantActionsConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object parameter, CultureInfo culture) => Lookups.AssistantActionsOf(value as string ?? string.Empty);
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
 /// <summary>
 /// The command id (parameter "command" or "commandIcon") or event id ("event", "eventIcon") of an action's pick box → its
 /// name, or «Elegir…» when there is none (or it is gone), or its icon.
