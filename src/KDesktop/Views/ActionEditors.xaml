@@ -945,9 +945,9 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="16" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="0.65*" />
                     <ColumnDefinition Width="16" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="1.35*" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Style="{StaticResource FieldLabel}" VerticalAlignment="Bottom" TextWrapping="Wrap" Text="{l:Tr editor.speed}" />
                 <ComboBox Grid.Row="1" ItemsSource="{x:Static v:Lookups.MacroSpeeds}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Speed}" />
@@ -1330,7 +1330,7 @@
             <ComboBox Margin="0,0,0,12" ItemsSource="{x:Static v:Lookups.CaptureAreas}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Area}" />
             <WrapPanel>
                 <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.captureCopy}" IsChecked="{Binding Copy}" />
-                <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.captureSave}" IsChecked="{Binding Save}" />
+                <CheckBox Style="{StaticResource EdCheck}" Content="{Binding Converter={StaticResource SettingsText}, ConverterParameter=captureSave}" IsChecked="{Binding Save}" />
                 <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.captureOpen}" IsChecked="{Binding Open}" />
                 <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
             </WrapPanel>

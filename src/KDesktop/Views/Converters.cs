@@ -286,7 +286,7 @@ public sealed class LocKeyConverter : IValueConverter
 /// <summary>
 /// What the options say, read when an editor shows up (ConverterParameter): «recordFolder» / «captureFolder», the folder
 /// an empty box uses (the one in Options › Capturas, or the default one); «recordHint», where recordings go with the
-/// format chosen there.
+/// format chosen there; «captureSave», «Guardar como» with the image format chosen there.
 /// </summary>
 public sealed class SettingsTextConverter : IValueConverter
 {
@@ -297,6 +297,7 @@ public sealed class SettingsTextConverter : IValueConverter
         {
             "recordFolder" => s.RecordFolder.Length > 0 ? s.RecordFolder : Core.Localization.Loc.T("settings.recordFolderHint"),
             "captureFolder" => s.CaptureFolder.Length > 0 ? s.CaptureFolder : Core.Localization.Loc.T("settings.captureFolderHint"),
+            "captureSave" => Core.Localization.Loc.T("editor.captureSave", s.CaptureFormat.ToString().ToUpperInvariant()),
             "recordHint" => Core.Localization.Loc.T("editor.recordHint",
                 s.RecordFormat == Core.Model.AudioFileFormat.Opus ? "Opus" : s.RecordFormat.ToString().ToUpperInvariant()),
             _ => string.Empty,
