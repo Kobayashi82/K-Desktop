@@ -253,7 +253,7 @@
                                         <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Text="{l:Tr qm.editorKeys}" />
                                     </StackPanel>
                                 </Border.ToolTip>
-                                <ui:SymbolIcon Symbol="Info24" FontSize="20" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                <ui:SymbolIcon Symbol="Info24" FontSize="20" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
                             </Border>
                         </Grid>
                     </Grid>

@@ -24,6 +24,7 @@ public partial class AssistantChatView : UserControl
     public AssistantChatView()
     {
         InitializeComponent();
+        Expander.IsExpanded = !_app.Config.Settings.AssistantChatFolded;
         Loaded += (_, _) =>
         {
             _app.AssistantChatChanged += OnChatChanged;
@@ -37,6 +38,11 @@ public partial class AssistantChatView : UserControl
         };
     }
 
+    private void OnFolded(object sender, RoutedEventArgs e)
+    {
+        if (IsLoaded) _app.Config.Settings.AssistantChatFolded = Expander.IsExpanded != true;
+    }
+
     /// <summary>The conversation with this assistant; it is written to only while it is <paramref name="active"/> (on the desktop).</summary>
     public void Show(string id, string name, bool active)
     {
@@ -46,9 +52,9 @@ public partial class AssistantChatView : UserControl
         _active = active;
         Input.PlaceholderText = Loc.T("assistantWrite.placeholder", name);
         AutomationProperties.SetName(Input, Input.PlaceholderText);
-        HintText.Text = !active ? Loc.T(Core.Assistant.AssistantTargeting.IsSystem(id) ? "assistantChat.hintSystemInactive" : "assistantChat.hintInactive", name)
-            : Core.Assistant.AssistantTargeting.IsSystem(id) ? Loc.T("assistantChat.hintSystem")
-            : Loc.T("assistantChat.hint", name);
+        HintText.Text = active ? string.Empty
+            : Loc.T(Core.Assistant.AssistantTargeting.IsSystem(id) ? "assistantChat.hintSystemInactive" : "assistantChat.hintInactive", name);
+        HintText.Visibility = active ? Visibility.Collapsed : Visibility.Visible;
         Fill();
     }
 

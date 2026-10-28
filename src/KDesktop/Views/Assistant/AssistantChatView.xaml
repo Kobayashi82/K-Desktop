@@ -5,20 +5,19 @@
              xmlns:l="clr-namespace:KDesktop.Localization">
     <!-- Panel → Assistant → the conversation (stage 3.6): what was said to it by any way, its answers as they are
          written, and a box to write to it -->
-    <Border Style="{StaticResource Card}">
-        <StackPanel>
-            <Grid Margin="0,0,0,8">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                <!-- An icon before the title, like the folding panels around it -->
-                <ui:SymbolIcon Symbol="Chat24" FontSize="24" HorizontalAlignment="Left" VerticalAlignment="Center"
-                               Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                <StackPanel VerticalAlignment="Center" Margin="40,0,16,0">
-                    <TextBlock Style="{StaticResource CardTitle}" Margin="0,0,0,2" Text="{l:Tr assistantChat.title}" />
-                    <TextBlock x:Name="HintText" Style="{StaticResource Caption}" TextWrapping="Wrap" />
-                </StackPanel>
-                <ui:Button x:Name="ClearButton" Grid.Column="1" VerticalAlignment="Center" Icon="{ui:SymbolIcon Delete24}"
-                           Content="{l:Tr assistantChat.clear}" Click="OnClear" />
+    <!-- Folds like the panels around it (5.0.315); «Borrar» stays on the header -->
+    <ui:CardExpander x:Name="Expander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Chat24}" HorizontalContentAlignment="Stretch" IsExpanded="True"
+                     Expanded="OnFolded" Collapsed="OnFolded" AutomationProperties.Name="{l:Tr assistantChat.title}">
+        <ui:CardExpander.Header>
+            <Grid>
+                <TextBlock FontWeight="SemiBold" VerticalAlignment="Center" Text="{l:Tr assistantChat.title}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                <ui:Button x:Name="ClearButton" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="8,0,8,0" MinHeight="36"
+                           Icon="{ui:SymbolIcon Delete24}" Content="{l:Tr assistantChat.clear}" Click="OnClear" />
             </Grid>
+        </ui:CardExpander.Header>
+        <StackPanel>
+            <!-- Only when it can't be written to now (not on the desktop) -->
+            <TextBlock x:Name="HintText" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,8" />
             <ScrollViewer x:Name="Scroller" MaxHeight="380" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10">
                 <StackPanel x:Name="Rows" />
             </ScrollViewer>
@@ -38,5 +37,5 @@
                 </ui:Button>
             </Grid>
         </StackPanel>
-    </Border>
+    </ui:CardExpander>
 </UserControl>

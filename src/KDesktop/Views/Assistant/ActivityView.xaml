@@ -7,10 +7,7 @@
          can be undone. Folded like the technical details, and with its own scroll when it is long (5.0.289). -->
     <ui:CardExpander x:Name="Expander" Margin="0,0,0,12" Icon="{ui:SymbolIcon History24}" AutomationProperties.Name="{l:Tr assistantActivity.title}">
         <ui:CardExpander.Header>
-            <StackPanel>
-                <TextBlock FontWeight="SemiBold" Text="{l:Tr assistantActivity.title}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                <TextBlock x:Name="HintText" Style="{StaticResource Caption}" TextWrapping="Wrap" />
-            </StackPanel>
+            <TextBlock FontWeight="SemiBold" Text="{l:Tr assistantActivity.title}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
         </ui:CardExpander.Header>
         <StackPanel>
             <Grid Margin="0,0,0,6">

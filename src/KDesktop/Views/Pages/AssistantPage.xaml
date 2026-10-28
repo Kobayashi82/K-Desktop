@@ -168,10 +168,7 @@
                 <ui:CardExpander x:Name="TechExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Wrench24}" Expanded="OnTechExpanded"
                                  AutomationProperties.Name="{l:Tr assistantPanel.tech}">
                     <ui:CardExpander.Header>
-                        <StackPanel>
-                            <TextBlock FontWeight="SemiBold" Text="{l:Tr assistantPanel.tech}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr assistantPanel.techHint}" />
-                        </StackPanel>
+                        <TextBlock FontWeight="SemiBold" Text="{l:Tr assistantPanel.tech}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                     </ui:CardExpander.Header>
                     <StackPanel>
                         <Grid>

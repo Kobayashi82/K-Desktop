@@ -1,9 +1,15 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+                    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+                    xmlns:v="clr-namespace:KDesktop.Views">
 
     <BooleanToVisibilityConverter x:Key="BoolToVis" />
     <CubicEase x:Key="KdEaseOut" EasingMode="EaseOut" />
+
+    <!-- Every folding panel opens and folds with what is under it moving along (SmoothExpander) -->
+    <Style TargetType="ui:CardExpander" BasedOn="{StaticResource {x:Type ui:CardExpander}}">
+        <Setter Property="v:SmoothExpander.IsEnabled" Value="True" />
+    </Style>
 
     <!-- WPF-UI's context menu look, but with a scroll bar: long menus (Add action…) never get cut at the screen edge.
          Set MaxHeight on the menu (the work area height) so the popup fits. -->

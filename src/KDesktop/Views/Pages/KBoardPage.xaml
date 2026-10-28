@@ -227,33 +227,6 @@
                                     </StackPanel>
                                 </Grid>
                             </Grid>
-
-                            <TextBlock Style="{StaticResource FieldLabel}" Margin="76,16,0,4" Text="{l:Tr kboard.apps}" />
-                            <TextBlock Style="{StaticResource Caption}" Margin="76,0,0,8" Text="{l:Tr kboard.appsHint}" />
-                            <ItemsControl Margin="76,0,0,0" ItemsSource="{Binding Processes}" Focusable="False">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Style="{StaticResource Chip}">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="{Binding}" Style="{StaticResource ChipText}" />
-                                                <ui:Button Style="{StaticResource IconButton}" Padding="4" Margin="4,0,0,0" Click="OnRemoveProcess" Tag="{Binding}">
-                                                    <ui:SymbolIcon Symbol="Dismiss24" FontSize="12" />
-                                                </ui:Button>
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                            <StackPanel Orientation="Horizontal" Margin="76,2,0,0">
-                                <ComboBox x:Name="ProcessBox" IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnProcessDropDown" DropDownClosed="OnProcessPicked" KeyDown="OnProcessKeyDown" />
-                                <ui:Button Appearance="Primary" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddProcess" />
-                                <ui:Button Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickProcess" ToolTip="{l:Tr picker.tooltip}" />
-                            </StackPanel>
                         </StackPanel>
                     </Border>
 
@@ -261,7 +234,20 @@
                     <Border Style="{StaticResource Card}">
                         <StackPanel>
                             <Grid Margin="0,0,0,10">
-                                <TextBlock Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center" Text="{l:Tr kboard.keyboard}" />
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                    <TextBlock Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center" Text="{l:Tr kboard.keyboard}" />
+                                    <!-- How it works, on hover instead of under the keyboard -->
+                                    <Border Margin="8,0,0,0" VerticalAlignment="Center" Background="Transparent" Cursor="Help" ToolTipService.ShowDuration="60000"
+                                            ToolTipService.InitialShowDelay="200" AutomationProperties.Name="{l:Tr kboard.surfaceHint}">
+                                        <Border.ToolTip>
+                                            <StackPanel MaxWidth="380">
+                                                <TextBlock TextWrapping="Wrap" Text="{l:Tr kboard.surfaceHint}" />
+                                                <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Text="{l:Tr kboard.surfaceDotHint}" />
+                                            </StackPanel>
+                                        </Border.ToolTip>
+                                        <ui:SymbolIcon Symbol="Info24" FontSize="18" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                    </Border>
+                                </StackPanel>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                     <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,10,0" Text="{l:Tr kboard.layer}"
                                                ToolTip="{l:Tr kboard.layerHint}" />
@@ -274,8 +260,6 @@
                                 </StackPanel>
                             </Grid>
                             <v:KBoardSurface x:Name="Surface" MaxHeight="340" HorizontalAlignment="Center" />
-                            <TextBlock x:Name="SurfaceHint" Style="{StaticResource Caption}" Margin="0,10,0,0" Text="{l:Tr kboard.surfaceHint}" />
-                            <TextBlock Style="{StaticResource Caption}" Margin="0,2,0,0" Text="{l:Tr kboard.surfaceDotHint}" />
                         </StackPanel>
                     </Border>
 
@@ -366,7 +350,7 @@
                         <ui:CardExpander.Header>
                             <Grid>
                                 <TextBlock FontWeight="SemiBold" VerticalAlignment="Center" Text="{l:Tr kboard.remaps}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                <ui:Button HorizontalAlignment="Right" VerticalAlignment="Center" Margin="8,0,8,0" MinHeight="36" Icon="{ui:SymbolIcon Delete24}"
+                                <ui:Button x:Name="ClearAllButton" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="8,0,8,0" MinHeight="36" Icon="{ui:SymbolIcon Delete24}"
                                            Content="{l:Tr kboard.clearAll}" Click="OnClearAll" />
                             </Grid>
                         </ui:CardExpander.Header>
@@ -402,6 +386,42 @@
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
+                        </StackPanel>
+                    </ui:CardExpander>
+
+                    <!-- Options (folded unless opened by hand, as in Comandos): the apps it works in -->
+                    <ui:CardExpander x:Name="OptionsExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Options24}"
+                                     Expanded="OnSectionFolded" Collapsed="OnSectionFolded" AutomationProperties.Name="{l:Tr commands.options}">
+                        <ui:CardExpander.Header>
+                            <TextBlock FontWeight="SemiBold" Text="{l:Tr commands.options}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                        </ui:CardExpander.Header>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource FieldLabel}" Margin="0,0,0,4" Text="{l:Tr kboard.apps}" />
+                            <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,8" Text="{l:Tr kboard.appsHint}" />
+                            <ItemsControl ItemsSource="{Binding Processes}" Focusable="False">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource Chip}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding}" Style="{StaticResource ChipText}" />
+                                                <ui:Button Style="{StaticResource IconButton}" Padding="4" Margin="4,0,0,0" Click="OnRemoveProcess" Tag="{Binding}">
+                                                    <ui:SymbolIcon Symbol="Dismiss24" FontSize="12" />
+                                                </ui:Button>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                <ComboBox x:Name="ProcessBox" IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnProcessDropDown" DropDownClosed="OnProcessPicked" KeyDown="OnProcessKeyDown" />
+                                <ui:Button Appearance="Primary" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddProcess" />
+                                <ui:Button Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickProcess" ToolTip="{l:Tr picker.tooltip}" />
+                            </StackPanel>
                         </StackPanel>
                     </ui:CardExpander>
 

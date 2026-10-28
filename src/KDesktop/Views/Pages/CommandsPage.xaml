@@ -498,7 +498,6 @@
                         <ui:CardExpander.Header>
                             <StackPanel>
                                 <TextBlock FontWeight="SemiBold" Text="{l:Tr commands.options}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                <TextBlock Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" Text="{l:Tr commands.optionsHint}" />
                             </StackPanel>
                         </ui:CardExpander.Header>
                         <StackPanel>

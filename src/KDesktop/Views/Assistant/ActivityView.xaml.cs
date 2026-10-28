@@ -46,7 +46,6 @@ public partial class ActivityView : UserControl
         if (assistant != _assistant) _shown = Page;
         _assistant = assistant;
         MineButton.Content = name;
-        HintText.Text = Loc.T("assistantActivity.hintOf", name);
         if (IsLoaded) Fill();
     }
 

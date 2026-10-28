@@ -319,7 +319,7 @@
                         </ui:Button>
                         <ui:Button Style="{StaticResource IconButton}" ToolTip="{l:Tr common.remove}" AutomationProperties.Name="{l:Tr common.remove}"
                                    Command="{x:Static p:EventsPage.RemoveCommand}" CommandParameter="{Binding}">
-                            <ui:SymbolIcon Symbol="Dismiss24" FontSize="16" Foreground="{DynamicResource Kd.Danger}" />
+                            <ui:SymbolIcon Symbol="Dismiss24" FontSize="16" />
                         </ui:Button>
                     </StackPanel>
                 </Grid>
@@ -574,7 +574,7 @@
                                     <ui:Button x:Name="AddAskButton" Appearance="Primary" MinHeight="36" Content="{l:Tr event.askAdd}" Icon="{ui:SymbolIcon ChatAdd24}" Click="OnAddAsk" />
                                     <ui:Button x:Name="RemoveAskButton" Style="{StaticResource IconButton}" ToolTip="{l:Tr common.remove}"
                                                AutomationProperties.Name="{l:Tr common.remove}" Click="OnRemoveAsk">
-                                        <ui:SymbolIcon Symbol="Dismiss24" FontSize="16" Foreground="{DynamicResource Kd.Danger}" />
+                                        <ui:SymbolIcon Symbol="Dismiss24" FontSize="16" />
                                     </ui:Button>
                                 </StackPanel>
                             </Grid>
@@ -640,7 +640,6 @@
                                         <TextBlock FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Kd.AccentText}" Text="{l:Tr event.conditionsOn}" />
                                     </Border>
                                 </StackPanel>
-                                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr event.conditionsHint}" />
                             </StackPanel>
                         </ui:CardExpander.Header>
                             <StackPanel DataContext="{Binding Conditions}">
@@ -695,7 +694,6 @@
                         <ui:CardExpander.Header>
                             <StackPanel>
                                 <TextBlock FontWeight="SemiBold" Text="{l:Tr event.options}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr event.optionsHint}" />
                             </StackPanel>
                         </ui:CardExpander.Header>
                         <StackPanel>

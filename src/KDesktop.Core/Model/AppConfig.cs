@@ -606,6 +606,12 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private bool _eventsEndFolded;
     [ObservableProperty] private bool _eventsNotesFolded;
 
+    /// <summary>Panel → Assistant: «Conversación» folded away.</summary>
+    [ObservableProperty] private bool _assistantChatFolded;
+
+    /// <summary>K-Board: «Opciones» (the apps it works in) unfolded.</summary>
+    [ObservableProperty] private bool _kBoardOptionsOpen;
+
     // Remote (UDP)
     [ObservableProperty] private bool _udpEnabled = true;
     [ObservableProperty] private int _udpPort = 2501;
