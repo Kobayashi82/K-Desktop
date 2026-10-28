@@ -19,6 +19,8 @@ public static class ToolActivities
         ["usage_stats"] = AssistantActivity.Command,
         ["add_voice_phrase"] = AssistantActivity.Command,
         ["control_app"] = AssistantActivity.Apps,
+        ["list_windows"] = AssistantActivity.Apps,
+        ["arrange_windows"] = AssistantActivity.Apps,
         ["open_app"] = AssistantActivity.Apps,
         ["end_process"] = AssistantActivity.Apps,
         ["look_up_web"] = AssistantActivity.SearchingWeb,

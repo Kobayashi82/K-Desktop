@@ -52,7 +52,7 @@ public static class StepTargets
             WindowOperation.Minimize or WindowOperation.Close => null,
             WindowOperation.Restore => WindowLayout.RestoredBounds(hwnd),
             WindowOperation.ToggleMaximize => maximized ? WindowLayout.RestoredBounds(hwnd) : area,
-            WindowOperation.Snap => WindowLayout.SnapRect(area, a.Snap, a.X, a.Y, a.Width, a.Height),
+            WindowOperation.Snap => a.Place ?? WindowLayout.SnapRect(area, a.Snap, a.X, a.Y, a.Width, a.Height),
             WindowOperation.Center => WindowLayout.Centered(WindowLayout.RestoredBounds(hwnd), area),
             WindowOperation.MoveToMonitor => WindowLayout.MonitorTarget(hwnd, a.Monitor, a.MonitorNumber) is var (from, to)
                 ? maximized ? to : WindowLayout.MapRect(WindowLayout.RestoredBounds(hwnd), from, to)

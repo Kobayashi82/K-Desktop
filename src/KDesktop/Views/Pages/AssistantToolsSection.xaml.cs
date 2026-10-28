@@ -336,7 +336,7 @@ public partial class AssistantToolsSection : UserControl
         ["find_files"] = "files", ["open_file"] = "files", ["read_file"] = "files", ["delete_file"] = "files", ["move_file"] = "files", ["write_file"] = "files", ["copy_file"] = "files", ["create_folder"] = "files", ["zip_files"] = "files", ["unzip"] = "files", ["search_knowledge"] = "files",
         ["open_web"] = "web", ["search_web"] = "web", ["look_up_web"] = "web", ["read_web"] = "web", ["network_check"] = "web",
         ["look_at_screen"] = "screen", ["transform_text"] = "screen", ["read_clipboard"] = "screen", ["set_clipboard"] = "screen",
-        ["open_app"] = "pc", ["control_app"] = "pc", ["end_process"] = "pc", ["pc_status"] = "pc", ["free_brain"] = "pc",
+        ["open_app"] = "pc", ["control_app"] = "pc", ["list_windows"] = "pc", ["arrange_windows"] = "pc", ["end_process"] = "pc", ["pc_status"] = "pc", ["free_brain"] = "pc",
         ["whats_playing"] = "media", ["control_media"] = "media",
         ["weather"] = "weather", ["convert"] = "weather",
     };

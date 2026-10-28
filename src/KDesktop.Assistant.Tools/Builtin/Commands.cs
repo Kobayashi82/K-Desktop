@@ -33,6 +33,13 @@ public interface ICommandBridge
     Task<EndMessage?> ActAsync(string op, string app, int? value, string? assistant, CancellationToken cancellationToken) => Task.FromResult<EndMessage?>(null);
 
     /// <summary>
+    /// «el navegador y VS Code uno al lado del otro» (B7): several programs placed on one monitor (<see cref="AssistantActs.Arrange"/>,
+    /// <see cref="AssistantActs.Layouts"/>; <paramref name="monitor"/> 1, 2…, null: the first one's). Without K-Desktop: null.
+    /// </summary>
+    Task<EndMessage?> ArrangeAsync(IReadOnlyList<string> apps, string? layout, int? monitor, string? assistant, CancellationToken cancellationToken) =>
+        Task.FromResult<EndMessage?>(null);
+
+    /// <summary>
     /// A text taken from the window in front or put back in it (transform_text): <paramref name="op"/> <c>grab</c> (with
     /// <paramref name="source"/>) or <c>put</c> (<paramref name="text"/>, <paramref name="mode"/>, <paramref name="hwnd"/>);
     /// see <see cref="TextMessage"/>. Without K-Desktop: null.
@@ -103,6 +110,7 @@ public static class CommandTools
         registry.Add(new RunEventTool(bridge));
         registry.Add(new StopCountdownTool(bridge));
         registry.Add(new ControlAppTool(bridge));
+        registry.Add(new ArrangeWindowsTool(bridge));
         registry.Add(new EndProcessTool(bridge));
         registry.Add(new TransformTextTool(bridge, writer));
         registry.Add(new ReadClipboardTool(bridge, vision, reader));

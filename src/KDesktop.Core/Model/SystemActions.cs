@@ -57,6 +57,12 @@ public partial class WindowAction : CommandAction
     /// </summary>
     [JsonIgnore] public IntPtr Handle { get; set; }
 
+    /// <summary>
+    /// For «Colocar», the exact place (visible bounds), chosen for the occasion (an assistant's <c>arrange_windows</c>: all
+    /// on the same monitor, in columns or a grid). Not saved, like <see cref="Handle"/>.
+    /// </summary>
+    [JsonIgnore] public Platform.ScreenRect? Place { get; set; }
+
     /// <summary>The window it acts on now: <see cref="Handle"/> while it exists, else as <see cref="Target"/> says.</summary>
     public IntPtr FindWindow(IntPtr foreground) =>
         Handle != IntPtr.Zero && Native.Win32.IsWindow(Handle) ? Handle : Platform.WindowLayout.Find(Target, ProcessName, foreground);

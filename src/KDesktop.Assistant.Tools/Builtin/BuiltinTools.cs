@@ -77,6 +77,7 @@ public sealed class BuiltinTools : IDisposable
         registry.Add(new LookUpWebTool(reader));
         registry.Add(new PcStatusTool());
         registry.Add(new NetworkCheckTool());
+        registry.Add(new ListWindowsTool());
         registry.Add(new WhatsPlayingTool());
         registry.Add(new ControlMediaTool());
         registry.Add(new NotifyWhenTool(Watches));

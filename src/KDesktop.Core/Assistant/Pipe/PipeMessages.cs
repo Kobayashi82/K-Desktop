@@ -1017,9 +1017,12 @@ public sealed record RunEventMessage(string Assistant, string Run, string Event,
 /// </summary>
 /// <param name="Op">What to do: <see cref="AssistantActs.Ops"/>.</param>
 /// <param name="App">The program in the user's words; empty: the window in front.</param>
-/// <param name="Value">For <c>volume</c>: the level, 0 to 100.</param>
+/// <param name="Value">For <c>volume</c>: the level, 0 to 100; for <c>arrange</c>: the monitor (1, 2…; null: the first window's).</param>
 /// <param name="Shared">As in <see cref="RunMessage.Shared"/>.</param>
-public sealed record ActMessage(string Assistant, string Run, string Op, string App = "", int? Value = null, bool Choreography = false, string? Scheduled = null, string? Shared = null) : PipeMessage
+/// <param name="Apps">For <c>arrange</c> (B7): the programs in the user's words, in order (left to right, top to bottom; empty: the window in front).</param>
+/// <param name="Layout">For <c>arrange</c>: <see cref="AssistantActs.Layouts"/> (null: columns, or a grid from 4).</param>
+public sealed record ActMessage(string Assistant, string Run, string Op, string App = "", int? Value = null, bool Choreography = false, string? Scheduled = null, string? Shared = null,
+    IReadOnlyList<string>? Apps = null, string? Layout = null) : PipeMessage
 {
     public override string Type => "act";
 }

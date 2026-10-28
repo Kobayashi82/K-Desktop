@@ -57,6 +57,8 @@
     { "say": "¿hay internet?", "expect": { "tool": "network_check" } },
     { "say": "¿responde el NAS?", "expect": { "tool": "network_check" } },
     { "say": "¿cuál es mi IP pública?", "expect": { "tool": "network_check" } },
+    { "say": "¿qué ventanas tengo abiertas?", "expect": { "tool": "list_windows" } },
+    { "say": "pon Chrome y VS Code uno al lado del otro", "expect": { "tool": "arrange_windows" } },
     { "say": "el juego se ha quedado colgado, ciérralo a la fuerza", "expect": { "tool": ["end_process", "control_app"] } },
     { "say": "avísame cuando termine la descarga", "expect": { "tool": "notify_when" } },
     { "say": "dime cuando se cierre el Blender", "expect": { "tool": "notify_when" } },

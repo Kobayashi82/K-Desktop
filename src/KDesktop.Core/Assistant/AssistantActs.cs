@@ -45,6 +45,7 @@ public static class AssistantActs
         Func<IntPtr, bool>? hung = null)
     {
         var op = act.Op;
+        if (op == Arrange) return BuildArrange(act, windows, foreground, WindowLayout.WorkAreas(), WindowLayout.WorkAreaOf);
         if (!Ops.Contains(op)) throw new ArgumentException($"«{op}» no es algo que un asistente pueda hacer a un programa", nameof(act));
         if (op == "kill") return Kill(act, windows, process, foreground, hung ?? Native.Win32.IsHungAppWindow);
         var current = !AppFinder.NamesSomething(act.App);
@@ -99,6 +100,94 @@ public static class AssistantActs
         var command = new Command { Name = Loc.T("act." + op, name) };
         command.Actions.Add(action);
         return new Plan(command, name, null);
+    }
+
+    /// <summary>«el navegador y VS Code uno al lado del otro» (B7): several windows placed at once, not one of <see cref="Ops"/>.</summary>
+    public const string Arrange = "arrange";
+
+    /// <summary>
+    /// How <see cref="Arrange"/> shares the monitor: <c>columns</c> (side by side), <c>rows</c> (one above the other),
+    /// <c>grid</c> (2 × 2; with 3, a big one on the left) or <c>main</c> (the first big on the left, the rest on the right).
+    /// </summary>
+    public static readonly IReadOnlyList<string> Layouts = ["columns", "rows", "grid", "main"];
+
+    /// <summary>The most windows arranged at once.</summary>
+    public const int MaxArranged = 6;
+
+    /// <summary>
+    /// Finds each program among the open windows (a different window each: «dos de Chrome» are two of its windows) and
+    /// makes a command with one «Colocar» per window, at its exact place (<see cref="WindowAction.Place"/>) on one monitor:
+    /// the one asked for (<see cref="ActMessage.Value"/>), or the first window's. With the assistant's steps, it carries
+    /// them one by one.
+    /// </summary>
+    public static Plan BuildArrange(ActMessage act, IReadOnlyList<OpenWindow> windows, ForegroundWindow foreground,
+        IReadOnlyList<ScreenRect> areas, Func<IntPtr, ScreenRect> areaOf)
+    {
+        var apps = (act.Apps ?? []).Select(a => a?.Trim() ?? string.Empty).Take(MaxArranged).ToList();
+        if (apps.Count == 0) return new Plan(null, Loc.T("act.current"), "noWindow");
+        var chosen = new List<OpenWindow>();
+        foreach (var app in apps)
+        {
+            var left = windows.Where(w => !chosen.Contains(w) && !IsOwn(w.Process)).ToList();
+            var window = AppFinder.NamesSomething(app)
+                ? AppFinder.FindWindow(app, left)
+                : left.FirstOrDefault(w => w.Hwnd == foreground.Handle || w.Hwnd == foreground.RootHandle);
+            if (window is null) return new Plan(null, AppFinder.NamesSomething(app) ? app : Loc.T("act.current"), AppFinder.NamesSomething(app) ? "noWindow" : "notAllowed");
+            chosen.Add(window);
+        }
+        var names = string.Join(", ", chosen.Select(w => w.DisplayName));
+        var area = act.Value is { } number && areas.Count > 0 ? areas[Math.Clamp(number, 1, areas.Count) - 1] : areaOf(chosen[0].Hwnd);
+        var places = ArrangeRects(area, chosen.Count, act.Layout);
+        var command = new Command { Name = Loc.T("act.arrange", names) };
+        for (var i = 0; i < chosen.Count; i++)
+        {
+            command.Actions.Add(new WindowAction
+            {
+                Target = WindowTarget.Process,
+                ProcessName = chosen[i].Process,
+                Handle = chosen[i].Hwnd,
+                Operation = WindowOperation.Snap,
+                Snap = WindowSnap.Custom,
+                Place = places[i],
+            });
+        }
+        return new Plan(command, names, null);
+    }
+
+    /// <summary>Where each of <paramref name="count"/> windows goes in <paramref name="area"/> for <paramref name="layout"/> (<see cref="Layouts"/>).</summary>
+    public static IReadOnlyList<ScreenRect> ArrangeRects(ScreenRect area, int count, string? layout)
+    {
+        count = Math.Clamp(count, 1, MaxArranged);
+        layout = layout is { } given && Layouts.Contains(given) ? given : count >= 4 ? "grid" : "columns";
+        ScreenRect Part(double left, double top, double width, double height)
+        {
+            int X(double f) => area.Left + (int)Math.Round(area.Width * f);
+            int Y(double f) => area.Top + (int)Math.Round(area.Height * f);
+            return new ScreenRect(X(left), Y(top), X(left + width) - X(left), Y(top + height) - Y(top));
+        }
+        if (count == 1) return [area];
+        switch (layout)
+        {
+            case "rows":
+                return [.. Enumerable.Range(0, count).Select(i => Part(0, i / (double)count, 1, 1.0 / count))];
+            case "main":
+                // The first takes the left 60 %; the rest share the right, one above the other.
+                var rest = count - 1;
+                return [Part(0, 0, 0.6, 1), .. Enumerable.Range(0, rest).Select(i => Part(0.6, i / (double)rest, 0.4, 1.0 / rest))];
+            case "grid" when count == 2:
+            case "columns":
+                return [.. Enumerable.Range(0, count).Select(i => Part(i / (double)count, 0, 1.0 / count, 1))];
+            default:
+                if (count == 3) return [Part(0, 0, 0.5, 1), Part(0.5, 0, 0.5, 0.5), Part(0.5, 0.5, 0.5, 0.5)];
+                // Two rows: the top one gets the odd one out (5 → 3 above and 2 below).
+                var top = (count + 1) / 2;
+                var bottom = count - top;
+                return
+                [
+                    .. Enumerable.Range(0, top).Select(i => Part(i / (double)top, 0, 1.0 / top, 0.5)),
+                    .. Enumerable.Range(0, bottom).Select(i => Part(i / (double)bottom, 0.5, 1.0 / bottom, 0.5)),
+                ];
+        }
     }
 
     /// <summary>

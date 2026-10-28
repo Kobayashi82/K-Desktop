@@ -24,7 +24,7 @@ Everything an assistant does shows in *Panel → Assistant → Activity* (its ow
 | **Files** | Find files · Open a file · Read a file · Delete a file · Move a file · Write a document · Copy a file · Create a folder · Compress into a ZIP · Extract a ZIP · Search your documents | «find the electricity bill pdf», «open the last thing I downloaded» |
 | **Internet** | Open a website · Search in the browser · Look it up online · Read a web page · Check the network | «how much is an RTX 5080», «summarise this page», «is there internet?», «is the NAS answering?» |
 | **Screen and texts** | Look at the screen · Translate and fix texts · Read what is copied · Copy a text | «what is this error», «translate what I copied into French», «what have I copied?», «copy the plumber's number for me» |
-| **Programs and PC** | Open a program · Handle windows and programs · Force close · PC status · Free the brain | «minimize Steam», «Chrome is not responding, force it closed», «why is the computer slow» |
+| **Programs and PC** | Open a program · Handle windows and programs · See the open windows · Arrange several windows · Force close · PC status · Free the brain | «minimize Steam», «put the browser and VS Code side by side», «Chrome is not responding, force it closed», «why is the computer slow» |
 | **Music and video** | What's playing · Control playback | «what song is this», «pause the video» |
 | **Weather and conversions** | Weather · Convert units and currencies | «will it rain tomorrow», «how much is 50 dollars in euros» |
 
@@ -53,6 +53,10 @@ Some details:
   «Everything, asking you first» you are asked.
 - **Look it up online** searches the web and reads the first useful result; **Search in the browser** only opens the
   search in your browser.
+- **Arrange several windows** places two to six open windows together on one monitor (where the first one is, or the one you
+  say): side by side, one above the other, in a grid, or one big on the left and the rest on the right. An assistant on the
+  desktop carries them one by one, as when it moves one window. **See the open windows** tells which ones you have, where
+  they are and which are minimized.
 - **Check the network** tells whether there is internet and, when there is not, where it fails (no network, the router, the
   DNS, a sign-in page like in a hotel); whether a machine or website answers (by its name, its address or «the router»,
   also a port: «server:22»); your local and public IP; and the Wi-Fi you are on, with its signal (Windows only gives the

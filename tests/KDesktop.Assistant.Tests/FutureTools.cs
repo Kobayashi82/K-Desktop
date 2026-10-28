@@ -12,8 +12,6 @@ internal static class FutureTools
 {
     public static IEnumerable<ITool> All() =>
     [
-        new FakeTool("windows", "Lists, brings, moves to another monitor, maximises, minimises or closes windows.",
-            "trae el Spotify|pon el Word en el otro monitor|maximiza el navegador|minimiza todas las ventanas|cierra la ventana del explorador|qué ventanas tengo abiertas|bring Spotify to the front|move Word to the other monitor|minimise all the windows"),
         new FakeTool("now_playing", "Tells which song or video is playing on the PC.",
             "qué canción es esta|qué está sonando|cómo se llama esta canción|de quién es esta canción|what song is this|what is playing right now|who sings this song"),
         new FakeTool("weather", "Gives the weather forecast for a place and a day.",
