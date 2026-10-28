@@ -94,7 +94,7 @@
                             <Grid>
                                 <ui:SymbolIcon x:Name="AssistantIcon" Symbol="Bot24" FontSize="18" />
                                 <!-- A model of the brain in the graphics card: a dot on its corner -->
-                                <Ellipse x:Name="BrainBadge" Width="8" Height="8" Margin="0,-3,-5,0" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                <Ellipse x:Name="BrainBadge" Width="6" Height="6" Margin="0,-2,-4,0" Opacity="0.6" HorizontalAlignment="Right" VerticalAlignment="Top"
                                          Fill="{DynamicResource Kd.Accent}" Visibility="Collapsed" />
                             </Grid>
                         </Button>

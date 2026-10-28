@@ -350,15 +350,35 @@ public sealed partial class KBoardPage : UserControl, IDisposable
     private void OnCloseKey(object sender, RoutedEventArgs e) => SelectSource(null);
 
     /// <summary>
-    /// The layers in the gap under the main keys while it is tall enough for them (the keyboard grows with the width:
-    /// the gap is about 6 % of it), else under the keyboard.
+    /// Narrow, the numeric pad and the mouse go under the keyboard (its keys would be drawn under ~30 px wide): the keys
+    /// bigger, the picture taller. A margin around the switch so that a scroll bar coming and going doesn't flip it.
     /// </summary>
     private void OnKeyboardAreaSize(object sender, SizeChangedEventArgs e)
     {
-        var inGap = Surface.ActualWidth * 0.058 >= LayerRow.ActualHeight + 4;
-        Grid.SetRow(LayerRow, inGap ? 0 : 1);
-        // The keyboard is centred: the row starts where it does
-        LayerRow.Margin = inGap ? new Thickness(Math.Max(0, (KeyboardArea.ActualWidth - Surface.ActualWidth) / 2), 0, 0, 0) : new Thickness(0, 10, 0, 0);
+        var width = KeyboardArea.ActualWidth;
+        var compact = Surface.Compact ? width < 840 : width < 800;
+        if (compact != Surface.Compact)
+        {
+            Surface.Compact = compact;
+            Surface.MaxHeight = compact ? 600 : 340;
+        }
+        Dispatcher.BeginInvoke(PlaceLayers, System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    /// <summary>The layers in the room the keyboard leaves free while they fit there, else under the keyboard.</summary>
+    private void PlaceLayers()
+    {
+        var size = Surface.CanvasSize;
+        if (Surface.ActualWidth <= 0 || size.Width <= 0) return;
+        var scale = Surface.ActualWidth / size.Width;
+        var free = Surface.FreeArea;
+        var (w, h) = (LayerRow.ActualWidth, LayerRow.ActualHeight);
+        var fits = free.Width * scale >= w && free.Height * scale >= h + 4;
+        Grid.SetRow(LayerRow, fits ? 0 : 1);
+        // The keyboard is centred: the row starts where it does; in the low gap under the keys, centred in its height
+        var left = Math.Max(0, (KeyboardArea.ActualWidth - Surface.ActualWidth) / 2);
+        var top = free.Y * scale + (Surface.Compact ? 4 : (free.Height * scale - h) / 2);
+        LayerRow.Margin = fits ? new Thickness(left + free.X * scale, top, 0, 0) : new Thickness(0, 10, 0, 0);
     }
 
     /// <summary>Selects the key being edited (null = none) and shows its remap.</summary>

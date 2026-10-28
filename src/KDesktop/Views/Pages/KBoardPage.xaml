@@ -253,15 +253,15 @@
                                 </StackPanel>
                             </Grid>
                         </ui:CardExpander.Header>
-                        <!-- The layers sit in the gap under the main keys (left of the mouse); when the keyboard is drawn small
-                             that gap is too low for them, and they go under it (KeyboardArea_SizeChanged) -->
+                        <!-- The layers sit in the room the keyboard leaves free (under the main keys; left of the pad when compact);
+                             when it is too small for them they go under the keyboard (OnKeyboardAreaSize) -->
                         <Grid x:Name="KeyboardArea" SizeChanged="OnKeyboardAreaSize">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
                             <v:KBoardSurface x:Name="Surface" MaxHeight="340" HorizontalAlignment="Center" />
-                            <StackPanel x:Name="LayerRow" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Bottom">
+                            <StackPanel x:Name="LayerRow" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
                                 <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,10,0" Text="{l:Tr kboard.layer}"
                                            ToolTip="{l:Tr kboard.layerHint}" />
                                 <ToggleButton x:Name="LayerCtrl" Style="{StaticResource Pill}" Content="Ctrl" Click="OnLayer" />

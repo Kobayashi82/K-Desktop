@@ -14,6 +14,8 @@ namespace KDesktop.Views;
 /// Clickable picture of a full keyboard (Spanish ISO layout, navigation block and numeric pad) and a mouse.
 /// Keys remapped in the current modifier layer are highlighted and show what they do; keys remapped only in other
 /// layers get a small dot. Clicking a key raises <see cref="KeyClicked"/> with its name ("J", "LCtrl", "Mouse 4"…).
+/// <see cref="Compact"/> puts the numeric pad and the mouse under the keyboard, on the right (half as wide: bigger keys
+/// in a narrow window); <see cref="FreeArea"/> is the room left free in either layout (the page puts the layers there).
 /// </summary>
 public sealed class KBoardSurface : Viewbox
 {
@@ -83,6 +85,29 @@ public sealed class KBoardSurface : Viewbox
         }
     }
 
+    /// <summary>The numeric pad and the mouse under the keyboard instead of beside it.</summary>
+    public bool Compact
+    {
+        get => _compact;
+        set
+        {
+            if (_compact == value) return;
+            _compact = value;
+            _canvas.Children.Clear();
+            _keys.Clear();
+            Build();
+            Refresh();
+        }
+    }
+
+    private bool _compact;
+
+    /// <summary>The picture's own size (it is scaled uniformly to fit).</summary>
+    public Size CanvasSize => new(_canvas.Width, Math.Max(_canvas.Height, _canvas.MinHeight));
+
+    /// <summary>Room with nothing drawn, in the picture's coordinates: under the main keys (left of the pad, when compact).</summary>
+    public Rect FreeArea { get; private set; }
+
     public bool Contains(string name) => _keys.ContainsKey(name);
 
     /// <summary>Repaints every key from the profile.</summary>
@@ -129,23 +154,29 @@ public sealed class KBoardSurface : Viewbox
         Row(r1 + 3, nx + 1, K("Up"));
         Row(r1 + 4, nx, K("Left"), K("Down"), K("Right"));
 
-        // Numeric pad
-        const double px = 18.8;
-        Row(r1, px, K("NumLock"), K("NumPadDiv"), K("NumPadMult"), K("NumPadSub"));
-        Row(r1 + 1, px, K("NumPad7"), K("NumPad8"), K("NumPad9"));
-        defs.Add(new KeyDef("NumPadAdd", px + 3, r1 + 1, 1, 2));
-        Row(r1 + 2, px, K("NumPad4"), K("NumPad5"), K("NumPad6"));
-        Row(r1 + 3, px, K("NumPad1"), K("NumPad2"), K("NumPad3"));
-        defs.Add(new KeyDef("NumPadEnter", px + 3, r1 + 3, 1, 2));
-        Row(r1 + 4, px, K("NumPad0", 2), K("NumPadDot"));
+        // Numeric pad and mouse: beside the navigation block, or (compact) under the keyboard, on the right
+        var py = _compact ? r1 + 5.6 : r1;
+        var px = _compact ? 10.0 : 18.8;
+        var mx = _compact ? 14.8 : 23.4;
+        Row(py, px, K("NumLock"), K("NumPadDiv"), K("NumPadMult"), K("NumPadSub"));
+        Row(py + 1, px, K("NumPad7"), K("NumPad8"), K("NumPad9"));
+        defs.Add(new KeyDef("NumPadAdd", px + 3, py + 1, 1, 2));
+        Row(py + 2, px, K("NumPad4"), K("NumPad5"), K("NumPad6"));
+        Row(py + 3, px, K("NumPad1"), K("NumPad2"), K("NumPad3"));
+        defs.Add(new KeyDef("NumPadEnter", px + 3, py + 3, 1, 2));
+        Row(py + 4, px, K("NumPad0", 2), K("NumPadDot"));
 
         foreach (var d in defs) AddKey(d);
 
-        // Mouse
-        BuildMouse(23.4 * U, r1 * U);
+        _canvas.MinHeight = 0;
+        BuildMouse(mx * U, py * U);
 
-        _canvas.Width = 27.2 * U;
-        _canvas.Height = (r1 + 5) * U;
+        _canvas.Width = (_compact ? nx + 3 : 27.2) * U;
+        _canvas.Height = (py + 5) * U;
+        var height = Math.Max(_canvas.Height, _canvas.MinHeight);
+        FreeArea = _compact
+            ? new Rect(0, py * U, (px - 0.4) * U, 5 * U)
+            : new Rect(0, (r1 + 5) * U, (nx - 0.4) * U, Math.Max(0, height - (r1 + 5) * U));
     }
 
     private void AddKey(KeyDef d)
