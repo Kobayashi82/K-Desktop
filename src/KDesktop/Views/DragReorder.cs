@@ -117,7 +117,7 @@ public static class DragReorder
             _before = null;
             if (e.OriginalSource is not DependencyObject source) return;
             if (ItemsControl.ContainerFromElement(list, source) is not ListBoxItem container) return;
-            if (!CanStartFrom(source, container)) return;
+            if (!CanStartFrom(source, container, list)) return;
             _pressed = container;
             _start = e.GetPosition(list);
             if (GetClickToggles(list) && Keyboard.Modifiers == ModifierKeys.None)
@@ -179,6 +179,17 @@ public static class DragReorder
         {
             // The ListBox losing its capture to the dragged item is expected; anything else cancels.
             if (_dragged is not null && !ReferenceEquals(Mouse.Captured, _dragged)) End(commit: false);
+        }
+
+        /// <summary>
+        /// Not from text boxes, buttons, combos… unless the element is a drag handle. Nor from inside a list of its own (the
+        /// devices of «Salida de audio» inside an action): that one drags its items.
+        /// </summary>
+        private static bool CanStartFrom(DependencyObject source, ListBoxItem container, ListBox list)
+        {
+            for (var d = source; d is not null && d != container; d = Parent(d))
+                if (d is ListBox inner && !ReferenceEquals(inner, list)) return false;
+            return CanStartFrom(source, container);
         }
 
         /// <summary>Not from text boxes, buttons, combosâ€¦ unless the element is a drag handle.</summary>

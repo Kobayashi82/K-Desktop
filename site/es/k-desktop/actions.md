@@ -36,6 +36,7 @@ orden.
 |---|---|
 | **Volumen** | Fija, sube, baja o silencia el volumen: de los altavoces o el micrófono (los predeterminados o uno que elijas), de un programa o del que está delante. |
 | **Salida de audio** | Cambia el dispositivo de sonido predeterminado. Con varios elegidos, cada vez pasa al siguiente. |
+| **Entrada de audio** | Cambia el micrófono predeterminado. Con varios elegidos, cada vez pasa al siguiente. |
 | **Reproducir sonido** | Reproduce un sonido elegido en un panel por tipos (avisos, alarmas, llamadas, sistema y los tuyos) con los de K-Desktop y los de Windows, que suenan al pulsarlos, u otro archivo (.wav, .mp3, .wma, .m4a, .aac, .flac). Los que pongas en la carpeta de tus sonidos salen en «Tuyos». |
 | **Grabar audio** | Graba lo que suena en el PC, el micrófono o las dos cosas, o guarda lo que acaba de sonar (*Opciones → Grabación de audio*). |
 

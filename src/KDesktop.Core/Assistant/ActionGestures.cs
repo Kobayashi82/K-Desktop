@@ -75,7 +75,7 @@ public static class ActionGestures
 
         // Things that live in the notification area: go there, then say what changed.
         ActionKind.Volume => Tray("volume"),
-        ActionKind.AudioOutput => Tray("speaker"),
+        ActionKind.AudioOutput or ActionKind.AudioInput => Tray("speaker"),
         ActionKind.Radio => Tray("radio"),
         ActionKind.PowerPlan => Tray("battery"),
         ActionKind.WindowsTheme => Tray("theme"),

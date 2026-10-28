@@ -35,6 +35,7 @@ public static class ActionCatalog
 
         new(ActionKind.Volume, "sound", "Speaker224", () => new VolumeAction()),
         new(ActionKind.AudioOutput, "sound", "HeadphonesSoundWave24", () => new AudioOutputAction()),
+        new(ActionKind.AudioInput, "sound", "Mic24", () => new AudioInputAction()),
         new(ActionKind.PlaySound, "sound", "MusicNote224", () => new PlaySoundAction()),
         new(ActionKind.AudioRecord, "sound", "MicPulse24", () => new AudioRecordAction()),
 

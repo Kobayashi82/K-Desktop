@@ -528,7 +528,7 @@
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <Border Background="Transparent" Cursor="SizeNS" v:DragReorder.IsHandle="True" ToolTip="{l:Tr macro.dragHint}">
+                                    <Border Background="Transparent" Cursor="SizeNS" ToolTip="{l:Tr macro.dragHint}">
                                         <ui:SymbolIcon Symbol="ReOrderDotsVertical24" FontSize="14" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
                                     </Border>
                                     <ui:SymbolIcon Grid.Column="1" Symbol="{Binding Converter={StaticResource AudioSymbol}}" FontSize="18"
@@ -548,8 +548,10 @@
                 </Grid>
             </Border>
             <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" Text="{l:Tr editor.audioHint}" />
-            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.audioSound}" />
-            <v:SoundPicker Margin="0,0,0,12" Sound="{Binding Sound}" />
+            <StackPanel x:Name="SoundRow">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.audioSound}" />
+                <v:SoundPicker Margin="0,0,0,12" Sound="{Binding Sound}" />
+            </StackPanel>
             <WrapPanel>
                 <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.audioCommunications}" IsChecked="{Binding Communications}" />
                 <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
@@ -558,6 +560,10 @@
         <DataTemplate.Triggers>
             <DataTrigger Binding="{Binding Devices.Count}" Value="0">
                 <Setter TargetName="AllHint" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <!-- «Entrada de audio»: microphones, nothing to listen to -->
+            <DataTrigger Binding="{Binding IsInput}" Value="True">
+                <Setter TargetName="SoundRow" Property="Visibility" Value="Collapsed" />
             </DataTrigger>
         </DataTemplate.Triggers>
     </DataTemplate>
@@ -929,32 +935,28 @@
                 <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr editor.editKBoard}" Icon="{ui:SymbolIcon Edit24}"
                            Command="{x:Static v:EditorCommands.EditMacro}" CommandParameter="{Binding MacroId}" />
             </Grid>
-            <!-- Two per row: three in a row cut «Pausa entre repeticiones (ms)» with the window at its smallest -->
+            <!-- One row: the labels go on top of their boxes in a row of their own, so a long one (the pause) can take two
+                 lines at the window's smallest without moving the boxes out of line -->
             <Grid Style="{StaticResource EdRow}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="16" />
                     <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <StackPanel>
-                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.speed}" />
-                    <ComboBox ItemsSource="{x:Static v:Lookups.MacroSpeeds}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Speed}" />
-                </StackPanel>
-            </Grid>
-            <Grid Style="{StaticResource EdRow}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="16" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <StackPanel IsEnabled="{Binding UntilStopped, Converter={StaticResource InverseBool}}">
-                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.repeat}" />
-                    <ui:TextBox Text="{Binding Repeat, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" />
-                </StackPanel>
-                <StackPanel Grid.Column="2">
-                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.repeatDelay}" TextWrapping="Wrap" />
-                    <ui:TextBox Text="{Binding RepeatDelay, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" />
-                </StackPanel>
+                <TextBlock Style="{StaticResource FieldLabel}" VerticalAlignment="Bottom" TextWrapping="Wrap" Text="{l:Tr editor.speed}" />
+                <ComboBox Grid.Row="1" ItemsSource="{x:Static v:Lookups.MacroSpeeds}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Speed}" />
+                <TextBlock Grid.Column="2" Style="{StaticResource FieldLabel}" VerticalAlignment="Bottom" TextWrapping="Wrap" Text="{l:Tr editor.repeat}"
+                           IsEnabled="{Binding UntilStopped, Converter={StaticResource InverseBool}}" />
+                <ui:TextBox Grid.Row="1" Grid.Column="2" Text="{Binding Repeat, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True"
+                            IsEnabled="{Binding UntilStopped, Converter={StaticResource InverseBool}}" />
+                <TextBlock Grid.Column="4" Style="{StaticResource FieldLabel}" VerticalAlignment="Bottom" TextWrapping="Wrap" Text="{l:Tr editor.repeatDelay}" />
+                <ui:TextBox Grid.Row="1" Grid.Column="4" Text="{Binding RepeatDelay, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" />
             </Grid>
             <WrapPanel>
                 <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.untilStopped}" IsChecked="{Binding UntilStopped}" />

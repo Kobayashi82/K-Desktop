@@ -814,7 +814,7 @@ public sealed partial class CommandsPage : UserControl, IDisposable
     {
         if (e.Parameter is not SendInputAction a) return;
         var previous = a.Value;
-        a.Value = Loc.T("commands.pressHotkey");
+        a.Value = Loc.T("editor.pressKeys"); // Esc is one of them here: it does not cancel
         HotkeyCapture.Start(
             preview => a.Value = preview + "…",
             hotkey => a.Value = hotkey is null ? previous : Hotkey.Normalize(hotkey),
@@ -842,7 +842,7 @@ public sealed partial class CommandsPage : UserControl, IDisposable
         if (e.Parameter is not AudioOutputAction a) return;
         AudioDeviceCache.Invalidate();
         var menu = new ContextMenu { PlacementTarget = e.OriginalSource as UIElement, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom };
-        var devices = AudioDeviceCache.Devices.Where(d => a.Devices.All(x => x.Id != d.Id)).ToList();
+        var devices = AudioDeviceCache.Devices.Where(d => d.IsInput == a.IsInput && a.Devices.All(x => x.Id != d.Id)).ToList();
         foreach (var device in devices)
         {
             var item = new MenuItem

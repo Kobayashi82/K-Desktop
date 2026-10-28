@@ -92,7 +92,7 @@ public sealed class IndexConverter : IMultiValueConverter
     public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => throw new NotSupportedException();
 }
 
-/// <summary>Playback devices, read at most every couple of seconds (several converters ask at once).</summary>
+/// <summary>Playback and recording devices, read at most every couple of seconds (several converters ask at once).</summary>
 public static class AudioDeviceCache
 {
     private static IReadOnlyList<KDesktop.Core.Platform.AudioDeviceInfo> _devices = [];
@@ -104,7 +104,7 @@ public static class AudioDeviceCache
         {
             if (Environment.TickCount64 - _read > 2000)
             {
-                _devices = KDesktop.Core.Platform.AudioDevices.Playback();
+                _devices = [.. KDesktop.Core.Platform.AudioDevices.Playback(), .. KDesktop.Core.Platform.AudioDevices.Recording()];
                 _read = Environment.TickCount64;
             }
             return _devices;
@@ -139,6 +139,7 @@ public sealed class AudioDeviceSymbolConverter : IValueConverter
         KDesktop.Core.Platform.AudioFormFactor.Headset => Wpf.Ui.Controls.SymbolRegular.Headset24,
         KDesktop.Core.Platform.AudioFormFactor.Monitor => Wpf.Ui.Controls.SymbolRegular.Desktop24,
         KDesktop.Core.Platform.AudioFormFactor.Digital => Wpf.Ui.Controls.SymbolRegular.SpeakerUsb24,
+        KDesktop.Core.Platform.AudioFormFactor.Microphone => Wpf.Ui.Controls.SymbolRegular.Mic24,
         _ => Wpf.Ui.Controls.SymbolRegular.Speaker224,
     };
 

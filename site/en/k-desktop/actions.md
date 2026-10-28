@@ -35,6 +35,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 |---|---|
 | **Volume** | Sets, raises, lowers or mutes the volume: of the speakers or the microphone (the default ones or one you choose), one program or the one in front. |
 | **Audio output** | Changes the default sound device. With several chosen, each run switches to the next one. |
+| **Audio input** | Changes the default microphone. With several chosen, each run switches to the next one. |
 | **Play sound** | Plays a sound chosen in a panel by kind (alerts, alarms, calls, system and yours) with K-Desktop's and Windows' sounds, which play when clicked, or another file (.wav, .mp3, .wma, .m4a, .aac, .flac). The ones you put in your sounds folder show under «Yours». |
 | **Record audio** | Records what the PC plays, the microphone or both, or saves what just played (*Settings → Audio recording*). |
 

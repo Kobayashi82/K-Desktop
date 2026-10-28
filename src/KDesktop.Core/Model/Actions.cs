@@ -16,7 +16,7 @@ public enum ActionKind
     Window, Clipboard, WakeOnLan, Display, PowerPlan, WindowsTheme, Radio, Condition,
     Screenshot, AudioRecord, Magnifier, Dictate, ScreenText,
     AssistantExtra, AssistantAsk, AssistantSay, AssistantBrain,
-    ShowNotification, Files,
+    ShowNotification, Files, AudioInput,
 }
 
 public enum WindowMode { Normal, Minimized, Maximized, Hidden }
@@ -60,6 +60,7 @@ public enum ScriptShell { Cmd, PowerShell, VBScript }
 [JsonDerivedType(typeof(WaitAction), "wait")]
 [JsonDerivedType(typeof(PlayMacroAction), "playMacro")]
 [JsonDerivedType(typeof(AudioOutputAction), "audioOutput")]
+[JsonDerivedType(typeof(AudioInputAction), "audioInput")]
 [JsonDerivedType(typeof(KBoardAction), "kboard")]
 [JsonDerivedType(typeof(LauncherAction), "launcher")]
 [JsonDerivedType(typeof(HttpRequestAction), "httpRequest")]
@@ -369,13 +370,23 @@ public partial class AudioOutputAction : CommandAction
     private void OnDevicesChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) =>
         OnPropertyChanged(nameof(Devices));
 
+    /// <summary>The microphones instead of the speakers («Entrada de audio»).</summary>
+    [JsonIgnore] public virtual bool IsInput => false;
+
     public override ActionKind Kind => ActionKind.AudioOutput;
     public override string Summary => Devices.Count switch
     {
-        0 => Loc.T("summary.audio.all"),
+        0 => Loc.T(IsInput ? "summary.audioIn.all" : "summary.audio.all"),
         1 => Loc.T("summary.audio.one", Devices[0].Name),
         _ => string.Join("  →  ", Devices.Select(d => d.Name)),
     };
+}
+
+/// <summary>«Entrada de audio»: the same as the output, with the recording devices (microphones).</summary>
+public sealed class AudioInputAction : AudioOutputAction
+{
+    public override bool IsInput => true;
+    public override ActionKind Kind => ActionKind.AudioInput;
 }
 
 public partial class PlaySoundAction : CommandAction

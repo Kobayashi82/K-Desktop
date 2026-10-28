@@ -68,6 +68,7 @@ public static partial class IconProvider
         VolumeAction { Target: VolumeTarget.Microphone } => Kd("Mic24", "teal"),
         VolumeAction { Target: VolumeTarget.App or VolumeTarget.ForegroundApp } => Kd("SoundSource24", "teal"),
         VolumeAction => Kd("Speaker224", "teal"),
+        AudioInputAction => Kd("Mic24", "teal"),
         AudioOutputAction => Kd("HeadphonesSoundWave24", "teal"),
         PlaySoundAction => Kd("MusicNote224", "pink"),
         TopMostAction => Kd("Pin24", "orange"),

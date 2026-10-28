@@ -4,10 +4,11 @@ using NAudio.CoreAudioApi;
 
 namespace KDesktop.Core.Platform;
 
-public enum AudioFormFactor { Speakers, Headphones, Headset, Monitor, Digital, Other }
+public enum AudioFormFactor { Speakers, Headphones, Headset, Monitor, Digital, Other, Microphone }
 
-/// <summary>A playback device as Windows lists it.</summary>
-public sealed record AudioDeviceInfo(string Id, string Name, string Adapter, bool IsActive, bool IsDefault, bool IsDefaultCommunications, AudioFormFactor FormFactor);
+/// <summary>A playback device (or a recording one: <paramref name="IsInput"/>) as Windows lists it.</summary>
+public sealed record AudioDeviceInfo(string Id, string Name, string Adapter, bool IsActive, bool IsDefault, bool IsDefaultCommunications, AudioFormFactor FormFactor,
+    bool IsInput = false);
 
 /// <summary>Lists playback devices and changes the default one (the same thing the Windows sound settings do).</summary>
 public static class AudioDevices
@@ -39,7 +40,8 @@ public static class AudioDevices
                             device.State == DeviceState.Active,
                             device.ID == defaultId,
                             device.ID == commsId,
-                            FormFactorOf(device)));
+                            FormFactorOf(device),
+                            flow == DataFlow.Capture));
                     }
                     catch (Exception ex)
                     {
@@ -95,9 +97,9 @@ public static class AudioDevices
     /// Switches to the device after the current default one in <paramref name="rotation"/> (an empty list means every
     /// connected device). Devices that are not connected are skipped. Returns the device now in use, or null.
     /// </summary>
-    public static AudioDeviceInfo? Next(IReadOnlyList<string> rotation, bool communications)
+    public static AudioDeviceInfo? Next(IReadOnlyList<string> rotation, bool communications, bool input = false)
     {
-        var all = Playback();
+        var all = input ? Recording() : Playback();
         var candidates = rotation.Count == 0
             ? all.Where(d => d.IsActive).ToList()
             : rotation.Select(id => all.FirstOrDefault(d => d.Id == id)).OfType<AudioDeviceInfo>().Where(d => d.IsActive).ToList();
@@ -126,6 +128,7 @@ public static class AudioDevices
             {
                 1 => AudioFormFactor.Speakers,
                 3 => AudioFormFactor.Headphones,
+                4 => AudioFormFactor.Microphone,
                 5 => AudioFormFactor.Headset,
                 8 => AudioFormFactor.Digital,  // SPDIF
                 9 => AudioFormFactor.Monitor,  // DigitalAudioDisplayDevice (HDMI / DisplayPort)

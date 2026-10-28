@@ -10,7 +10,9 @@ namespace KDesktop.Core.Platform;
 /// <summary>
 /// Listens to what the PC plays (loopback) and/or the microphone and keeps the last seconds on a common time line
 /// (48 kHz stereo), so both can be mixed and read back by time. Silence is silence: the loopback sends nothing while
-/// nothing plays, and those gaps read as zeros.
+/// nothing plays, and those gaps read as zeros. What the PC plays comes back to its own level: Windows hands the
+/// loopback with its volume already applied (at 30 % a recording came out some 18 dB down, also on a device that says
+/// it has hardware volume), so it is divided by that volume, following it while it records.
 /// </summary>
 public sealed class AudioTap : IDisposable
 {
@@ -24,6 +26,8 @@ public sealed class AudioTap : IDisposable
         public required ISampleProvider Converted { get; init; }
         public required float[] Ring { get; init; }
         public float Gain = 1;
+        public MMDevice? Device;          // the speakers listened to (loopback), kept to follow their volume
+        public AudioEndpointVolumeNotificationDelegate? OnVolume;
         public byte[] Bytes = [];
         public float[] Chunk = new float[8192];
         public long Next = long.MinValue;   // frame where the next packet goes when it comes on time
@@ -66,11 +70,26 @@ public sealed class AudioTap : IDisposable
         };
         if (converted.WaveFormat.SampleRate != Rate) converted = new WdlResamplingSampleProvider(converted, Rate);
         var source = new Source { Recorder = recorder, Buffer = buffer, Converted = converted, Ring = new float[_frames * Channels], Gain = loopback ? 1 : _micGain };
+        if (loopback)
+        {
+            source.Device = device;
+            source.Gain = UndoVolume(device);
+            source.OnVolume = _ => source.Gain = UndoVolume(device);
+            device.AudioEndpointVolume.OnVolumeNotification += source.OnVolume;
+        }
         recorder.DataAvailable += (data, flags, _, _) => OnData(source, data, flags);
         recorder.StartRecording();
         _sources.Add(source);
-        Log.Info($"Grabación: {(loopback ? "lo que suena en" : "micrófono")} {device.FriendlyName} ({recorder.WaveFormat})");
-        device.Dispose();
+        Log.Info($"Grabación: {(loopback ? "lo que suena en" : "micrófono")} {device.FriendlyName} ({recorder.WaveFormat}" +
+                 (loopback ? $", ×{source.Gain:0.0} por el volumen de Windows)" : ")"));
+        if (!loopback) device.Dispose();
+    }
+
+    /// <summary>What undoes the speakers' volume (at most ×1000, 60 dB: at 0 % nothing is heard anyway).</summary>
+    private static float UndoVolume(MMDevice device)
+    {
+        try { return Math.Clamp(MathF.Pow(10, -device.AudioEndpointVolume.MasterVolumeLevel / 20), 1, 1000); }
+        catch { return 1; }
     }
 
     private void OnData(Source s, ReadOnlySpan<byte> data, AudioClientBufferFlags flags)
@@ -142,6 +161,11 @@ public sealed class AudioTap : IDisposable
         {
             try { s.Recorder.StopRecording(); } catch { /* already stopped */ }
             s.Recorder.Dispose();
+            if (s.Device is { } device)
+            {
+                try { if (s.OnVolume is not null) device.AudioEndpointVolume.OnVolumeNotification -= s.OnVolume; } catch { /* gone */ }
+                device.Dispose();
+            }
         }
         _sources.Clear();
     }

@@ -31,7 +31,7 @@ public sealed partial class CommandEngine
         CommandControlAction a => CommandControlAsync(a, ctx),
         WaitAction a => WaitAsync(a, ctx),
         PlayMacroAction a => PlayMacroAsync(a, ctx),
-        AudioOutputAction a => AudioOutputAsync(a),
+        AudioOutputAction a => AudioOutputAsync(a), // also «Entrada de audio»
         KBoardAction a => Run(() => KBoard(a)),
         HttpRequestAction a => HttpRequestAsync(a, ctx),
         WindowAction a => Run(() => Window(a, ctx)),
@@ -323,14 +323,15 @@ public sealed partial class CommandEngine
     private async Task AudioOutputAsync(AudioOutputAction a)
     {
         var rotation = a.Devices.Select(d => d.Id).ToList();
-        var device = await Task.Run(() => AudioDevices.Next(rotation, a.Communications)).ConfigureAwait(false);
+        var device = await Task.Run(() => AudioDevices.Next(rotation, a.Communications, a.IsInput)).ConfigureAwait(false);
+        var icon = a.IsInput ? "Mic24" : "HeadphonesSoundWave24";
         if (device is null)
         {
-            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.audioNone"), OsdKind.Warning, look: OsdLook.Of("HeadphonesSoundWave24"));
+            if (a.ShowOsd) _ui.ShowOsd(Loc.T(a.IsInput ? "osd.audioInNone" : "osd.audioNone"), OsdKind.Warning, look: OsdLook.Of(icon));
             return;
         }
-        if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.audioOutput", device.Name), OsdKind.Success, look: OsdLook.Of("HeadphonesSoundWave24"));
-        if (!string.IsNullOrWhiteSpace(a.Sound))
+        if (a.ShowOsd) _ui.ShowOsd(Loc.T(a.IsInput ? "osd.audioInput" : "osd.audioOutput", device.Name), OsdKind.Success, look: OsdLook.Of(icon));
+        if (!a.IsInput && !string.IsNullOrWhiteSpace(a.Sound))
         {
             // Give Windows a moment to move the audio streams to the new device.
             await Task.Delay(250).ConfigureAwait(false);

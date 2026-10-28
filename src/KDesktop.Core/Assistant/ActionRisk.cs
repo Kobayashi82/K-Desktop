@@ -77,7 +77,7 @@ public static class ActionRisk
         ActionKind.RunApp or ActionKind.OpenFolder or ActionKind.OpenUrl or ActionKind.AppControl or ActionKind.Volume or
         ActionKind.PlaySound or ActionKind.TopMost or ActionKind.HiddenFiles or ActionKind.ToggleDisabledIn or
         ActionKind.ShowMessage or ActionKind.ShowNotification or ActionKind.Files or ActionKind.OpenQuickMenu or ActionKind.CommandControl or ActionKind.Wait or
-        ActionKind.AudioOutput or ActionKind.KBoard or ActionKind.Launcher or ActionKind.Window or ActionKind.Clipboard or
+        ActionKind.AudioOutput or ActionKind.AudioInput or ActionKind.KBoard or ActionKind.Launcher or ActionKind.Window or ActionKind.Clipboard or
         ActionKind.WakeOnLan or ActionKind.Display or ActionKind.PowerPlan or ActionKind.WindowsTheme or ActionKind.Radio or
         ActionKind.Condition or ActionKind.Screenshot or ActionKind.ScreenText or ActionKind.AudioRecord or ActionKind.Dictate or ActionKind.Magnifier or ActionKind.AssistantExtra or ActionKind.AssistantAsk or ActionKind.AssistantSay or ActionKind.AssistantBrain => ToolRisk.Safe,
 
