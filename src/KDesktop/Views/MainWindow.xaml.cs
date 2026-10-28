@@ -40,6 +40,7 @@ public partial class MainWindow : FluentWindow
         Loc.Instance.Changed += OnLanguageChanged;
         App.Current.PausedChanged += OnPausedChanged;
         App.Current.AssistantChanged += UpdateStatus;
+        App.Current.AssistantBrainChanged += OnBrainChanged;
         Services.ThemeService.Changed += OnThemeChanged;
         SourceInitialized += (_, _) => FileDrop.Attach(this, OnFilesDropped);
         // A QuickMenu open over this window (Probar, or its hotkey) closes with a click here, as it does anywhere else.
@@ -52,6 +53,7 @@ public partial class MainWindow : FluentWindow
             Loc.Instance.Changed -= OnLanguageChanged;
             App.Current.PausedChanged -= OnPausedChanged;
             App.Current.AssistantChanged -= UpdateStatus;
+            App.Current.AssistantBrainChanged -= OnBrainChanged;
             Services.ThemeService.Changed -= OnThemeChanged;
             foreach (var page in _pages.Values.OfType<IDisposable>()) page.Dispose();
         };
@@ -210,9 +212,17 @@ public partial class MainWindow : FluentWindow
         if (assistantOn)
         {
             var (text, brush) = AssistantLook.Summary(app);
-            SetStatus(AssistantStatus, AssistantIcon, SymbolRegular.Bot24, brush, Loc.T("status.assistant", text), Loc.T("status.clickPanel"));
+            // With a model in the graphics card, which one (and a dot on the icon)
+            var loaded = app.AssistantBrainInMemory && app.AssistantBrain is { } brain
+                ? string.Join(", ", (brain.Loaded ?? []).Concat(brain.Loading is { } l ? [l] : []).Select(app.BrainModelName))
+                : null;
+            BrainBadge.Visibility = loaded is null ? Visibility.Collapsed : Visibility.Visible;
+            SetStatus(AssistantStatus, AssistantIcon, SymbolRegular.Bot24, brush,
+                Loc.T("status.assistant", text) + (loaded is null ? "" : Environment.NewLine + Loc.T("status.brainLoaded", loaded)), Loc.T("status.clickPanel"));
         }
     }
+
+    private void OnBrainChanged() => Dispatcher.BeginInvoke(UpdateStatus);
 
     /// <summary>Icon, colour and tooltip of one status button.</summary>
     private static void SetStatus(System.Windows.Controls.Button button, SymbolIcon icon, SymbolRegular symbol, string brush, string text, string? hint)

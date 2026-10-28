@@ -69,7 +69,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <ui:TitleBar Grid.Row="0" Title="{l:Tr commands.addAction}" ShowMinimize="False" Margin="-16,0,0,0" />
+        <ui:TitleBar x:Name="Bar" Grid.Row="0" Title="{l:Tr commands.addAction}" ShowMinimize="False" Margin="-16,0,0,0" />
         <ui:TextBox x:Name="SearchBox" Grid.Row="1" Margin="0,4,16,12" PlaceholderText="{l:Tr actionPicker.search}" Icon="{ui:SymbolIcon Search24}"
                     TextChanged="OnSearch" PreviewKeyDown="OnSearchKey" />
 

@@ -91,7 +91,12 @@
                         </Button>
                         <!-- Only while the assistant module is on -->
                         <Button x:Name="AssistantStatus" Style="{StaticResource StatusButton}" Click="OnAssistantStatus" Visibility="Collapsed">
-                            <ui:SymbolIcon x:Name="AssistantIcon" Symbol="Bot24" FontSize="18" />
+                            <Grid>
+                                <ui:SymbolIcon x:Name="AssistantIcon" Symbol="Bot24" FontSize="18" />
+                                <!-- A model of the brain in the graphics card: a dot on its corner -->
+                                <Ellipse x:Name="BrainBadge" Width="8" Height="8" Margin="0,-3,-5,0" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                         Fill="{DynamicResource Kd.Accent}" Visibility="Collapsed" />
+                            </Grid>
                         </Button>
                     </UniformGrid>
                 </Border>

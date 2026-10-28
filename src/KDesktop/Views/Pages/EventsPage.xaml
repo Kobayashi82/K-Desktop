@@ -524,18 +524,20 @@
                             <TextBlock FontWeight="SemiBold" Text="{l:Tr event.when}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                         </ui:CardExpander.Header>
                         <StackPanel>
-                            <ComboBox x:Name="KindBox" Margin="0,0,0,8" MaxWidth="420" HorizontalAlignment="Left" MinWidth="320"
-                                      ItemsSource="{x:Static v:Lookups.EventKinds}" SelectionChanged="OnKindChanged" MaxDropDownHeight="520"
-                                      v:ComboHover.NoScroll="True">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate DataType="{x:Type m:EventKindInfo}">
-                                        <StackPanel Orientation="Horizontal">
-                                            <ui:SymbolIcon Symbol="{Binding Symbol}" FontSize="16" Margin="0,0,10,0" Foreground="{DynamicResource Kd.AccentText}" />
-                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
+                            <!-- The kind, chosen in a window by categories with what each one does (like «Añadir acción») -->
+                            <ui:Button x:Name="KindButton" Margin="0,0,0,8" MinWidth="320" MinHeight="36" HorizontalAlignment="Left" HorizontalContentAlignment="Stretch"
+                                       Click="OnChooseKind" ToolTip="{l:Tr event.when}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <ui:SymbolIcon x:Name="KindIcon" FontSize="16" Margin="0,0,10,0" Foreground="{DynamicResource Kd.AccentText}" />
+                                    <TextBlock x:Name="KindName" Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                    <ui:SymbolIcon Grid.Column="2" Symbol="ChevronRight24" FontSize="12" Margin="16,0,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                </Grid>
+                            </ui:Button>
                             <TextBlock x:Name="KindDescription" Style="{StaticResource Caption}" Margin="0,0,0,12" TextWrapping="Wrap" />
                             <ContentControl Content="{Binding Trigger}" Focusable="False" />
                             <CheckBox Margin="0,12,0,0" Content="{l:Tr event.once}" IsChecked="{Binding Once}" ToolTip="{l:Tr event.onceHint}" />

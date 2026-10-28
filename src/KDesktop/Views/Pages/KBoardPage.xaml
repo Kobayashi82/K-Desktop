@@ -241,25 +241,35 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Keyboard and mouse (foldable; the layers and «Pulsar tecla» stay on the header) -->
+                    <!-- Keyboard and mouse (foldable; «Pulsar tecla» stays on the header, the layers go in the gap under the keys) -->
                     <ui:CardExpander x:Name="KeyboardExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Keyboard24}" HorizontalContentAlignment="Stretch"
                                      Expanded="OnSectionFolded" Collapsed="OnSectionFolded" AutomationProperties.Name="{l:Tr kboard.keyboard}">
                         <ui:CardExpander.Header>
                             <Grid>
                                 <TextBlock FontWeight="SemiBold" VerticalAlignment="Center" Text="{l:Tr kboard.keyboard}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="8,0,8,0">
-                                    <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,10,0" Text="{l:Tr kboard.layer}"
-                                               ToolTip="{l:Tr kboard.layerHint}" />
-                                    <ToggleButton x:Name="LayerCtrl" Style="{StaticResource Pill}" Content="Ctrl" Click="OnLayer" />
-                                    <ToggleButton x:Name="LayerAlt" Style="{StaticResource Pill}" Content="Alt" Click="OnLayer" />
-                                    <ToggleButton x:Name="LayerShift" Style="{StaticResource Pill}" Content="Shift" Click="OnLayer" />
-                                    <ToggleButton x:Name="LayerWin" Style="{StaticResource Pill}" Content="Win" Click="OnLayer" Margin="0,0,14,0" />
                                     <ui:Button x:Name="CaptureSourceButton" Appearance="Primary" Content="{l:Tr kboard.captureSource}" Icon="{ui:SymbolIcon Keyboard24}"
                                                Click="OnCaptureSource" ToolTip="{l:Tr kboard.captureSourceHint}" />
                                 </StackPanel>
                             </Grid>
                         </ui:CardExpander.Header>
-                        <v:KBoardSurface x:Name="Surface" MaxHeight="340" HorizontalAlignment="Center" />
+                        <!-- The layers sit in the gap under the main keys (left of the mouse); when the keyboard is drawn small
+                             that gap is too low for them, and they go under it (KeyboardArea_SizeChanged) -->
+                        <Grid x:Name="KeyboardArea" SizeChanged="OnKeyboardAreaSize">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <v:KBoardSurface x:Name="Surface" MaxHeight="340" HorizontalAlignment="Center" />
+                            <StackPanel x:Name="LayerRow" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Bottom">
+                                <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,10,0" Text="{l:Tr kboard.layer}"
+                                           ToolTip="{l:Tr kboard.layerHint}" />
+                                <ToggleButton x:Name="LayerCtrl" Style="{StaticResource Pill}" Content="Ctrl" Click="OnLayer" />
+                                <ToggleButton x:Name="LayerAlt" Style="{StaticResource Pill}" Content="Alt" Click="OnLayer" />
+                                <ToggleButton x:Name="LayerShift" Style="{StaticResource Pill}" Content="Shift" Click="OnLayer" />
+                                <ToggleButton x:Name="LayerWin" Style="{StaticResource Pill}" Content="Win" Click="OnLayer" />
+                            </StackPanel>
+                        </Grid>
                     </ui:CardExpander>
 
                     <!-- Selected key -->

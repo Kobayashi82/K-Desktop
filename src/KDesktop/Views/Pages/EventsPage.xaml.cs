@@ -31,7 +31,6 @@ public sealed partial class EventsPage : UserControl, IDisposable
 
     private readonly App _app = App.Current;
     private EventRule? _selected;
-    private bool _settingKind;
 
     private AppConfig Config => _app.Config;
 
@@ -147,9 +146,9 @@ public sealed partial class EventsPage : UserControl, IDisposable
         if (_selected is not { } rule) return;
         HeaderIcon.Source = IconProvider.ForEvent(rule);
         var info = EventCatalog.Get(rule.Trigger.Kind);
-        _settingKind = true;
-        KindBox.SelectedItem = info;
-        _settingKind = false;
+        KindIcon.Symbol = Enum.TryParse<SymbolRegular>(info.Symbol, out var symbol) ? symbol : SymbolRegular.Flash24;
+        KindName.Text = info.Name;
+        System.Windows.Automation.AutomationProperties.SetName(KindButton, info.Name);
         KindDescription.Text = info.Description;
         WhenSummary.Text = info.Name;
         NoCommands.Visibility = rule.Commands.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -180,9 +179,9 @@ public sealed partial class EventsPage : UserControl, IDisposable
         SuspendedHint.Visibility = _selected is { } rule && _app.Events.IsSuspended(rule) ? Visibility.Visible : Visibility.Collapsed;
 
     /// <summary>The trigger type changed: a new trigger, keeping the programs; «no repetir» follows the type's default.</summary>
-    private void OnKindChanged(object sender, SelectionChangedEventArgs e)
+    private void OnChooseKind(object sender, RoutedEventArgs e)
     {
-        if (_settingKind || _selected is not { } rule || KindBox.SelectedItem is not EventKindInfo info || info.Kind == rule.Trigger.Kind) return;
+        if (_selected is not { } rule || Dialogs.ActionPicker.PickEventKind(Window.GetWindow(this)) is not { } info || info.Kind == rule.Trigger.Kind) return;
         var old = rule.Trigger;
         var trigger = EventCatalog.Convert(old, info.Kind);
         if (rule.CooldownSeconds == old.DefaultCooldown) rule.CooldownSeconds = trigger.DefaultCooldown;
