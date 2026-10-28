@@ -68,6 +68,9 @@
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
+        <!-- «Nuevo comando», only where a new one can be made right away (events): instead of picking one -->
+        <ui:Button x:Name="NewButton" Grid.Row="3" Margin="0,12,0,0" HorizontalAlignment="Left" Visibility="Collapsed"
+                   Content="{l:Tr event.newCommand}" Icon="{ui:SymbolIcon DocumentAdd24}" ToolTip="{l:Tr event.newCommandHint}" Click="OnNew" />
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
             <ui:Button Content="{l:Tr common.cancel}" Click="OnCancel" Margin="0,0,8,0" />
             <ui:Button Content="{l:Tr common.add}" Appearance="Primary" Click="OnAccept" />

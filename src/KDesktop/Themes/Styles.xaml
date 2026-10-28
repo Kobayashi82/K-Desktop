@@ -293,6 +293,10 @@
     <Style x:Key="RowItem" TargetType="ListBoxItem">
         <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
         <Setter Property="Margin" Value="0,1" />
+        <Setter Property="Padding" Value="10,6,8,6" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -300,15 +304,18 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ListBoxItem">
                     <Grid Background="Transparent">
-                        <Border x:Name="Hover" CornerRadius="6" Background="{DynamicResource Kd.SubtleHover}" Opacity="0" />
-                        <Border x:Name="Sel" CornerRadius="6" Background="{DynamicResource Kd.Selected}" Opacity="0" />
+                        <!-- Plain rows have none of it; CardRowItem gives each row its own frame -->
+                        <Border CornerRadius="8" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" />
+                        <Border x:Name="Hover" CornerRadius="8" Background="{DynamicResource Kd.SubtleHover}" Opacity="0" />
+                        <Border x:Name="Sel" CornerRadius="8" Background="{DynamicResource Kd.Selected}" Opacity="0" />
                         <Border x:Name="Pill" Width="3" Height="20" CornerRadius="1.5" HorizontalAlignment="Left"
                                 Background="{DynamicResource Kd.Accent}" RenderTransformOrigin="0.5,0.5">
                             <Border.RenderTransform>
                                 <ScaleTransform x:Name="PillScale" ScaleY="0" />
                             </Border.RenderTransform>
                         </Border>
-                        <ContentPresenter Margin="10,6,8,6" />
+                        <ContentPresenter Margin="{TemplateBinding Padding}" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -349,6 +356,15 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+    <!-- The lists on the left of the pages (commands, events, macros…): each row framed and apart from the next -->
+    <Style x:Key="CardRowItem" TargetType="ListBoxItem" BasedOn="{StaticResource RowItem}">
+        <Setter Property="Margin" Value="0,0,0,6" />
+        <Setter Property="Padding" Value="12,8,8,8" />
+        <Setter Property="Background" Value="{DynamicResource Kd.Subtle}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
     </Style>
 
     <Style x:Key="CleanListBox" TargetType="ListBox">

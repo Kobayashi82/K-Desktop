@@ -37,8 +37,11 @@
                            Icon="{ui:SymbolIcon PeopleCommunity24}" Click="OnChoose" />
                 <ui:Button Margin="0,8,0,0" HorizontalAlignment="Stretch" Content="{l:Tr assistantPanel.options}"
                            Icon="{ui:SymbolIcon Settings24}" Click="OnOptions" />
+                <!-- The models out of the graphics card; only when there is something in it -->
+                <ui:Button x:Name="FreeBrainButton" Margin="0,8,0,0" HorizontalAlignment="Stretch" Content="{l:Tr assistantMenu.freeBrain}"
+                           Icon="{ui:SymbolIcon Broom24}" Click="OnFreeBrain" IsEnabled="False" />
             </StackPanel>
-            <ListBox x:Name="AssistantList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource RowItem}"
+            <ListBox x:Name="AssistantList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource CardRowItem}"
                      SelectionChanged="OnAssistantSelected" AutomationProperties.Name="{l:Tr assistantPanel.whom}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>

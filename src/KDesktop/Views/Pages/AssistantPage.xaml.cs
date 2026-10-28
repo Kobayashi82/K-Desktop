@@ -40,12 +40,15 @@ public partial class AssistantPage : UserControl
         Loaded += (_, _) =>
         {
             _app.AssistantChanged += Refresh;
+            _app.AssistantBrainChanged += OnBrainChanged;
             Refresh();
+            OnBrainChanged();
             _usage.Start();
         };
         Unloaded += (_, _) =>
         {
             _app.AssistantChanged -= Refresh;
+            _app.AssistantBrainChanged -= OnBrainChanged;
             _usage.Stop();
         };
     }
@@ -245,6 +248,10 @@ public partial class AssistantPage : UserControl
     }
 
     private void OnChoose(object sender, RoutedEventArgs e) => (Window.GetWindow(this) as MainWindow)?.Navigate("settings/assistants");
+
+    private void OnBrainChanged() => Dispatcher.BeginInvoke(() => FreeBrainButton.IsEnabled = _app.AssistantBrainInMemory);
+
+    private void OnFreeBrain(object sender, RoutedEventArgs e) => _app.FreeAssistantBrain();
 
     private void OnOptions(object sender, RoutedEventArgs e) => (Window.GetWindow(this) as MainWindow)?.Navigate("settings/assistant");
 

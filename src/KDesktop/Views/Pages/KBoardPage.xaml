@@ -127,7 +127,7 @@
                 <ui:Button Margin="0,0,0,10" Content="{l:Tr kboard.new}" Icon="{ui:SymbolIcon Add24}" Appearance="Primary" Click="OnNewProfile" HorizontalAlignment="Stretch" />
             </StackPanel>
 
-            <ListBox x:Name="ProfileList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource RowItem}"
+            <ListBox x:Name="ProfileList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource CardRowItem}"
                      SelectionChanged="OnProfileSelected" PreviewMouseRightButtonUp="OnProfileRightClick" KeyDown="OnProfileListKey">
                 <ListBox.ItemTemplate>
                     <DataTemplate DataType="{x:Type m:KBoardProfile}">
@@ -225,30 +225,29 @@
                                                    Foreground="{DynamicResource Kd.Danger}" Visibility="Collapsed" />
                                         <TextBlock Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{Binding Summary}" />
                                     </StackPanel>
-                                </Grid>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Keyboard and mouse -->
-                    <Border Style="{StaticResource Card}">
-                        <StackPanel>
-                            <Grid Margin="0,0,0,10">
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                    <TextBlock Style="{StaticResource SectionTitle}" Margin="0" VerticalAlignment="Center" Text="{l:Tr kboard.keyboard}" />
-                                    <!-- How it works, on hover instead of under the keyboard -->
-                                    <Border Margin="8,0,0,0" VerticalAlignment="Center" Background="Transparent" Cursor="Help" ToolTipService.ShowDuration="60000"
-                                            ToolTipService.InitialShowDelay="200" AutomationProperties.Name="{l:Tr kboard.surfaceHint}">
+                                    <!-- How the keyboard works, on hover (as in QuickMenu) -->
+                                    <Border Grid.Row="1" Grid.ColumnSpan="2" Margin="0,6,0,0" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Transparent"
+                                            Cursor="Help" ToolTipService.ShowDuration="60000" ToolTipService.InitialShowDelay="200" AutomationProperties.Name="{l:Tr kboard.surfaceHint}">
                                         <Border.ToolTip>
                                             <StackPanel MaxWidth="380">
                                                 <TextBlock TextWrapping="Wrap" Text="{l:Tr kboard.surfaceHint}" />
                                                 <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Text="{l:Tr kboard.surfaceDotHint}" />
                                             </StackPanel>
                                         </Border.ToolTip>
-                                        <ui:SymbolIcon Symbol="Info24" FontSize="18" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                        <ui:SymbolIcon Symbol="Info24" FontSize="20" Foreground="{DynamicResource Kd.Accent}" Opacity="0.45" />
                                     </Border>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                </Grid>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Keyboard and mouse (foldable; the layers and «Pulsar tecla» stay on the header) -->
+                    <ui:CardExpander x:Name="KeyboardExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Keyboard24}" HorizontalContentAlignment="Stretch"
+                                     Expanded="OnSectionFolded" Collapsed="OnSectionFolded" AutomationProperties.Name="{l:Tr kboard.keyboard}">
+                        <ui:CardExpander.Header>
+                            <Grid>
+                                <TextBlock FontWeight="SemiBold" VerticalAlignment="Center" Text="{l:Tr kboard.keyboard}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="8,0,8,0">
                                     <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,10,0" Text="{l:Tr kboard.layer}"
                                                ToolTip="{l:Tr kboard.layerHint}" />
                                     <ToggleButton x:Name="LayerCtrl" Style="{StaticResource Pill}" Content="Ctrl" Click="OnLayer" />
@@ -259,9 +258,9 @@
                                                Click="OnCaptureSource" ToolTip="{l:Tr kboard.captureSourceHint}" />
                                 </StackPanel>
                             </Grid>
-                            <v:KBoardSurface x:Name="Surface" MaxHeight="340" HorizontalAlignment="Center" />
-                        </StackPanel>
-                    </Border>
+                        </ui:CardExpander.Header>
+                        <v:KBoardSurface x:Name="Surface" MaxHeight="340" HorizontalAlignment="Center" />
+                    </ui:CardExpander>
 
                     <!-- Selected key -->
                     <Border x:Name="KeyPanel" Style="{StaticResource Card}" Visibility="Collapsed">
@@ -271,6 +270,7 @@
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <ContentControl x:Name="SourceCaps" ContentTemplate="{StaticResource KeyCaps}" Focusable="False" VerticalAlignment="Center" />
@@ -285,6 +285,11 @@
                                     </StackPanel>
                                 </Border>
                                 <CheckBox x:Name="RemapEnabled" Grid.Column="3" Content="{l:Tr common.enabled}" IsChecked="{Binding Enabled}" Visibility="Collapsed" />
+                                <!-- No key chosen: the panel goes away -->
+                                <ui:Button Grid.Column="4" Margin="8,0,0,0" VerticalAlignment="Center" Style="{StaticResource IconButton}" Click="OnCloseKey"
+                                           ToolTip="{l:Tr common.close}" AutomationProperties.Name="{l:Tr common.close}">
+                                    <ui:SymbolIcon Symbol="Dismiss24" FontSize="16" />
+                                </ui:Button>
                             </Grid>
 
                             <!-- Keys -->

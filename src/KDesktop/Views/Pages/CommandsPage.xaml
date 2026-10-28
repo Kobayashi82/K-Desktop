@@ -180,7 +180,7 @@
                 </Grid>
             </StackPanel>
 
-            <ListBox x:Name="CommandList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource RowItem}"
+            <ListBox x:Name="CommandList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource CardRowItem}"
                      SelectionChanged="OnCommandSelected" PreviewMouseRightButtonUp="OnCommandRightClick" KeyDown="OnCommandListKey">
                 <ListBox.ItemTemplate>
                     <DataTemplate DataType="{x:Type m:Command}">

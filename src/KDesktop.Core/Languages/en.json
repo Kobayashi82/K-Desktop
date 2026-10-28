@@ -2864,6 +2864,7 @@
   "assistantPkg.badUrl": "“{0}” has no valid download address ({1}).",
   "assistantPkg.downloadFailed": "Could not download “{0}”: {1}",
   "assistantMenu.panel": "Assistant panel",
+  "assistantMenu.freeBrain": "Free the brain",
   "assistantMenu.settings": "{0} settings",
   "assistantMenu.hide": "Hide {0}",
   "assistantPanel.tech": "Technical details",

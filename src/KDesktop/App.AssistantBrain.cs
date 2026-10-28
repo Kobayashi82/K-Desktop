@@ -306,6 +306,12 @@ public partial class App
         Log.Info($"Asistente: cerebro {(op == Core.Model.AssistantBrainOp.Unload ? "descargado" : "cargado")} con la acción");
     }
 
+    /// <summary>Something of the brain in the graphics card (loaded or loading): «Liberar cerebro» of the tray and the panel.</summary>
+    public bool AssistantBrainInMemory => _assistant is { IsRunning: true } && AssistantBrain is { Loaded.Count: > 0 } or { Loading: not null };
+
+    /// <summary>«Liberar cerebro» of the tray and Panel → Assistant: as the action does it, with its OSD.</summary>
+    public void FreeAssistantBrain() => BrainFromCommand(Core.Model.AssistantBrainOp.Unload);
+
     private void OnAssistantBrainState(BrainStateMessage state)
     {
         AssistantBrain = state;

@@ -587,6 +587,7 @@ public partial class AppSettings : ObservableObject
     /// <summary>K-Board: «Reasignaciones» and «Notas» folded away.</summary>
     [ObservableProperty] private bool _kBoardRemapsFolded;
     [ObservableProperty] private bool _kBoardNotesFolded;
+    [ObservableProperty] private bool _kBoardKeyboardFolded;
 
     /// <summary>Comandos: «Opciones» unfolded (it stays as left, from one command to the next).</summary>
     [ObservableProperty] private bool _commandsOptionsOpen;

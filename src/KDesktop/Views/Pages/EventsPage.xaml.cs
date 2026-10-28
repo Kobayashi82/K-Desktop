@@ -342,8 +342,6 @@ public sealed partial class EventsPage : UserControl, IDisposable
         AddCommands(_selected?.EndCommands);
     }
 
-    private void OnNewCommand(object sender, RoutedEventArgs e) => NewCommand(_selected?.Commands);
-
     /// <summary>A new command that runs this event's commands (to give it a hotkey, a voice phrase…), opened in Comandos.</summary>
     private void OnCreateCommand(object sender, RoutedEventArgs e)
     {
@@ -368,8 +366,6 @@ public sealed partial class EventsPage : UserControl, IDisposable
         Config.Settings.EventsNotesFolded = NotesExpander.IsExpanded != true;
     }
 
-    private void OnNewEndCommand(object sender, RoutedEventArgs e) => NewCommand(_selected?.EndCommands);
-
     /// <summary>
     /// A command just for this event, named after it and hidden (it doesn't fill the list), added to it and opened to put
     /// its actions in. It is a normal command: it can be used for anything else later.
@@ -390,7 +386,8 @@ public sealed partial class EventsPage : UserControl, IDisposable
     private void AddCommands(ICollection<string>? list)
     {
         if (list is null) return;
-        foreach (var command in Dialogs.CommandPicker.Pick(Window.GetWindow(this), Config.Commands.Where(c => !list.Contains(c.Id))))
+        // «Nuevo comando» is in the window: a new one for this event instead of picking one
+        foreach (var command in Dialogs.CommandPicker.Pick(Window.GetWindow(this), Config.Commands.Where(c => !list.Contains(c.Id)), () => NewCommand(list)))
             if (!list.Contains(command.Id)) list.Add(command.Id);
     }
 

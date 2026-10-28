@@ -36,6 +36,7 @@ public sealed partial class KBoardPage : UserControl, IDisposable
         RemapsExpander.IsExpanded = !Config.Settings.KBoardRemapsFolded;
         NotesExpander.IsExpanded = !Config.Settings.KBoardNotesFolded;
         OptionsExpander.IsExpanded = Config.Settings.KBoardOptionsOpen;
+        KeyboardExpander.IsExpanded = !Config.Settings.KBoardKeyboardFolded;
         _view = new ListCollectionView(Config.KBoards) { Filter = Filter, IsLiveSorting = true, IsLiveFiltering = true };
         _view.SortDescriptions.Add(new SortDescription(nameof(KBoardProfile.Name), ListSortDirection.Ascending));
         _view.LiveSortingProperties.Add(nameof(KBoardProfile.Name));
@@ -52,13 +53,14 @@ public sealed partial class KBoardPage : UserControl, IDisposable
         Unloaded += (_, _) => HotkeyCapture.CancelActive();
     }
 
-    /// <summary>«Reasignaciones», «Opciones» and «Notas» stay as they were left, from one profile to the next.</summary>
+    /// <summary>«Teclado y ratón», «Reasignaciones», «Opciones» and «Notas» stay as they were left, from one profile to the next.</summary>
     private void OnSectionFolded(object sender, RoutedEventArgs e)
     {
         if (!IsLoaded) return;
         Config.Settings.KBoardRemapsFolded = RemapsExpander.IsExpanded != true;
         Config.Settings.KBoardNotesFolded = NotesExpander.IsExpanded != true;
         Config.Settings.KBoardOptionsOpen = OptionsExpander.IsExpanded == true;
+        Config.Settings.KBoardKeyboardFolded = KeyboardExpander.IsExpanded != true;
     }
 
     public void Dispose()
@@ -344,6 +346,8 @@ public sealed partial class KBoardPage : UserControl, IDisposable
             SelectSource(key);
         }, Window.GetWindow(this));
     }
+
+    private void OnCloseKey(object sender, RoutedEventArgs e) => SelectSource(null);
 
     /// <summary>Selects the key being edited (null = none) and shows its remap.</summary>
     private void SelectSource(string? name)

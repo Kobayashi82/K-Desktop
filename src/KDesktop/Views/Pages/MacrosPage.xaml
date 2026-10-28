@@ -140,7 +140,7 @@
                 <ui:Button Margin="0,0,0,10" Content="{l:Tr macro.new}" Icon="{ui:SymbolIcon Add24}" Appearance="Primary" Click="OnNewMacro" HorizontalAlignment="Stretch" />
             </StackPanel>
 
-            <ListBox x:Name="MacroList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource RowItem}"
+            <ListBox x:Name="MacroList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource CardRowItem}"
                      SelectionChanged="OnMacroSelected" PreviewMouseRightButtonUp="OnMacroRightClick" KeyDown="OnMacroListKey">
                 <ListBox.ItemTemplate>
                     <DataTemplate DataType="{x:Type m:Macro}">
@@ -264,7 +264,8 @@
                             </ui:Button>
                             <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
                                 <ui:Button x:Name="InsertButton" Appearance="Primary" MinHeight="34" Content="{l:Tr macro.insert}" Icon="{ui:SymbolIcon Add24}" Click="OnInsert" Margin="0,0,6,0" />
-                                <ui:Button x:Name="SimplifyButton" MinHeight="34" Content="{l:Tr macro.simplify}" Icon="{ui:SymbolIcon Wand24}" Click="OnSimplify" Margin="0,0,6,0" />
+                                <ui:Button x:Name="SimplifyButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Wand24, FontSize=18}" ToolTip="{l:Tr macro.simplify}"
+                                           AutomationProperties.Name="{l:Tr macro.simplify}" Click="OnSimplify" Margin="0,0,6,0" IsEnabled="False" />
                                 <ui:Button x:Name="UndoButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowUndo24, FontSize=18}" ToolTip="{l:Tr macro.undo}" Click="OnUndo" IsEnabled="False" Margin="0,0,6,0" />
                                 <ui:Button x:Name="RedoButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowRedo24, FontSize=18}" ToolTip="{l:Tr macro.redo}" Click="OnRedo" IsEnabled="False" Margin="0,0,6,0" />
                                 <ui:Button x:Name="DeleteStepsButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Delete24, FontSize=18}" ToolTip="{l:Tr macro.deleteSteps}" Click="OnDeleteSteps" IsEnabled="False" />

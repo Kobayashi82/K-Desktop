@@ -163,6 +163,8 @@ public sealed partial class MacrosPage : UserControl, IDisposable
         NoSteps.Visibility = empty && !folded ? Visibility.Visible : Visibility.Collapsed;
         StepList.Visibility = empty || folded ? Visibility.Collapsed : Visibility.Visible;
         DeleteStepsButton.IsEnabled = StepList.SelectedItems.Count > 0;
+        // Every way of simplifying works on some steps: only without any there is nothing to do
+        SimplifyButton.IsEnabled = !empty;
         UpdateUndoButtons();
     }
 

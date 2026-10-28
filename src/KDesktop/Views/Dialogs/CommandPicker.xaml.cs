@@ -23,10 +23,22 @@ public partial class CommandPicker : FluentWindow
         Loaded += (_, _) => SearchBox.Focus();
     }
 
-    public static IReadOnlyList<Command> Pick(Window? owner, IEnumerable<Command> commands)
+    private bool _wantsNew;
+
+    /// <summary>The commands picked; with <paramref name="onNew"/>, a «Nuevo comando» button that closes it and runs that instead.</summary>
+    public static IReadOnlyList<Command> Pick(Window? owner, IEnumerable<Command> commands, Action? onNew = null)
     {
         var dlg = new CommandPicker(commands) { Owner = owner };
-        return dlg.ShowDialog() == true ? dlg.Selected : [];
+        if (onNew is not null) dlg.NewButton.Visibility = Visibility.Visible;
+        if (dlg.ShowDialog() == true) return dlg.Selected;
+        if (dlg._wantsNew) onNew?.Invoke();
+        return [];
+    }
+
+    private void OnNew(object sender, RoutedEventArgs e)
+    {
+        _wantsNew = true;
+        DialogResult = false;
     }
 
     private void OnSearch(object sender, TextChangedEventArgs e) => Refill();

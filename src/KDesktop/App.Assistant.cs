@@ -474,6 +474,10 @@ public partial class App
             menu.Items.Add(hideAll);
         }
         if (menu.Items.Count > 0) menu.Items.Add(new System.Windows.Controls.Separator());
+        // The models out of the graphics card (before a game, say); only when there is something in it
+        var freeBrain = new System.Windows.Controls.MenuItem { Header = Loc.T("assistantMenu.freeBrain"), IsEnabled = AssistantBrainInMemory };
+        freeBrain.Click += (_, _) => FreeAssistantBrain();
+        menu.Items.Add(freeBrain);
         var panel = new System.Windows.Controls.MenuItem { Header = Loc.T("assistantMenu.panel") };
         panel.Click += (_, _) => ShowMainWindow(w => w.Navigate("assistant"));
         menu.Items.Add(panel);

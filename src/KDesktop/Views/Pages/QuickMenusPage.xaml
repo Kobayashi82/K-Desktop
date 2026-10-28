@@ -158,7 +158,7 @@
                 <ui:Button Margin="0,0,0,10" Content="{l:Tr qm.newMenu}" Icon="{ui:SymbolIcon Add24}" Appearance="Primary" Click="OnNewMenu" HorizontalAlignment="Stretch" />
             </StackPanel>
 
-            <ListBox x:Name="MenuList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource RowItem}"
+            <ListBox x:Name="MenuList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource CardRowItem}"
                      SelectionChanged="OnMenuSelected" PreviewMouseRightButtonUp="OnMenuRightClick" KeyDown="OnMenuListKey">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
@@ -253,7 +253,7 @@
                                         <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Text="{l:Tr qm.editorKeys}" />
                                     </StackPanel>
                                 </Border.ToolTip>
-                                <ui:SymbolIcon Symbol="Info24" FontSize="20" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                <ui:SymbolIcon Symbol="Info24" FontSize="20" Foreground="{DynamicResource Kd.Accent}" Opacity="0.45" />
                             </Border>
                         </Grid>
                     </Grid>
@@ -318,6 +318,8 @@
                                     </StackPanel>
                                 </Border>
                             </UniformGrid>
+                            <!-- The pieces of the menu, apart from the commands -->
+                            <Border Height="1" Margin="0,2,0,10" Background="{DynamicResource TextFillColorTertiaryBrush}" Opacity="0.35" />
                             <ui:Button Content="{l:Tr qm.quickCommand}" Icon="{ui:SymbolIcon DocumentAdd24}" HorizontalAlignment="Stretch" Margin="0,0,0,10" Click="OnQuickCommand" />
                             <Grid Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
@@ -325,7 +327,7 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <ui:TextBox x:Name="PaletteSearch" PlaceholderText="{l:Tr qm.paletteSearch}" Icon="{ui:SymbolIcon Search24}" TextChanged="OnPaletteSearch" />
-                                <ToggleButton x:Name="ShowHiddenToggle" Grid.Column="1" Margin="8,0,0,0" Padding="9,6" ToolTip="{l:Tr commands.showHidden}"
+                                <ToggleButton x:Name="ShowHiddenToggle" Grid.Column="1" Margin="8,0,0,0" Padding="9,0" VerticalAlignment="Stretch" MinHeight="0" ToolTip="{l:Tr commands.showHidden}"
                                               Checked="OnPaletteShowHidden" Unchecked="OnPaletteShowHidden">
                                     <ui:SymbolIcon>
                                         <!-- Checked, the button turns accent-coloured: the icon goes dark on it to stay visible -->

@@ -2864,6 +2864,7 @@
   "assistantPkg.badUrl": "« {0} » n’a pas d’adresse de téléchargement valide ({1}).",
   "assistantPkg.downloadFailed": "Impossible de télécharger « {0} » : {1}",
   "assistantMenu.panel": "Panneau de l’assistant",
+  "assistantMenu.freeBrain": "Libérer le cerveau",
   "assistantMenu.settings": "Réglages de {0}",
   "assistantMenu.hide": "Cacher {0}",
   "assistantPanel.tech": "Détails techniques",
