@@ -207,57 +207,86 @@ public static class WeekDaysExtensions
     }
 }
 
-/// <summary>«Solo si»: a time range, days and a program open or not open.</summary>
+/// <summary>
+/// «Solo si» (5.0.340): the same checks as «Si…» (<see cref="ConditionAction"/>, only what it looks at), all of them or
+/// any; Engine.Conditions.AllowsAsync says whether an event may fire. Until 5.0.339 it was a time range, days and a
+/// program open or not open: those are only read now and <see cref="Migrate"/> turns them into checks.
+/// </summary>
 public partial class EventConditions : ObservableObject
 {
-    /// <summary>«HH:mm»; empty = no time range. From 22:00 to 06:00 crosses midnight.</summary>
-    [ObservableProperty] private string _timeFrom = string.Empty;
-    [ObservableProperty] private string _timeTo = string.Empty;
-    [ObservableProperty] private WeekDays _days;
-    [ObservableProperty] private string _processRunning = string.Empty;
-    [ObservableProperty] private string _processNotRunning = string.Empty;
+    public EventConditions() => Items = [];
 
-    [JsonIgnore]
-    public bool IsEmpty => Days == WeekDays.None && string.IsNullOrWhiteSpace(TimeFrom) && string.IsNullOrWhiteSpace(TimeTo) &&
-                           string.IsNullOrWhiteSpace(ProcessRunning) && string.IsNullOrWhiteSpace(ProcessNotRunning);
-
-    /// <summary>
-    /// Whether it may fire at <paramref name="now"/>. <paramref name="isRunning"/> answers for a normalised process
-    /// name. <paramref name="reason"/> tells why not (for the log).
-    /// </summary>
-    public bool Allows(DateTime now, Func<string, bool> isRunning, out string reason)
+    /// <summary>The checks, in order.</summary>
+    public ObservableCollection<ConditionAction> Items
     {
-        reason = string.Empty;
-        if (!Days.Includes(now.DayOfWeek))
+        get;
+        set
         {
-            reason = "día de la semana";
-            return false;
+            if (field is not null)
+            {
+                field.CollectionChanged -= OnItemsChanged;
+                foreach (var item in field) item.PropertyChanged -= OnItemChanged;
+            }
+            field = value ?? [];
+            field.CollectionChanged += OnItemsChanged;
+            foreach (var item in field) item.PropertyChanged += OnItemChanged;
+            OnPropertyChanged();
         }
-        var from = EventTime.Parse(TimeFrom);
-        var to = EventTime.Parse(TimeTo);
-        if ((from is not null || to is not null) && !InRange(TimeOnly.FromDateTime(now), from ?? TimeOnly.MinValue, to ?? TimeOnly.MaxValue))
+    } = null!;
+
+    /// <summary>«Alguna»: one met is enough (otherwise all of them).</summary>
+    [ObservableProperty] private bool _any;
+
+    // Before 5.0.340: only read (null once migrated, so they are not written).
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public string? TimeFrom { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public string? TimeTo { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public WeekDays Days { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public string? ProcessRunning { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public string? ProcessNotRunning { get; set; }
+
+    /// <summary>Nothing to check (no enabled check).</summary>
+    [JsonIgnore] public bool IsEmpty => !Items.Any(i => i.Enabled);
+
+    /// <summary>The old time range, days and programs as checks («Horario», «Un programa está abierto», with «Al revés»). True if there were some.</summary>
+    public bool Migrate()
+    {
+        var changed = false;
+        if (!string.IsNullOrWhiteSpace(TimeFrom) || !string.IsNullOrWhiteSpace(TimeTo) || Days != WeekDays.None)
         {
-            reason = "franja horaria";
-            return false;
+            Items.Add(new ConditionAction { Condition = ConditionKind.Schedule, TimeFrom = TimeFrom?.Trim() ?? string.Empty, TimeTo = TimeTo?.Trim() ?? string.Empty, Days = Days });
+            changed = true;
         }
-        var running = Input.ProcessNames.Normalize(ProcessRunning);
-        if (running.Length > 0 && !isRunning(running))
+        if (!string.IsNullOrWhiteSpace(ProcessRunning))
         {
-            reason = $"{running} no está abierto";
-            return false;
+            Items.Add(new ConditionAction { Condition = ConditionKind.ProcessRunning, Text = ProcessRunning.Trim() });
+            changed = true;
         }
-        var notRunning = Input.ProcessNames.Normalize(ProcessNotRunning);
-        if (notRunning.Length > 0 && isRunning(notRunning))
+        if (!string.IsNullOrWhiteSpace(ProcessNotRunning))
         {
-            reason = $"{notRunning} está abierto";
-            return false;
+            Items.Add(new ConditionAction { Condition = ConditionKind.ProcessRunning, Text = ProcessNotRunning.Trim(), Negate = true });
+            changed = true;
         }
-        return true;
+        TimeFrom = TimeTo = ProcessRunning = ProcessNotRunning = null;
+        Days = WeekDays.None;
+        return changed;
     }
 
     /// <summary>From ≤ time &lt; to; when from &gt; to the range crosses midnight (22:00–06:00).</summary>
     public static bool InRange(TimeOnly time, TimeOnly from, TimeOnly to) =>
         from <= to ? time >= from && (time < to || to == TimeOnly.MaxValue) : time >= from || time < to;
+
+    private void OnItemsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (e.OldItems is not null) foreach (ConditionAction item in e.OldItems) item.PropertyChanged -= OnItemChanged;
+        if (e.NewItems is not null) foreach (ConditionAction item in e.NewItems) item.PropertyChanged += OnItemChanged;
+        OnPropertyChanged(nameof(Items));
+    }
+
+    // A check changed (not what is only shown): the event is saved.
+    private void OnItemChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (sender is ConditionAction item && !item.IsTransient(e.PropertyName)) OnPropertyChanged(nameof(Items));
+    }
 
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {

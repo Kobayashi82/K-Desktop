@@ -78,7 +78,7 @@ public class EventMigrationTests
         config.Events.Add(new EventRule { Name = "p", Trigger = process, CooldownSeconds = 3 });
         config.Events.Add(new EventRule { Name = "t", Trigger = new TimeTrigger { Time = "21:30", Days = WeekDays.Workdays, RunIfMissed = true } });
         config.Events.Add(new EventRule { Name = "s", Trigger = new SessionTrigger { Event = SessionEvent.Unlock } });
-        config.Events[1].Conditions.TimeFrom = "22:00";
+        config.Events[1].Conditions.Items.Add(new ConditionAction { Condition = ConditionKind.Schedule, TimeFrom = "22:00" });
 
         var back = Json.Deserialize<AppConfig>(Json.Serialize(config))!;
         var p = Assert.IsType<ProcessStartTrigger>(back.Events[0].Trigger);
@@ -88,7 +88,7 @@ public class EventMigrationTests
         var t = Assert.IsType<TimeTrigger>(back.Events[1].Trigger);
         Assert.Equal(WeekDays.Workdays, t.Days);
         Assert.True(t.RunIfMissed);
-        Assert.Equal("22:00", back.Events[1].Conditions.TimeFrom);
+        Assert.Equal("22:00", Assert.Single(back.Events[1].Conditions.Items).TimeFrom);
         Assert.Equal(SessionEvent.Unlock, Assert.IsType<SessionTrigger>(back.Events[2].Trigger).Event);
     }
 

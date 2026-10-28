@@ -63,7 +63,7 @@ public class StartupExitEventTests
     public async Task ConditionsAndDisabledEventsAreRespected()
     {
         var (engine, config) = Create((new AppStartTrigger(), [Waiting("a", 0)]), (new AppStartTrigger(), [Waiting("b", 0)]), (new AppStartTrigger(), [Waiting("c", 0)]));
-        config.Events[0].Conditions.ProcessRunning = "a-program-that-is-not-running-xyz";
+        config.Events[0].Conditions.Items.Add(new ConditionAction { Condition = ConditionKind.ProcessRunning, Text = "a-program-that-is-not-running-xyz" });
         config.Events[1].Enabled = false;
         var ran = new List<string>();
         engine.Executed += (c, _) => { lock (ran) ran.Add(c.Name); };

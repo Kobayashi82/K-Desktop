@@ -22,6 +22,8 @@ public sealed partial class EventsPage : UserControl, IDisposable
 {
     public static readonly RoutedUICommand RemoveProcess = new("RemoveProcess", nameof(RemoveProcess), typeof(EventsPage));
     public static readonly RoutedUICommand RemoveCommand = new("RemoveCommand", nameof(RemoveCommand), typeof(EventsPage));
+    public static readonly RoutedUICommand RemoveCondition = new("RemoveCondition", nameof(RemoveCondition), typeof(EventsPage));
+    public static readonly RoutedUICommand TestCondition = new("TestCondition", nameof(TestCondition), typeof(EventsPage));
     public static readonly RoutedUICommand OpenCommand = new("OpenCommand", nameof(OpenCommand), typeof(EventsPage));
     public static readonly RoutedUICommand RunCommand = new("RunCommand", nameof(RunCommand), typeof(EventsPage));
     public static readonly RoutedUICommand MoveCommandUp = new("MoveCommandUp", nameof(MoveCommandUp), typeof(EventsPage));
@@ -172,6 +174,8 @@ public sealed partial class EventsPage : UserControl, IDisposable
         }
         EndHint.Text = rule.HasEnd ? Loc.T($"event.endHint.{rule.Trigger.Kind}") : string.Empty;
         ConditionsBadge.Visibility = rule.Conditions.IsEmpty ? Visibility.Collapsed : Visibility.Visible;
+        NoConditions.Visibility = rule.Conditions.Items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        AnyRow.Visibility = rule.Conditions.Items.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
         RefreshSuspended();
     }
 
@@ -523,6 +527,34 @@ public sealed partial class EventsPage : UserControl, IDisposable
     private void OnRemoveProcess(object sender, ExecutedRoutedEventArgs e)
     {
         if (e.Parameter is string name) Processes?.Remove(name);
+    }
+
+    // ── «Solo si»: the same checks as «Si…» (5.0.340) ──────────────────────
+
+    private void OnAddCondition(object sender, RoutedEventArgs e) =>
+        _selected?.Conditions.Items.Add(new ConditionAction { Condition = ConditionKind.Schedule });
+
+    private void OnRemoveCondition(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.Parameter is ConditionAction check) _selected?.Conditions.Items.Remove(check);
+    }
+
+    /// <summary>«Probar»: whether it is met now, on the OSD (like ▶ on «Si…»).</summary>
+    private async void OnTestCondition(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.Parameter is not ConditionAction check) return;
+        var met = await Conditions.IsMetAsync(check, Core.Input.ForegroundWindow.Capture(), CancellationToken.None);
+        _app.Ui.ShowOsd(Loc.T(met ? "osd.ifMet" : "osd.ifNotMet", check.Describe()), met ? OsdKind.Success : OsdKind.Warning, look: OsdLook.Of("Filter24"));
+    }
+
+    private void OnBrowseFile(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.Parameter is ConditionAction check) ConditionPicks.File(check, Window.GetWindow(this));
+    }
+
+    private void OnBrowseFolder(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.Parameter is ConditionAction check) ConditionPicks.Folder(check, Window.GetWindow(this));
     }
 
     private static T? FindParent<T>(DependencyObject d) where T : DependencyObject

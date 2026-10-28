@@ -9,11 +9,16 @@
              xmlns:m="clr-namespace:KDesktop.Core.Model;assembly=KDesktop.Core">
     <UserControl.Resources>
         <ResourceDictionary>
+            <!-- The editor of «Si…» for the checks of «Solo si» (ConditionFields) -->
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/KDesktop;component/Views/ActionEditors.xaml" />
+            </ResourceDictionary.MergedDictionaries>
             <v:EventIconConverter x:Key="EventIcon" />
             <v:EventCommandConverter x:Key="EventCommand" />
             <v:NotInListConverter x:Key="NotInList" />
             <v:LastFiredConverter x:Key="LastFired" />
             <v:InvalidTimeConverter x:Key="InvalidTime" />
+            <v:BoolIndexConverter x:Key="BoolIndex" />
             <v:BoolToCollapsedConverter x:Key="BoolToCollapsed" />
             <v:NullToCollapsedConverter x:Key="NullToCollapsed" />
 
@@ -377,6 +382,10 @@
 
     <UserControl.CommandBindings>
         <CommandBinding Command="{x:Static p:EventsPage.RemoveProcess}" Executed="OnRemoveProcess" />
+        <CommandBinding Command="{x:Static p:EventsPage.RemoveCondition}" Executed="OnRemoveCondition" />
+        <CommandBinding Command="{x:Static p:EventsPage.TestCondition}" Executed="OnTestCondition" />
+        <CommandBinding Command="{x:Static v:EditorCommands.BrowseFile}" Executed="OnBrowseFile" />
+        <CommandBinding Command="{x:Static v:EditorCommands.BrowseFolder}" Executed="OnBrowseFolder" />
         <CommandBinding Command="{x:Static p:EventsPage.RemoveCommand}" Executed="OnRemoveCommand" />
         <CommandBinding Command="{x:Static p:EventsPage.OpenCommand}" Executed="OnOpenCommand" />
         <CommandBinding Command="{x:Static p:EventsPage.RunCommand}" Executed="OnRunCommand" />
@@ -657,48 +666,49 @@
                             </StackPanel>
                         </ui:CardExpander.Header>
                             <StackPanel DataContext="{Binding Conditions}">
-                                <Grid Style="{StaticResource EdRow}">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="140" />
-                                        <ColumnDefinition Width="16" />
-                                        <ColumnDefinition Width="140" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel>
-                                        <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.from}" />
-                                        <v:TimeField Time="{Binding TimeFrom, Mode=TwoWay}" Optional="True" AutomationProperties.Name="{l:Tr event.from}" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="2">
-                                        <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.to}" />
-                                        <v:TimeField Time="{Binding TimeTo, Mode=TwoWay}" Optional="True" AutomationProperties.Name="{l:Tr event.to}" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="3" Margin="16,0,0,0" VerticalAlignment="Bottom">
-                                        <TextBlock Style="{StaticResource Caption}" Foreground="{DynamicResource Kd.Danger}" Text="{l:Tr event.timeInvalid}"
-                                                   Visibility="{Binding TimeFrom, Converter={StaticResource InvalidTime}}" />
-                                        <TextBlock Style="{StaticResource Caption}" Foreground="{DynamicResource Kd.Danger}" Text="{l:Tr event.timeInvalid}"
-                                                   Visibility="{Binding TimeTo, Converter={StaticResource InvalidTime}}" />
-                                    </StackPanel>
-                                </Grid>
-                                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.days}" />
-                                <v:WeekDaysPicker Days="{Binding Days}" />
-                                <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" Text="{l:Tr event.daysHint}" />
-                                <Grid Style="{StaticResource EdRow}">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="16" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel>
-                                        <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.ifRunning}" />
-                                        <ComboBox IsEditable="True" Text="{Binding ProcessRunning, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr common.processPlaceholder}"
-                                                  ItemsSource="{Binding Source={x:Static v:Lookups.RunningProcessesNow}}" v:ProcessCombo.Running="True" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="2">
-                                        <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.ifNotRunning}" />
-                                        <ComboBox IsEditable="True" Text="{Binding ProcessNotRunning, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr common.processPlaceholder}"
-                                                  ItemsSource="{Binding Source={x:Static v:Lookups.RunningProcessesNow}}" v:ProcessCombo.Running="True" />
-                                    </StackPanel>
-                                </Grid>
+                                <!-- The same checks as «Si…» (5.0.340), all of them or any -->
+                                <TextBlock x:Name="NoConditions" Style="{StaticResource Caption}" Margin="0,0,0,10" TextWrapping="Wrap" Text="{l:Tr event.conditionsNone}" />
+                                <StackPanel x:Name="AnyRow" Orientation="Horizontal" Margin="0,0,0,12">
+                                    <TextBlock Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,12,0" Text="{l:Tr event.conditionsMatch}" />
+                                    <ComboBox Width="240" SelectedIndex="{Binding Any, Converter={StaticResource BoolIndex}}" AutomationProperties.Name="{l:Tr event.conditionsMatch}">
+                                        <ComboBoxItem Content="{l:Tr event.conditionsAll}" />
+                                        <ComboBoxItem Content="{l:Tr event.conditionsAny}" />
+                                    </ComboBox>
+                                </StackPanel>
+                                <ItemsControl x:Name="ConditionList" ItemsSource="{Binding Items}" Focusable="False">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Margin="0,0,0,10" Padding="14,10,14,4" CornerRadius="8" BorderThickness="1"
+                                                    Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+                                                <StackPanel>
+                                                    <Grid Margin="0,0,0,8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <CheckBox IsChecked="{Binding Enabled}" MinWidth="0" Margin="0,0,6,0" ToolTip="{l:Tr common.enabled}" AutomationProperties.Name="{l:Tr common.enabled}" />
+                                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Text="{Binding Description}"
+                                                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                            <ui:Button Style="{StaticResource IconButton}" ToolTip="{l:Tr event.conditionTest}" AutomationProperties.Name="{l:Tr event.conditionTest}"
+                                                                       Command="{x:Static p:EventsPage.TestCondition}" CommandParameter="{Binding}">
+                                                                <ui:SymbolIcon Symbol="Play24" FontSize="16" />
+                                                            </ui:Button>
+                                                            <ui:Button Style="{StaticResource IconButton}" ToolTip="{l:Tr common.remove}" AutomationProperties.Name="{l:Tr common.remove}"
+                                                                       Command="{x:Static p:EventsPage.RemoveCondition}" CommandParameter="{Binding}">
+                                                                <ui:SymbolIcon Symbol="Delete24" FontSize="16" Foreground="{DynamicResource Kd.Danger}" />
+                                                            </ui:Button>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                    <ContentControl Content="{Binding}" ContentTemplate="{StaticResource ConditionFields}" Focusable="False" />
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <ui:Button HorizontalAlignment="Left" Margin="0,0,0,10" Icon="{ui:SymbolIcon Add24}" Content="{l:Tr event.conditionAdd}"
+                                           AutomationProperties.Name="{l:Tr event.conditionAdd}" Click="OnAddCondition" />
                             </StackPanel>
                     </ui:CardExpander>
 

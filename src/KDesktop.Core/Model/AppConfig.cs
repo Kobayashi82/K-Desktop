@@ -156,6 +156,8 @@ public sealed class AppConfig
         }
         changed |= MigrateBrain();
         changed |= MigrateStartupAndExit();
+        // 5.0.340: «Solo si» of the events is a list of checks like «Si…».
+        foreach (var rule in Events) changed |= rule.Conditions.Migrate();
         if (SchemaVersion < CurrentSchema)
         {
             SchemaVersion = CurrentSchema;

@@ -781,9 +781,7 @@ public sealed partial class CommandsPage : UserControl, IDisposable
     {
         if (e.Parameter is ConditionAction condition)
         {
-            var file = new OpenFileDialog { Title = Loc.T("editor.chooseFile"), Filter = Loc.T("editor.filterAll") + "|*.*", DereferenceLinks = false };
-            if (Path.GetDirectoryName(Environment.ExpandEnvironmentVariables(condition.Text)) is { Length: > 0 } folder && Directory.Exists(folder)) file.InitialDirectory = folder;
-            if (file.ShowDialog(Window.GetWindow(this)) == true) condition.Text = file.FileName;
+            ConditionPicks.File(condition, Window.GetWindow(this));
             return;
         }
         if (e.Parameter is ShowNotificationAction notification)
@@ -838,7 +836,7 @@ public sealed partial class CommandsPage : UserControl, IDisposable
     {
         switch (e.Parameter)
         {
-            case ConditionAction c when PickFolder(Environment.ExpandEnvironmentVariables(c.Text)) is { } path: c.Text = path; break;
+            case ConditionAction c: ConditionPicks.Folder(c, Window.GetWindow(this)); break;
             case OpenFolderAction a when PickFolder(a.Path) is { } path: a.Path = path; break;
             case ScreenshotAction s when PickFolder(s.Folder) is { } path: s.Folder = path; break;
             case AudioRecordAction r when PickFolder(r.Folder) is { } path: r.Folder = path; break;

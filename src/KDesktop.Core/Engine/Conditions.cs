@@ -88,6 +88,30 @@ public static class Conditions
             double.TryParse(text.Trim().TrimEnd('%').Replace(',', '.'), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : null;
     }
 
+    /// <summary>
+    /// «Solo si» of an event: whether it may fire now (every check, or one with «Alguna»), and if not, which one failed
+    /// (for the log).
+    /// </summary>
+    public static async Task<(bool Allowed, string Reason)> AllowsAsync(EventConditions conditions, ForegroundWindow foreground, CancellationToken token = default)
+    {
+        string? failed = null;
+        foreach (var check in conditions.Items.ToArray())
+        {
+            if (!check.Enabled) continue;
+            bool met;
+            try { met = await IsMetAsync(check, foreground, token).ConfigureAwait(false); }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                Log.Warn($"Solo si: no se pudo comprobar «{check.Describe()}» ({ex.Message})");
+                met = false;
+            }
+            if (met && conditions.Any) return (true, string.Empty);
+            if (!met && !conditions.Any) return (false, check.Describe());
+            failed ??= check.Describe();
+        }
+        return conditions.Any && failed is not null ? (false, failed) : (true, string.Empty);
+    }
+
     /// <summary>«Horario»: inside the time range (it may cross midnight) on one of the days.</summary>
     public static bool InSchedule(ConditionAction c, DateTime now)
     {

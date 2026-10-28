@@ -37,8 +37,10 @@ se quita el dispositivo…) con sus propios comandos.
 - **Programados por un asistente**: lo que le pides para más tarde («a las 7 vacía la papelera», ver
   [Herramientas](../assistant/tools.md)) sale aquí como un evento más, con quién lo programó y lo que aprobaste al
   pedírselo. Puedes cambiarlo o borrarlo como cualquier otro.
-- **Condiciones** (*Solo si*): las mismas que la [acción Si…](commands.md#si-condiciones): el evento solo se ejecuta si se
-  cumplen.
+- **Condiciones** (*Solo si*): una lista con las mismas condiciones que la [acción Si…](commands.md#si-condiciones)
+  (horario, un programa abierto, la red, la batería, el uso del equipo…), cada una con *Al revés*. Con varias eliges si
+  tienen que cumplirse **todas** o basta con **alguna**. Cada una se puede apagar sin borrarla y probar (▶) para ver si se
+  cumple ahora. Sin ninguna, el evento salta siempre.
 - **No repetir antes de**: si vuelve a dispararse antes (en segundos), no hace nada.
 - **Protección contra bucles**: un evento que se dispara más de 10 veces en un minuto se detiene 10 minutos, y K-Desktop te
   avisa.

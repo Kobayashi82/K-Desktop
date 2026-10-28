@@ -72,6 +72,13 @@ public sealed class BoolToCollapsedConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 }
 
+/// <summary>false ↔ 0, true ↔ 1: a two-choice ComboBox bound to a bool («Todas» / «Alguna»).</summary>
+public sealed class BoolIndexConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => value is true ? 1 : 0;
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => value is 1;
+}
+
 public sealed class InverseBoolConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => value is not true;

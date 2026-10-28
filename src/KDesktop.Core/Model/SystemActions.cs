@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Globalization;
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -375,7 +376,16 @@ public partial class ConditionAction : CommandAction
 
     public override ActionKind Kind => ActionKind.Condition;
 
-    public override bool IsTransient(string? property) => property is nameof(ElseCommandName) || base.IsTransient(property);
+    public override bool IsTransient(string? property) => property is nameof(ElseCommandName) or nameof(Description) || base.IsTransient(property);
+
+    /// <summary><see cref="Describe"/> to bind to (the checks of an event's «Solo si»).</summary>
+    [JsonIgnore] public string Description => Describe();
+
+    protected override void OnPropertyChanged(PropertyChangedEventArgs e)
+    {
+        base.OnPropertyChanged(e);
+        if (e.PropertyName is not (nameof(Description) or nameof(Summary))) base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(Description)));
+    }
 
     /// <summary>The following actions this one governs (skipped when it is not met), for the indentation of the list.</summary>
     [JsonIgnore] public int Governs => Enabled && Else == ConditionElse.Skip ? Math.Max(1, SkipCount) : 0;

@@ -1,4 +1,5 @@
 using System.Globalization;
+using KDesktop.Core.Engine;
 using KDesktop.Core.Engine.Events;
 using KDesktop.Core.Model;
 
@@ -129,20 +130,66 @@ public class EventScheduleTests
     [InlineData("", "08:00", "09:00", false)]
     public void TimeRangeCondition(string from, string to, string now, bool expected)
     {
-        var c = new EventConditions { TimeFrom = from, TimeTo = to };
+        var c = new ConditionAction { Condition = ConditionKind.Schedule, TimeFrom = from, TimeTo = to };
         var at = new DateTime(2026, 10, 16) + TimeOnly.Parse(now, CultureInfo.InvariantCulture).ToTimeSpan();
-        Assert.Equal(expected, c.Allows(at, _ => false, out _));
+        Assert.Equal(expected, Conditions.InSchedule(c, at));
     }
 
     [Fact]
-    public void DayAndProcessConditions()
+    public void DayConditions()
     {
         var friday = new DateTime(2026, 10, 16, 12, 0, 0);
-        Assert.True(new EventConditions { Days = WeekDays.Workdays }.Allows(friday, _ => false, out _));
-        Assert.False(new EventConditions { Days = WeekDays.Weekend }.Allows(friday, _ => false, out var reason));
-        Assert.NotEmpty(reason);
-        Assert.True(new EventConditions { ProcessRunning = "Steam.exe" }.Allows(friday, n => n == "steam", out _));
-        Assert.False(new EventConditions { ProcessRunning = "steam" }.Allows(friday, _ => false, out _));
-        Assert.False(new EventConditions { ProcessNotRunning = "obs64" }.Allows(friday, n => n == "obs64", out _));
+        Assert.True(Conditions.InSchedule(new ConditionAction { Condition = ConditionKind.Schedule, Days = WeekDays.Workdays }, friday));
+        Assert.False(Conditions.InSchedule(new ConditionAction { Condition = ConditionKind.Schedule, Days = WeekDays.Weekend }, friday));
+    }
+
+    /// <summary>5.0.340: the old «Solo si» (time range, days, program open or not) becomes checks like «Si…».</summary>
+    [Fact]
+    public void TheOldOnlyIfBecomesChecks()
+    {
+        var old = Json.Deserialize<EventConditions>("""{"timeFrom":"22:00","timeTo":"06:00","days":"workdays","processRunning":"Steam.exe","processNotRunning":"obs64"}""")!;
+        Assert.True(old.Migrate());
+        Assert.Collection(old.Items,
+            s => Assert.Equal((ConditionKind.Schedule, "22:00", "06:00", WeekDays.Workdays), (s.Condition, s.TimeFrom, s.TimeTo, s.Days)),
+            p => Assert.Equal((ConditionKind.ProcessRunning, "Steam.exe", false), (p.Condition, p.Text, p.Negate)),
+            n => Assert.Equal((ConditionKind.ProcessRunning, "obs64", true), (n.Condition, n.Text, n.Negate)));
+        var json = Json.Serialize(old);
+        Assert.DoesNotContain("\"processNotRunning\"", json, StringComparison.Ordinal);
+        Assert.False(new EventConditions().Migrate());
+    }
+
+    private static ConditionAction Text(string value, string wanted) =>
+        new() { Condition = ConditionKind.Variable, Value = value, Test = VariableTest.Contains, Text = wanted };
+
+    [Fact]
+    public async Task AllOrAnyOfTheChecks()
+    {
+        var yes = Text("hola", "ol");
+        var no = Text("hola", "zz");
+        var front = Input.ForegroundWindow.None;
+        var all = new EventConditions { Items = [yes, no] };
+        Assert.Equal((false, no.Describe()), await Conditions.AllowsAsync(all, front));
+        all.Any = true;
+        Assert.True((await Conditions.AllowsAsync(all, front)).Allowed);
+        no.Enabled = false;
+        all.Any = false;
+        Assert.True((await Conditions.AllowsAsync(all, front)).Allowed);
+        Assert.True((await Conditions.AllowsAsync(new EventConditions(), front)).Allowed);
+        Assert.False((await Conditions.AllowsAsync(new EventConditions { Any = true, Items = [Text("a", "b")] }, front)).Allowed);
+    }
+
+    [Fact]
+    public void ChangingACheckChangesTheEvent()
+    {
+        var rule = new EventRule();
+        var check = new ConditionAction();
+        rule.Conditions.Items.Add(check);
+        var changes = 0;
+        rule.Modified += (_, _) => changes++;
+        check.Text = "steam";
+        Assert.True(changes > 0);
+        Assert.False(rule.Conditions.IsEmpty);
+        check.Enabled = false;
+        Assert.True(rule.Conditions.IsEmpty);
     }
 }

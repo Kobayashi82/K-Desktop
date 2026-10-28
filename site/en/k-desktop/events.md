@@ -37,7 +37,10 @@ removed…) with its own commands.
 - **Programmed by an assistant**: what you ask for later («at 7 empty the recycle bin», see
   [Tools](../assistant/tools.md)) shows here as one more event, with who programmed it and what you approved when you
   asked. You can change or delete it like any other.
-- **Conditions**: the same as the [If… action](commands.md#if-conditions): the event only runs when they are true.
+- **Conditions** (*Only if*): a list with the same conditions as the [If… action](commands.md#if-conditions) (schedule,
+  a program open, the network, the battery, PC usage…), each with *The opposite*. With several you choose whether **all of
+  them** must be met or **any of them** is enough. Each one can be switched off without deleting it and tested (▶) to see
+  whether it is met now. With none, the event always fires.
 - **Don't repeat before**: if it fires again sooner (in seconds), it does nothing.
 - **Loop protection**: an event that fires more than 10 times in a minute stops for 10 minutes, and K-Desktop tells you.
 - Each event can be switched off, and run by hand to try it (*Test*, or `KDesktop.exe --event "Name"`). The lightning

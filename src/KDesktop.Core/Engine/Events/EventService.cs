@@ -212,10 +212,10 @@ public sealed class EventService : IDisposable
             Log.Info($"En pausa: no se ejecuta el evento «{rule.Name}»");
             return;
         }
-        HashSet<string>? running = null;
-        if (!rule.Conditions.Allows(DateTime.Now, name => (running ??= ProcessSnapshot.Names()).Contains(name), out var reason))
+        var (allowed, reason) = await Conditions.AllowsAsync(rule.Conditions, ForegroundWindow.Capture()).ConfigureAwait(false);
+        if (!allowed)
         {
-            Log.Info($"Evento «{rule.Name}»: no se ejecuta ({reason})");
+            Log.Info($"Evento «{rule.Name}»: no se ejecuta (no se cumple «{reason}»)");
             return;
         }
         switch (_guard.TryFire(rule.Id, rule.CooldownSeconds, DateTime.UtcNow))

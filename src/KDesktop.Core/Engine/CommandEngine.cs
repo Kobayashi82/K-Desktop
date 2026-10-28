@@ -386,23 +386,27 @@ public sealed partial class CommandEngine
     }
 
     /// <summary>The «Al iniciar / Al salir de K-Desktop» events that may run now (enabled, «Solo si» met), in list order.</summary>
-    private EventRule[] AppEvents<T>() where T : EventTrigger
+    /// <param name="token">On exit, how long the checks may take (a ping that does not answer must not hold it).</param>
+    private async Task<EventRule[]> AppEventsAsync<T>(CancellationToken token = default) where T : EventTrigger
     {
-        var now = DateTime.Now;
-        HashSet<string>? running = null;
-        bool IsRunning(string name) => (running ??= ProcessSnapshot.Names()).Contains(name);
-        return Config.Events.Where(e => e.Enabled && e.Trigger is T).ToArray().Where(e =>
+        var foreground = ForegroundWindow.Capture();
+        var allowed = new List<EventRule>();
+        foreach (var rule in Config.Events.Where(e => e.Enabled && e.Trigger is T).ToArray())
         {
-            if (e.Conditions.Allows(now, IsRunning, out var reason)) return true;
-            Log.Info($"Evento «{e.Name}»: no se ejecuta ({reason})");
-            return false;
-        }).ToArray();
+            bool ok;
+            string reason;
+            try { (ok, reason) = await Conditions.AllowsAsync(rule.Conditions, foreground, token).ConfigureAwait(false); }
+            catch (OperationCanceledException) { (ok, reason) = (false, "no dio tiempo a comprobarlo"); }
+            if (ok) allowed.Add(rule);
+            else Log.Info($"Evento «{rule.Name}»: no se ejecuta (no se cumple «{reason}»)");
+        }
+        return [.. allowed];
     }
 
     /// <summary>Runs the «Al iniciar K-Desktop» events: their commands one after another, event after event.</summary>
     public async Task RunStartupCommandsAsync()
     {
-        foreach (var rule in AppEvents<AppStartTrigger>())
+        foreach (var rule in await AppEventsAsync<AppStartTrigger>().ConfigureAwait(false))
             await RunEventAsync(rule, false, TriggerSource.Startup).ConfigureAwait(false);
     }
 
@@ -414,7 +418,8 @@ public sealed partial class CommandEngine
             Log.Info("En pausa: no se ejecutan los eventos al salir");
             return;
         }
-        var rules = AppEvents<AppExitTrigger>();
+        using var checks = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+        var rules = await AppEventsAsync<AppExitTrigger>(checks.Token).ConfigureAwait(false);
         if (rules.Length == 0) return;
         var runs = new List<Task>();
         foreach (var rule in rules)

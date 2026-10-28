@@ -1600,7 +1600,8 @@
     </DataTemplate>
 
     <!-- ── Si… ─────────────────────────────────────────────────────────── -->
-    <DataTemplate DataType="{x:Type m:ConditionAction}">
+    <!-- What «Si…» looks at: also each check of an event's «Solo si» (5.0.340) -->
+    <DataTemplate x:Key="ConditionFields" DataType="{x:Type m:ConditionAction}">
         <StackPanel>
             <Grid Style="{StaticResource EdRow}">
                 <Grid.ColumnDefinitions>
@@ -1710,48 +1711,8 @@
                 </StackPanel>
             </StackPanel>
 
-            <!-- otherwise -->
-            <Grid Style="{StaticResource EdRow}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="16" />
-                    <ColumnDefinition Width="140" />
-                </Grid.ColumnDefinitions>
-                <StackPanel>
-                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifElse}" />
-                    <ComboBox ItemsSource="{x:Static v:Lookups.ConditionElses}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Else}" />
-                </StackPanel>
-                <StackPanel x:Name="SkipRow" Grid.Column="2" Visibility="Hidden">
-                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifSkipCount}" />
-                    <ui:TextBox Text="{Binding SkipCount, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="99" />
-                </StackPanel>
-            </Grid>
-            <!-- «Ejecutar otro comando en su lugar» -->
-            <ui:Button x:Name="ElseCommandBox" Margin="0,-4,0,12" Visibility="Collapsed" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="11,8"
-                       AutomationProperties.Name="{l:Tr editor.ifElseCommand}" ToolTip="{l:Tr editor.ifElseCommand}"
-                       Command="{x:Static v:EditorCommands.PickCommand}" CommandParameter="{Binding}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Image Width="18" Height="18" Margin="0,0,8,0" RenderOptions.BitmapScalingMode="HighQuality"
-                           Source="{Binding ElseCommandId, Converter={StaticResource PickedItem}, ConverterParameter=commandIcon}" Style="{StaticResource PickedIcon}" />
-                    <TextBlock Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                               Text="{Binding ElseCommandId, Converter={StaticResource PickedItem}, ConverterParameter=command}" />
-                    <ui:SymbolIcon Grid.Column="2" Margin="8,0,0,0" Symbol="ChevronDown24" FontSize="12" />
-                </Grid>
-            </ui:Button>
-            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.ifHint}" />
         </StackPanel>
         <DataTemplate.Triggers>
-            <DataTrigger Binding="{Binding Else}" Value="Skip">
-                <Setter TargetName="SkipRow" Property="Visibility" Value="Visible" />
-            </DataTrigger>
-            <DataTrigger Binding="{Binding Else}" Value="RunCommand">
-                <Setter TargetName="ElseCommandBox" Property="Visibility" Value="Visible" />
-            </DataTrigger>
             <DataTrigger Binding="{Binding Condition}" Value="Variable">
                 <Setter TargetName="VariableRow" Property="Visibility" Value="Visible" />
             </DataTrigger>
@@ -1799,6 +1760,54 @@
             </DataTrigger>
             <DataTrigger Binding="{Binding Condition}" Value="Load">
                 <Setter TargetName="LoadRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type m:ConditionAction}">
+        <StackPanel>
+            <ContentControl Content="{Binding}" ContentTemplate="{StaticResource ConditionFields}" Focusable="False" />
+            <!-- otherwise -->
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="140" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifElse}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.ConditionElses}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Else}" />
+                </StackPanel>
+                <StackPanel x:Name="SkipRow" Grid.Column="2" Visibility="Hidden">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifSkipCount}" />
+                    <ui:TextBox Text="{Binding SkipCount, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="99" />
+                </StackPanel>
+            </Grid>
+            <!-- «Ejecutar otro comando en su lugar» -->
+            <ui:Button x:Name="ElseCommandBox" Margin="0,-4,0,12" Visibility="Collapsed" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="11,8"
+                       AutomationProperties.Name="{l:Tr editor.ifElseCommand}" ToolTip="{l:Tr editor.ifElseCommand}"
+                       Command="{x:Static v:EditorCommands.PickCommand}" CommandParameter="{Binding}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Image Width="18" Height="18" Margin="0,0,8,0" RenderOptions.BitmapScalingMode="HighQuality"
+                           Source="{Binding ElseCommandId, Converter={StaticResource PickedItem}, ConverterParameter=commandIcon}" Style="{StaticResource PickedIcon}" />
+                    <TextBlock Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                               Text="{Binding ElseCommandId, Converter={StaticResource PickedItem}, ConverterParameter=command}" />
+                    <ui:SymbolIcon Grid.Column="2" Margin="8,0,0,0" Symbol="ChevronDown24" FontSize="12" />
+                </Grid>
+            </ui:Button>
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.ifHint}" />
+        </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Else}" Value="Skip">
+                <Setter TargetName="SkipRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Else}" Value="RunCommand">
+                <Setter TargetName="ElseCommandBox" Property="Visibility" Value="Visible" />
             </DataTrigger>
         </DataTemplate.Triggers>
     </DataTemplate>
