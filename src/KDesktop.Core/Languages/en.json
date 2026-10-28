@@ -1273,6 +1273,8 @@
   "summary.event.Enable": "Turn on the event {0}",
   "summary.event.Disable": "Turn off the event {0}",
   "summary.event.Toggle": "Turn the event {0} on / off",
+  "summary.commandGone": "a deleted command",
+  "summary.gone": "(deleted)",
   "enum.controlTarget.Command": "Command",
   "enum.controlTarget.Event": "Event",
   "editor.controlTarget": "On",

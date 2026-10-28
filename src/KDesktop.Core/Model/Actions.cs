@@ -96,6 +96,13 @@ public abstract partial class CommandAction : ObservableObject
     /// <summary>One-line, human readable description of what the action does (localised).</summary>
     [JsonIgnore] public abstract string Summary { get; }
 
+    /// <summary>
+    /// The name of what a summary points to (command, event, menu): «…» while none is chosen, and <paramref name="goneKey"/>
+    /// when the one chosen was deleted (its id means nothing to anyone).
+    /// </summary>
+    internal static string Shown(string id, string? name, string goneKey) =>
+        !string.IsNullOrWhiteSpace(name) ? name : string.IsNullOrWhiteSpace(id) ? "…" : Loc.T(goneKey);
+
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);
@@ -504,7 +511,7 @@ public partial class OpenQuickMenuAction : CommandAction
     [property: JsonIgnore] private string? _menuName;
 
     public override ActionKind Kind => ActionKind.OpenQuickMenu;
-    public override string Summary => Loc.T("summary.openMenu", string.IsNullOrWhiteSpace(MenuName) ? MenuId : MenuName);
+    public override string Summary => Loc.T("summary.openMenu", CommandAction.Shown(MenuId, MenuName, "summary.gone"));
 }
 
 /// <summary>
@@ -537,8 +544,8 @@ public partial class CommandControlAction : CommandAction
 
     public override ActionKind Kind => ActionKind.CommandControl;
     public override string Summary => Target == CommandControlTarget.Event
-        ? Loc.T($"summary.event.{Mode}", string.IsNullOrWhiteSpace(EventName) ? EventId : EventName)
-        : Loc.T($"summary.command.{Mode}", string.IsNullOrWhiteSpace(CommandName) ? CommandId : CommandName);
+        ? Loc.T($"summary.event.{Mode}", Shown(EventId, EventName, "summary.gone"))
+        : Loc.T($"summary.command.{Mode}", Shown(CommandId, CommandName, "summary.commandGone"));
 }
 
 public partial class WaitAction : CommandAction

@@ -1273,6 +1273,8 @@
   "summary.event.Enable": "Activar el evento {0}",
   "summary.event.Disable": "Desactivar el evento {0}",
   "summary.event.Toggle": "Activar / desactivar el evento {0}",
+  "summary.commandGone": "un comando borrado",
+  "summary.gone": "(borrado)",
   "enum.controlTarget.Command": "Comando",
   "enum.controlTarget.Event": "Evento",
   "editor.controlTarget": "Sobre",
