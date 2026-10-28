@@ -23,6 +23,8 @@
     { "say": "which command do I use the most?", "expect": { "tool": "usage_stats" } },
     { "say": "write the list in a file on the desktop: milk, eggs and bread", "expect": { "tool": "write_file" } },
     { "say": "create a folder on the desktop called Invoices", "expect": { "tool": "create_folder" } },
+    { "say": "what have I copied?", "expect": { "tool": "read_clipboard" } },
+    { "say": "copy this address for me: 5 Main Street, Springfield", "expect": { "tool": "set_clipboard" } },
     { "say": "what is 18 percent of 240?", "expect": { "tool": "calculate", "answerContains": ["43.2"] } },
     { "say": "divide 1500 by 7", "expect": { "tool": "calculate", "answerContains": ["214"] } },
     { "say": "what day of the week was January 1, 2026?", "expect": { "tool": "date_math", "answerContains": ["Thursday"] } },

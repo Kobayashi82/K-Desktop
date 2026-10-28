@@ -24,7 +24,7 @@ Todo lo que hace un asistente sale en *Panel → Asistente → Actividad* (la su
 | **Notas y memoria** | Apuntar una nota · Buscar en las notas · Cambiar una nota · Borrar una nota · Recordar algo de ti · Olvidar un recuerdo | «apunta que tengo que comprar leche», «recuerda que mi jefe se llama Luis» |
 | **Archivos** | Buscar archivos · Abrir un archivo · Leer un archivo · Borrar un archivo · Mover un archivo · Escribir un documento · Copiar un archivo · Crear una carpeta · Comprimir en ZIP · Descomprimir un ZIP · Buscar en tus documentos | «búscame el pdf de la factura de la luz», «abre lo último que descargué» |
 | **Internet** | Abrir una web · Buscar en el navegador · Consultar internet · Leer una página web | «cuánto cuesta una RTX 5080», «resúmeme esta página» |
-| **Pantalla y textos** | Mirar la pantalla · Traducir y corregir textos | «qué error me sale», «tradúceme esto al inglés» |
+| **Pantalla y textos** | Mirar la pantalla · Traducir y corregir textos · Leer lo copiado · Copiar un texto | «qué error me sale», «tradúceme esto al inglés», «¿qué tengo copiado?», «cópiame el teléfono del fontanero» |
 | **Programas y PC** | Abrir un programa · Manejar ventanas y programas · Cerrar a la fuerza · Estado del PC · Liberar el cerebro | «minimiza Steam», «Chrome no responde, ciérralo a la fuerza», «por qué va lento el ordenador» |
 | **Música y vídeo** | Qué suena · Controlar la reproducción | «qué canción es esta», «pausa el vídeo» |
 | **Tiempo y conversiones** | El tiempo · Convertir unidades y monedas | «va a llover mañana», «cuánto son 50 dólares en euros» |
@@ -45,6 +45,10 @@ Algunos detalles:
   para entender una imagen hace falta un modelo con visión.
 - **Traducir y corregir textos** trabaja con lo que tienes seleccionado o copiado (traducir, corregir, resumir, más formal,
   en lista, más corto…) y lo vuelve a pegar en la misma ventana o lo deja copiado. Tu portapapeles queda como estaba.
+- **Leer lo copiado** lee el texto que tienes en el portapapeles y **Copiar un texto** deja uno listo para pegar (deshacerlo
+  devuelve lo que había, mientras no se cierre K-Desktop: lo copiado no se guarda en ningún archivo). Como lo copiado puede
+  ser una contraseña, otro programa nunca lo lee con «Compartir las herramientas» en «Solo lo que consulta», y con «Todo,
+  preguntándote antes» te pregunta.
 - **Consultar internet** busca en la web y lee el primer resultado útil; **Buscar en el navegador** solo abre la búsqueda
   en tu navegador.
 - **El tiempo** usa Open-Meteo y las **monedas**, los tipos del Banco Central Europeo (sin cuenta). Sin ciudad, usa

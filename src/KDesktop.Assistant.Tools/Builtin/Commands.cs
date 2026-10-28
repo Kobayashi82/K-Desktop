@@ -103,6 +103,8 @@ public static class CommandTools
         registry.Add(new ControlAppTool(bridge));
         registry.Add(new EndProcessTool(bridge));
         registry.Add(new TransformTextTool(bridge, writer));
+        registry.Add(new ReadClipboardTool(bridge));
+        registry.Add(new SetClipboardTool(bridge));
         registry.Add(new ScheduleTool(bridge, registry));
         registry.Add(new ListScheduledTool(bridge, builtin));
         registry.Add(new CancelScheduledTool(bridge));

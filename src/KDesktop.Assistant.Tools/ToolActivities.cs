@@ -54,6 +54,8 @@ public static class ToolActivities
         ["stop_watching"] = AssistantActivity.Watching,
         ["look_at_screen"] = AssistantActivity.Screen,
         ["transform_text"] = AssistantActivity.Writing,
+        ["read_clipboard"] = AssistantActivity.Writing,
+        ["set_clipboard"] = AssistantActivity.Writing,
         ["calculate"] = AssistantActivity.Calculating,
         ["convert"] = AssistantActivity.Calculating,
         ["date_math"] = AssistantActivity.Calculating,

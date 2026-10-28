@@ -23,7 +23,7 @@ Everything an assistant does shows in *Panel → Assistant → Activity* (its ow
 | **Notes and memory** | Save a note · Find notes · Change a note · Delete a note · Remember something about you · Forget a memory | «note that I have to buy milk», «remember that my boss is called Luis» |
 | **Files** | Find files · Open a file · Read a file · Delete a file · Move a file · Write a document · Copy a file · Create a folder · Compress into a ZIP · Extract a ZIP · Search your documents | «find the electricity bill pdf», «open the last thing I downloaded» |
 | **Internet** | Open a website · Search in the browser · Look it up online · Read a web page | «how much is an RTX 5080», «summarise this page» |
-| **Screen and texts** | Look at the screen · Translate and fix texts | «what is this error», «translate what I copied into French» |
+| **Screen and texts** | Look at the screen · Translate and fix texts · Read what is copied · Copy a text | «what is this error», «translate what I copied into French», «what have I copied?», «copy the plumber's number for me» |
 | **Programs and PC** | Open a program · Handle windows and programs · Force close · PC status · Free the brain | «minimize Steam», «Chrome is not responding, force it closed», «why is the computer slow» |
 | **Music and video** | What's playing · Control playback | «what song is this», «pause the video» |
 | **Weather and conversions** | Weather · Convert units and currencies | «will it rain tomorrow», «how much is 50 dollars in euros» |
@@ -46,6 +46,10 @@ Some details:
   a picture it needs a model with vision.
 - **Translate and fix texts** works on what you have selected or copied (translate, correct, summarise, more formal,
   a list, shorter…) and pastes it back in the same window or leaves it copied. Your clipboard is put back as it was.
+- **Read what is copied** reads the text in your clipboard and **Copy a text** leaves one ready to paste (undoing it brings
+  back what was there, while K-Desktop stays open: what is copied is never saved to a file). As what is copied may be a
+  password, another program never reads it through «Share the tools» with «Only what looks things up», and with
+  «Everything, asking you first» you are asked.
 - **Look it up online** searches the web and reads the first useful result; **Search in the browser** only opens the
   search in your browser.
 - **Weather** uses Open-Meteo and **currencies** the European Central Bank's rates (no account needed). Without a city it
