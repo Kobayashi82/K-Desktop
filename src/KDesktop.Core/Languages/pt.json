@@ -2007,7 +2007,7 @@
   "event.endHint.Load": "Quando deixa de se cumprir durante o mesmo tempo (volta ao normal).",
   "event.hint.gadget": "Os nomes são os do Gestor de dispositivos; a lista inclui os Bluetooth emparelhados mesmo desligados. Basta uma parte do nome («8bitdo», «xbox»). Um Bluetooth só conta enquanto estiver ligado; pode demorar até 15 s a ser notado.",
   "event.kind.Load": "Uso do PC",
-  "event.kind.Load.desc": "Quando a CPU, a placa gráfica ou a memória passa de uma % (ou desce abaixo dela) durante algum tempo: começa um jogo ou um render, acaba uma transferência… «Ao terminar», quando volta ao normal.",
+  "event.kind.Load.desc": "Quando a CPU, a placa gráfica, a memória ou a VRAM passa de uma % (ou desce abaixo dela) durante algum tempo: começa um jogo ou um render, acaba uma transferência… «Ao terminar», quando volta ao normal.",
   "event.summary.load.Above": "{0} acima de {1} % durante {2} s",
   "event.summary.load.Below": "{0} abaixo de {1} % durante {2} s",
   "event.loadResource": "O quê",

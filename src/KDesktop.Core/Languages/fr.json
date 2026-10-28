@@ -2007,7 +2007,7 @@
   "event.endHint.Load": "Quand ce n'est plus le cas pendant la même durée (retour à la normale).",
   "event.hint.gadget": "Les noms sont ceux du Gestionnaire de périphériques ; la liste inclut les Bluetooth appairés même éteints. Une partie du nom suffit (« 8bitdo », « xbox »). Un Bluetooth ne compte que s’il est connecté ; cela peut prendre jusqu’à 15 s.",
   "event.kind.Load": "Utilisation du PC",
-  "event.kind.Load.desc": "Quand le CPU, la carte graphique ou la mémoire dépasse un % (ou passe en dessous) un moment : un jeu ou un rendu démarre, un téléchargement se termine… « À la fin », quand ça redevient normal.",
+  "event.kind.Load.desc": "Quand le CPU, la carte graphique, la mémoire ou la VRAM dépasse un % (ou passe en dessous) un moment : un jeu ou un rendu démarre, un téléchargement se termine… « À la fin », quand ça redevient normal.",
   "event.summary.load.Above": "{0} au-dessus de {1} % pendant {2} s",
   "event.summary.load.Below": "{0} en dessous de {1} % pendant {2} s",
   "event.loadResource": "Quoi",

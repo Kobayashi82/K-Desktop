@@ -1684,7 +1684,7 @@
             <StackPanel x:Name="LoadRow" Orientation="Horizontal" Margin="0,0,0,12" Visibility="Collapsed">
                 <StackPanel Margin="0,0,12,0">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.loadResource}" />
-                    <ComboBox Width="190" ItemsSource="{x:Static v:Lookups.LoadResources}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Resource}" />
+                    <ComboBox Width="260" ItemsSource="{x:Static v:Lookups.LoadResources}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Resource}" />
                 </StackPanel>
                 <StackPanel>
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifAbove}" />

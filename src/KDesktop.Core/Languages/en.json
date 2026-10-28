@@ -2007,7 +2007,7 @@
   "event.endHint.Load": "When it stops holding for the same time (back to normal).",
   "event.hint.gadget": "Names are the Device Manager’s; the list includes paired Bluetooth devices even when they are off. Part of the name is enough («8bitdo», «xbox»). A Bluetooth device counts only while connected; it may take up to 15 s to be noticed.",
   "event.kind.Load": "PC usage",
-  "event.kind.Load.desc": "When the CPU, the graphics card or the memory goes above a % (or below it) for a while: a game or a render starts, a download finishes… «When it ends», when it's back to normal.",
+  "event.kind.Load.desc": "When the CPU, the graphics card, the memory or the VRAM goes above a % (or below it) for a while: a game or a render starts, a download finishes… «When it ends», when it's back to normal.",
   "event.summary.load.Above": "{0} above {1} % for {2} s",
   "event.summary.load.Below": "{0} below {1} % for {2} s",
   "event.loadResource": "What",

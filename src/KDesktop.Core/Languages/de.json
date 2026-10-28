@@ -2007,7 +2007,7 @@
   "event.endHint.Load": "Wenn es für dieselbe Zeit nicht mehr zutrifft (wieder normal).",
   "event.hint.gadget": "Die Namen stammen aus dem Geräte-Manager; die Liste enthält gekoppelte Bluetooth-Geräte, auch wenn sie aus sind. Ein Teil des Namens reicht („8bitdo“, „xbox“). Bluetooth zählt nur, solange es verbunden ist; das Erkennen kann bis zu 15 s dauern.",
   "event.kind.Load": "PC-Auslastung",
-  "event.kind.Load.desc": "Wenn CPU, Grafikkarte oder Speicher eine Weile über (oder unter) einem % liegt: ein Spiel oder Rendering startet, ein Download endet… «Am Ende», wenn es wieder normal ist.",
+  "event.kind.Load.desc": "Wenn CPU, Grafikkarte, Speicher oder VRAM eine Weile über (oder unter) einem % liegt: ein Spiel oder Rendering startet, ein Download endet… «Am Ende», wenn es wieder normal ist.",
   "event.summary.load.Above": "{0} über {1} % für {2} s",
   "event.summary.load.Below": "{0} unter {1} % für {2} s",
   "event.loadResource": "Was",

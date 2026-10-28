@@ -2007,7 +2007,7 @@
   "event.endHint.Load": "Quando smette di valere per lo stesso tempo (torna alla normalità).",
   "event.hint.gadget": "I nomi sono quelli di Gestione dispositivi; l’elenco include i Bluetooth associati anche se spenti. Basta una parte del nome («8bitdo», «xbox»). Un Bluetooth conta solo mentre è connesso; può volerci fino a 15 s.",
   "event.kind.Load": "Uso del PC",
-  "event.kind.Load.desc": "Quando la CPU, la scheda grafica o la memoria supera una % (o scende sotto) per un po': parte un gioco o un render, finisce un download… «Al termine», quando torna normale.",
+  "event.kind.Load.desc": "Quando la CPU, la scheda grafica, la memoria o la VRAM supera una % (o scende sotto) per un po': parte un gioco o un render, finisce un download… «Al termine», quando torna normale.",
   "event.summary.load.Above": "{0} sopra il {1} % per {2} s",
   "event.summary.load.Below": "{0} sotto il {1} % per {2} s",
   "event.loadResource": "Cosa",

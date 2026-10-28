@@ -2007,7 +2007,7 @@
   "event.endHint.Load": "Cuando deja de cumplirse durante el mismo tiempo (vuelve a la normalidad).",
   "event.hint.gadget": "Los nombres son los del Administrador de dispositivos; la lista incluye los Bluetooth emparejados aunque estén apagados. Vale una parte del nombre («8bitdo», «xbox»). Un Bluetooth cuenta solo mientras está conectado; puede tardar hasta 15 s en notarse.",
   "event.kind.Load": "Uso del equipo",
-  "event.kind.Load.desc": "Cuando la CPU, la tarjeta gráfica o la memoria pasa de un % (o baja de él) durante un rato: empieza un juego o un render, termina una descarga… «Al terminar», cuando vuelve a la normalidad.",
+  "event.kind.Load.desc": "Cuando la CPU, la tarjeta gráfica, la memoria o la VRAM pasa de un % (o baja de él) durante un rato: empieza un juego o un render, termina una descarga… «Al terminar», cuando vuelve a la normalidad.",
   "event.summary.load.Above": "{0} por encima del {1} % durante {2} s",
   "event.summary.load.Below": "{0} por debajo del {1} % durante {2} s",
   "event.loadResource": "Qué",
