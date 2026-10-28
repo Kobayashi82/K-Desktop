@@ -17,6 +17,7 @@
     { "say": "do I have anything written down about the dentist?", "expect": { "tool": "find_notes" } },
     { "say": "take the milk off the shopping list", "expect": { "tool": "edit_note" } },
     { "say": "delete the note about the dentist", "expect": { "tool": "delete_note" } },
+    { "say": "what do you have pending?", "expect": { "tool": "list_scheduled" } },
     { "say": "what is 18 percent of 240?", "expect": { "tool": "calculate", "answerContains": ["43.2"] } },
     { "say": "divide 1500 by 7", "expect": { "tool": "calculate", "answerContains": ["214"] } },
     { "say": "what day of the week was January 1, 2026?", "expect": { "tool": "date_math", "answerContains": ["Thursday"] } },

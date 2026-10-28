@@ -274,6 +274,56 @@ public sealed class WatchTests : IDisposable
         Assert.Contains("cuando se cierre Blender", none.Text, StringComparison.Ordinal);
     }
 
+    /// <summary>B2: «¿qué tienes pendiente?» answers timers, programmed orders and watches at once; without them, «nothing».</summary>
+    [Fact]
+    public async Task PendingIsTimersOrdersAndWatches()
+    {
+        using var builtin = new BuiltinTools(Path.Combine(_folder, "builtin"), _time, _probe);
+        var registry = new ToolRegistry();
+        var bridge = new ListBridge();
+        CommandTools.AddTo(registry, bridge, builtin: builtin);
+        var list = registry.Find("list_scheduled")!;
+
+        var empty = await list.RunAsync(ToolArguments.Parse("{}"), new ToolContext(null), default);
+        Assert.Equal(Core.Localization.Loc.T("tool.list_scheduled.none"), empty.Reply);
+
+        builtin.Timers.Add(_time.GetUtcNow().AddMinutes(10), "sacar la pizza", null);
+        builtin.Watches.Add(new WatchItem("w1", WatchKinds.Closes, "Blender", null, _time.GetUtcNow()) { Process = "blender" });
+        bridge.Entries = [new Core.Assistant.Pipe.ScheduledEntry("e1", "papelera", "2099-01-02 19:00", "vacía la papelera")];
+        var all = await list.RunAsync(ToolArguments.Parse("{}"), new ToolContext(null), default);
+        foreach (var part in new[] { "sacar la pizza", "vacía la papelera", "Blender" })
+        {
+            Assert.Contains(part, all.Reply, StringComparison.Ordinal);
+            Assert.Contains(part, all.Text, StringComparison.Ordinal);
+        }
+
+        // K-Desktop does not answer: what the assistant process knows is still told.
+        bridge.Answers = false;
+        var without = await list.RunAsync(ToolArguments.Parse("{}"), new ToolContext(null), default);
+        Assert.False(without.Failed);
+        Assert.Contains("sacar la pizza", without.Reply, StringComparison.Ordinal);
+    }
+
+    private sealed class ListBridge : ICommandBridge
+    {
+        public IReadOnlyList<Core.Assistant.Pipe.ScheduledEntry> Entries { get; set; } = [];
+
+        public bool Answers { get; set; } = true;
+
+        public Task<Core.Assistant.Pipe.ScheduleDoneMessage?> ScheduleAsync(Core.Assistant.Pipe.ScheduleMessage request, CancellationToken cancellationToken) =>
+            Task.FromResult(Answers ? new Core.Assistant.Pipe.ScheduleDoneMessage("s", true, Entries) : null);
+
+        public Task<Core.Assistant.Pipe.MatchedMessage?> MatchAsync(string text, CancellationToken cancellationToken) => Task.FromResult<Core.Assistant.Pipe.MatchedMessage?>(null);
+
+        public Task<Core.Assistant.Pipe.EndMessage?> RunAsync(string command, string? assistant, CancellationToken cancellationToken) => Task.FromResult<Core.Assistant.Pipe.EndMessage?>(null);
+
+        public Task<Core.Assistant.Pipe.EndMessage?> MediaAsync(string order, int? value, CancellationToken cancellationToken) => Task.FromResult<Core.Assistant.Pipe.EndMessage?>(null);
+
+        public Task<Core.Assistant.Pipe.DescribedMessage?> DescribeAsync(string command, CancellationToken cancellationToken) => Task.FromResult<Core.Assistant.Pipe.DescribedMessage?>(null);
+
+        public Task<Core.Assistant.Pipe.EndMessage?> RunEventAsync(string name, string? assistant, CancellationToken cancellationToken) => Task.FromResult<Core.Assistant.Pipe.EndMessage?>(null);
+    }
+
     private sealed class Probe : IWatchProbe
     {
         public HashSet<string> Running { get; } = new(StringComparer.Ordinal);

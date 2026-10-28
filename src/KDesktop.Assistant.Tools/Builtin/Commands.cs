@@ -79,7 +79,8 @@ public static class CommandTools
     public const double Plausible = Clear;
 
     /// <param name="writer">The model rewriting texts (transform_text); null: the tool says there is none.</param>
-    public static void AddTo(ToolRegistry registry, ICommandBridge bridge, IWriter? writer = null)
+    /// <param name="builtin">Its timers and watches, listed with the programmed orders (B2); null: only those.</param>
+    public static void AddTo(ToolRegistry registry, ICommandBridge bridge, IWriter? writer = null, BuiltinTools? builtin = null)
     {
         registry.Add(new RunCommandTool(bridge));
         registry.Add(new FindCommandTool(bridge));
@@ -91,7 +92,7 @@ public static class CommandTools
         registry.Add(new EndProcessTool(bridge));
         registry.Add(new TransformTextTool(bridge, writer));
         registry.Add(new ScheduleTool(bridge, registry));
-        registry.Add(new ListScheduledTool(bridge));
+        registry.Add(new ListScheduledTool(bridge, builtin));
         registry.Add(new CancelScheduledTool(bridge));
     }
 

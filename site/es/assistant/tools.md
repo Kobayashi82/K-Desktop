@@ -20,7 +20,7 @@ Todo lo que hace un asistente sale en *Panel → Asistente → Actividad* (la su
 | Tema | Herramientas | Por ejemplo |
 |---|---|---|
 | **Comandos** | Ejecutar tus comandos · Buscar entre tus comandos · Explicar un comando · Enseñar frases de voz · Lanzar un evento · Parar una cuenta atrás | «pon el modo juego», «¿qué hace el comando de las copias?», «cuando diga la peli abre el comando de películas», «al final no apagues el ordenador» |
-| **Hora, avisos y cuentas** | Hora y fecha · Temporizador · Quitar un temporizador · Programar una orden · Ver lo programado · Quitar algo programado · Avisar cuando pase algo · Dejar de vigilar · Cuentas con fechas · Calculadora | «avísame en media hora», «a las siete vacía la papelera», «avísame cuando termine la descarga», «cuántos días faltan para navidad» |
+| **Hora, avisos y cuentas** | Hora y fecha · Temporizador · Quitar un temporizador · Programar una orden · Ver lo pendiente · Quitar algo programado · Avisar cuando pase algo · Dejar de vigilar · Cuentas con fechas · Calculadora | «avísame en media hora», «a las siete vacía la papelera», «avísame cuando termine la descarga», «cuántos días faltan para navidad» |
 | **Notas y memoria** | Apuntar una nota · Buscar en las notas · Cambiar una nota · Borrar una nota · Recordar algo de ti · Olvidar un recuerdo | «apunta que tengo que comprar leche», «recuerda que mi jefe se llama Luis» |
 | **Archivos** | Buscar archivos · Abrir un archivo · Leer un archivo · Borrar un archivo · Mover un archivo · Buscar en tus documentos | «búscame el pdf de la factura de la luz», «abre lo último que descargué» |
 | **Internet** | Abrir una web · Buscar en el navegador · Consultar internet · Leer una página web | «cuánto cuesta una RTX 5080», «resúmeme esta página» |
@@ -38,8 +38,9 @@ Algunos detalles:
   asistente como si se la dijeras en ese momento. Lo que hará falta se aprueba **al pedírselo** (pregunta una vez, por lo
   más arriesgado, según *Preguntar antes de hacer algo*); a su hora no pregunta nada: hace lo aprobado, lo que no
   necesita permiso, y lo demás no. Apagar o reiniciar, siempre lo último, y al acabar dice qué salió y qué no. Si a esa
-  hora el PC estaba apagado o dormido, no se hace tarde: se quita y te avisa. «Qué tienes programado» y «ya no hace falta
-  lo de las siete» los ven y los quitan. Un aviso sencillo para otro día («recuérdame mañana a las 7…») es un temporizador.
+  hora el PC estaba apagado o dormido, no se hace tarde: se quita y te avisa. «Ya no hace falta lo de las siete»
+  quita uno. «¿Qué tienes pendiente?» responde todo junto: temporizadores, órdenes programadas y lo que vigila para
+  avisarte («avísame cuando…»). Un aviso sencillo para otro día («recuérdame mañana a las 7…») es un temporizador.
 - **Mirar la pantalla** lee el texto con el reconocimiento de texto de Windows (también «copia el texto de esta ventana»);
   para entender una imagen hace falta un modelo con visión.
 - **Traducir y corregir textos** trabaja con lo que tienes seleccionado o copiado (traducir, corregir, resumir, más formal,

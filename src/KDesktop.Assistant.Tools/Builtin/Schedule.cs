@@ -171,11 +171,15 @@ public sealed class ScheduleTool(ICommandBridge bridge, ToolRegistry registry) :
 }
 
 /// <summary>«¿Qué tienes programado?»: the orders programmed for later.</summary>
-public sealed class ListScheduledTool(ICommandBridge bridge) : ITool
+/// <summary>
+/// «¿Qué tienes pendiente?» (B2, 5.0.344): everything waiting for later at once, the timers, the orders programmed and what
+/// notify_when watches.
+/// </summary>
+public sealed class ListScheduledTool(ICommandBridge bridge, BuiltinTools? builtin = null) : ITool
 {
     public string Name => "list_scheduled";
 
-    public string Description => "Lists the orders programmed for later (with schedule): when and what.";
+    public string Description => "Lists everything pending for later: the timers, the orders programmed with schedule and what notify_when is watching. Use it for «what do you have pending».";
 
     public string ParametersSchemaJson => """{"type":"object","properties":{}}""";
 
@@ -189,15 +193,37 @@ public sealed class ListScheduledTool(ICommandBridge bridge) : ITool
 
     public async Task<ToolResult> RunAsync(JsonElement arguments, ToolContext context, CancellationToken cancellationToken)
     {
-        if (await bridge.ScheduleAsync(new ScheduleMessage(string.Empty, "list"), cancellationToken).ConfigureAwait(false) is not { Ok: true } done)
-            return ToolResult.Fail("K-Desktop did not answer.");
-        var items = done.Items ?? [];
-        if (items.Count == 0) return new ToolResult("Nothing is programmed.") { Reply = Loc.T("tool.list_scheduled.none") };
-        var said = items.Select(e => Said(e)).ToList();
-        return new ToolResult("Programmed: " + string.Join("; ", items.Select(e => $"{e.When}{(e.Repeat is { } r ? " (" + r + ")" : "")}: «{e.Order}»")))
+        var timers = builtin?.Timers.Pending ?? [];
+        var watches = builtin?.Watches.Pending ?? [];
+        var done = await bridge.ScheduleAsync(new ScheduleMessage(string.Empty, "list"), cancellationToken).ConfigureAwait(false);
+        // Without K-Desktop's answer the timers and the watches are still known.
+        if (done is not { Ok: true } && timers.Count == 0 && watches.Count == 0) return ToolResult.Fail("K-Desktop did not answer.");
+        var items = done is { Ok: true } ? done.Items ?? [] : [];
+        if (items.Count == 0 && timers.Count == 0 && watches.Count == 0)
+            return new ToolResult("Nothing is pending: no timers, programmed orders or watches.") { Reply = Loc.T("tool.list_scheduled.none") };
+
+        var model = new List<string>();
+        var said = new List<string>();
+        if (timers.Count > 0)
         {
-            Reply = Loc.T("tool.list_scheduled.reply", string.Join("; ", said)),
-        };
+            var now = builtin!.Timers.Time.GetUtcNow();
+            model.Add("Timers: " + SetTimerTool.Describe(timers, now));
+            said.AddRange(timers.OrderBy(t => t.Due).Select(t => t.Text.Length > 0
+                ? Loc.T("tool.list_scheduled.timerFor", ToolText.Clock(t.Due), t.Text)
+                : Loc.T("tool.list_scheduled.timer", ToolText.Clock(t.Due))));
+        }
+        if (items.Count > 0)
+        {
+            model.Add("Programmed: " + string.Join("; ", items.Select(e => $"{e.When}{(e.Repeat is { } r ? " (" + r + ")" : "")}: «{e.Order}»")));
+            said.AddRange(items.Select(Said));
+        }
+        if (watches.Count > 0)
+        {
+            model.Add("Watching (notify_when): " + string.Join("; ", watches.Select(WatchStore.Told)));
+            said.AddRange(watches.Select(w => Loc.T("tool.list_scheduled.watch", WatchStore.Told(w))));
+        }
+        if (done is not { Ok: true }) model.Add("(K-Desktop did not answer: the programmed orders are unknown.)");
+        return new ToolResult(string.Join(". ", model)) { Reply = Loc.T("tool.list_scheduled.reply", string.Join("; ", said)) };
     }
 
     public static string Said(ScheduledEntry entry)

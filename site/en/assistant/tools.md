@@ -19,7 +19,7 @@ Everything an assistant does shows in *Panel → Assistant → Activity* (its ow
 | Subject | Tools | For example |
 |---|---|---|
 | **Commands** | Run your commands · Find your commands · Explain a command · Teach voice phrases · Run an event · Stop a countdown | «turn on game mode», «what does the backup command do?», «when I say telly run my TV command», «don't shut down the computer after all» |
-| **Time, reminders and maths** | Time and date · Timer · Cancel a timer · Program an order · See what is programmed · Remove something programmed · Tell me when something happens · Stop watching · Date maths · Calculator | «remind me in half an hour», «at seven empty the recycle bin», «tell me when the download finishes», «how many days until christmas» |
+| **Time, reminders and maths** | Time and date · Timer · Cancel a timer · Program an order · See what is pending · Remove something programmed · Tell me when something happens · Stop watching · Date maths · Calculator | «remind me in half an hour», «at seven empty the recycle bin», «tell me when the download finishes», «how many days until christmas» |
 | **Notes and memory** | Save a note · Find notes · Change a note · Delete a note · Remember something about you · Forget a memory | «note that I have to buy milk», «remember that my boss is called Luis» |
 | **Files** | Find files · Open a file · Read a file · Delete a file · Move a file · Search your documents | «find the electricity bill pdf», «open the last thing I downloaded» |
 | **Internet** | Open a website · Search in the browser · Look it up online · Read a web page | «how much is an RTX 5080», «summarise this page» |
@@ -38,8 +38,9 @@ Some details:
   assistant as if you said it then. What it will need is approved **when you ask** (it asks once, for the riskiest part,
   as *Ask before doing something* says); at that time it asks nothing: it does what was approved and what needs no
   permission, and nothing else. Shutting down or restarting always goes last, and at the end it says what worked and what
-  didn't. If the PC was off or asleep at that time, it is not done late: it is removed and you are told. «What do you have
-  programmed» and «no need for the seven o'clock thing» show and remove them. A plain reminder for another day («remind me
+  didn't. If the PC was off or asleep at that time, it is not done late: it is removed and you are told. «No need for the seven o'clock
+  thing» removes one. «What do you have pending?» answers everything at once: timers, programmed orders and what it is
+  watching for you («tell me when…»). A plain reminder for another day («remind me
   tomorrow at 7…») is a timer.
 - **Look at the screen** reads text with Windows' text recognition (also «copy the text of this window»); to understand
   a picture it needs a model with vision.
