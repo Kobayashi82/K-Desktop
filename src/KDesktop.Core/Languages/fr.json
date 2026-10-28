@@ -213,7 +213,7 @@
   "editor.wolAddressHint": "Tous les réseaux de ce PC",
   "editor.port": "Port",
   "editor.wolWait": "Attendre (s)",
-  "editor.wolHint": "L'ordinateur doit avoir le Wake-on-LAN activé dans le BIOS et sa carte réseau. Avec « Attendre », la commande continue quand il répond (Échap annule) ; s'il ne répond pas à temps, elle s'arrête.",
+  "editor.wolHint": "L'ordinateur doit avoir le Wake-on-LAN activé dans le BIOS et sa carte réseau. Avec « Attendre », la commande continue quand il répond (Échap annule) ; s'il ne répond pas à temps, elle s'arrête. « Envoyer à » ne sert que si l'ordinateur est sur un autre réseau : l'adresse de diffusion de ce réseau (p. ex. 192.168.2.255), ou votre IP publique ou domaine pour le réveiller de l'extérieur (le routeur doit rediriger ce port).",
   "editor.projection": "Projeter",
   "editor.brightness": "Luminosité",
   "editor.monitor": "Écran",

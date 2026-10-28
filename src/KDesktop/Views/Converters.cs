@@ -254,14 +254,6 @@ public sealed class InvalidTimeConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 }
 
-/// <summary>A number → whether it is above 0 (a list with items).</summary>
-public sealed class IsPositiveConverter : IValueConverter
-{
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => value is int n && n > 0;
-
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
-}
-
 /// <summary>The indentation of an action inside the block of a «Si…» → the row's margin.</summary>
 public sealed class IndentMarginConverter : IValueConverter
 {

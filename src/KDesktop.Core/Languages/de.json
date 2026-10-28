@@ -213,7 +213,7 @@
   "editor.wolAddressHint": "Alle Netzwerke dieses PCs",
   "editor.port": "Port",
   "editor.wolWait": "Warten (s)",
-  "editor.wolHint": "Wake-on-LAN muss im BIOS und in der Netzwerkkarte aktiviert sein. Mit «Warten» geht der Befehl weiter, sobald er antwortet (Esc bricht ab); antwortet er nicht rechtzeitig, stoppt er.",
+  "editor.wolHint": "Wake-on-LAN muss im BIOS und in der Netzwerkkarte aktiviert sein. Mit «Warten» geht der Befehl weiter, sobald er antwortet (Esc bricht ab); antwortet er nicht rechtzeitig, stoppt er. «Senden an» braucht man nur, wenn der Computer in einem anderen Netz ist: die Broadcast-Adresse dieses Netzes (z. B. 192.168.2.255) oder deine öffentliche IP bzw. Domain, um ihn von außen zu wecken (der Router muss diesen Port weiterleiten).",
   "editor.projection": "Projizieren",
   "editor.brightness": "Helligkeit",
   "editor.monitor": "Monitor",

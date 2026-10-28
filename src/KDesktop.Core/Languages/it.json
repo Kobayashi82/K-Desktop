@@ -213,7 +213,7 @@
   "editor.wolAddressHint": "Tutte le reti di questo PC",
   "editor.port": "Porta",
   "editor.wolWait": "Attendi (s)",
-  "editor.wolHint": "Il computer deve avere il Wake-on-LAN attivo nel BIOS e nella scheda di rete. Con «Attendi», il comando prosegue quando risponde (Esc annulla); se non risponde in tempo, si ferma.",
+  "editor.wolHint": "Il computer deve avere il Wake-on-LAN attivo nel BIOS e nella scheda di rete. Con «Attendi», il comando prosegue quando risponde (Esc annulla); se non risponde in tempo, si ferma. «Invia a» serve solo se il computer è in un'altra rete: l'indirizzo di broadcast di quella rete (es. 192.168.2.255), o il tuo IP pubblico o dominio per svegliarlo da fuori (il router deve inoltrare quella porta).",
   "editor.projection": "Proietta",
   "editor.brightness": "Luminosità",
   "editor.monitor": "Monitor",

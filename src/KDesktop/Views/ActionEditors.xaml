@@ -12,7 +12,6 @@
     <v:AudioDeviceSymbolConverter x:Key="AudioSymbol" />
     <v:ActionIconConverter x:Key="ActionIconEd" />
     <v:LocKeyConverter x:Key="LocKey" />
-    <v:IsPositiveConverter x:Key="IsPositive" />
     <v:SettingsTextConverter x:Key="SettingsText" />
 
     <Style x:Key="EdRow" TargetType="Grid">
@@ -1154,7 +1153,7 @@
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.wolHost}" />
                     <StackPanel Orientation="Horizontal">
                         <ui:TextBox Width="200" Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="192.168.1.150" Icon="{ui:SymbolIcon Server24}" />
-                        <ui:Button Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr editor.wolFindMac}" Icon="{ui:SymbolIcon Search24}"
+                        <ui:Button Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon Search24}" AutomationProperties.Name="{l:Tr editor.wolFindMac}"
                                    ToolTip="{l:Tr editor.wolFindMacHint}" Command="{x:Static v:EditorCommands.FindMac}" CommandParameter="{Binding}" />
                     </StackPanel>
                 </StackPanel>
@@ -1167,7 +1166,7 @@
             <WrapPanel>
                 <StackPanel Margin="0,0,16,12">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.wolAddress}" />
-                    <ui:TextBox Width="200" Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.wolAddressHint}" MaxLength="15" />
+                    <ui:TextBox Width="200" Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.wolAddressHint}" />
                 </StackPanel>
                 <StackPanel Margin="0,0,16,12">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.port}" />
@@ -1218,9 +1217,8 @@
         <DataTemplate.Triggers>
             <DataTrigger Binding="{Binding Operation}" Value="MonitorOff">
                 <Setter TargetName="OsdCheck" Property="Visibility" Value="Collapsed" />
-            </DataTrigger>
-            <DataTrigger Binding="{Binding OffMonitors.Count, Converter={StaticResource IsPositive}}" Value="True">
-                <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.monitorsOffHint}" />
+                <!-- The monitor boxes say it: all turned off, or the chosen ones covered -->
+                <Setter TargetName="Hint" Property="Visibility" Value="Collapsed" />
             </DataTrigger>
             <DataTrigger Binding="{Binding Operation}" Value="Projection">
                 <Setter TargetName="OffRow" Property="Visibility" Value="Collapsed" />

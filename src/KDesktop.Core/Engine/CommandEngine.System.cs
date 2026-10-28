@@ -244,7 +244,8 @@ public sealed partial class CommandEngine
     {
         switch (a.Operation)
         {
-            case DisplayOperation.MonitorOff when a.OffMonitors.Count > 0:
+            // Some of them only (all ticked is the same as none: Windows turns them off for real).
+            case DisplayOperation.MonitorOff when DisplayTools.Monitors().Any(m => !a.OffMonitors.Contains(m.DeviceName)) && a.OffMonitors.Count > 0:
                 _ui.BlankMonitors([.. a.OffMonitors]);
                 break;
 

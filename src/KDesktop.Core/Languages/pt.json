@@ -213,7 +213,7 @@
   "editor.wolAddressHint": "Todas as redes deste PC",
   "editor.port": "Porta",
   "editor.wolWait": "Esperar (s)",
-  "editor.wolHint": "O computador tem de ter o Wake-on-LAN ativo na BIOS e na placa de rede. Com «Esperar», o comando continua quando responder (Esc cancela); se não responder a tempo, para.",
+  "editor.wolHint": "O computador tem de ter o Wake-on-LAN ativo na BIOS e na placa de rede. Com «Esperar», o comando continua quando responder (Esc cancela); se não responder a tempo, para. «Enviar para» só é preciso se o computador estiver noutra rede: o endereço de difusão dessa rede (ex. 192.168.2.255), ou o teu IP público ou domínio para o acordar de fora (o router tem de reencaminhar essa porta).",
   "editor.projection": "Projetar",
   "editor.brightness": "Brilho",
   "editor.monitor": "Monitor",
