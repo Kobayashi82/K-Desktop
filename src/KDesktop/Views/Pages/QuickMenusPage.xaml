@@ -226,14 +226,14 @@
                                         Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                                         GotKeyboardFocus="OnNameFocus" LostKeyboardFocus="OnNameLostFocus" KeyDown="OnNameKeyDown" />
                             <StackPanel Grid.Column="1" Margin="16,0,0,0" Orientation="Horizontal" VerticalAlignment="Center" v:ResponsiveHeader.IsSide="True">
-                                <ui:Button Content="{l:Tr qm.test}" Icon="{ui:SymbolIcon Play24}" Click="OnTest" ToolTip="{l:Tr qm.testHint}" Margin="0,0,8,0" />
-                                <ui:Button Icon="{ui:SymbolIcon FlashAdd20}" ToolTip="{l:Tr qm.createCommand}" AutomationProperties.Name="{l:Tr qm.createCommand}"
+                                <ui:Button MinHeight="34" Content="{l:Tr qm.test}" Icon="{ui:SymbolIcon Play24}" Click="OnTest" ToolTip="{l:Tr qm.testHint}" Margin="0,0,8,0" />
+                                <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon FlashAdd20, FontSize=18}" ToolTip="{l:Tr qm.createCommand}" AutomationProperties.Name="{l:Tr qm.createCommand}"
                                            Click="OnCreateCommand" Margin="0,0,8,0" />
-                                <ui:Button x:Name="UndoButton" Icon="{ui:SymbolIcon ArrowUndo24}" ToolTip="{l:Tr qm.undo}" Click="OnUndo" Margin="0,0,8,0" IsEnabled="False" />
-                                <ui:Button x:Name="RedoButton" Icon="{ui:SymbolIcon ArrowRedo24}" ToolTip="{l:Tr qm.redo}" Click="OnRedo" Margin="0,0,8,0" IsEnabled="False" />
-                                <ui:Button Icon="{ui:SymbolIcon Copy24}" ToolTip="{l:Tr qm.duplicateMenu}" AutomationProperties.Name="{l:Tr qm.duplicateMenu}"
+                                <ui:Button x:Name="UndoButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowUndo24, FontSize=18}" ToolTip="{l:Tr qm.undo}" Click="OnUndo" Margin="0,0,8,0" IsEnabled="False" />
+                                <ui:Button x:Name="RedoButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowRedo24, FontSize=18}" ToolTip="{l:Tr qm.redo}" Click="OnRedo" Margin="0,0,8,0" IsEnabled="False" />
+                                <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Copy24, FontSize=18}" ToolTip="{l:Tr qm.duplicateMenu}" AutomationProperties.Name="{l:Tr qm.duplicateMenu}"
                                            Click="OnDuplicateMenu" Margin="0,0,8,0" />
-                                <ui:Button Icon="{ui:SymbolIcon Delete24}" ToolTip="{l:Tr qm.deleteMenu}" AutomationProperties.Name="{l:Tr qm.deleteMenu}" Click="OnDeleteMenu" />
+                                <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Delete24, FontSize=18}" ToolTip="{l:Tr qm.deleteMenu}" AutomationProperties.Name="{l:Tr qm.deleteMenu}" Click="OnDeleteMenu" />
                             </StackPanel>
                             <TextBlock x:Name="NameError" Grid.Row="1" Grid.ColumnSpan="2" Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{l:Tr qm.nameRequired}"
                                        Foreground="{DynamicResource Kd.Danger}" Visibility="Collapsed" />

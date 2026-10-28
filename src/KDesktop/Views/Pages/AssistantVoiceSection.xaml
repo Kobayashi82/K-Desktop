@@ -152,7 +152,7 @@
                     <TextBlock Text="{l:Tr assistantVoice.piperFolders}" />
                     <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantVoice.kokoroFoldersHint}" />
                 </StackPanel>
-                <ui:Button MinHeight="36" Grid.Column="1" VerticalAlignment="Center" Icon="{ui:SymbolIcon FolderAdd24}" Content="{l:Tr assistantVoice.piperAddFolder}" Click="OnKokoroAddFolder" />
+                <ui:Button Appearance="Primary" MinHeight="36" Grid.Column="1" VerticalAlignment="Center" Icon="{ui:SymbolIcon FolderAdd24}" Content="{l:Tr assistantVoice.piperAddFolder}" Click="OnKokoroAddFolder" />
             </Grid>
             <StackPanel x:Name="KokoroFolderRows" Margin="0,6,0,0" />
 
@@ -219,7 +219,7 @@
                     <TextBlock Text="{l:Tr assistantVoice.piperFolders}" />
                     <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr assistantVoice.piperFoldersHint}" />
                 </StackPanel>
-                <ui:Button MinHeight="36" Grid.Column="1" VerticalAlignment="Center" Icon="{ui:SymbolIcon FolderAdd24}" Content="{l:Tr assistantVoice.piperAddFolder}" Click="OnPiperAddFolder" />
+                <ui:Button Appearance="Primary" MinHeight="36" Grid.Column="1" VerticalAlignment="Center" Icon="{ui:SymbolIcon FolderAdd24}" Content="{l:Tr assistantVoice.piperAddFolder}" Click="OnPiperAddFolder" />
             </Grid>
             <StackPanel x:Name="PiperFolderRows" Margin="0,6,0,0" />
 

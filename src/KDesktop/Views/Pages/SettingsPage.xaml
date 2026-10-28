@@ -1246,7 +1246,7 @@
                     <Grid Style="{StaticResource SettingRow}" Margin="0,0,0,10">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr settings.wakeWordsHint}" />
-                        <ui:Button MinHeight="36" x:Name="WakeAddButton" Grid.Column="1" VerticalAlignment="Center" Content="{l:Tr settings.wakeAdd}" Icon="{ui:SymbolIcon Add24}" Click="OnAddWakeWord" />
+                        <ui:Button Appearance="Primary" MinHeight="36" x:Name="WakeAddButton" Grid.Column="1" VerticalAlignment="Center" Content="{l:Tr settings.wakeAdd}" Icon="{ui:SymbolIcon Add24}" Click="OnAddWakeWord" />
                     </Grid>
                     <TextBlock x:Name="WakeNone" Style="{StaticResource Caption}" Margin="0,0,0,10" Text="{l:Tr settings.wakeNone}" />
                     <ItemsControl x:Name="WakeList" Focusable="False" Margin="0,0,0,8">
@@ -1396,7 +1396,7 @@
                     <Border Height="1" Margin="0,6,0,12" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
                     <StackPanel Orientation="Horizontal">
                         <ComboBox x:Name="DisabledInBox" IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnProcessDropDown" DropDownClosed="OnProcessPicked" KeyDown="OnProcessKeyDown" />
-                        <ui:Button MinHeight="36" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddDisabledIn" />
+                        <ui:Button Appearance="Primary" MinHeight="36" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddDisabledIn" />
                         <ui:Button MinHeight="36" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickDisabledIn" ToolTip="{l:Tr picker.tooltip}" />
                     </StackPanel>
                     <Border Height="1" Margin="0,14,0,6" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
@@ -1432,7 +1432,7 @@
                     <Border Height="1" Margin="0,6,0,12" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
                     <StackPanel Orientation="Horizontal">
                         <ComboBox x:Name="SideButtonsBox" IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnProcessDropDown" DropDownClosed="OnProcessPicked" KeyDown="OnProcessKeyDown" />
-                        <ui:Button MinHeight="36" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddSideButtons" />
+                        <ui:Button Appearance="Primary" MinHeight="36" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddSideButtons" />
                         <ui:Button MinHeight="36" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickSideButtons" ToolTip="{l:Tr picker.tooltip}" />
                     </StackPanel>
                 </StackPanel>
@@ -1931,8 +1931,8 @@
                     </TextBlock>
                     <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" Text="{l:Tr settings.exportHint}" />
                     <WrapPanel>
-                        <ui:Button MinHeight="36" Margin="0,0,8,8" Content="{l:Tr settings.export}" Icon="{ui:SymbolIcon ArrowUpload24}" Click="OnExport" />
-                        <ui:Button MinHeight="36" Margin="0,0,8,8" Content="{l:Tr settings.import}" Icon="{ui:SymbolIcon ArrowDownload24}" Click="OnImport" />
+                        <ui:Button Appearance="Primary" MinHeight="36" Margin="0,0,8,8" Content="{l:Tr settings.export}" Icon="{ui:SymbolIcon ArrowUpload24}" Click="OnExport" />
+                        <ui:Button Appearance="Primary" MinHeight="36" Margin="0,0,8,8" Content="{l:Tr settings.import}" Icon="{ui:SymbolIcon ArrowDownload24}" Click="OnImport" />
                         <ui:Button MinHeight="36" Margin="0,0,8,8" Content="{l:Tr settings.openLog}" Icon="{ui:SymbolIcon DocumentText24}" Click="OnOpenLog" />
                     </WrapPanel>
                     <Border Height="1" SnapsToDevicePixels="True" Margin="0,10,0,6" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
@@ -1964,7 +1964,7 @@
                                        AutomationProperties.Name="{l:Tr settings.openBackups}" />
                         </Grid>
                     </StackPanel>
-                    <ui:Button MinHeight="36" Margin="0,4,0,8" HorizontalAlignment="Left" Content="{l:Tr settings.backupNow}" Icon="{ui:SymbolIcon Save24}" Click="OnBackupNow" />
+                    <ui:Button Appearance="Primary" MinHeight="36" Margin="0,4,0,8" HorizontalAlignment="Left" Content="{l:Tr settings.backupNow}" Icon="{ui:SymbolIcon Save24}" Click="OnBackupNow" />
                     <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.autoBackupHint}" />
                 </StackPanel>
             </Border>
@@ -1994,7 +1994,7 @@
                             <TextBlock x:Name="UpdateStatusText" Style="{StaticResource Caption}" />
                             <TextBlock x:Name="UpdateLastCheckText" Style="{StaticResource Caption}" />
                         </StackPanel>
-                        <ui:Button MinHeight="36" x:Name="UpdateCheckButton" Grid.Column="1" Content="{l:Tr updates.check}" Icon="{ui:SymbolIcon ArrowSync24}" Click="OnCheckUpdates" />
+                        <ui:Button Appearance="Primary" MinHeight="36" x:Name="UpdateCheckButton" Grid.Column="1" Content="{l:Tr updates.check}" Icon="{ui:SymbolIcon ArrowSync24}" Click="OnCheckUpdates" />
                     </Grid>
                     <!-- A newer version: what it brings and the button to install it -->
                     <Border x:Name="UpdatePanel" Style="{StaticResource InfoBox}" Margin="0,4,0,8" Visibility="Collapsed">

@@ -17,7 +17,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <ComboBox x:Name="ModelBox" AutomationProperties.Name="{l:Tr bench.model}" />
-                <ui:Button MinHeight="36" x:Name="RunButton" Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Appearance="Primary" Icon="{ui:SymbolIcon Play24}"
+                <ui:Button MinHeight="36" x:Name="RunButton" Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon Play24}"
                            Content="{l:Tr bench.run}" Click="OnRun" />
                 <ui:Button MinHeight="36" x:Name="CancelButton" Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon RecordStop24}" Visibility="Collapsed"
                            Content="{l:Tr common.cancel}" Click="OnCancel" />

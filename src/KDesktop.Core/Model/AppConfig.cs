@@ -583,6 +583,10 @@ public partial class AppSettings : ObservableObject
     /// <summary>Comandos: «Opciones» unfolded (it stays as left, from one command to the next).</summary>
     [ObservableProperty] private bool _commandsOptionsOpen;
 
+    /// <summary>Comandos: «Atajos» and «Acciones» folded away (their buttons stay at hand on the header).</summary>
+    [ObservableProperty] private bool _commandsHotkeysFolded;
+    [ObservableProperty] private bool _commandsActionsFolded;
+
     /// <summary>Eventos: «Cuando» folded away, and «Opciones» unfolded.</summary>
     [ObservableProperty] private bool _eventsWhenFolded;
     [ObservableProperty] private bool _eventsOptionsOpen;

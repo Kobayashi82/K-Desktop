@@ -160,7 +160,7 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <ui:Button Content="{l:Tr commands.new}" Icon="{ui:SymbolIcon Add24}" Appearance="Primary" Click="OnNewCommand" HorizontalAlignment="Stretch" />
-                    <ToggleButton x:Name="ShowHiddenToggle" Grid.Column="1" Margin="8,0,0,0" Padding="9,6" ToolTip="{l:Tr commands.showHidden}" Checked="OnShowHidden" Unchecked="OnShowHidden">
+                    <ToggleButton x:Name="ShowHiddenToggle" Grid.Column="1" Margin="8,0,0,0" Padding="9,0" VerticalAlignment="Stretch" MinHeight="0" ToolTip="{l:Tr commands.showHidden}" Checked="OnShowHidden" Unchecked="OnShowHidden">
                         <ui:SymbolIcon>
                             <!-- Checked, the button turns accent-coloured: the icon goes dark on it to stay visible -->
                             <ui:SymbolIcon.Style>
@@ -321,9 +321,9 @@
                                               Title="{l:Tr commands.remoteOption}" Hint="{l:Tr commands.remoteHint}" />
                                 <StackPanel Grid.Column="3" Margin="16,0,0,0" Orientation="Horizontal" VerticalAlignment="Center" v:ResponsiveHeader.IsSide="True">
                                     <ui:ToggleSwitch IsChecked="{Binding Enabled}" OnContent="{l:Tr common.enabled}" OffContent="{l:Tr common.disabled}" Margin="0,0,16,0" />
-                                    <ui:Button Content="{l:Tr commands.run}" Icon="{ui:SymbolIcon Play24}" Click="OnRunCommand" Margin="0,0,8,0" />
-                                    <ui:Button Icon="{ui:SymbolIcon Copy24}" ToolTip="{l:Tr commands.duplicate}" Click="OnDuplicateCommand" Margin="0,0,8,0" />
-                                    <ui:Button Icon="{ui:SymbolIcon Delete24}" ToolTip="{l:Tr commands.delete}" Click="OnDeleteCommand" />
+                                    <ui:Button MinHeight="34" Content="{l:Tr commands.run}" Icon="{ui:SymbolIcon Play24}" Click="OnRunCommand" Margin="0,0,8,0" />
+                                    <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Copy24, FontSize=18}" ToolTip="{l:Tr commands.duplicate}" Click="OnDuplicateCommand" Margin="0,0,8,0" />
+                                    <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Delete24, FontSize=18}" ToolTip="{l:Tr commands.delete}" Click="OnDeleteCommand" />
                                 </StackPanel>
                                 <StackPanel Grid.Row="1" Grid.ColumnSpan="4">
                                     <TextBlock x:Name="NameError" Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{l:Tr commands.nameRequired}"
@@ -335,20 +335,27 @@
                         </Grid>
                     </Border>
 
-                    <!-- Hotkeys -->
-                    <Border Style="{StaticResource Card}">
-                        <StackPanel>
+                    <!-- Hotkeys (foldable; the buttons stay on the header, folded or not) -->
+                    <ui:CardExpander x:Name="HotkeysExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Keyboard24}" HorizontalContentAlignment="Stretch"
+                                     Expanded="OnSectionFolded" Collapsed="OnSectionFolded" AutomationProperties.Name="{l:Tr commands.hotkeys}">
+                        <ui:CardExpander.Header>
                             <Grid>
-                                <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr commands.hotkeys}" />
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock FontWeight="SemiBold" VerticalAlignment="Center" Text="{l:Tr commands.hotkeys}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                 <!-- What the hotkeys do besides running the command -->
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,0,0">
-                                    <ui:Button x:Name="AddHotkeyButton" MinHeight="36" Content="{l:Tr common.add}" ToolTip="{l:Tr commands.addHotkey}" Icon="{ui:SymbolIcon Add24}" Click="OnAddHotkey" Margin="0,0,6,0" />
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,8,0">
+                                    <ui:Button x:Name="AddHotkeyButton" MinHeight="36" Content="{l:Tr commands.addHotkey}" Icon="{ui:SymbolIcon Add24}" Appearance="Primary" Click="OnAddHotkey" Margin="0,0,6,0" />
                                     <v:IconToggle Width="38" Height="36" Margin="0" IsChecked="{Binding BlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
                                                   Title="{l:Tr commands.blockKey}" Hint="{l:Tr commands.blockKeyHint}" />
                                     <v:IconToggle Width="38" Height="36" IsChecked="{Binding IgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
                                                   Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
                                 </StackPanel>
                             </Grid>
+                        </ui:CardExpander.Header>
+                        <StackPanel>
                             <WrapPanel>
                                 <ItemsControl ItemsSource="{Binding Hotkeys}" Focusable="False">
                                     <ItemsControl.ItemsPanel>
@@ -390,16 +397,19 @@
                             <TextBlock x:Name="HotkeyWarning" Style="{StaticResource Caption}" Foreground="{DynamicResource Kd.Warning}" Visibility="Collapsed" Margin="0,4,0,0" />
                             <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="{l:Tr commands.hotkeysHint}" />
                         </StackPanel>
-                    </Border>
+                    </ui:CardExpander>
 
-                    <!-- Actions -->
-                    <Border Style="{StaticResource Card}">
-                        <StackPanel>
-                            <Grid Margin="0,0,0,10">
-                                <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr commands.actions}" Margin="0" VerticalAlignment="Center" />
-                                <ui:Button x:Name="AddActionButton" HorizontalAlignment="Right" Content="{l:Tr commands.addAction}" Icon="{ui:SymbolIcon Add24}"
-                                           Appearance="Primary" Click="OnAddAction" />
+                    <!-- Actions (foldable like the hotkeys) -->
+                    <ui:CardExpander x:Name="ActionsExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Flash24}" HorizontalContentAlignment="Stretch"
+                                     Expanded="OnSectionFolded" Collapsed="OnSectionFolded" AutomationProperties.Name="{l:Tr commands.actions}">
+                        <ui:CardExpander.Header>
+                            <Grid>
+                                <TextBlock FontWeight="SemiBold" VerticalAlignment="Center" Text="{l:Tr commands.actions}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                <ui:Button x:Name="AddActionButton" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="8,0,8,0" MinHeight="36"
+                                           Content="{l:Tr commands.addAction}" Icon="{ui:SymbolIcon Add24}" Click="OnAddAction" />
                             </Grid>
+                        </ui:CardExpander.Header>
+                        <StackPanel>
                             <TextBlock x:Name="NoActions" Style="{StaticResource Caption}" Text="{l:Tr commands.noActions}" Margin="0,4,0,8" />
                             <ListBox x:Name="ActionList" ItemsSource="{Binding Actions}" ItemContainerStyle="{StaticResource ActionRow}"
                                      v:DragReorder.IsEnabled="True" v:DragReorder.ClickToggles="True" v:DragReorder.Reordered="OnActionReordered"
@@ -480,7 +490,7 @@
                                 </ListBox.ItemTemplate>
                             </ListBox>
                         </StackPanel>
-                    </Border>
+                    </ui:CardExpander>
 
                     <!-- Options (folded unless opened by hand; it stays as left from one command to the next) -->
                     <ui:CardExpander x:Name="OptionsExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Options24}"
@@ -522,7 +532,7 @@
                             </ItemsControl>
                             <StackPanel Orientation="Horizontal" Margin="0,2,0,14">
                                 <ComboBox x:Name="ProcessBox" IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnProcessDropDown" DropDownClosed="OnProcessPicked" KeyDown="OnProcessKeyDown" />
-                                <ui:Button Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddProcess" />
+                                <ui:Button Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Appearance="Primary" Click="OnAddProcess" />
                                 <ui:Button Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickProcess" ToolTip="{l:Tr picker.tooltip}" />
                             </StackPanel>
 
@@ -550,7 +560,7 @@
                             </ItemsControl>
                             <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                                 <ui:TextBox x:Name="VoicePhraseBox" Width="320" PlaceholderText="{l:Tr commands.voicePhrasePlaceholder}" KeyDown="OnVoicePhraseKeyDown" />
-                                <ui:Button Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddVoicePhrase" />
+                                <ui:Button Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Appearance="Primary" Click="OnAddVoicePhrase" />
                             </StackPanel>
                         </StackPanel>
                     </ui:CardExpander>

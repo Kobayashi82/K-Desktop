@@ -11,12 +11,7 @@
     <StackPanel>
     <Border Style="{StaticResource Card}">
         <StackPanel>
-            <Grid>
-                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr brainOptions.title}" />
-                <ui:Button x:Name="CheckButton" Grid.Column="1" VerticalAlignment="Top" Appearance="Transparent" Padding="8,6"
-                           Icon="{ui:SymbolIcon ArrowSync24}" Content="{l:Tr brainOptions.check}" Click="OnCheck" />
-            </Grid>
+            <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr brainOptions.title}" />
             <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,10" TextWrapping="Wrap" Text="{l:Tr brainOptions.intro}" />
 
             <!-- The module is off: nothing to talk to -->
@@ -29,9 +24,17 @@
             </Border>
 
             <StackPanel x:Name="Body">
-                <!-- What is in memory now (or what is wrong), each loaded model with its «Liberar» -->
-                <Border Style="{StaticResource ListPanel}" Margin="0,0,0,8">
-                    <StackPanel x:Name="StateRows" />
+                <!-- What is in memory now (or what is wrong), each loaded model with its «Liberar»; «Comprobar» as an icon in
+                     its top right corner -->
+                <Border Style="{StaticResource ListPanel}" Margin="0,0,0,8" Padding="14,2,6,2">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel x:Name="StateRows" />
+                        <ui:Button x:Name="CheckButton" Grid.Column="1" Margin="6,6,0,0" VerticalAlignment="Top" Appearance="Transparent"
+                                   Width="34" Height="32" Padding="0" MinWidth="0" MinHeight="0" HorizontalContentAlignment="Center"
+                                   Icon="{ui:SymbolIcon ArrowSync24, FontSize=18}" ToolTip="{l:Tr brainOptions.check}"
+                                   AutomationProperties.Name="{l:Tr brainOptions.check}" Click="OnCheck" />
+                    </Grid>
                 </Border>
 
                 <!-- The model names are long: the combo and its buttons go under the description, the whole width -->
@@ -163,7 +166,7 @@
                     <TextBlock Text="{l:Tr brainModels.servers}" />
                     <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr brainModels.serversHint}" />
                 </StackPanel>
-                <ui:Button MinHeight="36" Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainModels.addServer}" Icon="{ui:SymbolIcon Add24}" Click="OnAddServer" />
+                <ui:Button Appearance="Primary" MinHeight="36" Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainModels.addServer}" Icon="{ui:SymbolIcon Add24}" Click="OnAddServer" />
             </Grid>
             <Border Style="{StaticResource ListPanel}" Margin="0,8,0,16">
                 <StackPanel x:Name="ServerRows" />
@@ -175,7 +178,7 @@
                     <TextBlock Text="{l:Tr brainModels.folders}" />
                     <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr brainModels.foldersHint}" />
                 </StackPanel>
-                <ui:Button MinHeight="36" Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainModels.addFolder}" Icon="{ui:SymbolIcon FolderAdd24}" Click="OnAddFolder" />
+                <ui:Button Appearance="Primary" MinHeight="36" Grid.Column="1" Margin="12,0,0,0" Content="{l:Tr brainModels.addFolder}" Icon="{ui:SymbolIcon FolderAdd24}" Click="OnAddFolder" />
             </Grid>
             <Border Style="{StaticResource ListPanel}" Margin="0,8,0,0">
                 <StackPanel x:Name="FolderRows" />
@@ -203,7 +206,7 @@
                 <ui:TextBox x:Name="NewEndpointBox" Grid.Column="1" Margin="8,0,0,0" TextChanged="OnNewEndpointChanged" AutomationProperties.Name="{l:Tr brainRemotes.endpoint}" />
                 <PasswordBox x:Name="NewKeyBox" Grid.Column="2" Margin="8,0,0,0" VerticalContentAlignment="Center" AutomationProperties.Name="{l:Tr brainOptions.apiKey}"
                              ToolTip="{l:Tr brainOptions.apiKeyHint}" />
-                <ui:Button MinHeight="36" Grid.Column="3" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr brainRemotes.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddRemote" />
+                <ui:Button Appearance="Primary" MinHeight="36" Grid.Column="3" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr brainRemotes.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddRemote" />
             </Grid>
             <TextBlock x:Name="NewPlaceText" Style="{StaticResource Caption}" Margin="0,4,0,0" TextWrapping="Wrap" />
         </StackPanel>

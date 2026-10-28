@@ -209,17 +209,17 @@
                                         Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                                         GotKeyboardFocus="OnNameFocus" LostKeyboardFocus="OnNameLostFocus" KeyDown="OnNameKeyDown" />
                             <StackPanel Grid.Column="1" Margin="16,0,0,0" Orientation="Horizontal" VerticalAlignment="Center" v:ResponsiveHeader.IsSide="True">
-                                <ui:Button x:Name="RecordButton" Content="{l:Tr macro.record}" Appearance="Danger" Click="OnRecord" Margin="0,0,8,0">
+                                <ui:Button x:Name="RecordButton" MinHeight="34" Content="{l:Tr macro.record}" Appearance="Danger" Click="OnRecord" Margin="0,0,8,0">
                                     <ui:Button.Icon>
                                         <ui:SymbolIcon Symbol="Record24" Filled="True" />
                                     </ui:Button.Icon>
                                 </ui:Button>
-                                <ui:Button Content="{l:Tr macro.test}" Icon="{ui:SymbolIcon Play24}" Click="OnTest" ToolTip="{l:Tr macro.testHint}" Margin="0,0,8,0" />
-                                <ui:Button Icon="{ui:SymbolIcon FlashAdd20}" ToolTip="{l:Tr macro.createCommand}" AutomationProperties.Name="{l:Tr macro.createCommand}"
+                                <ui:Button MinHeight="34" Content="{l:Tr macro.test}" Icon="{ui:SymbolIcon Play24}" Click="OnTest" ToolTip="{l:Tr macro.testHint}" Margin="0,0,8,0" />
+                                <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon FlashAdd20, FontSize=18}" ToolTip="{l:Tr macro.createCommand}" AutomationProperties.Name="{l:Tr macro.createCommand}"
                                            Click="OnCreateCommand" Margin="0,0,8,0" />
-                                <ui:Button Icon="{ui:SymbolIcon Copy24}" ToolTip="{l:Tr macro.duplicate}" AutomationProperties.Name="{l:Tr macro.duplicate}"
+                                <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Copy24, FontSize=18}" ToolTip="{l:Tr macro.duplicate}" AutomationProperties.Name="{l:Tr macro.duplicate}"
                                            Click="OnDuplicate" Margin="0,0,8,0" />
-                                <ui:Button Icon="{ui:SymbolIcon Delete24}" ToolTip="{l:Tr macro.delete}" AutomationProperties.Name="{l:Tr macro.delete}" Click="OnDelete" />
+                                <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Delete24, FontSize=18}" ToolTip="{l:Tr macro.delete}" AutomationProperties.Name="{l:Tr macro.delete}" Click="OnDelete" />
                             </StackPanel>
                             <StackPanel Grid.Row="1" Grid.ColumnSpan="2">
                                 <TextBlock x:Name="NameError" Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{l:Tr macro.nameRequired}"
@@ -244,11 +244,11 @@
                         <Grid DockPanel.Dock="Top" Margin="4,0,10,8">
                             <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr macro.steps}" Margin="0" VerticalAlignment="Center" />
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <ui:Button x:Name="InsertButton" Content="{l:Tr macro.insert}" Icon="{ui:SymbolIcon Add24}" Click="OnInsert" Margin="0,0,6,0" />
-                                <ui:Button x:Name="SimplifyButton" Content="{l:Tr macro.simplify}" Icon="{ui:SymbolIcon Wand24}" Click="OnSimplify" Margin="0,0,6,0" />
-                                <ui:Button x:Name="UndoButton" Icon="{ui:SymbolIcon ArrowUndo24}" ToolTip="{l:Tr macro.undo}" Click="OnUndo" IsEnabled="False" Margin="0,0,6,0" />
-                                <ui:Button x:Name="RedoButton" Icon="{ui:SymbolIcon ArrowRedo24}" ToolTip="{l:Tr macro.redo}" Click="OnRedo" IsEnabled="False" Margin="0,0,6,0" />
-                                <ui:Button x:Name="DeleteStepsButton" Icon="{ui:SymbolIcon Delete24}" ToolTip="{l:Tr macro.deleteSteps}" Click="OnDeleteSteps" IsEnabled="False" />
+                                <ui:Button x:Name="InsertButton" MinHeight="34" Content="{l:Tr macro.insert}" Icon="{ui:SymbolIcon Add24}" Click="OnInsert" Margin="0,0,6,0" />
+                                <ui:Button x:Name="SimplifyButton" MinHeight="34" Content="{l:Tr macro.simplify}" Icon="{ui:SymbolIcon Wand24}" Click="OnSimplify" Margin="0,0,6,0" />
+                                <ui:Button x:Name="UndoButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowUndo24, FontSize=18}" ToolTip="{l:Tr macro.undo}" Click="OnUndo" IsEnabled="False" Margin="0,0,6,0" />
+                                <ui:Button x:Name="RedoButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowRedo24, FontSize=18}" ToolTip="{l:Tr macro.redo}" Click="OnRedo" IsEnabled="False" Margin="0,0,6,0" />
+                                <ui:Button x:Name="DeleteStepsButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Delete24, FontSize=18}" ToolTip="{l:Tr macro.deleteSteps}" Click="OnDeleteSteps" IsEnabled="False" />
                             </StackPanel>
                         </Grid>
                         <TextBlock x:Name="NoSteps" DockPanel.Dock="Top" Style="{StaticResource Caption}" Text="{l:Tr macro.noSteps}" Margin="4,8" />

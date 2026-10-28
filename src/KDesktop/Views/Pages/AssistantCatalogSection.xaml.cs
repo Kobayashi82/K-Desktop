@@ -203,7 +203,15 @@ public partial class AssistantCatalogSection : UserControl
                 text.Children.Add(error);
             }
             grid.Children.Add(text);
+            // Only the icon (the tooltip and the name for screen readers say what it does)
             var remove = Wide(SymbolRegular.Delete24, Loc.T("assistantCatalog.remove"), () => _app.RemoveAssistantCatalog(url), target: url);
+            remove.Content = null;
+            remove.ToolTip = Loc.T("assistantCatalog.remove");
+            remove.Width = 38;
+            remove.MinWidth = 0;
+            remove.Padding = new Thickness(0);
+            remove.HorizontalContentAlignment = HorizontalAlignment.Center;
+            remove.VerticalAlignment = VerticalAlignment.Center;
             remove.Margin = new Thickness(8, 0, 0, 0);
             Grid.SetColumn(remove, 1);
             grid.Children.Add(remove);
@@ -235,7 +243,7 @@ public partial class AssistantCatalogSection : UserControl
             Add();
         };
         add.Children.Add(box);
-        var button = Wide(SymbolRegular.Add24, Loc.T("assistantCatalog.add"), Add);
+        var button = Wide(SymbolRegular.Add24, Loc.T("assistantCatalog.add"), Add, primary: true);
         button.Margin = new Thickness(8, 0, 0, 0);
         button.VerticalAlignment = VerticalAlignment.Stretch; // as tall as the box beside it
         Grid.SetColumn(button, 1);

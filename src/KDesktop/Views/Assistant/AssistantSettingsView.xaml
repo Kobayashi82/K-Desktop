@@ -257,7 +257,7 @@
                     <ComboBox IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}"
                               DropDownOpened="OnAppsDropDown" DropDownClosed="OnAppPicked" KeyDown="OnAppKeyDown"
                               AutomationProperties.Name="{Binding Label}" />
-                    <ui:Button MinHeight="36" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddApp" />
+                    <ui:Button Appearance="Primary" MinHeight="36" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddApp" />
                     <ui:Button MinHeight="36" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickApp"
                                ToolTip="{l:Tr picker.tooltip}" />
                 </StackPanel>

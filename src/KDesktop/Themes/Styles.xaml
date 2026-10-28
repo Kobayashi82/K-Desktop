@@ -201,6 +201,18 @@
         <Setter Property="BorderThickness" Value="1" />
     </Style>
 
+    <!-- An icon-only button of a header, the size of an IconToggle next to it (icon at FontSize=18, as in it) -->
+    <Style x:Key="SquareButton" TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+        <Setter Property="Width" Value="36" />
+        <Setter Property="Height" Value="34" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
     <Style x:Key="MoveButton" TargetType="ui:Button" BasedOn="{StaticResource IconButton}">
         <Style.Triggers>
             <!-- At the top or the bottom it stays where it is, dimmed -->

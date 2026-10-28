@@ -214,11 +214,11 @@
                                                          ToolTip="{l:Tr kboard.activeHint}" Margin="0,0,12,0" />
                                         <v:IconToggle IsChecked="{Binding IgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24" Margin="0,0,8,0"
                                                       Title="{l:Tr kboard.ignoreDisabled}" Hint="{l:Tr kboard.ignoreDisabledHint}" />
-                                        <ui:Button Icon="{ui:SymbolIcon FlashAdd20}" ToolTip="{l:Tr kboard.createCommand}" AutomationProperties.Name="{l:Tr kboard.createCommand}"
+                                        <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon FlashAdd20, FontSize=18}" ToolTip="{l:Tr kboard.createCommand}" AutomationProperties.Name="{l:Tr kboard.createCommand}"
                                                    Click="OnCreateCommand" Margin="0,0,8,0" />
-                                        <ui:Button Icon="{ui:SymbolIcon Copy24}" ToolTip="{l:Tr kboard.duplicate}" AutomationProperties.Name="{l:Tr kboard.duplicate}"
+                                        <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Copy24, FontSize=18}" ToolTip="{l:Tr kboard.duplicate}" AutomationProperties.Name="{l:Tr kboard.duplicate}"
                                                    Click="OnDuplicate" Margin="0,0,8,0" />
-                                        <ui:Button Icon="{ui:SymbolIcon Delete24}" ToolTip="{l:Tr kboard.delete}" AutomationProperties.Name="{l:Tr kboard.delete}" Click="OnDelete" />
+                                        <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Delete24, FontSize=18}" ToolTip="{l:Tr kboard.delete}" AutomationProperties.Name="{l:Tr kboard.delete}" Click="OnDelete" />
                                     </StackPanel>
                                     <StackPanel Grid.Row="1" Grid.ColumnSpan="2">
                                         <TextBlock x:Name="NameError" Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{l:Tr kboard.nameRequired}"
@@ -251,7 +251,7 @@
                             </ItemsControl>
                             <StackPanel Orientation="Horizontal" Margin="76,2,0,0">
                                 <ComboBox x:Name="ProcessBox" IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnProcessDropDown" DropDownClosed="OnProcessPicked" KeyDown="OnProcessKeyDown" />
-                                <ui:Button Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddProcess" />
+                                <ui:Button Appearance="Primary" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddProcess" />
                                 <ui:Button Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickProcess" ToolTip="{l:Tr picker.tooltip}" />
                             </StackPanel>
                         </StackPanel>

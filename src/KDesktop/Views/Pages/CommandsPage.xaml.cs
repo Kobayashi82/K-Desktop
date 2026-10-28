@@ -39,6 +39,8 @@ public sealed partial class CommandsPage : UserControl, IDisposable
         CommandList.ItemsSource = _view;
         ShowHiddenToggle.IsChecked = Config.Settings.ShowHiddenCommands;
         OptionsExpander.IsExpanded = Config.Settings.CommandsOptionsOpen;
+        HotkeysExpander.IsExpanded = !Config.Settings.CommandsHotkeysFolded;
+        ActionsExpander.IsExpanded = !Config.Settings.CommandsActionsFolded;
         _menuFilter ??= string.IsNullOrEmpty(Config.Settings.CommandsMenuFilter) ? FilterNone : Config.Settings.CommandsMenuFilter;
         Config.Commands.CollectionChanged += OnCommandsChanged;
         IconProvider.StaticPropertyChanged += OnIconsChanged;
@@ -71,6 +73,13 @@ public sealed partial class CommandsPage : UserControl, IDisposable
     private void OnOptionsFolded(object sender, RoutedEventArgs e)
     {
         if (IsLoaded) Config.Settings.CommandsOptionsOpen = OptionsExpander.IsExpanded == true;
+    }
+
+    private void OnSectionFolded(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded) return;
+        Config.Settings.CommandsHotkeysFolded = HotkeysExpander.IsExpanded != true;
+        Config.Settings.CommandsActionsFolded = ActionsExpander.IsExpanded != true;
     }
 
     // ── QuickMenu filter ─────────────────────────────────────────────────
@@ -512,6 +521,7 @@ public sealed partial class CommandsPage : UserControl, IDisposable
     private void OnAddHotkey(object sender, RoutedEventArgs e)
     {
         if (_selected is not { } cmd) return;
+        HotkeysExpander.IsExpanded = true;
         AddHotkeyButton.IsEnabled = false;
         CaptureChip.Visibility = Visibility.Visible;
         CaptureText.Text = Loc.T("commands.pressHotkey");
@@ -566,7 +576,8 @@ public sealed partial class CommandsPage : UserControl, IDisposable
     private void AddAction(CommandAction action)
     {
         if (_selected is null) return;
-        if (action is OpenQuickMenuAction q && Config.QuickMenus.FirstOrDefault() is { } first)
+        ActionsExpander.IsExpanded = true;
+        if (action is OpenQuickMenuAction q &&Config.QuickMenus.FirstOrDefault() is { } first)
         {
             q.MenuId = first.Id;
             q.MenuName = first.Name;
