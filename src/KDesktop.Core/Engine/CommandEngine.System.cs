@@ -244,6 +244,10 @@ public sealed partial class CommandEngine
     {
         switch (a.Operation)
         {
+            case DisplayOperation.MonitorOff when a.OffMonitors.Count > 0:
+                _ui.BlankMonitors([.. a.OffMonitors]);
+                break;
+
             case DisplayOperation.MonitorOff:
                 // A moment for the hand to leave the keyboard: the key release would wake them up again.
                 await Task.Delay(600).ConfigureAwait(false);

@@ -10,9 +10,9 @@
     <v:InverseBoolConverter x:Key="InverseBool" />
     <v:AudioDeviceStatusConverter x:Key="AudioStatus" />
     <v:AudioDeviceSymbolConverter x:Key="AudioSymbol" />
-    <v:DisplayModesConverter x:Key="DisplayModes" />
     <v:ActionIconConverter x:Key="ActionIconEd" />
     <v:LocKeyConverter x:Key="LocKey" />
+    <v:IsPositiveConverter x:Key="IsPositive" />
     <v:SettingsTextConverter x:Key="SettingsText" />
 
     <Style x:Key="EdRow" TargetType="Grid">
@@ -321,7 +321,7 @@
                        Foreground="{DynamicResource SystemFillColorCautionBrush}" Text="{l:Tr editor.httpInsecureHint}" />
 
             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                <ui:Button Content="{l:Tr editor.httpTest}" Icon="{ui:SymbolIcon Send24}" IsEnabled="{Binding Testing, Converter={StaticResource InverseBool}}"
+                <ui:Button MinHeight="34" Content="{l:Tr editor.httpTest}" Icon="{ui:SymbolIcon Play24}" IsEnabled="{Binding Testing, Converter={StaticResource InverseBool}}"
                            Command="{x:Static v:EditorCommands.TestHttpRequest}" CommandParameter="{Binding}" />
                 <ui:ProgressRing IsIndeterminate="True" Width="18" Height="18" Margin="12,0,0,0" VerticalAlignment="Center"
                                  Visibility="{Binding Testing, Converter={StaticResource BoolToVis}}" />
@@ -1148,50 +1148,36 @@
     <!-- ── Despertar equipo ────────────────────────────────────────────── -->
     <DataTemplate DataType="{x:Type m:WakeOnLanAction}">
         <StackPanel>
-            <Grid Style="{StaticResource EdRow}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="16" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <StackPanel>
+            <!-- Boxes as wide as what goes in them: an address up to 255.255.255.255, a MAC; they wrap on a narrow window -->
+            <WrapPanel>
+                <StackPanel Margin="0,0,16,12">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.wolHost}" />
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <ui:TextBox Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="192.168.1.150" Icon="{ui:SymbolIcon Server24}" />
-                        <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.wolFindMac}" Icon="{ui:SymbolIcon Search24}"
+                    <StackPanel Orientation="Horizontal">
+                        <ui:TextBox Width="200" Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="192.168.1.150" Icon="{ui:SymbolIcon Server24}" />
+                        <ui:Button Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr editor.wolFindMac}" Icon="{ui:SymbolIcon Search24}"
                                    ToolTip="{l:Tr editor.wolFindMacHint}" Command="{x:Static v:EditorCommands.FindMac}" CommandParameter="{Binding}" />
-                    </Grid>
+                    </StackPanel>
                 </StackPanel>
-                <StackPanel Grid.Column="2">
+                <StackPanel Margin="0,0,16,12">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.wolMac}" />
-                    <ui:TextBox Text="{Binding Mac, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="AA:BB:CC:DD:EE:FF" FontFamily="Cascadia Mono, Consolas" />
+                    <ui:TextBox Width="205" Text="{Binding Mac, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="AA:BB:CC:DD:EE:FF" FontFamily="Cascadia Mono, Consolas"
+                                MaxLength="17" />
                 </StackPanel>
-            </Grid>
-            <Grid Style="{StaticResource EdRow}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="16" />
-                    <ColumnDefinition Width="90" />
-                    <ColumnDefinition Width="16" />
-                    <ColumnDefinition Width="150" />
-                </Grid.ColumnDefinitions>
-                <StackPanel>
+            </WrapPanel>
+            <WrapPanel>
+                <StackPanel Margin="0,0,16,12">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.wolAddress}" />
-                    <ui:TextBox Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.wolAddressHint}" />
+                    <ui:TextBox Width="200" Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.wolAddressHint}" MaxLength="15" />
                 </StackPanel>
-                <StackPanel Grid.Column="2">
+                <StackPanel Margin="0,0,16,12">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.port}" />
-                    <ui:TextBox Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}" />
+                    <v:NumberField Width="150" Minimum="1" Maximum="65535" Value="{Binding Port}" AutomationProperties.Name="{l:Tr editor.port}" />
                 </StackPanel>
-                <StackPanel Grid.Column="4">
+                <StackPanel Margin="0,0,0,12">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.wolWait}" />
-                    <ui:TextBox Text="{Binding WaitSeconds, UpdateSourceTrigger=PropertyChanged}" />
+                    <v:NumberField Width="150" Minimum="0" Maximum="600" Value="{Binding WaitSeconds}" AutomationProperties.Name="{l:Tr editor.wolWait}" />
                 </StackPanel>
-            </Grid>
+            </WrapPanel>
             <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
             <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.wolHint}" />
         </StackPanel>
@@ -1220,22 +1206,12 @@
                 <Slider Grid.Column="2" Minimum="0" Maximum="100" Value="{Binding Brightness}" IsSnapToTickEnabled="True" TickFrequency="5" VerticalAlignment="Bottom" Margin="0,0,0,8" />
                 <TextBlock Grid.Column="3" Text="{Binding Brightness, StringFormat={}{0} %}" VerticalAlignment="Bottom" Margin="0,0,0,10" HorizontalAlignment="Right" FontWeight="SemiBold" />
             </Grid>
-            <Grid x:Name="ModeRow" Style="{StaticResource EdRow}" Visibility="Collapsed">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="16" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <StackPanel>
-                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.monitor}" />
-                    <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.MonitorList}}" DisplayMemberPath="Display" SelectedValuePath="DeviceName" SelectedValue="{Binding Monitor}" />
-                </StackPanel>
-                <StackPanel Grid.Column="2">
-                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.displayMode}" />
-                    <ComboBox ItemsSource="{Binding Monitor, Converter={StaticResource DisplayModes}}" DisplayMemberPath="Name" SelectedValuePath="Key"
-                              SelectedValue="{Binding ModeKey}" MaxDropDownHeight="420" />
-                </StackPanel>
-            </Grid>
+            <v:DisplayModeFields x:Name="ModeRow" Visibility="Collapsed" />
+            <!-- «Apagar pantallas»: which ones (none ticked = all) -->
+            <StackPanel x:Name="OffRow" Margin="0,0,0,6">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.monitorsOff}" />
+                <v:MonitorChecks />
+            </StackPanel>
             <CheckBox x:Name="OsdCheck" Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
             <TextBlock x:Name="Hint" Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.monitorOffHint}" />
         </StackPanel>
@@ -1243,15 +1219,21 @@
             <DataTrigger Binding="{Binding Operation}" Value="MonitorOff">
                 <Setter TargetName="OsdCheck" Property="Visibility" Value="Collapsed" />
             </DataTrigger>
+            <DataTrigger Binding="{Binding OffMonitors.Count, Converter={StaticResource IsPositive}}" Value="True">
+                <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.monitorsOffHint}" />
+            </DataTrigger>
             <DataTrigger Binding="{Binding Operation}" Value="Projection">
+                <Setter TargetName="OffRow" Property="Visibility" Value="Collapsed" />
                 <Setter TargetName="ProjectionRow" Property="Visibility" Value="Visible" />
                 <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.projectionHint}" />
             </DataTrigger>
             <DataTrigger Binding="{Binding Operation}" Value="Brightness">
+                <Setter TargetName="OffRow" Property="Visibility" Value="Collapsed" />
                 <Setter TargetName="BrightnessRow" Property="Visibility" Value="Visible" />
                 <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.brightnessHint}" />
             </DataTrigger>
             <DataTrigger Binding="{Binding Operation}" Value="Mode">
+                <Setter TargetName="OffRow" Property="Visibility" Value="Collapsed" />
                 <Setter TargetName="ModeRow" Property="Visibility" Value="Visible" />
                 <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.displayModeHint}" />
             </DataTrigger>
@@ -1434,7 +1416,6 @@
                     <ComboBox ItemsSource="{x:Static v:Lookups.ActionZoomLevels}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Zoom}" />
                 </StackPanel>
             </Grid>
-            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.zoomHint}" />
         </StackPanel>
     </DataTemplate>
 

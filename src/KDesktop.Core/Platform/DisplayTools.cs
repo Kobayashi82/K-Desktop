@@ -7,6 +7,8 @@ namespace KDesktop.Core.Platform;
 public sealed record MonitorInfo(string DeviceName, string Name, bool IsPrimary)
 {
     public string Display => IsPrimary ? $"{Name} ★" : Name;
+
+    public override string ToString() => Display;
 }
 
 /// <summary>A resolution and refresh rate a monitor supports.</summary>
@@ -80,6 +82,10 @@ public static class DisplayTools
         }
         return result.OrderByDescending(m => m.Width * m.Height).ThenByDescending(m => m.Frequency).ToList();
     }
+
+    /// <summary>Where a monitor is on the desktop, in pixels (null when it is not on).</summary>
+    public static (int X, int Y, int Width, int Height)? Bounds(string deviceName) =>
+        Current(deviceName) is { } mode ? (mode.dmPositionX, mode.dmPositionY, mode.dmPelsWidth, mode.dmPelsHeight) : null;
 
     public static DisplayModeInfo? CurrentMode(string deviceName) =>
         Current(deviceName) is { } mode ? new DisplayModeInfo(mode.dmPelsWidth, mode.dmPelsHeight, mode.dmDisplayFrequency) : null;

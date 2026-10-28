@@ -46,7 +46,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 | **Screenshot** | Captures a region you pick with the mouse, the active window, a monitor or all of them; copies it, saves it and, if you want, opens it. |
 | **Copy text from the screen** | Reads the text of a region you pick with the mouse, the active window or a monitor and copies it. No AI: Windows' text recognition (OCR). |
 | **Magnifier** | A lens (rectangular or round) that follows the mouse and enlarges what is around it, or the whole screen it is on. |
-| **Screen** | Turns the screens off, changes the projection (Win + P), the brightness, or a monitor's resolution and refresh rate. |
+| **Screen** | Turns the screens off (all or the ones you choose), changes the projection (Win + P), the brightness, or a monitor's resolution and refresh rate. |
 | **Windows theme** | Switches Windows and the apps to light or dark mode, or toggles between them. |
 
 ## Network and internet

@@ -69,6 +69,9 @@ public interface IUiServices
     /// <summary>Opens a QuickMenu at the mouse position.</summary>
     void ShowQuickMenu(string menuId, ForegroundWindow previousForeground);
 
+    /// <summary>«Apagar pantallas» of some monitors (GDI names): covers them in black, or uncovers them if they are.</summary>
+    void BlankMonitors(IReadOnlyCollection<string> devices) { }
+
     void ShowMainWindow();
 
     /// <summary>«Asistente: acción»: sends an extra to its assistant (bringing it onto the desktop first if needed).</summary>

@@ -103,6 +103,7 @@ internal sealed class FeedbackUiServices(IUiServices inner) : IUiServices
         return inner.ShowNotificationAsync(notification);
     }
     public void ShowQuickMenu(string menuId, ForegroundWindow previousForeground) => inner.ShowQuickMenu(menuId, previousForeground);
+    public void BlankMonitors(IReadOnlyCollection<string> devices) => inner.BlankMonitors(devices);
     public void ShowMainWindow() => inner.ShowMainWindow();
     public void RunAssistantExtra(string assistant, string extra) => inner.RunAssistantExtra(assistant, extra);
     public void AskAssistant(string assistant, string text) => inner.AskAssistant(assistant, text);

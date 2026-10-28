@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -177,6 +178,23 @@ public partial class DisplayAction : CommandAction
 
     [ObservableProperty] private bool _showOsd = true;
 
+    /// <summary>«Apagar pantallas»: only these monitors (GDI names), covered in black; empty = all of them, by Windows.</summary>
+    public ObservableCollection<string> OffMonitors
+    {
+        get;
+        set
+        {
+            if (field is not null) field.CollectionChanged -= OnOffMonitorsChanged;
+            field = value ?? [];
+            field.CollectionChanged += OnOffMonitorsChanged;
+        }
+    } = [];
+
+    public DisplayAction() => OffMonitors.CollectionChanged += OnOffMonitorsChanged;
+
+    private void OnOffMonitorsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) =>
+        OnPropertyChanged(nameof(OffMonitors));
+
     public override ActionKind Kind => ActionKind.Display;
 
     /// <summary>The mode as «2560x1440@144» (the editor's list of modes); empty = none chosen.</summary>
@@ -210,7 +228,8 @@ public partial class DisplayAction : CommandAction
             _ => Loc.T("summary.brightness.down", Brightness),
         },
         DisplayOperation.Mode => MonitorLabel + ": " + DescribeMode(Width, Height, Frequency),
-        _ => Loc.T("enum.displayOp.MonitorOff"),
+        _ => OffMonitors.Count == 0 ? Loc.T("enum.displayOp.MonitorOff")
+            : Loc.T("summary.monitorsOff", string.Join(", ", OffMonitors.Select(m => new string(m.Where(char.IsDigit).ToArray())))),
     };
 
     /// <summary>The monitor's own name, or «Monitor 2» from its GDI name while it isn't known.</summary>

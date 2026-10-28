@@ -237,6 +237,9 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
         }
     }
 
+    public void BlankMonitors(IReadOnlyCollection<string> devices) =>
+        dispatcher.BeginInvoke(() => KDesktop.Osd.BlankScreens.Toggle(devices));
+
     public void ShowQuickMenu(string menuId, ForegroundWindow previousForeground) =>
         dispatcher.BeginInvoke(() => QuickMenus?.Show(menuId, previousForeground));
 

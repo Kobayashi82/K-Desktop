@@ -254,11 +254,10 @@ public sealed class InvalidTimeConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 }
 
-/// <summary>A monitor's GDI name → the resolutions and refresh rates it supports («Pantalla»).</summary>
-public sealed class DisplayModesConverter : IValueConverter
+/// <summary>A number → whether it is above 0 (a list with items).</summary>
+public sealed class IsPositiveConverter : IValueConverter
 {
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
-        value is string monitor && monitor.Length > 0 ? KDesktop.Core.Platform.DisplayTools.Modes(monitor) : Array.Empty<KDesktop.Core.Platform.DisplayModeInfo>();
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => value is int n && n > 0;
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 }
