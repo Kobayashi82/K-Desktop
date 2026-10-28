@@ -84,6 +84,9 @@ public interface IChatModel : IDisposable
     /// <summary>The models in memory now; empty when the server does not say.</summary>
     Task<IReadOnlyList<string>> ListLoadedAsync(CancellationToken cancellationToken);
 
+    /// <summary>Whether that model is in memory now (not while it loads); null when the server does not say.</summary>
+    Task<bool?> IsLoadedAsync(string model, CancellationToken cancellationToken) => Task.FromResult<bool?>(null);
+
     IAsyncEnumerable<ChatChunk> StreamAsync(ChatRequest request, CancellationToken cancellationToken);
 
     /// <summary>Loads the model so the first answer is quick (when the user starts talking, never at start-up).</summary>

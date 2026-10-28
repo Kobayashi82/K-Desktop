@@ -840,6 +840,18 @@ public sealed class CommandRoutingTests : IDisposable
         _model.Answers.Enqueue("Goya.");
         await talk.HandleAsync(new HeardMessage("¿y quién pintó La maja desnuda?", "voice", "lander"));
         Assert.Single(_output.Prefaces);
+
+        // 5.0.325: its model has to load (it no longer loads while the order is said): it says so at once, every time.
+        _model.Delay = TimeSpan.Zero;
+        _model.Loaded = false;
+        _model.Answers.Enqueue("Sorolla.");
+        await talk.HandleAsync(new HeardMessage("¿y quién pintó Paseo a orillas del mar?", "voice", "lander"));
+        Assert.Equal(2, _output.Prefaces.Count);
+        // Loaded and quick: nothing.
+        _model.Loaded = true;
+        _model.Answers.Enqueue("Dalí.");
+        await talk.HandleAsync(new HeardMessage("¿y La persistencia de la memoria?", "voice", "lander"));
+        Assert.Equal(2, _output.Prefaces.Count);
     }
 
     // 5.0.200: nothing clear, the assistant's model chooses among the closest commands with one letter.
@@ -1105,6 +1117,11 @@ public sealed class CommandRoutingTests : IDisposable
         public Task<IReadOnlyList<ModelInfo>> ListModelsAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<ModelInfo>>([]);
 
         public Task<IReadOnlyList<string>> ListLoadedAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<string>>([]);
+
+        /// <summary>Whether its model is in memory (null: it does not say, like an ordinary server).</summary>
+        public bool? Loaded { get; set; }
+
+        public Task<bool?> IsLoadedAsync(string model, CancellationToken cancellationToken) => Task.FromResult(Loaded);
 
         public Task PreloadAsync(string model, CancellationToken cancellationToken) => Task.CompletedTask;
 

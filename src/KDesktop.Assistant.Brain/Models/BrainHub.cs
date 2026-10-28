@@ -131,6 +131,22 @@ public sealed class BrainHub : IChatModel
         return loaded;
     }
 
+    public async Task<bool?> IsLoadedAsync(string model, CancellationToken cancellationToken)
+    {
+        if (ModelRefs.IsLocal(model)) return await Local.IsLoadedAsync(model, cancellationToken).ConfigureAwait(false);
+        if (ModelRefs.SplitRemote(model) is not { } named || _remotes.GetValueOrDefault(named.Remote) is not { } remote || !LastStateOk(remote)) return null;
+        try
+        {
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeout.CancelAfter(ListPatience);
+            return await remote.Client.IsLoadedAsync(named.Model, timeout.Token).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is ChatModelException or OperationCanceledException or HttpRequestException)
+        {
+            return null;
+        }
+    }
+
     private bool LastStateOk(Remote remote)
     {
         lock (_gate) return _states.GetValueOrDefault(remote.Settings.Id) is { State: "ok" };

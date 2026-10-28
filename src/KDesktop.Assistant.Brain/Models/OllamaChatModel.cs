@@ -3,6 +3,7 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using KDesktop.Core.Assistant.Brain;
 using KDesktop.Core.Localization;
 
 namespace KDesktop.Assistant.Brain.Models;
@@ -51,6 +52,9 @@ public sealed class OllamaChatModel : IChatModel
                 if (item.TryGetProperty("name", out var n) && n.GetString() is { Length: > 0 } name) names.Add(name);
         return names;
     }
+
+    public async Task<bool?> IsLoadedAsync(string model, CancellationToken cancellationToken) =>
+        (await ListLoadedAsync(cancellationToken).ConfigureAwait(false)).Any(m => ModelRefs.Same(m, model));
 
     public async IAsyncEnumerable<ChatChunk> StreamAsync(ChatRequest request, [EnumeratorCancellation] CancellationToken cancellationToken)
     {

@@ -142,6 +142,11 @@ public sealed class LlamaServerPool : IChatModel
         lock (_gate) return Task.FromResult<IReadOnlyList<string>>([.. _running.Keys]);
     }
 
+    public Task<bool?> IsLoadedAsync(string model, CancellationToken cancellationToken)
+    {
+        lock (_gate) return Task.FromResult<bool?>(Alive(model) is not null);
+    }
+
     public async IAsyncEnumerable<ChatChunk> StreamAsync(ChatRequest request, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var running = await EnsureAsync(request.Model, cancellationToken).ConfigureAwait(false);

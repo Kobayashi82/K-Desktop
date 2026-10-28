@@ -407,7 +407,8 @@ public sealed class TalkService
             try
             {
                 using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-                if (!(await client.ListLoadedAsync(limit.Token).ConfigureAwait(false)).Any(m => ModelRefs.Same(m, model)))
+                // A server that does not say (one that always has its model) is asked as before.
+                if (await client.IsLoadedAsync(model, limit.Token).ConfigureAwait(false) == false)
                 {
                     _prepared.TryRemove(model, out _);
                     return;
@@ -648,7 +649,7 @@ public sealed class TalkService
                 return new TalkAnswer(Phrase(persona, "which", first.Name, second.Name), Remember: false) { AsksBack = true };
             }
             // Nothing clear and on its way to the AI: its model, which loads for it anyway, picks with one letter (5.0.200).
-            else if (await DecideAsync(who, said, matched, token).ConfigureAwait(false) is { } decided)
+            else if (await DecideAsync(conversation, persona, who, said, turn, matched, token).ConfigureAwait(false) is { } decided)
             {
                 if (decided.Choice == CommandChoice.Run) return await CommandsAsync(persona, [decided.First!], context, said, token).ConfigureAwait(false);
                 conversation.AskChoice([decided.First!, decided.Second!], _time.GetUtcNow());
@@ -700,7 +701,8 @@ public sealed class TalkService
     /// (<see cref="CommandDecider"/>). Null for «none», when there is nothing worth asking about, or when the model cannot
     /// say (no AI, a server without probabilities, an error): then the AI goes on as before.
     /// </summary>
-    private async Task<CommandDecision?> DecideAsync(string? who, string said, MatchedMessage matched, CancellationToken token)
+    private async Task<CommandDecision?> DecideAsync(Conversation conversation, AssistantPersona persona, string? who, string said, string turn,
+        MatchedMessage matched, CancellationToken token)
     {
         if (matched.Parts.Count != 1 || matched.Unmatched.Count > 0) return null;
         var options = CommandDecider.Options(matched, said);
@@ -708,6 +710,7 @@ public sealed class TalkService
         var (client, model) = _brain(who);
         if (client is null || model is null) return null;
         _output.State(who, "thinking");
+        await SayLoadingAsync(conversation, persona, who, turn, client, model, token).ConfigureAwait(false);
         var watch = System.Diagnostics.Stopwatch.StartNew();
         IReadOnlyDictionary<char, double>? probabilities;
         try
@@ -756,6 +759,8 @@ public sealed class TalkService
         // Nothing said yet a moment later (the model loading, a server starting, a long first read): a word, so the user
         // knows it heard. Not when a command already answered.
         var spoken = 0;
+        // Its model has to load first: it says so at once.
+        if (await SayLoadingAsync(conversation, persona, who, turn, client, model, token).ConfigureAwait(false)) spoken = 1;
         using var quiet = CancellationTokenSource.CreateLinkedTokenSource(token);
         if (ran is null) _ = SayThinkingAsync(conversation, persona, who, turn, () => Volatile.Read(ref spoken) != 0, quiet.Token);
         // Thinking harder takes a while: it says so («déjame pensarlo…»), once, instead of the usual word.
@@ -836,6 +841,26 @@ public sealed class TalkService
     /// tiring): the character still shows it is thinking.
     /// </summary>
     public static readonly TimeSpan WaitWordRest = TimeSpan.FromMinutes(3);
+
+    /// <summary>
+    /// The order needs the model and it is not in memory: loading takes some seconds, so it says it is on it now («Un
+    /// momento.»), without waiting <see cref="ThinkingAfter"/> or the <see cref="WaitWordRest"/>. Once per order; whether
+    /// it said it (or had already).
+    /// </summary>
+    private async Task<bool> SayLoadingAsync(Conversation conversation, AssistantPersona persona, string? who, string turn, IChatModel client, string model,
+        CancellationToken token)
+    {
+        if (conversation.LoadingTurn == turn) return true;
+        bool? loaded;
+        try { loaded = await client.IsLoadedAsync(model, token).ConfigureAwait(false); }
+        catch (Exception ex) when (!token.IsCancellationRequested && ex is ChatModelException or HttpRequestException or JsonException or OperationCanceledException) { loaded = null; }
+        if (loaded != false || FreshPhrase(persona, "thinking", conversation) is not { Length: > 0 } phrase) return false;
+        Log.Info($"Asistente: «{who ?? "K-Desktop"}» tiene que cargar «{ModelRefs.Label(model)}»: avisa");
+        conversation.LoadingTurn = turn;
+        conversation.WaitedAt = _time.GetUtcNow();
+        _output.Preface(who, turn, phrase);
+        return true;
+    }
 
     private async Task SayThinkingAsync(Conversation conversation, AssistantPersona persona, string? who, string turn, Func<bool> spoke, CancellationToken cancellationToken)
     {
@@ -1121,6 +1146,9 @@ public sealed class TalkService
 
         /// <summary>When it last said it was on it («Un momento.»), and the last few words it said before an answer (5.0.200).</summary>
         public DateTimeOffset? WaitedAt { get; set; }
+
+        /// <summary>The order (its turn) it last said it was on it because its model had to load.</summary>
+        public string? LoadingTurn { get; set; }
 
         public Queue<string> RecentWaits { get; } = new();
 

@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using KDesktop.Core;
+using KDesktop.Core.Assistant.Brain;
 using KDesktop.Core.Localization;
 
 namespace KDesktop.Assistant.Brain.Models;
@@ -119,6 +120,10 @@ public sealed class OpenAICompatibleChatModel : IChatModel
                 if (item.TryGetProperty("model", out var m) && m.GetString() is { Length: > 0 } name) names.Add(name);
         return names;
     }
+
+    /// <summary>Only llama-swap says (an ordinary server has its model always, or loads it without saying).</summary>
+    public async Task<bool?> IsLoadedAsync(string model, CancellationToken cancellationToken) =>
+        RunningPath is null ? null : (await ListLoadedAsync(cancellationToken).ConfigureAwait(false)).Any(m => ModelRefs.Same(m, model));
 
     public async IAsyncEnumerable<ChatChunk> StreamAsync(ChatRequest request, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
