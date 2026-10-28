@@ -11,7 +11,9 @@ using KDesktop.Core.Model;
 namespace KDesktop.Views;
 
 /// <summary>
-/// Clickable picture of a full keyboard (Spanish ISO layout, navigation block and numeric pad) and a mouse.
+/// Clickable picture of a full keyboard (ISO, navigation block and numeric pad) and a mouse. The keys that print
+/// something are named and labelled after the keyboard layout in use in Windows (an English, a French… keyboard shows its
+/// own keys where they are): each one is a physical position, its scan code.
 /// Keys remapped in the current modifier layer are highlighted and show what they do; keys remapped only in other
 /// layers get a small dot. Clicking a key raises <see cref="KeyClicked"/> with its name ("J", "LCtrl", "Mouse 4"…).
 /// <see cref="Compact"/> puts the navigation block, the numeric pad and the mouse under the keyboard (about half as wide:
@@ -59,6 +61,24 @@ public sealed class KBoardSurface : Viewbox
         StretchDirection = StretchDirection.Both;
         Child = _canvas;
         Build();
+        // Another keyboard layout chosen in Windows: its keys
+        InputLanguageManager.Current.InputLanguageChanged += (_, _) => CheckLayout();
+    }
+
+    /// <summary>Draws the keys again if the keyboard layout in use changed (the page calls it when it is shown).</summary>
+    public void CheckLayout()
+    {
+        if (Native.UiNative.GetKeyboardLayout(0) != _hkl) Rebuild();
+    }
+
+    private void Rebuild()
+    {
+        _canvas.Children.Clear();
+        _keys.Clear();
+        _corners.Clear();
+        Build();
+        Refresh();
+        PaintCorners();
     }
 
     public KBoardProfile? Profile
@@ -99,12 +119,7 @@ public sealed class KBoardSurface : Viewbox
         {
             if (_compact == value) return;
             _compact = value;
-            _canvas.Children.Clear();
-            _keys.Clear();
-            _corners.Clear();
-            Build();
-            Refresh();
-            PaintCorners();
+            Rebuild();
         }
     }
 
@@ -122,12 +137,15 @@ public sealed class KBoardSurface : Viewbox
 
     private void Build()
     {
+        _hkl = Native.UiNative.GetKeyboardLayout(0);
         var defs = new List<KeyDef>();
         void Row(double y, double x, params (string Name, double W)[] keys)
         {
             foreach (var (name, w) in keys)
             {
-                defs.Add(new KeyDef(name, x, y, w));
+                // A key that prints something: the key and the label of that place in the layout in use
+                var (key, label) = Physical(name);
+                defs.Add(new KeyDef(key, x, y, w, Caption: label));
                 x += w;
             }
         }
@@ -209,6 +227,45 @@ public sealed class KBoardSurface : Viewbox
         var g = new PathGeometry([fig]);
         g.Freeze();
         return g;
+    }
+
+    // ── keyboard layout ──────────────────────────────────────────────────
+
+    private IntPtr _hkl;
+
+    /// <summary>
+    /// The scan code (the physical place) of each key that prints something, by its name on a Spanish keyboard (the
+    /// names the drawing is written with).
+    /// </summary>
+    private static readonly Dictionary<string, uint> Scans = new(StringComparer.Ordinal)
+    {
+        ["\\"] = 0x29, ["1"] = 0x02, ["2"] = 0x03, ["3"] = 0x04, ["4"] = 0x05, ["5"] = 0x06, ["6"] = 0x07, ["7"] = 0x08,
+        ["8"] = 0x09, ["9"] = 0x0A, ["0"] = 0x0B, ["'"] = 0x0C, ["¡"] = 0x0D,
+        ["Q"] = 0x10, ["W"] = 0x11, ["E"] = 0x12, ["R"] = 0x13, ["T"] = 0x14, ["Y"] = 0x15, ["U"] = 0x16, ["I"] = 0x17,
+        ["O"] = 0x18, ["P"] = 0x19, ["`"] = 0x1A, ["+"] = 0x1B,
+        ["A"] = 0x1E, ["S"] = 0x1F, ["D"] = 0x20, ["F"] = 0x21, ["G"] = 0x22, ["H"] = 0x23, ["J"] = 0x24, ["K"] = 0x25,
+        ["L"] = 0x26, ["Ñ"] = 0x27, ["´"] = 0x28, ["ç"] = 0x2B,
+        ["<"] = 0x56, ["Z"] = 0x2C, ["X"] = 0x2D, ["C"] = 0x2E, ["V"] = 0x2F, ["B"] = 0x30, ["N"] = 0x31, ["M"] = 0x32,
+        [","] = 0x33, ["."] = 0x34, ["-"] = 0x35,
+    };
+
+    /// <summary>What each key name prints in the layout in use («Ñ» is «;» on an English keyboard): labels and tooltips.</summary>
+    private static readonly Dictionary<string, string> Printed = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The key at the place of <paramref name="name"/> in the layout in use, and what it prints (null: as it is).</summary>
+    private (string Key, string? Label) Physical(string name)
+    {
+        if (!Scans.TryGetValue(name, out var scan)) return (name, null);
+        var vk = Native.UiNative.MapVirtualKeyEx(scan, Native.UiNative.MAPVK_VSC_TO_VK_EX, _hkl);
+        if (vk == 0) return (name, null);
+        var key = KeyNames.FromVk((int)vk);
+        var buffer = new char[8];
+        // Flag 4: without touching the state of the keyboard (a dead key stays untouched for what is typed)
+        var n = Native.UiNative.ToUnicodeEx(vk, scan, new byte[256], buffer, buffer.Length, 4, _hkl);
+        if (n == 0 || buffer[0] < ' ') return (key, null);
+        var label = buffer[0].ToString().ToUpper(Loc.Instance.Culture);
+        Printed[key] = label;
+        return (key, label);
     }
 
     /// <summary>What the wheel chips under the mouse take below its body (the gap, two rows of chips).</summary>
@@ -468,7 +525,8 @@ public sealed class KBoardSurface : Viewbox
     /// <summary>The key's name and every remap it has (alone and with modifiers), one per line.</summary>
     private static string KeyTip(string name, IReadOnlyList<KeyRemap> remaps)
     {
-        var title = Caption(name) is var c && c.Length > 0 && c != name ? $"{c}  ({name})" : name;
+        // A key of the layout says only what it prints (its inner name is the one of a Spanish keyboard)
+        var title = Printed.ContainsKey(name) ? Caption(name) : Caption(name) is var c && c.Length > 0 && c != name ? $"{c}  ({name})" : name;
         var lines = remaps.OrderBy(r => r.From.Length).Select(r =>
             $"{r.From}  →  {(r.Kind == RemapKind.Keys ? r.To : r.TargetText)}{(r.Enabled ? "" : "  (" + Loc.T("common.disabled") + ")")}");
         return string.Join("\n", lines.Prepend(title));
@@ -505,7 +563,7 @@ public sealed class KBoardSurface : Viewbox
     }
 
     /// <summary>Text printed on a key (translated where it makes sense).</summary>
-    public static string Caption(string name) => name switch
+    public static string Caption(string name) => Printed.TryGetValue(name, out var printed) ? printed : name switch
     {
         "\\" => "º",
         "Up" => "↑",

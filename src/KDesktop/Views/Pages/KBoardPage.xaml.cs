@@ -46,6 +46,8 @@ public sealed partial class KBoardPage : UserControl, IDisposable
         Config.KBoards.CollectionChanged += OnProfilesChanged;
         Surface.KeyClicked += SelectSource;
         Surface.LayerToggled += OnLayerToggled;
+        // The keyboard layout may have changed while the page was not shown
+        Loaded += (_, _) => Surface.CheckLayout();
         UpdateCount();
         Loaded += (_, _) =>
         {

@@ -106,6 +106,18 @@ internal static class UiNative
     [DllImport("user32.dll")]
     public static extern IntPtr GetForegroundWindow();
 
+    // ── keyboard layout (K-Board draws the keys of the one in use) ───────
+    public const uint MAPVK_VSC_TO_VK_EX = 3;
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetKeyboardLayout(uint threadId);
+
+    [DllImport("user32.dll", EntryPoint = "MapVirtualKeyExW")]
+    public static extern uint MapVirtualKeyEx(uint code, uint mapType, IntPtr hkl);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern int ToUnicodeEx(uint vk, uint scan, byte[] state, [Out] char[] buffer, int size, uint flags, IntPtr hkl);
+
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool SetForegroundWindow(IntPtr hwnd);
