@@ -93,7 +93,7 @@
             <DataTemplate DataType="{x:Type m:IntervalTrigger}">
                 <StackPanel>
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.everyMinutes}" />
-                    <ui:TextBox Width="120" HorizontalAlignment="Left" Text="{Binding Minutes, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:TextBox Width="120" HorizontalAlignment="Left" Text="{Binding Minutes, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="100000" />
                     <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" TextWrapping="Wrap" Text="{l:Tr event.hint.interval}" />
                 </StackPanel>
             </DataTemplate>
@@ -118,7 +118,7 @@
             <DataTemplate DataType="{x:Type m:IdleTrigger}">
                 <StackPanel>
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.idleMinutes}" />
-                    <ui:TextBox Width="120" HorizontalAlignment="Left" Text="{Binding Minutes, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:TextBox Width="120" HorizontalAlignment="Left" Text="{Binding Minutes, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="100000" />
                     <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" TextWrapping="Wrap" Text="{l:Tr event.hint.idle}" />
                 </StackPanel>
             </DataTemplate>
@@ -253,11 +253,11 @@
                         </StackPanel>
                         <StackPanel Margin="0,0,12,8">
                             <TextBlock Style="{StaticResource FieldLabel}" Text="%" />
-                            <ui:TextBox Width="90" Text="{Binding Percent, UpdateSourceTrigger=PropertyChanged}" />
+                            <ui:TextBox Width="90" Text="{Binding Percent, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="100" />
                         </StackPanel>
                         <StackPanel Margin="0,0,0,8">
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.loadSeconds}" />
-                            <ui:TextBox Width="110" Text="{Binding Seconds, UpdateSourceTrigger=PropertyChanged}" />
+                            <ui:TextBox Width="110" Text="{Binding Seconds, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="3600" />
                         </StackPanel>
                     </WrapPanel>
                     <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr event.hint.load}" />
@@ -698,7 +698,7 @@
                         </ui:CardExpander.Header>
                         <StackPanel>
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.cooldown}" />
-                            <ui:TextBox Width="120" HorizontalAlignment="Left" Text="{Binding CooldownSeconds, UpdateSourceTrigger=PropertyChanged}" />
+                            <ui:TextBox Width="120" HorizontalAlignment="Left" Text="{Binding CooldownSeconds, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="86400" />
                             <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" TextWrapping="Wrap" Text="{l:Tr event.cooldownHint}" />
                         </StackPanel>
                     </ui:CardExpander>

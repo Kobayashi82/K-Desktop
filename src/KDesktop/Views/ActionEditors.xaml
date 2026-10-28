@@ -13,6 +13,15 @@
     <v:ActionIconConverter x:Key="ActionIconEd" />
     <v:LocKeyConverter x:Key="LocKey" />
     <v:SettingsTextConverter x:Key="SettingsText" />
+    <v:PickedItemConverter x:Key="PickedItem" />
+    <!-- The icon of a pick box, gone while nothing is picked -->
+    <Style x:Key="PickedIcon" TargetType="Image">
+        <Style.Triggers>
+            <Trigger Property="Source" Value="{x:Null}">
+                <Setter Property="Visibility" Value="Collapsed" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
 
     <Style x:Key="EdRow" TargetType="Grid">
         <Setter Property="Margin" Value="0,0,0,12" />
@@ -166,7 +175,7 @@
                 </StackPanel>
                 <StackPanel Grid.Column="2">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.timeout}" />
-                    <ui:TextBox Text="{Binding TimeoutSeconds, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" />
+                    <ui:TextBox Text="{Binding TimeoutSeconds, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="3600" />
                 </StackPanel>
             </Grid>
             <CheckBox x:Name="ForceCheck" Style="{StaticResource EdCheck}" Content="{l:Tr editor.waitForeground}" IsChecked="{Binding Force}" />
@@ -308,7 +317,7 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel>
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.timeout}" />
-                    <ui:TextBox Text="{Binding TimeoutSeconds, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:TextBox Text="{Binding TimeoutSeconds, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="300" />
                 </StackPanel>
                 <StackPanel Grid.Column="2">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.httpShowResult}" />
@@ -439,7 +448,7 @@
             </Grid>
             <StackPanel x:Name="StepRow" Visibility="Collapsed" Margin="0,0,0,12">
                 <TextBlock x:Name="StepLabel" Style="{StaticResource FieldLabel}" Text="{l:Tr editor.volumeStep}" />
-                <ui:TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Width="120" HorizontalAlignment="Left" />
+                <ui:TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="100" Width="120" HorizontalAlignment="Left" />
             </StackPanel>
             <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
             <TextBlock x:Name="TargetHint" Style="{StaticResource Caption}" TextWrapping="Wrap" Visibility="Collapsed" />
@@ -627,7 +636,7 @@
             <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
                 <StackPanel Width="140">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.seconds}" />
-                    <ui:TextBox Text="{Binding Seconds, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:TextBox Text="{Binding Seconds, UpdateSourceTrigger=LostFocus}" v:NumberInput.IsEnabled="True" v:NumberInput.Decimals="True" v:NumberInput.Maximum="3600" />
                 </StackPanel>
             </StackPanel>
             <WrapPanel>
@@ -807,7 +816,7 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel>
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.notifySeconds}" />
-                    <ui:TextBox Text="{Binding Seconds, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="{l:Tr editor.notifySeconds}" />
+                    <ui:TextBox Text="{Binding Seconds, UpdateSourceTrigger=LostFocus}" v:NumberInput.IsEnabled="True" v:NumberInput.Decimals="True" v:NumberInput.Maximum="3600" AutomationProperties.Name="{l:Tr editor.notifySeconds}" />
                 </StackPanel>
                 <StackPanel Grid.Column="2">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.notifyPlace}" />
@@ -826,9 +835,21 @@
                 <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}" AutomationProperties.Name="{l:Tr editor.browse}"
                            Command="{x:Static v:EditorCommands.BrowseFile}" CommandParameter="{Binding}" />
             </Grid>
-            <ComboBox x:Name="CommandBox" Margin="0,0,0,12" Visibility="Collapsed" ItemsSource="{Binding Source={x:Static v:Lookups.CommandList}}"
-                      DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding CommandId}" IsTextSearchEnabled="True"
-                      TextSearch.TextPath="Name" MaxDropDownHeight="420" AutomationProperties.Name="{l:Tr editor.command}" />
+            <ui:Button x:Name="CommandBox" Margin="0,0,0,12" Visibility="Collapsed" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="11,8" AutomationProperties.Name="{l:Tr editor.command}"
+                       Command="{x:Static v:EditorCommands.PickCommand}" CommandParameter="{Binding}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Image Width="18" Height="18" Margin="0,0,8,0" RenderOptions.BitmapScalingMode="HighQuality"
+                           Source="{Binding CommandId, Converter={StaticResource PickedItem}, ConverterParameter=commandIcon}" Style="{StaticResource PickedIcon}" />
+                    <TextBlock Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                               Text="{Binding CommandId, Converter={StaticResource PickedItem}, ConverterParameter=command}" />
+                    <ui:SymbolIcon Grid.Column="2" Margin="8,0,0,0" Symbol="ChevronDown24" FontSize="12" />
+                </Grid>
+            </ui:Button>
             <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.notifyWait}" IsChecked="{Binding Wait}" />
             <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.notifyHint}" />
         </StackPanel>
@@ -857,7 +878,7 @@
                 </StackPanel>
                 <StackPanel Grid.Column="2">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.delay}" />
-                    <ui:TextBox Text="{Binding DelaySeconds, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:TextBox Text="{Binding DelaySeconds, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="3600" />
                 </StackPanel>
             </Grid>
             <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showCountdown}" IsChecked="{Binding ShowOsd}" />
@@ -894,13 +915,39 @@
             </StackPanel>
             <StackPanel x:Name="CommandPanel" Grid.Column="4">
                 <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.command}" />
-                <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.CommandList}}" DisplayMemberPath="Name" SelectedValuePath="Id"
-                          SelectedValue="{Binding CommandId}" IsTextSearchEnabled="True" TextSearch.TextPath="Name" MaxDropDownHeight="420" />
+                <ui:Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="11,8" AutomationProperties.Name="{l:Tr editor.command}"
+                           Command="{x:Static v:EditorCommands.PickCommand}" CommandParameter="{Binding}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Image Width="18" Height="18" Margin="0,0,8,0" RenderOptions.BitmapScalingMode="HighQuality"
+                               Source="{Binding CommandId, Converter={StaticResource PickedItem}, ConverterParameter=commandIcon}" Style="{StaticResource PickedIcon}" />
+                        <TextBlock Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                   Text="{Binding CommandId, Converter={StaticResource PickedItem}, ConverterParameter=command}" />
+                        <ui:SymbolIcon Grid.Column="2" Margin="8,0,0,0" Symbol="ChevronDown24" FontSize="12" />
+                    </Grid>
+                </ui:Button>
             </StackPanel>
             <StackPanel x:Name="EventPanel" Grid.Column="4" Visibility="Collapsed">
                 <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.event}" />
-                <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.EventList}}" DisplayMemberPath="Name" SelectedValuePath="Id"
-                          SelectedValue="{Binding EventId}" IsTextSearchEnabled="True" TextSearch.TextPath="Name" MaxDropDownHeight="420" />
+                <ui:Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="11,8" AutomationProperties.Name="{l:Tr editor.event}"
+                           Command="{x:Static v:EditorCommands.PickCommand}" CommandParameter="{Binding}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Image Width="18" Height="18" Margin="0,0,8,0" RenderOptions.BitmapScalingMode="HighQuality"
+                               Source="{Binding EventId, Converter={StaticResource PickedItem}, ConverterParameter=eventIcon}" Style="{StaticResource PickedIcon}" />
+                        <TextBlock Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                   Text="{Binding EventId, Converter={StaticResource PickedItem}, ConverterParameter=event}" />
+                        <ui:SymbolIcon Grid.Column="2" Margin="8,0,0,0" Symbol="ChevronDown24" FontSize="12" />
+                    </Grid>
+                </ui:Button>
             </StackPanel>
         </Grid>
         <DataTemplate.Triggers>
@@ -976,7 +1023,7 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel>
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.seconds}" />
-                    <ui:TextBox Text="{Binding Seconds, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:TextBox Text="{Binding Seconds, UpdateSourceTrigger=LostFocus}" v:NumberInput.IsEnabled="True" v:NumberInput.Decimals="True" v:NumberInput.Maximum="86400" />
                 </StackPanel>
                 <StackPanel Grid.Column="2">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.messageOptional}" />
@@ -1066,19 +1113,19 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel>
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.windowX}" />
-                    <ui:TextBox Text="{Binding X, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:TextBox Text="{Binding X, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="100" />
                 </StackPanel>
                 <StackPanel Grid.Column="2">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.windowY}" />
-                    <ui:TextBox Text="{Binding Y, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:TextBox Text="{Binding Y, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="100" />
                 </StackPanel>
                 <StackPanel Grid.Column="4">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.windowWidth}" />
-                    <ui:TextBox Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:TextBox Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="100" />
                 </StackPanel>
                 <StackPanel Grid.Column="6">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.windowHeight}" />
-                    <ui:TextBox Text="{Binding Height, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:TextBox Text="{Binding Height, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="100" />
                 </StackPanel>
             </Grid>
             <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
@@ -1543,8 +1590,16 @@
             <!-- what it looks at -->
             <StackPanel x:Name="ProcessRow" Margin="0,0,0,12" Visibility="Collapsed">
                 <TextBlock x:Name="ProcessLabel" Style="{StaticResource FieldLabel}" Text="{l:Tr editor.process}" />
-                <ComboBox IsEditable="True" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr common.processPlaceholder}"
-                          ItemsSource="{Binding Source={x:Static v:Lookups.RunningProcessesNow}}" v:ProcessCombo.Running="True" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ComboBox IsEditable="True" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr common.processPlaceholder}"
+                              ItemsSource="{Binding Source={x:Static v:Lookups.RunningProcessesNow}}" v:ProcessCombo.Running="True" />
+                    <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon Cursor24}" ToolTip="{l:Tr picker.tooltip}"
+                               AutomationProperties.Name="{l:Tr picker.button}" Command="{x:Static v:EditorCommands.PickWindow}" CommandParameter="{Binding}" />
+                </Grid>
             </StackPanel>
             <StackPanel x:Name="DeviceRow" Margin="0,0,0,12" Visibility="Collapsed">
                 <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.audioDevice}" />
@@ -1560,6 +1615,22 @@
                 <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.networkName}" />
                 <ComboBox IsEditable="True" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr event.networkPlaceholder}"
                           ItemsSource="{Binding Source={x:Static v:Lookups.ConnectedNetworksNow}}" />
+            </StackPanel>
+            <StackPanel x:Name="PathRow" Margin="0,0,0,12" Visibility="Collapsed">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifPath}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="%USERPROFILE%\Desktop\…"
+                                AutomationProperties.Name="{l:Tr editor.ifPath}" />
+                    <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon Document24}" ToolTip="{l:Tr editor.ifPickFile}"
+                               AutomationProperties.Name="{l:Tr editor.ifPickFile}" Command="{x:Static v:EditorCommands.BrowseFile}" CommandParameter="{Binding}" />
+                    <ui:Button Grid.Column="2" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.chooseFolder}"
+                               AutomationProperties.Name="{l:Tr editor.chooseFolder}" Command="{x:Static v:EditorCommands.BrowseFolder}" CommandParameter="{Binding}" />
+                </Grid>
             </StackPanel>
             <StackPanel x:Name="TextRow" Margin="0,0,0,12" Visibility="Collapsed">
                 <TextBlock x:Name="TextLabel" Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifText}" />
@@ -1590,7 +1661,7 @@
                 </StackPanel>
                 <StackPanel>
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifAbove}" />
-                    <ui:TextBox Width="100" Text="{Binding Percent, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:TextBox Width="100" Text="{Binding Percent, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="100" />
                 </StackPanel>
             </StackPanel>
 
@@ -1607,7 +1678,7 @@
                 </StackPanel>
                 <StackPanel x:Name="SkipRow" Grid.Column="2" Visibility="Hidden">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifSkipCount}" />
-                    <ui:TextBox Text="{Binding SkipCount, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:TextBox Text="{Binding SkipCount, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="99" />
                 </StackPanel>
             </Grid>
             <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.ifHint}" />
@@ -1648,9 +1719,7 @@
                 <Setter TargetName="TextBox" Property="PlaceholderText" Value="192.168.1.150" />
             </DataTrigger>
             <DataTrigger Binding="{Binding Condition}" Value="FileExists">
-                <Setter TargetName="TextRow" Property="Visibility" Value="Visible" />
-                <Setter TargetName="TextLabel" Property="Text" Value="{l:Tr editor.ifPath}" />
-                <Setter TargetName="TextBox" Property="PlaceholderText" Value="%USERPROFILE%\Desktop\…" />
+                <Setter TargetName="PathRow" Property="Visibility" Value="Visible" />
             </DataTrigger>
             <DataTrigger Binding="{Binding Condition}" Value="Clipboard">
                 <Setter TargetName="TextRow" Property="Visibility" Value="Visible" />

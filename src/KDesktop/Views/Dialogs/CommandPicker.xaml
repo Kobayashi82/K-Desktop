@@ -22,7 +22,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <ui:TitleBar Grid.Row="0" Title="{l:Tr qm.pickCommand}" ShowMinimize="False" ShowMaximize="False" Margin="-16,0,-16,0" />
+        <ui:TitleBar x:Name="Bar" Grid.Row="0" Title="{l:Tr qm.pickCommand}" ShowMinimize="False" ShowMaximize="False" Margin="-16,0,-16,0" />
         <Grid Grid.Row="1" Margin="0,4,0,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -73,7 +73,7 @@
                    Content="{l:Tr event.newCommand}" Icon="{ui:SymbolIcon DocumentAdd24}" ToolTip="{l:Tr event.newCommandHint}" Click="OnNew" />
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
             <ui:Button Content="{l:Tr common.cancel}" Click="OnCancel" Margin="0,0,8,0" />
-            <ui:Button Content="{l:Tr common.add}" Appearance="Primary" Click="OnAccept" />
+            <ui:Button x:Name="AcceptButton" Content="{l:Tr common.add}" Appearance="Primary" Click="OnAccept" />
         </StackPanel>
     </Grid>
 </ui:FluentWindow>

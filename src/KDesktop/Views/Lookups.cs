@@ -97,8 +97,6 @@ public static class Lookups
         [.. EventCatalog.All.OrderBy(k => k.Name, StringComparer.Create(Loc.Instance.Culture, ignoreCase: true))];
     public static IReadOnlyList<Option<CommandControlTarget>> CommandControlTargets { get; } = Enum<CommandControlTarget>("enum.controlTarget");
 
-    public static IEnumerable<EventRule> EventList =>
-        App.Current.Config.Events.OrderBy(e => e.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
     public static IReadOnlyList<Option<SessionEvent>> SessionEvents { get; } = Enum<SessionEvent>("enum.session");
     public static IReadOnlyList<Option<PowerSource>> PowerSources { get; } = Enum<PowerSource>("enum.powerSource");
     public static IReadOnlyList<Option<NetworkState>> NetworkStates { get; } = Enum<NetworkState>("enum.networkState");
@@ -221,6 +219,7 @@ public static class EditorCommands
     public static readonly RoutedUICommand AddFileSourceFiles = new("AddFileSourceFiles", nameof(AddFileSourceFiles), typeof(EditorCommands));
     public static readonly RoutedUICommand AddFileSourceFolder = new("AddFileSourceFolder", nameof(AddFileSourceFolder), typeof(EditorCommands));
     public static readonly RoutedUICommand RemoveFileSource = new("RemoveFileSource", nameof(RemoveFileSource), typeof(EditorCommands));
+    public static readonly RoutedUICommand PickCommand = new("PickCommand", nameof(PickCommand), typeof(EditorCommands));
 }
 
 /// <summary>The program of the window clicked next goes into the action (the parameter) as its process.</summary>
@@ -237,6 +236,7 @@ public sealed class PickWindowCommand : ICommand
             AppControlAction a => name => a.ProcessName = name,
             WindowAction a => name => a.ProcessName = name,
             VolumeAction a => name => a.ProcessName = name,
+            ConditionAction a => name => a.Text = name,
             _ => null,
         };
         if (set is not null) WindowPicker.Pick(set);

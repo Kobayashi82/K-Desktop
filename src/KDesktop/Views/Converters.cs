@@ -7,11 +7,15 @@ using KDesktop.Services;
 
 namespace KDesktop.Views;
 
-/// <summary>Command (+ dependencies used only to re-trigger) → icon.</summary>
+/// <summary>Command or event (+ dependencies used only to re-trigger) → icon.</summary>
 public sealed class CommandIconConverter : IMultiValueConverter
 {
-    public object? Convert(object[] values, Type targetType, object parameter, CultureInfo culture) =>
-        values.Length > 0 && values[0] is Command cmd ? IconProvider.ForCommand(cmd) : null;
+    public object? Convert(object[] values, Type targetType, object parameter, CultureInfo culture) => values.Length > 0 ? values[0] switch
+    {
+        Command cmd => IconProvider.ForCommand(cmd),
+        EventRule rule => IconProvider.ForEvent(rule),
+        _ => null,
+    } : null;
 
     public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) => throw new NotSupportedException();
 }
@@ -207,6 +211,28 @@ public sealed class EventCommandConverter : IValueConverter
             "icon" => command is null ? IconProvider.Kd("Warning24", "orange") : IconProvider.ForCommand(command),
             "summary" => command?.PrimaryAction?.Summary ?? string.Empty,
             _ => command?.Name ?? Core.Localization.Loc.T("event.commandGone"),
+        };
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// The command id (parameter "command" or "commandIcon") or event id ("event", "eventIcon") of an action's pick box → its
+/// name, or «Elegir…» when there is none (or it is gone), or its icon.
+/// </summary>
+public sealed class PickedItemConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object parameter, CultureInfo culture)
+    {
+        var id = value as string;
+        var config = App.Current.Config;
+        return parameter switch
+        {
+            "commandIcon" => config.FindCommand(id ?? "") is { } c ? IconProvider.ForCommand(c) : null,
+            "eventIcon" => config.FindEvent(id ?? "") is { } r ? IconProvider.ForEvent(r) : null,
+            "event" => config.FindEvent(id ?? "")?.Name ?? Core.Localization.Loc.T("editor.pickEvent") + "…",
+            _ => config.FindCommand(id ?? "")?.Name ?? Core.Localization.Loc.T("editor.pickCommand") + "…",
         };
     }
 

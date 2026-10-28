@@ -767,6 +767,13 @@ public sealed partial class CommandsPage : UserControl, IDisposable
 
     private void OnBrowseFile(object sender, ExecutedRoutedEventArgs e)
     {
+        if (e.Parameter is ConditionAction condition)
+        {
+            var file = new OpenFileDialog { Title = Loc.T("editor.chooseFile"), Filter = Loc.T("editor.filterAll") + "|*.*", DereferenceLinks = false };
+            if (Path.GetDirectoryName(Environment.ExpandEnvironmentVariables(condition.Text)) is { Length: > 0 } folder && Directory.Exists(folder)) file.InitialDirectory = folder;
+            if (file.ShowDialog(Window.GetWindow(this)) == true) condition.Text = file.FileName;
+            return;
+        }
         if (e.Parameter is ShowNotificationAction notification)
         {
             var open = new OpenFileDialog { Title = Loc.T("editor.chooseFile"), Filter = Loc.T("editor.filterAll") + "|*.*", DereferenceLinks = false };
@@ -787,10 +794,35 @@ public sealed partial class CommandsPage : UserControl, IDisposable
             cmd.Name = UniqueName(Path.GetFileNameWithoutExtension(dlg.FileName));
     }
 
+    /// <summary>
+    /// The command (or event) of «Comandos» and of a notification's click, from the same list as elsewhere (without the
+    /// command being edited: it would call itself).
+    /// </summary>
+    private void OnPickCommand(object sender, ExecutedRoutedEventArgs e)
+    {
+        var owner = Window.GetWindow(this);
+        var others = Config.Commands.Where(c => c != _selected);
+        switch (e.Parameter)
+        {
+            case CommandControlAction { Target: CommandControlTarget.Event } c when Dialogs.CommandPicker.PickEvent(owner, Config.Events, c.EventId) is { } rule:
+                c.EventId = rule.Id;
+                c.EventName = rule.Name;
+                break;
+            case CommandControlAction { Target: CommandControlTarget.Command } c when Dialogs.CommandPicker.PickOne(owner, others, c.CommandId) is { } command:
+                c.CommandId = command.Id;
+                c.CommandName = command.Name;
+                break;
+            case ShowNotificationAction n when Dialogs.CommandPicker.PickOne(owner, others, n.CommandId) is { } command:
+                n.CommandId = command.Id;
+                break;
+        }
+    }
+
     private void OnBrowseFolder(object sender, ExecutedRoutedEventArgs e)
     {
         switch (e.Parameter)
         {
+            case ConditionAction c when PickFolder(Environment.ExpandEnvironmentVariables(c.Text)) is { } path: c.Text = path; break;
             case OpenFolderAction a when PickFolder(a.Path) is { } path: a.Path = path; break;
             case ScreenshotAction s when PickFolder(s.Folder) is { } path: s.Folder = path; break;
             case AudioRecordAction r when PickFolder(r.Folder) is { } path: r.Folder = path; break;

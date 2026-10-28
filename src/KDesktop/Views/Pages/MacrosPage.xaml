@@ -47,9 +47,9 @@
                     <StackPanel Margin="0,0,16,8" Visibility="{Binding HasPosition, Converter={StaticResource BoolToCollapsed}}">
                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr macro.position}" />
                         <StackPanel Orientation="Horizontal">
-                            <ui:TextBox Width="80" Text="{Binding X, UpdateSourceTrigger=PropertyChanged}" ClearButtonEnabled="False" />
+                            <ui:TextBox Width="80" Text="{Binding X, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Negative="True" ClearButtonEnabled="False" />
                             <TextBlock Text="," Margin="4,0" VerticalAlignment="Center" />
-                            <ui:TextBox Width="80" Text="{Binding Y, UpdateSourceTrigger=PropertyChanged}" ClearButtonEnabled="False" />
+                            <ui:TextBox Width="80" Text="{Binding Y, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Negative="True" ClearButtonEnabled="False" />
                             <ui:Button Margin="6,0,0,0" Content="{l:Tr editor.captureMouse}" Icon="{ui:SymbolIcon Cursor24}"
                                        Command="{x:Static v:EditorCommands.CaptureStepPosition}" CommandParameter="{Binding}" />
                         </StackPanel>
@@ -60,9 +60,9 @@
                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr macro.offset}" />
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="X" Margin="0,0,6,0" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                            <ui:TextBox Width="80" Text="{Binding X, UpdateSourceTrigger=PropertyChanged}" ToolTip="{l:Tr macro.offsetXHint}" ClearButtonEnabled="False" />
+                            <ui:TextBox Width="80" Text="{Binding X, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Negative="True" ToolTip="{l:Tr macro.offsetXHint}" ClearButtonEnabled="False" />
                             <TextBlock Text="Y" Margin="12,0,6,0" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
-                            <ui:TextBox Width="80" Text="{Binding Y, UpdateSourceTrigger=PropertyChanged}" ToolTip="{l:Tr macro.offsetYHint}" ClearButtonEnabled="False" />
+                            <ui:TextBox Width="80" Text="{Binding Y, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Negative="True" ToolTip="{l:Tr macro.offsetYHint}" ClearButtonEnabled="False" />
                             <CheckBox Margin="16,0,0,0" Content="{l:Tr macro.raw}" IsChecked="{Binding Raw}" ToolTip="{l:Tr macro.rawHint}" />
                         </StackPanel>
                     </StackPanel>
@@ -71,7 +71,7 @@
                     <StackPanel Margin="0,0,16,8" Visibility="{Binding IsWheel, Converter={StaticResource BoolToCollapsed}}">
                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr macro.wheel}" />
                         <StackPanel Orientation="Horizontal">
-                            <ui:TextBox Width="90" Text="{Binding Wheel, UpdateSourceTrigger=PropertyChanged}" ToolTip="{l:Tr macro.wheelHint}" ClearButtonEnabled="False" />
+                            <ui:TextBox Width="90" Text="{Binding Wheel, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Negative="True" ToolTip="{l:Tr macro.wheelHint}" ClearButtonEnabled="False" />
                             <CheckBox Margin="12,0,0,0" Content="{l:Tr macro.horizontal}" IsChecked="{Binding Horizontal}" />
                         </StackPanel>
                     </StackPanel>

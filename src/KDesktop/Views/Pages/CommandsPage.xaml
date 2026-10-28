@@ -133,6 +133,7 @@
         <CommandBinding Command="{x:Static v:EditorCommands.AddFileSourceFiles}" Executed="OnAddFileSourceFiles" />
         <CommandBinding Command="{x:Static v:EditorCommands.AddFileSourceFolder}" Executed="OnAddFileSourceFolder" />
         <CommandBinding Command="{x:Static v:EditorCommands.RemoveFileSource}" Executed="OnRemoveFileSource" />
+        <CommandBinding Command="{x:Static v:EditorCommands.PickCommand}" Executed="OnPickCommand" />
     </UserControl.CommandBindings>
 
     <Grid Margin="24,12,0,0">

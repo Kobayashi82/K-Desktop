@@ -1637,7 +1637,7 @@
                     <WrapPanel IsEnabled="{Binding AudioReplay}" Margin="0,10,0,0">
                         <StackPanel Margin="0,0,12,0">
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.audioReplaySeconds}" />
-                            <ui:TextBox Width="120" Text="{Binding AudioReplaySeconds, UpdateSourceTrigger=PropertyChanged}" />
+                            <ui:TextBox Width="120" Text="{Binding AudioReplaySeconds, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="600" />
                         </StackPanel>
                         <StackPanel>
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.recordSource}" />
