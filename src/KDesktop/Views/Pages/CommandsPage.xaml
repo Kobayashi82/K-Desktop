@@ -406,7 +406,7 @@
                             <Grid>
                                 <TextBlock FontWeight="SemiBold" VerticalAlignment="Center" Text="{l:Tr commands.actions}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                 <ui:Button x:Name="AddActionButton" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="8,0,8,0" MinHeight="36"
-                                           Content="{l:Tr commands.addAction}" Icon="{ui:SymbolIcon Add24}" Click="OnAddAction" />
+                                           Content="{l:Tr commands.addAction}" Icon="{ui:SymbolIcon Add24}" Appearance="Primary" Click="OnAddAction" />
                             </Grid>
                         </ui:CardExpander.Header>
                         <StackPanel>

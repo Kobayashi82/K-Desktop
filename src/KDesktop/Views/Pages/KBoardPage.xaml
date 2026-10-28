@@ -269,7 +269,7 @@
                                     <ToggleButton x:Name="LayerAlt" Style="{StaticResource Pill}" Content="Alt" Click="OnLayer" />
                                     <ToggleButton x:Name="LayerShift" Style="{StaticResource Pill}" Content="Shift" Click="OnLayer" />
                                     <ToggleButton x:Name="LayerWin" Style="{StaticResource Pill}" Content="Win" Click="OnLayer" Margin="0,0,14,0" />
-                                    <ui:Button x:Name="CaptureSourceButton" Content="{l:Tr kboard.captureSource}" Icon="{ui:SymbolIcon Keyboard24}"
+                                    <ui:Button x:Name="CaptureSourceButton" Appearance="Primary" Content="{l:Tr kboard.captureSource}" Icon="{ui:SymbolIcon Keyboard24}"
                                                Click="OnCaptureSource" ToolTip="{l:Tr kboard.captureSourceHint}" />
                                 </StackPanel>
                             </Grid>

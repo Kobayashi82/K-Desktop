@@ -244,7 +244,7 @@
                         <Grid DockPanel.Dock="Top" Margin="4,0,10,8">
                             <TextBlock Style="{StaticResource SectionTitle}" Text="{l:Tr macro.steps}" Margin="0" VerticalAlignment="Center" />
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <ui:Button x:Name="InsertButton" MinHeight="34" Content="{l:Tr macro.insert}" Icon="{ui:SymbolIcon Add24}" Click="OnInsert" Margin="0,0,6,0" />
+                                <ui:Button x:Name="InsertButton" Appearance="Primary" MinHeight="34" Content="{l:Tr macro.insert}" Icon="{ui:SymbolIcon Add24}" Click="OnInsert" Margin="0,0,6,0" />
                                 <ui:Button x:Name="SimplifyButton" MinHeight="34" Content="{l:Tr macro.simplify}" Icon="{ui:SymbolIcon Wand24}" Click="OnSimplify" Margin="0,0,6,0" />
                                 <ui:Button x:Name="UndoButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowUndo24, FontSize=18}" ToolTip="{l:Tr macro.undo}" Click="OnUndo" IsEnabled="False" Margin="0,0,6,0" />
                                 <ui:Button x:Name="RedoButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowRedo24, FontSize=18}" ToolTip="{l:Tr macro.redo}" Click="OnRedo" IsEnabled="False" Margin="0,0,6,0" />
