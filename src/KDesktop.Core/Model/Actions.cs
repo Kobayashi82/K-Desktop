@@ -21,7 +21,10 @@ public enum ActionKind
 
 public enum WindowMode { Normal, Minimized, Maximized, Hidden }
 public enum ProcessPriorityLevel { Idle, BelowNormal, Normal, AboveNormal, High, RealTime }
-public enum AppControlMode { Activate, Close, WaitFor }
+public enum AppControlMode { Activate, Close, WaitFor, TopMost }
+
+/// <summary>«Siempre visible» of «Controlar aplicación»: switch it, or put it on or off.</summary>
+public enum TopMostChange { Toggle, On, Off }
 public enum WaitCondition { Activated, Opened, Closed }
 public enum SendInputMode { Keys, Text, MouseMoveTo, MouseMoveBy }
 public enum VolumeMode { Set, Up, Down, ToggleMute, Mute, Unmute }
@@ -33,7 +36,7 @@ public enum CommandControlMode { Run, Enable, Disable, Toggle }
 
 /// <summary>What «Comandos» acts on: a command or an event.</summary>
 public enum CommandControlTarget { Command, Event }
-public enum ScriptShell { Cmd, PowerShell }
+public enum ScriptShell { Cmd, PowerShell, VBScript }
 
 /// <summary>Base class of every action a command can perform.</summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
@@ -160,6 +163,7 @@ public partial class AppControlAction : CommandAction
     /// <summary>Close: kill instead of asking politely. Activate: wait until it is in the foreground.</summary>
     [ObservableProperty] private bool _force;
     [ObservableProperty] private WaitCondition _waitFor = WaitCondition.Opened;
+    [ObservableProperty] private TopMostChange _topMost;
 
     /// <summary>Maximum time to wait, in seconds (0 = forever).</summary>
     [ObservableProperty] private int _timeoutSeconds;
@@ -180,6 +184,7 @@ public partial class AppControlAction : CommandAction
             {
                 AppControlMode.Activate => Loc.T("summary.activate", name),
                 AppControlMode.Close => Loc.T(Force ? "summary.kill" : "summary.close", name),
+                AppControlMode.TopMost => Loc.T($"summary.topMost.{TopMost}", name),
                 _ => Loc.T($"summary.waitFor.{WaitFor}", name),
             };
         }
@@ -200,7 +205,7 @@ public partial class RunScriptAction : CommandAction
         get
         {
             var first = Script.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault();
-            return $"{(Shell == ScriptShell.Cmd ? "CMD" : "PowerShell")}: {Or(first, "summary.empty")}";
+            return $"{Loc.T($"enum.shell.{Shell}")}: {Or(first, "summary.empty")}";
         }
     }
 }

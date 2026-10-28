@@ -25,6 +25,9 @@ run another command… See the [complete list of actions](actions.md).
 
 - Each action can be switched off without deleting it, and its order changed by dragging.
 - **Run** in the editor tries the command at once.
+- A command that takes a while (a wait, a macro, a script it waits for…) shows a ▶ in the list while it is running, and
+  next to the number of commands you see how many are running: click it to see them or **stop them all**. **Run** turns
+  into **Stop** while that command is still running.
 - Two commands cannot have the same name (nor two events, QuickMenus, macros or K-Board profiles): if you type one that
   already exists, the previous name stays.
 - An action that opens something chooses whether it runs **as administrator or as a normal user**.

@@ -138,4 +138,39 @@ public static class Browsers
 
     public static Entry? Get(string? id) =>
         string.IsNullOrWhiteSpace(id) ? null : All.FirstOrDefault(b => b.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// Windows' default browser and the program that opens it, when it is one of these (by its exe, else by the name of
+    /// its registration: «ChromeHTML», «OperaStable»…); null otherwise.
+    /// </summary>
+    public static (Entry Browser, string Path)? Default()
+    {
+        try
+        {
+            const string choice = @"Software\Microsoft\Windows\Shell\Associations\UrlAssociations\https\";
+            string? progId = null;
+            foreach (var key in new[] { "UserChoiceLatest", "UserChoice" }) // the first one in recent Windows 11
+            {
+                using var k = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(choice + key);
+                if ((progId = k?.GetValue("ProgId") as string) is { Length: > 0 }) break;
+            }
+            if (string.IsNullOrEmpty(progId)) return null;
+
+            using var command = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey($@"{progId}\shell\open\command");
+            var line = (command?.GetValue(null) as string)?.Trim() ?? "";
+            var path = line.StartsWith('"') ? line[1..Math.Max(1, line.IndexOf('"', 1))]
+                : line.Split(' ', 2)[0];
+            if (path.Length == 0) return null;
+
+            var name = System.IO.Path.GetFileName(path);
+            var entry = All.FirstOrDefault(b => b.Executable.Equals(name, StringComparison.OrdinalIgnoreCase)) ??
+                        All.FirstOrDefault(b => progId.Contains(b.Id, StringComparison.OrdinalIgnoreCase));
+            return entry is null ? null : (entry, path);
+        }
+        catch (Exception ex)
+        {
+            Log.Warn("No se pudo leer el navegador predeterminado: " + ex.Message);
+            return null;
+        }
+    }
 }

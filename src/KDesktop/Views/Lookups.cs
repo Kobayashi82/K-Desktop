@@ -37,6 +37,7 @@ public static class Lookups
     public static IReadOnlyList<Option<ProcessPriorityLevel>> Priorities { get; } = Enum<ProcessPriorityLevel>("enum.priority");
     public static IReadOnlyList<Option<AppControlMode>> AppControlModes { get; } = Enum<AppControlMode>("enum.appControl");
     public static IReadOnlyList<Option<WaitCondition>> WaitConditions { get; } = Enum<WaitCondition>("enum.waitFor");
+    public static IReadOnlyList<Option<TopMostChange>> TopMostChanges { get; } = Enum<TopMostChange>("enum.topMostChange");
     public static IReadOnlyList<Option<SendInputMode>> SendInputModes { get; } = Enum<SendInputMode>("enum.sendInput");
     public static IReadOnlyList<Option<VolumeMode>> VolumeModes { get; } = Enum<VolumeMode>("enum.volume");
     public static IReadOnlyList<Option<VolumeTarget>> VolumeTargets { get; } = Enum<VolumeTarget>("enum.volumeTarget");
@@ -171,11 +172,12 @@ public static class Lookups
     public static IReadOnlyList<string> RunningProcesses()
     {
         var names = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+        var withWindows = Core.Platform.WindowTools.ProcessesWithWindows();
         foreach (var p in Process.GetProcesses())
         {
             try
             {
-                if (p.MainWindowHandle != IntPtr.Zero && p.Id != Environment.ProcessId) names.Add(p.ProcessName.ToLowerInvariant());
+                if (withWindows.Contains((uint)p.Id) && p.Id != Environment.ProcessId) names.Add(p.ProcessName.ToLowerInvariant());
             }
             catch { /* access denied */ }
             finally { p.Dispose(); }
@@ -187,6 +189,9 @@ public static class Lookups
 /// <summary>Routed commands used by the editor templates and handled by the pages.</summary>
 public static class EditorCommands
 {
+    /// <summary>«Elegir ventana» next to an action's process box (not routed: it works on every page with editors).</summary>
+    public static readonly ICommand PickWindow = new PickWindowCommand();
+
     public static readonly RoutedUICommand BrowseFile = new("BrowseFile", nameof(BrowseFile), typeof(EditorCommands));
     public static readonly RoutedUICommand BrowseFolder = new("BrowseFolder", nameof(BrowseFolder), typeof(EditorCommands));
     public static readonly RoutedUICommand BrowseWorkingDirectory = new("BrowseWorkingDirectory", nameof(BrowseWorkingDirectory), typeof(EditorCommands));
@@ -216,4 +221,24 @@ public static class EditorCommands
     public static readonly RoutedUICommand AddFileSourceFiles = new("AddFileSourceFiles", nameof(AddFileSourceFiles), typeof(EditorCommands));
     public static readonly RoutedUICommand AddFileSourceFolder = new("AddFileSourceFolder", nameof(AddFileSourceFolder), typeof(EditorCommands));
     public static readonly RoutedUICommand RemoveFileSource = new("RemoveFileSource", nameof(RemoveFileSource), typeof(EditorCommands));
+}
+
+/// <summary>The program of the window clicked next goes into the action (the parameter) as its process.</summary>
+public sealed class PickWindowCommand : ICommand
+{
+    public event EventHandler? CanExecuteChanged { add { } remove { } }
+
+    public bool CanExecute(object? parameter) => true;
+
+    public void Execute(object? parameter)
+    {
+        Action<string>? set = parameter switch
+        {
+            AppControlAction a => name => a.ProcessName = name,
+            WindowAction a => name => a.ProcessName = name,
+            VolumeAction a => name => a.ProcessName = name,
+            _ => null,
+        };
+        if (set is not null) WindowPicker.Pick(set);
+    }
 }

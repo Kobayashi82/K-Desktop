@@ -49,8 +49,27 @@ public static class Favicons
         var key = Key(uri);
         var file = FileFor(key);
         if (File.Exists(file)) return IconProvider.FromFile(file);
-        Fetch(uri, key);
+        FetchSoon(uri, key);
         return null;
+    }
+
+    private static readonly ConcurrentDictionary<string, Uri> Pending = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// What is on screen waits a moment before downloading, so a URL being typed does not ask every site on the way
+    /// («g», «go», «civitai.»…): a newer one that extends or shortens it takes its place.
+    /// </summary>
+    private static void FetchSoon(Uri uri, string key)
+    {
+        if (Started.ContainsKey(key) || Pending.ContainsKey(key)) return;
+        foreach (var other in Pending.Keys)
+            if (key.StartsWith(other, StringComparison.OrdinalIgnoreCase) || other.StartsWith(key, StringComparison.OrdinalIgnoreCase))
+                Pending.TryRemove(other, out _);
+        Pending[key] = uri;
+        _ = Task.Delay(1500).ContinueWith(_ =>
+        {
+            if (Pending.TryRemove(key, out var pending)) Fetch(pending, key);
+        }, TaskScheduler.Default);
     }
 
     /// <summary>Downloads in the background the icons still missing for these actions.</summary>

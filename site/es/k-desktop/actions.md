@@ -10,8 +10,8 @@ orden.
 | **Ejecutar aplicación** | Abre un programa, archivo, acceso directo o script, como usuario normal o como administrador. |
 | **Abrir carpeta** | Abre una carpeta o una ubicación especial de Windows. |
 | **Abrir página web** | Abre una dirección en el navegador que elijas. |
-| **Controlar aplicación** | Activa, cierra o espera a una aplicación por el nombre de su proceso. |
-| **Ejecutar script** | Ejecuta un script de CMD o PowerShell escrito ahí mismo. |
+| **Controlar aplicación** | Activa, cierra, pone siempre visible o espera a una aplicación por el nombre de su proceso. |
+| **Ejecutar script** | Ejecuta un script de CMD (BAT), PowerShell o VBScript escrito ahí mismo. |
 
 ## Ventanas
 

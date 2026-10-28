@@ -149,6 +149,28 @@
                     <Border Margin="10,6,0,0" Padding="8,1" CornerRadius="10" VerticalAlignment="Center" Background="{DynamicResource Kd.AccentSoft}">
                         <TextBlock x:Name="CountText" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Kd.AccentText}" />
                     </Border>
+                    <!-- The commands in progress (the ones taking a while): click to see them and stop them -->
+                    <Button x:Name="RunningChip" Margin="6,6,0,0" VerticalAlignment="Center" Cursor="Hand" Visibility="Collapsed" Click="OnRunningChip"
+                            AutomationProperties.Name="{l:Tr commands.running}" ToolTip="{l:Tr commands.running}">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="B" Padding="7,1,8,1" CornerRadius="10" Background="{DynamicResource Kd.Accent}">
+                                    <ContentPresenter />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="B" Property="Opacity" Value="0.85" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="Play24" Filled="True" FontSize="11" Margin="0,0,4,0" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+                            <TextBlock x:Name="RunningText" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
                 <ui:TextBox x:Name="SearchBox" PlaceholderText="{l:Tr commands.search}" Icon="{ui:SymbolIcon Search24}"
                             TextChanged="OnSearchChanged" ClearButtonEnabled="True" Margin="0,0,0,10" />
@@ -223,6 +245,9 @@
                             </StackPanel>
                             <!-- Right margin: keeps the icons clear of the list's scrollbar -->
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,10,0">
+                                <!-- Running: shows only after a moment (most commands end at once), pulsing -->
+                                <ui:SymbolIcon x:Name="RunningMark" Symbol="Play24" Filled="True" FontSize="14" Margin="4,0,0,0" ToolTip="{l:Tr commands.runningOne}"
+                                               Foreground="{DynamicResource Kd.Accent}" Visibility="Collapsed" />
                                 <ui:SymbolIcon Symbol="PlugConnected24" FontSize="14" Margin="4,0,0,0" ToolTip="{l:Tr commands.remote}"
                                                Foreground="{DynamicResource TextFillColorTertiaryBrush}"
                                                Visibility="{Binding Remote, Converter={StaticResource BoolToCollapsed}}" />
@@ -246,6 +271,22 @@
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Enabled}" Value="False">
                                 <Setter TargetName="Root" Property="Opacity" Value="0.45" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard x:Name="RunningPulse">
+                                        <Storyboard>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RunningMark" Storyboard.TargetProperty="Visibility">
+                                                <DiscreteObjectKeyFrame KeyTime="0:0:0.4" Value="{x:Static Visibility.Visible}" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                            <DoubleAnimation Storyboard.TargetName="RunningMark" Storyboard.TargetProperty="Opacity" BeginTime="0:0:0.4"
+                                                             From="1" To="0.3" Duration="0:0:0.7" AutoReverse="True" RepeatBehavior="Forever" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions>
+                                    <RemoveStoryboard BeginStoryboardName="RunningPulse" />
+                                </DataTrigger.ExitActions>
                             </DataTrigger>
                         </DataTemplate.Triggers>
                     </DataTemplate>
@@ -321,7 +362,21 @@
                                               Title="{l:Tr commands.remoteOption}" Hint="{l:Tr commands.remoteHint}" />
                                 <StackPanel Grid.Column="3" Margin="16,0,0,0" Orientation="Horizontal" VerticalAlignment="Center" v:ResponsiveHeader.IsSide="True">
                                     <ui:ToggleSwitch IsChecked="{Binding Enabled}" OnContent="{l:Tr common.enabled}" OffContent="{l:Tr common.disabled}" Margin="0,0,16,0" />
-                                    <ui:Button MinHeight="34" Content="{l:Tr commands.run}" Icon="{ui:SymbolIcon Play24}" Click="OnRunCommand" Margin="0,0,8,0" />
+                                    <!-- While it runs, the same button stops it -->
+                                    <ui:Button MinHeight="34" Click="OnRunCommand" Margin="0,0,8,0">
+                                        <ui:Button.Style>
+                                            <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                                                <Setter Property="Content" Value="{l:Tr commands.run}" />
+                                                <Setter Property="Icon" Value="{ui:SymbolIcon Play24}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                                        <Setter Property="Content" Value="{l:Tr commands.stop}" />
+                                                        <Setter Property="Icon" Value="{ui:SymbolIcon Stop24}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ui:Button.Style>
+                                    </ui:Button>
                                     <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Copy24, FontSize=18}" ToolTip="{l:Tr commands.duplicate}" Click="OnDuplicateCommand" Margin="0,0,8,0" />
                                     <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Delete24, FontSize=18}" ToolTip="{l:Tr commands.delete}" Click="OnDeleteCommand" />
                                 </StackPanel>

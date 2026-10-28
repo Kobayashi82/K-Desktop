@@ -62,6 +62,19 @@ public partial class Command : ObservableObject
     /// <summary>Raised whenever the command or anything inside it changes (used for autosave and index rebuilds).</summary>
     public event EventHandler? Modified;
 
+    /// <summary>Running right now (the list marks it); not a change to save.</summary>
+    [JsonIgnore]
+    public bool IsRunning
+    {
+        get;
+        set
+        {
+            if (field == value) return;
+            field = value;
+            base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(IsRunning)));
+        }
+    }
+
     [JsonIgnore] public string HotkeysText => Hotkeys.Count == 0 ? string.Empty : string.Join("   ·   ", Hotkeys);
 
     [JsonIgnore] public string FirstHotkey => Hotkeys.FirstOrDefault() ?? string.Empty;

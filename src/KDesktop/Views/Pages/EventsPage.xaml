@@ -677,12 +677,12 @@
                                     <StackPanel>
                                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.ifRunning}" />
                                         <ComboBox IsEditable="True" Text="{Binding ProcessRunning, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr common.processPlaceholder}"
-                                                  ItemsSource="{Binding Source={x:Static v:Lookups.RunningProcessesNow}}" />
+                                                  ItemsSource="{Binding Source={x:Static v:Lookups.RunningProcessesNow}}" v:ProcessCombo.Running="True" />
                                     </StackPanel>
                                     <StackPanel Grid.Column="2">
                                         <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.ifNotRunning}" />
                                         <ComboBox IsEditable="True" Text="{Binding ProcessNotRunning, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr common.processPlaceholder}"
-                                                  ItemsSource="{Binding Source={x:Static v:Lookups.RunningProcessesNow}}" />
+                                                  ItemsSource="{Binding Source={x:Static v:Lookups.RunningProcessesNow}}" v:ProcessCombo.Running="True" />
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>

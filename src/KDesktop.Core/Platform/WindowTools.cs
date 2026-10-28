@@ -50,6 +50,32 @@ public static class WindowTools
     [System.Runtime.InteropServices.DllImport("kernel32.dll")]
     private static extern bool CloseHandle(IntPtr handle);
 
+    /// <summary>
+    /// «Siempre visible» on every window of a program (switching follows the first one). Returns the new state, or null
+    /// when it has no window.
+    /// </summary>
+    public static bool? SetTopMost(string processName, Model.TopMostChange change)
+    {
+        var processes = FindProcesses(processName);
+        try
+        {
+            var windows = TopLevelWindows(processes.Select(p => (uint)p.Id).ToHashSet());
+            if (windows.Count == 0) return null;
+            var on = change switch
+            {
+                Model.TopMostChange.On => true,
+                Model.TopMostChange.Off => false,
+                _ => !IsTopMost(windows[0]),
+            };
+            foreach (var hwnd in windows) SetTopMost(hwnd, on);
+            return on;
+        }
+        finally
+        {
+            foreach (var p in processes) p.Dispose();
+        }
+    }
+
     /// <summary>Toggles "always on top" and returns the new state.</summary>
     public static bool ToggleTopMost(IntPtr hwnd)
     {
@@ -97,6 +123,23 @@ public static class WindowTools
             return true;
         }, IntPtr.Zero);
         return result;
+    }
+
+    /// <summary>
+    /// Ids of the processes with a visible window of their own (with a title). Process.MainWindowHandle misses some
+    /// (Windows 11's Notepad and other WinUI apps).
+    /// </summary>
+    public static HashSet<uint> ProcessesWithWindows()
+    {
+        var pids = new HashSet<uint>();
+        Win32.EnumWindows((hwnd, _) =>
+        {
+            if (!Win32.IsWindowVisible(hwnd) || Win32.GetWindow(hwnd, Win32.GW_OWNER) != IntPtr.Zero || Win32.GetWindowTextLength(hwnd) == 0) return true;
+            Win32.GetWindowThreadProcessId(hwnd, out var pid);
+            pids.Add(pid);
+            return true;
+        }, IntPtr.Zero);
+        return pids;
     }
 
     /// <summary>Full path of a process's exe. Works across elevation levels (Process.MainModule does not).</summary>

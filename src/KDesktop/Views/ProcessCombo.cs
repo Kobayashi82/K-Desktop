@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Controls;
 using KDesktop.Core.Input;
 
@@ -9,6 +10,29 @@ namespace KDesktop.Views;
 /// </summary>
 public static class ProcessCombo
 {
+    /// <summary>
+    /// <c>v:ProcessCombo.Running="True"</c>: the drop-down lists the programs open at the moment it opens (one opened
+    /// after the editor shows up too).
+    /// </summary>
+    public static readonly DependencyProperty RunningProperty = DependencyProperty.RegisterAttached(
+        "Running", typeof(bool), typeof(ProcessCombo), new PropertyMetadata(false, OnRunningChanged));
+
+    public static bool GetRunning(DependencyObject d) => (bool)d.GetValue(RunningProperty);
+
+    public static void SetRunning(DependencyObject d, bool value) => d.SetValue(RunningProperty, value);
+
+    private static void OnRunningChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not ComboBox box || e.NewValue is not true) return;
+        box.DropDownOpened += (_, _) =>
+        {
+            // Setting the list clears an editable box's text: keep what is typed.
+            var text = box.Text;
+            box.ItemsSource = Lookups.RunningProcesses();
+            box.Text = text;
+        };
+    }
+
     /// <summary>Fills the drop-down with the running processes that are not in <paramref name="list"/> yet.</summary>
     public static void Fill(ComboBox box, ICollection<string>? list) =>
         box.ItemsSource = Lookups.RunningProcesses().Where(p => list is null || !list.Contains(p)).ToList();

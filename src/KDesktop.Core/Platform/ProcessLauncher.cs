@@ -15,7 +15,8 @@ public sealed record LaunchSpec(
     string? WorkingDirectory = null,
     WindowMode Window = WindowMode.Normal,
     ProcessPriorityLevel Priority = ProcessPriorityLevel.Normal,
-    bool TopMost = false);
+    bool TopMost = false,
+    bool Wait = false);
 
 /// <summary>
 /// Starts processes either elevated (in-process) or as the normal, non-elevated user.
@@ -46,9 +47,49 @@ public static class ProcessLauncher
         }
     }
 
-    /// <summary>Starts the process from the current process (same elevation).</summary>
+    /// <summary>
+    /// Like <see cref="Launch"/>, and waits until the program ends. Without elevation the helper starts it and waits for
+    /// it, and this waits for the helper (an elevated process cannot get the handle of what the helper starts).
+    /// </summary>
+    public static async Task LaunchAndWaitAsync(LaunchSpec spec, bool asAdmin, CancellationToken token)
+    {
+        Process? process = null;
+        try
+        {
+            if (!asAdmin && IsElevated)
+            {
+                var exe = AppPaths.ExecutablePath;
+                process = StartAsUser(exe, $"{HelperArgument} {Encode(spec with { Wait = true })}");
+                if (process is null) Log.Warn($"No se pudo lanzar sin elevación, se lanza elevado: {spec.FileName}");
+            }
+            if (process is null && !Start(spec, out process)) return;
+            if (process is not null) await process.WaitForExitAsync(token).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Log.Error($"Error lanzando {spec.FileName}", ex);
+        }
+        finally
+        {
+            process?.Dispose();
+        }
+    }
+
+    /// <summary>Starts the process from the current process (same elevation); with <see cref="LaunchSpec.Wait"/>, until it ends.</summary>
     public static bool LaunchDirect(LaunchSpec spec)
     {
+        if (!Start(spec, out var process)) return false;
+        using (process)
+        {
+            if (spec.Wait) process?.WaitForExit();
+        }
+        return true;
+    }
+
+    /// <summary>Starts it and returns the process when there is one to watch (not for folders or documents Windows hands over).</summary>
+    private static bool Start(LaunchSpec spec, out Process? started)
+    {
+        started = null;
         var file = Environment.ExpandEnvironmentVariables(spec.FileName.Trim().Trim('"'));
         var args = Environment.ExpandEnvironmentVariables(spec.Arguments ?? string.Empty);
         if (file.Length == 0) return false;
@@ -82,9 +123,20 @@ public static class ProcessLauncher
         };
         if (spec.Window == WindowMode.Hidden) psi.CreateNoWindow = true;
 
+        // Before starting it: the windows the program already has, so its new one can be told apart.
+        var exeName = ExeName(file);
+        var topMost = spec.TopMost && spec.Window != WindowMode.Hidden && !isDirectory;
+        var before = topMost ? WindowsOf(null, exeName) : null;
+
         Win32.AllowSetForegroundWindow(Win32.ASFW_ANY);
-        using var process = Process.Start(psi);
-        if (process is null || isDirectory) return true;
+        var process = Process.Start(psi);
+        if (process is null || isDirectory)
+        {
+            process?.Dispose();
+            if (before is not null && exeName is not null) MakeTopMost(null, exeName, before);
+            return true;
+        }
+        started = process;
 
         if (spec.Priority != ProcessPriorityLevel.Normal)
         {
@@ -103,31 +155,68 @@ public static class ProcessLauncher
             catch (Exception ex) { Log.Warn($"No se pudo cambiar la prioridad de {file}: {ex.Message}"); }
         }
 
-        if (spec.TopMost && spec.Window != WindowMode.Hidden)
-        {
-            try
-            {
-                for (var i = 0; i < 100 && process.MainWindowHandle == IntPtr.Zero && !process.HasExited; i++)
-                {
-                    Thread.Sleep(50);
-                    process.Refresh();
-                }
-                if (process.MainWindowHandle != IntPtr.Zero) WindowTools.SetTopMost(process.MainWindowHandle, true);
-            }
-            catch { /* the process may have exited or be protected */ }
-        }
+        if (before is not null) MakeTopMost(process, exeName, before);
         return true;
+    }
+
+    /// <summary>«notepad» for notepad.exe or «notepad»; null for documents, shortcuts and the like.</summary>
+    private static string? ExeName(string file)
+    {
+        var ext = Path.GetExtension(file);
+        return ext.Length == 0 || ext.Equals(".exe", StringComparison.OrdinalIgnoreCase) ? Path.GetFileNameWithoutExtension(file) : null;
+    }
+
+    /// <summary>The windows of a process and of every process with that program's name.</summary>
+    private static HashSet<IntPtr> WindowsOf(Process? process, string? exeName)
+    {
+        var pids = new HashSet<uint>();
+        try
+        {
+            if (process is { HasExited: false }) pids.Add((uint)process.Id);
+        }
+        catch { /* protected */ }
+        if (exeName is not null)
+            foreach (var p in WindowTools.FindProcesses(exeName))
+            {
+                pids.Add((uint)p.Id);
+                p.Dispose();
+            }
+        return pids.Count == 0 ? [] : [.. WindowTools.TopLevelWindows(pids)];
+    }
+
+    /// <summary>
+    /// «Siempre visible» for the window it opens, within 5 s. Not always the started process's own: Windows 11's Notepad
+    /// and other Store apps start through an alias that hands over to another process, so a new window of a process with
+    /// the program's name counts too. When none appears (it opened a tab in a window it had), the program's window in
+    /// front gets it.
+    /// </summary>
+    private static void MakeTopMost(Process? process, string? exeName, HashSet<IntPtr> before)
+    {
+        for (var i = 0; i < 100; i++)
+        {
+            var window = WindowsOf(process, exeName).FirstOrDefault(h => !before.Contains(h));
+            if (window != IntPtr.Zero)
+            {
+                WindowTools.SetTopMost(window, true);
+                return;
+            }
+            Thread.Sleep(50);
+        }
+        var front = Win32.GetForegroundWindow();
+        if (front != IntPtr.Zero && WindowsOf(process, exeName).Contains(front)) WindowTools.SetTopMost(front, true);
+        else Log.Info($"Siempre visible: no apareció ninguna ventana de {exeName ?? "lo lanzado"}");
     }
 
     // ── non-elevated launch through the helper ───────────────────────────
 
     private static bool LaunchAsUser(LaunchSpec spec)
     {
-        var payload = Convert.ToBase64String(Encoding.UTF8.GetBytes(Json.Serialize(spec)))
-            .TrimEnd('=').Replace('+', '-').Replace('/', '_');
         var exe = AppPaths.ExecutablePath;
-        return CreateProcessAsShellUser(exe, $"\"{exe}\" {HelperArgument} {payload}") is not null;
+        return CreateProcessAsShellUser(exe, $"\"{exe}\" {HelperArgument} {Encode(spec)}") is not null;
     }
+
+    private static string Encode(LaunchSpec spec) =>
+        Convert.ToBase64String(Encoding.UTF8.GetBytes(Json.Serialize(spec))).TrimEnd('=').Replace('+', '-').Replace('/', '_');
 
     /// <summary>
     /// Starts <paramref name="application"/> itself (no helper) as the normal user, from an elevated process, and

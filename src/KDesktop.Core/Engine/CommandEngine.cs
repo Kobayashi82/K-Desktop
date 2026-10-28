@@ -37,7 +37,15 @@ public sealed partial class CommandEngine
 
     private readonly ConfigStore _store;
     private readonly IUiServices _ui;
-    private readonly ConcurrentDictionary<string, CancellationTokenSource> _running = new();
+    private readonly ConcurrentDictionary<string, RunningCommand> _running = new();
+
+    /// <summary>A command in progress: what stops it and since when (the list shows only the ones that take a while).</summary>
+    public sealed class RunningCommand(Command command, CancellationTokenSource cts)
+    {
+        public Command Command { get; } = command;
+        public long Started { get; } = Environment.TickCount64;
+        internal CancellationTokenSource Cts { get; } = cts;
+    }
     private readonly ConcurrentDictionary<CancellationTokenSource, byte> _cancellable = new();
 
     public CommandEngine(ConfigStore store, IUiServices ui, ExecutionHistory? history = null)
@@ -76,6 +84,20 @@ public sealed partial class CommandEngine
 
     /// <summary>Raised after Escape cancelled something.</summary>
     public event Action? Cancelled;
+
+    /// <summary>Raised (on any thread) when a command starts or ends.</summary>
+    public event Action? RunningChanged;
+
+    /// <summary>The commands in progress (also the ones other commands call).</summary>
+    public IReadOnlyList<RunningCommand> Running => [.. _running.Values.OrderBy(r => r.Started)];
+
+    /// <summary>Stops a command in progress, like running it again would but without the new run.</summary>
+    public bool Stop(string commandId)
+    {
+        if (!_running.TryGetValue(commandId, out var run)) return false;
+        try { run.Cts.Cancel(); } catch (ObjectDisposedException) { }
+        return true;
+    }
 
     /// <summary>
     /// K-Desktop paused (setting): nothing runs (hotkeys, menus, remote, startup…) except what the user runs by hand
@@ -133,9 +155,15 @@ public sealed partial class CommandEngine
         var cts = new CancellationTokenSource();
         if (!isRepeat && _running.TryRemove(command.Id, out var previous))
         {
-            try { previous.Cancel(); } catch (ObjectDisposedException) { }
+            try { previous.Cts.Cancel(); } catch (ObjectDisposedException) { }
         }
-        if (!isRepeat) _running[command.Id] = cts;
+        var run = new RunningCommand(command, cts);
+        if (!isRepeat)
+        {
+            _running[command.Id] = run;
+            command.IsRunning = true;
+            RunningChanged?.Invoke();
+        }
         using var stop = cancellationToken.Register(() =>
         {
             try { cts.Cancel(); } catch (ObjectDisposedException) { }
@@ -225,7 +253,11 @@ public sealed partial class CommandEngine
             if (!isRepeat)
                 History.Add(new HistoryEntry(DateTime.Now, command.Id, command.Name, source, detail, outcome, message,
                     (int)Math.Min(int.MaxValue, Environment.TickCount64 - started), depth));
-            _running.TryRemove(new KeyValuePair<string, CancellationTokenSource>(command.Id, cts));
+            if (!isRepeat && _running.TryRemove(new KeyValuePair<string, RunningCommand>(command.Id, run)))
+            {
+                command.IsRunning = _running.ContainsKey(command.Id);
+                RunningChanged?.Invoke();
+            }
             cts.Dispose();
         }
     }

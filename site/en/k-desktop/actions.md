@@ -9,8 +9,8 @@ Every action a command can run. Add them with *Add action* in the command editor
 | **Run application** | Opens a program, file, shortcut or script, as the normal user or as administrator. |
 | **Open folder** | Opens a folder or a special Windows location. |
 | **Open web page** | Opens a URL in the browser of your choice. |
-| **Control application** | Activates, closes or waits for an application by its process name. |
-| **Run script** | Runs a CMD or PowerShell script written right there. |
+| **Control application** | Activates, closes, keeps on top or waits for an application by its process name. |
+| **Run script** | Runs a CMD (BAT), PowerShell or VBScript script written right there. |
 
 ## Windows
 

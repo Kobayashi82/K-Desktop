@@ -85,13 +85,21 @@ public sealed partial class CommandEngine
     {
         var url = NormalizeUrl(a.Url);
         if (url.Length == 0) return;
-        if (Browsers.Get(a.Browser) is { } browser)
+        var browser = Browsers.Get(a.Browser);
+        var exe = browser?.Executable;
+        // «Predeterminado» with a new window or incognito: those need to know which browser it is.
+        if (browser is null && (a.NewWindow || a.Incognito))
+        {
+            if (Browsers.Default() is { } found) (browser, exe) = found;
+            else Log.Warn("No se reconoce el navegador predeterminado: la página se abre sin ventana nueva ni incógnito");
+        }
+        if (browser is not null)
         {
             var args = new List<string>();
             if (a.Incognito) args.Add(browser.IncognitoArg);
             else if (a.NewWindow) args.Add(browser.NewWindowArg);
             args.Add($"\"{url}\"");
-            ProcessLauncher.Launch(new LaunchSpec(browser.Executable, string.Join(' ', args)), asAdmin: false);
+            ProcessLauncher.Launch(new LaunchSpec(exe!, string.Join(' ', args)), asAdmin: false);
         }
         else
         {
@@ -122,6 +130,11 @@ public sealed partial class CommandEngine
             case AppControlMode.Close:
                 if (a.Force && a.AskFirst && await WindowTools.CloseAsync(name, false, ctx.Token).ConfigureAwait(false)) break;
                 await WindowTools.CloseAsync(name, a.Force, ctx.Token).ConfigureAwait(false);
+                break;
+
+            case AppControlMode.TopMost:
+                if (await Task.Run(() => WindowTools.SetTopMost(name, a.TopMost)).ConfigureAwait(false) is { } on)
+                    _ui.ShowOsd(Loc.T(on ? "osd.topMostOn" : "osd.topMostOff", name), on ? OsdKind.Success : OsdKind.Info, look: OsdLook.Of(on ? "Pin24" : "PinOff24"));
                 break;
 
             case AppControlMode.WaitFor:
@@ -161,42 +174,52 @@ public sealed partial class CommandEngine
         return true;
     }
 
-    private static async Task RunScriptAsync(RunScriptAction a, ExecutionContext ctx)
+    private async Task RunScriptAsync(RunScriptAction a, ExecutionContext ctx)
     {
         if (string.IsNullOrWhiteSpace(a.Script)) return;
         Directory.CreateDirectory(AppPaths.TempDir);
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(a.Shell + a.Script)))[..16];
 
         LaunchSpec spec;
-        if (a.Shell == ScriptShell.Cmd)
+        switch (a.Shell)
         {
-            var file = Path.Combine(AppPaths.TempDir, $"script-{hash}.cmd");
-            await File.WriteAllTextAsync(file, "@chcp 65001 >nul\r\n" + a.Script.Replace("\r\n", "\n").Replace("\n", "\r\n"),
-                new UTF8Encoding(false), ctx.Token).ConfigureAwait(false);
-            spec = new LaunchSpec(file, "", null, a.WindowMode);
-        }
-        else
-        {
-            var file = Path.Combine(AppPaths.TempDir, $"script-{hash}.ps1");
-            await File.WriteAllTextAsync(file, a.Script, new UTF8Encoding(true), ctx.Token).ConfigureAwait(false);
-            var noExit = a.WindowMode == WindowMode.Hidden ? "" : "-NoExit ";
-            spec = new LaunchSpec("powershell.exe", $"-NoProfile {noExit}-ExecutionPolicy Bypass -File \"{file}\"", null, a.WindowMode);
+            case ScriptShell.Cmd:
+            {
+                // A .cmd is a .bat: the same commands.
+                var file = Path.Combine(AppPaths.TempDir, $"script-{hash}.cmd");
+                await File.WriteAllTextAsync(file, "@chcp 65001 >nul\r\n" + a.Script.Replace("\r\n", "\n").Replace("\n", "\r\n"),
+                    new UTF8Encoding(false), ctx.Token).ConfigureAwait(false);
+                spec = new LaunchSpec(file, "", null, a.WindowMode);
+                break;
+            }
+            case ScriptShell.VBScript:
+            {
+                // Windows Script Host reads Unicode with its BOM (UTF-8 would break the accents); wscript has no console.
+                var file = Path.Combine(AppPaths.TempDir, $"script-{hash}.vbs");
+                await File.WriteAllTextAsync(file, a.Script.Replace("\r\n", "\n").Replace("\n", "\r\n"),
+                    new UnicodeEncoding(false, true), ctx.Token).ConfigureAwait(false);
+                spec = new LaunchSpec("wscript.exe", $"//nologo \"{file}\"", null, a.WindowMode);
+                break;
+            }
+            default:
+            {
+                var file = Path.Combine(AppPaths.TempDir, $"script-{hash}.ps1");
+                await File.WriteAllTextAsync(file, a.Script, new UTF8Encoding(true), ctx.Token).ConfigureAwait(false);
+                // A visible window stays open to read what it wrote, except when the command waits for it to end.
+                var noExit = a.WindowMode == WindowMode.Hidden || a.WaitForExit ? "" : "-NoExit ";
+                spec = new LaunchSpec("powershell.exe", $"-NoProfile {noExit}-ExecutionPolicy Bypass -File \"{file}\"", null, a.WindowMode);
+                break;
+            }
         }
 
-        if (a.WaitForExit && (a.RunAsAdmin || !ProcessLauncher.IsElevated))
-        {
-            var psi = new System.Diagnostics.ProcessStartInfo(spec.FileName, spec.Arguments)
-            {
-                UseShellExecute = true,
-                WindowStyle = a.WindowMode == WindowMode.Hidden ? System.Diagnostics.ProcessWindowStyle.Hidden : System.Diagnostics.ProcessWindowStyle.Normal,
-            };
-            using var p = System.Diagnostics.Process.Start(psi);
-            if (p is not null) await p.WaitForExitAsync(ctx.Token).ConfigureAwait(false);
-        }
-        else
+        if (!a.WaitForExit)
         {
             await Task.Run(() => ProcessLauncher.Launch(spec, a.RunAsAdmin)).ConfigureAwait(false);
+            return;
         }
+        var cts = BeginCancellable(ctx.Token); // Esc stops waiting (the script goes on)
+        try { await ProcessLauncher.LaunchAndWaitAsync(spec, a.RunAsAdmin, cts.Token).ConfigureAwait(false); }
+        finally { EndCancellable(cts); }
     }
 
     private async Task HttpRequestAsync(HttpRequestAction a, ExecutionContext ctx)

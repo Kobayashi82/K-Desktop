@@ -26,6 +26,9 @@ cambiar el volumen, esperar, ejecutar otro comando… Ver la [lista completa de 
 
 - Cada acción se puede apagar sin borrarla, y su orden se cambia arrastrando.
 - **Ejecutar** en el editor prueba el comando al momento.
+- Un comando que tarda (espera, macro, script que se espera…) lleva un ▶ en la lista mientras está en marcha, y junto al
+  número de comandos sale cuántos hay en marcha: haz clic para verlos o **detenerlos todos**. **Ejecutar** pasa a
+  **Detener** mientras ese comando sigue en marcha.
 - No puede haber dos comandos con el mismo nombre (tampoco dos eventos, QuickMenus, macros o perfiles de K-Board): si
   escribes uno que ya existe, se queda el de antes.
 - Una acción que abre algo elige si va **como administrador o como usuario normal**.

@@ -45,7 +45,10 @@ public sealed partial class CommandsPage : UserControl, IDisposable
         _menuFilter ??= string.IsNullOrEmpty(Config.Settings.CommandsMenuFilter) ? FilterNone : Config.Settings.CommandsMenuFilter;
         Config.Commands.CollectionChanged += OnCommandsChanged;
         IconProvider.StaticPropertyChanged += OnIconsChanged;
+        _app.Engine.RunningChanged += OnRunningChanged;
+        _runningTimer.Tick += (_, _) => UpdateRunning();
         UpdateCount();
+        UpdateRunning();
         Loaded += (_, _) =>
         {
             // The QuickMenus may have changed on their page meanwhile.
@@ -65,6 +68,8 @@ public sealed partial class CommandsPage : UserControl, IDisposable
         EnsureName(_selected);
         Config.Commands.CollectionChanged -= OnCommandsChanged;
         IconProvider.StaticPropertyChanged -= OnIconsChanged;
+        _app.Engine.RunningChanged -= OnRunningChanged;
+        _runningTimer.Stop();
         if (_selected is not null) _selected.PropertyChanged -= OnSelectedChanged;
         _view.DetachFromSourceCollection();
     }
@@ -183,6 +188,51 @@ public sealed partial class CommandsPage : UserControl, IDisposable
     private void OnCommandsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) => UpdateCount();
 
     private void UpdateCount() => CountText.Text = Config.Commands.Count.ToString(Loc.Instance.Culture);
+
+    // ── commands in progress ─────────────────────────────────────────────
+
+    /// <summary>Runs shorter than this are not shown (almost every command ends at once).</summary>
+    private const int RunningAfterMs = 400;
+
+    private readonly System.Windows.Threading.DispatcherTimer _runningTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
+
+    private void OnRunningChanged() => Dispatcher.BeginInvoke(UpdateRunning);
+
+    /// <summary>The chip next to the count: how many commands have been running for a moment; ticks while any runs.</summary>
+    private void UpdateRunning()
+    {
+        var running = _app.Engine.Running;
+        var shown = LongRunning(running).Count;
+        RunningText.Text = shown.ToString(Loc.Instance.Culture);
+        RunningChip.Visibility = shown > 0 ? Visibility.Visible : Visibility.Collapsed;
+        RunningChip.ToolTip = Loc.T("commands.runningCount", shown);
+        _runningTimer.IsEnabled = running.Count > 0;
+    }
+
+    private static List<CommandEngine.RunningCommand> LongRunning(IEnumerable<CommandEngine.RunningCommand> running) =>
+        [.. running.Where(r => Environment.TickCount64 - r.Started >= RunningAfterMs)];
+
+    /// <summary>The running commands: one goes to it in the list; the last entry stops them all.</summary>
+    private void OnRunningChip(object sender, RoutedEventArgs e)
+    {
+        var running = LongRunning(_app.Engine.Running);
+        if (running.Count == 0) return;
+        var items = new List<Control>();
+        foreach (var run in running)
+        {
+            var cmd = run.Command;
+            items.Add(ListContextMenu.Entry(cmd.Name, SymbolRegular.Play24, () =>
+            {
+                if (Config.Commands.Contains(cmd)) Select(cmd.Id);
+            }));
+        }
+        items.Add(new Separator());
+        items.Add(ListContextMenu.Entry(Loc.T("commands.stopAll"), SymbolRegular.Stop24, () =>
+        {
+            foreach (var run in running) _app.Engine.Stop(run.Command.Id);
+        }));
+        ListContextMenu.Open(RunningChip, [.. items]);
+    }
 
     public void Select(string id)
     {
@@ -412,7 +462,9 @@ public sealed partial class CommandsPage : UserControl, IDisposable
 
     private void OnRunCommand(object sender, RoutedEventArgs e)
     {
-        if (_selected is { } cmd) _ = _app.Engine.RunAsync(cmd, TriggerSource.Manual);
+        if (_selected is not { } cmd) return;
+        if (cmd.IsRunning) _app.Engine.Stop(cmd.Id);
+        else _ = _app.Engine.RunAsync(cmd, TriggerSource.Manual);
     }
 
     // ── list context menu ────────────────────────────────────────────────
@@ -421,7 +473,9 @@ public sealed partial class CommandsPage : UserControl, IDisposable
     {
         if (ListContextMenu.SelectRow(CommandList, e) is not { DataContext: Command cmd } row) return;
         ListContextMenu.Open(row,
-            ListContextMenu.Entry(Loc.T("commands.run"), SymbolRegular.Play24, () => OnRunCommand(this, e)),
+            cmd.IsRunning
+                ? ListContextMenu.Entry(Loc.T("commands.stop"), SymbolRegular.Stop24, () => _app.Engine.Stop(cmd.Id))
+                : ListContextMenu.Entry(Loc.T("commands.run"), SymbolRegular.Play24, () => OnRunCommand(this, e)),
             ListContextMenu.Entry(Loc.T("common.duplicate"), SymbolRegular.Copy24, () => OnDuplicateCommand(this, e)),
             ListContextMenu.Entry(Loc.T("commands.rename"), SymbolRegular.Rename24, () =>
             {

@@ -215,7 +215,7 @@ public sealed class AchievementService : IDisposable
             case OpenUrlAction: stats.Add(Stat.WebOpened); break;
             case RunScriptAction s:
                 stats.Add(Stat.ScriptsRun);
-                stats.Add(s.Shell == ScriptShell.Cmd ? Stat.ScriptsCmd : Stat.ScriptsPowerShell);
+                if (s.Shell != ScriptShell.VBScript) stats.Add(s.Shell == ScriptShell.Cmd ? Stat.ScriptsCmd : Stat.ScriptsPowerShell);
                 break;
             case SendInputAction: stats.Add(Stat.KeysSent); break;
             case VolumeAction: stats.Add(Stat.VolumeChanged); break;
