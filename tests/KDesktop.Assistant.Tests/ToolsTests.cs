@@ -145,6 +145,69 @@ public sealed class ToolsTests : IDisposable
         Assert.Equal("Llamar al fontanero el jueves", Assert.Single(tools.Notes.All).Text);
     }
 
+    [Theory]
+    [InlineData("Compra: leche, huevos y pan", "leche", "Compra: huevos y pan")]
+    [InlineData("Compra: leche, huevos y pan", "el pan", "Compra: leche y huevos")]
+    [InlineData("Lista de la compra\n- leche\n- huevos\n- pan", "huevos", "Lista de la compra\n- leche\n- pan")]
+    [InlineData("1. llamar al banco\n2. pagar el seguro\n3. comprar pilas", "seguro", "1. llamar al banco\n2. comprar pilas")]
+    [InlineData("Shopping: milk, eggs and bread", "eggs", "Shopping: milk and bread")]
+    public void NoteItemsTakeOutOneThing(string note, string remove, string expected)
+    {
+        var list = NoteItems.Parse(note);
+        var at = list.IndexOf(remove);
+        Assert.True(at >= 0);
+        list.Items.RemoveAt(at);
+        Assert.Equal(expected, list.Text);
+    }
+
+    [Fact]
+    public void NoteItemsAddTheSameWay()
+    {
+        var inline = NoteItems.Parse("Compra: leche y huevos");
+        inline.Items.Add("tomates");
+        Assert.Equal("Compra: leche, huevos y tomates", inline.Text);
+
+        var lines = NoteItems.Parse("Tareas:\n• fregar\n• tender");
+        lines.Items.Add("planchar");
+        Assert.Equal("Tareas:\n• fregar\n• tender\n• planchar", lines.Text);
+
+        var single = NoteItems.Parse("Comprar pilas");
+        single.Items.Add("bombillas");
+        Assert.Equal("Comprar pilas, bombillas", single.Text);
+    }
+
+    [Fact]
+    public async Task NotesAreChangedDeletedAndUndone()
+    {
+        var (runner, tools) = Make();
+        using var _ = tools;
+        await runner.RunAsync("save_note", Args("""{"note":"Lista de la compra: leche, huevos y pan"}"""), Lander, "", "rule", default);
+        await runner.RunAsync("save_note", Args("""{"note":"Llamar al fontanero el jueves"}"""), Lander, "", "rule", default);
+        await runner.RunAsync("save_note", Args("""{"note":"Llamar al fontanero por la factura"}"""), Lander, "", "rule", default);
+
+        // «Quita la leche»: the note with milk, without naming it.
+        var removed = await runner.RunAsync("edit_note", Args("""{"remove":["la leche"]}"""), Lander, "quita la leche de la lista", "ai", default);
+        Assert.True(removed.Ran);
+        Assert.Contains(tools.Notes.All, n => n.Text == "Lista de la compra: huevos y pan");
+        var added = await runner.RunAsync("edit_note", Args("""{"note":"lista de la compra","add":"tomates, pilas"}"""), Lander, "", "ai", default);
+        Assert.Contains(tools.Notes.All, n => n.Text == "Lista de la compra: huevos, pan, tomates y pilas");
+        var missing = await runner.RunAsync("edit_note", Args("""{"note":"lista de la compra","remove":["chocolate"]}"""), Lander, "", "ai", default);
+        Assert.True(missing.Result!.Failed);
+
+        // Two notes about the plumber: it asks which and deletes none.
+        var which = await runner.RunAsync("delete_note", Args("""{"note":"fontanero"}"""), Lander, "borra la nota del fontanero", "ai", default);
+        Assert.Contains("which", which.Result!.Text, StringComparison.Ordinal);
+        Assert.Equal(3, tools.Notes.All.Count);
+        var deleted = await runner.RunAsync("delete_note", Args("""{"note":"fontanero factura"}"""), Lander, "", "ai", default);
+        Assert.Equal(2, tools.Notes.All.Count);
+        Assert.DoesNotContain(tools.Notes.All, n => n.Text.Contains("factura", StringComparison.Ordinal));
+
+        Assert.True(await runner.UndoAsync(deleted.Entry.Undo!, default));
+        Assert.Equal(3, tools.Notes.All.Count);
+        Assert.True(await runner.UndoAsync(added.Entry.Undo!, default));
+        Assert.Contains(tools.Notes.All, n => n.Text == "Lista de la compra: huevos y pan");
+    }
+
     /// <summary>🔴 asks every time and «no» or silence do nothing; 🟡 does not ask once it is trusted.</summary>
     [Fact]
     public async Task RiskyToolsAskFirst()

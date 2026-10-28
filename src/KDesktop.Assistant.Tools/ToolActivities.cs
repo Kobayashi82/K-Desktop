@@ -30,6 +30,8 @@ public static class ToolActivities
         ["search_knowledge"] = AssistantActivity.Files,
         ["save_note"] = AssistantActivity.Notes,
         ["find_notes"] = AssistantActivity.Notes,
+        ["edit_note"] = AssistantActivity.Notes,
+        ["delete_note"] = AssistantActivity.Notes,
         ["remember"] = AssistantActivity.Memory,
         ["forget"] = AssistantActivity.Memory,
         ["weather"] = AssistantActivity.Weather,

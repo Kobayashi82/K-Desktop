@@ -36,6 +36,8 @@ public sealed class ToolChooserTests : IDisposable
     [Theory]
     [InlineData("apunta que mañana viene el técnico", "save_note")]
     [InlineData("¿qué tenía que comprar?", "find_notes")]
+    [InlineData("quita la leche de la lista de la compra", "edit_note")]
+    [InlineData("borra la nota del fontanero", "delete_note")]
     [InlineData("pon un temporizador de diez minutos para la pasta", "set_timer")]
     [InlineData("¿cuántos euros son 50 dólares?", "convert")]
     [InlineData("¿va a llover mañana en Madrid?", "weather")]

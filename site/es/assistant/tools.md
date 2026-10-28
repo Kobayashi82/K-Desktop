@@ -21,7 +21,7 @@ Todo lo que hace un asistente sale en *Panel → Asistente → Actividad* (la su
 |---|---|---|
 | **Comandos** | Ejecutar tus comandos · Buscar entre tus comandos · Explicar un comando · Enseñar frases de voz · Lanzar un evento · Parar una cuenta atrás | «pon el modo juego», «¿qué hace el comando de las copias?», «cuando diga la peli abre el comando de películas», «al final no apagues el ordenador» |
 | **Hora, avisos y cuentas** | Hora y fecha · Temporizador · Quitar un temporizador · Programar una orden · Ver lo programado · Quitar algo programado · Avisar cuando pase algo · Dejar de vigilar · Cuentas con fechas · Calculadora | «avísame en media hora», «a las siete vacía la papelera», «avísame cuando termine la descarga», «cuántos días faltan para navidad» |
-| **Notas y memoria** | Apuntar una nota · Buscar en las notas · Recordar algo de ti · Olvidar un recuerdo | «apunta que tengo que comprar leche», «recuerda que mi jefe se llama Luis» |
+| **Notas y memoria** | Apuntar una nota · Buscar en las notas · Cambiar una nota · Borrar una nota · Recordar algo de ti · Olvidar un recuerdo | «apunta que tengo que comprar leche», «recuerda que mi jefe se llama Luis» |
 | **Archivos** | Buscar archivos · Abrir un archivo · Leer un archivo · Borrar un archivo · Mover un archivo · Buscar en tus documentos | «búscame el pdf de la factura de la luz», «abre lo último que descargué» |
 | **Internet** | Abrir una web · Buscar en el navegador · Consultar internet · Leer una página web | «cuánto cuesta una RTX 5080», «resúmeme esta página» |
 | **Pantalla y textos** | Mirar la pantalla · Traducir y corregir textos | «qué error me sale», «tradúceme esto al inglés» |

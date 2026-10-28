@@ -563,7 +563,7 @@ public sealed class TalkMind(ToolRunner tools, ToolChooser chooser, TimeProvider
 
     private static string Short(string text) => text.Length > 160 ? text[..160] + "…" : text;
 
-    private static readonly string[] NoteTools = ["save_note", "find_notes"];
+    private static readonly string[] NoteTools = ["save_note", "find_notes", "edit_note", "delete_note"];
 
     private static readonly string[] ScreenTools = ["look_at_screen", "read_web"];
 

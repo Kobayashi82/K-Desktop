@@ -28,7 +28,9 @@ When an order fits something they remember, they use it: «when I say "the usual
 ![Settings → Notes](../../images/en/notes.png)
 
 «Note that…», «write down…», «make a note to…» saves a note; «what did I write down?» or «read me the shopping list» finds
-them. On the page you can add, edit and delete them. A long answer on the reading sheet can be kept as a note with *Save
+them. They also change them by voice: «take the milk off the shopping list», «add eggs to the list» (a list one per line or
+all in one line, «Shopping: milk, eggs and bread», keeps its shape), «delete the note about the plumber» (if several fit, they
+ask which one; anything can be undone from the activity). On the page you can add, edit and delete them. A long answer on the reading sheet can be kept as a note with *Save
 as a note* (see [Long answers](voice.md#long-answers)).
 
 ## What it knows (your documents)

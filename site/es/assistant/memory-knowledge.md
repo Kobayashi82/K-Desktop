@@ -27,7 +27,10 @@ una orden encaja con algo que recuerdan, lo usan: «cuando diga "lo de siempre",
 
 ![Opciones → Notas](../../images/es/notes.png)
 
-«Apunta que…», «anota…», «apúntame…» guarda una nota; «¿qué tenía apuntado?» o «¿qué tenía que comprar?» las busca. En la
+«Apunta que…», «anota…», «apúntame…» guarda una nota; «¿qué tenía apuntado?» o «¿qué tenía que comprar?» las busca. También las cambian
+hablando: «quita la leche de la lista de la compra», «añade huevos a la lista» (una lista por líneas o en una sola,
+«Compra: leche, huevos y pan», sigue igual), «borra la nota del fontanero» (si encajan varias, preguntan cuál; todo se puede
+deshacer desde la actividad). En la
 página se pueden añadir, editar y borrar. Una respuesta larga de la hoja de lectura se puede guardar como nota con *Guardar
 como nota* (ver [Respuestas largas](voice.md#respuestas-largas)).
 
