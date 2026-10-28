@@ -53,6 +53,15 @@ public interface ICommandBridge
     /// </summary>
     Task<ScheduleDoneMessage?> ScheduleAsync(ScheduleMessage request, CancellationToken cancellationToken) =>
         Task.FromResult<ScheduleDoneMessage?>(null);
+
+    /// <summary>K-Desktop’s «Registro» (B3, <see cref="LogQueryMessage"/>; its id is put by the bridge). Without K-Desktop: null.</summary>
+    Task<LogFoundMessage?> QueryLogAsync(LogQueryMessage request, CancellationToken cancellationToken) => Task.FromResult<LogFoundMessage?>(null);
+
+    /// <summary>How K-Desktop is used (B3). Without K-Desktop: null.</summary>
+    Task<UsageDoneMessage?> UsageAsync(int days, CancellationToken cancellationToken) => Task.FromResult<UsageDoneMessage?>(null);
+
+    /// <summary>Why a command or an event does not work (B3). Without K-Desktop: null.</summary>
+    Task<DiagnosedMessage?> DiagnoseAsync(string what, string? kind, CancellationToken cancellationToken) => Task.FromResult<DiagnosedMessage?>(null);
 }
 
 /// <summary>The command tools (stage 4.4), with the bridge to K-Desktop.</summary>
@@ -85,6 +94,9 @@ public static class CommandTools
         registry.Add(new RunCommandTool(bridge));
         registry.Add(new FindCommandTool(bridge));
         registry.Add(new DescribeCommandTool(bridge));
+        registry.Add(new DiagnoseCommandTool(bridge));
+        registry.Add(new QueryLogTool(bridge));
+        registry.Add(new UsageStatsTool(bridge));
         registry.Add(new AddVoicePhraseTool(bridge));
         registry.Add(new RunEventTool(bridge));
         registry.Add(new StopCountdownTool(bridge));

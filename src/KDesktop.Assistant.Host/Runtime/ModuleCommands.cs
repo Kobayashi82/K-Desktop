@@ -28,6 +28,9 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
     private readonly ConcurrentDictionary<string, TaskCompletionSource<TextDoneMessage?>> _texts = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<PhraseDoneMessage?>> _phrases = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<ScheduleDoneMessage?>> _schedules = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<LogFoundMessage?>> _logs = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<UsageDoneMessage?>> _usages = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<DiagnosedMessage?>> _diagnoses = new(StringComparer.Ordinal);
     private int _next;
 
     public Task<MatchedMessage?> MatchAsync(string text, CancellationToken cancellationToken) =>
@@ -77,6 +80,31 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
     public void OnScheduleDone(ScheduleDoneMessage done)
     {
         if (_schedules.TryRemove(done.Id, out var waiting)) waiting.TrySetResult(done);
+    }
+
+    /// <summary>The «Registro», the statistics and the checks of a command or event (B3): read only, quick.</summary>
+    public Task<LogFoundMessage?> QueryLogAsync(LogQueryMessage request, CancellationToken cancellationToken) =>
+        AskAsync(_logs, id => request with { Id = id }, MatchWait, cancellationToken);
+
+    public Task<UsageDoneMessage?> UsageAsync(int days, CancellationToken cancellationToken) =>
+        AskAsync(_usages, id => new UsageMessage(id, days), MatchWait, cancellationToken);
+
+    public Task<DiagnosedMessage?> DiagnoseAsync(string what, string? kind, CancellationToken cancellationToken) =>
+        AskAsync(_diagnoses, id => new DiagnoseMessage(id, what, kind), MatchWait, cancellationToken);
+
+    public void OnLogFound(LogFoundMessage found)
+    {
+        if (_logs.TryRemove(found.Id, out var waiting)) waiting.TrySetResult(found);
+    }
+
+    public void OnUsageDone(UsageDoneMessage done)
+    {
+        if (_usages.TryRemove(done.Id, out var waiting)) waiting.TrySetResult(done);
+    }
+
+    public void OnDiagnosed(DiagnosedMessage diagnosed)
+    {
+        if (_diagnoses.TryRemove(diagnosed.Id, out var waiting)) waiting.TrySetResult(diagnosed);
     }
 
     /// <summary>Taking or putting a text (transform_text): Ctrl+C or Ctrl+V and the clipboard, quick.</summary>

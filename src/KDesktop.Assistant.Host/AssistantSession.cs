@@ -218,6 +218,15 @@ internal sealed class AssistantSession : IDisposable
                     case ScheduleDoneMessage scheduleDone when Commands is { } commands:
                         commands.OnScheduleDone(scheduleDone);
                         return;
+                    case LogFoundMessage logFound when Commands is { } commands:
+                        commands.OnLogFound(logFound);
+                        return;
+                    case UsageDoneMessage usageDone when Commands is { } commands:
+                        commands.OnUsageDone(usageDone);
+                        return;
+                    case DiagnosedMessage diagnosed when Commands is { } commands:
+                        commands.OnDiagnosed(diagnosed);
+                        return;
                     case HeardMessage heard when Talk is { } talk:
                         talk.OnHeard(heard);
                         return;

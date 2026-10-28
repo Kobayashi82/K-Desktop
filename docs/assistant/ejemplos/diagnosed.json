@@ -1,0 +1,35 @@
+{
+  "t": "diagnosed",
+  "id": "c-32",
+  "found": true,
+  "kind": "event",
+  "name": "Buenos días",
+  "facts": [
+    "When: Every day at 08:00.",
+    "It last ran by itself on 2026-10-27 08:00.",
+    "It runs: Abrir correo."
+  ],
+  "problems": [
+    "Its condition «Hay una red conectada: Casa» is not met right now, so it would not run now."
+  ],
+  "runs": [
+    {
+      "time": "2026-10-27 08:00:01",
+      "name": "Abrir correo",
+      "source": "event",
+      "outcome": "ok",
+      "detail": "Evento «Buenos días»",
+      "ms": 840,
+      "depth": 0
+    }
+  ],
+  "skips": [
+    {
+      "time": "2026-10-28 08:00:00",
+      "event": "Buenos días",
+      "reason": "missed",
+      "detail": "2026-10-28 08:00",
+      "times": 1
+    }
+  ]
+}

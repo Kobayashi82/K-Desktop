@@ -1,0 +1,27 @@
+{
+  "t": "logFound",
+  "id": "c-30",
+  "runs": [
+    {
+      "time": "2026-10-28 08:00:02",
+      "name": "Copia de fotos",
+      "source": "event",
+      "outcome": "error",
+      "detail": "Evento «Copias de la mañana»",
+      "message": "No se encuentra la carpeta D:Fotos",
+      "ms": 120,
+      "depth": 0
+    }
+  ],
+  "skips": [
+    {
+      "time": "2026-10-28 07:30:00",
+      "event": "Copias de la mañana",
+      "reason": "condition",
+      "detail": "Hay una red conectada: Casa",
+      "times": 3
+    }
+  ],
+  "total": 1,
+  "oldest": "2026-10-20 18:12:44"
+}

@@ -1,0 +1,37 @@
+{
+  "t": "usageDone",
+  "id": "c-31",
+  "since": "2026-10-01",
+  "runs": 1834,
+  "days": 7,
+  "top": [
+    {
+      "name": "Modo juego",
+      "count": 212,
+      "failed": 0
+    }
+  ],
+  "recent": [
+    {
+      "name": "Modo juego",
+      "count": 14,
+      "failed": 1
+    }
+  ],
+  "sources": [
+    {
+      "name": "hotkey",
+      "count": 1200,
+      "failed": 0
+    },
+    {
+      "name": "voice",
+      "count": 310,
+      "failed": 0
+    }
+  ],
+  "counters": {
+    "voice.orders": 310,
+    "events.fired": 95
+  }
+}

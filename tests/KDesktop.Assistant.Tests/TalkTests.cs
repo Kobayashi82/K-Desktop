@@ -109,7 +109,8 @@ public sealed class TalkTests : IDisposable
         // An action starts with the assistant's «ok».
         await talk.HandleAsync(Heard("avísame en diez minutos para sacar la pizza"));
         Assert.Empty(_model.Requests);
-        Assert.StartsWith("Recibido. Te aviso a las ", LastAnswer, StringComparison.Ordinal);
+        // Near midnight it is «mañana a las 0:05».
+        Assert.Matches("^Recibido\\. Te aviso (mañana )?a las ", LastAnswer);
         Assert.EndsWith(": sacar la pizza.", LastAnswer, StringComparison.Ordinal);
         Assert.Equal("sacar la pizza", Assert.Single(tools.Timers.Pending).Text);
     }
@@ -188,7 +189,8 @@ public sealed class TalkTests : IDisposable
         Assert.Equal("el té", Assert.Single(tools.Timers.Pending).Text);
         Assert.Equal("ai", Assert.Single(_log).Entry.Route);
         // An action: what the tool says it did, not what the model makes of it.
-        Assert.StartsWith("Recibido. Te aviso a las ", LastAnswer, StringComparison.Ordinal);
+        // Near midnight it is «mañana a las 0:05».
+        Assert.Matches("^Recibido\\. Te aviso (mañana )?a las ", LastAnswer);
         Assert.EndsWith(": el té.", LastAnswer, StringComparison.Ordinal);
 
         // A question: the model's words.

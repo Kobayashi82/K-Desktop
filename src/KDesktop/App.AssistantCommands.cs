@@ -66,6 +66,32 @@ public partial class App
             case DescribeMessage describe:
                 supervisor.Send(AssistantCommands.Describe(Config, describe));
                 return true;
+            // B3: the «Registro», the statistics and why a command or an event does not work (read only).
+            case LogQueryMessage query:
+                supervisor.Send(AssistantLog.Query(Engine.History.Entries, Events.Skips, query));
+                return true;
+            case UsageMessage usage:
+                supervisor.Send(AssistantLog.Usage(Achievements.Snapshot(), Engine.History.Entries, Config, usage, DateTime.Now));
+                return true;
+            case DiagnoseMessage diagnose:
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        supervisor.Send(await AssistantLog.DiagnoseAsync(Config, Engine.History.Entries, Events.Skips, diagnose, Engine.IsPaused,
+                            async rule =>
+                            {
+                                var (allowed, reason) = await Core.Engine.Conditions.AllowsAsync(rule.Conditions, Core.Input.ForegroundWindow.Capture()).ConfigureAwait(false);
+                                return (allowed, reason);
+                            }).ConfigureAwait(false));
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error("Asistente: no se ha podido revisar el comando", ex);
+                        supervisor.Send(new DiagnosedMessage(diagnose.Id, false, string.Empty, string.Empty, [], [], [], []));
+                    }
+                });
+                return true;
             case PhraseMessage phrase:
                 // The voice phrases are shown in the command editor: changed on its thread (the config saves itself).
                 _ = Dispatcher.InvokeAsync(() =>

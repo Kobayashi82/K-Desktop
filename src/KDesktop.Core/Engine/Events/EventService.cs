@@ -215,32 +215,43 @@ public sealed class EventService : IDisposable
         if (_engine.IsPaused)
         {
             Log.Info($"En pausa: no se ejecuta el evento «{rule.Name}»");
+            Skip(rule, SkipReason.Paused);
             return;
         }
         var (allowed, reason) = await Conditions.AllowsAsync(rule.Conditions, ForegroundWindow.Capture()).ConfigureAwait(false);
         if (!allowed)
         {
             Log.Info($"Evento «{rule.Name}»: no se ejecuta (no se cumple «{reason}»)");
+            Skip(rule, SkipReason.Condition, reason);
             return;
         }
         switch (_guard.TryFire(rule.Id, rule.CooldownSeconds, DateTime.UtcNow))
         {
             case EventGuard.Verdict.Cooldown:
                 Log.Info($"Evento «{rule.Name}»: no se repite antes de {rule.CooldownSeconds} s");
+                Skip(rule, SkipReason.Cooldown, rule.CooldownSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 return;
             case EventGuard.Verdict.Suspended:
                 Log.Info($"Evento «{rule.Name}»: detenido un rato por dispararse demasiadas veces");
+                Skip(rule, SkipReason.Suspended);
                 return;
             case EventGuard.Verdict.Loop:
                 var minutes = (int)EventGuard.Pause.TotalMinutes;
                 Log.Warn($"Evento «{rule.Name}»: más de {EventGuard.MaxPerMinute} veces en un minuto; se detiene {minutes} minutos");
                 _ui.ShowOsd(Loc.T("event.loopStopped", rule.Name, minutes), OsdKind.Warning, TimeSpan.FromSeconds(5), OsdLook.Of("CalendarClock24"));
+                Skip(rule, SkipReason.Loop);
                 return;
         }
         if (rule.HasEnd)
             lock (_lock) _started.Add(rule.Id);
         await _engine.RunEventAsync(rule, false, variables: variables).ConfigureAwait(false);
     }
+
+    /// <summary>The events that did not run when their moment came, and why (oldest first).</summary>
+    public IReadOnlyList<EventSkip> Skips => _state.Skips;
+
+    private void Skip(EventRule rule, SkipReason reason, string? detail = null) =>
+        _state.Skipped(new EventSkip(DateTime.UtcNow, rule.Id, rule.Name, reason, detail));
 
     /// <summary>Remembers when an event fired (shown in the list, and «a una hora» doesn't repeat a time already done).</summary>
     private void OnEventFired(EventRule rule, bool end, TriggerSource source)
@@ -404,10 +415,14 @@ public sealed class EventService : IDisposable
                 var rule = entry.Rule;
                 var late = now - due > LateLimit;
                 if (rule.Trigger is SunTrigger && late)
+                {
                     Log.Info($"Evento «{rule.Name}»: se pasó su hora ({due.ToLocalTime():HH:mm}) con el PC dormido o el reloj cambiado");
+                    Skip(rule, SkipReason.Missed, due.ToLocalTime().ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture));
+                }
                 else if (rule.Trigger is TimeTrigger t && late && !t.RunIfMissed)
                 {
                     Log.Info($"Evento «{rule.Name}»: se pasó la hora ({due.ToLocalTime():HH:mm}) con el PC dormido o el reloj cambiado");
+                    Skip(rule, SkipReason.Missed, due.ToLocalTime().ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture));
                     if (rule.Once && t.HasDate) missed.Add(rule);
                 }
                 else

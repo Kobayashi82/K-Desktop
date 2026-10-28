@@ -330,7 +330,7 @@ public partial class AssistantToolsSection : UserControl
 
     private static readonly Dictionary<string, string> SubjectOfTool = new(StringComparer.Ordinal)
     {
-        ["run_command"] = "commands", ["find_command"] = "commands", ["describe_command"] = "commands", ["add_voice_phrase"] = "commands", ["run_event"] = "commands", ["stop_countdown"] = "commands",
+        ["run_command"] = "commands", ["find_command"] = "commands", ["describe_command"] = "commands", ["diagnose_command"] = "commands", ["query_log"] = "commands", ["usage_stats"] = "commands", ["add_voice_phrase"] = "commands", ["run_event"] = "commands", ["stop_countdown"] = "commands",
         ["get_time"] = "time", ["set_timer"] = "time", ["cancel_timer"] = "time", ["schedule"] = "time", ["list_scheduled"] = "time", ["cancel_scheduled"] = "time", ["notify_when"] = "time", ["stop_watching"] = "time", ["date_math"] = "time", ["calculate"] = "time",
         ["save_note"] = "notes", ["find_notes"] = "notes", ["edit_note"] = "notes", ["delete_note"] = "notes", ["remember"] = "notes", ["forget"] = "notes",
         ["find_files"] = "files", ["open_file"] = "files", ["read_file"] = "files", ["delete_file"] = "files", ["move_file"] = "files", ["search_knowledge"] = "files",

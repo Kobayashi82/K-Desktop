@@ -154,6 +154,13 @@ public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimePro
 
         public Task<DescribedMessage?> DescribeAsync(string command, CancellationToken cancellationToken) => real.DescribeAsync(command, cancellationToken);
 
+        // Reading the «Registro», the statistics and the checks changes nothing: for real.
+        public Task<LogFoundMessage?> QueryLogAsync(LogQueryMessage request, CancellationToken cancellationToken) => real.QueryLogAsync(request, cancellationToken);
+
+        public Task<UsageDoneMessage?> UsageAsync(int days, CancellationToken cancellationToken) => real.UsageAsync(days, cancellationToken);
+
+        public Task<DiagnosedMessage?> DiagnoseAsync(string what, string? kind, CancellationToken cancellationToken) => real.DiagnoseAsync(what, kind, cancellationToken);
+
         public Task<EndMessage?> RunAsync(string command, string? assistant, CancellationToken cancellationToken)
         {
             lock (_names) return Pretend(_names.GetValueOrDefault(command, command));

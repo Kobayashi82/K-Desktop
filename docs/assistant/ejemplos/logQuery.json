@@ -1,0 +1,9 @@
+{
+  "t": "logQuery",
+  "id": "c-30",
+  "since": "2026-10-28",
+  "until": "2026-10-28",
+  "name": "copias",
+  "problems": true,
+  "max": 30
+}

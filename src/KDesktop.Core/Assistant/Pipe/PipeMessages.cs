@@ -923,6 +923,85 @@ public sealed record ScheduleDoneMessage(string Id, bool Ok, IReadOnlyList<Sched
 /// <param name="Repeat">Null when it runs once; otherwise as in <see cref="ScheduleMessage.Repeat"/>.</param>
 public sealed record ScheduledEntry(string Id, string Name, string When, string Order, string? Assistant = null, string? Repeat = null);
 
+/// <summary>
+/// K-Desktop’s «Registro» for the assistants (B3, tool <c>query_log</c>): the runs that fit, newest first, and the times
+/// an event did not run and why. Answered with <see cref="LogFoundMessage"/>.
+/// </summary>
+/// <param name="Since">Local <c>yyyy-MM-dd</c> or <c>yyyy-MM-dd HH:mm</c>; null: from the oldest.</param>
+/// <param name="Until">Like <paramref name="Since"/> (a day alone is the whole day); null: until now.</param>
+/// <param name="Name">Words of the command or event (or of the origin: what the voice heard…); null: any.</param>
+/// <param name="Source">An origin as in the statistics (<c>hotkey</c>, <c>voice</c>, <c>event</c>, <c>assistant</c>…); null: any.</param>
+/// <param name="Problems">Only what failed, was cancelled or not understood (and the events that did not run).</param>
+public sealed record LogQueryMessage(string Id, string? Since = null, string? Until = null, string? Name = null, string? Source = null,
+    bool Problems = false, int Max = 30) : PipeMessage
+{
+    public override string Type => "logQuery";
+}
+
+/// <summary>One run of the «Registro».</summary>
+/// <param name="Time">Local, <c>yyyy-MM-dd HH:mm:ss</c>.</param>
+/// <param name="Outcome"><c>ok</c>, <c>error</c>, <c>cancelled</c>, <c>stopped</c> or <c>notUnderstood</c>.</param>
+/// <param name="Detail">More about where it came from (the event, what the voice heard…).</param>
+/// <param name="Message">Why it failed or stopped.</param>
+public sealed record LoggedRun(string Time, string Name, string Source, string Outcome, string? Detail = null, string? Message = null, int Ms = 0, int Depth = 0);
+
+/// <summary>An event that did not run when its moment came.</summary>
+/// <param name="Time">Local, <c>yyyy-MM-dd HH:mm:ss</c> (the last time, with <paramref name="Times"/>).</param>
+/// <param name="Reason"><c>paused</c>, <c>condition</c> (its «Solo si»: <paramref name="Detail"/>), <c>cooldown</c>, <c>suspended</c>, <c>loop</c> or <c>missed</c> (its time went by with the PC asleep or off: <paramref name="Detail"/>).</param>
+public sealed record LoggedSkip(string Time, string Event, string Reason, string? Detail = null, int Times = 1);
+
+/// <param name="Total">How many runs fit (more than those sent when over <c>max</c>).</param>
+/// <param name="Oldest">The oldest run K-Desktop keeps (it keeps the last 500): nothing before is known.</param>
+public sealed record LogFoundMessage(string Id, IReadOnlyList<LoggedRun> Runs, IReadOnlyList<LoggedSkip> Skips, int Total = 0, string? Oldest = null) : PipeMessage
+{
+    public override string Type => "logFound";
+}
+
+/// <summary>How K-Desktop is used (B3, tool <c>usage_stats</c>). Answered with <see cref="UsageDoneMessage"/>.</summary>
+/// <param name="Days">For what was used lately (from the «Registro»).</param>
+public sealed record UsageMessage(string Id, int Days = 7) : PipeMessage
+{
+    public override string Type => "usage";
+}
+
+/// <param name="Failed">Of those, the ones that did not go well (only for <c>recent</c>).</param>
+public sealed record UsageCount(string Name, long Count, long Failed = 0);
+
+/// <param name="Since">Local <c>yyyy-MM-dd</c>: when K-Desktop 5 was first used (the counts start there).</param>
+/// <param name="Runs">Commands run since then.</param>
+/// <param name="Top">The commands run the most since then.</param>
+/// <param name="Recent">The ones run the most in the last <c>days</c> (from the «Registro»).</param>
+/// <param name="Sources">Runs by origin since then (<c>hotkey</c>, <c>voice</c>…).</param>
+/// <param name="Counters">Other counts since then (<c>voice.orders</c>, <c>events.fired</c>, <c>menus.opened</c>…).</param>
+public sealed record UsageDoneMessage(string Id, string Since, long Runs, int Days, IReadOnlyList<UsageCount> Top, IReadOnlyList<UsageCount> Recent,
+    IReadOnlyList<UsageCount> Sources, IReadOnlyDictionary<string, long> Counters) : PipeMessage
+{
+    public override string Type => "usageDone";
+}
+
+/// <summary>
+/// Why a command or an event does not work (B3, tool <c>diagnose_command</c>): what it does, its last runs and fails, the
+/// times it did not run, and the checks (disabled, a program or folder that is not there, its «Solo si» now…). Nothing
+/// runs. Answered with <see cref="DiagnosedMessage"/>.
+/// </summary>
+/// <param name="What">Its name or words for it.</param>
+/// <param name="Kind"><c>command</c>, <c>event</c> or null (whichever fits best).</param>
+public sealed record DiagnoseMessage(string Id, string What, string? Kind = null) : PipeMessage
+{
+    public override string Type => "diagnose";
+}
+
+/// <param name="Kind"><c>command</c> or <c>event</c> (empty when not found).</param>
+/// <param name="Facts">What it is and does, in English for the model.</param>
+/// <param name="Problems">What is wrong with it (empty: nothing found), in English.</param>
+/// <param name="Runs">Its last runs, newest first.</param>
+/// <param name="Skips">Event: the last times it did not run.</param>
+public sealed record DiagnosedMessage(string Id, bool Found, string Kind, string Name, IReadOnlyList<string> Facts, IReadOnlyList<string> Problems,
+    IReadOnlyList<LoggedRun> Runs, IReadOnlyList<LoggedSkip> Skips) : PipeMessage
+{
+    public override string Type => "diagnosed";
+}
+
 /// <summary>Runs the commands of one of K-Desktop's events, found by its name. Answered with <see cref="EndMessage"/>.</summary>
 /// <param name="Shared">As in <see cref="RunMessage.Shared"/>.</param>
 public sealed record RunEventMessage(string Assistant, string Run, string Event, string? Scheduled = null, string? Shared = null) : PipeMessage
@@ -1139,6 +1218,12 @@ public static class PipeJson
         ["runEvent"] = typeof(RunEventMessage),
         ["schedule"] = typeof(ScheduleMessage),
         ["scheduleDone"] = typeof(ScheduleDoneMessage),
+        ["logQuery"] = typeof(LogQueryMessage),
+        ["logFound"] = typeof(LogFoundMessage),
+        ["usage"] = typeof(UsageMessage),
+        ["usageDone"] = typeof(UsageDoneMessage),
+        ["diagnose"] = typeof(DiagnoseMessage),
+        ["diagnosed"] = typeof(DiagnosedMessage),
         ["act"] = typeof(ActMessage),
         ["text"] = typeof(TextMessage),
         ["textDone"] = typeof(TextDoneMessage),

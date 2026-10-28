@@ -66,7 +66,13 @@ public sealed partial class CommandEngine
     {
         if (string.IsNullOrWhiteSpace(a.Path)) return Task.CompletedTask;
         var spec = new LaunchSpec(TextVariables.Expand(a.Path), TextVariables.Expand(a.Arguments), a.WorkingDirectory, a.WindowMode, a.Priority, a.TopMost);
-        return Task.Run(() => ProcessLauncher.Launch(spec, a.RunAsAdmin));
+        return Task.Run(() => Launched(ProcessLauncher.Launch(spec, a.RunAsAdmin), spec.FileName));
+    }
+
+    /// <summary>It could not be opened: the action fails (the «Registro» says why, and «¿qué falló?» finds it).</summary>
+    private static void Launched(bool ok, string what)
+    {
+        if (!ok) throw new InvalidOperationException(Localization.Loc.T("run.launchFailed", what.Trim().Trim('"')));
     }
 
     private static Task OpenFolderAsync(OpenFolderAction a) => Task.Run(() =>
@@ -79,11 +85,11 @@ public sealed partial class CommandEngine
         var path = Environment.ExpandEnvironmentVariables(TextVariables.Expand(a.Path).Trim().Trim('"'));
         if (path.Length == 0) return;
         if (Directory.Exists(path) || path.StartsWith(@"\\", StringComparison.Ordinal) || path.StartsWith("shell:", StringComparison.OrdinalIgnoreCase))
-            ProcessLauncher.Launch(new LaunchSpec("explorer.exe", $"\"{path}\""), asAdmin: false);
+            Launched(ProcessLauncher.Launch(new LaunchSpec("explorer.exe", $"\"{path}\""), asAdmin: false), path);
         else if (File.Exists(path))
-            ProcessLauncher.Launch(new LaunchSpec(path), asAdmin: false);
+            Launched(ProcessLauncher.Launch(new LaunchSpec(path), asAdmin: false), path);
         else
-            Log.Warn($"La carpeta no existe: {path}");
+            throw new InvalidOperationException(Localization.Loc.T("run.folderMissing", path));
     });
 
     private static Task OpenUrlAsync(OpenUrlAction a) => Task.Run(() =>
@@ -104,11 +110,11 @@ public sealed partial class CommandEngine
             if (a.Incognito) args.Add(browser.IncognitoArg);
             else if (a.NewWindow) args.Add(browser.NewWindowArg);
             args.Add($"\"{url}\"");
-            ProcessLauncher.Launch(new LaunchSpec(exe!, string.Join(' ', args)), asAdmin: false);
+            Launched(ProcessLauncher.Launch(new LaunchSpec(exe!, string.Join(' ', args)), asAdmin: false), browser.Name);
         }
         else
         {
-            ProcessLauncher.Launch(new LaunchSpec(url), asAdmin: false);
+            Launched(ProcessLauncher.Launch(new LaunchSpec(url), asAdmin: false), url);
         }
     });
 

@@ -19,7 +19,7 @@ Todo lo que hace un asistente sale en *Panel → Asistente → Actividad* (la su
 
 | Tema | Herramientas | Por ejemplo |
 |---|---|---|
-| **Comandos** | Ejecutar tus comandos · Buscar entre tus comandos · Explicar un comando · Enseñar frases de voz · Lanzar un evento · Parar una cuenta atrás | «pon el modo juego», «¿qué hace el comando de las copias?», «cuando diga la peli abre el comando de películas», «al final no apagues el ordenador» |
+| **Comandos** | Ejecutar tus comandos · Buscar entre tus comandos · Explicar un comando · Revisar un comando o evento · Mirar el registro · Ver tus estadísticas · Enseñar frases de voz · Lanzar un evento · Parar una cuenta atrás | «pon el modo juego», «¿qué hace el comando de las copias?», «¿por qué no saltó el evento de las ocho?», «¿qué falló ayer?», «¿qué comando uso más?», «cuando diga la peli abre el comando de películas», «al final no apagues el ordenador» |
 | **Hora, avisos y cuentas** | Hora y fecha · Temporizador · Quitar un temporizador · Programar una orden · Ver lo pendiente · Quitar algo programado · Avisar cuando pase algo · Dejar de vigilar · Cuentas con fechas · Calculadora | «avísame en media hora», «a las siete vacía la papelera», «avísame cuando termine la descarga», «cuántos días faltan para navidad» |
 | **Notas y memoria** | Apuntar una nota · Buscar en las notas · Cambiar una nota · Borrar una nota · Recordar algo de ti · Olvidar un recuerdo | «apunta que tengo que comprar leche», «recuerda que mi jefe se llama Luis» |
 | **Archivos** | Buscar archivos · Abrir un archivo · Leer un archivo · Borrar un archivo · Mover un archivo · Buscar en tus documentos | «búscame el pdf de la factura de la luz», «abre lo último que descargué» |
@@ -50,6 +50,11 @@ Algunos detalles:
 - **El tiempo** usa Open-Meteo y las **monedas**, los tipos del Banco Central Europeo (sin cuenta). Sin ciudad, usa
   *Opciones → Asistente → General → Dónde estás*, o la ubicación de Windows si la permites.
 - **Borrar un archivo** lo manda a la papelera; esta y **Mover un archivo** preguntan siempre antes (mover se puede deshacer).
+- **Revisar un comando o evento** dice por qué no funciona o no saltó sin ejecutar nada: si está desactivado, si falta el
+  programa o la carpeta que abre, si llama a un comando que ya no existe, si su «Solo si» se cumple ahora, sus últimas
+  ejecuciones y las veces que no saltó (K-Desktop apunta el motivo: «Solo si» que no se cumplía, en pausa, hora pasada con
+  el PC dormido…). **Mirar el registro** contesta «¿qué falló ayer?» o «¿se ejecutó el evento de las ocho?», y **Ver tus
+  estadísticas**, «¿qué comando uso más?».
 
 ## Tus herramientas (JSON)
 

@@ -18,7 +18,7 @@ Everything an assistant does shows in *Panel → Assistant → Activity* (its ow
 
 | Subject | Tools | For example |
 |---|---|---|
-| **Commands** | Run your commands · Find your commands · Explain a command · Teach voice phrases · Run an event · Stop a countdown | «turn on game mode», «what does the backup command do?», «when I say telly run my TV command», «don't shut down the computer after all» |
+| **Commands** | Run your commands · Find your commands · Explain a command · Check a command or event · Look at the log · See your statistics · Teach voice phrases · Run an event · Stop a countdown | «turn on game mode», «what does the backup command do?», «why didn't the eight o'clock event run?», «what failed yesterday?», «which command do I use the most?», «when I say telly run my TV command», «don't shut down the computer after all» |
 | **Time, reminders and maths** | Time and date · Timer · Cancel a timer · Program an order · See what is pending · Remove something programmed · Tell me when something happens · Stop watching · Date maths · Calculator | «remind me in half an hour», «at seven empty the recycle bin», «tell me when the download finishes», «how many days until christmas» |
 | **Notes and memory** | Save a note · Find notes · Change a note · Delete a note · Remember something about you · Forget a memory | «note that I have to buy milk», «remember that my boss is called Luis» |
 | **Files** | Find files · Open a file · Read a file · Delete a file · Move a file · Search your documents | «find the electricity bill pdf», «open the last thing I downloaded» |
@@ -51,6 +51,11 @@ Some details:
 - **Weather** uses Open-Meteo and **currencies** the European Central Bank's rates (no account needed). Without a city it
   uses *Settings → Assistant → General → Where you are*, or Windows' location if you allow it.
 - **Delete a file** sends it to the recycle bin; it and **Move a file** always ask first (a move can be undone).
+- **Check a command or event** tells why it does not work or did not run, without running anything: whether it is turned
+  off, whether the program or folder it opens is missing, whether it calls a command that no longer exists, whether its
+  «Only if» is met now, its last runs and the times it did not run (K-Desktop notes the reason: an «Only if» not met,
+  paused, a time missed with the PC asleep…). **Look at the log** answers «what failed yesterday?» or «did the eight o'clock
+  event run?», and **See your statistics**, «which command do I use the most?».
 
 ## Your own tools (JSON)
 

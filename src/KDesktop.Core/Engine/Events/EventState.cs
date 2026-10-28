@@ -1,5 +1,13 @@
 namespace KDesktop.Core.Engine.Events;
 
+/// <summary>Why an event did not run when its moment came (B3, 5.0.345): what the assistants answer «¿por qué no saltó?» with.</summary>
+public enum SkipReason { Paused, Condition, Cooldown, Suspended, Loop, Missed }
+
+/// <param name="Time">When (UTC), the last time.</param>
+/// <param name="Times">How many times in a row for the same reason (an event every minute does not fill the list).</param>
+/// <param name="Detail">The condition not met («Horario: 9:00–14:00»), the time missed…</param>
+public sealed record EventSkip(DateTime Time, string Id, string Name, SkipReason Reason, string? Detail = null, int Times = 1);
+
 /// <summary>
 /// What the events remember between runs (events-state.json, not config.json, so a firing doesn't rewrite the
 /// configuration): when each one last fired and until when K-Desktop was watching (the times missed while it was
@@ -11,7 +19,11 @@ public sealed class EventState : IDisposable
     {
         public DateTime? LastSeen { get; set; }
         public Dictionary<string, DateTime> LastFired { get; set; } = new(StringComparer.Ordinal);
+        public List<EventSkip> Skips { get; set; } = [];
     }
+
+    /// <summary>Skips kept (the newest).</summary>
+    public const int MaxSkips = 200;
 
     private readonly Lock _lock = new();
     private readonly Timer _saveTimer;
@@ -48,6 +60,30 @@ public sealed class EventState : IDisposable
     public void SetFired(string id, DateTime utc)
     {
         lock (_lock) _data.LastFired[id] = utc;
+        SaveSoon();
+    }
+
+    /// <summary>The times events did not run, oldest first.</summary>
+    public IReadOnlyList<EventSkip> Skips
+    {
+        get { lock (_lock) return [.. _data.Skips]; }
+    }
+
+    /// <summary>An event did not run when its moment came.</summary>
+    public void Skipped(EventSkip skip)
+    {
+        lock (_lock)
+        {
+            // The same again: one entry, counted, at its last time.
+            var same = _data.Skips.FindIndex(s => s.Id == skip.Id && s.Reason == skip.Reason && s.Detail == skip.Detail);
+            if (same >= 0)
+            {
+                skip = skip with { Times = _data.Skips[same].Times + 1 };
+                _data.Skips.RemoveAt(same);
+            }
+            _data.Skips.Add(skip);
+            if (_data.Skips.Count > MaxSkips) _data.Skips.RemoveRange(0, _data.Skips.Count - MaxSkips);
+        }
         SaveSoon();
     }
 
