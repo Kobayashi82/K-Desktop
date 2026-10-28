@@ -134,7 +134,7 @@ internal sealed class ModuleTalk : ITalkOutput
             return;
         }
         var key = listening.Assistant ?? string.Empty;
-        // You are talking to it: its voice steps back meanwhile, and its model and its voice get ready (stage 5.7).
+        // You are talking to it: its voice steps back meanwhile and gets ready, and its model stays if it is in memory (stage 5.7).
         Voice.Listening(key, listening.Active);
         if (listening.Active)
         {

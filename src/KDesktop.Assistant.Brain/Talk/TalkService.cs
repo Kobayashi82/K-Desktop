@@ -7,6 +7,7 @@ using KDesktop.Assistant.Tools.Builtin;
 using KDesktop.Assistant.Tools.Declarative;
 using KDesktop.Core;
 using KDesktop.Core.Assistant;
+using KDesktop.Core.Assistant.Brain;
 using KDesktop.Core.Assistant.Packages;
 using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Localization;
@@ -389,9 +390,10 @@ public sealed class TalkService
     private readonly ConcurrentDictionary<string, DateTimeOffset> _prepared = new(StringComparer.Ordinal);
 
     /// <summary>
-    /// The user started talking to <paramref name="assistant"/> (stage 5.7): its model loads while the order is said, so
-    /// an answer of the AI does not wait for it afterwards. Never an error; at most once every <see cref="PrepareEvery"/>
-    /// per model.
+    /// The user started talking to <paramref name="assistant"/> (stage 5.7): a model already in memory stays there while
+    /// the order is said (it does not run out of time right then). One that is not is not loaded: the order may be one of
+    /// the user's commands («para la música»), and it loads only when the AI is needed. Never an error; at most once every
+    /// <see cref="PrepareEvery"/> per model.
     /// </summary>
     public void Prepare(string? assistant)
     {
@@ -402,12 +404,15 @@ public sealed class TalkService
         _prepared[model] = now;
         _ = Task.Run(async () =>
         {
-            var watch = System.Diagnostics.Stopwatch.StartNew();
             try
             {
                 using var limit = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                if (!(await client.ListLoadedAsync(limit.Token).ConfigureAwait(false)).Any(m => ModelRefs.Same(m, model)))
+                {
+                    _prepared.TryRemove(model, out _);
+                    return;
+                }
                 await client.PreloadAsync(model, limit.Token).ConfigureAwait(false);
-                Log.Info($"Asistente: modelo «{model}» listo mientras le hablan ({watch.ElapsedMilliseconds} ms)");
             }
             catch (Exception ex)
             {
