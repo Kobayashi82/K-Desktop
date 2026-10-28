@@ -14,8 +14,9 @@ namespace KDesktop.Views;
 /// Clickable picture of a full keyboard (Spanish ISO layout, navigation block and numeric pad) and a mouse.
 /// Keys remapped in the current modifier layer are highlighted and show what they do; keys remapped only in other
 /// layers get a small dot. Clicking a key raises <see cref="KeyClicked"/> with its name ("J", "LCtrl", "Mouse 4"…).
-/// <see cref="Compact"/> puts the numeric pad and the mouse under the keyboard, on the right (half as wide: bigger keys
-/// in a narrow window); <see cref="FreeArea"/> is the room left free in either layout (the page puts the layers there).
+/// <see cref="Compact"/> puts the navigation block, the numeric pad and the mouse under the keyboard (about half as wide:
+/// bigger keys in a narrow window). Ctrl, Alt, Shift and Win carry a corner that turns their layer on or off
+/// (<see cref="LayerToggled"/>), golden while it is on.
 /// </summary>
 public sealed class KBoardSurface : Viewbox
 {
@@ -47,6 +48,11 @@ public sealed class KBoardSurface : Viewbox
 
     public event Action<string>? KeyClicked;
 
+    /// <summary>The corner of a modifier key was clicked: its layer on or off.</summary>
+    public event Action<Modifiers>? LayerToggled;
+
+    private readonly List<(Modifiers Mod, Path Corner)> _corners = [];
+
     public KBoardSurface()
     {
         Stretch = Stretch.Uniform;
@@ -64,7 +70,7 @@ public sealed class KBoardSurface : Viewbox
     public Modifiers Layer
     {
         get => _layer;
-        set { _layer = value; Refresh(); }
+        set { _layer = value; Refresh(); PaintCorners(); }
     }
 
     /// <summary>Name of the selected key (without modifiers).</summary>
@@ -95,18 +101,14 @@ public sealed class KBoardSurface : Viewbox
             _compact = value;
             _canvas.Children.Clear();
             _keys.Clear();
+            _corners.Clear();
             Build();
             Refresh();
+            PaintCorners();
         }
     }
 
     private bool _compact;
-
-    /// <summary>The picture's own size (it is scaled uniformly to fit).</summary>
-    public Size CanvasSize => new(_canvas.Width, Math.Max(_canvas.Height, _canvas.MinHeight));
-
-    /// <summary>Room with nothing drawn, in the picture's coordinates: under the main keys (left of the pad, when compact).</summary>
-    public Rect FreeArea { get; private set; }
 
     public bool Contains(string name) => _keys.ContainsKey(name);
 
@@ -146,18 +148,19 @@ public sealed class KBoardSurface : Viewbox
         Row(r1 + 3, 0, K("LShift", 1.25), K("<"), K("Z"), K("X"), K("C"), K("V"), K("B"), K("N"), K("M"), K(","), K("."), K("-"), K("RShift", 2.75));
         Row(r1 + 4, 0, K("LCtrl", 1.25), K("LWin", 1.25), K("LAlt", 1.25), K("Space", 6.25), K("RAlt", 1.25), K("RWin", 1.25), K("AppsKey", 1.25), K("RCtrl", 1.25));
 
-        // Navigation block
-        const double nx = 15.4;
-        Row(0, nx, K("PrintScreen"), K("Scroll"), K("Pause"));
-        Row(r1, nx, K("Insert"), K("Home"), K("PageUp"));
-        Row(r1 + 1, nx, K("Delete"), K("End"), K("PageDown"));
-        Row(r1 + 3, nx + 1, K("Up"));
-        Row(r1 + 4, nx, K("Left"), K("Down"), K("Right"));
+        // Navigation block, numeric pad and mouse: beside the keyboard, or (compact) all three under it, centred
+        var py = _compact ? r1 + 5.5 : r1;
+        var nx = _compact ? 1.6 : 15.4;
+        var px = _compact ? 5.2 : 18.8;
+        var mx = _compact ? 10.0 : 23.4;
+        var top = _compact ? py : 0;
+        var rows = _compact ? py + 1 : r1;
+        Row(top, nx, K("PrintScreen"), K("Scroll"), K("Pause"));
+        Row(rows, nx, K("Insert"), K("Home"), K("PageUp"));
+        Row(rows + 1, nx, K("Delete"), K("End"), K("PageDown"));
+        Row(_compact ? py + 3 : r1 + 3, nx + 1, K("Up"));
+        Row(_compact ? py + 4 : r1 + 4, nx, K("Left"), K("Down"), K("Right"));
 
-        // Numeric pad and mouse: beside the navigation block, or (compact) under the keyboard, on the right
-        var py = _compact ? r1 + 5.6 : r1;
-        var px = _compact ? 10.0 : 18.8;
-        var mx = _compact ? 14.8 : 23.4;
         Row(py, px, K("NumLock"), K("NumPadDiv"), K("NumPadMult"), K("NumPadSub"));
         Row(py + 1, px, K("NumPad7"), K("NumPad8"), K("NumPad9"));
         defs.Add(new KeyDef("NumPadAdd", px + 3, py + 1, 1, 2));
@@ -171,12 +174,9 @@ public sealed class KBoardSurface : Viewbox
         _canvas.MinHeight = 0;
         BuildMouse(mx * U, py * U);
 
-        _canvas.Width = (_compact ? nx + 3 : 27.2) * U;
+        _canvas.Width = (_compact ? 15 : 27.2) * U;
         _canvas.Height = (py + 5) * U;
-        var height = Math.Max(_canvas.Height, _canvas.MinHeight);
-        FreeArea = _compact
-            ? new Rect(0, py * U, (px - 0.4) * U, 5 * U)
-            : new Rect(0, (r1 + 5) * U, (nx - 0.4) * U, Math.Max(0, height - (r1 + 5) * U));
+        PaintCorners();
     }
 
     private void AddKey(KeyDef d)
@@ -321,6 +321,52 @@ public sealed class KBoardSurface : Viewbox
             KeyClicked?.Invoke(d.Name);
         };
         Paint(visual);
+        if (LayerOf(d.Name) is { } mod) AddCorner(mod, x, y, w, h);
+    }
+
+    /// <summary>The layer a modifier key turns on with its corner (both Ctrl, both Alt…).</summary>
+    private static Modifiers? LayerOf(string key) => key switch
+    {
+        "LCtrl" or "RCtrl" => Modifiers.Ctrl,
+        "LAlt" or "RAlt" => Modifiers.Alt,
+        "LShift" or "RShift" => Modifiers.Shift,
+        "LWin" or "RWin" => Modifiers.Win,
+        _ => null,
+    };
+
+    /// <summary>A small triangle in the bottom-right corner of a modifier key: its own button for the layer.</summary>
+    private void AddCorner(Modifiers mod, double x, double y, double w, double h)
+    {
+        const double size = 15, inset = 3;
+        var corner = new Path
+        {
+            Data = Svg($"M {w - inset},{h - inset - size} L {w - inset},{h - inset - 4} Q {w - inset},{h - inset} {w - inset - 4},{h - inset} L {w - inset - size},{h - inset} Z"),
+            Cursor = Cursors.Hand,
+            ToolTip = Loc.T("kboard.layerCorner", mod.ToString()),
+        };
+        System.Windows.Automation.AutomationProperties.SetName(corner, Loc.T("kboard.layerCorner", mod.ToString()));
+        Canvas.SetLeft(corner, x);
+        Canvas.SetTop(corner, y);
+        corner.MouseEnter += (_, _) => PaintCorners();
+        corner.MouseLeave += (_, _) => PaintCorners();
+        corner.MouseLeftButtonDown += (_, e) =>
+        {
+            e.Handled = true;
+            LayerToggled?.Invoke(mod);
+        };
+        _canvas.Children.Add(corner);
+        _corners.Add((mod, corner));
+    }
+
+    /// <summary>Golden while its layer is on; grey (lighter under the mouse) while off.</summary>
+    private void PaintCorners()
+    {
+        foreach (var (mod, corner) in _corners)
+        {
+            var on = _layer.HasFlag(mod);
+            corner.SetResourceReference(Shape.FillProperty, on ? "Kd.Accent" : corner.IsMouseOver ? "Kd.AccentText" : "TextFillColorTertiaryBrush");
+            corner.Opacity = on || corner.IsMouseOver ? 1 : 0.55;
+        }
     }
 
     /// <summary>Path data with invariant numbers (a Spanish culture would write "0,5" and break the syntax).</summary>

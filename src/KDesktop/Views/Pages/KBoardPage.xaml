@@ -232,6 +232,7 @@
                                             <StackPanel MaxWidth="380">
                                                 <TextBlock TextWrapping="Wrap" Text="{l:Tr kboard.surfaceHint}" />
                                                 <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Text="{l:Tr kboard.surfaceDotHint}" />
+                                                <TextBlock TextWrapping="Wrap" Margin="0,6,0,0" Text="{l:Tr kboard.layerHint}" />
                                             </StackPanel>
                                         </Border.ToolTip>
                                         <ui:SymbolIcon Symbol="Info24" FontSize="20" Foreground="{DynamicResource Kd.Accent}" Opacity="0.45" />
@@ -241,7 +242,7 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Keyboard and mouse (foldable; «Pulsar tecla» stays on the header, the layers go in the gap under the keys) -->
+                    <!-- Keyboard and mouse (foldable; «Pulsar tecla» stays on the header; the layers are the corners of the modifier keys) -->
                     <ui:CardExpander x:Name="KeyboardExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Keyboard24}" HorizontalContentAlignment="Stretch"
                                      Expanded="OnSectionFolded" Collapsed="OnSectionFolded" AutomationProperties.Name="{l:Tr kboard.keyboard}">
                         <ui:CardExpander.Header>
@@ -253,22 +254,9 @@
                                 </StackPanel>
                             </Grid>
                         </ui:CardExpander.Header>
-                        <!-- The layers sit in the room the keyboard leaves free (under the main keys; left of the pad when compact);
-                             when it is too small for them they go under the keyboard (OnKeyboardAreaSize) -->
+                        <!-- Narrow, the navigation block, the pad and the mouse go under the keys (OnKeyboardAreaSize) -->
                         <Grid x:Name="KeyboardArea" SizeChanged="OnKeyboardAreaSize">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
                             <v:KBoardSurface x:Name="Surface" MaxHeight="340" HorizontalAlignment="Center" />
-                            <StackPanel x:Name="LayerRow" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
-                                <TextBlock Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,10,0" Text="{l:Tr kboard.layer}"
-                                           ToolTip="{l:Tr kboard.layerHint}" />
-                                <ToggleButton x:Name="LayerCtrl" Style="{StaticResource Pill}" Content="Ctrl" Click="OnLayer" />
-                                <ToggleButton x:Name="LayerAlt" Style="{StaticResource Pill}" Content="Alt" Click="OnLayer" />
-                                <ToggleButton x:Name="LayerShift" Style="{StaticResource Pill}" Content="Shift" Click="OnLayer" />
-                                <ToggleButton x:Name="LayerWin" Style="{StaticResource Pill}" Content="Win" Click="OnLayer" />
-                            </StackPanel>
                         </Grid>
                     </ui:CardExpander>
 

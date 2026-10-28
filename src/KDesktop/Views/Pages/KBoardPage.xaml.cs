@@ -45,6 +45,7 @@ public sealed partial class KBoardPage : UserControl, IDisposable
         TargetKeyBox.ItemsSource = TargetKeys;
         Config.KBoards.CollectionChanged += OnProfilesChanged;
         Surface.KeyClicked += SelectSource;
+        Surface.LayerToggled += OnLayerToggled;
         UpdateCount();
         Loaded += (_, _) =>
         {
@@ -313,22 +314,17 @@ public sealed partial class KBoardPage : UserControl, IDisposable
 
     // ── source key and layer ─────────────────────────────────────────────
 
-    private Modifiers Layer =>
-        (LayerCtrl.IsChecked == true ? Modifiers.Ctrl : 0) | (LayerAlt.IsChecked == true ? Modifiers.Alt : 0) |
-        (LayerShift.IsChecked == true ? Modifiers.Shift : 0) | (LayerWin.IsChecked == true ? Modifiers.Win : 0);
+    /// <summary>The modifiers of the keys shown (the corners of Ctrl, Alt, Shift and Win on the keyboard).</summary>
+    private Modifiers Layer => Surface.Layer;
 
     private void SetLayer(Modifiers mods)
     {
-        LayerCtrl.IsChecked = mods.HasFlag(Modifiers.Ctrl);
-        LayerAlt.IsChecked = mods.HasFlag(Modifiers.Alt);
-        LayerShift.IsChecked = mods.HasFlag(Modifiers.Shift);
-        LayerWin.IsChecked = mods.HasFlag(Modifiers.Win);
         Surface.Layer = mods;
     }
 
-    private void OnLayer(object sender, RoutedEventArgs e)
+    private void OnLayerToggled(Modifiers mod)
     {
-        Surface.Layer = Layer;
+        Surface.Layer = Layer ^ mod;
         if (_source is not null) SelectSource(_source);
     }
 
@@ -362,23 +358,6 @@ public sealed partial class KBoardPage : UserControl, IDisposable
             Surface.Compact = compact;
             Surface.MaxHeight = compact ? 600 : 340;
         }
-        Dispatcher.BeginInvoke(PlaceLayers, System.Windows.Threading.DispatcherPriority.Loaded);
-    }
-
-    /// <summary>The layers in the room the keyboard leaves free while they fit there, else under the keyboard.</summary>
-    private void PlaceLayers()
-    {
-        var size = Surface.CanvasSize;
-        if (Surface.ActualWidth <= 0 || size.Width <= 0) return;
-        var scale = Surface.ActualWidth / size.Width;
-        var free = Surface.FreeArea;
-        var (w, h) = (LayerRow.ActualWidth, LayerRow.ActualHeight);
-        var fits = free.Width * scale >= w && free.Height * scale >= h + 4;
-        Grid.SetRow(LayerRow, fits ? 0 : 1);
-        // The keyboard is centred: the row starts where it does; in the low gap under the keys, centred in its height
-        var left = Math.Max(0, (KeyboardArea.ActualWidth - Surface.ActualWidth) / 2);
-        var top = free.Y * scale + (Surface.Compact ? 4 : (free.Height * scale - h) / 2);
-        LayerRow.Margin = fits ? new Thickness(left + free.X * scale, top, 0, 0) : new Thickness(0, 10, 0, 0);
     }
 
     /// <summary>Selects the key being edited (null = none) and shows its remap.</summary>
