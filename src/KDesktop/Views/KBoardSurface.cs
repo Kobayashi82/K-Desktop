@@ -172,7 +172,9 @@ public sealed class KBoardSurface : Viewbox
         foreach (var d in defs) AddKey(d);
 
         _canvas.MinHeight = 0;
-        BuildMouse(mx * U, py * U);
+        // In one row the mouse starts at the top, a little shorter, so its last wheel chips end where the bottom row does
+        if (_compact) BuildMouse(mx * U, py * U, 5);
+        else BuildMouse(mx * U, 0, ((r1 + 5) * U - Gap - MouseChips + Gap) / U);
 
         _canvas.Width = (_compact ? 15 : 27.2) * U;
         _canvas.Height = (py + 5) * U;
@@ -209,11 +211,14 @@ public sealed class KBoardSurface : Viewbox
         return g;
     }
 
-    private void BuildMouse(double x, double y)
+    /// <summary>What the wheel chips under the mouse take below its body (the gap, two rows of chips).</summary>
+    private const double MouseChips = 10 + 34 + 28;
+
+    private void BuildMouse(double x, double y, double units)
     {
-        // Body 3.4 units wide, 5 high.
+        // Body 3.4 units wide, <units> high.
         var w = 3.4 * U - Gap;
-        var h = 5 * U - Gap;
+        var h = units * U - Gap;
         var mid = w / 2;
         var split = h * 0.42;
 
@@ -273,7 +278,7 @@ public sealed class KBoardSurface : Viewbox
         var shape = new Path { Data = geometry, StrokeThickness = 1, Cursor = Cursors.Hand, RenderTransform = scale };
         var caption = new TextBlock
         {
-            Text = d.Caption ?? Caption(d.Name),
+            Text = d.Name is "LWin" or "RWin" ? string.Empty : d.Caption ?? Caption(d.Name),
             FontSize = small ? 11 : CaptionSize(d),
             FontWeight = FontWeights.SemiBold,
             TextAlignment = TextAlignment.Center,
@@ -282,6 +287,7 @@ public sealed class KBoardSurface : Viewbox
             Width = Math.Max(10, w - 4),
         };
         caption.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorPrimaryBrush");
+        if (d.Name is "LWin" or "RWin") caption.Inlines.Add(new System.Windows.Documents.InlineUIContainer(WindowsLogo()) { BaselineAlignment = BaselineAlignment.Center });
         var target = new TextBlock
         {
             FontSize = 10.5,
@@ -328,7 +334,9 @@ public sealed class KBoardSurface : Viewbox
     private static Modifiers? LayerOf(string key) => key switch
     {
         "LCtrl" or "RCtrl" => Modifiers.Ctrl,
-        "LAlt" or "RAlt" => Modifiers.Alt,
+        "LAlt" => Modifiers.Alt,
+        // AltGr is Ctrl + Alt for Windows (AltGr + E, the €, arrives as Ctrl + Alt + E)
+        "RAlt" => Modifiers.Ctrl | Modifiers.Alt,
         "LShift" or "RShift" => Modifiers.Shift,
         "LWin" or "RWin" => Modifiers.Win,
         _ => null,
@@ -337,14 +345,18 @@ public sealed class KBoardSurface : Viewbox
     /// <summary>A small triangle in the bottom-right corner of a modifier key: its own button for the layer.</summary>
     private void AddCorner(Modifiers mod, double x, double y, double w, double h)
     {
-        const double size = 15, inset = 3;
+        const double size = 10, inset = 2.5;
         var corner = new Path
         {
-            Data = Svg($"M {w - inset},{h - inset - size} L {w - inset},{h - inset - 4} Q {w - inset},{h - inset} {w - inset - 4},{h - inset} L {w - inset - size},{h - inset} Z"),
+            Data = Svg($"M {w - inset},{h - inset - size} L {w - inset},{h - inset - 3} Q {w - inset},{h - inset} {w - inset - 3},{h - inset} L {w - inset - size},{h - inset} Z"),
             Cursor = Cursors.Hand,
-            ToolTip = Loc.T("kboard.layerCorner", mod.ToString()),
+            // A bigger invisible target than the triangle drawn (it is small)
+            Stroke = Brushes.Transparent,
+            StrokeThickness = 6,
         };
-        System.Windows.Automation.AutomationProperties.SetName(corner, Loc.T("kboard.layerCorner", mod.ToString()));
+        var name = mod == (Modifiers.Ctrl | Modifiers.Alt) ? "AltGr (Ctrl + Alt)" : mod.ToString();
+        corner.ToolTip = Loc.T("kboard.layerCorner", name);
+        System.Windows.Automation.AutomationProperties.SetName(corner, Loc.T("kboard.layerCorner", name));
         Canvas.SetLeft(corner, x);
         Canvas.SetTop(corner, y);
         corner.MouseEnter += (_, _) => PaintCorners();
@@ -363,10 +375,23 @@ public sealed class KBoardSurface : Viewbox
     {
         foreach (var (mod, corner) in _corners)
         {
-            var on = _layer.HasFlag(mod);
+            var on = (_layer & mod) == mod;
             corner.SetResourceReference(Shape.FillProperty, on ? "Kd.Accent" : corner.IsMouseOver ? "Kd.AccentText" : "TextFillColorTertiaryBrush");
             corner.Opacity = on || corner.IsMouseOver ? 1 : 0.55;
         }
+    }
+
+    /// <summary>The Windows logo (four panes), for the Win keys.</summary>
+    private static Path WindowsLogo()
+    {
+        const double s = 6.2, g = 1.2;
+        var logo = new Path
+        {
+            Data = Svg($"M 0,0 H {s} V {s} H 0 Z M {s + g},0 H {2 * s + g} V {s} H {s + g} Z M 0,{s + g} H {s} V {2 * s + g} H 0 Z M {s + g},{s + g} H {2 * s + g} V {2 * s + g} H {s + g} Z"),
+            Margin = new Thickness(0, 2, 0, 2),
+        };
+        logo.SetResourceReference(Shape.FillProperty, "TextFillColorPrimaryBrush");
+        return logo;
     }
 
     /// <summary>Path data with invariant numbers (a Spanish culture would write "0,5" and break the syntax).</summary>
@@ -422,6 +447,9 @@ public sealed class KBoardSurface : Viewbox
         var targetHeight = 0.0;
         if (mapped)
         {
+            // Smaller before cutting it; cut, it ends in «…» (whole in the key's tooltip and in the panel a click opens)
+            k.Target.FontSize = 10.5;
+            for (; k.Target.FontSize > 8.5 && TextWidth(k.Target) > k.Target.Width; k.Target.FontSize -= 0.5) { }
             k.Target.Measure(new Size(k.Target.Width, double.PositiveInfinity));
             targetHeight = k.Target.DesiredSize.Height;
         }
@@ -429,6 +457,11 @@ public sealed class KBoardSurface : Viewbox
         Canvas.SetTop(k.Caption, top);
         Canvas.SetTop(k.Target, top + captionHeight - 1);
     }
+
+    /// <summary>How wide a one-line text is with its font, uncut.</summary>
+    private static double TextWidth(TextBlock t) =>
+        new FormattedText(t.Text, System.Globalization.CultureInfo.InvariantCulture, FlowDirection.LeftToRight,
+            new Typeface(t.FontFamily, t.FontStyle, t.FontWeight, t.FontStretch), t.FontSize, Brushes.Black, 1).WidthIncludingTrailingWhitespace;
 
     private static string KeyTip(string name, string from, KeyRemap? remap)
     {
@@ -478,7 +511,7 @@ public sealed class KBoardSurface : Viewbox
         "Right" => "→",
         "LCtrl" or "RCtrl" => "Ctrl",
         "LAlt" => "Alt",
-        "LWin" or "RWin" => "⊞",
+        "LWin" or "RWin" => "Win",
         "Tab" => "Tab ⇥",
         "NumPadDiv" => "/",
         "NumPadMult" => "*",

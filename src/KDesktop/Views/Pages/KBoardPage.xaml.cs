@@ -324,7 +324,8 @@ public sealed partial class KBoardPage : UserControl, IDisposable
 
     private void OnLayerToggled(Modifiers mod)
     {
-        Surface.Layer = Layer ^ mod;
+        // Off when all of it is on (AltGr is Ctrl + Alt), else all of it on
+        Surface.Layer = (Layer & mod) == mod ? Layer & ~mod : Layer | mod;
         if (_source is not null) SelectSource(_source);
     }
 
@@ -346,13 +347,13 @@ public sealed partial class KBoardPage : UserControl, IDisposable
     private void OnCloseKey(object sender, RoutedEventArgs e) => SelectSource(null);
 
     /// <summary>
-    /// Narrow, the numeric pad and the mouse go under the keyboard (its keys would be drawn under ~30 px wide): the keys
-    /// bigger, the picture taller. A margin around the switch so that a scroll bar coming and going doesn't flip it.
+    /// Not wide enough, the navigation block, the numeric pad and the mouse go under the keyboard: in one row its keys
+    /// would be drawn under ~40 px wide. A margin around the switch so that a scroll bar coming and going doesn't flip it.
     /// </summary>
     private void OnKeyboardAreaSize(object sender, SizeChangedEventArgs e)
     {
         var width = KeyboardArea.ActualWidth;
-        var compact = Surface.Compact ? width < 840 : width < 800;
+        var compact = Surface.Compact ? width < 1150 : width < 1100;
         if (compact != Surface.Compact)
         {
             Surface.Compact = compact;
