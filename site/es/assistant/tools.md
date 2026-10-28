@@ -23,7 +23,7 @@ Todo lo que hace un asistente sale en *Panel → Asistente → Actividad* (la su
 | **Hora, avisos y cuentas** | Hora y fecha · Temporizador · Quitar un temporizador · Programar una orden · Ver lo pendiente · Quitar algo programado · Avisar cuando pase algo · Dejar de vigilar · Cuentas con fechas · Calculadora | «avísame en media hora», «a las siete vacía la papelera», «avísame cuando termine la descarga», «cuántos días faltan para navidad» |
 | **Notas y memoria** | Apuntar una nota · Buscar en las notas · Cambiar una nota · Borrar una nota · Recordar algo de ti · Olvidar un recuerdo | «apunta que tengo que comprar leche», «recuerda que mi jefe se llama Luis» |
 | **Archivos** | Buscar archivos · Abrir un archivo · Leer un archivo · Borrar un archivo · Mover un archivo · Escribir un documento · Copiar un archivo · Crear una carpeta · Comprimir en ZIP · Descomprimir un ZIP · Buscar en tus documentos | «búscame el pdf de la factura de la luz», «abre lo último que descargué» |
-| **Internet** | Abrir una web · Buscar en el navegador · Consultar internet · Leer una página web | «cuánto cuesta una RTX 5080», «resúmeme esta página» |
+| **Internet** | Abrir una web · Buscar en el navegador · Consultar internet · Leer una página web · Comprobar la red | «cuánto cuesta una RTX 5080», «resúmeme esta página», «¿hay internet?», «¿responde el NAS?» |
 | **Pantalla y textos** | Mirar la pantalla · Traducir y corregir textos · Leer lo copiado · Copiar un texto | «qué error me sale», «tradúceme esto al inglés», «¿qué tengo copiado?», «cópiame el teléfono del fontanero» |
 | **Programas y PC** | Abrir un programa · Manejar ventanas y programas · Cerrar a la fuerza · Estado del PC · Liberar el cerebro | «minimiza Steam», «Chrome no responde, ciérralo a la fuerza», «por qué va lento el ordenador» |
 | **Música y vídeo** | Qué suena · Controlar la reproducción | «qué canción es esta», «pausa el vídeo» |
@@ -52,6 +52,10 @@ Algunos detalles:
   preguntándote antes» te pregunta.
 - **Consultar internet** busca en la web y lee el primer resultado útil; **Buscar en el navegador** solo abre la búsqueda
   en tu navegador.
+- **Comprobar la red** dice si hay internet y, si no, dónde falla (sin red, el router, las DNS, una página para entrar como
+  la de un hotel); si responde un equipo o una web (por su nombre, su dirección o «el router», también un puerto:
+  «servidor:22»); tu IP local y la pública; y la wifi a la que estás conectado, con su señal (Windows solo da la señal si
+  las aplicaciones de escritorio pueden usar tu ubicación).
 - **El tiempo** usa Open-Meteo y las **monedas**, los tipos del Banco Central Europeo (sin cuenta). Sin ciudad, usa
   *Opciones → Asistente → General → Dónde estás*, o la ubicación de Windows si la permites.
 - **Borrar un archivo** lo manda a la papelera; esta y **Mover un archivo** preguntan siempre antes (mover se puede deshacer).

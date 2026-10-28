@@ -61,6 +61,7 @@ public static class ToolActivities
         ["date_math"] = AssistantActivity.Calculating,
         ["get_time"] = AssistantActivity.Calculating,
         ["pc_status"] = AssistantActivity.System,
+        ["network_check"] = AssistantActivity.System,
         ["free_brain"] = AssistantActivity.System,
     };
 

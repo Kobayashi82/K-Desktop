@@ -22,7 +22,7 @@ Everything an assistant does shows in *Panel → Assistant → Activity* (its ow
 | **Time, reminders and maths** | Time and date · Timer · Cancel a timer · Program an order · See what is pending · Remove something programmed · Tell me when something happens · Stop watching · Date maths · Calculator | «remind me in half an hour», «at seven empty the recycle bin», «tell me when the download finishes», «how many days until christmas» |
 | **Notes and memory** | Save a note · Find notes · Change a note · Delete a note · Remember something about you · Forget a memory | «note that I have to buy milk», «remember that my boss is called Luis» |
 | **Files** | Find files · Open a file · Read a file · Delete a file · Move a file · Write a document · Copy a file · Create a folder · Compress into a ZIP · Extract a ZIP · Search your documents | «find the electricity bill pdf», «open the last thing I downloaded» |
-| **Internet** | Open a website · Search in the browser · Look it up online · Read a web page | «how much is an RTX 5080», «summarise this page» |
+| **Internet** | Open a website · Search in the browser · Look it up online · Read a web page · Check the network | «how much is an RTX 5080», «summarise this page», «is there internet?», «is the NAS answering?» |
 | **Screen and texts** | Look at the screen · Translate and fix texts · Read what is copied · Copy a text | «what is this error», «translate what I copied into French», «what have I copied?», «copy the plumber's number for me» |
 | **Programs and PC** | Open a program · Handle windows and programs · Force close · PC status · Free the brain | «minimize Steam», «Chrome is not responding, force it closed», «why is the computer slow» |
 | **Music and video** | What's playing · Control playback | «what song is this», «pause the video» |
@@ -53,6 +53,10 @@ Some details:
   «Everything, asking you first» you are asked.
 - **Look it up online** searches the web and reads the first useful result; **Search in the browser** only opens the
   search in your browser.
+- **Check the network** tells whether there is internet and, when there is not, where it fails (no network, the router, the
+  DNS, a sign-in page like in a hotel); whether a machine or website answers (by its name, its address or «the router»,
+  also a port: «server:22»); your local and public IP; and the Wi-Fi you are on, with its signal (Windows only gives the
+  signal if desktop apps may use your location).
 - **Weather** uses Open-Meteo and **currencies** the European Central Bank's rates (no account needed). Without a city it
   uses *Settings → Assistant → General → Where you are*, or Windows' location if you allow it.
 - **Delete a file** sends it to the recycle bin; it and **Move a file** always ask first (a move can be undone).

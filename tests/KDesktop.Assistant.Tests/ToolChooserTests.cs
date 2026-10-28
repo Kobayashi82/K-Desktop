@@ -45,6 +45,8 @@ public sealed class ToolChooserTests : IDisposable
     [InlineData("busca recetas de gazpacho", "search_web")]
     [InlineData("avísame cuando termine la descarga", "notify_when")]
     [InlineData("¿cuánto disco me queda?", "pc_status")]
+    [InlineData("¿hay internet?", "network_check")]
+    [InlineData("¿responde el NAS?", "network_check")]
     public async Task TwentyToolsGiveThreeToFiveWithTheRightOne(string said, string expected)
     {
         foreach (var chooser in new[] { new ToolChooser(new FakeMeaning()), new ToolChooser(null) })
