@@ -60,8 +60,32 @@ public static class Conditions
             case ConditionKind.Load:
                 var load = await Task.Run(() => SystemLoad.Sample(c.Resource), token).ConfigureAwait(false);
                 return load > c.Percent;
+
+            case ConditionKind.Variable:
+                return Compare(TextVariables.Expand(c.Value).Trim(), c.Test, text);
         }
         return false;
+    }
+
+    /// <summary>
+    /// «Un texto o variable»: <paramref name="value"/> (already expanded) against <paramref name="wanted"/>. Words in any
+    /// case; numbers as numbers («7» is less than «10», «2,5» and «2.5» are the same).
+    /// </summary>
+    public static bool Compare(string value, VariableTest test, string wanted)
+    {
+        var numbers = Number(value) is { } a && Number(wanted) is { } b ? (a, b) : ((double, double)?)null;
+        return test switch
+        {
+            VariableTest.NotEmpty => value.Length > 0,
+            VariableTest.Contains => wanted.Length == 0 ? value.Length > 0 : value.Contains(wanted, StringComparison.CurrentCultureIgnoreCase),
+            VariableTest.Equals => numbers is var (x, y) ? x == y : string.Equals(value, wanted, StringComparison.OrdinalIgnoreCase),
+            VariableTest.Greater => numbers is var (x, y) ? x > y : string.Compare(value, wanted, StringComparison.OrdinalIgnoreCase) > 0,
+            VariableTest.Less => numbers is var (x, y) ? x < y : string.Compare(value, wanted, StringComparison.OrdinalIgnoreCase) < 0,
+            _ => false,
+        };
+
+        static double? Number(string text) =>
+            double.TryParse(text.Trim().TrimEnd('%').Replace(',', '.'), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : null;
     }
 
     /// <summary>«Horario»: inside the time range (it may cross midnight) on one of the days.</summary>

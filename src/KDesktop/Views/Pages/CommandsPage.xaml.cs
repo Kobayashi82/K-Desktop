@@ -690,6 +690,9 @@ public sealed partial class CommandsPage : UserControl, IDisposable
             case CommandControlAction c when e.PropertyName == nameof(CommandControlAction.CommandId):
                 c.CommandName = Config.FindCommand(c.CommandId)?.Name;
                 break;
+            case ConditionAction i when e.PropertyName == nameof(ConditionAction.ElseCommandId):
+                i.ElseCommandName = Config.FindCommand(i.ElseCommandId)?.Name;
+                break;
             case CommandControlAction c when e.PropertyName == nameof(CommandControlAction.EventId):
                 c.EventName = Config.FindEvent(c.EventId)?.Name;
                 break;
@@ -823,6 +826,10 @@ public sealed partial class CommandsPage : UserControl, IDisposable
                 break;
             case ShowNotificationAction n when Dialogs.CommandPicker.PickOne(owner, others, n.CommandId) is { } command:
                 n.CommandId = command.Id;
+                break;
+            case ConditionAction i when Dialogs.CommandPicker.PickOne(owner, others, i.ElseCommandId) is { } command:
+                i.ElseCommandId = command.Id;
+                i.ElseCommandName = command.Name;
                 break;
         }
     }

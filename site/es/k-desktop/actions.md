@@ -71,7 +71,7 @@ orden.
 
 | Acción | Qué hace |
 |---|---|
-| **Si…** | Comprueba algo (un programa abierto, la hora, un dispositivo, la red, el uso del procesador…) y, si no se cumple, para el comando o se salta las acciones siguientes. Ver [condiciones](commands.md#si-condiciones). |
+| **Si…** | Comprueba algo (un programa abierto, la hora, un dispositivo, la red, el uso del procesador, una variable…) y, si no se cumple, para el comando, se salta las acciones siguientes o ejecuta otro comando en su lugar. Ver [condiciones](commands.md#si-condiciones). |
 | **Esperar** | Hace una pausa antes de la acción siguiente. |
 | **Comandos** | Ejecuta, habilita o deshabilita otro comando. |
 | **Abrir QuickMenu** | Enseña un QuickMenu donde está el ratón. |

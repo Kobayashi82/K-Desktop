@@ -225,6 +225,23 @@ public sealed partial class CommandEngine
                             message = Localization.Loc.T("history.notMet", what);
                             break;
                         }
+                        if (condition.Else == ConditionElse.RunCommand)
+                        {
+                            // Instead of the rest of this one, the other command (with the same variables).
+                            outcome = RunOutcome.Stopped;
+                            if (Config.FindCommand(condition.ElseCommandId) is { } instead && !ReferenceEquals(instead, command))
+                            {
+                                Log.Info($"'{command.Name}': no se cumple «{what}», ejecuta '{instead.Name}'");
+                                message = Localization.Loc.T("history.notMetRan", what, instead.Name);
+                                await RunAsync(instead, TriggerSource.Command, ctx.Foreground, false, depth + 1, choreography, CommandVariables.Current, ctx.ChoreographyToken).ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                Log.Info($"'{command.Name}': no se cumple «{what}», se detiene (el comando de «si no» ya no existe)");
+                                message = Localization.Loc.T("history.notMet", what);
+                            }
+                            break;
+                        }
                         skip = Math.Max(1, condition.SkipCount);
                         Log.Info($"'{command.Name}': no se cumple «{what}», se salta{(skip == 1 ? " 1 acción" : $"n {skip} acciones")}");
                         continue;

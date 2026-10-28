@@ -70,7 +70,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 
 | Action | What it does |
 |---|---|
-| **If…** | Checks something (a program open, the time, a device, the network, CPU use…) and, if it isn't so, stops the command or skips the next actions. See [conditions](commands.md#if-conditions). |
+| **If…** | Checks something (a program open, the time, a device, the network, CPU use, a variable…) and, if it isn't so, stops the command, skips the next actions or runs another command instead. See [conditions](commands.md#if-conditions). |
 | **Wait** | Pauses before the next action. |
 | **Commands** | Runs, enables or disables another command. |
 | **Open QuickMenu** | Shows a QuickMenu at the mouse position. |

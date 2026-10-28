@@ -1665,6 +1665,22 @@
                 <TextBlock x:Name="TextLabel" Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifText}" />
                 <ui:TextBox x:Name="TextBox" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" />
             </StackPanel>
+            <StackPanel x:Name="VariableRow" Margin="0,0,0,12" Visibility="Collapsed">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifValue}" />
+                <ui:TextBox Margin="0,0,0,8" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True"
+                            AutomationProperties.Name="{l:Tr editor.ifValue}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ComboBox ItemsSource="{x:Static v:Lookups.VariableTests}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Test}"
+                              AutomationProperties.Name="{l:Tr editor.ifTest}" />
+                    <ui:TextBox x:Name="CompareBox" Grid.Column="2" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True"
+                                PlaceholderText="{l:Tr editor.ifCompareHint}" AutomationProperties.Name="{l:Tr editor.ifCompareHint}" />
+                </Grid>
+            </StackPanel>
             <StackPanel x:Name="ScheduleRow" Margin="0,0,0,12" Visibility="Collapsed">
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                     <StackPanel Margin="0,0,16,0">
@@ -1710,11 +1726,37 @@
                     <ui:TextBox Text="{Binding SkipCount, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="99" />
                 </StackPanel>
             </Grid>
+            <!-- «Ejecutar otro comando en su lugar» -->
+            <ui:Button x:Name="ElseCommandBox" Margin="0,-4,0,12" Visibility="Collapsed" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="11,8"
+                       AutomationProperties.Name="{l:Tr editor.ifElseCommand}" ToolTip="{l:Tr editor.ifElseCommand}"
+                       Command="{x:Static v:EditorCommands.PickCommand}" CommandParameter="{Binding}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Image Width="18" Height="18" Margin="0,0,8,0" RenderOptions.BitmapScalingMode="HighQuality"
+                           Source="{Binding ElseCommandId, Converter={StaticResource PickedItem}, ConverterParameter=commandIcon}" Style="{StaticResource PickedIcon}" />
+                    <TextBlock Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                               Text="{Binding ElseCommandId, Converter={StaticResource PickedItem}, ConverterParameter=command}" />
+                    <ui:SymbolIcon Grid.Column="2" Margin="8,0,0,0" Symbol="ChevronDown24" FontSize="12" />
+                </Grid>
+            </ui:Button>
             <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.ifHint}" />
         </StackPanel>
         <DataTemplate.Triggers>
             <DataTrigger Binding="{Binding Else}" Value="Skip">
                 <Setter TargetName="SkipRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Else}" Value="RunCommand">
+                <Setter TargetName="ElseCommandBox" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Condition}" Value="Variable">
+                <Setter TargetName="VariableRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Test}" Value="NotEmpty">
+                <Setter TargetName="CompareBox" Property="Visibility" Value="Hidden" />
             </DataTrigger>
             <DataTrigger Binding="{Binding Condition}" Value="ProcessRunning">
                 <Setter TargetName="ProcessRow" Property="Visibility" Value="Visible" />

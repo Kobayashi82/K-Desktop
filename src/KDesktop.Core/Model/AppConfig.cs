@@ -243,6 +243,7 @@ public sealed class AppConfig
     public bool IsReferenced(string id) =>
         QuickMenus.SelectMany(m => m.Descendants()).Any(i => i.CommandId == id) ||
         Commands.SelectMany(c => c.Actions).OfType<CommandControlAction>().Any(a => a.CommandId == id) ||
+        Commands.SelectMany(c => c.Actions).OfType<ConditionAction>().Any(a => a.Else == ConditionElse.RunCommand && a.ElseCommandId == id) ||
         KBoards.SelectMany(k => k.Remaps).Any(r => r.CommandId == id) ||
         Events.Any(e => e.Commands.Contains(id) || e.EndCommands.Contains(id)) ||
         Settings.VoiceMusicOnCommand == id || Settings.VoiceMusicOffCommand == id;
@@ -272,6 +273,7 @@ public sealed class AppConfig
                     c.CommandName = FindCommand(c.CommandId)?.Name;
                     c.EventName = FindEvent(c.EventId)?.Name;
                     break;
+                case ConditionAction i: i.ElseCommandName = FindCommand(i.ElseCommandId)?.Name; break;
                 case PlayMacroAction p: p.MacroName = FindMacro(p.MacroId)?.Name; break;
                 case KBoardAction k: k.ProfileName = FindKBoard(k.ProfileId)?.Name; break;
                 case AssistantExtraAction x: x.ExtraName = ExtraName(x.Assistant, x.Extra); break;

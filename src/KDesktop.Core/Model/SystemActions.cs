@@ -314,11 +314,14 @@ public partial class RadioAction : CommandAction
 public enum ConditionKind
 {
     ProcessRunning, Foreground, Schedule, Device, AudioOutput, AudioPlaying, Network, PowerSource,
-    HostReachable, FileExists, Clipboard, Load,
+    HostReachable, FileExists, Clipboard, Load, Variable,
 }
 
-/// <summary>What «Si…» does when the condition is not met.</summary>
-public enum ConditionElse { Stop, Skip }
+/// <summary>What «Si…» does when the condition is not met: stop, skip the next actions, or run another command instead (5.0.339).</summary>
+public enum ConditionElse { Stop, Skip, RunCommand }
+
+/// <summary>«Un texto o variable» (5.0.339): how {resultado} or any text with variables is compared.</summary>
+public enum VariableTest { NotEmpty, Contains, Equals, Greater, Less }
 
 /// <summary>What «Uso del equipo» measures.</summary>
 public enum LoadResource { Cpu, Gpu, Memory, Vram }
@@ -348,12 +351,31 @@ public partial class ConditionAction : CommandAction
     [ObservableProperty] private LoadResource _resource = LoadResource.Cpu;
     [ObservableProperty] private int _percent = 50;
 
+    /// <summary>«Un texto o variable»: what is looked at (a text with variables, usually {resultado}) and how.</summary>
+    [ObservableProperty] private string _value = string.Empty;
+    [ObservableProperty] private VariableTest _test = VariableTest.NotEmpty;
+
     [ObservableProperty] private ConditionElse _else = ConditionElse.Stop;
+
+    /// <summary>The command run instead when it is not met (with <see cref="ConditionElse.RunCommand"/>).</summary>
+    [ObservableProperty] private string _elseCommandId = string.Empty;
+
+    /// <summary>Display-only: the name of <see cref="ElseCommandId"/> (null: deleted or none).</summary>
+    [ObservableProperty]
+    [property: JsonIgnore] private string? _elseCommandName;
+
+    partial void OnConditionChanged(ConditionKind value)
+    {
+        // A new comparison starts with what the previous action gave.
+        if (value == ConditionKind.Variable && Value.Trim().Length == 0) Value = Loc.Instance.Language == "es" ? "{resultado}" : "{result}";
+    }
 
     /// <summary>How many of the following actions are skipped when it is not met (with <see cref="ConditionElse.Skip"/>).</summary>
     [ObservableProperty] private int _skipCount = 1;
 
     public override ActionKind Kind => ActionKind.Condition;
+
+    public override bool IsTransient(string? property) => property is nameof(ElseCommandName) || base.IsTransient(property);
 
     /// <summary>The following actions this one governs (skipped when it is not met), for the indentation of the list.</summary>
     [JsonIgnore] public int Governs => Enabled && Else == ConditionElse.Skip ? Math.Max(1, SkipCount) : 0;
@@ -363,7 +385,12 @@ public partial class ConditionAction : CommandAction
         get
         {
             var skip = Math.Max(1, SkipCount);
-            var otherwise = Else == ConditionElse.Stop ? Loc.T("summary.if.stop") : skip == 1 ? Loc.T("summary.if.skip1") : Loc.T("summary.if.skip", skip);
+            var otherwise = Else switch
+            {
+                ConditionElse.Stop => Loc.T("summary.if.stop"),
+                ConditionElse.RunCommand => Loc.T("summary.if.run", Shown(ElseCommandId, ElseCommandName, "summary.commandGone")),
+                _ => skip == 1 ? Loc.T("summary.if.skip1") : Loc.T("summary.if.skip", skip),
+            };
             return $"{Describe()}  ·  {otherwise}";
         }
     }
@@ -385,6 +412,9 @@ public partial class ConditionAction : CommandAction
                 return Loc.T($"if.PowerSource.{PowerSource}{not}");
             case ConditionKind.Load:
                 return Loc.T($"if.Load.{Resource}{not}", Percent);
+            case ConditionKind.Variable:
+                var value = Value.Trim().Length == 0 ? "?" : Value.Trim();
+                return Test == VariableTest.NotEmpty ? Loc.T("if.Variable.NotEmpty" + not, value) : Loc.T($"if.Variable.{Test}{not}", value, text);
             case ConditionKind.Network or ConditionKind.Clipboard or ConditionKind.AudioPlaying when text.Length == 0:
                 return Loc.T($"if.{Condition}.any{not}");
             default:

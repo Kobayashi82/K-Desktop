@@ -35,7 +35,7 @@ cambiar el volumen, esperar, ejecutar otro comando… Ver la [lista completa de 
 
 ## Si… (condiciones)
 
-La acción **Si…** comprueba algo y, si no se cumple, para el comando o se salta las acciones siguientes. Puede mirar:
+La acción **Si…** comprueba algo y, si no se cumple, para el comando, se salta las acciones siguientes o **ejecuta otro comando en su lugar** (elegido en la lista; usa las mismas [variables](actions.md#variables-pasar-datos-de-una-acción-a-otra)). Puede mirar:
 
 | Condición | Ejemplo |
 |---|---|
@@ -49,8 +49,10 @@ La acción **Si…** comprueba algo y, si no se cumple, para el comando o se sal
 | Un archivo existe | «Si existe D:\copia.lock» |
 | El portapapeles | «Si el portapapeles contiene «http»» |
 | Uso del procesador, la gráfica o la memoria | «Si el procesador pasa del 80 %» |
+| Un texto o variable: tiene algo, contiene, es igual a, es mayor o menor que | «Si {resultado} contiene «error»», «Si {resultado} es mayor que 80» |
 
-Todas las condiciones se pueden negar («no está», «no responde»…).
+Todas las condiciones se pueden poner **Al revés** («no está», «no responde»…). Al comparar, los números se comparan como números
+(«7» es menor que «10»; «2,5» y «2.5» son lo mismo) y el texto sin mirar mayúsculas.
 
 ## Registro
 

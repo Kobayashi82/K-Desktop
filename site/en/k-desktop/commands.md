@@ -34,7 +34,7 @@ run another command… See the [complete list of actions](actions.md).
 
 ## If… (conditions)
 
-The **If…** action checks something and, if it is not so, stops the command or skips the next actions. It can check:
+The **If…** action checks something and, if it is not so, stops the command, skips the next actions or **runs another command instead** (chosen from the list; it gets the same [variables](actions.md#variables-passing-data-from-one-action-to-another)). It can check:
 
 | Condition | Example |
 |---|---|
@@ -48,8 +48,10 @@ The **If…** action checks something and, if it is not so, stops the command or
 | A file exists | «If D:\backup.lock exists» |
 | The clipboard | «If the clipboard contains "http"» |
 | CPU, GPU or memory use | «If the processor is above 80 %» |
+| A text or variable: has something, contains, is equal to, is greater or less than | «If {result} contains "error"», «If {result} is greater than 80» |
 
-Every condition can be negated («isn't», «doesn't»…).
+Every condition can be turned around with **The opposite** («isn't», «doesn't»…). When comparing, numbers are compared as numbers
+(«7» is less than «10»; «2,5» and «2.5» are the same) and text without minding upper or lower case.
 
 ## History
 

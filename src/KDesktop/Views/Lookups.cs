@@ -57,6 +57,7 @@ public static class Lookups
     public static IReadOnlyList<Option<SwitchMode>> DictateModes { get; } = Enum<SwitchMode>("enum.dictateMode");
     public static IReadOnlyList<Option<ConditionKind>> ConditionKinds { get; } = Enum<ConditionKind>("enum.condition");
     public static IReadOnlyList<Option<ConditionElse>> ConditionElses { get; } = Enum<ConditionElse>("enum.conditionElse");
+    public static IReadOnlyList<Option<VariableTest>> VariableTests { get; } = Enum<VariableTest>("enum.variableTest");
     public static IReadOnlyList<Option<LoadResource>> LoadResources { get; } = Enum<LoadResource>("enum.loadResource");
     public static IReadOnlyList<Option<LoadComparison>> LoadComparisons { get; } = Enum<LoadComparison>("enum.loadComparison");
     public static IReadOnlyList<Option<CaptureArea>> CaptureAreas { get; } = Enum<CaptureArea>("enum.captureArea");

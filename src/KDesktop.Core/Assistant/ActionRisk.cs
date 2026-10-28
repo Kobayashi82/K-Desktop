@@ -109,6 +109,9 @@ public static class ActionRisk
             if (action is CommandControlAction { Mode: CommandControlMode.Run, Target: CommandControlTarget.Command } run &&
                 findCommand(run.CommandId) is { } called)
                 own = Max(own, Walk(called, findCommand, seen));
+            // «Si… si no, ejecutar otro comando» (5.0.339): that one may run too.
+            if (action is ConditionAction { Else: ConditionElse.RunCommand } condition && findCommand(condition.ElseCommandId) is { } instead)
+                own = Max(own, Walk(instead, findCommand, seen));
             risk = Max(risk, own);
             if (risk == ToolRisk.AskAlways) break;
         }
