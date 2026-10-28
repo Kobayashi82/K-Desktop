@@ -40,7 +40,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <ui:TextBox Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.pathHint}" />
+                <ui:TextBox Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" PlaceholderText="{l:Tr editor.pathHint}" />
                 <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}" AutomationProperties.Name="{l:Tr editor.browse}"
                            Command="{x:Static v:EditorCommands.BrowseFile}" CommandParameter="{Binding}" />
             </Grid>
@@ -52,7 +52,7 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel>
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.arguments}" />
-                    <ui:TextBox Text="{Binding Arguments, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:TextBox Text="{Binding Arguments, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" />
                 </StackPanel>
                 <StackPanel Grid.Column="2">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.workingDir}" />
@@ -100,7 +100,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <ui:TextBox Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.folderHint}" />
+                <ui:TextBox Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" PlaceholderText="{l:Tr editor.folderHint}" />
                 <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}" AutomationProperties.Name="{l:Tr editor.browse}"
                            Command="{x:Static v:EditorCommands.BrowseFolder}" CommandParameter="{Binding}" />
             </Grid>
@@ -116,7 +116,7 @@
     <DataTemplate DataType="{x:Type m:OpenUrlAction}">
         <StackPanel>
             <TextBlock Style="{StaticResource FieldLabel}" Text="URL" />
-            <ui:TextBox Margin="0,0,0,12" Text="{Binding Url, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="https://…" Icon="{ui:SymbolIcon Globe24}" />
+            <ui:TextBox Margin="0,0,0,12" Text="{Binding Url, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" PlaceholderText="https://…" Icon="{ui:SymbolIcon Globe24}" />
             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.browser}" />
             <ComboBox Margin="0,0,0,12" ItemsSource="{x:Static v:Lookups.BrowserOptions}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Browser}" />
             <WrapPanel>
@@ -215,18 +215,20 @@
                 </StackPanel>
             </Grid>
             <TextBlock Style="{StaticResource FieldLabel}" Text="Script" />
-            <TextBox Margin="0,0,0,12" Text="{Binding Script, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" AcceptsTab="True"
+            <TextBox Margin="0,0,0,12" Text="{Binding Script, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" AcceptsReturn="True" AcceptsTab="True"
                      MinHeight="120" MaxHeight="360" VerticalScrollBarVisibility="Auto" TextWrapping="NoWrap" HorizontalScrollBarVisibility="Auto"
                      FontFamily="Cascadia Mono, Consolas" FontSize="13" />
             <WrapPanel>
                 <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.runAsAdmin}" IsChecked="{Binding RunAsAdmin}" />
                 <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.waitForExit}" IsChecked="{Binding WaitForExit}" />
             </WrapPanel>
+            <TextBlock x:Name="ResultHint" Style="{StaticResource Caption}" Margin="0,2,0,8" TextWrapping="Wrap" Text="{l:Tr editor.scriptResult}" />
         </StackPanel>
         <DataTemplate.Triggers>
-            <!-- wscript has no window of its own: the script shows its own messages -->
+            <!-- wscript has no window of its own: the script shows its own messages (and gives nothing back) -->
             <DataTrigger Binding="{Binding Shell}" Value="VBScript">
                 <Setter TargetName="WindowColumn" Property="Visibility" Value="Hidden" />
+                <Setter TargetName="ResultHint" Property="Visibility" Value="Collapsed" />
             </DataTrigger>
         </DataTemplate.Triggers>
     </DataTemplate>
@@ -246,7 +248,7 @@
                 </StackPanel>
                 <StackPanel Grid.Column="2">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="URL" />
-                    <ui:TextBox Text="{Binding Url, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="http://homeassistant.local:8123/api/services/light/turn_off" />
+                    <ui:TextBox Text="{Binding Url, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" PlaceholderText="http://homeassistant.local:8123/api/services/light/turn_off" />
                 </StackPanel>
             </Grid>
 
@@ -304,7 +306,7 @@
                     <ComboBox Grid.Column="1" IsEditable="True" ItemsSource="{x:Static v:Lookups.ContentTypes}"
                               Text="{Binding ContentType, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="application/json" />
                 </Grid>
-                <TextBox Margin="0,0,0,6" Text="{Binding Body, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" AcceptsTab="True"
+                <TextBox Margin="0,0,0,6" Text="{Binding Body, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" AcceptsReturn="True" AcceptsTab="True"
                          MinHeight="80" MaxHeight="300" VerticalScrollBarVisibility="Auto" TextWrapping="NoWrap" HorizontalScrollBarVisibility="Auto"
                          FontFamily="Cascadia Mono, Consolas" FontSize="13" />
             </StackPanel>
@@ -360,7 +362,7 @@
             <ui:Button x:Name="KeysButton" MinHeight="36" MinWidth="240" HorizontalAlignment="Left" Icon="{ui:SymbolIcon Keyboard24}"
                        Content="{Binding Value}" AutomationProperties.Name="{l:Tr editor.captureKeys}"
                        Command="{x:Static v:EditorCommands.CaptureKeys}" CommandParameter="{Binding}" />
-            <TextBox x:Name="TextBox" Visibility="Collapsed" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" FontSize="14"
+            <TextBox x:Name="TextBox" Visibility="Collapsed" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" FontSize="14"
                      AcceptsReturn="True" MinHeight="80" TextWrapping="Wrap" />
             <Grid x:Name="MouseRow" Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
@@ -633,7 +635,7 @@
     <DataTemplate DataType="{x:Type m:ShowMessageAction}">
         <StackPanel>
             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.message}" />
-            <ui:TextBox Margin="0,0,0,12" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" />
+            <ui:TextBox Margin="0,0,0,12" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" />
             <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
                 <StackPanel Width="140">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.seconds}" />
@@ -698,7 +700,7 @@
                 <TextBlock x:Name="CreateLabel" Style="{StaticResource FieldLabel}" Text="{l:Tr editor.filesCreate}" Visibility="Collapsed" />
                 <Grid Style="{StaticResource EdRow}">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                    <ui:TextBox Text="{Binding Destination, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.filesDestinationHint}"
+                    <ui:TextBox Text="{Binding Destination, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" PlaceholderText="{l:Tr editor.filesDestinationHint}"
                                 AutomationProperties.Name="{l:Tr editor.filesDestination}" />
                     <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}" AutomationProperties.Name="{l:Tr editor.browse}"
                                Command="{x:Static v:EditorCommands.BrowseFolder}" CommandParameter="{Binding}" />
@@ -707,7 +709,7 @@
 
             <StackPanel x:Name="RenamePanel" Visibility="Collapsed">
                 <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.filesNewName}" />
-                <ui:TextBox Margin="0,0,0,12" Text="{Binding NewName, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.filesNewNameHint}"
+                <ui:TextBox Margin="0,0,0,12" Text="{Binding NewName, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" PlaceholderText="{l:Tr editor.filesNewNameHint}"
                             AutomationProperties.Name="{l:Tr editor.filesNewName}" />
             </StackPanel>
 
@@ -771,10 +773,10 @@
     <DataTemplate DataType="{x:Type m:ShowNotificationAction}">
         <StackPanel>
             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.notifyTitle}" />
-            <ui:TextBox Margin="0,0,0,12" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.notifyTitleHint}"
+            <ui:TextBox Margin="0,0,0,12" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" PlaceholderText="{l:Tr editor.notifyTitleHint}"
                         AutomationProperties.Name="{l:Tr editor.notifyTitle}" />
             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.notifyText}" />
-            <ui:TextBox Margin="0,0,0,12" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.notifyTextHint}"
+            <ui:TextBox Margin="0,0,0,12" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" PlaceholderText="{l:Tr editor.notifyTextHint}"
                         TextWrapping="Wrap" AcceptsReturn="True" MaxHeight="120" AutomationProperties.Name="{l:Tr editor.notifyText}" />
             <Grid Style="{StaticResource EdRow}">
                 <Grid.ColumnDefinitions>
@@ -831,7 +833,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <ui:TextBox Text="{Binding Target, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.notifyTargetHint}"
+                <ui:TextBox Text="{Binding Target, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" PlaceholderText="{l:Tr editor.notifyTargetHint}"
                             AutomationProperties.Name="{l:Tr editor.notifyTarget}" />
                 <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}" AutomationProperties.Name="{l:Tr editor.browse}"
                            Command="{x:Static v:EditorCommands.BrowseFile}" CommandParameter="{Binding}" />
@@ -1028,7 +1030,7 @@
                 </StackPanel>
                 <StackPanel Grid.Column="2">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.messageOptional}" />
-                    <ui:TextBox Text="{Binding Message, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:TextBox Text="{Binding Message, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" />
                 </StackPanel>
             </Grid>
             <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.countdown}" IsChecked="{Binding Countdown}" />
@@ -1165,7 +1167,7 @@
             <ComboBox Margin="0,0,0,12" ItemsSource="{x:Static v:Lookups.ClipboardModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
             <StackPanel x:Name="TextRow" Visibility="Collapsed">
                 <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.clipboardText}" />
-                <TextBox Margin="0,0,0,6" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap"
+                <TextBox Margin="0,0,0,6" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" AcceptsReturn="True" TextWrapping="Wrap"
                          MinHeight="70" MaxHeight="260" VerticalScrollBarVisibility="Auto" FontSize="14" />
                 <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" TextWrapping="Wrap" Text="{l:Tr editor.clipboardVariables}" />
             </StackPanel>
@@ -1557,7 +1559,7 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.assistantAskText}" />
-            <ui:TextBox Margin="0,0,0,8" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.assistantAskTextHint}"
+            <ui:TextBox Margin="0,0,0,8" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" PlaceholderText="{l:Tr editor.assistantAskTextHint}"
                         AutomationProperties.Name="{l:Tr editor.assistantAskText}" MaxLength="500" />
             <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.assistantAskHint}" />
         </StackPanel>
@@ -1580,7 +1582,7 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.assistantSayText}" />
-            <ui:TextBox Margin="0,0,0,8" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.assistantSayTextHint}"
+            <ui:TextBox Margin="0,0,0,8" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" PlaceholderText="{l:Tr editor.assistantSayTextHint}"
                         AutomationProperties.Name="{l:Tr editor.assistantSayText}" MaxLength="500" />
             <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.assistantSayCatchEye}" IsChecked="{Binding CatchEye}" />
             <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.assistantSayHint}" />
@@ -1651,7 +1653,7 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <ui:TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="%USERPROFILE%\Desktop\…"
+                    <ui:TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" PlaceholderText="%USERPROFILE%\Desktop\…"
                                 AutomationProperties.Name="{l:Tr editor.ifPath}" />
                     <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon Document24}" ToolTip="{l:Tr editor.ifPickFile}"
                                AutomationProperties.Name="{l:Tr editor.ifPickFile}" Command="{x:Static v:EditorCommands.BrowseFile}" CommandParameter="{Binding}" />
@@ -1661,7 +1663,7 @@
             </StackPanel>
             <StackPanel x:Name="TextRow" Margin="0,0,0,12" Visibility="Collapsed">
                 <TextBlock x:Name="TextLabel" Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifText}" />
-                <ui:TextBox x:Name="TextBox" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" />
+                <ui:TextBox x:Name="TextBox" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" />
             </StackPanel>
             <StackPanel x:Name="ScheduleRow" Margin="0,0,0,12" Visibility="Collapsed">
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">

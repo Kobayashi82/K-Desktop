@@ -161,6 +161,7 @@ public sealed partial class CommandEngine
             text = ClipboardText.Transform(a.Mode, current) ?? current;
         }
 
+        Gave(a, text);
         if (!_ui.SetClipboardText(text))
         {
             Log.Warn("Portapapeles: no se pudo escribir (otro programa lo tiene abierto)");
@@ -171,6 +172,28 @@ public sealed partial class CommandEngine
             await Task.Delay(40, ctx.Token).ConfigureAwait(false);
             InputSimulator.SendCombo("CTRL + V");
             await Task.Delay(60, ctx.Token).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// The text selected in the window the command was run over (empty: none), borrowing the clipboard: it is put back
+    /// as it was.
+    /// </summary>
+    private static async Task<string> CopySelectionTextAsync(ExecutionContext ctx)
+    {
+        if (ctx.FromPopup && ctx.Foreground.Handle != IntPtr.Zero)
+        {
+            WindowTools.ForceForeground(ctx.Foreground.Handle);
+            await Task.Delay(60, ctx.Token).ConfigureAwait(false);
+        }
+        var saved = ClipboardSnapshot.Take();
+        try
+        {
+            return await CopySelectionAsync(ctx.Token).ConfigureAwait(false) ? TextVariables.ClipboardText() : string.Empty;
+        }
+        finally
+        {
+            saved?.Restore();
         }
     }
 

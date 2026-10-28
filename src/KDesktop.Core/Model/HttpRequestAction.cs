@@ -69,6 +69,9 @@ public partial class HttpRequestAction : CommandAction
 
     public override bool IsTransient(string? property) => property is nameof(TestResult) or nameof(Testing) || base.IsTransient(property);
 
+    /// <summary>The answer's text.</summary>
+    public override bool GivesResult => true;
+
     public override ActionKind Kind => ActionKind.HttpRequest;
 
     /// <summary>«POST ha.local/api/services/light/turn_off»: never the headers (they may carry a token).</summary>

@@ -89,6 +89,15 @@ public abstract partial class CommandAction : ObservableObject
     [ObservableProperty]
     [property: JsonIgnore] private int _indent;
 
+    /// <summary>
+    /// «Guardar en variable»: the name under which what it gives is kept for the rest of the command ({name}); null: only
+    /// in {resultado}. Only for the actions that give something (<see cref="GivesResult"/>).
+    /// </summary>
+    [ObservableProperty] private string? _saveAs;
+
+    /// <summary>Whether it gives something to the next actions ({resultado}): the text read, a web answer, a file…</summary>
+    [JsonIgnore] public virtual bool GivesResult => false;
+
     [JsonIgnore] public abstract ActionKind Kind { get; }
 
     [JsonIgnore] public ActionInfo Info => ActionCatalog.Get(Kind);
@@ -113,7 +122,7 @@ public abstract partial class CommandAction : ObservableObject
     public void RefreshSummary() => base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(Summary)));
 
     /// <summary>A display-only property (not a change to save).</summary>
-    public virtual bool IsTransient(string? property) => property is nameof(Summary) or nameof(Indent);
+    public virtual bool IsTransient(string? property) => property is nameof(Summary) or nameof(Indent) or nameof(GivesResult);
 
     public CommandAction Clone() => Json.Clone(this);
 
@@ -206,6 +215,13 @@ public partial class RunScriptAction : CommandAction
     [ObservableProperty] private WindowMode _windowMode = WindowMode.Hidden;
     [ObservableProperty] private bool _runAsAdmin;
     [ObservableProperty] private bool _waitForExit;
+
+    /// <summary>What it writes, when it is waited for and runs hidden (Windows Script Host has no console).</summary>
+    public override bool GivesResult => WaitForExit && WindowMode == WindowMode.Hidden && Shell != ScriptShell.VBScript;
+
+    partial void OnShellChanged(ScriptShell value) => OnPropertyChanged(nameof(GivesResult));
+    partial void OnWindowModeChanged(WindowMode value) => OnPropertyChanged(nameof(GivesResult));
+    partial void OnWaitForExitChanged(bool value) => OnPropertyChanged(nameof(GivesResult));
 
     public override ActionKind Kind => ActionKind.RunScript;
     public override string Summary

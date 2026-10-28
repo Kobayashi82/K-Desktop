@@ -101,6 +101,7 @@ public sealed partial class CommandEngine
             await File.WriteAllBytesAsync(path, bytes, ctx.Token).ConfigureAwait(false);
             Log.Info($"Captura: {image.Width}×{image.Height} → {path} ({bytes.Length / 1024} KB)");
         }
+        Gave(a, path ?? string.Empty);
         if (a.Open && path is not null) ProcessLauncher.Launch(new LaunchSpec(path), asAdmin: false);
         if (!a.ShowOsd) return;
         var size = string.Create(CultureInfo.InvariantCulture, $"{image.Width}×{image.Height}");
@@ -156,11 +157,13 @@ public sealed partial class CommandEngine
             if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.screenTextNoOcr"), OsdKind.Warning, look: OsdLook.Of("ScanText24"));
             return;
         }
+        Gave(a, string.Empty); // until it reads something
         if (await CaptureAsync(a.Area, ctx, inside: true).ConfigureAwait(false) is not { } image) return; // cancelled
 
         var watch = System.Diagnostics.Stopwatch.StartNew();
         var language = a.Language.Length > 0 ? a.Language : Loc.Instance.Language;
         if (await ScreenText.ReadAsync(image, language, a.SingleLine, ctx.Token).ConfigureAwait(false) is not { } read) return;
+        Gave(a, read.Text);
         Log.Info($"Texto de la pantalla: {image.Width}×{image.Height}, {read.Lines} líneas, {read.Text.Length} letras ({read.Language}) en {watch.ElapsedMilliseconds} ms");
         if (read.Text.Length == 0)
         {

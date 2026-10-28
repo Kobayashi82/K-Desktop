@@ -131,10 +131,11 @@ public sealed partial class CommandEngine
     /// stops it like re-triggering would.
     /// </summary>
     public Task RunChoreographedAsync(Command command, TriggerSource source, IChoreography choreography, CancellationToken cancellationToken = default) =>
-        RunAsync(command, source, ForegroundWindow.Capture(), false, 0, choreography, cancellationToken);
+        RunAsync(command, source, ForegroundWindow.Capture(), false, 0, choreography, null, cancellationToken);
 
+    /// <param name="variables">Shared with the caller (a command run by another, the commands of one event); null: its own.</param>
     private async Task RunAsync(Command command, TriggerSource source, ForegroundWindow foreground, bool isRepeat, int depth,
-        IChoreography? choreography = null, CancellationToken cancellationToken = default)
+        IChoreography? choreography = null, CommandVariables? variables = null, CancellationToken cancellationToken = default)
     {
         if (depth > MaxNesting)
         {
@@ -170,6 +171,7 @@ public sealed partial class CommandEngine
         });
 
         var ctx = new ExecutionContext(command, source, foreground, isRepeat, cts.Token, depth, choreography);
+        CommandVariables.Use(variables ?? new CommandVariables());
         var started = Environment.TickCount64;
         var detail = depth == 0 ? ExecutionHistory.CurrentDetail : null;
         var outcome = RunOutcome.Ok;
@@ -227,6 +229,7 @@ public sealed partial class CommandEngine
                         Log.Info($"'{command.Name}': no se cumple «{what}», se salta{(skip == 1 ? " 1 acción" : $"n {skip} acciones")}");
                         continue;
                     }
+                    await TakeSelectionAsync(action, ctx).ConfigureAwait(false);
                     await ExecuteActionAsync(action, ctx).ConfigureAwait(false);
                     if (step is not null) choreography!.After(step, StepOutcome.Ok, null);
                 }
@@ -288,6 +291,18 @@ public sealed partial class CommandEngine
         }
     }
 
+    /// <summary>
+    /// {seleccion}: the first action that uses it copies what is selected (Ctrl+C in the window it was run over) and puts
+    /// the clipboard back as it was. Nothing selected: empty.
+    /// </summary>
+    private static async Task TakeSelectionAsync(CommandAction action, ExecutionContext ctx)
+    {
+        if (CommandVariables.Current is not { Selection: null } variables) return;
+        if (!TextVariables.UsesSelection(action)) return;
+        variables.Selection = await CopySelectionTextAsync(ctx).ConfigureAwait(false);
+        Log.Info($"'{ctx.Command.Name}': {{seleccion}} con {variables.Selection.Length} letras");
+    }
+
     /// <summary>Executes a single action outside of a command (the "test" button of the editor).</summary>
     public async Task TestActionAsync(CommandAction action, Command owner)
     {
@@ -325,12 +340,14 @@ public sealed partial class CommandEngine
             return;
         }
         EventFired?.Invoke(rule, end, source);
+        // Its commands share the variables (one leaves {resultado} for the next); run by a command, the command's.
+        var variables = depth > 0 ? CommandVariables.Current ?? new CommandVariables() : new CommandVariables();
         using var origin = ExecutionHistory.Describe(Localization.Loc.T(end ? "history.eventEnd" : "history.event", rule.Name));
         foreach (var command in EventCommands(rule, end))
         {
             Log.Info($"Evento «{rule.Name}»{(end ? " (al terminar)" : "")} → «{command.Name}»");
             if (cancellationToken.IsCancellationRequested) break;
-            await RunAsync(command, source, foreground, false, depth, choreography, cancellationToken).ConfigureAwait(false);
+            await RunAsync(command, source, foreground, false, depth, choreography, variables, cancellationToken).ConfigureAwait(false);
         }
         if (!end && rule.Ask is { IsEmpty: false } ask && !cancellationToken.IsCancellationRequested)
         {

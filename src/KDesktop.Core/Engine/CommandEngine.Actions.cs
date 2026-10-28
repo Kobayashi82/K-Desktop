@@ -47,20 +47,23 @@ public sealed partial class CommandEngine
         MagnifierAction a => Run(() => Magnify(a)),
         DictateAction a => Run(() => _ui.Dictate(a.Mode)),
         AssistantExtraAction a => Run(() => _ui.RunAssistantExtra(a.Assistant, a.Extra, a.BringOut)),
-        AssistantAskAction a => Run(() => _ui.AskAssistant(a.Assistant, a.Text)),
-        AssistantSayAction a => Run(() => _ui.AssistantSay(a.Assistant, a.Text, a.CatchEye)),
+        AssistantAskAction a => Run(() => _ui.AskAssistant(a.Assistant, TextVariables.Expand(a.Text))),
+        AssistantSayAction a => Run(() => _ui.AssistantSay(a.Assistant, TextVariables.Expand(a.Text), a.CatchEye)),
         AssistantBrainAction a => Run(() => _ui.AssistantBrain(a.Op)),
         _ => Task.CompletedTask,
     };
 
     private static Task Run(Action action) => Task.Run(action);
 
+    /// <summary>What an action gives, for the next ones: {resultado} and, if it has a name, {name}.</summary>
+    private static void Gave(CommandAction action, string value) => CommandVariables.Current?.SetResult(value, action.SaveAs);
+
     // ── Aplicaciones ─────────────────────────────────────────────────────
 
     private static Task RunAppAsync(RunAppAction a)
     {
         if (string.IsNullOrWhiteSpace(a.Path)) return Task.CompletedTask;
-        var spec = new LaunchSpec(a.Path, a.Arguments, a.WorkingDirectory, a.WindowMode, a.Priority, a.TopMost);
+        var spec = new LaunchSpec(TextVariables.Expand(a.Path), TextVariables.Expand(a.Arguments), a.WorkingDirectory, a.WindowMode, a.Priority, a.TopMost);
         return Task.Run(() => ProcessLauncher.Launch(spec, a.RunAsAdmin));
     }
 
@@ -71,7 +74,7 @@ public sealed partial class CommandEngine
             if (!ShellTools.OpenSpecial(special)) Log.Warn($"Ubicación especial desconocida: {special}");
             return;
         }
-        var path = Environment.ExpandEnvironmentVariables(a.Path.Trim().Trim('"'));
+        var path = Environment.ExpandEnvironmentVariables(TextVariables.Expand(a.Path).Trim().Trim('"'));
         if (path.Length == 0) return;
         if (Directory.Exists(path) || path.StartsWith(@"\\", StringComparison.Ordinal) || path.StartsWith("shell:", StringComparison.OrdinalIgnoreCase))
             ProcessLauncher.Launch(new LaunchSpec("explorer.exe", $"\"{path}\""), asAdmin: false);
@@ -83,7 +86,7 @@ public sealed partial class CommandEngine
 
     private static Task OpenUrlAsync(OpenUrlAction a) => Task.Run(() =>
     {
-        var url = NormalizeUrl(a.Url);
+        var url = NormalizeUrl(TextVariables.ExpandUrl(a.Url));
         if (url.Length == 0) return;
         var browser = Browsers.Get(a.Browser);
         var exe = browser?.Executable;
@@ -178,7 +181,13 @@ public sealed partial class CommandEngine
     {
         if (string.IsNullOrWhiteSpace(a.Script)) return;
         Directory.CreateDirectory(AppPaths.TempDir);
-        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(a.Shell + a.Script)))[..16];
+        // With variables, the script of this run (they go in as they are); those files do not stay around.
+        var script = TextVariables.Expand(a.Script);
+        var prefix = script == a.Script ? "script-" : "script-v-";
+        if (prefix != "script-") DeleteOld(prefix);
+        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(a.Shell + script)))[..16];
+        // What it writes, for {resultado}: waited for and hidden (see GivesResult).
+        var output = a.GivesResult ? Path.Combine(AppPaths.TempDir, $"script-out-{Guid.NewGuid():N}.txt") : null;
 
         LaunchSpec spec;
         switch (a.Shell)
@@ -186,12 +195,14 @@ public sealed partial class CommandEngine
             case ScriptShell.Cmd:
             {
                 // A .cmd is a .bat: the same commands.
-                var file = Path.Combine(AppPaths.TempDir, $"script-{hash}.cmd");
-                await File.WriteAllTextAsync(file, "@chcp 65001 >nul\r\n" + a.Script.Replace("\r\n", "\n").Replace("\n", "\r\n"),
+                var file = Path.Combine(AppPaths.TempDir, $"{prefix}{hash}.cmd");
+                // Its output kept for {resultado}: only what the script writes, not each line it runs.
+                await File.WriteAllTextAsync(file, "@chcp 65001 >nul\r\n" + (output is null ? "" : "@echo off\r\n") + script.Replace("\r\n", "\n").Replace("\n", "\r\n"),
                     new UTF8Encoding(false), ctx.Token).ConfigureAwait(false);
                 // Visible, the window stays open to read what it wrote (as PowerShell's), except when the command waits for it.
                 // The doubled quotes: cmd takes off the outer pair and keeps the path's own (it has spaces).
-                spec = a.WindowMode == WindowMode.Hidden || a.WaitForExit
+                spec = output is not null ? new LaunchSpec("cmd.exe", $"/C \"\"{file}\" > \"{output}\" 2>&1\"", null, a.WindowMode)
+                    : a.WindowMode == WindowMode.Hidden || a.WaitForExit
                     ? new LaunchSpec(file, "", null, a.WindowMode)
                     : new LaunchSpec("cmd.exe", $"/K \"\"{file}\"\"", null, a.WindowMode);
                 break;
@@ -199,19 +210,21 @@ public sealed partial class CommandEngine
             case ScriptShell.VBScript:
             {
                 // Windows Script Host reads Unicode with its BOM (UTF-8 would break the accents); wscript has no console.
-                var file = Path.Combine(AppPaths.TempDir, $"script-{hash}.vbs");
-                await File.WriteAllTextAsync(file, a.Script.Replace("\r\n", "\n").Replace("\n", "\r\n"),
+                var file = Path.Combine(AppPaths.TempDir, $"{prefix}{hash}.vbs");
+                await File.WriteAllTextAsync(file, script.Replace("\r\n", "\n").Replace("\n", "\r\n"),
                     new UnicodeEncoding(false, true), ctx.Token).ConfigureAwait(false);
                 spec = new LaunchSpec("wscript.exe", $"//nologo \"{file}\"", null, a.WindowMode);
                 break;
             }
             default:
             {
-                var file = Path.Combine(AppPaths.TempDir, $"script-{hash}.ps1");
-                await File.WriteAllTextAsync(file, a.Script, new UTF8Encoding(true), ctx.Token).ConfigureAwait(false);
+                var file = Path.Combine(AppPaths.TempDir, $"{prefix}{hash}.ps1");
+                await File.WriteAllTextAsync(file, script, new UTF8Encoding(true), ctx.Token).ConfigureAwait(false);
                 // A visible window stays open to read what it wrote, except when the command waits for it to end.
                 var noExit = a.WindowMode == WindowMode.Hidden || a.WaitForExit ? "" : "-NoExit ";
-                spec = new LaunchSpec("powershell.exe", $"-NoProfile {noExit}-ExecutionPolicy Bypass -File \"{file}\"", null, a.WindowMode);
+                spec = output is not null
+                    ? new LaunchSpec("powershell.exe", $"-NoProfile -ExecutionPolicy Bypass -Command \"& '{Quoted(file)}' *>&1 | Out-File -LiteralPath '{Quoted(output)}' -Encoding utf8 -Width 4096\"", null, a.WindowMode)
+                    : new LaunchSpec("powershell.exe", $"-NoProfile {noExit}-ExecutionPolicy Bypass -File \"{file}\"", null, a.WindowMode);
                 break;
             }
         }
@@ -224,6 +237,33 @@ public sealed partial class CommandEngine
         var cts = BeginCancellable(ctx.Token); // Esc stops waiting (the script goes on)
         try { await ProcessLauncher.LaunchAndWaitAsync(spec, a.RunAsAdmin, cts.Token).ConfigureAwait(false); }
         finally { EndCancellable(cts); }
+        if (output is null) return;
+        try
+        {
+            Gave(a, File.Exists(output) ? (await File.ReadAllTextAsync(output, ctx.Token).ConfigureAwait(false)).Trim() : string.Empty);
+            File.Delete(output);
+        }
+        catch (IOException ex)
+        {
+            Log.Warn($"Script: no se pudo leer lo que escribió ({ex.Message})");
+        }
+
+        // A path inside single quotes, for PowerShell.
+        static string Quoted(string path) => path.Replace("'", "''", StringComparison.Ordinal);
+    }
+
+    /// <summary>The scripts with variables of earlier runs (one per run): gone after an hour.</summary>
+    private static void DeleteOld(string prefix)
+    {
+        try
+        {
+            foreach (var file in Directory.EnumerateFiles(AppPaths.TempDir, prefix + "*"))
+                if (DateTime.UtcNow - File.GetLastWriteTimeUtc(file) > TimeSpan.FromHours(1)) File.Delete(file);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Log.Info($"Script: no se pudieron borrar los antiguos ({ex.Message})");
+        }
     }
 
     private async Task HttpRequestAsync(HttpRequestAction a, ExecutionContext ctx)
@@ -233,6 +273,7 @@ public sealed partial class CommandEngine
         try
         {
             var result = await HttpRequests.SendAsync(a, cts.Token).ConfigureAwait(false);
+            Gave(a, result.Body);
             var text = Loc.T("http.result", a.Summary, result.Describe());
             if (result.Success)
             {
@@ -377,13 +418,14 @@ public sealed partial class CommandEngine
     private async Task ShowMessageAsync(ShowMessageAction a, ExecutionContext ctx)
     {
         var duration = TimeSpan.FromSeconds(Math.Max(0.3, a.Seconds));
+        var text = TextVariables.Expand(a.Text);
         if (!a.Countdown && !a.Wait)
         {
-            _ui.ShowOsd(a.Text, OsdKind.Info, duration, OsdLook.Of("Chat24"));
+            _ui.ShowOsd(text, OsdKind.Info, duration, OsdLook.Of("Chat24"));
             return;
         }
         var cts = BeginCancellable(ctx.Token);
-        var osd = _ui.ShowPersistentOsd(a.Text, a.Countdown ? DateTime.Now + duration : null, "Chat24");
+        var osd = _ui.ShowPersistentOsd(text, a.Countdown ? DateTime.Now + duration : null, "Chat24");
         var task = Task.Delay(duration, cts.Token).ContinueWith(t =>
         {
             if (t.IsCanceled && a.Countdown) CountdownCancelled();
@@ -540,7 +582,7 @@ public sealed partial class CommandEngine
         {
             case CommandControlMode.Run:
                 if (ReferenceEquals(target, ctx.Command)) return;
-                await RunAsync(target, TriggerSource.Command, ctx.Foreground, false, ctx.Depth + 1, ctx.Choreography, ctx.ChoreographyToken).ConfigureAwait(false);
+                await RunAsync(target, TriggerSource.Command, ctx.Foreground, false, ctx.Depth + 1, ctx.Choreography, CommandVariables.Current, ctx.ChoreographyToken).ConfigureAwait(false);
                 break;
             case CommandControlMode.Enable:
                 _ui.RunOnUi(() => target.Enabled = true);
@@ -603,7 +645,7 @@ public sealed partial class CommandEngine
             return;
         }
         var cts = BeginCancellable(ctx.Token);
-        var osd = _ui.ShowPersistentOsd(a.Message, a.Countdown ? DateTime.Now + duration : null, "Timer24");
+        var osd = _ui.ShowPersistentOsd(TextVariables.Expand(a.Message), a.Countdown ? DateTime.Now + duration : null, "Timer24");
         try
         {
             await Task.Delay(duration, cts.Token).ConfigureAwait(false);

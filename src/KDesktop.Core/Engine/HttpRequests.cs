@@ -57,7 +57,7 @@ public static class HttpRequests
         var started = Environment.TickCount64;
         long Elapsed() => Environment.TickCount64 - started;
 
-        var url = CommandEngine.NormalizeUrl(TextVariables.Expand(a.Url, Uri.EscapeDataString));
+        var url = CommandEngine.NormalizeUrl(TextVariables.ExpandUrl(a.Url));
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https"))
             return new HttpResult(null, string.Empty, string.Empty, 0, Loc.T("http.invalidUrl", a.Url));
 

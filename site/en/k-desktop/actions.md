@@ -88,3 +88,26 @@ Only with the [assistant module](../assistant/index.md) on.
 | **Assistant: say** | The assistant says something in its bubble, without the AI. Handy in events: «The backup has finished». |
 | **Assistant: brain** | Takes the AI model out of the graphics card (before a game or a render) or loads it now so the first answer does not wait. |
 | **Assistant: action** | Puts an assistant on the desktop, hides it, or runs one of its own actions, like the Lander's manual mode (if it is not on the desktop, it comes out for it or nothing is done, as you choose). |
+
+## Variables: passing data from one action to another
+
+The texts of the actions (a message, an address, a text to type, a script…) can have variables. Type `{` in the field
+and the ones you can use show up; choose one with the arrows and put it with Enter.
+
+| Variable | What it holds |
+|---|---|
+| `{result}` | What the previous action that gives something gave (see below). |
+| `{selection}` | What is selected in the window where you ran the command. It is copied once and the clipboard is left as it was. |
+| `{clipboard}` | The copied text. |
+| `{date}` and `{time}` | Today's date (2026-10-28) and the time (09:30:05). |
+| `{name}` | What an earlier action kept with **Save in a variable** and that name. |
+
+These give something: **Copy text from the screen** (the text read), **Web request** (the answer), **Clipboard** (the text
+it leaves copied), **Screenshot** (the saved file) and **Run script** (what it writes, when *Wait until it finishes* is
+ticked and the window is *Hidden*; not in VBScript). These actions have the **Save in a variable** field: with a name
+(letters, digits and `_`), what they give stays available until the command ends, even if another action changes
+`{result}` later.
+
+Variables last one run of the command. The commands it runs with *Commands* and the commands of the same event share
+them. The Spanish names work too (`{resultado}`, `{seleccion}`, `{portapapeles}`, `{fecha}`, `{hora}`). Anything else
+between braces is left as it is.

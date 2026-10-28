@@ -528,7 +528,17 @@
                                             </Grid>
                                             <!-- Inline editor (visible when the row is selected) -->
                                             <Border x:Name="EditorPanel" Margin="46,14,4,4" Visibility="Collapsed">
-                                                <ContentControl Content="{Binding}" Focusable="False" />
+                                                <StackPanel>
+                                                    <ContentControl Content="{Binding}" Focusable="False" />
+                                                    <!-- What it gives, for the next actions ({resultado}) and, with a name, for the rest of the command -->
+                                                    <StackPanel Visibility="{Binding GivesResult, Converter={StaticResource BoolToVis}}">
+                                                        <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.saveAs}" />
+                                                        <ui:TextBox Text="{Binding SaveAs, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.saveAsHint}"
+                                                                    MaxWidth="320" HorizontalAlignment="Left" MinWidth="220" Icon="{ui:SymbolIcon BracesVariable24}"
+                                                                    AutomationProperties.Name="{l:Tr editor.saveAs}" />
+                                                        <TextBlock Style="{StaticResource Caption}" Margin="0,4,0,8" TextWrapping="Wrap" Text="{l:Tr editor.saveAsCaption}" />
+                                                    </StackPanel>
+                                                </StackPanel>
                                             </Border>
                                         </StackPanel>
                                         <DataTemplate.Triggers>

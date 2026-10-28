@@ -17,7 +17,7 @@ public static class Conditions
 
     private static async Task<bool> CheckAsync(ConditionAction c, ForegroundWindow foreground, DateTime now, CancellationToken token)
     {
-        var text = c.Text.Trim();
+        var text = TextVariables.Expand(c.Text).Trim();
         switch (c.Condition)
         {
             case ConditionKind.ProcessRunning:

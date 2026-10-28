@@ -100,6 +100,11 @@ public partial class ClipboardAction : CommandAction
     /// <summary>Paste the result afterwards (Ctrl+V).</summary>
     [ObservableProperty] private bool _paste = true;
 
+    /// <summary>The text it leaves on the clipboard.</summary>
+    public override bool GivesResult => Mode != ClipboardMode.Clear;
+
+    partial void OnModeChanged(ClipboardMode value) => OnPropertyChanged(nameof(GivesResult));
+
     public override ActionKind Kind => ActionKind.Clipboard;
 
     public override string Summary
@@ -410,6 +415,11 @@ public partial class ScreenshotAction : CommandAction
     [ObservableProperty] private bool _open;
     [ObservableProperty] private bool _showOsd = true;
 
+    /// <summary>The file it saved.</summary>
+    public override bool GivesResult => Save;
+
+    partial void OnSaveChanged(bool value) => OnPropertyChanged(nameof(GivesResult));
+
     public override ActionKind Kind => ActionKind.Screenshot;
     public override string Summary
     {
@@ -440,6 +450,9 @@ public partial class ScreenTextAction : CommandAction
     /// <summary>All the lines joined in one (to paste in a search box, a cell…).</summary>
     [ObservableProperty] private bool _singleLine;
     [ObservableProperty] private bool _showOsd = true;
+
+    /// <summary>The text read.</summary>
+    public override bool GivesResult => true;
 
     public override ActionKind Kind => ActionKind.ScreenText;
     public override string Summary
