@@ -150,7 +150,8 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <ui:TextBox Text="{Binding Folder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="C:\ComfyUI\output" Icon="{ui:SymbolIcon Folder24}" />
-                        <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.browse}" Icon="{ui:SymbolIcon FolderOpen24}" Click="OnBrowseFolder" />
+                        <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}"
+                                   AutomationProperties.Name="{l:Tr editor.browse}" Click="OnBrowseFolder" />
                     </Grid>
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.fileFilter}" />
                     <ui:TextBox Width="200" HorizontalAlignment="Left" Margin="0,0,0,10" Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="*.png" />
@@ -199,22 +200,35 @@
                 <StackPanel>
                     <Grid Style="{StaticResource EdRow}">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="260" />
+                            <ColumnDefinition Width="130" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="230" />
                             <ColumnDefinition Width="16" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <StackPanel>
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.audioDirection}" />
+                            <ComboBox ItemsSource="{x:Static v:Lookups.AudioDirections}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Input}"
+                                      AutomationProperties.Name="{l:Tr event.audioDirection}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.sessionWhen}" />
                             <ComboBox ItemsSource="{x:Static v:Lookups.AudioDeviceEvents}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Event}" />
                         </StackPanel>
-                        <StackPanel Grid.Column="2">
+                        <StackPanel Grid.Column="4">
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.audioDevice}" />
-                            <ComboBox IsEditable="True" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr event.networkPlaceholder}"
+                            <ComboBox x:Name="DeviceBox" IsEditable="True" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr event.networkPlaceholder}"
                                       ItemsSource="{Binding Source={x:Static v:Lookups.AudioDeviceNames}}" />
                         </StackPanel>
                     </Grid>
-                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr event.hint.audio}" />
+                    <TextBlock x:Name="Hint" Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr event.hint.audio}" />
                 </StackPanel>
+                <DataTemplate.Triggers>
+                    <DataTrigger Binding="{Binding Input}" Value="True">
+                        <Setter TargetName="DeviceBox" Property="ItemsSource" Value="{Binding Source={x:Static v:Lookups.AudioInputNames}}" />
+                        <Setter TargetName="Hint" Property="Text" Value="{l:Tr event.hint.audioInput}" />
+                    </DataTrigger>
+                </DataTemplate.Triggers>
             </DataTemplate>
 
             <DataTemplate DataType="{x:Type m:RemoteCallTrigger}">

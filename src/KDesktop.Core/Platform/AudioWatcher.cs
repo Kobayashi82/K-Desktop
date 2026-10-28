@@ -3,13 +3,13 @@ using System.Runtime.InteropServices;
 namespace KDesktop.Core.Platform;
 
 /// <summary>
-/// Tells when playback devices come and go or the default one changes (Windows' endpoint notifications). Windows calls
-/// in on its own threads and must not be called back from there, so <see cref="Changed"/> comes a moment later, once,
-/// from a timer: look at <see cref="AudioDevices.Playback"/> then.
+/// Tells when playback or recording devices come and go or the default one changes (Windows' endpoint notifications).
+/// Windows calls in on its own threads and must not be called back from there, so <see cref="Changed"/> comes a moment
+/// later, once, from a timer: look at <see cref="AudioDevices.Playback"/> / <see cref="AudioDevices.Recording"/> then.
 /// </summary>
 public sealed class AudioWatcher : IDisposable
 {
-    private const int RenderFlow = 0, MultimediaRole = 1;
+    private const int MultimediaRole = 1;
 
     private readonly IMMDeviceEnumerator _enumerator;
     private readonly Client _client;
@@ -59,7 +59,7 @@ public sealed class AudioWatcher : IDisposable
 
         public void OnDefaultDeviceChanged(int flow, int role, string? defaultDeviceId)
         {
-            if (flow == RenderFlow && role == MultimediaRole) owner.Poke();
+            if (role == MultimediaRole) owner.Poke();
         }
 
         // Names, icons, formats… change all the time and say nothing about connecting.

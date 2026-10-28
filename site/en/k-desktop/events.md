@@ -23,8 +23,8 @@ removed…) with its own commands.
 | Drive connected | When a USB stick, disk or card is connected (and removed) |
 | Network | When connecting to a network (or any), or when left without network |
 | Device connected | When a controller, keyboard, headset or USB gadget is connected (and disconnected) |
-| PC usage | When the CPU, the graphics card or the memory goes above (or below) a % for a while |
-| Audio device | When headphones or a speaker are connected, or one becomes the default output |
+| PC usage | When the CPU, the graphics card, the memory or the graphics memory (VRAM) goes above (or below) a % for a while |
+| Audio device | When headphones, a speaker or a microphone are connected, or one becomes the default output or input |
 
 ## Options
 

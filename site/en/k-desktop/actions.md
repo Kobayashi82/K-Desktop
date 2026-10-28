@@ -66,7 +66,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 | **Power plan** | Switches the Windows power plan (High performance, Balanced…) or goes to the next one. |
 | **Power** | Shuts down, restarts, sleeps, locks or signs out, with a cancellable countdown. |
 
-## K-Desktop and flow
+## Flow
 
 | Action | What it does |
 |---|---|

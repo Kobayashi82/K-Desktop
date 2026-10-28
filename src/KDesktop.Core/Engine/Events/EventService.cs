@@ -702,7 +702,7 @@ public sealed class EventService : IDisposable
         }
         if (_audio is null)
         {
-            _audioDevices = AudioDevices.Playback();
+            _audioDevices = AllAudioDevices();
             try
             {
                 _audio = new AudioWatcher();
@@ -718,24 +718,27 @@ public sealed class EventService : IDisposable
         foreach (var (rule, t) in rules)
         {
             if (t.Event == AudioDeviceEvent.Connected)
-                _audioConnected.TryAdd(rule.Id, _audioDevices.Where(d => d.IsActive && t.Matches(d.Name)).Select(d => d.Id).ToHashSet());
+                _audioConnected.TryAdd(rule.Id, _audioDevices.Where(d => d.IsInput == t.Input && d.IsActive && t.Matches(d.Name)).Select(d => d.Id).ToHashSet());
             else
-                _audioDefaultActive.TryAdd(rule.Id, _audioDevices.Any(d => d.IsDefault && t.Matches(d.Name)));
+                _audioDefaultActive.TryAdd(rule.Id, _audioDevices.Any(d => d.IsInput == t.Input && d.IsDefault && t.Matches(d.Name)));
         }
     }
 
+    /// <summary>The playback devices and the recording ones (each says which it is).</summary>
+    private static IReadOnlyList<AudioDeviceInfo> AllAudioDevices() => [.. AudioDevices.Playback(), .. AudioDevices.Recording()];
+
     private void OnAudioChanged()
     {
-        var devices = AudioDevices.Playback();
+        var all = AllAudioDevices();
         List<(EventRule Rule, bool End)> fire = [];
         lock (_lock)
         {
             if (_disposed || _audio is null) return;
-            var oldDefault = _audioDevices.FirstOrDefault(d => d.IsDefault)?.Id;
-            var newDefault = devices.FirstOrDefault(d => d.IsDefault);
-            _audioDevices = devices;
+            var previous = _audioDevices;
+            _audioDevices = all;
             foreach (var (rule, t) in Rules<AudioDeviceTrigger>())
             {
+                var devices = all.Where(d => d.IsInput == t.Input).ToList();
                 if (t.Event == AudioDeviceEvent.Connected)
                 {
                     var now = devices.Where(d => d.IsActive && t.Matches(d.Name)).Select(d => d.Id).ToHashSet();
@@ -750,6 +753,8 @@ public sealed class EventService : IDisposable
                 }
                 else
                 {
+                    var oldDefault = previous.FirstOrDefault(d => d.IsInput == t.Input && d.IsDefault)?.Id;
+                    var newDefault = devices.FirstOrDefault(d => d.IsDefault);
                     var was = _audioDefaultActive.GetValueOrDefault(rule.Id);
                     var isNow = newDefault is not null && t.Matches(newDefault.Name);
                     var changed = newDefault?.Id != oldDefault;
@@ -758,7 +763,7 @@ public sealed class EventService : IDisposable
                     if (was && (!isNow || changed && any)) fire.Add((rule, true));
                     if (isNow && (!was || changed && any))
                     {
-                        Log.Info($"Eventos: salida de audio predeterminada: {newDefault!.Name} («{rule.Name}»)");
+                        Log.Info($"Eventos: {(t.Input ? "entrada" : "salida")} de audio predeterminada: {newDefault!.Name} («{rule.Name}»)");
                         fire.Add((rule, false));
                     }
                     _audioDefaultActive[rule.Id] = isNow;

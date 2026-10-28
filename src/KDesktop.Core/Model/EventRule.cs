@@ -560,12 +560,15 @@ public sealed partial class NetworkTrigger : EventTrigger
 }
 
 /// <summary>
-/// A playback device is connected (headphones, a USB or Bluetooth speaker…) or becomes the default output; it ends
-/// when it is disconnected or stops being the default.
+/// A playback device is connected (headphones, a USB or Bluetooth speaker…) or becomes the default output — or, with
+/// <see cref="Input"/>, a recording one (a microphone); it ends when it is disconnected or stops being the default.
 /// </summary>
 public sealed partial class AudioDeviceTrigger : EventTrigger
 {
     [ObservableProperty] private AudioDeviceEvent _event = AudioDeviceEvent.Connected;
+
+    /// <summary>Recording devices (microphones) instead of playback ones.</summary>
+    [ObservableProperty] private bool _input;
 
     /// <summary>Part of the device's name («Auriculares», «JBL»); empty = any.</summary>
     [ObservableProperty] private string _name = string.Empty;
@@ -579,9 +582,10 @@ public sealed partial class AudioDeviceTrigger : EventTrigger
         get
         {
             var any = string.IsNullOrWhiteSpace(Name);
+            var io = Input ? "Input" : string.Empty;
             return Event == AudioDeviceEvent.Connected
-                ? any ? Loc.T("event.summary.audioAny") : Loc.T("event.summary.audio", Name.Trim())
-                : any ? Loc.T("event.summary.audioDefaultAny") : Loc.T("event.summary.audioDefault", Name.Trim());
+                ? any ? Loc.T("event.summary.audioAny" + io) : Loc.T("event.summary.audio", Name.Trim())
+                : any ? Loc.T("event.summary.audioDefaultAny" + io) : Loc.T("event.summary.audioDefault" + io, Name.Trim());
         }
     }
 

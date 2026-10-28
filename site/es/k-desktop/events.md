@@ -23,8 +23,8 @@ se quita el dispositivo…) con sus propios comandos.
 | Unidad conectada | Cuando se conecta un USB, un disco o una tarjeta (y cuando se retira) |
 | Red | Al conectarse a una red (o a cualquiera), o al quedarse sin red |
 | Dispositivo conectado | Cuando se conecta un mando, teclado, auriculares o un aparato USB (y cuando se desconecta) |
-| Uso del equipo | Cuando el procesador, la gráfica o la memoria pasan (o bajan) de un % durante un rato |
-| Dispositivo de audio | Cuando se conectan unos auriculares o un altavoz, o uno pasa a ser la salida predeterminada |
+| Uso del equipo | Cuando el procesador, la gráfica, la memoria o la memoria de la gráfica (VRAM) pasan (o bajan) de un % durante un rato |
+| Dispositivo de audio | Cuando se conectan unos auriculares, un altavoz o un micrófono, o uno pasa a ser la salida o la entrada predeterminada |
 
 ## Opciones
 

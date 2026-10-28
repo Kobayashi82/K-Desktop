@@ -316,7 +316,7 @@ public enum ConditionKind
 public enum ConditionElse { Stop, Skip }
 
 /// <summary>What «Uso del equipo» measures.</summary>
-public enum LoadResource { Cpu, Gpu, Memory }
+public enum LoadResource { Cpu, Gpu, Memory, Vram }
 
 /// <summary>
 /// «Si…»: checks something (a program is open, the time, a device, the network…) and, when it is not so, stops the

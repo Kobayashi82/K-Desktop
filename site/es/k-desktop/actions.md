@@ -67,7 +67,7 @@ orden.
 | **Plan de energía** | Cambia el plan de energía de Windows (Alto rendimiento, Equilibrado…) o pasa al siguiente. |
 | **Energía** | Apaga, reinicia, suspende, bloquea o cierra la sesión, con una cuenta atrás que se puede cancelar. |
 
-## K-Desktop y flujo
+## Flujo
 
 | Acción | Qué hace |
 |---|---|

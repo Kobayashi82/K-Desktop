@@ -110,6 +110,12 @@ public static class Lookups
     /// <summary>Names of the playback devices (for the editable box of «Dispositivo de audio»).</summary>
     public static IReadOnlyList<string> AudioDeviceNames => AudioDevices.Playback().Select(d => d.Name).Distinct().ToList();
 
+    /// <summary>Names of the recording devices (for «Dispositivo de audio» with «Entrada»).</summary>
+    public static IReadOnlyList<string> AudioInputNames => AudioDevices.Recording().Select(d => d.Name).Distinct().ToList();
+
+    /// <summary>«Salida» / «Entrada» for the event «Dispositivo de audio» (its <c>Input</c>).</summary>
+    public static IReadOnlyList<Option<bool>> AudioDirections { get; } = [new(false, "event.audioOutput"), new(true, "event.audioInput")];
+
     /// <summary>Names of the networks connected now (for the editable box of «Red»).</summary>
     public static IReadOnlyList<string> ConnectedNetworksNow => NetworkInfo.ConnectedNetworks();
     public static IReadOnlyList<Option<AppTheme>> Themes { get; } = Enum<AppTheme>("enum.theme");
