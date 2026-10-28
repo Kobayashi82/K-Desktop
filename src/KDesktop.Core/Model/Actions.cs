@@ -219,6 +219,45 @@ public partial class SendInputAction : CommandAction
     /// <summary>Keys: "CTRL + C". Text: literal text. Mouse: "x,y".</summary>
     [ObservableProperty] private string _value = string.Empty;
 
+    /// <summary>What each mode had while switching between them in the editor: keys, text and a position are not the same thing.</summary>
+    private readonly Dictionary<SendInputMode, string> _valueByMode = [];
+
+    partial void OnModeChanged(SendInputMode oldValue, SendInputMode newValue)
+    {
+        _valueByMode[oldValue] = Value;
+        Value = _valueByMode.GetValueOrDefault(newValue, string.Empty);
+    }
+
+    partial void OnValueChanged(string value)
+    {
+        OnPropertyChanged(nameof(MouseX));
+        OnPropertyChanged(nameof(MouseY));
+    }
+
+    /// <summary>The mouse modes' «x,y», one number at a time (the editor's two boxes).</summary>
+    [JsonIgnore]
+    public int MouseX
+    {
+        get => Coordinate(0);
+        set => Value = string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{value},{MouseY}");
+    }
+
+    [JsonIgnore]
+    public int MouseY
+    {
+        get => Coordinate(1);
+        set => Value = string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{MouseX},{value}");
+    }
+
+    private int Coordinate(int index)
+    {
+        var parts = Value.Split(',');
+        return parts.Length == 2 && int.TryParse(parts[index].Trim(), System.Globalization.NumberStyles.AllowLeadingSign,
+            System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : 0;
+    }
+
+    public override bool IsTransient(string? property) => property is nameof(MouseX) or nameof(MouseY) || base.IsTransient(property);
+
     public override ActionKind Kind => ActionKind.SendInput;
     public override string Summary => Loc.T($"summary.send.{Mode}", string.IsNullOrEmpty(Value) ? "?" : Value);
 }
@@ -229,6 +268,21 @@ public partial class VolumeAction : CommandAction
 
     /// <summary>The program, for <see cref="VolumeTarget.App"/>.</summary>
     [ObservableProperty] private string _processName = string.Empty;
+
+    /// <summary>
+    /// Speakers or microphone: that device (its Windows id) instead of the default one; empty = the default. Declared
+    /// after <see cref="Target"/>: changing the target forgets it (a speaker is not a microphone), also while loading.
+    /// </summary>
+    [ObservableProperty] private string _device = string.Empty;
+
+    /// <summary>The device's name when it was chosen, to show it while it is not connected.</summary>
+    [ObservableProperty] private string _deviceName = string.Empty;
+
+    partial void OnTargetChanged(VolumeTarget value)
+    {
+        Device = string.Empty;
+        DeviceName = string.Empty;
+    }
 
     [ObservableProperty] private VolumeMode _mode = VolumeMode.Set;
 
@@ -244,8 +298,15 @@ public partial class VolumeAction : CommandAction
     {
         get
         {
+            // A chosen device: its name after the rest («Volumen al 50 %  ·  Auriculares»).
+            var device = Device.Length > 0 && Target is VolumeTarget.System or VolumeTarget.Microphone
+                ? "  ·  " + (DeviceName.Length > 0 ? DeviceName : "?") : "";
             if (Target == VolumeTarget.System)
-                return Mode switch
+                return (Device.Length > 0 && Mode is VolumeMode.Up or VolumeMode.Down && Value <= 0 ? Mode switch
+                {
+                    VolumeMode.Up => Loc.T("summary.volume.upBy", DefaultStep),
+                    _ => Loc.T("summary.volume.downBy", DefaultStep),
+                } : Mode switch
                 {
                     VolumeMode.Set => Loc.T("summary.volume.set", Value),
                     VolumeMode.Up => Value > 0 ? Loc.T("summary.volume.upBy", Value) : Loc.T("summary.volume.up"),
@@ -253,7 +314,7 @@ public partial class VolumeAction : CommandAction
                     VolumeMode.Mute => Loc.T("summary.volume.muteOn"),
                     VolumeMode.Unmute => Loc.T("summary.volume.muteOff"),
                     _ => Loc.T("summary.volume.mute"),
-                };
+                }) + device;
             var step = Value > 0 ? Value : DefaultStep;
             var what = Mode switch
             {
@@ -270,7 +331,7 @@ public partial class VolumeAction : CommandAction
                 VolumeTarget.ForegroundApp => Loc.T("enum.volumeTarget.ForegroundApp"),
                 _ => string.IsNullOrWhiteSpace(ProcessName) ? "?" : ProcessName.Trim(),
             };
-            return $"{who}: {what}";
+            return $"{who}: {what}{device}";
         }
     }
 }

@@ -818,7 +818,7 @@ public sealed partial class CommandsPage : UserControl, IDisposable
         HotkeyCapture.Start(
             preview => a.Value = preview + "…",
             hotkey => a.Value = hotkey is null ? previous : Hotkey.Normalize(hotkey),
-            Window.GetWindow(this));
+            Window.GetWindow(this), escapeCancels: false);
     }
 
     private async void OnCaptureMouse(object sender, ExecutedRoutedEventArgs e)

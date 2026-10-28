@@ -17,21 +17,26 @@ public sealed class HotkeyCapture
     private readonly Action<string> _preview;
     private readonly Action<string?> _completed;
     private readonly Window? _window;
+    private readonly bool _escapeCancels;
     private bool _done;
 
-    private HotkeyCapture(Action<string> preview, Action<string?> completed, Window? window)
+    private HotkeyCapture(Action<string> preview, Action<string?> completed, Window? window, bool escapeCancels)
     {
+        _escapeCancels = escapeCancels;
         _dispatcher = Application.Current.Dispatcher;
         _preview = preview;
         _completed = completed;
         _window = window;
     }
 
-    /// <summary>Starts capturing. <paramref name="completed"/> receives the hotkey, or null when cancelled.</summary>
-    public static HotkeyCapture Start(Action<string> preview, Action<string?> completed, Window? window = null)
+    /// <summary>
+    /// Starts capturing. <paramref name="completed"/> receives the hotkey, or null when cancelled. Without
+    /// <paramref name="escapeCancels"/> Escape is captured like any key (keys to send): leaving the window cancels.
+    /// </summary>
+    public static HotkeyCapture Start(Action<string> preview, Action<string?> completed, Window? window = null, bool escapeCancels = true)
     {
         _active?.Cancel();
-        var capture = new HotkeyCapture(preview, completed, window);
+        var capture = new HotkeyCapture(preview, completed, window, escapeCancels);
         _active = capture;
         if (window is not null) window.Deactivated += capture.OnDeactivated;
         App.Current.Router.SetCapture(capture.OnInput);
@@ -50,7 +55,7 @@ public sealed class HotkeyCapture
                 _preview(hotkey);
                 return;
             }
-            Finish(hotkey.Equals("Escape", StringComparison.OrdinalIgnoreCase) ? null : hotkey);
+            Finish(_escapeCancels && hotkey.Equals("Escape", StringComparison.OrdinalIgnoreCase) ? null : hotkey);
         });
         return true;
     }

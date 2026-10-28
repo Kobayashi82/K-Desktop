@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using KDesktop.Core.Input;
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
@@ -6,6 +7,32 @@ namespace KDesktop.Core.Platform;
 
 /// <summary>The result of changing a volume: the new level (0–100) and whether it is muted.</summary>
 public readonly record struct LevelState(int Level, bool Muted);
+
+/// <summary>One speaker or microphone by its Windows id (the «Volumen» action with a device chosen).</summary>
+public static class DeviceVolume
+{
+    /// <summary>Applies <paramref name="change"/> to that device; null when it is not connected or does not exist.</summary>
+    public static LevelState? Change(string id, Func<LevelState, LevelState> change)
+    {
+        try
+        {
+            using var enumerator = new MMDeviceEnumerator();
+            using var device = enumerator.GetDevice(id);
+            if (device.State != DeviceState.Active) return null;
+            var volume = device.AudioEndpointVolume;
+            var now = new LevelState((int)Math.Round(volume.MasterVolumeLevelScalar * 100), volume.Mute);
+            var next = change(now);
+            next = next with { Level = Math.Clamp(next.Level, 0, 100) };
+            if (next.Level != now.Level) volume.MasterVolumeLevelScalar = next.Level / 100f;
+            volume.Mute = next.Muted;
+            return next;
+        }
+        catch (Exception ex) when (ex is COMException or ArgumentException)
+        {
+            return null; // gone
+        }
+    }
+}
 
 /// <summary>
 /// The default microphone: its level and its mute, like the recording tab of the sound settings. The default device

@@ -24,11 +24,28 @@ public sealed partial class CommandEngine
             _ => now with { Muted = !now.Muted },
         };
 
+        // A chosen speaker: like the default one, without the media keys (they only reach the default one).
+        if (a.Target == VolumeTarget.System)
+        {
+            if (DeviceVolume.Change(a.Device, Change) is not { } speaker)
+            {
+                if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.deviceMissing", Or(a.DeviceName)), OsdKind.Warning, look: OsdLook.Of("SpeakerOff24"));
+                return;
+            }
+            if (!a.ShowOsd) return;
+            if (a.Mode is VolumeMode.ToggleMute or VolumeMode.Mute or VolumeMode.Unmute)
+                _ui.ShowOsd(Loc.T(speaker.Muted ? "osd.muted" : "osd.unmuted"), look: new OsdLook(speaker.Muted ? "SpeakerMute24" : "Speaker224", Topic: OsdTopic.Levels));
+            else
+                _ui.ShowOsd(Loc.T("osd.volume", speaker.Level), look: OsdLook.Bar("Speaker224", speaker.Level));
+            return;
+        }
+
         if (a.Target == VolumeTarget.Microphone)
         {
-            if (MicrophoneTools.Change(Change) is not { } mic)
+            var chosen = a.Device.Length > 0;
+            if ((chosen ? DeviceVolume.Change(a.Device, Change) : MicrophoneTools.Change(Change)) is not { } mic)
             {
-                if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.noMicrophone"), OsdKind.Warning, look: OsdLook.Of("MicOff24"));
+                if (a.ShowOsd) _ui.ShowOsd(chosen ? Loc.T("osd.deviceMissing", Or(a.DeviceName)) : Loc.T("osd.noMicrophone"), OsdKind.Warning, look: OsdLook.Of("MicOff24"));
                 return;
             }
             if (!a.ShowOsd) return;
@@ -50,6 +67,8 @@ public sealed partial class CommandEngine
         _ui.ShowOsd(app.Muted ? Loc.T("osd.appMuted", process) : Loc.T("osd.appLevel", process, app.Level), app.Muted ? OsdKind.Warning : OsdKind.Info,
             look: app.Muted ? new OsdLook("SpeakerMute24", Topic: OsdTopic.Levels) : OsdLook.Bar("Speaker224", app.Level));
     }
+
+    private static string Or(string name) => name.Length > 0 ? name : "?";
 
     // ── Ventana ──────────────────────────────────────────────────────────
 

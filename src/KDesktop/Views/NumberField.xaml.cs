@@ -26,14 +26,14 @@ public partial class NumberField : UserControl
     {
         InitializeComponent();
         InputMethod.SetIsInputMethodEnabled(Box, false);
-        Box.PreviewTextInput += (_, e) => e.Handled = !e.Text.All(char.IsAsciiDigit);
+        Box.PreviewTextInput += (_, e) => e.Handled = !(e.Text.All(char.IsAsciiDigit) || IsMinus(e.Text));
         DataObject.AddPastingHandler(Box, (_, e) =>
         {
-            if (e.DataObject.GetData(DataFormats.UnicodeText) is not string text || text.Trim().Length == 0 || !text.Trim().All(char.IsAsciiDigit))
+            if (e.DataObject.GetData(DataFormats.UnicodeText) is not string text || !IsNumber(text.Trim()))
                 e.CancelCommand();
         });
         Box.PreviewKeyDown += OnKey;
-        Box.TextChanged += (_, _) => Box.SetResourceReference(ForegroundProperty, Parse() is null ? "Kd.Danger" : "TextFillColorPrimaryBrush");
+        Box.TextChanged += (_, _) => ShowValidity();
         // Keyboard.ClearFocus (InputPolish) raises LostFocus but not the keyboard one: both save.
         Box.LostKeyboardFocus += (_, _) => Commit();
         Box.LostFocus += (_, _) => Commit();
@@ -71,6 +71,12 @@ public partial class NumberField : UserControl
         set => SetValue(MaximumProperty, value);
     }
 
+    /// <summary>A «-» at the start, when the range has negatives (a position on a monitor left of the main one).</summary>
+    private bool IsMinus(string text) => text == "-" && Minimum < 0 && Box.SelectionStart == 0 && !Box.Text[Box.SelectionLength..].StartsWith('-');
+
+    private bool IsNumber(string text) =>
+        text.Length > 0 && (text[0] == '-' && Minimum < 0 ? text.Length > 1 && text[1..].All(char.IsAsciiDigit) : text.All(char.IsAsciiDigit));
+
     /// <summary>What − and + add (Page Up/Down add ten times as much).</summary>
     public int Increment { get; set; } = 1;
 
@@ -106,9 +112,12 @@ public partial class NumberField : UserControl
         Set((int)Math.Clamp((long)from + by, Minimum, Maximum));
     }
 
+    /// <summary>Red while what is typed is not a number in range.</summary>
+    private void ShowValidity() => Box.SetResourceReference(ForegroundProperty, Parse() is null ? "Kd.Danger" : "TextFillColorPrimaryBrush");
+
     /// <summary>What is typed, or null when it is not a number in range.</summary>
     private int? Parse() =>
-        int.TryParse(Box.Text, NumberStyles.None, CultureInfo.InvariantCulture, out var n) && n >= Minimum && n <= Maximum ? n : null;
+        int.TryParse(Box.Text, Minimum < 0 ? NumberStyles.AllowLeadingSign : NumberStyles.None, CultureInfo.InvariantCulture, out var n) && n >= Minimum && n <= Maximum ? n : null;
 
     private void Commit()
     {
@@ -128,6 +137,7 @@ public partial class NumberField : UserControl
         var text = Value.ToString(CultureInfo.InvariantCulture);
         if (Box.Text != text) Box.Text = text;
         Box.CaretIndex = text.Length;
+        ShowValidity(); // the range may have come after the text (a template sets the value first)
         DownButton.IsEnabled = Value > Minimum;
         UpButton.IsEnabled = Value < Maximum;
     }

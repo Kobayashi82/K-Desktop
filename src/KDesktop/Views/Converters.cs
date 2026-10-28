@@ -281,3 +281,26 @@ public sealed class LocKeyConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 }
+
+/// <summary>
+/// What the options say, read when an editor shows up (ConverterParameter): «recordFolder» / «captureFolder», the folder
+/// an empty box uses (the one in Options › Capturas, or the default one); «recordHint», where recordings go with the
+/// format chosen there.
+/// </summary>
+public sealed class SettingsTextConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        var s = App.Current.Config.Settings;
+        return parameter switch
+        {
+            "recordFolder" => s.RecordFolder.Length > 0 ? s.RecordFolder : Core.Localization.Loc.T("settings.recordFolderHint"),
+            "captureFolder" => s.CaptureFolder.Length > 0 ? s.CaptureFolder : Core.Localization.Loc.T("settings.captureFolderHint"),
+            "recordHint" => Core.Localization.Loc.T("editor.recordHint",
+                s.RecordFormat == Core.Model.AudioFileFormat.Opus ? "Opus" : s.RecordFormat.ToString().ToUpperInvariant()),
+            _ => string.Empty,
+        };
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
+}

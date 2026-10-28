@@ -220,6 +220,9 @@ public static class InputPolish
     /// Keyboard focus first, then the logical one: a box bound on LostFocus gets its last fix (an emptied number becomes
     /// 0) before it is saved, and WPF-UI hides the X only if the keyboard has already gone when the box loses focus.
     /// </summary>
+    /// <summary>Takes the focus out of a field, as a click elsewhere would.</summary>
+    public static void LeaveField(Control field) => Leave(field);
+
     private static void Leave(Control field)
     {
         var scope = FocusManager.GetFocusScope(field);

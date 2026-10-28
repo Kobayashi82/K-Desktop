@@ -13,15 +13,20 @@ public sealed record AudioDeviceInfo(string Id, string Name, string Adapter, boo
 public static class AudioDevices
 {
     /// <summary>Every playback device that is enabled (connected or not). Disabled/removed devices are left out.</summary>
-    public static IReadOnlyList<AudioDeviceInfo> Playback()
+    public static IReadOnlyList<AudioDeviceInfo> Playback() => List(DataFlow.Render);
+
+    /// <summary>The microphones and other recording devices, the same way.</summary>
+    public static IReadOnlyList<AudioDeviceInfo> Recording() => List(DataFlow.Capture);
+
+    private static IReadOnlyList<AudioDeviceInfo> List(DataFlow flow)
     {
         var result = new List<AudioDeviceInfo>();
         try
         {
             using var enumerator = new MMDeviceEnumerator();
-            var defaultId = DefaultId(enumerator, Role.Multimedia);
-            var commsId = DefaultId(enumerator, Role.Communications);
-            foreach (var device in enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active | DeviceState.Unplugged))
+            var defaultId = DefaultId(enumerator, Role.Multimedia, flow);
+            var commsId = DefaultId(enumerator, Role.Communications, flow);
+            foreach (var device in enumerator.EnumerateAudioEndPoints(flow, DeviceState.Active | DeviceState.Unplugged))
             {
                 using (device)
                 {
@@ -104,10 +109,10 @@ public static class AudioDevices
         return SetDefault(next.Id, communications) ? next : null;
     }
 
-    private static string? DefaultId(MMDeviceEnumerator enumerator, Role role)
+    private static string? DefaultId(MMDeviceEnumerator enumerator, Role role, DataFlow flow = DataFlow.Render)
     {
-        if (!enumerator.HasDefaultAudioEndpoint(DataFlow.Render, role)) return null;
-        using var device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, role);
+        if (!enumerator.HasDefaultAudioEndpoint(flow, role)) return null;
+        using var device = enumerator.GetDefaultAudioEndpoint(flow, role);
         return device.ID;
     }
 

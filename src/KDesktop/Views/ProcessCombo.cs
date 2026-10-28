@@ -30,19 +30,45 @@ public static class ProcessCombo
             var text = box.Text;
             box.ItemsSource = Lookups.RunningProcesses();
             box.Text = text;
+            Unselect(box);
+        };
+        box.DropDownClosed += (_, _) =>
+        {
+            if (box.SelectedItem is string picked && picked == box.Text) Release(box);
+            else Unselect(box);
         };
     }
 
+    /// <summary>An editable combo selects all its text when it opens or something is chosen: the text is left as it is.</summary>
+    private static void Unselect(ComboBox box) => box.Dispatcher.BeginInvoke(() =>
+    {
+        if (box.Template?.FindName("PART_EditableTextBox", box) is TextBox text) text.Select(text.Text.Length, 0);
+    }, System.Windows.Threading.DispatcherPriority.Input);
+
+    /// <summary>Chosen from the list: the combo does not keep the focus (nothing left to type).</summary>
+    private static void Release(ComboBox box) => box.Dispatcher.BeginInvoke(() =>
+    {
+        if (box.IsKeyboardFocusWithin) InputPolish.LeaveField(box);
+    }, System.Windows.Threading.DispatcherPriority.Input);
+
     /// <summary>Fills the drop-down with the running processes that are not in <paramref name="list"/> yet.</summary>
-    public static void Fill(ComboBox box, ICollection<string>? list) =>
+    public static void Fill(ComboBox box, ICollection<string>? list)
+    {
         box.ItemsSource = Lookups.RunningProcesses().Where(p => list is null || !list.Contains(p)).ToList();
+        Unselect(box);
+    }
 
     /// <summary>On DropDownClosed: adds the process chosen in the drop-down (if any) and empties the box.</summary>
     public static void AddPicked(ComboBox box, ICollection<string>? list)
     {
-        if (list is null || box.SelectedItem is not string picked) return;
+        if (list is null || box.SelectedItem is not string picked)
+        {
+            Unselect(box);
+            return;
+        }
         Add(picked, list);
         Clear(box);
+        Release(box);
     }
 
     /// <summary>Adds what was typed in the box.</summary>

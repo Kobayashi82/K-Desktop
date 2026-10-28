@@ -189,7 +189,11 @@ public sealed partial class CommandEngine
                 var file = Path.Combine(AppPaths.TempDir, $"script-{hash}.cmd");
                 await File.WriteAllTextAsync(file, "@chcp 65001 >nul\r\n" + a.Script.Replace("\r\n", "\n").Replace("\n", "\r\n"),
                     new UTF8Encoding(false), ctx.Token).ConfigureAwait(false);
-                spec = new LaunchSpec(file, "", null, a.WindowMode);
+                // Visible, the window stays open to read what it wrote (as PowerShell's), except when the command waits for it.
+                // The doubled quotes: cmd takes off the outer pair and keeps the path's own (it has spaces).
+                spec = a.WindowMode == WindowMode.Hidden || a.WaitForExit
+                    ? new LaunchSpec(file, "", null, a.WindowMode)
+                    : new LaunchSpec("cmd.exe", $"/K \"\"{file}\"\"", null, a.WindowMode);
                 break;
             }
             case ScriptShell.VBScript:
@@ -287,7 +291,7 @@ public sealed partial class CommandEngine
 
     private Task VolumeAsync(VolumeAction a, ExecutionContext ctx) => Task.Run(() =>
     {
-        if (a.Target != VolumeTarget.System)
+        if (a.Target != VolumeTarget.System || a.Device.Length > 0)
         {
             OtherVolume(a, ctx);
             return;

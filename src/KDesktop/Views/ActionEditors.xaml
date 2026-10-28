@@ -13,6 +13,7 @@
     <v:DisplayModesConverter x:Key="DisplayModes" />
     <v:ActionIconConverter x:Key="ActionIconEd" />
     <v:LocKeyConverter x:Key="LocKey" />
+    <v:SettingsTextConverter x:Key="SettingsText" />
 
     <Style x:Key="EdRow" TargetType="Grid">
         <Setter Property="Margin" Value="0,0,0,12" />
@@ -346,32 +347,48 @@
         <StackPanel>
             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
             <ComboBox Margin="0,0,0,12" ItemsSource="{x:Static v:Lookups.SendInputModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
-            <Grid>
+            <!-- Keys: the button shows the combination and captures a new one (as the hotkeys of the options) -->
+            <ui:Button x:Name="KeysButton" MinHeight="36" MinWidth="240" HorizontalAlignment="Left" Icon="{ui:SymbolIcon Keyboard24}"
+                       Content="{Binding Value}" AutomationProperties.Name="{l:Tr editor.captureKeys}"
+                       Command="{x:Static v:EditorCommands.CaptureKeys}" CommandParameter="{Binding}" />
+            <TextBox x:Name="TextBox" Visibility="Collapsed" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" FontSize="14"
+                     AcceptsReturn="True" MinHeight="80" TextWrapping="Wrap" />
+            <Grid x:Name="MouseRow" Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" MaxWidth="180" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" MaxWidth="180" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBox x:Name="ValueBox" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" FontSize="14" />
-                <ui:Button x:Name="CaptureButton" Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.captureKeys}" Icon="{ui:SymbolIcon Keyboard24}"
-                           Command="{x:Static v:EditorCommands.CaptureKeys}" CommandParameter="{Binding}" />
+                <TextBlock Text="X" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                <v:NumberField Grid.Column="1" Minimum="-32768" Maximum="32767" Value="{Binding MouseX}" AutomationProperties.Name="X" />
+                <TextBlock Grid.Column="3" Text="Y" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                <v:NumberField Grid.Column="4" Minimum="-32768" Maximum="32767" Value="{Binding MouseY}" AutomationProperties.Name="Y" />
+                <ui:Button x:Name="CaptureMouseButton" Grid.Column="5" Margin="16,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr editor.captureMouse}"
+                           Icon="{ui:SymbolIcon Cursor24}" Command="{x:Static v:EditorCommands.CaptureMouse}" CommandParameter="{Binding}" />
             </Grid>
-            <TextBlock x:Name="Hint" Style="{StaticResource Caption}" Margin="0,6,0,0" Text="{l:Tr editor.keysHint}" />
+            <TextBlock x:Name="Hint" Style="{StaticResource Caption}" Margin="0,6,0,0" TextWrapping="Wrap" Text="{l:Tr editor.keysHint}" />
         </StackPanel>
         <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Value}" Value="">
+                <Setter TargetName="KeysButton" Property="Content" Value="{l:Tr editor.keysNone}" />
+            </DataTrigger>
             <DataTrigger Binding="{Binding Mode}" Value="Text">
-                <Setter TargetName="ValueBox" Property="AcceptsReturn" Value="True" />
-                <Setter TargetName="ValueBox" Property="MinHeight" Value="80" />
-                <Setter TargetName="ValueBox" Property="TextWrapping" Value="Wrap" />
-                <Setter TargetName="CaptureButton" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="KeysButton" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="TextBox" Property="Visibility" Value="Visible" />
                 <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.textHint}" />
             </DataTrigger>
             <DataTrigger Binding="{Binding Mode}" Value="MouseMoveTo">
-                <Setter TargetName="CaptureButton" Property="Content" Value="{l:Tr editor.captureMouse}" />
-                <Setter TargetName="CaptureButton" Property="Command" Value="{x:Static v:EditorCommands.CaptureMouse}" />
+                <Setter TargetName="KeysButton" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="MouseRow" Property="Visibility" Value="Visible" />
                 <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.mouseHint}" />
             </DataTrigger>
             <DataTrigger Binding="{Binding Mode}" Value="MouseMoveBy">
-                <Setter TargetName="CaptureButton" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="KeysButton" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="MouseRow" Property="Visibility" Value="Visible" />
+                <Setter TargetName="CaptureMouseButton" Property="Visibility" Value="Collapsed" />
                 <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.mouseByHint}" />
             </DataTrigger>
         </DataTemplate.Triggers>
@@ -395,6 +412,11 @@
                     <ComboBox ItemsSource="{x:Static v:Lookups.VolumeModes}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Mode}" />
                 </StackPanel>
             </Grid>
+            <!-- Speakers and microphone: the default device or a chosen one -->
+            <StackPanel x:Name="DeviceRow" Margin="0,0,0,12">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.volumeDevice}" />
+                <ComboBox v:VolumeDeviceCombo.IsEnabled="True" MaxDropDownHeight="420" AutomationProperties.Name="{l:Tr editor.volumeDevice}" />
+            </StackPanel>
             <StackPanel x:Name="ProcessRow" Margin="0,0,0,12" Visibility="Collapsed">
                 <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.process}" />
                 <Grid>
@@ -442,6 +464,7 @@
                 <Setter TargetName="LevelRow" Property="Visibility" Value="Collapsed" />
             </DataTrigger>
             <DataTrigger Binding="{Binding Target}" Value="App">
+                <Setter TargetName="DeviceRow" Property="Visibility" Value="Collapsed" />
                 <Setter TargetName="ProcessRow" Property="Visibility" Value="Visible" />
                 <Setter TargetName="StepLabel" Property="Text" Value="{l:Tr editor.levelStep}" />
             </DataTrigger>
@@ -451,6 +474,7 @@
                 <Setter TargetName="TargetHint" Property="Text" Value="{l:Tr editor.micHint}" />
             </DataTrigger>
             <DataTrigger Binding="{Binding Target}" Value="ForegroundApp">
+                <Setter TargetName="DeviceRow" Property="Visibility" Value="Collapsed" />
                 <Setter TargetName="StepLabel" Property="Text" Value="{l:Tr editor.levelStep}" />
                 <Setter TargetName="TargetHint" Property="Visibility" Value="Visible" />
                 <Setter TargetName="TargetHint" Property="Text" Value="{l:Tr editor.foregroundAppHint}" />
@@ -554,11 +578,17 @@
                 </StackPanel>
                 <StackPanel Grid.Column="2">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.kboardProfile}" />
-                    <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.KBoardList}}" DisplayMemberPath="Name" SelectedValuePath="Id"
-                              SelectedValue="{Binding ProfileId}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.KBoardList}}" DisplayMemberPath="Name" SelectedValuePath="Id"
+                                  SelectedValue="{Binding ProfileId}" />
+                        <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr editor.editKBoard}" Icon="{ui:SymbolIcon Edit24}"
+                                   Command="{x:Static v:EditorCommands.EditKBoard}" CommandParameter="{Binding ProfileId}" />
+                    </Grid>
                 </StackPanel>
-                <ui:Button Grid.Column="3" Margin="8,0,0,0" VerticalAlignment="Bottom" Content="{l:Tr editor.editKBoard}" Icon="{ui:SymbolIcon Edit24}"
-                           Command="{x:Static v:EditorCommands.EditKBoard}" CommandParameter="{Binding ProfileId}" />
             </Grid>
             <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
         </StackPanel>
@@ -896,28 +926,34 @@
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
-                <ui:Button Grid.Column="1" Margin="8,0,0,0" Content="{l:Tr editor.editMacro}" Icon="{ui:SymbolIcon Edit24}"
+                <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr editor.editKBoard}" Icon="{ui:SymbolIcon Edit24}"
                            Command="{x:Static v:EditorCommands.EditMacro}" CommandParameter="{Binding MacroId}" />
+            </Grid>
+            <!-- Two per row: three in a row cut «Pausa entre repeticiones (ms)» with the window at its smallest -->
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.speed}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.MacroSpeeds}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Speed}" />
+                </StackPanel>
             </Grid>
             <Grid Style="{StaticResource EdRow}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="16" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="16" />
-                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <StackPanel IsEnabled="{Binding UntilStopped, Converter={StaticResource InverseBool}}">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.repeat}" />
-                    <ui:TextBox Text="{Binding Repeat, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:TextBox Text="{Binding Repeat, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" />
                 </StackPanel>
                 <StackPanel Grid.Column="2">
-                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.speed}" />
-                    <ComboBox ItemsSource="{x:Static v:Lookups.MacroSpeeds}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Speed}" />
-                </StackPanel>
-                <StackPanel Grid.Column="4">
-                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.repeatDelay}" />
-                    <ui:TextBox Text="{Binding RepeatDelay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.repeatDelay}" TextWrapping="Wrap" />
+                    <ui:TextBox Text="{Binding RepeatDelay, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" />
                 </StackPanel>
             </Grid>
             <WrapPanel>
@@ -1302,7 +1338,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <ui:TextBox Text="{Binding Folder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.captureFolderHint}" />
+                <ui:TextBox Text="{Binding Folder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{Binding Converter={StaticResource SettingsText}, ConverterParameter=captureFolder}" />
                 <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}" AutomationProperties.Name="{l:Tr editor.browse}"
                            Command="{x:Static v:EditorCommands.BrowseFolder}" CommandParameter="{Binding}" />
             </Grid>
@@ -1360,12 +1396,12 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <ui:TextBox Text="{Binding Folder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.recordFolderHint}" />
+                <ui:TextBox Text="{Binding Folder, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{Binding Converter={StaticResource SettingsText}, ConverterParameter=recordFolder}" />
                 <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}" AutomationProperties.Name="{l:Tr editor.browse}"
                            Command="{x:Static v:EditorCommands.BrowseFolder}" CommandParameter="{Binding}" />
             </Grid>
             <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
-            <TextBlock x:Name="Hint" Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.recordHint}" />
+            <TextBlock x:Name="Hint" Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{Binding Converter={StaticResource SettingsText}, ConverterParameter=recordHint}" />
         </StackPanel>
         <DataTemplate.Triggers>
             <DataTrigger Binding="{Binding Mode}" Value="SaveReplay">
