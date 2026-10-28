@@ -52,7 +52,7 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <ui:TextBox Text="{Binding WorkingDirectory, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr editor.workingDirHint}" />
-                        <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="6,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}"
+                        <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}"
                                    Command="{x:Static v:EditorCommands.BrowseWorkingDirectory}" CommandParameter="{Binding}" />
                     </Grid>
                 </StackPanel>
