@@ -273,14 +273,15 @@
                                 </Grid.ColumnDefinitions>
                                 <ContentControl x:Name="SourceCaps" ContentTemplate="{StaticResource KeyCaps}" Focusable="False" VerticalAlignment="Center" />
                                 <ui:SymbolIcon Grid.Column="1" Symbol="ArrowRight24" FontSize="18" Margin="8,0,12,0" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                <!-- The options wrap onto another line when the window is narrow (they were cut) -->
                                 <Border Grid.Column="2" HorizontalAlignment="Left" CornerRadius="8" Padding="3" Background="{DynamicResource Kd.Subtle}">
-                                    <StackPanel Orientation="Horizontal">
+                                    <WrapPanel>
                                         <RadioButton x:Name="KindNormal" Style="{StaticResource Segment}" GroupName="kind" Checked="OnKind" Content="{l:Tr kboard.kind.normal}" />
                                         <RadioButton x:Name="KindKeys" Style="{StaticResource Segment}" GroupName="kind" Checked="OnKind" Content="{l:Tr enum.remapKind.Keys}" />
                                         <RadioButton x:Name="KindText" Style="{StaticResource Segment}" GroupName="kind" Checked="OnKind" Content="{l:Tr enum.remapKind.Text}" />
                                         <RadioButton x:Name="KindDisable" Style="{StaticResource Segment}" GroupName="kind" Checked="OnKind" Content="{l:Tr enum.remapKind.Disable}" />
                                         <RadioButton x:Name="KindCommand" Style="{StaticResource Segment}" GroupName="kind" Checked="OnKind" Content="{l:Tr enum.remapKind.Command}" />
-                                    </StackPanel>
+                                    </WrapPanel>
                                 </Border>
                                 <CheckBox x:Name="RemapEnabled" Grid.Column="3" Content="{l:Tr common.enabled}" IsChecked="{Binding Enabled}" Visibility="Collapsed" />
                                 <!-- No key chosen: the panel goes away -->

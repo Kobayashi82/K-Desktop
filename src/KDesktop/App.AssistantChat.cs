@@ -1,3 +1,5 @@
+using System.IO;
+using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using KDesktop.Core;
 using KDesktop.Core.Assistant;
@@ -37,8 +39,8 @@ public sealed partial class ChatItem(string role, string turn, DateTime at) : Ob
 /// <summary>
 /// The inputs of the assistants (stage 3.6): the chat of Panel → Assistant, the box to write to one (its menu, a middle
 /// click on it, «Asistente: preguntar» without text) and «Asistente: preguntar». All of them send the same
-/// <c>heard</c> as the voice; the answer comes back as <c>chat</c> lines, kept here per assistant for this session
-/// (K-Desktop's under its id: in the process it is the one without one). Without a figure to say it (K-Desktop, 5.0.112, or
+/// <c>heard</c> as the voice; the answer comes back as <c>chat</c> lines, kept here per assistant (K-Desktop's under its
+/// id: in the process it is the one without one) and in <c>Assistant\chats.json</c>, so they are there after a restart. Without a figure to say it (K-Desktop, 5.0.112, or
 /// an assistant that is not on the desktop), an answer to something not written in the panel's chat comes as K-Desktop's
 /// OSD. With nobody active there is no assistant: nothing is sent. Everything here runs on the UI thread.
 /// </summary>
@@ -61,8 +63,51 @@ public partial class App
 
     private List<ChatItem> ChatOf(string id)
     {
+        LoadChats();
         if (!_chats.TryGetValue(id, out var chat)) _chats[id] = chat = [];
         return chat;
+    }
+
+    private static string ChatsFile => Path.Combine(AppPaths.DataDir, "Assistant", "chats.json");
+
+    private static readonly JsonSerializerOptions ChatsJson = new(JsonSerializerDefaults.Web);
+
+    private bool _chatsLoaded;
+
+    private sealed record SavedChatLine(string Role, string Turn, DateTime At, string Text, string? Written);
+
+    /// <summary>The conversations of before (once, the first time one is asked for).</summary>
+    private void LoadChats()
+    {
+        if (_chatsLoaded) return;
+        _chatsLoaded = true;
+        try
+        {
+            if (!File.Exists(ChatsFile)) return;
+            var saved = JsonSerializer.Deserialize<Dictionary<string, List<SavedChatLine>>>(File.ReadAllText(ChatsFile), ChatsJson) ?? [];
+            foreach (var (id, lines) in saved)
+                _chats[id] = [.. lines.TakeLast(KeptChat).Select(l => new ChatItem(l.Role, l.Turn, l.At) { Text = l.Text, Written = l.Written, Final = true })];
+        }
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        {
+            Log.Warn($"Asistente: no se han podido leer las conversaciones: {ex.Message}");
+        }
+    }
+
+    /// <summary>Written when a line is complete (not while an answer is being written): small, and not often.</summary>
+    private void SaveChats()
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(ChatsFile)!);
+            var all = _chats.Where(c => c.Value.Count > 0).ToDictionary(c => c.Key,
+                c => c.Value.Where(l => l.Final || l.IsUser).Select(l => new SavedChatLine(l.Role, l.Turn, l.At, l.Text, l.Written)).ToList());
+            File.WriteAllText(ChatsFile, JsonSerializer.Serialize(all, ChatsJson));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Log.Warn($"Asistente: no se han podido guardar las conversaciones: {ex.Message}");
+        }
     }
 
     /// <summary>A line of a conversation: a new one, or more of the answer being written (same turn).</summary>
@@ -85,6 +130,7 @@ public partial class App
         // What K-Desktop or one that is not there says is said aloud too (5.0.111).
         if (line.Role == "assistant") Voice.OwnVoices.Said(who + "/" + line.Turn, line.Text, DateTime.Now);
         AssistantChatChanged?.Invoke(who);
+        if (line.Final || line.Role == "user") SaveChats();
         if (line is { Role: "assistant", Final: true }) ShowUnseenAnswer(who, line.Text);
     }
 
@@ -189,6 +235,7 @@ public partial class App
     public void ClearAssistantChat(string id)
     {
         ChatOf(id).Clear();
+        SaveChats();
         AssistantChatChanged?.Invoke(id);
     }
 

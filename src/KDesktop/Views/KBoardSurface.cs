@@ -406,8 +406,9 @@ public sealed class KBoardSurface : Viewbox
         var from = Hotkey.Format(_layer, k.Def.Name);
         var remap = _profile?.Find(from);
         var selected = string.Equals(_selected, k.Def.Name, StringComparison.OrdinalIgnoreCase);
-        var elsewhere = remap is null && _profile is not null &&
-                        _profile.Remaps.Any(r => Hotkey.Parse(r.From).Main.Equals(k.Def.Name, StringComparison.OrdinalIgnoreCase));
+        // Every remap of this key, whatever its modifiers (all of them go in its tooltip)
+        var all = _profile?.Remaps.Where(r => Hotkey.Parse(r.From).Main.Equals(k.Def.Name, StringComparison.OrdinalIgnoreCase)).ToList() ?? [];
+        var elsewhere = remap is null && all.Count > 0;
 
         string fill, stroke;
         if (remap is { Enabled: true })
@@ -426,9 +427,10 @@ public sealed class KBoardSurface : Viewbox
         k.Shape.StrokeThickness = selected ? 2.5 : 1;
         k.Shape.Opacity = remap is { Enabled: false } ? 0.6 : 1;
 
-        k.Target.Text = remap is null ? string.Empty : ShortTarget(remap);
+        // Too narrow for any of it (the side buttons of the mouse, the wheel): only its colour, and the tooltip
+        k.Target.Text = remap is null || k.Target.Width < 24 ? string.Empty : ShortTarget(remap);
         k.Dot.Visibility = elsewhere ? Visibility.Visible : Visibility.Collapsed;
-        k.Shape.ToolTip = KeyTip(k.Def.Name, from, remap);
+        k.Shape.ToolTip = KeyTip(k.Def.Name, all);
         Layout(k);
     }
 
@@ -463,12 +465,13 @@ public sealed class KBoardSurface : Viewbox
         new FormattedText(t.Text, System.Globalization.CultureInfo.InvariantCulture, FlowDirection.LeftToRight,
             new Typeface(t.FontFamily, t.FontStyle, t.FontWeight, t.FontStretch), t.FontSize, Brushes.Black, 1).WidthIncludingTrailingWhitespace;
 
-    private static string KeyTip(string name, string from, KeyRemap? remap)
+    /// <summary>The key's name and every remap it has (alone and with modifiers), one per line.</summary>
+    private static string KeyTip(string name, IReadOnlyList<KeyRemap> remaps)
     {
         var title = Caption(name) is var c && c.Length > 0 && c != name ? $"{c}  ({name})" : name;
-        if (remap is null) return title;
-        var target = remap.Kind == RemapKind.Keys ? remap.To : remap.TargetText;
-        return $"{title}\n{from}  →  {target}";
+        var lines = remaps.OrderBy(r => r.From.Length).Select(r =>
+            $"{r.From}  →  {(r.Kind == RemapKind.Keys ? r.To : r.TargetText)}{(r.Enabled ? "" : "  (" + Loc.T("common.disabled") + ")")}");
+        return string.Join("\n", lines.Prepend(title));
     }
 
     private static void Pulse(KeyVisual k)
