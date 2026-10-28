@@ -89,7 +89,9 @@ public static class CommandTools
 
     /// <param name="writer">The model rewriting texts (transform_text); null: the tool says there is none.</param>
     /// <param name="builtin">Its timers and watches, listed with the programmed orders (B2); null: only those.</param>
-    public static void AddTo(ToolRegistry registry, ICommandBridge bridge, IWriter? writer = null, BuiltinTools? builtin = null)
+    /// <param name="vision">The model looking at a copied picture (read_clipboard); <paramref name="reader"/>, Windows’ OCR for its text.</param>
+    public static void AddTo(ToolRegistry registry, ICommandBridge bridge, IWriter? writer = null, BuiltinTools? builtin = null, IVision? vision = null,
+        IScreenReader? reader = null)
     {
         registry.Add(new RunCommandTool(bridge));
         registry.Add(new FindCommandTool(bridge));
@@ -103,7 +105,7 @@ public static class CommandTools
         registry.Add(new ControlAppTool(bridge));
         registry.Add(new EndProcessTool(bridge));
         registry.Add(new TransformTextTool(bridge, writer));
-        registry.Add(new ReadClipboardTool(bridge));
+        registry.Add(new ReadClipboardTool(bridge, vision, reader));
         registry.Add(new SetClipboardTool(bridge));
         registry.Add(new ScheduleTool(bridge, registry));
         registry.Add(new ListScheduledTool(bridge, builtin));

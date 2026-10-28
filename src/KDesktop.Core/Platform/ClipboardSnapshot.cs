@@ -89,6 +89,91 @@ public sealed class ClipboardSnapshot
         finally { CloseClipboard(); }
     }
 
+    /// <summary>The files and folders copied in the Explorer (full paths; empty: none).</summary>
+    public static IReadOnlyList<string> Files()
+    {
+        if (!Open()) return [];
+        try
+        {
+            var drop = GetClipboardData(CF_HDROP);
+            if (drop == IntPtr.Zero) return [];
+            var count = DragQueryFile(drop, uint.MaxValue, null, 0);
+            var files = new List<string>((int)count);
+            for (uint i = 0; i < count; i++)
+            {
+                var length = DragQueryFile(drop, i, null, 0);
+                var name = new char[length + 1];
+                if (DragQueryFile(drop, i, name, (uint)name.Length) > 0) files.Add(new string(name, 0, (int)length));
+            }
+            return files;
+        }
+        finally { CloseClipboard(); }
+    }
+
+    /// <summary>
+    /// The picture copied, written to <paramref name="folder"/> as it came (a PNG when the program gave one, else the DIB as
+    /// a .bmp, which any decoder reads); null when there is none.
+    /// </summary>
+    public static string? SaveImage(string folder)
+    {
+        byte[]? png = null, dib = null;
+        if (!Open()) return null;
+        try
+        {
+            png = Bytes(RegisterClipboardFormat("PNG"));
+            if (png is null) dib = Bytes(CF_DIBV5) ?? Bytes(CF_DIB);
+        }
+        finally { CloseClipboard(); }
+        if (png is null && (dib is null || dib.Length < 40)) return null;
+
+        Directory.CreateDirectory(folder);
+        var path = Path.Combine(folder, Guid.NewGuid().ToString("N") + (png is null ? ".bmp" : ".png"));
+        if (png is not null)
+        {
+            File.WriteAllBytes(path, png);
+            return path;
+        }
+        File.WriteAllBytes(path, BmpFromDib(dib!));
+        return path;
+    }
+
+    /// <summary>A .bmp file of a DIB (CF_DIB, CF_DIBV5): the DIB behind a 14-byte header that says where its pixels start.</summary>
+    public static byte[] BmpFromDib(byte[] dib)
+    {
+        var header = BitConverter.ToInt32(dib, 0);
+        var bits = BitConverter.ToUInt16(dib, 14);
+        var compression = BitConverter.ToInt32(dib, 16);
+        var used = BitConverter.ToInt32(dib, 32);
+        var colors = used != 0 ? used : bits <= 8 ? 1 << bits : 0;
+        var masks = header == 40 && compression == 3 ? 12 : 0; // BI_BITFIELDS after a plain header
+        var bmp = new byte[14 + dib.Length];
+        bmp[0] = (byte)'B';
+        bmp[1] = (byte)'M';
+        BitConverter.TryWriteBytes(bmp.AsSpan(2), bmp.Length);
+        BitConverter.TryWriteBytes(bmp.AsSpan(10), 14 + header + masks + colors * 4);
+        dib.CopyTo(bmp, 14);
+        return bmp;
+    }
+
+    /// <summary>A memory format's bytes (the clipboard already open), or null.</summary>
+    private static byte[]? Bytes(uint format)
+    {
+        if (format == 0) return null;
+        var handle = GetClipboardData(format);
+        if (handle == IntPtr.Zero) return null;
+        var size = (long)GlobalSize(handle);
+        if (size <= 0 || size > MaxBytes) return null;
+        var pointer = GlobalLock(handle);
+        if (pointer == IntPtr.Zero) return null;
+        try
+        {
+            var data = new byte[size];
+            Marshal.Copy(pointer, data, 0, (int)size);
+            return data;
+        }
+        finally { GlobalUnlock(handle); }
+    }
+
     private static bool Put(uint format, byte[] data)
     {
         var memory = GlobalAlloc(GMEM_MOVEABLE, (UIntPtr)Math.Max(1, data.Length));
@@ -126,7 +211,7 @@ public sealed class ClipboardSnapshot
         return false;
     }
 
-    private const uint CF_BITMAP = 2, CF_METAFILEPICT = 3, CF_PALETTE = 9, CF_UNICODETEXT = 13, CF_ENHMETAFILE = 14, CF_OWNERDISPLAY = 0x80,
+    private const uint CF_BITMAP = 2, CF_METAFILEPICT = 3, CF_DIB = 8, CF_PALETTE = 9, CF_UNICODETEXT = 13, CF_ENHMETAFILE = 14, CF_HDROP = 15, CF_DIBV5 = 17, CF_OWNERDISPLAY = 0x80,
         CF_DSPBITMAP = 0x82, CF_DSPMETAFILEPICT = 0x83, CF_DSPENHMETAFILE = 0x8E, CF_PRIVATEFIRST = 0x200, CF_GDIOBJLAST = 0x3FF;
 
     private const uint GMEM_MOVEABLE = 0x0002;
@@ -170,4 +255,7 @@ public sealed class ClipboardSnapshot
 
     [DllImport("kernel32.dll")]
     private static extern UIntPtr GlobalSize(IntPtr memory);
+
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode, EntryPoint = "DragQueryFileW")]
+    private static extern uint DragQueryFile(IntPtr drop, uint index, [Out] char[]? file, uint length);
 }

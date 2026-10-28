@@ -45,8 +45,9 @@ Algunos detalles:
   para entender una imagen hace falta un modelo con visión.
 - **Traducir y corregir textos** trabaja con lo que tienes seleccionado o copiado (traducir, corregir, resumir, más formal,
   en lista, más corto…) y lo vuelve a pegar en la misma ventana o lo deja copiado. Tu portapapeles queda como estaba.
-- **Leer lo copiado** lee el texto que tienes en el portapapeles y **Copiar un texto** deja uno listo para pegar (deshacerlo
-  devuelve lo que había, mientras no se cierre K-Desktop: lo copiado no se guarda en ningún archivo). Como lo copiado puede
+- **Leer lo copiado** lee lo que tienes en el portapapeles: el texto; si has copiado archivos, cuáles son (y puede leerlos);
+  si es una imagen, la mira como **Leer un archivo** (con un modelo que ve, o su texto con el reconocimiento de Windows).
+  **Copiar un texto** deja uno listo para pegar (deshacerlo devuelve lo que había, mientras no se cierre K-Desktop: lo copiado no se guarda en ningún archivo). Como lo copiado puede
   ser una contraseña, otro programa nunca lo lee con «Compartir las herramientas» en «Solo lo que consulta», y con «Todo,
   preguntándote antes» te pregunta.
 - **Consultar internet** busca en la web y lee el primer resultado útil; **Buscar en el navegador** solo abre la búsqueda

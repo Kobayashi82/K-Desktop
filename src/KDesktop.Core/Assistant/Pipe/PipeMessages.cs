@@ -1046,8 +1046,12 @@ public sealed record TextMessage(string Assistant, string Run, string Op, string
 /// <param name="Hwnd">grab: the window it was taken from (0: none, or K-Desktop's own).</param>
 /// <param name="Window">grab: that window's title.</param>
 /// <param name="Reason">Not done: <c>empty</c> (nothing selected nor copied), <c>noSelection</c>, <c>tooLong</c>, <c>busy</c> (the
-/// clipboard could not be opened); put done as <c>copied</c> with <c>moved</c>: another window was in front.</param>
-public sealed record TextDoneMessage(string Run, bool Ok, string Text = "", string From = "", long Hwnd = 0, string Window = "", string? Reason = null) : PipeMessage
+/// clipboard could not be opened); put done as <c>copied</c> with <c>moved</c>: another window was in front. With the source
+/// <c>clipboardAll</c> (read_clipboard, 5.0.348) and no text: <c>files</c> (<paramref name="Files"/>) or <c>image</c> (<paramref name="Image"/>).</param>
+/// <param name="Files">The files and folders copied in the Explorer (full paths).</param>
+/// <param name="Image">The picture copied, saved to a temporary file (.png or .bmp) for the assistant to look at; it deletes it.</param>
+public sealed record TextDoneMessage(string Run, bool Ok, string Text = "", string From = "", long Hwnd = 0, string Window = "", string? Reason = null,
+    IReadOnlyList<string>? Files = null, string? Image = null) : PipeMessage
 {
     public override string Type => "textDone";
 }

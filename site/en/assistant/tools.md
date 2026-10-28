@@ -46,8 +46,9 @@ Some details:
   a picture it needs a model with vision.
 - **Translate and fix texts** works on what you have selected or copied (translate, correct, summarise, more formal,
   a list, shorter…) and pastes it back in the same window or leaves it copied. Your clipboard is put back as it was.
-- **Read what is copied** reads the text in your clipboard and **Copy a text** leaves one ready to paste (undoing it brings
-  back what was there, while K-Desktop stays open: what is copied is never saved to a file). As what is copied may be a
+- **Read what is copied** reads what is in your clipboard: the text; if you copied files, which ones (and it can read them);
+  if it is a picture, it looks at it like **Read a file** (with a model that sees, or its text by Windows' recognition).
+  **Copy a text** leaves one ready to paste (undoing it brings back what was there, while K-Desktop stays open: what is copied is never saved to a file). As what is copied may be a
   password, another program never reads it through «Share the tools» with «Only what looks things up», and with
   «Everything, asking you first» you are asked.
 - **Look it up online** searches the web and reads the first useful result; **Search in the browser** only opens the

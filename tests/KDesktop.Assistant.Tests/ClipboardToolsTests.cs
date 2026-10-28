@@ -27,6 +27,10 @@ public sealed class ClipboardToolsTests : IDisposable
 
         public List<string> Ops { get; } = [];
 
+        public IReadOnlyList<string>? Files { get; set; }
+
+        public string? Image { get; set; }
+
         public Task<TextDoneMessage?> TextAsync(string op, string? assistant, string source, string text, string mode, long hwnd, CancellationToken cancellationToken)
         {
             Ops.Add($"{op}:{source}{mode}");
@@ -35,9 +39,10 @@ public sealed class ClipboardToolsTests : IDisposable
                 Text = text;
                 return Task.FromResult<TextDoneMessage?>(new TextDoneMessage("r", true, From: "copied"));
             }
-            return Task.FromResult<TextDoneMessage?>(Text.Length == 0
-                ? new TextDoneMessage("r", false, Reason: "empty")
-                : new TextDoneMessage("r", true, Text, "clipboard"));
+            if (Text.Length > 0) return Task.FromResult<TextDoneMessage?>(new TextDoneMessage("r", true, Text, "clipboard"));
+            if (source == AssistantText.ClipboardAll && Files is { } files) return Task.FromResult<TextDoneMessage?>(new TextDoneMessage("r", false, Reason: "files", Files: files));
+            if (source == AssistantText.ClipboardAll && Image is { } image) return Task.FromResult<TextDoneMessage?>(new TextDoneMessage("r", false, Reason: "image", Image: image));
+            return Task.FromResult<TextDoneMessage?>(new TextDoneMessage("r", false, Reason: "empty"));
         }
 
         public Task<MatchedMessage?> MatchAsync(string text, CancellationToken cancellationToken) => Task.FromResult<MatchedMessage?>(null);
@@ -64,7 +69,49 @@ public sealed class ClipboardToolsTests : IDisposable
         var found = await read.RunAsync(Json("{}"), new ToolContext("dot"), default);
         Assert.Contains("Calle Mayor 5, Madrid", found.Text, StringComparison.Ordinal);
         // Never Ctrl+C on the window in front: the clipboard itself.
-        Assert.All(clipboard.Ops, op => Assert.Equal("grab:clipboard", op));
+        Assert.All(clipboard.Ops, op => Assert.Equal("grab:" + AssistantText.ClipboardAll, op));
+    }
+
+    private sealed class Eyes : IVision
+    {
+        public string? Asked { get; private set; }
+
+        public bool CanSee(string? assistant) => true;
+
+        public Task<string?> LookAsync(string? assistant, byte[] jpeg, string question, CancellationToken cancellationToken)
+        {
+            Asked = question;
+            return Task.FromResult<string?>(jpeg.Length > 0 ? "Un punto rojo y uno azul." : null);
+        }
+    }
+
+    /// <summary>5.0.348: files copied are told by their paths; a copied picture is looked at, and its temporary file goes.</summary>
+    [Fact]
+    public async Task FilesAndPicturesCopiedAreToldToo()
+    {
+        Directory.CreateDirectory(_folder);
+        var clipboard = new Clipboard { Files = [@"C:\Fotos\playa.jpg"] };
+        var eyes = new Eyes();
+        var read = new ReadClipboardTool(clipboard, eyes);
+        var files = await read.RunAsync(Json("{}"), new ToolContext("dot"), default);
+        Assert.Contains(@"C:\Fotos\playa.jpg", files.Text, StringComparison.Ordinal);
+        Assert.Contains("read_file", files.Text, StringComparison.Ordinal);
+
+        // A 2×1 picture as K-Desktop leaves it (a .bmp from the DIB).
+        var dib = new byte[40 + 8];
+        BitConverter.TryWriteBytes(dib.AsSpan(0), 40);
+        BitConverter.TryWriteBytes(dib.AsSpan(4), 2);
+        BitConverter.TryWriteBytes(dib.AsSpan(8), 1);
+        BitConverter.TryWriteBytes(dib.AsSpan(12), (ushort)1);
+        BitConverter.TryWriteBytes(dib.AsSpan(14), (ushort)32);
+        new byte[] { 0, 0, 255, 255, 255, 0, 0, 255 }.CopyTo(dib, 40);
+        var image = Path.Combine(_folder, "copiada.bmp");
+        await File.WriteAllBytesAsync(image, Core.Platform.ClipboardSnapshot.BmpFromDib(dib));
+        var picture = await new ReadClipboardTool(new Clipboard { Image = image }, eyes)
+            .RunAsync(Json("""{"question":"¿de qué color son?"}"""), new ToolContext("dot"), default);
+        Assert.Contains("Un punto rojo y uno azul.", picture.Text, StringComparison.Ordinal);
+        Assert.Contains("¿de qué color son?", eyes.Asked, StringComparison.Ordinal);
+        Assert.False(File.Exists(image));
     }
 
     [Fact]

@@ -8,18 +8,20 @@ namespace KDesktop.Assistant.Tools.Builtin;
 /// <summary>
 /// «¿Qué tengo copiado?» (B5, 5.0.347): the text in the clipboard, taken by K-Desktop (<c>text</c> <c>grab</c> from the
 /// clipboard, never Ctrl+C). Not «only reads» on purpose: what is copied may be a password, so another program using the
-/// shared tools (MCP) never gets it in the «read» scope, and with «all» it asks on the PC first.
+/// shared tools (MCP) never gets it in the «read» scope, and with «all» it asks on the PC first. Without text (5.0.348): the
+/// files copied in the Explorer are told by their paths (read_file reads them), and a picture is looked at like read_file
+/// does (vision, or its text by the OCR of Windows).
 /// </summary>
-public sealed class ReadClipboardTool(ICommandBridge bridge) : ITool
+public sealed class ReadClipboardTool(ICommandBridge bridge, IVision? vision = null, IScreenReader? reader = null) : ITool
 {
     /// <summary>The most given to the model.</summary>
     public const int MaxGiven = 6000;
 
     public string Name => "read_clipboard";
 
-    public string Description => "Reads the text the user has copied (the clipboard), to tell it, use it or work with it. Only when they mean what they copied.";
+    public string Description => "Reads what the user has copied (the clipboard): its text, the files copied in the Explorer, or what a copied picture shows. Only when they mean what they copied.";
 
-    public string ParametersSchemaJson => ToolText.NoParameters;
+    public string ParametersSchemaJson => ToolText.Optional(("question", "string", "For a copied picture: what the user wants to know from it (empty: what it shows)"));
 
     public IReadOnlyList<string> Examples => ToolText.Examples(Name);
 
@@ -29,13 +31,34 @@ public sealed class ReadClipboardTool(ICommandBridge bridge) : ITool
 
     public async Task<ToolResult> RunAsync(JsonElement arguments, ToolContext context, CancellationToken cancellationToken)
     {
-        var taken = await bridge.TextAsync("grab", context.Assistant, "clipboard", string.Empty, string.Empty, 0, cancellationToken).ConfigureAwait(false);
+        var taken = await bridge.TextAsync("grab", context.Assistant, Core.Assistant.AssistantText.ClipboardAll, string.Empty, string.Empty, 0, cancellationToken).ConfigureAwait(false);
         if (taken is null) return ToolResult.Fail("K-Desktop did not answer.");
+        if (taken is { Reason: "files", Files: { Count: > 0 } files })
+        {
+            var shown = files.Take(30).ToList();
+            return new ToolResult($"The user copied {files.Count} file{(files.Count == 1 ? "" : "s")} or folder{(files.Count == 1 ? "" : "s")} (not text){(files.Count > shown.Count ? $", the first {shown.Count}" : "")}:\n{string.Join("\n", shown)}\nTo know what one says, use read_file with its full path.")
+            {
+                Done = Loc.T("tool.read_clipboard.files", files.Count),
+            };
+        }
+        if (taken is { Reason: "image", Image: { } image })
+        {
+            try
+            {
+                return await PictureFile.DescribeAsync(vision, reader, image, Loc.T("tool.read_clipboard.picture"), arguments.GetString("question")?.Trim() ?? string.Empty,
+                    context, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                try { File.Delete(image); }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { Core.Log.Warn($"Asistente: no se ha podido borrar {image}: {ex.Message}"); }
+            }
+        }
         if (!taken.Ok)
         {
             var reason = taken.Reason is { Length: > 0 } r ? r : "busy";
             var why = reason == "empty" ? Loc.T("tool.read_clipboard.empty") : Loc.T("tool.transform_text.reason." + reason);
-            var said = reason == "empty" ? "The clipboard has no text (it may hold a picture or files, or nothing)." : $"The clipboard could not be read ({reason}).";
+            var said = reason == "empty" ? "Nothing is copied (no text, files nor picture)." : $"The clipboard could not be read ({reason}).";
             return new ToolResult(said + " Say so.") { Done = why, Reply = why, Failed = reason != "empty" };
         }
         var text = taken.Text;

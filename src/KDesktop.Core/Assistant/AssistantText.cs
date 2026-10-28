@@ -26,6 +26,12 @@ public interface ITextDesk
 
     /// <summary>Ctrl+V to the window in front.</summary>
     void Paste();
+
+    /// <summary>The files copied in the Explorer (none: empty).</summary>
+    IReadOnlyList<string> Files() => [];
+
+    /// <summary>The picture copied, saved to a temporary file; null: none.</summary>
+    string? SaveImage() => null;
 }
 
 /// <summary>The real desk: the foreground window, the Windows clipboard and simulated Ctrl+C / Ctrl+V.</summary>
@@ -58,6 +64,27 @@ public sealed class SystemTextDesk : ITextDesk
 
     public string Read() => Engine.TextVariables.ClipboardText();
 
+    public IReadOnlyList<string> Files() => ClipboardSnapshot.Files();
+
+    /// <summary>Where the pictures for the assistants go; any older than a few minutes is removed on the way.</summary>
+    public static string ImageFolder => Path.Combine(Path.GetTempPath(), "K-Desktop", "Clipboard");
+
+    public string? SaveImage()
+    {
+        try
+        {
+            if (Directory.Exists(ImageFolder))
+                foreach (var old in new DirectoryInfo(ImageFolder).EnumerateFiles().Where(f => f.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(-10)))
+                    old.Delete();
+            return ClipboardSnapshot.SaveImage(ImageFolder);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Log.Warn($"Portapapeles: no se ha podido guardar la imagen: {ex.Message}");
+            return null;
+        }
+    }
+
     public bool Write(string text, bool passing) => ClipboardSnapshot.SetText(text, passing);
 
     public void Paste() => InputSimulator.SendCombo("CTRL + V");
@@ -73,6 +100,9 @@ public static class AssistantText
 {
     /// <summary>How long a program may take to read the clipboard after Ctrl+V, before it is put back.</summary>
     public static readonly TimeSpan PasteSettle = TimeSpan.FromMilliseconds(600);
+
+    /// <summary>The source of read_clipboard: what is copied, also files or a picture.</summary>
+    public const string ClipboardAll = "clipboardAll";
 
     /// <summary>More than this is not worked on (a whole book selected).</summary>
     public const int MaxLength = 20_000;
@@ -97,7 +127,7 @@ public static class AssistantText
         var front = desk.Foreground();
         // K-Desktop's own windows (the chat, the box to write) have nothing selected for this: what is copied.
         var usable = front.Handle != IntPtr.Zero && !IsOwn(front.ProcessName);
-        if (message.Source != "clipboard" && usable)
+        if (message.Source is not ("clipboard" or ClipboardAll) && usable)
         {
             var saved = desk.Save();
             if (await desk.CopyAsync(token).ConfigureAwait(false))
@@ -109,9 +139,14 @@ public static class AssistantText
         }
         if (message.Source == "selection") return new TextDoneMessage(message.Run, false, Reason: "noSelection");
         var copied = desk.Read();
-        return copied.Trim().Length == 0
-            ? new TextDoneMessage(message.Run, false, Reason: "empty")
-            : Taken(message.Run, copied, "clipboard", usable ? front : ForegroundWindow.None);
+        if (copied.Trim().Length > 0) return Taken(message.Run, copied, "clipboard", usable ? front : ForegroundWindow.None);
+        // read_clipboard (5.0.348): without text, the files or the picture copied.
+        if (message.Source == ClipboardAll)
+        {
+            if (desk.Files() is { Count: > 0 } files) return new TextDoneMessage(message.Run, false, Reason: "files", Files: files);
+            if (desk.SaveImage() is { } image) return new TextDoneMessage(message.Run, false, Reason: "image", Image: image);
+        }
+        return new TextDoneMessage(message.Run, false, Reason: "empty");
     }
 
     private static TextDoneMessage Taken(string run, string text, string from, ForegroundWindow front) =>

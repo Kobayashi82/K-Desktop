@@ -107,7 +107,19 @@ public sealed class ReadFileTool(IVision? vision = null, IScreenReader? reader =
         };
     }
 
-    private async Task<ToolResult> PictureAsync(string path, string name, string question, ToolContext context, CancellationToken cancellationToken)
+    private Task<ToolResult> PictureAsync(string path, string name, string question, ToolContext context, CancellationToken cancellationToken) =>
+        PictureFile.DescribeAsync(vision, reader, path, name, question, context, cancellationToken);
+}
+
+/// <summary>A picture file as JPEG (for the model's vision) and as pixels (for the OCR), no bigger than a side.</summary>
+internal static class PictureFile
+{
+    /// <summary>
+    /// What a picture file shows (read_file, read_clipboard): its text by the OCR of Windows when that is what is wanted or the
+    /// model cannot see, else the model's vision. <paramref name="name"/>: how it is called for the model.
+    /// </summary>
+    public static async Task<ToolResult> DescribeAsync(IVision? vision, IScreenReader? reader, string path, string name, string question, ToolContext context,
+        CancellationToken cancellationToken)
     {
         var sees = vision?.CanSee(context.Assistant) == true;
         var reads = reader?.CanRead == true;
@@ -132,11 +144,7 @@ public sealed class ReadFileTool(IVision? vision = null, IScreenReader? reader =
         if (string.IsNullOrWhiteSpace(seen)) return ToolResult.Fail("The model did not say what it saw.");
         return new ToolResult($"In the picture {name}: {seen.Trim()}\nAnswer the user from this, in their language.") { Done = Loc.T("tool.read_file.done", name) };
     }
-}
 
-/// <summary>A picture file as JPEG (for the model's vision) and as pixels (for the OCR), no bigger than a side.</summary>
-internal static class PictureFile
-{
     public static async Task<(byte[] Jpeg, BgraImage Pixels)?> LoadAsync(string path, uint maxSide, CancellationToken cancellationToken)
     {
         try
