@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Runtime.InteropServices;
 using KDesktop.Core.Model;
 
@@ -122,6 +123,44 @@ public static class DisplayTools
     private static DEVMODE NewDevMode() => new() { dmSize = (short)Marshal.SizeOf<DEVMODE>() };
 
     /// <summary>GDI name → the monitor's own name (EDID), from the display configuration.</summary>
+    /// <summary>
+    /// The screens plugged in (5.0.341), also the ones not in use (a TV connected while the projection is «only PC»):
+    /// a key that stays the same while it is plugged in, and its name. Empty if Windows does not answer.
+    /// </summary>
+    public static IReadOnlyList<(string Key, string Name)> ConnectedScreens()
+    {
+        var result = new List<(string, string)>();
+        try
+        {
+            if (GetDisplayConfigBufferSizes(QDC_ALL_PATHS, out var pathCount, out var modeCount) != 0) return result;
+            var paths = new DISPLAYCONFIG_PATH_INFO[pathCount];
+            var modes = new DISPLAYCONFIG_MODE_INFO[modeCount];
+            if (QueryDisplayConfig(QDC_ALL_PATHS, ref pathCount, paths, ref modeCount, modes, IntPtr.Zero) != 0) return result;
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            for (var i = 0; i < pathCount; i++)
+            {
+                var info = paths[i].targetInfo;
+                if (info.targetAvailable == 0) continue;
+                var key = string.Create(CultureInfo.InvariantCulture, $"{info.adapterId.LowPart:X}-{info.adapterId.HighPart:X}-{info.id}");
+                if (!seen.Add(key)) continue;
+                var target = new DISPLAYCONFIG_TARGET_DEVICE_NAME();
+                target.header.type = 2; // GET_TARGET_NAME
+                target.header.size = Marshal.SizeOf<DISPLAYCONFIG_TARGET_DEVICE_NAME>();
+                target.header.adapterId = info.adapterId;
+                target.header.id = info.id;
+                var name = DisplayConfigGetDeviceInfo(ref target) == 0 && !string.IsNullOrWhiteSpace(target.monitorFriendlyDeviceName)
+                    ? target.monitorFriendlyDeviceName
+                    : Localization.Loc.T("event.display.unnamed");
+                result.Add((key, name));
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warn("No se pudieron leer las pantallas conectadas: " + ex.Message);
+        }
+        return result;
+    }
+
     private static Dictionary<string, string> FriendlyNames()
     {
         var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -252,7 +291,7 @@ public static class DisplayTools
     private const int ENUM_CURRENT_SETTINGS = -1;
     private const uint CDS_UPDATEREGISTRY = 0x01;
     private const int DM_PELSWIDTH = 0x80000, DM_PELSHEIGHT = 0x100000, DM_DISPLAYFREQUENCY = 0x400000;
-    private const uint QDC_ONLY_ACTIVE_PATHS = 0x2;
+    private const uint QDC_ONLY_ACTIVE_PATHS = 0x2, QDC_ALL_PATHS = 0x1;
 
     [DllImport("user32.dll")]
     private static extern bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);

@@ -339,12 +339,14 @@ public sealed partial class CommandEngine
     /// longer exists is skipped. Conditions, «no repetir» and the like are the caller's business (EventService); the
     /// pause is checked here like everywhere else.
     /// </summary>
-    public Task RunEventAsync(EventRule rule, bool end, TriggerSource source = TriggerSource.Event, ForegroundWindow? foreground = null) =>
-        RunEventAsync(rule, end, source, foreground ?? ForegroundWindow.Capture(), 0);
+    /// <param name="variables">What the event knows for its commands (the file of «Archivo»: {archivo}); null: nothing.</param>
+    public Task RunEventAsync(EventRule rule, bool end, TriggerSource source = TriggerSource.Event, ForegroundWindow? foreground = null,
+        CommandVariables? variables = null) =>
+        RunEventAsync(rule, end, source, foreground ?? ForegroundWindow.Capture(), 0, variables: variables);
 
     /// <param name="depth">Nesting: an event run by a command that an event ran… stops like nested commands do.</param>
     private async Task RunEventAsync(EventRule rule, bool end, TriggerSource source, ForegroundWindow foreground, int depth,
-        IChoreography? choreography = null, CancellationToken cancellationToken = default)
+        IChoreography? choreography = null, CommandVariables? variables = null, CancellationToken cancellationToken = default)
     {
         if (depth > MaxNesting)
         {
@@ -358,7 +360,7 @@ public sealed partial class CommandEngine
         }
         EventFired?.Invoke(rule, end, source);
         // Its commands share the variables (one leaves {resultado} for the next); run by a command, the command's.
-        var variables = depth > 0 ? CommandVariables.Current ?? new CommandVariables() : new CommandVariables();
+        variables ??= depth > 0 ? CommandVariables.Current ?? new CommandVariables() : new CommandVariables();
         using var origin = ExecutionHistory.Describe(Localization.Loc.T(end ? "history.eventEnd" : "history.event", rule.Name));
         foreach (var command in EventCommands(rule, end))
         {

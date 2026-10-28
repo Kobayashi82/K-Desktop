@@ -605,7 +605,7 @@ public sealed partial class CommandEngine
         switch (a.Mode)
         {
             case CommandControlMode.Run:
-                await RunEventAsync(rule, false, TriggerSource.Command, ctx.Foreground, ctx.Depth + 1, ctx.Choreography, ctx.ChoreographyToken).ConfigureAwait(false);
+                await RunEventAsync(rule, false, TriggerSource.Command, ctx.Foreground, ctx.Depth + 1, ctx.Choreography, cancellationToken: ctx.ChoreographyToken).ConfigureAwait(false);
                 break;
             case CommandControlMode.Enable:
                 _ui.RunOnUi(() => rule.Enabled = true);

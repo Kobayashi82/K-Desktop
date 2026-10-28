@@ -48,6 +48,9 @@ The **If…** action checks something and, if it is not so, stops the command, s
 | A file exists | «If D:\backup.lock exists» |
 | The clipboard | «If the clipboard contains "http"» |
 | CPU, GPU or memory use | «If the processor is above 80 %» |
+| Battery below a % | «If the battery is below 20 %» |
+| Screens plugged in | «If there are 2 screens or more» |
+| It is daytime | «If it is daytime», «If it is night» (between sunrise and sunset where you are) |
 | A text or variable: has something, contains, is equal to, is greater or less than | «If {result} contains "error"», «If {result} is greater than 80» |
 
 Every condition can be turned around with **The opposite** («isn't», «doesn't»…). When comparing, numbers are compared as numbers

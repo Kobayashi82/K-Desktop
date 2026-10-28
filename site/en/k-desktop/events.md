@@ -18,7 +18,10 @@ removed…) with its own commands.
 | PC not in use | After some minutes without keyboard or mouse; «When it ends», when you come back |
 | Lock, sleep… | When the session is locked or unlocked, or the PC sleeps or wakes up |
 | Battery or mains | When a laptop goes on battery or back on mains power |
-| New file in a folder | When a file appears (created, copied, downloaded…), as soon as it stops growing |
+| Battery level | When the battery goes below a % (or above it); «When it ends», when it is back on the other side |
+| Sunrise or sunset | At sunrise or sunset where you are, or some minutes before or after (worked out on the PC; *See today* shows today's). Without a place: «Where you are» in the assistant options or Windows' location |
+| File in a folder | When a file appears (as soon as it stops growing), changes, is deleted or renamed. The commands get its path in `{file}` |
+| Screen plugged in or out | When you plug in or take out a monitor or the TV (also a TV plugged in but not in use yet); the commands get its name in `{screen}` |
 | Call from outside | When another computer, Home Assistant or a script asks for it by name, over UDP or the web |
 | Drive connected | When a USB stick, disk or card is connected (and removed) |
 | Network | When connecting to a network (or any), or when left without network |

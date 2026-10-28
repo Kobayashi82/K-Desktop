@@ -18,7 +18,10 @@ se quita el dispositivo…) con sus propios comandos.
 | Sin usar el PC | Tras unos minutos sin teclado ni ratón; «Al terminar», cuando vuelves |
 | Bloquear, suspender… | Cuando la sesión se bloquea o desbloquea, o el PC se suspende o se despierta |
 | Batería o corriente | Cuando un portátil pasa a batería o vuelve a la corriente |
-| Archivo nuevo en una carpeta | Cuando aparece un archivo (creado, copiado, descargado…), en cuanto deja de crecer |
+| Nivel de batería | Cuando la batería baja de un % (o sube de él); «Al terminar», cuando vuelve al otro lado |
+| Amanecer o atardecer | Al amanecer o al atardecer donde estás, o unos minutos antes o después (la hora se calcula en el PC; *Ver hoy* enseña la de hoy). Sin lugar: «Dónde estás» de las opciones del asistente o la ubicación de Windows |
+| Archivo en una carpeta | Cuando un archivo aparece (en cuanto deja de crecer), cambia, se borra o se renombra. Los comandos reciben su ruta en `{archivo}` |
+| Pantalla conectada o desconectada | Cuando enchufas o quitas un monitor o la tele (también una tele enchufada que aún no se usa); los comandos reciben su nombre en `{pantalla}` |
 | Llamada desde fuera | Cuando otro equipo, Home Assistant o un script lo pide por su nombre, por UDP o por la web |
 | Unidad conectada | Cuando se conecta un USB, un disco o una tarjeta (y cuando se retira) |
 | Red | Al conectarse a una red (o a cualquiera), o al quedarse sin red |

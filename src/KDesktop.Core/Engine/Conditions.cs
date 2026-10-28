@@ -63,6 +63,19 @@ public static class Conditions
 
             case ConditionKind.Variable:
                 return Compare(TextVariables.Expand(c.Value).Trim(), c.Test, text);
+
+            case ConditionKind.BatteryLevel:
+                // A PC without a battery is never low.
+                return BatteryPercent() is { } charge && charge < c.Percent;
+
+            case ConditionKind.Screens:
+                return await Task.Run(() => DisplayTools.ConnectedScreens().Count, token).ConfigureAwait(false) >= Math.Max(1, c.Percent);
+
+            case ConditionKind.Daylight:
+                // Without knowing where: from 7 to 20 h.
+                return await Platform.HomeLocation.FindAsync(null, token).ConfigureAwait(false) is { } here
+                    ? Events.SunTimes.IsDay(DateTime.UtcNow, here.Latitude, here.Longitude)
+                    : now.Hour is >= 7 and < 20;
         }
         return false;
     }
@@ -128,6 +141,10 @@ public static class Conditions
         var folded = new string(text.Select(FuzzyMatch.Fold).ToArray());
         return FuzzyMatch.Tokens(wanted).All(token => folded.Contains(token, StringComparison.Ordinal));
     }
+
+    /// <summary>The battery's charge in % (null: no battery, or Windows can't tell).</summary>
+    public static int? BatteryPercent() =>
+        GetSystemPowerStatus(out var status) && status.BatteryLifePercent <= 100 && (status.BatteryFlag & 128) == 0 ? status.BatteryLifePercent : null;
 
     /// <summary>Whether the PC runs on battery now (null: Windows can't tell).</summary>
     public static bool? OnBattery()

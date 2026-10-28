@@ -158,6 +158,9 @@
                         <ui:Button VerticalAlignment="Stretch" Grid.Column="1" Margin="8,0,0,0" Icon="{ui:SymbolIcon FolderOpen24}" ToolTip="{l:Tr editor.browse}"
                                    AutomationProperties.Name="{l:Tr editor.browse}" Click="OnBrowseFolder" />
                     </Grid>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.fileChange}" />
+                    <ComboBox Width="260" HorizontalAlignment="Left" Margin="0,0,0,10" ItemsSource="{x:Static v:Lookups.FileChanges}" DisplayMemberPath="Name"
+                              SelectedValuePath="Value" SelectedValue="{Binding Change}" AutomationProperties.Name="{l:Tr event.fileChange}" />
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.fileFilter}" />
                     <ui:TextBox Width="200" HorizontalAlignment="Left" Margin="0,0,0,10" Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="*.png" />
                     <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr event.subfolders}" IsChecked="{Binding Subfolders}" />
@@ -257,6 +260,67 @@
                 </StackPanel>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type m:BatteryTrigger}">
+                <StackPanel>
+                    <WrapPanel>
+                        <StackPanel Margin="0,0,12,8">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.loadComparison}" />
+                            <ComboBox Width="170" ItemsSource="{x:Static v:Lookups.LoadComparisons}" DisplayMemberPath="Name"
+                                      SelectedValuePath="Value" SelectedValue="{Binding Comparison}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,0,8">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="%" />
+                            <ui:TextBox Width="90" Text="{Binding Percent, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="100" />
+                        </StackPanel>
+                    </WrapPanel>
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr event.hint.battery}" />
+                </StackPanel>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type m:SunTrigger}">
+                <StackPanel>
+                    <WrapPanel>
+                        <StackPanel Margin="0,0,12,8">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.sessionWhen}" />
+                            <ComboBox Width="200" ItemsSource="{x:Static v:Lookups.SunEvents}" DisplayMemberPath="Name"
+                                      SelectedValuePath="Value" SelectedValue="{Binding Event}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,0,8">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.sunOffset}" />
+                            <ui:TextBox Width="110" Text="{Binding OffsetMinutes, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True"
+                                        v:NumberInput.Negative="True" v:NumberInput.Maximum="720" AutomationProperties.Name="{l:Tr event.sunOffset}" />
+                        </StackPanel>
+                    </WrapPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.sunPlace}" />
+                    <Grid Style="{StaticResource EdRow}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ui:TextBox Text="{Binding Place, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="{l:Tr event.sunPlaceHint}" Icon="{ui:SymbolIcon Location24}"
+                                    AutomationProperties.Name="{l:Tr event.sunPlace}" />
+                        <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Icon="{ui:SymbolIcon WeatherSunnyLow24}" Content="{l:Tr event.sunToday}"
+                                   AutomationProperties.Name="{l:Tr event.sunToday}" Click="OnSunToday" />
+                    </Grid>
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr event.hint.sun}" />
+                </StackPanel>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type m:DisplayTrigger}">
+                <StackPanel>
+                    <WrapPanel>
+                        <StackPanel Margin="0,0,12,8">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.sessionWhen}" />
+                            <ComboBox Width="200" ItemsSource="{x:Static v:Lookups.DisplayEvents}" DisplayMemberPath="Name"
+                                      SelectedValuePath="Value" SelectedValue="{Binding Event}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,0,8" MinWidth="260">
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr event.displayName}" />
+                            <ComboBox IsEditable="True" Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}" v:Placeholder.Text="{l:Tr event.display.any}"
+                                      ItemsSource="{Binding Source={x:Static v:Lookups.ConnectedScreenNames}}" AutomationProperties.Name="{l:Tr event.displayName}" />
+                        </StackPanel>
+                    </WrapPanel>
+                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr event.hint.display}" />
+                </StackPanel>
+            </DataTemplate>
             <DataTemplate DataType="{x:Type m:LoadTrigger}">
                 <StackPanel>
                     <WrapPanel>
@@ -595,7 +659,6 @@
                             <Grid>
                                 <TextBlock FontWeight="SemiBold" VerticalAlignment="Center" Text="{l:Tr event.ask}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                 <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" Margin="8,0,8,0">
-                                    <ui:Button x:Name="AddAskButton" Appearance="Primary" MinHeight="36" Content="{l:Tr event.askAdd}" Icon="{ui:SymbolIcon ChatAdd24}" Click="OnAddAsk" />
                                     <ui:Button x:Name="RemoveAskButton" Style="{StaticResource IconButton}" ToolTip="{l:Tr common.remove}"
                                                AutomationProperties.Name="{l:Tr common.remove}" Click="OnRemoveAsk">
                                         <ui:SymbolIcon Symbol="Dismiss24" FontSize="16" />
@@ -604,7 +667,10 @@
                             </Grid>
                         </ui:CardExpander.Header>
                         <StackPanel>
-                            <TextBlock x:Name="NoAsk" Style="{StaticResource Caption}" Margin="0,0,0,6" TextWrapping="Wrap" Text="{l:Tr event.askNone}" />
+                            <TextBlock x:Name="NoAsk" Style="{StaticResource Caption}" Margin="0,0,0,10" TextWrapping="Wrap" Text="{l:Tr event.askNone}" />
+                            <!-- Like «Añadir condición» of «Solo si» (5.0.341) -->
+                            <ui:Button x:Name="AddAskButton" HorizontalAlignment="Left" Margin="0,0,0,10" Icon="{ui:SymbolIcon Add24}" Content="{l:Tr event.askAdd}"
+                                       AutomationProperties.Name="{l:Tr event.askAdd}" Click="OnAddAsk" />
                             <Border x:Name="ScheduledInfo" Margin="0,0,0,10" Padding="10,8" CornerRadius="6" Background="{DynamicResource Kd.AccentSoft}">
                                 <StackPanel Orientation="Horizontal">
                                     <ui:SymbolIcon Symbol="CalendarClock24" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Top" Foreground="{DynamicResource Kd.AccentText}" />

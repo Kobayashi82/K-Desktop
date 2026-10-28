@@ -100,6 +100,7 @@ public sealed class EventService : IDisposable
         _state = state ?? new EventState(EventState.DefaultFile);
         _engine.EventFired += OnEventFired;
         _engine.RemoteCall = FireRemoteCall;
+        HomeLocation.DefaultPlace = () => _config().Settings.AssistantHomePlace;
     }
 
     /// <summary>
@@ -137,6 +138,8 @@ public sealed class EventService : IDisposable
             ConfigureAudio();
             ConfigureGadgets();
             ConfigureLoad();
+            ConfigureBattery();
+            ConfigureDisplays();
             ConfigureWatcher();
             _initial = false;
         }
@@ -157,6 +160,8 @@ public sealed class EventService : IDisposable
         _audioDefaultActive.Remove(id);
         _gadgets.Remove(id);
         _loadState.Remove(id);
+        _batteryActive.Remove(id);
+        _displays.Remove(id);
         _guard.Reset(id);
     }
 
@@ -187,15 +192,15 @@ public sealed class EventService : IDisposable
     /// <summary>Stopped for a while because it fired too often (a loop).</summary>
     public bool IsSuspended(EventRule rule) => _guard.IsSuspended(rule.Id, DateTime.UtcNow);
 
-    private void Fire(EventRule rule, bool end) => _ = FireAsync(rule, end);
+    private void Fire(EventRule rule, bool end, CommandVariables? variables = null) => _ = FireAsync(rule, end, variables);
 
-    private Task FireAsync(EventRule rule, bool end) => Task.Run(async () =>
+    private Task FireAsync(EventRule rule, bool end, CommandVariables? variables = null) => Task.Run(async () =>
     {
-        try { await FireCoreAsync(rule, end).ConfigureAwait(false); }
+        try { await FireCoreAsync(rule, end, variables).ConfigureAwait(false); }
         catch (Exception ex) { Log.Error($"Error en el evento «{rule.Name}»", ex); }
     });
 
-    private async Task FireCoreAsync(EventRule rule, bool end)
+    private async Task FireCoreAsync(EventRule rule, bool end, CommandVariables? variables = null)
     {
         if (!rule.Enabled || _disposed) return;
         if (end)
@@ -204,7 +209,7 @@ public sealed class EventService : IDisposable
             {
                 if (!_started.Remove(rule.Id)) return; // its start didn't run (conditions, pause…)
             }
-            if (rule.EndCommands.Count > 0) await _engine.RunEventAsync(rule, true).ConfigureAwait(false);
+            if (rule.EndCommands.Count > 0) await _engine.RunEventAsync(rule, true, variables: variables).ConfigureAwait(false);
             return;
         }
         if (_engine.IsPaused)
@@ -234,7 +239,7 @@ public sealed class EventService : IDisposable
         }
         if (rule.HasEnd)
             lock (_lock) _started.Add(rule.Id);
-        await _engine.RunEventAsync(rule, false).ConfigureAwait(false);
+        await _engine.RunEventAsync(rule, false, variables: variables).ConfigureAwait(false);
     }
 
     /// <summary>Remembers when an event fired (shown in the list, and «a una hora» doesn't repeat a time already done).</summary>
@@ -270,7 +275,7 @@ public sealed class EventService : IDisposable
     private void ConfigureSchedule()
     {
         var now = DateTime.UtcNow;
-        var wanted = _rules.Values.Select(r => r.Rule).Where(r => r.Trigger is TimeTrigger or IntervalTrigger).ToList();
+        var wanted = _rules.Values.Select(r => r.Rule).Where(r => r.Trigger is TimeTrigger or IntervalTrigger or SunTrigger).ToList();
         foreach (var id in _due.Keys.Where(id => wanted.All(r => r.Id != id)).ToList()) _due.Remove(id);
         foreach (var rule in wanted)
             if (!_due.ContainsKey(rule.Id)) _due[rule.Id] = FirstDue(rule.Trigger, now);
@@ -295,13 +300,54 @@ public sealed class EventService : IDisposable
         ArmSchedule(now);
     }
 
-    private static DateTime FirstDue(EventTrigger trigger, DateTime nowUtc) => trigger switch
+    private DateTime FirstDue(EventTrigger trigger, DateTime nowUtc) => trigger switch
     {
         TimeTrigger t when EventTime.Parse(t.Time) is { } time =>
             t.OnDate is { } date ? EventSchedule.Next(time, date, nowUtc) : EventSchedule.Next(time, t.Days, nowUtc),
         IntervalTrigger i => nowUtc.AddMinutes(Math.Max(1, i.Minutes)),
+        SunTrigger s when SunPlace(s) is { } here => SunTimes.Next(s.Event, s.OffsetMinutes, here.Latitude, here.Longitude, nowUtc),
         _ => DateTime.MaxValue,
     };
+
+    // ── «Amanecer o atardecer» ────────────────────────────────────────────
+
+    private readonly Dictionary<string, GeoPlace> _sunPlaces = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _sunLooking = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Where an event of the sun looks (already found), or null while it is looked for: once found, its time is worked
+    /// out again. Not found (no internet, no permission): tried again in half an hour.
+    /// </summary>
+    private GeoPlace? SunPlace(SunTrigger trigger)
+    {
+        var key = trigger.Place.Trim();
+        if (_sunPlaces.TryGetValue(key, out var known)) return known;
+        if (!_sunLooking.Add(key)) return null;
+        _ = Task.Run(async () =>
+        {
+            var found = await HomeLocation.FindAsync(key).ConfigureAwait(false);
+            if (found is null)
+            {
+                Log.Warn($"Eventos: no se sabe dónde es «{(key.Length == 0 ? "tu ubicación" : key)}» para el amanecer o el atardecer; se reintenta en media hora");
+                await Task.Delay(TimeSpan.FromMinutes(30)).ConfigureAwait(false);
+            }
+            lock (_lock)
+            {
+                _sunLooking.Remove(key);
+                if (_disposed) return;
+                if (found is not null)
+                {
+                    _sunPlaces[key] = found;
+                    Log.Info($"Eventos: amanecer y atardecer en {found}");
+                }
+                var now = DateTime.UtcNow;
+                foreach (var (rule, t) in Rules<SunTrigger>().ToList())
+                    if (t.Place.Trim().Equals(key, StringComparison.OrdinalIgnoreCase)) _due[rule.Id] = FirstDue(t, now);
+                ArmSchedule(now);
+            }
+        });
+        return null;
+    }
 
     /// <summary>At start: «si se perdió, ejecutar al arrancar» for the times that passed while K-Desktop was closed.</summary>
     private void CatchUpMissed(DateTime nowUtc)
@@ -357,7 +403,9 @@ public sealed class EventService : IDisposable
                 if (due > now || !_rules.TryGetValue(id, out var entry)) continue;
                 var rule = entry.Rule;
                 var late = now - due > LateLimit;
-                if (rule.Trigger is TimeTrigger t && late && !t.RunIfMissed)
+                if (rule.Trigger is SunTrigger && late)
+                    Log.Info($"Evento «{rule.Name}»: se pasó su hora ({due.ToLocalTime():HH:mm}) con el PC dormido o el reloj cambiado");
+                else if (rule.Trigger is TimeTrigger t && late && !t.RunIfMissed)
                 {
                     Log.Info($"Evento «{rule.Name}»: se pasó la hora ({due.ToLocalTime():HH:mm}) con el PC dormido o el reloj cambiado");
                     if (rule.Once && t.HasDate) missed.Add(rule);
@@ -574,15 +622,26 @@ public sealed class EventService : IDisposable
             var filter = string.IsNullOrWhiteSpace(t.Filter) ? "*" : t.Filter.Trim();
             try
             {
+                var change = t.Change;
                 var watcher = new FileSystemWatcher(folder, filter)
                 {
                     IncludeSubdirectories = t.Subfolders,
-                    NotifyFilter = NotifyFilters.FileName,
+                    NotifyFilter = NotifyFilters.FileName | (change is FileChange.Changed or FileChange.Any ? NotifyFilters.LastWrite | NotifyFilters.Size : 0),
                     InternalBufferSize = 64 * 1024,
                 };
                 var captured = rule;
-                watcher.Created += (_, e) => OnFileAppeared(captured, filter, e.FullPath);
-                watcher.Renamed += (_, e) => OnFileAppeared(captured, filter, e.FullPath);
+                if (change is FileChange.Created or FileChange.Any)
+                    watcher.Created += (_, e) => OnFileAppeared(captured, filter, e.FullPath, FileChange.Created);
+                if (change is FileChange.Changed or FileChange.Any)
+                    watcher.Changed += (_, e) => OnFileAppeared(captured, filter, e.FullPath, FileChange.Changed);
+                if (change is FileChange.Deleted or FileChange.Any)
+                    watcher.Deleted += (_, e) => OnFileGone(captured, filter, e.FullPath);
+                // A file renamed to a name it waits for is «new» (as before 5.0.341); «Renombrado» is any renaming.
+                watcher.Renamed += (_, e) =>
+                {
+                    if (change is FileChange.Renamed or FileChange.Any) OnFileRenamed(captured, filter, e.FullPath, e.OldFullPath);
+                    else if (change == FileChange.Created) OnFileAppeared(captured, filter, e.FullPath, FileChange.Created);
+                };
                 watcher.Error += (_, e) => Log.Warn($"Evento «{captured.Name}»: se perdieron avisos de la carpeta ({e.GetException().Message})");
                 watcher.EnableRaisingEvents = true;
                 _fileWatchers[rule.Id] = watcher;
@@ -594,8 +653,36 @@ public sealed class EventService : IDisposable
         }
     }
 
-    /// <summary>A file appeared (created, or renamed to a matching name): wait until it is complete, then fire.</summary>
-    private void OnFileAppeared(EventRule rule, string filter, string path)
+    /// <summary>The file for the commands: {archivo} / {file} and {resultado}.</summary>
+    private static CommandVariables FileVariables(string path)
+    {
+        var variables = new CommandVariables();
+        variables.SetResult(path, "file");
+        variables.SetResult(path, "archivo");
+        return variables;
+    }
+
+    private void OnFileGone(EventRule rule, string filter, string path)
+    {
+        if (!System.IO.Enumeration.FileSystemName.MatchesSimpleExpression(filter, Path.GetFileName(path))) return;
+        Log.Info($"Eventos: archivo borrado {path} («{rule.Name}»)");
+        Fire(rule, false, FileVariables(path));
+    }
+
+    private void OnFileRenamed(EventRule rule, string filter, string path, string oldPath)
+    {
+        if (!System.IO.Enumeration.FileSystemName.MatchesSimpleExpression(filter, Path.GetFileName(path)) &&
+            !System.IO.Enumeration.FileSystemName.MatchesSimpleExpression(filter, Path.GetFileName(oldPath))) return;
+        if (Directory.Exists(path)) return;
+        Log.Info($"Eventos: archivo renombrado {oldPath} → {path} («{rule.Name}»)");
+        Fire(rule, false, FileVariables(path));
+    }
+
+    /// <summary>
+    /// A file appeared (created, or renamed to a matching name) or changed: wait until it is complete (a change: until
+    /// the program has finished writing it), then fire once.
+    /// </summary>
+    private void OnFileAppeared(EventRule rule, string filter, string path, FileChange what)
     {
         if (!System.IO.Enumeration.FileSystemName.MatchesSimpleExpression(filter, Path.GetFileName(path))) return;
         if (Directory.Exists(path)) return; // a folder, not a file
@@ -609,8 +696,8 @@ public sealed class EventService : IDisposable
             {
                 if (await FileSettler.WaitAsync(path, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(10), CancellationToken.None).ConfigureAwait(false))
                 {
-                    Log.Info($"Eventos: archivo nuevo {path} («{rule.Name}»)");
-                    await FireAsync(rule, false).ConfigureAwait(false);
+                    Log.Info($"Eventos: archivo {(what == FileChange.Changed ? "cambiado" : "nuevo")} {path} («{rule.Name}»)");
+                    await FireAsync(rule, false, FileVariables(path)).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) { Log.Error($"Evento «{rule.Name}»: error esperando a {path}", ex); }
@@ -912,6 +999,118 @@ public sealed class EventService : IDisposable
         }
     }
 
+    // ── «Nivel de batería» ───────────────────────────────────────────────
+
+    private static readonly TimeSpan BatteryPoll = TimeSpan.FromSeconds(30);
+    private Timer? _batteryTimer;
+    private readonly Dictionary<string, bool> _batteryActive = new(StringComparer.Ordinal);
+
+    private void ConfigureBattery()
+    {
+        var rules = Rules<BatteryTrigger>().ToList();
+        foreach (var id in _batteryActive.Keys.Where(id => rules.All(r => r.Rule.Id != id)).ToList()) _batteryActive.Remove(id);
+        if (rules.Count == 0)
+        {
+            _batteryTimer?.Dispose();
+            _batteryTimer = null;
+            return;
+        }
+        // Already below when it starts watching does not count: it fires when it crosses.
+        var now = Conditions.BatteryPercent();
+        foreach (var (rule, t) in rules) _batteryActive.TryAdd(rule.Id, now is { } p && t.Holds(p));
+        _batteryTimer ??= new Timer(_ => OnBatteryTick(), null, BatteryPoll, BatteryPoll);
+    }
+
+    private void OnBatteryTick()
+    {
+        if (Conditions.BatteryPercent() is not { } percent) return; // no battery
+        List<(EventRule Rule, bool End)> fire = [];
+        lock (_lock)
+        {
+            if (_disposed || _batteryTimer is null) return;
+            foreach (var (rule, t) in Rules<BatteryTrigger>())
+            {
+                var holds = t.Holds(percent);
+                if (_batteryActive.GetValueOrDefault(rule.Id) == holds) continue;
+                _batteryActive[rule.Id] = holds;
+                fire.Add((rule, !holds));
+            }
+        }
+        foreach (var (rule, end) in fire)
+        {
+            Log.Info($"Eventos: batería al {percent} % («{rule.Name}»{(end ? ", termina" : "")})");
+            Fire(rule, end);
+        }
+    }
+
+    // ── «Pantalla conectada o desconectada» ──────────────────────────────
+
+    private static readonly TimeSpan DisplayPoll = TimeSpan.FromSeconds(3);
+    private Timer? _displayTimer;
+    private Dictionary<string, string>? _screens;
+    private readonly Dictionary<string, HashSet<string>> _displays = new(StringComparer.Ordinal);
+
+    private void ConfigureDisplays()
+    {
+        var rules = Rules<DisplayTrigger>().ToList();
+        foreach (var id in _displays.Keys.Where(id => rules.All(r => r.Rule.Id != id)).ToList()) _displays.Remove(id);
+        if (rules.Count == 0)
+        {
+            _displayTimer?.Dispose();
+            _displayTimer = null;
+            _screens = null;
+            return;
+        }
+        if (_screens is null)
+        {
+            _screens = DisplayTools.ConnectedScreens().ToDictionary(s => s.Key, s => s.Name, StringComparer.Ordinal);
+            Log.Info($"Eventos: pantallas conectadas: {string.Join(", ", _screens.Values)}");
+        }
+        // The ones already plugged in when it starts: their end («Al terminar») comes when they are taken out.
+        foreach (var (rule, t) in rules)
+            if (!_displays.ContainsKey(rule.Id) && t.Event == DisplayEvent.Connected)
+                _displays[rule.Id] = [.. _screens.Where(s => t.Matches(s.Value)).Select(s => s.Key)];
+        _displayTimer ??= new Timer(_ => OnDisplayTick(), null, DisplayPoll, DisplayPoll);
+    }
+
+    private void OnDisplayTick()
+    {
+        var now = DisplayTools.ConnectedScreens().ToDictionary(s => s.Key, s => s.Name, StringComparer.Ordinal);
+        List<(EventRule Rule, bool End, string Name)> fire = [];
+        lock (_lock)
+        {
+            if (_disposed || _displayTimer is null || _screens is null) return;
+            // Windows answering nothing for a moment (while the screens change) is not every screen gone.
+            if (now.Count == 0) return;
+            var added = now.Where(s => !_screens.ContainsKey(s.Key)).ToList();
+            var removed = _screens.Where(s => !now.ContainsKey(s.Key)).ToList();
+            _screens = now;
+            if (added.Count == 0 && removed.Count == 0) return;
+            foreach (var (rule, t) in Rules<DisplayTrigger>())
+            {
+                if (t.Event == DisplayEvent.Connected)
+                {
+                    if (!_displays.TryGetValue(rule.Id, out var mine)) _displays[rule.Id] = mine = [];
+                    foreach (var (key, name) in added)
+                        if (t.Matches(name) && mine.Add(key)) fire.Add((rule, false, name));
+                    foreach (var (key, name) in removed)
+                        if (mine.Remove(key)) fire.Add((rule, true, name));
+                }
+                else
+                    foreach (var (_, name) in removed)
+                        if (t.Matches(name)) fire.Add((rule, false, name));
+            }
+        }
+        foreach (var (rule, end, name) in fire)
+        {
+            Log.Info($"Eventos: pantalla {name} {(end || rule.Trigger is DisplayTrigger { Event: DisplayEvent.Disconnected } ? "desconectada" : "conectada")} («{rule.Name}»)");
+            var variables = new CommandVariables();
+            variables.SetResult(name, "screen");
+            variables.SetResult(name, "pantalla");
+            Fire(rule, end, variables);
+        }
+    }
+
     // ── sesión y ventana oculta ──────────────────────────────────────────
 
     private void ConfigureWatcher()
@@ -1011,6 +1210,8 @@ public sealed class EventService : IDisposable
             _idleTimer?.Dispose();
             _loadTimer?.Dispose();
             _load?.Dispose();
+            _batteryTimer?.Dispose();
+            _displayTimer?.Dispose();
             foreach (var w in _fileWatchers.Values) w.Dispose();
             _networkTimer?.Dispose();
             if (_networkWatching) System.Net.NetworkInformation.NetworkChange.NetworkAddressChanged -= OnNetworkChanged;

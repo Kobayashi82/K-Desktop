@@ -36,6 +36,9 @@ public static class EventCatalog
         new(EventKind.Network, "Wifi124", "teal", () => new NetworkTrigger()),
         new(EventKind.File, "DocumentAdd24", "yellow", () => new FileTrigger()),
         new(EventKind.Load, "DataUsage24", "orange", () => new LoadTrigger()),
+        new(EventKind.Battery, "BatteryWarning24", "lime", () => new BatteryTrigger()),
+        new(EventKind.Sun, "WeatherSunnyLow24", "gold", () => new SunTrigger()),
+        new(EventKind.Display, "DesktopArrowRight24", "sky", () => new DisplayTrigger()),
         new(EventKind.RemoteCall, "PlugConnected24", "pink", () => new RemoteCallTrigger()),
     ];
 

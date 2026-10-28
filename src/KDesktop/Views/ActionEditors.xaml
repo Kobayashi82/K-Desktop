@@ -1710,6 +1710,12 @@
                     <ui:TextBox Width="100" Text="{Binding Percent, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="100" />
                 </StackPanel>
             </StackPanel>
+            <!-- «Nivel de batería» (below this %) and «Pantallas» (at least this many) share Percent -->
+            <StackPanel x:Name="NumberRow" Margin="0,0,0,12" Visibility="Collapsed">
+                <TextBlock x:Name="NumberLabel" Style="{StaticResource FieldLabel}" Text="{l:Tr editor.ifBatteryBelow}" />
+                <ui:TextBox Width="100" HorizontalAlignment="Left" Text="{Binding Percent, UpdateSourceTrigger=PropertyChanged}" v:NumberInput.IsEnabled="True" v:NumberInput.Maximum="100" />
+            </StackPanel>
+            <TextBlock x:Name="DaylightHint" Style="{StaticResource Caption}" Margin="0,0,0,12" TextWrapping="Wrap" Visibility="Collapsed" Text="{l:Tr editor.ifDaylightHint}" />
 
         </StackPanel>
         <DataTemplate.Triggers>
@@ -1760,6 +1766,16 @@
             </DataTrigger>
             <DataTrigger Binding="{Binding Condition}" Value="Load">
                 <Setter TargetName="LoadRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Condition}" Value="BatteryLevel">
+                <Setter TargetName="NumberRow" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Condition}" Value="Screens">
+                <Setter TargetName="NumberRow" Property="Visibility" Value="Visible" />
+                <Setter TargetName="NumberLabel" Property="Text" Value="{l:Tr editor.ifScreens}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Condition}" Value="Daylight">
+                <Setter TargetName="DaylightHint" Property="Visibility" Value="Visible" />
             </DataTrigger>
         </DataTemplate.Triggers>
     </DataTemplate>

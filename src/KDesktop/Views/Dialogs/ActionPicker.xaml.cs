@@ -85,10 +85,10 @@ public partial class ActionPicker : FluentWindow
     private static readonly (string Key, SymbolRegular Symbol, EventKind[] Kinds)[] EventGroups =
     [
         ("kdesktop", SymbolRegular.Flash24, [EventKind.AppStart, EventKind.AppExit, EventKind.RemoteCall]),
-        ("time", SymbolRegular.Clock24, [EventKind.Time, EventKind.Interval, EventKind.Idle]),
+        ("time", SymbolRegular.Clock24, [EventKind.Time, EventKind.Interval, EventKind.Sun, EventKind.Idle]),
         ("programs", SymbolRegular.WindowApps24, [EventKind.ProcessStart, EventKind.Foreground]),
-        ("system", SymbolRegular.Settings24, [EventKind.Session, EventKind.PowerSource, EventKind.Load, EventKind.Network]),
-        ("devices", SymbolRegular.UsbStick24, [EventKind.Gadget, EventKind.AudioDevice, EventKind.Device]),
+        ("system", SymbolRegular.Settings24, [EventKind.Session, EventKind.PowerSource, EventKind.Battery, EventKind.Load, EventKind.Network]),
+        ("devices", SymbolRegular.UsbStick24, [EventKind.Gadget, EventKind.AudioDevice, EventKind.Display, EventKind.Device]),
         ("files", SymbolRegular.Document24, [EventKind.File]),
     ];
 

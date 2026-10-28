@@ -49,6 +49,9 @@ La acción **Si…** comprueba algo y, si no se cumple, para el comando, se salt
 | Un archivo existe | «Si existe D:\copia.lock» |
 | El portapapeles | «Si el portapapeles contiene «http»» |
 | Uso del procesador, la gráfica o la memoria | «Si el procesador pasa del 80 %» |
+| Batería por debajo de un % | «Si la batería está por debajo del 20 %» |
+| Pantallas conectadas | «Si hay 2 pantallas o más» |
+| Es de día | «Si es de día», «Si es de noche» (entre el amanecer y el atardecer donde estás) |
 | Un texto o variable: tiene algo, contiene, es igual a, es mayor o menor que | «Si {resultado} contiene «error»», «Si {resultado} es mayor que 80» |
 
 Todas las condiciones se pueden poner **Al revés** («no está», «no responde»…). Al comparar, los números se comparan como números

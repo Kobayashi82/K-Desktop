@@ -314,8 +314,17 @@ public enum EventKind
 {
     AppStart, AppExit, Time, Interval, ProcessStart, Foreground, Idle, Session,
     AudioDevice, Device, Network, PowerSource, File,
-    RemoteCall, Gadget, Load,
+    RemoteCall, Gadget, Load, Battery, Sun, Display,
 }
+
+/// <summary>«Archivo» (5.0.341): what happens to the file.</summary>
+public enum FileChange { Created, Changed, Deleted, Renamed, Any }
+
+/// <summary>«Amanecer o atardecer».</summary>
+public enum SunEvent { Sunrise, Sunset }
+
+/// <summary>«Pantalla»: one is plugged in (or switched on), or taken out.</summary>
+public enum DisplayEvent { Connected, Disconnected }
 
 /// <summary>«Uso del equipo»: above or below the threshold.</summary>
 public enum LoadComparison { Above, Below }
@@ -349,6 +358,9 @@ public enum AudioDeviceEvent { Connected, BecomesDefault }
 [JsonDerivedType(typeof(RemoteCallTrigger), "remoteCall")]
 [JsonDerivedType(typeof(GadgetTrigger), "gadget")]
 [JsonDerivedType(typeof(LoadTrigger), "load")]
+[JsonDerivedType(typeof(BatteryTrigger), "battery")]
+[JsonDerivedType(typeof(SunTrigger), "sun")]
+[JsonDerivedType(typeof(DisplayTrigger), "display")]
 public abstract partial class EventTrigger : ObservableObject
 {
     [JsonIgnore] public abstract EventKind Kind { get; }
@@ -513,10 +525,16 @@ public sealed partial class PowerSourceTrigger : EventTrigger
     public override string Summary => Loc.T($"event.summary.power.{Source}");
 }
 
-/// <summary>A new file appears in a folder (once it has stopped growing).</summary>
+/// <summary>
+/// Something happens to a file in a folder: a new one (once it has stopped growing), changed, deleted or renamed. The
+/// commands get its path in {archivo} / {file} (and {resultado}).
+/// </summary>
 public sealed partial class FileTrigger : EventTrigger
 {
     [ObservableProperty] private string _folder = string.Empty;
+
+    /// <summary>What happens to it (before 5.0.341 only «nuevo»).</summary>
+    [ObservableProperty] private FileChange _change = FileChange.Created;
 
     /// <summary>«*.png», «*.mp4»… (empty or «*» = any file).</summary>
     [ObservableProperty] private string _filter = "*";
@@ -529,7 +547,7 @@ public sealed partial class FileTrigger : EventTrigger
         {
             var folder = Path.GetFileName(Folder.Trim().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
             var filter = string.IsNullOrWhiteSpace(Filter) || Filter.Trim() == "*" ? string.Empty : " (" + Filter.Trim() + ")";
-            return Loc.T("event.summary.file", folder.Length == 0 ? "?" : folder) + filter;
+            return Loc.T(Change == FileChange.Created ? "event.summary.file" : $"event.summary.file.{Change}", folder.Length == 0 ? "?" : folder) + filter;
         }
     }
 }
@@ -688,4 +706,59 @@ public sealed partial class LoadTrigger : EventTrigger
 
     /// <summary>Whether a reading of <paramref name="percent"/> % is on the side it waits for.</summary>
     public bool Holds(int percent) => Comparison == LoadComparison.Above ? percent > Percent : percent < Percent;
+}
+
+/// <summary>The battery goes below (or above) a % (5.0.341); it ends when it is back on the other side.</summary>
+public sealed partial class BatteryTrigger : EventTrigger
+{
+    [ObservableProperty] private LoadComparison _comparison = LoadComparison.Below;
+    [ObservableProperty] private int _percent = 20;
+
+    public override EventKind Kind => EventKind.Battery;
+    public override bool HasEnd => true;
+    public override string Summary => Loc.T($"event.summary.battery.{Comparison}", Percent);
+
+    /// <summary>Whether <paramref name="percent"/> % is on the side it waits for.</summary>
+    public bool Holds(int percent) => Comparison == LoadComparison.Above ? percent > Percent : percent < Percent;
+}
+
+/// <summary>
+/// At sunrise or sunset (5.0.341), some minutes before or after, where the user is: <see cref="Place"/> or, empty, the
+/// place in the options (the weather's) or Windows' location.
+/// </summary>
+public sealed partial class SunTrigger : EventTrigger
+{
+    [ObservableProperty] private SunEvent _event = SunEvent.Sunset;
+
+    /// <summary>Minutes after (negative: before).</summary>
+    [ObservableProperty] private int _offsetMinutes;
+
+    /// <summary>A town («Málaga»); empty: where the user is.</summary>
+    [ObservableProperty] private string _place = string.Empty;
+
+    public override EventKind Kind => EventKind.Sun;
+    public override string Summary => OffsetMinutes == 0
+        ? Loc.T($"event.summary.sun.{Event}")
+        : Loc.T(OffsetMinutes > 0 ? $"event.summary.sun.{Event}.after" : $"event.summary.sun.{Event}.before", Math.Abs(OffsetMinutes));
+}
+
+/// <summary>
+/// A screen is plugged in or taken out (5.0.341): also a TV connected but not in use yet (to change the projection when
+/// it is). Plugged in ends when it is taken out.
+/// </summary>
+public sealed partial class DisplayTrigger : EventTrigger
+{
+    [ObservableProperty] private DisplayEvent _event = DisplayEvent.Connected;
+
+    /// <summary>Part of its name («LG», «TV»); empty: any.</summary>
+    [ObservableProperty] private string _filter = string.Empty;
+
+    public override EventKind Kind => EventKind.Display;
+    public override bool HasEnd => Event == DisplayEvent.Connected;
+    public override string Summary => Loc.T($"event.summary.display.{Event}", Filter.Trim().Length == 0 ? Loc.T("event.display.any") : Filter.Trim());
+
+    partial void OnEventChanged(DisplayEvent value) => OnPropertyChanged(nameof(HasEnd));
+
+    /// <summary>Whether a screen called <paramref name="name"/> is one it waits for.</summary>
+    public bool Matches(string name) => Filter.Trim().Length == 0 || name.Contains(Filter.Trim(), StringComparison.OrdinalIgnoreCase);
 }

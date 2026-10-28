@@ -529,6 +529,21 @@ public sealed partial class EventsPage : UserControl, IDisposable
         if (e.Parameter is string name) Processes?.Remove(name);
     }
 
+    /// <summary>«Ver hoy»: today's sunrise and sunset where it looks (and that the place is found).</summary>
+    private async void OnSunToday(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is not SunTrigger sun) return;
+        var place = await Core.Platform.HomeLocation.FindAsync(sun.Place);
+        if (place is null)
+        {
+            _app.Ui.ShowOsd(Loc.T("event.sunNotFound"), OsdKind.Warning, TimeSpan.FromSeconds(5), OsdLook.Of("Location24"));
+            return;
+        }
+        var (rise, set) = Core.Engine.Events.SunTimes.For(DateOnly.FromDateTime(DateTime.Now), place.Latitude, place.Longitude);
+        string At(DateTime? utc) => utc is { } u ? u.ToLocalTime().ToString("t", Loc.Instance.Culture) : "—";
+        _app.Ui.ShowOsd(Loc.T("event.sunTodayIs", place.Name, At(rise), At(set)), OsdKind.Info, TimeSpan.FromSeconds(6), OsdLook.Of("WeatherSunnyLow24"));
+    }
+
     // ── «Solo si»: the same checks as «Si…» (5.0.340) ──────────────────────
 
     private void OnAddCondition(object sender, RoutedEventArgs e) =>

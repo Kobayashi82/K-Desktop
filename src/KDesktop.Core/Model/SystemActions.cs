@@ -315,7 +315,7 @@ public partial class RadioAction : CommandAction
 public enum ConditionKind
 {
     ProcessRunning, Foreground, Schedule, Device, AudioOutput, AudioPlaying, Network, PowerSource,
-    HostReachable, FileExists, Clipboard, Load, Variable,
+    HostReachable, FileExists, Clipboard, Load, Variable, BatteryLevel, Screens, Daylight,
 }
 
 /// <summary>What «Si…» does when the condition is not met: stop, skip the next actions, or run another command instead (5.0.339).</summary>
@@ -369,6 +369,9 @@ public partial class ConditionAction : CommandAction
     {
         // A new comparison starts with what the previous action gave.
         if (value == ConditionKind.Variable && Value.Trim().Length == 0) Value = Loc.Instance.Language == "es" ? "{resultado}" : "{result}";
+        // The number each one starts with (Percent is shared): 20 % of battery, two screens.
+        if (value == ConditionKind.BatteryLevel && Percent == 50) Percent = 20;
+        if (value == ConditionKind.Screens && Percent == 50) Percent = 2;
     }
 
     /// <summary>How many of the following actions are skipped when it is not met (with <see cref="ConditionElse.Skip"/>).</summary>
@@ -422,6 +425,10 @@ public partial class ConditionAction : CommandAction
                 return Loc.T($"if.PowerSource.{PowerSource}{not}");
             case ConditionKind.Load:
                 return Loc.T($"if.Load.{Resource}{not}", Percent);
+            case ConditionKind.BatteryLevel or ConditionKind.Screens:
+                return Loc.T($"if.{Condition}{not}", Percent);
+            case ConditionKind.Daylight:
+                return Loc.T("if.Daylight" + not);
             case ConditionKind.Variable:
                 var value = Value.Trim().Length == 0 ? "?" : Value.Trim();
                 return Test == VariableTest.NotEmpty ? Loc.T("if.Variable.NotEmpty" + not, value) : Loc.T($"if.Variable.{Test}{not}", value, text);

@@ -58,6 +58,9 @@ public static class Lookups
     public static IReadOnlyList<Option<ConditionKind>> ConditionKinds { get; } = Enum<ConditionKind>("enum.condition");
     public static IReadOnlyList<Option<ConditionElse>> ConditionElses { get; } = Enum<ConditionElse>("enum.conditionElse");
     public static IReadOnlyList<Option<VariableTest>> VariableTests { get; } = Enum<VariableTest>("enum.variableTest");
+    public static IReadOnlyList<Option<FileChange>> FileChanges { get; } = Enum<FileChange>("enum.fileChange");
+    public static IReadOnlyList<Option<SunEvent>> SunEvents { get; } = Enum<SunEvent>("enum.sunEvent");
+    public static IReadOnlyList<Option<DisplayEvent>> DisplayEvents { get; } = Enum<DisplayEvent>("enum.displayEvent");
     public static IReadOnlyList<Option<LoadResource>> LoadResources { get; } = Enum<LoadResource>("enum.loadResource");
     public static IReadOnlyList<Option<LoadComparison>> LoadComparisons { get; } = Enum<LoadComparison>("enum.loadComparison");
     public static IReadOnlyList<Option<CaptureArea>> CaptureAreas { get; } = Enum<CaptureArea>("enum.captureArea");
@@ -110,6 +113,9 @@ public static class Lookups
 
     /// <summary>Names of the playback devices (for the editable box of «Dispositivo de audio»).</summary>
     public static IReadOnlyList<string> AudioDeviceNames => AudioDevices.Playback().Select(d => d.Name).Distinct().ToList();
+
+    /// <summary>Names of the screens plugged in now, also the ones not in use (for «Pantalla»).</summary>
+    public static IReadOnlyList<string> ConnectedScreenNames => DisplayTools.ConnectedScreens().Select(s => s.Name).Distinct().ToList();
 
     /// <summary>Names of the recording devices (for «Dispositivo de audio» with «Entrada»).</summary>
     public static IReadOnlyList<string> AudioInputNames => AudioDevices.Recording().Select(d => d.Name).Distinct().ToList();
