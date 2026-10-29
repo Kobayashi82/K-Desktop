@@ -292,7 +292,6 @@
   "editor.captureArea": "O que capturar",
   "editor.captureCopy": "Copiar para a área de transferência",
   "editor.captureSave": "Guardar como {0}",
-  "editor.captureOpen": "Abri-la depois",
   "editor.folder": "Pasta",
   "editor.captureHint": "Em «Uma região» o ecrã congela: arrasta um retângulo (um clique captura esse monitor inteiro); Esc ou o botão direito cancela.",
   "editor.recordSource": "O que gravar",
@@ -1409,7 +1408,6 @@
   "summary.monitorsOff": "Desligar ecrãs {0}",
   "summary.capture.copy": "copiar",
   "summary.capture.save": "guardar",
-  "summary.capture.open": "abrir",
   "summary.zoom.Toggle": "Lupa: ligar / desligar",
   "summary.zoom.On": "Ligar a lupa",
   "summary.zoom.Off": "Desligar a lupa",
@@ -1898,7 +1896,7 @@
   "arrangement.emptyText": "Divida cada monitor em zonas e escolha quais programas vão em cada uma, ou coloque suas janelas como você gosta e salve-as do jeito que estão. Depois, coloque-as assim de qualquer comando ou evento com a ação «Disposição das janelas».",
   "arrangement.namePlaceholder": "Nome da disposição",
   "arrangement.nameRequired": "Uma disposição precisa de nome: o que ela tinha foi mantido.",
-  "arrangement.capture": "Salvar como estão agora",
+  "arrangement.capture": "Salvar janelas",
   "arrangement.captureHint": "Salva as janelas abertas agora em todos os monitores: cada uma, uma zona com seu programa (as minimizadas não)",
   "arrangement.captureReplace": "As zonas de todos os monitores são trocadas pelas janelas abertas agora: cada uma, uma zona com seu programa.",
   "arrangement.captureYes": "Salvar",
@@ -5382,9 +5380,6 @@
   "annotate.tool.Highlighter": "Marca-texto",
   "annotate.tool.Blur": "Desfocar",
   "annotate.tool.Crop": "Cortar",
-  "annotate.size.0": "Fino",
-  "annotate.size.1": "Médio",
-  "annotate.size.2": "Grosso",
   "annotate.hint.Arrow": "Arraste de onde sai até onde aponta. Shift: em passos de 45°.",
   "annotate.hint.Box": "Arraste para emoldurar. Shift: um quadrado.",
   "annotate.hint.Text": "Clique onde quer escrever. Enter termina; Shift + Enter, outra linha.",
@@ -5400,6 +5395,9 @@
   "macro.infoSteps": "Arraste os passos para mudá-los de lugar; com Ctrl ou Shift você escolhe vários, e Delete os apaga. Cada passo tem sua pausa antes, em milissegundos.",
   "macro.infoKeys": "Ctrl + Z desfaz e Ctrl + Y refaz as mudanças nos passos.",
 
-  "annotate.copyText": "Copiar texto",
-  "annotate.copyTextHint": "Lê o texto da imagem (sem IA, com o reconhecimento do Windows) e o copia. O que está desfocado não é lido."
+
+  "annotate.width": "Espessura",
+
+  "annotate.tool.CopyText": "Copiar texto",
+  "annotate.hint.CopyText": "Arraste sobre o texto que quer copiar (um clique: a imagem toda). Lido sem IA, pelo Windows; o desfocado não é lido."
 }

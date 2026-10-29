@@ -25,9 +25,6 @@ public partial class AnnotateWindow : FluentWindow
     /// <summary>The colours of the icons (their darker tone), the ones that read on a screenshot.</summary>
     private static readonly string[] Colors = ["red", "orange", "yellow", "green", "blue", "purple", "dark"];
 
-    /// <summary>Line width, text size and marker width of «Fino», «Medio» and «Grueso» (picture pixels).</summary>
-    private static readonly (double Line, double Text, double Marker)[] SizeSteps = [(3, 18, 14), (5, 26, 22), (9, 38, 32)];
-
     private readonly TaskCompletionSource<AnnotatedCapture?> _done = new();
     private readonly Stack<AnnotateMark> _redo = new();
     private readonly Core.Model.AppSettings _settings = App.Current.Config.Settings;
@@ -38,6 +35,7 @@ public partial class AnnotateWindow : FluentWindow
     private TextBox? _typing;
     private Point _typingAt;
     private bool _finished;
+    private bool _reading;
 
     private AnnotateWindow(BgraImage image, ScreenRect area, bool copy, bool save)
     {
@@ -46,7 +44,11 @@ public partial class AnnotateWindow : FluentWindow
         Surface.Load(image);
         BuildTools();
         BuildSwatches();
-        BuildSizes();
+        WidthSlider.Value = Math.Clamp(_settings.AnnotateWidth, WidthSlider.Minimum, WidthSlider.Maximum);
+        ShowWidth();
+        // Never narrower than its bar, so every button is on one row.
+        Toolbar.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        MinWidth = Math.Max(MinWidth, Toolbar.DesiredSize.Width + Toolbar.Margin.Left + Toolbar.Margin.Right + 16);
         // The button of what the action does stands out (copy only: «Copiar»).
         if (copy && !save)
         {
@@ -98,7 +100,7 @@ public partial class AnnotateWindow : FluentWindow
         [
             (AnnotateTool.Arrow, SymbolRegular.ArrowUpRight24), (AnnotateTool.Box, SymbolRegular.RectangleLandscape24),
             (AnnotateTool.Text, SymbolRegular.TextT24), (AnnotateTool.Highlighter, SymbolRegular.Highlight24),
-            (AnnotateTool.Blur, SymbolRegular.Blur24), (AnnotateTool.Crop, SymbolRegular.Crop24),
+            (AnnotateTool.Blur, SymbolRegular.Blur24), (AnnotateTool.Crop, SymbolRegular.Crop24), (AnnotateTool.CopyText, SymbolRegular.ScanText24),
         ];
         for (var i = 0; i < tools.Length; i++)
         {
@@ -135,23 +137,14 @@ public partial class AnnotateWindow : FluentWindow
         if (Swatches.Children.OfType<RadioButton>().All(s => s.IsChecked != true)) ((RadioButton)Swatches.Children[0]).IsChecked = true;
     }
 
-    private void BuildSizes()
+    private void OnWidthChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        for (var i = 0; i < SizeSteps.Length; i++)
-        {
-            var step = i;
-            var name = Loc.T("annotate.size." + step.ToString(CultureInfo.InvariantCulture));
-            var button = new RadioButton
-            {
-                Style = (Style)FindResource("Segment"), GroupName = "size", IsChecked = step == Math.Clamp(_settings.AnnotateSize, 0, 2),
-                Content = Follows(new Rectangle { Width = 18, Height = 2 + step * 2.5, RadiusX = 1.5, RadiusY = 1.5 }, Shape.FillProperty),
-                ToolTip = name,
-            };
-            System.Windows.Automation.AutomationProperties.SetName(button, name);
-            button.Checked += (_, _) => _settings.AnnotateSize = step;
-            Sizes.Children.Add(button);
-        }
+        if (!IsInitialized || WidthText is null) return;
+        _settings.AnnotateWidth = WidthSlider.Value;
+        ShowWidth();
     }
+
+    private void ShowWidth() => WidthText.Text = WidthSlider.Value.ToString("0", Loc.Instance.Culture) + " px";
 
     /// <summary>
     /// The content of a segment painted with the segment's own colour (grey, gold when chosen): a RadioButton's content
@@ -183,7 +176,15 @@ public partial class AnnotateWindow : FluentWindow
 
     private Color CurrentColor => KdIcons.Gradient(_settings.AnnotateColor ?? Colors[0]).Bottom;
 
-    private (double Line, double Text, double Marker) CurrentSize => SizeSteps[Math.Clamp(_settings.AnnotateSize, 0, SizeSteps.Length - 1)];
+    /// <summary>The lines as thick as the slider; text and marker grow with it.</summary>
+    private (double Line, double Text, double Marker) CurrentSize
+    {
+        get
+        {
+            var w = Math.Clamp(_settings.AnnotateWidth, 2, 16);
+            return (w, 12 + w * 2.5, 6 + w * 3);
+        }
+    }
 
     private void Choose(AnnotateTool tool)
     {
@@ -248,7 +249,7 @@ public partial class AnnotateWindow : FluentWindow
             AnnotateTool.Arrow => new ArrowMark(start, square ? Straight(start, p) : p, CurrentColor, size.Line),
             AnnotateTool.Box => new BoxMark(Box(start, p, square), CurrentColor, size.Line),
             AnnotateTool.Highlighter => Stroke(p, size.Marker),
-            AnnotateTool.Blur => new BlurPreview(Box(start, p, false)),
+            AnnotateTool.Blur or AnnotateTool.CopyText => new BlurPreview(Box(start, p, false)),
             AnnotateTool.Crop => new CropMark(Pixels(Box(start, p, false))),
             _ => null,
         };
@@ -268,6 +269,13 @@ public partial class AnnotateWindow : FluentWindow
         _start = null;
         var drawn = Surface.Drawing;
         Surface.Drawing = null;
+        if (_tool == AnnotateTool.CopyText)
+        {
+            // A click: all of it; a zone dragged: only that.
+            _ = CopyTextAsync(drawn is BlurPreview { Area: { Width: >= 8, Height: >= 8 } zone } ? Pixels(zone) : null);
+            Refresh();
+            return;
+        }
         AnnotateMark? mark = drawn switch
         {
             ArrowMark a when (a.To - a.From).Length >= 4 => a,
@@ -413,10 +421,10 @@ public partial class AnnotateWindow : FluentWindow
             case Key.Z when ctrl: OnUndo(this, e); break;
             case Key.C when ctrl: OnCopy(this, e); break;
             case Key.S when ctrl: OnSave(this, e); break;
-            case >= Key.D1 and <= Key.D6 when !ctrl:
+            case >= Key.D1 and <= Key.D7 when !ctrl:
                 ((RadioButton)Tools.Children[e.Key - Key.D1]).IsChecked = true;
                 break;
-            case >= Key.NumPad1 and <= Key.NumPad6 when !ctrl:
+            case >= Key.NumPad1 and <= Key.NumPad7 when !ctrl:
                 ((RadioButton)Tools.Children[e.Key - Key.NumPad1]).IsChecked = true;
                 break;
             default: return;
@@ -427,11 +435,13 @@ public partial class AnnotateWindow : FluentWindow
     private void OnCancel(object sender, RoutedEventArgs e) => Close();
 
     /// <summary>
-    /// «Copiar texto»: what the picture says, read with the OCR of Windows as «Copiar texto de la pantalla» does, from the
-    /// picture as it is now (cropped, and what is blurred stays unreadable). The editor stays open.
+    /// «Copiar texto»: what the picture says (in <paramref name="zone"/>, picture pixels; null: all of it), read with the
+    /// OCR of Windows as «Copiar texto de la pantalla» does, from the picture as it is now (cropped, and what is blurred
+    /// stays unreadable). The editor stays open.
     /// </summary>
-    private async void OnCopyText(object sender, RoutedEventArgs e)
+    private async Task CopyTextAsync(Int32Rect? zone)
     {
+        if (_reading) return;
         Commit();
         var ui = App.Current.Ui;
         var look = OsdLook.Of("ScanText24");
@@ -440,10 +450,21 @@ public partial class AnnotateWindow : FluentWindow
             ui.ShowOsd(Loc.T("osd.screenTextNoOcr"), OsdKind.Warning, look: look);
             return;
         }
-        TextButton.IsEnabled = false;
+        _reading = true;
         try
         {
-            var read = await ScreenText.ReadAsync(Surface.Render(), Loc.Instance.Language);
+            var picture = Surface.Render();
+            if (zone is { } z)
+            {
+                // From the picture's pixels to those of what is kept.
+                var crop = Surface.Crop;
+                var x = Math.Clamp(z.X - crop.X, 0, picture.Width);
+                var y = Math.Clamp(z.Y - crop.Y, 0, picture.Height);
+                var w = Math.Clamp(z.X + z.Width - crop.X, 0, picture.Width) - x;
+                var h = Math.Clamp(z.Y + z.Height - crop.Y, 0, picture.Height) - y;
+                if (w >= 8 && h >= 8) picture = picture.Crop(x, y, w, h);
+            }
+            var read = await ScreenText.ReadAsync(picture, Loc.Instance.Language);
             if (read is null || read.Text.Length == 0)
             {
                 ui.ShowOsd(Loc.T("osd.screenTextNone"), OsdKind.Warning, look: look);
@@ -455,7 +476,7 @@ public partial class AnnotateWindow : FluentWindow
         }
         finally
         {
-            TextButton.IsEnabled = true;
+            _reading = false;
         }
     }
 

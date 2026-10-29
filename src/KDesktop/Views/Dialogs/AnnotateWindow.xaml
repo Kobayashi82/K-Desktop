@@ -8,8 +8,7 @@
                  Width="1000" Height="720" MinWidth="720" MinHeight="420"
                  ExtendsContentIntoTitleBar="True"
                  WindowBackdropType="Mica"
-                 ShowInTaskbar="True"
-                 Topmost="True">
+                 ShowInTaskbar="True">
     <ui:FluentWindow.Resources>
         <!-- A tool: as the segments of the icon picker (Kd.AccentSoft when chosen) -->
         <Style x:Key="Segment" TargetType="RadioButton">
@@ -66,19 +65,21 @@
         <ui:TitleBar DockPanel.Dock="Top" Title="{l:Tr annotate.title}" ShowMinimize="False" />
 
         <!-- Tools, colour, thickness, undo / redo -->
-        <WrapPanel DockPanel.Dock="Top" Margin="16,0,16,12">
+        <StackPanel x:Name="Toolbar" DockPanel.Dock="Top" Orientation="Horizontal" Margin="16,0,16,12">
             <Border CornerRadius="6" Padding="2" Background="{DynamicResource Kd.Subtle}" VerticalAlignment="Center" Margin="0,0,16,4">
                 <StackPanel x:Name="Tools" Orientation="Horizontal" />
             </Border>
             <StackPanel x:Name="Swatches" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,4" />
-            <Border CornerRadius="6" Padding="2" Background="{DynamicResource Kd.Subtle}" VerticalAlignment="Center" Margin="0,0,16,4">
-                <StackPanel x:Name="Sizes" Orientation="Horizontal" />
-            </Border>
+            <!-- The thickness, as the size of a QuickMenu: a slider and its value -->
+            <TextBlock Text="{l:Tr annotate.width}" VerticalAlignment="Center" Margin="6,0,10,4" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Slider x:Name="WidthSlider" Width="140" Minimum="2" Maximum="16" TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center" Margin="0,0,0,4"
+                    ValueChanged="OnWidthChanged" AutomationProperties.Name="{l:Tr annotate.width}" />
+            <TextBlock x:Name="WidthText" MinWidth="44" Margin="10,0,12,4" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}" />
             <ui:Button x:Name="UndoButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowUndo24, FontSize=18}" ToolTip="{l:Tr annotate.undo}"
                        AutomationProperties.Name="{l:Tr annotate.undo}" Click="OnUndo" IsEnabled="False" Margin="0,0,6,4" />
             <ui:Button x:Name="RedoButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowRedo24, FontSize=18}" ToolTip="{l:Tr annotate.redo}"
                        AutomationProperties.Name="{l:Tr annotate.redo}" Click="OnRedo" IsEnabled="False" Margin="0,0,0,4" />
-        </WrapPanel>
+        </StackPanel>
 
         <!-- Size, hint and what to do with it -->
         <Grid DockPanel.Dock="Bottom" Margin="16,12,16,16">
@@ -92,8 +93,6 @@
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal">
                 <ui:Button MinHeight="34" Content="{l:Tr common.cancel}" Click="OnCancel" Margin="0,0,8,0" />
-                <ui:Button x:Name="TextButton" MinHeight="34" Content="{l:Tr annotate.copyText}" Icon="{ui:SymbolIcon ScanText24}" Click="OnCopyText"
-                           ToolTip="{l:Tr annotate.copyTextHint}" Margin="0,0,8,0" />
                 <ui:Button x:Name="CopyButton" MinHeight="34" Content="{l:Tr annotate.copy}" Icon="{ui:SymbolIcon Copy24}" Click="OnCopy" ToolTip="Ctrl+C" Margin="0,0,8,0" />
                 <ui:Button x:Name="SaveButton" MinHeight="34" Content="{l:Tr annotate.save}" Icon="{ui:SymbolIcon Save24}" Appearance="Primary" Click="OnSave" ToolTip="Ctrl+S" />
             </StackPanel>

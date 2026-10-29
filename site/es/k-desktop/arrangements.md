@@ -9,7 +9,7 @@ no se toca.
    nombre («Trabajo»).
 3. **Probar** la pone ahora. **Crear un comando que la ponga** te deja un comando listo para darle un atajo.
 
-**Guardar cómo están ahora** cambia las zonas de todos los monitores por las ventanas abiertas en ese momento: cada monitor
+**Guardar ventanas** cambia las zonas de todos los monitores por las ventanas abiertas en ese momento: cada monitor
 se recorta según sus ventanas y cada zona se queda con los programas de las suyas (una maximizada, toda la pantalla; las
 minimizadas no cuentan). Las zonas nunca se pisan: las ventanas que están una encima de otra comparten zona, y un hueco
 libre grande queda como zona vacía. Además, cada programa recuerda el sitio y el tamaño exactos de su ventana, así que al
@@ -32,7 +32,7 @@ Debajo del dibujo están los **programas de la zona marcada**, como en *Solo en 
 programa o elígelo de la lista y pulsa **Añadir**, o pulsa el botón del cursor y haz clic en su ventana. Una zona sin
 programas solo sirve para encajar ventanas.
 
-Los programas guardados con **Guardar cómo están ahora** llevan una chincheta: van al sitio exacto donde estaba su ventana,
+Los programas guardados con **Guardar ventanas** llevan una chincheta: van al sitio exacto donde estaba su ventana,
 que se ve con línea discontinua en la zona marcada. Con **clic derecho → Llenar la zona** olvida ese sitio y el programa se
 estira a su zona, como los que añades a mano.
 

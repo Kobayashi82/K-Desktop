@@ -292,7 +292,6 @@
   "editor.captureArea": "Cosa catturare",
   "editor.captureCopy": "Copia negli appunti",
   "editor.captureSave": "Salva come {0}",
-  "editor.captureOpen": "Aprila dopo",
   "editor.folder": "Cartella",
   "editor.captureHint": "Con «Una zona» lo schermo si blocca: trascina un rettangolo (un clic prende tutto quel monitor); Esc o il tasto destro annulla.",
   "editor.recordSource": "Cosa registrare",
@@ -1409,7 +1408,6 @@
   "summary.monitorsOff": "Spegni schermi {0}",
   "summary.capture.copy": "copia",
   "summary.capture.save": "salva",
-  "summary.capture.open": "apri",
   "summary.zoom.Toggle": "Lente: accendi / spegni",
   "summary.zoom.On": "Accendi la lente",
   "summary.zoom.Off": "Spegni la lente",
@@ -1898,7 +1896,7 @@
   "arrangement.emptyText": "Dividi ogni monitor in zone e scegli quali programmi vanno in ciascuna, oppure sistema le finestre come ti piacciono e salvale così. Poi rimettile così da qualsiasi comando o evento con l'azione «Disposizione delle finestre».",
   "arrangement.namePlaceholder": "Nome della disposizione",
   "arrangement.nameRequired": "Una disposizione ha bisogno di un nome: è stato lasciato quello che aveva.",
-  "arrangement.capture": "Salva come sono ora",
+  "arrangement.capture": "Salva finestre",
   "arrangement.captureHint": "Salva le finestre aperte ora su tutti i monitor: ognuna, una zona con il suo programma (non quelle ridotte a icona)",
   "arrangement.captureReplace": "Le zone di tutti i monitor vengono sostituite dalle finestre aperte ora: ognuna, una zona con il suo programma.",
   "arrangement.captureYes": "Salva",
@@ -5382,9 +5380,6 @@
   "annotate.tool.Highlighter": "Evidenziatore",
   "annotate.tool.Blur": "Sfoca",
   "annotate.tool.Crop": "Ritaglia",
-  "annotate.size.0": "Sottile",
-  "annotate.size.1": "Medio",
-  "annotate.size.2": "Spesso",
   "annotate.hint.Arrow": "Trascina da dove parte a dove punta. Maiusc: a passi di 45°.",
   "annotate.hint.Box": "Trascina per incorniciare. Maiusc: un quadrato.",
   "annotate.hint.Text": "Clicca dove vuoi scrivere. Invio termina; Maiusc + Invio, un'altra riga.",
@@ -5400,6 +5395,9 @@
   "macro.infoSteps": "Trascina i passi per spostarli; con Ctrl o Maiusc ne scegli più d'uno e Canc li elimina. Ogni passo ha la sua pausa prima, in millisecondi.",
   "macro.infoKeys": "Ctrl + Z annulla e Ctrl + Y ripete le modifiche ai passi.",
 
-  "annotate.copyText": "Copia testo",
-  "annotate.copyTextHint": "Legge il testo dell'immagine (senza IA, con il riconoscimento di Windows) e lo copia. Ciò che è sfocato non viene letto."
+
+  "annotate.width": "Spessore",
+
+  "annotate.tool.CopyText": "Copia testo",
+  "annotate.hint.CopyText": "Trascina sul testo da copiare (un clic: tutta l'immagine). Letto senza IA, da Windows; ciò che è sfocato non si legge."
 }

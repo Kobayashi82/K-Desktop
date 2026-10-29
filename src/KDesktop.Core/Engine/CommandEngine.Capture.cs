@@ -101,7 +101,7 @@ public sealed partial class CommandEngine
 
         var copied = (copy || s.CaptureAlwaysCopy) && _ui.SetClipboardImage(image);
         string? path = null;
-        if (save || (a.Open && !a.Annotate))
+        if (save)
         {
             var front = ctx.Foreground.ProcessId == (uint)Environment.ProcessId ? ForegroundWindow.None : ctx.Foreground;
             path = NewFileNamed(FolderFor(a.Folder, s.CaptureFolder, Environment.SpecialFolder.MyPictures),
@@ -111,7 +111,6 @@ public sealed partial class CommandEngine
             Log.Info($"Captura: {image.Width}×{image.Height} → {path} ({bytes.Length / 1024} KB)");
         }
         Gave(a, path ?? string.Empty);
-        if (a.Open && path is not null) ProcessLauncher.Launch(new LaunchSpec(path), asAdmin: false);
         if (!a.ShowOsd) return;
         var size = string.Create(CultureInfo.InvariantCulture, $"{image.Width}×{image.Height}");
         var text = path is not null && save

@@ -231,7 +231,7 @@
                                 <TextBlock Margin="2,6,0,0" Style="{StaticResource Caption}" Text="{Binding Summary}" />
                             </StackPanel>
                             <!-- How it works, on hover (as in K-Board and QuickMenu) -->
-                            <Border Grid.Row="2" Grid.ColumnSpan="2" Margin="0,0,0,8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Transparent"
+                            <Border Grid.Row="1" Grid.ColumnSpan="2" Margin="0,6,0,0" HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="Transparent"
                                     Cursor="Help" ToolTipService.ShowDuration="60000" ToolTipService.InitialShowDelay="200" AutomationProperties.Name="{l:Tr macro.infoRecord}">
                                 <Border.ToolTip>
                                     <StackPanel MaxWidth="380">

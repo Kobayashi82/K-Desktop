@@ -9,7 +9,7 @@ is not touched.
    («Work»).
 3. **Test** puts it now. **Create a command that applies it** leaves you a command ready to give a hotkey.
 
-**Save as they are now** replaces the zones of every monitor with the windows open at that moment: each monitor is cut by
+**Save windows** replaces the zones of every monitor with the windows open at that moment: each monitor is cut by
 its windows, and each zone gets the programs of its windows (a maximized one, the whole screen; minimized ones do not
 count). Zones never overlap: windows one on top of another share a zone, and a wide free area becomes an empty zone.
 Each program also remembers the exact place and size of its window, so putting the layout leaves everything as it was.
@@ -31,7 +31,7 @@ Under the drawing are the **programs of the marked zone**, as in K-Board's *Only
 or pick it from the list and press **Add**, or press the cursor button and click its window. A zone without programs is only
 there to snap windows into.
 
-Programs saved with **Save as they are now** have a pin: they go to the exact place their window had, shown dashed in the
+Programs saved with **Save windows** have a pin: they go to the exact place their window had, shown dashed in the
 marked zone. **Right-click → Fill the zone** forgets that place, and the program stretches to its zone, like the ones you
 add by hand.
 

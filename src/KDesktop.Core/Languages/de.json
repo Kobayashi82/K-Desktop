@@ -292,7 +292,6 @@
   "editor.captureArea": "Was aufnehmen",
   "editor.captureCopy": "In die Zwischenablage kopieren",
   "editor.captureSave": "Als {0} speichern",
-  "editor.captureOpen": "Danach öffnen",
   "editor.folder": "Ordner",
   "editor.captureHint": "Bei «Ein Bereich» friert der Bildschirm ein: Rechteck ziehen (ein Klick nimmt den ganzen Monitor); Esc oder rechte Maustaste bricht ab.",
   "editor.recordSource": "Was aufnehmen",
@@ -1409,7 +1408,6 @@
   "summary.monitorsOff": "Bildschirme {0} ausschalten",
   "summary.capture.copy": "kopieren",
   "summary.capture.save": "speichern",
-  "summary.capture.open": "öffnen",
   "summary.zoom.Toggle": "Lupe: an / aus",
   "summary.zoom.On": "Lupe einschalten",
   "summary.zoom.Off": "Lupe ausschalten",
@@ -1898,7 +1896,7 @@
   "arrangement.emptyText": "Teile jeden Bildschirm in Zonen und wähle, welche Programme in jede kommen, oder ordne deine Fenster so an, wie du sie magst, und speichere sie so. Danach stellst du sie von jedem Befehl oder Ereignis aus mit der Aktion „Fensteranordnung“ wieder so her.",
   "arrangement.namePlaceholder": "Name der Anordnung",
   "arrangement.nameRequired": "Eine Anordnung braucht einen Namen: Der bisherige wurde behalten.",
-  "arrangement.capture": "So speichern, wie sie jetzt sind",
+  "arrangement.capture": "Fenster speichern",
   "arrangement.captureHint": "Speichert die jetzt offenen Fenster auf allen Bildschirmen: jedes eine Zone mit seinem Programm (minimierte nicht)",
   "arrangement.captureReplace": "Die Zonen aller Bildschirme werden durch die jetzt offenen Fenster ersetzt: jedes eine Zone mit seinem Programm.",
   "arrangement.captureYes": "Speichern",
@@ -5382,9 +5380,6 @@
   "annotate.tool.Highlighter": "Textmarker",
   "annotate.tool.Blur": "Weichzeichnen",
   "annotate.tool.Crop": "Zuschneiden",
-  "annotate.size.0": "Dünn",
-  "annotate.size.1": "Mittel",
-  "annotate.size.2": "Dick",
   "annotate.hint.Arrow": "Vom Anfang bis zur Spitze ziehen. Umschalt: in 45°-Schritten.",
   "annotate.hint.Box": "Zum Einrahmen ziehen. Umschalt: ein Quadrat.",
   "annotate.hint.Text": "Dort klicken, wo du schreiben willst. Eingabe beendet; Umschalt + Eingabe, neue Zeile.",
@@ -5400,6 +5395,9 @@
   "macro.infoSteps": "Schritte zum Verschieben ziehen; mit Strg oder Umschalt mehrere wählen, Entf löscht sie. Jeder Schritt hat davor seine Pause in Millisekunden.",
   "macro.infoKeys": "Strg + Z macht Änderungen an den Schritten rückgängig, Strg + Y wiederholt sie.",
 
-  "annotate.copyText": "Text kopieren",
-  "annotate.copyTextHint": "Liest den Text im Bild (ohne KI, mit der Texterkennung von Windows) und kopiert ihn. Weichgezeichnetes wird nicht gelesen."
+
+  "annotate.width": "Stärke",
+
+  "annotate.tool.CopyText": "Text kopieren",
+  "annotate.hint.CopyText": "Über den Text ziehen, den du kopieren willst (ein Klick: das ganze Bild). Ohne KI von Windows gelesen; Weichgezeichnetes nicht."
 }

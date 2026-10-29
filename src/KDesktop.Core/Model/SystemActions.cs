@@ -470,9 +470,6 @@ public partial class ScreenshotAction : CommandAction
     /// <summary>Where it is saved; empty = Settings › Capturas (Pictures\K-Desktop by default).</summary>
     [ObservableProperty] private string _folder = string.Empty;
 
-    /// <summary>Open the picture afterwards (to draw on it, crop it…).</summary>
-    [ObservableProperty] private bool _open;
-
     /// <summary>«Anotar antes» (F1): the editor first (arrows, boxes, text…); its «Copiar» / «Guardar» say what is done that time.</summary>
     [ObservableProperty] private bool _annotate;
     [ObservableProperty] private bool _showOsd = true;
@@ -491,7 +488,6 @@ public partial class ScreenshotAction : CommandAction
             if (Annotate) parts.Add(Loc.T("summary.capture.annotate"));
             if (Copy) parts.Add(Loc.T("summary.capture.copy"));
             if (Save) parts.Add(Loc.T("summary.capture.save"));
-            if (Open) parts.Add(Loc.T("summary.capture.open"));
             return string.Join("  ·  ", parts);
         }
     }

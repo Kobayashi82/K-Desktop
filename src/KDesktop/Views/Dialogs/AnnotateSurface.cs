@@ -7,7 +7,8 @@ using KDesktop.Core.Platform;
 namespace KDesktop.Views.Dialogs;
 
 /// <summary>A tool of the capture editor (F1).</summary>
-internal enum AnnotateTool { Arrow, Box, Text, Highlighter, Blur, Crop }
+/// <summary>A tool of the capture editor (F1); «Copiar texto» draws nothing: it reads the zone dragged (or everything).</summary>
+internal enum AnnotateTool { Arrow, Box, Text, Highlighter, Blur, Crop, CopyText }
 
 /// <summary>Something drawn on the capture, in the picture's own pixels.</summary>
 internal abstract record AnnotateMark
@@ -84,14 +85,7 @@ internal sealed record TextMark(Point At, string Text, Color Color, double Size)
 
     public override void Draw(DrawingContext dc)
     {
-        var text = Format(Text, Color, Size);
-        // A soft outline in the opposite tone, so it reads on any background.
-        var dark = Color.R * 0.3 + Color.G * 0.59 + Color.B * 0.11 > 140;
-        var outline = text.BuildGeometry(At);
-        var pen = new Pen(new SolidColorBrush(dark ? Color.FromArgb(160, 0, 0, 0) : Color.FromArgb(170, 255, 255, 255)), Math.Max(2, Size / 9)) { LineJoin = PenLineJoin.Round };
-        pen.Freeze();
-        dc.DrawGeometry(null, pen, outline);
-        dc.DrawText(text, At);
+        dc.DrawText(Format(Text, Color, Size), At);
     }
 }
 

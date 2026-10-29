@@ -292,7 +292,6 @@
   "editor.captureArea": "What to capture",
   "editor.captureCopy": "Copy to the clipboard",
   "editor.captureSave": "Save as {0}",
-  "editor.captureOpen": "Open it afterwards",
   "editor.folder": "Folder",
   "editor.captureHint": "With «A region» the screen freezes: drag a rectangle (a single click takes that whole monitor); Esc or the right button cancels.",
   "editor.recordSource": "What to record",
@@ -1409,7 +1408,6 @@
   "summary.monitorsOff": "Turn off screens {0}",
   "summary.capture.copy": "copy",
   "summary.capture.save": "save",
-  "summary.capture.open": "open",
   "summary.zoom.Toggle": "Magnifier: on / off",
   "summary.zoom.On": "Turn the magnifier on",
   "summary.zoom.Off": "Turn the magnifier off",
@@ -1898,7 +1896,7 @@
   "arrangement.emptyText": "Cut each monitor into zones and choose which programs go in each one, or place your windows the way you like and save them as they are. Then put them like that from any command or event with the action «Window layout».",
   "arrangement.namePlaceholder": "Layout name",
   "arrangement.nameRequired": "A layout needs a name: the one it had was kept.",
-  "arrangement.capture": "Save as they are now",
+  "arrangement.capture": "Save windows",
   "arrangement.captureHint": "Saves the windows open now on every monitor: each one, a zone with its program (not the minimized ones)",
   "arrangement.captureReplace": "The zones of every monitor are replaced by the windows open now: each one, a zone with its program.",
   "arrangement.captureYes": "Save",
@@ -5382,9 +5380,6 @@
   "annotate.tool.Highlighter": "Highlighter",
   "annotate.tool.Blur": "Blur",
   "annotate.tool.Crop": "Crop",
-  "annotate.size.0": "Thin",
-  "annotate.size.1": "Medium",
-  "annotate.size.2": "Thick",
   "annotate.hint.Arrow": "Drag from where it starts to where it points. Shift: in 45° steps.",
   "annotate.hint.Box": "Drag to frame something. Shift: a square.",
   "annotate.hint.Text": "Click where you want to write. Enter finishes; Shift + Enter, a new line.",
@@ -5400,6 +5395,9 @@
   "macro.infoSteps": "Drag the steps to move them; pick several with Ctrl or Shift, and Delete removes them. Each step has its pause before it, in milliseconds.",
   "macro.infoKeys": "Ctrl + Z undoes and Ctrl + Y redoes the changes to the steps.",
 
-  "annotate.copyText": "Copy text",
-  "annotate.copyTextHint": "Reads the text in the picture (no AI, with Windows recognition) and copies it. What is blurred is not read."
+
+  "annotate.width": "Thickness",
+
+  "annotate.tool.CopyText": "Copy text",
+  "annotate.hint.CopyText": "Drag over the text you want to copy (a click: the whole picture). Read without AI, by Windows; what is blurred is not read."
 }

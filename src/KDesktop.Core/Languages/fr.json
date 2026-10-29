@@ -292,7 +292,6 @@
   "editor.captureArea": "Quoi capturer",
   "editor.captureCopy": "Copier dans le presse-papiers",
   "editor.captureSave": "Enregistrer en {0}",
-  "editor.captureOpen": "L'ouvrir ensuite",
   "editor.folder": "Dossier",
   "editor.captureHint": "Avec « Une zone » l'écran se fige : trace un rectangle (un simple clic prend tout cet écran) ; Échap ou le bouton droit annule.",
   "editor.recordSource": "Quoi enregistrer",
@@ -1409,7 +1408,6 @@
   "summary.monitorsOff": "Éteindre les écrans {0}",
   "summary.capture.copy": "copier",
   "summary.capture.save": "enregistrer",
-  "summary.capture.open": "ouvrir",
   "summary.zoom.Toggle": "Loupe : activer / désactiver",
   "summary.zoom.On": "Activer la loupe",
   "summary.zoom.Off": "Désactiver la loupe",
@@ -1898,7 +1896,7 @@
   "arrangement.emptyText": "Découpez chaque écran en zones et choisissez quels programmes vont dans chacune, ou placez vos fenêtres comme vous les aimez et enregistrez-les telles quelles. Remettez-les ensuite ainsi depuis n'importe quelle commande ou événement avec l'action « Disposition des fenêtres ».",
   "arrangement.namePlaceholder": "Nom de la disposition",
   "arrangement.nameRequired": "Une disposition a besoin d'un nom : l'ancien a été gardé.",
-  "arrangement.capture": "Enregistrer comme maintenant",
+  "arrangement.capture": "Enregistrer les fenêtres",
   "arrangement.captureHint": "Enregistre les fenêtres ouvertes maintenant sur tous les écrans : chacune, une zone avec son programme (pas les réduites)",
   "arrangement.captureReplace": "Les zones de tous les écrans sont remplacées par les fenêtres ouvertes maintenant : chacune, une zone avec son programme.",
   "arrangement.captureYes": "Enregistrer",
@@ -5382,9 +5380,6 @@
   "annotate.tool.Highlighter": "Surligneur",
   "annotate.tool.Blur": "Flouter",
   "annotate.tool.Crop": "Rogner",
-  "annotate.size.0": "Fin",
-  "annotate.size.1": "Moyen",
-  "annotate.size.2": "Épais",
   "annotate.hint.Arrow": "Faites glisser du départ jusqu'à la pointe. Maj : par pas de 45°.",
   "annotate.hint.Box": "Faites glisser pour encadrer. Maj : un carré.",
   "annotate.hint.Text": "Cliquez où écrire. Entrée termine ; Maj + Entrée, une autre ligne.",
@@ -5400,6 +5395,9 @@
   "macro.infoSteps": "Faites glisser les étapes pour les déplacer ; choisissez-en plusieurs avec Ctrl ou Maj, et Suppr les efface. Chaque étape a sa pause avant, en millisecondes.",
   "macro.infoKeys": "Ctrl + Z annule et Ctrl + Y rétablit les modifications des étapes.",
 
-  "annotate.copyText": "Copier le texte",
-  "annotate.copyTextHint": "Lit le texte de l'image (sans IA, avec la reconnaissance de Windows) et le copie. Ce qui est flouté n'est pas lu."
+
+  "annotate.width": "Épaisseur",
+
+  "annotate.tool.CopyText": "Copier le texte",
+  "annotate.hint.CopyText": "Faites glisser sur le texte à copier (un clic : toute l'image). Lu sans IA, par Windows ; ce qui est flouté n'est pas lu."
 }
