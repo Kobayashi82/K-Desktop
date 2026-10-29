@@ -150,7 +150,7 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <Border Width="30" Height="30" Margin="0,0,12,0" CornerRadius="15" Background="{DynamicResource Kd.AccentSoft}">
+                            <Border Width="30" Height="30" Margin="0,0,12,0" CornerRadius="8" Background="{DynamicResource Kd.AccentSoft}">
                                 <ui:SymbolIcon Symbol="Record24" FontSize="16" Foreground="{DynamicResource Kd.AccentText}" />
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
@@ -191,7 +191,7 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <Border Width="60" Height="60" CornerRadius="30" VerticalAlignment="Top" Background="{DynamicResource Kd.AccentSoft}">
+                        <Border Width="60" Height="60" CornerRadius="10" VerticalAlignment="Top" Background="{DynamicResource Kd.AccentSoft}">
                             <ui:SymbolIcon Symbol="Record24" FontSize="28" Foreground="{DynamicResource Kd.AccentText}" />
                         </Border>
                         <Grid Grid.Column="1" Margin="16,0,0,0" v:ResponsiveHeader.MinNameWidth="200">
