@@ -3595,7 +3595,7 @@
   "summary.assistantSayEmpty": "(no text)",
   "editor.assistantSayText": "What it says",
   "editor.assistantSayTextHint": "The backup has finished.",
-  "editor.assistantSayHint": "It says it as it is, in its bubble and in the panel's chat (K-Desktop, in a notice). If it is hidden, nothing happens.",
+  "editor.assistantSayHint": "It says it as it is, in its bubble and in the panel's chat (K-Desktop, in a notice). With {selection} it reads what you have selected: a long text is read whole and left on a sheet; «stop» or another order cuts it.",
 
   "voice.toAssistant": "“{1}” → {0}",
   "assistantCard.wakeOffer": "Record “{0}” after installing it, to call it by its name",

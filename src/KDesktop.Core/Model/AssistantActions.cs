@@ -141,7 +141,8 @@ public partial class AssistantBrainAction : CommandAction
 
 /// <summary>
 /// «Asistente: decir»: an assistant says something (message <c>say</c>), in its bubble and in the chat, without the AI:
-/// an event («the copy finished»), a reminder in a command. Without a body (nobody on the desktop), K-Desktop's OSD.
+/// an event («the copy finished»), a reminder in a command, or what is selected ({seleccion}, D4) read whole. Without a
+/// body (nobody on the desktop), K-Desktop's OSD.
 /// </summary>
 public partial class AssistantSayAction : CommandAction
 {
@@ -152,6 +153,9 @@ public partial class AssistantSayAction : CommandAction
 
     /// <summary>Before saying it, it catches the eye (goes towards the mouse); otherwise it says it where it is.</summary>
     [ObservableProperty] private bool _catchEye;
+
+    /// <summary>One that is not on the desktop comes out to say it (otherwise, nothing is done).</summary>
+    [ObservableProperty] private bool _bringOut = true;
 
     public override ActionKind Kind => ActionKind.AssistantSay;
 

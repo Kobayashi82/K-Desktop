@@ -13,6 +13,21 @@ public sealed partial class CommandEngine
     public static readonly TimeSpan AnswerWait = TimeSpan.FromMinutes(3);
 
     /// <summary>
+    /// «Asistente: decir» (D4, 5.0.372: «Leer lo seleccionado» with {seleccion}, whole however long). With the selection and
+    /// nothing selected, the OSD says so instead of saying nothing.
+    /// </summary>
+    private void AssistantSay(AssistantSayAction a)
+    {
+        var text = TextVariables.Expand(a.Text);
+        if (text.Trim().Length == 0 && TextVariables.UsesSelection(a.Text))
+        {
+            _ui.ShowOsd(Loc.T("osd.clipboardNoSelection"), OsdKind.Warning, look: OsdLook.Of("Megaphone24"));
+            return;
+        }
+        _ui.AssistantSay(a.Assistant, text, a.CatchEye, a.BringOut);
+    }
+
+    /// <summary>
     /// «Asistente: preguntar» (D1, 5.0.370). «Decirla»: the order goes and the command goes on, as always. Otherwise the
     /// command waits for the answer (Esc stops it, and the assistant too), leaves it in {resultado} and pastes it over the
     /// selection, copies it or shows it on the assistant's sheet. No answer: the rest of the command is not run.

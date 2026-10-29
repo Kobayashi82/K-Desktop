@@ -104,7 +104,7 @@ public interface IUiServices
     void AskAssistantScheduled(EventAsk ask) => AskAssistant(ask.Assistant, ask.Text);
 
     /// <summary>«Asistente: decir»: an assistant (empty: the default one) says this, without the AI (catching the eye first or not).</summary>
-    void AssistantSay(string assistant, string text, bool catchEye) { }
+    void AssistantSay(string assistant, string text, bool catchEye, bool bringOut) { }
 
     /// <summary>«Asistente: cerebro»: the assistants' model out of the graphics card, or into it.</summary>
     void AssistantBrain(Model.AssistantBrainOp op) { }

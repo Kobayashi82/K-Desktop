@@ -59,6 +59,12 @@ public interface ITalkOutput
     /// <summary>Reads a long text aloud (stage 14.2, «Léemela»): only the voice, no bubble; over when it has been said.</summary>
     Task ReadAloudAsync(string? assistant, string turn, string text, CancellationToken cancellationToken) => SpeakTurnAsync(assistant, turn, text, cancellationToken);
 
+    /// <summary>
+    /// A long text to say (D4, «Asistente: decir» with the selection): its voice reads <paramref name="text"/> whole while its
+    /// bubble shows <paramref name="shown"/> (its start); over when it has been said.
+    /// </summary>
+    Task SayWholeAsync(string? assistant, string turn, string shown, string text, CancellationToken cancellationToken) => ReadAloudAsync(assistant, turn, text, cancellationToken);
+
     /// <summary>The answer to an order with <see cref="HeardMessage.Reply"/> (<c>replied</c>), instead of saying it.</summary>
     void Replied(RepliedMessage reply)
     {
@@ -339,7 +345,8 @@ public sealed class TalkService
 
     /// <summary>
     /// «Asistente: decir» (stage 4.5): the assistant says this, in its bubble and its chat, without the AI. It replaces
-    /// what it was saying; «repite» repeats it.
+    /// what it was saying; «repite» repeats it. A long text (D4: the selection) is read whole, with its start in the bubble
+    /// and the whole on the reading sheet, like a long answer; «para» or another order stops it.
     /// </summary>
     public async Task SayAsync(string? who, string text)
     {
@@ -350,12 +357,15 @@ public sealed class TalkService
         try
         {
             var turn = Guid.NewGuid().ToString("N")[..12];
-            Log.Info($"Asistente: «{who ?? "K-Desktop"}» dice: «{text}»");
-            _output.Chat(new ChatLineMessage("assistant", text, turn, true, who));
-            conversation.LastAnswer = text;
-            conversation.History.Said(text);
+            var written = LongAnswers.TooLong(text) ? text : null;
+            var shown = written is null ? text : LongAnswers.Lead(text, string.Empty);
+            Log.Info(written is null ? $"Asistente: «{who ?? "K-Desktop"}» dice: «{text}»" : $"Asistente: «{who ?? "K-Desktop"}» lee {text.Length} letras: «{shown}»");
+            _output.Chat(new ChatLineMessage("assistant", shown, turn, true, who, written));
+            conversation.LastAnswer = shown;
+            conversation.History.Said(LongAnswers.ForHistory(shown, written));
             _output.State(who, "speaking");
-            await _output.SpeakTurnAsync(who, turn, text, token).ConfigureAwait(false);
+            if (written is null) await _output.SpeakTurnAsync(who, turn, text, token).ConfigureAwait(false);
+            else await _output.SayWholeAsync(who, turn, shown, LongAnswers.Readable(written), token).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {

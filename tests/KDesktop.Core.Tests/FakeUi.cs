@@ -71,7 +71,7 @@ internal sealed class FakeUi : IUiServices
     /// <summary>What «Asistente: decir» said (assistant, text).</summary>
     public List<(string Assistant, string Text)> Said { get; } = [];
 
-    public void AssistantSay(string assistant, string text, bool catchEye)
+    public void AssistantSay(string assistant, string text, bool catchEye, bool bringOut)
     {
         lock (Said) Said.Add((assistant, text));
     }

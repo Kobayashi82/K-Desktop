@@ -39,7 +39,7 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     public Action<EventAsk>? AssistantAskScheduled { get; set; }
 
     /// <summary>Runs «Asistente: decir» (assistant id or empty, the text) on the UI thread.</summary>
-    public Action<string, string, bool>? AssistantSayer { get; set; }
+    public Action<string, string, bool, bool>? AssistantSayer { get; set; }
 
     /// <summary>Runs «Asistente: cerebro» on the UI thread.</summary>
     public Action<Core.Model.AssistantBrainOp>? AssistantBrainer { get; set; }
@@ -269,7 +269,7 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
 
     public void AskAssistantScheduled(EventAsk ask) => dispatcher.BeginInvoke(() => AssistantAskScheduled?.Invoke(ask));
 
-    public void AssistantSay(string assistant, string text, bool catchEye) => dispatcher.BeginInvoke(() => AssistantSayer?.Invoke(assistant, text, catchEye));
+    public void AssistantSay(string assistant, string text, bool catchEye, bool bringOut) => dispatcher.BeginInvoke(() => AssistantSayer?.Invoke(assistant, text, catchEye, bringOut));
 
     /// <summary>The notification cards («Mostrar notificación»): set by the app once it has its notifier.</summary>
     public Func<Notification, Task>? Notifier { get; set; }

@@ -174,6 +174,28 @@ public sealed class TalkTests : IDisposable
     }
 
     [Fact]
+    public async Task ALongTextToSayIsReadWholeWithItsStartInTheBubble()
+    {
+        var (talk, tools) = Make();
+        using var _ = tools;
+        var text = string.Join(' ', Enumerable.Range(1, 30).Select(i => $"Esta es la frase número {i} del texto seleccionado."));
+
+        await talk.SayAsync("lander", text);
+
+        var line = Assert.Single(_chat);
+        Assert.Equal(text, line.Written);
+        Assert.StartsWith("Esta es la frase número 1 del texto", line.Text, StringComparison.Ordinal);
+        Assert.True(line.Text.Length < 300, line.Text);
+        // Its voice reads all of it.
+        Assert.Equal(text, Assert.Single(_said));
+
+        // A short one, as always: said and shown whole, no sheet.
+        await talk.SayAsync("lander", "Ha terminado la copia.");
+        Assert.Null(_chat[^1].Written);
+        Assert.Equal("Ha terminado la copia.", _said[^1]);
+    }
+
+    [Fact]
     public async Task TheAiUsesToolsAtMostThreeRounds()
     {
         var (talk, tools) = Make();

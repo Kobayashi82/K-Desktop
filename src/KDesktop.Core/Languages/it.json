@@ -3595,7 +3595,7 @@
   "summary.assistantSayEmpty": "(senza testo)",
   "editor.assistantSayText": "Cosa dice",
   "editor.assistantSayTextHint": "Il backup è finito.",
-  "editor.assistantSayHint": "Lo dice così com'è, nel suo fumetto e nella chat del pannello (K-Desktop, in un avviso). Se è nascosto, non succede nulla.",
+  "editor.assistantSayHint": "Lo dice così com'è, nel suo fumetto e nella chat del pannello (K-Desktop, in un avviso). Con {selection} legge ciò che hai selezionato: un testo lungo lo legge tutto e lo lascia su un foglio; «basta» o un altro ordine lo interrompono.",
 
   "voice.toAssistant": "«{1}» → {0}",
   "assistantCard.wakeOffer": "Registrare «{0}» dopo l'installazione, per chiamarlo per nome",

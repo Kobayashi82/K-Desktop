@@ -119,3 +119,8 @@ En un comando o un evento, **Asistente: decir** hace que un asistente diga algo 
 llama la atención (el Lander vuela hasta el ratón, Kobii se acerca andando); con esta acción, solo si está marcado **Ir hacia
 el ratón antes de decirlo**. Con **Callar con algo a pantalla completa** en su voz, mientras algo está a pantalla completa en
 cualquier monitor solo sale el bocadillo.
+
+Para que te **lea lo seleccionado**, escribe `{seleccion}` como texto y ponle un atajo al comando: selecciona un texto en
+cualquier programa, pulsa el atajo y el asistente lo lee con su voz. Un texto largo lo lee **entero**: en el bocadillo sale
+el principio y el texto completo queda en su hoja de lectura, al lado. Lo cortas como cualquier otra respuesta: «para»,
+«calla» u otra orden. Si no hay nada seleccionado, un aviso lo dice.

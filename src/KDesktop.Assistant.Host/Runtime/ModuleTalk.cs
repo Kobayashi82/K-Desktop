@@ -362,15 +362,34 @@ internal sealed class ModuleTalk : ITalkOutput
     {
         if (text.Length == 0) return Task.CompletedTask;
         if (assistant is null) return Voice.SayAsync(null, turn, text, cancellationToken);
-        var speaking = Voice.SayAsync(assistant, turn, text, cancellationToken);
+        var (speaking, said) = Communicate(assistant, turn, text, text, cancellationToken);
+        return speaking.IsCompleted ? said : Task.WhenAny(speaking, said);
+    }
+
+    /// <summary>
+    /// A long text (D4): the bubble with its start (it stays a minute at most) and its voice reading all of it; over when
+    /// the voice is (without one, when the bubble is).
+    /// </summary>
+    public Task SayWholeAsync(string? assistant, string turn, string shown, string text, CancellationToken cancellationToken)
+    {
+        if (text.Length == 0) return Task.CompletedTask;
+        if (assistant is null) return Voice.SayAsync(null, turn, text, cancellationToken);
+        var (speaking, said) = Communicate(assistant, turn, shown, text, cancellationToken);
+        return speaking.IsCompleted ? said : speaking;
+    }
+
+    /// <summary>Its voice saying <paramref name="spoken"/> and, on the engine, the bubble with <paramref name="shown"/> while it does.</summary>
+    private (Task Speaking, Task Said) Communicate(string assistant, string turn, string shown, string spoken, CancellationToken cancellationToken)
+    {
+        var speaking = Voice.SayAsync(assistant, turn, spoken, cancellationToken);
         var said = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         _engine.Post(async () =>
         {
-            try { await _runtime.CommunicateAsync(assistant, text, ReadingTime(text), cancellationToken, speaking); }
+            try { await _runtime.CommunicateAsync(assistant, shown, ReadingTime(shown), cancellationToken, speaking); }
             catch (Exception ex) { Log.Warn($"Asistente: «{assistant}» no ha podido decirlo: {ex.Message}"); }
             finally { said.TrySetResult(); }
         });
-        return speaking.IsCompleted ? said.Task : Task.WhenAny(speaking, said.Task);
+        return (speaking, said.Task);
     }
 
     public Task ReadAloudAsync(string? assistant, string turn, string text, CancellationToken cancellationToken) =>

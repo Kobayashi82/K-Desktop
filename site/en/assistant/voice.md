@@ -118,3 +118,8 @@ In a command or an event, **Assistant: say** makes an assistant say something in
 your eye (the Lander flies to the mouse, Kobii walks up to it); with this action, only if **Go towards the mouse before
 saying it** is ticked. With **Keep quiet with something full screen** in its voice settings, while something is full screen on any monitor
 only the bubble shows.
+
+To have it **read what you select**, write `{selection}` as the text and give the command a hotkey: select a text in any
+program, press the hotkey and the assistant reads it with its voice. A long text is read **whole**: the bubble shows its
+start and the whole text stays on its reading sheet, next to it. You cut it like any other answer: «stop», «be quiet» or
+another order. If nothing is selected, a notice says so.

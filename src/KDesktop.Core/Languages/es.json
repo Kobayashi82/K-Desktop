@@ -3595,7 +3595,7 @@
   "summary.assistantSayEmpty": "(sin texto)",
   "editor.assistantSayText": "Qué dice",
   "editor.assistantSayTextHint": "La copia de seguridad ha terminado.",
-  "editor.assistantSayHint": "Lo dice tal cual, en su bocadillo y en el chat del panel (K-Desktop, en un aviso). Si está escondido, no se hace.",
+  "editor.assistantSayHint": "Lo dice tal cual, en su bocadillo y en el chat del panel (K-Desktop, en un aviso). Con {seleccion} lee lo que tengas seleccionado: un texto largo lo lee entero y lo deja en una hoja; «para» u otra orden lo cortan.",
 
   "voice.toAssistant": "«{1}» → {0}",
   "assistantCard.wakeOffer": "Grabar «{0}» al instalarlo, para llamarlo por su nombre",

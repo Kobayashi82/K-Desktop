@@ -202,8 +202,9 @@ public partial class App
     /// <summary>How long an order waits for its assistant (the process starts in ~1 s; an assistant comes out in a few).</summary>
     private static readonly TimeSpan PendingOrderTime = TimeSpan.FromSeconds(30);
 
+    /// <param name="Say">Not an order: «Asistente: decir» (D4), catching the eye first or not.</param>
     private sealed record PendingOrder(string Id, string Text, string Source, DateTime At, IReadOnlyList<string>? Files = null, string? Act = null,
-        ScheduledPermit? Permit = null, string? Reply = null);
+        ScheduledPermit? Permit = null, string? Reply = null, bool? Say = null);
 
     private readonly List<PendingOrder> _pendingOrders = [];
 
@@ -222,6 +223,11 @@ public partial class App
             {
                 Log.Info($"Asistente: la orden por {order.Source} para «{id}» no se manda ({(ok ? "llegó tarde" : "no ha salido")})");
                 if (order.Reply is { } dropped) EndReply(dropped, null);
+                continue;
+            }
+            if (order.Say is { } catchEye)
+            {
+                SayToAssistant(id, order.Text, catchEye);
                 continue;
             }
             if (!SendToAssistant(id, order.Text, order.Source, order.Files, order.Act, order.Permit, order.Reply) && order.Reply is { } failed) EndReply(failed, null);
@@ -271,14 +277,28 @@ public partial class App
         return false;
     }
 
+    /// <summary>The longest text «Asistente: decir» sends (what is selected may be a whole book; a message has 1 MB at most).</summary>
+    private const int SayChars = 100_000;
+
     /// <summary>
     /// «Asistente: decir»: its assistant says it, in its bubble and its chat (K-Desktop with the OSD: the chat line that
-    /// comes back shows it), going towards the mouse first if <paramref name="catchEye"/>. Not while it is hidden.
+    /// comes back shows it), going towards the mouse first if <paramref name="catchEye"/>; a long one (D4, the selection),
+    /// read whole with its reading sheet. Not while it is hidden, unless <paramref name="bringOut"/>: it comes out first.
     /// </summary>
-    private void SayFromCommand(string id, string text, bool catchEye)
+    private void SayFromCommand(string id, string text, bool catchEye, bool bringOut)
     {
         text = text.Trim();
-        if (text.Length == 0 || !CanCommandAssistant(id)) return;
+        if (text.Length == 0 || !CanCommandAssistant(id, bringOut)) return;
+        if (text.Length > SayChars)
+        {
+            Log.Info($"Asistente: «decir» con {text.Length} letras: se dicen las {SayChars} primeras");
+            text = text[..SayChars];
+        }
+        if (!BringingOut(id, text, "command", say: catchEye)) SayToAssistant(id, text, catchEye);
+    }
+
+    private void SayToAssistant(string id, string text, bool catchEye)
+    {
         _chatSources[id] = "command";
         if (!_assistant!.IsRunning || !_assistant.Send(new SayMessage(text, ProcessIdOf(id), CatchEye: catchEye)))
             Ui.ShowOsd(text, Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(Math.Clamp(2 + text.Length * 0.06, 4, 15)));

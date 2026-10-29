@@ -81,6 +81,29 @@ public class CommandVariablesTests
     }
 
     [Fact]
+    public async Task SayingTheSelectionWithNothingSelectedSaysWhyInTheOsd()
+    {
+        var store = new ConfigStore();
+        var ui = new FakeUi();
+        var engine = new CommandEngine(store, ui);
+        var command = Add(store, "a");
+
+        // Without a run, {seleccion} is empty (nothing is copied from the PC).
+        await engine.TestActionAsync(Say("{seleccion}"), command);
+
+        Assert.Empty(ui.Said);
+        Assert.Equal(OsdKind.Warning, Assert.Single(ui.Osd).Kind);
+    }
+
+    [Fact]
+    public void SayBringsItsAssistantOutAlsoInOldCommands()
+    {
+        Assert.True(new AssistantSayAction().BringOut);
+        var old = Assert.IsType<AssistantSayAction>(Json.Deserialize<CommandAction>("""{"type":"assistantSay","assistant":"lander","text":"hola"}"""));
+        Assert.True(old.BringOut);
+    }
+
+    [Fact]
     public void ExpandLeavesUnknownBracesAndEscapesOnlyPartsOfAnAddress()
     {
         var run = new CommandVariables();

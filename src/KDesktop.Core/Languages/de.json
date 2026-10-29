@@ -3595,7 +3595,7 @@
   "summary.assistantSayEmpty": "(ohne Text)",
   "editor.assistantSayText": "Was er sagt",
   "editor.assistantSayTextHint": "Die Sicherung ist fertig.",
-  "editor.assistantSayHint": "Er sagt es wörtlich, in seiner Sprechblase und im Chat des Panels (K-Desktop als Hinweis). Ist er versteckt, passiert nichts.",
+  "editor.assistantSayHint": "Er sagt es wörtlich, in seiner Sprechblase und im Chat des Panels (K-Desktop als Hinweis). Mit {selection} liest er, was du markiert hast: Ein langer Text wird ganz vorgelesen und auf einem Blatt gezeigt; «stopp» oder ein anderer Befehl unterbricht ihn.",
 
   "voice.toAssistant": "„{1}“ → {0}",
   "assistantCard.wakeOffer": "Nach der Installation „{0}“ aufnehmen, um ihn beim Namen zu rufen",

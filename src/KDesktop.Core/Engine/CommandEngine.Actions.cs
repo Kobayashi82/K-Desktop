@@ -51,7 +51,7 @@ public sealed partial class CommandEngine
         DictateAction a => Run(() => _ui.Dictate(a.Mode)),
         AssistantExtraAction a => Run(() => _ui.RunAssistantExtra(a.Assistant, a.Extra, a.BringOut)),
         AssistantAskAction a => AssistantAskAsync(a, ctx),
-        AssistantSayAction a => Run(() => _ui.AssistantSay(a.Assistant, TextVariables.Expand(a.Text), a.CatchEye)),
+        AssistantSayAction a => Run(() => AssistantSay(a)),
         AssistantBrainAction a => Run(() => _ui.AssistantBrain(a.Op)),
         AssistantChatAction a => Run(() => _ui.AssistantChat(a.Assistant, a.Mode)),
         _ => Task.CompletedTask,

@@ -1729,6 +1729,8 @@
             <ui:TextBox Margin="0,0,0,8" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" PlaceholderText="{l:Tr editor.assistantSayTextHint}"
                         AutomationProperties.Name="{l:Tr editor.assistantSayText}" MaxLength="500" />
             <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.assistantSayCatchEye}" IsChecked="{Binding CatchEye}" />
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.assistantBringOut}" IsChecked="{Binding BringOut}"
+                      ToolTip="{l:Tr editor.assistantBringOutHint}" />
             <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.assistantSayHint}" />
         </StackPanel>
     </DataTemplate>

@@ -3595,7 +3595,7 @@
   "summary.assistantSayEmpty": "(sans texte)",
   "editor.assistantSayText": "Ce qu'il dit",
   "editor.assistantSayTextHint": "La sauvegarde est terminée.",
-  "editor.assistantSayHint": "Il le dit tel quel, dans sa bulle et dans le chat du panneau (K-Desktop, dans une notification). S'il est caché, rien ne se passe.",
+  "editor.assistantSayHint": "Il le dit tel quel, dans sa bulle et dans le chat du panneau (K-Desktop, dans une notification). Avec {selection}, il lit ce que vous avez sélectionné : un texte long est lu en entier et laissé sur une feuille ; « stop » ou un autre ordre l'arrête.",
 
   "voice.toAssistant": "« {1} » → {0}",
   "assistantCard.wakeOffer": "Enregistrer « {0} » après l'installation, pour l'appeler par son nom",

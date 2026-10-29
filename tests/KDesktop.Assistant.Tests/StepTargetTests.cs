@@ -133,7 +133,7 @@ public class StepTargetTests
         public void RequestExit() { }
         public void RunAssistantExtra(string assistant, string extra, bool bringOut) { }
         public void AskAssistant(string assistant, string text, bool bringOut = false) { }
-        public void AssistantSay(string assistant, string text, bool catchEye) { }
+        public void AssistantSay(string assistant, string text, bool catchEye, bool bringOut) { }
         private sealed class Nothing : IDisposable { public void Dispose() { } }
     }
 }

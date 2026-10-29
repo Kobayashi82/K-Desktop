@@ -111,7 +111,7 @@ internal sealed class FeedbackUiServices(IUiServices inner) : IUiServices
         inner.AskAssistantForAsync(assistant, text, bringOut, token);
     public void ShowAnswerSheet(string assistant, string markdown) => inner.ShowAnswerSheet(assistant, markdown);
     public void AskAssistantScheduled(EventAsk ask) => inner.AskAssistantScheduled(ask);
-    public void AssistantSay(string assistant, string text, bool catchEye) => inner.AssistantSay(assistant, text, catchEye);
+    public void AssistantSay(string assistant, string text, bool catchEye, bool bringOut) => inner.AssistantSay(assistant, text, catchEye, bringOut);
     public void AssistantBrain(Model.AssistantBrainOp op) => inner.AssistantBrain(op);
     public void Dictate(Model.SwitchMode mode) => inner.Dictate(mode);
     public void AssistantChat(string assistant, Model.AssistantChatMode mode) => inner.AssistantChat(assistant, mode);
