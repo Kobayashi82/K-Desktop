@@ -31,6 +31,14 @@ elementos pueden ser comandos, submenús y separadores, cada uno con su nombre y
 - El botón junto a *Añadir al menú* oculta ese panel para tener más sitio. La rueda del ratón mueve el menú hacia los
   lados; si también es más alto que el espacio, la rueda lo mueve arriba y abajo, y Ctrl + rueda hacia los lados.
 
+### Menú de IA
+
+**Crear menú de IA** (debajo de *Nuevo QuickMenu*) crea el QuickMenu «IA» con cinco comandos para lo que tengas
+seleccionado: **Traducir** y **Corregir** pegan la respuesta en lugar de la selección; **Resumir**, **Explicar** y
+**Responder** la enseñan en una hoja. Cada uno es una acción *Asistente: preguntar* con `{seleccion}` que contesta
+K-Desktop; en cada comando puedes cambiar el texto, la respuesta o elegir otro asistente. También crea el comando
+«Menú de IA», que lo abre: ponle un atajo. Necesita el módulo Asistente encendido y un cerebro.
+
 ## Lanzador
 
 El lanzador es una caja de búsqueda con su propio atajo (*Opciones → Lanzador*). Escribe parte de un nombre —valen las

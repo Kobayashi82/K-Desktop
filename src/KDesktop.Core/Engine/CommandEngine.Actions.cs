@@ -53,6 +53,7 @@ public sealed partial class CommandEngine
         AssistantAskAction a => AssistantAskAsync(a, ctx),
         AssistantSayAction a => Run(() => _ui.AssistantSay(a.Assistant, TextVariables.Expand(a.Text), a.CatchEye)),
         AssistantBrainAction a => Run(() => _ui.AssistantBrain(a.Op)),
+        AssistantChatAction a => Run(() => _ui.AssistantChat(a.Assistant, a.Mode)),
         _ => Task.CompletedTask,
     };
 

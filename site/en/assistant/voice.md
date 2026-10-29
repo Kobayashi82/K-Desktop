@@ -108,7 +108,7 @@ K-Desktop itself (the assistant without a character) has the same pages.
 
 When you ask for something long («explain it in detail», «make me a list», «write me an email», «summarise…») or the answer
 does not fit a bubble, it **says only a short summary** and writes the whole text on a **reading sheet** next to it. There
-you can **Copy** it, **Save as a note**, or have it **read to you** (*Read it to me* / *Stop*). In the chat, *Read it all*
+you can **Copy** it, **Save as a note**, or have it **read to you** (*Read it to me* / *Stop*). **Continue in the chat** opens the chat window with that assistant. In the chat, *Read it all*
 opens it again.
 
 ## The «Assistant: say» action

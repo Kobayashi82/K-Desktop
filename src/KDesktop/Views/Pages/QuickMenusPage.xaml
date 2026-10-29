@@ -156,6 +156,8 @@
                 <ui:TextBox x:Name="SearchBox" PlaceholderText="{l:Tr qm.search}" Icon="{ui:SymbolIcon Search24}"
                             TextChanged="OnSearchChanged" ClearButtonEnabled="True" Margin="0,0,0,10" />
                 <ui:Button Margin="0,0,0,10" Content="{l:Tr qm.newMenu}" Icon="{ui:SymbolIcon Add24}" Appearance="Primary" Click="OnNewMenu" HorizontalAlignment="Stretch" />
+                <ui:Button Margin="0,0,0,10" Content="{l:Tr qm.aiMenu}" Icon="{ui:SymbolIcon Sparkle24}" Click="OnAiMenu" HorizontalAlignment="Stretch"
+                           ToolTip="{l:Tr qm.aiMenuHint}" AutomationProperties.Name="{l:Tr qm.aiMenu}" />
             </StackPanel>
 
             <ListBox x:Name="MenuList" Style="{StaticResource CleanListBox}" ItemContainerStyle="{StaticResource CardRowItem}"

@@ -45,6 +45,23 @@ public sealed class CommandRoutingTests : IDisposable
     // 5.0.288: orders for later.
 
     [Fact]
+    public async Task ATextToWorkOnNeverRunsWhatItSays()
+    {
+        // D2 (5.0.371): «Traduce: {seleccion}» from the AI menu, with a selection that names a command: for the AI.
+        using var builtin = new BuiltinTools(_folder);
+        var talk = Make(builtin);
+        const string said = "Traduce al inglés: vacía la papelera";
+        _bridge.Sure(said, ("bin", "Vaciar papelera", null));
+        _bridge.Sure("vacía la papelera", ("bin", "Vaciar papelera", null));
+        _model.Answers.Enqueue("Empty the recycle bin.");
+        await talk.HandleAsync(new HeardMessage(said, "command", "lander", Reply: "r-1"));
+
+        Assert.DoesNotContain(_bridge.Done, d => d.StartsWith("run:", StringComparison.Ordinal));
+        Assert.Single(_model.Requests);
+        Assert.Equal("Empty the recycle bin.", _chat.Last(c => c is { Role: "assistant", Final: true }).Text);
+    }
+
+    [Fact]
     public async Task AnOrderForLaterIsProgrammedNotRunNow()
     {
         using var builtin = new BuiltinTools(_folder);

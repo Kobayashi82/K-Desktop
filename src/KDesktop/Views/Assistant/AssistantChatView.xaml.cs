@@ -38,6 +38,32 @@ public partial class AssistantChatView : UserControl
         };
     }
 
+    /// <summary>
+    /// Out of its card, for the chat window (D3): the conversation fills the window and the box stays at the bottom («Borrar»
+    /// is on the window's header).
+    /// </summary>
+    public void Detach()
+    {
+        if (Expander.Content is not StackPanel body) return;
+        Expander.Content = null;
+        var grid = new Grid();
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        var parts = body.Children.Cast<UIElement>().ToList();
+        body.Children.Clear();
+        for (var i = 0; i < parts.Count; i++)
+        {
+            Grid.SetRow(parts[i], i);
+            grid.Children.Add(parts[i]);
+        }
+        Scroller.MaxHeight = double.PositiveInfinity;
+        Content = grid;
+    }
+
+    /// <summary>The box to write, ready to type in.</summary>
+    public void FocusInput() => Input.Focus();
+
     private void OnFolded(object sender, RoutedEventArgs e)
     {
         if (IsLoaded) _app.Config.Settings.AssistantChatFolded = Expander.IsExpanded != true;

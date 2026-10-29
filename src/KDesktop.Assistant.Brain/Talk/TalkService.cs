@@ -166,15 +166,16 @@ public sealed class TalkService
         try
         {
             var persona = _persona(who);
-            var answer = await AnswerAsync(conversation, persona, who, said, turn, wasBusy, token, fresh, heard.Act).ConfigureAwait(false);
+            var answer = await AnswerAsync(conversation, persona, who, said, turn, wasBusy, token, fresh, heard.Act, direct: reply is not null).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
-            if (await LearnPhraseAsync(conversation, who, said, answer, token).ConfigureAwait(false) is { } learned)
+            if (reply is null && await LearnPhraseAsync(conversation, who, said, answer, token).ConfigureAwait(false) is { } learned)
                 answer = answer with { Text = (answer.Text + " " + learned).Trim() };
             conversation.Missed = Acted(answer) ? null : (said, _time.GetUtcNow());
             Log.Info($"Asistente: «{who ?? "K-Desktop"}» contesta: «{answer.Text}»");
             _output.Chat(new ChatLineMessage("assistant", answer.Text, turn, true, who, answer.Written));
             if (answer.Remember) conversation.History.Add(said, LongAnswers.ForHistory(answer.Text, answer.Written), answer.Tools, answer.Steps);
-            Learn(who, said, answer, token);
+            // A text to work on (the selection) is not something to learn about the user.
+            if (reply is null) Learn(who, said, answer, token);
             if (answer.Text.Length > 0) conversation.LastAnswer = answer.Text;
             // Only an answer of the AI may be called wrong and thought over («piénsalo bien» alone still has its order).
             conversation.LastAiAt = answer.FromAi ? _time.GetUtcNow() : null;
@@ -471,8 +472,16 @@ public sealed class TalkService
     /// <param name="fresh">The order brought files (stage 14.1): it is about them, straight to the AI.</param>
     /// <param name="act">What to do with them without the AI (<see cref="HeardMessage.Act"/>).</param>
     private async Task<TalkAnswer> AnswerAsync(Conversation conversation, AssistantPersona persona, string? who, string said, string turn, bool wasBusy, CancellationToken token,
-        bool fresh = false, string? act = null)
+        bool fresh = false, string? act = null, bool direct = false)
     {
+        // «Asistente: preguntar» that uses the answer (D1): a text to work on («traduce: {seleccion}»), for the AI. What the
+        // selection says must not run a rule or one of the user's commands («… vacía la papelera»).
+        if (direct)
+        {
+            Log.Info($"Asistente: «{who ?? "K-Desktop"}» trabaja un texto para un comando: a la IA");
+            var context = new ToolContext(who, said) { Files = conversation.GivenFiles(_time.GetUtcNow()) };
+            return await AiAsync(conversation, persona, who, said, turn, context, token).ConfigureAwait(false);
+        }
         if (fresh || _freeBrain is null || QuickRules.Match(said, [persona.Name]) is not null)
             return await AnswerCoreAsync(conversation, persona, who, said, turn, wasBusy, token, fresh, act).ConfigureAwait(false);
         var parts = ToolChooser.Parts(said);

@@ -109,7 +109,7 @@ El propio K-Desktop (el asistente sin personaje) tiene las mismas páginas.
 
 Cuando le pides algo largo («explícamelo bien», «hazme una lista», «escríbeme un correo», «resúmeme…») o la respuesta no
 cabe en un bocadillo, **dice solo un resumen corto** y escribe el texto entero en una **hoja de lectura** a su lado. Ahí
-puedes **Copiar**, **Guardar como nota** o que te lo lea (*Léemela* / *Parar*). En el chat, *Leer entero* la vuelve a
+puedes **Copiar**, **Guardar como nota** o que te lo lea (*Léemela* / *Parar*). **Seguir en el chat** abre la ventana de chat con ese asistente. En el chat, *Leer entero* la vuelve a
 abrir.
 
 ## La acción «Asistente: decir»

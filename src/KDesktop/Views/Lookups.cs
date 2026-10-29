@@ -52,6 +52,7 @@ public static class Lookups
     public static IReadOnlyList<Option<PowerPlanMode>> PowerPlanModes { get; } = Enum<PowerPlanMode>("enum.powerPlan");
     public static IReadOnlyList<Option<AssistantBrainOp>> AssistantBrainOps { get; } = Enum<AssistantBrainOp>("enum.assistantBrain");
     public static IReadOnlyList<Option<AssistantAnswer>> AssistantAnswers { get; } = Enum<AssistantAnswer>("enum.assistantAnswer");
+    public static IReadOnlyList<Option<AssistantChatMode>> AssistantChatModes { get; } = Enum<AssistantChatMode>("enum.assistantChatMode");
     public static IReadOnlyList<Option<ThemeChoice>> ThemeChoices { get; } = Enum<ThemeChoice>("enum.themeChoice");
     public static IReadOnlyList<Option<RadioDevice>> RadioDevices { get; } = Enum<RadioDevice>("enum.radio");
     public static IReadOnlyList<Option<SwitchMode>> SwitchModes { get; } = Enum<SwitchMode>("enum.switchMode");
@@ -188,6 +189,10 @@ public static class Lookups
     public static IReadOnlyList<AssistantChoice> AssistantList =>
         [new(Core.Assistant.AssistantTargeting.KDesktop, "K-Desktop", AssistantLook.SystemIcon),
          .. Core.Assistant.Packages.AssistantPackages.Installed().Select(a => new AssistantChoice(a.Id, a.Manifest.Name, AssistantLook.Icon(a)))];
+
+    /// <summary>«Asistente: chat»: the last one the window had («»), or one of them.</summary>
+    public static IReadOnlyList<AssistantChoice> AssistantChatList =>
+        [new(string.Empty, Loc.T("editor.assistantChatLast"), null), .. AssistantList];
 
     public static IReadOnlyList<int> MenuSizes { get; } = [0, 1, 2, 3, 4, 5];
 

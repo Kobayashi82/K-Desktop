@@ -42,7 +42,8 @@ public partial class App
                 note => SaveAssistantNote(note),
                 text => ReadAloud(id, text),
                 () => StopAssistant(id),
-                () => IsAssistantThinking(id));
+                () => IsAssistantThinking(id),
+                () => ShowChatWindow(id));
             var made = sheet;
             sheet.Closed += (_, _) =>
             {

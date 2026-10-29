@@ -31,6 +31,14 @@ commands, submenus and separators, each with its own name and icon if you want.
 - The button next to *Add to the menu* hides that panel for more room. The mouse wheel moves the menu sideways; if it is
   also taller than the space, the wheel moves it up and down, and Ctrl + wheel sideways.
 
+### AI menu
+
+**Create AI menu** (under *New QuickMenu*) creates the QuickMenu «AI» with five commands for whatever you have selected:
+**Translate** and **Correct** paste the answer over the selection; **Summarize**, **Explain** and **Reply** show it on a
+sheet. Each one is an *Assistant: ask* action with `{selection}` that K-Desktop answers; in each command you can change
+the text, the answer or choose another assistant. It also creates the command «AI menu», which opens it: give it a
+hotkey. It needs the Assistant module on and a brain.
+
 ## Launcher
 
 The launcher is a search box with its own hotkey (*Settings → Launcher*). Type part of a name —initials or loose letters

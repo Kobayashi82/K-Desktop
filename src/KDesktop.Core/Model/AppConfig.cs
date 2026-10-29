@@ -669,6 +669,13 @@ public partial class AppSettings : ObservableObject
     /// <summary>Panel → Assistant: «Conversación» folded away.</summary>
     [ObservableProperty] private bool _assistantChatFolded;
 
+    /// <summary>The chat window (D3): where it was («x,y,w,h», like <see cref="WindowBounds"/>), pinned on top, and with whom.</summary>
+    [ObservableProperty] private string? _assistantChatWindowBounds;
+
+    [ObservableProperty] private bool _assistantChatWindowPinned;
+
+    [ObservableProperty] private string? _assistantChatWindowAssistant;
+
     /// <summary>K-Board: «Opciones» (the apps it works in) unfolded.</summary>
     [ObservableProperty] private bool _kBoardOptionsOpen;
 

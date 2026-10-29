@@ -157,3 +157,22 @@ public partial class AssistantSayAction : CommandAction
 
     public override string Summary => Text.Trim().Length == 0 ? Loc.T("summary.assistantSayEmpty") : $"«{Text.Trim()}»";
 }
+
+/// <summary>What «Asistente: chat» does with the chat window.</summary>
+public enum AssistantChatMode { Toggle, Open, Close }
+
+/// <summary>
+/// «Asistente: chat» (D3, 5.0.371): the chat window, apart from the main one (the same conversation as Panel → Asistente),
+/// opened, closed or one or the other. It starts with <see cref="Assistant"/>, or (empty) the last one it had.
+/// </summary>
+public partial class AssistantChatAction : CommandAction
+{
+    [ObservableProperty] private AssistantChatMode _mode;
+
+    /// <summary>The assistant it opens with; empty: the last one used in the window.</summary>
+    [ObservableProperty] private string _assistant = string.Empty;
+
+    public override ActionKind Kind => ActionKind.AssistantChat;
+
+    public override string Summary => Loc.T("summary.assistantChat." + Mode);
+}

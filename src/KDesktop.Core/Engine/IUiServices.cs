@@ -112,6 +112,9 @@ public interface IUiServices
     /// <summary>«Dictar»: starts writing what is said where the cursor is, or stops it.</summary>
     void Dictate(Model.SwitchMode mode) { }
 
+    /// <summary>«Asistente: chat»: the chat window with <paramref name="assistant"/> (empty: the last one it had) opened, closed or toggled.</summary>
+    void AssistantChat(string assistant, Model.AssistantChatMode mode) { }
+
     /// <summary>Runs <paramref name="action"/> on the UI thread (needed to modify bound collections).</summary>
     void RunOnUi(Action action);
 

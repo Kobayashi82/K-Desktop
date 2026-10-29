@@ -47,6 +47,9 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     /// <summary>Runs «Dictar» (any thread).</summary>
     public Action<Core.Model.SwitchMode>? Dictator { get; set; }
 
+    /// <summary>Runs «Asistente: chat» (assistant id or empty, what to do) on the UI thread.</summary>
+    public Action<string, Core.Model.AssistantChatMode>? AssistantChatter { get; set; }
+
     private OsdWindow Osd
     {
         get
@@ -277,6 +280,8 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     public void AssistantBrain(Core.Model.AssistantBrainOp op) => dispatcher.BeginInvoke(() => AssistantBrainer?.Invoke(op));
 
     public void Dictate(Core.Model.SwitchMode mode) => Dictator?.Invoke(mode);
+
+    public void AssistantChat(string assistant, Core.Model.AssistantChatMode mode) => dispatcher.BeginInvoke(() => AssistantChatter?.Invoke(assistant, mode));
 
     public void RunOnUi(Action action)
     {

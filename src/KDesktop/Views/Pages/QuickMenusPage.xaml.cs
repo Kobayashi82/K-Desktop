@@ -246,6 +246,24 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
         FocusName();
     }
 
+    /// <summary>«Crear menú de IA» (D2): the menu «IA», its five commands and the one that opens it, shown at once.</summary>
+    private void OnAiMenu(object sender, RoutedEventArgs e)
+    {
+        var commands = Config.Commands.Count;
+        var (menu, opener) = AiMenu.AddTo(Config, Core.Assistant.AssistantTargeting.KDesktop);
+        _app.Achievements.Increment(Stat.MenusCreated);
+        for (var i = commands; i < Config.Commands.Count; i++)
+        {
+            _app.Achievements.Increment(Stat.CommandsCreated);
+            _app.Achievements.Increment(Stat.ActionsCreated);
+        }
+        Log.Info($"QuickMenus: menú de IA «{menu.Name}» creado ({Config.Commands.Count - commands} comandos)");
+        SearchBox.Text = string.Empty;
+        MenuList.SelectedItem = menu;
+        MenuList.ScrollIntoView(menu);
+        _app.Ui.ShowNotice(Loc.T("aiMenu.created", menu.Name, opener.Name), Core.Engine.OsdKind.Success);
+    }
+
     private void OnDuplicateMenu(object sender, RoutedEventArgs e)
     {
         if (_menu is null) return;

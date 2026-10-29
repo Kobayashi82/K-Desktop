@@ -63,6 +63,8 @@
                                Icon="{ui:SymbolIcon NoteAdd24}" Content="{l:Tr readingSheet.saveNote}" />
                     <ui:Button x:Name="ReadButton" Appearance="Secondary" Padding="10,5" Margin="0,0,6,0" Click="OnRead"
                                Icon="{ui:SymbolIcon Speaker224}" Content="{l:Tr readingSheet.readAloud}" />
+                    <ui:Button x:Name="ChatButton" Appearance="Secondary" Padding="10,5" Margin="0,0,6,0" Click="OnChat"
+                               Icon="{ui:SymbolIcon Chat24}" Content="{l:Tr readingSheet.followChat}" />
                     <TextBlock x:Name="Done" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="6,0,0,0" />
                 </StackPanel>
             </Grid>

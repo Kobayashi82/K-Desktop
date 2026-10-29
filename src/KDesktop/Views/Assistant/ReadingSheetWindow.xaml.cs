@@ -21,6 +21,7 @@ public partial class ReadingSheetWindow : Window
     private readonly Action<string> _saveNote;
     private readonly Action<string> _readAloud;
     private readonly Action _stopReading;
+    private readonly Action _followChat;
     private readonly Func<bool> _speaking;
     private readonly DispatcherTimer _reading = new() { Interval = TimeSpan.FromMilliseconds(400) };
     private UiNative.POINT? _at;
@@ -34,12 +35,15 @@ public partial class ReadingSheetWindow : Window
     public string Turn { get; private set; } = string.Empty;
 
     /// <param name="speaking">Whether the assistant is saying something now (the reading aloud is over when it is not).</param>
-    internal ReadingSheetWindow(string assistant, ImageSource? icon, Action<string> saveNote, Action<string> readAloud, Action stopReading, Func<bool> speaking)
+    /// <param name="followChat">«Seguir en el chat» (D3): the chat window with this assistant.</param>
+    internal ReadingSheetWindow(string assistant, ImageSource? icon, Action<string> saveNote, Action<string> readAloud, Action stopReading, Func<bool> speaking,
+        Action followChat)
     {
         InitializeComponent();
         _saveNote = saveNote;
         _readAloud = readAloud;
         _stopReading = stopReading;
+        _followChat = followChat;
         _speaking = speaking;
         AssistantIcon.Source = icon;
         Fallback.Visibility = icon is null ? Visibility.Visible : Visibility.Collapsed;
@@ -163,6 +167,8 @@ public partial class ReadingSheetWindow : Window
             // The clipboard is busy with another program: nothing said.
         }
     }
+
+    private void OnChat(object sender, RoutedEventArgs e) => _followChat();
 
     private void OnNote(object sender, RoutedEventArgs e)
     {

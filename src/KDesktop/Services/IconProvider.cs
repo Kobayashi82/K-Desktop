@@ -123,6 +123,8 @@ public static partial class IconProvider
         AssistantAskAction x => ForAssistant(x.Assistant) ?? Kd("ChatBubblesQuestion24", "indigo"),
         AssistantSayAction x => ForAssistant(x.Assistant) ?? Kd("Megaphone24", "indigo"),
         AssistantBrainAction => Kd("BrainCircuit24", "purple"),
+        AssistantChatAction x when x.Assistant.Length > 0 => ForAssistant(x.Assistant) ?? Kd("Chat24", "indigo"),
+        AssistantChatAction => Kd("Chat24", "indigo"),
         _ => null,
     };
 
