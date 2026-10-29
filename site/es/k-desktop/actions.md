@@ -18,7 +18,7 @@ orden.
 | Acción | Qué hace |
 |---|---|
 | **Ventana** | Maximiza, minimiza, coloca (mitades, cuartos, tercios), centra, pasa a otro monitor o hace transparente una ventana. |
-| **Disposición de ventanas** | Pone cada programa en su monitor, en su sitio y como estaba, según una de tus [disposiciones](arrangements.md). |
+| **Disposición de ventanas** | Pone cada programa en su zona de una de tus [disposiciones](arrangements.md). |
 | **Siempre visible (on/off)** | Deja la ventana activa por encima de las demás, o la suelta. |
 
 ## Teclado y ratón

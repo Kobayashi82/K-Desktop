@@ -296,6 +296,9 @@ public partial class App : Application
             if (args.Reason is SessionSwitchReason.SessionUnlock or SessionSwitchReason.ConsoleConnect) Router.Reinstall();
         };
         SystemEvents.SessionEnding += OnSessionEnding;
+        // Disposiciones (E1b): every monitor seen is remembered, to cut zones for it when it is not connected.
+        RememberMonitors();
+        SystemEvents.DisplaySettingsChanged += (_, _) => Dispatcher.BeginInvoke(RememberMonitors);
 
         // Remote control
         var assistants = new WebAssistants(this);
@@ -693,6 +696,8 @@ public partial class App : Application
         }
         finally { _backingUp = false; }
     }
+
+    private void RememberMonitors() => WindowArrangements.Remember(Config.Settings.KnownMonitors, WindowArrangements.Monitors());
 
     private void OnSessionEnding(object? sender, SessionEndingEventArgs e)
     {

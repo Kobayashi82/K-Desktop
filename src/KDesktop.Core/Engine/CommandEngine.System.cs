@@ -81,6 +81,13 @@ public sealed partial class CommandEngine
             return;
         }
         var result = await WindowArrangements.ApplyAsync(arrangement, path => ProcessLauncher.Launch(new LaunchSpec(path), asAdmin: false), ctx.Token).ConfigureAwait(false);
+        // It stays as the one to snap into on its monitors (E1b), and the monitors seen are remembered.
+        var monitors = WindowArrangements.Monitors();
+        _ui.RunOnUi(() =>
+        {
+            WindowArrangements.SetActive(Config.Settings.ActiveArrangements, arrangement);
+            WindowArrangements.Remember(Config.Settings.KnownMonitors, monitors);
+        });
         if (!a.ShowOsd) return;
         if (result.Missing.Count > 0)
             _ui.ShowOsd(Loc.T("osd.arrangementNotOpen", arrangement.Name, string.Join(", ", result.Missing.Distinct(StringComparer.OrdinalIgnoreCase))), OsdKind.Warning,

@@ -112,50 +112,63 @@
                         </Grid>
                     </Border>
 
-                    <!-- The windows: one row each, as a command's row; switched off, it is left where it is -->
-                    <ui:CardExpander x:Name="WindowsExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Window24}" HorizontalContentAlignment="Stretch"
-                                     Expanded="OnSectionFolded" Collapsed="OnSectionFolded" AutomationProperties.Name="{l:Tr arrangement.windows}">
+                    <!-- The zones: a pill per monitor (the ones seen before, faded), its drawing to cut it, the templates and the
+                         programs of the zone marked (as «Solo en estas aplicaciones» of K-Board) -->
+                    <ui:CardExpander x:Name="ZonesExpander" Margin="0,0,0,12" Icon="{ui:SymbolIcon Grid24}" HorizontalContentAlignment="Stretch"
+                                     Expanded="OnSectionFolded" Collapsed="OnSectionFolded" AutomationProperties.Name="{l:Tr arrangement.zones}">
                         <ui:CardExpander.Header>
-                            <TextBlock FontWeight="SemiBold" Text="{l:Tr arrangement.windows}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                            <TextBlock FontWeight="SemiBold" Text="{l:Tr arrangement.zones}" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                         </ui:CardExpander.Header>
                         <StackPanel>
-                            <TextBlock x:Name="NoWindows" Style="{StaticResource Caption}" Text="{l:Tr arrangement.windowsEmpty}" TextWrapping="Wrap" />
-                            <ItemsControl x:Name="WindowRows" ItemsSource="{Binding Windows}" Focusable="False">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate DataType="{x:Type m:ArrangedWindow}">
-                                        <Grid x:Name="Root" Margin="0,4,0,4">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <Border Width="30" Height="30" Margin="0,0,12,0" CornerRadius="8" VerticalAlignment="Center" Background="{DynamicResource Kd.AccentSoft}">
-                                                <ui:SymbolIcon Symbol="Window24" FontSize="16" Foreground="{DynamicResource Kd.AccentText}" />
+                            <WrapPanel x:Name="MonitorPills" Margin="0,0,0,6" />
+                            <v:ZoneSurface x:Name="Surface" Margin="0,4,0,8" />
+                            <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" Text="{l:Tr arrangement.zonesHint}" TextWrapping="Wrap" />
+
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr arrangement.templates}" />
+                            <WrapPanel x:Name="TemplatePills" Margin="0,0,0,8" />
+
+                            <Separator Margin="0,4,0,12" />
+                            <TextBlock x:Name="NoZoneSelected" Style="{StaticResource Caption}" Text="{l:Tr arrangement.noZoneSelected}" TextWrapping="Wrap" />
+                            <StackPanel x:Name="ZonePanel" Visibility="Collapsed">
+                                <Grid Margin="0,0,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="ZoneTitle" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0" />
+                                    <ui:Button Grid.Column="1" Style="{StaticResource IconButton}" Click="OnRemoveZone"
+                                               ToolTip="{l:Tr arrangement.removeZone}" AutomationProperties.Name="{l:Tr arrangement.removeZone}">
+                                        <ui:SymbolIcon Symbol="Delete24" FontSize="14" />
+                                    </ui:Button>
+                                </Grid>
+                                <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,8" Text="{l:Tr arrangement.zoneProgramsHint}" TextWrapping="Wrap" />
+                                <ItemsControl x:Name="ZonePrograms" Focusable="False">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type m:ZoneProgram}">
+                                            <Border Style="{StaticResource Chip}" ToolTip="{Binding Tip}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Display}" Style="{StaticResource ChipText}" />
+                                                    <ui:Button Style="{StaticResource IconButton}" Padding="4" Margin="4,0,0,0" Click="OnRemoveProgram" Tag="{Binding}"
+                                                               ToolTip="{l:Tr arrangement.removeProgram}" AutomationProperties.Name="{l:Tr arrangement.removeProgram}">
+                                                        <ui:SymbolIcon Symbol="Dismiss24" FontSize="12" />
+                                                    </ui:Button>
+                                                </StackPanel>
                                             </Border>
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
-                                                           Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-                                                <TextBlock Margin="0,1,0,0" Text="{Binding Title}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" ToolTip="{Binding Title}" />
-                                                <TextBlock Margin="0,1,0,0" Text="{Binding Where}" FontSize="12" TextTrimming="CharacterEllipsis"
-                                                           Foreground="{DynamicResource Kd.AccentText}" ToolTip="{Binding Exact}" />
-                                            </StackPanel>
-                                            <ui:ToggleSwitch Grid.Column="2" Margin="6,0,6,0" VerticalAlignment="Center" IsChecked="{Binding Enabled}"
-                                                             ToolTip="{l:Tr arrangement.windowOn}" AutomationProperties.Name="{l:Tr arrangement.windowOn}" />
-                                            <ui:Button Grid.Column="3" Style="{StaticResource IconButton}" VerticalAlignment="Center" Click="OnRemoveWindow" Tag="{Binding}"
-                                                       ToolTip="{l:Tr arrangement.removeWindow}" AutomationProperties.Name="{l:Tr arrangement.removeWindow}">
-                                                <ui:SymbolIcon Symbol="Dismiss24" FontSize="14" />
-                                            </ui:Button>
-                                        </Grid>
-                                        <DataTemplate.Triggers>
-                                            <DataTrigger Binding="{Binding Enabled}" Value="False">
-                                                <Setter TargetName="Root" Property="Opacity" Value="0.55" />
-                                            </DataTrigger>
-                                        </DataTemplate.Triggers>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                    <ComboBox x:Name="ProcessBox" IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnProcessDropDown"
+                                              DropDownClosed="OnProcessPicked" KeyDown="OnProcessKeyDown" AutomationProperties.Name="{l:Tr common.processPlaceholder}" />
+                                    <ui:Button Appearance="Primary" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddProcess" />
+                                    <ui:Button Margin="8,0,0,0" VerticalAlignment="Stretch" AutomationProperties.Name="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickProcess" ToolTip="{l:Tr picker.tooltip}" />
+                                </StackPanel>
+                            </StackPanel>
                         </StackPanel>
                     </ui:CardExpander>
 

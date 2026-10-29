@@ -164,6 +164,8 @@ public sealed class AppConfig
         changed |= MigrateStartupAndExit();
         // 5.0.340: «Solo si» of the events is a list of checks like «Si…».
         foreach (var rule in Events) changed |= rule.Conditions.Migrate();
+        // 5.0.376 (E1b): the disposiciones of 5.0.375 were windows; now they are zones with their programs.
+        foreach (var arrangement in Arrangements) changed |= arrangement.ConvertWindows();
         if (SchemaVersion < CurrentSchema)
         {
             SchemaVersion = CurrentSchema;
@@ -642,8 +644,8 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private bool _snippetOptionsOpen;
     [ObservableProperty] private bool _snippetNotesFolded;
 
-    /// <summary>Disposiciones: «Ventanas» and «Notas» folded away, and «Opciones» unfolded.</summary>
-    [ObservableProperty] private bool _arrangementWindowsFolded;
+    /// <summary>Disposiciones: «Zonas» and «Notas» folded away, and «Opciones» unfolded.</summary>
+    [ObservableProperty] private bool _arrangementZonesFolded;
     [ObservableProperty] private bool _arrangementOptionsOpen;
     [ObservableProperty] private bool _arrangementNotesFolded;
 
@@ -1147,6 +1149,12 @@ public partial class AppSettings : ObservableObject
     /// </summary>
     public ObservableCollection<string> AssistantsOnDesktop { get; set { field = value ?? []; field.CollectionChanged += (_, _) => Touch(); } } = [];
 
+    /// <summary>The monitors K-Desktop has seen (E1b), so a disposición can be cut for one that is not connected.</summary>
+    public ObservableCollection<KnownMonitor> KnownMonitors { get; set { field = value ?? []; field.CollectionChanged += (_, _) => Touch(); } } = [];
+
+    /// <summary>The disposición put last on each monitor (E1b): the one its windows snap into.</summary>
+    public ObservableCollection<ActiveArrangement> ActiveArrangements { get; set { field = value ?? []; field.CollectionChanged += (_, _) => Touch(); } } = [];
+
     public ObservableCollection<string> BlockSideButtonsIn { get; set { field = value ?? []; field.CollectionChanged += (_, _) => Touch(); } } =
         ["explorer", "chrome", "firefox", "msedge", "brave", "telegram", "systemsettings"];
 
@@ -1156,6 +1164,8 @@ public partial class AppSettings : ObservableObject
         BlockSideButtonsIn.CollectionChanged += (_, _) => Touch();
         AssistantsOnDesktop.CollectionChanged += (_, _) => Touch();
         ClipboardExcluded.CollectionChanged += (_, _) => Touch();
+        KnownMonitors.CollectionChanged += (_, _) => Touch();
+        ActiveArrangements.CollectionChanged += (_, _) => Touch();
     }
 
     public event EventHandler? Modified;
