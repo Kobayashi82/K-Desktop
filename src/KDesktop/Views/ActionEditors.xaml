@@ -1667,24 +1667,46 @@
     <!-- ── Asistente: preguntar ────────────────────────────────────────── -->
     <DataTemplate DataType="{x:Type m:AssistantAskAction}">
         <StackPanel>
-            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.assistantAskWho}" />
-            <ComboBox Margin="0,0,0,12" ItemsSource="{Binding Source={x:Static v:Lookups.AssistantList}}" SelectedValuePath="Id"
-                      SelectedValue="{Binding Assistant}" AutomationProperties.Name="{l:Tr editor.assistantAskWho}">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate DataType="{x:Type v:AssistantChoice}">
-                        <StackPanel Orientation="Horizontal">
-                            <Image Source="{Binding Icon}" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"
-                                   RenderOptions.BitmapScalingMode="HighQuality" />
-                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.assistantAskWho}" />
+                    <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.AssistantList}}" SelectedValuePath="Id"
+                              SelectedValue="{Binding Assistant}" AutomationProperties.Name="{l:Tr editor.assistantAskWho}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate DataType="{x:Type v:AssistantChoice}">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="{Binding Icon}" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"
+                                           RenderOptions.BitmapScalingMode="HighQuality" />
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.assistantAnswer}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.AssistantAnswers}" DisplayMemberPath="Name" SelectedValuePath="Value"
+                              SelectedValue="{Binding Answer}" AutomationProperties.Name="{l:Tr editor.assistantAnswer}" />
+                </StackPanel>
+            </Grid>
             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.assistantAskText}" />
             <ui:TextBox Margin="0,0,0,8" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" v:VariableHints.IsEnabled="True" PlaceholderText="{l:Tr editor.assistantAskTextHint}"
                         AutomationProperties.Name="{l:Tr editor.assistantAskText}" MaxLength="500" />
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.assistantBringOut}" IsChecked="{Binding BringOut}"
+                      ToolTip="{l:Tr editor.assistantBringOutHint}" />
             <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.assistantAskHint}" />
+            <TextBlock x:Name="AnswerHint" Style="{StaticResource Caption}" Margin="0,4,0,0" TextWrapping="Wrap" Text="{l:Tr editor.assistantAnswerHint}" />
         </StackPanel>
+        <DataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Answer}" Value="Say">
+                <Setter TargetName="AnswerHint" Property="Text" Value="{l:Tr editor.assistantAnswerSayHint}" />
+            </DataTrigger>
+        </DataTemplate.Triggers>
     </DataTemplate>
 
     <!-- ── Asistente: decir ────────────────────────────────────────────── -->

@@ -50,7 +50,7 @@ public sealed partial class CommandEngine
         MagnifierAction a => Run(() => Magnify(a)),
         DictateAction a => Run(() => _ui.Dictate(a.Mode)),
         AssistantExtraAction a => Run(() => _ui.RunAssistantExtra(a.Assistant, a.Extra, a.BringOut)),
-        AssistantAskAction a => Run(() => _ui.AskAssistant(a.Assistant, TextVariables.Expand(a.Text))),
+        AssistantAskAction a => AssistantAskAsync(a, ctx),
         AssistantSayAction a => Run(() => _ui.AssistantSay(a.Assistant, TextVariables.Expand(a.Text), a.CatchEye)),
         AssistantBrainAction a => Run(() => _ui.AssistantBrain(a.Op)),
         _ => Task.CompletedTask,

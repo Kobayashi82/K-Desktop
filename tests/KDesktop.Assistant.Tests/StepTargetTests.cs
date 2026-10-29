@@ -132,7 +132,7 @@ public class StepTargetTests
         public void RunOnUi(Action action) => action();
         public void RequestExit() { }
         public void RunAssistantExtra(string assistant, string extra, bool bringOut) { }
-        public void AskAssistant(string assistant, string text) { }
+        public void AskAssistant(string assistant, string text, bool bringOut = false) { }
         public void AssistantSay(string assistant, string text, bool catchEye) { }
         private sealed class Nothing : IDisposable { public void Dispose() { } }
     }

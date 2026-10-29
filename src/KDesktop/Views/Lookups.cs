@@ -51,6 +51,7 @@ public static class Lookups
     public static IReadOnlyList<Option<LevelChange>> LevelChanges { get; } = Enum<LevelChange>("enum.levelChange");
     public static IReadOnlyList<Option<PowerPlanMode>> PowerPlanModes { get; } = Enum<PowerPlanMode>("enum.powerPlan");
     public static IReadOnlyList<Option<AssistantBrainOp>> AssistantBrainOps { get; } = Enum<AssistantBrainOp>("enum.assistantBrain");
+    public static IReadOnlyList<Option<AssistantAnswer>> AssistantAnswers { get; } = Enum<AssistantAnswer>("enum.assistantAnswer");
     public static IReadOnlyList<Option<ThemeChoice>> ThemeChoices { get; } = Enum<ThemeChoice>("enum.themeChoice");
     public static IReadOnlyList<Option<RadioDevice>> RadioDevices { get; } = Enum<RadioDevice>("enum.radio");
     public static IReadOnlyList<Option<SwitchMode>> SwitchModes { get; } = Enum<SwitchMode>("enum.switchMode");

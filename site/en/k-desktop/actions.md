@@ -87,7 +87,7 @@ Only with the [assistant module](../assistant/index.md) on.
 
 | Action | What it does |
 |---|---|
-| **Assistant: ask** | Says something to an assistant, as if you said it out loud. Without text, it opens the box to write to it. |
+| **Assistant: ask** | Says something to an assistant, as if you said it out loud. Without text, it opens the box to write to it. **With the answer**: *Say it* (in its bubble and with its voice), *Paste it over the selection*, *Copy it*, *Show it on a sheet* or *Only keep it in {result}*. Except *Say it*, the command waits for the answer (Esc stops it), the assistant neither speaks nor shows its bubble, and the answer is left in `{result}`. With *If it is not on the desktop, it comes out to do it*, it comes out when it is hidden. Example: «Translate into Spanish: {selection}» and *Paste it over the selection*. |
 | **Assistant: say** | The assistant says something in its bubble, without the AI. Handy in events: «The backup has finished». |
 | **Assistant: brain** | Takes the AI model out of the graphics card (before a game or a render) or loads it now so the first answer does not wait. |
 | **Assistant: action** | Puts an assistant on the desktop, hides it, or runs one of its own actions, like the Lander's manual mode (if it is not on the desktop, it comes out for it or nothing is done, as you choose). |
@@ -106,7 +106,8 @@ and the ones you can use show up; choose one with the arrows and put it with Ent
 | `{date}` and `{time}` | Today's date (2026-10-28) and the time (09:30:05). |
 | `{name}` | What an earlier action kept with **Save in a variable** and that name. |
 
-These give something: **Copy text from the screen** (the text read), **Web request** (the answer), **Clipboard** (the text
+These give something: **Copy text from the screen** (the text read), **Web request** (the answer), **Assistant: ask** (the
+answer, except with *Say it*), **Clipboard** (the text
 it leaves copied), **Screenshot** (the saved file) and **Run script** (what it writes, when *Wait until it finishes* is
 ticked and the window is *Hidden*; not in VBScript). These actions have the **Save in a variable** field: with a name
 (letters, digits and `_`), what they give stays available until the command ends, even if another action changes

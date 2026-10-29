@@ -78,6 +78,7 @@ public partial class App
                     ForgetAssistantVoice();
                     AbandonAssistantQuestions();
                     AbandonChoreographies();
+                    ForgetReplies();
                     // A process that fell cannot ask to let the keys go.
                     if (_assistant == supervisor) ResetAssistantInput();
                 }
@@ -118,6 +119,7 @@ public partial class App
             ClearAssistantExtras();
             _pendingExtras.Clear();
             _pendingOrders.Clear();
+            ForgetReplies();
             ForgetAssistantBrain();
             ForgetAssistantMemory();
             ForgetAssistantNotes();
@@ -251,6 +253,9 @@ public partial class App
                 break;
             case DictateMessage dictate:
                 OnAssistantDictate(dictate);
+                break;
+            case RepliedMessage replied:
+                OnAssistantReplied(replied);
                 break;
             case ChatLineMessage line:
                 OnAssistantChat(line);

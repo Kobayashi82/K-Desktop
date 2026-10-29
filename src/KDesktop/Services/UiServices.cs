@@ -26,8 +26,14 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     /// <summary>Runs «Asistente: acción» (assistant id, extra id) on the UI thread.</summary>
     public Action<string, string, bool>? AssistantExtra { get; set; }
 
-    /// <summary>Runs «Asistente: preguntar» (assistant id or empty, the order or empty) on the UI thread.</summary>
-    public Action<string, string>? AssistantAsk { get; set; }
+    /// <summary>Runs «Asistente: preguntar» (assistant id, the order or empty, whether it comes out) on the UI thread.</summary>
+    public Action<string, string, bool>? AssistantAsk { get; set; }
+
+    /// <summary>«Asistente: preguntar» with an answer (assistant id, the order or empty, whether it comes out), on the UI thread.</summary>
+    public Func<string, string, bool, CancellationToken, Task<Core.Assistant.Pipe.RepliedMessage?>>? AssistantAskFor { get; set; }
+
+    /// <summary>Shows an answer on its assistant's reading sheet, on the UI thread.</summary>
+    public Action<string, string>? AnswerSheet { get; set; }
 
     /// <summary>Runs an order an assistant programmed, with what was approved, on the UI thread.</summary>
     public Action<EventAsk>? AssistantAskScheduled { get; set; }
@@ -251,7 +257,12 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
 
     public void RunAssistantExtra(string assistant, string extra, bool bringOut) => dispatcher.BeginInvoke(() => AssistantExtra?.Invoke(assistant, extra, bringOut));
 
-    public void AskAssistant(string assistant, string text) => dispatcher.BeginInvoke(() => AssistantAsk?.Invoke(assistant, text));
+    public void AskAssistant(string assistant, string text, bool bringOut = false) => dispatcher.BeginInvoke(() => AssistantAsk?.Invoke(assistant, text, bringOut));
+
+    public async Task<Core.Assistant.Pipe.RepliedMessage?> AskAssistantForAsync(string assistant, string text, bool bringOut, CancellationToken token) =>
+        AssistantAskFor is { } ask ? await (await dispatcher.InvokeAsync(() => ask(assistant, text, bringOut, token)).Task.ConfigureAwait(false)).ConfigureAwait(false) : null;
+
+    public void ShowAnswerSheet(string assistant, string markdown) => dispatcher.BeginInvoke(() => AnswerSheet?.Invoke(assistant, markdown));
 
     public void AskAssistantScheduled(EventAsk ask) => dispatcher.BeginInvoke(() => AssistantAskScheduled?.Invoke(ask));
 

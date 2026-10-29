@@ -27,7 +27,7 @@ public partial class App
             open.Show(line.Turn, text, line.Final, At(line));
             return;
         }
-        if (_chatSources.GetValueOrDefault(id) is "panel" or "phone") return;
+        if (_chatSources.GetValueOrDefault(id) is "panel" or "phone" or ReplySource) return;
         ShowReadingSheet(id, line.Turn, text, line.Final, At(line));
     }
 

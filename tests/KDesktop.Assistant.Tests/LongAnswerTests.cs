@@ -20,6 +20,7 @@ public sealed class LongAnswerTests : IDisposable
     private readonly List<ChatLineMessage> _chat = [];
     private readonly List<string> _said = [];
     private readonly List<string> _ahead = [];
+    private readonly List<RepliedMessage> _replied = [];
     private readonly Model _model = new();
 
     private static readonly AssistantPersona Lander = new("Lander", "Eres un pequeño módulo lunar.",
@@ -100,6 +101,30 @@ public sealed class LongAnswerTests : IDisposable
         var read = LongAnswers.Readable(Body + "\n\n```\ncódigo\n```\n| A | B |\n|---|---|\n| 1 | 2 |");
         Assert.Equal("Cómo plantar tomates. Elige un sitio con mucho sol. Prepara la tierra con abono. Planta en primavera, a medio metro. "
             + "Riega a menudo sin mojar las hojas. Truco: pon un tutor a cada planta. A, B. 1, 2.", read);
+    }
+
+    [Fact]
+    public async Task WithAReplyItSaysNothingAndTheAnswerGoesBack()
+    {
+        // D1 (5.0.370): «Asistente: preguntar» that pastes, copies, shows or keeps the answer.
+        var talk = Make();
+        _model.Answers.Enqueue(_ => Chunks("Para tomates hacen falta sol, agua y paciencia.", "\n---\n", Body));
+        await talk.HandleAsync(new HeardMessage("Explícame en detalle cómo plantar tomates", "command", "lander", Reply: "r-1"));
+
+        Assert.Empty(_said);
+        Assert.Empty(_ahead);
+        var reply = Assert.Single(_replied);
+        Assert.Equal(("r-1", true, "lander"), (reply.Id, reply.Ok, reply.Assistant));
+        Assert.Equal("Para tomates hacen falta sol, agua y paciencia.", reply.Text);
+        Assert.Equal(Body, reply.Written);
+        // The chat has it, as always.
+        Assert.Equal(Body, Final.Written);
+
+        // Without an answer (the brain fails), it still goes back, not done.
+        _replied.Clear();
+        await talk.HandleAsync(new HeardMessage("Cuéntame algo de los volcanes de Marte", "command", "lander", Reply: "r-2"));
+        Assert.Equal(("r-2", false), (Assert.Single(_replied).Id, _replied[0].Ok));
+        Assert.Empty(_said);
     }
 
     [Fact]
@@ -206,6 +231,11 @@ public sealed class LongAnswerTests : IDisposable
         {
             lock (test._said) test._said.Add(text);
             return Task.CompletedTask;
+        }
+
+        public void Replied(RepliedMessage reply)
+        {
+            lock (test._replied) test._replied.Add(reply);
         }
     }
 

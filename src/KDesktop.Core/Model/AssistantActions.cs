@@ -69,10 +69,29 @@ public partial class AssistantExtraAction : CommandAction
     public override bool IsTransient(string? property) => property is nameof(ExtraName) or nameof(Target) or nameof(IsShowOrHide) || base.IsTransient(property);
 }
 
+/// <summary>What «Asistente: preguntar» does with the answer (D1, 5.0.370).</summary>
+public enum AssistantAnswer
+{
+    /// <summary>The assistant says it, in its bubble and with its voice (as always); the command does not wait for it.</summary>
+    Say,
+
+    /// <summary>Pasted over the selection, in the window the command was run over.</summary>
+    Paste,
+
+    Copy,
+
+    /// <summary>On the assistant's reading sheet.</summary>
+    Sheet,
+
+    /// <summary>Only in {resultado} (and its variable), for the next actions.</summary>
+    Keep,
+}
+
 /// <summary>
 /// «Asistente: preguntar»: an order for an assistant, as if it had been said to it («¿qué tenía apuntado?»), with the
 /// same path as the voice and the chat (message <c>heard</c>, source <c>command</c>). Without text, the box to write it
-/// opens (so a hotkey can open it).
+/// opens (so a hotkey can open it). Except <see cref="AssistantAnswer.Say"/>, the command waits for the answer, quietly
+/// (it neither speaks nor shows its bubble), and gives it to the next actions.
 /// </summary>
 public partial class AssistantAskAction : CommandAction
 {
@@ -82,9 +101,25 @@ public partial class AssistantAskAction : CommandAction
     /// <summary>The order; empty: the box to write it opens.</summary>
     [ObservableProperty] private string _text = string.Empty;
 
+    [ObservableProperty] private AssistantAnswer _answer;
+
+    /// <summary>One that is not on the desktop comes out to answer (otherwise, nothing is done).</summary>
+    [ObservableProperty] private bool _bringOut = true;
+
     public override ActionKind Kind => ActionKind.AssistantAsk;
 
-    public override string Summary => Text.Trim().Length == 0 ? Loc.T("summary.assistantAskBox") : $"«{Text.Trim()}»";
+    public override bool GivesResult => Answer != AssistantAnswer.Say;
+
+    partial void OnAnswerChanged(AssistantAnswer value) => OnPropertyChanged(nameof(GivesResult));
+
+    public override string Summary
+    {
+        get
+        {
+            var asked = Text.Trim().Length == 0 ? Loc.T("summary.assistantAskBox") : $"«{Text.Trim()}»";
+            return Answer == AssistantAnswer.Say ? asked : Loc.T("summary.assistantAnswer." + Answer, asked);
+        }
+    }
 }
 
 /// <summary>What «Asistente: cerebro» does: free the graphics card, or load the model before talking.</summary>

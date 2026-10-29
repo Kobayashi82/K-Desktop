@@ -87,7 +87,7 @@ técnicos) y **Panel de …** (puntuaciones, logros, botones), que se ve tambié
 | **Clic mantenido** | Mantén el botón izquierdo sobre él medio segundo y habla |
 | **Por escrito** | Clic central sobre él, o *Escribir a …* en su menú del botón derecho, abre una caja; o el chat de *Panel → Asistente* |
 | **Móvil** | La pestaña *Asistente* de la aplicación web, por escrito o hablando |
-| **Comandos** | *Asistente: preguntar* le manda un texto (o abre la caja para escribirle) |
+| **Comandos** | *Asistente: preguntar* le manda un texto (o abre la caja para escribirle); la respuesta se puede decir, pegar en lugar de la selección, copiar, ver en una hoja o guardar en `{resultado}` |
 
 Su **menú del botón derecho** tiene *Escribir a …*, sus acciones propias (extras), su panel, sus ajustes y *Esconder*.
 

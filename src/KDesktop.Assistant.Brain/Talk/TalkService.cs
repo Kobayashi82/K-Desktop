@@ -58,6 +58,11 @@ public interface ITalkOutput
 
     /// <summary>Reads a long text aloud (stage 14.2, «Léemela»): only the voice, no bubble; over when it has been said.</summary>
     Task ReadAloudAsync(string? assistant, string turn, string text, CancellationToken cancellationToken) => SpeakTurnAsync(assistant, turn, text, cancellationToken);
+
+    /// <summary>The answer to an order with <see cref="HeardMessage.Reply"/> (<c>replied</c>), instead of saying it.</summary>
+    void Replied(RepliedMessage reply)
+    {
+    }
 }
 
 /// <summary>
@@ -150,10 +155,13 @@ public sealed class TalkService
         if (fresh) conversation.Give(heard.Files!, _time.GetUtcNow());
         Active();
         var turn = Guid.NewGuid().ToString("N")[..12];
+        // «Asistente: preguntar» that does something else with the answer: nothing is said, it goes back.
+        var reply = heard.Reply;
+        if (reply is not null) _quiet[turn] = 0;
         // An order programmed earlier, now due: what was approved then goes with everything it does.
         using var scheduled = heard.Source == HeardMessage.SourceScheduled && heard.Scheduled is { } key ? ScheduledOrder.Enter(key, heard.Allowed) : null;
         // The conversation is kept only in K-Desktop's memory: the log has each line, to look at it afterwards.
-        Log.Info($"Asistente: a «{who ?? "K-Desktop"}» por {heard.Source}: «{said}»");
+        Log.Info($"Asistente: a «{who ?? "K-Desktop"}» por {heard.Source}{(reply is null ? "" : " (sin decirlo)")}: «{said}»");
         _output.Chat(new ChatLineMessage("user", said, turn, true, who));
         try
         {
@@ -171,6 +179,12 @@ public sealed class TalkService
             // Only an answer of the AI may be called wrong and thought over («piénsalo bien» alone still has its order).
             conversation.LastAiAt = answer.FromAi ? _time.GetUtcNow() : null;
             if (LastCommandOf(answer.Steps) is { } command) conversation.LastCommand = command;
+            if (reply is not null)
+            {
+                _output.Replied(new RepliedMessage(reply, !answer.Failed && answer.Text.Length > 0, answer.Text, answer.Written, who));
+                reply = null;
+                return;
+            }
             _output.State(who, "speaking");
             await _output.SpeakTurnAsync(who, turn, answer.Text, token).ConfigureAwait(false);
             // Said aloud and answered with a question: the answer may come aloud too, without the wake word (stage 5.3).
@@ -189,10 +203,26 @@ public sealed class TalkService
         }
         finally
         {
+            // Replaced, cancelled or failed: K-Desktop stops waiting.
+            if (reply is not null) _output.Replied(new RepliedMessage(reply, false, Assistant: who));
+            _quiet.TryRemove(turn, out _);
             Active();
             if (conversation.End(token)) _output.State(who, "idle");
             FreeBrainIfAsked();
         }
+    }
+
+    /// <summary>The turns answered without saying them (<see cref="HeardMessage.Reply"/>): no word while it thinks, nothing ahead.</summary>
+    private readonly ConcurrentDictionary<string, byte> _quiet = new(StringComparer.Ordinal);
+
+    private void Preface(string? who, string turn, string phrase)
+    {
+        if (!_quiet.ContainsKey(turn)) _output.Preface(who, turn, phrase);
+    }
+
+    private void SpeakAhead(string? who, string turn, string textSoFar)
+    {
+        if (!_quiet.ContainsKey(turn)) _output.SpeakAhead(who, turn, textSoFar);
     }
 
     /// <summary>The brain is freed once nothing is being answered (free_brain asked for it in the middle of an answer).</summary>
@@ -770,7 +800,7 @@ public sealed class TalkService
             Interlocked.Exchange(ref spoken, 1);
             if (Interlocked.Exchange(ref hard, 1) != 0) return;
             _output.State(who, "thinkingHard");
-            if (FreshPhrase(persona, "thinkingHard", conversation) is { Length: > 0 } phrase) _output.Preface(who, turn, phrase);
+            if (FreshPhrase(persona, "thinkingHard", conversation) is { Length: > 0 } phrase) Preface(who, turn, phrase);
         }
         // A long answer's whole text so far (stage 14.2), with each line of the chat: K-Desktop's reading sheet grows with it.
         string? longSoFar = null;
@@ -781,7 +811,7 @@ public sealed class TalkService
             var sofar = (ran is null ? "" : ran.Text + " ") + Volatile.Read(ref textSoFar);
             _output.Chat(new ChatLineMessage("assistant", sofar, turn, false, who, Volatile.Read(ref longSoFar)));
             // Ahead, the voice says the first sentences only: the rest may end up written down instead.
-            _output.SpeakAhead(who, turn, (ran is null ? "" : ran.Text + " ") + LongAnswers.Spoken(Volatile.Read(ref textSoFar)));
+            SpeakAhead(who, turn, (ran is null ? "" : ran.Text + " ") + LongAnswers.Spoken(Volatile.Read(ref textSoFar)));
         }, _time);
         TalkAnswer answer;
         try
@@ -858,7 +888,7 @@ public sealed class TalkService
         Log.Info($"Asistente: «{who ?? "K-Desktop"}» tiene que cargar «{ModelRefs.Label(model)}»: avisa");
         conversation.LoadingTurn = turn;
         conversation.WaitedAt = _time.GetUtcNow();
-        _output.Preface(who, turn, phrase);
+        Preface(who, turn, phrase);
         return true;
     }
 
@@ -871,7 +901,7 @@ public sealed class TalkService
         if (conversation.WaitedAt is { } at && now - at < WaitWordRest) return;
         if (FreshPhrase(persona, "thinking", conversation) is not { Length: > 0 } phrase) return;
         conversation.WaitedAt = now;
-        _output.Preface(who, turn, phrase);
+        Preface(who, turn, phrase);
     }
 
     /// <summary>How many of its last words before an answer it does not repeat (fewer when it has fewer).</summary>

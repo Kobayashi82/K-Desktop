@@ -88,7 +88,7 @@ Solo con el [módulo Asistente](../assistant/index.md) encendido.
 
 | Acción | Qué hace |
 |---|---|
-| **Asistente: preguntar** | Le dice algo a un asistente, como si se lo dijeras en voz alta. Sin texto, abre la caja para escribirle. |
+| **Asistente: preguntar** | Le dice algo a un asistente, como si se lo dijeras en voz alta. Sin texto, abre la caja para escribirle. **Con la respuesta**: *Decirla* (en su bocadillo y con su voz), *Pegarla en lugar de la selección*, *Copiarla*, *Mostrarla en una hoja* o *Solo guardarla en {resultado}*. Salvo *Decirla*, el comando espera la respuesta (Esc lo para), el asistente no habla ni sale en su bocadillo y la respuesta queda en `{resultado}`. Con *Si no está en el escritorio, sale para hacerla*, sale si está escondido. Ejemplo: «Traduce al inglés: {seleccion}» y *Pegarla en lugar de la selección*. |
 | **Asistente: decir** | El asistente dice algo en su bocadillo, sin la IA. Útil en eventos: «Ha terminado la copia». |
 | **Asistente: cerebro** | Saca el modelo de IA de la gráfica (antes de un juego o un render) o lo carga ya para que la primera respuesta no espere. |
 | **Asistente: acción** | Pone un asistente en el escritorio, lo esconde o lanza una acción propia suya, como el modo manual del Lander (si no está en el escritorio, sale para hacerla o no se hace nada, a elegir). |
@@ -107,7 +107,8 @@ Escribe `{` en el campo y salen las que hay; con las flechas eliges una y con En
 | `{fecha}` y `{hora}` | La fecha de hoy (2026-10-28) y la hora (09:30:05). |
 | `{nombre}` | Lo que guardó una acción anterior con **Guardar en variable** y ese nombre. |
 
-Dan algo: **Copiar texto de la pantalla** (el texto leído), **Petición web** (la respuesta), **Portapapeles** (el texto que
+Dan algo: **Copiar texto de la pantalla** (el texto leído), **Petición web** (la respuesta), **Asistente: preguntar** (la
+respuesta, salvo con *Decirla*), **Portapapeles** (el texto que
 deja copiado), **Captura de pantalla** (el archivo guardado) y **Ejecutar script** (lo que escribe, si se marca *Esperar a
 que termine* y la ventana es *Oculta*; no en VBScript). Estas acciones tienen el campo **Guardar en variable**: con un
 nombre (letras, números y `_`), lo que dan sigue disponible hasta que acaba el comando, aunque después otra acción cambie

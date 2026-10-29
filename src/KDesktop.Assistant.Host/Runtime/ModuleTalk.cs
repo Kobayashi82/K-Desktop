@@ -124,6 +124,7 @@ internal sealed class ModuleTalk : ITalkOutput
         if (Paused)
         {
             Log.Info("Asistente: orden ignorada (K-Desktop en pausa)");
+            if (heard.Reply is { } reply) _link.Send(new RepliedMessage(reply, false, Assistant: heard.Assistant));
             return;
         }
         _reactions.Begin(heard.Assistant, heard.Text);
@@ -348,6 +349,8 @@ internal sealed class ModuleTalk : ITalkOutput
     }
 
     public void Preface(string? assistant, string turn, string phrase) => Voice.Preface(assistant, turn, phrase);
+
+    public void Replied(RepliedMessage reply) => _link.Send(reply);
 
     /// <summary>
     /// The bubble with the text (for as long as it takes to read it) and its voice (what was not said ahead). Over when its

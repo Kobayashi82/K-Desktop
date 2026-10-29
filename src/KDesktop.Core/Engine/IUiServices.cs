@@ -80,8 +80,22 @@ public interface IUiServices
     /// </summary>
     void RunAssistantExtra(string assistant, string extra, bool bringOut) { }
 
-    /// <summary>«Asistente: preguntar»: an order for an assistant (empty: the default one); without text, the box to write it.</summary>
-    void AskAssistant(string assistant, string text) { }
+    /// <summary>
+    /// «Asistente: preguntar»: an order for an assistant; without text, the box to write it. One that is not on the desktop
+    /// comes out for it if <paramref name="bringOut"/>.
+    /// </summary>
+    void AskAssistant(string assistant, string text, bool bringOut = false) { }
+
+    /// <summary>
+    /// «Asistente: preguntar» with something to do with the answer (D1): the order, answered quietly (no voice nor bubble;
+    /// without text, the box to write it), and its answer; null when it is not done (the OSD says why) or the box was
+    /// closed. Cancelling the token stops the assistant.
+    /// </summary>
+    Task<Assistant.Pipe.RepliedMessage?> AskAssistantForAsync(string assistant, string text, bool bringOut, CancellationToken token) =>
+        Task.FromResult<Assistant.Pipe.RepliedMessage?>(null);
+
+    /// <summary>An answer of «Asistente: preguntar» on its assistant's reading sheet.</summary>
+    void ShowAnswerSheet(string assistant, string markdown) { }
 
     /// <summary>
     /// An event's «Pedir a un asistente» that an assistant programmed: its order with what was approved then (see

@@ -86,7 +86,7 @@ panel** (scores, achievements, buttons), which shows also when it is not on the 
 | **Long click** | Hold the left button on it for half a second and speak |
 | **Writing** | Middle click on it, or *Write to …* in its right-click menu, opens a box; or the chat in *Panel → Assistant* |
 | **Phone** | The *Assistant* tab of the web app, written or spoken |
-| **Commands** | *Assistant: ask* sends it a text (or opens the box to write) |
+| **Commands** | *Assistant: ask* sends it a text (or opens the box to write); the answer can be said, pasted over the selection, copied, shown on a sheet or kept in `{result}` |
 
 Its **right-click menu** has *Write to …*, its own actions (extras), its panel, its settings and *Hide*.
 

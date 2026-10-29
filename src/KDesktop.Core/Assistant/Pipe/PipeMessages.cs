@@ -444,8 +444,10 @@ public sealed record AnswerMessage(string Id, string Choice) : PipeMessage
 /// what was approved then (<see cref="ScheduledPermit"/>): it goes back with the commands it runs, which do not ask.</param>
 /// <param name="Allowed">With <paramref name="Scheduled"/>: the tools approved then, which do not ask; nothing else that does
 /// more than read may run.</param>
+/// <param name="Reply">«Asistente: preguntar» with what to do with the answer (D1, 5.0.370): answered quietly (no voice nor bubble;
+/// the chat has it) and the answer goes back with <see cref="RepliedMessage"/> with this id.</param>
 public sealed record HeardMessage(string Text, string Source, string? Assistant = null, IReadOnlyList<string>? Files = null, string? Act = null,
-    string? Scheduled = null, IReadOnlyList<string>? Allowed = null) : PipeMessage
+    string? Scheduled = null, IReadOnlyList<string>? Allowed = null, string? Reply = null) : PipeMessage
 {
     public const string SourceScheduled = "scheduled";
 
@@ -519,6 +521,15 @@ public sealed record ChatLineMessage(string Role, string Text, string Turn, bool
     int? X = null, int? Y = null) : PipeMessage
 {
     public override string Type => "chat";
+}
+
+/// <summary>
+/// The answer to a <c>heard</c> with <see cref="HeardMessage.Reply"/>: what it would have said and, for a long one, its whole
+/// text. <paramref name="Ok"/> false: replaced by another order, cancelled or failed (no answer).
+/// </summary>
+public sealed record RepliedMessage(string Id, bool Ok, string Text = "", string? Written = null, string? Assistant = null) : PipeMessage
+{
+    public override string Type => "replied";
 }
 
 // ── meaning (stage 3.5) ─────────────────────────────────────────────────
@@ -1289,6 +1300,7 @@ public static class PipeJson
         ["dictate"] = typeof(DictateMessage),
         ["cancel"] = typeof(CancelMessage),
         ["chat"] = typeof(ChatLineMessage),
+        ["replied"] = typeof(RepliedMessage),
         ["embed"] = typeof(EmbedMessage),
         ["embedded"] = typeof(EmbeddedMessage),
         ["memory"] = typeof(MemoryMessage),

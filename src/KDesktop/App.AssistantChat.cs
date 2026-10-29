@@ -142,7 +142,7 @@ public partial class App
     {
         if (text.Length == 0 || (IsOnDesktop(id) && !AssistantTargeting.IsSystem(id))) return;
         // In the panel's chat it is already seen; asked from the phone, the phone shows it.
-        if (_chatSources.GetValueOrDefault(id) is "panel" or "phone") return;
+        if (_chatSources.GetValueOrDefault(id) is "panel" or "phone" or ReplySource) return;
         var seconds = Math.Clamp(2 + text.Length * 0.06, 4, 15);
         Ui.ShowOsd($"{AssistantName(id)}: {text}", Core.Engine.OsdKind.Info, TimeSpan.FromSeconds(seconds));
     }
@@ -157,7 +157,9 @@ public partial class App
     /// </summary>
     /// <param name="files">Files given with it (stage 14.1: dropped on the assistant); <paramref name="act"/>: what to do with them without the AI.</param>
     /// <param name="permit">An order an assistant programmed (source <c>scheduled</c>): what was approved for it then.</param>
-    public bool SendToAssistant(string? id, string text, string source, IReadOnlyList<string>? files = null, string? act = null, ScheduledPermit? permit = null)
+    /// <param name="reply">«Asistente: preguntar» with an answer (D1): answered quietly, and it comes back as <c>replied</c> with this id.</param>
+    public bool SendToAssistant(string? id, string text, string source, IReadOnlyList<string>? files = null, string? act = null, ScheduledPermit? permit = null,
+        string? reply = null)
     {
         text = text.Trim();
         if (text.Length == 0) return false;
@@ -179,19 +181,20 @@ public partial class App
                 && !AssistantTargeting.IsSystem(id) && IsOnDesktop(id) && !IsAssistantLoaded(id)))
         {
             _pendingOrders.RemoveAll(o => DateTime.UtcNow - o.At > PendingOrderTime);
-            _pendingOrders.Add(new PendingOrder(id, text, source, DateTime.UtcNow, files, act, permit));
+            _pendingOrders.Add(new PendingOrder(id, text, source, DateTime.UtcNow, files, act, permit, reply));
             Log.Info($"Asistente: orden por {source} para «{id}» en espera de que esté listo");
             return true;
         }
         var heard = new HeardMessage(text, source, ProcessIdOf(id), files is { Count: > 0 } ? files : null, act,
-            permit?.Key, permit is null ? null : [.. permit.Tools.Order(StringComparer.Ordinal)]);
+            permit?.Key, permit is null ? null : [.. permit.Tools.Order(StringComparer.Ordinal)], reply);
         if (!_assistant.IsRunning || !_assistant.Send(heard))
         {
             Ui.ShowOsd(Loc.T("assistantChat.notRunning"), Core.Engine.OsdKind.Warning);
             return false;
         }
         if (IsOnDesktop(id)) AssistantTalkedTo(id);
-        _chatSources[id] = source;
+        // Answered quietly: neither its sheet nor the OSD show it (what the command does with it does).
+        _chatSources[id] = reply is null ? source : ReplySource;
         Log.Info($"Asistente: orden por {source} para «{id}»");
         return true;
     }
@@ -200,7 +203,7 @@ public partial class App
     private static readonly TimeSpan PendingOrderTime = TimeSpan.FromSeconds(30);
 
     private sealed record PendingOrder(string Id, string Text, string Source, DateTime At, IReadOnlyList<string>? Files = null, string? Act = null,
-        ScheduledPermit? Permit = null);
+        ScheduledPermit? Permit = null, string? Reply = null);
 
     private readonly List<PendingOrder> _pendingOrders = [];
 
@@ -218,9 +221,10 @@ public partial class App
             if (!ok || DateTime.UtcNow - order.At > PendingOrderTime)
             {
                 Log.Info($"Asistente: la orden por {order.Source} para «{id}» no se manda ({(ok ? "llegó tarde" : "no ha salido")})");
+                if (order.Reply is { } dropped) EndReply(dropped, null);
                 continue;
             }
-            SendToAssistant(id, order.Text, order.Source, order.Files, order.Act, order.Permit);
+            if (!SendToAssistant(id, order.Text, order.Source, order.Files, order.Act, order.Permit, order.Reply) && order.Reply is { } failed) EndReply(failed, null);
         }
     }
 
@@ -239,24 +243,27 @@ public partial class App
         AssistantChatChanged?.Invoke(id);
     }
 
-    /// <summary>«Asistente: preguntar»: the order to its assistant; without text, the box to write it. Not while it is hidden.</summary>
-    private void AskAssistantFromCommand(string id, string text)
+    /// <summary>
+    /// «Asistente: preguntar»: the order to its assistant; without text, the box to write it. Not while it is hidden,
+    /// unless <paramref name="bringOut"/>: it comes out, and the order waits for it.
+    /// </summary>
+    private void AskAssistantFromCommand(string id, string text, bool bringOut)
     {
-        if (!CanCommandAssistant(id)) return;
-        if (text.Trim().Length == 0) ShowAssistantWriteBox(id, null);
-        else SendToAssistant(id, text, "command");
+        if (!CanCommandAssistant(id, bringOut)) return;
+        if (text.Trim().Length == 0) ShowAssistantWriteBox(id, null, order => { if (!BringingOut(id, order, "bubble")) SendToAssistant(id, order, "bubble"); });
+        else if (!BringingOut(id, text, "command")) SendToAssistant(id, text, "command");
     }
 
     /// <summary>
     /// Whether an action of a command may go to its assistant (5.0.113): the module on, an assistant named that exists and
-    /// is on the desktop. Otherwise it is not run, and the OSD says why.
+    /// is on the desktop (or, with <paramref name="bringOut"/>, may come out). Otherwise it is not run, and the OSD says why.
     /// </summary>
-    private bool CanCommandAssistant(string id)
+    private bool CanCommandAssistant(string id, bool bringOut = false)
     {
         var why = _assistant is null ? Loc.T("assistantExtra.moduleOff")
             : id.Length == 0 ? Loc.T("assistantAction.noAssistant")
             : !IsAssistant(id) ? Loc.T("assistantExtra.notInstalled", id)
-            : !IsOnDesktop(id) ? Loc.T(AssistantTargeting.IsSystem(id) ? "assistantState.systemInactive" : "assistantState.notOnDesktop", AssistantName(id))
+            : !IsOnDesktop(id) && !bringOut ? Loc.T(AssistantTargeting.IsSystem(id) ? "assistantState.systemInactive" : "assistantState.notOnDesktop", AssistantName(id))
             : null;
         if (why is null) return true;
         Log.Info($"Asistente: acción para «{id}» que no se ejecuta: {why}");
@@ -281,14 +288,16 @@ public partial class App
     /// The box to write to an assistant, above <paramref name="at"/> (screen pixels, where the character is) or at the
     /// bottom of the monitor with the mouse.
     /// </summary>
-    internal void ShowAssistantWriteBox(string id, UiNative.POINT? at)
+    /// <param name="send">What is done with what is written (null: sent to it as usual); <paramref name="closed"/>, when it closes.</param>
+    internal void ShowAssistantWriteBox(string id, UiNative.POINT? at, Action<string>? send = null, Action? closed = null)
     {
         _writeWindow?.Leave();
         var window = new AssistantWriteWindow(Loc.T("assistantWrite.placeholder", AssistantName(id)), AssistantLook.IconOf(id),
-            text => SendToAssistant(id, text, "bubble"), at);
+            send ?? (text => SendToAssistant(id, text, "bubble")), at);
         window.Closed += (_, _) =>
         {
             if (_writeWindow == window) _writeWindow = null;
+            closed?.Invoke();
         };
         _writeWindow = window;
         window.Show();

@@ -106,7 +106,10 @@ internal sealed class FeedbackUiServices(IUiServices inner) : IUiServices
     public void BlankMonitors(IReadOnlyCollection<string> devices) => inner.BlankMonitors(devices);
     public void ShowMainWindow() => inner.ShowMainWindow();
     public void RunAssistantExtra(string assistant, string extra, bool bringOut) => inner.RunAssistantExtra(assistant, extra, bringOut);
-    public void AskAssistant(string assistant, string text) => inner.AskAssistant(assistant, text);
+    public void AskAssistant(string assistant, string text, bool bringOut = false) => inner.AskAssistant(assistant, text, bringOut);
+    public Task<Assistant.Pipe.RepliedMessage?> AskAssistantForAsync(string assistant, string text, bool bringOut, CancellationToken token) =>
+        inner.AskAssistantForAsync(assistant, text, bringOut, token);
+    public void ShowAnswerSheet(string assistant, string markdown) => inner.ShowAnswerSheet(assistant, markdown);
     public void AskAssistantScheduled(EventAsk ask) => inner.AskAssistantScheduled(ask);
     public void AssistantSay(string assistant, string text, bool catchEye) => inner.AssistantSay(assistant, text, catchEye);
     public void AssistantBrain(Model.AssistantBrainOp op) => inner.AssistantBrain(op);

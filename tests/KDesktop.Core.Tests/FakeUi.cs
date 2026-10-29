@@ -37,9 +37,35 @@ internal sealed class FakeUi : IUiServices
     /// <summary>The orders «Asistente: preguntar» gave (assistant, text).</summary>
     public List<(string Assistant, string Text)> Asked { get; } = [];
 
-    public void AskAssistant(string assistant, string text)
+    public void AskAssistant(string assistant, string text, bool bringOut = false)
     {
         lock (Asked) Asked.Add((assistant, text));
+    }
+
+    /// <summary>What «Asistente: preguntar» with an answer gets back (assistant, text → null: not done).</summary>
+    public Func<string, string, Assistant.Pipe.RepliedMessage?> Reply { get; set; } = (_, _) => null;
+
+    public Task<Assistant.Pipe.RepliedMessage?> AskAssistantForAsync(string assistant, string text, bool bringOut, CancellationToken token)
+    {
+        lock (Asked) Asked.Add((assistant, text));
+        return Task.FromResult(Reply(assistant, text));
+    }
+
+    /// <summary>What was put in the clipboard (nothing touches the real one).</summary>
+    public List<string> Copied { get; } = [];
+
+    public bool SetClipboardText(string text)
+    {
+        lock (Copied) Copied.Add(text);
+        return true;
+    }
+
+    /// <summary>The answers shown on a reading sheet (assistant, text).</summary>
+    public List<(string Assistant, string Text)> Sheets { get; } = [];
+
+    public void ShowAnswerSheet(string assistant, string markdown)
+    {
+        lock (Sheets) Sheets.Add((assistant, markdown));
     }
 
     /// <summary>What «Asistente: decir» said (assistant, text).</summary>

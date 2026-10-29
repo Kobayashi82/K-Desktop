@@ -84,6 +84,15 @@ public class TalkProcessTests
             // The second order came while Dot was still saying the first, which it replaced: one «idle» at the end.
             await Until(() => received.OfType<StatusMessage>().LastOrDefault(s => s.Assistant == "dot") is { State: "idle" });
 
+            // D1 (5.0.370): «Asistente: preguntar» that keeps the answer: it comes back as «replied», without saying it.
+            var speaking = received.OfType<StatusMessage>().Count(s => s is { State: "speaking", Assistant: "dot" });
+            Assert.True(server.Send(new HeardMessage("cuéntame otra cosa", "command", "dot", Reply: "r-1")));
+            await Until(() => received.OfType<RepliedMessage>().Any());
+            Assert.Equal(new RepliedMessage("r-1", true, "Hola, soy Dot y te escucho.", null, "dot"), received.OfType<RepliedMessage>().Single());
+            Assert.True(ollama.Chats >= 2); // and what it learns from it, in the background
+            await Until(() => received.OfType<StatusMessage>().LastOrDefault(s => s.Assistant == "dot") is { State: "idle" });
+            Assert.Equal(speaking, received.OfType<StatusMessage>().Count(s => s is { State: "speaking", Assistant: "dot" }));
+
             Assert.True(server.Send(new ByeMessage("exit")));
             using var exited = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await process.WaitForExitAsync(exited.Token);
