@@ -213,6 +213,7 @@ public sealed class ClipboardController : IDisposable
             w.CloseRequested += () => Close(restoreFocus: true);
             w.ItemHovered += item => Select(_items.IndexOf(item), scroll: false);
             w.ItemClicked += item => Paste(item, null);
+            w.PinClicked += TogglePin;
             w.ItemMenu += OpenMenu;
             w.Deactivated += (_, _) => { if (IsOpen && !_menuOpen) Close(restoreFocus: false); };
             return _window = w;

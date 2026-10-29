@@ -17,7 +17,7 @@ Sale junto al ratón. Escribe para buscar y elige con ↑ ↓:
 | Intro (o clic) | Lo pega en la ventana donde estabas |
 | Mayús + Intro | Lo pega sin formato |
 | Ctrl + 1…9 | Pega esa fila |
-| Ctrl + P | Lo fija (o lo quita de fijados) |
+| Ctrl + P (o la chincheta de la fila) | Lo fija (o lo quita de fijados) |
 | Supr | Lo borra del historial |
 | Tab | Cambia de filtro: Todo, Texto, Imágenes, Archivos, Fijados |
 | Esc | Lo cierra |

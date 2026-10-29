@@ -34,7 +34,9 @@ public partial class ClipboardWindow : Window
         {
             if (ItemFrom(e.OriginalSource) is not { } item) return;
             e.Handled = true;
-            ItemClicked?.Invoke(item);
+            // The pin of the row pins it; anywhere else pastes it.
+            if (IsPin(e.OriginalSource as DependencyObject)) PinClicked?.Invoke(item);
+            else ItemClicked?.Invoke(item);
         };
         ResultsControl.PreviewMouseRightButtonUp += (_, e) =>
         {
@@ -59,6 +61,7 @@ public partial class ClipboardWindow : Window
     public event Action? CloseRequested;
     public event Action<ClipboardItem>? ItemHovered;
     public event Action<ClipboardItem>? ItemClicked;
+    public event Action<ClipboardItem>? PinClicked;
     public event Action<ClipboardItem, UIElement>? ItemMenu;
 
     private void OnSourceInitialized(object? sender, EventArgs e)
@@ -161,6 +164,13 @@ public partial class ClipboardWindow : Window
     }
 
     private void OnCloseClick(object sender, RoutedEventArgs e) => CloseRequested?.Invoke();
+
+    private static bool IsPin(DependencyObject? d)
+    {
+        for (var p = d; p is not null; p = p is Visual ? VisualTreeHelper.GetParent(p) : LogicalTreeHelper.GetParent(p))
+            if (p is Button { Tag: "pin" }) return true;
+        return false;
+    }
 
     private static ClipboardItem? ItemFrom(object source) =>
         source is FrameworkElement { DataContext: ClipboardItem a } ? a

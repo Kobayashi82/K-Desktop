@@ -17,7 +17,7 @@ It opens next to the mouse. Type to search and choose with ↑ ↓:
 | Enter (or click) | Pastes it in the window where you were |
 | Shift + Enter | Pastes it without format |
 | Ctrl + 1…9 | Pastes that row |
-| Ctrl + P | Pins it (or unpins it) |
+| Ctrl + P (or the row's pin) | Pins it (or unpins it) |
 | Del | Deletes it from the history |
 | Tab | Changes the filter: All, Text, Pictures, Files, Pinned |
 | Esc | Closes it |
