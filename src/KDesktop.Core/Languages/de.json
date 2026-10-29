@@ -5417,6 +5417,7 @@
   "settings.videoQualityHint.Normal": "Ausgewogen",
   "settings.videoQualityHint.High": "Schärfer",
   "settings.videoCursor": "Mauszeiger aufnehmen",
+  "settings.videoClicks": "Klicks mit einem Kreis markieren",
   "settings.videoHint": "Aufgenommen als MP4 (H.264) mit der Grafikkarte. Den Ton wählt jede Aktion „Video aufnehmen“: was der PC abspielt, das Mikrofon (mit seiner Lautstärke aus „Audioaufnahme“) oder beides.",
   "action.VideoRecord.name": "Video aufnehmen",
   "action.VideoRecord.desc": "Nimmt einen Bereich, das aktive Fenster oder einen Monitor als Video auf, auf Wunsch mit PC-Ton oder Mikrofon. Eine Leiste oben zeigt die Zeit und erlaubt Pause und Stopp (sie ist nicht im Video); dasselbe Tastenkürzel oder der Infobereich beenden sie auch.",

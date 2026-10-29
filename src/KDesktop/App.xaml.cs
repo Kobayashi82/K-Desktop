@@ -261,6 +261,7 @@ public partial class App : Application
             return true;
         };
         Router.StopMacrosRequested += Engine.StopMacros;
+        Router.ClickObserver = Engine.VideoClick;
         // Mouse gestures (E4): the stroke on the screen while it is drawn.
         var gestureTrail = new Osd.GestureTrail(Router);
         Router.GestureDrawing += () => Dispatcher.BeginInvoke(() =>
@@ -442,8 +443,8 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// <c>--video-test seconds out.mp4 [monitor|region|window] [audio] [60]</c>: «Grabar vídeo» (F2) without the UI: the monitor of the
-    /// mouse, or a 640×360 region in its middle, for that long (logged).
+    /// <c>--video-test seconds out.mp4 [monitor|region|window] [audio] [60] [clicks]</c>: «Grabar vídeo» (F2) without the UI: the monitor
+    /// of the mouse, or a 640×360 region in its middle, for that long (logged); <c>clicks</c> marks made-up clicks (never the real mouse).
     /// </summary>
     private static async Task VideoTestAsync(IReadOnlyList<string> args, string seconds)
     {
@@ -460,9 +461,21 @@ public partial class App : Application
                 ? new VideoTarget(CaptureArea.Region, new ScreenRect(monitor.CenterX - 320, monitor.Top + monitor.Height / 2 - 180, 641, 361))
                 : new VideoTarget(CaptureArea.Monitor, monitor);
             var options = new VideoOptions(args.Contains("60") ? 60 : 30, VideoQuality.Normal, true,
-                args.Contains("audio", StringComparer.OrdinalIgnoreCase) ? AudioSource.Output : null);
+                args.Contains("audio", StringComparer.OrdinalIgnoreCase) ? AudioSource.Output : null, Clicks: args.Contains("clicks", StringComparer.OrdinalIgnoreCase));
             var recorder = ScreenRecorder.Start(target, output, options);
-            await Task.Delay(TimeSpan.FromSeconds(double.Parse(seconds, System.Globalization.CultureInfo.InvariantCulture)));
+            var until = DateTime.UtcNow.AddSeconds(double.Parse(seconds, System.Globalization.CultureInfo.InvariantCulture));
+            for (var i = 0; DateTime.UtcNow < until; i++)
+            {
+                if (options.Clicks)
+                {
+                    // Around an ellipse in the middle of what is recorded: left clicks, and every third a right one.
+                    var area = target.Area;
+                    var angle = i * 0.9;
+                    recorder.AddClick(area.CenterX + (int)(Math.Cos(angle) * area.Width / 3), area.Top + area.Height / 2 + (int)(Math.Sin(angle) * area.Height / 3),
+                        i % 3 == 2 ? MouseButton.Right : MouseButton.Left);
+                }
+                await Task.Delay(600);
+            }
             var length = await recorder.StopAsync();
             Log.Info($"--video-test: {length} → {output} ({(File.Exists(output) ? new FileInfo(output).Length / 1024 : 0)} KB)");
         }

@@ -5417,6 +5417,7 @@
   "settings.videoQualityHint.Normal": "Équilibrée",
   "settings.videoQualityHint.High": "Plus nette",
   "settings.videoCursor": "Enregistrer le pointeur de la souris",
+  "settings.videoClicks": "Marquer les clics d'un cercle",
   "settings.videoHint": "Enregistré en MP4 (H.264) par la carte graphique. Chaque action « Enregistrer une vidéo » choisit le son : ce que joue le PC, le micro (avec son volume de « Enregistrement audio ») ou les deux.",
   "action.VideoRecord.name": "Enregistrer une vidéo",
   "action.VideoRecord.desc": "Enregistre en vidéo une zone, la fenêtre active ou un écran, avec le son du PC ou du micro si vous voulez. Une pastille en haut affiche le temps et permet de mettre en pause et d'arrêter (elle n'apparaît pas dans la vidéo) ; le même raccourci ou la zone de notification l'arrêtent aussi.",

@@ -1908,6 +1908,11 @@
                         <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr settings.videoCursor}" />
                         <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding VideoCursor}" AutomationProperties.Name="{l:Tr settings.videoCursor}" />
                     </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr settings.videoClicks}" />
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding VideoClicks}" AutomationProperties.Name="{l:Tr settings.videoClicks}" />
+                    </Grid>
                     <TextBlock Style="{StaticResource Caption}" Margin="0,8,0,0" TextWrapping="Wrap" Text="{l:Tr settings.videoHint}" />
                 </StackPanel>
             </Border>

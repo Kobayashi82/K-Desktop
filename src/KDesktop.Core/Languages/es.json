@@ -5417,6 +5417,7 @@
   "settings.videoQualityHint.Normal": "Equilibrada",
   "settings.videoQualityHint.High": "Más nítida",
   "settings.videoCursor": "Grabar el puntero del ratón",
+  "settings.videoClicks": "Marcar los clics con un círculo",
   "settings.videoHint": "Se graba en MP4 (H.264) con la tarjeta gráfica. El sonido lo elige cada acción «Grabar vídeo»: lo que suena en el PC, el micrófono (con su volumen de «Grabación de audio») o los dos.",
   "action.VideoRecord.name": "Grabar vídeo",
   "action.VideoRecord.desc": "Graba en vídeo una región, la ventana activa o un monitor, con el sonido del PC o del micrófono si quieres. Una pastilla arriba enseña el tiempo y deja pausar y parar (no sale en el vídeo); también se para con el mismo atajo o desde la bandeja.",

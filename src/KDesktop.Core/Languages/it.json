@@ -5417,6 +5417,7 @@
   "settings.videoQualityHint.Normal": "Bilanciata",
   "settings.videoQualityHint.High": "Più nitida",
   "settings.videoCursor": "Registra il puntatore del mouse",
+  "settings.videoClicks": "Segna i clic con un cerchio",
   "settings.videoHint": "Si registra in MP4 (H.264) con la scheda grafica. Il suono lo sceglie ogni azione «Registra video»: ciò che suona sul PC, il microfono (con il suo volume di «Registrazione audio») o entrambi.",
   "action.VideoRecord.name": "Registra video",
   "action.VideoRecord.desc": "Registra in video una zona, la finestra attiva o un monitor, con il suono del PC o del microfono se vuoi. Una pillola in alto mostra il tempo e permette di mettere in pausa e fermare (non compare nel video); si ferma anche con la stessa scorciatoia o dalla barra delle notifiche.",

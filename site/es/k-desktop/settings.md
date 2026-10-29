@@ -28,7 +28,7 @@ allí.
 |---|---|
 | **Multimedia** | Órdenes de voz para la música, los vídeos y el volumen, y cuánto sube o baja cada vez |
 | **Capturas de pantalla** | Carpeta (y **Abrir**), **nombre del archivo** con fecha, hora, programa o título de la ventana, **formato** (PNG, JPG con su calidad o WebP), **esperar antes** de capturar (para abrir un menú), **copiar siempre**, **incluir el puntero del ratón**, **sonido de cámara** y **destello** sobre lo capturado |
-| **Grabación de pantalla** | Carpeta (y **Abrir**), **nombre del archivo** (como en las capturas), **fotogramas por segundo** (30 o 60), **calidad** (baja, normal o alta) y **grabar el puntero del ratón**; se codifica en MP4 (H.264) con la tarjeta gráfica (ver *Grabar vídeo* en [Acciones](actions.md)) |
+| **Grabación de pantalla** | Carpeta (y **Abrir**), **nombre del archivo** (como en las capturas), **fotogramas por segundo** (30 o 60), **calidad** (baja, normal o alta) **grabar el puntero del ratón** y **marcar los clics con un círculo** (amarillo el botón izquierdo, azul los demás; sale en el vídeo, no en la pantalla); se codifica en MP4 (H.264) con la tarjeta gráfica (ver *Grabar vídeo* en [Acciones](actions.md)) |
 | **Grabación de audio** | Carpeta (y **Abrir**), **nombre del archivo** (como en las capturas), **formato** (WAV, MP3 u Opus: se convierte al acabar), **volumen del micrófono** (solo en las grabaciones), **partir las grabaciones largas** cada tantos minutos, y **Guardar lo que acaba de sonar**, que recuerda en memoria los últimos segundos para que *Grabar audio → Guardar lo que acaba de sonar* los guarde (no se escribe nada en el disco) |
 
 ## Conexiones

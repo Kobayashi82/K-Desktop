@@ -5417,6 +5417,7 @@
   "settings.videoQualityHint.Normal": "Equilibrada",
   "settings.videoQualityHint.High": "Mais nítida",
   "settings.videoCursor": "Gravar o ponteiro do mouse",
+  "settings.videoClicks": "Marcar os cliques com um círculo",
   "settings.videoHint": "Grava em MP4 (H.264) com a placa de vídeo. O som é escolhido em cada ação «Gravar vídeo»: o que toca no PC, o microfone (com o volume de «Gravação de áudio») ou os dois.",
   "action.VideoRecord.name": "Gravar vídeo",
   "action.VideoRecord.desc": "Grava em vídeo uma região, a janela ativa ou um monitor, com o som do PC ou do microfone se quiser. Uma pílula no alto mostra o tempo e permite pausar e parar (não aparece no vídeo); o mesmo atalho ou a bandeja também param.",

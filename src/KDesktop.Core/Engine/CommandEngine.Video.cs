@@ -10,7 +10,7 @@ namespace KDesktop.Core.Engine;
 public sealed partial class CommandEngine
 {
     private readonly Lock _videoLock = new();
-    private ScreenRecorder? _video;
+    private volatile ScreenRecorder? _video;
     private IDisposable? _videoBar;
     private Task<(string Path, TimeSpan Length)?>? _videoStopping;
 
@@ -44,7 +44,7 @@ public sealed partial class CommandEngine
             VideoSound.Both => AudioSource.Both,
             _ => (AudioSource?)null,
         };
-        var options = new VideoOptions(s.VideoFps, s.VideoQuality, s.VideoCursor, sound, RecordOptions.MicGain);
+        var options = new VideoOptions(s.VideoFps, s.VideoQuality, s.VideoCursor, sound, RecordOptions.MicGain, s.VideoClicks);
         var front = ctx.Foreground.ProcessId == (uint)Environment.ProcessId ? ForegroundWindow.None : ctx.Foreground;
         var path = NewFileNamed(FolderFor(a.Folder, s.VideoFolder, Environment.SpecialFolder.MyVideos), FileName(s.VideoName, DefaultVideoName, front, DateTime.Now), ".mp4");
         ScreenRecorder recorder;
@@ -68,6 +68,9 @@ public sealed partial class CommandEngine
         _videoBar = _ui.ShowRecordingBar(() => size, () => _ = StopVideoAsync(showOsd: true), recorder.Pause);
         VideoChanged?.Invoke();
     }
+
+    /// <summary>A physical click (from the mouse hook): marked on the video while one is recording.</summary>
+    public void VideoClick(MouseInput e) => _video?.AddClick(e.X, e.Y, e.Button);
 
     /// <summary>What to record: the region chosen with the mouse, the window in front or the monitor of the mouse; null when cancelled.</summary>
     private async Task<VideoTarget?> VideoTargetAsync(CaptureArea area, ExecutionContext ctx)

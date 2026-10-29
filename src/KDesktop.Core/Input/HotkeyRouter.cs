@@ -58,6 +58,9 @@ public sealed partial class HotkeyRouter : IDisposable
     public Func<bool>? IsPlayingMacro { get; set; }
     public event Action? StopMacrosRequested;
 
+    /// <summary>Each physical button pressed (the hook's thread: it must be quick); «Grabar vídeo» marks the clicks with it.</summary>
+    public Action<MouseInput>? ClickObserver { get; set; }
+
     private volatile IInputRecorder? _recorder;
 
     /// <summary>
@@ -270,6 +273,7 @@ public sealed partial class HotkeyRouter : IDisposable
     private bool OnMouse(MouseInput e)
     {
         if (e.Injected) return false;
+        if (e.Message == MouseMessage.Down) ClickObserver?.Invoke(e);
         if (e.Message is MouseMessage.Wheel or MouseMessage.HWheel) WheelObserver?.Invoke(e);
         if (e.Message == MouseMessage.Wheel && _recorder is null && CtrlWheel is { } ctrlWheel && CurrentModifiers() == Modifiers.Ctrl && ctrlWheel(e.WheelDelta))
             return true;

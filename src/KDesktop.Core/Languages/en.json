@@ -5417,6 +5417,7 @@
   "settings.videoQualityHint.Normal": "Balanced",
   "settings.videoQualityHint.High": "Sharper",
   "settings.videoCursor": "Record the mouse pointer",
+  "settings.videoClicks": "Mark clicks with a circle",
   "settings.videoHint": "It records to MP4 (H.264) with the graphics card. Each «Record video» action chooses the sound: what the PC plays, the microphone (with its volume of «Audio recording») or both.",
   "action.VideoRecord.name": "Record video",
   "action.VideoRecord.desc": "Records a region, the active window or a monitor on video, with the PC's sound or the microphone if you want. A pill at the top shows the time and lets you pause and stop (it is not in the video); the same hotkey or the tray also stop it.",

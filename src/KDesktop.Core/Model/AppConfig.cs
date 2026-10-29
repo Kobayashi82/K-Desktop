@@ -447,6 +447,9 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private VideoQuality _videoQuality = VideoQuality.Normal;
     [ObservableProperty] private bool _videoCursor = true;
 
+    /// <summary>A circle on the video where the mouse is clicked.</summary>
+    [ObservableProperty] private bool _videoClicks = true;
+
     /// <summary>The microphone's volume in recordings and the replay, in % (25–400); what the PC plays stays as it is.</summary>
     [ObservableProperty] private int _recordMicVolume = 100;
 

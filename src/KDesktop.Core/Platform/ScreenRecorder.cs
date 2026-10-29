@@ -21,8 +21,8 @@ namespace KDesktop.Core.Platform;
 /// <summary>What «Grabar vídeo» records: a region of a monitor, a window or a whole monitor (screen pixels).</summary>
 public sealed record VideoTarget(CaptureArea Kind, ScreenRect Area, IntPtr Window = default);
 
-/// <summary>How it records (Settings › Grabación).</summary>
-public sealed record VideoOptions(int Fps = 30, VideoQuality Quality = VideoQuality.Normal, bool Cursor = true, AudioSource? Audio = null, float MicGain = 1);
+/// <summary>How it records (Settings › Grabación); <paramref name="Clicks"/> marks the clicks on the video.</summary>
+public sealed record VideoOptions(int Fps = 30, VideoQuality Quality = VideoQuality.Normal, bool Cursor = true, AudioSource? Audio = null, float MicGain = 1, bool Clicks = false);
 
 /// <summary>
 /// «Grabar vídeo» (F2): Windows.Graphics.Capture on Direct3D 11, the frames to an MP4 (H.264, and AAC with the sound of
@@ -131,9 +131,11 @@ public sealed partial class ScreenRecorder : IDisposable
             Marshal.Release(inspectable);
         }
 
+        var monitor = MonitorFromPoint(new POINT { X = _target.Area.CenterX, Y = _target.Area.Top + _target.Area.Height / 2 }, 2);
         _item = _target.Kind == CaptureArea.ActiveWindow && _target.Window != IntPtr.Zero
             ? CaptureItems.ForWindow(_target.Window)
-            : CaptureItems.ForMonitor(MonitorFromPoint(new POINT { X = _target.Area.CenterX, Y = _target.Area.Top + _target.Area.Height / 2 }, 2));
+            : CaptureItems.ForMonitor(monitor);
+        PrepareClicks(monitor);
         if (_target.Kind == CaptureArea.ActiveWindow && _target.Window != IntPtr.Zero)
         {
             // A window: the size Windows gives its capture.
@@ -322,6 +324,7 @@ public sealed partial class ScreenRecorder : IDisposable
             copy = NewTexture();
             _context!.CopyResource(copy, _latest!);
         }
+        DrawClicks(copy, due);
         var surface = SurfaceOf(copy);
         var sample = MediaStreamSample.CreateFromDirect3D11Surface(surface, Time(due));
         sample.Duration = Time(_interval);
@@ -435,6 +438,7 @@ public sealed partial class ScreenRecorder : IDisposable
         {
             _latest?.Dispose();
             _latest = null;
+            DisposeClicks();
             (_winrtDevice as IDisposable)?.Dispose();
             _winrtDevice = null;
             _context?.Dispose();
