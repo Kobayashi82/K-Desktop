@@ -47,7 +47,7 @@
                      SelectionChanged="OnSelected" PreviewMouseRightButtonUp="OnRightClick" KeyDown="OnListKey">
                 <ListBox.ItemTemplate>
                     <DataTemplate DataType="{x:Type m:TextSnippet}">
-                        <Grid>
+                        <Grid x:Name="Root">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
@@ -66,8 +66,7 @@
                         </Grid>
                         <DataTemplate.Triggers>
                             <DataTrigger Binding="{Binding Enabled}" Value="False">
-                                <Setter TargetName="Badge" Property="Opacity" Value="0.45" />
-                                <Setter TargetName="Preview" Property="Opacity" Value="0.55" />
+                                <Setter TargetName="Root" Property="Opacity" Value="0.55" />
                             </DataTrigger>
                         </DataTemplate.Triggers>
                     </DataTemplate>
