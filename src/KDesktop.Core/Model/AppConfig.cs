@@ -597,6 +597,12 @@ public partial class AppSettings : ObservableObject
     /// <summary>What goes before every abbreviation (so writing normally never sets one off); empty: none.</summary>
     [ObservableProperty] private string _snippetPrefix = ";";
 
+    /// <summary>Textos: «Texto», «Pruébalo» and «Notas» folded away, «Opciones» open (they stay as left, from one text to the next).</summary>
+    [ObservableProperty] private bool _snippetTextFolded;
+    [ObservableProperty] private bool _snippetTryFolded;
+    [ObservableProperty] private bool _snippetOptionsOpen;
+    [ObservableProperty] private bool _snippetNotesFolded;
+
     // Macros
     /// <summary>Record mouse movements (not only clicks) when recording a macro.</summary>
     [ObservableProperty] private bool _macroRecordMoves = true;

@@ -17,6 +17,14 @@ editas.
 - **Prefijo**: va delante de cada abreviatura (`;` de serie) para que no salte al escribir normal. Puedes cambiarlo o
   dejarlo vacío; sin prefijo, una abreviatura solo salta como palabra entera (`ok` no salta dentro de `book`).
 
+En cada texto, **Texto**, **Pruébalo**, **Opciones** y **Notas** se pliegan, y se quedan como los dejes de un texto al
+siguiente.
+
+- **Solo en estas aplicaciones** (en *Opciones*): vacío, el texto vale en todas partes. Con aplicaciones, solo salta con
+  una de ellas delante, también si están en *Desactivar en*. Así puedes tener la misma abreviatura con un texto para el
+  correo y otro para el resto: el de la aplicación gana ahí. En la lista lo marca un icono con las aplicaciones.
+- **Notas**: lo que quieras apuntar sobre el texto; no se escribe nunca.
+
 ## Cuándo salta
 
 - En cuanto terminas de teclear la abreviatura.

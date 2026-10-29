@@ -7,7 +7,7 @@ namespace KDesktop.Core.Input;
 /// <summary>
 /// The text expander's side of the hook: remembers the last characters typed in the window in front and, when they end
 /// with an abbreviation of «Textos», swallows its last key and asks for the text. Never in a game or a film covering the
-/// screen, nor in the programs of «Desactivar en».
+/// screen, nor in the programs of «Desactivar en» (but the texts limited to them).
 /// </summary>
 public sealed partial class HotkeyRouter
 {
@@ -56,8 +56,8 @@ public sealed partial class HotkeyRouter
         if (vk is KeyNames.VK_SPACE or KeyNames.VK_TAB or KeyNames.VK_RETURN)
         {
             var typedEnd = string.Empty;
-            var ended = shortcut ? null : index.Ended(_typed.ToString(), out typedEnd);
-            if (ended is not null && Allowed(index, front))
+            var ended = shortcut ? null : index.Ended(_typed.ToString(), () => ProgramOf(front), out typedEnd);
+            if (ended is not null && Allowed(front))
             {
                 var hit = new SnippetHit(ended, typedEnd, index.Prefix.Length + typedEnd.Length, vk, '\0', ForegroundWindow.FromHandle(front));
                 _typed.Clear();
@@ -82,7 +82,7 @@ public sealed partial class HotkeyRouter
         }
         _typed.Append(_chars[0]);
         if (_typed.Length > index.Keep) _typed.Remove(0, _typed.Length - index.Keep);
-        if (index.Typed(_typed.ToString(), out var typed) is not { } snippet || !Allowed(index, front)) return false;
+        if (index.Typed(_typed.ToString(), () => ProgramOf(front), out var typed) is not { } snippet || !Allowed(front)) return false;
         var typedHit = new SnippetHit(snippet, typed, index.Prefix.Length + typed.Length - 1, 0, _chars[0], ForegroundWindow.FromHandle(front));
         _typed.Clear();
         Post(() => SnippetTyped?.Invoke(typedHit));
@@ -105,14 +105,22 @@ public sealed partial class HotkeyRouter
         return count == 1 && !char.IsControl(_chars[0]) ? 1 : 0;
     }
 
-    /// <summary>Not in a full-screen game or film, nor in the programs of «Desactivar en». Hook thread: cheap.</summary>
-    private bool Allowed(SnippetIndex index, IntPtr front)
+    /// <summary>
+    /// The program in front, for the texts limited to some programs (and «Desactivar en»). In K-Desktop's box to try
+    /// them, any program: every text can be tried there.
+    /// </summary>
+    private static string ProgramOf(IntPtr front)
     {
         var window = ForegroundWindow.FromHandle(front);
-        if (window.ProcessId == Environment.ProcessId) return SnippetsInKDesktop;
+        return window.ProcessId == Environment.ProcessId ? SnippetIndex.AnyProgram : window.ProcessName;
+    }
+
+    /// <summary>Not in a full-screen game or film; in K-Desktop only in the box to try them. Hook thread: cheap.</summary>
+    private bool Allowed(IntPtr front)
+    {
+        if (ForegroundWindow.FromHandle(front).ProcessId == Environment.ProcessId) return SnippetsInKDesktop;
         if (SHQueryUserNotificationState(out var state) == 0 && state is 3 /* D3D full screen */ or 4 /* presentation */) return false;
-        if (CoversMonitor(front)) return false;
-        return !index.IsDisabledIn(window.ProcessName);
+        return !CoversMonitor(front);
     }
 
     private static bool CoversMonitor(IntPtr window)

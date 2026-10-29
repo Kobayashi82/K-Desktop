@@ -25,6 +25,10 @@ public sealed partial class SnippetsPage : UserControl, IDisposable
     {
         InitializeComponent();
         DataContext = Settings;
+        TextExpander.IsExpanded = !Settings.SnippetTextFolded;
+        TryExpander.IsExpanded = !Settings.SnippetTryFolded;
+        OptionsExpander.IsExpanded = Settings.SnippetOptionsOpen;
+        NotesExpander.IsExpanded = !Settings.SnippetNotesFolded;
         _view = new ListCollectionView(Config.Snippets) { Filter = Filter, IsLiveSorting = true, IsLiveFiltering = true };
         _view.SortDescriptions.Add(new SortDescription(nameof(TextSnippet.Abbreviation), ListSortDirection.Ascending));
         _view.LiveSortingProperties.Add(nameof(TextSnippet.Abbreviation));
@@ -41,6 +45,45 @@ public sealed partial class SnippetsPage : UserControl, IDisposable
         // Inside K-Desktop the texts are written only in the box to try them, never while editing them.
         TryBox.GotKeyboardFocus += (_, _) => _app.Router.SnippetsInKDesktop = true;
         TryBox.LostKeyboardFocus += (_, _) => _app.Router.SnippetsInKDesktop = false;
+    }
+
+    /// <summary>«Texto», «Pruébalo», «Opciones» and «Notas» stay as they were left, from one text to the next.</summary>
+    private void OnSectionFolded(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded) return;
+        Settings.SnippetTextFolded = TextExpander.IsExpanded != true;
+        Settings.SnippetTryFolded = TryExpander.IsExpanded != true;
+        Settings.SnippetOptionsOpen = OptionsExpander.IsExpanded == true;
+        Settings.SnippetNotesFolded = NotesExpander.IsExpanded != true;
+    }
+
+    // ── programs ─────────────────────────────────────────────────────────
+
+    private void OnProcessDropDown(object sender, EventArgs e) => ProcessCombo.Fill(ProcessBox, _selected?.Processes);
+
+    private void OnProcessPicked(object sender, EventArgs e) => ProcessCombo.AddPicked(ProcessBox, _selected?.Processes);
+
+    private void OnProcessKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter) return;
+        OnAddProcess(sender, e);
+        e.Handled = true; // stays in the box to add another
+    }
+
+    private void OnAddProcess(object sender, RoutedEventArgs e) => ProcessCombo.AddTyped(ProcessBox, _selected?.Processes);
+
+    private void OnPickProcess(object sender, RoutedEventArgs e)
+    {
+        if (_selected is not { } snippet) return;
+        WindowPicker.Pick(name =>
+        {
+            if (!snippet.Processes.Contains(name)) snippet.Processes.Add(name);
+        });
+    }
+
+    private void OnRemoveProcess(object sender, RoutedEventArgs e)
+    {
+        if (_selected is not null && sender is FrameworkElement { Tag: string p }) _selected.Processes.Remove(p);
     }
 
     public void Dispose()
@@ -127,7 +170,7 @@ public sealed partial class SnippetsPage : UserControl, IDisposable
 
     private void OnSnippetChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(TextSnippet.Abbreviation) or nameof(TextSnippet.Enabled) or nameof(TextSnippet.Text)) UpdateHow();
+        if (e.PropertyName is nameof(TextSnippet.Abbreviation) or nameof(TextSnippet.Enabled) or nameof(TextSnippet.Text) or nameof(TextSnippet.AppsList)) UpdateHow();
     }
 
     private void OnListKey(object sender, KeyEventArgs e)
@@ -181,20 +224,24 @@ public sealed partial class SnippetsPage : UserControl, IDisposable
         if (_selected is not { } snippet) return;
         var abbreviation = TextSnippet.Clean(snippet.Abbreviation, Prefix);
         var typed = Prefix + abbreviation;
-        var others = Config.Snippets.Where(s => !ReferenceEquals(s, snippet) && s.Enabled && s.Text.Length > 0)
-            .Select(s => TextSnippet.Clean(s.Abbreviation, Prefix)).ToList();
+        // The others that can go off where this one does (a text for everywhere meets every other).
+        var others = Config.Snippets.Where(s => !ReferenceEquals(s, snippet) && s.Enabled && s.Text.Length > 0 &&
+                                                (s.Processes.Count == 0 || snippet.Processes.Count == 0 || s.SharesPrograms(snippet))).ToList();
+        bool Same(TextSnippet s) => TextSnippet.Clean(s.Abbreviation, Prefix).Equals(abbreviation, StringComparison.OrdinalIgnoreCase);
+        var mine = Config.Snippets.IndexOf(snippet);
         string how;
         var warn = false;
         if (!Settings.SnippetsEnabled) (how, warn) = (Loc.T("snippets.howAllOff"), true);
         else if (!snippet.Enabled) how = Loc.T("snippets.howOff");
         else if (abbreviation.Length == 0) how = string.Empty;
         else if (snippet.Text.Length == 0) (how, warn) = (Loc.T("snippets.howNoText"), true);
-        else if (Config.Snippets.FirstOrDefault(s => s.Enabled && s.Text.Length > 0 && TextSnippet.Clean(s.Abbreviation, Prefix).Equals(abbreviation, StringComparison.OrdinalIgnoreCase)) is { } first &&
-                 !ReferenceEquals(first, snippet))
+        // Same abbreviation and the same programs: the first in the list wins (one limited to programs wins over one for everywhere).
+        else if (others.Any(s => Same(s) && s.SharesPrograms(snippet) && Config.Snippets.IndexOf(s) < mine))
             (how, warn) = (Loc.T("snippets.howTaken", typed), true);
-        else if (others.FirstOrDefault(o => o.Length > abbreviation.Length && o.StartsWith(abbreviation, StringComparison.OrdinalIgnoreCase)) is { } longer)
+        else if (others.Select(s => TextSnippet.Clean(s.Abbreviation, Prefix))
+                     .FirstOrDefault(o => o.Length > abbreviation.Length && o.StartsWith(abbreviation, StringComparison.OrdinalIgnoreCase)) is { } longer)
             how = Loc.T("snippets.howWaits", typed, Prefix + longer);
-        else how = Loc.T("snippets.howNow", typed);
+        else how = snippet.HasApps ? Loc.T("snippets.howNowIn", typed, string.Join(", ", snippet.Processes)) : Loc.T("snippets.howNow", typed);
         HowText.Text = how;
         HowText.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, warn ? "Kd.Danger" : "TextFillColorSecondaryBrush");
         TryHint.Text = abbreviation.Length > 0 ? Loc.T("snippets.tryHint", typed) : string.Empty;

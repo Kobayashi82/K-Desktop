@@ -16,6 +16,13 @@ them.
 - **Prefix**: goes before every abbreviation (`;` by default) so normal writing never sets one off. You can change it or
   leave it empty; without a prefix, an abbreviation only goes off as a whole word (`ok` does not go off inside `book`).
 
+In each text, **Text**, **Try it**, **Options** and **Notes** fold, and stay as you leave them from one text to the next.
+
+- **Only in these applications** (in *Options*): empty, the text works everywhere. With applications, it only goes off
+  with one of them in front, also if they are in *Disable in*. So you can have the same abbreviation with one text for
+  e-mail and another for the rest: the application's one wins there. In the list an icon shows the applications.
+- **Notes**: anything you want to jot down about the text; it is never written.
+
 ## When it goes off
 
 - As soon as you finish typing the abbreviation.
