@@ -565,6 +565,9 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private int _clipboardMaxItems = 200;
     [ObservableProperty] private int _clipboardMaxDays;
 
+    /// <summary>The assistants may read its texts (clipboard_history: «¿qué copié antes?»); never pictures nor files.</summary>
+    [ObservableProperty] private bool _clipboardAssistants = true;
+
     /// <summary>For a while nothing new is kept (the tray's «Pausar el historial»); it stays across restarts.</summary>
     [ObservableProperty] private bool _clipboardPaused;
 

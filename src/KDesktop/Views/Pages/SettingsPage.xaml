@@ -920,6 +920,14 @@
                             <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ClipboardImages}" AutomationProperties.Name="{l:Tr settings.clipboardImages}" />
                         </Grid>
                         <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                <TextBlock Text="{l:Tr settings.clipboardAssistants}" />
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.clipboardAssistantsHint}" />
+                            </StackPanel>
+                            <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ClipboardAssistants}" AutomationProperties.Name="{l:Tr settings.clipboardAssistants}" />
+                        </Grid>
+                        <Grid Style="{StaticResource SettingRow}">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="170" /></Grid.ColumnDefinitions>
                             <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                                 <TextBlock Text="{l:Tr settings.clipboardMaxItems}" />

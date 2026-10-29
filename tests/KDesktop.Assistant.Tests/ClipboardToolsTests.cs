@@ -31,9 +31,18 @@ public sealed class ClipboardToolsTests : IDisposable
 
         public string? Image { get; set; }
 
+        /// <summary>The history K-Desktop keeps (null: off for the assistants).</summary>
+        public List<ClipText>? History { get; set; }
+
         public Task<TextDoneMessage?> TextAsync(string op, string? assistant, string source, string text, string mode, long hwnd, CancellationToken cancellationToken)
         {
             Ops.Add($"{op}:{source}{mode}");
+            if (op == "history")
+            {
+                if (History is null) return Task.FromResult<TextDoneMessage?>(new TextDoneMessage("r", false, Reason: "off"));
+                var found = History.Where(h => h.Text.Contains(source, StringComparison.OrdinalIgnoreCase)).ToList();
+                return Task.FromResult<TextDoneMessage?>(found.Count == 0 ? new TextDoneMessage("r", false, Reason: "empty") : new TextDoneMessage("r", true, History: found));
+            }
             if (op == "put")
             {
                 Text = text;
@@ -83,6 +92,38 @@ public sealed class ClipboardToolsTests : IDisposable
             Asked = question;
             return Task.FromResult<string?>(jpeg.Length > 0 ? "Un punto rojo y uno azul." : null);
         }
+    }
+
+    /// <summary>C2 (5.0.367): what was copied before, from K-Desktop's history, never from the clipboard itself.</summary>
+    [Fact]
+    public async Task WhatWasCopiedBeforeComesFromTheHistory()
+    {
+        var clipboard = new Clipboard
+        {
+            Text = "lo de ahora",
+            History =
+            [
+                new ClipText("https://ejemplo.com/reunion", "chrome", DateTime.Today.AddHours(9), false),
+                new ClipText("Calle Falsa 123", "notepad", DateTime.Today.AddDays(-2), true),
+            ],
+        };
+        var tool = new ClipboardHistoryTool(clipboard);
+
+        var all = await tool.RunAsync(Json("{}"), new ToolContext("dot"), default);
+        Assert.Contains("1. [", all.Text, StringComparison.Ordinal);
+        Assert.Contains("ejemplo.com/reunion", all.Text, StringComparison.Ordinal);
+        Assert.Contains("pinned", all.Text, StringComparison.Ordinal);
+        Assert.Equal(["history:"], clipboard.Ops); // never grab: the clipboard is not touched
+
+        var link = await tool.RunAsync(Json("""{"query":"ejemplo"}"""), new ToolContext("dot"), default);
+        Assert.DoesNotContain("Calle Falsa", link.Text, StringComparison.Ordinal);
+
+        var none = await tool.RunAsync(Json("""{"query":"nada"}"""), new ToolContext("dot"), default);
+        Assert.False(string.IsNullOrEmpty(none.Reply));
+
+        clipboard.History = null;
+        var off = await tool.RunAsync(Json("{}"), new ToolContext("dot"), default);
+        Assert.Contains("off", off.Text, StringComparison.Ordinal);
     }
 
     /// <summary>5.0.348: files copied are told by their paths; a copied picture is looked at, and its temporary file goes.</summary>
@@ -141,7 +182,7 @@ public sealed class ClipboardToolsTests : IDisposable
         CommandTools.AddTo(registry, new Clipboard());
         var runner = new ToolRunner(registry, () => new HashSet<string>(StringComparer.Ordinal), (_, _) => Task.FromResult("no"), _ => { }, Path.Combine(_folder, "undo.json"));
         var shared = new SharedTools(runner) { Scope = McpShare.ScopeRead };
-        Assert.DoesNotContain(shared.Shared, t => t.Name is "read_clipboard" or "set_clipboard");
+        Assert.DoesNotContain(shared.Shared, t => t.Name is "read_clipboard" or "set_clipboard" or "clipboard_history");
         Assert.Contains(shared.Shared, t => t.Name == "describe_command");
     }
 }

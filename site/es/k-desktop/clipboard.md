@@ -33,6 +33,7 @@ En *Opciones → Portapapeles*:
 - **Guardar lo que copias**: apagado, no se guarda nada nuevo. Desde la bandeja, **Pausar el historial** lo para un
   rato.
 - **Imágenes**: también las imágenes copiadas (hasta 20 MB cada una).
+- **Los asistentes pueden leerlo**: para preguntarles «¿qué copié antes?»; solo ven los textos.
 - **Cuántos guardar** (200 de serie) y **Borrar a los días** (0: nunca). Los fijados se quedan siempre.
 - **No guardar lo copiado en**: programas cuyo contenido nunca se guarda; de serie, los gestores de contraseñas.
 - **Borrar el historial**: lo borra todo menos los fijados.

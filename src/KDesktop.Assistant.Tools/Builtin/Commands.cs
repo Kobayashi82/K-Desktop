@@ -135,6 +135,7 @@ public static class CommandTools
         registry.Add(new EndProcessTool(bridge));
         registry.Add(new TransformTextTool(bridge, writer));
         registry.Add(new ReadClipboardTool(bridge, vision, reader));
+        registry.Add(new ClipboardHistoryTool(bridge));
         registry.Add(new SetClipboardTool(bridge));
         registry.Add(new ScheduleTool(bridge, registry));
         registry.Add(new CreateEventTool(bridge, registry));

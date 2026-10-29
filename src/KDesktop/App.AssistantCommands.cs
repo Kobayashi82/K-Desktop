@@ -57,6 +57,10 @@ public partial class App
             case MakeEventMessage makeEvent:
                 OnMakeEvent(supervisor, makeEvent);
                 return true;
+            case TextMessage { Op: "history" } history:
+                // clipboard_history: only reads the history K-Desktop keeps, never the clipboard itself.
+                supervisor.Send(AssistantText.History(history, ClipboardUi?.History, Config.Settings.ClipboardHistory && Config.Settings.ClipboardAssistants));
+                return true;
             case TextMessage text:
                 // Ctrl+C / Ctrl+V and the clipboard (transform_text): one at a time, off the pipe's thread.
                 lock (_windowGate)

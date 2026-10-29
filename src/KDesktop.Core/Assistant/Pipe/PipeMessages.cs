@@ -1124,8 +1124,10 @@ public sealed record ActMessage(string Assistant, string Run, string Op, string 
 /// (the clipboard put back after) or leaves it copied. K-Desktop does it (it can write to elevated windows). Answered with
 /// <see cref="TextDoneMessage"/>.
 /// </summary>
-/// <param name="Op"><c>grab</c> or <c>put</c>.</param>
-/// <param name="Source">grab: <c>auto</c> (the selection, else what is copied), <c>selection</c> or <c>clipboard</c>.</param>
+/// <param name="Op"><c>grab</c>, <c>put</c> or <c>history</c> (clipboard_history, 5.0.367: the texts of the clipboard history,
+/// newest first, without touching the clipboard).</param>
+/// <param name="Source">grab: <c>auto</c> (the selection, else what is copied), <c>selection</c> or <c>clipboard</c>; history:
+/// the words to look for (empty: the latest).</param>
 /// <param name="Text">put: the text.</param>
 /// <param name="Mode">put: <c>paste</c> or <c>copy</c>.</param>
 /// <param name="Hwnd">put: the window the text came from (it is only pasted there).</param>
@@ -1144,11 +1146,16 @@ public sealed record TextMessage(string Assistant, string Run, string Op, string
 /// <c>clipboardAll</c> (read_clipboard, 5.0.348) and no text: <c>files</c> (<paramref name="Files"/>) or <c>image</c> (<paramref name="Image"/>).</param>
 /// <param name="Files">The files and folders copied in the Explorer (full paths).</param>
 /// <param name="Image">The picture copied, saved to a temporary file (.png or .bmp) for the assistant to look at; it deletes it.</param>
+/// <param name="History">history: the texts found, newest first (<c>Reason</c> <c>off</c>: the history is off, or not for the
+/// assistants; <c>empty</c>: nothing found).</param>
 public sealed record TextDoneMessage(string Run, bool Ok, string Text = "", string From = "", long Hwnd = 0, string Window = "", string? Reason = null,
-    IReadOnlyList<string>? Files = null, string? Image = null) : PipeMessage
+    IReadOnlyList<string>? Files = null, string? Image = null, IReadOnlyList<ClipText>? History = null) : PipeMessage
 {
     public override string Type => "textDone";
 }
+
+/// <summary>A text of the clipboard history for an assistant: what, from which program, when, and whether it is pinned.</summary>
+public sealed record ClipText(string Text, string Source = "", DateTime Copied = default, bool Pinned = false);
 
 /// <summary>A built-in media order of K-Desktop (out of a <c>matched</c>); with <paramref name="Run"/>, answered with <see cref="EndMessage"/>.</summary>
 /// <param name="Order">The kind, camelCase (<c>volumeUp</c>, <c>pause</c>…).</param>

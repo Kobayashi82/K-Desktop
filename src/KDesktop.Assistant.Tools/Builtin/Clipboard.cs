@@ -71,6 +71,60 @@ public sealed class ReadClipboardTool(ICommandBridge bridge, IVision? vision = n
 }
 
 /// <summary>
+/// «¿Qué copié antes?», «el enlace que copié esta mañana» (C2, 5.0.367): the texts of K-Desktop's clipboard history
+/// (<c>text</c> <c>history</c>), newest first, those with every word asked for. Never pictures nor files, and nothing when
+/// the history is off or not for the assistants (Opciones › Portapapeles). Not «only reads», as read_clipboard: what was
+/// copied may be private.
+/// </summary>
+public sealed class ClipboardHistoryTool(ICommandBridge bridge) : ITool
+{
+    public string Name => "clipboard_history";
+
+    public string Description => "Looks in what the user copied before (the clipboard history), newest first, for a text they copied earlier. Only texts. To copy one again, then use set_clipboard.";
+
+    public string ParametersSchemaJson => ToolText.Optional(
+        ("query", "string", "Words of what to find (empty: the latest ones)"),
+        ("count", "integer", "How many, newest first (default 5, up to 20)"));
+
+    public IReadOnlyList<string> Examples => ToolText.Examples(Name);
+
+    public ToolRisk Risk => ToolRisk.Safe;
+
+    public string Intent(JsonElement arguments) => Loc.T("tool.clipboard_history.intent");
+
+    public async Task<ToolResult> RunAsync(JsonElement arguments, ToolContext context, CancellationToken cancellationToken)
+    {
+        var query = arguments.GetString("query")?.Trim() ?? string.Empty;
+        var count = (int)Math.Clamp(arguments.GetNumber("count") ?? 5, 1, 20);
+        var found = await bridge.TextAsync("history", context.Assistant, query, string.Empty, string.Empty, 0, cancellationToken).ConfigureAwait(false);
+        if (found is null) return ToolResult.Fail("K-Desktop did not answer.");
+        if (found.Reason == "off")
+        {
+            var off = Loc.T("tool.clipboard_history.off");
+            return new ToolResult("The clipboard history is off for the assistants (Settings › Clipboard). Say so.") { Done = off, Reply = off };
+        }
+        if (found.History is not { Count: > 0 } texts)
+        {
+            var none = Loc.T(query.Length > 0 ? "tool.clipboard_history.notFound" : "tool.clipboard_history.empty");
+            return new ToolResult(query.Length > 0 ? $"Nothing copied with \"{query}\". Say so." : "Nothing copied yet. Say so.") { Done = none, Reply = none };
+        }
+        var text = new System.Text.StringBuilder(query.Length > 0 ? $"Texts the user copied with \"{query}\", newest first:\n" : "Texts the user copied, newest first:\n");
+        var given = 0;
+        foreach (var (clip, i) in texts.Take(count).Select((c, i) => (c, i)))
+        {
+            var room = ReadClipboardTool.MaxGiven - text.Length;
+            if (room < 200) break;
+            var when = clip.Copied.Date == DateTime.Today ? ToolText.Clock(clip.Copied) : clip.Copied.ToString("g", Loc.Instance.Culture);
+            var from = clip.Source.Length > 0 ? $", from {clip.Source}" : string.Empty;
+            var body = clip.Text.Length > room - 80 ? clip.Text[..(room - 80)] + "…" : clip.Text;
+            text.Append(System.Globalization.CultureInfo.InvariantCulture, $"{i + 1}. [{when}{from}{(clip.Pinned ? ", pinned" : string.Empty)}]\n{body}\n");
+            given++;
+        }
+        return new ToolResult(text.ToString().TrimEnd()) { Done = Loc.T("tool.clipboard_history.done", given) };
+    }
+}
+
+/// <summary>
 /// «Cópiame el teléfono del fontanero» (B5, 5.0.347): a text left in the clipboard, ready to paste. Undone, what was there
 /// comes back; that is kept in memory only (never in undo.json: it may be private), so after a restart it cannot be undone.
 /// </summary>

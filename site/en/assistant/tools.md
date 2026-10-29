@@ -23,7 +23,7 @@ Everything an assistant does shows in *Panel → Assistant → Activity* (its ow
 | **Notes and memory** | Save a note · Find notes · Change a note · Delete a note · Remember something about you · Forget a memory | «note that I have to buy milk», «remember that my boss is called Luis» |
 | **Files** | Find files · Open a file · Read a file · Delete a file · Move a file · Write a document · Copy a file · Create a folder · Compress into a ZIP · Extract a ZIP · Search your documents | «find the electricity bill pdf», «open the last thing I downloaded» |
 | **Internet** | Open a website · Search in the browser · Look it up online · Read a web page · Check the network · Send to the phone | «how much is an RTX 5080», «summarise this page», «is there internet?», «is the NAS answering?», «send this address to my phone» |
-| **Screen and texts** | Look at the screen · Translate and fix texts · Read what is copied · Copy a text | «what is this error», «translate what I copied into French», «what have I copied?», «copy the plumber's number for me» |
+| **Screen and texts** | Look at the screen · Translate and fix texts · Read what is copied · Search what was copied before · Copy a text | «what is this error», «translate what I copied into French», «what have I copied?», «find the link I copied this morning», «copy the plumber's number for me» |
 | **Programs and PC** | Open a program · Handle windows and programs · See the open windows · Arrange several windows · Force close · PC status · Free the brain · Change the volume · Change the audio device · Screen · Light or dark mode · Wi-Fi and Bluetooth · Lock the PC · Shut down or restart · Take a screenshot · Power plan · Keep awake | «minimize Steam», «put the browser and VS Code side by side», «set the volume to 30», «turn on dark mode», «lock the PC», «Chrome is not responding, force it closed», «why is the computer slow» |
 | **Music and video** | What's playing · Control playback | «what song is this», «pause the video» |
 | **Weather and conversions** | Weather · Convert units and currencies | «will it rain tomorrow», «how much is 50 dollars in euros» |
@@ -58,8 +58,11 @@ Some details:
   a list, shorter…) and pastes it back in the same window or leaves it copied. Your clipboard is put back as it was.
 - **Read what is copied** reads what is in your clipboard: the text; if you copied files, which ones (and it can read them);
   if it is a picture, it looks at it like **Read a file** (with a model that sees, or its text by Windows' recognition).
+  **Search what was copied before** looks at the texts of the [clipboard history](../k-desktop/clipboard.md) (never pictures
+  nor files), and with **Copy a text** it can give you one of them again. It is turned off in *Settings → Clipboard →
+  Assistants can read it*.
   **Copy a text** leaves one ready to paste (undoing it brings back what was there, while K-Desktop stays open: what is copied is never saved to a file). As what is copied may be a
-  password, another program never reads it through «Share the tools» with «Only what looks things up», and with
+  password, another program never reads it (nor the history) through «Share the tools» with «Only what looks things up», and with
   «Everything, asking you first» you are asked.
 - **Look it up online** searches the web and reads the first useful result; **Search in the browser** only opens the
   search in your browser.

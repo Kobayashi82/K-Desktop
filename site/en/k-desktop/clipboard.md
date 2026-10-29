@@ -31,6 +31,7 @@ In *Settings → Clipboard*:
 
 - **Keep what you copy**: off, nothing new is kept. From the tray, **Pause the history** stops it for a while.
 - **Pictures**: copied pictures too (up to 20 MB each).
+- **Assistants can read it**: to ask them «what did I copy before?»; they only see the texts.
 - **How many to keep** (200 by default) and **Delete after days** (0: never). Pinned ones always stay.
 - **Don't keep what is copied in**: programs whose copies are never kept; password managers by default.
 - **Clear the history**: deletes everything but the pinned ones.

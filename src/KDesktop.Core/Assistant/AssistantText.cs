@@ -107,6 +107,29 @@ public static class AssistantText
     /// <summary>More than this is not worked on (a whole book selected).</summary>
     public const int MaxLength = 20_000;
 
+    /// <summary>The most texts of the history an assistant gets, and how much of each.</summary>
+    public const int HistoryCount = 30;
+    public const int HistoryLength = 2000;
+
+    /// <summary>
+    /// <c>history</c> (clipboard_history, 5.0.367): the texts of the clipboard history with every word of <c>Source</c> (all
+    /// of them when empty), newest first. Never pictures nor files; nothing when the history is off or
+    /// <paramref name="allowed"/> is not (Opciones › Portapapeles › «Los asistentes pueden leerlo»).
+    /// </summary>
+    public static TextDoneMessage History(TextMessage message, Platform.ClipboardHistory? history, bool allowed)
+    {
+        if (!allowed || history is null) return new TextDoneMessage(message.Run, false, Reason: "off");
+        var words = message.Source.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var found = history.Entries
+            .Where(e => e.Kind == Platform.ClipKind.Text && words.All(w => e.Text.Contains(w, StringComparison.CurrentCultureIgnoreCase)))
+            .Take(HistoryCount)
+            .Select(e => new ClipText(e.Text.Length > HistoryLength ? e.Text[..HistoryLength] : e.Text, e.Source ?? string.Empty, e.Copied, e.Pinned))
+            .ToList();
+        return found.Count == 0
+            ? new TextDoneMessage(message.Run, false, Reason: "empty")
+            : new TextDoneMessage(message.Run, true, History: found);
+    }
+
     public static async Task<TextDoneMessage> HandleAsync(TextMessage message, ITextDesk desk, CancellationToken token = default)
     {
         try
