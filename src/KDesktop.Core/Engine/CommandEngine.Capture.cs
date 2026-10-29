@@ -150,6 +150,10 @@ public sealed partial class CommandEngine
 
     // ── Copiar texto de la pantalla ──────────────────────────────────────
 
+    /// <summary>
+    /// «Copiar texto de la pantalla». The region left with Esc, or no text read (5.0.374): the rest of the command, which
+    /// would work on that text («Traducir la pantalla»), is not run.
+    /// </summary>
     private async Task ScreenTextAsync(ScreenTextAction a, ExecutionContext ctx)
     {
         if (!ScreenText.Available)
@@ -159,7 +163,7 @@ public sealed partial class CommandEngine
             return;
         }
         Gave(a, string.Empty); // until it reads something
-        if (await CaptureAsync(a.Area, ctx, inside: true).ConfigureAwait(false) is not { } image) return; // cancelled
+        if (await CaptureAsync(a.Area, ctx, inside: true).ConfigureAwait(false) is not { } image) throw new OperationCanceledException(); // cancelled
 
         var watch = System.Diagnostics.Stopwatch.StartNew();
         var language = a.Language.Length > 0 ? a.Language : Loc.Instance.Language;
@@ -168,8 +172,8 @@ public sealed partial class CommandEngine
         Log.Info($"Texto de la pantalla: {image.Width}×{image.Height}, {read.Lines} líneas, {read.Text.Length} letras ({read.Language}) en {watch.ElapsedMilliseconds} ms");
         if (read.Text.Length == 0)
         {
-            if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.screenTextNone"), OsdKind.Warning, look: OsdLook.Of("ScanText24"));
-            return;
+            _ui.ShowOsd(Loc.T("osd.screenTextNone"), OsdKind.Warning, look: OsdLook.Of("ScanText24"));
+            throw new OperationCanceledException();
         }
         var copied = _ui.SetClipboardText(read.Text);
         if (!a.ShowOsd) return;

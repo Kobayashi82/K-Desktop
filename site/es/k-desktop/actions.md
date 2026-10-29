@@ -46,7 +46,7 @@ orden.
 | Acción | Qué hace |
 |---|---|
 | **Captura de pantalla** | Captura una zona que eliges con el ratón, la ventana activa, un monitor o todos; la copia, la guarda y, si quieres, la abre. |
-| **Copiar texto de la pantalla** | Lee el texto de una zona que eliges con el ratón, de la ventana activa o de un monitor, y lo copia. Sin IA: con el reconocimiento de texto de Windows (OCR). |
+| **Copiar texto de la pantalla** | Lee el texto de una zona que eliges con el ratón, de la ventana activa o de un monitor, y lo copia. Sin IA: con el reconocimiento de texto de Windows (OCR). Si cancelas la zona (Esc) o no encuentra texto, el resto del comando no se ejecuta. |
 | **Lupa** | Una lente (rectangular o redonda) que sigue al ratón y amplía lo que tiene alrededor, o toda la pantalla en la que está. |
 | **Pantalla** | Apaga las pantallas (todas o las que elijas), cambia la proyección (Win + P), el brillo, o la resolución y la frecuencia de un monitor. |
 | **Tema de Windows** | Pasa Windows y las aplicaciones a modo claro u oscuro, o alterna entre los dos. |

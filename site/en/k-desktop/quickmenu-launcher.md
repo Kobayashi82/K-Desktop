@@ -33,10 +33,12 @@ commands, submenus and separators, each with its own name and icon if you want.
 
 ### AI menu
 
-**Create AI menu** (under *New QuickMenu*) creates the QuickMenu «AI» with six commands for whatever you have selected:
+**Create AI menu** (under *New QuickMenu*) creates the QuickMenu «AI» with seven commands for whatever you have selected:
 **Translate** and **Correct** paste the answer over the selection; **Summarize**, **Explain** and **Reply** show it on a
 sheet. Each one is an *Assistant: ask* action with `{selection}` that K-Desktop answers. **Read aloud** is an
-*Assistant: say* with `{selection}`: K-Desktop reads it with its voice. In each command you can change
+*Assistant: say* with `{selection}`: K-Desktop reads it with its voice. **Translate the screen** needs no
+selection: you pick an area with the mouse, *Copy text from the screen* reads its text and *Assistant: ask* translates
+it on a sheet (with `{result}`). In each command you can change
 the text, the answer or choose another assistant. It also creates the command «AI menu», which opens it: give it a
 hotkey. It needs the Assistant module on and a brain.
 

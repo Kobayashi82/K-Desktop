@@ -5,12 +5,15 @@ namespace KDesktop.Core.Model;
 /// <summary>
 /// «Crear menú de IA» (D2, 5.0.371): a QuickMenu «IA» with five commands, each an «Asistente: preguntar» with {seleccion}
 /// (translate and correct paste the answer over the selection; summarize, explain and reply show it on a sheet), «Leer en
-/// voz alta» (D4, 5.0.373: an «Asistente: decir» with it), and the command that opens it, for the user to give it a hotkey. Made only when asked; then they are the user's to change.
+/// voz alta» (D4, 5.0.373: an «Asistente: decir» with it), «Traducir la pantalla» (D6, 5.0.374: «Copiar texto de la
+/// pantalla» of a region, then translated on a sheet), and the command that opens it, for the user to give it a hotkey.
+/// Made only when asked; then they are the user's to change.
 /// </summary>
 public static class AiMenu
 {
     /// <param name="Answer">Null: not a question, it is said (read aloud).</param>
-    private sealed record Entry(string Key, AssistantAnswer? Answer, string Icon);
+    /// <param name="Screen">The text is read from the screen first (a region chosen with the mouse), into {resultado}.</param>
+    private sealed record Entry(string Key, AssistantAnswer? Answer, string Icon, bool Screen = false);
 
     private static readonly Entry[] Entries =
     [
@@ -20,6 +23,7 @@ public static class AiMenu
         new("explain", AssistantAnswer.Sheet, "kd:Lightbulb24:gold"),
         new("reply", AssistantAnswer.Sheet, "kd:ArrowReply24:teal"),
         new("read", null, "kd:Megaphone24:purple"),
+        new("screen", AssistantAnswer.Sheet, "kd:ScanText24:orange", Screen: true),
     ];
 
     /// <summary>Adds the menu, its commands and the one that opens it to <paramref name="config"/>; the menu.</summary>
@@ -30,6 +34,7 @@ public static class AiMenu
         foreach (var entry in Entries)
         {
             var command = new Command { Name = Free(config.Commands.Select(c => c.Name), Loc.T($"aiMenu.{entry.Key}")), Icon = entry.Icon };
+            if (entry.Screen) command.Actions.Add(new ScreenTextAction { Area = CaptureArea.Region, ShowOsd = false });
             command.Actions.Add(entry.Answer is { } answer
                 ? new AssistantAskAction { Assistant = assistant, Text = Loc.T($"aiMenu.{entry.Key}.ask"), Answer = answer }
                 : new AssistantSayAction { Assistant = assistant, Text = Loc.T($"aiMenu.{entry.Key}.say") });
