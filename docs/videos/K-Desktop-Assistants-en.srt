@@ -1,0 +1,1845 @@
+1
+00:00:00,800 --> 00:00:02,755
+You say: Lander, what time is it?
+
+2
+00:00:03,015 --> 00:00:06,024
+And in under a second,
+the Lander answers you, out loud.
+
+3
+00:00:06,374 --> 00:00:09,002
+But between your voice
+and its voice, a lot happens.
+
+4
+00:00:09,262 --> 00:00:09,870
+Checks.
+
+5
+00:00:10,130 --> 00:00:11,791
+Models that load and unload.
+
+6
+00:00:12,051 --> 00:00:13,129
+Vectors of meaning.
+
+7
+00:00:13,389 --> 00:00:17,333
+And decisions made by plain code,
+and only sometimes by the AI.
+
+8
+00:00:17,683 --> 00:00:21,424
+In this video we follow one order
+step by step, from the wake word
+
+9
+00:00:21,424 --> 00:00:23,918
+to the moment the assistant stops talking.
+
+10
+00:00:24,178 --> 00:00:25,130
+Nothing skipped.
+
+11
+00:00:27,630 --> 00:00:28,547
+This is the map.
+
+12
+00:00:28,807 --> 00:00:29,698
+The microphone.
+
+13
+00:00:29,958 --> 00:00:31,834
+The wake word, and how it is checked.
+
+14
+00:00:32,094 --> 00:00:34,173
+Listening to the order until you stop.
+
+15
+00:00:34,433 --> 00:00:35,641
+Turning it into text.
+
+16
+00:00:35,901 --> 00:00:37,323
+Handing it to the assistant.
+
+17
+00:00:37,583 --> 00:00:41,488
+Deciding who deals with it: a rule,
+one of your commands, or the AI.
+
+18
+00:00:41,748 --> 00:00:42,484
+The tools.
+
+19
+00:00:42,744 --> 00:00:44,068
+And finally, the voice.
+
+20
+00:00:44,418 --> 00:00:48,166
+And one idea runs through the whole
+journey: cheap and safe first.
+
+21
+00:00:48,426 --> 00:00:52,339
+Whatever rules and comparisons
+can settle never reaches the AI.
+
+22
+00:00:52,599 --> 00:00:54,593
+The AI only gets what is left over.
+
+23
+00:00:56,993 --> 00:00:58,174
+First, who does what.
+
+24
+00:00:58,434 --> 00:00:59,764
+There are two processes.
+
+25
+00:01:00,114 --> 00:01:02,363
+K-Desktop runs as administrator.
+
+26
+00:01:02,623 --> 00:01:05,016
+It owns the microphone, the speech models,
+
+27
+00:01:05,016 --> 00:01:08,408
+your commands, and the little window
+that asks for permission.
+
+28
+00:01:08,758 --> 00:01:13,658
+The assistants live in another process,
+as a normal user, with no admin rights.
+
+29
+00:01:13,918 --> 00:01:16,647
+That is where their brain is,
+their tools, their voice,
+
+30
+00:01:16,647 --> 00:01:18,527
+and the character you see on screen.
+
+31
+00:01:18,877 --> 00:01:22,291
+They talk over a named pipe:
+one JSON message per line.
+
+32
+00:01:22,551 --> 00:01:26,582
+K-Desktop lets only your user in,
+and checks that whoever connects
+
+33
+00:01:26,582 --> 00:01:31,285
+is the same program, in your session,
+and the very process it launched itself.
+
+34
+00:01:31,635 --> 00:01:34,511
+What an assistant may ask
+for is a closed list:
+
+35
+00:01:34,511 --> 00:01:38,636
+run commands that already exist,
+move windows, get vectors of meaning.
+
+36
+00:01:38,896 --> 00:01:42,317
+Never an arbitrary program
+or script with admin rights.
+
+37
+00:01:42,667 --> 00:01:46,373
+After five seconds with no traffic,
+they send each other a heartbeat.
+
+38
+00:01:46,633 --> 00:01:50,191
+If the assistant process crashes,
+K-Desktop starts it again,
+
+39
+00:01:50,191 --> 00:01:52,348
+waiting a little longer each time.
+
+40
+00:01:54,598 --> 00:01:55,614
+The journey starts.
+
+41
+00:01:55,874 --> 00:01:59,370
+The microphone is always open,
+but nothing leaves your PC.
+
+42
+00:01:59,630 --> 00:02:04,265
+First comes echo cancellation: whatever
+your speakers are playing is subtracted,
+
+43
+00:02:04,265 --> 00:02:06,528
+including the assistant's own voice.
+
+44
+00:02:06,878 --> 00:02:11,734
+Every 80 milliseconds, openWakeWord
+turns the sound into a spectrogram,
+
+45
+00:02:11,734 --> 00:02:16,590
+and then into an embedding: 96 numbers
+that sum up that slice of audio.
+
+46
+00:02:16,940 --> 00:02:20,895
+Your personal detector looks at the last
+16 of them, just over a second,
+
+47
+00:02:20,895 --> 00:02:22,365
+and gives two opinions.
+
+48
+00:02:22,625 --> 00:02:25,799
+One: how close this is
+to your own recordings of the word.
+
+49
+00:02:26,059 --> 00:02:29,578
+The other: a classifier,
+trained on your PC with your takes,
+
+50
+00:02:29,578 --> 00:02:32,403
+against silence, noise,
+and your normal speech.
+
+51
+00:02:32,753 --> 00:02:35,737
+The final score is
+the geometric mean of the two.
+
+52
+00:02:35,997 --> 00:02:38,107
+If either one says no, the score sinks.
+
+53
+00:02:38,367 --> 00:02:39,504
+Both have to agree.
+
+54
+00:02:39,854 --> 00:02:43,063
+If it passes the threshold,
+still nothing visible happens.
+
+55
+00:02:43,323 --> 00:02:46,383
+No sound, no notice,
+the music is not turned down.
+
+56
+00:02:46,643 --> 00:02:50,096
+First, phase two: Parakeet,
+the speech recognition model,
+
+57
+00:02:50,096 --> 00:02:54,864
+transcribes just the clip of the word,
+and that text has to sound like your word.
+
+58
+00:02:55,214 --> 00:02:59,098
+If the detector was very sure,
+a slightly worse transcription is enough.
+
+59
+00:02:59,358 --> 00:03:02,192
+And if even that fails,
+the word stays in doubt,
+
+60
+00:03:02,192 --> 00:03:06,339
+and is confirmed later, by transcribing
+the word together with the order.
+
+61
+00:03:06,689 --> 00:03:07,705
+Two more filters.
+
+62
+00:03:07,965 --> 00:03:11,496
+If the transcription matches
+something an assistant has just said,
+
+63
+00:03:11,496 --> 00:03:13,898
+it is its own voice,
+and it is thrown away.
+
+64
+00:03:14,158 --> 00:03:16,597
+And if the word only comes up in passing,
+
+65
+00:03:16,597 --> 00:03:21,059
+as in: I was showing my brother the Lander,
+you are talking about it, not to it.
+
+66
+00:03:21,409 --> 00:03:23,153
+Past all that: whose word is it?
+
+67
+00:03:23,413 --> 00:03:25,487
+Every recorded word has one owner.
+
+68
+00:03:25,747 --> 00:03:29,600
+K-Desktop's commands,
+one particular assistant, or nobody.
+
+69
+00:03:29,860 --> 00:03:31,841
+The word Lander belongs to the Lander.
+
+70
+00:03:32,191 --> 00:03:33,135
+Now it happens.
+
+71
+00:03:33,395 --> 00:03:35,255
+Other sounds are turned down,
+
+72
+00:03:35,255 --> 00:03:39,720
+the listening sound plays, and K-Desktop
+sends the Lander a listening message.
+
+73
+00:03:39,980 --> 00:03:44,404
+The character looks like it is listening,
+its own voice drops to twenty percent,
+
+74
+00:03:44,404 --> 00:03:47,593
+and if its model is already
+in memory, it is kept there.
+
+75
+00:03:47,943 --> 00:03:50,278
+There are other ways in,
+with no wake word.
+
+76
+00:03:50,538 --> 00:03:51,884
+Hold the assistant's key.
+
+77
+00:03:52,144 --> 00:03:54,202
+Hold a click on it
+for about half a second.
+
+78
+00:03:54,462 --> 00:03:55,198
+Type to it.
+
+79
+00:03:55,458 --> 00:03:56,151
+Your phone.
+
+80
+00:03:56,411 --> 00:03:57,110
+A command.
+
+81
+00:03:57,370 --> 00:03:58,959
+Or an order scheduled for later.
+
+82
+00:03:59,219 --> 00:04:00,832
+They all end up in the same place.
+
+83
+00:04:03,082 --> 00:04:06,400
+While the word was being checked,
+the audio never stopped recording.
+
+84
+00:04:06,660 --> 00:04:10,187
+So the order is not lost,
+even if you say it all in one breath.
+
+85
+00:04:10,537 --> 00:04:12,570
+Silero, a voice activity detector,
+
+86
+00:04:12,570 --> 00:04:15,620
+tells the stretches
+where you speak from the silences.
+
+87
+00:04:15,970 --> 00:04:17,388
+At every short pause,
+
+88
+00:04:17,388 --> 00:04:21,539
+a quarter of a second, Parakeet already
+transcribes what was said so far.
+
+89
+00:04:21,799 --> 00:04:26,519
+If the order ends right there, that text
+is used, and nothing is transcribed twice.
+
+90
+00:04:26,869 --> 00:04:30,208
+The order ends after 800
+milliseconds of silence.
+
+91
+00:04:30,468 --> 00:04:32,695
+That is the floor of the response time:
+
+92
+00:04:32,695 --> 00:04:35,863
+any shorter, and orders
+with a pause in them would be cut.
+
+93
+00:04:36,123 --> 00:04:39,106
+If you say nothing for five seconds,
+listening stops.
+
+94
+00:04:39,366 --> 00:04:40,907
+And fifteen seconds at most.
+
+95
+00:04:41,257 --> 00:04:42,502
+Then the text is chosen.
+
+96
+00:04:42,762 --> 00:04:44,232
+There are several candidates.
+
+97
+00:04:44,492 --> 00:04:45,900
+What was said after a pause.
+
+98
+00:04:46,160 --> 00:04:49,613
+The word and the order transcribed
+together, with the word cut out.
+
+99
+00:04:49,873 --> 00:04:52,835
+Or the order alone,
+when the other version lost words.
+
+100
+00:04:53,185 --> 00:04:57,964
+The echo guard again: if the text is what
+an assistant was saying, it is ignored.
+
+101
+00:04:58,314 --> 00:05:02,918
+And finally, K-Desktop sends the assistant
+process a heard message: the text,
+
+102
+00:05:02,918 --> 00:05:05,359
+who it is for, and where it came from.
+
+103
+00:05:05,619 --> 00:05:06,940
+By voice, in this case.
+
+104
+00:05:09,190 --> 00:05:10,772
+The order reaches the assistant.
+
+105
+00:05:11,032 --> 00:05:13,543
+Each assistant has its own conversation,
+
+106
+00:05:13,543 --> 00:05:16,326
+and a new order replaces
+the one still going.
+
+107
+00:05:16,586 --> 00:05:19,956
+Tell it to stop while it talks,
+and what it was doing is cancelled.
+
+108
+00:05:20,306 --> 00:05:23,013
+What you said appears in the chat,
+and goes into the log.
+
+109
+00:05:23,363 --> 00:05:27,008
+If the order comes with files,
+because you dropped them on the character,
+
+110
+00:05:27,008 --> 00:05:28,531
+it goes straight to the AI.
+
+111
+00:05:28,791 --> 00:05:30,423
+Otherwise, the routing begins.
+
+112
+00:05:30,773 --> 00:05:33,688
+And here is the key point:
+who decides what gets done?
+
+113
+00:05:33,948 --> 00:05:34,818
+Not the AI.
+
+114
+00:05:35,078 --> 00:05:38,062
+Code decides, in layers,
+always in the same order.
+
+115
+00:05:38,322 --> 00:05:39,663
+First, the fixed rules.
+
+116
+00:05:39,923 --> 00:05:40,952
+Then your commands.
+
+117
+00:05:41,212 --> 00:05:42,185
+Then programs.
+
+118
+00:05:42,445 --> 00:05:44,560
+And only what is left reaches the AI.
+
+119
+00:05:46,960 --> 00:05:49,940
+Fixed rules are patterns written
+in the language files,
+
+120
+00:05:49,940 --> 00:05:51,650
+for every installed language.
+
+121
+00:05:51,910 --> 00:05:53,683
+They have gaps: a duration,
+
+122
+00:05:53,683 --> 00:05:57,339
+like ten minutes, or free text,
+like what you want noted down.
+
+123
+00:05:57,599 --> 00:05:58,784
+And optional words.
+
+124
+00:05:59,134 --> 00:06:02,036
+Before comparing,
+the assistant's name is removed,
+
+125
+00:06:02,036 --> 00:06:05,974
+so is filler, like hey or please,
+and polite openings, like could you.
+
+126
+00:06:06,234 --> 00:06:08,183
+The whole order has to fit a pattern.
+
+127
+00:06:08,533 --> 00:06:10,880
+That is how these are answered at once:
+
+128
+00:06:10,880 --> 00:06:14,739
+the time, a timer, a note, cancel,
+repeat that, undo, remember that,
+
+129
+00:06:14,739 --> 00:06:18,441
+the weather, write what I say,
+free your brain, or think it over.
+
+130
+00:06:18,791 --> 00:06:20,777
+A rule does not do things on its own.
+
+131
+00:06:21,037 --> 00:06:24,591
+It calls the same tool the AI would use,
+through the tool runner.
+
+132
+00:06:24,851 --> 00:06:27,789
+So it shows up in the activity,
+and it can be undone.
+
+133
+00:06:28,049 --> 00:06:30,274
+And it answers
+in the character's own words.
+
+134
+00:06:30,624 --> 00:06:34,019
+One special case: at seven,
+empty the recycle bin.
+
+135
+00:06:34,279 --> 00:06:35,667
+Doing that now would be wrong.
+
+136
+00:06:35,927 --> 00:06:39,829
+So an order for later goes to the AI,
+with the schedule tool at hand.
+
+137
+00:06:40,179 --> 00:06:43,824
+And if you say the exact phrase
+of one of your JSON tools,
+
+138
+00:06:43,824 --> 00:06:47,183
+like good night, that tool runs,
+also without the AI.
+
+139
+00:06:47,533 --> 00:06:48,542
+One last check.
+
+140
+00:06:48,802 --> 00:06:52,316
+If you say you got that wrong,
+right after an answer from the AI,
+
+141
+00:06:52,316 --> 00:06:53,950
+no commands are looked for.
+
+142
+00:06:54,210 --> 00:06:55,768
+The AI thinks it over again.
+
+143
+00:06:58,018 --> 00:07:02,795
+If no rule fits, the assistant asks
+K-Desktop: which commands look like this?
+
+144
+00:07:03,055 --> 00:07:04,375
+That is the match message.
+
+145
+00:07:04,635 --> 00:07:09,067
+K-Desktop searches just like its own
+voice control does, but runs nothing.
+
+146
+00:07:09,327 --> 00:07:12,129
+Questions,
+like what does my game mode command do,
+
+147
+00:07:12,129 --> 00:07:14,131
+skip this step: they go to the AI.
+
+148
+00:07:14,481 --> 00:07:15,920
+The first layer is words.
+
+149
+00:07:16,180 --> 00:07:18,581
+How much of a command's name is
+in what you said?
+
+150
+00:07:18,841 --> 00:07:22,014
+Word endings don't matter:
+open, opens, opening.
+
+151
+00:07:22,274 --> 00:07:24,645
+Small transcription slips are forgiven,
+
+152
+00:07:24,645 --> 00:07:28,386
+words split apart or run together,
+and words that sound the same.
+
+153
+00:07:28,646 --> 00:07:29,762
+Filler doesn't count.
+
+154
+00:07:30,112 --> 00:07:34,264
+To win on words,
+a command needs a score of 0.82,
+
+155
+00:07:34,264 --> 00:07:37,510
+and a lead of 0.08 over the next one.
+
+156
+00:07:37,860 --> 00:07:40,348
+If the whole order names nothing clearly,
+
+157
+00:07:40,348 --> 00:07:45,005
+it is split at and, then, after, and commas,
+and each piece is matched on its own.
+
+158
+00:07:45,265 --> 00:07:48,895
+Open YouTube
+and empty the recycle bin is two commands.
+
+159
+00:07:49,155 --> 00:07:52,954
+And a piece like and close it refers
+to the thing in the piece before.
+
+160
+00:07:55,204 --> 00:07:58,433
+When words are not enough,
+the second layer kicks in: meaning.
+
+161
+00:07:58,693 --> 00:08:00,530
+And this is where embeddings come in.
+
+162
+00:08:00,880 --> 00:08:04,801
+An embedding is a list of numbers
+that stands for what a sentence means.
+
+163
+00:08:05,061 --> 00:08:09,846
+EmbeddingGemma, a small model
+from Google that runs on your PC,
+
+164
+00:08:09,846 --> 00:08:12,829
+turns each sentence into 768 numbers.
+
+165
+00:08:13,179 --> 00:08:14,971
+Think of them as a point in space.
+
+166
+00:08:15,231 --> 00:08:18,211
+Sentences that mean the same
+thing land close together,
+
+167
+00:08:18,211 --> 00:08:20,213
+even if they share no words at all.
+
+168
+00:08:20,473 --> 00:08:23,840
+Clear out the trash lands right next
+to Empty Recycle Bin.
+
+169
+00:08:24,190 --> 00:08:28,224
+Closeness is measured with the cosine
+of the angle between the two vectors.
+
+170
+00:08:28,484 --> 00:08:29,716
+One means identical.
+
+171
+00:08:29,976 --> 00:08:31,435
+Zero means unrelated.
+
+172
+00:08:31,785 --> 00:08:33,223
+What is your order compared with?
+
+173
+00:08:33,483 --> 00:08:37,849
+Each command's name, its voice phrases,
+and what its first actions say they do,
+
+174
+00:08:37,849 --> 00:08:39,595
+like shut down the computer.
+
+175
+00:08:39,855 --> 00:08:44,480
+Those vectors are worked out once and kept
+on disk: only new names cost anything.
+
+176
+00:08:44,830 --> 00:08:49,144
+A command wins on meaning from 0.62,
+if it is clearly ahead.
+
+177
+00:08:49,404 --> 00:08:52,074
+The built-in music orders need 0.80.
+
+178
+00:08:52,334 --> 00:08:56,766
+And anything that shuts down,
+restarts or signs out needs 0.90.
+
+179
+00:08:57,116 --> 00:09:01,632
+It is also compared with a list of things
+that are not K-Desktop's job:
+
+180
+00:09:01,632 --> 00:09:03,567
+the TV, the lights, alarms.
+
+181
+00:09:03,827 --> 00:09:06,635
+Turn off the TV is close
+to Shut down the computer,
+
+182
+00:09:06,635 --> 00:09:08,409
+but closer still to that list.
+
+183
+00:09:08,669 --> 00:09:09,685
+So nothing runs.
+
+184
+00:09:10,035 --> 00:09:13,079
+A detail:
+the meaning model is loaded only once.
+
+185
+00:09:13,339 --> 00:09:16,701
+The assistants ask K-Desktop
+for their vectors over the pipe,
+
+186
+00:09:16,701 --> 00:09:18,105
+with an embed message.
+
+187
+00:09:18,455 --> 00:09:20,404
+K-Desktop answers with matched:
+
+188
+00:09:20,404 --> 00:09:25,037
+each piece of the order, its candidates
+with their scores, and whether it is sure.
+
+189
+00:09:25,297 --> 00:09:26,776
+Now the assistant decides.
+
+190
+00:09:27,036 --> 00:09:31,413
+Sure, and scoring at least 0.80:
+it runs right away, no AI.
+
+191
+00:09:31,673 --> 00:09:37,162
+Two candidates almost tied: it asks,
+Empty Recycle Bin or Open Recycle Bin?
+
+192
+00:09:37,422 --> 00:09:38,793
+And you answer the first one.
+
+193
+00:09:39,053 --> 00:09:39,985
+Still no AI.
+
+194
+00:09:42,235 --> 00:09:43,507
+And if nothing is clear?
+
+195
+00:09:43,767 --> 00:09:46,128
+Before handing the whole order to the AI,
+
+196
+00:09:46,128 --> 00:09:48,991
+there is a shortcut:
+deciding with a single letter.
+
+197
+00:09:49,341 --> 00:09:53,101
+It takes the commands closest
+in meaning, up to ten,
+
+198
+00:09:53,101 --> 00:09:58,417
+as long as the best one is above 0.55,
+and the order has ten words or fewer.
+
+199
+00:09:58,767 --> 00:10:01,457
+The assistant's own model gets a list: A,
+
+200
+00:10:01,457 --> 00:10:04,890
+B, C, one letter per command,
+and Z for none of these.
+
+201
+00:10:05,150 --> 00:10:07,455
+And it is told to answer
+with one letter only.
+
+202
+00:10:07,805 --> 00:10:09,151
+Its answer is not read.
+
+203
+00:10:09,411 --> 00:10:11,875
+What is read are
+the probabilities of each letter.
+
+204
+00:10:12,135 --> 00:10:15,118
+If one is above 0.90, that command runs.
+
+205
+00:10:15,378 --> 00:10:21,637
+If two together reach 0.90, and the second
+has at least 0.25, it asks which one.
+
+206
+00:10:21,897 --> 00:10:25,603
+If Z wins, or nothing stands out,
+the order goes to the AI.
+
+207
+00:10:25,953 --> 00:10:29,936
+It takes about a tenth of a second,
+instead of a whole answer from the AI.
+
+208
+00:10:30,196 --> 00:10:33,577
+Measured with 117 real commands,
+
+209
+00:10:33,577 --> 00:10:39,272
+it got 123 of 184 orders right
+without the AI, up from 98.
+
+210
+00:10:39,532 --> 00:10:41,597
+And it never shuts down the PC from here.
+
+211
+00:10:41,947 --> 00:10:46,744
+If there are still pieces nobody took,
+programs get a look: minimize Chrome,
+
+212
+00:10:46,744 --> 00:10:48,557
+quit Spotify, open Steam.
+
+213
+00:10:48,817 --> 00:10:50,284
+These are rules too,
+
+214
+00:10:50,284 --> 00:10:55,192
+and K-Desktop finds the program among
+the open windows and the running processes.
+
+215
+00:10:57,442 --> 00:11:00,561
+When a command has to run,
+the assistant sends run,
+
+216
+00:11:00,561 --> 00:11:04,665
+with the command's id and choreography,
+because it is on the desktop.
+
+217
+00:11:05,015 --> 00:11:08,707
+K-Desktop works out its risk:
+that of its riskiest action.
+
+218
+00:11:08,967 --> 00:11:10,159
+Green, no question.
+
+219
+00:11:10,419 --> 00:11:12,067
+Yellow, asks the first time.
+
+220
+00:11:12,327 --> 00:11:13,781
+Red, asks every time.
+
+221
+00:11:14,041 --> 00:11:16,490
+A command always asks
+at least the first time.
+
+222
+00:11:16,840 --> 00:11:19,840
+The permission window appears
+without stealing your focus.
+
+223
+00:11:20,100 --> 00:11:22,943
+You can say yes, no,
+or yes, and don't ask again.
+
+224
+00:11:23,203 --> 00:11:26,314
+If the order was spoken,
+the window listens by itself.
+
+225
+00:11:26,574 --> 00:11:28,614
+No answer in ten seconds means no.
+
+226
+00:11:28,964 --> 00:11:30,958
+Then each action arrives as a step:
+
+227
+00:11:30,958 --> 00:11:33,730
+what it is, which window,
+and where it will end up.
+
+228
+00:11:33,990 --> 00:11:38,238
+The assistant does its gesture:
+it flies to the button, aims, and fires.
+
+229
+00:11:38,498 --> 00:11:43,190
+At the moment of impact it sends go,
+and K-Desktop, which has the rights, does it.
+
+230
+00:11:43,540 --> 00:11:46,147
+If the assistant does not answer in time,
+
+231
+00:11:46,147 --> 00:11:50,584
+six seconds, or ten when it has
+to tow a window, K-Desktop does it anyway.
+
+232
+00:11:50,844 --> 00:11:51,721
+It never hangs.
+
+233
+00:11:51,981 --> 00:11:55,474
+And if the assistant says it
+did it itself, K-Desktop checks,
+
+234
+00:11:55,474 --> 00:11:57,142
+and sets the exact result.
+
+235
+00:11:57,492 --> 00:12:00,882
+When it is over, end arrives,
+with the outcome and the messages.
+
+236
+00:12:01,142 --> 00:12:05,330
+The run goes into K-Desktop's history,
+with the assistant as its source.
+
+237
+00:12:05,680 --> 00:12:07,437
+Minimize Chrome works the same way.
+
+238
+00:12:07,697 --> 00:12:09,091
+With an act message,
+
+239
+00:12:09,091 --> 00:12:13,110
+K-Desktop builds a throwaway command
+from the actions in its catalog.
+
+240
+00:12:13,370 --> 00:12:17,556
+It asks like a command, appears
+in the history, and gets the same gestures.
+
+241
+00:12:19,806 --> 00:12:20,658
+Now, the AI.
+
+242
+00:12:20,918 --> 00:12:24,088
+It only gets what the rules
+and the commands left undone.
+
+243
+00:12:24,438 --> 00:12:25,881
+First: is there a model?
+
+244
+00:12:26,141 --> 00:12:29,921
+The brain runs on llama server
+on your PC, on Ollama,
+
+245
+00:12:29,921 --> 00:12:32,548
+or on any OpenAI compatible server.
+
+246
+00:12:32,808 --> 00:12:34,615
+If the model is not loaded yet,
+
+247
+00:12:34,615 --> 00:12:38,328
+the assistant says one moment straight
+away, so you know it heard you.
+
+248
+00:12:38,678 --> 00:12:42,803
+If two and a half seconds go by with nothing
+said, it says a waiting phrase.
+
+249
+00:12:43,063 --> 00:12:45,767
+But not again for three minutes:
+that would get tiring.
+
+250
+00:12:46,117 --> 00:12:48,021
+Then the conversation is put together.
+
+251
+00:12:48,281 --> 00:12:52,125
+The instructions: who it is,
+its personality, how to use tools,
+
+252
+00:12:52,125 --> 00:12:56,359
+short sentences a voice can say,
+your language, and the date and time.
+
+253
+00:12:56,709 --> 00:13:00,021
+What it remembers about you,
+when it fits: found by meaning,
+
+254
+00:13:00,021 --> 00:13:02,178
+comparing the order with each memory.
+
+255
+00:13:02,438 --> 00:13:04,771
+Your commands that K-Desktop saw close by.
+
+256
+00:13:05,031 --> 00:13:08,840
+The last three exchanges,
+forgotten after ten minutes of silence.
+
+257
+00:13:09,100 --> 00:13:10,268
+And the order itself.
+
+258
+00:13:12,518 --> 00:13:17,318
+There are about seventy built-in tools,
+and with MCP servers there can be hundreds.
+
+259
+00:13:17,578 --> 00:13:21,047
+But a small model chooses well
+among a few, and badly among many.
+
+260
+00:13:21,307 --> 00:13:23,179
+And every tool costs instructions.
+
+261
+00:13:23,529 --> 00:13:26,964
+So every tool comes with example phrases,
+in your language.
+
+262
+00:13:27,224 --> 00:13:30,146
+They become vectors once,
+and K-Desktop keeps them.
+
+263
+00:13:30,496 --> 00:13:34,863
+For each order, its vector is worked out
+and compared with all those examples.
+
+264
+00:13:35,123 --> 00:13:37,804
+Each tool keeps the score
+of its closest example.
+
+265
+00:13:38,154 --> 00:13:41,525
+At least the three best get through,
+and up to five,
+
+266
+00:13:41,525 --> 00:13:44,140
+if they are within 0.08 of the top one.
+
+267
+00:13:44,490 --> 00:13:48,751
+If the order has several parts,
+like check the weather and send it
+
+268
+00:13:48,751 --> 00:13:54,017
+to me on Telegram, the best tool of each
+part gets in too, if it scores above 0.60.
+
+269
+00:13:54,367 --> 00:13:56,153
+And some tools are always at hand.
+
+270
+00:13:56,413 --> 00:14:00,757
+The ones used in the last exchange,
+so it understands and how long is left?
+
+271
+00:14:01,017 --> 00:14:03,218
+The screen tools, if you say that window.
+
+272
+00:14:03,478 --> 00:14:05,540
+The file tools, if you gave it a file.
+
+273
+00:14:05,800 --> 00:14:09,618
+And run command, if K-Desktop
+saw commands of yours close by.
+
+274
+00:14:09,968 --> 00:14:13,624
+If it still lacks the one it needs,
+it can look for more: find tools.
+
+275
+00:14:13,884 --> 00:14:16,690
+And if the order deserves it,
+it can ask to think harder.
+
+276
+00:14:17,040 --> 00:14:20,126
+Without the meaning model,
+tools are chosen by words:
+
+277
+00:14:20,126 --> 00:14:22,637
+rare words, used by few tools, weigh more.
+
+278
+00:14:22,897 --> 00:14:24,022
+Worse, but it works.
+
+279
+00:14:26,272 --> 00:14:27,631
+What kinds of tools are there?
+
+280
+00:14:27,891 --> 00:14:32,059
+The built-in ones: timers, notes,
+memory, sums and dates, the weather,
+
+281
+00:14:32,059 --> 00:14:36,612
+searching and reading the web, files,
+looking at the screen, the PC's status,
+
+282
+00:14:36,612 --> 00:14:38,641
+the network, windows and music.
+
+283
+00:14:38,991 --> 00:14:44,130
+The ones that talk to K-Desktop: running
+your commands, finding and explaining them,
+
+284
+00:14:44,130 --> 00:14:47,784
+firing events, handling programs,
+the volume, the display,
+
+285
+00:14:47,784 --> 00:14:52,580
+shutting down or locking, creating events,
+scheduling orders, reading the log.
+
+286
+00:14:52,840 --> 00:14:55,689
+The assistant only asks:
+K-Desktop does it.
+
+287
+00:14:56,039 --> 00:14:58,830
+Your own, in JSON,
+with nothing to compile.
+
+288
+00:14:59,090 --> 00:14:59,928
+Four types.
+
+289
+00:15:00,188 --> 00:15:03,791
+http, to call a web API,
+like Home Assistant.
+
+290
+00:15:04,051 --> 00:15:06,365
+kdesktop, to run one of your commands.
+
+291
+00:15:06,625 --> 00:15:08,369
+routine, a series of steps.
+
+292
+00:15:08,629 --> 00:15:10,290
+And script, a PowerShell script.
+
+293
+00:15:10,640 --> 00:15:13,943
+Secrets are stored encrypted,
+and the model never sees them.
+
+294
+00:15:14,203 --> 00:15:16,963
+And a new or changed
+script has a fingerprint:
+
+295
+00:15:16,963 --> 00:15:21,101
+if you have not approved it,
+it asks first, even if you said not to ask.
+
+296
+00:15:21,451 --> 00:15:25,573
+And MCP servers:
+outside programs that offer tools,
+
+297
+00:15:25,573 --> 00:15:28,394
+over standard input or over HTTP.
+
+298
+00:15:28,654 --> 00:15:30,666
+They can be imported from Claude Desktop.
+
+299
+00:15:31,016 --> 00:15:32,845
+Every tool has the same parts.
+
+300
+00:15:33,105 --> 00:15:34,105
+A name in English.
+
+301
+00:15:34,365 --> 00:15:35,745
+A description for the model.
+
+302
+00:15:36,005 --> 00:15:38,212
+Its parameters, as a JSON schema.
+
+303
+00:15:38,472 --> 00:15:39,437
+Its examples.
+
+304
+00:15:39,697 --> 00:15:40,388
+Its risk.
+
+305
+00:15:40,648 --> 00:15:41,872
+Whether it only reads.
+
+306
+00:15:42,132 --> 00:15:43,528
+And whether it can be undone.
+
+307
+00:15:45,778 --> 00:15:46,584
+Now, the loop.
+
+308
+00:15:46,844 --> 00:15:49,904
+Everything goes to the model,
+and the reply streams in.
+
+309
+00:15:50,164 --> 00:15:55,176
+Either it is text, and that's it, or it is
+tool calls, with their arguments in JSON.
+
+310
+00:15:55,526 --> 00:15:57,357
+Every call goes through the tool runner.
+
+311
+00:15:57,617 --> 00:15:59,830
+It checks the tool exists
+and is switched on.
+
+312
+00:16:00,090 --> 00:16:04,208
+It writes down in words what it is about
+to do, like: set a ten minute timer.
+
+313
+00:16:04,468 --> 00:16:07,794
+It looks at its risk, with your preferences,
+and asks if it has to.
+
+314
+00:16:08,144 --> 00:16:10,362
+And there are checks
+against making things up.
+
+315
+00:16:10,622 --> 00:16:14,165
+A web address must come from what you said,
+or from what the tools said.
+
+316
+00:16:14,425 --> 00:16:18,005
+And to run one of your commands,
+your order has to really ask for it,
+
+317
+00:16:18,005 --> 00:16:19,294
+not just sound alike.
+
+318
+00:16:19,644 --> 00:16:22,575
+The result goes back
+to the model as one more message.
+
+319
+00:16:22,835 --> 00:16:26,345
+It is written into the activity,
+and if it can be undone,
+
+320
+00:16:26,345 --> 00:16:29,187
+how to undo it is kept,
+even across restarts.
+
+321
+00:16:29,537 --> 00:16:30,617
+Then another round.
+
+322
+00:16:30,877 --> 00:16:34,784
+At most three rounds and three calls;
+with a big model, five and eight.
+
+323
+00:16:35,044 --> 00:16:39,033
+A call that already failed is not repeated,
+nor one that already worked.
+
+324
+00:16:39,293 --> 00:16:41,873
+When the limit is reached,
+it is told to answer now.
+
+325
+00:16:42,223 --> 00:16:46,406
+If it names one of your commands without
+running it, or says it will send something
+
+326
+00:16:46,406 --> 00:16:49,132
+without sending it,
+it gets one more round to do it.
+
+327
+00:16:49,482 --> 00:16:51,254
+At the end, what it says is checked.
+
+328
+00:16:51,514 --> 00:16:54,394
+If it claims it sent,
+saved or opened something,
+
+329
+00:16:54,394 --> 00:16:57,807
+and no tool of that kind worked,
+that sentence is removed.
+
+330
+00:16:58,067 --> 00:17:00,582
+And when the tools have their own words,
+
+331
+00:17:00,582 --> 00:17:03,864
+like I'll remind you at 5:15,
+those are used, exactly.
+
+332
+00:17:04,214 --> 00:17:07,704
+If it gets stuck, or says nothing,
+it thinks it over, with more time.
+
+333
+00:17:07,964 --> 00:17:12,396
+And if the answer is too long for a speech
+bubble, it is written on a reading sheet,
+
+334
+00:17:12,396 --> 00:17:14,217
+and only the summary is spoken.
+
+335
+00:17:16,467 --> 00:17:19,529
+Assistants and K-Desktop work
+in both directions.
+
+336
+00:17:19,879 --> 00:17:22,468
+An assistant can fire one of your events,
+
+337
+00:17:22,468 --> 00:17:26,380
+or create a new one of any kind:
+at a time, when a program opens,
+
+338
+00:17:26,380 --> 00:17:29,410
+when the PC is idle,
+when you plug in headphones.
+
+339
+00:17:29,670 --> 00:17:32,091
+K-Desktop builds it, saves it at once,
+
+340
+00:17:32,091 --> 00:17:35,614
+and it shows up in Events,
+marked as made by an assistant.
+
+341
+00:17:35,874 --> 00:17:36,970
+Undo removes it.
+
+342
+00:17:37,320 --> 00:17:41,355
+And it can schedule orders: at seven,
+check the weather and send it to me.
+
+343
+00:17:41,615 --> 00:17:45,167
+That creates an event at a time,
+with the action ask an assistant,
+
+344
+00:17:45,167 --> 00:17:47,337
+and the tools you approved right then.
+
+345
+00:17:47,687 --> 00:17:52,065
+When the time comes, K-Desktop sends
+the order as a scheduled heard message.
+
+346
+00:17:52,325 --> 00:17:53,429
+Nobody is asked:
+
+347
+00:17:53,429 --> 00:17:57,440
+what was approved is done, and anything
+that would have asked is not done.
+
+348
+00:17:57,700 --> 00:18:00,746
+If the PC was off at that time,
+it does not run late.
+
+349
+00:18:01,096 --> 00:18:04,845
+The other way round, your commands
+and events can use the assistants,
+
+350
+00:18:04,845 --> 00:18:06,044
+with four actions.
+
+351
+00:18:06,304 --> 00:18:07,566
+Run one of its actions.
+
+352
+00:18:07,826 --> 00:18:08,740
+Ask it something.
+
+353
+00:18:09,000 --> 00:18:10,546
+Say a text, with no AI.
+
+354
+00:18:10,806 --> 00:18:12,509
+Or free its brain before a game.
+
+355
+00:18:12,859 --> 00:18:16,949
+And if you like, the assistant can act
+out the commands you launch yourself,
+
+356
+00:18:16,949 --> 00:18:18,695
+with a hotkey or a QuickMenu.
+
+357
+00:18:18,955 --> 00:18:21,614
+That is just decoration:
+nothing waits for it.
+
+358
+00:18:23,864 --> 00:18:24,862
+Back to the answer.
+
+359
+00:18:25,122 --> 00:18:29,537
+While the AI writes, the text reaches
+the chat up to eight times a second,
+
+360
+00:18:29,537 --> 00:18:32,242
+already cleaned up:
+no Markdown, no emojis.
+
+361
+00:18:32,592 --> 00:18:34,637
+And the voice does not wait
+for it to finish.
+
+362
+00:18:34,897 --> 00:18:39,700
+Every sentence that ends, with its full
+stop and a space, is sent off to be spoken.
+
+363
+00:18:39,960 --> 00:18:43,894
+A very long sentence with no full
+stop is cut at its last comma.
+
+364
+00:18:44,244 --> 00:18:46,670
+Kokoro turns it into speech
+on your processor.
+
+365
+00:18:46,930 --> 00:18:48,682
+First the text becomes phonemes.
+
+366
+00:18:48,942 --> 00:18:51,391
+It makes the first piece,
+up to the first comma,
+
+367
+00:18:51,391 --> 00:18:53,749
+and starts playing it
+while it makes the rest.
+
+368
+00:18:54,009 --> 00:18:56,140
+It takes about a sixth
+of the time it lasts.
+
+369
+00:18:56,490 --> 00:18:59,081
+On top go the effects
+of its voice profile:
+
+370
+00:18:59,081 --> 00:19:01,776
+the Lander sounds
+like mission control radio.
+
+371
+00:19:02,036 --> 00:19:05,200
+It plays from the side of the screen
+where the character is,
+
+372
+00:19:05,200 --> 00:19:08,795
+and the level of its voice moves
+the character thirty times a second.
+
+373
+00:19:09,145 --> 00:19:13,172
+While it speaks, K-Desktop remembers
+what it is saying, and until when.
+
+374
+00:19:13,432 --> 00:19:18,515
+So if its wake word turns up in its own
+sentence, Hi, I'm Lander, it does not fire.
+
+375
+00:19:18,865 --> 00:19:20,168
+How long does it all take?
+
+376
+00:19:20,428 --> 00:19:23,801
+From the moment you stop talking:
+a command, under a second.
+
+377
+00:19:24,061 --> 00:19:26,580
+A rule, just over a second
+to the first sound.
+
+378
+00:19:26,840 --> 00:19:30,204
+And the AI, about a second and a half,
+with its model loaded.
+
+379
+00:19:32,454 --> 00:19:35,085
+When it stops talking,
+a few things are still left.
+
+380
+00:19:35,345 --> 00:19:37,268
+If it ended with a question,
+
+381
+00:19:37,268 --> 00:19:41,284
+K-Desktop listens for six seconds
+with no wake word: just answer.
+
+382
+00:19:41,634 --> 00:19:43,829
+If you asked it to write what you say,
+
+383
+00:19:43,829 --> 00:19:46,671
+dictation starts right now,
+once its voice is over.
+
+384
+00:19:47,021 --> 00:19:50,334
+The order and the answer go
+into that conversation's history.
+
+385
+00:19:50,594 --> 00:19:53,623
+And in the background,
+the same model reads the exchange
+
+386
+00:19:53,623 --> 00:19:56,358
+and remembers what is worth
+remembering about you.
+
+387
+00:19:56,618 --> 00:19:58,946
+You can see it, and undo it,
+in the activity.
+
+388
+00:19:59,296 --> 00:20:02,444
+If an order did nothing,
+and the next one corrects it,
+
+389
+00:20:02,444 --> 00:20:06,589
+say, it's called K-Movies, it learns
+a new voice phrase for that command.
+
+390
+00:20:06,849 --> 00:20:08,649
+Next time, it runs straight away.
+
+391
+00:20:08,999 --> 00:20:10,650
+The character goes back to rest.
+
+392
+00:20:10,910 --> 00:20:14,423
+And if the brain is not used
+for thirty minutes, it is unloaded,
+
+393
+00:20:14,423 --> 00:20:16,530
+and the graphics card is free again.
+
+394
+00:20:18,780 --> 00:20:19,531
+To sum up.
+
+395
+00:20:19,791 --> 00:20:22,568
+The wake word,
+with two opinions and a second check.
+
+396
+00:20:22,828 --> 00:20:25,828
+The order,
+until 800 milliseconds of silence.
+
+397
+00:20:26,088 --> 00:20:27,081
+The fixed rules.
+
+398
+00:20:27,341 --> 00:20:29,482
+Your commands, by words and by meaning.
+
+399
+00:20:29,742 --> 00:20:30,680
+The single letter.
+
+400
+00:20:30,940 --> 00:20:31,684
+Programs.
+
+401
+00:20:31,944 --> 00:20:36,795
+And only at the end, the AI, with a few
+well chosen tools, permissions and checks.
+
+402
+00:20:37,055 --> 00:20:39,558
+All the way to the voice,
+sentence by sentence.
+
+403
+00:20:39,907 --> 00:20:41,209
+All of it on your PC.
+
+404
+00:20:41,469 --> 00:20:42,559
+Thanks for watching.

@@ -11,7 +11,8 @@ Se hace igual que el tutorial de [`../video`](../video): el guion es un JSON, la
 la imagen son diagramas animados con [Remotion](https://www.remotion.dev/). No usa capturas de K-Desktop.
 
 - **Duración:** unos 21 minutos, en 19 capítulos.
-- **Formato:** 1920 × 1080, 30 fps, H.264, audio AAC masterizado a −15 LUFS.
+- **Formato:** 1920 × 1080, 30 fps, H.264, audio AAC masterizado a −15 LUFS. La copia de `docs/videos` está
+  recomprimida para quedar por debajo de 100 MB (GitHub no admite archivos mayores; ver «Comprimirlo» abajo).
 - **Subtítulos:** nunca grabados en la imagen; van aparte, en un `.srt` con el mismo nombre que el `.mp4`.
 - **Datos:** los umbrales, tiempos y nombres salen del código (`src/KDesktop.Assistant.Brain/Talk`,
   `src/KDesktop.Assistant.Tools`, `src/KDesktop.Core/Voice`) y de [`../../assistant`](../../assistant).
@@ -48,6 +49,19 @@ node render.mjs                   # → out/K-Desktop-Assistants-en.mp4 y out/K-
 `node tools/stills.mjs wake 120 50%` o `node tools/stills.mjs all --every 180 --scale 0.25`, y
 `python tools/sheet.py hoja.png out/stills/all-*.png` junta los fotogramas en una hoja. `npm run studio` abre Remotion
 Studio.
+
+## Comprimirlo para GitHub
+
+El render ocupa unos 700 MB (sobre todo por el grano de película). Para dejarlo en ~96 MB: dos pasadas de x264 a
+510 kbps quitando el grano, y el audio a 96 kbps con 2 dB menos y un limitador (sin él, la recompresión dejaba picos
+por encima de 0 dB):
+
+```
+ffmpeg -i out/K-Desktop-Assistants-en.mp4 -vf hqdn3d=3:3:8:8 -c:v libx264 -preset slower -b:v 510k -pass 1 -an -f null -
+ffmpeg -i out/K-Desktop-Assistants-en.mp4 -vf hqdn3d=3:3:8:8 -c:v libx264 -preset slower -b:v 510k -pass 2 -an out/v.mp4
+ffmpeg -i out/v.mp4 -i out/K-Desktop-Assistants-en.mp4 -map 0:v -map 1:a -c:v copy -af "volume=-2dB,alimiter=limit=0.85:level=false" \
+  -c:a aac -b:a 96k -movflags +faststart ../../videos/K-Desktop-Assistants-en.mp4
+```
 
 ## Cambiar cosas
 
