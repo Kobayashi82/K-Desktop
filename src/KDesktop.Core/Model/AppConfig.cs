@@ -1154,6 +1154,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>The monitors K-Desktop has seen (E1b), so a disposición can be cut for one that is not connected.</summary>
     public ObservableCollection<KnownMonitor> KnownMonitors { get; set { field = value ?? []; field.CollectionChanged += (_, _) => Touch(); } } = [];
 
+    /// <summary>Shift while dragging a window shows the zones of its monitor and drops it into one (E1b).</summary>
+    [ObservableProperty] private bool _snapWithShift = true;
+
     /// <summary>The disposición put last on each monitor (E1b): the one its windows snap into.</summary>
     public ObservableCollection<ActiveArrangement> ActiveArrangements { get; set { field = value ?? []; field.CollectionChanged += (_, _) => Touch(); } } = [];
 

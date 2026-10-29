@@ -50,3 +50,17 @@ add by hand.
 - The action **Window layout** puts a layout from any command.
 - With a **Screen plugged in or out** [event](events.md) it is applied on its own: for example, a «Movie» layout when
   the TV is plugged in and a «Work» one when it is unplugged.
+
+## Snapping windows into the zones
+
+Each monitor uses the zones of the **layout put on it last** (remembered after a restart). A monitor where none was ever
+put does not snap.
+
+- **Shift + drag**: while you drag a window by its title bar, hold **Shift** and the zones of each monitor show on top;
+  the one under the mouse is marked and, when you drop it, the window fits into it (a whole-screen zone maximizes it). If
+  you let Shift go, the zones disappear and the window stays where you drop it; **Esc** cancels. It is turned off in
+  *Options → Snap with Shift while dragging* (it applies to all layouts).
+- **Next or previous zone**: the **Window** action has *To the next zone* and *To the previous zone*. They follow the
+  zones' numbers and, after the last one of a monitor, go to the next monitor. *Options → Create the zone hotkeys* leaves
+  you both commands made with **Win + Alt + →** and **Win + Alt + ←**.
+- Snapping always fills the zone, even if the program has a saved place.

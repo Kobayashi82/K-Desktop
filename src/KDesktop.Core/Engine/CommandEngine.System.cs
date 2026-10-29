@@ -140,6 +140,17 @@ public sealed partial class CommandEngine
                 var opacity = WindowLayout.ToggleOpacity(hwnd, a.Opacity);
                 osd = Loc.T("osd.windowOpacity", opacity);
                 break;
+            case WindowOperation.NextZone or WindowOperation.PreviousZone:
+                var zones = ZoneSnapping.ActiveZones(Config, WindowArrangements.Monitors());
+                if (ZoneSnapping.Step(zones, ZoneSnapping.PlaceOf(hwnd), a.Operation == WindowOperation.NextZone) is not { } zone)
+                {
+                    // Nothing to snap into: said always, or the hotkey would seem broken.
+                    _ui.ShowOsd(Loc.T("osd.noZones"), OsdKind.Warning, look: OsdLook.Of("WindowApps24"));
+                    return;
+                }
+                ZoneSnapping.Put(hwnd, zone);
+                osd = Loc.T("osd.inZone", zone.Number);
+                break;
         }
         // From the QuickMenu or the launcher, the window keeps the focus it had.
         if (a.Target == WindowTarget.Process && a.Operation is not (WindowOperation.Minimize or WindowOperation.Close)) WindowTools.ForceForeground(hwnd);

@@ -16,7 +16,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 
 | Action | What it does |
 |---|---|
-| **Window** | Maximizes, minimizes, places (halves, quarters, thirds), centres, moves to another monitor or makes a window transparent. |
+| **Window** | Maximizes, minimizes, places (halves, quarters, thirds), centres, moves to another monitor or to the next or previous zone ([layouts](arrangements.md)) or makes a window transparent. |
 | **Window layout** | Puts each program in its zone of one of your [layouts](arrangements.md). |
 | **Always on top (on/off)** | Pins the active window above the others, or releases it. |
 

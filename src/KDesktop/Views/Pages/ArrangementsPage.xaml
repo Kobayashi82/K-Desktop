@@ -183,6 +183,11 @@
                         <StackPanel>
                             <ui:ToggleSwitch IsChecked="{Binding OpenMissing}" Content="{l:Tr arrangement.openMissing}" />
                             <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="{l:Tr arrangement.openMissingHint}" TextWrapping="Wrap" />
+                            <!-- Snapping into zones (E1b): for every disposición, so it is K-Desktop's setting, not this one's -->
+                            <ui:ToggleSwitch x:Name="SnapToggle" Margin="0,14,0,0" Content="{l:Tr arrangement.snapWithShift}" Click="OnSnapToggle" />
+                            <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" Text="{l:Tr arrangement.snapWithShiftHint}" TextWrapping="Wrap" />
+                            <ui:Button Margin="0,10,0,0" Content="{l:Tr arrangement.zoneKeys}" Icon="{ui:SymbolIcon Keyboard24}" Click="OnZoneKeys"
+                                       ToolTip="{l:Tr arrangement.zoneKeysTip}" AutomationProperties.Name="{l:Tr arrangement.zoneKeys}" />
                         </StackPanel>
                     </ui:CardExpander>
 

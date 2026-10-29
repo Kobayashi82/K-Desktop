@@ -294,4 +294,44 @@ public class WindowArrangementTests
         Assert.NotSame(zone, copy.Zones[0]);
         Assert.Equal(3, copy.Zones[0].Programs.Count);
     }
+
+    [Fact]
+    public void WindowsSnapIntoTheZonesOfTheDisposicionPutLastOnTheirMonitor()
+    {
+        var config = new AppConfig();
+        var work = new WindowArrangement { Name = "Trabajo", Zones = [Zone(0, 0, 0.5, 1, "chrome"), Zone(0.5, 0, 0.5, 1)] };
+        var tv = On(Side.Name, Side.Device);
+        work.Zones.Add(tv);
+        config.Arrangements.Add(work);
+        // Never put: nothing snaps.
+        Assert.Empty(ZoneSnapping.ActiveZones(config, [Main, Side]));
+
+        WindowArrangements.SetActive(config.Settings.ActiveArrangements, work);
+        var zones = ZoneSnapping.ActiveZones(config, [Main, Side]);
+        Assert.Equal(3, zones.Count);
+        Assert.Equal([1, 2, 1], zones.Select(z => z.Number));
+        Assert.Equal(new ScreenRect(1280, 0, 1280, 1400), zones[1].Rect);
+        Assert.Same(Side, zones[2].Monitor);
+        // The side monitor is not connected now: only the main one's zones.
+        Assert.Equal(2, ZoneSnapping.ActiveZones(config, [Main]).Count);
+
+        Assert.Same(zones[1], ZoneSnapping.At(zones, 2000, 700));
+        Assert.Null(ZoneSnapping.At(zones, 100, 1450)); // the taskbar
+
+        // In the first zone: the next one, then the other monitor, then round to the first; back: the last one.
+        Assert.Same(zones[1], ZoneSnapping.Step(zones, new ScreenRect(4, 2, 1270, 1396), forward: true));
+        Assert.Same(zones[2], ZoneSnapping.Step(zones, zones[1].Rect, forward: true));
+        Assert.Same(zones[0], ZoneSnapping.Step(zones, zones[2].Rect, forward: true));
+        Assert.Same(zones[2], ZoneSnapping.Step(zones, zones[0].Rect, forward: false));
+        // In no zone: first to the one under its middle.
+        Assert.Same(zones[1], ZoneSnapping.Step(zones, new ScreenRect(1500, 200, 600, 400), forward: true));
+        Assert.Null(ZoneSnapping.Step([], zones[0].Rect, forward: true));
+
+        // Another disposición put on the main monitor only: it wins there; the side one keeps the first.
+        var film = new WindowArrangement { Name = "Película", Zones = [Zone(0, 0, 1, 1, "vlc")] };
+        config.Arrangements.Add(film);
+        WindowArrangements.SetActive(config.Settings.ActiveArrangements, film);
+        Assert.Equal([1, 1], ZoneSnapping.ActiveZones(config, [Main, Side]).Select(z => z.Number));
+        Assert.True(ZoneSnapping.ActiveZones(config, [Main, Side])[0].Zone.IsFull);
+    }
 }

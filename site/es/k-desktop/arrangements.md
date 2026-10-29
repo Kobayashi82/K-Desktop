@@ -51,3 +51,17 @@ estira a su zona, como los que añades a mano.
 - La acción **Disposición de ventanas** pone una disposición desde cualquier comando.
 - Con un [evento](events.md) **Pantalla conectada o desconectada** se pone sola: por ejemplo, una disposición «Película»
   al conectar la tele y otra «Trabajo» al desconectarla.
+
+## Encajar ventanas en las zonas
+
+Cada monitor usa las zonas de la **última disposición puesta en él** (se recuerda al reiniciar). En un monitor donde nunca
+se ha puesto ninguna, no se encaja nada.
+
+- **Mayús + arrastrar**: mientras arrastras una ventana por su barra de título, mantén **Mayús** y salen encima las zonas
+  de cada monitor; la que tiene el ratón se marca y, al soltar, la ventana se ajusta a ella (una zona de toda la pantalla
+  la maximiza). Si sueltas Mayús, las zonas se van y la ventana queda donde la dejes; **Esc** cancela. Se apaga en
+  *Opciones → Encajar con Mayús al arrastrar* (vale para todas las disposiciones).
+- **Zona siguiente o anterior**: la acción **Ventana** tiene *A la zona siguiente* y *A la zona anterior*. Siguen el orden
+  de los números de las zonas y, tras la última de un monitor, pasan al siguiente. *Opciones → Crear los atajos de zonas*
+  te deja los dos comandos hechos con **Win + Alt + →** y **Win + Alt + ←**.
+- Encajar siempre llena la zona, aunque el programa tenga un sitio guardado.

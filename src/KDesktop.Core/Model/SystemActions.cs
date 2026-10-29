@@ -12,8 +12,12 @@ namespace KDesktop.Core.Model;
 /// <summary>Which window «Ventana» acts on: the one in front, or the main window of a program.</summary>
 public enum WindowTarget { Active, Process }
 
-/// <summary><see cref="Close"/>: that window only, as its close button (the program may stay open with others).</summary>
-public enum WindowOperation { Maximize, Minimize, Restore, ToggleMaximize, Snap, Center, MoveToMonitor, Opacity, Close }
+/// <summary>
+/// <see cref="Close"/>: that window only, as its close button (the program may stay open with others).
+/// <see cref="NextZone"/> / <see cref="PreviousZone"/> (E1b): to the next or previous zone of the disposición put last on
+/// its monitor (<see cref="Platform.ZoneSnapping"/>).
+/// </summary>
+public enum WindowOperation { Maximize, Minimize, Restore, ToggleMaximize, Snap, Center, MoveToMonitor, Opacity, Close, NextZone, PreviousZone }
 
 /// <summary>Where «Colocar» puts the window, in its monitor's work area.</summary>
 public enum WindowSnap

@@ -30,6 +30,9 @@ public partial class App : Application
     private readonly DispatcherTimer _indexDebounce = new() { Interval = TimeSpan.FromMilliseconds(120) };
     private readonly DispatcherTimer _hookRefresh = new() { Interval = TimeSpan.FromMinutes(10) };
 
+    /// <summary>Shift + drag snaps windows into the zones of the disposición put on their monitor (E1b).</summary>
+    private Services.ZoneSnapper? _zoneSnapper;
+
     /// <summary>Automatic backups: first look a couple of minutes after starting, then every hour.</summary>
     private readonly DispatcherTimer _backupTimer = new() { Interval = TimeSpan.FromMinutes(2) };
     private bool _backingUp;
@@ -275,7 +278,12 @@ public partial class App : Application
             _indexDebounce.Stop();
             _indexDebounce.Start();
         });
-        if (!HooksDisabled) Router.Start();
+        if (!HooksDisabled)
+        {
+            Router.Start();
+            _zoneSnapper = new Services.ZoneSnapper(() => Config);
+            _zoneSnapper.Start();
+        }
         else Log.Warn("Hooks desactivados por la línea de comandos (--no-hooks)");
 
         // Keep the hooks healthy: reinstall them periodically and after unlocking the session.
@@ -720,6 +728,7 @@ public partial class App : Application
         Events?.Dispose();
         ClipboardUi?.Dispose();
         Router.Dispose();
+        _zoneSnapper?.Dispose();
         Udp?.Dispose();
         Web?.Dispose();
         Updates.Dispose();

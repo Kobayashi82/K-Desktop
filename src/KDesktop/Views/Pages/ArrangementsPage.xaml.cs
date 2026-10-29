@@ -40,6 +40,7 @@ public sealed partial class ArrangementsPage : UserControl, IDisposable
     {
         InitializeComponent();
         ZonesExpander.IsExpanded = !Settings.ArrangementZonesFolded;
+        SnapToggle.IsChecked = Settings.SnapWithShift;
         OptionsExpander.IsExpanded = Settings.ArrangementOptionsOpen;
         NotesExpander.IsExpanded = !Settings.ArrangementNotesFolded;
         _view = new ListCollectionView(Config.Arrangements) { Filter = Filter, IsLiveSorting = true, IsLiveFiltering = true };
@@ -524,6 +525,32 @@ public sealed partial class ArrangementsPage : UserControl, IDisposable
         Config.Arrangements.Remove(arrangement);
         foreach (var active in Settings.ActiveArrangements.Where(a => a.ArrangementId == arrangement.Id).ToList()) Settings.ActiveArrangements.Remove(active);
         if (!_view.IsEmpty) ArrangementList.SelectedIndex = Math.Clamp(index, 0, _view.Count - 1);
+    }
+
+    private void OnSnapToggle(object sender, RoutedEventArgs e) => Settings.SnapWithShift = SnapToggle.IsChecked == true;
+
+    /// <summary>
+    /// «Crear los atajos de zonas»: two commands, «Ventana a la zona siguiente / anterior» with Win + Alt + → and ← (each
+    /// one only if there is none yet; the hotkey only if no command has it).
+    /// </summary>
+    private void OnZoneKeys(object sender, RoutedEventArgs e)
+    {
+        var made = 0;
+        foreach (var (operation, hotkey, name) in (ReadOnlySpan<(WindowOperation, string, string)>)
+                 [(WindowOperation.NextZone, "WIN + ALT + Right", "arrangement.nextZoneCommand"), (WindowOperation.PreviousZone, "WIN + ALT + Left", "arrangement.previousZoneCommand")])
+        {
+            if (Config.Commands.Any(c => c.Actions.OfType<WindowAction>().Any(a => a.Operation == operation))) continue;
+            var cmd = new Command { Name = UniqueNames.Free(Config.Commands.Select(c => c.Name), Loc.T(name)) };
+            cmd.Actions.Add(new WindowAction { Operation = operation });
+            var mods = Hotkey.Parse(hotkey);
+            if (!Config.Commands.Any(c => c.Hotkeys.Any(h => Hotkey.Comparer.Equals(h, hotkey)))) cmd.Hotkeys.Add(Hotkey.Format(mods.Mods, mods.Main));
+            Config.Commands.Add(cmd);
+            _app.Achievements.Increment(Stat.CommandsCreated);
+            _app.Achievements.Increment(Stat.ActionsCreated);
+            made++;
+        }
+        _app.Ui.ShowOsd(Loc.T(made > 0 ? "osd.zoneKeysMade" : "osd.zoneKeysThere"), made > 0 ? Core.Engine.OsdKind.Success : Core.Engine.OsdKind.Info,
+            look: Core.Engine.OsdLook.Of("Keyboard24"));
     }
 
     private void OnCreateCommand(object sender, RoutedEventArgs e)
