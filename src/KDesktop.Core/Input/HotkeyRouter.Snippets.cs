@@ -131,9 +131,14 @@ public sealed partial class HotkeyRouter
         var m = info.rcMonitor;
         if (r.Left > m.Left || r.Top > m.Top || r.Right < m.Right || r.Bottom < m.Bottom) return false;
         // The desktop covers it too, and it is not a game.
+        return !IsDesktop(window);
+    }
+
+    private static bool IsDesktop(IntPtr window)
+    {
         var name = new char[32];
         var length = GetClassName(window, name, name.Length);
-        return new string(name, 0, Math.Max(0, length)) is not ("Progman" or "WorkerW");
+        return new string(name, 0, Math.Max(0, length)) is "Progman" or "WorkerW";
     }
 
     [StructLayout(LayoutKind.Sequential)]

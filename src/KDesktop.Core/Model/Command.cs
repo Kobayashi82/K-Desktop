@@ -75,15 +75,15 @@ public partial class Command : ObservableObject
         }
     }
 
-    [JsonIgnore] public string HotkeysText => Hotkeys.Count == 0 ? string.Empty : string.Join("   ·   ", Hotkeys);
+    [JsonIgnore] public string HotkeysText => Hotkeys.Count == 0 ? string.Empty : string.Join("   ·   ", Hotkeys.Select(Input.Hotkey.Display));
 
-    [JsonIgnore] public string FirstHotkey => Hotkeys.FirstOrDefault() ?? string.Empty;
+    [JsonIgnore] public string FirstHotkey => Hotkeys.FirstOrDefault() is { } first ? Input.Hotkey.Display(first) : string.Empty;
 
     /// <summary>"+1" when there are more hotkeys besides the first one, empty otherwise.</summary>
     [JsonIgnore] public string MoreHotkeysText => Hotkeys.Count > 1 ? $"+{Hotkeys.Count - 1}" : string.Empty;
 
     /// <summary>Every hotkey, one per line (tooltip of the list).</summary>
-    [JsonIgnore] public string HotkeysList => string.Join(Environment.NewLine, Hotkeys);
+    [JsonIgnore] public string HotkeysList => string.Join(Environment.NewLine, Hotkeys.Select(Input.Hotkey.Display));
 
     /// <summary><see cref="VoicePhrases"/> trimmed, without empty ones.</summary>
     [JsonIgnore] public IEnumerable<string> VoicePhraseList => VoicePhrases.Select(p => p.Trim()).Where(p => p.Length > 0);

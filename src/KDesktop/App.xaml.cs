@@ -259,6 +259,13 @@ public partial class App : Application
             return true;
         };
         Router.StopMacrosRequested += Engine.StopMacros;
+        // Mouse gestures (E4): the stroke on the screen while it is drawn.
+        var gestureTrail = new Osd.GestureTrail(Router);
+        Router.GestureDrawing += () => Dispatcher.BeginInvoke(() =>
+        {
+            if (Config.Settings.GestureTrail) gestureTrail.Begin();
+        });
+        Router.GestureFinished += _ => Dispatcher.BeginInvoke(gestureTrail.End);
         Router.KBoardUsed += () => Achievements.Increment(Stat.KBoardRemapped);
         RebuildIndex();
         _indexDebounce.Tick += (_, _) =>

@@ -1166,8 +1166,29 @@ public partial class AppSettings : ObservableObject
     public ObservableCollection<string> BlockSideButtonsIn { get; set { field = value ?? []; field.CollectionChanged += (_, _) => Touch(); } } =
         ["explorer", "chrome", "firefox", "msedge", "brave", "telegram", "systemsettings"];
 
+    // Corners and gestures (E4)
+    /// <summary>How long the cursor has to stay in a screen corner for its command to run (milliseconds).</summary>
+    [ObservableProperty] private int _hotCornerDelay = 300;
+
+    /// <summary>The gestures of the commands work (off: the button behaves as always everywhere).</summary>
+    [ObservableProperty] private bool _mouseGestures = true;
+
+    /// <summary>The button held to draw a gesture: <see cref="Input.MouseButton.Right"/> or <see cref="Input.MouseButton.Middle"/>.</summary>
+    [ObservableProperty] private Input.MouseButton _gestureButton = Input.MouseButton.Right;
+
+    /// <summary>The stroke is drawn on the screen while it is made, with the command it will run.</summary>
+    [ObservableProperty] private bool _gestureTrail = true;
+
+    /// <summary>Programs where the gesture button is never held back (games, drawing or 3D programs that drag with it).</summary>
+    public ObservableCollection<string> GesturesOffIn { get; set { field = value ?? []; field.CollectionChanged += (_, _) => Touch(); } } = [];
+
+    /// <summary>The gestures drawn by the user, besides the built-in ones.</summary>
+    public ObservableCollection<CustomGesture> CustomGestures { get; set { field = value ?? []; field.CollectionChanged += (_, _) => Touch(); } } = [];
+
     public AppSettings()
     {
+        GesturesOffIn.CollectionChanged += (_, _) => Touch();
+        CustomGestures.CollectionChanged += (_, _) => Touch();
         DisabledIn.CollectionChanged += (_, _) => Touch();
         BlockSideButtonsIn.CollectionChanged += (_, _) => Touch();
         AssistantsOnDesktop.CollectionChanged += (_, _) => Touch();

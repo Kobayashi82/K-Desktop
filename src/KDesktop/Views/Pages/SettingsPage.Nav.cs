@@ -36,6 +36,7 @@ public partial class SettingsPage
             new("launcher", "Search24", "settings.nav.launcher"),
             new("clipboard", "ClipboardTextLtr24", "settings.nav.clipboard"),
             new("disabledIn", "Prohibited24", "settings.nav.disabledIn"),
+            new("mouse", "CursorClick24", "settings.nav.mouse"),
         ]),
         new("media", "settings.nav.group.media",
         [

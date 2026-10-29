@@ -1536,6 +1536,81 @@
                 </StackPanel>
             </Border>
 
+            <!-- Hot corners (E4): how long the cursor waits in a corner; the corners are chosen in each command's hotkeys -->
+            <Border Style="{StaticResource Card}" Tag="mouse">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.corners}" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,10" TextWrapping="Wrap" Text="{l:Tr settings.cornersHint}" />
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.cornerDelay}" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.cornerDelayHint}" />
+                        </StackPanel>
+                        <Grid Grid.Column="1">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <Slider Margin="0,0,14,0" Minimum="0" Maximum="1500" Value="{Binding HotCornerDelay}" TickFrequency="50" IsSnapToTickEnabled="True" VerticalAlignment="Center"
+                                    AutomationProperties.Name="{l:Tr settings.cornerDelay}" />
+                            <TextBlock Grid.Column="1" MinWidth="56" TextAlignment="Right" Text="{Binding HotCornerDelay, StringFormat={}{0} ms}" VerticalAlignment="Center" />
+                        </Grid>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Mouse gestures (E4): on or off, the button, the stroke on the screen and the programs without gestures -->
+            <Border Style="{StaticResource Card}" Tag="mouse">
+                <StackPanel>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Style="{StaticResource CardTitle}" Margin="0" Text="{l:Tr settings.gestures}" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.gesturesHint}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding MouseGestures}" AutomationProperties.Name="{l:Tr settings.gestures}" />
+                    </Grid>
+                    <StackPanel IsEnabled="{Binding MouseGestures}">
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.gestureButton}" />
+                            <UniformGrid x:Name="GestureButtonPicker" Grid.Column="1" Rows="1" Margin="-5,0">
+                                <RadioButton Style="{StaticResource PickTile}" Tag="Right" GroupName="GestureButton" Checked="OnGestureButton" AutomationProperties.Name="{l:Tr settings.gestureButton.Right}">
+                                    <Grid>
+                                        <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                        <TextBlock Style="{StaticResource TileBig}" Text="Mouse 2" />
+                                        <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.gestureButton.Right}" />
+                                    </Grid>
+                                </RadioButton>
+                                <RadioButton Style="{StaticResource PickTile}" Tag="Middle" GroupName="GestureButton" Checked="OnGestureButton" AutomationProperties.Name="{l:Tr settings.gestureButton.Middle}">
+                                    <Grid>
+                                        <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                        <TextBlock Style="{StaticResource TileBig}" Text="Mouse 3" />
+                                        <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.gestureButton.Middle}" />
+                                    </Grid>
+                                </RadioButton>
+                            </UniformGrid>
+                        </Grid>
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                <TextBlock Text="{l:Tr settings.gestureTrail}" />
+                                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.gestureTrailHint}" />
+                            </StackPanel>
+                            <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding GestureTrail}" AutomationProperties.Name="{l:Tr settings.gestureTrail}" />
+                        </Grid>
+                        <Border Height="1" Margin="0,14,0,12" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+                        <TextBlock Text="{l:Tr settings.gesturesOffIn}" />
+                        <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,10" TextWrapping="Wrap" Text="{l:Tr settings.gesturesOffInHint}" />
+                        <ItemsControl ItemsSource="{Binding GesturesOffIn}" ItemTemplate="{StaticResource ProcessChip}" ItemsPanel="{StaticResource Wrap}" />
+                        <Border Height="1" Margin="0,6,0,12" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+                        <StackPanel Orientation="Horizontal">
+                            <ComboBox x:Name="GesturesOffBox" IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnProcessDropDown" DropDownClosed="OnProcessPicked" KeyDown="OnProcessKeyDown" />
+                            <ui:Button Appearance="Primary" MinHeight="36" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddGesturesOff" />
+                            <ui:Button MinHeight="36" Margin="8,0,0,0" VerticalAlignment="Stretch" AutomationProperties.Name="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickGesturesOff" ToolTip="{l:Tr picker.tooltip}" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
             <!-- Captures (5.0.262: a section of its own) -->
             <Border Style="{StaticResource Card}" Tag="capture">
                 <StackPanel>

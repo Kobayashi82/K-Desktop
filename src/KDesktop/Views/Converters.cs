@@ -35,6 +35,8 @@ public sealed class HotkeyPartsConverter : IValueConverter
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is not string hk || hk.Length == 0) return Array.Empty<string>();
+        // A screen corner or a gesture (E4) is one cap, in the language of the interface.
+        if (Hotkey.IsCorner(hk) || Hotkey.IsGesture(hk)) return new[] { Hotkey.Display(hk) };
         var (mods, main) = Hotkey.Parse(hk);
         var parts = new List<string>();
         if (mods.HasFlag(Modifiers.Ctrl)) parts.Add("Ctrl");

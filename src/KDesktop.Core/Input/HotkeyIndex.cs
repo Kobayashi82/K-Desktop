@@ -110,7 +110,36 @@ public sealed class HotkeyIndex
         _pauseAnywhere = settings.PauseIgnoreDisabledApps;
         PauseBlock = settings.PauseBlockKey;
         DisabledInBlock = settings.DisabledInBlockKey;
+        HasCorners = _map.Keys.Any(Hotkey.IsCorner);
+        HotCornerDelay = Math.Clamp(settings.HotCornerDelay, 0, 3000);
+        HasGestures = settings.MouseGestures && _map.Keys.Any(Hotkey.IsGesture);
+        GestureButton = settings.GestureButton == MouseButton.Middle ? MouseButton.Middle : MouseButton.Right;
+        _gesturesOffIn = settings.GesturesOffIn.Select(ProcessNames.Normalize).ToHashSet();
+        CustomGestures = settings.CustomGestures.Select(g => new CustomGesture { Name = g.Name, Samples = [.. g.Samples] }).ToArray();
     }
+
+    /// <summary>Some command runs from a screen corner (E4): the mouse movements are looked at.</summary>
+    public bool HasCorners { get; }
+
+    /// <summary>Milliseconds the cursor stays in a corner before its command runs.</summary>
+    public int HotCornerDelay { get; }
+
+    /// <summary>Some command runs with a gesture and gestures are on (E4): the gesture button is held back to see.</summary>
+    public bool HasGestures { get; }
+
+    public MouseButton GestureButton { get; }
+
+    /// <summary>The user's gestures, copied (the hook thread reads them while the interface edits the live ones).</summary>
+    public IReadOnlyList<CustomGesture> CustomGestures { get; }
+
+    private readonly HashSet<string> _gesturesOffIn;
+
+    public bool GesturesOffIn(string process) => _gesturesOffIn.Contains(process);
+
+    /// <summary>Something answers to <paramref name="hotkey"/> alone (a command or one of K-Desktop's own keys): it is not held back for gestures.</summary>
+    public bool TakesAlone(string hotkey) =>
+        _map.ContainsKey(hotkey) || _talkKeys.ContainsKey(hotkey) ||
+        new[] { VoiceHotkey, LauncherHotkey, ClipboardHotkey, ShowWindowHotkey, ExitHotkey, PauseHotkey, DisabledInHotkey }.Contains(hotkey, StringComparer.OrdinalIgnoreCase);
 
     public bool Contains(string hotkey) => _map.ContainsKey(hotkey);
 

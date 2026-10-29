@@ -61,6 +61,28 @@ public static class Hotkey
         return main.Length == 0 ? string.Empty : Format(mods, main);
     }
 
+    /// <summary>A screen corner (E4): <c>Corner TopLeft</c>, <c>Corner BottomRight</c>…</summary>
+    public const string CornerPrefix = "Corner ";
+
+    /// <summary>A mouse gesture (E4): <c>Gesture C</c>, <c>Gesture Left</c> or the name of one drawn by the user.</summary>
+    public const string GesturePrefix = "Gesture ";
+
+    public static bool IsCorner(string hotkey) => hotkey.StartsWith(CornerPrefix, StringComparison.OrdinalIgnoreCase);
+
+    public static bool IsGesture(string hotkey) => hotkey.StartsWith(GesturePrefix, StringComparison.OrdinalIgnoreCase);
+
+    public static string Gesture(string id) => GesturePrefix + id;
+
+    /// <summary>
+    /// How a hotkey is shown: as stored, but a corner or a gesture in the language of the interface («Esquina ↖», «Gesto C»).
+    /// </summary>
+    public static string Display(string hotkey)
+    {
+        if (IsCorner(hotkey)) return Localization.Loc.T("hotkey.corner." + hotkey[CornerPrefix.Length..].Trim());
+        if (IsGesture(hotkey)) return Localization.Loc.T("hotkey.gesture", MouseGestures.Symbol(hotkey[GesturePrefix.Length..].Trim()));
+        return hotkey;
+    }
+
     public static bool IsMouse(string hotkey)
     {
         var (_, main) = Parse(hotkey);

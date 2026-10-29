@@ -407,6 +407,25 @@
                                 <!-- What the hotkeys do besides running the command -->
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,8,0">
                                     <ui:Button x:Name="AddHotkeyButton" MinHeight="36" Content="{l:Tr commands.addHotkey}" Icon="{ui:SymbolIcon Add24}" Appearance="Primary" Click="OnAddHotkey" Margin="0,0,6,0" />
+                                    <!-- A screen corner or a mouse gesture as a hotkey (E4) -->
+                                    <ui:Button Width="38" Height="36" Padding="0" Margin="0,0,6,0" Icon="{ui:SymbolIcon DesktopCursor24}" Click="OnAddCorner"
+                                               AutomationProperties.Name="{l:Tr commands.addCorner}">
+                                        <ui:Button.ToolTip>
+                                            <StackPanel MaxWidth="320">
+                                                <TextBlock FontWeight="SemiBold" Text="{l:Tr commands.addCorner}" />
+                                                <TextBlock Margin="0,2,0,0" TextWrapping="Wrap" Text="{l:Tr commands.addCornerHint}" />
+                                            </StackPanel>
+                                        </ui:Button.ToolTip>
+                                    </ui:Button>
+                                    <ui:Button Width="38" Height="36" Padding="0" Icon="{ui:SymbolIcon HandDraw24}" Click="OnAddGesture"
+                                               AutomationProperties.Name="{l:Tr commands.addGesture}">
+                                        <ui:Button.ToolTip>
+                                            <StackPanel MaxWidth="320">
+                                                <TextBlock FontWeight="SemiBold" Text="{l:Tr commands.addGesture}" />
+                                                <TextBlock Margin="0,2,0,0" TextWrapping="Wrap" Text="{l:Tr commands.addGestureHint}" />
+                                            </StackPanel>
+                                        </ui:Button.ToolTip>
+                                    </ui:Button>
                                     <v:IconToggle Width="38" Height="36" Margin="0" IsChecked="{Binding BlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
                                                   Title="{l:Tr commands.blockKey}" Hint="{l:Tr commands.blockKeyHint}" />
                                     <v:IconToggle Width="38" Height="36" IsChecked="{Binding IgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"

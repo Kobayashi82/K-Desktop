@@ -16,6 +16,21 @@ A hotkey is any combination of keys, mouse buttons and the wheel: `CTRL + ALT + 
   nothing. The action *Disable in current app* toggles it for the program in front.
 - K-Desktop warns you when a hotkey is already used by another command, by K-Desktop itself or by an assistant.
 
+### Hot corners and mouse gestures
+
+Next to **Add hotkey** there are two more buttons:
+
+- **Screen corner**: choose one of the four (↖ ↗ ↙ ↘) and the command runs when you rest the mouse there for a moment.
+  Any corner where the cursor stops counts, also the one left loose by a taller or shifted screen; where two screens meet
+  there is no corner. It never fires with a button held or in full screen.
+- **Mouse gesture**: a drawing of one stroke (←, →, ↑, ↓, C, L, N, S, U, V, Λ, W, M, Z or a circle) made holding the
+  right button (or the middle one). If you click without moving, or hold it still, the button works as always; Esc while
+  drawing cancels it. The gesture window has a box to try the drawings with the left button, and **Draw your own**: give
+  it a name and draw it three times.
+
+The wait in the corner, the gesture button, showing the stroke and the programs without gestures are in
+*Settings → Mouse*.
+
 ## Actions
 
 Each command has a list of actions that run in order: open a program, place a window, send keys, change the volume, wait,

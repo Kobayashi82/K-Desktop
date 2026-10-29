@@ -896,7 +896,8 @@ public partial class SettingsPage : UserControl
     private ObservableCollection<string>? ListOf(object? box) =>
         ReferenceEquals(box, DisabledInBox) ? _app.Config.Settings.DisabledIn
         : ReferenceEquals(box, SideButtonsBox) ? _app.Config.Settings.BlockSideButtonsIn
-        : ReferenceEquals(box, ClipboardExcludedBox) ? _app.Config.Settings.ClipboardExcluded : null;
+        : ReferenceEquals(box, ClipboardExcludedBox) ? _app.Config.Settings.ClipboardExcluded
+        : ReferenceEquals(box, GesturesOffBox) ? _app.Config.Settings.GesturesOffIn : null;
 
     private void OnProcessDropDown(object? sender, EventArgs e)
     {
@@ -918,6 +919,15 @@ public partial class SettingsPage : UserControl
     private void OnAddDisabledIn(object sender, RoutedEventArgs e) => ProcessCombo.AddTyped(DisabledInBox, _app.Config.Settings.DisabledIn);
 
     private void OnAddSideButtons(object sender, RoutedEventArgs e) => ProcessCombo.AddTyped(SideButtonsBox, _app.Config.Settings.BlockSideButtonsIn);
+
+    private void OnAddGesturesOff(object sender, RoutedEventArgs e) => ProcessCombo.AddTyped(GesturesOffBox, _app.Config.Settings.GesturesOffIn);
+
+    private void OnPickGesturesOff(object sender, RoutedEventArgs e) => PickInto(_app.Config.Settings.GesturesOffIn);
+
+    private void OnGestureButton(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: string tag } && Enum.TryParse<Core.Input.MouseButton>(tag, out var button)) _app.Config.Settings.GestureButton = button;
+    }
 
     private void OnPickDisabledIn(object sender, RoutedEventArgs e) => PickInto(_app.Config.Settings.DisabledIn);
 
@@ -1027,6 +1037,7 @@ public partial class SettingsPage : UserControl
         Mark(ZoomColorsPicker, s.ZoomColors.ToString());
         Mark(CaptureFormatPicker, s.CaptureFormat.ToString());
         Mark(RecordFormatPicker, s.RecordFormat.ToString());
+        Mark(GestureButtonPicker, s.GestureButton.ToString());
     }
 
     // ── captures, recordings and the lupa's border ───────────────────────

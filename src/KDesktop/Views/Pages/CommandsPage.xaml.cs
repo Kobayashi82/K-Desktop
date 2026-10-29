@@ -173,7 +173,7 @@ public sealed partial class CommandsPage : UserControl, IDisposable
         var q = SearchBox?.Text?.Trim();
         if (string.IsNullOrEmpty(q)) return true;
         return c.Name.Contains(q, StringComparison.CurrentCultureIgnoreCase)
-               || c.Hotkeys.Any(h => h.Contains(q, StringComparison.OrdinalIgnoreCase))
+               || c.Hotkeys.Any(h => h.Contains(q, StringComparison.OrdinalIgnoreCase) || Hotkey.Display(h).Contains(q, StringComparison.OrdinalIgnoreCase))
                || c.Actions.Any(a => a.Summary.Contains(q, StringComparison.CurrentCultureIgnoreCase));
     }
 
@@ -595,6 +595,41 @@ public sealed partial class CommandsPage : UserControl, IDisposable
             Window.GetWindow(this));
     }
 
+    /// <summary>A screen corner as a hotkey (E4): the four corners in a menu under the button.</summary>
+    private void OnAddCorner(object sender, RoutedEventArgs e)
+    {
+        if (_selected is not { } cmd) return;
+        HotkeyCapture.CancelActive();
+        var menu = new ContextMenu { PlacementTarget = sender as UIElement, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom };
+        foreach (var corner in Enum.GetValues<ScreenCorner>())
+        {
+            var hotkey = HotCorners.Hotkey(corner);
+            var item = new MenuItem
+            {
+                Header = Hotkey.Display(hotkey) + "  ·  " + Loc.T("enum.notifyCorner." + corner),
+                IsEnabled = !cmd.Hotkeys.Contains(hotkey, Hotkey.Comparer),
+            };
+            item.Click += (_, _) => AddSpecialHotkey(cmd, hotkey);
+            menu.Items.Add(item);
+        }
+        menu.IsOpen = true;
+    }
+
+    /// <summary>A mouse gesture as a hotkey (E4): chosen or drawn in its dialog.</summary>
+    private void OnAddGesture(object sender, RoutedEventArgs e)
+    {
+        if (_selected is not { } cmd) return;
+        HotkeyCapture.CancelActive();
+        if (Dialogs.GestureDialog.Pick(Window.GetWindow(this)) is { } hotkey) AddSpecialHotkey(cmd, hotkey);
+    }
+
+    private void AddSpecialHotkey(Command cmd, string hotkey)
+    {
+        HotkeysExpander.IsExpanded = true;
+        if (!cmd.Hotkeys.Contains(hotkey, Hotkey.Comparer)) cmd.Hotkeys.Add(hotkey);
+        ShowConflicts(cmd, hotkey);
+    }
+
     private void ShowConflicts(Command cmd, string hotkey)
     {
         // Same hotkey: both run when both are for every program or for the same one; a command limited to some
@@ -611,7 +646,7 @@ public sealed partial class CommandsPage : UserControl, IDisposable
             else if (mine.Length == 0 && theirs.Length > 0) lines.Add(Loc.T("commands.hotkeyLoses", string.Join(", ", theirs), other.Name));
         }
         if (Config.Settings.OwnHotkeys.Any(h => Hotkey.Comparer.Equals(hotkey, Hotkey.Normalize(h)))) others.Add("K-Desktop");
-        if (others.Count > 0) lines.Insert(0, Loc.T("commands.hotkeyConflict", hotkey, string.Join(", ", others)));
+        if (others.Count > 0) lines.Insert(0, Loc.T("commands.hotkeyConflict", Hotkey.Display(hotkey), string.Join(", ", others)));
         HotkeyWarning.Text = string.Join(Environment.NewLine, lines);
         HotkeyWarning.Visibility = lines.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
     }

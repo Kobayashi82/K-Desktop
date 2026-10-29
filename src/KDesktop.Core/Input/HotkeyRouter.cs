@@ -67,7 +67,7 @@ public sealed partial class HotkeyRouter : IDisposable
     public void SetRecorder(IInputRecorder? recorder)
     {
         _recorder = recorder;
-        _hook.ForwardMouseMove = recorder is not null;
+        UpdateMoveForwarding();
     }
 
     public bool IsRecording => _recorder is not null;
@@ -84,7 +84,11 @@ public sealed partial class HotkeyRouter : IDisposable
 
     public void Reinstall() => _hook.Reinstall();
 
-    public void UpdateIndex(HotkeyIndex index) => _index = index;
+    public void UpdateIndex(HotkeyIndex index)
+    {
+        _index = index;
+        UpdateMoveForwarding();
+    }
 
     /// <summary>
     /// Starts capturing hotkeys for the editor. The callback receives (hotkey, isFinal) on the hook thread and
@@ -151,6 +155,8 @@ public sealed partial class HotkeyRouter : IDisposable
             Post(() => StopMacrosRequested?.Invoke());
             return Block(vk, mods);
         }
+
+        if (vk == KeyNames.VK_ESCAPE && CancelGesture()) return Block(vk, mods);
 
         if (vk == KeyNames.VK_ESCAPE && _windowPicker is { } cancelPick)
         {
@@ -269,7 +275,25 @@ public sealed partial class HotkeyRouter : IDisposable
             return true;
         if (KBoardMouse(e)) return true;
         if (_recorder is { } recorder) return recorder.OnMouse(e);
+        if (e.Message == MouseMessage.Move)
+        {
+            OnMove(e);
+            return false;
+        }
         if (e.Message == MouseMessage.Down) ForgetTyped(); // a click may move the cursor
+
+        // Gestures (E4): the gesture button held back, and what other buttons do meanwhile.
+        if (_gesture is { } stroke)
+        {
+            var taken = e.Message switch
+            {
+                MouseMessage.Up when e.Button == stroke.Button => GestureUp(stroke),
+                MouseMessage.Down when e.Button != stroke.Button => GestureOtherDown(stroke, e),
+                _ => null,
+            };
+            if (taken is { } swallow) return swallow;
+        }
+        else if (e.Message == MouseMessage.Down && GestureDown(e)) return true;
 
         if (e.Message == MouseMessage.Down && e.Button == MouseButton.Left && _windowPicker is { } picker)
         {
