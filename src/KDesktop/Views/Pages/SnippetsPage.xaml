@@ -51,6 +51,7 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <Border x:Name="Badge" MinWidth="30" Height="26" Margin="0,0,12,0" Padding="8,0" CornerRadius="13" Background="{DynamicResource Kd.AccentSoft}"
                                     VerticalAlignment="Center">
@@ -60,6 +61,8 @@
                             </Border>
                             <TextBlock x:Name="Preview" Grid.Column="1" VerticalAlignment="Center" Text="{Binding Preview}" FontSize="13" TextTrimming="CharacterEllipsis"
                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            <ui:ToggleSwitch Grid.Column="2" Margin="6,0,6,0" VerticalAlignment="Center" IsChecked="{Binding Enabled}"
+                                             ToolTip="{l:Tr snippets.on}" AutomationProperties.Name="{l:Tr snippets.on}" />
                         </Grid>
                         <DataTemplate.Triggers>
                             <DataTrigger Binding="{Binding Enabled}" Value="False">

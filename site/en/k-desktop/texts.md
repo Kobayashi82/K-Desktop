@@ -12,7 +12,7 @@ them.
 
 ## Options
 
-- **Write as you type**: turns every text on or off at once. Each text also has its own **On** switch.
+- **Write as you type**: turns every text on or off at once. Each text also has its own **On** switch, in the list and on its card.
 - **Prefix**: goes before every abbreviation (`;` by default) so normal writing never sets one off. You can change it or
   leave it empty; without a prefix, an abbreviation only goes off as a whole word (`ok` does not go off inside `book`).
 

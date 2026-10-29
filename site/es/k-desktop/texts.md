@@ -13,7 +13,7 @@ editas.
 ## Opciones
 
 - **Escribir al teclear**: apaga o enciende todos los textos a la vez. Cada texto tiene además su interruptor
-  **Activado**.
+  **Activado**, en la lista y en su ficha.
 - **Prefijo**: va delante de cada abreviatura (`;` de serie) para que no salte al escribir normal. Puedes cambiarlo o
   dejarlo vacío; sin prefijo, una abreviatura solo salta como palabra entera (`ok` no salta dentro de `book`).
 
