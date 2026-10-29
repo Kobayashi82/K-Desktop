@@ -130,7 +130,7 @@ public partial class App : Application
         });
         Favicons.Prefetch(Config.Commands.SelectMany(c => c.Actions));
 
-        Ui = new UiServices(Dispatcher, () => Config.Settings, () => ShowMainWindow(), () => _ = ExitAsync(Config.Settings.ExitSound)) { AssistantExtra = RunExtraFromCommand, AssistantAsk = AskAssistantFromCommand, AssistantAskFor = AskForAnswerFromCommand, AnswerSheet = ShowAnswerSheetFromCommand, AssistantAskScheduled = AskScheduledFromEvent, AssistantSayer = SayFromCommand, AssistantBrainer = BrainFromCommand, AssistantChatter = ChatWindowFromCommand, Dictator = mode => _ = Voice.DictateAsync(mode) };
+        Ui = new UiServices(Dispatcher, () => Config.Settings, () => ShowMainWindow(), () => _ = ExitAsync(Config.Settings.ExitSound)) { AssistantExtra = RunExtraFromCommand, AssistantAsk = AskAssistantFromCommand, AssistantAskFor = AskForAnswerFromCommand, AnswerSheet = ShowAnswerSheetFromCommand, AssistantAskScheduled = AskScheduledFromEvent, AssistantSayer = SayFromCommand, AssistantBrainer = BrainFromCommand, AssistantChatter = ChatWindowFromCommand, AssistantToolUser = UseToolFromCommandAsync, Dictator = mode => _ = Voice.DictateAsync(mode) };
         Engine = new CommandEngine(Store, Ui, new ExecutionHistory(ExecutionHistory.DefaultFile));
         Events = new Core.Engine.Events.EventService(Engine, Ui, () => Config);
         Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice),

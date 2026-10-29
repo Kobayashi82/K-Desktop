@@ -32,6 +32,9 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     /// <summary>«Asistente: preguntar» with an answer (assistant id, the order or empty, whether it comes out), on the UI thread.</summary>
     public Func<string, string, bool, CancellationToken, Task<Core.Assistant.Pipe.RepliedMessage?>>? AssistantAskFor { get; set; }
 
+    /// <summary>«Usar una herramienta» (tool, arguments, the command's name, run by itself), on the UI thread.</summary>
+    public Func<string, string, string, bool, CancellationToken, Task<Core.Assistant.Pipe.ToolTestMessage?>>? AssistantToolUser { get; set; }
+
     /// <summary>Shows an answer on its assistant's reading sheet, on the UI thread.</summary>
     public Action<string, string>? AnswerSheet { get; set; }
 
@@ -278,6 +281,9 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
 
     public async Task<Core.Assistant.Pipe.RepliedMessage?> AskAssistantForAsync(string assistant, string text, bool bringOut, CancellationToken token) =>
         AssistantAskFor is { } ask ? await (await dispatcher.InvokeAsync(() => ask(assistant, text, bringOut, token)).Task.ConfigureAwait(false)).ConfigureAwait(false) : null;
+
+    public async Task<Core.Assistant.Pipe.ToolTestMessage?> UseAssistantToolAsync(string tool, string arguments, string command, bool unattended, CancellationToken token) =>
+        AssistantToolUser is { } use ? await (await dispatcher.InvokeAsync(() => use(tool, arguments, command, unattended, token)).Task.ConfigureAwait(false)).ConfigureAwait(false) : null;
 
     public void ShowAnswerSheet(string assistant, string markdown) => dispatcher.BeginInvoke(() => AnswerSheet?.Invoke(assistant, markdown));
 

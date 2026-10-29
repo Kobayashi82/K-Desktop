@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using KDesktop.Core;
 using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Pipe;
+using KDesktop.Core.Localization;
 using KDesktop.Core.Platform;
 
 namespace KDesktop;
@@ -73,8 +74,66 @@ public partial class App
         AssistantToolsChanged?.Invoke();
     }
 
+    // ── «Usar una herramienta» (G1) ──────────────────────────────────────
+
+    private readonly Dictionary<string, TaskCompletionSource<ToolTestMessage?>> _toolRuns = new(StringComparer.Ordinal);
+
+    /// <summary>The longest a command waits for the assistants' process to be up (K-Desktop just started, it came back).</summary>
+    private static readonly TimeSpan ToolProcessWait = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// A tool run from a command, without the AI: what it gave back, or null when it was not done (the module is off: the
+    /// OSD says so; the process did not come up or went). While it works (over a moment), the OSD says so. UI thread.
+    /// </summary>
+    private async Task<ToolTestMessage?> UseToolFromCommandAsync(string tool, string arguments, string command, bool unattended, CancellationToken token)
+    {
+        if (_assistant is null)
+        {
+            Ui.ShowOsd(Loc.T("assistantExtra.moduleOff"), Core.Engine.OsdKind.Warning);
+            return null;
+        }
+        // Starting (or coming back): it waits for the process and for its tools to be known.
+        var until = DateTime.UtcNow + ToolProcessWait;
+        while ((_assistant is not { IsRunning: true } || AssistantTools is null) && DateTime.UtcNow < until && _assistant is not null)
+            await Task.Delay(250, token);
+        if (_assistant is not { IsRunning: true } supervisor)
+        {
+            Log.Warn($"Asistente: «{tool}» desde «{command}»: el proceso de los asistentes no está en marcha");
+            Ui.ShowOsd(Loc.T("osd.toolNoProcess"), Core.Engine.OsdKind.Warning);
+            return null;
+        }
+
+        var id = Guid.NewGuid().ToString("N")[..12];
+        var done = new TaskCompletionSource<ToolTestMessage?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _toolRuns[id] = done;
+        IDisposable? working = null;
+        try
+        {
+            if (!supervisor.Send(new ToolsMessage("run", tool, arguments, id, command, unattended ? true : null))) return null;
+            Log.Info($"Asistente: «{command}» usa la herramienta {tool}{(unattended ? " (sin nadie delante)" : string.Empty)}");
+            var slow = Task.Delay(TimeSpan.FromMilliseconds(600), token);
+            if (await Task.WhenAny(done.Task, slow) == slow && !done.Task.IsCompleted)
+                working = Ui.ShowPersistentOsd(Loc.T("osd.toolWorking", ToolTitle(tool)), icon: "Wrench24");
+            return await done.Task.WaitAsync(token);
+        }
+        finally
+        {
+            _toolRuns.Remove(id);
+            working?.Dispose();
+        }
+    }
+
+    /// <summary>A tool's name for people, as Options → Tools says it (the process does not know it: from its name).</summary>
+    public string ToolTitle(string tool) =>
+        AssistantTools?.Tools.FirstOrDefault(t => t.Name == tool) is { } info ? Views.Pages.AssistantToolsSection.TitleOf(info) : Views.Assistant.ToolTestForm.Humanize(tool);
+
     private void OnAssistantToolTest(ToolTestMessage test)
     {
+        if (test.Id is { } run)
+        {
+            if (_toolRuns.Remove(run, out var waiting)) waiting.TrySetResult(test);
+            return;
+        }
         _toolTests[test.Name] = test;
         AssistantToolsTesting.Remove(test.Name);
         AssistantToolsChanged?.Invoke();
@@ -83,6 +142,9 @@ public partial class App
     /// <summary>The process went away: what it sent no longer holds.</summary>
     private void ForgetAssistantTools()
     {
+        // The commands waiting for a tool: nobody answers them now.
+        foreach (var run in _toolRuns.Keys.ToList())
+            if (_toolRuns.Remove(run, out var waiting)) waiting.TrySetResult(null);
         if (AssistantTools is null && AssistantToolsTesting.Count == 0) return;
         AssistantTools = null;
         AssistantToolsTesting.Clear();

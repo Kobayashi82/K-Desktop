@@ -128,7 +128,7 @@ internal sealed class ModuleTools : IDisposable
             knowledge?["paused"] is JsonValue pause && pause.TryGetValue<bool>(out var paused) && paused);
     }
 
-    /// <summary>Options → Tools: the list, testing a tool, starting or stopping a server, loading the files again.</summary>
+    /// <summary>Options → Tools: the list, testing a tool, starting or stopping a server, loading the files again; and «Usar una herramienta».</summary>
     public async Task OnToolsAsync(ToolsMessage request)
     {
         switch (request.Op)
@@ -136,6 +136,9 @@ internal sealed class ModuleTools : IDisposable
             case "test" when request.Name is { } name:
                 _link.Send(await TestAsync(name, request.Arguments).ConfigureAwait(false));
                 break;
+            case "run" when request is { Name: { } name, Id: { } id }:
+                _link.Send(await RunFromCommandAsync(name, request.Arguments, id, request.Command, request.Unattended == true).ConfigureAwait(false));
+                return; // nothing of Options → Tools changed
             case "start" when request.Name is { } server:
                 var watch = Stopwatch.StartNew();
                 var error = await Mcp.TestAsync(server, CancellationToken.None).ConfigureAwait(false);
@@ -164,6 +167,27 @@ internal sealed class ModuleTools : IDisposable
         var ok = outcome.Result is { Failed: false };
         var text = outcome.Result is { } result ? result.Reply is { } reply && reply != result.Text ? result.Text + "\n" + reply : result.Text : outcome.Entry.Did;
         return new ToolTestMessage(name, ok, text, (int)watch.ElapsedMilliseconds);
+    }
+
+    /// <summary>
+    /// «Usar una herramienta» (G1): a tool run from one of the user's commands, for the module without a body, with its
+    /// texts made typed by its schema; what it gave back (its text, not what an assistant would say) or why not.
+    /// </summary>
+    private async Task<ToolTestMessage> RunFromCommandAsync(string name, string? arguments, string id, string? command, bool unattended)
+    {
+        JsonElement parsed;
+        try { parsed = ToolArguments.Parse(string.IsNullOrWhiteSpace(arguments) ? "{}" : arguments); }
+        catch (JsonException ex) { return new ToolTestMessage(name, false, Loc.T("tools.badArguments", ex.Message), 0, id); }
+        if (Registry.FindAny(name) is { } tool) parsed = ToolArguments.Typed(parsed, tool.ParametersSchemaJson);
+        var watch = Stopwatch.StartNew();
+        var heard = Loc.T("tools.actionHeard", command ?? "?");
+        var outcome = await Runner.RunAsync(name, parsed, new ToolContext(null, heard), heard,
+            unattended ? ToolRunner.UnattendedActionRoute : ToolRunner.ActionRoute, CancellationToken.None).ConfigureAwait(false);
+        var ok = outcome.Result is { Failed: false };
+        // What it says in the user's words if it has them (the weather, a conversion); otherwise its own text (an MCP
+        // server's answer). Not run: why, as the activity says it.
+        var text = outcome.Result is { } result ? result.Reply is { Length: > 0 } reply ? reply : result.Text : outcome.Entry.Did;
+        return new ToolTestMessage(name, ok, text, (int)watch.ElapsedMilliseconds, id);
     }
 
     private void StateChanged() => _stateTimer.Change(TimeSpan.FromMilliseconds(250), Timeout.InfiniteTimeSpan);

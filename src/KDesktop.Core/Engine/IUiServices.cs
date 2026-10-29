@@ -97,6 +97,14 @@ public interface IUiServices
     Task<Assistant.Pipe.RepliedMessage?> AskAssistantForAsync(string assistant, string text, bool bringOut, CancellationToken token) =>
         Task.FromResult<Assistant.Pipe.RepliedMessage?>(null);
 
+    /// <summary>
+    /// «Usar una herramienta» (G1): runs one of the assistants' tools in their process, without the AI; what it gave back,
+    /// or null when it was not done (the module is off or its process is not there: the OSD says so).
+    /// <paramref name="unattended"/>: run by itself (an event), so what would ask is not done.
+    /// </summary>
+    Task<Assistant.Pipe.ToolTestMessage?> UseAssistantToolAsync(string tool, string arguments, string command, bool unattended, CancellationToken token) =>
+        Task.FromResult<Assistant.Pipe.ToolTestMessage?>(null);
+
     /// <summary>An answer of «Asistente: preguntar» on its assistant's reading sheet.</summary>
     void ShowAnswerSheet(string assistant, string markdown) { }
 

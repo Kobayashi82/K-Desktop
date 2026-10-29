@@ -188,6 +188,10 @@ public sealed class ToolRegistry
     public ToolRisk RiskOf(ITool tool) =>
         _preferences.TryGetValue(tool.Name, out var preference) && ToolPreference.Parse(preference.Risk) is { } risk ? risk : tool.Risk;
 
+    /// <summary>How the user chose that <paramref name="tool"/> asks in Options → Tools; null: they did not.</summary>
+    public ToolRisk? ChosenRisk(ITool tool) =>
+        _preferences.TryGetValue(tool.Name, out var preference) ? ToolPreference.Parse(preference.Risk) : null;
+
     /// <summary>Its risk for one call (<see cref="ITool.RiskFor"/>), unless the user chose one in Options → Tools.</summary>
     public ToolRisk RiskOf(ITool tool, JsonElement arguments) =>
         _preferences.TryGetValue(tool.Name, out var preference) && ToolPreference.Parse(preference.Risk) is { } risk ? risk : tool.RiskFor(arguments);
@@ -257,5 +261,50 @@ public static class ToolArguments
     {
         using var document = JsonDocument.Parse(json);
         return document.RootElement.Clone();
+    }
+
+    /// <summary>
+    /// Arguments written as texts made typed by the tool's schema («Usar una herramienta», G1: a number field holding
+    /// {resultado} is a text until it runs): «5» for a number or an integer, «true»/«sí» for a boolean, «[…]» for a list or
+    /// an object. What does not fit is left as it was (the tool says what is wrong).
+    /// </summary>
+    public static JsonElement Typed(JsonElement arguments, string? schema)
+    {
+        if (arguments.ValueKind != JsonValueKind.Object || string.IsNullOrWhiteSpace(schema)) return arguments;
+        System.Text.Json.Nodes.JsonObject? properties;
+        try { properties = System.Text.Json.Nodes.JsonNode.Parse(schema)?["properties"] as System.Text.Json.Nodes.JsonObject; }
+        catch (JsonException) { return arguments; }
+        if (properties is null) return arguments;
+
+        var typed = System.Text.Json.Nodes.JsonNode.Parse(arguments.GetRawText())!.AsObject();
+        foreach (var (name, value) in typed.ToList())
+        {
+            if (value is not System.Text.Json.Nodes.JsonValue text || !text.TryGetValue<string>(out var written)) continue;
+            if (properties[name] is not System.Text.Json.Nodes.JsonObject property) continue;
+            var type = property["type"] switch
+            {
+                System.Text.Json.Nodes.JsonValue one when one.TryGetValue<string>(out var t) => t,
+                System.Text.Json.Nodes.JsonArray many => many.Select(n => n?.GetValue<string>()).FirstOrDefault(t => t is not null and not "null"),
+                _ => null,
+            };
+            var trimmed = written.Trim();
+            System.Text.Json.Nodes.JsonNode? converted = type switch
+            {
+                "integer" when long.TryParse(trimmed, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var whole) => whole,
+                "number" when double.TryParse(trimmed.Replace(',', '.'), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var number) => number,
+                "boolean" when trimmed.ToLowerInvariant() is "true" or "1" or "sí" or "si" or "yes" => true,
+                "boolean" when trimmed.ToLowerInvariant() is "false" or "0" or "no" => false,
+                "array" or "object" when trimmed.Length > 0 && trimmed[0] is '[' or '{' => ParseOrNull(trimmed),
+                _ => null,
+            };
+            if (converted is not null) typed[name] = converted;
+        }
+        return Parse(typed.ToJsonString());
+
+        static System.Text.Json.Nodes.JsonNode? ParseOrNull(string json)
+        {
+            try { return System.Text.Json.Nodes.JsonNode.Parse(json); }
+            catch (JsonException) { return null; }
+        }
     }
 }

@@ -88,6 +88,90 @@ public sealed partial class CommandEngine
     }
 
     /// <summary>
+    /// «Usar una herramienta» (G1): the tool runs in the assistants' process, with the variables put inside the texts of its
+    /// arguments; what it gives back goes to {resultado}. Not done or failed (the OSD says why): the rest of the command is
+    /// not run, it needed it. Run by itself (an event, at startup…), what would ask is not done. Esc stops waiting.
+    /// </summary>
+    private async Task AssistantToolAsync(AssistantToolAction a, ExecutionContext ctx)
+    {
+        if (a.Tool.Length == 0) return;
+        var arguments = ExpandArguments(a.Arguments);
+        var unattended = ctx.Source is TriggerSource.Event or TriggerSource.Startup or TriggerSource.Exit or TriggerSource.Remote
+            or TriggerSource.Web or TriggerSource.Mcp or TriggerSource.CommandLine;
+
+        Assistant.Pipe.ToolTestMessage? done;
+        var cts = BeginCancellable(ctx.Token);
+        using var limit = CancellationTokenSource.CreateLinkedTokenSource(cts.Token);
+        limit.CancelAfter(AnswerWait);
+        try
+        {
+            done = await _ui.UseAssistantToolAsync(a.Tool, arguments, ctx.Command.Name, unattended, limit.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!cts.IsCancellationRequested)
+        {
+            Log.Warn($"'{ctx.Command.Name}': la herramienta {a.Tool} no ha contestado en {AnswerWait.TotalMinutes:0} minutos");
+            _ui.ShowOsd(Loc.T("osd.toolNoAnswer"), OsdKind.Warning);
+            throw new OperationCanceledException();
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested && !ctx.Token.IsCancellationRequested)
+        {
+            CountdownCancelled();
+            throw;
+        }
+        finally { EndCancellable(cts); }
+
+        if (done is null) throw new OperationCanceledException(); // the OSD said why
+        if (!done.Ok)
+        {
+            Log.Warn($"'{ctx.Command.Name}': la herramienta {a.Tool} no lo hizo: {done.Text}");
+            _ui.ShowOsd(done.Text.Length > 0 ? done.Text : Loc.T("osd.toolFailed"), OsdKind.Warning, look: OsdLook.Of("Wrench24"));
+            throw new OperationCanceledException();
+        }
+        Log.Info($"'{ctx.Command.Name}': la herramienta {a.Tool} dio {done.Text.Length} letras en {done.Ms} ms");
+        Gave(a, done.Text);
+    }
+
+    /// <summary>
+    /// The arguments with the variables put inside their texts (only there, so a {seleccion} with quotes stays good JSON);
+    /// not JSON (written by hand and broken): as they are, the tool says what is wrong.
+    /// </summary>
+    internal static string ExpandArguments(string arguments)
+    {
+        if (string.IsNullOrWhiteSpace(arguments)) return "{}";
+        System.Text.Json.Nodes.JsonNode? root;
+        try { root = System.Text.Json.Nodes.JsonNode.Parse(arguments); }
+        catch (System.Text.Json.JsonException) { return arguments; }
+        if (root is null) return "{}";
+        if (Text(root) is { } alone) return System.Text.Json.Nodes.JsonValue.Create(alone).ToJsonString();
+        Walk(root);
+        return root.ToJsonString();
+
+        static string? Text(System.Text.Json.Nodes.JsonNode? node) =>
+            node is System.Text.Json.Nodes.JsonValue value && value.TryGetValue<string>(out var text) ? TextVariables.Expand(text) : null;
+
+        static void Walk(System.Text.Json.Nodes.JsonNode node)
+        {
+            switch (node)
+            {
+                case System.Text.Json.Nodes.JsonObject obj:
+                    foreach (var (name, value) in obj.ToList())
+                    {
+                        if (Text(value) is { } text) obj[name] = text;
+                        else if (value is not null) Walk(value);
+                    }
+                    break;
+                case System.Text.Json.Nodes.JsonArray list:
+                    for (var i = 0; i < list.Count; i++)
+                    {
+                        if (Text(list[i]) is { } text) list[i] = text;
+                        else if (list[i] is { } item) Walk(item);
+                    }
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
     /// The answer over the selection, in the window the command was run over, like transform_text: only there (another one
     /// in front now: left copied, and the OSD says so), and the clipboard put back as it was.
     /// </summary>

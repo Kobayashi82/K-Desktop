@@ -162,6 +162,34 @@ public partial class AssistantSayAction : CommandAction
     public override string Summary => Text.Trim().Length == 0 ? Loc.T("summary.assistantSayEmpty") : $"«{Text.Trim()}»";
 }
 
+/// <summary>
+/// «Usar una herramienta» (G1): one of the assistants' tools (built-in, JSON or MCP) run without the AI, with the
+/// arguments written in the editor (variables expanded inside their texts), in the assistants' process by its
+/// <c>ToolRunner</c> (message <c>tools</c> <c>run</c>). The command is the user's, so it does not ask, except a JSON script
+/// new or changed and what the user set to «Preguntar siempre»; from an event, what would ask is not done. What it gives
+/// back goes to {resultado}; failed or not done, the rest of the command is not run.
+/// </summary>
+public partial class AssistantToolAction : CommandAction
+{
+    /// <summary>The tool's name («telegram_send_message»).</summary>
+    [ObservableProperty] private string _tool = string.Empty;
+
+    /// <summary>Its arguments, a JSON object; text values may hold variables ({seleccion}, {resultado}…).</summary>
+    [ObservableProperty] private string _arguments = "{}";
+
+    /// <summary>Display-only: its name for people (from the tools the process has), null when it is not there now.</summary>
+    [ObservableProperty]
+    [property: JsonIgnore] private string? _toolName;
+
+    public override ActionKind Kind => ActionKind.AssistantTool;
+
+    public override bool GivesResult => true;
+
+    public override string Summary => Tool.Length == 0 ? Loc.T("summary.noTool") : ToolName ?? Tool;
+
+    public override bool IsTransient(string? property) => property is nameof(ToolName) || base.IsTransient(property);
+}
+
 /// <summary>What «Asistente: chat» does with the chat window.</summary>
 public enum AssistantChatMode { Toggle, Open, Close }
 

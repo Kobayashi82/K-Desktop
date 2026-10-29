@@ -41,4 +41,5 @@ aparece un `ActionKind` sin gesto o sin riesgo.
 | Asistente: decir (`AssistantSay`) | | `communicate` ★ (icono `assistant`): el asistente lo dice (`say`) | 🟢 |
 | Asistente: cerebro (`AssistantBrain`) | | `communicate` (icono `assistant`): saca el modelo de la gráfica o lo carga (`brain` `unload` / `load`) | 🟢 |
 | Asistente: preguntar (`AssistantAsk`) | | `communicate` ★ (icono `assistant`); la orden la contesta el asistente (`heard` con `source: "command"`); sin texto, abre la caja para escribirla | 🟢 |
+| Asistente: usar una herramienta (`AssistantTool`) | | `communicate` ★ (icono `assistant`); la herramienta la ejecuta el proceso de los asistentes (`tools` `run`), sin la IA | 🟡 (hace lo que haga la herramienta) |
 | «Si…» (`Condition`) | | ninguno: solo decide qué acciones corren | 🟢 |

@@ -62,7 +62,8 @@ public partial class ActionPicker : FluentWindow
     {
         // The assistant module's actions only while it is on (off, K-Desktop is the one of always).
         var assistant = App.Current.Config.Settings.AssistantEnabled;
-        var categories = ActionCatalog.All.Where(a => assistant || !a.NeedsAssistant).GroupBy(a => a.CategoryKey)
+        // «Usar una herramienta» (G1) until its editor is there (second batch).
+        var categories = ActionCatalog.All.Where(a => (assistant || !a.NeedsAssistant) && a.Kind != ActionKind.AssistantTool).GroupBy(a => a.CategoryKey)
             .Select(g => new ActionCategory(g.Key, g.First().Category, CategorySymbol(g.Key),
                 g.Select(a => new ActionChoice(a.Name, a.Description, a.Symbol, a)).ToList()))
             .ToList();

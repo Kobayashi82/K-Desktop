@@ -24,6 +24,9 @@ public static partial class TextVariables
     /// </summary>
     public static Func<int, string?>? HistoryText { get; set; }
 
+    /// <summary>Whether <paramref name="text"/> has something that looks like a variable ({resultado}, {nombre}…).</summary>
+    public static bool HasVariable(string? text) => !string.IsNullOrEmpty(text) && Pattern().IsMatch(text);
+
     /// <summary>Whether <paramref name="text"/> uses {seleccion} (it has to be copied before the action runs).</summary>
     public static bool UsesSelection(string? text) =>
         !string.IsNullOrEmpty(text) && Pattern().Matches(text).Any(m => IsSelection(m.Groups[1].Value));

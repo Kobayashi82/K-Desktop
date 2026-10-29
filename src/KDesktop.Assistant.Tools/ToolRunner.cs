@@ -41,6 +41,15 @@ public sealed class ToolRunner
     /// <summary>How long a question waits for an answer.</summary>
     public static readonly TimeSpan AskTime = TimeSpan.FromSeconds(10);
 
+    /// <summary>
+    /// The route of «Usar una herramienta» (G1): the user's own command, so it counts as allowed; only a script not approved
+    /// yet (new or changed) and what the user set to «Preguntar siempre» ask.
+    /// </summary>
+    public const string ActionRoute = "action";
+
+    /// <summary>The same, run by itself (an event): nobody is asked, and what would ask is not done.</summary>
+    public const string UnattendedActionRoute = "actionUnattended";
+
     /// <summary>Undoable lines kept (the oldest are forgotten).</summary>
     private const int KeptUndos = 50;
 
@@ -143,7 +152,24 @@ public sealed class ToolRunner
     {
         var name = tool.Name;
         var risk = _registry.RiskOf(tool, arguments);
-        if (!shared && ScheduledOrder.Current is { } scheduled)
+        if (route is ActionRoute or UnattendedActionRoute)
+        {
+            if (unseen || _registry.ChosenRisk(tool) == ToolRisk.AskAlways)
+            {
+                if (route == UnattendedActionRoute)
+                {
+                    Log.Info($"Asistente: {name} desde un evento tendría que preguntar: no se ejecuta");
+                    return new ToolOutcome(null, Record(context.Assistant, heard, ActionRoute, Loc.T("tools.notAskedAlone", intent), ok: false));
+                }
+                Use(context, tool, ToolPhase.Asking);
+                var choice = await AskAsync(tool, ToolRisk.AskAlways, Loc.T(unseen ? "tools.askNew" : "tools.ask", intent), fingerprint is not null, context, cancellationToken).ConfigureAwait(false);
+                if (choice is not ("yes" or "always"))
+                    return new ToolOutcome(null, Record(context.Assistant, heard, route, Loc.T(choice == "no" ? "tools.denied" : "tools.unanswered", intent), ok: false));
+                if (choice == "always" && fingerprint is not null) Approve(fingerprint);
+            }
+            route = ActionRoute;
+        }
+        else if (!shared && ScheduledOrder.Current is { } scheduled)
         {
             // An order programmed earlier, now due: nobody is asked. What was approved then runs, and what only reads or
             // is safe; whatever else would ask is not done (the answer says so).

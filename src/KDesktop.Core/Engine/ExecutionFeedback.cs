@@ -109,6 +109,9 @@ internal sealed class FeedbackUiServices(IUiServices inner) : IUiServices
     public void AskAssistant(string assistant, string text, bool bringOut = false) => inner.AskAssistant(assistant, text, bringOut);
     public Task<Assistant.Pipe.RepliedMessage?> AskAssistantForAsync(string assistant, string text, bool bringOut, CancellationToken token) =>
         inner.AskAssistantForAsync(assistant, text, bringOut, token);
+
+    public Task<Assistant.Pipe.ToolTestMessage?> UseAssistantToolAsync(string tool, string arguments, string command, bool unattended, CancellationToken token) =>
+        inner.UseAssistantToolAsync(tool, arguments, command, unattended, token);
     public void ShowAnswerSheet(string assistant, string markdown) => inner.ShowAnswerSheet(assistant, markdown);
     public void AskAssistantScheduled(EventAsk ask) => inner.AskAssistantScheduled(ask);
     public void AssistantSay(string assistant, string text, bool catchEye, bool bringOut) => inner.AssistantSay(assistant, text, catchEye, bringOut);

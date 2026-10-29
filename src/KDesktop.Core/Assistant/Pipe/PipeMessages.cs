@@ -708,14 +708,20 @@ public sealed record ToolsStateMessage(IReadOnlyList<ToolInfo> Tools, IReadOnlyL
 /// <summary>
 /// Options → Tools: <c>list</c>; <c>test</c> a tool (<paramref name="Name"/>, <paramref name="Arguments"/> as JSON), answered
 /// with <c>toolTest</c>; <c>start</c> (try) or <c>stop</c> an MCP server (<paramref name="Name"/>); <c>reload</c> the files.
+/// «Usar una herramienta» (G1): <c>run</c> a tool from a command (<paramref name="Command"/>, its name), answered with
+/// <c>toolTest</c> carrying the same <paramref name="Id"/>; <paramref name="Unattended"/> (an event): what would ask is not done.
 /// </summary>
-public sealed record ToolsMessage(string Op, string? Name = null, string? Arguments = null) : PipeMessage
+public sealed record ToolsMessage(string Op, string? Name = null, string? Arguments = null, string? Id = null, string? Command = null,
+    bool? Unattended = null) : PipeMessage
 {
     public override string Type => "tools";
 }
 
-/// <summary>How a <c>tools</c> <c>test</c> or <c>start</c> went: <paramref name="Text"/> is what it gave back or why not.</summary>
-public sealed record ToolTestMessage(string Name, bool Ok, string Text, int Ms) : PipeMessage
+/// <summary>
+/// How a <c>tools</c> <c>test</c>, <c>start</c> or <c>run</c> went: <paramref name="Text"/> is what it gave back or why not;
+/// <paramref name="Id"/>, the <c>run</c>'s.
+/// </summary>
+public sealed record ToolTestMessage(string Name, bool Ok, string Text, int Ms, string? Id = null) : PipeMessage
 {
     public override string Type => "toolTest";
 }

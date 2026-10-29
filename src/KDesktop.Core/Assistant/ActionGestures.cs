@@ -113,6 +113,7 @@ public static class ActionGestures
         ActionKind.AssistantSay => Say("assistant"),
         ActionKind.AssistantBrain => Say("assistant"),
         ActionKind.AssistantChat => Say("assistant"),
+        ActionKind.AssistantTool => Say("assistant"),
 
         // «Si…» decides which actions run; it does nothing visible itself.
         ActionKind.Condition => [],

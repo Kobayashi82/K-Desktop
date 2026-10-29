@@ -51,6 +51,18 @@ internal sealed class FakeUi : IUiServices
         return Task.FromResult(Reply(assistant, text));
     }
 
+    /// <summary>The tools «Usar una herramienta» used (tool, arguments, run by itself).</summary>
+    public List<(string Tool, string Arguments, bool Unattended)> Tools { get; } = [];
+
+    /// <summary>What a tool gives back (tool, arguments → null: not done).</summary>
+    public Func<string, string, Assistant.Pipe.ToolTestMessage?> ToolAnswer { get; set; } = (_, _) => null;
+
+    public Task<Assistant.Pipe.ToolTestMessage?> UseAssistantToolAsync(string tool, string arguments, string command, bool unattended, CancellationToken token)
+    {
+        lock (Tools) Tools.Add((tool, arguments, unattended));
+        return Task.FromResult(ToolAnswer(tool, arguments));
+    }
+
     /// <summary>What was put in the clipboard (nothing touches the real one).</summary>
     public List<string> Copied { get; } = [];
 
