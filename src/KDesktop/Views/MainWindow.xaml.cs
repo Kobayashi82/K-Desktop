@@ -318,6 +318,7 @@ public partial class MainWindow : FluentWindow
                 "quickmenus" => new Pages.QuickMenusPage(),
                 "events" => new Pages.EventsPage(),
                 "macros" => new Pages.MacrosPage(),
+                "snippets" => new Pages.SnippetsPage(),
                 "kboard" => new Pages.KBoardPage(),
                 "achievements" => new Pages.AchievementsPage(),
                 "history" => new Pages.HistoryPage(),

@@ -174,6 +174,15 @@ public static class VariableHints
     private static IEnumerable<Choice> Choices(TextBox box)
     {
         var spanish = Loc.Instance.Language == "es";
+        // A text of «Textos» is not inside a command: no result nor selection, but where the cursor stays.
+        if (box.DataContext is TextSnippet)
+        {
+            yield return new("cursor", Loc.T("vars.cursor"));
+            yield return new(spanish ? "portapapeles" : "clipboard", Loc.T("vars.clipboard"));
+            yield return new(spanish ? "fecha" : "date", Loc.T("vars.date"));
+            yield return new(spanish ? "hora" : "time", Loc.T("vars.time"));
+            yield break;
+        }
         yield return new(spanish ? "resultado" : "result", Loc.T("vars.result"));
         yield return new(spanish ? "seleccion" : "selection", Loc.T("vars.selection"));
         yield return new(spanish ? "portapapeles" : "clipboard", Loc.T("vars.clipboard"));

@@ -21,6 +21,9 @@ public sealed class AppConfig
     /// <summary>Automations: «when X happens, run these commands».</summary>
     public ObservableCollection<EventRule> Events { get; set; } = [];
 
+    /// <summary>The texts of the expander («Textos»).</summary>
+    public ObservableCollection<TextSnippet> Snippets { get; set; } = [];
+
     /// <summary>Brings a configuration saved by an older version up to date. Returns true when something changed.</summary>
     public bool Upgrade()
     {
@@ -586,6 +589,13 @@ public partial class AppSettings : ObservableObject
 
     /// <summary>The sound of the notifications (those of «Mostrar notificación» set to «Global», and K-Desktop's own); null: none.</summary>
     [ObservableProperty] private string? _notifySound = Path.Combine(Platform.SoundLibrary.WindowsMedia, "Windows Proximity Notification.wav");
+
+    // Textos (the text expander)
+    /// <summary>Typing an abbreviation of «Textos» writes its text.</summary>
+    [ObservableProperty] private bool _snippetsEnabled = true;
+
+    /// <summary>What goes before every abbreviation (so writing normally never sets one off); empty: none.</summary>
+    [ObservableProperty] private string _snippetPrefix = ";";
 
     // Macros
     /// <summary>Record mouse movements (not only clicks) when recording a macro.</summary>

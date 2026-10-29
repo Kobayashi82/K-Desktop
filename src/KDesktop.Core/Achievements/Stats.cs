@@ -48,6 +48,9 @@ public static class Stat
     public const string ScriptsPowerShell = "scripts.powershell";
     public const string KeysSent = "input.sent";
 
+    /// <summary>Texts of «Textos» written by typing their abbreviation.</summary>
+    public const string SnippetsExpanded = "snippets.expanded";
+
     public const string Shutdowns = "power.shutdown";
     public const string PowerUsed = "power.used";
     public const string RecycleEmptied = "recycle.emptied";
@@ -81,7 +84,7 @@ public static class Stat
     [
         ("commands", [CommandsRun, CommandsCreated, CommandsDeleted, ActionsRun, ActionsCreated, ActionsDeleted]),
         ("menus", [MenusOpened, MenusCreated, MenusDeleted, LauncherUsed, RemoteRun]),
-        ("apps", [AppsLaunched, FoldersOpened, WebOpened, ScriptsRun, KeysSent, MacrosPlayed, MacrosRecorded]),
+        ("apps", [AppsLaunched, FoldersOpened, WebOpened, ScriptsRun, KeysSent, SnippetsExpanded, MacrosPlayed, MacrosRecorded]),
         ("events", [EventsFired, EventsEnded, EventsCreated]),
         ("kboard", [KBoardRemapped, KBoardToggled, KBoardsCreated]),
         ("voice", [VoiceOrders, VoiceMeaning, WakeWords]),

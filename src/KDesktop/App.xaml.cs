@@ -62,6 +62,7 @@ public partial class App : Application
 
     public ConfigStore Store { get; } = new();
     public HotkeyRouter Router { get; } = new();
+    public TextExpander Expander { get; } = new();
     public CommandEngine Engine { get; private set; } = null!;
 
     /// <summary>Automations (Eventos): watches what they wait for and runs their commands.</summary>
@@ -202,6 +203,10 @@ public partial class App : Application
 
         // Hotkeys
         Router.Triggered += Engine.OnHotkey;
+        // Textos: an abbreviation typed anywhere writes its text (never in a password box).
+        Expander.IsPasswordBox = PasswordFocus.IsPassword;
+        Expander.Expanded += _ => Achievements.Increment(Stat.SnippetsExpanded);
+        Router.SnippetTyped += hit => _ = Expander.ExpandAsync(hit);
         Router.BuiltIn += hotkey =>
         {
             // The window in front now, before the launcher takes its place.
@@ -401,6 +406,7 @@ public partial class App : Application
     {
         var paused = Config.Settings.Paused;
         Router.UpdateIndex(new HotkeyIndex(Config.Commands, Config.Settings, paused));
+        Router.UpdateSnippets(new SnippetIndex(Config, paused));
         Router.UpdateKBoard(paused ? KBoardIndex.Empty : new KBoardIndex(Config.KBoards, Config.Commands, Config.Settings.DisabledIn));
     }
 

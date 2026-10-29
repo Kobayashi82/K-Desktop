@@ -208,9 +208,11 @@ public sealed partial class HotkeyRouter : IDisposable
             return Block(vk, mods);
         }
 
-        if (!index.Contains(hotkey)) return false;
+        if (!index.Contains(hotkey)) return SnippetKey(e, mods) && Block(vk, mods);
         var fg = ForegroundWindow.Capture();
         var commands = index.Resolve(hotkey, fg.ProcessName, out var block);
+        if (commands.Count == 0 && !block) return SnippetKey(e, mods) && Block(vk, mods);
+        ForgetTyped();
         if (commands.Count > 0) Post(() => Triggered?.Invoke(new HotkeyTrigger(hotkey, commands, repeat, fg)));
         return block && Block(vk, mods);
     }
@@ -261,6 +263,7 @@ public sealed partial class HotkeyRouter : IDisposable
             return true;
         if (KBoardMouse(e)) return true;
         if (_recorder is { } recorder) return recorder.OnMouse(e);
+        if (e.Message == MouseMessage.Down) ForgetTyped(); // a click may move the cursor
 
         if (e.Message == MouseMessage.Down && e.Button == MouseButton.Left && _windowPicker is { } picker)
         {
