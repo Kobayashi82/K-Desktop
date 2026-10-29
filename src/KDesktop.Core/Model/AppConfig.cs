@@ -1059,6 +1059,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>Where Options → Tools → «Importar…» looked last (null: Documents).</summary>
     [ObservableProperty] private string? _assistantMcpImportFolder;
 
+    /// <summary>Where «Exportar…» / «Importar…» of a command, macro, profile, event or menu looked last (null: Documents).</summary>
+    [ObservableProperty] private string? _transferFolder;
+
     /// <summary>
     /// The assistants' tools for other programs, as an MCP server (phase 12, <c>KDesktop.exe --mcp</c>). Off by default:
     /// the user turns it on and gives the program the key.

@@ -49,6 +49,21 @@ internal static class ListContextMenu
         return item;
     }
 
+    /// <summary>«Exportar…» and «Importar…» (E6) and a separator, as in every list of commands, macros, profiles, events and menus.</summary>
+    public static Control[] Transfer(UIElement from, Core.Storage.TransferKind kind, string id, string name) =>
+    [
+        Entry(Core.Localization.Loc.T("transfer.export"), SymbolRegular.Save24, () => ItemTransferUi.Export(from, kind, id, name)),
+        Entry(Core.Localization.Loc.T("transfer.import"), SymbolRegular.ArrowDownload24, () => ItemTransferUi.Import(from)),
+        new Separator(),
+    ];
+
+    /// <summary>A right click in a list but not on a row: only «Importar…».</summary>
+    public static void OpenImport(ListBox list, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+        Open(list, Entry(Core.Localization.Loc.T("transfer.import"), SymbolRegular.ArrowDownload24, () => ItemTransferUi.Import(list)));
+    }
+
     /// <summary>Opens a menu at the mouse with <paramref name="items"/> (menu items and separators).</summary>
     public static void Open(UIElement target, params Control[] items)
     {

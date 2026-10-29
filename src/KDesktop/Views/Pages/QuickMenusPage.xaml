@@ -233,6 +233,8 @@
                                            Click="OnCreateCommand" Margin="0,0,8,0" />
                                 <ui:Button x:Name="UndoButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowUndo24, FontSize=18}" ToolTip="{l:Tr qm.undo}" Click="OnUndo" Margin="0,0,8,0" IsEnabled="False" />
                                 <ui:Button x:Name="RedoButton" Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon ArrowRedo24, FontSize=18}" ToolTip="{l:Tr qm.redo}" Click="OnRedo" Margin="0,0,8,0" IsEnabled="False" />
+                                <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Save24, FontSize=18}" ToolTip="{l:Tr transfer.export}" AutomationProperties.Name="{l:Tr transfer.export}"
+                                           Click="OnExport" Margin="0,0,8,0" />
                                 <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Copy24, FontSize=18}" ToolTip="{l:Tr qm.duplicateMenu}" AutomationProperties.Name="{l:Tr qm.duplicateMenu}"
                                            Click="OnDuplicateMenu" Margin="0,0,8,0" />
                                 <ui:Button Style="{StaticResource SquareButton}" ToolTip="{l:Tr qm.deleteMenu}" AutomationProperties.Name="{l:Tr qm.deleteMenu}" Click="OnDeleteMenu">

@@ -88,3 +88,20 @@ event, assistant, MCP server, command line…) and whether it went well.
 - **Icon**: automatic (from its first action), a built-in vector icon in any colour, a Windows icon library, any image or a
   website's favicon.
 - In the editor, **Test only this action** runs one action alone.
+
+### Export and import
+
+A command, a macro, a K-Board profile, an event or a QuickMenu can be taken on its own to another PC (or kept apart) with
+**Export…**, from the list's right-click menu or with the disk button in the editor's header. It saves a `.kdx` file
+with everything it needs: the commands an event runs, the macros, QuickMenus, K-Board profiles, layouts and events a
+command uses, the commands of a menu or of a profile… and your own icons, sounds and gestures.
+
+To bring it in: **Import…** in the right-click menu of any of those lists (also in the empty space under the rows), or
+drop the `.kdx` on the K-Desktop window. It never overwrites anything:
+
+- What you already have, the same, is used as it is.
+- If you already have something but with changes, it asks: **Add as a copy** (it comes in apart, and so does what uses it,
+  so it works as it was exported) or **Use mine**.
+- A name that already exists gets a number («Greeting 2») and a hotkey you already use is left out.
+
+When it is done it opens what came in. From outside: `KDesktop.exe --import "file.kdx"`.

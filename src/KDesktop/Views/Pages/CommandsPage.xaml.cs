@@ -12,6 +12,7 @@ using KDesktop.Core.Engine;
 using KDesktop.Core.Input;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
+using KDesktop.Core.Storage;
 using KDesktop.Core.Platform;
 using KDesktop.Services;
 using Microsoft.Win32;
@@ -407,6 +408,11 @@ public sealed partial class CommandsPage : UserControl, IDisposable
         return name;
     }
 
+    private void OnExport(object sender, RoutedEventArgs e)
+    {
+        if (_selected is { } item) ItemTransferUi.Export(this, TransferKind.Command, item.Id, item.Name);
+    }
+
     private void OnDuplicateCommand(object sender, RoutedEventArgs e)
     {
         if (_selected is null) return;
@@ -471,8 +477,12 @@ public sealed partial class CommandsPage : UserControl, IDisposable
 
     private void OnCommandRightClick(object sender, MouseButtonEventArgs e)
     {
-        if (ListContextMenu.SelectRow(CommandList, e) is not { DataContext: Command cmd } row) return;
-        ListContextMenu.Open(row,
+        if (ListContextMenu.SelectRow(CommandList, e) is not { DataContext: Command cmd } row)
+        {
+            ListContextMenu.OpenImport(CommandList, e);
+            return;
+        }
+        ListContextMenu.Open(row, [
             cmd.IsRunning
                 ? ListContextMenu.Entry(Loc.T("commands.stop"), SymbolRegular.Stop24, () => _app.Engine.Stop(cmd.Id))
                 : ListContextMenu.Entry(Loc.T("commands.run"), SymbolRegular.Play24, () => OnRunCommand(this, e)),
@@ -488,7 +498,8 @@ public sealed partial class CommandsPage : UserControl, IDisposable
             ListContextMenu.Entry(cmd.Hidden ? Loc.T("commands.unhide") : Loc.T("commands.hide"),
                 cmd.Hidden ? SymbolRegular.Eye24 : SymbolRegular.EyeOff24, () => cmd.Hidden = !cmd.Hidden),
             new Separator(),
-            ListContextMenu.Delete(() => OnDeleteCommand(this, e)));
+            .. ListContextMenu.Transfer(row, TransferKind.Command, cmd.Id, cmd.Name),
+            ListContextMenu.Delete(() => OnDeleteCommand(this, e))]);
     }
 
     private void OnCommandListKey(object sender, KeyEventArgs e)

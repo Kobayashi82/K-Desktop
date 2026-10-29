@@ -11,6 +11,7 @@ using KDesktop.Core.Engine;
 using KDesktop.Core.Input;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
+using KDesktop.Core.Storage;
 using KDesktop.Views.Dialogs;
 using KDesktop.Views.QuickMenuEditor;
 using Wpf.Ui.Controls;
@@ -100,13 +101,18 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
 
     private void OnMenuRightClick(object sender, MouseButtonEventArgs e)
     {
-        if (ListContextMenu.SelectRow(MenuList, e) is not { DataContext: QuickMenu } row) return;
-        ListContextMenu.Open(row,
+        if (ListContextMenu.SelectRow(MenuList, e) is not { DataContext: QuickMenu menu } row)
+        {
+            ListContextMenu.OpenImport(MenuList, e);
+            return;
+        }
+        ListContextMenu.Open(row, [
             ListContextMenu.Entry(Loc.T("qm.test"), SymbolRegular.Play24, () => OnTest(row, new RoutedEventArgs())),
             ListContextMenu.Entry(Loc.T("common.duplicate"), SymbolRegular.Copy24, () => OnDuplicateMenu(row, new RoutedEventArgs())),
             ListContextMenu.Entry(Loc.T("commands.rename"), SymbolRegular.Rename24, FocusName),
             new Separator(),
-            ListContextMenu.Delete(() => OnDeleteMenu(row, new RoutedEventArgs())));
+            .. ListContextMenu.Transfer(row, TransferKind.QuickMenu, menu.Id, menu.Name),
+            ListContextMenu.Delete(() => OnDeleteMenu(row, new RoutedEventArgs()))]);
     }
 
     private void FocusName() => Dispatcher.BeginInvoke(() =>
@@ -262,6 +268,11 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
         MenuList.SelectedItem = menu;
         MenuList.ScrollIntoView(menu);
         _app.Ui.ShowNotice(Loc.T("aiMenu.created", menu.Name, opener.Name), Core.Engine.OsdKind.Success);
+    }
+
+    private void OnExport(object sender, RoutedEventArgs e)
+    {
+        if (_menu is { } item) ItemTransferUi.Export(this, TransferKind.QuickMenu, item.Id, item.Name);
     }
 
     private void OnDuplicateMenu(object sender, RoutedEventArgs e)

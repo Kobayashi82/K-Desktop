@@ -217,6 +217,8 @@
                                 <ui:Button MinHeight="34" Content="{l:Tr macro.test}" Icon="{ui:SymbolIcon Play24}" Click="OnTest" ToolTip="{l:Tr macro.testHint}" Margin="0,0,8,0" />
                                 <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon FlashAdd20, FontSize=18}" ToolTip="{l:Tr macro.createCommand}" AutomationProperties.Name="{l:Tr macro.createCommand}"
                                            Click="OnCreateCommand" Margin="0,0,8,0" />
+                                <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Save24, FontSize=18}" ToolTip="{l:Tr transfer.export}" AutomationProperties.Name="{l:Tr transfer.export}"
+                                           Click="OnExport" Margin="0,0,8,0" />
                                 <ui:Button Style="{StaticResource SquareButton}" Icon="{ui:SymbolIcon Copy24, FontSize=18}" ToolTip="{l:Tr macro.duplicate}" AutomationProperties.Name="{l:Tr macro.duplicate}"
                                            Click="OnDuplicate" Margin="0,0,8,0" />
                                 <ui:Button Style="{StaticResource SquareButton}" ToolTip="{l:Tr macro.delete}" AutomationProperties.Name="{l:Tr macro.delete}" Click="OnDelete">

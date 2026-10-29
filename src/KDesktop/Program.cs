@@ -14,7 +14,8 @@ namespace KDesktop;
 /// <item><c>--menu "Name"</c> open a QuickMenu · <c>--run "Name"</c> run a command · <c>--event "Name"</c> run an event's commands · <c>--launcher</c> open the launcher · <c>--show</c> · <c>--welcome</c> · <c>--exit</c>
 /// (forwarded to the running instance when there is one; <c>--exit</c> does nothing when none is running)</item>
 /// <item><c>--startup</c> started by Windows (no window) · <c>--no-elevate</c> · <c>--no-hooks</c> · <c>--no-udp</c> · <c>--no-web</c></item>
-/// <item><c>--data "folder"</c> use another data folder (an independent instance) · <c>--page name</c> open a page</item>
+/// <item><c>--data "folder"</c> use another data folder (an independent instance) · <c>--page name</c> open a page ·
+/// <c>--import "file.kdx"</c> import an exported command, macro, profile, event or menu</item>
 /// <item><c>--voice-test a.wav folder "phrase"…</c> voice diagnostics without microphone or UI (report in Logs)</item>
 /// <item><c>--wake-test "name" folder</c> wake word set-up and verification from word*/speech*/test*.wav (report in Logs)</item>
 /// <item><c>--aec-test mic.wav speakers.wav</c> the echo canceller on recordings (cleaned audio next to mic.wav, report in Logs)</item>
@@ -25,7 +26,7 @@ public static class Program
     public const string StartupArgument = "--startup";
     private static string MutexName => @"Local\KDesktop5.Instance" + AppPaths.InstanceSuffix;
 
-    private static readonly string[] ForwardedArguments = ["--menu", "--run", "--event", "--launcher", "--clipboard", "--show", "--welcome", "--exit", "--page", "--install-assistant"];
+    private static readonly string[] ForwardedArguments = ["--menu", "--run", "--event", "--launcher", "--clipboard", "--show", "--welcome", "--exit", "--page", "--install-assistant", "--import"];
 
     [STAThread]
     public static int Main(string[] args)

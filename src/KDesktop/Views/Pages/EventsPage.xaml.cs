@@ -9,6 +9,7 @@ using KDesktop.Core.Achievements;
 using KDesktop.Core.Engine;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
+using KDesktop.Core.Storage;
 using KDesktop.Services;
 using Wpf.Ui.Controls;
 
@@ -249,6 +250,11 @@ public sealed partial class EventsPage : UserControl, IDisposable
         }, System.Windows.Threading.DispatcherPriority.Input);
     }
 
+    private void OnExport(object sender, RoutedEventArgs e)
+    {
+        if (_selected is { } item) ItemTransferUi.Export(this, TransferKind.Event, item.Id, item.Name);
+    }
+
     private void OnDuplicateEvent(object sender, RoutedEventArgs e)
     {
         if (_selected is null) return;
@@ -285,8 +291,12 @@ public sealed partial class EventsPage : UserControl, IDisposable
 
     private void OnEventRightClick(object sender, MouseButtonEventArgs e)
     {
-        if (ListContextMenu.SelectRow(EventList, e) is not { DataContext: EventRule rule } row) return;
-        ListContextMenu.Open(row,
+        if (ListContextMenu.SelectRow(EventList, e) is not { DataContext: EventRule rule } row)
+        {
+            ListContextMenu.OpenImport(EventList, e);
+            return;
+        }
+        ListContextMenu.Open(row, [
             ListContextMenu.Entry(Loc.T("event.test"), SymbolRegular.Play24, () => OnTestEvent(this, e)),
             ListContextMenu.Entry(Loc.T("common.duplicate"), SymbolRegular.Copy24, () => OnDuplicateEvent(this, e)),
             ListContextMenu.Entry(Loc.T("commands.rename"), SymbolRegular.Rename24, () =>
@@ -298,7 +308,8 @@ public sealed partial class EventsPage : UserControl, IDisposable
             ListContextMenu.Entry(rule.Enabled ? Loc.T("commands.disable") : Loc.T("commands.enable"),
                 rule.Enabled ? SymbolRegular.Prohibited24 : SymbolRegular.CheckmarkCircle24, () => rule.Enabled = !rule.Enabled),
             new Separator(),
-            ListContextMenu.Delete(() => OnDeleteEvent(this, e)));
+            .. ListContextMenu.Transfer(row, TransferKind.Event, rule.Id, rule.Name),
+            ListContextMenu.Delete(() => OnDeleteEvent(this, e))]);
     }
 
     private void OnEventListKey(object sender, KeyEventArgs e)

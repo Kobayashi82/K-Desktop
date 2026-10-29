@@ -11,6 +11,7 @@ using KDesktop.Core.Achievements;
 using KDesktop.Core.Input;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
+using KDesktop.Core.Storage;
 
 namespace KDesktop.Views.Pages;
 
@@ -133,8 +134,12 @@ public sealed partial class KBoardPage : UserControl, IDisposable
 
     private void OnProfileRightClick(object sender, MouseButtonEventArgs e)
     {
-        if (ListContextMenu.SelectRow(ProfileList, e) is not { DataContext: KBoardProfile profile } row) return;
-        ListContextMenu.Open(row,
+        if (ListContextMenu.SelectRow(ProfileList, e) is not { DataContext: KBoardProfile profile } row)
+        {
+            ListContextMenu.OpenImport(ProfileList, e);
+            return;
+        }
+        ListContextMenu.Open(row, [
             ListContextMenu.Entry(Loc.T("common.duplicate"), SymbolRegular.Copy24, () => OnDuplicate(row, new RoutedEventArgs())),
             ListContextMenu.Entry(Loc.T("commands.rename"), SymbolRegular.Rename24, () =>
             {
@@ -145,7 +150,8 @@ public sealed partial class KBoardPage : UserControl, IDisposable
             ListContextMenu.Entry(profile.Active ? Loc.T("commands.disable") : Loc.T("commands.enable"),
                 profile.Active ? SymbolRegular.Prohibited24 : SymbolRegular.CheckmarkCircle24, () => profile.Active = !profile.Active),
             new Separator(),
-            ListContextMenu.Delete(() => OnDelete(row, new RoutedEventArgs())));
+            .. ListContextMenu.Transfer(row, TransferKind.KBoard, profile.Id, profile.Name),
+            ListContextMenu.Delete(() => OnDelete(row, new RoutedEventArgs()))]);
     }
 
     // ── name ─────────────────────────────────────────────────────────────
@@ -243,6 +249,11 @@ public sealed partial class KBoardPage : UserControl, IDisposable
         var name = baseName;
         for (var i = 2; Config.KBoards.Any(k => k.Name.Equals(name, StringComparison.OrdinalIgnoreCase)); i++) name = $"{baseName} {i}";
         return name;
+    }
+
+    private void OnExport(object sender, RoutedEventArgs e)
+    {
+        if (_selected is { } item) ItemTransferUi.Export(this, TransferKind.KBoard, item.Id, item.Name);
     }
 
     private void OnDuplicate(object sender, RoutedEventArgs e)

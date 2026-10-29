@@ -10,6 +10,7 @@ using KDesktop.Core.Engine;
 using KDesktop.Core.Input;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
+using KDesktop.Core.Storage;
 using KDesktop.Osd;
 using Wpf.Ui.Controls;
 using MenuItem = System.Windows.Controls.MenuItem;
@@ -120,8 +121,12 @@ public sealed partial class MacrosPage : UserControl, IDisposable
 
     private void OnMacroRightClick(object sender, MouseButtonEventArgs e)
     {
-        if (ListContextMenu.SelectRow(MacroList, e) is not { DataContext: Macro } row) return;
-        ListContextMenu.Open(row,
+        if (ListContextMenu.SelectRow(MacroList, e) is not { DataContext: Macro macro } row)
+        {
+            ListContextMenu.OpenImport(MacroList, e);
+            return;
+        }
+        ListContextMenu.Open(row, [
             ListContextMenu.Entry(Loc.T("macro.test"), SymbolRegular.Play24, () => OnTest(row, new RoutedEventArgs())),
             ListContextMenu.Entry(Loc.T("common.duplicate"), SymbolRegular.Copy24, () => OnDuplicate(row, new RoutedEventArgs())),
             ListContextMenu.Entry(Loc.T("commands.rename"), SymbolRegular.Rename24, () =>
@@ -130,7 +135,8 @@ public sealed partial class MacrosPage : UserControl, IDisposable
                 NameBox.SelectAll();
             }),
             new Separator(),
-            ListContextMenu.Delete(() => OnDelete(row, new RoutedEventArgs())));
+            .. ListContextMenu.Transfer(row, TransferKind.Macro, macro.Id, macro.Name),
+            ListContextMenu.Delete(() => OnDelete(row, new RoutedEventArgs()))]);
     }
 
     // ── folding ──────────────────────────────────────────────────────────
@@ -228,6 +234,11 @@ public sealed partial class MacrosPage : UserControl, IDisposable
         var name = baseName;
         for (var i = 2; Config.Macros.Any(m => m.Name.Equals(name, StringComparison.OrdinalIgnoreCase)); i++) name = $"{baseName} {i}";
         return name;
+    }
+
+    private void OnExport(object sender, RoutedEventArgs e)
+    {
+        if (_selected is { } item) ItemTransferUi.Export(this, TransferKind.Macro, item.Id, item.Name);
     }
 
     private void OnDuplicate(object sender, RoutedEventArgs e)

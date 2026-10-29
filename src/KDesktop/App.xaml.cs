@@ -380,7 +380,7 @@ public partial class App : Application
         }, DispatcherPriority.ApplicationIdle);
     }
 
-    /// <summary>Command-line requests: --menu "Name", --run "Name", --show, --install-assistant "file", --exit.</summary>
+    /// <summary>Command-line requests: --menu "Name", --run "Name", --show, --install-assistant "file", --import "file", --exit.</summary>
     public void HandleArguments(IReadOnlyList<string> args)
     {
         if (Program.ValueOf(args, "--menu") is { } menu) QuickMenus.Show(menu, ForegroundWindow.Capture());
@@ -402,6 +402,7 @@ public partial class App : Application
         if (args.Contains("--welcome", StringComparer.OrdinalIgnoreCase)) ShowWelcome();
         if (Program.ValueOf(args, "--page") is { } page) ShowMainWindow(w => w.Navigate(page.ToLowerInvariant()));
         if (Program.ValueOf(args, PackageAssociation.Argument) is { } package) OpenAssistantPackage(package);
+        if (Program.ValueOf(args, "--import") is { } exported) _ = Views.ItemTransferUi.ImportAsync(exported);
         if (args.Contains("--exit", StringComparer.OrdinalIgnoreCase)) _ = ExitAsync();
     }
 

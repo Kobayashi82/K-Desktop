@@ -210,16 +210,21 @@ public partial class MainWindow : FluentWindow
 
     private void OnAssistantStatus(object sender, RoutedEventArgs e) => Navigate("assistant");
 
-    /// <summary>Files dropped on the window: assistant packages open their card; anything else is not ours.</summary>
-    private void OnFilesDropped(IReadOnlyList<string> files)
+    /// <summary>
+    /// Files dropped on the window: assistant packages open their card, and exported commands, macros, profiles, events or
+    /// menus (.kdx) are imported; anything else is not ours.
+    /// </summary>
+    private async void OnFilesDropped(IReadOnlyList<string> files)
     {
         var packages = files.Where(f => f.EndsWith(Core.Assistant.Packages.AssistantPackages.Extension, StringComparison.OrdinalIgnoreCase)).ToList();
-        if (packages.Count == 0)
+        var items = files.Where(f => f.EndsWith(Core.Storage.ItemTransfer.Extension, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (packages.Count == 0 && items.Count == 0)
         {
             App.Current.Ui.ShowNotice(Loc.T("assistant.dropOnlyPackages"), Core.Engine.OsdKind.Info);
             return;
         }
         foreach (var package in packages) App.Current.OpenAssistantPackage(package);
+        foreach (var item in items) await ItemTransferUi.ImportAsync(item);
     }
 
     private void OnPausedChanged()
