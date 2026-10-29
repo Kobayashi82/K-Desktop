@@ -9,8 +9,9 @@ is not touched.
    («Work»).
 3. **Test** puts it now. **Create a command that applies it** leaves you a command ready to give a hotkey.
 
-**Save as they are now** replaces the zones of every monitor with the windows open at that moment: each window, a zone of
-its monitor with its program (a maximized one, the whole screen; minimized ones do not count).
+**Save as they are now** replaces the zones of every monitor with the windows open at that moment: each monitor is cut by
+its windows, and each zone gets the programs of its windows (a maximized one, the whole screen; minimized ones do not
+count). Zones never overlap: windows one on top of another share a zone, and a wide free area becomes an empty zone.
 
 ## Zones
 

@@ -1848,7 +1848,7 @@
   "arrangement.monitorEmpty": "Keine Zonen: Dieser Bildschirm bleibt beim Anwenden unberührt. Wähle eine Vorlage oder klicke hier, um anzufangen.",
   "arrangement.notConnected": "nicht angeschlossen",
   "arrangement.templates": "Vorlagen",
-  "arrangement.template.Full": "Ganzer Bildschirm",
+  "arrangement.template.Full": "Vollbild",
   "arrangement.template.Columns2": "2 Spalten",
   "arrangement.template.Columns3": "3 Spalten",
   "arrangement.template.Grid": "Raster",

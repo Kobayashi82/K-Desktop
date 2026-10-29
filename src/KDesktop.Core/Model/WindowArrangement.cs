@@ -86,8 +86,8 @@ public partial class WindowArrangement : ObservableObject
     }
 
     /// <summary>
-    /// The windows of a disposición of 5.0.375 as zones: each one a zone of its monitor with its program (a maximised one,
-    /// the whole screen); two in the same place share the zone. One that was switched off keeps its zone without program.
+    /// The windows of a disposición of 5.0.375 as zones: each monitor cut by its windows (a maximised one, the whole
+    /// screen; <see cref="ZoneCuts.Tile"/>), with their programs. One that was switched off leaves its zone without program.
     /// </summary>
     public bool ConvertWindows()
     {
@@ -105,6 +105,17 @@ public partial class WindowArrangement : ObservableObject
             if (w.Enabled && w.Process.Length > 0) zone.Programs.Add(new ZoneProgram { Process = w.Process, Name = w.Name, Title = w.Title, Path = w.Path });
         }
         Windows = null;
+        MendZones();
+        return true;
+    }
+
+    /// <summary>Monitors whose zones overlap or leave gaps (saved by 5.0.376) are cut again (<see cref="ZoneCuts.Mend"/>).</summary>
+    public bool MendZones()
+    {
+        var zones = Zones.ToList();
+        if (!ZoneCuts.Mend(zones)) return false;
+        Zones = [.. zones];
+        OnZoneModified(this, EventArgs.Empty);
         return true;
     }
 

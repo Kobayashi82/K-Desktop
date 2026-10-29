@@ -292,10 +292,13 @@ public sealed partial class ArrangementsPage : UserControl, IDisposable
         TemplatePills.Children.Add(TemplatePill(Loc.T("arrangement.clearZones"), ClearZones));
     }
 
-    /// <summary>A pill that does something: it is not left chosen, nor with the focus border (it would look chosen).</summary>
+    /// <summary>
+    /// A pill that does something: it is not left chosen, nor with the focus border (it would look chosen). Smaller than the
+    /// monitors' ones, so all of them fit in a row at K-Desktop's smallest width.
+    /// </summary>
     private static RadioButton TemplatePill(string text, Action apply)
     {
-        var pill = new RadioButton { Content = text, GroupName = "ArrangementTemplate", Focusable = false };
+        var pill = new RadioButton { Content = text, GroupName = "ArrangementTemplate", Focusable = false, FontSize = 11, Padding = new Thickness(8, 3, 8, 3), Margin = new Thickness(0, 0, 3, 4) };
         pill.SetResourceReference(StyleProperty, "Pill");
         pill.Checked += (_, _) =>
         {

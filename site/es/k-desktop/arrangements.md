@@ -9,8 +9,10 @@ no se toca.
    nombre («Trabajo»).
 3. **Probar** la pone ahora. **Crear un comando que la ponga** te deja un comando listo para darle un atajo.
 
-**Guardar cómo están ahora** cambia las zonas de todos los monitores por las ventanas abiertas en ese momento: cada ventana,
-una zona de su monitor con su programa (una maximizada, toda la pantalla; las minimizadas no cuentan).
+**Guardar cómo están ahora** cambia las zonas de todos los monitores por las ventanas abiertas en ese momento: cada monitor
+se recorta según sus ventanas y cada zona se queda con los programas de las suyas (una maximizada, toda la pantalla; las
+minimizadas no cuentan). Las zonas nunca se pisan: las ventanas que están una encima de otra comparten zona, y un hueco
+libre grande queda como zona vacía.
 
 ## Zonas
 

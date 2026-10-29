@@ -166,6 +166,8 @@ public sealed class AppConfig
         foreach (var rule in Events) changed |= rule.Conditions.Migrate();
         // 5.0.376 (E1b): the disposiciones of 5.0.375 were windows; now they are zones with their programs.
         foreach (var arrangement in Arrangements) changed |= arrangement.ConvertWindows();
+        // 5.0.378: «Guardar cómo están ahora» of 5.0.376 could leave a zone over another, or gaps; now they are cut again.
+        foreach (var arrangement in Arrangements) changed |= arrangement.MendZones();
         if (SchemaVersion < CurrentSchema)
         {
             SchemaVersion = CurrentSchema;

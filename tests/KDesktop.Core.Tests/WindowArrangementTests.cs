@@ -136,12 +136,50 @@ public class WindowArrangementTests
             new("vlc", "VLC", "", "", Side, new ScreenRect(2600, 40, 800, 600), true),
             new("notepad", "Bloc de notas", "", "", Main, new ScreenRect(2000, 1000, 1280, 1000), false),
         ]);
-        Assert.Equal(3, zones.Count);
-        Assert.Equal(2, zones[0].Programs.Count);
-        Assert.True(zones[1].IsFull);
-        Assert.Equal("LG 27GL850", zones[1].MonitorName);
-        // Half out of its monitor: kept inside it.
-        Assert.True(zones[2].Right <= 1.0001 && zones[2].Bottom <= 1.0001);
+        // The main monitor cut whole: the two in the same place share the left half; the one half out of it goes
+        // to the right, under an empty strip as wide as the gap above it.
+        var main = zones.Where(z => z.MonitorName == Main.Name).ToList();
+        Assert.True(ZoneCuts.IsCut(main));
+        Assert.Equal(3, main.Count);
+        Assert.Equal((0d, 0.5), (main[0].Left, main[0].Width));
+        Assert.Equal(["chrome", "code"], main[0].Programs.Select(p => p.Process));
+        Assert.Empty(main[1].Programs);
+        Assert.Equal((0.5, 0.2857, 1d), (main[1].Left, main[1].Height, main[2].Bottom));
+        Assert.Equal(["notepad"], main[2].Programs.Select(p => p.Process));
+        var side = Assert.Single(zones, z => z.MonitorName == Side.Name);
+        Assert.True(side.IsFull);
+    }
+
+    [Fact]
+    public void AWindowOverAnotherSharesItsZoneAndTheFreeSideIsAnEmptyZone()
+    {
+        // The user's screen (29/10/2026): Chrome on the left half, the Explorer over it, the right half free (K-Desktop).
+        var zones = WindowArrangements.ZonesOf(
+        [
+            new("explorer", "Explorador", "D:\\", "", Main, new ScreenRect(563, 448, 640, 504), false),
+            new("chrome", "Google Chrome", "Google", "", Main, new ScreenRect(0, 0, 1280, 1400), false),
+        ]);
+        Assert.True(ZoneCuts.IsCut(zones));
+        Assert.Equal(2, zones.Count);
+        Assert.Equal((0d, 0.5, 1d), (zones[0].Left, zones[0].Width, zones[0].Height));
+        Assert.Equal(["explorer", "chrome"], zones[0].Programs.Select(p => p.Process));
+        Assert.Equal((0.5, 0.5), (zones[1].Left, zones[1].Width));
+        Assert.Empty(zones[1].Programs);
+
+        // Two that overlap a little are cut half way between them.
+        var two = ZoneCuts.Tile([Zone(0, 0, 0.56, 1, "a"), Zone(0.46, 0, 0.54, 1, "b")], Main.Name, Main.Device);
+        Assert.Equal([0.5, 0.5], two.Select(z => z.Width));
+    }
+
+    [Fact]
+    public void ZonesOneOverAnotherAreCutAgainOnStart()
+    {
+        var arrangement = new WindowArrangement { Zones = [Zone(0, 0, 0.5, 1, "chrome"), Zone(0.2, 0.3, 0.25, 0.36, "explorer"), Zone(0, 0, 1, 1, "tv")] };
+        arrangement.Zones[2].MonitorName = Tv.Name;
+        Assert.True(arrangement.MendZones());
+        Assert.True(ZoneCuts.IsCut([.. arrangement.Zones.Where(z => z.MonitorName == Main.Name)]));
+        Assert.Equal(3, arrangement.Zones.Count);
+        Assert.False(arrangement.MendZones());
     }
 
     [Fact]

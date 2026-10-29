@@ -175,6 +175,148 @@ public static class ZoneCuts
         return line with { At = at };
     }
 
+    /// <summary>A free strip at least this wide (of the monitor) next to the windows becomes an empty zone; a narrower one, part of its neighbour.</summary>
+    public const double EmptyStrip = 0.15;
+
+    /// <summary>Two windows are cut apart only if neither loses more than this part of itself; else they share a zone.</summary>
+    public const double MostLost = 0.3;
+
+    /// <summary>The zones of a monitor cover it whole without one over another (as the cuts make them).</summary>
+    public static bool IsCut(IReadOnlyList<ArrangedZone> zones)
+    {
+        if (zones.Count == 0) return true;
+        if (Math.Abs(zones.Sum(z => z.Width * z.Height) - 1) > 0.01) return false;
+        for (var i = 0; i < zones.Count; i++)
+            for (var j = i + 1; j < zones.Count; j++)
+                if (Overlap(zones[i], zones[j]) > Near) return false;
+        return zones.All(z => z.Left >= -Near && z.Top >= -Near && z.Right <= 1 + Near && z.Bottom <= 1 + Near);
+    }
+
+    private static double Overlap(ArrangedZone a, ArrangedZone b) =>
+        Math.Max(0, Math.Min(a.Right, b.Right) - Math.Max(a.Left, b.Left)) * Math.Max(0, Math.Min(a.Bottom, b.Bottom) - Math.Max(a.Top, b.Top));
+
+    /// <summary>
+    /// Cuts a monitor out of rectangles that may overlap or leave gaps (the windows open now, or the zones of 5.0.375), so
+    /// the zones cover it whole without one over another: each cut goes between windows (half way where they overlap a
+    /// little); windows that cannot be cut apart without losing much of one share a zone; a wide free strip is an empty
+    /// zone, a narrow one goes to its neighbour. The programs go with their window, in order.
+    /// </summary>
+    public static List<ArrangedZone> Tile(IReadOnlyList<ArrangedZone> pieces, string monitorName, string monitorDevice)
+    {
+        var result = new List<ArrangedZone>();
+        if (pieces.Count > 0) Cut(0, 0, 1, 1, [.. pieces]);
+        return result;
+
+        void Cut(double l, double t, double r, double b, List<ArrangedZone> inside)
+        {
+            if (inside.Count == 0)
+            {
+                Add(l, t, r, b, inside);
+                return;
+            }
+            // A wide free strip next to the windows: an empty zone (the widest first).
+            var (bl, bt, br, bb) = (Math.Max(l, inside.Min(p => p.Left)), Math.Max(t, inside.Min(p => p.Top)),
+                Math.Min(r, inside.Max(p => p.Right)), Math.Min(b, inside.Max(p => p.Bottom)));
+            var gaps = new[] { (Gap: bl - l, Vertical: true, At: bl), (Gap: r - br, Vertical: true, At: br), (Gap: bt - t, Vertical: false, At: bt), (Gap: b - bb, Vertical: false, At: bb) };
+            var gap = gaps.MaxBy(g => g.Gap);
+            if (gap.Gap >= EmptyStrip)
+            {
+                var at = Snap(gap.At, gap.Vertical ? l : t, gap.Vertical ? r : b);
+                Split2(gap.Vertical, at);
+                return;
+            }
+            if (inside.Count > 1 && BestCut(l, t, r, b, inside) is { } cut)
+            {
+                Split2(cut.Vertical, cut.At);
+                return;
+            }
+            Add(l, t, r, b, inside);
+
+            void Split2(bool vertical, double at)
+            {
+                bool Before(ArrangedZone p) => (vertical ? p.Left + p.Width / 2 : p.Top + p.Height / 2) < at;
+                if (vertical)
+                {
+                    Cut(l, t, at, b, [.. inside.Where(Before)]);
+                    Cut(at, t, r, b, [.. inside.Where(p => !Before(p))]);
+                }
+                else
+                {
+                    Cut(l, t, r, at, [.. inside.Where(Before)]);
+                    Cut(l, at, r, b, [.. inside.Where(p => !Before(p))]);
+                }
+            }
+        }
+
+        void Add(double l, double t, double r, double b, List<ArrangedZone> inside)
+        {
+            var zone = new ArrangedZone { MonitorName = monitorName, MonitorDevice = monitorDevice };
+            zone.SetRect(l, t, r - l, b - t);
+            foreach (var program in inside.SelectMany(p => p.Programs))
+                if (!zone.Programs.Any(p => p.Process == program.Process && p.Title == program.Title)) zone.Programs.Add(program.Clone());
+            result.Add(zone);
+        }
+    }
+
+    /// <summary>The cut that parts the windows losing the least of any of them (null when every one loses too much).</summary>
+    private static (bool Vertical, double At)? BestCut(double l, double t, double r, double b, List<ArrangedZone> inside)
+    {
+        (bool Vertical, double At, double Lost)? best = null;
+        foreach (var vertical in new[] { true, false })
+        {
+            double Mid(ArrangedZone p) => vertical ? p.Left + p.Width / 2 : p.Top + p.Height / 2;
+            double Start(ArrangedZone p) => Math.Max(vertical ? l : t, vertical ? p.Left : p.Top);
+            double End(ArrangedZone p) => Math.Min(vertical ? r : b, vertical ? p.Right : p.Bottom);
+            var (from, to) = vertical ? (l, r) : (t, b);
+            var sorted = inside.OrderBy(Mid).ToList();
+            for (var i = 1; i < sorted.Count; i++)
+            {
+                if (Mid(sorted[i]) - Mid(sorted[i - 1]) < Near) continue;
+                var before = sorted.Take(i).ToList();
+                var after = sorted.Skip(i).ToList();
+                // Half way between the windows on each side (in the gap, or in the middle of where they overlap).
+                var at = Math.Clamp((before.Max(End) + after.Min(Start)) / 2, Mid(sorted[i - 1]), Mid(sorted[i]));
+                at = Snap(at, from, to);
+                if (at - from < Smallest || to - at < Smallest) continue;
+                double LostOf(ArrangedZone p, bool isBefore)
+                {
+                    var size = Math.Max(Near, End(p) - Start(p));
+                    return Math.Clamp(isBefore ? End(p) - at : at - Start(p), 0, size) / size;
+                }
+                var lost = Math.Max(before.Max(p => LostOf(p, true)), after.Max(p => LostOf(p, false)));
+                if (lost <= MostLost && (best is null || lost < best.Value.Lost)) best = (vertical, at, lost);
+            }
+        }
+        return best is { } found ? (found.Vertical, found.At) : null;
+    }
+
+    /// <summary>A cut near ½, ⅓, ¼, ⅔ or ¾ of the monitor goes there (as the magnet when dragging), kept inside its zone.</summary>
+    private static double Snap(double at, double from, double to)
+    {
+        foreach (var nice in (double[])[0.5, 1d / 3, 2d / 3, 0.25, 0.75])
+            if (Math.Abs(at - nice) < 0.02 && nice - from >= Smallest && to - nice >= Smallest) return Math.Round(nice, 4);
+        return Math.Round(Math.Clamp(at, from + Smallest, Math.Max(from + Smallest, to - Smallest)), 4);
+    }
+
+    /// <summary>
+    /// Mends the zones of each monitor that do not cover it whole or have one over another (saved by 5.0.376), with
+    /// <see cref="Tile"/>. Returns true when something changed.
+    /// </summary>
+    public static bool Mend(IList<ArrangedZone> zones)
+    {
+        var changed = false;
+        foreach (var monitor in zones.GroupBy(z => (Name: z.MonitorName.ToUpperInvariant(), Device: z.MonitorDevice.ToUpperInvariant())).ToList())
+        {
+            var mine = monitor.ToList();
+            if (IsCut(mine)) continue;
+            var at = zones.IndexOf(mine[0]);
+            foreach (var zone in mine) zones.Remove(zone);
+            foreach (var zone in Tile(mine, mine[0].MonitorName, mine[0].MonitorDevice)) zones.Insert(Math.Min(at++, zones.Count), zone);
+            changed = true;
+        }
+        return changed;
+    }
+
     /// <summary>Joins the two zones of a line (<see cref="ZoneLine.CanJoin"/>): the first one grows over the other and takes its programs.</summary>
     public static ArrangedZone? Join(IList<ArrangedZone> zones, ZoneLine line)
     {

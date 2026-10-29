@@ -145,10 +145,19 @@ public static class WindowArrangements
     public sealed record OpenPlace(string Process, string Name, string Title, string Path, ScreenMonitor Monitor, ScreenRect Rect, bool Maximized);
 
     /// <summary>
-    /// «Guardar cómo están ahora»: each window (not minimised) a zone of its monitor with its program; a maximised one, the
-    /// whole screen; two in the same place share the zone.
+    /// «Guardar cómo están ahora»: each monitor cut by its windows (not minimised; a maximised one, the whole screen), with
+    /// <see cref="ZoneCuts.Tile"/>: never a zone over another; windows one over another share the zone.
     /// </summary>
     public static List<ArrangedZone> ZonesOf(IEnumerable<OpenPlace> windows)
+    {
+        var zones = new List<ArrangedZone>();
+        foreach (var monitor in PiecesOf(windows).GroupBy(z => (z.MonitorName, z.MonitorDevice)))
+            zones.AddRange(ZoneCuts.Tile([.. monitor], monitor.Key.MonitorName, monitor.Key.MonitorDevice));
+        return zones;
+    }
+
+    /// <summary>Each window as it is: a rectangle of its monitor with its program (two in the same place, one).</summary>
+    private static List<ArrangedZone> PiecesOf(IEnumerable<OpenPlace> windows)
     {
         var zones = new List<ArrangedZone>();
         foreach (var w in windows)
