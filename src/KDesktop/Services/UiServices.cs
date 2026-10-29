@@ -21,6 +21,7 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     public QuickMenuController? QuickMenus { get; set; }
 
     public LauncherController? Launcher { get; set; }
+    public ClipboardController? Clipboard { get; set; }
 
     /// <summary>Runs «Asistente: acción» (assistant id, extra id) on the UI thread.</summary>
     public Action<string, string, bool>? AssistantExtra { get; set; }
@@ -242,6 +243,9 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
 
     public void ShowQuickMenu(string menuId, ForegroundWindow previousForeground) =>
         dispatcher.BeginInvoke(() => QuickMenus?.Show(menuId, previousForeground));
+
+    public void ShowClipboardHistory(ForegroundWindow previousForeground) =>
+        dispatcher.BeginInvoke(() => Clipboard?.Show(previousForeground));
 
     public void ShowMainWindow() => dispatcher.BeginInvoke(showMainWindow);
 

@@ -3,7 +3,7 @@ using KDesktop.Core.Native;
 
 namespace KDesktop.Core.Input;
 
-public enum BuiltInHotkey { ShowWindow, Exit, Launcher, Pause }
+public enum BuiltInHotkey { ShowWindow, Exit, Launcher, Pause, Clipboard }
 
 public sealed record HotkeyTrigger(string Hotkey, IReadOnlyList<Command> Commands, bool IsRepeat, ForegroundWindow Foreground);
 
@@ -192,6 +192,12 @@ public sealed partial class HotkeyRouter : IDisposable
             return index.LauncherBlock && Block(vk, mods);
         }
 
+        if (index.IsClipboardHotkey(hotkey, FrontProcess))
+        {
+            if (!repeat) Post(() => BuiltIn?.Invoke(BuiltInHotkey.Clipboard));
+            return index.ClipboardBlock && Block(vk, mods);
+        }
+
         if (index.IsDisabledInHotkey(hotkey))
         {
             if (!repeat)
@@ -339,6 +345,12 @@ public sealed partial class HotkeyRouter : IDisposable
             _blockedButtons.Add(button);
             return true;
         }
+        if (index.IsClipboardHotkey(hotkey, FrontProcess))
+        {
+            if (!index.ClipboardBlock) return false; // the application gets it too; it still fires on release
+            _blockedButtons.Add(button);
+            return true;
+        }
         var block = false;
         ForegroundWindow? fg = null;
         if (button is MouseButton.X1 or MouseButton.X2 && index.BlockSideButtons)
@@ -415,6 +427,12 @@ public sealed partial class HotkeyRouter : IDisposable
             Post(() => BuiltIn?.Invoke(BuiltInHotkey.Launcher));
             return index.LauncherBlock;
         }
+        if (index.IsClipboardHotkey(hotkey, FrontProcess))
+        {
+            _armed = false;
+            Post(() => BuiltIn?.Invoke(BuiltInHotkey.Clipboard));
+            return index.ClipboardBlock;
+        }
         if (index.IsDisabledInHotkey(hotkey))
         {
             _armed = false;
@@ -442,6 +460,11 @@ public sealed partial class HotkeyRouter : IDisposable
         if (index.IsLauncherHotkey(hotkey, FrontProcess))
         {
             Post(() => BuiltIn?.Invoke(BuiltInHotkey.Launcher));
+            return;
+        }
+        if (index.IsClipboardHotkey(hotkey, FrontProcess))
+        {
+            Post(() => BuiltIn?.Invoke(BuiltInHotkey.Clipboard));
             return;
         }
         if (index.IsDisabledInHotkey(hotkey))

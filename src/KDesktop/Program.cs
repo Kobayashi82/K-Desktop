@@ -25,7 +25,7 @@ public static class Program
     public const string StartupArgument = "--startup";
     private static string MutexName => @"Local\KDesktop5.Instance" + AppPaths.InstanceSuffix;
 
-    private static readonly string[] ForwardedArguments = ["--menu", "--run", "--event", "--launcher", "--show", "--welcome", "--exit", "--page", "--install-assistant"];
+    private static readonly string[] ForwardedArguments = ["--menu", "--run", "--event", "--launcher", "--clipboard", "--show", "--welcome", "--exit", "--page", "--install-assistant"];
 
     [STAThread]
     public static int Main(string[] args)

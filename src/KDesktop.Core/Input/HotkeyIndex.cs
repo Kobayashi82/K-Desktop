@@ -15,7 +15,7 @@ public sealed class HotkeyIndex
     private readonly Dictionary<string, Entry[]> _map;
     private readonly HashSet<string> _disabledIn;
     private readonly HashSet<string> _sideButtonsBlockedIn;
-    private readonly bool _voiceAnywhere, _dictationAnywhere, _launcherAnywhere, _showWindowAnywhere, _exitAnywhere, _pauseAnywhere;
+    private readonly bool _voiceAnywhere, _dictationAnywhere, _launcherAnywhere, _clipboardAnywhere, _showWindowAnywhere, _exitAnywhere, _pauseAnywhere;
 
     /// <summary>
     /// The voice / dictation / launcher / open / exit / pause / «Desactivar en» hotkey is swallowed (the application in
@@ -24,6 +24,7 @@ public sealed class HotkeyIndex
     public bool VoiceBlock { get; }
     public bool DictationBlock { get; }
     public bool LauncherBlock { get; }
+    public bool ClipboardBlock { get; }
     public bool ShowWindowBlock { get; }
     public bool ExitBlock { get; }
     public bool PauseBlock { get; }
@@ -46,6 +47,9 @@ public sealed class HotkeyIndex
 
     /// <summary>Opens the launcher (Settings › Lanzador); empty when unset or paused.</summary>
     public string LauncherHotkey { get; }
+
+    /// <summary>Opens the clipboard history (Settings › Portapapeles); empty when unset, paused or the history is off.</summary>
+    public string ClipboardHotkey { get; }
 
     /// <summary>Turns «Desactivar en» on/off for the app in front (Settings › Desactivar en); empty when unset or paused.</summary>
     public string DisabledInHotkey { get; }
@@ -89,13 +93,16 @@ public sealed class HotkeyIndex
         DisabledInHotkey = paused || string.IsNullOrWhiteSpace(settings.DisabledInHotkey) ? string.Empty : Hotkey.Normalize(settings.DisabledInHotkey);
         PauseHotkey = string.IsNullOrWhiteSpace(settings.PauseHotkey) ? string.Empty : Hotkey.Normalize(settings.PauseHotkey);
         LauncherHotkey = paused || string.IsNullOrWhiteSpace(settings.LauncherHotkey) ? string.Empty : Hotkey.Normalize(settings.LauncherHotkey);
+        ClipboardHotkey = paused || !settings.ClipboardHistory || string.IsNullOrWhiteSpace(settings.ClipboardHotkey) ? string.Empty : Hotkey.Normalize(settings.ClipboardHotkey);
         BlockSideButtons = settings.BlockSideButtons && !paused;
         _voiceAnywhere = settings.VoiceIgnoreDisabledApps;
         _dictationAnywhere = settings.DictationIgnoreDisabledApps;
         _launcherAnywhere = settings.LauncherIgnoreDisabledApps;
+        _clipboardAnywhere = settings.ClipboardIgnoreDisabledApps;
         VoiceBlock = settings.VoiceBlockKey;
         DictationBlock = settings.DictationBlockKey;
         LauncherBlock = settings.LauncherBlockKey;
+        ClipboardBlock = settings.ClipboardBlockKey;
         _showWindowAnywhere = settings.ShowWindowIgnoreDisabledApps;
         _exitAnywhere = settings.ExitIgnoreDisabledApps;
         ShowWindowBlock = settings.ShowWindowBlockKey;
@@ -120,6 +127,10 @@ public sealed class HotkeyIndex
     /// </summary>
     public bool IsLauncherHotkey(string hotkey, Func<string> process) =>
         LauncherHotkey.Length > 0 && hotkey.Equals(LauncherHotkey, StringComparison.OrdinalIgnoreCase) && (_launcherAnywhere || !DisabledHere(process));
+
+    /// <summary>The clipboard history's hotkey, and it may work here (like <see cref="IsLauncherHotkey"/>).</summary>
+    public bool IsClipboardHotkey(string hotkey, Func<string> process) =>
+        ClipboardHotkey.Length > 0 && hotkey.Equals(ClipboardHotkey, StringComparison.OrdinalIgnoreCase) && (_clipboardAnywhere || !DisabledHere(process));
 
     /// <summary>The open-window hotkey, and it may work here (like <see cref="IsLauncherHotkey"/>).</summary>
     public bool IsShowWindowHotkey(string hotkey, Func<string> process) =>

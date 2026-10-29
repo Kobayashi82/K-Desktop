@@ -342,6 +342,7 @@ public partial class SettingsPage : UserControl
         ShowOptionalHotkey(DictationHotkeyButton, DictationHotkeyClear, _app.Config.Settings.DictationHotkey);
         ShowOptionalHotkey(DisabledInHotkeyButton, DisabledInHotkeyClear, _app.Config.Settings.DisabledInHotkey);
         ShowOptionalHotkey(LauncherHotkeyButton, LauncherHotkeyClear, _app.Config.Settings.LauncherHotkey);
+        ShowOptionalHotkey(ClipboardHotkeyButton, ClipboardHotkeyClear, _app.Config.Settings.ClipboardHotkey);
         ShowOptionalHotkey(PauseHotkeyButton, PauseHotkeyClear, _app.Config.Settings.PauseHotkey);
     }
 
@@ -429,6 +430,39 @@ public partial class SettingsPage : UserControl
         _app.Launcher.ClearUsage();
         _app.Ui.ShowNotice(Loc.T("settings.launcherForgotten"), OsdKind.Success);
     }
+
+    // ── clipboard history ────────────────────────────────────────────────
+
+    private void OnCaptureClipboardHotkey(object sender, RoutedEventArgs e) =>
+        CaptureOptionalHotkey(ClipboardHotkeyButton, hk => _app.Config.Settings.ClipboardHotkey = hk);
+
+    private void OnClearClipboardHotkey(object sender, RoutedEventArgs e)
+    {
+        _app.Config.Settings.ClipboardHotkey = string.Empty;
+        ShowOptionalHotkey(ClipboardHotkeyButton, ClipboardHotkeyClear, string.Empty);
+    }
+
+    /// <summary>Win + V: the history opens instead of Windows' own (the key never reaches Windows).</summary>
+    private void OnClipboardWinV(object sender, RoutedEventArgs e)
+    {
+        var s = _app.Config.Settings;
+        s.ClipboardHotkey = Hotkey.Normalize("WIN + V");
+        s.ClipboardBlockKey = true;
+        ShowOptionalHotkey(ClipboardHotkeyButton, ClipboardHotkeyClear, s.ClipboardHotkey);
+    }
+
+    private void OnOpenClipboardHistory(object sender, RoutedEventArgs e) => _app.ClipboardUi.Show(ForegroundWindow.None);
+
+    /// <summary>Everything but the pinned entries (as «Olvidar lo más usado» of the launcher: done at once, and said).</summary>
+    private void OnClearClipboardHistory(object sender, RoutedEventArgs e)
+    {
+        _app.ClipboardUi.History.Clear();
+        _app.Ui.ShowNotice(Loc.T("settings.clipboardCleared"), OsdKind.Success);
+    }
+
+    private void OnAddClipboardExcluded(object sender, RoutedEventArgs e) => ProcessCombo.AddTyped(ClipboardExcludedBox, _app.Config.Settings.ClipboardExcluded);
+
+    private void OnPickClipboardExcluded(object sender, RoutedEventArgs e) => PickInto(_app.Config.Settings.ClipboardExcluded);
 
     // ── web ──────────────────────────────────────────────────────────────
 
@@ -870,7 +904,8 @@ public partial class SettingsPage : UserControl
     /// <summary>The list a process combo adds to.</summary>
     private ObservableCollection<string>? ListOf(object? box) =>
         ReferenceEquals(box, DisabledInBox) ? _app.Config.Settings.DisabledIn
-        : ReferenceEquals(box, SideButtonsBox) ? _app.Config.Settings.BlockSideButtonsIn : null;
+        : ReferenceEquals(box, SideButtonsBox) ? _app.Config.Settings.BlockSideButtonsIn
+        : ReferenceEquals(box, ClipboardExcludedBox) ? _app.Config.Settings.ClipboardExcluded : null;
 
     private void OnProcessDropDown(object? sender, EventArgs e)
     {

@@ -110,6 +110,9 @@ public interface IUiServices
     /// <summary>Puts a picture in the clipboard. Returns whether it could.</summary>
     bool SetClipboardImage(Platform.BgraImage image) => false;
 
+    /// <summary>«Portapapeles › Mostrar el historial»: the clipboard history, pasting in <paramref name="previousForeground"/>.</summary>
+    void ShowClipboardHistory(ForegroundWindow previousForeground) { }
+
     /// <summary>
     /// «Captura de pantalla › Región»: shows <paramref name="desktop"/> (a picture of <paramref name="bounds"/>, every
     /// monitor) frozen and lets the user drag a rectangle; null when cancelled (Esc, right click).

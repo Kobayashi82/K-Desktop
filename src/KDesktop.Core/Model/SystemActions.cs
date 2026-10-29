@@ -91,7 +91,8 @@ public partial class WindowAction : CommandAction
 
 // ── Portapapeles ──────────────────────────────────────────────────────────
 
-public enum ClipboardMode { SetText, PlainText, Upper, Lower, Capitalize, Trim, CleanUrl, Clear }
+/// <summary>What «Portapapeles» does. <see cref="ShowHistory"/> (5.0.363) opens the clipboard history over the window in front.</summary>
+public enum ClipboardMode { SetText, PlainText, Upper, Lower, Capitalize, Trim, CleanUrl, Clear, ShowHistory }
 
 /// <summary>Puts a text in the clipboard, or changes the one it has (plain, upper case, clean links…), and pastes it.</summary>
 public partial class ClipboardAction : CommandAction
@@ -108,7 +109,7 @@ public partial class ClipboardAction : CommandAction
     [ObservableProperty] private bool _paste = true;
 
     /// <summary>The text it leaves on the clipboard.</summary>
-    public override bool GivesResult => Mode != ClipboardMode.Clear;
+    public override bool GivesResult => Mode is not (ClipboardMode.Clear or ClipboardMode.ShowHistory);
 
     partial void OnModeChanged(ClipboardMode value) => OnPropertyChanged(nameof(GivesResult));
 
@@ -121,6 +122,7 @@ public partial class ClipboardAction : CommandAction
             var what = Mode == ClipboardMode.SetText
                 ? Loc.T("summary.clipboard.set", string.IsNullOrEmpty(Text) ? "…" : Text.ReplaceLineEndings(" "))
                 : Loc.T($"enum.clipboard.{Mode}");
+            if (Mode == ClipboardMode.ShowHistory) return what;
             if (CopyFirst && Mode != ClipboardMode.SetText && Mode != ClipboardMode.Clear) what = Loc.T("summary.clipboard.selection") + " · " + what;
             if (Paste && Mode != ClipboardMode.Clear) what += "  ·  " + Loc.T("summary.clipboard.paste");
             return what;

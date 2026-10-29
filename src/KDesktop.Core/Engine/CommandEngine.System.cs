@@ -131,6 +131,11 @@ public sealed partial class CommandEngine
             _ui.SetClipboardText(string.Empty);
             return;
         }
+        if (a.Mode == ClipboardMode.ShowHistory)
+        {
+            _ui.ShowClipboardHistory(ctx.Foreground);
+            return;
+        }
 
         // From the QuickMenu, give the focus back to the window the menu was opened over (to copy and paste there).
         if (ctx.FromPopup && ctx.Foreground.Handle != IntPtr.Zero && (a.Paste || a.CopyFirst))

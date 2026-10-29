@@ -1191,6 +1191,11 @@
             <DataTrigger Binding="{Binding Mode}" Value="CleanUrl">
                 <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.clipboardCleanHint}" />
             </DataTrigger>
+            <DataTrigger Binding="{Binding Mode}" Value="ShowHistory">
+                <Setter TargetName="CopyFirstCheck" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="PasteCheck" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="Hint" Property="Text" Value="{l:Tr editor.clipboardHistoryHint}" />
+            </DataTrigger>
         </DataTemplate.Triggers>
     </DataTemplate>
 

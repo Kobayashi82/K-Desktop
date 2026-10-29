@@ -72,6 +72,9 @@ public partial class App : Application
     public UiServices Ui { get; private set; } = null!;
     public QuickMenuController QuickMenus { get; private set; } = null!;
     public LauncherController Launcher { get; private set; } = null!;
+
+    /// <summary>The clipboard history (Settings › Portapapeles).</summary>
+    public ClipboardController ClipboardUi { get; private set; } = null!;
     public AchievementService Achievements { get; } = new();
     public AchievementNotifier Notifier { get; private set; } = null!;
     public Core.Voice.VoiceService Voice { get; private set; } = null!;
@@ -192,6 +195,10 @@ public partial class App : Application
         Launcher = new LauncherController(() => Config, Engine, Achievements, Ui);
         Ui.Launcher = Launcher;
         Launcher.Prewarm();
+        ClipboardUi = new ClipboardController(() => Config);
+        Ui.Clipboard = ClipboardUi;
+        ClipboardUi.Start();
+        ClipboardUi.Prewarm();
         Engine.Executed += Achievements.CommandExecuted;
         Engine.ActionStarting += (action, _) => Achievements.ActionExecuted(action);
         Engine.ActionStarting += AdornAction;
@@ -217,6 +224,7 @@ public partial class App : Application
                 {
                     case BuiltInHotkey.ShowWindow: ShowMainWindow(); break;
                     case BuiltInHotkey.Launcher: Launcher.Show(front); break;
+                    case BuiltInHotkey.Clipboard: ClipboardUi.Show(front); break;
                     case BuiltInHotkey.Pause: SetPaused(!Config.Settings.Paused); break;
                     default: _ = ExitAsync(Config.Settings.ExitSound); break;
                 }
@@ -368,6 +376,7 @@ public partial class App : Application
             else Log.Warn($"--event: evento no encontrado '{eventName}'");
         }
         if (args.Contains("--launcher", StringComparer.OrdinalIgnoreCase)) Launcher.Show(ForegroundWindow.Capture());
+        if (args.Contains("--clipboard", StringComparer.OrdinalIgnoreCase)) ClipboardUi.Show(ForegroundWindow.Capture());
         if (args.Contains("--show", StringComparer.OrdinalIgnoreCase)) ShowMainWindow();
         if (args.Contains("--welcome", StringComparer.OrdinalIgnoreCase)) ShowWelcome();
         if (Program.ValueOf(args, "--page") is { } page) ShowMainWindow(w => w.Navigate(page.ToLowerInvariant()));
@@ -463,6 +472,7 @@ public partial class App : Application
         // Paused, the replay doesn't keep listening either.
         Engine.Recording.ConfigureReplay(s.AudioReplay && !s.Paused, s.AudioReplaySeconds, s.AudioReplaySource, Engine.RecordOptions.MicGain);
         Engine.Magnifier.Configure(Engine.MagnifierOptions);
+        ClipboardUi?.ApplyLimits();
         if (s.Theme != _appliedTheme)
         {
             _appliedTheme = s.Theme;
@@ -528,6 +538,11 @@ public partial class App : Application
         menu.Items.Add(window);
         menu.Items.Add(new Separator());
         menu.Items.Add(TrayItem(Loc.T("tray.launcher"), (_, _) => Launcher.Show(ForegroundWindow.Capture())));
+        var clipboard = TrayItem(Loc.T("tray.clipboard"), (_, _) => ClipboardUi.Show(ForegroundWindow.Capture()));
+        menu.Items.Add(clipboard);
+        var clipboardPause = new MenuItem { Header = Loc.T("tray.clipboardPause"), IsCheckable = true };
+        clipboardPause.Click += (_, _) => Config.Settings.ClipboardPaused = clipboardPause.IsChecked;
+        menu.Items.Add(clipboardPause);
         menu.Items.Add(new Separator());
         var assistant = new MenuItem { Header = Loc.T("nav.assistant") };
         menu.Items.Add(assistant);
@@ -544,6 +559,8 @@ public partial class App : Application
         {
             window.Header = Loc.T(MainWindowShown ? "tray.hide" : "tray.show");
             pause.Header = Loc.T(Config.Settings.Paused ? "pause.resume" : "pause.pause");
+            clipboard.Visibility = clipboardPause.Visibility = Config.Settings.ClipboardHistory ? Visibility.Visible : Visibility.Collapsed;
+            clipboardPause.IsChecked = Config.Settings.ClipboardPaused;
             FillAssistantTrayMenu(assistant);
             FillToggleTrayMenu(events, Config.Events.Select(e => (e.Name, e.Enabled, (Action<bool>)(on => e.Enabled = on))));
             FillToggleTrayMenu(kboard, Config.KBoards.Select(k => (k.Name, k.Active, (Action<bool>)(on => k.Active = on))));
@@ -692,6 +709,7 @@ public partial class App : Application
         StopAssistant();
         SaveAssistantPanels();
         Events?.Dispose();
+        ClipboardUi?.Dispose();
         Router.Dispose();
         Udp?.Dispose();
         Web?.Dispose();

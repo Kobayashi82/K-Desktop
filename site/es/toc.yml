@@ -16,6 +16,8 @@
     href: k-desktop/macros-kboard.md
   - name: Textos
     href: k-desktop/texts.md
+  - name: Historial del portapapeles
+    href: k-desktop/clipboard.md
   - name: Voz
     href: k-desktop/voice.md
   - name: Móvil y control remoto

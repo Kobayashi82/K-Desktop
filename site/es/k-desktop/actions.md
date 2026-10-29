@@ -25,7 +25,7 @@ orden.
 | Acción | Qué hace |
 |---|---|
 | **Enviar pulsación / texto** | Envía una combinación de teclas, escribe un texto o mueve el ratón. |
-| **Portapapeles** | Copia un texto (con fecha, hora…) o cambia el que hay: texto plano, mayúsculas, minúsculas, enlaces limpios… y lo pega. |
+| **Portapapeles** | Copia un texto (con fecha, hora…) o cambia el que hay: texto plano, mayúsculas, minúsculas, enlaces limpios… y lo pega. O abre el [historial del portapapeles](clipboard.md). |
 | **Reproducir macro** | Reproduce una macro grabada (teclado y ratón con sus tiempos), una vez o varias. |
 | **K-Board** | Activa, desactiva o alterna un perfil de K-Board (teclas y botones cambiados). |
 | **Dictar** | Escribe lo que dices donde está el cursor, sin IA. Acaba tras unos segundos de silencio, con Esc o diciendo «deja de dictar». |

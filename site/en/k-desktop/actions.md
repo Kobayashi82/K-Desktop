@@ -24,7 +24,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 | Action | What it does |
 |---|---|
 | **Send keys / text** | Sends a key combination, types text or moves the mouse. |
-| **Clipboard** | Copies a text (with date, time…) or changes the one there: plain, upper case, lower case, clean links… and pastes it. |
+| **Clipboard** | Copies a text (with date, time…) or changes the one there: plain, upper case, lower case, clean links… and pastes it. Or opens the [clipboard history](clipboard.md). |
 | **Play macro** | Plays a recorded macro (keyboard and mouse with their timing), once or several times. |
 | **K-Board** | Turns a K-Board profile (remapped keys and buttons) on, off, or toggles it. |
 | **Dictate** | Types what you say where the cursor is, without AI. Ends after a few seconds of silence, with Esc or by saying «stop dictating». |

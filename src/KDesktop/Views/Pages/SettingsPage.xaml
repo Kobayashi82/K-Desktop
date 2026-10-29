@@ -880,6 +880,82 @@
                 </StackPanel>
             </Border>
 
+            <!-- Clipboard history (as the launcher's card: its hotkey, its options, its buttons) -->
+            <Border Style="{StaticResource Card}" Tag="clipboard">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.clipboard}" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,10" TextWrapping="Wrap" Text="{l:Tr settings.clipboardIntro}" />
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.clipboardOn}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.clipboardOnHint}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ClipboardHistory}" AutomationProperties.Name="{l:Tr settings.clipboardOn}" />
+                    </Grid>
+                    <StackPanel IsEnabled="{Binding ClipboardHistory}">
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                <TextBlock TextWrapping="Wrap" Text="{l:Tr settings.clipboardHotkey}" />
+                                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.clipboardHotkeyHint}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <ui:Button MinHeight="36" Margin="0,0,6,0" VerticalAlignment="Stretch" Content="{l:Tr settings.clipboardWinV}" Click="OnClipboardWinV"
+                                           ToolTip="{l:Tr settings.clipboardWinVHint}" />
+                                <ui:Button MinHeight="36" x:Name="ClipboardHotkeyButton" VerticalAlignment="Stretch" MinWidth="192" Click="OnCaptureClipboardHotkey" />
+                                <ui:Button MinHeight="36" VerticalAlignment="Stretch" x:Name="ClipboardHotkeyClear" Margin="6,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
+                                           AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearClipboardHotkey" />
+                                <v:IconToggle Width="38" Height="36" Margin="6,0,0,0" IsChecked="{Binding ClipboardBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
+                                              Title="{l:Tr commands.blockKey}" Hint="{l:Tr commands.blockKeyHint}" />
+                                <v:IconToggle Width="38" Height="36" IsChecked="{Binding ClipboardIgnoreDisabledApps}" OnSymbol="PlayCircle24" OffSymbol="Prohibited24"
+                                              Title="{l:Tr commands.ignoreDisabled}" Hint="{l:Tr commands.ignoreDisabledHint}" />
+                            </StackPanel>
+                        </Grid>
+                        <Border Height="1" Margin="0,14,0,6" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                <TextBlock Text="{l:Tr settings.clipboardImages}" />
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.clipboardImagesHint}" />
+                            </StackPanel>
+                            <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding ClipboardImages}" AutomationProperties.Name="{l:Tr settings.clipboardImages}" />
+                        </Grid>
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="170" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                <TextBlock Text="{l:Tr settings.clipboardMaxItems}" />
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.clipboardMaxItemsHint}" />
+                            </StackPanel>
+                            <v:NumberField Grid.Column="1" Minimum="10" Maximum="5000" Value="{Binding ClipboardMaxItems}" AutomationProperties.Name="{l:Tr settings.clipboardMaxItems}" />
+                        </Grid>
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="170" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                <TextBlock Text="{l:Tr settings.clipboardMaxDays}" />
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.clipboardMaxDaysHint}" />
+                            </StackPanel>
+                            <v:NumberField Grid.Column="1" Minimum="0" Maximum="3650" Value="{Binding ClipboardMaxDays}" AutomationProperties.Name="{l:Tr settings.clipboardMaxDays}" />
+                        </Grid>
+                        <Border Height="1" Margin="0,14,0,10" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+                        <!-- Programs whose copies are never kept (as «Desactivar en») -->
+                        <TextBlock Text="{l:Tr settings.clipboardExcluded}" />
+                        <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,10" TextWrapping="Wrap" Text="{l:Tr settings.clipboardExcludedHint}" />
+                        <ItemsControl ItemsSource="{Binding ClipboardExcluded}" ItemTemplate="{StaticResource ProcessChip}" ItemsPanel="{StaticResource Wrap}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <ComboBox x:Name="ClipboardExcludedBox" IsEditable="True" Width="240" v:Placeholder.Text="{l:Tr common.processPlaceholder}" DropDownOpened="OnProcessDropDown" DropDownClosed="OnProcessPicked" KeyDown="OnProcessKeyDown" />
+                            <ui:Button Appearance="Primary" MinHeight="36" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr common.add}" Icon="{ui:SymbolIcon Add24}" Click="OnAddClipboardExcluded" />
+                            <ui:Button MinHeight="36" Margin="8,0,0,0" VerticalAlignment="Stretch" AutomationProperties.Name="{l:Tr picker.button}" Icon="{ui:SymbolIcon Cursor24}" Click="OnPickClipboardExcluded" ToolTip="{l:Tr picker.tooltip}" />
+                        </StackPanel>
+                        <Border Height="1" Margin="0,14,0,12" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+                        <StackPanel Orientation="Horizontal">
+                            <ui:Button MinHeight="36" VerticalAlignment="Stretch" Content="{l:Tr settings.clipboardOpen}" Icon="{ui:SymbolIcon History24}" Click="OnOpenClipboardHistory" />
+                            <ui:Button MinHeight="36" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr settings.clipboardClear}" Icon="{ui:SymbolIcon Delete24}" Click="OnClearClipboardHistory" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
             <Border Style="{StaticResource Card}" Tag="remote">
                 <StackPanel>
                     <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.remote}" />

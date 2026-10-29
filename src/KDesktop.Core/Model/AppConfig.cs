@@ -473,7 +473,7 @@ public partial class AppSettings : ObservableObject
 
     /// <summary>K-Desktop's own hotkeys but the assistants' keys to talk.</summary>
     [JsonIgnore]
-    public IEnumerable<string> BuiltInHotkeys => [ShowWindowHotkey, ExitHotkey, VoiceHotkey, DictationHotkey, DisabledInHotkey, PauseHotkey, LauncherHotkey];
+    public IEnumerable<string> BuiltInHotkeys => [ShowWindowHotkey, ExitHotkey, VoiceHotkey, DictationHotkey, DisabledInHotkey, PauseHotkey, LauncherHotkey, ClipboardHotkey];
 
     [ObservableProperty] private string _showWindowHotkey = "CTRL + ALT + Home";
     [ObservableProperty] private string _exitHotkey = "CTRL + ALT + End";
@@ -548,6 +548,29 @@ public partial class AppSettings : ObservableObject
     /// so it lands in the same place on any monitor. Empty = centred, a bit above the middle.
     /// </summary>
     [ObservableProperty] private string _launcherPosition = string.Empty;
+
+    // Clipboard history (Settings › Portapapeles)
+    /// <summary>Keep what is copied (texts, pictures, files) to paste it again from the history.</summary>
+    [ObservableProperty] private bool _clipboardHistory = true;
+
+    /// <summary>Opens the history; empty = no hotkey. «WIN + V» takes the place of Windows' own.</summary>
+    [ObservableProperty] private string _clipboardHotkey = string.Empty;
+    [ObservableProperty] private bool _clipboardBlockKey = true;
+    [ObservableProperty] private bool _clipboardIgnoreDisabledApps;
+
+    /// <summary>Pictures too (they take more room; each one up to <see cref="Platform.ClipboardHistory.MaxImageBytes"/>).</summary>
+    [ObservableProperty] private bool _clipboardImages = true;
+
+    /// <summary>How many it keeps (the pinned ones aside), and after how many days they go (0: never).</summary>
+    [ObservableProperty] private int _clipboardMaxItems = 200;
+    [ObservableProperty] private int _clipboardMaxDays;
+
+    /// <summary>For a while nothing new is kept (the tray's «Pausar el historial»); it stays across restarts.</summary>
+    [ObservableProperty] private bool _clipboardPaused;
+
+    /// <summary>What is copied in these programs is never kept (password managers by default).</summary>
+    public ObservableCollection<string> ClipboardExcluded { get; set { field = value ?? []; field.CollectionChanged += (_, _) => Touch(); } } =
+        ["keepass", "keepassxc", "1password", "bitwarden", "lastpass", "dashlane", "enpass", "keeper", "nordpass", "roboform"];
 
     /// <summary>Which commands the list shows: "none" (those in no QuickMenu), "all", or a QuickMenu id.</summary>
     [ObservableProperty] private string _commandsMenuFilter = "none";
@@ -1104,6 +1127,7 @@ public partial class AppSettings : ObservableObject
         DisabledIn.CollectionChanged += (_, _) => Touch();
         BlockSideButtonsIn.CollectionChanged += (_, _) => Touch();
         AssistantsOnDesktop.CollectionChanged += (_, _) => Touch();
+        ClipboardExcluded.CollectionChanged += (_, _) => Touch();
     }
 
     public event EventHandler? Modified;
