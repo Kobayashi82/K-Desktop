@@ -57,6 +57,7 @@ public partial class SettingsPage : UserControl
                 or nameof(AppSettings.ZoomColors) or nameof(AppSettings.CaptureFormat) or nameof(AppSettings.RecordFormat))
                 SelectZoomTiles();
             if (e.PropertyName is nameof(AppSettings.CaptureName) or nameof(AppSettings.CaptureFormat) or nameof(AppSettings.CaptureDelay)
+                or nameof(AppSettings.RecordName) or nameof(AppSettings.VideoName) or nameof(AppSettings.RecordFormat)
                 or nameof(AppSettings.RecordSplitMinutes) or nameof(AppSettings.ZoomAutoOff) or nameof(AppSettings.ZoomBorderColor))
                 UpdateCaptureTexts();
         }
@@ -1075,6 +1076,12 @@ public partial class SettingsPage : UserControl
         CaptureNameBox.PlaceholderText = CommandEngine.DefaultCaptureName;
         var example = CommandEngine.CaptureName(s.CaptureName, () => "Google Chrome", () => "YouTube", DateTime.Now) + Core.Imaging.ImageFiles.Extension(s.CaptureFormat);
         CaptureNameExample.Text = Loc.T("settings.captureNameExample", example);
+        RecordNameBox.PlaceholderText = CommandEngine.DefaultRecordName;
+        RecordNameExample.Text = Loc.T("settings.captureNameExample",
+            CommandEngine.FileName(s.RecordName, CommandEngine.DefaultRecordName, () => "Google Chrome", () => "YouTube", DateTime.Now) + Core.Platform.AudioEncoders.Extension(s.RecordFormat));
+        VideoNameBox.PlaceholderText = CommandEngine.DefaultVideoName;
+        VideoNameExample.Text = Loc.T("settings.captureNameExample",
+            CommandEngine.FileName(s.VideoName, CommandEngine.DefaultVideoName, () => "Google Chrome", () => "YouTube", DateTime.Now) + ".mp4");
         CaptureDelayText.Text = s.CaptureDelay > 0 ? Loc.T("settings.seconds", s.CaptureDelay.ToString(culture)) : Loc.T("settings.captureDelayNone");
         RecordSplitText.Text = s.RecordSplitMinutes > 0 ? Loc.T("settings.minutes", s.RecordSplitMinutes.ToString(culture)) : Loc.T("settings.recordSplitNone");
         ZoomAutoOffText.Text = s.ZoomAutoOff > 0 ? Loc.T("settings.seconds", s.ZoomAutoOff.ToString(culture)) : Loc.T("settings.zoomAutoOffNever");
@@ -1086,13 +1093,19 @@ public partial class SettingsPage : UserControl
     }
 
     /// <summary>«+ Fecha», «+ Programa»…: that part of the name goes where the text cursor is (after the usual name if empty).</summary>
-    private void OnCaptureNameToken(object sender, RoutedEventArgs e)
+    private void OnCaptureNameToken(object sender, RoutedEventArgs e) => AddNameToken(sender, CaptureNameBox, CommandEngine.DefaultCaptureName);
+
+    private void OnRecordNameToken(object sender, RoutedEventArgs e) => AddNameToken(sender, RecordNameBox, CommandEngine.DefaultRecordName);
+
+    private void OnVideoNameToken(object sender, RoutedEventArgs e) => AddNameToken(sender, VideoNameBox, CommandEngine.DefaultVideoName);
+
+    /// <summary>A {date}, {time}, {app} or {title} into a file name, where the text cursor is (empty: from the default name).</summary>
+    private static void AddNameToken(object sender, Wpf.Ui.Controls.TextBox box, string fallback)
     {
         if (sender is not FrameworkElement { Tag: string token }) return;
-        var box = CaptureNameBox;
         if (string.IsNullOrEmpty(box.Text))
         {
-            box.Text = CommandEngine.DefaultCaptureName;
+            box.Text = fallback;
             box.CaretIndex = box.Text.Length;
         }
         var at = box.CaretIndex;

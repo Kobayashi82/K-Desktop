@@ -38,11 +38,17 @@ public partial class SettingsPage
             new("disabledIn", "Prohibited24", "settings.nav.disabledIn"),
             new("mouse", "CursorClick24", "settings.nav.mouse"),
         ]),
-        new("media", "settings.nav.group.media",
+        new("voice", "settings.nav.group.voice",
         [
             new("voice", "Mic24", "settings.nav.voice"),
             new("wake", "MicPulse24", "settings.nav.wake"),
+        ]),
+        new("media", "settings.nav.group.media",
+        [
             new("media", "MusicNote224", "settings.nav.media"),
+            new("capture", "Screenshot24", "settings.nav.capture"),
+            new("screen", "Video24", "settings.nav.screen"),
+            new("recording", "Record24", "settings.nav.recording"),
         ]),
         new("connections", "settings.nav.group.connections",
         [
@@ -52,8 +58,6 @@ public partial class SettingsPage
         ]),
         new("system", "settings.nav.group.system",
         [
-            new("capture", "Screenshot24", "settings.nav.capture"),
-            new("recording", "Record24", "settings.nav.recording"),
             new("zoom", "ZoomIn24", "settings.nav.zoom"),
             new("data", "Database24", "settings.nav.data"),
             new("updates", "ArrowSync24", "settings.nav.updates"),

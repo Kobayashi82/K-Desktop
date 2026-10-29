@@ -433,8 +433,8 @@
   "settings.nav.mouse.hint": "Ecken, Gesten und Zurück / Vorwärts",
   "settings.nav.capture": "Bildschirmfotos",
   "settings.nav.capture.hint": "Format, Name und Ordner",
-  "settings.nav.recording": "Aufnahme",
-  "settings.nav.recording.hint": "Audio und Bildschirm, Qualität und Ordner",
+  "settings.nav.recording": "Audioaufnahme",
+  "settings.nav.recording.hint": "Format, Mikrofon und Ordner",
   "settings.nav.zoom": "Lupe",
   "settings.nav.zoom.hint": "Vergrößerung, Form und Farben",
   "settings.capture": "Bildschirmfotos",
@@ -466,7 +466,7 @@
   "settings.captureCursor": "Mauszeiger mit aufnehmen",
   "settings.captureSound": "Kamerageräusch",
   "settings.captureFlash": "Aufblitzen über dem Aufgenommenen",
-  "settings.recordings": "Audio",
+  "settings.recordings": "Aufnahmen",
   "settings.recordFormat": "Format",
   "settings.recordFormat.Wav": "Unkomprimiert",
   "settings.recordFormat.Mp3": "Kompatibel",
@@ -3977,7 +3977,7 @@
   "osd.brainLoading": "KI-Modell wird geladen…",
   "assistant.prompt.act": "Bitte nicht um Bestätigung, bevor du tust, was verlangt wird: K-Desktop fragt von selbst, wenn etwas heikel ist. Wenn etwas geöffnet oder getan werden soll, wofür der Nutzer einen eigenen Befehl haben kann (ein Programm, eine Website, ein Ordner), nutze diesen Befehl mit run_command (suche ihn mit find_command, wenn du ihn nicht siehst), bevor du open_web oder open_app nimmst. Tu alles, was verlangt wird, in der verlangten Reihenfolge.",
   "settings.nav.group.general": "Allgemein",
-  "settings.nav.group.media": "Sprache und Medien",
+  "settings.nav.group.media": "Multimedia",
   "settings.nav.group.connections": "Verbindungen",
   "settings.nav.group.system": "System",
   "settings.nav.search": "Einstellungen durchsuchen (Strg+F)",
@@ -5417,7 +5417,7 @@
   "settings.videoQualityHint.Normal": "Ausgewogen",
   "settings.videoQualityHint.High": "Schärfer",
   "settings.videoCursor": "Mauszeiger aufnehmen",
-  "settings.videoHint": "Aufgenommen als MP4 (H.264) mit der Grafikkarte. Den Ton wählt jede Aktion „Video aufnehmen“: was der PC abspielt, das Mikrofon (mit der Lautstärke oben) oder beides.",
+  "settings.videoHint": "Aufgenommen als MP4 (H.264) mit der Grafikkarte. Den Ton wählt jede Aktion „Video aufnehmen“: was der PC abspielt, das Mikrofon (mit seiner Lautstärke aus „Audioaufnahme“) oder beides.",
   "action.VideoRecord.name": "Video aufnehmen",
   "action.VideoRecord.desc": "Nimmt einen Bereich, das aktive Fenster oder einen Monitor als Video auf, auf Wunsch mit PC-Ton oder Mikrofon. Eine Leiste oben zeigt die Zeit und erlaubt Pause und Stopp (sie ist nicht im Video); dasselbe Tastenkürzel oder der Infobereich beenden sie auch.",
   "editor.videoSound": "Ton",
@@ -5430,5 +5430,9 @@
   "osd.videoSaved": "Video gespeichert: {0} ({1})",
   "osd.videoFailed": "Das Video konnte nicht aufgenommen werden",
   "osd.videoUnsupported": "Dieses Windows kann den Bildschirm nicht aufnehmen",
-  "tray.videoStop": "Videoaufnahme stoppen"
+  "tray.videoStop": "Videoaufnahme stoppen",
+
+  "settings.nav.group.voice": "Sprache",
+  "settings.nav.screen": "Bildschirmaufnahme",
+  "settings.nav.screen.hint": "Bilder, Qualität und Ordner"
 }

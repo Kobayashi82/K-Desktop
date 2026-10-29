@@ -433,8 +433,8 @@
   "settings.nav.mouse.hint": "Coins, gestes et Précédent / Suivant",
   "settings.nav.capture": "Captures d’écran",
   "settings.nav.capture.hint": "Format, nom et dossier",
-  "settings.nav.recording": "Enregistrement",
-  "settings.nav.recording.hint": "Audio et écran, qualité et dossiers",
+  "settings.nav.recording": "Enregistrement audio",
+  "settings.nav.recording.hint": "Format, micro et dossier",
   "settings.nav.zoom": "Loupe",
   "settings.nav.zoom.hint": "Zoom, forme et couleurs",
   "settings.capture": "Captures d’écran",
@@ -466,7 +466,7 @@
   "settings.captureCursor": "Inclure le pointeur de la souris",
   "settings.captureSound": "Son d’appareil photo",
   "settings.captureFlash": "Flash sur la zone capturée",
-  "settings.recordings": "Audio",
+  "settings.recordings": "Enregistrements",
   "settings.recordFormat": "Format",
   "settings.recordFormat.Wav": "Non compressé",
   "settings.recordFormat.Mp3": "Compatible",
@@ -3977,7 +3977,7 @@
   "osd.brainLoading": "Chargement du modèle d'IA…",
   "assistant.prompt.act": "Ne demandez pas de confirmation avant de faire ce qui est demandé : K-Desktop demande tout seul quand quelque chose est délicat. Si on vous demande d'ouvrir ou de faire quelque chose pour lequel l'utilisateur peut avoir sa propre commande (un programme, un site, un dossier), utilisez cette commande avec run_command (cherchez-la avec find_command si vous ne la voyez pas) avant open_web ou open_app. Faites tout ce qui est demandé, dans l'ordre demandé.",
   "settings.nav.group.general": "Général",
-  "settings.nav.group.media": "Voix et multimédia",
+  "settings.nav.group.media": "Multimédia",
   "settings.nav.group.connections": "Connexions",
   "settings.nav.group.system": "Système",
   "settings.nav.search": "Rechercher dans les paramètres (Ctrl+F)",
@@ -5417,7 +5417,7 @@
   "settings.videoQualityHint.Normal": "Équilibrée",
   "settings.videoQualityHint.High": "Plus nette",
   "settings.videoCursor": "Enregistrer le pointeur de la souris",
-  "settings.videoHint": "Enregistré en MP4 (H.264) par la carte graphique. Chaque action « Enregistrer une vidéo » choisit le son : ce que joue le PC, le micro (avec le volume ci-dessus) ou les deux.",
+  "settings.videoHint": "Enregistré en MP4 (H.264) par la carte graphique. Chaque action « Enregistrer une vidéo » choisit le son : ce que joue le PC, le micro (avec son volume de « Enregistrement audio ») ou les deux.",
   "action.VideoRecord.name": "Enregistrer une vidéo",
   "action.VideoRecord.desc": "Enregistre en vidéo une zone, la fenêtre active ou un écran, avec le son du PC ou du micro si vous voulez. Une pastille en haut affiche le temps et permet de mettre en pause et d'arrêter (elle n'apparaît pas dans la vidéo) ; le même raccourci ou la zone de notification l'arrêtent aussi.",
   "editor.videoSound": "Son",
@@ -5430,5 +5430,9 @@
   "osd.videoSaved": "Vidéo enregistrée : {0} ({1})",
   "osd.videoFailed": "Impossible d'enregistrer la vidéo",
   "osd.videoUnsupported": "Ce Windows ne peut pas enregistrer l'écran",
-  "tray.videoStop": "Arrêter l'enregistrement vidéo"
+  "tray.videoStop": "Arrêter l'enregistrement vidéo",
+
+  "settings.nav.group.voice": "Voix",
+  "settings.nav.screen": "Enregistrement de l'écran",
+  "settings.nav.screen.hint": "Images, qualité et dossier"
 }

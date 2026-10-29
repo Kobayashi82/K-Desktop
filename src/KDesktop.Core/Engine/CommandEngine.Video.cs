@@ -1,4 +1,5 @@
 using System.Globalization;
+using KDesktop.Core.Input;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
 using KDesktop.Core.Platform;
@@ -44,7 +45,8 @@ public sealed partial class CommandEngine
             _ => (AudioSource?)null,
         };
         var options = new VideoOptions(s.VideoFps, s.VideoQuality, s.VideoCursor, sound, RecordOptions.MicGain);
-        var path = NewFile(FolderFor(a.Folder, s.VideoFolder, Environment.SpecialFolder.MyVideos), Loc.T("video.filePrefix"), ".mp4");
+        var front = ctx.Foreground.ProcessId == (uint)Environment.ProcessId ? ForegroundWindow.None : ctx.Foreground;
+        var path = NewFileNamed(FolderFor(a.Folder, s.VideoFolder, Environment.SpecialFolder.MyVideos), FileName(s.VideoName, DefaultVideoName, front, DateTime.Now), ".mp4");
         ScreenRecorder recorder;
         try
         {

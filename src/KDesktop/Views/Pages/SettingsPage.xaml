@@ -1754,6 +1754,22 @@
                         <ui:Button MinHeight="36" VerticalAlignment="Stretch" Grid.Column="2" Margin="8,0,0,0" Content="{l:Tr settings.openFolder}" Icon="{ui:SymbolIcon Open24}" Click="OnOpenRecordFolder"
                                    AutomationProperties.Name="{l:Tr settings.openRecordFolder}" />
                     </Grid>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.captureName}" />
+                    <ui:TextBox x:Name="RecordNameBox" Text="{Binding RecordName, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="{l:Tr settings.captureName}" />
+                    <!-- What can go in the name, added where the text cursor is (as in the screenshots) -->
+                    <WrapPanel Margin="0,8,0,0">
+                        <WrapPanel.Resources>
+                            <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                                <Setter Property="Margin" Value="0,0,6,6" />
+                                <Setter Property="Padding" Value="10,4" />
+                            </Style>
+                        </WrapPanel.Resources>
+                        <ui:Button Tag="{}{date}" Content="{l:Tr settings.captureNameAdd.date}" Icon="{ui:SymbolIcon Add16}" Click="OnRecordNameToken" />
+                        <ui:Button Tag="{}{time}" Content="{l:Tr settings.captureNameAdd.time}" Icon="{ui:SymbolIcon Add16}" Click="OnRecordNameToken" />
+                        <ui:Button Tag="{}{app}" Content="{l:Tr settings.captureNameAdd.app}" Icon="{ui:SymbolIcon Add16}" Click="OnRecordNameToken" />
+                        <ui:Button Tag="{}{title}" Content="{l:Tr settings.captureNameAdd.title}" Icon="{ui:SymbolIcon Add16}" Click="OnRecordNameToken" />
+                    </WrapPanel>
+                    <TextBlock x:Name="RecordNameExample" Style="{StaticResource Caption}" TextWrapping="Wrap" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
                         <TextBlock VerticalAlignment="Center" Margin="0,0,24,0" Text="{l:Tr settings.recordFormat}" />
@@ -1809,9 +1825,8 @@
                     </Grid>
                 </StackPanel>
             </Border>
-
-<!-- Videos (F2): as the audio recordings above -->
-            <Border Style="{StaticResource Card}" Tag="recording">
+            <!-- Videos (F2): as the audio recordings, in a section of their own -->
+            <Border Style="{StaticResource Card}" Tag="screen">
                 <StackPanel>
                     <TextBlock Style="{StaticResource CardTitle}" Text="{l:Tr settings.videos}" />
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.videoFolder}" />
@@ -1822,6 +1837,22 @@
                         <ui:Button MinHeight="36" VerticalAlignment="Stretch" Grid.Column="2" Margin="8,0,0,0" Content="{l:Tr settings.openFolder}" Icon="{ui:SymbolIcon Open24}" Click="OnOpenVideoFolder"
                                    AutomationProperties.Name="{l:Tr settings.openVideoFolder}" />
                     </Grid>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr settings.captureName}" />
+                    <ui:TextBox x:Name="VideoNameBox" Text="{Binding VideoName, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="{l:Tr settings.captureName}" />
+                    <!-- What can go in the name, added where the text cursor is (as in the screenshots) -->
+                    <WrapPanel Margin="0,8,0,0">
+                        <WrapPanel.Resources>
+                            <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                                <Setter Property="Margin" Value="0,0,6,6" />
+                                <Setter Property="Padding" Value="10,4" />
+                            </Style>
+                        </WrapPanel.Resources>
+                        <ui:Button Tag="{}{date}" Content="{l:Tr settings.captureNameAdd.date}" Icon="{ui:SymbolIcon Add16}" Click="OnVideoNameToken" />
+                        <ui:Button Tag="{}{time}" Content="{l:Tr settings.captureNameAdd.time}" Icon="{ui:SymbolIcon Add16}" Click="OnVideoNameToken" />
+                        <ui:Button Tag="{}{app}" Content="{l:Tr settings.captureNameAdd.app}" Icon="{ui:SymbolIcon Add16}" Click="OnVideoNameToken" />
+                        <ui:Button Tag="{}{title}" Content="{l:Tr settings.captureNameAdd.title}" Icon="{ui:SymbolIcon Add16}" Click="OnVideoNameToken" />
+                    </WrapPanel>
+                    <TextBlock x:Name="VideoNameExample" Style="{StaticResource Caption}" TextWrapping="Wrap" />
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">

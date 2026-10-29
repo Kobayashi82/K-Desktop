@@ -433,8 +433,8 @@
   "settings.nav.mouse.hint": "Angoli, gesti e Indietro / Avanti",
   "settings.nav.capture": "Screenshot",
   "settings.nav.capture.hint": "Formato, nome e cartella",
-  "settings.nav.recording": "Registrazione",
-  "settings.nav.recording.hint": "Audio e schermo, qualità e cartelle",
+  "settings.nav.recording": "Registrazione audio",
+  "settings.nav.recording.hint": "Formato, microfono e cartella",
   "settings.nav.zoom": "Lente",
   "settings.nav.zoom.hint": "Ingrandimento, forma e colori",
   "settings.capture": "Screenshot",
@@ -466,7 +466,7 @@
   "settings.captureCursor": "Includere il puntatore del mouse",
   "settings.captureSound": "Suono della fotocamera",
   "settings.captureFlash": "Lampo su ciò che è stato catturato",
-  "settings.recordings": "Audio",
+  "settings.recordings": "Registrazioni",
   "settings.recordFormat": "Formato",
   "settings.recordFormat.Wav": "Non compresso",
   "settings.recordFormat.Mp3": "Compatibile",
@@ -3977,7 +3977,7 @@
   "osd.brainLoading": "Caricamento del modello dell'IA…",
   "assistant.prompt.act": "Non chiedere conferma prima di fare ciò che chiede: K-Desktop chiede da solo quando qualcosa è delicato. Se chiede di aprire o fare qualcosa per cui può avere un suo comando (un programma, un sito, una cartella), usa quel comando con run_command (cercalo con find_command se non lo vedi) prima di open_web o open_app. Fai tutto ciò che chiede, nell'ordine in cui lo chiede.",
   "settings.nav.group.general": "Generale",
-  "settings.nav.group.media": "Voce e multimedia",
+  "settings.nav.group.media": "Multimedia",
   "settings.nav.group.connections": "Connessioni",
   "settings.nav.group.system": "Sistema",
   "settings.nav.search": "Cerca nelle impostazioni (Ctrl+F)",
@@ -5417,7 +5417,7 @@
   "settings.videoQualityHint.Normal": "Bilanciata",
   "settings.videoQualityHint.High": "Più nitida",
   "settings.videoCursor": "Registra il puntatore del mouse",
-  "settings.videoHint": "Si registra in MP4 (H.264) con la scheda grafica. Il suono lo sceglie ogni azione «Registra video»: ciò che suona sul PC, il microfono (con il volume qui sopra) o entrambi.",
+  "settings.videoHint": "Si registra in MP4 (H.264) con la scheda grafica. Il suono lo sceglie ogni azione «Registra video»: ciò che suona sul PC, il microfono (con il suo volume di «Registrazione audio») o entrambi.",
   "action.VideoRecord.name": "Registra video",
   "action.VideoRecord.desc": "Registra in video una zona, la finestra attiva o un monitor, con il suono del PC o del microfono se vuoi. Una pillola in alto mostra il tempo e permette di mettere in pausa e fermare (non compare nel video); si ferma anche con la stessa scorciatoia o dalla barra delle notifiche.",
   "editor.videoSound": "Suono",
@@ -5430,5 +5430,9 @@
   "osd.videoSaved": "Video salvato: {0} ({1})",
   "osd.videoFailed": "Impossibile registrare il video",
   "osd.videoUnsupported": "Questo Windows non può registrare lo schermo",
-  "tray.videoStop": "Ferma la registrazione video"
+  "tray.videoStop": "Ferma la registrazione video",
+
+  "settings.nav.group.voice": "Voce",
+  "settings.nav.screen": "Registrazione dello schermo",
+  "settings.nav.screen.hint": "Fotogrammi, qualità e cartella"
 }

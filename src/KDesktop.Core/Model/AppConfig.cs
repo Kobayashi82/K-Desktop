@@ -439,6 +439,10 @@ public partial class AppSettings : ObservableObject
 
     /// <summary>«Grabar vídeo» (F2): its folder (empty: Videos\K-Desktop), frames per second (30 or 60), quality and the pointer.</summary>
     [ObservableProperty] private string _videoFolder = string.Empty;
+
+    /// <summary>The names of the audio and screen recordings, as <see cref="CaptureName"/> (empty: «Audio / Vídeo {date} {time}»).</summary>
+    [ObservableProperty] private string _recordName = string.Empty;
+    [ObservableProperty] private string _videoName = string.Empty;
     [ObservableProperty] private int _videoFps = 30;
     [ObservableProperty] private VideoQuality _videoQuality = VideoQuality.Normal;
     [ObservableProperty] private bool _videoCursor = true;

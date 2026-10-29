@@ -46,9 +46,19 @@ public sealed partial class CommandEngine
         CaptureName(template, () => AppName(front), () => front.Title, when);
 
     /// <summary>The same with the program and title given (asked only if the template has them).</summary>
-    public static string CaptureName(string? template, Func<string> app, Func<string> title, DateTime when)
+    public static string CaptureName(string? template, Func<string> app, Func<string> title, DateTime when) =>
+        FileName(template, DefaultCaptureName, app, title, when);
+
+    /// <summary>
+    /// The name of a file from a template of Settings (screenshots, audio and screen recordings), or from
+    /// <paramref name="fallback"/> when it is empty or leaves nothing.
+    /// </summary>
+    public static string FileName(string? template, string fallback, ForegroundWindow front, DateTime when) =>
+        FileName(template, fallback, () => AppName(front), () => front.Title, when);
+
+    public static string FileName(string? template, string fallback, Func<string> app, Func<string> title, DateTime when)
     {
-        if (string.IsNullOrWhiteSpace(template)) template = DefaultCaptureName;
+        if (string.IsNullOrWhiteSpace(template)) template = fallback;
         var name = template
             .Replace("{date}", when.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase)
             .Replace("{time}", when.ToString("HH.mm.ss", CultureInfo.InvariantCulture), StringComparison.OrdinalIgnoreCase);
@@ -58,11 +68,16 @@ public sealed partial class CommandEngine
         var clean = new string(name.Select(c => invalid.Contains(c) ? ' ' : c).ToArray());
         clean = string.Join(' ', clean.Split(' ', StringSplitOptions.RemoveEmptyEntries)).Trim().TrimEnd('.');
         if (clean.Length > 120) clean = clean[..120].TrimEnd();
-        return clean.Length > 0 ? clean : CaptureName(DefaultCaptureName, app, title, when);
+        return clean.Length > 0 ? clean : FileName(fallback, fallback, app, title, when);
     }
 
     /// <summary>«Captura {date} {time}» in K-Desktop's language.</summary>
     public static string DefaultCaptureName => Loc.T("capture.filePrefix") + " {date} {time}";
+
+    /// <summary>«Audio {date} {time}» and «Vídeo {date} {time}», in K-Desktop's language.</summary>
+    public static string DefaultRecordName => Loc.T("record.filePrefix") + " {date} {time}";
+
+    public static string DefaultVideoName => Loc.T("video.filePrefix") + " {date} {time}";
 
     /// <summary>The program's own name («Google Chrome»), else its process's («Chrome»); nothing without a window in front.</summary>
     private static string AppName(ForegroundWindow front)
@@ -254,7 +269,7 @@ public sealed partial class CommandEngine
 
     private async Task AudioRecordAsync(AudioRecordAction a, ExecutionContext ctx)
     {
-        if (await Task.Run(() => AudioRecord(a)).ConfigureAwait(false) is { } file && a.GivesResult)
+        if (await Task.Run(() => AudioRecord(a, ctx)).ConfigureAwait(false) is { } file && a.GivesResult)
             await TranscribeRecordingAsync(a, file, ctx).ConfigureAwait(false);
     }
 
@@ -305,7 +320,7 @@ public sealed partial class CommandEngine
     }
 
     /// <summary>Does the action; the file that ended (stopped, or the replay saved), if any.</summary>
-    private string? AudioRecord(AudioRecordAction a)
+    private string? AudioRecord(AudioRecordAction a, ExecutionContext ctx)
     {
         var mode = a.Mode == RecordMode.Toggle ? (Recording.IsRecording ? RecordMode.Stop : RecordMode.Start) : a.Mode;
         var folder = FolderFor(a.Folder, Config.Settings.RecordFolder, Environment.SpecialFolder.MyMusic);
@@ -315,7 +330,8 @@ public sealed partial class CommandEngine
         {
             case RecordMode.Start:
                 if (Recording.IsRecording) return null;
-                Recording.Start(a.Source, () => NewFile(folder, Loc.T("record.filePrefix"), ".wav", final), options);
+                var front = ctx.Foreground.ProcessId == (uint)Environment.ProcessId ? ForegroundWindow.None : ctx.Foreground;
+                Recording.Start(a.Source, () => NewFileNamed(folder, FileName(Config.Settings.RecordName, DefaultRecordName, front, DateTime.Now), ".wav", final), options);
                 if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.recordStarted", Loc.T($"enum.audioSource.{a.Source}")), OsdKind.Warning, look: OsdLook.Of("MicPulse24"));
                 break;
             case RecordMode.Stop:

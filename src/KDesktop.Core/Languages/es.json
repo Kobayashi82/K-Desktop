@@ -433,8 +433,8 @@
   "settings.nav.mouse.hint": "Esquinas, gestos y Atrás / Adelante",
   "settings.nav.capture": "Capturas de pantalla",
   "settings.nav.capture.hint": "Formato, nombre y carpeta",
-  "settings.nav.recording": "Grabación",
-  "settings.nav.recording.hint": "Audio y pantalla, calidad y carpetas",
+  "settings.nav.recording": "Grabación de audio",
+  "settings.nav.recording.hint": "Formato, micrófono y carpeta",
   "settings.nav.zoom": "Lupa",
   "settings.nav.zoom.hint": "Aumento, forma y colores",
   "settings.capture": "Capturas de pantalla",
@@ -466,7 +466,7 @@
   "settings.captureCursor": "Incluir el puntero del ratón",
   "settings.captureSound": "Sonido de cámara",
   "settings.captureFlash": "Destello sobre lo capturado",
-  "settings.recordings": "Audio",
+  "settings.recordings": "Grabaciones",
   "settings.recordFormat": "Formato",
   "settings.recordFormat.Wav": "Sin comprimir",
   "settings.recordFormat.Mp3": "Compatible",
@@ -3977,7 +3977,7 @@
   "osd.brainLoading": "Cargando el modelo de la IA…",
   "assistant.prompt.act": "No pidas confirmación antes de hacer lo que pide: K-Desktop ya pregunta él solo cuando algo es delicado. Si pide abrir o hacer algo para lo que puede tener un comando suyo (un programa, una web, una carpeta), usa ese comando con run_command (búscalo con find_command si no lo ves) antes que open_web u open_app. Haz todo lo que pide, en el orden en que lo pide.",
   "settings.nav.group.general": "General",
-  "settings.nav.group.media": "Voz y Multimedia",
+  "settings.nav.group.media": "Multimedia",
   "settings.nav.group.connections": "Conexiones",
   "settings.nav.group.system": "Sistema",
   "settings.nav.search": "Buscar en Opciones (Ctrl+F)",
@@ -5417,7 +5417,7 @@
   "settings.videoQualityHint.Normal": "Equilibrada",
   "settings.videoQualityHint.High": "Más nítida",
   "settings.videoCursor": "Grabar el puntero del ratón",
-  "settings.videoHint": "Se graba en MP4 (H.264) con la tarjeta gráfica. El sonido lo elige cada acción «Grabar vídeo»: lo que suena en el PC, el micrófono (con el volumen de arriba) o los dos.",
+  "settings.videoHint": "Se graba en MP4 (H.264) con la tarjeta gráfica. El sonido lo elige cada acción «Grabar vídeo»: lo que suena en el PC, el micrófono (con su volumen de «Grabación de audio») o los dos.",
   "action.VideoRecord.name": "Grabar vídeo",
   "action.VideoRecord.desc": "Graba en vídeo una región, la ventana activa o un monitor, con el sonido del PC o del micrófono si quieres. Una pastilla arriba enseña el tiempo y deja pausar y parar (no sale en el vídeo); también se para con el mismo atajo o desde la bandeja.",
   "editor.videoSound": "Sonido",
@@ -5430,5 +5430,9 @@
   "osd.videoSaved": "Vídeo guardado: {0} ({1})",
   "osd.videoFailed": "No se ha podido grabar el vídeo",
   "osd.videoUnsupported": "Este Windows no puede grabar la pantalla",
-  "tray.videoStop": "Parar la grabación de vídeo"
+  "tray.videoStop": "Parar la grabación de vídeo",
+
+  "settings.nav.group.voice": "Voz",
+  "settings.nav.screen": "Grabación de pantalla",
+  "settings.nav.screen.hint": "Fotogramas, calidad y carpeta"
 }
