@@ -95,6 +95,7 @@ Only with the [assistant module](../assistant/index.md) on.
 | **Assistant: say** | The assistant says something in its bubble, without the AI. Handy in events: «The backup has finished». With `{selection}` it reads what you have selected with its voice (a long text, whole). With *If it is not on the desktop, it comes out to do it*, it comes out if it is hidden. |
 | **Assistant: chat** | Opens, closes or toggles a separate **chat window**, with the same conversation as *Panel → Assistant*. It starts with the last assistant you talked to in it or with a fixed one. Its icon, at the top, changes the assistant (the ones not on the desktop come out when chosen); the pin keeps it on top and Esc closes it. It remembers where it was, its size, the pin and the assistant. |
 | **Assistant: brain** | Takes the AI model out of the graphics card (before a game or a render) or loads it now so the first answer does not wait. |
+| **Assistant: use a tool** | Uses one of the [assistants' tools](../assistant/tools.md) without the AI: a built-in one (the weather, converting, reading a web page, the PC's status…), one of your own in JSON, or one from an [MCP server](../assistant/tools.md#mcp-servers) (sending a Telegram message, putting something in your calendar, pausing downloads…). You pick it from a list, which leaves out the ones that are already a K-Desktop action, and fill in its data in a form or, with *Show as JSON*, by hand; variables work in its texts (`{selection}`, `{result}`…). What it gives back goes to `{result}`. It does not ask first, except for a script of yours that is new or changed, or a tool you set to *Always* in *Settings › Tools*; if the command runs by itself (an event, at startup…), that one is not done. If it fails, the rest of the command is not run. Example: `{selection}` in the text of the Telegram tool to send what is selected. |
 | **Assistant: action** | Puts an assistant on the desktop, hides it, or runs one of its own actions, like the Lander's manual mode (if it is not on the desktop, it comes out for it or nothing is done, as you choose). |
 
 ## Variables: passing data from one action to another
@@ -112,7 +113,7 @@ and the ones you can use show up; choose one with the arrows and put it with Ent
 | `{name}` | What an earlier action kept with **Save in a variable** and that name. |
 
 These give something: **Copy text from the screen** (the text read), **Colour picker** (the colour), **Ruler** (the size), **Web request** (the answer), **Assistant: ask** (the
-answer, except with *Say it*), **Record audio** (what is said, with *When it ends, transcribe it*), **Clipboard** (the text
+answer, except with *Say it*), **Assistant: use a tool** (what it gives back), **Record audio** (what is said, with *When it ends, transcribe it*), **Clipboard** (the text
 it leaves copied), **Screenshot** (the saved file), **Record video** (the video, when it stops) and **Run script** (what it writes, when *Wait until it finishes* is
 ticked and the window is *Hidden*; not in VBScript). These actions have the **Save in a variable** field: with a name
 (letters, digits and `_`), what they give stays available until the command ends, even if another action changes

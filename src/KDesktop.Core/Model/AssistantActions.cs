@@ -181,6 +181,18 @@ public partial class AssistantToolAction : CommandAction
     [ObservableProperty]
     [property: JsonIgnore] private string? _toolName;
 
+    /// <summary>
+    /// The built-in tools that K-Desktop already has as an action or a variable (the editor does not offer them): open,
+    /// control and place programs, the PC's settings, media, files, the clipboard, the phone, commands, the brain, the time.
+    /// </summary>
+    public static IReadOnlySet<string> Covered { get; } = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "run_command", "run_event", "stop_countdown", "open_app", "open_web", "open_file", "control_app", "arrange_windows", "end_process",
+        "set_volume", "audio_device", "display", "windows_theme", "toggle_radio", "lock_pc", "power_pc", "take_screenshot", "power_plan",
+        "keep_awake", "control_media", "set_clipboard", "read_clipboard", "clipboard_history", "send_to_phone", "copy_file", "move_file",
+        "delete_file", "create_folder", "zip_files", "unzip", "free_brain", "get_time",
+    };
+
     public override ActionKind Kind => ActionKind.AssistantTool;
 
     public override bool GivesResult => true;

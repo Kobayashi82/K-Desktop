@@ -16,19 +16,23 @@ namespace KDesktop.Views.Assistant;
 /// The form of «Probar» in Options → Tools (5.0.133): one field per parameter of the tool's JSON schema —a list for an
 /// enum, yes/no for a boolean, a box for the rest—, with its description, its default and a mark on the required ones;
 /// it gives back the arguments as JSON, typed, with only what was filled in. What was written is kept by the caller
-/// (<see cref="Values"/>) so the rows can be made again without losing it.
+/// (<see cref="Values"/>) so the rows can be made again without losing it. «Usar una herramienta» (G1) uses it too, with
+/// variables in its boxes and the arguments kept as they are written (<see cref="ToArguments"/>).
 /// </summary>
 public sealed class ToolTestForm
 {
     private sealed record Field(string Name, string Type, bool Required, IReadOnlyList<JsonNode?>? Choices, Func<string> Read);
 
     private readonly List<Field> _fields = [];
+    private readonly bool _variables;
 
     /// <param name="schema">The tool's parameters (JSON schema of an object); null or broken: no fields.</param>
     /// <param name="values">What was written in each field (kept between rebuilds; changed as the user writes).</param>
-    public ToolTestForm(string? schema, Dictionary<string, string> values)
+    /// <param name="variables">The boxes offer the variables ({seleccion}, {resultado}…), those of numbers too.</param>
+    public ToolTestForm(string? schema, Dictionary<string, string> values, bool variables = false)
     {
         Values = values;
+        _variables = variables;
         var panel = new Grid();
         panel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(170) });
         panel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -72,6 +76,54 @@ public sealed class ToolTestForm
     public FrameworkElement View { get; }
 
     public bool HasFields => _fields.Count > 0;
+
+    /// <summary>Something was written or chosen (<see cref="Values"/> has it already).</summary>
+    public event Action? Changed;
+
+    /// <summary>
+    /// The arguments as written, for a command (G1): only what was filled in; a text with a variable stays a text (it is
+    /// typed when it runs, <c>ToolArguments.Typed</c>), and so does a value that does not fit (<see cref="Problem"/> says so).
+    /// </summary>
+    public string ToArguments()
+    {
+        var arguments = new JsonObject();
+        foreach (var field in _fields)
+        {
+            var text = field.Read().Trim();
+            if (text.Length == 0) continue;
+            arguments[field.Name] = Core.Engine.TextVariables.HasVariable(text) && field.Choices is null ? JsonValue.Create(text)
+                : Value(field, text) ?? JsonValue.Create(text);
+        }
+        return arguments.ToJsonString();
+    }
+
+    /// <summary>What is missing or wrong (a variable is fine: it is only known when it runs); null when nothing.</summary>
+    public string? Problem()
+    {
+        foreach (var field in _fields)
+        {
+            var text = field.Read().Trim();
+            if (text.Length == 0)
+            {
+                if (field.Required) return Loc.T("toolsOptions.form.missing", Humanize(field.Name));
+                continue;
+            }
+            if (!Core.Engine.TextVariables.HasVariable(text) && Value(field, text) is null) return Loc.T("toolsOptions.form.wrong", Humanize(field.Name));
+        }
+        return null;
+    }
+
+    /// <summary>The text of each field from arguments in JSON (a command's), as the form writes them.</summary>
+    public static Dictionary<string, string> ValuesOf(string? arguments)
+    {
+        var values = new Dictionary<string, string>(StringComparer.Ordinal);
+        JsonObject? parsed;
+        try { parsed = string.IsNullOrWhiteSpace(arguments) ? null : JsonNode.Parse(arguments) as JsonObject; }
+        catch (JsonException) { parsed = null; }
+        foreach (var (name, value) in parsed ?? [])
+            values[name] = Show(value);
+        return values;
+    }
 
     public Dictionary<string, string> Values { get; }
 
@@ -150,7 +202,11 @@ public sealed class ToolTestForm
             }
             var start = saved ?? fallback ?? string.Empty;
             box.SelectedItem = box.Items.OfType<ComboBoxItem>().FirstOrDefault(i => (string)i.Tag == start) ?? box.Items[0];
-            box.SelectionChanged += (_, _) => Values[name] = Read();
+            box.SelectionChanged += (_, _) =>
+            {
+                Values[name] = Read();
+                Changed?.Invoke();
+            };
             Values[name] = Read();
             control = box;
             First ??= box;
@@ -178,7 +234,12 @@ public sealed class ToolTestForm
         };
         if (type is "array" or "object" or "integer" or "number") input.FontFamily = new FontFamily("Consolas");
         if (type is "integer" or "number") { input.MaxWidth = 200; input.HorizontalAlignment = HorizontalAlignment.Left; input.MinWidth = 200; }
-        input.TextChanged += (_, _) => Values[name] = input.Text;
+        input.TextChanged += (_, _) =>
+        {
+            Values[name] = input.Text;
+            Changed?.Invoke();
+        };
+        if (_variables && type is not ("array" or "object")) VariableHints.SetIsEnabled(input, true);
         control = input;
         First ??= input;
         return new Field(name, type, required, null, () => input.Text);

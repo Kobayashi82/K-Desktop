@@ -343,6 +343,9 @@ public partial class AssistantToolsSection : UserControl
 
     private static string SubjectOf(string tool) => SubjectOfTool.GetValueOrDefault(tool, "other");
 
+    /// <summary>The subject a built-in tool is listed under («time», «files»…; «other» when none).</summary>
+    internal static string SubjectOfName(string tool) => SubjectOf(tool);
+
     internal static SymbolRegular SubjectIcon(string subject) => subject switch
     {
         "commands" => SymbolRegular.Flash24,

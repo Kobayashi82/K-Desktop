@@ -108,6 +108,17 @@ public sealed class ToolActionTests : IDisposable
     }
 
     [Fact]
+    public void TheToolsLeftOutOfTheListAreRealOnes()
+    {
+        using var builtin = new KDesktop.Assistant.Tools.Builtin.BuiltinTools(_folder);
+        var registry = new ToolRegistry();
+        builtin.AddTo(registry);
+        KDesktop.Assistant.Tools.Builtin.CommandTools.AddTo(registry, new EndBridge());
+        // free_brain is added by the brain, not with the built-in ones.
+        Assert.All(KDesktop.Core.Model.AssistantToolAction.Covered.Where(t => t != "free_brain"), tool => Assert.NotNull(registry.FindAny(tool)));
+    }
+
+    [Fact]
     public void TextsBecomeTypedByTheSchema()
     {
         const string schema = """

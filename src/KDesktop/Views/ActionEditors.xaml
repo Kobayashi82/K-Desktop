@@ -1909,6 +1909,11 @@
         </DataTemplate.Triggers>
     </DataTemplate>
 
+    <!-- ── Asistente: usar una herramienta ─────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:AssistantToolAction}">
+        <v:ToolActionFields />
+    </DataTemplate>
+
     <!-- ── Si… ─────────────────────────────────────────────────────────── -->
     <!-- What «Si…» looks at: also each check of an event's «Solo si» (5.0.340) -->
     <DataTemplate x:Key="ConditionFields" DataType="{x:Type m:ConditionAction}">

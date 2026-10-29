@@ -4,6 +4,7 @@ using KDesktop.Core;
 using KDesktop.Core.Assistant;
 using KDesktop.Core.Assistant.Pipe;
 using KDesktop.Core.Localization;
+using KDesktop.Core.Model;
 using KDesktop.Core.Platform;
 
 namespace KDesktop;
@@ -71,6 +72,9 @@ public partial class App
     private void OnAssistantTools(ToolsStateMessage state)
     {
         AssistantTools = state;
+        // The summaries of «Usar una herramienta» name each tool as Options → Tools does.
+        foreach (var action in Config.Commands.SelectMany(c => c.Actions).OfType<AssistantToolAction>())
+            action.ToolName = state.Tools.FirstOrDefault(t => t.Name == action.Tool) is { } tool ? Views.Pages.AssistantToolsSection.TitleOf(tool) : null;
         AssistantToolsChanged?.Invoke();
     }
 

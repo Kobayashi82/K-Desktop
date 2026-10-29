@@ -96,6 +96,7 @@ Solo con el [módulo Asistente](../assistant/index.md) encendido.
 | **Asistente: decir** | El asistente dice algo en su bocadillo, sin la IA. Útil en eventos: «Ha terminado la copia». Con `{seleccion}` lee lo que tengas seleccionado con su voz (un texto largo, entero). Con *Si no está en el escritorio, sale para hacerla*, sale si está escondido. |
 | **Asistente: chat** | Abre, cierra o alterna una **ventana de chat** aparte, con la misma conversación que *Panel → Asistente*. Empieza con el último asistente con el que hablaste en ella o con uno fijo. Su icono, arriba, cambia de asistente (los que no están en el escritorio salen al elegirlos); la chincheta la deja siempre encima y Esc la cierra. Recuerda dónde estaba, su tamaño, la chincheta y el asistente. |
 | **Asistente: cerebro** | Saca el modelo de IA de la gráfica (antes de un juego o un render) o lo carga ya para que la primera respuesta no espere. |
+| **Asistente: usar una herramienta** | Usa una [herramienta de los asistentes](../assistant/tools.md) sin la IA: una incluida (el tiempo, convertir, leer una web, el estado del PC…), una tuya en JSON o la de un [servidor MCP](../assistant/tools.md#servidores-mcp) (mandar un mensaje a Telegram, apuntar algo en tu calendario, pausar las descargas…). Se elige en una lista, donde no salen las que ya son una acción de K-Desktop, y sus datos se rellenan en un formulario o, con *Ver como JSON*, a mano; en los textos valen las variables (`{seleccion}`, `{resultado}`…). Lo que devuelve queda en `{resultado}`. No pregunta antes, salvo un script tuyo nuevo o cambiado o una herramienta que tengas en *Siempre* en *Opciones › Herramientas*; si el comando salta solo (un evento, al arrancar…), esa no se hace. Si falla, el resto del comando no sigue. Ejemplo: `{seleccion}` en el texto de la herramienta de Telegram para mandar lo seleccionado. |
 | **Asistente: acción** | Pone un asistente en el escritorio, lo esconde o lanza una acción propia suya, como el modo manual del Lander (si no está en el escritorio, sale para hacerla o no se hace nada, a elegir). |
 
 ## Variables: pasar datos de una acción a otra
@@ -113,7 +114,7 @@ Escribe `{` en el campo y salen las que hay; con las flechas eliges una y con En
 | `{nombre}` | Lo que guardó una acción anterior con **Guardar en variable** y ese nombre. |
 
 Dan algo: **Copiar texto de la pantalla** (el texto leído), **Cuentagotas** (el color), **Regla** (la medida), **Petición web** (la respuesta), **Asistente: preguntar** (la
-respuesta, salvo con *Decirla*), **Grabar audio** (lo que se dice, con *Al terminar, transcribir*), **Portapapeles** (el texto que
+respuesta, salvo con *Decirla*), **Asistente: usar una herramienta** (lo que devuelve), **Grabar audio** (lo que se dice, con *Al terminar, transcribir*), **Portapapeles** (el texto que
 deja copiado), **Captura de pantalla** (el archivo guardado), **Grabar vídeo** (el vídeo, al parar) y **Ejecutar script** (lo que escribe, si se marca *Esperar a
 que termine* y la ventana es *Oculta*; no en VBScript). Estas acciones tienen el campo **Guardar en variable**: con un
 nombre (letras, números y `_`), lo que dan sigue disponible hasta que acaba el comando, aunque después otra acción cambie

@@ -200,6 +200,14 @@ their own after some minutes unused; *Tools → Running now* shows which are run
 choosing among them never starts a server. By default they ask the first time, except those the server says only read.
 What a server writes to stderr goes to `Logs\mcp-<server>.log`.
 
+## From a command
+
+With the [Assistant: use a tool](../k-desktop/actions.md#assistant) action, a command uses any of these tools without the
+AI: with a shortcut, from a QuickMenu or in an event (for example, pausing downloads when a game opens). What it gives
+back goes to `{result}` for the next actions. As the command is yours, it does not ask first, except for a script that is
+new or changed or a tool you set to *Always*; if the command runs by itself, those are not done. It needs the Assistant
+module on.
+
 ## Sharing with other programs
 
 The other way round: *Tools → Share* turns the assistants into an MCP server for Claude Desktop, VS Code, Open WebUI or any

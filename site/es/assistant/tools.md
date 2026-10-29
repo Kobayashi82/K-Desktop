@@ -203,6 +203,14 @@ paran solos tras unos minutos sin usarse; *Herramientas → En marcha ahora* ens
 se recuerdan, así que elegir entre ellas nunca arranca un servidor. Por defecto preguntan la primera vez, salvo las que el
 servidor dice que solo leen. Lo que un servidor escribe en stderr va a `Logs\mcp-<servidor>.log`.
 
+## Desde un comando
+
+Con la acción [Asistente: usar una herramienta](../k-desktop/actions.md#asistente) un comando usa cualquiera de estas
+herramientas sin la IA: con un atajo, desde un QuickMenu o en un evento (por ejemplo, pausar las descargas al abrir un
+juego). Lo que devuelve queda en `{resultado}` para las acciones siguientes. Como el comando es tuyo, no pregunta antes,
+salvo un script nuevo o cambiado o una herramienta que tengas en *Siempre*; si el comando salta solo, esas no se hacen.
+Necesita el módulo Asistente encendido.
+
 ## Compartir con otros programas
 
 Al revés: *Herramientas → Compartir* hace de los asistentes un servidor MCP para Claude Desktop, VS Code, Open WebUI o
