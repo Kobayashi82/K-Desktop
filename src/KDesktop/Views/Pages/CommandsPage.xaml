@@ -120,6 +120,7 @@
         <CommandBinding Command="{x:Static v:EditorCommands.RemoveProcess}" Executed="OnRemoveProcess" />
         <CommandBinding Command="{x:Static v:EditorCommands.RemoveVoicePhrase}" Executed="OnRemoveVoicePhrase" />
         <CommandBinding Command="{x:Static v:EditorCommands.EditMacro}" Executed="OnEditMacro" />
+        <CommandBinding Command="{x:Static v:EditorCommands.EditArrangement}" Executed="OnEditArrangement" />
         <CommandBinding Command="{x:Static v:EditorCommands.AddAudioDevice}" Executed="OnAddAudioDevice" />
         <CommandBinding Command="{x:Static v:EditorCommands.RemoveAudioDevice}" Executed="OnRemoveAudioDevice" />
         <CommandBinding Command="{x:Static v:EditorCommands.EditKBoard}" Executed="OnEditKBoard" />

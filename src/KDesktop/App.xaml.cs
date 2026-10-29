@@ -459,6 +459,7 @@ public partial class App : Application
         foreach (var rule in Config.Events) rule.RefreshTexts();
         foreach (var menu in Config.QuickMenus) menu.RefreshTexts();
         foreach (var snippet in Config.Snippets) snippet.RefreshTexts();
+        foreach (var arrangement in Config.Arrangements) arrangement.RefreshTexts();
         // The tray menu is built in code: rebuild it in the new language.
         _tray?.Dispose();
         _tray = null;

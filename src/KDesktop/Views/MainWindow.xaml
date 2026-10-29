@@ -139,6 +139,12 @@
                             <TextBlock Text="{l:Tr nav.snippets}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
                         </StackPanel>
                     </ListBoxItem>
+                    <ListBoxItem Tag="arrangements">
+                        <StackPanel Orientation="Horizontal">
+                            <ui:SymbolIcon Symbol="WindowApps24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />
+                            <TextBlock Text="{l:Tr nav.arrangements}" Margin="12,0,0,0" FontSize="14" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ListBoxItem>
                     <ListBoxItem x:Name="AssistantNav" Tag="assistant" Visibility="Collapsed">
                         <StackPanel Orientation="Horizontal">
                             <ui:SymbolIcon Symbol="Bot24" FontSize="18" Foreground="{DynamicResource Kd.AccentText}" />

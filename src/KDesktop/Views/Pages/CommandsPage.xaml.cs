@@ -643,6 +643,11 @@ public sealed partial class CommandsPage : UserControl, IDisposable
             pm.MacroId = macro.Id;
             pm.MacroName = macro.Name;
         }
+        if (action is ArrangementAction arrange && Config.Arrangements.FirstOrDefault() is { } arrangement)
+        {
+            arrange.ArrangementId = arrangement.Id;
+            arrange.ArrangementName = arrangement.Name;
+        }
         if (action is KBoardAction kb && Config.KBoards.FirstOrDefault() is { } profile)
         {
             kb.ProfileId = profile.Id;
@@ -698,6 +703,9 @@ public sealed partial class CommandsPage : UserControl, IDisposable
                 break;
             case PlayMacroAction m when e.PropertyName == nameof(PlayMacroAction.MacroId):
                 m.MacroName = Config.FindMacro(m.MacroId)?.Name;
+                break;
+            case ArrangementAction a when e.PropertyName == nameof(ArrangementAction.ArrangementId):
+                a.ArrangementName = Config.FindArrangement(a.ArrangementId)?.Name;
                 break;
             case KBoardAction k when e.PropertyName == nameof(KBoardAction.ProfileId):
                 k.ProfileName = Config.FindKBoard(k.ProfileId)?.Name;
@@ -885,6 +893,9 @@ public sealed partial class CommandsPage : UserControl, IDisposable
 
     private void OnEditMacro(object sender, ExecutedRoutedEventArgs e) =>
         (Window.GetWindow(this) as MainWindow)?.OpenMacro(e.Parameter as string);
+
+    private void OnEditArrangement(object sender, ExecutedRoutedEventArgs e) =>
+        (Window.GetWindow(this) as MainWindow)?.OpenArrangement(e.Parameter as string);
 
     private void OnEditKBoard(object sender, ExecutedRoutedEventArgs e) =>
         (Window.GetWindow(this) as MainWindow)?.OpenKBoard(e.Parameter as string);

@@ -962,6 +962,34 @@
     </DataTemplate>
 
     <!-- ── Reproducir macro ────────────────────────────────────────────── -->
+    <!-- ── Disposición de ventanas (E1): one of the page «Disposiciones», as «Reproducir macro» takes a macro ── -->
+    <DataTemplate DataType="{x:Type m:ArrangementAction}">
+        <StackPanel>
+            <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.arrangement}" />
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ComboBox ItemsSource="{Binding Source={x:Static v:Lookups.ArrangementList}}" SelectedValuePath="Id" SelectedValue="{Binding ArrangementId}"
+                          IsTextSearchEnabled="True" TextSearch.TextPath="Name" MaxDropDownHeight="420" AutomationProperties.Name="{l:Tr editor.arrangement}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type m:WindowArrangement}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Name}" />
+                                <TextBlock Text="{Binding Summary}" Margin="10,0,0,0" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <ui:Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Stretch" Content="{l:Tr editor.editKBoard}" Icon="{ui:SymbolIcon Edit24}"
+                           Command="{x:Static v:EditorCommands.EditArrangement}" CommandParameter="{Binding ArrangementId}" />
+            </Grid>
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.arrangementHint}" />
+        </StackPanel>
+    </DataTemplate>
+
     <DataTemplate DataType="{x:Type m:PlayMacroAction}">
         <StackPanel>
             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.macro}" />

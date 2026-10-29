@@ -239,6 +239,12 @@ public partial class MainWindow : FluentWindow
         if (macroId is not null && _pages.GetValueOrDefault("macros") is Pages.MacrosPage page) page.Select(macroId);
     }
 
+    public void OpenArrangement(string? arrangementId)
+    {
+        Navigate("arrangements");
+        if (arrangementId is not null && _pages.GetValueOrDefault("arrangements") is Pages.ArrangementsPage page) page.Select(arrangementId);
+    }
+
     public void OpenKBoard(string? profileId)
     {
         Navigate("kboard");
@@ -286,6 +292,7 @@ public partial class MainWindow : FluentWindow
                 "events" => new Pages.EventsPage(),
                 "macros" => new Pages.MacrosPage(),
                 "snippets" => new Pages.SnippetsPage(),
+                "arrangements" => new Pages.ArrangementsPage(),
                 "kboard" => new Pages.KBoardPage(),
                 "achievements" => new Pages.AchievementsPage(),
                 "history" => new Pages.HistoryPage(),

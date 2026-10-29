@@ -25,6 +25,7 @@ public static class ActionCatalog
 
         new(ActionKind.AppControl, "windows", "WindowApps24", () => new AppControlAction()),
         new(ActionKind.Window, "windows", "WindowNew24", () => new WindowAction()),
+        new(ActionKind.Arrangement, "windows", "WindowApps24", () => new ArrangementAction()),
         new(ActionKind.TopMost, "windows", "Pin24", () => new TopMostAction()),
 
         new(ActionKind.SendInput, "input", "Keyboard24", () => new SendInputAction()),

@@ -70,6 +70,7 @@ public static class ActionGestures
         ActionKind.AppControl => [new(GestureKind.ActivateWindow)],
         ActionKind.SendInput => [new(GestureKind.Typing)],
         ActionKind.PlayMacro => [new(GestureKind.Typing)],
+        ActionKind.Arrangement => ForWindow(WindowOperation.Snap, maximized: false),
 
         ActionKind.RunApp or ActionKind.OpenFolder or ActionKind.OpenUrl => [new(GestureKind.WaitForWindow, Place: GesturePlace.None)],
 

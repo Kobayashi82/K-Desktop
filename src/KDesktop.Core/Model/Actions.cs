@@ -16,7 +16,7 @@ public enum ActionKind
     Window, Clipboard, WakeOnLan, Display, PowerPlan, WindowsTheme, Radio, Condition,
     Screenshot, AudioRecord, Magnifier, Dictate, ScreenText,
     AssistantExtra, AssistantAsk, AssistantSay, AssistantBrain,
-    ShowNotification, Files, AudioInput, Media, KeepAwake, SendToPhone, AssistantChat,
+    ShowNotification, Files, AudioInput, Media, KeepAwake, SendToPhone, AssistantChat, Arrangement,
 }
 
 public enum WindowMode { Normal, Minimized, Maximized, Hidden }
@@ -85,6 +85,7 @@ public enum ScriptShell { Cmd, PowerShell, VBScript }
 [JsonDerivedType(typeof(AssistantSayAction), "assistantSay")]
 [JsonDerivedType(typeof(AssistantBrainAction), "assistantBrain")]
 [JsonDerivedType(typeof(AssistantChatAction), "assistantChat")]
+[JsonDerivedType(typeof(ArrangementAction), "arrangement")]
 public abstract partial class CommandAction : ObservableObject
 {
     [ObservableProperty] private bool _enabled = true;
@@ -604,6 +605,21 @@ public partial class PlayMacroAction : CommandAction
         Loc.T("summary.playMacro", string.IsNullOrWhiteSpace(MacroName) ? "?" : MacroName) +
         (UntilStopped ? "  ·  ∞" : Repeat > 1 ? $"  ·  ×{Repeat}" : "") +
         (Math.Abs(Speed - 1) > 0.001 ? $"  ·  {Speed:0.##}x" : "");
+}
+
+/// <summary>«Disposición de ventanas» (E1, 5.0.375): puts the windows as a disposición of the page «Disposiciones» says.</summary>
+public partial class ArrangementAction : CommandAction
+{
+    [ObservableProperty] private string _arrangementId = string.Empty;
+
+    [ObservableProperty] private bool _showOsd = true;
+
+    [ObservableProperty]
+    [property: JsonIgnore] private string? _arrangementName;
+
+    public override ActionKind Kind => ActionKind.Arrangement;
+
+    public override string Summary => string.IsNullOrWhiteSpace(ArrangementName) ? Loc.T("summary.arrangementNone") : $"«{ArrangementName}»";
 }
 
 public static class PowerNames

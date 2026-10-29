@@ -70,6 +70,24 @@ public sealed partial class CommandEngine
 
     private static string Or(string name) => name.Length > 0 ? name : "?";
 
+    // ── Disposición de ventanas ──────────────────────────────────────────
+
+    /// <summary>«Disposición de ventanas» (E1): the windows of a disposición to their places; the OSD says what was not open.</summary>
+    private async Task ArrangeAsync(ArrangementAction a, ExecutionContext ctx)
+    {
+        if (Config.FindArrangement(a.ArrangementId) is not { } arrangement)
+        {
+            _ui.ShowOsd(Loc.T("osd.arrangementMissing"), OsdKind.Warning, look: OsdLook.Of("WindowApps24"));
+            return;
+        }
+        var result = await WindowArrangements.ApplyAsync(arrangement, path => ProcessLauncher.Launch(new LaunchSpec(path), asAdmin: false), ctx.Token).ConfigureAwait(false);
+        if (!a.ShowOsd) return;
+        if (result.Missing.Count > 0)
+            _ui.ShowOsd(Loc.T("osd.arrangementNotOpen", arrangement.Name, string.Join(", ", result.Missing.Distinct(StringComparer.OrdinalIgnoreCase))), OsdKind.Warning,
+                look: OsdLook.Of("WindowApps24"));
+        else _ui.ShowOsd(Loc.T("osd.arrangementDone", arrangement.Name), OsdKind.Success, look: OsdLook.Of("WindowApps24"));
+    }
+
     // ── Ventana ──────────────────────────────────────────────────────────
 
     private void Window(WindowAction a, ExecutionContext ctx)

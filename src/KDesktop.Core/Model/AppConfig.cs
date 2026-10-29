@@ -24,6 +24,9 @@ public sealed class AppConfig
     /// <summary>The texts of the expander («Textos»).</summary>
     public ObservableCollection<TextSnippet> Snippets { get; set; } = [];
 
+    /// <summary>The window layouts («Disposiciones», E1).</summary>
+    public ObservableCollection<WindowArrangement> Arrangements { get; set; } = [];
+
     /// <summary>Brings a configuration saved by an older version up to date. Returns true when something changed.</summary>
     public bool Upgrade()
     {
@@ -280,6 +283,7 @@ public sealed class AppConfig
                     break;
                 case ConditionAction i: i.ElseCommandName = FindCommand(i.ElseCommandId)?.Name; break;
                 case PlayMacroAction p: p.MacroName = FindMacro(p.MacroId)?.Name; break;
+                case ArrangementAction a: a.ArrangementName = FindArrangement(a.ArrangementId)?.Name; break;
                 case KBoardAction k: k.ProfileName = FindKBoard(k.ProfileId)?.Name; break;
                 case AssistantExtraAction x: x.ExtraName = ExtraName(x.Assistant, x.Extra); break;
                 case DisplayAction { Operation: DisplayOperation.Mode } d when d.Monitor.Length > 0:
@@ -331,6 +335,12 @@ public sealed class AppConfig
             ? null
             : KBoards.FirstOrDefault(k => k.Id == idOrName) ??
               KBoards.FirstOrDefault(k => k.Name.Equals(idOrName, StringComparison.OrdinalIgnoreCase));
+
+    public WindowArrangement? FindArrangement(string? idOrName) =>
+        string.IsNullOrEmpty(idOrName)
+            ? null
+            : Arrangements.FirstOrDefault(a => a.Id == idOrName) ??
+              Arrangements.FirstOrDefault(a => a.Name.Equals(idOrName, StringComparison.OrdinalIgnoreCase));
 
     public Macro? FindMacro(string? idOrName) =>
         string.IsNullOrEmpty(idOrName)
@@ -631,6 +641,11 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private bool _snippetTryFolded;
     [ObservableProperty] private bool _snippetOptionsOpen;
     [ObservableProperty] private bool _snippetNotesFolded;
+
+    /// <summary>Disposiciones: «Ventanas» and «Notas» folded away, and «Opciones» unfolded.</summary>
+    [ObservableProperty] private bool _arrangementWindowsFolded;
+    [ObservableProperty] private bool _arrangementOptionsOpen;
+    [ObservableProperty] private bool _arrangementNotesFolded;
 
     // Macros
     /// <summary>Record mouse movements (not only clicks) when recording a macro.</summary>

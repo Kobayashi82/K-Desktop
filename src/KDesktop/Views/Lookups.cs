@@ -160,6 +160,8 @@ public static class Lookups
 
     public static IEnumerable<Macro> MacroList => App.Current.Config.Macros;
 
+    public static IEnumerable<WindowArrangement> ArrangementList => App.Current.Config.Arrangements;
+
     public static IEnumerable<KBoardProfile> KBoardList => App.Current.Config.KBoards;
 
     public static IReadOnlyList<Option<double>> MacroSpeeds { get; } =
@@ -234,6 +236,7 @@ public static class EditorCommands
     public static readonly RoutedUICommand RemoveProcess = new("RemoveProcess", nameof(RemoveProcess), typeof(EditorCommands));
     public static readonly RoutedUICommand RemoveVoicePhrase = new("RemoveVoicePhrase", nameof(RemoveVoicePhrase), typeof(EditorCommands));
     public static readonly RoutedUICommand EditMacro = new("EditMacro", nameof(EditMacro), typeof(EditorCommands));
+    public static readonly RoutedUICommand EditArrangement = new("EditArrangement", nameof(EditArrangement), typeof(EditorCommands));
     public static readonly RoutedUICommand CaptureStepKey = new("CaptureStepKey", nameof(CaptureStepKey), typeof(EditorCommands));
     public static readonly RoutedUICommand CaptureStepPosition = new("CaptureStepPosition", nameof(CaptureStepPosition), typeof(EditorCommands));
     public static readonly RoutedUICommand AddAudioDevice = new("AddAudioDevice", nameof(AddAudioDevice), typeof(EditorCommands));

@@ -100,6 +100,7 @@ public static partial class IconProvider
         PlayMacroAction => Kd("Record24", "red"),
         KBoardAction => Kd("KeyboardLayoutFloat24", "indigo"),
         WindowAction => Kd("WindowNew24", "blue"),
+        ArrangementAction => Kd("WindowApps24", "teal"),
         ClipboardAction { Mode: ClipboardMode.ShowHistory } => Kd("History24", "sky"),
         ClipboardAction => Kd("ClipboardTextEdit24", "sky"),
         WakeOnLanAction => Kd("DesktopPulse24", "green"),
