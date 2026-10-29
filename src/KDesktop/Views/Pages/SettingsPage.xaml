@@ -865,6 +865,14 @@
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.launcherFiles}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherFilesHint}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding LauncherFiles}" AutomationProperties.Name="{l:Tr settings.launcherFiles}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.launcherWeb}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherWebHint}" />
                         </StackPanel>

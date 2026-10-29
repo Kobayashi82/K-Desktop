@@ -241,6 +241,24 @@ public sealed class FileSearch(IFileIndex? index = null, Func<IReadOnlyList<stri
     public async Task<(IReadOnlyList<FoundFile> Files, int Total)> SearchAsync(FileQuery query, CancellationToken cancellationToken)
     {
         var watch = Stopwatch.StartNew();
+        var ranked = await RankAsync(query, WalkTime, content: true, cancellationToken).ConfigureAwait(false);
+        var best = ranked.Take(Shown).ToList();
+        Log.Info($"Asistente: archivos «{query.Text}» {query.Kind} {query.Folder} {query.Days} → {best.Count} de {ranked.Count} en {watch.ElapsedMilliseconds} ms");
+        return (best, ranked.Count);
+    }
+
+    /// <summary>The launcher's walk: it searches as the user types, so a shorter one (the index answers the rest).</summary>
+    private static readonly TimeSpan QuickWalkTime = TimeSpan.FromSeconds(0.8);
+
+    /// <summary>
+    /// The launcher (Settings › Lanzador › «Archivos y carpetas»): the best <paramref name="count"/>, without a log line per
+    /// key. Without <paramref name="content"/>, only by name (mixed with the commands, what only has the words inside is noise).
+    /// </summary>
+    public async Task<IReadOnlyList<FoundFile>> QuickAsync(FileQuery query, int count, bool content, CancellationToken cancellationToken) =>
+        (await RankAsync(query, QuickWalkTime, content, cancellationToken).ConfigureAwait(false)).Take(count).ToList();
+
+    private async Task<List<FoundFile>> RankAsync(FileQuery query, TimeSpan walkTime, bool content, CancellationToken cancellationToken)
+    {
         var scope = UserFolders.Find(query.Folder);
         var walked = scope is not null ? [scope] : (folders ?? UserFolders.All)();
         var fromIndex = Task.Run(async () =>
@@ -255,25 +273,22 @@ public sealed class FileSearch(IFileIndex? index = null, Func<IReadOnlyList<stri
                 return (IReadOnlyList<FoundFile>)[];
             }
         }, cancellationToken);
-        var fromWalk = Task.Run(() => Walk(walked, query, cancellationToken), cancellationToken);
+        var fromWalk = Task.Run(() => Walk(walked, query, walkTime, cancellationToken), cancellationToken);
         var all = (await fromIndex.ConfigureAwait(false)).Where(f => !Hidden(f.Path)).Concat(await fromWalk.ConfigureAwait(false));
         var words = query.Words;
         var cutoff = query.Days is { } days ? _time.GetLocalNow().DateTime - TimeSpan.FromDays(days) : DateTime.MinValue;
-        var ranked = all
+        return all
             // Found by both: what the walk read from the disk now (the index may be behind), and whether the index found
             // it by its content.
             .GroupBy(f => f.Path, StringComparer.OrdinalIgnoreCase)
             .Select(g => g.Last() with { InContent = g.Any(f => f.InContent) })
             .Where(f => f.When >= cutoff && KindFits(f, query))
             .Select(f => (File: f, Score: Score(f, words)))
-            .Where(p => words.Count == 0 || p.Score >= 0.5 || p.File.InContent)
+            .Where(p => words.Count == 0 || p.Score >= 0.5 || content && p.File.InContent)
             .OrderByDescending(p => query.Newest || words.Count == 0 ? 0 : Math.Round(p.Score, 1))
             .ThenByDescending(p => p.File.When)
             .Select(p => p.File)
             .ToList();
-        var best = ranked.Take(Shown).ToList();
-        Log.Info($"Asistente: archivos «{query.Text}» {query.Kind} {query.Folder} {query.Days} → {best.Count} de {ranked.Count} en {watch.ElapsedMilliseconds} ms");
-        return (best, ranked.Count);
     }
 
     /// <summary>What a folder holds at its top level, at most.</summary>
@@ -407,7 +422,7 @@ public sealed class FileSearch(IFileIndex? index = null, Func<IReadOnlyList<stri
     internal static bool IsProgramsFolder(string name) => name.StartsWith('.') || Skipped.Contains(name);
 
     /// <summary>Through the folders, shallow first, within the budget; what fits the kind, the date and (if any) the words.</summary>
-    private static List<FoundFile> Walk(IReadOnlyList<string> roots, FileQuery query, CancellationToken cancellationToken)
+    private static List<FoundFile> Walk(IReadOnlyList<string> roots, FileQuery query, TimeSpan walkTime, CancellationToken cancellationToken)
     {
         var found = new List<FoundFile>();
         var words = query.Words;
@@ -415,7 +430,7 @@ public sealed class FileSearch(IFileIndex? index = null, Func<IReadOnlyList<stri
         var seen = 0;
         var queue = new Queue<(DirectoryInfo Folder, int Depth)>(roots.Select(r => (new DirectoryInfo(r), 0)));
         var options = new EnumerationOptions { IgnoreInaccessible = true, AttributesToSkip = FileAttributes.Hidden | FileAttributes.System, ReturnSpecialDirectories = false };
-        while (queue.Count > 0 && seen < WalkEntries && watch.Elapsed < WalkTime && !cancellationToken.IsCancellationRequested)
+        while (queue.Count > 0 && seen < WalkEntries && watch.Elapsed < walkTime && !cancellationToken.IsCancellationRequested)
         {
             var (folder, depth) = queue.Dequeue();
             IEnumerable<FileSystemInfo> entries;

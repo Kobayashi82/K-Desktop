@@ -77,6 +77,17 @@ public sealed class FileTests : IDisposable
     }
 
     [Fact]
+    public async Task TheLauncherGetsAsManyAsItAsksForBestFirst()
+    {
+        // As the launcher asks: what was typed, any kind (files and folders), the best first.
+        var found = await Search().QuickAsync(new FileQuery("factura", null, null, null, false), 2, content: false, default);
+        Assert.Equal(2, found.Count);
+        Assert.All(found, f => Assert.Contains("factura", f.Name, StringComparison.OrdinalIgnoreCase));
+        Assert.DoesNotContain(found, f => f.Folder.Contains("node_modules", StringComparison.Ordinal));
+        Assert.Contains("Fotos boda", (await Search().QuickAsync(new FileQuery("boda", null, null, null, false), 30, content: true, default)).Select(f => f.Name));
+    }
+
+    [Fact]
     public async Task FoldersByTheirName()
     {
         var found = await Search().FindAsync(FileQuery.Of(Args(new { text = "boda", kind = "folder" })), default);

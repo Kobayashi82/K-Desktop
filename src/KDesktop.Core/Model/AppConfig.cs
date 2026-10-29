@@ -545,6 +545,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>The launcher also finds what was copied (the clipboard history), and Enter pastes it.</summary>
     [ObservableProperty] private bool _launcherClipboard = true;
 
+    /// <summary>The launcher also finds files and folders (the Windows Search index); «?» first finds only them.</summary>
+    [ObservableProperty] private bool _launcherFiles = true;
+
     /// <summary>"google", "duckduckgo", "bing", "brave" or "custom" (then <see cref="LauncherSearchUrl"/>).</summary>
     [ObservableProperty] private string _launcherSearchEngine = "google";
 

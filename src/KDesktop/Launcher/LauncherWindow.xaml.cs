@@ -88,10 +88,13 @@ public partial class LauncherWindow : Window
         Keyboard.Focus(SearchBox);
     }
 
-    public void SetResults(IReadOnlyList<LauncherItem> items, string? emptyText)
+    /// <param name="keepScroll">Rows added to the same results (the files, a moment later): the list stays where it was.</param>
+    public void SetResults(IReadOnlyList<LauncherItem> items, string? emptyText, bool keepScroll = false)
     {
+        var offset = Scroller.VerticalOffset;
         ResultsControl.ItemsSource = items;
-        Scroller.ScrollToTop();
+        if (keepScroll) Scroller.ScrollToVerticalOffset(offset);
+        else Scroller.ScrollToTop();
         var empty = items.Count == 0 && !string.IsNullOrEmpty(emptyText);
         EmptyText.Text = emptyText ?? string.Empty;
         EmptyText.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;

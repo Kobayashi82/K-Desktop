@@ -57,6 +57,9 @@ Encuentra:
   ![La calculadora del lanzador](../../images/es/launcher-calc.png)
 - **Lo que has copiado** (*Historial del portapapeles*): lo del [historial](clipboard.md) que tenga lo escrito; Intro lo
   pega donde estabas.
+- **Archivos y carpetas**: los que se llaman como lo escrito, del índice de búsqueda de Windows y de tus carpetas
+  (Escritorio, Documentos, Descargas…). Salen un momento después, al final. Empieza por `?` para buscar solo archivos
+  (`?factura luz`). Intro lo abre y Ctrl+Intro abre la carpeta donde está.
 - **La web**: cuando no hay nada mejor, ofrece buscarlo en internet (con el buscador que elijas).
 
 Con *Los más usados primero*, lo que más usas sale antes, incluso antes de escribir nada.

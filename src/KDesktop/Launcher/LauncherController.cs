@@ -3,6 +3,8 @@ using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Input;
+using KDesktop.Assistant.Tools.Builtin;
 using KDesktop.Core;
 using KDesktop.Core.Achievements;
 using KDesktop.Core.Engine;
@@ -16,20 +18,28 @@ using KDesktop.Services;
 namespace KDesktop.Launcher;
 
 /// <summary>
-/// The launcher (its hotkey and options in Settings › Lanzador): a search box over the commands, the installed programs
-/// and the web, with a small calculator. Results are ranked by how well they match and, if wanted, by how often they are used.
+/// The launcher (its hotkey and options in Settings › Lanzador): a search box over the commands, the installed programs,
+/// the files and the web, with a small calculator. Results are ranked by how well they match and, if wanted, by how often they are used.
 /// </summary>
-public sealed partial class LauncherController
+public sealed partial class LauncherController : IDisposable
 {
     private const int MaxResults = 30;
     private const int EmptyResults = 8;
     private const int ClipboardResults = 3;
+
+    /// <summary>Files mixed in after the rest (they come from the disk, so a moment later), and the start of a search of files only.</summary>
+    private const int FileResults = 4;
+    private const char FilePrefix = '?';
+
+    /// <summary>The index is asked once the typing pauses, not on every key.</summary>
+    private static readonly TimeSpan FileDelay = TimeSpan.FromMilliseconds(220);
 
     private readonly Func<AppConfig> _config;
     private readonly CommandEngine _engine;
     private readonly AchievementService _achievements;
     private readonly IUiServices _ui;
     private readonly LauncherUsage _usage = new();
+    private readonly FileSearch _files = new();
 
     private LauncherWindow? _window;
     private ForegroundWindow _previous = new(IntPtr.Zero, 0, string.Empty);
@@ -38,6 +48,8 @@ public sealed partial class LauncherController
     private IReadOnlyList<InstalledApp>? _appsSource;
     private List<LauncherItem> _items = [];
     private int _selected = -1;
+    private bool _moved;
+    private CancellationTokenSource? _fileSearch;
 
     public LauncherController(Func<AppConfig> config, CommandEngine engine, AchievementService achievements, IUiServices ui)
     {
@@ -77,7 +89,7 @@ public sealed partial class LauncherController
             w.MoveRequested += Move;
             w.ExecuteRequested += () => Execute(_selected >= 0 && _selected < _items.Count ? _items[_selected] : null);
             w.CloseRequested += () => Close(restoreFocus: true);
-            w.ItemHovered += item => Select(_items.IndexOf(item), scroll: false);
+            w.ItemHovered += item => { _moved = true; Select(_items.IndexOf(item), scroll: false); };
             w.ItemClicked += Execute;
             w.Deactivated += (_, _) => { if (IsOpen) Close(restoreFocus: false); };
             w.Dropped += RememberPosition;
@@ -148,6 +160,7 @@ public sealed partial class LauncherController
     public void Close(bool restoreFocus)
     {
         if (!IsOpen) return;
+        CancelFiles();
         _window!.HideNow();
         if (restoreFocus && _previous.Handle != IntPtr.Zero) WindowTools.ForceForeground(_previous.Handle);
     }
@@ -181,14 +194,25 @@ public sealed partial class LauncherController
         var source = InstalledApps.Current;
         if (ReferenceEquals(source, _appsSource)) return _apps;
         _appsSource = source;
-        return _apps = source.Select(app => new Candidate(new SearchKey(app.Name), null, () => _usage.Get(app.Id), 0,
+        // Also by its name inside Windows: «notepad» finds «Bloc de notas».
+        return _apps = source.Select(app => new Candidate(new SearchKey(app.Name), app.InnerName is { } inner ? new SearchKey(inner) : null, () => _usage.Get(app.Id), 0,
             () => new LauncherItem(LauncherItemKind.App, app.Name, Loc.T("launcher.app"), "",
                 () => IconProvider.Shell(app.ParsingName), app))).ToList();
     }
 
     private void Search(string query)
     {
+        CancelFiles();
         var settings = Settings;
+        if (settings.LauncherFiles && query.TrimStart().StartsWith(FilePrefix))
+        {
+            // «?factura»: only files and folders.
+            var only = new FileQuery(query.TrimStart()[1..].Trim(), null, null, null, false);
+            ShowItems([], Loc.T(only.Words.Count == 0 ? "launcher.filesHint" : "launcher.searchingFiles"));
+            if (only.Words.Count > 0) FindFiles(only, MaxResults, alone: true);
+            return;
+        }
+
         var candidates = settings.LauncherApps ? _commands.Concat(AppCandidates()) : _commands;
         var byUse = settings.LauncherByUse;
         var tokens = FuzzyMatch.Tokens(query);
@@ -230,6 +254,66 @@ public sealed partial class LauncherController
                 () => IconProvider.Kd("Globe24", "sky"), query.Trim()));
 
         ShowItems(items, Loc.T("launcher.noResults"));
+
+        // Files and folders (Settings › Lanzador › «Archivos y carpetas»): when they arrive, after the rest and before the web.
+        var files = new FileQuery(query.Trim(), null, null, null, false);
+        if (settings.LauncherFiles && result is null && files.Words.Count > 0) FindFiles(files, FileResults, alone: false);
+    }
+
+    public void Dispose() => CancelFiles();
+
+    private void CancelFiles()
+    {
+        _fileSearch?.Cancel();
+        _fileSearch?.Dispose();
+        _fileSearch = null;
+    }
+
+    private void FindFiles(FileQuery query, int count, bool alone)
+    {
+        var token = (_fileSearch = new CancellationTokenSource()).Token;
+        var dispatcher = Application.Current.Dispatcher;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(FileDelay, token).ConfigureAwait(false);
+                var found = await _files.QuickAsync(query, count, content: alone, token).ConfigureAwait(false);
+                await dispatcher.InvokeAsync(() => { if (!token.IsCancellationRequested) ShowFiles(found, alone); });
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex) { Log.Warn("Lanzador: no se han podido buscar archivos: " + ex.Message); }
+        }, CancellationToken.None);
+    }
+
+    /// <summary>Adds the files found before the web search, leaving the row the user chose (if any) chosen.</summary>
+    private void ShowFiles(IReadOnlyList<FoundFile> found, bool alone)
+    {
+        if (!IsOpen) return;
+        var rows = found.Select(f => new LauncherItem(LauncherItemKind.File, f.Name, f.Folder,
+            f.IsFolder ? Loc.T("launcher.folder") : f.When == DateTime.MinValue ? "" : f.When.ToString("d", Loc.Instance.Culture),
+            () => IconProvider.Shell(f.Path), f)).ToList();
+        if (alone)
+        {
+            ShowItems(rows, Loc.T("launcher.noResults"));
+            return;
+        }
+        if (rows.Count == 0) return;
+        var chosen = _selected >= 0 && _selected < _items.Count ? _items[_selected] : null;
+        var items = new List<LauncherItem>(_items);
+        var web = items.FindIndex(i => i.Kind == LauncherItemKind.Web);
+        items.InsertRange(web < 0 ? items.Count : web, rows);
+        _items = items;
+        _window?.SetResults(items, Loc.T("launcher.noResults"), keepScroll: true);
+        if (_moved && chosen is not null)
+        {
+            _selected = items.IndexOf(chosen);
+            return;
+        }
+        // The first row stays the chosen one unless the user moved to another.
+        if (chosen is not null) chosen.IsSelected = false;
+        _selected = -1;
+        Select(0, scroll: false);
     }
 
     private static int UsageBoost(long usage) => usage <= 0 ? 0 : (int)Math.Min(250, 60 * Math.Log2(1 + usage));
@@ -239,12 +323,14 @@ public sealed partial class LauncherController
         _items = items;
         _window?.SetResults(items, emptyText);
         _selected = -1;
+        _moved = false;
         Select(items.Count > 0 ? 0 : -1, scroll: true);
     }
 
     private void Move(int delta)
     {
         if (_items.Count == 0) return;
+        _moved = true;
         var index = _selected + delta;
         // Single steps wrap around; page jumps stop at the ends.
         index = Math.Abs(delta) == 1 ? (index + _items.Count) % _items.Count : Math.Clamp(index, 0, _items.Count - 1);
@@ -312,6 +398,17 @@ public sealed partial class LauncherController
                 Close(restoreFocus: false);
                 var url = SearchEngines.Url(Settings, text);
                 _ = Task.Run(() => ProcessLauncher.Launch(new LaunchSpec(url), asAdmin: false));
+                break;
+            case FoundFile file:
+                Close(restoreFocus: false);
+                if (!File.Exists(file.Path) && !Directory.Exists(file.Path))
+                {
+                    _ui.ShowOsd(Loc.T("launcher.fileGone", file.Name), OsdKind.Warning);
+                    break;
+                }
+                // Ctrl + Enter (or click): shown selected in its folder.
+                var spec = Keyboard.Modifiers.HasFlag(ModifierKeys.Control) ? new LaunchSpec("explorer.exe", $"/select,\"{file.Path}\"") : new LaunchSpec(file.Path);
+                _ = Task.Run(() => ProcessLauncher.Launch(spec, asAdmin: false));
                 break;
             case ClipboardEntry copied:
                 Close(restoreFocus: true);

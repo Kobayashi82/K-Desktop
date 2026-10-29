@@ -7,6 +7,40 @@ public sealed record InstalledApp(string Name, string Id)
 {
     /// <summary>What the shell understands to open it or to draw its icon.</summary>
     public string ParsingName => @"shell:AppsFolder\" + Id;
+
+    /// <summary>
+    /// Its name inside Windows, in words, for the launcher: the Start menu shows «Bloc de notas» but it is
+    /// «Microsoft.WindowsNotepad_8wekyb3d8bbwe!App» (→ «Windows Notepad») or «…\notepad.exe» (→ «notepad»). Null when
+    /// there is nothing readable (an id that is a hash) or it is the same as the name.
+    /// </summary>
+    public string? InnerName
+    {
+        get
+        {
+            var id = Id;
+            string raw;
+            if (id.Contains('!', StringComparison.Ordinal))
+            {
+                // Store app: the package name without its publisher hash nor its vendor («Microsoft.»).
+                var package = id[..id.IndexOf('!', StringComparison.Ordinal)];
+                var underscore = package.IndexOf('_', StringComparison.Ordinal);
+                if (underscore > 0) package = package[..underscore];
+                raw = package[(package.LastIndexOf('.') + 1)..];
+            }
+            else raw = System.IO.Path.GetFileNameWithoutExtension(id.TrimEnd('\\', '/'));
+            if (raw.Length < 3 || raw.All(c => char.IsAsciiHexDigit(c) || c is '-' or '{' or '}')) return null;
+            var words = new System.Text.StringBuilder(raw.Length + 4);
+            for (var i = 0; i < raw.Length; i++)
+            {
+                var c = raw[i];
+                if (c is '.' or '_' or '-') { words.Append(' '); continue; }
+                if (i > 0 && char.IsUpper(c) && char.IsLower(raw[i - 1])) words.Append(' ');
+                words.Append(c);
+            }
+            var text = words.ToString().Trim();
+            return text.Length == 0 || string.Equals(text, Name, StringComparison.OrdinalIgnoreCase) ? null : text;
+        }
+    }
 }
 
 /// <summary>

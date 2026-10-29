@@ -58,6 +58,9 @@ It finds:
   ![The launcher's calculator](../../images/en/launcher-calc.png)
 - **What you copied** (*Clipboard history*): what in the [history](clipboard.md) has what you typed; Enter pastes it where
   you were.
+- **Files and folders**: the ones named like what you typed, from the Windows search index and your folders (Desktop,
+  Documents, Downloads…). They show a moment later, at the end. Start with `?` to search only files (`?electricity bill`).
+  Enter opens it and Ctrl+Enter opens the folder it is in.
 - **The web**: when nothing better matches, it offers to search the web (with the search engine you choose).
 
 With *Most used first*, what you use most comes first and shows before you type anything.

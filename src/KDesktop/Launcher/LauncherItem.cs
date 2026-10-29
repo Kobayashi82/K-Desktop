@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace KDesktop.Launcher;
 
-public enum LauncherItemKind { Command, App, Web, Calculator, Clipboard }
+public enum LauncherItemKind { Command, App, Web, Calculator, Clipboard, File }
 
 /// <summary>One row of the launcher. The icon is only loaded when the row is drawn.</summary>
 public sealed partial class LauncherItem(LauncherItemKind kind, string title, string subtitle, string badge, Func<ImageSource?> icon, object? payload)
@@ -17,7 +17,7 @@ public sealed partial class LauncherItem(LauncherItemKind kind, string title, st
     public string Subtitle { get; } = subtitle;
     public string Badge { get; } = badge;
 
-    /// <summary>The command, app, URL or text to copy.</summary>
+    /// <summary>The command, app, URL, text to copy or file.</summary>
     public object? Payload { get; } = payload;
 
     public ImageSource? Icon
