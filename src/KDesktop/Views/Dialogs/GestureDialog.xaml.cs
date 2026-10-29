@@ -88,15 +88,15 @@ public partial class GestureDialog : FluentWindow
                 HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, ToolTip = Loc.T("common.delete"),
                 Content = new SymbolIcon { Symbol = SymbolRegular.Delete24, FontSize = 12 },
             };
-            // Grey, red under the mouse; on the button too, or the tile (a radio button) passes its own colour on to the icon.
+            // The colour of the tile's drawing, red under the mouse; on the button too, or the tile (a radio button) passes its own colour on to the icon.
             void Tint(string key)
             {
                 remove.SetResourceReference(ForegroundProperty, key);
                 ((SymbolIcon)remove.Content).SetResourceReference(SymbolIcon.ForegroundProperty, key);
             }
-            Tint("TextFillColorSecondaryBrush");
+            Tint("Kd.OsdTrack");
             remove.MouseEnter += (_, _) => Tint("Kd.Danger");
-            remove.MouseLeave += (_, _) => Tint("TextFillColorSecondaryBrush");
+            remove.MouseLeave += (_, _) => Tint("Kd.OsdTrack");
             System.Windows.Automation.AutomationProperties.SetName(remove, Loc.T("common.delete") + " " + name);
             remove.Click += (_, e) =>
             {
