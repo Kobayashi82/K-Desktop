@@ -13,7 +13,7 @@ varios.
 
 - **Solo para un programa**: limita el comando a algunos programas (por el nombre de su proceso). Si el mismo atajo existe
   en general y para un programa, dentro de ese programa gana el específico y en todos los demás el general.
-- **Desactivar en**: en *Opciones → Desactivar y bloquear* pones los programas (juegos, escritorios remotos…) donde los atajos de
+- **Desactivar en**: en *Opciones → Desactivar en* pones los programas (juegos, escritorios remotos…) donde los atajos de
   K-Desktop no hacen nada. La acción *Desactivar en la app actual* lo cambia para el programa que está delante.
 - K-Desktop avisa cuando un atajo ya lo usa otro comando, el propio K-Desktop o un asistente.
 
@@ -25,7 +25,7 @@ Junto a **Añadir atajo** hay dos botones más:
   momento. Vale cualquier esquina donde el cursor se queda parado, también la que deja suelta una pantalla más alta o
   desplazada; donde se tocan dos pantallas no hay esquina. Nunca salta con un botón pulsado ni a pantalla completa.
 - **Gesto del ratón**: un dibujo de un solo trazo (←, →, ↑, ↓, C, L, N, S, U, V, Λ, W, M, Z o un círculo) que haces
-  manteniendo pulsado el botón derecho (o el central). Si haces clic sin moverte, o lo mantienes quieto, el botón funciona
+  manteniendo pulsado el botón derecho (o el central, Mouse 4 o Mouse 5). Si haces clic sin moverte, o lo mantienes quieto, el botón funciona
   como siempre; con Esc mientras dibujas no pasa nada. En la ventana del gesto hay un recuadro para probar los dibujos con
   el botón izquierdo, y **Dibujar el tuyo**: le das un nombre y lo dibujas tres veces.
 

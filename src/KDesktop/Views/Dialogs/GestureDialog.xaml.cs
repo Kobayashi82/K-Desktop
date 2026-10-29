@@ -36,7 +36,13 @@ public partial class GestureDialog : FluentWindow
     private GestureDialog()
     {
         InitializeComponent();
-        IntroText.Text = Loc.T("gesture.intro", Loc.T(_settings.GestureButton == KDesktop.Core.Input.MouseButton.Middle ? "gesture.buttonMiddle" : "gesture.buttonRight"));
+        IntroText.Text = Loc.T("gesture.intro", Loc.T(_settings.GestureButton switch
+        {
+            KDesktop.Core.Input.MouseButton.Middle => "gesture.buttonMiddle",
+            KDesktop.Core.Input.MouseButton.X1 => "gesture.buttonX1",
+            KDesktop.Core.Input.MouseButton.X2 => "gesture.buttonX2",
+            _ => "gesture.buttonRight",
+        }));
         foreach (var id in MouseGestures.BuiltIn) BuiltInTiles.Children.Add(Tile(id, ShapeName(id), MouseGestures.Path(id)));
         FillMine();
     }
@@ -82,7 +88,7 @@ public partial class GestureDialog : FluentWindow
                 HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, ToolTip = Loc.T("common.delete"),
                 Content = new SymbolIcon { Symbol = SymbolRegular.Delete24, FontSize = 12 },
             };
-            ((SymbolIcon)remove.Content).SetResourceReference(ForegroundProperty, "Kd.Danger");
+            ((SymbolIcon)remove.Content).SetResourceReference(SymbolIcon.ForegroundProperty, "Kd.Danger");
             System.Windows.Automation.AutomationProperties.SetName(remove, Loc.T("common.delete") + " " + name);
             remove.Click += (_, e) =>
             {

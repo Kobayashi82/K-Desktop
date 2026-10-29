@@ -417,7 +417,7 @@
                                             </StackPanel>
                                         </ui:Button.ToolTip>
                                     </ui:Button>
-                                    <ui:Button Width="38" Height="36" Padding="0" Icon="{ui:SymbolIcon HandDraw24}" Click="OnAddGesture"
+                                    <ui:Button Width="38" Height="36" Padding="0" Margin="0,0,6,0" Icon="{ui:SymbolIcon HandRight24}" Click="OnAddGesture"
                                                AutomationProperties.Name="{l:Tr commands.addGesture}">
                                         <ui:Button.ToolTip>
                                             <StackPanel MaxWidth="320">

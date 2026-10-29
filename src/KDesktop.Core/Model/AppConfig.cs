@@ -1173,7 +1173,7 @@ public partial class AppSettings : ObservableObject
     /// <summary>The gestures of the commands work (off: the button behaves as always everywhere).</summary>
     [ObservableProperty] private bool _mouseGestures = true;
 
-    /// <summary>The button held to draw a gesture: <see cref="Input.MouseButton.Right"/> or <see cref="Input.MouseButton.Middle"/>.</summary>
+    /// <summary>The button held to draw a gesture: right, middle, or Mouse 4 / Mouse 5 (<see cref="Input.MouseButton"/>).</summary>
     [ObservableProperty] private Input.MouseButton _gestureButton = Input.MouseButton.Right;
 
     /// <summary>The stroke is drawn on the screen while it is made, with the command it will run.</summary>

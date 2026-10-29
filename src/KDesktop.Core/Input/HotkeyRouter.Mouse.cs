@@ -22,7 +22,7 @@ public sealed partial class HotkeyRouter
     // ── corners ──────────────────────────────────────────────────────────
 
     private ScreenRect[] _monitors = [];
-    private long _monitorsAt = long.MinValue;
+    private long _monitorsAt;
     private ScreenCorner? _corner;
     private (int X, int Y) _cornerAt;
     private volatile bool _cornerFired;
@@ -36,7 +36,7 @@ public sealed partial class HotkeyRouter
     private ScreenRect[] Monitors()
     {
         var now = Environment.TickCount64;
-        if (now - _monitorsAt > 2000)
+        if (_monitors.Length == 0 || now - _monitorsAt > 2000)
         {
             _monitors = [.. ScreenCapture.Monitors()];
             _monitorsAt = now;
@@ -105,9 +105,12 @@ public sealed partial class HotkeyRouter
     // ── gestures ─────────────────────────────────────────────────────────
 
     /// <summary>A press of the gesture button being watched. Its fields are guarded by <see cref="_gestureLock"/>.</summary>
-    private sealed class GestureStroke(MouseButton button, int x, int y, ForegroundWindow front)
+    private sealed class GestureStroke(MouseButton button, int x, int y, ForegroundWindow front, bool blocked)
     {
         public MouseButton Button { get; } = button;
+
+        /// <summary>Mouse 4 / Mouse 5 in a program of «Bloquear Atrás / Adelante»: never given back to it.</summary>
+        public bool Blocked { get; } = blocked;
         public int StartX { get; } = x;
         public int StartY { get; } = y;
         public ForegroundWindow Front { get; } = front;
@@ -162,7 +165,9 @@ public sealed partial class HotkeyRouter
         var hwnd = Win32.WindowFromPoint(new Win32.POINT { X = e.X, Y = e.Y });
         var under = ForegroundWindow.FromHandle(hwnd == IntPtr.Zero ? IntPtr.Zero : Win32.GetAncestor(hwnd, Win32.GA_ROOT));
         if (under.ProcessId == Environment.ProcessId || index.GesturesOffIn(under.ProcessName) || FullScreenAt(under.Handle, e.X, e.Y)) return false;
-        var stroke = new GestureStroke(e.Button, e.X, e.Y, ForegroundWindow.Capture());
+        var front = ForegroundWindow.Capture();
+        var blocked = e.Button is MouseButton.X1 or MouseButton.X2 && index.BlocksSideButtonsIn(front.ProcessName);
+        var stroke = new GestureStroke(e.Button, e.X, e.Y, front, blocked);
         stroke.HoldTimer = new Timer(_ => HeldStill(stroke), null, HoldStill, Timeout.Infinite);
         _gesture = stroke;
         UpdateMoveForwarding();
@@ -190,7 +195,7 @@ public sealed partial class HotkeyRouter
             if (!ReferenceEquals(_gesture, stroke) || stroke.Drawing || stroke.GivenBack || stroke.Cancelled) return;
             stroke.GivenBack = true;
         }
-        InputSimulator.MouseDown(stroke.Button);
+        if (!stroke.Blocked) InputSimulator.MouseDown(stroke.Button);
     }
 
     /// <summary>
@@ -216,9 +221,10 @@ public sealed partial class HotkeyRouter
         _chord.Add(held);
         var block = OnMouseDown(e.Button);
         MouseButton first = stroke.Button, second = e.Button;
+        var giveFirst = !stroke.Blocked;
         Post(() =>
         {
-            InputSimulator.MouseDown(first);
+            if (giveFirst) InputSimulator.MouseDown(first);
             if (!block) InputSimulator.MouseDown(second);
         });
         return true;
@@ -241,7 +247,7 @@ public sealed partial class HotkeyRouter
             if (!click) points = [.. stroke.Points];
         }
         var button = stroke.Button;
-        if (click) Post(() => InputSimulator.MouseClick(button));
+        if (click && !stroke.Blocked) Post(() => InputSimulator.MouseClick(button));
         else Post(() => FinishGesture(points!, stroke.Front));
         return true;
     }

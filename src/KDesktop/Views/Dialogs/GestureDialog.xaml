@@ -4,7 +4,7 @@
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                  xmlns:l="clr-namespace:KDesktop.Localization"
                  Title="K-Desktop"
-                 Width="640" SizeToContent="Height"
+                 Width="760" SizeToContent="Height"
                  WindowStartupLocation="CenterOwner"
                  ExtendsContentIntoTitleBar="True"
                  WindowBackdropType="Mica"
@@ -80,7 +80,7 @@
         </StackPanel>
 
         <!-- Where to try a drawing (or to teach one): with the left button -->
-        <Border x:Name="Pad" Height="190" Margin="0,10,0,0" CornerRadius="8" BorderThickness="1" ClipToBounds="True" Cursor="Pen"
+        <Border x:Name="Pad" Height="320" Margin="0,10,0,0" CornerRadius="8" BorderThickness="1" ClipToBounds="True" Cursor="Pen"
                 Background="{DynamicResource Kd.Subtle}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                 MouseLeftButtonDown="OnPadDown" MouseMove="OnPadMove" MouseLeftButtonUp="OnPadUp" LostMouseCapture="OnPadLost">
             <Grid>

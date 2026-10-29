@@ -113,7 +113,7 @@ public sealed class HotkeyIndex
         HasCorners = _map.Keys.Any(Hotkey.IsCorner);
         HotCornerDelay = Math.Clamp(settings.HotCornerDelay, 0, 3000);
         HasGestures = settings.MouseGestures && _map.Keys.Any(Hotkey.IsGesture);
-        GestureButton = settings.GestureButton == MouseButton.Middle ? MouseButton.Middle : MouseButton.Right;
+        GestureButton = settings.GestureButton is MouseButton.Middle or MouseButton.X1 or MouseButton.X2 ? settings.GestureButton : MouseButton.Right;
         _gesturesOffIn = settings.GesturesOffIn.Select(ProcessNames.Normalize).ToHashSet();
         CustomGestures = settings.CustomGestures.Select(g => new CustomGesture { Name = g.Name, Samples = [.. g.Samples] }).ToArray();
     }

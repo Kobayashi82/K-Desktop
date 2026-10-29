@@ -13,7 +13,7 @@ there.
 | **General** | Pause K-Desktop (with its hotkey and sounds); start with Windows, the tray icon and its picture; the hotkeys to show the window and to exit, sounds and startup message |
 | **Messages and notifications** | K-Desktop's on-screen messages (OSD): whether they show (off, none does, except countdowns and the progress of what can be stopped), whether countdowns show in a **circle** in the middle of the screen, a little lower (with a button to try it), which sound plays when a countdown is cancelled with Esc, where they show (clicking on a drawing of the screen), on which monitor, their size, how long they stay, what they do with a film or a game full screen and which groups show (actions, volume and brightness, voice, warnings). Below, the **notifications**: their **sound** (the one of all of them; *Show notification* can choose another or «Global»), whether the achievement ones show and with their sound, on which monitor and corner (also on a drawing), how long they stay and whether they wait until the full-screen thing ends |
 | **Launcher** | Its hotkey, what it finds (programs, hidden commands, sums, files, the web) and its order |
-| **Mouse** | **Hot corners**: how long the mouse has to rest in a corner for its command to run. **Mouse gestures**: on or off, the button to draw (right or middle), **show the stroke** (the line on the screen and the command that will run) and the programs with **no gestures** (games, drawing or 3D programs). Corners and gestures are chosen in the hotkeys of each [command](commands.md) |
+| **Mouse** | **Hot corners**: how long the mouse has to rest in a corner for its command to run. **Mouse gestures**: on or off, the button to draw (right, middle, Mouse 4 or Mouse 5), **show the stroke** (the line on the screen and the command that will run) and the programs with **no gestures** (games, drawing or 3D programs). **Block mouse Back / Forward**: programs where Mouse 4 and Mouse 5 don't go back or forward. Corners and gestures are chosen in the hotkeys of each [command](commands.md) |
 
 ## Voice and multimedia
 
@@ -35,7 +35,7 @@ there.
 
 | Section | What it has |
 |---|---|
-| **Disable and block** | Programs where K-Desktop's hotkeys do nothing (games, remote desktops), with a hotkey to add or remove the one in front, and programs where Mouse 4 and Mouse 5 don't go back or forward |
+| **Disable in** | Programs where K-Desktop's hotkeys do nothing (games, remote desktops), with a hotkey to add or remove the one in front |
 | **Screenshots** | Folder (and **Open**), **file name** with date, time, program or window title, **format** (PNG, JPG with its quality, or WebP), **wait first** (to open a menu), **always copy**, **include the mouse pointer**, **camera sound** and a **flash** over what was taken |
 | **Audio recording** | Folder (and **Open**), **format** (WAV, MP3 or Opus: converted when it ends), **microphone volume** (only in recordings), **split long recordings** every so many minutes, and **Save what just played**, which keeps the last seconds in memory so *Record audio → Save what just played* can save them (nothing is written to disk) |
 | **Magnifier** | Zoom, shape (rectangular lens, round lens or full screen), size and «Try it»; **look**: border (none, thin, medium or thick) and its color, colors (normal, inverted or more contrast) and smoothing; **behavior**: follow the text while you type, **Ctrl + wheel** changes the zoom while it is on, and turn off by itself after a while without moving the mouse |

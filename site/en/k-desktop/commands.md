@@ -12,7 +12,7 @@ A hotkey is any combination of keys, mouse buttons and the wheel: `CTRL + ALT + 
 
 - **For one program only**: limit the command to some programs (by their process name). When the same hotkey exists
   globally and for one program, the specific one wins inside that program and the global one everywhere else.
-- **Disable in**: in *Settings → Disable and block* you list programs (games, remote desktops…) where K-Desktop's hotkeys do
+- **Disable in**: in *Settings → Disable in* you list programs (games, remote desktops…) where K-Desktop's hotkeys do
   nothing. The action *Disable in current app* toggles it for the program in front.
 - K-Desktop warns you when a hotkey is already used by another command, by K-Desktop itself or by an assistant.
 
@@ -24,7 +24,7 @@ Next to **Add hotkey** there are two more buttons:
   Any corner where the cursor stops counts, also the one left loose by a taller or shifted screen; where two screens meet
   there is no corner. It never fires with a button held or in full screen.
 - **Mouse gesture**: a drawing of one stroke (←, →, ↑, ↓, C, L, N, S, U, V, Λ, W, M, Z or a circle) made holding the
-  right button (or the middle one). If you click without moving, or hold it still, the button works as always; Esc while
+  right button (or the middle one, Mouse 4 or Mouse 5). If you click without moving, or hold it still, the button works as always; Esc while
   drawing cancels it. The gesture window has a box to try the drawings with the left button, and **Draw your own**: give
   it a name and draw it three times.
 
