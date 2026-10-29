@@ -25,7 +25,7 @@ Todo lo que hace un asistente sale en *Panel → Asistente → Actividad* (la su
 | **Archivos** | Buscar archivos · Abrir un archivo · Leer un archivo · Borrar un archivo · Mover un archivo · Escribir un documento · Copiar un archivo · Crear una carpeta · Comprimir en ZIP · Descomprimir un ZIP · Buscar en tus documentos | «búscame el pdf de la factura de la luz», «abre lo último que descargué» |
 | **Internet** | Abrir una web · Buscar en el navegador · Consultar internet · Leer una página web · Comprobar la red | «cuánto cuesta una RTX 5080», «resúmeme esta página», «¿hay internet?», «¿responde el NAS?» |
 | **Pantalla y textos** | Mirar la pantalla · Traducir y corregir textos · Leer lo copiado · Copiar un texto | «qué error me sale», «tradúceme esto al inglés», «¿qué tengo copiado?», «cópiame el teléfono del fontanero» |
-| **Programas y PC** | Abrir un programa · Manejar ventanas y programas · Ver las ventanas abiertas · Colocar varias ventanas · Cerrar a la fuerza · Estado del PC · Liberar el cerebro | «minimiza Steam», «pon el navegador y VS Code uno al lado del otro», «Chrome no responde, ciérralo a la fuerza», «por qué va lento el ordenador» |
+| **Programas y PC** | Abrir un programa · Manejar ventanas y programas · Ver las ventanas abiertas · Colocar varias ventanas · Cerrar a la fuerza · Estado del PC · Liberar el cerebro · Cambiar el volumen · Cambiar el dispositivo de audio · Pantalla · Modo claro u oscuro · Wi-Fi y Bluetooth · Bloquear el PC · Apagar o reiniciar · Hacer una captura · Plan de energía · Mantener despierto | «minimiza Steam», «pon el navegador y VS Code uno al lado del otro», «pon el volumen al 30», «pon el modo oscuro», «bloquea el PC», «Chrome no responde, ciérralo a la fuerza», «por qué va lento el ordenador» |
 | **Música y vídeo** | Qué suena · Controlar la reproducción | «qué canción es esta», «pausa el vídeo» |
 | **Tiempo y conversiones** | El tiempo · Convertir unidades y monedas | «va a llover mañana», «cuánto son 50 dólares en euros» |
 
@@ -60,6 +60,12 @@ Algunos detalles:
   preguntándote antes» te pregunta.
 - **Consultar internet** busca en la web y lee el primer resultado útil; **Buscar en el navegador** solo abre la búsqueda
   en tu navegador.
+- **Cambiar el volumen**, **Cambiar el dispositivo de audio**, **Pantalla** (brillo, proyectar como Win+P, apagar las
+  pantallas), **Modo claro u oscuro**, **Wi-Fi y Bluetooth**, **Bloquear el PC**, **Apagar o reiniciar** (también suspender,
+  hibernar y cerrar la sesión), **Hacer una captura**, **Plan de energía** y **Mantener despierto** hacen las mismas
+  [acciones](../k-desktop/actions.md) que tus comandos, sin que tengas que crear uno. Preguntan como esas acciones y según
+  *Preguntar antes de hacer algo*: apagar, reiniciar, suspender o cerrar la sesión siempre; apagar la pantalla, el Wi-Fi o el
+  Bluetooth, la primera vez; bloquear, nunca (no se pierde nada). Apagar y reiniciar esperan 10 segundos que puedes cancelar.
 - **Colocar varias ventanas** pone juntas de dos a seis ventanas abiertas en un monitor (en el de la primera, o en el que digas):
   una al lado de otra, una encima de otra, en cuadrícula, o una grande a la izquierda y las demás a la derecha. Un asistente
   en el escritorio las lleva una a una, como cuando mueve una ventana. **Ver las ventanas abiertas** dice cuáles tienes,

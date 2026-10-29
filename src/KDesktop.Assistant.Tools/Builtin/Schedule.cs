@@ -56,6 +56,9 @@ public sealed class ScheduleTool(ICommandBridge bridge, ToolRegistry registry) :
         ["run_event"] = ToolRisk.AskOnce,
         ["control_app"] = ToolRisk.AskOnce,
         ["end_process"] = ToolRisk.AskAlways,
+        ["power_pc"] = ToolRisk.AskAlways,
+        ["display"] = ToolRisk.AskOnce,
+        ["toggle_radio"] = ToolRisk.AskOnce,
     };
 
     public string Intent(JsonElement arguments)

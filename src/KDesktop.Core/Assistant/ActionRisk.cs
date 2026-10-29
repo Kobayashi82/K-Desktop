@@ -48,6 +48,9 @@ public static class ActionRisk
     /// <summary>Risk of one action on its own.</summary>
     public static ToolRisk Of(CommandAction action) => action switch
     {
+        // Locking loses nothing (B9): the session is there when you come back.
+        PowerAction { Mode: PowerMode.Lock } => ToolRisk.Safe,
+
         // Power, scripts, simulated input, macros and web requests can do anything: always ask (§6.1).
         PowerAction or RunScriptAction or SendInputAction or PlayMacroAction or HttpRequestAction => ToolRisk.AskAlways,
 

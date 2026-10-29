@@ -65,6 +65,16 @@ public static class ToolActivities
         ["get_time"] = AssistantActivity.Calculating,
         ["pc_status"] = AssistantActivity.System,
         ["network_check"] = AssistantActivity.System,
+        ["set_volume"] = AssistantActivity.System,
+        ["audio_device"] = AssistantActivity.System,
+        ["display"] = AssistantActivity.System,
+        ["windows_theme"] = AssistantActivity.System,
+        ["toggle_radio"] = AssistantActivity.System,
+        ["lock_pc"] = AssistantActivity.System,
+        ["power_pc"] = AssistantActivity.System,
+        ["take_screenshot"] = AssistantActivity.System,
+        ["power_plan"] = AssistantActivity.System,
+        ["keep_awake"] = AssistantActivity.System,
         ["free_brain"] = AssistantActivity.System,
     };
 

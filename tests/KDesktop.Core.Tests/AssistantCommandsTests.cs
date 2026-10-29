@@ -230,8 +230,9 @@ public class AssistantCommandsTests
     {
         var store = new ConfigStore();
         var greet = Make("Saludo");
+        // Something that always asks and, if it ever ran here, would do nothing (a web request without an address).
         var power = new Command { Name = "Apagar" };
-        power.Actions.Add(new PowerAction { Mode = PowerMode.Lock });
+        power.Actions.Add(new HttpRequestAction());
         foreach (var c in new[] { greet, power }) store.Config.Commands.Add(c);
         var engine = new CommandEngine(store, new FakeUi());
         var asked = new List<string>();

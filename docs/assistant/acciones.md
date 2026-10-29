@@ -28,7 +28,7 @@ aparece un `ActionKind` sin gesto o sin riesgo.
 | Enviar pulsación (`SendInput`) | Teclas, texto | `typing` ★ | 🔴 |
 | | Mover el ratón | `goTo(punto)` ★ | 🔴 |
 | Macro (`PlayMacro`) | | `typing` ★ | 🔴 |
-| Energía (`Power`) | | `communicate` ★ (cuenta atrás) | 🔴 |
+| Energía (`Power`) | | `communicate` ★ (cuenta atrás) | 🔴 (bloquear: 🟢, desde la 5.0.352: no se pierde nada) |
 | Script (`RunScript`) | | `communicate` ★ | 🔴 |
 | Petición web (`HttpRequest`) | | `communicate` ★ | 🔴 |
 | Esperar (`Wait`) | | `communicate` ★ (cuenta atrás) | 🟢 |

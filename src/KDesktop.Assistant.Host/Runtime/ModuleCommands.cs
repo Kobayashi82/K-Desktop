@@ -59,6 +59,16 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
         }, RunWait, cancellationToken);
     }
 
+    public Task<EndMessage?> SystemAsync(string group, string op, int? value, string text, string? assistant, CancellationToken cancellationToken)
+    {
+        var gestures = assistant is { Length: > 0 } who && HasBody?.Invoke(who) == true && Choreography is not null;
+        return AskAsync(_runs, id =>
+        {
+            if (gestures) Choreography!.Begin(id, assistant!, cancellationToken);
+            return new SystemMessage(assistant ?? string.Empty, id, group, op, value, text, gestures, ScheduledOrder.Current?.Key, McpShare.Caller);
+        }, RunWait, cancellationToken);
+    }
+
     public Task<EndMessage?> ArrangeAsync(IReadOnlyList<string> apps, string? layout, int? monitor, string? assistant, CancellationToken cancellationToken)
     {
         var gestures = assistant is { Length: > 0 } who && HasBody?.Invoke(who) == true && Choreography is not null;

@@ -1077,6 +1077,21 @@ public sealed record RunEventMessage(string Assistant, string Run, string Event,
 /// <param name="Shared">As in <see cref="RunMessage.Shared"/>.</param>
 /// <param name="Apps">For <c>arrange</c> (B7): the programs in the user's words, in order (left to right, top to bottom; empty: the window in front).</param>
 /// <param name="Layout">For <c>arrange</c>: <see cref="AssistantActs.Layouts"/> (null: columns, or a grid from 4).</param>
+/// <summary>
+/// «sube el volumen», «pon el modo oscuro», «bloquea el PC», «haz una captura» (B9): one thing of a group of the tools for
+/// K-Desktop's own actions, which K-Desktop turns into one action of its catalogue and runs as a command made for the occasion
+/// (<see cref="AssistantSystem"/>; asking like its risk, in the history, with the assistant's steps). Answered with
+/// <see cref="EndMessage"/> (<c>name</c>: what it did; <c>reason</c>: <c>op</c>, <c>noDevice</c>, <c>noPlan</c>).
+/// </summary>
+/// <param name="Group">One of <see cref="AssistantSystem.Ops"/>.</param>
+/// <param name="Value">A level in % (volume, brightness), minutes (awake) or seconds (power countdown).</param>
+/// <param name="Text">microphone (volume), a device (audio), a projection (display), wifi or bluetooth (radio), screen, window, all or region (screenshot), a plan (powerPlan).</param>
+public sealed record SystemMessage(string Assistant, string Run, string Group, string Op, int? Value = null, string Text = "", bool Choreography = false,
+    string? Scheduled = null, string? Shared = null) : PipeMessage
+{
+    public override string Type => "system";
+}
+
 public sealed record ActMessage(string Assistant, string Run, string Op, string App = "", int? Value = null, bool Choreography = false, string? Scheduled = null, string? Shared = null,
     IReadOnlyList<string>? Apps = null, string? Layout = null) : PipeMessage
 {
@@ -1290,6 +1305,7 @@ public static class PipeJson
         ["makeEvent"] = typeof(MakeEventMessage),
         ["madeEvent"] = typeof(MadeEventMessage),
         ["act"] = typeof(ActMessage),
+        ["system"] = typeof(SystemMessage),
         ["text"] = typeof(TextMessage),
         ["textDone"] = typeof(TextDoneMessage),
         ["voice"] = typeof(VoiceMessage),

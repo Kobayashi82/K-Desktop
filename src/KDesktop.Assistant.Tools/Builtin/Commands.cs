@@ -36,6 +36,10 @@ public interface ICommandBridge
     /// «el navegador y VS Code uno al lado del otro» (B7): several programs placed on one monitor (<see cref="AssistantActs.Arrange"/>,
     /// <see cref="AssistantActs.Layouts"/>; <paramref name="monitor"/> 1, 2…, null: the first one's). Without K-Desktop: null.
     /// </summary>
+    /// <summary>One of K-Desktop's own actions for a group of tools (B9, <see cref="AssistantSystem.Ops"/>). Without K-Desktop: null.</summary>
+    Task<EndMessage?> SystemAsync(string group, string op, int? value, string text, string? assistant, CancellationToken cancellationToken) =>
+        Task.FromResult<EndMessage?>(null);
+
     Task<EndMessage?> ArrangeAsync(IReadOnlyList<string> apps, string? layout, int? monitor, string? assistant, CancellationToken cancellationToken) =>
         Task.FromResult<EndMessage?>(null);
 
@@ -114,6 +118,16 @@ public static class CommandTools
         registry.Add(new StopCountdownTool(bridge));
         registry.Add(new ControlAppTool(bridge));
         registry.Add(new ArrangeWindowsTool(bridge));
+        registry.Add(new SetVolumeTool(bridge));
+        registry.Add(new AudioDeviceTool(bridge));
+        registry.Add(new DisplayTool(bridge));
+        registry.Add(new WindowsThemeTool(bridge));
+        registry.Add(new ToggleRadioTool(bridge));
+        registry.Add(new LockPcTool(bridge));
+        registry.Add(new PowerPcTool(bridge));
+        registry.Add(new TakeScreenshotTool(bridge));
+        registry.Add(new PowerPlanTool(bridge));
+        registry.Add(new KeepAwakeTool(bridge));
         registry.Add(new EndProcessTool(bridge));
         registry.Add(new TransformTextTool(bridge, writer));
         registry.Add(new ReadClipboardTool(bridge, vision, reader));

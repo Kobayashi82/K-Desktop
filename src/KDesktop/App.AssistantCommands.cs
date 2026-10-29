@@ -42,6 +42,12 @@ public partial class App
                     (who, choreography) => AssistantActs.ActAsync(Engine, act, who, (command, risk) => AskCommandAsync(act.Run, act.Assistant, command, risk, remember: false), choreography,
                         CommandPermit(act.Scheduled, act: true)));
                 return true;
+            case SystemMessage system:
+                // One action of the catalogue for one group of tools (B9), made for the occasion: nothing to trust for next time.
+                RunForAssistant(supervisor, system.Assistant, system.Shared, system.Run, system.Choreography,
+                    (who, choreography) => AssistantSystem.RunAsync(Engine, system, who, (command, risk) => AskCommandAsync(system.Run, system.Assistant, command, risk, remember: false), choreography,
+                        CommandPermit(system.Scheduled, act: true)));
+                return true;
             case ScheduleMessage schedule:
                 OnSchedule(supervisor, schedule);
                 return true;

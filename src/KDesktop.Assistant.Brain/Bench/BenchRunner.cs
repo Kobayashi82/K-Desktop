@@ -172,6 +172,9 @@ public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimePro
 
         public Task<EndMessage?> ActAsync(string op, string app, int? value, string? assistant, CancellationToken cancellationToken) => Pretend($"{op} {app}".Trim());
 
+        public Task<EndMessage?> SystemAsync(string group, string op, int? value, string text, string? assistant, CancellationToken cancellationToken) =>
+            Pretend($"{group} {op} {text}".Trim());
+
         public Task<EndMessage?> ArrangeAsync(IReadOnlyList<string> apps, string? layout, int? monitor, string? assistant, CancellationToken cancellationToken) =>
             Pretend("arrange " + string.Join(", ", apps));
 
