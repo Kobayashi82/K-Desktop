@@ -121,8 +121,7 @@
                         </ui:CardExpander.Header>
                         <StackPanel>
                             <WrapPanel x:Name="MonitorPills" Margin="0,0,0,6" />
-                            <v:ZoneSurface x:Name="Surface" Margin="0,4,0,8" />
-                            <TextBlock Style="{StaticResource Caption}" Margin="0,0,0,12" Text="{l:Tr arrangement.zonesHint}" TextWrapping="Wrap" />
+                            <v:ZoneSurface x:Name="Surface" Margin="0,4,0,12" />
 
                             <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr arrangement.templates}" />
                             <WrapPanel x:Name="TemplatePills" Margin="0,0,0,8" />
@@ -150,8 +149,11 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="{x:Type m:ZoneProgram}">
-                                            <Border Style="{StaticResource Chip}" ToolTip="{Binding Tip}">
+                                            <Border Style="{StaticResource Chip}" ToolTip="{Binding Tip}" Tag="{Binding}" MouseRightButtonUp="OnProgramMenu">
                                                 <StackPanel Orientation="Horizontal">
+                                                    <!-- Saved as it was: it goes to that very place (right click: «Llenar la zona») -->
+                                                    <ui:SymbolIcon Symbol="Pin24" FontSize="12" Margin="0,0,4,0" VerticalAlignment="Center" Foreground="{DynamicResource Kd.AccentText}"
+                                                                   Visibility="{Binding HasPlace, Converter={StaticResource BoolToVis}}" />
                                                     <TextBlock Text="{Binding Display}" Style="{StaticResource ChipText}" />
                                                     <ui:Button Style="{StaticResource IconButton}" Padding="4" Margin="4,0,0,0" Click="OnRemoveProgram" Tag="{Binding}"
                                                                ToolTip="{l:Tr arrangement.removeProgram}" AutomationProperties.Name="{l:Tr arrangement.removeProgram}">

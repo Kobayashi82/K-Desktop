@@ -165,6 +165,13 @@ public class WindowArrangementTests
         Assert.Equal(["explorer", "chrome"], zones[0].Programs.Select(p => p.Process));
         Assert.Equal((0.5, 0.5), (zones[1].Left, zones[1].Width));
         Assert.Empty(zones[1].Programs);
+        // Each one goes back to the very place it had (5.0.379), not stretched to the zone; one added by hand fills it.
+        var explorer = zones[0].Programs[0];
+        Assert.Equal((0.2199, 0.32, 0.25, 0.36), (explorer.Place!.Left, explorer.Place.Top, explorer.Place.Width, explorer.Place.Height));
+        Assert.Equal(new ScreenRect(563, 448, 640, 504), WindowArrangements.TargetOf(zones[0], explorer, Main.WorkArea).Rect);
+        Assert.Equal((new ScreenRect(0, 0, 1280, 1400), false), WindowArrangements.TargetOf(zones[0], new ZoneProgram { Process = "notepad" }, Main.WorkArea));
+        Assert.Contains("\"place\"", Json.Serialize(zones[0]), StringComparison.Ordinal);
+        Assert.DoesNotContain("\"place\"", Json.Serialize(new ZoneProgram { Process = "x" }), StringComparison.Ordinal);
 
         // Two that overlap a little are cut half way between them.
         var two = ZoneCuts.Tile([Zone(0, 0, 0.56, 1, "a"), Zone(0.46, 0, 0.54, 1, "b")], Main.Name, Main.Device);
@@ -179,6 +186,9 @@ public class WindowArrangementTests
         Assert.True(arrangement.MendZones());
         Assert.True(ZoneCuts.IsCut([.. arrangement.Zones.Where(z => z.MonitorName == Main.Name)]));
         Assert.Equal(3, arrangement.Zones.Count);
+        // Those zones were the windows as they were: the explorer keeps that place.
+        var explorer = arrangement.Zones.SelectMany(z => z.Programs).Single(p => p.Process == "explorer");
+        Assert.Equal((0.2, 0.36), (explorer.Place!.Left, explorer.Place.Height));
         Assert.False(arrangement.MendZones());
     }
 

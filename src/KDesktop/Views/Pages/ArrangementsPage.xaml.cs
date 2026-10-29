@@ -49,6 +49,11 @@ public sealed partial class ArrangementsPage : UserControl, IDisposable
         ArrangementList.ItemsSource = _view;
         Config.Arrangements.CollectionChanged += OnArrangementsChanged;
         Surface.ZoneSelected += OnZoneSelected;
+        // A click outside the drawing and the zone's programs unmarks the zone.
+        PreviewMouseLeftButtonDown += (_, e) =>
+        {
+            if (_zone is not null && e.OriginalSource is DependencyObject source && !Within(source, Surface) && !Within(source, ZonePanel)) Surface.Unmark();
+        };
         BuildTemplates();
         UpdateCount();
         Loaded += (_, _) =>
@@ -400,6 +405,33 @@ public sealed partial class ArrangementsPage : UserControl, IDisposable
         if (process == "applicationframehost") path = string.Empty;
         zone.Programs.Add(new ZoneProgram { Process = process, Name = window?.DisplayName ?? string.Empty, Path = path });
         Surface.Refresh(zone);
+    }
+
+    private static bool Within(DependencyObject source, DependencyObject parent)
+    {
+        for (var d = source; d is not null; d = d is System.Windows.Media.Visual or System.Windows.Media.Media3D.Visual3D ? System.Windows.Media.VisualTreeHelper.GetParent(d) ?? LogicalTreeHelper.GetParent(d) : LogicalTreeHelper.GetParent(d))
+            if (ReferenceEquals(d, parent)) return true;
+        return false;
+    }
+
+    /// <summary>Right click on a program with its saved place: «Llenar la zona» forgets it, so it fills its zone.</summary>
+    private void OnProgramMenu(object sender, MouseButtonEventArgs e)
+    {
+        if (_zone is not { } zone || sender is not FrameworkElement { Tag: ZoneProgram { Place: not null } program } chip) return;
+        e.Handled = true;
+        var menu = new ContextMenu { PlacementTarget = chip, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom };
+        var fill = new System.Windows.Controls.MenuItem { Header = Loc.T("arrangement.fillZone"), Icon = new Wpf.Ui.Controls.SymbolIcon { Symbol = Wpf.Ui.Controls.SymbolRegular.ArrowExpand24 } };
+        fill.Click += (_, _) =>
+        {
+            var index = zone.Programs.IndexOf(program);
+            if (index < 0) return;
+            var plain = program.Clone();
+            plain.Place = null;
+            zone.Programs[index] = plain;
+            Surface.Refresh(zone);
+        };
+        menu.Items.Add(fill);
+        menu.IsOpen = true;
     }
 
     private void OnRemoveProgram(object sender, RoutedEventArgs e)

@@ -12,6 +12,7 @@ is not touched.
 **Save as they are now** replaces the zones of every monitor with the windows open at that moment: each monitor is cut by
 its windows, and each zone gets the programs of its windows (a maximized one, the whole screen; minimized ones do not
 count). Zones never overlap: windows one on top of another share a zone, and a wide free area becomes an empty zone.
+Each program also remembers the exact place and size of its window, so putting the layout leaves everything as it was.
 
 ## Zones
 
@@ -19,7 +20,7 @@ At the top of **Zones** there is a pill per monitor: the connected ones and, fad
 point (K-Desktop remembers them), so you can prepare the TV layout even when it is not plugged in. A dot on the pill means
 that monitor has zones in this layout. Below is the drawing of the chosen monitor:
 
-- **Click** a zone to mark it; **another click** on the marked one cuts it in two where the dotted line shows (vertically;
+- **Click** a zone to mark it (a click outside the zones unmarks it); **another click** on the marked one cuts it in two where the dotted line shows (vertically;
   with **Shift**, horizontally).
 - **Drag** the lines between zones to change their size (they stay at a half, a third or a quarter when you pass close).
 - The **✕** on a line joins its two zones, with their programs.
@@ -30,9 +31,13 @@ Under the drawing are the **programs of the marked zone**, as in K-Board's *Only
 or pick it from the list and press **Add**, or press the cursor button and click its window. A zone without programs is only
 there to snap windows into.
 
+Programs saved with **Save as they are now** have a pin: they go to the exact place their window had, shown dashed in the
+marked zone. **Right-click → Fill the zone** forgets that place, and the program stretches to its zone, like the ones you
+add by hand.
+
 ## When it is put
 
-- **If the program is open**, its window goes to its zone; it does not open another one. A whole-screen zone leaves it
+- **If the program is open**, its window goes to its zone (or to its saved place, if it has a pin); it does not open another one. A whole-screen zone leaves it
   maximized. With several windows of the same program (two of Chrome), it tells them apart by their title, else by order.
 - **If it is not open**, it is skipped, unless *Options → Open the programs that are not open* is on: then it opens it and
   places it as soon as its window appears. Microsoft Store apps cannot be opened this way. The notice says which ones were

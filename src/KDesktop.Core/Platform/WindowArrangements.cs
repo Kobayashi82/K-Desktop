@@ -146,7 +146,8 @@ public static class WindowArrangements
 
     /// <summary>
     /// «Guardar cómo están ahora»: each monitor cut by its windows (not minimised; a maximised one, the whole screen), with
-    /// <see cref="ZoneCuts.Tile"/>: never a zone over another; windows one over another share the zone.
+    /// <see cref="ZoneCuts.Tile"/>: never a zone over another; windows one over another share the zone. Each program keeps
+    /// the very place its window had (5.0.379), so putting it leaves the windows as they were.
     /// </summary>
     public static List<ArrangedZone> ZonesOf(IEnumerable<OpenPlace> windows)
     {
@@ -175,7 +176,10 @@ public static class WindowArrangements
                 zone.SetRect(left, top, width, height);
                 zones.Add(zone);
             }
-            zone.Programs.Add(new ZoneProgram { Process = w.Process, Name = w.Name, Title = w.Title, Path = w.Path });
+            zone.Programs.Add(new ZoneProgram
+            {
+                Process = w.Process, Name = w.Name, Title = w.Title, Path = w.Path, Place = SavedPlace.Of(left, top, width, height, w.Maximized),
+            });
         }
         return zones;
     }
@@ -248,7 +252,7 @@ public static class WindowArrangements
         {
             if (matched[i] is { } window)
             {
-                if (Place(window.Hwnd, zoneOf[i], monitors)) placed++;
+                if (Place(window.Hwnd, zoneOf[i], entries[i], monitors)) placed++;
             }
             else if (arrangement.OpenMissing && entries[i].Path.Length > 0 && File.Exists(entries[i].Path) && launch(entries[i].Path)) waiting.Add(i);
             else missing.Add(entries[i].Display);
@@ -269,7 +273,7 @@ public static class WindowArrangements
                     if (now[j] is not { } window) continue;
                     // A window just shown may move itself once more: a moment, and it goes where it should.
                     await Task.Delay(400, token).ConfigureAwait(false);
-                    if (Place(window.Hwnd, zoneOf[waiting[j]], monitors)) placed++;
+                    if (Place(window.Hwnd, zoneOf[waiting[j]], entries[waiting[j]], monitors)) placed++;
                     before.Add(window.Hwnd);
                     waiting.RemoveAt(j);
                 }
@@ -280,14 +284,23 @@ public static class WindowArrangements
         return new ArrangeResult(placed, opened, missing);
     }
 
-    /// <summary>One window to its zone: restored and moved there; maximised when the zone is the whole monitor.</summary>
-    private static bool Place(IntPtr hwnd, ArrangedZone zone, IReadOnlyList<ScreenMonitor> monitors)
+    /// <summary>
+    /// One window to its saved place (<see cref="ZoneProgram.Place"/>), else to its zone: restored and moved there;
+    /// maximised when it was, or when the zone is the whole monitor.
+    /// </summary>
+    private static bool Place(IntPtr hwnd, ArrangedZone zone, ZoneProgram program, IReadOnlyList<ScreenMonitor> monitors)
     {
         if (!Win32.IsWindow(hwnd) || MonitorFor(zone, monitors) is not { } monitor) return false;
-        WindowLayout.MoveTo(hwnd, RectIn(zone, monitor.WorkArea));
-        if (zone.IsFull) Win32.ShowWindow(hwnd, Win32.SW_SHOWMAXIMIZED);
+        var (rect, maximize) = TargetOf(zone, program, monitor.WorkArea);
+        WindowLayout.MoveTo(hwnd, rect);
+        if (maximize) Win32.ShowWindow(hwnd, Win32.SW_SHOWMAXIMIZED);
         return true;
     }
+
+    /// <summary>Where a program of a zone goes in that work area, and whether it is maximised.</summary>
+    public static (ScreenRect Rect, bool Maximize) TargetOf(ArrangedZone zone, ZoneProgram program, ScreenRect area) => program.Place is { } place
+        ? (RectIn(place.Left, place.Top, place.Width, place.Height, area), place.Maximized)
+        : (RectIn(zone, area), zone.IsFull);
 
     private static ScreenRect ToRect(RECT r) => new(r.Left, r.Top, r.Right - r.Left, r.Bottom - r.Top);
 

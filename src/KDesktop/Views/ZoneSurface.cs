@@ -15,7 +15,9 @@ namespace KDesktop.Views;
 /// The drawing of a monitor cut into zones («Disposiciones», E1b), in its proportions, with the colours of K-Board's
 /// keyboard: each zone a key with its number and its programs. A click marks a zone; another click on the marked one cuts
 /// it in two where the dotted line shows (vertical; with Shift, horizontal). The lines between zones are dragged to change
-/// their size, and the ✕ in the middle of one joins its two zones. A monitor without zones: a click makes one of all of it.
+/// their size, and the ✕ in the middle of one joins its two zones. A monitor without zones: a click makes one of all of it;
+/// with zones, a click outside them unmarks the marked one. Inside the marked zone, dashed, the saved places of its programs
+/// (where they go when it is put, 5.0.379).
 /// </summary>
 public sealed class ZoneSurface : Border
 {
@@ -29,6 +31,7 @@ public sealed class ZoneSurface : Border
     private readonly TextBlock _empty = new() { TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center, FontSize = 12, IsHitTestVisible = false };
     private readonly Dictionary<ArrangedZone, (Border Box, TextBlock Number, TextBlock Label, TextBlock Size)> _boxes = [];
     private readonly List<(ZoneLine Line, Border Hit, Border Grip, Border? Join)> _lines = [];
+    private readonly List<(SavedPlace Place, Rectangle Shape)> _places = [];
 
     private IList<ArrangedZone> _all = [];
     private Func<ArrangedZone, bool> _mine = _ => false;
@@ -98,6 +101,15 @@ public sealed class ZoneSurface : Border
         Build();
     }
 
+    /// <summary>No zone marked (a click outside the zones, here or on the page).</summary>
+    public void Unmark()
+    {
+        if (_selected is null) return;
+        _selected = null;
+        Build();
+        ZoneSelected?.Invoke(null);
+    }
+
     /// <summary>Draws it again (after a template, or a zone removed from outside).</summary>
     public void Refresh(ArrangedZone? selected)
     {
@@ -129,9 +141,18 @@ public sealed class ZoneSurface : Border
         _canvas.Children.Clear();
         _boxes.Clear();
         _lines.Clear();
+        _places.Clear();
         _drag = null;
         var zones = Zones();
         for (var i = 0; i < zones.Count; i++) _boxes[zones[i]] = MakeBox(zones[i], i + 1);
+        // The saved places of the marked zone's programs, over the zones and under the lines.
+        foreach (var place in _selected?.Programs.Select(p => p.Place).OfType<SavedPlace>() ?? [])
+        {
+            var shape = new Rectangle { StrokeThickness = 1.5, StrokeDashArray = [4, 3], RadiusX = 4, RadiusY = 4, IsHitTestVisible = false };
+            shape.SetResourceReference(Shape.StrokeProperty, "Kd.Accent");
+            _places.Add((place, shape));
+            _canvas.Children.Add(shape);
+        }
         foreach (var line in ZoneCuts.Lines(zones)) _lines.Add(MakeLine(line));
         _empty.Visibility = zones.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         _canvas.Children.Add(_empty);
@@ -278,6 +299,14 @@ public sealed class ZoneSurface : Border
             size.Visibility = r.Height > 64 || zone.Programs.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             label.Visibility = zone.Programs.Count > 0 && r.Height > 30 ? Visibility.Visible : Visibility.Collapsed;
         }
+        foreach (var (place, shape) in _places)
+        {
+            var r = place.Maximized ? PixelsOf(0, 0, 1, 1) : PixelsOf(place.Left, place.Top, place.Width, place.Height);
+            Canvas.SetLeft(shape, r.X + 2);
+            Canvas.SetTop(shape, r.Y + 2);
+            shape.Width = Math.Max(0, r.Width - 4);
+            shape.Height = Math.Max(0, r.Height - 4);
+        }
         foreach (var (line, hit, grip, join) in _lines)
         {
             var current = _drag is { } drag && ReferenceEquals(drag.Hit, hit) ? drag.Line : line;
@@ -374,7 +403,7 @@ public sealed class ZoneSurface : Border
         if (!ReferenceEquals(zone, _selected))
         {
             _selected = zone;
-            Paint();
+            Build();
             UpdatePreview(p);
             ZoneSelected?.Invoke(zone);
             return;
@@ -387,10 +416,14 @@ public sealed class ZoneSurface : Border
         ZoneSelected?.Invoke(_selected);
     }
 
-    /// <summary>A monitor without zones: a click makes one of all of it, marked.</summary>
+    /// <summary>A monitor without zones: a click makes one of all of it, marked. With zones, a click between them unmarks.</summary>
     private void OnEmptyClick(object sender, MouseButtonEventArgs e)
     {
-        if (_boxes.Count > 0) return;
+        if (_boxes.Count > 0)
+        {
+            if (_drag is null) Unmark();
+            return;
+        }
         var zone = new ArrangedZone { MonitorName = _monitor.Name, MonitorDevice = _monitor.Device };
         _all.Add(zone);
         _selected = zone;

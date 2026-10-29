@@ -12,7 +12,8 @@ no se toca.
 **Guardar cómo están ahora** cambia las zonas de todos los monitores por las ventanas abiertas en ese momento: cada monitor
 se recorta según sus ventanas y cada zona se queda con los programas de las suyas (una maximizada, toda la pantalla; las
 minimizadas no cuentan). Las zonas nunca se pisan: las ventanas que están una encima de otra comparten zona, y un hueco
-libre grande queda como zona vacía.
+libre grande queda como zona vacía. Además, cada programa recuerda el sitio y el tamaño exactos de su ventana, así que al
+ponerla todo vuelve tal cual estaba.
 
 ## Zonas
 
@@ -20,7 +21,7 @@ Arriba de **Zonas** hay una píldora por monitor: los conectados y, atenuados, l
 (K-Desktop los recuerda), para preparar la disposición de la tele aunque no esté puesta. Un punto en la píldora indica que
 ese monitor tiene zonas en esta disposición. Debajo está el dibujo del monitor elegido:
 
-- **Clic** en una zona la marca; **otro clic** en la marcada la parte en dos por donde marca la línea de puntos (en
+- **Clic** en una zona la marca (un clic fuera de las zonas la desmarca); **otro clic** en la marcada la parte en dos por donde marca la línea de puntos (en
   vertical; con **Mayús**, en horizontal).
 - **Arrastra** las líneas entre zonas para cambiar su tamaño (se quedan a la mitad, un tercio o un cuarto si pasas cerca).
 - La **✕** de una línea junta sus dos zonas, con sus programas.
@@ -31,9 +32,13 @@ Debajo del dibujo están los **programas de la zona marcada**, como en *Solo en 
 programa o elígelo de la lista y pulsa **Añadir**, o pulsa el botón del cursor y haz clic en su ventana. Una zona sin
 programas solo sirve para encajar ventanas.
 
+Los programas guardados con **Guardar cómo están ahora** llevan una chincheta: van al sitio exacto donde estaba su ventana,
+que se ve con línea discontinua en la zona marcada. Con **clic derecho → Llenar la zona** olvida ese sitio y el programa se
+estira a su zona, como los que añades a mano.
+
 ## Al ponerla
 
-- **Si el programa está abierto**, su ventana va a su zona; no abre otra. Una zona de toda la pantalla la deja maximizada.
+- **Si el programa está abierto**, su ventana va a su zona (o a su sitio guardado, si lleva chincheta); no abre otra. Una zona de toda la pantalla la deja maximizada.
   Con varias ventanas del mismo programa (dos de Chrome), las reconoce por su título y, si no, por orden.
 - **Si no está abierto**, se salta, salvo con *Opciones → Abrir los programas que no estén abiertos*: entonces lo abre y lo
   coloca en cuanto sale su ventana. Las aplicaciones de la Tienda de Windows no se pueden abrir así. El aviso dice cuáles no

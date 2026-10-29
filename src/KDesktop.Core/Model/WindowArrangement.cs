@@ -87,7 +87,8 @@ public partial class WindowArrangement : ObservableObject
 
     /// <summary>
     /// The windows of a disposición of 5.0.375 as zones: each monitor cut by its windows (a maximised one, the whole
-    /// screen; <see cref="ZoneCuts.Tile"/>), with their programs. One that was switched off leaves its zone without program.
+    /// screen; <see cref="ZoneCuts.Tile"/>), with their programs, which keep the place their window had. One that was
+    /// switched off leaves its zone without program.
     /// </summary>
     public bool ConvertWindows()
     {
@@ -102,7 +103,12 @@ public partial class WindowArrangement : ObservableObject
                 zone.SetRect(left, top, width, height);
                 Zones.Add(zone);
             }
-            if (w.Enabled && w.Process.Length > 0) zone.Programs.Add(new ZoneProgram { Process = w.Process, Name = w.Name, Title = w.Title, Path = w.Path });
+            if (w.Enabled && w.Process.Length > 0)
+                zone.Programs.Add(new ZoneProgram
+                {
+                    Process = w.Process, Name = w.Name, Title = w.Title, Path = w.Path,
+                    Place = SavedPlace.Of(w.Left, w.Top, w.Width, w.Height, w.State == ArrangedState.Maximized),
+                });
         }
         Windows = null;
         MendZones();
@@ -216,7 +222,11 @@ public partial class ArrangedZone : ObservableObject
     };
 }
 
-/// <summary>A program of a zone: its process, its name, the title its window had (to tell apart several windows of the same one) and its file.</summary>
+/// <summary>
+/// A program of a zone: its process, its name, the title its window had (to tell apart several windows of the same one), its
+/// file and, when saved as they were («Guardar cómo están ahora», 5.0.379), the very place its window had: put there and
+/// not stretched to the zone.
+/// </summary>
 public sealed class ZoneProgram
 {
     /// <summary>The process, in lowercase without .exe («chrome»).</summary>
@@ -231,12 +241,36 @@ public sealed class ZoneProgram
     /// <summary>The program's file, to open it when it is not open (empty: it cannot be opened, like a Store app).</summary>
     public string Path { get; set; } = string.Empty;
 
+    /// <summary>The place its window had when saved (null: it fills its zone).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public SavedPlace? Place { get; set; }
+
     [JsonIgnore] public string Display => Name.Length > 0 ? Name : Process;
 
-    /// <summary>Its chip's tooltip: the title of its window, if it has one.</summary>
-    [JsonIgnore] public string Tip => Title.Length > 0 ? $"{Display} · {Title}" : Display;
+    [JsonIgnore] public bool HasPlace => Place is not null;
 
-    public ZoneProgram Clone() => new() { Process = Process, Name = Name, Title = Title, Path = Path };
+    /// <summary>Its chip's tooltip: the title of its window, if it has one, and whether it goes to its saved place.</summary>
+    [JsonIgnore]
+    public string Tip => (Title.Length > 0 ? $"{Display} · {Title}" : Display) + (Place is null ? string.Empty : "\n" + Loc.T("arrangement.savedPlace"));
+
+    public ZoneProgram Clone() => new() { Process = Process, Name = Name, Title = Title, Path = Path, Place = Place?.Clone() };
+}
+
+/// <summary>Where a window was (in fractions of its monitor's work area) and whether it was maximised.</summary>
+public sealed class SavedPlace
+{
+    public double Left { get; set; }
+    public double Top { get; set; }
+    public double Width { get; set; } = 1;
+    public double Height { get; set; } = 1;
+    public bool Maximized { get; set; }
+
+    public static SavedPlace Of(double left, double top, double width, double height, bool maximized) => new()
+    {
+        Left = Math.Round(left, 4), Top = Math.Round(top, 4), Width = Math.Round(width, 4), Height = Math.Round(height, 4), Maximized = maximized,
+    };
+
+    public SavedPlace Clone() => (SavedPlace)MemberwiseClone();
 }
 
 /// <summary>How a window of a disposición of 5.0.375 was left (only read, to convert it).</summary>

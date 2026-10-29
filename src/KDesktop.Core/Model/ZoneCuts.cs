@@ -310,6 +310,10 @@ public static class ZoneCuts
             var mine = monitor.ToList();
             if (IsCut(mine)) continue;
             var at = zones.IndexOf(mine[0]);
+            // Those zones were the windows as they were: their programs keep that place.
+            foreach (var zone in mine)
+                foreach (var program in zone.Programs.Where(p => p.Place is null))
+                    program.Place = SavedPlace.Of(zone.Left, zone.Top, zone.Width, zone.Height, zone.IsFull);
             foreach (var zone in mine) zones.Remove(zone);
             foreach (var zone in Tile(mine, mine[0].MonitorName, mine[0].MonitorDevice)) zones.Insert(Math.Min(at++, zones.Count), zone);
             changed = true;

@@ -19,7 +19,8 @@
             <!-- Only when it can't be written to now (not on the desktop) -->
             <TextBlock x:Name="HintText" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,8" />
             <ScrollViewer x:Name="Scroller" MaxHeight="380" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10">
-                <StackPanel x:Name="Rows" />
+                <!-- Room on the right for the scroll bar, which WPF-UI draws over the content -->
+                <StackPanel x:Name="Rows" Margin="0,0,14,0" />
             </ScrollViewer>
             <Grid>
                 <Grid.ColumnDefinitions>
