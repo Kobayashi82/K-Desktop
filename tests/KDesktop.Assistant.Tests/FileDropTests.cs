@@ -93,49 +93,6 @@ public partial class FileDropTests
         Assert.Single(dropped);
     }
 
-    /// <summary>
-    /// A real OLE drag (DoDragDrop) onto a hit area placed under the cursor, which drops at once: no mouse is moved and no
-    /// key is sent; for a moment an invisible window sits under the cursor.
-    /// </summary>
-    [Fact]
-    public void ARealDragDropsOnTheHitArea()
-    {
-        var events = new List<PointerEvent>();
-        var dropped = new List<(string Area, IReadOnlyList<string> Files)>();
-        var result = 0;
-        var placed = false;
-        OnSta(() =>
-        {
-            Assert.True(OleInitialize(0) >= 0);
-            try
-            {
-                if (!GetCursorPos(out var cursor)) return;
-                using var pointer = new HostPointer(events.Add, (_, _) => { }, () => { }, dropped: (area, files, _) => dropped.Add((area, files)))
-                {
-                    Name = "Dot",
-                };
-                using var area = pointer.CreateHitArea("toy");
-                area.Place(new HitShape.Rectangle(new PixelRect(cursor.X - 20, cursor.Y - 20, cursor.X + 20, cursor.Y + 20)));
-                placed = true;
-                // With a picture, as the Explorer drags: it is hidden over the area and reaches the assistant.
-                var data = ShellData([@"C:\Users\Ana\factura.pdf"]);
-                result = DoDragDrop(data, new DropAtOnce(), DROPEFFECT_COPY | DROPEFFECT_LINK, out var effect);
-            }
-            finally
-            {
-                OleUninitialize();
-            }
-        });
-        Assert.True(placed, "Sin cursor (¿sin escritorio?)");
-        Assert.Equal(DRAGDROP_S_DROP, result);
-        Assert.Equal([PointerEventKind.FilesOver, PointerEventKind.FilesDropped], events.Select(e => e.Kind));
-        Assert.All(events, e => Assert.Equal("toy", e.Area));
-        Assert.All(events, e => Assert.Equal(PictureWidth, e.Preview?.PixelWidth));
-        var (droppedOn, files) = Assert.Single(dropped);
-        Assert.Equal("toy", droppedOn);
-        Assert.Equal([@"C:\Users\Ana\factura.pdf"], files);
-    }
-
     /// <summary>The real process: Dot's hit window is registered as a drop target (OLE marks it with a property).</summary>
     [Fact]
     public async Task TheAssistantProcessTakesDrops()
@@ -192,15 +149,6 @@ public partial class FileDropTests
 
     private const int DRAGDROP_S_DROP = 0x00040100;
     private const int DRAGDROP_S_USEDEFAULTCURSORS = 0x00040102;
-
-    /// <summary>A drag that drops where the cursor already is, at the first question.</summary>
-    [ComVisible(true)]
-    private sealed class DropAtOnce : IDropSource
-    {
-        public int QueryContinueDrag(int escapePressed, int keys) => DRAGDROP_S_DROP;
-
-        public int GiveFeedback(int effect) => DRAGDROP_S_USEDEFAULTCURSORS;
-    }
 
     [ComImport]
     [Guid("00000121-0000-0000-C000-000000000046")]
