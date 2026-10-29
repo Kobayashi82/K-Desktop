@@ -5,8 +5,8 @@ Windows' own history.
 
 ## Opening it
 
-- With its hotkey, in *Settings → Clipboard*. **Use Win + V** sets it to **Win + V**: this history then opens instead of
-  Windows' one.
+- With its hotkey, in *Settings → Clipboard*. If you set it to **Win + V**, this history opens instead of Windows'
+  one.
 - From the tray: **Clipboard history**.
 - From a command or a QuickMenu: the **Clipboard** action with **Show the history**.
 

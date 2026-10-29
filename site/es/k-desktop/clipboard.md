@@ -5,8 +5,8 @@ del historial de Windows.
 
 ## Abrirlo
 
-- Con su atajo, en *Opciones → Portapapeles*. **Usar Win + V** lo pone en **Win + V**: así se abre este historial en vez
-  del de Windows.
+- Con su atajo, en *Opciones → Portapapeles*. Si le pones **Win + V**, se abre este historial en vez del de
+  Windows.
 - Desde la bandeja: **Historial del portapapeles**.
 - Desde un comando o un QuickMenu: acción **Portapapeles** con **Mostrar el historial**.
 

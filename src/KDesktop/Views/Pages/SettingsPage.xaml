@@ -901,8 +901,6 @@
                                 <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.clipboardHotkeyHint}" />
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                <ui:Button MinHeight="36" Margin="0,0,6,0" VerticalAlignment="Stretch" Content="{l:Tr settings.clipboardWinV}" Click="OnClipboardWinV"
-                                           ToolTip="{l:Tr settings.clipboardWinVHint}" />
                                 <ui:Button MinHeight="36" x:Name="ClipboardHotkeyButton" VerticalAlignment="Stretch" MinWidth="192" Click="OnCaptureClipboardHotkey" />
                                 <ui:Button MinHeight="36" VerticalAlignment="Stretch" x:Name="ClipboardHotkeyClear" Margin="6,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                            AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearClipboardHotkey" />

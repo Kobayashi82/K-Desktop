@@ -442,15 +442,6 @@ public partial class SettingsPage : UserControl
         ShowOptionalHotkey(ClipboardHotkeyButton, ClipboardHotkeyClear, string.Empty);
     }
 
-    /// <summary>Win + V: the history opens instead of Windows' own (the key never reaches Windows).</summary>
-    private void OnClipboardWinV(object sender, RoutedEventArgs e)
-    {
-        var s = _app.Config.Settings;
-        s.ClipboardHotkey = Hotkey.Normalize("WIN + V");
-        s.ClipboardBlockKey = true;
-        ShowOptionalHotkey(ClipboardHotkeyButton, ClipboardHotkeyClear, s.ClipboardHotkey);
-    }
-
     private void OnOpenClipboardHistory(object sender, RoutedEventArgs e) => _app.ClipboardUi.Show(ForegroundWindow.None);
 
     /// <summary>Everything but the pinned entries (as «Olvidar lo más usado» of the launcher: done at once, and said).</summary>
