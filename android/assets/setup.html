@@ -84,23 +84,6 @@
     .add-more { margin-top: 16px; }
 
     /* sheets: rename, forget, waking */
-    .sheet-back {
-      position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center;
-      background: color-mix(in srgb, #000 38%, transparent); animation: fade .25s var(--ease);
-    }
-    @keyframes fade { from { opacity: 0; } }
-    .sheet {
-      width: min(560px, 100%); padding: 22px 18px calc(env(safe-area-inset-bottom) + 18px); border-radius: 28px 28px 0 0;
-      background: var(--glass-strong); border: 1px solid var(--line); box-shadow: var(--shadow-lift);
-      -webkit-backdrop-filter: blur(24px) saturate(1.4); backdrop-filter: blur(24px) saturate(1.4);
-      animation: sheet-in .4s var(--ease);
-    }
-    @keyframes sheet-in { from { transform: translateY(100%); } }
-    .sheet h2 { font-size: 20px; margin-bottom: 8px; }
-    .sheet p { color: var(--text-2); margin-bottom: 16px; line-height: 1.45; }
-    .sheet .buttons { display: flex; gap: 10px; margin-top: 6px; }
-    .sheet .buttons .btn { flex: 1; min-height: 46px; }
-    .btn.danger { background: var(--danger); color: #fff; border-color: transparent; }
     .wake-ring { position: relative; width: 110px; height: 110px; margin: 6px auto 16px; }
     .wake-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
     .wake-ring circle { fill: none; stroke-width: 8; stroke-linecap: round; }
@@ -237,11 +220,11 @@
         addrOnline: 'Répond', addrLogin: 'Demande de se connecter', addrOffline: 'Ne répond pas', connect: 'Se connecter', wake: 'Allumer',
         rename: 'Renommer', forget: 'Oublier', forgetTitle: 'Oublier {0} ?', forgetText: 'Pour l’utiliser à nouveau, il faudra l’associer de nouveau.',
         cancel: 'Annuler', save: 'Enregistrer', close: 'Fermer', renameTitle: 'Nom du PC', noNet: 'Le téléphone n’a pas de connexion.',
-        notAnswering: '{0} ne répond pas. Est-il allumé ?', notAnsweringNoWake: '{0} ne répond pas. Pour l’allumer d’ici, connectez-vous une fois quand il est allumé et activez « Allumer et éteindre le PC » dans Options › Application web.',
+        notAnswering: '{0} ne répond pas. Est-il allumé ?', notAnsweringNoWake: '{0} ne répond pas. Pour l’allumer d’ici, connectez-vous une fois quand il est allumé et activez « Allumer et éteindre le PC » dans Paramètres › Application web.',
         wentOff: '{0} a été éteint.', failed: 'Connexion impossible : {0}', welcomeTitle: 'Bienvenue',
-        welcomeText: 'Utilisez votre PC depuis le téléphone. Sur le PC, ouvrez K-Desktop › Options › Application web › « Associer un appareil » et scannez le code.',
+        welcomeText: 'Utilisez votre PC depuis le téléphone. Sur le PC, ouvrez K-Desktop › Paramètres › Application web › « Associer un appareil » et scannez le code.',
         scan: 'Scanner le QR code', typeAddress: 'Saisir l’adresse', addTitle: 'Ajouter un PC',
-        addText: 'Scannez le code d’Options › Application web › « Associer un appareil » ou saisissez l’adresse de K-Desktop sur ce PC.',
+        addText: 'Scannez le code des Paramètres › Application web › « Associer un appareil » ou saisissez l’adresse de K-Desktop sur ce PC.',
         label: 'Adresse', hint: 'Celle de votre proxy HTTPS (<code>kdesktop.votredomaine.net</code>) ou du PC sur votre réseau (<code>192.168.1.10:2502</code>). Un lien d’association fonctionne aussi.',
         bad: 'Cette adresse n’est pas valide', scanHint: 'Visez le QR code de K-Desktop', notKd: 'Ce code ne vient pas de K-Desktop',
         noCamera: 'Impossible d’utiliser la caméra', waking: 'Allumage de {0}…', restarting: 'Redémarrage de {0}…', wakeWait: 'En attente d’une réponse… {0} s',
@@ -273,11 +256,11 @@
         addrOnline: 'Risponde', addrLogin: 'Chiede di accedere', addrOffline: 'Non risponde', connect: 'Connetti', wake: 'Accendi',
         rename: 'Rinomina', forget: 'Dimentica', forgetTitle: 'Dimenticare {0}?', forgetText: 'Per usarlo di nuovo bisognerà abbinarlo un’altra volta.',
         cancel: 'Annulla', save: 'Salva', close: 'Chiudi', renameTitle: 'Nome del PC', noNet: 'Il telefono non ha connessione.',
-        notAnswering: '{0} non risponde. È acceso?', notAnsweringNoWake: '{0} non risponde. Per accenderlo da qui, connettiti una volta mentre è acceso e attiva «Accendere e spegnere il PC» in Opzioni › App web.',
+        notAnswering: '{0} non risponde. È acceso?', notAnsweringNoWake: '{0} non risponde. Per accenderlo da qui, connettiti una volta mentre è acceso e attiva «Accendere e spegnere il PC» in Impostazioni › App web.',
         wentOff: '{0} è stato spento.', failed: 'Impossibile connettersi: {0}', welcomeTitle: 'Benvenuto',
-        welcomeText: 'Usa il tuo PC dal telefono. Sul PC apri K-Desktop › Opzioni › App web › «Abbina un dispositivo» e scansiona il codice.',
+        welcomeText: 'Usa il tuo PC dal telefono. Sul PC apri K-Desktop › Impostazioni › App web › «Abbina un dispositivo» e scansiona il codice.',
         scan: 'Scansiona il QR', typeAddress: 'Scrivi l’indirizzo', addTitle: 'Aggiungi un PC',
-        addText: 'Scansiona il codice di Opzioni › App web › «Abbina un dispositivo» o scrivi l’indirizzo di K-Desktop su quel PC.',
+        addText: 'Scansiona il codice di Impostazioni › App web › «Abbina un dispositivo» o scrivi l’indirizzo di K-Desktop su quel PC.',
         label: 'Indirizzo', hint: 'Quello del tuo proxy HTTPS (<code>kdesktop.tuodominio.net</code>) o del PC nella tua rete (<code>192.168.1.10:2502</code>). Va bene anche il link di abbinamento.',
         bad: 'Questo indirizzo non è valido', scanHint: 'Inquadra il codice QR di K-Desktop', notKd: 'Questo codice non è di K-Desktop',
         noCamera: 'Impossibile usare la fotocamera', waking: 'Accensione di {0}…', restarting: 'Riavvio di {0}…', wakeWait: 'In attesa di risposta… {0} s',
@@ -291,11 +274,11 @@
         addrOnline: 'Responde', addrLogin: 'Pede para entrar', addrOffline: 'Não responde', connect: 'Conectar', wake: 'Ligar',
         rename: 'Renomear', forget: 'Esquecer', forgetTitle: 'Esquecer {0}?', forgetText: 'Para usá-lo de novo será preciso pareá-lo outra vez.',
         cancel: 'Cancelar', save: 'Salvar', close: 'Fechar', renameTitle: 'Nome do PC', noNet: 'O celular está sem conexão.',
-        notAnswering: '{0} não responde. Está ligado?', notAnsweringNoWake: '{0} não responde. Para ligá-lo daqui, conecte-se uma vez com ele ligado e ative “Ligar e desligar o PC” em Opções › App web.',
+        notAnswering: '{0} não responde. Está ligado?', notAnsweringNoWake: '{0} não responde. Para ligá-lo daqui, conecte-se uma vez com ele ligado e ative “Ligar e desligar o PC” em Configurações › App web.',
         wentOff: '{0} foi desligado.', failed: 'Não foi possível conectar: {0}', welcomeTitle: 'Boas-vindas',
-        welcomeText: 'Use seu PC pelo celular. No PC, abra K-Desktop › Opções › App web › “Parear um dispositivo” e escaneie o código.',
+        welcomeText: 'Use seu PC pelo celular. No PC, abra K-Desktop › Configurações › App web › “Parear um dispositivo” e escaneie o código.',
         scan: 'Escanear o QR', typeAddress: 'Digitar o endereço', addTitle: 'Adicionar um PC',
-        addText: 'Escaneie o código de Opções › App web › “Parear um dispositivo” ou digite o endereço do K-Desktop nesse PC.',
+        addText: 'Escaneie o código de Configurações › App web › “Parear um dispositivo” ou digite o endereço do K-Desktop nesse PC.',
         label: 'Endereço', hint: 'O do seu proxy HTTPS (<code>kdesktop.seudominio.net</code>) ou o do PC na sua rede (<code>192.168.1.10:2502</code>). O link de pareamento também serve.',
         bad: 'Esse endereço não é válido', scanHint: 'Aponte para o código QR do K-Desktop', notKd: 'Esse código não é do K-Desktop',
         noCamera: 'Não é possível usar a câmera', waking: 'Ligando {0}…', restarting: 'Reiniciando {0}…', wakeWait: 'Esperando resposta… {0} s',
@@ -536,7 +519,7 @@
         input.value = pc.name;
         input.maxLength = 60;
         field.append(input);
-        const buttons = el('div', 'buttons');
+        const buttons = el('div', 'sheet-buttons');
         const cancel = el('button', 'btn', t('cancel'));
         const save = el('button', 'btn primary', t('save'));
         cancel.addEventListener('click', close);
@@ -556,7 +539,7 @@
     function forgetSheet(pc) {
       sheet((box, close) => {
         box.append(el('h2', '', t('forgetTitle', pc.name || 'K-Desktop')), el('p', '', t('forgetText')));
-        const buttons = el('div', 'buttons');
+        const buttons = el('div', 'sheet-buttons');
         const cancel = el('button', 'btn', t('cancel'));
         const forget = el('button', 'btn danger', t('forget'));
         cancel.addEventListener('click', close);
@@ -579,7 +562,7 @@
         const detail = el('p', '', t('wakeWait', 0));
         const sent = el('ul', 'sent');
         sent.hidden = true;
-        const buttons = el('div', 'buttons');
+        const buttons = el('div', 'sheet-buttons');
         const cancel = el('button', 'btn', t('cancel'));
         cancel.addEventListener('click', () => { app?.cancelWake(); close(); });
         buttons.append(cancel);

@@ -45,19 +45,22 @@
   <!-- App -->
   <div class="shell" id="shell" hidden>
     <header class="top" id="top">
-      <button class="brand" id="homeButton" data-i18n-title="pwa.home">
-        <img class="brand-mark" src="icons/favicon.png" alt="">
-        <span class="top-brand">K-Desktop <b>5.0</b></span>
-      </button>
-      <button class="conn" id="connPill" data-state="connecting">
-        <i></i><span id="machine"></span>
+      <!-- The PC: its name and how the connection is; it opens its sheet (reconnect, switch PC, power) -->
+      <button class="pc-pill" id="connPill" data-state="connecting" data-i18n-title="pwa.pc.title">
+        <span class="pc-pill-icon" data-icon="monitor"></span>
+        <span class="pc-pill-text"><b id="machine"></b><small><i></i><span id="connText"></span></small></span>
+        <span class="pc-pill-chevron" data-icon="chevronDown"></span>
       </button>
       <button class="icon-btn inbox-btn" id="inboxButton" data-icon="inbox" data-i18n-title="pwa.inbox.title" hidden></button>
       <button class="icon-btn voice-btn" id="voiceButton" data-icon="mic" data-i18n-title="pwa.voice.button" hidden></button>
+      <button class="icon-btn" id="settingsButton" data-icon="settings" data-i18n-title="pwa.tab.settings"></button>
     </header>
 
     <main class="views">
-      <h1 class="big-title" id="bigTitle"></h1>
+      <div class="title-row">
+        <button class="icon-btn title-back" id="titleBack" data-icon="back" data-i18n-title="pwa.back" hidden></button>
+        <h1 class="big-title" id="bigTitle"></h1>
+      </div>
 
       <section class="view" data-view="menus">
         <nav class="chips" id="menuChips"></nav>
@@ -288,7 +291,6 @@
       <button data-tab="pad"><span data-icon="touchpad"></span><b data-i18n="pwa.tab.pad"></b></button>
       <button data-tab="audio"><span data-icon="speaker"></span><b data-i18n="pwa.tab.audio"></b></button>
       <button data-tab="assistant" hidden><span data-icon="chat"></span><b data-i18n="pwa.tab.assistant"></b></button>
-      <button data-tab="settings"><span data-icon="settings"></span><b data-i18n="pwa.tab.settings"></b></button>
     </nav>
   </div>
 

@@ -78,6 +78,12 @@ const ICONS = {
   chat: '<path d="M20.5 11.5a8 7.5 0 0 1-11.6 6.7L4 19.5l1.4-4A7.3 7.3 0 0 1 4.5 11.5a8 7.5 0 0 1 16 0z"/><path d="M8.5 11.5h.01M12.5 11.5h.01M16.5 11.5h.01"/>',
   send: '<path d="M12 19V5M6 11l6-6 6 6"/>',
   stop: '<rect x="7" y="7" width="10" height="10" rx="2"/>',
+  chevronDown: '<path d="M6 9l6 6 6-6"/>',
+  lock: '<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',
+  sleep: '<path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"/>',
+  hibernate: '<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9M9.5 4.5L12 7l2.5-2.5M9.5 19.5L12 17l2.5 2.5"/>',
+  restart: '<path d="M4 12a8 8 0 1 0 2.34-5.66"/><path d="M4 4v4.5h4.5"/>',
+  power: '<path d="M12 3.5v8"/><path d="M7 6.5a7 7 0 1 0 10 0"/>',
 };
 
 const svg = name => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] ?? ''}</svg>`;
@@ -177,7 +183,9 @@ async function postBinary(path, buffer) {
 
 /** Header pill: is K-Desktop reachable right now? */
 function setOnline(value) {
-  $('connPill').dataset.state = value === null ? 'connecting' : value ? 'online' : 'offline';
+  const s = value === null ? 'connecting' : value ? 'online' : 'offline';
+  $('connPill').dataset.state = s;
+  $('connText').textContent = t('pwa.pc.' + s);
 }
 
 // ── theme ──────────────────────────────────────────────────────────
@@ -213,42 +221,64 @@ function movePill(pill, target) {
 
 // ── tabs ───────────────────────────────────────────────────────────
 
-const TABS = ['all', 'menus', 'pad', 'audio', 'assistant', 'settings'];
+/** The tab bar (five at most: the assistant only with the module on). Settings is a page of its own, from the header. */
+const TABS = ['all', 'menus', 'pad', 'audio', 'assistant'];
 
 /** The assistant tab only while the module is on. */
 function showAssistantTab(on) {
   const button = $('tabbar').querySelector('[data-tab="assistant"]');
   button.hidden = !on;
-  $('tabbar').style.setProperty('--tabs', on ? 6 : 5);
-  $('tabbar').classList.toggle('six', on);
+  $('tabbar').style.setProperty('--tabs', on ? 5 : 4);
   if (!on && state.tab === 'assistant') setTab('all');
   else requestAnimationFrame(() => movePill($('tabPill'), $('tabbar').querySelector('button.active')));
 }
 
 function setTitles() {
-  const title = t('pwa.tab.' + state.tab);
-  $('bigTitle').textContent = title;
+  $('bigTitle').textContent = t('pwa.tab.' + (state.view ?? state.tab));
+}
+
+/** Shows a view (a tab's, or settings) and starts or stops what only runs while it is on screen. */
+function showView(view, back = false) {
+  state.view = view;
+  for (const v of document.querySelectorAll('.view')) {
+    const on = v.dataset.view === view;
+    v.classList.toggle('active', on);
+    v.classList.toggle('back', on && back);
+  }
+  const settings = view === 'settings';
+  $('titleBack').hidden = !settings;
+  $('settingsButton').classList.toggle('active', settings);
+  $('tabbar').classList.toggle('dimmed', settings);
+  setTitles();
+  window.scrollTo({ top: 0 });
+  updateHeader();
+  if (view === 'audio') startAudio();
+  else stopAudio();
+  padActive(view === 'pad', state.session?.input !== false);
+  chatActive(view === 'assistant');
 }
 
 function setTab(tab) {
   if (!TABS.includes(tab)) tab = 'all';
+  // Leaving settings by a tab: its history entry goes too (the back button would reopen it).
+  if (state.view === 'settings') {
+    ignorePops++;
+    history.back();
+  }
   const back = TABS.indexOf(tab) < TABS.indexOf(state.tab);
   state.tab = tab;
   store.set('tab', tab);
-  for (const v of document.querySelectorAll('.view')) {
-    const on = v.dataset.view === tab;
-    v.classList.toggle('active', on);
-    v.classList.toggle('back', on && back);
-  }
   for (const b of $('tabbar').querySelectorAll('button')) b.classList.toggle('active', b.dataset.tab === tab);
   movePill($('tabPill'), $('tabbar').querySelector('button.active'));
-  setTitles();
-  window.scrollTo({ top: 0 });
-  updateHeader();
-  if (tab === 'audio') startAudio();
-  else stopAudio();
-  padActive(tab === 'pad', state.session?.input !== false);
-  chatActive(tab === 'assistant');
+  showView(tab, back);
+}
+
+/** Settings, from the header: a page above the tabs (back, the gesture or the title's arrow return to the tab). */
+function openSettings() {
+  if (state.view === 'settings') return;
+  navigator.vibrate?.(4);
+  history.pushState({ kdView: 'settings' }, '');
+  showView('settings');
 }
 
 /** The big title scrolls away; then the bar turns to glass. */
@@ -765,10 +795,6 @@ function openSubmenu(node) {
 }
 
 function closeSubmenu() {
-  if (ignorePops > 0) {
-    ignorePops--;
-    return;
-  }
   if (!state.path.length) return;
   state.path.pop();
   renderMenus('back');
@@ -1281,6 +1307,145 @@ async function unpair() {
   showPair();
 }
 
+// ── sheets ─────────────────────────────────────────────────────────
+
+/** Open bottom sheets, newest last: each has a history entry, so back (button, gesture) closes it. */
+const sheets = [];
+
+/** A sheet from the bottom; <build>(box) fills it. Returns the function that closes it (through the history). */
+function openSheet(build, className = '') {
+  const back = el('div', 'sheet-back');
+  const box = el('div', 'sheet ' + className);
+  back.append(box);
+  back.addEventListener('click', e => { if (e.target === back) history.back(); });
+  build(box);
+  document.body.append(back);
+  history.pushState({ kdSheet: sheets.length + 1 }, '');
+  const entry = { back, onClose: null };
+  sheets.push(entry);
+  return () => { if (sheets.includes(entry)) history.back(); };
+}
+
+/** Back closes the sheet on top; false when none is open. */
+function closeTopSheet() {
+  const entry = sheets.pop();
+  if (!entry) return false;
+  entry.onClose?.();
+  entry.back.classList.add('out');
+  entry.back.addEventListener('animationend', () => entry.back.remove(), { once: true });
+  setTimeout(() => entry.back.remove(), 400);
+  return true;
+}
+
+// ── the PC: reconnect, switch PC, power ────────────────────────────
+
+const POWER = ['lock', 'sleep', 'hibernate', 'restart', 'shutdown'];
+
+/** The header's PC: how the connection is, reconnect, another PC (in the app), and power when the PC allows it. */
+function openPcSheet() {
+  navigator.vibrate?.(6);
+  const s = state.session;
+  const app = window.KDesktopApp;
+  let countdown = 0;
+  const close = openSheet(box => {
+    const head = el('div', 'sheet-head');
+    const icon = el('span', 'sheet-icon');
+    icon.innerHTML = svg('monitor');
+    const text = el('div', 'sheet-head-text');
+    text.append(el('b', '', s?.machine ?? $('machine').textContent),
+      el('span', '', [t('pwa.pc.' + $('connPill').dataset.state), location.host].join(' · ')));
+    head.append(icon, text);
+    box.append(head);
+
+    const rows = el('div', 'group');
+    const row = (iconName, label, run) => {
+      const r = el('button', 'row row-button');
+      r.innerHTML = `<span class="row-icon">${svg(iconName)}</span><span class="row-label"></span><span class="row-chevron">${svg('chevron')}</span>`;
+      r.querySelector('.row-label').textContent = label;
+      r.addEventListener('click', run);
+      return r;
+    };
+    rows.append(row('refresh', t('pwa.pc.reconnect'), () => { close(); connect(true); }));
+    if (app?.showPcs) rows.append(row('server', t('pwa.app.changeServer'), () => app.showPcs()));
+    box.append(rows);
+
+    // Power: only with «Encender y apagar el PC» on in K-Desktop (the session says so); never for this same PC's browser.
+    if (s && !s.local) {
+      box.append(el('h3', 'section-title', t('pwa.power.title')));
+      if (s.power) {
+        const grid = el('div', 'power-grid');
+        for (const action of POWER) {
+          const b = el('button', 'power-btn' + (action === 'shutdown' ? ' danger' : ''));
+          b.innerHTML = `<span>${svg(action === 'shutdown' ? 'power' : action)}</span><b></b>`;
+          b.querySelector('b').textContent = t('pwa.power.' + action);
+          b.addEventListener('click', () => askPower(action, box));
+          grid.append(b);
+        }
+        box.append(grid);
+      } else {
+        box.append(el('p', 'sheet-note', t('pwa.power.notAllowed')));
+      }
+    }
+    if (s?.version) box.append(el('p', 'sheet-note center', 'K-Desktop ' + s.version));
+  });
+  sheets[sheets.length - 1].onClose = () => clearInterval(countdown);
+
+  /** Shutting down and restarting can't be undone: five seconds to change one's mind. The rest at once. */
+  function askPower(action, box) {
+    navigator.vibrate?.(10);
+    if (action !== 'shutdown' && action !== 'restart') {
+      sendPower(action);
+      return;
+    }
+    let left = 5;
+    const panel = el('div', 'countdown');
+    panel.innerHTML = `<div class="count-ring"><svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="44" pathLength="100"/><circle class="fill" cx="50" cy="50" r="44" pathLength="100"/></svg><b></b></div>`;
+    const label = el('p', 'count-text');
+    const buttons = el('div', 'sheet-buttons');
+    const cancel = el('button', 'btn', t('pwa.power.cancel'));
+    const now = el('button', 'btn danger', t('pwa.power.now'));
+    buttons.append(cancel, now);
+    panel.append(label, buttons);
+    box.replaceChildren(panel);
+    const tick = () => {
+      panel.querySelector('b').textContent = String(left);
+      panel.querySelector('.fill').style.strokeDasharray = `${left / 5 * 100} 100`;
+      label.textContent = t(action === 'shutdown' ? 'pwa.power.countShutdown' : 'pwa.power.countRestart', s.machine, left);
+      if (left <= 0) go();
+      left--;
+    };
+    const go = () => {
+      clearInterval(countdown);
+      sendPower(action);
+    };
+    cancel.addEventListener('click', () => { clearInterval(countdown); close(); });
+    now.addEventListener('click', go);
+    tick();
+    countdown = setInterval(tick, 1000);
+  }
+
+  async function sendPower(action) {
+    try {
+      await api('power', { method: 'POST', body: { action } });
+      navigator.vibrate?.(20);
+      close();
+      toast('ok', t('pwa.power.done.' + action), s.machine, 3000);
+      if (action !== 'lock') setTimeout(() => poweredOff(action), 700);
+    } catch (e) {
+      if (e instanceof Unpaired) return;
+      close();
+      toast('error', t('pwa.power.failed'), e.status === 403 ? t('pwa.power.notAllowed') : t('pwa.offline'), 5000);
+    }
+  }
+}
+
+/** The PC is going off (or restarting): the app shows its list of PCs; a browser, the PC as offline. */
+function poweredOff(action) {
+  stopEvents();
+  setOnline(false);
+  window.KDesktopApp?.poweredOff?.(action);
+}
+
 // ── wiring ─────────────────────────────────────────────────────────
 
 function wireDial() {
@@ -1352,32 +1517,38 @@ function wire() {
         goToDepth(0);
         return;
       }
-      if (b.dataset.tab === state.tab) {
+      if (b.dataset.tab === state.tab && state.view !== 'settings') {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
       setTab(b.dataset.tab);
     });
 
-  $('connPill').addEventListener('click', () => {
-    navigator.vibrate?.(6);
-    connect(true);
-  });
+  $('connPill').addEventListener('click', openPcSheet);
+  $('settingsButton').addEventListener('click', openSettings);
+  $('titleBack').addEventListener('click', () => history.back());
   $('hiddenToggle').addEventListener('click', () => {
     navigator.vibrate?.(4);
     state.showHidden = !state.showHidden;
     store.set('showHidden', state.showHidden);
     renderAll();
   });
-  $('homeButton').addEventListener('click', () => {
-    navigator.vibrate?.(4);
-    if (state.tab === 'all') window.scrollTo({ top: 0, behavior: 'smooth' });
-    else setTab('all');
-  });
   $('reloadButton').addEventListener('click', () => loadCatalog(true));
   $('appUpdateButton').addEventListener('click', updateApp);
   $('backButton').addEventListener('click', () => history.back());
-  window.addEventListener('popstate', () => closeSubmenu());
+  // Back (button, gesture): the sheet on top, else settings, else the open submenu.
+  window.addEventListener('popstate', () => {
+    if (ignorePops > 0) {
+      ignorePops--;
+      return;
+    }
+    if (closeTopSheet()) return;
+    if (state.view === 'settings') {
+      showView(state.tab, true);
+      return;
+    }
+    closeSubmenu();
+  });
   window.addEventListener('scroll', updateHeader, { passive: true });
 
   const search = $('searchBox');
