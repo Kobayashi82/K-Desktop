@@ -405,12 +405,33 @@ public sealed class ClipboardController : IDisposable
     {
         if (item is null) return;
         Close(restoreFocus: true);
-        if (!Put(item.Entry, change)) return;
+        PasteEntry(item.Entry, change);
+    }
+
+    /// <summary>Puts <paramref name="entry"/> on the clipboard and pastes it in the window in front (the launcher gives it back first).</summary>
+    public void PasteEntry(ClipboardEntry entry, ClipboardMode? change = null)
+    {
+        if (!Put(entry, change)) return;
         _ = Task.Run(async () =>
         {
             await Task.Delay(80).ConfigureAwait(false);
             InputSimulator.SendCombo("CTRL + V");
         });
+    }
+
+    /// <summary>
+    /// The entries whose text (or the program they came from) has every word of <paramref name="query"/>, newest first:
+    /// the launcher's results, as rows of this history (title, when and where from, icon).
+    /// </summary>
+    public IReadOnlyList<ClipboardItem> Find(string query, int count)
+    {
+        var words = query.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (words.Length == 0 || !Settings.ClipboardHistory) return [];
+        return _history.Entries
+            .Where(e => words.All(w => e.Text.Contains(w, StringComparison.CurrentCultureIgnoreCase) || (e.Source?.Contains(w, StringComparison.OrdinalIgnoreCase) ?? false)))
+            .Take(count)
+            .Select(e => Item(e, int.MaxValue))
+            .ToList();
     }
 
     /// <summary>Leaves the entry on the clipboard (the history sees it and takes it to the top).</summary>

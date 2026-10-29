@@ -8,14 +8,21 @@ namespace KDesktop.Core.Engine;
 
 /// <summary>
 /// Variables inside the texts of an action: {fecha} / {date} (2026-10-16), {hora} / {time} (09:30:05),
-/// {portapapeles} / {clipboard} (its text) and, inside a command (see <see cref="CommandVariables"/>), {resultado} /
+/// {portapapeles} / {clipboard} (its text), {portapapeles:2} (5.0.368: the text copied before the last one, from the clipboard
+/// history; :1 is the last one) and, inside a command (see <see cref="CommandVariables"/>), {resultado} /
 /// {result}, {seleccion} / {selection} and the ones saved with a name. Anything else between braces is left alone (a
 /// JSON body has many).
 /// </summary>
 public static partial class TextVariables
 {
-    [GeneratedRegex(@"\{([\p{L}_][\p{L}\p{N}_]*)\}")]
+    [GeneratedRegex(@"\{([\p{L}_][\p{L}\p{N}_]*)(?::(\d{1,3}))?\}")]
     private static partial Regex Pattern();
+
+    /// <summary>
+    /// The N-th text of the clipboard history (1: the last one copied), or null when there is none or the history is off;
+    /// the app sets it. Without it {portapapeles:1} is the clipboard and the others are empty.
+    /// </summary>
+    public static Func<int, string?>? HistoryText { get; set; }
 
     /// <summary>Whether <paramref name="text"/> uses {seleccion} (it has to be copied before the action runs).</summary>
     public static bool UsesSelection(string? text) =>
@@ -37,6 +44,14 @@ public static partial class TextVariables
         return Pattern().Replace(text, m =>
         {
             var name = m.Groups[1].Value;
+            if (m.Groups[2].Success)
+            {
+                // Only the clipboard takes a number; anything else with «:N» is left alone.
+                if (name.ToLowerInvariant() is not ("portapapeles" or "clipboard")) return m.Value;
+                var n = int.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture);
+                var copied = n <= 0 ? null : HistoryText?.Invoke(n) ?? (n == 1 ? (clipboard ?? ClipboardText)() : string.Empty);
+                return encode is null ? copied ?? string.Empty : encode(copied ?? string.Empty);
+            }
             string? value = name.ToLowerInvariant() switch
             {
                 "fecha" or "date" => time.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),

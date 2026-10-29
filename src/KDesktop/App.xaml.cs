@@ -197,6 +197,8 @@ public partial class App : Application
         Launcher.Prewarm();
         ClipboardUi = new ClipboardController(() => Config);
         Ui.Clipboard = ClipboardUi;
+        // {portapapeles:N}: the history while it is on.
+        TextVariables.HistoryText = n => Config.Settings.ClipboardHistory ? ClipboardUi.History.Text(n) : null;
         ClipboardUi.Start();
         ClipboardUi.Prewarm();
         Engine.Executed += Achievements.CommandExecuted;

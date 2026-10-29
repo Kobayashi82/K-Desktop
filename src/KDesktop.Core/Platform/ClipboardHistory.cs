@@ -72,6 +72,12 @@ public sealed class ClipboardHistory
         get { lock (_gate) return [.. _entries]; }
     }
 
+    /// <summary>The <paramref name="n"/>-th text copied (1: the last one), pictures and files aside; null when there are fewer.</summary>
+    public string? Text(int n)
+    {
+        lock (_gate) return n < 1 ? null : _entries.Where(e => e.Kind == ClipKind.Text).Skip(n - 1).FirstOrDefault()?.Text;
+    }
+
     public ClipboardEntry? Find(string id)
     {
         lock (_gate) return _entries.FirstOrDefault(e => e.Id == id);

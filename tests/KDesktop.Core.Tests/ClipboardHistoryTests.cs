@@ -43,6 +43,36 @@ public sealed class ClipboardHistoryTests : IDisposable
         Assert.Empty(history.Entries);
     }
 
+    /// <summary>5.0.368: {portapapeles:N} is the N-th text copied (pictures and files aside).</summary>
+    [Fact]
+    public void TheClipboardVariableTakesWhatWasCopiedBefore()
+    {
+        var history = new ClipboardHistory(_folder);
+        history.Add(Text("primero"));
+        history.Add(new ClipCapture(ClipKind.Files, string.Empty, Files: [@"C:\a.txt"]));
+        history.Add(Text("segundo"));
+        Assert.Equal("segundo", history.Text(1));
+        Assert.Equal("primero", history.Text(2));
+        Assert.Null(history.Text(3));
+
+        Assert.Equal("ahora · primero · ", Expand(history.Text, "{portapapeles} · {portapapeles:2} · {portapapeles:9}"));
+    }
+
+    /// <summary>Expands with the history given (the app sets it for real); {x:2} of anything else is left as it is.</summary>
+    private static string Expand(Func<int, string?> history, string text)
+    {
+        var before = Engine.TextVariables.HistoryText;
+        Engine.TextVariables.HistoryText = history;
+        try { return Engine.TextVariables.Expand(text, clipboard: () => "ahora"); }
+        finally { Engine.TextVariables.HistoryText = before; }
+    }
+
+    [Fact]
+    public void WithoutAHistoryOnlyTheLastOneIsKnown()
+    {
+        Assert.Equal("ahora|ahora||{fecha:2}", Engine.TextVariables.Expand("{portapapeles}|{portapapeles:1}|{portapapeles:2}|{fecha:2}", clipboard: () => "ahora"));
+    }
+
     [Fact]
     public void OldEntriesGoAfterTheDaysChosen()
     {

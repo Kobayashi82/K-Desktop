@@ -45,6 +45,7 @@ Escribe `{` en el texto para elegir:
 | `{fecha}` | La fecha de hoy (2026-10-29) |
 | `{hora}` | La hora (09:30:05) |
 | `{portapapeles}` | El texto copiado |
+| `{portapapeles:2}` | Lo copiado antes de lo último (`:3`, `:4`… más atrás) |
 
 Los textos cortos se teclean. Los largos o con varias líneas se pegan (así un salto de línea no envía el mensaje en un
 chat) y lo que tenías copiado vuelve a su sitio.

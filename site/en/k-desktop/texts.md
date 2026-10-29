@@ -43,6 +43,7 @@ Type `{` in the text to pick:
 | `{date}` | Today's date (2026-10-29) |
 | `{time}` | The time (09:30:05) |
 | `{clipboard}` | The copied text |
+| `{clipboard:2}` | What was copied before the last one (`:3`, `:4`… further back) |
 
 Short texts are typed. Long ones, or with several lines, are pasted (so a line break does not send the message in a
 chat) and what you had copied goes back where it was.

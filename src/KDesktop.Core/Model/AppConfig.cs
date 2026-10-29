@@ -528,6 +528,9 @@ public partial class AppSettings : ObservableObject
     /// <summary>The launcher offers a web search when nothing else answers.</summary>
     [ObservableProperty] private bool _launcherWeb = true;
 
+    /// <summary>The launcher also finds what was copied (the clipboard history), and Enter pastes it.</summary>
+    [ObservableProperty] private bool _launcherClipboard = true;
+
     /// <summary>"google", "duckduckgo", "bing", "brave" or "custom" (then <see cref="LauncherSearchUrl"/>).</summary>
     [ObservableProperty] private string _launcherSearchEngine = "google";
 

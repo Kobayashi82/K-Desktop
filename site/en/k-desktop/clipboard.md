@@ -9,6 +9,10 @@ Windows' own history.
   one.
 - From the tray: **Clipboard history**.
 - From a command or a QuickMenu: the **Clipboard** action with **Show the history**.
+- From the [launcher](quickmenu-launcher.md): what you copied shows among the results (Enter pastes it).
+
+In any text of an action or of [Texts](texts.md), `{clipboard:2}` is what was copied before the last one (`:3`, `:4`…
+further back).
 
 It opens next to the mouse. Type to search and choose with ↑ ↓:
 

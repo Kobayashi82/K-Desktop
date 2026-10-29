@@ -103,6 +103,7 @@ Escribe `{` en el campo y salen las que hay; con las flechas eliges una y con En
 | `{resultado}` | Lo que dio la acción anterior que da algo (ver abajo). |
 | `{seleccion}` | Lo seleccionado en la ventana donde ejecutaste el comando. Se copia una vez y el portapapeles queda como estaba. |
 | `{portapapeles}` | El texto copiado. |
+| `{portapapeles:2}` | Lo copiado antes de lo último, del [historial del portapapeles](clipboard.md) (`:3`, `:4`… más atrás). |
 | `{fecha}` y `{hora}` | La fecha de hoy (2026-10-28) y la hora (09:30:05). |
 | `{nombre}` | Lo que guardó una acción anterior con **Guardar en variable** y ese nombre. |
 

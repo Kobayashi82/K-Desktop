@@ -9,6 +9,10 @@ del historial de Windows.
   Windows.
 - Desde la bandeja: **Historial del portapapeles**.
 - Desde un comando o un QuickMenu: acción **Portapapeles** con **Mostrar el historial**.
+- Desde el [lanzador](quickmenu-launcher.md): lo copiado sale entre los resultados (Intro lo pega).
+
+En cualquier texto de una acción o de [Textos](texts.md), `{portapapeles:2}` es lo copiado antes de lo último (`:3`, `:4`…
+más atrás).
 
 Sale junto al ratón. Escribe para buscar y elige con ↑ ↓:
 

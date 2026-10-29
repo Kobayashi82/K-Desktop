@@ -857,6 +857,14 @@
                     <Grid Style="{StaticResource SettingRow}">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.launcherClipboard}" />
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherClipboardHint}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding LauncherClipboard}" AutomationProperties.Name="{l:Tr settings.launcherClipboard}" />
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
                             <TextBlock Text="{l:Tr settings.launcherWeb}" />
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherWebHint}" />
                         </StackPanel>

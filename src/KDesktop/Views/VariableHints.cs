@@ -179,6 +179,7 @@ public static class VariableHints
         {
             yield return new("cursor", Loc.T("vars.cursor"));
             yield return new(spanish ? "portapapeles" : "clipboard", Loc.T("vars.clipboard"));
+            yield return new(spanish ? "portapapeles:2" : "clipboard:2", Loc.T("vars.clipboardBefore"));
             yield return new(spanish ? "fecha" : "date", Loc.T("vars.date"));
             yield return new(spanish ? "hora" : "time", Loc.T("vars.time"));
             yield break;
@@ -186,6 +187,7 @@ public static class VariableHints
         yield return new(spanish ? "resultado" : "result", Loc.T("vars.result"));
         yield return new(spanish ? "seleccion" : "selection", Loc.T("vars.selection"));
         yield return new(spanish ? "portapapeles" : "clipboard", Loc.T("vars.clipboard"));
+        yield return new(spanish ? "portapapeles:2" : "clipboard:2", Loc.T("vars.clipboardBefore"));
         yield return new(spanish ? "fecha" : "date", Loc.T("vars.date"));
         yield return new(spanish ? "hora" : "time", Loc.T("vars.time"));
         if (CommandOf(box) is not { } command) yield break;

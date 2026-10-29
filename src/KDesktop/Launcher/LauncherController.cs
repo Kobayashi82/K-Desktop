@@ -23,6 +23,7 @@ public sealed partial class LauncherController
 {
     private const int MaxResults = 30;
     private const int EmptyResults = 8;
+    private const int ClipboardResults = 3;
 
     private readonly Func<AppConfig> _config;
     private readonly CommandEngine _engine;
@@ -219,6 +220,11 @@ public sealed partial class LauncherController
             .Take(MaxResults)
             .Select(x => x.Candidate.Create()));
 
+        // What was copied with those words (Settings › Lanzador › «Historial del portapapeles»): after the rest, before the web.
+        if (settings.LauncherClipboard && App.Current.ClipboardUi is { } clipboard)
+            items.AddRange(clipboard.Find(query, ClipboardResults).Select(c => new LauncherItem(LauncherItemKind.Clipboard, c.Title,
+                Loc.T("launcher.clipboard", c.Subtitle), Loc.T("launcher.paste"), () => c.Icon, c.Entry)));
+
         if (settings.LauncherWeb && result is null)
             items.Add(new LauncherItem(LauncherItemKind.Web, Loc.T("launcher.web", query.Trim()), SearchEngines.Name(settings), "",
                 () => IconProvider.Kd("Globe24", "sky"), query.Trim()));
@@ -306,6 +312,10 @@ public sealed partial class LauncherController
                 Close(restoreFocus: false);
                 var url = SearchEngines.Url(Settings, text);
                 _ = Task.Run(() => ProcessLauncher.Launch(new LaunchSpec(url), asAdmin: false));
+                break;
+            case ClipboardEntry copied:
+                Close(restoreFocus: true);
+                App.Current.ClipboardUi.PasteEntry(copied);
                 break;
             case string result when item.Kind == LauncherItemKind.Calculator:
                 try { Clipboard.SetText(result); } catch (Exception ex) { Log.Warn("No se pudo copiar el resultado: " + ex.Message); }

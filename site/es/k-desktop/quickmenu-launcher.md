@@ -45,6 +45,8 @@ Encuentra:
 - **Cuentas**: escribe `12*3.5` e Intro copia el resultado.
 
   ![La calculadora del lanzador](../../images/es/launcher-calc.png)
+- **Lo que has copiado** (*Historial del portapapeles*): lo del [historial](clipboard.md) que tenga lo escrito; Intro lo
+  pega donde estabas.
 - **La web**: cuando no hay nada mejor, ofrece buscarlo en internet (con el buscador que elijas).
 
 Con *Los más usados primero*, lo que más usas sale antes, incluso antes de escribir nada.

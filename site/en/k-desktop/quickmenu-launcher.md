@@ -45,6 +45,8 @@ It finds:
 - **Sums**: type `12*3.5` and Enter copies the result.
 
   ![The launcher's calculator](../../images/en/launcher-calc.png)
+- **What you copied** (*Clipboard history*): what in the [history](clipboard.md) has what you typed; Enter pastes it where
+  you were.
 - **The web**: when nothing better matches, it offers to search the web (with the search engine you choose).
 
 With *Most used first*, what you use most comes first and shows before you type anything.

@@ -102,6 +102,7 @@ and the ones you can use show up; choose one with the arrows and put it with Ent
 | `{result}` | What the previous action that gives something gave (see below). |
 | `{selection}` | What is selected in the window where you ran the command. It is copied once and the clipboard is left as it was. |
 | `{clipboard}` | The copied text. |
+| `{clipboard:2}` | What was copied before the last one, from the [clipboard history](clipboard.md) (`:3`, `:4`… further back). |
 | `{date}` and `{time}` | Today's date (2026-10-28) and the time (09:30:05). |
 | `{name}` | What an earlier action kept with **Save in a variable** and that name. |
 
