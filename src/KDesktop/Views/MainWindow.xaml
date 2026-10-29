@@ -6,7 +6,7 @@
                  xmlns:core="clr-namespace:KDesktop.Core;assembly=KDesktop.Core"
                  Title="{x:Static core:AppPaths.AppName}"
                  Width="1340" Height="860"
-                 MinWidth="1180" MinHeight="700"
+                 MinWidth="1180" MinHeight="713"
                  WindowStartupLocation="CenterScreen"
                  ExtendsContentIntoTitleBar="True"
                  WindowBackdropType="Mica"
