@@ -1,0 +1,606 @@
+{
+ "lang": "en",
+ "tts": {
+  "voice": "af_heart",
+  "kokoroLang": "en-us",
+  "speed": 1.0
+ },
+ "subtitles": {
+  "width": 42,
+  "keep": [
+   "K-Desktop",
+   "llama server",
+   "OpenAI compatible",
+   "find tools",
+   "think harder",
+   "Claude Desktop",
+   "Home Assistant",
+   "empty the recycle bin",
+   "Empty Recycle Bin",
+   "Open Recycle Bin",
+   "what time is it"
+  ]
+ },
+ "chapters": [
+  {
+   "id": "intro",
+   "title": "Assistants, inside",
+   "label": "Intro",
+   "beats": [
+    {
+     "id": "hook",
+     "text": "You say: {ask}Lander, what time is it? And in under a second, the Lander {answers}answers you, out loud."
+    },
+    {
+     "id": "hook2",
+     "text": "But between your voice and its voice, a lot happens. {checks}Checks. {models}Models that load and unload. {vectors}Vectors of meaning. And {decisions}decisions made by plain code, and only sometimes by the AI."
+    },
+    {
+     "id": "promise",
+     "text": "In this video we follow one order {trip}step by step, from the {wake}wake word to the moment the assistant {ends}stops talking. Nothing skipped.",
+     "pause": 0.6
+    }
+   ]
+  },
+  {
+   "id": "map",
+   "title": "The journey",
+   "label": "Map",
+   "beats": [
+    {
+     "id": "stations",
+     "text": "This is the map. The {mic}microphone. The {wake}wake word, and how it is checked. {listen}Listening to the order until you stop. Turning it into {text}text. {deliver}Handing it to the assistant. {route}Deciding who deals with it: a rule, one of your commands, or the AI. The {tools}tools. And finally, the {voice}voice."
+    },
+    {
+     "id": "principle",
+     "text": "And one idea runs through the whole journey: {cheap}cheap and safe first. Whatever rules and comparisons can settle never reaches the AI. The AI only gets {left}what is left over.",
+     "pause": 0.5
+    }
+   ]
+  },
+  {
+   "id": "processes",
+   "title": "Two processes",
+   "label": "Processes",
+   "beats": [
+    {
+     "id": "intro",
+     "text": "First, {who}who does what. There are {two}two processes."
+    },
+    {
+     "id": "kd",
+     "text": "{kd}K-Desktop runs as administrator. It owns the {mic}microphone, the speech models, your {commands}commands, and the little window that {ask}asks for permission."
+    },
+    {
+     "id": "assistant",
+     "text": "The assistants live in {proc}another process, as a normal user, with no admin rights. That is where their {brain}brain is, their {tools}tools, their {voice}voice, and the {body}character you see on screen."
+    },
+    {
+     "id": "pipe",
+     "text": "They talk over a {pipe}named pipe: one {json}JSON message per line. K-Desktop lets {acl}only your user in, and {check}checks that whoever connects is the same program, in your session, and the very process it launched itself."
+    },
+    {
+     "id": "closed",
+     "text": "What an assistant may ask for is a {list}closed list: run commands that {exist}already exist, move windows, get vectors of meaning. {never}Never an arbitrary program or script with admin rights."
+    },
+    {
+     "id": "beat",
+     "text": "After five seconds with no traffic, they send each other a {ping}heartbeat. If the assistant process crashes, K-Desktop {relaunch}starts it again, waiting a little longer each time."
+    }
+   ]
+  },
+  {
+   "id": "wake",
+   "title": "The wake word",
+   "label": "Wake word",
+   "beats": [
+    {
+     "id": "mic",
+     "text": "The journey starts. The {mic}microphone is always open, but nothing leaves your PC. First comes {echo}echo cancellation: whatever your speakers are playing is subtracted, including the assistant's own voice."
+    },
+    {
+     "id": "oww",
+     "text": "Every {eighty}80 milliseconds, openWakeWord turns the sound into a {mel}spectrogram, and then into an {emb}embedding: 96 numbers that sum up that slice of audio."
+    },
+    {
+     "id": "detector",
+     "text": "Your personal detector looks at the last {sixteen}16 of them, just over a second, and gives {two}two opinions. One: how close this is to {dtw}your own recordings of the word. The other: a {cls}classifier, trained on your PC with your takes, against silence, noise, and your normal speech."
+    },
+    {
+     "id": "agree",
+     "text": "The final score is the {mean}geometric mean of the two. If either one says no, the score sinks. {both}Both have to agree."
+    },
+    {
+     "id": "verify",
+     "text": "If it passes the threshold, still nothing visible happens. {quiet}No sound, no notice, the music is not turned down. First, {phase2}phase two: {parakeet}Parakeet, the speech recognition model, transcribes just the clip of the word, and that text has to {sounds}sound like your word."
+    },
+    {
+     "id": "loose",
+     "text": "If the detector was {sure}very sure, a slightly worse transcription is enough. And if even that fails, the word stays {provisional}in doubt, and is confirmed later, by transcribing the word together with the order."
+    },
+    {
+     "id": "guards",
+     "text": "Two more filters. If the transcription matches something an assistant has {echo}just said, it is its own voice, and it is thrown away. And if the word only comes up {passing}in passing, as in: I was showing my brother the Lander, you are talking about it, not to it."
+    },
+    {
+     "id": "owner",
+     "text": "Past all that: {whose}whose word is it? Every recorded word has one owner. {kdc}K-Desktop's commands, one {asst}particular assistant, or nobody. The word Lander belongs to the Lander."
+    },
+    {
+     "id": "go",
+     "text": "Now it happens. Other sounds are {duck}turned down, the {listen}listening sound plays, and K-Desktop sends the Lander a {listening}listening message. The character looks like it is listening, its own voice {twenty}drops to twenty percent, and if its model is already in memory, it is {keep}kept there."
+    },
+    {
+     "id": "other",
+     "text": "There are {more}other ways in, with no wake word. {key}Hold the assistant's key. {click}Hold a click on it for about half a second. {chat}Type to it. Your {phone}phone. A command. Or an order {scheduled}scheduled for later. They all end up in the same place."
+    }
+   ]
+  },
+  {
+   "id": "listen",
+   "title": "Listening to the order",
+   "label": "Listening",
+   "beats": [
+    {
+     "id": "capture",
+     "text": "While the word was being checked, the audio {rec}never stopped recording. So the order is not lost, even if you say it all in one breath."
+    },
+    {
+     "id": "vad",
+     "text": "{silero}Silero, a voice activity detector, tells the stretches where you speak from the silences."
+    },
+    {
+     "id": "pause",
+     "text": "At every {pause}short pause, a quarter of a second, Parakeet {ahead}already transcribes what was said so far. If the order ends right there, that text is used, and {saves}nothing is transcribed twice."
+    },
+    {
+     "id": "end",
+     "text": "The order ends after {eight}800 milliseconds of silence. That is the floor of the response time: any shorter, and orders with a pause in them would be cut. If you say nothing for {five}five seconds, listening stops. And {fifteen}fifteen seconds at most."
+    },
+    {
+     "id": "options",
+     "text": "Then the text is chosen. There are {cands}several candidates. What was said {after}after a pause. The word and the order {joined}transcribed together, with the word cut out. Or the {alone}order alone, when the other version lost words."
+    },
+    {
+     "id": "echo",
+     "text": "The {guard}echo guard again: if the text is what an assistant was saying, it is ignored."
+    },
+    {
+     "id": "heard",
+     "text": "And finally, K-Desktop sends the assistant process a {heard}heard message: the text, who it is for, and where it came from. {voice}By voice, in this case."
+    }
+   ]
+  },
+  {
+   "id": "turn",
+   "title": "Who decides?",
+   "label": "Routing",
+   "beats": [
+    {
+     "id": "arrive",
+     "text": "The order reaches the assistant. Each assistant has its own {conv}conversation, and {replace}a new order replaces the one still going. Tell it to stop while it talks, and what it was doing is cancelled."
+    },
+    {
+     "id": "chat",
+     "text": "What you said appears in the {chat}chat, and goes into the log."
+    },
+    {
+     "id": "files",
+     "text": "If the order comes with {files}files, because you dropped them on the character, it goes straight to the AI. Otherwise, the {router}routing begins."
+    },
+    {
+     "id": "who",
+     "text": "And here is the key point: {who}who decides what gets done? Not the AI. {code}Code decides, in layers, always in the same order. First, the {rules}fixed rules. Then your {commands}commands. Then {programs}programs. And only what is left reaches the {ai}AI.",
+     "pause": 0.5
+    }
+   ]
+  },
+  {
+   "id": "rules",
+   "title": "Fixed rules",
+   "label": "Rules",
+   "beats": [
+    {
+     "id": "what",
+     "text": "Fixed rules are {patterns}patterns written in the language files, for every installed language. They have {gaps}gaps: a duration, like ten minutes, or free text, like what you want noted down. And optional words."
+    },
+    {
+     "id": "clean",
+     "text": "Before comparing, the assistant's {name}name is removed, so is {filler}filler, like hey or please, and {polite}polite openings, like could you. The whole order has to fit a pattern."
+    },
+    {
+     "id": "list",
+     "text": "That is how these are answered at once: the {time}time, a {timer}timer, a {note}note, {cancel}cancel, {repeat}repeat that, {undo}undo, {remember}remember that, the {weather}weather, {dictate}write what I say, {free}free your brain, or {think}think it over."
+    },
+    {
+     "id": "tool",
+     "text": "A rule does not do things on its own. It calls {same}the same tool the AI would use, through the {runner}tool runner. So it shows up in the {activity}activity, and it can be {undoit}undone. And it answers in the character's {phrases}own words."
+    },
+    {
+     "id": "later",
+     "text": "One special case: {later}at seven, empty the recycle bin. Doing that now would be wrong. So an order {forlater}for later goes to the AI, with the {schedule}schedule tool at hand."
+    },
+    {
+     "id": "json",
+     "text": "And if you say the {phrase}exact phrase of one of your JSON tools, like {night}good night, that tool runs, also without the AI."
+    },
+    {
+     "id": "wrong",
+     "text": "One last check. If you say {wrong}you got that wrong, right after an answer from the AI, no commands are looked for. The AI {rethink}thinks it over again."
+    }
+   ]
+  },
+  {
+   "id": "commands",
+   "title": "Your commands",
+   "label": "Commands",
+   "beats": [
+    {
+     "id": "ask",
+     "text": "If no rule fits, the assistant asks K-Desktop: {match}which commands look like this? That is the match message. K-Desktop searches {same}just like its own voice control does, but {norun}runs nothing. Questions, like what does my game mode command do, {question}skip this step: they go to the AI."
+    },
+    {
+     "id": "words",
+     "text": "The first layer is {words}words. How much of a command's {name}name is in what you said? Word {ending}endings don't matter: open, opens, opening. Small {slips}transcription slips are forgiven, words {split}split apart or run together, and words that {sound}sound the same. {filler}Filler doesn't count."
+    },
+    {
+     "id": "accept",
+     "text": "To win on words, a command needs a score of {score}0.82, and a lead of {margin}0.08 over the next one."
+    },
+    {
+     "id": "split",
+     "text": "If the whole order names nothing clearly, it is {split}split at and, then, after, and commas, and each piece is matched on its own. {papelera}Open YouTube and empty the recycle bin is two commands. And a piece like {it}and close it refers to the thing in the piece before."
+    }
+   ]
+  },
+  {
+   "id": "meaning",
+   "title": "Embeddings",
+   "label": "Meaning",
+   "beats": [
+    {
+     "id": "intro",
+     "text": "When words are not enough, the second layer kicks in: {meaning}meaning. And this is where {emb}embeddings come in."
+    },
+    {
+     "id": "what",
+     "text": "An embedding is a list of numbers that stands for {sense}what a sentence means. EmbeddingGemma, a small model from Google that runs on your PC, turns each sentence into {dims}768 numbers."
+    },
+    {
+     "id": "space",
+     "text": "Think of them as a {point}point in space. Sentences that mean {close}the same thing land close together, even if they share no words at all. {clean}Clear out the trash lands right next to {empty}Empty Recycle Bin."
+    },
+    {
+     "id": "cosine",
+     "text": "Closeness is measured with the {cos}cosine of the angle between the two vectors. One means identical. Zero means unrelated."
+    },
+    {
+     "id": "anchors",
+     "text": "What is your order compared with? Each command's {cname}name, its {phrases}voice phrases, and what its {actions}first actions say they do, like shut down the computer. Those vectors are worked out {once}once and kept on disk: only new names cost anything."
+    },
+    {
+     "id": "thresholds",
+     "text": "A command wins on meaning from {sixtytwo}0.62, if it is clearly ahead. The built-in {media}music orders need 0.80. And anything that {power}shuts down, restarts or signs out needs 0.90."
+    },
+    {
+     "id": "notmine",
+     "text": "It is also compared with a list of things that {notmine}are not K-Desktop's job: the TV, the lights, alarms. {tv}Turn off the TV is close to Shut down the computer, but closer still to that list. So nothing runs."
+    },
+    {
+     "id": "shared",
+     "text": "A detail: the meaning model is {one}loaded only once. The assistants ask K-Desktop for their vectors over the pipe, with an {embed}embed message."
+    },
+    {
+     "id": "result",
+     "text": "K-Desktop answers with {matched}matched: each piece of the order, its candidates with their scores, and whether it is {sure}sure. Now the assistant decides. Sure, and scoring at least {eighty}0.80: it {run}runs right away, no AI. {two}Two candidates almost tied: it asks, {which}Empty Recycle Bin or Open Recycle Bin? And you answer {first}the first one. Still no AI."
+    }
+   ]
+  },
+  {
+   "id": "letter",
+   "title": "Deciding with one letter",
+   "label": "One letter",
+   "beats": [
+    {
+     "id": "intro",
+     "text": "And if nothing is clear? Before handing the whole order to the AI, there is a shortcut: {letter}deciding with a single letter."
+    },
+    {
+     "id": "options",
+     "text": "It takes the commands {near}closest in meaning, up to {ten}ten, as long as the best one is above 0.55, and the order has {words}ten words or fewer."
+    },
+    {
+     "id": "prompt",
+     "text": "The assistant's own model gets a list: {a}A, B, C, one letter per command, and {z}Z for none of these. And it is told to answer {one}with one letter only."
+    },
+    {
+     "id": "probs",
+     "text": "Its answer is not read. What is read are the {probs}probabilities of each letter. If one is above {ninety}0.90, that command runs. If two together reach 0.90, and the second has at least 0.25, it {ask}asks which one. If Z wins, or nothing stands out, the order {ai}goes to the AI."
+    },
+    {
+     "id": "fast",
+     "text": "It takes {tenth}about a tenth of a second, instead of a whole answer from the AI. Measured with 117 real commands, it got {more}123 of 184 orders right without the AI, up from 98. And it never shuts down the PC from here."
+    },
+    {
+     "id": "programs",
+     "text": "If there are still pieces nobody took, {programs}programs get a look: {minimize}minimize Chrome, {quit}quit Spotify, {open}open Steam. These are rules too, and K-Desktop finds the program among the open windows and the running processes."
+    }
+   ]
+  },
+  {
+   "id": "run",
+   "title": "Running it",
+   "label": "Running",
+   "beats": [
+    {
+     "id": "run",
+     "text": "When a command has to run, the assistant sends {run}run, with the command's id and {choreo}choreography, because it is on the desktop."
+    },
+    {
+     "id": "risk",
+     "text": "K-Desktop works out its {risk}risk: that of its riskiest action. {green}Green, no question. {yellow}Yellow, asks the first time. {red}Red, asks every time. A command always asks at least the first time."
+    },
+    {
+     "id": "ask",
+     "text": "The {window}permission window appears without stealing your focus. You can say {yes}yes, {no}no, or {always}yes, and don't ask again. If the order was spoken, the window {listens}listens by itself. No answer in {tensec}ten seconds means no."
+    },
+    {
+     "id": "steps",
+     "text": "Then each action arrives as a {step}step: what it is, which window, and where it will end up. The assistant does its {gesture}gesture: it flies to the button, aims, and fires. At the {impact}moment of impact it sends {go}go, and K-Desktop, which has the rights, {does}does it."
+    },
+    {
+     "id": "safety",
+     "text": "If the assistant does not answer in time, {six}six seconds, or ten when it has to tow a window, K-Desktop does it anyway. It {never}never hangs. And if the assistant says it did it itself, K-Desktop {verify}checks, and sets the exact result."
+    },
+    {
+     "id": "end",
+     "text": "When it is over, {end}end arrives, with the outcome and the messages. The run goes into K-Desktop's {history}history, with the assistant as its source."
+    },
+    {
+     "id": "act",
+     "text": "Minimize Chrome works the same way. With an {act}act message, K-Desktop builds a {disposable}throwaway command from the actions in its catalog. It asks like a command, appears in the history, and gets the same gestures."
+    }
+   ]
+  },
+  {
+   "id": "brain",
+   "title": "Enter the AI",
+   "label": "The AI",
+   "beats": [
+    {
+     "id": "when",
+     "text": "Now, the {ai}AI. It only gets what the rules and the commands {left}left undone."
+    },
+    {
+     "id": "check",
+     "text": "First: is there a {model}model? The brain runs on llama server on your PC, on Ollama, or on any OpenAI compatible server. If the model {load}is not loaded yet, the assistant says {moment}one moment straight away, so you know it heard you."
+    },
+    {
+     "id": "wait",
+     "text": "If {twofive}two and a half seconds go by with nothing said, it says a waiting phrase. But not again for {three}three minutes: that would get tiring."
+    },
+    {
+     "id": "prompt",
+     "text": "Then the conversation is put together. The {inst}instructions: who it is, its personality, how to use tools, short sentences a voice can say, your language, and the {date}date and time."
+    },
+    {
+     "id": "memory",
+     "text": "What it {mem}remembers about you, when it fits: found by meaning, comparing the order with each memory. Your {cmds}commands that K-Desktop saw close by. The last {hist}three exchanges, forgotten after {tenmin}ten minutes of silence. And the order itself."
+    }
+   ]
+  },
+  {
+   "id": "choose",
+   "title": "Which tools it sees",
+   "label": "Choosing tools",
+   "beats": [
+    {
+     "id": "problem",
+     "text": "There are about {many}seventy built-in tools, and with MCP servers there can be hundreds. But a small model chooses {few}well among a few, and badly among many. And every tool costs instructions."
+    },
+    {
+     "id": "examples",
+     "text": "So every tool comes with {ex}example phrases, in your language. They become vectors {once}once, and K-Desktop keeps them."
+    },
+    {
+     "id": "rank",
+     "text": "For each order, {vec}its vector is worked out and compared with all those examples. Each tool keeps the score of its {best}closest example."
+    },
+    {
+     "id": "pick",
+     "text": "At least the {three}three best get through, and up to {five}five, if they are within {spread}0.08 of the top one."
+    },
+    {
+     "id": "parts",
+     "text": "If the order has {parts}several parts, like check the weather and send it to me on Telegram, the best tool of {each}each part gets in too, if it scores above 0.60."
+    },
+    {
+     "id": "pinned",
+     "text": "And some tools are {pinned}always at hand. The ones used in the last exchange, so it understands and how long is left? The {screen}screen tools, if you say that window. The {files}file tools, if you gave it a file. And {runcmd}run command, if K-Desktop saw commands of yours close by."
+    },
+    {
+     "id": "find",
+     "text": "If it still lacks the one it needs, it can {find}look for more: find tools. And if the order deserves it, it can ask to {think}think harder."
+    },
+    {
+     "id": "nomodel",
+     "text": "Without the meaning model, tools are chosen by {words}words: rare words, used by few tools, weigh more. Worse, but it works."
+    }
+   ]
+  },
+  {
+   "id": "kinds",
+   "title": "Kinds of tools",
+   "label": "Tool kinds",
+   "beats": [
+    {
+     "id": "builtin",
+     "text": "What kinds of tools are there? The {builtin}built-in ones: timers, notes, memory, sums and dates, the weather, searching and reading the web, files, looking at the screen, the PC's status, the network, windows and music."
+    },
+    {
+     "id": "bridge",
+     "text": "The ones that talk to {kd}K-Desktop: running your commands, finding and explaining them, firing events, handling programs, the volume, the display, shutting down or locking, creating events, scheduling orders, reading the log. The assistant {asks}only asks: K-Desktop does it."
+    },
+    {
+     "id": "json",
+     "text": "Your own, in {json}JSON, with nothing to compile. Four types. {http}http, to call a web API, like Home Assistant. {kdesktop}kdesktop, to run one of your commands. {routine}routine, a series of steps. And {script}script, a PowerShell script."
+    },
+    {
+     "id": "secrets",
+     "text": "{secrets}Secrets are stored encrypted, and the model {never}never sees them. And a new or {changed}changed script has a fingerprint: if you have not approved it, it asks first, even if you said not to ask."
+    },
+    {
+     "id": "mcp",
+     "text": "And {mcp}MCP servers: outside programs that offer tools, over standard input or over HTTP. They can be {import}imported from Claude Desktop."
+    },
+    {
+     "id": "props",
+     "text": "Every tool has the same parts. A {name}name in English. A {desc}description for the model. Its {params}parameters, as a JSON schema. Its examples. Its {risk}risk. Whether it {reads}only reads. And whether it can be {undo}undone."
+    }
+   ]
+  },
+  {
+   "id": "loop",
+   "title": "The tool loop",
+   "label": "Tool loop",
+   "beats": [
+    {
+     "id": "round",
+     "text": "Now, the loop. Everything goes to the model, and the reply {stream}streams in. Either it is {text}text, and that's it, or it is {calls}tool calls, with their arguments in JSON."
+    },
+    {
+     "id": "runner",
+     "text": "Every call goes through the {runner}tool runner. It checks the tool {exists}exists and is switched on. It writes down in words {intent}what it is about to do, like: set a ten minute timer. It looks at its {risk}risk, with your preferences, and {ask}asks if it has to."
+    },
+    {
+     "id": "checks",
+     "text": "And there are checks against {invent}making things up. A web address must come from {sources}what you said, or from what the tools said. And to run one of your commands, your order has to {really}really ask for it, not just sound alike."
+    },
+    {
+     "id": "result",
+     "text": "The result goes back to the model as {msg}one more message. It is written into the {activity}activity, and if it can be undone, {keep}how to undo it is kept, even across restarts."
+    },
+    {
+     "id": "limits",
+     "text": "Then another round. At most {three}three rounds and three calls; with a big model, {five}five and eight. A call that {failed}already failed is not repeated, nor one that already worked. When the limit is reached, it is told to {answer}answer now."
+    },
+    {
+     "id": "nudge",
+     "text": "If it names one of your commands {named}without running it, or says it will send something without sending it, it gets {nudge}one more round to do it."
+    },
+    {
+     "id": "claims",
+     "text": "At the end, what it says is checked. If it claims it {sent}sent, saved or opened something, and no tool of that kind worked, that sentence is {cut}removed. And when the tools have their own words, like I'll remind you at 5:15, those are used, {exact}exactly."
+    },
+    {
+     "id": "think",
+     "text": "If it gets stuck, or says nothing, it {again}thinks it over, with more time. And if the answer is {long}too long for a speech bubble, it is written on a reading sheet, and only the summary is spoken."
+    }
+   ]
+  },
+  {
+   "id": "events",
+   "title": "Commands and events",
+   "label": "Events",
+   "beats": [
+    {
+     "id": "two",
+     "text": "Assistants and K-Desktop work {both}in both directions."
+    },
+    {
+     "id": "a2k",
+     "text": "An assistant can {runevent}fire one of your events, or {create}create a new one of any kind: at a time, when a program opens, when the PC is idle, when you plug in headphones. K-Desktop builds it, {saves}saves it at once, and it shows up in Events, marked as made by an assistant. Undo removes it."
+    },
+    {
+     "id": "schedule",
+     "text": "And it can {schedule}schedule orders: {seven}at seven, check the weather and send it to me. That creates an event at a time, with the action {askasst}ask an assistant, and the tools you {approved}approved right then."
+    },
+    {
+     "id": "fire",
+     "text": "When the time comes, K-Desktop sends the order as a {heard}scheduled heard message. {nobody}Nobody is asked: what was approved is done, and anything that would have asked {not}is not done. If the PC was off at that time, it does {late}not run late."
+    },
+    {
+     "id": "k2a",
+     "text": "The other way round, your commands and events can use the assistants, with {four}four actions. {action}Run one of its actions. {ask}Ask it something. {say}Say a text, with no AI. Or {brain}free its brain before a game."
+    },
+    {
+     "id": "observed",
+     "text": "And if you like, the assistant can {observed}act out the commands you launch yourself, with a hotkey or a QuickMenu. That is just decoration: nothing waits for it."
+    }
+   ]
+  },
+  {
+   "id": "speak",
+   "title": "Speaking",
+   "label": "Speaking",
+   "beats": [
+    {
+     "id": "stream",
+     "text": "Back to the answer. While the AI writes, the text reaches the chat up to {eight}eight times a second, already {clean}cleaned up: no Markdown, no emojis."
+    },
+    {
+     "id": "sentences",
+     "text": "And the voice {early}does not wait for it to finish. Every sentence that {done}ends, with its full stop and a space, is sent off to be spoken. A very long sentence with no full stop is cut at its {comma}last comma."
+    },
+    {
+     "id": "kokoro",
+     "text": "Kokoro turns it into speech {local}on your processor. First the text becomes {phon}phonemes. It makes the {first}first piece, up to the first comma, and starts playing it while it makes the rest. It takes about {fast}a sixth of the time it lasts."
+    },
+    {
+     "id": "effects",
+     "text": "On top go the effects of its {profile}voice profile: the Lander sounds like mission control radio. It plays from the {pan}side of the screen where the character is, and the {level}level of its voice moves the character thirty times a second."
+    },
+    {
+     "id": "echo",
+     "text": "While it speaks, K-Desktop {remember}remembers what it is saying, and until when. So if its wake word turns up in its own sentence, Hi, I'm Lander, it {ignore}does not fire."
+    },
+    {
+     "id": "times",
+     "text": "How long does it all take? From the moment you stop talking: a command, {cmd}under a second. A rule, just over a second to the first sound. And the AI, about {ai}a second and a half, with its model loaded."
+    }
+   ]
+  },
+  {
+   "id": "after",
+   "title": "When it stops talking",
+   "label": "After",
+   "beats": [
+    {
+     "id": "question",
+     "text": "When it stops talking, a few things are still left. If it ended with a {question}question, K-Desktop listens for {six}six seconds with no wake word: just answer."
+    },
+    {
+     "id": "dictate",
+     "text": "If you asked it to write what you say, {dictate}dictation starts right now, once its voice is over."
+    },
+    {
+     "id": "history",
+     "text": "The order and the answer go into that conversation's {history}history. And in the background, the same model reads the exchange and {learn}remembers what is worth remembering about you. You can see it, and undo it, in the activity."
+    },
+    {
+     "id": "phrase",
+     "text": "If an order did nothing, and the next one {correct}corrects it, say, it's called K-Movies, it learns {phrase}a new voice phrase for that command. Next time, it runs straight away."
+    },
+    {
+     "id": "idle",
+     "text": "The character goes back to {idle}rest. And if the brain is not used for {thirty}thirty minutes, it is unloaded, and the graphics card is free again."
+    }
+   ]
+  },
+  {
+   "id": "outro",
+   "title": "Summary",
+   "label": "End",
+   "beats": [
+    {
+     "id": "recap",
+     "text": "To sum up. The {wake}wake word, with two opinions and a second check. The order, until {silence}800 milliseconds of silence. The {rules}fixed rules. Your {commands}commands, by words and by meaning. The {letter}single letter. {programs}Programs. And only at the end, the {ai}AI, with a few well chosen tools, permissions and checks. All the way to the {voice}voice, sentence by sentence."
+    },
+    {
+     "id": "end",
+     "text": "All of it on your PC. Thanks for watching."
+    }
+   ]
+  }
+ ]
+}

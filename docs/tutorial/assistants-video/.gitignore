@@ -1,0 +1,10 @@
+# Generated: rebuilt by the tools (see README.md)
+node_modules/
+.cache/
+out/
+public/audio/
+public/sfx/
+public/generated/
+src/generated/
+__pycache__/
+.venv/

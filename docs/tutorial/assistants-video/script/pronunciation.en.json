@@ -1,0 +1,161 @@
+{
+  "_comment": "What the voice says instead of what the subtitles show. Regular expressions, applied in order, case sensitive.",
+  "rules": [
+    [
+      "K-Movies",
+      "Kay Movies"
+    ],
+    [
+      "llama server",
+      "lama server"
+    ],
+    [
+      "5:15",
+      "five fifteen"
+    ],
+    [
+      "\\bid\\b",
+      "I D"
+    ],
+    [
+      "\\bHTTP\\b",
+      "H T T P"
+    ],
+    [
+      "\\bhttp\\b",
+      "H T T P"
+    ],
+    [
+      "\\bkdesktop\\b",
+      "Kay Desktop"
+    ],
+    [
+      "0\\.82",
+      "zero point eight two"
+    ],
+    [
+      "0\\.08",
+      "zero point zero eight"
+    ],
+    [
+      "0\\.62",
+      "zero point six two"
+    ],
+    [
+      "0\\.80",
+      "zero point eight"
+    ],
+    [
+      "0\\.90",
+      "zero point nine"
+    ],
+    [
+      "0\\.55",
+      "zero point five five"
+    ],
+    [
+      "0\\.25",
+      "zero point two five"
+    ],
+    [
+      "0\\.60",
+      "zero point six"
+    ],
+    [
+      "K-Desktop",
+      "Kay Desktop"
+    ],
+    [
+      "K-Board",
+      "Kay Board"
+    ],
+    [
+      "QuickMenus",
+      "Quick Menus"
+    ],
+    [
+      "QuickMenu",
+      "Quick Menu"
+    ],
+    [
+      "openWakeWord",
+      "open wake word"
+    ],
+    [
+      "EmbeddingGemma",
+      "Embedding Gemma"
+    ],
+    [
+      "ComfyUI",
+      "Comfy U I"
+    ],
+    [
+      "\\bJSON\\b",
+      "jay-son"
+    ],
+    [
+      "\\bSDK\\b",
+      "S D K"
+    ],
+    [
+      "\\bMCP\\b",
+      "M C P"
+    ],
+    [
+      "\\bAPI\\b",
+      "A P I"
+    ],
+    [
+      "\\bUDP\\b",
+      "U D P"
+    ],
+    [
+      "\\bCPU\\b",
+      "C P U"
+    ],
+    [
+      "\\bUSB\\b",
+      "U S B"
+    ],
+    [
+      "\\bHTTPS\\b",
+      "H T T P S"
+    ],
+    [
+      "\\bQR\\b",
+      "Q R"
+    ],
+    [
+      "\\bPC's\\b",
+      "P C's"
+    ],
+    [
+      "\\bPC\\b",
+      "P C"
+    ],
+    [
+      "\\bAI\\b",
+      "A I"
+    ],
+    [
+      "\\bTV\\b",
+      "T V"
+    ],
+    [
+      "\\bCMD\\b",
+      "C M D"
+    ],
+    [
+      "\\bLAN\\b",
+      "lan"
+    ],
+    [
+      "Windows 10 and 11",
+      "Windows ten and eleven"
+    ],
+    [
+      "\\.\\.\\.",
+      "…"
+    ]
+  ]
+}
