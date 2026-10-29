@@ -92,7 +92,7 @@ técnicos) y **Panel de …** (puntuaciones, logros, botones), que se ve tambié
 Su **menú del botón derecho** tiene *Escribir a …*, sus acciones propias (extras), su panel, sus ajustes y *Esconder*.
 
 **Soltarle archivos** encima (desde el Explorador) abre una ventanita: «¿Qué hago con «archivo»?», con sugerencias según el
-tipo (resumir o leer un documento, decir qué es una imagen o leer su texto, ver qué hay en una carpeta, abrirlo…) o lo que
+tipo (resumir o leer un documento, decir qué es una imagen o leer su texto, resumir un audio o pasarlo a texto, ver qué hay en una carpeta, abrirlo…) o lo que
 le digas tú.
 
 ## Qué pasa cuando le pides algo

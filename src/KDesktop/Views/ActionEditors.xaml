@@ -1555,7 +1555,10 @@
                            Command="{x:Static v:EditorCommands.BrowseFolder}" CommandParameter="{Binding}" />
             </Grid>
             <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            <CheckBox x:Name="TranscribeCheck" Style="{StaticResource EdCheck}" Content="{l:Tr editor.recordTranscribe}" IsChecked="{Binding Transcribe}"
+                      ToolTip="{l:Tr editor.recordTranscribeHint}" />
             <TextBlock x:Name="Hint" Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{Binding Converter={StaticResource SettingsText}, ConverterParameter=recordHint}" />
+            <TextBlock x:Name="TranscribeHint" Style="{StaticResource Caption}" Margin="0,4,0,0" TextWrapping="Wrap" Text="{l:Tr editor.recordTranscribeHint}" Visibility="Collapsed" />
         </StackPanel>
         <DataTemplate.Triggers>
             <DataTrigger Binding="{Binding Mode}" Value="SaveReplay">
@@ -1564,6 +1567,12 @@
             </DataTrigger>
             <DataTrigger Binding="{Binding Mode}" Value="Stop">
                 <Setter TargetName="SourceRow" Property="Visibility" Value="Hidden" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Mode}" Value="Start">
+                <Setter TargetName="TranscribeCheck" Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding GivesResult}" Value="True">
+                <Setter TargetName="TranscribeHint" Property="Visibility" Value="Visible" />
             </DataTrigger>
         </DataTemplate.Triggers>
     </DataTemplate>

@@ -61,6 +61,15 @@ public partial class App
                 // clipboard_history: only reads the history K-Desktop keeps, never the clipboard itself.
                 supervisor.Send(AssistantText.History(history, ClipboardUi?.History, Config.Settings.ClipboardHistory && Config.Settings.ClipboardAssistants));
                 return true;
+            case TranscribeMessage transcribe:
+                // transcribe_audio (D5): with the voice's Parakeet, off the pipe's thread (an hour of audio takes a few minutes).
+                _ = Task.Run(async () =>
+                {
+                    var folder = Core.Engine.CommandEngine.FolderFor(null, Config.Settings.RecordFolder, Environment.SpecialFolder.MyMusic);
+                    supervisor.Send(await AssistantTranscribe.HandleAsync(transcribe, Voice.SpeechToText, folder, Engine.Recording.CurrentFile,
+                        Engine.Recording.ReadyAsync, CancellationToken.None).ConfigureAwait(false));
+                });
+                return true;
             case TextMessage text:
                 // Ctrl+C / Ctrl+V and the clipboard (transform_text): one at a time, off the pipe's thread.
                 lock (_windowGate)

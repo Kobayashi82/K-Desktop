@@ -311,9 +311,26 @@ public sealed class AudioRecording : IDisposable
         if (format == AudioFileFormat.Wav) return wav;
         // Closing K-Desktop waits for it (a conversion cut halfway would leave a broken file).
         if (_closing) return AudioEncoders.Convert(wav, format);
-        _ = Task.Run(() => AudioEncoders.Convert(wav, format));
-        return Path.ChangeExtension(wav, AudioEncoders.Extension(format));
+        return Converting(wav, format);
     }
+
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, Task<string>> _converting = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The conversion of <paramref name="wav"/> in the background; returns the file it will be.</summary>
+    private string Converting(string wav, AudioFileFormat format)
+    {
+        var file = Path.ChangeExtension(wav, AudioEncoders.Extension(format));
+        var conversion = Task.Run(() => AudioEncoders.Convert(wav, format));
+        _converting[file] = conversion;
+        _ = conversion.ContinueWith(_ => _converting.TryRemove(file, out var _), TaskScheduler.Default);
+        return file;
+    }
+
+    /// <summary>
+    /// The file a recording ended in (what <see cref="Stop"/> or <see cref="SaveReplay"/> gave) once it is there: still
+    /// converting, when the conversion ends (the .wav itself if it failed).
+    /// </summary>
+    public Task<string> ReadyAsync(string file) => _converting.TryGetValue(file, out var conversion) ? conversion : Task.FromResult(file);
 
     private void Flush(bool final)
     {
@@ -378,9 +395,7 @@ public sealed class AudioRecording : IDisposable
         Directory.CreateDirectory(Path.GetDirectoryName(wav)!);
         using (var writer = Wav.Create(wav)) Wav.Write(writer, audio);
         Log.Info($"Repetición de audio guardada: {wav}");
-        if (format == AudioFileFormat.Wav) return wav;
-        _ = Task.Run(() => AudioEncoders.Convert(wav, format));
-        return Path.ChangeExtension(wav, AudioEncoders.Extension(format));
+        return format == AudioFileFormat.Wav ? wav : Converting(wav, format);
     }
 
     public void Dispose()

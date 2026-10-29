@@ -38,7 +38,7 @@ Every action a command can run. Add them with *Add action* in the command editor
 | **Audio input** | Changes the default microphone. With several chosen, each run switches to the next one. |
 | **Play sound** | Plays a sound chosen in a panel by kind (alerts, alarms, calls, system and yours) with K-Desktop's and Windows' sounds, which play when clicked, or another file (.wav, .mp3, .wma, .m4a, .aac, .flac). The ones you put in your sounds folder show under «Yours». |
 | **Media** | Plays, pauses, skips to the next or previous one, or stops, with Windows' media controls (Spotify, browsers, Media Player…): in what is playing or in a program you choose from the ones that have something now. A player that does not show up gets the media keys. The OSD shows the song that plays. |
-| **Record audio** | Records what the PC plays, the microphone or both, or saves what just played (*Settings → Audio recording*). |
+| **Record audio** | Records what the PC plays, the microphone or both, or saves what just played (*Settings → Audio recording*). With *When it ends, transcribe it*, it turns what is said into text (without AI, with the voice model) and saves it in a `.txt` next to the audio; the command waits (Esc stops it) and leaves the text in `{result}`, so an *Assistant: ask* can summarize it. |
 
 ## Screen
 
@@ -108,7 +108,7 @@ and the ones you can use show up; choose one with the arrows and put it with Ent
 | `{name}` | What an earlier action kept with **Save in a variable** and that name. |
 
 These give something: **Copy text from the screen** (the text read), **Web request** (the answer), **Assistant: ask** (the
-answer, except with *Say it*), **Clipboard** (the text
+answer, except with *Say it*), **Record audio** (what is said, with *When it ends, transcribe it*), **Clipboard** (the text
 it leaves copied), **Screenshot** (the saved file) and **Run script** (what it writes, when *Wait until it finishes* is
 ticked and the window is *Hidden*; not in VBScript). These actions have the **Save in a variable** field: with a name
 (letters, digits and `_`), what they give stays available until the command ends, even if another action changes

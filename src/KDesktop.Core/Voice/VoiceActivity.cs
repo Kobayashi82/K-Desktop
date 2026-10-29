@@ -9,10 +9,13 @@ namespace KDesktop.Core.Voice;
 public sealed class VoiceActivity : IDisposable
 {
     private readonly VoiceActivityDetector _vad;
+    private readonly bool _keepSpeech;
 
     /// <param name="endSilence">Silence after speech that ends the utterance.</param>
-    public VoiceActivity(TimeSpan endSilence)
+    /// <param name="keepSpeech">Each finished segment's samples go to <see cref="Speech"/> too (a file to transcribe, D5).</param>
+    public VoiceActivity(TimeSpan endSilence, bool keepSpeech = false)
     {
+        _keepSpeech = keepSpeech;
         var config = new VadModelConfig();
         config.SileroVad.Model = VoiceModels.VadFile;
         config.SileroVad.Threshold = 0.5f;
@@ -38,6 +41,9 @@ public sealed class VoiceActivity : IDisposable
     /// <summary>The finished speech segments (silence trimmed), in order; Start is the sample where each begins.</summary>
     public List<(int Start, int Length)> Segments { get; } = [];
 
+    /// <summary>With <c>keepSpeech</c>: the finished segments with their samples, to be taken.</summary>
+    public Queue<(long Start, float[] Samples)> Speech { get; } = new();
+
     public void Accept(float[] samples)
     {
         _vad.AcceptWaveform(samples);
@@ -62,7 +68,11 @@ public sealed class VoiceActivity : IDisposable
         }
     }
 
-    private static (int, int) Take(SpeechSegment segment) => (segment.Start, segment.Samples.Length);
+    private (int, int) Take(SpeechSegment segment)
+    {
+        if (_keepSpeech) Speech.Enqueue((segment.Start, segment.Samples));
+        return (segment.Start, segment.Samples.Length);
+    }
 
     public void Dispose() => _vad.Dispose();
 }

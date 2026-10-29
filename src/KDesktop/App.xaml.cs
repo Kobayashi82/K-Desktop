@@ -132,6 +132,7 @@ public partial class App : Application
         Voice = new Core.Voice.VoiceService(Ui, () => Config, cmd => Engine.RunAsync(cmd, TriggerSource.Voice),
             action => Engine.TestActionAsync(action, new Command { Name = Loc.T("settings.nav.media") }));
         Voice.History = Engine.History;
+        Engine.SpeechToText = Voice.SpeechToText;
         Voice.AddresseeOf = VoiceAddresseeOf;
         UpdateSleepingWakeWords();
         AssistantChanged += UpdateSleepingWakeWords;

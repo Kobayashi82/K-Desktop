@@ -55,6 +55,12 @@ public interface ICommandBridge
         Task.FromResult<TextDoneMessage?>(null);
 
     /// <summary>
+    /// An audio file to text with K-Desktop's Parakeet (transcribe_audio, D5; <paramref name="file"/> empty: the newest
+    /// recording); see <see cref="TranscribeMessage"/>. Without K-Desktop: null.
+    /// </summary>
+    Task<TranscribedMessage?> TranscribeAsync(string file, CancellationToken cancellationToken) => Task.FromResult<TranscribedMessage?>(null);
+
+    /// <summary>
     /// A voice phrase added to one of the user's commands (by its id), or taken out with <paramref name="remove"/>; see
     /// <see cref="PhraseMessage"/>. Without K-Desktop: null.
     /// </summary>
@@ -107,8 +113,9 @@ public static class CommandTools
     /// <param name="writer">The model rewriting texts (transform_text); null: the tool says there is none.</param>
     /// <param name="builtin">Its timers and watches, listed with the programmed orders (B2); null: only those.</param>
     /// <param name="vision">The model looking at a copied picture (read_clipboard); <paramref name="reader"/>, Windows’ OCR for its text.</param>
+    /// <param name="meaning">EmbeddingGemma, for the parts of a long transcription that answer a question (transcribe_audio).</param>
     public static void AddTo(ToolRegistry registry, ICommandBridge bridge, IWriter? writer = null, BuiltinTools? builtin = null, IVision? vision = null,
-        IScreenReader? reader = null)
+        IScreenReader? reader = null, ITextMeaning? meaning = null)
     {
         registry.Add(new RunCommandTool(bridge));
         registry.Add(new FindCommandTool(bridge));
@@ -137,6 +144,7 @@ public static class CommandTools
         registry.Add(new ReadClipboardTool(bridge, vision, reader));
         registry.Add(new ClipboardHistoryTool(bridge));
         registry.Add(new SetClipboardTool(bridge));
+        registry.Add(new TranscribeAudioTool(bridge, meaning));
         registry.Add(new ScheduleTool(bridge, registry));
         registry.Add(new CreateEventTool(bridge, registry));
         registry.Add(new ListScheduledTool(bridge, builtin));

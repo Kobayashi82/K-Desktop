@@ -542,10 +542,30 @@ public partial class AudioRecordAction : CommandAction
     [ObservableProperty] private string _folder = string.Empty;
     [ObservableProperty] private bool _showOsd = true;
 
+    /// <summary>
+    /// «Al terminar, transcribir» (D5, 5.0.373): the file that ends goes to text with Parakeet (a .txt next to it) and to
+    /// {resultado}; the command waits for it.
+    /// </summary>
+    [ObservableProperty] private bool _transcribe;
+
     public override ActionKind Kind => ActionKind.AudioRecord;
-    public override string Summary => Mode == RecordMode.SaveReplay
-        ? Loc.T("enum.recordMode.SaveReplay")
-        : $"{Loc.T($"enum.recordMode.{Mode}")}  ·  {Loc.T($"enum.audioSource.{Source}")}";
+
+    public override bool GivesResult => Transcribe && Mode != RecordMode.Start;
+
+    partial void OnTranscribeChanged(bool value) => OnPropertyChanged(nameof(GivesResult));
+
+    partial void OnModeChanged(RecordMode value) => OnPropertyChanged(nameof(GivesResult));
+
+    public override string Summary
+    {
+        get
+        {
+            var what = Mode == RecordMode.SaveReplay
+                ? Loc.T("enum.recordMode.SaveReplay")
+                : $"{Loc.T($"enum.recordMode.{Mode}")}  ·  {Loc.T($"enum.audioSource.{Source}")}";
+            return GivesResult ? $"{what}  ·  {Loc.T("summary.recordTranscribe")}" : what;
+        }
+    }
 }
 
 // ── Dictar ────────────────────────────────────────────────────────────────

@@ -14,9 +14,9 @@ namespace KDesktop.Views.Assistant;
 
 /// <summary>
 /// «¿Qué hago con «factura.pdf»?» (stage 14.1): files were dropped on an assistant and it caught them. A button for each
-/// likely thing by the kind of file (summarize or read a document, describe a picture, see what a folder has, open it, its
-/// folder, look for similar ones, send it), the box to say it otherwise and, while it is open, the microphone a few seconds.
-/// What is chosen goes to the assistant as an order with the files, which stay as its context a few minutes («mándalo»,
+/// likely thing by the kind of file (summarize or read a document, describe a picture, summarize or transcribe an audio
+/// (D5), see what a folder has, open it, its folder, look for similar ones, send it), the box to say it otherwise and,
+/// while it is open, the microphone a few seconds. What is chosen goes to the assistant as an order with the files, which stay as its context a few minutes («mándalo»,
 /// «bórralo» later work too). Above the assistant, like the box to write to it.
 /// </summary>
 public partial class AssistantDropWindow : Window
@@ -71,10 +71,12 @@ public partial class AssistantDropWindow : Window
         var folders = _files.All(Directory.Exists);
         var documents = _files.All(f => Documents.Contains(Path.GetExtension(f)));
         var pictures = _files.All(f => Pictures.Contains(Path.GetExtension(f)));
+        var audio = _files.All(f => Core.Voice.AudioTranscriber.Extensions.Contains(Path.GetExtension(f)));
         var one = _files.Count == 1;
         if (folders) Add("inside", "FolderOpen24");
         else if (documents) { Add("summarize", "TextBulletListSquare24"); if (one) Add("readAloud", "Speaker224"); }
         else if (pictures) { Add("describe", "ImageSearch24"); Add("readText", "ScanText24"); }
+        else if (audio && one) { Add("summarize", "TextBulletListSquare24"); Add("transcribe", "MicPulse24"); }
         if (one) Add("open", "Open24", HeardMessage.ActOpen);
         if (!folders) Add("folder", "FolderArrowRight24", HeardMessage.ActFolder);
         if (one && !folders) Add("similar", "DocumentSearch24");

@@ -206,6 +206,9 @@ internal sealed class AssistantSession : IDisposable
                     case TextDoneMessage done when Commands is { } commands:
                         commands.OnTextDone(done);
                         return;
+                    case TranscribedMessage transcribed when Commands is { } commands:
+                        commands.OnTranscribed(transcribed);
+                        return;
                     case EndMessage end when Commands is { } commands:
                         commands.OnEnd(end);
                         return;

@@ -46,7 +46,7 @@ public sealed partial class CommandEngine
         SendToPhoneAction a => Run(() => SendToPhone(a)),
         ScreenshotAction a => ScreenshotAsync(a, ctx),
         ScreenTextAction a => ScreenTextAsync(a, ctx),
-        AudioRecordAction a => Run(() => AudioRecord(a)),
+        AudioRecordAction a => AudioRecordAsync(a, ctx),
         MagnifierAction a => Run(() => Magnify(a)),
         DictateAction a => Run(() => _ui.Dictate(a.Mode)),
         AssistantExtraAction a => Run(() => _ui.RunAssistantExtra(a.Assistant, a.Extra, a.BringOut)),

@@ -50,7 +50,7 @@ internal sealed class ModuleTools : IDisposable
         Builtin = new BuiltinTools(folder, meaning: Meaning, ocr: new WindowsScreenReader());
         var registry = new ToolRegistry();
         Builtin.AddTo(registry, screen, vision, browser, Meaning);
-        CommandTools.AddTo(registry, commands, writer, Builtin, vision, new WindowsScreenReader());
+        CommandTools.AddTo(registry, commands, writer, Builtin, vision, new WindowsScreenReader(), Meaning);
         Secrets = new ToolSecrets(Path.Combine(folder, "secrets.json"));
         Json = new JsonTools(Path.Combine(folder, "Tools"), registry, Secrets, commands);
         Runner = new ToolRunner(registry, () => _trusted, AskAsync, message => link.Send(message), Path.Combine(folder, "undo.json"), () => _askBefore,

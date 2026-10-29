@@ -67,6 +67,8 @@ public sealed class ReadFileTool(IVision? vision = null, IScreenReader? reader =
         var question = arguments.GetString("question")?.Trim() ?? string.Empty;
         if (Directory.Exists(path)) return Folder(path, name);
         if (FileText.IsPicture(path)) return await PictureAsync(path, name, question, context, cancellationToken).ConfigureAwait(false);
+        if (Core.Voice.AudioTranscriber.Extensions.Contains(Path.GetExtension(path)))
+            return ToolResult.Fail($"{name} is an audio file: to know what is said in it, use transcribe_audio with its path.");
 
         var watch = System.Diagnostics.Stopwatch.StartNew();
         var content = await Task.Run(() => FileText.Read(path), cancellationToken).ConfigureAwait(false);

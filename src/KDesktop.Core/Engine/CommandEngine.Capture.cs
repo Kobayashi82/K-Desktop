@@ -5,6 +5,7 @@ using KDesktop.Core.Input;
 using KDesktop.Core.Localization;
 using KDesktop.Core.Model;
 using KDesktop.Core.Platform;
+using KDesktop.Core.Voice;
 
 namespace KDesktop.Core.Engine;
 
@@ -197,7 +198,63 @@ public sealed partial class CommandEngine
     /// <summary>How recordings are kept now (Settings › Grabación de audio).</summary>
     public RecordOptions RecordOptions => new(Config.Settings.RecordFormat, Config.Settings.RecordMicVolume, Config.Settings.RecordSplitMinutes);
 
-    private void AudioRecord(AudioRecordAction a)
+    /// <summary>Parakeet, for «Al terminar, transcribir» (the voice's: one model in memory); null: never transcribed.</summary>
+    public SpeechToText? SpeechToText { get; set; }
+
+    private async Task AudioRecordAsync(AudioRecordAction a, ExecutionContext ctx)
+    {
+        if (await Task.Run(() => AudioRecord(a)).ConfigureAwait(false) is { } file && a.GivesResult)
+            await TranscribeRecordingAsync(a, file, ctx).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// «Al terminar, transcribir»: once the file is converted, its text into a .txt next to it and into {resultado}, with
+    /// the OSD while it goes (Esc stops it). Not transcribed (no voice models, unreadable, nobody speaking): the rest of the
+    /// command, which needed the text, is not run.
+    /// </summary>
+    private async Task TranscribeRecordingAsync(AudioRecordAction a, string file, ExecutionContext ctx)
+    {
+        if (SpeechToText is null || !VoiceModels.Ready)
+        {
+            _ui.ShowOsd(Loc.T("voice.noModels"), OsdKind.Warning, look: OsdLook.Of("MicPulse24"));
+            throw new OperationCanceledException();
+        }
+        var cts = BeginCancellable(ctx.Token);
+        string text;
+        using (_ui.ShowPersistentOsd(Loc.T("osd.recordTranscribing"), icon: "MicPulse24"))
+        {
+            try
+            {
+                file = await Recording.ReadyAsync(file).WaitAsync(cts.Token).ConfigureAwait(false);
+                text = await AudioTranscriber.TranscribeAsync(SpeechToText, file, cts.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (cts.IsCancellationRequested && !ctx.Token.IsCancellationRequested)
+            {
+                CountdownCancelled();
+                throw;
+            }
+            catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException or System.Runtime.InteropServices.COMException)
+            {
+                Log.Warn($"'{ctx.Command.Name}': no se pudo transcribir {file} ({ex.Message})");
+                _ui.ShowOsd(Loc.T("osd.recordTranscribeFailed"), OsdKind.Warning, look: OsdLook.Of("MicPulse24"));
+                throw new OperationCanceledException();
+            }
+            finally { EndCancellable(cts); }
+        }
+        if (text.Length == 0)
+        {
+            _ui.ShowOsd(Loc.T("osd.recordNoSpeech"), OsdKind.Warning, look: OsdLook.Of("MicPulse24"));
+            throw new OperationCanceledException();
+        }
+        var txt = Path.ChangeExtension(file, ".txt");
+        try { await File.WriteAllTextAsync(txt, text, ctx.Token).ConfigureAwait(false); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { Log.Warn($"Transcripción: no se pudo guardar {txt} ({ex.Message})"); }
+        Gave(a, text);
+        if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.recordTranscribed", Path.GetFileName(txt)), OsdKind.Success, look: OsdLook.Of("MicPulse24"));
+    }
+
+    /// <summary>Does the action; the file that ended (stopped, or the replay saved), if any.</summary>
+    private string? AudioRecord(AudioRecordAction a)
     {
         var mode = a.Mode == RecordMode.Toggle ? (Recording.IsRecording ? RecordMode.Stop : RecordMode.Start) : a.Mode;
         var folder = FolderFor(a.Folder, Config.Settings.RecordFolder, Environment.SpecialFolder.MyMusic);
@@ -206,28 +263,30 @@ public sealed partial class CommandEngine
         switch (mode)
         {
             case RecordMode.Start:
-                if (Recording.IsRecording) return;
+                if (Recording.IsRecording) return null;
                 Recording.Start(a.Source, () => NewFile(folder, Loc.T("record.filePrefix"), ".wav", final), options);
                 if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.recordStarted", Loc.T($"enum.audioSource.{a.Source}")), OsdKind.Warning, look: OsdLook.Of("MicPulse24"));
                 break;
             case RecordMode.Stop:
-                if (Recording.Stop() is not { } done) return;
-                if (a.ShowOsd)
+                if (Recording.Stop() is not { } done) return null;
+                if (a.ShowOsd && !a.GivesResult)
                 {
                     var length = done.Length.ToString(done.Length.TotalHours >= 1 ? @"h\:mm\:ss" : @"m\:ss", CultureInfo.InvariantCulture);
                     _ui.ShowOsd(Loc.T("osd.recordSaved", Path.GetFileName(done.Path), length), OsdKind.Success, look: OsdLook.Of("MicPulse24"));
                 }
-                break;
+                return done.Path;
             case RecordMode.SaveReplay:
                 var seconds = Config.Settings.AudioReplaySeconds;
-                if (Recording.SaveReplay(NewFile(folder, Loc.T("record.replayPrefix"), ".wav", final), options.Format) is null)
+                if (Recording.SaveReplay(NewFile(folder, Loc.T("record.replayPrefix"), ".wav", final), options.Format) is not { } saved)
                 {
                     Log.Warn("Repetición de audio: está apagada (Opciones › Grabación de audio)");
                     if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.replayOff"), OsdKind.Warning, look: OsdLook.Of("History24"));
+                    return null;
                 }
-                else if (a.ShowOsd) _ui.ShowOsd(Loc.T("osd.replaySaved", seconds), OsdKind.Success, look: OsdLook.Of("History24"));
-                break;
+                if (a.ShowOsd && !a.GivesResult) _ui.ShowOsd(Loc.T("osd.replaySaved", seconds), OsdKind.Success, look: OsdLook.Of("History24"));
+                return saved;
         }
+        return null;
     }
 
     // ── Lupa ─────────────────────────────────────────────────────────────

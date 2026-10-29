@@ -25,6 +25,7 @@
     { "say": "create a folder on the desktop called Invoices", "expect": { "tool": "create_folder" } },
     { "say": "what have I copied?", "expect": { "tool": "read_clipboard" } },
     { "say": "find the link I copied this morning", "expect": { "tool": "clipboard_history" } },
+    { "say": "summarize my latest recording", "expect": { "tool": "transcribe_audio" } },
     { "say": "copy this address for me: 5 Main Street, Springfield", "expect": { "tool": "set_clipboard" } },
     { "say": "what is 18 percent of 240?", "expect": { "tool": "calculate", "answerContains": ["43.2"] } },
     { "say": "divide 1500 by 7", "expect": { "tool": "calculate", "answerContains": ["214"] } },

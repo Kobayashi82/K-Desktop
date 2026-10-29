@@ -91,7 +91,7 @@ panel** (scores, achievements, buttons), which shows also when it is not on the 
 Its **right-click menu** has *Write to …*, its own actions (extras), its panel, its settings and *Hide*.
 
 **Dropping files** on it (from the Explorer) opens a small window: «What do I do with "file"?», with suggestions by type
-(summarise or read a document, describe an image or read its text, see what is in a folder, open it…) or your own words.
+(summarise or read a document, describe an image or read its text, summarize an audio or turn it into text, see what is in a folder, open it…) or your own words.
 
 ## What happens when you ask
 

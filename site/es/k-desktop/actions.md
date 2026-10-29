@@ -39,7 +39,7 @@ orden.
 | **Entrada de audio** | Cambia el micrófono predeterminado. Con varios elegidos, cada vez pasa al siguiente. |
 | **Reproducir sonido** | Reproduce un sonido elegido en un panel por tipos (avisos, alarmas, llamadas, sistema y los tuyos) con los de K-Desktop y los de Windows, que suenan al pulsarlos, u otro archivo (.wav, .mp3, .wma, .m4a, .aac, .flac). Los que pongas en la carpeta de tus sonidos salen en «Tuyos». |
 | **Multimedia** | Reproduce, pausa, pasa a la siguiente o a la anterior, o para, con los controles multimedia de Windows (Spotify, navegadores, Reproductor multimedia…): en lo que está sonando o en un programa que eliges entre los que tienen algo ahora. Si un reproductor no sale, se usan las teclas multimedia. El OSD enseña la canción que suena. |
-| **Grabar audio** | Graba lo que suena en el PC, el micrófono o las dos cosas, o guarda lo que acaba de sonar (*Opciones → Grabación de audio*). |
+| **Grabar audio** | Graba lo que suena en el PC, el micrófono o las dos cosas, o guarda lo que acaba de sonar (*Opciones → Grabación de audio*). Con *Al terminar, transcribir*, pasa a texto lo que se dice (sin IA, con el modelo de voz) y lo guarda en un `.txt` junto al audio; el comando espera (Esc lo para) y deja el texto en `{resultado}`, para que un *Asistente: preguntar* lo resuma. |
 
 ## Pantalla
 
@@ -109,7 +109,7 @@ Escribe `{` en el campo y salen las que hay; con las flechas eliges una y con En
 | `{nombre}` | Lo que guardó una acción anterior con **Guardar en variable** y ese nombre. |
 
 Dan algo: **Copiar texto de la pantalla** (el texto leído), **Petición web** (la respuesta), **Asistente: preguntar** (la
-respuesta, salvo con *Decirla*), **Portapapeles** (el texto que
+respuesta, salvo con *Decirla*), **Grabar audio** (lo que se dice, con *Al terminar, transcribir*), **Portapapeles** (el texto que
 deja copiado), **Captura de pantalla** (el archivo guardado) y **Ejecutar script** (lo que escribe, si se marca *Esperar a
 que termine* y la ventana es *Oculta*; no en VBScript). Estas acciones tienen el campo **Guardar en variable**: con un
 nombre (letras, números y `_`), lo que dan sigue disponible hasta que acaba el comando, aunque después otra acción cambie

@@ -1165,6 +1165,26 @@ public sealed record TextDoneMessage(string Run, bool Ok, string Text = "", stri
     public override string Type => "textDone";
 }
 
+/// <summary>
+/// transcribe_audio (D5, 5.0.373): an audio file to text with K-Desktop's Parakeet (it lives there, like the voice), answered
+/// with <c>transcribed</c>. A .txt next to it newer than the audio is read instead; a new one is saved.
+/// </summary>
+/// <param name="File">Its full path; empty: the newest recording in the folder of «Grabar audio».</param>
+public sealed record TranscribeMessage(string Id, string File = "") : PipeMessage
+{
+    public override string Type => "transcribe";
+}
+
+/// <summary>How a <see cref="TranscribeMessage"/> went.</summary>
+/// <param name="File">The file transcribed (the recording found, when none was given).</param>
+/// <param name="Reason">Not done: <c>noModels</c>, <c>notFound</c> (no such file, or no recording), <c>notAudio</c>,
+/// <c>unreadable</c>, <c>paused</c>; done without text: <c>noSpeech</c>.</param>
+/// <param name="Saved">The .txt it is in (null: not saved).</param>
+public sealed record TranscribedMessage(string Id, bool Ok, string Text = "", string File = "", string? Reason = null, string? Saved = null) : PipeMessage
+{
+    public override string Type => "transcribed";
+}
+
 /// <summary>A text of the clipboard history for an assistant: what, from which program, when, and whether it is pinned.</summary>
 public sealed record ClipText(string Text, string Source = "", DateTime Copied = default, bool Pinned = false);
 
@@ -1349,6 +1369,8 @@ public static class PipeJson
         ["phoneSent"] = typeof(PhoneSentMessage),
         ["text"] = typeof(TextMessage),
         ["textDone"] = typeof(TextDoneMessage),
+        ["transcribe"] = typeof(TranscribeMessage),
+        ["transcribed"] = typeof(TranscribedMessage),
         ["voice"] = typeof(VoiceMessage),
         ["voiceState"] = typeof(VoiceStateMessage),
         ["bench"] = typeof(BenchMessage),

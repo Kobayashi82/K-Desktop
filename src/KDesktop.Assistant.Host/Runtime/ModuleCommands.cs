@@ -22,10 +22,14 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
     /// <summary>A command may count down or wait for a window; past this the assistant stops waiting (it keeps running).</summary>
     private static readonly TimeSpan RunWait = TimeSpan.FromSeconds(60);
 
+    /// <summary>An hour of audio is a few minutes of Parakeet; past this the assistant stops waiting (the .txt is still saved).</summary>
+    private static readonly TimeSpan TranscribeWait = TimeSpan.FromMinutes(15);
+
     private readonly ConcurrentDictionary<string, TaskCompletionSource<MatchedMessage?>> _matches = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<EndMessage?>> _runs = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<DescribedMessage?>> _descriptions = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<TextDoneMessage?>> _texts = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<TranscribedMessage?>> _transcriptions = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<PhraseDoneMessage?>> _phrases = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<ScheduleDoneMessage?>> _schedules = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<LogFoundMessage?>> _logs = new(StringComparer.Ordinal);
@@ -154,6 +158,15 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
     public void OnTextDone(TextDoneMessage done)
     {
         if (_texts.TryRemove(done.Run, out var waiting)) waiting.TrySetResult(done);
+    }
+
+    /// <summary>An audio file to text with K-Desktop's Parakeet (transcribe_audio, D5).</summary>
+    public Task<TranscribedMessage?> TranscribeAsync(string file, CancellationToken cancellationToken) =>
+        AskAsync(_transcriptions, id => new TranscribeMessage(id, file), TranscribeWait, cancellationToken);
+
+    public void OnTranscribed(TranscribedMessage transcribed)
+    {
+        if (_transcriptions.TryRemove(transcribed.Id, out var waiting)) waiting.TrySetResult(transcribed);
     }
 
     public void OnDescribed(DescribedMessage described)

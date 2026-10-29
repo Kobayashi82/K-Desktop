@@ -31,6 +31,7 @@ public static class ToolActivities
         ["find_files"] = AssistantActivity.Files,
         ["open_file"] = AssistantActivity.Files,
         ["read_file"] = AssistantActivity.Files,
+        ["transcribe_audio"] = AssistantActivity.Files,
         ["delete_file"] = AssistantActivity.Files,
         ["move_file"] = AssistantActivity.Files,
         ["write_file"] = AssistantActivity.Files,
