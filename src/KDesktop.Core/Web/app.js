@@ -1002,6 +1002,11 @@ const here = () => new URL('.', location.href).href.toLowerCase();
 function fillAddresses(s) {
   const addresses = s.addresses ?? [];
   const app = window.KDesktopApp;
+  // The app keeps a list of PCs: what it needs of this one (its id, addresses and how to wake it while it is off).
+  if (app?.setPcInfo) {
+    app.setPcInfo(JSON.stringify({ pc: s.pc, machine: s.machine, addresses, wake: s.wake, power: !!s.power }));
+    return;
+  }
   if (app?.setAddresses) {
     if (addresses.length) app.setAddresses(JSON.stringify({ machine: s.machine, addresses }));
     return;

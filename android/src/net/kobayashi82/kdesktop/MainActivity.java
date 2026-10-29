@@ -7,6 +7,7 @@ import android.app.DownloadManager;
 import android.app.PendingIntent;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInstaller;
 import android.content.SharedPreferences;
@@ -17,6 +18,9 @@ import android.graphics.Color;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -29,6 +33,7 @@ import android.view.View;
 import android.view.Window;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -51,18 +56,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 
 /**
- * K-Desktop for Android: the K-Desktop web app in a window of its own. The first time (or from the app's
- * settings) a local page asks for the address of K-Desktop (the Caddy HTTPS address or http://IP:2502) and
- * it is remembered. Links to other sites open in the browser; the back button goes back inside the app.
- * Once paired, K-Desktop tells the app all its addresses (see {@link Addresses}): on opening it uses the one that
- * answers (home or away) with the same token, so one pairing is enough.
+ * K-Desktop for Android: the K-Desktop web app of each of your PCs in a window of its own. The app keeps a list of
+ * paired PCs ({@link Pcs}); it opens the last one used at the address that answers (home or away, see {@link Addresses})
+ * and, when none does, shows its own page of PCs (assets/setup.html): what each one says, connect by hand, wake it,
+ * rename it, forget it, add another (typing its address or scanning the QR of K-Desktop). Links to other sites open in
+ * the browser; the back button goes back inside the app.
  */
 public class MainActivity extends Activity {
     private static final String PREFS = "kdesktop";
-    private static final String KEY_SERVER = "server";
-    private static final String KEY_TOKEN = "token";
+
+    /** What the pages may count on from this app (window.KDesktopApp.api()): 2 = list of PCs, wake, QR. */
+    private static final int BRIDGE_API = 2;
 
     /** Back after this long in the background, the app checks whether another address suits better (left home…). */
     private static final long RECHECK_AFTER_MS = 20000;
@@ -74,25 +81,35 @@ public class MainActivity extends Activity {
     /** A PC that is off often leaves the connection hanging instead of refusing it: give up after this. */
     private static final long LOAD_TIMEOUT_MS = 8000;
 
+    /** How long «Encender» waits for the PC to answer. */
+    private static final long WAKE_WAIT_MS = 120000;
+
     private WebView web;
     private SharedPreferences prefs;
-    private Addresses addresses;
+    private Pcs pcs;
 
-    /** The address loaded now (null: the set-up page or nothing yet). */
-    private String current;
+    /** The address loaded now (null: the app's own page or nothing yet). */
+    private volatile String current;
+
+    /** The app's own page (the PCs) is the one on screen: only it may manage the list. */
+    private volatile boolean onSetup;
 
     /** A failure already made it try the other addresses (or none answered already: nothing left to try). */
     private boolean retried;
 
-    /** Each search for the PC; a newer one (or the set-up page) makes the answer of an older one irrelevant. */
+    /** Each search for a PC; a newer one (or the app's page) makes the answer of an older one irrelevant. */
     private int attempt;
 
-    /** The "connecting" page is on screen; until then what comes next waits (it would replace it unseen). */
+    /** The «connecting» page is on screen; until then what comes next waits (it would replace it unseen). */
     private boolean connectingShown;
     private Runnable afterConnecting;
     private final Runnable connectingFallback = () -> connectingVisible();
 
     private long pausedAt;
+    private boolean resumed;
+
+    /** Each «Encender»: a newer one, or cancelling, stops the wait of an older one. */
+    private volatile int wakeRun;
 
     /**
      * Sites the PC's address sent the app to while loading (the login page of a proxy in front of it: Authelia…). They
@@ -112,6 +129,10 @@ public class MainActivity extends Activity {
     /** «Avisos con la app cerrada»: Android 13+ asks for the notifications first. */
     private static final int INBOX_PERMISSION = 8;
 
+    /** Scanning K-Desktop's QR on the app's page: the camera. */
+    private static final int CAMERA_PERMISSION = 9;
+    private PermissionRequest pendingCamera;
+
     /** Opened from a notification of K-Desktop: the page shows what arrived once it is loaded. */
     private boolean openInboxPending;
     private static final int VOICE_RATE = 16000;
@@ -123,13 +144,14 @@ public class MainActivity extends Activity {
         web.stopLoading();
         failed(getString(R.string.timeout));
     };
+    private final Runnable networkSettled = this::networkChanged;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
-        addresses = new Addresses(prefs);
+        pcs = new Pcs(prefs);
         paintBars();
 
         web = new WebView(this);
@@ -150,8 +172,9 @@ public class MainActivity extends Activity {
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, false);
 
         web.addJavascriptInterface(new Bridge(), "KDesktopApp");
-        web.setWebChromeClient(new WebChromeClient());
+        web.setWebChromeClient(new Chrome());
         web.setWebViewClient(new Client());
+        watchNetwork();
 
         // Messages with the app closed: the service runs again whenever the app is opened (it may have been stopped).
         if (InboxService.enabled(this)) InboxService.start(this);
@@ -160,7 +183,7 @@ public class MainActivity extends Activity {
         if (state != null && web.restoreState(state) != null) return;
         String shared = sharedLink(getIntent());
         if (shared != null) openLink(shared);
-        else openServer();
+        else openCurrent();
     }
 
     @Override
@@ -188,14 +211,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        resumed = true;
         web.onResume();
         // Left home (or came back) meanwhile: maybe another address of the PC suits better now.
-        if (pausedAt > 0 && System.currentTimeMillis() - pausedAt > RECHECK_AFTER_MS && current != null) {
-            List<String> candidates = addresses.all(server());
-            if (candidates.size() > 1) pick(candidates, best -> {
-                if (best != null && !best.equals(current)) use(best);
-            });
-        }
+        if (pausedAt > 0 && System.currentTimeMillis() - pausedAt > RECHECK_AFTER_MS && current != null) recheck();
         pausedAt = 0;
         if (pendingUpdate != null) {
             String url = pendingUpdate;
@@ -207,6 +226,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onPause() {
+        resumed = false;
         pausedAt = System.currentTimeMillis();
         web.onPause();
         CookieManager.getInstance().flush();
@@ -227,43 +247,47 @@ public class MainActivity extends Activity {
         else super.onBackPressed();
     }
 
-    // ── server ───────────────────────────────────────────────────────
+    // ── PCs and their addresses ──────────────────────────────────────
 
-    private String server() {
-        return prefs.getString(KEY_SERVER, null);
+    private Pcs.Pc currentPc() {
+        return pcs.current();
     }
 
-    /** Opens K-Desktop at the address that answers now (the only one known, or the best of several). */
-    private void openServer() {
-        String server = server();
-        if (server == null) {
-            current = null;
-            web.loadUrl(SETUP);
+    /** Opens the last PC used at the address that answers; none saved: the welcome page. */
+    private void openCurrent() {
+        Pcs.Pc pc = currentPc();
+        if (pc == null) {
+            openPcs(null, null);
+            return;
+        }
+        connectTo(pc, null);
+    }
+
+    /** Connects to a PC: at <code>address</code>, or at the best of its addresses now. None answers: the page of PCs. */
+    private void connectTo(Pcs.Pc pc, String address) {
+        pcs.setCurrent(pc.id);
+        retried = false;
+        if (address != null) {
+            use(pc, address);
             return;
         }
         // Something to look at at once: finding out that the PC is off can take a few seconds.
-        showConnecting();
+        showConnecting(pc);
         int mine = ++attempt;
-        pick(addresses.all(server), best -> whenConnectingShown(() -> {
+        pick(pc, best -> whenConnectingShown(() -> {
             if (mine != attempt) return;
-            if (best != null) {
-                use(best);
-                return;
-            }
-            // Nobody answers: still load it (over HTTPS the web app opens from its cache with the last commands),
-            // but there is no point in asking the other addresses again when it fails.
-            retried = true;
-            load(server);
+            if (best != null) use(pc, best);
+            else openPcs(pc.id, "offline");
         }));
     }
 
-    /** "Connecting to K-Desktop…" (the set-up page in its waiting mode), while the addresses are asked. */
-    private void showConnecting() {
-        String server = server();
+    /** "Connecting to <PC>…" (the app's page in its waiting mode), while the addresses are asked. */
+    private void showConnecting(Pcs.Pc pc) {
         loading = false;
         connectingShown = false;
         afterConnecting = null;
-        web.loadUrl(SETUP + "?connecting=1" + (server != null ? "&server=" + Uri.encode(server) : ""));
+        current = null;
+        web.loadUrl(SETUP + "?connecting=" + Uri.encode(pc.id));
         // Should the page never say it is visible (old WebViews), go on anyway.
         handler.removeCallbacks(connectingFallback);
         handler.postDelayed(connectingFallback, 1500);
@@ -282,9 +306,13 @@ public class MainActivity extends Activity {
         if (next != null) next.run();
     }
 
-    /** Uses <code>address</code> from now on and opens it. */
-    private void use(String address) {
-        prefs.edit().putString(KEY_SERVER, address).apply();
+    /** Uses <code>address</code> for the PC from now on and opens it. */
+    private void use(Pcs.Pc pc, String address) {
+        pc.last = address;
+        if (!pc.addresses.contains(address)) pc.addresses.add(address);
+        pc.lastUsed = System.currentTimeMillis();
+        pcs.save(pc);
+        pcs.setCurrent(pc.id);
         load(address);
     }
 
@@ -292,42 +320,105 @@ public class MainActivity extends Activity {
         void run(String best);
     }
 
-    /** Asks every address in the background; <code>then</code> runs on the UI thread with the one to use (or null). */
-    private void pick(List<String> candidates, Picked then) {
+    /** Asks every address of the PC in the background; <code>then</code> runs on the UI thread with the one to use (or null). */
+    private void pick(Pcs.Pc pc, Picked then) {
         new Thread(() -> {
-            String best = addresses.pick(candidates);
+            String best = Addresses.pick(pc.candidates(), pc);
             runOnUiThread(() -> then.run(best));
         }).start();
     }
 
-    /** The page did not load: first try the other addresses of the PC, then show the set-up page with the error. */
-    private void failed(String error) {
-        handler.removeCallbacks(loadTimeout);
-        String server = server();
-        List<String> others = new ArrayList<>(addresses.all(server));
-        others.remove(current);
-        if (!retried && server != null && !others.isEmpty()) {
-            retried = true;
-            showConnecting();
-            int mine = ++attempt;
-            pick(others, best -> whenConnectingShown(() -> {
-                if (mine != attempt) return;
-                if (best != null) use(best);
-                else openSetup(error);
-            }));
-            return;
-        }
-        openSetup(error);
+    /** Back from the background, or the phone changed network: the address in use, if it no longer answers, for another. */
+    private void recheck() {
+        Pcs.Pc pc = currentPc();
+        String now = current;
+        if (pc == null || now == null) return;
+        new Thread(() -> {
+            if (Addresses.ask(now, pc) == Addresses.ANSWERS) return;
+            String best = Addresses.pick(pc.candidates(), pc);
+            runOnUiThread(() -> {
+                if (best != null && !best.equals(current) && now.equals(current)) use(pc, best);
+            });
+        }).start();
     }
 
-    private void openSetup(String error) {
+    /** Wi-Fi ↔ mobile data and the like: once it settles, the address may need to change (without reloading if it still works). */
+    @SuppressWarnings("deprecation")
+    private void watchNetwork() {
+        if (Build.VERSION.SDK_INT < 24) return;
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm == null) return;
+        try {
+            cm.registerDefaultNetworkCallback(new ConnectivityManager.NetworkCallback() {
+                @Override
+                public void onAvailable(Network network) {
+                    handler.removeCallbacks(networkSettled);
+                    handler.postDelayed(networkSettled, 1500);
+                }
+
+                @Override
+                public void onLost(Network network) {
+                    handler.post(() -> {
+                        if (onSetup) js("window.kdNetwork && window.kdNetwork(false)");
+                    });
+                }
+            });
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void networkChanged() {
+        if (onSetup) {
+            js("window.kdNetwork && window.kdNetwork(true)");
+            return;
+        }
+        if (resumed && current != null && !loading) recheck();
+    }
+
+    @SuppressWarnings("deprecation")
+    private boolean online() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm == null) return true;
+        NetworkInfo info = cm.getActiveNetworkInfo();
+        return info != null && info.isConnected();
+    }
+
+    /** The page did not load: first try the other addresses of the PC, then the page of PCs with the error. */
+    private void failed(String error) {
+        handler.removeCallbacks(loadTimeout);
+        Pcs.Pc pc = currentPc();
+        if (pc == null) {
+            openPcs(null, error);
+            return;
+        }
+        List<String> others = new ArrayList<>(pc.candidates());
+        others.remove(current);
+        if (!retried && !others.isEmpty()) {
+            retried = true;
+            showConnecting(pc);
+            int mine = ++attempt;
+            new Thread(() -> {
+                String best = Addresses.pick(others, pc);
+                runOnUiThread(() -> whenConnectingShown(() -> {
+                    if (mine != attempt) return;
+                    if (best != null) use(pc, best);
+                    else openPcs(pc.id, error);
+                }));
+            }).start();
+            return;
+        }
+        openPcs(pc.id, error);
+    }
+
+    /** The app's page of PCs; <code>focus</code> is the one it is about, <code>error</code> why it is shown (or null). */
+    private void openPcs(String focus, String error) {
         attempt++; // a search still running must not take the user away from here
         handler.removeCallbacks(loadTimeout);
         current = null;
         loading = false;
-        String url = SETUP;
-        if (server() != null) url += "?server=" + Uri.encode(server());
-        if (error != null) url += (url.contains("?") ? "&" : "?") + "error=" + Uri.encode(error);
+        String url = SETUP + "?view=pcs";
+        if (focus != null) url += "&pc=" + Uri.encode(focus);
+        if (error != null) url += "&error=" + Uri.encode(error);
         web.loadUrl(url);
     }
 
@@ -346,22 +437,33 @@ public class MainActivity extends Activity {
         String path = uri.getPath() == null ? "/" : uri.getPath();
         if (!path.endsWith("/")) path = path.substring(0, path.lastIndexOf('/') + 1);
         if (path.isEmpty()) path = "/";
-        return uri.getScheme().toLowerCase() + "://" + uri.getEncodedAuthority() + path;
+        return uri.getScheme().toLowerCase(Locale.ROOT) + "://" + uri.getEncodedAuthority() + path;
     }
 
-    /** A pairing link (…/#pair=CODE): remember its server and open it, so the app pairs at once. */
-    private void openLink(String link) {
+    /**
+     * An address typed, scanned or shared (a pairing link …/#pair=CODE): the PC it belongs to, or a new one, opened
+     * there (with the link's code the web app pairs at once). False when it is not an address.
+     */
+    private boolean openLink(String link) {
         String server = normalize(link);
-        if (server == null) {
-            openServer();
-            return;
+        if (server == null) return false;
+        Pcs.Pc pc = pcs.byAddress(server);
+        if (pc == null) {
+            pc = new Pcs.Pc();
+            pc.id = Pcs.NEW + UUID.randomUUID();
+            pc.addresses.add(server);
         }
-        prefs.edit().putString(KEY_SERVER, server).apply();
-        String fragment = Uri.parse(link.trim()).getEncodedFragment();
+        pc.last = server;
+        pc.lastUsed = System.currentTimeMillis();
+        pcs.save(pc);
+        pcs.setCurrent(pc.id);
+        retried = false;
+        String fragment = Uri.parse(link.trim().matches("(?i)^https?://.*") ? link.trim() : "http://" + link.trim()).getEncodedFragment();
         load(fragment != null ? server + "#" + fragment : server);
+        return true;
     }
 
-    /** Loads a page of K-Desktop, with a deadline: a hanging connection shows the setup page with the error. */
+    /** Loads a page of K-Desktop, with a deadline: a hanging connection shows the page of PCs with the error. */
     private void load(String url) {
         current = normalize(url);
         loading = true;
@@ -379,6 +481,103 @@ public class MainActivity extends Activity {
             return m.find() ? m.group() : null;
         }
         return null;
+    }
+
+    /** What the PC said about itself (its session): name, id, addresses, how to wake it, whether it lets the phone switch it off. */
+    private void pcInfo(JSONObject info) {
+        Pcs.Pc pc = currentPc();
+        String at = current;
+        if (pc == null || at == null) return;
+        String machine = info.optString("machine");
+        if (!machine.isEmpty()) pc.name = machine;
+        JSONArray list = info.optJSONArray("addresses");
+        if (list != null) {
+            List<String> clean = new ArrayList<>();
+            for (int i = 0; i < list.length(); i++) {
+                String address = normalize(list.optString(i));
+                if (address != null && !clean.contains(address)) clean.add(address);
+            }
+            if (!clean.contains(at)) clean.add(at);
+            if (!clean.isEmpty()) {
+                pc.addresses.clear();
+                pc.addresses.addAll(clean);
+            }
+        }
+        JSONObject wake = info.optJSONObject("wake");
+        if (wake != null) {
+            JSONArray adapters = wake.optJSONArray("adapters");
+            if (adapters != null && adapters.length() > 0) pc.adapters = adapters;
+            pc.wakeUrl = wake.optJSONObject("url");
+        }
+        if (info.has("power")) pc.power = info.optBoolean("power");
+        pcs.save(pc);
+        pcs.identify(pc, info.optString("pc"));
+    }
+
+    // ── waking a PC ──────────────────────────────────────────────────
+
+    /**
+     * «Encender»: every way at once ({@link Wake}), then it waits for the PC to answer (asking every few seconds, two
+     * minutes at most) and opens it. The page hears it through window.kdWake(id, {phase, …}).
+     */
+    private void wake(Pcs.Pc pc, boolean send) {
+        int mine = ++wakeRun;
+        new Thread(() -> {
+            JSONObject result = send ? Wake.send(pc, pcs.all()) : new JSONObject();
+            wakeState(pc.id, "sent", result);
+            long start = System.currentTimeMillis();
+            while (mine == wakeRun && System.currentTimeMillis() - start < WAKE_WAIT_MS) {
+                String best = Addresses.pick(pc.candidates(), pc);
+                if (mine != wakeRun) return;
+                if (best != null) {
+                    wakeRun++;
+                    runOnUiThread(() -> use(pc, best));
+                    return;
+                }
+                try {
+                    JSONObject progress = new JSONObject().put("seconds", (System.currentTimeMillis() - start) / 1000);
+                    wakeState(pc.id, "waiting", progress);
+                    Thread.sleep(3000);
+                } catch (Exception e) {
+                    return;
+                }
+            }
+            if (mine == wakeRun) wakeState(pc.id, "failed", result);
+        }).start();
+    }
+
+    private void wakeState(String id, String phase, JSONObject detail) {
+        try {
+            detail.put("phase", phase);
+        } catch (Exception ignored) {
+        }
+        js("window.kdWake && window.kdWake(" + JSONObject.quote(id) + ", " + detail + ")");
+    }
+
+    /** What each PC says now, for the page: {state, addresses: [{url, local, state}]} per PC, as each finishes. */
+    private void probeAll() {
+        for (Pcs.Pc pc : pcs.all()) {
+            new Thread(() -> {
+                List<String> candidates = pc.candidates();
+                int[] states = Addresses.askAll(candidates, pc);
+                try {
+                    JSONArray list = new JSONArray();
+                    int best = Addresses.SILENT;
+                    for (int i = 0; i < candidates.size(); i++) {
+                        list.put(new JSONObject().put("url", candidates.get(i)).put("local", Addresses.isLocal(candidates.get(i)))
+                                .put("state", name(states[i])));
+                        best = Math.max(best, states[i]);
+                    }
+                    JSONObject answer = new JSONObject().put("state", name(best)).put("addresses", list);
+                    js("window.kdPcState && window.kdPcState(" + JSONObject.quote(pc.id) + ", " + answer + ")");
+                } catch (Exception ignored) {
+                }
+            }).start();
+        }
+    }
+
+    private static String name(int state) {
+        return state == Addresses.ANSWERS ? "online" : state == Addresses.LOGIN ? "login" : "offline";
     }
 
     // ── look ─────────────────────────────────────────────────────────
@@ -437,13 +636,14 @@ public class MainActivity extends Activity {
                 pendingUpdate = null;
             }
         }
+        Pcs.Pc pc = currentPc();
+        String token = pc == null ? "" : pc.token;
         new Thread(() -> {
             PackageInstaller.Session session = null;
             try {
                 HttpURLConnection http = (HttpURLConnection) new URL(url).openConnection();
                 http.setConnectTimeout(15000);
                 http.setReadTimeout(60000);
-                String token = prefs.getString(KEY_TOKEN, "");
                 if (!token.isEmpty()) http.setRequestProperty("Authorization", "Bearer " + token);
                 String cookie = CookieManager.getInstance().getCookie(url);
                 if (cookie != null) http.setRequestProperty("Cookie", cookie);
@@ -528,8 +728,8 @@ public class MainActivity extends Activity {
     private void download(String url, String name) {
         try {
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-            String token = prefs.getString(KEY_TOKEN, "");
-            if (!token.isEmpty()) request.addRequestHeader("Authorization", "Bearer " + token);
+            Pcs.Pc pc = currentPc();
+            if (pc != null && !pc.token.isEmpty()) request.addRequestHeader("Authorization", "Bearer " + pc.token);
             String cookie = CookieManager.getInstance().getCookie(url);
             if (cookie != null) request.addRequestHeader("Cookie", cookie);
             request.setTitle(name);
@@ -556,14 +756,22 @@ public class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
         super.onRequestPermissionsResult(requestCode, permissions, results);
+        boolean granted = results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED;
         if (requestCode == INBOX_PERMISSION) {
-            boolean granted = results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED;
             if (granted) enableInbox();
             else js("window.kdInboxState && window.kdInboxState(false)");
             return;
         }
+        if (requestCode == CAMERA_PERMISSION) {
+            PermissionRequest request = pendingCamera;
+            pendingCamera = null;
+            if (request == null) return;
+            if (granted) request.grant(new String[] { PermissionRequest.RESOURCE_VIDEO_CAPTURE });
+            else request.deny();
+            return;
+        }
         if (requestCode != VOICE_PERMISSION) return;
-        if (results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED) recordVoice();
+        if (granted) recordVoice();
         else js("window.kdVoiceError && window.kdVoiceError('denied')");
     }
 
@@ -637,10 +845,34 @@ public class MainActivity extends Activity {
 
     // ── web view ─────────────────────────────────────────────────────
 
+    /** The camera for the QR, only for the app's own page (and with Android's permission). */
+    private class Chrome extends WebChromeClient {
+        @Override
+        public void onPermissionRequest(PermissionRequest request) {
+            runOnUiThread(() -> {
+                boolean video = false;
+                for (String r : request.getResources()) if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(r)) video = true;
+                Uri origin = request.getOrigin();
+                if (!video || origin == null || !"file".equals(origin.getScheme()) || !onSetup) {
+                    request.deny();
+                    return;
+                }
+                if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                    if (pendingCamera != null) pendingCamera.deny();
+                    pendingCamera = request;
+                    requestPermissions(new String[] { Manifest.permission.CAMERA }, CAMERA_PERMISSION);
+                    return;
+                }
+                request.grant(new String[] { PermissionRequest.RESOURCE_VIDEO_CAPTURE });
+            });
+        }
+    }
+
     private class Client extends WebViewClient {
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
-            if (url.startsWith(SETUP)) handler.removeCallbacks(loadTimeout);
+            onSetup = url.startsWith(SETUP);
+            if (onSetup) handler.removeCallbacks(loadTimeout);
         }
 
         private void loaded() {
@@ -653,11 +885,17 @@ public class MainActivity extends Activity {
             }
         }
 
+        private void setupVisible(String url) {
+            // The app's page starts its own history: back from it leaves the app, not to a PC that did not answer.
+            web.clearHistory();
+            if (url.contains("connecting=")) connectingVisible();
+        }
+
         @Override
         public void onPageCommitVisible(WebView view, String url) {
-            // Something of the page arrived: K-Desktop answered (the set-up page itself does not count).
+            // Something of the page arrived: K-Desktop answered (the app's page itself does not count).
             if (!url.startsWith(SETUP)) loaded();
-            else if (url.contains("connecting=1")) connectingVisible();
+            else setupVisible(url);
         }
 
         @Override
@@ -665,7 +903,7 @@ public class MainActivity extends Activity {
             // Android 5-6 have no onPageCommitVisible.
             if (Build.VERSION.SDK_INT >= 23) return;
             if (!url.startsWith(SETUP)) loaded();
-            else if (url.contains("connecting=1")) connectingVisible();
+            else setupVisible(url);
         }
 
         @Override
@@ -688,10 +926,12 @@ public class MainActivity extends Activity {
         }
 
         private boolean openOutside(Uri url, boolean redirect) {
-            String server = server();
             String scheme = url.getScheme();
             if ("file".equals(scheme)) return false;
-            for (String address : addresses.all(server)) if (url.toString().startsWith(address)) return false;
+            Pcs.Pc pc = currentPc();
+            if (pc != null) for (String address : pc.candidates()) if (url.toString().startsWith(address)) return false;
+            String now = current;
+            if (now != null && url.toString().startsWith(now)) return false;
             // Sent there by the PC's address itself: a login in front of K-Desktop, which comes back here when done.
             String host = url.getHost();
             if (host != null && (redirect || loginHosts.contains(host.toLowerCase(Locale.ROOT)))) {
@@ -723,63 +963,88 @@ public class MainActivity extends Activity {
         }
     }
 
-    /** What the pages can ask the app: window.KDesktopApp. */
+    /**
+     * What the pages can ask the app: window.KDesktopApp. The pages of a PC get what concerns that PC; managing the
+     * list of PCs (and seeing it) is only for the app's own page.
+     */
     private class Bridge {
         @JavascriptInterface
+        public int api() {
+            return BRIDGE_API;
+        }
+
+        @JavascriptInterface
         public String getServer() {
-            String s = server();
+            String s = current;
             return s == null ? "" : s;
         }
 
-        @JavascriptInterface
-        public String setServer(String input) {
-            String server = normalize(input);
-            if (server == null) return "";
-            // Another K-Desktop: the addresses of the previous one no longer apply.
-            if (!addresses.knows(server)) addresses.forget();
-            prefs.edit().putString(KEY_SERVER, server).apply();
-            String fragment = Uri.parse(input.trim().matches("(?i)^https?://.*") ? input.trim() : "http://" + input.trim()).getEncodedFragment();
-            final String target = fragment != null ? server + "#" + fragment : server;
-            runOnUiThread(() -> load(target));
-            return server;
-        }
-
-        /** The pairing token: kept by the app, so it works at every address of the PC. */
+        /** The pairing token of the PC on screen: kept by the app, so it works at every address of the PC. */
         @JavascriptInterface
         public String getToken() {
-            return prefs.getString(KEY_TOKEN, "");
+            Pcs.Pc pc = currentPc();
+            return pc == null || onSetup ? "" : pc.token;
         }
 
         @JavascriptInterface
         public void setToken(String token) {
-            if (token == null || token.isEmpty()) prefs.edit().remove(KEY_TOKEN).apply();
-            else prefs.edit().putString(KEY_TOKEN, token).apply();
+            runOnUiThread(() -> {
+                Pcs.Pc pc = currentPc();
+                if (pc == null || onSetup) return;
+                pc.token = token == null ? "" : token;
+                pcs.save(pc);
+            });
         }
 
-        /** {"machine": "PC", "addresses": ["https://…/", "http://192.168.1.5:2502/"]}, from the session. */
+        /** Before 5.0.402: {"machine": "PC", "addresses": [...]}, from the session. */
         @JavascriptInterface
         public void setAddresses(String json) {
-            try {
-                JSONObject info = new JSONObject(json);
-                JSONArray list = info.getJSONArray("addresses");
-                List<String> clean = new ArrayList<>();
-                for (int i = 0; i < list.length(); i++) {
-                    String address = normalize(list.getString(i));
-                    if (address != null && !clean.contains(address)) clean.add(address);
+            setPcInfo(json);
+        }
+
+        /** The session of the PC on screen: {pc, machine, addresses, wake: {adapters, url}, power}. */
+        @JavascriptInterface
+        public void setPcInfo(String json) {
+            runOnUiThread(() -> {
+                if (onSetup) return;
+                try {
+                    pcInfo(new JSONObject(json));
+                } catch (Exception ignored) {
                 }
-                if (!clean.isEmpty()) addresses.save(clean, info.optString("machine"));
-            } catch (Exception ignored) {
-            }
+            });
+        }
+
+        /** «Cambiar de PC»: the page of PCs. */
+        @JavascriptInterface
+        public void changeServer() {
+            showPcs();
         }
 
         @JavascriptInterface
-        public void changeServer() {
-            runOnUiThread(() -> openSetup(null));
+        public void showPcs() {
+            runOnUiThread(() -> {
+                Pcs.Pc pc = currentPc();
+                openPcs(pc == null ? null : pc.id, null);
+            });
+        }
+
+        /**
+         * The PC on screen was switched off from here (shutdown, sleep, hibernate) or is restarting: the page of PCs
+         * shows it so; after a restart the app waits for it and goes back in by itself.
+         */
+        @JavascriptInterface
+        public void poweredOff(String action) {
+            runOnUiThread(() -> {
+                Pcs.Pc pc = currentPc();
+                if (pc == null) return;
+                openPcs(pc.id, "restart".equals(action) ? "restarting" : "off");
+                if ("restart".equals(action)) handler.postDelayed(() -> MainActivity.this.wake(pc, false), 6000);
+            });
         }
 
         @JavascriptInterface
         public void retry() {
-            runOnUiThread(MainActivity.this::openServer);
+            runOnUiThread(MainActivity.this::openCurrent);
         }
 
         @JavascriptInterface
@@ -790,6 +1055,77 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public int versionCode() {
             return MainActivity.this.versionCode();
+        }
+
+        @JavascriptInterface
+        public boolean isOnline() {
+            return online();
+        }
+
+        // ── only the app's page ──
+
+        @JavascriptInterface
+        public String getPcs() {
+            if (!onSetup) return "[]";
+            JSONArray list = new JSONArray();
+            Pcs.Pc now = currentPc();
+            try {
+                for (Pcs.Pc pc : pcs.all()) list.put(pc.toPublicJson(now != null && now.id.equals(pc.id)));
+            } catch (Exception ignored) {
+            }
+            return list.toString();
+        }
+
+        /** Asks every PC now: the answers come to window.kdPcState(id, state). */
+        @JavascriptInterface
+        public void probe() {
+            if (onSetup) probeAll();
+        }
+
+        /** Opens a PC (at <code>address</code>, or at the one that answers when empty). */
+        @JavascriptInterface
+        public void connect(String id, String address) {
+            runOnUiThread(() -> {
+                Pcs.Pc pc = onSetup ? pcs.get(id) : null;
+                if (pc == null) return;
+                wakeRun++;
+                connectTo(pc, address == null || address.isEmpty() ? null : normalize(address));
+            });
+        }
+
+        /** An address typed or a QR scanned: adds the PC (or finds it) and opens it. False when it is not an address. */
+        @JavascriptInterface
+        public boolean addPc(String input) {
+            if (!onSetup || normalize(input) == null) return false;
+            runOnUiThread(() -> openLink(input));
+            return true;
+        }
+
+        @JavascriptInterface
+        public void renamePc(String id, String name) {
+            if (!onSetup) return;
+            Pcs.Pc pc = pcs.get(id);
+            if (pc == null || name == null || name.trim().isEmpty()) return;
+            pc.name = name.trim();
+            pcs.save(pc);
+        }
+
+        @JavascriptInterface
+        public void removePc(String id) {
+            if (onSetup) pcs.remove(id);
+        }
+
+        /** «Encender»: see {@link MainActivity#wake}. */
+        @JavascriptInterface
+        public void wake(String id) {
+            if (!onSetup) return;
+            Pcs.Pc pc = pcs.get(id);
+            if (pc != null) MainActivity.this.wake(pc, true);
+        }
+
+        @JavascriptInterface
+        public void cancelWake() {
+            wakeRun++;
         }
 
         /** Starts recording a voice order (asks for the microphone the first time). The level goes to kdVoiceLevel. */

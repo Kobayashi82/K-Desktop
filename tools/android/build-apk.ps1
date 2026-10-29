@@ -39,10 +39,15 @@ $code = 1000000 + [int]$parts[0] * 10000 + [int]$parts[1] * 100 + [int]$parts[2]
 if (Test-Path $build) { Remove-Item -Recurse -Force $build }
 New-Item -ItemType Directory -Force "$build\gen", "$build\classes", "$build\dex" | Out-Null
 
+# The app's pages share the web app's look (kd.css): copied beside them.
+New-Item -ItemType Directory -Force "$build\assets" | Out-Null
+Copy-Item "$src\assets\*" "$build\assets" -Recurse
+Copy-Item (Join-Path $root "src\KDesktop.Core\Web\kd.css") "$build\assets\kd.css"
+
 "Recursos…"
 Run "$bt\aapt2.exe" @("compile", "--dir", "$src\res", "-o", "$build\res.zip")
 Run "$bt\aapt2.exe" @("link", "-o", "$build\base.apk", "-I", $platform, "--manifest", "$src\AndroidManifest.xml",
-  "-A", "$src\assets", "--java", "$build\gen", "--min-sdk-version", "21", "--target-sdk-version", "34",
+  "-A", "$build\assets", "--java", "$build\gen", "--min-sdk-version", "21", "--target-sdk-version", "34",
   "--version-code", "$code", "--version-name", $version, "$build\res.zip")
 
 "Java…"

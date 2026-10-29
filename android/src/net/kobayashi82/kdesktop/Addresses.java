@@ -1,71 +1,34 @@
 package net.kobayashi82.kdesktop;
 
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.webkit.CookieManager;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * The addresses of the PC (its IP at home, the proxy's domain outside), as K-Desktop reports them once paired, and
- * which one answers right now. The same pairing works at all of them: the app keeps the token itself.
+ * Which address of a PC answers right now (its IP at home, the proxy's domain outside). The same pairing works at all of
+ * them: the app keeps the token itself. A PC is recognised by its id (K-Desktop 5.0.402+) or else by its name, so
+ * another PC at the same IP is not taken for it.
  */
 final class Addresses {
-    private static final String KEY_ADDRESSES = "addresses";
-    private static final String KEY_MACHINE = "machine";
-
     /** How long an address may take to answer. */
-    private static final int PROBE_TIMEOUT_MS = 2500;
+    static final int PROBE_TIMEOUT_MS = 2500;
 
     /** What an address said: nothing, a login page in front of it (Authelia…: K-Desktop is behind), or K-Desktop itself. */
-    private static final int SILENT = 0, LOGIN = 1, ANSWERS = 2;
+    static final int SILENT = 0, LOGIN = 1, ANSWERS = 2;
 
     /** When another address answers first, how much longer the local one may take (it is the fastest to use). */
     private static final long LOCAL_GRACE_MS = 700;
 
-    private final SharedPreferences prefs;
-
-    Addresses(SharedPreferences prefs) {
-        this.prefs = prefs;
-    }
-
-    /** The known addresses plus {@code server} (the one in use or typed in the set-up). */
-    List<String> all(String server) {
-        LinkedHashSet<String> set = new LinkedHashSet<>();
-        try {
-            JSONArray list = new JSONArray(prefs.getString(KEY_ADDRESSES, "[]"));
-            for (int i = 0; i < list.length(); i++) set.add(list.getString(i));
-        } catch (Exception ignored) {
-        }
-        if (server != null) set.add(server);
-        return new ArrayList<>(set);
-    }
-
-    boolean knows(String address) {
-        return address != null && all(null).contains(address);
-    }
-
-    /** What K-Desktop said about itself: its addresses and the PC's name (another PC at the same IP is not it). */
-    void save(List<String> addresses, String machine) {
-        JSONArray list = new JSONArray();
-        for (String a : addresses) list.put(a);
-        prefs.edit().putString(KEY_ADDRESSES, list.toString()).putString(KEY_MACHINE, machine == null ? "" : machine).apply();
-    }
-
-    /** Another K-Desktop was chosen: the addresses of the old one no longer apply. */
-    void forget() {
-        prefs.edit().remove(KEY_ADDRESSES).remove(KEY_MACHINE).apply();
+    private Addresses() {
     }
 
     /** The PC's own network (a private IP or a .local name): fastest, and it works without internet. */
@@ -86,15 +49,42 @@ final class Addresses {
         return false;
     }
 
+    /** What each candidate says, all at once (a few seconds at most). Blocks: call it off the UI thread. */
+    static int[] askAll(List<String> candidates, Pcs.Pc pc) {
+        int n = candidates.size();
+        int[] state = new int[n];
+        if (n == 0) return state;
+        ExecutorService pool = Executors.newFixedThreadPool(n);
+        try {
+            for (int i = 0; i < n; i++) {
+                final int index = i;
+                pool.execute(() -> {
+                    int answered = ask(candidates.get(index), pc);
+                    synchronized (state) {
+                        state[index] = answered;
+                    }
+                });
+            }
+            pool.shutdown();
+            pool.awaitTermination(PROBE_TIMEOUT_MS * 2L + 500, java.util.concurrent.TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            pool.shutdownNow();
+        }
+        synchronized (state) {
+            return state.clone();
+        }
+    }
+
     /**
      * Asks every candidate at once and returns the one to use: a local one if it answers, else the first that did, else
      * one with a login page in front (the web view shows it and then K-Desktop). Null when none answers. Blocks (call it
      * off the UI thread).
      */
-    String pick(List<String> candidates) {
+    static String pick(List<String> candidates, Pcs.Pc pc) {
         int n = candidates.size();
         if (n == 0) return null;
-        String machine = prefs.getString(KEY_MACHINE, "");
         int[] state = new int[n];
         int[] finished = {0};
         Object lock = new Object();
@@ -103,7 +93,7 @@ final class Addresses {
             for (int i = 0; i < n; i++) {
                 final int index = i;
                 pool.execute(() -> {
-                    int answered = ask(candidates.get(index), machine);
+                    int answered = ask(candidates.get(index), pc);
                     synchronized (lock) {
                         state[index] = answered;
                         finished[0]++;
@@ -139,10 +129,10 @@ final class Addresses {
     }
 
     /**
-     * Whether K-Desktop answers at {@code address} (and, when known, it is the same PC). With the web view's cookies: once
-     * logged in to a proxy that asks for one (Authelia…), the ping goes through; before, its redirect or 401 says so.
+     * Whether K-Desktop answers at {@code address} and it is that PC. With the web view's cookies: once logged in to a
+     * proxy that asks for one (Authelia…), the ping goes through; before, its redirect or 401 says so.
      */
-    private static int ask(String address, String machine) {
+    static int ask(String address, Pcs.Pc pc) {
         HttpURLConnection c = null;
         try {
             c = (HttpURLConnection) new URL(address + "api/ping").openConnection();
@@ -162,11 +152,19 @@ final class Addresses {
                 while ((read = in.read(buffer)) > 0 && body.size() < 8192) body.write(buffer, 0, read);
             }
             JSONObject json = new JSONObject(body.toString("UTF-8"));
-            return machine.isEmpty() || machine.equalsIgnoreCase(json.optString("machine")) ? ANSWERS : SILENT;
+            return same(pc, json) ? ANSWERS : SILENT;
         } catch (Exception e) {
             return SILENT;
         } finally {
             if (c != null) c.disconnect();
         }
+    }
+
+    /** The answer is from this PC: its id when both know it, else its name when known, else anything that answers. */
+    private static boolean same(Pcs.Pc pc, JSONObject ping) {
+        if (pc == null) return true;
+        String id = ping.optString("pc");
+        if (!id.isEmpty() && !pc.id.startsWith(Pcs.NEW)) return id.equals(pc.id);
+        return pc.name.isEmpty() || pc.name.equalsIgnoreCase(ping.optString("machine"));
     }
 }

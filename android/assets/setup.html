@@ -5,149 +5,754 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
   <title>K-Desktop</title>
+  <!-- The web app's look (src/KDesktop.Core/Web/kd.css, copied here when the APK is built) -->
+  <link rel="stylesheet" href="kd.css">
   <style>
-    :root {
-      --bg: #f5f3ee; --glass: rgba(255, 255, 255, .7); --line: rgba(40, 30, 10, .12); --text: #17140d;
-      --text-2: rgba(23, 20, 13, .66); --accent-soft: rgba(224, 154, 0, .15); --glow: rgba(224, 154, 0, .35);
-      --danger: #d0342c; --gold: linear-gradient(135deg, #ffd96b, #f6b52a 52%, #dc8d00);
-      --a1: rgba(255, 196, 64, .55); --a2: rgba(255, 150, 90, .3);
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0d0d0f; --glass: rgba(28, 28, 32, .7); --line: rgba(255, 255, 255, .1); --text: #f5f5f4;
-        --text-2: rgba(255, 255, 255, .66); --accent-soft: rgba(245, 179, 36, .15); --glow: rgba(245, 179, 36, .4);
-        --danger: #ff6b6b; --a1: rgba(245, 170, 30, .22); --a2: rgba(255, 110, 60, .12);
-      }
-    }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { margin: 0; min-height: 100%; }
-    body {
-      background: var(--bg); color: var(--text); display: grid; place-items: center; min-height: 100vh; padding: 24px 20px;
-      font: 15px/1.5 system-ui, -apple-system, Roboto, "Segoe UI", sans-serif; overflow-x: hidden;
-    }
-    .ambient { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
-    .ambient i { position: absolute; width: 90vmax; height: 90vmax; border-radius: 50%; filter: blur(70px); }
-    .ambient i:first-child { background: radial-gradient(circle, var(--a1), transparent 65%); left: -40vmax; top: -45vmax; animation: d1 24s ease-in-out infinite alternate; }
-    .ambient i:last-child { background: radial-gradient(circle, var(--a2), transparent 65%); right: -45vmax; bottom: -40vmax; animation: d2 30s ease-in-out infinite alternate; }
-    @keyframes d1 { to { transform: translate(20vw, 15vh); } }
-    @keyframes d2 { to { transform: translate(-20vw, -15vh); } }
-    .card {
-      width: 100%; max-width: 420px; text-align: center; padding: 30px 22px 24px; border-radius: 30px;
-      background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, .18); animation: in .55s cubic-bezier(.2, .8, .2, 1);
-    }
-    @keyframes in { from { opacity: 0; transform: translateY(14px); } }
-    .logo { position: relative; width: 92px; height: 92px; margin: 0 auto 16px; }
+    /* The app's own page: your PCs (what each one says, connect, wake, rename, forget), adding one (address or QR),
+       the welcome, and "connecting…" while the app looks for the PC. */
+    body { min-height: 100vh; min-height: 100dvh; }
+    .page { width: 100%; max-width: 560px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 24px); }
+    section { animation: view-in .38s var(--ease); }
+    .center-page { min-height: calc(100dvh - 60px); display: flex; flex-direction: column; justify-content: center; text-align: center; }
+    .logo { position: relative; width: 92px; height: 92px; margin: 0 auto 18px; }
     .logo::before {
       content: ""; position: absolute; inset: -14px; border-radius: 34px; filter: blur(14px);
-      background: conic-gradient(from 0deg, transparent, var(--glow), transparent 40%, var(--glow), transparent 80%);
+      background: conic-gradient(from 0deg, transparent, var(--accent-glow), transparent 40%, var(--accent-glow), transparent 80%);
       animation: spin 6s linear infinite;
     }
     .logo img { position: relative; width: 92px; height: 92px; border-radius: 26px; animation: float 4s ease-in-out infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes float { 50% { transform: translateY(-6px); } }
-    h1 { margin: 0 0 8px; font-size: 25px; font-weight: 700; letter-spacing: -.01em; }
-    p { margin: 0 0 20px; color: var(--text-2); }
-    label { display: block; text-align: left; font-size: 13px; font-weight: 600; color: var(--text-2); margin: 0 0 6px 4px; }
-    input {
-      width: 100%; padding: 15px; border-radius: 16px; border: 1px solid var(--line); background: var(--glass);
-      color: var(--text); font-size: 16px; outline: 0; transition: border-color .2s, box-shadow .2s;
-    }
-    input:focus { border-color: #f2b21c; box-shadow: 0 0 0 4px var(--accent-soft); }
-    .hint { font-size: 13px; text-align: left; margin: 10px 4px 18px; }
-    .hint code { padding: 1px 6px; border-radius: 6px; background: var(--accent-soft); font-size: 12.5px; }
-    .error { min-height: 20px; margin: 0 0 12px; color: var(--danger); font-size: 14px; }
-    button {
-      width: 100%; padding: 15px; border: 0; border-radius: 16px; font: 700 16px system-ui, sans-serif; cursor: pointer;
-      background: var(--gold); color: #1f1500; box-shadow: 0 8px 22px var(--glow); transition: transform .2s;
-    }
-    button:active { transform: scale(.97); }
-    button.ghost { margin-top: 10px; background: none; box-shadow: none; color: var(--text); border: 1px solid var(--line); }
-    /* Waiting mode (?connecting=1): only the logo, what it is doing and a way out */
-    .wait { display: none; }
-    body.connecting .wait { display: block; }
-    body.connecting .setup { display: none; }
-    .wait .server { margin: -12px 0 22px; font-size: 13px; word-break: break-all; }
-    .dots { display: flex; justify-content: center; gap: 8px; margin: 0 0 24px; }
+    h1 { font-size: 25px; letter-spacing: -.01em; margin-bottom: 8px; }
+    .lead { color: var(--text-2); margin: 0 auto 22px; max-width: 400px; line-height: 1.5; }
+    .stack { display: flex; flex-direction: column; gap: 10px; max-width: 400px; width: 100%; margin: 0 auto; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn svg.i { width: 20px; height: 20px; }
+    .dots { display: flex; justify-content: center; gap: 8px; margin: 4px 0 26px; }
     .dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--gold); animation: dot 1.2s ease-in-out infinite; }
     .dots i:nth-child(2) { animation-delay: .15s; }
     .dots i:nth-child(3) { animation-delay: .3s; }
     @keyframes dot { 0%, 80%, 100% { transform: scale(.55); opacity: .45; } 40% { transform: scale(1); opacity: 1; } }
-    .shake { animation: shake .4s; }
-    @keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+    .muted-line { color: var(--text-2); font-size: 13px; word-break: break-all; margin: -8px 0 18px; }
+
+    /* list of PCs */
+    .head { display: flex; align-items: center; gap: 12px; margin: 4px 2px 18px; }
+    .head img { width: 38px; height: 38px; border-radius: 11px; box-shadow: 0 4px 14px var(--accent-glow); }
+    .head h1 { flex: 1; margin: 0; font-size: 30px; font-weight: 750; letter-spacing: -.025em; }
+    .banner {
+      display: flex; align-items: center; gap: 12px; margin: 0 0 14px; padding: 13px 14px; border-radius: 18px;
+      background: color-mix(in srgb, var(--warning) 13%, var(--glass)); border: 1px solid color-mix(in srgb, var(--warning) 35%, transparent);
+      animation: view-in .3s var(--ease);
+    }
+    .banner.error { background: color-mix(in srgb, var(--danger) 11%, var(--glass)); border-color: color-mix(in srgb, var(--danger) 35%, transparent); }
+    .banner .b-icon { flex: none; width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: var(--warning); background: color-mix(in srgb, var(--warning) 16%, transparent); }
+    .banner.error .b-icon { color: var(--danger); background: color-mix(in srgb, var(--danger) 14%, transparent); }
+    .banner .b-icon svg { width: 18px; height: 18px; }
+    .banner p { flex: 1; font-size: 14px; line-height: 1.4; }
+    .pcs { display: flex; flex-direction: column; gap: 12px; }
+    .pc { padding: 14px; margin: 0; animation: tile-in .4s var(--ease) both; animation-delay: calc(var(--n, 0) * 50ms); }
+    @keyframes tile-in { from { opacity: 0; transform: translateY(10px) scale(.97); } }
+    .pc-head { display: flex; align-items: center; gap: 12px; }
+    .pc-icon {
+      flex: none; width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center;
+      background: var(--accent-soft); color: var(--accent-text); transition: background .3s, color .3s;
+    }
+    .pc[data-state="online"] .pc-icon { background: var(--gold); color: var(--on-accent); box-shadow: 0 6px 18px var(--accent-glow); }
+    .pc[data-state="offline"] .pc-icon { background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text-3); }
+    .pc-text { flex: 1; min-width: 0; }
+    .pc-text b { display: block; font-size: 16.5px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pc-state { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; color: var(--text-2); margin-top: 2px; }
+    .pc-state i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1s ease-in-out infinite; }
+    .pc[data-state="online"] .pc-state i { background: var(--success); animation: none; box-shadow: 0 0 0 4px color-mix(in srgb, var(--success) 22%, transparent); }
+    .pc[data-state="login"] .pc-state i { background: var(--warning); animation: none; }
+    .pc[data-state="offline"] .pc-state i { background: var(--danger); animation: none; }
+    .pc[data-state="offline"] .pc-state { color: var(--danger); }
+    .pc-addresses { display: flex; flex-direction: column; gap: 2px; margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--line); }
+    .addr {
+      display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 6px 8px; border-radius: 12px; text-align: left;
+      transition: background-color .2s;
+    }
+    .addr:active { background: var(--line); }
+    .addr .a-kind { flex: none; padding: 3px 8px; border-radius: 99px; font-size: 11px; font-weight: 700; background: var(--accent-soft); color: var(--accent-text); }
+    .addr .a-url { flex: 1; min-width: 0; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .addr .a-state { flex: none; font-size: 12px; font-weight: 600; color: var(--text-3); }
+    .addr[data-state="online"] .a-state { color: var(--success); }
+    .addr[data-state="login"] .a-state { color: var(--warning); }
+    .addr[data-state="offline"] .a-state { color: var(--danger); }
+    .pc-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .pc-actions .btn { flex: 1; min-height: 44px; padding: 10px 12px; }
+    .pc-actions .btn.primary { flex: 1.4; }
+    .add-more { margin-top: 16px; }
+
+    /* sheets: rename, forget, waking */
+    .sheet-back {
+      position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center;
+      background: color-mix(in srgb, #000 38%, transparent); animation: fade .25s var(--ease);
+    }
+    @keyframes fade { from { opacity: 0; } }
+    .sheet {
+      width: min(560px, 100%); padding: 22px 18px calc(env(safe-area-inset-bottom) + 18px); border-radius: 28px 28px 0 0;
+      background: var(--glass-strong); border: 1px solid var(--line); box-shadow: var(--shadow-lift);
+      -webkit-backdrop-filter: blur(24px) saturate(1.4); backdrop-filter: blur(24px) saturate(1.4);
+      animation: sheet-in .4s var(--ease);
+    }
+    @keyframes sheet-in { from { transform: translateY(100%); } }
+    .sheet h2 { font-size: 20px; margin-bottom: 8px; }
+    .sheet p { color: var(--text-2); margin-bottom: 16px; line-height: 1.45; }
+    .sheet .buttons { display: flex; gap: 10px; margin-top: 6px; }
+    .sheet .buttons .btn { flex: 1; min-height: 46px; }
+    .btn.danger { background: var(--danger); color: #fff; border-color: transparent; }
+    .wake-ring { position: relative; width: 110px; height: 110px; margin: 6px auto 16px; }
+    .wake-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .wake-ring circle { fill: none; stroke-width: 8; stroke-linecap: round; }
+    .wake-ring .track { stroke: var(--line-strong); }
+    .wake-ring .fill { stroke: var(--accent); stroke-dasharray: 0 100; transition: stroke-dasharray 1s linear; }
+    .wake-ring span { position: absolute; inset: 0; display: grid; place-items: center; color: var(--accent-text); }
+    .wake-ring span svg { width: 38px; height: 38px; transform: none; animation: pulse 1.4s ease-in-out infinite; }
+    .wake-sheet { text-align: center; }
+    .sent { text-align: left; margin: 0 0 14px; font-size: 13.5px; color: var(--text-2); }
+    .sent li { margin: 3px 0; }
+
+    /* QR */
+    .scan { position: fixed; inset: 0; z-index: 30; background: #000; display: flex; flex-direction: column; animation: fade .25s; }
+    .scan video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .scan .frame {
+      position: absolute; left: 50%; top: 45%; width: min(68vw, 300px); aspect-ratio: 1; translate: -50% -50%;
+      border-radius: 28px; box-shadow: 0 0 0 100vmax rgba(0, 0, 0, .45); border: 3px solid rgba(255, 255, 255, .9);
+    }
+    .scan .frame::after {
+      content: ""; position: absolute; left: 8%; right: 8%; height: 2px; top: 50%; background: var(--accent);
+      box-shadow: 0 0 14px var(--accent); animation: scanline 2s ease-in-out infinite alternate;
+    }
+    @keyframes scanline { from { top: 10%; } to { top: 90%; } }
+    .scan p { position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom) + 100px); text-align: center; color: #fff; font-weight: 600; padding: 0 24px; }
+    .scan .close { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 30px); translate: -50% 0; color: #fff;
+      background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .25); }
+    .error-text { min-height: 20px; margin: 0 0 12px; color: var(--danger); font-size: 14px; text-align: left; }
+    .hint { font-size: 13px; color: var(--text-2); text-align: left; margin: -4px 4px 16px; line-height: 1.45; }
+    .hint code { padding: 1px 6px; border-radius: 6px; background: var(--accent-soft); font-size: 12.5px; }
+    .back-row { display: flex; margin: 0 0 10px; }
+    .shake { animation: shake .4s var(--ease); }
+    .toasts { bottom: calc(env(safe-area-inset-bottom) + 20px); }
   </style>
 </head>
 <body>
-  <div class="ambient"><i></i><i></i></div>
-  <form class="card" id="form" autocomplete="off" novalidate>
-    <div class="logo"><img src="icon.png" alt=""></div>
-    <div class="wait">
-      <h1 data-t="connecting"></h1>
-      <p class="server" id="waitServer"></p>
+  <div class="ambient" aria-hidden="true"><i></i><i></i><i></i></div>
+  <main class="page">
+    <!-- While the app looks for the PC -->
+    <section id="connecting" class="center-page" hidden>
+      <div class="logo"><img src="icon.png" alt=""></div>
+      <h1 id="connectingTitle"></h1>
+      <p class="muted-line" id="connectingAddress"></p>
       <div class="dots"><i></i><i></i><i></i></div>
-      <button type="button" class="ghost" id="change" data-t="change"></button>
-    </div>
-    <div class="setup">
-    <h1 data-t="title"></h1>
-    <p data-t="text"></p>
-    <label for="server" data-t="label"></label>
-    <input id="server" type="text" inputmode="url" enterkeyhint="go" autocapitalize="off" spellcheck="false" placeholder="https://kdesktop.example.com">
-    <div class="hint" data-t="hint"></div>
-    <div class="error" id="error"></div>
-    <button type="submit" data-t="connect"></button>
-    <button type="button" class="ghost" id="retry" data-t="retry" hidden></button>
-    </div>
-  </form>
+      <div class="stack"><button class="btn" id="connectingPcs" data-t="showPcs"></button></div>
+    </section>
+
+    <!-- No PC yet -->
+    <section id="welcome" class="center-page" hidden>
+      <div class="logo"><img src="icon.png" alt=""></div>
+      <h1 data-t="welcomeTitle"></h1>
+      <p class="lead" data-t="welcomeText"></p>
+      <div class="stack">
+        <button class="btn primary wide scan-button" data-icon="qr" data-label="scan"></button>
+        <button class="btn wide" id="welcomeType" data-icon="keyboard" data-label="typeAddress"></button>
+      </div>
+    </section>
+
+    <!-- Your PCs -->
+    <section id="pcs" hidden>
+      <header class="head">
+        <img src="icon.png" alt="">
+        <h1 data-t="myPcs"></h1>
+        <button class="icon-btn" id="refresh" data-icon="refresh" data-title="retry"></button>
+        <button class="icon-btn" id="addButton" data-icon="plus" data-title="add"></button>
+      </header>
+      <div id="banners"></div>
+      <div class="pcs" id="list"></div>
+      <button class="btn wide add-more" id="addMore" data-icon="plus" data-label="add"></button>
+    </section>
+
+    <!-- Adding one -->
+    <section id="add" hidden>
+      <div class="back-row"><button class="icon-btn" id="addBack" data-icon="back" data-title="back"></button></div>
+      <form id="addForm" autocomplete="off" novalidate>
+        <h1 data-t="addTitle"></h1>
+        <p class="lead" style="margin-left: 0" data-t="addText"></p>
+        <label class="field"><span data-t="label"></span>
+          <input id="address" type="text" inputmode="url" enterkeyhint="go" autocapitalize="off" spellcheck="false" placeholder="https://kdesktop.example.com">
+        </label>
+        <div class="hint" data-t="hint"></div>
+        <p class="error-text" id="addError" role="alert"></p>
+        <div class="stack" style="max-width: none">
+          <button class="btn primary wide" type="submit" data-icon="link" data-label="connect"></button>
+          <button class="btn wide scan-button" type="button" data-icon="qr" data-label="scan"></button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
   <script>
     const T = {
-      es: { title: 'Conectar con K-Desktop', text: 'Escribe la dirección de K-Desktop en tu PC. Solo hace falta la primera vez.', label: 'Dirección',
-            hint: 'La de tu proxy con HTTPS (<code>kdesktop.tudominio.net</code>) o la del PC en tu red (<code>192.168.1.10:2502</code>). También vale el enlace de emparejar.',
-            connect: 'Conectar', retry: 'Reintentar', connecting: 'Conectando con K-Desktop…', change: 'Cambiar la dirección', bad: 'Esa dirección no es válida', failed: 'No se pudo conectar: {0}' },
-      en: { title: 'Connect to K-Desktop', text: 'Type the address of K-Desktop on your PC. Only needed the first time.', label: 'Address',
-            hint: 'Your HTTPS proxy (<code>kdesktop.yourdomain.net</code>) or the PC on your network (<code>192.168.1.10:2502</code>). A pairing link works too.',
-            connect: 'Connect', retry: 'Retry', connecting: 'Connecting to K-Desktop…', change: 'Change the address', bad: 'That address is not valid', failed: 'Could not connect: {0}' },
-      fr: { title: 'Se connecter à K-Desktop', text: 'Saisissez l’adresse de K-Desktop sur votre PC. Seulement la première fois.', label: 'Adresse',
-            hint: 'Celle de votre proxy HTTPS (<code>kdesktop.votredomaine.net</code>) ou du PC sur votre réseau (<code>192.168.1.10:2502</code>). Un lien d’association fonctionne aussi.',
-            connect: 'Se connecter', retry: 'Réessayer', connecting: 'Connexion à K-Desktop…', change: 'Changer l’adresse', bad: 'Cette adresse n’est pas valide', failed: 'Connexion impossible : {0}' },
-      de: { title: 'Mit K-Desktop verbinden', text: 'Gib die Adresse von K-Desktop auf deinem PC ein. Nur beim ersten Mal nötig.', label: 'Adresse',
-            hint: 'Die deines HTTPS-Proxys (<code>kdesktop.deinedomain.net</code>) oder die des PCs im Netzwerk (<code>192.168.1.10:2502</code>). Ein Kopplungslink geht auch.',
-            connect: 'Verbinden', retry: 'Erneut versuchen', connecting: 'Verbinde mit K-Desktop…', change: 'Adresse ändern', bad: 'Diese Adresse ist ungültig', failed: 'Verbindung fehlgeschlagen: {0}' },
-      it: { title: 'Connetti a K-Desktop', text: 'Scrivi l’indirizzo di K-Desktop sul tuo PC. Serve solo la prima volta.', label: 'Indirizzo',
-            hint: 'Quello del tuo proxy HTTPS (<code>kdesktop.tuodominio.net</code>) o del PC nella tua rete (<code>192.168.1.10:2502</code>). Va bene anche il link di abbinamento.',
-            connect: 'Connetti', retry: 'Riprova', connecting: 'Connessione a K-Desktop…', change: 'Cambia indirizzo', bad: 'Questo indirizzo non è valido', failed: 'Impossibile connettersi: {0}' },
-      pt: { title: 'Conectar ao K-Desktop', text: 'Digite o endereço do K-Desktop no seu PC. Só é preciso na primeira vez.', label: 'Endereço',
-            hint: 'O do seu proxy HTTPS (<code>kdesktop.seudominio.net</code>) ou o do PC na sua rede (<code>192.168.1.10:2502</code>). O link de pareamento também serve.',
-            connect: 'Conectar', retry: 'Tentar de novo', connecting: 'A ligar ao K-Desktop…', change: 'Mudar o endereço', bad: 'Esse endereço não é válido', failed: 'Não foi possível conectar: {0}' },
+      es: {
+        connecting: 'Conectando con {0}…', connectingAny: 'Conectando con K-Desktop…', showPcs: 'Ver mis PCs', myPcs: 'Mis PCs',
+        add: 'Añadir PC', retry: 'Buscar otra vez', back: 'Atrás', searching: 'Buscando…', online: 'En línea',
+        login: 'Pide iniciar sesión', offline: 'Apagado o sin respuesta', local: 'En casa', remote: 'Fuera',
+        addrOnline: 'Contesta', addrLogin: 'Pide iniciar sesión', addrOffline: 'No contesta', connect: 'Conectar', wake: 'Encender',
+        rename: 'Cambiar el nombre', forget: 'Olvidar', forgetTitle: '¿Olvidar {0}?', forgetText: 'Para volver a usarlo habrá que emparejarlo otra vez.',
+        cancel: 'Cancelar', save: 'Guardar', close: 'Cerrar', renameTitle: 'Nombre del PC', noNet: 'El móvil no tiene conexión.',
+        notAnswering: '{0} no contesta. ¿Está encendido?', notAnsweringNoWake: '{0} no contesta. Para poder encenderlo desde aquí, conéctate una vez con él encendido y activa «Encender y apagar el PC» en Opciones › Aplicación web.',
+        wentOff: '{0} se ha apagado.', failed: 'No se pudo conectar: {0}', welcomeTitle: 'Te damos la bienvenida',
+        welcomeText: 'Usa tu PC desde el móvil. En el PC, abre K-Desktop › Opciones › Aplicación web › «Emparejar dispositivo» y escanea el código.',
+        scan: 'Escanear el QR', typeAddress: 'Escribir la dirección', addTitle: 'Añadir un PC',
+        addText: 'Escanea el código de Opciones › Aplicación web › «Emparejar dispositivo» o escribe la dirección de K-Desktop en ese PC.',
+        label: 'Dirección', hint: 'La de tu proxy con HTTPS (<code>kdesktop.tudominio.net</code>) o la del PC en tu red (<code>192.168.1.10:2502</code>). También vale el enlace de emparejar.',
+        bad: 'Esa dirección no es válida', scanHint: 'Apunta al código QR de K-Desktop', notKd: 'Ese código no es de K-Desktop',
+        noCamera: 'No se puede usar la cámara', waking: 'Encendiendo {0}…', restarting: 'Reiniciando {0}…', wakeWait: 'Esperando a que conteste… {0} s',
+        wakeFailed: '{0} no ha contestado', sentPackets: 'Aviso por la red de casa: enviado', sentNoPackets: 'Aviso por la red de casa: no se pudo enviar',
+        sentUrl: 'Encender mediante URL: {0}', sentVia: 'Lo ha encendido {0}', tryAgain: 'Probar otra vez', lastUsed: 'El último que usaste',
+      },
+      en: {
+        connecting: 'Connecting to {0}…', connectingAny: 'Connecting to K-Desktop…', showPcs: 'See my PCs', myPcs: 'My PCs',
+        add: 'Add PC', retry: 'Search again', back: 'Back', searching: 'Searching…', online: 'Online',
+        login: 'Asks you to sign in', offline: 'Off or not answering', local: 'Home', remote: 'Away',
+        addrOnline: 'Answers', addrLogin: 'Asks to sign in', addrOffline: 'No answer', connect: 'Connect', wake: 'Turn on',
+        rename: 'Rename', forget: 'Forget', forgetTitle: 'Forget {0}?', forgetText: 'To use it again it will have to be paired again.',
+        cancel: 'Cancel', save: 'Save', close: 'Close', renameTitle: 'PC name', noNet: 'The phone has no connection.',
+        notAnswering: '{0} is not answering. Is it on?', notAnsweringNoWake: '{0} is not answering. To turn it on from here, connect once while it is on and turn on “Turn the PC on and off” in Settings › Web app.',
+        wentOff: '{0} was turned off.', failed: 'Could not connect: {0}', welcomeTitle: 'Welcome',
+        welcomeText: 'Use your PC from your phone. On the PC, open K-Desktop › Settings › Web app › “Pair a device” and scan the code.',
+        scan: 'Scan the QR code', typeAddress: 'Type the address', addTitle: 'Add a PC',
+        addText: 'Scan the code from Settings › Web app › “Pair a device” or type the address of K-Desktop on that PC.',
+        label: 'Address', hint: 'Your HTTPS proxy (<code>kdesktop.yourdomain.net</code>) or the PC on your network (<code>192.168.1.10:2502</code>). A pairing link works too.',
+        bad: 'That address is not valid', scanHint: 'Point at the K-Desktop QR code', notKd: 'That code is not from K-Desktop',
+        noCamera: 'The camera can’t be used', waking: 'Turning on {0}…', restarting: 'Restarting {0}…', wakeWait: 'Waiting for it to answer… {0} s',
+        wakeFailed: '{0} did not answer', sentPackets: 'Signal on the home network: sent', sentNoPackets: 'Signal on the home network: could not be sent',
+        sentUrl: 'Turn on with a URL: {0}', sentVia: '{0} turned it on', tryAgain: 'Try again', lastUsed: 'The last one you used',
+      },
+      fr: {
+        connecting: 'Connexion à {0}…', connectingAny: 'Connexion à K-Desktop…', showPcs: 'Voir mes PC', myPcs: 'Mes PC',
+        add: 'Ajouter un PC', retry: 'Chercher à nouveau', back: 'Retour', searching: 'Recherche…', online: 'En ligne',
+        login: 'Demande de se connecter', offline: 'Éteint ou sans réponse', local: 'Maison', remote: 'Dehors',
+        addrOnline: 'Répond', addrLogin: 'Demande de se connecter', addrOffline: 'Ne répond pas', connect: 'Se connecter', wake: 'Allumer',
+        rename: 'Renommer', forget: 'Oublier', forgetTitle: 'Oublier {0} ?', forgetText: 'Pour l’utiliser à nouveau, il faudra l’associer de nouveau.',
+        cancel: 'Annuler', save: 'Enregistrer', close: 'Fermer', renameTitle: 'Nom du PC', noNet: 'Le téléphone n’a pas de connexion.',
+        notAnswering: '{0} ne répond pas. Est-il allumé ?', notAnsweringNoWake: '{0} ne répond pas. Pour l’allumer d’ici, connectez-vous une fois quand il est allumé et activez « Allumer et éteindre le PC » dans Options › Application web.',
+        wentOff: '{0} a été éteint.', failed: 'Connexion impossible : {0}', welcomeTitle: 'Bienvenue',
+        welcomeText: 'Utilisez votre PC depuis le téléphone. Sur le PC, ouvrez K-Desktop › Options › Application web › « Associer un appareil » et scannez le code.',
+        scan: 'Scanner le QR code', typeAddress: 'Saisir l’adresse', addTitle: 'Ajouter un PC',
+        addText: 'Scannez le code d’Options › Application web › « Associer un appareil » ou saisissez l’adresse de K-Desktop sur ce PC.',
+        label: 'Adresse', hint: 'Celle de votre proxy HTTPS (<code>kdesktop.votredomaine.net</code>) ou du PC sur votre réseau (<code>192.168.1.10:2502</code>). Un lien d’association fonctionne aussi.',
+        bad: 'Cette adresse n’est pas valide', scanHint: 'Visez le QR code de K-Desktop', notKd: 'Ce code ne vient pas de K-Desktop',
+        noCamera: 'Impossible d’utiliser la caméra', waking: 'Allumage de {0}…', restarting: 'Redémarrage de {0}…', wakeWait: 'En attente d’une réponse… {0} s',
+        wakeFailed: '{0} n’a pas répondu', sentPackets: 'Signal sur le réseau de la maison : envoyé', sentNoPackets: 'Signal sur le réseau de la maison : impossible à envoyer',
+        sentUrl: 'Allumer par une URL : {0}', sentVia: '{0} l’a allumé', tryAgain: 'Réessayer', lastUsed: 'Le dernier utilisé',
+      },
+      de: {
+        connecting: 'Verbinde mit {0}…', connectingAny: 'Verbinde mit K-Desktop…', showPcs: 'Meine PCs anzeigen', myPcs: 'Meine PCs',
+        add: 'PC hinzufügen', retry: 'Erneut suchen', back: 'Zurück', searching: 'Suche…', online: 'Online',
+        login: 'Will eine Anmeldung', offline: 'Aus oder keine Antwort', local: 'Zu Hause', remote: 'Unterwegs',
+        addrOnline: 'Antwortet', addrLogin: 'Will eine Anmeldung', addrOffline: 'Keine Antwort', connect: 'Verbinden', wake: 'Einschalten',
+        rename: 'Umbenennen', forget: 'Vergessen', forgetTitle: '{0} vergessen?', forgetText: 'Um ihn wieder zu nutzen, muss er erneut gekoppelt werden.',
+        cancel: 'Abbrechen', save: 'Speichern', close: 'Schließen', renameTitle: 'Name des PCs', noNet: 'Das Handy hat keine Verbindung.',
+        notAnswering: '{0} antwortet nicht. Ist er an?', notAnsweringNoWake: '{0} antwortet nicht. Um ihn von hier einzuschalten, verbinde dich einmal, während er an ist, und schalte „PC ein- und ausschalten“ unter Einstellungen › Web-App ein.',
+        wentOff: '{0} wurde ausgeschaltet.', failed: 'Verbindung fehlgeschlagen: {0}', welcomeTitle: 'Willkommen',
+        welcomeText: 'Nutze deinen PC vom Handy aus. Öffne am PC K-Desktop › Einstellungen › Web-App › „Gerät koppeln“ und scanne den Code.',
+        scan: 'QR-Code scannen', typeAddress: 'Adresse eingeben', addTitle: 'Einen PC hinzufügen',
+        addText: 'Scanne den Code unter Einstellungen › Web-App › „Gerät koppeln“ oder gib die Adresse von K-Desktop auf diesem PC ein.',
+        label: 'Adresse', hint: 'Die deines HTTPS-Proxys (<code>kdesktop.deinedomain.net</code>) oder die des PCs im Netzwerk (<code>192.168.1.10:2502</code>). Ein Kopplungslink geht auch.',
+        bad: 'Diese Adresse ist ungültig', scanHint: 'Richte die Kamera auf den QR-Code von K-Desktop', notKd: 'Dieser Code ist nicht von K-Desktop',
+        noCamera: 'Die Kamera kann nicht verwendet werden', waking: '{0} wird eingeschaltet…', restarting: '{0} startet neu…', wakeWait: 'Warte auf Antwort… {0} s',
+        wakeFailed: '{0} hat nicht geantwortet', sentPackets: 'Signal im Heimnetz: gesendet', sentNoPackets: 'Signal im Heimnetz: konnte nicht gesendet werden',
+        sentUrl: 'Per URL einschalten: {0}', sentVia: '{0} hat ihn eingeschaltet', tryAgain: 'Nochmal versuchen', lastUsed: 'Der zuletzt benutzte',
+      },
+      it: {
+        connecting: 'Connessione a {0}…', connectingAny: 'Connessione a K-Desktop…', showPcs: 'Vedi i miei PC', myPcs: 'I miei PC',
+        add: 'Aggiungi PC', retry: 'Cerca di nuovo', back: 'Indietro', searching: 'Ricerca…', online: 'Online',
+        login: 'Chiede di accedere', offline: 'Spento o non risponde', local: 'Casa', remote: 'Fuori',
+        addrOnline: 'Risponde', addrLogin: 'Chiede di accedere', addrOffline: 'Non risponde', connect: 'Connetti', wake: 'Accendi',
+        rename: 'Rinomina', forget: 'Dimentica', forgetTitle: 'Dimenticare {0}?', forgetText: 'Per usarlo di nuovo bisognerà abbinarlo un’altra volta.',
+        cancel: 'Annulla', save: 'Salva', close: 'Chiudi', renameTitle: 'Nome del PC', noNet: 'Il telefono non ha connessione.',
+        notAnswering: '{0} non risponde. È acceso?', notAnsweringNoWake: '{0} non risponde. Per accenderlo da qui, connettiti una volta mentre è acceso e attiva «Accendere e spegnere il PC» in Opzioni › App web.',
+        wentOff: '{0} è stato spento.', failed: 'Impossibile connettersi: {0}', welcomeTitle: 'Benvenuto',
+        welcomeText: 'Usa il tuo PC dal telefono. Sul PC apri K-Desktop › Opzioni › App web › «Abbina un dispositivo» e scansiona il codice.',
+        scan: 'Scansiona il QR', typeAddress: 'Scrivi l’indirizzo', addTitle: 'Aggiungi un PC',
+        addText: 'Scansiona il codice di Opzioni › App web › «Abbina un dispositivo» o scrivi l’indirizzo di K-Desktop su quel PC.',
+        label: 'Indirizzo', hint: 'Quello del tuo proxy HTTPS (<code>kdesktop.tuodominio.net</code>) o del PC nella tua rete (<code>192.168.1.10:2502</code>). Va bene anche il link di abbinamento.',
+        bad: 'Questo indirizzo non è valido', scanHint: 'Inquadra il codice QR di K-Desktop', notKd: 'Questo codice non è di K-Desktop',
+        noCamera: 'Impossibile usare la fotocamera', waking: 'Accensione di {0}…', restarting: 'Riavvio di {0}…', wakeWait: 'In attesa di risposta… {0} s',
+        wakeFailed: '{0} non ha risposto', sentPackets: 'Segnale sulla rete di casa: inviato', sentNoPackets: 'Segnale sulla rete di casa: impossibile inviarlo',
+        sentUrl: 'Accendere tramite URL: {0}', sentVia: 'L’ha acceso {0}', tryAgain: 'Riprova', lastUsed: 'L’ultimo che hai usato',
+      },
+      pt: {
+        connecting: 'Conectando a {0}…', connectingAny: 'Conectando ao K-Desktop…', showPcs: 'Ver meus PCs', myPcs: 'Meus PCs',
+        add: 'Adicionar PC', retry: 'Procurar de novo', back: 'Voltar', searching: 'Procurando…', online: 'On-line',
+        login: 'Pede para entrar', offline: 'Desligado ou sem resposta', local: 'Em casa', remote: 'Fora',
+        addrOnline: 'Responde', addrLogin: 'Pede para entrar', addrOffline: 'Não responde', connect: 'Conectar', wake: 'Ligar',
+        rename: 'Renomear', forget: 'Esquecer', forgetTitle: 'Esquecer {0}?', forgetText: 'Para usá-lo de novo será preciso pareá-lo outra vez.',
+        cancel: 'Cancelar', save: 'Salvar', close: 'Fechar', renameTitle: 'Nome do PC', noNet: 'O celular está sem conexão.',
+        notAnswering: '{0} não responde. Está ligado?', notAnsweringNoWake: '{0} não responde. Para ligá-lo daqui, conecte-se uma vez com ele ligado e ative “Ligar e desligar o PC” em Opções › App web.',
+        wentOff: '{0} foi desligado.', failed: 'Não foi possível conectar: {0}', welcomeTitle: 'Boas-vindas',
+        welcomeText: 'Use seu PC pelo celular. No PC, abra K-Desktop › Opções › App web › “Parear um dispositivo” e escaneie o código.',
+        scan: 'Escanear o QR', typeAddress: 'Digitar o endereço', addTitle: 'Adicionar um PC',
+        addText: 'Escaneie o código de Opções › App web › “Parear um dispositivo” ou digite o endereço do K-Desktop nesse PC.',
+        label: 'Endereço', hint: 'O do seu proxy HTTPS (<code>kdesktop.seudominio.net</code>) ou o do PC na sua rede (<code>192.168.1.10:2502</code>). O link de pareamento também serve.',
+        bad: 'Esse endereço não é válido', scanHint: 'Aponte para o código QR do K-Desktop', notKd: 'Esse código não é do K-Desktop',
+        noCamera: 'Não é possível usar a câmera', waking: 'Ligando {0}…', restarting: 'Reiniciando {0}…', wakeWait: 'Esperando resposta… {0} s',
+        wakeFailed: '{0} não respondeu', sentPackets: 'Sinal na rede de casa: enviado', sentNoPackets: 'Sinal na rede de casa: não foi possível enviar',
+        sentUrl: 'Ligar por URL: {0}', sentVia: '{0} o ligou', tryAgain: 'Tentar de novo', lastUsed: 'O último que você usou',
+      },
     };
     const lang = (navigator.language || 'en').slice(0, 2).toLowerCase();
-    const t = T[lang] || T.en;
-    for (const e of document.querySelectorAll('[data-t]')) e.innerHTML = t[e.dataset.t];
+    const L = T[lang] || T.en;
+    const t = (key, ...args) => args.reduce((s, a, i) => s.replaceAll(`{${i}}`, a), L[key] ?? key);
     document.documentElement.lang = T[lang] ? lang : 'en';
 
-    const params = new URLSearchParams(location.search);
-    const input = document.getElementById('server');
+    const ICONS = {
+      monitor: '<rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M9 20h6M12 16.5V20"/>',
+      plus: '<path d="M12 6v12M6 12h12"/>',
+      refresh: '<path d="M20 11a8 8 0 1 0-2.34 5.66"/><path d="M20 4v7h-7"/>',
+      back: '<path d="M15 18l-6-6 6-6"/>',
+      qr: '<rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM18 14h2M14 18h2M18 18h2v2"/>',
+      keyboard: '<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M7.5 14h9"/>',
+      link: '<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>',
+      power: '<path d="M12 3.5v8"/><path d="M7 6.5a7 7 0 1 0 10 0"/>',
+      more: '<circle cx="5.5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18.5" cy="12" r="1.3"/>',
+      warning: '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.01"/>',
+      wifiOff: '<path d="M3 3l18 18M8.5 16.5a5 5 0 0 1 7 0M5 13a10 10 0 0 1 5-2.7M12 18.5h.01M19 13a10 10 0 0 0-3-2"/>',
+      edit: '<path d="M4 20h4l10.5-10.5a2.8 2.8 0 0 0-4-4L4 16z"/>',
+      trash: '<path d="M4.5 7h15M10 11v6M14 11v6M6.5 7l1 12.5h9l1-12.5M9.5 7V4.5h5V7"/>',
+      ok: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+      error: '<path d="M7 7l10 10M17 7L7 17"/>',
+    };
+    const svg = name => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] ?? ''}</svg>`;
+    const $ = id => document.getElementById(id);
+    const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
     const app = window.KDesktopApp;
-    input.value = params.get('server') || (app && app.getServer()) || '';
-    if (params.get('error')) {
-      document.getElementById('error').textContent = t.failed.replace('{0}', params.get('error'));
-      if (input.value) document.getElementById('retry').hidden = false;
+
+    for (const e of document.querySelectorAll('[data-t]')) e.innerHTML = t(e.dataset.t);
+    for (const e of document.querySelectorAll('[data-title]')) { e.title = t(e.dataset.title); e.setAttribute('aria-label', e.title); }
+    for (const e of document.querySelectorAll('[data-icon]')) {
+      const label = e.dataset.label ? `<span>${t(e.dataset.label)}</span>` : '';
+      e.innerHTML = svg(e.dataset.icon) + label;
     }
-    document.getElementById('retry').addEventListener('click', () => app && app.retry());
-    if (params.get('connecting')) {
-      document.body.classList.add('connecting');
-      document.getElementById('waitServer').textContent = input.value;
-      // The form, now: the app stops waiting for the PC.
-      document.getElementById('change').addEventListener('click', () => app && app.changeServer());
+
+    // ── state ──
+
+    const params = new URLSearchParams(location.search);
+    let pcs = [];
+    const states = {};       // id → {state, addresses}
+    let reason = { pc: params.get('pc'), error: params.get('error') };
+    let offlinePhone = app && app.isOnline ? !app.isOnline() : !navigator.onLine;
+
+    function loadPcs() {
+      try { pcs = JSON.parse(app ? app.getPcs() : '[]'); } catch { pcs = []; }
     }
-    document.getElementById('form').addEventListener('submit', e => {
+    const nameOf = id => pcs.find(p => p.id === id)?.name || 'K-Desktop';
+
+    function show(id) {
+      for (const s of document.querySelectorAll('main > section')) s.hidden = s.id !== id;
+    }
+
+    function openList() {
+      loadPcs();
+      if (!pcs.length) {
+        show('welcome');
+        return;
+      }
+      show('pcs');
+      renderBanners();
+      renderList();
+      probe();
+      if (reason.error === 'restarting' && reason.pc) wakeSheet(reason.pc, 'restarting');
+    }
+
+    let probeTimer = 0;
+    function probe() {
+      for (const pc of pcs) if (!states[pc.id] || states[pc.id].state === 'offline') updateCard(pc.id, null);
+      app?.probe();
+      clearTimeout(probeTimer);
+      probeTimer = setTimeout(probe, 15000);
+    }
+
+    window.kdPcState = (id, state) => {
+      states[id] = state;
+      updateCard(id, state);
+      if (reason.error === 'offline' && id === reason.pc && state.state === 'online') renderBanners();
+    };
+
+    window.kdNetwork = on => {
+      offlinePhone = !on;
+      renderBanners();
+      if (on && !$('pcs').hidden) probe();
+    };
+
+    // ── banners ──
+
+    function banner(kind, icon, text, action) {
+      const b = el('div', 'banner' + (kind === 'error' ? ' error' : ''));
+      const ic = el('span', 'b-icon');
+      ic.innerHTML = svg(icon);
+      const p = el('p', '', text);
+      b.append(ic, p);
+      if (action) {
+        const button = el('button', 'btn small primary');
+        button.innerHTML = svg(action.icon) + `<span>${action.label}</span>`;
+        button.addEventListener('click', action.run);
+        b.append(button);
+      }
+      return b;
+    }
+
+    function renderBanners() {
+      const box = $('banners');
+      const list = [];
+      if (offlinePhone) list.push(banner('error', 'wifiOff', t('noNet')));
+      const pc = pcs.find(p => p.id === reason.pc);
+      const error = reason.error;
+      if (pc && error === 'offline' && states[pc.id]?.state !== 'online') {
+        list.push(pc.canWake
+          ? banner('warning', 'warning', t('notAnswering', pc.name || 'K-Desktop'), { icon: 'power', label: t('wake'), run: () => wakeSheet(pc.id, 'wake') })
+          : banner('warning', 'warning', t('notAnsweringNoWake', pc.name || 'K-Desktop')));
+      } else if (pc && error === 'off') {
+        list.push(banner('warning', 'power', t('wentOff', pc.name || 'K-Desktop')));
+      } else if (error && !['offline', 'off', 'restarting'].includes(error)) {
+        list.push(banner('error', 'warning', t('failed', error)));
+      }
+      box.replaceChildren(...list);
+    }
+
+    // ── the list ──
+
+    function renderList() {
+      $('list').replaceChildren(...pcs.map((pc, i) => card(pc, i)));
+    }
+
+    function card(pc, index) {
+      const c = el('article', 'card pc');
+      c.dataset.id = pc.id;
+      c.dataset.state = 'searching';
+      c.style.setProperty('--n', index);
+      const head = el('div', 'pc-head');
+      const icon = el('span', 'pc-icon');
+      icon.innerHTML = svg('monitor');
+      const text = el('div', 'pc-text');
+      text.append(el('b', '', pc.name || pc.addresses[0] || 'K-Desktop'));
+      const state = el('span', 'pc-state');
+      state.append(el('i'), el('span', '', t('searching')));
+      text.append(state);
+      const more = el('button', 'icon-btn');
+      more.innerHTML = svg('more');
+      more.title = t('rename');
+      more.setAttribute('aria-label', t('rename') + ' · ' + t('forget'));
+      more.addEventListener('click', () => optionsSheet(pc));
+      head.append(icon, text, more);
+
+      const addresses = el('div', 'pc-addresses');
+      for (const url of pc.addresses) addresses.append(addressRow(pc, url, null));
+
+      const actions = el('div', 'pc-actions');
+      const connect = el('button', 'btn primary');
+      connect.innerHTML = svg('link') + `<span>${t('connect')}</span>`;
+      connect.addEventListener('click', () => { navigator.vibrate?.(8); app?.connect(pc.id, ''); });
+      actions.append(connect);
+      if (pc.canWake) {
+        const wake = el('button', 'btn wake');
+        wake.innerHTML = svg('power') + `<span>${t('wake')}</span>`;
+        wake.addEventListener('click', () => wakeSheet(pc.id, 'wake'));
+        actions.append(wake);
+      }
+      c.append(head, addresses, actions);
+      return c;
+    }
+
+    function addressRow(pc, url, state) {
+      const row = el('button', 'addr');
+      row.dataset.url = url;
+      row.dataset.state = state ?? 'searching';
+      const local = /^https?:\/\/(localhost|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|[^/]+\.local[:/])/i.test(url);
+      row.append(el('span', 'a-kind', t(local ? 'local' : 'remote')), el('span', 'a-url', url.replace(/^https?:\/\//, '').replace(/\/$/, '')),
+        el('span', 'a-state', state ? t({ online: 'addrOnline', login: 'addrLogin', offline: 'addrOffline' }[state]) : '…'));
+      row.addEventListener('click', () => { navigator.vibrate?.(8); app?.connect(pc.id, url); });
+      return row;
+    }
+
+    function updateCard(id, state) {
+      const c = document.querySelector(`.pc[data-id="${CSS.escape(id)}"]`);
+      if (!c) return;
+      const s = state?.state ?? 'searching';
+      c.dataset.state = s;
+      c.querySelector('.pc-state span').textContent = t({ online: 'online', login: 'login', offline: 'offline', searching: 'searching' }[s]);
+      for (const a of state?.addresses ?? []) {
+        const row = [...c.querySelectorAll('.addr')].find(r => r.dataset.url === a.url);
+        if (!row) continue;
+        row.dataset.state = a.state;
+        row.querySelector('.a-state').textContent = t({ online: 'addrOnline', login: 'addrLogin', offline: 'addrOffline' }[a.state]);
+      }
+      // Off: waking it is what one wants; on: connecting.
+      const wake = c.querySelector('.btn.wake');
+      const connect = c.querySelector('.pc-actions .btn:first-child');
+      if (wake) {
+        wake.classList.toggle('primary', s === 'offline');
+        connect.classList.toggle('primary', s !== 'offline');
+      }
+    }
+
+    // ── sheets ──
+
+    function sheet(build) {
+      const back = el('div', 'sheet-back');
+      const box = el('div', 'sheet');
+      back.append(box);
+      const close = () => { back.remove(); };
+      back.addEventListener('click', e => { if (e.target === back) close(); });
+      build(box, close);
+      document.body.append(back);
+      return close;
+    }
+
+    function optionsSheet(pc) {
+      sheet((box, close) => {
+        box.append(el('h2', '', pc.name || 'K-Desktop'));
+        const group = el('div', 'group');
+        const row = (icon, label, run, danger) => {
+          const r = el('button', 'row row-button' + (danger ? ' danger' : ''));
+          r.innerHTML = `<span class="row-icon">${svg(icon)}</span><span class="row-label"></span>`;
+          r.querySelector('.row-label').textContent = label;
+          r.addEventListener('click', run);
+          return r;
+        };
+        group.append(row('edit', t('rename'), () => { close(); renameSheet(pc); }),
+          row('trash', t('forget'), () => { close(); forgetSheet(pc); }, true));
+        box.append(group);
+      });
+    }
+
+    function renameSheet(pc) {
+      sheet((box, close) => {
+        box.append(el('h2', '', t('renameTitle')));
+        const field = el('label', 'field');
+        const input = el('input');
+        input.value = pc.name;
+        input.maxLength = 60;
+        field.append(input);
+        const buttons = el('div', 'buttons');
+        const cancel = el('button', 'btn', t('cancel'));
+        const save = el('button', 'btn primary', t('save'));
+        cancel.addEventListener('click', close);
+        save.addEventListener('click', () => {
+          const name = input.value.trim();
+          if (!name) return;
+          app?.renamePc(pc.id, name);
+          close();
+          openList();
+        });
+        buttons.append(cancel, save);
+        box.append(field, buttons);
+        setTimeout(() => input.focus(), 250);
+      });
+    }
+
+    function forgetSheet(pc) {
+      sheet((box, close) => {
+        box.append(el('h2', '', t('forgetTitle', pc.name || 'K-Desktop')), el('p', '', t('forgetText')));
+        const buttons = el('div', 'buttons');
+        const cancel = el('button', 'btn', t('cancel'));
+        const forget = el('button', 'btn danger', t('forget'));
+        cancel.addEventListener('click', close);
+        forget.addEventListener('click', () => { app?.removePc(pc.id); close(); openList(); });
+        buttons.append(cancel, forget);
+        box.append(buttons);
+      });
+    }
+
+    /** «Encender» (or the wait after a restart): progress while it waits, and what was sent if it does not answer. */
+    let wakeClose = null;
+    function wakeSheet(id, kind) {
+      wakeClose?.();
+      const name = nameOf(id);
+      wakeClose = sheet((box, close) => {
+        box.classList.add('wake-sheet');
+        box.innerHTML = `<div class="wake-ring"><svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="42" pathLength="100"/>
+          <circle class="fill" cx="50" cy="50" r="42" pathLength="100"/></svg><span>${svg('power')}</span></div>`;
+        const title = el('h2', '', t(kind === 'restarting' ? 'restarting' : 'waking', name));
+        const detail = el('p', '', t('wakeWait', 0));
+        const sent = el('ul', 'sent');
+        sent.hidden = true;
+        const buttons = el('div', 'buttons');
+        const cancel = el('button', 'btn', t('cancel'));
+        cancel.addEventListener('click', () => { app?.cancelWake(); close(); });
+        buttons.append(cancel);
+        box.append(title, detail, sent, buttons);
+        box._parts = { title, detail, sent, buttons, cancel, ring: box.querySelector('.fill') };
+      });
+      const box = document.querySelector('.wake-sheet');
+      const parts = box._parts;
+      const wrapped = wakeClose;
+      wakeClose = () => { wrapped(); wakeClose = null; };
+      window.kdWake = (pcId, state) => {
+        if (pcId !== id || !document.body.contains(box)) return;
+        if (state.phase === 'sent' && state.packets !== undefined) box._sent = state;
+        if (state.phase === 'waiting') {
+          parts.detail.textContent = t('wakeWait', state.seconds);
+          parts.ring.style.strokeDasharray = `${Math.min(100, state.seconds / 120 * 100)} 100`;
+        }
+        if (state.phase === 'failed') {
+          navigator.vibrate?.([25, 40, 25]);
+          parts.title.textContent = t('wakeFailed', name);
+          parts.detail.hidden = true;
+          const s = box._sent ?? state;
+          const lines = [];
+          if (s.packets !== undefined) lines.push(t(s.packets > 0 ? 'sentPackets' : 'sentNoPackets'));
+          if (s.url) lines.push(t('sentUrl', s.url));
+          if (s.via) lines.push(t('sentVia', s.via));
+          parts.sent.replaceChildren(...lines.map(l => el('li', '', l)));
+          parts.sent.hidden = lines.length === 0;
+          parts.cancel.textContent = t('close');
+          const again = el('button', 'btn primary', t('tryAgain'));
+          again.addEventListener('click', () => { wakeClose?.(); wakeSheet(id, 'wake'); });
+          parts.buttons.append(again);
+        }
+      };
+      if (kind === 'wake') {
+        navigator.vibrate?.(12);
+        app?.wake(id);
+      }
+    }
+
+    // ── adding one ──
+
+    function openAdd() {
+      show('add');
+      $('addError').textContent = '';
+      history.pushState({ add: 1 }, '');
+      setTimeout(() => $('address').focus(), 300);
+    }
+    window.addEventListener('popstate', () => { if (!$('add').hidden) openList(); });
+    $('addButton').addEventListener('click', openAdd);
+    $('addMore').addEventListener('click', openAdd);
+    $('welcomeType').addEventListener('click', openAdd);
+    $('addBack').addEventListener('click', () => history.back());
+    $('refresh').addEventListener('click', () => { navigator.vibrate?.(6); reason = {}; renderBanners(); probe(); });
+    $('addForm').addEventListener('submit', e => {
       e.preventDefault();
-      const ok = app && app.setServer(input.value);
-      if (ok) return;
-      document.getElementById('error').textContent = t.bad;
-      const card = document.getElementById('form');
-      card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+      if (app?.addPc($('address').value)) return;
+      $('addError').textContent = t('bad');
+      const form = $('addForm');
+      form.classList.remove('shake'); void form.offsetWidth; form.classList.add('shake');
     });
-    if (!input.value && !params.get('connecting')) input.focus();
+
+    // ── the QR of K-Desktop (Settings › Web app › Pair a device): {address}#pair=CODE ──
+
+    const canScan = !!navigator.mediaDevices?.getUserMedia;
+    for (const b of document.querySelectorAll('.scan-button')) {
+      b.hidden = !canScan;
+      b.addEventListener('click', scan);
+    }
+
+    let jsQrLoading = null;
+    const loadJsQr = () => jsQrLoading ??= new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'jsqr.js';
+      s.onload = () => resolve(window.jsQR);
+      s.onerror = reject;
+      document.head.append(s);
+    });
+
+    async function scan() {
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+      } catch {
+        toast('error', t('noCamera'));
+        return;
+      }
+      const view = el('div', 'scan');
+      const video = el('video');
+      video.playsInline = true;
+      video.muted = true;
+      video.srcObject = stream;
+      const close = el('button', 'btn close', t('cancel'));
+      view.append(video, el('div', 'frame'), el('p', '', t('scanHint')), close);
+      document.body.append(view);
+      let done = false;
+      const stop = () => {
+        done = true;
+        for (const track of stream.getTracks()) track.stop();
+        view.remove();
+      };
+      close.addEventListener('click', stop);
+      await video.play().catch(() => {});
+
+      // Android's own reader when the web view has it; else jsQR on a small copy of each frame.
+      let detector = null;
+      try {
+        if ('BarcodeDetector' in window && (await BarcodeDetector.getSupportedFormats()).includes('qr_code'))
+          detector = new BarcodeDetector({ formats: ['qr_code'] });
+      } catch { detector = null; }
+      const jsQR = detector ? null : await loadJsQr().catch(() => null);
+      const canvas = document.createElement('canvas');
+      const g = canvas.getContext('2d', { willReadFrequently: true });
+      let lastBad = '';
+      const tick = async () => {
+        if (done) return;
+        let text = null;
+        try {
+          if (video.readyState >= 2) {
+            if (detector) text = (await detector.detect(video))[0]?.rawValue ?? null;
+            else if (jsQR) {
+              const scale = Math.min(1, 640 / Math.max(video.videoWidth, video.videoHeight));
+              canvas.width = Math.round(video.videoWidth * scale);
+              canvas.height = Math.round(video.videoHeight * scale);
+              g.drawImage(video, 0, 0, canvas.width, canvas.height);
+              text = jsQR(g.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height, { inversionAttempts: 'dontInvert' })?.data ?? null;
+            }
+          }
+        } catch { text = null; }
+        if (text) {
+          if (/^https?:\/\/\S+#(pair|link)=[A-Za-z0-9-]+$/i.test(text.trim())) {
+            navigator.vibrate?.(30);
+            stop();
+            app?.addPc(text.trim());
+            return;
+          }
+          if (text !== lastBad) {
+            lastBad = text;
+            navigator.vibrate?.([20, 40, 20]);
+            toast('error', t('notKd'));
+          }
+        }
+        setTimeout(tick, detector ? 150 : 220);
+      };
+      tick();
+    }
+
+    // ── toasts ──
+
+    function toast(kind, text) {
+      const box = $('toasts');
+      const tEl = el('div', 'toast ' + kind);
+      const ic = el('span', 'toast-icon');
+      ic.innerHTML = svg(kind === 'ok' ? 'ok' : 'error');
+      const body = el('div', 'toast-text');
+      body.append(el('b', '', text));
+      tEl.append(ic, body);
+      box.append(tEl);
+      setTimeout(() => { tEl.classList.add('out'); tEl.addEventListener('animationend', () => tEl.remove()); }, 2600);
+    }
+
+    // ── start: "connecting…" while the app looks for the PC, else the list ──
+
+    if (params.get('connecting')) {
+      loadPcs();
+      const pc = pcs.find(p => p.id === params.get('connecting'));
+      $('connectingTitle').textContent = pc?.name ? t('connecting', pc.name) : t('connectingAny');
+      $('connectingAddress').textContent = pc?.last || pc?.addresses?.[0] || '';
+      $('connectingPcs').addEventListener('click', () => app?.showPcs());
+      show('connecting');
+    } else {
+      openList();
+    }
   </script>
 </body>
 </html>

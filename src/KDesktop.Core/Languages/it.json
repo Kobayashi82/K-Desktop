@@ -890,7 +890,7 @@
   "pwa.inbox.empty": "Non c'è niente.",
   "pwa.inbox.background": "Messaggi con l'app chiusa",
   "pwa.inbox.backgroundHint": "Quello che invia il PC ti arriva anche con l'app chiusa. Android mostra una notifica fissa nel frattempo.",
-  "pwa.app.changeServer": "Cambia server",
+  "pwa.app.changeServer": "Cambia PC",
   "pwa.run.ok": "Fatto",
   "pwa.run.error": "Errore",
   "pwa.run.warning": "Avviso",

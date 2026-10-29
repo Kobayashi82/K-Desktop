@@ -95,6 +95,8 @@
   <Target Name="_AndroidSources">
     <ItemGroup>
       <_AndroidSources Include="$(_AndroidDir)**\*" />
+      <!-- The look its own pages share with the web app (copied into its assets) -->
+      <_AndroidSources Include="$(MSBuildThisFileDirectory)Web\kd.css" />
     </ItemGroup>
   </Target>
 

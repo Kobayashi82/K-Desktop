@@ -35,15 +35,13 @@ import java.nio.charset.StandardCharsets;
 /**
  * «Avisos con la app cerrada» (B11): keeps K-Desktop's event stream open in the background and, when the PC says
  * «inbox», fetches what it sent (api/inbox), shows each one as a notification and tells the PC it arrived. Android
- * requires a fixed notification while it runs. It uses the app's own token and the PC's addresses ({@link Addresses}):
+ * requires a fixed notification while it runs. It uses the current PC's token and addresses ({@link Pcs}, {@link Addresses}):
  * at home the PC's IP, away the proxy's address. Nothing goes through anybody's servers.
  */
 public class InboxService extends Service {
     static final String PREFS = "kdesktop";
     static final String KEY_INBOX = "inbox";
     private static final String KEY_PENDING = "inboxPending";
-    private static final String KEY_TOKEN = "token";
-    private static final String KEY_SERVER = "server";
     static final String ACTION_COPY = "net.kobayashi82.kdesktop.COPY";
     static final String ACTION_OPEN_INBOX = "net.kobayashi82.kdesktop.OPEN_INBOX";
     private static final String CHANNEL_LINK = "link";
@@ -148,16 +146,15 @@ public class InboxService extends Service {
     private void loop() {
         int delay = 5;
         while (running) {
-            SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
-            String token = prefs.getString(KEY_TOKEN, "");
-            String server = prefs.getString(KEY_SERVER, null);
-            if (token.isEmpty() || server == null) {
+            // The PC the app opens (its current one in the list of PCs).
+            Pcs.Pc pc = new Pcs(getSharedPreferences(PREFS, MODE_PRIVATE)).current();
+            String token = pc == null ? "" : pc.token;
+            if (pc == null || token.isEmpty()) {
                 update(getString(R.string.inbox_unpaired));
                 pause(60);
                 continue;
             }
-            Addresses addresses = new Addresses(prefs);
-            String address = addresses.pick(addresses.all(server));
+            String address = Addresses.pick(pc.candidates(), pc);
             if (address == null) {
                 update(getString(R.string.inbox_offline));
                 pause(delay);

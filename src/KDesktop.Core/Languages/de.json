@@ -890,7 +890,7 @@
   "pwa.inbox.empty": "Hier ist nichts.",
   "pwa.inbox.background": "Nachrichten bei geschlossener App",
   "pwa.inbox.backgroundHint": "Was der PC schickt, kommt auch bei geschlossener App an. Android zeigt so lange eine feste Benachrichtigung.",
-  "pwa.app.changeServer": "Server wechseln",
+  "pwa.app.changeServer": "PC wechseln",
   "pwa.run.ok": "Erledigt",
   "pwa.run.error": "Fehler",
   "pwa.run.warning": "Warnung",
