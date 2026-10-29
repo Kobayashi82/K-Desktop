@@ -58,6 +58,8 @@
     { "say": "is the NAS answering?", "expect": { "tool": "network_check" } },
     { "say": "what is my public IP?", "expect": { "tool": "network_check" } },
     { "say": "which windows do I have open?", "expect": { "tool": "list_windows" } },
+    { "say": "every time I leave the PC alone for ten minutes, lock it", "expect": { "tool": "create_event" } },
+    { "say": "when the battery drops below 20 percent let me know", "expect": { "tool": "create_event" } },
     { "say": "put Chrome and VS Code side by side", "expect": { "tool": "arrange_windows" } },
     { "say": "the game has frozen, force it to close", "expect": { "tool": ["end_process", "control_app"] } },
     { "say": "tell me when the download finishes", "expect": { "tool": "notify_when" } },

@@ -1,0 +1,10 @@
+{
+  "t": "madeEvent",
+  "id": "c-40",
+  "ok": true,
+  "eventId": "e7f3a2",
+  "name": "Al abrir steam: Modo juego, «dime cuánta batería tiene el mando»",
+  "summary": "Al abrir steam",
+  "runs": ["Modo juego", "«dime cuánta batería tiene el mando»"],
+  "programs": ["steam"]
+}

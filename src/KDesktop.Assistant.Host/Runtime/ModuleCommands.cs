@@ -31,6 +31,7 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
     private readonly ConcurrentDictionary<string, TaskCompletionSource<LogFoundMessage?>> _logs = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<UsageDoneMessage?>> _usages = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TaskCompletionSource<DiagnosedMessage?>> _diagnoses = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<MadeEventMessage?>> _events = new(StringComparer.Ordinal);
     private int _next;
 
     public Task<MatchedMessage?> MatchAsync(string text, CancellationToken cancellationToken) =>
@@ -110,6 +111,15 @@ internal sealed class ModuleCommands(KDesktopLink link) : ICommandBridge
     public void OnUsageDone(UsageDoneMessage done)
     {
         if (_usages.TryRemove(done.Id, out var waiting)) waiting.TrySetResult(done);
+    }
+
+    /// <summary>Makes or removes an event (create_event, B8).</summary>
+    public Task<MadeEventMessage?> MakeEventAsync(MakeEventMessage request, CancellationToken cancellationToken) =>
+        AskAsync(_events, id => request with { Id = id }, MatchWait, cancellationToken);
+
+    public void OnMadeEvent(MadeEventMessage made)
+    {
+        if (_events.TryRemove(made.Id, out var waiting)) waiting.TrySetResult(made);
     }
 
     public void OnDiagnosed(DiagnosedMessage diagnosed)

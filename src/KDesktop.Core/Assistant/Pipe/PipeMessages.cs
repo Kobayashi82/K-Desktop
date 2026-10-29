@@ -1002,6 +1002,62 @@ public sealed record DiagnosedMessage(string Id, bool Found, string Kind, string
     public override string Type => "diagnosed";
 }
 
+/// <summary>
+/// «Cuando abra Steam, pon el volumen al 30 %», «cada vez que conecte los cascos…» (B8, tool <c>create_event</c>): an
+/// event of any kind made and saved at once by an assistant (marked with who made it), or removed again (undo). K-Desktop
+/// builds it (<see cref="AssistantEvents"/>): the programs by their process, the commands by name, the order with what was
+/// approved, like <see cref="ScheduleMessage"/>. Answered with <see cref="MadeEventMessage"/>.
+/// </summary>
+/// <param name="Op"><c>add</c> (with <paramref name="Event"/>) or <c>remove</c> (<paramref name="Remove"/>: the id of one an assistant made).</param>
+public sealed record MakeEventMessage(string Id, string Op, string? Assistant = null, EventSpec? Event = null, string? Remove = null) : PipeMessage
+{
+    public override string Type => "makeEvent";
+}
+
+/// <summary>
+/// The event an assistant asks for, as the model gives it (every field optional; what does not apply to
+/// <paramref name="When"/> is ignored).
+/// </summary>
+/// <param name="When">What fires it: <see cref="AssistantEvents.Kinds"/>.</param>
+/// <param name="Time">time: <c>HH:mm</c>.</param>
+/// <param name="Days">time: <c>daily</c>, <c>workdays</c>, <c>weekend</c> or days of the week in English, with commas.</param>
+/// <param name="Date">time: <c>yyyy-MM-dd</c> (only that day).</param>
+/// <param name="Minutes">every, idle: minutes.</param>
+/// <param name="Programs">program_opens, program_in_front: the programs as the user names them.</param>
+/// <param name="What">file: created, changed, deleted, renamed or any; audio_device: connected or default; load: cpu, gpu, memory or vram.</param>
+/// <param name="Match">Part of a name: the network, the device, the drive, the screen; remote_call: the name to call it by.</param>
+/// <param name="Folder">file: the full path of the folder.</param>
+/// <param name="Filter">file: «*.pdf»…</param>
+/// <param name="Percent">load, battery: the threshold.</param>
+/// <param name="Above">load, battery: above (true) or below the threshold.</param>
+/// <param name="Offset">sunrise, sunset: minutes after (negative: before).</param>
+/// <param name="Commands">The user's commands to run, by name, in order.</param>
+/// <param name="EndCommands">Its «Al terminar» commands (triggers with an end).</param>
+/// <param name="Order">An order given then to the assistant, as if said («Pedir a un asistente»).</param>
+/// <param name="Tools">With <paramref name="Order"/>: the tools it will need, approved now.</param>
+/// <param name="Once">Deleted once it has run.</param>
+/// <param name="OnlyFrom">«Solo si»: from this time (<c>HH:mm</c>)…</param>
+/// <param name="OnlyTo">…to this one.</param>
+/// <param name="OnlyDays">«Solo si»: on these days (as <paramref name="Days"/>).</param>
+/// <param name="OnlyIfRunning">«Solo si»: while this program is open.</param>
+public sealed record EventSpec(string When, string? Name = null, string? Time = null, string? Days = null, string? Date = null, int? Minutes = null,
+    IReadOnlyList<string>? Programs = null, string? What = null, string? Match = null, string? Folder = null, string? Filter = null,
+    int? Percent = null, bool? Above = null, int? Offset = null, IReadOnlyList<string>? Commands = null, IReadOnlyList<string>? EndCommands = null,
+    string? Order = null, IReadOnlyList<string>? Tools = null, bool? Once = null, string? OnlyFrom = null, string? OnlyTo = null, string? OnlyDays = null,
+    string? OnlyIfRunning = null);
+
+/// <param name="EventId">The event made or removed.</param>
+/// <param name="Summary">add: when it fires, in the user's language («Al abrir steam»).</param>
+/// <param name="Runs">add: what it does, in the user's language (command names, the order).</param>
+/// <param name="Programs">add: the process names it watches (what «Steam» became).</param>
+/// <param name="Reason">When not done: <c>when</c>, <c>time</c>, <c>programs</c>, <c>folder</c>, <c>nothing</c> (nothing to run), <c>past</c>, <c>tooMany</c>, <c>notFound</c>.</param>
+/// <param name="Unknown">add: the commands named that the user does not have (left out).</param>
+public sealed record MadeEventMessage(string Id, bool Ok, string? EventId = null, string? Name = null, string? Summary = null, IReadOnlyList<string>? Runs = null,
+    IReadOnlyList<string>? Programs = null, string? Reason = null, IReadOnlyList<string>? Unknown = null) : PipeMessage
+{
+    public override string Type => "madeEvent";
+}
+
 /// <summary>Runs the commands of one of K-Desktop's events, found by its name. Answered with <see cref="EndMessage"/>.</summary>
 /// <param name="Shared">As in <see cref="RunMessage.Shared"/>.</param>
 public sealed record RunEventMessage(string Assistant, string Run, string Event, string? Scheduled = null, string? Shared = null) : PipeMessage
@@ -1231,6 +1287,8 @@ public static class PipeJson
         ["usageDone"] = typeof(UsageDoneMessage),
         ["diagnose"] = typeof(DiagnoseMessage),
         ["diagnosed"] = typeof(DiagnosedMessage),
+        ["makeEvent"] = typeof(MakeEventMessage),
+        ["madeEvent"] = typeof(MadeEventMessage),
         ["act"] = typeof(ActMessage),
         ["text"] = typeof(TextMessage),
         ["textDone"] = typeof(TextDoneMessage),

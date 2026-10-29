@@ -69,6 +69,9 @@ public interface ICommandBridge
 
     /// <summary>Why a command or an event does not work (B3). Without K-Desktop: null.</summary>
     Task<DiagnosedMessage?> DiagnoseAsync(string what, string? kind, CancellationToken cancellationToken) => Task.FromResult<DiagnosedMessage?>(null);
+
+    /// <summary>An event made and saved, or removed again (B8, <see cref="MakeEventMessage"/>; its id is put by the bridge). Without K-Desktop: null.</summary>
+    Task<MadeEventMessage?> MakeEventAsync(MakeEventMessage request, CancellationToken cancellationToken) => Task.FromResult<MadeEventMessage?>(null);
 }
 
 /// <summary>The command tools (stage 4.4), with the bridge to K-Desktop.</summary>
@@ -116,6 +119,7 @@ public static class CommandTools
         registry.Add(new ReadClipboardTool(bridge, vision, reader));
         registry.Add(new SetClipboardTool(bridge));
         registry.Add(new ScheduleTool(bridge, registry));
+        registry.Add(new CreateEventTool(bridge, registry));
         registry.Add(new ListScheduledTool(bridge, builtin));
         registry.Add(new CancelScheduledTool(bridge));
     }

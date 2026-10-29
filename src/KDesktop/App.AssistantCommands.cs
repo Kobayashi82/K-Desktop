@@ -45,6 +45,9 @@ public partial class App
             case ScheduleMessage schedule:
                 OnSchedule(supervisor, schedule);
                 return true;
+            case MakeEventMessage makeEvent:
+                OnMakeEvent(supervisor, makeEvent);
+                return true;
             case TextMessage text:
                 // Ctrl+C / Ctrl+V and the clipboard (transform_text): one at a time, off the pipe's thread.
                 lock (_windowGate)

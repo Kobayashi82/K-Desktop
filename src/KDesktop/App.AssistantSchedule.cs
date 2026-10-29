@@ -56,6 +56,20 @@ public partial class App
         return act ? _ => permit.AllowsActs : permit.Allows;
     }
 
+    /// <summary>Makes or removes an event of an assistant (create_event, B8), on the thread of the configuration.</summary>
+    private void OnMakeEvent(AssistantSupervisor supervisor, MakeEventMessage request) =>
+        _ = Dispatcher.InvokeAsync(() =>
+        {
+            MadeEventMessage done;
+            try { done = AssistantEvents.Handle(Config, request, DateTime.Now); }
+            catch (Exception ex)
+            {
+                Log.Error("Asistente: no se ha podido crear el evento", ex);
+                done = new MadeEventMessage(request.Id, false, Reason: "error");
+            }
+            supervisor.Send(done);
+        });
+
     /// <summary>Adds, lists or removes a programmed order, on the thread of the configuration (Eventos shows them).</summary>
     private void OnSchedule(AssistantSupervisor supervisor, ScheduleMessage request) =>
         _ = Dispatcher.InvokeAsync(() =>

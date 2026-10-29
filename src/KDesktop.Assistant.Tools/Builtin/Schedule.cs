@@ -33,7 +33,13 @@ public sealed class ScheduleTool(ICommandBridge bridge, ToolRegistry registry) :
     public ToolRisk RiskFor(JsonElement arguments)
     {
         var (tools, commands) = Split(arguments);
-        var risk = commands.Count > 0 ? ToolRisk.AskOnce : ToolRisk.Safe;
+        return RiskOf(registry, tools, commands.Count > 0);
+    }
+
+    /// <summary>The riskiest of what is approved for later (schedule, create_event): the tools named, and the user's commands as asking once.</summary>
+    public static ToolRisk RiskOf(ToolRegistry registry, IEnumerable<string> tools, bool commands)
+    {
+        var risk = commands ? ToolRisk.AskOnce : ToolRisk.Safe;
         foreach (var tool in tools.Select(registry.FindAny).OfType<ITool>().Where(t => !t.ReadsOnly))
         {
             var its = tool.AlwaysAsks ? ToolRisk.AskAlways : registry.RiskOf(tool);

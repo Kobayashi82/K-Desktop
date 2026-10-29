@@ -175,6 +175,12 @@ public sealed class BenchRunner(ToolRegistry tools, ToolChooser chooser, TimePro
         public Task<EndMessage?> ArrangeAsync(IReadOnlyList<string> apps, string? layout, int? monitor, string? assistant, CancellationToken cancellationToken) =>
             Pretend("arrange " + string.Join(", ", apps));
 
+        public Task<MadeEventMessage?> MakeEventAsync(MakeEventMessage request, CancellationToken cancellationToken)
+        {
+            lock (ran) ran.Add("event " + request.Event?.When);
+            return Task.FromResult<MadeEventMessage?>(new MadeEventMessage(request.Id, true, "bench", request.Event?.Name ?? "bench", request.Event?.When, request.Event?.Commands ?? []));
+        }
+
         private Task<EndMessage?> Pretend(string what)
         {
             lock (ran) ran.Add(what);

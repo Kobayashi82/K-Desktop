@@ -1,0 +1,16 @@
+{
+  "t": "makeEvent",
+  "id": "c-40",
+  "op": "add",
+  "assistant": "kobii",
+  "event": {
+    "when": "program_opens",
+    "programs": ["Steam"],
+    "commands": ["Modo juego"],
+    "endCommands": ["Modo normal"],
+    "order": "dime cuánta batería tiene el mando",
+    "tools": ["pc_status"],
+    "onlyFrom": "18:00",
+    "onlyTo": "23:59"
+  }
+}

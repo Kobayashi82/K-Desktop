@@ -11,6 +11,7 @@ public static class ToolActivities
     {
         ["run_command"] = AssistantActivity.Command,
         ["run_event"] = AssistantActivity.Command,
+        ["create_event"] = AssistantActivity.Command,
         ["stop_countdown"] = AssistantActivity.Command,
         ["find_command"] = AssistantActivity.Command,
         ["describe_command"] = AssistantActivity.Command,

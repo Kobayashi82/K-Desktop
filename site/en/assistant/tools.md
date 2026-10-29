@@ -18,7 +18,7 @@ Everything an assistant does shows in *Panel → Assistant → Activity* (its ow
 
 | Subject | Tools | For example |
 |---|---|---|
-| **Commands** | Run your commands · Find your commands · Explain a command · Check a command or event · Look at the log · See your statistics · Teach voice phrases · Run an event · Stop a countdown | «turn on game mode», «what does the backup command do?», «why didn't the eight o'clock event run?», «what failed yesterday?», «which command do I use the most?», «when I say telly run my TV command», «don't shut down the computer after all» |
+| **Commands** | Run your commands · Find your commands · Explain a command · Check a command or event · Look at the log · See your statistics · Teach voice phrases · Run an event · Create an event · Stop a countdown | «turn on game mode», «when I open Steam turn on game mode», «what does the backup command do?», «why didn't the eight o'clock event run?», «what failed yesterday?», «which command do I use the most?», «when I say telly run my TV command», «don't shut down the computer after all» |
 | **Time, reminders and maths** | Time and date · Timer · Cancel a timer · Program an order · See what is pending · Remove something programmed · Tell me when something happens · Stop watching · Date maths · Calculator | «remind me in half an hour», «at seven empty the recycle bin», «tell me when the download finishes», «how many days until christmas» |
 | **Notes and memory** | Save a note · Find notes · Change a note · Delete a note · Remember something about you · Forget a memory | «note that I have to buy milk», «remember that my boss is called Luis» |
 | **Files** | Find files · Open a file · Read a file · Delete a file · Move a file · Write a document · Copy a file · Create a folder · Compress into a ZIP · Extract a ZIP · Search your documents | «find the electricity bill pdf», «open the last thing I downloaded» |
@@ -33,6 +33,14 @@ Some details:
 - **Tell me when something happens** watches for a program closing or a window appearing, the processor or the graphics
   card calming down, a download finishing or a folder that stops changing. The assistant that set it says it when it
   happens.
+- **Create an event**: «when I open Steam turn on game mode», «if I leave the PC alone for 10 minutes, lock it», «every
+  time I connect the headphones tell me their battery», «when a pdf arrives in Downloads, let me know». It makes an
+  [event](../k-desktop/events.md) of any kind (a time, a program that opens or comes to the front, the PC left alone, locked
+  or waking up, a file in a folder, a USB stick, headphones, a controller or a screen, the network, the battery or the
+  processor above or below a %, sunrise or sunset, when K-Desktop starts…) and **saves it at once**: it runs your commands
+  (also when it ends, like when you close the program) or asks the assistant something, with an «Only if» of hours, days or
+  an open program if you say so. It asks like the riskiest thing it will do (your commands, once), says what it made, shows
+  in Events marked with the assistant that made it, and «undo» removes it.
 - **Program an order**: «at 19:00 check the weather, send it to me on Telegram and shut down the computer», «tomorrow at
   9…», «every day at 8…». It is kept as an [event](../k-desktop/events.md) that, at its time, gives the order to the
   assistant as if you said it then. What it will need is approved **when you ask** (it asks once, for the riskiest part,

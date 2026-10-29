@@ -19,7 +19,7 @@ Todo lo que hace un asistente sale en *Panel → Asistente → Actividad* (la su
 
 | Tema | Herramientas | Por ejemplo |
 |---|---|---|
-| **Comandos** | Ejecutar tus comandos · Buscar entre tus comandos · Explicar un comando · Revisar un comando o evento · Mirar el registro · Ver tus estadísticas · Enseñar frases de voz · Lanzar un evento · Parar una cuenta atrás | «pon el modo juego», «¿qué hace el comando de las copias?», «¿por qué no saltó el evento de las ocho?», «¿qué falló ayer?», «¿qué comando uso más?», «cuando diga la peli abre el comando de películas», «al final no apagues el ordenador» |
+| **Comandos** | Ejecutar tus comandos · Buscar entre tus comandos · Explicar un comando · Revisar un comando o evento · Mirar el registro · Ver tus estadísticas · Enseñar frases de voz · Lanzar un evento · Crear un evento · Parar una cuenta atrás | «pon el modo juego», «cuando abra Steam pon el modo juego», «¿qué hace el comando de las copias?», «¿por qué no saltó el evento de las ocho?», «¿qué falló ayer?», «¿qué comando uso más?», «cuando diga la peli abre el comando de películas», «al final no apagues el ordenador» |
 | **Hora, avisos y cuentas** | Hora y fecha · Temporizador · Quitar un temporizador · Programar una orden · Ver lo pendiente · Quitar algo programado · Avisar cuando pase algo · Dejar de vigilar · Cuentas con fechas · Calculadora | «avísame en media hora», «a las siete vacía la papelera», «avísame cuando termine la descarga», «cuántos días faltan para navidad» |
 | **Notas y memoria** | Apuntar una nota · Buscar en las notas · Cambiar una nota · Borrar una nota · Recordar algo de ti · Olvidar un recuerdo | «apunta que tengo que comprar leche», «recuerda que mi jefe se llama Luis» |
 | **Archivos** | Buscar archivos · Abrir un archivo · Leer un archivo · Borrar un archivo · Mover un archivo · Escribir un documento · Copiar un archivo · Crear una carpeta · Comprimir en ZIP · Descomprimir un ZIP · Buscar en tus documentos | «búscame el pdf de la factura de la luz», «abre lo último que descargué» |
@@ -33,6 +33,14 @@ Algunos detalles:
 
 - **Avisar cuando pase algo** vigila que se cierre un programa o aparezca una ventana, que se calmen el procesador o la
   gráfica, que acabe una descarga o que una carpeta deje de cambiar. Cuando pasa, lo dice el asistente que lo puso.
+- **Crear un evento**: «cuando abra Steam pon el modo juego», «si dejo el PC 10 minutos sin tocar, bloquéalo», «cada vez
+  que conecte los cascos dime su batería», «cuando llegue un pdf a Descargas, avísame». Hace un
+  [evento](../k-desktop/events.md) de cualquier tipo (una hora, un programa que se abre o pasa delante, el PC sin tocar,
+  bloqueado o al despertar, un archivo en una carpeta, un pendrive, unos cascos, un mando o una pantalla, la red, la batería
+  o el procesador por encima o por debajo de un %, amanecer o atardecer, al iniciar K-Desktop…) y **lo guarda ya**: ejecuta
+  tus comandos (también al terminar, como cuando cierras el programa) o le pide algo al asistente, con un «Solo si» de horas,
+  días o un programa abierto si se lo dices. Pregunta como lo más arriesgado que hará (tus comandos, una vez), dice qué ha
+  creado, sale en Eventos marcado con el asistente que lo hizo, y «deshaz» lo quita.
 - **Programar una orden**: «a las 19:00 mira el tiempo, mándamelo por Telegram y apaga el ordenador», «mañana a las 9…»,
   «todos los días a las 8…». Se guarda como un [evento](../k-desktop/events.md) que a su hora le pide la orden al
   asistente como si se la dijeras en ese momento. Lo que hará falta se aprueba **al pedírselo** (pregunta una vez, por lo
