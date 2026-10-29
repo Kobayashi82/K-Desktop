@@ -1019,6 +1019,16 @@ public partial class SettingsPage : UserControl
         if (sender is RadioButton { Tag: string tag } && int.TryParse(tag, System.Globalization.CultureInfo.InvariantCulture, out var fps)) _app.Config.Settings.VideoFps = fps;
     }
 
+    private void OnAnimationWidth(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: string tag } && int.TryParse(tag, System.Globalization.CultureInfo.InvariantCulture, out var width)) _app.Config.Settings.AnimationWidth = width;
+    }
+
+    private void OnAnimationFps(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton { Tag: string tag } && int.TryParse(tag, System.Globalization.CultureInfo.InvariantCulture, out var fps)) _app.Config.Settings.AnimationFps = fps;
+    }
+
     private void OnVideoQuality(object sender, RoutedEventArgs e)
     {
         if (sender is RadioButton { Tag: string tag } && Enum.TryParse<VideoQuality>(tag, out var quality)) _app.Config.Settings.VideoQuality = quality;
@@ -1050,6 +1060,8 @@ public partial class SettingsPage : UserControl
         Mark(RecordFormatPicker, s.RecordFormat.ToString());
         Mark(VideoFpsPicker, s.VideoFps >= 60 ? "60" : "30");
         Mark(VideoQualityPicker, s.VideoQuality.ToString());
+        Mark(AnimationWidthPicker, s.AnimationWidth is 480 or 800 ? s.AnimationWidth.ToString(System.Globalization.CultureInfo.InvariantCulture) : "0");
+        Mark(AnimationFpsPicker, s.AnimationFps is 10 or 20 ? s.AnimationFps.ToString(System.Globalization.CultureInfo.InvariantCulture) : "15");
         Mark(GestureButtonPicker, s.GestureButton.ToString());
     }
 

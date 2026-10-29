@@ -80,6 +80,7 @@ public static class Lookups
     public static IReadOnlyList<Option<RecordMode>> VideoModes { get; } = [.. RecordModes.Where(o => o.Value != RecordMode.SaveReplay)];
     public static IReadOnlyList<Option<CaptureArea>> VideoAreas { get; } = [.. CaptureAreas.Where(o => o.Value != CaptureArea.AllMonitors)];
     public static IReadOnlyList<Option<VideoSound>> VideoSounds { get; } = Enum<VideoSound>("enum.videoSound");
+    public static IReadOnlyList<Option<VideoFormat>> VideoFormats { get; } = Enum<VideoFormat>("enum.videoFormat");
 
     /// <summary>Zoom levels of the action «Lupa».</summary>
     private static IReadOnlyList<Option<double>> ZoomLevels { get; } =

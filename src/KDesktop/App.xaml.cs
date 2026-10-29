@@ -443,8 +443,9 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// <c>--video-test seconds out.mp4 [monitor|region|window] [audio] [60] [clicks]</c>: «Grabar vídeo» (F2) without the UI: the monitor
-    /// of the mouse, or a 640×360 region in its middle, for that long (logged); <c>clicks</c> marks made-up clicks (never the real mouse).
+    /// <c>--video-test seconds out.mp4 [monitor|region|window] [audio] [60] [clicks] [gif|webp]</c>: «Grabar vídeo» (F2) without the UI: the monitor
+    /// of the mouse, or a 640×360 region in its middle, for that long (logged); <c>clicks</c> marks made-up clicks (never the real mouse); <c>gif</c> / <c>webp</c>
+    /// make an animation at 15 fps, 800 wide at most.
     /// </summary>
     private static async Task VideoTestAsync(IReadOnlyList<string> args, string seconds)
     {
@@ -460,11 +461,16 @@ public partial class App : Application
                 : region
                 ? new VideoTarget(CaptureArea.Region, new ScreenRect(monitor.CenterX - 320, monitor.Top + monitor.Height / 2 - 180, 641, 361))
                 : new VideoTarget(CaptureArea.Monitor, monitor);
-            var options = new VideoOptions(args.Contains("60") ? 60 : 30, VideoQuality.Normal, true,
-                args.Contains("audio", StringComparer.OrdinalIgnoreCase) ? AudioSource.Output : null, Clicks: args.Contains("clicks", StringComparer.OrdinalIgnoreCase));
+            var format = args.Contains("gif", StringComparer.OrdinalIgnoreCase) ? VideoFormat.Gif
+                : args.Contains("webp", StringComparer.OrdinalIgnoreCase) ? VideoFormat.WebP : VideoFormat.Mp4;
+            var options = new VideoOptions(format != VideoFormat.Mp4 ? 15 : args.Contains("60") ? 60 : 30, VideoQuality.Normal, true,
+                args.Contains("audio", StringComparer.OrdinalIgnoreCase) ? AudioSource.Output : null, 1, args.Contains("clicks", StringComparer.OrdinalIgnoreCase),
+                format, format != VideoFormat.Mp4 ? 800 : 0);
             var recorder = ScreenRecorder.Start(target, output, options);
+            var limited = false;
+            recorder.LimitReached += () => limited = true;
             var until = DateTime.UtcNow.AddSeconds(double.Parse(seconds, System.Globalization.CultureInfo.InvariantCulture));
-            for (var i = 0; DateTime.UtcNow < until; i++)
+            for (var i = 0; DateTime.UtcNow < until && !limited; i++)
             {
                 if (options.Clicks)
                 {

@@ -37,16 +37,19 @@ public sealed partial class CommandEngine
         if (await VideoTargetAsync(a.Area, ctx).ConfigureAwait(false) is not { } target) throw new OperationCanceledException(); // cancelled
 
         var s = Config.Settings;
-        var sound = a.Sound switch
+        var animation = a.Format != VideoFormat.Mp4;
+        var sound = animation ? null : a.Sound switch
         {
             VideoSound.Output => AudioSource.Output,
             VideoSound.Microphone => AudioSource.Microphone,
             VideoSound.Both => AudioSource.Both,
             _ => (AudioSource?)null,
         };
-        var options = new VideoOptions(s.VideoFps, s.VideoQuality, s.VideoCursor, sound, RecordOptions.MicGain, s.VideoClicks);
+        var options = new VideoOptions(animation ? s.AnimationFps : s.VideoFps, s.VideoQuality, s.VideoCursor, sound, RecordOptions.MicGain, s.VideoClicks,
+            a.Format, animation ? s.AnimationWidth : 0);
+        var extension = a.Format switch { VideoFormat.Gif => ".gif", VideoFormat.WebP => ".webp", _ => ".mp4" };
         var front = ctx.Foreground.ProcessId == (uint)Environment.ProcessId ? ForegroundWindow.None : ctx.Foreground;
-        var path = NewFileNamed(FolderFor(a.Folder, s.VideoFolder, Environment.SpecialFolder.MyVideos), FileName(s.VideoName, DefaultVideoName, front, DateTime.Now), ".mp4");
+        var path = NewFileNamed(FolderFor(a.Folder, s.VideoFolder, Environment.SpecialFolder.MyVideos), FileName(s.VideoName, DefaultVideoName, front, DateTime.Now), extension);
         ScreenRecorder recorder;
         try
         {
@@ -64,8 +67,13 @@ public sealed partial class CommandEngine
             _ui.ShowOsd(Loc.T("osd.videoFailed"), OsdKind.Warning, look: OsdLook.Of("Video24"));
             _ = StopVideoAsync(showOsd: false);
         };
+        // A GIF or a WebP stops by itself at its limit, as if stopped by hand.
+        recorder.LimitReached += () => _ = StopVideoAsync(a.ShowOsd);
         var size = string.Create(CultureInfo.InvariantCulture, $"{target.Area.Width}×{target.Area.Height}");
-        _videoBar = _ui.ShowRecordingBar(() => size, () => _ = StopVideoAsync(showOsd: true), recorder.Pause);
+        Func<string> detail = animation
+            ? () => $"{size}  ·  {Loc.T($"enum.videoFormat.{a.Format}")}  ·  " + Loc.T("osd.videoLeft", Math.Max(0, (int)Math.Ceiling((ScreenRecorder.AnimationLimit - recorder.Length).TotalSeconds)))
+            : () => size;
+        _videoBar = _ui.ShowRecordingBar(detail, () => _ = StopVideoAsync(showOsd: true), recorder.Pause);
         VideoChanged?.Invoke();
     }
 
@@ -130,7 +138,8 @@ public sealed partial class CommandEngine
             if (showOsd)
             {
                 var shown = length.ToString(length.TotalHours >= 1 ? @"h\:mm\:ss" : @"m\:ss", CultureInfo.InvariantCulture);
-                _ui.ShowOsd(Loc.T("osd.videoSaved", Path.GetFileName(recorder.Path), shown), OsdKind.Success, look: OsdLook.Of("Video24"));
+                var message = Path.GetExtension(recorder.Path).Equals(".mp4", StringComparison.OrdinalIgnoreCase) ? "osd.videoSaved" : "osd.animationSaved";
+                _ui.ShowOsd(Loc.T(message, Path.GetFileName(recorder.Path), shown), OsdKind.Success, look: OsdLook.Of("Video24"));
             }
             return (recorder.Path, length);
         }

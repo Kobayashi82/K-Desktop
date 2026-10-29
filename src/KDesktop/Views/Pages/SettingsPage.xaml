@@ -1913,7 +1913,69 @@
                         <TextBlock VerticalAlignment="Center" Margin="0,0,20,0" Text="{l:Tr settings.videoClicks}" />
                         <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding VideoClicks}" AutomationProperties.Name="{l:Tr settings.videoClicks}" />
                     </Grid>
+                    <!-- GIF and animated WebP (F3): their size and frames -->
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.animationWidth}" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.animationWidthHint}" />
+                        </StackPanel>
+                        <UniformGrid x:Name="AnimationWidthPicker" Grid.Column="1" Rows="1" Margin="-5,0">
+                            <RadioButton Style="{StaticResource PickTile}" Tag="480" GroupName="AnimationWidth" Checked="OnAnimationWidth" AutomationProperties.Name="480">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Style="{StaticResource TileBig}" Text="480" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.animationWidth.480}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Style="{StaticResource PickTile}" Tag="800" GroupName="AnimationWidth" Checked="OnAnimationWidth" AutomationProperties.Name="800">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Style="{StaticResource TileBig}" Text="800" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.animationWidth.800}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Style="{StaticResource PickTile}" Tag="0" GroupName="AnimationWidth" Checked="OnAnimationWidth" AutomationProperties.Name="{l:Tr settings.animationWidth.0}">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Style="{StaticResource TileBig}" Text="1:1" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.animationWidth.0}" />
+                                </Grid>
+                            </RadioButton>
+                        </UniformGrid>
+                    </Grid>
+                    <Grid Style="{StaticResource SettingRow}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="270" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="{l:Tr settings.animationFps}" />
+                            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.animationFpsHint}" />
+                        </StackPanel>
+                        <UniformGrid x:Name="AnimationFpsPicker" Grid.Column="1" Rows="1" Margin="-5,0">
+                            <RadioButton Style="{StaticResource PickTile}" Tag="10" GroupName="AnimationFps" Checked="OnAnimationFps" AutomationProperties.Name="10">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Style="{StaticResource TileBig}" Text="10" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.animationFps.10}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Style="{StaticResource PickTile}" Tag="15" GroupName="AnimationFps" Checked="OnAnimationFps" AutomationProperties.Name="15">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Style="{StaticResource TileBig}" Text="15" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.videoFps.30}" />
+                                </Grid>
+                            </RadioButton>
+                            <RadioButton Style="{StaticResource PickTile}" Tag="20" GroupName="AnimationFps" Checked="OnAnimationFps" AutomationProperties.Name="20">
+                                <Grid>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Style="{StaticResource TileBig}" Text="20" />
+                                    <TextBlock Style="{StaticResource TileLabel}" Text="{l:Tr settings.videoFps.60}" />
+                                </Grid>
+                            </RadioButton>
+                        </UniformGrid>
+                    </Grid>
                     <TextBlock Style="{StaticResource Caption}" Margin="0,8,0,0" TextWrapping="Wrap" Text="{l:Tr settings.videoHint}" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,4,0,0" TextWrapping="Wrap" Text="{l:Tr settings.animationHint}" />
                 </StackPanel>
             </Border>
 

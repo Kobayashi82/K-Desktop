@@ -1590,8 +1590,6 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="16" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="16" />
-                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <StackPanel>
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.mode}" />
@@ -1601,7 +1599,19 @@
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.captureArea}" />
                     <ComboBox ItemsSource="{x:Static v:Lookups.VideoAreas}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Area}" />
                 </StackPanel>
-                <StackPanel x:Name="SoundRow" Grid.Column="4">
+            </Grid>
+            <!-- What it makes (F3): a video with its sound, or a GIF or a WebP without it -->
+            <Grid x:Name="FormatRow" Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.videoFormat}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.VideoFormats}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Format}" />
+                </StackPanel>
+                <StackPanel x:Name="SoundRow" Grid.Column="2">
                     <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.videoSound}" />
                     <ComboBox ItemsSource="{x:Static v:Lookups.VideoSounds}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Sound}" />
                 </StackPanel>
@@ -1622,6 +1632,12 @@
         <DataTemplate.Triggers>
             <DataTrigger Binding="{Binding Mode}" Value="Stop">
                 <Setter TargetName="AreaRow" Property="Visibility" Value="Hidden" />
+                <Setter TargetName="FormatRow" Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Format}" Value="Gif">
+                <Setter TargetName="SoundRow" Property="Visibility" Value="Hidden" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Format}" Value="WebP">
                 <Setter TargetName="SoundRow" Property="Visibility" Value="Hidden" />
             </DataTrigger>
         </DataTemplate.Triggers>

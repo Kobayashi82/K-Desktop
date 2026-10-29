@@ -28,7 +28,7 @@ there.
 |---|---|
 | **Multimedia** | Voice orders for music, videos and volume, and the volume step |
 | **Screenshots** | Folder (and **Open**), **file name** with date, time, program or window title, **format** (PNG, JPG with its quality, or WebP), **wait first** (to open a menu), **always copy**, **include the mouse pointer**, **camera sound** and a **flash** over what was taken |
-| **Screen recording** | Folder (and **Open**), **file name** (as in screenshots), **frames per second** (30 or 60), **quality** (low, normal or high) **record the mouse pointer** and **mark clicks with a circle** (yellow for the left button, blue for the others; it is in the video, not on the screen); it is encoded to MP4 (H.264) with the graphics card (see *Record video* in [Actions](actions.md)) |
+| **Screen recording** | Folder (and **Open**), **file name** (as in screenshots), **frames per second** (30 or 60), **quality** (low, normal or high) **record the mouse pointer** and **mark clicks with a circle** (yellow for the left button, blue for the others; it is in the video, not on the screen); it is encoded to MP4 (H.264) with the graphics card. For GIF and animated WebP: **maximum width** (480, 800 or real size; shrunk without distorting) and **frames per second** (10, 15 or 20) (see *Record video* in [Actions](actions.md)) |
 | **Audio recording** | Folder (and **Open**), **file name** (as in screenshots), **format** (WAV, MP3 or Opus: converted when it ends), **microphone volume** (only in recordings), **split long recordings** every so many minutes, and **Save what just played**, which keeps the last seconds in memory so *Record audio → Save what just played* can save them (nothing is written to disk) |
 
 ## Connections

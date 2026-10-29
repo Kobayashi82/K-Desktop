@@ -65,20 +65,14 @@ public sealed partial class ScreenRecorder
         lock (_lock)
         {
             if (_device is null) return;
-            if (_d2d is null)
-            {
-                _d2dFactory = D2D1.D2D1CreateFactory<ID2D1Factory1>(FactoryType.SingleThreaded);
-                using var dxgi = _device.QueryInterface<IDXGIDevice>();
-                _d2dDevice = _d2dFactory.CreateDevice(dxgi);
-                _d2d = _d2dDevice.CreateDeviceContext(DeviceContextOptions.None);
-                _clickBrush = _d2d.CreateSolidColorBrush(new Color4(1, 1, 1, 1));
-            }
+            var d2d = Direct2D();
+            _clickBrush ??= d2d.CreateSolidColorBrush(new Color4(1, 1, 1, 1));
             using var surface = texture.QueryInterface<IDXGISurface>();
-            using var bitmap = _d2d.CreateBitmapFromDxgiSurface(surface,
+            using var bitmap = d2d.CreateBitmapFromDxgiSurface(surface,
                 new BitmapProperties1(new Vortice.DCommon.PixelFormat(Format.B8G8R8A8_UNorm, Vortice.DCommon.AlphaMode.Premultiplied), 96, 96,
                     BitmapOptions.Target | BitmapOptions.CannotDraw));
-            _d2d.Target = bitmap;
-            _d2d.BeginDraw();
+            d2d.Target = bitmap;
+            d2d.BeginDraw();
             foreach (var click in showing)
             {
                 var t = (float)((due - click.At) / (double)ClickTicks);
@@ -90,17 +84,28 @@ public sealed partial class ScreenRecorder
                 var center = new Vector2(click.X - origin.Left, click.Y - origin.Top);
                 var ellipse = new Ellipse(center, radius, radius);
                 _clickBrush!.Color = new Color4(r, g, b, 0.35f * fade);
-                _d2d.FillEllipse(ellipse, _clickBrush);
+                d2d.FillEllipse(ellipse, _clickBrush);
                 _clickBrush.Color = new Color4(r, g, b, 0.9f * fade);
-                _d2d.DrawEllipse(ellipse, _clickBrush, 3 * _clickScale);
+                d2d.DrawEllipse(ellipse, _clickBrush, 3 * _clickScale);
             }
-            _d2d.EndDraw();
-            _d2d.Target = null;
+            d2d.EndDraw();
+            d2d.Target = null;
         }
+    }
+
+    /// <summary>Direct2D on the recorder's device (under <see cref="_lock"/>), made the first time it is needed.</summary>
+    private ID2D1DeviceContext Direct2D()
+    {
+        if (_d2d is not null) return _d2d;
+        _d2dFactory = D2D1.D2D1CreateFactory<ID2D1Factory1>(FactoryType.SingleThreaded);
+        using var dxgi = _device!.QueryInterface<IDXGIDevice>();
+        _d2dDevice = _d2dFactory.CreateDevice(dxgi);
+        return _d2d = _d2dDevice.CreateDeviceContext(DeviceContextOptions.None);
     }
 
     private void DisposeClicks()
     {
+        DisposeAnimation();
         _clickBrush?.Dispose();
         _clickBrush = null;
         _d2d?.Dispose();

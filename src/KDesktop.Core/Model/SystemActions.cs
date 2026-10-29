@@ -616,6 +616,9 @@ public partial class AudioRecordAction : CommandAction
 /// <summary>The sound of a video (F2): none, or what «Grabar audio» records.</summary>
 public enum VideoSound { None, Output, Microphone, Both }
 
+/// <summary>What «Grabar vídeo» makes: a video, or a short animation without sound (F3).</summary>
+public enum VideoFormat { Mp4, Gif, WebP }
+
 /// <summary>
 /// «Grabar vídeo» (F2): a region, the window in front or the monitor of the mouse, to an MP4 encoded by the graphics card,
 /// with a bar to pause and stop it (left out of the video); stopped with the same hotkey (Empezar / parar), the bar or the
@@ -626,6 +629,9 @@ public partial class VideoRecordAction : CommandAction
     [ObservableProperty] private RecordMode _mode = RecordMode.Toggle;
     [ObservableProperty] private CaptureArea _area = CaptureArea.Region;
     [ObservableProperty] private VideoSound _sound = VideoSound.Output;
+
+    /// <summary>MP4, or a GIF or animated WebP (no sound, up to 30 s, the size and frames of Settings › Grabación).</summary>
+    [ObservableProperty] private VideoFormat _format = VideoFormat.Mp4;
 
     /// <summary>Where it is saved; empty = Settings › Grabación (Videos\K-Desktop by default).</summary>
     [ObservableProperty] private string _folder = string.Empty;
@@ -640,7 +646,9 @@ public partial class VideoRecordAction : CommandAction
 
     public override string Summary => Mode == RecordMode.Stop
         ? Loc.T("enum.recordMode.Stop")
-        : $"{Loc.T($"enum.recordMode.{Mode}")}  ·  {Loc.T($"enum.captureArea.{Area}")}  ·  {Loc.T($"enum.videoSound.{Sound}")}";
+        : Format == VideoFormat.Mp4
+        ? $"{Loc.T($"enum.recordMode.{Mode}")}  ·  {Loc.T($"enum.captureArea.{Area}")}  ·  {Loc.T($"enum.videoSound.{Sound}")}"
+        : $"{Loc.T($"enum.recordMode.{Mode}")}  ·  {Loc.T($"enum.captureArea.{Area}")}  ·  {Loc.T($"enum.videoFormat.{Format}")}";
 }
 
 // ── Dictar ────────────────────────────────────────────────────────────────

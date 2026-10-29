@@ -21,8 +21,12 @@ namespace KDesktop.Core.Platform;
 /// <summary>What «Grabar vídeo» records: a region of a monitor, a window or a whole monitor (screen pixels).</summary>
 public sealed record VideoTarget(CaptureArea Kind, ScreenRect Area, IntPtr Window = default);
 
-/// <summary>How it records (Settings › Grabación); <paramref name="Clicks"/> marks the clicks on the video.</summary>
-public sealed record VideoOptions(int Fps = 30, VideoQuality Quality = VideoQuality.Normal, bool Cursor = true, AudioSource? Audio = null, float MicGain = 1, bool Clicks = false);
+/// <summary>
+/// How it records (Settings › Grabación); <paramref name="Clicks"/> marks the clicks on the video. A GIF or a WebP has no sound
+/// and is made <paramref name="MaxWidth"/> wide at most (0: as it is).
+/// </summary>
+public sealed record VideoOptions(int Fps = 30, VideoQuality Quality = VideoQuality.Normal, bool Cursor = true, AudioSource? Audio = null, float MicGain = 1,
+    bool Clicks = false, VideoFormat Format = VideoFormat.Mp4, int MaxWidth = 0);
 
 /// <summary>
 /// «Grabar vídeo» (F2): Windows.Graphics.Capture on Direct3D 11, the frames to an MP4 (H.264, and AAC with the sound of
@@ -78,14 +82,16 @@ public sealed partial class ScreenRecorder : IDisposable
     public bool IsPaused => _pausedAt is not null;
 
     /// <summary>What has been recorded so far (pauses left out).</summary>
-    public TimeSpan Length => Stopwatch.GetElapsedTime(0, RecordedTicks());
+    public TimeSpan Length => IsAnimation && _end is { } end
+        ? Stopwatch.GetElapsedTime(0, end)
+        : Stopwatch.GetElapsedTime(0, RecordedTicks());
 
     private ScreenRecorder(VideoTarget target, string path, VideoOptions options)
     {
         _target = target;
         _options = options;
         Path = path;
-        var fps = Math.Clamp(options.Fps, 10, 60);
+        var fps = Math.Clamp(options.Fps, 5, 60);
         _interval = Stopwatch.Frequency / fps;
         // H.264 wants even sizes.
         _width = Math.Max(16, target.Area.Width & ~1);
@@ -102,7 +108,7 @@ public sealed partial class ScreenRecorder : IDisposable
         }
     }
 
-    /// <summary>Starts recording <paramref name="target"/> into <paramref name="path"/> (.mp4).</summary>
+    /// <summary>Starts recording <paramref name="target"/> into <paramref name="path"/> (.mp4, or .gif / .webp as <see cref="VideoOptions.Format"/>).</summary>
     public static ScreenRecorder Start(VideoTarget target, string path, VideoOptions options)
     {
         var recorder = new ScreenRecorder(target, path, options);
@@ -151,6 +157,11 @@ public sealed partial class ScreenRecorder : IDisposable
         _session = _pool.CreateCaptureSession(_item);
         _session.IsCursorCaptureEnabled = _options.Cursor;
         CaptureItems.NoBorder(_session);
+        if (IsAnimation)
+        {
+            BeginAnimation();
+            return;
+        }
 
         if (_options.Audio is { } audio)
         {
@@ -403,8 +414,11 @@ public sealed partial class ScreenRecorder : IDisposable
         var length = Length;
         if (_pausedAt is not null) Pause(false);
         // The picture ends now, and the sound when it gets here (it comes a little behind); then the file is closed.
-        _end = RecordedTicks();
-        if (_transcode is not null && await Task.WhenAny(_transcode, Task.Delay(TimeSpan.FromSeconds(5))).ConfigureAwait(false) != _transcode)
+        _end ??= RecordedTicks();
+        if (IsAnimation) length = Length;
+        // A GIF or a WebP is encoded as it goes: what is left of it is waited for.
+        if (IsAnimation && _transcode is not null) await _transcode.ConfigureAwait(false);
+        else if (_transcode is not null && await Task.WhenAny(_transcode, Task.Delay(TimeSpan.FromSeconds(5))).ConfigureAwait(false) != _transcode)
             Log.Warn("Grabación de vídeo: el codificador no terminaba; se corta");
         _stopping = true;
         try { _session?.Dispose(); }

@@ -450,6 +450,10 @@ public partial class AppSettings : ObservableObject
     /// <summary>A circle on the video where the mouse is clicked.</summary>
     [ObservableProperty] private bool _videoClicks = true;
 
+    /// <summary>GIF and animated WebP (F3): the widest they are made (0: as recorded) and their frames per second.</summary>
+    [ObservableProperty] private int _animationWidth = 800;
+    [ObservableProperty] private int _animationFps = 15;
+
     /// <summary>The microphone's volume in recordings and the replay, in % (25–400); what the PC plays stays as it is.</summary>
     [ObservableProperty] private int _recordMicVolume = 100;
 
