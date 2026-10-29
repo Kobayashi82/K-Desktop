@@ -53,14 +53,15 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <Border x:Name="Badge" MinWidth="30" Height="26" Margin="0,0,12,0" Padding="8,0" CornerRadius="13" Background="{DynamicResource Kd.AccentSoft}"
-                                    VerticalAlignment="Center">
-                                <TextBlock VerticalAlignment="Center" FontFamily="Cascadia Mono, Consolas" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Kd.AccentText}">
+                            <Border Width="30" Height="30" Margin="0,0,12,0" CornerRadius="8" VerticalAlignment="Center" Background="{DynamicResource Kd.AccentSoft}">
+                                <ui:SymbolIcon Symbol="TextExpand24" FontSize="16" Foreground="{DynamicResource Kd.AccentText}" />
+                            </Border>
+                            <!-- As a command's row: what is typed as its name, what it writes under it, and where -->
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFillColorPrimaryBrush}">
                                     <Run Text="{Binding DataContext.SnippetPrefix, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=OneWay}" /><Run Text="{Binding Abbreviation, Mode=OneWay}" />
                                 </TextBlock>
-                            </Border>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding Preview}" FontSize="13" TextTrimming="CharacterEllipsis"
+                                <TextBlock Margin="0,1,0,0" Text="{Binding Preview}" FontSize="12" TextTrimming="CharacterEllipsis"
                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                 <!-- Where, as in K-Board: the first application, +N when there are more (tooltip: all of them) -->
                                 <v:InlineBadgePanel Margin="0,1,0,0">
@@ -109,7 +110,7 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <Border Width="60" Height="60" CornerRadius="30" VerticalAlignment="Top" Background="{DynamicResource Kd.AccentSoft}">
+                            <Border Width="60" Height="60" CornerRadius="10" VerticalAlignment="Top" Background="{DynamicResource Kd.AccentSoft}">
                                 <ui:SymbolIcon Symbol="TextExpand24" FontSize="28" Foreground="{DynamicResource Kd.AccentText}" />
                             </Border>
                             <StackPanel Grid.Column="1" Margin="16,0,0,0">
