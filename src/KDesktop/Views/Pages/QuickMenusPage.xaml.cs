@@ -106,7 +106,7 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
             ListContextMenu.Entry(Loc.T("common.duplicate"), SymbolRegular.Copy24, () => OnDuplicateMenu(row, new RoutedEventArgs())),
             ListContextMenu.Entry(Loc.T("commands.rename"), SymbolRegular.Rename24, FocusName),
             new Separator(),
-            ListContextMenu.Entry(Loc.T("common.delete"), SymbolRegular.Delete24, () => OnDeleteMenu(row, new RoutedEventArgs())));
+            ListContextMenu.Delete(() => OnDeleteMenu(row, new RoutedEventArgs())));
     }
 
     private void FocusName() => Dispatcher.BeginInvoke(() =>
@@ -917,7 +917,7 @@ public sealed partial class QuickMenusPage : UserControl, IDisposable
         menu.Items.Add(Item(Loc.T("qm.copy"), "Copy24", () => _clipboard = (row.Item, false), "Ctrl+C"));
         menu.Items.Add(Item(Loc.T("qm.paste"), "ClipboardPaste24", () => Paste(row.Column.List, index + 1), "Ctrl+V", _clipboard is not null));
         menu.Items.Add(new Separator());
-        menu.Items.Add(Item(Loc.T("common.delete"), "Delete24", () => Delete(row), "Supr"));
+        menu.Items.Add(ListContextMenu.Danger(Item(Loc.T("common.delete"), "Delete24", () => Delete(row), "Supr")));
 
         // Selecting may rebuild the rows, so anchor the menu to the page at the mouse position.
         menu.PlacementTarget = this;

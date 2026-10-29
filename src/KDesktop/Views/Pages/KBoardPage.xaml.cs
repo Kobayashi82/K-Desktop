@@ -145,7 +145,7 @@ public sealed partial class KBoardPage : UserControl, IDisposable
             ListContextMenu.Entry(profile.Active ? Loc.T("commands.disable") : Loc.T("commands.enable"),
                 profile.Active ? SymbolRegular.Prohibited24 : SymbolRegular.CheckmarkCircle24, () => profile.Active = !profile.Active),
             new Separator(),
-            ListContextMenu.Entry(Loc.T("common.delete"), SymbolRegular.Delete24, () => OnDelete(row, new RoutedEventArgs())));
+            ListContextMenu.Delete(() => OnDelete(row, new RoutedEventArgs())));
     }
 
     // ── name ─────────────────────────────────────────────────────────────
@@ -568,7 +568,7 @@ public sealed partial class KBoardPage : UserControl, IDisposable
             ListContextMenu.Entry(remap.Enabled ? Loc.T("commands.disable") : Loc.T("commands.enable"),
                 remap.Enabled ? SymbolRegular.Prohibited24 : SymbolRegular.CheckmarkCircle24, () => remap.Enabled = !remap.Enabled),
             new Separator(),
-            ListContextMenu.Entry(Loc.T("common.delete"), SymbolRegular.Delete24, () => DeleteRemap(remap)));
+            ListContextMenu.Delete(() => DeleteRemap(remap)));
     }
 
     private async void OnClearAll(object sender, RoutedEventArgs e)

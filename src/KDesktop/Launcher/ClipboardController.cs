@@ -379,7 +379,7 @@ public sealed class ClipboardController : IDisposable
             menu.Items.Add(Entry(Loc.T("clipboard.openFolder"), SymbolRegular.Folder24, () => OpenFolder(e)));
         menu.Items.Add(new Separator());
         menu.Items.Add(Entry(Loc.T(e.Pinned ? "clipboard.unpin" : "clipboard.pin"), e.Pinned ? SymbolRegular.PinOff24 : SymbolRegular.Pin24, () => TogglePin(item)));
-        menu.Items.Add(Entry(Loc.T("common.delete"), SymbolRegular.Delete24, () => Delete(item)));
+        menu.Items.Add(Views.ListContextMenu.Danger(Entry(Loc.T("common.delete"), SymbolRegular.Delete24, () => Delete(item))));
         _menuOpen = true;
         menu.Closed += (_, _) =>
         {

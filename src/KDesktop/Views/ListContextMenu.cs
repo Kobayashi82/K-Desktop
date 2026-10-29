@@ -38,6 +38,17 @@ internal static class ListContextMenu
         return item;
     }
 
+    /// <summary>«Eliminar», in red (the theme's danger colour), as in every right-click menu.</summary>
+    public static MenuItem Delete(Action click) => Danger(Entry(Core.Localization.Loc.T("common.delete"), SymbolRegular.Delete24, click));
+
+    /// <summary>Paints a menu entry (its text and its icon) in the danger colour.</summary>
+    public static MenuItem Danger(MenuItem item)
+    {
+        item.SetResourceReference(Control.ForegroundProperty, "Kd.Danger");
+        if (item.Icon is SymbolIcon icon) icon.SetResourceReference(Control.ForegroundProperty, "Kd.Danger");
+        return item;
+    }
+
     /// <summary>Opens a menu at the mouse with <paramref name="items"/> (menu items and separators).</summary>
     public static void Open(UIElement target, params Control[] items)
     {

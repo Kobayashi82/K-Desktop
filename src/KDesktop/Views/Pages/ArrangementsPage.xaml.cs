@@ -159,7 +159,7 @@ public sealed partial class ArrangementsPage : UserControl, IDisposable
                 NameBox.SelectAll();
             }),
             new Separator(),
-            ListContextMenu.Entry(Loc.T("common.delete"), SymbolRegular.Delete24, () => OnDelete(row, new RoutedEventArgs())));
+            ListContextMenu.Delete(() => OnDelete(row, new RoutedEventArgs())));
     }
 
     // ── name ─────────────────────────────────────────────────────────────

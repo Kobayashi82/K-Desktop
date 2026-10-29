@@ -488,7 +488,7 @@ public sealed partial class CommandsPage : UserControl, IDisposable
             ListContextMenu.Entry(cmd.Hidden ? Loc.T("commands.unhide") : Loc.T("commands.hide"),
                 cmd.Hidden ? SymbolRegular.Eye24 : SymbolRegular.EyeOff24, () => cmd.Hidden = !cmd.Hidden),
             new Separator(),
-            ListContextMenu.Entry(Loc.T("common.delete"), SymbolRegular.Delete24, () => OnDeleteCommand(this, e)));
+            ListContextMenu.Delete(() => OnDeleteCommand(this, e)));
     }
 
     private void OnCommandListKey(object sender, KeyEventArgs e)

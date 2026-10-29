@@ -298,7 +298,7 @@ public sealed partial class EventsPage : UserControl, IDisposable
             ListContextMenu.Entry(rule.Enabled ? Loc.T("commands.disable") : Loc.T("commands.enable"),
                 rule.Enabled ? SymbolRegular.Prohibited24 : SymbolRegular.CheckmarkCircle24, () => rule.Enabled = !rule.Enabled),
             new Separator(),
-            ListContextMenu.Entry(Loc.T("common.delete"), SymbolRegular.Delete24, () => OnDeleteEvent(this, e)));
+            ListContextMenu.Delete(() => OnDeleteEvent(this, e)));
     }
 
     private void OnEventListKey(object sender, KeyEventArgs e)

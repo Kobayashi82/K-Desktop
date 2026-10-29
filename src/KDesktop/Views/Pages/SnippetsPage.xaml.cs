@@ -188,7 +188,7 @@ public sealed partial class SnippetsPage : UserControl, IDisposable
         ListContextMenu.Open(row,
             ListContextMenu.Entry(Loc.T("common.duplicate"), SymbolRegular.Copy24, () => OnDuplicate(row, new RoutedEventArgs())),
             new Separator(),
-            ListContextMenu.Entry(Loc.T("common.delete"), SymbolRegular.Delete24, () => OnDelete(row, new RoutedEventArgs())));
+            ListContextMenu.Delete(() => OnDelete(row, new RoutedEventArgs())));
     }
 
     // ── abbreviation ─────────────────────────────────────────────────────
