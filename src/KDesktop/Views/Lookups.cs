@@ -68,6 +68,7 @@ public static class Lookups
     public static IReadOnlyList<Option<LoadResource>> LoadResources { get; } = Enum<LoadResource>("enum.loadResource");
     public static IReadOnlyList<Option<LoadComparison>> LoadComparisons { get; } = Enum<LoadComparison>("enum.loadComparison");
     public static IReadOnlyList<Option<CaptureArea>> CaptureAreas { get; } = Enum<CaptureArea>("enum.captureArea");
+    public static IReadOnlyList<Option<ColorFormat>> ColorFormats { get; } = Enum<ColorFormat>("enum.colorFormat");
 
     /// <summary>«Automático» and the languages with OCR installed in Windows (read when the editor opens: they can be added meanwhile).</summary>
     public static IReadOnlyList<Option<string>> OcrLanguages =>

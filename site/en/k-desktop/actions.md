@@ -47,6 +47,8 @@ Every action a command can run. Add them with *Add action* in the command editor
 |---|---|
 | **Screenshot** | Captures a region you pick with the mouse, the active window, a monitor or all of them; copies it, saves it and, if you want, opens it. |
 | **Copy text from the screen** | Reads the text of a region you pick with the mouse, the active window or a monitor and copies it. No AI: Windows' text recognition (OCR). If you cancel the region (Esc) or it finds no text, the rest of the command is not run. |
+| **Colour picker** | Freezes the screen with a magnifier by the mouse; a click copies the pixel's colour as `#1E90FF`, `rgb(30, 144, 255)` or `hsl(210, 100%, 56%)` (your choice). The arrows move the mouse one pixel and the wheel changes the zoom; Esc cancels and the rest of the command is not run. |
+| **Ruler** | Freezes the screen and measures in pixels: moving the mouse, the distance between the edges around it (up to where the colour changes); dragging, a box. A click copies «width × height»; Esc cancels. |
 | **Magnifier** | A lens (rectangular or round) that follows the mouse and enlarges what is around it, or the whole screen it is on. |
 | **Screen** | Turns the screens off (all or the ones you choose), changes the projection (Win + P), the brightness, or a monitor's resolution and refresh rate. |
 | **Windows theme** | Switches Windows and the apps to light or dark mode, or toggles between them. |
@@ -108,7 +110,7 @@ and the ones you can use show up; choose one with the arrows and put it with Ent
 | `{date}` and `{time}` | Today's date (2026-10-28) and the time (09:30:05). |
 | `{name}` | What an earlier action kept with **Save in a variable** and that name. |
 
-These give something: **Copy text from the screen** (the text read), **Web request** (the answer), **Assistant: ask** (the
+These give something: **Copy text from the screen** (the text read), **Colour picker** (the colour), **Ruler** (the size), **Web request** (the answer), **Assistant: ask** (the
 answer, except with *Say it*), **Record audio** (what is said, with *When it ends, transcribe it*), **Clipboard** (the text
 it leaves copied), **Screenshot** (the saved file) and **Run script** (what it writes, when *Wait until it finishes* is
 ticked and the window is *Hidden*; not in VBScript). These actions have the **Save in a variable** field: with a name

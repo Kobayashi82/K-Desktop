@@ -313,6 +313,12 @@ public sealed class UiServices(Dispatcher dispatcher, Func<AppSettings> settings
     public Task<Core.Platform.ScreenRect?> SelectRegionAsync(Core.Platform.BgraImage desktop, Core.Platform.ScreenRect bounds) =>
         dispatcher.Invoke(() => RegionSelector.SelectAsync(desktop, bounds));
 
+    public Task<Core.Platform.PixelColor?> PickColorAsync(Core.Platform.BgraImage desktop, Core.Platform.ScreenRect bounds, Core.Model.ColorFormat format) =>
+        dispatcher.Invoke(() => ScreenPicker.PickColorAsync(desktop, bounds, format));
+
+    public Task<(int Width, int Height)?> MeasureAsync(Core.Platform.BgraImage desktop, Core.Platform.ScreenRect bounds) =>
+        dispatcher.Invoke(() => ScreenPicker.MeasureAsync(desktop, bounds));
+
     public void FlashArea(Core.Platform.ScreenRect area) => dispatcher.BeginInvoke(() => CaptureFlash.Show(area));
 
     public bool SetClipboardText(string text) => dispatcher.Invoke(() =>

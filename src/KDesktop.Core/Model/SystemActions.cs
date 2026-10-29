@@ -526,6 +526,42 @@ public partial class ScreenTextAction : CommandAction
     }
 }
 
+// ── Cuentagotas y Regla ──────────────────────────────────────────────────
+
+/// <summary>How «Cuentagotas» writes the colour: «#1E90FF», «rgb(30, 144, 255)» or «hsl(210, 100%, 56%)».</summary>
+public enum ColorFormat { Hex, Rgb, Hsl }
+
+/// <summary>
+/// «Cuentagotas» (E3): the screen frozen with a magnifier next to the pointer; a click copies the colour of the pixel
+/// under it. Esc: the rest of the command is not run.
+/// </summary>
+public partial class ColorPickerAction : CommandAction
+{
+    [ObservableProperty] private ColorFormat _format = ColorFormat.Hex;
+    [ObservableProperty] private bool _showOsd = true;
+
+    /// <summary>The colour, as written.</summary>
+    public override bool GivesResult => true;
+
+    public override ActionKind Kind => ActionKind.ColorPicker;
+    public override string Summary => Loc.T($"enum.colorFormat.{Format}");
+}
+
+/// <summary>
+/// «Regla» (E3): the screen frozen; moving the pointer measures between the edges around it, dragging measures a box.
+/// A click copies «ancho × alto» in pixels. Esc: the rest of the command is not run.
+/// </summary>
+public partial class RulerAction : CommandAction
+{
+    [ObservableProperty] private bool _showOsd = true;
+
+    /// <summary>The size measured, «320 × 200».</summary>
+    public override bool GivesResult => true;
+
+    public override ActionKind Kind => ActionKind.Ruler;
+    public override string Summary => Loc.T("summary.ruler");
+}
+
 // ── Grabar audio ──────────────────────────────────────────────────────────
 
 /// <summary>What «Grabar audio» records: what the PC plays, the microphone, or both mixed.</summary>

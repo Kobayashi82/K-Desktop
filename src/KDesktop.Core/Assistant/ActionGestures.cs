@@ -84,7 +84,7 @@ public static class ActionGestures
         ActionKind.Display => Tray("display"),
 
         ActionKind.TopMost => [new(GestureKind.Mark)],
-        ActionKind.Screenshot or ActionKind.ScreenText => [new(GestureKind.Scan, Place: GesturePlace.None)],
+        ActionKind.Screenshot or ActionKind.ScreenText or ActionKind.ColorPicker or ActionKind.Ruler => [new(GestureKind.Scan, Place: GesturePlace.None)],
         ActionKind.Magnifier => [new(GestureKind.PointAt, Place: GesturePlace.Point)],
 
         ActionKind.Power => Say("power"),

@@ -136,6 +136,15 @@ public interface IUiServices
     /// </summary>
     Task<Platform.ScreenRect?> SelectRegionAsync(Platform.BgraImage desktop, Platform.ScreenRect bounds) => Task.FromResult<Platform.ScreenRect?>(null);
 
+    /// <summary>
+    /// «Cuentagotas»: <paramref name="desktop"/> frozen as in <see cref="SelectRegionAsync"/>, with a magnifier by the pointer
+    /// showing the colour in <paramref name="format"/>; the colour clicked, null when cancelled.
+    /// </summary>
+    Task<Platform.PixelColor?> PickColorAsync(Platform.BgraImage desktop, Platform.ScreenRect bounds, ColorFormat format) => Task.FromResult<Platform.PixelColor?>(null);
+
+    /// <summary>«Regla»: <paramref name="desktop"/> frozen; the size measured in pixels (between edges or a box dragged), null when cancelled.</summary>
+    Task<(int Width, int Height)?> MeasureAsync(Platform.BgraImage desktop, Platform.ScreenRect bounds) => Task.FromResult<(int Width, int Height)?>(null);
+
     /// <summary>A quick white flash over <paramref name="area"/> (screen pixels): a screenshot was taken.</summary>
     void FlashArea(Platform.ScreenRect area) { }
 }

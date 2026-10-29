@@ -115,6 +115,8 @@ public static partial class IconProvider
         ConditionAction => Kd("BranchFork24", "orange"),
         ScreenshotAction => Kd("Screenshot24", "sky"),
         ScreenTextAction => Kd("ScanText24", "sky"),
+        ColorPickerAction => Kd("Eyedropper24", "pink"),
+        RulerAction => Kd("Ruler24", "orange"),
         AudioRecordAction { Mode: RecordMode.SaveReplay } => Kd("History24", "red"),
         AudioRecordAction => Kd("MicPulse24", "red"),
         MagnifierAction => Kd("ZoomIn24", "indigo"),

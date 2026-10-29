@@ -48,6 +48,8 @@ orden.
 |---|---|
 | **Captura de pantalla** | Captura una zona que eliges con el ratón, la ventana activa, un monitor o todos; la copia, la guarda y, si quieres, la abre. |
 | **Copiar texto de la pantalla** | Lee el texto de una zona que eliges con el ratón, de la ventana activa o de un monitor, y lo copia. Sin IA: con el reconocimiento de texto de Windows (OCR). Si cancelas la zona (Esc) o no encuentra texto, el resto del comando no se ejecuta. |
+| **Cuentagotas** | Congela la pantalla con una lupa junto al ratón; un clic copia el color del píxel como `#1E90FF`, `rgb(30, 144, 255)` o `hsl(210, 100%, 56%)` (a elegir). Las flechas mueven el ratón un píxel y la rueda cambia el zoom; Esc cancela y el resto del comando no se ejecuta. |
+| **Regla** | Congela la pantalla y mide en píxeles: al mover el ratón, la distancia entre los bordes que tiene alrededor (hasta donde cambia el color); arrastrando, una caja. Un clic copia «ancho × alto»; Esc cancela. |
 | **Lupa** | Una lente (rectangular o redonda) que sigue al ratón y amplía lo que tiene alrededor, o toda la pantalla en la que está. |
 | **Pantalla** | Apaga las pantallas (todas o las que elijas), cambia la proyección (Win + P), el brillo, o la resolución y la frecuencia de un monitor. |
 | **Tema de Windows** | Pasa Windows y las aplicaciones a modo claro u oscuro, o alterna entre los dos. |
@@ -109,7 +111,7 @@ Escribe `{` en el campo y salen las que hay; con las flechas eliges una y con En
 | `{fecha}` y `{hora}` | La fecha de hoy (2026-10-28) y la hora (09:30:05). |
 | `{nombre}` | Lo que guardó una acción anterior con **Guardar en variable** y ese nombre. |
 
-Dan algo: **Copiar texto de la pantalla** (el texto leído), **Petición web** (la respuesta), **Asistente: preguntar** (la
+Dan algo: **Copiar texto de la pantalla** (el texto leído), **Cuentagotas** (el color), **Regla** (la medida), **Petición web** (la respuesta), **Asistente: preguntar** (la
 respuesta, salvo con *Decirla*), **Grabar audio** (lo que se dice, con *Al terminar, transcribir*), **Portapapeles** (el texto que
 deja copiado), **Captura de pantalla** (el archivo guardado) y **Ejecutar script** (lo que escribe, si se marca *Esperar a
 que termine* y la ventana es *Oculta*; no en VBScript). Estas acciones tienen el campo **Guardar en variable**: con un

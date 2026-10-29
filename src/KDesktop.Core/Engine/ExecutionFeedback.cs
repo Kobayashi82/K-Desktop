@@ -121,5 +121,7 @@ internal sealed class FeedbackUiServices(IUiServices inner) : IUiServices
     public bool SetClipboardImage(Platform.BgraImage image) => inner.SetClipboardImage(image);
     public void ShowClipboardHistory(ForegroundWindow previousForeground) => inner.ShowClipboardHistory(previousForeground);
     public Task<Platform.ScreenRect?> SelectRegionAsync(Platform.BgraImage desktop, Platform.ScreenRect bounds) => inner.SelectRegionAsync(desktop, bounds);
+    public Task<Platform.PixelColor?> PickColorAsync(Platform.BgraImage desktop, Platform.ScreenRect bounds, Model.ColorFormat format) => inner.PickColorAsync(desktop, bounds, format);
+    public Task<(int Width, int Height)?> MeasureAsync(Platform.BgraImage desktop, Platform.ScreenRect bounds) => inner.MeasureAsync(desktop, bounds);
     public void FlashArea(Platform.ScreenRect area) => inner.FlashArea(area);
 }

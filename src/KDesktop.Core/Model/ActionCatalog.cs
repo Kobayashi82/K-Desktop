@@ -43,6 +43,8 @@ public static class ActionCatalog
 
         new(ActionKind.Screenshot, "screen", "Screenshot24", () => new ScreenshotAction()),
         new(ActionKind.ScreenText, "screen", "ScanText24", () => new ScreenTextAction()),
+        new(ActionKind.ColorPicker, "screen", "Eyedropper24", () => new ColorPickerAction()),
+        new(ActionKind.Ruler, "screen", "Ruler24", () => new RulerAction()),
         new(ActionKind.Magnifier, "screen", "ZoomIn24", () => new MagnifierAction()),
         new(ActionKind.Display, "screen", "Desktop24", () => new DisplayAction()),
         new(ActionKind.WindowsTheme, "screen", "DarkTheme24", () => new WindowsThemeAction()),

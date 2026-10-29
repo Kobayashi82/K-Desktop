@@ -1554,6 +1554,33 @@
         </StackPanel>
     </DataTemplate>
 
+    <!-- ── Cuentagotas ─────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:ColorPickerAction}">
+        <StackPanel>
+            <Grid Style="{StaticResource EdRow}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource FieldLabel}" Text="{l:Tr editor.colorFormat}" />
+                    <ComboBox ItemsSource="{x:Static v:Lookups.ColorFormats}" DisplayMemberPath="Name" SelectedValuePath="Value" SelectedValue="{Binding Format}" />
+                </StackPanel>
+            </Grid>
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.colorPickerHint}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <!-- ── Regla ───────────────────────────────────────────────────────── -->
+    <DataTemplate DataType="{x:Type m:RulerAction}">
+        <StackPanel>
+            <CheckBox Style="{StaticResource EdCheck}" Content="{l:Tr editor.showOsd}" IsChecked="{Binding ShowOsd}" />
+            <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr editor.rulerHint}" />
+        </StackPanel>
+    </DataTemplate>
+
     <!-- ── Grabar audio ────────────────────────────────────────────────── -->
     <DataTemplate DataType="{x:Type m:AudioRecordAction}">
         <StackPanel>

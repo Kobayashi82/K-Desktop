@@ -181,6 +181,45 @@ public sealed partial class CommandEngine
             copied ? OsdKind.Success : OsdKind.Warning, look: OsdLook.Of("ScanText24"));
     }
 
+    // ── Cuentagotas y Regla ──────────────────────────────────────────────
+
+    /// <summary>The whole desktop as it is now, for the frozen screen of «Cuentagotas» and «Regla».</summary>
+    private static async Task<(BgraImage Image, ScreenRect Area)> FreezeAsync(ExecutionContext ctx)
+    {
+        // From the QuickMenu or the launcher: let them go away first.
+        if (ctx.FromPopup) await Task.Delay(250, ctx.Token).ConfigureAwait(false);
+        var area = ScreenCapture.VirtualScreen;
+        return (await Task.Run(() => ScreenCapture.Capture(area), ctx.Token).ConfigureAwait(false), area);
+    }
+
+    /// <summary>«Cuentagotas»: the colour clicked, copied and in {resultado}. Esc: the rest of the command is not run.</summary>
+    private async Task ColorPickerAsync(ColorPickerAction a, ExecutionContext ctx)
+    {
+        Gave(a, string.Empty);
+        var (image, area) = await FreezeAsync(ctx).ConfigureAwait(false);
+        if (await _ui.PickColorAsync(image, area, a.Format).ConfigureAwait(false) is not { } color) throw new OperationCanceledException();
+        var text = color.Format(a.Format);
+        Gave(a, text);
+        Log.Info($"Cuentagotas: {text}");
+        var copied = _ui.SetClipboardText(text);
+        if (a.ShowOsd || !copied)
+            _ui.ShowOsd(Loc.T(copied ? "osd.colorCopied" : "osd.copyBusy", text), copied ? OsdKind.Success : OsdKind.Warning, look: OsdLook.Of("Eyedropper24"));
+    }
+
+    /// <summary>«Regla»: «ancho × alto» of what was measured, copied and in {resultado}. Esc: the rest is not run.</summary>
+    private async Task RulerAsync(RulerAction a, ExecutionContext ctx)
+    {
+        Gave(a, string.Empty);
+        var (image, area) = await FreezeAsync(ctx).ConfigureAwait(false);
+        if (await _ui.MeasureAsync(image, area).ConfigureAwait(false) is not { } size) throw new OperationCanceledException();
+        var text = ScreenMeasure.Text(size.Width, size.Height);
+        Gave(a, text);
+        Log.Info($"Regla: {text}");
+        var copied = _ui.SetClipboardText(text);
+        if (a.ShowOsd || !copied)
+            _ui.ShowOsd(Loc.T(copied ? "osd.rulerCopied" : "osd.copyBusy", text), copied ? OsdKind.Success : OsdKind.Warning, look: OsdLook.Of("Ruler24"));
+    }
+
     /// <summary>The beginning of what was read, on one line, for the OSD.</summary>
     private static string Preview(string text)
     {

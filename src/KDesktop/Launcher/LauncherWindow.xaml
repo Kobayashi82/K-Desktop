@@ -135,7 +135,18 @@
 
             <ScrollViewer x:Name="Scroller" Grid.Row="2" MaxHeight="450" VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled" Focusable="False">
-                <ItemsControl x:Name="ResultsControl" ItemTemplate="{StaticResource ItemTemplate}" Focusable="False" />
+                <ItemsControl x:Name="ResultsControl" ItemTemplate="{StaticResource ItemTemplate}" Focusable="False">
+                    <!-- Room on the right for the scroll bar, which WPF-UI draws over the rows (only while it shows) -->
+                    <ItemsControl.Style>
+                        <Style TargetType="ItemsControl">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ComputedVerticalScrollBarVisibility, ElementName=Scroller}" Value="Visible">
+                                    <Setter Property="Margin" Value="0,0,12,0" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ItemsControl.Style>
+                </ItemsControl>
             </ScrollViewer>
 
             <TextBlock x:Name="EmptyText" Grid.Row="2" Margin="12,6,12,10" FontSize="12" TextWrapping="Wrap"

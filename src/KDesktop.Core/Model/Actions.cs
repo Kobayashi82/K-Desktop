@@ -16,7 +16,7 @@ public enum ActionKind
     Window, Clipboard, WakeOnLan, Display, PowerPlan, WindowsTheme, Radio, Condition,
     Screenshot, AudioRecord, Magnifier, Dictate, ScreenText,
     AssistantExtra, AssistantAsk, AssistantSay, AssistantBrain,
-    ShowNotification, Files, AudioInput, Media, KeepAwake, SendToPhone, AssistantChat, Arrangement,
+    ShowNotification, Files, AudioInput, Media, KeepAwake, SendToPhone, AssistantChat, Arrangement, ColorPicker, Ruler,
 }
 
 public enum WindowMode { Normal, Minimized, Maximized, Hidden }
@@ -80,6 +80,8 @@ public enum ScriptShell { Cmd, PowerShell, VBScript }
 [JsonDerivedType(typeof(MagnifierAction), "magnifier")]
 [JsonDerivedType(typeof(DictateAction), "dictate")]
 [JsonDerivedType(typeof(ScreenTextAction), "screenText")]
+[JsonDerivedType(typeof(ColorPickerAction), "colorPicker")]
+[JsonDerivedType(typeof(RulerAction), "ruler")]
 [JsonDerivedType(typeof(AssistantExtraAction), "assistantExtra")]
 [JsonDerivedType(typeof(AssistantAskAction), "assistantAsk")]
 [JsonDerivedType(typeof(AssistantSayAction), "assistantSay")]
