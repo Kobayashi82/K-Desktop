@@ -209,8 +209,20 @@ public static class PowerTools
 {
     private const uint ReasonPlanned = 0x80000000;
 
+    /// <summary>
+    /// The tests set it before anything runs: then nothing here switches the PC off, restarts it, puts it to sleep,
+    /// locks it or signs out, whatever asked for it (a test of the web API once shut down the PC it ran on). Also with
+    /// <c>KDESKTOP_NO_POWER</c> in the environment: the KDesktop.exe the tests start get it from them.
+    /// </summary>
+    public static bool Disabled { get; set; } = Environment.GetEnvironmentVariable("KDESKTOP_NO_POWER") is { Length: > 0 };
+
     public static void Execute(PowerMode mode)
     {
+        if (Disabled)
+        {
+            Log.Warn($"Energía: {mode} no se hace (desactivado en las pruebas)");
+            return;
+        }
         switch (mode)
         {
             case PowerMode.Lock:

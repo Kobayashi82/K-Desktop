@@ -617,6 +617,8 @@ public partial class App : Application
             Web.Start(new WebServerOptions(s.WebPort, WebServer.BasePathOf(s.WebPublicUrl), s.WebScope));
         else Web.Stop();
         Web.InputAllowed = s.WebInput;
+        Web.PowerAllowed = s.WebPower;
+        Web.RunPower ??= (mode, device) => WebServer.RunPowerAsync(Engine, mode, device);
         ApplyAssistant();
     }
 

@@ -30,7 +30,7 @@ public sealed partial class WebServer
         switch (request.Method, request.Path)
         {
             case ("GET", "/api/ping"):
-                await WriteJsonAsync(response, new { app = AppPaths.VersionName, machine = Environment.MachineName }).ConfigureAwait(false);
+                await WriteJsonAsync(response, new { app = AppPaths.VersionName, machine = Environment.MachineName, pc = Platform.PcIdentity.Id, api = ApiVersion }).ConfigureAwait(false);
                 return;
             case ("GET", "/api/i18n"):
                 await WriteJsonAsync(response, Texts(context.Request.QueryString["lang"])).ConfigureAwait(false);
@@ -71,12 +71,16 @@ public sealed partial class WebServer
                 {
                     app = AppPaths.VersionName,
                     version = AppPaths.FullVersion,
+                    api = ApiVersion,
+                    pc = Platform.PcIdentity.Id,
                     machine = Environment.MachineName,
                     device = new { device.Id, Name = trusted ? Loc.T("pwa.thisPc") : device.Name },
                     local = trusted,
                     input = InputAllowed,
                     voice = _host.VoiceReady,
                     assistants = AssistantsOn,
+                    power = PowerAllowed,
+                    wake = WakeInfo(context),
                     addresses = Addresses(),
                     android = AndroidApp.Current is { } apk ? new { apk.Version, apk.Code } : null,
                     cookie,
@@ -88,7 +92,7 @@ public sealed partial class WebServer
                 else await WriteJsonAsync(response, new { code = Devices.NewLinkCode(device) }).ConfigureAwait(false);
                 break;
             case ("GET", "/api/events"):
-                await EventsAsync(response).ConfigureAwait(false);
+                await EventsAsync(response, device).ConfigureAwait(false);
                 break;
             case ("GET", "/api/catalog"):
                 await WriteJsonAsync(response, _catalog.Build()).ConfigureAwait(false);
@@ -110,6 +114,12 @@ public sealed partial class WebServer
                 break;
             case ("POST", "/api/audio"):
                 await AudioChangeAsync(context).ConfigureAwait(false);
+                break;
+            case ("POST", "/api/power"):
+                await PowerAsync(context, device).ConfigureAwait(false);
+                break;
+            case ("POST", "/api/wake"):
+                await WakeAsync(context, device).ConfigureAwait(false);
                 break;
             case ("POST", "/api/logout"):
                 if (!trusted) Devices.Revoke(device.Id);

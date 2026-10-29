@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 
 namespace KDesktop.Core.Remote.Web;
 
@@ -9,18 +10,34 @@ public sealed partial class WebServer
     private const int MaxEventClients = 32;
     private static readonly TimeSpan KeepAlive = TimeSpan.FromSeconds(25);
 
-    /// <summary>Open "server-sent events" streams, one per device with the app open.</summary>
-    private readonly ConcurrentDictionary<HttpListenerResponse, SemaphoreSlim> _eventClients = new();
+    /// <summary>An open "server-sent events" stream: one per open web app, of the device it belongs to.</summary>
+    private sealed record EventClient(SemaphoreSlim Gate, string DeviceId);
+
+    private readonly ConcurrentDictionary<HttpListenerResponse, EventClient> _eventClients = new();
 
     /// <summary>Tells the open web apps that the commands or menus changed (they reload the catalog).</summary>
     public void NotifyCatalogChanged() => Broadcast("catalog");
 
-    private void Broadcast(string name)
+    /// <summary>An event with no data, to every open app.</summary>
+    private void Broadcast(string name) => Send(name, null, null);
+
+    /// <summary>An event with its data (JSON), to every open app.</summary>
+    private void Broadcast(string name, object data) => Send(name, data, null);
+
+    /// <summary>An event only for the apps open on one device (what that phone asked for).</summary>
+    internal void SendTo(string deviceId, string name, object? data) => Send(name, data, deviceId);
+
+    private void Send(string name, object? data, string? deviceId)
     {
         if (_eventClients.IsEmpty) return;
-        var bytes = Encoding.UTF8.GetBytes($"event: {name}\ndata: {{}}\n\n");
-        foreach (var (response, gate) in _eventClients) _ = WriteEventAsync(response, gate, bytes);
+        var json = data is null ? "{}" : JsonSerializer.Serialize(data, WebJson.Options);
+        var bytes = Encoding.UTF8.GetBytes($"event: {name}\ndata: {json}\n\n");
+        foreach (var (response, client) in _eventClients)
+            if (deviceId is null || client.DeviceId == deviceId) _ = WriteEventAsync(response, client.Gate, bytes);
     }
+
+    /// <summary>Whether a device has the app open now (its stream).</summary>
+    private bool Listening(string deviceId) => _eventClients.Values.Any(c => c.DeviceId == deviceId);
 
     private async Task WriteEventAsync(HttpListenerResponse response, SemaphoreSlim gate, byte[] bytes)
     {
@@ -39,7 +56,7 @@ public sealed partial class WebServer
     }
 
     /// <summary>GET api/events: keeps the response open and writes events (and a ping now and then).</summary>
-    private async Task EventsAsync(HttpListenerResponse response)
+    private async Task EventsAsync(HttpListenerResponse response, WebDevice device)
     {
         if (_eventClients.Count >= MaxEventClients)
         {
@@ -52,7 +69,7 @@ public sealed partial class WebServer
         response.SendChunked = true;
 
         var gate = new SemaphoreSlim(1, 1);
-        _eventClients[response] = gate;
+        _eventClients[response] = new EventClient(gate, device.Id);
         var token = _cts?.Token ?? CancellationToken.None;
         try
         {

@@ -12,6 +12,9 @@ internal static class TestSetup
     [ModuleInitializer]
     internal static void Init()
     {
+        // Never switch off, restart, sleep or lock the PC the tests run on: the KDesktop.exe they start inherit it.
+        Environment.SetEnvironmentVariable("KDESKTOP_NO_POWER", "1");
+        Core.Platform.PowerTools.Disabled = true;
         AppPaths.UseDataDir(Path.Combine(Path.GetTempPath(), "kdesktop-tests", Guid.NewGuid().ToString("N")[..8]));
         Core.Localization.Loc.Instance.Load("es");
     }

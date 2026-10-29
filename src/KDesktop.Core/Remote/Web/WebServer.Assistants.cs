@@ -1,6 +1,4 @@
 using System.Net;
-using System.Text;
-using System.Text.Json;
 using KDesktop.Core.Voice;
 
 namespace KDesktop.Core.Remote.Web;
@@ -79,12 +77,4 @@ public sealed partial class WebServer
     /// <summary>A voice order for an assistant (<c>voice?assistant=id</c>): it goes to it, not to the commands.</summary>
     private Task<RemoteVoiceResult> VoiceFor(string? assistant, float[] samples) =>
         assistant is { Length: > 0 } && _host.Assistants is { } assistants ? assistants.VoiceAsync(assistant, samples) : _host.VoiceAsync(samples);
-
-    private void Broadcast(string name, object data)
-    {
-        if (_eventClients.IsEmpty) return;
-        var json = JsonSerializer.Serialize(data, WebJson.Options);
-        var bytes = Encoding.UTF8.GetBytes($"event: {name}\ndata: {json}\n\n");
-        foreach (var (response, gate) in _eventClients) _ = WriteEventAsync(response, gate, bytes);
-    }
 }

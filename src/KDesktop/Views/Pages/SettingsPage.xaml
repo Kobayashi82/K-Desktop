@@ -1106,6 +1106,64 @@
                             </StackPanel>
                             <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding WebInput}" />
                         </Grid>
+                        <!-- Power from the phone: off, restart, sleep, lock, and waking it while it is off -->
+                        <Grid Style="{StaticResource SettingRow}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                <TextBlock Text="{l:Tr settings.webPower}" />
+                                <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webPowerHint}" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <ui:ToggleSwitch Grid.Column="1" IsChecked="{Binding WebPower}" AutomationProperties.Name="{l:Tr settings.webPower}" />
+                        </Grid>
+                        <StackPanel IsEnabled="{Binding WebPower}">
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                    <TextBlock Text="{l:Tr settings.webWakeCheck}" />
+                                    <TextBlock x:Name="WakeCheckText" Style="{StaticResource Caption}" Text="{l:Tr settings.webWakeCheckHint}" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <ui:Button x:Name="WakeCheckButton" Grid.Column="1" MinHeight="36" Content="{l:Tr settings.webWakeCheckButton}" Icon="{ui:SymbolIcon ShieldCheckmark24}" Click="OnCheckWake" />
+                            </Grid>
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="380" /></Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                    <TextBlock Text="{l:Tr settings.webWakeUrl}" />
+                                    <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webWakeUrlHint}" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <Grid Grid.Column="1" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="90" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                    <ComboBox SelectedValuePath="Content" SelectedValue="{Binding WebWakeMethod}" AutomationProperties.Name="{l:Tr settings.webWakeMethod}">
+                                        <ComboBoxItem Content="POST" />
+                                        <ComboBoxItem Content="GET" />
+                                    </ComboBox>
+                                    <ui:TextBox Grid.Column="1" Margin="8,0,0,0" Height="36" VerticalContentAlignment="Center" PlaceholderText="https://wol.example.com/wol"
+                                                Text="{Binding WebWakeUrl, UpdateSourceTrigger=LostFocus}" AutomationProperties.Name="{l:Tr settings.webWakeUrl}" />
+                                </Grid>
+                            </Grid>
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="380" /></Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                    <TextBlock Text="{l:Tr settings.webWakeBody}" />
+                                    <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webWakeBodyHint}" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <ui:TextBox Grid.Column="1" Height="36" VerticalAlignment="Center" VerticalContentAlignment="Center" PlaceholderText="{}{&quot;mac&quot;: &quot;{mac}&quot;}"
+                                            Text="{Binding WebWakeBody, UpdateSourceTrigger=LostFocus}" AutomationProperties.Name="{l:Tr settings.webWakeBody}" />
+                            </Grid>
+                            <Grid Style="{StaticResource SettingRow}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="380" /></Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
+                                    <TextBlock Text="{l:Tr settings.webWakeHeader}" />
+                                    <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.webWakeHeaderHint}" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <Grid Grid.Column="1" VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="140" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                    <ui:TextBox Height="36" VerticalContentAlignment="Center" PlaceholderText="Authorization" Text="{Binding WebWakeHeaderName, UpdateSourceTrigger=LostFocus}"
+                                                AutomationProperties.Name="{l:Tr settings.webWakeHeader}" />
+                                    <ui:PasswordBox Grid.Column="1" Margin="8,0,0,0" PlaceholderText="{l:Tr editor.httpHeaderValue}"
+                                                    Password="{Binding WebWakeHeaderValue, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" AutomationProperties.Name="{l:Tr editor.httpHeaderValue}" />
+                                </Grid>
+                            </Grid>
+                        </StackPanel>
                         <Grid Style="{StaticResource SettingRow}">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                             <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">

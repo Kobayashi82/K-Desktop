@@ -590,6 +590,31 @@ public partial class SettingsPage : UserControl
         ProcessLauncher.Launch(new LaunchSpec(url), asAdmin: false);
     }
 
+    /// <summary>
+    /// «Comprobar»: whether a card of this PC may wake it (Windows' wake_armed list) and whether the fast start-up is on
+    /// (from «Apagar» many cards don't wake it then). The answer replaces the hint under the title.
+    /// </summary>
+    private async void OnCheckWake(object sender, RoutedEventArgs e)
+    {
+        WakeCheckButton.IsEnabled = false;
+        try
+        {
+            var (adapters, armed, fast) = await Task.Run(() => (WakeSetup.Adapters(), WakeSetup.WakeArmed(), WakeSetup.FastStartup()));
+            var lines = new List<string>();
+            var ready = adapters.Where(a => WakeSetup.IsArmed(a, armed)).ToList();
+            if (adapters.Count == 0) lines.Add(Loc.T("settings.webWakeNoCard"));
+            else if (ready.Count == 0) lines.Add(Loc.T("settings.webWakeNotArmed", adapters[0].Name));
+            else
+            {
+                lines.Add(Loc.T("settings.webWakeArmed", ready[0].Name, ready[0].Mac));
+                if (!ready[0].Wired) lines.Add(Loc.T("settings.webWakeWifi"));
+            }
+            if (fast) lines.Add(Loc.T("settings.webWakeFastStartup"));
+            WakeCheckText.Text = string.Join("\n", lines);
+        }
+        finally { WakeCheckButton.IsEnabled = true; }
+    }
+
     // ── Android app ──────────────────────────────────────────────────────
 
     /// <summary>The Android app this build carries: its version, and the button to save a copy.</summary>

@@ -753,6 +753,41 @@ public partial class AppSettings : ObservableObject
     [ObservableProperty] private bool _webInput = true;
 
     /// <summary>
+    /// The web app may switch the PC off, restart it, put it to sleep or lock it, and it gets what it needs to wake it
+    /// (the address below, with its header). Off by default.
+    /// </summary>
+    [ObservableProperty] private bool _webPower;
+
+    /// <summary>
+    /// «Encender mediante URL»: an address that wakes this PC while it is off (a Raspberry of the house that sends the
+    /// magic packet…), called by the phone app from anywhere. <c>{mac}</c> in it or in the body becomes the PC's MAC.
+    /// </summary>
+    [ObservableProperty] private string _webWakeUrl = string.Empty;
+
+    /// <summary>GET or POST.</summary>
+    [ObservableProperty] private string _webWakeMethod = "POST";
+
+    [ObservableProperty] private string _webWakeBody = string.Empty;
+
+    /// <summary>A header for that address (<c>Authorization</c>…); its value is kept encrypted (DPAPI).</summary>
+    [ObservableProperty] private string _webWakeHeaderName = "Authorization";
+
+    [ObservableProperty]
+    [property: JsonIgnore] private string _webWakeHeaderValue = string.Empty;
+
+    [JsonPropertyName("webWakeHeaderProtected")]
+    public string? WebWakeHeaderProtected
+    {
+        get => WebWakeHeaderValue.Length > 0 ? Platform.Secrets.Protect(WebWakeHeaderValue) : null;
+        set
+        {
+            if (string.IsNullOrEmpty(value)) return;
+            if (Platform.Secrets.Unprotect(value) is { } plain) WebWakeHeaderValue = plain;
+            else Log.Warn("No se puede descifrar la cabecera de «Encender mediante URL» (se guardó en otro PC o con otro usuario)");
+        }
+    }
+
+    /// <summary>
     /// A browser on this same PC must be paired too: otherwise any program of the PC could run commands through the
     /// API. «Abrir en el navegador» pairs it by itself.
     /// </summary>
