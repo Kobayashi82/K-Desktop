@@ -1715,7 +1715,7 @@
   "snippets.enabled": "Escribir al teclear",
   "snippets.enabledHint": "Al teclear una abreviatura en cualquier programa, se cambia por su texto",
   "snippets.prefix": "Prefijo",
-  "snippets.prefixHint": "Va delante de cada abreviatura, para que no salte al escribir normal",
+  "snippets.prefixHint": "Va delante de cada abreviatura.",
   "snippets.search": "Buscar texto…",
   "snippets.new": "Nuevo texto",
   "snippets.newAbbreviation": "texto",

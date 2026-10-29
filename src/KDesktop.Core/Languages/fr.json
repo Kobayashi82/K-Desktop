@@ -1715,7 +1715,7 @@
   "snippets.enabled": "Écrire en tapant",
   "snippets.enabledHint": "Taper une abréviation dans n’importe quel programme la remplace par son texte",
   "snippets.prefix": "Préfixe",
-  "snippets.prefixHint": "Se met devant chaque abréviation, pour qu’elle ne se déclenche pas en écrivant normalement",
+  "snippets.prefixHint": "Se met devant chaque abréviation.",
   "snippets.search": "Rechercher un texte…",
   "snippets.new": "Nouveau texte",
   "snippets.newAbbreviation": "texte",

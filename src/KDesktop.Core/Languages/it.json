@@ -1715,7 +1715,7 @@
   "snippets.enabled": "Scrivi mentre digiti",
   "snippets.enabledHint": "Digitando un’abbreviazione in qualsiasi programma, viene sostituita dal suo testo",
   "snippets.prefix": "Prefisso",
-  "snippets.prefixHint": "Va davanti a ogni abbreviazione, così scrivendo normalmente non scatta",
+  "snippets.prefixHint": "Va davanti a ogni abbreviazione.",
   "snippets.search": "Cerca testo…",
   "snippets.new": "Nuovo testo",
   "snippets.newAbbreviation": "testo",

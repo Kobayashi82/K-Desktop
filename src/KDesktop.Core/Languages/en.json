@@ -1715,7 +1715,7 @@
   "snippets.enabled": "Write as you type",
   "snippets.enabledHint": "Typing an abbreviation in any program replaces it with its text",
   "snippets.prefix": "Prefix",
-  "snippets.prefixHint": "Goes before every abbreviation, so normal writing never sets one off",
+  "snippets.prefixHint": "Goes before every abbreviation.",
   "snippets.search": "Search texts…",
   "snippets.new": "New text",
   "snippets.newAbbreviation": "text",

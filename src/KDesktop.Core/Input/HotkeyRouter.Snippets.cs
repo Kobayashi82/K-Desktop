@@ -145,7 +145,8 @@ public sealed partial class HotkeyRouter
     [DllImport("user32.dll")]
     private static extern uint MapVirtualKeyEx(uint code, uint type, IntPtr layout);
 
-    [DllImport("user32.dll")]
+    // Unicode: without it the buffer goes as one byte per char and Windows writes two past its end (heap corruption).
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern int ToUnicodeEx(uint vk, uint scan, byte[] state, [Out] char[] buffer, int size, uint flags, IntPtr layout);
 
     [DllImport("shell32.dll")]

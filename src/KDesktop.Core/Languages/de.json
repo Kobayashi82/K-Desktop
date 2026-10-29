@@ -1715,7 +1715,7 @@
   "snippets.enabled": "Beim Tippen schreiben",
   "snippets.enabledHint": "Eine in einem beliebigen Programm getippte Abkürzung wird durch ihren Text ersetzt",
   "snippets.prefix": "Präfix",
-  "snippets.prefixHint": "Steht vor jeder Abkürzung, damit beim normalen Schreiben keine ausgelöst wird",
+  "snippets.prefixHint": "Steht vor jeder Abkürzung.",
   "snippets.search": "Texte suchen…",
   "snippets.new": "Neuer Text",
   "snippets.newAbbreviation": "text",

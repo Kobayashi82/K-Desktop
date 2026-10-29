@@ -30,6 +30,26 @@ public class TextSnippetsTests
         Assert.Equal("FIRMA", typed);
     }
 
+    /// <summary>
+    /// 5.0.355: the hook reads each key's character with ToUnicodeEx; its buffer went as ANSI and Windows wrote past it
+    /// (heap corruption: K-Desktop closed when typing with a text without prefix). Nothing is sent to the system here: the
+    /// hook's handler is called directly and nobody listens to what it finds.
+    /// </summary>
+    [Fact]
+    public void TheHookReadsTypedKeysWithoutBreakingMemory()
+    {
+        using var router = new HotkeyRouter();
+        router.UpdateSnippets(new SnippetIndex([Snippet("hola")], "", []));
+        for (var i = 0; i < 20_000; i++)
+            foreach (var vk in "HOLA ")
+            {
+                router.OnKey(new KeyboardInput(vk, true, false, false));
+                router.OnKey(new KeyboardInput(vk, false, false, false));
+            }
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+    }
+
     [Fact]
     public void WithoutAPrefixOnlyWholeWordsGoOff()
     {
