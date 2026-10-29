@@ -88,6 +88,8 @@ public partial class GestureDialog : FluentWindow
                 HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, ToolTip = Loc.T("common.delete"),
                 Content = new SymbolIcon { Symbol = SymbolRegular.Delete24, FontSize = 12 },
             };
+            // Red as every trash can; the button too, or the tile (a radio button) passes its own colour on to the icon.
+            remove.SetResourceReference(ForegroundProperty, "Kd.Danger");
             ((SymbolIcon)remove.Content).SetResourceReference(SymbolIcon.ForegroundProperty, "Kd.Danger");
             System.Windows.Automation.AutomationProperties.SetName(remove, Loc.T("common.delete") + " " + name);
             remove.Click += (_, e) =>

@@ -91,11 +91,11 @@ public sealed class GestureTrail
         private readonly Canvas _canvas = new();
         // A stroke of light (5.0.387): a blurred halo, the stroke thin at the tail and thick at the tip in pieces, a light
         // core, and a spark at the tip.
-        private const int Pieces = 14;
-        private const double Tail = 1.5, Tip = 7;
+        private const int Pieces = 32;
+        private const double Tail = 2, Tip = 7.5;
         private readonly Polyline _halo = Stroke(16, 0.5);
         private readonly Canvas _pieces = new();
-        private readonly Polyline _core = Stroke(1.6, 0.85);
+        private readonly Polyline _core = Stroke(2.4, 0.6);
         private readonly Ellipse _glow = new() { Width = 30, Height = 30 };
         private readonly Ellipse _spark = new() { Width = 7, Height = 7, Fill = Brushes.White };
         private readonly Brush _accent;
@@ -184,13 +184,19 @@ public sealed class GestureTrail
             StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round,
         };
 
-        /// <summary>The points without the ones a pixel apart, rounded twice (Chaikin) so the stroke has no corners of the mouse's steps.</summary>
+        /// <summary>The points without the ones a pixel apart, every 4 DIPs and rounded three times (Chaikin): no staircase of the mouse's pixel steps.</summary>
         private static List<Point> Smooth(IEnumerable<Point> raw)
         {
             var points = new List<Point>();
+            Point? last = null;
             foreach (var p in raw)
-                if (points.Count == 0 || (p - points[^1]).Length >= 1.5) points.Add(p);
-            for (var pass = 0; pass < 2 && points.Count > 2; pass++)
+            {
+                if (points.Count == 0 || (p - points[^1]).Length >= 4) points.Add(p);
+                last = p;
+            }
+            // The tip always where the cursor is.
+            if (last is { } tip && points.Count > 0 && points[^1] != tip) points.Add(tip);
+            for (var pass = 0; pass < 3 && points.Count > 2; pass++)
             {
                 var next = new List<Point>(points.Count * 2) { points[0] };
                 for (var i = 0; i < points.Count - 1; i++)
@@ -213,7 +219,7 @@ public sealed class GestureTrail
             _core.Points = all;
             // Thicker towards the tip: the stroke in pieces, each a little thicker than the one before.
             _pieces.Children.Clear();
-            var count = Math.Min(Pieces, Math.Max(1, line.Count / 3));
+            var count = Math.Min(Pieces, Math.Max(1, line.Count / 2));
             for (var k = 0; k < count; k++)
             {
                 int from = k * (line.Count - 1) / count, to = (k + 1) * (line.Count - 1) / count;
