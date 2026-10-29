@@ -109,8 +109,14 @@ public sealed partial class HotkeyRouter
     {
         public MouseButton Button { get; } = button;
 
-        /// <summary>Mouse 4 / Mouse 5 in a program of «Bloquear Atrás / Adelante»: never given back to it.</summary>
+        /// <summary>
+        /// The program never gets the button alone: its command (or K-Desktop's own key) blocks it, or it is Mouse 4 / Mouse 5
+        /// in a program of «Bloquear Atrás / Adelante».
+        /// </summary>
         public bool Blocked { get; } = blocked;
+
+        /// <summary>Held still, the press was sent to the program (its release then goes there too).</summary>
+        public bool PressSent { get; set; }
         public int StartX { get; } = x;
         public int StartY { get; } = y;
         public ForegroundWindow Front { get; } = front;
@@ -161,12 +167,13 @@ public sealed partial class HotkeyRouter
     {
         var index = _index;
         if (!index.HasGestures || e.Button != index.GestureButton || _gesture is not null || _capture is not null || _windowPicker is not null) return false;
-        if (_chord.Count > 0 || CurrentModifiers() != Modifiers.None || index.TakesAlone(ButtonName(e.Button))) return false;
+        // The key to talk is held to talk: never a gesture. Its command or K-Desktop's other keys still work on a press.
+        if (_chord.Count > 0 || CurrentModifiers() != Modifiers.None || index.IsTalkKey(ButtonName(e.Button), FrontProcess, out _)) return false;
         var hwnd = Win32.WindowFromPoint(new Win32.POINT { X = e.X, Y = e.Y });
         var under = ForegroundWindow.FromHandle(hwnd == IntPtr.Zero ? IntPtr.Zero : Win32.GetAncestor(hwnd, Win32.GA_ROOT));
         if (under.ProcessId == Environment.ProcessId || index.GesturesOffIn(under.ProcessName) || FullScreenAt(under.Handle, e.X, e.Y)) return false;
         var front = ForegroundWindow.Capture();
-        var blocked = e.Button is MouseButton.X1 or MouseButton.X2 && index.BlocksSideButtonsIn(front.ProcessName);
+        var blocked = e.Button is MouseButton.X1 or MouseButton.X2 && index.BlocksSideButtonsIn(front.ProcessName) || AloneBlocks(index, ButtonName(e.Button), front);
         var stroke = new GestureStroke(e.Button, e.X, e.Y, front, blocked);
         stroke.HoldTimer = new Timer(_ => HeldStill(stroke), null, HoldStill, Timeout.Infinite);
         _gesture = stroke;
@@ -194,8 +201,20 @@ public sealed partial class HotkeyRouter
         {
             if (!ReferenceEquals(_gesture, stroke) || stroke.Drawing || stroke.GivenBack || stroke.Cancelled) return;
             stroke.GivenBack = true;
+            stroke.PressSent = !stroke.Blocked;
         }
-        if (!stroke.Blocked) InputSimulator.MouseDown(stroke.Button);
+        if (stroke.PressSent) InputSimulator.MouseDown(stroke.Button);
+    }
+
+    /// <summary>What the button does alone swallows it (as <see cref="OnMouseDown"/> decides): its command or K-Desktop's key blocks.</summary>
+    private static bool AloneBlocks(HotkeyIndex index, string hotkey, ForegroundWindow front)
+    {
+        string Process() => front.ProcessName;
+        if (index.IsPauseHotkey(hotkey, Process)) return index.PauseBlock;
+        if (index.IsDisabledInHotkey(hotkey)) return index.DisabledInBlock;
+        if (index.IsLauncherHotkey(hotkey, Process)) return index.LauncherBlock;
+        if (index.IsClipboardHotkey(hotkey, Process)) return index.ClipboardBlock;
+        return index.Contains(hotkey) && index.Resolve(hotkey, front.ProcessName, out var block).Count > 0 && block;
     }
 
     /// <summary>
@@ -230,25 +249,36 @@ public sealed partial class HotkeyRouter
         return true;
     }
 
-    /// <summary>The gesture button went up (hook thread). Null: the event goes on as always.</summary>
+    /// <summary>
+    /// The gesture button went up (hook thread). A drawing runs its gesture; a press (let go without moving, or held still)
+    /// does what the button does alone, as if it had never been held back: its command or K-Desktop's key, and the click to
+    /// the program unless they block it. Null: the event goes on as always.
+    /// </summary>
     private bool? GestureUp(GestureStroke stroke)
     {
         GesturePoint[]? points = null;
-        bool click;
+        bool press, sent;
         lock (_gestureLock)
         {
             _gesture = null;
             stroke.HoldTimer?.Dispose();
             UpdateMoveForwarding();
             if (stroke.InChord) return null;
-            if (stroke.GivenBack) return false;
             if (stroke.Cancelled) return true;
-            click = !stroke.Drawing;
-            if (!click) points = [.. stroke.Points];
+            press = stroke.GivenBack || !stroke.Drawing;
+            sent = stroke.PressSent;
+            if (!press) points = [.. stroke.Points];
+        }
+        if (!press)
+        {
+            Post(() => FinishGesture(points!, stroke.Front));
+            return true;
         }
         var button = stroke.Button;
-        if (click && !stroke.Blocked) Post(() => InputSimulator.MouseClick(button));
-        else Post(() => FinishGesture(points!, stroke.Front));
+        OnMouseDown(button);
+        OnMouseUp(button); // fires what the button does alone
+        if (sent) return false; // the program got the press: it gets the release too
+        if (!stroke.Blocked) Post(() => InputSimulator.MouseClick(button));
         return true;
     }
 

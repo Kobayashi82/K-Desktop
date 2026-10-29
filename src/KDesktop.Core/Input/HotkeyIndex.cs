@@ -136,10 +136,6 @@ public sealed class HotkeyIndex
 
     public bool GesturesOffIn(string process) => _gesturesOffIn.Contains(process);
 
-    /// <summary>Something answers to <paramref name="hotkey"/> alone (a command or one of K-Desktop's own keys): it is not held back for gestures.</summary>
-    public bool TakesAlone(string hotkey) =>
-        _map.ContainsKey(hotkey) || _talkKeys.ContainsKey(hotkey) ||
-        new[] { VoiceHotkey, LauncherHotkey, ClipboardHotkey, ShowWindowHotkey, ExitHotkey, PauseHotkey, DisabledInHotkey }.Contains(hotkey, StringComparer.OrdinalIgnoreCase);
 
     public bool Contains(string hotkey) => _map.ContainsKey(hotkey);
 
