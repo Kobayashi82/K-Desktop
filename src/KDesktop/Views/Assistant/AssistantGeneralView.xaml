@@ -2,7 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-             xmlns:l="clr-namespace:KDesktop.Localization">
+             xmlns:l="clr-namespace:KDesktop.Localization"
+             xmlns:v="clr-namespace:KDesktop.Views">
     <!-- Options → Assistants → one assistant → «General» (5.0.113): how it is called (its word, its key to talk) and the
          model it thinks with. K-Desktop's own page, for every assistant and for K-Desktop. -->
     <StackPanel>
@@ -34,7 +35,7 @@
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <!-- As tall as the word's combo above, and without a key as wide as it with its record button -->
-                        <ui:Button x:Name="TalkKeyButton" VerticalAlignment="Stretch" MinHeight="{Binding ActualHeight, ElementName=WakeBox}" MinWidth="264"
+                        <ui:Button v:TrimmedTip.IsEnabled="True" x:Name="TalkKeyButton" VerticalAlignment="Stretch" MinHeight="{Binding ActualHeight, ElementName=WakeBox}" MinWidth="264"
                                    Click="OnCaptureTalkKey" AutomationProperties.Name="{l:Tr assistantGeneral.talkKey}" />
                         <ui:Button MinHeight="36" VerticalAlignment="Stretch" x:Name="TalkKeyClear" Margin="8,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                    AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearTalkKey" />

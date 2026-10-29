@@ -376,7 +376,7 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.pauseHotkeyHint}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:Button MinHeight="36" x:Name="PauseHotkeyButton" VerticalAlignment="Stretch" MinWidth="192" Click="OnCapturePauseHotkey" />
+                            <ui:Button v:TrimmedTip.IsEnabled="True" MinHeight="36" x:Name="PauseHotkeyButton" VerticalAlignment="Stretch" MinWidth="192" Click="OnCapturePauseHotkey" />
                             <ui:Button MinHeight="36" VerticalAlignment="Stretch" x:Name="PauseHotkeyClear" Margin="6,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearPauseHotkey" />
                             <v:IconToggle Width="38" Height="36" Margin="6,0,0,0" IsChecked="{Binding PauseBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
@@ -461,7 +461,7 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.showHotkeyHint}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:Button MinHeight="36" x:Name="ShowHotkeyButton" VerticalAlignment="Stretch" MinWidth="192" Click="OnCaptureShowHotkey" />
+                            <ui:Button v:TrimmedTip.IsEnabled="True" MinHeight="36" x:Name="ShowHotkeyButton" VerticalAlignment="Stretch" MinWidth="192" Click="OnCaptureShowHotkey" />
                             <ui:Button MinHeight="36" VerticalAlignment="Stretch" x:Name="ShowHotkeyClear" Margin="6,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearShowHotkey" />
                             <v:IconToggle Width="38" Height="36" Margin="6,0,0,0" IsChecked="{Binding ShowWindowBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
@@ -477,7 +477,7 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.exitHotkeyHint}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:Button MinHeight="36" x:Name="ExitHotkeyButton" VerticalAlignment="Stretch" MinWidth="192" Click="OnCaptureExitHotkey" />
+                            <ui:Button v:TrimmedTip.IsEnabled="True" MinHeight="36" x:Name="ExitHotkeyButton" VerticalAlignment="Stretch" MinWidth="192" Click="OnCaptureExitHotkey" />
                             <ui:Button MinHeight="36" VerticalAlignment="Stretch" x:Name="ExitHotkeyClear" Margin="6,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearExitHotkey" />
                             <v:IconToggle Width="38" Height="36" Margin="6,0,0,0" IsChecked="{Binding ExitBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
@@ -812,7 +812,7 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.launcherHotkeyHint}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:Button MinHeight="36" x:Name="LauncherHotkeyButton" VerticalAlignment="Stretch" MinWidth="192" Click="OnCaptureLauncherHotkey" />
+                            <ui:Button v:TrimmedTip.IsEnabled="True" MinHeight="36" x:Name="LauncherHotkeyButton" VerticalAlignment="Stretch" MinWidth="192" Click="OnCaptureLauncherHotkey" />
                             <ui:Button MinHeight="36" VerticalAlignment="Stretch" x:Name="LauncherHotkeyClear" Margin="6,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearLauncherHotkey" />
                             <v:IconToggle Width="38" Height="36" Margin="6,0,0,0" IsChecked="{Binding LauncherBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
@@ -901,7 +901,7 @@
                                 <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Text="{l:Tr settings.clipboardHotkeyHint}" />
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                <ui:Button MinHeight="36" x:Name="ClipboardHotkeyButton" VerticalAlignment="Stretch" MinWidth="192" Click="OnCaptureClipboardHotkey" />
+                                <ui:Button v:TrimmedTip.IsEnabled="True" MinHeight="36" x:Name="ClipboardHotkeyButton" VerticalAlignment="Stretch" MinWidth="192" Click="OnCaptureClipboardHotkey" />
                                 <ui:Button MinHeight="36" VerticalAlignment="Stretch" x:Name="ClipboardHotkeyClear" Margin="6,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                            AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearClipboardHotkey" />
                                 <v:IconToggle Width="38" Height="36" Margin="6,0,0,0" IsChecked="{Binding ClipboardBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
@@ -1207,7 +1207,7 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.voiceHotkeyHint}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:Button MinHeight="36" x:Name="VoiceHotkeyButton" VerticalAlignment="Stretch" MinWidth="192" Click="OnCaptureVoiceHotkey" />
+                            <ui:Button v:TrimmedTip.IsEnabled="True" MinHeight="36" x:Name="VoiceHotkeyButton" VerticalAlignment="Stretch" MinWidth="192" Click="OnCaptureVoiceHotkey" />
                             <ui:Button MinHeight="36" VerticalAlignment="Stretch" x:Name="VoiceHotkeyClear" Margin="6,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearVoiceHotkey" />
                             <v:IconToggle Width="38" Height="36" Margin="6,0,0,0" IsChecked="{Binding VoiceBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
@@ -1224,7 +1224,7 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.dictationHotkeyHint}" TextWrapping="Wrap" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:Button x:Name="DictationHotkeyButton" VerticalAlignment="Stretch" MinHeight="36" MinWidth="192" Click="OnCaptureDictationHotkey" />
+                            <ui:Button v:TrimmedTip.IsEnabled="True" x:Name="DictationHotkeyButton" VerticalAlignment="Stretch" MinHeight="36" MinWidth="192" Click="OnCaptureDictationHotkey" />
                             <ui:Button MinHeight="36" VerticalAlignment="Stretch" x:Name="DictationHotkeyClear" Margin="6,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearDictationHotkey" />
                             <v:IconToggle Width="38" Height="36" Margin="6,0,0,0" IsChecked="{Binding DictationBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"
@@ -1481,7 +1481,7 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr settings.disabledInHotkeyHint}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:Button x:Name="DisabledInHotkeyButton" VerticalAlignment="Stretch" MinHeight="36" MinWidth="200" Click="OnCaptureDisabledInHotkey" />
+                            <ui:Button v:TrimmedTip.IsEnabled="True" x:Name="DisabledInHotkeyButton" VerticalAlignment="Stretch" MinHeight="36" MinWidth="200" Click="OnCaptureDisabledInHotkey" />
                             <ui:Button MinHeight="36" VerticalAlignment="Stretch" x:Name="DisabledInHotkeyClear" Margin="6,0,0,0" Icon="{ui:SymbolIcon Dismiss24}" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearDisabledInHotkey" />
                             <v:IconToggle Width="38" Height="36" Margin="6,0,0,0" IsChecked="{Binding DisabledInBlockKey}" OnSymbol="LockClosed24" OffSymbol="LockOpen24"

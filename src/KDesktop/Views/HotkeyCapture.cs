@@ -60,7 +60,11 @@ public sealed class HotkeyCapture
         return true;
     }
 
-    private void OnDeactivated(object? sender, EventArgs e) => Cancel();
+    /// <summary>
+    /// Leaving the window cancels, but after what the hook already sent: a combination that takes the focus away as it is
+    /// pressed (or a click outside right after it) keeps the combination instead of «Sin atajo».
+    /// </summary>
+    private void OnDeactivated(object? sender, EventArgs e) => _dispatcher.BeginInvoke(Cancel, DispatcherPriority.Background);
 
     public void Cancel() => Finish(null);
 

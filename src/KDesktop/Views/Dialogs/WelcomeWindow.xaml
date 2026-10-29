@@ -3,6 +3,7 @@
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                  xmlns:l="clr-namespace:KDesktop.Localization"
+                 xmlns:v="clr-namespace:KDesktop.Views"
                  Title="K-Desktop"
                  Width="680" SizeToContent="Height"
                  WindowStartupLocation="CenterOwner"
@@ -173,7 +174,7 @@
                         <TextBlock Style="{StaticResource Caption}" Text="{l:Tr welcome.launcherKeyHint}" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <ui:Button x:Name="LauncherKeyButton" MinWidth="160" Icon="{ui:SymbolIcon Keyboard24}" Click="OnCaptureLauncherKey"
+                        <ui:Button v:TrimmedTip.IsEnabled="True" x:Name="LauncherKeyButton" MinWidth="160" Icon="{ui:SymbolIcon Keyboard24}" Click="OnCaptureLauncherKey"
                                    AutomationProperties.Name="{l:Tr welcome.launcherKey}" />
                         <ui:Button x:Name="LauncherKeyClear" Style="{StaticResource IconButton}" Margin="4,0,0,0" ToolTip="{l:Tr common.remove}"
                                    AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearLauncherKey">
@@ -235,7 +236,7 @@
                             <TextBlock Style="{StaticResource Caption}" Text="{l:Tr welcome.voiceKeyHint}" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <ui:Button x:Name="VoiceKeyButton" MinWidth="160" Icon="{ui:SymbolIcon Keyboard24}" Click="OnCaptureVoiceKey"
+                            <ui:Button v:TrimmedTip.IsEnabled="True" x:Name="VoiceKeyButton" MinWidth="160" Icon="{ui:SymbolIcon Keyboard24}" Click="OnCaptureVoiceKey"
                                        AutomationProperties.Name="{l:Tr welcome.voiceKey}" />
                             <ui:Button x:Name="VoiceKeyClear" Style="{StaticResource IconButton}" Margin="4,0,0,0" ToolTip="{l:Tr common.remove}"
                                        AutomationProperties.Name="{l:Tr common.remove}" Click="OnClearVoiceKey">
