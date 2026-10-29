@@ -22,7 +22,7 @@ siguiente.
 
 - **Solo en estas aplicaciones** (en *Opciones*): vacío, el texto vale en todas partes. Con aplicaciones, solo salta con
   una de ellas delante, también si están en *Desactivar en*. Así puedes tener la misma abreviatura con un texto para el
-  correo y otro para el resto: el de la aplicación gana ahí. En la lista lo marca un icono con las aplicaciones.
+  correo y otro para el resto: el de la aplicación gana ahí. En la lista, debajo de cada texto, se ve dónde vale, como en K-Board.
 - **Notas**: lo que quieras apuntar sobre el texto; no se escribe nunca.
 
 ## Cuándo salta

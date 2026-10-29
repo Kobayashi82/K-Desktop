@@ -42,12 +42,23 @@ public partial class TextSnippet : ObservableObject
     [JsonIgnore]
     public string Preview => Text.ReplaceLineEndings("\n").Split('\n').Select(l => l.Trim()).FirstOrDefault(l => l.Length > 0) ?? string.Empty;
 
-    /// <summary>The programs it is limited to, one per line (empty: everywhere).</summary>
+    /// <summary>For the list, as in K-Board: the first application (or «en todas») and +N.</summary>
+    [JsonIgnore]
+    public string FirstApp => Processes.Count == 0 ? Localization.Loc.T("kboard.everywhere") : Processes[0];
+
+    /// <summary>«+2» when there are more applications; empty otherwise.</summary>
+    [JsonIgnore]
+    public string MoreAppsText => Processes.Count > 1 ? "+" + (Processes.Count - 1).ToString(System.Globalization.CultureInfo.InvariantCulture) : string.Empty;
+
+    /// <summary>All of them, one per line (the tooltip of +N).</summary>
     [JsonIgnore]
     public string AppsList => string.Join(Environment.NewLine, Processes);
 
     [JsonIgnore]
     public bool HasApps => Processes.Count > 0;
+
+    /// <summary>Re-evaluates the localised texts (after a language change).</summary>
+    public void RefreshTexts() => base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(FirstApp)));
 
     /// <summary>Raised whenever it changes (autosave).</summary>
     public event EventHandler? Modified;
@@ -63,8 +74,8 @@ public partial class TextSnippet : ObservableObject
 
     private void OnProcessesChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(AppsList)));
-        base.OnPropertyChanged(new PropertyChangedEventArgs(nameof(HasApps)));
+        foreach (var name in new[] { nameof(FirstApp), nameof(MoreAppsText), nameof(AppsList), nameof(HasApps) })
+            base.OnPropertyChanged(new PropertyChangedEventArgs(name));
         Modified?.Invoke(this, EventArgs.Empty);
     }
 

@@ -52,7 +52,6 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <Border x:Name="Badge" MinWidth="30" Height="26" Margin="0,0,12,0" Padding="8,0" CornerRadius="13" Background="{DynamicResource Kd.AccentSoft}"
                                     VerticalAlignment="Center">
@@ -60,16 +59,27 @@
                                     <Run Text="{Binding DataContext.SnippetPrefix, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=OneWay}" /><Run Text="{Binding Abbreviation, Mode=OneWay}" />
                                 </TextBlock>
                             </Border>
-                            <TextBlock x:Name="Preview" Grid.Column="1" VerticalAlignment="Center" Text="{Binding Preview}" FontSize="13" TextTrimming="CharacterEllipsis"
-                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
-                            <ui:SymbolIcon Grid.Column="2" Symbol="AppFolder24" FontSize="14" Margin="6,0,0,0" VerticalAlignment="Center" ToolTip="{Binding AppsList}"
-                                           Foreground="{DynamicResource TextFillColorTertiaryBrush}" Visibility="{Binding HasApps, Converter={StaticResource BoolToCollapsed}}" />
-                            <ui:ToggleSwitch Grid.Column="3" Margin="6,0,6,0" VerticalAlignment="Center" IsChecked="{Binding Enabled}"
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Preview}" FontSize="13" TextTrimming="CharacterEllipsis"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                <!-- Where, as in K-Board: the first application, +N when there are more (tooltip: all of them) -->
+                                <v:InlineBadgePanel Margin="0,1,0,0">
+                                    <TextBlock Text="{Binding FirstApp}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Kd.AccentText}" />
+                                    <Border x:Name="MoreApps" Margin="6,0,0,0" Padding="5,0" CornerRadius="6" VerticalAlignment="Center"
+                                            Background="{DynamicResource Kd.AccentSoft}" ToolTip="{Binding AppsList}">
+                                        <TextBlock Text="{Binding MoreAppsText}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Kd.AccentText}" />
+                                    </Border>
+                                </v:InlineBadgePanel>
+                            </StackPanel>
+                            <ui:ToggleSwitch Grid.Column="2" Margin="6,0,6,0" VerticalAlignment="Center" IsChecked="{Binding Enabled}"
                                              ToolTip="{l:Tr snippets.on}" AutomationProperties.Name="{l:Tr snippets.on}" />
                         </Grid>
                         <DataTemplate.Triggers>
                             <DataTrigger Binding="{Binding Enabled}" Value="False">
                                 <Setter TargetName="Root" Property="Opacity" Value="0.55" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding MoreAppsText}" Value="">
+                                <Setter TargetName="MoreApps" Property="Visibility" Value="Collapsed" />
                             </DataTrigger>
                         </DataTemplate.Triggers>
                     </DataTemplate>
